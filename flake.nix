@@ -54,7 +54,11 @@
         ]
         ++ lib.optionals pkgs.stdenv.isDarwin [
           darwin.apple_sdk.frameworks.SystemConfiguration
+        ]
+        ++ lib.optionals pkgs.stdenv.isLinux [
+          openssl
         ];
+
       devEnvVars = rec {
         OTEL_EXPORTER_OTLP_ENDPOINT = http://localhost:4317;
         PGDATABASE = "pg";
