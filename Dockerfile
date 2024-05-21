@@ -7,4 +7,4 @@ FROM gcr.io/distroless/static
   COPY --from=build /src/target/x86_64-unknown-linux-musl/release/lava-core /bin/lava-core
   USER 1000
   ENV LAVA_HOME /lava
-  CMD ["lava-bank"]
+  CMD ["lava-core"]
