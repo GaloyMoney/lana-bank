@@ -59,7 +59,7 @@ plan:
 #@ end
 
 groups:
-- name: cala-enterprise
+- name: lava-bank
   jobs:
   - check-code
   - bats-tests

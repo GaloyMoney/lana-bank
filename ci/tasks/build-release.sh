@@ -8,7 +8,7 @@ if [[ -f version/version ]];then
 fi
 
 REPO=${REPO:-repo}
-BINARY=cala-enterprise
+BINARY=lava-core
 OUT=${OUT:-none}
 WORKSPACE="$(pwd)"
 
