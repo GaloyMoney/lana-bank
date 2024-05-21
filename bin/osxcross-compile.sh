@@ -14,7 +14,7 @@ export TARGET_CC=/workspace/osxcross/target/bin/x86_64h-apple-darwin23-cc
 export TARGET_AR=/workspace/osxcross/target/bin/x86_64h-apple-darwin23-ar
 
 rustup target add ${MACOS_TARGET}
-SQLX_OFFLINE=true cargo build --release --locked --bin lava-bank --target "${MACOS_TARGET}" --all-features
+SQLX_OFFLINE=true cargo build --release --locked --bin lava-core --target "${MACOS_TARGET}" --all-features
 
 echo
 echo Done
