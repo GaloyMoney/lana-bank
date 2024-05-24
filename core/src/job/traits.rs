@@ -1,5 +1,4 @@
 use async_trait::async_trait;
-use chrono::{DateTime, Utc};
 
 use super::{
     current::CurrentJob,
@@ -17,8 +16,8 @@ pub trait JobInitializer: Send + Sync + 'static {
 pub enum JobCompletion {
     Complete,
     CompleteWithTx(sqlx::Transaction<'static, sqlx::Postgres>),
-    RescheduleAt(DateTime<Utc>),
-    RescheduleAtWithTx(sqlx::Transaction<'static, sqlx::Postgres>, DateTime<Utc>),
+    Pause,
+    PauseWithTx(sqlx::Transaction<'static, sqlx::Postgres>),
 }
 
 #[async_trait]

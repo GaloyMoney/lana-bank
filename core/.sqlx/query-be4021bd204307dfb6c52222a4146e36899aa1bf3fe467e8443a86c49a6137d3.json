@@ -1,0 +1,14 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO fixed_term_loans (id)\n            VALUES ($1)",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "be4021bd204307dfb6c52222a4146e36899aa1bf3fe467e8443a86c49a6137d3"
+}

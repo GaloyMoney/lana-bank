@@ -1,24 +1,20 @@
 use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
 
-use super::repo::*;
-use crate::{
-    job::*,
-    ledger::*,
-    primitives::{FixedTermLoanId, LedgerTxId, UsdCents},
-};
+use super::{repo::*, state::*};
+use crate::{job::*, ledger::*, primitives::FixedTermLoanId};
 
 #[derive(Clone, Serialize, Deserialize)]
 pub struct FixedTermLoanJobConfig {
     pub loan_id: FixedTermLoanId,
 }
 
-pub struct FixedTermLoanInterestJobInitializer {
+pub struct FixedTermLoanJobInitializer {
     ledger: Ledger,
     repo: FixedTermLoanRepo,
 }
 
-impl FixedTermLoanInterestJobInitializer {
+impl FixedTermLoanJobInitializer {
     pub fn new(ledger: &Ledger, repo: FixedTermLoanRepo) -> Self {
         Self {
             ledger: ledger.clone(),
@@ -27,17 +23,17 @@ impl FixedTermLoanInterestJobInitializer {
     }
 }
 
-const FIXED_TERM_LOAN_INTEREST_JOB: JobType = JobType::new("fixed-term-loan-interest");
-impl JobInitializer for FixedTermLoanInterestJobInitializer {
+const FIXED_TERM_LOAN_JOB: JobType = JobType::new("FixedTermLoanJob");
+impl JobInitializer for FixedTermLoanJobInitializer {
     fn job_type() -> JobType
     where
         Self: Sized,
     {
-        FIXED_TERM_LOAN_INTEREST_JOB
+        FIXED_TERM_LOAN_JOB
     }
 
     fn init(&self, job: &Job) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
-        Ok(Box::new(FixedTermLoanInterestJobRunner {
+        Ok(Box::new(FixedTermLoanJobRunner {
             config: job.config()?,
             repo: self.repo.clone(),
             ledger: self.ledger.clone(),
@@ -45,40 +41,31 @@ impl JobInitializer for FixedTermLoanInterestJobInitializer {
     }
 }
 
-pub struct FixedTermLoanInterestJobRunner {
+pub struct FixedTermLoanJobRunner {
     config: FixedTermLoanJobConfig,
     repo: FixedTermLoanRepo,
     ledger: Ledger,
 }
 
 #[async_trait]
-impl JobRunner for FixedTermLoanInterestJobRunner {
+impl JobRunner for FixedTermLoanJobRunner {
     async fn run(
         &self,
-        current_job: CurrentJob,
+        _current_job: CurrentJob,
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
         let mut loan = self.repo.find_by_id(self.config.loan_id).await?;
-        let tx_id = LedgerTxId::new();
-        let tx_ref = loan.record_interest_transaction(tx_id);
-        println!(
-            "Loan interest job running for loan: {:?} - ref {}",
-            loan.id, tx_ref
-        );
-        let mut db_tx = current_job.pool().begin().await?;
-        self.repo.persist_in_tx(&mut db_tx, &mut loan).await?;
-
-        self.ledger
-            .record_interest(tx_id, loan.account_ids, tx_ref, UsdCents::ONE)
-            .await?;
-
-        match loan.next_interest_at() {
-            Some(next_interest_at) => {
-                Ok(JobCompletion::RescheduleAtWithTx(db_tx, next_interest_at))
+        match loan.state {
+            FixedTermLoanState::Initializing => {
+                let loan_id = self.ledger.create_accounts_for_loan(loan.id).await?;
+                loan.set_ledger_account_id(loan_id)?;
+                self.repo.persist(&mut loan).await?;
+                return Ok(JobCompletion::Pause);
             }
-            None => {
-                println!("Loan interest job completed for loan: {:?}", loan.id);
-                Ok(JobCompletion::CompleteWithTx(db_tx))
+            FixedTermLoanState::Collateralized => {
+                // update USD allocation
             }
+            _ => (),
         }
+        Ok(JobCompletion::Complete)
     }
 }

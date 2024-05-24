@@ -1,4 +1,3 @@
-use chrono::{DateTime, Utc};
 use sqlx::{postgres::types::PgInterval, PgPool, Postgres, Transaction};
 use tokio::sync::RwLock;
 use tracing::instrument;
@@ -39,7 +38,6 @@ impl JobExecutor {
         &self,
         tx: &mut Transaction<'_, Postgres>,
         job: &Job,
-        schedule_at: Option<DateTime<Utc>>,
     ) -> Result<(), JobError> {
         if job.job_type != I::job_type() {
             return Err(JobError::JobTypeMismatch(
@@ -52,14 +50,34 @@ impl JobExecutor {
         }
         sqlx::query!(
             r#"
-          INSERT INTO job_executions (id, reschedule_after)
-          VALUES ($1, COALESCE($2, NOW()))
+          INSERT INTO job_executions (id)
+          VALUES ($1)
         "#,
             job.id as JobId,
-            schedule_at
         )
         .execute(&mut **tx)
         .await?;
+        Ok(())
+    }
+
+    pub async fn resume_job(
+        &self,
+        tx: &mut Transaction<'_, Postgres>,
+        id: JobId,
+    ) -> Result<(), JobError> {
+        let result = sqlx::query!(
+            r#"
+          UPDATE job_executions
+          SET state = 'running'
+          WHERE id = $1
+        "#,
+            id as JobId,
+        )
+        .execute(&mut **tx)
+        .await?;
+        if result.rows_affected() != 1 {
+            return Err(JobError::CouldNotResumeJob);
+        }
         Ok(())
     }
 
@@ -226,12 +244,12 @@ impl JobExecutor {
             JobCompletion::CompleteWithTx(tx) => {
                 Self::complete_job(tx, id, repo).await?;
             }
-            JobCompletion::RescheduleAt(t) => {
+            JobCompletion::Pause => {
                 let tx = pool.begin().await?;
-                Self::reschedule_job(tx, id, t).await?;
+                Self::pause_job(tx, id, repo).await?;
             }
-            JobCompletion::RescheduleAtWithTx(tx, t) => {
-                Self::reschedule_job(tx, id, t).await?;
+            JobCompletion::PauseWithTx(tx) => {
+                Self::pause_job(tx, id, repo).await?;
             }
         }
         Ok(())
@@ -257,22 +275,24 @@ impl JobExecutor {
         Ok(())
     }
 
-    async fn reschedule_job(
+    async fn pause_job(
         mut tx: Transaction<'_, Postgres>,
         id: JobId,
-        reschedule_at: DateTime<Utc>,
+        repo: JobRepo,
     ) -> Result<(), JobError> {
+        let mut job = repo.find_by_id(id).await?;
         sqlx::query!(
             r#"
           UPDATE job_executions
-          SET state = 'pending', reschedule_after = $2
+          SET state = 'paused'
           WHERE id = $1
         "#,
-            id as JobId,
-            reschedule_at,
+            id as JobId
         )
         .execute(&mut *tx)
         .await?;
+        job.pause();
+        repo.persist(&mut tx, job).await?;
         tx.commit().await?;
         Ok(())
     }

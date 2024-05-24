@@ -1,55 +1,67 @@
 use async_graphql::*;
 
-use super::primitives::*;
+use super::{money::*, primitives::*};
+use crate::{app::LavaApp, fixed_term_loan::FixedTermLoanState, primitives::FixedTermLoanId};
 
 #[derive(SimpleObject)]
+#[graphql(complex)]
 pub struct FixedTermLoan {
-    loan_id: UUID,
-    user_id: UUID,
+    pub loan_id: UUID,
+    pub state: FixedTermLoanState,
+}
+
+#[ComplexObject]
+impl FixedTermLoan {
+    async fn balance(&self, ctx: &Context<'_>) -> async_graphql::Result<Money> {
+        let app = ctx.data_unchecked::<LavaApp>();
+        let money = app
+            .fixed_term_loans()
+            .balance_for_loan(FixedTermLoanId::from(&self.loan_id))
+            .await?;
+        Ok(Money::from(money))
+    }
 }
 
 #[derive(InputObject)]
 pub struct FixedTermLoanCreateInput {
-    pub user_id: UUID,
+    bitfinex_user_name: String,
 }
 
 #[derive(SimpleObject)]
 pub struct FixedTermLoanCreatePayload {
-    loan: FixedTermLoan,
+    pub loan: FixedTermLoan,
 }
 
 #[derive(InputObject)]
-pub struct FixedTermLoanApproveInput {
+pub struct FixedTermLoanDeclareCollateralizedInput {
     pub loan_id: UUID,
-    pub collateral: Satoshis,
-    pub principal: UsdCents,
 }
 
 #[derive(SimpleObject)]
-pub struct FixedTermLoanApprovePayload {
-    loan: FixedTermLoan,
+pub struct FixedTermLoanDeclareCollateralizedPayload {
+    pub loan: FixedTermLoan,
 }
 
 impl From<crate::fixed_term_loan::FixedTermLoan> for FixedTermLoan {
     fn from(loan: crate::fixed_term_loan::FixedTermLoan) -> Self {
         FixedTermLoan {
             loan_id: UUID::from(loan.id),
-            user_id: UUID::from(loan.user_id),
+            state: loan.state,
         }
     }
 }
 
 impl From<crate::fixed_term_loan::FixedTermLoan> for FixedTermLoanCreatePayload {
     fn from(loan: crate::fixed_term_loan::FixedTermLoan) -> Self {
-        Self {
+        FixedTermLoanCreatePayload {
             loan: FixedTermLoan::from(loan),
         }
     }
 }
 
-impl From<crate::fixed_term_loan::FixedTermLoan> for FixedTermLoanApprovePayload {
+impl From<crate::fixed_term_loan::FixedTermLoan> for FixedTermLoanDeclareCollateralizedPayload {
     fn from(loan: crate::fixed_term_loan::FixedTermLoan) -> Self {
-        Self {
+        FixedTermLoanDeclareCollateralizedPayload {
             loan: FixedTermLoan::from(loan),
         }
     }

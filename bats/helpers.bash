@@ -3,8 +3,7 @@ COMPOSE_PROJECT_NAME="${COMPOSE_PROJECT_NAME:-${REPO_ROOT##*/}}"
 
 GQL_ENDPOINT="http://localhost:5252/graphql"
 
-LAVG_HOME="${LAVG_HOME:-.lava}"
-export LAVA_CONFIG="${REPO_ROOT}/bats/lava.yml"
+LAVG_HOME="${LAVG_HOME:-.cala}"
 SERVER_PID_FILE="${LAVG_HOME}/server-pid"
 
 reset_pg() {
@@ -15,9 +14,9 @@ reset_pg() {
 }
 
 server_cmd() {
-  server_location="${REPO_ROOT}/target/debug/lava-core"
+  server_location="${REPO_ROOT}/target/debug/lava-core --config ${REPO_ROOT}/bats/cala.yml"
   if [[ ! -z ${CARGO_TARGET_DIR} ]] ; then
-    server_location="${CARGO_TARGET_DIR}/debug/lava-core"
+    server_location="${CARGO_TARGET_DIR}/debug/lava-core --config ${REPO_ROOT}/bats/cala.yml"
   fi
 
   bash -c ${server_location} $@
@@ -128,10 +127,3 @@ retry() {
   false
 }
 
-random_uuid() {
-  if [[ -e /proc/sys/kernel/random/uuid ]]; then
-    cat /proc/sys/kernel/random/uuid
-  else
-    uuidgen
-  fi
-}

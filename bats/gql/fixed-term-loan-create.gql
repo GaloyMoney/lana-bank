@@ -2,6 +2,11 @@ mutation fixedTermLoanCreate($input: FixedTermLoanCreateInput!) {
   fixedTermLoanCreate(input: $input) {
     loan {
       loanId
+      state
+      balance {
+        units
+        currency
+      }
     }
   }
 }

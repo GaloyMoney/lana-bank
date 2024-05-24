@@ -1,0 +1,14 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n          UPDATE job_executions\n          SET state = 'paused'\n          WHERE id = $1\n        ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "67230a2ff85b7321f7754429650d3f309358192719057db9cceb9b95fd5999b8"
+}

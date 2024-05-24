@@ -1,0 +1,11 @@
+mutation LavaJournalCreate($id: UUID!) {
+  journalCreate(input: {
+    journalId: $id
+    name: "Lava Journal"
+    description: "Journal for Lava"
+  }) {
+    journal {
+      journalId
+    }
+  }
+}

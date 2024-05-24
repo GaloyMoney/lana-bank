@@ -1,17 +1,13 @@
-mod convert;
 pub mod error;
 pub(super) mod graphql;
 
-use cala_types::primitives::TxTemplateId;
 use graphql_client::{GraphQLQuery, Response};
 use reqwest::{Client as ReqwestClient, Method};
-use rust_decimal::Decimal;
 use tracing::instrument;
 use uuid::Uuid;
 
-use crate::primitives::{LedgerAccountId, LedgerDebitOrCredit, LedgerJournalId, LedgerTxId};
-
-use super::{fixed_term_loan::FixedTermLoanAccountIds, user::UserLedgerAccountIds};
+use super::account::LedgerAccount;
+use crate::primitives::{LedgerAccountId, LedgerJournalId};
 
 use error::*;
 use graphql::*;
@@ -30,7 +26,7 @@ impl CalaClient {
 
     #[instrument(name = "lava.ledger.cala.find_journal_by_id", skip(self), err)]
     pub async fn find_journal_by_id(&self, id: Uuid) -> Result<LedgerJournalId, CalaError> {
-        let variables = journal_by_id::Variables { id };
+        let variables = journal_by_id::Variables { journal_id: id };
         let response =
             Self::traced_gql_request::<JournalById, _>(&self.client, &self.url, variables).await?;
         response
@@ -40,11 +36,11 @@ impl CalaClient {
             .ok_or(CalaError::MissingDataField)
     }
 
-    #[instrument(name = "lava.ledger.cala.create_core_journal", skip(self), err)]
-    pub async fn create_core_journal(&self, id: Uuid) -> Result<LedgerJournalId, CalaError> {
-        let variables = core_journal_create::Variables { id };
+    #[instrument(name = "lava.ledger.cala.create_lava_journal", skip(self), err)]
+    pub async fn create_lava_journal(&self, id: Uuid) -> Result<LedgerJournalId, CalaError> {
+        let variables = lava_journal_create::Variables { id };
         let response =
-            Self::traced_gql_request::<CoreJournalCreate, _>(&self.client, &self.url, variables)
+            Self::traced_gql_request::<LavaJournalCreate, _>(&self.client, &self.url, variables)
                 .await?;
         response
             .data
@@ -55,20 +51,16 @@ impl CalaClient {
     #[instrument(name = "lava.ledger.cala.create_account", skip(self), err)]
     pub async fn create_account(
         &self,
-        account_id: LedgerAccountId,
-        normal_balance_type: LedgerDebitOrCredit,
         name: String,
         code: String,
         external_id: String,
     ) -> Result<LedgerAccountId, CalaError> {
+        let account_id = LedgerAccountId::new();
         let variables = account_create::Variables {
             input: account_create::AccountCreateInput {
                 account_id: Uuid::from(account_id),
                 external_id: Some(external_id),
-                normal_balance_type: match normal_balance_type {
-                    LedgerDebitOrCredit::Credit => account_create::DebitOrCredit::CREDIT,
-                    LedgerDebitOrCredit::Debit => account_create::DebitOrCredit::DEBIT,
-                },
+                normal_balance_type: account_create::DebitOrCredit::CREDIT,
                 status: account_create::Status::ACTIVE,
                 name,
                 code,
@@ -85,31 +77,14 @@ impl CalaClient {
             .ok_or(CalaError::MissingDataField)
     }
 
-    #[instrument(name = "lava.ledger.cala.find_account_by_id", skip(self, id), err)]
-    pub async fn find_account_by_id<T: From<account_by_id::AccountByIdAccount>>(
-        &self,
-        id: impl Into<Uuid>,
-    ) -> Result<Option<T>, CalaError> {
-        let variables = account_by_id::Variables {
-            id: id.into(),
-            journal_id: super::constants::CORE_JOURNAL_ID,
-        };
-        let response =
-            Self::traced_gql_request::<AccountById, _>(&self.client, &self.url, variables).await?;
-
-        Ok(response.data.and_then(|d| d.account).map(T::from))
-    }
-
     #[instrument(name = "lava.ledger.cala.find_by_id", skip(self), err)]
-    pub async fn find_account_by_external_id<
-        T: From<account_by_external_id::AccountByExternalIdAccountByExternalId>,
-    >(
+    pub async fn find_account_by_external_id(
         &self,
         external_id: String,
-    ) -> Result<Option<T>, CalaError> {
+    ) -> Result<Option<LedgerAccount>, CalaError> {
         let variables = account_by_external_id::Variables {
             external_id,
-            journal_id: super::constants::CORE_JOURNAL_ID,
+            journal_id: super::constants::LAVA_JOURNAL_ID,
         };
         let response =
             Self::traced_gql_request::<AccountByExternalId, _>(&self.client, &self.url, variables)
@@ -118,219 +93,7 @@ impl CalaClient {
         Ok(response
             .data
             .and_then(|d| d.account_by_external_id)
-            .map(T::from))
-    }
-
-    #[instrument(name = "lava.ledger.cala.get_user_balance", skip(self), err)]
-    pub async fn get_user_balance<T: From<user_balance::ResponseData>>(
-        &self,
-        account_ids: UserLedgerAccountIds,
-    ) -> Result<Option<T>, CalaError> {
-        let variables = user_balance::Variables {
-            journal_id: super::constants::CORE_JOURNAL_ID,
-            unallocated_collateral_id: Uuid::from(account_ids.unallocated_collateral_id),
-            checking_id: Uuid::from(account_ids.checking_id),
-        };
-        let response =
-            Self::traced_gql_request::<UserBalance, _>(&self.client, &self.url, variables).await?;
-
-        Ok(response.data.map(T::from))
-    }
-
-    #[instrument(name = "lava.ledger.cala.find_tx_template_by_code", skip(self), err)]
-    pub async fn find_tx_template_by_code<
-        T: From<tx_template_by_code::TxTemplateByCodeTxTemplateByCode>,
-    >(
-        &self,
-        code: String,
-    ) -> Result<T, CalaError> {
-        let variables = tx_template_by_code::Variables { code };
-        let response =
-            Self::traced_gql_request::<TxTemplateByCode, _>(&self.client, &self.url, variables)
-                .await?;
-
-        response
-            .data
-            .and_then(|d| d.tx_template_by_code)
-            .map(T::from)
-            .ok_or_else(|| CalaError::MissingDataField)
-    }
-
-    #[instrument(
-        name = "lava.ledger.cala.create_topup_unallocated_collateral_tx_template",
-        skip(self),
-        err
-    )]
-    pub async fn create_topup_unallocated_collateral_tx_template(
-        &self,
-        template_id: TxTemplateId,
-    ) -> Result<TxTemplateId, CalaError> {
-        let variables = topup_unallocated_collateral_template_create::Variables {
-            template_id: Uuid::from(template_id),
-            journal_id: format!("uuid(\"{}\")", super::constants::CORE_JOURNAL_ID),
-            asset_account_id: format!("uuid(\"{}\")", super::constants::CORE_ASSETS_ID),
-        };
-        let response = Self::traced_gql_request::<TopupUnallocatedCollateralTemplateCreate, _>(
-            &self.client,
-            &self.url,
-            variables,
-        )
-        .await?;
-
-        response
-            .data
-            .map(|d| d.tx_template_create.tx_template.tx_template_id)
-            .map(TxTemplateId::from)
-            .ok_or_else(|| CalaError::MissingDataField)
-    }
-
-    #[instrument(
-        name = "lava.ledger.cala.create_approve_loan_template",
-        skip(self),
-        err
-    )]
-    pub async fn create_approve_loan_tx_template(
-        &self,
-        template_id: TxTemplateId,
-    ) -> Result<TxTemplateId, CalaError> {
-        let variables = approve_loan_template_create::Variables {
-            template_id: Uuid::from(template_id),
-            journal_id: format!("uuid(\"{}\")", super::constants::CORE_JOURNAL_ID),
-        };
-        let response = Self::traced_gql_request::<ApproveLoanTemplateCreate, _>(
-            &self.client,
-            &self.url,
-            variables,
-        )
-        .await?;
-
-        response
-            .data
-            .map(|d| d.tx_template_create.tx_template.tx_template_id)
-            .map(TxTemplateId::from)
-            .ok_or_else(|| CalaError::MissingDataField)
-    }
-
-    #[instrument(
-        name = "lava.ledger.cala.execute_topup_unallocated_collateral_tx",
-        skip(self),
-        err
-    )]
-    pub async fn execute_topup_unallocated_collateral_tx(
-        &self,
-        account_id: LedgerAccountId,
-        amount: Decimal,
-        external_id: String,
-    ) -> Result<(), CalaError> {
-        let transaction_id = uuid::Uuid::new_v4();
-        let variables = post_topup_unallocated_collateral_transaction::Variables {
-            transaction_id,
-            account_id: Uuid::from(account_id),
-            amount,
-            external_id,
-        };
-        let response = Self::traced_gql_request::<PostTopupUnallocatedCollateralTransaction, _>(
-            &self.client,
-            &self.url,
-            variables,
-        )
-        .await?;
-
-        response
-            .data
-            .map(|d| d.post_transaction.transaction.transaction_id)
-            .ok_or_else(|| CalaError::MissingDataField)?;
-        Ok(())
-    }
-
-    #[instrument(name = "lava.ledger.cala.execute_approve_loan_tx", skip(self), err)]
-    pub async fn execute_approve_loan_tx(
-        &self,
-        transaction_id: LedgerTxId,
-        loan_account_ids: FixedTermLoanAccountIds,
-        user_account_ids: UserLedgerAccountIds,
-        collateral_amount: Decimal,
-        principal_amount: Decimal,
-        external_id: String,
-    ) -> Result<(), CalaError> {
-        let variables = post_approve_loan_transaction::Variables {
-            transaction_id: transaction_id.into(),
-            unallocated_collateral_account: user_account_ids.unallocated_collateral_id.into(),
-            loan_collateral_account: loan_account_ids.collateral_account_id.into(),
-            loan_principal_account: loan_account_ids.principal_account_id.into(),
-            checking_account: user_account_ids.checking_id.into(),
-            collateral_amount,
-            principal_amount,
-            external_id,
-        };
-        let response = Self::traced_gql_request::<PostApproveLoanTransaction, _>(
-            &self.client,
-            &self.url,
-            variables,
-        )
-        .await?;
-
-        response
-            .data
-            .map(|d| d.post_transaction.transaction.transaction_id)
-            .ok_or_else(|| CalaError::MissingDataField)?;
-        Ok(())
-    }
-
-    #[instrument(
-        name = "lava.ledger.cala.create_incur_interest_template",
-        skip(self),
-        err
-    )]
-    pub async fn create_incur_interest_tx_template(
-        &self,
-        template_id: TxTemplateId,
-    ) -> Result<TxTemplateId, CalaError> {
-        let variables = incur_interest_template_create::Variables {
-            template_id: Uuid::from(template_id),
-            journal_id: format!("uuid(\"{}\")", super::constants::CORE_JOURNAL_ID),
-        };
-        let response = Self::traced_gql_request::<IncurInterestTemplateCreate, _>(
-            &self.client,
-            &self.url,
-            variables,
-        )
-        .await?;
-
-        response
-            .data
-            .map(|d| d.tx_template_create.tx_template.tx_template_id)
-            .map(TxTemplateId::from)
-            .ok_or_else(|| CalaError::MissingDataField)
-    }
-
-    #[instrument(name = "lava.ledger.cala.execute_interest_tx", skip(self), err)]
-    pub async fn execute_interest_tx(
-        &self,
-        transaction_id: LedgerTxId,
-        loan_account_ids: FixedTermLoanAccountIds,
-        interest_amount: Decimal,
-        external_id: String,
-    ) -> Result<(), CalaError> {
-        let variables = post_incur_interest_transaction::Variables {
-            transaction_id: transaction_id.into(),
-            loan_interest_account: loan_account_ids.interest_account_id.into(),
-            loan_interest_income_account: loan_account_ids.interest_income_account_id.into(),
-            interest_amount,
-            external_id,
-        };
-        let response = Self::traced_gql_request::<PostIncurInterestTransaction, _>(
-            &self.client,
-            &self.url,
-            variables,
-        )
-        .await?;
-
-        response
-            .data
-            .map(|d| d.post_transaction.transaction.transaction_id)
-            .ok_or_else(|| CalaError::MissingDataField)?;
-        Ok(())
+            .map(LedgerAccount::from))
     }
 
     async fn traced_gql_request<Q: GraphQLQuery, U: reqwest::IntoUrl>(

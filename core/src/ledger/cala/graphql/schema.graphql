@@ -1,7 +1,6 @@
 type Account {
 	id: ID!
 	accountId: UUID!
-	version: Int!
 	code: String!
 	name: String!
 	normalBalanceType: DebitOrCredit!
@@ -153,8 +152,8 @@ type JobEdge {
 type Journal {
 	id: ID!
 	journalId: UUID!
-	version: Int!
 	name: String!
+	externalId: String
 	status: Status!
 	description: String
 }
@@ -162,6 +161,7 @@ type Journal {
 input JournalCreateInput {
 	journalId: UUID!
 	name: String!
+	externalId: String
 	status: Status! = ACTIVE
 	description: String
 }
@@ -235,13 +235,11 @@ type PostTransactionPayload {
 }
 
 type Query {
-	account(id: UUID!): Account
+	account(accountId: UUID!): Account
 	accountByExternalId(externalId: String!): Account
 	accounts(first: Int!, after: String): AccountConnection!
-	journal(id: UUID!): Journal
+	journal(journalId: UUID!): Journal
 	balance(journalId: UUID!, accountId: UUID!, currency: CurrencyCode!): Balance
-	txTemplate(id: UUID!): TxTemplate
-	txTemplateByCode(code: String!): TxTemplate
 	jobs(first: Int!, after: String): JobConnection!
 }
 
@@ -254,7 +252,6 @@ enum Status {
 type Transaction {
 	id: ID!
 	transactionId: UUID!
-	version: Int!
 	txTemplateId: UUID!
 	journalId: UUID!
 	effective: Date!
@@ -282,7 +279,6 @@ type TxInput {
 type TxTemplate {
 	id: ID!
 	txTemplateId: UUID!
-	version: Int!
 	code: String!
 	params: [ParamDefinition!]
 	txInput: TxInput!

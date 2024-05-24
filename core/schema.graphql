@@ -1,83 +1,54 @@
-type Checking {
-	usdBalance: UsdCents!
-}
+scalar CurrencyCode
+
+scalar Decimal
 
 type FixedTermLoan {
 	loanId: UUID!
-	userId: UUID!
-}
-
-input FixedTermLoanApproveInput {
-	loanId: UUID!
-	collateral: Satoshis!
-	principal: UsdCents!
-}
-
-type FixedTermLoanApprovePayload {
-	loan: FixedTermLoan!
+	state: FixedTermLoanState!
+	balance: Money!
 }
 
 input FixedTermLoanCreateInput {
-	userId: UUID!
+	bitfinexUserName: String!
 }
 
 type FixedTermLoanCreatePayload {
 	loan: FixedTermLoan!
 }
 
+input FixedTermLoanDeclareCollateralizedInput {
+	loanId: UUID!
+}
+
+type FixedTermLoanDeclareCollateralizedPayload {
+	loan: FixedTermLoan!
+}
+
+enum FixedTermLoanState {
+	INITIALIZING
+	PENDING_COLLATERALIZATION
+	COLLATERALIZED
+}
 
 
+
+
+type Money {
+	units: Decimal!
+	currency: CurrencyCode!
+}
 
 type Mutation {
-	userCreate(input: UserCreateInput!): UserCreatePayload!
-	userTopupCollateral(input: UserTopupCollateralInput!): UserTopupCollateralPayload!
 	fixedTermLoanCreate(input: FixedTermLoanCreateInput!): FixedTermLoanCreatePayload!
-	fixedTermLoanApprove(input: FixedTermLoanApproveInput!): FixedTermLoanApprovePayload!
+	fixedTermLoanDeclareCollateralized(input: FixedTermLoanDeclareCollateralizedInput!): FixedTermLoanDeclareCollateralizedPayload!
 }
 
 type Query {
 	loan(id: UUID!): FixedTermLoan
 }
 
-scalar Satoshis
-
 
 scalar UUID
-
-type UnallocatedCollateral {
-	btcBalance: Satoshis!
-}
-
-scalar UsdCents
-
-type User {
-	userId: UUID!
-	bitfinexUsername: String!
-	balance: UserBalance!
-}
-
-type UserBalance {
-	unallocatedCollateral: UnallocatedCollateral!
-	checking: Checking!
-}
-
-input UserCreateInput {
-	bitfinexUsername: String!
-}
-
-type UserCreatePayload {
-	user: User!
-}
-
-input UserTopupCollateralInput {
-	userId: UUID!
-	amount: Satoshis!
-	reference: String!
-}
-
-type UserTopupCollateralPayload {
-	user: User!
-}
 
 directive @include(if: Boolean!) on FIELD | FRAGMENT_SPREAD | INLINE_FRAGMENT
 directive @skip(if: Boolean!) on FIELD | FRAGMENT_SPREAD | INLINE_FRAGMENT

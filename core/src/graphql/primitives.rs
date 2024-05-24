@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::primitives::*;
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Serialize, Deserialize)]
 #[serde(transparent)]
 pub struct UUID(uuid::Uuid);
 scalar!(UUID);
@@ -21,12 +21,7 @@ impl From<&UUID> for FixedTermLoanId {
 }
 impl From<UUID> for FixedTermLoanId {
     fn from(uuid: UUID) -> Self {
-        Self::from(uuid.0)
-    }
-}
-impl From<UUID> for UserId {
-    fn from(uuid: UUID) -> Self {
-        Self::from(uuid.0)
+        FixedTermLoanId::from(uuid.0)
     }
 }
 
@@ -54,9 +49,3 @@ impl From<crate::primitives::Currency> for CurrencyCode {
         Self(currency)
     }
 }
-
-pub use crate::primitives::Satoshis;
-scalar!(Satoshis);
-
-pub use crate::primitives::UsdCents;
-scalar!(UsdCents);

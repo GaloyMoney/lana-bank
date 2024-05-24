@@ -1,0 +1,11 @@
+mutation LavaAccountsCreate($loanOmnibusId: UUID!) {
+  loanOmnibusAccount: accountCreate(input: {
+    accountId: $loanOmnibusId
+    name: "Loan Omnibus Account"
+    description: "Account for all loans"
+  }) {
+    account {
+      accountId
+    }
+  }
+}

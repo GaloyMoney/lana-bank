@@ -2,7 +2,7 @@ next-watch:
 	cargo watch -s 'cargo nextest run'
 
 clean-deps:
-	docker compose down -t 1
+	docker compose down
 
 start-deps:
 	docker compose up -d integration-deps
@@ -21,6 +21,10 @@ rust-example:
 update-lib-in-nodejs-example:
 	cd cala-nodejs && SQLX_OFFLINE=true yarn build
 	cd examples/nodejs && rm -rf ./node_modules && yarn install
+
+re-run-nodejs-example: clean-deps start-deps
+	sleep 2
+	cd examples/nodejs && yarn run start
 
 check-code: sdl
 	git diff --exit-code core/schema.graphql
@@ -41,18 +45,11 @@ sdl:
 bump-cala-schema:
 	curl https://raw.githubusercontent.com/GaloyMoney/cala/main/cala-server/schema.graphql > core/src/ledger/cala/graphql/schema.graphql
 
-bump-cala-docker-image:
-	docker pull us.gcr.io/galoy-org/cala:edge
-
-bump-cala: bump-cala-docker-image bump-cala-schema
-
-test-in-ci: start-deps
-	sleep 3
-	cd core && cargo sqlx migrate run
+test-in-ci: start-deps setup-db
 	cargo nextest run --verbose --locked
 
 build-x86_64-unknown-linux-musl-release:
-	SQLX_OFFLINE=true cargo build --release --locked --bin lava-core --target x86_64-unknown-linux-musl
+	SQLX_OFFLINE=true cargo build --release --locked --bin cala-server --target x86_64-unknown-linux-musl
 
 build-x86_64-apple-darwin-release:
 	bin/osxcross-compile.sh

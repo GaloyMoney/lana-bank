@@ -1,0 +1,21 @@
+query AccountByExternalId($externalId: String!, $journalId: UUID!) {
+  accountByExternalId(externalId: $externalId) {
+    accountId
+    usdBalance: balance(journalId: $journalId, currency: "USD"){
+      settled {
+        normalBalance {
+          units
+          currency
+        }
+      }
+    }
+    btcBalance: balance(journalId: $journalId, currency: "BTC"){
+      settled {
+        normalBalance {
+          units
+          currency
+        }
+      }
+    }
+  }
+}
