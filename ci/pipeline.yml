@@ -65,6 +65,7 @@ groups:
   - bats-tests
   - build-edge-image
   - release
+  - bump-image-in-chart
 
 jobs:
 - #@ rust_check_code()
@@ -178,6 +179,60 @@ jobs:
     params:
       file: version/version
 
+- name: bump-image-in-chart
+  plan:
+    - in_parallel:
+        - get: edge-image
+          passed: [ release ]
+          params: { skip_download: true }
+        - get: repo
+          trigger: true
+          passed: [ release ]
+        - get: version
+          trigger: true
+          passed: [ release ]
+        - get: charts-repo
+          params: { skip_download: true }
+        - get: pipeline-tasks
+    - task: bump-image-digest-in-values
+      config:
+        platform: linux
+        image_resource: #@ rust_task_image_config()
+        inputs:
+          - name: repo
+          - name: edge-image
+          - name: pipeline-tasks
+          - name: charts-repo
+          - name: version
+        outputs:
+          - name: charts-repo
+        params:
+          BRANCH: #@ data.values.git_charts_branch
+          CHARTS_SUBDIR: lava-bank
+        run:
+          path: pipeline-tasks/ci/tasks/bump-image-digest.sh
+    - put: charts-repo-bot-branch
+      params:
+        repository: charts-repo
+        force: true
+    - task: open-charts-pr
+      config:
+        platform: linux
+        image_resource: #@ rust_task_image_config()
+        inputs:
+          - name: pipeline-tasks
+          - name: edge-image
+          - name: charts-repo
+          - name: repo
+        params:
+          GH_APP_ID: #@ data.values.github_app_id
+          GH_APP_PRIVATE_KEY: #@ data.values.github_app_private_key
+          BRANCH: #@ data.values.git_charts_branch
+          BOT_BRANCH: #@ data.values.git_charts_bot_branch
+          CHARTS_SUBDIR: lava-bank
+        run:
+          path: pipeline-tasks/ci/tasks/chart-open-charts-pr.sh
+
 resources:
 - #@ repo_resource(True)
 - #@ pipeline_tasks_resource()
@@ -185,6 +240,8 @@ resources:
 - #@ edge_image_resource(publicRepo=False)
 - #@ version_resource()
 - #@ gh_release_resource()
+- #@ charts_repo_bot_branch()
+- #@ charts_repo_resource()
 - name: latest-image
   type: registry-image
   source:
