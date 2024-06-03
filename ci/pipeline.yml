@@ -62,6 +62,7 @@ groups:
 - name: lava-bank
   jobs:
   - check-code
+  - integration-tests
   - bats-tests
   - build-edge-image
   - release
@@ -69,6 +70,7 @@ groups:
 
 jobs:
 - #@ rust_check_code()
+- #@ on_nix_host("integration-tests", "make test-in-ci")
 - #@ on_nix_host("bats-tests", "make e2e")
 - #@ build_edge_image()
 
@@ -79,6 +81,7 @@ jobs:
     - get: repo
       passed:
       - check-code
+      - integration-tests
       - bats-tests
     - get: pipeline-tasks
     - get: version
