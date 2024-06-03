@@ -1,0 +1,23 @@
+mutation userCreate {
+  userCreate(input: { bitfinexUsername: "Alice" }) {
+    user {
+      userId
+      bitfinexUsername
+      balance {
+        unallocatedCollateral {
+          settled {
+            btcBalance
+          }
+        }
+        checking {
+          settled {
+            usdBalance
+          }
+        }
+      }
+    }
+  }
+}
+
+
+userId: "11accdf5-b617-4442-81f7-a068175b7bd9"

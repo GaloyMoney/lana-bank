@@ -1,0 +1,22 @@
+mutation UserPledgeCollateral($userId: UUID!) {
+  userPledgeCollateral(input: {
+    userId: $userId,
+    amount: 1000000000,
+    reference: "topup-02"
+  }) {
+    user {
+      userId
+      balance {
+        unallocatedCollateral {
+          settled {
+            btcBalance
+          }
+        }
+      }
+    }
+  }
+}
+
+{
+  "userId": "f319bb74-4efd-4c6c-99ff-f82db8c13046"
+}

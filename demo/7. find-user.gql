@@ -1,0 +1,21 @@
+query user($id: UUID!) {
+  user(id: $id) {
+    balance {
+      unallocatedCollateral {
+        settled {
+          btcBalance
+        }
+      }
+      checking {
+        settled {
+          usdBalance
+        }
+        encumbrance {
+          usdBalance
+        }
+      }
+    }
+  }
+}
+
+{ id: "df449512-e399-4471-a8e0-afa2a4f670ba" }

@@ -1,0 +1,28 @@
+mutation makeLoanPayment($loanId: UUID!) {
+  fixedTermLoanRecordPayment(input: {
+    loanId: $loanId
+    amount: 1000
+  }) {
+    loan {
+      loanId
+      balance {
+        collateral {
+          btcBalance
+        }
+        outstanding {
+          usdBalance
+        }
+        interestIncurred {
+          usdBalance
+        }
+      }
+    }
+  }
+}
+
+{
+  "input": {
+    "loanId": "945773e8-738b-4229-a5da-390d87001001",
+    "amount": 1
+  }
+}

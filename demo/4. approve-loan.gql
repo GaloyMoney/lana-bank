@@ -1,0 +1,30 @@
+mutation approveLoan($loanId: UUID!) {
+  fixedTermLoanApprove(input: {
+    loanId: $loanId
+    collateral: 400000000
+    principal: 25000000
+  }) {
+    loan {
+      loanId
+      balance {
+        collateral {
+          btcBalance
+        }
+        outstanding {
+          usdBalance
+        }
+        interestIncurred {
+          usdBalance
+        }
+      }
+    }
+  }
+}
+
+{
+  "input": {
+    "loanId": "945773e8-738b-4229-a5da-390d87001001",
+    "collateral": 100000,
+    "principal": 200000
+  }
+}

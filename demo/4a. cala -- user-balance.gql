@@ -1,0 +1,42 @@
+query UserBalance(
+  $journalId: UUID!
+  $unallocatedCollateralId: UUID!
+  $checkingId: UUID!
+) {
+  unallocated_collateral: balance(
+    journalId: $journalId
+    accountId: $unallocatedCollateralId
+    currency: "BTC"
+  ) {
+    settled {
+      normalBalance {
+        units
+        currency
+      }
+    }
+  }
+  checking: balance(
+    journalId: $journalId
+    accountId: $checkingId
+    currency: "USD"
+  ) {
+    settled {
+      normalBalance {
+        units
+        currency
+      }
+    }
+    pending {
+      normalBalance {
+        units
+        currency
+      }
+    }
+  }
+}
+
+{
+  "journalId": "00000000-0000-0000-0000-000000000001",
+  "unallocatedCollateralId": "84ebed13-055f-4df4-b46b-d4ef68e01fda",
+  "checkingId": "aaa8f920-d49c-4fd2-917c-a3f15bbe8593"
+}

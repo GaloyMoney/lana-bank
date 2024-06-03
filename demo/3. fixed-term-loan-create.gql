@@ -1,0 +1,28 @@
+mutation fixedTermLoanCreate($userId: UUID!) {
+  fixedTermLoanCreate(input: {
+    userId: $userId
+  }) {
+    loan {
+      loanId
+      balance {
+        collateral {
+          btcBalance
+        }
+        outstanding {
+          usdBalance
+        }
+        interestIncurred {
+          usdBalance
+        }
+      }
+    }
+  }
+}
+
+{
+  "input": {
+    "userId": "df449512-e399-4471-a8e0-afa2a4f670ba"
+  }
+}
+
+loanId: "945773e8-738b-4229-a5da-390d87001001"

@@ -1,0 +1,18 @@
+query fixedTermLoan($id: UUID!) {
+  loan(id: $id) {
+    loanId
+    balance {
+      collateral {
+        btcBalance
+      }
+      outstanding {
+        usdBalance
+      }
+      interestIncurred {
+        usdBalance
+      }
+    }
+  }
+}
+
+{ "id": "945773e8-738b-4229-a5da-390d87001001" }

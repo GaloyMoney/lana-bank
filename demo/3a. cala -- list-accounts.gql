@@ -1,0 +1,9 @@
+query ListAccount {
+  accounts(first: 10) {
+    __typename
+    nodes {
+      accountId
+      name
+    }
+  }
+}
