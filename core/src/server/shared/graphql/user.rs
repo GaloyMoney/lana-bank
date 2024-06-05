@@ -1,11 +1,8 @@
 use async_graphql::*;
 
-use crate::{
-    app::LavaApp, ledger::user::UserLedgerAccountIds, primitives::UsdCents,
-    server::shared::primitives::UUID,
-};
+use crate::{app::LavaApp, ledger, primitives::UsdCents, server::shared::primitives::UUID};
 
-use super::user_balance::UserBalance;
+use super::objects::{BtcBalance, UsdBalance};
 
 #[derive(SimpleObject)]
 #[graphql(complex)]
@@ -13,7 +10,7 @@ pub struct User {
     user_id: UUID,
     bitfinex_username: String,
     #[graphql(skip)]
-    account_ids: UserLedgerAccountIds,
+    account_ids: ledger::user::UserLedgerAccountIds,
 }
 
 #[ComplexObject]
@@ -48,6 +45,43 @@ impl From<crate::withdraw::Withdraw> for Withdrawal {
             withdrawal_id: UUID::from(withdraw.id),
             user_id: UUID::from(withdraw.user_id),
             amount: withdraw.amount,
+        }
+    }
+}
+
+#[derive(SimpleObject)]
+struct UnallocatedCollateral {
+    settled: BtcBalance,
+}
+
+#[derive(SimpleObject)]
+struct Checking {
+    settled: UsdBalance,
+    pending: UsdBalance,
+}
+
+#[derive(SimpleObject)]
+struct UserBalance {
+    unallocated_collateral: UnallocatedCollateral,
+    checking: Checking,
+}
+
+impl From<ledger::user::UserBalance> for UserBalance {
+    fn from(balance: ledger::user::UserBalance) -> Self {
+        Self {
+            unallocated_collateral: UnallocatedCollateral {
+                settled: BtcBalance {
+                    btc_balance: balance.unallocated_collateral,
+                },
+            },
+            checking: Checking {
+                settled: UsdBalance {
+                    usd_balance: balance.checking.settled,
+                },
+                pending: UsdBalance {
+                    usd_balance: balance.checking.pending,
+                },
+            },
         }
     }
 }
