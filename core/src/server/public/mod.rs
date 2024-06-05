@@ -58,14 +58,14 @@ async fn studio_explorer(config: Extension<PublicServerConfig>) -> impl IntoResp
                 target: "\#sandbox",
                 // Pass through your server href if you are embedding on an endpoint.
                 // Otherwise, you can pass whatever endpoint you want Sandbox to start up with here.
-                initialEndpoint: "http://localhost:{}/graphql",
+                initialEndpoint: "{}:{}/graphql",
                 }});
                 // advanced options: https://www.apollographql.com/docs/studio/explorer/sandbox#embedding-sandbox
             </script>
         </body>
     </html>
     "#,
-        config.port
+        config.endpoint, config.port,
     );
 
     Html(html_content).into_response()

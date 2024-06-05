@@ -4,16 +4,23 @@ use serde::{Deserialize, Serialize};
 pub struct PublicServerConfig {
     #[serde(default = "default_port")]
     pub port: u16,
+    #[serde(default = "default_endpoint")]
+    pub endpoint: String,
 }
 
 impl Default for PublicServerConfig {
     fn default() -> Self {
         Self {
             port: default_port(),
+            endpoint: default_endpoint(),
         }
     }
 }
 
 fn default_port() -> u16 {
     5252
+}
+
+fn default_endpoint() -> String {
+    "http://localhost".to_string()
 }
