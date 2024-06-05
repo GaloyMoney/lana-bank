@@ -10,6 +10,7 @@ use axum::{
     Extension, Router,
 };
 use axum_extra::headers::HeaderMap;
+use serde_json::json;
 
 use crate::app::LavaApp;
 
@@ -45,26 +46,36 @@ pub async fn graphql_handler(
 }
 
 async fn studio_explorer(config: Extension<AdminServerConfig>) -> impl IntoResponse {
+    let initial_state = json!({
+            "document": r#"query SchemaDescription{
+    __schema {
+        description
+    }
+}
+"#,
+    });
+
     let html_content = format!(
-        r#"
-    <!DOCTYPE html>
-    <html lang="en">
-        <body style="margin: 0; overflow-x: hidden; overflow-y: hidden">
-            <div id="sandbox" style="height:100vh; width:100vw;"></div>
-            <script src="https://embeddable-sandbox.cdn.apollographql.com/_latest/embeddable-sandbox.umd.production.min.js"></script>
-            <script>
-                new window.EmbeddedSandbox({{
-                target: "\#sandbox",
-                // Pass through your server href if you are embedding on an endpoint.
-                // Otherwise, you can pass whatever endpoint you want Sandbox to start up with here.
-                initialEndpoint: "{}:{}/graphql",
-                }});
-                // advanced options: https://www.apollographql.com/docs/studio/explorer/sandbox#embedding-sandbox
-            </script>
-        </body>
-    </html>
-    "#,
-        config.endpoint, config.port,
+        r#"<!DOCTYPE html>
+<html lang="en">
+    <body style="margin: 0; overflow-x: hidden; overflow-y: hidden">
+        <div id="sandbox" style="height:100vh; width:100vw;"></div>
+        <script src="https://embeddable-sandbox.cdn.apollographql.com/_latest/embeddable-sandbox.umd.production.min.js"></script>
+        <script>
+            new window.EmbeddedSandbox({{
+            target: "\#sandbox",
+            // Pass through your server href if you are embedding on an endpoint.
+            // Otherwise, you can pass whatever endpoint you want Sandbox to start up with here.
+            initialEndpoint: "{}:{}/graphql",
+            endpointIsEditable: "false",
+            initialState: {},
+            }});
+            // advanced options: https://www.apollographql.com/docs/studio/explorer/sandbox#embedding-sandbox
+        </script>
+    </body>
+</html>
+"#,
+        config.endpoint, config.port, initial_state,
     );
 
     Html(html_content).into_response()
