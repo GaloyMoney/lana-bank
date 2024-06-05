@@ -1,5 +1,4 @@
 mod fixed_term_loan;
-mod fixed_term_loan_balance;
 mod schema;
 mod user;
 
