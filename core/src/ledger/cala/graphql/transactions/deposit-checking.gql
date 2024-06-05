@@ -1,0 +1,85 @@
+mutation DepositCheckingTemplateCreate(
+  $templateId: UUID!
+  $journalId: Expression!
+  $bankUsdAccountId: Expression!
+) {
+  txTemplateCreate(
+    input: {
+      txTemplateId: $templateId
+      code: "DEPOSIT_CHECKING"
+      description: "A USD deposit into the users checking account."
+      params: [
+        {
+          name: "account"
+          type: UUID
+          description: "User checking account ID."
+        }
+        {
+          name: "amount"
+          type: DECIMAL
+          description: "Amount of USD being deposited."
+        }
+        {
+          name: "effective"
+          type: DATE
+          description: "Effective date for transaction."
+          default: "date()"
+        }
+        {
+          name: "externalId"
+          type: STRING
+          description: "External ID for the transaction"
+        }
+      ]
+      txInput: {
+        journalId: $journalId
+        effective: "params.effective"
+        externalId: "params.externalId"
+      }
+      entries: [
+        {
+          accountId: $bankUsdAccountId
+          units: "params.amount"
+          currency: "'USD'"
+          entryType: "'DEPOSIT_CHECKING_DR'"
+          direction: "DEBIT"
+          layer: "SETTLED"
+        }
+        {
+          accountId: "params.account"
+          units: "params.amount"
+          currency: "'USD'"
+          entryType: "'DEPOSIT_CHECKING_CR'"
+          direction: "CREDIT"
+          layer: "SETTLED"
+        }
+      ]
+    }
+  ) {
+    txTemplate {
+      txTemplateId
+      code
+      version
+    }
+  }
+}
+
+mutation PostDepositCheckingTransaction(
+  $transactionId: UUID!
+  $accountId: UUID!
+  $amount: Decimal!
+  $externalId: String!
+) {
+  postTransaction(
+    input: {
+      transactionId: $transactionId
+      txTemplateCode: "DEPOSIT_CHECKING"
+      params: { account: $accountId, amount: $amount, externalId: $externalId }
+    }
+  ) {
+    transaction {
+      transactionId
+      correlationId
+    }
+  }
+}

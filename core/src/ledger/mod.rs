@@ -76,7 +76,7 @@ impl Ledger {
         Ok(account_ids)
     }
 
-    #[instrument(name = "lava.ledger.pledge_collateral_for_user", skip(self), err)]
+    #[instrument(name = "lava.ledger.deposit_checking_for_user", skip(self), err)]
     pub async fn pledge_collateral_for_user(
         &self,
         id: LedgerAccountId,
@@ -86,6 +86,19 @@ impl Ledger {
         Ok(self
             .cala
             .execute_pledge_unallocated_collateral_tx(id, amount.to_btc(), reference)
+            .await?)
+    }
+
+    #[instrument(name = "lava.ledger.deposit_checking_for_user", skip(self), err)]
+    pub async fn deposit_checking_for_user(
+        &self,
+        id: LedgerAccountId,
+        amount: UsdCents,
+        reference: String,
+    ) -> Result<(), LedgerError> {
+        Ok(self
+            .cala
+            .execute_deposit_checking_tx(id, amount.to_usd(), reference)
             .await?)
     }
 
@@ -379,6 +392,9 @@ impl Ledger {
         )
         .await?;
 
+        Self::assert_deposit_checking_tx_template_exists(cala, constants::DEPOSIT_CHECKING_CODE)
+            .await?;
+
         Self::assert_approve_loan_tx_template_exists(cala, constants::APPROVE_LOAN_CODE).await?;
 
         Self::assert_incur_interest_tx_template_exists(cala, constants::INCUR_INTEREST_CODE)
@@ -420,6 +436,31 @@ impl Ledger {
             .create_pledge_unallocated_collateral_tx_template(template_id)
             .await
         {
+            Ok(id) => {
+                return Ok(id);
+            }
+            Err(e) => e,
+        };
+
+        Ok(cala
+            .find_tx_template_by_code::<LedgerTxTemplateId>(template_code.to_owned())
+            .await
+            .map_err(|_| err)?)
+    }
+
+    async fn assert_deposit_checking_tx_template_exists(
+        cala: &CalaClient,
+        template_code: &str,
+    ) -> Result<LedgerTxTemplateId, LedgerError> {
+        if let Ok(id) = cala
+            .find_tx_template_by_code::<LedgerTxTemplateId>(template_code.to_owned())
+            .await
+        {
+            return Ok(id);
+        }
+
+        let template_id = LedgerTxTemplateId::new();
+        let err = match cala.create_deposit_checking_tx_template(template_id).await {
             Ok(id) => {
                 return Ok(id);
             }

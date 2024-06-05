@@ -63,6 +63,7 @@ type LoanOutstanding {
 
 type Mutation {
 	userCreate(input: UserCreateInput!): UserCreatePayload!
+	userDeposit(input: UserDepositInput!): UserDepositPayload!
 	withdrawalInitiate(input: WithdrawalInitiateInput!): WithdrawalInitiatePayload!
 	fixedTermLoanCreate(input: FixedTermLoanCreateInput!): FixedTermLoanCreatePayload!
 	fixedTermLoanApprove(input: FixedTermLoanApproveInput!): FixedTermLoanApprovePayload!
@@ -105,6 +106,16 @@ input UserCreateInput {
 }
 
 type UserCreatePayload {
+	user: User!
+}
+
+input UserDepositInput {
+	userId: UUID!
+	amount: UsdCents!
+	reference: String!
+}
+
+type UserDepositPayload {
 	user: User!
 }
 
