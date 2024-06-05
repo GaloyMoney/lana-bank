@@ -1,0 +1,14 @@
+mutation UserDeposit($input: UserDepositInput!) {
+  userDeposit(input: $input) {
+    user {
+      userId
+      balance {
+        checking {
+          settled {
+            usdBalance
+          }
+        }
+      }
+    }
+  }
+}
