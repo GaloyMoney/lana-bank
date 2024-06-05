@@ -53,26 +53,6 @@ impl From<crate::user::User> for UserCreatePayload {
     }
 }
 
-#[derive(InputObject)]
-pub struct UserDepositInput {
-    pub user_id: UUID,
-    pub amount: UsdCents,
-    pub reference: String,
-}
-
-#[derive(SimpleObject)]
-pub struct UserDepositPayload {
-    pub user: User,
-}
-
-impl From<crate::user::User> for UserDepositPayload {
-    fn from(user: crate::user::User) -> Self {
-        Self {
-            user: User::from(user),
-        }
-    }
-}
-
 #[derive(SimpleObject)]
 pub struct Withdrawal {
     withdrawal_id: UUID,

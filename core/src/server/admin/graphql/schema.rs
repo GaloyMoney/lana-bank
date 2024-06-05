@@ -53,6 +53,23 @@ impl Mutation {
         ))
     }
 
+    pub async fn user_deposit(
+        &self,
+        ctx: &Context<'_>,
+        input: UserDepositInput,
+    ) -> async_graphql::Result<UserDepositPayload> {
+        let app = ctx.data_unchecked::<LavaApp>();
+        Ok(UserDepositPayload::from(
+            app.users()
+                .deposit_checking_for_user(
+                    UserId::from(input.user_id),
+                    input.amount,
+                    input.reference,
+                )
+                .await?,
+        ))
+    }
+
     pub async fn withdrawal_settle(
         &self,
         ctx: &Context<'_>,

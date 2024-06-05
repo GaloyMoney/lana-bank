@@ -50,6 +50,38 @@ teardown_file() {
   [[ "$sats" == "1000000000" ]] || exit 1;
 }
 
+@test "user: can deposit" {
+  username=$(random_uuid)
+  variables=$(
+    jq -n \
+      --arg username "$username" \
+    '{
+      input: {
+        bitfinexUsername: $username,
+      }
+    }'
+  )
+  exec_graphql 'user-create' "$variables"
+  user=$(graphql_output '.data.userCreate.user.bitfinexUsername')
+  [[ "$user" == "$username" ]] || exit 1;
+  user_id=$(graphql_output '.data.userCreate.user.userId')
+
+  variables=$(
+    jq -n \
+      --arg userId "$user_id" \
+    '{
+      input: {
+        userId: $userId,
+        amount: 50000000,
+        reference: ("deposit-" + $userId)
+      }
+    }'
+  )
+  exec_admin_graphql 'deposit-checking' "$variables"
+  cents=$(graphql_output '.data.userDeposit.user.balance.checking.settled.usdBalance')
+  [[ "$cents" == "50000000" ]] || exit 1;
+}
+
 @test "user: can withdraw" {
   user_id=$(read_value 'user.id')
   variables=$(
