@@ -21,9 +21,8 @@ pub async fn run(config: AdminServerConfig, app: LavaApp) -> anyhow::Result<()> 
     let app = Router::new()
         .route(
             "/graphql",
-            get(playground).post(axum::routing::post(graphql_handler)),
+            get(studio_explorer).post(axum::routing::post(graphql_handler)),
         )
-        .route("/explorer", get(graphiql))
         .layer(Extension(schema))
         .layer(Extension(config.clone()));
 
@@ -45,13 +44,7 @@ pub async fn graphql_handler(
     schema.execute(req).await.into()
 }
 
-async fn playground() -> impl axum::response::IntoResponse {
-    axum::response::Html(async_graphql::http::playground_source(
-        async_graphql::http::GraphQLPlaygroundConfig::new("/graphql"),
-    ))
-}
-
-async fn graphiql(config: Extension<AdminServerConfig>) -> impl IntoResponse {
+async fn studio_explorer(config: Extension<AdminServerConfig>) -> impl IntoResponse {
     let html_content = format!(
         r#"
     <!DOCTYPE html>
