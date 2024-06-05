@@ -1,9 +1,8 @@
 use async_graphql::*;
 
-use crate::{
-    ledger,
-    server::shared::graphql::objects::{BtcBalance, UsdBalance},
-};
+use crate::ledger;
+
+use super::objects::{BtcBalance, UsdBalance};
 
 #[derive(SimpleObject)]
 struct UnallocatedCollateral {
