@@ -5,15 +5,10 @@ use crate::{
     app::LavaApp,
     ledger::user::UserLedgerAccountIds,
     primitives::{Satoshis, UsdCents, UserId},
-    server::shared::primitives::UUID,
+    server::shared::{graphql::user::Withdrawal, primitives::UUID},
 };
 
 use super::user_balance::*;
-
-#[derive(InputObject)]
-pub struct UserCreateInput {
-    pub bitfinex_username: String,
-}
 
 #[derive(SimpleObject)]
 #[graphql(complex)]
@@ -79,23 +74,6 @@ impl From<crate::user::User> for UserDepositPayload {
     fn from(user: crate::user::User) -> Self {
         Self {
             user: User::from(user),
-        }
-    }
-}
-
-#[derive(SimpleObject)]
-pub struct Withdrawal {
-    withdrawal_id: UUID,
-    user_id: UUID,
-    amount: UsdCents,
-}
-
-impl From<crate::withdraw::Withdraw> for Withdrawal {
-    fn from(withdraw: crate::withdraw::Withdraw) -> Self {
-        Withdrawal {
-            withdrawal_id: UUID::from(withdraw.id),
-            user_id: UUID::from(withdraw.user_id),
-            amount: withdraw.amount,
         }
     }
 }
