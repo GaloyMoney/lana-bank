@@ -1,6 +1,7 @@
 #![allow(clippy::upper_case_acronyms)]
 use async_graphql::*;
 use serde::{Deserialize, Serialize};
+use serde_json::Value as JsonValue;
 
 use crate::primitives::*;
 
@@ -66,3 +67,8 @@ scalar!(Satoshis);
 
 pub use crate::primitives::UsdCents;
 scalar!(UsdCents);
+
+#[derive(Serialize, Deserialize)]
+#[serde(transparent)]
+pub struct JSON(JsonValue);
+scalar!(JSON);

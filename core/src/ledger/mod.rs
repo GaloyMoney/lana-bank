@@ -7,6 +7,7 @@ pub mod primitives;
 mod tx_template;
 pub mod user;
 
+use serde_json::Value as JsonValue;
 use tracing::instrument;
 
 use crate::primitives::{
@@ -77,10 +78,15 @@ impl Ledger {
     }
 
     #[instrument(name = "lava.ledger.add_equity", skip(self), err)]
-    pub async fn add_equity(&self, amount: UsdCents, reference: String) -> Result<(), LedgerError> {
+    pub async fn add_equity(
+        &self,
+        amount: UsdCents,
+        reference: String,
+        metadata: JsonValue,
+    ) -> Result<(), LedgerError> {
         Ok(self
             .cala
-            .execute_add_equity_tx(amount.to_usd(), reference)
+            .execute_add_equity_tx(amount.to_usd(), reference, metadata)
             .await?)
     }
 
