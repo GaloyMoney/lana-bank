@@ -35,9 +35,15 @@ type LoanOutstanding {
 }
 
 type Mutation {
+	ownersEquityAdd(input: OwnersEquityAddInput!): SuccessPayload!
 	userPledgeCollateral(input: UserPledgeCollateralInput!): UserPledgeCollateralPayload!
 	userDeposit(input: UserDepositInput!): UserDepositPayload!
 	withdrawalSettle(input: WithdrawalSettleInput!): WithdrawalSettlePayload!
+}
+
+input OwnersEquityAddInput {
+	amount: UsdCents!
+	reference: String!
 }
 
 """
@@ -71,6 +77,10 @@ type Query {
 
 scalar Satoshis
 
+
+type SuccessPayload {
+	success: Boolean!
+}
 
 scalar UUID
 

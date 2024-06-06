@@ -7,6 +7,7 @@ pub mod entity;
 pub mod fixed_term_loan;
 pub mod job;
 pub mod ledger;
+pub mod owners_equity;
 pub mod primitives;
 pub mod server;
 pub mod user;

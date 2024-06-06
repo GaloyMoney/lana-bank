@@ -1,6 +1,7 @@
 mod fixed_term_loan;
 mod fixed_term_loan_balance;
 mod objects;
+mod owners_equity;
 mod schema;
 mod user;
 mod user_balance;

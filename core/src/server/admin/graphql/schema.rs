@@ -1,6 +1,10 @@
 use async_graphql::{types::connection::*, *};
 
-use super::{fixed_term_loan::*, user::*};
+use super::{
+    fixed_term_loan::*,
+    owners_equity::{OwnersEquityAddInput, SuccessPayload},
+    user::*,
+};
 use crate::{
     app::LavaApp,
     primitives::{FixedTermLoanId, UserId, WithdrawId},
@@ -82,6 +86,19 @@ pub struct Mutation;
 
 #[Object]
 impl Mutation {
+    pub async fn owners_equity_add(
+        &self,
+        ctx: &Context<'_>,
+        input: OwnersEquityAddInput,
+    ) -> async_graphql::Result<SuccessPayload> {
+        let app = ctx.data_unchecked::<LavaApp>();
+        Ok(SuccessPayload::from(
+            app.owners_equity()
+                .add_equity(input.amount, input.reference)
+                .await?,
+        ))
+    }
+
     pub async fn user_pledge_collateral(
         &self,
         ctx: &Context<'_>,
