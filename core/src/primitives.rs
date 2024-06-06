@@ -4,6 +4,7 @@ use serde::{Deserialize, Serialize};
 
 use std::fmt;
 
+crate::entity_id! { BankId }
 crate::entity_id! { UserId }
 crate::entity_id! { FixedTermLoanId }
 crate::entity_id! { LineOfCreditContractId }

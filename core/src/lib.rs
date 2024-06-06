@@ -2,6 +2,7 @@
 #![cfg_attr(feature = "fail-on-warnings", deny(clippy::all))]
 
 pub mod app;
+pub mod bank;
 pub mod cli;
 pub mod entity;
 pub mod fixed_term_loan;

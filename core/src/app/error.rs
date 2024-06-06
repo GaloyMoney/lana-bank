@@ -12,4 +12,6 @@ pub enum ApplicationError {
     FixedTermLoanError(#[from] crate::fixed_term_loan::error::FixedTermLoanError),
     #[error("ApplicationError - UserError: {0}")]
     UserError(#[from] crate::user::error::UserError),
+    #[error("ApplicationError - BankError: {0}")]
+    BankError(#[from] crate::bank::error::BankError),
 }

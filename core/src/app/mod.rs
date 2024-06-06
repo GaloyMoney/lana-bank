@@ -4,6 +4,7 @@ mod error;
 use sqlx::PgPool;
 
 use crate::{
+    bank::Banks,
     fixed_term_loan::{FixedTermLoan, FixedTermLoans},
     job::{JobRegistry, Jobs},
     ledger::Ledger,
@@ -19,6 +20,7 @@ use error::ApplicationError;
 pub struct LavaApp {
     _pool: PgPool,
     _jobs: Jobs,
+    banks: Banks,
     fixed_term_loans: FixedTermLoans,
     users: Users,
     withdraws: Withdraws,
@@ -29,6 +31,7 @@ impl LavaApp {
     pub async fn run(pool: PgPool, config: AppConfig) -> Result<Self, ApplicationError> {
         let mut registry = JobRegistry::new();
         let ledger = Ledger::init(config.ledger).await?;
+        let banks = Banks::new(&pool, &ledger);
         let users = Users::new(&pool, &ledger);
         let withdraws = Withdraws::new(&pool, users.repo(), &ledger);
         let mut fixed_term_loans = FixedTermLoans::new(&pool, &mut registry, users.repo(), &ledger);
@@ -38,6 +41,7 @@ impl LavaApp {
         Ok(Self {
             _pool: pool,
             _jobs: jobs,
+            banks,
             users,
             withdraws,
             fixed_term_loans,
@@ -51,6 +55,10 @@ impl LavaApp {
 
     pub fn users(&self) -> &Users {
         &self.users
+    }
+
+    pub fn banks(&self) -> &Banks {
+        &self.banks
     }
 
     pub fn withdraws(&self) -> &Withdraws {

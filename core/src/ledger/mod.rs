@@ -1,3 +1,4 @@
+pub mod bank;
 mod cala;
 mod config;
 mod constants;
@@ -7,10 +8,11 @@ pub mod primitives;
 mod tx_template;
 pub mod user;
 
+use bank::BankLedgerAccountIds;
 use tracing::instrument;
 
 use crate::primitives::{
-    FixedTermLoanId, LedgerAccountId, LedgerDebitOrCredit, LedgerTxId, LedgerTxTemplateId,
+    BankId, FixedTermLoanId, LedgerAccountId, LedgerDebitOrCredit, LedgerTxId, LedgerTxTemplateId,
     Satoshis, UsdCents,
 };
 
@@ -34,6 +36,26 @@ impl Ledger {
         Ok(Ledger { cala })
     }
 
+    pub fn default_bank_id(&self) -> BankId {
+        BankId::from(constants::BANK_ID)
+    }
+
+    #[instrument(name = "lava.ledger.create_accounts_for_bank", skip(self), err)]
+    pub async fn create_accounts_for_bank(&self) -> Result<BankLedgerAccountIds, LedgerError> {
+        let default_bank_account_ids = BankLedgerAccountIds::default();
+
+        Self::assert_credit_account_exists(
+            &self.cala,
+            default_bank_account_ids.shareholder_equity_id,
+            constants::BANK_SHAREHOLDER_EQUITY_NAME,
+            constants::BANK_SHAREHOLDER_EQUITY_CODE,
+            &default_bank_account_ids.shareholder_equity_id.to_string(),
+        )
+        .await?;
+
+        Ok(default_bank_account_ids)
+    }
+
     #[instrument(name = "lava.ledger.get_user_balance", skip(self), err)]
     pub async fn get_user_balance(
         &self,
@@ -45,11 +67,7 @@ impl Ledger {
             .ok_or(LedgerError::AccountNotFound)
     }
 
-    #[instrument(
-        name = "lava.ledger.create_unallocated_collateral_account_for_user",
-        skip(self),
-        err
-    )]
+    #[instrument(name = "lava.ledger.create_accounts_for_user", skip(self), err)]
     pub async fn create_accounts_for_user(
         &self,
         bitfinex_username: &str,

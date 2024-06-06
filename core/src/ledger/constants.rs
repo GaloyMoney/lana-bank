@@ -1,5 +1,8 @@
 use uuid::{uuid, Uuid};
 
+// Entity
+pub(super) const BANK_ID: Uuid = uuid!("10000000-0000-0000-0000-000000000001");
+
 // Journal
 pub(super) const CORE_JOURNAL_ID: Uuid = uuid!("00000000-0000-0000-0000-000000000001");
 
@@ -11,6 +14,10 @@ pub(super) const BANK_OFF_BALANCE_SHEET_CODE: &str = "BANK.OFF_BALANCE_SHEET";
 pub(super) const BANK_USDT_CASH_ID: Uuid = uuid!("00000000-0000-0000-0000-000000000004");
 pub(super) const BANK_USDT_CASH_NAME: &str = "Bank USDT Cash";
 pub(super) const BANK_USDT_CASH_CODE: &str = "BANK.USDT_CASH";
+
+pub(super) const BANK_SHAREHOLDER_EQUITY_ID: Uuid = uuid!("00000000-0000-0000-0000-000000000005");
+pub(super) const BANK_SHAREHOLDER_EQUITY_NAME: &str = "Bank Shareholder Equity";
+pub(super) const BANK_SHAREHOLDER_EQUITY_CODE: &str = "BANK.SHAREHOLDER_EQUITY";
 
 // Templates
 pub(super) const PLEDGE_UNALLOCATED_COLLATERAL_CODE: &str = "PLEDGE_UNALLOCATED_COLLATERAL";

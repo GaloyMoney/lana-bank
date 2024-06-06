@@ -1,3 +1,17 @@
+CREATE TABLE banks (
+  id UUID PRIMARY KEY,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE bank_events (
+  id UUID NOT NULL REFERENCES banks(id),
+  sequence INT NOT NULL,
+  event_type VARCHAR NOT NULL,
+  event JSONB NOT NULL,
+  recorded_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  UNIQUE(id, sequence)
+);
+
 CREATE TABLE users (
   id UUID PRIMARY KEY,
   bitfinex_username VARCHAR NOT NULL UNIQUE,
