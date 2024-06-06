@@ -4,8 +4,8 @@ use serde::{Deserialize, Serialize};
 use crate::{
     primitives::{Satoshis, UsdCents, UserId},
     server::shared::{
-        graphql::user::{User, Withdrawal},
         primitives::UUID,
+        user::{User, Withdrawal},
     },
 };
 

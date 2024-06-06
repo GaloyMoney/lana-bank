@@ -1,6 +1,6 @@
 use async_graphql::*;
 
-use crate::server::shared::{graphql::fixed_term_loan::FixedTermLoan, primitives::*};
+use crate::server::shared::{fixed_term_loan::FixedTermLoan, primitives::*};
 
 #[derive(InputObject)]
 pub struct FixedTermLoanCreateInput {

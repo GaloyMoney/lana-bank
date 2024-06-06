@@ -4,10 +4,7 @@ use super::user::*;
 use crate::{
     app::LavaApp,
     primitives::{FixedTermLoanId, UserId, WithdrawId},
-    server::shared::{
-        graphql::{fixed_term_loan::FixedTermLoan, user::User},
-        primitives::UUID,
-    },
+    server::shared::{fixed_term_loan::FixedTermLoan, primitives::UUID, user::User},
 };
 
 pub struct Query;
