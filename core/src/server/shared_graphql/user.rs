@@ -1,6 +1,6 @@
 use async_graphql::*;
 
-use crate::{app::LavaApp, ledger, primitives::UsdCents, server::shared::primitives::UUID};
+use crate::{app::LavaApp, ledger, primitives::UsdCents, server::shared_graphql::primitives::UUID};
 
 use super::objects::{BtcBalance, UsdBalance};
 

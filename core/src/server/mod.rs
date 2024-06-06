@@ -1,3 +1,3 @@
 pub mod admin;
 pub mod public;
-mod shared;
+mod shared_graphql;

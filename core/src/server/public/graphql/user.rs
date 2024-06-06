@@ -2,7 +2,7 @@ use async_graphql::*;
 
 use crate::{
     primitives::UsdCents,
-    server::shared::{
+    server::shared_graphql::{
         primitives::UUID,
         user::{User, Withdrawal},
     },

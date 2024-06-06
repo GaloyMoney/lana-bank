@@ -1,6 +1,6 @@
 use async_graphql::*;
 
-use crate::{app::LavaApp, ledger, server::shared::primitives::*};
+use crate::{app::LavaApp, ledger, server::shared_graphql::primitives::*};
 
 #[derive(SimpleObject)]
 #[graphql(complex)]

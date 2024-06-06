@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::{
     primitives::{Satoshis, UsdCents, UserId},
-    server::shared::{
+    server::shared_graphql::{
         primitives::UUID,
         user::{User, Withdrawal},
     },
