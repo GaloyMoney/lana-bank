@@ -26,13 +26,11 @@ mutation AddEquityTemplateCreate(
           type: STRING
           description: "External ID for the transaction"
         }
-        { name: "metadata", type: JSON, description: "Metadata" }
       ]
       txInput: {
         journalId: $journalId
         effective: "params.effective"
         externalId: "params.externalId"
-        metadata: "params.metadata"
       }
       entries: [
         {
@@ -66,13 +64,12 @@ mutation PostAddEquityTransaction(
   $transactionId: UUID!
   $amount: Decimal!
   $externalId: String!
-  $metadata: JSON!
 ) {
   postTransaction(
     input: {
       transactionId: $transactionId
       txTemplateCode: "ADD_EQUITY"
-      params: { amount: $amount, externalId: $externalId, metadata: $metadata }
+      params: { amount: $amount, externalId: $externalId }
     }
   ) {
     transaction {

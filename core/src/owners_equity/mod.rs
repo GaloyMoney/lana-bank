@@ -3,7 +3,6 @@ pub mod error;
 use crate::{ledger::*, primitives::UsdCents};
 
 use error::OwnersEquityError;
-use serde_json::Value as JsonValue;
 
 #[derive(Clone)]
 pub struct OwnersEquity {
@@ -22,7 +21,6 @@ impl OwnersEquity {
         amount: UsdCents,
         reference: String,
     ) -> Result<(), OwnersEquityError> {
-        let metadata = JsonValue::from(r#"{"Hello": "World"}"#);
-        Ok(self.ledger.add_equity(amount, reference, metadata).await?)
+        Ok(self.ledger.add_equity(amount, reference).await?)
     }
 }

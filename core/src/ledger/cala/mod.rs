@@ -6,7 +6,6 @@ use cala_types::primitives::TxTemplateId;
 use graphql_client::{GraphQLQuery, Response};
 use reqwest::{Client as ReqwestClient, Method};
 use rust_decimal::Decimal;
-use serde_json::Value as JsonValue;
 use tracing::instrument;
 use uuid::Uuid;
 
@@ -296,14 +295,12 @@ impl CalaClient {
         &self,
         amount: Decimal,
         external_id: String,
-        metadata: JsonValue,
     ) -> Result<(), CalaError> {
         let transaction_id = uuid::Uuid::new_v4();
         let variables = post_add_equity_transaction::Variables {
             transaction_id,
             amount,
             external_id,
-            metadata,
         };
         let response = Self::traced_gql_request::<PostAddEquityTransaction, _>(
             &self.client,
