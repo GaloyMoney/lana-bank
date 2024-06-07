@@ -93,9 +93,7 @@ impl Mutation {
     ) -> async_graphql::Result<SuccessPayload> {
         let app = ctx.data_unchecked::<LavaApp>();
         Ok(SuccessPayload::from(
-            app.owners_equity()
-                .add_equity(input.amount, input.reference)
-                .await?,
+            app.add_equity(input.amount, input.reference).await?,
         ))
     }
 

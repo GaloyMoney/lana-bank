@@ -7,8 +7,7 @@ use crate::{
     fixed_term_loan::{FixedTermLoan, FixedTermLoans},
     job::{JobRegistry, Jobs},
     ledger::Ledger,
-    owners_equity::OwnersEquity,
-    primitives::UserId,
+    primitives::{UsdCents, UserId},
     user::Users,
     withdraw::Withdraws,
 };
@@ -20,7 +19,6 @@ use error::ApplicationError;
 pub struct LavaApp {
     _pool: PgPool,
     _jobs: Jobs,
-    owners_equity: OwnersEquity,
     fixed_term_loans: FixedTermLoans,
     users: Users,
     withdraws: Withdraws,
@@ -33,7 +31,6 @@ impl LavaApp {
         let ledger = Ledger::init(config.ledger).await?;
         let users = Users::new(&pool, &ledger);
         let withdraws = Withdraws::new(&pool, users.repo(), &ledger);
-        let owners_equity = OwnersEquity::new(&ledger);
         let mut fixed_term_loans = FixedTermLoans::new(&pool, &mut registry, users.repo(), &ledger);
         let mut jobs = Jobs::new(&pool, config.job_execution, registry);
         fixed_term_loans.set_jobs(&jobs);
@@ -43,14 +40,9 @@ impl LavaApp {
             _jobs: jobs,
             users,
             withdraws,
-            owners_equity,
             fixed_term_loans,
             ledger,
         })
-    }
-
-    pub fn owners_equity(&self) -> &OwnersEquity {
-        &self.owners_equity
     }
 
     pub fn fixed_term_loans(&self) -> &FixedTermLoans {
@@ -77,5 +69,13 @@ impl LavaApp {
             return Ok(Some(self.fixed_term_loans().list_for_user(user_id).await?));
         }
         Ok(None)
+    }
+
+    pub async fn add_equity(
+        &self,
+        amount: UsdCents,
+        reference: String,
+    ) -> Result<(), ApplicationError> {
+        Ok(self.ledger.add_equity(amount, reference).await?)
     }
 }
