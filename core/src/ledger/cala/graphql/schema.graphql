@@ -183,6 +183,11 @@ type BalanceSheetQuery {
 	byJournalId(journalId: UUID!): BalanceSheet
 }
 
+type BfxAddressBackedAccount {
+	address: String!
+	account: Account!
+}
+
 input BfxAddressBackedAccountCreateInput {
 	integrationId: UUID!
 	type: BfxAddressType!
@@ -194,8 +199,7 @@ input BfxAddressBackedAccountCreateInput {
 }
 
 type BfxAddressBackedAccountCreatePayload {
-	address: String!
-	account: Account!
+	account: BfxAddressBackedAccount!
 }
 
 enum BfxAddressType {
@@ -277,6 +281,7 @@ type BitfinexMutation {
 
 type BitfinexQuery {
 	integration(id: UUID!): BfxIntegration
+	addressBackedAccount(id: UUID!): BfxAddressBackedAccount
 }
 
 
@@ -452,6 +457,7 @@ type Query {
 	balanceSheet: BalanceSheetQuery!
 	account(id: UUID!): Account
 	accountByExternalId(externalId: String!): Account
+	accountByCode(code: String!): Account
 	accounts(first: Int!, after: String): AccountConnection!
 	accountSet(id: UUID!): AccountSet
 	journal(id: UUID!): Journal
