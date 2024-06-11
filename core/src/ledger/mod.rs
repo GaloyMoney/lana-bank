@@ -1,6 +1,6 @@
 mod account;
 mod account_set;
-mod bitfinex;
+pub mod bfx_integration;
 mod cala;
 mod config;
 mod constants;
@@ -11,7 +11,7 @@ mod tx_template;
 pub mod user;
 
 use account::LedgerAccount;
-use bitfinex::BfxIntegration;
+use bfx_integration::BfxIntegrationAccountsAndSets;
 use tracing::instrument;
 
 use crate::primitives::{
@@ -24,6 +24,11 @@ pub use config::*;
 use error::*;
 use fixed_term_loan::*;
 use user::*;
+
+pub struct BfxIntegrationIdsForLedger {
+    pub off_balance_sheet: BfxIntegrationId,
+    pub usdt_cash: BfxIntegrationId,
+}
 
 #[derive(Clone)]
 pub struct Ledger {
@@ -59,6 +64,8 @@ impl Ledger {
     pub async fn create_accounts_for_user(
         &self,
         bitfinex_username: &str,
+        bfx_off_balance_sheet_omnibus_account_set_id: LedgerAccountSetId,
+        bfx_usdt_cash_omnibus_account_set_id: LedgerAccountSetId,
     ) -> Result<(UserLedgerAccountIds, UserLedgerAccountAddresses), LedgerError> {
         let account_ids = UserLedgerAccountIds::new();
         Self::assert_credit_account_exists(
@@ -290,6 +297,13 @@ impl Ledger {
         .await?;
 
         Ok(())
+    }
+
+    pub fn bfx_integration_ids(&self) -> BfxIntegrationIdsForLedger {
+        BfxIntegrationIdsForLedger {
+            off_balance_sheet: constants::BITFINEX_OFF_BALANCE_SHEET_INTEGRATION_ID.into(),
+            usdt_cash: constants::BITFINEX_USDT_CASH_INTEGRATION_ID.into(),
+        }
     }
 
     async fn initialize_journal(cala: &CalaClient) -> Result<(), LedgerError> {
@@ -720,12 +734,14 @@ impl Ledger {
         name: &str,
         key: &str,
         secret: &str,
-    ) -> Result<BfxIntegrationId, LedgerError> {
+    ) -> Result<BfxIntegrationAccountsAndSets, LedgerError> {
         if let Ok(Some(bfx_integration)) = cala
-            .find_bfx_integration_by_id::<BfxIntegration>(bfx_integration_id.to_owned())
+            .find_bfx_integration_by_id::<BfxIntegrationAccountsAndSets>(
+                bfx_integration_id.to_owned(),
+            )
             .await
         {
-            return Ok(bfx_integration.id);
+            return Ok(bfx_integration);
         }
 
         let err = match cala
@@ -738,18 +754,21 @@ impl Ledger {
             .await
         {
             Ok(bfx_integration) => {
-                return Ok(bfx_integration.id);
+                return Ok(bfx_integration);
             }
             Err(e) => e,
         };
 
-        cala.find_bfx_integration_by_id::<BfxIntegration>(bfx_integration_id.to_owned())
-            .await
-            .map_err(|_| err)?
-            .ok_or_else(|| LedgerError::CouldNotAssertBfxIntegrationExists)
-            .map(|bfx_integration| bfx_integration.id)
+        cala.find_bfx_integration_by_id::<BfxIntegrationAccountsAndSets>(
+            bfx_integration_id.to_owned(),
+        )
+        .await
+        .map_err(|_| err)?
+        .ok_or_else(|| LedgerError::CouldNotAssertBfxIntegrationExists)
     }
 
+    // FIXME: The returned account-set-ids need to be persisted somewhere. This
+    //        function and where it gets called will likely need to change.
     async fn initialize_bfx_integrations(
         cala: &CalaClient,
         key: &str,

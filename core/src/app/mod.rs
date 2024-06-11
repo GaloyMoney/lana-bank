@@ -4,6 +4,7 @@ mod error;
 use sqlx::PgPool;
 
 use crate::{
+    bfx_integration::BfxIntegrations,
     fixed_term_loan::{FixedTermLoan, FixedTermLoans},
     job::{JobRegistry, Jobs},
     ledger::Ledger,
@@ -23,12 +24,14 @@ pub struct LavaApp {
     users: Users,
     withdraws: Withdraws,
     ledger: Ledger,
+    bfx_integrations: BfxIntegrations,
 }
 
 impl LavaApp {
     pub async fn run(pool: PgPool, config: AppConfig) -> Result<Self, ApplicationError> {
         let mut registry = JobRegistry::new();
         let ledger = Ledger::init(config.ledger).await?;
+        let bfx_integrations = BfxIntegrations::new(&pool, &ledger);
         let users = Users::new(&pool, &ledger);
         let withdraws = Withdraws::new(&pool, users.repo(), &ledger);
         let mut fixed_term_loans = FixedTermLoans::new(&pool, &mut registry, users.repo(), &ledger);
@@ -42,6 +45,7 @@ impl LavaApp {
             withdraws,
             fixed_term_loans,
             ledger,
+            bfx_integrations,
         })
     }
 
@@ -59,6 +63,10 @@ impl LavaApp {
 
     pub fn ledger(&self) -> &Ledger {
         &self.ledger
+    }
+
+    pub fn bfx_integrations(&self) -> &BfxIntegrations {
+        &self.bfx_integrations
     }
 
     pub async fn list_loans_for_user(

@@ -3,7 +3,11 @@ mod entity;
 pub mod error;
 mod repo;
 
-use crate::{entity::*, ledger::*, primitives::UserId};
+use crate::{
+    entity::*,
+    ledger::*,
+    primitives::{LedgerAccountSetId, UserId},
+};
 
 pub use cursor::*;
 pub use entity::*;
@@ -31,11 +35,20 @@ impl Users {
         &self.repo
     }
 
-    pub async fn create_user(&self, bitfinex_username: String) -> Result<User, UserError> {
+    pub async fn create_user(
+        &self,
+        bitfinex_username: String,
+        bfx_off_balance_sheet_integration_omnibus_account_set_id: LedgerAccountSetId,
+        bfx_usdt_cash_integration_omnibus_account_set_id: LedgerAccountSetId,
+    ) -> Result<User, UserError> {
         let id = UserId::new();
         let (ledger_account_ids, ledger_account_addresses) = self
             .ledger
-            .create_accounts_for_user(&bitfinex_username)
+            .create_accounts_for_user(
+                &bitfinex_username,
+                bfx_off_balance_sheet_integration_omnibus_account_set_id,
+                bfx_usdt_cash_integration_omnibus_account_set_id,
+            )
             .await?;
         let new_user = NewUser::builder()
             .id(id)

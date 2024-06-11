@@ -41,7 +41,18 @@ impl Mutation {
         input: UserCreateInput,
     ) -> async_graphql::Result<UserCreatePayload> {
         let app = ctx.data_unchecked::<LavaApp>();
-        let user = app.users().create_user(input.bitfinex_username).await?;
+        let account_set_ids = app
+            .bfx_integrations()
+            .get_omnibus_account_set_ids_for_ledger()
+            .await?;
+        let user = app
+            .users()
+            .create_user(
+                input.bitfinex_username,
+                account_set_ids.off_balance_sheet,
+                account_set_ids.usdt_cash,
+            )
+            .await?;
         Ok(UserCreatePayload::from(user))
     }
 

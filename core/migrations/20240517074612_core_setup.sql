@@ -43,6 +43,22 @@ CREATE TABLE withdraw_events (
   UNIQUE(id, sequence)
 );
 
+CREATE TABLE bfx_integrations (
+  id UUID PRIMARY KEY,
+  omnibus_account_set_id UUID NOT NULL,
+  withdrawal_account_id UUID NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE bfx_integration_events (
+  id UUID NOT NULL REFERENCES bfx_integrations(id),
+  sequence INT NOT NULL,
+  event_type VARCHAR NOT NULL,
+  event JSONB NOT NULL,
+  recorded_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  UNIQUE(id, sequence)
+);
+
 CREATE TABLE jobs (
   id UUID NOT NULL UNIQUE,
   name VARCHAR NOT NULL UNIQUE,

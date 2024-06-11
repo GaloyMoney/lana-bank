@@ -1,0 +1,16 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO bfx_integrations (id, omnibus_account_set_id, withdrawal_account_id)\n            VALUES ($1, $2, $3)",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Uuid",
+        "Uuid"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "e9e6c03209181797a7f1dbd3bea47b28be3b9b9482a120b150110de58e8d8491"
+}
