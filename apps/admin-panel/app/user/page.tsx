@@ -25,6 +25,7 @@ import {
 import { PageHeading } from "@/components/page-heading"
 import { getUserByUserId } from "@/lib/graphql/query/get-user-by-userid"
 import { getUsers } from "@/lib/graphql/query/get-users"
+import { currencyConverter, formatCurrency } from "@/lib/utils"
 
 const searchUser = async (formData: FormData) => {
   "use server"
@@ -90,9 +91,9 @@ async function UserPage({ searchParams }: { searchParams: { userId?: string } })
                 <TableHeader>
                   <TableRow>
                     <TableHead>User</TableHead>
-                    <TableHead>BTC Balance</TableHead>
-                    <TableHead>Settled USD</TableHead>
-                    <TableHead>Pending USD</TableHead>
+                    <TableHead>BTC Balance (Settled)</TableHead>
+                    <TableHead>USD Balance (Settled)</TableHead>
+                    <TableHead>USD Balance (Pending)</TableHead>
                     <TableHead></TableHead>
                   </TableRow>
                 </TableHeader>
@@ -109,10 +110,24 @@ async function UserPage({ searchParams }: { searchParams: { userId?: string } })
                           </div>
                         </TableCell>
                         <TableCell>
-                          {user.balance.unallocatedCollateral.settled?.btcBalance}
+                          {user.balance.unallocatedCollateral.settled?.btcBalance} sats
                         </TableCell>
-                        <TableCell>{user.balance.checking.settled?.usdBalance}</TableCell>
-                        <TableCell>{user.balance.checking.pending?.usdBalance}</TableCell>
+                        <TableCell>
+                          {formatCurrency({
+                            amount: currencyConverter.centsToUsd(
+                              user.balance.checking.settled?.usdBalance,
+                            ),
+                            currency: "USD",
+                          })}
+                        </TableCell>
+                        <TableCell>
+                          {formatCurrency({
+                            amount: currencyConverter.centsToUsd(
+                              user.balance.checking.pending?.usdBalance,
+                            ),
+                            currency: "USD",
+                          })}
+                        </TableCell>
                         <TableCell>
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>

@@ -12,6 +12,7 @@ import { getUserByUserId } from "@/lib/graphql/query/get-user-by-userid"
 import { UserActions } from "@/components/user-action"
 import { getLoansForUser } from "@/lib/graphql/query/get-loans-for-user"
 import { DetailItem, DetailsGroup } from "@/components/details"
+import { currencyConverter, formatCurrency } from "@/lib/utils"
 
 async function UserDetails({
   params,
@@ -65,18 +66,26 @@ const UserDetailsCard = async ({ userId }: { userId: string }) => {
                   value={userDetails.user.bitfinexUsername}
                 />
                 <DetailItem
-                  label="Checking Pending Balance"
-                  value={userDetails.user.balance.checking.pending.usdBalance}
+                  label="Checking Pending Balance (USD)"
+                  value={formatCurrency({
+                    amount: currencyConverter.centsToUsd(
+                      userDetails.user.balance.checking.pending.usdBalance,
+                    ),
+                    currency: "USD",
+                  })}
                 />
                 <DetailItem
-                  label="Checking Settled Balance"
-                  value={userDetails.user.balance.checking.settled.usdBalance}
+                  label="Checking Settled Balance (USD)"
+                  value={formatCurrency({
+                    amount: currencyConverter.centsToUsd(
+                      userDetails.user.balance.checking.settled.usdBalance,
+                    ),
+                    currency: "USD",
+                  })}
                 />
                 <DetailItem
-                  label="Uncollected Collateral Settled"
-                  value={
-                    userDetails.user.balance.unallocatedCollateral.settled.btcBalance
-                  }
+                  label="Uncollected Collateral Settled (BTC)"
+                  value={`${userDetails.user.balance.unallocatedCollateral.settled.btcBalance} sats`}
                 />
               </DetailsGroup>
             </CardContent>
@@ -106,18 +115,32 @@ const UserLoansTable = async ({ userId }: { userId: string }) => {
               <TableHeader>
                 <TableRow>
                   <TableCell>Loan ID</TableCell>
-                  <TableCell>Collateral</TableCell>
-                  <TableCell>Interest Incurred</TableCell>
-                  <TableCell>Outstanding</TableCell>
+                  <TableCell>Collateral (BTC)</TableCell>
+                  <TableCell>Interest Incurred (USD)</TableCell>
+                  <TableCell>Outstanding (USD)</TableCell>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {userLoans.loansForUser.map((loan) => (
                   <TableRow key={loan.loanId}>
                     <TableCell>{loan.loanId}</TableCell>
-                    <TableCell>{loan.balance.collateral.btcBalance}</TableCell>
-                    <TableCell>{loan.balance.interestIncurred.usdBalance}</TableCell>
-                    <TableCell>{loan.balance.outstanding.usdBalance}</TableCell>
+                    <TableCell>{loan.balance.collateral.btcBalance} sats</TableCell>
+                    <TableCell>
+                      {formatCurrency({
+                        amount: currencyConverter.centsToUsd(
+                          loan.balance.interestIncurred.usdBalance,
+                        ),
+                        currency: "USD",
+                      })}
+                    </TableCell>
+                    <TableCell>
+                      {formatCurrency({
+                        amount: currencyConverter.centsToUsd(
+                          loan.balance.outstanding.usdBalance,
+                        ),
+                        currency: "USD",
+                      })}
+                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>

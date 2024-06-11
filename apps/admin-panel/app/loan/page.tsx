@@ -9,6 +9,7 @@ import { Separator } from "@/components/primitive/separator"
 import { PageHeading } from "@/components/page-heading"
 import { getLoanDetails } from "@/lib/graphql/query/get-loan"
 import { DetailItem, DetailsGroup } from "@/components/details"
+import { currencyConverter, formatCurrency } from "@/lib/utils"
 
 const searchLoan = async (formData: FormData) => {
   "use server"
@@ -60,20 +61,32 @@ async function LoanPage({
               <DetailsGroup>
                 <DetailItem label="User ID" value={loanDetails.loan.userId} />
                 <DetailItem
-                  label="BTC collateral balance"
-                  value={loanDetails.loan.balance.collateral.btcBalance}
+                  label="Collateral balance (BTC)"
+                  value={`${loanDetails.loan.balance.collateral.btcBalance} sats`}
                 />
                 <DetailItem
-                  label="USD Outstanding balance"
-                  value={loanDetails.loan.balance.interestIncurred.usdBalance}
+                  label="Outstanding balance (USD)"
+                  value={formatCurrency({
+                    amount: currencyConverter.centsToUsd(
+                      loanDetails.loan.balance.outstanding.usdBalance,
+                    ),
+                    currency: "USD",
+                  })}
                 />
                 <DetailItem
-                  label="Interest Incurred"
-                  value={loanDetails.loan.balance.interestIncurred.usdBalance}
+                  label="Interest Incurred (USD)"
+                  value={formatCurrency({
+                    amount: currencyConverter.centsToUsd(
+                      loanDetails.loan.balance.interestIncurred.usdBalance,
+                    ),
+                    currency: "USD",
+                  })}
                 />
               </DetailsGroup>
             </CardContent>
           </>
+        ) : loanId && !loanDetails?.loan ? (
+          <CardContent className="pt-6">No loan found with this ID</CardContent>
         ) : null}
       </Card>
     </main>
