@@ -12,6 +12,7 @@ type Account {
 	createdAt: Timestamp!
 	modifiedAt: Timestamp!
 	balance(journalId: UUID!, currency: CurrencyCode!): Balance
+	sets(first: Int!, after: String): AccountSetConnection!
 }
 
 type AccountConnection {
@@ -73,6 +74,21 @@ type AccountSet {
 	balance(currency: CurrencyCode!): Balance
 }
 
+type AccountSetConnection {
+	"""
+	Information to aid in pagination.
+	"""
+	pageInfo: PageInfo!
+	"""
+	A list of edges.
+	"""
+	edges: [AccountSetEdge!]!
+	"""
+	A list of nodes.
+	"""
+	nodes: [AccountSet!]!
+}
+
 input AccountSetCreateInput {
 	accountSetId: UUID!
 	journalId: UUID!
@@ -84,6 +100,20 @@ input AccountSetCreateInput {
 
 type AccountSetCreatePayload {
 	accountSet: AccountSet!
+}
+
+"""
+An edge in a connection.
+"""
+type AccountSetEdge {
+	"""
+	The item at the end of the edge
+	"""
+	node: AccountSet!
+	"""
+	A cursor for use in pagination
+	"""
+	cursor: String!
 }
 
 enum AccountSetMemberType {
@@ -137,20 +167,89 @@ type BalanceSheet {
 	schedule12: AccountSet!
 }
 
-input BalanceSheetAccountSetsCreateInput {
+input BalanceSheetCreateInput {
 	journalId: UUID!
 }
 
-type BalanceSheetAccountSetsCreatePayload {
+type BalanceSheetCreatePayload {
 	balanceSheet: BalanceSheet!
 }
 
 type BalanceSheetMutation {
-	balanceSheetCreate(input: BalanceSheetAccountSetsCreateInput!): BalanceSheetAccountSetsCreatePayload!
+	create(input: BalanceSheetCreateInput!): BalanceSheetCreatePayload!
 }
 
 type BalanceSheetQuery {
-	balanceSheet(journalId: UUID!): BalanceSheet
+	byJournalId(journalId: UUID!): BalanceSheet
+}
+
+input BfxAddressBackedAccountCreateInput {
+	integrationId: UUID!
+	type: BfxAddressType!
+	depositCreditAccountId: UUID!
+	accountId: UUID!
+	name: String!
+	code: String!
+	accountSetIds: [UUID!]
+}
+
+type BfxAddressBackedAccountCreatePayload {
+	address: String!
+	account: Account!
+}
+
+enum BfxAddressType {
+	BTC
+	TRX
+}
+
+type BfxIntegration {
+	integrationId: UUID!
+	name: String!
+	description: String
+	journalId: UUID!
+	omnibusAccountSetId: UUID!
+	withdrawalAccountId: UUID!
+	omnibusAccountSet: AccountSet!
+	withdrawalAccount: Account!
+}
+
+input BfxIntegrationCreateInput {
+	integrationId: UUID!
+	name: String!
+	description: String
+	journalId: UUID!
+	key: String!
+	secret: String!
+}
+
+type BfxIntegrationCreatePayload {
+	integration: BfxIntegration!
+}
+
+type BfxWithdrawal {
+	withdrawalId: UUID!
+	integrationId: UUID!
+	reserveTransaction: Transaction!
+	integration: BfxIntegration!
+}
+
+input BfxWithdrawalExecuteInput {
+	withdrawalId: UUID!
+	integrationId: UUID!
+	amount: Decimal!
+	withdrawalMethod: BfxWithdrawalMethod!
+	destinationAddress: String!
+	debitAccountId: UUID!
+}
+
+type BfxWithdrawalExecutePayload {
+	withdrawal: BfxWithdrawal!
+}
+
+enum BfxWithdrawalMethod {
+	BITCOIN
+	TETHER_USX
 }
 
 type BigQueryExportCreatePayload {
@@ -158,6 +257,7 @@ type BigQueryExportCreatePayload {
 }
 
 input BigQueryExportJobCreateInput {
+	jobId: UUID!
 	name: String!
 	description: String
 	gcpProjectId: String!
@@ -169,8 +269,19 @@ type BigQueryMutation {
 	bqExportJobCreate(input: BigQueryExportJobCreateInput!): BigQueryExportCreatePayload!
 }
 
+type BitfinexMutation {
+	integrationCreate(input: BfxIntegrationCreateInput!): BfxIntegrationCreatePayload!
+	addressBackedAccountCreate(input: BfxAddressBackedAccountCreateInput!): BfxAddressBackedAccountCreatePayload!
+	withdrawalExecute(input: BfxWithdrawalExecuteInput!): BfxWithdrawalExecutePayload!
+}
+
+type BitfinexQuery {
+	integration(id: UUID!): BfxIntegration
+}
+
 
 input CalaOutboxImportJobCreateInput {
+	jobId: UUID!
 	name: String!
 	description: String
 	endpoint: String!
@@ -274,6 +385,7 @@ type Money {
 type Mutation {
 	calaOutboxImportJobCreate(input: CalaOutboxImportJobCreateInput!): CalaOutboxImportJobCreatePayload!
 	bigQuery: BigQueryMutation!
+	bitfinex: BitfinexMutation!
 	balanceSheet: BalanceSheetMutation!
 	accountCreate(input: AccountCreateInput!): AccountCreatePayload!
 	accountSetCreate(input: AccountSetCreateInput!): AccountSetCreatePayload!
@@ -336,6 +448,7 @@ type PostTransactionPayload {
 
 type Query {
 	serverVersion: String!
+	bitfinex: BitfinexQuery!
 	balanceSheet: BalanceSheetQuery!
 	account(id: UUID!): Account
 	accountByExternalId(externalId: String!): Account
