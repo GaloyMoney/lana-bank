@@ -25,6 +25,7 @@
 #@ load("app-template.lib.yml",
 #@   "app_src_resource",
 #@   "build_app_edge_image_name",
+#@   "app_edge_image_resource_name",
 #@   "build_app_edge_image",
 #@   "app_edge_image"
 #@ )
@@ -74,8 +75,6 @@ groups:
   - build-edge-image
   - release
   - bump-image-in-chart
-- name: admin-panel
-  jobs:
   - #@ build_app_edge_image_name("admin-panel")
 
 jobs:
@@ -93,6 +92,9 @@ jobs:
       - check-code
       - integration-tests
       - bats-tests
+    - get: #@ app_edge_image_resource_name("admin-panel")
+      passed:
+        - #@ build_app_edge_image_name("admin-panel")
     - get: pipeline-tasks
     - get: version
     - get: edge-image
@@ -198,6 +200,9 @@ jobs:
         - get: edge-image
           passed: [ release ]
           params: { skip_download: true }
+        - get: #@ app_edge_image_resource_name("admin-panel")
+          passed: [ release ]
+          params: { skip_download: true }
         - get: repo
           trigger: true
           passed: [ release ]
@@ -214,6 +219,7 @@ jobs:
         inputs:
           - name: repo
           - name: edge-image
+          - name: #@ app_edge_image_resource_name("admin-panel")
           - name: pipeline-tasks
           - name: charts-repo
           - name: version
@@ -249,7 +255,34 @@ jobs:
 - #@ build_app_edge_image("admin-panel")
 
 resources:
-- #@ repo_resource(True)
+- name: repo
+  type: git
+  source:
+    ignore_paths: 
+    - "ci/*[^md]"
+    - apps/**/*
+    fetch_tags: true
+    uri: #@ data.values.git_uri
+    branch: #@ data.values.git_branch
+    private_key: #@ data.values.github_private_key
+  webhook_token: ((webhook.secret))
+
+- name: latest-image
+  type: registry-image
+  source:
+    tag: latest
+    username: #@ data.values.docker_registry_user
+    password: #@ data.values.docker_registry_password
+    repository: #@ private_docker_registry() + "/" + data.values.gh_repository
+
+- name: nix-host
+  type: pool
+  source:
+    uri: git@github.com:GaloyMoney/concourse-locks.git
+    branch: main
+    pool: docker-hosts
+    private_key: #@ data.values.github_private_key
+
 - #@ pipeline_tasks_resource()
 - #@ slack_resource()
 - #@ edge_image_resource(publicRepo=False)
@@ -259,20 +292,6 @@ resources:
 - #@ charts_repo_resource()
 - #@ app_src_resource("admin-panel")
 - #@ app_edge_image("admin-panel")
-- name: latest-image
-  type: registry-image
-  source:
-    tag: latest
-    username: #@ data.values.docker_registry_user
-    password: #@ data.values.docker_registry_password
-    repository: #@ private_docker_registry() + "/" + data.values.gh_repository
-- name: nix-host
-  type: pool
-  source:
-    uri: git@github.com:GaloyMoney/concourse-locks.git
-    branch: main
-    pool: docker-hosts
-    private_key: #@ data.values.github_private_key
 
 resource_types:
 - #@ slack_resource_type()

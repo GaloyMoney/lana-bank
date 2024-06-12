@@ -2,12 +2,15 @@
 set -eu
 
 export digest=$(cat ./edge-image/digest)
+export admin_panel_image_digest=$(cat ./admin-panel-edge-image/digest)
+
 export ref=$(cat ./repo/.git/short_ref)
 export app_version=$(cat version/version)
 
 pushd charts-repo
 
 yq -i e '.lavaBank.image.digest = strenv(digest)' ./charts/${CHARTS_SUBDIR}/values.yaml
+yq -i e '.lavaBank.adminPanel.image.digest = strenv(admin_panel_image_digest)' ./charts/${CHARTS_SUBDIR}/values.yaml
 sed -i "s|\(digest: \"${digest}\"\).*$|\1 # METADATA:: repository=https://github.com/GaloyMoney/${CHARTS_SUBDIR};commit_ref=${ref};app=${CHARTS_SUBDIR};|g" "./charts/${CHARTS_SUBDIR}/values.yaml"
 
 yq -i e '.appVersion = strenv(app_version)' ./charts/${CHARTS_SUBDIR}/Chart.yaml
