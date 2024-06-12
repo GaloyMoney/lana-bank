@@ -30,7 +30,7 @@ impl LavaApp {
         let mut registry = JobRegistry::new();
         let ledger = Ledger::init(config.ledger).await?;
         let users = Users::new(&pool, &ledger);
-        let withdraws = Withdraws::new(&pool, users.repo(), &ledger);
+        let withdraws = Withdraws::new(&pool, &ledger);
         let mut fixed_term_loans = FixedTermLoans::new(&pool, &mut registry, users.repo(), &ledger);
         let mut jobs = Jobs::new(&pool, config.job_execution, registry);
         fixed_term_loans.set_jobs(&jobs);

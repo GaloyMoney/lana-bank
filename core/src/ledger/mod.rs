@@ -145,23 +145,6 @@ impl Ledger {
             .await?)
     }
 
-    #[instrument(name = "lava.ledger.settle_withdrawal_for_user", skip(self), err)]
-    pub async fn settle_withdrawal_for_user(
-        &self,
-        user_account_ids: UserLedgerAccountIds,
-        amount: UsdCents,
-        reference: String,
-    ) -> Result<(), LedgerError> {
-        Ok(self
-            .cala
-            .execute_settle_withdrawal_from_checking_tx(
-                user_account_ids,
-                amount.to_usd(),
-                reference,
-            )
-            .await?)
-    }
-
     #[instrument(name = "lava.ledger.get_fixed_term_loan_balance", skip(self), err)]
     pub async fn get_fixed_term_loan_balance(
         &self,
@@ -550,18 +533,6 @@ impl Ledger {
         Self::assert_record_payment_tx_template_exists(cala, constants::RECORD_PAYMENT_CODE)
             .await?;
 
-        Self::assert_initiate_withdrawal_from_checking_tx_template_exists(
-            cala,
-            constants::INITIATE_WITHDRAWAL_FROM_CHECKING_CODE,
-        )
-        .await?;
-
-        Self::assert_settle_withdrawal_from_checking_tx_template_exists(
-            cala,
-            constants::SETTLE_WITHDRAWAL_FROM_CHECKING_CODE,
-        )
-        .await?;
-
         Self::assert_complete_loan_tx_template_exists(cala, constants::COMPLETE_LOAN_CODE).await?;
 
         Ok(())
@@ -655,62 +626,6 @@ impl Ledger {
 
         let template_id = LedgerTxTemplateId::new();
         let err = match cala.create_complete_loan_tx_template(template_id).await {
-            Ok(id) => {
-                return Ok(id);
-            }
-            Err(e) => e,
-        };
-
-        Ok(cala
-            .find_tx_template_by_code::<LedgerTxTemplateId>(template_code.to_owned())
-            .await
-            .map_err(|_| err)?)
-    }
-
-    async fn assert_initiate_withdrawal_from_checking_tx_template_exists(
-        cala: &CalaClient,
-        template_code: &str,
-    ) -> Result<LedgerTxTemplateId, LedgerError> {
-        if let Ok(id) = cala
-            .find_tx_template_by_code::<LedgerTxTemplateId>(template_code.to_owned())
-            .await
-        {
-            return Ok(id);
-        }
-
-        let template_id = LedgerTxTemplateId::new();
-        let err = match cala
-            .create_initiate_withdrawal_from_checking_tx_template(template_id)
-            .await
-        {
-            Ok(id) => {
-                return Ok(id);
-            }
-            Err(e) => e,
-        };
-
-        Ok(cala
-            .find_tx_template_by_code::<LedgerTxTemplateId>(template_code.to_owned())
-            .await
-            .map_err(|_| err)?)
-    }
-
-    async fn assert_settle_withdrawal_from_checking_tx_template_exists(
-        cala: &CalaClient,
-        template_code: &str,
-    ) -> Result<LedgerTxTemplateId, LedgerError> {
-        if let Ok(id) = cala
-            .find_tx_template_by_code::<LedgerTxTemplateId>(template_code.to_owned())
-            .await
-        {
-            return Ok(id);
-        }
-
-        let template_id = LedgerTxTemplateId::new();
-        let err = match cala
-            .create_settle_withdrawal_from_checking_tx_template(template_id)
-            .await
-        {
             Ok(id) => {
                 return Ok(id);
             }

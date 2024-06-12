@@ -3,10 +3,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::{
     primitives::{Satoshis, UserId},
-    server::shared_graphql::{
-        primitives::UUID,
-        user::{User, Withdrawal},
-    },
+    server::shared_graphql::{primitives::UUID, user::User},
 };
 
 #[derive(InputObject)]
@@ -25,25 +22,6 @@ impl From<crate::user::User> for UserPledgeCollateralPayload {
     fn from(user: crate::user::User) -> Self {
         Self {
             user: User::from(user),
-        }
-    }
-}
-
-#[derive(InputObject)]
-pub struct WithdrawalSettleInput {
-    pub withdrawal_id: UUID,
-    pub reference: String,
-}
-
-#[derive(SimpleObject)]
-pub struct WithdrawalSettlePayload {
-    pub withdrawal: Withdrawal,
-}
-
-impl From<crate::withdraw::Withdraw> for WithdrawalSettlePayload {
-    fn from(withdrawal: crate::withdraw::Withdraw) -> Self {
-        Self {
-            withdrawal: Withdrawal::from(withdrawal),
         }
     }
 }

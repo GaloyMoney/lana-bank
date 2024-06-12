@@ -6,7 +6,6 @@ use crate::{
     entity::*,
     ledger::Ledger,
     primitives::{LedgerTxId, UsdCents, UserId, WithdrawId},
-    user::UserRepo,
 };
 
 pub use entity::*;
@@ -17,17 +16,15 @@ pub use repo::WithdrawRepo;
 pub struct Withdraws {
     _pool: sqlx::PgPool,
     repo: WithdrawRepo,
-    users: UserRepo,
     ledger: Ledger,
 }
 
 impl Withdraws {
-    pub fn new(pool: &sqlx::PgPool, users: &UserRepo, ledger: &Ledger) -> Self {
+    pub fn new(pool: &sqlx::PgPool, ledger: &Ledger) -> Self {
         let repo = WithdrawRepo::new(pool);
         Self {
             _pool: pool.clone(),
             repo,
-            users: users.clone(),
             ledger: ledger.clone(),
         }
     }
@@ -70,27 +67,6 @@ impl Withdraws {
 
         self.ledger
             .initiate_withdrawal_for_user(withdraw.id, withdraw.amount, destination, reference)
-            .await?;
-
-        db_tx.commit().await?;
-        Ok(withdraw)
-    }
-
-    pub async fn settle(
-        &self,
-        id: WithdrawId,
-        reference: String,
-    ) -> Result<Withdraw, WithdrawError> {
-        let mut withdraw = self.repo.find_by_id(id).await?;
-        let user = self.users.find_by_id(withdraw.user_id).await?;
-        let tx_id = LedgerTxId::new();
-
-        let mut db_tx = self._pool.begin().await?;
-        let amount = withdraw.settle(id, tx_id, reference.clone())?;
-        self.repo.persist_in_tx(&mut db_tx, &mut withdraw).await?;
-
-        self.ledger
-            .settle_withdrawal_for_user(user.account_ids, amount, reference)
             .await?;
 
         db_tx.commit().await?;
