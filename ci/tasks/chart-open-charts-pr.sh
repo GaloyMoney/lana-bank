@@ -2,7 +2,7 @@
 
 set -eu
 
-export digest=$(cat ./edge-image/digest)
+export digest=$(cat ./latest-image/digest)
 export ref=$(cat ./repo/.git/short_ref)
 
 pushd charts-repo

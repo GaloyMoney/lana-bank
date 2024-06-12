@@ -74,6 +74,8 @@ groups:
   - bats-tests
   - build-edge-image
   - release
+  - release-docker
+  - set-dev-version
   - bump-image-in-chart
   - #@ build_app_edge_image_name("admin-panel")
 
@@ -92,15 +94,8 @@ jobs:
       - check-code
       - integration-tests
       - bats-tests
-    - get: #@ app_edge_image_resource_name("admin-panel")
-      passed:
-        - #@ build_app_edge_image_name("admin-panel")
     - get: pipeline-tasks
     - get: version
-    - get: edge-image
-      passed: [build-edge-image]
-      params:
-        format: oci
   - task: prep-release
     config:
       platform: linux
@@ -163,6 +158,7 @@ jobs:
   - put: repo
     params:
       tag: artifacts/gh-release-tag
+      only_tag: true
       repository: repo
   - task: github-release
     config:
@@ -180,10 +176,6 @@ jobs:
         BRANCH: #@ data.values.git_branch
       run:
         path: pipeline-tasks/ci/tasks/github-release.sh
-  - put: latest-image
-    params:
-      image: edge-image/image.tar
-      additional_tags: artifacts/gh-release-tag
   - put: gh-release
     params:
       name: artifacts/gh-release-name
@@ -194,21 +186,98 @@ jobs:
     params:
       file: version/version
 
+- name: release-docker
+  serial: true
+  plan:
+  - in_parallel:
+    - get: repo
+      passed:
+      - release
+    - get: version
+      passed:
+      - release
+      trigger: true
+    - get: pipeline-tasks
+  - task: prepare-docker-build
+    config:
+      platform: linux
+      image_resource: #@ rust_task_image_config()
+      inputs:
+      - name: pipeline-tasks
+      - name: version
+      - name: repo
+      outputs:
+      - name: repo
+      params:
+        GH_APP_ID: #@ data.values.github_app_id
+        GH_APP_PRIVATE_KEY: #@ data.values.github_app_private_key
+      run:
+        path: pipeline-tasks/ci/tasks/prep-docker-build-env.sh
+  - task: build
+    privileged: true
+    config:
+      platform: linux
+      image_resource:
+        type: registry-image
+        source:
+          repository: vito/oci-build-task
+      inputs:
+      - name: repo
+      outputs:
+      - name: image
+      params:
+        CONTEXT: repo
+        BUILD_ARGS_FILE: repo/.env
+        DOCKERFILE: "repo/Dockerfile.release"
+      run:
+        path: build
+  - put: latest-image
+    params:
+      image: image/image.tar
+      additional_tags: version/version
+
+- name: set-dev-version
+  plan:
+  - in_parallel:
+    - { get: repo, passed: [release] }
+    - { get: pipeline-tasks }
+    - get: version
+      trigger: true
+      params: { bump: patch }
+      passed: [release]
+  - task: set-dev-version
+    config:
+      image_resource: #@ rust_task_image_config()
+      platform: linux
+      inputs:
+      - name: version
+      - name: repo
+      - name: pipeline-tasks
+      outputs:
+      - name: repo
+      run:
+        path: pipeline-tasks/ci/tasks/set-dev-version.sh
+      params:
+        BRANCH: #@ data.values.git_branch
+  - put: repo
+    params:
+      repository: repo
+      rebase: true
+
 - name: bump-image-in-chart
   plan:
     - in_parallel:
-        - get: edge-image
-          passed: [ release ]
+        - get: latest-image
+          passed: [ release-docker ]
           params: { skip_download: true }
         - get: #@ app_edge_image_resource_name("admin-panel")
-          passed: [ release ]
           params: { skip_download: true }
         - get: repo
           trigger: true
-          passed: [ release ]
+          passed: [ release-docker ]
         - get: version
           trigger: true
-          passed: [ release ]
+          passed: [ release-docker ]
         - get: charts-repo
           params: { skip_download: true }
         - get: pipeline-tasks
@@ -218,7 +287,7 @@ jobs:
         image_resource: #@ rust_task_image_config()
         inputs:
           - name: repo
-          - name: edge-image
+          - name: latest-image
           - name: #@ app_edge_image_resource_name("admin-panel")
           - name: pipeline-tasks
           - name: charts-repo
@@ -240,7 +309,7 @@ jobs:
         image_resource: #@ rust_task_image_config()
         inputs:
           - name: pipeline-tasks
-          - name: edge-image
+          - name: latest-image
           - name: charts-repo
           - name: repo
         params:

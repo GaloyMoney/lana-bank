@@ -4,7 +4,7 @@ FROM clux/muslrust:stable AS build
   WORKDIR /src
   RUN SQLX_OFFLINE=true cargo build --locked --release --bin lava-core
 
-FROM gcr.io/distroless/static
+FROM ubuntu
   COPY --from=build /src/target/x86_64-unknown-linux-musl/release/lava-core /bin/lava-core
   COPY --from=build --chown=1000:0 --chmod=755 /lava-home /lava
   USER 1000
