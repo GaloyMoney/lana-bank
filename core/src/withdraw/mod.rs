@@ -56,7 +56,7 @@ impl Withdraws {
         &self,
         id: WithdrawId,
         destination: String,
-        reference: String,
+        reference: Option<String>,
     ) -> Result<Withdraw, WithdrawError> {
         let mut withdraw = self.repo.find_by_id(id).await?;
         let tx_id = LedgerTxId::new();

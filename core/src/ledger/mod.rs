@@ -129,7 +129,7 @@ impl Ledger {
         withdrawal_id: WithdrawId,
         amount: UsdCents,
         tron_usdt_address: String,
-        reference: String,
+        reference: Option<String>,
     ) -> Result<WithdrawId, LedgerError> {
         Ok(self
             .cala

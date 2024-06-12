@@ -31,7 +31,7 @@ pub struct WithdrawalInitiateInput {
     pub user_id: UUID,
     pub amount: UsdCents,
     pub destination: String,
-    pub reference: String,
+    pub reference: Option<String>,
 }
 
 #[derive(SimpleObject)]

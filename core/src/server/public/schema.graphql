@@ -120,7 +120,7 @@ input WithdrawalInitiateInput {
 	userId: UUID!
 	amount: UsdCents!
 	destination: String!
-	reference: String!
+	reference: String
 }
 
 type WithdrawalInitiatePayload {

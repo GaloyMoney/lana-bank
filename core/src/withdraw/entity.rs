@@ -19,7 +19,7 @@ pub enum WithdrawEvent {
     Initiated {
         id: WithdrawId,
         tx_id: LedgerTxId,
-        reference: String,
+        reference: Option<String>,
         destination: String,
     },
     Settled {
@@ -52,7 +52,7 @@ impl Withdraw {
         id: WithdrawId,
         tx_id: LedgerTxId,
         destination: String,
-        reference: String,
+        reference: Option<String>,
     ) -> Result<(), WithdrawError> {
         self.events.push(WithdrawEvent::Initiated {
             id,
