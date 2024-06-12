@@ -9,9 +9,12 @@ use rust_decimal::Decimal;
 use tracing::instrument;
 use uuid::Uuid;
 
-use crate::primitives::{
-    BfxAddressType, BfxIntegrationId, LedgerAccountId, LedgerAccountSetId,
-    LedgerAccountSetMemberType, LedgerDebitOrCredit, LedgerJournalId, LedgerTxId,
+use crate::{
+    primitives::{
+        BfxAddressType, BfxIntegrationId, BfxWithdrawalMethod, LedgerAccountId, LedgerAccountSetId,
+        LedgerAccountSetMemberType, LedgerDebitOrCredit, LedgerJournalId, LedgerTxId, WithdrawId,
+    },
+    withdraw::Withdraw,
 };
 
 use super::{
@@ -729,6 +732,37 @@ impl CalaClient {
             .data
             .and_then(|d| d.bitfinex.address_backed_account)
             .map(T::from))
+    }
+
+    pub async fn execute_bfx_withdrawal(
+        &self,
+        withdrawal_id: WithdrawId,
+        integration_id: BfxIntegrationId,
+        amount: Decimal,
+        withdrawal_method: BfxWithdrawalMethod,
+        destination_address: String,
+        debit_account_id: LedgerAccountId,
+        reserve_tx_external_id: String,
+    ) -> Result<WithdrawId, CalaError> {
+        let variables = bfx_withdrawal_execute::Variables {
+            input: bfx_withdrawal_execute::BfxWithdrawalExecuteInput {
+                withdrawal_id: withdrawal_id.into(),
+                integration_id: integration_id.into(),
+                amount,
+                withdrawal_method: withdrawal_method.into(),
+                destination_address,
+                debit_account_id: debit_account_id.into(),
+                reserve_tx_external_id,
+            },
+        };
+        let response =
+            Self::traced_gql_request::<BfxWithdrawalExecute, _>(&self.client, &self.url, variables)
+                .await?;
+        response
+            .data
+            .map(|d| d.bitfinex.withdrawal_execute.withdrawal.withdrawal_id)
+            .map(WithdrawId::from)
+            .ok_or(CalaError::MissingDataField)
     }
 
     async fn traced_gql_request<Q: GraphQLQuery, U: reqwest::IntoUrl>(

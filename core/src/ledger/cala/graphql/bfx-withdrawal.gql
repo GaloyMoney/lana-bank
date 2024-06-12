@@ -1,0 +1,9 @@
+mutation BfxWithdrawalExecute($input: BfxWithdrawalExecuteInput!) {
+  bitfinex {
+    withdrawalExecute(input: $input) {
+      withdrawal {
+        withdrawalId
+      }
+    }
+  }
+}

@@ -25,6 +25,11 @@ pub enum BfxAddressType {
     Tron,
 }
 
+pub enum BfxWithdrawalMethod {
+    Bitcoin,
+    TronUsdt,
+}
+
 impl From<FixedTermLoanId> for LedgerAccountId {
     fn from(id: FixedTermLoanId) -> Self {
         LedgerAccountId::from(id.0)
