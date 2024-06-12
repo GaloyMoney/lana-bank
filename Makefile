@@ -58,3 +58,6 @@ build-x86_64-unknown-linux-musl-release:
 
 build-x86_64-apple-darwin-release:
 	bin/osxcross-compile.sh
+
+start-admin:
+	cd apps/admin-panel && pnpm install --frozen-lockfile && pnpm dev
