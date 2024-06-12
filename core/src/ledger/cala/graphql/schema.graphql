@@ -250,6 +250,7 @@ input BfxWithdrawalExecuteInput {
 	withdrawalMethod: BfxWithdrawalMethod!
 	destinationAddress: String!
 	debitAccountId: UUID!
+	reserveTxExternalId: String
 }
 
 type BfxWithdrawalExecutePayload {
