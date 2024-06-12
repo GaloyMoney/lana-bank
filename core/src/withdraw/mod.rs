@@ -62,15 +62,14 @@ impl Withdraws {
         reference: String,
     ) -> Result<Withdraw, WithdrawError> {
         let mut withdraw = self.repo.find_by_id(id).await?;
-        let user = self.users.find_by_id(withdraw.user_id).await?;
         let tx_id = LedgerTxId::new();
 
         let mut db_tx = self._pool.begin().await?;
-        withdraw.initiate_usd_withdrawal(id, tx_id, destination, reference.clone())?;
+        withdraw.initiate_usd_withdrawal(id, tx_id, destination.clone(), reference.clone())?;
         self.repo.persist_in_tx(&mut db_tx, &mut withdraw).await?;
 
         self.ledger
-            .initiate_withdrawal_for_user(user.account_ids, withdraw.amount, reference)
+            .initiate_withdrawal_for_user(withdraw.id, withdraw.amount, destination, reference)
             .await?;
 
         db_tx.commit().await?;

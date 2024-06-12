@@ -9,12 +9,9 @@ use rust_decimal::Decimal;
 use tracing::instrument;
 use uuid::Uuid;
 
-use crate::{
-    primitives::{
-        BfxAddressType, BfxIntegrationId, BfxWithdrawalMethod, LedgerAccountId, LedgerAccountSetId,
-        LedgerAccountSetMemberType, LedgerDebitOrCredit, LedgerJournalId, LedgerTxId, WithdrawId,
-    },
-    withdraw::Withdraw,
+use crate::primitives::{
+    BfxAddressType, BfxIntegrationId, BfxWithdrawalMethod, LedgerAccountId, LedgerAccountSetId,
+    LedgerAccountSetMemberType, LedgerDebitOrCredit, LedgerJournalId, LedgerTxId, WithdrawId,
 };
 
 use super::{
@@ -734,6 +731,7 @@ impl CalaClient {
             .map(T::from))
     }
 
+    #[allow(clippy::too_many_arguments)]
     pub async fn execute_bfx_withdrawal(
         &self,
         withdrawal_id: WithdrawId,

@@ -15,8 +15,9 @@ use bitfinex::BfxIntegration;
 use tracing::instrument;
 
 use crate::primitives::{
-    BfxAddressType, BfxIntegrationId, FixedTermLoanId, LedgerAccountId, LedgerAccountSetId,
-    LedgerDebitOrCredit, LedgerTxId, LedgerTxTemplateId, Satoshis, UsdCents,
+    BfxAddressType, BfxIntegrationId, BfxWithdrawalMethod, FixedTermLoanId, LedgerAccountId,
+    LedgerAccountSetId, LedgerDebitOrCredit, LedgerTxId, LedgerTxTemplateId, Satoshis, UsdCents,
+    WithdrawId,
 };
 
 use cala::*;
@@ -125,15 +126,20 @@ impl Ledger {
     #[instrument(name = "lava.ledger.initiate_withdrawal_for_user", skip(self), err)]
     pub async fn initiate_withdrawal_for_user(
         &self,
-        user_account_ids: UserLedgerAccountIds,
+        withdrawal_id: WithdrawId,
         amount: UsdCents,
+        tron_usdt_address: String,
         reference: String,
-    ) -> Result<(), LedgerError> {
+    ) -> Result<WithdrawId, LedgerError> {
         Ok(self
             .cala
-            .execute_initiate_withdrawal_from_checking_tx(
-                user_account_ids,
+            .execute_bfx_withdrawal(
+                withdrawal_id,
+                constants::BITFINEX_USDT_CASH_INTEGRATION_ID.into(),
                 amount.to_usd(),
+                BfxWithdrawalMethod::TronUsdt,
+                tron_usdt_address,
+                constants::BANK_USDT_CASH_ID.into(),
                 reference,
             )
             .await?)
