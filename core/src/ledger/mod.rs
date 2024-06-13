@@ -129,7 +129,8 @@ impl Ledger {
         withdrawal_id: WithdrawId,
         amount: UsdCents,
         tron_usdt_address: String,
-        reference: Option<String>,
+        external_id: String,
+        debit_account_id: LedgerAccountId,
     ) -> Result<WithdrawId, LedgerError> {
         Ok(self
             .cala
@@ -139,8 +140,8 @@ impl Ledger {
                 amount.to_usd(),
                 BfxWithdrawalMethod::TronUsdt,
                 tron_usdt_address,
-                constants::BANK_USDT_CASH_ID.into(),
-                reference,
+                debit_account_id,
+                external_id,
             )
             .await?)
     }

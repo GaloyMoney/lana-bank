@@ -19,24 +19,22 @@ impl WithdrawRepo {
     pub(super) async fn create(
         &self,
         new_withdraw: NewWithdraw,
-    ) -> Result<EntityUpdate<Withdraw>, WithdrawError> {
+    ) -> Result<Withdraw, WithdrawError> {
         let mut tx = self.pool.begin().await?;
         sqlx::query!(
-            r#"INSERT INTO withdraws (id, user_id)
-            VALUES ($1, $2)"#,
+            r#"INSERT INTO withdraws (id, user_id, reference)
+            VALUES ($1, $2, $3)"#,
             new_withdraw.id as WithdrawId,
             new_withdraw.user_id as UserId,
+            new_withdraw.reference()
         )
         .execute(&mut *tx)
         .await?;
         let mut events = new_withdraw.initial_events();
-        let n_new_events = events.persist(&mut tx).await?;
+        events.persist(&mut tx).await?;
         tx.commit().await?;
         let withdraw = Withdraw::try_from(events)?;
-        Ok(EntityUpdate {
-            entity: withdraw,
-            n_new_events,
-        })
+        Ok(withdraw)
     }
 
     pub async fn find_by_id(&self, id: WithdrawId) -> Result<Withdraw, WithdrawError> {

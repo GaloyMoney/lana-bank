@@ -628,7 +628,7 @@ impl CalaClient {
         withdrawal_method: BfxWithdrawalMethod,
         destination_address: String,
         debit_account_id: LedgerAccountId,
-        reserve_tx_external_id: Option<String>,
+        reserve_tx_external_id: String,
     ) -> Result<WithdrawId, CalaError> {
         let variables = bfx_withdrawal_execute::Variables {
             input: bfx_withdrawal_execute::BfxWithdrawalExecuteInput {
@@ -638,7 +638,7 @@ impl CalaClient {
                 withdrawal_method: withdrawal_method.into(),
                 destination_address,
                 debit_account_id: debit_account_id.into(),
-                reserve_tx_external_id,
+                reserve_tx_external_id: Some(reserve_tx_external_id),
             },
         };
         let response =

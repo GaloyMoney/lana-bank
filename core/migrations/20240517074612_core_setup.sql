@@ -31,6 +31,7 @@ CREATE TABLE fixed_term_loan_events (
 CREATE TABLE withdraws (
   id UUID PRIMARY KEY,
   user_id UUID NOT NULL REFERENCES users(id),
+  reference VARCHAR NOT NULL UNIQUE,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
