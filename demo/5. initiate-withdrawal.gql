@@ -1,0 +1,20 @@
+mutation WithdrawalInitiate($input: WithdrawalInitiateInput!) {
+  withdrawalInitiate(input: $input) {
+    withdrawal {
+      amount
+      userId
+      withdrawalId
+    }
+  }
+}
+
+{
+  "input": {
+    "amount": 600,
+    "destination": "<tron-address>",
+    "reference": "withdrawal-01",
+    "userId": "a41ebb03-a3f9-4aed-ae31-02c5d893e6c4"
+  }
+}
+
+withdrawId: "e9270364-5871-408d-a81c-ff8c03c4b404"

@@ -1,8 +1,8 @@
-mutation approveLoan($loanId: UUID!) {
+mutation approveLoan($loanId: UUID!, $collateral: Satoshis!, $principal: UsdCents!) {
   fixedTermLoanApprove(input: {
     loanId: $loanId
-    collateral: 400000000
-    principal: 25000000
+    collateral: $collateral
+    principal: $principal
   }) {
     loan {
       loanId
@@ -22,9 +22,7 @@ mutation approveLoan($loanId: UUID!) {
 }
 
 {
-  "input": {
-    "loanId": "945773e8-738b-4229-a5da-390d87001001",
-    "collateral": 100000,
-    "principal": 200000
-  }
+  "loanId": "945773e8-738b-4229-a5da-390d87001001",
+  "collateral": 100,
+  "principal": 1000
 }
