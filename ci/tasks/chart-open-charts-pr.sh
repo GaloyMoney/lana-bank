@@ -9,7 +9,7 @@ pushd charts-repo
 
 git checkout ${BRANCH}
 
-old_digest=$(yq e '.image.digest' "./charts/${CHARTS_SUBDIR}/values.yaml")
+old_digest=$(yq e '.lavaBank.image.digest' "./charts/${CHARTS_SUBDIR}/values.yaml")
 old_ref=$(grep "digest: \"${old_digest}\"" "./charts/${CHARTS_SUBDIR}/values.yaml" \
   | sed -n 's/.*commit_ref=\([^;]*\);.*/\1/p' | tr -d ' \n')
 
