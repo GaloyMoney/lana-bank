@@ -13,9 +13,7 @@ pub(super) const BITFINEX_USDT_CASH_INTEGRATION_ID: Uuid =
 pub(super) const BITFINEX_USDT_CASH_INTEGRATION_NAME: &str = "Usdt Cash Bitfinex Integration";
 
 // Accounts
-pub(super) const BANK_USDT_CASH_ID: Uuid = uuid!("00000000-0000-0000-0000-000000000004");
-pub(super) const BANK_USDT_CASH_NAME: &str = "Bank USDT Cash";
-pub(super) const BANK_USDT_CASH_CODE: &str = "BANK.USDT_CASH";
+pub(super) const _BANK_USDT_CASH_ID: Uuid = uuid!("00000000-0000-0000-0000-000000000004");
 
 // Templates
 pub(super) const APPROVE_LOAN_CODE: &str = "APPROVE_LOAN";

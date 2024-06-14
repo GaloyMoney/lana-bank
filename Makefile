@@ -5,15 +5,21 @@ clean-deps:
 	docker compose down -t 1
 
 start-deps:
-	docker compose up -d integration-deps
+	docker compose up --wait -d
 
 setup-db:
-	cd core && sleep 2 && cargo sqlx migrate run
+	cd core && cargo sqlx migrate run
 
 sqlx-prepare:
 	cd core && cargo sqlx prepare
 
-reset-deps: clean-deps start-deps setup-db
+reset-tf-state:
+	rm -rf tf/terraform.tfstate
+
+run-tf:
+	cd tf && tofu init && tofu apply -auto-approve
+
+reset-deps: reset-tf-state clean-deps start-deps setup-db run-tf
 
 run-server:
 	cargo run --bin lava-core -- --config ./bats/lava.yml
@@ -29,7 +35,7 @@ check-code: public-sdl admin-sdl
 build:
 	SQLX_OFFLINE=true cargo build --locked
 
-e2e: clean-deps start-deps build
+e2e: clean-deps start-deps build run-tf
 	bats -t bats
 
 e2e-in-ci: bump-cala-docker-image e2e
@@ -49,9 +55,7 @@ bump-cala-docker-image:
 
 bump-cala: bump-cala-docker-image bump-cala-schema
 
-test-in-ci: start-deps
-	sleep 2
-	cd core && cargo sqlx migrate run
+test-in-ci: start-deps setup-db run-tf
 	cargo nextest run --verbose --locked
 
 build-x86_64-unknown-linux-musl-release:

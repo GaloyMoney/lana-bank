@@ -1,13 +1,4 @@
 services:
-  integration-deps:
-    image: busybox
-    depends_on:
-      - core-pg
-      - cala-pg
-      - cala
-      - otel-agent
-      - kratos
-      - oathkeeper
   core-pg:
     image: postgres:15.5
     ports:
@@ -17,10 +8,10 @@ services:
       - POSTGRES_PASSWORD=password
       - POSTGRES_DB=pg
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready"]
-      interval: 5s
-      timeout: 5s
-      retries: 5
+      test: [ "CMD-SHELL", "pg_isready" ]
+      interval: 1s
+      timeout: 1s
+      retries: 20
   cala-pg:
     image: postgres:15.5
     ports:
@@ -30,10 +21,10 @@ services:
       - POSTGRES_PASSWORD=password
       - POSTGRES_DB=pg
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready"]
-      interval: 5s
-      timeout: 5s
-      retries: 5
+      test: [ "CMD-SHELL", "pg_isready" ]
+      interval: 1s
+      timeout: 1s
+      retries: 20
   cala:
     image: gcr.io/galoy-org/cala-enterprise:edge
     ports:
