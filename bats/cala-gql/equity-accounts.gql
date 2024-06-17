@@ -1,0 +1,22 @@
+query EquityAccounts {
+  debit: accountByCode(code: "BANK.BTC_RESERVE_FROM_SHAREHOLDER") {
+    ...btcBalance
+  }
+
+  credit: accountByCode(code: "BANK.SHAREHOLDER_EQUITY") {
+    ...btcBalance
+  }
+}
+
+fragment btcBalance on Account {
+  btcBalance: balance(
+    journalId: "00000000-0000-0000-0000-000000000001"
+    currency: "BTC"
+  ) {
+    settled {
+      normalBalance {
+        units
+      }
+    }
+  }
+}
