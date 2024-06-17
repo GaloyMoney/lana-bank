@@ -83,6 +83,7 @@ export type PageInfo = {
 export type Query = {
   __typename?: 'Query';
   loan?: Maybe<FixedTermLoan>;
+  shareholderEquityAddressCurrent?: Maybe<ShareholderEquityAddress>;
   user?: Maybe<User>;
   users: UserConnection;
 };
@@ -101,6 +102,12 @@ export type QueryUserArgs = {
 export type QueryUsersArgs = {
   after?: InputMaybe<Scalars['String']['input']>;
   first: Scalars['Int']['input'];
+};
+
+export type ShareholderEquityAddress = {
+  __typename?: 'ShareholderEquityAddress';
+  btc?: Maybe<Scalars['String']['output']>;
+  dummy: Scalars['String']['output'];
 };
 
 export type UnallocatedCollateral = {

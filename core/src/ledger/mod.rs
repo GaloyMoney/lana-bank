@@ -281,6 +281,15 @@ impl Ledger {
         Ok(())
     }
 
+    pub async fn btc_equity_address_for_address_backed_account_by_id(
+        &self,
+    ) -> Result<Option<String>, LedgerError> {
+        self.cala
+            .find_address_backed_account_by_id(constants::BANK_BTC_RESERVE_FROM_SHAREHOLDER_ID)
+            .await
+            .map_err(|err| err.into())
+    }
+
     async fn initialize_global_accounts(cala: &CalaClient) -> Result<(), LedgerError> {
         Self::assert_credit_account_exists(
             cala,

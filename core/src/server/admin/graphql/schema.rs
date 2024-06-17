@@ -1,6 +1,6 @@
 use async_graphql::{types::connection::*, *};
 
-use super::user::*;
+use super::{bank_equity::ShareholderEquityAddress, user::*};
 use crate::{
     app::LavaApp,
     primitives::{FixedTermLoanId, UserId},
@@ -11,6 +11,12 @@ pub struct Query;
 
 #[Object]
 impl Query {
+    async fn shareholder_equity_address_current(
+        &self,
+    ) -> async_graphql::Result<Option<ShareholderEquityAddress>> {
+        Ok(Some(ShareholderEquityAddress::default()))
+    }
+
     async fn loan(
         &self,
         ctx: &Context<'_>,

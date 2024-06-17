@@ -61,12 +61,18 @@ type PageInfo {
 }
 
 type Query {
+	shareholderEquityAddressCurrent: ShareholderEquityAddress
 	loan(id: UUID!): FixedTermLoan
 	user(id: UUID!): User
 	users(first: Int!, after: String): UserConnection!
 }
 
 scalar Satoshis
+
+type ShareholderEquityAddress {
+	dummy: String!
+	btc: String
+}
 
 
 scalar UUID

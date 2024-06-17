@@ -1,3 +1,4 @@
+mod bank_equity;
 mod schema;
 mod user;
 
