@@ -34,7 +34,6 @@ pub struct Ledger {
 impl Ledger {
     pub async fn init(config: LedgerConfig) -> Result<Self, LedgerError> {
         let cala = CalaClient::new(config.cala_url);
-        Self::initialize_journal(&cala).await?;
         Self::initialize_bfx_integrations(&cala, &config.bfx_key, &config.bfx_secret).await?;
         Self::initialize_tx_templates(&cala).await?;
         Ok(Ledger { cala })
@@ -278,26 +277,6 @@ impl Ledger {
         )
         .await?;
 
-        Ok(())
-    }
-
-    async fn initialize_journal(cala: &CalaClient) -> Result<(), LedgerError> {
-        if cala
-            .find_journal_by_id(constants::CORE_JOURNAL_ID)
-            .await
-            .is_ok()
-        {
-            return Ok(());
-        }
-
-        let err = match cala.create_core_journal(constants::CORE_JOURNAL_ID).await {
-            Ok(_) => return Ok(()),
-            Err(e) => e,
-        };
-
-        cala.find_journal_by_id(constants::CORE_JOURNAL_ID)
-            .await
-            .map_err(|_| err)?;
         Ok(())
     }
 

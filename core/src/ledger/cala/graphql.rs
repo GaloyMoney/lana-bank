@@ -71,14 +71,6 @@ pub struct JournalById;
 #[derive(GraphQLQuery)]
 #[graphql(
     schema_path = "src/ledger/cala/graphql/schema.graphql",
-    query_path = "src/ledger/cala/graphql/journals.gql",
-    response_derives = "Debug, PartialEq, Eq, Clone"
-)]
-pub struct CoreJournalCreate;
-
-#[derive(GraphQLQuery)]
-#[graphql(
-    schema_path = "src/ledger/cala/graphql/schema.graphql",
     query_path = "src/ledger/cala/graphql/transactions/find-tx-template.gql",
     response_derives = "Debug, PartialEq, Eq, Clone"
 )]
