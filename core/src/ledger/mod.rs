@@ -35,6 +35,7 @@ impl Ledger {
     pub async fn init(config: LedgerConfig) -> Result<Self, LedgerError> {
         let cala = CalaClient::new(config.cala_url);
         Self::initialize_bfx_integrations(&cala, &config.bfx_key, &config.bfx_secret).await?;
+        Self::initialize_global_accounts(&cala).await?;
         Self::initialize_tx_templates(&cala).await?;
         Ok(Ledger { cala })
     }
@@ -280,6 +281,28 @@ impl Ledger {
         Ok(())
     }
 
+    async fn initialize_global_accounts(cala: &CalaClient) -> Result<(), LedgerError> {
+        Self::assert_credit_account_exists(
+            cala,
+            constants::BANK_SHAREHOLDER_EQUITY_ID.into(),
+            constants::BANK_SHAREHOLDER_EQUITY_NAME,
+            constants::BANK_SHAREHOLDER_EQUITY_CODE,
+            &constants::BANK_SHAREHOLDER_EQUITY_ID.to_string(),
+        )
+        .await?;
+
+        Self::assert_shareholder_btc_address_backed_debit_account_exists(
+            cala,
+            constants::BANK_BTC_RESERVE_FROM_SHAREHOLDER_ID.into(),
+            constants::BANK_BTC_RESERVE_FROM_SHAREHOLDER_NAME,
+            constants::BANK_BTC_RESERVE_FROM_SHAREHOLDER_CODE,
+            constants::BANK_SHAREHOLDER_EQUITY_ID.into(),
+        )
+        .await?;
+
+        Ok(())
+    }
+
     async fn _assert_account_set_exists(
         normal_balance_type: LedgerDebitOrCredit,
         cala: &CalaClient,
@@ -448,6 +471,25 @@ impl Ledger {
             Ok(None) => Err(LedgerError::CouldNotAssertAccountExists),
             Err(_) => Err(err)?,
         }
+    }
+
+    async fn assert_shareholder_btc_address_backed_debit_account_exists(
+        cala: &CalaClient,
+        account_id: LedgerAccountId,
+        name: &str,
+        code: &str,
+        credit_account_id: LedgerAccountId,
+    ) -> Result<String, LedgerError> {
+        Self::assert_address_backed_debit_account_exists(
+            constants::BITFINEX_SHAREHOLDER_INTEGRATION_ID.into(),
+            BfxAddressType::Bitcoin,
+            cala,
+            account_id,
+            name,
+            code,
+            credit_account_id,
+        )
+        .await
     }
 
     async fn assert_off_balance_sheet_address_backed_debit_account_exists(
@@ -656,6 +698,15 @@ impl Ledger {
             cala,
             constants::BITFINEX_USDT_CASH_INTEGRATION_ID.into(),
             constants::BITFINEX_USDT_CASH_INTEGRATION_NAME,
+            key,
+            secret,
+        )
+        .await?;
+
+        Self::assert_bfx_integration_exists(
+            cala,
+            constants::BITFINEX_SHAREHOLDER_INTEGRATION_ID.into(),
+            constants::BITFINEX_SHAREHOLDER_INTEGRATION_NAME,
             key,
             secret,
         )
