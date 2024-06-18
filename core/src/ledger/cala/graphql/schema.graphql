@@ -72,6 +72,7 @@ type AccountSet {
 	createdAt: Timestamp!
 	modifiedAt: Timestamp!
 	balance(currency: CurrencyCode!): Balance
+	sets(first: Int!, after: String): AccountSetConnection!
 }
 
 type AccountSetConnection {
@@ -119,6 +120,31 @@ type AccountSetEdge {
 enum AccountSetMemberType {
 	ACCOUNT
 	ACCOUNT_SET
+}
+
+input AccountSetUpdateInput {
+	name: String
+	normalBalanceType: DebitOrCredit
+	description: String
+	metadata: JSON
+}
+
+type AccountSetUpdatePayload {
+	accountSet: AccountSet!
+}
+
+input AccountUpdateInput {
+	externalId: String
+	code: String
+	name: String
+	normalBalanceType: DebitOrCredit
+	description: String
+	status: Status
+	metadata: JSON
+}
+
+type AccountUpdatePayload {
+	account: Account!
 }
 
 input AddToAccountSetInput {
@@ -390,6 +416,16 @@ type JournalCreatePayload {
 	journal: Journal!
 }
 
+input JournalUpdateInput {
+	name: String
+	status: Status
+	description: String
+}
+
+type JournalUpdatePayload {
+	journal: Journal!
+}
+
 type Money {
 	units: Decimal!
 	currency: CurrencyCode!
@@ -401,9 +437,13 @@ type Mutation {
 	bitfinex: BitfinexMutation!
 	balanceSheet: BalanceSheetMutation!
 	accountCreate(input: AccountCreateInput!): AccountCreatePayload!
+	accountUpdate(id: UUID!, input: AccountUpdateInput!): AccountUpdatePayload!
 	accountSetCreate(input: AccountSetCreateInput!): AccountSetCreatePayload!
+	accountSetUpdate(id: UUID!, input: AccountSetUpdateInput!): AccountSetUpdatePayload!
 	addToAccountSet(input: AddToAccountSetInput!): AddToAccountSetPayload!
+	removeFromAccountSet(input: RemoveFromAccountSetInput!): RemoveFromAccountSetPayload!
 	journalCreate(input: JournalCreateInput!): JournalCreatePayload!
+	journalUpdate(id: UUID!, input: JournalUpdateInput!): JournalUpdatePayload!
 	txTemplateCreate(input: TxTemplateCreateInput!): TxTemplateCreatePayload!
 	postTransaction(input: TransactionInput!): PostTransactionPayload!
 }
@@ -475,6 +515,16 @@ type Query {
 	txTemplate(id: UUID!): TxTemplate
 	txTemplateByCode(code: String!): TxTemplate
 	jobs(first: Int!, after: String): JobConnection!
+}
+
+input RemoveFromAccountSetInput {
+	accountSetId: UUID!
+	memberId: UUID!
+	memberType: AccountSetMemberType!
+}
+
+type RemoveFromAccountSetPayload {
+	accountSet: AccountSet!
 }
 
 enum Status {
