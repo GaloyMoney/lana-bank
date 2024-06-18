@@ -291,15 +291,6 @@ impl Ledger {
     }
 
     async fn initialize_global_accounts(cala: &CalaClient) -> Result<(), LedgerError> {
-        Self::assert_credit_account_exists(
-            cala,
-            constants::BANK_SHAREHOLDER_EQUITY_ID.into(),
-            constants::BANK_SHAREHOLDER_EQUITY_NAME,
-            constants::BANK_SHAREHOLDER_EQUITY_CODE,
-            &constants::BANK_SHAREHOLDER_EQUITY_ID.to_string(),
-        )
-        .await?;
-
         Self::assert_shareholder_btc_address_backed_debit_account_exists(
             cala,
             constants::BANK_BTC_RESERVE_FROM_SHAREHOLDER_ID.into(),
