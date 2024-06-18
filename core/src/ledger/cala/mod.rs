@@ -14,9 +14,7 @@ use crate::primitives::{
     LedgerAccountSetMemberType, LedgerDebitOrCredit, LedgerJournalId, LedgerTxId, WithdrawId,
 };
 
-use super::{
-    bitfinex::BfxIntegration, fixed_term_loan::FixedTermLoanAccountIds, user::UserLedgerAccountIds,
-};
+use super::{fixed_term_loan::FixedTermLoanAccountIds, user::UserLedgerAccountIds};
 
 use error::*;
 use graphql::*;
@@ -498,55 +496,6 @@ impl CalaClient {
             .map(|d| d.post_transaction.transaction.transaction_id)
             .ok_or_else(|| CalaError::MissingDataField)?;
         Ok(())
-    }
-
-    // TODO: instrument and handle sensitive params
-    pub async fn create_bfx_integration(
-        &self,
-        integration_id: BfxIntegrationId,
-        name: String,
-        key: String,
-        secret: String,
-    ) -> Result<BfxIntegration, CalaError> {
-        let variables = bfx_integration_create::Variables {
-            input: bfx_integration_create::BfxIntegrationCreateInput {
-                integration_id: integration_id.into(),
-                journal_id: super::constants::CORE_JOURNAL_ID,
-                name,
-                key,
-                secret,
-                description: None,
-            },
-        };
-        let response =
-            Self::traced_gql_request::<BfxIntegrationCreate, _>(&self.client, &self.url, variables)
-                .await?;
-        response
-            .data
-            .map(|d| BfxIntegration::from(d.bitfinex.integration_create.integration))
-            .ok_or(CalaError::MissingDataField)
-    }
-
-    #[instrument(
-        name = "lava.ledger.cala.find_bfx_integration_by_id",
-        skip(self, id),
-        err
-    )]
-    pub async fn find_bfx_integration_by_id<
-        T: From<bfx_integration_by_id::BfxIntegrationByIdBitfinexIntegration>,
-    >(
-        &self,
-        id: impl Into<Uuid>,
-    ) -> Result<Option<T>, CalaError> {
-        let variables = bfx_integration_by_id::Variables { id: id.into() };
-        let response =
-            Self::traced_gql_request::<BfxIntegrationById, _>(&self.client, &self.url, variables)
-                .await?;
-
-        Ok(response
-            .data
-            .and_then(|d| d.bitfinex.integration)
-            .map(T::from))
     }
 
     #[instrument(

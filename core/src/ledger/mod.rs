@@ -11,7 +11,6 @@ mod tx_template;
 pub mod user;
 
 use account::LedgerAccount;
-use bitfinex::BfxIntegration;
 use tracing::instrument;
 
 use crate::primitives::{
@@ -34,7 +33,6 @@ pub struct Ledger {
 impl Ledger {
     pub async fn init(config: LedgerConfig) -> Result<Self, LedgerError> {
         let cala = CalaClient::new(config.cala_url);
-        Self::initialize_bfx_integrations(&cala, &config.bfx_key, &config.bfx_secret).await?;
         Self::initialize_tx_templates(&cala).await?;
         Ok(Ledger { cala })
     }
@@ -96,7 +94,7 @@ impl Ledger {
         )
         .await?;
 
-        let checking_address = Self::assert_usdt_cash_address_backed_debit_account_exists(
+        let checking_address = Self::assert_bank_deposit_address_backed_debit_account_exists(
             &self.cala,
             account_ids.bank_checking_id, // TODO: revisit if this should be on user entity
             &format!("BANK.USER_CHECKING.{}", bitfinex_username),
@@ -134,7 +132,7 @@ impl Ledger {
             .cala
             .execute_bfx_withdrawal(
                 withdrawal_id,
-                constants::BITFINEX_USDT_CASH_INTEGRATION_ID.into(),
+                constants::BITFINEX_BANK_RESERVE_INTEGRATION_ID.into(),
                 amount.to_usd(),
                 BfxWithdrawalMethod::TronUsdt,
                 tron_usdt_address,
@@ -469,7 +467,7 @@ impl Ledger {
         .await
     }
 
-    async fn assert_usdt_cash_address_backed_debit_account_exists(
+    async fn assert_bank_deposit_address_backed_debit_account_exists(
         cala: &CalaClient,
         account_id: LedgerAccountId,
         name: &str,
@@ -477,7 +475,7 @@ impl Ledger {
         credit_account_id: LedgerAccountId,
     ) -> Result<String, LedgerError> {
         Self::assert_address_backed_debit_account_exists(
-            constants::BITFINEX_USDT_CASH_INTEGRATION_ID.into(),
+            constants::BITFINEX_BANK_RESERVE_INTEGRATION_ID.into(),
             BfxAddressType::Tron,
             cala,
             account_id,
@@ -600,67 +598,5 @@ impl Ledger {
             .find_tx_template_by_code::<LedgerTxTemplateId>(template_code.to_owned())
             .await
             .map_err(|_| err)?)
-    }
-
-    async fn assert_bfx_integration_exists(
-        cala: &CalaClient,
-        bfx_integration_id: BfxIntegrationId,
-        name: &str,
-        key: &str,
-        secret: &str,
-    ) -> Result<BfxIntegrationId, LedgerError> {
-        if let Ok(Some(bfx_integration)) = cala
-            .find_bfx_integration_by_id::<BfxIntegration>(bfx_integration_id.to_owned())
-            .await
-        {
-            return Ok(bfx_integration.id);
-        }
-
-        let err = match cala
-            .create_bfx_integration(
-                bfx_integration_id,
-                name.to_string(),
-                key.to_string(),
-                secret.to_string(),
-            )
-            .await
-        {
-            Ok(bfx_integration) => {
-                return Ok(bfx_integration.id);
-            }
-            Err(e) => e,
-        };
-
-        cala.find_bfx_integration_by_id::<BfxIntegration>(bfx_integration_id.to_owned())
-            .await
-            .map_err(|_| err)?
-            .ok_or_else(|| LedgerError::CouldNotAssertBfxIntegrationExists)
-            .map(|bfx_integration| bfx_integration.id)
-    }
-
-    async fn initialize_bfx_integrations(
-        cala: &CalaClient,
-        key: &str,
-        secret: &str,
-    ) -> Result<(), LedgerError> {
-        Self::assert_bfx_integration_exists(
-            cala,
-            constants::BITFINEX_OFF_BALANCE_SHEET_INTEGRATION_ID.into(),
-            constants::BITFINEX_OFF_BALANCE_SHEET_INTEGRATION_NAME,
-            key,
-            secret,
-        )
-        .await?;
-
-        Self::assert_bfx_integration_exists(
-            cala,
-            constants::BITFINEX_USDT_CASH_INTEGRATION_ID.into(),
-            constants::BITFINEX_USDT_CASH_INTEGRATION_NAME,
-            key,
-            secret,
-        )
-        .await?;
-
-        Ok(())
     }
 }
