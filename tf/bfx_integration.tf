@@ -22,4 +22,5 @@ resource "cala_bitfinex_integration" "bank_deposit" {
   journal_id = cala_journal.journal.id
   key        = var.bitfinex_key
   secret     = var.bitfinex_secret
+  depends_on = [cala_bitfinex_integration.off_balance_sheet]
 }
