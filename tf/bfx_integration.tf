@@ -1,11 +1,13 @@
 variable "bitfinex_key" {
   sensitive = true
   type      = string
+  default   = ""
 }
 
 variable "bitfinex_secret" {
   sensitive = true
   type      = string
+  default   = ""
 }
 
 resource "cala_bitfinex_integration" "off_balance_sheet" {
