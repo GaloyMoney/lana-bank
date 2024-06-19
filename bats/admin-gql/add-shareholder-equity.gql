@@ -1,0 +1,5 @@
+mutation ShareholderEquityAdd($input: ShareholderEquityAddInput!) {
+  shareholderEquityAdd(input: $input) {
+    success
+  }
+}

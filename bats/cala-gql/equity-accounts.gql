@@ -1,0 +1,22 @@
+query EquityAccounts {
+  debit: accountByCode(code: "BANK.RESERVE_FROM_SHAREHOLDER") {
+    ...usdBalance
+  }
+
+  credit: accountByCode(code: "BANK.SHAREHOLDER_EQUITY") {
+    ...usdBalance
+  }
+}
+
+fragment usdBalance on Account {
+  usdBalance: balance(
+    journalId: "00000000-0000-0000-0000-000000000001"
+    currency: "USD"
+  ) {
+    settled {
+      normalBalance {
+        units
+      }
+    }
+  }
+}
