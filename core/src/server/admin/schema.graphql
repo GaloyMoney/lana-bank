@@ -35,7 +35,7 @@ type LoanOutstanding {
 }
 
 type Mutation {
-	dummy: Boolean!
+	shareholderEquityAdd(input: ShareholderEquityAddInput!): SuccessPayload!
 }
 
 """
@@ -68,6 +68,15 @@ type Query {
 
 scalar Satoshis
 
+input ShareholderEquityAddInput {
+	amount: UsdCents!
+	reference: String!
+}
+
+
+type SuccessPayload {
+	success: Boolean!
+}
 
 scalar UUID
 

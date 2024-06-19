@@ -63,3 +63,9 @@ query AccountByExternalId($externalId: String!, $journalId: UUID!) {
     }
   }
 }
+
+query AccountByCode($code: String!) {
+  accountByCode(code: $code) {
+    accountId
+  }
+}

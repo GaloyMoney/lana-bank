@@ -64,7 +64,12 @@ export type LoanOutstanding = {
 
 export type Mutation = {
   __typename?: 'Mutation';
-  dummy: Scalars['Boolean']['output'];
+  shareholderEquityAdd: SuccessPayload;
+};
+
+
+export type MutationShareholderEquityAddArgs = {
+  input: ShareholderEquityAddInput;
 };
 
 /** Information about pagination in a connection */
@@ -101,6 +106,16 @@ export type QueryUserArgs = {
 export type QueryUsersArgs = {
   after?: InputMaybe<Scalars['String']['input']>;
   first: Scalars['Int']['input'];
+};
+
+export type ShareholderEquityAddInput = {
+  amount: Scalars['UsdCents']['input'];
+  reference: Scalars['String']['input'];
+};
+
+export type SuccessPayload = {
+  __typename?: 'SuccessPayload';
+  success: Scalars['Boolean']['output'];
 };
 
 export type UnallocatedCollateral = {

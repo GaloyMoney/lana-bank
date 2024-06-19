@@ -8,6 +8,8 @@ pub enum CalaError {
     UnknownGqlError(String),
     #[error("CalaError - MissingDataField")]
     MissingDataField,
+    #[error("CalaError - CouldNotFindAccountByCode: {0}")]
+    CouldNotFindAccountByCode(String),
 }
 
 impl From<Vec<graphql_client::Error>> for CalaError {

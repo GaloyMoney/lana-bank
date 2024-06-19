@@ -1,4 +1,5 @@
 mod schema;
+mod shareholder_equity;
 mod user;
 
 use async_graphql::*;

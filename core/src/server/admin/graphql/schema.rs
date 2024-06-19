@@ -1,10 +1,12 @@
 use async_graphql::{types::connection::*, *};
 
-use super::user::*;
+use super::{shareholder_equity::*, user::*};
 use crate::{
     app::LavaApp,
     primitives::{FixedTermLoanId, UserId},
-    server::shared_graphql::{fixed_term_loan::FixedTermLoan, primitives::UUID, user::User},
+    server::shared_graphql::{
+        fixed_term_loan::FixedTermLoan, objects::SuccessPayload, primitives::UUID, user::User,
+    },
 };
 
 pub struct Query;
@@ -69,7 +71,16 @@ pub struct Mutation;
 
 #[Object]
 impl Mutation {
-    pub async fn dummy(&self) -> async_graphql::Result<bool> {
-        Ok(true)
+    pub async fn shareholder_equity_add(
+        &self,
+        ctx: &Context<'_>,
+        input: ShareholderEquityAddInput,
+    ) -> async_graphql::Result<SuccessPayload> {
+        let app = ctx.data_unchecked::<LavaApp>();
+        Ok(SuccessPayload::from(
+            app.ledger()
+                .add_equity(input.amount, input.reference)
+                .await?,
+        ))
     }
 }

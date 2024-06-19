@@ -10,6 +10,14 @@ use graphql_client::GraphQLQuery;
     query_path = "src/ledger/cala/graphql/accounts.gql",
     response_derives = "Debug, PartialEq, Eq, Clone"
 )]
+pub struct AccountByCode;
+
+#[derive(GraphQLQuery)]
+#[graphql(
+    schema_path = "src/ledger/cala/graphql/schema.graphql",
+    query_path = "src/ledger/cala/graphql/accounts.gql",
+    response_derives = "Debug, PartialEq, Eq, Clone"
+)]
 pub struct AccountByExternalId;
 
 #[derive(GraphQLQuery)]
@@ -75,6 +83,22 @@ pub struct JournalById;
     response_derives = "Debug, PartialEq, Eq, Clone"
 )]
 pub struct TxTemplateByCode;
+
+#[derive(GraphQLQuery)]
+#[graphql(
+    schema_path = "src/ledger/cala/graphql/schema.graphql",
+    query_path = "src/ledger/cala/graphql/transactions/add-equity.gql",
+    response_derives = "Debug, PartialEq, Eq, Clone"
+)]
+pub struct AddEquityTemplateCreate;
+
+#[derive(GraphQLQuery)]
+#[graphql(
+    schema_path = "src/ledger/cala/graphql/schema.graphql",
+    query_path = "src/ledger/cala/graphql/transactions/add-equity.gql",
+    response_derives = "Debug, PartialEq, Eq, Clone"
+)]
+pub struct PostAddEquityTransaction;
 
 #[derive(GraphQLQuery)]
 #[graphql(

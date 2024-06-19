@@ -233,6 +233,85 @@ impl CalaClient {
     }
 
     #[instrument(
+        name = "lava.ledger.cala.create_add_equity_tx_template",
+        skip(self),
+        err
+    )]
+    pub async fn create_add_equity_tx_template(
+        &self,
+        template_id: TxTemplateId,
+    ) -> Result<TxTemplateId, CalaError> {
+        let bank_shareholder_equity_id = match Self::find_account_by_code::<LedgerAccountId>(
+            self,
+            super::constants::BANK_SHAREHOLDER_EQUITY_CODE.to_string(),
+        )
+        .await?
+        {
+            Some(id) => Ok(id),
+            None => Err(CalaError::CouldNotFindAccountByCode(
+                super::constants::BANK_SHAREHOLDER_EQUITY_CODE.to_string(),
+            )),
+        }?;
+
+        let bank_reserve_id = match Self::find_account_by_code::<LedgerAccountId>(
+            self,
+            super::constants::BANK_RESERVE_FROM_SHAREHOLDER_CODE.to_string(),
+        )
+        .await?
+        {
+            Some(id) => Ok(id),
+            None => Err(CalaError::CouldNotFindAccountByCode(
+                super::constants::BANK_RESERVE_FROM_SHAREHOLDER_CODE.to_string(),
+            )),
+        }?;
+
+        let variables = add_equity_template_create::Variables {
+            template_id: Uuid::from(template_id),
+            journal_id: format!("uuid(\"{}\")", super::constants::CORE_JOURNAL_ID),
+            bank_reserve_account_id: format!("uuid(\"{}\")", bank_reserve_id),
+            bank_equity_account_id: format!("uuid(\"{}\")", bank_shareholder_equity_id),
+        };
+        let response = Self::traced_gql_request::<AddEquityTemplateCreate, _>(
+            &self.client,
+            &self.url,
+            variables,
+        )
+        .await?;
+
+        response
+            .data
+            .map(|d| d.tx_template_create.tx_template.tx_template_id)
+            .map(TxTemplateId::from)
+            .ok_or_else(|| CalaError::MissingDataField)
+    }
+
+    #[instrument(name = "lava.ledger.cala.execute_add_equity_tx", skip(self), err)]
+    pub async fn execute_add_equity_tx(
+        &self,
+        amount: Decimal,
+        external_id: String,
+    ) -> Result<(), CalaError> {
+        let transaction_id = uuid::Uuid::new_v4();
+        let variables = post_add_equity_transaction::Variables {
+            transaction_id,
+            amount,
+            external_id,
+        };
+        let response = Self::traced_gql_request::<PostAddEquityTransaction, _>(
+            &self.client,
+            &self.url,
+            variables,
+        )
+        .await?;
+
+        response
+            .data
+            .map(|d| d.post_transaction.transaction.transaction_id)
+            .ok_or_else(|| CalaError::MissingDataField)?;
+        Ok(())
+    }
+
+    #[instrument(
         name = "lava.ledger.cala.create_complete_loan_tx_template",
         skip(self),
         err
@@ -637,6 +716,19 @@ impl CalaClient {
             .map(|d| d.bitfinex.withdrawal_execute.withdrawal.withdrawal_id)
             .map(WithdrawId::from)
             .ok_or(CalaError::MissingDataField)
+    }
+
+    #[instrument(name = "lava.ledger.cala.find_by_id", skip(self), err)]
+    async fn find_account_by_code<T: From<account_by_code::AccountByCodeAccountByCode>>(
+        &self,
+        code: String,
+    ) -> Result<Option<T>, CalaError> {
+        let variables = account_by_code::Variables { code };
+        let response =
+            Self::traced_gql_request::<AccountByCode, _>(&self.client, &self.url, variables)
+                .await?;
+
+        Ok(response.data.and_then(|d| d.account_by_code).map(T::from))
     }
 
     async fn traced_gql_request<Q: GraphQLQuery, U: reqwest::IntoUrl>(
