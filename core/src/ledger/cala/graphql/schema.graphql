@@ -179,6 +179,7 @@ type BalanceAmount {
 type BalanceSheet {
 	assets: AccountSet!
 	liabilities: AccountSet!
+	equity: AccountSet!
 	schedule1: AccountSet!
 	schedule2: AccountSet!
 	schedule3: AccountSet!
