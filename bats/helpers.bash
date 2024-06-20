@@ -254,11 +254,27 @@ create_user() {
   echo $token
 }
 
-assert_assets_liabilities() {
-  exec_cala_graphql 'assets-liabilities'
-  echo $(graphql_output)
-  assets=$(graphql_output '.data.balanceSheet.byJournalId.assets.usdtBalance.settled.normalBalance.units')
-  liabilities=$(graphql_output '.data.balanceSheet.byJournalId.liabilities.usdtBalance.settled.normalBalance.units')
+add() {
+  echo "scale=2; $1 + $2" | awk '{ print $0 }' | bc
+}
 
-  [[ "$assets" == "$liabilities" ]] || exit 1
+assert_assets_liabilities_equity() {
+  exec_cala_graphql 'assets-liabilities-equity'
+  echo $(graphql_output)
+
+  assets_usdt=$(graphql_output '.data.balanceSheet.byJournalId.assets.usdtBalance.settled.normalBalance.units')
+  assets_usd=$(graphql_output '.data.balanceSheet.byJournalId.assets.usdBalance.settled.normalBalance.units')
+  assets=$( add $assets_usdt $assets_usd )
+
+  liabilities_usdt=$(graphql_output '.data.balanceSheet.byJournalId.liabilities.usdtBalance.settled.normalBalance.units')
+  liabilities_usd=$(graphql_output '.data.balanceSheet.byJournalId.liabilities.usdBalance.settled.normalBalance.units')
+  liabilities=$(add "$liabilities_usdt" "$liabilities_usd")
+
+  equity_usdt=$(graphql_output '.data.balanceSheet.byJournalId.equity.usdtBalance.settled.normalBalance.units')
+  equity_usd=$(graphql_output '.data.balanceSheet.byJournalId.equity.usdBalance.settled.normalBalance.units')
+  equity=$(add "$equity_usdt" "$equity_usd")
+
+  liabilities_and_equity=$( add "$liabilities" "$equity" )
+
+  [[ "$assets" == "$liabilities_and_equity" ]] || exit 1
 }

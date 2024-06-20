@@ -11,9 +11,9 @@ teardown_file() {
 }
 
 @test "equity: can add usd equity" {
-  exec_cala_graphql 'equity-accounts'
-  debit_balance_before=$(graphql_output '.data.debit.usdBalance.settled.normalBalance.units')
-  credit_balance_before=$(graphql_output '.data.credit.usdBalance.settled.normalBalance.units')
+  exec_cala_graphql 'assets-liabilities-equity'
+  assets_usd_before=$(graphql_output '.data.balanceSheet.byJournalId.assets.usdBalance.settled.normalBalance.units')
+  equity_usd_before=$(graphql_output '.data.balanceSheet.byJournalId.equity.usdBalance.settled.normalBalance.units')
 
 
   variables=$(
@@ -28,10 +28,12 @@ teardown_file() {
   )
   exec_admin_graphql 'add-shareholder-equity' "$variables"
 
-  exec_cala_graphql 'equity-accounts'
-  debit_balance=$(graphql_output '.data.debit.usdBalance.settled.normalBalance.units')
-  [[ "$debit_balance" -gt "$debit_balance_before" ]] || exit 1
-  credit_balance=$(graphql_output '.data.credit.usdBalance.settled.normalBalance.units')
-  [[ "$credit_balance" -gt "$credit_balance_before" ]] || exit 1
+  assert_assets_liabilities_equity
+
+  exec_cala_graphql 'assets-liabilities-equity'
+  assets_usd=$(graphql_output '.data.balanceSheet.byJournalId.assets.usdBalance.settled.normalBalance.units')
+  equity_usd=$(graphql_output '.data.balanceSheet.byJournalId.equity.usdBalance.settled.normalBalance.units')
+  [[ "$assets_usd" -gt "$assets_usd_before" ]] || exit 1
+  [[ "$equity_usd" -gt "$equity_usd_before" ]] || exit 1
 }
 
