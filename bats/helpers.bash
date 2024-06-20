@@ -255,7 +255,12 @@ create_user() {
 }
 
 add() {
-  echo "scale=2; $1 + $2" | awk '{ print $0 }' | bc
+  sum=0
+  for num in "$@"
+  do
+    sum=$(echo "scale=2; $sum + $num" | bc)
+  done
+  echo $sum
 }
 
 assert_assets_liabilities_equity() {
