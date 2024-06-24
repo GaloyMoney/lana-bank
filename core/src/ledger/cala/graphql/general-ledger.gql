@@ -1,0 +1,41 @@
+query GeneralLedger($accountSetId: UUID!) {
+  accountSet(id: $accountSetId) {
+    name
+    btcBalances: balance(currency: "BTC") {
+      ...balancesByLayer
+    }
+    usdtBalances: balance(currency: "USDT") {
+      ...balancesByLayer
+    }
+    usdBalances: balance(currency: "USD") {
+      ...balancesByLayer
+    }
+  }
+}
+
+fragment balancesByLayer on Balance {
+  settled {
+    ...balances
+  }
+  pending {
+    ...balances
+  }
+  encumbrance {
+    ...balances
+  }
+}
+
+fragment balances on BalanceAmount {
+  normalBalance {
+    units
+    currency
+  }
+  drBalance {
+    units
+    currency
+  }
+  crBalance {
+    units
+    currency
+  }
+}

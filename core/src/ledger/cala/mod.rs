@@ -15,6 +15,7 @@ use crate::primitives::{
 };
 
 use super::{
+    constants,
     fixed_term_loan::FixedTermLoanAccountIds,
     user::{UserLedgerAccountAddresses, UserLedgerAccountIds},
 };
@@ -744,6 +745,18 @@ impl CalaClient {
             .map(|d| d.bitfinex.withdrawal_execute.withdrawal.withdrawal_id)
             .map(WithdrawId::from)
             .ok_or(CalaError::MissingDataField)
+    }
+
+    pub async fn general_ledger<T: From<general_ledger::GeneralLedgerAccountSet>>(
+        &self,
+    ) -> Result<Option<T>, CalaError> {
+        let variables = general_ledger::Variables {
+            account_set_id: constants::GENERAL_LEDGER_ACCOUNT_SET_ID,
+        };
+        let response =
+            Self::traced_gql_request::<GeneralLedger, _>(&self.client, &self.url, variables)
+                .await?;
+        Ok(response.data.and_then(|d| d.account_set).map(T::from))
     }
 
     #[instrument(name = "lava.ledger.cala.find_by_id", skip(self), err)]

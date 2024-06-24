@@ -1,4 +1,5 @@
 mod account;
+mod account_ledger;
 mod account_set;
 mod bitfinex;
 mod cala;
@@ -17,6 +18,7 @@ use crate::primitives::{
     Satoshis, UsdCents, UserId, WithdrawId,
 };
 
+use account_ledger::*;
 use cala::*;
 pub use config::*;
 use error::*;
@@ -197,6 +199,15 @@ impl Ledger {
             .create_loan_accounts(loan_id, loan_account_ids)
             .await?;
         Ok(())
+    }
+
+    pub async fn account_general_ledger_summary(
+        &self,
+    ) -> Result<Option<AccountLedgerSummary>, LedgerError> {
+        match self.cala.general_ledger::<AccountLedgerSummary>().await {
+            Ok(gl) => Ok(gl),
+            Err(e) => Err(e)?,
+        }
     }
 
     async fn initialize_tx_templates(cala: &CalaClient) -> Result<(), LedgerError> {
