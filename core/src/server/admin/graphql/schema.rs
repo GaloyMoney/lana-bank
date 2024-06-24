@@ -1,6 +1,6 @@
 use async_graphql::{types::connection::*, *};
 
-use super::{shareholder_equity::*, user::*};
+use super::{account_ledger::*, shareholder_equity::*, user::*};
 use crate::{
     app::LavaApp,
     primitives::{FixedTermLoanId, UserId},
@@ -64,6 +64,15 @@ impl Query {
             },
         )
         .await
+    }
+
+    async fn trial_balance(
+        &self,
+        ctx: &Context<'_>,
+    ) -> async_graphql::Result<Option<AccountLedgerSummary>> {
+        let app = ctx.data_unchecked::<LavaApp>();
+        let account_summary = app.ledger().account_general_ledger_summary().await?;
+        Ok(account_summary.map(AccountLedgerSummary::from))
     }
 }
 

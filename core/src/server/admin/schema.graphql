@@ -1,3 +1,21 @@
+type AccountBalancesByCurrency {
+	btc: LayeredBtcAccountBalances!
+	usd: LayeredUsdAccountBalances!
+	usdt: LayeredUsdAccountBalances!
+}
+
+type AccountLedgerSummary {
+	name: String!
+	totalBalance: AccountBalancesByCurrency!
+}
+
+
+type BtcAccountBalance {
+	debit: Satoshis!
+	credit: Satoshis!
+	net: Satoshis!
+}
+
 type BtcBalance {
 	btcBalance: Satoshis!
 }
@@ -28,6 +46,18 @@ type FixedTermLoanBalance {
 
 type InterestIncome {
 	usdBalance: UsdCents!
+}
+
+type LayeredBtcAccountBalances {
+	settled: BtcAccountBalance!
+	pending: BtcAccountBalance!
+	encumbrance: BtcAccountBalance!
+}
+
+type LayeredUsdAccountBalances {
+	settled: UsdAccountBalance!
+	pending: UsdAccountBalance!
+	encumbrance: UsdAccountBalance!
 }
 
 type LoanOutstanding {
@@ -64,6 +94,7 @@ type Query {
 	loan(id: UUID!): FixedTermLoan
 	user(id: UUID!): User
 	users(first: Int!, after: String): UserConnection!
+	trialBalance: AccountLedgerSummary
 }
 
 scalar Satoshis
@@ -82,6 +113,12 @@ scalar UUID
 
 type UnallocatedCollateral {
 	settled: BtcBalance!
+}
+
+type UsdAccountBalance {
+	debit: UsdCents!
+	credit: UsdCents!
+	net: UsdCents!
 }
 
 type UsdBalance {

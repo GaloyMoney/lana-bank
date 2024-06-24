@@ -22,6 +22,26 @@ export type Scalars = {
   UsdCents: { input: any; output: any; }
 };
 
+export type AccountBalancesByCurrency = {
+  __typename?: 'AccountBalancesByCurrency';
+  btc: LayeredBtcAccountBalances;
+  usd: LayeredUsdAccountBalances;
+  usdt: LayeredUsdAccountBalances;
+};
+
+export type AccountLedgerSummary = {
+  __typename?: 'AccountLedgerSummary';
+  name: Scalars['String']['output'];
+  totalBalance: AccountBalancesByCurrency;
+};
+
+export type BtcAccountBalance = {
+  __typename?: 'BtcAccountBalance';
+  credit: Scalars['Satoshis']['output'];
+  debit: Scalars['Satoshis']['output'];
+  net: Scalars['Satoshis']['output'];
+};
+
 export type BtcBalance = {
   __typename?: 'BtcBalance';
   btcBalance: Scalars['Satoshis']['output'];
@@ -57,6 +77,20 @@ export type InterestIncome = {
   usdBalance: Scalars['UsdCents']['output'];
 };
 
+export type LayeredBtcAccountBalances = {
+  __typename?: 'LayeredBtcAccountBalances';
+  encumbrance: BtcAccountBalance;
+  pending: BtcAccountBalance;
+  settled: BtcAccountBalance;
+};
+
+export type LayeredUsdAccountBalances = {
+  __typename?: 'LayeredUsdAccountBalances';
+  encumbrance: UsdAccountBalance;
+  pending: UsdAccountBalance;
+  settled: UsdAccountBalance;
+};
+
 export type LoanOutstanding = {
   __typename?: 'LoanOutstanding';
   usdBalance: Scalars['UsdCents']['output'];
@@ -88,6 +122,7 @@ export type PageInfo = {
 export type Query = {
   __typename?: 'Query';
   loan?: Maybe<FixedTermLoan>;
+  trialBalance?: Maybe<AccountLedgerSummary>;
   user?: Maybe<User>;
   users: UserConnection;
 };
@@ -121,6 +156,13 @@ export type SuccessPayload = {
 export type UnallocatedCollateral = {
   __typename?: 'UnallocatedCollateral';
   settled: BtcBalance;
+};
+
+export type UsdAccountBalance = {
+  __typename?: 'UsdAccountBalance';
+  credit: Scalars['UsdCents']['output'];
+  debit: Scalars['UsdCents']['output'];
+  net: Scalars['UsdCents']['output'];
 };
 
 export type UsdBalance = {

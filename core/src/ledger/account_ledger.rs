@@ -2,10 +2,10 @@ use crate::primitives::{Satoshis, UsdCents};
 
 use super::cala::graphql::*;
 
-struct BtcAccountBalance {
-    debit: Satoshis,
-    credit: Satoshis,
-    net: Satoshis,
+pub struct BtcAccountBalance {
+    pub debit: Satoshis,
+    pub credit: Satoshis,
+    pub net: Satoshis,
 }
 
 impl From<general_ledger::balances> for BtcAccountBalance {
@@ -28,10 +28,10 @@ impl Default for BtcAccountBalance {
     }
 }
 
-struct UsdAccountBalance {
-    debit: UsdCents,
-    credit: UsdCents,
-    net: UsdCents,
+pub struct UsdAccountBalance {
+    pub debit: UsdCents,
+    pub credit: UsdCents,
+    pub net: UsdCents,
 }
 
 impl From<general_ledger::balances> for UsdAccountBalance {
@@ -54,10 +54,10 @@ impl Default for UsdAccountBalance {
     }
 }
 
-struct LayeredBtcAccountBalances {
-    settled: BtcAccountBalance,
-    pending: BtcAccountBalance,
-    encumbrance: BtcAccountBalance,
+pub struct LayeredBtcAccountBalances {
+    pub settled: BtcAccountBalance,
+    pub pending: BtcAccountBalance,
+    pub encumbrance: BtcAccountBalance,
 }
 
 impl From<general_ledger::GeneralLedgerAccountSetBtcBalances> for LayeredBtcAccountBalances {
@@ -80,10 +80,10 @@ impl Default for LayeredBtcAccountBalances {
     }
 }
 
-struct LayeredUsdAccountBalances {
-    settled: UsdAccountBalance,
-    pending: UsdAccountBalance,
-    encumbrance: UsdAccountBalance,
+pub struct LayeredUsdAccountBalances {
+    pub settled: UsdAccountBalance,
+    pub pending: UsdAccountBalance,
+    pub encumbrance: UsdAccountBalance,
 }
 
 impl From<general_ledger::GeneralLedgerAccountSetUsdBalances> for LayeredUsdAccountBalances {
@@ -106,15 +106,15 @@ impl Default for LayeredUsdAccountBalances {
     }
 }
 
-struct AccountBalancesByCurrency {
-    btc: LayeredBtcAccountBalances,
-    usd: LayeredUsdAccountBalances,
-    usdt: LayeredUsdAccountBalances,
+pub struct AccountBalancesByCurrency {
+    pub btc: LayeredBtcAccountBalances,
+    pub usd: LayeredUsdAccountBalances,
+    pub usdt: LayeredUsdAccountBalances,
 }
 
 pub struct AccountLedgerSummary {
-    name: String,
-    total_balance: AccountBalancesByCurrency,
+    pub name: String,
+    pub total_balance: AccountBalancesByCurrency,
 }
 
 impl From<general_ledger::GeneralLedgerAccountSet> for AccountLedgerSummary {
