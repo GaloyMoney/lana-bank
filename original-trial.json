@@ -1,0 +1,54 @@
+{
+  "trialBalance": {
+    "assets": {
+      "name": "Assets",
+      "normalBalanceType": "DEBIT",
+      "btcBalances": null,
+      "usdtBalances": {
+        "settled": {
+          "normalBalance": {
+            "units": "25008500.00",
+            "currency": "USDT"
+          },
+          "drBalance": {
+            "units": "25260000.02",
+            "currency": "USDT"
+          },
+          "crBalance": {
+            "units": "251500.02",
+            "currency": "USDT"
+          }
+        },
+        "pending": {
+          "normalBalance": {
+            "units": "1500",
+            "currency": "USDT"
+          },
+          "drBalance": {
+            "units": "1500",
+            "currency": "USDT"
+          },
+          "crBalance": {
+            "units": "0",
+            "currency": "USDT"
+          }
+        },
+        "encumbrance": {
+          "normalBalance": {
+            "units": "0",
+            "currency": "USDT"
+          },
+          "drBalance": {
+            "units": "0",
+            "currency": "USDT"
+          },
+          "crBalance": {
+            "units": "0",
+            "currency": "USDT"
+          }
+        }
+      },
+      "usdBalances": null
+    }
+  }
+}
