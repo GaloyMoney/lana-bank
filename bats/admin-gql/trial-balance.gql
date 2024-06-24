@@ -1,0 +1,52 @@
+query TrialBalance {
+  trialBalance {
+    name
+    totalBalance {
+      btc: btc {
+        ...btcBalances
+      }
+      usd: usd {
+        ...usdBalances
+      }
+      usdt: usdt {
+        ...usdBalances
+      }
+    }
+  }
+}
+
+fragment btcBalances on LayeredBtcAccountBalances {
+  settled {
+    net
+    debit
+    credit
+  }
+  pending {
+    net
+    debit
+    credit
+  }
+  encumbrance {
+    net
+    debit
+    credit
+  }
+}
+
+fragment usdBalances on LayeredUsdAccountBalances {
+  settled {
+    net
+    debit
+    credit
+  }
+  pending {
+    net
+    debit
+    credit
+  }
+  encumbrance {
+    net
+    debit
+    credit
+  }
+}
