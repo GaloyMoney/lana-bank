@@ -2,14 +2,14 @@ apiVersion: vendir.k14s.io/v1alpha1
 directories:
 - contents:
   - git:
-      commitTitle: 'chore: rm bundled-deps'
-      sha: 7cb2d7f641f5658e5abc01fb17047966f51d9ddb
+      commitTitle: 'fix: rm bundled deps from inputs'
+      sha: 8ce8d05594881f5012402c84db80b4075c448a1b
     path: .
   path: ../.github/workflows/vendor
 - contents:
   - git:
-      commitTitle: 'chore: rm bundled-deps'
-      sha: 7cb2d7f641f5658e5abc01fb17047966f51d9ddb
+      commitTitle: 'fix: rm bundled deps from inputs'
+      sha: 8ce8d05594881f5012402c84db80b4075c448a1b
     path: .
   path: vendor
 kind: LockConfig

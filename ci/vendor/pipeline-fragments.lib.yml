@@ -72,7 +72,6 @@ plan:
     platform: linux
     image_resource: #@ nix_task_image_config()
     inputs:
-    - name: bundled-deps
     - name: pipeline-tasks
     - name: repo
     run:
