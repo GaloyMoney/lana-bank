@@ -126,6 +126,8 @@ impl CalaClient {
             tron_account_code: format!("ASSETS.TRON.{}", user_id),
             user_deposit_account_set_id:
                 super::constants::ON_BALANCE_SHEET_USER_DEPOSITS_ACCOUNT_SET_ID,
+            user_deposit_control_account_set_id:
+                super::constants::USER_DEPOSITS_CONTROL_ACCOUNT_SET_ID,
             off_balance_sheet_account_id: Uuid::from(
                 user_account_ids.off_balance_sheet_deposit_account_id,
             ),
@@ -162,9 +164,12 @@ impl CalaClient {
             outstanding_account_id: Uuid::from(outstanding_account_id),
             outstanding_account_code: format!("LOANS.OUTSTANDING.{}", loan_id),
             loans_account_set_id: super::constants::FIXED_TERM_LOANS_ACCOUNT_SET_ID,
+            loans_control_account_set_id: super::constants::FIXED_TERM_LOANS_CONTROL_ACCOUNT_SET_ID,
             interest_account_id: Uuid::from(interest_account_id),
             interest_account_code: format!("LOANS.INTEREST_INCOME.{}", loan_id),
             interest_revenue_account_set_id: super::constants::INTEREST_REVENUE_ACCOUNT_SET_ID,
+            interest_revenue_control_account_set_id:
+                super::constants::INTEREST_REVENUE_CONTROL_ACCOUNT_SET_ID,
         };
         let response =
             Self::traced_gql_request::<CreateLoanAccounts, _>(&self.client, &self.url, variables)
