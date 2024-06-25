@@ -103,6 +103,12 @@ pub struct AccountLedgerLineItem {
     pub total_balance: AccountBalancesByCurrency,
 }
 
+#[derive(Debug, Clone)]
+pub struct AccountLedgerLineItemAndCursor {
+    pub cursor: String,
+    pub line_item: AccountLedgerLineItem,
+}
+
 impl From<general_ledger::GeneralLedgerAccountSetMembersEdgesNodeOnAccount>
     for AccountLedgerLineItem
 {
@@ -154,21 +160,29 @@ impl From<general_ledger::GeneralLedgerAccountSetMembersEdgesNodeOnAccountSet>
 pub struct AccountLedgerSummary {
     pub name: String,
     pub total_balance: AccountBalancesByCurrency,
-    pub line_item_balances: Vec<AccountLedgerLineItem>,
+    pub line_item_balances: Vec<AccountLedgerLineItemAndCursor>,
+    pub has_next_page: bool,
+    pub has_previous_page: bool,
 }
 
 impl From<general_ledger::GeneralLedgerAccountSet> for AccountLedgerSummary {
     fn from(account_set: general_ledger::GeneralLedgerAccountSet) -> Self {
-        let line_item_balances: Vec<AccountLedgerLineItem> = account_set
+        let line_item_balances: Vec<AccountLedgerLineItemAndCursor> = account_set
             .members
             .edges
             .iter()
             .map(|e| match &e.node {
                 general_ledger::GeneralLedgerAccountSetMembersEdgesNode::Account(node) => {
-                    AccountLedgerLineItem::from(node.clone())
+                    AccountLedgerLineItemAndCursor {
+                        line_item: AccountLedgerLineItem::from(node.clone()),
+                        cursor: e.cursor.clone(),
+                    }
                 }
                 general_ledger::GeneralLedgerAccountSetMembersEdgesNode::AccountSet(node) => {
-                    AccountLedgerLineItem::from(node.clone())
+                    AccountLedgerLineItemAndCursor {
+                        line_item: AccountLedgerLineItem::from(node.clone()),
+                        cursor: e.cursor.clone(),
+                    }
                 }
             })
             .collect();
@@ -190,6 +204,8 @@ impl From<general_ledger::GeneralLedgerAccountSet> for AccountLedgerSummary {
                 ),
             },
             line_item_balances,
+            has_next_page: account_set.members.page_info.has_next_page,
+            has_previous_page: account_set.members.page_info.has_previous_page,
         }
     }
 }
