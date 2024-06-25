@@ -4,9 +4,15 @@ type AccountBalancesByCurrency {
 	usdt: LayeredUsdAccountBalances!
 }
 
+type AccountLedgerLineItem {
+	name: String!
+	totalBalance: AccountBalancesByCurrency!
+}
+
 type AccountLedgerSummary {
 	name: String!
 	totalBalance: AccountBalancesByCurrency!
+	lineItemBalances: [AccountLedgerLineItem!]!
 }
 
 

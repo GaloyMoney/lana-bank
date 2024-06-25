@@ -2,16 +2,26 @@ query TrialBalance {
   trialBalance {
     name
     totalBalance {
-      btc: btc {
-        ...btcBalances
-      }
-      usd: usd {
-        ...usdBalances
-      }
-      usdt: usdt {
-        ...usdBalances
+      ...balancesByCurrency
+    }
+    lineItemBalances {
+      name
+      totalBalance {
+        ...balancesByCurrency
       }
     }
+  }
+}
+
+fragment balancesByCurrency on AccountBalancesByCurrency {
+  btc: btc {
+    ...btcBalances
+  }
+  usd: usd {
+    ...usdBalances
+  }
+  usdt: usdt {
+    ...usdBalances
   }
 }
 

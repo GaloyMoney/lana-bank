@@ -29,8 +29,15 @@ export type AccountBalancesByCurrency = {
   usdt: LayeredUsdAccountBalances;
 };
 
+export type AccountLedgerLineItem = {
+  __typename?: 'AccountLedgerLineItem';
+  name: Scalars['String']['output'];
+  totalBalance: AccountBalancesByCurrency;
+};
+
 export type AccountLedgerSummary = {
   __typename?: 'AccountLedgerSummary';
+  lineItemBalances: Array<AccountLedgerLineItem>;
   name: Scalars['String']['output'];
   totalBalance: AccountBalancesByCurrency;
 };
