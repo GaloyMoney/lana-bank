@@ -751,6 +751,7 @@ impl CalaClient {
         &self,
     ) -> Result<Option<T>, CalaError> {
         let variables = general_ledger::Variables {
+            journal_id: constants::CORE_JOURNAL_ID,
             account_set_id: constants::GENERAL_LEDGER_ACCOUNT_SET_ID,
         };
         let response =

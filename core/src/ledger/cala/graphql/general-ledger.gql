@@ -1,4 +1,4 @@
-query GeneralLedger($accountSetId: UUID!) {
+query GeneralLedger($accountSetId: UUID!, $journalId: UUID!) {
   accountSet(id: $accountSetId) {
     name
     btcBalances: balance(currency: "BTC") {
@@ -9,6 +9,37 @@ query GeneralLedger($accountSetId: UUID!) {
     }
     usdBalances: balance(currency: "USD") {
       ...balancesByLayer
+    }
+    members(first: 100) {
+      edges {
+        node {
+          __typename
+          ... on AccountSet {
+            name
+            btcBalances: balance(currency: "BTC") {
+              ...balancesByLayer
+            }
+            usdtBalances: balance(currency: "USDT") {
+              ...balancesByLayer
+            }
+            usdBalances: balance(currency: "USD") {
+              ...balancesByLayer
+            }
+          }
+          ... on Account {
+            name
+            btcBalances: balance(journalId: $journalId, currency: "BTC") {
+              ...balancesByLayer
+            }
+            usdtBalances: balance(journalId: $journalId, currency: "USDT") {
+              ...balancesByLayer
+            }
+            usdBalances: balance(journalId: $journalId, currency: "USD") {
+              ...balancesByLayer
+            }
+          }
+        }
+      }
     }
   }
 }

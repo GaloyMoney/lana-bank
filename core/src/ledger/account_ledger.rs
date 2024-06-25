@@ -2,6 +2,7 @@ use crate::primitives::{Satoshis, UsdCents};
 
 use super::cala::graphql::*;
 
+#[derive(Debug, Clone)]
 pub struct BtcAccountBalance {
     pub debit: Satoshis,
     pub credit: Satoshis,
@@ -28,6 +29,7 @@ impl Default for BtcAccountBalance {
     }
 }
 
+#[derive(Debug, Clone)]
 pub struct UsdAccountBalance {
     pub debit: UsdCents,
     pub credit: UsdCents,
@@ -54,6 +56,7 @@ impl Default for UsdAccountBalance {
     }
 }
 
+#[derive(Debug, Clone)]
 pub struct LayeredBtcAccountBalances {
     pub settled: BtcAccountBalance,
     pub pending: BtcAccountBalance,
@@ -80,6 +83,7 @@ impl Default for LayeredBtcAccountBalances {
     }
 }
 
+#[derive(Debug, Clone)]
 pub struct LayeredUsdAccountBalances {
     pub settled: UsdAccountBalance,
     pub pending: UsdAccountBalance,
@@ -106,19 +110,89 @@ impl Default for LayeredUsdAccountBalances {
     }
 }
 
+#[derive(Debug, Clone)]
 pub struct AccountBalancesByCurrency {
     pub btc: LayeredBtcAccountBalances,
     pub usd: LayeredUsdAccountBalances,
     pub usdt: LayeredUsdAccountBalances,
 }
 
-pub struct AccountLedgerSummary {
+#[derive(Debug, Clone)]
+pub struct AccountLedgerLineItem {
     pub name: String,
     pub total_balance: AccountBalancesByCurrency,
 }
 
+impl From<general_ledger::GeneralLedgerAccountSetMembersEdgesNodeOnAccount>
+    for AccountLedgerLineItem
+{
+    fn from(node: general_ledger::GeneralLedgerAccountSetMembersEdgesNodeOnAccount) -> Self {
+        AccountLedgerLineItem {
+            name: node.name,
+            total_balance: AccountBalancesByCurrency {
+                btc: node.btc_balances.map_or_else(
+                    LayeredBtcAccountBalances::default,
+                    LayeredBtcAccountBalances::from,
+                ),
+                usd: node.usd_balances.map_or_else(
+                    LayeredUsdAccountBalances::default,
+                    LayeredUsdAccountBalances::from,
+                ),
+                usdt: node.usdt_balances.map_or_else(
+                    LayeredUsdAccountBalances::default,
+                    LayeredUsdAccountBalances::from,
+                ),
+            },
+        }
+    }
+}
+
+impl From<general_ledger::GeneralLedgerAccountSetMembersEdgesNodeOnAccountSet>
+    for AccountLedgerLineItem
+{
+    fn from(node: general_ledger::GeneralLedgerAccountSetMembersEdgesNodeOnAccountSet) -> Self {
+        AccountLedgerLineItem {
+            name: node.name,
+            total_balance: AccountBalancesByCurrency {
+                btc: node.btc_balances.map_or_else(
+                    LayeredBtcAccountBalances::default,
+                    LayeredBtcAccountBalances::from,
+                ),
+                usd: node.usd_balances.map_or_else(
+                    LayeredUsdAccountBalances::default,
+                    LayeredUsdAccountBalances::from,
+                ),
+                usdt: node.usdt_balances.map_or_else(
+                    LayeredUsdAccountBalances::default,
+                    LayeredUsdAccountBalances::from,
+                ),
+            },
+        }
+    }
+}
+
+pub struct AccountLedgerSummary {
+    pub name: String,
+    pub total_balance: AccountBalancesByCurrency,
+    pub line_item_balances: Vec<AccountLedgerLineItem>,
+}
+
 impl From<general_ledger::GeneralLedgerAccountSet> for AccountLedgerSummary {
     fn from(account_set: general_ledger::GeneralLedgerAccountSet) -> Self {
+        let line_item_balances: Vec<AccountLedgerLineItem> = account_set
+            .members
+            .edges
+            .iter()
+            .map(|e| match &e.node {
+                general_ledger::GeneralLedgerAccountSetMembersEdgesNode::Account(node) => {
+                    AccountLedgerLineItem::from(node.clone())
+                }
+                general_ledger::GeneralLedgerAccountSetMembersEdgesNode::AccountSet(node) => {
+                    AccountLedgerLineItem::from(node.clone())
+                }
+            })
+            .collect();
+
         Self {
             name: account_set.name,
             total_balance: AccountBalancesByCurrency {
@@ -135,6 +209,7 @@ impl From<general_ledger::GeneralLedgerAccountSet> for AccountLedgerSummary {
                     LayeredUsdAccountBalances::from,
                 ),
             },
+            line_item_balances,
         }
     }
 }

@@ -93,6 +93,15 @@ pub struct AccountLedgerLineItem {
     total_balance: AccountBalancesByCurrency,
 }
 
+impl From<crate::ledger::account_ledger::AccountLedgerLineItem> for AccountLedgerLineItem {
+    fn from(line_item: crate::ledger::account_ledger::AccountLedgerLineItem) -> Self {
+        AccountLedgerLineItem {
+            name: line_item.name,
+            total_balance: line_item.total_balance.into(),
+        }
+    }
+}
+
 #[derive(SimpleObject)]
 pub struct AccountLedgerSummary {
     name: String,
@@ -105,7 +114,11 @@ impl From<crate::ledger::account_ledger::AccountLedgerSummary> for AccountLedger
         AccountLedgerSummary {
             name: account_ledger.name,
             total_balance: account_ledger.total_balance.into(),
-            line_item_balances: Vec::new(),
+            line_item_balances: account_ledger
+                .line_item_balances
+                .iter()
+                .map(|l| AccountLedgerLineItem::from(l.clone()))
+                .collect(),
         }
     }
 }
