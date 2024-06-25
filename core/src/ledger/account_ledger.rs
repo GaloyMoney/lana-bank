@@ -56,7 +56,7 @@ impl Default for UsdAccountBalance {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default)]
 pub struct LayeredBtcAccountBalances {
     pub settled: BtcAccountBalance,
     pub pending: BtcAccountBalance,
@@ -73,17 +73,7 @@ impl From<general_ledger::GeneralLedgerAccountSetBtcBalances> for LayeredBtcAcco
     }
 }
 
-impl Default for LayeredBtcAccountBalances {
-    fn default() -> Self {
-        Self {
-            settled: BtcAccountBalance::default(),
-            pending: BtcAccountBalance::default(),
-            encumbrance: BtcAccountBalance::default(),
-        }
-    }
-}
-
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default)]
 pub struct LayeredUsdAccountBalances {
     pub settled: UsdAccountBalance,
     pub pending: UsdAccountBalance,
@@ -96,16 +86,6 @@ impl From<general_ledger::GeneralLedgerAccountSetUsdBalances> for LayeredUsdAcco
             settled: UsdAccountBalance::from(usd_balances_by_layer.settled),
             pending: UsdAccountBalance::from(usd_balances_by_layer.pending),
             encumbrance: UsdAccountBalance::from(usd_balances_by_layer.encumbrance),
-        }
-    }
-}
-
-impl Default for LayeredUsdAccountBalances {
-    fn default() -> Self {
-        Self {
-            settled: UsdAccountBalance::default(),
-            pending: UsdAccountBalance::default(),
-            encumbrance: UsdAccountBalance::default(),
         }
     }
 }
