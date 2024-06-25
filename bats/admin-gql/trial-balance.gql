@@ -1,10 +1,10 @@
 query TrialBalance($first: Int!, $after: String) {
-  trialBalance(first: $first, after: $after) {
+  trialBalance {
     name
     totalBalance {
       ...balancesByCurrency
     }
-    lineItemBalances {
+    lineItemBalances(first: $first, after: $after) {
       pageInfo {
         hasNextPage
         hasPreviousPage

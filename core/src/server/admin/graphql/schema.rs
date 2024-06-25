@@ -69,14 +69,9 @@ impl Query {
     async fn trial_balance(
         &self,
         ctx: &Context<'_>,
-        first: i32,
-        after: Option<String>,
     ) -> async_graphql::Result<Option<AccountLedgerSummary>> {
         let app = ctx.data_unchecked::<LavaApp>();
-        let account_summary = app
-            .ledger()
-            .account_general_ledger_summary(first.into(), after)
-            .await?;
+        let account_summary = app.ledger().account_general_ledger_summary().await?;
         Ok(account_summary.map(AccountLedgerSummary::from))
     }
 }

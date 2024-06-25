@@ -194,7 +194,15 @@ pub struct FixedTermLoanBalance;
     query_path = "src/ledger/cala/graphql/general-ledger.gql",
     response_derives = "Debug, PartialEq, Eq, Clone"
 )]
-pub struct GeneralLedger;
+pub struct GeneralLedgerSummary;
+
+#[derive(GraphQLQuery)]
+#[graphql(
+    schema_path = "src/ledger/cala/graphql/schema.graphql",
+    query_path = "src/ledger/cala/graphql/general-ledger.gql",
+    response_derives = "Debug, PartialEq, Eq, Clone"
+)]
+pub struct GeneralLedgerLineItems;
 
 #[derive(GraphQLQuery)]
 #[graphql(

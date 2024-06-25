@@ -1,7 +1,10 @@
 use async_graphql::{types::connection::*, *};
 use serde::{Deserialize, Serialize};
 
-use crate::server::shared_graphql::primitives::{Satoshis, UsdCents};
+use crate::{
+    app::LavaApp,
+    server::shared_graphql::primitives::{Satoshis, UsdCents},
+};
 
 #[derive(SimpleObject)]
 struct BtcAccountBalance {
@@ -131,9 +134,7 @@ impl CursorType for AccountLedgerLineItemCursor {
 }
 
 #[derive(SimpleObject)]
-pub struct AccountLedgerSummary {
-    name: String,
-    total_balance: AccountBalancesByCurrency,
+struct AccountLedgerLineItems {
     line_item_balances:
         Connection<AccountLedgerLineItemCursor, AccountLedgerLineItem, EmptyFields, EmptyFields>,
 }
@@ -155,22 +156,78 @@ fn create_line_item_connection(
     connection
 }
 
-impl From<crate::ledger::account_ledger::AccountLedgerSummary> for AccountLedgerSummary {
-    fn from(account_ledger: crate::ledger::account_ledger::AccountLedgerSummary) -> Self {
+impl From<crate::ledger::account_ledger::AccountLedgerLineItems> for AccountLedgerLineItems {
+    fn from(account_ledger: crate::ledger::account_ledger::AccountLedgerLineItems) -> Self {
         let nodes = account_ledger
             .line_item_balances
             .iter()
             .map(|l| AccountLedgerLineItem::from(l.clone()))
             .collect();
 
-        AccountLedgerSummary {
-            name: account_ledger.name,
-            total_balance: account_ledger.total_balance.into(),
+        AccountLedgerLineItems {
             line_item_balances: create_line_item_connection(
                 account_ledger.has_next_page,
                 account_ledger.has_previous_page,
                 nodes,
             ),
+        }
+    }
+}
+
+#[derive(SimpleObject)]
+#[graphql(complex)]
+pub struct AccountLedgerSummary {
+    name: String,
+    total_balance: AccountBalancesByCurrency,
+}
+
+impl From<crate::ledger::account_ledger::AccountLedgerSummary> for AccountLedgerSummary {
+    fn from(account_ledger: crate::ledger::account_ledger::AccountLedgerSummary) -> Self {
+        AccountLedgerSummary {
+            name: account_ledger.name,
+            total_balance: account_ledger.total_balance.into(),
+        }
+    }
+}
+
+#[ComplexObject]
+impl AccountLedgerSummary {
+    async fn line_item_balances(
+        &self,
+        ctx: &Context<'_>,
+        first: i32,
+        after: Option<String>,
+    ) -> async_graphql::Result<
+        Option<
+            Connection<
+                AccountLedgerLineItemCursor,
+                AccountLedgerLineItem,
+                EmptyFields,
+                EmptyFields,
+            >,
+        >,
+    > {
+        let app = ctx.data_unchecked::<LavaApp>();
+        let line_items = app
+            .ledger()
+            .account_general_ledger_line_items(first.into(), after)
+            .await?;
+
+        match line_items {
+            Some(line_items) => {
+                let nodes = line_items
+                    .line_item_balances
+                    .iter()
+                    .map(|l| AccountLedgerLineItem::from(l.clone()))
+                    .collect();
+
+                Ok(Some(create_line_item_connection(
+                    line_items.has_next_page,
+                    line_items.has_previous_page,
+                    nodes,
+                )))
+            }
+            None => Ok(None),
         }
     }
 }
