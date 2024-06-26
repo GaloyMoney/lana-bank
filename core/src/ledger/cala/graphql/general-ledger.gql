@@ -1,4 +1,9 @@
-query GeneralLedgerSummary($accountSetId: UUID!) {
+query GeneralLedger(
+  $accountSetId: UUID!
+  $journalId: UUID!
+  $first: Int!
+  $after: String
+) {
   accountSet(id: $accountSetId) {
     name
     btcBalances: balance(currency: "BTC") {
@@ -10,16 +15,6 @@ query GeneralLedgerSummary($accountSetId: UUID!) {
     usdBalances: balance(currency: "USD") {
       ...balancesByLayer
     }
-  }
-}
-
-query GeneralLedgerLineItems(
-  $accountSetId: UUID!
-  $journalId: UUID!
-  $first: Int!
-  $after: String
-) {
-  accountSet(id: $accountSetId) {
     members(first: $first, after: $after) {
       pageInfo {
         hasNextPage

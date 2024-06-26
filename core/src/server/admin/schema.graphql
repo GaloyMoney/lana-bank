@@ -42,7 +42,7 @@ type AccountLedgerLineItemEdge {
 type AccountLedgerSummary {
 	name: String!
 	totalBalance: AccountBalancesByCurrency!
-	lineItemBalances(first: Int!, after: String): AccountLedgerLineItemConnection
+	lineItemBalances: AccountLedgerLineItemConnection!
 }
 
 
@@ -130,7 +130,7 @@ type Query {
 	loan(id: UUID!): FixedTermLoan
 	user(id: UUID!): User
 	users(first: Int!, after: String): UserConnection!
-	trialBalance: AccountLedgerSummary
+	trialBalance(first: Int!, after: String): AccountLedgerSummary
 }
 
 scalar Satoshis

@@ -57,15 +57,9 @@ export type AccountLedgerLineItemEdge = {
 
 export type AccountLedgerSummary = {
   __typename?: 'AccountLedgerSummary';
-  lineItemBalances?: Maybe<AccountLedgerLineItemConnection>;
+  lineItemBalances: AccountLedgerLineItemConnection;
   name: Scalars['String']['output'];
   totalBalance: AccountBalancesByCurrency;
-};
-
-
-export type AccountLedgerSummaryLineItemBalancesArgs = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  first: Scalars['Int']['input'];
 };
 
 export type BtcAccountBalance = {
@@ -163,6 +157,12 @@ export type Query = {
 
 export type QueryLoanArgs = {
   id: Scalars['UUID']['input'];
+};
+
+
+export type QueryTrialBalanceArgs = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  first: Scalars['Int']['input'];
 };
 
 
