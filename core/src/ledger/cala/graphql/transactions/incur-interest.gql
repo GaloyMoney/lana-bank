@@ -75,7 +75,7 @@ mutation PostIncurInterestTransaction(
   $interestAmount: Decimal!
   $externalId: String!
 ) {
-  postTransaction(
+  transactionPost(
     input: {
       transactionId: $transactionId
       txTemplateCode: "INCUR_INTEREST"

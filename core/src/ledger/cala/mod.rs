@@ -374,7 +374,7 @@ impl CalaClient {
 
         response
             .data
-            .map(|d| d.post_transaction.transaction.transaction_id)
+            .map(|d| d.transaction_post.transaction.transaction_id)
             .ok_or_else(|| CalaError::MissingDataField)?;
         Ok(())
     }
@@ -464,7 +464,7 @@ impl CalaClient {
 
         response
             .data
-            .map(|d| d.post_transaction.transaction.transaction_id)
+            .map(|d| d.transaction_post.transaction.transaction_id)
             .ok_or_else(|| CalaError::MissingDataField)?;
         Ok(())
     }
@@ -499,7 +499,7 @@ impl CalaClient {
 
         response
             .data
-            .map(|d| d.post_transaction.transaction.transaction_id)
+            .map(|d| d.transaction_post.transaction.transaction_id)
             .ok_or_else(|| CalaError::MissingDataField)?;
         Ok(())
     }
@@ -555,7 +555,7 @@ impl CalaClient {
 
         response
             .data
-            .map(|d| d.post_transaction.transaction.transaction_id)
+            .map(|d| d.transaction_post.transaction.transaction_id)
             .ok_or_else(|| CalaError::MissingDataField)?;
         Ok(())
     }
@@ -612,7 +612,7 @@ impl CalaClient {
 
         response
             .data
-            .map(|d| d.post_transaction.transaction.transaction_id)
+            .map(|d| d.transaction_post.transaction.transaction_id)
             .ok_or_else(|| CalaError::MissingDataField)?;
         Ok(())
     }
@@ -646,7 +646,7 @@ impl CalaClient {
 
         response
             .data
-            .map(|d| d.post_transaction.transaction.transaction_id)
+            .map(|d| d.transaction_post.transaction.transaction_id)
             .ok_or_else(|| CalaError::MissingDataField)?;
         Ok(())
     }

@@ -65,7 +65,7 @@ mutation PostAddEquityTransaction(
   $amount: Decimal!
   $externalId: String!
 ) {
-  postTransaction(
+  transactionPost(
     input: {
       transactionId: $transactionId
       txTemplateCode: "ADD_EQUITY"
