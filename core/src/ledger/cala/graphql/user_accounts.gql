@@ -1,20 +1,24 @@
 mutation CreateUserAccounts(
   $onBalanceSheetAccountId: UUID!
   $onBalanceSheetAccountCode: String!
+  $onBalanceSheetAccountName: String!
   $userDepositAccountSetId: UUID!
   $userDepositControlAccountSetId: UUID!
   $tronAccountId: UUID!
   $tronAccountCode: String!
+  $tronAccountName: String!
   $offBalanceSheetAccountId: UUID!
   $offBalanceSheetAccountCode: String!
+  $offBalanceSheetAccountName: String!
   $btcAccountId: UUID!
   $btcAccountCode: String!
+  $btcAccountName: String!
 ) {
   onBalanceSheet: accountCreate(
     input: {
       accountId: $onBalanceSheetAccountId
       code: $onBalanceSheetAccountCode
-      name: "User deposit"
+      name: $onBalanceSheetAccountName
       accountSetIds: [$userDepositAccountSetId, $userDepositControlAccountSetId]
     }
   ) {
@@ -29,7 +33,7 @@ mutation CreateUserAccounts(
         accountId: $tronAccountId
         code: $tronAccountCode
         type: "TRX"
-        name: "User tron income"
+        name: $tronAccountName
         depositCreditAccountId: $onBalanceSheetAccountId
       }
     ) {
@@ -45,7 +49,7 @@ mutation CreateUserAccounts(
     input: {
       accountId: $offBalanceSheetAccountId
       code: $offBalanceSheetAccountCode
-      name: "User deposit off balance sheet"
+      name: $offBalanceSheetAccountName
     }
   ) {
     account {
@@ -59,7 +63,7 @@ mutation CreateUserAccounts(
         accountId: $btcAccountId
         code: $btcAccountCode
         type: "BTC"
-        name: "User btc income"
+        name: $btcAccountName
         depositCreditAccountId: $offBalanceSheetAccountId
       }
     ) {

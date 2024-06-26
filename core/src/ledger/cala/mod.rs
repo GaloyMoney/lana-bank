@@ -123,8 +123,10 @@ impl CalaClient {
                 user_account_ids.on_balance_sheet_deposit_account_id,
             ),
             on_balance_sheet_account_code: format!("USERS.CHECKING.{}", user_id),
+            on_balance_sheet_account_name: format!("User Checking Account for {}", user_id),
             tron_account_id: Uuid::new_v4(),
             tron_account_code: format!("ASSETS.TRON.{}", user_id),
+            tron_account_name: format!("Bank USDT Deposit Account for {}", user_id),
             user_deposit_account_set_id:
                 super::constants::ON_BALANCE_SHEET_USER_DEPOSITS_ACCOUNT_SET_ID,
             user_deposit_control_account_set_id:
@@ -133,8 +135,13 @@ impl CalaClient {
                 user_account_ids.off_balance_sheet_deposit_account_id,
             ),
             off_balance_sheet_account_code: format!("USERS.OFF_BALANCE_SHEET.{}", user_id),
+            off_balance_sheet_account_name: format!(
+                "Bank Off-Balance-Sheet Deposit Account for {}",
+                user_id
+            ),
             btc_account_id: Uuid::new_v4(),
             btc_account_code: format!("ASSETS.BTC.{}", user_id),
+            btc_account_name: format!("Bank BTC Deposit Account for {}", user_id),
         };
         let response =
             Self::traced_gql_request::<CreateUserAccounts, _>(&self.client, &self.url, variables)
