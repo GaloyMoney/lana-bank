@@ -47,7 +47,7 @@ mutators:
     enabled: true
     config:
       jwks_url: file:///home/ory/jwks.json
-      issuer_url: "galoy.io"
+      issuer_url: "lava.bank"
       claims: '{"sub": "{{ print .Subject }}" }'
 
   header:
