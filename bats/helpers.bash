@@ -4,6 +4,7 @@ COMPOSE_PROJECT_NAME="${COMPOSE_PROJECT_NAME:-${REPO_ROOT##*/}}"
 CACHE_DIR=${BATS_TMPDIR:-tmp/bats}/galoy-bats-cache
 mkdir -p "$CACHE_DIR"
 
+KRATOS_PUBLIC_SELFSERVICE_ENDPOINT="http://localhost:4455/self-service"
 GQL_PUBLIC_ENDPOINT="http://localhost:4455/graphql"
 GQL_ADMIN_ENDPOINT="http://localhost:5253/graphql"
 GQL_CALA_ENDPOINT="http://localhost:2252/graphql"
@@ -226,9 +227,9 @@ create_user() {
 
   flowId=$(curl -s -X GET \
       -H "Accept: application/json" \
-      http://127.0.0.1:4433/self-service/registration/api | jq -r '.id')
+      "$KRATOS_PUBLIC_SELFSERVICE_ENDPOINT/registration/api" | jq -r '.id')
 
-  response=$(curl -s -X POST "http://127.0.0.1:4433/self-service/registration?flow=$flowId" \
+  response=$(curl -s -X POST "$KRATOS_PUBLIC_SELFSERVICE_ENDPOINT/registration?flow=$flowId" \
   -H "Content-Type: application/json" \
   -d '{
     "method": "code",
@@ -239,7 +240,7 @@ create_user() {
 
   code=$(getEmailCode "$email")
 
-  verification_response=$(curl -s -X POST "http://127.0.0.1:4433/self-service/registration?flow=$flowId" \
+  verification_response=$(curl -s -X POST "$KRATOS_PUBLIC_SELFSERVICE_ENDPOINT/registration?flow=$flowId" \
   -H "Content-Type: application/json" \
   -d '{
     "code": "'"$code"'",
