@@ -1,9 +1,4 @@
-query GeneralLedger(
-  $accountSetId: UUID!
-  $journalId: UUID!
-  $first: Int!
-  $after: String
-) {
+query GeneralLedger($accountSetId: UUID!, $journalId: UUID!) {
   accountSet(id: $accountSetId) {
     name
     btcBalances: balance(currency: "BTC") {
@@ -15,13 +10,8 @@ query GeneralLedger(
     usdBalances: balance(currency: "USD") {
       ...balancesByLayer
     }
-    members(first: $first, after: $after) {
-      pageInfo {
-        hasNextPage
-        hasPreviousPage
-      }
+    members(first: 100) {
       edges {
-        cursor
         node {
           __typename
           ... on AccountSet {

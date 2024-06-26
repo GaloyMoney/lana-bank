@@ -1,22 +1,13 @@
-query TrialBalance($first: Int!, $after: String) {
-  trialBalance(first: $first, after: $after) {
+query TrialBalance {
+  trialBalance {
     name
     totalBalance {
       ...balancesByCurrency
     }
     lineItemBalances {
-      pageInfo {
-        hasNextPage
-        hasPreviousPage
-      }
-      edges {
-        cursor
-        node {
-          name
-          totalBalance {
-            ...balancesByCurrency
-          }
-        }
+      name
+      totalBalance {
+        ...balancesByCurrency
       }
     }
   }

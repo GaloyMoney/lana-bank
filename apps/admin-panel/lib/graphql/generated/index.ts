@@ -31,33 +31,13 @@ export type AccountBalancesByCurrency = {
 
 export type AccountLedgerLineItem = {
   __typename?: 'AccountLedgerLineItem';
-  cursor: Scalars['String']['output'];
   name: Scalars['String']['output'];
   totalBalance: AccountBalancesByCurrency;
 };
 
-export type AccountLedgerLineItemConnection = {
-  __typename?: 'AccountLedgerLineItemConnection';
-  /** A list of edges. */
-  edges: Array<AccountLedgerLineItemEdge>;
-  /** A list of nodes. */
-  nodes: Array<AccountLedgerLineItem>;
-  /** Information to aid in pagination. */
-  pageInfo: PageInfo;
-};
-
-/** An edge in a connection. */
-export type AccountLedgerLineItemEdge = {
-  __typename?: 'AccountLedgerLineItemEdge';
-  /** A cursor for use in pagination */
-  cursor: Scalars['String']['output'];
-  /** The item at the end of the edge */
-  node: AccountLedgerLineItem;
-};
-
 export type AccountLedgerSummary = {
   __typename?: 'AccountLedgerSummary';
-  lineItemBalances: AccountLedgerLineItemConnection;
+  lineItemBalances: Array<AccountLedgerLineItem>;
   name: Scalars['String']['output'];
   totalBalance: AccountBalancesByCurrency;
 };
@@ -157,12 +137,6 @@ export type Query = {
 
 export type QueryLoanArgs = {
   id: Scalars['UUID']['input'];
-};
-
-
-export type QueryTrialBalanceArgs = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  first: Scalars['Int']['input'];
 };
 
 

@@ -5,44 +5,14 @@ type AccountBalancesByCurrency {
 }
 
 type AccountLedgerLineItem {
-	cursor: String!
 	name: String!
 	totalBalance: AccountBalancesByCurrency!
-}
-
-type AccountLedgerLineItemConnection {
-	"""
-	Information to aid in pagination.
-	"""
-	pageInfo: PageInfo!
-	"""
-	A list of edges.
-	"""
-	edges: [AccountLedgerLineItemEdge!]!
-	"""
-	A list of nodes.
-	"""
-	nodes: [AccountLedgerLineItem!]!
-}
-
-"""
-An edge in a connection.
-"""
-type AccountLedgerLineItemEdge {
-	"""
-	The item at the end of the edge
-	"""
-	node: AccountLedgerLineItem!
-	"""
-	A cursor for use in pagination
-	"""
-	cursor: String!
 }
 
 type AccountLedgerSummary {
 	name: String!
 	totalBalance: AccountBalancesByCurrency!
-	lineItemBalances: AccountLedgerLineItemConnection!
+	lineItemBalances: [AccountLedgerLineItem!]!
 }
 
 
@@ -130,7 +100,7 @@ type Query {
 	loan(id: UUID!): FixedTermLoan
 	user(id: UUID!): User
 	users(first: Int!, after: String): UserConnection!
-	trialBalance(first: Int!, after: String): AccountLedgerSummary
+	trialBalance: AccountLedgerSummary
 }
 
 scalar Satoshis

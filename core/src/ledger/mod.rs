@@ -203,14 +203,8 @@ impl Ledger {
 
     pub async fn account_general_ledger_summary(
         &self,
-        first: i64,
-        after: Option<String>,
     ) -> Result<Option<AccountLedgerSummary>, LedgerError> {
-        match self
-            .cala
-            .general_ledger::<AccountLedgerSummary>(first, after)
-            .await
-        {
+        match self.cala.general_ledger::<AccountLedgerSummary>().await {
             Ok(gl) => Ok(gl),
             Err(e) => Err(e)?,
         }
