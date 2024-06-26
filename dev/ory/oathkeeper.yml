@@ -27,6 +27,16 @@ authenticators:
       preserve_path: true
       subject_from: identity.id
       extra_from: identity.traits
+      only:
+        - ory_kratos_session
+
+  anonymous:
+    enabled: true
+    config:
+      subject: anonymous
+
+  noop:
+    enabled: true
 
 authorizers:
   allow:

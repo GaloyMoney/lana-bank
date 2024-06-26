@@ -1,4 +1,4 @@
-- id: galoy-backend
+- id: lava-core-backend
   upstream:
     url: "http://dockerhost-alias:5252"
   match:
@@ -9,22 +9,37 @@
       config:
         token_from:
           header: X-API-KEY
-        check_session_url: http://kratos:4433/sessions/whoami
         force_method: GET
-        preserve_path: true
-        preserve_query: true
-        subject_from: sub
-        extra_from: "@this"
     - handler: bearer_token
-      config:
-        check_session_url: http://kratos:4433/sessions/whoami
-        preserve_path: true
-        preserve_query: true
-        subject_from: identity.id
-        extra_from: "@this"
   authorizer:
     handler: allow
   mutators:
     - handler: id_token
-      config: #! TODO: add aud: {"aud": ["https://api/admin/graphql"] }
-        claims: '{"sub": "{{ print .Subject }}" }'
+
+- id: lava-core-customer-portal
+  upstream:
+    url: "http://dockerhost-alias:3000"
+  match:
+    url: "<(http|https)>://<[a-zA-Z0-9-.:]+>/"
+    methods: ["POST", "GET", "OPTIONS"]
+  authenticators:
+    - handler: anonymous
+    - handler: cookie_session
+  authorizer:
+    handler: allow
+  mutators:
+    - handler: noop
+    - handler: id_token
+
+- id: kratos-public
+  upstream:
+    url: "http://dockerhost-alias:4433"
+  match:
+    url: "<(http|https)>://<[a-zA-Z0-9-.:]+>/self-service"
+    methods: ["POST", "GET", "OPTIONS", "PUT", "DELETE", "PATCH"]
+  authenticators:
+    - handler: noop
+  authorizer:
+    handler: allow
+  mutators:
+    - handler: noop
