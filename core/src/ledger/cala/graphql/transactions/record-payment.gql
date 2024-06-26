@@ -75,7 +75,7 @@ mutation PostRecordPaymentTransaction(
   $paymentAmount: Decimal!
   $externalId: String!
 ) {
-  postTransaction(
+  transactionPost(
     input: {
       transactionId: $transactionId
       txTemplateCode: "RECORD_PAYMENT"

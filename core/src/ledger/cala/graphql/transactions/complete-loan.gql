@@ -109,7 +109,7 @@ mutation PostCompleteLoanTransaction(
   $collateralAmount: Decimal!
   $externalId: String!
 ) {
-  postTransaction(
+  transactionPost(
     input: {
       transactionId: $transactionId
       txTemplateCode: "COMPLETE_LOAN"
