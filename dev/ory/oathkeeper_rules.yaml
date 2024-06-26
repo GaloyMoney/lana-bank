@@ -16,11 +16,25 @@
   mutators:
     - handler: id_token
 
+- id: kratos-public
+  upstream:
+    url: "http://dockerhost-alias:4433"
+  match:
+    url: "<(http|https)>://<[a-zA-Z0-9-.:]+>/self-service/<.*>"
+    methods: ["POST", "GET", "OPTIONS", "PUT", "DELETE", "PATCH"]
+  authenticators:
+    - handler: noop
+  authorizer:
+    handler: allow
+  mutators:
+    - handler: noop
+
 - id: lava-core-customer-portal
   upstream:
     url: "http://dockerhost-alias:3000"
+    preserve_host: true
   match:
-    url: "<(http|https)>://<[a-zA-Z0-9-.:]+>/"
+    url: "<(http|https)>://<[a-zA-Z0-9-.:]+>/<(?!self-service).*>"
     methods: ["POST", "GET", "OPTIONS"]
   authenticators:
     - handler: anonymous
@@ -30,16 +44,3 @@
   mutators:
     - handler: noop
     - handler: id_token
-
-- id: kratos-public
-  upstream:
-    url: "http://dockerhost-alias:4433"
-  match:
-    url: "<(http|https)>://<[a-zA-Z0-9-.:]+>/self-service"
-    methods: ["POST", "GET", "OPTIONS", "PUT", "DELETE", "PATCH"]
-  authenticators:
-    - handler: noop
-  authorizer:
-    handler: allow
-  mutators:
-    - handler: noop
