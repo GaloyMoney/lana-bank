@@ -477,7 +477,7 @@ type Mutation {
 	journalCreate(input: JournalCreateInput!): JournalCreatePayload!
 	journalUpdate(id: UUID!, input: JournalUpdateInput!): JournalUpdatePayload!
 	txTemplateCreate(input: TxTemplateCreateInput!): TxTemplateCreatePayload!
-	postTransaction(input: TransactionInput!): PostTransactionPayload!
+	transactionPost(input: TransactionInput!): TransactionPostPayload!
 }
 
 """
@@ -525,10 +525,6 @@ input ParamDefinitionInput {
 	type: ParamDataType!
 	default: Expression
 	description: String
-}
-
-type PostTransactionPayload {
-	transaction: Transaction!
 }
 
 type Query {
@@ -586,6 +582,10 @@ input TransactionInput {
 	transactionId: UUID!
 	txTemplateCode: String!
 	params: JSON
+}
+
+type TransactionPostPayload {
+	transaction: Transaction!
 }
 
 type TxInput {
