@@ -37,10 +37,9 @@
     url: "<(http|https)>://<[a-zA-Z0-9-.:]+>/<(?!self-service|graphql).*>"
     methods: ["POST", "GET", "OPTIONS"]
   authenticators:
-    - handler: anonymous
     - handler: cookie_session
+    - handler: anonymous
   authorizer:
     handler: allow
   mutators:
-    - handler: noop
     - handler: id_token
