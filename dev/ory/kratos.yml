@@ -7,36 +7,13 @@ serve:
     base_url: http://127.0.0.1:4433/
     cors:
       enabled: true
-      allow_credentials: true
-      allowed_origins:
-        - http://127.0.0.1:4433
-        - http://0.0.0.0:4434
-        - http://localhost:3000
-        - http://127.0.0.1:3000
-      allowed_methods:
-        - POST
-        - GET
-        - PUT
-        - PATCH
-        - DELETE
-      allowed_headers:
-        - Authorization
-        - Cookie
-        - Content-Type
-        - X-Session-Token
-      exposed_headers:
-        - Content-Type
-        - Set-Cookie
-      debug: true
-
   admin:
     base_url: http://0.0.0.0:4434/
 
 selfservice:
-  default_browser_return_url: http://localhost:3000/
+  default_browser_return_url: http://127.0.0.1:4455/
   allowed_return_urls:
     - http://127.0.0.1:4455/
-    - http://localhost:3000/
 
   methods:
     oidc:
