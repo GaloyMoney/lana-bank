@@ -54,6 +54,7 @@
           google-cloud-sdk
           ytt
           pnpm
+          tilt
         ]
         ++ lib.optionals pkgs.stdenv.isDarwin [
           darwin.apple_sdk.frameworks.SystemConfiguration

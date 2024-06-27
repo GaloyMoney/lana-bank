@@ -1,3 +1,9 @@
+dev-up:
+	cd dev && tilt up
+
+dev-down:
+	cd dev && tilt down
+
 next-watch:
 	cargo watch -s 'cargo nextest run'
 

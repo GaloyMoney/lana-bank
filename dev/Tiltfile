@@ -1,0 +1,40 @@
+docker_compose("../docker-compose.yml", project_name = "lava-bank")
+
+docker_groups = {
+    "auth": ["kratos", "kratos-pg", "oathkeeper", "mailslurper"],
+    "otel": ["otel-agent"],
+    "cala": ["cala", "cala-pg"],
+    "core": ["core-pg"]
+}
+
+for service, deps in docker_groups.items():
+    for dep in deps:
+      dc_resource(dep, labels = [service])
+
+local_resource(
+    "core",
+    labels = ["core"],
+    serve_cmd = "cd .. && make run-server",
+    serve_env = {
+      "PG_CON": "postgres://user:password@localhost:5433/pg",
+      "OTEL_EXPORTER_OTLP_ENDPOINT": "http://localhost:4317",
+    },
+    allow_parallel = True,
+    resource_deps = [
+        "core-pg",
+    ]
+)
+
+local_resource(
+    "admin-panel",
+    labels = ["apps"],
+    serve_cmd = "cd ../apps/admin-panel && pnpm install && pnpm run dev",
+    allow_parallel = True,
+)
+
+local_resource(
+    "customer-portal",
+    labels = ["apps"],
+    serve_cmd = "cd ../apps/customer-portal && pnpm install && pnpm run dev",
+    allow_parallel = True,
+)
