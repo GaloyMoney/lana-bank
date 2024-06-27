@@ -1,5 +1,7 @@
 "use client"
+
 import { useRef, useState } from "react"
+import { useRouter } from "next/navigation"
 import { z } from "zod"
 
 import { Button } from "@/components/primitive/button"
@@ -13,10 +15,13 @@ import {
 } from "@/components/primitive/card"
 import { Input } from "@/components/primitive/input"
 import { Alert, AlertDescription } from "@/components/primitive/alert"
+import { createAuthFlow } from "@/lib/kratos/public/auth-flow"
 
 const emailSchema = z.string().email({ message: "Invalid email address" })
 
 const AuthForm = () => {
+  const router = useRouter()
+
   const emailRef = useRef<HTMLInputElement>(null)
   const [error, setError] = useState<string | null>(null)
 
@@ -30,7 +35,13 @@ const AuthForm = () => {
         return
       }
 
-      // TODO: Create Login/Register Flow
+      try {
+        const { flowId, type } = await createAuthFlow({ email: emailRef.current.value })
+        router.push(`/auth/otp?flowId=${flowId}&type=${type}`)
+      } catch (e) {
+        console.error(e)
+        setError("Something went wrong. Please try again.")
+      }
     }
   }
 

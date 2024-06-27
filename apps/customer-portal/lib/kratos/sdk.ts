@@ -1,4 +1,4 @@
-import { Configuration, FrontendApi } from "@ory/kratos-client"
+import { Configuration, FrontendApi } from "@ory/client"
 
 import { env } from "@/env"
 
