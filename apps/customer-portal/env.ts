@@ -3,8 +3,8 @@ import { z } from "zod"
 
 export const env = createEnv({
   shared: {
-    NEXT_PUBLIC_CORE_URL: z.string().url().default("http://localhost:5252"),
-    NEXT_PUBLIC_KRATOS_PUBLIC_API: z.string().url().default("http://localhost:4455"),
+    NEXT_PUBLIC_CORE_URL: z.string().url().default("http://127.0.0.1:5252"),
+    NEXT_PUBLIC_KRATOS_PUBLIC_API: z.string().url().default("http://127.0.0.1:4455"),
     JWKS_URL: z.string().url().default("http://localhost:4456/.well-known/jwks.json"),
   },
   runtimeEnv: {

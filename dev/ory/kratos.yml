@@ -51,7 +51,7 @@ selfservice:
 
   flows:
     error:
-      ui_url: http://127.0.0.1:4455/error
+      ui_url: http://127.0.0.1:4455/_error
 
     settings:
       ui_url: http://127.0.0.1:4455/settings
@@ -90,7 +90,7 @@ selfservice:
 
     logout:
       after:
-        default_browser_return_url: http://127.0.0.1:4455/login
+        default_browser_return_url: http://127.0.0.1:4455/auth
 
     login:
       ui_url: http://127.0.0.1:4455/auth
