@@ -34,7 +34,7 @@
     url: "http://dockerhost-alias:3000"
     preserve_host: true
   match:
-    url: "<(http|https)>://<[a-zA-Z0-9-.:]+>/<(?!self-service).*>"
+    url: "<(http|https)>://<[a-zA-Z0-9-.:]+>/<(?!self-service|graphql).*>"
     methods: ["POST", "GET", "OPTIONS"]
   authenticators:
     - handler: anonymous
