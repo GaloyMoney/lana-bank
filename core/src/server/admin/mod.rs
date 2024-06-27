@@ -46,6 +46,7 @@ pub async fn graphql_handler(
 
 async fn playground() -> impl axum::response::IntoResponse {
     axum::response::Html(async_graphql::http::playground_source(
-        async_graphql::http::GraphQLPlaygroundConfig::new("/graphql"),
+        async_graphql::http::GraphQLPlaygroundConfig::new("/graphql")
+            .with_setting("request.credentials", "include"),
     ))
 }

@@ -5,6 +5,7 @@
     url: "<(http|https)>://<[a-zA-Z0-9-.:]+>/graphql"
     methods: ["POST", "GET", "OPTIONS"]
   authenticators:
+    - handler: cookie_session
     - handler: bearer_token
       config:
         token_from:
