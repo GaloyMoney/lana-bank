@@ -15,7 +15,8 @@ import {
 } from "@/components/primitive/card"
 import { Input } from "@/components/primitive/input"
 import { Alert, AlertDescription } from "@/components/primitive/alert"
-import { createAuthFlow } from "@/lib/kratos/public/auth-flow"
+
+import { createAuthFlow } from "@/lib/kratos/public/create-auth-flow"
 
 const emailSchema = z.string().email({ message: "Invalid email address" })
 

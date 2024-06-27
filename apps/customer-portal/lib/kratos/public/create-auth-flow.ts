@@ -2,12 +2,12 @@ import { AxiosError } from "axios"
 
 import { kratosPublic } from "@/lib/kratos/sdk"
 import { getCsrfToken, kratosUiMessageIds } from "@/lib/kratos/utils"
-import { OtpParams } from "@/app/auth/otp/page"
+
+import { OtpParams } from "@/components/auth/otp-form"
 
 type IdentityTraits = {
   email: string
 }
-
 class InvalidFlow extends Error {}
 class UserNotExistError extends Error {}
 

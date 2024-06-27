@@ -1,5 +1,11 @@
 import { LoginFlow, RegistrationFlow, UiNode, UiNodeAttributes } from "@ory/client"
 
+export const kratosUiMessageIds = {
+  USER_NOT_EXIST: 4000035,
+  OTP_EMAIL_SENT_SIGN_IN: 1010014,
+  OTP_EMAIL_SENT_REGISTER: 1040005,
+} as const
+
 export const getCsrfToken = (flow: LoginFlow | RegistrationFlow): string | undefined => {
   for (const node of flow.ui.nodes) {
     if (isInputNode(node)) {
@@ -20,8 +26,24 @@ export function isInputNode(
   )
 }
 
-export const kratosUiMessageIds = {
-  USER_NOT_EXIST: 4000035,
-  OTP_EMAIL_SENT_SIGN_IN: 1010014,
-  OTP_EMAIL_SENT_REGISTER: 1040005,
-} as const
+export const emailParserFromUiNodeRegister = (nodes: UiNode[]): string | null => {
+  let email = null
+  nodes.forEach((node) => {
+    const attributes = node.attributes as { name?: string; value?: string }
+    if (attributes.name === "traits.email") {
+      email = attributes.value
+    }
+  })
+  return email
+}
+
+export const emailParserFromUiNodeLogin = (nodes: UiNode[]): string | null => {
+  let email = null
+  nodes.forEach((node) => {
+    const attributes = node.attributes as { name?: string; value?: string }
+    if (attributes.name === "identifier") {
+      email = attributes.value
+    }
+  })
+  return email
+}

@@ -1,25 +1,17 @@
 import { redirect } from "next/navigation"
 
 import { AuthTemplateCard } from "@/components/auth/auth-template-card"
-import { OtpForm } from "@/components/auth/otp-form"
+import { OtpForm, OtpParams } from "@/components/auth/otp-form"
 
-export type OtpParams = {
-  flowId?: string
-  type?: string
-}
+async function Otp({ searchParams }: { searchParams?: OtpParams }) {
+  if (!searchParams) redirect("/")
 
-async function Otp({ searchParams }: { searchParams: OtpParams }) {
-  const flowId = searchParams?.flowId
-
-  if (!flowId) {
-    redirect("/auth")
-  }
-
-  const email = "user@example.com" // TODO
+  const { flowId, type } = searchParams
+  if (!flowId || !type || !["login", "register"].includes(type)) redirect("/")
 
   return (
     <AuthTemplateCard>
-      <OtpForm email={email} flowId={flowId} />
+      <OtpForm flowId={flowId} type={type} />
     </AuthTemplateCard>
   )
 }

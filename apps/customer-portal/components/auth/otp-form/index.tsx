@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { useRouter } from "next/navigation"
 
 import { Button } from "@/components/primitive/button"
 import {
@@ -14,12 +15,15 @@ import {
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/primitive/otp-input"
 import { Alert, AlertDescription } from "@/components/primitive/alert"
 
-type OtpFormProps = {
+import { submitAuthFlow } from "@/lib/kratos/public/submit-auth-flow"
+
+export type OtpParams = {
   flowId: string
-  email: string
+  type: "login" | "register"
 }
 
-const OtpForm: React.FC<OtpFormProps> = () => {
+const OtpForm: React.FC<OtpParams> = ({ flowId, type }) => {
+  const router = useRouter()
   const [otp, setOtp] = useState("")
   const [error, setError] = useState<string | null>(null)
 
@@ -30,7 +34,12 @@ const OtpForm: React.FC<OtpFormProps> = () => {
     if (otp.length !== 6) return
     setError(null)
 
-    // TODO: OTP Flow
+    try {
+      await submitAuthFlow({ flowId, otp, type })
+      router.replace("/")
+    } catch {
+      setError("Invalid OTP or OTP has expired. Please go back and try again.")
+    }
   }
 
   return (
