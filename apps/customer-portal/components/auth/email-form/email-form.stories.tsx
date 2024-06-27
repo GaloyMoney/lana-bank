@@ -1,10 +1,10 @@
 import React from "react"
 
-import { SignInForm } from "@/components/auth/email-form"
+import { AuthForm } from "@/components/auth/email-form"
 
 export default {
   title: "components/Auth/email-form",
-  component: SignInForm,
+  component: AuthForm,
 }
 
-export const Default = () => <SignInForm />
+export const Default = () => <AuthForm />

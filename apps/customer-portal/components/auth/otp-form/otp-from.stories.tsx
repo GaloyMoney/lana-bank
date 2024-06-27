@@ -7,10 +7,4 @@ export default {
   component: OtpForm,
 }
 
-export const SignInOTP = () => (
-  <OtpForm email="test" flowId="flow-id" formType="SIGN_IN" />
-)
-
-export const RegisterOTP = () => (
-  <OtpForm email="test" flowId="flow-id" formType="REGISTER" />
-)
+export const AuthOtp = () => <OtpForm type="register" flowId="flow-id" />

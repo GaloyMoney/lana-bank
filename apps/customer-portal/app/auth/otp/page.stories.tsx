@@ -11,6 +11,6 @@ export default {
 
 export const Default = () => (
   <AuthTemplateCard>
-    <OtpForm email="test@test.com" flowId="flow-id" />
+    <OtpForm type="register" flowId="flow-id" />
   </AuthTemplateCard>
 )
