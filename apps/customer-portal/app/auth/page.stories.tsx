@@ -1,10 +1,10 @@
 import React from "react"
 
-import SignInAndRegister from "@/app/auth/page"
+import Auth from "@/app/auth/page"
 
 export default {
   title: "pages/auth",
-  component: SignInAndRegister,
+  component: Auth,
 }
 
-export const Default = () => <SignInAndRegister />
+export const Default = () => <Auth />

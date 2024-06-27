@@ -1,12 +1,12 @@
-import { SignInForm } from "@/components/auth/email-form"
+import { AuthForm } from "@/components/auth/email-form"
 import { AuthTemplateCard } from "@/components/auth/auth-template-card"
 
-function SignIn() {
+function Auth() {
   return (
     <AuthTemplateCard>
-      <SignInForm />
+      <AuthForm />
     </AuthTemplateCard>
   )
 }
 
-export default SignIn
+export default Auth

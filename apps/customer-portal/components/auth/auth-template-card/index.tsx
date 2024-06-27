@@ -5,7 +5,7 @@ import { BitcoinIcon } from "../../icons"
 
 import { InformationCard } from "../information-card"
 
-const Wrapper = ({ children }: { children: ReactNode }) => {
+const Wrapper: React.FC<React.PropsWithChildren> = ({ children }) => {
   return (
     <main className="flex items-center justify-center min-h-screen">
       <Card className="m-aut max-w-[60rem] md:w-[60rem] w-[90%]">{children}</Card>
