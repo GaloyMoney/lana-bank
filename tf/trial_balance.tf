@@ -1,8 +1,9 @@
 # Trial Balance Account Set
 resource "cala_account_set" "trial_balance" {
-  id         = "00000000-0000-0000-0000-110000000000"
-  journal_id = cala_journal.journal.id
-  name       = "Trial Balance"
+  id                  = "00000000-0000-0000-0000-110000000000"
+  journal_id          = cala_journal.journal.id
+  name                = "Trial Balance"
+  normal_balance_type = "DEBIT"
 }
 
 # GL "Control Account" Account Sets
