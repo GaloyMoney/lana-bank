@@ -1,19 +1,26 @@
+type AccountBalance {
+	name: String!
+	balance: AccountBalancesByCurrency!
+}
+
 type AccountBalancesByCurrency {
 	btc: LayeredBtcAccountBalances!
 	usd: LayeredUsdAccountBalances!
 	usdt: LayeredUsdAccountBalances!
 }
 
-type AccountLedgerLineItem {
+type AccountSetAndMemberBalances {
 	name: String!
-	totalBalance: AccountBalancesByCurrency!
+	balance: AccountBalancesByCurrency!
+	memberBalances: [AccountSetMemberBalance!]!
 }
 
-type AccountLedgerSummary {
+type AccountSetBalance {
 	name: String!
-	totalBalance: AccountBalancesByCurrency!
-	lineItemBalances: [AccountLedgerLineItem!]!
+	balance: AccountBalancesByCurrency!
 }
+
+union AccountSetMemberBalance = AccountBalance | AccountSetBalance
 
 
 type BtcAccountBalance {
@@ -100,7 +107,7 @@ type Query {
 	loan(id: UUID!): FixedTermLoan
 	user(id: UUID!): User
 	users(first: Int!, after: String): UserConnection!
-	trialBalance: AccountLedgerSummary
+	trialBalance: AccountSetAndMemberBalances
 }
 
 scalar Satoshis

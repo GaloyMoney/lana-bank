@@ -1,6 +1,5 @@
-mod account;
-pub mod account_ledger;
-mod account_set;
+pub mod account;
+pub mod account_set;
 mod bitfinex;
 mod cala;
 mod config;
@@ -18,7 +17,7 @@ use crate::primitives::{
     Satoshis, UsdCents, UserId, WithdrawId,
 };
 
-use account_ledger::*;
+use account_set::LedgerAccountSetAndMemberBalances;
 use cala::*;
 pub use config::*;
 use error::*;
@@ -203,8 +202,8 @@ impl Ledger {
 
     pub async fn account_general_ledger_summary(
         &self,
-    ) -> Result<Option<AccountLedgerSummary>, LedgerError> {
-        match self.cala.general_ledger::<AccountLedgerSummary>().await {
+    ) -> Result<Option<LedgerAccountSetAndMemberBalances>, LedgerError> {
+        match self.cala.general_ledger::<LedgerAccountSetAndMemberBalances>().await {
             Ok(gl) => Ok(gl),
             Err(e) => Err(e)?,
         }

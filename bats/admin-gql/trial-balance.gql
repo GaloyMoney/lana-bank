@@ -1,13 +1,21 @@
 query TrialBalance {
   trialBalance {
     name
-    totalBalance {
+    balance {
       ...balancesByCurrency
     }
-    lineItemBalances {
-      name
-      totalBalance {
-        ...balancesByCurrency
+    memberBalances {
+      ... on AccountBalance {
+        name
+        balance {
+          ...balancesByCurrency
+        }
+      }
+      ... on AccountSetBalance {
+        name
+        balance {
+          ...balancesByCurrency
+        }
       }
     }
   }

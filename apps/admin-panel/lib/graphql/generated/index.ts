@@ -22,6 +22,12 @@ export type Scalars = {
   UsdCents: { input: any; output: any; }
 };
 
+export type AccountBalance = {
+  __typename?: 'AccountBalance';
+  balance: AccountBalancesByCurrency;
+  name: Scalars['String']['output'];
+};
+
 export type AccountBalancesByCurrency = {
   __typename?: 'AccountBalancesByCurrency';
   btc: LayeredBtcAccountBalances;
@@ -29,18 +35,20 @@ export type AccountBalancesByCurrency = {
   usdt: LayeredUsdAccountBalances;
 };
 
-export type AccountLedgerLineItem = {
-  __typename?: 'AccountLedgerLineItem';
+export type AccountSetAndMemberBalances = {
+  __typename?: 'AccountSetAndMemberBalances';
+  balance: AccountBalancesByCurrency;
+  memberBalances: Array<AccountSetMemberBalance>;
   name: Scalars['String']['output'];
-  totalBalance: AccountBalancesByCurrency;
 };
 
-export type AccountLedgerSummary = {
-  __typename?: 'AccountLedgerSummary';
-  lineItemBalances: Array<AccountLedgerLineItem>;
+export type AccountSetBalance = {
+  __typename?: 'AccountSetBalance';
+  balance: AccountBalancesByCurrency;
   name: Scalars['String']['output'];
-  totalBalance: AccountBalancesByCurrency;
 };
+
+export type AccountSetMemberBalance = AccountBalance | AccountSetBalance;
 
 export type BtcAccountBalance = {
   __typename?: 'BtcAccountBalance';
@@ -129,7 +137,7 @@ export type PageInfo = {
 export type Query = {
   __typename?: 'Query';
   loan?: Maybe<FixedTermLoan>;
-  trialBalance?: Maybe<AccountLedgerSummary>;
+  trialBalance?: Maybe<AccountSetAndMemberBalances>;
   user?: Maybe<User>;
   users: UserConnection;
 };
