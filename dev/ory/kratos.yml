@@ -10,7 +10,6 @@ serve:
       allow_credentials: true
       allowed_origins:
         - http://127.0.0.1:4455
-        - http://localhost:4455
       allowed_methods:
         - POST
         - GET

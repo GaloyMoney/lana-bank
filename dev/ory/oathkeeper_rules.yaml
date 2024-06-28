@@ -7,11 +7,6 @@
   authenticators:
     - handler: cookie_session
     - handler: bearer_token
-      config:
-        token_from:
-          header: X-API-KEY
-        force_method: GET
-    - handler: bearer_token
   authorizer:
     handler: allow
   mutators:
