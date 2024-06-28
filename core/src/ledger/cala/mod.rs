@@ -754,16 +754,15 @@ impl CalaClient {
             .ok_or(CalaError::MissingDataField)
     }
 
-    pub async fn general_ledger<T: From<general_ledger::GeneralLedgerAccountSet>>(
+    pub async fn trial_balance<T: From<trial_balance::TrialBalanceAccountSet>>(
         &self,
     ) -> Result<Option<T>, CalaError> {
-        let variables = general_ledger::Variables {
+        let variables = trial_balance::Variables {
             journal_id: constants::CORE_JOURNAL_ID,
-            account_set_id: constants::GENERAL_LEDGER_ACCOUNT_SET_ID,
+            account_set_id: constants::TRIAL_BALANCE_ACCOUNT_SET_ID,
         };
         let response =
-            Self::traced_gql_request::<GeneralLedger, _>(&self.client, &self.url, variables)
-                .await?;
+            Self::traced_gql_request::<TrialBalance, _>(&self.client, &self.url, variables).await?;
         Ok(response.data.and_then(|d| d.account_set).map(T::from))
     }
 

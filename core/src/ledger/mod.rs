@@ -200,10 +200,14 @@ impl Ledger {
         Ok(())
     }
 
-    pub async fn account_general_ledger_summary(
+    pub async fn account_trial_balance_summary(
         &self,
     ) -> Result<Option<LedgerAccountSetAndMemberBalances>, LedgerError> {
-        match self.cala.general_ledger::<LedgerAccountSetAndMemberBalances>().await {
+        match self
+            .cala
+            .trial_balance::<LedgerAccountSetAndMemberBalances>()
+            .await
+        {
             Ok(gl) => Ok(gl),
             Err(e) => Err(e)?,
         }

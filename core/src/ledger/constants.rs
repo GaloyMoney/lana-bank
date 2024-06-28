@@ -17,9 +17,8 @@ pub(super) const FIXED_TERM_LOANS_ACCOUNT_SET_ID: Uuid =
 pub(super) const INTEREST_REVENUE_ACCOUNT_SET_ID: Uuid =
     uuid!("00000000-0000-0000-0000-500000000001");
 
-// General Ledger AccountSets
-pub(super) const GENERAL_LEDGER_ACCOUNT_SET_ID: Uuid =
-    uuid!("00000000-0000-0000-0000-110000000000");
+// Trial Balance AccountSets
+pub(super) const TRIAL_BALANCE_ACCOUNT_SET_ID: Uuid = uuid!("00000000-0000-0000-0000-110000000000");
 pub(super) const USER_DEPOSITS_CONTROL_ACCOUNT_SET_ID: Uuid =
     uuid!("00000000-0000-0000-0000-110000000001");
 pub(super) const FIXED_TERM_LOANS_CONTROL_ACCOUNT_SET_ID: Uuid =

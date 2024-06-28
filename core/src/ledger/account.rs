@@ -9,8 +9,8 @@ pub struct BtcAccountBalance {
     pub net: Satoshis,
 }
 
-impl From<general_ledger::balances> for BtcAccountBalance {
-    fn from(balances: general_ledger::balances) -> Self {
+impl From<trial_balance::balances> for BtcAccountBalance {
+    fn from(balances: trial_balance::balances) -> Self {
         Self {
             debit: Satoshis::from_btc(balances.dr_balance.units),
             credit: Satoshis::from_btc(balances.cr_balance.units),
@@ -36,8 +36,8 @@ pub struct UsdAccountBalance {
     pub net: UsdCents,
 }
 
-impl From<general_ledger::balances> for UsdAccountBalance {
-    fn from(balances: general_ledger::balances) -> Self {
+impl From<trial_balance::balances> for UsdAccountBalance {
+    fn from(balances: trial_balance::balances) -> Self {
         Self {
             debit: UsdCents::from_usd(balances.dr_balance.units),
             credit: UsdCents::from_usd(balances.cr_balance.units),
@@ -63,8 +63,8 @@ pub struct LayeredBtcAccountBalances {
     pub encumbrance: BtcAccountBalance,
 }
 
-impl From<general_ledger::GeneralLedgerAccountSetBtcBalances> for LayeredBtcAccountBalances {
-    fn from(btc_balances_by_layer: general_ledger::GeneralLedgerAccountSetBtcBalances) -> Self {
+impl From<trial_balance::TrialBalanceAccountSetBtcBalances> for LayeredBtcAccountBalances {
+    fn from(btc_balances_by_layer: trial_balance::TrialBalanceAccountSetBtcBalances) -> Self {
         Self {
             settled: BtcAccountBalance::from(btc_balances_by_layer.settled),
             pending: BtcAccountBalance::from(btc_balances_by_layer.pending),
@@ -80,8 +80,8 @@ pub struct LayeredUsdAccountBalances {
     pub encumbrance: UsdAccountBalance,
 }
 
-impl From<general_ledger::GeneralLedgerAccountSetUsdBalances> for LayeredUsdAccountBalances {
-    fn from(usd_balances_by_layer: general_ledger::GeneralLedgerAccountSetUsdBalances) -> Self {
+impl From<trial_balance::TrialBalanceAccountSetUsdBalances> for LayeredUsdAccountBalances {
+    fn from(usd_balances_by_layer: trial_balance::TrialBalanceAccountSetUsdBalances) -> Self {
         Self {
             settled: UsdAccountBalance::from(usd_balances_by_layer.settled),
             pending: UsdAccountBalance::from(usd_balances_by_layer.pending),
@@ -110,10 +110,8 @@ pub struct LedgerAccountBalance {
     pub balance: LedgerAccountBalancesByCurrency,
 }
 
-impl From<general_ledger::GeneralLedgerAccountSetMembersEdgesNodeOnAccount>
-    for LedgerAccountBalance
-{
-    fn from(node: general_ledger::GeneralLedgerAccountSetMembersEdgesNodeOnAccount) -> Self {
+impl From<trial_balance::TrialBalanceAccountSetMembersEdgesNodeOnAccount> for LedgerAccountBalance {
+    fn from(node: trial_balance::TrialBalanceAccountSetMembersEdgesNodeOnAccount) -> Self {
         LedgerAccountBalance {
             name: node.name,
             balance: LedgerAccountBalancesByCurrency {

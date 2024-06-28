@@ -8,10 +8,10 @@ pub struct LedgerAccountSetBalance {
     pub balance: LedgerAccountBalancesByCurrency,
 }
 
-impl From<general_ledger::GeneralLedgerAccountSetMembersEdgesNodeOnAccountSet>
+impl From<trial_balance::TrialBalanceAccountSetMembersEdgesNodeOnAccountSet>
     for LedgerAccountSetBalance
 {
-    fn from(node: general_ledger::GeneralLedgerAccountSetMembersEdgesNodeOnAccountSet) -> Self {
+    fn from(node: trial_balance::TrialBalanceAccountSetMembersEdgesNodeOnAccountSet) -> Self {
         LedgerAccountSetBalance {
             name: node.name,
             balance: LedgerAccountBalancesByCurrency {
@@ -43,19 +43,19 @@ pub struct LedgerAccountSetAndMemberBalances {
     pub member_balances: Vec<LedgerAccountSetMemberBalance>,
 }
 
-impl From<general_ledger::GeneralLedgerAccountSet> for LedgerAccountSetAndMemberBalances {
-    fn from(account_set: general_ledger::GeneralLedgerAccountSet) -> Self {
+impl From<trial_balance::TrialBalanceAccountSet> for LedgerAccountSetAndMemberBalances {
+    fn from(account_set: trial_balance::TrialBalanceAccountSet) -> Self {
         let member_balances: Vec<LedgerAccountSetMemberBalance> = account_set
             .members
             .edges
             .iter()
             .map(|e| match &e.node {
-                general_ledger::GeneralLedgerAccountSetMembersEdgesNode::Account(node) => {
+                trial_balance::TrialBalanceAccountSetMembersEdgesNode::Account(node) => {
                     LedgerAccountSetMemberBalance::LedgerAccountBalance(LedgerAccountBalance::from(
                         node.clone(),
                     ))
                 }
-                general_ledger::GeneralLedgerAccountSetMembersEdgesNode::AccountSet(node) => {
+                trial_balance::TrialBalanceAccountSetMembersEdgesNode::AccountSet(node) => {
                     LedgerAccountSetMemberBalance::LedgerAccountSetBalance(
                         LedgerAccountSetBalance::from(node.clone()),
                     )

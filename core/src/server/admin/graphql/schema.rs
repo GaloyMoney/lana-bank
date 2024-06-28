@@ -71,7 +71,7 @@ impl Query {
         ctx: &Context<'_>,
     ) -> async_graphql::Result<Option<AccountSetAndMemberBalances>> {
         let app = ctx.data_unchecked::<LavaApp>();
-        let account_summary = app.ledger().account_general_ledger_summary().await?;
+        let account_summary = app.ledger().account_trial_balance_summary().await?;
         Ok(account_summary.map(AccountSetAndMemberBalances::from))
     }
 }

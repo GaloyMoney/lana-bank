@@ -191,10 +191,10 @@ pub struct FixedTermLoanBalance;
 #[derive(GraphQLQuery)]
 #[graphql(
     schema_path = "src/ledger/cala/graphql/schema.graphql",
-    query_path = "src/ledger/cala/graphql/general-ledger.gql",
+    query_path = "src/ledger/cala/graphql/trial-balance.gql",
     response_derives = "Debug, PartialEq, Eq, Clone"
 )]
-pub struct GeneralLedger;
+pub struct TrialBalance;
 
 #[derive(GraphQLQuery)]
 #[graphql(

@@ -1,4 +1,4 @@
-query GeneralLedger($accountSetId: UUID!, $journalId: UUID!) {
+query TrialBalance($accountSetId: UUID!, $journalId: UUID!) {
   accountSet(id: $accountSetId) {
     name
     btcBalances: balance(currency: "BTC") {
