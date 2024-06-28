@@ -41,7 +41,7 @@ const createLoginFlow = async ({ email }: IdentityTraits): Promise<OtpParams> =>
       return { flowId: error.response.data.id, type: "login" }
     }
   }
-  throw new InvalidFlow()
+  throw new InvalidFlowError()
 }
 
 const createRegisterFlow = async ({ email }: IdentityTraits): Promise<OtpParams> => {
@@ -72,7 +72,7 @@ const createRegisterFlow = async ({ email }: IdentityTraits): Promise<OtpParams>
       return { flowId: error.response.data.id, type: "register" }
     }
   }
-  throw new InvalidFlow()
+  throw new InvalidFlowError()
 }
 
 export const createAuthFlow = async ({ email }: IdentityTraits): Promise<OtpParams> => {
@@ -81,5 +81,5 @@ export const createAuthFlow = async ({ email }: IdentityTraits): Promise<OtpPara
   } catch (error) {
     if (error instanceof UserNotExistError) return createRegisterFlow({ email })
   }
-  throw new InvalidFlow()
+  throw new InvalidFlowError()
 }
