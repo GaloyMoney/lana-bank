@@ -8,7 +8,7 @@ import { OtpParams } from "@/components/auth/otp-form"
 type IdentityTraits = {
   email: string
 }
-class InvalidFlow extends Error {}
+class InvalidFlowError extends Error {}
 class UserNotExistError extends Error {}
 
 const createLoginFlow = async ({ email }: IdentityTraits): Promise<OtpParams> => {

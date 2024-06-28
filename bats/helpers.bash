@@ -4,7 +4,7 @@ COMPOSE_PROJECT_NAME="${COMPOSE_PROJECT_NAME:-${REPO_ROOT##*/}}"
 CACHE_DIR=${BATS_TMPDIR:-tmp/bats}/galoy-bats-cache
 mkdir -p "$CACHE_DIR"
 
-KRATOS_PUBLIC_SELFSERVICE_ENDPOINT="http://localhost:4455/self-service"
+KRATOS_PUBLIC_ENDPOINT="http://localhost:4455"
 GQL_PUBLIC_ENDPOINT="http://localhost:4455/graphql"
 GQL_ADMIN_ENDPOINT="http://localhost:5253/graphql"
 GQL_CALA_ENDPOINT="http://localhost:2252/graphql"
