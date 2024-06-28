@@ -1,10 +1,11 @@
-use crate::primitives::{LedgerAccountSetId, LedgerAccountSetMemberType};
+use crate::primitives::{LedgerAccountSetId, LedgerAccountSetMemberType, LedgerDebitOrCredit};
 
 use super::{account::*, cala::graphql::*};
 
 #[derive(Debug, Clone)]
 pub struct LedgerAccountSetBalance {
     pub name: String,
+    pub normal_balance_type: LedgerDebitOrCredit,
     pub balance: LedgerAccountBalancesByCurrency,
 }
 
@@ -14,6 +15,7 @@ impl From<trial_balance::TrialBalanceAccountSetMembersEdgesNodeOnAccountSet>
     fn from(node: trial_balance::TrialBalanceAccountSetMembersEdgesNodeOnAccountSet) -> Self {
         LedgerAccountSetBalance {
             name: node.name,
+            normal_balance_type: node.normal_balance_type.into(),
             balance: LedgerAccountBalancesByCurrency {
                 btc: node.btc_balances.map_or_else(
                     LayeredBtcAccountBalances::default,
@@ -39,6 +41,7 @@ pub enum LedgerAccountSetMemberBalance {
 }
 pub struct LedgerAccountSetAndMemberBalances {
     pub name: String,
+    pub normal_balance_type: LedgerDebitOrCredit,
     pub balance: LedgerAccountBalancesByCurrency,
     pub member_balances: Vec<LedgerAccountSetMemberBalance>,
 }
@@ -65,6 +68,7 @@ impl From<trial_balance::TrialBalanceAccountSet> for LedgerAccountSetAndMemberBa
 
         Self {
             name: account_set.name,
+            normal_balance_type: account_set.normal_balance_type.into(),
             balance: LedgerAccountBalancesByCurrency {
                 btc: account_set.btc_balances.map_or_else(
                     LayeredBtcAccountBalances::default,

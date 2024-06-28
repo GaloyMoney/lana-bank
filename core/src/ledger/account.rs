@@ -1,4 +1,6 @@
-use crate::primitives::{Satoshis, UsdCents};
+use trial_balance::DebitOrCredit;
+
+use crate::primitives::{LedgerDebitOrCredit, Satoshis, UsdCents};
 
 use super::cala::graphql::*;
 
@@ -101,9 +103,20 @@ pub struct LedgerAccountBalancesByCurrency {
     pub usdt: LayeredUsdAccountBalances,
 }
 
+impl From<DebitOrCredit> for LedgerDebitOrCredit {
+    fn from(debit_or_credit: DebitOrCredit) -> Self {
+        match debit_or_credit {
+            DebitOrCredit::DEBIT => LedgerDebitOrCredit::Debit,
+            DebitOrCredit::CREDIT => LedgerDebitOrCredit::Credit,
+            DebitOrCredit::Other(_) => todo!(),
+        }
+    }
+}
+
 #[derive(Debug, Clone)]
 pub struct LedgerAccountBalance {
     pub name: String,
+    pub normal_balance_type: LedgerDebitOrCredit,
     pub balance: LedgerAccountBalancesByCurrency,
 }
 
@@ -111,6 +124,7 @@ impl From<trial_balance::TrialBalanceAccountSetMembersEdgesNodeOnAccount> for Le
     fn from(node: trial_balance::TrialBalanceAccountSetMembersEdgesNodeOnAccount) -> Self {
         LedgerAccountBalance {
             name: node.name,
+            normal_balance_type: node.normal_balance_type.into(),
             balance: LedgerAccountBalancesByCurrency {
                 btc: node.btc_balances.map_or_else(
                     LayeredBtcAccountBalances::default,

@@ -10,12 +10,14 @@ query TrialBalance($accountSetId: UUID!, $journalId: UUID!) {
     usdBalances: balance(currency: "USD") {
       ...balancesByLayer
     }
+    normalBalanceType
     members(first: 100) {
       edges {
         node {
           __typename
           ... on AccountSet {
             name
+            normalBalanceType
             btcBalances: balance(currency: "BTC") {
               ...balancesByLayer
             }
@@ -28,6 +30,7 @@ query TrialBalance($accountSetId: UUID!, $journalId: UUID!) {
           }
           ... on Account {
             name
+            normalBalanceType
             btcBalances: balance(journalId: $journalId, currency: "BTC") {
               ...balancesByLayer
             }
