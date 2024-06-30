@@ -9,12 +9,6 @@ type AccountBalancesByCurrency {
 	usdt: LayeredUsdAccountBalances!
 }
 
-type AccountSetAndMemberBalances {
-	name: String!
-	balance: AccountBalancesByCurrency!
-	memberBalances: [AccountSetMemberBalance!]!
-}
-
 type AccountSetBalance {
 	name: String!
 	balance: AccountBalancesByCurrency!
@@ -173,7 +167,7 @@ type Query {
 	loan(id: UUID!): FixedTermLoan
 	user(id: UUID!): User
 	users(first: Int!, after: String): UserConnection!
-	trialBalance: AccountSetAndMemberBalances
+	trialBalance: TrialBalance
 }
 
 scalar Satoshis
@@ -212,6 +206,12 @@ type Terms {
 }
 
 scalar Timestamp
+
+type TrialBalance {
+	name: String!
+	balance: AccountBalancesByCurrency!
+	memberBalances: [AccountSetMemberBalance!]!
+}
 
 scalar UUID
 

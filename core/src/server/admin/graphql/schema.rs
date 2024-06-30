@@ -71,10 +71,10 @@ impl Query {
     async fn trial_balance(
         &self,
         ctx: &Context<'_>,
-    ) -> async_graphql::Result<Option<AccountSetAndMemberBalances>> {
+    ) -> async_graphql::Result<Option<TrialBalance>> {
         let app = ctx.data_unchecked::<LavaApp>();
         let account_summary = app.ledger().account_trial_balance_summary().await?;
-        Ok(account_summary.map(AccountSetAndMemberBalances::from))
+        Ok(account_summary.map(TrialBalance::from))
     }
 }
 

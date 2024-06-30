@@ -174,7 +174,7 @@ impl UsdCents {
 
 impl From<u64> for UsdCents {
     fn from(value: u64) -> Self {
-        Self(value)
+        Self(i64::try_from(value).expect("Cents must be integer"))
     }
 }
 
