@@ -31,6 +31,30 @@ impl Default for BtcAccountBalance {
     }
 }
 
+impl BtcAccountBalance {
+    fn as_debit_normal(&self) -> Self {
+        let debit_normal_balance = self.debit - self.credit;
+        debit_normal_balance.assert_same_absolute_size(&self.net);
+
+        BtcAccountBalance {
+            debit: self.debit,
+            credit: self.credit,
+            net: debit_normal_balance,
+        }
+    }
+
+    fn as_credit_normal(&self) -> Self {
+        let credit_normal_balance = self.credit - self.debit;
+        credit_normal_balance.assert_same_absolute_size(&self.net);
+
+        BtcAccountBalance {
+            debit: self.debit,
+            credit: self.credit,
+            net: credit_normal_balance,
+        }
+    }
+}
+
 #[derive(Debug, Clone)]
 pub struct UsdAccountBalance {
     pub debit: UsdCents,
@@ -54,6 +78,30 @@ impl Default for UsdAccountBalance {
             debit: UsdCents::ZERO,
             credit: UsdCents::ZERO,
             net: UsdCents::ZERO,
+        }
+    }
+}
+
+impl UsdAccountBalance {
+    fn as_debit_normal(&self) -> Self {
+        let debit_normal_balance = self.debit - self.credit;
+        debit_normal_balance.assert_same_absolute_size(&self.net);
+
+        UsdAccountBalance {
+            debit: self.debit,
+            credit: self.credit,
+            net: debit_normal_balance,
+        }
+    }
+
+    fn as_credit_normal(&self) -> Self {
+        let credit_normal_balance = self.credit - self.debit;
+        credit_normal_balance.assert_same_absolute_size(&self.net);
+
+        UsdAccountBalance {
+            debit: self.debit,
+            credit: self.credit,
+            net: credit_normal_balance,
         }
     }
 }
