@@ -101,6 +101,14 @@ impl Default for Satoshis {
     }
 }
 
+impl std::ops::Sub<Satoshis> for Satoshis {
+    type Output = Satoshis;
+
+    fn sub(self, other: Satoshis) -> Satoshis {
+        Satoshis(self.0 - other.0)
+    }
+}
+
 impl Satoshis {
     pub const ZERO: Self = Self(0);
     pub const ONE: Self = Self(1);
@@ -159,11 +167,10 @@ impl fmt::Display for UsdCents {
 }
 
 impl std::ops::Sub<UsdCents> for UsdCents {
-    type Output = Self;
+    type Output = UsdCents;
 
-    fn sub(self, other: UsdCents) -> Self {
-        assert!(self.0 >= other.0, "Subtraction result cannot be negative");
-        Self(self.0 - other.0)
+    fn sub(self, other: UsdCents) -> UsdCents {
+        UsdCents(self.0 - other.0)
     }
 }
 
