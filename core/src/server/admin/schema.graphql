@@ -1,20 +1,8 @@
-type AccountBalance {
-	name: String!
-	balance: AccountBalancesByCurrency!
-}
-
 type AccountBalancesByCurrency {
 	btc: LayeredBtcAccountBalances!
 	usd: LayeredUsdAccountBalances!
 	usdt: LayeredUsdAccountBalances!
 }
-
-type AccountSetBalance {
-	name: String!
-	balance: AccountBalancesByCurrency!
-}
-
-union AccountSetMemberBalance = AccountBalance | AccountSetBalance
 
 enum AccountStatus {
 	ACTIVE
@@ -137,6 +125,18 @@ type Mutation {
 	loanCreate(input: LoanCreateInput!): LoanCreatePayload!
 }
 
+type NetDebitAccountBalance {
+	name: String!
+	balance: AccountBalancesByCurrency!
+}
+
+type NetDebitAccountSetBalance {
+	name: String!
+	balance: AccountBalancesByCurrency!
+}
+
+union NetDebitAccountSetMemberBalance = NetDebitAccountBalance | NetDebitAccountSetBalance
+
 """
 Information about pagination in a connection
 """
@@ -210,7 +210,7 @@ scalar Timestamp
 type TrialBalance {
 	name: String!
 	balance: AccountBalancesByCurrency!
-	memberBalances: [AccountSetMemberBalance!]!
+	memberBalances: [NetDebitAccountSetMemberBalance!]!
 }
 
 scalar UUID

@@ -35,7 +35,7 @@ impl Default for BtcAccountBalance {
 pub struct DebitNormalBtcAccountBalance {
     pub debit: Satoshis,
     pub credit: Satoshis,
-    pub net: Satoshis,
+    pub net_debit: Satoshis,
 }
 
 impl From<BtcAccountBalance> for DebitNormalBtcAccountBalance {
@@ -46,7 +46,7 @@ impl From<BtcAccountBalance> for DebitNormalBtcAccountBalance {
         DebitNormalBtcAccountBalance {
             debit: btc_balance.debit,
             credit: btc_balance.credit,
-            net: debit_normal_balance,
+            net_debit: debit_normal_balance,
         }
     }
 }
@@ -82,7 +82,7 @@ impl Default for UsdAccountBalance {
 pub struct DebitNormalUsdAccountBalance {
     pub debit: UsdCents,
     pub credit: UsdCents,
-    pub net: UsdCents,
+    pub net_debit: UsdCents,
 }
 
 impl From<UsdAccountBalance> for DebitNormalUsdAccountBalance {
@@ -93,7 +93,7 @@ impl From<UsdAccountBalance> for DebitNormalUsdAccountBalance {
         DebitNormalUsdAccountBalance {
             debit: btc_balance.debit,
             credit: btc_balance.credit,
-            net: debit_normal_balance,
+            net_debit: debit_normal_balance,
         }
     }
 }

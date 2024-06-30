@@ -8,13 +8,13 @@ gql`
         ...balancesByCurrency
       }
       memberBalances {
-        ... on AccountBalance {
+        ... on NetDebitAccountBalance {
           name
           balance {
             ...balancesByCurrency
           }
         }
-        ... on AccountSetBalance {
+        ... on NetDebitAccountSetBalance {
           name
           balance {
             ...balancesByCurrency
