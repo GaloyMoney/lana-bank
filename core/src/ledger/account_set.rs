@@ -34,20 +34,19 @@ impl From<trial_balance::TrialBalanceAccountSetMembersEdgesNodeOnAccountSet>
     }
 }
 
-impl LedgerAccountSetBalance {
-    fn as_debit_normal(&self) -> Self {
-        LedgerAccountSetBalance {
-            name: self.name.to_owned(),
-            normal_balance_type: self.normal_balance_type,
-            balance: self.balance.as_debit_normal(),
-        }
-    }
+#[derive(Debug, Clone)]
+pub struct DebitNormalLedgerAccountSetBalance {
+    pub name: String,
+    pub normal_balance_type: LedgerDebitOrCredit,
+    pub balance: DebitNormalLedgerAccountBalancesByCurrency,
+}
 
-    fn as_credit_normal(&self) -> Self {
-        LedgerAccountSetBalance {
-            name: self.name.to_owned(),
-            normal_balance_type: self.normal_balance_type,
-            balance: self.balance.as_credit_normal(),
+impl From<LedgerAccountSetBalance> for DebitNormalLedgerAccountSetBalance {
+    fn from(balance: LedgerAccountSetBalance) -> Self {
+        DebitNormalLedgerAccountSetBalance {
+            name: balance.name,
+            normal_balance_type: balance.normal_balance_type,
+            balance: balance.balance.into(),
         }
     }
 }
@@ -58,25 +57,24 @@ pub enum LedgerAccountSetMemberBalance {
     LedgerAccountSetBalance(LedgerAccountSetBalance),
 }
 
-impl LedgerAccountSetMemberBalance {
-    pub fn as_debit_normal(&self) -> Self {
-        match self {
-            LedgerAccountSetMemberBalance::LedgerAccountBalance(val) => {
-                LedgerAccountSetMemberBalance::LedgerAccountBalance(val.as_debit_normal())
-            }
-            LedgerAccountSetMemberBalance::LedgerAccountSetBalance(val) => {
-                LedgerAccountSetMemberBalance::LedgerAccountSetBalance(val.as_debit_normal())
-            }
-        }
-    }
+#[derive(Debug, Clone)]
+pub enum DebitNormalLedgerAccountSetMemberBalance {
+    LedgerAccountBalance(DebitNormalLedgerAccountBalance),
+    LedgerAccountSetBalance(DebitNormalLedgerAccountSetBalance),
+}
 
-    pub fn as_credit_normal(&self) -> Self {
-        match self {
+impl From<LedgerAccountSetMemberBalance> for DebitNormalLedgerAccountSetMemberBalance {
+    fn from(balance: LedgerAccountSetMemberBalance) -> Self {
+        match balance {
             LedgerAccountSetMemberBalance::LedgerAccountBalance(val) => {
-                LedgerAccountSetMemberBalance::LedgerAccountBalance(val.as_credit_normal())
+                DebitNormalLedgerAccountSetMemberBalance::LedgerAccountBalance(
+                    DebitNormalLedgerAccountBalance::from(val),
+                )
             }
             LedgerAccountSetMemberBalance::LedgerAccountSetBalance(val) => {
-                LedgerAccountSetMemberBalance::LedgerAccountSetBalance(val.as_credit_normal())
+                DebitNormalLedgerAccountSetMemberBalance::LedgerAccountSetBalance(
+                    DebitNormalLedgerAccountSetBalance::from(val),
+                )
             }
         }
     }

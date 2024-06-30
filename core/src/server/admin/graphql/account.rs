@@ -19,6 +19,16 @@ impl From<crate::ledger::account::BtcAccountBalance> for BtcAccountBalance {
     }
 }
 
+impl From<crate::ledger::account::DebitNormalBtcAccountBalance> for BtcAccountBalance {
+    fn from(balance: crate::ledger::account::DebitNormalBtcAccountBalance) -> Self {
+        BtcAccountBalance {
+            debit: balance.debit,
+            credit: balance.credit,
+            net: balance.net,
+        }
+    }
+}
+
 #[derive(SimpleObject)]
 struct UsdAccountBalance {
     debit: UsdCents,
@@ -28,6 +38,16 @@ struct UsdAccountBalance {
 
 impl From<crate::ledger::account::UsdAccountBalance> for UsdAccountBalance {
     fn from(balance: crate::ledger::account::UsdAccountBalance) -> Self {
+        UsdAccountBalance {
+            debit: balance.debit,
+            credit: balance.credit,
+            net: balance.net,
+        }
+    }
+}
+
+impl From<crate::ledger::account::DebitNormalUsdAccountBalance> for UsdAccountBalance {
+    fn from(balance: crate::ledger::account::DebitNormalUsdAccountBalance) -> Self {
         UsdAccountBalance {
             debit: balance.debit,
             credit: balance.credit,
@@ -55,6 +75,18 @@ impl From<crate::ledger::account::LayeredBtcAccountBalances> for LayeredBtcAccou
     }
 }
 
+impl From<crate::ledger::account::DebitNormalLayeredBtcAccountBalances>
+    for LayeredBtcAccountBalances
+{
+    fn from(balances: crate::ledger::account::DebitNormalLayeredBtcAccountBalances) -> Self {
+        LayeredBtcAccountBalances {
+            settled: balances.settled.into(),
+            pending: balances.pending.into(),
+            encumbrance: balances.encumbrance.into(),
+        }
+    }
+}
+
 #[derive(SimpleObject)]
 struct LayeredUsdAccountBalances {
     all: UsdAccountBalance,
@@ -67,6 +99,18 @@ impl From<crate::ledger::account::LayeredUsdAccountBalances> for LayeredUsdAccou
     fn from(balances: crate::ledger::account::LayeredUsdAccountBalances) -> Self {
         LayeredUsdAccountBalances {
             all: balances.all_layers.into(),
+            settled: balances.settled.into(),
+            pending: balances.pending.into(),
+            encumbrance: balances.encumbrance.into(),
+        }
+    }
+}
+
+impl From<crate::ledger::account::DebitNormalLayeredUsdAccountBalances>
+    for LayeredUsdAccountBalances
+{
+    fn from(balances: crate::ledger::account::DebitNormalLayeredUsdAccountBalances) -> Self {
+        LayeredUsdAccountBalances {
             settled: balances.settled.into(),
             pending: balances.pending.into(),
             encumbrance: balances.encumbrance.into(),
@@ -91,6 +135,18 @@ impl From<crate::ledger::account::LedgerAccountBalancesByCurrency> for AccountBa
     }
 }
 
+impl From<crate::ledger::account::DebitNormalLedgerAccountBalancesByCurrency>
+    for AccountBalancesByCurrency
+{
+    fn from(balances: crate::ledger::account::DebitNormalLedgerAccountBalancesByCurrency) -> Self {
+        AccountBalancesByCurrency {
+            btc: balances.btc.into(),
+            usd: balances.usd.into(),
+            usdt: balances.usdt.into(),
+        }
+    }
+}
+
 #[derive(SimpleObject)]
 pub struct AccountBalance {
     pub name: String,
@@ -99,6 +155,15 @@ pub struct AccountBalance {
 
 impl From<crate::ledger::account::LedgerAccountBalance> for AccountBalance {
     fn from(account_balance: crate::ledger::account::LedgerAccountBalance) -> Self {
+        AccountBalance {
+            name: account_balance.name,
+            balance: account_balance.balance.into(),
+        }
+    }
+}
+
+impl From<crate::ledger::account::DebitNormalLedgerAccountBalance> for AccountBalance {
+    fn from(account_balance: crate::ledger::account::DebitNormalLedgerAccountBalance) -> Self {
         AccountBalance {
             name: account_balance.name,
             balance: account_balance.balance.into(),

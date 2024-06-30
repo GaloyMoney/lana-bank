@@ -31,26 +31,22 @@ impl Default for BtcAccountBalance {
     }
 }
 
-impl BtcAccountBalance {
-    fn as_debit_normal(&self) -> Self {
-        let debit_normal_balance = self.debit - self.credit;
-        debit_normal_balance.assert_same_absolute_size(&self.net);
+#[derive(Debug, Clone)]
+pub struct DebitNormalBtcAccountBalance {
+    pub debit: Satoshis,
+    pub credit: Satoshis,
+    pub net: Satoshis,
+}
 
-        BtcAccountBalance {
-            debit: self.debit,
-            credit: self.credit,
+impl From<BtcAccountBalance> for DebitNormalBtcAccountBalance {
+    fn from(btc_balance: BtcAccountBalance) -> Self {
+        let debit_normal_balance = btc_balance.debit - btc_balance.credit;
+        debit_normal_balance.assert_same_absolute_size(&btc_balance.net);
+
+        DebitNormalBtcAccountBalance {
+            debit: btc_balance.debit,
+            credit: btc_balance.credit,
             net: debit_normal_balance,
-        }
-    }
-
-    fn as_credit_normal(&self) -> Self {
-        let credit_normal_balance = self.credit - self.debit;
-        credit_normal_balance.assert_same_absolute_size(&self.net);
-
-        BtcAccountBalance {
-            debit: self.debit,
-            credit: self.credit,
-            net: credit_normal_balance,
         }
     }
 }
@@ -82,26 +78,22 @@ impl Default for UsdAccountBalance {
     }
 }
 
-impl UsdAccountBalance {
-    fn as_debit_normal(&self) -> Self {
-        let debit_normal_balance = self.debit - self.credit;
-        debit_normal_balance.assert_same_absolute_size(&self.net);
+#[derive(Debug, Clone)]
+pub struct DebitNormalUsdAccountBalance {
+    pub debit: UsdCents,
+    pub credit: UsdCents,
+    pub net: UsdCents,
+}
 
-        UsdAccountBalance {
-            debit: self.debit,
-            credit: self.credit,
+impl From<UsdAccountBalance> for DebitNormalUsdAccountBalance {
+    fn from(btc_balance: UsdAccountBalance) -> Self {
+        let debit_normal_balance = btc_balance.debit - btc_balance.credit;
+        debit_normal_balance.assert_same_absolute_size(&btc_balance.net);
+
+        DebitNormalUsdAccountBalance {
+            debit: btc_balance.debit,
+            credit: btc_balance.credit,
             net: debit_normal_balance,
-        }
-    }
-
-    fn as_credit_normal(&self) -> Self {
-        let credit_normal_balance = self.credit - self.debit;
-        credit_normal_balance.assert_same_absolute_size(&self.net);
-
-        UsdAccountBalance {
-            debit: self.debit,
-            credit: self.credit,
-            net: credit_normal_balance,
         }
     }
 }
@@ -125,22 +117,21 @@ impl From<trial_balance::TrialBalanceAccountSetBtcBalances> for LayeredBtcAccoun
     }
 }
 
-impl LayeredBtcAccountBalances {
-    fn as_debit_normal(&self) -> Self {
-        LayeredBtcAccountBalances {
-            settled: self.settled.as_debit_normal(),
-            pending: self.pending.as_debit_normal(),
-            encumbrance: self.encumbrance.as_debit_normal(),
-            all_layers: self.all_layers.as_debit_normal(),
-        }
-    }
+#[derive(Debug, Clone)]
+pub struct DebitNormalLayeredBtcAccountBalances {
+    pub settled: DebitNormalBtcAccountBalance,
+    pub pending: DebitNormalBtcAccountBalance,
+    pub encumbrance: DebitNormalBtcAccountBalance,
+    pub all_layers: DebitNormalBtcAccountBalance,
+}
 
-    fn as_credit_normal(&self) -> Self {
-        LayeredBtcAccountBalances {
-            settled: self.settled.as_credit_normal(),
-            pending: self.pending.as_credit_normal(),
-            encumbrance: self.encumbrance.as_credit_normal(),
-            all_layers: self.all_layers.as_credit_normal(),
+impl From<LayeredBtcAccountBalances> for DebitNormalLayeredBtcAccountBalances {
+    fn from(balances: LayeredBtcAccountBalances) -> Self {
+        DebitNormalLayeredBtcAccountBalances {
+            settled: balances.settled.into(),
+            pending: balances.pending.into(),
+            encumbrance: balances.encumbrance.into(),
+            all_layers: balances.all_layers.into(),
         }
     }
 }
@@ -164,22 +155,21 @@ impl From<trial_balance::TrialBalanceAccountSetUsdBalances> for LayeredUsdAccoun
     }
 }
 
-impl LayeredUsdAccountBalances {
-    fn as_debit_normal(&self) -> Self {
-        LayeredUsdAccountBalances {
-            settled: self.settled.as_debit_normal(),
-            pending: self.pending.as_debit_normal(),
-            encumbrance: self.encumbrance.as_debit_normal(),
-            all_layers: self.all_layers.as_debit_normal(),
-        }
-    }
+#[derive(Debug, Clone)]
+pub struct DebitNormalLayeredUsdAccountBalances {
+    pub settled: DebitNormalUsdAccountBalance,
+    pub pending: DebitNormalUsdAccountBalance,
+    pub encumbrance: DebitNormalUsdAccountBalance,
+    pub all_layers: DebitNormalUsdAccountBalance,
+}
 
-    fn as_credit_normal(&self) -> Self {
-        LayeredUsdAccountBalances {
-            settled: self.settled.as_credit_normal(),
-            pending: self.pending.as_credit_normal(),
-            encumbrance: self.encumbrance.as_credit_normal(),
-            all_layers: self.all_layers.as_credit_normal(),
+impl From<LayeredUsdAccountBalances> for DebitNormalLayeredUsdAccountBalances {
+    fn from(balances: LayeredUsdAccountBalances) -> Self {
+        DebitNormalLayeredUsdAccountBalances {
+            settled: balances.settled.into(),
+            pending: balances.pending.into(),
+            encumbrance: balances.encumbrance.into(),
+            all_layers: balances.all_layers.into(),
         }
     }
 }
@@ -191,20 +181,19 @@ pub struct LedgerAccountBalancesByCurrency {
     pub usdt: LayeredUsdAccountBalances,
 }
 
-impl LedgerAccountBalancesByCurrency {
-    pub fn as_debit_normal(&self) -> Self {
-        LedgerAccountBalancesByCurrency {
-            btc: self.btc.as_debit_normal(),
-            usd: self.usd.as_debit_normal(),
-            usdt: self.usdt.as_debit_normal(),
-        }
-    }
+#[derive(Debug, Clone)]
+pub struct DebitNormalLedgerAccountBalancesByCurrency {
+    pub btc: DebitNormalLayeredBtcAccountBalances,
+    pub usd: DebitNormalLayeredUsdAccountBalances,
+    pub usdt: DebitNormalLayeredUsdAccountBalances,
+}
 
-    pub fn as_credit_normal(&self) -> Self {
-        LedgerAccountBalancesByCurrency {
-            btc: self.btc.as_credit_normal(),
-            usd: self.usd.as_credit_normal(),
-            usdt: self.usdt.as_credit_normal(),
+impl From<LedgerAccountBalancesByCurrency> for DebitNormalLedgerAccountBalancesByCurrency {
+    fn from(balances: LedgerAccountBalancesByCurrency) -> Self {
+        DebitNormalLedgerAccountBalancesByCurrency {
+            btc: balances.btc.into(),
+            usd: balances.usd.into(),
+            usdt: balances.usdt.into(),
         }
     }
 }
@@ -249,20 +238,19 @@ impl From<trial_balance::TrialBalanceAccountSetMembersEdgesNodeOnAccount> for Le
     }
 }
 
-impl LedgerAccountBalance {
-    pub fn as_debit_normal(&self) -> Self {
-        LedgerAccountBalance {
-            name: self.name.to_owned(),
-            normal_balance_type: self.normal_balance_type,
-            balance: self.balance.as_debit_normal(),
-        }
-    }
+#[derive(Debug, Clone)]
+pub struct DebitNormalLedgerAccountBalance {
+    pub name: String,
+    pub normal_balance_type: LedgerDebitOrCredit,
+    pub balance: DebitNormalLedgerAccountBalancesByCurrency,
+}
 
-    pub fn as_credit_normal(&self) -> Self {
-        LedgerAccountBalance {
-            name: self.name.to_owned(),
-            normal_balance_type: self.normal_balance_type,
-            balance: self.balance.as_credit_normal(),
+impl From<LedgerAccountBalance> for DebitNormalLedgerAccountBalance {
+    fn from(balance: LedgerAccountBalance) -> Self {
+        DebitNormalLedgerAccountBalance {
+            name: balance.name,
+            normal_balance_type: balance.normal_balance_type,
+            balance: balance.balance.into(),
         }
     }
 }

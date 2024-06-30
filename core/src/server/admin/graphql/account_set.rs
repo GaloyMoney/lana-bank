@@ -17,6 +17,15 @@ impl From<crate::ledger::account_set::LedgerAccountSetBalance> for AccountSetBal
     }
 }
 
+impl From<crate::ledger::account_set::DebitNormalLedgerAccountSetBalance> for AccountSetBalance {
+    fn from(line_item: crate::ledger::account_set::DebitNormalLedgerAccountSetBalance) -> Self {
+        AccountSetBalance {
+            name: line_item.name,
+            balance: line_item.balance.into(),
+        }
+    }
+}
+
 #[derive(Union)]
 enum AccountSetMemberBalance {
     Account(super::account::AccountBalance),
@@ -30,6 +39,23 @@ impl From<crate::ledger::account_set::LedgerAccountSetMemberBalance> for Account
                 val,
             ) => AccountSetMemberBalance::Account(val.into()),
             crate::ledger::account_set::LedgerAccountSetMemberBalance::LedgerAccountSetBalance(
+                val,
+            ) => AccountSetMemberBalance::AccountSet(val.into()),
+        }
+    }
+}
+
+impl From<crate::ledger::account_set::DebitNormalLedgerAccountSetMemberBalance>
+    for AccountSetMemberBalance
+{
+    fn from(
+        member_balance: crate::ledger::account_set::DebitNormalLedgerAccountSetMemberBalance,
+    ) -> Self {
+        match member_balance {
+            crate::ledger::account_set::DebitNormalLedgerAccountSetMemberBalance::LedgerAccountBalance(
+                val,
+            ) => AccountSetMemberBalance::Account(val.into()),
+            crate::ledger::account_set::DebitNormalLedgerAccountSetMemberBalance::LedgerAccountSetBalance(
                 val,
             ) => AccountSetMemberBalance::AccountSet(val.into()),
         }
