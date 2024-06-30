@@ -34,11 +34,54 @@ impl From<trial_balance::TrialBalanceAccountSetMembersEdgesNodeOnAccountSet>
     }
 }
 
+impl LedgerAccountSetBalance {
+    fn as_debit_normal(&self) -> Self {
+        LedgerAccountSetBalance {
+            name: self.name.to_owned(),
+            normal_balance_type: self.normal_balance_type,
+            balance: self.balance.as_debit_normal(),
+        }
+    }
+
+    fn as_credit_normal(&self) -> Self {
+        LedgerAccountSetBalance {
+            name: self.name.to_owned(),
+            normal_balance_type: self.normal_balance_type,
+            balance: self.balance.as_credit_normal(),
+        }
+    }
+}
+
 #[derive(Debug, Clone)]
 pub enum LedgerAccountSetMemberBalance {
     LedgerAccountBalance(LedgerAccountBalance),
     LedgerAccountSetBalance(LedgerAccountSetBalance),
 }
+
+impl LedgerAccountSetMemberBalance {
+    pub fn as_debit_normal(&self) -> Self {
+        match self {
+            LedgerAccountSetMemberBalance::LedgerAccountBalance(val) => {
+                LedgerAccountSetMemberBalance::LedgerAccountBalance(val.as_debit_normal())
+            }
+            LedgerAccountSetMemberBalance::LedgerAccountSetBalance(val) => {
+                LedgerAccountSetMemberBalance::LedgerAccountSetBalance(val.as_debit_normal())
+            }
+        }
+    }
+
+    pub fn as_credit_normal(&self) -> Self {
+        match self {
+            LedgerAccountSetMemberBalance::LedgerAccountBalance(val) => {
+                LedgerAccountSetMemberBalance::LedgerAccountBalance(val.as_credit_normal())
+            }
+            LedgerAccountSetMemberBalance::LedgerAccountSetBalance(val) => {
+                LedgerAccountSetMemberBalance::LedgerAccountSetBalance(val.as_credit_normal())
+            }
+        }
+    }
+}
+
 pub struct LedgerAccountSetAndMemberBalances {
     pub name: String,
     pub normal_balance_type: LedgerDebitOrCredit,

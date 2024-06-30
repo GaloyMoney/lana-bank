@@ -125,6 +125,26 @@ impl From<trial_balance::TrialBalanceAccountSetBtcBalances> for LayeredBtcAccoun
     }
 }
 
+impl LayeredBtcAccountBalances {
+    fn as_debit_normal(&self) -> Self {
+        LayeredBtcAccountBalances {
+            settled: self.settled.as_debit_normal(),
+            pending: self.pending.as_debit_normal(),
+            encumbrance: self.encumbrance.as_debit_normal(),
+            all_layers: self.all_layers.as_debit_normal(),
+        }
+    }
+
+    fn as_credit_normal(&self) -> Self {
+        LayeredBtcAccountBalances {
+            settled: self.settled.as_credit_normal(),
+            pending: self.pending.as_credit_normal(),
+            encumbrance: self.encumbrance.as_credit_normal(),
+            all_layers: self.all_layers.as_credit_normal(),
+        }
+    }
+}
+
 #[derive(Debug, Clone, Default)]
 pub struct LayeredUsdAccountBalances {
     pub settled: UsdAccountBalance,
@@ -144,11 +164,49 @@ impl From<trial_balance::TrialBalanceAccountSetUsdBalances> for LayeredUsdAccoun
     }
 }
 
+impl LayeredUsdAccountBalances {
+    fn as_debit_normal(&self) -> Self {
+        LayeredUsdAccountBalances {
+            settled: self.settled.as_debit_normal(),
+            pending: self.pending.as_debit_normal(),
+            encumbrance: self.encumbrance.as_debit_normal(),
+            all_layers: self.all_layers.as_debit_normal(),
+        }
+    }
+
+    fn as_credit_normal(&self) -> Self {
+        LayeredUsdAccountBalances {
+            settled: self.settled.as_credit_normal(),
+            pending: self.pending.as_credit_normal(),
+            encumbrance: self.encumbrance.as_credit_normal(),
+            all_layers: self.all_layers.as_credit_normal(),
+        }
+    }
+}
+
 #[derive(Debug, Clone)]
 pub struct LedgerAccountBalancesByCurrency {
     pub btc: LayeredBtcAccountBalances,
     pub usd: LayeredUsdAccountBalances,
     pub usdt: LayeredUsdAccountBalances,
+}
+
+impl LedgerAccountBalancesByCurrency {
+    pub fn as_debit_normal(&self) -> Self {
+        LedgerAccountBalancesByCurrency {
+            btc: self.btc.as_debit_normal(),
+            usd: self.usd.as_debit_normal(),
+            usdt: self.usdt.as_debit_normal(),
+        }
+    }
+
+    pub fn as_credit_normal(&self) -> Self {
+        LedgerAccountBalancesByCurrency {
+            btc: self.btc.as_credit_normal(),
+            usd: self.usd.as_credit_normal(),
+            usdt: self.usdt.as_credit_normal(),
+        }
+    }
 }
 
 impl From<DebitOrCredit> for LedgerDebitOrCredit {
@@ -187,6 +245,24 @@ impl From<trial_balance::TrialBalanceAccountSetMembersEdgesNodeOnAccount> for Le
                     LayeredUsdAccountBalances::from,
                 ),
             },
+        }
+    }
+}
+
+impl LedgerAccountBalance {
+    pub fn as_debit_normal(&self) -> Self {
+        LedgerAccountBalance {
+            name: self.name.to_owned(),
+            normal_balance_type: self.normal_balance_type,
+            balance: self.balance.as_debit_normal(),
+        }
+    }
+
+    pub fn as_credit_normal(&self) -> Self {
+        LedgerAccountBalance {
+            name: self.name.to_owned(),
+            normal_balance_type: self.normal_balance_type,
+            balance: self.balance.as_credit_normal(),
         }
     }
 }
