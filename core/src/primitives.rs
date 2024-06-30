@@ -87,7 +87,7 @@ pub const SATS_PER_BTC: Decimal = dec!(100_000_000);
 pub const CENTS_PER_USD: Decimal = dec!(100);
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
-pub struct Satoshis(u64);
+pub struct Satoshis(i64);
 
 impl fmt::Display for Satoshis {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> fmt::Result {
@@ -112,16 +112,16 @@ impl Satoshis {
     pub fn from_btc(btc: Decimal) -> Self {
         let sats = btc * SATS_PER_BTC;
         assert!(sats.trunc() == sats, "Satoshis must be an integer");
-        Self(u64::try_from(sats).expect("Satoshis must be a positive integer"))
+        Self(i64::try_from(sats).expect("Satoshis must be integer"))
     }
 
-    pub fn into_inner(self) -> u64 {
+    pub fn into_inner(self) -> i64 {
         self.0
     }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
-pub struct UsdCents(u64);
+pub struct UsdCents(i64);
 
 impl UsdCents {
     pub const ZERO: Self = Self(0);
@@ -134,10 +134,10 @@ impl UsdCents {
     pub fn from_usd(usd: Decimal) -> Self {
         let cents = usd * CENTS_PER_USD;
         assert!(cents.trunc() == cents, "Cents must be an integer");
-        Self(u64::try_from(cents).expect("Cents must be a positive integer"))
+        Self(i64::try_from(cents).expect("Cents must be integer"))
     }
 
-    pub fn into_inner(self) -> u64 {
+    pub fn into_inner(self) -> i64 {
         self.0
     }
 
