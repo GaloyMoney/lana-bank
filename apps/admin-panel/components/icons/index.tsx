@@ -8,6 +8,7 @@ import User from "@/public/icons/user.svg"
 import Receipt from "@/public/icons/receipt.svg"
 import QrCode from "@/public/icons/qr-code.svg"
 import Copy from "@/public/icons/copy.svg"
+import CashOutline from "@/public/icons/cash-outline.svg"
 
 export {
   CheckMark,
@@ -19,5 +20,6 @@ export {
   User,
   Receipt,
   QrCode,
+  CashOutline,
   Copy,
 }

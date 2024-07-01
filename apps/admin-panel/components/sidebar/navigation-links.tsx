@@ -2,11 +2,12 @@
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 
-import { User, Receipt } from "@/components/icons"
+import { User, Receipt, CashOutline } from "@/components/icons"
 
 const navLinks = [
   { href: "/loan", label: "Loan", icon: Receipt },
   { href: "/user", label: "Users", icon: User },
+  { href: "/trial-balance", label: "Trial Balance", icon: CashOutline },
 ]
 
 const NavigationLinks = () => {

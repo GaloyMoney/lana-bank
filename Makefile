@@ -27,6 +27,10 @@ reset-tf-state:
 run-tf:
 	cd tf && tofu init && tofu apply -auto-approve
 
+run-tf-in-tilt:
+	make reset-tf-state
+	make run-tf || true
+
 reset-deps: reset-tf-state clean-deps start-deps setup-db run-tf
 
 run-server:
