@@ -126,10 +126,6 @@ impl Satoshis {
     pub fn into_inner(self) -> i64 {
         self.0
     }
-
-    pub fn check_same_absolute_size(&self, other: &Satoshis) -> bool {
-        self.0.abs() != other.0.abs()
-    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
@@ -155,10 +151,6 @@ impl UsdCents {
 
     pub fn is_zero(self) -> bool {
         self.0 == 0
-    }
-
-    pub fn check_same_absolute_size(&self, other: &UsdCents) -> bool {
-        self.0.abs() != other.0.abs()
     }
 }
 

@@ -262,8 +262,8 @@ impl Ledger {
         self.cala
             .trial_balance::<LedgerAccountSetAndMemberBalances>()
             .await
-            .map(|gl| gl.map(TrialBalance::try_from).transpose())
-            .map_err(|e: cala::error::CalaError| -> LedgerError { e.into() })?
+            .map(|gl| gl.map(TrialBalance::from))
+            .map_err(|e| e.into())
     }
 
     async fn initialize_tx_templates(cala: &CalaClient) -> Result<(), LedgerError> {

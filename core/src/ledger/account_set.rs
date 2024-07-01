@@ -1,6 +1,6 @@
 use crate::primitives::{LedgerAccountSetId, LedgerAccountSetMemberType, LedgerDebitOrCredit};
 
-use super::{account::*, cala::graphql::*, LedgerError};
+use super::{account::*, cala::graphql::*};
 
 #[derive(Debug, Clone)]
 pub struct LedgerAccountSetBalance {
@@ -41,15 +41,13 @@ pub struct DebitNormalLedgerAccountSetBalance {
     pub balance: DebitNormalLedgerAccountBalancesByCurrency,
 }
 
-impl TryFrom<LedgerAccountSetBalance> for DebitNormalLedgerAccountSetBalance {
-    type Error = LedgerError;
-
-    fn try_from(balance: LedgerAccountSetBalance) -> Result<Self, LedgerError> {
-        Ok(DebitNormalLedgerAccountSetBalance {
+impl From<LedgerAccountSetBalance> for DebitNormalLedgerAccountSetBalance {
+    fn from(balance: LedgerAccountSetBalance) -> Self {
+        DebitNormalLedgerAccountSetBalance {
             name: balance.name,
             normal_balance_type: balance.normal_balance_type,
-            balance: balance.balance.try_into()?,
-        })
+            balance: balance.balance.into(),
+        }
     }
 }
 
@@ -65,21 +63,20 @@ pub enum DebitNormalLedgerAccountSetMemberBalance {
     LedgerAccountSetBalance(DebitNormalLedgerAccountSetBalance),
 }
 
-impl TryFrom<LedgerAccountSetMemberBalance> for DebitNormalLedgerAccountSetMemberBalance {
-    type Error = LedgerError;
-
-    fn try_from(balance: LedgerAccountSetMemberBalance) -> Result<Self, LedgerError> {
+impl From<LedgerAccountSetMemberBalance> for DebitNormalLedgerAccountSetMemberBalance {
+    fn from(balance: LedgerAccountSetMemberBalance) -> Self {
         match balance {
-            LedgerAccountSetMemberBalance::LedgerAccountBalance(val) => Ok(
+            LedgerAccountSetMemberBalance::LedgerAccountBalance(val) => {
                 DebitNormalLedgerAccountSetMemberBalance::LedgerAccountBalance(
-                    DebitNormalLedgerAccountBalance::try_from(val)?,
-                ),
-            ),
-            LedgerAccountSetMemberBalance::LedgerAccountSetBalance(val) => Ok(
+                    DebitNormalLedgerAccountBalance::from(val),
+                )
+            }
+
+            LedgerAccountSetMemberBalance::LedgerAccountSetBalance(val) => {
                 DebitNormalLedgerAccountSetMemberBalance::LedgerAccountSetBalance(
-                    DebitNormalLedgerAccountSetBalance::try_from(val)?,
-                ),
-            ),
+                    DebitNormalLedgerAccountSetBalance::from(val),
+                )
+            }
         }
     }
 }

@@ -2,7 +2,7 @@ use trial_balance::DebitOrCredit;
 
 use crate::primitives::{LedgerDebitOrCredit, Satoshis, UsdCents};
 
-use super::{cala::graphql::*, LedgerError};
+use super::cala::graphql::*;
 
 #[derive(Debug, Clone)]
 pub struct BtcAccountBalance {
@@ -31,27 +31,22 @@ impl Default for BtcAccountBalance {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct DebitNormalBtcAccountBalance {
     pub debit: Satoshis,
     pub credit: Satoshis,
     pub net_debit: Satoshis,
 }
 
-impl TryFrom<BtcAccountBalance> for DebitNormalBtcAccountBalance {
-    type Error = LedgerError;
-
-    fn try_from(btc_balance: BtcAccountBalance) -> Result<Self, LedgerError> {
+impl From<BtcAccountBalance> for DebitNormalBtcAccountBalance {
+    fn from(btc_balance: BtcAccountBalance) -> Self {
         let debit_normal_balance = btc_balance.debit - btc_balance.credit;
-        if !debit_normal_balance.check_same_absolute_size(&btc_balance.net) {
-            return Err(LedgerError::CouldNotConvertAccountBalance);
-        }
 
-        Ok(DebitNormalBtcAccountBalance {
+        DebitNormalBtcAccountBalance {
             debit: btc_balance.debit,
             credit: btc_balance.credit,
             net_debit: debit_normal_balance,
-        })
+        }
     }
 }
 
@@ -89,20 +84,15 @@ pub struct DebitNormalUsdAccountBalance {
     pub net_debit: UsdCents,
 }
 
-impl TryFrom<UsdAccountBalance> for DebitNormalUsdAccountBalance {
-    type Error = LedgerError;
-
-    fn try_from(usd_balance: UsdAccountBalance) -> Result<Self, LedgerError> {
+impl From<UsdAccountBalance> for DebitNormalUsdAccountBalance {
+    fn from(usd_balance: UsdAccountBalance) -> Self {
         let debit_normal_balance = usd_balance.debit - usd_balance.credit;
-        if !debit_normal_balance.check_same_absolute_size(&usd_balance.net) {
-            return Err(LedgerError::CouldNotConvertAccountBalance);
-        }
 
-        Ok(DebitNormalUsdAccountBalance {
+        DebitNormalUsdAccountBalance {
             debit: usd_balance.debit,
             credit: usd_balance.credit,
             net_debit: debit_normal_balance,
-        })
+        }
     }
 }
 
@@ -133,16 +123,14 @@ pub struct DebitNormalLayeredBtcAccountBalances {
     pub all_layers: DebitNormalBtcAccountBalance,
 }
 
-impl TryFrom<LayeredBtcAccountBalances> for DebitNormalLayeredBtcAccountBalances {
-    type Error = LedgerError;
-
-    fn try_from(balances: LayeredBtcAccountBalances) -> Result<Self, LedgerError> {
-        Ok(DebitNormalLayeredBtcAccountBalances {
-            settled: balances.settled.try_into()?,
-            pending: balances.pending.try_into()?,
-            encumbrance: balances.encumbrance.try_into()?,
-            all_layers: balances.all_layers.try_into()?,
-        })
+impl From<LayeredBtcAccountBalances> for DebitNormalLayeredBtcAccountBalances {
+    fn from(balances: LayeredBtcAccountBalances) -> Self {
+        DebitNormalLayeredBtcAccountBalances {
+            settled: balances.settled.into(),
+            pending: balances.pending.into(),
+            encumbrance: balances.encumbrance.into(),
+            all_layers: balances.all_layers.into(),
+        }
     }
 }
 
@@ -173,16 +161,14 @@ pub struct DebitNormalLayeredUsdAccountBalances {
     pub all_layers: DebitNormalUsdAccountBalance,
 }
 
-impl TryFrom<LayeredUsdAccountBalances> for DebitNormalLayeredUsdAccountBalances {
-    type Error = LedgerError;
-
-    fn try_from(balances: LayeredUsdAccountBalances) -> Result<Self, LedgerError> {
-        Ok(DebitNormalLayeredUsdAccountBalances {
-            settled: balances.settled.try_into()?,
-            pending: balances.pending.try_into()?,
-            encumbrance: balances.encumbrance.try_into()?,
-            all_layers: balances.all_layers.try_into()?,
-        })
+impl From<LayeredUsdAccountBalances> for DebitNormalLayeredUsdAccountBalances {
+    fn from(balances: LayeredUsdAccountBalances) -> Self {
+        DebitNormalLayeredUsdAccountBalances {
+            settled: balances.settled.into(),
+            pending: balances.pending.into(),
+            encumbrance: balances.encumbrance.into(),
+            all_layers: balances.all_layers.into(),
+        }
     }
 }
 
@@ -200,15 +186,13 @@ pub struct DebitNormalLedgerAccountBalancesByCurrency {
     pub usdt: DebitNormalLayeredUsdAccountBalances,
 }
 
-impl TryFrom<LedgerAccountBalancesByCurrency> for DebitNormalLedgerAccountBalancesByCurrency {
-    type Error = LedgerError;
-
-    fn try_from(balances: LedgerAccountBalancesByCurrency) -> Result<Self, LedgerError> {
-        Ok(DebitNormalLedgerAccountBalancesByCurrency {
-            btc: balances.btc.try_into()?,
-            usd: balances.usd.try_into()?,
-            usdt: balances.usdt.try_into()?,
-        })
+impl From<LedgerAccountBalancesByCurrency> for DebitNormalLedgerAccountBalancesByCurrency {
+    fn from(balances: LedgerAccountBalancesByCurrency) -> Self {
+        DebitNormalLedgerAccountBalancesByCurrency {
+            btc: balances.btc.into(),
+            usd: balances.usd.into(),
+            usdt: balances.usdt.into(),
+        }
     }
 }
 
@@ -259,14 +243,12 @@ pub struct DebitNormalLedgerAccountBalance {
     pub balance: DebitNormalLedgerAccountBalancesByCurrency,
 }
 
-impl TryFrom<LedgerAccountBalance> for DebitNormalLedgerAccountBalance {
-    type Error = LedgerError;
-
-    fn try_from(balance: LedgerAccountBalance) -> Result<Self, LedgerError> {
-        Ok(DebitNormalLedgerAccountBalance {
+impl From<LedgerAccountBalance> for DebitNormalLedgerAccountBalance {
+    fn from(balance: LedgerAccountBalance) -> Self {
+        DebitNormalLedgerAccountBalance {
             name: balance.name,
             normal_balance_type: balance.normal_balance_type,
-            balance: balance.balance.try_into()?,
-        })
+            balance: balance.balance.into(),
+        }
     }
 }
