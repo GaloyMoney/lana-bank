@@ -1697,6 +1697,7 @@ dependencies = [
  "reqwest",
  "rust_decimal",
  "rust_decimal_macros",
+ "rusty-money",
  "serde",
  "serde_json",
  "serde_with",

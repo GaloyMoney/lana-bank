@@ -8,8 +8,8 @@ pub struct AccountSetBalance {
     balance: AccountBalancesByCurrency,
 }
 
-impl From<crate::ledger::account_set::DebitNormalLedgerAccountSetBalance> for AccountSetBalance {
-    fn from(line_item: crate::ledger::account_set::DebitNormalLedgerAccountSetBalance) -> Self {
+impl From<crate::ledger::account_set::LedgerAccountSetBalance> for AccountSetBalance {
+    fn from(line_item: crate::ledger::account_set::LedgerAccountSetBalance) -> Self {
         AccountSetBalance {
             name: line_item.name,
             balance: line_item.balance.into(),
@@ -23,17 +23,13 @@ enum AccountSetMemberBalance {
     AccountSet(AccountSetBalance),
 }
 
-impl From<crate::ledger::account_set::DebitNormalLedgerAccountSetMemberBalance>
-    for AccountSetMemberBalance
-{
-    fn from(
-        member_balance: crate::ledger::account_set::DebitNormalLedgerAccountSetMemberBalance,
-    ) -> Self {
+impl From<crate::ledger::account_set::LedgerAccountSetMemberBalance> for AccountSetMemberBalance {
+    fn from(member_balance: crate::ledger::account_set::LedgerAccountSetMemberBalance) -> Self {
         match member_balance {
-            crate::ledger::account_set::DebitNormalLedgerAccountSetMemberBalance::LedgerAccountBalance(
+            crate::ledger::account_set::LedgerAccountSetMemberBalance::LedgerAccountBalance(
                 val,
             ) => AccountSetMemberBalance::Account(val.into()),
-            crate::ledger::account_set::DebitNormalLedgerAccountSetMemberBalance::LedgerAccountSetBalance(
+            crate::ledger::account_set::LedgerAccountSetMemberBalance::LedgerAccountSetBalance(
                 val,
             ) => AccountSetMemberBalance::AccountSet(val.into()),
         }

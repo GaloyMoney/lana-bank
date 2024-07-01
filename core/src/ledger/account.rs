@@ -4,19 +4,27 @@ use crate::primitives::{LedgerDebitOrCredit, Satoshis, UsdCents};
 
 use super::cala::graphql::*;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct BtcAccountBalance {
     pub debit: Satoshis,
     pub credit: Satoshis,
-    pub net: Satoshis,
+    pub net_normal: Satoshis,
+    pub net_debit: Satoshis,
 }
 
 impl From<trial_balance::balances> for BtcAccountBalance {
     fn from(balances: trial_balance::balances) -> Self {
+        let net_normal = Satoshis::from_btc(balances.normal_balance.units);
+
+        let debit = Satoshis::from_btc(balances.dr_balance.units);
+        let credit = Satoshis::from_btc(balances.cr_balance.units);
+        let net_debit = debit - credit;
+
         Self {
-            debit: Satoshis::from_btc(balances.dr_balance.units),
-            credit: Satoshis::from_btc(balances.cr_balance.units),
-            net: Satoshis::from_btc(balances.normal_balance.units),
+            debit,
+            credit,
+            net_normal,
+            net_debit,
         }
     }
 }
@@ -26,43 +34,33 @@ impl Default for BtcAccountBalance {
         Self {
             debit: Satoshis::ZERO,
             credit: Satoshis::ZERO,
-            net: Satoshis::ZERO,
+            net_normal: Satoshis::ZERO,
+            net_debit: Satoshis::ZERO,
         }
     }
 }
 
 #[derive(Debug, Clone, PartialEq)]
-pub struct DebitNormalBtcAccountBalance {
-    pub debit: Satoshis,
-    pub credit: Satoshis,
-    pub net_debit: Satoshis,
-}
-
-impl From<BtcAccountBalance> for DebitNormalBtcAccountBalance {
-    fn from(btc_balance: BtcAccountBalance) -> Self {
-        let debit_normal_balance = btc_balance.debit - btc_balance.credit;
-
-        DebitNormalBtcAccountBalance {
-            debit: btc_balance.debit,
-            credit: btc_balance.credit,
-            net_debit: debit_normal_balance,
-        }
-    }
-}
-
-#[derive(Debug, Clone)]
 pub struct UsdAccountBalance {
     pub debit: UsdCents,
     pub credit: UsdCents,
-    pub net: UsdCents,
+    pub net_normal: UsdCents,
+    pub net_debit: UsdCents,
 }
 
 impl From<trial_balance::balances> for UsdAccountBalance {
     fn from(balances: trial_balance::balances) -> Self {
+        let net_normal = UsdCents::from_usd(balances.normal_balance.units);
+
+        let debit = UsdCents::from_usd(balances.dr_balance.units);
+        let credit = UsdCents::from_usd(balances.cr_balance.units);
+        let net_debit = debit - credit;
+
         Self {
-            debit: UsdCents::from_usd(balances.dr_balance.units),
-            credit: UsdCents::from_usd(balances.cr_balance.units),
-            net: UsdCents::from_usd(balances.normal_balance.units),
+            debit,
+            credit,
+            net_normal,
+            net_debit,
         }
     }
 }
@@ -72,26 +70,8 @@ impl Default for UsdAccountBalance {
         Self {
             debit: UsdCents::ZERO,
             credit: UsdCents::ZERO,
-            net: UsdCents::ZERO,
-        }
-    }
-}
-
-#[derive(Debug, Clone)]
-pub struct DebitNormalUsdAccountBalance {
-    pub debit: UsdCents,
-    pub credit: UsdCents,
-    pub net_debit: UsdCents,
-}
-
-impl From<UsdAccountBalance> for DebitNormalUsdAccountBalance {
-    fn from(usd_balance: UsdAccountBalance) -> Self {
-        let debit_normal_balance = usd_balance.debit - usd_balance.credit;
-
-        DebitNormalUsdAccountBalance {
-            debit: usd_balance.debit,
-            credit: usd_balance.credit,
-            net_debit: debit_normal_balance,
+            net_normal: UsdCents::ZERO,
+            net_debit: UsdCents::ZERO,
         }
     }
 }
@@ -111,25 +91,6 @@ impl From<trial_balance::TrialBalanceAccountSetBtcBalances> for LayeredBtcAccoun
             pending: BtcAccountBalance::from(btc_balances_by_layer.pending),
             encumbrance: BtcAccountBalance::from(btc_balances_by_layer.encumbrance),
             all_layers: BtcAccountBalance::from(btc_balances_by_layer.all_layers_available),
-        }
-    }
-}
-
-#[derive(Debug, Clone)]
-pub struct DebitNormalLayeredBtcAccountBalances {
-    pub settled: DebitNormalBtcAccountBalance,
-    pub pending: DebitNormalBtcAccountBalance,
-    pub encumbrance: DebitNormalBtcAccountBalance,
-    pub all_layers: DebitNormalBtcAccountBalance,
-}
-
-impl From<LayeredBtcAccountBalances> for DebitNormalLayeredBtcAccountBalances {
-    fn from(balances: LayeredBtcAccountBalances) -> Self {
-        DebitNormalLayeredBtcAccountBalances {
-            settled: balances.settled.into(),
-            pending: balances.pending.into(),
-            encumbrance: balances.encumbrance.into(),
-            all_layers: balances.all_layers.into(),
         }
     }
 }
@@ -154,46 +115,10 @@ impl From<trial_balance::TrialBalanceAccountSetUsdBalances> for LayeredUsdAccoun
 }
 
 #[derive(Debug, Clone)]
-pub struct DebitNormalLayeredUsdAccountBalances {
-    pub settled: DebitNormalUsdAccountBalance,
-    pub pending: DebitNormalUsdAccountBalance,
-    pub encumbrance: DebitNormalUsdAccountBalance,
-    pub all_layers: DebitNormalUsdAccountBalance,
-}
-
-impl From<LayeredUsdAccountBalances> for DebitNormalLayeredUsdAccountBalances {
-    fn from(balances: LayeredUsdAccountBalances) -> Self {
-        DebitNormalLayeredUsdAccountBalances {
-            settled: balances.settled.into(),
-            pending: balances.pending.into(),
-            encumbrance: balances.encumbrance.into(),
-            all_layers: balances.all_layers.into(),
-        }
-    }
-}
-
-#[derive(Debug, Clone)]
 pub struct LedgerAccountBalancesByCurrency {
     pub btc: LayeredBtcAccountBalances,
     pub usd: LayeredUsdAccountBalances,
     pub usdt: LayeredUsdAccountBalances,
-}
-
-#[derive(Debug, Clone)]
-pub struct DebitNormalLedgerAccountBalancesByCurrency {
-    pub btc: DebitNormalLayeredBtcAccountBalances,
-    pub usd: DebitNormalLayeredUsdAccountBalances,
-    pub usdt: DebitNormalLayeredUsdAccountBalances,
-}
-
-impl From<LedgerAccountBalancesByCurrency> for DebitNormalLedgerAccountBalancesByCurrency {
-    fn from(balances: LedgerAccountBalancesByCurrency) -> Self {
-        DebitNormalLedgerAccountBalancesByCurrency {
-            btc: balances.btc.into(),
-            usd: balances.usd.into(),
-            usdt: balances.usdt.into(),
-        }
-    }
 }
 
 impl From<DebitOrCredit> for LedgerDebitOrCredit {
@@ -236,45 +161,89 @@ impl From<trial_balance::TrialBalanceAccountSetMembersEdgesNodeOnAccount> for Le
     }
 }
 
-#[derive(Debug, Clone)]
-pub struct DebitNormalLedgerAccountBalance {
-    pub name: String,
-    pub normal_balance_type: LedgerDebitOrCredit,
-    pub balance: DebitNormalLedgerAccountBalancesByCurrency,
-}
-
-impl From<LedgerAccountBalance> for DebitNormalLedgerAccountBalance {
-    fn from(balance: LedgerAccountBalance) -> Self {
-        DebitNormalLedgerAccountBalance {
-            name: balance.name,
-            normal_balance_type: balance.normal_balance_type,
-            balance: balance.balance.into(),
-        }
-    }
-}
-
 #[cfg(test)]
 mod tests {
+
     use rust_decimal::Decimal;
+    use rusty_money::{crypto, iso};
+    use trial_balance::{BalancesCrBalance, BalancesDrBalance, BalancesNormalBalance};
+
+    use crate::primitives::Currency;
 
     use super::*;
 
     #[test]
-    fn calculate_debit_normal_balance() {
-        let debit = Satoshis::from_btc(Decimal::new(50000, 8));
-        let credit = Satoshis::from_btc(Decimal::new(1000000, 8));
-        let btc_balance = BtcAccountBalance {
-            debit,
-            credit,
-            net: Satoshis::from_btc(Decimal::new(950000, 8)),
-        };
-        let expected_debit_normal_balance = DebitNormalBtcAccountBalance {
-            debit,
-            credit,
-            net_debit: Satoshis::from_btc(Decimal::new(-950000, 8)),
+    fn calculate_debit_normal_btc_balance() {
+        let currency = Currency::Crypto(crypto::BTC);
+
+        let debit_amount = Decimal::new(50000, 8);
+        let dr_balance = BalancesDrBalance {
+            units: debit_amount,
+            currency,
         };
 
-        let debit_normal_balance: DebitNormalBtcAccountBalance = btc_balance.into();
+        let credit_amount = Decimal::new(1000000, 8);
+        let cr_balance = BalancesCrBalance {
+            units: credit_amount,
+            currency,
+        };
+
+        let net_amount_pos = Decimal::new(950000, 8);
+        let net_amount_neg = Decimal::new(-950000, 8);
+        let btc_balance = trial_balance::balances {
+            dr_balance,
+            cr_balance,
+            normal_balance: BalancesNormalBalance {
+                units: net_amount_pos,
+                currency,
+            },
+        };
+        let expected_debit_normal_balance = BtcAccountBalance {
+            debit: Satoshis::from_btc(debit_amount),
+            credit: Satoshis::from_btc(credit_amount),
+            net_normal: Satoshis::from_btc(net_amount_pos),
+            net_debit: Satoshis::from_btc(net_amount_neg),
+        };
+
+        let debit_normal_balance: BtcAccountBalance = btc_balance.into();
+
+        assert_eq!(debit_normal_balance, expected_debit_normal_balance);
+    }
+
+    #[test]
+    fn calculate_debit_normal_usd_balance() {
+        let currency = Currency::Iso(iso::USD);
+
+        let debit_amount = Decimal::new(500, 2);
+        let dr_balance = BalancesDrBalance {
+            units: debit_amount,
+            currency,
+        };
+
+        let credit_amount = Decimal::new(10000, 2);
+        let cr_balance = BalancesCrBalance {
+            units: credit_amount,
+            currency,
+        };
+
+        let net_amount_pos = Decimal::new(9500, 2);
+        let net_amount_neg = Decimal::new(-9500, 2);
+        let usd_balance = trial_balance::balances {
+            dr_balance,
+            cr_balance,
+            normal_balance: BalancesNormalBalance {
+                units: net_amount_pos,
+                currency,
+            },
+        };
+        let expected_debit_normal_balance = UsdAccountBalance {
+            debit: UsdCents::from_usd(debit_amount),
+            credit: UsdCents::from_usd(credit_amount),
+            net_normal: UsdCents::from_usd(net_amount_pos),
+            net_debit: UsdCents::from_usd(net_amount_neg),
+        };
+
+        let debit_normal_balance: UsdAccountBalance = usd_balance.into();
 
         assert_eq!(debit_normal_balance, expected_debit_normal_balance);
     }
