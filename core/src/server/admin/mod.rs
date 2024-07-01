@@ -8,6 +8,7 @@ use async_graphql_axum::{GraphQLRequest, GraphQLResponse};
 use auth::auth_routes;
 use axum::{routing::get, Extension, Router};
 use axum_extra::headers::HeaderMap;
+use tower_http::cors::CorsLayer;
 
 use crate::app::LavaApp;
 
@@ -15,6 +16,8 @@ pub use config::*;
 
 pub async fn run(config: AdminServerConfig, app: LavaApp) -> anyhow::Result<()> {
     let schema = graphql::schema(Some(app.clone()));
+
+    let cors = CorsLayer::permissive();
 
     let app = Router::new()
         .route(
@@ -24,7 +27,8 @@ pub async fn run(config: AdminServerConfig, app: LavaApp) -> anyhow::Result<()> 
         .layer(Extension(schema))
         .merge(auth_routes())
         .layer(Extension(config.clone()))
-        .layer(Extension(app));
+        .layer(Extension(app))
+        .layer(cors);
 
     println!("Starting admin server on port {}", config.port);
     let listener =
