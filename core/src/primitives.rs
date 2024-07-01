@@ -127,13 +127,8 @@ impl Satoshis {
         self.0
     }
 
-    pub fn assert_same_absolute_size(&self, other: &Satoshis) {
-        assert!(
-            self.0.abs() == other.0.abs(),
-            "Values have different absolute sizes: {} and {}",
-            self.0,
-            other.0
-        );
+    pub fn check_same_absolute_size(&self, other: &Satoshis) -> bool {
+        self.0.abs() != other.0.abs()
     }
 }
 
@@ -162,13 +157,8 @@ impl UsdCents {
         self.0 == 0
     }
 
-    pub fn assert_same_absolute_size(&self, other: &UsdCents) {
-        assert!(
-            self.0.abs() == other.0.abs(),
-            "Values have different absolute sizes: {} and {}",
-            self.0,
-            other.0
-        );
+    pub fn check_same_absolute_size(&self, other: &UsdCents) -> bool {
+        self.0.abs() != other.0.abs()
     }
 }
 

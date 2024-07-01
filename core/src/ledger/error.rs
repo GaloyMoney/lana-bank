@@ -18,4 +18,6 @@ pub enum LedgerError {
     CouldNotInitializeJournal,
     #[error("LedgerError - AccountNotFound")]
     AccountNotFound,
+    #[error("LedgerError - CouldNotConvertAccountBalance")]
+    CouldNotConvertAccountBalance,
 }

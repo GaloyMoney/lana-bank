@@ -2,7 +2,7 @@ use trial_balance::DebitOrCredit;
 
 use crate::primitives::{LedgerDebitOrCredit, Satoshis, UsdCents};
 
-use super::cala::graphql::*;
+use super::{cala::graphql::*, LedgerError};
 
 #[derive(Debug, Clone)]
 pub struct BtcAccountBalance {
@@ -38,16 +38,20 @@ pub struct DebitNormalBtcAccountBalance {
     pub net_debit: Satoshis,
 }
 
-impl From<BtcAccountBalance> for DebitNormalBtcAccountBalance {
-    fn from(btc_balance: BtcAccountBalance) -> Self {
-        let debit_normal_balance = btc_balance.debit - btc_balance.credit;
-        debit_normal_balance.assert_same_absolute_size(&btc_balance.net);
+impl TryFrom<BtcAccountBalance> for DebitNormalBtcAccountBalance {
+    type Error = LedgerError;
 
-        DebitNormalBtcAccountBalance {
+    fn try_from(btc_balance: BtcAccountBalance) -> Result<Self, LedgerError> {
+        let debit_normal_balance = btc_balance.debit - btc_balance.credit;
+        if !debit_normal_balance.check_same_absolute_size(&btc_balance.net) {
+            return Err(LedgerError::CouldNotConvertAccountBalance);
+        }
+
+        Ok(DebitNormalBtcAccountBalance {
             debit: btc_balance.debit,
             credit: btc_balance.credit,
             net_debit: debit_normal_balance,
-        }
+        })
     }
 }
 
@@ -85,16 +89,20 @@ pub struct DebitNormalUsdAccountBalance {
     pub net_debit: UsdCents,
 }
 
-impl From<UsdAccountBalance> for DebitNormalUsdAccountBalance {
-    fn from(btc_balance: UsdAccountBalance) -> Self {
-        let debit_normal_balance = btc_balance.debit - btc_balance.credit;
-        debit_normal_balance.assert_same_absolute_size(&btc_balance.net);
+impl TryFrom<UsdAccountBalance> for DebitNormalUsdAccountBalance {
+    type Error = LedgerError;
 
-        DebitNormalUsdAccountBalance {
-            debit: btc_balance.debit,
-            credit: btc_balance.credit,
-            net_debit: debit_normal_balance,
+    fn try_from(usd_balance: UsdAccountBalance) -> Result<Self, LedgerError> {
+        let debit_normal_balance = usd_balance.debit - usd_balance.credit;
+        if !debit_normal_balance.check_same_absolute_size(&usd_balance.net) {
+            return Err(LedgerError::CouldNotConvertAccountBalance);
         }
+
+        Ok(DebitNormalUsdAccountBalance {
+            debit: usd_balance.debit,
+            credit: usd_balance.credit,
+            net_debit: debit_normal_balance,
+        })
     }
 }
 
@@ -125,14 +133,16 @@ pub struct DebitNormalLayeredBtcAccountBalances {
     pub all_layers: DebitNormalBtcAccountBalance,
 }
 
-impl From<LayeredBtcAccountBalances> for DebitNormalLayeredBtcAccountBalances {
-    fn from(balances: LayeredBtcAccountBalances) -> Self {
-        DebitNormalLayeredBtcAccountBalances {
-            settled: balances.settled.into(),
-            pending: balances.pending.into(),
-            encumbrance: balances.encumbrance.into(),
-            all_layers: balances.all_layers.into(),
-        }
+impl TryFrom<LayeredBtcAccountBalances> for DebitNormalLayeredBtcAccountBalances {
+    type Error = LedgerError;
+
+    fn try_from(balances: LayeredBtcAccountBalances) -> Result<Self, LedgerError> {
+        Ok(DebitNormalLayeredBtcAccountBalances {
+            settled: balances.settled.try_into()?,
+            pending: balances.pending.try_into()?,
+            encumbrance: balances.encumbrance.try_into()?,
+            all_layers: balances.all_layers.try_into()?,
+        })
     }
 }
 
@@ -163,14 +173,16 @@ pub struct DebitNormalLayeredUsdAccountBalances {
     pub all_layers: DebitNormalUsdAccountBalance,
 }
 
-impl From<LayeredUsdAccountBalances> for DebitNormalLayeredUsdAccountBalances {
-    fn from(balances: LayeredUsdAccountBalances) -> Self {
-        DebitNormalLayeredUsdAccountBalances {
-            settled: balances.settled.into(),
-            pending: balances.pending.into(),
-            encumbrance: balances.encumbrance.into(),
-            all_layers: balances.all_layers.into(),
-        }
+impl TryFrom<LayeredUsdAccountBalances> for DebitNormalLayeredUsdAccountBalances {
+    type Error = LedgerError;
+
+    fn try_from(balances: LayeredUsdAccountBalances) -> Result<Self, LedgerError> {
+        Ok(DebitNormalLayeredUsdAccountBalances {
+            settled: balances.settled.try_into()?,
+            pending: balances.pending.try_into()?,
+            encumbrance: balances.encumbrance.try_into()?,
+            all_layers: balances.all_layers.try_into()?,
+        })
     }
 }
 
@@ -188,13 +200,15 @@ pub struct DebitNormalLedgerAccountBalancesByCurrency {
     pub usdt: DebitNormalLayeredUsdAccountBalances,
 }
 
-impl From<LedgerAccountBalancesByCurrency> for DebitNormalLedgerAccountBalancesByCurrency {
-    fn from(balances: LedgerAccountBalancesByCurrency) -> Self {
-        DebitNormalLedgerAccountBalancesByCurrency {
-            btc: balances.btc.into(),
-            usd: balances.usd.into(),
-            usdt: balances.usdt.into(),
-        }
+impl TryFrom<LedgerAccountBalancesByCurrency> for DebitNormalLedgerAccountBalancesByCurrency {
+    type Error = LedgerError;
+
+    fn try_from(balances: LedgerAccountBalancesByCurrency) -> Result<Self, LedgerError> {
+        Ok(DebitNormalLedgerAccountBalancesByCurrency {
+            btc: balances.btc.try_into()?,
+            usd: balances.usd.try_into()?,
+            usdt: balances.usdt.try_into()?,
+        })
     }
 }
 
@@ -245,12 +259,14 @@ pub struct DebitNormalLedgerAccountBalance {
     pub balance: DebitNormalLedgerAccountBalancesByCurrency,
 }
 
-impl From<LedgerAccountBalance> for DebitNormalLedgerAccountBalance {
-    fn from(balance: LedgerAccountBalance) -> Self {
-        DebitNormalLedgerAccountBalance {
+impl TryFrom<LedgerAccountBalance> for DebitNormalLedgerAccountBalance {
+    type Error = LedgerError;
+
+    fn try_from(balance: LedgerAccountBalance) -> Result<Self, LedgerError> {
+        Ok(DebitNormalLedgerAccountBalance {
             name: balance.name,
             normal_balance_type: balance.normal_balance_type,
-            balance: balance.balance.into(),
-        }
+            balance: balance.balance.try_into()?,
+        })
     }
 }

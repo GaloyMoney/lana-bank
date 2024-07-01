@@ -1,6 +1,6 @@
 use super::{
     account::DebitNormalLedgerAccountBalancesByCurrency,
-    account_set::DebitNormalLedgerAccountSetMemberBalance,
+    account_set::DebitNormalLedgerAccountSetMemberBalance, LedgerError,
 };
 
 #[derive(Debug, Clone)]
@@ -10,16 +10,20 @@ pub struct TrialBalance {
     pub member_balances: Vec<DebitNormalLedgerAccountSetMemberBalance>,
 }
 
-impl From<super::account_set::LedgerAccountSetAndMemberBalances> for TrialBalance {
-    fn from(account_set: super::account_set::LedgerAccountSetAndMemberBalances) -> Self {
-        TrialBalance {
+impl TryFrom<super::account_set::LedgerAccountSetAndMemberBalances> for TrialBalance {
+    type Error = LedgerError;
+
+    fn try_from(
+        account_set: super::account_set::LedgerAccountSetAndMemberBalances,
+    ) -> Result<Self, LedgerError> {
+        Ok(TrialBalance {
             name: account_set.name,
-            balance: account_set.balance.into(),
+            balance: account_set.balance.try_into()?,
             member_balances: account_set
                 .member_balances
                 .iter()
-                .map(|m| DebitNormalLedgerAccountSetMemberBalance::from(m.clone()))
-                .collect(),
-        }
+                .map(|m| DebitNormalLedgerAccountSetMemberBalance::try_from(m.clone()))
+                .collect::<Result<Vec<_>, _>>()?,
+        })
     }
 }
