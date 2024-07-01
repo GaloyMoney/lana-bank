@@ -8,13 +8,13 @@ gql`
         ...balancesByCurrency
       }
       memberBalances {
-        ... on NetDebitAccountBalance {
+        ... on AccountBalance {
           name
           balance {
             ...balancesByCurrency
           }
         }
-        ... on NetDebitAccountSetBalance {
+        ... on AccountSetBalance {
           name
           balance {
             ...balancesByCurrency
@@ -38,22 +38,22 @@ gql`
 
   fragment btcBalances on LayeredBtcAccountBalances {
     all {
-      net
+      netDebit
       debit
       credit
     }
     settled {
-      net
+      netDebit
       debit
       credit
     }
     pending {
-      net
+      netDebit
       debit
       credit
     }
     encumbrance {
-      net
+      netDebit
       debit
       credit
     }
@@ -61,22 +61,22 @@ gql`
 
   fragment usdBalances on LayeredUsdAccountBalances {
     all {
-      net
+      netDebit
       debit
       credit
     }
     settled {
-      net
+      netDebit
       debit
       credit
     }
     pending {
-      net
+      netDebit
       debit
       credit
     }
     encumbrance {
-      net
+      netDebit
       debit
       credit
     }

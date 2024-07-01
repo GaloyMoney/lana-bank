@@ -110,7 +110,7 @@ function TrialBalancePage() {
               <TableCell className="w-48">
                 <Balance
                   currency={currency}
-                  amount={memberBalance.balance[currency][layer].net}
+                  amount={memberBalance.balance[currency][layer].netDebit}
                 />
               </TableCell>
             </TableRow>
@@ -126,7 +126,7 @@ function TrialBalancePage() {
               <Balance currency={currency} amount={balance[currency][layer].credit} />
             </TableCell>
             <TableCell className="w-48">
-              <Balance currency={currency} amount={balance[currency][layer].net} />
+              <Balance currency={currency} amount={balance[currency][layer].netDebit} />
             </TableCell>
           </TableRow>
         </TableFooter>

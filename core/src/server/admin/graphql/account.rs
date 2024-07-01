@@ -6,7 +6,7 @@ use crate::server::shared_graphql::primitives::{Satoshis, UsdCents};
 struct BtcAccountBalance {
     debit: Satoshis,
     credit: Satoshis,
-    net: Satoshis,
+    net_debit: Satoshis,
 }
 
 impl From<crate::ledger::account::BtcAccountBalance> for BtcAccountBalance {
@@ -14,7 +14,7 @@ impl From<crate::ledger::account::BtcAccountBalance> for BtcAccountBalance {
         BtcAccountBalance {
             debit: balance.debit.into(),
             credit: balance.credit.into(),
-            net: balance.net.into(),
+            net_debit: balance.net.into(), // FIXME
         }
     }
 }
@@ -24,7 +24,7 @@ impl From<crate::ledger::account::DebitNormalBtcAccountBalance> for BtcAccountBa
         BtcAccountBalance {
             debit: balance.debit,
             credit: balance.credit,
-            net: balance.net_debit,
+            net_debit: balance.net_debit,
         }
     }
 }
@@ -33,7 +33,7 @@ impl From<crate::ledger::account::DebitNormalBtcAccountBalance> for BtcAccountBa
 struct UsdAccountBalance {
     debit: UsdCents,
     credit: UsdCents,
-    net: UsdCents,
+    net_debit: UsdCents,
 }
 
 impl From<crate::ledger::account::UsdAccountBalance> for UsdAccountBalance {
@@ -41,7 +41,7 @@ impl From<crate::ledger::account::UsdAccountBalance> for UsdAccountBalance {
         UsdAccountBalance {
             debit: balance.debit.into(),
             credit: balance.credit.into(),
-            net: balance.net.into(),
+            net_debit: balance.net.into(), // FIXME
         }
     }
 }
@@ -51,7 +51,7 @@ impl From<crate::ledger::account::DebitNormalUsdAccountBalance> for UsdAccountBa
         UsdAccountBalance {
             debit: balance.debit,
             credit: balance.credit,
-            net: balance.net_debit,
+            net_debit: balance.net_debit,
         }
     }
 }
@@ -140,14 +140,14 @@ impl From<crate::ledger::account::DebitNormalLedgerAccountBalancesByCurrency>
 }
 
 #[derive(SimpleObject)]
-pub struct NetDebitAccountBalance {
+pub struct AccountBalance {
     pub name: String,
     pub balance: AccountBalancesByCurrency,
 }
 
-impl From<crate::ledger::account::DebitNormalLedgerAccountBalance> for NetDebitAccountBalance {
+impl From<crate::ledger::account::DebitNormalLedgerAccountBalance> for AccountBalance {
     fn from(account_balance: crate::ledger::account::DebitNormalLedgerAccountBalance) -> Self {
-        NetDebitAccountBalance {
+        AccountBalance {
             name: account_balance.name,
             balance: account_balance.balance.into(),
         }

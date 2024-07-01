@@ -3,16 +3,14 @@ use async_graphql::*;
 use super::account::AccountBalancesByCurrency;
 
 #[derive(SimpleObject)]
-pub struct NetDebitAccountSetBalance {
+pub struct AccountSetBalance {
     name: String,
     balance: AccountBalancesByCurrency,
 }
 
-impl From<crate::ledger::account_set::DebitNormalLedgerAccountSetBalance>
-    for NetDebitAccountSetBalance
-{
+impl From<crate::ledger::account_set::DebitNormalLedgerAccountSetBalance> for AccountSetBalance {
     fn from(line_item: crate::ledger::account_set::DebitNormalLedgerAccountSetBalance) -> Self {
-        NetDebitAccountSetBalance {
+        AccountSetBalance {
             name: line_item.name,
             balance: line_item.balance.into(),
         }
@@ -20,13 +18,13 @@ impl From<crate::ledger::account_set::DebitNormalLedgerAccountSetBalance>
 }
 
 #[derive(Union)]
-enum NetDebitAccountSetMemberBalance {
-    Account(super::account::NetDebitAccountBalance),
-    AccountSet(NetDebitAccountSetBalance),
+enum AccountSetMemberBalance {
+    Account(super::account::AccountBalance),
+    AccountSet(AccountSetBalance),
 }
 
 impl From<crate::ledger::account_set::DebitNormalLedgerAccountSetMemberBalance>
-    for NetDebitAccountSetMemberBalance
+    for AccountSetMemberBalance
 {
     fn from(
         member_balance: crate::ledger::account_set::DebitNormalLedgerAccountSetMemberBalance,
@@ -34,10 +32,10 @@ impl From<crate::ledger::account_set::DebitNormalLedgerAccountSetMemberBalance>
         match member_balance {
             crate::ledger::account_set::DebitNormalLedgerAccountSetMemberBalance::LedgerAccountBalance(
                 val,
-            ) => NetDebitAccountSetMemberBalance::Account(val.into()),
+            ) => AccountSetMemberBalance::Account(val.into()),
             crate::ledger::account_set::DebitNormalLedgerAccountSetMemberBalance::LedgerAccountSetBalance(
                 val,
-            ) => NetDebitAccountSetMemberBalance::AccountSet(val.into()),
+            ) => AccountSetMemberBalance::AccountSet(val.into()),
         }
     }
 }
@@ -46,7 +44,7 @@ impl From<crate::ledger::account_set::DebitNormalLedgerAccountSetMemberBalance>
 pub struct TrialBalance {
     name: String,
     balance: AccountBalancesByCurrency,
-    member_balances: Vec<NetDebitAccountSetMemberBalance>,
+    member_balances: Vec<AccountSetMemberBalance>,
 }
 
 impl From<crate::ledger::trial_balance::TrialBalance> for TrialBalance {
@@ -57,7 +55,7 @@ impl From<crate::ledger::trial_balance::TrialBalance> for TrialBalance {
             member_balances: account_ledger
                 .member_balances
                 .iter()
-                .map(|l| NetDebitAccountSetMemberBalance::from(l.clone()))
+                .map(|l| AccountSetMemberBalance::from(l.clone()))
                 .collect(),
         }
     }
