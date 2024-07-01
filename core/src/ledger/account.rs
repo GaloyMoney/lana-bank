@@ -252,3 +252,30 @@ impl From<LedgerAccountBalance> for DebitNormalLedgerAccountBalance {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use rust_decimal::Decimal;
+
+    use super::*;
+
+    #[test]
+    fn calculate_debit_normal_balance() {
+        let debit = Satoshis::from_btc(Decimal::new(50000, 8));
+        let credit = Satoshis::from_btc(Decimal::new(1000000, 8));
+        let btc_balance = BtcAccountBalance {
+            debit,
+            credit,
+            net: Satoshis::from_btc(Decimal::new(950000, 8)),
+        };
+        let expected_debit_normal_balance = DebitNormalBtcAccountBalance {
+            debit,
+            credit,
+            net_debit: Satoshis::from_btc(Decimal::new(-950000, 8)),
+        };
+
+        let debit_normal_balance: DebitNormalBtcAccountBalance = btc_balance.into();
+
+        assert_eq!(debit_normal_balance, expected_debit_normal_balance);
+    }
+}
