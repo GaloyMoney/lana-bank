@@ -37,18 +37,20 @@ impl From<crate::ledger::account_set::LedgerAccountSetMemberBalance> for Account
 }
 
 #[derive(SimpleObject)]
-pub struct TrialBalance {
+pub struct AccountSetAndMemberBalances {
     name: String,
     balance: AccountBalancesByCurrency,
     member_balances: Vec<AccountSetMemberBalance>,
 }
 
-impl From<crate::ledger::trial_balance::TrialBalance> for TrialBalance {
-    fn from(account_ledger: crate::ledger::trial_balance::TrialBalance) -> Self {
-        TrialBalance {
-            name: account_ledger.name,
-            balance: account_ledger.balance.into(),
-            member_balances: account_ledger
+impl From<crate::ledger::account_set::LedgerAccountSetAndMemberBalances>
+    for AccountSetAndMemberBalances
+{
+    fn from(trial_balance: crate::ledger::account_set::LedgerAccountSetAndMemberBalances) -> Self {
+        AccountSetAndMemberBalances {
+            name: trial_balance.name,
+            balance: trial_balance.balance.into(),
+            member_balances: trial_balance
                 .member_balances
                 .iter()
                 .map(|l| AccountSetMemberBalance::from(l.clone()))

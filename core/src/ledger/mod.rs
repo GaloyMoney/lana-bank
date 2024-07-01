@@ -8,12 +8,10 @@ pub mod error;
 pub mod fixed_term_loan;
 pub mod loan;
 pub mod primitives;
-pub mod trial_balance;
 mod tx_template;
 pub mod user;
 
 use tracing::instrument;
-use trial_balance::TrialBalance;
 
 use crate::primitives::{
     BfxWithdrawalMethod, FixedTermLoanId, LedgerAccountId, LedgerTxId, LedgerTxTemplateId, LoanId,
@@ -258,11 +256,13 @@ impl Ledger {
         Ok(())
     }
 
-    pub async fn account_trial_balance_summary(&self) -> Result<Option<TrialBalance>, LedgerError> {
+    pub async fn account_trial_balance_summary(
+        &self,
+    ) -> Result<Option<LedgerAccountSetAndMemberBalances>, LedgerError> {
         self.cala
             .trial_balance::<LedgerAccountSetAndMemberBalances>()
             .await
-            .map(|gl| gl.map(TrialBalance::from))
+            .map(|gl| gl.map(LedgerAccountSetAndMemberBalances::from))
             .map_err(|e| e.into())
     }
 
