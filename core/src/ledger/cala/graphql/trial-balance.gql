@@ -54,6 +54,9 @@ fragment balancesByLayer on Balance {
   encumbrance {
     ...balances
   }
+  allLayersAvailable: available(layer: ENCUMBRANCE) {
+    ...balances
+  }
 }
 
 fragment balances on BalanceAmount {

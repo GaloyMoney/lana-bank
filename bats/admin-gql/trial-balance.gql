@@ -34,6 +34,11 @@ fragment balancesByCurrency on AccountBalancesByCurrency {
 }
 
 fragment btcBalances on LayeredBtcAccountBalances {
+  all {
+    net
+    debit
+    credit
+  }
   settled {
     net
     debit
@@ -52,6 +57,11 @@ fragment btcBalances on LayeredBtcAccountBalances {
 }
 
 fragment usdBalances on LayeredUsdAccountBalances {
+  all {
+    net
+    debit
+    credit
+  }
   settled {
     net
     debit

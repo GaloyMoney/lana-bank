@@ -94,6 +94,7 @@ export type InterestIncome = {
 
 export type LayeredBtcAccountBalances = {
   __typename?: 'LayeredBtcAccountBalances';
+  all: BtcAccountBalance;
   encumbrance: BtcAccountBalance;
   pending: BtcAccountBalance;
   settled: BtcAccountBalance;
@@ -101,6 +102,7 @@ export type LayeredBtcAccountBalances = {
 
 export type LayeredUsdAccountBalances = {
   __typename?: 'LayeredUsdAccountBalances';
+  all: UsdAccountBalance;
   encumbrance: UsdAccountBalance;
   pending: UsdAccountBalance;
   settled: UsdAccountBalance;

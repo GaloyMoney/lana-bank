@@ -61,6 +61,7 @@ pub struct LayeredBtcAccountBalances {
     pub settled: BtcAccountBalance,
     pub pending: BtcAccountBalance,
     pub encumbrance: BtcAccountBalance,
+    pub all_layers: BtcAccountBalance,
 }
 
 impl From<trial_balance::TrialBalanceAccountSetBtcBalances> for LayeredBtcAccountBalances {
@@ -69,6 +70,7 @@ impl From<trial_balance::TrialBalanceAccountSetBtcBalances> for LayeredBtcAccoun
             settled: BtcAccountBalance::from(btc_balances_by_layer.settled),
             pending: BtcAccountBalance::from(btc_balances_by_layer.pending),
             encumbrance: BtcAccountBalance::from(btc_balances_by_layer.encumbrance),
+            all_layers: BtcAccountBalance::from(btc_balances_by_layer.all_layers_available),
         }
     }
 }
@@ -78,6 +80,7 @@ pub struct LayeredUsdAccountBalances {
     pub settled: UsdAccountBalance,
     pub pending: UsdAccountBalance,
     pub encumbrance: UsdAccountBalance,
+    pub all_layers: UsdAccountBalance,
 }
 
 impl From<trial_balance::TrialBalanceAccountSetUsdBalances> for LayeredUsdAccountBalances {
@@ -86,6 +89,7 @@ impl From<trial_balance::TrialBalanceAccountSetUsdBalances> for LayeredUsdAccoun
             settled: UsdAccountBalance::from(usd_balances_by_layer.settled),
             pending: UsdAccountBalance::from(usd_balances_by_layer.pending),
             encumbrance: UsdAccountBalance::from(usd_balances_by_layer.encumbrance),
+            all_layers: UsdAccountBalance::from(usd_balances_by_layer.all_layers_available),
         }
     }
 }

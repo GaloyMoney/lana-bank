@@ -62,12 +62,14 @@ type InterestIncome {
 }
 
 type LayeredBtcAccountBalances {
+	all: BtcAccountBalance!
 	settled: BtcAccountBalance!
 	pending: BtcAccountBalance!
 	encumbrance: BtcAccountBalance!
 }
 
 type LayeredUsdAccountBalances {
+	all: UsdAccountBalance!
 	settled: UsdAccountBalance!
 	pending: UsdAccountBalance!
 	encumbrance: UsdAccountBalance!
