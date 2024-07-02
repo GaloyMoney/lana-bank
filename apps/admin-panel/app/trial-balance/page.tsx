@@ -15,16 +15,20 @@ import {
   TableRow,
 } from "@/components/primitive/table"
 
-type Currency = "btc" | "usd" | "usdt"
+import Balance, { Currency } from "@/components/balance/balance"
+
 type Layers = "all" | "settled" | "pending" | "encumbrance"
 
 function TrialBalancePage() {
   const [currency, setCurrency] = React.useState<Currency>("btc")
   const [layer, setLayer] = React.useState<Layers>("all")
 
-  const { data } = useGetTrialBalanceQuery()
+  const { data, loading } = useGetTrialBalanceQuery()
+
   const balance = data?.trialBalance?.balance
   const memberBalances = data?.trialBalance?.memberBalances
+
+  if (loading || !balance) return <div>Loading...</div>
 
   return (
     <main>
@@ -83,34 +87,49 @@ function TrialBalancePage() {
       <Table className="mt-4">
         <TableHeader>
           <TableHead>Member</TableHead>
-          <TableHead>Debit</TableHead>
-          <TableHead>Credit</TableHead>
-          <TableHead>Net</TableHead>
+          <TableHead className="text-right">Debit</TableHead>
+          <TableHead className="text-right">Credit</TableHead>
+          <TableHead className="text-right">Net</TableHead>
         </TableHeader>
         <TableBody>
           {memberBalances?.map((memberBalance, index) => (
             <TableRow key={index}>
               <TableCell>{memberBalance.name}</TableCell>
               <TableCell className="w-48">
-                {memberBalance.balance[currency][layer].debit}
+                <Balance
+                  currency={currency}
+                  amount={memberBalance.balance[currency][layer].debit}
+                />
               </TableCell>
               <TableCell className="w-48">
-                {memberBalance.balance[currency][layer].credit}
+                <Balance
+                  currency={currency}
+                  amount={memberBalance.balance[currency][layer].credit}
+                />
               </TableCell>
               <TableCell className="w-48">
-                {memberBalance.balance[currency][layer].net}
+                <Balance
+                  currency={currency}
+                  amount={memberBalance.balance[currency][layer].net}
+                />
               </TableCell>
             </TableRow>
           ))}
         </TableBody>
-        <TableFooter>
+        <TableFooter className="border-t-4">
           <TableRow>
             <TableCell className="text-right uppercase font-bold pr-10">
-              Balance
+              Total Balance
             </TableCell>
-            <TableCell className="w-48">{balance![currency][layer].debit}</TableCell>
-            <TableCell className="w-48">{balance![currency][layer].credit}</TableCell>
-            <TableCell className="w-48">{balance![currency][layer].net}</TableCell>
+            <TableCell className="w-48">
+              <Balance currency={currency} amount={balance[currency][layer].debit} />
+            </TableCell>
+            <TableCell className="w-48">
+              <Balance currency={currency} amount={balance[currency][layer].credit} />
+            </TableCell>
+            <TableCell className="w-48">
+              <Balance currency={currency} amount={balance[currency][layer].net} />
+            </TableCell>
           </TableRow>
         </TableFooter>
       </Table>
