@@ -3,62 +3,54 @@ import React from "react"
 
 import { PageHeading } from "@/components/page-heading"
 import { useGetTrialBalanceQuery } from "@/lib/graphql/generated"
-import { Checkbox } from "@/components/primitive/check-box"
 import { RadioGroup, RadioGroupItem } from "@/components/primitive/radio-group"
 import { Label } from "@/components/primitive/label"
 import {
   Table,
   TableBody,
   TableCell,
+  TableFooter,
   TableHead,
   TableHeader,
   TableRow,
 } from "@/components/primitive/table"
 
+type Currency = "btc" | "usd" | "usdt"
 type Layers = "all" | "settled" | "pending" | "encumbrance"
 
 function TrialBalancePage() {
-  const [showBtc, setShowBtc] = React.useState(true)
-  const [showUsd, setShowUsd] = React.useState(true)
-  const [showUsdt, setShowUsdt] = React.useState(true)
-
+  const [currency, setCurrency] = React.useState<Currency>("btc")
   const [layer, setLayer] = React.useState<Layers>("all")
 
   const { data } = useGetTrialBalanceQuery()
   const balance = data?.trialBalance?.balance
+  const memberBalances = data?.trialBalance?.memberBalances
 
   return (
     <main>
       <PageHeading>Trial Balance</PageHeading>
       <div>
-        <div className="flex items-center">
+        <div className="flex items-center mt-2">
           <div className="w-28">Currency:</div>
-          <div className="flex items-center space-x-4">
+          <RadioGroup
+            className="flex items-center space-x-4"
+            defaultValue={"btc"}
+            value={currency}
+            onValueChange={(v: Currency) => setCurrency(v)}
+          >
             <div className="flex items-center space-x-2">
-              <Checkbox
-                id="btc"
-                checked={showBtc}
-                onCheckedChange={(v: boolean) => setShowBtc(v)}
-              />
-              <Label htmlFor="btc">BTC</Label>
+              <RadioGroupItem value="btc" id="currency-btc" />
+              <Label htmlFor="currency-btc">BTC</Label>
             </div>
             <div className="flex items-center space-x-2">
-              <Checkbox
-                id="usd"
-                checked={showUsd}
-                onCheckedChange={(v: boolean) => setShowUsd(v)}
-              />
-              <Label htmlFor="usd">USD</Label>
+              <RadioGroupItem value="usd" id="currency-usd" />
+              <Label htmlFor="currency-usd">USD</Label>
             </div>
             <div className="flex items-center space-x-2">
-              <Checkbox
-                id="usdt"
-                checked={showUsdt}
-                onCheckedChange={(v: boolean) => setShowUsdt(v)}
-              />
-              <Label htmlFor="usdt">USDT</Label>
+              <RadioGroupItem value="usdt" id="currency-usdt" />
+              <Label htmlFor="currency-usdt">USDT</Label>
             </div>
-          </div>
+          </RadioGroup>
         </div>
         <div className="flex items-center mt-2">
           <div className="w-28">Layer:</div>
@@ -87,39 +79,40 @@ function TrialBalancePage() {
           </RadioGroup>
         </div>
       </div>
-      <Table className="mt-4 max-w-2xl">
+
+      <Table className="mt-4">
         <TableHeader>
-          <TableHead>BALANCES</TableHead>
-          <TableHead>Credit</TableHead>
+          <TableHead>Member</TableHead>
           <TableHead>Debit</TableHead>
+          <TableHead>Credit</TableHead>
           <TableHead>Net</TableHead>
         </TableHeader>
         <TableBody>
-          {showBtc && (
-            <TableRow>
-              <TableCell>BTC</TableCell>
-              <TableCell className="max-w-10">{balance?.btc[layer].credit}</TableCell>
-              <TableCell className="max-w-10">{balance?.btc[layer].debit}</TableCell>
-              <TableCell className="max-w-10">{balance?.btc[layer].net}</TableCell>
+          {memberBalances?.map((memberBalance, index) => (
+            <TableRow key={index}>
+              <TableCell>{memberBalance.name}</TableCell>
+              <TableCell className="w-48">
+                {memberBalance.balance[currency][layer].debit}
+              </TableCell>
+              <TableCell className="w-48">
+                {memberBalance.balance[currency][layer].credit}
+              </TableCell>
+              <TableCell className="w-48">
+                {memberBalance.balance[currency][layer].net}
+              </TableCell>
             </TableRow>
-          )}
-          {showUsd && (
-            <TableRow>
-              <TableCell>USD</TableCell>
-              <TableCell className="max-w-10">{balance?.usd[layer].credit}</TableCell>
-              <TableCell className="max-w-10">{balance?.usd[layer].debit}</TableCell>
-              <TableCell className="max-w-10">{balance?.usd[layer].net}</TableCell>
-            </TableRow>
-          )}
-          {showUsdt && (
-            <TableRow>
-              <TableCell>USDT</TableCell>
-              <TableCell className="max-w-10">{balance?.usdt[layer].credit}</TableCell>
-              <TableCell className="max-w-10">{balance?.usdt[layer].debit}</TableCell>
-              <TableCell className="max-w-10">{balance?.usdt[layer].net}</TableCell>
-            </TableRow>
-          )}
+          ))}
         </TableBody>
+        <TableFooter>
+          <TableRow>
+            <TableCell className="text-right uppercase font-bold pr-10">
+              Balance
+            </TableCell>
+            <TableCell className="w-48">{balance![currency][layer].debit}</TableCell>
+            <TableCell className="w-48">{balance![currency][layer].credit}</TableCell>
+            <TableCell className="w-48">{balance![currency][layer].net}</TableCell>
+          </TableRow>
+        </TableFooter>
       </Table>
     </main>
   )
