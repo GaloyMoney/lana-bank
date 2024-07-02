@@ -37,6 +37,11 @@ gql`
   }
 
   fragment btcBalances on LayeredBtcAccountBalances {
+    all {
+      net
+      debit
+      credit
+    }
     settled {
       net
       debit
@@ -55,6 +60,11 @@ gql`
   }
 
   fragment usdBalances on LayeredUsdAccountBalances {
+    all {
+      net
+      debit
+      credit
+    }
     settled {
       net
       debit
