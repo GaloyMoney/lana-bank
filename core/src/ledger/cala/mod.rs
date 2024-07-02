@@ -125,11 +125,13 @@ impl CalaClient {
             ),
             on_balance_sheet_account_code: format!("USERS.CHECKING.{}", user_id),
             on_balance_sheet_account_name: format!("User Checking Account for {}", user_id),
+            user_checking_control_account_set_id:
+                super::constants::USER_CHECKING_CONTROL_ACCOUNT_SET_ID,
             tron_account_id: Uuid::new_v4(),
             tron_account_code: format!("ASSETS.TRON.{}", user_id),
             tron_account_name: format!("Bank USDT Deposit Account for {}", user_id),
-            user_deposit_account_set_id:
-                super::constants::ON_BALANCE_SHEET_USER_DEPOSITS_ACCOUNT_SET_ID,
+            user_checking_account_set_id:
+                super::constants::ON_BALANCE_SHEET_USER_CHECKING_ACCOUNT_SET_ID,
             user_deposit_control_account_set_id:
                 super::constants::USER_DEPOSITS_CONTROL_ACCOUNT_SET_ID,
             off_balance_sheet_account_id: Uuid::from(

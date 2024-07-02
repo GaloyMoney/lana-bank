@@ -13,15 +13,16 @@ resource "cala_account_set_member_account_set" "shareholder_equity" {
   member_account_set_id = cala_account_set.shareholder_equity.id
 }
 
-resource "cala_account_set" "user_deposits" {
-  id         = "00000000-0000-0000-0000-300000000001"
-  journal_id = cala_journal.journal.id
-  name       = "User Deposits"
+resource "cala_account_set" "user_checking" {
+  id                  = "00000000-0000-0000-0000-500000000002"
+  journal_id          = cala_journal.journal.id
+  name                = "User Checking"
+  normal_balance_type = "CREDIT"
 }
 
-resource "cala_account_set_member_account_set" "user_deposits_member" {
-  account_set_id        = cala_balance_sheet.lava.schedule3_account_set_id
-  member_account_set_id = cala_account_set.user_deposits.id
+resource "cala_account_set_member_account_set" "user_checking_member" {
+  account_set_id        = cala_balance_sheet.lava.schedule5_account_set_id
+  member_account_set_id = cala_account_set.user_checking.id
 }
 
 resource "cala_account_set" "off_balance_sheet_user_deposits" {
@@ -31,7 +32,7 @@ resource "cala_account_set" "off_balance_sheet_user_deposits" {
 }
 
 resource "cala_account_set_member_account" "bfx_deposits" {
-  account_set_id        = cala_balance_sheet.lava.schedule7_account_set_id
+  account_set_id    = cala_balance_sheet.lava.schedule7_account_set_id
   member_account_id = cala_bitfinex_integration.bank_deposit.omnibus_account_id
 }
 

@@ -2,11 +2,12 @@ mutation CreateUserAccounts(
   $onBalanceSheetAccountId: UUID!
   $onBalanceSheetAccountCode: String!
   $onBalanceSheetAccountName: String!
-  $userDepositAccountSetId: UUID!
-  $userDepositControlAccountSetId: UUID!
+  $userCheckingAccountSetId: UUID!
+  $userCheckingControlAccountSetId: UUID!
   $tronAccountId: UUID!
   $tronAccountCode: String!
   $tronAccountName: String!
+  $userDepositControlAccountSetId: UUID!
   $offBalanceSheetAccountId: UUID!
   $offBalanceSheetAccountCode: String!
   $offBalanceSheetAccountName: String!
@@ -19,7 +20,10 @@ mutation CreateUserAccounts(
       accountId: $onBalanceSheetAccountId
       code: $onBalanceSheetAccountCode
       name: $onBalanceSheetAccountName
-      accountSetIds: [$userDepositAccountSetId, $userDepositControlAccountSetId]
+      accountSetIds: [
+        $userCheckingAccountSetId
+        $userCheckingControlAccountSetId
+      ]
     }
   ) {
     account {
@@ -35,6 +39,7 @@ mutation CreateUserAccounts(
         type: "TRX"
         name: $tronAccountName
         depositCreditAccountId: $onBalanceSheetAccountId
+        accountSetIds: [$userDepositControlAccountSetId]
       }
     ) {
       account {
