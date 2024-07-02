@@ -30,9 +30,15 @@ type BalanceProps = {
   currency: Currency
 }
 const Balance: React.FC<BalanceProps> = ({ amount, currency }) => {
+  const isNegative = amount < 0
+  const formattedAmount = formatAmount(Math.abs(amount), currency)
+  const formattedAmountWithSymbol = isNegative
+    ? `(${formattedAmount})`
+    : `${formattedAmount}`
+
   return (
     <div className="flex justify-end space-x-1">
-      <div className="font-mono">{formatAmount(amount, currency)}</div>
+      <div className="font-mono">{formattedAmountWithSymbol}</div>
     </div>
   )
 }
