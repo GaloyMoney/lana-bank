@@ -132,8 +132,6 @@ impl CalaClient {
             tron_account_name: format!("Bank USDT Deposit Account for {}", user_id),
             user_checking_account_set_id:
                 super::constants::ON_BALANCE_SHEET_USER_CHECKING_ACCOUNT_SET_ID,
-            user_deposit_control_account_set_id:
-                super::constants::USER_DEPOSITS_CONTROL_ACCOUNT_SET_ID,
             off_balance_sheet_account_id: Uuid::from(
                 user_account_ids.off_balance_sheet_deposit_account_id,
             ),

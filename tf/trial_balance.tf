@@ -17,6 +17,11 @@ resource "cala_account_set_member_account_set" "gl_user_deposits" {
   account_set_id        = cala_account_set.trial_balance.id
   member_account_set_id = cala_account_set.user_deposits_control.id
 }
+resource "cala_account_set_member_account" "gl_bank_deposits" {
+  account_set_id    = cala_account_set.user_deposits_control.id
+  member_account_id = cala_bitfinex_integration.bank_deposit.omnibus_account_id
+}
+
 
 resource "cala_account_set" "user_checking_control" {
   id                  = "00000000-0000-0000-0000-110000000002"

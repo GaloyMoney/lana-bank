@@ -7,7 +7,6 @@ mutation CreateUserAccounts(
   $tronAccountId: UUID!
   $tronAccountCode: String!
   $tronAccountName: String!
-  $userDepositControlAccountSetId: UUID!
   $offBalanceSheetAccountId: UUID!
   $offBalanceSheetAccountCode: String!
   $offBalanceSheetAccountName: String!
@@ -39,7 +38,6 @@ mutation CreateUserAccounts(
         type: "TRX"
         name: $tronAccountName
         depositCreditAccountId: $onBalanceSheetAccountId
-        accountSetIds: [$userDepositControlAccountSetId]
       }
     ) {
       account {
