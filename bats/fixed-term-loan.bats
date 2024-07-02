@@ -72,7 +72,7 @@ wait_for_interest() {
   principal_balance=$(graphql_output '.data.fixedTermLoanApprove.loan.balance.outstanding.usdBalance')
   [[ "$principal_balance" == "25000000" ]] || exit 1;
 
-  assert_assets_liabilities_equity
+  assert_accounts_balanced
 
   exec_graphql 'alice' 'me'
   usd_balance=$(graphql_output '.data.me.balance.checking.settled.usdBalance')
@@ -84,7 +84,7 @@ wait_for_interest() {
   interest_balance=$(read_value 'interest_incurred')
   [[ "$interest_balance" == "2" ]] || exit 1
 
-  assert_assets_liabilities_equity
+  assert_accounts_balanced
 
   outstanding_before=$(read_value 'outstanding')
   variables=$(
@@ -127,7 +127,7 @@ wait_for_interest() {
   outstanding=$(graphql_output '.data.fixedTermLoanRecordPayment.loan.balance.outstanding.usdBalance')
   [[ "$outstanding" == "0" ]] || exit 1
 
-  assert_assets_liabilities_equity
+  assert_accounts_balanced
 
   variables=$(
     jq -n \

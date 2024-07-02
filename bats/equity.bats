@@ -28,7 +28,7 @@ teardown_file() {
   )
   exec_admin_graphql 'add-shareholder-equity' "$variables"
 
-  assert_assets_liabilities_equity
+  assert_accounts_balanced
 
   exec_cala_graphql 'assets-liabilities-equity'
   assets_usd=$(graphql_output '.data.balanceSheet.byJournalId.assets.usdBalance.settled.normalBalance.units')

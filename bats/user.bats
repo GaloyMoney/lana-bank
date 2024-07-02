@@ -56,7 +56,7 @@ teardown_file() {
   usd_balance=$(graphql_output '.data.me.balance.checking.settled.usdBalance')
   [[ "$usd_balance" == 1000000 ]] || exit 1
 
-  assert_assets_liabilities_equity
+  assert_accounts_balanced
 
   btc_address=$(read_value 'user.btc')
 
@@ -75,7 +75,7 @@ teardown_file() {
   btc_balance=$(graphql_output '.data.me.balance.unallocatedCollateral.settled.btcBalance')
   [[ "$btc_balance" == 100000000 ]] || exit 1
 
-  assert_assets_liabilities_equity
+  assert_accounts_balanced
 }
 
 @test "user: can withdraw" {
@@ -99,7 +99,7 @@ teardown_file() {
   checking_balance=$(graphql_output '.data.me.balance.checking.settled.usdBalance')
   [[ "$checking_balance" == 850000 ]] || exit 1
 
-  assert_assets_liabilities_equity
+  assert_accounts_balanced
 }
 
 @test "user: verify level 2" {

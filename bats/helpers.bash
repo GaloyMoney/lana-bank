@@ -284,3 +284,21 @@ assert_assets_liabilities_equity() {
 
   [[ "$assets" == "$liabilities_and_equity" ]] || exit 1
 }
+
+assert_trial_balance() {
+  exec_admin_graphql 'trial-balance'
+
+  all_btc=$(graphql_output '.data.trialBalance.balance.btc.all.netDebit')
+  [[ "$all_btc" == "0" ]] || exit 1
+
+  all_usd=$(graphql_output '.data.trialBalance.balance.usd.all.netDebit')
+  [[ "$all_usd" == "0" ]] || exit 1
+
+  all_usdt=$(graphql_output '.data.trialBalance.balance.usdt.all.netDebit')
+  [[ "$all_usdt" == "0" ]] || exit 1
+}
+
+assert_accounts_balanced() {
+  assert_assets_liabilities_equity
+  assert_trial_balance
+}
