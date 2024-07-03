@@ -1,6 +1,4 @@
-use crate::primitives::{
-    LedgerAccountId, LedgerAccountSetId, LedgerAccountSetMemberType, LedgerDebitOrCredit,
-};
+use crate::primitives::{LedgerAccountSetId, LedgerAccountSetMemberType, LedgerDebitOrCredit};
 
 use super::{account::*, cala::graphql::*};
 
@@ -102,29 +100,6 @@ impl From<LedgerAccountSetMemberType> for add_to_account_set::AccountSetMemberTy
         match member_type {
             LedgerAccountSetMemberType::Account => Self::ACCOUNT,
             LedgerAccountSetMemberType::AccountSet => Self::ACCOUNT_SET,
-        }
-    }
-}
-
-#[derive(Debug, Clone)]
-pub struct LedgerChartOfAccountsAccount {
-    pub id: LedgerAccountId,
-    pub code: String,
-    pub name: String,
-    pub normal_balance_type: LedgerDebitOrCredit,
-}
-
-impl From<chart_of_accounts::ChartOfAccountsAccountSetCategoriesEdgesNodeOnAccount>
-    for LedgerChartOfAccountsAccount
-{
-    fn from(
-        account: chart_of_accounts::ChartOfAccountsAccountSetCategoriesEdgesNodeOnAccount,
-    ) -> Self {
-        LedgerChartOfAccountsAccount {
-            id: account.account_id.into(),
-            code: account.code,
-            name: account.name,
-            normal_balance_type: account.normal_balance_type.into(),
         }
     }
 }

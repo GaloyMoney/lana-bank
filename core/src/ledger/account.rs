@@ -1,4 +1,6 @@
-use crate::primitives::{LedgerDebitOrCredit, Satoshis, SignedSatoshis, SignedUsdCents, UsdCents};
+use crate::primitives::{
+    LedgerAccountId, LedgerDebitOrCredit, Satoshis, SignedSatoshis, SignedUsdCents, UsdCents,
+};
 
 use super::cala::graphql::*;
 
@@ -165,6 +167,29 @@ impl From<trial_balance::TrialBalanceAccountSetMembersEdgesNodeOnAccount> for Le
                     LayeredUsdAccountBalances::from,
                 ),
             },
+        }
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct LedgerChartOfAccountsAccount {
+    pub id: LedgerAccountId,
+    pub code: String,
+    pub name: String,
+    pub normal_balance_type: LedgerDebitOrCredit,
+}
+
+impl From<chart_of_accounts::ChartOfAccountsAccountSetCategoriesEdgesNodeOnAccount>
+    for LedgerChartOfAccountsAccount
+{
+    fn from(
+        account: chart_of_accounts::ChartOfAccountsAccountSetCategoriesEdgesNodeOnAccount,
+    ) -> Self {
+        LedgerChartOfAccountsAccount {
+            id: account.account_id.into(),
+            code: account.code,
+            name: account.name,
+            normal_balance_type: account.normal_balance_type.into(),
         }
     }
 }
