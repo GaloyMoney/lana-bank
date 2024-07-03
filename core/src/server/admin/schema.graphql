@@ -11,6 +11,7 @@ type AccountBalancesByCurrency {
 
 type AccountDetails {
 	name: String!
+	id: UUID!
 }
 
 union AccountMemberDetails = AccountDetails | AccountSetDetails
@@ -27,12 +28,8 @@ type AccountSetBalance {
 }
 
 type AccountSetDetails {
+	id: UUID!
 	name: String!
-}
-
-type AccountSetDetailsAndAccounts {
-	name: String!
-	accounts: [AccountMemberDetails!]!
 }
 
 union AccountSetMemberBalance = AccountBalance | AccountSetBalance
@@ -58,7 +55,11 @@ type ChartOfAccounts {
 	categories: [ChartOfAccountsCategory!]!
 }
 
-union ChartOfAccountsCategory = AccountDetails | AccountSetDetailsAndAccounts
+type ChartOfAccountsCategory {
+	id: UUID!
+	name: String!
+	accounts: [AccountMemberDetails!]!
+}
 
 type Checking {
 	settled: UsdBalance!
