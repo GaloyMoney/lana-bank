@@ -1,0 +1,43 @@
+query ChartOfAccountsGroup($accountSetId: UUID!) {
+  accountSet(id: $accountSetId) {
+    accountSetId
+    name
+    normalBalanceType
+    members(first: 100) {
+      edges {
+        node {
+          __typename
+          ... on AccountSet {
+            accountSetId
+            name
+            normalBalanceType
+            members(first: 100) {
+              edges {
+                node {
+                  __typename
+                  ... on AccountSet {
+                    accountSetId
+                    name
+                    normalBalanceType
+                  }
+                  ... on Account {
+                    accountId
+                    code
+                    name
+                    normalBalanceType
+                  }
+                }
+              }
+            }
+          }
+          ... on Account {
+            accountId
+            code
+            name
+            normalBalanceType
+          }
+        }
+      }
+    }
+  }
+}
