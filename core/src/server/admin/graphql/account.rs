@@ -107,3 +107,16 @@ impl From<crate::ledger::account::LedgerAccountBalance> for AccountBalance {
         }
     }
 }
+
+#[derive(SimpleObject)]
+pub struct AccountDetails {
+    pub name: String,
+}
+
+impl From<crate::ledger::account::LedgerChartOfAccountsAccount> for AccountDetails {
+    fn from(account_set: crate::ledger::account::LedgerChartOfAccountsAccount) -> Self {
+        AccountDetails {
+            name: account_set.name,
+        }
+    }
+}

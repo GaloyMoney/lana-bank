@@ -9,6 +9,12 @@ type AccountBalancesByCurrency {
 	usdt: LayeredUsdAccountBalances!
 }
 
+type AccountDetails {
+	name: String!
+}
+
+union AccountMemberDetails = AccountDetails | AccountSetDetails
+
 type AccountSetAndMemberBalances {
 	name: String!
 	balance: AccountBalancesByCurrency!
@@ -18,6 +24,15 @@ type AccountSetAndMemberBalances {
 type AccountSetBalance {
 	name: String!
 	balance: AccountBalancesByCurrency!
+}
+
+type AccountSetDetails {
+	name: String!
+}
+
+type AccountSetDetailsAndAccounts {
+	name: String!
+	accounts: [AccountMemberDetails!]!
 }
 
 union AccountSetMemberBalance = AccountBalance | AccountSetBalance
@@ -37,6 +52,13 @@ type BtcAccountBalance {
 type BtcBalance {
 	btcBalance: Satoshis!
 }
+
+type ChartOfAccounts {
+	name: String!
+	categories: [ChartOfAccountsCategory!]!
+}
+
+union ChartOfAccountsCategory = AccountDetails | AccountSetDetailsAndAccounts
 
 type Checking {
 	settled: UsdBalance!
@@ -174,6 +196,7 @@ type Query {
 	user(id: UUID!): User
 	users(first: Int!, after: String): UserConnection!
 	trialBalance: AccountSetAndMemberBalances
+	chartOfAccounts: ChartOfAccounts
 }
 
 scalar Satoshis

@@ -40,6 +40,13 @@ export type AccountBalancesByCurrency = {
   usdt: LayeredUsdAccountBalances;
 };
 
+export type AccountDetails = {
+  __typename?: 'AccountDetails';
+  name: Scalars['String']['output'];
+};
+
+export type AccountMemberDetails = AccountDetails | AccountSetDetails;
+
 export type AccountSetAndMemberBalances = {
   __typename?: 'AccountSetAndMemberBalances';
   balance: AccountBalancesByCurrency;
@@ -50,6 +57,17 @@ export type AccountSetAndMemberBalances = {
 export type AccountSetBalance = {
   __typename?: 'AccountSetBalance';
   balance: AccountBalancesByCurrency;
+  name: Scalars['String']['output'];
+};
+
+export type AccountSetDetails = {
+  __typename?: 'AccountSetDetails';
+  name: Scalars['String']['output'];
+};
+
+export type AccountSetDetailsAndAccounts = {
+  __typename?: 'AccountSetDetailsAndAccounts';
+  accounts: Array<AccountMemberDetails>;
   name: Scalars['String']['output'];
 };
 
@@ -71,6 +89,14 @@ export type BtcBalance = {
   __typename?: 'BtcBalance';
   btcBalance: Scalars['Satoshis']['output'];
 };
+
+export type ChartOfAccounts = {
+  __typename?: 'ChartOfAccounts';
+  categories: Array<ChartOfAccountsCategory>;
+  name: Scalars['String']['output'];
+};
+
+export type ChartOfAccountsCategory = AccountDetails | AccountSetDetailsAndAccounts;
 
 export type Checking = {
   __typename?: 'Checking';
@@ -222,6 +248,7 @@ export enum Period {
 
 export type Query = {
   __typename?: 'Query';
+  chartOfAccounts?: Maybe<ChartOfAccounts>;
   loan?: Maybe<FixedTermLoan>;
   trialBalance?: Maybe<AccountSetAndMemberBalances>;
   user?: Maybe<User>;
