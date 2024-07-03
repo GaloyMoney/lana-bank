@@ -1,5 +1,3 @@
-use trial_balance::DebitOrCredit;
-
 use crate::primitives::{LedgerDebitOrCredit, Satoshis, SignedSatoshis, SignedUsdCents, UsdCents};
 
 use super::cala::graphql::*;
@@ -121,12 +119,22 @@ pub struct LedgerAccountBalancesByCurrency {
     pub usdt: LayeredUsdAccountBalances,
 }
 
-impl From<DebitOrCredit> for LedgerDebitOrCredit {
-    fn from(debit_or_credit: DebitOrCredit) -> Self {
+impl From<trial_balance::DebitOrCredit> for LedgerDebitOrCredit {
+    fn from(debit_or_credit: trial_balance::DebitOrCredit) -> Self {
         match debit_or_credit {
-            DebitOrCredit::DEBIT => LedgerDebitOrCredit::Debit,
-            DebitOrCredit::CREDIT => LedgerDebitOrCredit::Credit,
-            DebitOrCredit::Other(_) => todo!(),
+            trial_balance::DebitOrCredit::DEBIT => LedgerDebitOrCredit::Debit,
+            trial_balance::DebitOrCredit::CREDIT => LedgerDebitOrCredit::Credit,
+            trial_balance::DebitOrCredit::Other(_) => todo!(),
+        }
+    }
+}
+
+impl From<chart_of_accounts_group::DebitOrCredit> for LedgerDebitOrCredit {
+    fn from(debit_or_credit: chart_of_accounts_group::DebitOrCredit) -> Self {
+        match debit_or_credit {
+            chart_of_accounts_group::DebitOrCredit::DEBIT => LedgerDebitOrCredit::Debit,
+            chart_of_accounts_group::DebitOrCredit::CREDIT => LedgerDebitOrCredit::Credit,
+            chart_of_accounts_group::DebitOrCredit::Other(_) => todo!(),
         }
     }
 }
