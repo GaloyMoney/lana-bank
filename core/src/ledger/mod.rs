@@ -17,7 +17,7 @@ use crate::primitives::{
     UsdCents, UserId, WithdrawId,
 };
 
-use account_set::{LedgerAccountSetAndMemberBalances, LedgerChartOfAccountsGroup};
+use account_set::{LedgerAccountSetAndMemberBalances, LedgerChartOfAccounts};
 use cala::*;
 pub use config::*;
 use error::*;
@@ -206,13 +206,11 @@ impl Ledger {
             .map_err(|e| e.into())
     }
 
-    pub async fn chart_of_accounts(
-        &self,
-    ) -> Result<Option<LedgerChartOfAccountsGroup>, LedgerError> {
+    pub async fn chart_of_accounts(&self) -> Result<Option<LedgerChartOfAccounts>, LedgerError> {
         self.cala
-            .chart_of_accounts::<LedgerChartOfAccountsGroup>()
+            .chart_of_accounts::<LedgerChartOfAccounts>()
             .await
-            .map(|gl| gl.map(LedgerChartOfAccountsGroup::from))
+            .map(|gl| gl.map(LedgerChartOfAccounts::from))
             .map_err(|e| e.into())
     }
 

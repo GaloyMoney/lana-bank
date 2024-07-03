@@ -129,12 +129,12 @@ impl From<trial_balance::DebitOrCredit> for LedgerDebitOrCredit {
     }
 }
 
-impl From<chart_of_accounts_group::DebitOrCredit> for LedgerDebitOrCredit {
-    fn from(debit_or_credit: chart_of_accounts_group::DebitOrCredit) -> Self {
+impl From<chart_of_accounts::DebitOrCredit> for LedgerDebitOrCredit {
+    fn from(debit_or_credit: chart_of_accounts::DebitOrCredit) -> Self {
         match debit_or_credit {
-            chart_of_accounts_group::DebitOrCredit::DEBIT => LedgerDebitOrCredit::Debit,
-            chart_of_accounts_group::DebitOrCredit::CREDIT => LedgerDebitOrCredit::Credit,
-            chart_of_accounts_group::DebitOrCredit::Other(_) => todo!(),
+            chart_of_accounts::DebitOrCredit::DEBIT => LedgerDebitOrCredit::Debit,
+            chart_of_accounts::DebitOrCredit::CREDIT => LedgerDebitOrCredit::Credit,
+            chart_of_accounts::DebitOrCredit::Other(_) => todo!(),
         }
     }
 }

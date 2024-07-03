@@ -1,43 +1,113 @@
-query ChartOfAccountsGroup($accountSetId: UUID!) {
+query ChartOfAccounts($accountSetId: UUID!) {
   accountSet(id: $accountSetId) {
-    accountSetId
-    name
-    normalBalanceType
-    members(first: 100) {
+    ...accountSetDetails
+    categories: members(first: 10) {
       edges {
         node {
           __typename
           ... on AccountSet {
-            accountSetId
-            name
-            normalBalanceType
-            members(first: 100) {
+            ...accountSetDetails
+            categoryAccounts: members(first: 25, after: null) {
+              pageInfo {
+                startCursor
+                endCursor
+                hasNextPage
+              }
               edges {
                 node {
                   __typename
                   ... on AccountSet {
-                    accountSetId
-                    name
-                    normalBalanceType
+                    ...accountSetDetails
                   }
                   ... on Account {
-                    accountId
-                    code
-                    name
-                    normalBalanceType
+                    ...accountDetails
                   }
                 }
               }
             }
           }
           ... on Account {
-            accountId
-            code
-            name
-            normalBalanceType
+            ...accountDetails
           }
         }
       }
     }
   }
+}
+
+query ChartOfAccountsCategoryAccount($accountSetId: UUID!) {
+  accountSet(id: $accountSetId) {
+    ...accountSetDetails
+    categorySubAccounts: members(first: 10, after: null) {
+      pageInfo {
+        startCursor
+        endCursor
+        hasNextPage
+      }
+      edges {
+        node {
+          __typename
+          ... on AccountSet {
+            ...accountSetDetails
+          }
+          ... on Account {
+            ...accountDetails
+          }
+        }
+      }
+    }
+  }
+}
+
+query ChartOfAccountsCategory($accountSetId: UUID!) {
+  accountSet(id: $accountSetId) {
+    ...accountSetDetails
+    categoryAccounts: members(first: 25) {
+      pageInfo {
+        startCursor
+        endCursor
+        hasNextPage
+      }
+      edges {
+        node {
+          __typename
+          ... on AccountSet {
+            ...accountSetDetails
+            categorySubAccounts: members(first: 5, after: null) {
+              pageInfo {
+                hasNextPage
+              }
+              edges {
+                node {
+                  __typename
+                  ... on AccountSet {
+                    ...accountSetDetails
+                  }
+                  ... on Account {
+                    ...accountDetails
+                  }
+                }
+              }
+            }
+          }
+          ... on Account {
+            ...accountDetails
+          }
+        }
+      }
+    }
+  }
+}
+
+fragment accountSetDetails on AccountSet {
+  accountSetId
+  name
+  normalBalanceType
+}
+
+fragment accountDetails on Account {
+  accountId
+  code
+  name
+  normalBalanceType
 }
