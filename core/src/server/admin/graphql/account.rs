@@ -1,7 +1,7 @@
 use async_graphql::*;
 
 use crate::server::shared_graphql::primitives::{
-    Satoshis, SignedSatoshis, SignedUsdCents, UsdCents,
+    Satoshis, SignedSatoshis, SignedUsdCents, UsdCents, UUID,
 };
 
 #[derive(SimpleObject)]
@@ -111,11 +111,13 @@ impl From<crate::ledger::account::LedgerAccountBalance> for AccountBalance {
 #[derive(SimpleObject)]
 pub struct AccountDetails {
     pub name: String,
+    pub id: UUID,
 }
 
 impl From<crate::ledger::account::LedgerChartOfAccountsAccount> for AccountDetails {
     fn from(account_set: crate::ledger::account::LedgerChartOfAccountsAccount) -> Self {
         AccountDetails {
+            id: account_set.id.into(),
             name: account_set.name,
         }
     }
