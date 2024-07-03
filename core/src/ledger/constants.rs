@@ -30,6 +30,10 @@ pub(super) const USER_COLLATERAL_CONTROL_ACCOUNT_SET_ID: Uuid =
 pub(super) const LOANS_COLLATERAL_CONTROL_ACCOUNT_SET_ID: Uuid =
     uuid!("00000000-0000-0000-0000-110000000006");
 
+// Chart of Accounts AccountSets
+pub(super) const CHART_OF_ACCOUNTS_ACCOUNT_SET_ID: Uuid =
+    uuid!("00000000-0000-0000-0000-210000000000");
+
 // Accounts
 pub(super) const _BANK_USDT_CASH_ID: Uuid = uuid!("00000000-0000-0000-0000-000000000004");
 
