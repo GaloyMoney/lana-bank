@@ -26,15 +26,15 @@ impl From<ledger::user::UserBalance> for UserBalance {
         Self {
             unallocated_collateral: UnallocatedCollateral {
                 settled: BtcBalance {
-                    btc_balance: balance.btc_balance,
+                    btc_balance: balance.btc_balance.into(),
                 },
             },
             checking: Checking {
                 settled: UsdBalance {
-                    usd_balance: balance.usdt_balance.settled,
+                    usd_balance: balance.usdt_balance.settled.into(),
                 },
                 pending: UsdBalance {
-                    usd_balance: balance.usdt_balance.pending,
+                    usd_balance: balance.usdt_balance.pending.into(),
                 },
             },
         }

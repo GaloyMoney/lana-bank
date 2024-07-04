@@ -18,8 +18,8 @@ impl From<crate::fixed_term_loan::FixedTermLoan> for FixedTermLoanCreatePayload 
 #[derive(InputObject)]
 pub struct FixedTermLoanApproveInput {
     pub loan_id: UUID,
-    pub collateral: Satoshis,
-    pub principal: UsdCents,
+    pub collateral: SignedSatoshis,
+    pub principal: SignedUsdCents,
 }
 
 #[derive(SimpleObject)]
@@ -38,7 +38,7 @@ impl From<crate::fixed_term_loan::FixedTermLoan> for FixedTermLoanApprovePayload
 #[derive(InputObject)]
 pub struct FixedTermLoanRecordPaymentInput {
     pub loan_id: UUID,
-    pub amount: UsdCents,
+    pub amount: SignedUsdCents,
 }
 
 #[derive(SimpleObject)]

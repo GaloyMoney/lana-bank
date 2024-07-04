@@ -5,6 +5,7 @@ pub mod app;
 pub mod applicant;
 pub mod cli;
 pub mod entity;
+mod error;
 pub mod fixed_term_loan;
 pub mod job;
 pub mod ledger;
