@@ -7,7 +7,7 @@ query ChartOfAccount {
       accounts {
         ... on ChartOfAccountsCategoryAccountSet {
           __typename
-          id
+          queryableId: id
           name
           hasSubAccounts
         }

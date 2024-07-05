@@ -881,6 +881,22 @@ impl CalaClient {
         Ok(response.data.and_then(|d| d.account_set).map(T::from))
     }
 
+    pub async fn chart_of_accounts_category_account<
+        T: From<chart_of_accounts_category_account::ChartOfAccountsCategoryAccountAccountSet>,
+    >(
+        &self,
+        account_set_id: Uuid,
+    ) -> Result<Option<T>, CalaError> {
+        let variables = chart_of_accounts_category_account::Variables { account_set_id };
+        let response = Self::traced_gql_request::<ChartOfAccountsCategoryAccount, _>(
+            &self.client,
+            &self.url,
+            variables,
+        )
+        .await?;
+        Ok(response.data.and_then(|d| d.account_set).map(T::from))
+    }
+
     #[instrument(name = "lava.ledger.cala.find_by_id", skip(self), err)]
     async fn find_account_by_code<T: From<account_by_code::AccountByCodeAccountByCode>>(
         &self,

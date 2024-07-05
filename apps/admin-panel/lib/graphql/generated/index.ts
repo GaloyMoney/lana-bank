@@ -59,6 +59,12 @@ export type AccountSetBalance = {
   name: Scalars['String']['output'];
 };
 
+export type AccountSetDetails = {
+  __typename?: 'AccountSetDetails';
+  id: Scalars['UUID']['output'];
+  name: Scalars['String']['output'];
+};
+
 export type AccountSetMemberBalance = AccountBalance | AccountSetBalance;
 
 export enum AccountStatus {
@@ -98,7 +104,10 @@ export type ChartOfAccountsCategoryAccountSet = {
   hasSubAccounts: Scalars['Boolean']['output'];
   id: Scalars['UUID']['output'];
   name: Scalars['String']['output'];
+  subAccounts: Array<ChartOfAccountsCategorySubAccount>;
 };
+
+export type ChartOfAccountsCategorySubAccount = AccountDetails | AccountSetDetails;
 
 export type Checking = {
   __typename?: 'Checking';
@@ -251,10 +260,16 @@ export enum Period {
 export type Query = {
   __typename?: 'Query';
   chartOfAccounts?: Maybe<ChartOfAccounts>;
+  chartOfAccountsCategoryAccountSet?: Maybe<ChartOfAccountsCategoryAccountSet>;
   loan?: Maybe<FixedTermLoan>;
   trialBalance?: Maybe<AccountSetAndMemberBalances>;
   user?: Maybe<User>;
   users: UserConnection;
+};
+
+
+export type QueryChartOfAccountsCategoryAccountSetArgs = {
+  accountSetId: Scalars['UUID']['input'];
 };
 
 

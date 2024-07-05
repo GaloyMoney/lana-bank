@@ -210,7 +210,7 @@ pub struct ChartOfAccounts;
     query_path = "src/ledger/cala/graphql/chart-of-accounts.gql",
     response_derives = "Debug, PartialEq, Eq, Clone"
 )]
-pub struct ChartOfAccountsCategoryAccount;
+pub struct ChartOfAccountsCategory;
 
 #[derive(GraphQLQuery)]
 #[graphql(
@@ -218,7 +218,7 @@ pub struct ChartOfAccountsCategoryAccount;
     query_path = "src/ledger/cala/graphql/chart-of-accounts.gql",
     response_derives = "Debug, PartialEq, Eq, Clone"
 )]
-pub struct ChartOfAccountsCategory;
+pub struct ChartOfAccountsCategoryAccount;
 
 #[derive(GraphQLQuery)]
 #[graphql(

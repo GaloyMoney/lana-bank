@@ -20,10 +20,49 @@ impl From<crate::ledger::account_set::LedgerAccountSetBalance> for AccountSetBal
 }
 
 #[derive(SimpleObject)]
+pub struct AccountSetDetails {
+    pub name: String,
+    pub id: UUID,
+}
+
+impl From<crate::ledger::account_set::LedgerChartOfAccountsAccountSet> for AccountSetDetails {
+    fn from(account_set: crate::ledger::account_set::LedgerChartOfAccountsAccountSet) -> Self {
+        AccountSetDetails {
+            id: account_set.id.into(),
+            name: account_set.name,
+        }
+    }
+}
+
+#[derive(Union)]
+enum ChartOfAccountsCategorySubAccount {
+    Account(super::account::AccountDetails),
+    AccountSet(AccountSetDetails),
+}
+
+impl From<crate::ledger::account_set::LedgerChartOfAccountsCategorySubAccount>
+    for ChartOfAccountsCategorySubAccount
+{
+    fn from(member: crate::ledger::account_set::LedgerChartOfAccountsCategorySubAccount) -> Self {
+        match member {
+            crate::ledger::account_set::LedgerChartOfAccountsCategorySubAccount::Account(val) => {
+                ChartOfAccountsCategorySubAccount::Account(super::account::AccountDetails::from(
+                    val,
+                ))
+            }
+            crate::ledger::account_set::LedgerChartOfAccountsCategorySubAccount::AccountSet(
+                val,
+            ) => ChartOfAccountsCategorySubAccount::AccountSet(AccountSetDetails::from(val)),
+        }
+    }
+}
+
+#[derive(SimpleObject)]
 pub struct ChartOfAccountsCategoryAccountSet {
     id: UUID,
     name: String,
     has_sub_accounts: bool,
+    sub_accounts: Vec<ChartOfAccountsCategorySubAccount>,
 }
 
 impl From<crate::ledger::account_set::LedgerChartOfAccountsCategoryAccountSet>
@@ -36,6 +75,12 @@ impl From<crate::ledger::account_set::LedgerChartOfAccountsCategoryAccountSet>
             id: account_set.id.into(),
             name: account_set.name,
             has_sub_accounts: account_set.sub_accounts.has_sub_accounts,
+            sub_accounts: account_set
+                .sub_accounts
+                .members
+                .iter()
+                .map(|member| ChartOfAccountsCategorySubAccount::from(member.clone()))
+                .collect(),
         }
     }
 }
