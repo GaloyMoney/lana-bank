@@ -14,8 +14,6 @@ type AccountDetails {
 	id: UUID!
 }
 
-union AccountMemberDetails = AccountDetails | AccountSetDetails
-
 type AccountSetAndMemberBalances {
 	name: String!
 	balance: AccountBalancesByCurrency!
@@ -25,11 +23,6 @@ type AccountSetAndMemberBalances {
 type AccountSetBalance {
 	name: String!
 	balance: AccountBalancesByCurrency!
-}
-
-type AccountSetDetails {
-	id: UUID!
-	name: String!
 }
 
 union AccountSetMemberBalance = AccountBalance | AccountSetBalance
@@ -58,7 +51,15 @@ type ChartOfAccounts {
 type ChartOfAccountsCategory {
 	id: UUID!
 	name: String!
-	accounts: [AccountMemberDetails!]!
+	accounts: [ChartOfAccountsCategoryAccount!]!
+}
+
+union ChartOfAccountsCategoryAccount = AccountDetails | ChartOfAccountsCategoryAccountSet
+
+type ChartOfAccountsCategoryAccountSet {
+	id: UUID!
+	name: String!
+	hasSubAccounts: Boolean!
 }
 
 type Checking {

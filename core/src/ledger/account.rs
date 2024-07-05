@@ -179,12 +179,8 @@ pub struct LedgerChartOfAccountsAccount {
     pub normal_balance_type: LedgerDebitOrCredit,
 }
 
-impl From<chart_of_accounts::ChartOfAccountsAccountSetCategoriesEdgesNodeOnAccount>
-    for LedgerChartOfAccountsAccount
-{
-    fn from(
-        account: chart_of_accounts::ChartOfAccountsAccountSetCategoriesEdgesNodeOnAccount,
-    ) -> Self {
+impl From<chart_of_accounts::accountDetails> for LedgerChartOfAccountsAccount {
+    fn from(account: chart_of_accounts::accountDetails) -> Self {
         LedgerChartOfAccountsAccount {
             id: account.account_id.into(),
             code: account.code,

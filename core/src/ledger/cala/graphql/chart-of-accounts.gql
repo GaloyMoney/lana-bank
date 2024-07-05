@@ -18,6 +18,9 @@ query ChartOfAccounts($accountSetId: UUID!) {
                   __typename
                   ... on AccountSet {
                     ...accountSetDetails
+                    categorySubAccounts: members(first: 1) {
+                      ...subAccount
+                    }
                   }
                   ... on Account {
                     ...accountDetails
@@ -74,20 +77,7 @@ query ChartOfAccountsCategory($accountSetId: UUID!) {
           ... on AccountSet {
             ...accountSetDetails
             categorySubAccounts: members(first: 5, after: null) {
-              pageInfo {
-                hasNextPage
-              }
-              edges {
-                node {
-                  __typename
-                  ... on AccountSet {
-                    ...accountSetDetails
-                  }
-                  ... on Account {
-                    ...accountDetails
-                  }
-                }
-              }
+              ...subAccount
             }
           }
           ... on Account {
@@ -110,4 +100,22 @@ fragment accountDetails on Account {
   code
   name
   normalBalanceType
+}
+
+fragment subAccount on AccountSetMemberConnection {
+  pageInfo {
+    startCursor
+    hasNextPage
+  }
+  edges {
+    node {
+      __typename
+      ... on AccountSet {
+        ...accountSetDetails
+      }
+      ... on Account {
+        ...accountDetails
+      }
+    }
+  }
 }
