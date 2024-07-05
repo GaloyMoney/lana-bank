@@ -19,45 +19,46 @@ impl From<crate::ledger::account_set::LedgerAccountSetBalance> for AccountSetBal
     }
 }
 
-#[derive(Union)]
-enum AccountMemberDetails {
-    Account(super::account::AccountDetails),
-    AccountSet(AccountSetDetails),
-}
-
-impl From<crate::ledger::account_set::LedgerChartOfAccountsSubMember> for AccountMemberDetails {
-    fn from(member_balance: crate::ledger::account_set::LedgerChartOfAccountsSubMember) -> Self {
-        match member_balance {
-            crate::ledger::account_set::LedgerChartOfAccountsSubMember::Account(val) => {
-                AccountMemberDetails::Account(val.into())
-            }
-            crate::ledger::account_set::LedgerChartOfAccountsSubMember::AccountSet(val) => {
-                AccountMemberDetails::AccountSet(val.into())
-            }
-        }
-    }
-}
-
 #[derive(SimpleObject)]
-pub struct AccountSetDetails {
+pub struct ChartOfAccountsCategoryAccountSet {
     id: UUID,
     name: String,
+    has_sub_accounts: bool,
 }
 
-impl From<crate::ledger::account_set::LedgerChartOfAccountsAccountSet> for AccountSetDetails {
-    fn from(account_set: crate::ledger::account_set::LedgerChartOfAccountsAccountSet) -> Self {
-        AccountSetDetails {
+impl From<crate::ledger::account_set::LedgerChartOfAccountsCategoryAccountSet>
+    for ChartOfAccountsCategoryAccountSet
+{
+    fn from(
+        account_set: crate::ledger::account_set::LedgerChartOfAccountsCategoryAccountSet,
+    ) -> Self {
+        ChartOfAccountsCategoryAccountSet {
             id: account_set.id.into(),
             name: account_set.name,
+            has_sub_accounts: account_set.sub_accounts.has_sub_accounts,
         }
     }
 }
 
-impl From<crate::ledger::account_set::LedgerChartOfAccountsSubAccountSet> for AccountSetDetails {
-    fn from(account_set: crate::ledger::account_set::LedgerChartOfAccountsSubAccountSet) -> Self {
-        AccountSetDetails {
-            id: account_set.id.into(),
-            name: account_set.name,
+#[derive(Union)]
+enum ChartOfAccountsCategoryAccount {
+    Account(super::account::AccountDetails),
+    AccountSet(ChartOfAccountsCategoryAccountSet),
+}
+
+impl From<crate::ledger::account_set::LedgerChartOfAccountsCategoryAccount>
+    for ChartOfAccountsCategoryAccount
+{
+    fn from(
+        member_balance: crate::ledger::account_set::LedgerChartOfAccountsCategoryAccount,
+    ) -> Self {
+        match member_balance {
+            crate::ledger::account_set::LedgerChartOfAccountsCategoryAccount::Account(val) => {
+                ChartOfAccountsCategoryAccount::Account(val.into())
+            }
+            crate::ledger::account_set::LedgerChartOfAccountsCategoryAccount::AccountSet(val) => {
+                ChartOfAccountsCategoryAccount::AccountSet(val.into())
+            }
         }
     }
 }
@@ -66,18 +67,18 @@ impl From<crate::ledger::account_set::LedgerChartOfAccountsSubAccountSet> for Ac
 pub struct ChartOfAccountsCategory {
     id: UUID,
     name: String,
-    accounts: Vec<AccountMemberDetails>,
+    accounts: Vec<ChartOfAccountsCategoryAccount>,
 }
 
-impl From<crate::ledger::account_set::LedgerChartOfAccountsAccountSet> for ChartOfAccountsCategory {
-    fn from(account_set: crate::ledger::account_set::LedgerChartOfAccountsAccountSet) -> Self {
+impl From<crate::ledger::account_set::LedgerChartOfAccountsCategory> for ChartOfAccountsCategory {
+    fn from(account_set: crate::ledger::account_set::LedgerChartOfAccountsCategory) -> Self {
         ChartOfAccountsCategory {
             id: account_set.id.into(),
             name: account_set.name,
             accounts: account_set
-                .members
+                .category_accounts
                 .iter()
-                .map(|m| AccountMemberDetails::from(m.clone()))
+                .map(|m| ChartOfAccountsCategoryAccount::from(m.clone()))
                 .collect(),
         }
     }
@@ -136,14 +137,9 @@ impl From<crate::ledger::account_set::LedgerChartOfAccounts> for ChartOfAccounts
         ChartOfAccounts {
             name: chart_of_accounts.name,
             categories: chart_of_accounts
-                .members
+                .categories
                 .iter()
-                .filter_map(|account_type| match account_type {
-                    crate::ledger::account_set::LedgerChartOfAccountsMember::AccountSet(val) => {
-                        Some(val.clone().into())
-                    }
-                    crate::ledger::account_set::LedgerChartOfAccountsMember::Account(_) => None,
-                })
+                .map(|category| category.clone().into())
                 .collect(),
         }
     }

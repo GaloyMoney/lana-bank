@@ -46,8 +46,6 @@ export type AccountDetails = {
   name: Scalars['String']['output'];
 };
 
-export type AccountMemberDetails = AccountDetails | AccountSetDetails;
-
 export type AccountSetAndMemberBalances = {
   __typename?: 'AccountSetAndMemberBalances';
   balance: AccountBalancesByCurrency;
@@ -58,12 +56,6 @@ export type AccountSetAndMemberBalances = {
 export type AccountSetBalance = {
   __typename?: 'AccountSetBalance';
   balance: AccountBalancesByCurrency;
-  name: Scalars['String']['output'];
-};
-
-export type AccountSetDetails = {
-  __typename?: 'AccountSetDetails';
-  id: Scalars['UUID']['output'];
   name: Scalars['String']['output'];
 };
 
@@ -94,7 +86,16 @@ export type ChartOfAccounts = {
 
 export type ChartOfAccountsCategory = {
   __typename?: 'ChartOfAccountsCategory';
-  accounts: Array<AccountMemberDetails>;
+  accounts: Array<ChartOfAccountsCategoryAccount>;
+  id: Scalars['UUID']['output'];
+  name: Scalars['String']['output'];
+};
+
+export type ChartOfAccountsCategoryAccount = AccountDetails | ChartOfAccountsCategoryAccountSet;
+
+export type ChartOfAccountsCategoryAccountSet = {
+  __typename?: 'ChartOfAccountsCategoryAccountSet';
+  hasSubAccounts: Scalars['Boolean']['output'];
   id: Scalars['UUID']['output'];
   name: Scalars['String']['output'];
 };
