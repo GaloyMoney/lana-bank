@@ -20,6 +20,8 @@ export type Scalars = {
   LoanAnnualRate: { input: any; output: any; }
   LoanCVLPct: { input: any; output: any; }
   Satoshis: { input: any; output: any; }
+  SignedSatoshis: { input: any; output: any; }
+  SignedUsdCents: { input: any; output: any; }
   Timestamp: { input: any; output: any; }
   UUID: { input: string; output: string; }
   UsdCents: { input: any; output: any; }
@@ -62,7 +64,7 @@ export type BtcAccountBalance = {
   __typename?: 'BtcAccountBalance';
   credit: Scalars['Satoshis']['output'];
   debit: Scalars['Satoshis']['output'];
-  netDebit: Scalars['Satoshis']['output'];
+  netDebit: Scalars['SignedSatoshis']['output'];
 };
 
 export type BtcBalance = {
@@ -287,7 +289,7 @@ export type UsdAccountBalance = {
   __typename?: 'UsdAccountBalance';
   credit: Scalars['UsdCents']['output'];
   debit: Scalars['UsdCents']['output'];
-  netDebit: Scalars['UsdCents']['output'];
+  netDebit: Scalars['SignedUsdCents']['output'];
 };
 
 export type UsdBalance = {

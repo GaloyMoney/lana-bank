@@ -31,7 +31,7 @@ enum AccountStatus {
 type BtcAccountBalance {
 	debit: Satoshis!
 	credit: Satoshis!
-	netDebit: Satoshis!
+	netDebit: SignedSatoshis!
 }
 
 type BtcBalance {
@@ -183,6 +183,10 @@ input ShareholderEquityAddInput {
 	reference: String!
 }
 
+scalar SignedSatoshis
+
+scalar SignedUsdCents
+
 
 type SuccessPayload {
 	success: Boolean!
@@ -222,7 +226,7 @@ type UnallocatedCollateral {
 type UsdAccountBalance {
 	debit: UsdCents!
 	credit: UsdCents!
-	netDebit: UsdCents!
+	netDebit: SignedUsdCents!
 }
 
 type UsdBalance {
