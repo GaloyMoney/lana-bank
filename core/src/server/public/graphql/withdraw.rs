@@ -1,12 +1,14 @@
 use async_graphql::*;
 
-use crate::server::shared_graphql::primitives::{SignedUsdCents, UUID};
+use crate::primitives::UsdCents;
+
+use crate::server::shared_graphql::primitives::UUID;
 
 #[derive(SimpleObject)]
 pub struct Withdrawal {
     user_id: UUID,
     withdrawal_id: UUID,
-    amount: SignedUsdCents,
+    amount: UsdCents,
 }
 
 impl From<crate::withdraw::Withdraw> for Withdrawal {
@@ -14,14 +16,14 @@ impl From<crate::withdraw::Withdraw> for Withdrawal {
         Withdrawal {
             withdrawal_id: UUID::from(withdraw.id),
             user_id: UUID::from(withdraw.user_id),
-            amount: withdraw.amount.into(),
+            amount: withdraw.amount,
         }
     }
 }
 
 #[derive(InputObject)]
 pub struct WithdrawalInitiateInput {
-    pub amount: SignedUsdCents,
+    pub amount: UsdCents,
     pub destination: String,
     pub reference: Option<String>,
 }

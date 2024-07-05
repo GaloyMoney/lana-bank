@@ -63,12 +63,7 @@ impl Mutation {
 
         let withdraw = app
             .withdraws()
-            .initiate(
-                *user_id,
-                input.amount.try_into()?,
-                input.destination,
-                input.reference,
-            )
+            .initiate(*user_id, input.amount, input.destination, input.reference)
             .await?;
 
         Ok(WithdrawalInitiatePayload::from(withdraw))
@@ -98,11 +93,7 @@ impl Mutation {
         let app = ctx.data_unchecked::<LavaApp>();
         let loan = app
             .fixed_term_loans()
-            .approve_loan(
-                input.loan_id,
-                input.collateral.try_into()?,
-                input.principal.try_into()?,
-            )
+            .approve_loan(input.loan_id, input.collateral, input.principal)
             .await?;
         Ok(FixedTermLoanApprovePayload::from(loan))
     }
@@ -115,7 +106,7 @@ impl Mutation {
         let app = ctx.data_unchecked::<LavaApp>();
         let loan = app
             .fixed_term_loans()
-            .record_payment(input.loan_id, input.amount.try_into()?)
+            .record_payment(input.loan_id, input.amount)
             .await?;
         Ok(FixedTermLoanRecordPaymentPayload::from(loan))
     }

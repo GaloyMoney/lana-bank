@@ -1,19 +1,19 @@
 use async_graphql::*;
 
-use crate::server::shared_graphql::primitives::{SignedSatoshis, SignedUsdCents};
+use crate::server::shared_graphql::primitives::{Satoshis, UsdCents};
 
 #[derive(SimpleObject)]
 struct BtcAccountBalance {
-    debit: SignedSatoshis,
-    credit: SignedSatoshis,
-    net_debit: SignedSatoshis,
+    debit: Satoshis,
+    credit: Satoshis,
+    net_debit: Satoshis,
 }
 
 impl From<crate::ledger::account::BtcAccountBalance> for BtcAccountBalance {
     fn from(balance: crate::ledger::account::BtcAccountBalance) -> Self {
         BtcAccountBalance {
-            debit: balance.debit.into(),
-            credit: balance.credit.into(),
+            debit: balance.debit,
+            credit: balance.credit,
             net_debit: balance.net_debit,
         }
     }
@@ -21,16 +21,16 @@ impl From<crate::ledger::account::BtcAccountBalance> for BtcAccountBalance {
 
 #[derive(SimpleObject)]
 struct UsdAccountBalance {
-    debit: SignedUsdCents,
-    credit: SignedUsdCents,
-    net_debit: SignedUsdCents,
+    debit: UsdCents,
+    credit: UsdCents,
+    net_debit: UsdCents,
 }
 
 impl From<crate::ledger::account::UsdAccountBalance> for UsdAccountBalance {
     fn from(balance: crate::ledger::account::UsdAccountBalance) -> Self {
         UsdAccountBalance {
-            debit: balance.debit.into(),
-            credit: balance.credit.into(),
+            debit: balance.debit,
+            credit: balance.credit,
             net_debit: balance.net_debit,
         }
     }

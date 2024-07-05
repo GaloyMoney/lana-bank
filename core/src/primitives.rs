@@ -83,72 +83,11 @@ pub use cala_types::primitives::{
     TransactionId as LedgerTxId, TxTemplateId as LedgerTxTemplateId,
 };
 
-use crate::error::ConversionError;
-
 pub const SATS_PER_BTC: Decimal = dec!(100_000_000);
 pub const CENTS_PER_USD: Decimal = dec!(100);
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
-pub struct SignedSatoshis(i64);
-
-impl From<Satoshis> for SignedSatoshis {
-    fn from(sats: Satoshis) -> Self {
-        Self(i64::try_from(sats.0).expect("Satoshis must be integer sized for i64"))
-    }
-}
-
-impl fmt::Display for SignedSatoshis {
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> fmt::Result {
-        write!(f, "{}", self.0)
-    }
-}
-
-impl Default for SignedSatoshis {
-    fn default() -> Self {
-        Self::ZERO
-    }
-}
-
-impl std::ops::Sub<SignedSatoshis> for SignedSatoshis {
-    type Output = SignedSatoshis;
-
-    fn sub(self, other: SignedSatoshis) -> SignedSatoshis {
-        SignedSatoshis(self.0 - other.0)
-    }
-}
-
-impl SignedSatoshis {
-    pub const ZERO: Self = Self(0);
-    pub const ONE: Self = Self(1);
-
-    pub fn to_btc(self) -> Decimal {
-        Decimal::from(self.0) / SATS_PER_BTC
-    }
-
-    pub fn from_btc(btc: Decimal) -> Self {
-        let sats = btc * SATS_PER_BTC;
-        assert!(sats.trunc() == sats, "Satoshis must be an integer");
-        Self(i64::try_from(sats).expect("Satoshis must be integer"))
-    }
-
-    pub fn into_inner(self) -> i64 {
-        self.0
-    }
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
-pub struct Satoshis(u64);
-
-impl TryFrom<SignedSatoshis> for Satoshis {
-    type Error = ConversionError;
-
-    fn try_from(sats: SignedSatoshis) -> Result<Self, ConversionError> {
-        match u64::try_from(sats.0) {
-            Ok(cents) => Ok(Self(cents)),
-            Err(e) => Err(e.into()),
-        }
-    }
-}
+pub struct Satoshis(i64);
 
 impl fmt::Display for Satoshis {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> fmt::Result {
@@ -181,18 +120,18 @@ impl Satoshis {
     pub fn from_btc(btc: Decimal) -> Self {
         let sats = btc * SATS_PER_BTC;
         assert!(sats.trunc() == sats, "Satoshis must be an integer");
-        Self(u64::try_from(sats).expect("Satoshis must be positive integer"))
+        Self(i64::try_from(sats).expect("Satoshis must be integer"))
     }
 
-    pub fn into_inner(self) -> u64 {
+    pub fn into_inner(self) -> i64 {
         self.0
     }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
-pub struct SignedUsdCents(i64);
+pub struct UsdCents(i64);
 
-impl SignedUsdCents {
+impl UsdCents {
     pub const ZERO: Self = Self(0);
     pub const ONE: Self = Self(1);
 
@@ -215,66 +154,9 @@ impl SignedUsdCents {
     }
 }
 
-impl From<UsdCents> for SignedUsdCents {
-    fn from(cents: UsdCents) -> Self {
-        Self(i64::try_from(cents.0).expect("Cents must be integer sized for i64"))
-    }
-}
-
-impl fmt::Display for SignedUsdCents {
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> fmt::Result {
-        write!(f, "{}", self.0)
-    }
-}
-
-impl std::ops::Sub<SignedUsdCents> for SignedUsdCents {
-    type Output = SignedUsdCents;
-
-    fn sub(self, other: SignedUsdCents) -> SignedUsdCents {
-        SignedUsdCents(self.0 - other.0)
-    }
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
-pub struct UsdCents(u64);
-
-impl UsdCents {
-    pub const ZERO: Self = Self(0);
-    pub const ONE: Self = Self(1);
-
-    pub fn to_usd(self) -> Decimal {
-        Decimal::from(self.0) / CENTS_PER_USD
-    }
-
-    pub fn from_usd(usd: Decimal) -> Self {
-        let cents = usd * CENTS_PER_USD;
-        assert!(cents.trunc() == cents, "Cents must be an integer");
-        Self(u64::try_from(cents).expect("Cents must be positive integer"))
-    }
-
-    pub fn into_inner(self) -> u64 {
-        self.0
-    }
-
-    pub fn is_zero(self) -> bool {
-        self.0 == 0
-    }
-}
-
-impl TryFrom<SignedUsdCents> for UsdCents {
-    type Error = ConversionError;
-
-    fn try_from(sats: SignedUsdCents) -> Result<Self, ConversionError> {
-        match u64::try_from(sats.0) {
-            Ok(sats) => Ok(Self(sats)),
-            Err(e) => Err(e.into()),
-        }
-    }
-}
-
 impl From<u64> for UsdCents {
     fn from(value: u64) -> Self {
-        Self(value)
+        Self(i64::try_from(value).expect("Cents must be integer"))
     }
 }
 

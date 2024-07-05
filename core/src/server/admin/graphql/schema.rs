@@ -90,7 +90,7 @@ impl Mutation {
         let app = ctx.data_unchecked::<LavaApp>();
         Ok(SuccessPayload::from(
             app.ledger()
-                .add_equity(input.amount.try_into()?, input.reference)
+                .add_equity(input.amount, input.reference)
                 .await?,
         ))
     }

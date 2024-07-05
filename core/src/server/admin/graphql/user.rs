@@ -2,14 +2,14 @@ use async_graphql::{types::connection::*, *};
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    primitives::{SignedSatoshis, UserId},
+    primitives::{Satoshis, UserId},
     server::shared_graphql::{primitives::UUID, user::User},
 };
 
 #[derive(InputObject)]
 pub struct UserPledgeCollateralInput {
     pub user_id: UUID,
-    pub amount: SignedSatoshis,
+    pub amount: Satoshis,
     pub reference: String,
 }
 

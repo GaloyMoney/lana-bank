@@ -51,17 +51,17 @@ impl From<crate::fixed_term_loan::FixedTermLoan> for FixedTermLoan {
 
 #[derive(SimpleObject)]
 struct Collateral {
-    btc_balance: SignedSatoshis,
+    btc_balance: Satoshis,
 }
 
 #[derive(SimpleObject)]
 struct LoanOutstanding {
-    usd_balance: SignedUsdCents,
+    usd_balance: UsdCents,
 }
 
 #[derive(SimpleObject)]
 struct InterestIncome {
-    usd_balance: SignedUsdCents,
+    usd_balance: UsdCents,
 }
 
 #[derive(SimpleObject)]
@@ -75,13 +75,13 @@ impl From<ledger::fixed_term_loan::FixedTermLoanBalance> for FixedTermLoanBalanc
     fn from(balance: ledger::fixed_term_loan::FixedTermLoanBalance) -> Self {
         Self {
             collateral: Collateral {
-                btc_balance: balance.collateral.into(),
+                btc_balance: balance.collateral,
             },
             outstanding: LoanOutstanding {
-                usd_balance: balance.outstanding.into(),
+                usd_balance: balance.outstanding,
             },
             interest_incurred: InterestIncome {
-                usd_balance: balance.interest_incurred.into(),
+                usd_balance: balance.interest_incurred,
             },
         }
     }
