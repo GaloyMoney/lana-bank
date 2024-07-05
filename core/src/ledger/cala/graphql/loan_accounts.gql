@@ -1,6 +1,7 @@
 mutation CreateLoanAccounts(
   $collateralAccountId: UUID!
   $collateralAccountCode: String!
+  $collateralControlAccountSetId: UUID!
   $outstandingAccountId: UUID!
   $outstandingAccountCode: String!
   $interestAccountId: UUID!
@@ -15,6 +16,7 @@ mutation CreateLoanAccounts(
       accountId: $collateralAccountId
       code: $collateralAccountCode
       name: "Loan Collateral"
+      accountSetIds: [$collateralControlAccountSetId]
     }
   ) {
     account {

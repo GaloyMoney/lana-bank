@@ -10,6 +10,7 @@ mutation CreateUserAccounts(
   $offBalanceSheetAccountId: UUID!
   $offBalanceSheetAccountCode: String!
   $offBalanceSheetAccountName: String!
+  $userCollateralControlAccountSetId: UUID!
   $btcAccountId: UUID!
   $btcAccountCode: String!
   $btcAccountName: String!
@@ -53,6 +54,7 @@ mutation CreateUserAccounts(
       accountId: $offBalanceSheetAccountId
       code: $offBalanceSheetAccountCode
       name: $offBalanceSheetAccountName
+      accountSetIds: [$userCollateralControlAccountSetId]
     }
   ) {
     account {
