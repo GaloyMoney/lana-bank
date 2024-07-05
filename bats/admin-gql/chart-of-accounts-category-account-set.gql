@@ -1,0 +1,18 @@
+query ChartOfAccountsCategoryAccountSet($accountSetId: UUID!) {
+  chartOfAccountsCategoryAccountSet(accountSetId: $accountSetId) {
+    name
+    subAccounts {
+      __typename
+      ... on AccountDetails {
+        __typename
+        id
+        name
+      }
+      ... on AccountSetDetails {
+        __typename
+        id
+        name
+      }
+    }
+  }
+}

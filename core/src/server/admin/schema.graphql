@@ -25,6 +25,11 @@ type AccountSetBalance {
 	balance: AccountBalancesByCurrency!
 }
 
+type AccountSetDetails {
+	name: String!
+	id: UUID!
+}
+
 union AccountSetMemberBalance = AccountBalance | AccountSetBalance
 
 enum AccountStatus {
@@ -60,7 +65,10 @@ type ChartOfAccountsCategoryAccountSet {
 	id: UUID!
 	name: String!
 	hasSubAccounts: Boolean!
+	subAccounts: [ChartOfAccountsCategorySubAccount!]!
 }
+
+union ChartOfAccountsCategorySubAccount = AccountDetails | AccountSetDetails
 
 type Checking {
 	settled: UsdBalance!
@@ -205,6 +213,7 @@ type Query {
 	users(first: Int!, after: String): UserConnection!
 	trialBalance: AccountSetAndMemberBalances
 	chartOfAccounts: ChartOfAccounts
+	chartOfAccountsCategoryAccountSet(accountSetId: UUID!): ChartOfAccountsCategoryAccountSet
 }
 
 scalar Satoshis

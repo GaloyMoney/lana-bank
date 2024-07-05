@@ -13,11 +13,14 @@ pub mod user;
 use tracing::instrument;
 
 use crate::primitives::{
-    BfxWithdrawalMethod, LedgerAccountId, LedgerTxId, LedgerTxTemplateId, LoanId, Satoshis,
-    UsdCents, UserId, WithdrawId,
+    BfxWithdrawalMethod, LedgerAccountId, LedgerAccountSetId, LedgerTxId, LedgerTxTemplateId,
+    LoanId, Satoshis, UsdCents, UserId, WithdrawId,
 };
 
-use account_set::{LedgerAccountSetAndMemberBalances, LedgerChartOfAccounts};
+use account_set::{
+    LedgerAccountSetAndMemberBalances, LedgerChartOfAccounts,
+    LedgerChartOfAccountsCategoryAccountSet,
+};
 use cala::*;
 pub use config::*;
 use error::*;
@@ -211,6 +214,19 @@ impl Ledger {
             .chart_of_accounts::<LedgerChartOfAccounts>()
             .await
             .map(|gl| gl.map(LedgerChartOfAccounts::from))
+            .map_err(|e| e.into())
+    }
+
+    pub async fn chart_of_accounts_category_account_set(
+        &self,
+        account_set_id: LedgerAccountSetId,
+    ) -> Result<Option<LedgerChartOfAccountsCategoryAccountSet>, LedgerError> {
+        self.cala
+            .chart_of_accounts_category_account::<LedgerChartOfAccountsCategoryAccountSet>(
+                account_set_id.into(),
+            )
+            .await
+            .map(|gl| gl.map(LedgerChartOfAccountsCategoryAccountSet::from))
             .map_err(|e| e.into())
     }
 

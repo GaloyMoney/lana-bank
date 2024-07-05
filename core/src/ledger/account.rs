@@ -141,6 +141,18 @@ impl From<chart_of_accounts::DebitOrCredit> for LedgerDebitOrCredit {
     }
 }
 
+impl From<chart_of_accounts_category_account::DebitOrCredit> for LedgerDebitOrCredit {
+    fn from(debit_or_credit: chart_of_accounts_category_account::DebitOrCredit) -> Self {
+        match debit_or_credit {
+            chart_of_accounts_category_account::DebitOrCredit::DEBIT => LedgerDebitOrCredit::Debit,
+            chart_of_accounts_category_account::DebitOrCredit::CREDIT => {
+                LedgerDebitOrCredit::Credit
+            }
+            chart_of_accounts_category_account::DebitOrCredit::Other(_) => todo!(),
+        }
+    }
+}
+
 #[derive(Debug, Clone)]
 pub struct LedgerAccountBalance {
     pub name: String,
@@ -181,6 +193,17 @@ pub struct LedgerChartOfAccountsAccount {
 
 impl From<chart_of_accounts::accountDetails> for LedgerChartOfAccountsAccount {
     fn from(account: chart_of_accounts::accountDetails) -> Self {
+        LedgerChartOfAccountsAccount {
+            id: account.account_id.into(),
+            code: account.code,
+            name: account.name,
+            normal_balance_type: account.normal_balance_type.into(),
+        }
+    }
+}
+
+impl From<chart_of_accounts_category_account::accountDetails> for LedgerChartOfAccountsAccount {
+    fn from(account: chart_of_accounts_category_account::accountDetails) -> Self {
         LedgerChartOfAccountsAccount {
             id: account.account_id.into(),
             code: account.code,
