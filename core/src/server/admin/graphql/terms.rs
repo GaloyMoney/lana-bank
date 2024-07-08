@@ -2,10 +2,8 @@ use async_graphql::*;
 
 use crate::{
     loan::{LoanAnnualRate, LoanCVLPct},
-    server::shared_graphql::primitives::UUID,
+    server::shared_graphql::{convert::*, primitives::UUID},
 };
-
-use super::convert::ToGlobalId;
 
 scalar!(LoanAnnualRate);
 scalar!(LoanCVLPct);

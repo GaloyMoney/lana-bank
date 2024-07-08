@@ -26,7 +26,6 @@ outstanding_balance() {
   exec_graphql 'alice' 'find-loan' "$variables"
   outstanding_balance=$(graphql_output '.data.loan.balance.outstanding.usdBalance')
   cache_value 'outstanding' "$outstanding_balance"
-
 }
 
 @test "loan: loan lifecycle" {
@@ -70,12 +69,27 @@ outstanding_balance() {
   loan_id=$(graphql_output '.data.loanCreate.loan.loanId')
   [[ "$loan_id" != "null" ]] || exit 1
 
-  retry 10 1 wait_till_loan_collateralized
+  retry 30 1 wait_till_loan_collateralized
   usd_balance=$(read_value "usd_balance")
   [[ "$usd_balance" == "10000" ]] || exit 1
 
   outstanding_balance "$loan_id"
-  outstanding_balance=$(read_value "outstanding")
-  echo $outstanding_balance > outstanding_balance.txt
+  outstanding_before=$(read_value "outstanding")
+  [[ "$outstanding_before" == "10000" ]] || exit 1
 
+  variables=$(
+    jq -n \
+      --arg loanId "$loan_id" \
+    '{
+      input: {
+        loanId: $loanId,
+        amount: 100,
+      }
+    }'
+  )
+  exec_admin_graphql 'loan-partial-payment' "$variables"
+
+  outstanding_balance "$loan_id"
+  outstanding_after=$(read_value "outstanding")
+  [[ "$outstanding_after" == "9900" ]] || exit 1
 }

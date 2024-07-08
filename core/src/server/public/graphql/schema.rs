@@ -3,11 +3,12 @@ use async_graphql::*;
 use super::{fixed_term_loan::*, withdraw::*};
 use crate::{
     app::LavaApp,
-    primitives::{FixedTermLoanId, UserId},
+    primitives::{FixedTermLoanId, LoanId, UserId},
     server::{
         public::PublicAuthContext,
         shared_graphql::{
             fixed_term_loan::FixedTermLoan,
+            loan::Loan,
             primitives::UUID,
             sumsub::{SumsubPermalinkCreatePayload, SumsubTokenCreatePayload},
             user::User,
@@ -19,7 +20,7 @@ pub struct Query;
 
 #[Object]
 impl Query {
-    async fn loan(
+    async fn fixed_term_loan(
         &self,
         ctx: &Context<'_>,
         id: UUID,
@@ -30,6 +31,12 @@ impl Query {
             .find_by_id(FixedTermLoanId::from(id))
             .await?;
         Ok(loan.map(FixedTermLoan::from))
+    }
+
+    async fn loan(&self, ctx: &Context<'_>, id: UUID) -> async_graphql::Result<Option<Loan>> {
+        let app = ctx.data_unchecked::<LavaApp>();
+        let loan = app.loans().find_by_id(LoanId::from(id)).await?;
+        Ok(loan.map(Loan::from))
     }
 
     async fn user(&self, ctx: &Context<'_>, id: UUID) -> async_graphql::Result<Option<User>> {

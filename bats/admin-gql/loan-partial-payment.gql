@@ -1,0 +1,18 @@
+mutation loanPartialPayment($input: LoanPartialPaymentInput!) {
+  loanPartialPayment(input: $input) {
+    loan {
+      loanId
+      balance {
+        collateral {
+          btcBalance
+        }
+        outstanding {
+          usdBalance
+        }
+        interestIncurred {
+          usdBalance
+        }
+      }
+    }
+  }
+}

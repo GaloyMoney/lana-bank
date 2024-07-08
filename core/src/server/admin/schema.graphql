@@ -67,9 +67,21 @@ type FixedTermLoan {
 }
 
 type FixedTermLoanBalance {
-	collateral: Collateral!
-	outstanding: LoanOutstanding!
-	interestIncurred: InterestIncome!
+	collateral: FixedTermLoanCollateral!
+	outstanding: FixedTermLoanOutstanding!
+	interestIncurred: FixedTermLoanInterestIncome!
+}
+
+type FixedTermLoanCollateral {
+	btcBalance: Satoshis!
+}
+
+type FixedTermLoanInterestIncome {
+	usdBalance: UsdCents!
+}
+
+type FixedTermLoanOutstanding {
+	usdBalance: UsdCents!
 }
 
 
@@ -107,9 +119,16 @@ type Loan {
 	id: ID!
 	loanId: UUID!
 	startDate: Timestamp!
+	balance: LoanBalance!
 }
 
 scalar LoanAnnualRate
+
+type LoanBalance {
+	collateral: Collateral!
+	outstanding: LoanOutstanding!
+	interestIncurred: InterestIncome!
+}
 
 scalar LoanCVLPct
 

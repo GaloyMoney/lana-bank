@@ -16,10 +16,10 @@ wait_for_interest() {
     --arg loanId "$1" \
     '{ id: $loanId }'
   )
-  exec_graphql 'alice' 'find-loan' "$variables"
-  outstanding_balance=$(graphql_output '.data.loan.balance.outstanding.usdBalance')
+  exec_graphql 'alice' 'find-fixed-term-loan' "$variables"
+  outstanding_balance=$(graphql_output '.data.fixedTermLoan.balance.outstanding.usdBalance')
   cache_value 'outstanding' "$outstanding_balance"
-  interest_balance=$(graphql_output '.data.loan.balance.interestIncurred.usdBalance')
+  interest_balance=$(graphql_output '.data.fixedTermLoan.balance.interestIncurred.usdBalance')
   cache_value 'interest_incurred' "$interest_balance"
   [[ "$interest_balance" == "2" ]] || return 1
 }
@@ -134,8 +134,8 @@ wait_for_interest() {
     --arg loanId "$id" \
     '{ id: $loanId }'
   )
-  exec_graphql 'alice' 'find-loan' "$variables"
-  collateral_balance=$(graphql_output '.data.loan.balance.collateral.btcBalance')
+  exec_graphql 'alice' 'find-fixed-term-loan' "$variables"
+  collateral_balance=$(graphql_output '.data.fixedTermLoan.balance.collateral.btcBalance')
   [[ "$collateral_balance" == "0" ]] || exit 1
 
   exec_graphql 'alice' 'me'

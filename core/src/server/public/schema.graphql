@@ -34,13 +34,25 @@ type FixedTermLoanApprovePayload {
 }
 
 type FixedTermLoanBalance {
-	collateral: Collateral!
-	outstanding: LoanOutstanding!
-	interestIncurred: InterestIncome!
+	collateral: FixedTermLoanCollateral!
+	outstanding: FixedTermLoanOutstanding!
+	interestIncurred: FixedTermLoanInterestIncome!
+}
+
+type FixedTermLoanCollateral {
+	btcBalance: Satoshis!
 }
 
 type FixedTermLoanCreatePayload {
 	loan: FixedTermLoan!
+}
+
+type FixedTermLoanInterestIncome {
+	usdBalance: UsdCents!
+}
+
+type FixedTermLoanOutstanding {
+	usdBalance: UsdCents!
 }
 
 input FixedTermLoanRecordPaymentInput {
@@ -65,6 +77,19 @@ enum KycLevel {
 	TWO
 }
 
+type Loan {
+	id: ID!
+	loanId: UUID!
+	startDate: Timestamp!
+	balance: LoanBalance!
+}
+
+type LoanBalance {
+	collateral: Collateral!
+	outstanding: LoanOutstanding!
+	interestIncurred: InterestIncome!
+}
+
 type LoanOutstanding {
 	usdBalance: UsdCents!
 }
@@ -79,7 +104,8 @@ type Mutation {
 }
 
 type Query {
-	loan(id: UUID!): FixedTermLoan
+	fixedTermLoan(id: UUID!): FixedTermLoan
+	loan(id: UUID!): Loan
 	user(id: UUID!): User
 	me: User
 }
@@ -94,6 +120,8 @@ type SumsubPermalinkCreatePayload {
 type SumsubTokenCreatePayload {
 	token: String!
 }
+
+scalar Timestamp
 
 scalar UUID
 

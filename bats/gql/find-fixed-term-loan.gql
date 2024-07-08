@@ -1,5 +1,5 @@
-query loan($id: UUID!) {
-  loan(id: $id) {
+query fixedTermLoan($id: UUID!) {
+  fixedTermLoan(id: $id) {
     loanId
     balance {
       collateral {

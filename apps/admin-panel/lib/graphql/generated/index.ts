@@ -106,9 +106,24 @@ export type FixedTermLoan = {
 
 export type FixedTermLoanBalance = {
   __typename?: 'FixedTermLoanBalance';
-  collateral: Collateral;
-  interestIncurred: InterestIncome;
-  outstanding: LoanOutstanding;
+  collateral: FixedTermLoanCollateral;
+  interestIncurred: FixedTermLoanInterestIncome;
+  outstanding: FixedTermLoanOutstanding;
+};
+
+export type FixedTermLoanCollateral = {
+  __typename?: 'FixedTermLoanCollateral';
+  btcBalance: Scalars['Satoshis']['output'];
+};
+
+export type FixedTermLoanInterestIncome = {
+  __typename?: 'FixedTermLoanInterestIncome';
+  usdBalance: Scalars['UsdCents']['output'];
+};
+
+export type FixedTermLoanOutstanding = {
+  __typename?: 'FixedTermLoanOutstanding';
+  usdBalance: Scalars['UsdCents']['output'];
 };
 
 export type InterestIncome = {
@@ -144,9 +159,17 @@ export type LayeredUsdAccountBalances = {
 
 export type Loan = {
   __typename?: 'Loan';
+  balance: LoanBalance;
   id: Scalars['ID']['output'];
   loanId: Scalars['UUID']['output'];
   startDate: Scalars['Timestamp']['output'];
+};
+
+export type LoanBalance = {
+  __typename?: 'LoanBalance';
+  collateral: Collateral;
+  interestIncurred: InterestIncome;
+  outstanding: LoanOutstanding;
 };
 
 export type LoanCreateInput = {
@@ -363,14 +386,14 @@ export type GetLoanDetailsQueryVariables = Exact<{
 }>;
 
 
-export type GetLoanDetailsQuery = { __typename?: 'Query', loan?: { __typename?: 'FixedTermLoan', loanId: string, user: { __typename?: 'User', userId: string }, balance: { __typename?: 'FixedTermLoanBalance', collateral: { __typename?: 'Collateral', btcBalance: any }, outstanding: { __typename?: 'LoanOutstanding', usdBalance: any }, interestIncurred: { __typename?: 'InterestIncome', usdBalance: any } } } | null };
+export type GetLoanDetailsQuery = { __typename?: 'Query', loan?: { __typename?: 'FixedTermLoan', loanId: string, user: { __typename?: 'User', userId: string }, balance: { __typename?: 'FixedTermLoanBalance', collateral: { __typename?: 'FixedTermLoanCollateral', btcBalance: any }, outstanding: { __typename?: 'FixedTermLoanOutstanding', usdBalance: any }, interestIncurred: { __typename?: 'FixedTermLoanInterestIncome', usdBalance: any } } } | null };
 
 export type GetLoansForUserQueryVariables = Exact<{
   id: Scalars['UUID']['input'];
 }>;
 
 
-export type GetLoansForUserQuery = { __typename?: 'Query', user?: { __typename?: 'User', userId: string, loans: Array<{ __typename?: 'FixedTermLoan', loanId: string, balance: { __typename?: 'FixedTermLoanBalance', collateral: { __typename?: 'Collateral', btcBalance: any }, outstanding: { __typename?: 'LoanOutstanding', usdBalance: any }, interestIncurred: { __typename?: 'InterestIncome', usdBalance: any } } }> } | null };
+export type GetLoansForUserQuery = { __typename?: 'Query', user?: { __typename?: 'User', userId: string, loans: Array<{ __typename?: 'FixedTermLoan', loanId: string, balance: { __typename?: 'FixedTermLoanBalance', collateral: { __typename?: 'FixedTermLoanCollateral', btcBalance: any }, outstanding: { __typename?: 'FixedTermLoanOutstanding', usdBalance: any }, interestIncurred: { __typename?: 'FixedTermLoanInterestIncome', usdBalance: any } } }> } | null };
 
 export type GetTrialBalanceQueryVariables = Exact<{ [key: string]: never; }>;
 

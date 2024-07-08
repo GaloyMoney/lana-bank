@@ -7,6 +7,7 @@ mod terms;
 use sqlx::PgPool;
 
 use crate::{
+    entity::EntityError,
     job::{JobRegistry, Jobs},
     ledger::{loan::*, Ledger},
     primitives::*,
@@ -149,9 +150,17 @@ impl Loans {
                     tx_ref,
                 )
                 .await?;
-            db_tx.commit().await?;
         }
+        db_tx.commit().await?;
 
         Ok(loan)
+    }
+
+    pub async fn find_by_id(&self, id: LoanId) -> Result<Option<Loan>, LoanError> {
+        match self.loan_repo.find_by_id(id).await {
+            Ok(loan) => Ok(Some(loan)),
+            Err(LoanError::EntityError(EntityError::NoEntityEventsPresent)) => Ok(None),
+            Err(e) => Err(e),
+        }
     }
 }
