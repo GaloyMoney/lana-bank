@@ -400,6 +400,18 @@ export type SumsubPermalinkCreateMutationVariables = Exact<{
 
 export type SumsubPermalinkCreateMutation = { __typename?: 'Mutation', sumsubPermalinkCreate: { __typename?: 'SumsubPermalinkCreatePayload', url: string } };
 
+export type ChartOfAccountCategoryAccountSetQueryVariables = Exact<{
+  id: Scalars['UUID']['input'];
+}>;
+
+
+export type ChartOfAccountCategoryAccountSetQuery = { __typename?: 'Query', chartOfAccountsCategoryAccountSet?: { __typename?: 'ChartOfAccountsCategoryAccountSet', id: string, name: string, hasSubAccounts: boolean, subAccounts: Array<{ __typename?: 'AccountDetails', id: string, name: string } | { __typename?: 'AccountSetDetails', id: string, name: string }> } | null };
+
+export type GetChartOfAccountsQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type GetChartOfAccountsQuery = { __typename?: 'Query', chartOfAccounts?: { __typename?: 'ChartOfAccounts', name: string, categories: Array<{ __typename?: 'ChartOfAccountsCategory', id: string, name: string, accounts: Array<{ __typename?: 'AccountDetails', id: string, name: string } | { __typename?: 'ChartOfAccountsCategoryAccountSet', id: string, name: string, hasSubAccounts: boolean, subAccounts: Array<{ __typename?: 'AccountDetails', id: string, name: string } | { __typename?: 'AccountSetDetails', id: string, name: string }> }> }> } | null };
+
 export type GetLoanDetailsQueryVariables = Exact<{
   id: Scalars['UUID']['input'];
 }>;
@@ -535,6 +547,112 @@ export function useSumsubPermalinkCreateMutation(baseOptions?: Apollo.MutationHo
 export type SumsubPermalinkCreateMutationHookResult = ReturnType<typeof useSumsubPermalinkCreateMutation>;
 export type SumsubPermalinkCreateMutationResult = Apollo.MutationResult<SumsubPermalinkCreateMutation>;
 export type SumsubPermalinkCreateMutationOptions = Apollo.BaseMutationOptions<SumsubPermalinkCreateMutation, SumsubPermalinkCreateMutationVariables>;
+export const ChartOfAccountCategoryAccountSetDocument = gql`
+    query ChartOfAccountCategoryAccountSet($id: UUID!) {
+  chartOfAccountsCategoryAccountSet(accountSetId: $id) {
+    id
+    name
+    hasSubAccounts
+    subAccounts {
+      ... on AccountDetails {
+        id
+        name
+      }
+      ... on AccountSetDetails {
+        id
+        name
+      }
+    }
+  }
+}
+    `;
+
+/**
+ * __useChartOfAccountCategoryAccountSetQuery__
+ *
+ * To run a query within a React component, call `useChartOfAccountCategoryAccountSetQuery` and pass it any options that fit your needs.
+ * When your component renders, `useChartOfAccountCategoryAccountSetQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useChartOfAccountCategoryAccountSetQuery({
+ *   variables: {
+ *      id: // value for 'id'
+ *   },
+ * });
+ */
+export function useChartOfAccountCategoryAccountSetQuery(baseOptions: Apollo.QueryHookOptions<ChartOfAccountCategoryAccountSetQuery, ChartOfAccountCategoryAccountSetQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<ChartOfAccountCategoryAccountSetQuery, ChartOfAccountCategoryAccountSetQueryVariables>(ChartOfAccountCategoryAccountSetDocument, options);
+      }
+export function useChartOfAccountCategoryAccountSetLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<ChartOfAccountCategoryAccountSetQuery, ChartOfAccountCategoryAccountSetQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<ChartOfAccountCategoryAccountSetQuery, ChartOfAccountCategoryAccountSetQueryVariables>(ChartOfAccountCategoryAccountSetDocument, options);
+        }
+export type ChartOfAccountCategoryAccountSetQueryHookResult = ReturnType<typeof useChartOfAccountCategoryAccountSetQuery>;
+export type ChartOfAccountCategoryAccountSetLazyQueryHookResult = ReturnType<typeof useChartOfAccountCategoryAccountSetLazyQuery>;
+export type ChartOfAccountCategoryAccountSetQueryResult = Apollo.QueryResult<ChartOfAccountCategoryAccountSetQuery, ChartOfAccountCategoryAccountSetQueryVariables>;
+export const GetChartOfAccountsDocument = gql`
+    query GetChartOfAccounts {
+  chartOfAccounts {
+    name
+    categories {
+      id
+      name
+      accounts {
+        ... on AccountDetails {
+          id
+          name
+        }
+        ... on ChartOfAccountsCategoryAccountSet {
+          id
+          name
+          hasSubAccounts
+          subAccounts {
+            ... on AccountDetails {
+              id
+              name
+            }
+            ... on AccountSetDetails {
+              id
+              name
+            }
+          }
+        }
+      }
+    }
+  }
+}
+    `;
+
+/**
+ * __useGetChartOfAccountsQuery__
+ *
+ * To run a query within a React component, call `useGetChartOfAccountsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetChartOfAccountsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetChartOfAccountsQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useGetChartOfAccountsQuery(baseOptions?: Apollo.QueryHookOptions<GetChartOfAccountsQuery, GetChartOfAccountsQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetChartOfAccountsQuery, GetChartOfAccountsQueryVariables>(GetChartOfAccountsDocument, options);
+      }
+export function useGetChartOfAccountsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetChartOfAccountsQuery, GetChartOfAccountsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetChartOfAccountsQuery, GetChartOfAccountsQueryVariables>(GetChartOfAccountsDocument, options);
+        }
+export type GetChartOfAccountsQueryHookResult = ReturnType<typeof useGetChartOfAccountsQuery>;
+export type GetChartOfAccountsLazyQueryHookResult = ReturnType<typeof useGetChartOfAccountsLazyQuery>;
+export type GetChartOfAccountsQueryResult = Apollo.QueryResult<GetChartOfAccountsQuery, GetChartOfAccountsQueryVariables>;
 export const GetLoanDetailsDocument = gql`
     query GetLoanDetails($id: UUID!) {
   loan(id: $id) {
