@@ -136,11 +136,21 @@ type LoanOutstanding {
 	usdBalance: UsdCents!
 }
 
+input LoanPartialPaymentInput {
+	loanId: UUID!
+	amount: UsdCents!
+}
+
+type LoanPartialPaymentPayload {
+	loan: Loan!
+}
+
 type Mutation {
 	shareholderEquityAdd(input: ShareholderEquityAddInput!): SuccessPayload!
 	sumsubPermalinkCreate(input: SumsubPermalinkCreateInput!): SumsubPermalinkCreatePayload!
 	currentTermsUpdate(input: CurrentTermsUpdateInput!): CurrentTermsUpdatePayload!
 	loanCreate(input: LoanCreateInput!): LoanCreatePayload!
+	loanPartialPayment(input: LoanPartialPaymentInput!): LoanPartialPaymentPayload!
 }
 
 """

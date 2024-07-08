@@ -17,6 +17,18 @@ wait_till_loan_collateralized() {
   [[ "$usd_balance" == "10000" ]] || return 1
 }
 
+outstanding_balance() {
+    variables=$(
+    jq -n \
+    --arg loanId "$1" \
+    '{ id: $loanId }'
+  )
+  exec_graphql 'alice' 'find-loan' "$variables"
+  outstanding_balance=$(graphql_output '.data.loan.balance.outstanding.usdBalance')
+  cache_value 'outstanding' "$outstanding_balance"
+
+}
+
 @test "loan: loan lifecycle" {
 
   exec_admin_graphql 'current-terms-update' 
@@ -61,5 +73,9 @@ wait_till_loan_collateralized() {
   retry 10 1 wait_till_loan_collateralized
   usd_balance=$(read_value "usd_balance")
   [[ "$usd_balance" == "10000" ]] || exit 1
+
+  outstanding_balance "$loan_id"
+  outstanding_balance=$(read_value "outstanding")
+  echo $outstanding_balance > outstanding_balance.txt
 
 }

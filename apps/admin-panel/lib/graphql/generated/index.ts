@@ -175,10 +175,21 @@ export type LoanOutstanding = {
   usdBalance: Scalars['UsdCents']['output'];
 };
 
+export type LoanPartialPaymentInput = {
+  amount: Scalars['UsdCents']['input'];
+  loanId: Scalars['UUID']['input'];
+};
+
+export type LoanPartialPaymentPayload = {
+  __typename?: 'LoanPartialPaymentPayload';
+  loan: Loan;
+};
+
 export type Mutation = {
   __typename?: 'Mutation';
   currentTermsUpdate: CurrentTermsUpdatePayload;
   loanCreate: LoanCreatePayload;
+  loanPartialPayment: LoanPartialPaymentPayload;
   shareholderEquityAdd: SuccessPayload;
   sumsubPermalinkCreate: SumsubPermalinkCreatePayload;
 };
@@ -191,6 +202,11 @@ export type MutationCurrentTermsUpdateArgs = {
 
 export type MutationLoanCreateArgs = {
   input: LoanCreateInput;
+};
+
+
+export type MutationLoanPartialPaymentArgs = {
+  input: LoanPartialPaymentInput;
 };
 
 

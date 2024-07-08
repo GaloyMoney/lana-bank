@@ -8,8 +8,7 @@ use sqlx::PgPool;
 
 use crate::{
     job::{JobRegistry, Jobs},
-    ledger::loan::*,
-    ledger::Ledger,
+    ledger::{loan::*, Ledger},
     primitives::*,
     user::Users,
 };
@@ -117,6 +116,42 @@ impl Loans {
             )
             .await?;
         tx.commit().await?;
+        Ok(loan)
+    }
+
+    pub async fn record_payment(
+        &self,
+        loan_id: LoanId,
+        amount: UsdCents,
+    ) -> Result<Loan, LoanError> {
+        let mut loan = self.loan_repo.find_by_id(loan_id).await?;
+        let balances = self.ledger.get_loan_balance(loan.account_ids).await?;
+
+        let tx_id = LedgerTxId::new();
+        let tx_ref =
+            loan.record_if_not_exceeding_outstanding(tx_id, balances.outstanding, amount)?;
+
+        let user = self.users.repo().find_by_id(loan.user_id).await?;
+        let mut db_tx = self.pool.begin().await?;
+        self.loan_repo.persist_in_tx(&mut db_tx, &mut loan).await?;
+        if !loan.is_completed() {
+            self.ledger
+                .record_payment(tx_id, loan.account_ids, user.account_ids, amount, tx_ref)
+                .await?;
+        } else {
+            self.ledger
+                .complete_loan(
+                    tx_id,
+                    loan.account_ids,
+                    user.account_ids,
+                    amount,
+                    balances.collateral,
+                    tx_ref,
+                )
+                .await?;
+            db_tx.commit().await?;
+        }
+
         Ok(loan)
     }
 }

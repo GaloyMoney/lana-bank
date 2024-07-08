@@ -105,6 +105,17 @@ impl Ledger {
             .ok_or(LedgerError::AccountNotFound)
     }
 
+    #[instrument(name = "lava.ledger.loan_balance", skip(self), err)]
+    pub async fn get_loan_balance(
+        &self,
+        account_ids: LoanAccountIds,
+    ) -> Result<LoanBalance, LedgerError> {
+        self.cala
+            .get_loan_balance(account_ids)
+            .await?
+            .ok_or(LedgerError::AccountNotFound)
+    }
+
     #[instrument(name = "lava.ledger.approve_loan", skip(self), err)]
     pub async fn approve_fixed_term_loan(
         &self,
@@ -185,10 +196,31 @@ impl Ledger {
     }
 
     #[instrument(name = "lava.ledger.record_payment", skip(self), err)]
-    pub async fn record_payment(
+    pub async fn record_payment_for_fixed_term_loan(
         &self,
         tx_id: LedgerTxId,
         loan_account_ids: FixedTermLoanAccountIds,
+        user_account_ids: UserLedgerAccountIds,
+        amount: UsdCents,
+        tx_ref: String,
+    ) -> Result<(), LedgerError> {
+        Ok(self
+            .cala
+            .execute_repay_fixed_term_loan_tx(
+                tx_id,
+                loan_account_ids,
+                user_account_ids,
+                amount.to_usd(),
+                tx_ref,
+            )
+            .await?)
+    }
+
+    #[instrument(name = "lava.ledger.record_payment", skip(self), err)]
+    pub async fn record_payment(
+        &self,
+        tx_id: LedgerTxId,
+        loan_account_ids: LoanAccountIds,
         user_account_ids: UserLedgerAccountIds,
         amount: UsdCents,
         tx_ref: String,
@@ -206,10 +238,33 @@ impl Ledger {
     }
 
     #[instrument(name = "lava.ledger.complete_loan", skip(self), err)]
-    pub async fn complete_loan(
+    pub async fn complete_fixed_term_loan(
         &self,
         tx_id: LedgerTxId,
         loan_account_ids: FixedTermLoanAccountIds,
+        user_account_ids: UserLedgerAccountIds,
+        payment_amount: UsdCents,
+        collateral_amount: Satoshis,
+        tx_ref: String,
+    ) -> Result<(), LedgerError> {
+        Ok(self
+            .cala
+            .execute_complete_fixed_term_loan_tx(
+                tx_id,
+                loan_account_ids,
+                user_account_ids,
+                payment_amount.to_usd(),
+                collateral_amount.to_btc(),
+                tx_ref,
+            )
+            .await?)
+    }
+
+    #[instrument(name = "lava.ledger.complete_loan", skip(self), err)]
+    pub async fn complete_loan(
+        &self,
+        tx_id: LedgerTxId,
+        loan_account_ids: LoanAccountIds,
         user_account_ids: UserLedgerAccountIds,
         payment_amount: UsdCents,
         collateral_amount: Satoshis,

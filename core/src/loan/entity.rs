@@ -32,6 +32,11 @@ pub enum LoanEvent {
         tx_ref: String,
         amount: UsdCents,
     },
+    PaymentRecorded {
+        tx_id: LedgerTxId,
+        tx_ref: String,
+        amount: UsdCents,
+    },
     Completed {
         tx_id: LedgerTxId,
         tx_ref: String,
@@ -155,6 +160,48 @@ impl Loan {
         });
         Ok((interest, tx_ref))
     }
+
+    pub fn record_if_not_exceeding_outstanding(
+        &mut self,
+        tx_id: LedgerTxId,
+        outstanding: UsdCents,
+        record_amount: UsdCents,
+    ) -> Result<String, LoanError> {
+        for event in self.events.iter() {
+            if let LoanEvent::Completed { .. } = event {
+                return Err(LoanError::AlreadyCompleted);
+            }
+        }
+
+        if outstanding < record_amount {
+            return Err(LoanError::PaymentExceedsOutstandingLoanAmount(
+                record_amount,
+                outstanding,
+            ));
+        }
+
+        let tx_ref = format!("{}-payment-{}", self.id, self.count_recorded_payments() + 1);
+        self.events.push(LoanEvent::PaymentRecorded {
+            tx_id,
+            tx_ref: tx_ref.clone(),
+            amount: record_amount,
+        });
+        if outstanding == record_amount {
+            self.events.push(LoanEvent::Completed {
+                tx_id,
+                tx_ref: tx_ref.clone(),
+                amount: record_amount,
+            });
+        }
+        Ok(tx_ref)
+    }
+
+    fn count_recorded_payments(&self) -> usize {
+        self.events
+            .iter()
+            .filter(|event| matches!(event, LoanEvent::PaymentRecorded { .. }))
+            .count()
+    }
 }
 
 impl Entity for Loan {
@@ -187,6 +234,7 @@ impl TryFrom<EntityEvents<LoanEvent>> for Loan {
                 }
                 LoanEvent::Collateralized { .. } => (),
                 LoanEvent::InterestIncurred { .. } => (),
+                LoanEvent::PaymentRecorded { .. } => (),
                 LoanEvent::Completed { .. } => (),
             }
         }

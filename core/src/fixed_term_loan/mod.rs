@@ -142,11 +142,17 @@ impl FixedTermLoans {
 
         if !loan.is_completed() {
             self.ledger
-                .record_payment(tx_id, loan.account_ids, user.account_ids, amount, tx_ref)
+                .record_payment_for_fixed_term_loan(
+                    tx_id,
+                    loan.account_ids,
+                    user.account_ids,
+                    amount,
+                    tx_ref,
+                )
                 .await?;
         } else {
             self.ledger
-                .complete_loan(
+                .complete_fixed_term_loan(
                     tx_id,
                     loan.account_ids,
                     user.account_ids,
