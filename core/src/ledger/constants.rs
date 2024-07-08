@@ -46,3 +46,6 @@ pub(super) const INCUR_INTEREST_CODE: &str = "INCUR_INTEREST";
 pub(super) const RECORD_PAYMENT_CODE: &str = "RECORD_PAYMENT";
 pub(super) const COMPLETE_LOAN_CODE: &str = "COMPLETE_LOAN";
 pub(super) const ADD_EQUITY_CODE: &str = "ADD_EQUITY";
+
+// Chart of Accounts pagination
+pub(super) const NUM_CATEGORY_ACCOUNTS: i64 = 25;

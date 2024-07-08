@@ -871,9 +871,13 @@ impl CalaClient {
 
     pub async fn chart_of_accounts<T: From<chart_of_accounts::ChartOfAccountsAccountSet>>(
         &self,
+        first: i64,
+        after: Option<String>,
     ) -> Result<Option<T>, CalaError> {
         let variables = chart_of_accounts::Variables {
             account_set_id: constants::CHART_OF_ACCOUNTS_ACCOUNT_SET_ID,
+            first,
+            after,
         };
         let response =
             Self::traced_gql_request::<ChartOfAccounts, _>(&self.client, &self.url, variables)

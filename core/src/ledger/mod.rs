@@ -271,7 +271,7 @@ impl Ledger {
 
     pub async fn chart_of_accounts(&self) -> Result<Option<LedgerChartOfAccounts>, LedgerError> {
         self.cala
-            .chart_of_accounts::<LedgerChartOfAccounts>()
+            .chart_of_accounts::<LedgerChartOfAccounts>(constants::NUM_CATEGORY_ACCOUNTS, None)
             .await
             .map(|gl| gl.map(LedgerChartOfAccounts::from))
             .map_err(|e| e.into())

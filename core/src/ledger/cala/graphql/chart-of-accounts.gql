@@ -1,4 +1,4 @@
-query ChartOfAccounts($accountSetId: UUID!) {
+query ChartOfAccounts($accountSetId: UUID!, $first: Int!, $after: String) {
   accountSet(id: $accountSetId) {
     ...accountSetDetails
     categories: members(first: 10) {
@@ -7,7 +7,7 @@ query ChartOfAccounts($accountSetId: UUID!) {
           __typename
           ... on AccountSet {
             ...accountSetDetails
-            categoryAccounts: members(first: 25, after: null) {
+            categoryAccounts: members(first: $first, after: $after) {
               pageInfo {
                 startCursor
                 endCursor
