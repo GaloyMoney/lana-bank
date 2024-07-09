@@ -5,8 +5,7 @@ gql`
     chartOfAccountsCategoryAccountSet(accountSetId: $id) {
       id
       name
-      hasSubAccounts
-      subAccounts {
+      subAccounts(first: 10) {
         ... on AccountDetails {
           id
           name

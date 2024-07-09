@@ -405,12 +405,12 @@ export type ChartOfAccountCategoryAccountSetQueryVariables = Exact<{
 }>;
 
 
-export type ChartOfAccountCategoryAccountSetQuery = { __typename?: 'Query', chartOfAccountsCategoryAccountSet?: { __typename?: 'ChartOfAccountsCategoryAccountSet', id: string, name: string, hasSubAccounts: boolean, subAccounts: Array<{ __typename?: 'AccountDetails', id: string, name: string } | { __typename?: 'AccountSetDetails', id: string, name: string }> } | null };
+export type ChartOfAccountCategoryAccountSetQuery = { __typename?: 'Query', chartOfAccountsCategoryAccountSet?: { __typename?: 'ChartOfAccountsCategoryAccountWithSubAccounts', id: string, name: string, subAccounts: Array<{ __typename?: 'AccountDetails', id: string, name: string } | { __typename?: 'AccountSetDetails', id: string, name: string }> } | null };
 
 export type GetChartOfAccountsQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type GetChartOfAccountsQuery = { __typename?: 'Query', chartOfAccounts?: { __typename?: 'ChartOfAccounts', name: string, categories: Array<{ __typename?: 'ChartOfAccountsCategory', id: string, name: string, accounts: Array<{ __typename?: 'AccountDetails', id: string, name: string } | { __typename?: 'ChartOfAccountsCategoryAccountSet', id: string, name: string, hasSubAccounts: boolean, subAccounts: Array<{ __typename?: 'AccountDetails', id: string, name: string } | { __typename?: 'AccountSetDetails', id: string, name: string }> }> }> } | null };
+export type GetChartOfAccountsQuery = { __typename?: 'Query', chartOfAccounts?: { __typename?: 'ChartOfAccounts', name: string, categories: Array<{ __typename?: 'ChartOfAccountsCategory', id: string, name: string, accounts: Array<{ __typename?: 'AccountDetails', id: string, name: string } | { __typename?: 'AccountSetDetails', id: string, name: string, hasSubAccounts: boolean }> }> } | null };
 
 export type GetLoanDetailsQueryVariables = Exact<{
   id: Scalars['UUID']['input'];
@@ -552,7 +552,6 @@ export const ChartOfAccountCategoryAccountSetDocument = gql`
   chartOfAccountsCategoryAccountSet(accountSetId: $id) {
     id
     name
-    hasSubAccounts
     subAccounts {
       ... on AccountDetails {
         id
@@ -606,20 +605,10 @@ export const GetChartOfAccountsDocument = gql`
           id
           name
         }
-        ... on ChartOfAccountsCategoryAccountSet {
+        ... on AccountSetDetails {
           id
           name
           hasSubAccounts
-          subAccounts {
-            ... on AccountDetails {
-              id
-              name
-            }
-            ... on AccountSetDetails {
-              id
-              name
-            }
-          }
         }
       }
     }

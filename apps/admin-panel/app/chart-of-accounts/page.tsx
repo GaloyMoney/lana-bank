@@ -38,9 +38,7 @@ function ChartOfAccountsPage() {
     }
   }
   const hasSubAccount = (account: ChartOfAccountsCategoryAccount) => {
-    return (
-      account.__typename === "ChartOfAccountsCategoryAccountSet" && account.hasSubAccounts
-    )
+    return account.__typename === "AccountSetDetails" && account.hasSubAccounts
   }
 
   const { data, loading } = useGetChartOfAccountsQuery()
@@ -96,9 +94,9 @@ function ChartOfAccountsPage() {
                       {displayingSubAccountForAny && <TableCell />}
                       <TableCell className="font-mono">{account.id}</TableCell>
                     </TableRow>
-                    {accountHasSubAccount &&
+                    {/* {accountHasSubAccount &&
                       isDisplayingSubAccount(account.id) &&
-                      account.__typename === "ChartOfAccountsCategoryAccountSet" &&
+                      account.__typename === "AccountSetDetails" &&
                       account.subAccounts.map((subAccount) => (
                         <TableRow key={subAccount.id}>
                           <TableCell />
@@ -106,7 +104,7 @@ function ChartOfAccountsPage() {
                           <TableCell>{subAccount.name}</TableCell>
                           <TableCell className="font-mono">{subAccount.id}</TableCell>
                         </TableRow>
-                      ))}
+                      ))} */}
                   </>
                 )
               })}

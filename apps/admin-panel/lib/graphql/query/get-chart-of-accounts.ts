@@ -12,20 +12,10 @@ gql`
             id
             name
           }
-          ... on ChartOfAccountsCategoryAccountSet {
+          ... on AccountSetDetails {
             id
             name
             hasSubAccounts
-            subAccounts {
-              ... on AccountDetails {
-                id
-                name
-              }
-              ... on AccountSetDetails {
-                id
-                name
-              }
-            }
           }
         }
       }
