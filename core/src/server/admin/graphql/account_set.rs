@@ -97,8 +97,8 @@ impl ChartOfAccountsCategoryAccountWithSubAccounts {
             account_set
                 .sub_accounts
                 .members
-                .iter()
-                .map(|sub_account| ChartOfAccountsCategorySubAccount::from(sub_account.clone()))
+                .into_iter()
+                .map(ChartOfAccountsCategorySubAccount::from)
                 .collect()
         } else {
             Vec::new()
@@ -145,8 +145,8 @@ impl From<crate::ledger::account_set::LedgerChartOfAccountsCategory> for ChartOf
             name: account_set.name,
             accounts: account_set
                 .category_accounts
-                .iter()
-                .map(|m| ChartOfAccountsCategoryAccount::from(m.clone()))
+                .into_iter()
+                .map(ChartOfAccountsCategoryAccount::from)
                 .collect(),
         }
     }
@@ -187,8 +187,8 @@ impl From<crate::ledger::account_set::LedgerAccountSetAndMemberBalances>
             balance: trial_balance.balance.into(),
             member_balances: trial_balance
                 .member_balances
-                .iter()
-                .map(|l| AccountSetMemberBalance::from(l.clone()))
+                .into_iter()
+                .map(AccountSetMemberBalance::from)
                 .collect(),
         }
     }
