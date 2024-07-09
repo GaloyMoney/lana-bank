@@ -110,8 +110,8 @@ impl From<crate::ledger::account::LedgerAccountBalance> for AccountBalance {
 
 #[derive(SimpleObject)]
 pub struct AccountDetails {
-    pub name: String,
     pub id: UUID,
+    pub name: String,
 }
 
 impl From<crate::ledger::account::LedgerChartOfAccountsAccount> for AccountDetails {

@@ -21,8 +21,9 @@ impl From<crate::ledger::account_set::LedgerAccountSetBalance> for AccountSetBal
 
 #[derive(SimpleObject)]
 pub struct AccountSetDetails {
-    pub name: String,
     pub id: UUID,
+    pub name: String,
+    pub has_sub_accounts: bool,
 }
 
 impl From<crate::ledger::account_set::LedgerChartOfAccountsAccountSet> for AccountSetDetails {
@@ -30,6 +31,7 @@ impl From<crate::ledger::account_set::LedgerChartOfAccountsAccountSet> for Accou
         AccountSetDetails {
             id: account_set.id.into(),
             name: account_set.name,
+            has_sub_accounts: account_set.has_sub_accounts,
         }
     }
 }
@@ -58,23 +60,21 @@ impl From<crate::ledger::account_set::LedgerChartOfAccountsCategorySubAccount>
 }
 
 #[derive(SimpleObject)]
-pub struct ChartOfAccountsCategoryAccountSet {
+pub struct ChartOfAccountsCategoryAccountWithSubAccounts {
     id: UUID,
     name: String,
-    has_sub_accounts: bool,
     sub_accounts: Vec<ChartOfAccountsCategorySubAccount>,
 }
 
 impl From<crate::ledger::account_set::LedgerChartOfAccountsCategoryAccountSet>
-    for ChartOfAccountsCategoryAccountSet
+    for ChartOfAccountsCategoryAccountWithSubAccounts
 {
     fn from(
         account_set: crate::ledger::account_set::LedgerChartOfAccountsCategoryAccountSet,
     ) -> Self {
-        ChartOfAccountsCategoryAccountSet {
+        ChartOfAccountsCategoryAccountWithSubAccounts {
             id: account_set.id.into(),
             name: account_set.name,
-            has_sub_accounts: account_set.sub_accounts.has_sub_accounts,
             sub_accounts: account_set
                 .sub_accounts
                 .members
@@ -88,7 +88,7 @@ impl From<crate::ledger::account_set::LedgerChartOfAccountsCategoryAccountSet>
 #[derive(Union)]
 enum ChartOfAccountsCategoryAccount {
     Account(super::account::AccountDetails),
-    AccountSet(ChartOfAccountsCategoryAccountSet),
+    AccountSet(AccountSetDetails),
 }
 
 impl From<crate::ledger::account_set::LedgerChartOfAccountsCategoryAccount>

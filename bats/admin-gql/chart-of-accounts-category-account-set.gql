@@ -1,4 +1,4 @@
-query ChartOfAccountsCategoryAccountSet($accountSetId: UUID!) {
+query ChartOfAccountsCategoryAccountWithSubAccounts($accountSetId: UUID!) {
   chartOfAccountsCategoryAccountSet(accountSetId: $accountSetId) {
     name
     subAccounts {
@@ -12,6 +12,7 @@ query ChartOfAccountsCategoryAccountSet($accountSetId: UUID!) {
         __typename
         id
         name
+        hasSubAccounts
       }
     }
   }

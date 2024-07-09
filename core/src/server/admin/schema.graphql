@@ -10,8 +10,8 @@ type AccountBalancesByCurrency {
 }
 
 type AccountDetails {
-	name: String!
 	id: UUID!
+	name: String!
 }
 
 type AccountSetAndMemberBalances {
@@ -26,8 +26,9 @@ type AccountSetBalance {
 }
 
 type AccountSetDetails {
-	name: String!
 	id: UUID!
+	name: String!
+	hasSubAccounts: Boolean!
 }
 
 union AccountSetMemberBalance = AccountBalance | AccountSetBalance
@@ -59,12 +60,11 @@ type ChartOfAccountsCategory {
 	accounts: [ChartOfAccountsCategoryAccount!]!
 }
 
-union ChartOfAccountsCategoryAccount = AccountDetails | ChartOfAccountsCategoryAccountSet
+union ChartOfAccountsCategoryAccount = AccountDetails | AccountSetDetails
 
-type ChartOfAccountsCategoryAccountSet {
+type ChartOfAccountsCategoryAccountWithSubAccounts {
 	id: UUID!
 	name: String!
-	hasSubAccounts: Boolean!
 	subAccounts: [ChartOfAccountsCategorySubAccount!]!
 }
 
@@ -213,7 +213,7 @@ type Query {
 	users(first: Int!, after: String): UserConnection!
 	trialBalance: AccountSetAndMemberBalances
 	chartOfAccounts: ChartOfAccounts
-	chartOfAccountsCategoryAccountSet(accountSetId: UUID!): ChartOfAccountsCategoryAccountSet
+	chartOfAccountsCategoryAccountSet(accountSetId: UUID!): ChartOfAccountsCategoryAccountWithSubAccounts
 }
 
 scalar Satoshis

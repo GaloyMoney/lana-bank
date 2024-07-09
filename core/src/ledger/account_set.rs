@@ -109,6 +109,7 @@ pub struct LedgerChartOfAccountsAccountSet {
     pub id: LedgerAccountSetId,
     pub name: String,
     pub normal_balance_type: LedgerDebitOrCredit,
+    pub has_sub_accounts: bool,
 }
 
 impl From<chart_of_accounts::accountSetDetails> for LedgerChartOfAccountsAccountSet {
@@ -117,6 +118,7 @@ impl From<chart_of_accounts::accountSetDetails> for LedgerChartOfAccountsAccount
             id: account_set_details.account_set_id.into(),
             name: account_set_details.name,
             normal_balance_type: account_set_details.normal_balance_type.into(),
+            has_sub_accounts: account_set_details.members.page_info.start_cursor.is_some(),
         }
     }
 }
@@ -129,6 +131,18 @@ impl From<chart_of_accounts_category_account::accountSetDetails>
             id: account_set_details.account_set_id.into(),
             name: account_set_details.name,
             normal_balance_type: account_set_details.normal_balance_type.into(),
+            has_sub_accounts: account_set_details.members.page_info.start_cursor.is_some(),
+        }
+    }
+}
+
+impl From<chart_of_accounts::ChartOfAccountsAccountSetCategoriesEdgesNodeOnAccountSetCategoryAccountsEdgesNodeOnAccountSet> for LedgerChartOfAccountsAccountSet {
+    fn from(account_set: chart_of_accounts::ChartOfAccountsAccountSetCategoriesEdgesNodeOnAccountSetCategoryAccountsEdgesNodeOnAccountSet) -> Self {
+        LedgerChartOfAccountsAccountSet{
+            id: account_set.account_set_details.account_set_id.into(),
+            name: account_set.account_set_details.name,
+            normal_balance_type: account_set.account_set_details.normal_balance_type.into(),
+            has_sub_accounts: account_set.account_set_details.members.page_info.start_cursor.is_some(),
         }
     }
 }
@@ -211,17 +225,6 @@ pub struct LedgerChartOfAccountsCategoryAccountSet {
     pub sub_accounts: LedgerChartOfAccountsCategorySubAccounts,
 }
 
-impl From<chart_of_accounts::ChartOfAccountsAccountSetCategoriesEdgesNodeOnAccountSetCategoryAccountsEdgesNodeOnAccountSet> for LedgerChartOfAccountsCategoryAccountSet {
-    fn from(account_set: chart_of_accounts::ChartOfAccountsAccountSetCategoriesEdgesNodeOnAccountSetCategoryAccountsEdgesNodeOnAccountSet) -> Self {
-        LedgerChartOfAccountsCategoryAccountSet{
-            id: account_set.account_set_details.account_set_id.into(),
-            name: account_set.account_set_details.name,
-            normal_balance_type: account_set.account_set_details.normal_balance_type.into(),
-            sub_accounts: account_set.category_sub_accounts.into(),
-        }
-    }
-}
-
 impl From<chart_of_accounts_category_account::ChartOfAccountsCategoryAccountAccountSet>
     for LedgerChartOfAccountsCategoryAccountSet
 {
@@ -240,7 +243,7 @@ impl From<chart_of_accounts_category_account::ChartOfAccountsCategoryAccountAcco
 #[derive(Debug, Clone)]
 pub enum LedgerChartOfAccountsCategoryAccount {
     Account(LedgerChartOfAccountsAccount),
-    AccountSet(LedgerChartOfAccountsCategoryAccountSet),
+    AccountSet(LedgerChartOfAccountsAccountSet),
 }
 
 impl
@@ -262,7 +265,7 @@ impl
                 }
                 chart_of_accounts::ChartOfAccountsAccountSetCategoriesEdgesNodeOnAccountSetCategoryAccountsEdgesNode::AccountSet(node) => {
                     LedgerChartOfAccountsCategoryAccount::AccountSet(
-                        LedgerChartOfAccountsCategoryAccountSet::from(node.clone()),
+                        LedgerChartOfAccountsAccountSet::from(node.clone()),
                     )
                 }
             })

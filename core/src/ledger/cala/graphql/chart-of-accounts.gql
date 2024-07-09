@@ -93,6 +93,11 @@ fragment accountSetDetails on AccountSet {
   accountSetId
   name
   normalBalanceType
+  members(first: 1) {
+    pageInfo {
+      startCursor
+    }
+  }
 }
 
 fragment accountDetails on Account {

@@ -61,6 +61,7 @@ export type AccountSetBalance = {
 
 export type AccountSetDetails = {
   __typename?: 'AccountSetDetails';
+  hasSubAccounts: Scalars['Boolean']['output'];
   id: Scalars['UUID']['output'];
   name: Scalars['String']['output'];
 };
@@ -97,11 +98,10 @@ export type ChartOfAccountsCategory = {
   name: Scalars['String']['output'];
 };
 
-export type ChartOfAccountsCategoryAccount = AccountDetails | ChartOfAccountsCategoryAccountSet;
+export type ChartOfAccountsCategoryAccount = AccountDetails | AccountSetDetails;
 
-export type ChartOfAccountsCategoryAccountSet = {
-  __typename?: 'ChartOfAccountsCategoryAccountSet';
-  hasSubAccounts: Scalars['Boolean']['output'];
+export type ChartOfAccountsCategoryAccountWithSubAccounts = {
+  __typename?: 'ChartOfAccountsCategoryAccountWithSubAccounts';
   id: Scalars['UUID']['output'];
   name: Scalars['String']['output'];
   subAccounts: Array<ChartOfAccountsCategorySubAccount>;
@@ -271,7 +271,7 @@ export enum Period {
 export type Query = {
   __typename?: 'Query';
   chartOfAccounts?: Maybe<ChartOfAccounts>;
-  chartOfAccountsCategoryAccountSet?: Maybe<ChartOfAccountsCategoryAccountSet>;
+  chartOfAccountsCategoryAccountSet?: Maybe<ChartOfAccountsCategoryAccountWithSubAccounts>;
   loan?: Maybe<Loan>;
   trialBalance?: Maybe<AccountSetAndMemberBalances>;
   user?: Maybe<User>;
