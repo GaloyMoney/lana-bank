@@ -83,6 +83,30 @@ impl Loan {
         }
     }
 
+    fn payments(&self) -> UsdCents {
+        self.events
+            .iter()
+            .filter_map(|event| match event {
+                LoanEvent::PaymentRecorded { amount, .. } => Some(*amount),
+                _ => None,
+            })
+            .fold(UsdCents::ZERO, |acc, amount| acc + amount)
+    }
+
+    fn interest_recorded(&self) -> UsdCents {
+        self.events
+            .iter()
+            .filter_map(|event| match event {
+                LoanEvent::InterestIncurred { amount, .. } => Some(*amount),
+                _ => None,
+            })
+            .fold(UsdCents::ZERO, |acc, amount| acc + amount)
+    }
+
+    pub fn outstanding(&self) -> UsdCents {
+        self.initial_principal() + self.interest_recorded() - self.payments()
+    }
+
     pub fn is_collateralized(&self) -> bool {
         for event in self.events.iter() {
             match event {
@@ -164,7 +188,6 @@ impl Loan {
     pub fn record_if_not_exceeding_outstanding(
         &mut self,
         tx_id: LedgerTxId,
-        outstanding: UsdCents,
         record_amount: UsdCents,
     ) -> Result<String, LoanError> {
         for event in self.events.iter() {
@@ -172,6 +195,8 @@ impl Loan {
                 return Err(LoanError::AlreadyCompleted);
             }
         }
+
+        let outstanding = self.outstanding();
 
         if outstanding < record_amount {
             return Err(LoanError::PaymentExceedsOutstandingLoanAmount(

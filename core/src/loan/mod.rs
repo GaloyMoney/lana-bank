@@ -127,10 +127,10 @@ impl Loans {
     ) -> Result<Loan, LoanError> {
         let mut loan = self.loan_repo.find_by_id(loan_id).await?;
         let balances = self.ledger.get_loan_balance(loan.account_ids).await?;
+        assert_eq!(balances.outstanding, loan.outstanding());
 
         let tx_id = LedgerTxId::new();
-        let tx_ref =
-            loan.record_if_not_exceeding_outstanding(tx_id, balances.outstanding, amount)?;
+        let tx_ref = loan.record_if_not_exceeding_outstanding(tx_id, amount)?;
 
         let user = self.users.repo().find_by_id(loan.user_id).await?;
         let mut db_tx = self.pool.begin().await?;

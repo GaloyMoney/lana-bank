@@ -268,6 +268,14 @@ impl std::ops::Sub<UsdCents> for UsdCents {
     }
 }
 
+impl std::ops::Add<UsdCents> for UsdCents {
+    type Output = Self;
+
+    fn add(self, other: UsdCents) -> Self {
+        Self(self.0 + other.0)
+    }
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 pub struct PriceOfOneBTC(UsdCents);
 
