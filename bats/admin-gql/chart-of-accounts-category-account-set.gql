@@ -1,7 +1,7 @@
 query ChartOfAccountsCategoryAccountWithSubAccounts($accountSetId: UUID!) {
   chartOfAccountsCategoryAccountSet(accountSetId: $accountSetId) {
     name
-    subAccounts {
+    subAccounts(first: 10) {
       __typename
       ... on AccountDetails {
         __typename

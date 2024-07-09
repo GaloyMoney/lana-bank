@@ -752,8 +752,14 @@ impl CalaClient {
     >(
         &self,
         account_set_id: Uuid,
+        first: i64,
+        after: Option<String>,
     ) -> Result<Option<T>, CalaError> {
-        let variables = chart_of_accounts_category_account::Variables { account_set_id };
+        let variables = chart_of_accounts_category_account::Variables {
+            account_set_id,
+            first,
+            after,
+        };
         let response = Self::traced_gql_request::<ChartOfAccountsCategoryAccount, _>(
             &self.client,
             &self.url,

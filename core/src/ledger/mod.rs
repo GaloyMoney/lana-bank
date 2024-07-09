@@ -220,10 +220,14 @@ impl Ledger {
     pub async fn chart_of_accounts_category_account_set(
         &self,
         account_set_id: LedgerAccountSetId,
+        first: i64,
+        after: Option<String>,
     ) -> Result<Option<LedgerChartOfAccountsCategoryAccountSet>, LedgerError> {
         self.cala
             .chart_of_accounts_category_account::<LedgerChartOfAccountsCategoryAccountSet>(
                 account_set_id.into(),
+                first,
+                after,
             )
             .await
             .map(|gl| gl.map(LedgerChartOfAccountsCategoryAccountSet::from))

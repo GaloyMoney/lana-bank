@@ -38,10 +38,14 @@ query ChartOfAccounts($accountSetId: UUID!) {
   }
 }
 
-query ChartOfAccountsCategoryAccount($accountSetId: UUID!) {
+query ChartOfAccountsCategoryAccount(
+  $accountSetId: UUID!
+  $first: Int!
+  $after: String
+) {
   accountSet(id: $accountSetId) {
     ...accountSetDetails
-    categorySubAccounts: members(first: 10, after: null) {
+    categorySubAccounts: members(first: $first, after: $after) {
       pageInfo {
         startCursor
         endCursor

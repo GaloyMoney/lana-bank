@@ -1,6 +1,6 @@
 use async_graphql::*;
 
-use crate::server::shared_graphql::primitives::UUID;
+use crate::{app::LavaApp, server::shared_graphql::primitives::UUID};
 
 use super::account::AccountBalancesByCurrency;
 
@@ -60,10 +60,10 @@ impl From<crate::ledger::account_set::LedgerChartOfAccountsCategorySubAccount>
 }
 
 #[derive(SimpleObject)]
+#[graphql(complex)]
 pub struct ChartOfAccountsCategoryAccountWithSubAccounts {
     id: UUID,
     name: String,
-    sub_accounts: Vec<ChartOfAccountsCategorySubAccount>,
 }
 
 impl From<crate::ledger::account_set::LedgerChartOfAccountsCategoryAccountSet>
@@ -75,13 +75,36 @@ impl From<crate::ledger::account_set::LedgerChartOfAccountsCategoryAccountSet>
         ChartOfAccountsCategoryAccountWithSubAccounts {
             id: account_set.id.into(),
             name: account_set.name,
-            sub_accounts: account_set
+        }
+    }
+}
+
+#[ComplexObject]
+impl ChartOfAccountsCategoryAccountWithSubAccounts {
+    async fn sub_accounts(
+        &self,
+        ctx: &Context<'_>,
+        first: i32,
+        after: Option<String>,
+    ) -> async_graphql::Result<Vec<ChartOfAccountsCategorySubAccount>> {
+        let app = ctx.data_unchecked::<LavaApp>();
+        let account_set = app
+            .ledger()
+            .chart_of_accounts_category_account_set(self.id.clone().into(), first.into(), after)
+            .await?;
+
+        let sub_accounts = if let Some(account_set) = account_set {
+            account_set
                 .sub_accounts
                 .members
                 .iter()
-                .map(|member| ChartOfAccountsCategorySubAccount::from(member.clone()))
-                .collect(),
-        }
+                .map(|sub_account| ChartOfAccountsCategorySubAccount::from(sub_account.clone()))
+                .collect()
+        } else {
+            Vec::new()
+        };
+
+        Ok(sub_accounts)
     }
 }
 

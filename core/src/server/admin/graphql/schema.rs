@@ -87,7 +87,7 @@ impl Query {
         let app = ctx.data_unchecked::<LavaApp>();
         let chart_of_accounts = app
             .ledger()
-            .chart_of_accounts_category_account_set(account_set_id.into())
+            .chart_of_accounts_category_account_set(account_set_id.into(), 0, None)
             .await?;
         Ok(chart_of_accounts.map(ChartOfAccountsCategoryAccountWithSubAccounts::from))
     }

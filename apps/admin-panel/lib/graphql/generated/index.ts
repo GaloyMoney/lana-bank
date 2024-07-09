@@ -107,6 +107,12 @@ export type ChartOfAccountsCategoryAccountWithSubAccounts = {
   subAccounts: Array<ChartOfAccountsCategorySubAccount>;
 };
 
+
+export type ChartOfAccountsCategoryAccountWithSubAccountsSubAccountsArgs = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  first: Scalars['Int']['input'];
+};
+
 export type ChartOfAccountsCategorySubAccount = AccountDetails | AccountSetDetails;
 
 export type Checking = {
