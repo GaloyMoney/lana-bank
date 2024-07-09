@@ -54,21 +54,18 @@ type ChartOfAccounts {
 	categories: [ChartOfAccountsCategory!]!
 }
 
+type ChartOfAccountsAccountSet {
+	id: UUID!
+	name: String!
+	subAccounts(first: Int!, after: String): [ChartOfAccountsSubAccount!]!
+}
+
 type ChartOfAccountsCategory {
-	id: UUID!
 	name: String!
-	accounts: [ChartOfAccountsCategoryAccount!]!
+	accounts: [ChartOfAccountsSubAccount!]!
 }
 
-union ChartOfAccountsCategoryAccount = AccountDetails | AccountSetDetails
-
-type ChartOfAccountsCategoryAccountWithSubAccounts {
-	id: UUID!
-	name: String!
-	subAccounts(first: Int!, after: String): [ChartOfAccountsCategorySubAccount!]!
-}
-
-union ChartOfAccountsCategorySubAccount = AccountDetails | AccountSetDetails
+union ChartOfAccountsSubAccount = AccountDetails | AccountSetDetails
 
 type Checking {
 	settled: UsdBalance!
@@ -213,7 +210,7 @@ type Query {
 	users(first: Int!, after: String): UserConnection!
 	trialBalance: AccountSetAndMemberBalances
 	chartOfAccounts: ChartOfAccounts
-	chartOfAccountsCategoryAccountSet(accountSetId: UUID!): ChartOfAccountsCategoryAccountWithSubAccounts
+	chartOfAccountsAccountSet(accountSetId: UUID!): ChartOfAccountsAccountSet
 }
 
 scalar Satoshis

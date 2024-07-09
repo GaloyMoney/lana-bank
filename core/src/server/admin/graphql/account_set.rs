@@ -37,42 +37,57 @@ impl From<crate::ledger::account_set::LedgerChartOfAccountsAccountSet> for Accou
 }
 
 #[derive(Union)]
-enum ChartOfAccountsCategorySubAccount {
+enum ChartOfAccountsSubAccount {
     Account(super::account::AccountDetails),
     AccountSet(AccountSetDetails),
 }
 
 impl From<crate::ledger::account_set::LedgerChartOfAccountsCategorySubAccount>
-    for ChartOfAccountsCategorySubAccount
+    for ChartOfAccountsSubAccount
 {
     fn from(member: crate::ledger::account_set::LedgerChartOfAccountsCategorySubAccount) -> Self {
         match member {
             crate::ledger::account_set::LedgerChartOfAccountsCategorySubAccount::Account(val) => {
-                ChartOfAccountsCategorySubAccount::Account(super::account::AccountDetails::from(
-                    val,
-                ))
+                ChartOfAccountsSubAccount::Account(super::account::AccountDetails::from(val))
             }
             crate::ledger::account_set::LedgerChartOfAccountsCategorySubAccount::AccountSet(
                 val,
-            ) => ChartOfAccountsCategorySubAccount::AccountSet(AccountSetDetails::from(val)),
+            ) => ChartOfAccountsSubAccount::AccountSet(AccountSetDetails::from(val)),
+        }
+    }
+}
+
+impl From<crate::ledger::account_set::LedgerChartOfAccountsCategoryAccount>
+    for ChartOfAccountsSubAccount
+{
+    fn from(
+        category_account: crate::ledger::account_set::LedgerChartOfAccountsCategoryAccount,
+    ) -> Self {
+        match category_account {
+            crate::ledger::account_set::LedgerChartOfAccountsCategoryAccount::Account(val) => {
+                ChartOfAccountsSubAccount::Account(val.into())
+            }
+            crate::ledger::account_set::LedgerChartOfAccountsCategoryAccount::AccountSet(val) => {
+                ChartOfAccountsSubAccount::AccountSet(val.into())
+            }
         }
     }
 }
 
 #[derive(SimpleObject)]
 #[graphql(complex)]
-pub struct ChartOfAccountsCategoryAccountWithSubAccounts {
+pub struct ChartOfAccountsAccountSet {
     id: UUID,
     name: String,
 }
 
 impl From<crate::ledger::account_set::LedgerChartOfAccountsCategoryAccountSet>
-    for ChartOfAccountsCategoryAccountWithSubAccounts
+    for ChartOfAccountsAccountSet
 {
     fn from(
         account_set: crate::ledger::account_set::LedgerChartOfAccountsCategoryAccountSet,
     ) -> Self {
-        ChartOfAccountsCategoryAccountWithSubAccounts {
+        ChartOfAccountsAccountSet {
             id: account_set.id.into(),
             name: account_set.name,
         }
@@ -80,17 +95,17 @@ impl From<crate::ledger::account_set::LedgerChartOfAccountsCategoryAccountSet>
 }
 
 #[ComplexObject]
-impl ChartOfAccountsCategoryAccountWithSubAccounts {
+impl ChartOfAccountsAccountSet {
     async fn sub_accounts(
         &self,
         ctx: &Context<'_>,
         first: i32,
         after: Option<String>,
-    ) -> async_graphql::Result<Vec<ChartOfAccountsCategorySubAccount>> {
+    ) -> async_graphql::Result<Vec<ChartOfAccountsSubAccount>> {
         let app = ctx.data_unchecked::<LavaApp>();
         let account_set = app
             .ledger()
-            .chart_of_accounts_category_account_set(self.id.clone().into(), first.into(), after)
+            .chart_of_accounts_account_set(self.id.clone().into(), first.into(), after)
             .await?;
 
         let sub_accounts = if let Some(account_set) = account_set {
@@ -98,7 +113,7 @@ impl ChartOfAccountsCategoryAccountWithSubAccounts {
                 .sub_accounts
                 .members
                 .into_iter()
-                .map(ChartOfAccountsCategorySubAccount::from)
+                .map(ChartOfAccountsSubAccount::from)
                 .collect()
         } else {
             Vec::new()
@@ -108,45 +123,20 @@ impl ChartOfAccountsCategoryAccountWithSubAccounts {
     }
 }
 
-#[derive(Union)]
-enum ChartOfAccountsCategoryAccount {
-    Account(super::account::AccountDetails),
-    AccountSet(AccountSetDetails),
-}
-
-impl From<crate::ledger::account_set::LedgerChartOfAccountsCategoryAccount>
-    for ChartOfAccountsCategoryAccount
-{
-    fn from(
-        category_account: crate::ledger::account_set::LedgerChartOfAccountsCategoryAccount,
-    ) -> Self {
-        match category_account {
-            crate::ledger::account_set::LedgerChartOfAccountsCategoryAccount::Account(val) => {
-                ChartOfAccountsCategoryAccount::Account(val.into())
-            }
-            crate::ledger::account_set::LedgerChartOfAccountsCategoryAccount::AccountSet(val) => {
-                ChartOfAccountsCategoryAccount::AccountSet(val.into())
-            }
-        }
-    }
-}
-
 #[derive(SimpleObject)]
 pub struct ChartOfAccountsCategory {
-    id: UUID,
     name: String,
-    accounts: Vec<ChartOfAccountsCategoryAccount>,
+    accounts: Vec<ChartOfAccountsSubAccount>,
 }
 
 impl From<crate::ledger::account_set::LedgerChartOfAccountsCategory> for ChartOfAccountsCategory {
     fn from(account_set: crate::ledger::account_set::LedgerChartOfAccountsCategory) -> Self {
         ChartOfAccountsCategory {
-            id: account_set.id.into(),
             name: account_set.name,
             accounts: account_set
                 .category_accounts
                 .into_iter()
-                .map(ChartOfAccountsCategoryAccount::from)
+                .map(ChartOfAccountsSubAccount::from)
                 .collect(),
         }
     }

@@ -91,29 +91,26 @@ export type ChartOfAccounts = {
   name: Scalars['String']['output'];
 };
 
-export type ChartOfAccountsCategory = {
-  __typename?: 'ChartOfAccountsCategory';
-  accounts: Array<ChartOfAccountsCategoryAccount>;
+export type ChartOfAccountsAccountSet = {
+  __typename?: 'ChartOfAccountsAccountSet';
   id: Scalars['UUID']['output'];
   name: Scalars['String']['output'];
-};
-
-export type ChartOfAccountsCategoryAccount = AccountDetails | AccountSetDetails;
-
-export type ChartOfAccountsCategoryAccountWithSubAccounts = {
-  __typename?: 'ChartOfAccountsCategoryAccountWithSubAccounts';
-  id: Scalars['UUID']['output'];
-  name: Scalars['String']['output'];
-  subAccounts: Array<ChartOfAccountsCategorySubAccount>;
+  subAccounts: Array<ChartOfAccountsSubAccount>;
 };
 
 
-export type ChartOfAccountsCategoryAccountWithSubAccountsSubAccountsArgs = {
+export type ChartOfAccountsAccountSetSubAccountsArgs = {
   after?: InputMaybe<Scalars['String']['input']>;
   first: Scalars['Int']['input'];
 };
 
-export type ChartOfAccountsCategorySubAccount = AccountDetails | AccountSetDetails;
+export type ChartOfAccountsCategory = {
+  __typename?: 'ChartOfAccountsCategory';
+  accounts: Array<ChartOfAccountsSubAccount>;
+  name: Scalars['String']['output'];
+};
+
+export type ChartOfAccountsSubAccount = AccountDetails | AccountSetDetails;
 
 export type Checking = {
   __typename?: 'Checking';
@@ -277,7 +274,7 @@ export enum Period {
 export type Query = {
   __typename?: 'Query';
   chartOfAccounts?: Maybe<ChartOfAccounts>;
-  chartOfAccountsCategoryAccountSet?: Maybe<ChartOfAccountsCategoryAccountWithSubAccounts>;
+  chartOfAccountsAccountSet?: Maybe<ChartOfAccountsAccountSet>;
   loan?: Maybe<Loan>;
   trialBalance?: Maybe<AccountSetAndMemberBalances>;
   user?: Maybe<User>;
@@ -285,7 +282,7 @@ export type Query = {
 };
 
 
-export type QueryChartOfAccountsCategoryAccountSetArgs = {
+export type QueryChartOfAccountsAccountSetArgs = {
   accountSetId: Scalars['UUID']['input'];
 };
 

@@ -79,17 +79,17 @@ impl Query {
         Ok(chart_of_accounts.map(ChartOfAccounts::from))
     }
 
-    async fn chart_of_accounts_category_account_set(
+    async fn chart_of_accounts_account_set(
         &self,
         ctx: &Context<'_>,
         account_set_id: UUID,
-    ) -> async_graphql::Result<Option<ChartOfAccountsCategoryAccountWithSubAccounts>> {
+    ) -> async_graphql::Result<Option<ChartOfAccountsAccountSet>> {
         let app = ctx.data_unchecked::<LavaApp>();
         let chart_of_accounts = app
             .ledger()
-            .chart_of_accounts_category_account_set(account_set_id.into(), 0, None)
+            .chart_of_accounts_account_set(account_set_id.into(), 0, None)
             .await?;
-        Ok(chart_of_accounts.map(ChartOfAccountsCategoryAccountWithSubAccounts::from))
+        Ok(chart_of_accounts.map(ChartOfAccountsAccountSet::from))
     }
 }
 

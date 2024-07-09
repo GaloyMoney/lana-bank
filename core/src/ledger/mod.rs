@@ -217,7 +217,7 @@ impl Ledger {
             .map_err(|e| e.into())
     }
 
-    pub async fn chart_of_accounts_category_account_set(
+    pub async fn chart_of_accounts_account_set(
         &self,
         account_set_id: LedgerAccountSetId,
         first: i64,

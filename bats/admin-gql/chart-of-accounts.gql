@@ -2,17 +2,15 @@ query ChartOfAccount {
   chartOfAccounts {
     name
     categories {
-      id
       name
       accounts {
+        __typename
         ... on AccountSetDetails {
-          __typename
           queryableId: id
           name
           hasSubAccounts
         }
         ... on AccountDetails {
-          __typename
           id
           name
         }
