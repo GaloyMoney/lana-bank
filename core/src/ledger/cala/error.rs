@@ -21,3 +21,18 @@ impl From<Vec<graphql_client::Error>> for CalaError {
         CalaError::UnknownGqlError(error_string)
     }
 }
+
+impl Clone for CalaError {
+    fn clone(&self) -> Self {
+        match self {
+            CalaError::Reqwest(_) => {
+                CalaError::UnknownGqlError("Reqwest error cannot be cloned".to_string())
+            }
+            CalaError::UnknownGqlError(err) => CalaError::UnknownGqlError(err.clone()),
+            CalaError::MissingDataField => CalaError::MissingDataField,
+            CalaError::CouldNotFindAccountByCode(err) => {
+                CalaError::CouldNotFindAccountByCode(err.clone())
+            }
+        }
+    }
+}

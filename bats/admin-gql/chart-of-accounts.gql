@@ -4,7 +4,7 @@ query ChartOfAccount {
     categories {
       id
       name
-      accounts {
+      accounts(first: 5) {
         ... on ChartOfAccountsCategoryAccountSet {
           __typename
           queryableId: id

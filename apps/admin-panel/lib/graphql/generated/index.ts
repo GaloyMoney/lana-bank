@@ -97,6 +97,12 @@ export type ChartOfAccountsCategory = {
   name: Scalars['String']['output'];
 };
 
+
+export type ChartOfAccountsCategoryAccountsArgs = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  first: Scalars['Int']['input'];
+};
+
 export type ChartOfAccountsCategoryAccount = AccountDetails | ChartOfAccountsCategoryAccountSet;
 
 export type ChartOfAccountsCategoryAccountSet = {

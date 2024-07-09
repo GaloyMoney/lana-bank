@@ -1,8 +1,8 @@
-use async_graphql::*;
+use async_graphql::{dataloader::DataLoader, *};
 
-use crate::server::shared_graphql::primitives::UUID;
+use crate::server::shared_graphql::{objects::PaginationKey, primitives::UUID};
 
-use super::account::AccountBalancesByCurrency;
+use super::{account::AccountBalancesByCurrency, loader::ChartOfAccountsLoader};
 
 #[derive(SimpleObject)]
 pub struct AccountSetBalance {
@@ -19,7 +19,7 @@ impl From<crate::ledger::account_set::LedgerAccountSetBalance> for AccountSetBal
     }
 }
 
-#[derive(SimpleObject)]
+#[derive(SimpleObject, Debug, Clone)]
 pub struct AccountSetDetails {
     pub name: String,
     pub id: UUID,
@@ -34,7 +34,7 @@ impl From<crate::ledger::account_set::LedgerChartOfAccountsAccountSet> for Accou
     }
 }
 
-#[derive(Union)]
+#[derive(Union, Debug, Clone)]
 enum ChartOfAccountsCategorySubAccount {
     Account(super::account::AccountDetails),
     AccountSet(AccountSetDetails),
@@ -57,7 +57,7 @@ impl From<crate::ledger::account_set::LedgerChartOfAccountsCategorySubAccount>
     }
 }
 
-#[derive(SimpleObject)]
+#[derive(SimpleObject, Debug, Clone)]
 pub struct ChartOfAccountsCategoryAccountSet {
     id: UUID,
     name: String,
@@ -85,8 +85,8 @@ impl From<crate::ledger::account_set::LedgerChartOfAccountsCategoryAccountSet>
     }
 }
 
-#[derive(Union)]
-enum ChartOfAccountsCategoryAccount {
+#[derive(Union, Debug, Clone)]
+pub enum ChartOfAccountsCategoryAccount {
     Account(super::account::AccountDetails),
     AccountSet(ChartOfAccountsCategoryAccountSet),
 }
@@ -109,10 +109,10 @@ impl From<crate::ledger::account_set::LedgerChartOfAccountsCategoryAccount>
 }
 
 #[derive(SimpleObject)]
+#[graphql(complex)]
 pub struct ChartOfAccountsCategory {
     id: UUID,
     name: String,
-    accounts: Vec<ChartOfAccountsCategoryAccount>,
 }
 
 impl From<crate::ledger::account_set::LedgerChartOfAccountsCategory> for ChartOfAccountsCategory {
@@ -120,12 +120,28 @@ impl From<crate::ledger::account_set::LedgerChartOfAccountsCategory> for ChartOf
         ChartOfAccountsCategory {
             id: account_set.id.into(),
             name: account_set.name,
-            accounts: account_set
-                .category_accounts
-                .iter()
-                .map(|m| ChartOfAccountsCategoryAccount::from(m.clone()))
-                .collect(),
         }
+    }
+}
+
+#[ComplexObject]
+impl ChartOfAccountsCategory {
+    async fn accounts(
+        &self,
+        ctx: &Context<'_>,
+        first: i32,
+        after: Option<String>,
+    ) -> async_graphql::Result<Vec<ChartOfAccountsCategoryAccount>> {
+        let loader = ctx.data_unchecked::<DataLoader<ChartOfAccountsLoader>>();
+        let key = PaginationKey {
+            key: self.id.clone(),
+            first,
+            after,
+        };
+        if let Some(accounts) = loader.load_one(key).await? {
+            return Ok(accounts);
+        }
+        Ok(Vec::new())
     }
 }
 

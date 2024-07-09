@@ -1,6 +1,6 @@
 use thiserror::Error;
 
-#[derive(Error, Debug)]
+#[derive(Error, Debug, Clone)]
 pub enum LedgerError {
     #[error("LedgerError - CalaError: {0}")]
     Cala(#[from] super::cala::error::CalaError),

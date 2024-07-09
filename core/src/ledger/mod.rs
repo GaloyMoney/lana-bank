@@ -277,6 +277,18 @@ impl Ledger {
             .map_err(|e| e.into())
     }
 
+    pub async fn chart_of_accounts_paginated(
+        &self,
+        first: i64,
+        after: Option<String>,
+    ) -> Result<Option<LedgerChartOfAccounts>, LedgerError> {
+        self.cala
+            .chart_of_accounts::<LedgerChartOfAccounts>(first, after)
+            .await
+            .map(|gl| gl.map(LedgerChartOfAccounts::from))
+            .map_err(|e| e.into())
+    }
+
     pub async fn chart_of_accounts_category_account_set(
         &self,
         account_set_id: LedgerAccountSetId,

@@ -24,7 +24,7 @@ pub struct LavaApp {
     loans: Loans,
     users: Users,
     withdraws: Withdraws,
-    ledger: Ledger,
+    pub ledger: Ledger,
     applicants: Applicants,
 }
 

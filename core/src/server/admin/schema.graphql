@@ -56,7 +56,7 @@ type ChartOfAccounts {
 type ChartOfAccountsCategory {
 	id: UUID!
 	name: String!
-	accounts: [ChartOfAccountsCategoryAccount!]!
+	accounts(first: Int!, after: String): [ChartOfAccountsCategoryAccount!]!
 }
 
 union ChartOfAccountsCategoryAccount = AccountDetails | ChartOfAccountsCategoryAccountSet
