@@ -22,11 +22,6 @@ resource "cala_account_set_member_account_set" "coa_user_deposits_member" {
   member_account_set_id = cala_account_set.user_deposits_control.id
 }
 
-resource "cala_account_set_member_account_set" "coa_fixed_term_loans_member" {
-  account_set_id        = cala_account_set.coa_assets.id
-  member_account_set_id = cala_account_set.fixed_term_loans_control.id
-}
-
 resource "cala_account_set_member_account" "coa_bank_reserve_member" {
   account_set_id    = cala_account_set.coa_assets.id
   member_account_id = cala_account.bank_reserve.id
