@@ -303,3 +303,55 @@ impl NewLoan {
         )
     }
 }
+
+#[cfg(test)]
+mod test {
+    use rust_decimal_macros::dec;
+
+    use crate::loan::{InterestInterval, LoanDuration};
+
+    use super::*;
+
+    fn terms() -> TermValues {
+        TermValues::builder()
+            .annual_rate(dec!(0.12))
+            .duration(LoanDuration::Months(3))
+            .interval(InterestInterval::EndOfMonth)
+            .liquidation_cvl(dec!(105))
+            .margin_call_cvl(dec!(125))
+            .initial_cvl(dec!(140))
+            .build()
+            .expect("should build a valid term")
+    }
+
+    fn init_events() -> EntityEvents<LoanEvent> {
+        let terms = terms();
+        EntityEvents::init(
+            LoanId::new(),
+            [LoanEvent::Initialized {
+                id: LoanId::new(),
+                user_id: UserId::new(),
+                user_account_ids: UserLedgerAccountIds::new(),
+                principal: UsdCents::from_usd(dec!(100)),
+                initial_collateral: Satoshis::from_btc(dec!(0.00233334)),
+                terms,
+                account_ids: LoanAccountIds::new(),
+                start_date: Utc::now(),
+            }],
+        )
+    }
+
+    #[test]
+    fn outstanding() {
+        let mut loan = Loan::try_from(init_events()).unwrap();
+        assert_eq!(loan.outstanding(), UsdCents::from_usd(dec!(100)));
+        let _ = loan
+            .record_if_not_exceeding_outstanding(LedgerTxId::new(), UsdCents::from_usd(dec!(50)));
+        assert_eq!(loan.outstanding(), UsdCents::from_usd(dec!(50)));
+
+        let _ = loan
+            .record_if_not_exceeding_outstanding(LedgerTxId::new(), UsdCents::from_usd(dec!(50)));
+        assert_eq!(loan.outstanding(), UsdCents::ZERO);
+        assert!(loan.is_completed());
+    }
+}
