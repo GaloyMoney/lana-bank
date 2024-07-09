@@ -95,9 +95,9 @@ impl From<crate::ledger::account_set::LedgerChartOfAccountsCategoryAccount>
     for ChartOfAccountsCategoryAccount
 {
     fn from(
-        member_balance: crate::ledger::account_set::LedgerChartOfAccountsCategoryAccount,
+        category_account: crate::ledger::account_set::LedgerChartOfAccountsCategoryAccount,
     ) -> Self {
-        match member_balance {
+        match category_account {
             crate::ledger::account_set::LedgerChartOfAccountsCategoryAccount::Account(val) => {
                 ChartOfAccountsCategoryAccount::Account(val.into())
             }
