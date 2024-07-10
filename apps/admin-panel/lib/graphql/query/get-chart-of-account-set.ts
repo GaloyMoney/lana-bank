@@ -13,6 +13,7 @@ gql`
         ... on AccountSetDetails {
           id
           name
+          hasSubAccounts
         }
       }
     }
