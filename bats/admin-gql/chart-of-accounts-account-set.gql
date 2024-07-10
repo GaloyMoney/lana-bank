@@ -1,7 +1,11 @@
-query ChartOfAccountsAccountSet($accountSetId: UUID!) {
+query ChartOfAccountsAccountSet(
+  $accountSetId: UUID!
+  $first: Int!
+  $after: String
+) {
   chartOfAccountsAccountSet(accountSetId: $accountSetId) {
     name
-    subAccounts(first: 10) {
+    subAccounts(first: $first, after: $after) {
       edges {
         cursor
         node {
