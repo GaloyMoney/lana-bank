@@ -14,6 +14,7 @@ query ChartOfAccounts($accountSetId: UUID!) {
                 hasNextPage
               }
               edges {
+                cursor
                 node {
                   __typename
                   ... on AccountSet {
@@ -52,6 +53,7 @@ query ChartOfAccountsCategoryAccount(
         hasNextPage
       }
       edges {
+        cursor
         node {
           __typename
           ... on AccountSet {
@@ -114,9 +116,11 @@ fragment accountDetails on Account {
 fragment subAccount on AccountSetMemberConnection {
   pageInfo {
     startCursor
+    endCursor
     hasNextPage
   }
   edges {
+    cursor
     node {
       __typename
       ... on AccountSet {

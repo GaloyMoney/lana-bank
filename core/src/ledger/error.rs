@@ -4,6 +4,8 @@ use thiserror::Error;
 pub enum LedgerError {
     #[error("LedgerError - CalaError: {0}")]
     Cala(#[from] super::cala::error::CalaError),
+    #[error("CalaError - TryFromIntError: {0}")]
+    TryFromIntError(#[from] std::num::TryFromIntError),
     #[error("LedgerError - CouldNotAssertAccountExists")]
     CouldNotAssertAccountExists,
     #[error("LedgerError - CouldNotAssertAccountSetExists")]

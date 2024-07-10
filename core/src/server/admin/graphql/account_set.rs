@@ -1,4 +1,5 @@
-use async_graphql::*;
+use async_graphql::{types::connection::*, *};
+use serde::{Deserialize, Serialize};
 
 use crate::{app::LavaApp, server::shared_graphql::primitives::UUID};
 
@@ -42,11 +43,13 @@ enum ChartOfAccountsSubAccount {
     AccountSet(AccountSetDetails),
 }
 
-impl From<crate::ledger::account_set::LedgerChartOfAccountsCategorySubAccount>
+impl From<crate::ledger::account_set::PaginatedLedgerChartOfAccountsCategorySubAccount>
     for ChartOfAccountsSubAccount
 {
-    fn from(member: crate::ledger::account_set::LedgerChartOfAccountsCategorySubAccount) -> Self {
-        match member {
+    fn from(
+        member: crate::ledger::account_set::PaginatedLedgerChartOfAccountsCategorySubAccount,
+    ) -> Self {
+        match member.value {
             crate::ledger::account_set::LedgerChartOfAccountsCategorySubAccount::Account(val) => {
                 ChartOfAccountsSubAccount::Account(super::account::AccountDetails::from(val))
             }
@@ -70,6 +73,39 @@ impl From<crate::ledger::account_set::LedgerChartOfAccountsCategoryAccount>
             crate::ledger::account_set::LedgerChartOfAccountsCategoryAccount::AccountSet(val) => {
                 ChartOfAccountsSubAccount::AccountSet(val.into())
             }
+        }
+    }
+}
+
+#[derive(Serialize, Deserialize)]
+pub(super) struct SubAccountCursor {
+    pub value: String,
+}
+
+impl CursorType for SubAccountCursor {
+    type Error = String;
+
+    fn encode_cursor(&self) -> String {
+        self.value.clone()
+    }
+
+    fn decode_cursor(s: &str) -> Result<Self, Self::Error> {
+        Ok(SubAccountCursor {
+            value: s.to_string(),
+        })
+    }
+}
+
+impl From<String> for SubAccountCursor {
+    fn from(value: String) -> Self {
+        Self { value }
+    }
+}
+
+impl From<SubAccountCursor> for crate::ledger::cursor::SubAccountCursor {
+    fn from(cursor: SubAccountCursor) -> Self {
+        Self {
+            value: cursor.value,
         }
     }
 }
@@ -101,25 +137,37 @@ impl ChartOfAccountsAccountSet {
         ctx: &Context<'_>,
         first: i32,
         after: Option<String>,
-    ) -> async_graphql::Result<Vec<ChartOfAccountsSubAccount>> {
+    ) -> Result<Connection<SubAccountCursor, ChartOfAccountsSubAccount, EmptyFields, EmptyFields>>
+    {
         let app = ctx.data_unchecked::<LavaApp>();
-        let account_set = app
-            .ledger()
-            .chart_of_accounts_account_set(self.id.clone().into(), first.into(), after)
-            .await?;
-
-        let sub_accounts = if let Some(account_set) = account_set {
-            account_set
-                .sub_accounts
-                .members
-                .into_iter()
-                .map(ChartOfAccountsSubAccount::from)
-                .collect()
-        } else {
-            Vec::new()
-        };
-
-        Ok(sub_accounts)
+        query(
+            after,
+            None,
+            Some(first),
+            None,
+            |after, _, first, _| async move {
+                let first = first.expect("First always exists");
+                let res = app
+                    .ledger()
+                    .chart_of_accounts_account_set_sub_accounts(
+                        self.id.clone().into(),
+                        crate::query::PaginatedQueryArgs {
+                            first,
+                            after: after.map(crate::ledger::SubAccountCursor::from),
+                        },
+                    )
+                    .await?;
+                let mut connection = Connection::new(false, res.has_next_page);
+                connection
+                    .edges
+                    .extend(res.entities.into_iter().map(|sub_account| {
+                        let cursor = SubAccountCursor::from(sub_account.cursor.clone());
+                        Edge::new(cursor, ChartOfAccountsSubAccount::from(sub_account))
+                    }));
+                Ok::<_, async_graphql::Error>(connection)
+            },
+        )
+        .await
     }
 }
 

@@ -154,9 +154,22 @@ pub enum LedgerChartOfAccountsCategorySubAccount {
 }
 
 #[derive(Debug, Clone)]
+pub struct PaginatedLedgerChartOfAccountsCategorySubAccount {
+    pub cursor: String,
+    pub value: LedgerChartOfAccountsCategorySubAccount,
+}
+
+#[derive(Debug, Clone)]
+pub struct PageInfo {
+    pub has_next_page: bool,
+    pub end_cursor: Option<String>,
+}
+
+#[derive(Debug, Clone)]
 pub struct LedgerChartOfAccountsCategorySubAccounts {
     pub has_sub_accounts: bool,
-    pub members: Vec<LedgerChartOfAccountsCategorySubAccount>,
+    pub page_info: PageInfo,
+    pub members: Vec<PaginatedLedgerChartOfAccountsCategorySubAccount>,
 }
 
 impl
@@ -169,20 +182,28 @@ impl
             .iter()
             .map(|e| match &e.node {
                 chart_of_accounts::SubAccountEdgesNode::Account(node) => {
-                    LedgerChartOfAccountsCategorySubAccount::Account(LedgerChartOfAccountsAccount::from(
+                    PaginatedLedgerChartOfAccountsCategorySubAccount{
+                        cursor: e.cursor.clone(),
+                        value: LedgerChartOfAccountsCategorySubAccount::Account(LedgerChartOfAccountsAccount::from(
                         node.clone(),
-                    ))
+                    ))}
                 }
                 chart_of_accounts::SubAccountEdgesNode::AccountSet(node) => {
-                    LedgerChartOfAccountsCategorySubAccount::AccountSet(
+                    PaginatedLedgerChartOfAccountsCategorySubAccount{
+                        cursor: e.cursor.clone(),
+                        value: LedgerChartOfAccountsCategorySubAccount::AccountSet(
                         LedgerChartOfAccountsAccountSet::from(node.clone()),
-                    )
+                    )}
                 }
             })
             .collect();
 
             LedgerChartOfAccountsCategorySubAccounts {
                 has_sub_accounts: sub_account.page_info.start_cursor.is_some(),
+                page_info: PageInfo {
+                    has_next_page: sub_account.page_info.has_next_page,
+                    end_cursor: sub_account.page_info.end_cursor
+                },
                 members,
             }
         }
@@ -198,20 +219,26 @@ impl
             .iter()
             .map(|e| match &e.node {
                 chart_of_accounts_category_account::ChartOfAccountsCategoryAccountAccountSetCategorySubAccountsEdgesNode::Account(node) => {
-                    LedgerChartOfAccountsCategorySubAccount::Account(LedgerChartOfAccountsAccount::from(
+                    PaginatedLedgerChartOfAccountsCategorySubAccount{
+                        cursor: e.cursor.clone(),
+                        value: LedgerChartOfAccountsCategorySubAccount::Account(LedgerChartOfAccountsAccount::from(
                         node.clone(),
-                    ))
+                    ))}
                 }
                 chart_of_accounts_category_account::ChartOfAccountsCategoryAccountAccountSetCategorySubAccountsEdgesNode::AccountSet(node) => {
-                    LedgerChartOfAccountsCategorySubAccount::AccountSet(
+                    PaginatedLedgerChartOfAccountsCategorySubAccount{
+                        cursor: e.cursor.clone(),
+                        value: LedgerChartOfAccountsCategorySubAccount::AccountSet(
                         LedgerChartOfAccountsAccountSet::from(node.clone()),
-                    )
+                    )}
                 }
             })
             .collect();
 
             LedgerChartOfAccountsCategorySubAccounts {
                 has_sub_accounts: sub_account.page_info.start_cursor.is_some(),
+                page_info: PageInfo {has_next_page: sub_account.page_info.has_next_page, end_cursor: sub_account.page_info.end_cursor
+                },
                 members,
             }
         }

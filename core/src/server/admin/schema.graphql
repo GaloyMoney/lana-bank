@@ -61,7 +61,7 @@ type ChartOfAccounts {
 type ChartOfAccountsAccountSet {
 	id: UUID!
 	name: String!
-	subAccounts(first: Int!, after: String): [ChartOfAccountsSubAccount!]!
+	subAccounts(first: Int!, after: String): ChartOfAccountsSubAccountConnection!
 }
 
 type ChartOfAccountsCategory {
@@ -70,6 +70,35 @@ type ChartOfAccountsCategory {
 }
 
 union ChartOfAccountsSubAccount = AccountDetails | AccountSetDetails
+
+type ChartOfAccountsSubAccountConnection {
+	"""
+	Information to aid in pagination.
+	"""
+	pageInfo: PageInfo!
+	"""
+	A list of edges.
+	"""
+	edges: [ChartOfAccountsSubAccountEdge!]!
+	"""
+	A list of nodes.
+	"""
+	nodes: [ChartOfAccountsSubAccount!]!
+}
+
+"""
+An edge in a connection.
+"""
+type ChartOfAccountsSubAccountEdge {
+	"""
+	The item at the end of the edge
+	"""
+	node: ChartOfAccountsSubAccount!
+	"""
+	A cursor for use in pagination
+	"""
+	cursor: String!
+}
 
 type Checking {
 	settled: UsdBalance!

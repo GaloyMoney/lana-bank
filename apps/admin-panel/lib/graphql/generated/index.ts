@@ -95,7 +95,7 @@ export type ChartOfAccountsAccountSet = {
   __typename?: 'ChartOfAccountsAccountSet';
   id: Scalars['UUID']['output'];
   name: Scalars['String']['output'];
-  subAccounts: Array<ChartOfAccountsSubAccount>;
+  subAccounts: ChartOfAccountsSubAccountConnection;
 };
 
 
@@ -111,6 +111,25 @@ export type ChartOfAccountsCategory = {
 };
 
 export type ChartOfAccountsSubAccount = AccountDetails | AccountSetDetails;
+
+export type ChartOfAccountsSubAccountConnection = {
+  __typename?: 'ChartOfAccountsSubAccountConnection';
+  /** A list of edges. */
+  edges: Array<ChartOfAccountsSubAccountEdge>;
+  /** A list of nodes. */
+  nodes: Array<ChartOfAccountsSubAccount>;
+  /** Information to aid in pagination. */
+  pageInfo: PageInfo;
+};
+
+/** An edge in a connection. */
+export type ChartOfAccountsSubAccountEdge = {
+  __typename?: 'ChartOfAccountsSubAccountEdge';
+  /** A cursor for use in pagination */
+  cursor: Scalars['String']['output'];
+  /** The item at the end of the edge */
+  node: ChartOfAccountsSubAccount;
+};
 
 export type Checking = {
   __typename?: 'Checking';

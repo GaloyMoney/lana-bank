@@ -30,6 +30,6 @@ teardown_file() {
     }'
   )
   exec_admin_graphql 'chart-of-accounts-account-set' "$variables"
-  sub_account_name=$(graphql_output '.data.chartOfAccountsAccountSet.subAccounts[0].name')
+  sub_account_name=$(graphql_output '.data.chartOfAccountsAccountSet.subAccounts.edges[0].node.name')
   [[ "$sub_account_name" =~ "Bfx" ]] || exit 1
 }

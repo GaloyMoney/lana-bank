@@ -4,12 +4,14 @@ mod bitfinex;
 mod cala;
 mod config;
 mod constants;
+pub mod cursor;
 pub mod error;
 pub mod loan;
 pub mod primitives;
 mod tx_template;
 pub mod user;
 
+pub use cursor::*;
 use tracing::instrument;
 
 use crate::primitives::{
@@ -19,7 +21,7 @@ use crate::primitives::{
 
 use account_set::{
     LedgerAccountSetAndMemberBalances, LedgerChartOfAccounts,
-    LedgerChartOfAccountsCategoryAccountSet,
+    LedgerChartOfAccountsCategoryAccountSet, PaginatedLedgerChartOfAccountsCategorySubAccount,
 };
 use cala::*;
 pub use config::*;
@@ -252,6 +254,48 @@ impl Ledger {
             .await
             .map(|gl| gl.map(LedgerChartOfAccountsCategoryAccountSet::from))
             .map_err(|e| e.into())
+    }
+
+    pub async fn chart_of_accounts_account_set_sub_accounts(
+        &self,
+        account_set_id: LedgerAccountSetId,
+        query: crate::query::PaginatedQueryArgs<SubAccountCursor>,
+    ) -> Result<
+        crate::query::PaginatedQueryRet<
+            PaginatedLedgerChartOfAccountsCategorySubAccount,
+            SubAccountCursor,
+        >,
+        LedgerError,
+    > {
+        let account_set = self
+            .cala
+            .chart_of_accounts_category_account::<LedgerChartOfAccountsCategoryAccountSet>(
+                account_set_id.into(),
+                i64::try_from(query.first)?,
+                query.after.map(|c| c.value),
+            )
+            .await
+            .map(|gl| gl.map(LedgerChartOfAccountsCategoryAccountSet::from))
+            .map_err(LedgerError::from)?;
+
+        let (sub_accounts, has_next_page, end_cursor) =
+            account_set.map_or((Vec::new(), false, None), |account_set| {
+                (
+                    account_set.sub_accounts.members,
+                    account_set.sub_accounts.page_info.has_next_page,
+                    account_set
+                        .sub_accounts
+                        .page_info
+                        .end_cursor
+                        .map(|end_cursor| SubAccountCursor { value: end_cursor }),
+                )
+            });
+
+        Ok(crate::query::PaginatedQueryRet {
+            entities: sub_accounts,
+            has_next_page,
+            end_cursor,
+        })
     }
 
     async fn initialize_tx_templates(cala: &CalaClient) -> Result<(), LedgerError> {
