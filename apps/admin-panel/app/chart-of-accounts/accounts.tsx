@@ -4,24 +4,24 @@ import React from "react"
 import { IoCaretDownSharp, IoCaretForwardSharp } from "react-icons/io5"
 
 import {
-  ChartOfAccountsCategoryAccount,
-  useChartOfAccountCategoryAccountSetQuery,
+  ChartOfAccountsSubAccount,
+  useChartOfAccountAccountSetQuery,
 } from "@/lib/graphql/generated"
 import { TableCell, TableRow } from "@/components/primitive/table"
 
 type AccountProps = {
   depth?: number
-  account: ChartOfAccountsCategoryAccount
+  account: ChartOfAccountsSubAccount
 }
 
 const SubAccountsForAccountSet: React.FC<AccountProps> = ({ account, depth = 0 }) => {
-  const { data } = useChartOfAccountCategoryAccountSetQuery({
+  const { data } = useChartOfAccountAccountSetQuery({
     variables: {
       id: account.id,
     },
   })
 
-  const subAccounts = data?.chartOfAccountsCategoryAccountSet?.subAccounts
+  const subAccounts = data?.chartOfAccountsAccountSet?.subAccounts
 
   return subAccounts?.map((subAccount) => (
     <Account key={subAccount.id} account={subAccount} depth={depth + 1} />

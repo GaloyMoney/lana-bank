@@ -5,7 +5,6 @@ gql`
     chartOfAccounts {
       name
       categories {
-        id
         name
         accounts {
           __typename

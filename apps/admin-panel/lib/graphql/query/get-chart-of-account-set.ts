@@ -1,8 +1,8 @@
 import { gql } from "@apollo/client"
 
 gql`
-  query ChartOfAccountCategoryAccountSet($id: UUID!) {
-    chartOfAccountsCategoryAccountSet(accountSetId: $id) {
+  query ChartOfAccountAccountSet($id: UUID!) {
+    chartOfAccountsAccountSet(accountSetId: $id) {
       id
       name
       subAccounts(first: 10) {

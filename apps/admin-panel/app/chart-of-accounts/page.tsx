@@ -23,7 +23,7 @@ function ChartOfAccountsPage() {
             )
             .map((category) => (
               <>
-                <TableRow key={category.id}>
+                <TableRow>
                   <TableCell className="text-primary font-bold uppercase tracking-widest leading-8">
                     {category.name}
                   </TableCell>
