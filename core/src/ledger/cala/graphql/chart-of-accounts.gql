@@ -7,8 +7,8 @@ query ChartOfAccounts($accountSetId: UUID!) {
           __typename
           ... on AccountSet {
             ...accountSetDetails
-            categoryAccounts: members(first: 25, after: null) {
-              ...categoryAccount
+            accounts: members(first: 25, after: null) {
+              ...account
             }
           }
           ... on Account {
@@ -27,24 +27,13 @@ query ChartOfAccountsCategoryAccount(
 ) {
   accountSet(id: $accountSetId) {
     ...accountSetDetails
-    categorySubAccounts: members(first: $first, after: $after) {
+    subAccounts: members(first: $first, after: $after) {
       ...subAccount
     }
   }
 }
 
-fragment accountSetDetails on AccountSet {
-  accountSetId
-  name
-  normalBalanceType
-  members(first: 1) {
-    pageInfo {
-      startCursor
-    }
-  }
-}
-
-fragment categoryAccount on AccountSetMemberConnection {
+fragment account on AccountSetMemberConnection {
   pageInfo {
     startCursor
     endCursor
@@ -55,7 +44,7 @@ fragment categoryAccount on AccountSetMemberConnection {
     node {
       __typename
       ... on AccountSet {
-        ...categorySubAccountSet
+        ...subAccountSet
       }
       ... on Account {
         ...accountDetails
@@ -64,18 +53,11 @@ fragment categoryAccount on AccountSetMemberConnection {
   }
 }
 
-fragment categorySubAccountSet on AccountSet {
+fragment subAccountSet on AccountSet {
   ...accountSetDetails
-  categorySubAccounts: members(first: 1) {
+  subAccounts: members(first: 1) {
     ...subAccount
   }
-}
-
-fragment accountDetails on Account {
-  accountId
-  code
-  name
-  normalBalanceType
 }
 
 fragment subAccount on AccountSetMemberConnection {
@@ -96,4 +78,22 @@ fragment subAccount on AccountSetMemberConnection {
       }
     }
   }
+}
+
+fragment accountSetDetails on AccountSet {
+  accountSetId
+  name
+  normalBalanceType
+  members(first: 1) {
+    pageInfo {
+      startCursor
+    }
+  }
+}
+
+fragment accountDetails on Account {
+  accountId
+  code
+  name
+  normalBalanceType
 }

@@ -136,8 +136,8 @@ impl From<chart_of_accounts_category_account::accountSetDetails>
     }
 }
 
-impl From<chart_of_accounts::categorySubAccountSet> for LedgerChartOfAccountsAccountSet {
-    fn from(account_set: chart_of_accounts::categorySubAccountSet) -> Self {
+impl From<chart_of_accounts::subAccountSet> for LedgerChartOfAccountsAccountSet {
+    fn from(account_set: chart_of_accounts::subAccountSet) -> Self {
         LedgerChartOfAccountsAccountSet {
             id: account_set.account_set_details.account_set_id.into(),
             name: account_set.account_set_details.name,
@@ -269,7 +269,7 @@ impl From<chart_of_accounts_category_account::ChartOfAccountsCategoryAccountAcco
             id: account_set.account_set_details.account_set_id.into(),
             name: account_set.account_set_details.name,
             normal_balance_type: account_set.account_set_details.normal_balance_type.into(),
-            sub_accounts: account_set.category_sub_accounts.into(),
+            sub_accounts: account_set.sub_accounts.into(),
         }
     }
 }
@@ -280,18 +280,18 @@ pub enum LedgerChartOfAccountsCategoryAccount {
     AccountSet(LedgerChartOfAccountsAccountSet),
 }
 
-impl From<chart_of_accounts::categoryAccount> for Vec<LedgerChartOfAccountsCategoryAccount> {
-    fn from(members: chart_of_accounts::categoryAccount) -> Self {
+impl From<chart_of_accounts::account> for Vec<LedgerChartOfAccountsCategoryAccount> {
+    fn from(members: chart_of_accounts::account) -> Self {
         members
             .edges
             .iter()
             .map(|e| match &e.node {
-                chart_of_accounts::CategoryAccountEdgesNode::Account(node) => {
+                chart_of_accounts::AccountEdgesNode::Account(node) => {
                     LedgerChartOfAccountsCategoryAccount::Account(
                         LedgerChartOfAccountsAccount::from(node.clone()),
                     )
                 }
-                chart_of_accounts::CategoryAccountEdgesNode::AccountSet(node) => {
+                chart_of_accounts::AccountEdgesNode::AccountSet(node) => {
                     LedgerChartOfAccountsCategoryAccount::AccountSet(
                         LedgerChartOfAccountsAccountSet::from(node.clone()),
                     )
@@ -319,7 +319,7 @@ impl From<chart_of_accounts::ChartOfAccountsAccountSetCategoriesEdgesNodeOnAccou
             id: account_set.account_set_details.account_set_id.into(),
             name: account_set.account_set_details.name,
             normal_balance_type: account_set.account_set_details.normal_balance_type.into(),
-            category_accounts: account_set.category_accounts.into(),
+            category_accounts: account_set.accounts.into(),
         }
     }
 }
