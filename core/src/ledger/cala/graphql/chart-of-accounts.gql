@@ -33,33 +33,6 @@ query ChartOfAccountsCategoryAccount(
   }
 }
 
-query ChartOfAccountsCategory($accountSetId: UUID!) {
-  accountSet(id: $accountSetId) {
-    ...accountSetDetails
-    categoryAccounts: members(first: 25) {
-      pageInfo {
-        startCursor
-        endCursor
-        hasNextPage
-      }
-      edges {
-        node {
-          __typename
-          ... on AccountSet {
-            ...accountSetDetails
-            categorySubAccounts: members(first: 5, after: null) {
-              ...subAccount
-            }
-          }
-          ... on Account {
-            ...accountDetails
-          }
-        }
-      }
-    }
-  }
-}
-
 fragment accountSetDetails on AccountSet {
   accountSetId
   name
