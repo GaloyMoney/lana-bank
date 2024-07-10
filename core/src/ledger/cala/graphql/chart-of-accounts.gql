@@ -8,26 +8,7 @@ query ChartOfAccounts($accountSetId: UUID!) {
           ... on AccountSet {
             ...accountSetDetails
             categoryAccounts: members(first: 25, after: null) {
-              pageInfo {
-                startCursor
-                endCursor
-                hasNextPage
-              }
-              edges {
-                cursor
-                node {
-                  __typename
-                  ... on AccountSet {
-                    ...accountSetDetails
-                    categorySubAccounts: members(first: 1) {
-                      ...subAccount
-                    }
-                  }
-                  ... on Account {
-                    ...accountDetails
-                  }
-                }
-              }
+              ...categoryAccount
             }
           }
           ... on Account {
@@ -47,23 +28,7 @@ query ChartOfAccountsCategoryAccount(
   accountSet(id: $accountSetId) {
     ...accountSetDetails
     categorySubAccounts: members(first: $first, after: $after) {
-      pageInfo {
-        startCursor
-        endCursor
-        hasNextPage
-      }
-      edges {
-        cursor
-        node {
-          __typename
-          ... on AccountSet {
-            ...accountSetDetails
-          }
-          ... on Account {
-            ...accountDetails
-          }
-        }
-      }
+      ...subAccount
     }
   }
 }
@@ -103,6 +68,33 @@ fragment accountSetDetails on AccountSet {
     pageInfo {
       startCursor
     }
+  }
+}
+
+fragment categoryAccount on AccountSetMemberConnection {
+  pageInfo {
+    startCursor
+    endCursor
+    hasNextPage
+  }
+  edges {
+    cursor
+    node {
+      __typename
+      ... on AccountSet {
+        ...categorySubAccountSet
+      }
+      ... on Account {
+        ...accountDetails
+      }
+    }
+  }
+}
+
+fragment categorySubAccountSet on AccountSet {
+  ...accountSetDetails
+  categorySubAccounts: members(first: 1) {
+    ...subAccount
   }
 }
 
