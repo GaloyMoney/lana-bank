@@ -256,7 +256,7 @@ impl Ledger {
             .map_err(|e| e.into())
     }
 
-    pub async fn chart_of_accounts_account_set_sub_accounts(
+    pub async fn paginated_chart_of_accounts_account_set(
         &self,
         account_set_id: LedgerAccountSetId,
         query: crate::query::PaginatedQueryArgs<SubAccountCursor>,

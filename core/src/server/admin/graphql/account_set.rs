@@ -32,7 +32,7 @@ impl From<crate::ledger::account_set::LedgerChartOfAccountsAccountSet> for Accou
         AccountSetDetails {
             id: account_set.id.into(),
             name: account_set.name,
-            has_sub_accounts: account_set.has_sub_accounts,
+            has_sub_accounts: account_set.page_info.start_cursor.is_some(),
         }
     }
 }
@@ -149,7 +149,7 @@ impl ChartOfAccountsAccountSet {
                 let first = first.expect("First always exists");
                 let res = app
                     .ledger()
-                    .chart_of_accounts_account_set_sub_accounts(
+                    .paginated_chart_of_accounts_account_set(
                         self.id.clone().into(),
                         crate::query::PaginatedQueryArgs {
                             first,

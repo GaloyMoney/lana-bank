@@ -105,11 +105,43 @@ impl From<LedgerAccountSetMemberType> for add_to_account_set::AccountSetMemberTy
 }
 
 #[derive(Debug, Clone)]
+pub struct PartialPageInfo {
+    pub start_cursor: Option<String>,
+}
+
+impl From<chart_of_accounts::AccountSetDetailsMembersPageInfo> for PartialPageInfo {
+    fn from(page_info: chart_of_accounts::AccountSetDetailsMembersPageInfo) -> Self {
+        PartialPageInfo {
+            start_cursor: page_info.start_cursor,
+        }
+    }
+}
+
+impl From<chart_of_accounts_category_account::AccountSetDetailsMembersPageInfo>
+    for PartialPageInfo
+{
+    fn from(
+        page_info: chart_of_accounts_category_account::AccountSetDetailsMembersPageInfo,
+    ) -> Self {
+        PartialPageInfo {
+            start_cursor: page_info.start_cursor,
+        }
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct PageInfo {
+    pub has_next_page: bool,
+    pub start_cursor: Option<String>,
+    pub end_cursor: Option<String>,
+}
+
+#[derive(Debug, Clone)]
 pub struct LedgerChartOfAccountsAccountSet {
     pub id: LedgerAccountSetId,
     pub name: String,
     pub normal_balance_type: LedgerDebitOrCredit,
-    pub has_sub_accounts: bool,
+    pub page_info: PartialPageInfo,
 }
 
 impl From<chart_of_accounts::accountSetDetails> for LedgerChartOfAccountsAccountSet {
@@ -118,7 +150,7 @@ impl From<chart_of_accounts::accountSetDetails> for LedgerChartOfAccountsAccount
             id: account_set_details.account_set_id.into(),
             name: account_set_details.name,
             normal_balance_type: account_set_details.normal_balance_type.into(),
-            has_sub_accounts: account_set_details.members.page_info.start_cursor.is_some(),
+            page_info: account_set_details.members.page_info.into(),
         }
     }
 }
@@ -131,7 +163,7 @@ impl From<chart_of_accounts_category_account::accountSetDetails>
             id: account_set_details.account_set_id.into(),
             name: account_set_details.name,
             normal_balance_type: account_set_details.normal_balance_type.into(),
-            has_sub_accounts: account_set_details.members.page_info.start_cursor.is_some(),
+            page_info: account_set_details.members.page_info.into(),
         }
     }
 }
@@ -142,12 +174,7 @@ impl From<chart_of_accounts::subAccountSet> for LedgerChartOfAccountsAccountSet 
             id: account_set.account_set_details.account_set_id.into(),
             name: account_set.account_set_details.name,
             normal_balance_type: account_set.account_set_details.normal_balance_type.into(),
-            has_sub_accounts: account_set
-                .account_set_details
-                .members
-                .page_info
-                .start_cursor
-                .is_some(),
+            page_info: account_set.account_set_details.members.page_info.into(),
         }
     }
 }
@@ -165,14 +192,7 @@ pub struct PaginatedLedgerChartOfAccountsCategorySubAccount {
 }
 
 #[derive(Debug, Clone)]
-pub struct PageInfo {
-    pub has_next_page: bool,
-    pub end_cursor: Option<String>,
-}
-
-#[derive(Debug, Clone)]
 pub struct LedgerChartOfAccountsCategorySubAccounts {
-    pub has_sub_accounts: bool,
     pub page_info: PageInfo,
     pub members: Vec<PaginatedLedgerChartOfAccountsCategorySubAccount>,
 }
@@ -203,9 +223,9 @@ impl From<chart_of_accounts::subAccount> for LedgerChartOfAccountsCategorySubAcc
             .collect();
 
         LedgerChartOfAccountsCategorySubAccounts {
-            has_sub_accounts: sub_account.page_info.start_cursor.is_some(),
             page_info: PageInfo {
                 has_next_page: sub_account.page_info.has_next_page,
+                start_cursor: sub_account.page_info.start_cursor,
                 end_cursor: sub_account.page_info.end_cursor,
             },
             members,
@@ -241,9 +261,9 @@ impl From<chart_of_accounts_category_account::subAccount>
             .collect();
 
         LedgerChartOfAccountsCategorySubAccounts {
-            has_sub_accounts: sub_account.page_info.start_cursor.is_some(),
             page_info: PageInfo {
                 has_next_page: sub_account.page_info.has_next_page,
+                start_cursor: sub_account.page_info.start_cursor,
                 end_cursor: sub_account.page_info.end_cursor,
             },
             members,
