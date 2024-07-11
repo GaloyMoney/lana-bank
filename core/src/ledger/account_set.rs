@@ -105,34 +105,33 @@ impl From<LedgerAccountSetMemberType> for add_to_account_set::AccountSetMemberTy
 }
 
 #[derive(Debug, Clone)]
-pub struct PartialPageInfo {
+pub struct PageExistsPageInfo {
     pub start_cursor: Option<String>,
 }
 
-impl From<chart_of_accounts::AccountSetDetailsMembersPageInfo> for PartialPageInfo {
+impl From<chart_of_accounts::AccountSetDetailsMembersPageInfo> for PageExistsPageInfo {
     fn from(page_info: chart_of_accounts::AccountSetDetailsMembersPageInfo) -> Self {
-        PartialPageInfo {
+        PageExistsPageInfo {
             start_cursor: page_info.start_cursor,
         }
     }
 }
 
 impl From<chart_of_accounts_category_account::AccountSetDetailsMembersPageInfo>
-    for PartialPageInfo
+    for PageExistsPageInfo
 {
     fn from(
         page_info: chart_of_accounts_category_account::AccountSetDetailsMembersPageInfo,
     ) -> Self {
-        PartialPageInfo {
+        PageExistsPageInfo {
             start_cursor: page_info.start_cursor,
         }
     }
 }
 
 #[derive(Debug, Clone)]
-pub struct PageInfo {
+pub struct ConnectionCreationPageInfo {
     pub has_next_page: bool,
-    pub start_cursor: Option<String>,
     pub end_cursor: Option<String>,
 }
 
@@ -141,7 +140,7 @@ pub struct LedgerChartOfAccountsAccountSet {
     pub id: LedgerAccountSetId,
     pub name: String,
     pub normal_balance_type: LedgerDebitOrCredit,
-    pub page_info: PartialPageInfo,
+    pub page_info: PageExistsPageInfo,
 }
 
 impl From<chart_of_accounts::accountSetDetails> for LedgerChartOfAccountsAccountSet {
@@ -193,7 +192,7 @@ pub struct PaginatedLedgerChartOfAccountsCategorySubAccount {
 
 #[derive(Debug, Clone)]
 pub struct LedgerChartOfAccountsCategorySubAccounts {
-    pub page_info: PageInfo,
+    pub page_info: ConnectionCreationPageInfo,
     pub members: Vec<PaginatedLedgerChartOfAccountsCategorySubAccount>,
 }
 
@@ -223,9 +222,8 @@ impl From<chart_of_accounts::subAccount> for LedgerChartOfAccountsCategorySubAcc
             .collect();
 
         LedgerChartOfAccountsCategorySubAccounts {
-            page_info: PageInfo {
+            page_info: ConnectionCreationPageInfo {
                 has_next_page: sub_account.page_info.has_next_page,
-                start_cursor: sub_account.page_info.start_cursor,
                 end_cursor: sub_account.page_info.end_cursor,
             },
             members,
@@ -261,9 +259,8 @@ impl From<chart_of_accounts_category_account::subAccount>
             .collect();
 
         LedgerChartOfAccountsCategorySubAccounts {
-            page_info: PageInfo {
+            page_info: ConnectionCreationPageInfo {
                 has_next_page: sub_account.page_info.has_next_page,
-                start_cursor: sub_account.page_info.start_cursor,
                 end_cursor: sub_account.page_info.end_cursor,
             },
             members,
