@@ -2,84 +2,23 @@ query BalanceSheet {
   balanceSheet {
     byJournalId(journalId: "00000000-0000-0000-0000-000000000001") {
       assets {
-        ...balances
+        ...usdtBalance
+        ...usdBalance
       }
       liabilities {
-        ...balances
+        ...usdtBalance
+        ...usdBalance
       }
       equity {
-        ...balances
-      }
-      schedule1 {
-        ...balancesAndMembers
-      }
-      schedule2 {
-        ...balancesAndMembers
-      }
-      schedule3 {
-        ...balancesAndMembers
-      }
-      schedule4 {
-        ...balancesAndMembers
-      }
-      schedule5 {
-        ...balancesAndMembers
-      }
-      schedule6 {
-        ...balancesAndMembers
-      }
-      schedule7 {
-        ...balancesAndMembers
-      }
-      schedule8 {
-        ...balancesAndMembers
-      }
-      schedule9 {
-        ...balancesAndMembers
-      }
-      schedule10 {
-        ...balancesAndMembers
-      }
-      schedule11 {
-        ...balancesAndMembers
-      }
-      schedule12 {
-        ...balancesAndMembers
+        ...usdtBalance
+        ...usdBalance
       }
     }
   }
-}
-
-fragment balancesAndMembers on AccountSet {
-  ...balances
-  ...membersWithMembers
-}
-
-fragment balances on AccountSet {
-  ...usdtBalance
-  ...usdBalance
-}
-
-fragment accountBalances on Account {
-  ...usdtAccountBalance
-  ...usdAccountBalance
 }
 
 fragment usdtBalance on AccountSet {
   usdtBalance: balance(currency: "USDT") {
-    settled {
-      normalBalance {
-        units
-      }
-    }
-  }
-}
-
-fragment usdtAccountBalance on Account {
-  usdtBalance: balance(
-    journalId: "00000000-0000-0000-0000-000000000001"
-    currency: "USDT"
-  ) {
     settled {
       normalBalance {
         units
@@ -93,60 +32,6 @@ fragment usdBalance on AccountSet {
     settled {
       normalBalance {
         units
-      }
-    }
-  }
-}
-
-fragment usdAccountBalance on Account {
-  usdBalance: balance(
-    journalId: "00000000-0000-0000-0000-000000000001"
-    currency: "USD"
-  ) {
-    settled {
-      normalBalance {
-        units
-      }
-    }
-  }
-}
-
-fragment membersWithMembers on AccountSet {
-  members(first: 100) {
-    edges {
-      node {
-        ... on Account {
-          __typename
-          id
-          name
-        }
-        ... on AccountSet {
-          __typename
-          id
-          name
-          ...usdtBalance
-          ...usdBalance
-          ...members
-        }
-      }
-    }
-  }
-}
-
-fragment members on AccountSet {
-  members(first: 100) {
-    edges {
-      node {
-        ... on Account {
-          __typename
-          name
-          ...accountBalances
-        }
-        ... on AccountSet {
-          __typename
-          name
-          ...balances
-        }
       }
     }
   }
