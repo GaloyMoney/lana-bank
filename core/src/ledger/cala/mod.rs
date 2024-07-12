@@ -177,13 +177,11 @@ impl CalaClient {
             loan_outstanding_account_id: Uuid::from(outstanding_account_id),
             loan_outstanding_account_code: format!("LOANS.RECEIVABLE.{}", loan_id),
             loan_outstanding_account_name: format!("Loan Receivable Account for {}", loan_id),
-            loans_account_set_id: super::constants::LOANS_ACCOUNT_SET_ID,
             loans_outstanding_control_account_set_id:
                 super::constants::LOANS_RECEIVABLE_CONTROL_ACCOUNT_SET_ID,
             interest_account_id: Uuid::from(interest_account_id),
             interest_account_code: format!("LOANS.INTEREST_INCOME.{}", loan_id),
             interest_account_name: format!("Interest Income for Loan {}", loan_id),
-            interest_revenue_account_set_id: super::constants::INTEREST_REVENUE_ACCOUNT_SET_ID,
             interest_revenue_control_account_set_id:
                 super::constants::INTEREST_REVENUE_CONTROL_ACCOUNT_SET_ID,
         };

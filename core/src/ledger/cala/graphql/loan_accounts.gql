@@ -9,9 +9,7 @@ mutation CreateLoanAccounts(
   $interestAccountId: UUID!
   $interestAccountCode: String!
   $interestAccountName: String!
-  $loansAccountSetId: UUID!
   $loansOutstandingControlAccountSetId: UUID!
-  $interestRevenueAccountSetId: UUID!
   $interestRevenueControlAccountSetId: UUID!
 ) {
   collateral: accountCreate(
@@ -32,7 +30,7 @@ mutation CreateLoanAccounts(
       code: $loanOutstandingAccountCode
       name: $loanOutstandingAccountName
       normalBalanceType: "DEBIT"
-      accountSetIds: [$loansAccountSetId, $loansOutstandingControlAccountSetId]
+      accountSetIds: [$loansOutstandingControlAccountSetId]
     }
   ) {
     account {
@@ -44,10 +42,7 @@ mutation CreateLoanAccounts(
       accountId: $interestAccountId
       code: $interestAccountCode
       name: $interestAccountName
-      accountSetIds: [
-        $interestRevenueAccountSetId
-        $interestRevenueControlAccountSetId
-      ]
+      accountSetIds: [$interestRevenueControlAccountSetId]
     }
   ) {
     account {
