@@ -8,7 +8,7 @@ const nextConfig = {
     return config
   },
   output: "standalone",
-  basePath: "/admin-panel",
+  basePath: process.env.BASE_PATH,
 }
 
 export default nextConfig
