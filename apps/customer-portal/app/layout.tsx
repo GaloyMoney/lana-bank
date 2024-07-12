@@ -5,8 +5,6 @@ import { Inter_Tight } from "next/font/google"
 import "./globals.css"
 import { PublicEnvScript } from "next-runtime-env"
 
-import Head from "next/head"
-
 import { Toaster } from "@/components/primitive/toast"
 import NavBar from "@/components/nav-bar"
 
@@ -23,9 +21,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <Head>
+      <head>
         <PublicEnvScript />
-      </Head>
+      </head>
       <body className={inter.className}>
         <NavBar />
         {children}
