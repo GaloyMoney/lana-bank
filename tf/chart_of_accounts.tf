@@ -24,7 +24,7 @@ resource "cala_account_set_member_account_set" "coa_user_deposits_member" {
 
 resource "cala_account_set_member_account_set" "coa_loans_receivable_member" {
   account_set_id        = cala_account_set.coa_assets.id
-  member_account_set_id = cala_account_set.loans_control.id
+  member_account_set_id = cala_account_set.loans_receivable_control.id
 }
 
 resource "cala_account_set_member_account" "coa_bank_reserve_member" {

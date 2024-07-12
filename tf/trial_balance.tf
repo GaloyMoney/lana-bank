@@ -59,15 +59,15 @@ resource "cala_account_set_member_account_set" "gl_user_collateral" {
   member_account_set_id = cala_account_set.user_collateral_control.id
 }
 
-resource "cala_account_set" "loans_control" {
+resource "cala_account_set" "loans_receivable_control" {
   id                  = "00000000-0000-0000-0000-110000000005"
   journal_id          = cala_journal.journal.id
-  name                = "Loans Control Account"
+  name                = "Loans Receivable Control Account"
   normal_balance_type = "DEBIT"
 }
 resource "cala_account_set_member_account_set" "gl_loans" {
   account_set_id        = cala_account_set.trial_balance.id
-  member_account_set_id = cala_account_set.loans_control.id
+  member_account_set_id = cala_account_set.loans_receivable_control.id
 }
 
 resource "cala_account_set" "loans_collateral_control" {

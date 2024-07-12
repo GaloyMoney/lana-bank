@@ -1,35 +1,38 @@
 mutation CreateLoanAccounts(
-  $collateralAccountId: UUID!
-  $collateralAccountCode: String!
-  $collateralControlAccountSetId: UUID!
-  $outstandingAccountId: UUID!
-  $outstandingAccountCode: String!
+  $loanCollateralAccountId: UUID!
+  $loanCollateralAccountCode: String!
+  $loanCollateralAccountName: String!
+  $loansCollateralControlAccountSetId: UUID!
+  $loanReceivableAccountId: UUID!
+  $loanReceivableAccountCode: String!
+  $loanReceivableAccountName: String!
   $interestAccountId: UUID!
   $interestAccountCode: String!
+  $interestAccountName: String!
   $loansAccountSetId: UUID!
-  $loansControlAccountSetId: UUID!
+  $loansReceivableControlAccountSetId: UUID!
   $interestRevenueAccountSetId: UUID!
   $interestRevenueControlAccountSetId: UUID!
 ) {
   collateral: accountCreate(
     input: {
-      accountId: $collateralAccountId
-      code: $collateralAccountCode
-      name: "Loan Collateral"
-      accountSetIds: [$collateralControlAccountSetId]
+      accountId: $loanCollateralAccountId
+      code: $loanCollateralAccountCode
+      name: $loanCollateralAccountName
+      accountSetIds: [$loansCollateralControlAccountSetId]
     }
   ) {
     account {
       accountId
     }
   }
-  outstanding: accountCreate(
+  loansReceivable: accountCreate(
     input: {
-      accountId: $outstandingAccountId
-      code: $outstandingAccountCode
-      name: "Loan Outstanding"
+      accountId: $loanReceivableAccountId
+      code: $loanReceivableAccountCode
+      name: $loanReceivableAccountName
       normalBalanceType: "DEBIT"
-      accountSetIds: [$loansAccountSetId, $loansControlAccountSetId]
+      accountSetIds: [$loansAccountSetId, $loansReceivableControlAccountSetId]
     }
   ) {
     account {
@@ -40,7 +43,7 @@ mutation CreateLoanAccounts(
     input: {
       accountId: $interestAccountId
       code: $interestAccountCode
-      name: "Loan Interest Revenue"
+      name: $interestAccountName
       accountSetIds: [
         $interestRevenueAccountSetId
         $interestRevenueControlAccountSetId
