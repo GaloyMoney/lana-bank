@@ -2,7 +2,6 @@ mutation CreateUserAccounts(
   $onBalanceSheetAccountId: UUID!
   $onBalanceSheetAccountCode: String!
   $onBalanceSheetAccountName: String!
-  $userCheckingAccountSetId: UUID!
   $userCheckingControlAccountSetId: UUID!
   $tronAccountId: UUID!
   $tronAccountCode: String!
@@ -20,10 +19,7 @@ mutation CreateUserAccounts(
       accountId: $onBalanceSheetAccountId
       code: $onBalanceSheetAccountCode
       name: $onBalanceSheetAccountName
-      accountSetIds: [
-        $userCheckingAccountSetId
-        $userCheckingControlAccountSetId
-      ]
+      accountSetIds: [$userCheckingControlAccountSetId]
     }
   ) {
     account {
