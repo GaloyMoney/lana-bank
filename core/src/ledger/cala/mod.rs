@@ -292,7 +292,7 @@ impl CalaClient {
         let variables = loan_balance::Variables {
             journal_id: super::constants::CORE_JOURNAL_ID,
             collateral_id: Uuid::from(account_ids.collateral_account_id),
-            loan_outstanding_id: Uuid::from(account_ids.outstanding_account_id),
+            loan_receivable_id: Uuid::from(account_ids.outstanding_account_id),
             interest_income_id: Uuid::from(account_ids.interest_account_id),
         };
         let response =
@@ -469,7 +469,7 @@ impl CalaClient {
                 .off_balance_sheet_deposit_account_id
                 .into(),
             loan_collateral_account: loan_account_ids.collateral_account_id.into(),
-            loan_outstanding_account: loan_account_ids.outstanding_account_id.into(),
+            loan_receivable_account: loan_account_ids.outstanding_account_id.into(),
             checking_account: user_account_ids.on_balance_sheet_deposit_account_id.into(),
             collateral_amount,
             principal_amount,
@@ -501,7 +501,7 @@ impl CalaClient {
         let variables = post_complete_loan_transaction::Variables {
             transaction_id: transaction_id.into(),
             checking_account: user_account_ids.on_balance_sheet_deposit_account_id.into(),
-            loan_outstanding_account: loan_account_ids.outstanding_account_id.into(),
+            loan_receivable_account: loan_account_ids.outstanding_account_id.into(),
             unallocated_collateral_account: user_account_ids
                 .off_balance_sheet_deposit_account_id
                 .into(),

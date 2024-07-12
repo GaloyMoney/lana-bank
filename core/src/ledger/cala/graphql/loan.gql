@@ -1,7 +1,7 @@
 query LoanBalance(
   $journalId: UUID!
   $collateralId: UUID!
-  $loanOutstandingId: UUID!
+  $loanReceivableId: UUID!
   $interestIncomeId: UUID!
 ) {
   collateral: balance(
@@ -18,7 +18,7 @@ query LoanBalance(
   }
   loanOutstanding: balance(
     journalId: $journalId
-    accountId: $loanOutstandingId
+    accountId: $loanReceivableId
     currency: "USDT"
   ) {
     settled {
