@@ -3,14 +3,14 @@ mutation CreateLoanAccounts(
   $loanCollateralAccountCode: String!
   $loanCollateralAccountName: String!
   $loansCollateralControlAccountSetId: UUID!
-  $loanReceivableAccountId: UUID!
-  $loanReceivableAccountCode: String!
-  $loanReceivableAccountName: String!
+  $loanOutstandingAccountId: UUID!
+  $loanOutstandingAccountCode: String!
+  $loanOutstandingAccountName: String!
   $interestAccountId: UUID!
   $interestAccountCode: String!
   $interestAccountName: String!
   $loansAccountSetId: UUID!
-  $loansReceivableControlAccountSetId: UUID!
+  $loansOutstandingControlAccountSetId: UUID!
   $interestRevenueAccountSetId: UUID!
   $interestRevenueControlAccountSetId: UUID!
 ) {
@@ -26,13 +26,13 @@ mutation CreateLoanAccounts(
       accountId
     }
   }
-  loansReceivable: accountCreate(
+  outstanding: accountCreate(
     input: {
-      accountId: $loanReceivableAccountId
-      code: $loanReceivableAccountCode
-      name: $loanReceivableAccountName
+      accountId: $loanOutstandingAccountId
+      code: $loanOutstandingAccountCode
+      name: $loanOutstandingAccountName
       normalBalanceType: "DEBIT"
-      accountSetIds: [$loansAccountSetId, $loansReceivableControlAccountSetId]
+      accountSetIds: [$loansAccountSetId, $loansOutstandingControlAccountSetId]
     }
   ) {
     account {
