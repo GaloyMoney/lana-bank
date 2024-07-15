@@ -136,6 +136,7 @@ impl Mutation {
             .annual_rate(input.annual_rate)
             .interval(input.interval)
             .duration(input.duration)
+            .overdue_penalty(input.overdue_penalty)
             .liquidation_cvl(input.liquidation_cvl)
             .margin_call_cvl(input.margin_call_cvl)
             .initial_cvl(input.initial_cvl)

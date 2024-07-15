@@ -1,12 +1,13 @@
 use async_graphql::*;
 
 use crate::{
-    loan::{LoanAnnualRate, LoanCVLPct},
+    loan::{LoanAnnualRate, LoanCVLPct, LoanPenaltyRatePct},
     server::shared_graphql::{convert::*, primitives::UUID},
 };
 
 scalar!(LoanAnnualRate);
 scalar!(LoanCVLPct);
+scalar!(LoanPenaltyRatePct);
 
 #[derive(SimpleObject)]
 pub struct Terms {
@@ -20,6 +21,7 @@ pub struct TermValues {
     annual_rate: LoanAnnualRate,
     interval: InterestInterval,
     duration: LoanDuration,
+    overdue_penalty: LoanPenaltyRatePct,
     liquidation_cvl: LoanCVLPct,
     margin_call_cvl: LoanCVLPct,
     initial_cvl: LoanCVLPct,
@@ -35,6 +37,7 @@ pub(super) struct LoanDuration {
 pub(super) struct CurrentTermsUpdateInput {
     pub annual_rate: LoanAnnualRate,
     pub interval: InterestInterval,
+    pub overdue_penalty: LoanPenaltyRatePct,
     pub liquidation_cvl: LoanCVLPct,
     pub duration: LoanDurationInput,
     pub margin_call_cvl: LoanCVLPct,
@@ -81,6 +84,7 @@ impl From<crate::loan::TermValues> for TermValues {
             annual_rate: values.annual_rate,
             interval: values.interval.into(),
             duration: values.duration.into(),
+            overdue_penalty: values.overdue_penalty,
             liquidation_cvl: values.liquidation_cvl,
             margin_call_cvl: values.margin_call_cvl,
             initial_cvl: values.initial_cvl,

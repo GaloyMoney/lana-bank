@@ -6,10 +6,14 @@ mutation CreateLoanAccounts(
   $outstandingAccountCode: String!
   $interestAccountId: UUID!
   $interestAccountCode: String!
+  $penaltyAccountId: UUID!
+  $penaltyAccountCode: String!
   $loansAccountSetId: UUID!
   $loansControlAccountSetId: UUID!
   $interestRevenueAccountSetId: UUID!
   $interestRevenueControlAccountSetId: UUID!
+  $penaltyRevenueAccountSetId: UUID!
+  $penaltyRevenueControlAccountSetId: UUID!
 ) {
   collateral: accountCreate(
     input: {
@@ -44,6 +48,21 @@ mutation CreateLoanAccounts(
       accountSetIds: [
         $interestRevenueAccountSetId
         $interestRevenueControlAccountSetId
+      ]
+    }
+  ) {
+    account {
+      accountId
+    }
+  }
+  penalty: accountCreate(
+    input: {
+      accountId: $penaltyAccountId
+      code: $penaltyAccountCode
+      name: "Loan Penalty Revenue"
+      accountSetIds: [
+        $penaltyRevenueAccountSetId
+        $penaltyRevenueControlAccountSetId
       ]
     }
   ) {

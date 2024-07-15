@@ -19,7 +19,17 @@ mutation IncurInterestTemplateCreate(
           description: "Loan interest income earned account id."
         }
         {
+          name: "loanPenaltyIncomeAccount"
+          type: UUID
+          description: "Loan interest income earned account id."
+        }
+        {
           name: "interestAmount"
+          type: DECIMAL
+          description: "Amount of USD being paid as interest."
+        }
+        {
+          name: "penaltyAmount"
           type: DECIMAL
           description: "Amount of USD being paid as interest."
         }
@@ -43,7 +53,7 @@ mutation IncurInterestTemplateCreate(
       entries: [
         {
           accountId: "params.loanOutstandingAccount"
-          units: "params.interestAmount"
+          units: "'params.interestAmount' + 'params.penaltyAmount'"
           currency: "'USDT'"
           entryType: "'INCUR_INTEREST_DR'"
           direction: "DEBIT"
@@ -52,6 +62,14 @@ mutation IncurInterestTemplateCreate(
         {
           accountId: "params.loanInterestIncomeAccount"
           units: "params.interestAmount"
+          currency: "'USDT'"
+          entryType: "'INCUR_INTEREST_CR'"
+          direction: "CREDIT"
+          layer: "SETTLED"
+        }
+        {
+          accountId: "params.loanPenaltyIncomeAccount"
+          units: "params.penaltyAmount"
           currency: "'USDT'"
           entryType: "'INCUR_INTEREST_CR'"
           direction: "CREDIT"
@@ -72,7 +90,9 @@ mutation PostIncurInterestTransaction(
   $transactionId: UUID!
   $loanOutstandingAccount: UUID!
   $loanInterestIncomeAccount: UUID!
+  $loanPenaltyIncomeAccount: UUID!
   $interestAmount: Decimal!
+  $penaltyAmount: Decimal!
   $externalId: String!
 ) {
   transactionPost(
@@ -82,7 +102,9 @@ mutation PostIncurInterestTransaction(
       params: {
         loanOutstandingAccount: $loanOutstandingAccount
         loanInterestIncomeAccount: $loanInterestIncomeAccount
+        loanPenaltyIncomeAccount: $loanPenaltyIncomeAccount
         interestAmount: $interestAmount
+        penaltyAmount: $penaltyAmount
         externalId: $externalId
       }
     }

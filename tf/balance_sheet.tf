@@ -59,6 +59,17 @@ resource "cala_account_set_member_account_set" "interest_revenue" {
   member_account_set_id = cala_account_set.interest_revenue.id
 }
 
+resource "cala_account_set" "penalty_revenue" {
+  id         = "00000000-0000-0000-0000-500000000003"
+  journal_id = cala_journal.journal.id
+  name       = "Penalty Revenue"
+}
+
+resource "cala_account_set_member_account_set" "penalty_revenue" {
+  account_set_id        = cala_balance_sheet.lava.schedule5_account_set_id
+  member_account_set_id = cala_account_set.penalty_revenue.id
+}
+
 resource "cala_account_set" "reserves" {
   id         = "00000000-0000-0000-0000-600000000001"
   journal_id = cala_journal.journal.id

@@ -32,6 +32,10 @@ pub enum LoanEvent {
         tx_ref: String,
         amount: UsdCents,
     },
+    PenaltyRecorded {
+        tx_id: LedgerTxId,
+        amount: UsdCents,
+    },
     PaymentRecorded {
         tx_id: LedgerTxId,
         tx_ref: String,
@@ -103,8 +107,18 @@ impl Loan {
             .fold(UsdCents::ZERO, |acc, amount| acc + amount)
     }
 
+    fn penalty(&self) -> UsdCents {
+        self.events
+            .iter()
+            .filter_map(|event| match event {
+                LoanEvent::PenaltyRecorded { amount, .. } => Some(*amount),
+                _ => None,
+            })
+            .fold(UsdCents::ZERO, |acc, amount| acc + amount)
+    }
+
     pub fn outstanding(&self) -> UsdCents {
-        self.initial_principal() + self.interest_recorded() - self.payments()
+        self.initial_principal() + self.interest_recorded() + self.penalty() - self.payments()
     }
 
     pub fn is_collateralized(&self) -> bool {
@@ -185,6 +199,22 @@ impl Loan {
         Ok((interest, tx_ref))
     }
 
+    pub fn add_penalty(&mut self, tx_id: LedgerTxId) -> Result<UsdCents, LoanError> {
+        if self.is_completed() {
+            return Err(LoanError::AlreadyCompleted);
+        }
+
+        let mut penalty = UsdCents::ZERO;
+        if self.interest_recorded() > self.payments() {
+            penalty = self.terms.calculate_penalty(self.initial_principal());
+        }
+        self.events.push(LoanEvent::PenaltyRecorded {
+            tx_id,
+            amount: penalty,
+        });
+        Ok(penalty)
+    }
+
     pub fn record_if_not_exceeding_outstanding(
         &mut self,
         tx_id: LedgerTxId,
@@ -259,6 +289,7 @@ impl TryFrom<EntityEvents<LoanEvent>> for Loan {
                 }
                 LoanEvent::Collateralized { .. } => (),
                 LoanEvent::InterestIncurred { .. } => (),
+                LoanEvent::PenaltyRecorded { .. } => (),
                 LoanEvent::PaymentRecorded { .. } => (),
                 LoanEvent::Completed { .. } => (),
             }
@@ -317,6 +348,7 @@ mod test {
             .annual_rate(dec!(0.12))
             .duration(LoanDuration::Months(3))
             .interval(InterestInterval::EndOfMonth)
+            .overdue_penalty(dec!(2))
             .liquidation_cvl(dec!(105))
             .margin_call_cvl(dec!(125))
             .initial_cvl(dec!(140))

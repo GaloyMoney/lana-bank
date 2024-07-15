@@ -3,6 +3,7 @@ query LoanBalance(
   $collateralId: UUID!
   $loanOutstandingId: UUID!
   $interestIncomeId: UUID!
+  $penaltyIncomeId: UUID!
 ) {
   collateral: balance(
     journalId: $journalId
@@ -31,6 +32,18 @@ query LoanBalance(
   interestIncome: balance(
     journalId: $journalId
     accountId: $interestIncomeId
+    currency: "USDT"
+  ) {
+    settled {
+      normalBalance {
+        units
+        currency
+      }
+    }
+  }
+  penaltyIncome: balance(
+    journalId: $journalId
+    accountId: $penaltyIncomeId
     currency: "USDT"
   ) {
     settled {

@@ -79,6 +79,7 @@ type Collateral {
 input CurrentTermsUpdateInput {
 	annualRate: LoanAnnualRate!
 	interval: InterestInterval!
+	overduePenalty: LoanPenaltyRatePct!
 	liquidationCvl: LoanCVLPct!
 	duration: LoanDurationInput!
 	marginCallCvl: LoanCVLPct!
@@ -170,6 +171,8 @@ type LoanPartialPaymentPayload {
 	loan: Loan!
 }
 
+scalar LoanPenaltyRatePct
+
 type Mutation {
 	shareholderEquityAdd(input: ShareholderEquityAddInput!): SuccessPayload!
 	sumsubPermalinkCreate(input: SumsubPermalinkCreateInput!): SumsubPermalinkCreatePayload!
@@ -241,6 +244,7 @@ type TermValues {
 	annualRate: LoanAnnualRate!
 	interval: InterestInterval!
 	duration: LoanDuration!
+	overduePenalty: LoanPenaltyRatePct!
 	liquidationCvl: LoanCVLPct!
 	marginCallCvl: LoanCVLPct!
 	initialCvl: LoanCVLPct!

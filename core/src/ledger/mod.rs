@@ -135,11 +135,18 @@ impl Ledger {
         tx_id: LedgerTxId,
         loan_account_ids: LoanAccountIds,
         tx_ref: String,
-        amount: UsdCents,
+        interest_amount: UsdCents,
+        penalty_amount: UsdCents,
     ) -> Result<(), LedgerError> {
         Ok(self
             .cala
-            .execute_incur_interest_tx(tx_id, loan_account_ids, amount.to_usd(), tx_ref)
+            .execute_incur_interest_tx(
+                tx_id,
+                loan_account_ids,
+                interest_amount.to_usd(),
+                penalty_amount.to_usd(),
+                tx_ref,
+            )
             .await?)
     }
 

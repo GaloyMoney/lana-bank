@@ -165,6 +165,7 @@ impl CalaClient {
             collateral_account_id,
             outstanding_account_id,
             interest_account_id,
+            penalty_account_id,
         }: LoanAccountIds,
     ) -> Result<(), CalaError> {
         let loan_id = loan_id.into();
@@ -179,9 +180,14 @@ impl CalaClient {
             loans_control_account_set_id: super::constants::LOANS_CONTROL_ACCOUNT_SET_ID,
             interest_account_id: Uuid::from(interest_account_id),
             interest_account_code: format!("LOANS.INTEREST_INCOME.{}", loan_id),
+            penalty_account_id: Uuid::from(penalty_account_id),
+            penalty_account_code: format!("LOANS.PENALTY_INCOME.{}", loan_id),
             interest_revenue_account_set_id: super::constants::INTEREST_REVENUE_ACCOUNT_SET_ID,
             interest_revenue_control_account_set_id:
                 super::constants::INTEREST_REVENUE_CONTROL_ACCOUNT_SET_ID,
+            penalty_revenue_account_set_id: super::constants::PENALTY_REVENUE_ACCOUNT_SET_ID,
+            penalty_revenue_control_account_set_id:
+                super::constants::PENALTY_REVENUE_CONTROL_ACCOUNT_SET_ID,
         };
         let response =
             Self::traced_gql_request::<CreateLoanAccounts, _>(&self.client, &self.url, variables)
@@ -290,6 +296,7 @@ impl CalaClient {
             collateral_id: Uuid::from(account_ids.collateral_account_id),
             loan_outstanding_id: Uuid::from(account_ids.outstanding_account_id),
             interest_income_id: Uuid::from(account_ids.interest_account_id),
+            penalty_income_id: Uuid::from(account_ids.penalty_account_id),
         };
         let response =
             Self::traced_gql_request::<LoanBalance, _>(&self.client, &self.url, variables).await?;
@@ -553,13 +560,16 @@ impl CalaClient {
         transaction_id: LedgerTxId,
         loan_account_ids: LoanAccountIds,
         interest_amount: Decimal,
+        penalty_amount: Decimal,
         external_id: String,
     ) -> Result<(), CalaError> {
         let variables = post_incur_interest_transaction::Variables {
             transaction_id: transaction_id.into(),
             loan_outstanding_account: loan_account_ids.outstanding_account_id.into(),
             loan_interest_income_account: loan_account_ids.interest_account_id.into(),
+            loan_penalty_income_account: loan_account_ids.penalty_account_id.into(),
             interest_amount,
+            penalty_amount,
             external_id,
         };
         let response = Self::traced_gql_request::<PostIncurInterestTransaction, _>(

@@ -34,6 +34,28 @@ impl From<Decimal> for LoanAnnualRate {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(transparent)]
+pub struct LoanPenaltyRatePct(Decimal);
+
+impl LoanPenaltyRatePct {
+    fn penalty(&self, principal: UsdCents) -> UsdCents {
+        let cents = principal.to_usd() * self.0; // principal.to_usd() * penalty_rate_pct * dec!(100) / dec!(100);
+        UsdCents::from(
+            cents
+                .round_dp_with_strategy(0, RoundingStrategy::AwayFromZero)
+                .to_u64()
+                .expect("should return a valid integer"),
+        )
+    }
+}
+
+impl From<Decimal> for LoanPenaltyRatePct {
+    fn from(value: Decimal) -> Self {
+        LoanPenaltyRatePct(value)
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(transparent)]
 pub struct LoanCVLPct(Decimal);
 
 impl LoanCVLPct {
@@ -106,7 +128,8 @@ pub struct TermValues {
     pub(crate) duration: LoanDuration,
     #[builder(setter(into))]
     pub(crate) interval: InterestInterval,
-    // overdue_penalty_rate: LoanAnnualRate,
+    #[builder(setter(into))]
+    pub(crate) overdue_penalty: LoanPenaltyRatePct,
     #[builder(setter(into))]
     pub(crate) liquidation_cvl: LoanCVLPct,
     #[builder(setter(into))]
@@ -135,6 +158,10 @@ impl TermValues {
     pub fn calculate_interest(&self, principal: UsdCents, days: u32) -> UsdCents {
         self.annual_rate.interest_for_time_period(principal, days)
     }
+
+    pub fn calculate_penalty(&self, principal: UsdCents) -> UsdCents {
+        self.overdue_penalty.penalty(principal)
+    }
 }
 
 #[cfg(test)]
@@ -161,16 +188,17 @@ mod test {
             .annual_rate(LoanAnnualRate(dec!(0.12)))
             .duration(LoanDuration::Months(3))
             .interval(InterestInterval::EndOfMonth)
-            .liquidation_cvl(LoanCVLPct(Decimal::from(105)))
-            .margin_call_cvl(LoanCVLPct(Decimal::from(125)))
-            .initial_cvl(LoanCVLPct(Decimal::from(140)))
+            .overdue_penalty(LoanPenaltyRatePct(dec!(2)))
+            .liquidation_cvl(dec!(105))
+            .margin_call_cvl(dec!(125))
+            .initial_cvl(dec!(140))
             .build()
             .expect("should build a valid term")
     }
 
     #[test]
     fn required_collateral() {
-        let price = PriceOfOneBTC::new(UsdCents::from_usd(rust_decimal_macros::dec!(1000)));
+        let price = PriceOfOneBTC::new(UsdCents::from_usd(dec!(1000)));
         let terms = terms();
         let principal = UsdCents::from(100000);
         let required_collateral = terms.required_collateral(principal, price);
@@ -199,6 +227,18 @@ mod test {
         let days = 23;
         let interest = terms.calculate_interest(principal, days);
         assert_eq!(interest, UsdCents::from(755));
+    }
+
+    #[test]
+    fn penalty_calculation() {
+        let terms = terms();
+        let principal = UsdCents::from_usd(dec!(1));
+        let penalty = terms.calculate_penalty(principal);
+        assert_eq!(penalty, UsdCents::from(2));
+
+        let principal = UsdCents::from_usd(dec!(1.21));
+        let penalty = terms.calculate_penalty(principal);
+        assert_eq!(penalty, UsdCents::from(3));
     }
 
     #[test]

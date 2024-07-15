@@ -88,11 +88,19 @@ impl JobRunner for LoanProcessingJobRunner {
             Err(_) => unreachable!(),
         };
 
+        let penalty = match loan.add_penalty(tx_id) {
+            Err(LoanError::AlreadyCompleted) => {
+                return Ok(JobCompletion::Complete);
+            }
+            Ok(tx_ref) => tx_ref,
+            Err(_) => unreachable!(),
+        };
+
         let mut db_tx = current_job.pool().begin().await?;
         self.repo.persist_in_tx(&mut db_tx, &mut loan).await?;
 
         self.ledger
-            .record_loan_interest(tx_id, loan.account_ids, tx_ref, interest)
+            .record_loan_interest(tx_id, loan.account_ids, tx_ref, interest, penalty)
             .await?;
 
         match loan.next_interest_at() {
