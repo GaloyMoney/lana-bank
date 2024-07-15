@@ -3,7 +3,7 @@ query ChartOfAccountsAccountSet(
   $first: Int!
   $after: String
 ) {
-  chartOfAccountsAccountSet(accountSetId: $accountSetId) {
+  accountSet(accountSetId: $accountSetId) {
     name
     subAccounts(first: $first, after: $after) {
       edges {

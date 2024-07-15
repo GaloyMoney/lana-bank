@@ -53,6 +53,19 @@ export type AccountSetAndMemberBalances = {
   name: Scalars['String']['output'];
 };
 
+export type AccountSetAndSubAccounts = {
+  __typename?: 'AccountSetAndSubAccounts';
+  id: Scalars['UUID']['output'];
+  name: Scalars['String']['output'];
+  subAccounts: AccountSetSubAccountConnection;
+};
+
+
+export type AccountSetAndSubAccountsSubAccountsArgs = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  first: Scalars['Int']['input'];
+};
+
 export type AccountSetBalance = {
   __typename?: 'AccountSetBalance';
   balance: AccountBalancesByCurrency;
@@ -67,6 +80,27 @@ export type AccountSetDetails = {
 };
 
 export type AccountSetMemberBalance = AccountBalance | AccountSetBalance;
+
+export type AccountSetSubAccount = AccountDetails | AccountSetDetails;
+
+export type AccountSetSubAccountConnection = {
+  __typename?: 'AccountSetSubAccountConnection';
+  /** A list of edges. */
+  edges: Array<AccountSetSubAccountEdge>;
+  /** A list of nodes. */
+  nodes: Array<AccountSetSubAccount>;
+  /** Information to aid in pagination. */
+  pageInfo: PageInfo;
+};
+
+/** An edge in a connection. */
+export type AccountSetSubAccountEdge = {
+  __typename?: 'AccountSetSubAccountEdge';
+  /** A cursor for use in pagination */
+  cursor: Scalars['String']['output'];
+  /** The item at the end of the edge */
+  node: AccountSetSubAccount;
+};
 
 export enum AccountStatus {
   Active = 'ACTIVE',
@@ -91,44 +125,10 @@ export type ChartOfAccounts = {
   name: Scalars['String']['output'];
 };
 
-export type ChartOfAccountsAccountSet = {
-  __typename?: 'ChartOfAccountsAccountSet';
-  id: Scalars['UUID']['output'];
-  name: Scalars['String']['output'];
-  subAccounts: ChartOfAccountsSubAccountConnection;
-};
-
-
-export type ChartOfAccountsAccountSetSubAccountsArgs = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  first: Scalars['Int']['input'];
-};
-
 export type ChartOfAccountsCategory = {
   __typename?: 'ChartOfAccountsCategory';
-  accounts: Array<ChartOfAccountsSubAccount>;
+  accounts: Array<AccountSetSubAccount>;
   name: Scalars['String']['output'];
-};
-
-export type ChartOfAccountsSubAccount = AccountDetails | AccountSetDetails;
-
-export type ChartOfAccountsSubAccountConnection = {
-  __typename?: 'ChartOfAccountsSubAccountConnection';
-  /** A list of edges. */
-  edges: Array<ChartOfAccountsSubAccountEdge>;
-  /** A list of nodes. */
-  nodes: Array<ChartOfAccountsSubAccount>;
-  /** Information to aid in pagination. */
-  pageInfo: PageInfo;
-};
-
-/** An edge in a connection. */
-export type ChartOfAccountsSubAccountEdge = {
-  __typename?: 'ChartOfAccountsSubAccountEdge';
-  /** A cursor for use in pagination */
-  cursor: Scalars['String']['output'];
-  /** The item at the end of the edge */
-  node: ChartOfAccountsSubAccount;
 };
 
 export type Checking = {
@@ -308,8 +308,8 @@ export enum Period {
 
 export type Query = {
   __typename?: 'Query';
+  accountSet?: Maybe<AccountSetAndSubAccounts>;
   chartOfAccounts?: Maybe<ChartOfAccounts>;
-  chartOfAccountsAccountSet?: Maybe<ChartOfAccountsAccountSet>;
   currentTerms?: Maybe<Terms>;
   loan?: Maybe<Loan>;
   offBalanceSheetChartOfAccounts?: Maybe<ChartOfAccounts>;
@@ -320,7 +320,7 @@ export type Query = {
 };
 
 
-export type QueryChartOfAccountsAccountSetArgs = {
+export type QueryAccountSetArgs = {
   accountSetId: Scalars['UUID']['input'];
 };
 
@@ -459,7 +459,7 @@ export type ChartOfAccountsAccountSetQueryVariables = Exact<{
 }>;
 
 
-export type ChartOfAccountsAccountSetQuery = { __typename?: 'Query', chartOfAccountsAccountSet?: { __typename?: 'ChartOfAccountsAccountSet', name: string, subAccounts: { __typename?: 'ChartOfAccountsSubAccountConnection', edges: Array<{ __typename?: 'ChartOfAccountsSubAccountEdge', cursor: string, node: { __typename: 'AccountDetails', id: string, name: string } | { __typename: 'AccountSetDetails', id: string, name: string, hasSubAccounts: boolean } }> } } | null };
+export type ChartOfAccountsAccountSetQuery = { __typename?: 'Query', accountSet?: { __typename?: 'AccountSetAndSubAccounts', id: string, name: string, subAccounts: { __typename?: 'AccountSetSubAccountConnection', edges: Array<{ __typename?: 'AccountSetSubAccountEdge', cursor: string, node: { __typename: 'AccountDetails', id: string, name: string } | { __typename: 'AccountSetDetails', id: string, name: string, hasSubAccounts: boolean } }> } } | null };
 
 export type GetChartOfAccountsQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -699,7 +699,8 @@ export type LoanPartialPaymentMutationResult = Apollo.MutationResult<LoanPartial
 export type LoanPartialPaymentMutationOptions = Apollo.BaseMutationOptions<LoanPartialPaymentMutation, LoanPartialPaymentMutationVariables>;
 export const ChartOfAccountsAccountSetDocument = gql`
     query ChartOfAccountsAccountSet($accountSetId: UUID!, $first: Int!, $after: String) {
-  chartOfAccountsAccountSet(accountSetId: $accountSetId) {
+  accountSet(accountSetId: $accountSetId) {
+    id
     name
     subAccounts(first: $first, after: $after) {
       edges {

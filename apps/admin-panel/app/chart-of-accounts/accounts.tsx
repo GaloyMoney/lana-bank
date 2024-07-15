@@ -4,14 +4,14 @@ import React from "react"
 import { IoCaretDownSharp, IoCaretForwardSharp } from "react-icons/io5"
 
 import {
-  ChartOfAccountsSubAccount,
+  AccountSetSubAccount,
   useChartOfAccountsAccountSetQuery,
 } from "@/lib/graphql/generated"
 import { TableCell, TableRow } from "@/components/primitive/table"
 
 type AccountProps = {
   depth?: number
-  account: ChartOfAccountsSubAccount
+  account: AccountSetSubAccount
 }
 
 const SubAccountsForAccountSet: React.FC<AccountProps> = ({ account, depth = 0 }) => {
@@ -22,7 +22,7 @@ const SubAccountsForAccountSet: React.FC<AccountProps> = ({ account, depth = 0 }
     },
   })
 
-  const subAccounts = data?.chartOfAccountsAccountSet?.subAccounts.edges
+  const subAccounts = data?.accountSet?.subAccounts.edges
 
   return subAccounts?.map((subAccount) => (
     <Account key={subAccount.node.id} account={subAccount.node} depth={depth + 1} />

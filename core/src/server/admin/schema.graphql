@@ -20,6 +20,12 @@ type AccountSetAndMemberBalances {
 	memberBalances: [AccountSetMemberBalance!]!
 }
 
+type AccountSetAndSubAccounts {
+	id: UUID!
+	name: String!
+	subAccounts(first: Int!, after: String): AccountSetSubAccountConnection!
+}
+
 type AccountSetBalance {
 	name: String!
 	balance: AccountBalancesByCurrency!
@@ -32,6 +38,37 @@ type AccountSetDetails {
 }
 
 union AccountSetMemberBalance = AccountBalance | AccountSetBalance
+
+union AccountSetSubAccount = AccountDetails | AccountSetDetails
+
+type AccountSetSubAccountConnection {
+	"""
+	Information to aid in pagination.
+	"""
+	pageInfo: PageInfo!
+	"""
+	A list of edges.
+	"""
+	edges: [AccountSetSubAccountEdge!]!
+	"""
+	A list of nodes.
+	"""
+	nodes: [AccountSetSubAccount!]!
+}
+
+"""
+An edge in a connection.
+"""
+type AccountSetSubAccountEdge {
+	"""
+	The item at the end of the edge
+	"""
+	node: AccountSetSubAccount!
+	"""
+	A cursor for use in pagination
+	"""
+	cursor: String!
+}
 
 enum AccountStatus {
 	ACTIVE
@@ -58,46 +95,9 @@ type ChartOfAccounts {
 	categories: [ChartOfAccountsCategory!]!
 }
 
-type ChartOfAccountsAccountSet {
-	id: UUID!
-	name: String!
-	subAccounts(first: Int!, after: String): ChartOfAccountsSubAccountConnection!
-}
-
 type ChartOfAccountsCategory {
 	name: String!
-	accounts: [ChartOfAccountsSubAccount!]!
-}
-
-union ChartOfAccountsSubAccount = AccountDetails | AccountSetDetails
-
-type ChartOfAccountsSubAccountConnection {
-	"""
-	Information to aid in pagination.
-	"""
-	pageInfo: PageInfo!
-	"""
-	A list of edges.
-	"""
-	edges: [ChartOfAccountsSubAccountEdge!]!
-	"""
-	A list of nodes.
-	"""
-	nodes: [ChartOfAccountsSubAccount!]!
-}
-
-"""
-An edge in a connection.
-"""
-type ChartOfAccountsSubAccountEdge {
-	"""
-	The item at the end of the edge
-	"""
-	node: ChartOfAccountsSubAccount!
-	"""
-	A cursor for use in pagination
-	"""
-	cursor: String!
+	accounts: [AccountSetSubAccount!]!
 }
 
 type Checking {
@@ -251,7 +251,7 @@ type Query {
 	offBalanceSheetTrialBalance: AccountSetAndMemberBalances
 	chartOfAccounts: ChartOfAccounts
 	offBalanceSheetChartOfAccounts: ChartOfAccounts
-	chartOfAccountsAccountSet(accountSetId: UUID!): ChartOfAccountsAccountSet
+	accountSet(accountSetId: UUID!): AccountSetAndSubAccounts
 	currentTerms: Terms
 }
 

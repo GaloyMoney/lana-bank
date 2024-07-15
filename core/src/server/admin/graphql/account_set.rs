@@ -38,40 +38,40 @@ impl From<crate::ledger::account_set::LedgerChartOfAccountsAccountSet> for Accou
 }
 
 #[derive(Union)]
-enum ChartOfAccountsSubAccount {
+enum AccountSetSubAccount {
     Account(super::account::AccountDetails),
     AccountSet(AccountSetDetails),
 }
 
 impl From<crate::ledger::account_set::PaginatedLedgerChartOfAccountsCategorySubAccount>
-    for ChartOfAccountsSubAccount
+    for AccountSetSubAccount
 {
     fn from(
         member: crate::ledger::account_set::PaginatedLedgerChartOfAccountsCategorySubAccount,
     ) -> Self {
         match member.value {
             crate::ledger::account_set::LedgerChartOfAccountsCategorySubAccount::Account(val) => {
-                ChartOfAccountsSubAccount::Account(super::account::AccountDetails::from(val))
+                AccountSetSubAccount::Account(super::account::AccountDetails::from(val))
             }
             crate::ledger::account_set::LedgerChartOfAccountsCategorySubAccount::AccountSet(
                 val,
-            ) => ChartOfAccountsSubAccount::AccountSet(AccountSetDetails::from(val)),
+            ) => AccountSetSubAccount::AccountSet(AccountSetDetails::from(val)),
         }
     }
 }
 
 impl From<crate::ledger::account_set::LedgerChartOfAccountsCategoryAccount>
-    for ChartOfAccountsSubAccount
+    for AccountSetSubAccount
 {
     fn from(
         category_account: crate::ledger::account_set::LedgerChartOfAccountsCategoryAccount,
     ) -> Self {
         match category_account {
             crate::ledger::account_set::LedgerChartOfAccountsCategoryAccount::Account(val) => {
-                ChartOfAccountsSubAccount::Account(val.into())
+                AccountSetSubAccount::Account(val.into())
             }
             crate::ledger::account_set::LedgerChartOfAccountsCategoryAccount::AccountSet(val) => {
-                ChartOfAccountsSubAccount::AccountSet(val.into())
+                AccountSetSubAccount::AccountSet(val.into())
             }
         }
     }
@@ -112,18 +112,18 @@ impl From<SubAccountCursor> for crate::ledger::cursor::SubAccountCursor {
 
 #[derive(SimpleObject)]
 #[graphql(complex)]
-pub struct ChartOfAccountsAccountSet {
+pub struct AccountSetAndSubAccounts {
     id: UUID,
     name: String,
 }
 
 impl From<crate::ledger::account_set::LedgerChartOfAccountsCategoryAccountSet>
-    for ChartOfAccountsAccountSet
+    for AccountSetAndSubAccounts
 {
     fn from(
         account_set: crate::ledger::account_set::LedgerChartOfAccountsCategoryAccountSet,
     ) -> Self {
-        ChartOfAccountsAccountSet {
+        AccountSetAndSubAccounts {
             id: account_set.id.into(),
             name: account_set.name,
         }
@@ -131,14 +131,13 @@ impl From<crate::ledger::account_set::LedgerChartOfAccountsCategoryAccountSet>
 }
 
 #[ComplexObject]
-impl ChartOfAccountsAccountSet {
+impl AccountSetAndSubAccounts {
     async fn sub_accounts(
         &self,
         ctx: &Context<'_>,
         first: i32,
         after: Option<String>,
-    ) -> Result<Connection<SubAccountCursor, ChartOfAccountsSubAccount, EmptyFields, EmptyFields>>
-    {
+    ) -> Result<Connection<SubAccountCursor, AccountSetSubAccount, EmptyFields, EmptyFields>> {
         let app = ctx.data_unchecked::<LavaApp>();
         query(
             after,
@@ -162,7 +161,7 @@ impl ChartOfAccountsAccountSet {
                     .edges
                     .extend(res.entities.into_iter().map(|sub_account| {
                         let cursor = SubAccountCursor::from(sub_account.cursor.clone());
-                        Edge::new(cursor, ChartOfAccountsSubAccount::from(sub_account))
+                        Edge::new(cursor, AccountSetSubAccount::from(sub_account))
                     }));
                 Ok::<_, async_graphql::Error>(connection)
             },
@@ -174,7 +173,7 @@ impl ChartOfAccountsAccountSet {
 #[derive(SimpleObject)]
 pub struct ChartOfAccountsCategory {
     name: String,
-    accounts: Vec<ChartOfAccountsSubAccount>,
+    accounts: Vec<AccountSetSubAccount>,
 }
 
 impl From<crate::ledger::account_set::LedgerChartOfAccountsCategory> for ChartOfAccountsCategory {
@@ -184,7 +183,7 @@ impl From<crate::ledger::account_set::LedgerChartOfAccountsCategory> for ChartOf
             accounts: account_set
                 .category_accounts
                 .into_iter()
-                .map(ChartOfAccountsSubAccount::from)
+                .map(AccountSetSubAccount::from)
                 .collect(),
         }
     }

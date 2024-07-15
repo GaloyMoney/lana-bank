@@ -2,7 +2,8 @@ import { gql } from "@apollo/client"
 
 gql`
   query ChartOfAccountsAccountSet($accountSetId: UUID!, $first: Int!, $after: String) {
-    chartOfAccountsAccountSet(accountSetId: $accountSetId) {
+    accountSet(accountSetId: $accountSetId) {
+      id
       name
       subAccounts(first: $first, after: $after) {
         edges {
