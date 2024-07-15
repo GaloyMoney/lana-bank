@@ -13,7 +13,7 @@ teardown_file() {
 @test "chart-of-accounts: can traverse chart of accounts" {
   exec_admin_graphql 'chart-of-accounts'
 
-  category_account_name="Bank Deposits for User Control Account"
+  category_account_name="Bank Deposits from Users Control Account"
   category_account_set_id=$(echo "$output" | jq -r \
     --arg name "$category_account_name" '
       .data.chartOfAccounts.categories[].accounts[] |
