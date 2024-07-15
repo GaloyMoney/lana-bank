@@ -209,7 +209,9 @@ type Query {
 	user(id: UUID!): User
 	users(first: Int!, after: String): UserConnection!
 	trialBalance: AccountSetAndMemberBalances
+	offBalanceSheetTrialBalance: AccountSetAndMemberBalances
 	chartOfAccounts: ChartOfAccounts
+	offBalanceSheetChartOfAccounts: ChartOfAccounts
 	chartOfAccountsAccountSet(accountSetId: UUID!): ChartOfAccountsAccountSet
 	currentTerms: Terms
 }

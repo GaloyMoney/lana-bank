@@ -277,6 +277,8 @@ export type Query = {
   chartOfAccountsAccountSet?: Maybe<ChartOfAccountsAccountSet>;
   currentTerms?: Maybe<Terms>;
   loan?: Maybe<Loan>;
+  offBalanceSheetChartOfAccounts?: Maybe<ChartOfAccounts>;
+  offBalanceSheetTrialBalance?: Maybe<AccountSetAndMemberBalances>;
   trialBalance?: Maybe<AccountSetAndMemberBalances>;
   user?: Maybe<User>;
   users: UserConnection;

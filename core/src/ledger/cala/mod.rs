@@ -735,11 +735,35 @@ impl CalaClient {
         Ok(response.data.and_then(|d| d.account_set).map(T::from))
     }
 
+    pub async fn obs_trial_balance<T: From<trial_balance::TrialBalanceAccountSet>>(
+        &self,
+    ) -> Result<Option<T>, CalaError> {
+        let variables = trial_balance::Variables {
+            journal_id: constants::CORE_JOURNAL_ID,
+            account_set_id: constants::OBS_TRIAL_BALANCE_ACCOUNT_SET_ID,
+        };
+        let response =
+            Self::traced_gql_request::<TrialBalance, _>(&self.client, &self.url, variables).await?;
+        Ok(response.data.and_then(|d| d.account_set).map(T::from))
+    }
+
     pub async fn chart_of_accounts<T: From<chart_of_accounts::ChartOfAccountsAccountSet>>(
         &self,
     ) -> Result<Option<T>, CalaError> {
         let variables = chart_of_accounts::Variables {
             account_set_id: constants::CHART_OF_ACCOUNTS_ACCOUNT_SET_ID,
+        };
+        let response =
+            Self::traced_gql_request::<ChartOfAccounts, _>(&self.client, &self.url, variables)
+                .await?;
+        Ok(response.data.and_then(|d| d.account_set).map(T::from))
+    }
+
+    pub async fn obs_chart_of_accounts<T: From<chart_of_accounts::ChartOfAccountsAccountSet>>(
+        &self,
+    ) -> Result<Option<T>, CalaError> {
+        let variables = chart_of_accounts::Variables {
+            account_set_id: constants::OBS_CHART_OF_ACCOUNTS_ACCOUNT_SET_ID,
         };
         let response =
             Self::traced_gql_request::<ChartOfAccounts, _>(&self.client, &self.url, variables)

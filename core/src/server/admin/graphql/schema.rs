@@ -66,7 +66,16 @@ impl Query {
         ctx: &Context<'_>,
     ) -> async_graphql::Result<Option<AccountSetAndMemberBalances>> {
         let app = ctx.data_unchecked::<LavaApp>();
-        let account_summary = app.ledger().account_trial_balance_summary().await?;
+        let account_summary = app.ledger().trial_balance().await?;
+        Ok(account_summary.map(AccountSetAndMemberBalances::from))
+    }
+
+    async fn off_balance_sheet_trial_balance(
+        &self,
+        ctx: &Context<'_>,
+    ) -> async_graphql::Result<Option<AccountSetAndMemberBalances>> {
+        let app = ctx.data_unchecked::<LavaApp>();
+        let account_summary = app.ledger().obs_trial_balance().await?;
         Ok(account_summary.map(AccountSetAndMemberBalances::from))
     }
 
@@ -76,6 +85,15 @@ impl Query {
     ) -> async_graphql::Result<Option<ChartOfAccounts>> {
         let app = ctx.data_unchecked::<LavaApp>();
         let chart_of_accounts = app.ledger().chart_of_accounts().await?;
+        Ok(chart_of_accounts.map(ChartOfAccounts::from))
+    }
+
+    async fn off_balance_sheet_chart_of_accounts(
+        &self,
+        ctx: &Context<'_>,
+    ) -> async_graphql::Result<Option<ChartOfAccounts>> {
+        let app = ctx.data_unchecked::<LavaApp>();
+        let chart_of_accounts = app.ledger().obs_chart_of_accounts().await?;
         Ok(chart_of_accounts.map(ChartOfAccounts::from))
     }
 

@@ -13,15 +13,29 @@ resource "cala_account_set" "obs_trial_balance" {
 }
 
 
+# ASSETS
+resource "random_uuid" "obs_assets" {}
+resource "cala_account_set" "obs_assets" {
+  id                  = random_uuid.obs_assets.result
+  journal_id          = cala_journal.journal.id
+  name                = "Off-Balance-Sheet Assets"
+  normal_balance_type = "DEBIT"
+}
+resource "cala_account_set_member_account_set" "obs_assets" {
+  account_set_id        = cala_account_set.obs_chart_of_accounts.id
+  member_account_set_id = cala_account_set.obs_assets.id
+}
+
+# ASSETS: Members
 resource "random_uuid" "collateral_deposits_control" {}
 resource "cala_account_set" "collateral_deposits_control" {
   id                  = random_uuid.collateral_deposits_control.result
   journal_id          = cala_journal.journal.id
-  name                = "Off-Balance-Sheet Deposits For Collateral From Users Control Account"
+  name                = "Deposits For Collateral From Users Control Account"
   normal_balance_type = "DEBIT"
 }
-resource "cala_account_set_member_account_set" "collateral_deposits_control_in_obs_chart_of_accounts" {
-  account_set_id        = cala_account_set.obs_chart_of_accounts.id
+resource "cala_account_set_member_account_set" "collateral_deposits_control_in_obs_assets" {
+  account_set_id        = cala_account_set.obs_assets.id
   member_account_set_id = cala_account_set.collateral_deposits_control.id
 }
 resource "cala_account_set_member_account_set" "collateral_deposits_control_in_obs_trial_balance" {
@@ -29,14 +43,28 @@ resource "cala_account_set_member_account_set" "collateral_deposits_control_in_o
   member_account_set_id = cala_account_set.collateral_deposits_control.id
 }
 
+# LIABILITIES
+resource "random_uuid" "obs_liabilities" {}
+resource "cala_account_set" "obs_liabilities" {
+  id                  = random_uuid.obs_liabilities.result
+  journal_id          = cala_journal.journal.id
+  name                = "Off-Balance-Sheet Liabilities"
+  normal_balance_type = "DEBIT"
+}
+resource "cala_account_set_member_account_set" "obs_liabilities" {
+  account_set_id        = cala_account_set.obs_chart_of_accounts.id
+  member_account_set_id = cala_account_set.obs_liabilities.id
+}
+
+# LIABILITIES: Members
 resource "cala_account_set" "user_collateral_control" {
   id                  = "00000000-0000-0000-0000-210000000001"
   journal_id          = cala_journal.journal.id
   name                = "User Collateral Control Account"
   normal_balance_type = "CREDIT"
 }
-resource "cala_account_set_member_account_set" "user_collateral_control_in_obs_chart_of_accounts" {
-  account_set_id        = cala_account_set.obs_chart_of_accounts.id
+resource "cala_account_set_member_account_set" "user_collateral_control_in_obs_liabilities" {
+  account_set_id        = cala_account_set.obs_liabilities.id
   member_account_set_id = cala_account_set.user_collateral_control.id
 }
 resource "cala_account_set_member_account_set" "user_collateral_control_in_obs_trial_balance" {
@@ -50,8 +78,8 @@ resource "cala_account_set" "loans_collateral_control" {
   name                = "Loans Collateral Control Account"
   normal_balance_type = "CREDIT"
 }
-resource "cala_account_set_member_account_set" "loans_collateral_control_in_obs_chart_of_accounts" {
-  account_set_id        = cala_account_set.obs_chart_of_accounts.id
+resource "cala_account_set_member_account_set" "loans_collateral_control_in_obs_liabilities" {
+  account_set_id        = cala_account_set.obs_liabilities.id
   member_account_set_id = cala_account_set.loans_collateral_control.id
 }
 resource "cala_account_set_member_account_set" "loans_collateral_control_in_obs_trial_balance" {

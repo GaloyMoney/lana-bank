@@ -199,7 +199,7 @@ impl Ledger {
         Ok(())
     }
 
-    pub async fn account_trial_balance_summary(
+    pub async fn trial_balance(
         &self,
     ) -> Result<Option<LedgerAccountSetAndMemberBalances>, LedgerError> {
         self.cala
@@ -209,9 +209,29 @@ impl Ledger {
             .map_err(|e| e.into())
     }
 
+    pub async fn obs_trial_balance(
+        &self,
+    ) -> Result<Option<LedgerAccountSetAndMemberBalances>, LedgerError> {
+        self.cala
+            .obs_trial_balance::<LedgerAccountSetAndMemberBalances>()
+            .await
+            .map(|gl| gl.map(LedgerAccountSetAndMemberBalances::from))
+            .map_err(|e| e.into())
+    }
+
     pub async fn chart_of_accounts(&self) -> Result<Option<LedgerChartOfAccounts>, LedgerError> {
         self.cala
             .chart_of_accounts::<LedgerChartOfAccounts>()
+            .await
+            .map(|gl| gl.map(LedgerChartOfAccounts::from))
+            .map_err(|e| e.into())
+    }
+
+    pub async fn obs_chart_of_accounts(
+        &self,
+    ) -> Result<Option<LedgerChartOfAccounts>, LedgerError> {
+        self.cala
+            .obs_chart_of_accounts::<LedgerChartOfAccounts>()
             .await
             .map(|gl| gl.map(LedgerChartOfAccounts::from))
             .map_err(|e| e.into())
