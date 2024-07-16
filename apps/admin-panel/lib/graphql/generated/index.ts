@@ -60,8 +60,6 @@ export type AccountSetDetails = {
   name: Scalars['String']['output'];
 };
 
-export type AccountSetMemberWithBalance = AccountSetWithBalance | AccountWithBalance;
-
 export type AccountSetSubAccount = AccountDetails | AccountSetDetails;
 
 export type AccountSetSubAccountConnection = {
@@ -82,6 +80,8 @@ export type AccountSetSubAccountEdge = {
   /** The item at the end of the edge */
   node: AccountSetSubAccount;
 };
+
+export type AccountSetSubAccountWithBalance = AccountSetWithBalance | AccountWithBalance;
 
 export type AccountSetWithBalance = {
   __typename?: 'AccountSetWithBalance';
@@ -376,7 +376,7 @@ export type TrialBalance = {
   __typename?: 'TrialBalance';
   balance: AccountBalancesByCurrency;
   name: Scalars['String']['output'];
-  subAccounts: Array<AccountSetMemberWithBalance>;
+  subAccounts: Array<AccountSetSubAccountWithBalance>;
 };
 
 export type UnallocatedCollateral = {

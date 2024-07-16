@@ -21,8 +21,6 @@ type AccountSetDetails {
 	hasSubAccounts: Boolean!
 }
 
-union AccountSetMemberWithBalance = AccountWithBalance | AccountSetWithBalance
-
 union AccountSetSubAccount = AccountDetails | AccountSetDetails
 
 type AccountSetSubAccountConnection {
@@ -53,6 +51,8 @@ type AccountSetSubAccountEdge {
 	"""
 	cursor: String!
 }
+
+union AccountSetSubAccountWithBalance = AccountWithBalance | AccountSetWithBalance
 
 type AccountSetWithBalance {
 	id: UUID!
@@ -296,7 +296,7 @@ scalar Timestamp
 type TrialBalance {
 	name: String!
 	balance: AccountBalancesByCurrency!
-	subAccounts: [AccountSetMemberWithBalance!]!
+	subAccounts: [AccountSetSubAccountWithBalance!]!
 }
 
 scalar UUID
