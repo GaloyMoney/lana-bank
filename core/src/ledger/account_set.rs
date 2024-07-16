@@ -34,6 +34,34 @@ impl From<trial_balance::TrialBalanceAccountSetMembersEdgesNodeOnAccountSet>
     }
 }
 
+impl From<account_set_and_sub_accounts_with_balance::SubAccountOnAccountSet>
+    for LedgerAccountSetBalance
+{
+    fn from(node: account_set_and_sub_accounts_with_balance::SubAccountOnAccountSet) -> Self {
+        let account_set = node.account_set_with_balance;
+
+        LedgerAccountSetBalance {
+            name: account_set.name,
+            normal_balance_type: account_set.normal_balance_type.into(),
+            balance: LedgerAccountBalancesByCurrency {
+                btc: account_set.account_set_balances.btc_balances.map_or_else(
+                    LayeredBtcAccountBalances::default,
+                    LayeredBtcAccountBalances::from,
+                ),
+                usd: account_set.account_set_balances.usd_balances.map_or_else(
+                    LayeredUsdAccountBalances::default,
+                    LayeredUsdAccountBalances::from,
+                ),
+                usdt: account_set.account_set_balances.usdt_balances.map_or_else(
+                    LayeredUsdAccountBalances::default,
+                    LayeredUsdAccountBalances::from,
+                ),
+            },
+        }
+    }
+}
+
+
 #[derive(Debug, Clone)]
 pub enum LedgerAccountSetMemberBalance {
     LedgerAccountBalance(LedgerAccountBalance),
@@ -80,6 +108,53 @@ impl From<trial_balance::TrialBalanceAccountSet> for LedgerAccountSetAndMemberBa
                     LayeredUsdAccountBalances::from,
                 ),
                 usdt: account_set.usdt_balances.map_or_else(
+                    LayeredUsdAccountBalances::default,
+                    LayeredUsdAccountBalances::from,
+                ),
+            },
+            member_balances,
+        }
+    }
+}
+
+impl From<account_set_and_sub_accounts_with_balance::AccountSetAndSubAccountsWithBalanceAccountSet>
+    for LedgerAccountSetAndMemberBalances
+{
+    fn from(
+        account_set: account_set_and_sub_accounts_with_balance::AccountSetAndSubAccountsWithBalanceAccountSet,
+    ) -> Self {
+        let member_balances: Vec<LedgerAccountSetMemberBalance> = account_set
+            .sub_accounts
+            .edges
+            .iter()
+            .map(|e| match &e.node {
+                account_set_and_sub_accounts_with_balance::subAccount::Account(node) => {
+                    LedgerAccountSetMemberBalance::LedgerAccountBalance(LedgerAccountBalance::from(
+                        node.clone(),
+                    ))
+                }
+                account_set_and_sub_accounts_with_balance::subAccount::AccountSet(node) => {
+                    LedgerAccountSetMemberBalance::LedgerAccountSetBalance(
+                        LedgerAccountSetBalance::from(node.clone()),
+                    )
+                }
+            })
+            .collect();
+
+            let account_set_with_balance = account_set.account_set_with_balance;
+            LedgerAccountSetAndMemberBalances {
+            name: account_set_with_balance.name,
+            normal_balance_type: account_set_with_balance.normal_balance_type.into(),
+            balance: LedgerAccountBalancesByCurrency {
+                btc: account_set_with_balance.account_set_balances.btc_balances.map_or_else(
+                    LayeredBtcAccountBalances::default,
+                    LayeredBtcAccountBalances::from,
+                ),
+                usd: account_set_with_balance.account_set_balances.usd_balances.map_or_else(
+                    LayeredUsdAccountBalances::default,
+                    LayeredUsdAccountBalances::from,
+                ),
+                usdt: account_set_with_balance.account_set_balances.usdt_balances.map_or_else(
                     LayeredUsdAccountBalances::default,
                     LayeredUsdAccountBalances::from,
                 ),

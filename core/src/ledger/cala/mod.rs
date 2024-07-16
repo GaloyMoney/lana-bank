@@ -111,6 +111,35 @@ impl CalaClient {
         Ok(response.data.and_then(|d| d.account_set).map(T::from))
     }
 
+    #[instrument(
+        name = "lava.ledger.cala.find_account_set_and_sub_accounts_with_balance_by_id",
+        skip(self, id),
+        err
+    )]
+    pub async fn find_account_set_and_sub_accounts_with_balance_by_id<
+        T: From<account_set_and_sub_accounts_with_balance::AccountSetAndSubAccountsWithBalanceAccountSet>,
+    >(
+        &self,
+        id: impl Into<Uuid>,
+        first: i64,
+        after: Option<String>,
+    ) -> Result<Option<T>, CalaError>{
+        let variables = account_set_and_sub_accounts_with_balance::Variables {
+            account_set_id: id.into(),
+            journal_id: super::constants::CORE_JOURNAL_ID,
+            first,
+            after,
+        };
+        let response = Self::traced_gql_request::<AccountSetAndSubAccountsWithBalance, _>(
+            &self.client,
+            &self.url,
+            variables,
+        )
+        .await?;
+
+        Ok(response.data.and_then(|d| d.account_set).map(T::from))
+    }
+
     #[instrument(name = "lava.ledger.cala.create_user_accounts", skip(self), err)]
     pub async fn create_user_accounts(
         &self,
@@ -775,12 +804,12 @@ impl CalaClient {
         T: From<chart_of_accounts_category_account::ChartOfAccountsCategoryAccountAccountSet>,
     >(
         &self,
-        account_set_id: Uuid,
+        id: impl Into<Uuid>,
         first: i64,
         after: Option<String>,
     ) -> Result<Option<T>, CalaError> {
         let variables = chart_of_accounts_category_account::Variables {
-            account_set_id,
+            account_set_id:  id.into(),
             first,
             after,
         };

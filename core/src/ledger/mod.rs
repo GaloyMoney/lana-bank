@@ -247,7 +247,7 @@ impl Ledger {
     ) -> Result<Option<LedgerChartOfAccountsCategoryAccountSet>, LedgerError> {
         self.cala
             .chart_of_accounts_category_account::<LedgerChartOfAccountsCategoryAccountSet>(
-                account_set_id.into(),
+                account_set_id,
                 first,
                 after,
             )
@@ -270,7 +270,7 @@ impl Ledger {
         let account_set = self
             .cala
             .chart_of_accounts_category_account::<LedgerChartOfAccountsCategoryAccountSet>(
-                account_set_id.into(),
+                account_set_id,
                 i64::try_from(query.first)?,
                 query.after.map(|c| c.value),
             )
@@ -296,6 +296,23 @@ impl Ledger {
             has_next_page,
             end_cursor,
         })
+    }
+
+    pub async fn account_set_and_balance(
+        &self,
+        account_set_id: LedgerAccountSetId,
+        first: i64,
+        after: Option<String>,
+    ) -> Result<Option<LedgerAccountSetAndMemberBalances>, LedgerError> {
+        self.cala
+            .find_account_set_and_sub_accounts_with_balance_by_id::<LedgerAccountSetAndMemberBalances>(
+                account_set_id,
+                first,
+                after,
+            )
+            .await
+            .map(|gl| gl.map(LedgerAccountSetAndMemberBalances::from))
+            .map_err(|e| e.into())
     }
 
     async fn initialize_tx_templates(cala: &CalaClient) -> Result<(), LedgerError> {
