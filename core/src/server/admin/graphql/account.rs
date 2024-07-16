@@ -94,14 +94,16 @@ impl From<crate::ledger::account::LedgerAccountBalancesByCurrency> for AccountBa
 }
 
 #[derive(SimpleObject)]
-pub struct AccountBalance {
+pub struct AccountWithBalance {
+    pub id: UUID,
     pub name: String,
     pub balance: AccountBalancesByCurrency,
 }
 
-impl From<crate::ledger::account::LedgerAccountBalance> for AccountBalance {
+impl From<crate::ledger::account::LedgerAccountBalance> for AccountWithBalance {
     fn from(account_balance: crate::ledger::account::LedgerAccountBalance) -> Self {
-        AccountBalance {
+        AccountWithBalance {
+            id: account_balance.id.into(),
             name: account_balance.name,
             balance: account_balance.balance.into(),
         }

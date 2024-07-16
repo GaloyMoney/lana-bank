@@ -4,9 +4,11 @@ use super::{account::*, cala::graphql::*};
 
 #[derive(Debug, Clone)]
 pub struct LedgerAccountSetBalance {
+    pub id: LedgerAccountSetId,
     pub name: String,
     pub normal_balance_type: LedgerDebitOrCredit,
     pub balance: LedgerAccountBalancesByCurrency,
+    pub has_sub_accounts: bool,
 }
 
 impl From<trial_balance::TrialBalanceAccountSetMembersEdgesNodeOnAccountSet>
@@ -14,6 +16,7 @@ impl From<trial_balance::TrialBalanceAccountSetMembersEdgesNodeOnAccountSet>
 {
     fn from(node: trial_balance::TrialBalanceAccountSetMembersEdgesNodeOnAccountSet) -> Self {
         LedgerAccountSetBalance {
+            id: node.account_set_id.into(),
             name: node.name,
             normal_balance_type: node.normal_balance_type.into(),
             balance: LedgerAccountBalancesByCurrency {
@@ -30,6 +33,7 @@ impl From<trial_balance::TrialBalanceAccountSetMembersEdgesNodeOnAccountSet>
                     LayeredUsdAccountBalances::from,
                 ),
             },
+            has_sub_accounts: node.members.page_info.start_cursor.is_some(),
         }
     }
 }
@@ -41,6 +45,7 @@ impl From<account_set_and_sub_accounts_with_balance::SubAccountOnAccountSet>
         let account_set = node.account_set_with_balance;
 
         LedgerAccountSetBalance {
+            id: account_set.account_set_id.into(),
             name: account_set.name,
             normal_balance_type: account_set.normal_balance_type.into(),
             balance: LedgerAccountBalancesByCurrency {
@@ -57,15 +62,15 @@ impl From<account_set_and_sub_accounts_with_balance::SubAccountOnAccountSet>
                     LayeredUsdAccountBalances::from,
                 ),
             },
+            has_sub_accounts: account_set.members.page_info.start_cursor.is_some(),
         }
     }
 }
 
-
 #[derive(Debug, Clone)]
 pub enum LedgerAccountSetMemberBalance {
-    LedgerAccountBalance(LedgerAccountBalance),
-    LedgerAccountSetBalance(LedgerAccountSetBalance),
+    Account(LedgerAccountBalance),
+    AccountSet(LedgerAccountSetBalance),
 }
 
 pub struct LedgerAccountSetAndMemberBalances {
@@ -83,14 +88,10 @@ impl From<trial_balance::TrialBalanceAccountSet> for LedgerAccountSetAndMemberBa
             .into_iter()
             .map(|e| match e.node {
                 trial_balance::TrialBalanceAccountSetMembersEdgesNode::Account(node) => {
-                    LedgerAccountSetMemberBalance::LedgerAccountBalance(LedgerAccountBalance::from(
-                        node,
-                    ))
+                    LedgerAccountSetMemberBalance::Account(LedgerAccountBalance::from(node))
                 }
                 trial_balance::TrialBalanceAccountSetMembersEdgesNode::AccountSet(node) => {
-                    LedgerAccountSetMemberBalance::LedgerAccountSetBalance(
-                        LedgerAccountSetBalance::from(node),
-                    )
+                    LedgerAccountSetMemberBalance::AccountSet(LedgerAccountSetBalance::from(node))
                 }
             })
             .collect();
@@ -129,35 +130,42 @@ impl From<account_set_and_sub_accounts_with_balance::AccountSetAndSubAccountsWit
             .iter()
             .map(|e| match &e.node {
                 account_set_and_sub_accounts_with_balance::subAccount::Account(node) => {
-                    LedgerAccountSetMemberBalance::LedgerAccountBalance(LedgerAccountBalance::from(
-                        node.clone(),
-                    ))
+                    LedgerAccountSetMemberBalance::Account(LedgerAccountBalance::from(node.clone()))
                 }
                 account_set_and_sub_accounts_with_balance::subAccount::AccountSet(node) => {
-                    LedgerAccountSetMemberBalance::LedgerAccountSetBalance(
-                        LedgerAccountSetBalance::from(node.clone()),
-                    )
+                    LedgerAccountSetMemberBalance::AccountSet(LedgerAccountSetBalance::from(
+                        node.clone(),
+                    ))
                 }
             })
             .collect();
 
-            let account_set_with_balance = account_set.account_set_with_balance;
-            LedgerAccountSetAndMemberBalances {
+        let account_set_with_balance = account_set.account_set_with_balance;
+        LedgerAccountSetAndMemberBalances {
             name: account_set_with_balance.name,
             normal_balance_type: account_set_with_balance.normal_balance_type.into(),
             balance: LedgerAccountBalancesByCurrency {
-                btc: account_set_with_balance.account_set_balances.btc_balances.map_or_else(
-                    LayeredBtcAccountBalances::default,
-                    LayeredBtcAccountBalances::from,
-                ),
-                usd: account_set_with_balance.account_set_balances.usd_balances.map_or_else(
-                    LayeredUsdAccountBalances::default,
-                    LayeredUsdAccountBalances::from,
-                ),
-                usdt: account_set_with_balance.account_set_balances.usdt_balances.map_or_else(
-                    LayeredUsdAccountBalances::default,
-                    LayeredUsdAccountBalances::from,
-                ),
+                btc: account_set_with_balance
+                    .account_set_balances
+                    .btc_balances
+                    .map_or_else(
+                        LayeredBtcAccountBalances::default,
+                        LayeredBtcAccountBalances::from,
+                    ),
+                usd: account_set_with_balance
+                    .account_set_balances
+                    .usd_balances
+                    .map_or_else(
+                        LayeredUsdAccountBalances::default,
+                        LayeredUsdAccountBalances::from,
+                    ),
+                usdt: account_set_with_balance
+                    .account_set_balances
+                    .usdt_balances
+                    .map_or_else(
+                        LayeredUsdAccountBalances::default,
+                        LayeredUsdAccountBalances::from,
+                    ),
             },
             member_balances,
         }

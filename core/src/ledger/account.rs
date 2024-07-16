@@ -129,8 +129,12 @@ impl From<trial_balance::TrialBalanceAccountSetBtcBalances> for LayeredBtcAccoun
     }
 }
 
-impl From<account_set_and_sub_accounts_with_balance::AccountBalancesBtcBalances> for LayeredBtcAccountBalances {
-    fn from(btc_balances_by_layer: account_set_and_sub_accounts_with_balance::AccountBalancesBtcBalances) -> Self {
+impl From<account_set_and_sub_accounts_with_balance::AccountBalancesBtcBalances>
+    for LayeredBtcAccountBalances
+{
+    fn from(
+        btc_balances_by_layer: account_set_and_sub_accounts_with_balance::AccountBalancesBtcBalances,
+    ) -> Self {
         Self {
             settled: BtcAccountBalance::from(btc_balances_by_layer.settled),
             pending: BtcAccountBalance::from(btc_balances_by_layer.pending),
@@ -159,8 +163,12 @@ impl From<trial_balance::TrialBalanceAccountSetUsdBalances> for LayeredUsdAccoun
     }
 }
 
-impl From<account_set_and_sub_accounts_with_balance::AccountBalancesUsdBalances> for LayeredUsdAccountBalances {
-    fn from(usd_balances_by_layer: account_set_and_sub_accounts_with_balance::AccountBalancesUsdBalances) -> Self {
+impl From<account_set_and_sub_accounts_with_balance::AccountBalancesUsdBalances>
+    for LayeredUsdAccountBalances
+{
+    fn from(
+        usd_balances_by_layer: account_set_and_sub_accounts_with_balance::AccountBalancesUsdBalances,
+    ) -> Self {
         Self {
             settled: UsdAccountBalance::from(usd_balances_by_layer.settled),
             pending: UsdAccountBalance::from(usd_balances_by_layer.pending),
@@ -190,8 +198,12 @@ impl From<trial_balance::DebitOrCredit> for LedgerDebitOrCredit {
 impl From<account_set_and_sub_accounts_with_balance::DebitOrCredit> for LedgerDebitOrCredit {
     fn from(debit_or_credit: account_set_and_sub_accounts_with_balance::DebitOrCredit) -> Self {
         match debit_or_credit {
-            account_set_and_sub_accounts_with_balance::DebitOrCredit::DEBIT => LedgerDebitOrCredit::Debit,
-            account_set_and_sub_accounts_with_balance::DebitOrCredit::CREDIT => LedgerDebitOrCredit::Credit,
+            account_set_and_sub_accounts_with_balance::DebitOrCredit::DEBIT => {
+                LedgerDebitOrCredit::Debit
+            }
+            account_set_and_sub_accounts_with_balance::DebitOrCredit::CREDIT => {
+                LedgerDebitOrCredit::Credit
+            }
             account_set_and_sub_accounts_with_balance::DebitOrCredit::Other(_) => todo!(),
         }
     }
@@ -221,6 +233,7 @@ impl From<chart_of_accounts_category_account::DebitOrCredit> for LedgerDebitOrCr
 
 #[derive(Debug, Clone)]
 pub struct LedgerAccountBalance {
+    pub id: LedgerAccountId,
     pub name: String,
     pub normal_balance_type: LedgerDebitOrCredit,
     pub balance: LedgerAccountBalancesByCurrency,
@@ -229,6 +242,7 @@ pub struct LedgerAccountBalance {
 impl From<trial_balance::TrialBalanceAccountSetMembersEdgesNodeOnAccount> for LedgerAccountBalance {
     fn from(node: trial_balance::TrialBalanceAccountSetMembersEdgesNodeOnAccount) -> Self {
         LedgerAccountBalance {
+            id: node.account_id.into(),
             name: node.name,
             normal_balance_type: node.normal_balance_type.into(),
             balance: LedgerAccountBalancesByCurrency {
@@ -253,6 +267,7 @@ impl From<account_set_and_sub_accounts_with_balance::SubAccountOnAccount> for Le
     fn from(node: account_set_and_sub_accounts_with_balance::SubAccountOnAccount) -> Self {
         let account = node.account_with_balance;
         LedgerAccountBalance {
+            id: account.account_id.into(),
             name: account.name,
             normal_balance_type: account.normal_balance_type.into(),
             balance: LedgerAccountBalancesByCurrency {

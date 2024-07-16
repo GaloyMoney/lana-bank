@@ -809,7 +809,7 @@ impl CalaClient {
         after: Option<String>,
     ) -> Result<Option<T>, CalaError> {
         let variables = chart_of_accounts_category_account::Variables {
-            account_set_id:  id.into(),
+            account_set_id: id.into(),
             first,
             after,
         };

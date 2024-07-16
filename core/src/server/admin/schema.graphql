@@ -1,8 +1,3 @@
-type AccountBalance {
-	name: String!
-	balance: AccountBalancesByCurrency!
-}
-
 type AccountBalancesByCurrency {
 	btc: LayeredBtcAccountBalances!
 	usd: LayeredUsdAccountBalances!
@@ -17,7 +12,7 @@ type AccountDetails {
 type AccountSetAndMemberBalances {
 	name: String!
 	balance: AccountBalancesByCurrency!
-	memberBalances: [AccountSetMemberBalance!]!
+	memberBalances: [AccountSetMemberWithBalance!]!
 }
 
 type AccountSetAndSubAccounts {
@@ -26,18 +21,13 @@ type AccountSetAndSubAccounts {
 	subAccounts(first: Int!, after: String): AccountSetSubAccountConnection!
 }
 
-type AccountSetBalance {
-	name: String!
-	balance: AccountBalancesByCurrency!
-}
-
 type AccountSetDetails {
 	id: UUID!
 	name: String!
 	hasSubAccounts: Boolean!
 }
 
-union AccountSetMemberBalance = AccountBalance | AccountSetBalance
+union AccountSetMemberWithBalance = AccountWithBalance | AccountSetWithBalance
 
 union AccountSetSubAccount = AccountDetails | AccountSetDetails
 
@@ -70,9 +60,22 @@ type AccountSetSubAccountEdge {
 	cursor: String!
 }
 
+type AccountSetWithBalance {
+	id: UUID!
+	name: String!
+	balance: AccountBalancesByCurrency!
+	hasSubAccounts: Boolean!
+}
+
 enum AccountStatus {
 	ACTIVE
 	INACTIVE
+}
+
+type AccountWithBalance {
+	id: UUID!
+	name: String!
+	balance: AccountBalancesByCurrency!
 }
 
 scalar AnnualRate

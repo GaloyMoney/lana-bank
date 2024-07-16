@@ -6,16 +6,20 @@ use crate::{app::LavaApp, server::shared_graphql::primitives::UUID};
 use super::account::AccountBalancesByCurrency;
 
 #[derive(SimpleObject)]
-pub struct AccountSetBalance {
+pub struct AccountSetWithBalance {
+    id: UUID,
     name: String,
     balance: AccountBalancesByCurrency,
+    has_sub_accounts: bool,
 }
 
-impl From<crate::ledger::account_set::LedgerAccountSetBalance> for AccountSetBalance {
+impl From<crate::ledger::account_set::LedgerAccountSetBalance> for AccountSetWithBalance {
     fn from(line_item: crate::ledger::account_set::LedgerAccountSetBalance) -> Self {
-        AccountSetBalance {
+        AccountSetWithBalance {
+            id: line_item.id.into(),
             name: line_item.name,
             balance: line_item.balance.into(),
+            has_sub_accounts: line_item.has_sub_accounts,
         }
     }
 }
@@ -170,6 +174,64 @@ impl AccountSetAndSubAccounts {
     }
 }
 
+#[derive(Union)]
+enum AccountSetSubAccountWithBalance {
+    Account(super::account::AccountWithBalance),
+    AccountSet(AccountSetWithBalance),
+}
+
+impl From<crate::ledger::account_set::LedgerAccountSetMemberBalance>
+    for AccountSetSubAccountWithBalance
+{
+    fn from(member: crate::ledger::account_set::LedgerAccountSetMemberBalance) -> Self {
+        match member {
+            crate::ledger::account_set::LedgerAccountSetMemberBalance::Account(val) => {
+                AccountSetSubAccountWithBalance::Account(super::account::AccountWithBalance::from(
+                    val,
+                ))
+            }
+            crate::ledger::account_set::LedgerAccountSetMemberBalance::AccountSet(val) => {
+                AccountSetSubAccountWithBalance::AccountSet(AccountSetWithBalance::from(val))
+            }
+        }
+    }
+}
+
+#[derive(SimpleObject)]
+#[graphql(complex)]
+pub struct AccountSetAndSubAccountsWithBalance {
+    id: UUID,
+    name: String,
+}
+
+#[ComplexObject]
+impl AccountSetAndSubAccountsWithBalance {
+    async fn sub_accounts(
+        &self,
+        ctx: &Context<'_>,
+        first: i32,
+        after: Option<String>,
+    ) -> async_graphql::Result<Vec<AccountSetSubAccountWithBalance>> {
+        let app = ctx.data_unchecked::<LavaApp>();
+        let account_set = app
+            .ledger()
+            .account_set_and_balance(self.id.clone().into(), first.into(), after)
+            .await?;
+
+        let sub_accounts = if let Some(account_set) = account_set {
+            account_set
+                .member_balances
+                .into_iter()
+                .map(AccountSetSubAccountWithBalance::from)
+                .collect()
+        } else {
+            Vec::new()
+        };
+
+        Ok(sub_accounts)
+    }
+}
+
 #[derive(SimpleObject)]
 pub struct ChartOfAccountsCategory {
     name: String,
@@ -190,20 +252,20 @@ impl From<crate::ledger::account_set::LedgerChartOfAccountsCategory> for ChartOf
 }
 
 #[derive(Union)]
-enum AccountSetMemberBalance {
-    Account(super::account::AccountBalance),
-    AccountSet(AccountSetBalance),
+enum AccountSetMemberWithBalance {
+    Account(super::account::AccountWithBalance),
+    AccountSet(AccountSetWithBalance),
 }
 
-impl From<crate::ledger::account_set::LedgerAccountSetMemberBalance> for AccountSetMemberBalance {
+impl From<crate::ledger::account_set::LedgerAccountSetMemberBalance> for AccountSetMemberWithBalance {
     fn from(member_balance: crate::ledger::account_set::LedgerAccountSetMemberBalance) -> Self {
         match member_balance {
-            crate::ledger::account_set::LedgerAccountSetMemberBalance::LedgerAccountBalance(
-                val,
-            ) => AccountSetMemberBalance::Account(val.into()),
-            crate::ledger::account_set::LedgerAccountSetMemberBalance::LedgerAccountSetBalance(
-                val,
-            ) => AccountSetMemberBalance::AccountSet(val.into()),
+            crate::ledger::account_set::LedgerAccountSetMemberBalance::Account(val) => {
+                AccountSetMemberWithBalance::Account(val.into())
+            }
+            crate::ledger::account_set::LedgerAccountSetMemberBalance::AccountSet(val) => {
+                AccountSetMemberWithBalance::AccountSet(val.into())
+            }
         }
     }
 }
@@ -212,7 +274,7 @@ impl From<crate::ledger::account_set::LedgerAccountSetMemberBalance> for Account
 pub struct AccountSetAndMemberBalances {
     name: String,
     balance: AccountBalancesByCurrency,
-    member_balances: Vec<AccountSetMemberBalance>,
+    member_balances: Vec<AccountSetMemberWithBalance>,
 }
 
 impl From<crate::ledger::account_set::LedgerAccountSetAndMemberBalances>
@@ -225,7 +287,7 @@ impl From<crate::ledger::account_set::LedgerAccountSetAndMemberBalances>
             member_balances: trial_balance
                 .member_balances
                 .into_iter()
-                .map(AccountSetMemberBalance::from)
+                .map(AccountSetMemberWithBalance::from)
                 .collect(),
         }
     }
