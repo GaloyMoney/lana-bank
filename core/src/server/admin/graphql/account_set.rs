@@ -257,7 +257,9 @@ enum AccountSetMemberWithBalance {
     AccountSet(AccountSetWithBalance),
 }
 
-impl From<crate::ledger::account_set::LedgerAccountSetMemberBalance> for AccountSetMemberWithBalance {
+impl From<crate::ledger::account_set::LedgerAccountSetMemberBalance>
+    for AccountSetMemberWithBalance
+{
     fn from(member_balance: crate::ledger::account_set::LedgerAccountSetMemberBalance) -> Self {
         match member_balance {
             crate::ledger::account_set::LedgerAccountSetMemberBalance::Account(val) => {
@@ -271,20 +273,18 @@ impl From<crate::ledger::account_set::LedgerAccountSetMemberBalance> for Account
 }
 
 #[derive(SimpleObject)]
-pub struct AccountSetAndMemberBalances {
+pub struct TrialBalance {
     name: String,
     balance: AccountBalancesByCurrency,
-    member_balances: Vec<AccountSetMemberWithBalance>,
+    sub_accounts: Vec<AccountSetMemberWithBalance>,
 }
 
-impl From<crate::ledger::account_set::LedgerAccountSetAndMemberBalances>
-    for AccountSetAndMemberBalances
-{
+impl From<crate::ledger::account_set::LedgerAccountSetAndMemberBalances> for TrialBalance {
     fn from(trial_balance: crate::ledger::account_set::LedgerAccountSetAndMemberBalances) -> Self {
-        AccountSetAndMemberBalances {
+        TrialBalance {
             name: trial_balance.name,
             balance: trial_balance.balance.into(),
-            member_balances: trial_balance
+            sub_accounts: trial_balance
                 .member_balances
                 .into_iter()
                 .map(AccountSetMemberWithBalance::from)

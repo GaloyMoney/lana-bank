@@ -9,12 +9,6 @@ type AccountDetails {
 	name: String!
 }
 
-type AccountSetAndMemberBalances {
-	name: String!
-	balance: AccountBalancesByCurrency!
-	memberBalances: [AccountSetMemberWithBalance!]!
-}
-
 type AccountSetAndSubAccounts {
 	id: UUID!
 	name: String!
@@ -250,8 +244,8 @@ type Query {
 	loan(id: UUID!): Loan
 	user(id: UUID!): User
 	users(first: Int!, after: String): UserConnection!
-	trialBalance: AccountSetAndMemberBalances
-	offBalanceSheetTrialBalance: AccountSetAndMemberBalances
+	trialBalance: TrialBalance
+	offBalanceSheetTrialBalance: TrialBalance
 	chartOfAccounts: ChartOfAccounts
 	offBalanceSheetChartOfAccounts: ChartOfAccounts
 	accountSet(accountSetId: UUID!): AccountSetAndSubAccounts
@@ -298,6 +292,12 @@ type Terms {
 }
 
 scalar Timestamp
+
+type TrialBalance {
+	name: String!
+	balance: AccountBalancesByCurrency!
+	subAccounts: [AccountSetMemberWithBalance!]!
+}
 
 scalar UUID
 

@@ -26,7 +26,7 @@ function TrialBalancePage() {
   const { data, loading } = useGetTrialBalanceQuery()
 
   const balance = data?.trialBalance?.balance
-  const memberBalances = data?.trialBalance?.memberBalances
+  const subAccounts = data?.trialBalance?.subAccounts
 
   if (loading || !balance) return <div>Loading...</div>
 
@@ -92,7 +92,7 @@ function TrialBalancePage() {
           <TableHead className="text-right">Net</TableHead>
         </TableHeader>
         <TableBody>
-          {memberBalances?.map((memberBalance, index) => (
+          {subAccounts?.map((memberBalance, index) => (
             <TableRow key={index}>
               <TableCell>{memberBalance.name}</TableCell>
               <TableCell className="w-48">

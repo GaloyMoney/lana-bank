@@ -7,7 +7,7 @@ gql`
       balance {
         ...balancesByCurrency
       }
-      memberBalances {
+      subAccounts {
         ... on AccountWithBalance {
           name
           balance {
