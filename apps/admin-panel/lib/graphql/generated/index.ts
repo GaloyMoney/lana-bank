@@ -452,12 +452,14 @@ export type LoanPartialPaymentMutationVariables = Exact<{
 
 export type LoanPartialPaymentMutation = { __typename?: 'Mutation', loanPartialPayment: { __typename?: 'LoanPartialPaymentPayload', loan: { __typename?: 'Loan', id: string, loanId: string, startDate: any, balance: { __typename?: 'LoanBalance', collateral: { __typename?: 'Collateral', btcBalance: any }, outstanding: { __typename?: 'LoanOutstanding', usdBalance: any }, interestIncurred: { __typename?: 'InterestIncome', usdBalance: any } } } } };
 
-export type ChartOfAccountAccountSetQueryVariables = Exact<{
-  id: Scalars['UUID']['input'];
+export type ChartOfAccountsAccountSetQueryVariables = Exact<{
+  accountSetId: Scalars['UUID']['input'];
+  first: Scalars['Int']['input'];
+  after?: InputMaybe<Scalars['String']['input']>;
 }>;
 
 
-export type ChartOfAccountAccountSetQuery = { __typename?: 'Query', chartOfAccountsAccountSet?: { __typename?: 'ChartOfAccountsAccountSet', id: string, name: string, subAccounts: Array<{ __typename?: 'AccountDetails', id: string, name: string } | { __typename?: 'AccountSetDetails', id: string, name: string, hasSubAccounts: boolean }> } | null };
+export type ChartOfAccountsAccountSetQuery = { __typename?: 'Query', chartOfAccountsAccountSet?: { __typename?: 'ChartOfAccountsAccountSet', name: string, subAccounts: { __typename?: 'ChartOfAccountsSubAccountConnection', edges: Array<{ __typename?: 'ChartOfAccountsSubAccountEdge', cursor: string, node: { __typename: 'AccountDetails', id: string, name: string } | { __typename: 'AccountSetDetails', id: string, name: string, hasSubAccounts: boolean } }> } } | null };
 
 export type GetChartOfAccountsQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -695,20 +697,27 @@ export function useLoanPartialPaymentMutation(baseOptions?: Apollo.MutationHookO
 export type LoanPartialPaymentMutationHookResult = ReturnType<typeof useLoanPartialPaymentMutation>;
 export type LoanPartialPaymentMutationResult = Apollo.MutationResult<LoanPartialPaymentMutation>;
 export type LoanPartialPaymentMutationOptions = Apollo.BaseMutationOptions<LoanPartialPaymentMutation, LoanPartialPaymentMutationVariables>;
-export const ChartOfAccountAccountSetDocument = gql`
-    query ChartOfAccountAccountSet($id: UUID!) {
-  chartOfAccountsAccountSet(accountSetId: $id) {
-    id
+export const ChartOfAccountsAccountSetDocument = gql`
+    query ChartOfAccountsAccountSet($accountSetId: UUID!, $first: Int!, $after: String) {
+  chartOfAccountsAccountSet(accountSetId: $accountSetId) {
     name
-    subAccounts(first: 10) {
-      ... on AccountDetails {
-        id
-        name
-      }
-      ... on AccountSetDetails {
-        id
-        name
-        hasSubAccounts
+    subAccounts(first: $first, after: $after) {
+      edges {
+        cursor
+        node {
+          __typename
+          ... on AccountDetails {
+            __typename
+            id
+            name
+          }
+          ... on AccountSetDetails {
+            __typename
+            id
+            name
+            hasSubAccounts
+          }
+        }
       }
     }
   }
@@ -716,32 +725,34 @@ export const ChartOfAccountAccountSetDocument = gql`
     `;
 
 /**
- * __useChartOfAccountAccountSetQuery__
+ * __useChartOfAccountsAccountSetQuery__
  *
- * To run a query within a React component, call `useChartOfAccountAccountSetQuery` and pass it any options that fit your needs.
- * When your component renders, `useChartOfAccountAccountSetQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * To run a query within a React component, call `useChartOfAccountsAccountSetQuery` and pass it any options that fit your needs.
+ * When your component renders, `useChartOfAccountsAccountSetQuery` returns an object from Apollo Client that contains loading, error, and data properties
  * you can use to render your UI.
  *
  * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
  *
  * @example
- * const { data, loading, error } = useChartOfAccountAccountSetQuery({
+ * const { data, loading, error } = useChartOfAccountsAccountSetQuery({
  *   variables: {
- *      id: // value for 'id'
+ *      accountSetId: // value for 'accountSetId'
+ *      first: // value for 'first'
+ *      after: // value for 'after'
  *   },
  * });
  */
-export function useChartOfAccountAccountSetQuery(baseOptions: Apollo.QueryHookOptions<ChartOfAccountAccountSetQuery, ChartOfAccountAccountSetQueryVariables>) {
+export function useChartOfAccountsAccountSetQuery(baseOptions: Apollo.QueryHookOptions<ChartOfAccountsAccountSetQuery, ChartOfAccountsAccountSetQueryVariables>) {
         const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<ChartOfAccountAccountSetQuery, ChartOfAccountAccountSetQueryVariables>(ChartOfAccountAccountSetDocument, options);
+        return Apollo.useQuery<ChartOfAccountsAccountSetQuery, ChartOfAccountsAccountSetQueryVariables>(ChartOfAccountsAccountSetDocument, options);
       }
-export function useChartOfAccountAccountSetLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<ChartOfAccountAccountSetQuery, ChartOfAccountAccountSetQueryVariables>) {
+export function useChartOfAccountsAccountSetLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<ChartOfAccountsAccountSetQuery, ChartOfAccountsAccountSetQueryVariables>) {
           const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<ChartOfAccountAccountSetQuery, ChartOfAccountAccountSetQueryVariables>(ChartOfAccountAccountSetDocument, options);
+          return Apollo.useLazyQuery<ChartOfAccountsAccountSetQuery, ChartOfAccountsAccountSetQueryVariables>(ChartOfAccountsAccountSetDocument, options);
         }
-export type ChartOfAccountAccountSetQueryHookResult = ReturnType<typeof useChartOfAccountAccountSetQuery>;
-export type ChartOfAccountAccountSetLazyQueryHookResult = ReturnType<typeof useChartOfAccountAccountSetLazyQuery>;
-export type ChartOfAccountAccountSetQueryResult = Apollo.QueryResult<ChartOfAccountAccountSetQuery, ChartOfAccountAccountSetQueryVariables>;
+export type ChartOfAccountsAccountSetQueryHookResult = ReturnType<typeof useChartOfAccountsAccountSetQuery>;
+export type ChartOfAccountsAccountSetLazyQueryHookResult = ReturnType<typeof useChartOfAccountsAccountSetLazyQuery>;
+export type ChartOfAccountsAccountSetQueryResult = Apollo.QueryResult<ChartOfAccountsAccountSetQuery, ChartOfAccountsAccountSetQueryVariables>;
 export const GetChartOfAccountsDocument = gql`
     query GetChartOfAccounts {
   chartOfAccounts {
