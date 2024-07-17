@@ -103,11 +103,11 @@ impl Query {
         account_set_id: UUID,
     ) -> async_graphql::Result<Option<AccountSetAndSubAccounts>> {
         let app = ctx.data_unchecked::<LavaApp>();
-        let chart_of_accounts = app
+        let account_set_and_sub_accounts = app
             .ledger()
-            .chart_of_accounts_account_set(account_set_id.into(), 0, None)
+            .account_set_and_sub_accounts(account_set_id.into(), 0, None)
             .await?;
-        Ok(chart_of_accounts.map(AccountSetAndSubAccounts::from))
+        Ok(account_set_and_sub_accounts.map(AccountSetAndSubAccounts::from))
     }
 
     async fn current_terms(&self, ctx: &Context<'_>) -> async_graphql::Result<Option<Terms>> {

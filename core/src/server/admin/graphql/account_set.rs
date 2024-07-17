@@ -142,7 +142,7 @@ impl AccountSetAndSubAccounts {
                 let first = first.expect("First always exists");
                 let res = app
                     .ledger()
-                    .paginated_chart_of_accounts_account_set(
+                    .paginated_account_set_and_sub_accounts(
                         self.id.clone().into(),
                         crate::query::PaginatedQueryArgs {
                             first,
