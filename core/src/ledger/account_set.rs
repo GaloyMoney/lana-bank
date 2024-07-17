@@ -52,16 +52,16 @@ impl From<trial_balance::TrialBalanceAccountSet> for LedgerAccountSetAndMemberBa
         let member_balances: Vec<LedgerAccountSetMemberBalance> = account_set
             .members
             .edges
-            .iter()
-            .map(|e| match &e.node {
+            .into_iter()
+            .map(|e| match e.node {
                 trial_balance::TrialBalanceAccountSetMembersEdgesNode::Account(node) => {
                     LedgerAccountSetMemberBalance::LedgerAccountBalance(LedgerAccountBalance::from(
-                        node.clone(),
+                        node,
                     ))
                 }
                 trial_balance::TrialBalanceAccountSetMembersEdgesNode::AccountSet(node) => {
                     LedgerAccountSetMemberBalance::LedgerAccountSetBalance(
-                        LedgerAccountSetBalance::from(node.clone()),
+                        LedgerAccountSetBalance::from(node),
                     )
                 }
             })
@@ -200,21 +200,21 @@ impl From<chart_of_accounts::subAccount> for LedgerChartOfAccountsCategorySubAcc
     fn from(sub_account: chart_of_accounts::subAccount) -> Self {
         let members = sub_account
             .edges
-            .iter()
-            .map(|e| match &e.node {
+            .into_iter()
+            .map(|e| match e.node {
                 chart_of_accounts::SubAccountEdgesNode::Account(node) => {
                     PaginatedLedgerChartOfAccountsCategorySubAccount {
-                        cursor: e.cursor.clone(),
+                        cursor: e.cursor,
                         value: LedgerChartOfAccountsCategorySubAccount::Account(
-                            LedgerChartOfAccountsAccount::from(node.clone()),
+                            LedgerChartOfAccountsAccount::from(node),
                         ),
                     }
                 }
                 chart_of_accounts::SubAccountEdgesNode::AccountSet(node) => {
                     PaginatedLedgerChartOfAccountsCategorySubAccount {
-                        cursor: e.cursor.clone(),
+                        cursor: e.cursor,
                         value: LedgerChartOfAccountsCategorySubAccount::AccountSet(
-                            LedgerChartOfAccountsAccountSet::from(node.clone()),
+                            LedgerChartOfAccountsAccountSet::from(node),
                         ),
                     }
                 }
@@ -237,21 +237,21 @@ impl From<chart_of_accounts_category_account::subAccount>
     fn from(sub_account: chart_of_accounts_category_account::subAccount) -> Self {
         let members = sub_account
             .edges
-            .iter()
-            .map(|e| match &e.node {
+            .into_iter()
+            .map(|e| match e.node {
                 chart_of_accounts_category_account::SubAccountEdgesNode::Account(node) => {
                     PaginatedLedgerChartOfAccountsCategorySubAccount {
-                        cursor: e.cursor.clone(),
+                        cursor: e.cursor,
                         value: LedgerChartOfAccountsCategorySubAccount::Account(
-                            LedgerChartOfAccountsAccount::from(node.clone()),
+                            LedgerChartOfAccountsAccount::from(node),
                         ),
                     }
                 }
                 chart_of_accounts_category_account::SubAccountEdgesNode::AccountSet(node) => {
                     PaginatedLedgerChartOfAccountsCategorySubAccount {
-                        cursor: e.cursor.clone(),
+                        cursor: e.cursor,
                         value: LedgerChartOfAccountsCategorySubAccount::AccountSet(
-                            LedgerChartOfAccountsAccountSet::from(node.clone()),
+                            LedgerChartOfAccountsAccountSet::from(node),
                         ),
                     }
                 }
@@ -301,16 +301,16 @@ impl From<chart_of_accounts::account> for Vec<LedgerChartOfAccountsCategoryAccou
     fn from(members: chart_of_accounts::account) -> Self {
         members
             .edges
-            .iter()
-            .map(|e| match &e.node {
+            .into_iter()
+            .map(|e| match e.node {
                 chart_of_accounts::AccountEdgesNode::Account(node) => {
                     LedgerChartOfAccountsCategoryAccount::Account(
-                        LedgerChartOfAccountsAccount::from(node.clone()),
+                        LedgerChartOfAccountsAccount::from(node),
                     )
                 }
                 chart_of_accounts::AccountEdgesNode::AccountSet(node) => {
                     LedgerChartOfAccountsCategoryAccount::AccountSet(
-                        LedgerChartOfAccountsAccountSet::from(node.clone()),
+                        LedgerChartOfAccountsAccountSet::from(node),
                     )
                 }
             })
@@ -347,12 +347,12 @@ impl From<chart_of_accounts::ChartOfAccountsAccountSetCategories>
     fn from(members: chart_of_accounts::ChartOfAccountsAccountSetCategories) -> Self {
         members
             .edges
-            .iter()
-            .filter_map(|e| match &e.node {
+            .into_iter()
+            .filter_map(|e| match e.node {
                 chart_of_accounts::ChartOfAccountsAccountSetCategoriesEdgesNode::Account(_) => None,
                 chart_of_accounts::ChartOfAccountsAccountSetCategoriesEdgesNode::AccountSet(
                     node,
-                ) => Some(LedgerChartOfAccountsCategory::from(node.clone())),
+                ) => Some(LedgerChartOfAccountsCategory::from(node)),
             })
             .collect()
     }
