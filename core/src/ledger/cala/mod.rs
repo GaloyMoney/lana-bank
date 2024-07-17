@@ -140,6 +140,34 @@ impl CalaClient {
         Ok(response.data.and_then(|d| d.account_set).map(T::from))
     }
 
+    #[instrument(
+        name = "lava.ledger.cala.find_account_set_and_sub_accounts_by_id",
+        skip(self, id),
+        err
+    )]
+    pub async fn find_account_set_and_sub_accounts_by_id<
+        T: From<account_set_and_sub_accounts::AccountSetAndSubAccountsAccountSet>,
+    >(
+        &self,
+        id: impl Into<Uuid>,
+        first: i64,
+        after: Option<String>,
+    ) -> Result<Option<T>, CalaError> {
+        let variables = account_set_and_sub_accounts::Variables {
+            account_set_id: id.into(),
+            first,
+            after,
+        };
+        let response = Self::traced_gql_request::<AccountSetAndSubAccounts, _>(
+            &self.client,
+            &self.url,
+            variables,
+        )
+        .await?;
+
+        Ok(response.data.and_then(|d| d.account_set).map(T::from))
+    }
+
     #[instrument(name = "lava.ledger.cala.create_user_accounts", skip(self), err)]
     pub async fn create_user_accounts(
         &self,
@@ -797,28 +825,6 @@ impl CalaClient {
         let response =
             Self::traced_gql_request::<ChartOfAccounts, _>(&self.client, &self.url, variables)
                 .await?;
-        Ok(response.data.and_then(|d| d.account_set).map(T::from))
-    }
-
-    pub async fn chart_of_accounts_category_account<
-        T: From<chart_of_accounts_category_account::ChartOfAccountsCategoryAccountAccountSet>,
-    >(
-        &self,
-        id: impl Into<Uuid>,
-        first: i64,
-        after: Option<String>,
-    ) -> Result<Option<T>, CalaError> {
-        let variables = chart_of_accounts_category_account::Variables {
-            account_set_id: id.into(),
-            first,
-            after,
-        };
-        let response = Self::traced_gql_request::<ChartOfAccountsCategoryAccount, _>(
-            &self.client,
-            &self.url,
-            variables,
-        )
-        .await?;
         Ok(response.data.and_then(|d| d.account_set).map(T::from))
     }
 

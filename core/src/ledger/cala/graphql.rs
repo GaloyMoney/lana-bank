@@ -55,7 +55,15 @@ pub struct AccountSetCreate;
 #[derive(GraphQLQuery)]
 #[graphql(
     schema_path = "src/ledger/cala/graphql/schema.graphql",
-    query_path = "src/ledger/cala/graphql/account-sets-with-balance.gql",
+    query_path = "src/ledger/cala/graphql/account-set.gql",
+    response_derives = "Debug, PartialEq, Eq, Clone"
+)]
+pub struct AccountSetAndSubAccounts;
+
+#[derive(GraphQLQuery)]
+#[graphql(
+    schema_path = "src/ledger/cala/graphql/schema.graphql",
+    query_path = "src/ledger/cala/graphql/account-set-with-balance.gql",
     response_derives = "Debug, PartialEq, Eq, Clone"
 )]
 pub struct AccountSetAndSubAccountsWithBalance;
@@ -211,14 +219,6 @@ pub struct TrialBalance;
     response_derives = "Debug, PartialEq, Eq, Clone"
 )]
 pub struct ChartOfAccounts;
-
-#[derive(GraphQLQuery)]
-#[graphql(
-    schema_path = "src/ledger/cala/graphql/schema.graphql",
-    query_path = "src/ledger/cala/graphql/chart-of-accounts.gql",
-    response_derives = "Debug, PartialEq, Eq, Clone"
-)]
-pub struct ChartOfAccountsCategoryAccount;
 
 #[derive(GraphQLQuery)]
 #[graphql(

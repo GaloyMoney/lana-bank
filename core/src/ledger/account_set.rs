@@ -200,12 +200,8 @@ impl From<chart_of_accounts::AccountSetDetailsMembersPageInfo> for PageExistsPag
     }
 }
 
-impl From<chart_of_accounts_category_account::AccountSetDetailsMembersPageInfo>
-    for PageExistsPageInfo
-{
-    fn from(
-        page_info: chart_of_accounts_category_account::AccountSetDetailsMembersPageInfo,
-    ) -> Self {
+impl From<account_set_and_sub_accounts::AccountSetDetailsMembersPageInfo> for PageExistsPageInfo {
+    fn from(page_info: account_set_and_sub_accounts::AccountSetDetailsMembersPageInfo) -> Self {
         PageExistsPageInfo {
             start_cursor: page_info.start_cursor,
         }
@@ -237,10 +233,8 @@ impl From<chart_of_accounts::accountSetDetails> for LedgerChartOfAccountsAccount
     }
 }
 
-impl From<chart_of_accounts_category_account::accountSetDetails>
-    for LedgerChartOfAccountsAccountSet
-{
-    fn from(account_set_details: chart_of_accounts_category_account::accountSetDetails) -> Self {
+impl From<account_set_and_sub_accounts::accountSetDetails> for LedgerChartOfAccountsAccountSet {
+    fn from(account_set_details: account_set_and_sub_accounts::accountSetDetails) -> Self {
         LedgerChartOfAccountsAccountSet {
             id: account_set_details.account_set_id.into(),
             name: account_set_details.name,
@@ -314,15 +308,13 @@ impl From<chart_of_accounts::subAccount> for LedgerChartOfAccountsCategorySubAcc
     }
 }
 
-impl From<chart_of_accounts_category_account::subAccount>
-    for LedgerChartOfAccountsCategorySubAccounts
-{
-    fn from(sub_account: chart_of_accounts_category_account::subAccount) -> Self {
+impl From<account_set_and_sub_accounts::subAccount> for LedgerChartOfAccountsCategorySubAccounts {
+    fn from(sub_account: account_set_and_sub_accounts::subAccount) -> Self {
         let members = sub_account
             .edges
             .into_iter()
             .map(|e| match e.node {
-                chart_of_accounts_category_account::SubAccountEdgesNode::Account(node) => {
+                account_set_and_sub_accounts::SubAccountEdgesNode::Account(node) => {
                     PaginatedLedgerChartOfAccountsCategorySubAccount {
                         cursor: e.cursor,
                         value: LedgerChartOfAccountsCategorySubAccount::Account(
@@ -330,7 +322,7 @@ impl From<chart_of_accounts_category_account::subAccount>
                         ),
                     }
                 }
-                chart_of_accounts_category_account::SubAccountEdgesNode::AccountSet(node) => {
+                account_set_and_sub_accounts::SubAccountEdgesNode::AccountSet(node) => {
                     PaginatedLedgerChartOfAccountsCategorySubAccount {
                         cursor: e.cursor,
                         value: LedgerChartOfAccountsCategorySubAccount::AccountSet(
@@ -359,12 +351,10 @@ pub struct LedgerChartOfAccountsCategoryAccountSet {
     pub sub_accounts: LedgerChartOfAccountsCategorySubAccounts,
 }
 
-impl From<chart_of_accounts_category_account::ChartOfAccountsCategoryAccountAccountSet>
+impl From<account_set_and_sub_accounts::AccountSetAndSubAccountsAccountSet>
     for LedgerChartOfAccountsCategoryAccountSet
 {
-    fn from(
-        account_set: chart_of_accounts_category_account::ChartOfAccountsCategoryAccountAccountSet,
-    ) -> Self {
+    fn from(account_set: account_set_and_sub_accounts::AccountSetAndSubAccountsAccountSet) -> Self {
         LedgerChartOfAccountsCategoryAccountSet {
             id: account_set.account_set_details.account_set_id.into(),
             name: account_set.account_set_details.name,

@@ -20,19 +20,6 @@ query ChartOfAccounts($accountSetId: UUID!) {
   }
 }
 
-query ChartOfAccountsCategoryAccount(
-  $accountSetId: UUID!
-  $first: Int!
-  $after: String
-) {
-  accountSet(id: $accountSetId) {
-    ...accountSetDetails
-    subAccounts: members(first: $first, after: $after) {
-      ...subAccount
-    }
-  }
-}
-
 fragment account on AccountSetMemberConnection {
   pageInfo {
     startCursor

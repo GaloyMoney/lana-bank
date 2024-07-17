@@ -219,14 +219,12 @@ impl From<chart_of_accounts::DebitOrCredit> for LedgerDebitOrCredit {
     }
 }
 
-impl From<chart_of_accounts_category_account::DebitOrCredit> for LedgerDebitOrCredit {
-    fn from(debit_or_credit: chart_of_accounts_category_account::DebitOrCredit) -> Self {
+impl From<account_set_and_sub_accounts::DebitOrCredit> for LedgerDebitOrCredit {
+    fn from(debit_or_credit: account_set_and_sub_accounts::DebitOrCredit) -> Self {
         match debit_or_credit {
-            chart_of_accounts_category_account::DebitOrCredit::DEBIT => LedgerDebitOrCredit::Debit,
-            chart_of_accounts_category_account::DebitOrCredit::CREDIT => {
-                LedgerDebitOrCredit::Credit
-            }
-            chart_of_accounts_category_account::DebitOrCredit::Other(_) => todo!(),
+            account_set_and_sub_accounts::DebitOrCredit::DEBIT => LedgerDebitOrCredit::Debit,
+            account_set_and_sub_accounts::DebitOrCredit::CREDIT => LedgerDebitOrCredit::Credit,
+            account_set_and_sub_accounts::DebitOrCredit::Other(_) => todo!(),
         }
     }
 }
@@ -307,8 +305,8 @@ impl From<chart_of_accounts::accountDetails> for LedgerChartOfAccountsAccount {
     }
 }
 
-impl From<chart_of_accounts_category_account::accountDetails> for LedgerChartOfAccountsAccount {
-    fn from(account: chart_of_accounts_category_account::accountDetails) -> Self {
+impl From<account_set_and_sub_accounts::accountDetails> for LedgerChartOfAccountsAccount {
+    fn from(account: account_set_and_sub_accounts::accountDetails) -> Self {
         LedgerChartOfAccountsAccount {
             id: account.account_id.into(),
             code: account.code,

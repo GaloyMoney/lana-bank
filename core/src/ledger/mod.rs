@@ -246,7 +246,7 @@ impl Ledger {
         after: Option<String>,
     ) -> Result<Option<LedgerChartOfAccountsCategoryAccountSet>, LedgerError> {
         self.cala
-            .chart_of_accounts_category_account::<LedgerChartOfAccountsCategoryAccountSet>(
+            .find_account_set_and_sub_accounts_by_id::<LedgerChartOfAccountsCategoryAccountSet>(
                 account_set_id,
                 first,
                 after,
@@ -269,7 +269,7 @@ impl Ledger {
     > {
         let account_set = self
             .cala
-            .chart_of_accounts_category_account::<LedgerChartOfAccountsCategoryAccountSet>(
+            .find_account_set_and_sub_accounts_by_id::<LedgerChartOfAccountsCategoryAccountSet>(
                 account_set_id,
                 i64::try_from(query.first)?,
                 query.after.map(|c| c.value),

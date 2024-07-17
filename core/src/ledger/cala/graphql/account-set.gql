@@ -1,0 +1,50 @@
+query AccountSetAndSubAccounts(
+  $accountSetId: UUID!
+  $first: Int!
+  $after: String
+) {
+  accountSet(id: $accountSetId) {
+    ...accountSetDetails
+    subAccounts: members(first: $first, after: $after) {
+      ...subAccount
+    }
+  }
+}
+
+fragment subAccount on AccountSetMemberConnection {
+  pageInfo {
+    startCursor
+    endCursor
+    hasNextPage
+  }
+  edges {
+    cursor
+    node {
+      __typename
+      ... on AccountSet {
+        ...accountSetDetails
+      }
+      ... on Account {
+        ...accountDetails
+      }
+    }
+  }
+}
+
+fragment accountSetDetails on AccountSet {
+  accountSetId
+  name
+  normalBalanceType
+  members(first: 1) {
+    pageInfo {
+      startCursor
+    }
+  }
+}
+
+fragment accountDetails on Account {
+  accountId
+  code
+  name
+  normalBalanceType
+}
