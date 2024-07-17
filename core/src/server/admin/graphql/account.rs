@@ -100,8 +100,8 @@ pub struct AccountWithBalance {
     pub balance: AccountBalancesByCurrency,
 }
 
-impl From<crate::ledger::account::LedgerAccountBalance> for AccountWithBalance {
-    fn from(account_balance: crate::ledger::account::LedgerAccountBalance) -> Self {
+impl From<crate::ledger::account::LedgerAccountWithBalance> for AccountWithBalance {
+    fn from(account_balance: crate::ledger::account::LedgerAccountWithBalance) -> Self {
         AccountWithBalance {
             id: account_balance.id.into(),
             name: account_balance.name,

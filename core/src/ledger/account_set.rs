@@ -3,7 +3,7 @@ use crate::primitives::{LedgerAccountSetId, LedgerAccountSetMemberType, LedgerDe
 use super::{account::*, cala::graphql::*};
 
 #[derive(Debug, Clone)]
-pub struct LedgerAccountSetBalance {
+pub struct LedgerAccountSetWithBalance {
     pub id: LedgerAccountSetId,
     pub name: String,
     pub normal_balance_type: LedgerDebitOrCredit,
@@ -12,10 +12,10 @@ pub struct LedgerAccountSetBalance {
 }
 
 impl From<trial_balance::TrialBalanceAccountSetMembersEdgesNodeOnAccountSet>
-    for LedgerAccountSetBalance
+    for LedgerAccountSetWithBalance
 {
     fn from(node: trial_balance::TrialBalanceAccountSetMembersEdgesNodeOnAccountSet) -> Self {
-        LedgerAccountSetBalance {
+        LedgerAccountSetWithBalance {
             id: node.account_set_id.into(),
             name: node.name,
             normal_balance_type: node.normal_balance_type.into(),
@@ -39,12 +39,12 @@ impl From<trial_balance::TrialBalanceAccountSetMembersEdgesNodeOnAccountSet>
 }
 
 impl From<account_set_and_sub_accounts_with_balance::SubAccountOnAccountSet>
-    for LedgerAccountSetBalance
+    for LedgerAccountSetWithBalance
 {
     fn from(node: account_set_and_sub_accounts_with_balance::SubAccountOnAccountSet) -> Self {
         let account_set = node.account_set_with_balance;
 
-        LedgerAccountSetBalance {
+        LedgerAccountSetWithBalance {
             id: account_set.account_set_id.into(),
             name: account_set.name,
             normal_balance_type: account_set.normal_balance_type.into(),
@@ -68,30 +68,34 @@ impl From<account_set_and_sub_accounts_with_balance::SubAccountOnAccountSet>
 }
 
 #[derive(Debug, Clone)]
-pub enum LedgerAccountSetMemberBalance {
-    Account(LedgerAccountBalance),
-    AccountSet(LedgerAccountSetBalance),
+pub enum LedgerAccountSetSubAccountWithBalance {
+    Account(LedgerAccountWithBalance),
+    AccountSet(LedgerAccountSetWithBalance),
 }
 
-pub struct LedgerAccountSetAndMemberBalances {
+pub struct LedgerAccountSetAndSubAccountsWithBalance {
     pub name: String,
     pub normal_balance_type: LedgerDebitOrCredit,
     pub balance: LedgerAccountBalancesByCurrency,
-    pub member_balances: Vec<LedgerAccountSetMemberBalance>,
+    pub member_balances: Vec<LedgerAccountSetSubAccountWithBalance>,
 }
 
-impl From<trial_balance::TrialBalanceAccountSet> for LedgerAccountSetAndMemberBalances {
+impl From<trial_balance::TrialBalanceAccountSet> for LedgerAccountSetAndSubAccountsWithBalance {
     fn from(account_set: trial_balance::TrialBalanceAccountSet) -> Self {
-        let member_balances: Vec<LedgerAccountSetMemberBalance> = account_set
+        let member_balances: Vec<LedgerAccountSetSubAccountWithBalance> = account_set
             .members
             .edges
             .into_iter()
             .map(|e| match e.node {
                 trial_balance::TrialBalanceAccountSetMembersEdgesNode::Account(node) => {
-                    LedgerAccountSetMemberBalance::Account(LedgerAccountBalance::from(node))
+                    LedgerAccountSetSubAccountWithBalance::Account(LedgerAccountWithBalance::from(
+                        node,
+                    ))
                 }
                 trial_balance::TrialBalanceAccountSetMembersEdgesNode::AccountSet(node) => {
-                    LedgerAccountSetMemberBalance::AccountSet(LedgerAccountSetBalance::from(node))
+                    LedgerAccountSetSubAccountWithBalance::AccountSet(
+                        LedgerAccountSetWithBalance::from(node),
+                    )
                 }
             })
             .collect();
@@ -119,29 +123,31 @@ impl From<trial_balance::TrialBalanceAccountSet> for LedgerAccountSetAndMemberBa
 }
 
 impl From<account_set_and_sub_accounts_with_balance::AccountSetAndSubAccountsWithBalanceAccountSet>
-    for LedgerAccountSetAndMemberBalances
+    for LedgerAccountSetAndSubAccountsWithBalance
 {
     fn from(
         account_set: account_set_and_sub_accounts_with_balance::AccountSetAndSubAccountsWithBalanceAccountSet,
     ) -> Self {
-        let member_balances: Vec<LedgerAccountSetMemberBalance> = account_set
+        let member_balances: Vec<LedgerAccountSetSubAccountWithBalance> = account_set
             .sub_accounts
             .edges
             .iter()
             .map(|e| match &e.node {
                 account_set_and_sub_accounts_with_balance::subAccount::Account(node) => {
-                    LedgerAccountSetMemberBalance::Account(LedgerAccountBalance::from(node.clone()))
-                }
-                account_set_and_sub_accounts_with_balance::subAccount::AccountSet(node) => {
-                    LedgerAccountSetMemberBalance::AccountSet(LedgerAccountSetBalance::from(
+                    LedgerAccountSetSubAccountWithBalance::Account(LedgerAccountWithBalance::from(
                         node.clone(),
                     ))
+                }
+                account_set_and_sub_accounts_with_balance::subAccount::AccountSet(node) => {
+                    LedgerAccountSetSubAccountWithBalance::AccountSet(
+                        LedgerAccountSetWithBalance::from(node.clone()),
+                    )
                 }
             })
             .collect();
 
         let account_set_with_balance = account_set.account_set_with_balance;
-        LedgerAccountSetAndMemberBalances {
+        LedgerAccountSetAndSubAccountsWithBalance {
             name: account_set_with_balance.name,
             normal_balance_type: account_set_with_balance.normal_balance_type.into(),
             balance: LedgerAccountBalancesByCurrency {

@@ -20,8 +20,8 @@ use crate::primitives::{
 };
 
 use account_set::{
-    LedgerAccountSetAndMemberBalances, LedgerAccountSetAndSubAccounts, LedgerChartOfAccounts,
-    PaginatedLedgerAccountSetSubAccount,
+    LedgerAccountSetAndSubAccounts, LedgerAccountSetAndSubAccountsWithBalance,
+    LedgerChartOfAccounts, PaginatedLedgerAccountSetSubAccount,
 };
 use cala::*;
 pub use config::*;
@@ -203,21 +203,21 @@ impl Ledger {
 
     pub async fn trial_balance(
         &self,
-    ) -> Result<Option<LedgerAccountSetAndMemberBalances>, LedgerError> {
+    ) -> Result<Option<LedgerAccountSetAndSubAccountsWithBalance>, LedgerError> {
         self.cala
-            .trial_balance::<LedgerAccountSetAndMemberBalances>()
+            .trial_balance::<LedgerAccountSetAndSubAccountsWithBalance>()
             .await
-            .map(|gl| gl.map(LedgerAccountSetAndMemberBalances::from))
+            .map(|gl| gl.map(LedgerAccountSetAndSubAccountsWithBalance::from))
             .map_err(|e| e.into())
     }
 
     pub async fn obs_trial_balance(
         &self,
-    ) -> Result<Option<LedgerAccountSetAndMemberBalances>, LedgerError> {
+    ) -> Result<Option<LedgerAccountSetAndSubAccountsWithBalance>, LedgerError> {
         self.cala
-            .obs_trial_balance::<LedgerAccountSetAndMemberBalances>()
+            .obs_trial_balance::<LedgerAccountSetAndSubAccountsWithBalance>()
             .await
-            .map(|gl| gl.map(LedgerAccountSetAndMemberBalances::from))
+            .map(|gl| gl.map(LedgerAccountSetAndSubAccountsWithBalance::from))
             .map_err(|e| e.into())
     }
 
@@ -300,15 +300,15 @@ impl Ledger {
         account_set_id: LedgerAccountSetId,
         first: i64,
         after: Option<String>,
-    ) -> Result<Option<LedgerAccountSetAndMemberBalances>, LedgerError> {
+    ) -> Result<Option<LedgerAccountSetAndSubAccountsWithBalance>, LedgerError> {
         self.cala
-            .find_account_set_and_sub_accounts_with_balance_by_id::<LedgerAccountSetAndMemberBalances>(
+            .find_account_set_and_sub_accounts_with_balance_by_id::<LedgerAccountSetAndSubAccountsWithBalance>(
                 account_set_id,
                 first,
                 after,
             )
             .await
-            .map(|gl| gl.map(LedgerAccountSetAndMemberBalances::from))
+            .map(|gl| gl.map(LedgerAccountSetAndSubAccountsWithBalance::from))
             .map_err(|e| e.into())
     }
 

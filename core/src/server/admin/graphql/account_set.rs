@@ -13,8 +13,8 @@ pub struct AccountSetWithBalance {
     has_sub_accounts: bool,
 }
 
-impl From<crate::ledger::account_set::LedgerAccountSetBalance> for AccountSetWithBalance {
-    fn from(line_item: crate::ledger::account_set::LedgerAccountSetBalance) -> Self {
+impl From<crate::ledger::account_set::LedgerAccountSetWithBalance> for AccountSetWithBalance {
+    fn from(line_item: crate::ledger::account_set::LedgerAccountSetWithBalance) -> Self {
         AccountSetWithBalance {
             id: line_item.id.into(),
             name: line_item.name,
@@ -170,17 +170,17 @@ enum AccountSetSubAccountWithBalance {
     AccountSet(AccountSetWithBalance),
 }
 
-impl From<crate::ledger::account_set::LedgerAccountSetMemberBalance>
+impl From<crate::ledger::account_set::LedgerAccountSetSubAccountWithBalance>
     for AccountSetSubAccountWithBalance
 {
-    fn from(member: crate::ledger::account_set::LedgerAccountSetMemberBalance) -> Self {
+    fn from(member: crate::ledger::account_set::LedgerAccountSetSubAccountWithBalance) -> Self {
         match member {
-            crate::ledger::account_set::LedgerAccountSetMemberBalance::Account(val) => {
+            crate::ledger::account_set::LedgerAccountSetSubAccountWithBalance::Account(val) => {
                 AccountSetSubAccountWithBalance::Account(super::account::AccountWithBalance::from(
                     val,
                 ))
             }
-            crate::ledger::account_set::LedgerAccountSetMemberBalance::AccountSet(val) => {
+            crate::ledger::account_set::LedgerAccountSetSubAccountWithBalance::AccountSet(val) => {
                 AccountSetSubAccountWithBalance::AccountSet(AccountSetWithBalance::from(val))
             }
         }
@@ -248,8 +248,10 @@ pub struct TrialBalance {
     sub_accounts: Vec<AccountSetSubAccountWithBalance>,
 }
 
-impl From<crate::ledger::account_set::LedgerAccountSetAndMemberBalances> for TrialBalance {
-    fn from(trial_balance: crate::ledger::account_set::LedgerAccountSetAndMemberBalances) -> Self {
+impl From<crate::ledger::account_set::LedgerAccountSetAndSubAccountsWithBalance> for TrialBalance {
+    fn from(
+        trial_balance: crate::ledger::account_set::LedgerAccountSetAndSubAccountsWithBalance,
+    ) -> Self {
         TrialBalance {
             name: trial_balance.name,
             balance: trial_balance.balance.into(),

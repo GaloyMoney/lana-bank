@@ -230,16 +230,18 @@ impl From<account_set_and_sub_accounts::DebitOrCredit> for LedgerDebitOrCredit {
 }
 
 #[derive(Debug, Clone)]
-pub struct LedgerAccountBalance {
+pub struct LedgerAccountWithBalance {
     pub id: LedgerAccountId,
     pub name: String,
     pub normal_balance_type: LedgerDebitOrCredit,
     pub balance: LedgerAccountBalancesByCurrency,
 }
 
-impl From<trial_balance::TrialBalanceAccountSetMembersEdgesNodeOnAccount> for LedgerAccountBalance {
+impl From<trial_balance::TrialBalanceAccountSetMembersEdgesNodeOnAccount>
+    for LedgerAccountWithBalance
+{
     fn from(node: trial_balance::TrialBalanceAccountSetMembersEdgesNodeOnAccount) -> Self {
-        LedgerAccountBalance {
+        LedgerAccountWithBalance {
             id: node.account_id.into(),
             name: node.name,
             normal_balance_type: node.normal_balance_type.into(),
@@ -261,10 +263,12 @@ impl From<trial_balance::TrialBalanceAccountSetMembersEdgesNodeOnAccount> for Le
     }
 }
 
-impl From<account_set_and_sub_accounts_with_balance::SubAccountOnAccount> for LedgerAccountBalance {
+impl From<account_set_and_sub_accounts_with_balance::SubAccountOnAccount>
+    for LedgerAccountWithBalance
+{
     fn from(node: account_set_and_sub_accounts_with_balance::SubAccountOnAccount) -> Self {
         let account = node.account_with_balance;
-        LedgerAccountBalance {
+        LedgerAccountWithBalance {
             id: account.account_id.into(),
             name: account.name,
             normal_balance_type: account.normal_balance_type.into(),
