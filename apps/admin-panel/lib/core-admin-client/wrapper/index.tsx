@@ -1,5 +1,6 @@
 "use client"
 import { ApolloLink, HttpLink } from "@apollo/client"
+import { relayStylePagination } from "@apollo/client/utilities"
 import {
   ApolloClient,
   ApolloNextAppProvider,
@@ -14,7 +15,15 @@ function makeClient({ coreAdminGqlUrl }: { coreAdminGqlUrl: string }) {
   })
 
   return new ApolloClient({
-    cache: new InMemoryCache(),
+    cache: new InMemoryCache({
+      typePolicies: {
+        ChartOfAccountsAccountSet: {
+          fields: {
+            subAccounts: relayStylePagination(),
+          },
+        },
+      },
+    }),
     link:
       typeof window === "undefined"
         ? ApolloLink.from([
