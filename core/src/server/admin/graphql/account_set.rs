@@ -210,7 +210,7 @@ impl AccountSetAndSubAccountsWithBalance {
 
         let sub_accounts = if let Some(account_set) = account_set {
             account_set
-                .member_balances
+                .sub_accounts
                 .into_iter()
                 .map(AccountSetSubAccountWithBalance::from)
                 .collect()
@@ -256,7 +256,7 @@ impl From<crate::ledger::account_set::LedgerAccountSetAndSubAccountsWithBalance>
             name: trial_balance.name,
             balance: trial_balance.balance.into(),
             sub_accounts: trial_balance
-                .member_balances
+                .sub_accounts
                 .into_iter()
                 .map(AccountSetSubAccountWithBalance::from)
                 .collect(),

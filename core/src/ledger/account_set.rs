@@ -77,12 +77,12 @@ pub struct LedgerAccountSetAndSubAccountsWithBalance {
     pub name: String,
     pub normal_balance_type: LedgerDebitOrCredit,
     pub balance: LedgerAccountBalancesByCurrency,
-    pub member_balances: Vec<LedgerAccountSetSubAccountWithBalance>,
+    pub sub_accounts: Vec<LedgerAccountSetSubAccountWithBalance>,
 }
 
 impl From<trial_balance::TrialBalanceAccountSet> for LedgerAccountSetAndSubAccountsWithBalance {
     fn from(account_set: trial_balance::TrialBalanceAccountSet) -> Self {
-        let member_balances: Vec<LedgerAccountSetSubAccountWithBalance> = account_set
+        let sub_accounts: Vec<LedgerAccountSetSubAccountWithBalance> = account_set
             .members
             .edges
             .into_iter()
@@ -117,7 +117,7 @@ impl From<trial_balance::TrialBalanceAccountSet> for LedgerAccountSetAndSubAccou
                     LayeredUsdAccountBalances::from,
                 ),
             },
-            member_balances,
+            sub_accounts,
         }
     }
 }
@@ -128,7 +128,7 @@ impl From<account_set_and_sub_accounts_with_balance::AccountSetAndSubAccountsWit
     fn from(
         account_set: account_set_and_sub_accounts_with_balance::AccountSetAndSubAccountsWithBalanceAccountSet,
     ) -> Self {
-        let member_balances: Vec<LedgerAccountSetSubAccountWithBalance> = account_set
+        let sub_accounts: Vec<LedgerAccountSetSubAccountWithBalance> = account_set
             .sub_accounts
             .edges
             .iter()
@@ -173,7 +173,7 @@ impl From<account_set_and_sub_accounts_with_balance::AccountSetAndSubAccountsWit
                         LayeredUsdAccountBalances::from,
                     ),
             },
-            member_balances,
+            sub_accounts,
         }
     }
 }
