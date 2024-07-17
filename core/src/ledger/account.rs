@@ -287,16 +287,16 @@ impl From<account_set_and_sub_accounts_with_balance::SubAccountOnAccount> for Le
 }
 
 #[derive(Debug, Clone)]
-pub struct LedgerChartOfAccountsAccount {
+pub struct LedgerAccountDetails {
     pub id: LedgerAccountId,
     pub code: String,
     pub name: String,
     pub normal_balance_type: LedgerDebitOrCredit,
 }
 
-impl From<chart_of_accounts::accountDetails> for LedgerChartOfAccountsAccount {
+impl From<chart_of_accounts::accountDetails> for LedgerAccountDetails {
     fn from(account: chart_of_accounts::accountDetails) -> Self {
-        LedgerChartOfAccountsAccount {
+        LedgerAccountDetails {
             id: account.account_id.into(),
             code: account.code,
             name: account.name,
@@ -305,9 +305,9 @@ impl From<chart_of_accounts::accountDetails> for LedgerChartOfAccountsAccount {
     }
 }
 
-impl From<account_set_and_sub_accounts::accountDetails> for LedgerChartOfAccountsAccount {
+impl From<account_set_and_sub_accounts::accountDetails> for LedgerAccountDetails {
     fn from(account: account_set_and_sub_accounts::accountDetails) -> Self {
-        LedgerChartOfAccountsAccount {
+        LedgerAccountDetails {
             id: account.account_id.into(),
             code: account.code,
             name: account.name,

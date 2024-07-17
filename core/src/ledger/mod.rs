@@ -20,8 +20,8 @@ use crate::primitives::{
 };
 
 use account_set::{
-    LedgerAccountSetAndMemberBalances, LedgerChartOfAccounts,
-    LedgerChartOfAccountsCategoryAccountSet, PaginatedLedgerChartOfAccountsCategorySubAccount,
+    LedgerAccountSetAndMemberBalances, LedgerAccountSetAndSubAccounts, LedgerChartOfAccounts,
+    PaginatedLedgerAccountSetSubAccount,
 };
 use cala::*;
 pub use config::*;
@@ -244,15 +244,15 @@ impl Ledger {
         account_set_id: LedgerAccountSetId,
         first: i64,
         after: Option<String>,
-    ) -> Result<Option<LedgerChartOfAccountsCategoryAccountSet>, LedgerError> {
+    ) -> Result<Option<LedgerAccountSetAndSubAccounts>, LedgerError> {
         self.cala
-            .find_account_set_and_sub_accounts_by_id::<LedgerChartOfAccountsCategoryAccountSet>(
+            .find_account_set_and_sub_accounts_by_id::<LedgerAccountSetAndSubAccounts>(
                 account_set_id,
                 first,
                 after,
             )
             .await
-            .map(|gl| gl.map(LedgerChartOfAccountsCategoryAccountSet::from))
+            .map(|gl| gl.map(LedgerAccountSetAndSubAccounts::from))
             .map_err(|e| e.into())
     }
 
@@ -261,21 +261,18 @@ impl Ledger {
         account_set_id: LedgerAccountSetId,
         query: crate::query::PaginatedQueryArgs<SubAccountCursor>,
     ) -> Result<
-        crate::query::PaginatedQueryRet<
-            PaginatedLedgerChartOfAccountsCategorySubAccount,
-            SubAccountCursor,
-        >,
+        crate::query::PaginatedQueryRet<PaginatedLedgerAccountSetSubAccount, SubAccountCursor>,
         LedgerError,
     > {
         let account_set = self
             .cala
-            .find_account_set_and_sub_accounts_by_id::<LedgerChartOfAccountsCategoryAccountSet>(
+            .find_account_set_and_sub_accounts_by_id::<LedgerAccountSetAndSubAccounts>(
                 account_set_id,
                 i64::try_from(query.first)?,
                 query.after.map(|c| c.value),
             )
             .await
-            .map(|gl| gl.map(LedgerChartOfAccountsCategoryAccountSet::from))
+            .map(|gl| gl.map(LedgerAccountSetAndSubAccounts::from))
             .map_err(LedgerError::from)?;
 
         let (sub_accounts, has_next_page, end_cursor) =

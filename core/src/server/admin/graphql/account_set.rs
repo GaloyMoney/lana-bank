@@ -31,8 +31,8 @@ pub struct AccountSetDetails {
     pub has_sub_accounts: bool,
 }
 
-impl From<crate::ledger::account_set::LedgerChartOfAccountsAccountSet> for AccountSetDetails {
-    fn from(account_set: crate::ledger::account_set::LedgerChartOfAccountsAccountSet) -> Self {
+impl From<crate::ledger::account_set::LedgerAccountSetDetails> for AccountSetDetails {
+    fn from(account_set: crate::ledger::account_set::LedgerAccountSetDetails) -> Self {
         AccountSetDetails {
             id: account_set.id.into(),
             name: account_set.name,
@@ -47,34 +47,28 @@ enum AccountSetSubAccount {
     AccountSet(AccountSetDetails),
 }
 
-impl From<crate::ledger::account_set::PaginatedLedgerChartOfAccountsCategorySubAccount>
+impl From<crate::ledger::account_set::PaginatedLedgerAccountSetSubAccount>
     for AccountSetSubAccount
 {
-    fn from(
-        member: crate::ledger::account_set::PaginatedLedgerChartOfAccountsCategorySubAccount,
-    ) -> Self {
+    fn from(member: crate::ledger::account_set::PaginatedLedgerAccountSetSubAccount) -> Self {
         match member.value {
-            crate::ledger::account_set::LedgerChartOfAccountsCategorySubAccount::Account(val) => {
+            crate::ledger::account_set::LedgerAccountSetSubAccount::Account(val) => {
                 AccountSetSubAccount::Account(super::account::AccountDetails::from(val))
             }
-            crate::ledger::account_set::LedgerChartOfAccountsCategorySubAccount::AccountSet(
-                val,
-            ) => AccountSetSubAccount::AccountSet(AccountSetDetails::from(val)),
+            crate::ledger::account_set::LedgerAccountSetSubAccount::AccountSet(val) => {
+                AccountSetSubAccount::AccountSet(AccountSetDetails::from(val))
+            }
         }
     }
 }
 
-impl From<crate::ledger::account_set::LedgerChartOfAccountsCategoryAccount>
-    for AccountSetSubAccount
-{
-    fn from(
-        category_account: crate::ledger::account_set::LedgerChartOfAccountsCategoryAccount,
-    ) -> Self {
+impl From<crate::ledger::account_set::LedgerAccountSetSubAccount> for AccountSetSubAccount {
+    fn from(category_account: crate::ledger::account_set::LedgerAccountSetSubAccount) -> Self {
         match category_account {
-            crate::ledger::account_set::LedgerChartOfAccountsCategoryAccount::Account(val) => {
+            crate::ledger::account_set::LedgerAccountSetSubAccount::Account(val) => {
                 AccountSetSubAccount::Account(val.into())
             }
-            crate::ledger::account_set::LedgerChartOfAccountsCategoryAccount::AccountSet(val) => {
+            crate::ledger::account_set::LedgerAccountSetSubAccount::AccountSet(val) => {
                 AccountSetSubAccount::AccountSet(val.into())
             }
         }
@@ -121,12 +115,8 @@ pub struct AccountSetAndSubAccounts {
     name: String,
 }
 
-impl From<crate::ledger::account_set::LedgerChartOfAccountsCategoryAccountSet>
-    for AccountSetAndSubAccounts
-{
-    fn from(
-        account_set: crate::ledger::account_set::LedgerChartOfAccountsCategoryAccountSet,
-    ) -> Self {
+impl From<crate::ledger::account_set::LedgerAccountSetAndSubAccounts> for AccountSetAndSubAccounts {
+    fn from(account_set: crate::ledger::account_set::LedgerAccountSetAndSubAccounts) -> Self {
         AccountSetAndSubAccounts {
             id: account_set.id.into(),
             name: account_set.name,
