@@ -185,6 +185,46 @@ pub struct LedgerAccountBalancesByCurrency {
     pub usdt: LayeredUsdAccountBalances,
 }
 
+impl From<trial_balance::accountSetBalances> for LedgerAccountBalancesByCurrency {
+    fn from(balances: trial_balance::accountSetBalances) -> Self {
+        LedgerAccountBalancesByCurrency {
+            btc: balances.btc_balances.map_or_else(
+                LayeredBtcAccountBalances::default,
+                LayeredBtcAccountBalances::from,
+            ),
+            usd: balances.usd_balances.map_or_else(
+                LayeredUsdAccountBalances::default,
+                LayeredUsdAccountBalances::from,
+            ),
+            usdt: balances.usdt_balances.map_or_else(
+                LayeredUsdAccountBalances::default,
+                LayeredUsdAccountBalances::from,
+            ),
+        }
+    }
+}
+
+impl From<account_set_and_sub_accounts_with_balance::accountSetBalances>
+    for LedgerAccountBalancesByCurrency
+{
+    fn from(balances: account_set_and_sub_accounts_with_balance::accountSetBalances) -> Self {
+        LedgerAccountBalancesByCurrency {
+            btc: balances.btc_balances.map_or_else(
+                LayeredBtcAccountBalances::default,
+                LayeredBtcAccountBalances::from,
+            ),
+            usd: balances.usd_balances.map_or_else(
+                LayeredUsdAccountBalances::default,
+                LayeredUsdAccountBalances::from,
+            ),
+            usdt: balances.usdt_balances.map_or_else(
+                LayeredUsdAccountBalances::default,
+                LayeredUsdAccountBalances::from,
+            ),
+        }
+    }
+}
+
 impl From<trial_balance::DebitOrCredit> for LedgerDebitOrCredit {
     fn from(debit_or_credit: trial_balance::DebitOrCredit) -> Self {
         match debit_or_credit {

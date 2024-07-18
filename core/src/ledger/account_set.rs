@@ -19,20 +19,7 @@ impl From<trial_balance::TrialBalanceAccountSetMembersEdgesNodeOnAccountSet>
             id: node.account_set_id.into(),
             name: node.name,
             normal_balance_type: node.normal_balance_type.into(),
-            balance: LedgerAccountBalancesByCurrency {
-                btc: node.account_set_balances.btc_balances.map_or_else(
-                    LayeredBtcAccountBalances::default,
-                    LayeredBtcAccountBalances::from,
-                ),
-                usd: node.account_set_balances.usd_balances.map_or_else(
-                    LayeredUsdAccountBalances::default,
-                    LayeredUsdAccountBalances::from,
-                ),
-                usdt: node.account_set_balances.usdt_balances.map_or_else(
-                    LayeredUsdAccountBalances::default,
-                    LayeredUsdAccountBalances::from,
-                ),
-            },
+            balance: node.account_set_balances.into(),
             has_sub_accounts: node.members.page_info.start_cursor.is_some(),
         }
     }
@@ -48,20 +35,7 @@ impl From<account_set_and_sub_accounts_with_balance::SubAccountOnAccountSet>
             id: account_set.account_set_id.into(),
             name: account_set.name,
             normal_balance_type: account_set.normal_balance_type.into(),
-            balance: LedgerAccountBalancesByCurrency {
-                btc: account_set.account_set_balances.btc_balances.map_or_else(
-                    LayeredBtcAccountBalances::default,
-                    LayeredBtcAccountBalances::from,
-                ),
-                usd: account_set.account_set_balances.usd_balances.map_or_else(
-                    LayeredUsdAccountBalances::default,
-                    LayeredUsdAccountBalances::from,
-                ),
-                usdt: account_set.account_set_balances.usdt_balances.map_or_else(
-                    LayeredUsdAccountBalances::default,
-                    LayeredUsdAccountBalances::from,
-                ),
-            },
+            balance: account_set.account_set_balances.into(),
             has_sub_accounts: account_set.members.page_info.start_cursor.is_some(),
         }
     }
@@ -103,20 +77,7 @@ impl From<trial_balance::TrialBalanceAccountSet> for LedgerAccountSetAndSubAccou
         Self {
             name: account_set.name,
             normal_balance_type: account_set.normal_balance_type.into(),
-            balance: LedgerAccountBalancesByCurrency {
-                btc: account_set.account_set_balances.btc_balances.map_or_else(
-                    LayeredBtcAccountBalances::default,
-                    LayeredBtcAccountBalances::from,
-                ),
-                usd: account_set.account_set_balances.usd_balances.map_or_else(
-                    LayeredUsdAccountBalances::default,
-                    LayeredUsdAccountBalances::from,
-                ),
-                usdt: account_set.account_set_balances.usdt_balances.map_or_else(
-                    LayeredUsdAccountBalances::default,
-                    LayeredUsdAccountBalances::from,
-                ),
-            },
+            balance: account_set.account_set_balances.into(),
             sub_accounts,
         }
     }
@@ -150,29 +111,7 @@ impl From<account_set_and_sub_accounts_with_balance::AccountSetAndSubAccountsWit
         LedgerAccountSetAndSubAccountsWithBalance {
             name: account_set_with_balance.name,
             normal_balance_type: account_set_with_balance.normal_balance_type.into(),
-            balance: LedgerAccountBalancesByCurrency {
-                btc: account_set_with_balance
-                    .account_set_balances
-                    .btc_balances
-                    .map_or_else(
-                        LayeredBtcAccountBalances::default,
-                        LayeredBtcAccountBalances::from,
-                    ),
-                usd: account_set_with_balance
-                    .account_set_balances
-                    .usd_balances
-                    .map_or_else(
-                        LayeredUsdAccountBalances::default,
-                        LayeredUsdAccountBalances::from,
-                    ),
-                usdt: account_set_with_balance
-                    .account_set_balances
-                    .usdt_balances
-                    .map_or_else(
-                        LayeredUsdAccountBalances::default,
-                        LayeredUsdAccountBalances::from,
-                    ),
-            },
+            balance: account_set_with_balance.account_set_balances.into(),
             sub_accounts,
         }
     }
