@@ -248,15 +248,13 @@ pub struct TrialBalance {
     sub_accounts: Vec<AccountSetSubAccountWithBalance>,
 }
 
-impl From<crate::ledger::account_set::LedgerAccountSetAndSubAccountsWithBalance> for TrialBalance {
-    fn from(
-        trial_balance: crate::ledger::account_set::LedgerAccountSetAndSubAccountsWithBalance,
-    ) -> Self {
+impl From<crate::ledger::account_set::LedgerTrialBalance> for TrialBalance {
+    fn from(trial_balance: crate::ledger::account_set::LedgerTrialBalance) -> Self {
         TrialBalance {
             name: trial_balance.name,
             balance: trial_balance.balance.into(),
             sub_accounts: trial_balance
-                .sub_accounts
+                .accounts
                 .into_iter()
                 .map(AccountSetSubAccountWithBalance::from)
                 .collect(),

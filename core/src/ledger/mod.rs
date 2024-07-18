@@ -21,7 +21,7 @@ use crate::primitives::{
 
 use account_set::{
     LedgerAccountSetAndSubAccounts, LedgerAccountSetAndSubAccountsWithBalance,
-    LedgerChartOfAccounts, PaginatedLedgerAccountSetSubAccount,
+    LedgerChartOfAccounts, LedgerTrialBalance, PaginatedLedgerAccountSetSubAccount,
 };
 use cala::*;
 pub use config::*;
@@ -201,23 +201,19 @@ impl Ledger {
         Ok(())
     }
 
-    pub async fn trial_balance(
-        &self,
-    ) -> Result<Option<LedgerAccountSetAndSubAccountsWithBalance>, LedgerError> {
+    pub async fn trial_balance(&self) -> Result<Option<LedgerTrialBalance>, LedgerError> {
         self.cala
-            .trial_balance::<LedgerAccountSetAndSubAccountsWithBalance>()
+            .trial_balance::<LedgerTrialBalance>()
             .await
-            .map(|gl| gl.map(LedgerAccountSetAndSubAccountsWithBalance::from))
+            .map(|gl| gl.map(LedgerTrialBalance::from))
             .map_err(|e| e.into())
     }
 
-    pub async fn obs_trial_balance(
-        &self,
-    ) -> Result<Option<LedgerAccountSetAndSubAccountsWithBalance>, LedgerError> {
+    pub async fn obs_trial_balance(&self) -> Result<Option<LedgerTrialBalance>, LedgerError> {
         self.cala
-            .obs_trial_balance::<LedgerAccountSetAndSubAccountsWithBalance>()
+            .obs_trial_balance::<LedgerTrialBalance>()
             .await
-            .map(|gl| gl.map(LedgerAccountSetAndSubAccountsWithBalance::from))
+            .map(|gl| gl.map(LedgerTrialBalance::from))
             .map_err(|e| e.into())
     }
 

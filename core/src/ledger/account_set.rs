@@ -52,18 +52,11 @@ pub enum LedgerAccountSetSubAccountWithBalance {
     AccountSet(LedgerAccountSetWithBalance),
 }
 
-pub struct LedgerAccountSetAndSubAccountsWithBalance {
-    pub id: LedgerAccountSetId,
-    pub name: String,
-    pub normal_balance_type: LedgerDebitOrCredit,
-    pub balance: LedgerAccountBalancesByCurrency,
-    pub sub_accounts: Vec<LedgerAccountSetSubAccountWithBalance>,
-}
-
-impl From<trial_balance::TrialBalanceAccountSet> for LedgerAccountSetAndSubAccountsWithBalance {
-    fn from(account_set: trial_balance::TrialBalanceAccountSet) -> Self {
-        let sub_accounts: Vec<LedgerAccountSetSubAccountWithBalance> = account_set
-            .accounts
+impl From<trial_balance::TrialBalanceAccountSetAccounts>
+    for Vec<LedgerAccountSetSubAccountWithBalance>
+{
+    fn from(members: trial_balance::TrialBalanceAccountSetAccounts) -> Self {
+        members
             .edges
             .into_iter()
             .map(|e| match e.node {
@@ -78,15 +71,16 @@ impl From<trial_balance::TrialBalanceAccountSet> for LedgerAccountSetAndSubAccou
                     )
                 }
             })
-            .collect();
-
-        Self {
-            name: account_set.name,
-            normal_balance_type: account_set.normal_balance_type.into(),
-            balance: account_set.account_set_balances.into(),
-            sub_accounts,
-        }
+            .collect()
     }
+}
+
+pub struct LedgerAccountSetAndSubAccountsWithBalance {
+    pub id: LedgerAccountSetId,
+    pub name: String,
+    pub normal_balance_type: LedgerDebitOrCredit,
+    pub balance: LedgerAccountBalancesByCurrency,
+    pub sub_accounts: Vec<LedgerAccountSetSubAccountWithBalance>,
 }
 
 impl From<account_set_and_sub_accounts_with_balance::AccountSetAndSubAccountsWithBalanceAccountSet>
@@ -386,6 +380,25 @@ impl From<chart_of_accounts::ChartOfAccountsAccountSet> for LedgerChartOfAccount
             name: account_set.account_set_details.name,
             normal_balance_type: account_set.account_set_details.normal_balance_type.into(),
             categories: account_set.categories.into(),
+        }
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct LedgerTrialBalance {
+    pub name: String,
+    pub normal_balance_type: LedgerDebitOrCredit,
+    pub balance: LedgerAccountBalancesByCurrency,
+    pub accounts: Vec<LedgerAccountSetSubAccountWithBalance>,
+}
+
+impl From<trial_balance::TrialBalanceAccountSet> for LedgerTrialBalance {
+    fn from(account_set: trial_balance::TrialBalanceAccountSet) -> Self {
+        LedgerTrialBalance {
+            name: account_set.name,
+            normal_balance_type: account_set.normal_balance_type.into(),
+            balance: account_set.account_set_balances.into(),
+            accounts: account_set.accounts.into(),
         }
     }
 }
