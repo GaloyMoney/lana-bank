@@ -3,7 +3,7 @@ query TrialBalance($accountSetId: UUID!, $journalId: UUID!) {
     name
     ...accountSetBalances
     normalBalanceType
-    members(first: 100) {
+    accounts: members(first: 100) {
       edges {
         node {
           __typename

@@ -11,10 +11,10 @@ pub struct LedgerAccountSetWithBalance {
     pub has_sub_accounts: bool,
 }
 
-impl From<trial_balance::TrialBalanceAccountSetMembersEdgesNodeOnAccountSet>
+impl From<trial_balance::TrialBalanceAccountSetAccountsEdgesNodeOnAccountSet>
     for LedgerAccountSetWithBalance
 {
-    fn from(node: trial_balance::TrialBalanceAccountSetMembersEdgesNodeOnAccountSet) -> Self {
+    fn from(node: trial_balance::TrialBalanceAccountSetAccountsEdgesNodeOnAccountSet) -> Self {
         LedgerAccountSetWithBalance {
             id: node.account_set_id.into(),
             name: node.name,
@@ -57,16 +57,16 @@ pub struct LedgerAccountSetAndSubAccountsWithBalance {
 impl From<trial_balance::TrialBalanceAccountSet> for LedgerAccountSetAndSubAccountsWithBalance {
     fn from(account_set: trial_balance::TrialBalanceAccountSet) -> Self {
         let sub_accounts: Vec<LedgerAccountSetSubAccountWithBalance> = account_set
-            .members
+            .accounts
             .edges
             .into_iter()
             .map(|e| match e.node {
-                trial_balance::TrialBalanceAccountSetMembersEdgesNode::Account(node) => {
+                trial_balance::TrialBalanceAccountSetAccountsEdgesNode::Account(node) => {
                     LedgerAccountSetSubAccountWithBalance::Account(LedgerAccountWithBalance::from(
                         node,
                     ))
                 }
-                trial_balance::TrialBalanceAccountSetMembersEdgesNode::AccountSet(node) => {
+                trial_balance::TrialBalanceAccountSetAccountsEdgesNode::AccountSet(node) => {
                     LedgerAccountSetSubAccountWithBalance::AccountSet(
                         LedgerAccountSetWithBalance::from(node),
                     )
