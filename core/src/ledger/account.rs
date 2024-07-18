@@ -303,11 +303,10 @@ impl From<trial_balance::TrialBalanceAccountSetAccountsEdgesNodeOnAccount>
     }
 }
 
-impl From<account_set_and_sub_accounts_with_balance::SubAccountOnAccount>
+impl From<account_set_and_sub_accounts_with_balance::accountWithBalance>
     for LedgerAccountWithBalance
 {
-    fn from(node: account_set_and_sub_accounts_with_balance::SubAccountOnAccount) -> Self {
-        let account = node.account_with_balance;
+    fn from(account: account_set_and_sub_accounts_with_balance::accountWithBalance) -> Self {
         LedgerAccountWithBalance {
             id: account.account_id.into(),
             name: account.name,

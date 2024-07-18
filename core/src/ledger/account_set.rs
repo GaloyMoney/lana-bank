@@ -30,12 +30,10 @@ impl From<trial_balance::TrialBalanceAccountSetAccountsEdgesNodeOnAccountSet>
     }
 }
 
-impl From<account_set_and_sub_accounts_with_balance::SubAccountOnAccountSet>
+impl From<account_set_and_sub_accounts_with_balance::accountSetWithBalance>
     for LedgerAccountSetWithBalance
 {
-    fn from(node: account_set_and_sub_accounts_with_balance::SubAccountOnAccountSet) -> Self {
-        let account_set = node.account_set_with_balance;
-
+    fn from(account_set: account_set_and_sub_accounts_with_balance::accountSetWithBalance) -> Self {
         LedgerAccountSetWithBalance {
             id: account_set.account_set_id.into(),
             name: account_set.name,
@@ -75,12 +73,61 @@ impl From<trial_balance::TrialBalanceAccountSetAccounts>
     }
 }
 
+#[derive(Debug, Clone)]
+pub struct PaginatedLedgerAccountSetSubAccountWithBalance {
+    pub cursor: String,
+    pub value: LedgerAccountSetSubAccountWithBalance,
+}
+
+#[derive(Debug, Clone)]
+pub struct LedgerAccountSetSubAccountsWithBalance {
+    pub page_info: ConnectionCreationPageInfo,
+    pub members: Vec<PaginatedLedgerAccountSetSubAccountWithBalance>,
+}
+
+impl From<account_set_and_sub_accounts_with_balance::subAccount>
+    for LedgerAccountSetSubAccountsWithBalance
+{
+    fn from(sub_account: account_set_and_sub_accounts_with_balance::subAccount) -> Self {
+        let members = sub_account
+            .edges
+            .into_iter()
+            .map(|e| match e.node {
+                account_set_and_sub_accounts_with_balance::SubAccountEdgesNode::Account(node) => {
+                    PaginatedLedgerAccountSetSubAccountWithBalance {
+                        cursor: e.cursor,
+                        value: LedgerAccountSetSubAccountWithBalance::Account(
+                            LedgerAccountWithBalance::from(node),
+                        ),
+                    }
+                }
+                account_set_and_sub_accounts_with_balance::SubAccountEdgesNode::AccountSet(
+                    node,
+                ) => PaginatedLedgerAccountSetSubAccountWithBalance {
+                    cursor: e.cursor,
+                    value: LedgerAccountSetSubAccountWithBalance::AccountSet(
+                        LedgerAccountSetWithBalance::from(node),
+                    ),
+                },
+            })
+            .collect();
+
+        LedgerAccountSetSubAccountsWithBalance {
+            page_info: ConnectionCreationPageInfo {
+                has_next_page: sub_account.page_info.has_next_page,
+                end_cursor: sub_account.page_info.end_cursor,
+            },
+            members,
+        }
+    }
+}
+
 pub struct LedgerAccountSetAndSubAccountsWithBalance {
     pub id: LedgerAccountSetId,
     pub name: String,
     pub normal_balance_type: LedgerDebitOrCredit,
     pub balance: LedgerAccountBalancesByCurrency,
-    pub sub_accounts: Vec<LedgerAccountSetSubAccountWithBalance>,
+    pub sub_accounts: LedgerAccountSetSubAccountsWithBalance,
 }
 
 impl From<account_set_and_sub_accounts_with_balance::AccountSetAndSubAccountsWithBalanceAccountSet>
@@ -89,31 +136,13 @@ impl From<account_set_and_sub_accounts_with_balance::AccountSetAndSubAccountsWit
     fn from(
         account_set: account_set_and_sub_accounts_with_balance::AccountSetAndSubAccountsWithBalanceAccountSet,
     ) -> Self {
-        let sub_accounts: Vec<LedgerAccountSetSubAccountWithBalance> = account_set
-            .sub_accounts
-            .edges
-            .iter()
-            .map(|e| match &e.node {
-                account_set_and_sub_accounts_with_balance::subAccount::Account(node) => {
-                    LedgerAccountSetSubAccountWithBalance::Account(LedgerAccountWithBalance::from(
-                        node.clone(),
-                    ))
-                }
-                account_set_and_sub_accounts_with_balance::subAccount::AccountSet(node) => {
-                    LedgerAccountSetSubAccountWithBalance::AccountSet(
-                        LedgerAccountSetWithBalance::from(node.clone()),
-                    )
-                }
-            })
-            .collect();
-
         let account_set_with_balance = account_set.account_set_with_balance;
         LedgerAccountSetAndSubAccountsWithBalance {
             id: account_set_with_balance.account_set_id.into(),
             name: account_set_with_balance.name,
             normal_balance_type: account_set_with_balance.normal_balance_type.into(),
             balance: account_set_with_balance.account_set_balances.into(),
-            sub_accounts,
+            sub_accounts: account_set.sub_accounts.into(),
         }
     }
 }
@@ -318,10 +347,11 @@ impl From<account_set_and_sub_accounts::AccountSetAndSubAccountsAccountSet>
     for LedgerAccountSetAndSubAccounts
 {
     fn from(account_set: account_set_and_sub_accounts::AccountSetAndSubAccountsAccountSet) -> Self {
+        let account_set_details = account_set.account_set_details;
         LedgerAccountSetAndSubAccounts {
-            id: account_set.account_set_details.account_set_id.into(),
-            name: account_set.account_set_details.name,
-            normal_balance_type: account_set.account_set_details.normal_balance_type.into(),
+            id: account_set_details.account_set_id.into(),
+            name: account_set_details.name,
+            normal_balance_type: account_set_details.normal_balance_type.into(),
             sub_accounts: account_set.sub_accounts.into(),
         }
     }
@@ -341,10 +371,11 @@ impl From<chart_of_accounts::ChartOfAccountsAccountSetCategoriesEdgesNodeOnAccou
     fn from(
         account_set: chart_of_accounts::ChartOfAccountsAccountSetCategoriesEdgesNodeOnAccountSet,
     ) -> Self {
+        let account_set_details = account_set.account_set_details;
         LedgerChartOfAccountsCategory {
-            id: account_set.account_set_details.account_set_id.into(),
-            name: account_set.account_set_details.name,
-            normal_balance_type: account_set.account_set_details.normal_balance_type.into(),
+            id: account_set_details.account_set_id.into(),
+            name: account_set_details.name,
+            normal_balance_type: account_set_details.normal_balance_type.into(),
             category_accounts: account_set.accounts.into(),
         }
     }

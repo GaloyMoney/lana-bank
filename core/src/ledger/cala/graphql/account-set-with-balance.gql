@@ -7,29 +7,28 @@ query AccountSetAndSubAccountsWithBalance(
   accountSet(id: $accountSetId) {
     ...accountSetWithBalance
     subAccounts: members(first: $first, after: $after) {
-      pageInfo {
-        startCursor
-        endCursor
-        hasNextPage
-      }
-      edges {
-        node {
-          ...subAccount
-        }
-      }
+      ...subAccount
     }
   }
 }
 
-fragment subAccount on AccountSetMember {
-  __typename
-  ... on AccountSet {
-    __typename
-    ...accountSetWithBalance
+fragment subAccount on AccountSetMemberConnection {
+  pageInfo {
+    startCursor
+    endCursor
+    hasNextPage
   }
-  ... on Account {
-    __typename
-    ...accountWithBalance
+  edges {
+    cursor
+    node {
+      __typename
+      ... on AccountSet {
+        ...accountSetWithBalance
+      }
+      ... on Account {
+        ...accountWithBalance
+      }
+    }
   }
 }
 
