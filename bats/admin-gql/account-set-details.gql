@@ -1,8 +1,4 @@
-query ChartOfAccountsAccountSet(
-  $accountSetId: UUID!
-  $first: Int!
-  $after: String
-) {
+query AccountSetDetails($accountSetId: UUID!, $first: Int!, $after: String) {
   accountSet(accountSetId: $accountSetId) {
     name
     subAccounts(first: $first, after: $after) {

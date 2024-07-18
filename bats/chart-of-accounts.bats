@@ -39,7 +39,7 @@ teardown_file() {
       first: 100,
     }'
   )
-  exec_admin_graphql 'chart-of-accounts-account-set' "$variables"
+  exec_admin_graphql 'account-set-details' "$variables"
   num_accounts=$(graphql_output '.data.accountSet.subAccounts.edges | length')
   first_cursor=$(graphql_output '.data.accountSet.subAccounts.edges[0].cursor')
   [[ "$num_accounts" -gt "0" ]] || exit 1
@@ -55,7 +55,7 @@ teardown_file() {
       after: $after
     }'
   )
-  exec_admin_graphql 'chart-of-accounts-account-set' "$variables"
+  exec_admin_graphql 'account-set-details' "$variables"
   num_accounts_paginated=$(graphql_output '.data.accountSet.subAccounts.edges | length')
   [[ "$num_accounts_paginated" -gt "0" ]] || exit 1
   [[ "$num_accounts_paginated" -lt "$num_accounts" ]] || exit 1
