@@ -12,6 +12,13 @@ resource "cala_account_set" "trial_balance" {
   normal_balance_type = "DEBIT"
 }
 
+resource "cala_account_set" "balance_sheet" {
+  id                  = "00000000-0000-0000-0000-100000000003"
+  journal_id          = cala_journal.journal.id
+  name                = "Balance Sheet"
+  normal_balance_type = "DEBIT"
+}
+
 
 # ASSETS
 resource "random_uuid" "assets" {}
@@ -23,6 +30,10 @@ resource "cala_account_set" "assets" {
 }
 resource "cala_account_set_member_account_set" "assets" {
   account_set_id        = cala_account_set.chart_of_accounts.id
+  member_account_set_id = cala_account_set.assets.id
+}
+resource "cala_account_set_member_account_set" "assets_in_balance_sheet" {
+  account_set_id        = cala_account_set.balance_sheet.id
   member_account_set_id = cala_account_set.assets.id
 }
 
@@ -88,6 +99,10 @@ resource "cala_account_set_member_account_set" "liabilities" {
   account_set_id        = cala_account_set.chart_of_accounts.id
   member_account_set_id = cala_account_set.liabilities.id
 }
+resource "cala_account_set_member_account_set" "liabilities_in_balance_sheet" {
+  account_set_id        = cala_account_set.balance_sheet.id
+  member_account_set_id = cala_account_set.liabilities.id
+}
 
 # LIABILITIES: Members
 resource "cala_account_set" "user_checking_control" {
@@ -116,6 +131,10 @@ resource "cala_account_set" "equity" {
 }
 resource "cala_account_set_member_account_set" "equity" {
   account_set_id        = cala_account_set.chart_of_accounts.id
+  member_account_set_id = cala_account_set.equity.id
+}
+resource "cala_account_set_member_account_set" "equity_in_balance_sheet" {
+  account_set_id        = cala_account_set.balance_sheet.id
   member_account_set_id = cala_account_set.equity.id
 }
 
