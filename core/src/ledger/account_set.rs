@@ -53,6 +53,7 @@ pub enum LedgerAccountSetSubAccountWithBalance {
 }
 
 pub struct LedgerAccountSetAndSubAccountsWithBalance {
+    pub id: LedgerAccountSetId,
     pub name: String,
     pub normal_balance_type: LedgerDebitOrCredit,
     pub balance: LedgerAccountBalancesByCurrency,
@@ -114,6 +115,7 @@ impl From<account_set_and_sub_accounts_with_balance::AccountSetAndSubAccountsWit
 
         let account_set_with_balance = account_set.account_set_with_balance;
         LedgerAccountSetAndSubAccountsWithBalance {
+            id: account_set_with_balance.account_set_id.into(),
             name: account_set_with_balance.name,
             normal_balance_type: account_set_with_balance.normal_balance_type.into(),
             balance: account_set_with_balance.account_set_balances.into(),
