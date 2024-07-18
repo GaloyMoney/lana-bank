@@ -44,6 +44,14 @@ teardown_file() {
   first_cursor=$(graphql_output '.data.accountSet.subAccounts.edges[0].cursor')
   [[ "$num_accounts" -gt "0" ]] || exit 1
 
+  exec_admin_graphql 'account-set-details-with-balance' "$variables"
+  num_accounts_with_balance=$(graphql_output '.data.accountSetWithBalance.subAccounts.edges | length')
+  first_cursor_with_balance=$(graphql_output '.data.accountSetWithBalance.subAccounts.edges[0].cursor')
+  btc_balance=$(graphql_output '.data.accountSetWithBalance.subAccounts.edges[0].node.balance.btc.all.netDebit')
+  [[ "$num_accounts_with_balance" -gt "0" ]] || exit 1
+  [[ "$btc_balance" == "0" ]] || exit 1
+  [[ "$first_cursor" == "$first_cursor_with_balance" ]] || exit 1
+
   # Fetch paginated page
   variables=$(
     jq -n \
@@ -59,4 +67,9 @@ teardown_file() {
   num_accounts_paginated=$(graphql_output '.data.accountSet.subAccounts.edges | length')
   [[ "$num_accounts_paginated" -gt "0" ]] || exit 1
   [[ "$num_accounts_paginated" -lt "$num_accounts" ]] || exit 1
+
+  exec_admin_graphql 'account-set-details-with-balance' "$variables"
+  num_accounts_paginated_with_balance=$(graphql_output '.data.accountSetWithBalance.subAccounts.edges | length')
+  [[ "$num_accounts_paginated_with_balance" -gt "0" ]] || exit 1
+  [[ "$num_accounts_paginated_with_balance" -lt "$num_accounts_with_balance" ]] || exit 1
 }

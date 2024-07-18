@@ -1,0 +1,88 @@
+query AccountSet($accountSetId: UUID!, $first: Int!, $after: String) {
+  accountSetWithBalance(accountSetId: $accountSetId) {
+    id
+    name
+    balance {
+      ...balancesByCurrency
+    }
+    subAccounts(first: $first, after: $after) {
+      edges {
+        cursor
+        node {
+          __typename
+          ... on AccountWithBalance {
+            __typename
+            id
+            name
+            balance {
+              ...balancesByCurrency
+            }
+          }
+          ... on AccountSetWithBalance {
+            __typename
+            id
+            name
+            hasSubAccounts
+            balance {
+              ...balancesByCurrency
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+fragment balancesByCurrency on AccountBalancesByCurrency {
+  btc: btc {
+    ...btcBalances
+  }
+  usd: usd {
+    ...usdBalances
+  }
+  usdt: usdt {
+    ...usdBalances
+  }
+}
+
+fragment btcBalances on LayeredBtcAccountBalances {
+  all {
+    ...btcLayers
+  }
+  settled {
+    ...btcLayers
+  }
+  pending {
+    ...btcLayers
+  }
+  encumbrance {
+    ...btcLayers
+  }
+}
+
+fragment usdBalances on LayeredUsdAccountBalances {
+  all {
+    ...usdLayers
+  }
+  settled {
+    ...usdLayers
+  }
+  pending {
+    ...usdLayers
+  }
+  encumbrance {
+    ...usdLayers
+  }
+}
+
+fragment usdLayers on UsdAccountBalance {
+  netDebit
+  debit
+  credit
+}
+
+fragment btcLayers on BtcAccountBalance {
+  netDebit
+  debit
+  credit
+}
