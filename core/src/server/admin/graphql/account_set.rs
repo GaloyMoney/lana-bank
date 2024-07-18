@@ -170,6 +170,25 @@ enum AccountSetSubAccountWithBalance {
     AccountSet(AccountSetWithBalance),
 }
 
+impl From<crate::ledger::account_set::PaginatedLedgerAccountSetSubAccountWithBalance>
+    for AccountSetSubAccountWithBalance
+{
+    fn from(
+        member: crate::ledger::account_set::PaginatedLedgerAccountSetSubAccountWithBalance,
+    ) -> Self {
+        match member.value {
+            crate::ledger::account_set::LedgerAccountSetSubAccountWithBalance::Account(val) => {
+                AccountSetSubAccountWithBalance::Account(super::account::AccountWithBalance::from(
+                    val,
+                ))
+            }
+            crate::ledger::account_set::LedgerAccountSetSubAccountWithBalance::AccountSet(val) => {
+                AccountSetSubAccountWithBalance::AccountSet(AccountSetWithBalance::from(val))
+            }
+        }
+    }
+}
+
 impl From<crate::ledger::account_set::LedgerAccountSetSubAccountWithBalance>
     for AccountSetSubAccountWithBalance
 {
@@ -201,27 +220,40 @@ impl AccountSetAndSubAccountsWithBalance {
         ctx: &Context<'_>,
         first: i32,
         after: Option<String>,
-    ) -> async_graphql::Result<Vec<AccountSetSubAccountWithBalance>> {
+    ) -> Result<
+        Connection<SubAccountCursor, AccountSetSubAccountWithBalance, EmptyFields, EmptyFields>,
+    > {
         let app = ctx.data_unchecked::<LavaApp>();
-        let account_set = app
-            .ledger()
-            .account_set_and_balance(self.id.clone().into(), first.into(), after)
-            .await?;
-
-        let sub_accounts = if let Some(account_set) = account_set {
-            account_set
-                .sub_accounts
-                .into_iter()
-                .map(AccountSetSubAccountWithBalance::from)
-                .collect()
-        } else {
-            Vec::new()
-        };
-
-        Ok(sub_accounts)
+        query(
+            after,
+            None,
+            Some(first),
+            None,
+            |after, _, first, _| async move {
+                let first = first.expect("First always exists");
+                let res = app
+                    .ledger()
+                    .paginated_account_set_and_sub_accounts_with_balance(
+                        self.id.clone().into(),
+                        crate::query::PaginatedQueryArgs {
+                            first,
+                            after: after.map(crate::ledger::SubAccountCursor::from),
+                        },
+                    )
+                    .await?;
+                let mut connection = Connection::new(false, res.has_next_page);
+                connection
+                    .edges
+                    .extend(res.entities.into_iter().map(|sub_account| {
+                        let cursor = SubAccountCursor::from(sub_account.cursor.clone());
+                        Edge::new(cursor, AccountSetSubAccountWithBalance::from(sub_account))
+                    }));
+                Ok::<_, async_graphql::Error>(connection)
+            },
+        )
+        .await
     }
 }
-
 #[derive(SimpleObject)]
 pub struct ChartOfAccountsCategory {
     name: String,
