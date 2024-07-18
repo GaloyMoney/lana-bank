@@ -20,15 +20,15 @@ impl From<trial_balance::TrialBalanceAccountSetMembersEdgesNodeOnAccountSet>
             name: node.name,
             normal_balance_type: node.normal_balance_type.into(),
             balance: LedgerAccountBalancesByCurrency {
-                btc: node.btc_balances.map_or_else(
+                btc: node.account_set_balances.btc_balances.map_or_else(
                     LayeredBtcAccountBalances::default,
                     LayeredBtcAccountBalances::from,
                 ),
-                usd: node.usd_balances.map_or_else(
+                usd: node.account_set_balances.usd_balances.map_or_else(
                     LayeredUsdAccountBalances::default,
                     LayeredUsdAccountBalances::from,
                 ),
-                usdt: node.usdt_balances.map_or_else(
+                usdt: node.account_set_balances.usdt_balances.map_or_else(
                     LayeredUsdAccountBalances::default,
                     LayeredUsdAccountBalances::from,
                 ),
@@ -104,15 +104,15 @@ impl From<trial_balance::TrialBalanceAccountSet> for LedgerAccountSetAndSubAccou
             name: account_set.name,
             normal_balance_type: account_set.normal_balance_type.into(),
             balance: LedgerAccountBalancesByCurrency {
-                btc: account_set.btc_balances.map_or_else(
+                btc: account_set.account_set_balances.btc_balances.map_or_else(
                     LayeredBtcAccountBalances::default,
                     LayeredBtcAccountBalances::from,
                 ),
-                usd: account_set.usd_balances.map_or_else(
+                usd: account_set.account_set_balances.usd_balances.map_or_else(
                     LayeredUsdAccountBalances::default,
                     LayeredUsdAccountBalances::from,
                 ),
-                usdt: account_set.usdt_balances.map_or_else(
+                usdt: account_set.account_set_balances.usdt_balances.map_or_else(
                     LayeredUsdAccountBalances::default,
                     LayeredUsdAccountBalances::from,
                 ),

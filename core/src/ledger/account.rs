@@ -118,8 +118,8 @@ pub struct LayeredBtcAccountBalances {
     pub all_layers: BtcAccountBalance,
 }
 
-impl From<trial_balance::TrialBalanceAccountSetBtcBalances> for LayeredBtcAccountBalances {
-    fn from(btc_balances_by_layer: trial_balance::TrialBalanceAccountSetBtcBalances) -> Self {
+impl From<trial_balance::AccountSetBalancesBtcBalances> for LayeredBtcAccountBalances {
+    fn from(btc_balances_by_layer: trial_balance::AccountSetBalancesBtcBalances) -> Self {
         Self {
             settled: BtcAccountBalance::from(btc_balances_by_layer.settled),
             pending: BtcAccountBalance::from(btc_balances_by_layer.pending),
@@ -152,8 +152,8 @@ pub struct LayeredUsdAccountBalances {
     pub all_layers: UsdAccountBalance,
 }
 
-impl From<trial_balance::TrialBalanceAccountSetUsdBalances> for LayeredUsdAccountBalances {
-    fn from(usd_balances_by_layer: trial_balance::TrialBalanceAccountSetUsdBalances) -> Self {
+impl From<trial_balance::AccountSetBalancesUsdBalances> for LayeredUsdAccountBalances {
+    fn from(usd_balances_by_layer: trial_balance::AccountSetBalancesUsdBalances) -> Self {
         Self {
             settled: UsdAccountBalance::from(usd_balances_by_layer.settled),
             pending: UsdAccountBalance::from(usd_balances_by_layer.pending),
@@ -246,15 +246,15 @@ impl From<trial_balance::TrialBalanceAccountSetMembersEdgesNodeOnAccount>
             name: node.name,
             normal_balance_type: node.normal_balance_type.into(),
             balance: LedgerAccountBalancesByCurrency {
-                btc: node.btc_balances.map_or_else(
+                btc: node.account_balances.btc_balances.map_or_else(
                     LayeredBtcAccountBalances::default,
                     LayeredBtcAccountBalances::from,
                 ),
-                usd: node.usd_balances.map_or_else(
+                usd: node.account_balances.usd_balances.map_or_else(
                     LayeredUsdAccountBalances::default,
                     LayeredUsdAccountBalances::from,
                 ),
-                usdt: node.usdt_balances.map_or_else(
+                usdt: node.account_balances.usdt_balances.map_or_else(
                     LayeredUsdAccountBalances::default,
                     LayeredUsdAccountBalances::from,
                 ),

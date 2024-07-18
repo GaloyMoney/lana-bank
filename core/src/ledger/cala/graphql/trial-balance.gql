@@ -1,15 +1,7 @@
 query TrialBalance($accountSetId: UUID!, $journalId: UUID!) {
   accountSet(id: $accountSetId) {
     name
-    btcBalances: balance(currency: "BTC") {
-      ...balancesByLayer
-    }
-    usdtBalances: balance(currency: "USDT") {
-      ...balancesByLayer
-    }
-    usdBalances: balance(currency: "USD") {
-      ...balancesByLayer
-    }
+    ...accountSetBalances
     normalBalanceType
     members(first: 100) {
       edges {
@@ -24,33 +16,41 @@ query TrialBalance($accountSetId: UUID!, $journalId: UUID!) {
                 startCursor
               }
             }
-            btcBalances: balance(currency: "BTC") {
-              ...balancesByLayer
-            }
-            usdtBalances: balance(currency: "USDT") {
-              ...balancesByLayer
-            }
-            usdBalances: balance(currency: "USD") {
-              ...balancesByLayer
-            }
+            ...accountSetBalances
           }
           ... on Account {
             accountId
             name
             normalBalanceType
-            btcBalances: balance(journalId: $journalId, currency: "BTC") {
-              ...balancesByLayer
-            }
-            usdtBalances: balance(journalId: $journalId, currency: "USDT") {
-              ...balancesByLayer
-            }
-            usdBalances: balance(journalId: $journalId, currency: "USD") {
-              ...balancesByLayer
-            }
+            ...accountBalances
           }
         }
       }
     }
+  }
+}
+
+fragment accountBalances on Account {
+  btcBalances: balance(journalId: $journalId, currency: "BTC") {
+    ...balancesByLayer
+  }
+  usdtBalances: balance(journalId: $journalId, currency: "USDT") {
+    ...balancesByLayer
+  }
+  usdBalances: balance(journalId: $journalId, currency: "USD") {
+    ...balancesByLayer
+  }
+}
+
+fragment accountSetBalances on AccountSet {
+  btcBalances: balance(currency: "BTC") {
+    ...balancesByLayer
+  }
+  usdtBalances: balance(currency: "USDT") {
+    ...balancesByLayer
+  }
+  usdBalances: balance(currency: "USD") {
+    ...balancesByLayer
   }
 }
 
