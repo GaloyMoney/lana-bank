@@ -8,20 +8,11 @@ query TrialBalance($accountSetId: UUID!, $journalId: UUID!) {
         node {
           __typename
           ... on AccountSet {
-            accountSetId
-            name
-            normalBalanceType
-            members(first: 1) {
-              pageInfo {
-                startCursor
-              }
-            }
+            ...accountSetDetails
             ...accountSetBalances
           }
           ... on Account {
-            accountId
-            name
-            normalBalanceType
+            ...accountDetails
             ...accountBalances
           }
         }
@@ -82,4 +73,22 @@ fragment balances on BalanceAmount {
     units
     currency
   }
+}
+
+fragment accountSetDetails on AccountSet {
+  accountSetId
+  name
+  normalBalanceType
+  members(first: 1) {
+    pageInfo {
+      startCursor
+    }
+  }
+}
+
+fragment accountDetails on Account {
+  accountId
+  code
+  name
+  normalBalanceType
 }

@@ -16,11 +16,16 @@ impl From<trial_balance::TrialBalanceAccountSetAccountsEdgesNodeOnAccountSet>
 {
     fn from(node: trial_balance::TrialBalanceAccountSetAccountsEdgesNodeOnAccountSet) -> Self {
         LedgerAccountSetWithBalance {
-            id: node.account_set_id.into(),
-            name: node.name,
-            normal_balance_type: node.normal_balance_type.into(),
+            id: node.account_set_details.account_set_id.into(),
+            name: node.account_set_details.name,
+            normal_balance_type: node.account_set_details.normal_balance_type.into(),
             balance: node.account_set_balances.into(),
-            has_sub_accounts: node.members.page_info.start_cursor.is_some(),
+            has_sub_accounts: node
+                .account_set_details
+                .members
+                .page_info
+                .start_cursor
+                .is_some(),
         }
     }
 }

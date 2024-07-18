@@ -282,9 +282,9 @@ impl From<trial_balance::TrialBalanceAccountSetAccountsEdgesNodeOnAccount>
 {
     fn from(node: trial_balance::TrialBalanceAccountSetAccountsEdgesNodeOnAccount) -> Self {
         LedgerAccountWithBalance {
-            id: node.account_id.into(),
-            name: node.name,
-            normal_balance_type: node.normal_balance_type.into(),
+            id: node.account_details.account_id.into(),
+            name: node.account_details.name,
+            normal_balance_type: node.account_details.normal_balance_type.into(),
             balance: LedgerAccountBalancesByCurrency {
                 btc: node.account_balances.btc_balances.map_or_else(
                     LayeredBtcAccountBalances::default,
