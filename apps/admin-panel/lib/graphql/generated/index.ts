@@ -53,6 +53,20 @@ export type AccountSetAndSubAccountsSubAccountsArgs = {
   first: Scalars['Int']['input'];
 };
 
+export type AccountSetAndSubAccountsWithBalance = {
+  __typename?: 'AccountSetAndSubAccountsWithBalance';
+  balance: AccountBalancesByCurrency;
+  id: Scalars['UUID']['output'];
+  name: Scalars['String']['output'];
+  subAccounts: AccountSetSubAccountWithBalanceConnection;
+};
+
+
+export type AccountSetAndSubAccountsWithBalanceSubAccountsArgs = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  first: Scalars['Int']['input'];
+};
+
 export type AccountSetDetails = {
   __typename?: 'AccountSetDetails';
   hasSubAccounts: Scalars['Boolean']['output'];
@@ -82,6 +96,25 @@ export type AccountSetSubAccountEdge = {
 };
 
 export type AccountSetSubAccountWithBalance = AccountSetWithBalance | AccountWithBalance;
+
+export type AccountSetSubAccountWithBalanceConnection = {
+  __typename?: 'AccountSetSubAccountWithBalanceConnection';
+  /** A list of edges. */
+  edges: Array<AccountSetSubAccountWithBalanceEdge>;
+  /** A list of nodes. */
+  nodes: Array<AccountSetSubAccountWithBalance>;
+  /** Information to aid in pagination. */
+  pageInfo: PageInfo;
+};
+
+/** An edge in a connection. */
+export type AccountSetSubAccountWithBalanceEdge = {
+  __typename?: 'AccountSetSubAccountWithBalanceEdge';
+  /** A cursor for use in pagination */
+  cursor: Scalars['String']['output'];
+  /** The item at the end of the edge */
+  node: AccountSetSubAccountWithBalance;
+};
 
 export type AccountSetWithBalance = {
   __typename?: 'AccountSetWithBalance';
@@ -305,6 +338,7 @@ export enum Period {
 export type Query = {
   __typename?: 'Query';
   accountSet?: Maybe<AccountSetAndSubAccounts>;
+  accountSetWithBalance?: Maybe<AccountSetAndSubAccountsWithBalance>;
   chartOfAccounts?: Maybe<ChartOfAccounts>;
   currentTerms?: Maybe<Terms>;
   loan?: Maybe<Loan>;
@@ -317,6 +351,11 @@ export type Query = {
 
 
 export type QueryAccountSetArgs = {
+  accountSetId: Scalars['UUID']['input'];
+};
+
+
+export type QueryAccountSetWithBalanceArgs = {
   accountSetId: Scalars['UUID']['input'];
 };
 

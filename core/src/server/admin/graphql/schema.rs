@@ -103,11 +103,24 @@ impl Query {
         account_set_id: UUID,
     ) -> async_graphql::Result<Option<AccountSetAndSubAccounts>> {
         let app = ctx.data_unchecked::<LavaApp>();
-        let account_set_and_sub_accounts = app
+        let account_set = app
             .ledger()
             .account_set_and_sub_accounts(account_set_id.into(), 0, None)
             .await?;
-        Ok(account_set_and_sub_accounts.map(AccountSetAndSubAccounts::from))
+        Ok(account_set.map(AccountSetAndSubAccounts::from))
+    }
+
+    async fn account_set_with_balance(
+        &self,
+        ctx: &Context<'_>,
+        account_set_id: UUID,
+    ) -> async_graphql::Result<Option<AccountSetAndSubAccountsWithBalance>> {
+        let app = ctx.data_unchecked::<LavaApp>();
+        let account_set = app
+            .ledger()
+            .account_set_and_sub_accounts_with_balance(account_set_id.into(), 0, None)
+            .await?;
+        Ok(account_set.map(AccountSetAndSubAccountsWithBalance::from))
     }
 
     async fn current_terms(&self, ctx: &Context<'_>) -> async_graphql::Result<Option<Terms>> {

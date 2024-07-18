@@ -15,6 +15,13 @@ type AccountSetAndSubAccounts {
 	subAccounts(first: Int!, after: String): AccountSetSubAccountConnection!
 }
 
+type AccountSetAndSubAccountsWithBalance {
+	id: UUID!
+	name: String!
+	balance: AccountBalancesByCurrency!
+	subAccounts(first: Int!, after: String): AccountSetSubAccountWithBalanceConnection!
+}
+
 type AccountSetDetails {
 	id: UUID!
 	name: String!
@@ -53,6 +60,35 @@ type AccountSetSubAccountEdge {
 }
 
 union AccountSetSubAccountWithBalance = AccountWithBalance | AccountSetWithBalance
+
+type AccountSetSubAccountWithBalanceConnection {
+	"""
+	Information to aid in pagination.
+	"""
+	pageInfo: PageInfo!
+	"""
+	A list of edges.
+	"""
+	edges: [AccountSetSubAccountWithBalanceEdge!]!
+	"""
+	A list of nodes.
+	"""
+	nodes: [AccountSetSubAccountWithBalance!]!
+}
+
+"""
+An edge in a connection.
+"""
+type AccountSetSubAccountWithBalanceEdge {
+	"""
+	The item at the end of the edge
+	"""
+	node: AccountSetSubAccountWithBalance!
+	"""
+	A cursor for use in pagination
+	"""
+	cursor: String!
+}
 
 type AccountSetWithBalance {
 	id: UUID!
@@ -249,6 +285,7 @@ type Query {
 	chartOfAccounts: ChartOfAccounts
 	offBalanceSheetChartOfAccounts: ChartOfAccounts
 	accountSet(accountSetId: UUID!): AccountSetAndSubAccounts
+	accountSetWithBalance(accountSetId: UUID!): AccountSetAndSubAccountsWithBalance
 	currentTerms: Terms
 }
 

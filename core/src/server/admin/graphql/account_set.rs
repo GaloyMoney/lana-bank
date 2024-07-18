@@ -211,6 +211,21 @@ impl From<crate::ledger::account_set::LedgerAccountSetSubAccountWithBalance>
 pub struct AccountSetAndSubAccountsWithBalance {
     id: UUID,
     name: String,
+    balance: AccountBalancesByCurrency,
+}
+
+impl From<crate::ledger::account_set::LedgerAccountSetAndSubAccountsWithBalance>
+    for AccountSetAndSubAccountsWithBalance
+{
+    fn from(
+        account_set: crate::ledger::account_set::LedgerAccountSetAndSubAccountsWithBalance,
+    ) -> Self {
+        AccountSetAndSubAccountsWithBalance {
+            id: account_set.id.into(),
+            name: account_set.name,
+            balance: account_set.balance.into(),
+        }
+    }
 }
 
 #[ComplexObject]
