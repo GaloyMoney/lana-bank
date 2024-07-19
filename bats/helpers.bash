@@ -284,6 +284,26 @@ assert_assets_liabilities_equity() {
   [[ "$assets" == "$liabilities_and_equity" ]] || exit 1
 }
 
+assert_balance_sheet_balanced() {
+  exec_admin_graphql 'balance-sheet'
+  echo $(graphql_output)
+
+  balance_usdt=$(graphql_output '.data.balanceSheet.balance.usdt.settled.netDebit')
+  balance_usd=$(graphql_output '.data.balanceSheet.balance.usd.settled.netDebit')
+  balance=$( add $balance_usdt $balance_usd )
+  [[ "$balance" == "0" ]] || exit 1
+
+  debit_usdt=$(graphql_output '.data.balanceSheet.balance.usdt.settled.debit')
+  debit_usd=$(graphql_output '.data.balanceSheet.balance.usd.settled.debit')
+  debit=$( add $debit_usdt $debit_usd )
+  [[ "$debit" -gt "0" ]] || exit 1
+
+  credit_usdt=$(graphql_output '.data.balanceSheet.balance.usdt.settled.credit')
+  credit_usd=$(graphql_output '.data.balanceSheet.balance.usd.settled.credit')
+  credit=$( add $credit_usdt $credit_usd )
+  [[ "$credit" == "$debit" ]] || exit 1
+}
+
 assert_trial_balance() {
   exec_admin_graphql 'trial-balance'
 
@@ -299,5 +319,6 @@ assert_trial_balance() {
 
 assert_accounts_balanced() {
   assert_assets_liabilities_equity
+  assert_balance_sheet_balanced
   assert_trial_balance
 }
