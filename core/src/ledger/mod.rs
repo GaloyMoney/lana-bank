@@ -20,7 +20,7 @@ use crate::primitives::{
 };
 
 use account_set::{
-    LedgerAccountSetAndSubAccounts, LedgerAccountSetAndSubAccountsWithBalance,
+    LedgerAccountSetAndSubAccounts, LedgerAccountSetAndSubAccountsWithBalance, LedgerBalanceSheet,
     LedgerChartOfAccounts, LedgerTrialBalance, PaginatedLedgerAccountSetSubAccount,
     PaginatedLedgerAccountSetSubAccountWithBalance,
 };
@@ -233,6 +233,14 @@ impl Ledger {
             .obs_chart_of_accounts::<LedgerChartOfAccounts>()
             .await
             .map(|gl| gl.map(LedgerChartOfAccounts::from))
+            .map_err(|e| e.into())
+    }
+
+    pub async fn balance_sheet(&self) -> Result<Option<LedgerBalanceSheet>, LedgerError> {
+        self.cala
+            .balance_sheet::<LedgerBalanceSheet>()
+            .await
+            .map(|gl| gl.map(LedgerBalanceSheet::from))
             .map_err(|e| e.into())
     }
 

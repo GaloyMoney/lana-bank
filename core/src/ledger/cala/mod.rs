@@ -828,6 +828,18 @@ impl CalaClient {
         Ok(response.data.and_then(|d| d.account_set).map(T::from))
     }
 
+    pub async fn balance_sheet<T: From<balance_sheet::BalanceSheetAccountSet>>(
+        &self,
+    ) -> Result<Option<T>, CalaError> {
+        let variables = balance_sheet::Variables {
+            account_set_id: constants::BALANCE_SHEET_ACCOUNT_SET_ID,
+            journal_id: constants::CORE_JOURNAL_ID,
+        };
+        let response =
+            Self::traced_gql_request::<BalanceSheet, _>(&self.client, &self.url, variables).await?;
+        Ok(response.data.and_then(|d| d.account_set).map(T::from))
+    }
+
     #[instrument(name = "lava.ledger.cala.find_by_id", skip(self), err)]
     async fn find_account_by_code<T: From<account_by_code::AccountByCodeAccountByCode>>(
         &self,
