@@ -236,16 +236,16 @@ pub enum LedgerAccountSetSubAccount {
     AccountSet(LedgerAccountSetDetails),
 }
 
-impl From<chart_of_accounts::account> for Vec<LedgerAccountSetSubAccount> {
-    fn from(members: chart_of_accounts::account) -> Self {
+impl From<chart_of_accounts::accounts> for Vec<LedgerAccountSetSubAccount> {
+    fn from(members: chart_of_accounts::accounts) -> Self {
         members
             .edges
             .into_iter()
             .map(|e| match e.node {
-                chart_of_accounts::AccountEdgesNode::Account(node) => {
+                chart_of_accounts::AccountsEdgesNode::Account(node) => {
                     LedgerAccountSetSubAccount::Account(LedgerAccountDetails::from(node))
                 }
-                chart_of_accounts::AccountEdgesNode::AccountSet(node) => {
+                chart_of_accounts::AccountsEdgesNode::AccountSet(node) => {
                     LedgerAccountSetSubAccount::AccountSet(LedgerAccountSetDetails::from(node))
                 }
             })
@@ -365,12 +365,8 @@ pub struct LedgerChartOfAccountsCategory {
     pub category_accounts: Vec<LedgerAccountSetSubAccount>,
 }
 
-impl From<chart_of_accounts::ChartOfAccountsAccountSetCategoriesEdgesNodeOnAccountSet>
-    for LedgerChartOfAccountsCategory
-{
-    fn from(
-        account_set: chart_of_accounts::ChartOfAccountsAccountSetCategoriesEdgesNodeOnAccountSet,
-    ) -> Self {
+impl From<chart_of_accounts::CategoriesEdgesNodeOnAccountSet> for LedgerChartOfAccountsCategory {
+    fn from(account_set: chart_of_accounts::CategoriesEdgesNodeOnAccountSet) -> Self {
         let account_set_details = account_set.account_set_details;
         LedgerChartOfAccountsCategory {
             id: account_set_details.account_set_id.into(),
@@ -389,10 +385,10 @@ impl From<chart_of_accounts::ChartOfAccountsAccountSetCategories>
             .edges
             .into_iter()
             .filter_map(|e| match e.node {
-                chart_of_accounts::ChartOfAccountsAccountSetCategoriesEdgesNode::Account(_) => None,
-                chart_of_accounts::ChartOfAccountsAccountSetCategoriesEdgesNode::AccountSet(
-                    node,
-                ) => Some(LedgerChartOfAccountsCategory::from(node)),
+                chart_of_accounts::CategoriesEdgesNode::Account(_) => None,
+                chart_of_accounts::CategoriesEdgesNode::AccountSet(node) => {
+                    Some(LedgerChartOfAccountsCategory::from(node))
+                }
             })
             .collect()
     }

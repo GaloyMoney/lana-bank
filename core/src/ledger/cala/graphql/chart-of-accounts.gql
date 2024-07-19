@@ -2,25 +2,29 @@ query ChartOfAccounts($accountSetId: UUID!) {
   accountSet(id: $accountSetId) {
     ...accountSetDetails
     categories: members(first: 10) {
-      edges {
-        node {
-          __typename
-          ... on AccountSet {
-            ...accountSetDetails
-            accounts: members(first: 25, after: null) {
-              ...account
-            }
-          }
-          ... on Account {
-            ...accountDetails
-          }
+      ...categories
+    }
+  }
+}
+
+fragment categories on AccountSetMemberConnection {
+  edges {
+    node {
+      __typename
+      ... on AccountSet {
+        ...accountSetDetails
+        accounts: members(first: 25, after: null) {
+          ...accounts
         }
+      }
+      ... on Account {
+        ...accountDetails
       }
     }
   }
 }
 
-fragment account on AccountSetMemberConnection {
+fragment accounts on AccountSetMemberConnection {
   pageInfo {
     startCursor
     endCursor
