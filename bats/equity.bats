@@ -11,9 +11,15 @@ teardown_file() {
 }
 
 @test "equity: can add usd equity" {
-  exec_cala_graphql 'assets-liabilities-equity'
-  assets_usd_before=$(graphql_output '.data.balanceSheet.byJournalId.assets.usdBalance.settled.normalBalance.units')
-  equity_usd_before=$(graphql_output '.data.balanceSheet.byJournalId.equity.usdBalance.settled.normalBalance.units')
+  exec_admin_graphql 'balance-sheet'
+  assets_usd_before=$(graphql_output \
+    --arg category_name "Assets" \
+    '.data.balanceSheet.categories[] | select(.name == $category_name) .balance.usd.settled.netDebit'
+  )
+  equity_usd_before=$(graphql_output \
+    --arg category_name "Equity" \
+    '.data.balanceSheet.categories[] | select(.name == $category_name) .balance.usd.settled.netDebit'
+  )
 
 
   variables=$(
@@ -30,10 +36,16 @@ teardown_file() {
 
   assert_accounts_balanced
 
-  exec_cala_graphql 'assets-liabilities-equity'
-  assets_usd=$(graphql_output '.data.balanceSheet.byJournalId.assets.usdBalance.settled.normalBalance.units')
-  equity_usd=$(graphql_output '.data.balanceSheet.byJournalId.equity.usdBalance.settled.normalBalance.units')
+  exec_admin_graphql 'balance-sheet'
+  assets_usd=$(graphql_output \
+    --arg category_name "Assets" \
+    '.data.balanceSheet.categories[] | select(.name == $category_name) .balance.usd.settled.netDebit'
+  )
+  equity_usd=$(graphql_output \
+    --arg category_name "Equity" \
+    '.data.balanceSheet.categories[] | select(.name == $category_name) .balance.usd.settled.netDebit'
+  )
   [[ "$assets_usd" -gt "$assets_usd_before" ]] || exit 1
-  [[ "$equity_usd" -gt "$equity_usd_before" ]] || exit 1
+  [[ "$equity_usd" -lt "$equity_usd_before" ]] || exit 1
 }
 
