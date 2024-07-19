@@ -110,6 +110,18 @@ type AccountWithBalance {
 
 scalar AnnualRate
 
+type BalanceSheet {
+	name: String!
+	balance: AccountBalancesByCurrency!
+	categories: [BalanceSheetCategory!]!
+}
+
+type BalanceSheetCategory {
+	name: String!
+	balance: AccountBalancesByCurrency!
+	accounts: [AccountSetSubAccountWithBalance!]!
+}
+
 
 type BtcAccountBalance {
 	debit: Satoshis!
@@ -291,6 +303,7 @@ type Query {
 	offBalanceSheetTrialBalance: TrialBalance
 	chartOfAccounts: ChartOfAccounts
 	offBalanceSheetChartOfAccounts: ChartOfAccounts
+	balanceSheet: BalanceSheet
 	accountSet(accountSetId: UUID!): AccountSetAndSubAccounts
 	accountSetWithBalance(accountSetId: UUID!): AccountSetAndSubAccountsWithBalance
 	currentTerms: Terms

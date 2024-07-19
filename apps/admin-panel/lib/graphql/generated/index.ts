@@ -136,6 +136,20 @@ export type AccountWithBalance = {
   name: Scalars['String']['output'];
 };
 
+export type BalanceSheet = {
+  __typename?: 'BalanceSheet';
+  balance: AccountBalancesByCurrency;
+  categories: Array<BalanceSheetCategory>;
+  name: Scalars['String']['output'];
+};
+
+export type BalanceSheetCategory = {
+  __typename?: 'BalanceSheetCategory';
+  accounts: Array<AccountSetSubAccountWithBalance>;
+  balance: AccountBalancesByCurrency;
+  name: Scalars['String']['output'];
+};
+
 export type BtcAccountBalance = {
   __typename?: 'BtcAccountBalance';
   credit: Scalars['Satoshis']['output'];
@@ -346,6 +360,7 @@ export type Query = {
   __typename?: 'Query';
   accountSet?: Maybe<AccountSetAndSubAccounts>;
   accountSetWithBalance?: Maybe<AccountSetAndSubAccountsWithBalance>;
+  balanceSheet?: Maybe<BalanceSheet>;
   chartOfAccounts?: Maybe<ChartOfAccounts>;
   currentTerms?: Maybe<Terms>;
   loan?: Maybe<Loan>;

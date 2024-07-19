@@ -97,6 +97,15 @@ impl Query {
         Ok(chart_of_accounts.map(ChartOfAccounts::from))
     }
 
+    async fn balance_sheet(
+        &self,
+        ctx: &Context<'_>,
+    ) -> async_graphql::Result<Option<BalanceSheet>> {
+        let app = ctx.data_unchecked::<LavaApp>();
+        let balance_sheet = app.ledger().balance_sheet().await?;
+        Ok(balance_sheet.map(BalanceSheet::from))
+    }
+
     async fn account_set(
         &self,
         ctx: &Context<'_>,
