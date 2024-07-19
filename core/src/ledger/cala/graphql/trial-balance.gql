@@ -4,18 +4,22 @@ query TrialBalance($accountSetId: UUID!, $journalId: UUID!) {
     ...accountSetBalances
     normalBalanceType
     accounts: members(first: 100) {
-      edges {
-        node {
-          __typename
-          ... on AccountSet {
-            ...accountSetDetails
-            ...accountSetBalances
-          }
-          ... on Account {
-            ...accountDetails
-            ...accountBalances
-          }
-        }
+      ...accounts
+    }
+  }
+}
+
+fragment accounts on AccountSetMemberConnection {
+  edges {
+    node {
+      __typename
+      ... on AccountSet {
+        ...accountSetDetails
+        ...accountSetBalances
+      }
+      ... on Account {
+        ...accountDetails
+        ...accountBalances
       }
     }
   }

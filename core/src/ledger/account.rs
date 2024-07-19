@@ -277,10 +277,8 @@ pub struct LedgerAccountWithBalance {
     pub balance: LedgerAccountBalancesByCurrency,
 }
 
-impl From<trial_balance::TrialBalanceAccountSetAccountsEdgesNodeOnAccount>
-    for LedgerAccountWithBalance
-{
-    fn from(node: trial_balance::TrialBalanceAccountSetAccountsEdgesNodeOnAccount) -> Self {
+impl From<trial_balance::AccountsEdgesNodeOnAccount> for LedgerAccountWithBalance {
+    fn from(node: trial_balance::AccountsEdgesNodeOnAccount) -> Self {
         LedgerAccountWithBalance {
             id: node.account_details.account_id.into(),
             name: node.account_details.name,
