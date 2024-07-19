@@ -263,27 +263,6 @@ add() {
   echo $sum
 }
 
-assert_assets_liabilities_equity() {
-  exec_cala_graphql 'assets-liabilities-equity'
-  echo $(graphql_output)
-
-  assets_usdt=$(graphql_output '.data.balanceSheet.byJournalId.assets.usdtBalance.settled.normalBalance.units')
-  assets_usd=$(graphql_output '.data.balanceSheet.byJournalId.assets.usdBalance.settled.normalBalance.units')
-  assets=$( add $assets_usdt $assets_usd )
-
-  liabilities_usdt=$(graphql_output '.data.balanceSheet.byJournalId.liabilities.usdtBalance.settled.normalBalance.units')
-  liabilities_usd=$(graphql_output '.data.balanceSheet.byJournalId.liabilities.usdBalance.settled.normalBalance.units')
-  liabilities=$(add "$liabilities_usdt" "$liabilities_usd")
-
-  equity_usdt=$(graphql_output '.data.balanceSheet.byJournalId.equity.usdtBalance.settled.normalBalance.units')
-  equity_usd=$(graphql_output '.data.balanceSheet.byJournalId.equity.usdBalance.settled.normalBalance.units')
-  equity=$(add "$equity_usdt" "$equity_usd")
-
-  liabilities_and_equity=$( add "$liabilities" "$equity" )
-
-  [[ "$assets" == "$liabilities_and_equity" ]] || exit 1
-}
-
 assert_balance_sheet_balanced() {
   exec_admin_graphql 'balance-sheet'
   echo $(graphql_output)
@@ -318,7 +297,6 @@ assert_trial_balance() {
 }
 
 assert_accounts_balanced() {
-  assert_assets_liabilities_equity
   assert_balance_sheet_balanced
   assert_trial_balance
 }
