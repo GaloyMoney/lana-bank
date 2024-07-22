@@ -321,8 +321,8 @@ impl From<crate::ledger::account_set::LedgerChartOfAccounts> for ChartOfAccounts
             name: chart_of_accounts.name,
             categories: chart_of_accounts
                 .categories
-                .iter()
-                .map(|category| category.clone().into())
+                .into_iter()
+                .map(ChartOfAccountsCategory::from)
                 .collect(),
         }
     }
@@ -363,8 +363,8 @@ impl From<crate::ledger::account_set::LedgerBalanceSheet> for BalanceSheet {
             balance: balance_sheet.balance.into(),
             categories: balance_sheet
                 .categories
-                .iter()
-                .map(|category| category.clone().into())
+                .into_iter()
+                .map(BalanceSheetCategory::from)
                 .collect(),
         }
     }
