@@ -8,12 +8,12 @@ query AccountSetAndSubAccountsWithBalance(
     ...accountSetDetails
     ...accountSetBalances
     subAccounts: members(first: $first, after: $after) {
-      ...subAccountWithBalances
+      ...subAccountsWithBalances
     }
   }
 }
 
-fragment subAccountWithBalances on AccountSetMemberConnection {
+fragment subAccountsWithBalances on AccountSetMemberConnection {
   pageInfo {
     startCursor
     endCursor

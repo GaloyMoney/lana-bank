@@ -6,14 +6,14 @@ query AccountSetAndSubAccounts(
   accountSet(id: $accountSetId) {
     ...accountSetDetails
     subAccounts: members(first: $first, after: $after) {
-      ...subAccount
+      ...subAccounts
     }
   }
 }
 
 # 'subAccount' details only
 
-fragment subAccount on AccountSetMemberConnection {
+fragment subAccounts on AccountSetMemberConnection {
   pageInfo {
     startCursor
     endCursor

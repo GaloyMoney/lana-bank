@@ -28,36 +28,38 @@ impl From<trial_balance::AccountsEdgesNodeOnAccountSet> for LedgerAccountSetWith
     }
 }
 
-impl From<balance_sheet::CategoriesEdgesNodeOnAccountSet> for LedgerAccountSetWithBalance {
-    fn from(node: balance_sheet::CategoriesEdgesNodeOnAccountSet) -> Self {
+impl From<balance_sheet::categoryAccountSet> for LedgerAccountSetWithBalance {
+    fn from(account_set: balance_sheet::categoryAccountSet) -> Self {
+        let account_set_details = account_set
+            .account_set_details_and_balances
+            .account_set_details;
         LedgerAccountSetWithBalance {
-            id: node.account_set_details.account_set_id.into(),
-            name: node.account_set_details.name,
-            normal_balance_type: node.account_set_details.normal_balance_type.into(),
-            balance: node.account_set_balances.into(),
-            has_sub_accounts: node
-                .account_set_details
-                .members
-                .page_info
-                .start_cursor
-                .is_some(),
+            id: account_set_details.account_set_id.into(),
+            name: account_set_details.name,
+            normal_balance_type: account_set_details.normal_balance_type.into(),
+            balance: account_set
+                .account_set_details_and_balances
+                .account_set_balances
+                .into(),
+            has_sub_accounts: account_set_details.members.page_info.start_cursor.is_some(),
         }
     }
 }
 
-impl From<balance_sheet::AccountsEdgesNodeOnAccountSet> for LedgerAccountSetWithBalance {
-    fn from(node: balance_sheet::AccountsEdgesNodeOnAccountSet) -> Self {
+impl From<balance_sheet::subAccountSet> for LedgerAccountSetWithBalance {
+    fn from(account_set: balance_sheet::subAccountSet) -> Self {
+        let account_set_details = account_set
+            .account_set_details_and_balances
+            .account_set_details;
         LedgerAccountSetWithBalance {
-            id: node.account_set_details.account_set_id.into(),
-            name: node.account_set_details.name,
-            normal_balance_type: node.account_set_details.normal_balance_type.into(),
-            balance: node.account_set_balances.into(),
-            has_sub_accounts: node
-                .account_set_details
-                .members
-                .page_info
-                .start_cursor
-                .is_some(),
+            id: account_set_details.account_set_id.into(),
+            name: account_set_details.name,
+            normal_balance_type: account_set_details.normal_balance_type.into(),
+            balance: account_set
+                .account_set_details_and_balances
+                .account_set_balances
+                .into(),
+            has_sub_accounts: account_set_details.members.page_info.start_cursor.is_some(),
         }
     }
 }
@@ -242,17 +244,17 @@ pub struct LedgerAccountSetSubAccountsWithBalance {
     pub members: Vec<PaginatedLedgerAccountSetSubAccountWithBalance>,
 }
 
-impl From<account_set_and_sub_accounts_with_balance::subAccountWithBalances>
+impl From<account_set_and_sub_accounts_with_balance::subAccountsWithBalances>
     for LedgerAccountSetSubAccountsWithBalance
 {
     fn from(
-        sub_account: account_set_and_sub_accounts_with_balance::subAccountWithBalances,
+        sub_account: account_set_and_sub_accounts_with_balance::subAccountsWithBalances,
     ) -> Self {
         let members = sub_account
             .edges
             .into_iter()
             .map(|e| match e.node {
-                account_set_and_sub_accounts_with_balance::SubAccountWithBalancesEdgesNode::Account(node) => {
+                account_set_and_sub_accounts_with_balance::SubAccountsWithBalancesEdgesNode::Account(node) => {
                     PaginatedLedgerAccountSetSubAccountWithBalance {
                         cursor: e.cursor,
                         value: LedgerAccountSetSubAccountWithBalance::Account(
@@ -260,7 +262,7 @@ impl From<account_set_and_sub_accounts_with_balance::subAccountWithBalances>
                         ),
                     }
                 }
-                account_set_and_sub_accounts_with_balance::SubAccountWithBalancesEdgesNode::AccountSet(
+                account_set_and_sub_accounts_with_balance::SubAccountsWithBalancesEdgesNode::AccountSet(
                     node,
                 ) => PaginatedLedgerAccountSetSubAccountWithBalance {
                     cursor: e.cursor,
@@ -453,13 +455,13 @@ impl From<chart_of_accounts::subAccount> for LedgerAccountSetSubAccounts {
     }
 }
 
-impl From<account_set_and_sub_accounts::subAccount> for LedgerAccountSetSubAccounts {
-    fn from(sub_account: account_set_and_sub_accounts::subAccount) -> Self {
+impl From<account_set_and_sub_accounts::subAccounts> for LedgerAccountSetSubAccounts {
+    fn from(sub_account: account_set_and_sub_accounts::subAccounts) -> Self {
         let members = sub_account
             .edges
             .into_iter()
             .map(|e| match e.node {
-                account_set_and_sub_accounts::SubAccountEdgesNode::Account(node) => {
+                account_set_and_sub_accounts::SubAccountsEdgesNode::Account(node) => {
                     PaginatedLedgerAccountSetSubAccount {
                         cursor: e.cursor,
                         value: LedgerAccountSetSubAccount::Account(LedgerAccountDetails::from(
@@ -467,7 +469,7 @@ impl From<account_set_and_sub_accounts::subAccount> for LedgerAccountSetSubAccou
                         )),
                     }
                 }
-                account_set_and_sub_accounts::SubAccountEdgesNode::AccountSet(node) => {
+                account_set_and_sub_accounts::SubAccountsEdgesNode::AccountSet(node) => {
                     PaginatedLedgerAccountSetSubAccount {
                         cursor: e.cursor,
                         value: LedgerAccountSetSubAccount::AccountSet(
@@ -592,14 +594,19 @@ pub struct LedgerStatementCategory {
     pub accounts: Vec<LedgerAccountSetSubAccountWithBalance>,
 }
 
-impl From<balance_sheet::CategoriesEdgesNodeOnAccountSet> for LedgerStatementCategory {
-    fn from(account_set: balance_sheet::CategoriesEdgesNodeOnAccountSet) -> Self {
-        let account_set_details = account_set.account_set_details;
+impl From<balance_sheet::categoryAccountSet> for LedgerStatementCategory {
+    fn from(account_set: balance_sheet::categoryAccountSet) -> Self {
+        let account_set_details = account_set
+            .account_set_details_and_balances
+            .account_set_details;
         LedgerStatementCategory {
             id: account_set_details.account_set_id.into(),
             name: account_set_details.name,
             normal_balance_type: account_set_details.normal_balance_type.into(),
-            balance: account_set.account_set_balances.into(),
+            balance: account_set
+                .account_set_details_and_balances
+                .account_set_balances
+                .into(),
             accounts: account_set.accounts.into(),
         }
     }
@@ -662,11 +669,16 @@ pub struct LedgerBalanceSheet {
 
 impl From<balance_sheet::BalanceSheetAccountSet> for LedgerBalanceSheet {
     fn from(account_set: balance_sheet::BalanceSheetAccountSet) -> Self {
-        let account_set_details = account_set.account_set_details;
+        let account_set_details = account_set
+            .account_set_details_and_balances
+            .account_set_details;
         LedgerBalanceSheet {
             name: account_set_details.name,
             normal_balance_type: account_set_details.normal_balance_type.into(),
-            balance: account_set.account_set_balances.into(),
+            balance: account_set
+                .account_set_details_and_balances
+                .account_set_balances
+                .into(),
             categories: account_set.categories.into(),
         }
     }

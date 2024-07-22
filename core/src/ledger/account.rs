@@ -471,32 +471,8 @@ impl From<trial_balance::AccountsEdgesNodeOnAccount> for LedgerAccountWithBalanc
     }
 }
 
-impl From<balance_sheet::CategoriesEdgesNodeOnAccount> for LedgerAccountWithBalance {
-    fn from(node: balance_sheet::CategoriesEdgesNodeOnAccount) -> Self {
-        LedgerAccountWithBalance {
-            id: node.account_details.account_id.into(),
-            name: node.account_details.name,
-            normal_balance_type: node.account_details.normal_balance_type.into(),
-            balance: LedgerAccountBalancesByCurrency {
-                btc: node.account_balances.btc_balances.map_or_else(
-                    LayeredBtcAccountBalances::default,
-                    LayeredBtcAccountBalances::from,
-                ),
-                usd: node.account_balances.usd_balances.map_or_else(
-                    LayeredUsdAccountBalances::default,
-                    LayeredUsdAccountBalances::from,
-                ),
-                usdt: node.account_balances.usdt_balances.map_or_else(
-                    LayeredUsdAccountBalances::default,
-                    LayeredUsdAccountBalances::from,
-                ),
-            },
-        }
-    }
-}
-
-impl From<balance_sheet::AccountsEdgesNodeOnAccount> for LedgerAccountWithBalance {
-    fn from(node: balance_sheet::AccountsEdgesNodeOnAccount) -> Self {
+impl From<balance_sheet::accountDetailsAndBalances> for LedgerAccountWithBalance {
+    fn from(node: balance_sheet::accountDetailsAndBalances) -> Self {
         LedgerAccountWithBalance {
             id: node.account_details.account_id.into(),
             name: node.account_details.name,
