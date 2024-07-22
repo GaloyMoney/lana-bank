@@ -203,45 +203,45 @@ impl Ledger {
     }
 
     pub async fn trial_balance(&self) -> Result<Option<LedgerTrialBalance>, LedgerError> {
-        self.cala
+        Ok(self
+            .cala
             .trial_balance::<LedgerTrialBalance>()
-            .await
-            .map(|gl| gl.map(LedgerTrialBalance::from))
-            .map_err(|e| e.into())
+            .await?
+            .map(LedgerTrialBalance::from))
     }
 
     pub async fn obs_trial_balance(&self) -> Result<Option<LedgerTrialBalance>, LedgerError> {
-        self.cala
+        Ok(self
+            .cala
             .obs_trial_balance::<LedgerTrialBalance>()
-            .await
-            .map(|gl| gl.map(LedgerTrialBalance::from))
-            .map_err(|e| e.into())
+            .await?
+            .map(LedgerTrialBalance::from))
     }
 
     pub async fn chart_of_accounts(&self) -> Result<Option<LedgerChartOfAccounts>, LedgerError> {
-        self.cala
+        Ok(self
+            .cala
             .chart_of_accounts::<LedgerChartOfAccounts>()
-            .await
-            .map(|gl| gl.map(LedgerChartOfAccounts::from))
-            .map_err(|e| e.into())
+            .await?
+            .map(LedgerChartOfAccounts::from))
     }
 
     pub async fn obs_chart_of_accounts(
         &self,
     ) -> Result<Option<LedgerChartOfAccounts>, LedgerError> {
-        self.cala
+        Ok(self
+            .cala
             .obs_chart_of_accounts::<LedgerChartOfAccounts>()
-            .await
-            .map(|gl| gl.map(LedgerChartOfAccounts::from))
-            .map_err(|e| e.into())
+            .await?
+            .map(LedgerChartOfAccounts::from))
     }
 
     pub async fn balance_sheet(&self) -> Result<Option<LedgerBalanceSheet>, LedgerError> {
-        self.cala
+        Ok(self
+            .cala
             .balance_sheet::<LedgerBalanceSheet>()
-            .await
-            .map(|gl| gl.map(LedgerBalanceSheet::from))
-            .map_err(|e| e.into())
+            .await?
+            .map(LedgerBalanceSheet::from))
     }
 
     pub async fn account_set_and_sub_accounts(
@@ -250,15 +250,15 @@ impl Ledger {
         first: i64,
         after: Option<String>,
     ) -> Result<Option<LedgerAccountSetAndSubAccounts>, LedgerError> {
-        self.cala
+        Ok(self
+            .cala
             .find_account_set_and_sub_accounts_by_id::<LedgerAccountSetAndSubAccounts>(
                 account_set_id,
                 first,
                 after,
             )
-            .await
-            .map(|gl| gl.map(LedgerAccountSetAndSubAccounts::from))
-            .map_err(|e| e.into())
+            .await?
+            .map(LedgerAccountSetAndSubAccounts::from))
     }
 
     pub async fn paginated_account_set_and_sub_accounts(
@@ -276,9 +276,8 @@ impl Ledger {
                 i64::try_from(query.first)?,
                 query.after.map(|c| c.value),
             )
-            .await
-            .map(|gl| gl.map(LedgerAccountSetAndSubAccounts::from))
-            .map_err(LedgerError::from)?;
+            .await?
+            .map(LedgerAccountSetAndSubAccounts::from);
 
         let (sub_accounts, has_next_page, end_cursor) =
             account_set.map_or((Vec::new(), false, None), |account_set| {
@@ -306,15 +305,14 @@ impl Ledger {
         first: i64,
         after: Option<String>,
     ) -> Result<Option<LedgerAccountSetAndSubAccountsWithBalance>, LedgerError> {
-        self.cala
+        Ok(self.cala
             .find_account_set_and_sub_accounts_with_balance_by_id::<LedgerAccountSetAndSubAccountsWithBalance>(
                 account_set_id,
                 first,
                 after,
             )
-            .await
-            .map(|gl| gl.map(LedgerAccountSetAndSubAccountsWithBalance::from))
-            .map_err(|e| e.into())
+            .await?
+            .map(LedgerAccountSetAndSubAccountsWithBalance::from))
     }
 
     pub async fn paginated_account_set_and_sub_accounts_with_balance(
@@ -335,9 +333,8 @@ impl Ledger {
                 i64::try_from(query.first)?,
                 query.after.map(|c| c.value),
             )
-            .await
-            .map(|gl| gl.map(LedgerAccountSetAndSubAccountsWithBalance::from))
-            .map_err(LedgerError::from)?;
+            .await?
+            .map(LedgerAccountSetAndSubAccountsWithBalance::from);
 
         let (sub_accounts, has_next_page, end_cursor) =
             account_set.map_or((Vec::new(), false, None), |account_set| {
