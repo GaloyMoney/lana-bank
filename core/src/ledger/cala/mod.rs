@@ -98,19 +98,6 @@ impl CalaClient {
             .ok_or(CalaError::MissingDataField)
     }
 
-    #[instrument(name = "lava.ledger.cala.find_account_set_by_id", skip(self, id), err)]
-    pub async fn find_account_set_by_id<T: From<account_set_by_id::AccountSetByIdAccountSet>>(
-        &self,
-        id: impl Into<Uuid>,
-    ) -> Result<Option<T>, CalaError> {
-        let variables = account_set_by_id::Variables { id: id.into() };
-        let response =
-            Self::traced_gql_request::<AccountSetById, _>(&self.client, &self.url, variables)
-                .await?;
-
-        Ok(response.data.and_then(|d| d.account_set).map(T::from))
-    }
-
     #[instrument(
         name = "lava.ledger.cala.find_account_set_and_sub_accounts_with_balance_by_id",
         skip(self, id),

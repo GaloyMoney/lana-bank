@@ -5,9 +5,3 @@ mutation AccountSetCreate($input: AccountSetCreateInput!) {
     }
   }
 }
-
-query AccountSetById($id: UUID!) {
-  accountSet(id: $id) {
-    accountSetId
-  }
-}
