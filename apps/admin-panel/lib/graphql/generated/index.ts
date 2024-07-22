@@ -139,14 +139,7 @@ export type AccountWithBalance = {
 export type BalanceSheet = {
   __typename?: 'BalanceSheet';
   balance: AccountBalancesByCurrency;
-  categories: Array<BalanceSheetCategory>;
-  name: Scalars['String']['output'];
-};
-
-export type BalanceSheetCategory = {
-  __typename?: 'BalanceSheetCategory';
-  accounts: Array<AccountSetSubAccountWithBalance>;
-  balance: AccountBalancesByCurrency;
+  categories: Array<StatementCategory>;
   name: Scalars['String']['output'];
 };
 
@@ -390,6 +383,13 @@ export enum Period {
   Months = 'MONTHS'
 }
 
+export type ProfitAndLossStatement = {
+  __typename?: 'ProfitAndLossStatement';
+  balance: AccountBalancesByCurrency;
+  categories: Array<StatementCategory>;
+  name: Scalars['String']['output'];
+};
+
 export type Query = {
   __typename?: 'Query';
   accountSet?: Maybe<AccountSetAndSubAccounts>;
@@ -402,6 +402,7 @@ export type Query = {
   loan?: Maybe<Loan>;
   offBalanceSheetChartOfAccounts?: Maybe<ChartOfAccounts>;
   offBalanceSheetTrialBalance?: Maybe<TrialBalance>;
+  profitAndLossStatement?: Maybe<ProfitAndLossStatement>;
   trialBalance?: Maybe<TrialBalance>;
 };
 
@@ -434,6 +435,13 @@ export type QueryLoanArgs = {
 export type ShareholderEquityAddInput = {
   amount: Scalars['UsdCents']['input'];
   reference: Scalars['String']['input'];
+};
+
+export type StatementCategory = {
+  __typename?: 'StatementCategory';
+  accounts: Array<AccountSetSubAccountWithBalance>;
+  balance: AccountBalancesByCurrency;
+  name: Scalars['String']['output'];
 };
 
 export type SuccessPayload = {

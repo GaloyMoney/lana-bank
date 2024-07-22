@@ -329,15 +329,15 @@ impl From<crate::ledger::account_set::LedgerChartOfAccounts> for ChartOfAccounts
 }
 
 #[derive(SimpleObject)]
-pub struct BalanceSheetCategory {
+pub struct StatementCategory {
     name: String,
     balance: AccountBalancesByCurrency,
     accounts: Vec<AccountSetSubAccountWithBalance>,
 }
 
-impl From<crate::ledger::account_set::StatementCategory> for BalanceSheetCategory {
-    fn from(account_set: crate::ledger::account_set::StatementCategory) -> Self {
-        BalanceSheetCategory {
+impl From<crate::ledger::account_set::LedgerStatementCategory> for StatementCategory {
+    fn from(account_set: crate::ledger::account_set::LedgerStatementCategory) -> Self {
+        StatementCategory {
             name: account_set.name,
             balance: account_set.balance.into(),
             accounts: account_set
@@ -353,7 +353,7 @@ impl From<crate::ledger::account_set::StatementCategory> for BalanceSheetCategor
 pub struct BalanceSheet {
     name: String,
     balance: AccountBalancesByCurrency,
-    categories: Vec<BalanceSheetCategory>,
+    categories: Vec<StatementCategory>,
 }
 
 impl From<crate::ledger::account_set::LedgerBalanceSheet> for BalanceSheet {
@@ -364,7 +364,28 @@ impl From<crate::ledger::account_set::LedgerBalanceSheet> for BalanceSheet {
             categories: balance_sheet
                 .categories
                 .into_iter()
-                .map(BalanceSheetCategory::from)
+                .map(StatementCategory::from)
+                .collect(),
+        }
+    }
+}
+
+#[derive(SimpleObject)]
+pub struct ProfitAndLossStatement {
+    name: String,
+    balance: AccountBalancesByCurrency,
+    categories: Vec<StatementCategory>,
+}
+
+impl From<crate::ledger::account_set::LedgerProfitAndLossStatement> for ProfitAndLossStatement {
+    fn from(profit_and_loss: crate::ledger::account_set::LedgerProfitAndLossStatement) -> Self {
+        ProfitAndLossStatement {
+            name: profit_and_loss.name,
+            balance: profit_and_loss.balance.into(),
+            categories: profit_and_loss
+                .categories
+                .into_iter()
+                .map(StatementCategory::from)
                 .collect(),
         }
     }

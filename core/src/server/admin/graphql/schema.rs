@@ -124,6 +124,15 @@ impl Query {
         Ok(balance_sheet.map(BalanceSheet::from))
     }
 
+    async fn profit_and_loss_statement(
+        &self,
+        ctx: &Context<'_>,
+    ) -> async_graphql::Result<Option<ProfitAndLossStatement>> {
+        let app = ctx.data_unchecked::<LavaApp>();
+        let profit_and_loss = app.ledger().profit_and_loss().await?;
+        Ok(profit_and_loss.map(ProfitAndLossStatement::from))
+    }
+
     async fn account_set(
         &self,
         ctx: &Context<'_>,
