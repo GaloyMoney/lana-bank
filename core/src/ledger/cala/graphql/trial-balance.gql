@@ -9,6 +9,8 @@ query TrialBalance($accountSetId: UUID!, $journalId: UUID!) {
   }
 }
 
+# 'accounts'
+
 fragment accounts on AccountSetMemberConnection {
   edges {
     node {
@@ -24,6 +26,8 @@ fragment accounts on AccountSetMemberConnection {
     }
   }
 }
+
+# 'balances'
 
 fragment accountBalances on Account {
   btcBalances: balance(journalId: $journalId, currency: "BTC") {
@@ -78,6 +82,8 @@ fragment balances on BalanceAmount {
     currency
   }
 }
+
+# 'account' details and balance
 
 fragment accountSetDetails on AccountSet {
   accountSetId

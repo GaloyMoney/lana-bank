@@ -11,6 +11,8 @@ query AccountSetAndSubAccounts(
   }
 }
 
+# 'subAccount' details only
+
 fragment subAccount on AccountSetMemberConnection {
   pageInfo {
     startCursor

@@ -8,6 +8,8 @@ query BalanceSheet($accountSetId: UUID!, $journalId: UUID!) {
   }
 }
 
+# 'categories' and 'accounts'
+
 fragment categories on AccountSetMemberConnection {
   edges {
     node {
@@ -26,6 +28,37 @@ fragment categories on AccountSetMemberConnection {
     }
   }
 }
+
+fragment accounts on AccountSetMemberConnection {
+  pageInfo {
+    startCursor
+    endCursor
+    hasNextPage
+  }
+  edges {
+    cursor
+    node {
+      __typename
+      ... on AccountSet {
+        ...subAccountSet
+      }
+      ... on Account {
+        ...accountDetails
+        ...accountBalances
+      }
+    }
+  }
+}
+
+fragment subAccountSet on AccountSet {
+  ...accountSetDetails
+  ...accountSetBalances
+  subAccounts: members(first: 1) {
+    ...subAccount
+  }
+}
+
+# 'balances'
 
 fragment accountBalances on Account {
   btcBalances: balance(journalId: $journalId, currency: "BTC") {
@@ -81,34 +114,7 @@ fragment balances on BalanceAmount {
   }
 }
 
-fragment accounts on AccountSetMemberConnection {
-  pageInfo {
-    startCursor
-    endCursor
-    hasNextPage
-  }
-  edges {
-    cursor
-    node {
-      __typename
-      ... on AccountSet {
-        ...subAccountSet
-      }
-      ... on Account {
-        ...accountDetails
-        ...accountBalances
-      }
-    }
-  }
-}
-
-fragment subAccountSet on AccountSet {
-  ...accountSetDetails
-  ...accountSetBalances
-  subAccounts: members(first: 1) {
-    ...subAccount
-  }
-}
+# 'subAccount' details and balance
 
 fragment subAccount on AccountSetMemberConnection {
   pageInfo {
