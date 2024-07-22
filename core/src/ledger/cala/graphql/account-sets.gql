@@ -1,7 +1,0 @@
-mutation AccountSetCreate($input: AccountSetCreateInput!) {
-  accountSetCreate(input: $input) {
-    accountSet {
-      accountSetId
-    }
-  }
-}

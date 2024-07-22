@@ -1,52 +1,15 @@
-query AccountSetAndSubAccounts(
-  $accountSetId: UUID!
-  $first: Int!
-  $after: String
-) {
-  accountSet(id: $accountSetId) {
-    ...accountSetDetails
-    subAccounts: members(first: $first, after: $after) {
-      ...subAccount
+mutation AccountSetCreate($input: AccountSetCreateInput!) {
+  accountSetCreate(input: $input) {
+    accountSet {
+      accountSetId
     }
   }
 }
 
-# 'subAccount' details only
-
-fragment subAccount on AccountSetMemberConnection {
-  pageInfo {
-    startCursor
-    endCursor
-    hasNextPage
-  }
-  edges {
-    cursor
-    node {
-      __typename
-      ... on AccountSet {
-        ...accountSetDetails
-      }
-      ... on Account {
-        ...accountDetails
-      }
+mutation AddToAccountSet($input: AddToAccountSetInput!) {
+  addToAccountSet(input: $input) {
+    accountSet {
+      accountSetId
     }
   }
-}
-
-fragment accountSetDetails on AccountSet {
-  accountSetId
-  name
-  normalBalanceType
-  members(first: 1) {
-    pageInfo {
-      startCursor
-    }
-  }
-}
-
-fragment accountDetails on Account {
-  accountId
-  code
-  name
-  normalBalanceType
 }
