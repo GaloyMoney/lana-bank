@@ -34,6 +34,10 @@ export const { getClient } = registerApolloClient(() => {
   console.log(JSON.stringify(headers(), null, 2))
   console.log("nextjs headers end -----")
 
+  const requestHeaders = Object.fromEntries(
+    Array.from(headers()).map(([key, value]) => [key, value]),
+  )
+
   return new ApolloClient({
     cache: new InMemoryCache(),
     link: ApolloLink.from([
@@ -41,9 +45,7 @@ export const { getClient } = registerApolloClient(() => {
         uri: `${env.NEXT_PUBLIC_CORE_URL}/graphql`,
         fetchOptions: { cache: "no-store" },
         fetch: customRequest,
-        headers: {
-          cookie: headers().get("cookie") || "",
-        },
+        headers: requestHeaders,
       }),
     ]),
   })
