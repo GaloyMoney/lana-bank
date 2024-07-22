@@ -5,14 +5,15 @@ query AccountSetAndSubAccountsWithBalance(
   $after: String
 ) {
   accountSet(id: $accountSetId) {
-    ...accountSetWithBalance
+    ...accountSetDetails
+    ...accountSetBalances
     subAccounts: members(first: $first, after: $after) {
-      ...subAccount
+      ...subAccountWithBalances
     }
   }
 }
 
-fragment subAccount on AccountSetMemberConnection {
+fragment subAccountWithBalances on AccountSetMemberConnection {
   pageInfo {
     startCursor
     endCursor
@@ -23,34 +24,28 @@ fragment subAccount on AccountSetMemberConnection {
     node {
       __typename
       ... on AccountSet {
-        ...accountSetWithBalance
+        ...accountSetDetailsAndBalances
       }
       ... on Account {
-        ...accountWithBalance
+        ...accountDetailsAndBalances
       }
     }
   }
 }
 
-fragment accountWithBalance on Account {
-  accountId
-  code
-  name
-  normalBalanceType
+# 'details' and 'balances'
+
+fragment accountSetDetailsAndBalances on AccountSet {
+  ...accountSetDetails
+  ...accountSetBalances
+}
+
+fragment accountDetailsAndBalances on Account {
+  ...accountDetails
   ...accountBalances
 }
 
-fragment accountSetWithBalance on AccountSet {
-  accountSetId
-  name
-  normalBalanceType
-  ...accountSetBalances
-  members(first: 1) {
-    pageInfo {
-      startCursor
-    }
-  }
-}
+# 'balances'
 
 fragment accountBalances on Account {
   btcBalances: balance(journalId: $journalId, currency: "BTC") {
@@ -104,4 +99,24 @@ fragment balances on BalanceAmount {
     units
     currency
   }
+}
+
+# 'subAccount' details only
+
+fragment accountSetDetails on AccountSet {
+  accountSetId
+  name
+  normalBalanceType
+  members(first: 1) {
+    pageInfo {
+      startCursor
+    }
+  }
+}
+
+fragment accountDetails on Account {
+  accountId
+  code
+  name
+  normalBalanceType
 }

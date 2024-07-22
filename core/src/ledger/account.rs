@@ -567,14 +567,15 @@ impl From<profit_and_loss_statement::AccountsEdgesNodeOnAccount> for LedgerAccou
     }
 }
 
-impl From<account_set_and_sub_accounts_with_balance::accountWithBalance>
+impl From<account_set_and_sub_accounts_with_balance::accountDetailsAndBalances>
     for LedgerAccountWithBalance
 {
-    fn from(account: account_set_and_sub_accounts_with_balance::accountWithBalance) -> Self {
+    fn from(account: account_set_and_sub_accounts_with_balance::accountDetailsAndBalances) -> Self {
+        let account_details = account.account_details;
         LedgerAccountWithBalance {
-            id: account.account_id.into(),
-            name: account.name,
-            normal_balance_type: account.normal_balance_type.into(),
+            id: account_details.account_id.into(),
+            name: account_details.name,
+            normal_balance_type: account_details.normal_balance_type.into(),
             balance: LedgerAccountBalancesByCurrency {
                 btc: account.account_balances.btc_balances.map_or_else(
                     LayeredBtcAccountBalances::default,
