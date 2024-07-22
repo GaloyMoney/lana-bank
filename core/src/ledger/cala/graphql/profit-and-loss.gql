@@ -1,0 +1,151 @@
+query ProfitAndLossStatement($accountSetId: UUID!, $journalId: UUID!) {
+  accountSet(id: $accountSetId) {
+    ...accountSetDetails
+    ...accountSetBalances
+    categories: members(first: 10) {
+      ...categories
+    }
+  }
+}
+
+fragment categories on AccountSetMemberConnection {
+  edges {
+    node {
+      __typename
+      ... on AccountSet {
+        ...accountSetDetails
+        ...accountSetBalances
+        accounts: members(first: 25, after: null) {
+          ...accounts
+        }
+      }
+      ... on Account {
+        ...accountDetails
+        ...accountBalances
+      }
+    }
+  }
+}
+
+fragment accountBalances on Account {
+  btcBalances: balance(journalId: $journalId, currency: "BTC") {
+    ...balancesByLayer
+  }
+  usdtBalances: balance(journalId: $journalId, currency: "USDT") {
+    ...balancesByLayer
+  }
+  usdBalances: balance(journalId: $journalId, currency: "USD") {
+    ...balancesByLayer
+  }
+}
+
+fragment accountSetBalances on AccountSet {
+  btcBalances: balance(currency: "BTC") {
+    ...balancesByLayer
+  }
+  usdtBalances: balance(currency: "USDT") {
+    ...balancesByLayer
+  }
+  usdBalances: balance(currency: "USD") {
+    ...balancesByLayer
+  }
+}
+
+fragment balancesByLayer on Balance {
+  settled {
+    ...balances
+  }
+  pending {
+    ...balances
+  }
+  encumbrance {
+    ...balances
+  }
+  allLayersAvailable: available(layer: ENCUMBRANCE) {
+    ...balances
+  }
+}
+
+fragment balances on BalanceAmount {
+  normalBalance {
+    units
+    currency
+  }
+  drBalance {
+    units
+    currency
+  }
+  crBalance {
+    units
+    currency
+  }
+}
+
+fragment accounts on AccountSetMemberConnection {
+  pageInfo {
+    startCursor
+    endCursor
+    hasNextPage
+  }
+  edges {
+    cursor
+    node {
+      __typename
+      ... on AccountSet {
+        ...subAccountSet
+      }
+      ... on Account {
+        ...accountDetails
+        ...accountBalances
+      }
+    }
+  }
+}
+
+fragment subAccountSet on AccountSet {
+  ...accountSetDetails
+  ...accountSetBalances
+  subAccounts: members(first: 1) {
+    ...subAccount
+  }
+}
+
+fragment subAccount on AccountSetMemberConnection {
+  pageInfo {
+    startCursor
+    endCursor
+    hasNextPage
+  }
+  edges {
+    cursor
+    node {
+      __typename
+      ... on AccountSet {
+        ...accountSetDetails
+        ...accountSetBalances
+      }
+      ... on Account {
+        ...accountDetails
+        ...accountBalances
+      }
+    }
+  }
+}
+
+fragment accountSetDetails on AccountSet {
+  accountSetId
+  name
+  normalBalanceType
+  members(first: 1) {
+    pageInfo {
+      startCursor
+    }
+  }
+}
+
+fragment accountDetails on Account {
+  accountId
+  code
+  name
+  normalBalanceType
+}

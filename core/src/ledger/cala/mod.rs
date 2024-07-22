@@ -844,6 +844,24 @@ impl CalaClient {
         Ok(response.data.and_then(|d| d.account_set).map(T::from))
     }
 
+    pub async fn profit_and_loss<
+        T: From<profit_and_loss_statement::ProfitAndLossStatementAccountSet>,
+    >(
+        &self,
+    ) -> Result<Option<T>, CalaError> {
+        let variables = profit_and_loss_statement::Variables {
+            account_set_id: constants::PROFIT_AND_LOSS_ACCOUNT_SET_ID,
+            journal_id: constants::CORE_JOURNAL_ID,
+        };
+        let response = Self::traced_gql_request::<ProfitAndLossStatement, _>(
+            &self.client,
+            &self.url,
+            variables,
+        )
+        .await?;
+        Ok(response.data.and_then(|d| d.account_set).map(T::from))
+    }
+
     #[instrument(name = "lava.ledger.cala.find_by_id", skip(self), err)]
     async fn find_account_by_code<T: From<account_by_code::AccountByCodeAccountByCode>>(
         &self,

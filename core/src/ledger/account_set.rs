@@ -62,6 +62,44 @@ impl From<balance_sheet::AccountsEdgesNodeOnAccountSet> for LedgerAccountSetWith
     }
 }
 
+impl From<profit_and_loss_statement::CategoriesEdgesNodeOnAccountSet>
+    for LedgerAccountSetWithBalance
+{
+    fn from(node: profit_and_loss_statement::CategoriesEdgesNodeOnAccountSet) -> Self {
+        LedgerAccountSetWithBalance {
+            id: node.account_set_details.account_set_id.into(),
+            name: node.account_set_details.name,
+            normal_balance_type: node.account_set_details.normal_balance_type.into(),
+            balance: node.account_set_balances.into(),
+            has_sub_accounts: node
+                .account_set_details
+                .members
+                .page_info
+                .start_cursor
+                .is_some(),
+        }
+    }
+}
+
+impl From<profit_and_loss_statement::AccountsEdgesNodeOnAccountSet>
+    for LedgerAccountSetWithBalance
+{
+    fn from(node: profit_and_loss_statement::AccountsEdgesNodeOnAccountSet) -> Self {
+        LedgerAccountSetWithBalance {
+            id: node.account_set_details.account_set_id.into(),
+            name: node.account_set_details.name,
+            normal_balance_type: node.account_set_details.normal_balance_type.into(),
+            balance: node.account_set_balances.into(),
+            has_sub_accounts: node
+                .account_set_details
+                .members
+                .page_info
+                .start_cursor
+                .is_some(),
+        }
+    }
+}
+
 impl From<account_set_and_sub_accounts_with_balance::accountSetWithBalance>
     for LedgerAccountSetWithBalance
 {
@@ -138,6 +176,48 @@ impl From<balance_sheet::accounts> for Vec<LedgerAccountSetSubAccountWithBalance
                     ))
                 }
                 balance_sheet::AccountsEdgesNode::AccountSet(node) => {
+                    LedgerAccountSetSubAccountWithBalance::AccountSet(
+                        LedgerAccountSetWithBalance::from(node),
+                    )
+                }
+            })
+            .collect()
+    }
+}
+
+impl From<profit_and_loss_statement::categories> for Vec<LedgerAccountSetSubAccountWithBalance> {
+    fn from(members: profit_and_loss_statement::categories) -> Self {
+        members
+            .edges
+            .into_iter()
+            .map(|e| match e.node {
+                profit_and_loss_statement::CategoriesEdgesNode::Account(node) => {
+                    LedgerAccountSetSubAccountWithBalance::Account(LedgerAccountWithBalance::from(
+                        node,
+                    ))
+                }
+                profit_and_loss_statement::CategoriesEdgesNode::AccountSet(node) => {
+                    LedgerAccountSetSubAccountWithBalance::AccountSet(
+                        LedgerAccountSetWithBalance::from(node),
+                    )
+                }
+            })
+            .collect()
+    }
+}
+
+impl From<profit_and_loss_statement::accounts> for Vec<LedgerAccountSetSubAccountWithBalance> {
+    fn from(members: profit_and_loss_statement::accounts) -> Self {
+        members
+            .edges
+            .into_iter()
+            .map(|e| match e.node {
+                profit_and_loss_statement::AccountsEdgesNode::Account(node) => {
+                    LedgerAccountSetSubAccountWithBalance::Account(LedgerAccountWithBalance::from(
+                        node,
+                    ))
+                }
+                profit_and_loss_statement::AccountsEdgesNode::AccountSet(node) => {
                     LedgerAccountSetSubAccountWithBalance::AccountSet(
                         LedgerAccountSetWithBalance::from(node),
                     )
@@ -505,7 +585,7 @@ impl From<trial_balance::TrialBalanceAccountSet> for LedgerTrialBalance {
 }
 
 #[derive(Debug, Clone)]
-pub struct LedgerBalanceSheetCategory {
+pub struct LedgerStatementCategory {
     pub id: LedgerAccountSetId,
     pub name: String,
     pub normal_balance_type: LedgerDebitOrCredit,
@@ -513,10 +593,10 @@ pub struct LedgerBalanceSheetCategory {
     pub accounts: Vec<LedgerAccountSetSubAccountWithBalance>,
 }
 
-impl From<balance_sheet::CategoriesEdgesNodeOnAccountSet> for LedgerBalanceSheetCategory {
+impl From<balance_sheet::CategoriesEdgesNodeOnAccountSet> for LedgerStatementCategory {
     fn from(account_set: balance_sheet::CategoriesEdgesNodeOnAccountSet) -> Self {
         let account_set_details = account_set.account_set_details;
-        LedgerBalanceSheetCategory {
+        LedgerStatementCategory {
             id: account_set_details.account_set_id.into(),
             name: account_set_details.name,
             normal_balance_type: account_set_details.normal_balance_type.into(),
@@ -526,7 +606,7 @@ impl From<balance_sheet::CategoriesEdgesNodeOnAccountSet> for LedgerBalanceSheet
     }
 }
 
-impl From<balance_sheet::BalanceSheetAccountSetCategories> for Vec<LedgerBalanceSheetCategory> {
+impl From<balance_sheet::BalanceSheetAccountSetCategories> for Vec<LedgerStatementCategory> {
     fn from(members: balance_sheet::BalanceSheetAccountSetCategories) -> Self {
         members
             .edges
@@ -534,7 +614,39 @@ impl From<balance_sheet::BalanceSheetAccountSetCategories> for Vec<LedgerBalance
             .filter_map(|e| match e.node {
                 balance_sheet::CategoriesEdgesNode::Account(_) => None,
                 balance_sheet::CategoriesEdgesNode::AccountSet(node) => {
-                    Some(LedgerBalanceSheetCategory::from(node))
+                    Some(LedgerStatementCategory::from(node))
+                }
+            })
+            .collect()
+    }
+}
+
+impl From<profit_and_loss_statement::CategoriesEdgesNodeOnAccountSet> for LedgerStatementCategory {
+    fn from(account_set: profit_and_loss_statement::CategoriesEdgesNodeOnAccountSet) -> Self {
+        let account_set_details = account_set.account_set_details;
+        LedgerStatementCategory {
+            id: account_set_details.account_set_id.into(),
+            name: account_set_details.name,
+            normal_balance_type: account_set_details.normal_balance_type.into(),
+            balance: account_set.account_set_balances.into(),
+            accounts: account_set.accounts.into(),
+        }
+    }
+}
+
+impl From<profit_and_loss_statement::ProfitAndLossStatementAccountSetCategories>
+    for Vec<LedgerStatementCategory>
+{
+    fn from(
+        members: profit_and_loss_statement::ProfitAndLossStatementAccountSetCategories,
+    ) -> Self {
+        members
+            .edges
+            .into_iter()
+            .filter_map(|e| match e.node {
+                profit_and_loss_statement::CategoriesEdgesNode::Account(_) => None,
+                profit_and_loss_statement::CategoriesEdgesNode::AccountSet(node) => {
+                    Some(LedgerStatementCategory::from(node))
                 }
             })
             .collect()
@@ -546,13 +658,35 @@ pub struct LedgerBalanceSheet {
     pub name: String,
     pub normal_balance_type: LedgerDebitOrCredit,
     pub balance: LedgerAccountBalancesByCurrency,
-    pub categories: Vec<LedgerBalanceSheetCategory>,
+    pub categories: Vec<LedgerStatementCategory>,
 }
 
 impl From<balance_sheet::BalanceSheetAccountSet> for LedgerBalanceSheet {
     fn from(account_set: balance_sheet::BalanceSheetAccountSet) -> Self {
         let account_set_details = account_set.account_set_details;
         LedgerBalanceSheet {
+            name: account_set_details.name,
+            normal_balance_type: account_set_details.normal_balance_type.into(),
+            balance: account_set.account_set_balances.into(),
+            categories: account_set.categories.into(),
+        }
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct LedgerProfitAndLossStatement {
+    pub name: String,
+    pub normal_balance_type: LedgerDebitOrCredit,
+    pub balance: LedgerAccountBalancesByCurrency,
+    pub categories: Vec<LedgerStatementCategory>,
+}
+
+impl From<profit_and_loss_statement::ProfitAndLossStatementAccountSet>
+    for LedgerProfitAndLossStatement
+{
+    fn from(account_set: profit_and_loss_statement::ProfitAndLossStatementAccountSet) -> Self {
+        let account_set_details = account_set.account_set_details;
+        LedgerProfitAndLossStatement {
             name: account_set_details.name,
             normal_balance_type: account_set_details.normal_balance_type.into(),
             balance: account_set.account_set_balances.into(),

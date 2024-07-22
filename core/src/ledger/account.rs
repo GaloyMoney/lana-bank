@@ -46,6 +46,23 @@ impl From<balance_sheet::balances> for BtcAccountBalance {
     }
 }
 
+impl From<profit_and_loss_statement::balances> for BtcAccountBalance {
+    fn from(balances: profit_and_loss_statement::balances) -> Self {
+        let net_normal = Satoshis::from_btc(balances.normal_balance.units);
+
+        let debit = Satoshis::from_btc(balances.dr_balance.units);
+        let credit = Satoshis::from_btc(balances.cr_balance.units);
+        let net_debit = SignedSatoshis::from(debit) - SignedSatoshis::from(credit);
+
+        Self {
+            debit,
+            credit,
+            net_normal,
+            net_debit,
+        }
+    }
+}
+
 impl From<account_set_and_sub_accounts_with_balance::balances> for BtcAccountBalance {
     fn from(balances: account_set_and_sub_accounts_with_balance::balances) -> Self {
         let net_normal = Satoshis::from_btc(balances.normal_balance.units);
@@ -101,6 +118,23 @@ impl From<trial_balance::balances> for UsdAccountBalance {
 
 impl From<balance_sheet::balances> for UsdAccountBalance {
     fn from(balances: balance_sheet::balances) -> Self {
+        let net_normal = UsdCents::from_usd(balances.normal_balance.units);
+
+        let debit = UsdCents::from_usd(balances.dr_balance.units);
+        let credit = UsdCents::from_usd(balances.cr_balance.units);
+        let net_debit = SignedUsdCents::from(debit) - SignedUsdCents::from(credit);
+
+        Self {
+            debit,
+            credit,
+            net_normal,
+            net_debit,
+        }
+    }
+}
+
+impl From<profit_and_loss_statement::balances> for UsdAccountBalance {
+    fn from(balances: profit_and_loss_statement::balances) -> Self {
         let net_normal = UsdCents::from_usd(balances.normal_balance.units);
 
         let debit = UsdCents::from_usd(balances.dr_balance.units);
@@ -174,6 +208,17 @@ impl From<balance_sheet::balancesByLayer> for LayeredBtcAccountBalances {
     }
 }
 
+impl From<profit_and_loss_statement::balancesByLayer> for LayeredBtcAccountBalances {
+    fn from(btc_balances_by_layer: profit_and_loss_statement::balancesByLayer) -> Self {
+        Self {
+            settled: BtcAccountBalance::from(btc_balances_by_layer.settled),
+            pending: BtcAccountBalance::from(btc_balances_by_layer.pending),
+            encumbrance: BtcAccountBalance::from(btc_balances_by_layer.encumbrance),
+            all_layers: BtcAccountBalance::from(btc_balances_by_layer.all_layers_available),
+        }
+    }
+}
+
 impl From<account_set_and_sub_accounts_with_balance::AccountBalancesBtcBalances>
     for LayeredBtcAccountBalances
 {
@@ -210,6 +255,17 @@ impl From<trial_balance::balancesByLayer> for LayeredUsdAccountBalances {
 
 impl From<balance_sheet::balancesByLayer> for LayeredUsdAccountBalances {
     fn from(usd_balances_by_layer: balance_sheet::balancesByLayer) -> Self {
+        Self {
+            settled: UsdAccountBalance::from(usd_balances_by_layer.settled),
+            pending: UsdAccountBalance::from(usd_balances_by_layer.pending),
+            encumbrance: UsdAccountBalance::from(usd_balances_by_layer.encumbrance),
+            all_layers: UsdAccountBalance::from(usd_balances_by_layer.all_layers_available),
+        }
+    }
+}
+
+impl From<profit_and_loss_statement::balancesByLayer> for LayeredUsdAccountBalances {
+    fn from(usd_balances_by_layer: profit_and_loss_statement::balancesByLayer) -> Self {
         Self {
             settled: UsdAccountBalance::from(usd_balances_by_layer.settled),
             pending: UsdAccountBalance::from(usd_balances_by_layer.pending),
@@ -262,6 +318,25 @@ impl From<trial_balance::accountSetBalances> for LedgerAccountBalancesByCurrency
 
 impl From<balance_sheet::accountSetBalances> for LedgerAccountBalancesByCurrency {
     fn from(balances: balance_sheet::accountSetBalances) -> Self {
+        LedgerAccountBalancesByCurrency {
+            btc: balances.btc_balances.map_or_else(
+                LayeredBtcAccountBalances::default,
+                LayeredBtcAccountBalances::from,
+            ),
+            usd: balances.usd_balances.map_or_else(
+                LayeredUsdAccountBalances::default,
+                LayeredUsdAccountBalances::from,
+            ),
+            usdt: balances.usdt_balances.map_or_else(
+                LayeredUsdAccountBalances::default,
+                LayeredUsdAccountBalances::from,
+            ),
+        }
+    }
+}
+
+impl From<profit_and_loss_statement::accountSetBalances> for LedgerAccountBalancesByCurrency {
+    fn from(balances: profit_and_loss_statement::accountSetBalances) -> Self {
         LedgerAccountBalancesByCurrency {
             btc: balances.btc_balances.map_or_else(
                 LayeredBtcAccountBalances::default,
@@ -344,6 +419,16 @@ impl From<balance_sheet::DebitOrCredit> for LedgerDebitOrCredit {
     }
 }
 
+impl From<profit_and_loss_statement::DebitOrCredit> for LedgerDebitOrCredit {
+    fn from(debit_or_credit: profit_and_loss_statement::DebitOrCredit) -> Self {
+        match debit_or_credit {
+            profit_and_loss_statement::DebitOrCredit::DEBIT => LedgerDebitOrCredit::Debit,
+            profit_and_loss_statement::DebitOrCredit::CREDIT => LedgerDebitOrCredit::Credit,
+            profit_and_loss_statement::DebitOrCredit::Other(_) => todo!(),
+        }
+    }
+}
+
 impl From<account_set_and_sub_accounts::DebitOrCredit> for LedgerDebitOrCredit {
     fn from(debit_or_credit: account_set_and_sub_accounts::DebitOrCredit) -> Self {
         match debit_or_credit {
@@ -412,6 +497,54 @@ impl From<balance_sheet::CategoriesEdgesNodeOnAccount> for LedgerAccountWithBala
 
 impl From<balance_sheet::AccountsEdgesNodeOnAccount> for LedgerAccountWithBalance {
     fn from(node: balance_sheet::AccountsEdgesNodeOnAccount) -> Self {
+        LedgerAccountWithBalance {
+            id: node.account_details.account_id.into(),
+            name: node.account_details.name,
+            normal_balance_type: node.account_details.normal_balance_type.into(),
+            balance: LedgerAccountBalancesByCurrency {
+                btc: node.account_balances.btc_balances.map_or_else(
+                    LayeredBtcAccountBalances::default,
+                    LayeredBtcAccountBalances::from,
+                ),
+                usd: node.account_balances.usd_balances.map_or_else(
+                    LayeredUsdAccountBalances::default,
+                    LayeredUsdAccountBalances::from,
+                ),
+                usdt: node.account_balances.usdt_balances.map_or_else(
+                    LayeredUsdAccountBalances::default,
+                    LayeredUsdAccountBalances::from,
+                ),
+            },
+        }
+    }
+}
+
+impl From<profit_and_loss_statement::CategoriesEdgesNodeOnAccount> for LedgerAccountWithBalance {
+    fn from(node: profit_and_loss_statement::CategoriesEdgesNodeOnAccount) -> Self {
+        LedgerAccountWithBalance {
+            id: node.account_details.account_id.into(),
+            name: node.account_details.name,
+            normal_balance_type: node.account_details.normal_balance_type.into(),
+            balance: LedgerAccountBalancesByCurrency {
+                btc: node.account_balances.btc_balances.map_or_else(
+                    LayeredBtcAccountBalances::default,
+                    LayeredBtcAccountBalances::from,
+                ),
+                usd: node.account_balances.usd_balances.map_or_else(
+                    LayeredUsdAccountBalances::default,
+                    LayeredUsdAccountBalances::from,
+                ),
+                usdt: node.account_balances.usdt_balances.map_or_else(
+                    LayeredUsdAccountBalances::default,
+                    LayeredUsdAccountBalances::from,
+                ),
+            },
+        }
+    }
+}
+
+impl From<profit_and_loss_statement::AccountsEdgesNodeOnAccount> for LedgerAccountWithBalance {
+    fn from(node: profit_and_loss_statement::AccountsEdgesNodeOnAccount) -> Self {
         LedgerAccountWithBalance {
             id: node.account_details.account_id.into(),
             name: node.account_details.name,

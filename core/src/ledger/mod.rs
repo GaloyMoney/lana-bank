@@ -21,8 +21,8 @@ use crate::primitives::{
 
 use account_set::{
     LedgerAccountSetAndSubAccounts, LedgerAccountSetAndSubAccountsWithBalance, LedgerBalanceSheet,
-    LedgerChartOfAccounts, LedgerTrialBalance, PaginatedLedgerAccountSetSubAccount,
-    PaginatedLedgerAccountSetSubAccountWithBalance,
+    LedgerChartOfAccounts, LedgerProfitAndLossStatement, LedgerTrialBalance,
+    PaginatedLedgerAccountSetSubAccount, PaginatedLedgerAccountSetSubAccountWithBalance,
 };
 use cala::*;
 pub use config::*;
@@ -245,6 +245,16 @@ impl Ledger {
             .balance_sheet::<LedgerBalanceSheet>()
             .await?
             .map(LedgerBalanceSheet::from))
+    }
+
+    pub async fn profit_and_loss(
+        &self,
+    ) -> Result<Option<LedgerProfitAndLossStatement>, LedgerError> {
+        Ok(self
+            .cala
+            .profit_and_loss::<LedgerProfitAndLossStatement>()
+            .await?
+            .map(LedgerProfitAndLossStatement::from))
     }
 
     pub async fn account_set_and_sub_accounts(

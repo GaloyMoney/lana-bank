@@ -335,8 +335,8 @@ pub struct BalanceSheetCategory {
     accounts: Vec<AccountSetSubAccountWithBalance>,
 }
 
-impl From<crate::ledger::account_set::LedgerBalanceSheetCategory> for BalanceSheetCategory {
-    fn from(account_set: crate::ledger::account_set::LedgerBalanceSheetCategory) -> Self {
+impl From<crate::ledger::account_set::StatementCategory> for BalanceSheetCategory {
+    fn from(account_set: crate::ledger::account_set::StatementCategory) -> Self {
         BalanceSheetCategory {
             name: account_set.name,
             balance: account_set.balance.into(),
