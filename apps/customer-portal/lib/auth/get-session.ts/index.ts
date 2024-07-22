@@ -1,4 +1,4 @@
-import { headers, cookies } from "next/headers"
+import { cookies } from "next/headers"
 
 import { Session } from "@ory/client"
 
@@ -19,18 +19,18 @@ export const getMeAndSession = async (): Promise<
     return meQueryResponse
   }
 
-  const token = headers().get("authorization")
-  if (!token) return new Error("No token found in headers")
-
   const cookieParam = cookies()
     .getAll()
     .reduce((acc, cookie) => `${acc}${cookie.name}=${cookie.value}; `, "")
+
+  console.log({ cookieParam })
 
   const kratosSession = await toSession({
     cookie: cookieParam,
   })
 
   if (kratosSession instanceof Error) {
+    console.error("Error getting session from Kratos: ", kratosSession)
     return kratosSession
   }
 
