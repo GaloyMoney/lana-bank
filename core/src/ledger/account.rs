@@ -5,29 +5,18 @@ use crate::primitives::{
 use super::cala::graphql::*;
 
 macro_rules! impl_from_debit_or_credit {
-    ($($t:ty),+) => {
-        $(
-            impl From<$t> for LedgerDebitOrCredit {
-                fn from(debit_or_credit: $t) -> Self {
-                    match debit_or_credit {
-                        <$t>::DEBIT => LedgerDebitOrCredit::Debit,
-                        <$t>::CREDIT => LedgerDebitOrCredit::Credit,
-                        _ => todo!()
-                    }
+    ($module:ident) => {
+        impl From<$module::DebitOrCredit> for LedgerDebitOrCredit {
+            fn from(debit_or_credit: $module::DebitOrCredit) -> Self {
+                match debit_or_credit {
+                    $module::DebitOrCredit::DEBIT => LedgerDebitOrCredit::Debit,
+                    $module::DebitOrCredit::CREDIT => LedgerDebitOrCredit::Credit,
+                    _ => todo!(),
                 }
             }
-        )+
+        }
     };
 }
-
-impl_from_debit_or_credit!(
-    trial_balance::DebitOrCredit,
-    account_set_and_sub_accounts_with_balance::DebitOrCredit,
-    chart_of_accounts::DebitOrCredit,
-    balance_sheet::DebitOrCredit,
-    profit_and_loss_statement::DebitOrCredit,
-    account_set_and_sub_accounts::DebitOrCredit
-);
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct BtcAccountBalance {
@@ -68,49 +57,40 @@ impl Default for UsdAccountBalance {
 }
 
 macro_rules! impl_from_balances {
-    ($($t:ty),+) => {
-        $(
-            impl From<$t> for BtcAccountBalance {
-                fn from(balances: $t) -> Self {
-                    let net_normal = Satoshis::from_btc(balances.normal_balance.units);
-                    let debit = Satoshis::from_btc(balances.dr_balance.units);
-                    let credit = Satoshis::from_btc(balances.cr_balance.units);
-                    let net_debit = SignedSatoshis::from(debit) - SignedSatoshis::from(credit);
+    ($module:ident) => {
+        impl From<$module::balances> for BtcAccountBalance {
+            fn from(balances: $module::balances) -> Self {
+                let net_normal = Satoshis::from_btc(balances.normal_balance.units);
+                let debit = Satoshis::from_btc(balances.dr_balance.units);
+                let credit = Satoshis::from_btc(balances.cr_balance.units);
+                let net_debit = SignedSatoshis::from(debit) - SignedSatoshis::from(credit);
 
-                    Self {
-                        debit,
-                        credit,
-                        net_normal,
-                        net_debit,
-                    }
+                Self {
+                    debit,
+                    credit,
+                    net_normal,
+                    net_debit,
                 }
             }
+        }
 
-            impl From<$t> for UsdAccountBalance {
-                fn from(balances: $t) -> Self {
-                    let net_normal = UsdCents::from_usd(balances.normal_balance.units);
-                    let debit = UsdCents::from_usd(balances.dr_balance.units);
-                    let credit = UsdCents::from_usd(balances.cr_balance.units);
-                    let net_debit = SignedUsdCents::from(debit) - SignedUsdCents::from(credit);
+        impl From<$module::balances> for UsdAccountBalance {
+            fn from(balances: $module::balances) -> Self {
+                let net_normal = UsdCents::from_usd(balances.normal_balance.units);
+                let debit = UsdCents::from_usd(balances.dr_balance.units);
+                let credit = UsdCents::from_usd(balances.cr_balance.units);
+                let net_debit = SignedUsdCents::from(debit) - SignedUsdCents::from(credit);
 
-                    Self {
-                        debit,
-                        credit,
-                        net_normal,
-                        net_debit,
-                    }
+                Self {
+                    debit,
+                    credit,
+                    net_normal,
+                    net_debit,
                 }
             }
-        )+
+        }
     };
 }
-
-impl_from_balances!(
-    trial_balance::balances,
-    balance_sheet::balances,
-    profit_and_loss_statement::balances,
-    account_set_and_sub_accounts_with_balance::balances
-);
 
 #[derive(Debug, Clone, Default)]
 pub struct LayeredBtcAccountBalances {
@@ -129,40 +109,30 @@ pub struct LayeredUsdAccountBalances {
 }
 
 macro_rules! impl_from_layered_balances {
-    ($($t:ty),+) => {
-        $(
-            impl From<$t> for LayeredBtcAccountBalances {
-                fn from(btc_balances_by_layer: $t) -> Self {
-                    Self {
-                        settled: BtcAccountBalance::from(btc_balances_by_layer.settled),
-                        pending: BtcAccountBalance::from(btc_balances_by_layer.pending),
-                        encumbrance: BtcAccountBalance::from(btc_balances_by_layer.encumbrance),
-                        all_layers: BtcAccountBalance::from(btc_balances_by_layer.all_layers_available),
-                    }
+    ($module:ident) => {
+        impl From<$module::balancesByLayer> for LayeredBtcAccountBalances {
+            fn from(btc_balances_by_layer: $module::balancesByLayer) -> Self {
+                Self {
+                    settled: BtcAccountBalance::from(btc_balances_by_layer.settled),
+                    pending: BtcAccountBalance::from(btc_balances_by_layer.pending),
+                    encumbrance: BtcAccountBalance::from(btc_balances_by_layer.encumbrance),
+                    all_layers: BtcAccountBalance::from(btc_balances_by_layer.all_layers_available),
                 }
             }
+        }
 
-            impl From<$t> for LayeredUsdAccountBalances {
-                fn from(usd_balances_by_layer: $t) -> Self {
-                    Self {
-                        settled: UsdAccountBalance::from(usd_balances_by_layer.settled),
-                        pending: UsdAccountBalance::from(usd_balances_by_layer.pending),
-                        encumbrance: UsdAccountBalance::from(usd_balances_by_layer.encumbrance),
-                        all_layers: UsdAccountBalance::from(usd_balances_by_layer.all_layers_available),
-                    }
-                            }
+        impl From<$module::balancesByLayer> for LayeredUsdAccountBalances {
+            fn from(usd_balances_by_layer: $module::balancesByLayer) -> Self {
+                Self {
+                    settled: UsdAccountBalance::from(usd_balances_by_layer.settled),
+                    pending: UsdAccountBalance::from(usd_balances_by_layer.pending),
+                    encumbrance: UsdAccountBalance::from(usd_balances_by_layer.encumbrance),
+                    all_layers: UsdAccountBalance::from(usd_balances_by_layer.all_layers_available),
+                }
             }
-
-        )+
+        }
     };
 }
-
-impl_from_layered_balances!(
-    trial_balance::balancesByLayer,
-    balance_sheet::balancesByLayer,
-    profit_and_loss_statement::balancesByLayer,
-    account_set_and_sub_accounts_with_balance::balancesByLayer
-);
 
 #[derive(Debug, Clone)]
 pub struct LedgerAccountBalancesByCurrency {
@@ -172,36 +142,27 @@ pub struct LedgerAccountBalancesByCurrency {
 }
 
 macro_rules! impl_from_balances_by_currency {
-    ($($t:ty),+) => {
-        $(
-            impl From<$t> for LedgerAccountBalancesByCurrency {
-                fn from(balances: $t) -> Self {
-                    LedgerAccountBalancesByCurrency {
-                        btc: balances.btc_balances.map_or_else(
-                            LayeredBtcAccountBalances::default,
-                            LayeredBtcAccountBalances::from,
-                        ),
-                        usd: balances.usd_balances.map_or_else(
-                            LayeredUsdAccountBalances::default,
-                            LayeredUsdAccountBalances::from,
-                        ),
-                        usdt: balances.usdt_balances.map_or_else(
-                            LayeredUsdAccountBalances::default,
-                            LayeredUsdAccountBalances::from,
-                        ),
-                    }
+    ($module:ident) => {
+        impl From<$module::accountSetBalances> for LedgerAccountBalancesByCurrency {
+            fn from(balances: $module::accountSetBalances) -> Self {
+                LedgerAccountBalancesByCurrency {
+                    btc: balances.btc_balances.map_or_else(
+                        LayeredBtcAccountBalances::default,
+                        LayeredBtcAccountBalances::from,
+                    ),
+                    usd: balances.usd_balances.map_or_else(
+                        LayeredUsdAccountBalances::default,
+                        LayeredUsdAccountBalances::from,
+                    ),
+                    usdt: balances.usdt_balances.map_or_else(
+                        LayeredUsdAccountBalances::default,
+                        LayeredUsdAccountBalances::from,
+                    ),
                 }
             }
-        )+
+        }
     };
 }
-
-impl_from_balances_by_currency!(
-    trial_balance::accountSetBalances,
-    balance_sheet::accountSetBalances,
-    profit_and_loss_statement::accountSetBalances,
-    account_set_and_sub_accounts_with_balance::accountSetBalances
-);
 
 #[derive(Debug, Clone)]
 pub struct LedgerAccountWithBalance {
@@ -212,42 +173,33 @@ pub struct LedgerAccountWithBalance {
 }
 
 macro_rules! impl_from_account_with_balance {
-    ($($t:ty),+) => {
-        $(
-            impl From<$t> for LedgerAccountWithBalance {
-                fn from(account: $t) -> Self {
-                    let account_details = account.account_details;
-                    LedgerAccountWithBalance {
-                        id: account_details.account_id.into(),
-                        name: account_details.name,
-                        normal_balance_type: account_details.normal_balance_type.into(),
-                        balance: LedgerAccountBalancesByCurrency {
-                            btc: account.account_balances.btc_balances.map_or_else(
-                                LayeredBtcAccountBalances::default,
-                                LayeredBtcAccountBalances::from,
-                            ),
-                            usd: account.account_balances.usd_balances.map_or_else(
-                                LayeredUsdAccountBalances::default,
-                                LayeredUsdAccountBalances::from,
-                            ),
-                            usdt: account.account_balances.usdt_balances.map_or_else(
-                                LayeredUsdAccountBalances::default,
-                                LayeredUsdAccountBalances::from,
-                            ),
-                        },
-                    }
+    ($module:ident) => {
+        impl From<$module::accountDetailsAndBalances> for LedgerAccountWithBalance {
+            fn from(account: $module::accountDetailsAndBalances) -> Self {
+                let account_details = account.account_details;
+                LedgerAccountWithBalance {
+                    id: account_details.account_id.into(),
+                    name: account_details.name,
+                    normal_balance_type: account_details.normal_balance_type.into(),
+                    balance: LedgerAccountBalancesByCurrency {
+                        btc: account.account_balances.btc_balances.map_or_else(
+                            LayeredBtcAccountBalances::default,
+                            LayeredBtcAccountBalances::from,
+                        ),
+                        usd: account.account_balances.usd_balances.map_or_else(
+                            LayeredUsdAccountBalances::default,
+                            LayeredUsdAccountBalances::from,
+                        ),
+                        usdt: account.account_balances.usdt_balances.map_or_else(
+                            LayeredUsdAccountBalances::default,
+                            LayeredUsdAccountBalances::from,
+                        ),
+                    },
                 }
             }
-        )+
+        }
     };
 }
-
-impl_from_account_with_balance!(
-    trial_balance::accountDetailsAndBalances,
-    balance_sheet::accountDetailsAndBalances,
-    profit_and_loss_statement::accountDetailsAndBalances,
-    account_set_and_sub_accounts_with_balance::accountDetailsAndBalances
-);
 
 #[derive(Debug, Clone)]
 pub struct LedgerAccountDetails {
@@ -257,27 +209,50 @@ pub struct LedgerAccountDetails {
     pub normal_balance_type: LedgerDebitOrCredit,
 }
 
-impl From<chart_of_accounts::accountDetails> for LedgerAccountDetails {
-    fn from(account: chart_of_accounts::accountDetails) -> Self {
-        LedgerAccountDetails {
-            id: account.account_id.into(),
-            code: account.code,
-            name: account.name,
-            normal_balance_type: account.normal_balance_type.into(),
+macro_rules! impl_from_account_details {
+    ($module:ident) => {
+        impl From<$module::accountDetails> for LedgerAccountDetails {
+            fn from(account: $module::accountDetails) -> Self {
+                LedgerAccountDetails {
+                    id: account.account_id.into(),
+                    code: account.code,
+                    name: account.name,
+                    normal_balance_type: account.normal_balance_type.into(),
+                }
+            }
         }
-    }
+    };
 }
 
-impl From<account_set_and_sub_accounts::accountDetails> for LedgerAccountDetails {
-    fn from(account: account_set_and_sub_accounts::accountDetails) -> Self {
-        LedgerAccountDetails {
-            id: account.account_id.into(),
-            code: account.code,
-            name: account.name,
-            normal_balance_type: account.normal_balance_type.into(),
-        }
-    }
-}
+impl_from_debit_or_credit!(account_set_and_sub_accounts);
+impl_from_account_details!(account_set_and_sub_accounts);
+
+impl_from_debit_or_credit!(account_set_and_sub_accounts_with_balance);
+impl_from_balances!(account_set_and_sub_accounts_with_balance);
+impl_from_layered_balances!(account_set_and_sub_accounts_with_balance);
+impl_from_balances_by_currency!(account_set_and_sub_accounts_with_balance);
+impl_from_account_with_balance!(account_set_and_sub_accounts_with_balance);
+
+impl_from_debit_or_credit!(chart_of_accounts);
+impl_from_account_details!(chart_of_accounts);
+
+impl_from_debit_or_credit!(trial_balance);
+impl_from_balances!(trial_balance);
+impl_from_layered_balances!(trial_balance);
+impl_from_balances_by_currency!(trial_balance);
+impl_from_account_with_balance!(trial_balance);
+
+impl_from_debit_or_credit!(balance_sheet);
+impl_from_balances!(balance_sheet);
+impl_from_layered_balances!(balance_sheet);
+impl_from_balances_by_currency!(balance_sheet);
+impl_from_account_with_balance!(balance_sheet);
+
+impl_from_debit_or_credit!(profit_and_loss_statement);
+impl_from_balances!(profit_and_loss_statement);
+impl_from_layered_balances!(profit_and_loss_statement);
+impl_from_balances_by_currency!(profit_and_loss_statement);
+impl_from_account_with_balance!(profit_and_loss_statement);
 
 #[cfg(test)]
 mod tests {
