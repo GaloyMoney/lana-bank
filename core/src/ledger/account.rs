@@ -4,6 +4,31 @@ use crate::primitives::{
 
 use super::cala::graphql::*;
 
+macro_rules! impl_from_debit_or_credit {
+    ($($t:ty),+) => {
+        $(
+            impl From<$t> for LedgerDebitOrCredit {
+                fn from(debit_or_credit: $t) -> Self {
+                    match debit_or_credit {
+                        <$t>::DEBIT => LedgerDebitOrCredit::Debit,
+                        <$t>::CREDIT => LedgerDebitOrCredit::Credit,
+                        _ => todo!()
+                    }
+                }
+            }
+        )+
+    };
+}
+
+impl_from_debit_or_credit!(
+    trial_balance::DebitOrCredit,
+    account_set_and_sub_accounts_with_balance::DebitOrCredit,
+    chart_of_accounts::DebitOrCredit,
+    balance_sheet::DebitOrCredit,
+    profit_and_loss_statement::DebitOrCredit,
+    account_set_and_sub_accounts::DebitOrCredit
+);
+
 #[derive(Debug, Clone, PartialEq)]
 pub struct BtcAccountBalance {
     pub debit: Satoshis,
@@ -371,70 +396,6 @@ impl From<account_set_and_sub_accounts_with_balance::accountSetBalances>
                 LayeredUsdAccountBalances::default,
                 LayeredUsdAccountBalances::from,
             ),
-        }
-    }
-}
-
-impl From<trial_balance::DebitOrCredit> for LedgerDebitOrCredit {
-    fn from(debit_or_credit: trial_balance::DebitOrCredit) -> Self {
-        match debit_or_credit {
-            trial_balance::DebitOrCredit::DEBIT => LedgerDebitOrCredit::Debit,
-            trial_balance::DebitOrCredit::CREDIT => LedgerDebitOrCredit::Credit,
-            trial_balance::DebitOrCredit::Other(_) => todo!(),
-        }
-    }
-}
-
-impl From<account_set_and_sub_accounts_with_balance::DebitOrCredit> for LedgerDebitOrCredit {
-    fn from(debit_or_credit: account_set_and_sub_accounts_with_balance::DebitOrCredit) -> Self {
-        match debit_or_credit {
-            account_set_and_sub_accounts_with_balance::DebitOrCredit::DEBIT => {
-                LedgerDebitOrCredit::Debit
-            }
-            account_set_and_sub_accounts_with_balance::DebitOrCredit::CREDIT => {
-                LedgerDebitOrCredit::Credit
-            }
-            account_set_and_sub_accounts_with_balance::DebitOrCredit::Other(_) => todo!(),
-        }
-    }
-}
-
-impl From<chart_of_accounts::DebitOrCredit> for LedgerDebitOrCredit {
-    fn from(debit_or_credit: chart_of_accounts::DebitOrCredit) -> Self {
-        match debit_or_credit {
-            chart_of_accounts::DebitOrCredit::DEBIT => LedgerDebitOrCredit::Debit,
-            chart_of_accounts::DebitOrCredit::CREDIT => LedgerDebitOrCredit::Credit,
-            chart_of_accounts::DebitOrCredit::Other(_) => todo!(),
-        }
-    }
-}
-
-impl From<balance_sheet::DebitOrCredit> for LedgerDebitOrCredit {
-    fn from(debit_or_credit: balance_sheet::DebitOrCredit) -> Self {
-        match debit_or_credit {
-            balance_sheet::DebitOrCredit::DEBIT => LedgerDebitOrCredit::Debit,
-            balance_sheet::DebitOrCredit::CREDIT => LedgerDebitOrCredit::Credit,
-            balance_sheet::DebitOrCredit::Other(_) => todo!(),
-        }
-    }
-}
-
-impl From<profit_and_loss_statement::DebitOrCredit> for LedgerDebitOrCredit {
-    fn from(debit_or_credit: profit_and_loss_statement::DebitOrCredit) -> Self {
-        match debit_or_credit {
-            profit_and_loss_statement::DebitOrCredit::DEBIT => LedgerDebitOrCredit::Debit,
-            profit_and_loss_statement::DebitOrCredit::CREDIT => LedgerDebitOrCredit::Credit,
-            profit_and_loss_statement::DebitOrCredit::Other(_) => todo!(),
-        }
-    }
-}
-
-impl From<account_set_and_sub_accounts::DebitOrCredit> for LedgerDebitOrCredit {
-    fn from(debit_or_credit: account_set_and_sub_accounts::DebitOrCredit) -> Self {
-        match debit_or_credit {
-            account_set_and_sub_accounts::DebitOrCredit::DEBIT => LedgerDebitOrCredit::Debit,
-            account_set_and_sub_accounts::DebitOrCredit::CREDIT => LedgerDebitOrCredit::Credit,
-            account_set_and_sub_accounts::DebitOrCredit::Other(_) => todo!(),
         }
     }
 }
