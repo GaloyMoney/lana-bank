@@ -56,6 +56,36 @@ impl Default for UsdAccountBalance {
     }
 }
 
+#[derive(Debug, Clone, Default)]
+pub struct LayeredBtcAccountBalances {
+    pub settled: BtcAccountBalance,
+    pub pending: BtcAccountBalance,
+    pub encumbrance: BtcAccountBalance,
+    pub all_layers: BtcAccountBalance,
+}
+
+#[derive(Debug, Clone, Default)]
+pub struct LayeredUsdAccountBalances {
+    pub settled: UsdAccountBalance,
+    pub pending: UsdAccountBalance,
+    pub encumbrance: UsdAccountBalance,
+    pub all_layers: UsdAccountBalance,
+}
+#[derive(Debug, Clone)]
+pub struct LedgerAccountBalancesByCurrency {
+    pub btc: LayeredBtcAccountBalances,
+    pub usd: LayeredUsdAccountBalances,
+    pub usdt: LayeredUsdAccountBalances,
+}
+
+#[derive(Debug, Clone)]
+pub struct LedgerAccountWithBalance {
+    pub id: LedgerAccountId,
+    pub name: String,
+    pub normal_balance_type: LedgerDebitOrCredit,
+    pub balance: LedgerAccountBalancesByCurrency,
+}
+
 macro_rules! impl_from_balances {
     ($module:ident) => {
         impl From<$module::balances> for BtcAccountBalance {
@@ -89,27 +119,7 @@ macro_rules! impl_from_balances {
                 }
             }
         }
-    };
-}
 
-#[derive(Debug, Clone, Default)]
-pub struct LayeredBtcAccountBalances {
-    pub settled: BtcAccountBalance,
-    pub pending: BtcAccountBalance,
-    pub encumbrance: BtcAccountBalance,
-    pub all_layers: BtcAccountBalance,
-}
-
-#[derive(Debug, Clone, Default)]
-pub struct LayeredUsdAccountBalances {
-    pub settled: UsdAccountBalance,
-    pub pending: UsdAccountBalance,
-    pub encumbrance: UsdAccountBalance,
-    pub all_layers: UsdAccountBalance,
-}
-
-macro_rules! impl_from_layered_balances {
-    ($module:ident) => {
         impl From<$module::balancesByLayer> for LayeredBtcAccountBalances {
             fn from(btc_balances_by_layer: $module::balancesByLayer) -> Self {
                 Self {
@@ -131,18 +141,7 @@ macro_rules! impl_from_layered_balances {
                 }
             }
         }
-    };
-}
 
-#[derive(Debug, Clone)]
-pub struct LedgerAccountBalancesByCurrency {
-    pub btc: LayeredBtcAccountBalances,
-    pub usd: LayeredUsdAccountBalances,
-    pub usdt: LayeredUsdAccountBalances,
-}
-
-macro_rules! impl_from_balances_by_currency {
-    ($module:ident) => {
         impl From<$module::accountSetBalances> for LedgerAccountBalancesByCurrency {
             fn from(balances: $module::accountSetBalances) -> Self {
                 LedgerAccountBalancesByCurrency {
@@ -161,19 +160,7 @@ macro_rules! impl_from_balances_by_currency {
                 }
             }
         }
-    };
-}
 
-#[derive(Debug, Clone)]
-pub struct LedgerAccountWithBalance {
-    pub id: LedgerAccountId,
-    pub name: String,
-    pub normal_balance_type: LedgerDebitOrCredit,
-    pub balance: LedgerAccountBalancesByCurrency,
-}
-
-macro_rules! impl_from_account_with_balance {
-    ($module:ident) => {
         impl From<$module::accountDetailsAndBalances> for LedgerAccountWithBalance {
             fn from(account: $module::accountDetailsAndBalances) -> Self {
                 let account_details = account.account_details;
@@ -229,30 +216,18 @@ impl_from_account_details!(account_set_and_sub_accounts);
 
 impl_from_debit_or_credit!(account_set_and_sub_accounts_with_balance);
 impl_from_balances!(account_set_and_sub_accounts_with_balance);
-impl_from_layered_balances!(account_set_and_sub_accounts_with_balance);
-impl_from_balances_by_currency!(account_set_and_sub_accounts_with_balance);
-impl_from_account_with_balance!(account_set_and_sub_accounts_with_balance);
 
 impl_from_debit_or_credit!(chart_of_accounts);
 impl_from_account_details!(chart_of_accounts);
 
 impl_from_debit_or_credit!(trial_balance);
 impl_from_balances!(trial_balance);
-impl_from_layered_balances!(trial_balance);
-impl_from_balances_by_currency!(trial_balance);
-impl_from_account_with_balance!(trial_balance);
 
 impl_from_debit_or_credit!(balance_sheet);
 impl_from_balances!(balance_sheet);
-impl_from_layered_balances!(balance_sheet);
-impl_from_balances_by_currency!(balance_sheet);
-impl_from_account_with_balance!(balance_sheet);
 
 impl_from_debit_or_credit!(profit_and_loss_statement);
 impl_from_balances!(profit_and_loss_statement);
-impl_from_layered_balances!(profit_and_loss_statement);
-impl_from_balances_by_currency!(profit_and_loss_statement);
-impl_from_account_with_balance!(profit_and_loss_statement);
 
 #[cfg(test)]
 mod tests {
