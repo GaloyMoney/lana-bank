@@ -447,22 +447,23 @@ pub struct LedgerAccountWithBalance {
     pub balance: LedgerAccountBalancesByCurrency,
 }
 
-impl From<trial_balance::AccountsEdgesNodeOnAccount> for LedgerAccountWithBalance {
-    fn from(node: trial_balance::AccountsEdgesNodeOnAccount) -> Self {
+impl From<trial_balance::accountDetailsAndBalances> for LedgerAccountWithBalance {
+    fn from(account: trial_balance::accountDetailsAndBalances) -> Self {
+        let account_details = account.account_details;
         LedgerAccountWithBalance {
-            id: node.account_details.account_id.into(),
-            name: node.account_details.name,
-            normal_balance_type: node.account_details.normal_balance_type.into(),
+            id: account_details.account_id.into(),
+            name: account_details.name,
+            normal_balance_type: account_details.normal_balance_type.into(),
             balance: LedgerAccountBalancesByCurrency {
-                btc: node.account_balances.btc_balances.map_or_else(
+                btc: account.account_balances.btc_balances.map_or_else(
                     LayeredBtcAccountBalances::default,
                     LayeredBtcAccountBalances::from,
                 ),
-                usd: node.account_balances.usd_balances.map_or_else(
+                usd: account.account_balances.usd_balances.map_or_else(
                     LayeredUsdAccountBalances::default,
                     LayeredUsdAccountBalances::from,
                 ),
-                usdt: node.account_balances.usdt_balances.map_or_else(
+                usdt: account.account_balances.usdt_balances.map_or_else(
                     LayeredUsdAccountBalances::default,
                     LayeredUsdAccountBalances::from,
                 ),
@@ -472,21 +473,22 @@ impl From<trial_balance::AccountsEdgesNodeOnAccount> for LedgerAccountWithBalanc
 }
 
 impl From<balance_sheet::accountDetailsAndBalances> for LedgerAccountWithBalance {
-    fn from(node: balance_sheet::accountDetailsAndBalances) -> Self {
+    fn from(account: balance_sheet::accountDetailsAndBalances) -> Self {
+        let account_details = account.account_details;
         LedgerAccountWithBalance {
-            id: node.account_details.account_id.into(),
-            name: node.account_details.name,
-            normal_balance_type: node.account_details.normal_balance_type.into(),
+            id: account_details.account_id.into(),
+            name: account_details.name,
+            normal_balance_type: account_details.normal_balance_type.into(),
             balance: LedgerAccountBalancesByCurrency {
-                btc: node.account_balances.btc_balances.map_or_else(
+                btc: account.account_balances.btc_balances.map_or_else(
                     LayeredBtcAccountBalances::default,
                     LayeredBtcAccountBalances::from,
                 ),
-                usd: node.account_balances.usd_balances.map_or_else(
+                usd: account.account_balances.usd_balances.map_or_else(
                     LayeredUsdAccountBalances::default,
                     LayeredUsdAccountBalances::from,
                 ),
-                usdt: node.account_balances.usdt_balances.map_or_else(
+                usdt: account.account_balances.usdt_balances.map_or_else(
                     LayeredUsdAccountBalances::default,
                     LayeredUsdAccountBalances::from,
                 ),
@@ -495,46 +497,23 @@ impl From<balance_sheet::accountDetailsAndBalances> for LedgerAccountWithBalance
     }
 }
 
-impl From<profit_and_loss_statement::CategoriesEdgesNodeOnAccount> for LedgerAccountWithBalance {
-    fn from(node: profit_and_loss_statement::CategoriesEdgesNodeOnAccount) -> Self {
+impl From<profit_and_loss_statement::accountDetailsAndBalances> for LedgerAccountWithBalance {
+    fn from(account: profit_and_loss_statement::CategoriesEdgesNodeOnAccount) -> Self {
+        let account_details = account.account_details;
         LedgerAccountWithBalance {
-            id: node.account_details.account_id.into(),
-            name: node.account_details.name,
-            normal_balance_type: node.account_details.normal_balance_type.into(),
+            id: account_details.account_id.into(),
+            name: account_details.name,
+            normal_balance_type: account_details.normal_balance_type.into(),
             balance: LedgerAccountBalancesByCurrency {
-                btc: node.account_balances.btc_balances.map_or_else(
+                btc: account.account_balances.btc_balances.map_or_else(
                     LayeredBtcAccountBalances::default,
                     LayeredBtcAccountBalances::from,
                 ),
-                usd: node.account_balances.usd_balances.map_or_else(
+                usd: account.account_balances.usd_balances.map_or_else(
                     LayeredUsdAccountBalances::default,
                     LayeredUsdAccountBalances::from,
                 ),
-                usdt: node.account_balances.usdt_balances.map_or_else(
-                    LayeredUsdAccountBalances::default,
-                    LayeredUsdAccountBalances::from,
-                ),
-            },
-        }
-    }
-}
-
-impl From<profit_and_loss_statement::AccountsEdgesNodeOnAccount> for LedgerAccountWithBalance {
-    fn from(node: profit_and_loss_statement::AccountsEdgesNodeOnAccount) -> Self {
-        LedgerAccountWithBalance {
-            id: node.account_details.account_id.into(),
-            name: node.account_details.name,
-            normal_balance_type: node.account_details.normal_balance_type.into(),
-            balance: LedgerAccountBalancesByCurrency {
-                btc: node.account_balances.btc_balances.map_or_else(
-                    LayeredBtcAccountBalances::default,
-                    LayeredBtcAccountBalances::from,
-                ),
-                usd: node.account_balances.usd_balances.map_or_else(
-                    LayeredUsdAccountBalances::default,
-                    LayeredUsdAccountBalances::from,
-                ),
-                usdt: node.account_balances.usdt_balances.map_or_else(
+                usdt: account.account_balances.usdt_balances.map_or_else(
                     LayeredUsdAccountBalances::default,
                     LayeredUsdAccountBalances::from,
                 ),

@@ -16,15 +16,25 @@ fragment accounts on AccountSetMemberConnection {
     node {
       __typename
       ... on AccountSet {
-        ...accountSetDetails
-        ...accountSetBalances
+        ...accountSetDetailsAndBalances
       }
       ... on Account {
-        ...accountDetails
-        ...accountBalances
+        ...accountDetailsAndBalances
       }
     }
   }
+}
+
+# 'details' and 'balances'
+
+fragment accountSetDetailsAndBalances on AccountSet {
+  ...accountSetDetails
+  ...accountSetBalances
+}
+
+fragment accountDetailsAndBalances on Account {
+  ...accountDetails
+  ...accountBalances
 }
 
 # 'balances'
@@ -83,7 +93,7 @@ fragment balances on BalanceAmount {
   }
 }
 
-# 'account' details and balance
+# 'subAccount' details
 
 fragment accountSetDetails on AccountSet {
   accountSetId

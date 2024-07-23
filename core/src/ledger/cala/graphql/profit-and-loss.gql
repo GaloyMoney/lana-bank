@@ -15,17 +15,19 @@ fragment categories on AccountSetMemberConnection {
     node {
       __typename
       ... on AccountSet {
-        ...accountSetDetails
-        ...accountSetBalances
-        accounts: members(first: 25, after: null) {
-          ...accounts
-        }
+        ...categoryAccountSet
       }
       ... on Account {
-        ...accountDetails
-        ...accountBalances
+        ...accountDetailsAndBalances
       }
     }
+  }
+}
+
+fragment categoryAccountSet on AccountSet {
+  ...accountSetDetailsAndBalances
+  accounts: members(first: 25, after: null) {
+    ...accounts
   }
 }
 
@@ -43,19 +45,49 @@ fragment accounts on AccountSetMemberConnection {
         ...subAccountSet
       }
       ... on Account {
-        ...accountDetails
-        ...accountBalances
+        ...accountDetailsAndBalances
       }
     }
   }
 }
 
 fragment subAccountSet on AccountSet {
+  ...accountSetDetailsAndBalances
+  subAccounts: members(first: 1) {
+    ...subAccountsWithBalances
+  }
+}
+
+fragment subAccountsWithBalances on AccountSetMemberConnection {
+  pageInfo {
+    startCursor
+    endCursor
+    hasNextPage
+  }
+  edges {
+    cursor
+    node {
+      __typename
+      ... on AccountSet {
+        ...accountSetDetailsAndBalances
+      }
+      ... on Account {
+        ...accountDetailsAndBalances
+      }
+    }
+  }
+}
+
+# 'details' and 'balances'
+
+fragment accountSetDetailsAndBalances on AccountSet {
   ...accountSetDetails
   ...accountSetBalances
-  subAccounts: members(first: 1) {
-    ...subAccount
-  }
+}
+
+fragment accountDetailsAndBalances on Account {
+  ...accountDetails
+  ...accountBalances
 }
 
 # 'balances'
@@ -114,29 +146,7 @@ fragment balances on BalanceAmount {
   }
 }
 
-# 'subAccount' details and balance
-
-fragment subAccount on AccountSetMemberConnection {
-  pageInfo {
-    startCursor
-    endCursor
-    hasNextPage
-  }
-  edges {
-    cursor
-    node {
-      __typename
-      ... on AccountSet {
-        ...accountSetDetails
-        ...accountSetBalances
-      }
-      ... on Account {
-        ...accountDetails
-        ...accountBalances
-      }
-    }
-  }
-}
+# 'subAccount' details only
 
 fragment accountSetDetails on AccountSet {
   accountSetId
