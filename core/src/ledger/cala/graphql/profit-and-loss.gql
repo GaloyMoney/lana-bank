@@ -1,7 +1,6 @@
 query ProfitAndLossStatement($accountSetId: UUID!, $journalId: UUID!) {
   accountSet(id: $accountSetId) {
-    ...accountSetDetails
-    ...accountSetBalances
+    ...accountSetDetailsAndBalances
     categories: members(first: 10) {
       ...categoriesWithBalances
     }

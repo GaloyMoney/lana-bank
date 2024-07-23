@@ -63,8 +63,8 @@ impl From<crate::ledger::account_set::PaginatedLedgerAccountSetSubAccount>
 }
 
 impl From<crate::ledger::account_set::LedgerAccountSetSubAccount> for AccountSetSubAccount {
-    fn from(category_account: crate::ledger::account_set::LedgerAccountSetSubAccount) -> Self {
-        match category_account {
+    fn from(account: crate::ledger::account_set::LedgerAccountSetSubAccount) -> Self {
+        match account {
             crate::ledger::account_set::LedgerAccountSetSubAccount::Account(val) => {
                 AccountSetSubAccount::Account(val.into())
             }
@@ -275,12 +275,12 @@ pub struct ChartOfAccountsCategory {
     accounts: Vec<AccountSetSubAccount>,
 }
 
-impl From<crate::ledger::account_set::LedgerChartOfAccountsCategory> for ChartOfAccountsCategory {
-    fn from(account_set: crate::ledger::account_set::LedgerChartOfAccountsCategory) -> Self {
+impl From<crate::ledger::account_set::LedgerStatementCategory> for ChartOfAccountsCategory {
+    fn from(account_set: crate::ledger::account_set::LedgerStatementCategory) -> Self {
         ChartOfAccountsCategory {
             name: account_set.name,
             accounts: account_set
-                .category_accounts
+                .accounts
                 .into_iter()
                 .map(AccountSetSubAccount::from)
                 .collect(),
@@ -335,8 +335,8 @@ pub struct StatementCategory {
     accounts: Vec<AccountSetSubAccountWithBalance>,
 }
 
-impl From<crate::ledger::account_set::LedgerStatementCategory> for StatementCategory {
-    fn from(account_set: crate::ledger::account_set::LedgerStatementCategory) -> Self {
+impl From<crate::ledger::account_set::LedgerStatementCategoryWithBalance> for StatementCategory {
+    fn from(account_set: crate::ledger::account_set::LedgerStatementCategoryWithBalance) -> Self {
         StatementCategory {
             name: account_set.name,
             balance: account_set.balance.into(),
