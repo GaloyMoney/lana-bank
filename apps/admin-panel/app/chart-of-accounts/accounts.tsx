@@ -33,6 +33,9 @@ gql`
             }
           }
         }
+        pageInfo {
+          hasNextPage
+        }
       }
     }
   }
@@ -51,10 +54,8 @@ const SubAccountsForAccountSet: React.FC<AccountProps> = ({ account, depth = 0 }
     },
   })
 
-  const hasMoreSubAccounts =
-    data?.chartOfAccountsAccountSet?.subAccounts.pageInfo.hasNextPage
-
-  const subAccounts = data?.chartOfAccountsAccountSet?.subAccounts.edges
+  const hasMoreSubAccounts = data?.accountSet?.subAccounts.pageInfo.hasNextPage
+  const subAccounts = data?.accountSet?.subAccounts.edges
 
   return (
     <>

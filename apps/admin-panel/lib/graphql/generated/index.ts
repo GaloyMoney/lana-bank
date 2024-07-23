@@ -513,7 +513,7 @@ export type ChartOfAccountsAccountSetQueryVariables = Exact<{
 }>;
 
 
-export type ChartOfAccountsAccountSetQuery = { __typename?: 'Query', accountSet?: { __typename?: 'AccountSetAndSubAccounts', id: string, name: string, subAccounts: { __typename?: 'AccountSetSubAccountConnection', edges: Array<{ __typename?: 'AccountSetSubAccountEdge', cursor: string, node: { __typename: 'AccountDetails', id: string, name: string } | { __typename: 'AccountSetDetails', id: string, name: string, hasSubAccounts: boolean } }> } } | null };
+export type ChartOfAccountsAccountSetQuery = { __typename?: 'Query', accountSet?: { __typename?: 'AccountSetAndSubAccounts', id: string, name: string, subAccounts: { __typename?: 'AccountSetSubAccountConnection', edges: Array<{ __typename?: 'AccountSetSubAccountEdge', cursor: string, node: { __typename: 'AccountDetails', id: string, name: string } | { __typename: 'AccountSetDetails', id: string, name: string, hasSubAccounts: boolean } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean } } } | null };
 
 export type GetOnBalanceSheetChartOfAccountsQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -579,16 +579,7 @@ export type DefaultTermsUpdateMutationVariables = Exact<{
 }>;
 
 
-<<<<<<< HEAD
 export type DefaultTermsUpdateMutation = { __typename?: 'Mutation', defaultTermsUpdate: { __typename?: 'DefaultTermsUpdatePayload', terms: { __typename?: 'Terms', id: string, termsId: string, values: { __typename?: 'TermValues', annualRate: any, interval: InterestInterval, liquidationCvl: any, marginCallCvl: any, initialCvl: any, duration: { __typename?: 'Duration', period: Period, units: number } } } } };
-=======
-export type ChartOfAccountsAccountSetQuery = { __typename?: 'Query', chartOfAccountsAccountSet?: { __typename?: 'ChartOfAccountsAccountSet', id: string, name: string, subAccounts: { __typename?: 'ChartOfAccountsSubAccountConnection', edges: Array<{ __typename?: 'ChartOfAccountsSubAccountEdge', cursor: string, node: { __typename: 'AccountDetails', id: string, name: string } | { __typename: 'AccountSetDetails', id: string, name: string, hasSubAccounts: boolean } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean } } } | null };
-
-export type GetChartOfAccountsQueryVariables = Exact<{ [key: string]: never; }>;
-
-
-export type GetChartOfAccountsQuery = { __typename?: 'Query', chartOfAccounts?: { __typename?: 'ChartOfAccounts', name: string, categories: Array<{ __typename?: 'ChartOfAccountsCategory', name: string, accounts: Array<{ __typename: 'AccountDetails', id: string, name: string } | { __typename: 'AccountSetDetails', id: string, name: string, hasSubAccounts: boolean }> }> } | null };
->>>>>>> 2d30309e (feat: paginated fetch mores)
 
 export type GetLoanDetailsQueryVariables = Exact<{
   id: Scalars['UUID']['input'];
@@ -703,6 +694,9 @@ export const ChartOfAccountsAccountSetDocument = gql`
             hasSubAccounts
           }
         }
+      }
+      pageInfo {
+        hasNextPage
       }
     }
   }
@@ -1172,7 +1166,6 @@ export function useLoanPartialPaymentMutation(baseOptions?: Apollo.MutationHookO
 export type LoanPartialPaymentMutationHookResult = ReturnType<typeof useLoanPartialPaymentMutation>;
 export type LoanPartialPaymentMutationResult = Apollo.MutationResult<LoanPartialPaymentMutation>;
 export type LoanPartialPaymentMutationOptions = Apollo.BaseMutationOptions<LoanPartialPaymentMutation, LoanPartialPaymentMutationVariables>;
-<<<<<<< HEAD
 export const DefaultTermsUpdateDocument = gql`
     mutation DefaultTermsUpdate($input: DefaultTermsUpdateInput!) {
   defaultTermsUpdate(input: $input) {
@@ -1188,33 +1181,7 @@ export const DefaultTermsUpdateDocument = gql`
         duration {
           period
           units
-=======
-export const ChartOfAccountsAccountSetDocument = gql`
-    query ChartOfAccountsAccountSet($accountSetId: UUID!, $first: Int!, $after: String) {
-  chartOfAccountsAccountSet(accountSetId: $accountSetId) {
-    id
-    name
-    subAccounts(first: $first, after: $after) {
-      edges {
-        cursor
-        node {
-          __typename
-          ... on AccountDetails {
-            __typename
-            id
-            name
-          }
-          ... on AccountSetDetails {
-            __typename
-            id
-            name
-            hasSubAccounts
-          }
->>>>>>> 2d30309e (feat: paginated fetch mores)
         }
-      }
-      pageInfo {
-        hasNextPage
       }
     }
   }
