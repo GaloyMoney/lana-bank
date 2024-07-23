@@ -3,19 +3,19 @@ query ProfitAndLossStatement($accountSetId: UUID!, $journalId: UUID!) {
     ...accountSetDetails
     ...accountSetBalances
     categories: members(first: 10) {
-      ...categories
+      ...categoriesWithBalances
     }
   }
 }
 
 # 'categories' and 'accounts'
 
-fragment categories on AccountSetMemberConnection {
+fragment categoriesWithBalances on AccountSetMemberConnection {
   edges {
     node {
       __typename
       ... on AccountSet {
-        ...categoryAccountSet
+        ...categoryAccountSetWithBalances
       }
       ... on Account {
         ...accountDetailsAndBalances
@@ -24,41 +24,14 @@ fragment categories on AccountSetMemberConnection {
   }
 }
 
-fragment categoryAccountSet on AccountSet {
+fragment categoryAccountSetWithBalances on AccountSet {
   ...accountSetDetailsAndBalances
   accounts: members(first: 25, after: null) {
-    ...accounts
+    ...accountsWithBalances
   }
 }
 
-fragment accounts on AccountSetMemberConnection {
-  pageInfo {
-    startCursor
-    endCursor
-    hasNextPage
-  }
-  edges {
-    cursor
-    node {
-      __typename
-      ... on AccountSet {
-        ...subAccountSet
-      }
-      ... on Account {
-        ...accountDetailsAndBalances
-      }
-    }
-  }
-}
-
-fragment subAccountSet on AccountSet {
-  ...accountSetDetailsAndBalances
-  subAccounts: members(first: 1) {
-    ...subAccountsWithBalances
-  }
-}
-
-fragment subAccountsWithBalances on AccountSetMemberConnection {
+fragment accountsWithBalances on AccountSetMemberConnection {
   pageInfo {
     startCursor
     endCursor
@@ -146,7 +119,7 @@ fragment balances on BalanceAmount {
   }
 }
 
-# 'subAccount' details only
+# account/account-set details
 
 fragment accountSetDetails on AccountSet {
   accountSetId

@@ -5,8 +5,7 @@ query AccountSetAndSubAccountsWithBalance(
   $after: String
 ) {
   accountSet(id: $accountSetId) {
-    ...accountSetDetails
-    ...accountSetBalances
+    ...accountSetDetailsAndBalances
     subAccounts: members(first: $first, after: $after) {
       ...subAccountsWithBalances
     }
@@ -101,7 +100,7 @@ fragment balances on BalanceAmount {
   }
 }
 
-# 'subAccount' details only
+# account/account-set details
 
 fragment accountSetDetails on AccountSet {
   accountSetId

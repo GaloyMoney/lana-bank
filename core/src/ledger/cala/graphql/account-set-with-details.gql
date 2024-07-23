@@ -11,8 +11,6 @@ query AccountSetAndSubAccounts(
   }
 }
 
-# 'subAccount' details only
-
 fragment subAccounts on AccountSetMemberConnection {
   pageInfo {
     startCursor
@@ -32,6 +30,8 @@ fragment subAccounts on AccountSetMemberConnection {
     }
   }
 }
+
+# account/account-set details
 
 fragment accountSetDetails on AccountSet {
   accountSetId

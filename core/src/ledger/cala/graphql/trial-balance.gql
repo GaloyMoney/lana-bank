@@ -4,14 +4,14 @@ query TrialBalance($accountSetId: UUID!, $journalId: UUID!) {
     ...accountSetBalances
     normalBalanceType
     accounts: members(first: 100) {
-      ...accounts
+      ...accountsWithBalances
     }
   }
 }
 
 # 'accounts'
 
-fragment accounts on AccountSetMemberConnection {
+fragment accountsWithBalances on AccountSetMemberConnection {
   edges {
     node {
       __typename
