@@ -18,7 +18,7 @@ resource "random_uuid" "obs_assets" {}
 resource "cala_account_set" "obs_assets" {
   id                  = random_uuid.obs_assets.result
   journal_id          = cala_journal.journal.id
-  name                = "Off-Balance-Sheet Assets"
+  name                = "Assets (Off-Balance-Sheet)"
   normal_balance_type = "DEBIT"
 }
 resource "cala_account_set_member_account_set" "obs_assets" {
@@ -48,7 +48,7 @@ resource "random_uuid" "obs_liabilities" {}
 resource "cala_account_set" "obs_liabilities" {
   id                  = random_uuid.obs_liabilities.result
   journal_id          = cala_journal.journal.id
-  name                = "Off-Balance-Sheet Liabilities"
+  name                = "Liabilities (Off-Balance-Sheet)"
   normal_balance_type = "DEBIT"
 }
 resource "cala_account_set_member_account_set" "obs_liabilities" {
