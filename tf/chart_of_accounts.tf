@@ -152,7 +152,7 @@ resource "cala_account_set" "retained_earnings" {
   normal_balance_type = "CREDIT"
 }
 resource "cala_account_set_member_account_set" "retained_earnings_in_equity" {
-  account_set_id        = cala_account_set.equity.id
+  account_set_id        = cala_account_set.balance_sheet.id # this should be 'equity'
   member_account_set_id = cala_account_set.retained_earnings.id
 }
 
