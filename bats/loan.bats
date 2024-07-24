@@ -97,6 +97,17 @@ wait_for_interest() {
 
   variables=$(
     jq -n \
+      --arg address "$ust_address" \
+    '{
+       address: $address,
+       amount: "200",
+       currency: "UST"
+    }'
+  )
+  exec_cala_graphql 'simulate-deposit' "$variables"
+
+  variables=$(
+    jq -n \
       --arg loanId "$loan_id" \
     '{
       input: {
