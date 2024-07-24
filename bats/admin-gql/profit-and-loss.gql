@@ -20,6 +20,7 @@ query ProfitAndLossStatement {
         ... on AccountSetWithBalance {
           id
           name
+          hasSubAccounts
           balance {
             ...balancesByCurrency
           }
@@ -54,7 +55,7 @@ fragment usdBalances on LayeredUsdAccountBalances {
 }
 
 fragment usdLayers on UsdAccountBalance {
-  netDebit
+  netCredit
   debit
   credit
 }

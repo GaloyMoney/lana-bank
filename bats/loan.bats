@@ -114,5 +114,5 @@ wait_for_interest() {
   [[ "$collateral_sats" == "0" ]] || exit 1
 
   revenue_after=$(net_usd_revenue)
-  [[ $revenue_after -lt $revenue_before ]] || exit 1
+  [[ $revenue_after -gt $revenue_before ]] || exit 1
 }
