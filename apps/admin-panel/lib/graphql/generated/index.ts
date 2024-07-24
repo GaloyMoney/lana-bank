@@ -147,6 +147,7 @@ export type BtcAccountBalance = {
   __typename?: 'BtcAccountBalance';
   credit: Scalars['Satoshis']['output'];
   debit: Scalars['Satoshis']['output'];
+  netCredit: Scalars['SignedSatoshis']['output'];
   netDebit: Scalars['SignedSatoshis']['output'];
 };
 
@@ -500,6 +501,7 @@ export type UsdAccountBalance = {
   __typename?: 'UsdAccountBalance';
   credit: Scalars['UsdCents']['output'];
   debit: Scalars['UsdCents']['output'];
+  netCredit: Scalars['SignedUsdCents']['output'];
   netDebit: Scalars['SignedUsdCents']['output'];
 };
 

@@ -10,6 +10,7 @@ pub struct BtcAccountBalance {
     pub credit: Satoshis,
     pub net_normal: Satoshis,
     pub net_debit: SignedSatoshis,
+    pub net_credit: SignedSatoshis,
 }
 
 impl Default for BtcAccountBalance {
@@ -19,6 +20,7 @@ impl Default for BtcAccountBalance {
             credit: Satoshis::ZERO,
             net_normal: Satoshis::ZERO,
             net_debit: SignedSatoshis::ZERO,
+            net_credit: SignedSatoshis::ZERO,
         }
     }
 }
@@ -29,6 +31,7 @@ pub struct UsdAccountBalance {
     pub credit: UsdCents,
     pub net_normal: UsdCents,
     pub net_debit: SignedUsdCents,
+    pub net_credit: SignedUsdCents,
 }
 
 impl Default for UsdAccountBalance {
@@ -38,6 +41,7 @@ impl Default for UsdAccountBalance {
             credit: UsdCents::ZERO,
             net_normal: UsdCents::ZERO,
             net_debit: SignedUsdCents::ZERO,
+            net_credit: SignedUsdCents::ZERO,
         }
     }
 }
@@ -91,12 +95,14 @@ macro_rules! impl_from_account_details_and_balances {
                     let debit = Satoshis::from_btc(balances.dr_balance.units);
                     let credit = Satoshis::from_btc(balances.cr_balance.units);
                     let net_debit = SignedSatoshis::from(debit) - SignedSatoshis::from(credit);
+                    let net_credit = SignedSatoshis::from(credit) - SignedSatoshis::from(debit);
 
                     Self {
                         debit,
                         credit,
                         net_normal,
                         net_debit,
+                        net_credit,
                     }
                 }
             }
@@ -107,12 +113,14 @@ macro_rules! impl_from_account_details_and_balances {
                     let debit = UsdCents::from_usd(balances.dr_balance.units);
                     let credit = UsdCents::from_usd(balances.cr_balance.units);
                     let net_debit = SignedUsdCents::from(debit) - SignedUsdCents::from(credit);
+                    let net_credit = SignedUsdCents::from(credit) - SignedUsdCents::from(debit);
 
                     Self {
                         debit,
                         credit,
                         net_normal,
                         net_debit,
+                        net_credit,
                     }
                 }
             }
@@ -272,6 +280,7 @@ mod tests {
             credit: Satoshis::from_btc(credit_amount),
             net_normal: Satoshis::from_btc(net_amount_pos),
             net_debit: SignedSatoshis::from_btc(net_amount_neg),
+            net_credit: SignedSatoshis::from_btc(net_amount_pos),
         };
 
         let debit_normal_balance: BtcAccountBalance = btc_balance.into();
@@ -310,6 +319,7 @@ mod tests {
             credit: UsdCents::from_usd(credit_amount),
             net_normal: UsdCents::from_usd(net_amount_pos),
             net_debit: SignedUsdCents::from_usd(net_amount_neg),
+            net_credit: SignedUsdCents::from_usd(net_amount_pos),
         };
 
         let debit_normal_balance: UsdAccountBalance = usd_balance.into();

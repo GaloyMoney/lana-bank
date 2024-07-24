@@ -9,6 +9,7 @@ struct BtcAccountBalance {
     debit: Satoshis,
     credit: Satoshis,
     net_debit: SignedSatoshis,
+    net_credit: SignedSatoshis,
 }
 
 impl From<crate::ledger::account::BtcAccountBalance> for BtcAccountBalance {
@@ -17,6 +18,7 @@ impl From<crate::ledger::account::BtcAccountBalance> for BtcAccountBalance {
             debit: balance.debit,
             credit: balance.credit,
             net_debit: balance.net_debit,
+            net_credit: balance.net_credit,
         }
     }
 }
@@ -26,6 +28,7 @@ struct UsdAccountBalance {
     debit: UsdCents,
     credit: UsdCents,
     net_debit: SignedUsdCents,
+    net_credit: SignedUsdCents,
 }
 
 impl From<crate::ledger::account::UsdAccountBalance> for UsdAccountBalance {
@@ -34,6 +37,7 @@ impl From<crate::ledger::account::UsdAccountBalance> for UsdAccountBalance {
             debit: balance.debit,
             credit: balance.credit,
             net_debit: balance.net_debit,
+            net_credit: balance.net_credit,
         }
     }
 }

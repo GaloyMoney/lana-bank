@@ -121,6 +121,7 @@ type BtcAccountBalance {
 	debit: Satoshis!
 	credit: Satoshis!
 	netDebit: SignedSatoshis!
+	netCredit: SignedSatoshis!
 }
 
 type BtcBalance {
@@ -425,6 +426,7 @@ type UsdAccountBalance {
 	debit: UsdCents!
 	credit: UsdCents!
 	netDebit: SignedUsdCents!
+	netCredit: SignedUsdCents!
 }
 
 type UsdBalance {
