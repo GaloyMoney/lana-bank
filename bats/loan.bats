@@ -53,6 +53,8 @@ wait_for_interest() {
   )
   exec_cala_graphql 'simulate-deposit' "$variables"
 
+  revenue_before=$(net_usd_revenue)
+
   variables=$(
     jq -n \
     --arg customerId "$customer_id" \
@@ -110,4 +112,7 @@ wait_for_interest() {
   [[ "$outstanding_after" == "0" ]] || exit 1
   collateral_sats=$(read_value 'collateral_sats')
   [[ "$collateral_sats" == "0" ]] || exit 1
+
+  revenue_after=$(net_usd_revenue)
+  [[ $revenue_after -lt $revenue_before ]] || exit 1
 }

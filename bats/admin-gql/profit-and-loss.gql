@@ -1,0 +1,60 @@
+query ProfitAndLossStatement {
+  profitAndLossStatement {
+    name
+    balance {
+      ...balancesByCurrency
+    }
+    categories {
+      name
+      balance {
+        ...balancesByCurrency
+      }
+      accounts {
+        ... on AccountWithBalance {
+          id
+          name
+          balance {
+            ...balancesByCurrency
+          }
+        }
+        ... on AccountSetWithBalance {
+          id
+          name
+          balance {
+            ...balancesByCurrency
+          }
+        }
+      }
+    }
+  }
+}
+
+fragment balancesByCurrency on AccountBalancesByCurrency {
+  usd: usd {
+    ...usdBalances
+  }
+  usdt: usdt {
+    ...usdBalances
+  }
+}
+
+fragment usdBalances on LayeredUsdAccountBalances {
+  all {
+    ...usdLayers
+  }
+  settled {
+    ...usdLayers
+  }
+  pending {
+    ...usdLayers
+  }
+  encumbrance {
+    ...usdLayers
+  }
+}
+
+fragment usdLayers on UsdAccountBalance {
+  netDebit
+  debit
+  credit
+}

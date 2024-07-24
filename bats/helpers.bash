@@ -300,3 +300,11 @@ assert_accounts_balanced() {
   assert_balance_sheet_balanced
   assert_trial_balance
 }
+
+net_usd_revenue() {
+  exec_admin_graphql 'profit-and-loss'
+
+  revenue_usdt=$(graphql_output '.data.profitAndLossStatement.balance.usdt.all.netDebit')
+  revenue_usd=$(graphql_output '.data.profitAndLossStatement.balance.usd.all.netDebit')
+  add $revenue_usdt $revenue_usd
+}
