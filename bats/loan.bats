@@ -11,7 +11,7 @@ teardown_file() {
 }
 
 loan_balance() {
-    variables=$(
+  variables=$(
     jq -n \
     --arg loanId "$1" \
     '{ id: $loanId }'
@@ -22,11 +22,17 @@ loan_balance() {
   cache_value 'outstanding' "$outstanding_balance"
   collateral_balance_sats=$(graphql_output '.data.loan.balance.collateral.btcBalance')
   cache_value 'collateral_sats' "$collateral_balance_sats"
+  interest_incurred=$(graphql_output '.data.loan.balance.interestIncurred.usdBalance')
+  cache_value 'interest_incurred' "$interest_incurred"
+}
+
+wait_for_interest() {
+  loan_balance $1
+  interest_incurred=$(read_value 'interest_incurred')
+  [[ "$interest_incurred" -gt "0" ]] || return 1
 }
 
 @test "loan: loan lifecycle" {
-
-
   username=$(random_uuid)
   token=$(create_user)
   cache_value "alice" "$token"
@@ -80,9 +86,10 @@ loan_balance() {
     }'
   )
   exec_admin_graphql 'loan-approve' "$variables"
-  loan_balance "$loan_id"
+
+  retry 20 1 wait_for_interest "$loan_id"
   outstanding_before=$(read_value "outstanding")
-  [[ "$outstanding_before" == "10000" ]] || exit 1
+  [[ "$outstanding_before" == "10020" ]] || exit 1
   collateral_sats=$(read_value 'collateral_sats')
   [[ "$collateral_sats" == "233334" ]] || exit 1
 
@@ -92,7 +99,7 @@ loan_balance() {
     '{
       input: {
         loanId: $loanId,
-        amount: 10000,
+        amount: 10020,
       }
     }'
   )
@@ -103,5 +110,4 @@ loan_balance() {
   [[ "$outstanding_after" == "0" ]] || exit 1
   collateral_sats=$(read_value 'collateral_sats')
   [[ "$collateral_sats" == "0" ]] || exit 1
-
 }
