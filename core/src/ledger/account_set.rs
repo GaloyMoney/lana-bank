@@ -75,47 +75,43 @@ pub struct LedgerAccountSetSubAccountsWithBalance {
     pub members: Vec<PaginatedLedgerAccountSetSubAccountWithBalance>,
 }
 
-macro_rules! impl_from_sub_accounts_with_balances {
-    ($($module:ident),+)  => {
-        $(
-            impl From<$module::subAccountsWithBalances> for LedgerAccountSetSubAccountsWithBalance {
-                fn from(
-                    sub_account: $module::subAccountsWithBalances,
-                ) -> Self {
-                    let members = sub_account
-                        .edges
-                        .into_iter()
-                        .map(|e| match e.node {
-                            $module::SubAccountsWithBalancesEdgesNode::Account(node) => {
-                                PaginatedLedgerAccountSetSubAccountWithBalance {
-                                    cursor: e.cursor,
-                                    value: LedgerAccountSetSubAccountWithBalance::Account(
-                                        LedgerAccountWithBalance::from(node),
-                                    ),
-                                }
-                            }
-                            $module::SubAccountsWithBalancesEdgesNode::AccountSet(
-                                node,
-                            ) => PaginatedLedgerAccountSetSubAccountWithBalance {
-                                cursor: e.cursor,
-                                value: LedgerAccountSetSubAccountWithBalance::AccountSet(
-                                    LedgerAccountSetWithBalance::from(node),
-                                ),
-                            },
-                        })
-                        .collect();
-
-                    LedgerAccountSetSubAccountsWithBalance {
-                        page_info: ConnectionCreationPageInfo {
-                            has_next_page: sub_account.page_info.has_next_page,
-                            end_cursor: sub_account.page_info.end_cursor,
-                        },
-                        members,
+impl From<account_set_and_sub_accounts_with_balance::subAccountsWithBalances>
+    for LedgerAccountSetSubAccountsWithBalance
+{
+    fn from(
+        sub_account: account_set_and_sub_accounts_with_balance::subAccountsWithBalances,
+    ) -> Self {
+        let members = sub_account
+            .edges
+            .into_iter()
+            .map(|e| match e.node {
+                account_set_and_sub_accounts_with_balance::SubAccountsWithBalancesEdgesNode::Account(node) => {
+                    PaginatedLedgerAccountSetSubAccountWithBalance {
+                        cursor: e.cursor,
+                        value: LedgerAccountSetSubAccountWithBalance::Account(
+                            LedgerAccountWithBalance::from(node),
+                        ),
                     }
                 }
-            }
-        )+
-    };
+                account_set_and_sub_accounts_with_balance::SubAccountsWithBalancesEdgesNode::AccountSet(
+                    node,
+                ) => PaginatedLedgerAccountSetSubAccountWithBalance {
+                    cursor: e.cursor,
+                    value: LedgerAccountSetSubAccountWithBalance::AccountSet(
+                        LedgerAccountSetWithBalance::from(node),
+                    ),
+                },
+            })
+            .collect();
+
+        LedgerAccountSetSubAccountsWithBalance {
+            page_info: ConnectionCreationPageInfo {
+                has_next_page: sub_account.page_info.has_next_page,
+                end_cursor: sub_account.page_info.end_cursor,
+            },
+            members,
+        }
+    }
 }
 
 #[derive(Debug, Clone)]
@@ -203,45 +199,39 @@ pub struct LedgerAccountSetSubAccounts {
     pub members: Vec<PaginatedLedgerAccountSetSubAccount>,
 }
 
-macro_rules! impl_from_sub_accounts {
-    ($($module:ident),+)  => {
-        $(
-            impl From<$module::subAccounts> for LedgerAccountSetSubAccounts {
-                fn from(sub_account: $module::subAccounts) -> Self {
-                    let members = sub_account
-                        .edges
-                        .into_iter()
-                        .map(|e| match e.node {
-                            $module::SubAccountsEdgesNode::Account(node) => {
-                                PaginatedLedgerAccountSetSubAccount {
-                                    cursor: e.cursor,
-                                    value: LedgerAccountSetSubAccount::Account(LedgerAccountDetails::from(
-                                        node,
-                                    )),
-                                }
-                            }
-                            $module::SubAccountsEdgesNode::AccountSet(node) => {
-                                PaginatedLedgerAccountSetSubAccount {
-                                    cursor: e.cursor,
-                                    value: LedgerAccountSetSubAccount::AccountSet(
-                                        LedgerAccountSetDetails::from(node),
-                                    ),
-                                }
-                            }
-                        })
-                        .collect();
-
-                    LedgerAccountSetSubAccounts {
-                        page_info: ConnectionCreationPageInfo {
-                            has_next_page: sub_account.page_info.has_next_page,
-                            end_cursor: sub_account.page_info.end_cursor,
-                        },
-                        members,
+impl From<account_set_and_sub_accounts::subAccounts> for LedgerAccountSetSubAccounts {
+    fn from(sub_account: account_set_and_sub_accounts::subAccounts) -> Self {
+        let members = sub_account
+            .edges
+            .into_iter()
+            .map(|e| match e.node {
+                account_set_and_sub_accounts::SubAccountsEdgesNode::Account(node) => {
+                    PaginatedLedgerAccountSetSubAccount {
+                        cursor: e.cursor,
+                        value: LedgerAccountSetSubAccount::Account(LedgerAccountDetails::from(
+                            node,
+                        )),
                     }
                 }
-            }
-        )+
-    };
+                account_set_and_sub_accounts::SubAccountsEdgesNode::AccountSet(node) => {
+                    PaginatedLedgerAccountSetSubAccount {
+                        cursor: e.cursor,
+                        value: LedgerAccountSetSubAccount::AccountSet(
+                            LedgerAccountSetDetails::from(node),
+                        ),
+                    }
+                }
+            })
+            .collect();
+
+        LedgerAccountSetSubAccounts {
+            page_info: ConnectionCreationPageInfo {
+                has_next_page: sub_account.page_info.has_next_page,
+                end_cursor: sub_account.page_info.end_cursor,
+            },
+            members,
+        }
+    }
 }
 
 #[derive(Debug, Clone)]
@@ -340,9 +330,6 @@ impl_from_account_set_details_and_balances!(
     balance_sheet,
     profit_and_loss_statement
 );
-
-impl_from_sub_accounts!(account_set_and_sub_accounts);
-impl_from_sub_accounts_with_balances!(account_set_and_sub_accounts_with_balance);
 
 impl_from_accounts!(chart_of_accounts);
 impl_from_accounts_with_balances!(trial_balance, balance_sheet, profit_and_loss_statement);
