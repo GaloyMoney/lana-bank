@@ -144,6 +144,19 @@ resource "cala_account_set_member_account_set" "equity_in_balance_sheet" {
   member_account_set_id = cala_account_set.equity.id
 }
 
+resource "random_uuid" "retained_earnings" {}
+resource "cala_account_set" "retained_earnings" {
+  id                  = random_uuid.retained_earnings.result
+  journal_id          = cala_journal.journal.id
+  name                = "Retained Earnings"
+  normal_balance_type = "CREDIT"
+}
+resource "cala_account_set_member_account_set" "retained_earnings_in_equity" {
+  account_set_id        = cala_account_set.equity.id
+  member_account_set_id = cala_account_set.retained_earnings.id
+}
+
+
 # EQUITY: Members
 resource "random_uuid" "bank_shareholder_equity" {}
 resource "cala_account" "bank_shareholder_equity" {
@@ -178,6 +191,10 @@ resource "cala_account_set_member_account_set" "revenue_in_profit_and_loss" {
   account_set_id        = cala_account_set.profit_and_loss.id
   member_account_set_id = cala_account_set.revenue.id
 }
+resource "cala_account_set_member_account_set" "revenue_in_retained_earnings" {
+  account_set_id        = cala_account_set.retained_earnings.id
+  member_account_set_id = cala_account_set.revenue.id
+}
 
 # REVENUE: Members
 resource "cala_account_set" "interest_revenue_control" {
@@ -210,6 +227,10 @@ resource "cala_account_set_member_account_set" "expenses" {
 }
 resource "cala_account_set_member_account_set" "expenses_in_profit_and_loss" {
   account_set_id        = cala_account_set.profit_and_loss.id
+  member_account_set_id = cala_account_set.expenses.id
+}
+resource "cala_account_set_member_account_set" "expenses_in_retained_earnings" {
+  account_set_id        = cala_account_set.retained_earnings.id
   member_account_set_id = cala_account_set.expenses.id
 }
 
