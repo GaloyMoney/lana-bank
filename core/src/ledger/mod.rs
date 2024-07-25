@@ -206,27 +206,18 @@ impl Ledger {
     }
 
     pub async fn trial_balance(&self) -> Result<Option<LedgerTrialBalance>, LedgerError> {
-        Ok(self
-            .cala
-            .trial_balance::<LedgerTrialBalance>()
-            .await?
-            .map(LedgerTrialBalance::from))
+        Ok(self.cala.trial_balance::<LedgerTrialBalance>().await?)
     }
 
     pub async fn obs_trial_balance(&self) -> Result<Option<LedgerTrialBalance>, LedgerError> {
-        Ok(self
-            .cala
-            .obs_trial_balance::<LedgerTrialBalance>()
-            .await?
-            .map(LedgerTrialBalance::from))
+        Ok(self.cala.obs_trial_balance::<LedgerTrialBalance>().await?)
     }
 
     pub async fn chart_of_accounts(&self) -> Result<Option<LedgerChartOfAccounts>, LedgerError> {
         Ok(self
             .cala
             .chart_of_accounts::<LedgerChartOfAccounts>()
-            .await?
-            .map(LedgerChartOfAccounts::from))
+            .await?)
     }
 
     pub async fn obs_chart_of_accounts(

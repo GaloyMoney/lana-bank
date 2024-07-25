@@ -4,6 +4,8 @@ use rust_decimal::{prelude::*, Decimal};
 use rust_decimal_macros::dec;
 use serde::{Deserialize, Serialize};
 
+use super::error::*;
+
 use crate::primitives::{PriceOfOneBTC, Satoshis, UsdCents};
 
 const NUMBER_OF_DAYS_IN_YEAR: Decimal = dec!(366);
@@ -124,12 +126,12 @@ impl TermValues {
         &self,
         desired_principal: UsdCents,
         price: PriceOfOneBTC,
-    ) -> Satoshis {
+    ) -> Result<Satoshis, LoanTermsError> {
         let collateral_value = self.initial_cvl.scale(desired_principal);
-        price.cents_to_sats(
+        Ok(price.try_cents_to_sats(
             collateral_value,
             rust_decimal::RoundingStrategy::AwayFromZero,
-        )
+        )?)
     }
 
     pub fn calculate_interest(&self, principal: UsdCents, days: u32) -> UsdCents {
@@ -144,16 +146,18 @@ mod test {
     use super::*;
 
     #[test]
-    fn loan_cvl_pct_scale() {
+    fn loan_cvl_pct_scale() -> Result<(), Box<dyn std::error::Error>> {
         let cvl = CVLPct(dec!(140));
         let value = UsdCents::from(100000);
         let scaled = cvl.scale(value);
-        assert_eq!(scaled, UsdCents::from_usd(dec!(1400)));
+        assert_eq!(scaled, UsdCents::try_from_usd(dec!(1400))?);
 
         let cvl = CVLPct(dec!(50));
         let value = UsdCents::from(333333);
         let scaled = cvl.scale(value);
-        assert_eq!(scaled, UsdCents::from_usd(dec!(1666.67)));
+        assert_eq!(scaled, UsdCents::try_from_usd(dec!(1666.67))?);
+
+        Ok(())
     }
 
     fn terms() -> TermValues {
@@ -169,13 +173,15 @@ mod test {
     }
 
     #[test]
-    fn required_collateral() {
-        let price = PriceOfOneBTC::new(UsdCents::from_usd(rust_decimal_macros::dec!(1000)));
+    fn required_collateral() -> Result<(), Box<dyn std::error::Error>> {
+        let price = PriceOfOneBTC::new(UsdCents::try_from_usd(rust_decimal_macros::dec!(1000))?);
         let terms = terms();
         let principal = UsdCents::from(100000);
-        let required_collateral = terms.required_collateral(principal, price);
-        let sats = Satoshis::from_btc(dec!(1.4));
+        let required_collateral = terms.required_collateral(principal, price)?;
+        let sats = Satoshis::try_from_btc(dec!(1.4))?;
         assert_eq!(required_collateral, sats);
+
+        Ok(())
     }
 
     #[test]
@@ -188,17 +194,19 @@ mod test {
     }
 
     #[test]
-    fn interest_calculation() {
+    fn interest_calculation() -> Result<(), Box<dyn std::error::Error>> {
         let terms = terms();
-        let principal = UsdCents::from_usd(dec!(100));
+        let principal = UsdCents::try_from_usd(dec!(100))?;
         let days = 366;
         let interest = terms.calculate_interest(principal, days);
         assert_eq!(interest, UsdCents::from(1200));
 
-        let principal = UsdCents::from_usd(dec!(1000));
+        let principal = UsdCents::try_from_usd(dec!(1000))?;
         let days = 23;
         let interest = terms.calculate_interest(principal, days);
         assert_eq!(interest, UsdCents::from(755));
+
+        Ok(())
     }
 
     #[test]

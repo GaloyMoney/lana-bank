@@ -104,7 +104,7 @@ impl CalaClient {
         err
     )]
     pub async fn find_account_set_and_sub_accounts_with_balance_by_id<
-        T: From<account_set_and_sub_accounts_with_balance::AccountSetAndSubAccountsWithBalanceAccountSet>,
+        T: TryFrom<account_set_and_sub_accounts_with_balance::AccountSetAndSubAccountsWithBalanceAccountSet, Error = CalaError>,
     >(
         &self,
         id: impl Into<Uuid>,
@@ -124,7 +124,11 @@ impl CalaClient {
         )
         .await?;
 
-        Ok(response.data.and_then(|d| d.account_set).map(T::from))
+        response
+            .data
+            .and_then(|d| d.account_set)
+            .map(T::try_from)
+            .transpose()
     }
 
     #[instrument(
@@ -308,7 +312,9 @@ impl CalaClient {
     }
 
     #[instrument(name = "lava.ledger.cala.get_customer_balance", skip(self), err)]
-    pub async fn get_customer_balance<T: From<customer_balance::ResponseData>>(
+    pub async fn get_customer_balance<
+        T: TryFrom<customer_balance::ResponseData, Error = CalaError>,
+    >(
         &self,
         account_ids: CustomerLedgerAccountIds,
     ) -> Result<Option<T>, CalaError> {
@@ -325,11 +331,11 @@ impl CalaClient {
             Self::traced_gql_request::<CustomerBalance, _>(&self.client, &self.url, variables)
                 .await?;
 
-        Ok(response.data.map(T::from))
+        response.data.map(T::try_from).transpose()
     }
 
     #[instrument(name = "lava.ledger.cala.get_loan_balance", skip(self), err)]
-    pub async fn get_loan_balance<T: From<loan_balance::ResponseData>>(
+    pub async fn get_loan_balance<T: TryFrom<loan_balance::ResponseData, Error = CalaError>>(
         &self,
         account_ids: LoanAccountIds,
     ) -> Result<Option<T>, CalaError> {
@@ -342,7 +348,7 @@ impl CalaClient {
         let response =
             Self::traced_gql_request::<LoanBalance, _>(&self.client, &self.url, variables).await?;
 
-        Ok(response.data.map(T::from))
+        response.data.map(T::try_from).transpose()
     }
 
     #[instrument(name = "lava.ledger.cala.find_tx_template_by_code", skip(self), err)]
@@ -771,7 +777,9 @@ impl CalaClient {
             .ok_or(CalaError::MissingDataField)
     }
 
-    pub async fn trial_balance<T: From<trial_balance::TrialBalanceAccountSet>>(
+    pub async fn trial_balance<
+        T: TryFrom<trial_balance::TrialBalanceAccountSet, Error = CalaError>,
+    >(
         &self,
     ) -> Result<Option<T>, CalaError> {
         let variables = trial_balance::Variables {
@@ -780,10 +788,16 @@ impl CalaClient {
         };
         let response =
             Self::traced_gql_request::<TrialBalance, _>(&self.client, &self.url, variables).await?;
-        Ok(response.data.and_then(|d| d.account_set).map(T::from))
+        response
+            .data
+            .and_then(|d| d.account_set)
+            .map(T::try_from)
+            .transpose()
     }
 
-    pub async fn obs_trial_balance<T: From<trial_balance::TrialBalanceAccountSet>>(
+    pub async fn obs_trial_balance<
+        T: TryFrom<trial_balance::TrialBalanceAccountSet, Error = CalaError>,
+    >(
         &self,
     ) -> Result<Option<T>, CalaError> {
         let variables = trial_balance::Variables {
@@ -792,7 +806,11 @@ impl CalaClient {
         };
         let response =
             Self::traced_gql_request::<TrialBalance, _>(&self.client, &self.url, variables).await?;
-        Ok(response.data.and_then(|d| d.account_set).map(T::from))
+        response
+            .data
+            .and_then(|d| d.account_set)
+            .map(T::try_from)
+            .transpose()
     }
 
     pub async fn chart_of_accounts<T: From<chart_of_accounts::ChartOfAccountsAccountSet>>(
@@ -819,7 +837,9 @@ impl CalaClient {
         Ok(response.data.and_then(|d| d.account_set).map(T::from))
     }
 
-    pub async fn balance_sheet<T: From<balance_sheet::BalanceSheetAccountSet>>(
+    pub async fn balance_sheet<
+        T: TryFrom<balance_sheet::BalanceSheetAccountSet, Error = CalaError>,
+    >(
         &self,
     ) -> Result<Option<T>, CalaError> {
         let variables = balance_sheet::Variables {
@@ -828,11 +848,15 @@ impl CalaClient {
         };
         let response =
             Self::traced_gql_request::<BalanceSheet, _>(&self.client, &self.url, variables).await?;
-        Ok(response.data.and_then(|d| d.account_set).map(T::from))
+        response
+            .data
+            .and_then(|d| d.account_set)
+            .map(T::try_from)
+            .transpose()
     }
 
     pub async fn profit_and_loss<
-        T: From<profit_and_loss_statement::ProfitAndLossStatementAccountSet>,
+        T: TryFrom<profit_and_loss_statement::ProfitAndLossStatementAccountSet, Error = CalaError>,
     >(
         &self,
     ) -> Result<Option<T>, CalaError> {
@@ -846,7 +870,11 @@ impl CalaClient {
             variables,
         )
         .await?;
-        Ok(response.data.and_then(|d| d.account_set).map(T::from))
+        response
+            .data
+            .and_then(|d| d.account_set)
+            .map(T::try_from)
+            .transpose()
     }
 
     #[instrument(name = "lava.ledger.cala.find_by_id", skip(self), err)]

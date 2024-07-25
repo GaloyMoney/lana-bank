@@ -7,6 +7,7 @@ pub mod authorization;
 pub mod cli;
 pub mod customer;
 pub mod entity;
+pub mod error;
 pub mod job;
 pub mod ledger;
 pub mod loan;

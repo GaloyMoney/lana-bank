@@ -1,7 +1,7 @@
 use crate::primitives::{LedgerAccountId, Satoshis, UsdCents};
 use serde::{Deserialize, Serialize};
 
-use super::cala::graphql::*;
+use super::cala::{error::*, graphql::*};
 
 #[derive(Debug, Copy, Clone, Serialize, Deserialize)]
 pub struct LoanAccountIds {
@@ -27,21 +27,23 @@ pub struct LoanBalance {
     pub interest_incurred: UsdCents,
 }
 
-impl From<loan_balance::ResponseData> for LoanBalance {
-    fn from(data: loan_balance::ResponseData) -> Self {
-        LoanBalance {
+impl TryFrom<loan_balance::ResponseData> for LoanBalance {
+    type Error = CalaError;
+
+    fn try_from(data: loan_balance::ResponseData) -> Result<Self, Self::Error> {
+        Ok(LoanBalance {
             collateral: data
                 .collateral
-                .map(|b| Satoshis::from_btc(b.settled.normal_balance.units))
-                .unwrap_or_else(|| Satoshis::ZERO),
+                .map(|b| Satoshis::try_from_btc(b.settled.normal_balance.units))
+                .unwrap_or_else(|| Ok(Satoshis::ZERO))?,
             outstanding: data
                 .loan_outstanding
-                .map(|b| UsdCents::from_usd(b.settled.normal_balance.units))
-                .unwrap_or_else(|| UsdCents::ZERO),
+                .map(|b| UsdCents::try_from_usd(b.settled.normal_balance.units))
+                .unwrap_or_else(|| Ok(UsdCents::ZERO))?,
             interest_incurred: data
                 .interest_income
-                .map(|b| UsdCents::from_usd(b.settled.normal_balance.units))
-                .unwrap_or_else(|| UsdCents::ZERO),
-        }
+                .map(|b| UsdCents::try_from_usd(b.settled.normal_balance.units))
+                .unwrap_or_else(|| Ok(UsdCents::ZERO))?,
+        })
     }
 }

@@ -1,6 +1,9 @@
 use crate::primitives::{LedgerAccountSetId, LedgerDebitOrCredit};
 
-use super::{account::*, cala::graphql::*};
+use super::{
+    account::*,
+    cala::{error::*, graphql::*},
+};
 
 #[derive(Debug, Clone)]
 pub struct LedgerAccountSetWithBalance {
@@ -20,16 +23,18 @@ pub enum LedgerAccountSetSubAccountWithBalance {
 macro_rules! impl_from_account_set_details_and_balances {
     ($($module:ident),+)  => {
         $(
-            impl From<$module::accountSetDetailsAndBalances> for LedgerAccountSetWithBalance {
-                fn from(account_set: $module::accountSetDetailsAndBalances) -> Self {
+            impl TryFrom<$module::accountSetDetailsAndBalances> for LedgerAccountSetWithBalance {
+                type Error = CalaError;
+
+                fn try_from(account_set: $module::accountSetDetailsAndBalances) -> Result<Self, Self::Error> {
                     let account_set_details = account_set.account_set_details;
-                    LedgerAccountSetWithBalance {
+                    Ok(LedgerAccountSetWithBalance {
                         id: account_set_details.account_set_id.into(),
                         name: account_set_details.name,
                         normal_balance_type: account_set_details.normal_balance_type.into(),
-                        balance: account_set.account_set_balances.into(),
+                        balance: account_set.account_set_balances.try_into()?,
                         has_sub_accounts: account_set_details.members.page_info.start_cursor.is_some(),
-                    }
+                    })
                 }
             }
         )+
@@ -39,21 +44,21 @@ macro_rules! impl_from_account_set_details_and_balances {
 macro_rules! impl_from_accounts_with_balances {
     ($($module:ident),+)  => {
         $(
-            impl From<$module::accountsWithBalances> for Vec<LedgerAccountSetSubAccountWithBalance> {
-                fn from(members: $module::accountsWithBalances) -> Self {
+            impl TryFrom<$module::accountsWithBalances> for Vec<LedgerAccountSetSubAccountWithBalance> {
+                type Error = CalaError;
+
+                fn try_from(members: $module::accountsWithBalances) -> Result<Self, Self::Error> {
                     members
                         .edges
                         .into_iter()
                         .map(|e| match e.node {
                             $module::AccountsWithBalancesEdgesNode::Account(node) => {
-                                LedgerAccountSetSubAccountWithBalance::Account(LedgerAccountWithBalance::from(
-                                    node,
-                                ))
+                                LedgerAccountWithBalance::try_from(node)
+                                    .map(LedgerAccountSetSubAccountWithBalance::Account)
                             }
                             $module::AccountsWithBalancesEdgesNode::AccountSet(node) => {
-                                LedgerAccountSetSubAccountWithBalance::AccountSet(
-                                    LedgerAccountSetWithBalance::from(node),
-                                )
+                                LedgerAccountSetWithBalance::try_from(node)
+                                    .map(LedgerAccountSetSubAccountWithBalance::AccountSet)
                             }
                         })
                         .collect()
@@ -75,42 +80,45 @@ pub struct LedgerAccountSetSubAccountsWithBalance {
     pub members: Vec<PaginatedLedgerAccountSetSubAccountWithBalance>,
 }
 
-impl From<account_set_and_sub_accounts_with_balance::subAccountsWithBalances>
+impl TryFrom<account_set_and_sub_accounts_with_balance::subAccountsWithBalances>
     for LedgerAccountSetSubAccountsWithBalance
 {
-    fn from(
+    type Error = CalaError;
+
+    fn try_from(
         sub_account: account_set_and_sub_accounts_with_balance::subAccountsWithBalances,
-    ) -> Self {
+    ) -> Result<Self, Self::Error> {
         let members = sub_account
             .edges
             .into_iter()
-            .map(|e| match e.node {
-                account_set_and_sub_accounts_with_balance::SubAccountsWithBalancesEdgesNode::Account(node) => {
-                    PaginatedLedgerAccountSetSubAccountWithBalance {
-                        cursor: e.cursor,
-                        value: LedgerAccountSetSubAccountWithBalance::Account(
-                            LedgerAccountWithBalance::from(node),
-                        ),
+            .map(|e| -> Result<PaginatedLedgerAccountSetSubAccountWithBalance, Self::Error> {
+                let value = match e.node {
+                    account_set_and_sub_accounts_with_balance::SubAccountsWithBalancesEdgesNode::Account(node) => {
+                        LedgerAccountWithBalance::try_from(node)
+                            .map(LedgerAccountSetSubAccountWithBalance::Account)
                     }
-                }
-                account_set_and_sub_accounts_with_balance::SubAccountsWithBalancesEdgesNode::AccountSet(
-                    node,
-                ) => PaginatedLedgerAccountSetSubAccountWithBalance {
-                    cursor: e.cursor,
-                    value: LedgerAccountSetSubAccountWithBalance::AccountSet(
-                        LedgerAccountSetWithBalance::from(node),
-                    ),
-                },
-            })
-            .collect();
+                    account_set_and_sub_accounts_with_balance::SubAccountsWithBalancesEdgesNode::AccountSet(
+                        node,
+                    ) => {
+                        LedgerAccountSetWithBalance::try_from(node)
+                            .map(LedgerAccountSetSubAccountWithBalance::AccountSet)
+                    }
+                }?;
 
-        LedgerAccountSetSubAccountsWithBalance {
+                Ok(PaginatedLedgerAccountSetSubAccountWithBalance {
+                    cursor: e.cursor,
+                    value,
+                })
+            })
+            .collect::<Result<Vec<_>, _>>()?;
+
+        Ok(LedgerAccountSetSubAccountsWithBalance {
             page_info: ConnectionCreationPageInfo {
                 has_next_page: sub_account.page_info.has_next_page,
                 end_cursor: sub_account.page_info.end_cursor,
             },
             members,
-        }
+        })
     }
 }
 
@@ -287,33 +295,37 @@ pub struct LedgerStatementCategoryWithBalance {
 macro_rules! impl_from_category_with_balances {
     ($($module:ident),+)  => {
         $(
-            impl From<$module::categoryAccountSetWithBalances> for LedgerStatementCategoryWithBalance {
-                fn from(account_set: $module::categoryAccountSetWithBalances) -> Self {
+            impl TryFrom<$module::categoryAccountSetWithBalances> for LedgerStatementCategoryWithBalance {
+                type Error = CalaError;
+
+                fn try_from(account_set: $module::categoryAccountSetWithBalances) -> Result<Self, Self::Error> {
                     let account_set_details = account_set
                         .account_set_details_and_balances
                         .account_set_details;
-                    LedgerStatementCategoryWithBalance {
+                    Ok(LedgerStatementCategoryWithBalance {
                         id: account_set_details.account_set_id.into(),
                         name: account_set_details.name,
                         normal_balance_type: account_set_details.normal_balance_type.into(),
                         balance: account_set
                             .account_set_details_and_balances
                             .account_set_balances
-                            .into(),
-                        accounts: account_set.accounts.into(),
-                    }
+                            .try_into()?,
+                        accounts: account_set.accounts.try_into()?,
+                    })
                 }
             }
 
-            impl From<$module::categoriesWithBalances> for Vec<LedgerStatementCategoryWithBalance> {
-                fn from(members: $module::categoriesWithBalances) -> Self {
+            impl TryFrom<$module::categoriesWithBalances> for Vec<LedgerStatementCategoryWithBalance> {
+                type Error = CalaError;
+
+                fn try_from(members: $module::categoriesWithBalances) -> Result<Self, Self::Error> {
                     members
                         .edges
                         .into_iter()
                         .filter_map(|e| match e.node {
                             $module::CategoriesWithBalancesEdgesNode::Account(_) => None,
                             $module::CategoriesWithBalancesEdgesNode::AccountSet(node) => {
-                                Some(LedgerStatementCategoryWithBalance::from(node))
+                                Some(LedgerStatementCategoryWithBalance::try_from(node))
                             }
                         })
                         .collect()
@@ -369,25 +381,30 @@ pub struct LedgerAccountSetAndSubAccountsWithBalance {
     pub sub_accounts: LedgerAccountSetSubAccountsWithBalance,
 }
 
-impl From<account_set_and_sub_accounts_with_balance::AccountSetAndSubAccountsWithBalanceAccountSet>
-    for LedgerAccountSetAndSubAccountsWithBalance
+impl
+    TryFrom<
+        account_set_and_sub_accounts_with_balance::AccountSetAndSubAccountsWithBalanceAccountSet,
+    > for LedgerAccountSetAndSubAccountsWithBalance
 {
-    fn from(
+    type Error = CalaError;
+
+    fn try_from(
         account_set: account_set_and_sub_accounts_with_balance::AccountSetAndSubAccountsWithBalanceAccountSet,
-    ) -> Self {
+    ) -> Result<Self, Self::Error> {
         let account_set_details = account_set
             .account_set_details_and_balances
             .account_set_details;
-        LedgerAccountSetAndSubAccountsWithBalance {
+
+        Ok(LedgerAccountSetAndSubAccountsWithBalance {
             id: account_set_details.account_set_id.into(),
             name: account_set_details.name,
             normal_balance_type: account_set_details.normal_balance_type.into(),
             balance: account_set
                 .account_set_details_and_balances
                 .account_set_balances
-                .into(),
-            sub_accounts: account_set.sub_accounts.into(),
-        }
+                .try_into()?,
+            sub_accounts: account_set.sub_accounts.try_into()?,
+        })
     }
 }
 
@@ -418,14 +435,16 @@ pub struct LedgerTrialBalance {
     pub accounts: Vec<LedgerAccountSetSubAccountWithBalance>,
 }
 
-impl From<trial_balance::TrialBalanceAccountSet> for LedgerTrialBalance {
-    fn from(account_set: trial_balance::TrialBalanceAccountSet) -> Self {
-        LedgerTrialBalance {
+impl TryFrom<trial_balance::TrialBalanceAccountSet> for LedgerTrialBalance {
+    type Error = CalaError;
+
+    fn try_from(account_set: trial_balance::TrialBalanceAccountSet) -> Result<Self, Self::Error> {
+        Ok(LedgerTrialBalance {
             name: account_set.name,
             normal_balance_type: account_set.normal_balance_type.into(),
-            balance: account_set.account_set_balances.into(),
-            accounts: account_set.accounts.into(),
-        }
+            balance: account_set.account_set_balances.try_into()?,
+            accounts: account_set.accounts.try_into()?,
+        })
     }
 }
 
@@ -437,20 +456,23 @@ pub struct LedgerBalanceSheet {
     pub categories: Vec<LedgerStatementCategoryWithBalance>,
 }
 
-impl From<balance_sheet::BalanceSheetAccountSet> for LedgerBalanceSheet {
-    fn from(account_set: balance_sheet::BalanceSheetAccountSet) -> Self {
+impl TryFrom<balance_sheet::BalanceSheetAccountSet> for LedgerBalanceSheet {
+    type Error = CalaError;
+
+    fn try_from(account_set: balance_sheet::BalanceSheetAccountSet) -> Result<Self, Self::Error> {
         let account_set_details = account_set
             .account_set_details_and_balances
             .account_set_details;
-        LedgerBalanceSheet {
+
+        Ok(LedgerBalanceSheet {
             name: account_set_details.name,
             normal_balance_type: account_set_details.normal_balance_type.into(),
             balance: account_set
                 .account_set_details_and_balances
                 .account_set_balances
-                .into(),
-            categories: account_set.categories.into(),
-        }
+                .try_into()?,
+            categories: account_set.categories.try_into()?,
+        })
     }
 }
 
@@ -462,21 +484,26 @@ pub struct LedgerProfitAndLossStatement {
     pub categories: Vec<LedgerStatementCategoryWithBalance>,
 }
 
-impl From<profit_and_loss_statement::ProfitAndLossStatementAccountSet>
+impl TryFrom<profit_and_loss_statement::ProfitAndLossStatementAccountSet>
     for LedgerProfitAndLossStatement
 {
-    fn from(account_set: profit_and_loss_statement::ProfitAndLossStatementAccountSet) -> Self {
+    type Error = CalaError;
+
+    fn try_from(
+        account_set: profit_and_loss_statement::ProfitAndLossStatementAccountSet,
+    ) -> Result<Self, Self::Error> {
         let account_set_details = account_set
             .account_set_details_and_balances
             .account_set_details;
-        LedgerProfitAndLossStatement {
+
+        Ok(LedgerProfitAndLossStatement {
             name: account_set_details.name,
             normal_balance_type: account_set_details.normal_balance_type.into(),
             balance: account_set
                 .account_set_details_and_balances
                 .account_set_balances
-                .into(),
-            categories: account_set.categories.into(),
-        }
+                .try_into()?,
+            categories: account_set.categories.try_into()?,
+        })
     }
 }

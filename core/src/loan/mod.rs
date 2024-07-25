@@ -10,6 +10,7 @@ use crate::{
     authorization::{Action, Authorization, LoanAction, Object, TermAction},
     customer::Customers,
     entity::EntityError,
+    error::DomainError,
     job::{JobRegistry, Jobs},
     ledger::{loan::*, Ledger},
     primitives::*,
@@ -74,8 +75,10 @@ impl Loans {
         self.term_repo.update_default(terms).await
     }
 
-    fn dummy_price() -> PriceOfOneBTC {
-        PriceOfOneBTC::new(UsdCents::from_usd(rust_decimal_macros::dec!(60000)))
+    fn dummy_price() -> Result<PriceOfOneBTC, DomainError> {
+        Ok(PriceOfOneBTC::new(UsdCents::try_from_usd(
+            rust_decimal_macros::dec!(60000),
+        )?))
     }
 
     pub async fn create_loan_for_customer(
@@ -105,7 +108,8 @@ impl Loans {
             .await?
             .btc_balance;
 
-        let required_collateral = terms.required_collateral(desired_principal, Self::dummy_price());
+        let required_collateral =
+            terms.required_collateral(desired_principal, Self::dummy_price()?)?;
 
         if required_collateral > unallocated_collateral {
             return Err(LoanError::InsufficientCollateral(

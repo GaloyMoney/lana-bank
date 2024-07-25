@@ -79,6 +79,8 @@ pub use cala_types::primitives::{
     TransactionId as LedgerTxId, TxTemplateId as LedgerTxTemplateId,
 };
 
+use super::error::DomainError;
+
 pub const SATS_PER_BTC: Decimal = dec!(100_000_000);
 pub const CENTS_PER_USD: Decimal = dec!(100);
 
@@ -216,10 +218,13 @@ impl Satoshis {
         Decimal::from(self.0) / SATS_PER_BTC
     }
 
-    pub fn from_btc(btc: Decimal) -> Self {
+    pub fn try_from_btc(btc: Decimal) -> Result<Self, DomainError> {
         let sats = btc * SATS_PER_BTC;
         assert!(sats.trunc() == sats, "Satoshis must be an integer");
-        Self(u64::try_from(sats).expect("Satoshis must be positive integer"))
+        if sats < Decimal::new(0, 0) {
+            return Err(DomainError::UnexpectedNegativeNumber(sats));
+        }
+        Ok(Self(u64::try_from(sats)?))
     }
 
     pub fn into_inner(self) -> u64 {
@@ -284,10 +289,13 @@ impl UsdCents {
         Decimal::from(self.0) / CENTS_PER_USD
     }
 
-    pub fn from_usd(usd: Decimal) -> Self {
+    pub fn try_from_usd(usd: Decimal) -> Result<Self, DomainError> {
         let cents = usd * CENTS_PER_USD;
         assert!(cents.trunc() == cents, "Cents must be an integer");
-        Self(u64::try_from(cents).expect("Cents must be positive integer"))
+        if cents < Decimal::new(0, 0) {
+            return Err(DomainError::UnexpectedNegativeNumber(cents));
+        }
+        Ok(Self(u64::try_from(cents)?))
     }
 
     pub fn into_inner(self) -> u64 {
@@ -335,9 +343,13 @@ impl PriceOfOneBTC {
         Self(price)
     }
 
-    pub fn cents_to_sats(self, cents: UsdCents, rounding_strategy: RoundingStrategy) -> Satoshis {
+    pub fn try_cents_to_sats(
+        self,
+        cents: UsdCents,
+        rounding_strategy: RoundingStrategy,
+    ) -> Result<Satoshis, DomainError> {
         let btc = (cents.to_usd() / self.0.to_usd()).round_dp_with_strategy(8, rounding_strategy);
-        Satoshis::from_btc(btc)
+        Satoshis::try_from_btc(btc)
     }
 }
 
@@ -346,22 +358,26 @@ mod test {
     use super::*;
 
     #[test]
-    fn cents_to_sats_trivial() {
-        let price = PriceOfOneBTC::new(UsdCents::from_usd(rust_decimal_macros::dec!(1000)));
-        let cents = UsdCents::from_usd(rust_decimal_macros::dec!(1000));
+    fn cents_to_sats_trivial() -> Result<(), Box<dyn std::error::Error>> {
+        let price = PriceOfOneBTC::new(UsdCents::try_from_usd(rust_decimal_macros::dec!(1000))?);
+        let cents = UsdCents::try_from_usd(rust_decimal_macros::dec!(1000))?;
         assert_eq!(
-            Satoshis::from_btc(dec!(1)),
-            price.cents_to_sats(cents, rust_decimal::RoundingStrategy::AwayFromZero)
+            Satoshis::try_from_btc(dec!(1))?,
+            price.try_cents_to_sats(cents, rust_decimal::RoundingStrategy::AwayFromZero)?
         );
+
+        Ok(())
     }
 
     #[test]
-    fn cents_to_sats_complex() {
-        let price = PriceOfOneBTC::new(UsdCents::from_usd(rust_decimal_macros::dec!(60000)));
-        let cents = UsdCents::from_usd(rust_decimal_macros::dec!(100));
+    fn cents_to_sats_complex() -> Result<(), Box<dyn std::error::Error>> {
+        let price = PriceOfOneBTC::new(UsdCents::try_from_usd(rust_decimal_macros::dec!(60000))?);
+        let cents = UsdCents::try_from_usd(rust_decimal_macros::dec!(100))?;
         assert_eq!(
-            Satoshis::from_btc(dec!(0.00166667)),
-            price.cents_to_sats(cents, rust_decimal::RoundingStrategy::AwayFromZero)
+            Satoshis::try_from_btc(dec!(0.00166667))?,
+            price.try_cents_to_sats(cents, rust_decimal::RoundingStrategy::AwayFromZero)?
         );
+
+        Ok(())
     }
 }

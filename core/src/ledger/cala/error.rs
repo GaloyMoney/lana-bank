@@ -8,6 +8,8 @@ pub enum CalaError {
     UnknownGqlError(String),
     #[error("CalaError - MissingDataField")]
     MissingDataField,
+    #[error("CalaError - DomainError: {0}")]
+    DomainError(#[from] crate::error::DomainError),
     #[error("CalaError - CouldNotFindAccountByCode: {0}")]
     CouldNotFindAccountByCode(String),
 }

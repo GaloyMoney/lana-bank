@@ -351,7 +351,7 @@ mod test {
             [LoanEvent::Initialized {
                 id: LoanId::new(),
                 customer_id: CustomerId::new(),
-                principal: UsdCents::from_usd(dec!(100)),
+                principal: UsdCents::try_from_usd(dec!(100)),
                 terms: terms(),
                 account_ids: LoanAccountIds::new(),
                 customer_account_ids: CustomerLedgerAccountIds::new(),
@@ -363,13 +363,17 @@ mod test {
     #[test]
     fn outstanding() {
         let mut loan = Loan::try_from(init_events()).unwrap();
-        assert_eq!(loan.outstanding(), UsdCents::from_usd(dec!(100)));
-        let _ = loan
-            .record_if_not_exceeding_outstanding(LedgerTxId::new(), UsdCents::from_usd(dec!(50)));
-        assert_eq!(loan.outstanding(), UsdCents::from_usd(dec!(50)));
+        assert_eq!(loan.outstanding(), UsdCents::try_from_usd(dec!(100)));
+        let _ = loan.record_if_not_exceeding_outstanding(
+            LedgerTxId::new(),
+            UsdCents::try_from_usd(dec!(50)),
+        );
+        assert_eq!(loan.outstanding(), UsdCents::try_from_usd(dec!(50)));
 
-        let _ = loan
-            .record_if_not_exceeding_outstanding(LedgerTxId::new(), UsdCents::from_usd(dec!(50)));
+        let _ = loan.record_if_not_exceeding_outstanding(
+            LedgerTxId::new(),
+            UsdCents::try_from_usd(dec!(50)),
+        );
         assert_eq!(loan.outstanding(), UsdCents::ZERO);
         assert!(loan.is_completed());
     }
@@ -377,10 +381,10 @@ mod test {
     #[test]
     fn prevent_double_approve() {
         let mut loan = Loan::try_from(init_events()).unwrap();
-        let res = loan.approve(LedgerTxId::new(), Satoshis::from_btc(dec!(0.12)));
+        let res = loan.approve(LedgerTxId::new(), Satoshis::try_from_btc(dec!(0.12)));
         assert!(res.is_ok());
 
-        let res = loan.approve(LedgerTxId::new(), Satoshis::from_btc(dec!(0.12)));
+        let res = loan.approve(LedgerTxId::new(), Satoshis::try_from_btc(dec!(0.12)));
         assert!(res.is_err());
     }
 
@@ -388,10 +392,12 @@ mod test {
     fn test_status() {
         let mut loan = Loan::try_from(init_events()).unwrap();
         assert_eq!(loan.status(), LoanStatus::New);
-        let _ = loan.approve(LedgerTxId::new(), Satoshis::from_btc(dec!(0.12)));
+        let _ = loan.approve(LedgerTxId::new(), Satoshis::try_from_btc(dec!(0.12)));
         assert_eq!(loan.status(), LoanStatus::Active);
-        let _ = loan
-            .record_if_not_exceeding_outstanding(LedgerTxId::new(), UsdCents::from_usd(dec!(100)));
+        let _ = loan.record_if_not_exceeding_outstanding(
+            LedgerTxId::new(),
+            UsdCents::try_from_usd(dec!(100)),
+        );
         assert_eq!(loan.status(), LoanStatus::Closed);
     }
 
