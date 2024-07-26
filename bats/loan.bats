@@ -23,12 +23,12 @@ loan_balance() {
   collateral_balance_sats=$(graphql_output '.data.loan.balance.collateral.btcBalance')
   cache_value 'collateral_sats' "$collateral_balance_sats"
   interest_incurred=$(graphql_output '.data.loan.balance.interestIncurred.usdBalance')
-  cache_value 'interest_incurred' "$interest_incurred"
+  cache_value 'interest' "$interest_incurred"
 }
 
 wait_for_interest() {
   loan_balance $1
-  interest_incurred=$(read_value 'interest_incurred')
+  interest_incurred=$(read_value 'interest')
   [[ "$interest_incurred" -gt "0" ]] || return 1
 }
 
@@ -55,13 +55,15 @@ wait_for_interest() {
 
   revenue_before=$(net_usd_revenue)
 
+  principal=10000
   variables=$(
     jq -n \
     --arg customerId "$customer_id" \
+    --argjson principal "$principal" \
     '{
       input: {
         customerId: $customerId,
-        desiredPrincipal: 10000,
+        desiredPrincipal: $principal,
         loanTerms: {
           annualRate: "0.12",
           interval: "END_OF_MONTH",
@@ -90,8 +92,11 @@ wait_for_interest() {
   exec_admin_graphql 'loan-approve' "$variables"
 
   retry 20 1 wait_for_interest "$loan_id"
+  interest_before=$(read_value "interest")
   outstanding_before=$(read_value "outstanding")
-  [[ "$outstanding_before" == "10020" ]] || exit 1
+  expected_outstanding=$(add $principal $interest_before)
+  [[ "$outstanding_before" == "$expected_outstanding" ]] || exit 1
+
   collateral_sats=$(read_value 'collateral_sats')
   [[ "$collateral_sats" == "233334" ]] || exit 1
 
@@ -109,10 +114,11 @@ wait_for_interest() {
   variables=$(
     jq -n \
       --arg loanId "$loan_id" \
+      --argjson amount "$outstanding_before" \
     '{
       input: {
         loanId: $loanId,
-        amount: 10020,
+        amount: $amount,
       }
     }'
   )
