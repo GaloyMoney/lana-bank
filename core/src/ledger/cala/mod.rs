@@ -103,14 +103,16 @@ impl CalaClient {
         skip(self, id),
         err
     )]
-    pub async fn find_account_set_and_sub_accounts_with_balance_by_id<
-        T: TryFrom<account_set_and_sub_accounts_with_balance::AccountSetAndSubAccountsWithBalanceAccountSet, Error = CalaError>,
-    >(
+    pub async fn find_account_set_and_sub_accounts_with_balance_by_id<T, E>(
         &self,
         id: impl Into<Uuid>,
         first: i64,
         after: Option<String>,
-    ) -> Result<Option<T>, CalaError>{
+    ) -> Result<Option<T>, E>
+    where
+        T: TryFrom<account_set_and_sub_accounts_with_balance::AccountSetAndSubAccountsWithBalanceAccountSet, Error = E>,
+        E: From<CalaError> + std::fmt::Display,
+    {
         let variables = account_set_and_sub_accounts_with_balance::Variables {
             account_set_id: id.into(),
             journal_id: super::constants::CORE_JOURNAL_ID,
@@ -312,12 +314,14 @@ impl CalaClient {
     }
 
     #[instrument(name = "lava.ledger.cala.get_customer_balance", skip(self), err)]
-    pub async fn get_customer_balance<
-        T: TryFrom<customer_balance::ResponseData, Error = CalaError>,
-    >(
+    pub async fn get_customer_balance<T, E>(
         &self,
         account_ids: CustomerLedgerAccountIds,
-    ) -> Result<Option<T>, CalaError> {
+    ) -> Result<Option<T>, E>
+    where
+        T: TryFrom<customer_balance::ResponseData, Error = E>,
+        E: From<CalaError> + std::fmt::Display,
+    {
         let variables = customer_balance::Variables {
             journal_id: super::constants::CORE_JOURNAL_ID,
             off_balance_sheet_account_id: Uuid::from(
@@ -335,10 +339,11 @@ impl CalaClient {
     }
 
     #[instrument(name = "lava.ledger.cala.get_loan_balance", skip(self), err)]
-    pub async fn get_loan_balance<T: TryFrom<loan_balance::ResponseData, Error = CalaError>>(
-        &self,
-        account_ids: LoanAccountIds,
-    ) -> Result<Option<T>, CalaError> {
+    pub async fn get_loan_balance<T, E>(&self, account_ids: LoanAccountIds) -> Result<Option<T>, E>
+    where
+        T: TryFrom<loan_balance::ResponseData, Error = E>,
+        E: From<CalaError> + std::fmt::Display,
+    {
         let variables = loan_balance::Variables {
             journal_id: super::constants::CORE_JOURNAL_ID,
             collateral_id: Uuid::from(account_ids.collateral_account_id),
@@ -777,11 +782,11 @@ impl CalaClient {
             .ok_or(CalaError::MissingDataField)
     }
 
-    pub async fn trial_balance<
-        T: TryFrom<trial_balance::TrialBalanceAccountSet, Error = CalaError>,
-    >(
-        &self,
-    ) -> Result<Option<T>, CalaError> {
+    pub async fn trial_balance<T, E>(&self) -> Result<Option<T>, E>
+    where
+        T: TryFrom<trial_balance::TrialBalanceAccountSet, Error = E>,
+        E: From<CalaError> + std::fmt::Display,
+    {
         let variables = trial_balance::Variables {
             journal_id: constants::CORE_JOURNAL_ID,
             account_set_id: constants::TRIAL_BALANCE_ACCOUNT_SET_ID,
@@ -795,11 +800,11 @@ impl CalaClient {
             .transpose()
     }
 
-    pub async fn obs_trial_balance<
-        T: TryFrom<trial_balance::TrialBalanceAccountSet, Error = CalaError>,
-    >(
-        &self,
-    ) -> Result<Option<T>, CalaError> {
+    pub async fn obs_trial_balance<T, E>(&self) -> Result<Option<T>, E>
+    where
+        T: TryFrom<trial_balance::TrialBalanceAccountSet, Error = E>,
+        E: From<CalaError> + std::fmt::Display,
+    {
         let variables = trial_balance::Variables {
             journal_id: constants::CORE_JOURNAL_ID,
             account_set_id: constants::OBS_TRIAL_BALANCE_ACCOUNT_SET_ID,
@@ -837,11 +842,11 @@ impl CalaClient {
         Ok(response.data.and_then(|d| d.account_set).map(T::from))
     }
 
-    pub async fn balance_sheet<
-        T: TryFrom<balance_sheet::BalanceSheetAccountSet, Error = CalaError>,
-    >(
-        &self,
-    ) -> Result<Option<T>, CalaError> {
+    pub async fn balance_sheet<T, E>(&self) -> Result<Option<T>, E>
+    where
+        T: TryFrom<balance_sheet::BalanceSheetAccountSet, Error = E>,
+        E: From<CalaError> + std::fmt::Display,
+    {
         let variables = balance_sheet::Variables {
             account_set_id: constants::BALANCE_SHEET_ACCOUNT_SET_ID,
             journal_id: constants::CORE_JOURNAL_ID,
@@ -855,11 +860,11 @@ impl CalaClient {
             .transpose()
     }
 
-    pub async fn profit_and_loss<
-        T: TryFrom<profit_and_loss_statement::ProfitAndLossStatementAccountSet, Error = CalaError>,
-    >(
-        &self,
-    ) -> Result<Option<T>, CalaError> {
+    pub async fn profit_and_loss<T, E>(&self) -> Result<Option<T>, E>
+    where
+        T: TryFrom<profit_and_loss_statement::ProfitAndLossStatementAccountSet, Error = E>,
+        E: From<CalaError> + std::fmt::Display,
+    {
         let variables = profit_and_loss_statement::Variables {
             account_set_id: constants::PROFIT_AND_LOSS_ACCOUNT_SET_ID,
             journal_id: constants::CORE_JOURNAL_ID,

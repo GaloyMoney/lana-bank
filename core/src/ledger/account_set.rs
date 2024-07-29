@@ -1,9 +1,6 @@
 use crate::primitives::{LedgerAccountSetId, LedgerDebitOrCredit};
 
-use super::{
-    account::*,
-    cala::{error::*, graphql::*},
-};
+use super::{account::*, cala::graphql::*, error::*};
 
 #[derive(Debug, Clone)]
 pub struct LedgerAccountSetWithBalance {
@@ -24,7 +21,7 @@ macro_rules! impl_from_account_set_details_and_balances {
     ($($module:ident),+)  => {
         $(
             impl TryFrom<$module::accountSetDetailsAndBalances> for LedgerAccountSetWithBalance {
-                type Error = CalaError;
+                type Error = LedgerError;
 
                 fn try_from(account_set: $module::accountSetDetailsAndBalances) -> Result<Self, Self::Error> {
                     let account_set_details = account_set.account_set_details;
@@ -45,7 +42,7 @@ macro_rules! impl_from_accounts_with_balances {
     ($($module:ident),+)  => {
         $(
             impl TryFrom<$module::accountsWithBalances> for Vec<LedgerAccountSetSubAccountWithBalance> {
-                type Error = CalaError;
+                type Error = LedgerError;
 
                 fn try_from(members: $module::accountsWithBalances) -> Result<Self, Self::Error> {
                     members
@@ -83,7 +80,7 @@ pub struct LedgerAccountSetSubAccountsWithBalance {
 impl TryFrom<account_set_and_sub_accounts_with_balance::subAccountsWithBalances>
     for LedgerAccountSetSubAccountsWithBalance
 {
-    type Error = CalaError;
+    type Error = LedgerError;
 
     fn try_from(
         sub_account: account_set_and_sub_accounts_with_balance::subAccountsWithBalances,
@@ -296,7 +293,7 @@ macro_rules! impl_from_category_with_balances {
     ($($module:ident),+)  => {
         $(
             impl TryFrom<$module::categoryAccountSetWithBalances> for LedgerStatementCategoryWithBalance {
-                type Error = CalaError;
+                type Error = LedgerError;
 
                 fn try_from(account_set: $module::categoryAccountSetWithBalances) -> Result<Self, Self::Error> {
                     let account_set_details = account_set
@@ -316,7 +313,7 @@ macro_rules! impl_from_category_with_balances {
             }
 
             impl TryFrom<$module::categoriesWithBalances> for Vec<LedgerStatementCategoryWithBalance> {
-                type Error = CalaError;
+                type Error = LedgerError;
 
                 fn try_from(members: $module::categoriesWithBalances) -> Result<Self, Self::Error> {
                     members
@@ -386,7 +383,7 @@ impl
         account_set_and_sub_accounts_with_balance::AccountSetAndSubAccountsWithBalanceAccountSet,
     > for LedgerAccountSetAndSubAccountsWithBalance
 {
-    type Error = CalaError;
+    type Error = LedgerError;
 
     fn try_from(
         account_set: account_set_and_sub_accounts_with_balance::AccountSetAndSubAccountsWithBalanceAccountSet,
@@ -436,7 +433,7 @@ pub struct LedgerTrialBalance {
 }
 
 impl TryFrom<trial_balance::TrialBalanceAccountSet> for LedgerTrialBalance {
-    type Error = CalaError;
+    type Error = LedgerError;
 
     fn try_from(account_set: trial_balance::TrialBalanceAccountSet) -> Result<Self, Self::Error> {
         Ok(LedgerTrialBalance {
@@ -457,7 +454,7 @@ pub struct LedgerBalanceSheet {
 }
 
 impl TryFrom<balance_sheet::BalanceSheetAccountSet> for LedgerBalanceSheet {
-    type Error = CalaError;
+    type Error = LedgerError;
 
     fn try_from(account_set: balance_sheet::BalanceSheetAccountSet) -> Result<Self, Self::Error> {
         let account_set_details = account_set
@@ -487,7 +484,7 @@ pub struct LedgerProfitAndLossStatement {
 impl TryFrom<profit_and_loss_statement::ProfitAndLossStatementAccountSet>
     for LedgerProfitAndLossStatement
 {
-    type Error = CalaError;
+    type Error = LedgerError;
 
     fn try_from(
         account_set: profit_and_loss_statement::ProfitAndLossStatementAccountSet,

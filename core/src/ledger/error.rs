@@ -6,6 +6,8 @@ pub enum LedgerError {
     Cala(#[from] super::cala::error::CalaError),
     #[error("CalaError - TryFromIntError: {0}")]
     TryFromIntError(#[from] std::num::TryFromIntError),
+    #[error("LedgerError - DomainError: {0}")]
+    DomainError(#[from] crate::error::DomainError),
     #[error("LedgerError - CouldNotAssertAccountExists")]
     CouldNotAssertAccountExists,
     #[error("LedgerError - CouldNotAssertAccountSetExists")]

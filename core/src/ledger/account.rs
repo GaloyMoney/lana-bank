@@ -2,7 +2,7 @@ use crate::primitives::{
     LedgerAccountId, LedgerDebitOrCredit, Satoshis, SignedSatoshis, SignedUsdCents, UsdCents,
 };
 
-use super::cala::{error::*, graphql::*};
+use super::{cala::graphql::*, error::*};
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct BtcAccountBalance {
@@ -90,7 +90,7 @@ macro_rules! impl_from_account_details_and_balances {
             }
 
             impl TryFrom<$module::balances> for BtcAccountBalance {
-                type Error = CalaError;
+                type Error = LedgerError;
 
                 fn try_from(balances: $module::balances) -> Result<Self, Self::Error> {
                     let net_normal = Satoshis::try_from_btc(balances.normal_balance.units)?;
@@ -110,7 +110,7 @@ macro_rules! impl_from_account_details_and_balances {
             }
 
             impl TryFrom<$module::balances> for UsdAccountBalance {
-                type Error = CalaError;
+                type Error = LedgerError;
 
                 fn try_from(balances: $module::balances) -> Result<Self, Self::Error> {
                     let net_normal = UsdCents::try_from_usd(balances.normal_balance.units)?;
@@ -130,7 +130,7 @@ macro_rules! impl_from_account_details_and_balances {
             }
 
             impl TryFrom<$module::balancesByLayer> for LayeredBtcAccountBalances {
-                type Error = CalaError;
+                type Error = LedgerError;
 
                 fn try_from(btc_balances_by_layer: $module::balancesByLayer) -> Result<Self, Self::Error> {
                     Ok(Self {
@@ -143,7 +143,7 @@ macro_rules! impl_from_account_details_and_balances {
             }
 
             impl TryFrom<$module::balancesByLayer> for LayeredUsdAccountBalances {
-                type Error = CalaError;
+                type Error = LedgerError;
 
                 fn try_from(usd_balances_by_layer: $module::balancesByLayer) -> Result<Self, Self::Error> {
                     Ok(Self {
@@ -156,7 +156,7 @@ macro_rules! impl_from_account_details_and_balances {
             }
 
             impl TryFrom<$module::accountSetBalances> for LedgerAccountBalancesByCurrency {
-                type Error = CalaError;
+                type Error = LedgerError;
 
                 fn try_from(balances: $module::accountSetBalances) -> Result<Self, Self::Error> {
                     Ok(LedgerAccountBalancesByCurrency {
@@ -174,7 +174,7 @@ macro_rules! impl_from_account_details_and_balances {
             }
 
             impl TryFrom<$module::accountDetailsAndBalances> for LedgerAccountWithBalance {
-                type Error = CalaError;
+                type Error = LedgerError;
 
                 fn try_from(account: $module::accountDetailsAndBalances) -> Result<Self, Self::Error> {
                     let account_details = account.account_details;

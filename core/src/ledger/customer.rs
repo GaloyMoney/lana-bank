@@ -1,10 +1,7 @@
 use crate::primitives::{LedgerAccountId, Satoshis, UsdCents};
 use serde::{Deserialize, Serialize};
 
-use super::{
-    cala::{error::*, graphql::*},
-    primitives::LayeredUsdBalance,
-};
+use super::{cala::graphql::*, error::*, primitives::LayeredUsdBalance};
 
 #[derive(Debug, Copy, Clone, Serialize, Deserialize)]
 pub struct CustomerLedgerAccountIds {
@@ -34,7 +31,7 @@ pub struct CustomerBalance {
 }
 
 impl TryFrom<customer_balance::ResponseData> for CustomerBalance {
-    type Error = CalaError;
+    type Error = LedgerError;
 
     fn try_from(data: customer_balance::ResponseData) -> Result<Self, Self::Error> {
         Ok(CustomerBalance {
