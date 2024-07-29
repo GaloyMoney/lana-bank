@@ -10,7 +10,6 @@ use crate::{
     authorization::{Action, Authorization, LoanAction, Object, TermAction},
     customer::Customers,
     entity::EntityError,
-    error::DomainError,
     job::{JobRegistry, Jobs},
     ledger::{loan::*, Ledger},
     primitives::*,
@@ -75,7 +74,7 @@ impl Loans {
         self.term_repo.update_default(terms).await
     }
 
-    fn dummy_price() -> Result<PriceOfOneBTC, DomainError> {
+    fn dummy_price() -> Result<PriceOfOneBTC, ConversionError> {
         Ok(PriceOfOneBTC::new(UsdCents::try_from_usd(
             rust_decimal_macros::dec!(60000),
         )?))

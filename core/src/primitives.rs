@@ -3,6 +3,7 @@ use rust_decimal_macros::dec;
 use serde::{Deserialize, Serialize};
 
 use std::fmt;
+use thiserror::Error;
 
 crate::entity_id! { CustomerId }
 crate::entity_id! { UserId }
@@ -78,8 +79,6 @@ pub use cala_types::primitives::{
     DebitOrCredit as LedgerDebitOrCredit, JournalId as LedgerJournalId,
     TransactionId as LedgerTxId, TxTemplateId as LedgerTxTemplateId,
 };
-
-use super::error::DomainError;
 
 pub const SATS_PER_BTC: Decimal = dec!(100_000_000);
 pub const CENTS_PER_USD: Decimal = dec!(100);
@@ -187,6 +186,14 @@ impl SignedSatoshis {
     }
 }
 
+#[derive(Error, Debug)]
+pub enum ConversionError {
+    #[error("ConversionError - DecimalError: {0}")]
+    DecimalError(#[from] rust_decimal::Error),
+    #[error("ConversionError - UnexpectedNegativeNumber: {0}")]
+    UnexpectedNegativeNumber(rust_decimal::Decimal),
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 pub struct Satoshis(u64);
 
@@ -218,11 +225,11 @@ impl Satoshis {
         Decimal::from(self.0) / SATS_PER_BTC
     }
 
-    pub fn try_from_btc(btc: Decimal) -> Result<Self, DomainError> {
+    pub fn try_from_btc(btc: Decimal) -> Result<Self, ConversionError> {
         let sats = btc * SATS_PER_BTC;
         assert!(sats.trunc() == sats, "Satoshis must be an integer");
         if sats < Decimal::new(0, 0) {
-            return Err(DomainError::UnexpectedNegativeNumber(sats));
+            return Err(ConversionError::UnexpectedNegativeNumber(sats));
         }
         Ok(Self(u64::try_from(sats)?))
     }
@@ -289,11 +296,11 @@ impl UsdCents {
         Decimal::from(self.0) / CENTS_PER_USD
     }
 
-    pub fn try_from_usd(usd: Decimal) -> Result<Self, DomainError> {
+    pub fn try_from_usd(usd: Decimal) -> Result<Self, ConversionError> {
         let cents = usd * CENTS_PER_USD;
         assert!(cents.trunc() == cents, "Cents must be an integer");
         if cents < Decimal::new(0, 0) {
-            return Err(DomainError::UnexpectedNegativeNumber(cents));
+            return Err(ConversionError::UnexpectedNegativeNumber(cents));
         }
         Ok(Self(u64::try_from(cents)?))
     }
@@ -347,7 +354,7 @@ impl PriceOfOneBTC {
         self,
         cents: UsdCents,
         rounding_strategy: RoundingStrategy,
-    ) -> Result<Satoshis, DomainError> {
+    ) -> Result<Satoshis, ConversionError> {
         let btc = (cents.to_usd() / self.0.to_usd()).round_dp_with_strategy(8, rounding_strategy);
         Satoshis::try_from_btc(btc)
     }
