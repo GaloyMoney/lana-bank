@@ -837,7 +837,7 @@ impl CalaClient {
         &self,
     ) -> Result<Option<T>, CalaError> {
         let variables = profit_and_loss_statement::Variables {
-            account_set_id: constants::PROFIT_AND_LOSS_ACCOUNT_SET_ID,
+            account_set_id: constants::NET_INCOME_ACCOUNT_SET_ID,
             journal_id: constants::CORE_JOURNAL_ID,
         };
         let response = Self::traced_gql_request::<ProfitAndLossStatement, _>(
