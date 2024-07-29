@@ -135,16 +135,23 @@ resource "cala_account_set" "equity" {
   name                = "Equity"
   normal_balance_type = "CREDIT"
 }
-resource "cala_account_set_member_account_set" "equity" {
+resource "random_uuid" "equity_for_chart_of_accounts" {}
+resource "cala_account_set" "equity_for_chart_of_accounts" {
+  id                  = random_uuid.equity_for_chart_of_accounts.result
+  journal_id          = cala_journal.journal.id
+  name                = "Equity"
+  normal_balance_type = "CREDIT"
+}
+resource "cala_account_set_member_account_set" "equity_in_chart_of_accounts" {
   account_set_id        = cala_account_set.chart_of_accounts.id
-  member_account_set_id = cala_account_set.equity.id
+  member_account_set_id = cala_account_set.equity_for_chart_of_accounts.id
 }
 resource "cala_account_set_member_account_set" "equity_in_balance_sheet" {
   account_set_id        = cala_account_set.balance_sheet.id
   member_account_set_id = cala_account_set.equity.id
 }
 resource "cala_account_set_member_account_set" "net_income_in_equity" {
-  account_set_id        = cala_account_set.balance_sheet.id # FIXME: this should be 'equity', but clashes with chart_of_accounts
+  account_set_id        = cala_account_set.equity.id
   member_account_set_id = cala_account_set.net_income.id
 }
 
@@ -159,6 +166,10 @@ resource "cala_account" "bank_shareholder_equity" {
 }
 resource "cala_account_set_member_account" "bank_shareholder_equity_in_equity" {
   account_set_id    = cala_account_set.equity.id
+  member_account_id = cala_account.bank_shareholder_equity.id
+}
+resource "cala_account_set_member_account" "bank_shareholder_equity_in_equity_coa" {
+  account_set_id    = cala_account_set.equity_for_chart_of_accounts.id
   member_account_id = cala_account.bank_shareholder_equity.id
 }
 resource "cala_account_set_member_account" "bank_shareholder_equity_in_trial_balance" {
