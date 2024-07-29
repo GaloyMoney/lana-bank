@@ -256,7 +256,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn calculate_debit_normal_btc_balance() -> Result<(), Box<dyn std::error::Error>> {
+    fn calculate_debit_normal_btc_balance() {
         let currency = Currency::Crypto(crypto::BTC);
 
         let debit_amount = Decimal::new(50000, 8);
@@ -282,22 +282,20 @@ mod tests {
             },
         };
         let expected_debit_normal_balance = BtcAccountBalance {
-            debit: Satoshis::try_from_btc(debit_amount)?,
-            credit: Satoshis::try_from_btc(credit_amount)?,
-            net_normal: Satoshis::try_from_btc(net_amount_pos)?,
+            debit: Satoshis::try_from_btc(debit_amount).unwrap(),
+            credit: Satoshis::try_from_btc(credit_amount).unwrap(),
+            net_normal: Satoshis::try_from_btc(net_amount_pos).unwrap(),
             net_debit: SignedSatoshis::from_btc(net_amount_neg),
             net_credit: SignedSatoshis::from_btc(net_amount_pos),
         };
 
-        let debit_normal_balance: BtcAccountBalance = btc_balance.try_into()?;
+        let debit_normal_balance: BtcAccountBalance = btc_balance.try_into().unwrap();
 
         assert_eq!(debit_normal_balance, expected_debit_normal_balance);
-
-        Ok(())
     }
 
     #[test]
-    fn calculate_debit_normal_usd_balance() -> Result<(), Box<dyn std::error::Error>> {
+    fn calculate_debit_normal_usd_balance() {
         let currency = Currency::Iso(iso::USD);
 
         let debit_amount = Decimal::new(500, 2);
@@ -323,17 +321,15 @@ mod tests {
             },
         };
         let expected_debit_normal_balance = UsdAccountBalance {
-            debit: UsdCents::try_from_usd(debit_amount)?,
-            credit: UsdCents::try_from_usd(credit_amount)?,
-            net_normal: UsdCents::try_from_usd(net_amount_pos)?,
+            debit: UsdCents::try_from_usd(debit_amount).unwrap(),
+            credit: UsdCents::try_from_usd(credit_amount).unwrap(),
+            net_normal: UsdCents::try_from_usd(net_amount_pos).unwrap(),
             net_debit: SignedUsdCents::from_usd(net_amount_neg),
             net_credit: SignedUsdCents::from_usd(net_amount_pos),
         };
 
-        let debit_normal_balance: UsdAccountBalance = usd_balance.try_into()?;
+        let debit_normal_balance: UsdAccountBalance = usd_balance.try_into().unwrap();
 
         assert_eq!(debit_normal_balance, expected_debit_normal_balance);
-
-        Ok(())
     }
 }

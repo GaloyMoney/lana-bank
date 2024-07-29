@@ -146,18 +146,16 @@ mod test {
     use super::*;
 
     #[test]
-    fn loan_cvl_pct_scale() -> Result<(), Box<dyn std::error::Error>> {
+    fn loan_cvl_pct_scale() {
         let cvl = CVLPct(dec!(140));
         let value = UsdCents::from(100000);
         let scaled = cvl.scale(value);
-        assert_eq!(scaled, UsdCents::try_from_usd(dec!(1400))?);
+        assert_eq!(scaled, UsdCents::try_from_usd(dec!(1400)).unwrap());
 
         let cvl = CVLPct(dec!(50));
         let value = UsdCents::from(333333);
         let scaled = cvl.scale(value);
-        assert_eq!(scaled, UsdCents::try_from_usd(dec!(1666.67))?);
-
-        Ok(())
+        assert_eq!(scaled, UsdCents::try_from_usd(dec!(1666.67)).unwrap());
     }
 
     fn terms() -> TermValues {
@@ -173,15 +171,14 @@ mod test {
     }
 
     #[test]
-    fn required_collateral() -> Result<(), Box<dyn std::error::Error>> {
-        let price = PriceOfOneBTC::new(UsdCents::try_from_usd(rust_decimal_macros::dec!(1000))?);
+    fn required_collateral() {
+        let price =
+            PriceOfOneBTC::new(UsdCents::try_from_usd(rust_decimal_macros::dec!(1000)).unwrap());
         let terms = terms();
         let principal = UsdCents::from(100000);
-        let required_collateral = terms.required_collateral(principal, price)?;
-        let sats = Satoshis::try_from_btc(dec!(1.4))?;
+        let required_collateral = terms.required_collateral(principal, price).unwrap();
+        let sats = Satoshis::try_from_btc(dec!(1.4)).unwrap();
         assert_eq!(required_collateral, sats);
-
-        Ok(())
     }
 
     #[test]
@@ -194,19 +191,17 @@ mod test {
     }
 
     #[test]
-    fn interest_calculation() -> Result<(), Box<dyn std::error::Error>> {
+    fn interest_calculation() {
         let terms = terms();
-        let principal = UsdCents::try_from_usd(dec!(100))?;
+        let principal = UsdCents::try_from_usd(dec!(100)).unwrap();
         let days = 366;
         let interest = terms.calculate_interest(principal, days);
         assert_eq!(interest, UsdCents::from(1200));
 
-        let principal = UsdCents::try_from_usd(dec!(1000))?;
+        let principal = UsdCents::try_from_usd(dec!(1000)).unwrap();
         let days = 23;
         let interest = terms.calculate_interest(principal, days);
         assert_eq!(interest, UsdCents::from(755));
-
-        Ok(())
     }
 
     #[test]
