@@ -393,6 +393,7 @@ export type ProfitAndLossStatement = {
 
 export type Query = {
   __typename?: 'Query';
+  /** @deprecated Use `accountSetWithBalance` instead */
   accountSet?: Maybe<AccountSetAndSubAccounts>;
   accountSetWithBalance?: Maybe<AccountSetAndSubAccountsWithBalance>;
   balanceSheet?: Maybe<BalanceSheet>;

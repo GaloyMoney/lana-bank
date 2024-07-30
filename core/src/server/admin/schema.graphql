@@ -350,7 +350,7 @@ type Query {
 	offBalanceSheetChartOfAccounts: ChartOfAccounts
 	balanceSheet: BalanceSheet
 	profitAndLossStatement: ProfitAndLossStatement
-	accountSet(accountSetId: UUID!): AccountSetAndSubAccounts
+	accountSet(accountSetId: UUID!): AccountSetAndSubAccounts @deprecated(reason: "Use `accountSetWithBalance` instead")
 	accountSetWithBalance(accountSetId: UUID!): AccountSetAndSubAccountsWithBalance
 }
 
