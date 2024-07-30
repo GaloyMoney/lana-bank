@@ -524,7 +524,7 @@ export type ChartOfAccountsAccountSetQueryVariables = Exact<{
 }>;
 
 
-export type ChartOfAccountsAccountSetQuery = { __typename?: 'Query', accountSet?: { __typename?: 'AccountSetAndSubAccounts', id: string, name: string, subAccounts: { __typename?: 'AccountSetSubAccountConnection', edges: Array<{ __typename?: 'AccountSetSubAccountEdge', cursor: string, node: { __typename: 'AccountDetails', id: string, name: string } | { __typename: 'AccountSetDetails', id: string, name: string, hasSubAccounts: boolean } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean } } } | null };
+export type ChartOfAccountsAccountSetQuery = { __typename?: 'Query', accountSetWithBalance?: { __typename?: 'AccountSetAndSubAccountsWithBalance', id: string, name: string, subAccounts: { __typename?: 'AccountSetSubAccountWithBalanceConnection', edges: Array<{ __typename?: 'AccountSetSubAccountWithBalanceEdge', cursor: string, node: { __typename: 'AccountSetWithBalance', id: string, name: string, hasSubAccounts: boolean } | { __typename: 'AccountWithBalance', id: string, name: string } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean } } } | null };
 
 export type GetOnBalanceSheetChartOfAccountsQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -685,7 +685,7 @@ export const BalancesByCurrencyFragmentDoc = gql`
 ${UsdBalancesFragmentDoc}`;
 export const ChartOfAccountsAccountSetDocument = gql`
     query ChartOfAccountsAccountSet($accountSetId: UUID!, $first: Int!, $after: String) {
-  accountSet(accountSetId: $accountSetId) {
+  accountSetWithBalance(accountSetId: $accountSetId) {
     id
     name
     subAccounts(first: $first, after: $after) {
@@ -693,12 +693,12 @@ export const ChartOfAccountsAccountSetDocument = gql`
         cursor
         node {
           __typename
-          ... on AccountDetails {
+          ... on AccountWithBalance {
             __typename
             id
             name
           }
-          ... on AccountSetDetails {
+          ... on AccountSetWithBalance {
             __typename
             id
             name

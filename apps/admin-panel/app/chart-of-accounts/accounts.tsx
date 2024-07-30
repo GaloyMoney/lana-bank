@@ -12,7 +12,7 @@ import { TableCell, TableRow } from "@/components/primitive/table"
 
 gql`
   query ChartOfAccountsAccountSet($accountSetId: UUID!, $first: Int!, $after: String) {
-    accountSet(accountSetId: $accountSetId) {
+    accountSetWithBalance(accountSetId: $accountSetId) {
       id
       name
       subAccounts(first: $first, after: $after) {
@@ -20,12 +20,12 @@ gql`
           cursor
           node {
             __typename
-            ... on AccountDetails {
+            ... on AccountWithBalance {
               __typename
               id
               name
             }
-            ... on AccountSetDetails {
+            ... on AccountSetWithBalance {
               __typename
               id
               name
@@ -54,14 +54,19 @@ const SubAccountsForAccountSet: React.FC<AccountProps> = ({ account, depth = 0 }
     },
   })
 
-  const hasMoreSubAccounts = data?.accountSet?.subAccounts.pageInfo.hasNextPage
-  const subAccounts = data?.accountSet?.subAccounts.edges
+  const hasMoreSubAccounts = data?.accountSetWithBalance?.subAccounts.pageInfo.hasNextPage
+  const subAccounts = data?.accountSetWithBalance?.subAccounts.edges
 
   return (
     <>
-      {subAccounts?.map((subAccount) => (
-        <Account key={subAccount.node.id} account={subAccount.node} depth={depth + 1} />
-      ))}
+      {subAccounts?.map((subAccount) => {
+        // TODO: change this at the type level when we remove 'Details' from ChartOfAccounts query
+        const node =
+          subAccount.node.__typename === "AccountWithBalance"
+            ? { ...subAccount.node, __typename: "AccountDetails" as const }
+            : { ...subAccount.node, __typename: "AccountSetDetails" as const }
+        return <Account key={subAccount.node.id} account={node} depth={depth + 1} />
+      })}
       {hasMoreSubAccounts && subAccounts && (
         <TableRow>
           <TableCell
