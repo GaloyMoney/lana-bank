@@ -21,6 +21,8 @@ sqlx-prepare:
 
 reset-tf-state:
 	rm -rf tf/terraform.tfstate
+
+reset-tf-provider:
 	rm -rf tf/.terraform
 	rm -rf tf/.terraform.lock.hcl
 
