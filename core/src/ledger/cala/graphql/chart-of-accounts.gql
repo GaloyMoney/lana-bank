@@ -1,36 +1,36 @@
-query ChartOfAccounts($accountSetId: UUID!) {
+query ChartOfAccounts($accountSetId: UUID!, $journalId: UUID!) {
   accountSet(id: $accountSetId) {
-    ...accountSetDetails
+    ...accountSetDetailsAndBalances
     categories: members(first: 10) {
-      ...categories
+      ...categoriesWithBalances
     }
   }
 }
 
 # 'categories' and 'accounts'
 
-fragment categories on AccountSetMemberConnection {
+fragment categoriesWithBalances on AccountSetMemberConnection {
   edges {
     node {
       __typename
       ... on AccountSet {
-        ...categoryAccountSet
+        ...categoryAccountSetWithBalances
       }
       ... on Account {
-        ...accountDetails
+        ...accountDetailsAndBalances
       }
     }
   }
 }
 
-fragment categoryAccountSet on AccountSet {
-  ...accountSetDetails
+fragment categoryAccountSetWithBalances on AccountSet {
+  ...accountSetDetailsAndBalances
   accounts: members(first: 25, after: null) {
-    ...accounts
+    ...accountsWithBalances
   }
 }
 
-fragment accounts on AccountSetMemberConnection {
+fragment accountsWithBalances on AccountSetMemberConnection {
   pageInfo {
     startCursor
     endCursor
@@ -41,12 +41,80 @@ fragment accounts on AccountSetMemberConnection {
     node {
       __typename
       ... on AccountSet {
-        ...accountSetDetails
+        ...accountSetDetailsAndBalances
       }
       ... on Account {
-        ...accountDetails
+        ...accountDetailsAndBalances
       }
     }
+  }
+}
+
+# 'details' and 'balances'
+
+fragment accountSetDetailsAndBalances on AccountSet {
+  ...accountSetDetails
+  ...accountSetBalances
+}
+
+fragment accountDetailsAndBalances on Account {
+  ...accountDetails
+  ...accountBalances
+}
+
+# 'balances'
+
+fragment accountBalances on Account {
+  btcBalances: balance(journalId: $journalId, currency: "BTC") {
+    ...balancesByLayer
+  }
+  usdtBalances: balance(journalId: $journalId, currency: "USDT") {
+    ...balancesByLayer
+  }
+  usdBalances: balance(journalId: $journalId, currency: "USD") {
+    ...balancesByLayer
+  }
+}
+
+fragment accountSetBalances on AccountSet {
+  btcBalances: balance(currency: "BTC") {
+    ...balancesByLayer
+  }
+  usdtBalances: balance(currency: "USDT") {
+    ...balancesByLayer
+  }
+  usdBalances: balance(currency: "USD") {
+    ...balancesByLayer
+  }
+}
+
+fragment balancesByLayer on Balance {
+  settled {
+    ...balances
+  }
+  pending {
+    ...balances
+  }
+  encumbrance {
+    ...balances
+  }
+  allLayersAvailable: available(layer: ENCUMBRANCE) {
+    ...balances
+  }
+}
+
+fragment balances on BalanceAmount {
+  normalBalance {
+    units
+    currency
+  }
+  drBalance {
+    units
+    currency
+  }
+  crBalance {
+    units
+    currency
   }
 }
 

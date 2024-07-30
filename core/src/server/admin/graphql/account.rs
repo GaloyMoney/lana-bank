@@ -120,8 +120,8 @@ pub struct AccountDetails {
     pub name: String,
 }
 
-impl From<crate::ledger::account::LedgerAccountDetails> for AccountDetails {
-    fn from(account_set: crate::ledger::account::LedgerAccountDetails) -> Self {
+impl From<crate::ledger::account::LedgerAccountWithBalance> for AccountDetails {
+    fn from(account_set: crate::ledger::account::LedgerAccountWithBalance) -> Self {
         AccountDetails {
             id: account_set.id.into(),
             name: account_set.name,

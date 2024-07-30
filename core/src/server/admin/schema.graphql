@@ -113,7 +113,7 @@ scalar AnnualRate
 type BalanceSheet {
 	name: String!
 	balance: AccountBalancesByCurrency!
-	categories: [StatementCategory!]!
+	categories: [StatementCategoryWithBalance!]!
 }
 
 
@@ -132,12 +132,7 @@ scalar CVLPct
 
 type ChartOfAccounts {
 	name: String!
-	categories: [ChartOfAccountsCategory!]!
-}
-
-type ChartOfAccountsCategory {
-	name: String!
-	accounts: [AccountSetSubAccount!]!
+	categories: [StatementCategory!]!
 }
 
 type Checking {
@@ -339,7 +334,7 @@ enum Period {
 type ProfitAndLossStatement {
 	name: String!
 	balance: AccountBalancesByCurrency!
-	categories: [StatementCategory!]!
+	categories: [StatementCategoryWithBalance!]!
 }
 
 type Query {
@@ -375,6 +370,11 @@ scalar SignedSatoshis
 scalar SignedUsdCents
 
 type StatementCategory {
+	name: String!
+	accounts: [AccountSetSubAccount!]!
+}
+
+type StatementCategoryWithBalance {
 	name: String!
 	balance: AccountBalancesByCurrency!
 	accounts: [AccountSetSubAccountWithBalance!]!

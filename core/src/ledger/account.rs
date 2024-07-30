@@ -200,44 +200,8 @@ macro_rules! impl_from_account_details_and_balances {
     };
 }
 
-#[derive(Debug, Clone)]
-pub struct LedgerAccountDetails {
-    pub id: LedgerAccountId,
-    pub code: String,
-    pub name: String,
-    pub normal_balance_type: LedgerDebitOrCredit,
-}
-
-macro_rules! impl_from_account_details_only {
-    ($($module:ident),+)  => {
-        $(
-            impl From<$module::DebitOrCredit> for LedgerDebitOrCredit {
-                fn from(debit_or_credit: $module::DebitOrCredit) -> Self {
-                    match debit_or_credit {
-                        $module::DebitOrCredit::DEBIT => LedgerDebitOrCredit::Debit,
-                        $module::DebitOrCredit::CREDIT => LedgerDebitOrCredit::Credit,
-                        _ => todo!(),
-                    }
-                }
-            }
-
-            impl From<$module::accountDetails> for LedgerAccountDetails {
-                fn from(account: $module::accountDetails) -> Self {
-                    LedgerAccountDetails {
-                        id: account.account_id.into(),
-                        code: account.code,
-                        name: account.name,
-                        normal_balance_type: account.normal_balance_type.into(),
-                    }
-                }
-            }
-        )+
-    };
-}
-
-impl_from_account_details_only!(account_set_and_sub_accounts, chart_of_accounts);
-
 impl_from_account_details_and_balances!(
+    chart_of_accounts,
     account_set_and_sub_accounts_with_balance,
     trial_balance,
     balance_sheet,

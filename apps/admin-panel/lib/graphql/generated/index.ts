@@ -139,7 +139,7 @@ export type AccountWithBalance = {
 export type BalanceSheet = {
   __typename?: 'BalanceSheet';
   balance: AccountBalancesByCurrency;
-  categories: Array<StatementCategory>;
+  categories: Array<StatementCategoryWithBalance>;
   name: Scalars['String']['output'];
 };
 
@@ -158,13 +158,7 @@ export type BtcBalance = {
 
 export type ChartOfAccounts = {
   __typename?: 'ChartOfAccounts';
-  categories: Array<ChartOfAccountsCategory>;
-  name: Scalars['String']['output'];
-};
-
-export type ChartOfAccountsCategory = {
-  __typename?: 'ChartOfAccountsCategory';
-  accounts: Array<AccountSetSubAccount>;
+  categories: Array<StatementCategory>;
   name: Scalars['String']['output'];
 };
 
@@ -405,7 +399,7 @@ export enum Period {
 export type ProfitAndLossStatement = {
   __typename?: 'ProfitAndLossStatement';
   balance: AccountBalancesByCurrency;
-  categories: Array<StatementCategory>;
+  categories: Array<StatementCategoryWithBalance>;
   name: Scalars['String']['output'];
 };
 
@@ -465,6 +459,12 @@ export type ShareholderEquityAddInput = {
 
 export type StatementCategory = {
   __typename?: 'StatementCategory';
+  accounts: Array<AccountSetSubAccount>;
+  name: Scalars['String']['output'];
+};
+
+export type StatementCategoryWithBalance = {
+  __typename?: 'StatementCategoryWithBalance';
   accounts: Array<AccountSetSubAccountWithBalance>;
   balance: AccountBalancesByCurrency;
   name: Scalars['String']['output'];
@@ -589,12 +589,12 @@ export type ChartOfAccountsAccountSetQuery = { __typename?: 'Query', accountSetW
 export type GetOnBalanceSheetChartOfAccountsQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type GetOnBalanceSheetChartOfAccountsQuery = { __typename?: 'Query', chartOfAccounts?: { __typename?: 'ChartOfAccounts', name: string, categories: Array<{ __typename?: 'ChartOfAccountsCategory', name: string, accounts: Array<{ __typename: 'AccountDetails', id: string, name: string } | { __typename: 'AccountSetDetails', id: string, name: string, hasSubAccounts: boolean }> }> } | null };
+export type GetOnBalanceSheetChartOfAccountsQuery = { __typename?: 'Query', chartOfAccounts?: { __typename?: 'ChartOfAccounts', name: string, categories: Array<{ __typename?: 'StatementCategory', name: string, accounts: Array<{ __typename: 'AccountDetails', id: string, name: string } | { __typename: 'AccountSetDetails', id: string, name: string, hasSubAccounts: boolean }> }> } | null };
 
 export type GetOffBalanceSheetChartOfAccountsQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type GetOffBalanceSheetChartOfAccountsQuery = { __typename?: 'Query', offBalanceSheetChartOfAccounts?: { __typename?: 'ChartOfAccounts', name: string, categories: Array<{ __typename?: 'ChartOfAccountsCategory', name: string, accounts: Array<{ __typename: 'AccountDetails', id: string, name: string } | { __typename: 'AccountSetDetails', id: string, name: string, hasSubAccounts: boolean }> }> } | null };
+export type GetOffBalanceSheetChartOfAccountsQuery = { __typename?: 'Query', offBalanceSheetChartOfAccounts?: { __typename?: 'ChartOfAccounts', name: string, categories: Array<{ __typename?: 'StatementCategory', name: string, accounts: Array<{ __typename: 'AccountDetails', id: string, name: string } | { __typename: 'AccountSetDetails', id: string, name: string, hasSubAccounts: boolean }> }> } | null };
 
 export type SumsubPermalinkCreateMutationVariables = Exact<{
   input: SumsubPermalinkCreateInput;

@@ -47,14 +47,6 @@ pub struct AccountSetCreate;
 #[derive(GraphQLQuery)]
 #[graphql(
     schema_path = "src/ledger/cala/graphql/schema.graphql",
-    query_path = "src/ledger/cala/graphql/account-set-with-details.gql",
-    response_derives = "Debug, PartialEq, Eq, Clone"
-)]
-pub struct AccountSetAndSubAccounts;
-
-#[derive(GraphQLQuery)]
-#[graphql(
-    schema_path = "src/ledger/cala/graphql/schema.graphql",
     query_path = "src/ledger/cala/graphql/account-set-with-balance.gql",
     response_derives = "Debug, PartialEq, Eq, Clone"
 )]

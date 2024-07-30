@@ -149,7 +149,7 @@ impl Query {
         let app = ctx.data_unchecked::<LavaApp>();
         let account_set = app
             .ledger()
-            .account_set_and_sub_accounts(account_set_id.into(), 0, None)
+            .account_set_and_sub_accounts_with_balance(account_set_id.into(), 0, None)
             .await?;
         Ok(account_set.map(AccountSetAndSubAccounts::from))
     }

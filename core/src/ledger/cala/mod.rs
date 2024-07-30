@@ -133,34 +133,6 @@ impl CalaClient {
             .transpose()
     }
 
-    #[instrument(
-        name = "lava.ledger.cala.find_account_set_and_sub_accounts_by_id",
-        skip(self, id),
-        err
-    )]
-    pub async fn find_account_set_and_sub_accounts_by_id<
-        T: From<account_set_and_sub_accounts::AccountSetAndSubAccountsAccountSet>,
-    >(
-        &self,
-        id: impl Into<Uuid>,
-        first: i64,
-        after: Option<String>,
-    ) -> Result<Option<T>, CalaError> {
-        let variables = account_set_and_sub_accounts::Variables {
-            account_set_id: id.into(),
-            first,
-            after,
-        };
-        let response = Self::traced_gql_request::<AccountSetAndSubAccounts, _>(
-            &self.client,
-            &self.url,
-            variables,
-        )
-        .await?;
-
-        Ok(response.data.and_then(|d| d.account_set).map(T::from))
-    }
-
     #[instrument(name = "lava.ledger.cala.create_user_accounts", skip(self), err)]
     pub async fn create_customer_accounts(
         &self,
@@ -818,28 +790,42 @@ impl CalaClient {
             .transpose()
     }
 
-    pub async fn chart_of_accounts<T: From<chart_of_accounts::ChartOfAccountsAccountSet>>(
-        &self,
-    ) -> Result<Option<T>, CalaError> {
+    pub async fn chart_of_accounts<T, E>(&self) -> Result<Option<T>, E>
+    where
+        T: TryFrom<chart_of_accounts::ChartOfAccountsAccountSet, Error = E>,
+        E: From<CalaError> + std::fmt::Display,
+    {
         let variables = chart_of_accounts::Variables {
             account_set_id: constants::CHART_OF_ACCOUNTS_ACCOUNT_SET_ID,
+            journal_id: constants::CORE_JOURNAL_ID,
         };
         let response =
             Self::traced_gql_request::<ChartOfAccounts, _>(&self.client, &self.url, variables)
                 .await?;
-        Ok(response.data.and_then(|d| d.account_set).map(T::from))
+        response
+            .data
+            .and_then(|d| d.account_set)
+            .map(T::try_from)
+            .transpose()
     }
 
-    pub async fn obs_chart_of_accounts<T: From<chart_of_accounts::ChartOfAccountsAccountSet>>(
-        &self,
-    ) -> Result<Option<T>, CalaError> {
+    pub async fn obs_chart_of_accounts<T, E>(&self) -> Result<Option<T>, E>
+    where
+        T: TryFrom<chart_of_accounts::ChartOfAccountsAccountSet, Error = E>,
+        E: From<CalaError> + std::fmt::Display,
+    {
         let variables = chart_of_accounts::Variables {
             account_set_id: constants::OBS_CHART_OF_ACCOUNTS_ACCOUNT_SET_ID,
+            journal_id: constants::CORE_JOURNAL_ID,
         };
         let response =
             Self::traced_gql_request::<ChartOfAccounts, _>(&self.client, &self.url, variables)
                 .await?;
-        Ok(response.data.and_then(|d| d.account_set).map(T::from))
+        response
+            .data
+            .and_then(|d| d.account_set)
+            .map(T::try_from)
+            .transpose()
     }
 
     pub async fn balance_sheet<T, E>(&self) -> Result<Option<T>, E>
