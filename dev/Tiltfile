@@ -16,7 +16,7 @@ for service, deps in docker_groups.items():
 local_resource(
     "core",
     labels=["core"],
-    cmd="cd .. && make build run-tf-in-tilt",
+    cmd="cd .. && make build run-tf || true",
     serve_cmd="cd .. && make run-server",
     serve_env={
         "PG_CON": "postgres://user:password@localhost:5433/pg",
