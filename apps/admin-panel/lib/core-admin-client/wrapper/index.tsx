@@ -17,7 +17,7 @@ function makeClient({ coreAdminGqlUrl }: { coreAdminGqlUrl: string }) {
   return new ApolloClient({
     cache: new InMemoryCache({
       typePolicies: {
-        AccountSetAndSubAccounts: {
+        AccountSetAndSubAccountsWithBalance: {
           fields: {
             subAccounts: relayStylePagination(),
           },
