@@ -113,18 +113,3 @@ impl From<crate::ledger::account::LedgerAccountWithBalance> for AccountWithBalan
         }
     }
 }
-
-#[derive(SimpleObject)]
-pub struct AccountDetails {
-    pub id: UUID,
-    pub name: String,
-}
-
-impl From<crate::ledger::account::LedgerAccountWithBalance> for AccountDetails {
-    fn from(account_set: crate::ledger::account::LedgerAccountWithBalance) -> Self {
-        AccountDetails {
-            id: account_set.id.into(),
-            name: account_set.name,
-        }
-    }
-}

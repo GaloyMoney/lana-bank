@@ -4,25 +4,12 @@ type AccountBalancesByCurrency {
 	usdt: LayeredUsdAccountBalances!
 }
 
-type AccountDetails {
-	id: UUID!
-	name: String!
-}
-
 type AccountSetAndSubAccountsWithBalance {
 	id: UUID!
 	name: String!
 	balance: AccountBalancesByCurrency!
 	subAccounts(first: Int!, after: String): AccountSetSubAccountWithBalanceConnection!
 }
-
-type AccountSetDetails {
-	id: UUID!
-	name: String!
-	hasSubAccounts: Boolean!
-}
-
-union AccountSetSubAccount = AccountDetails | AccountSetDetails
 
 union AccountSetSubAccountWithBalance = AccountWithBalance | AccountSetWithBalance
 
@@ -97,7 +84,7 @@ scalar CVLPct
 
 type ChartOfAccounts {
 	name: String!
-	categories: [StatementCategory!]!
+	categories: [StatementCategoryWithBalance!]!
 }
 
 type Checking {
@@ -332,11 +319,6 @@ input ShareholderEquityAddInput {
 scalar SignedSatoshis
 
 scalar SignedUsdCents
-
-type StatementCategory {
-	name: String!
-	accounts: [AccountSetSubAccount!]!
-}
 
 type StatementCategoryWithBalance {
 	name: String!

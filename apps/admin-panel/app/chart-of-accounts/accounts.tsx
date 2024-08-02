@@ -5,7 +5,8 @@ import { gql } from "@apollo/client"
 import { IoCaretDownSharp, IoCaretForwardSharp } from "react-icons/io5"
 
 import {
-  AccountSetSubAccount,
+  AccountBalancesByCurrency,
+  AccountSetSubAccountWithBalance,
   useChartOfAccountsAccountSetQuery,
 } from "@/lib/graphql/generated"
 import { TableCell, TableRow } from "@/components/primitive/table"
@@ -43,7 +44,7 @@ gql`
 
 type AccountProps = {
   depth?: number
-  account: AccountSetSubAccount
+  account: AccountSetSubAccountWithBalance
 }
 
 const SubAccountsForAccountSet: React.FC<AccountProps> = ({ account, depth = 0 }) => {
@@ -59,14 +60,16 @@ const SubAccountsForAccountSet: React.FC<AccountProps> = ({ account, depth = 0 }
 
   return (
     <>
-      {subAccounts?.map((subAccount) => {
-        // TODO: change this at the type level when we remove 'Details' from ChartOfAccounts query
-        const node =
-          subAccount.node.__typename === "AccountWithBalance"
-            ? { ...subAccount.node, __typename: "AccountDetails" as const }
-            : { ...subAccount.node, __typename: "AccountSetDetails" as const }
-        return <Account key={subAccount.node.id} account={node} depth={depth + 1} />
-      })}
+      {subAccounts?.map((subAccount) => (
+        <Account
+          key={subAccount.node.id}
+          account={{
+            ...subAccount.node,
+            balance: undefined as unknown as AccountBalancesByCurrency,
+          }}
+          depth={depth + 1}
+        />
+      ))}
       {hasMoreSubAccounts && subAccounts && (
         <TableRow>
           <TableCell
@@ -94,7 +97,7 @@ const SubAccountsForAccountSet: React.FC<AccountProps> = ({ account, depth = 0 }
 export const Account: React.FC<AccountProps> = ({ account, depth = 0 }) => {
   const [showingSubAccounts, setShowingSubAccounts] = React.useState(false)
   const hasSubAccounts =
-    account.__typename === "AccountSetDetails" && account.hasSubAccounts
+    account.__typename === "AccountSetWithBalance" && account.hasSubAccounts
 
   return (
     <>
