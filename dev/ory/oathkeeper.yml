@@ -23,12 +23,12 @@ authenticators:
   cookie_session:
     enabled: true
     config:
-      check_session_url: http://kratos:4433/sessions/whoami
+      check_session_url: http://dockerhost-alias:3001/admin-panel/api/auth/session
       preserve_path: true
-      subject_from: identity.id
-      extra_from: identity.traits
-      only:
-        - ory_kratos_session
+      preserve_query: true
+      subject_from: user.email
+      extra_from: "@this"
+      force_method: "GET"
 
   anonymous:
     enabled: true

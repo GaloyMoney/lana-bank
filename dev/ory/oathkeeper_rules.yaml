@@ -6,6 +6,14 @@
     methods: ["POST", "GET", "OPTIONS"]
   authenticators:
     - handler: cookie_session
+      config:
+        check_session_url: http://kratos:4433/sessions/whoami
+        preserve_path: true
+        subject_from: identity.id
+        extra_from: identity.traits
+        only:
+          - ory_kratos_session
+
     - handler: bearer_token
   authorizer:
     handler: allow
@@ -13,6 +21,28 @@
     - handler: id_token
       config:
         claims: '{"sub": "{{ print .Subject }}", "aud": ["https://public-api/graphql"] }'
+
+- id: lava-core-customer-portal
+  upstream:
+    url: "http://dockerhost-alias:3000"
+    preserve_host: true
+  match:
+    url: "<(http|https)>://<[a-zA-Z0-9-.:]+>/<(?!sessions|self-service|graphql|admin|admin-panel).*>"
+    methods: ["POST", "GET", "OPTIONS"]
+  authenticators:
+    - handler: cookie_session
+      config:
+        check_session_url: http://kratos:4433/sessions/whoami
+        preserve_path: true
+        subject_from: identity.id
+        extra_from: identity.traits
+        only:
+          - ory_kratos_session
+    - handler: anonymous
+  authorizer:
+    handler: allow
+  mutators:
+    - handler: id_token
 
 - id: admin-core-api
   upstream:
@@ -26,13 +56,6 @@
     methods: ["POST", "GET", "OPTIONS"]
   authenticators:
     - handler: cookie_session
-      config:
-        check_session_url: http://dockerhost-alias:3001/admin-panel/api/auth/session
-        preserve_path: true
-        preserve_query: true
-        subject_from: user.email
-        extra_from: "@this"
-        force_method: "GET"
     # only be in local dev. to simplify tests set up, until admin API is API-auth friendly
     - handler: anonymous
       config:
@@ -72,27 +95,3 @@
   mutators:
     - handler: noop
 
-- id: lava-core-customer-portal
-  upstream:
-    url: "http://dockerhost-alias:3000"
-    preserve_host: true
-  match:
-    url: "<(http|https)>://<[a-zA-Z0-9-.:]+>/<(?!sessions|self-service|graphql|admin|admin-panel).*>"
-    methods: ["POST", "GET", "OPTIONS"]
-  authenticators:
-    - handler: cookie_session
-      check_session_url: http://kratos:4433/sessions/whoami
-      preserve_path: true
-      subject_from: identity.id
-      extra_from: identity.traits
-      only:
-        - ory_kratos_session
-    - handler: anonymous
-  authorizer:
-    handler: allow
-  mutators:
-    - handler: id_token
-      config:
-        jwks_url: file:///home/ory/jwks.json
-        issuer_url: "lava.bank"
-        claims: '{"sub": "{{ print .Subject }}" }'
