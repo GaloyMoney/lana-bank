@@ -9,12 +9,6 @@ type AccountDetails {
 	name: String!
 }
 
-type AccountSetAndSubAccounts {
-	id: UUID!
-	name: String!
-	subAccounts(first: Int!, after: String): AccountSetSubAccountConnection!
-}
-
 type AccountSetAndSubAccountsWithBalance {
 	id: UUID!
 	name: String!
@@ -29,35 +23,6 @@ type AccountSetDetails {
 }
 
 union AccountSetSubAccount = AccountDetails | AccountSetDetails
-
-type AccountSetSubAccountConnection {
-	"""
-	Information to aid in pagination.
-	"""
-	pageInfo: PageInfo!
-	"""
-	A list of edges.
-	"""
-	edges: [AccountSetSubAccountEdge!]!
-	"""
-	A list of nodes.
-	"""
-	nodes: [AccountSetSubAccount!]!
-}
-
-"""
-An edge in a connection.
-"""
-type AccountSetSubAccountEdge {
-	"""
-	The item at the end of the edge
-	"""
-	node: AccountSetSubAccount!
-	"""
-	A cursor for use in pagination
-	"""
-	cursor: String!
-}
 
 union AccountSetSubAccountWithBalance = AccountWithBalance | AccountSetWithBalance
 
@@ -349,7 +314,6 @@ type Query {
 	offBalanceSheetChartOfAccounts: ChartOfAccounts
 	balanceSheet: BalanceSheet
 	profitAndLossStatement: ProfitAndLossStatement
-	accountSet(accountSetId: UUID!): AccountSetAndSubAccounts @deprecated(reason: "Use `accountSetWithBalance` instead")
 	accountSetWithBalance(accountSetId: UUID!): AccountSetAndSubAccountsWithBalance
 }
 

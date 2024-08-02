@@ -140,20 +140,6 @@ impl Query {
         Ok(profit_and_loss.map(ProfitAndLossStatement::from))
     }
 
-    #[graphql(deprecation = "Use `accountSetWithBalance` instead")]
-    async fn account_set(
-        &self,
-        ctx: &Context<'_>,
-        account_set_id: UUID,
-    ) -> async_graphql::Result<Option<AccountSetAndSubAccounts>> {
-        let app = ctx.data_unchecked::<LavaApp>();
-        let account_set = app
-            .ledger()
-            .account_set_and_sub_accounts_with_balance(account_set_id.into(), 0, None)
-            .await?;
-        Ok(account_set.map(AccountSetAndSubAccounts::from))
-    }
-
     async fn account_set_with_balance(
         &self,
         ctx: &Context<'_>,

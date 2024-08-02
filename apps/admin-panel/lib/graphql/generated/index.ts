@@ -40,19 +40,6 @@ export type AccountDetails = {
   name: Scalars['String']['output'];
 };
 
-export type AccountSetAndSubAccounts = {
-  __typename?: 'AccountSetAndSubAccounts';
-  id: Scalars['UUID']['output'];
-  name: Scalars['String']['output'];
-  subAccounts: AccountSetSubAccountConnection;
-};
-
-
-export type AccountSetAndSubAccountsSubAccountsArgs = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  first: Scalars['Int']['input'];
-};
-
 export type AccountSetAndSubAccountsWithBalance = {
   __typename?: 'AccountSetAndSubAccountsWithBalance';
   balance: AccountBalancesByCurrency;
@@ -75,25 +62,6 @@ export type AccountSetDetails = {
 };
 
 export type AccountSetSubAccount = AccountDetails | AccountSetDetails;
-
-export type AccountSetSubAccountConnection = {
-  __typename?: 'AccountSetSubAccountConnection';
-  /** A list of edges. */
-  edges: Array<AccountSetSubAccountEdge>;
-  /** A list of nodes. */
-  nodes: Array<AccountSetSubAccount>;
-  /** Information to aid in pagination. */
-  pageInfo: PageInfo;
-};
-
-/** An edge in a connection. */
-export type AccountSetSubAccountEdge = {
-  __typename?: 'AccountSetSubAccountEdge';
-  /** A cursor for use in pagination */
-  cursor: Scalars['String']['output'];
-  /** The item at the end of the edge */
-  node: AccountSetSubAccount;
-};
 
 export type AccountSetSubAccountWithBalance = AccountSetWithBalance | AccountWithBalance;
 
@@ -405,8 +373,6 @@ export type ProfitAndLossStatement = {
 
 export type Query = {
   __typename?: 'Query';
-  /** @deprecated Use `accountSetWithBalance` instead */
-  accountSet?: Maybe<AccountSetAndSubAccounts>;
   accountSetWithBalance?: Maybe<AccountSetAndSubAccountsWithBalance>;
   balanceSheet?: Maybe<BalanceSheet>;
   chartOfAccounts?: Maybe<ChartOfAccounts>;
@@ -419,11 +385,6 @@ export type Query = {
   profitAndLossStatement?: Maybe<ProfitAndLossStatement>;
   trialBalance?: Maybe<TrialBalance>;
   users: Array<User>;
-};
-
-
-export type QueryAccountSetArgs = {
-  accountSetId: Scalars['UUID']['input'];
 };
 
 

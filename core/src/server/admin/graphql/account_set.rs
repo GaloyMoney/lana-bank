@@ -112,67 +112,6 @@ impl From<SubAccountCursor> for crate::ledger::account_set::LedgerSubAccountCurs
     }
 }
 
-#[derive(SimpleObject)]
-#[graphql(complex)]
-pub struct AccountSetAndSubAccounts {
-    id: UUID,
-    name: String,
-}
-
-impl From<crate::ledger::account_set::LedgerAccountSetAndSubAccountsWithBalance>
-    for AccountSetAndSubAccounts
-{
-    fn from(
-        account_set: crate::ledger::account_set::LedgerAccountSetAndSubAccountsWithBalance,
-    ) -> Self {
-        AccountSetAndSubAccounts {
-            id: account_set.id.into(),
-            name: account_set.name,
-        }
-    }
-}
-
-#[ComplexObject]
-impl AccountSetAndSubAccounts {
-    async fn sub_accounts(
-        &self,
-        ctx: &Context<'_>,
-        first: i32,
-        after: Option<String>,
-    ) -> Result<Connection<SubAccountCursor, AccountSetSubAccount, EmptyFields, EmptyFields>> {
-        let app = ctx.data_unchecked::<LavaApp>();
-        query(
-            after,
-            None,
-            Some(first),
-            None,
-            |after, _, first, _| async move {
-                let first = first.expect("First always exists");
-                let res = app
-                    .ledger()
-                    .paginated_account_set_and_sub_accounts_with_balance(
-                        self.id.clone().into(),
-                        crate::query::PaginatedQueryArgs {
-                            first,
-                            after: after
-                                .map(crate::ledger::account_set::LedgerSubAccountCursor::from),
-                        },
-                    )
-                    .await?;
-                let mut connection = Connection::new(false, res.has_next_page);
-                connection
-                    .edges
-                    .extend(res.entities.into_iter().map(|sub_account| {
-                        let cursor = SubAccountCursor::from(sub_account.cursor.clone());
-                        Edge::new(cursor, AccountSetSubAccount::from(sub_account))
-                    }));
-                Ok::<_, async_graphql::Error>(connection)
-            },
-        )
-        .await
-    }
-}
-
 #[derive(Union)]
 enum AccountSetSubAccountWithBalance {
     Account(super::account::AccountWithBalance),
