@@ -9,7 +9,6 @@ pub mod customer;
 pub mod error;
 pub mod loan;
 pub mod primitives;
-mod tx_template;
 
 pub use cursor::*;
 use tracing::instrument;
