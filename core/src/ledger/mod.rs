@@ -20,9 +20,9 @@ use crate::{
 };
 
 use account_set::{
-    LedgerAccountSetAndSubAccountsWithBalance, LedgerBalanceSheet, LedgerChartOfAccounts,
-    LedgerProfitAndLossStatement, LedgerSubAccountCursor, LedgerTrialBalance,
-    PaginatedLedgerAccountSetSubAccountWithBalance,
+    LedgerAccountSetAndSubAccountsWithBalance, LedgerBalanceSheet, LedgerCashFlowStatement,
+    LedgerChartOfAccounts, LedgerProfitAndLossStatement, LedgerSubAccountCursor,
+    LedgerTrialBalance, PaginatedLedgerAccountSetSubAccountWithBalance,
 };
 use cala::*;
 pub use config::*;
@@ -328,6 +328,14 @@ impl Ledger {
             .profit_and_loss::<LedgerProfitAndLossStatement, LedgerError>()
             .await?
             .map(LedgerProfitAndLossStatement::from))
+    }
+
+    pub async fn cash_flow(&self) -> Result<Option<LedgerCashFlowStatement>, LedgerError> {
+        Ok(self
+            .cala
+            .cash_flow::<LedgerCashFlowStatement, LedgerError>()
+            .await?
+            .map(LedgerCashFlowStatement::from))
     }
 
     pub async fn account_set_and_sub_accounts_with_balance(

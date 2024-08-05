@@ -1009,6 +1009,25 @@ impl CalaClient {
             .transpose()
     }
 
+    pub async fn cash_flow<T, E>(&self) -> Result<Option<T>, E>
+    where
+        T: TryFrom<cash_flow_statement::CashFlowStatementAccountSet, Error = E>,
+        E: From<CalaError> + std::fmt::Display,
+    {
+        let variables = cash_flow_statement::Variables {
+            account_set_id: constants::CASH_FLOW_ACCOUNT_SET_ID,
+            journal_id: constants::CORE_JOURNAL_ID,
+        };
+        let response =
+            Self::traced_gql_request::<CashFlowStatement, _>(&self.client, &self.url, variables)
+                .await?;
+        response
+            .data
+            .and_then(|d| d.account_set)
+            .map(T::try_from)
+            .transpose()
+    }
+
     #[instrument(name = "lava.ledger.cala.find_by_id", skip(self), err)]
     async fn find_account_by_code<T: From<account_by_code::AccountByCodeAccountByCode>>(
         &self,

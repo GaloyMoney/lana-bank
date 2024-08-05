@@ -198,7 +198,8 @@ impl_from_account_details_and_balances!(
     account_set_and_sub_accounts_with_balance,
     trial_balance,
     balance_sheet,
-    profit_and_loss_statement
+    profit_and_loss_statement,
+    cash_flow_statement
 );
 
 #[cfg(test)]
