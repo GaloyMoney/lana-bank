@@ -59,6 +59,8 @@ macro_rules! impl_from_account_set_details_and_balances {
 macro_rules! impl_from_accounts_with_balances {
     ($($module:ident),+)  => {
         $(
+            impl_from_account_set_details_and_balances!($module);
+
             impl TryFrom<$module::accountsWithBalances> for Vec<LedgerAccountSetSubAccountWithBalance> {
                 type Error = LedgerError;
 
@@ -81,6 +83,12 @@ macro_rules! impl_from_accounts_with_balances {
             }
         )+
     };
+}
+
+#[derive(Debug, Clone)]
+pub struct ConnectionCreationPageInfo {
+    pub has_next_page: bool,
+    pub end_cursor: Option<String>,
 }
 
 #[derive(Debug, Clone)]
@@ -138,12 +146,6 @@ impl TryFrom<account_set_and_sub_accounts_with_balance::subAccountsWithBalances>
 }
 
 #[derive(Debug, Clone)]
-pub struct ConnectionCreationPageInfo {
-    pub has_next_page: bool,
-    pub end_cursor: Option<String>,
-}
-
-#[derive(Debug, Clone)]
 pub struct LedgerStatementCategoryWithBalance {
     pub id: LedgerAccountSetId,
     pub name: String,
@@ -155,6 +157,8 @@ pub struct LedgerStatementCategoryWithBalance {
 macro_rules! impl_from_category_with_balances {
     ($($module:ident),+)  => {
         $(
+            impl_from_accounts_with_balances!($module);
+
             impl TryFrom<$module::categoryAccountSetWithBalances> for LedgerStatementCategoryWithBalance {
                 type Error = LedgerError;
 
@@ -195,20 +199,9 @@ macro_rules! impl_from_category_with_balances {
     };
 }
 
-impl_from_account_set_details_and_balances!(
-    chart_of_accounts,
-    account_set_and_sub_accounts_with_balance,
-    trial_balance,
-    balance_sheet,
-    profit_and_loss_statement
-);
+impl_from_account_set_details_and_balances!(account_set_and_sub_accounts_with_balance);
 
-impl_from_accounts_with_balances!(
-    chart_of_accounts,
-    trial_balance,
-    balance_sheet,
-    profit_and_loss_statement
-);
+impl_from_accounts_with_balances!(trial_balance);
 
 impl_from_category_with_balances!(chart_of_accounts, balance_sheet, profit_and_loss_statement);
 
