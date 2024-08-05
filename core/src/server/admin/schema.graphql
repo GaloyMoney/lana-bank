@@ -115,6 +115,12 @@ type BtcAccountBalance {
 
 scalar CVLPct
 
+type CashFlowStatement {
+	name: String!
+	balance: AccountBalancesByCurrency!
+	categories: [StatementCategoryWithBalance!]!
+}
+
 type ChartOfAccounts {
 	name: String!
 	categories: [StatementCategoryWithBalance!]!
@@ -429,6 +435,7 @@ type Query {
 	offBalanceSheetChartOfAccounts: ChartOfAccounts
 	balanceSheet: BalanceSheet
 	profitAndLossStatement: ProfitAndLossStatement
+	cashFlowStatement: CashFlowStatement
 	accountSetWithBalance(accountSetId: UUID!): AccountSetAndSubAccountsWithBalance
 	deposit(id: UUID!): Deposit
 	deposits(first: Int!, after: String): DepositConnection!

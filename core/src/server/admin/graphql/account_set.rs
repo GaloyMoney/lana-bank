@@ -267,3 +267,24 @@ impl From<crate::ledger::account_set::LedgerProfitAndLossStatement> for ProfitAn
         }
     }
 }
+
+#[derive(SimpleObject)]
+pub struct CashFlowStatement {
+    name: String,
+    balance: AccountBalancesByCurrency,
+    categories: Vec<StatementCategoryWithBalance>,
+}
+
+impl From<crate::ledger::account_set::LedgerCashFlowStatement> for CashFlowStatement {
+    fn from(profit_and_loss: crate::ledger::account_set::LedgerCashFlowStatement) -> Self {
+        CashFlowStatement {
+            name: profit_and_loss.name,
+            balance: profit_and_loss.balance.into(),
+            categories: profit_and_loss
+                .categories
+                .into_iter()
+                .map(StatementCategoryWithBalance::from)
+                .collect(),
+        }
+    }
+}

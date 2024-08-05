@@ -132,6 +132,13 @@ export type BtcAccountBalance = {
   netDebit: Scalars['SignedSatoshis']['output'];
 };
 
+export type CashFlowStatement = {
+  __typename?: 'CashFlowStatement';
+  balance: AccountBalancesByCurrency;
+  categories: Array<StatementCategoryWithBalance>;
+  name: Scalars['String']['output'];
+};
+
 export type ChartOfAccounts = {
   __typename?: 'ChartOfAccounts';
   categories: Array<StatementCategoryWithBalance>;
@@ -479,6 +486,7 @@ export type Query = {
   accountSetWithBalance?: Maybe<AccountSetAndSubAccountsWithBalance>;
   audit: AuditEntryConnection;
   balanceSheet?: Maybe<BalanceSheet>;
+  cashFlowStatement?: Maybe<CashFlowStatement>;
   chartOfAccounts?: Maybe<ChartOfAccounts>;
   customer?: Maybe<Customer>;
   customers: CustomerConnection;

@@ -243,6 +243,16 @@ impl Query {
         Ok(profit_and_loss.map(ProfitAndLossStatement::from))
     }
 
+    async fn cash_flow_statement(
+        &self,
+        ctx: &Context<'_>,
+    ) -> async_graphql::Result<Option<CashFlowStatement>> {
+        let app = ctx.data_unchecked::<LavaApp>();
+        let AdminAuthContext { sub } = ctx.data()?;
+        let cash_flow = app.ledger().cash_flow(sub).await?;
+        Ok(cash_flow.map(CashFlowStatement::from))
+    }
+
     async fn account_set_with_balance(
         &self,
         ctx: &Context<'_>,

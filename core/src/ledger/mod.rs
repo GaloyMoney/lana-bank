@@ -330,7 +330,13 @@ impl Ledger {
             .map(LedgerProfitAndLossStatement::from))
     }
 
-    pub async fn cash_flow(&self) -> Result<Option<LedgerCashFlowStatement>, LedgerError> {
+    pub async fn cash_flow(
+        &self,
+        sub: &Subject,
+    ) -> Result<Option<LedgerCashFlowStatement>, LedgerError> {
+        self.authz
+            .check_permission(sub, Object::Ledger, LedgerAction::Read)
+            .await?;
         Ok(self
             .cala
             .cash_flow::<LedgerCashFlowStatement, LedgerError>()
