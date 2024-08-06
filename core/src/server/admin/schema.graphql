@@ -1,7 +1,6 @@
 type AccountBalancesByCurrency {
 	btc: LayeredBtcAccountBalances!
 	usd: LayeredUsdAccountBalances!
-	usdt: LayeredUsdAccountBalances!
 }
 
 type AccountSetAndSubAccountsWithBalance {
@@ -114,10 +113,6 @@ type BtcAccountBalance {
 	netCredit: SignedSatoshis!
 }
 
-type BtcBalance {
-	btcBalance: Satoshis!
-}
-
 scalar CVLPct
 
 type ChartOfAccounts {
@@ -137,8 +132,6 @@ type Collateral {
 type Customer {
 	customerId: UUID!
 	email: String!
-	btcDepositAddress: String!
-	ustDepositAddress: String!
 	status: AccountStatus!
 	level: KycLevel!
 	applicantId: String
@@ -424,10 +417,6 @@ type TrialBalance {
 
 scalar UUID
 
-type UnallocatedCollateral {
-	settled: BtcBalance!
-}
-
 type UsdAccountBalance {
 	debit: UsdCents!
 	credit: UsdCents!
@@ -457,7 +446,6 @@ type UserAssignRolePayload {
 }
 
 type UserBalance {
-	unallocatedCollateral: UnallocatedCollateral!
 	checking: Checking!
 }
 
