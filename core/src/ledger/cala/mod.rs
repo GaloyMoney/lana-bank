@@ -14,11 +14,7 @@ use crate::primitives::{
     LedgerAccountSetMemberType, LedgerDebitOrCredit, LedgerJournalId, LedgerTxId, WithdrawId,
 };
 
-use super::{
-    constants,
-    customer::{CustomerLedgerAccountAddresses, CustomerLedgerAccountIds},
-    loan::LoanAccountIds,
-};
+use super::{constants, customer::CustomerLedgerAccountIds, loan::LoanAccountIds};
 
 use error::*;
 use graphql::*;
@@ -138,7 +134,7 @@ impl CalaClient {
         &self,
         customer_id: impl Into<Uuid> + std::fmt::Debug,
         customer_account_ids: CustomerLedgerAccountIds,
-    ) -> Result<CustomerLedgerAccountAddresses, CalaError> {
+    ) -> Result<(), CalaError> {
         let customer_id = customer_id.into();
         let variables = create_customer_accounts::Variables {
             on_balance_sheet_account_id: Uuid::from(
@@ -148,22 +144,11 @@ impl CalaClient {
             on_balance_sheet_account_name: format!("Customer Checking Account for {}", customer_id),
             customer_checking_control_account_set_id:
                 super::constants::CUSTOMER_CHECKING_CONTROL_ACCOUNT_SET_ID,
-            tron_account_id: Uuid::new_v4(),
-            tron_account_code: format!("ASSETS.TRON.{}", customer_id),
-            tron_account_name: format!("Bank USDT Deposit Account for {}", customer_id),
         };
-        let response = Self::traced_gql_request::<CreateCustomerAccounts, _>(
-            &self.client,
-            &self.url,
-            variables,
-        )
-        .await?;
-        response
-            .data
-            .map(|d| CustomerLedgerAccountAddresses {
-                tron_usdt_address: d.tron_address.address_backed_account_create.account.address,
-            })
-            .ok_or(CalaError::MissingDataField)
+        Self::traced_gql_request::<CreateCustomerAccounts, _>(&self.client, &self.url, variables)
+            .await?;
+
+        Ok(())
     }
 
     #[instrument(name = "lava.ledger.cala.create_loan_accounts", skip(self), err)]

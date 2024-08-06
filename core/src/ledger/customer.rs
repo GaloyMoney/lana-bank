@@ -1,4 +1,4 @@
-use crate::primitives::{LedgerAccountId, Satoshis, UsdCents};
+use crate::primitives::{LedgerAccountId, UsdCents};
 use serde::{Deserialize, Serialize};
 
 use super::{cala::graphql::*, error::*, primitives::LayeredUsdBalance};
@@ -15,11 +15,6 @@ impl CustomerLedgerAccountIds {
             on_balance_sheet_deposit_account_id: LedgerAccountId::new(),
         }
     }
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CustomerLedgerAccountAddresses {
-    pub tron_usdt_address: String,
 }
 
 pub struct CustomerBalance {

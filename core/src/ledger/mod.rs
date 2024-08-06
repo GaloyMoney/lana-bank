@@ -65,13 +65,12 @@ impl Ledger {
     pub async fn create_accounts_for_customer(
         &self,
         customer_id: CustomerId,
-    ) -> Result<(CustomerLedgerAccountIds, CustomerLedgerAccountAddresses), LedgerError> {
+    ) -> Result<CustomerLedgerAccountIds, LedgerError> {
         let account_ids = CustomerLedgerAccountIds::new();
-        let addresses = self
-            .cala
+        self.cala
             .create_customer_accounts(customer_id, account_ids)
             .await?;
-        Ok((account_ids, addresses))
+        Ok(account_ids)
     }
 
     #[instrument(name = "lava.ledger.add_equity", skip(self), err)]

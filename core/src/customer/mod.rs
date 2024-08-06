@@ -66,13 +66,11 @@ impl Customers {
         id: CustomerId,
         email: String,
     ) -> Result<Customer, CustomerError> {
-        let (ledger_account_ids, ledger_account_addresses) =
-            self.ledger.create_accounts_for_customer(id).await?;
+        let ledger_account_ids = self.ledger.create_accounts_for_customer(id).await?;
         let new_customer = NewCustomer::builder()
             .id(id)
             .email(email)
             .account_ids(ledger_account_ids)
-            .account_addresses(ledger_account_addresses)
             .build()
             .expect("Could not build customer");
 

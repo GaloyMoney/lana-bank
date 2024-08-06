@@ -1,11 +1,7 @@
 use derive_builder::Builder;
 use serde::{Deserialize, Serialize};
 
-use crate::{
-    entity::*,
-    ledger::customer::{CustomerLedgerAccountAddresses, CustomerLedgerAccountIds},
-    primitives::*,
-};
+use crate::{entity::*, ledger::customer::CustomerLedgerAccountIds, primitives::*};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
@@ -14,7 +10,6 @@ pub enum CustomerEvent {
         id: CustomerId,
         email: String,
         account_ids: CustomerLedgerAccountIds,
-        account_addresses: CustomerLedgerAccountAddresses,
     },
     KycStarted {
         applicant_id: String,
@@ -41,7 +36,6 @@ pub struct Customer {
     pub id: CustomerId,
     pub email: String,
     pub account_ids: CustomerLedgerAccountIds,
-    pub account_addresses: CustomerLedgerAccountAddresses,
     pub status: AccountStatus,
     pub level: KycLevel,
     #[builder(setter(strip_option, into), default)]
@@ -103,12 +97,10 @@ impl TryFrom<EntityEvents<CustomerEvent>> for Customer {
                     id,
                     email,
                     account_ids,
-                    account_addresses,
                 } => {
                     builder = builder
                         .id(*id)
                         .account_ids(*account_ids)
-                        .account_addresses(account_addresses.clone())
                         .email(email.clone())
                         .account_ids(*account_ids)
                         .level(KycLevel::NotKyced)
@@ -144,7 +136,6 @@ pub struct NewCustomer {
     #[builder(setter(into))]
     pub(super) email: String,
     pub(super) account_ids: CustomerLedgerAccountIds,
-    pub(super) account_addresses: CustomerLedgerAccountAddresses,
 }
 
 impl NewCustomer {
@@ -159,7 +150,6 @@ impl NewCustomer {
                 id: self.id,
                 email: self.email,
                 account_ids: self.account_ids,
-                account_addresses: self.account_addresses,
             }],
         )
     }
