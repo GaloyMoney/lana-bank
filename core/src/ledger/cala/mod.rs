@@ -157,7 +157,8 @@ impl CalaClient {
         loan_id: impl Into<Uuid> + std::fmt::Debug,
         LoanAccountIds {
             collateral_account_id,
-            outstanding_account_id,
+            principal_receivable_account_id,
+            interest_receivable_account_id,
             interest_account_id,
         }: LoanAccountIds,
     ) -> Result<(), CalaError> {
@@ -168,11 +169,25 @@ impl CalaClient {
             loan_collateral_account_name: format!("Loan Collateral Account for {}", loan_id),
             loans_collateral_control_account_set_id:
                 super::constants::LOANS_COLLATERAL_CONTROL_ACCOUNT_SET_ID,
-            loan_outstanding_account_id: Uuid::from(outstanding_account_id),
-            loan_outstanding_account_code: format!("LOANS.RECEIVABLE.{}", loan_id),
-            loan_outstanding_account_name: format!("Loan Receivable Account for {}", loan_id),
-            loans_outstanding_control_account_set_id:
-                super::constants::LOANS_RECEIVABLE_CONTROL_ACCOUNT_SET_ID,
+            loan_principal_receivable_account_id: Uuid::from(principal_receivable_account_id),
+            loan_principal_receivable_account_code: format!(
+                "LOANS.PRINCIPAL_RECEIVABLE.{}",
+                loan_id
+            ),
+            loan_principal_receivable_account_name: format!(
+                "Loan Interest Receivable Account for {}",
+                loan_id
+            ),
+            loans_principal_receivable_control_account_set_id:
+                super::constants::LOANS_PRINCIPAL_RECEIVABLE_CONTROL_ACCOUNT_SET_ID,
+            loan_interest_receivable_account_id: Uuid::from(interest_receivable_account_id),
+            loan_interest_receivable_account_code: format!("LOANS.INTEREST_RECEIVABLE.{}", loan_id),
+            loan_interest_receivable_account_name: format!(
+                "Loan Principal Receivable Account for {}",
+                loan_id
+            ),
+            loans_interest_receivable_control_account_set_id:
+                super::constants::LOANS_INTEREST_RECEIVABLE_CONTROL_ACCOUNT_SET_ID,
             interest_account_id: Uuid::from(interest_account_id),
             interest_account_code: format!("LOANS.INTEREST_INCOME.{}", loan_id),
             interest_account_name: format!("Interest Income for Loan {}", loan_id),
@@ -287,7 +302,8 @@ impl CalaClient {
         let variables = loan_balance::Variables {
             journal_id: super::constants::CORE_JOURNAL_ID,
             collateral_id: Uuid::from(account_ids.collateral_account_id),
-            loan_outstanding_id: Uuid::from(account_ids.outstanding_account_id),
+            loan_principal_receivable_id: Uuid::from(account_ids.principal_receivable_account_id),
+            loan_interest_receivable_id: Uuid::from(account_ids.interest_receivable_account_id),
             interest_income_id: Uuid::from(account_ids.interest_account_id),
         };
         let response =
@@ -699,7 +715,9 @@ impl CalaClient {
         let variables = post_approve_loan_transaction::Variables {
             transaction_id: transaction_id.into(),
             loan_collateral_account: loan_account_ids.collateral_account_id.into(),
-            loan_outstanding_account: loan_account_ids.outstanding_account_id.into(),
+            loan_principal_receivable_account: loan_account_ids
+                .principal_receivable_account_id
+                .into(),
             checking_account: user_account_ids.on_balance_sheet_deposit_account_id.into(),
             collateral_amount,
             principal_amount,
@@ -731,7 +749,9 @@ impl CalaClient {
         let variables = post_complete_loan_transaction::Variables {
             transaction_id: transaction_id.into(),
             checking_account: user_account_ids.on_balance_sheet_deposit_account_id.into(),
-            loan_outstanding_account: loan_account_ids.outstanding_account_id.into(),
+            loan_principal_receivable_account: loan_account_ids
+                .principal_receivable_account_id
+                .into(),
             loan_collateral_account: loan_account_ids.collateral_account_id.into(),
             payment_amount,
             collateral_amount,
@@ -788,7 +808,9 @@ impl CalaClient {
     ) -> Result<(), CalaError> {
         let variables = post_incur_interest_transaction::Variables {
             transaction_id: transaction_id.into(),
-            loan_outstanding_account: loan_account_ids.outstanding_account_id.into(),
+            loan_interest_receivable_account: loan_account_ids
+                .interest_receivable_account_id
+                .into(),
             loan_interest_income_account: loan_account_ids.interest_account_id.into(),
             interest_amount,
             external_id,
@@ -834,8 +856,12 @@ impl CalaClient {
             .ok_or_else(|| CalaError::MissingDataField)
     }
 
-    #[instrument(name = "lava.ledger.cala.execute_repay_loan_tx", skip(self), err)]
-    pub async fn execute_repay_loan_tx(
+    #[instrument(
+        name = "lava.ledger.cala.execute_repay_loan_interest_tx",
+        skip(self),
+        err
+    )]
+    pub async fn execute_repay_loan_interest_tx(
         &self,
         transaction_id: LedgerTxId,
         loan_account_ids: LoanAccountIds,
@@ -846,7 +872,41 @@ impl CalaClient {
         let variables = post_record_payment_transaction::Variables {
             transaction_id: transaction_id.into(),
             checking_account: user_account_ids.on_balance_sheet_deposit_account_id.into(),
-            loan_outstanding_account: loan_account_ids.outstanding_account_id.into(),
+            loan_receivable_account: loan_account_ids.interest_receivable_account_id.into(),
+            payment_amount,
+            external_id,
+        };
+        let response = Self::traced_gql_request::<PostRecordPaymentTransaction, _>(
+            &self.client,
+            &self.url,
+            variables,
+        )
+        .await?;
+
+        response
+            .data
+            .map(|d| d.transaction_post.transaction.transaction_id)
+            .ok_or_else(|| CalaError::MissingDataField)?;
+        Ok(())
+    }
+
+    #[instrument(
+        name = "lava.ledger.cala.execute_repay_loan_principal_tx",
+        skip(self),
+        err
+    )]
+    pub async fn execute_repay_loan_principal_tx(
+        &self,
+        transaction_id: LedgerTxId,
+        loan_account_ids: LoanAccountIds,
+        user_account_ids: CustomerLedgerAccountIds,
+        payment_amount: Decimal,
+        external_id: String,
+    ) -> Result<(), CalaError> {
+        let variables = post_record_payment_transaction::Variables {
+            transaction_id: transaction_id.into(),
+            checking_account: user_account_ids.on_balance_sheet_deposit_account_id.into(),
+            loan_receivable_account: loan_account_ids.principal_receivable_account_id.into(),
             payment_amount,
             external_id,
         };

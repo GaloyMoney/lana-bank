@@ -165,7 +165,10 @@ impl Loans {
 
         let mut loan = self.loan_repo.find_by_id(loan_id).await?;
         let balances = self.ledger.get_loan_balance(loan.account_ids).await?;
-        assert_eq!(balances.outstanding, loan.outstanding());
+        assert_eq!(
+            balances.principal_receivable + balances.interest_receivable,
+            loan.outstanding()
+        );
 
         let tx_id = LedgerTxId::new();
         let tx_ref = loan.record_if_not_exceeding_outstanding(tx_id, amount)?;

@@ -82,7 +82,7 @@ impl From<ledger::loan::LoanBalance> for LoanBalance {
                 btc_balance: balance.collateral,
             },
             outstanding: LoanOutstanding {
-                usd_balance: balance.outstanding,
+                usd_balance: balance.principal_receivable + balance.interest_receivable,
             },
             interest_incurred: InterestIncome {
                 usd_balance: balance.interest_incurred,

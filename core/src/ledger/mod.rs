@@ -196,16 +196,37 @@ impl Ledger {
         amount: UsdCents,
         tx_ref: String,
     ) -> Result<(), LedgerError> {
-        Ok(self
-            .cala
-            .execute_repay_loan_tx(
-                tx_id,
-                loan_account_ids,
-                customer_account_ids,
-                amount.to_usd(),
-                tx_ref,
-            )
-            .await?)
+        let balance = self.get_loan_balance(loan_account_ids).await?;
+        let LoanPayment {
+            principal,
+            interest,
+        } = balance.apply_payment(amount)?;
+
+        if let Some(interest) = interest {
+            self.cala
+                .execute_repay_loan_interest_tx(
+                    tx_id,
+                    loan_account_ids,
+                    customer_account_ids,
+                    interest.to_usd(),
+                    tx_ref.clone(),
+                )
+                .await?
+        };
+
+        if let Some(principal) = principal {
+            self.cala
+                .execute_repay_loan_principal_tx(
+                    tx_id,
+                    loan_account_ids,
+                    customer_account_ids,
+                    principal.to_usd(),
+                    tx_ref,
+                )
+                .await?
+        };
+
+        Ok(())
     }
 
     #[instrument(name = "lava.ledger.complete_loan", skip(self), err)]

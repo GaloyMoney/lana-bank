@@ -304,6 +304,12 @@ impl std::ops::Sub<SignedUsdCents> for SignedUsdCents {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 pub struct UsdCents(u64);
 
+impl std::ops::SubAssign for UsdCents {
+    fn sub_assign(&mut self, other: Self) {
+        self.0 -= other.0;
+    }
+}
+
 impl UsdCents {
     pub const ZERO: Self = Self(0);
     pub const ONE: Self = Self(1);

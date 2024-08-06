@@ -15,7 +15,7 @@ mutation CompleteLoanTemplateCreate(
           description: "User Checking account ID."
         }
         {
-          name: "loanOutstandingAccount"
+          name: "loanPrincipalReceivableAccount"
           type: UUID
           description: "Loan amount-outstanding account ID."
         }
@@ -61,7 +61,7 @@ mutation CompleteLoanTemplateCreate(
           layer: "SETTLED"
         }
         {
-          accountId: "params.loanOutstandingAccount"
+          accountId: "params.loanPrincipalReceivableAccount"
           units: "params.paymentAmount"
           currency: "'USD'"
           entryType: "'COMPLETE_LOAN_PAYMENT_CR'"
@@ -98,7 +98,7 @@ mutation CompleteLoanTemplateCreate(
 mutation PostCompleteLoanTransaction(
   $transactionId: UUID!
   $checkingAccount: UUID!
-  $loanOutstandingAccount: UUID!
+  $loanPrincipalReceivableAccount: UUID!
   $loanCollateralAccount: UUID!
   $paymentAmount: Decimal!
   $collateralAmount: Decimal!
@@ -110,7 +110,7 @@ mutation PostCompleteLoanTransaction(
       txTemplateCode: "COMPLETE_LOAN"
       params: {
         checkingAccount: $checkingAccount
-        loanOutstandingAccount: $loanOutstandingAccount
+        loanPrincipalReceivableAccount: $loanPrincipalReceivableAccount
         loanCollateralAccount: $loanCollateralAccount
         paymentAmount: $paymentAmount
         collateralAmount: $collateralAmount

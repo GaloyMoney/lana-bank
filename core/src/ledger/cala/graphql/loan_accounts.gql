@@ -3,13 +3,17 @@ mutation CreateLoanAccounts(
   $loanCollateralAccountCode: String!
   $loanCollateralAccountName: String!
   $loansCollateralControlAccountSetId: UUID!
-  $loanOutstandingAccountId: UUID!
-  $loanOutstandingAccountCode: String!
-  $loanOutstandingAccountName: String!
+  $loanPrincipalReceivableAccountId: UUID!
+  $loanPrincipalReceivableAccountCode: String!
+  $loanPrincipalReceivableAccountName: String!
+  $loanInterestReceivableAccountId: UUID!
+  $loanInterestReceivableAccountCode: String!
+  $loanInterestReceivableAccountName: String!
   $interestAccountId: UUID!
   $interestAccountCode: String!
   $interestAccountName: String!
-  $loansOutstandingControlAccountSetId: UUID!
+  $loansPrincipalReceivableControlAccountSetId: UUID!
+  $loansInterestReceivableControlAccountSetId: UUID!
   $interestRevenueControlAccountSetId: UUID!
 ) {
   collateral: accountCreate(
@@ -24,13 +28,26 @@ mutation CreateLoanAccounts(
       accountId
     }
   }
-  outstanding: accountCreate(
+  principalReceivable: accountCreate(
     input: {
-      accountId: $loanOutstandingAccountId
-      code: $loanOutstandingAccountCode
-      name: $loanOutstandingAccountName
+      accountId: $loanPrincipalReceivableAccountId
+      code: $loanPrincipalReceivableAccountCode
+      name: $loanPrincipalReceivableAccountName
       normalBalanceType: "DEBIT"
-      accountSetIds: [$loansOutstandingControlAccountSetId]
+      accountSetIds: [$loansPrincipalReceivableControlAccountSetId]
+    }
+  ) {
+    account {
+      accountId
+    }
+  }
+  interestReceivable: accountCreate(
+    input: {
+      accountId: $loanInterestReceivableAccountId
+      code: $loanInterestReceivableAccountCode
+      name: $loanInterestReceivableAccountName
+      normalBalanceType: "DEBIT"
+      accountSetIds: [$loansInterestReceivableControlAccountSetId]
     }
   ) {
     account {

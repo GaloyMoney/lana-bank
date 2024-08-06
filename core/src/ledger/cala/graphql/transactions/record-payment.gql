@@ -14,9 +14,9 @@ mutation RecordPaymentTemplateCreate(
           description: "User Checking account ID."
         }
         {
-          name: "loanOutstandingAccount"
+          name: "loanReceivableAccount"
           type: UUID
-          description: "Loan amount-outstanding account ID."
+          description: "Loan amount or interest outstanding account ID."
         }
         {
           name: "paymentAmount"
@@ -50,7 +50,7 @@ mutation RecordPaymentTemplateCreate(
           layer: "SETTLED"
         }
         {
-          accountId: "params.loanOutstandingAccount"
+          accountId: "params.loanReceivableAccount"
           units: "params.paymentAmount"
           currency: "'USD'"
           entryType: "'RECORD_PAYMENT_CR'"
@@ -71,7 +71,7 @@ mutation RecordPaymentTemplateCreate(
 mutation PostRecordPaymentTransaction(
   $transactionId: UUID!
   $checkingAccount: UUID!
-  $loanOutstandingAccount: UUID!
+  $loanReceivableAccount: UUID!
   $paymentAmount: Decimal!
   $externalId: String!
 ) {
@@ -81,7 +81,7 @@ mutation PostRecordPaymentTransaction(
       txTemplateCode: "RECORD_PAYMENT"
       params: {
         checkingAccount: $checkingAccount
-        loanOutstandingAccount: $loanOutstandingAccount
+        loanReceivableAccount: $loanReceivableAccount
         paymentAmount: $paymentAmount
         externalId: $externalId
       }

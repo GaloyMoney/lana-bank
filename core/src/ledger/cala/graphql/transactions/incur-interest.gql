@@ -9,9 +9,9 @@ mutation IncurInterestTemplateCreate(
       description: "Incur interest payment owed for loan."
       params: [
         {
-          name: "loanOutstandingAccount"
+          name: "loanInterestReceivableAccount"
           type: UUID
-          description: "Loan amount-outstanding account ID."
+          description: "Loan interest-outstanding account ID."
         }
         {
           name: "loanInterestIncomeAccount"
@@ -42,7 +42,7 @@ mutation IncurInterestTemplateCreate(
       }
       entries: [
         {
-          accountId: "params.loanOutstandingAccount"
+          accountId: "params.loanInterestReceivableAccount"
           units: "params.interestAmount"
           currency: "'USD'"
           entryType: "'INCUR_INTEREST_DR'"
@@ -70,7 +70,7 @@ mutation IncurInterestTemplateCreate(
 
 mutation PostIncurInterestTransaction(
   $transactionId: UUID!
-  $loanOutstandingAccount: UUID!
+  $loanInterestReceivableAccount: UUID!
   $loanInterestIncomeAccount: UUID!
   $interestAmount: Decimal!
   $externalId: String!
@@ -80,7 +80,7 @@ mutation PostIncurInterestTransaction(
       transactionId: $transactionId
       txTemplateCode: "INCUR_INTEREST"
       params: {
-        loanOutstandingAccount: $loanOutstandingAccount
+        loanInterestReceivableAccount: $loanInterestReceivableAccount
         loanInterestIncomeAccount: $loanInterestIncomeAccount
         interestAmount: $interestAmount
         externalId: $externalId

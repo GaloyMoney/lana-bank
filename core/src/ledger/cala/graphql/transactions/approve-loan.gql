@@ -15,7 +15,7 @@ mutation ApproveLoanTemplateCreate(
           description: "Loan Collateral account ID."
         }
         {
-          name: "loanOutstandingAccount"
+          name: "loanPrincipalReceivableAccount"
           type: UUID
           description: "Loan amount-outstanding account ID."
         }
@@ -69,7 +69,7 @@ mutation ApproveLoanTemplateCreate(
           layer: "SETTLED"
         }
         {
-          accountId: "params.loanOutstandingAccount"
+          accountId: "params.loanPrincipalReceivableAccount"
           units: "params.principalAmount"
           currency: "'USD'"
           entryType: "'APPROVE_LOAN_PRINCIPAL_DR'"
@@ -98,7 +98,7 @@ mutation ApproveLoanTemplateCreate(
 mutation PostApproveLoanTransaction(
   $transactionId: UUID!
   $loanCollateralAccount: UUID!
-  $loanOutstandingAccount: UUID!
+  $loanPrincipalReceivableAccount: UUID!
   $checkingAccount: UUID!
   $collateralAmount: Decimal!
   $principalAmount: Decimal!
@@ -110,7 +110,7 @@ mutation PostApproveLoanTransaction(
       txTemplateCode: "APPROVE_LOAN"
       params: {
         loanCollateralAccount: $loanCollateralAccount
-        loanOutstandingAccount: $loanOutstandingAccount
+        loanPrincipalReceivableAccount: $loanPrincipalReceivableAccount
         checkingAccount: $checkingAccount
         collateralAmount: $collateralAmount
         principalAmount: $principalAmount
