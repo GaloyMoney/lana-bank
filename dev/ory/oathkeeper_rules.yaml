@@ -56,10 +56,6 @@
     methods: ["POST", "GET", "OPTIONS"]
   authenticators:
     - handler: cookie_session
-    # only be in local dev. to simplify tests set up, until admin API is API-auth friendly
-    - handler: anonymous
-      config:
-        subject: admin@galoy.io
   authorizer:
     handler: allow
   mutators:
