@@ -151,19 +151,6 @@ impl CalaClient {
             tron_account_id: Uuid::new_v4(),
             tron_account_code: format!("ASSETS.TRON.{}", customer_id),
             tron_account_name: format!("Bank USDT Deposit Account for {}", customer_id),
-            off_balance_sheet_account_id: Uuid::from(
-                customer_account_ids.off_balance_sheet_deposit_account_id,
-            ),
-            off_balance_sheet_account_code: format!("USERS.OFF_BALANCE_SHEET.{}", customer_id),
-            off_balance_sheet_account_name: format!(
-                "Bank Off-Balance-Sheet Deposit Account for {}",
-                customer_id
-            ),
-            customer_collateral_control_account_set_id:
-                super::constants::CUSTOMER_COLLATERAL_CONTROL_ACCOUNT_SET_ID,
-            btc_account_id: Uuid::new_v4(),
-            btc_account_code: format!("ASSETS.BTC.{}", customer_id),
-            btc_account_name: format!("Bank BTC Deposit Account for {}", customer_id),
         };
         let response = Self::traced_gql_request::<CreateCustomerAccounts, _>(
             &self.client,
@@ -175,7 +162,6 @@ impl CalaClient {
             .data
             .map(|d| CustomerLedgerAccountAddresses {
                 tron_usdt_address: d.tron_address.address_backed_account_create.account.address,
-                btc_address: d.btc_address.address_backed_account_create.account.address,
             })
             .ok_or(CalaError::MissingDataField)
     }
@@ -296,9 +282,6 @@ impl CalaClient {
     {
         let variables = customer_balance::Variables {
             journal_id: super::constants::CORE_JOURNAL_ID,
-            off_balance_sheet_account_id: Uuid::from(
-                account_ids.off_balance_sheet_deposit_account_id,
-            ),
             on_balance_sheet_account_id: Uuid::from(
                 account_ids.on_balance_sheet_deposit_account_id,
             ),
@@ -490,30 +473,31 @@ impl CalaClient {
         principal_amount: Decimal,
         external_id: String,
     ) -> Result<(), CalaError> {
-        let variables = post_approve_loan_transaction::Variables {
-            transaction_id: transaction_id.into(),
-            unallocated_collateral_account: user_account_ids
-                .off_balance_sheet_deposit_account_id
-                .into(),
-            loan_collateral_account: loan_account_ids.collateral_account_id.into(),
-            loan_outstanding_account: loan_account_ids.outstanding_account_id.into(),
-            checking_account: user_account_ids.on_balance_sheet_deposit_account_id.into(),
-            collateral_amount,
-            principal_amount,
-            external_id,
-        };
-        let response = Self::traced_gql_request::<PostApproveLoanTransaction, _>(
-            &self.client,
-            &self.url,
-            variables,
-        )
-        .await?;
+        unimplemented!()
+        // let variables = post_approve_loan_transaction::Variables {
+        //     transaction_id: transaction_id.into(),
+        //     unallocated_collateral_account: user_account_ids
+        //         .off_balance_sheet_deposit_account_id
+        //         .into(),
+        //     loan_collateral_account: loan_account_ids.collateral_account_id.into(),
+        //     loan_outstanding_account: loan_account_ids.outstanding_account_id.into(),
+        //     checking_account: user_account_ids.on_balance_sheet_deposit_account_id.into(),
+        //     collateral_amount,
+        //     principal_amount,
+        //     external_id,
+        // };
+        // let response = Self::traced_gql_request::<PostApproveLoanTransaction, _>(
+        //     &self.client,
+        //     &self.url,
+        //     variables,
+        // )
+        // .await?;
 
-        response
-            .data
-            .map(|d| d.transaction_post.transaction.transaction_id)
-            .ok_or_else(|| CalaError::MissingDataField)?;
-        Ok(())
+        // response
+        //     .data
+        //     .map(|d| d.transaction_post.transaction.transaction_id)
+        //     .ok_or_else(|| CalaError::MissingDataField)?;
+        // Ok(())
     }
 
     pub async fn execute_complete_loan_tx(
@@ -525,30 +509,31 @@ impl CalaClient {
         collateral_amount: Decimal,
         external_id: String,
     ) -> Result<(), CalaError> {
-        let variables = post_complete_loan_transaction::Variables {
-            transaction_id: transaction_id.into(),
-            checking_account: user_account_ids.on_balance_sheet_deposit_account_id.into(),
-            loan_outstanding_account: loan_account_ids.outstanding_account_id.into(),
-            unallocated_collateral_account: user_account_ids
-                .off_balance_sheet_deposit_account_id
-                .into(),
-            loan_collateral_account: loan_account_ids.collateral_account_id.into(),
-            payment_amount,
-            collateral_amount,
-            external_id,
-        };
-        let response = Self::traced_gql_request::<PostCompleteLoanTransaction, _>(
-            &self.client,
-            &self.url,
-            variables,
-        )
-        .await?;
+        unimplemented!()
+        // let variables = post_complete_loan_transaction::Variables {
+        //     transaction_id: transaction_id.into(),
+        //     checking_account: user_account_ids.on_balance_sheet_deposit_account_id.into(),
+        //     loan_outstanding_account: loan_account_ids.outstanding_account_id.into(),
+        //     unallocated_collateral_account: user_account_ids
+        //         .off_balance_sheet_deposit_account_id
+        //         .into(),
+        //     loan_collateral_account: loan_account_ids.collateral_account_id.into(),
+        //     payment_amount,
+        //     collateral_amount,
+        //     external_id,
+        // };
+        // let response = Self::traced_gql_request::<PostCompleteLoanTransaction, _>(
+        //     &self.client,
+        //     &self.url,
+        //     variables,
+        // )
+        // .await?;
 
-        response
-            .data
-            .map(|d| d.transaction_post.transaction.transaction_id)
-            .ok_or_else(|| CalaError::MissingDataField)?;
-        Ok(())
+        // response
+        //     .data
+        //     .map(|d| d.transaction_post.transaction.transaction_id)
+        //     .ok_or_else(|| CalaError::MissingDataField)?;
+        // Ok(())
     }
 
     #[instrument(

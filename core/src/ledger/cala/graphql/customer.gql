@@ -1,20 +1,7 @@
 query CustomerBalance(
   $journalId: UUID!
-  $off_balance_sheet_account_id: UUID!
   $on_balance_sheet_account_id: UUID!
 ) {
-  btc_balance: balance(
-    journalId: $journalId
-    accountId: $off_balance_sheet_account_id
-    currency: "BTC"
-  ) {
-    settled {
-      normalBalance {
-        units
-        currency
-      }
-    }
-  }
   usdt_balance: balance(
     journalId: $journalId
     accountId: $on_balance_sheet_account_id
