@@ -16,7 +16,7 @@ terraform {
   required_providers {
     cala = {
       source  = "registry.terraform.io/galoymoney/cala"
-      version = "0.0.18"
+      version = "0.0.19"
     }
   }
 }
