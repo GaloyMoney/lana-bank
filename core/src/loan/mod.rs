@@ -74,12 +74,6 @@ impl Loans {
         self.term_repo.update_default(terms).await
     }
 
-    fn dummy_price() -> Result<PriceOfOneBTC, ConversionError> {
-        Ok(PriceOfOneBTC::new(UsdCents::try_from_usd(
-            rust_decimal_macros::dec!(60000),
-        )?))
-    }
-
     pub async fn create_loan_for_customer(
         &self,
         sub: &Subject,
@@ -100,23 +94,6 @@ impl Loans {
         if !customer.may_create_loan() {
             return Err(LoanError::CustomerNotAllowedToCreateLoan(customer_id));
         }
-
-        let unallocated_collateral = self
-            .ledger
-            .get_customer_balance(customer.account_ids)
-            .await?
-            .btc_balance;
-
-        let required_collateral =
-            terms.required_collateral(desired_principal, Self::dummy_price()?)?;
-
-        if required_collateral > unallocated_collateral {
-            return Err(LoanError::InsufficientCollateral(
-                required_collateral,
-                unallocated_collateral,
-            ));
-        }
-
         let mut tx = self.pool.begin().await?;
 
         let new_loan = NewLoan::builder()
