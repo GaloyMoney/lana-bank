@@ -211,40 +211,6 @@ type BalanceAmount {
 	entryId: UUID!
 }
 
-type BalanceSheet {
-	assets: AccountSet!
-	liabilities: AccountSet!
-	equity: AccountSet!
-	schedule1: AccountSet!
-	schedule2: AccountSet!
-	schedule3: AccountSet!
-	schedule4: AccountSet!
-	schedule5: AccountSet!
-	schedule6: AccountSet!
-	schedule7: AccountSet!
-	schedule8: AccountSet!
-	schedule9: AccountSet!
-	schedule10: AccountSet!
-	schedule11: AccountSet!
-	schedule12: AccountSet!
-}
-
-input BalanceSheetCreateInput {
-	journalId: UUID!
-}
-
-type BalanceSheetCreatePayload {
-	balanceSheet: BalanceSheet!
-}
-
-type BalanceSheetMutation {
-	create(input: BalanceSheetCreateInput!): BalanceSheetCreatePayload!
-}
-
-type BalanceSheetQuery {
-	byJournalId(journalId: UUID!): BalanceSheet
-}
-
 type BfxAddressBackedAccount {
 	address: String!
 	account: Account!
@@ -466,7 +432,6 @@ type Mutation {
 	calaOutboxImportJobCreate(input: CalaOutboxImportJobCreateInput!): CalaOutboxImportJobCreatePayload!
 	bigQuery: BigQueryMutation!
 	bitfinex: BitfinexMutation!
-	balanceSheet: BalanceSheetMutation!
 	accountCreate(input: AccountCreateInput!): AccountCreatePayload!
 	accountUpdate(id: UUID!, input: AccountUpdateInput!): AccountUpdatePayload!
 	accountSetCreate(input: AccountSetCreateInput!): AccountSetCreatePayload!
@@ -529,7 +494,6 @@ input ParamDefinitionInput {
 type Query {
 	serverVersion: String!
 	bitfinex: BitfinexQuery!
-	balanceSheet: BalanceSheetQuery!
 	account(id: UUID!): Account
 	accountByExternalId(externalId: String!): Account
 	accountByCode(code: String!): Account
