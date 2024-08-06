@@ -220,30 +220,6 @@ pub struct BalanceSheet;
 )]
 pub struct ProfitAndLossStatement;
 
-#[derive(GraphQLQuery)]
-#[graphql(
-    schema_path = "src/ledger/cala/graphql/schema.graphql",
-    query_path = "src/ledger/cala/graphql/bfx-address-backed-account.gql",
-    response_derives = "Debug, PartialEq, Eq, Clone"
-)]
-pub struct BfxAddressBackedAccountCreate;
-
-#[derive(GraphQLQuery)]
-#[graphql(
-    schema_path = "src/ledger/cala/graphql/schema.graphql",
-    query_path = "src/ledger/cala/graphql/bfx-address-backed-account.gql",
-    response_derives = "Debug, PartialEq, Eq, Clone"
-)]
-pub struct BfxAddressBackedAccountById;
-
-#[derive(GraphQLQuery)]
-#[graphql(
-    schema_path = "src/ledger/cala/graphql/schema.graphql",
-    query_path = "src/ledger/cala/graphql/bfx-withdrawal.gql",
-    response_derives = "Debug, PartialEq, Eq, Clone"
-)]
-pub struct BfxWithdrawalExecute;
-
 type UUID = uuid::Uuid;
 type JSON = serde_json::Value;
 type Decimal = rust_decimal::Decimal;

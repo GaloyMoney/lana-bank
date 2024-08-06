@@ -64,16 +64,6 @@ pub enum AccountStatus {
     Inactive,
 }
 
-pub enum BfxWithdrawalMethod {
-    Bitcoin,
-    TronUsdt,
-}
-
-pub enum DebitOrCredit {
-    Debit,
-    Credit,
-}
-
 pub use cala_types::primitives::{
     AccountId as LedgerAccountId, AccountSetId as LedgerAccountSetId, Currency,
     DebitOrCredit as LedgerDebitOrCredit, JournalId as LedgerJournalId,

@@ -10,8 +10,8 @@ use tracing::instrument;
 use uuid::Uuid;
 
 use crate::primitives::{
-    BfxAddressType, BfxIntegrationId, BfxWithdrawalMethod, LedgerAccountId, LedgerAccountSetId,
-    LedgerAccountSetMemberType, LedgerDebitOrCredit, LedgerJournalId, LedgerTxId, WithdrawId,
+    LedgerAccountId, LedgerAccountSetId, LedgerAccountSetMemberType, LedgerDebitOrCredit,
+    LedgerJournalId, LedgerTxId,
 };
 
 use super::{constants, customer::CustomerLedgerAccountIds, loan::LoanAccountIds};
@@ -632,96 +632,6 @@ impl CalaClient {
             .map(|d| d.transaction_post.transaction.transaction_id)
             .ok_or_else(|| CalaError::MissingDataField)?;
         Ok(())
-    }
-
-    #[instrument(
-        name = "lava.ledger.cala.create_bfx_address_backed_account",
-        skip(self),
-        err
-    )]
-    pub async fn create_bfx_address_backed_account(
-        &self,
-        integration_id: BfxIntegrationId,
-        address_type: BfxAddressType,
-        account_id: LedgerAccountId,
-        name: String,
-        code: String,
-        credit_account_id: LedgerAccountId,
-    ) -> Result<String, CalaError> {
-        let variables = bfx_address_backed_account_create::Variables {
-            input: bfx_address_backed_account_create::BfxAddressBackedAccountCreateInput {
-                account_id: account_id.into(),
-                integration_id: integration_id.into(),
-                type_: address_type.into(),
-                deposit_credit_account_id: credit_account_id.into(),
-                name,
-                code,
-                account_set_ids: None,
-            },
-        };
-        let response = Self::traced_gql_request::<BfxAddressBackedAccountCreate, _>(
-            &self.client,
-            &self.url,
-            variables,
-        )
-        .await?;
-        response
-            .data
-            .map(|d| d.bitfinex.address_backed_account_create.account.address)
-            .ok_or(CalaError::MissingDataField)
-    }
-
-    #[instrument(name = "lava.ledger.cala.find_account_by_id", skip(self, id), err)]
-    pub async fn find_address_backed_account_by_id<
-        T: From<bfx_address_backed_account_by_id::BfxAddressBackedAccountByIdBitfinexAddressBackedAccount>,
-    >(
-        &self,
-        id: impl Into<Uuid>,
-    ) -> Result<Option<T>, CalaError>{
-        let variables = bfx_address_backed_account_by_id::Variables { id: id.into() };
-        let response = Self::traced_gql_request::<BfxAddressBackedAccountById, _>(
-            &self.client,
-            &self.url,
-            variables,
-        )
-        .await?;
-
-        Ok(response
-            .data
-            .and_then(|d| d.bitfinex.address_backed_account)
-            .map(T::from))
-    }
-
-    #[allow(clippy::too_many_arguments)]
-    pub async fn execute_bfx_withdrawal(
-        &self,
-        withdrawal_id: WithdrawId,
-        integration_id: BfxIntegrationId,
-        amount: Decimal,
-        withdrawal_method: BfxWithdrawalMethod,
-        destination_address: String,
-        debit_account_id: LedgerAccountId,
-        reserve_tx_external_id: String,
-    ) -> Result<WithdrawId, CalaError> {
-        let variables = bfx_withdrawal_execute::Variables {
-            input: bfx_withdrawal_execute::BfxWithdrawalExecuteInput {
-                withdrawal_id: withdrawal_id.into(),
-                integration_id: integration_id.into(),
-                amount,
-                withdrawal_method: withdrawal_method.into(),
-                destination_address,
-                debit_account_id: debit_account_id.into(),
-                reserve_tx_external_id: Some(reserve_tx_external_id),
-            },
-        };
-        let response =
-            Self::traced_gql_request::<BfxWithdrawalExecute, _>(&self.client, &self.url, variables)
-                .await?;
-        response
-            .data
-            .map(|d| d.bitfinex.withdrawal_execute.withdrawal.withdrawal_id)
-            .map(WithdrawId::from)
-            .ok_or(CalaError::MissingDataField)
     }
 
     pub async fn trial_balance<T, E>(&self) -> Result<Option<T>, E>

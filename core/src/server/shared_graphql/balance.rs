@@ -1,6 +1,6 @@
 use async_graphql::*;
 
-use super::objects::{BtcBalance, UsdBalance};
+use super::objects::UsdBalance;
 
 use crate::ledger;
 #[derive(SimpleObject)]
@@ -19,10 +19,10 @@ impl From<ledger::customer::CustomerBalance> for UserBalance {
         Self {
             checking: Checking {
                 settled: UsdBalance {
-                    usd_balance: balance.usdt_balance.settled,
+                    usd_balance: balance.usd_balance.settled,
                 },
                 pending: UsdBalance {
-                    usd_balance: balance.usdt_balance.pending,
+                    usd_balance: balance.usd_balance.pending,
                 },
             },
         }

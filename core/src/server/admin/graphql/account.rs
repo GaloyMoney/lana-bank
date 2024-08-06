@@ -84,7 +84,6 @@ impl From<crate::ledger::account::LayeredUsdAccountBalances> for LayeredUsdAccou
 pub struct AccountBalancesByCurrency {
     btc: LayeredBtcAccountBalances,
     usd: LayeredUsdAccountBalances,
-    usdt: LayeredUsdAccountBalances,
 }
 
 impl From<crate::ledger::account::LedgerAccountBalancesByCurrency> for AccountBalancesByCurrency {
@@ -92,7 +91,6 @@ impl From<crate::ledger::account::LedgerAccountBalancesByCurrency> for AccountBa
         AccountBalancesByCurrency {
             btc: balances.btc.into(),
             usd: balances.usd.into(),
-            usdt: balances.usdt.into(),
         }
     }
 }

@@ -28,9 +28,6 @@ fragment balancesByCurrency on AccountBalancesByCurrency {
   usd: usd {
     ...usdBalances
   }
-  usdt: usdt {
-    ...usdBalances
-  }
 }
 
 fragment btcBalances on LayeredBtcAccountBalances {

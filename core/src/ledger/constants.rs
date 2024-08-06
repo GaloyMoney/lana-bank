@@ -3,12 +3,6 @@ use uuid::{uuid, Uuid};
 // Journal
 pub(super) const CORE_JOURNAL_ID: Uuid = uuid!("00000000-0000-0000-0000-000000000001");
 
-// Integrations
-pub(super) const ON_BALANCE_SHEET_BFX_INTEGRATION_ID: Uuid =
-    uuid!("00000000-0000-0000-0000-200000000000");
-pub(super) const _OFF_BALANCE_SHEET_BFX_INTEGRATION_ID: Uuid =
-    uuid!("10000000-0000-0000-0000-200000000000");
-
 // Reports Account Sets
 pub(super) const CHART_OF_ACCOUNTS_ACCOUNT_SET_ID: Uuid =
     uuid!("00000000-0000-0000-0000-100000000001");

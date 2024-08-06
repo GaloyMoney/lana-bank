@@ -78,9 +78,6 @@ gql`
     usd: usd {
       ...usdBalances
     }
-    usdt: usdt {
-      ...usdBalances
-    }
   }
 
   fragment btcBalances on LayeredBtcAccountBalances {

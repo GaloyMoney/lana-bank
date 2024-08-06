@@ -44,7 +44,7 @@ mutation RecordPaymentTemplateCreate(
         {
           accountId: "params.checkingAccount"
           units: "params.paymentAmount"
-          currency: "'USDT'"
+          currency: "'USD'"
           entryType: "'RECORD_PAYMENT_DR'"
           direction: "DEBIT"
           layer: "SETTLED"
@@ -52,7 +52,7 @@ mutation RecordPaymentTemplateCreate(
         {
           accountId: "params.loanOutstandingAccount"
           units: "params.paymentAmount"
-          currency: "'USDT'"
+          currency: "'USD'"
           entryType: "'RECORD_PAYMENT_CR'"
           direction: "CREDIT"
           layer: "SETTLED"

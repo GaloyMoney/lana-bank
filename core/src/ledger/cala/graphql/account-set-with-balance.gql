@@ -50,9 +50,6 @@ fragment accountBalances on Account {
   btcBalances: balance(journalId: $journalId, currency: "BTC") {
     ...balancesByLayer
   }
-  usdtBalances: balance(journalId: $journalId, currency: "USDT") {
-    ...balancesByLayer
-  }
   usdBalances: balance(journalId: $journalId, currency: "USD") {
     ...balancesByLayer
   }
@@ -60,9 +57,6 @@ fragment accountBalances on Account {
 
 fragment accountSetBalances on AccountSet {
   btcBalances: balance(currency: "BTC") {
-    ...balancesByLayer
-  }
-  usdtBalances: balance(currency: "USDT") {
     ...balancesByLayer
   }
   usdBalances: balance(currency: "USD") {

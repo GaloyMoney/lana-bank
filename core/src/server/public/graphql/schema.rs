@@ -51,12 +51,7 @@ impl Mutation {
 
         let withdraw = app
             .withdraws()
-            .initiate(
-                *customer_id,
-                input.amount,
-                input.destination,
-                input.reference,
-            )
+            .initiate(*customer_id, input.amount, input.reference)
             .await?;
 
         Ok(WithdrawalInitiatePayload::from(withdraw))

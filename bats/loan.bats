@@ -51,7 +51,6 @@ wait_for_interest() {
        currency: "BTC"
     }'
   )
-  exec_cala_graphql 'simulate-deposit' "$variables"
 
   revenue_before=$(net_usd_revenue)
 
@@ -109,7 +108,6 @@ wait_for_interest() {
        currency: "UST"
     }'
   )
-  exec_cala_graphql 'simulate-deposit' "$variables"
 
   variables=$(
     jq -n \

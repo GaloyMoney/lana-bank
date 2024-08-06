@@ -2,10 +2,10 @@ query CustomerBalance(
   $journalId: UUID!
   $on_balance_sheet_account_id: UUID!
 ) {
-  usdt_balance: balance(
+  usd_balance: balance(
     journalId: $journalId
     accountId: $on_balance_sheet_account_id
-    currency: "USDT"
+    currency: "USD"
   ) {
     settled {
       normalBalance {

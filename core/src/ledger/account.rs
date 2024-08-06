@@ -65,7 +65,6 @@ pub struct LayeredUsdAccountBalances {
 pub struct LedgerAccountBalancesByCurrency {
     pub btc: LayeredBtcAccountBalances,
     pub usd: LayeredUsdAccountBalances,
-    pub usdt: LayeredUsdAccountBalances,
 }
 
 #[derive(Debug, Clone)]
@@ -166,9 +165,6 @@ macro_rules! impl_from_account_details_and_balances {
                         usd: balances.usd_balances.map(
                             LayeredUsdAccountBalances::try_from
                         ).unwrap_or_else(|| Ok(LayeredUsdAccountBalances::default()))?,
-                        usdt: balances.usdt_balances.map(
-                            LayeredUsdAccountBalances::try_from
-                        ).unwrap_or_else(|| Ok(LayeredUsdAccountBalances::default()))?,
                     })
                 }
             }
@@ -187,9 +183,6 @@ macro_rules! impl_from_account_details_and_balances {
                                 LayeredBtcAccountBalances::try_from,
                             ).unwrap_or_else(|| Ok(LayeredBtcAccountBalances::default()))?,
                             usd: account.account_balances.usd_balances.map(
-                                LayeredUsdAccountBalances::try_from,
-                            ).unwrap_or_else(|| Ok(LayeredUsdAccountBalances::default()))?,
-                            usdt: account.account_balances.usdt_balances.map(
                                 LayeredUsdAccountBalances::try_from,
                             ).unwrap_or_else(|| Ok(LayeredUsdAccountBalances::default()))?,
                         },

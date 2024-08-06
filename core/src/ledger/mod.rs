@@ -1,6 +1,5 @@
 pub mod account;
 pub mod account_set;
-mod bitfinex;
 mod cala;
 mod config;
 mod constants;
@@ -14,8 +13,8 @@ use tracing::instrument;
 use crate::{
     authorization::{Authorization, LedgerAction, Object},
     primitives::{
-        BfxWithdrawalMethod, CustomerId, LedgerAccountId, LedgerAccountSetId, LedgerTxId,
-        LedgerTxTemplateId, LoanId, Satoshis, Subject, UsdCents, WithdrawId,
+        CustomerId, LedgerAccountId, LedgerAccountSetId, LedgerTxId, LedgerTxTemplateId, LoanId,
+        Satoshis, Subject, UsdCents, WithdrawId,
     },
 };
 
@@ -86,22 +85,22 @@ impl Ledger {
         &self,
         withdrawal_id: WithdrawId,
         amount: UsdCents,
-        tron_usdt_address: String,
         external_id: String,
         debit_account_id: LedgerAccountId,
     ) -> Result<WithdrawId, LedgerError> {
-        Ok(self
-            .cala
-            .execute_bfx_withdrawal(
-                withdrawal_id,
-                constants::ON_BALANCE_SHEET_BFX_INTEGRATION_ID.into(),
-                amount.to_usd(),
-                BfxWithdrawalMethod::TronUsdt,
-                tron_usdt_address,
-                debit_account_id,
-                external_id,
-            )
-            .await?)
+        unimplemented!()
+        // Ok(self
+        //     .cala
+        //     .execute_bfx_withdrawal(
+        //         withdrawal_id,
+        //         constants::ON_BALANCE_SHEET_BFX_INTEGRATION_ID.into(),
+        //         amount.to_usd(),
+        //         BfxWithdrawalMethod::TronUsdt,
+        //         tron_usdt_address,
+        //         debit_account_id,
+        //         external_id,
+        //     )
+        //     .await?)
     }
 
     #[instrument(name = "lava.ledger.loan_balance", skip(self), err)]

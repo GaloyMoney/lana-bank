@@ -59,7 +59,7 @@ mutation CompleteLoanTemplateCreate(
         {
           accountId: "params.checkingAccount"
           units: "params.paymentAmount"
-          currency: "'USDT'"
+          currency: "'USD'"
           entryType: "'COMPLETE_LOAN_PAYMENT_DR'"
           direction: "DEBIT"
           layer: "SETTLED"
@@ -67,7 +67,7 @@ mutation CompleteLoanTemplateCreate(
         {
           accountId: "params.loanOutstandingAccount"
           units: "params.paymentAmount"
-          currency: "'USDT'"
+          currency: "'USD'"
           entryType: "'COMPLETE_LOAN_PAYMENT_CR'"
           direction: "CREDIT"
           layer: "SETTLED"

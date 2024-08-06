@@ -18,7 +18,7 @@ impl CustomerLedgerAccountIds {
 }
 
 pub struct CustomerBalance {
-    pub usdt_balance: LayeredUsdBalance,
+    pub usd_balance: LayeredUsdBalance,
 }
 
 impl TryFrom<customer_balance::ResponseData> for CustomerBalance {
@@ -26,14 +26,14 @@ impl TryFrom<customer_balance::ResponseData> for CustomerBalance {
 
     fn try_from(data: customer_balance::ResponseData) -> Result<Self, Self::Error> {
         Ok(CustomerBalance {
-            usdt_balance: LayeredUsdBalance {
+            usd_balance: LayeredUsdBalance {
                 settled: data
-                    .usdt_balance
+                    .usd_balance
                     .clone()
                     .map(|b| UsdCents::try_from_usd(b.settled.normal_balance.units))
                     .unwrap_or_else(|| Ok(UsdCents::ZERO))?,
                 pending: data
-                    .usdt_balance
+                    .usd_balance
                     .map(|b| UsdCents::try_from_usd(b.pending.normal_balance.units))
                     .unwrap_or_else(|| Ok(UsdCents::ZERO))?,
             },

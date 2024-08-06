@@ -44,7 +44,7 @@ mutation IncurInterestTemplateCreate(
         {
           accountId: "params.loanOutstandingAccount"
           units: "params.interestAmount"
-          currency: "'USDT'"
+          currency: "'USD'"
           entryType: "'INCUR_INTEREST_DR'"
           direction: "DEBIT"
           layer: "SETTLED"
@@ -52,7 +52,7 @@ mutation IncurInterestTemplateCreate(
         {
           accountId: "params.loanInterestIncomeAccount"
           units: "params.interestAmount"
-          currency: "'USDT'"
+          currency: "'USD'"
           entryType: "'INCUR_INTEREST_CR'"
           direction: "CREDIT"
           layer: "SETTLED"

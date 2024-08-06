@@ -39,7 +39,6 @@ impl Withdraws {
         &self,
         customer_id: impl Into<CustomerId> + std::fmt::Debug,
         amount: UsdCents,
-        destination: String,
         reference: Option<String>,
     ) -> Result<Withdraw, WithdrawError> {
         let customer_id = customer_id.into();
@@ -49,7 +48,6 @@ impl Withdraws {
             .customer_id(customer_id)
             .amount(amount)
             .reference(reference)
-            .destination(destination)
             .debit_account_id(customer.account_ids.on_balance_sheet_deposit_account_id)
             .build()
             .expect("Could not build Withdraw");
@@ -60,7 +58,6 @@ impl Withdraws {
             .initiate_withdrawal_for_customer(
                 withdraw.id,
                 withdraw.amount,
-                withdraw.destination.clone(),
                 format!("lava:withdraw:{}", withdraw.id),
                 withdraw.debit_account_id,
             )

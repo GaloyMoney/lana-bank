@@ -24,7 +24,6 @@ impl From<crate::withdraw::Withdraw> for Withdrawal {
 #[derive(InputObject)]
 pub struct WithdrawalInitiateInput {
     pub amount: UsdCents,
-    pub destination: String,
     pub reference: Option<String>,
 }
 

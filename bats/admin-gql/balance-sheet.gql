@@ -33,9 +33,6 @@ fragment balancesByCurrency on AccountBalancesByCurrency {
   usd: usd {
     ...usdBalances
   }
-  usdt: usdt {
-    ...usdBalances
-  }
 }
 
 fragment usdBalances on LayeredUsdAccountBalances {

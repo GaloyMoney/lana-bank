@@ -75,7 +75,7 @@ mutation ApproveLoanTemplateCreate(
         {
           accountId: "params.loanOutstandingAccount"
           units: "params.principalAmount"
-          currency: "'USDT'"
+          currency: "'USD'"
           entryType: "'APPROVE_LOAN_PRINCIPAL_DR'"
           direction: "DEBIT"
           layer: "SETTLED"
@@ -83,7 +83,7 @@ mutation ApproveLoanTemplateCreate(
         {
           accountId: "params.checkingAccount"
           units: "params.principalAmount"
-          currency: "'USDT'"
+          currency: "'USD'"
           entryType: "'APPROVE_LOAN_PRINCIPAL_CR'"
           direction: "CREDIT"
           layer: "SETTLED"

@@ -14,7 +14,6 @@ pub enum WithdrawEvent {
         customer_id: CustomerId,
         amount: UsdCents,
         reference: String,
-        destination: String,
         debit_account_id: LedgerAccountId,
     },
 }
@@ -32,7 +31,6 @@ pub struct Withdraw {
     pub id: WithdrawId,
     pub customer_id: CustomerId,
     pub amount: UsdCents,
-    pub destination: String,
     pub debit_account_id: LedgerAccountId,
     pub(super) events: EntityEvents<WithdrawEvent>,
 }
@@ -58,7 +56,6 @@ impl TryFrom<EntityEvents<WithdrawEvent>> for Withdraw {
                     id,
                     customer_id,
                     amount,
-                    destination,
                     debit_account_id,
                     ..
                 } => {
@@ -66,7 +63,6 @@ impl TryFrom<EntityEvents<WithdrawEvent>> for Withdraw {
                         .id(*id)
                         .customer_id(*customer_id)
                         .amount(*amount)
-                        .destination(destination.clone())
                         .debit_account_id(*debit_account_id);
                 }
             }
@@ -84,7 +80,6 @@ pub struct NewWithdraw {
     #[builder(setter(into))]
     pub(super) amount: UsdCents,
     reference: Option<String>,
-    pub(super) destination: String,
     pub(super) debit_account_id: LedgerAccountId,
 }
 
@@ -107,7 +102,6 @@ impl NewWithdraw {
                 id: self.id,
                 customer_id: self.customer_id,
                 amount: self.amount,
-                destination: self.destination,
                 debit_account_id: self.debit_account_id,
             }],
         )

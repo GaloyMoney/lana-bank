@@ -19,7 +19,7 @@ query LoanBalance(
   loanOutstanding: balance(
     journalId: $journalId
     accountId: $loanOutstandingId
-    currency: "USDT"
+    currency: "USD"
   ) {
     settled {
       normalBalance {
@@ -31,7 +31,7 @@ query LoanBalance(
   interestIncome: balance(
     journalId: $journalId
     accountId: $interestIncomeId
-    currency: "USDT"
+    currency: "USD"
   ) {
     settled {
       normalBalance {
