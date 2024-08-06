@@ -1,4 +1,5 @@
 import EmailProvider from "next-auth/providers/email"
+import CredentialsProvider from "next-auth/providers/credentials"
 import { NextAuthOptions } from "next-auth"
 import axios from "axios"
 
@@ -27,15 +28,36 @@ export const authOptions: NextAuthOptions = {
       server: env.EMAIL_SERVER,
       from: env.EMAIL_FROM,
     }),
+
+    // For admin user
+    CredentialsProvider({
+      credentials: {
+        username: { label: "Username", type: "text" },
+        password: { label: "Password", type: "password" },
+      },
+      authorize: async (credentials) => {
+        const adminUserName = env.ADMIN_CREDENTIALS.split(":")[0]
+        const adminPassword = env.ADMIN_CREDENTIALS.split(":")[1]
+        if (
+          credentials?.username === adminUserName &&
+          credentials?.password === adminPassword
+        ) {
+          return { id: "1", email: env.ADMIN_EMAIL }
+        }
+        return null
+      },
+    }),
   ],
   session: {
     strategy: "jwt",
   },
   callbacks: {
-    async signIn({ account }) {
+    async signIn({ account, user }) {
       const email = account?.providerAccountId
       if (account?.provider === "email" && email) {
         return checkUserEmail(email)
+      } else if (account?.provider === "credentials" && user.email) {
+        return checkUserEmail(user.email)
       }
       return false
     },
