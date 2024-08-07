@@ -153,7 +153,7 @@ impl Loans {
         Ok(loan)
     }
 
-    pub async fn record_payment(
+    pub async fn record_payment_or_complete_loan(
         &self,
         sub: &Subject,
         loan_id: LoanId,
@@ -197,16 +197,44 @@ impl Loans {
                 )
                 .await?;
         } else {
-            self.ledger
-                .complete_loan(
-                    tx_id,
-                    loan.account_ids,
-                    customer.account_ids,
-                    amount,
-                    balances.collateral,
-                    tx_ref,
-                )
-                .await?;
+            let LoanPayment {
+                interest,
+                principal,
+            } = balances.apply_payment(amount)?;
+
+            match (principal, interest) {
+                (Some(principal), Some(interest)) => {
+                    self.ledger
+                        .complete_loan_with_interest(
+                            tx_id,
+                            loan.account_ids,
+                            customer.account_ids,
+                            principal,
+                            interest,
+                            balances.collateral,
+                            tx_ref,
+                        )
+                        .await?
+                }
+                (Some(principal), None) => {
+                    self.ledger
+                        .complete_loan(
+                            tx_id,
+                            loan.account_ids,
+                            customer.account_ids,
+                            principal,
+                            balances.collateral,
+                            tx_ref,
+                        )
+                        .await?
+                }
+                (None, _) => {
+                    return Err(LoanError::UnexpectedZeroPrincipalAmount(
+                        amount,
+                        interest.unwrap_or(UsdCents::ZERO),
+                    ));
+                }
+            }
         }
         db_tx.commit().await?;
 

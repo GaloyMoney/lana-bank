@@ -419,7 +419,7 @@ impl Mutation {
 
         let loan = app
             .loans()
-            .record_payment(sub, input.loan_id.into(), input.amount)
+            .record_payment_or_complete_loan(sub, input.loan_id.into(), input.amount)
             .await?;
         Ok(LoanPartialPaymentPayload::from(loan))
     }
