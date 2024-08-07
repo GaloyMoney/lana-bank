@@ -275,27 +275,15 @@ assert_balance_sheet_balanced() {
   echo $(graphql_output)
 
   balance_usd=$(graphql_output '.data.balanceSheet.balance.usd.settled.netDebit')
-<<<<<<< HEAD
-  balance=$(add $balance_usdt $balance_usd)
-=======
   balance=${balance_usd}
->>>>>>> 1aac390 (chore: remove all ust references)
   [[ "$balance" == "0" ]] || exit 1
 
   debit_usd=$(graphql_output '.data.balanceSheet.balance.usd.settled.debit')
-<<<<<<< HEAD
-  debit=$(add $debit_usdt $debit_usd)
-=======
   debit=${debit_usd}
->>>>>>> 1aac390 (chore: remove all ust references)
   [[ "$debit" -gt "0" ]] || exit 1
 
   credit_usd=$(graphql_output '.data.balanceSheet.balance.usd.settled.credit')
-<<<<<<< HEAD
-  credit=$(add $credit_usdt $credit_usd)
-=======
   credit=${credit_usd}
->>>>>>> 1aac390 (chore: remove all ust references)
   [[ "$credit" == "$debit" ]] || exit 1
 }
 
