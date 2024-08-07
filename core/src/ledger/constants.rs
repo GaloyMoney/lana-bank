@@ -29,7 +29,7 @@ pub(super) const LOANS_COLLATERAL_CONTROL_ACCOUNT_SET_ID: Uuid =
 
 // Accounts
 pub(super) const OBS_ASSETS_ACCOUNT_ID: Uuid = uuid!("10000000-0000-0000-0000-110000000001");
-pub(super) const OBS_ASSETS_ACCOUNT_CODE: Uuid = "BANK.COLLATERAL.OMNIBUS";
+pub(super) const OBS_ASSETS_ACCOUNT_CODE: &str = "BANK.COLLATERAL.OMNIBUS";
 
 // Accounts for templates
 pub(super) const BANK_SHAREHOLDER_EQUITY_CODE: &str = "BANK.SHAREHOLDER_EQUITY";

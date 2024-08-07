@@ -262,6 +262,25 @@ create_user() {
   echo $token
 }
 
+create_customer() {
+  customer_email=$(generate_email)
+
+  variables=$(
+    jq -n \
+    --arg email "$customer_email" \
+    '{
+      input: {
+        email: $email
+        }
+      }'
+  )
+
+  exec_admin_graphql 'customer-create' "$variables"
+  customer_id=$(graphql_output .data.customerCreate.customer.customerId)
+  [[ "$customer_id" != "null" ]] || exit 1
+  echo $customer_id
+}
+
 add() {
   sum=0
   for num in "$@"; do
@@ -306,5 +325,5 @@ net_usd_revenue() {
   exec_admin_graphql 'profit-and-loss'
 
   revenue_usd=$(graphql_output '.data.profitAndLossStatement.balance.usd.all.netCredit')
-  $revenue_usd
+  echo $revenue_usd
 }
