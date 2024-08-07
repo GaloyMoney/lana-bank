@@ -55,6 +55,7 @@ impl TryFrom<loan_balance::ResponseData> for LoanBalance {
     }
 }
 
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub struct LoanPayment {
     pub interest: Option<UsdCents>,
     pub principal: Option<UsdCents>,
@@ -81,5 +82,82 @@ impl LoanBalance {
             interest: Some(interest).filter(|&p| p > UsdCents::ZERO),
             principal: Some(principal).filter(|&p| p > UsdCents::ZERO),
         })
+    }
+}
+
+#[cfg(test)]
+mod test {
+
+    mod apply_payment {
+        use super::super::*;
+        use crate::primitives::{Satoshis, UsdCents};
+
+        fn default_balance() -> LoanBalance {
+            LoanBalance {
+                collateral: Satoshis::from(10000000),
+                principal_receivable: UsdCents::from(200000),
+                interest_receivable: UsdCents::from(1500),
+                interest_incurred: UsdCents::from(2000),
+            }
+        }
+
+        #[test]
+        fn it_applies_partial_interest() {
+            let balance = default_balance();
+            let loan_payment = balance.apply_payment(UsdCents::from(1499)).unwrap();
+            assert_eq!(
+                loan_payment,
+                LoanPayment {
+                    interest: Some(UsdCents::from(1499)),
+                    principal: None
+                }
+            );
+        }
+
+        #[test]
+        fn it_applies_full_interest() {
+            let balance = default_balance();
+            let loan_payment = balance.apply_payment(UsdCents::from(1500)).unwrap();
+            assert_eq!(
+                loan_payment,
+                LoanPayment {
+                    interest: Some(UsdCents::from(1500)),
+                    principal: None
+                }
+            );
+        }
+
+        #[test]
+        fn it_applies_partial_principal() {
+            let balance = default_balance();
+            let loan_payment = balance.apply_payment(UsdCents::from(1501)).unwrap();
+            assert_eq!(
+                loan_payment,
+                LoanPayment {
+                    interest: Some(UsdCents::from(1500)),
+                    principal: Some(UsdCents::from(1))
+                }
+            );
+        }
+
+        #[test]
+        fn it_applies_full_principal() {
+            let balance = default_balance();
+            let loan_payment = balance.apply_payment(UsdCents::from(201500)).unwrap();
+            assert_eq!(
+                loan_payment,
+                LoanPayment {
+                    interest: Some(UsdCents::from(1500)),
+                    principal: Some(UsdCents::from(200000))
+                }
+            );
+        }
+
+        #[test]
+        fn it_errors_on_overpayment() {
+            let balance = default_balance();
+            let loan_payment = balance.apply_payment(UsdCents::from(201501));
+            assert!(loan_payment.is_err());
+        }
     }
 }

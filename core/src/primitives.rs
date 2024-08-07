@@ -233,6 +233,12 @@ impl std::ops::Sub<Satoshis> for Satoshis {
     }
 }
 
+impl From<u64> for Satoshis {
+    fn from(value: u64) -> Self {
+        Self(value)
+    }
+}
+
 impl Satoshis {
     pub const ZERO: Self = Self(0);
     pub const ONE: Self = Self(1);
