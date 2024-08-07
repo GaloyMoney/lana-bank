@@ -33,10 +33,17 @@ wait_for_interest() {
 }
 
 @test "loan: loan lifecycle" {
+  # Setup prerequisites
   customer_id=$(create_customer)
 
   revenue_before=$(net_usd_revenue)
 
+  exec_admin_graphql 'cash-flow'
+  cash_flow_net_before=$(graphql_output '.data.cashFlowStatement.balance.usd.all.netCredit')
+  cash_flow_debit_before=$(graphql_output '.data.cashFlowStatement.balance.usd.all.debit')
+  cash_flow_credit_before=$(graphql_output '.data.cashFlowStatement.balance.usd.all.credit')
+
+  # Create Loan
   principal=10000
   variables=$(
     jq -n \
@@ -95,7 +102,13 @@ wait_for_interest() {
   collateral_sats=$(read_value 'collateral_sats')
   [[ "$collateral_sats" == "233334" ]] || exit 1
 
+  exec_admin_graphql 'cash-flow'
+  cash_flow_debit_during=$(graphql_output '.data.cashFlowStatement.balance.usd.all.debit')
+  cash_flow_credit_during=$(graphql_output '.data.cashFlowStatement.balance.usd.all.credit')
+  [[ $(sub "$cash_flow_debit_during" "$cash_flow_debit_before") == "$interest_before" ]] || exit 1
+  [[ $(sub "$cash_flow_credit_during" "$cash_flow_credit_before") == "$interest_before" ]] || exit 1
 
+  # Pay-off Loan
   variables=$(
     jq -n \
       --arg customerId "$customer_id" \
@@ -141,6 +154,10 @@ wait_for_interest() {
   exec_admin_graphql 'customer' "$variables"
   usd_balance=$(graphql_output '.data.customer.balance.checking.settled.usdBalance')
   [[ "$usd_balance" == "$principal" ]] || exit 1
+
+  exec_admin_graphql 'cash-flow'
+  cash_flow_net_after=$(graphql_output '.data.cashFlowStatement.balance.usd.all.netCredit')
+  [[ $(sub "$cash_flow_net_after" "$cash_flow_net_before") == "$interest_before" ]] || exit 1
 }
 
 @test "loan: paginated listing" {

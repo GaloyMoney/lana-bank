@@ -1,0 +1,58 @@
+query CashFlowStatement {
+  cashFlowStatement {
+    name
+    balance {
+      ...balancesByCurrency
+    }
+    categories {
+      name
+      balance {
+        ...balancesByCurrency
+      }
+      accounts {
+        ... on AccountWithBalance {
+          id
+          name
+          balance {
+            ...balancesByCurrency
+          }
+        }
+        ... on AccountSetWithBalance {
+          id
+          name
+          hasSubAccounts
+          balance {
+            ...balancesByCurrency
+          }
+        }
+      }
+    }
+  }
+}
+
+fragment balancesByCurrency on AccountBalancesByCurrency {
+  usd: usd {
+    ...usdBalances
+  }
+}
+
+fragment usdBalances on LayeredUsdAccountBalances {
+  all {
+    ...usdLayers
+  }
+  settled {
+    ...usdLayers
+  }
+  pending {
+    ...usdLayers
+  }
+  encumbrance {
+    ...usdLayers
+  }
+}
+
+fragment usdLayers on UsdAccountBalance {
+  netCredit
+  debit
+  credit
+}

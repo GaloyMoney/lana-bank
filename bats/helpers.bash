@@ -289,6 +289,15 @@ add() {
   echo $sum
 }
 
+sub() {
+  diff=$1
+  shift
+  for num in "$@"; do
+    diff=$(echo "scale=2; $diff - $num" | bc)
+  done
+  echo $diff
+}
+
 assert_balance_sheet_balanced() {
   exec_admin_graphql 'balance-sheet'
   echo $(graphql_output)
