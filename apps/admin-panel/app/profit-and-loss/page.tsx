@@ -105,7 +105,6 @@ const ProfitAndLossStatement = ({
             >
               <option value="btc">BTC</option>
               <option value="usd">USD</option>
-              <option value="usdt">USDT</option>
             </Select>
           </div>
           <div className="w-32">
