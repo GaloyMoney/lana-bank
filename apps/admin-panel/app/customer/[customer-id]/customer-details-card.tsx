@@ -1,19 +1,10 @@
 "use client"
-import QRCode from "react-qr-code"
 
 import { gql } from "@apollo/client"
 
-import { IoQrCode } from "react-icons/io5"
-
-import { CopyButton } from "@/components/copy-button"
 import { DetailItem, DetailsGroup } from "@/components/details"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/primitive/card"
-import {
-  Dialog,
-  DialogContent,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/primitive/dialog"
+
 import { Separator } from "@/components/primitive/separator"
 import { currencyConverter, formatCurrency } from "@/lib/utils"
 import {
@@ -129,10 +120,6 @@ export const CustomerDetailsCard = ({ customerId }: { customerId: string }) => {
                 />
                 <DetailItem label="Level" value={customerDetails.customer.level} />
                 <DetailItem
-                  label="Unallocated Collateral Settled (BTC)"
-                  value={`${customerDetails.customer.balance.unallocatedCollateral.settled.btcBalance} sats`}
-                />
-                <DetailItem
                   label="Checking Settled Balance (USD)"
                   value={formatCurrency({
                     amount: currencyConverter.centsToUsd(
@@ -150,54 +137,11 @@ export const CustomerDetailsCard = ({ customerId }: { customerId: string }) => {
                     currency: "USD",
                   })}
                 />
-                <DetailItem
-                  label="BTC Deposit Address"
-                  value={customerDetails.customer.btcDepositAddress}
-                  valueComponent={
-                    <AddressWithQr
-                      address={customerDetails.customer.btcDepositAddress}
-                      title="BTC Deposit Address"
-                    />
-                  }
-                />
-                <DetailItem
-                  label="UST Deposit Address"
-                  value={customerDetails.customer.ustDepositAddress}
-                  valueComponent={
-                    <AddressWithQr
-                      address={customerDetails.customer.ustDepositAddress}
-                      title="UST Deposit Address"
-                    />
-                  }
-                />
               </DetailsGroup>
             </CardContent>
           </Card>
         </>
       )}
     </Card>
-  )
-}
-
-const AddressWithQr = ({ address, title }: { address: string; title?: string }) => {
-  return (
-    <Dialog>
-      <DialogTrigger className="flex gap-2 items-center">
-        <IoQrCode className="w-4 h-4 bg-white text-black" />
-        <p>{address}</p>
-      </DialogTrigger>
-      <DialogContent className="flex flex-col justify-center items-center max-w-[25rem] gap-6">
-        <DialogTitle className="flex justify-center items-center w-full text-md">
-          {title || "QR Code"}
-        </DialogTitle>
-        <div className="flex justify-center items-center bg-white p-4 rounded-lg">
-          <QRCode value={address} size={250} />
-        </div>
-        <div className="flex justify-center items-center gap-2 bg-secondary-foreground rounded-md p-2">
-          <p className="text-center text-sm text-textColor-secondary">{address}</p>
-          <CopyButton value={address} />
-        </div>
-      </DialogContent>
-    </Dialog>
   )
 }

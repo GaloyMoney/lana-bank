@@ -128,11 +128,8 @@ function CustomerTable({
                 <TableHeader>
                   <TableRow>
                     <TableHead>Customer</TableHead>
-                    <TableHead>BTC Balance (Settled)</TableHead>
                     <TableHead>USD Balance (Settled)</TableHead>
                     <TableHead>USD Balance (Withdrawals)</TableHead>
-                    <TableHead>BTC Address</TableHead>
-                    <TableHead>UST Address</TableHead>
                     <TableHead></TableHead>
                   </TableRow>
                 </TableHeader>
@@ -147,10 +144,6 @@ function CustomerTable({
                               {customer.customerId}
                             </div>
                           </div>
-                        </TableCell>
-                        <TableCell>
-                          {customer.balance.unallocatedCollateral.settled?.btcBalance}{" "}
-                          sats
                         </TableCell>
                         <TableCell>
                           {formatCurrency({
@@ -168,8 +161,6 @@ function CustomerTable({
                             currency: "USD",
                           })}
                         </TableCell>
-                        <TableCell>{customer.btcDepositAddress}</TableCell>
-                        <TableCell>{customer.ustDepositAddress}</TableCell>
                         <TableCell>
                           <DropdownMenu>
                             <DropdownMenuTrigger>
