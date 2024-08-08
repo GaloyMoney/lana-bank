@@ -32,7 +32,7 @@ pub struct Deposit {
     pub customer_id: CustomerId,
     pub amount: UsdCents,
     pub credit_account_id: LedgerAccountId,
-    pub(super) events: EntityEvents<DepositEvent>,
+    pub(super) _events: EntityEvents<DepositEvent>,
 }
 
 impl std::fmt::Display for Deposit {
@@ -67,7 +67,7 @@ impl TryFrom<EntityEvents<DepositEvent>> for Deposit {
                 }
             }
         }
-        builder.events(events).build()
+        builder._events(events).build()
     }
 }
 

@@ -27,19 +27,20 @@ resource "cala_account_set_member_account_set" "obs_assets" {
 }
 
 # ASSETS: Members
-resource "cala_account" "collateral_deposits_control" {
-  id                  = "10000000-0000-0000-0000-110000000001"
+resource "random_uuid" "collateral_deposits_omnibus" {}
+resource "cala_account" "collateral_deposits_omnibus" {
+  id                  = random_uuid.collateral_deposits_omnibus.result
   name                = "Omnibus account for BTC collateral"
   code                = "BANK.COLLATERAL.OMNIBUS"
   normal_balance_type = "DEBIT"
 }
-resource "cala_account_set_member_account" "collateral_deposits_control_in_obs_assets" {
+resource "cala_account_set_member_account" "collateral_deposits_omnibus_in_obs_assets" {
   account_set_id    = cala_account_set.obs_assets.id
-  member_account_id = cala_account.collateral_deposits_control.id
+  member_account_id = cala_account.collateral_deposits_omnibus.id
 }
-resource "cala_account_set_member_account" "collateral_deposits_control_in_obs_trial_balance" {
+resource "cala_account_set_member_account" "collateral_deposits_omnibus_in_obs_trial_balance" {
   account_set_id    = cala_account_set.obs_trial_balance.id
-  member_account_id = cala_account.collateral_deposits_control.id
+  member_account_id = cala_account.collateral_deposits_omnibus.id
 }
 
 # LIABILITIES

@@ -1,6 +1,7 @@
 mutation CompleteLoanTemplateCreate(
   $templateId: UUID!
   $journalId: Expression!
+  $bankCollateralAccountId: Expression!
 ) {
   txTemplateCreate(
     input: {
@@ -22,11 +23,6 @@ mutation CompleteLoanTemplateCreate(
           name: "loanCollateralAccount"
           type: UUID
           description: "Loan Collateral account ID."
-        }
-        {
-          name: "bankCollateralOmnibus"
-          type: UUID
-          description: "Omnibus account ID for bank collateral."
         }
         {
           name: "paymentAmount"
@@ -81,7 +77,7 @@ mutation CompleteLoanTemplateCreate(
           layer: "SETTLED"
         }
         {
-          accountId: "params.bankCollateralOmnibus"
+          accountId: $bankCollateralAccountId
           units: "params.collateralAmount"
           currency: "'BTC'"
           entryType: "'COMPLETE_LOAN_COLLATERAL_CR'"
@@ -103,7 +99,6 @@ mutation PostCompleteLoanTransaction(
   $transactionId: UUID!
   $checkingAccount: UUID!
   $loanOutstandingAccount: UUID!
-  $bankCollateralOmnibus: UUID!
   $loanCollateralAccount: UUID!
   $paymentAmount: Decimal!
   $collateralAmount: Decimal!
@@ -116,7 +111,6 @@ mutation PostCompleteLoanTransaction(
       params: {
         checkingAccount: $checkingAccount
         loanOutstandingAccount: $loanOutstandingAccount
-        bankCollateralOmnibus: $bankCollateralOmnibus
         loanCollateralAccount: $loanCollateralAccount
         paymentAmount: $paymentAmount
         collateralAmount: $collateralAmount

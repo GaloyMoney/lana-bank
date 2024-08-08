@@ -473,9 +473,21 @@ impl CalaClient {
         &self,
         template_id: TxTemplateId,
     ) -> Result<TxTemplateId, CalaError> {
+        let obs_assets_id = match Self::find_account_by_code::<LedgerAccountId>(
+            self,
+            super::constants::OBS_ASSETS_ACCOUNT_CODE.to_string(),
+        )
+        .await?
+        {
+            Some(id) => Ok(id),
+            None => Err(CalaError::CouldNotFindAccountByCode(
+                super::constants::OBS_ASSETS_ACCOUNT_CODE.to_string(),
+            )),
+        }?;
         let variables = complete_loan_template_create::Variables {
             template_id: Uuid::from(template_id),
             journal_id: format!("uuid(\"{}\")", super::constants::CORE_JOURNAL_ID),
+            bank_collateral_account_id: format!("uuid(\"{}\")", obs_assets_id),
         };
         let response = Self::traced_gql_request::<CompleteLoanTemplateCreate, _>(
             &self.client,
@@ -500,9 +512,21 @@ impl CalaClient {
         &self,
         template_id: TxTemplateId,
     ) -> Result<TxTemplateId, CalaError> {
+        let obs_assets_id = match Self::find_account_by_code::<LedgerAccountId>(
+            self,
+            super::constants::OBS_ASSETS_ACCOUNT_CODE.to_string(),
+        )
+        .await?
+        {
+            Some(id) => Ok(id),
+            None => Err(CalaError::CouldNotFindAccountByCode(
+                super::constants::OBS_ASSETS_ACCOUNT_CODE.to_string(),
+            )),
+        }?;
         let variables = approve_loan_template_create::Variables {
             template_id: Uuid::from(template_id),
             journal_id: format!("uuid(\"{}\")", super::constants::CORE_JOURNAL_ID),
+            bank_collateral_account_id: format!("uuid(\"{}\")", obs_assets_id),
         };
         let response = Self::traced_gql_request::<ApproveLoanTemplateCreate, _>(
             &self.client,
@@ -530,7 +554,6 @@ impl CalaClient {
     ) -> Result<(), CalaError> {
         let variables = post_approve_loan_transaction::Variables {
             transaction_id: transaction_id.into(),
-            bank_collateral_omnibus: super::constants::OBS_ASSETS_ACCOUNT_ID,
             loan_collateral_account: loan_account_ids.collateral_account_id.into(),
             loan_outstanding_account: loan_account_ids.outstanding_account_id.into(),
             checking_account: user_account_ids.on_balance_sheet_deposit_account_id.into(),
@@ -565,7 +588,6 @@ impl CalaClient {
             transaction_id: transaction_id.into(),
             checking_account: user_account_ids.on_balance_sheet_deposit_account_id.into(),
             loan_outstanding_account: loan_account_ids.outstanding_account_id.into(),
-            bank_collateral_omnibus: super::constants::OBS_ASSETS_ACCOUNT_ID,
             loan_collateral_account: loan_account_ids.collateral_account_id.into(),
             payment_amount,
             collateral_amount,
