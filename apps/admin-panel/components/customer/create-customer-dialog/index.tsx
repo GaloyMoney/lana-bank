@@ -21,8 +21,6 @@ gql`
       customer {
         customerId
         email
-        btcDepositAddress
-        ustDepositAddress
         status
         level
         applicantId

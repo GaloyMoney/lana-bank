@@ -6,14 +6,7 @@ gql`
       nodes {
         customerId
         email
-        btcDepositAddress
-        ustDepositAddress
         balance {
-          unallocatedCollateral {
-            settled {
-              btcBalance
-            }
-          }
           checking {
             settled {
               usdBalance
