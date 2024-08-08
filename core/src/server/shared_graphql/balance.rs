@@ -10,11 +10,11 @@ struct Checking {
 }
 
 #[derive(SimpleObject)]
-pub struct UserBalance {
+pub struct CustomerBalance {
     checking: Checking,
 }
 
-impl From<ledger::customer::CustomerBalance> for UserBalance {
+impl From<ledger::customer::CustomerBalance> for CustomerBalance {
     fn from(balance: ledger::customer::CustomerBalance) -> Self {
         Self {
             checking: Checking {

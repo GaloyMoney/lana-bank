@@ -1,0 +1,13 @@
+query Customer($id: UUID!) {
+  customer(id: $id) {
+    customerId
+    email
+    balance {
+      checking {
+        settled {
+          usdBalance
+        }
+      }
+    }
+  }
+}

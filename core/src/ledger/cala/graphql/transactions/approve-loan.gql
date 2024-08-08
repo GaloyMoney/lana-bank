@@ -6,12 +6,12 @@ mutation ApproveLoanTemplateCreate(
     input: {
       txTemplateId: $templateId
       code: "APPROVE_LOAN"
-      description: "Move money from unallocated collateral to loan account."
+      description: "Collateralize loan and payout principal."
       params: [
         {
-          name: "unallocatedCollateralAccount"
+          name: "bankCollateralOmnibus"
           type: UUID
-          description: "User Unallocated Collateral account ID."
+          description: "Omnibus account ID for bank collateral."
         }
         {
           name: "loanCollateralAccount"
@@ -57,7 +57,7 @@ mutation ApproveLoanTemplateCreate(
       }
       entries: [
         {
-          accountId: "params.unallocatedCollateralAccount"
+          accountId: "params.bankCollateralOmnibus"
           units: "params.collateralAmount"
           currency: "'BTC'"
           entryType: "'APPROVE_LOAN_COLLATERAL_DR'"
@@ -101,7 +101,7 @@ mutation ApproveLoanTemplateCreate(
 
 mutation PostApproveLoanTransaction(
   $transactionId: UUID!
-  $unallocatedCollateralAccount: UUID!
+  $bankCollateralOmnibus: UUID!
   $loanCollateralAccount: UUID!
   $loanOutstandingAccount: UUID!
   $checkingAccount: UUID!
@@ -114,7 +114,7 @@ mutation PostApproveLoanTransaction(
       transactionId: $transactionId
       txTemplateCode: "APPROVE_LOAN"
       params: {
-        unallocatedCollateralAccount: $unallocatedCollateralAccount
+        bankCollateralOmnibus: $bankCollateralOmnibus
         loanCollateralAccount: $loanCollateralAccount
         loanOutstandingAccount: $loanOutstandingAccount
         checkingAccount: $checkingAccount

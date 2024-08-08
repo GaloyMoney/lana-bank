@@ -24,9 +24,9 @@ mutation CompleteLoanTemplateCreate(
           description: "Loan Collateral account ID."
         }
         {
-          name: "unallocatedCollateralAccount"
+          name: "bankCollateralOmnibus"
           type: UUID
-          description: "User Unallocated Collateral account ID."
+          description: "Omnibus account ID for bank collateral."
         }
         {
           name: "paymentAmount"
@@ -81,7 +81,7 @@ mutation CompleteLoanTemplateCreate(
           layer: "SETTLED"
         }
         {
-          accountId: "params.unallocatedCollateralAccount"
+          accountId: "params.bankCollateralOmnibus"
           units: "params.collateralAmount"
           currency: "'BTC'"
           entryType: "'COMPLETE_LOAN_COLLATERAL_CR'"
@@ -103,7 +103,7 @@ mutation PostCompleteLoanTransaction(
   $transactionId: UUID!
   $checkingAccount: UUID!
   $loanOutstandingAccount: UUID!
-  $unallocatedCollateralAccount: UUID!
+  $bankCollateralOmnibus: UUID!
   $loanCollateralAccount: UUID!
   $paymentAmount: Decimal!
   $collateralAmount: Decimal!
@@ -116,7 +116,7 @@ mutation PostCompleteLoanTransaction(
       params: {
         checkingAccount: $checkingAccount
         loanOutstandingAccount: $loanOutstandingAccount
-        unallocatedCollateralAccount: $unallocatedCollateralAccount
+        bankCollateralOmnibus: $bankCollateralOmnibus
         loanCollateralAccount: $loanCollateralAccount
         paymentAmount: $paymentAmount
         collateralAmount: $collateralAmount

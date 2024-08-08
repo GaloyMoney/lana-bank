@@ -5,6 +5,7 @@ mod repo;
 mod terms;
 
 use sqlx::PgPool;
+use tracing::instrument;
 
 use crate::{
     authorization::{Authorization, LoanAction, Object, TermAction},
@@ -114,6 +115,7 @@ impl Loans {
         Ok(loan)
     }
 
+    #[instrument(name = "lava.loan.approve_loan", skip(self), err)]
     pub async fn approve_loan(
         &self,
         sub: &Subject,

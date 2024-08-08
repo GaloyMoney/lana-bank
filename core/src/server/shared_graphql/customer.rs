@@ -6,7 +6,7 @@ use crate::{
     server::shared_graphql::{loan::Loan, primitives::UUID},
 };
 
-use super::balance::UserBalance;
+use super::balance::CustomerBalance;
 
 #[derive(Enum, Copy, Clone, Eq, PartialEq)]
 pub enum KycLevel {
@@ -35,10 +35,10 @@ pub struct Customer {
 
 #[ComplexObject]
 impl Customer {
-    async fn balance(&self, ctx: &Context<'_>) -> async_graphql::Result<UserBalance> {
+    async fn balance(&self, ctx: &Context<'_>) -> async_graphql::Result<CustomerBalance> {
         let app = ctx.data_unchecked::<LavaApp>();
         let balance = app.ledger().get_customer_balance(self.account_ids).await?;
-        Ok(UserBalance::from(balance))
+        Ok(CustomerBalance::from(balance))
     }
 
     async fn loans(&self, ctx: &Context<'_>) -> async_graphql::Result<Vec<Loan>> {

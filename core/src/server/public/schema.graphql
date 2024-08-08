@@ -23,8 +23,12 @@ type Customer {
 	status: AccountStatus!
 	level: KycLevel!
 	applicantId: String
-	balance: UserBalance!
+	balance: CustomerBalance!
 	loans: [Loan!]!
+}
+
+type CustomerBalance {
+	checking: Checking!
 }
 
 type Duration {
@@ -119,10 +123,6 @@ type UsdBalance {
 }
 
 scalar UsdCents
-
-type UserBalance {
-	checking: Checking!
-}
 
 type Withdrawal {
 	customerId: UUID!

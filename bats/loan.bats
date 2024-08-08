@@ -16,7 +16,7 @@ loan_balance() {
     --arg loanId "$1" \
     '{ id: $loanId }'
   )
-  exec_graphql 'alice' 'find-loan' "$variables"
+  exec_admin_graphql 'find-loan' "$variables"
 
   outstanding_balance=$(graphql_output '.data.loan.balance.outstanding.usdBalance')
   cache_value 'outstanding' "$outstanding_balance"
@@ -61,49 +61,53 @@ wait_for_interest() {
   loan_id=$(graphql_output '.data.loanCreate.loan.loanId')
   [[ "$loan_id" != "null" ]] || exit 1
 
-#   variables=$(
-#     jq -n \
-#       --arg loanId "$loan_id" \
-#     '{
-#       input: {
-#         loanId: $loanId,
-#         collateral: 233334,
-#       }
-#     }'
-#   )
-#   exec_admin_graphql 'loan-approve' "$variables"
+  variables=$(
+    jq -n \
+      --arg loanId "$loan_id" \
+    '{
+      input: {
+        loanId: $loanId,
+        collateral: 233334,
+      }
+    }'
+  )
+  exec_admin_graphql 'loan-approve' "$variables"
+  loan_id=$(graphql_output '.data.loanApprove.loan.loanId')
+  [[ "$loan_id" != "null" ]] || exit 1
 
-#   retry 20 1 wait_for_interest "$loan_id"
-#   interest_before=$(read_value "interest")
-#   outstanding_before=$(read_value "outstanding")
-#   expected_outstanding=$(add $principal $interest_before)
-#   [[ "$outstanding_before" == "$expected_outstanding" ]] || exit 1
+  variables=$(
+    jq -n \
+      --arg customerId "$customer_id" \
+    '{
+      id: $customerId
+    }'
+  )
+  exec_admin_graphql 'customer' "$variables"
+  usd_balance=$(graphql_output '.data.customer.balance.checking.settled.usdBalance')
+  [[ "$usd_balance" == "$principal" ]] || exit 1
 
-#   collateral_sats=$(read_value 'collateral_sats')
-#   [[ "$collateral_sats" == "233334" ]] || exit 1
+  retry 20 1 wait_for_interest "$loan_id"
+  interest_before=$(read_value "interest")
+  outstanding_before=$(read_value "outstanding")
+  expected_outstanding=$(add $principal $interest_before)
+  [[ "$outstanding_before" == "$expected_outstanding" ]] || exit 1
 
-#   variables=$(
-#     jq -n \
-#       --arg address "$ust_address" \
-#     '{
-#        address: $address,
-#        amount: "200",
-#        currency: "UST"
-#     }'
-#   )
+  collateral_sats=$(read_value 'collateral_sats')
+  [[ "$collateral_sats" == "233334" ]] || exit 1
 
-#   variables=$(
-#     jq -n \
-#       --arg loanId "$loan_id" \
-#       --argjson amount "$outstanding_before" \
-#     '{
-#       input: {
-#         loanId: $loanId,
-#         amount: $amount,
-#       }
-#     }'
-#   )
-#   exec_admin_graphql 'loan-partial-payment' "$variables"
+
+  variables=$(
+    jq -n \
+      --arg loanId "$loan_id" \
+      --argjson amount "$outstanding_before" \
+    '{
+      input: {
+        loanId: $loanId,
+        amount: $amount,
+      }
+    }'
+  )
+  exec_admin_graphql 'loan-partial-payment' "$variables"
 
 #   loan_balance "$loan_id"
 #   outstanding_after=$(read_value "outstanding")
