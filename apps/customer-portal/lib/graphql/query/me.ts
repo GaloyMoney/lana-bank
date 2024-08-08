@@ -9,17 +9,10 @@ gql`
     me {
       customerId
       email
-      btcDepositAddress
-      ustDepositAddress
       applicantId
       status
       level
       balance {
-        unallocatedCollateral {
-          settled {
-            btcBalance
-          }
-        }
         checking {
           settled {
             usdBalance

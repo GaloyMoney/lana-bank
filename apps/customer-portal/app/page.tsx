@@ -42,14 +42,6 @@ export default async function Home() {
 
   const balance = [
     {
-      currency: "Bitcoin",
-      amount: formatCurrency({
-        amount:
-          getMeAndSessionResponse.me?.balance.unallocatedCollateral.settled.btcBalance,
-        currency: "SATS",
-      }),
-    },
-    {
       currency: "US Dollar",
       amount: formatCurrency({
         amount: currencyConverter.centsToUsd(
