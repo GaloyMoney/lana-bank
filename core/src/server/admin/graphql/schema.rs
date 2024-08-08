@@ -2,8 +2,8 @@ use async_graphql::{types::connection::*, Context, Object, Result};
 use uuid::Uuid;
 
 use super::{
-    account_set::*, audit::AuditEntry, customer::*, loan::*, shareholder_equity::*, terms::*,
-    user::*,
+    account_set::*, audit::AuditEntry, customer::*, deposit::*, loan::*, shareholder_equity::*,
+    terms::*, user::*,
 };
 use crate::{
     app::LavaApp,
@@ -69,10 +69,7 @@ impl Query {
     ) -> async_graphql::Result<Option<Customer>> {
         let app = ctx.data_unchecked::<LavaApp>();
         let AdminAuthContext { sub } = ctx.data()?;
-        let customer = app
-            .customers()
-            .find_by_id(Some(sub), CustomerId::from(id))
-            .await?;
+        let customer = app.customers().find_by_id(Some(sub), id).await?;
         Ok(customer.map(Customer::from))
     }
 
@@ -328,6 +325,22 @@ impl Mutation {
             .record_payment(sub, input.loan_id.into(), input.amount)
             .await?;
         Ok(LoanPartialPaymentPayload::from(loan))
+    }
+
+    pub async fn deposit_record(
+        &self,
+        ctx: &Context<'_>,
+        input: DepositRecordInput,
+    ) -> async_graphql::Result<DepositRecordPayload> {
+        let app = ctx.data_unchecked::<LavaApp>();
+        let AdminAuthContext { sub } = ctx.data()?;
+
+        let deposit = app
+            .deposits()
+            .record(sub, input.customer_id, input.amount, input.reference)
+            .await?;
+
+        Ok(DepositRecordPayload::from(deposit))
     }
 
     async fn customer_create(

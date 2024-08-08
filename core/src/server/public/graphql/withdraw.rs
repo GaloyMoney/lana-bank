@@ -1,8 +1,6 @@
 use async_graphql::*;
 
-use crate::primitives::UsdCents;
-
-use crate::server::shared_graphql::primitives::UUID;
+use crate::{primitives::UsdCents, server::shared_graphql::primitives::UUID};
 
 #[derive(SimpleObject)]
 pub struct Withdrawal {

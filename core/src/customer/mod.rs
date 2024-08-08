@@ -80,14 +80,14 @@ impl Customers {
     pub async fn find_by_id(
         &self,
         sub: Option<&Subject>,
-        id: CustomerId,
+        id: impl Into<CustomerId> + std::fmt::Debug,
     ) -> Result<Option<Customer>, CustomerError> {
         if let Some(sub) = sub {
             self.authz
                 .check_permission(sub, Object::Customer, CustomerAction::Read)
                 .await?;
         }
-        match self.repo.find_by_id(id).await {
+        match self.repo.find_by_id(id.into()).await {
             Ok(customer) => Ok(Some(customer)),
             Err(CustomerError::CouldNotFindById(_)) => Ok(None),
             Err(e) => Err(e),

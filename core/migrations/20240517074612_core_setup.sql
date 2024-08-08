@@ -67,6 +67,22 @@ CREATE TABLE withdraw_events (
   UNIQUE(id, sequence)
 );
 
+CREATE TABLE deposits (
+  id UUID PRIMARY KEY,
+  customer_id UUID NOT NULL REFERENCES customers(id),
+  reference VARCHAR NOT NULL UNIQUE,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE deposit_events (
+  id UUID NOT NULL REFERENCES deposits(id),
+  sequence INT NOT NULL,
+  event_type VARCHAR NOT NULL,
+  event JSONB NOT NULL,
+  recorded_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  UNIQUE(id, sequence)
+);
+
 CREATE TABLE jobs (
   id UUID NOT NULL UNIQUE,
   name VARCHAR NOT NULL UNIQUE,

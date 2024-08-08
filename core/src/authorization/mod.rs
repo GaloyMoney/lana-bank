@@ -257,6 +257,7 @@ pub enum Object {
     Term,
     User,
     Customer,
+    Deposit,
     Audit,
     Ledger,
 }
@@ -268,6 +269,7 @@ impl AsRef<str> for Object {
             Object::Loan => "loan",
             Object::Term => "term",
             Object::User => "user",
+            Object::Deposit => "deposit",
             Object::Customer => "customer",
             Object::Audit => "audit",
             Object::Ledger => "ledger",
@@ -306,6 +308,7 @@ pub enum Action {
     Term(TermAction),
     User(UserAction),
     Customer(CustomerAction),
+    Deposit(DepositAction),
     Audit(AuditAction),
     Ledger(LedgerAction),
 }
@@ -317,6 +320,7 @@ impl AsRef<str> for Action {
             Action::Term(action) => action.as_ref(),
             Action::User(action) => action.as_ref(),
             Action::Customer(action) => action.as_ref(),
+            Action::Deposit(action) => action.as_ref(),
             Action::Audit(action) => action.as_ref(),
             Action::Ledger(action) => action.as_ref(),
         }
@@ -534,6 +538,40 @@ impl From<CustomerAction> for Action {
         Action::Customer(action)
     }
 }
+pub enum DepositAction {
+    Record,
+    Read,
+    List,
+}
+
+impl AsRef<str> for DepositAction {
+    fn as_ref(&self) -> &str {
+        match self {
+            DepositAction::Record => "deposit-record",
+            DepositAction::Read => "deposit-read",
+            DepositAction::List => "deposit-list",
+        }
+    }
+}
+impl std::ops::Deref for DepositAction {
+    type Target = str;
+    fn deref(&self) -> &Self::Target {
+        self.as_ref()
+    }
+}
+
+impl From<DepositAction> for Action {
+    fn from(action: DepositAction) -> Self {
+        Action::Deposit(action)
+    }
+}
+
+impl std::ops::Deref for LedgerAction {
+    type Target = str;
+    fn deref(&self) -> &Self::Target {
+        self.as_ref()
+    }
+}
 
 pub enum LedgerAction {
     Read,
@@ -544,13 +582,6 @@ impl AsRef<str> for LedgerAction {
         match self {
             LedgerAction::Read => "ledger-read",
         }
-    }
-}
-
-impl std::ops::Deref for LedgerAction {
-    type Target = str;
-    fn deref(&self) -> &Self::Target {
-        self.as_ref()
     }
 }
 

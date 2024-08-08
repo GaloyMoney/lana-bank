@@ -193,6 +193,22 @@ type DefaultTermsUpdatePayload {
 	terms: Terms!
 }
 
+type Deposit {
+	customerId: UUID!
+	depositId: UUID!
+	amount: UsdCents!
+}
+
+input DepositRecordInput {
+	customerId: UUID!
+	amount: UsdCents!
+	reference: String
+}
+
+type DepositRecordPayload {
+	deposit: Deposit!
+}
+
 type Duration {
 	period: Period!
 	units: Int!
@@ -295,6 +311,7 @@ type Mutation {
 	loanCreate(input: LoanCreateInput!): LoanCreatePayload!
 	loanApprove(input: LoanApproveInput!): LoanApprovePayload!
 	loanPartialPayment(input: LoanPartialPaymentInput!): LoanPartialPaymentPayload!
+	depositRecord(input: DepositRecordInput!): DepositRecordPayload!
 	customerCreate(input: CustomerCreateInput!): CustomerCreatePayload!
 	userCreate(input: UserCreateInput!): UserCreatePayload!
 	userAssignRole(input: UserAssignRoleInput!): UserAssignRolePayload!
