@@ -1,6 +1,5 @@
 const BTC_PER_SATOSHI = 100000000
 const USD_PER_CENT = 100
-const USDT_PER_CENT = 100
 
 const formatAmount = (amount: number, currency: Currency) => {
   const formatter = new Intl.NumberFormat("en-US")
@@ -16,15 +15,10 @@ const formatAmount = (amount: number, currency: Currency) => {
       const cents = amount % USD_PER_CENT
       return `${formatter.format(dollars)}.${cents.toString().padStart(2, "0")}`
     }
-    case "usdt": {
-      const dollars = Math.floor(amount / USDT_PER_CENT)
-      const cents = amount % USDT_PER_CENT
-      return `${formatter.format(dollars)}.${cents.toString().padStart(2, "0")}`
-    }
   }
 }
 
-export type Currency = "btc" | "usd" | "usdt"
+export type Currency = "btc" | "usd"
 type BalanceProps = {
   amount: number
   currency: Currency
