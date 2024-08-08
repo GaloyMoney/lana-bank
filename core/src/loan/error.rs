@@ -20,8 +20,8 @@ pub enum LoanError {
     CustomerNotFound(CustomerId),
     #[error("LoanError - UserNotAllowedToCreateLoan: {0}")]
     CustomerNotAllowedToCreateLoan(CustomerId),
-    #[error("LoanError - InsufficientCollateral: {0} < {1}")]
-    InsufficientCollateral(Satoshis, Satoshis),
+    #[error("LoanError - InsufficientBalance: {0} < {1}")]
+    InsufficientBalance(UsdCents, UsdCents),
     #[error("LoanError - JobError: {0}")]
     JobError(#[from] crate::job::error::JobError),
     #[error("LoanError - AlreadyCompleted")]

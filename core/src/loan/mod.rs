@@ -173,6 +173,16 @@ impl Loans {
         let customer = self.customers.repo().find_by_id(loan.customer_id).await?;
         let mut db_tx = self.pool.begin().await?;
         self.loan_repo.persist_in_tx(&mut db_tx, &mut loan).await?;
+        let customer_balances = self
+            .ledger
+            .get_customer_balance(customer.account_ids)
+            .await?;
+        if customer_balances.usd_balance.settled < amount {
+            return Err(LoanError::InsufficientBalance(
+                customer_balances.usd_balance.settled,
+                amount,
+            ));
+        }
         if !loan.is_completed() {
             self.ledger
                 .record_payment(

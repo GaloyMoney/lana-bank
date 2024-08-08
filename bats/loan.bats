@@ -98,6 +98,19 @@ wait_for_interest() {
 
   variables=$(
     jq -n \
+      --arg customerId "$customer_id" \
+      --argjson amount "$outstanding_before" \
+    '{
+      input: {
+        customerId: $customerId,
+        amount: $amount,
+      }
+    }'
+  )
+  exec_admin_graphql 'record-deposit' "$variables"
+
+  variables=$(
+    jq -n \
       --arg loanId "$loan_id" \
       --argjson amount "$outstanding_before" \
     '{
@@ -109,12 +122,23 @@ wait_for_interest() {
   )
   exec_admin_graphql 'loan-partial-payment' "$variables"
 
-#   loan_balance "$loan_id"
-#   outstanding_after=$(read_value "outstanding")
-#   [[ "$outstanding_after" == "0" ]] || exit 1
-#   collateral_sats=$(read_value 'collateral_sats')
-#   [[ "$collateral_sats" == "0" ]] || exit 1
+  loan_balance "$loan_id"
+  outstanding_after=$(read_value "outstanding")
+  [[ "$outstanding_after" == "0" ]] || exit 1
+  collateral_sats=$(read_value 'collateral_sats')
+  [[ "$collateral_sats" == "0" ]] || exit 1
 
-#   revenue_after=$(net_usd_revenue)
-#   [[ $revenue_after -gt $revenue_before ]] || exit 1
+  revenue_after=$(net_usd_revenue)
+  [[ $revenue_after -gt $revenue_before ]] || exit 1
+
+  variables=$(
+    jq -n \
+      --arg customerId "$customer_id" \
+    '{
+      id: $customerId
+    }'
+  )
+  exec_admin_graphql 'customer' "$variables"
+  usd_balance=$(graphql_output '.data.customer.balance.checking.settled.usdBalance')
+  [[ "$usd_balance" == "$principal" ]] || exit 1
 }
