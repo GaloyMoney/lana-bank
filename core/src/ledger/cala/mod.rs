@@ -379,8 +379,7 @@ impl CalaClient {
 
         response
             .data
-            .map(|d| d.tx_template_create.tx_template.tx_template_id)
-            .map(TxTemplateId::from)
+            .map(|d| TxTemplateId::from(d.tx_template_create.tx_template.tx_template_id))
             .ok_or_else(|| CalaError::MissingDataField)
     }
 
@@ -658,8 +657,7 @@ impl CalaClient {
 
         response
             .data
-            .map(|d| d.tx_template_create.tx_template.tx_template_id)
-            .map(TxTemplateId::from)
+            .map(|d| TxTemplateId::from(d.tx_template_create.tx_template.tx_template_id))
             .ok_or_else(|| CalaError::MissingDataField)
     }
 
@@ -685,8 +683,7 @@ impl CalaClient {
 
         response
             .data
-            .map(|d| d.tx_template_create.tx_template.tx_template_id)
-            .map(TxTemplateId::from)
+            .map(|d| TxTemplateId::from(d.tx_template_create.tx_template.tx_template_id))
             .ok_or_else(|| CalaError::MissingDataField)
     }
 
@@ -724,8 +721,7 @@ impl CalaClient {
 
         response
             .data
-            .map(|d| d.tx_template_create.tx_template.tx_template_id)
-            .map(TxTemplateId::from)
+            .map(|d| TxTemplateId::from(d.tx_template_create.tx_template.tx_template_id))
             .ok_or_else(|| CalaError::MissingDataField)
     }
 
@@ -863,8 +859,7 @@ impl CalaClient {
 
         response
             .data
-            .map(|d| d.tx_template_create.tx_template.tx_template_id)
-            .map(TxTemplateId::from)
+            .map(|d| TxTemplateId::from(d.tx_template_create.tx_template.tx_template_id))
             .ok_or_else(|| CalaError::MissingDataField)
     }
 
@@ -921,8 +916,7 @@ impl CalaClient {
 
         response
             .data
-            .map(|d| d.tx_template_create.tx_template.tx_template_id)
-            .map(TxTemplateId::from)
+            .map(|d| TxTemplateId::from(d.tx_template_create.tx_template.tx_template_id))
             .ok_or_else(|| CalaError::MissingDataField)
     }
 
