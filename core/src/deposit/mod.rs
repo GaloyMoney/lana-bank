@@ -60,7 +60,7 @@ impl Deposits {
             .id(DepositId::new())
             .customer_id(customer_id)
             .amount(amount)
-            .reference(reference)
+            .reference(reference.clone())
             .credit_account_id(customer.account_ids.on_balance_sheet_deposit_account_id)
             .build()
             .expect("Could not build Deposit");
@@ -68,7 +68,14 @@ impl Deposits {
         let mut db_tx = self.pool.begin().await?;
         let deposit = self.repo.create_in_tx(&mut db_tx, new_deposit).await?;
 
-        // self.ledger.record_deposit(deposit).await?;
+        self.ledger
+            .record_deposit_for_customer(
+                deposit.id,
+                customer.account_ids,
+                amount,
+                reference.unwrap_or_else(|| deposit.id.to_string()),
+            )
+            .await?;
 
         db_tx.commit().await?;
 

@@ -44,20 +44,20 @@ resource "cala_account_set_member_account_set" "assets_in_balance_sheet" {
 }
 
 # ASSETS: Members
-resource "random_uuid" "bank_deposits_control" {}
-resource "cala_account_set" "bank_deposits_control" {
-  id                  = random_uuid.bank_deposits_control.result
-  journal_id          = cala_journal.journal.id
-  name                = "Bank Deposits from Users Control Account"
+resource "random_uuid" "bank_deposits_omnibus" {}
+resource "cala_account" "bank_deposits_omnibus" {
+  id                  = random_uuid.bank_deposits_omnibus.result
+  name                = "Bank Deposits from Users Omnibus Account"
+  code                = "BANK.DEPOSITS.OMNIBUS"
   normal_balance_type = "DEBIT"
 }
-resource "cala_account_set_member_account_set" "bank_deposits_control_in_assets" {
-  account_set_id        = cala_account_set.assets.id
-  member_account_set_id = cala_account_set.bank_deposits_control.id
+resource "cala_account_set_member_account" "bank_deposits_omnibus_in_assets" {
+  account_set_id    = cala_account_set.assets.id
+  member_account_id = cala_account.bank_deposits_omnibus.id
 }
-resource "cala_account_set_member_account_set" "bank_deposits_control_in_trial_balance" {
-  account_set_id        = cala_account_set.trial_balance.id
-  member_account_set_id = cala_account_set.bank_deposits_control.id
+resource "cala_account_set_member_account" "bank_deposits_omnibus_in_trial_balance" {
+  account_set_id    = cala_account_set.trial_balance.id
+  member_account_id = cala_account.bank_deposits_omnibus.id
 }
 
 resource "cala_account_set" "loans_receivable_control" {

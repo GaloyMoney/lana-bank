@@ -1,0 +1,18 @@
+mutation RecordDeposit($input: DepositRecordInput!) {
+  depositRecord(input: $input) {
+    deposit {
+      depositId
+      amount
+      customer {
+        customerId
+        balance {
+          checking {
+            settled {
+              usdBalance
+            }
+          }
+        }
+      }
+    }
+  }
+}

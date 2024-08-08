@@ -21,7 +21,7 @@ pub enum DepositEvent {
 impl EntityEvent for DepositEvent {
     type EntityId = DepositId;
     fn event_table_name() -> &'static str {
-        "withdraw_events"
+        "deposit_events"
     }
 }
 

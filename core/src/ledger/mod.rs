@@ -13,8 +13,8 @@ use tracing::instrument;
 use crate::{
     authorization::{Authorization, LedgerAction, Object},
     primitives::{
-        CustomerId, LedgerAccountId, LedgerAccountSetId, LedgerTxId, LedgerTxTemplateId, LoanId,
-        Satoshis, Subject, UsdCents, WithdrawId,
+        CustomerId, DepositId, LedgerAccountId, LedgerAccountSetId, LedgerTxId, LedgerTxTemplateId,
+        LoanId, Satoshis, Subject, UsdCents, WithdrawId,
     },
 };
 
@@ -78,6 +78,25 @@ impl Ledger {
             .cala
             .execute_add_equity_tx(amount.to_usd(), reference)
             .await?)
+    }
+
+    #[instrument(name = "lava.ledger.record_deposit_for_customer", skip(self), err)]
+    pub async fn record_deposit_for_customer(
+        &self,
+        deposit_id: DepositId,
+        customer_account_ids: CustomerLedgerAccountIds,
+        amount: UsdCents,
+        external_id: String,
+    ) -> Result<DepositId, LedgerError> {
+        self.cala
+            .execute_deposit_checking_tx(
+                LedgerTxId::from(uuid::Uuid::from(deposit_id)),
+                customer_account_ids,
+                amount.to_usd(),
+                external_id,
+            )
+            .await?;
+        Ok(deposit_id)
     }
 
     #[instrument(name = "lava.ledger.initiate_withdrawal_for_customer", skip(self), err)]
@@ -348,6 +367,7 @@ impl Ledger {
 
     async fn initialize_tx_templates(cala: &CalaClient) -> Result<(), LedgerError> {
         Self::assert_add_equity_tx_template_exists(cala, constants::ADD_EQUITY_CODE).await?;
+        Self::assert_deposit_template_tx_template_exists(cala, constants::DEPOSIT_CHECKING).await?;
 
         Self::assert_approve_loan_tx_template_exists(cala, constants::APPROVE_LOAN_CODE).await?;
 
@@ -375,6 +395,31 @@ impl Ledger {
 
         let template_id = LedgerTxTemplateId::new();
         let err = match cala.create_add_equity_tx_template(template_id).await {
+            Ok(id) => {
+                return Ok(id);
+            }
+            Err(e) => e,
+        };
+
+        Ok(cala
+            .find_tx_template_by_code::<LedgerTxTemplateId>(template_code.to_owned())
+            .await
+            .map_err(|_| err)?)
+    }
+
+    async fn assert_deposit_template_tx_template_exists(
+        cala: &CalaClient,
+        template_code: &str,
+    ) -> Result<LedgerTxTemplateId, LedgerError> {
+        if let Ok(id) = cala
+            .find_tx_template_by_code::<LedgerTxTemplateId>(template_code.to_owned())
+            .await
+        {
+            return Ok(id);
+        }
+
+        let template_id = LedgerTxTemplateId::new();
+        let err = match cala.create_deposit_checking_tx_template(template_id).await {
             Ok(id) => {
                 return Ok(id);
             }

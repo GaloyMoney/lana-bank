@@ -32,10 +32,12 @@ pub(super) const OBS_ASSETS_ACCOUNT_ID: Uuid = uuid!("10000000-0000-0000-0000-11
 pub(super) const OBS_ASSETS_ACCOUNT_CODE: &str = "BANK.COLLATERAL.OMNIBUS";
 
 // Accounts for templates
+pub(super) const BANK_DEPOSITS_OMNIBUS_CODE: &str = "BANK.DEPOSITS.OMNIBUS";
 pub(super) const BANK_SHAREHOLDER_EQUITY_CODE: &str = "BANK.SHAREHOLDER_EQUITY";
 pub(super) const BANK_RESERVE_FROM_SHAREHOLDER_CODE: &str = "BANK.RESERVE_FROM_SHAREHOLDER";
 
 // Templates
+pub(super) const DEPOSIT_CHECKING: &str = "DEPOSIT_CHECKING";
 pub(super) const APPROVE_LOAN_CODE: &str = "APPROVE_LOAN";
 pub(super) const INCUR_INTEREST_CODE: &str = "INCUR_INTEREST";
 pub(super) const RECORD_PAYMENT_CODE: &str = "RECORD_PAYMENT";

@@ -145,6 +145,14 @@ impl Authorization {
             .await?;
         self.add_permission_to_role(&role, Object::Customer, CustomerAction::Update)
             .await?;
+        self.add_permission_to_role(&role, Object::Deposit, DepositAction::Record)
+            .await?;
+        self.add_permission_to_role(&role, Object::Deposit, DepositAction::Read)
+            .await?;
+        self.add_permission_to_role(&role, Object::Deposit, DepositAction::List)
+            .await?;
+        self.add_permission_to_role(&role, Object::Audit, AuditAction::List)
+            .await?;
 
         Ok(())
     }

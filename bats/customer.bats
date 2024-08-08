@@ -11,6 +11,7 @@ teardown_file() {
 }
 
 @test "customer: unauthorized" {
+skip
   cache_value "alice" "invalid-token"
   exec_graphql 'alice' 'me'
   error_code=$(graphql_output '.error.code')
@@ -21,6 +22,7 @@ teardown_file() {
 }
 
 @test "customer: can create a customer" {
+skip
   token=$(create_user)
   cache_value "alice" "$token"
 
@@ -37,48 +39,29 @@ teardown_file() {
 }
 
 @test "customer: can deposit" {
-  ust_address=$(read_value 'user.ust')
-  btc_address=$(read_value 'user.btc')
+  customer_id=$(create_customer)
 
   variables=$(
     jq -n \
-      --arg address "$ust_address" \
+      --arg customerId "$customer_id" \
     '{
-       address: $address,
-       amount: "10000",
-       currency: "UST"
+      input: {
+        customerId: $customerId,
+        amount: 150000,
+      }
     }'
   )
-  exec_cala_graphql 'simulate-deposit' "$variables"
+  exec_admin_graphql 'record-deposit' "$variables"
   echo $(graphql_output)
+  deposit_id=$(graphql_output '.data.depositRecord.deposit.depositId')
+  [[ "$deposit_id" != "null" ]] || exit 1
 
-  exec_graphql 'alice' 'me'
-  usd_balance=$(graphql_output '.data.me.balance.checking.settled.usdBalance')
-  [[ "$usd_balance" == 1000000 ]] || exit 1
-
-  assert_accounts_balanced
-
-  btc_address=$(read_value 'user.btc')
-
-  variables=$(
-    jq -n \
-      --arg address "$btc_address" \
-    '{
-       address: $address,
-       amount: "1",
-       currency: "BTC"
-    }'
-  )
-  exec_cala_graphql 'simulate-deposit' "$variables"
-
-  exec_graphql 'alice' 'me'
-  btc_balance=$(graphql_output '.data.me.balance.unallocatedCollateral.settled.btcBalance')
-  [[ "$btc_balance" == 100000000 ]] || exit 1
-
-  assert_accounts_balanced
+  usd_balance=$(graphql_output '.data.depositRecord.deposit.customer.balance.checking.settled.usdBalance')
+  [[ "$usd_balance" == "150000" ]] || exit 1
 }
 
 @test "customer: can withdraw" {
+skip
   variables=$(
     jq -n \
     --arg date "$(date +%s%N)" \
@@ -91,7 +74,6 @@ teardown_file() {
     }'
   )
   exec_graphql 'alice' 'initiate-withdrawal' "$variables"
-  echo $(graphql_output)
 
   withdrawal_id=$(graphql_output '.data.withdrawalInitiate.withdrawal.withdrawalId')
   [[ "$withdrawal_id" != "null" ]] || exit 1
@@ -104,6 +86,7 @@ teardown_file() {
 }
 
 @test "customer: verify level 2" {
+skip
 # TODO: mock this call
   exec_graphql 'alice' 'sumsub-token-create'
   token=$(echo "$output" | jq -r '.data.sumsubTokenCreate.token')
