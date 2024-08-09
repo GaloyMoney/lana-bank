@@ -165,13 +165,11 @@ impl Loans {
 
         let mut loan = self.loan_repo.find_by_id(loan_id).await?;
         let balances = self.ledger.get_loan_balance(loan.account_ids).await?;
-        assert_eq!(
-            balances.principal_receivable + balances.interest_receivable,
-            loan.outstanding()
-        );
+        assert_eq!(balances.principal_receivable, loan.outstanding().principal);
+        assert_eq!(balances.interest_receivable, loan.outstanding().interest);
 
         let tx_id = LedgerTxId::new();
-        let tx_ref = loan.record_if_not_exceeding_outstanding(tx_id, amount)?;
+        let (tx_ref, loan_payment) = loan.record_if_not_exceeding_outstanding(tx_id, amount)?;
 
         let customer = self.customers.repo().find_by_id(loan.customer_id).await?;
         let mut db_tx = self.pool.begin().await?;
@@ -192,49 +190,21 @@ impl Loans {
                     tx_id,
                     loan.account_ids,
                     customer.account_ids,
-                    amount,
+                    loan_payment,
                     tx_ref,
                 )
                 .await?;
         } else {
-            let LoanPayment {
-                interest,
-                principal,
-            } = balances.apply_payment(amount)?;
-
-            match (principal, interest) {
-                (Some(principal), Some(interest)) => {
-                    self.ledger
-                        .complete_loan_with_interest(
-                            tx_id,
-                            loan.account_ids,
-                            customer.account_ids,
-                            principal,
-                            interest,
-                            balances.collateral,
-                            tx_ref,
-                        )
-                        .await?
-                }
-                (Some(principal), None) => {
-                    self.ledger
-                        .complete_loan(
-                            tx_id,
-                            loan.account_ids,
-                            customer.account_ids,
-                            principal,
-                            balances.collateral,
-                            tx_ref,
-                        )
-                        .await?
-                }
-                (None, _) => {
-                    return Err(LoanError::UnexpectedZeroPrincipalAmount(
-                        amount,
-                        interest.unwrap_or(UsdCents::ZERO),
-                    ));
-                }
-            }
+            self.ledger
+                .complete_loan(
+                    tx_id,
+                    loan.account_ids,
+                    customer.account_ids,
+                    loan_payment,
+                    balances.collateral,
+                    tx_ref,
+                )
+                .await?;
         }
         db_tx.commit().await?;
 

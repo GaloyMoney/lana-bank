@@ -12,6 +12,7 @@ use tracing::instrument;
 
 use crate::{
     authorization::{Authorization, LedgerAction, Object},
+    loan::LoanPayment,
     primitives::{
         CustomerId, DepositId, LedgerAccountId, LedgerAccountSetId, LedgerTxId, LedgerTxTemplateId,
         LoanId, Satoshis, Subject, UsdCents, WithdrawId,
@@ -193,38 +194,19 @@ impl Ledger {
         tx_id: LedgerTxId,
         loan_account_ids: LoanAccountIds,
         customer_account_ids: CustomerLedgerAccountIds,
-        amount: UsdCents,
+        payment: LoanPayment,
         tx_ref: String,
     ) -> Result<(), LedgerError> {
-        let balance = self.get_loan_balance(loan_account_ids).await?;
-        let LoanPayment {
-            principal,
-            interest,
-        } = balance.apply_payment(amount)?;
-
-        if let Some(interest) = interest {
-            self.cala
-                .execute_repay_loan_interest_tx(
-                    tx_id,
-                    loan_account_ids,
-                    customer_account_ids,
-                    interest.to_usd(),
-                    tx_ref.clone(),
-                )
-                .await?
-        };
-
-        if let Some(principal) = principal {
-            self.cala
-                .execute_repay_loan_principal_tx(
-                    tx_id,
-                    loan_account_ids,
-                    customer_account_ids,
-                    principal.to_usd(),
-                    tx_ref,
-                )
-                .await?
-        };
+        self.cala
+            .execute_repay_loan_tx(
+                tx_id,
+                loan_account_ids,
+                customer_account_ids,
+                payment.interest.to_usd(),
+                payment.principal.to_usd(),
+                tx_ref,
+            )
+            .await?;
 
         Ok(())
     }
@@ -235,7 +217,7 @@ impl Ledger {
         tx_id: LedgerTxId,
         loan_account_ids: LoanAccountIds,
         customer_account_ids: CustomerLedgerAccountIds,
-        payment_amount: UsdCents,
+        payment: LoanPayment,
         collateral_amount: Satoshis,
         tx_ref: String,
     ) -> Result<(), LedgerError> {
@@ -245,33 +227,8 @@ impl Ledger {
                 tx_id,
                 loan_account_ids,
                 customer_account_ids,
-                payment_amount.to_usd(),
-                collateral_amount.to_btc(),
-                tx_ref,
-            )
-            .await?)
-    }
-
-    #[allow(clippy::too_many_arguments)]
-    #[instrument(name = "lava.ledger.complete_loan_with_interest", skip(self), err)]
-    pub async fn complete_loan_with_interest(
-        &self,
-        tx_id: LedgerTxId,
-        loan_account_ids: LoanAccountIds,
-        customer_account_ids: CustomerLedgerAccountIds,
-        principal_payment_amount: UsdCents,
-        interest_payment_amount: UsdCents,
-        collateral_amount: Satoshis,
-        tx_ref: String,
-    ) -> Result<(), LedgerError> {
-        Ok(self
-            .cala
-            .execute_complete_loan_with_interest_tx(
-                tx_id,
-                loan_account_ids,
-                customer_account_ids,
-                principal_payment_amount.to_usd(),
-                interest_payment_amount.to_usd(),
+                payment.interest.to_usd(),
+                payment.principal.to_usd(),
                 collateral_amount.to_btc(),
                 tx_ref,
             )
@@ -452,12 +409,6 @@ impl Ledger {
             .await?;
 
         Self::assert_complete_loan_tx_template_exists(cala, constants::COMPLETE_LOAN_CODE).await?;
-
-        Self::assert_complete_loan_with_interest_tx_template_exists(
-            cala,
-            constants::COMPLETE_LOAN_WITH_INTEREST_CODE,
-        )
-        .await?;
 
         Ok(())
     }
@@ -650,34 +601,6 @@ impl Ledger {
 
         let template_id = LedgerTxTemplateId::new();
         let err = match cala.create_complete_loan_tx_template(template_id).await {
-            Ok(id) => {
-                return Ok(id);
-            }
-            Err(e) => e,
-        };
-
-        Ok(cala
-            .find_tx_template_by_code::<LedgerTxTemplateId>(template_code.to_owned())
-            .await
-            .map_err(|_| err)?)
-    }
-
-    async fn assert_complete_loan_with_interest_tx_template_exists(
-        cala: &CalaClient,
-        template_code: &str,
-    ) -> Result<LedgerTxTemplateId, LedgerError> {
-        if let Ok(id) = cala
-            .find_tx_template_by_code::<LedgerTxTemplateId>(template_code.to_owned())
-            .await
-        {
-            return Ok(id);
-        }
-
-        let template_id = LedgerTxTemplateId::new();
-        let err = match cala
-            .create_complete_loan_with_interest_tx_template(template_id)
-            .await
-        {
             Ok(id) => {
                 return Ok(id);
             }

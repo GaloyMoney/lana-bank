@@ -14,14 +14,24 @@ mutation RecordPaymentTemplateCreate(
           description: "User Checking account ID."
         }
         {
-          name: "loanReceivableAccount"
+          name: "loanPrincipalReceivableAccount"
           type: UUID
-          description: "Loan amount or interest outstanding account ID."
+          description: "Loan principal amount outstanding account ID."
         }
         {
-          name: "paymentAmount"
+          name: "loanInterestReceivableAccount"
+          type: UUID
+          description: "Loan interest amount outstanding account ID."
+        }
+        {
+          name: "principalPaymentAmount"
           type: DECIMAL
-          description: "Amount of USD being paid against outstanding amount."
+          description: "Amount of USD being paid against outstanding principal amount."
+        }
+        {
+          name: "interestPaymentAmount"
+          type: DECIMAL
+          description: "Amount of USD being paid against outstanding interest amount."
         }
         {
           name: "externalId"
@@ -43,17 +53,25 @@ mutation RecordPaymentTemplateCreate(
       entries: [
         {
           accountId: "params.checkingAccount"
-          units: "params.paymentAmount"
+          units: "params.principalPaymentAmount + params.interestPaymentAmount"
           currency: "'USD'"
           entryType: "'RECORD_PAYMENT_DR'"
           direction: "DEBIT"
           layer: "SETTLED"
         }
         {
-          accountId: "params.loanReceivableAccount"
-          units: "params.paymentAmount"
+          accountId: "params.loanPrincipalReceivableAccount"
+          units: "params.principalPaymentAmount"
           currency: "'USD'"
-          entryType: "'RECORD_PAYMENT_CR'"
+          entryType: "'RECORD_PRINCIPAL_PAYMENT_CR'"
+          direction: "CREDIT"
+          layer: "SETTLED"
+        }
+        {
+          accountId: "params.loanInterestReceivableAccount"
+          units: "params.interestPaymentAmount"
+          currency: "'USD'"
+          entryType: "'RECORD_INTEREST_PAYMENT_CR'"
           direction: "CREDIT"
           layer: "SETTLED"
         }
@@ -71,8 +89,10 @@ mutation RecordPaymentTemplateCreate(
 mutation PostRecordPaymentTransaction(
   $transactionId: UUID!
   $checkingAccount: UUID!
-  $loanReceivableAccount: UUID!
-  $paymentAmount: Decimal!
+  $loanPrincipalReceivableAccount: UUID!
+  $loanInterestReceivableAccount: UUID!
+  $principalPaymentAmount: Decimal!
+  $interestPaymentAmount: Decimal!
   $externalId: String!
 ) {
   transactionPost(
@@ -81,8 +101,10 @@ mutation PostRecordPaymentTransaction(
       txTemplateCode: "RECORD_PAYMENT"
       params: {
         checkingAccount: $checkingAccount
-        loanReceivableAccount: $loanReceivableAccount
-        paymentAmount: $paymentAmount
+        loanPrincipalReceivableAccount: $loanPrincipalReceivableAccount
+        loanInterestReceivableAccount: $loanInterestReceivableAccount
+        principalPaymentAmount: $principalPaymentAmount
+        interestPaymentAmount: $interestPaymentAmount
         externalId: $externalId
       }
     }

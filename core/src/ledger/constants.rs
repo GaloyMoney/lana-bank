@@ -41,5 +41,4 @@ pub(super) const APPROVE_LOAN_CODE: &str = "APPROVE_LOAN";
 pub(super) const INCUR_INTEREST_CODE: &str = "INCUR_INTEREST";
 pub(super) const RECORD_PAYMENT_CODE: &str = "RECORD_PAYMENT";
 pub(super) const COMPLETE_LOAN_CODE: &str = "COMPLETE_LOAN";
-pub(super) const COMPLETE_LOAN_WITH_INTEREST_CODE: &str = "COMPLETE_LOAN_WITH_INTEREST";
 pub(super) const ADD_EQUITY_CODE: &str = "ADD_EQUITY";
