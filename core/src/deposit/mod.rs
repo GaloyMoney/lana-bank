@@ -3,7 +3,7 @@ mod error;
 mod repo;
 
 use crate::{
-    authorization::{Action, Authorization, DepositAction, Object},
+    authorization::{Authorization, DepositAction, Object},
     customer::Customers,
     ledger::Ledger,
     primitives::{CustomerId, DepositId, Subject, UsdCents},
