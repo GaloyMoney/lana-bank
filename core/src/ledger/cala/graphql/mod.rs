@@ -186,7 +186,7 @@ pub struct PostApproveLoanTransaction;
     query_path = "src/ledger/cala/graphql/transactions/complete-loan.gql",
     response_derives = "Debug, PartialEq, Eq, Clone"
 )]
-pub struct CompleteLoanTemplateCreate;
+pub struct ReleaseCollateralTemplateCreate;
 
 #[derive(GraphQLQuery)]
 #[graphql(

@@ -624,11 +624,11 @@ impl CalaClient {
     }
 
     #[instrument(
-        name = "lava.ledger.cala.create_complete_loan_tx_template",
+        name = "lava.ledger.cala.create_release_collateral_tx_template",
         skip(self),
         err
     )]
-    pub async fn create_complete_loan_tx_template(
+    pub async fn create_release_collateral_tx_template(
         &self,
         template_id: TxTemplateId,
     ) -> Result<TxTemplateId, CalaError> {
@@ -643,12 +643,12 @@ impl CalaClient {
                 super::constants::OBS_ASSETS_ACCOUNT_CODE.to_string(),
             )),
         }?;
-        let variables = complete_loan_template_create::Variables {
+        let variables = release_collateral_template_create::Variables {
             template_id: Uuid::from(template_id),
             journal_id: format!("uuid(\"{}\")", super::constants::CORE_JOURNAL_ID),
             bank_collateral_account_id: format!("uuid(\"{}\")", obs_assets_id),
         };
-        let response = Self::traced_gql_request::<CompleteLoanTemplateCreate, _>(
+        let response = Self::traced_gql_request::<ReleaseCollateralTemplateCreate, _>(
             &self.client,
             &self.url,
             variables,
@@ -737,16 +737,19 @@ impl CalaClient {
     #[allow(clippy::too_many_arguments)]
     pub async fn execute_complete_loan_tx(
         &self,
-        transaction_id: LedgerTxId,
+        payment_transaction_id: LedgerTxId,
+        collateral_transaction_id: LedgerTxId,
         loan_account_ids: LoanAccountIds,
         user_account_ids: CustomerLedgerAccountIds,
         interest_payment_amount: Decimal,
         principal_payment_amount: Decimal,
         collateral_amount: Decimal,
-        external_id: String,
+        payment_external_id: String,
+        collateral_external_id: String,
     ) -> Result<(), CalaError> {
         let variables = post_complete_loan_transaction::Variables {
-            transaction_id: transaction_id.into(),
+            payment_transaction_id: payment_transaction_id.into(),
+            collateral_transaction_id: collateral_transaction_id.into(),
             checking_account: user_account_ids.on_balance_sheet_deposit_account_id.into(),
             loan_interest_receivable_account: loan_account_ids
                 .interest_receivable_account_id
@@ -758,7 +761,8 @@ impl CalaClient {
             interest_payment_amount,
             principal_payment_amount,
             collateral_amount,
-            external_id,
+            payment_external_id,
+            collateral_external_id,
         };
         let response = Self::traced_gql_request::<PostCompleteLoanTransaction, _>(
             &self.client,
@@ -766,11 +770,8 @@ impl CalaClient {
             variables,
         )
         .await?;
+        response.data.ok_or(CalaError::MissingDataField)?;
 
-        response
-            .data
-            .map(|d| d.transaction_post.transaction.transaction_id)
-            .ok_or_else(|| CalaError::MissingDataField)?;
         Ok(())
     }
 

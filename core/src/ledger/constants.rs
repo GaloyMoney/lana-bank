@@ -40,5 +40,5 @@ pub(super) const CONFIRM_WITHDRAW: &str = "CONFIRM_WITHDRAW";
 pub(super) const APPROVE_LOAN_CODE: &str = "APPROVE_LOAN";
 pub(super) const INCUR_INTEREST_CODE: &str = "INCUR_INTEREST";
 pub(super) const RECORD_PAYMENT_CODE: &str = "RECORD_PAYMENT";
-pub(super) const COMPLETE_LOAN_CODE: &str = "COMPLETE_LOAN";
+pub(super) const RELEASE_COLLATERAL_CODE: &str = "RELEASE_COLLATERAL";
 pub(super) const ADD_EQUITY_CODE: &str = "ADD_EQUITY";

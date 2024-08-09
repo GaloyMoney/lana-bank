@@ -260,9 +260,10 @@ impl Loan {
 
     pub fn record_if_not_exceeding_outstanding(
         &mut self,
-        tx_id: LedgerTxId,
+        payment_tx_id: LedgerTxId,
+        collateral_tx_id: LedgerTxId,
         record_amount: UsdCents,
-    ) -> Result<(String, LoanPayment), LoanError> {
+    ) -> Result<(String, String, LoanPayment), LoanError> {
         for event in self.events.iter() {
             if let LoanEvent::Completed { .. } = event {
                 return Err(LoanError::AlreadyCompleted);
@@ -280,22 +281,29 @@ impl Loan {
 
         let payment = outstanding.allocate_payment(record_amount)?;
 
-        let tx_ref = format!("{}-payment-{}", self.id, self.count_recorded_payments() + 1);
+        let payment_tx_ref: &str =
+            &format!("{}-payment-{}", self.id, self.count_recorded_payments() + 1);
         self.events.push(LoanEvent::PaymentRecorded {
-            tx_id,
-            tx_ref: tx_ref.clone(),
+            tx_id: payment_tx_id,
+            tx_ref: payment_tx_ref.to_string(),
             principal_amount: payment.principal,
             interest_amount: payment.interest,
         });
+
+        let collateral_tx_ref: &str = &format!("{}-collateral-returned", self.id);
         if outstanding.total() == record_amount {
             self.events.push(LoanEvent::Completed {
-                tx_id,
-                tx_ref: tx_ref.clone(),
+                tx_id: collateral_tx_id,
+                tx_ref: collateral_tx_ref.to_string(),
                 amount: record_amount,
             });
         }
 
-        Ok((tx_ref, payment))
+        Ok((
+            payment_tx_ref.to_string(),
+            collateral_tx_ref.to_string(),
+            payment,
+        ))
     }
 
     fn count_recorded_payments(&self) -> usize {
@@ -434,7 +442,11 @@ mod test {
                 interest: UsdCents::from(5)
             }
         );
-        let _ = loan.record_if_not_exceeding_outstanding(LedgerTxId::new(), UsdCents::from(4));
+        let _ = loan.record_if_not_exceeding_outstanding(
+            LedgerTxId::new(),
+            LedgerTxId::new(),
+            UsdCents::from(4),
+        );
         assert_eq!(
             loan.outstanding(),
             LoanReceivable {
@@ -443,7 +455,11 @@ mod test {
             }
         );
 
-        let _ = loan.record_if_not_exceeding_outstanding(LedgerTxId::new(), UsdCents::from(2));
+        let _ = loan.record_if_not_exceeding_outstanding(
+            LedgerTxId::new(),
+            LedgerTxId::new(),
+            UsdCents::from(2),
+        );
         assert_eq!(
             loan.outstanding(),
             LoanReceivable {
@@ -452,11 +468,18 @@ mod test {
             }
         );
 
-        let loan_payment =
-            loan.record_if_not_exceeding_outstanding(LedgerTxId::new(), UsdCents::from(100));
+        let loan_payment = loan.record_if_not_exceeding_outstanding(
+            LedgerTxId::new(),
+            LedgerTxId::new(),
+            UsdCents::from(100),
+        );
         assert!(loan_payment.is_err());
 
-        let _ = loan.record_if_not_exceeding_outstanding(LedgerTxId::new(), UsdCents::from(99));
+        let _ = loan.record_if_not_exceeding_outstanding(
+            LedgerTxId::new(),
+            LedgerTxId::new(),
+            UsdCents::from(99),
+        );
         assert_eq!(
             loan.outstanding(),
             LoanReceivable {
@@ -493,7 +516,11 @@ mod test {
             Satoshis::try_from_btc(dec!(0.12)).unwrap(),
         );
         assert_eq!(loan.status(), LoanStatus::Active);
-        let _ = loan.record_if_not_exceeding_outstanding(LedgerTxId::new(), UsdCents::from(105));
+        let _ = loan.record_if_not_exceeding_outstanding(
+            LedgerTxId::new(),
+            LedgerTxId::new(),
+            UsdCents::from(105),
+        );
         assert_eq!(loan.status(), LoanStatus::Closed);
     }
 
