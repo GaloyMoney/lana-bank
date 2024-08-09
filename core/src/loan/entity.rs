@@ -11,6 +11,46 @@ use crate::{
 use super::error::LoanError;
 use super::terms::TermValues;
 
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct LoanPayment {
+    pub interest: UsdCents,
+    pub principal: UsdCents,
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct LoanReceivable {
+    pub principal: UsdCents,
+    pub interest: UsdCents,
+}
+
+impl LoanReceivable {
+    pub fn total(&self) -> UsdCents {
+        self.interest + self.principal
+    }
+
+    fn allocate_payment(&self, amount: UsdCents) -> Result<LoanPayment, LoanError> {
+        let mut remaining = amount;
+
+        let interest = std::cmp::min(amount, self.interest);
+        remaining -= interest;
+
+        let principal = std::cmp::min(remaining, self.principal);
+        remaining -= principal;
+
+        if remaining > UsdCents::ZERO {
+            return Err(LoanError::PaymentTooLarge(format!(
+                "Amount '{}' too large for outstanding principal '{}' and interest '{}'",
+                amount, self.principal, self.interest
+            )));
+        }
+
+        Ok(LoanPayment {
+            interest,
+            principal,
+        })
+    }
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
 pub enum LoanEvent {
@@ -38,7 +78,8 @@ pub enum LoanEvent {
     PaymentRecorded {
         tx_id: LedgerTxId,
         tx_ref: String,
-        amount: UsdCents,
+        principal_amount: UsdCents,
+        interest_amount: UsdCents,
     },
     Completed {
         tx_id: LedgerTxId,
@@ -75,11 +116,25 @@ impl Loan {
         }
     }
 
-    fn payments(&self) -> UsdCents {
+    fn principal_payments(&self) -> UsdCents {
         self.events
             .iter()
             .filter_map(|event| match event {
-                LoanEvent::PaymentRecorded { amount, .. } => Some(*amount),
+                LoanEvent::PaymentRecorded {
+                    principal_amount, ..
+                } => Some(*principal_amount),
+                _ => None,
+            })
+            .fold(UsdCents::ZERO, |acc, amount| acc + amount)
+    }
+
+    fn interest_payments(&self) -> UsdCents {
+        self.events
+            .iter()
+            .filter_map(|event| match event {
+                LoanEvent::PaymentRecorded {
+                    interest_amount, ..
+                } => Some(*interest_amount),
                 _ => None,
             })
             .fold(UsdCents::ZERO, |acc, amount| acc + amount)
@@ -95,8 +150,11 @@ impl Loan {
             .fold(UsdCents::ZERO, |acc, amount| acc + amount)
     }
 
-    pub fn outstanding(&self) -> UsdCents {
-        self.initial_principal() + self.interest_recorded() - self.payments()
+    pub fn outstanding(&self) -> LoanReceivable {
+        LoanReceivable {
+            principal: self.initial_principal() - self.principal_payments(),
+            interest: self.interest_recorded() - self.interest_payments(),
+        }
     }
 
     pub(super) fn is_approved(&self) -> bool {
@@ -211,7 +269,7 @@ impl Loan {
         &mut self,
         tx_id: LedgerTxId,
         record_amount: UsdCents,
-    ) -> Result<String, LoanError> {
+    ) -> Result<(String, LoanPayment), LoanError> {
         for event in self.events.iter() {
             if let LoanEvent::Completed { .. } = event {
                 return Err(LoanError::AlreadyCompleted);
@@ -220,27 +278,31 @@ impl Loan {
 
         let outstanding = self.outstanding();
 
-        if outstanding < record_amount {
+        if outstanding.total() < record_amount {
             return Err(LoanError::PaymentExceedsOutstandingLoanAmount(
                 record_amount,
-                outstanding,
+                outstanding.total(),
             ));
         }
+
+        let payment = outstanding.allocate_payment(record_amount)?;
 
         let tx_ref = format!("{}-payment-{}", self.id, self.count_recorded_payments() + 1);
         self.events.push(LoanEvent::PaymentRecorded {
             tx_id,
             tx_ref: tx_ref.clone(),
-            amount: record_amount,
+            principal_amount: payment.principal,
+            interest_amount: payment.interest,
         });
-        if outstanding == record_amount {
+        if outstanding.total() == record_amount {
             self.events.push(LoanEvent::Completed {
                 tx_id,
                 tx_ref: tx_ref.clone(),
                 amount: record_amount,
             });
         }
-        Ok(tx_ref)
+
+        Ok((tx_ref, payment))
     }
 
     fn count_recorded_payments(&self) -> usize {
@@ -350,15 +412,22 @@ mod test {
     fn init_events() -> EntityEvents<LoanEvent> {
         EntityEvents::init(
             LoanId::new(),
-            [LoanEvent::Initialized {
-                id: LoanId::new(),
-                customer_id: CustomerId::new(),
-                principal: UsdCents::try_from_usd(dec!(100)).unwrap(),
-                terms: terms(),
-                account_ids: LoanAccountIds::new(),
-                customer_account_ids: CustomerLedgerAccountIds::new(),
-                start_date: Utc::now(),
-            }],
+            [
+                LoanEvent::Initialized {
+                    id: LoanId::new(),
+                    customer_id: CustomerId::new(),
+                    principal: UsdCents::from(100),
+                    terms: terms(),
+                    account_ids: LoanAccountIds::new(),
+                    customer_account_ids: CustomerLedgerAccountIds::new(),
+                    start_date: Utc::now(),
+                },
+                LoanEvent::InterestIncurred {
+                    tx_id: LedgerTxId::new(),
+                    tx_ref: "tx_ref".to_string(),
+                    amount: UsdCents::from(5),
+                },
+            ],
         )
     }
 
@@ -367,22 +436,42 @@ mod test {
         let mut loan = Loan::try_from(init_events()).unwrap();
         assert_eq!(
             loan.outstanding(),
-            UsdCents::try_from_usd(dec!(100)).unwrap()
+            LoanReceivable {
+                principal: UsdCents::from(100),
+                interest: UsdCents::from(5)
+            }
         );
-        let _ = loan.record_if_not_exceeding_outstanding(
-            LedgerTxId::new(),
-            UsdCents::try_from_usd(dec!(50)).unwrap(),
-        );
+        let _ = loan.record_if_not_exceeding_outstanding(LedgerTxId::new(), UsdCents::from(4));
         assert_eq!(
             loan.outstanding(),
-            UsdCents::try_from_usd(dec!(50)).unwrap()
+            LoanReceivable {
+                principal: UsdCents::from(100),
+                interest: UsdCents::from(1)
+            }
         );
 
-        let _ = loan.record_if_not_exceeding_outstanding(
-            LedgerTxId::new(),
-            UsdCents::try_from_usd(dec!(50)).unwrap(),
+        let _ = loan.record_if_not_exceeding_outstanding(LedgerTxId::new(), UsdCents::from(2));
+        assert_eq!(
+            loan.outstanding(),
+            LoanReceivable {
+                principal: UsdCents::from(99),
+                interest: UsdCents::ZERO
+            }
         );
-        assert_eq!(loan.outstanding(), UsdCents::ZERO);
+
+        let loan_payment =
+            loan.record_if_not_exceeding_outstanding(LedgerTxId::new(), UsdCents::from(100));
+        assert!(loan_payment.is_err());
+
+        let _ = loan.record_if_not_exceeding_outstanding(LedgerTxId::new(), UsdCents::from(99));
+        assert_eq!(
+            loan.outstanding(),
+            LoanReceivable {
+                principal: UsdCents::ZERO,
+                interest: UsdCents::ZERO
+            }
+        );
+
         assert!(loan.is_completed());
     }
 
@@ -411,10 +500,7 @@ mod test {
             Satoshis::try_from_btc(dec!(0.12)).unwrap(),
         );
         assert_eq!(loan.status(), LoanStatus::Active);
-        let _ = loan.record_if_not_exceeding_outstanding(
-            LedgerTxId::new(),
-            UsdCents::try_from_usd(dec!(100)).unwrap(),
-        );
+        let _ = loan.record_if_not_exceeding_outstanding(LedgerTxId::new(), UsdCents::from(105));
         assert_eq!(loan.status(), LoanStatus::Closed);
     }
 

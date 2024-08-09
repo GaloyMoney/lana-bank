@@ -36,4 +36,6 @@ pub enum LoanError {
     TermsNotSet,
     #[error("LoanError - AuthorizationError: {0}")]
     AuthorizationError(#[from] crate::authorization::error::AuthorizationError),
+    #[error("LoanError - PaymentTooLarge: {0}")]
+    PaymentTooLarge(String),
 }

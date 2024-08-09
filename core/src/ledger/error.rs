@@ -24,6 +24,4 @@ pub enum LedgerError {
     AccountNotFound,
     #[error("LedgerError - AuthorizationError: {0}")]
     AuthorizationError(#[from] crate::authorization::error::AuthorizationError),
-    #[error("LedgerError - PaymentTooLarge: {0}")]
-    PaymentTooLarge(String),
 }
