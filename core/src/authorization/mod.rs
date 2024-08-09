@@ -371,6 +371,9 @@ impl FromStr for Action {
             "customer-read" => Ok(Action::Customer(CustomerAction::Read)),
             "customer-list" => Ok(Action::Customer(CustomerAction::List)),
             "customer-update" => Ok(Action::Customer(CustomerAction::Update)),
+            "deposit-record" => Ok(Action::Deposit(DepositAction::Record)),
+            "deposit-read" => Ok(Action::Deposit(DepositAction::Read)),
+            "deposit-list" => Ok(Action::Deposit(DepositAction::List)),
             "ledger-read" => Ok(Action::Ledger(LedgerAction::Read)),
             _ => Err(AuthorizationError::ActionParseError {
                 value: s.to_string(),
