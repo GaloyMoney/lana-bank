@@ -20,4 +20,6 @@ pub enum CustomerError {
     AuthorizationError(#[from] crate::authorization::error::AuthorizationError),
     #[error("CustomerError - CouldNotFindByEmail: {0}")]
     CouldNotFindByEmail(String),
+    #[error("CustomerError - AuditError: ${0}")]
+    AuditError(#[from] crate::audit::error::AuditError),
 }

@@ -10,16 +10,20 @@ pub enum CustomerEvent {
         id: CustomerId,
         email: String,
         account_ids: CustomerLedgerAccountIds,
+        audit_info: AuditInfo,
     },
     KycStarted {
         applicant_id: String,
+        audit_info: AuditInfo,
     },
     KycApproved {
         applicant_id: String,
         level: KycLevel,
+        audit_info: AuditInfo,
     },
     KycDeclined {
         applicant_id: String,
+        audit_info: AuditInfo,
     },
 }
 
@@ -41,6 +45,7 @@ pub struct Customer {
     #[builder(setter(strip_option, into), default)]
     pub applicant_id: Option<String>,
     pub(super) events: EntityEvents<CustomerEvent>,
+    pub audit_info: Vec<AuditInfo>,
 }
 
 impl Customer {
@@ -60,17 +65,19 @@ impl Entity for Customer {
 }
 
 impl Customer {
-    pub fn start_kyc(&mut self, applicant_id: String) {
+    pub fn start_kyc(&mut self, applicant_id: String, audit_info: AuditInfo) {
         self.events.push(CustomerEvent::KycStarted {
             applicant_id: applicant_id.clone(),
+            audit_info,
         });
         self.applicant_id = Some(applicant_id);
     }
 
-    pub fn approve_kyc(&mut self, level: KycLevel, applicant_id: String) {
+    pub fn approve_kyc(&mut self, level: KycLevel, applicant_id: String, audit_info: AuditInfo) {
         self.events.push(CustomerEvent::KycApproved {
             level,
             applicant_id: applicant_id.clone(),
+            audit_info,
         });
 
         self.applicant_id = Some(applicant_id);
@@ -78,9 +85,11 @@ impl Customer {
         self.status = AccountStatus::Active;
     }
 
-    pub fn deactivate(&mut self, applicant_id: String) {
-        self.events
-            .push(CustomerEvent::KycDeclined { applicant_id });
+    pub fn deactivate(&mut self, applicant_id: String, audit_info: AuditInfo) {
+        self.events.push(CustomerEvent::KycDeclined {
+            applicant_id,
+            audit_info,
+        });
         self.level = KycLevel::NotKyced;
         self.status = AccountStatus::Inactive;
     }
@@ -91,12 +100,15 @@ impl TryFrom<EntityEvents<CustomerEvent>> for Customer {
 
     fn try_from(events: EntityEvents<CustomerEvent>) -> Result<Self, Self::Error> {
         let mut builder = CustomerBuilder::default();
+        let mut audit_infos = Vec::new();
+
         for event in events.iter() {
             match event {
                 CustomerEvent::Initialized {
                     id,
                     email,
                     account_ids,
+                    audit_info,
                 } => {
                     builder = builder
                         .id(*id)
@@ -105,26 +117,43 @@ impl TryFrom<EntityEvents<CustomerEvent>> for Customer {
                         .account_ids(*account_ids)
                         .level(KycLevel::NotKyced)
                         .status(AccountStatus::Inactive);
+
+                    audit_infos.push(*audit_info);
                 }
-                CustomerEvent::KycStarted { applicant_id } => {
+                CustomerEvent::KycStarted {
+                    applicant_id,
+                    audit_info,
+                } => {
                     builder = builder.applicant_id(applicant_id.clone());
+
+                    audit_infos.push(*audit_info);
                 }
                 CustomerEvent::KycApproved {
                     level,
                     applicant_id,
+                    audit_info,
                 } => {
                     builder = builder
                         .applicant_id(applicant_id.clone())
                         .level(*level)
-                        .status(AccountStatus::Active)
+                        .status(AccountStatus::Active);
+
+                    audit_infos.push(*audit_info);
                 }
-                CustomerEvent::KycDeclined { applicant_id } => {
+                CustomerEvent::KycDeclined {
+                    applicant_id,
+                    audit_info,
+                } => {
                     builder = builder
                         .applicant_id(applicant_id.clone())
-                        .status(AccountStatus::Inactive)
+                        .status(AccountStatus::Inactive);
+
+                    audit_infos.push(*audit_info);
                 }
             }
         }
+
+        builder = builder.audit_info(audit_infos);
         builder.events(events).build()
     }
 }
@@ -136,6 +165,8 @@ pub struct NewCustomer {
     #[builder(setter(into))]
     pub(super) email: String,
     pub(super) account_ids: CustomerLedgerAccountIds,
+    #[builder(setter(into))]
+    pub(super) audit_info: AuditInfo,
 }
 
 impl NewCustomer {
@@ -150,6 +181,7 @@ impl NewCustomer {
                 id: self.id,
                 email: self.email,
                 account_ids: self.account_ids,
+                audit_info: self.audit_info,
             }],
         )
     }

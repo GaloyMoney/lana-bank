@@ -160,6 +160,7 @@ type Customer {
 	loans: [Loan!]!
 	deposits: [Deposit!]!
 	withdrawals: [Withdrawal!]!
+	audit: [AuditEntry!]!
 }
 
 type CustomerBalance {

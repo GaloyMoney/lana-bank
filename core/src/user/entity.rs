@@ -8,9 +8,19 @@ use std::collections::HashSet;
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
 pub enum UserEvent {
-    Initialized { id: UserId, email: String },
-    RoleAssigned { role: Role },
-    RoleRevoked { role: Role },
+    Initialized {
+        id: UserId,
+        email: String,
+        audit_info: AuditInfo,
+    },
+    RoleAssigned {
+        role: Role,
+        audit_info: AuditInfo,
+    },
+    RoleRevoked {
+        role: Role,
+        audit_info: AuditInfo,
+    },
 }
 
 impl EntityEvent for UserEvent {
@@ -29,20 +39,22 @@ pub struct User {
 }
 
 impl User {
-    pub fn assign_role(&mut self, role: Role) -> bool {
+    pub fn assign_role(&mut self, role: Role, audit_info: AuditInfo) -> bool {
         let mut roles = self.current_roles();
         if roles.insert(role) {
-            self.events.push(UserEvent::RoleAssigned { role });
+            self.events
+                .push(UserEvent::RoleAssigned { role, audit_info });
             true
         } else {
             false
         }
     }
 
-    pub fn revoke_role(&mut self, role: Role) -> bool {
+    pub fn revoke_role(&mut self, role: Role, audit_info: AuditInfo) -> bool {
         let mut roles = self.current_roles();
         if roles.remove(&role) {
-            self.events.push(UserEvent::RoleRevoked { role });
+            self.events
+                .push(UserEvent::RoleRevoked { role, audit_info });
             true
         } else {
             false
@@ -53,10 +65,10 @@ impl User {
         let mut res = HashSet::new();
         for event in self.events.iter() {
             match event {
-                UserEvent::RoleAssigned { role } => {
+                UserEvent::RoleAssigned { role, .. } => {
                     res.insert(*role);
                 }
-                UserEvent::RoleRevoked { role } => {
+                UserEvent::RoleRevoked { role, .. } => {
                     res.remove(role);
                 }
                 _ => {}
@@ -83,7 +95,7 @@ impl TryFrom<EntityEvents<UserEvent>> for User {
         let mut builder = UserBuilder::default();
         for event in events.iter() {
             match event {
-                UserEvent::Initialized { id, email } => {
+                UserEvent::Initialized { id, email, .. } => {
                     builder = builder.id(*id).email(email.clone())
                 }
                 UserEvent::RoleAssigned { .. } => (),
@@ -100,6 +112,7 @@ pub struct NewUser {
     pub(super) id: UserId,
     #[builder(setter(into))]
     pub(super) email: String,
+    pub(super) audit_info: AuditInfo,
 }
 
 impl NewUser {
@@ -117,6 +130,7 @@ impl NewUser {
             [UserEvent::Initialized {
                 id: self.id,
                 email: self.email,
+                audit_info: self.audit_info,
             }],
         )
     }

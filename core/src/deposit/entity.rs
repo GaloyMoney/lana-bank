@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::{
     entity::*,
-    primitives::{CustomerId, DepositId, LedgerAccountId, UsdCents},
+    primitives::{AuditInfo, CustomerId, DepositId, LedgerAccountId, UsdCents},
 };
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -15,6 +15,7 @@ pub enum DepositEvent {
         amount: UsdCents,
         reference: String,
         credit_account_id: LedgerAccountId,
+        audit_info: AuditInfo,
     },
 }
 
@@ -33,6 +34,7 @@ pub struct Deposit {
     pub amount: UsdCents,
     pub credit_account_id: LedgerAccountId,
     pub(super) events: EntityEvents<DepositEvent>,
+    pub audit_info: AuditInfo,
 }
 
 impl std::fmt::Display for Deposit {
@@ -65,13 +67,15 @@ impl TryFrom<EntityEvents<DepositEvent>> for Deposit {
                     customer_id,
                     amount,
                     credit_account_id,
+                    audit_info,
                     ..
                 } => {
                     builder = builder
                         .id(*id)
                         .customer_id(*customer_id)
                         .amount(*amount)
-                        .credit_account_id(*credit_account_id);
+                        .credit_account_id(*credit_account_id)
+                        .audit_info(*audit_info);
                 }
             }
         }
@@ -89,6 +93,8 @@ pub struct NewDeposit {
     pub(super) amount: UsdCents,
     reference: Option<String>,
     pub(super) credit_account_id: LedgerAccountId,
+    #[builder(setter(into))]
+    pub audit_info: AuditInfo,
 }
 
 impl NewDeposit {
@@ -113,6 +119,7 @@ impl NewDeposit {
                 customer_id: self.customer_id,
                 amount: self.amount,
                 credit_account_id: self.credit_account_id,
+                audit_info: self.audit_info,
             }],
         )
     }

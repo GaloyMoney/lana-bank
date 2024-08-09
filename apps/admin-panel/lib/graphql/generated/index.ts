@@ -176,6 +176,7 @@ export type CollateralUpdatePayload = {
 export type Customer = {
   __typename?: 'Customer';
   applicantId?: Maybe<Scalars['String']['output']>;
+  audit: Array<AuditEntry>;
   balance: CustomerBalance;
   customerId: Scalars['UUID']['output'];
   deposits: Array<Deposit>;

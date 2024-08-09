@@ -11,6 +11,7 @@ use sqlx::PgPool;
 use tracing::instrument;
 
 use crate::{
+    audit::Audit,
     authorization::{Authorization, LoanAction, Object, TermAction},
     customer::Customers,
     entity::EntityError,
@@ -43,10 +44,15 @@ impl Loans {
         customers: &Customers,
         ledger: &Ledger,
         authz: &Authorization,
+        audit: &Audit,
     ) -> Self {
         let loan_repo = LoanRepo::new(pool);
         let term_repo = TermRepo::new(pool);
-        registry.add_initializer(LoanProcessingJobInitializer::new(ledger, loan_repo.clone()));
+        registry.add_initializer(LoanProcessingJobInitializer::new(
+            ledger,
+            loan_repo.clone(),
+            audit,
+        ));
         Self {
             loan_repo,
             term_repo,
@@ -85,7 +91,8 @@ impl Loans {
         desired_principal: UsdCents,
         terms: TermValues,
     ) -> Result<Loan, LoanError> {
-        self.authz
+        let audit_info = self
+            .authz
             .check_permission(sub, Object::Loan, LoanAction::Create)
             .await?;
 
@@ -100,7 +107,7 @@ impl Loans {
         }
         let mut tx = self.pool.begin().await?;
 
-        let new_loan = NewLoan::builder()
+        let new_loan = NewLoan::builder(audit_info)
             .id(LoanId::new())
             .customer_id(customer_id)
             .principal(desired_principal)
@@ -124,14 +131,15 @@ impl Loans {
         sub: &Subject,
         loan_id: impl Into<LoanId> + std::fmt::Debug,
     ) -> Result<Loan, LoanError> {
-        self.authz
+        let audit_info = self
+            .authz
             .check_permission(sub, Object::Loan, LoanAction::Approve)
             .await?;
 
         let mut loan = self.loan_repo.find_by_id(loan_id.into()).await?;
         let mut tx = self.pool.begin().await?;
         let tx_id = LedgerTxId::new();
-        loan.approve(tx_id)?;
+        loan.approve(tx_id, audit_info)?;
         self.ledger
             .approve_loan(
                 tx_id,
@@ -161,7 +169,8 @@ impl Loans {
         loan_id: LoanId,
         updated_collateral: Satoshis,
     ) -> Result<Loan, LoanError> {
-        self.authz
+        let audit_info = self
+            .authz
             .check_permission(sub, Object::Loan, LoanAction::UpdateCollateral)
             .await?;
 
@@ -175,7 +184,7 @@ impl Loans {
             .update_collateral(loan_collateral_update.clone())
             .await?;
 
-        loan.confirm_collateral_update(loan_collateral_update, executed_at);
+        loan.confirm_collateral_update(loan_collateral_update, executed_at, audit_info);
         self.loan_repo.persist_in_tx(&mut db_tx, &mut loan).await?;
         db_tx.commit().await?;
         Ok(loan)
@@ -187,7 +196,11 @@ impl Loans {
         loan_id: LoanId,
         amount: UsdCents,
     ) -> Result<Loan, LoanError> {
-        self.authz
+        let mut db_tx = self.pool.begin().await?;
+
+        // TODO add db_tx to check_permission
+        let audit_info = self
+            .authz
             .check_permission(sub, Object::Loan, LoanAction::RecordPayment)
             .await?;
 
@@ -209,11 +222,11 @@ impl Loans {
         assert_eq!(balances.principal_receivable, loan.outstanding().principal);
         assert_eq!(balances.interest_receivable, loan.outstanding().interest);
 
-        let mut db_tx = self.pool.begin().await?;
-
         let repayment = loan.initiate_repayment(amount)?;
+
+        // @vaibhav, isn't this missing the db_tx?
         let executed_at = self.ledger.record_loan_repayment(repayment.clone()).await?;
-        loan.confirm_repayment(repayment, executed_at);
+        loan.confirm_repayment(repayment, executed_at, audit_info);
 
         self.loan_repo.persist_in_tx(&mut db_tx, &mut loan).await?;
 

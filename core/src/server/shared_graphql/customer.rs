@@ -1,10 +1,15 @@
 use async_graphql::*;
+use dataloader::DataLoader;
 
 use crate::{
     app::LavaApp,
-    ledger, primitives,
+    ledger,
+    primitives::{self, AuditEntryId},
     server::{
-        admin::AdminAuthContext,
+        admin::{
+            graphql::{audit::AuditEntry, loader::LavaDataLoader},
+            AdminAuthContext,
+        },
         shared_graphql::{deposit::*, loan::Loan, primitives::UUID, withdraw::*},
     },
 };
@@ -34,6 +39,8 @@ pub struct Customer {
     applicant_id: Option<String>,
     #[graphql(skip)]
     account_ids: ledger::customer::CustomerLedgerAccountIds,
+    #[graphql(skip)]
+    audit_info: Vec<primitives::AuditInfo>,
 }
 
 #[ComplexObject]
@@ -83,6 +90,19 @@ impl Customer {
             .collect();
         Ok(withdraws)
     }
+
+    async fn audit(&self, ctx: &Context<'_>) -> async_graphql::Result<Vec<AuditEntry>> {
+        let loader = ctx.data_unchecked::<DataLoader<LavaDataLoader>>();
+        let ids: Vec<AuditEntryId> = self
+            .audit_info
+            .iter()
+            .map(|info| info.audit_entry_id)
+            .collect();
+
+        let entries = loader.load_many(ids).await?;
+
+        Ok(entries.into_iter().map(|entry| entry.1).collect())
+    }
 }
 
 impl From<primitives::KycLevel> for KycLevel {
@@ -105,14 +125,15 @@ impl From<primitives::AccountStatus> for AccountStatus {
 }
 
 impl From<crate::customer::Customer> for Customer {
-    fn from(user: crate::customer::Customer) -> Self {
+    fn from(customer: crate::customer::Customer) -> Self {
         Customer {
-            customer_id: UUID::from(user.id),
-            applicant_id: user.applicant_id,
-            email: user.email,
-            account_ids: user.account_ids,
-            status: AccountStatus::from(user.status),
-            level: KycLevel::from(user.level),
+            customer_id: UUID::from(customer.id),
+            applicant_id: customer.applicant_id,
+            email: customer.email,
+            account_ids: customer.account_ids,
+            status: AccountStatus::from(customer.status),
+            level: KycLevel::from(customer.level),
+            audit_info: customer.audit_info,
         }
     }
 }

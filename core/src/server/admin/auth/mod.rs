@@ -35,7 +35,11 @@ pub async fn customer_callback(
         }
     };
 
-    match app.customers().create_customer(id, email).await {
+    match app
+        .customers()
+        .create_customer_through_kratos(id, email)
+        .await
+    {
         Ok(user) => axum::Json(serde_json::json!( {
             "identity": { "id": user.id }
         }))

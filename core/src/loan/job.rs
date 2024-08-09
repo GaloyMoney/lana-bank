@@ -1,8 +1,10 @@
 use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
 
-use super::{error::LoanError, repo::*};
+use super::{error::LoanError, repo::*, Subject, SystemNode};
 use crate::{
+    audit::*,
+    authorization::{Action, LoanAction, Object},
     job::*,
     ledger::*,
     primitives::{LedgerTxId, LoanId},
@@ -15,14 +17,16 @@ pub struct LoanJobConfig {
 
 pub struct LoanProcessingJobInitializer {
     ledger: Ledger,
+    audit: Audit,
     repo: LoanRepo,
 }
 
 impl LoanProcessingJobInitializer {
-    pub fn new(ledger: &Ledger, repo: LoanRepo) -> Self {
+    pub fn new(ledger: &Ledger, repo: LoanRepo, audit: &Audit) -> Self {
         Self {
             ledger: ledger.clone(),
             repo,
+            audit: audit.clone(),
         }
     }
 }
@@ -41,6 +45,7 @@ impl JobInitializer for LoanProcessingJobInitializer {
             config: job.config()?,
             repo: self.repo.clone(),
             ledger: self.ledger.clone(),
+            audit: self.audit.clone(),
         }))
     }
 }
@@ -49,6 +54,7 @@ pub struct LoanProcessingJobRunner {
     config: LoanJobConfig,
     repo: LoanRepo,
     ledger: Ledger,
+    audit: Audit,
 }
 
 #[async_trait]
@@ -58,8 +64,19 @@ impl JobRunner for LoanProcessingJobRunner {
         current_job: CurrentJob,
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
         let mut loan = self.repo.find_by_id(self.config.loan_id).await?;
+        let mut db_tx = current_job.pool().begin().await?;
+        let audit_info = self
+            .audit
+            .persist_in_tx(
+                &mut db_tx,
+                &Subject::System(SystemNode::Core),
+                Object::Loan,
+                Action::Loan(LoanAction::RecordInterest),
+                true,
+            )
+            .await?;
         let tx_id = LedgerTxId::new();
-        let (interest, tx_ref) = match loan.add_interest(tx_id) {
+        let (interest, tx_ref) = match loan.add_interest(tx_id, audit_info) {
             Err(LoanError::AlreadyCompleted) => {
                 return Ok(JobCompletion::Complete);
             }
@@ -67,9 +84,7 @@ impl JobRunner for LoanProcessingJobRunner {
             Err(_) => unreachable!(),
         };
 
-        let mut db_tx = current_job.pool().begin().await?;
         self.repo.persist_in_tx(&mut db_tx, &mut loan).await?;
-
         self.ledger
             .record_loan_interest(tx_id, loan.account_ids, tx_ref, interest)
             .await?;

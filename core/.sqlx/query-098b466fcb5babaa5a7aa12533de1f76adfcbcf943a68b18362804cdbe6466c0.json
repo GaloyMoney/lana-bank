@@ -1,0 +1,52 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            SELECT id, subject, object, action, authorized, created_at\n            FROM audit_entries\n            WHERE id = ANY($1)\n            ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Int8"
+      },
+      {
+        "ordinal": 1,
+        "name": "subject",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 2,
+        "name": "object",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 3,
+        "name": "action",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 4,
+        "name": "authorized",
+        "type_info": "Bool"
+      },
+      {
+        "ordinal": 5,
+        "name": "created_at",
+        "type_info": "Timestamptz"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Int8Array"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "098b466fcb5babaa5a7aa12533de1f76adfcbcf943a68b18362804cdbe6466c0"
+}

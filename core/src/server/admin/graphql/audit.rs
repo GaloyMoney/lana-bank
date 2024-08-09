@@ -19,7 +19,7 @@ enum Subject {
     System(System),
 }
 
-#[derive(SimpleObject)]
+#[derive(SimpleObject, Clone)]
 #[graphql(complex)]
 pub struct AuditEntry {
     id: ID,
@@ -51,9 +51,10 @@ impl AuditEntry {
                     Some(customer) => Ok(Subject::Customer(customer)),
                 }
             }
-            DomainSubject::System => {
+            DomainSubject::System(node) => {
                 let system = System {
-                    name: "System".to_string(),
+                    // FIXME: this is the ID, also return name of the node
+                    name: node.to_string(),
                 };
                 Ok(Subject::System(system))
             }

@@ -5,7 +5,7 @@ pub mod error;
 
 use error::AuthorizationError;
 
-use crate::primitives::{Role, Subject};
+use crate::primitives::{AuditInfo, Role, Subject};
 use sqlx_adapter::{
     casbin::{
         prelude::{DefaultModel, Enforcer},
@@ -195,16 +195,12 @@ impl Authorization {
         sub: &Subject,
         object: Object,
         action: impl Into<Action>,
-    ) -> Result<bool, AuthorizationError> {
-        let mut enforcer = self.enforcer.write().await;
-        enforcer.load_policy().await?;
+    ) -> Result<AuditInfo, AuthorizationError> {
+        let enforcer = self.enforcer.read().await;
 
         let action = action.into();
         match enforcer.enforce((sub.to_string(), object.as_ref(), action.as_ref())) {
-            Ok(true) => {
-                self.audit.persist(sub, object, action, true).await?;
-                Ok(true)
-            }
+            Ok(true) => Ok(self.audit.persist(sub, object, action, true).await?),
             Ok(false) => {
                 self.audit.persist(sub, object, action, false).await?;
                 Err(AuthorizationError::NotAuthorized)
@@ -225,6 +221,58 @@ impl Authorization {
         match enforcer
             .add_policy(vec![
                 role.to_string(),
+                object.to_string(),
+                action.to_string(),
+            ])
+            .await
+        {
+            Ok(_) => Ok(()),
+            Err(e) => match AuthorizationError::from(e) {
+                AuthorizationError::PermissionAlreadyExistsForRole(_) => Ok(()),
+                e => Err(e),
+            },
+        }
+    }
+
+    // only used for init so far... relevant to keep here?
+    pub async fn add_permission_to_subject(
+        &self,
+        subject: Subject,
+        object: Object,
+        action: impl Into<Action>,
+    ) -> Result<(), AuthorizationError> {
+        let mut enforcer = self.enforcer.write().await;
+
+        let action = action.into();
+        match enforcer
+            .add_policy(vec![
+                subject.to_string(),
+                object.to_string(),
+                action.to_string(),
+            ])
+            .await
+        {
+            Ok(_) => Ok(()),
+            Err(e) => match AuthorizationError::from(e) {
+                AuthorizationError::PermissionAlreadyExistsForRole(_) => Ok(()),
+                e => Err(e),
+            },
+        }
+    }
+
+    // only used for init so far... relevant to keep here?
+    pub async fn remove_permission_from_subject(
+        &self,
+        subject: Subject,
+        object: Object,
+        action: impl Into<Action>,
+    ) -> Result<(), AuthorizationError> {
+        let mut enforcer = self.enforcer.write().await;
+
+        let action = action.into();
+        match enforcer
+            .remove_policy(vec![
+                subject.to_string(),
                 object.to_string(),
                 action.to_string(),
             ])
@@ -456,6 +504,7 @@ pub enum LoanAction {
     Approve,
     RecordPayment,
     UpdateCollateral,
+    RecordInterest,
 }
 
 impl LoanAction {
@@ -465,6 +514,7 @@ impl LoanAction {
     const APPROVE_STR: &'static str = "loan-approve";
     const RECORD_PAYMENT_STR: &'static str = "loan-record-payment";
     const UPDATE_COLLATERAL_STR: &'static str = "loan-update-collateral";
+    const RECORD_INTEREST_STR: &'static str = "loan-record-interest";
 }
 
 impl AsRef<str> for LoanAction {
@@ -476,6 +526,7 @@ impl AsRef<str> for LoanAction {
             Self::Approve => Self::APPROVE_STR,
             Self::RecordPayment => Self::RECORD_PAYMENT_STR,
             Self::UpdateCollateral => Self::UPDATE_COLLATERAL_STR,
+            Self::RecordInterest => Self::RECORD_INTEREST_STR,
         }
     }
 }
@@ -575,6 +626,9 @@ impl_from_for_action!(UserAction, User);
 
 pub enum CustomerAction {
     Create,
+    StartKyc,
+    ApproveKyc,
+    DeclineKyc,
     Read,
     List,
     Update,
@@ -582,6 +636,9 @@ pub enum CustomerAction {
 
 impl CustomerAction {
     const CREATE_STR: &'static str = "customer-create";
+    const START_KYC_STR: &'static str = "customer-start-kyc";
+    const APPROVE_KYC_STR: &'static str = "customer-approve-kyc";
+    const DECLINE_KYC_STR: &'static str = "customer-decline-kyc";
     const READ_STR: &'static str = "customer-read";
     const LIST_STR: &'static str = "customer-list";
     const UPDATE_STR: &'static str = "customer-update";
@@ -591,6 +648,9 @@ impl AsRef<str> for CustomerAction {
     fn as_ref(&self) -> &str {
         match self {
             Self::Create => Self::CREATE_STR,
+            Self::StartKyc => Self::START_KYC_STR,
+            Self::ApproveKyc => Self::APPROVE_KYC_STR,
+            Self::DeclineKyc => Self::DECLINE_KYC_STR,
             Self::Read => Self::READ_STR,
             Self::List => Self::LIST_STR,
             Self::Update => Self::UPDATE_STR,

@@ -5,6 +5,15 @@ enum AccountStatus {
 
 scalar AnnualRatePct
 
+type AuditEntry {
+	id: ID!
+	object: String!
+	action: String!
+	authorized: Boolean!
+	createdAt: Timestamp!
+	subject: Subject!
+}
+
 
 scalar CVLPct
 
@@ -27,6 +36,7 @@ type Customer {
 	loans: [Loan!]!
 	deposits: [Deposit!]!
 	withdrawals: [Withdrawal!]!
+	audit: [AuditEntry!]!
 }
 
 type CustomerBalance {
@@ -110,8 +120,16 @@ type Query {
 	me: Customer
 }
 
+enum Role {
+	SUPERUSER
+	ADMIN
+	BANK_MANAGER
+}
+
 scalar Satoshis
 
+
+union Subject = User | Customer | System
 
 type SumsubPermalinkCreatePayload {
 	url: String!
@@ -119,6 +137,10 @@ type SumsubPermalinkCreatePayload {
 
 type SumsubTokenCreatePayload {
 	token: String!
+}
+
+type System {
+	name: String!
 }
 
 type TermValues {
@@ -140,6 +162,12 @@ enum TransactionType {
 scalar UUID
 
 scalar UsdCents
+
+type User {
+	userId: UUID!
+	email: String!
+	roles: [Role!]!
+}
 
 type Withdrawal {
 	customerId: UUID!

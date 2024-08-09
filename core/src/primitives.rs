@@ -1,7 +1,7 @@
 use rust_decimal::{Decimal, RoundingStrategy};
 use rust_decimal_macros::dec;
 use serde::{Deserialize, Serialize};
-use uuid::Uuid;
+use uuid::{uuid, Uuid};
 
 use std::{fmt, str::FromStr};
 use thiserror::Error;
@@ -75,29 +75,74 @@ pub use cala_types::primitives::{
 pub const SATS_PER_BTC: Decimal = dec!(100_000_000);
 pub const CENTS_PER_USD: Decimal = dec!(100);
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
 pub enum Subject {
     Customer(CustomerId),
     User(UserId),
-    System,
+    System(SystemNode),
+}
+
+#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
+pub enum SystemNode {
+    Init,
+    Core,
+    Kratos,
+    Sumsub,
+}
+
+const SYSTEM_INIT: Uuid = uuid!("00000000-0000-0000-0000-000000000001");
+const SYSTEM_CORE: Uuid = uuid!("00000000-0000-0000-0000-000000000002");
+const SYSTEM_KRATOS: Uuid = uuid!("00000000-0000-0000-0000-000000000003");
+const SYSTEM_SUMSUB: Uuid = uuid!("00000000-0000-0000-0000-000000000004");
+
+impl std::fmt::Display for SystemNode {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            SystemNode::Init => SYSTEM_INIT.fmt(f),
+            SystemNode::Core => SYSTEM_CORE.fmt(f),
+            SystemNode::Kratos => SYSTEM_KRATOS.fmt(f),
+            SystemNode::Sumsub => SYSTEM_SUMSUB.fmt(f),
+        }
+    }
 }
 
 impl FromStr for Subject {
-    type Err = ();
+    type Err = ParseSubjectError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let parts: Vec<&str> = s.split(':').collect();
         if parts.len() != 2 {
-            return Err(());
+            return Err(ParseSubjectError::ParseError(
+                "Invalid subject format".to_string(),
+            ));
         }
-        let id = parts[1].parse().map_err(|_| ())?;
+        let id = parts[1].parse().map_err(|err| {
+            ParseSubjectError::ParseError(format!("Failed to parse UUID: {}", err))
+        })?;
         match parts[0] {
             "customer" => Ok(Subject::Customer(CustomerId(id))),
             "user" => Ok(Subject::User(UserId(id))),
-            "system" => Ok(Subject::System),
-            _ => Err(()),
+            "system" => match id {
+                SYSTEM_INIT => Ok(Subject::System(SystemNode::Init)),
+                SYSTEM_CORE => Ok(Subject::System(SystemNode::Core)),
+                SYSTEM_KRATOS => Ok(Subject::System(SystemNode::Kratos)),
+                SYSTEM_SUMSUB => Ok(Subject::System(SystemNode::Sumsub)),
+                _ => Err(ParseSubjectError::ParseError(
+                    "Unknown system node".to_string(),
+                )),
+            },
+            _ => Err(ParseSubjectError::ParseError(
+                "Unknown subject type".to_string(),
+            )),
         }
     }
+}
+
+// subject Error
+#[derive(Error, Debug)]
+pub enum ParseSubjectError {
+    #[error("ParseSubjectError: {0}")]
+    ParseError(String),
 }
 
 impl From<UserId> for Subject {
@@ -117,8 +162,14 @@ impl std::fmt::Display for Subject {
         match self {
             Subject::Customer(id) => write!(f, "customer:{}", id),
             Subject::User(id) => write!(f, "user:{}", id),
-            Subject::System => write!(f, "system:{}", Uuid::nil()),
+            Subject::System(id) => write!(f, "system:{}", id),
         }
+    }
+}
+
+impl From<String> for Subject {
+    fn from(s: String) -> Self {
+        s.parse().expect("cannot parse subject from String")
     }
 }
 
@@ -419,7 +470,7 @@ impl PriceOfOneBTC {
     }
 }
 
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Copy, Clone, Eq, PartialEq, Hash, Serialize, Deserialize)]
 pub struct AuditEntryId(pub i64);
 
 impl From<i64> for AuditEntryId {
@@ -431,6 +482,25 @@ impl From<i64> for AuditEntryId {
 impl From<AuditEntryId> for i64 {
     fn from(value: AuditEntryId) -> i64 {
         value.0
+    }
+}
+
+#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
+pub struct AuditInfo {
+    pub sub: Subject,
+    pub audit_entry_id: AuditEntryId,
+}
+
+impl<T, U> From<(T, U)> for AuditInfo
+where
+    T: Into<AuditEntryId>,
+    U: Into<Subject>,
+{
+    fn from((audit_entry_id, sub): (T, U)) -> Self {
+        Self {
+            sub: sub.into(),
+            audit_entry_id: audit_entry_id.into(),
+        }
     }
 }
 

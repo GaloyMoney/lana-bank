@@ -8,7 +8,8 @@ mod repo;
 use std::collections::HashMap;
 
 use crate::{
-    authorization::{Authorization, CustomerAction, Object},
+    audit::Audit,
+    authorization::{Action, Authorization, CustomerAction, Object},
     ledger::*,
     primitives::{CustomerId, KycLevel, Subject},
 };
@@ -27,6 +28,7 @@ pub struct Customers {
     ledger: Ledger,
     kratos: KratosClient,
     authz: Authorization,
+    audit: Audit,
 }
 
 impl Customers {
@@ -35,6 +37,7 @@ impl Customers {
         ledger: &Ledger,
         config: &CustomerConfig,
         authz: &Authorization,
+        audit: &Audit,
     ) -> Self {
         let repo = CustomerRepo::new(pool);
         let kratos = KratosClient::new(&config.kratos);
@@ -44,6 +47,7 @@ impl Customers {
             ledger: ledger.clone(),
             kratos,
             authz: authz.clone(),
+            audit: audit.clone(),
         }
     }
 
@@ -56,27 +60,62 @@ impl Customers {
         sub: &Subject,
         email: String,
     ) -> Result<Customer, CustomerError> {
-        self.authz
+        let audit_info = self
+            .authz
             .check_permission(sub, Object::Customer, CustomerAction::Create)
             .await?;
-        let customer_id = self.kratos.create_identity(&email).await?;
-        self.create_customer(customer_id.into(), email).await
+        let customer_id = self.kratos.create_identity(&email).await?.into();
+
+        let ledger_account_ids = self
+            .ledger
+            .create_accounts_for_customer(customer_id)
+            .await?;
+        let new_customer = NewCustomer::builder()
+            .id(customer_id)
+            .email(email)
+            .account_ids(ledger_account_ids)
+            .audit_info(audit_info)
+            .build()
+            .expect("Could not build customer");
+
+        let mut db = self.pool.begin().await?;
+        let customer = self.repo.create(&mut db, new_customer).await;
+        db.commit().await?;
+
+        customer
     }
 
-    pub async fn create_customer(
+    pub async fn create_customer_through_kratos(
         &self,
         id: CustomerId,
         email: String,
     ) -> Result<Customer, CustomerError> {
+        let mut db = self.pool.begin().await?;
+
+        let audit_info = &self
+            .audit
+            .persist_in_tx(
+                &mut db,
+                &Subject::System(crate::primitives::SystemNode::Kratos),
+                Object::Customer,
+                Action::Customer(CustomerAction::Create),
+                true,
+            )
+            .await?;
+
         let ledger_account_ids = self.ledger.create_accounts_for_customer(id).await?;
         let new_customer = NewCustomer::builder()
             .id(id)
             .email(email)
             .account_ids(ledger_account_ids)
+            .audit_info(*audit_info)
             .build()
             .expect("Could not build customer");
 
-        self.repo.create(new_customer).await
+        let customer = self.repo.create(&mut db, new_customer).await;
+        db.commit().await?;
+
+        customer
     }
 
     pub async fn find_by_id(
@@ -141,9 +180,22 @@ impl Customers {
         applicant_id: String,
     ) -> Result<Customer, CustomerError> {
         let mut customer = self.repo.find_by_id(customer_id).await?;
-        customer.start_kyc(applicant_id);
 
         let mut db_tx = self.pool.begin().await?;
+
+        let audit_info = self
+            .audit
+            .persist_in_tx(
+                &mut db_tx,
+                &Subject::System(crate::primitives::SystemNode::Sumsub),
+                Object::Customer,
+                Action::Customer(CustomerAction::StartKyc),
+                true,
+            )
+            .await?;
+
+        customer.start_kyc(applicant_id, audit_info);
+
         self.repo.persist_in_tx(&mut db_tx, &mut customer).await?;
         db_tx.commit().await?;
 
@@ -156,9 +208,22 @@ impl Customers {
         applicant_id: String,
     ) -> Result<Customer, CustomerError> {
         let mut customer = self.repo.find_by_id(customer_id).await?;
-        customer.approve_kyc(KycLevel::Basic, applicant_id);
 
         let mut db_tx = self.pool.begin().await?;
+
+        let audit_info = self
+            .audit
+            .persist_in_tx(
+                &mut db_tx,
+                &Subject::System(crate::primitives::SystemNode::Sumsub),
+                Object::Customer,
+                Action::Customer(CustomerAction::ApproveKyc),
+                true,
+            )
+            .await?;
+
+        customer.approve_kyc(KycLevel::Basic, applicant_id, audit_info);
+
         self.repo.persist_in_tx(&mut db_tx, &mut customer).await?;
         db_tx.commit().await?;
 
@@ -171,9 +236,22 @@ impl Customers {
         applicant_id: String,
     ) -> Result<Customer, CustomerError> {
         let mut customer = self.repo.find_by_id(customer_id).await?;
-        customer.deactivate(applicant_id);
 
         let mut db_tx = self.pool.begin().await?;
+
+        let audit_info = self
+            .audit
+            .persist_in_tx(
+                &mut db_tx,
+                &Subject::System(crate::primitives::SystemNode::Sumsub),
+                Object::Customer,
+                Action::Customer(CustomerAction::DeclineKyc),
+                true,
+            )
+            .await?;
+
+        customer.deactivate(applicant_id, audit_info);
+
         self.repo.persist_in_tx(&mut db_tx, &mut customer).await?;
         db_tx.commit().await?;
 

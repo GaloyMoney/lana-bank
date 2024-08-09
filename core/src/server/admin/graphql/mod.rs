@@ -1,9 +1,9 @@
 mod account;
 mod account_set;
-mod audit;
+pub mod audit;
 mod customer;
 mod deposit;
-mod loader;
+pub mod loader;
 mod loan;
 mod schema;
 mod shareholder_equity;

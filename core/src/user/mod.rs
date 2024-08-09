@@ -7,7 +7,7 @@ use std::collections::HashMap;
 
 use crate::{
     authorization::{Authorization, Object, UserAction},
-    primitives::{Role, Subject, UserId},
+    primitives::{Role, Subject, SystemNode, UserId},
 };
 
 pub use config::*;
@@ -43,14 +43,32 @@ impl Users {
     }
 
     async fn create_and_assign_role_to_superuser(&self, email: String) -> Result<(), UserError> {
+        let subject = Subject::System(SystemNode::Init);
+
+        let _ = &self
+            .authz
+            .add_permission_to_subject(subject, Object::User, UserAction::Create)
+            .await?;
+
+        let audit_info = self
+            .authz
+            .check_permission(&subject, Object::User, UserAction::Create)
+            .await?;
+
+        let _ = &self
+            .authz
+            .remove_permission_from_subject(subject, Object::User, UserAction::Create)
+            .await?;
+
         if self.find_by_email(&email).await?.is_none() {
             let new_user = NewUser::builder()
                 .email(&email)
+                .audit_info(audit_info)
                 .build()
                 .expect("Could not build user");
             let mut db = self.pool.begin().await?;
             let mut user = self.repo.create_in_tx(&mut db, new_user).await?;
-            user.assign_role(Role::Superuser);
+            user.assign_role(Role::Superuser, audit_info);
             self.authz
                 .assign_role_to_subject(user.id, &Role::Superuser)
                 .await?;
@@ -69,11 +87,13 @@ impl Users {
         sub: &Subject,
         email: impl Into<String>,
     ) -> Result<User, UserError> {
-        self.authz
+        let audit_info = self
+            .authz
             .check_permission(sub, Object::User, UserAction::Create)
             .await?;
         let new_user = NewUser::builder()
             .email(email)
+            .audit_info(audit_info)
             .build()
             .expect("Could not build user");
         let mut db = self.pool.begin().await?;
@@ -129,12 +149,13 @@ impl Users {
         id: UserId,
         role: Role,
     ) -> Result<User, UserError> {
-        self.authz
+        let audit_info = self
+            .authz
             .check_permission(sub, Object::User, UserAction::AssignRole(role))
             .await?;
 
         let mut user = self.repo.find_by_id(id).await?;
-        if user.assign_role(role) {
+        if user.assign_role(role, audit_info) {
             self.authz.assign_role_to_subject(user.id, &role).await?;
             self.repo.persist(&mut user).await?;
         }
@@ -148,12 +169,13 @@ impl Users {
         id: UserId,
         role: Role,
     ) -> Result<User, UserError> {
-        self.authz
+        let audit_role = self
+            .authz
             .check_permission(sub, Object::User, UserAction::RevokeRole(role))
             .await?;
 
         let mut user = self.repo.find_by_id(id).await?;
-        if user.revoke_role(role) {
+        if user.revoke_role(role, audit_role) {
             self.authz.revoke_role_from_subject(user.id, &role).await?;
             self.repo.persist(&mut user).await?;
         }

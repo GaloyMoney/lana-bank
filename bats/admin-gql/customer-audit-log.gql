@@ -1,0 +1,28 @@
+query CustomerAuditLog($id: UUID!) {
+  customer(id: $id) {
+    customerId
+    audit {
+      subject {
+        ... on User {
+          userId
+          email
+          roles
+        }
+        ... on Customer {
+          customerId
+          email
+          status
+          level
+          applicantId
+        }
+        ... on System {
+          name
+        }
+      }
+      object
+      action
+      authorized
+      createdAt
+    }
+  }
+}

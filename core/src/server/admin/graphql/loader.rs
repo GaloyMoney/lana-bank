@@ -2,11 +2,12 @@ use async_graphql::dataloader::Loader;
 
 use std::{collections::HashMap, sync::Arc};
 
-use super::user::User;
+use super::{audit::AuditEntry, user::User};
 use crate::{
     app::LavaApp,
+    audit::error::AuditError,
     customer::error::CustomerError,
-    primitives::{CustomerId, UserId},
+    primitives::{AuditEntryId, CustomerId, UserId},
     server::shared_graphql::customer::Customer,
     user::error::UserError,
 };
@@ -21,6 +22,18 @@ impl Loader<UserId> for LavaDataLoader {
 
     async fn load(&self, keys: &[UserId]) -> Result<HashMap<UserId, User>, Self::Error> {
         self.app.users().find_all(keys).await.map_err(Arc::new)
+    }
+}
+
+impl Loader<AuditEntryId> for LavaDataLoader {
+    type Value = AuditEntry;
+    type Error = Arc<AuditError>;
+
+    async fn load(
+        &self,
+        keys: &[AuditEntryId],
+    ) -> Result<HashMap<AuditEntryId, AuditEntry>, Self::Error> {
+        self.app.audit().find_all(keys).await.map_err(Arc::new)
     }
 }
 

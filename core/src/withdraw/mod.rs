@@ -52,7 +52,8 @@ impl Withdraws {
         amount: UsdCents,
         reference: Option<String>,
     ) -> Result<Withdraw, WithdrawError> {
-        self.authz
+        let audit_info = self
+            .authz
             .check_permission(sub, Object::Withdraw, WithdrawAction::Initiate)
             .await?;
         let customer_id = customer_id.into();
@@ -63,6 +64,7 @@ impl Withdraws {
             .amount(amount)
             .reference(reference)
             .debit_account_id(customer.account_ids.on_balance_sheet_deposit_account_id)
+            .audit_info(audit_info)
             .build()
             .expect("Could not build Withdraw");
 
@@ -99,12 +101,13 @@ impl Withdraws {
         sub: &Subject,
         withdrawal_id: impl Into<WithdrawId> + std::fmt::Debug,
     ) -> Result<Withdraw, WithdrawError> {
-        self.authz
+        let audit_info = self
+            .authz
             .check_permission(sub, Object::Withdraw, WithdrawAction::Confirm)
             .await?;
         let id = withdrawal_id.into();
         let mut withdrawal = self.repo.find_by_id(id).await?;
-        let tx_id = withdrawal.confirm()?;
+        let tx_id = withdrawal.confirm(audit_info)?;
 
         let mut db_tx = self.pool.begin().await?;
         self.repo.persist_in_tx(&mut db_tx, &mut withdrawal).await?;
@@ -129,12 +132,13 @@ impl Withdraws {
         sub: &Subject,
         withdrawal_id: impl Into<WithdrawId> + std::fmt::Debug,
     ) -> Result<Withdraw, WithdrawError> {
-        self.authz
+        let audit_info = self.authz
             .check_permission(sub, Object::Withdraw, WithdrawAction::Cancel)
             .await?;
+
         let id = withdrawal_id.into();
         let mut withdrawal = self.repo.find_by_id(id).await?;
-        let tx_id = withdrawal.cancel()?;
+        let tx_id = withdrawal.cancel(audit_info)?;
 
         let mut db_tx = self.pool.begin().await?;
         self.repo.persist_in_tx(&mut db_tx, &mut withdrawal).await?;
