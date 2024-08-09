@@ -8,6 +8,7 @@ pub mod error;
 pub mod loan;
 pub mod primitives;
 
+use chrono::{DateTime, Utc};
 use tracing::instrument;
 
 use crate::{
@@ -275,24 +276,28 @@ impl Ledger {
     pub async fn trial_balance(
         &self,
         sub: &Subject,
+        from: DateTime<Utc>,
+        until: Option<DateTime<Utc>>,
     ) -> Result<Option<LedgerTrialBalance>, LedgerError> {
         self.authz
             .check_permission(sub, Object::Ledger, LedgerAction::Read)
             .await?;
         self.cala
-            .trial_balance::<LedgerTrialBalance, LedgerError>()
+            .trial_balance::<LedgerTrialBalance, LedgerError>(from, until)
             .await
     }
 
     pub async fn obs_trial_balance(
         &self,
         sub: &Subject,
+        from: DateTime<Utc>,
+        until: Option<DateTime<Utc>>,
     ) -> Result<Option<LedgerTrialBalance>, LedgerError> {
         self.authz
             .check_permission(sub, Object::Ledger, LedgerAction::Read)
             .await?;
         self.cala
-            .obs_trial_balance::<LedgerTrialBalance, LedgerError>()
+            .obs_trial_balance::<LedgerTrialBalance, LedgerError>(from, until)
             .await
     }
 
@@ -325,13 +330,15 @@ impl Ledger {
     pub async fn balance_sheet(
         &self,
         sub: &Subject,
+        from: DateTime<Utc>,
+        until: Option<DateTime<Utc>>,
     ) -> Result<Option<LedgerBalanceSheet>, LedgerError> {
         self.authz
             .check_permission(sub, Object::Ledger, LedgerAction::Read)
             .await?;
         Ok(self
             .cala
-            .balance_sheet::<LedgerBalanceSheet, LedgerError>()
+            .balance_sheet::<LedgerBalanceSheet, LedgerError>(from, until)
             .await?
             .map(LedgerBalanceSheet::from))
     }
@@ -339,13 +346,15 @@ impl Ledger {
     pub async fn profit_and_loss(
         &self,
         sub: &Subject,
+        from: DateTime<Utc>,
+        until: Option<DateTime<Utc>>,
     ) -> Result<Option<LedgerProfitAndLossStatement>, LedgerError> {
         self.authz
             .check_permission(sub, Object::Ledger, LedgerAction::Read)
             .await?;
         Ok(self
             .cala
-            .profit_and_loss::<LedgerProfitAndLossStatement, LedgerError>()
+            .profit_and_loss::<LedgerProfitAndLossStatement, LedgerError>(from, until)
             .await?
             .map(LedgerProfitAndLossStatement::from))
     }
@@ -353,13 +362,15 @@ impl Ledger {
     pub async fn cash_flow(
         &self,
         sub: &Subject,
+        from: DateTime<Utc>,
+        until: Option<DateTime<Utc>>,
     ) -> Result<Option<LedgerCashFlowStatement>, LedgerError> {
         self.authz
             .check_permission(sub, Object::Ledger, LedgerAction::Read)
             .await?;
         Ok(self
             .cala
-            .cash_flow::<LedgerCashFlowStatement, LedgerError>()
+            .cash_flow::<LedgerCashFlowStatement, LedgerError>(from, until)
             .await?
             .map(LedgerCashFlowStatement::from))
     }
@@ -370,6 +381,8 @@ impl Ledger {
         account_set_id: LedgerAccountSetId,
         first: i64,
         after: Option<String>,
+        from: DateTime<Utc>,
+        until: Option<DateTime<Utc>>,
     ) -> Result<Option<LedgerAccountSetAndSubAccountsWithBalance>, LedgerError> {
         self.authz
             .check_permission(sub, Object::Ledger, LedgerAction::Read)
@@ -378,7 +391,7 @@ impl Ledger {
             .find_account_set_and_sub_accounts_with_balance_by_id::<LedgerAccountSetAndSubAccountsWithBalance, LedgerError>(
                 account_set_id,
                 first,
-                after,
+                after,from, until
             )
             .await?
             .map(LedgerAccountSetAndSubAccountsWithBalance::from))
@@ -387,6 +400,8 @@ impl Ledger {
     pub async fn paginated_account_set_and_sub_accounts_with_balance(
         &self,
         account_set_id: LedgerAccountSetId,
+        from: DateTime<Utc>,
+        until: Option<DateTime<Utc>>,
         query: crate::query::PaginatedQueryArgs<LedgerSubAccountCursor>,
     ) -> Result<
         crate::query::PaginatedQueryRet<
@@ -401,6 +416,7 @@ impl Ledger {
                 account_set_id,
                 i64::try_from(query.first)?,
                 query.after.map(|c| c.value),
+                from, until
             )
             .await?
             .map(LedgerAccountSetAndSubAccountsWithBalance::from);

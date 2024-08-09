@@ -3,6 +3,7 @@ pub mod error;
 pub(super) mod graphql;
 
 use cala_types::primitives::TxTemplateId;
+use chrono::{DateTime, Utc};
 use graphql_client::{GraphQLQuery, Response};
 use reqwest::{Client as ReqwestClient, Method};
 use rust_decimal::Decimal;
@@ -104,6 +105,9 @@ impl CalaClient {
         id: impl Into<Uuid>,
         first: i64,
         after: Option<String>,
+        from: DateTime<Utc>,
+        until: Option<DateTime<Utc>>
+
     ) -> Result<Option<T>, E>
     where
         T: TryFrom<account_set_and_sub_accounts_with_balance::AccountSetAndSubAccountsWithBalanceAccountSet, Error = E>,
@@ -114,6 +118,8 @@ impl CalaClient {
             journal_id: super::constants::CORE_JOURNAL_ID,
             first,
             after,
+            from,
+            until,
         };
         let response = Self::traced_gql_request::<AccountSetAndSubAccountsWithBalance, _>(
             &self.client,
@@ -965,7 +971,11 @@ impl CalaClient {
         Ok(())
     }
 
-    pub async fn trial_balance<T, E>(&self) -> Result<Option<T>, E>
+    pub async fn trial_balance<T, E>(
+        &self,
+        from: DateTime<Utc>,
+        until: Option<DateTime<Utc>>,
+    ) -> Result<Option<T>, E>
     where
         T: TryFrom<trial_balance::TrialBalanceAccountSet, Error = E>,
         E: From<CalaError> + std::fmt::Display,
@@ -973,6 +983,8 @@ impl CalaClient {
         let variables = trial_balance::Variables {
             journal_id: constants::CORE_JOURNAL_ID,
             account_set_id: constants::TRIAL_BALANCE_ACCOUNT_SET_ID,
+            from,
+            until,
         };
         let response =
             Self::traced_gql_request::<TrialBalance, _>(&self.client, &self.url, variables).await?;
@@ -983,7 +995,11 @@ impl CalaClient {
             .transpose()
     }
 
-    pub async fn obs_trial_balance<T, E>(&self) -> Result<Option<T>, E>
+    pub async fn obs_trial_balance<T, E>(
+        &self,
+        from: DateTime<Utc>,
+        until: Option<DateTime<Utc>>,
+    ) -> Result<Option<T>, E>
     where
         T: TryFrom<trial_balance::TrialBalanceAccountSet, Error = E>,
         E: From<CalaError> + std::fmt::Display,
@@ -991,6 +1007,8 @@ impl CalaClient {
         let variables = trial_balance::Variables {
             journal_id: constants::CORE_JOURNAL_ID,
             account_set_id: constants::OBS_TRIAL_BALANCE_ACCOUNT_SET_ID,
+            from,
+            until,
         };
         let response =
             Self::traced_gql_request::<TrialBalance, _>(&self.client, &self.url, variables).await?;
@@ -1009,6 +1027,8 @@ impl CalaClient {
         let variables = chart_of_accounts::Variables {
             account_set_id: constants::CHART_OF_ACCOUNTS_ACCOUNT_SET_ID,
             journal_id: constants::CORE_JOURNAL_ID,
+            from: Utc::now(),
+            until: None,
         };
         let response =
             Self::traced_gql_request::<ChartOfAccounts, _>(&self.client, &self.url, variables)
@@ -1028,6 +1048,8 @@ impl CalaClient {
         let variables = chart_of_accounts::Variables {
             account_set_id: constants::OBS_CHART_OF_ACCOUNTS_ACCOUNT_SET_ID,
             journal_id: constants::CORE_JOURNAL_ID,
+            from: Utc::now(),
+            until: None,
         };
         let response =
             Self::traced_gql_request::<ChartOfAccounts, _>(&self.client, &self.url, variables)
@@ -1039,7 +1061,11 @@ impl CalaClient {
             .transpose()
     }
 
-    pub async fn balance_sheet<T, E>(&self) -> Result<Option<T>, E>
+    pub async fn balance_sheet<T, E>(
+        &self,
+        from: DateTime<Utc>,
+        until: Option<DateTime<Utc>>,
+    ) -> Result<Option<T>, E>
     where
         T: TryFrom<balance_sheet::BalanceSheetAccountSet, Error = E>,
         E: From<CalaError> + std::fmt::Display,
@@ -1047,6 +1073,8 @@ impl CalaClient {
         let variables = balance_sheet::Variables {
             account_set_id: constants::BALANCE_SHEET_ACCOUNT_SET_ID,
             journal_id: constants::CORE_JOURNAL_ID,
+            from,
+            until,
         };
         let response =
             Self::traced_gql_request::<BalanceSheet, _>(&self.client, &self.url, variables).await?;
@@ -1057,7 +1085,11 @@ impl CalaClient {
             .transpose()
     }
 
-    pub async fn profit_and_loss<T, E>(&self) -> Result<Option<T>, E>
+    pub async fn profit_and_loss<T, E>(
+        &self,
+        from: DateTime<Utc>,
+        until: Option<DateTime<Utc>>,
+    ) -> Result<Option<T>, E>
     where
         T: TryFrom<profit_and_loss_statement::ProfitAndLossStatementAccountSet, Error = E>,
         E: From<CalaError> + std::fmt::Display,
@@ -1065,6 +1097,8 @@ impl CalaClient {
         let variables = profit_and_loss_statement::Variables {
             account_set_id: constants::NET_INCOME_ACCOUNT_SET_ID,
             journal_id: constants::CORE_JOURNAL_ID,
+            from,
+            until,
         };
         let response = Self::traced_gql_request::<ProfitAndLossStatement, _>(
             &self.client,
@@ -1079,7 +1113,11 @@ impl CalaClient {
             .transpose()
     }
 
-    pub async fn cash_flow<T, E>(&self) -> Result<Option<T>, E>
+    pub async fn cash_flow<T, E>(
+        &self,
+        from: DateTime<Utc>,
+        until: Option<DateTime<Utc>>,
+    ) -> Result<Option<T>, E>
     where
         T: TryFrom<cash_flow_statement::CashFlowStatementAccountSet, Error = E>,
         E: From<CalaError> + std::fmt::Display,
@@ -1087,6 +1125,8 @@ impl CalaClient {
         let variables = cash_flow_statement::Variables {
             account_set_id: constants::CASH_FLOW_ACCOUNT_SET_ID,
             journal_id: constants::CORE_JOURNAL_ID,
+            from,
+            until,
         };
         let response =
             Self::traced_gql_request::<CashFlowStatement, _>(&self.client, &self.url, variables)

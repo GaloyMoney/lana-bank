@@ -3,6 +3,8 @@ query AccountSetAndSubAccountsWithBalance(
   $accountSetId: UUID!
   $first: Int!
   $after: String
+  $from: Timestamp!
+  $until: Timestamp
 ) {
   accountSet(id: $accountSetId) {
     ...accountSetDetailsAndBalances
@@ -47,19 +49,51 @@ fragment accountDetailsAndBalances on Account {
 # 'balances'
 
 fragment accountBalances on Account {
-  btcBalances: balance(journalId: $journalId, currency: "BTC") {
-    ...balancesByLayer
+  btcBalances: balanceInRange(
+    currency: "BTC"
+    journalId: $journalId
+    from: $from
+    until: $until
+  ) {
+    ...rangedBalance
   }
-  usdBalances: balance(journalId: $journalId, currency: "USD") {
-    ...balancesByLayer
+  usdBalances: balanceInRange(
+    currency: "USD"
+    journalId: $journalId
+    from: $from
+    until: $until
+  ) {
+    ...rangedBalance
   }
 }
 
 fragment accountSetBalances on AccountSet {
-  btcBalances: balance(currency: "BTC") {
+  btcBalances: balanceInRange(
+    currency: "BTC"
+    journalId: $journalId
+    from: $from
+    until: $until
+  ) {
+    ...rangedBalance
+  }
+  usdBalances: balanceInRange(
+    currency: "USD"
+    journalId: $journalId
+    from: $from
+    until: $until
+  ) {
+    ...rangedBalance
+  }
+}
+
+fragment rangedBalance on RangedBalance {
+  start {
     ...balancesByLayer
   }
-  usdBalances: balance(currency: "USD") {
+  end {
+    ...balancesByLayer
+  }
+  diff {
     ...balancesByLayer
   }
 }

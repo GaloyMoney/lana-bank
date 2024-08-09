@@ -1,6 +1,6 @@
 type AccountBalancesByCurrency {
-	btc: LayeredBtcAccountBalances!
-	usd: LayeredUsdAccountBalances!
+	btc: RangedBtcAccountBalances!
+	usd: RangedUsdAccountBalances!
 }
 
 type AccountSetAndSubAccountsWithBalance {
@@ -431,18 +431,30 @@ type Query {
 	customers(first: Int!, after: String): CustomerConnection!
 	loans(first: Int!, after: String): LoanConnection!
 	defaultTerms: Terms
-	trialBalance: TrialBalance
-	offBalanceSheetTrialBalance: TrialBalance
+	trialBalance(from: Timestamp!, until: Timestamp): TrialBalance
+	offBalanceSheetTrialBalance(from: Timestamp!, until: Timestamp): TrialBalance
 	chartOfAccounts: ChartOfAccounts
 	offBalanceSheetChartOfAccounts: ChartOfAccounts
-	balanceSheet: BalanceSheet
-	profitAndLossStatement: ProfitAndLossStatement
-	cashFlowStatement: CashFlowStatement
-	accountSetWithBalance(accountSetId: UUID!): AccountSetAndSubAccountsWithBalance
+	balanceSheet(from: Timestamp!, until: Timestamp): BalanceSheet
+	profitAndLossStatement(from: Timestamp!, until: Timestamp): ProfitAndLossStatement
+	cashFlowStatement(from: Timestamp!, until: Timestamp): CashFlowStatement
+	accountSetWithBalance(accountSetId: UUID!, from: Timestamp!, until: Timestamp): AccountSetAndSubAccountsWithBalance
 	deposit(id: UUID!): Deposit
 	deposits(first: Int!, after: String): DepositConnection!
 	withdrawal(id: UUID!): Withdrawal
 	withdrawals(first: Int!, after: String): WithdrawalConnection!
+}
+
+type RangedBtcAccountBalances {
+	start: LayeredBtcAccountBalances!
+	end: LayeredBtcAccountBalances!
+	diff: LayeredBtcAccountBalances!
+}
+
+type RangedUsdAccountBalances {
+	start: LayeredUsdAccountBalances!
+	end: LayeredUsdAccountBalances!
+	diff: LayeredUsdAccountBalances!
 }
 
 enum Role {

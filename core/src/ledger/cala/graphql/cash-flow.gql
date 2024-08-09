@@ -1,4 +1,9 @@
-query CashFlowStatement($accountSetId: UUID!, $journalId: UUID!) {
+query CashFlowStatement(
+  $accountSetId: UUID!
+  $journalId: UUID!
+  $from: Timestamp!
+  $until: Timestamp
+) {
   accountSet(id: $accountSetId) {
     ...accountSetDetailsAndBalances
     categories: members(first: 10) {
@@ -65,25 +70,57 @@ fragment accountDetailsAndBalances on Account {
 # 'balances'
 
 fragment accountBalances on Account {
-  btcBalances: balance(journalId: $journalId, currency: "BTC") {
-    ...balancesByLayer
+  btcBalances: balanceInRange(
+    currency: "BTC"
+    journalId: $journalId
+    from: $from
+    until: $until
+  ) {
+    ...rangedBalance
   }
   usdtBalances: balance(journalId: $journalId, currency: "USDT") {
     ...balancesByLayer
   }
-  usdBalances: balance(journalId: $journalId, currency: "USD") {
-    ...balancesByLayer
+  usdBalances: balanceInRange(
+    currency: "USD"
+    journalId: $journalId
+    from: $from
+    until: $until
+  ) {
+    ...rangedBalance
   }
 }
 
 fragment accountSetBalances on AccountSet {
-  btcBalances: balance(currency: "BTC") {
-    ...balancesByLayer
+  btcBalances: balanceInRange(
+    currency: "BTC"
+    journalId: $journalId
+    from: $from
+    until: $until
+  ) {
+    ...rangedBalance
   }
   usdtBalances: balance(currency: "USDT") {
     ...balancesByLayer
   }
-  usdBalances: balance(currency: "USD") {
+  usdBalances: balanceInRange(
+    currency: "USD"
+    journalId: $journalId
+    from: $from
+    until: $until
+  ) {
+    ...rangedBalance
+  }
+}
+
+fragment rangedBalance on RangedBalance {
+  start {
+    ...balancesByLayer
+  }
+  end {
+    ...balancesByLayer
+  }
+  diff {
     ...balancesByLayer
   }
 }

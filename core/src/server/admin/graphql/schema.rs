@@ -12,8 +12,13 @@ use crate::{
     server::{
         admin::AdminAuthContext,
         shared_graphql::{
-            customer::Customer, deposit::Deposit, loan::Loan, objects::SuccessPayload,
-            primitives::UUID, sumsub::SumsubPermalinkCreatePayload, terms::Terms,
+            customer::Customer,
+            deposit::Deposit,
+            loan::Loan,
+            objects::SuccessPayload,
+            primitives::{Timestamp, UUID},
+            sumsub::SumsubPermalinkCreatePayload,
+            terms::Terms,
             withdraw::Withdrawal,
         },
     },
@@ -197,20 +202,30 @@ impl Query {
     async fn trial_balance(
         &self,
         ctx: &Context<'_>,
+        from: Timestamp,
+        until: Option<Timestamp>,
     ) -> async_graphql::Result<Option<TrialBalance>> {
         let app = ctx.data_unchecked::<LavaApp>();
         let AdminAuthContext { sub } = ctx.data()?;
-        let account_summary = app.ledger().trial_balance(sub).await?;
+        let account_summary = app
+            .ledger()
+            .trial_balance(sub, from.into_inner(), until.map(|t| t.into_inner()))
+            .await?;
         Ok(account_summary.map(TrialBalance::from))
     }
 
     async fn off_balance_sheet_trial_balance(
         &self,
         ctx: &Context<'_>,
+        from: Timestamp,
+        until: Option<Timestamp>,
     ) -> async_graphql::Result<Option<TrialBalance>> {
         let app = ctx.data_unchecked::<LavaApp>();
         let AdminAuthContext { sub } = ctx.data()?;
-        let account_summary = app.ledger().obs_trial_balance(sub).await?;
+        let account_summary = app
+            .ledger()
+            .obs_trial_balance(sub, from.into_inner(), until.map(|t| t.into_inner()))
+            .await?;
         Ok(account_summary.map(TrialBalance::from))
     }
 
@@ -237,30 +252,45 @@ impl Query {
     async fn balance_sheet(
         &self,
         ctx: &Context<'_>,
+        from: Timestamp,
+        until: Option<Timestamp>,
     ) -> async_graphql::Result<Option<BalanceSheet>> {
         let app = ctx.data_unchecked::<LavaApp>();
         let AdminAuthContext { sub } = ctx.data()?;
-        let balance_sheet = app.ledger().balance_sheet(sub).await?;
+        let balance_sheet = app
+            .ledger()
+            .balance_sheet(sub, from.into_inner(), until.map(|t| t.into_inner()))
+            .await?;
         Ok(balance_sheet.map(BalanceSheet::from))
     }
 
     async fn profit_and_loss_statement(
         &self,
         ctx: &Context<'_>,
+        from: Timestamp,
+        until: Option<Timestamp>,
     ) -> async_graphql::Result<Option<ProfitAndLossStatement>> {
         let app = ctx.data_unchecked::<LavaApp>();
         let AdminAuthContext { sub } = ctx.data()?;
-        let profit_and_loss = app.ledger().profit_and_loss(sub).await?;
+        let profit_and_loss = app
+            .ledger()
+            .profit_and_loss(sub, from.into_inner(), until.map(|t| t.into_inner()))
+            .await?;
         Ok(profit_and_loss.map(ProfitAndLossStatement::from))
     }
 
     async fn cash_flow_statement(
         &self,
         ctx: &Context<'_>,
+        from: Timestamp,
+        until: Option<Timestamp>,
     ) -> async_graphql::Result<Option<CashFlowStatement>> {
         let app = ctx.data_unchecked::<LavaApp>();
         let AdminAuthContext { sub } = ctx.data()?;
-        let cash_flow = app.ledger().cash_flow(sub).await?;
+        let cash_flow = app
+            .ledger()
+            .cash_flow(sub, from.into_inner(), until.map(|t| t.into_inner()))
+            .await?;
         Ok(cash_flow.map(CashFlowStatement::from))
     }
 
@@ -268,14 +298,29 @@ impl Query {
         &self,
         ctx: &Context<'_>,
         account_set_id: UUID,
+        from: Timestamp,
+        until: Option<Timestamp>,
     ) -> async_graphql::Result<Option<AccountSetAndSubAccountsWithBalance>> {
         let app = ctx.data_unchecked::<LavaApp>();
         let AdminAuthContext { sub } = ctx.data()?;
         let account_set = app
             .ledger()
-            .account_set_and_sub_accounts_with_balance(sub, account_set_id.into(), 0, None)
+            .account_set_and_sub_accounts_with_balance(
+                sub,
+                account_set_id.into(),
+                0,
+                None,
+                from.clone().into_inner(),
+                until.clone().map(|t| t.into_inner()),
+            )
             .await?;
-        Ok(account_set.map(AccountSetAndSubAccountsWithBalance::from))
+        Ok(account_set.map(|a| {
+            AccountSetAndSubAccountsWithBalance::from((
+                from.into_inner(),
+                until.map(|t| t.into_inner()),
+                a,
+            ))
+        }))
     }
 
     async fn deposit(&self, ctx: &Context<'_>, id: UUID) -> async_graphql::Result<Option<Deposit>> {

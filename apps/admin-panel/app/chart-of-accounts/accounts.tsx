@@ -12,8 +12,14 @@ import {
 import { TableCell, TableRow } from "@/components/primitive/table"
 
 gql`
-  query ChartOfAccountsAccountSet($accountSetId: UUID!, $first: Int!, $after: String) {
-    accountSetWithBalance(accountSetId: $accountSetId) {
+  query ChartOfAccountsAccountSet(
+    $accountSetId: UUID!
+    $first: Int!
+    $after: String
+    $from: Timestamp!
+    $until: Timestamp
+  ) {
+    accountSetWithBalance(accountSetId: $accountSetId, from: $from, until: $until) {
       id
       name
       subAccounts(first: $first, after: $after) {
@@ -52,6 +58,7 @@ const SubAccountsForAccountSet: React.FC<AccountProps> = ({ account, depth = 0 }
     variables: {
       accountSetId: account.id,
       first: 10,
+      from: new Date(Date.now()),
     },
   })
 

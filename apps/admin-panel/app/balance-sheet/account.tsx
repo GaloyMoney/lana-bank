@@ -48,7 +48,7 @@ export const Account = ({
           <Balance
             align="end"
             currency={currency}
-            amount={account.balance[currency][layer][transactionType]}
+            amount={account.balance[currency].end[layer][transactionType]}
           />
         </TableCell>
       </TableRow>
@@ -83,6 +83,7 @@ const SubAccountsForAccountSet = ({
     variables: {
       accountSetId: account.id,
       first: 10,
+      from: new Date(Date.now()),
     },
   })
 

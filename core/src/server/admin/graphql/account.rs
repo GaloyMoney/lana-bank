@@ -81,9 +81,43 @@ impl From<crate::ledger::account::LayeredUsdAccountBalances> for LayeredUsdAccou
 }
 
 #[derive(SimpleObject)]
+pub struct RangedBtcAccountBalances {
+    start: LayeredBtcAccountBalances,
+    end: LayeredBtcAccountBalances,
+    diff: LayeredBtcAccountBalances,
+}
+
+impl From<crate::ledger::account::RangedBtcAccountBalances> for RangedBtcAccountBalances {
+    fn from(balances: crate::ledger::account::RangedBtcAccountBalances) -> Self {
+        RangedBtcAccountBalances {
+            start: balances.start.into(),
+            end: balances.end.into(),
+            diff: balances.diff.into(),
+        }
+    }
+}
+
+#[derive(SimpleObject)]
+pub struct RangedUsdAccountBalances {
+    start: LayeredUsdAccountBalances,
+    end: LayeredUsdAccountBalances,
+    diff: LayeredUsdAccountBalances,
+}
+
+impl From<crate::ledger::account::RangedUsdAccountBalances> for RangedUsdAccountBalances {
+    fn from(balances: crate::ledger::account::RangedUsdAccountBalances) -> Self {
+        RangedUsdAccountBalances {
+            start: balances.start.into(),
+            end: balances.end.into(),
+            diff: balances.diff.into(),
+        }
+    }
+}
+
+#[derive(SimpleObject)]
 pub struct AccountBalancesByCurrency {
-    btc: LayeredBtcAccountBalances,
-    usd: LayeredUsdAccountBalances,
+    btc: RangedBtcAccountBalances,
+    usd: RangedUsdAccountBalances,
 }
 
 impl From<crate::ledger::account::LedgerAccountBalancesByCurrency> for AccountBalancesByCurrency {

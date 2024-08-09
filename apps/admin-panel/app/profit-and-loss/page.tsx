@@ -22,8 +22,8 @@ import { PageHeading } from "@/components/page-heading"
 import { CurrencyLayerSelection } from "@/components/financial/currency-layer-selection"
 
 gql`
-  query ProfitAndLossStatement {
-    profitAndLossStatement {
+  query ProfitAndLossStatement($from: Timestamp!, $until: Timestamp) {
+    profitAndLossStatement(from: $from, until: $until) {
       name
       balance {
         ...balancesByCurrency
@@ -69,7 +69,11 @@ export default function ProfitAndLossStatementPage() {
     data: ProfitAndLossStatementData,
     loading: ProfitAndLossStatementLoading,
     error: ProfitAndLossStatementError,
-  } = useProfitAndLossStatementQuery()
+  } = useProfitAndLossStatementQuery({
+    variables: {
+      from: new Date(Date.now()),
+    },
+  })
 
   return (
     <ProfitAndLossStatement
@@ -135,7 +139,7 @@ const ProfitAndLossStatement = ({
               <Balance
                 align="end"
                 currency={currency}
-                amount={balance[currency][layer].netCredit}
+                amount={balance[currency].end[layer].netCredit}
               />
             </TableCell>
           </TableRow>
@@ -168,7 +172,7 @@ const CategoryRow = ({
           <Balance
             align="end"
             currency={currency}
-            amount={category.balance[currency][layer][transactionType]}
+            amount={category.balance[currency].end[layer][transactionType]}
           />
         </TableCell>
       </TableRow>

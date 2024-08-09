@@ -61,10 +61,24 @@ pub struct LayeredUsdAccountBalances {
     pub encumbrance: UsdAccountBalance,
     pub all_layers: UsdAccountBalance,
 }
+#[derive(Debug, Clone, Default)]
+pub struct RangedBtcAccountBalances {
+    pub start: LayeredBtcAccountBalances,
+    pub end: LayeredBtcAccountBalances,
+    pub diff: LayeredBtcAccountBalances,
+}
+
+#[derive(Debug, Clone, Default)]
+pub struct RangedUsdAccountBalances {
+    pub start: LayeredUsdAccountBalances,
+    pub end: LayeredUsdAccountBalances,
+    pub diff: LayeredUsdAccountBalances,
+}
+
 #[derive(Debug, Clone)]
 pub struct LedgerAccountBalancesByCurrency {
-    pub btc: LayeredBtcAccountBalances,
-    pub usd: LayeredUsdAccountBalances,
+    pub btc: RangedBtcAccountBalances,
+    pub usd: RangedUsdAccountBalances,
 }
 
 #[derive(Debug, Clone)]
@@ -154,17 +168,41 @@ macro_rules! impl_from_account_details_and_balances {
                 }
             }
 
+            impl TryFrom<$module::rangedBalance> for RangedBtcAccountBalances {
+                type Error = LedgerError;
+
+                fn try_from(ranged_balance: $module::rangedBalance) -> Result<Self, Self::Error> {
+                    Ok(Self {
+                        start: LayeredBtcAccountBalances::try_from(ranged_balance.start)?,
+                        end: LayeredBtcAccountBalances::try_from(ranged_balance.end)?,
+                        diff: LayeredBtcAccountBalances::try_from(ranged_balance.diff)?,
+                    })
+                }
+            }
+
+            impl TryFrom<$module::rangedBalance> for RangedUsdAccountBalances {
+                type Error = LedgerError;
+
+                fn try_from(ranged_balance: $module::rangedBalance) -> Result<Self, Self::Error> {
+                    Ok(Self {
+                        start: LayeredUsdAccountBalances::try_from(ranged_balance.start)?,
+                        end: LayeredUsdAccountBalances::try_from(ranged_balance.end)?,
+                        diff: LayeredUsdAccountBalances::try_from(ranged_balance.diff)?,
+                    })
+                }
+            }
+
             impl TryFrom<$module::accountSetBalances> for LedgerAccountBalancesByCurrency {
                 type Error = LedgerError;
 
                 fn try_from(balances: $module::accountSetBalances) -> Result<Self, Self::Error> {
                     Ok(LedgerAccountBalancesByCurrency {
                         btc: balances.btc_balances.map(
-                            LayeredBtcAccountBalances::try_from
-                        ).unwrap_or_else(|| Ok(LayeredBtcAccountBalances::default()))?,
+                            RangedBtcAccountBalances::try_from
+                        ).unwrap_or_else(|| Ok(RangedBtcAccountBalances::default()))?,
                         usd: balances.usd_balances.map(
-                            LayeredUsdAccountBalances::try_from
-                        ).unwrap_or_else(|| Ok(LayeredUsdAccountBalances::default()))?,
+                            RangedUsdAccountBalances::try_from
+                        ).unwrap_or_else(|| Ok(RangedUsdAccountBalances::default()))?,
                     })
                 }
             }
@@ -180,11 +218,11 @@ macro_rules! impl_from_account_details_and_balances {
                         normal_balance_type: account_details.normal_balance_type.into(),
                         balance: LedgerAccountBalancesByCurrency {
                             btc: account.account_balances.btc_balances.map(
-                                LayeredBtcAccountBalances::try_from,
-                            ).unwrap_or_else(|| Ok(LayeredBtcAccountBalances::default()))?,
+                                RangedBtcAccountBalances::try_from,
+                            ).unwrap_or_else(|| Ok(RangedBtcAccountBalances::default()))?,
                             usd: account.account_balances.usd_balances.map(
-                                LayeredUsdAccountBalances::try_from,
-                            ).unwrap_or_else(|| Ok(LayeredUsdAccountBalances::default()))?,
+                                RangedUsdAccountBalances::try_from,
+                            ).unwrap_or_else(|| Ok(RangedUsdAccountBalances::default()))?,
                         },
                     })
                 }

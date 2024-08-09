@@ -16,8 +16,8 @@ import { PageHeading } from "@/components/page-heading"
 import { CurrencyLayerSelection } from "@/components/financial/currency-layer-selection"
 
 gql`
-  query BalanceSheet {
-    balanceSheet {
+  query BalanceSheet($from: Timestamp!, $until: Timestamp) {
+    balanceSheet(from: $from, until: $until) {
       name
       balance {
         ...balancesByCurrency
@@ -58,7 +58,11 @@ const BALANCE_FOR_CATEGORY: Record<string, { TransactionType: TransactionType }>
 }
 
 export default function BalanceSheetPage() {
-  const { data, loading, error } = useBalanceSheetQuery()
+  const { data, loading, error } = useBalanceSheetQuery({
+    variables: {
+      from: new Date(Date.now()),
+    },
+  })
   return <BalanceSheet data={data?.balanceSheet} loading={loading} error={error} />
 }
 
@@ -105,7 +109,7 @@ const BalanceSheet = ({
             currency={currency}
             layer={layer}
             total={
-              assets[0].balance[currency][layer][
+              assets[0].balance[currency].end[layer][
                 BALANCE_FOR_CATEGORY["Assets"].TransactionType
               ]
             }
@@ -232,7 +236,7 @@ function CategoryRow({
             <Balance
               align="end"
               currency={currency}
-              amount={category.balance[currency][layer][transactionType]}
+              amount={category.balance[currency].end[layer][transactionType]}
             />
           </TableCell>
         </TableRow>
@@ -250,7 +254,7 @@ function calculateTotalLiabilitiesAndEquity(
     categories?.reduce(
       (acc, category) =>
         acc +
-        category.balance[currency][layer][
+        category.balance[currency].end[layer][
           BALANCE_FOR_CATEGORY[category.name].TransactionType
         ],
       0,

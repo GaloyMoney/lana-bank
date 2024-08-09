@@ -12,8 +12,14 @@ import Balance, { Currency } from "@/components/balance/balance"
 import { TableCell, TableRow } from "@/components/primitive/table"
 
 gql`
-  query PnlAccountSetWithBalance($accountSetId: UUID!, $first: Int!, $after: String) {
-    accountSetWithBalance(accountSetId: $accountSetId) {
+  query PnlAccountSetWithBalance(
+    $accountSetId: UUID!
+    $first: Int!
+    $after: String
+    $from: Timestamp!
+    $until: Timestamp
+  ) {
+    accountSetWithBalance(accountSetId: $accountSetId, from: $from, until: $until) {
       id
       name
       balance {
@@ -89,7 +95,7 @@ export const Account = ({
           <Balance
             align="end"
             currency={currency}
-            amount={account.balance[currency][layer][transactionType]}
+            amount={account.balance[currency].end[layer][transactionType]}
           />
         </TableCell>
       </TableRow>
@@ -124,6 +130,7 @@ const SubAccountsForAccountSet = ({
     variables: {
       accountSetId: account.id,
       first: 10,
+      from: new Date(Date.now()),
     },
   })
 

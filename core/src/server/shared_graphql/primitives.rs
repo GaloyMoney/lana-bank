@@ -79,6 +79,11 @@ impl From<chrono::DateTime<chrono::Utc>> for Timestamp {
         Self(value)
     }
 }
+impl Timestamp {
+    pub fn into_inner(self) -> chrono::DateTime<chrono::Utc> {
+        self.0
+    }
+}
 
 #[derive(Serialize, Deserialize)]
 #[serde(transparent)]

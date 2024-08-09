@@ -1,4 +1,5 @@
 use async_graphql::{types::connection::*, *};
+use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
 use crate::{app::LavaApp, server::shared_graphql::primitives::UUID};
@@ -105,18 +106,32 @@ pub struct AccountSetAndSubAccountsWithBalance {
     id: UUID,
     name: String,
     balance: AccountBalancesByCurrency,
+    #[graphql(skip)]
+    from: DateTime<Utc>,
+    #[graphql(skip)]
+    until: Option<DateTime<Utc>>,
 }
 
-impl From<crate::ledger::account_set::LedgerAccountSetAndSubAccountsWithBalance>
-    for AccountSetAndSubAccountsWithBalance
+impl
+    From<(
+        DateTime<Utc>,
+        Option<DateTime<Utc>>,
+        crate::ledger::account_set::LedgerAccountSetAndSubAccountsWithBalance,
+    )> for AccountSetAndSubAccountsWithBalance
 {
     fn from(
-        account_set: crate::ledger::account_set::LedgerAccountSetAndSubAccountsWithBalance,
+        (from, until, account_set): (
+            DateTime<Utc>,
+            Option<DateTime<Utc>>,
+            crate::ledger::account_set::LedgerAccountSetAndSubAccountsWithBalance,
+        ),
     ) -> Self {
         AccountSetAndSubAccountsWithBalance {
             id: account_set.id.into(),
             name: account_set.name,
             balance: account_set.balance.into(),
+            from,
+            until,
         }
     }
 }
@@ -143,6 +158,8 @@ impl AccountSetAndSubAccountsWithBalance {
                     .ledger()
                     .paginated_account_set_and_sub_accounts_with_balance(
                         self.id.clone().into(),
+                        self.from,
+                        self.until,
                         crate::query::PaginatedQueryArgs {
                             first,
                             after: after
