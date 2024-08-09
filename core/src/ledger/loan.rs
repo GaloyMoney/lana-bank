@@ -23,6 +23,12 @@ impl LoanAccountIds {
     }
 }
 
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct LoanPayment {
+    pub interest: UsdCents,
+    pub principal: UsdCents,
+}
+
 pub struct LoanBalance {
     pub collateral: Satoshis,
     pub principal_receivable: UsdCents,

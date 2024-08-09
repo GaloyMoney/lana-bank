@@ -12,7 +12,6 @@ use tracing::instrument;
 
 use crate::{
     authorization::{Authorization, LedgerAction, Object},
-    loan::LoanPayment,
     primitives::{
         CustomerId, DepositId, LedgerAccountId, LedgerAccountSetId, LedgerTxId, LedgerTxTemplateId,
         LoanId, Satoshis, Subject, UsdCents, WithdrawId,

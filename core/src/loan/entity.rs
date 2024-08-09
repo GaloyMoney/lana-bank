@@ -4,18 +4,15 @@ use serde::{Deserialize, Serialize};
 
 use crate::{
     entity::*,
-    ledger::{customer::CustomerLedgerAccountIds, loan::LoanAccountIds},
+    ledger::{
+        customer::CustomerLedgerAccountIds,
+        loan::{LoanAccountIds, LoanPayment},
+    },
     primitives::*,
 };
 
 use super::error::LoanError;
 use super::terms::TermValues;
-
-#[derive(Debug, Clone, Copy, PartialEq)]
-pub struct LoanPayment {
-    pub interest: UsdCents,
-    pub principal: UsdCents,
-}
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct LoanReceivable {
