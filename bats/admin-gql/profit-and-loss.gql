@@ -1,5 +1,5 @@
-query ProfitAndLossStatement {
-  profitAndLossStatement {
+query ProfitAndLossStatement($from: Timestamp!) {
+  profitAndLossStatement(from: $from) {
     name
     balance {
       ...balancesByCurrency
@@ -32,6 +32,12 @@ query ProfitAndLossStatement {
 
 fragment balancesByCurrency on AccountBalancesByCurrency {
   usd: usd {
+    ...rangedUsdBalances
+  }
+}
+
+fragment rangedUsdBalances on RangedUsdAccountBalances {
+  balancesByLayer: end {
     ...usdBalances
   }
 }

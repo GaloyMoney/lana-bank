@@ -34,15 +34,17 @@ teardown_file() {
   variables=$(
     jq -n \
       --arg account_set_id "$user_checking_control_account_set_id" \
+      --arg from "$(from_utc)" \
     '{
       accountSetId: $account_set_id,
       first: 100,
+      from: $from,
     }'
   )
   exec_admin_graphql 'account-set-details-with-balance' "$variables"
   num_accounts_with_balance=$(graphql_output '.data.accountSetWithBalance.subAccounts.edges | length')
   first_cursor=$(graphql_output '.data.accountSetWithBalance.subAccounts.edges[0].cursor')
-  btc_balance=$(graphql_output '.data.accountSetWithBalance.subAccounts.edges[0].node.balance.btc.all.netDebit')
+  btc_balance=$(graphql_output '.data.accountSetWithBalance.subAccounts.edges[0].node.balance.btc.balancesByLayer.all.netDebit')
   [[ "$num_accounts_with_balance" -gt "0" ]] || exit 1
   [[ "$btc_balance" == "0" ]] || exit 1
 
@@ -51,10 +53,12 @@ teardown_file() {
     jq -n \
       --arg account_set_id "$user_checking_control_account_set_id" \
       --arg after "$first_cursor" \
-    '{
+      --arg from "$(from_utc)" \
+      '{
       accountSetId: $account_set_id,
       first: 100,
-      after: $after
+      after: $after,
+      from: $from,
     }'
   )
   exec_admin_graphql 'account-set-details-with-balance' "$variables"

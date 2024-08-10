@@ -299,29 +299,39 @@ sub() {
 }
 
 assert_balance_sheet_balanced() {
-  exec_admin_graphql 'balance-sheet'
+  variables=$(
+    jq -n \
+    --arg from "$(from_utc)" \
+    '{ from: $from }'
+  )
+  exec_admin_graphql 'balance-sheet' "$variables"
   echo $(graphql_output)
 
-  balance_usd=$(graphql_output '.data.balanceSheet.balance.usd.settled.netDebit')
+  balance_usd=$(graphql_output '.data.balanceSheet.balance.usd.balancesByLayer.settled.netDebit')
   balance=${balance_usd}
   [[ "$balance" == "0" ]] || exit 1
 
-  debit_usd=$(graphql_output '.data.balanceSheet.balance.usd.settled.debit')
+  debit_usd=$(graphql_output '.data.balanceSheet.balance.usd.balancesByLayer.settled.debit')
   debit=${debit_usd}
   [[ "$debit" -gt "0" ]] || exit 1
 
-  credit_usd=$(graphql_output '.data.balanceSheet.balance.usd.settled.credit')
+  credit_usd=$(graphql_output '.data.balanceSheet.balance.usd.balancesByLayer.settled.credit')
   credit=${credit_usd}
   [[ "$credit" == "$debit" ]] || exit 1
 }
 
 assert_trial_balance() {
-  exec_admin_graphql 'trial-balance'
+  variables=$(
+    jq -n \
+    --arg from "$(from_utc)" \
+    '{ from: $from }'
+  )
+  exec_admin_graphql 'trial-balance' "$variables"
 
-  all_btc=$(graphql_output '.data.trialBalance.balance.btc.all.netDebit')
+  all_btc=$(graphql_output '.data.trialBalance.balance.btc.balancesByLayer.all.netDebit')
   [[ "$all_btc" == "0" ]] || exit 1
 
-  all_usd=$(graphql_output '.data.trialBalance.balance.usd.all.netDebit')
+  all_usd=$(graphql_output '.data.trialBalance.balance.usd.balancesByLayer.all.netDebit')
   [[ "$all_usd" == "0" ]] || exit 1
 }
 
@@ -331,8 +341,17 @@ assert_accounts_balanced() {
 }
 
 net_usd_revenue() {
-  exec_admin_graphql 'profit-and-loss'
+  variables=$(
+    jq -n \
+    --arg from "$(from_utc)" \
+    '{ from: $from }'
+  )
+  exec_admin_graphql 'profit-and-loss' "$variables"
 
-  revenue_usd=$(graphql_output '.data.profitAndLossStatement.balance.usd.all.netCredit')
+  revenue_usd=$(graphql_output '.data.profitAndLossStatement.balance.usd.balancesByLayer.all.netCredit')
   echo $revenue_usd
+}
+
+from_utc() {
+  date -u -d @0 +"%Y-%m-%dT%H:%M:%S.%3NZ"
 }

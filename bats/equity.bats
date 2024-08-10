@@ -11,14 +11,19 @@ teardown_file() {
 }
 
 @test "equity: can add usd equity" {
-  exec_admin_graphql 'balance-sheet'
+  variables=$(
+    jq -n \
+    --arg from "$(from_utc)" \
+    '{ from: $from }'
+  )
+  exec_admin_graphql 'balance-sheet' "$variables"
   assets_usd_before=$(graphql_output \
     --arg category_name "Assets" \
-    '.data.balanceSheet.categories[] | select(.name == $category_name) .balance.usd.settled.netDebit'
+    '.data.balanceSheet.categories[] | select(.name == $category_name) .balance.usd.balancesByLayer.settled.netDebit'
   )
   equity_usd_before=$(graphql_output \
     --arg category_name "Equity" \
-    '.data.balanceSheet.categories[] | select(.name == $category_name) .balance.usd.settled.netDebit'
+    '.data.balanceSheet.categories[] | select(.name == $category_name) .balance.usd.balancesByLayer.settled.netDebit'
   )
 
 
@@ -36,14 +41,19 @@ teardown_file() {
 
   assert_accounts_balanced
 
-  exec_admin_graphql 'balance-sheet'
+  variables=$(
+    jq -n \
+    --arg from "$(from_utc)" \
+    '{ from: $from }'
+  )
+  exec_admin_graphql 'balance-sheet' "$variables"
   assets_usd=$(graphql_output \
     --arg category_name "Assets" \
-    '.data.balanceSheet.categories[] | select(.name == $category_name) .balance.usd.settled.netDebit'
+    '.data.balanceSheet.categories[] | select(.name == $category_name) .balance.usd.balancesByLayer.settled.netDebit'
   )
   equity_usd=$(graphql_output \
     --arg category_name "Equity" \
-    '.data.balanceSheet.categories[] | select(.name == $category_name) .balance.usd.settled.netDebit'
+    '.data.balanceSheet.categories[] | select(.name == $category_name) .balance.usd.balancesByLayer.settled.netDebit'
   )
   [[ "$assets_usd" -gt "$assets_usd_before" ]] || exit 1
   [[ "$equity_usd" -lt "$equity_usd_before" ]] || exit 1

@@ -1,5 +1,5 @@
-query BalanceSheet {
-  balanceSheet {
+query BalanceSheet($from: Timestamp!) {
+  balanceSheet(from: $from) {
     name
     balance {
       ...balancesByCurrency
@@ -31,6 +31,12 @@ query BalanceSheet {
 
 fragment balancesByCurrency on AccountBalancesByCurrency {
   usd: usd {
+    ...rangedUsdBalances
+  }
+}
+
+fragment rangedUsdBalances on RangedUsdAccountBalances {
+  balancesByLayer: end {
     ...usdBalances
   }
 }

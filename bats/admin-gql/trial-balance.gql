@@ -1,5 +1,5 @@
-query TrialBalance {
-  trialBalance {
+query TrialBalance($from: Timestamp!) {
+  trialBalance(from: $from) {
     name
     balance {
       ...balancesByCurrency
@@ -23,9 +23,21 @@ query TrialBalance {
 
 fragment balancesByCurrency on AccountBalancesByCurrency {
   btc: btc {
-    ...btcBalances
+    ...rangedBtcBalances
   }
   usd: usd {
+    ...rangedUsdBalances
+  }
+}
+
+fragment rangedBtcBalances on RangedBtcAccountBalances {
+  balancesByLayer: end {
+    ...btcBalances
+  }
+}
+
+fragment rangedUsdBalances on RangedUsdAccountBalances {
+  balancesByLayer: end {
     ...usdBalances
   }
 }

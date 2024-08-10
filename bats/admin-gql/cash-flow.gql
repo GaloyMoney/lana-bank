@@ -1,5 +1,5 @@
-query CashFlowStatement {
-  cashFlowStatement {
+query CashFlowStatement($from: Timestamp!) {
+  cashFlowStatement(from: $from) {
     name
     balance {
       ...balancesByCurrency
@@ -32,6 +32,12 @@ query CashFlowStatement {
 
 fragment balancesByCurrency on AccountBalancesByCurrency {
   usd: usd {
+    ...rangedUsdBalances
+  }
+}
+
+fragment rangedUsdBalances on RangedUsdAccountBalances {
+  balancesByLayer: end {
     ...usdBalances
   }
 }

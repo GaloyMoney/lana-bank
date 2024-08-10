@@ -1,5 +1,10 @@
-query AccountSet($accountSetId: UUID!, $first: Int!, $after: String) {
-  accountSetWithBalance(accountSetId: $accountSetId) {
+query AccountSet(
+  $accountSetId: UUID!
+  $first: Int!
+  $after: String
+  $from: Timestamp!
+) {
+  accountSetWithBalance(accountSetId: $accountSetId, from: $from) {
     id
     name
     balance {
@@ -35,9 +40,21 @@ query AccountSet($accountSetId: UUID!, $first: Int!, $after: String) {
 
 fragment balancesByCurrency on AccountBalancesByCurrency {
   btc: btc {
-    ...btcBalances
+    ...rangedBtcBalances
   }
   usd: usd {
+    ...rangedUsdBalances
+  }
+}
+
+fragment rangedBtcBalances on RangedBtcAccountBalances {
+  balancesByLayer: end {
+    ...btcBalances
+  }
+}
+
+fragment rangedUsdBalances on RangedUsdAccountBalances {
+  balancesByLayer: end {
     ...usdBalances
   }
 }
