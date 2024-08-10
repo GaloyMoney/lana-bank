@@ -27,66 +27,66 @@ export type Scalars = {
   UsdCents: { input: any; output: any; }
 };
 
-export type AccountBalancesByCurrency = {
-  __typename?: 'AccountBalancesByCurrency';
-  btc: RangedBtcAccountBalances;
-  usd: RangedUsdAccountBalances;
-};
-
-export type AccountSetAndSubAccountsWithBalance = {
-  __typename?: 'AccountSetAndSubAccountsWithBalance';
-  balance: AccountBalancesByCurrency;
+export type Account = {
+  __typename?: 'Account';
+  balance: AccountAmountsByCurrency;
   id: Scalars['UUID']['output'];
   name: Scalars['String']['output'];
-  subAccounts: AccountSetSubAccountWithBalanceConnection;
+};
+
+export type AccountAmountsByCurrency = {
+  __typename?: 'AccountAmountsByCurrency';
+  btc: BtcAccountAmountsInPeriod;
+  usd: UsdAccountAmountsInPeriod;
+};
+
+export type AccountSet = {
+  __typename?: 'AccountSet';
+  balance: AccountAmountsByCurrency;
+  hasSubAccounts: Scalars['Boolean']['output'];
+  id: Scalars['UUID']['output'];
+  name: Scalars['String']['output'];
+};
+
+export type AccountSetAndSubAccounts = {
+  __typename?: 'AccountSetAndSubAccounts';
+  balance: AccountAmountsByCurrency;
+  id: Scalars['UUID']['output'];
+  name: Scalars['String']['output'];
+  subAccounts: AccountSetSubAccountConnection;
 };
 
 
-export type AccountSetAndSubAccountsWithBalanceSubAccountsArgs = {
+export type AccountSetAndSubAccountsSubAccountsArgs = {
   after?: InputMaybe<Scalars['String']['input']>;
   first: Scalars['Int']['input'];
 };
 
-export type AccountSetSubAccountWithBalance = AccountSetWithBalance | AccountWithBalance;
+export type AccountSetSubAccount = Account | AccountSet;
 
-export type AccountSetSubAccountWithBalanceConnection = {
-  __typename?: 'AccountSetSubAccountWithBalanceConnection';
+export type AccountSetSubAccountConnection = {
+  __typename?: 'AccountSetSubAccountConnection';
   /** A list of edges. */
-  edges: Array<AccountSetSubAccountWithBalanceEdge>;
+  edges: Array<AccountSetSubAccountEdge>;
   /** A list of nodes. */
-  nodes: Array<AccountSetSubAccountWithBalance>;
+  nodes: Array<AccountSetSubAccount>;
   /** Information to aid in pagination. */
   pageInfo: PageInfo;
 };
 
 /** An edge in a connection. */
-export type AccountSetSubAccountWithBalanceEdge = {
-  __typename?: 'AccountSetSubAccountWithBalanceEdge';
+export type AccountSetSubAccountEdge = {
+  __typename?: 'AccountSetSubAccountEdge';
   /** A cursor for use in pagination */
   cursor: Scalars['String']['output'];
   /** The item at the end of the edge */
-  node: AccountSetSubAccountWithBalance;
-};
-
-export type AccountSetWithBalance = {
-  __typename?: 'AccountSetWithBalance';
-  balance: AccountBalancesByCurrency;
-  hasSubAccounts: Scalars['Boolean']['output'];
-  id: Scalars['UUID']['output'];
-  name: Scalars['String']['output'];
+  node: AccountSetSubAccount;
 };
 
 export enum AccountStatus {
   Active = 'ACTIVE',
   Inactive = 'INACTIVE'
 }
-
-export type AccountWithBalance = {
-  __typename?: 'AccountWithBalance';
-  balance: AccountBalancesByCurrency;
-  id: Scalars['UUID']['output'];
-  name: Scalars['String']['output'];
-};
 
 export type AuditEntry = {
   __typename?: 'AuditEntry';
@@ -119,36 +119,43 @@ export type AuditEntryEdge = {
 
 export type BalanceSheet = {
   __typename?: 'BalanceSheet';
-  balance: AccountBalancesByCurrency;
-  categories: Array<StatementCategoryWithBalance>;
+  balance: AccountAmountsByCurrency;
+  categories: Array<StatementCategory>;
   name: Scalars['String']['output'];
 };
 
-export type BtcAccountBalance = {
-  __typename?: 'BtcAccountBalance';
+export type BtcAccountAmounts = {
+  __typename?: 'BtcAccountAmounts';
   credit: Scalars['Satoshis']['output'];
   debit: Scalars['Satoshis']['output'];
   netCredit: Scalars['SignedSatoshis']['output'];
   netDebit: Scalars['SignedSatoshis']['output'];
 };
 
+export type BtcAccountAmountsInPeriod = {
+  __typename?: 'BtcAccountAmountsInPeriod';
+  amount: LayeredBtcAccountAmounts;
+  closingBalance: LayeredBtcAccountAmounts;
+  openingBalance: LayeredBtcAccountAmounts;
+};
+
 export type CashFlowStatement = {
   __typename?: 'CashFlowStatement';
-  balance: AccountBalancesByCurrency;
-  categories: Array<StatementCategoryWithBalance>;
+  balance: AccountAmountsByCurrency;
+  categories: Array<StatementCategory>;
   name: Scalars['String']['output'];
 };
 
 export type ChartOfAccounts = {
   __typename?: 'ChartOfAccounts';
-  categories: Array<StatementCategoryWithBalance>;
+  categories: Array<StatementCategory>;
   name: Scalars['String']['output'];
 };
 
 export type Checking = {
   __typename?: 'Checking';
-  pending: UsdBalance;
-  settled: UsdBalance;
+  pending: UsdAmount;
+  settled: UsdAmount;
 };
 
 export type Collateral = {
@@ -280,20 +287,20 @@ export enum KycLevel {
   Zero = 'ZERO'
 }
 
-export type LayeredBtcAccountBalances = {
-  __typename?: 'LayeredBtcAccountBalances';
-  all: BtcAccountBalance;
-  encumbrance: BtcAccountBalance;
-  pending: BtcAccountBalance;
-  settled: BtcAccountBalance;
+export type LayeredBtcAccountAmounts = {
+  __typename?: 'LayeredBtcAccountAmounts';
+  all: BtcAccountAmounts;
+  encumbrance: BtcAccountAmounts;
+  pending: BtcAccountAmounts;
+  settled: BtcAccountAmounts;
 };
 
-export type LayeredUsdAccountBalances = {
-  __typename?: 'LayeredUsdAccountBalances';
-  all: UsdAccountBalance;
-  encumbrance: UsdAccountBalance;
-  pending: UsdAccountBalance;
-  settled: UsdAccountBalance;
+export type LayeredUsdAccountAmounts = {
+  __typename?: 'LayeredUsdAccountAmounts';
+  all: UsdAccountAmounts;
+  encumbrance: UsdAccountAmounts;
+  pending: UsdAccountAmounts;
+  settled: UsdAccountAmounts;
 };
 
 export type Loan = {
@@ -482,14 +489,14 @@ export enum Period {
 
 export type ProfitAndLossStatement = {
   __typename?: 'ProfitAndLossStatement';
-  balance: AccountBalancesByCurrency;
-  categories: Array<StatementCategoryWithBalance>;
+  balance: AccountAmountsByCurrency;
+  categories: Array<StatementCategory>;
   name: Scalars['String']['output'];
 };
 
 export type Query = {
   __typename?: 'Query';
-  accountSetWithBalance?: Maybe<AccountSetAndSubAccountsWithBalance>;
+  accountSet?: Maybe<AccountSetAndSubAccounts>;
   audit: AuditEntryConnection;
   balanceSheet?: Maybe<BalanceSheet>;
   cashFlowStatement?: Maybe<CashFlowStatement>;
@@ -514,7 +521,7 @@ export type Query = {
 };
 
 
-export type QueryAccountSetWithBalanceArgs = {
+export type QueryAccountSetArgs = {
   accountSetId: Scalars['UUID']['input'];
   from: Scalars['Timestamp']['input'];
   until?: InputMaybe<Scalars['Timestamp']['input']>;
@@ -610,20 +617,6 @@ export type QueryWithdrawalsArgs = {
   first: Scalars['Int']['input'];
 };
 
-export type RangedBtcAccountBalances = {
-  __typename?: 'RangedBtcAccountBalances';
-  diff: LayeredBtcAccountBalances;
-  end: LayeredBtcAccountBalances;
-  start: LayeredBtcAccountBalances;
-};
-
-export type RangedUsdAccountBalances = {
-  __typename?: 'RangedUsdAccountBalances';
-  diff: LayeredUsdAccountBalances;
-  end: LayeredUsdAccountBalances;
-  start: LayeredUsdAccountBalances;
-};
-
 export enum Role {
   Admin = 'ADMIN',
   BankManager = 'BANK_MANAGER',
@@ -635,10 +628,10 @@ export type ShareholderEquityAddInput = {
   reference: Scalars['String']['input'];
 };
 
-export type StatementCategoryWithBalance = {
-  __typename?: 'StatementCategoryWithBalance';
-  accounts: Array<AccountSetSubAccountWithBalance>;
-  balance: AccountBalancesByCurrency;
+export type StatementCategory = {
+  __typename?: 'StatementCategory';
+  accounts: Array<AccountSetSubAccount>;
+  balance: AccountAmountsByCurrency;
   name: Scalars['String']['output'];
 };
 
@@ -691,22 +684,29 @@ export type TermsInput = {
 
 export type TrialBalance = {
   __typename?: 'TrialBalance';
-  balance: AccountBalancesByCurrency;
+  balance: AccountAmountsByCurrency;
   name: Scalars['String']['output'];
-  subAccounts: Array<AccountSetSubAccountWithBalance>;
+  subAccounts: Array<AccountSetSubAccount>;
 };
 
-export type UsdAccountBalance = {
-  __typename?: 'UsdAccountBalance';
+export type UsdAccountAmounts = {
+  __typename?: 'UsdAccountAmounts';
   credit: Scalars['UsdCents']['output'];
   debit: Scalars['UsdCents']['output'];
   netCredit: Scalars['SignedUsdCents']['output'];
   netDebit: Scalars['SignedUsdCents']['output'];
 };
 
-export type UsdBalance = {
-  __typename?: 'UsdBalance';
-  usdBalance: Scalars['UsdCents']['output'];
+export type UsdAccountAmountsInPeriod = {
+  __typename?: 'UsdAccountAmountsInPeriod';
+  amount: LayeredUsdAccountAmounts;
+  closingBalance: LayeredUsdAccountAmounts;
+  openingBalance: LayeredUsdAccountAmounts;
+};
+
+export type UsdAmount = {
+  __typename?: 'UsdAmount';
+  amount: Scalars['UsdCents']['output'];
 };
 
 export type User = {
@@ -822,7 +822,7 @@ export type BalanceSheetQueryVariables = Exact<{
 }>;
 
 
-export type BalanceSheetQuery = { __typename?: 'Query', balanceSheet?: { __typename?: 'BalanceSheet', name: string, balance: { __typename?: 'AccountBalancesByCurrency', btc: { __typename?: 'RangedBtcAccountBalances', start: { __typename?: 'LayeredBtcAccountBalances', all: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any } }, end: { __typename?: 'LayeredBtcAccountBalances', all: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any } }, diff: { __typename?: 'LayeredBtcAccountBalances', all: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any } } }, usd: { __typename?: 'RangedUsdAccountBalances', start: { __typename?: 'LayeredUsdAccountBalances', all: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any } }, end: { __typename?: 'LayeredUsdAccountBalances', all: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any } }, diff: { __typename?: 'LayeredUsdAccountBalances', all: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any } } } }, categories: Array<{ __typename?: 'StatementCategoryWithBalance', name: string, balance: { __typename?: 'AccountBalancesByCurrency', btc: { __typename?: 'RangedBtcAccountBalances', start: { __typename?: 'LayeredBtcAccountBalances', all: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any } }, end: { __typename?: 'LayeredBtcAccountBalances', all: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any } }, diff: { __typename?: 'LayeredBtcAccountBalances', all: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any } } }, usd: { __typename?: 'RangedUsdAccountBalances', start: { __typename?: 'LayeredUsdAccountBalances', all: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any } }, end: { __typename?: 'LayeredUsdAccountBalances', all: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any } }, diff: { __typename?: 'LayeredUsdAccountBalances', all: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any } } } }, accounts: Array<{ __typename: 'AccountSetWithBalance', id: string, name: string, hasSubAccounts: boolean, balance: { __typename?: 'AccountBalancesByCurrency', btc: { __typename?: 'RangedBtcAccountBalances', start: { __typename?: 'LayeredBtcAccountBalances', all: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any } }, end: { __typename?: 'LayeredBtcAccountBalances', all: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any } }, diff: { __typename?: 'LayeredBtcAccountBalances', all: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any } } }, usd: { __typename?: 'RangedUsdAccountBalances', start: { __typename?: 'LayeredUsdAccountBalances', all: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any } }, end: { __typename?: 'LayeredUsdAccountBalances', all: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any } }, diff: { __typename?: 'LayeredUsdAccountBalances', all: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any } } } } } | { __typename: 'AccountWithBalance', id: string, name: string, balance: { __typename?: 'AccountBalancesByCurrency', btc: { __typename?: 'RangedBtcAccountBalances', start: { __typename?: 'LayeredBtcAccountBalances', all: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any } }, end: { __typename?: 'LayeredBtcAccountBalances', all: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any } }, diff: { __typename?: 'LayeredBtcAccountBalances', all: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any } } }, usd: { __typename?: 'RangedUsdAccountBalances', start: { __typename?: 'LayeredUsdAccountBalances', all: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any } }, end: { __typename?: 'LayeredUsdAccountBalances', all: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any } }, diff: { __typename?: 'LayeredUsdAccountBalances', all: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any } } } } }> }> } | null };
+export type BalanceSheetQuery = { __typename?: 'Query', balanceSheet?: { __typename?: 'BalanceSheet', name: string, balance: { __typename?: 'AccountAmountsByCurrency', btc: { __typename?: 'BtcAccountAmountsInPeriod', openingBalance: { __typename?: 'LayeredBtcAccountAmounts', all: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } }, closingBalance: { __typename?: 'LayeredBtcAccountAmounts', all: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } }, amount: { __typename?: 'LayeredBtcAccountAmounts', all: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } } }, usd: { __typename?: 'UsdAccountAmountsInPeriod', openingBalance: { __typename?: 'LayeredUsdAccountAmounts', all: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } }, closingBalance: { __typename?: 'LayeredUsdAccountAmounts', all: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } }, amount: { __typename?: 'LayeredUsdAccountAmounts', all: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } } } }, categories: Array<{ __typename?: 'StatementCategory', name: string, balance: { __typename?: 'AccountAmountsByCurrency', btc: { __typename?: 'BtcAccountAmountsInPeriod', openingBalance: { __typename?: 'LayeredBtcAccountAmounts', all: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } }, closingBalance: { __typename?: 'LayeredBtcAccountAmounts', all: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } }, amount: { __typename?: 'LayeredBtcAccountAmounts', all: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } } }, usd: { __typename?: 'UsdAccountAmountsInPeriod', openingBalance: { __typename?: 'LayeredUsdAccountAmounts', all: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } }, closingBalance: { __typename?: 'LayeredUsdAccountAmounts', all: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } }, amount: { __typename?: 'LayeredUsdAccountAmounts', all: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } } } }, accounts: Array<{ __typename: 'Account', id: string, name: string, balance: { __typename?: 'AccountAmountsByCurrency', btc: { __typename?: 'BtcAccountAmountsInPeriod', openingBalance: { __typename?: 'LayeredBtcAccountAmounts', all: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } }, closingBalance: { __typename?: 'LayeredBtcAccountAmounts', all: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } }, amount: { __typename?: 'LayeredBtcAccountAmounts', all: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } } }, usd: { __typename?: 'UsdAccountAmountsInPeriod', openingBalance: { __typename?: 'LayeredUsdAccountAmounts', all: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } }, closingBalance: { __typename?: 'LayeredUsdAccountAmounts', all: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } }, amount: { __typename?: 'LayeredUsdAccountAmounts', all: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } } } } } | { __typename: 'AccountSet', id: string, name: string, hasSubAccounts: boolean, balance: { __typename?: 'AccountAmountsByCurrency', btc: { __typename?: 'BtcAccountAmountsInPeriod', openingBalance: { __typename?: 'LayeredBtcAccountAmounts', all: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } }, closingBalance: { __typename?: 'LayeredBtcAccountAmounts', all: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } }, amount: { __typename?: 'LayeredBtcAccountAmounts', all: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } } }, usd: { __typename?: 'UsdAccountAmountsInPeriod', openingBalance: { __typename?: 'LayeredUsdAccountAmounts', all: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } }, closingBalance: { __typename?: 'LayeredUsdAccountAmounts', all: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } }, amount: { __typename?: 'LayeredUsdAccountAmounts', all: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } } } } }> }> } | null };
 
 export type ChartOfAccountsAccountSetQueryVariables = Exact<{
   accountSetId: Scalars['UUID']['input'];
@@ -833,17 +833,17 @@ export type ChartOfAccountsAccountSetQueryVariables = Exact<{
 }>;
 
 
-export type ChartOfAccountsAccountSetQuery = { __typename?: 'Query', accountSetWithBalance?: { __typename?: 'AccountSetAndSubAccountsWithBalance', id: string, name: string, subAccounts: { __typename?: 'AccountSetSubAccountWithBalanceConnection', edges: Array<{ __typename?: 'AccountSetSubAccountWithBalanceEdge', cursor: string, node: { __typename: 'AccountSetWithBalance', id: string, name: string, hasSubAccounts: boolean } | { __typename: 'AccountWithBalance', id: string, name: string } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean } } } | null };
+export type ChartOfAccountsAccountSetQuery = { __typename?: 'Query', accountSet?: { __typename?: 'AccountSetAndSubAccounts', id: string, name: string, subAccounts: { __typename?: 'AccountSetSubAccountConnection', edges: Array<{ __typename?: 'AccountSetSubAccountEdge', cursor: string, node: { __typename: 'Account', id: string, name: string } | { __typename: 'AccountSet', id: string, name: string, hasSubAccounts: boolean } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean } } } | null };
 
 export type GetOnBalanceSheetChartOfAccountsQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type GetOnBalanceSheetChartOfAccountsQuery = { __typename?: 'Query', chartOfAccounts?: { __typename?: 'ChartOfAccounts', name: string, categories: Array<{ __typename?: 'StatementCategoryWithBalance', name: string, accounts: Array<{ __typename: 'AccountSetWithBalance', id: string, name: string, hasSubAccounts: boolean } | { __typename: 'AccountWithBalance', id: string, name: string }> }> } | null };
+export type GetOnBalanceSheetChartOfAccountsQuery = { __typename?: 'Query', chartOfAccounts?: { __typename?: 'ChartOfAccounts', name: string, categories: Array<{ __typename?: 'StatementCategory', name: string, accounts: Array<{ __typename: 'Account', id: string, name: string } | { __typename: 'AccountSet', id: string, name: string, hasSubAccounts: boolean }> }> } | null };
 
 export type GetOffBalanceSheetChartOfAccountsQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type GetOffBalanceSheetChartOfAccountsQuery = { __typename?: 'Query', offBalanceSheetChartOfAccounts?: { __typename?: 'ChartOfAccounts', name: string, categories: Array<{ __typename?: 'StatementCategoryWithBalance', name: string, accounts: Array<{ __typename: 'AccountSetWithBalance', id: string, name: string, hasSubAccounts: boolean } | { __typename: 'AccountWithBalance', id: string, name: string }> }> } | null };
+export type GetOffBalanceSheetChartOfAccountsQuery = { __typename?: 'Query', offBalanceSheetChartOfAccounts?: { __typename?: 'ChartOfAccounts', name: string, categories: Array<{ __typename?: 'StatementCategory', name: string, accounts: Array<{ __typename: 'Account', id: string, name: string } | { __typename: 'AccountSet', id: string, name: string, hasSubAccounts: boolean }> }> } | null };
 
 export type GetDepositsForCustomerQueryVariables = Exact<{
   id: Scalars['UUID']['input'];
@@ -871,7 +871,14 @@ export type GetCustomerByCustomerEmailQueryVariables = Exact<{
 }>;
 
 
-export type GetCustomerByCustomerEmailQuery = { __typename?: 'Query', customerByEmail?: { __typename?: 'Customer', customerId: string, email: string, status: AccountStatus, level: KycLevel, applicantId?: string | null, balance: { __typename?: 'CustomerBalance', checking: { __typename?: 'Checking', settled: { __typename?: 'UsdBalance', usdBalance: any }, pending: { __typename?: 'UsdBalance', usdBalance: any } } } } | null };
+export type GetCustomerByCustomerEmailQuery = { __typename?: 'Query', customerByEmail?: { __typename?: 'Customer', customerId: string, email: string, status: AccountStatus, level: KycLevel, applicantId?: string | null, balance: { __typename?: 'CustomerBalance', checking: { __typename?: 'Checking', settled: { __typename?: 'UsdAmount', amount: any }, pending: { __typename?: 'UsdAmount', amount: any } } } } | null };
+
+export type GetCustomerByCustomerIdQueryVariables = Exact<{
+  id: Scalars['UUID']['input'];
+}>;
+
+
+export type GetCustomerByCustomerIdQuery = { __typename?: 'Query', customer?: { __typename?: 'Customer', customerId: string, email: string, status: AccountStatus, level: KycLevel, applicantId?: string | null, balance: { __typename?: 'CustomerBalance', checking: { __typename?: 'Checking', settled: { __typename?: 'UsdAmount', amount: any }, pending: { __typename?: 'UsdAmount', amount: any } } } } | null };
 
 export type DepositsQueryVariables = Exact<{
   first: Scalars['Int']['input'];
@@ -896,7 +903,7 @@ export type LoansQueryVariables = Exact<{
 
 export type LoansQuery = { __typename?: 'Query', loans: { __typename?: 'LoanConnection', edges: Array<{ __typename?: 'LoanEdge', cursor: string, node: { __typename?: 'Loan', loanId: string, status: LoanStatus, createdAt: any, customer: { __typename?: 'Customer', customerId: string, email: string }, balance: { __typename?: 'LoanBalance', outstanding: { __typename?: 'LoanOutstanding', usdBalance: any }, interestIncurred: { __typename?: 'InterestIncome', usdBalance: any } } } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, hasNextPage: boolean } } };
 
-export type PnlAccountSetWithBalanceQueryVariables = Exact<{
+export type PnlAccountSetQueryVariables = Exact<{
   accountSetId: Scalars['UUID']['input'];
   first: Scalars['Int']['input'];
   after?: InputMaybe<Scalars['String']['input']>;
@@ -905,7 +912,7 @@ export type PnlAccountSetWithBalanceQueryVariables = Exact<{
 }>;
 
 
-export type PnlAccountSetWithBalanceQuery = { __typename?: 'Query', accountSetWithBalance?: { __typename?: 'AccountSetAndSubAccountsWithBalance', id: string, name: string, balance: { __typename?: 'AccountBalancesByCurrency', btc: { __typename?: 'RangedBtcAccountBalances', start: { __typename?: 'LayeredBtcAccountBalances', all: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any } }, end: { __typename?: 'LayeredBtcAccountBalances', all: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any } }, diff: { __typename?: 'LayeredBtcAccountBalances', all: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any } } }, usd: { __typename?: 'RangedUsdAccountBalances', start: { __typename?: 'LayeredUsdAccountBalances', all: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any } }, end: { __typename?: 'LayeredUsdAccountBalances', all: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any } }, diff: { __typename?: 'LayeredUsdAccountBalances', all: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any } } } }, subAccounts: { __typename?: 'AccountSetSubAccountWithBalanceConnection', edges: Array<{ __typename?: 'AccountSetSubAccountWithBalanceEdge', cursor: string, node: { __typename: 'AccountSetWithBalance', id: string, name: string, hasSubAccounts: boolean, balance: { __typename?: 'AccountBalancesByCurrency', btc: { __typename?: 'RangedBtcAccountBalances', start: { __typename?: 'LayeredBtcAccountBalances', all: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any } }, end: { __typename?: 'LayeredBtcAccountBalances', all: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any } }, diff: { __typename?: 'LayeredBtcAccountBalances', all: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any } } }, usd: { __typename?: 'RangedUsdAccountBalances', start: { __typename?: 'LayeredUsdAccountBalances', all: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any } }, end: { __typename?: 'LayeredUsdAccountBalances', all: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any } }, diff: { __typename?: 'LayeredUsdAccountBalances', all: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any } } } } } | { __typename: 'AccountWithBalance', id: string, name: string, balance: { __typename?: 'AccountBalancesByCurrency', btc: { __typename?: 'RangedBtcAccountBalances', start: { __typename?: 'LayeredBtcAccountBalances', all: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any } }, end: { __typename?: 'LayeredBtcAccountBalances', all: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any } }, diff: { __typename?: 'LayeredBtcAccountBalances', all: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any } } }, usd: { __typename?: 'RangedUsdAccountBalances', start: { __typename?: 'LayeredUsdAccountBalances', all: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any } }, end: { __typename?: 'LayeredUsdAccountBalances', all: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any } }, diff: { __typename?: 'LayeredUsdAccountBalances', all: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any } } } } } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean } } } | null };
+export type PnlAccountSetQuery = { __typename?: 'Query', accountSet?: { __typename?: 'AccountSetAndSubAccounts', id: string, name: string, balance: { __typename?: 'AccountAmountsByCurrency', btc: { __typename?: 'BtcAccountAmountsInPeriod', openingBalance: { __typename?: 'LayeredBtcAccountAmounts', all: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } }, closingBalance: { __typename?: 'LayeredBtcAccountAmounts', all: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } }, amount: { __typename?: 'LayeredBtcAccountAmounts', all: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } } }, usd: { __typename?: 'UsdAccountAmountsInPeriod', openingBalance: { __typename?: 'LayeredUsdAccountAmounts', all: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } }, closingBalance: { __typename?: 'LayeredUsdAccountAmounts', all: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } }, amount: { __typename?: 'LayeredUsdAccountAmounts', all: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } } } }, subAccounts: { __typename?: 'AccountSetSubAccountConnection', edges: Array<{ __typename?: 'AccountSetSubAccountEdge', cursor: string, node: { __typename: 'Account', id: string, name: string, balance: { __typename?: 'AccountAmountsByCurrency', btc: { __typename?: 'BtcAccountAmountsInPeriod', openingBalance: { __typename?: 'LayeredBtcAccountAmounts', all: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } }, closingBalance: { __typename?: 'LayeredBtcAccountAmounts', all: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } }, amount: { __typename?: 'LayeredBtcAccountAmounts', all: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } } }, usd: { __typename?: 'UsdAccountAmountsInPeriod', openingBalance: { __typename?: 'LayeredUsdAccountAmounts', all: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } }, closingBalance: { __typename?: 'LayeredUsdAccountAmounts', all: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } }, amount: { __typename?: 'LayeredUsdAccountAmounts', all: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } } } } } | { __typename: 'AccountSet', id: string, name: string, hasSubAccounts: boolean, balance: { __typename?: 'AccountAmountsByCurrency', btc: { __typename?: 'BtcAccountAmountsInPeriod', openingBalance: { __typename?: 'LayeredBtcAccountAmounts', all: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } }, closingBalance: { __typename?: 'LayeredBtcAccountAmounts', all: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } }, amount: { __typename?: 'LayeredBtcAccountAmounts', all: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } } }, usd: { __typename?: 'UsdAccountAmountsInPeriod', openingBalance: { __typename?: 'LayeredUsdAccountAmounts', all: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } }, closingBalance: { __typename?: 'LayeredUsdAccountAmounts', all: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } }, amount: { __typename?: 'LayeredUsdAccountAmounts', all: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } } } } } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean } } } | null };
 
 export type ProfitAndLossStatementQueryVariables = Exact<{
   from: Scalars['Timestamp']['input'];
@@ -913,7 +920,7 @@ export type ProfitAndLossStatementQueryVariables = Exact<{
 }>;
 
 
-export type ProfitAndLossStatementQuery = { __typename?: 'Query', profitAndLossStatement?: { __typename?: 'ProfitAndLossStatement', name: string, balance: { __typename?: 'AccountBalancesByCurrency', btc: { __typename?: 'RangedBtcAccountBalances', start: { __typename?: 'LayeredBtcAccountBalances', all: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any } }, end: { __typename?: 'LayeredBtcAccountBalances', all: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any } }, diff: { __typename?: 'LayeredBtcAccountBalances', all: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any } } }, usd: { __typename?: 'RangedUsdAccountBalances', start: { __typename?: 'LayeredUsdAccountBalances', all: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any } }, end: { __typename?: 'LayeredUsdAccountBalances', all: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any } }, diff: { __typename?: 'LayeredUsdAccountBalances', all: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any } } } }, categories: Array<{ __typename?: 'StatementCategoryWithBalance', name: string, balance: { __typename?: 'AccountBalancesByCurrency', btc: { __typename?: 'RangedBtcAccountBalances', start: { __typename?: 'LayeredBtcAccountBalances', all: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any } }, end: { __typename?: 'LayeredBtcAccountBalances', all: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any } }, diff: { __typename?: 'LayeredBtcAccountBalances', all: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any } } }, usd: { __typename?: 'RangedUsdAccountBalances', start: { __typename?: 'LayeredUsdAccountBalances', all: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any } }, end: { __typename?: 'LayeredUsdAccountBalances', all: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any } }, diff: { __typename?: 'LayeredUsdAccountBalances', all: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any } } } }, accounts: Array<{ __typename: 'AccountSetWithBalance', id: string, name: string, hasSubAccounts: boolean, balance: { __typename?: 'AccountBalancesByCurrency', btc: { __typename?: 'RangedBtcAccountBalances', start: { __typename?: 'LayeredBtcAccountBalances', all: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any } }, end: { __typename?: 'LayeredBtcAccountBalances', all: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any } }, diff: { __typename?: 'LayeredBtcAccountBalances', all: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any } } }, usd: { __typename?: 'RangedUsdAccountBalances', start: { __typename?: 'LayeredUsdAccountBalances', all: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any } }, end: { __typename?: 'LayeredUsdAccountBalances', all: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any } }, diff: { __typename?: 'LayeredUsdAccountBalances', all: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any } } } } } | { __typename: 'AccountWithBalance', id: string, name: string, balance: { __typename?: 'AccountBalancesByCurrency', btc: { __typename?: 'RangedBtcAccountBalances', start: { __typename?: 'LayeredBtcAccountBalances', all: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any } }, end: { __typename?: 'LayeredBtcAccountBalances', all: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any } }, diff: { __typename?: 'LayeredBtcAccountBalances', all: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any } } }, usd: { __typename?: 'RangedUsdAccountBalances', start: { __typename?: 'LayeredUsdAccountBalances', all: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any } }, end: { __typename?: 'LayeredUsdAccountBalances', all: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any } }, diff: { __typename?: 'LayeredUsdAccountBalances', all: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any } } } } }> }> } | null };
+export type ProfitAndLossStatementQuery = { __typename?: 'Query', profitAndLossStatement?: { __typename?: 'ProfitAndLossStatement', name: string, balance: { __typename?: 'AccountAmountsByCurrency', btc: { __typename?: 'BtcAccountAmountsInPeriod', openingBalance: { __typename?: 'LayeredBtcAccountAmounts', all: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } }, closingBalance: { __typename?: 'LayeredBtcAccountAmounts', all: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } }, amount: { __typename?: 'LayeredBtcAccountAmounts', all: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } } }, usd: { __typename?: 'UsdAccountAmountsInPeriod', openingBalance: { __typename?: 'LayeredUsdAccountAmounts', all: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } }, closingBalance: { __typename?: 'LayeredUsdAccountAmounts', all: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } }, amount: { __typename?: 'LayeredUsdAccountAmounts', all: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } } } }, categories: Array<{ __typename?: 'StatementCategory', name: string, balance: { __typename?: 'AccountAmountsByCurrency', btc: { __typename?: 'BtcAccountAmountsInPeriod', openingBalance: { __typename?: 'LayeredBtcAccountAmounts', all: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } }, closingBalance: { __typename?: 'LayeredBtcAccountAmounts', all: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } }, amount: { __typename?: 'LayeredBtcAccountAmounts', all: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } } }, usd: { __typename?: 'UsdAccountAmountsInPeriod', openingBalance: { __typename?: 'LayeredUsdAccountAmounts', all: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } }, closingBalance: { __typename?: 'LayeredUsdAccountAmounts', all: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } }, amount: { __typename?: 'LayeredUsdAccountAmounts', all: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } } } }, accounts: Array<{ __typename: 'Account', id: string, name: string, balance: { __typename?: 'AccountAmountsByCurrency', btc: { __typename?: 'BtcAccountAmountsInPeriod', openingBalance: { __typename?: 'LayeredBtcAccountAmounts', all: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } }, closingBalance: { __typename?: 'LayeredBtcAccountAmounts', all: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } }, amount: { __typename?: 'LayeredBtcAccountAmounts', all: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } } }, usd: { __typename?: 'UsdAccountAmountsInPeriod', openingBalance: { __typename?: 'LayeredUsdAccountAmounts', all: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } }, closingBalance: { __typename?: 'LayeredUsdAccountAmounts', all: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } }, amount: { __typename?: 'LayeredUsdAccountAmounts', all: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } } } } } | { __typename: 'AccountSet', id: string, name: string, hasSubAccounts: boolean, balance: { __typename?: 'AccountAmountsByCurrency', btc: { __typename?: 'BtcAccountAmountsInPeriod', openingBalance: { __typename?: 'LayeredBtcAccountAmounts', all: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } }, closingBalance: { __typename?: 'LayeredBtcAccountAmounts', all: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } }, amount: { __typename?: 'LayeredBtcAccountAmounts', all: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } } }, usd: { __typename?: 'UsdAccountAmountsInPeriod', openingBalance: { __typename?: 'LayeredUsdAccountAmounts', all: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } }, closingBalance: { __typename?: 'LayeredUsdAccountAmounts', all: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } }, amount: { __typename?: 'LayeredUsdAccountAmounts', all: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } } } } }> }> } | null };
 
 export type DefaultTermsQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -926,7 +933,7 @@ export type GetOnBalanceSheetTrialBalanceQueryVariables = Exact<{
 }>;
 
 
-export type GetOnBalanceSheetTrialBalanceQuery = { __typename?: 'Query', trialBalance?: { __typename?: 'TrialBalance', name: string, balance: { __typename?: 'AccountBalancesByCurrency', btc: { __typename?: 'RangedBtcAccountBalances', start: { __typename?: 'LayeredBtcAccountBalances', all: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any } }, end: { __typename?: 'LayeredBtcAccountBalances', all: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any } }, diff: { __typename?: 'LayeredBtcAccountBalances', all: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any } } }, usd: { __typename?: 'RangedUsdAccountBalances', start: { __typename?: 'LayeredUsdAccountBalances', all: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any } }, end: { __typename?: 'LayeredUsdAccountBalances', all: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any } }, diff: { __typename?: 'LayeredUsdAccountBalances', all: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any } } } }, subAccounts: Array<{ __typename?: 'AccountSetWithBalance', name: string, balance: { __typename?: 'AccountBalancesByCurrency', btc: { __typename?: 'RangedBtcAccountBalances', start: { __typename?: 'LayeredBtcAccountBalances', all: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any } }, end: { __typename?: 'LayeredBtcAccountBalances', all: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any } }, diff: { __typename?: 'LayeredBtcAccountBalances', all: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any } } }, usd: { __typename?: 'RangedUsdAccountBalances', start: { __typename?: 'LayeredUsdAccountBalances', all: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any } }, end: { __typename?: 'LayeredUsdAccountBalances', all: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any } }, diff: { __typename?: 'LayeredUsdAccountBalances', all: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any } } } } } | { __typename?: 'AccountWithBalance', name: string, balance: { __typename?: 'AccountBalancesByCurrency', btc: { __typename?: 'RangedBtcAccountBalances', start: { __typename?: 'LayeredBtcAccountBalances', all: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any } }, end: { __typename?: 'LayeredBtcAccountBalances', all: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any } }, diff: { __typename?: 'LayeredBtcAccountBalances', all: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any } } }, usd: { __typename?: 'RangedUsdAccountBalances', start: { __typename?: 'LayeredUsdAccountBalances', all: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any } }, end: { __typename?: 'LayeredUsdAccountBalances', all: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any } }, diff: { __typename?: 'LayeredUsdAccountBalances', all: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any } } } } }> } | null };
+export type GetOnBalanceSheetTrialBalanceQuery = { __typename?: 'Query', trialBalance?: { __typename?: 'TrialBalance', name: string, balance: { __typename?: 'AccountAmountsByCurrency', btc: { __typename?: 'BtcAccountAmountsInPeriod', openingBalance: { __typename?: 'LayeredBtcAccountAmounts', all: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } }, closingBalance: { __typename?: 'LayeredBtcAccountAmounts', all: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } }, amount: { __typename?: 'LayeredBtcAccountAmounts', all: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } } }, usd: { __typename?: 'UsdAccountAmountsInPeriod', openingBalance: { __typename?: 'LayeredUsdAccountAmounts', all: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } }, closingBalance: { __typename?: 'LayeredUsdAccountAmounts', all: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } }, amount: { __typename?: 'LayeredUsdAccountAmounts', all: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } } } }, subAccounts: Array<{ __typename?: 'Account', name: string, balance: { __typename?: 'AccountAmountsByCurrency', btc: { __typename?: 'BtcAccountAmountsInPeriod', openingBalance: { __typename?: 'LayeredBtcAccountAmounts', all: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } }, closingBalance: { __typename?: 'LayeredBtcAccountAmounts', all: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } }, amount: { __typename?: 'LayeredBtcAccountAmounts', all: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } } }, usd: { __typename?: 'UsdAccountAmountsInPeriod', openingBalance: { __typename?: 'LayeredUsdAccountAmounts', all: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } }, closingBalance: { __typename?: 'LayeredUsdAccountAmounts', all: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } }, amount: { __typename?: 'LayeredUsdAccountAmounts', all: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } } } } } | { __typename?: 'AccountSet', name: string, balance: { __typename?: 'AccountAmountsByCurrency', btc: { __typename?: 'BtcAccountAmountsInPeriod', openingBalance: { __typename?: 'LayeredBtcAccountAmounts', all: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } }, closingBalance: { __typename?: 'LayeredBtcAccountAmounts', all: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } }, amount: { __typename?: 'LayeredBtcAccountAmounts', all: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } } }, usd: { __typename?: 'UsdAccountAmountsInPeriod', openingBalance: { __typename?: 'LayeredUsdAccountAmounts', all: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } }, closingBalance: { __typename?: 'LayeredUsdAccountAmounts', all: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } }, amount: { __typename?: 'LayeredUsdAccountAmounts', all: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } } } } }> } | null };
 
 export type GetOffBalanceSheetTrialBalanceQueryVariables = Exact<{
   from: Scalars['Timestamp']['input'];
@@ -934,17 +941,17 @@ export type GetOffBalanceSheetTrialBalanceQueryVariables = Exact<{
 }>;
 
 
-export type GetOffBalanceSheetTrialBalanceQuery = { __typename?: 'Query', offBalanceSheetTrialBalance?: { __typename?: 'TrialBalance', name: string, balance: { __typename?: 'AccountBalancesByCurrency', btc: { __typename?: 'RangedBtcAccountBalances', start: { __typename?: 'LayeredBtcAccountBalances', all: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any } }, end: { __typename?: 'LayeredBtcAccountBalances', all: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any } }, diff: { __typename?: 'LayeredBtcAccountBalances', all: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any } } }, usd: { __typename?: 'RangedUsdAccountBalances', start: { __typename?: 'LayeredUsdAccountBalances', all: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any } }, end: { __typename?: 'LayeredUsdAccountBalances', all: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any } }, diff: { __typename?: 'LayeredUsdAccountBalances', all: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any } } } }, subAccounts: Array<{ __typename?: 'AccountSetWithBalance', name: string, balance: { __typename?: 'AccountBalancesByCurrency', btc: { __typename?: 'RangedBtcAccountBalances', start: { __typename?: 'LayeredBtcAccountBalances', all: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any } }, end: { __typename?: 'LayeredBtcAccountBalances', all: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any } }, diff: { __typename?: 'LayeredBtcAccountBalances', all: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any } } }, usd: { __typename?: 'RangedUsdAccountBalances', start: { __typename?: 'LayeredUsdAccountBalances', all: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any } }, end: { __typename?: 'LayeredUsdAccountBalances', all: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any } }, diff: { __typename?: 'LayeredUsdAccountBalances', all: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any } } } } } | { __typename?: 'AccountWithBalance', name: string, balance: { __typename?: 'AccountBalancesByCurrency', btc: { __typename?: 'RangedBtcAccountBalances', start: { __typename?: 'LayeredBtcAccountBalances', all: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any } }, end: { __typename?: 'LayeredBtcAccountBalances', all: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any } }, diff: { __typename?: 'LayeredBtcAccountBalances', all: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any } } }, usd: { __typename?: 'RangedUsdAccountBalances', start: { __typename?: 'LayeredUsdAccountBalances', all: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any } }, end: { __typename?: 'LayeredUsdAccountBalances', all: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any } }, diff: { __typename?: 'LayeredUsdAccountBalances', all: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any } } } } }> } | null };
+export type GetOffBalanceSheetTrialBalanceQuery = { __typename?: 'Query', offBalanceSheetTrialBalance?: { __typename?: 'TrialBalance', name: string, balance: { __typename?: 'AccountAmountsByCurrency', btc: { __typename?: 'BtcAccountAmountsInPeriod', openingBalance: { __typename?: 'LayeredBtcAccountAmounts', all: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } }, closingBalance: { __typename?: 'LayeredBtcAccountAmounts', all: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } }, amount: { __typename?: 'LayeredBtcAccountAmounts', all: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } } }, usd: { __typename?: 'UsdAccountAmountsInPeriod', openingBalance: { __typename?: 'LayeredUsdAccountAmounts', all: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } }, closingBalance: { __typename?: 'LayeredUsdAccountAmounts', all: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } }, amount: { __typename?: 'LayeredUsdAccountAmounts', all: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } } } }, subAccounts: Array<{ __typename?: 'Account', name: string, balance: { __typename?: 'AccountAmountsByCurrency', btc: { __typename?: 'BtcAccountAmountsInPeriod', openingBalance: { __typename?: 'LayeredBtcAccountAmounts', all: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } }, closingBalance: { __typename?: 'LayeredBtcAccountAmounts', all: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } }, amount: { __typename?: 'LayeredBtcAccountAmounts', all: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } } }, usd: { __typename?: 'UsdAccountAmountsInPeriod', openingBalance: { __typename?: 'LayeredUsdAccountAmounts', all: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } }, closingBalance: { __typename?: 'LayeredUsdAccountAmounts', all: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } }, amount: { __typename?: 'LayeredUsdAccountAmounts', all: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } } } } } | { __typename?: 'AccountSet', name: string, balance: { __typename?: 'AccountAmountsByCurrency', btc: { __typename?: 'BtcAccountAmountsInPeriod', openingBalance: { __typename?: 'LayeredBtcAccountAmounts', all: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } }, closingBalance: { __typename?: 'LayeredBtcAccountAmounts', all: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } }, amount: { __typename?: 'LayeredBtcAccountAmounts', all: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } } }, usd: { __typename?: 'UsdAccountAmountsInPeriod', openingBalance: { __typename?: 'LayeredUsdAccountAmounts', all: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } }, closingBalance: { __typename?: 'LayeredUsdAccountAmounts', all: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } }, amount: { __typename?: 'LayeredUsdAccountAmounts', all: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } } } } }> } | null };
 
-export type BalancesByCurrencyFragment = { __typename?: 'AccountBalancesByCurrency', btc: { __typename?: 'RangedBtcAccountBalances', start: { __typename?: 'LayeredBtcAccountBalances', all: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any } }, end: { __typename?: 'LayeredBtcAccountBalances', all: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any } }, diff: { __typename?: 'LayeredBtcAccountBalances', all: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any } } }, usd: { __typename?: 'RangedUsdAccountBalances', start: { __typename?: 'LayeredUsdAccountBalances', all: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any } }, end: { __typename?: 'LayeredUsdAccountBalances', all: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any } }, diff: { __typename?: 'LayeredUsdAccountBalances', all: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any } } } };
+export type BalancesByCurrencyFragment = { __typename?: 'AccountAmountsByCurrency', btc: { __typename?: 'BtcAccountAmountsInPeriod', openingBalance: { __typename?: 'LayeredBtcAccountAmounts', all: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } }, closingBalance: { __typename?: 'LayeredBtcAccountAmounts', all: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } }, amount: { __typename?: 'LayeredBtcAccountAmounts', all: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } } }, usd: { __typename?: 'UsdAccountAmountsInPeriod', openingBalance: { __typename?: 'LayeredUsdAccountAmounts', all: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } }, closingBalance: { __typename?: 'LayeredUsdAccountAmounts', all: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } }, amount: { __typename?: 'LayeredUsdAccountAmounts', all: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } } } };
 
-export type RangedBtcBalancesFragment = { __typename?: 'RangedBtcAccountBalances', start: { __typename?: 'LayeredBtcAccountBalances', all: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any } }, end: { __typename?: 'LayeredBtcAccountBalances', all: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any } }, diff: { __typename?: 'LayeredBtcAccountBalances', all: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any } } };
+export type RangedBtcBalancesFragment = { __typename?: 'BtcAccountAmountsInPeriod', openingBalance: { __typename?: 'LayeredBtcAccountAmounts', all: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } }, closingBalance: { __typename?: 'LayeredBtcAccountAmounts', all: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } }, amount: { __typename?: 'LayeredBtcAccountAmounts', all: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } } };
 
-export type RangedUsdBalancesFragment = { __typename?: 'RangedUsdAccountBalances', start: { __typename?: 'LayeredUsdAccountBalances', all: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any } }, end: { __typename?: 'LayeredUsdAccountBalances', all: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any } }, diff: { __typename?: 'LayeredUsdAccountBalances', all: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any } } };
+export type RangedUsdBalancesFragment = { __typename?: 'UsdAccountAmountsInPeriod', openingBalance: { __typename?: 'LayeredUsdAccountAmounts', all: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } }, closingBalance: { __typename?: 'LayeredUsdAccountAmounts', all: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } }, amount: { __typename?: 'LayeredUsdAccountAmounts', all: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } } };
 
-export type BtcBalancesFragment = { __typename?: 'LayeredBtcAccountBalances', all: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'BtcAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any } };
+export type BtcBalancesFragment = { __typename?: 'LayeredBtcAccountAmounts', all: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } };
 
-export type UsdBalancesFragment = { __typename?: 'LayeredUsdAccountBalances', all: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'UsdAccountBalance', debit: any, credit: any, netDebit: any, netCredit: any } };
+export type UsdBalancesFragment = { __typename?: 'LayeredUsdAccountAmounts', all: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } };
 
 export type UsersQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -992,21 +999,21 @@ export type RecordDepositMutationVariables = Exact<{
 }>;
 
 
-export type RecordDepositMutation = { __typename?: 'Mutation', depositRecord: { __typename?: 'DepositRecordPayload', deposit: { __typename?: 'Deposit', depositId: string, amount: any, customer?: { __typename?: 'Customer', customerId: string, balance: { __typename?: 'CustomerBalance', checking: { __typename?: 'Checking', settled: { __typename?: 'UsdBalance', usdBalance: any } } } } | null } } };
+export type RecordDepositMutation = { __typename?: 'Mutation', depositRecord: { __typename?: 'DepositRecordPayload', deposit: { __typename?: 'Deposit', depositId: string, amount: any, customer?: { __typename?: 'Customer', customerId: string, balance: { __typename?: 'CustomerBalance', checking: { __typename?: 'Checking', settled: { __typename?: 'UsdAmount', amount: any } } } } | null } } };
 
 export type WithdrawalConfirmMutationVariables = Exact<{
   input: WithdrawalConfirmInput;
 }>;
 
 
-export type WithdrawalConfirmMutation = { __typename?: 'Mutation', withdrawalConfirm: { __typename?: 'WithdrawalConfirmPayload', withdrawal: { __typename?: 'Withdrawal', withdrawalId: string, amount: any, customer?: { __typename?: 'Customer', customerId: string, balance: { __typename?: 'CustomerBalance', checking: { __typename?: 'Checking', settled: { __typename?: 'UsdBalance', usdBalance: any }, pending: { __typename?: 'UsdBalance', usdBalance: any } } } } | null } } };
+export type WithdrawalConfirmMutation = { __typename?: 'Mutation', withdrawalConfirm: { __typename?: 'WithdrawalConfirmPayload', withdrawal: { __typename?: 'Withdrawal', withdrawalId: string, amount: any, customer?: { __typename?: 'Customer', customerId: string, balance: { __typename?: 'CustomerBalance', checking: { __typename?: 'Checking', settled: { __typename?: 'UsdAmount', amount: any }, pending: { __typename?: 'UsdAmount', amount: any } } } } | null } } };
 
 export type WithdrawalInitiateMutationVariables = Exact<{
   input: WithdrawalInitiateInput;
 }>;
 
 
-export type WithdrawalInitiateMutation = { __typename?: 'Mutation', withdrawalInitiate: { __typename?: 'WithdrawalInitiatePayload', withdrawal: { __typename?: 'Withdrawal', withdrawalId: string, amount: any, customer?: { __typename?: 'Customer', customerId: string, balance: { __typename?: 'CustomerBalance', checking: { __typename?: 'Checking', settled: { __typename?: 'UsdBalance', usdBalance: any }, pending: { __typename?: 'UsdBalance', usdBalance: any } } } } | null } } };
+export type WithdrawalInitiateMutation = { __typename?: 'Mutation', withdrawalInitiate: { __typename?: 'WithdrawalInitiatePayload', withdrawal: { __typename?: 'Withdrawal', withdrawalId: string, amount: any, customer?: { __typename?: 'Customer', customerId: string, balance: { __typename?: 'CustomerBalance', checking: { __typename?: 'Checking', settled: { __typename?: 'UsdAmount', amount: any }, pending: { __typename?: 'UsdAmount', amount: any } } } } | null } } };
 
 export type LoanApproveMutationVariables = Exact<{
   input: LoanApproveInput;
@@ -1048,7 +1055,7 @@ export type WithdrawalCancelMutationVariables = Exact<{
 }>;
 
 
-export type WithdrawalCancelMutation = { __typename?: 'Mutation', withdrawalCancel: { __typename?: 'WithdrawalCancelPayload', withdrawal: { __typename?: 'Withdrawal', withdrawalId: string, amount: any, customer?: { __typename?: 'Customer', customerId: string, balance: { __typename?: 'CustomerBalance', checking: { __typename?: 'Checking', settled: { __typename?: 'UsdBalance', usdBalance: any }, pending: { __typename?: 'UsdBalance', usdBalance: any } } } } | null } } };
+export type WithdrawalCancelMutation = { __typename?: 'Mutation', withdrawalCancel: { __typename?: 'WithdrawalCancelPayload', withdrawal: { __typename?: 'Withdrawal', withdrawalId: string, amount: any, customer?: { __typename?: 'Customer', customerId: string, balance: { __typename?: 'CustomerBalance', checking: { __typename?: 'Checking', settled: { __typename?: 'UsdAmount', amount: any }, pending: { __typename?: 'UsdAmount', amount: any } } } } | null } } };
 
 export type GetLoanDetailsQueryVariables = Exact<{
   id: Scalars['UUID']['input'];
@@ -1064,23 +1071,16 @@ export type GetLoansForCustomerQueryVariables = Exact<{
 
 export type GetLoansForCustomerQuery = { __typename?: 'Query', customer?: { __typename?: 'Customer', customerId: string, loans: Array<{ __typename?: 'Loan', id: string, loanId: string, createdAt: any, status: LoanStatus, loanTerms: { __typename?: 'TermValues', annualRate: any, interval: InterestInterval, liquidationCvl: any, marginCallCvl: any, initialCvl: any, duration: { __typename?: 'Duration', period: Period, units: number } }, balance: { __typename?: 'LoanBalance', collateral: { __typename?: 'Collateral', btcBalance: any }, outstanding: { __typename?: 'LoanOutstanding', usdBalance: any }, interestIncurred: { __typename?: 'InterestIncome', usdBalance: any } } }> } | null };
 
-export type GetCustomerByCustomerIdQueryVariables = Exact<{
-  id: Scalars['UUID']['input'];
-}>;
-
-
-export type GetCustomerByCustomerIdQuery = { __typename?: 'Query', customer?: { __typename?: 'Customer', customerId: string, email: string, status: AccountStatus, level: KycLevel, applicantId?: string | null, balance: { __typename?: 'CustomerBalance', checking: { __typename?: 'Checking', settled: { __typename?: 'UsdBalance', usdBalance: any }, pending: { __typename?: 'UsdBalance', usdBalance: any } } } } | null };
-
 export type CustomersQueryVariables = Exact<{
   first: Scalars['Int']['input'];
   after?: InputMaybe<Scalars['String']['input']>;
 }>;
 
 
-export type CustomersQuery = { __typename?: 'Query', customers: { __typename?: 'CustomerConnection', nodes: Array<{ __typename?: 'Customer', customerId: string, email: string, balance: { __typename?: 'CustomerBalance', checking: { __typename?: 'Checking', settled: { __typename?: 'UsdBalance', usdBalance: any }, pending: { __typename?: 'UsdBalance', usdBalance: any } } } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, startCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean } } };
+export type CustomersQuery = { __typename?: 'Query', customers: { __typename?: 'CustomerConnection', nodes: Array<{ __typename?: 'Customer', customerId: string, email: string, balance: { __typename?: 'CustomerBalance', checking: { __typename?: 'Checking', settled: { __typename?: 'UsdAmount', amount: any }, pending: { __typename?: 'UsdAmount', amount: any } } } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, startCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean } } };
 
 export const BtcBalancesFragmentDoc = gql`
-    fragment btcBalances on LayeredBtcAccountBalances {
+    fragment btcBalances on LayeredBtcAccountAmounts {
   all {
     debit
     credit
@@ -1108,20 +1108,20 @@ export const BtcBalancesFragmentDoc = gql`
 }
     `;
 export const RangedBtcBalancesFragmentDoc = gql`
-    fragment rangedBtcBalances on RangedBtcAccountBalances {
-  start {
+    fragment rangedBtcBalances on BtcAccountAmountsInPeriod {
+  openingBalance {
     ...btcBalances
   }
-  end {
+  closingBalance {
     ...btcBalances
   }
-  diff {
+  amount {
     ...btcBalances
   }
 }
     ${BtcBalancesFragmentDoc}`;
 export const UsdBalancesFragmentDoc = gql`
-    fragment usdBalances on LayeredUsdAccountBalances {
+    fragment usdBalances on LayeredUsdAccountAmounts {
   all {
     debit
     credit
@@ -1149,20 +1149,20 @@ export const UsdBalancesFragmentDoc = gql`
 }
     `;
 export const RangedUsdBalancesFragmentDoc = gql`
-    fragment rangedUsdBalances on RangedUsdAccountBalances {
-  start {
+    fragment rangedUsdBalances on UsdAccountAmountsInPeriod {
+  openingBalance {
     ...usdBalances
   }
-  end {
+  closingBalance {
     ...usdBalances
   }
-  diff {
+  amount {
     ...usdBalances
   }
 }
     ${UsdBalancesFragmentDoc}`;
 export const BalancesByCurrencyFragmentDoc = gql`
-    fragment balancesByCurrency on AccountBalancesByCurrency {
+    fragment balancesByCurrency on AccountAmountsByCurrency {
   btc: btc {
     ...rangedBtcBalances
   }
@@ -1251,7 +1251,7 @@ export const BalanceSheetDocument = gql`
         ...balancesByCurrency
       }
       accounts {
-        ... on AccountWithBalance {
+        ... on Account {
           __typename
           id
           name
@@ -1259,7 +1259,7 @@ export const BalanceSheetDocument = gql`
             ...balancesByCurrency
           }
         }
-        ... on AccountSetWithBalance {
+        ... on AccountSet {
           __typename
           id
           name
@@ -1304,7 +1304,7 @@ export type BalanceSheetLazyQueryHookResult = ReturnType<typeof useBalanceSheetL
 export type BalanceSheetQueryResult = Apollo.QueryResult<BalanceSheetQuery, BalanceSheetQueryVariables>;
 export const ChartOfAccountsAccountSetDocument = gql`
     query ChartOfAccountsAccountSet($accountSetId: UUID!, $first: Int!, $after: String, $from: Timestamp!, $until: Timestamp) {
-  accountSetWithBalance(accountSetId: $accountSetId, from: $from, until: $until) {
+  accountSet(accountSetId: $accountSetId, from: $from, until: $until) {
     id
     name
     subAccounts(first: $first, after: $after) {
@@ -1312,12 +1312,12 @@ export const ChartOfAccountsAccountSetDocument = gql`
         cursor
         node {
           __typename
-          ... on AccountWithBalance {
+          ... on Account {
             __typename
             id
             name
           }
-          ... on AccountSetWithBalance {
+          ... on AccountSet {
             __typename
             id
             name
@@ -1372,11 +1372,11 @@ export const GetOnBalanceSheetChartOfAccountsDocument = gql`
       name
       accounts {
         __typename
-        ... on AccountWithBalance {
+        ... on Account {
           id
           name
         }
-        ... on AccountSetWithBalance {
+        ... on AccountSet {
           id
           name
           hasSubAccounts
@@ -1421,11 +1421,11 @@ export const GetOffBalanceSheetChartOfAccountsDocument = gql`
       name
       accounts {
         __typename
-        ... on AccountWithBalance {
+        ... on Account {
           id
           name
         }
-        ... on AccountSetWithBalance {
+        ... on AccountSet {
           id
           name
           hasSubAccounts
@@ -1591,10 +1591,10 @@ export const GetCustomerByCustomerEmailDocument = gql`
     balance {
       checking {
         settled {
-          usdBalance
+          amount
         }
         pending {
-          usdBalance
+          amount
         }
       }
     }
@@ -1629,6 +1629,55 @@ export function useGetCustomerByCustomerEmailLazyQuery(baseOptions?: Apollo.Lazy
 export type GetCustomerByCustomerEmailQueryHookResult = ReturnType<typeof useGetCustomerByCustomerEmailQuery>;
 export type GetCustomerByCustomerEmailLazyQueryHookResult = ReturnType<typeof useGetCustomerByCustomerEmailLazyQuery>;
 export type GetCustomerByCustomerEmailQueryResult = Apollo.QueryResult<GetCustomerByCustomerEmailQuery, GetCustomerByCustomerEmailQueryVariables>;
+export const GetCustomerByCustomerIdDocument = gql`
+    query getCustomerByCustomerId($id: UUID!) {
+  customer(id: $id) {
+    customerId
+    email
+    status
+    level
+    applicantId
+    balance {
+      checking {
+        settled {
+          amount
+        }
+        pending {
+          amount
+        }
+      }
+    }
+  }
+}
+    `;
+
+/**
+ * __useGetCustomerByCustomerIdQuery__
+ *
+ * To run a query within a React component, call `useGetCustomerByCustomerIdQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetCustomerByCustomerIdQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetCustomerByCustomerIdQuery({
+ *   variables: {
+ *      id: // value for 'id'
+ *   },
+ * });
+ */
+export function useGetCustomerByCustomerIdQuery(baseOptions: Apollo.QueryHookOptions<GetCustomerByCustomerIdQuery, GetCustomerByCustomerIdQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetCustomerByCustomerIdQuery, GetCustomerByCustomerIdQueryVariables>(GetCustomerByCustomerIdDocument, options);
+      }
+export function useGetCustomerByCustomerIdLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetCustomerByCustomerIdQuery, GetCustomerByCustomerIdQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetCustomerByCustomerIdQuery, GetCustomerByCustomerIdQueryVariables>(GetCustomerByCustomerIdDocument, options);
+        }
+export type GetCustomerByCustomerIdQueryHookResult = ReturnType<typeof useGetCustomerByCustomerIdQuery>;
+export type GetCustomerByCustomerIdLazyQueryHookResult = ReturnType<typeof useGetCustomerByCustomerIdLazyQuery>;
+export type GetCustomerByCustomerIdQueryResult = Apollo.QueryResult<GetCustomerByCustomerIdQuery, GetCustomerByCustomerIdQueryVariables>;
 export const DepositsDocument = gql`
     query Deposits($first: Int!, $after: String) {
   deposits(first: $first, after: $after) {
@@ -1780,9 +1829,9 @@ export function useLoansLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<Loan
 export type LoansQueryHookResult = ReturnType<typeof useLoansQuery>;
 export type LoansLazyQueryHookResult = ReturnType<typeof useLoansLazyQuery>;
 export type LoansQueryResult = Apollo.QueryResult<LoansQuery, LoansQueryVariables>;
-export const PnlAccountSetWithBalanceDocument = gql`
-    query PnlAccountSetWithBalance($accountSetId: UUID!, $first: Int!, $after: String, $from: Timestamp!, $until: Timestamp) {
-  accountSetWithBalance(accountSetId: $accountSetId, from: $from, until: $until) {
+export const PnlAccountSetDocument = gql`
+    query PnlAccountSet($accountSetId: UUID!, $first: Int!, $after: String, $from: Timestamp!, $until: Timestamp) {
+  accountSet(accountSetId: $accountSetId, from: $from, until: $until) {
     id
     name
     balance {
@@ -1793,7 +1842,7 @@ export const PnlAccountSetWithBalanceDocument = gql`
         cursor
         node {
           __typename
-          ... on AccountWithBalance {
+          ... on Account {
             __typename
             id
             name
@@ -1801,7 +1850,7 @@ export const PnlAccountSetWithBalanceDocument = gql`
               ...balancesByCurrency
             }
           }
-          ... on AccountSetWithBalance {
+          ... on AccountSet {
             __typename
             id
             name
@@ -1821,16 +1870,16 @@ export const PnlAccountSetWithBalanceDocument = gql`
     ${BalancesByCurrencyFragmentDoc}`;
 
 /**
- * __usePnlAccountSetWithBalanceQuery__
+ * __usePnlAccountSetQuery__
  *
- * To run a query within a React component, call `usePnlAccountSetWithBalanceQuery` and pass it any options that fit your needs.
- * When your component renders, `usePnlAccountSetWithBalanceQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * To run a query within a React component, call `usePnlAccountSetQuery` and pass it any options that fit your needs.
+ * When your component renders, `usePnlAccountSetQuery` returns an object from Apollo Client that contains loading, error, and data properties
  * you can use to render your UI.
  *
  * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
  *
  * @example
- * const { data, loading, error } = usePnlAccountSetWithBalanceQuery({
+ * const { data, loading, error } = usePnlAccountSetQuery({
  *   variables: {
  *      accountSetId: // value for 'accountSetId'
  *      first: // value for 'first'
@@ -1840,17 +1889,17 @@ export const PnlAccountSetWithBalanceDocument = gql`
  *   },
  * });
  */
-export function usePnlAccountSetWithBalanceQuery(baseOptions: Apollo.QueryHookOptions<PnlAccountSetWithBalanceQuery, PnlAccountSetWithBalanceQueryVariables>) {
+export function usePnlAccountSetQuery(baseOptions: Apollo.QueryHookOptions<PnlAccountSetQuery, PnlAccountSetQueryVariables>) {
         const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<PnlAccountSetWithBalanceQuery, PnlAccountSetWithBalanceQueryVariables>(PnlAccountSetWithBalanceDocument, options);
+        return Apollo.useQuery<PnlAccountSetQuery, PnlAccountSetQueryVariables>(PnlAccountSetDocument, options);
       }
-export function usePnlAccountSetWithBalanceLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<PnlAccountSetWithBalanceQuery, PnlAccountSetWithBalanceQueryVariables>) {
+export function usePnlAccountSetLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<PnlAccountSetQuery, PnlAccountSetQueryVariables>) {
           const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<PnlAccountSetWithBalanceQuery, PnlAccountSetWithBalanceQueryVariables>(PnlAccountSetWithBalanceDocument, options);
+          return Apollo.useLazyQuery<PnlAccountSetQuery, PnlAccountSetQueryVariables>(PnlAccountSetDocument, options);
         }
-export type PnlAccountSetWithBalanceQueryHookResult = ReturnType<typeof usePnlAccountSetWithBalanceQuery>;
-export type PnlAccountSetWithBalanceLazyQueryHookResult = ReturnType<typeof usePnlAccountSetWithBalanceLazyQuery>;
-export type PnlAccountSetWithBalanceQueryResult = Apollo.QueryResult<PnlAccountSetWithBalanceQuery, PnlAccountSetWithBalanceQueryVariables>;
+export type PnlAccountSetQueryHookResult = ReturnType<typeof usePnlAccountSetQuery>;
+export type PnlAccountSetLazyQueryHookResult = ReturnType<typeof usePnlAccountSetLazyQuery>;
+export type PnlAccountSetQueryResult = Apollo.QueryResult<PnlAccountSetQuery, PnlAccountSetQueryVariables>;
 export const ProfitAndLossStatementDocument = gql`
     query ProfitAndLossStatement($from: Timestamp!, $until: Timestamp) {
   profitAndLossStatement(from: $from, until: $until) {
@@ -1864,7 +1913,7 @@ export const ProfitAndLossStatementDocument = gql`
         ...balancesByCurrency
       }
       accounts {
-        ... on AccountWithBalance {
+        ... on Account {
           __typename
           id
           name
@@ -1872,7 +1921,7 @@ export const ProfitAndLossStatementDocument = gql`
             ...balancesByCurrency
           }
         }
-        ... on AccountSetWithBalance {
+        ... on AccountSet {
           __typename
           id
           name
@@ -1969,13 +2018,13 @@ export const GetOnBalanceSheetTrialBalanceDocument = gql`
       ...balancesByCurrency
     }
     subAccounts {
-      ... on AccountWithBalance {
+      ... on Account {
         name
         balance {
           ...balancesByCurrency
         }
       }
-      ... on AccountSetWithBalance {
+      ... on AccountSet {
         name
         balance {
           ...balancesByCurrency
@@ -2022,13 +2071,13 @@ export const GetOffBalanceSheetTrialBalanceDocument = gql`
       ...balancesByCurrency
     }
     subAccounts {
-      ... on AccountWithBalance {
+      ... on Account {
         name
         balance {
           ...balancesByCurrency
         }
       }
-      ... on AccountSetWithBalance {
+      ... on AccountSet {
         name
         balance {
           ...balancesByCurrency
@@ -2321,7 +2370,7 @@ export const RecordDepositDocument = gql`
         balance {
           checking {
             settled {
-              usdBalance
+              amount
             }
           }
         }
@@ -2367,10 +2416,10 @@ export const WithdrawalConfirmDocument = gql`
         balance {
           checking {
             settled {
-              usdBalance
+              amount
             }
             pending {
-              usdBalance
+              amount
             }
           }
         }
@@ -2416,10 +2465,10 @@ export const WithdrawalInitiateDocument = gql`
         balance {
           checking {
             settled {
-              usdBalance
+              amount
             }
             pending {
-              usdBalance
+              amount
             }
           }
         }
@@ -2704,10 +2753,10 @@ export const WithdrawalCancelDocument = gql`
         balance {
           checking {
             settled {
-              usdBalance
+              amount
             }
             pending {
-              usdBalance
+              amount
             }
           }
         }
@@ -2868,55 +2917,6 @@ export function useGetLoansForCustomerLazyQuery(baseOptions?: Apollo.LazyQueryHo
 export type GetLoansForCustomerQueryHookResult = ReturnType<typeof useGetLoansForCustomerQuery>;
 export type GetLoansForCustomerLazyQueryHookResult = ReturnType<typeof useGetLoansForCustomerLazyQuery>;
 export type GetLoansForCustomerQueryResult = Apollo.QueryResult<GetLoansForCustomerQuery, GetLoansForCustomerQueryVariables>;
-export const GetCustomerByCustomerIdDocument = gql`
-    query getCustomerByCustomerId($id: UUID!) {
-  customer(id: $id) {
-    customerId
-    email
-    status
-    level
-    applicantId
-    balance {
-      checking {
-        settled {
-          usdBalance
-        }
-        pending {
-          usdBalance
-        }
-      }
-    }
-  }
-}
-    `;
-
-/**
- * __useGetCustomerByCustomerIdQuery__
- *
- * To run a query within a React component, call `useGetCustomerByCustomerIdQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetCustomerByCustomerIdQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useGetCustomerByCustomerIdQuery({
- *   variables: {
- *      id: // value for 'id'
- *   },
- * });
- */
-export function useGetCustomerByCustomerIdQuery(baseOptions: Apollo.QueryHookOptions<GetCustomerByCustomerIdQuery, GetCustomerByCustomerIdQueryVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<GetCustomerByCustomerIdQuery, GetCustomerByCustomerIdQueryVariables>(GetCustomerByCustomerIdDocument, options);
-      }
-export function useGetCustomerByCustomerIdLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetCustomerByCustomerIdQuery, GetCustomerByCustomerIdQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<GetCustomerByCustomerIdQuery, GetCustomerByCustomerIdQueryVariables>(GetCustomerByCustomerIdDocument, options);
-        }
-export type GetCustomerByCustomerIdQueryHookResult = ReturnType<typeof useGetCustomerByCustomerIdQuery>;
-export type GetCustomerByCustomerIdLazyQueryHookResult = ReturnType<typeof useGetCustomerByCustomerIdLazyQuery>;
-export type GetCustomerByCustomerIdQueryResult = Apollo.QueryResult<GetCustomerByCustomerIdQuery, GetCustomerByCustomerIdQueryVariables>;
 export const CustomersDocument = gql`
     query Customers($first: Int!, $after: String) {
   customers(first: $first, after: $after) {
@@ -2926,10 +2926,10 @@ export const CustomersDocument = gql`
       balance {
         checking {
           settled {
-            usdBalance
+            amount
           }
           pending {
-            usdBalance
+            amount
           }
         }
       }

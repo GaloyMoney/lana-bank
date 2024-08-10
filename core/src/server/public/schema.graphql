@@ -9,8 +9,8 @@ scalar AnnualRatePct
 scalar CVLPct
 
 type Checking {
-	settled: UsdBalance!
-	pending: UsdBalance!
+	settled: UsdAmount!
+	pending: UsdAmount!
 }
 
 type Collateral {
@@ -126,8 +126,8 @@ scalar Timestamp
 
 scalar UUID
 
-type UsdBalance {
-	usdBalance: UsdCents!
+type UsdAmount {
+	amount: UsdCents!
 }
 
 scalar UsdCents

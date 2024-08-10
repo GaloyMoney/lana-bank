@@ -32,13 +32,13 @@ gql`
         ...balancesByCurrency
       }
       subAccounts {
-        ... on AccountWithBalance {
+        ... on Account {
           name
           balance {
             ...balancesByCurrency
           }
         }
-        ... on AccountSetWithBalance {
+        ... on AccountSet {
           name
           balance {
             ...balancesByCurrency
@@ -55,13 +55,13 @@ gql`
         ...balancesByCurrency
       }
       subAccounts {
-        ... on AccountWithBalance {
+        ... on Account {
           name
           balance {
             ...balancesByCurrency
           }
         }
-        ... on AccountSetWithBalance {
+        ... on AccountSet {
           name
           balance {
             ...balancesByCurrency
@@ -71,7 +71,7 @@ gql`
     }
   }
 
-  fragment balancesByCurrency on AccountBalancesByCurrency {
+  fragment balancesByCurrency on AccountAmountsByCurrency {
     btc: btc {
       ...rangedBtcBalances
     }
@@ -80,31 +80,31 @@ gql`
     }
   }
 
-  fragment rangedBtcBalances on RangedBtcAccountBalances {
-    start {
+  fragment rangedBtcBalances on BtcAccountAmountsInPeriod {
+    openingBalance {
       ...btcBalances
     }
-    end {
+    closingBalance {
       ...btcBalances
     }
-    diff {
+    amount {
       ...btcBalances
     }
   }
 
-  fragment rangedUsdBalances on RangedUsdAccountBalances {
-    start {
+  fragment rangedUsdBalances on UsdAccountAmountsInPeriod {
+    openingBalance {
       ...usdBalances
     }
-    end {
+    closingBalance {
       ...usdBalances
     }
-    diff {
+    amount {
       ...usdBalances
     }
   }
 
-  fragment btcBalances on LayeredBtcAccountBalances {
+  fragment btcBalances on LayeredBtcAccountAmounts {
     all {
       debit
       credit
@@ -131,7 +131,7 @@ gql`
     }
   }
 
-  fragment usdBalances on LayeredUsdAccountBalances {
+  fragment usdBalances on LayeredUsdAccountAmounts {
     all {
       debit
       credit
@@ -206,21 +206,21 @@ const TrialBalanceValues: React.FC<TrialBalanceValuesProps> = ({
                 <Balance
                   align="end"
                   currency={currency}
-                  amount={memberBalance.balance[currency].end[layer].debit}
+                  amount={memberBalance.balance[currency].closingBalance[layer].debit}
                 />
               </TableCell>
               <TableCell className="w-48">
                 <Balance
                   align="end"
                   currency={currency}
-                  amount={memberBalance.balance[currency].end[layer].credit}
+                  amount={memberBalance.balance[currency].closingBalance[layer].credit}
                 />
               </TableCell>
               <TableCell className="w-48">
                 <Balance
                   align="end"
                   currency={currency}
-                  amount={memberBalance.balance[currency].end[layer].netDebit}
+                  amount={memberBalance.balance[currency].closingBalance[layer].netDebit}
                 />
               </TableCell>
             </TableRow>
@@ -233,21 +233,27 @@ const TrialBalanceValues: React.FC<TrialBalanceValuesProps> = ({
               <Balance
                 align="end"
                 currency={currency}
-                amount={balance[currency].end[layer].debit}
+                amount={balance[currency].closingBalance[layer].debit}
               />
             </TableCell>
             <TableCell className="w-48">
               <Balance
                 align="end"
                 currency={currency}
-                amount={balance[currency].end[layer].credit}
+                amount={balance[currency].closingBalance[layer].credit}
               />
             </TableCell>
             <TableCell className="w-48">
               <Balance
                 align="end"
                 currency={currency}
-                amount={balance[currency].end[layer].netDebit}
+                amount={balance[currency].closingBalance[layer].credit}
+              />
+            </TableCell>
+            <TableCell className="w-48">
+              <Balance
+                currency={currency}
+                amount={balance[currency].closingBalance[layer].netDebit}
               />
             </TableCell>
           </TableRow>

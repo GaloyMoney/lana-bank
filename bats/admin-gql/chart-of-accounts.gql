@@ -5,12 +5,12 @@ query ChartOfAccount {
       name
       accounts {
         __typename
-        ... on AccountSetWithBalance {
+        ... on AccountSet {
           queryableId: id
           name
           hasSubAccounts
         }
-        ... on AccountWithBalance {
+        ... on Account {
           id
           name
         }

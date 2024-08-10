@@ -23,10 +23,10 @@ gql`
       balance {
         checking {
           settled {
-            usdBalance
+            amount
           }
           pending {
-            usdBalance
+            amount
           }
         }
       }
@@ -43,10 +43,10 @@ gql`
       balance {
         checking {
           settled {
-            usdBalance
+            amount
           }
           pending {
-            usdBalance
+            amount
           }
         }
       }

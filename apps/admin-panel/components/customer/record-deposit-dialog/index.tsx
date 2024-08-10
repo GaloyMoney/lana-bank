@@ -29,7 +29,7 @@ gql`
           balance {
             checking {
               settled {
-                usdBalance
+                amount
               }
             }
           }

@@ -294,13 +294,13 @@ impl Query {
         Ok(cash_flow.map(CashFlowStatement::from))
     }
 
-    async fn account_set_with_balance(
+    async fn account_set(
         &self,
         ctx: &Context<'_>,
         account_set_id: UUID,
         from: Timestamp,
         until: Option<Timestamp>,
-    ) -> async_graphql::Result<Option<AccountSetAndSubAccountsWithBalance>> {
+    ) -> async_graphql::Result<Option<AccountSetAndSubAccounts>> {
         let app = ctx.data_unchecked::<LavaApp>();
         let AdminAuthContext { sub } = ctx.data()?;
         let account_set = app
@@ -315,11 +315,7 @@ impl Query {
             )
             .await?;
         Ok(account_set.map(|a| {
-            AccountSetAndSubAccountsWithBalance::from((
-                from.into_inner(),
-                until.map(|t| t.into_inner()),
-                a,
-            ))
+            AccountSetAndSubAccounts::from((from.into_inner(), until.map(|t| t.into_inner()), a))
         }))
     }
 

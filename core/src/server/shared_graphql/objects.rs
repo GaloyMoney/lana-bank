@@ -3,8 +3,8 @@ use crate::primitives::UsdCents;
 use async_graphql::*;
 
 #[derive(SimpleObject)]
-pub struct UsdBalance {
-    pub usd_balance: UsdCents,
+pub struct UsdAmount {
+    pub amount: UsdCents,
 }
 
 #[derive(SimpleObject)]

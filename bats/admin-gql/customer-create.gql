@@ -6,7 +6,7 @@ mutation CustomerCreate($input: CustomerCreateInput!) {
       balance {
         checking {
           settled {
-            usdBalance
+            amount
           }
         }
       }

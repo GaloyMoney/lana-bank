@@ -2,47 +2,47 @@ query TrialBalance($from: Timestamp!) {
   trialBalance(from: $from) {
     name
     balance {
-      ...balancesByCurrency
+      ...amountsByCurrency
     }
     subAccounts {
-      ... on AccountWithBalance {
+      ... on Account {
         name
         balance {
-          ...balancesByCurrency
+          ...amountsByCurrency
         }
       }
-      ... on AccountSetWithBalance {
+      ... on AccountSet {
         name
         balance {
-          ...balancesByCurrency
+          ...amountsByCurrency
         }
       }
     }
   }
 }
 
-fragment balancesByCurrency on AccountBalancesByCurrency {
+fragment amountsByCurrency on AccountAmountsByCurrency {
   btc: btc {
-    ...rangedBtcBalances
+    ...btcAmountsInPeriod
   }
   usd: usd {
-    ...rangedUsdBalances
+    ...usdAmountsInPeriod
   }
 }
 
-fragment rangedBtcBalances on RangedBtcAccountBalances {
-  balancesByLayer: end {
-    ...btcBalances
+fragment btcAmountsInPeriod on BtcAccountAmountsInPeriod {
+  balancesByLayer: closingBalance {
+    ...btcAmounts
   }
 }
 
-fragment rangedUsdBalances on RangedUsdAccountBalances {
-  balancesByLayer: end {
-    ...usdBalances
+fragment usdAmountsInPeriod on UsdAccountAmountsInPeriod {
+  balancesByLayer: closingBalance {
+    ...usdAmounts
   }
 }
 
-fragment btcBalances on LayeredBtcAccountBalances {
+fragment btcAmounts on LayeredBtcAccountAmounts {
   all {
     ...btcLayers
   }
@@ -57,7 +57,7 @@ fragment btcBalances on LayeredBtcAccountBalances {
   }
 }
 
-fragment usdBalances on LayeredUsdAccountBalances {
+fragment usdAmounts on LayeredUsdAccountAmounts {
   all {
     ...usdLayers
   }
@@ -72,13 +72,13 @@ fragment usdBalances on LayeredUsdAccountBalances {
   }
 }
 
-fragment usdLayers on UsdAccountBalance {
+fragment usdLayers on UsdAccountAmounts {
   netDebit
   debit
   credit
 }
 
-fragment btcLayers on BtcAccountBalance {
+fragment btcLayers on BtcAccountAmounts {
   netDebit
   debit
   credit

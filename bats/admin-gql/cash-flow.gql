@@ -2,27 +2,27 @@ query CashFlowStatement($from: Timestamp!) {
   cashFlowStatement(from: $from) {
     name
     balance {
-      ...balancesByCurrency
+      ...amountsByCurrency
     }
     categories {
       name
       balance {
-        ...balancesByCurrency
+        ...amountsByCurrency
       }
       accounts {
-        ... on AccountWithBalance {
+        ... on Account {
           id
           name
           balance {
-            ...balancesByCurrency
+            ...amountsByCurrency
           }
         }
-        ... on AccountSetWithBalance {
+        ... on AccountSet {
           id
           name
           hasSubAccounts
           balance {
-            ...balancesByCurrency
+            ...amountsByCurrency
           }
         }
       }
@@ -30,19 +30,19 @@ query CashFlowStatement($from: Timestamp!) {
   }
 }
 
-fragment balancesByCurrency on AccountBalancesByCurrency {
+fragment amountsByCurrency on AccountAmountsByCurrency {
   usd: usd {
-    ...rangedUsdBalances
+    ...usdAmountsInPeriod
   }
 }
 
-fragment rangedUsdBalances on RangedUsdAccountBalances {
-  balancesByLayer: end {
-    ...usdBalances
+fragment usdAmountsInPeriod on UsdAccountAmountsInPeriod {
+  balancesByLayer: closingBalance {
+    ...usdAmounts
   }
 }
 
-fragment usdBalances on LayeredUsdAccountBalances {
+fragment usdAmounts on LayeredUsdAccountAmounts {
   all {
     ...usdLayers
   }
@@ -57,7 +57,7 @@ fragment usdBalances on LayeredUsdAccountBalances {
   }
 }
 
-fragment usdLayers on UsdAccountBalance {
+fragment usdLayers on UsdAccountAmounts {
   netCredit
   debit
   credit

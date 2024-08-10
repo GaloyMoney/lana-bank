@@ -95,7 +95,7 @@ wait_for_interest() {
     }'
   )
   exec_admin_graphql 'customer' "$variables"
-  usd_balance=$(graphql_output '.data.customer.balance.checking.settled.usdBalance')
+  usd_balance=$(graphql_output '.data.customer.balance.checking.settled.amount')
   [[ "$usd_balance" == "$principal" ]] || exit 1
 
   retry 20 1 wait_for_interest "$loan_id"
@@ -162,7 +162,7 @@ wait_for_interest() {
     }'
   )
   exec_admin_graphql 'customer' "$variables"
-  usd_balance=$(graphql_output '.data.customer.balance.checking.settled.usdBalance')
+  usd_balance=$(graphql_output '.data.customer.balance.checking.settled.amount')
   [[ "$usd_balance" == "$principal" ]] || exit 1
 
   variables=$(

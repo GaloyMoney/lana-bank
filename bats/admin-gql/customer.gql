@@ -5,7 +5,7 @@ query Customer($id: UUID!) {
     balance {
       checking {
         settled {
-          usdBalance
+          amount
         }
       }
     }

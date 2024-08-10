@@ -8,10 +8,10 @@ mutation WithdrawalInitiate($input: WithdrawalInitiateInput!) {
         balance {
           checking {
             settled {
-              usdBalance
+              amount
             }
             pending {
-              usdBalance
+              amount
             }
           }
         }

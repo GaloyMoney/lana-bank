@@ -6,7 +6,7 @@ import { Account } from "./account"
 
 import {
   BalanceSheetQuery,
-  StatementCategoryWithBalance,
+  StatementCategory,
   useBalanceSheetQuery,
 } from "@/lib/graphql/generated"
 import Balance, { Currency } from "@/components/balance/balance"
@@ -28,7 +28,7 @@ gql`
           ...balancesByCurrency
         }
         accounts {
-          ... on AccountWithBalance {
+          ... on Account {
             __typename
             id
             name
@@ -36,7 +36,7 @@ gql`
               ...balancesByCurrency
             }
           }
-          ... on AccountSetWithBalance {
+          ... on AccountSet {
             __typename
             id
             name
@@ -109,7 +109,7 @@ const BalanceSheet = ({
             currency={currency}
             layer={layer}
             total={
-              assets[0].balance[currency].end[layer][
+              assets[0].balance[currency].closingBalance[layer][
                 BALANCE_FOR_CATEGORY["Assets"].TransactionType
               ]
             }
@@ -162,7 +162,7 @@ function BalanceSheetColumn({
   total,
 }: {
   title: string
-  categories: StatementCategoryWithBalance[]
+  categories: StatementCategory[]
   currency: Currency
   layer: Layers
   total: number
@@ -204,7 +204,7 @@ function CategoryRow({
   layer,
   transactionType,
 }: {
-  category: StatementCategoryWithBalance
+  category: StatementCategory
   currency: Currency
   layer: Layers
   transactionType: TransactionType
@@ -236,7 +236,7 @@ function CategoryRow({
             <Balance
               align="end"
               currency={currency}
-              amount={category.balance[currency].end[layer][transactionType]}
+              amount={category.balance[currency].closingBalance[layer][transactionType]}
             />
           </TableCell>
         </TableRow>
@@ -246,7 +246,7 @@ function CategoryRow({
 }
 
 function calculateTotalLiabilitiesAndEquity(
-  categories: StatementCategoryWithBalance[] | undefined,
+  categories: StatementCategory[] | undefined,
   currency: Currency,
   layer: Layers,
 ): number {
@@ -254,7 +254,7 @@ function calculateTotalLiabilitiesAndEquity(
     categories?.reduce(
       (acc, category) =>
         acc +
-        category.balance[currency].end[layer][
+        category.balance[currency].closingBalance[layer][
           BALANCE_FOR_CATEGORY[category.name].TransactionType
         ],
       0,

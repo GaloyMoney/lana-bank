@@ -45,7 +45,7 @@ export default async function Home() {
       currency: "US Dollar",
       amount: formatCurrency({
         amount: currencyConverter.centsToUsd(
-          getMeAndSessionResponse.me?.balance.checking.settled.usdBalance,
+          getMeAndSessionResponse.me?.balance.checking.settled.amount,
         ),
         currency: "USD",
       }),

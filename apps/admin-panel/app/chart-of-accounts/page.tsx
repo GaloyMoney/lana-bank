@@ -9,7 +9,7 @@ import { PageHeading } from "@/components/page-heading"
 import { Table, TableBody, TableCell, TableRow } from "@/components/primitive/table"
 import { Tabs, TabsList, TabsContent, TabsTrigger } from "@/components/primitive/tab"
 import {
-  AccountBalancesByCurrency,
+  AccountAmountsByCurrency,
   GetOffBalanceSheetChartOfAccountsQuery,
   GetOnBalanceSheetChartOfAccountsQuery,
   useGetOffBalanceSheetChartOfAccountsQuery,
@@ -24,11 +24,11 @@ gql`
         name
         accounts {
           __typename
-          ... on AccountWithBalance {
+          ... on Account {
             id
             name
           }
-          ... on AccountSetWithBalance {
+          ... on AccountSet {
             id
             name
             hasSubAccounts
@@ -45,11 +45,11 @@ gql`
         name
         accounts {
           __typename
-          ... on AccountWithBalance {
+          ... on Account {
             id
             name
           }
-          ... on AccountSetWithBalance {
+          ... on AccountSet {
             id
             name
             hasSubAccounts
@@ -96,7 +96,7 @@ const ChartOfAccountsValues: React.FC<ChartOfAccountsValuesProps> = ({
                   key={account.id}
                   account={{
                     ...account,
-                    balance: undefined as unknown as AccountBalancesByCurrency,
+                    balance: undefined as unknown as AccountAmountsByCurrency,
                   }}
                 />
               ))}

@@ -122,9 +122,7 @@ export const CustomerDetailsCard = ({ customerId }: { customerId: string }) => {
                   label="Checking Settled Balance (USD)"
                   valueComponent={
                     <Balance
-                      amount={
-                        customerDetails.customer.balance.checking.settled.usdBalance
-                      }
+                      amount={customerDetails.customer.balance.checking.settled.amount}
                       currency="usd"
                     />
                   }
@@ -133,9 +131,7 @@ export const CustomerDetailsCard = ({ customerId }: { customerId: string }) => {
                   label="Pending withdrawals (USD)"
                   valueComponent={
                     <Balance
-                      amount={
-                        customerDetails.customer.balance.checking.pending.usdBalance
-                      }
+                      amount={customerDetails.customer.balance.checking.pending.amount}
                       currency="usd"
                     />
                   }

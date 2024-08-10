@@ -4,22 +4,19 @@ import { useState } from "react"
 
 import { IoCaretDownSharp, IoCaretForwardSharp } from "react-icons/io5"
 
-import {
-  AccountSetSubAccountWithBalance,
-  usePnlAccountSetWithBalanceQuery,
-} from "@/lib/graphql/generated"
+import { AccountSetSubAccount, usePnlAccountSetQuery } from "@/lib/graphql/generated"
 import Balance, { Currency } from "@/components/balance/balance"
 import { TableCell, TableRow } from "@/components/primitive/table"
 
 gql`
-  query PnlAccountSetWithBalance(
+  query PnlAccountSet(
     $accountSetId: UUID!
     $first: Int!
     $after: String
     $from: Timestamp!
     $until: Timestamp
   ) {
-    accountSetWithBalance(accountSetId: $accountSetId, from: $from, until: $until) {
+    accountSet(accountSetId: $accountSetId, from: $from, until: $until) {
       id
       name
       balance {
@@ -30,7 +27,7 @@ gql`
           cursor
           node {
             __typename
-            ... on AccountWithBalance {
+            ... on Account {
               __typename
               id
               name
@@ -38,7 +35,7 @@ gql`
                 ...balancesByCurrency
               }
             }
-            ... on AccountSetWithBalance {
+            ... on AccountSet {
               __typename
               id
               name
@@ -64,15 +61,14 @@ export const Account = ({
   layer,
   transactionType,
 }: {
-  account: AccountSetSubAccountWithBalance
+  account: AccountSetSubAccount
   currency: Currency
   depth?: number
   layer: Layers
   transactionType: TransactionType
 }) => {
   const [showingSubAccounts, setShowingSubAccounts] = useState(false)
-  const hasSubAccounts =
-    account.__typename === "AccountSetWithBalance" && account.hasSubAccounts
+  const hasSubAccounts = account.__typename === "AccountSet" && account.hasSubAccounts
 
   return (
     <>
@@ -95,7 +91,7 @@ export const Account = ({
           <Balance
             align="end"
             currency={currency}
-            amount={account.balance[currency].end[layer][transactionType]}
+            amount={account.balance[currency].closingBalance[layer][transactionType]}
           />
         </TableCell>
       </TableRow>
@@ -120,13 +116,13 @@ const SubAccountsForAccountSet = ({
   layer,
   transactionType,
 }: {
-  account: AccountSetSubAccountWithBalance
+  account: AccountSetSubAccount
   depth?: number
   currency: Currency
   layer: Layers
   transactionType: TransactionType
 }) => {
-  const { data, fetchMore } = usePnlAccountSetWithBalanceQuery({
+  const { data, fetchMore } = usePnlAccountSetQuery({
     variables: {
       accountSetId: account.id,
       first: 10,
@@ -134,8 +130,8 @@ const SubAccountsForAccountSet = ({
     },
   })
 
-  const hasMoreSubAccounts = data?.accountSetWithBalance?.subAccounts.pageInfo.hasNextPage
-  const subAccounts = data?.accountSetWithBalance?.subAccounts.edges
+  const hasMoreSubAccounts = data?.accountSet?.subAccounts.pageInfo.hasNextPage
+  const subAccounts = data?.accountSet?.subAccounts.edges
 
   return (
     <>

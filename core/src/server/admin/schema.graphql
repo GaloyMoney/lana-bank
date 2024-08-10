@@ -1,18 +1,31 @@
-type AccountBalancesByCurrency {
-	btc: RangedBtcAccountBalances!
-	usd: RangedUsdAccountBalances!
-}
-
-type AccountSetAndSubAccountsWithBalance {
+type Account {
 	id: UUID!
 	name: String!
-	balance: AccountBalancesByCurrency!
-	subAccounts(first: Int!, after: String): AccountSetSubAccountWithBalanceConnection!
+	balance: AccountAmountsByCurrency!
 }
 
-union AccountSetSubAccountWithBalance = AccountWithBalance | AccountSetWithBalance
+type AccountAmountsByCurrency {
+	btc: BtcAccountAmountsInPeriod!
+	usd: UsdAccountAmountsInPeriod!
+}
 
-type AccountSetSubAccountWithBalanceConnection {
+type AccountSet {
+	id: UUID!
+	name: String!
+	balance: AccountAmountsByCurrency!
+	hasSubAccounts: Boolean!
+}
+
+type AccountSetAndSubAccounts {
+	id: UUID!
+	name: String!
+	balance: AccountAmountsByCurrency!
+	subAccounts(first: Int!, after: String): AccountSetSubAccountConnection!
+}
+
+union AccountSetSubAccount = Account | AccountSet
+
+type AccountSetSubAccountConnection {
 	"""
 	Information to aid in pagination.
 	"""
@@ -20,43 +33,30 @@ type AccountSetSubAccountWithBalanceConnection {
 	"""
 	A list of edges.
 	"""
-	edges: [AccountSetSubAccountWithBalanceEdge!]!
+	edges: [AccountSetSubAccountEdge!]!
 	"""
 	A list of nodes.
 	"""
-	nodes: [AccountSetSubAccountWithBalance!]!
+	nodes: [AccountSetSubAccount!]!
 }
 
 """
 An edge in a connection.
 """
-type AccountSetSubAccountWithBalanceEdge {
+type AccountSetSubAccountEdge {
 	"""
 	The item at the end of the edge
 	"""
-	node: AccountSetSubAccountWithBalance!
+	node: AccountSetSubAccount!
 	"""
 	A cursor for use in pagination
 	"""
 	cursor: String!
 }
 
-type AccountSetWithBalance {
-	id: UUID!
-	name: String!
-	balance: AccountBalancesByCurrency!
-	hasSubAccounts: Boolean!
-}
-
 enum AccountStatus {
 	ACTIVE
 	INACTIVE
-}
-
-type AccountWithBalance {
-	id: UUID!
-	name: String!
-	balance: AccountBalancesByCurrency!
 }
 
 scalar AnnualRatePct
@@ -101,34 +101,40 @@ type AuditEntryEdge {
 
 type BalanceSheet {
 	name: String!
-	balance: AccountBalancesByCurrency!
-	categories: [StatementCategoryWithBalance!]!
+	balance: AccountAmountsByCurrency!
+	categories: [StatementCategory!]!
 }
 
 
-type BtcAccountBalance {
+type BtcAccountAmounts {
 	debit: Satoshis!
 	credit: Satoshis!
 	netDebit: SignedSatoshis!
 	netCredit: SignedSatoshis!
 }
 
+type BtcAccountAmountsInPeriod {
+	openingBalance: LayeredBtcAccountAmounts!
+	closingBalance: LayeredBtcAccountAmounts!
+	amount: LayeredBtcAccountAmounts!
+}
+
 scalar CVLPct
 
 type CashFlowStatement {
 	name: String!
-	balance: AccountBalancesByCurrency!
-	categories: [StatementCategoryWithBalance!]!
+	balance: AccountAmountsByCurrency!
+	categories: [StatementCategory!]!
 }
 
 type ChartOfAccounts {
 	name: String!
-	categories: [StatementCategoryWithBalance!]!
+	categories: [StatementCategory!]!
 }
 
 type Checking {
-	settled: UsdBalance!
-	pending: UsdBalance!
+	settled: UsdAmount!
+	pending: UsdAmount!
 }
 
 type Collateral {
@@ -274,18 +280,18 @@ enum KycLevel {
 	TWO
 }
 
-type LayeredBtcAccountBalances {
-	all: BtcAccountBalance!
-	settled: BtcAccountBalance!
-	pending: BtcAccountBalance!
-	encumbrance: BtcAccountBalance!
+type LayeredBtcAccountAmounts {
+	all: BtcAccountAmounts!
+	settled: BtcAccountAmounts!
+	pending: BtcAccountAmounts!
+	encumbrance: BtcAccountAmounts!
 }
 
-type LayeredUsdAccountBalances {
-	all: UsdAccountBalance!
-	settled: UsdAccountBalance!
-	pending: UsdAccountBalance!
-	encumbrance: UsdAccountBalance!
+type LayeredUsdAccountAmounts {
+	all: UsdAccountAmounts!
+	settled: UsdAccountAmounts!
+	pending: UsdAccountAmounts!
+	encumbrance: UsdAccountAmounts!
 }
 
 type Loan {
@@ -416,8 +422,8 @@ enum Period {
 
 type ProfitAndLossStatement {
 	name: String!
-	balance: AccountBalancesByCurrency!
-	categories: [StatementCategoryWithBalance!]!
+	balance: AccountAmountsByCurrency!
+	categories: [StatementCategory!]!
 }
 
 type Query {
@@ -438,23 +444,11 @@ type Query {
 	balanceSheet(from: Timestamp!, until: Timestamp): BalanceSheet
 	profitAndLossStatement(from: Timestamp!, until: Timestamp): ProfitAndLossStatement
 	cashFlowStatement(from: Timestamp!, until: Timestamp): CashFlowStatement
-	accountSetWithBalance(accountSetId: UUID!, from: Timestamp!, until: Timestamp): AccountSetAndSubAccountsWithBalance
+	accountSet(accountSetId: UUID!, from: Timestamp!, until: Timestamp): AccountSetAndSubAccounts
 	deposit(id: UUID!): Deposit
 	deposits(first: Int!, after: String): DepositConnection!
 	withdrawal(id: UUID!): Withdrawal
 	withdrawals(first: Int!, after: String): WithdrawalConnection!
-}
-
-type RangedBtcAccountBalances {
-	start: LayeredBtcAccountBalances!
-	end: LayeredBtcAccountBalances!
-	diff: LayeredBtcAccountBalances!
-}
-
-type RangedUsdAccountBalances {
-	start: LayeredUsdAccountBalances!
-	end: LayeredUsdAccountBalances!
-	diff: LayeredUsdAccountBalances!
 }
 
 enum Role {
@@ -474,10 +468,10 @@ scalar SignedSatoshis
 
 scalar SignedUsdCents
 
-type StatementCategoryWithBalance {
+type StatementCategory {
 	name: String!
-	balance: AccountBalancesByCurrency!
-	accounts: [AccountSetSubAccountWithBalance!]!
+	balance: AccountAmountsByCurrency!
+	accounts: [AccountSetSubAccount!]!
 }
 
 
@@ -527,21 +521,27 @@ scalar Timestamp
 
 type TrialBalance {
 	name: String!
-	balance: AccountBalancesByCurrency!
-	subAccounts: [AccountSetSubAccountWithBalance!]!
+	balance: AccountAmountsByCurrency!
+	subAccounts: [AccountSetSubAccount!]!
 }
 
 scalar UUID
 
-type UsdAccountBalance {
+type UsdAccountAmounts {
 	debit: UsdCents!
 	credit: UsdCents!
 	netDebit: SignedUsdCents!
 	netCredit: SignedUsdCents!
 }
 
-type UsdBalance {
-	usdBalance: UsdCents!
+type UsdAccountAmountsInPeriod {
+	openingBalance: LayeredUsdAccountAmounts!
+	closingBalance: LayeredUsdAccountAmounts!
+	amount: LayeredUsdAccountAmounts!
+}
+
+type UsdAmount {
+	amount: UsdCents!
 }
 
 scalar UsdCents

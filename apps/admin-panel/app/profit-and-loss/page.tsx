@@ -6,7 +6,7 @@ import { Account } from "./account"
 
 import {
   ProfitAndLossStatementQuery,
-  StatementCategoryWithBalance,
+  StatementCategory,
   useProfitAndLossStatementQuery,
 } from "@/lib/graphql/generated"
 import Balance, { Currency } from "@/components/balance/balance"
@@ -34,7 +34,7 @@ gql`
           ...balancesByCurrency
         }
         accounts {
-          ... on AccountWithBalance {
+          ... on Account {
             __typename
             id
             name
@@ -42,7 +42,7 @@ gql`
               ...balancesByCurrency
             }
           }
-          ... on AccountSetWithBalance {
+          ... on AccountSet {
             __typename
             id
             name
@@ -139,7 +139,7 @@ const ProfitAndLossStatement = ({
               <Balance
                 align="end"
                 currency={currency}
-                amount={balance[currency].end[layer].netCredit}
+                amount={balance[currency].closingBalance[layer].netCredit}
               />
             </TableCell>
           </TableRow>
@@ -155,7 +155,7 @@ const CategoryRow = ({
   layer,
   transactionType,
 }: {
-  category: StatementCategoryWithBalance
+  category: StatementCategory
   currency: Currency
   layer: Layers
   transactionType: TransactionType
@@ -172,7 +172,7 @@ const CategoryRow = ({
           <Balance
             align="end"
             currency={currency}
-            amount={category.balance[currency].end[layer][transactionType]}
+            amount={category.balance[currency].closingBalance[layer][transactionType]}
           />
         </TableCell>
       </TableRow>

@@ -13,7 +13,7 @@ mutation userCreate($input: UserCreateInput!) {
         }
         checking {
           settled {
-            usdBalance
+            amount
           }
         }
       }
