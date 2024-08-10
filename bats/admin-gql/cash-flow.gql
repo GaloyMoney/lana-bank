@@ -1,19 +1,19 @@
 query CashFlowStatement($from: Timestamp!) {
   cashFlowStatement(from: $from) {
     name
-    balance {
+    total {
       ...amountsByCurrency
     }
     categories {
       name
-      balance {
+      amounts {
         ...amountsByCurrency
       }
       accounts {
         ... on Account {
           id
           name
-          balance {
+          amounts {
             ...amountsByCurrency
           }
         }
@@ -21,7 +21,7 @@ query CashFlowStatement($from: Timestamp!) {
           id
           name
           hasSubAccounts
-          balance {
+          amounts {
             ...amountsByCurrency
           }
         }

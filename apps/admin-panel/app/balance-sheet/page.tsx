@@ -24,7 +24,7 @@ gql`
       }
       categories {
         name
-        balance {
+        amounts {
           ...balancesByCurrency
         }
         accounts {
@@ -32,7 +32,7 @@ gql`
             __typename
             id
             name
-            balance {
+            amounts {
               ...balancesByCurrency
             }
           }
@@ -41,7 +41,7 @@ gql`
             id
             name
             hasSubAccounts
-            balance {
+            amounts {
               ...balancesByCurrency
             }
           }
@@ -109,7 +109,7 @@ const BalanceSheet = ({
             currency={currency}
             layer={layer}
             total={
-              assets[0].balance[currency].closingBalance[layer][
+              assets[0].amounts[currency].closingBalance[layer][
                 BALANCE_FOR_CATEGORY["Assets"].TransactionType
               ]
             }
@@ -236,7 +236,7 @@ function CategoryRow({
             <Balance
               align="end"
               currency={currency}
-              amount={category.balance[currency].closingBalance[layer][transactionType]}
+              amount={category.amounts[currency].closingBalance[layer][transactionType]}
             />
           </TableCell>
         </TableRow>
@@ -254,7 +254,7 @@ function calculateTotalLiabilitiesAndEquity(
     categories?.reduce(
       (acc, category) =>
         acc +
-        category.balance[currency].closingBalance[layer][
+        category.amounts[currency].closingBalance[layer][
           BALANCE_FOR_CATEGORY[category.name].TransactionType
         ],
       0,

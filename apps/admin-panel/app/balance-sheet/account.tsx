@@ -44,7 +44,7 @@ export const Account = ({
           <Balance
             align="end"
             currency={currency}
-            amount={account.balance[currency].closingBalance[layer][transactionType]}
+            amount={account.amounts[currency].closingBalance[layer][transactionType]}
           />
         </TableCell>
       </TableRow>

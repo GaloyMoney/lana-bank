@@ -1,7 +1,7 @@
 type Account {
 	id: UUID!
 	name: String!
-	balance: AccountAmountsByCurrency!
+	amounts: AccountAmountsByCurrency!
 }
 
 type AccountAmountsByCurrency {
@@ -12,14 +12,14 @@ type AccountAmountsByCurrency {
 type AccountSet {
 	id: UUID!
 	name: String!
-	balance: AccountAmountsByCurrency!
+	amounts: AccountAmountsByCurrency!
 	hasSubAccounts: Boolean!
 }
 
 type AccountSetAndSubAccounts {
 	id: UUID!
 	name: String!
-	balance: AccountAmountsByCurrency!
+	amounts: AccountAmountsByCurrency!
 	subAccounts(first: Int!, after: String): AccountSetSubAccountConnection!
 }
 
@@ -123,7 +123,7 @@ scalar CVLPct
 
 type CashFlowStatement {
 	name: String!
-	balance: AccountAmountsByCurrency!
+	total: AccountAmountsByCurrency!
 	categories: [StatementCategory!]!
 }
 
@@ -422,7 +422,7 @@ enum Period {
 
 type ProfitAndLossStatement {
 	name: String!
-	balance: AccountAmountsByCurrency!
+	net: AccountAmountsByCurrency!
 	categories: [StatementCategory!]!
 }
 
@@ -470,7 +470,7 @@ scalar SignedUsdCents
 
 type StatementCategory {
 	name: String!
-	balance: AccountAmountsByCurrency!
+	amounts: AccountAmountsByCurrency!
 	accounts: [AccountSetSubAccount!]!
 }
 
@@ -521,7 +521,7 @@ scalar Timestamp
 
 type TrialBalance {
 	name: String!
-	balance: AccountAmountsByCurrency!
+	total: AccountAmountsByCurrency!
 	subAccounts: [AccountSetSubAccount!]!
 }
 

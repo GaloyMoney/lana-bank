@@ -328,10 +328,10 @@ assert_trial_balance() {
   )
   exec_admin_graphql 'trial-balance' "$variables"
 
-  all_btc=$(graphql_output '.data.trialBalance.balance.btc.balancesByLayer.all.netDebit')
+  all_btc=$(graphql_output '.data.trialBalance.total.btc.balancesByLayer.all.netDebit')
   [[ "$all_btc" == "0" ]] || exit 1
 
-  all_usd=$(graphql_output '.data.trialBalance.balance.usd.balancesByLayer.all.netDebit')
+  all_usd=$(graphql_output '.data.trialBalance.total.usd.balancesByLayer.all.netDebit')
   [[ "$all_usd" == "0" ]] || exit 1
 }
 
@@ -348,7 +348,7 @@ net_usd_revenue() {
   )
   exec_admin_graphql 'profit-and-loss' "$variables"
 
-  revenue_usd=$(graphql_output '.data.profitAndLossStatement.balance.usd.balancesByLayer.all.netCredit')
+  revenue_usd=$(graphql_output '.data.profitAndLossStatement.net.usd.balancesByLayer.all.netCredit')
   echo $revenue_usd
 }
 

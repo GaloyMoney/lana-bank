@@ -10,7 +10,7 @@ use super::account::AccountAmountsByCurrency;
 pub struct AccountSet {
     id: UUID,
     name: String,
-    balance: AccountAmountsByCurrency,
+    amounts: AccountAmountsByCurrency,
     has_sub_accounts: bool,
 }
 
@@ -19,7 +19,7 @@ impl From<crate::ledger::account_set::LedgerAccountSetWithBalance> for AccountSe
         AccountSet {
             id: line_item.id.into(),
             name: line_item.name,
-            balance: line_item.balance.into(),
+            amounts: line_item.balance.into(),
             has_sub_accounts: line_item.page_info.start_cursor.is_some(),
         }
     }
@@ -101,7 +101,7 @@ impl From<crate::ledger::account_set::LedgerAccountSetSubAccountWithBalance>
 pub struct AccountSetAndSubAccounts {
     id: UUID,
     name: String,
-    balance: AccountAmountsByCurrency,
+    amounts: AccountAmountsByCurrency,
     #[graphql(skip)]
     from: DateTime<Utc>,
     #[graphql(skip)]
@@ -125,7 +125,7 @@ impl
         AccountSetAndSubAccounts {
             id: account_set.id.into(),
             name: account_set.name,
-            balance: account_set.balance.into(),
+            amounts: account_set.balance.into(),
             from,
             until,
         }
@@ -177,7 +177,7 @@ impl AccountSetAndSubAccounts {
 #[derive(SimpleObject)]
 pub struct TrialBalance {
     name: String,
-    balance: AccountAmountsByCurrency,
+    total: AccountAmountsByCurrency,
     sub_accounts: Vec<AccountSetSubAccount>,
 }
 
@@ -185,7 +185,7 @@ impl From<crate::ledger::account_set::LedgerTrialBalance> for TrialBalance {
     fn from(trial_balance: crate::ledger::account_set::LedgerTrialBalance) -> Self {
         TrialBalance {
             name: trial_balance.name,
-            balance: trial_balance.balance.into(),
+            total: trial_balance.balance.into(),
             sub_accounts: trial_balance
                 .accounts
                 .into_iter()
@@ -217,7 +217,7 @@ impl From<crate::ledger::account_set::LedgerChartOfAccounts> for ChartOfAccounts
 #[derive(SimpleObject)]
 pub struct StatementCategory {
     name: String,
-    balance: AccountAmountsByCurrency,
+    amounts: AccountAmountsByCurrency,
     accounts: Vec<AccountSetSubAccount>,
 }
 
@@ -225,7 +225,7 @@ impl From<crate::ledger::account_set::LedgerStatementCategoryWithBalance> for St
     fn from(account_set: crate::ledger::account_set::LedgerStatementCategoryWithBalance) -> Self {
         StatementCategory {
             name: account_set.name,
-            balance: account_set.balance.into(),
+            amounts: account_set.balance.into(),
             accounts: account_set
                 .accounts
                 .into_iter()
@@ -259,7 +259,7 @@ impl From<crate::ledger::account_set::LedgerBalanceSheet> for BalanceSheet {
 #[derive(SimpleObject)]
 pub struct ProfitAndLossStatement {
     name: String,
-    balance: AccountAmountsByCurrency,
+    net: AccountAmountsByCurrency,
     categories: Vec<StatementCategory>,
 }
 
@@ -267,7 +267,7 @@ impl From<crate::ledger::account_set::LedgerProfitAndLossStatement> for ProfitAn
     fn from(profit_and_loss: crate::ledger::account_set::LedgerProfitAndLossStatement) -> Self {
         ProfitAndLossStatement {
             name: profit_and_loss.name,
-            balance: profit_and_loss.balance.into(),
+            net: profit_and_loss.balance.into(),
             categories: profit_and_loss
                 .categories
                 .into_iter()
@@ -280,7 +280,7 @@ impl From<crate::ledger::account_set::LedgerProfitAndLossStatement> for ProfitAn
 #[derive(SimpleObject)]
 pub struct CashFlowStatement {
     name: String,
-    balance: AccountAmountsByCurrency,
+    total: AccountAmountsByCurrency,
     categories: Vec<StatementCategory>,
 }
 
@@ -288,7 +288,7 @@ impl From<crate::ledger::account_set::LedgerCashFlowStatement> for CashFlowState
     fn from(profit_and_loss: crate::ledger::account_set::LedgerCashFlowStatement) -> Self {
         CashFlowStatement {
             name: profit_and_loss.name,
-            balance: profit_and_loss.balance.into(),
+            total: profit_and_loss.balance.into(),
             categories: profit_and_loss
                 .categories
                 .into_iter()

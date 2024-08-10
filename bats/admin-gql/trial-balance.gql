@@ -1,19 +1,19 @@
 query TrialBalance($from: Timestamp!) {
   trialBalance(from: $from) {
     name
-    balance {
+    total {
       ...amountsByCurrency
     }
     subAccounts {
       ... on Account {
         name
-        balance {
+        amounts {
           ...amountsByCurrency
         }
       }
       ... on AccountSet {
         name
-        balance {
+        amounts {
           ...amountsByCurrency
         }
       }

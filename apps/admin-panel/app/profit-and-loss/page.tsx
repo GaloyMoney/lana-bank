@@ -25,12 +25,12 @@ gql`
   query ProfitAndLossStatement($from: Timestamp!, $until: Timestamp) {
     profitAndLossStatement(from: $from, until: $until) {
       name
-      balance {
+      net {
         ...balancesByCurrency
       }
       categories {
         name
-        balance {
+        amounts {
           ...balancesByCurrency
         }
         accounts {
@@ -38,7 +38,7 @@ gql`
             __typename
             id
             name
-            balance {
+            amounts {
               ...balancesByCurrency
             }
           }
@@ -47,7 +47,7 @@ gql`
             id
             name
             hasSubAccounts
-            balance {
+            amounts {
               ...balancesByCurrency
             }
           }
@@ -96,12 +96,12 @@ const ProfitAndLossStatement = ({
   const [currency, setCurrency] = useState<Currency>("usd")
   const [layer, setLayer] = useState<Layers>("all")
 
-  const balance = data?.balance
+  const net = data?.net
   const categories = data?.categories
 
   if (error) return <div className="text-destructive">{error.message}</div>
   if (loading) return <div>Loading...</div>
-  if (!balance) return <div>No data</div>
+  if (!net) return <div>No data</div>
 
   return (
     <main>
@@ -139,7 +139,7 @@ const ProfitAndLossStatement = ({
               <Balance
                 align="end"
                 currency={currency}
-                amount={balance[currency].closingBalance[layer].netCredit}
+                amount={net[currency].closingBalance[layer].netCredit}
               />
             </TableCell>
           </TableRow>
@@ -172,7 +172,7 @@ const CategoryRow = ({
           <Balance
             align="end"
             currency={currency}
-            amount={category.balance[currency].closingBalance[layer][transactionType]}
+            amount={category.amounts[currency].closingBalance[layer][transactionType]}
           />
         </TableCell>
       </TableRow>

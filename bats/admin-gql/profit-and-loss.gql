@@ -1,19 +1,19 @@
 query ProfitAndLossStatement($from: Timestamp!) {
   profitAndLossStatement(from: $from) {
     name
-    balance {
+    net {
       ...amountsByCurrency
     }
     categories {
       name
-      balance {
+      amounts {
         ...amountsByCurrency
       }
       accounts {
         ... on Account {
           id
           name
-          balance {
+          amounts {
             ...amountsByCurrency
           }
         }
@@ -21,7 +21,7 @@ query ProfitAndLossStatement($from: Timestamp!) {
           id
           name
           hasSubAccounts
-          balance {
+          amounts {
             ...amountsByCurrency
           }
         }

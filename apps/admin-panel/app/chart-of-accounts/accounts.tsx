@@ -72,7 +72,7 @@ const SubAccountsForAccountSet: React.FC<AccountProps> = ({ account, depth = 0 }
           key={subAccount.node.id}
           account={{
             ...subAccount.node,
-            balance: undefined as unknown as AccountAmountsByCurrency,
+            amounts: undefined as unknown as AccountAmountsByCurrency,
           }}
           depth={depth + 1}
         />

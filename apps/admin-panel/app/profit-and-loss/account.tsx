@@ -19,7 +19,7 @@ gql`
     accountSet(accountSetId: $accountSetId, from: $from, until: $until) {
       id
       name
-      balance {
+      amounts {
         ...balancesByCurrency
       }
       subAccounts(first: $first, after: $after) {
@@ -31,7 +31,7 @@ gql`
               __typename
               id
               name
-              balance {
+              amounts {
                 ...balancesByCurrency
               }
             }
@@ -40,7 +40,7 @@ gql`
               id
               name
               hasSubAccounts
-              balance {
+              amounts {
                 ...balancesByCurrency
               }
             }
@@ -91,7 +91,7 @@ export const Account = ({
           <Balance
             align="end"
             currency={currency}
-            amount={account.balance[currency].closingBalance[layer][transactionType]}
+            amount={account.amounts[currency].closingBalance[layer][transactionType]}
           />
         </TableCell>
       </TableRow>

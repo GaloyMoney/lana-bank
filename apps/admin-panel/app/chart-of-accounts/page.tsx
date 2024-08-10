@@ -96,7 +96,7 @@ const ChartOfAccountsValues: React.FC<ChartOfAccountsValuesProps> = ({
                   key={account.id}
                   account={{
                     ...account,
-                    balance: undefined as unknown as AccountAmountsByCurrency,
+                    amounts: undefined as unknown as AccountAmountsByCurrency,
                   }}
                 />
               ))}

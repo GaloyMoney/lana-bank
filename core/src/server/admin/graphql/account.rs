@@ -133,7 +133,7 @@ impl From<crate::ledger::account::LedgerAccountBalancesByCurrency> for AccountAm
 pub struct Account {
     pub id: UUID,
     pub name: String,
-    pub balance: AccountAmountsByCurrency,
+    pub amounts: AccountAmountsByCurrency,
 }
 
 impl From<crate::ledger::account::LedgerAccountWithBalance> for Account {
@@ -141,7 +141,7 @@ impl From<crate::ledger::account::LedgerAccountWithBalance> for Account {
         Account {
             id: account_balance.id.into(),
             name: account_balance.name,
-            balance: account_balance.balance.into(),
+            amounts: account_balance.balance.into(),
         }
     }
 }

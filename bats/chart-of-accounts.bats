@@ -44,7 +44,7 @@ teardown_file() {
   exec_admin_graphql 'account-set' "$variables"
   num_accounts_with_balance=$(graphql_output '.data.accountSet.subAccounts.edges | length')
   first_cursor=$(graphql_output '.data.accountSet.subAccounts.edges[0].cursor')
-  btc_balance=$(graphql_output '.data.accountSet.subAccounts.edges[0].node.balance.btc.balancesByLayer.all.netDebit')
+  btc_balance=$(graphql_output '.data.accountSet.subAccounts.edges[0].node.amounts.btc.balancesByLayer.all.netDebit')
   [[ "$num_accounts_with_balance" -gt "0" ]] || exit 1
   [[ "$btc_balance" == "0" ]] || exit 1
 

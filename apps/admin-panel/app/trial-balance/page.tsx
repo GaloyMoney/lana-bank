@@ -28,19 +28,19 @@ gql`
   query GetOnBalanceSheetTrialBalance($from: Timestamp!, $until: Timestamp) {
     trialBalance(from: $from, until: $until) {
       name
-      balance {
+      total {
         ...balancesByCurrency
       }
       subAccounts {
         ... on Account {
           name
-          balance {
+          amounts {
             ...balancesByCurrency
           }
         }
         ... on AccountSet {
           name
-          balance {
+          amounts {
             ...balancesByCurrency
           }
         }
@@ -51,19 +51,19 @@ gql`
   query GetOffBalanceSheetTrialBalance($from: Timestamp!, $until: Timestamp) {
     offBalanceSheetTrialBalance(from: $from, until: $until) {
       name
-      balance {
+      total {
         ...balancesByCurrency
       }
       subAccounts {
         ... on Account {
           name
-          balance {
+          amounts {
             ...balancesByCurrency
           }
         }
         ... on AccountSet {
           name
-          balance {
+          amounts {
             ...balancesByCurrency
           }
         }
@@ -176,12 +176,12 @@ const TrialBalanceValues: React.FC<TrialBalanceValuesProps> = ({
   const [currency, setCurrency] = React.useState<Currency>("usd")
   const [layer, setLayer] = React.useState<Layers>("all")
 
-  const balance = data?.balance
+  const total = data?.total
   const subAccounts = data?.subAccounts
 
   if (error) return <div className="text-destructive">{error.message}</div>
   if (loading) return <div>Loading...</div>
-  if (!balance) return <div>No data</div>
+  if (!total) return <div>No data</div>
 
   return (
     <>
@@ -206,21 +206,21 @@ const TrialBalanceValues: React.FC<TrialBalanceValuesProps> = ({
                 <Balance
                   align="end"
                   currency={currency}
-                  amount={memberBalance.balance[currency].closingBalance[layer].debit}
+                  amount={memberBalance.amounts[currency].closingBalance[layer].debit}
                 />
               </TableCell>
               <TableCell className="w-48">
                 <Balance
                   align="end"
                   currency={currency}
-                  amount={memberBalance.balance[currency].closingBalance[layer].credit}
+                  amount={memberBalance.amounts[currency].closingBalance[layer].credit}
                 />
               </TableCell>
               <TableCell className="w-48">
                 <Balance
                   align="end"
                   currency={currency}
-                  amount={memberBalance.balance[currency].closingBalance[layer].netDebit}
+                  amount={memberBalance.amounts[currency].closingBalance[layer].netDebit}
                 />
               </TableCell>
             </TableRow>
@@ -233,27 +233,27 @@ const TrialBalanceValues: React.FC<TrialBalanceValuesProps> = ({
               <Balance
                 align="end"
                 currency={currency}
-                amount={balance[currency].closingBalance[layer].debit}
+                amount={total[currency].closingBalance[layer].debit}
               />
             </TableCell>
             <TableCell className="w-48">
               <Balance
                 align="end"
                 currency={currency}
-                amount={balance[currency].closingBalance[layer].credit}
+                amount={total[currency].closingBalance[layer].credit}
               />
             </TableCell>
             <TableCell className="w-48">
               <Balance
                 align="end"
                 currency={currency}
-                amount={balance[currency].closingBalance[layer].credit}
+                amount={total[currency].closingBalance[layer].credit}
               />
             </TableCell>
             <TableCell className="w-48">
               <Balance
                 currency={currency}
-                amount={balance[currency].closingBalance[layer].netDebit}
+                amount={total[currency].closingBalance[layer].netDebit}
               />
             </TableCell>
           </TableRow>

@@ -6,21 +6,21 @@ query BalanceSheet($from: Timestamp!) {
     }
     categories {
       name
-      balance {
+      amounts {
         ...amountsByCurrency
       }
       accounts {
         ... on Account {
           id
           name
-          balance {
+          amounts {
             ...amountsByCurrency
           }
         }
         ... on AccountSet {
           id
           name
-          balance {
+          amounts {
             ...amountsByCurrency
           }
         }

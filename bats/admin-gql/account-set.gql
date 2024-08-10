@@ -7,7 +7,7 @@ query AccountSet(
   accountSet(accountSetId: $accountSetId, from: $from) {
     id
     name
-    balance {
+    amounts {
       ...amountsByCurrency
     }
     subAccounts(first: $first, after: $after) {
@@ -19,7 +19,7 @@ query AccountSet(
             __typename
             id
             name
-            balance {
+            amounts {
               ...amountsByCurrency
             }
           }
@@ -28,7 +28,7 @@ query AccountSet(
             id
             name
             hasSubAccounts
-            balance {
+            amounts {
               ...amountsByCurrency
             }
           }
