@@ -28,9 +28,7 @@ gql`
           customerId
           balance {
             checking {
-              settled {
-                amount
-              }
+              settled
             }
           }
         }

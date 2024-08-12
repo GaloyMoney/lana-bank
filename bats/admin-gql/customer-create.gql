@@ -5,9 +5,7 @@ mutation CustomerCreate($input: CustomerCreateInput!) {
       email
       balance {
         checking {
-          settled {
-            amount
-          }
+          settled
         }
       }
     }

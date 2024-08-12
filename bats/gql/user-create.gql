@@ -12,9 +12,7 @@ mutation userCreate($input: UserCreateInput!) {
           }
         }
         checking {
-          settled {
-            amount
-          }
+          settled
         }
       }
     }

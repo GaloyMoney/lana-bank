@@ -32,8 +32,8 @@ export enum AccountStatus {
 
 export type Checking = {
   __typename?: 'Checking';
-  pending: UsdAmount;
-  settled: UsdAmount;
+  pending: Scalars['UsdCents']['output'];
+  settled: Scalars['UsdCents']['output'];
 };
 
 export type Collateral = {
@@ -158,11 +158,6 @@ export type TermValues = {
   marginCallCvl: Scalars['CVLPct']['output'];
 };
 
-export type UsdAmount = {
-  __typename?: 'UsdAmount';
-  amount: Scalars['UsdCents']['output'];
-};
-
 export type Withdrawal = {
   __typename?: 'Withdrawal';
   amount: Scalars['UsdCents']['output'];
@@ -203,7 +198,7 @@ export type GetMyLoansQuery = { __typename?: 'Query', me?: { __typename?: 'Custo
 export type MeQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type MeQuery = { __typename?: 'Query', me?: { __typename?: 'Customer', customerId: any, email: string, applicantId?: string | null, status: AccountStatus, level: KycLevel, balance: { __typename?: 'CustomerBalance', checking: { __typename?: 'Checking', settled: { __typename?: 'UsdAmount', amount: any }, pending: { __typename?: 'UsdAmount', amount: any } } } } | null };
+export type MeQuery = { __typename?: 'Query', me?: { __typename?: 'Customer', customerId: any, email: string, applicantId?: string | null, status: AccountStatus, level: KycLevel, balance: { __typename?: 'CustomerBalance', checking: { __typename?: 'Checking', settled: any, pending: any } } } | null };
 
 
 export const SumsubPermalinkCreateDocument = gql`
@@ -389,12 +384,8 @@ export const MeDocument = gql`
     level
     balance {
       checking {
-        settled {
-          amount
-        }
-        pending {
-          amount
-        }
+        settled
+        pending
       }
     }
   }

@@ -133,8 +133,8 @@ type ChartOfAccounts {
 }
 
 type Checking {
-	settled: UsdAmount!
-	pending: UsdAmount!
+	settled: UsdCents!
+	pending: UsdCents!
 }
 
 type Collateral {
@@ -538,10 +538,6 @@ type UsdAccountAmountsInPeriod {
 	openingBalance: LayeredUsdAccountAmounts!
 	closingBalance: LayeredUsdAccountAmounts!
 	amount: LayeredUsdAccountAmounts!
-}
-
-type UsdAmount {
-	amount: UsdCents!
 }
 
 scalar UsdCents

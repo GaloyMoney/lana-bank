@@ -4,9 +4,7 @@ query Customer($id: UUID!) {
     email
     balance {
       checking {
-        settled {
-          amount
-        }
+        settled
       }
     }
   }

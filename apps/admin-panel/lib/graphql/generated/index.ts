@@ -154,8 +154,8 @@ export type ChartOfAccounts = {
 
 export type Checking = {
   __typename?: 'Checking';
-  pending: UsdAmount;
-  settled: UsdAmount;
+  pending: Scalars['UsdCents']['output'];
+  settled: Scalars['UsdCents']['output'];
 };
 
 export type Collateral = {
@@ -704,11 +704,6 @@ export type UsdAccountAmountsInPeriod = {
   openingBalance: LayeredUsdAccountAmounts;
 };
 
-export type UsdAmount = {
-  __typename?: 'UsdAmount';
-  amount: Scalars['UsdCents']['output'];
-};
-
 export type User = {
   __typename?: 'User';
   email: Scalars['String']['output'];
@@ -871,14 +866,14 @@ export type GetCustomerByCustomerEmailQueryVariables = Exact<{
 }>;
 
 
-export type GetCustomerByCustomerEmailQuery = { __typename?: 'Query', customerByEmail?: { __typename?: 'Customer', customerId: string, email: string, status: AccountStatus, level: KycLevel, applicantId?: string | null, balance: { __typename?: 'CustomerBalance', checking: { __typename?: 'Checking', settled: { __typename?: 'UsdAmount', amount: any }, pending: { __typename?: 'UsdAmount', amount: any } } } } | null };
+export type GetCustomerByCustomerEmailQuery = { __typename?: 'Query', customerByEmail?: { __typename?: 'Customer', customerId: string, email: string, status: AccountStatus, level: KycLevel, applicantId?: string | null, balance: { __typename?: 'CustomerBalance', checking: { __typename?: 'Checking', settled: any, pending: any } } } | null };
 
 export type GetCustomerByCustomerIdQueryVariables = Exact<{
   id: Scalars['UUID']['input'];
 }>;
 
 
-export type GetCustomerByCustomerIdQuery = { __typename?: 'Query', customer?: { __typename?: 'Customer', customerId: string, email: string, status: AccountStatus, level: KycLevel, applicantId?: string | null, balance: { __typename?: 'CustomerBalance', checking: { __typename?: 'Checking', settled: { __typename?: 'UsdAmount', amount: any }, pending: { __typename?: 'UsdAmount', amount: any } } } } | null };
+export type GetCustomerByCustomerIdQuery = { __typename?: 'Query', customer?: { __typename?: 'Customer', customerId: string, email: string, status: AccountStatus, level: KycLevel, applicantId?: string | null, balance: { __typename?: 'CustomerBalance', checking: { __typename?: 'Checking', settled: any, pending: any } } } | null };
 
 export type DepositsQueryVariables = Exact<{
   first: Scalars['Int']['input'];
@@ -999,21 +994,21 @@ export type RecordDepositMutationVariables = Exact<{
 }>;
 
 
-export type RecordDepositMutation = { __typename?: 'Mutation', depositRecord: { __typename?: 'DepositRecordPayload', deposit: { __typename?: 'Deposit', depositId: string, amount: any, customer?: { __typename?: 'Customer', customerId: string, balance: { __typename?: 'CustomerBalance', checking: { __typename?: 'Checking', settled: { __typename?: 'UsdAmount', amount: any } } } } | null } } };
+export type RecordDepositMutation = { __typename?: 'Mutation', depositRecord: { __typename?: 'DepositRecordPayload', deposit: { __typename?: 'Deposit', depositId: string, amount: any, customer?: { __typename?: 'Customer', customerId: string, balance: { __typename?: 'CustomerBalance', checking: { __typename?: 'Checking', settled: any } } } | null } } };
 
 export type WithdrawalConfirmMutationVariables = Exact<{
   input: WithdrawalConfirmInput;
 }>;
 
 
-export type WithdrawalConfirmMutation = { __typename?: 'Mutation', withdrawalConfirm: { __typename?: 'WithdrawalConfirmPayload', withdrawal: { __typename?: 'Withdrawal', withdrawalId: string, amount: any, customer?: { __typename?: 'Customer', customerId: string, balance: { __typename?: 'CustomerBalance', checking: { __typename?: 'Checking', settled: { __typename?: 'UsdAmount', amount: any }, pending: { __typename?: 'UsdAmount', amount: any } } } } | null } } };
+export type WithdrawalConfirmMutation = { __typename?: 'Mutation', withdrawalConfirm: { __typename?: 'WithdrawalConfirmPayload', withdrawal: { __typename?: 'Withdrawal', withdrawalId: string, amount: any, customer?: { __typename?: 'Customer', customerId: string, balance: { __typename?: 'CustomerBalance', checking: { __typename?: 'Checking', settled: any, pending: any } } } | null } } };
 
 export type WithdrawalInitiateMutationVariables = Exact<{
   input: WithdrawalInitiateInput;
 }>;
 
 
-export type WithdrawalInitiateMutation = { __typename?: 'Mutation', withdrawalInitiate: { __typename?: 'WithdrawalInitiatePayload', withdrawal: { __typename?: 'Withdrawal', withdrawalId: string, amount: any, customer?: { __typename?: 'Customer', customerId: string, balance: { __typename?: 'CustomerBalance', checking: { __typename?: 'Checking', settled: { __typename?: 'UsdAmount', amount: any }, pending: { __typename?: 'UsdAmount', amount: any } } } } | null } } };
+export type WithdrawalInitiateMutation = { __typename?: 'Mutation', withdrawalInitiate: { __typename?: 'WithdrawalInitiatePayload', withdrawal: { __typename?: 'Withdrawal', withdrawalId: string, amount: any, customer?: { __typename?: 'Customer', customerId: string, balance: { __typename?: 'CustomerBalance', checking: { __typename?: 'Checking', settled: any, pending: any } } } | null } } };
 
 export type LoanApproveMutationVariables = Exact<{
   input: LoanApproveInput;
@@ -1055,7 +1050,7 @@ export type WithdrawalCancelMutationVariables = Exact<{
 }>;
 
 
-export type WithdrawalCancelMutation = { __typename?: 'Mutation', withdrawalCancel: { __typename?: 'WithdrawalCancelPayload', withdrawal: { __typename?: 'Withdrawal', withdrawalId: string, amount: any, customer?: { __typename?: 'Customer', customerId: string, balance: { __typename?: 'CustomerBalance', checking: { __typename?: 'Checking', settled: { __typename?: 'UsdAmount', amount: any }, pending: { __typename?: 'UsdAmount', amount: any } } } } | null } } };
+export type WithdrawalCancelMutation = { __typename?: 'Mutation', withdrawalCancel: { __typename?: 'WithdrawalCancelPayload', withdrawal: { __typename?: 'Withdrawal', withdrawalId: string, amount: any, customer?: { __typename?: 'Customer', customerId: string, balance: { __typename?: 'CustomerBalance', checking: { __typename?: 'Checking', settled: any, pending: any } } } | null } } };
 
 export type GetLoanDetailsQueryVariables = Exact<{
   id: Scalars['UUID']['input'];
@@ -1077,7 +1072,7 @@ export type CustomersQueryVariables = Exact<{
 }>;
 
 
-export type CustomersQuery = { __typename?: 'Query', customers: { __typename?: 'CustomerConnection', nodes: Array<{ __typename?: 'Customer', customerId: string, email: string, balance: { __typename?: 'CustomerBalance', checking: { __typename?: 'Checking', settled: { __typename?: 'UsdAmount', amount: any }, pending: { __typename?: 'UsdAmount', amount: any } } } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, startCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean } } };
+export type CustomersQuery = { __typename?: 'Query', customers: { __typename?: 'CustomerConnection', nodes: Array<{ __typename?: 'Customer', customerId: string, email: string, balance: { __typename?: 'CustomerBalance', checking: { __typename?: 'Checking', settled: any, pending: any } } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, startCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean } } };
 
 export const BtcBalancesFragmentDoc = gql`
     fragment btcBalances on LayeredBtcAccountAmounts {
@@ -1590,12 +1585,8 @@ export const GetCustomerByCustomerEmailDocument = gql`
     applicantId
     balance {
       checking {
-        settled {
-          amount
-        }
-        pending {
-          amount
-        }
+        settled
+        pending
       }
     }
   }
@@ -1639,12 +1630,8 @@ export const GetCustomerByCustomerIdDocument = gql`
     applicantId
     balance {
       checking {
-        settled {
-          amount
-        }
-        pending {
-          amount
-        }
+        settled
+        pending
       }
     }
   }
@@ -2369,9 +2356,7 @@ export const RecordDepositDocument = gql`
         customerId
         balance {
           checking {
-            settled {
-              amount
-            }
+            settled
           }
         }
       }
@@ -2415,12 +2400,8 @@ export const WithdrawalConfirmDocument = gql`
         customerId
         balance {
           checking {
-            settled {
-              amount
-            }
-            pending {
-              amount
-            }
+            settled
+            pending
           }
         }
       }
@@ -2464,12 +2445,8 @@ export const WithdrawalInitiateDocument = gql`
         customerId
         balance {
           checking {
-            settled {
-              amount
-            }
-            pending {
-              amount
-            }
+            settled
+            pending
           }
         }
       }
@@ -2752,12 +2729,8 @@ export const WithdrawalCancelDocument = gql`
         customerId
         balance {
           checking {
-            settled {
-              amount
-            }
-            pending {
-              amount
-            }
+            settled
+            pending
           }
         }
       }
@@ -2925,12 +2898,8 @@ export const CustomersDocument = gql`
       email
       balance {
         checking {
-          settled {
-            amount
-          }
-          pending {
-            amount
-          }
+          settled
+          pending
         }
       }
     }

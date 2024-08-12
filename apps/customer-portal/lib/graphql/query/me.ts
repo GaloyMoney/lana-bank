@@ -14,12 +14,8 @@ gql`
       level
       balance {
         checking {
-          settled {
-            amount
-          }
-          pending {
-            amount
-          }
+          settled
+          pending
         }
       }
     }

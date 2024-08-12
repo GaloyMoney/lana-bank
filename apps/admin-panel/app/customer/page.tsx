@@ -22,12 +22,8 @@ gql`
       applicantId
       balance {
         checking {
-          settled {
-            amount
-          }
-          pending {
-            amount
-          }
+          settled
+          pending
         }
       }
     }
@@ -42,12 +38,8 @@ gql`
       applicantId
       balance {
         checking {
-          settled {
-            amount
-          }
-          pending {
-            amount
-          }
+          settled
+          pending
         }
       }
     }

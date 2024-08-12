@@ -160,13 +160,13 @@ function CustomerTable({
                       </TableCell>
                       <TableCell>
                         <Balance
-                          amount={customer.balance.checking.settled?.amount}
+                          amount={customer.balance.checking.settled}
                           currency="usd"
                         />
                       </TableCell>
                       <TableCell>
                         <Balance
-                          amount={customer.balance.checking.pending?.amount}
+                          amount={customer.balance.checking.pending}
                           currency="usd"
                         />
                       </TableCell>

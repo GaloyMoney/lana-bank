@@ -1,12 +1,13 @@
 use async_graphql::*;
 
-use super::objects::UsdAmount;
-
 use crate::ledger;
+
+use super::primitives::UsdCents;
+
 #[derive(SimpleObject)]
 struct Checking {
-    settled: UsdAmount,
-    pending: UsdAmount,
+    settled: UsdCents,
+    pending: UsdCents,
 }
 
 #[derive(SimpleObject)]
@@ -18,12 +19,8 @@ impl From<ledger::customer::CustomerBalance> for CustomerBalance {
     fn from(balance: ledger::customer::CustomerBalance) -> Self {
         Self {
             checking: Checking {
-                settled: UsdAmount {
-                    amount: balance.usd_balance.settled,
-                },
-                pending: UsdAmount {
-                    amount: balance.usd_balance.pending,
-                },
+                settled: balance.usd_balance.settled,
+                pending: balance.usd_balance.pending,
             },
         }
     }

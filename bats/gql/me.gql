@@ -14,9 +14,7 @@ query me {
         }
       }
       checking {
-        settled {
-          amount
-        }
+        settled
       }
     }
   }

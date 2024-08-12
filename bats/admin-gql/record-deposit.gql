@@ -7,9 +7,7 @@ mutation RecordDeposit($input: DepositRecordInput!) {
         customerId
         balance {
           checking {
-            settled {
-              amount
-            }
+            settled
           }
         }
       }
