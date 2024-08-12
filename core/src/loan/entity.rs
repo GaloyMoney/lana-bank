@@ -37,13 +37,6 @@ impl LoanReceivable {
         let principal = std::cmp::min(remaining, self.principal);
         remaining -= principal;
 
-        if remaining > UsdCents::ZERO {
-            return Err(LoanError::PaymentTooLarge(format!(
-                "Amount '{}' too large for outstanding principal '{}' and interest '{}'",
-                amount, self.principal, self.interest
-            )));
-        }
-
         Ok(LoanPayment {
             interest,
             principal,
