@@ -48,4 +48,5 @@ export const authOptions: NextAuthOptions = {
     },
   },
   adapter: customPostgresAdapter(pool),
+  secret: env.NEXTAUTH_SECRET,
 }
