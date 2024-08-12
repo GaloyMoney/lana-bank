@@ -649,6 +649,7 @@ export type UserRevokeRolePayload = {
 export type Withdrawal = {
   __typename?: 'Withdrawal';
   amount: Scalars['UsdCents']['output'];
+  confirmed: Scalars['Boolean']['output'];
   customer?: Maybe<Customer>;
   customerId: Scalars['UUID']['output'];
   withdrawalId: Scalars['UUID']['output'];

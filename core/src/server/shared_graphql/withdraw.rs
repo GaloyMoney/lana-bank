@@ -15,6 +15,7 @@ pub struct Withdrawal {
     customer_id: UUID,
     withdrawal_id: UUID,
     amount: UsdCents,
+    confirmed: bool,
 }
 
 #[ComplexObject]
@@ -36,6 +37,7 @@ impl From<crate::withdraw::Withdraw> for Withdrawal {
             withdrawal_id: UUID::from(withdraw.id),
             customer_id: UUID::from(withdraw.customer_id),
             amount: withdraw.amount,
+            confirmed: withdraw.confirmed,
         }
     }
 }

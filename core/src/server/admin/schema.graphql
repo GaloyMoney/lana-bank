@@ -525,6 +525,7 @@ type Withdrawal {
 	customerId: UUID!
 	withdrawalId: UUID!
 	amount: UsdCents!
+	confirmed: Boolean!
 	customer: Customer
 }
 
