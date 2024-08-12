@@ -83,10 +83,10 @@ start-customer-portal:
 check-code-apps: check-code-apps-admin-panel check-code-apps-customer-portal
 
 check-code-apps-admin-panel:
-	cd apps/admin-panel && pnpm install --frozen-lockfile && pnpm lint && pnpm build
+	cd apps/admin-panel && pnpm install --frozen-lockfile && pnpm lint && pnpm tsc-check && pnpm build
 
 check-code-apps-customer-portal:
-	cd apps/customer-portal && pnpm install --frozen-lockfile && pnpm lint && pnpm build
+	cd apps/customer-portal && pnpm install --frozen-lockfile && pnpm lint && pnpm tsc-check && pnpm build
 
 # add https://xxx.ngrok-free.app/sumsub/callback to test integration with sumsub
 ngrok:

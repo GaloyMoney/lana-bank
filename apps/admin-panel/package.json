@@ -10,6 +10,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
+    "tsc-check": "tsc --noEmit",
     "codegen": "graphql-codegen --config codegen.yml",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build",
