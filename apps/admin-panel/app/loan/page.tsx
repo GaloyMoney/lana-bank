@@ -2,6 +2,8 @@
 import React, { useEffect, useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 
+import Loans from "./loans"
+
 import { Button } from "@/components/primitive/button"
 import { Input } from "@/components/primitive/input"
 import { Card, CardContent, CardHeader } from "@/components/primitive/card"
@@ -173,12 +175,15 @@ function LoanPage() {
               )}
             </div>
           </>
-        ) : loanId && !loanDetails?.loan ? (
-          <CardContent className="pt-6">No loan found with this ID</CardContent>
         ) : (
-          <CardContent className="pt-6">Enter a loan ID to find a Loan</CardContent>
+          loanId &&
+          !loanDetails?.loan && (
+            <CardContent className="pt-6">No loan found with this ID</CardContent>
+          )
         )}
       </Card>
+
+      <Loans />
     </main>
   )
 }

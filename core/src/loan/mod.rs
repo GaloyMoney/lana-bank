@@ -11,7 +11,7 @@ use sqlx::PgPool;
 use tracing::instrument;
 
 use crate::{
-    authorization::{Authorization, CustomerAction, LoanAction, Object, TermAction},
+    authorization::{Authorization, LoanAction, Object, TermAction},
     customer::Customers,
     entity::EntityError,
     job::{JobRegistry, Jobs},
@@ -262,7 +262,7 @@ impl Loans {
         query: crate::query::PaginatedQueryArgs<LoanCursor>,
     ) -> Result<crate::query::PaginatedQueryRet<Loan, LoanCursor>, LoanError> {
         self.authz
-            .check_permission(sub, Object::Loan, CustomerAction::List)
+            .check_permission(sub, Object::Loan, LoanAction::List)
             .await?;
         self.loan_repo.list(query).await
     }

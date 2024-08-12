@@ -22,6 +22,11 @@ function makeClient({ coreAdminGqlUrl }: { coreAdminGqlUrl: string }) {
             subAccounts: relayStylePagination(),
           },
         },
+        Query: {
+          fields: {
+            loans: relayStylePagination(),
+          },
+        },
       },
     }),
     link:
