@@ -134,6 +134,44 @@ impl Query {
         .await
     }
 
+    async fn loans(
+        &self,
+        ctx: &Context<'_>,
+        first: i32,
+        after: Option<String>,
+    ) -> async_graphql::Result<Connection<LoanCursor, Loan, EmptyFields, EmptyFields>> {
+        let app = ctx.data_unchecked::<LavaApp>();
+        let AdminAuthContext { sub } = ctx.data()?;
+        query(
+            after,
+            None,
+            Some(first),
+            None,
+            |after, _, first, _| async move {
+                let first = first.expect("First always exists");
+                let res = app
+                    .loans()
+                    .list(
+                        sub,
+                        crate::query::PaginatedQueryArgs {
+                            first,
+                            after: after.map(crate::loan::LoanCursor::from),
+                        },
+                    )
+                    .await?;
+                let mut connection = Connection::new(false, res.has_next_page);
+                connection
+                    .edges
+                    .extend(res.entities.into_iter().map(|loan| {
+                        let cursor = LoanCursor::from(loan.id);
+                        Edge::new(cursor, Loan::from(loan))
+                    }));
+                Ok::<_, async_graphql::Error>(connection)
+            },
+        )
+        .await
+    }
+
     async fn default_terms(&self, ctx: &Context<'_>) -> async_graphql::Result<Option<Terms>> {
         let app = ctx.data_unchecked::<LavaApp>();
         let AdminAuthContext { sub } = ctx.data()?;

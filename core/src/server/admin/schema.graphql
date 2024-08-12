@@ -307,6 +307,21 @@ type LoanBalance {
 	interestIncurred: InterestIncome!
 }
 
+type LoanConnection {
+	"""
+	Information to aid in pagination.
+	"""
+	pageInfo: PageInfo!
+	"""
+	A list of edges.
+	"""
+	edges: [LoanEdge!]!
+	"""
+	A list of nodes.
+	"""
+	nodes: [Loan!]!
+}
+
 input LoanCreateInput {
 	customerId: UUID!
 	desiredPrincipal: UsdCents!
@@ -315,6 +330,20 @@ input LoanCreateInput {
 
 type LoanCreatePayload {
 	loan: Loan!
+}
+
+"""
+An edge in a connection.
+"""
+type LoanEdge {
+	"""
+	The item at the end of the edge
+	"""
+	node: Loan!
+	"""
+	A cursor for use in pagination
+	"""
+	cursor: String!
 }
 
 type LoanOutstanding {
@@ -392,6 +421,7 @@ type Query {
 	users: [User!]!
 	user(id: UUID!): User
 	customers(first: Int!, after: String): CustomerConnection!
+	loans(first: Int!, after: String): LoanConnection!
 	defaultTerms: Terms
 	trialBalance: TrialBalance
 	offBalanceSheetTrialBalance: TrialBalance

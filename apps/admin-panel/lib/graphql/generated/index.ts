@@ -317,6 +317,16 @@ export type LoanBalance = {
   outstanding: LoanOutstanding;
 };
 
+export type LoanConnection = {
+  __typename?: 'LoanConnection';
+  /** A list of edges. */
+  edges: Array<LoanEdge>;
+  /** A list of nodes. */
+  nodes: Array<Loan>;
+  /** Information to aid in pagination. */
+  pageInfo: PageInfo;
+};
+
 export type LoanCreateInput = {
   customerId: Scalars['UUID']['input'];
   desiredPrincipal: Scalars['UsdCents']['input'];
@@ -326,6 +336,15 @@ export type LoanCreateInput = {
 export type LoanCreatePayload = {
   __typename?: 'LoanCreatePayload';
   loan: Loan;
+};
+
+/** An edge in a connection. */
+export type LoanEdge = {
+  __typename?: 'LoanEdge';
+  /** A cursor for use in pagination */
+  cursor: Scalars['String']['output'];
+  /** The item at the end of the edge */
+  node: Loan;
 };
 
 export type LoanOutstanding = {
@@ -467,6 +486,7 @@ export type Query = {
   deposit?: Maybe<Deposit>;
   deposits: DepositConnection;
   loan?: Maybe<Loan>;
+  loans: LoanConnection;
   me: User;
   offBalanceSheetChartOfAccounts?: Maybe<ChartOfAccounts>;
   offBalanceSheetTrialBalance?: Maybe<TrialBalance>;
@@ -514,6 +534,12 @@ export type QueryDepositsArgs = {
 
 export type QueryLoanArgs = {
   id: Scalars['UUID']['input'];
+};
+
+
+export type QueryLoansArgs = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  first: Scalars['Int']['input'];
 };
 
 
