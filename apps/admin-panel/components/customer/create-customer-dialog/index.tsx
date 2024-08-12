@@ -1,6 +1,7 @@
 import React, { useState } from "react"
 import { gql } from "@apollo/client"
 import { toast } from "sonner"
+import { useRouter } from "next/navigation"
 
 import {
   Dialog,
@@ -38,6 +39,8 @@ function CreateCustomerDialog({
   openCreateCustomerDialog: boolean
   refetch?: () => void
 }) {
+  const router = useRouter()
+
   const [createCustomer, { loading, reset }] = useCustomerCreateMutation()
   const [email, setEmail] = useState<string>("")
   const [error, setError] = useState<string | null>(null)
@@ -45,7 +48,7 @@ function CreateCustomerDialog({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     try {
-      await createCustomer({
+      const { data } = await createCustomer({
         variables: {
           input: {
             email,
@@ -55,6 +58,7 @@ function CreateCustomerDialog({
       toast.success("customer created successfully")
       if (refetch) refetch()
       setOpenCreateCustomerDialog(false)
+      router.push(`/customer/${data?.customerCreate.customer.customerId}`)
     } catch (error) {
       console.error(error)
       if (error instanceof Error) {
