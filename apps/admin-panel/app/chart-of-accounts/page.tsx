@@ -121,12 +121,16 @@ function ChartOfAccountsPage() {
 
   return (
     <main>
-      <PageHeading>Chart Of Accounts</PageHeading>
       <Tabs defaultValue="onBalanceSheet">
-        <TabsList>
-          <TabsTrigger value="onBalanceSheet">Regular</TabsTrigger>
-          <TabsTrigger value="offBalanceSheet">Off Balance Sheet</TabsTrigger>
-        </TabsList>
+        <div className="flex justify-between ">
+          <PageHeading>Chart Of Accounts</PageHeading>
+          <div className="flex gap-4">
+            <TabsList>
+              <TabsTrigger value="onBalanceSheet">Regular</TabsTrigger>
+              <TabsTrigger value="offBalanceSheet">Off Balance Sheet</TabsTrigger>
+            </TabsList>
+          </div>
+        </div>
         <TabsContent value="onBalanceSheet">
           <ChartOfAccountsValues
             data={onBalanceSheetData?.chartOfAccounts}
