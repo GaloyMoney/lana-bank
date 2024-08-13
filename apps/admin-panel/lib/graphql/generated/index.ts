@@ -766,7 +766,6 @@ export type SumsubPermalinkCreateMutationVariables = Exact<{
 
 export type SumsubPermalinkCreateMutation = { __typename?: 'Mutation', sumsubPermalinkCreate: { __typename?: 'SumsubPermalinkCreatePayload', url: string } };
 
-<<<<<<< HEAD
 export type GetWithdrawalsForCustomerQueryVariables = Exact<{
   id: Scalars['UUID']['input'];
 }>;
@@ -775,15 +774,11 @@ export type GetWithdrawalsForCustomerQueryVariables = Exact<{
 export type GetWithdrawalsForCustomerQuery = { __typename?: 'Query', customer?: { __typename?: 'Customer', customerId: string, withdrawals: Array<{ __typename?: 'Withdrawal', confirmed: boolean, customerId: string, withdrawalId: string, amount: any }> } | null };
 
 export type DepositsQueryVariables = Exact<{
-=======
-export type LoansQueryVariables = Exact<{
->>>>>>> 3fa60a61 (feat: list loans on ui)
   first: Scalars['Int']['input'];
   after?: InputMaybe<Scalars['String']['input']>;
 }>;
 
 
-<<<<<<< HEAD
 export type DepositsQuery = { __typename?: 'Query', deposits: { __typename?: 'DepositConnection', pageInfo: { __typename?: 'PageInfo', hasPreviousPage: boolean, hasNextPage: boolean, startCursor?: string | null, endCursor?: string | null }, nodes: Array<{ __typename?: 'Deposit', customerId: string, depositId: string, amount: any, customer?: { __typename?: 'Customer', customerId: string, email: string } | null }> } };
 
 export type DepositQueryVariables = Exact<{
@@ -792,9 +787,14 @@ export type DepositQueryVariables = Exact<{
 
 
 export type DepositQuery = { __typename?: 'Query', deposit?: { __typename?: 'Deposit', customerId: string, depositId: string, amount: any, customer?: { __typename?: 'Customer', customerId: string, email: string, applicantId?: string | null } | null } | null };
-=======
+
+export type LoansQueryVariables = Exact<{
+  first: Scalars['Int']['input'];
+  after?: InputMaybe<Scalars['String']['input']>;
+}>;
+
+
 export type LoansQuery = { __typename?: 'Query', loans: { __typename?: 'LoanConnection', edges: Array<{ __typename?: 'LoanEdge', cursor: string, node: { __typename?: 'Loan', id: string, status: LoanStatus, customer: { __typename?: 'Customer', email: string } } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean } } };
->>>>>>> 3fa60a61 (feat: list loans on ui)
 
 export type PnlAccountSetWithBalanceQueryVariables = Exact<{
   accountSetId: Scalars['UUID']['input'];
@@ -1367,7 +1367,6 @@ export function useSumsubPermalinkCreateMutation(baseOptions?: Apollo.MutationHo
 export type SumsubPermalinkCreateMutationHookResult = ReturnType<typeof useSumsubPermalinkCreateMutation>;
 export type SumsubPermalinkCreateMutationResult = Apollo.MutationResult<SumsubPermalinkCreateMutation>;
 export type SumsubPermalinkCreateMutationOptions = Apollo.BaseMutationOptions<SumsubPermalinkCreateMutation, SumsubPermalinkCreateMutationVariables>;
-<<<<<<< HEAD
 export const GetWithdrawalsForCustomerDocument = gql`
     query GetWithdrawalsForCustomer($id: UUID!) {
   customer(id: $id) {
@@ -1427,57 +1426,27 @@ export const DepositsDocument = gql`
         email
       }
     }
-=======
-export const LoansDocument = gql`
-    query Loans($first: Int!, $after: String) {
-  loans(first: $first, after: $after) {
-    edges {
-      cursor
-      node {
-        id
-        status
-        customer {
-          email
-        }
-      }
-    }
-    pageInfo {
-      hasNextPage
-    }
->>>>>>> 3fa60a61 (feat: list loans on ui)
   }
 }
     `;
 
 /**
-<<<<<<< HEAD
  * __useDepositsQuery__
  *
  * To run a query within a React component, call `useDepositsQuery` and pass it any options that fit your needs.
  * When your component renders, `useDepositsQuery` returns an object from Apollo Client that contains loading, error, and data properties
-=======
- * __useLoansQuery__
- *
- * To run a query within a React component, call `useLoansQuery` and pass it any options that fit your needs.
- * When your component renders, `useLoansQuery` returns an object from Apollo Client that contains loading, error, and data properties
->>>>>>> 3fa60a61 (feat: list loans on ui)
  * you can use to render your UI.
  *
  * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
  *
  * @example
-<<<<<<< HEAD
  * const { data, loading, error } = useDepositsQuery({
-=======
- * const { data, loading, error } = useLoansQuery({
->>>>>>> 3fa60a61 (feat: list loans on ui)
  *   variables: {
  *      first: // value for 'first'
  *      after: // value for 'after'
  *   },
  * });
  */
-<<<<<<< HEAD
 export function useDepositsQuery(baseOptions: Apollo.QueryHookOptions<DepositsQuery, DepositsQueryVariables>) {
         const options = {...defaultOptions, ...baseOptions}
         return Apollo.useQuery<DepositsQuery, DepositsQueryVariables>(DepositsDocument, options);
@@ -1531,7 +1500,43 @@ export function useDepositLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<De
 export type DepositQueryHookResult = ReturnType<typeof useDepositQuery>;
 export type DepositLazyQueryHookResult = ReturnType<typeof useDepositLazyQuery>;
 export type DepositQueryResult = Apollo.QueryResult<DepositQuery, DepositQueryVariables>;
-=======
+export const LoansDocument = gql`
+    query Loans($first: Int!, $after: String) {
+  loans(first: $first, after: $after) {
+    edges {
+      cursor
+      node {
+        id
+        status
+        customer {
+          email
+        }
+      }
+    }
+    pageInfo {
+      hasNextPage
+    }
+  }
+}
+    `;
+
+/**
+ * __useLoansQuery__
+ *
+ * To run a query within a React component, call `useLoansQuery` and pass it any options that fit your needs.
+ * When your component renders, `useLoansQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useLoansQuery({
+ *   variables: {
+ *      first: // value for 'first'
+ *      after: // value for 'after'
+ *   },
+ * });
+ */
 export function useLoansQuery(baseOptions: Apollo.QueryHookOptions<LoansQuery, LoansQueryVariables>) {
         const options = {...defaultOptions, ...baseOptions}
         return Apollo.useQuery<LoansQuery, LoansQueryVariables>(LoansDocument, options);
@@ -1543,7 +1548,6 @@ export function useLoansLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<Loan
 export type LoansQueryHookResult = ReturnType<typeof useLoansQuery>;
 export type LoansLazyQueryHookResult = ReturnType<typeof useLoansLazyQuery>;
 export type LoansQueryResult = Apollo.QueryResult<LoansQuery, LoansQueryVariables>;
->>>>>>> 3fa60a61 (feat: list loans on ui)
 export const PnlAccountSetWithBalanceDocument = gql`
     query PnlAccountSetWithBalance($accountSetId: UUID!, $first: Int!, $after: String) {
   accountSetWithBalance(accountSetId: $accountSetId) {

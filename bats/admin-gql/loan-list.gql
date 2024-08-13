@@ -1,0 +1,18 @@
+query Loans($first: Int!, $after: String) {
+  loans(first: $first, after: $after) {
+    edges {
+      cursor
+      node {
+        id
+        status
+        customer {
+          email
+        }
+      }
+    }
+    pageInfo {
+      endCursor
+      hasNextPage
+    }
+  }
+}

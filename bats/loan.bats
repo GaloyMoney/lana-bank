@@ -142,3 +142,70 @@ wait_for_interest() {
   usd_balance=$(graphql_output '.data.customer.balance.checking.settled.usdBalance')
   [[ "$usd_balance" == "$principal" ]] || exit 1
 }
+
+@test "loan: paginated listing" {
+  customer_id=$(create_customer)
+
+  # Create 2 loans
+  for i in {1..2}; do
+    principal=10000
+    variables=$(
+      jq -n \
+      --arg customerId "$customer_id" \
+      --argjson principal "$principal" \
+      '{
+        input: {
+          customerId: $customerId,
+          desiredPrincipal: $principal,
+          loanTerms: {
+            annualRate: "12",
+            interval: "END_OF_MONTH",
+            duration: { period: "MONTHS", units: 3 },
+            liquidationCvl: "105",
+            marginCallCvl: "125",
+            initialCvl: "140"
+          }
+        }
+      }'
+    )
+    exec_admin_graphql 'loan-create' "$variables"
+    loan_id=$(graphql_output '.data.loanCreate.loan.loanId')
+    [[ "$loan_id" != "null" ]] || exit 1
+
+    variables=$(
+      jq -n \
+        --arg loanId "$loan_id" \
+      '{
+        input: {
+          loanId: $loanId,
+          collateral: 233334,
+        }
+      }'
+    )
+    exec_admin_graphql 'loan-approve' "$variables"
+    loan_id=$(graphql_output '.data.loanApprove.loan.loanId')
+    [[ "$loan_id" != "null" ]] || exit 1
+  done
+
+  variables=$(
+    jq -n \
+      --argjson first 1 \
+    '{ first: $first }'
+  )
+  exec_admin_graphql 'loan-list' "$variables"
+  loan_id=$(graphql_output '.data.loans.edges[0].node.id')
+  [[ "$loan_id" != "null" ]] || exit 1
+  [[ "$(graphql_output '.data.loans.pageInfo.hasNextPage')" == "true" ]] || exit 1
+  cursor=$(graphql_output '.data.loans.pageInfo.endCursor')
+
+  variables=$(
+    jq -n \
+      --argjson first 1 \
+      --arg cursor "$cursor" \
+    '{ first: $first, after: $cursor }'
+  )
+  exec_admin_graphql 'loan-list' "$variables"
+  graphql_output
+  loan_id=$(graphql_output '.data.loans.edges[0].node.id')
+  [[ "$loan_id" != "null" ]] || exit 1
+}
