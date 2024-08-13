@@ -92,14 +92,14 @@ impl LoanRepo {
                 SELECT id, customer_id, created_at
                 FROM loans
                 WHERE ($1::uuid IS NULL OR id > $1)
-                ORDER BY id
+                ORDER BY created_at DESC, id DESC
                 LIMIT $2
             )
             SELECT l.id, e.sequence, e.event,
                 l.created_at AS entity_created_at, e.recorded_at AS event_recorded_at
             FROM loans l
             JOIN loan_events e ON l.id = e.id
-            ORDER BY l.id, e.sequence;
+            ORDER BY l.created_at DESC, l.id DESC, e.sequence;
             "#,
             query.after.as_ref().map(|c| c.id) as Option<LoanId>,
             query.first as i64 + 1

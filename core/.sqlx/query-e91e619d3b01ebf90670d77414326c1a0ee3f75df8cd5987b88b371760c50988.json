@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "\n            WITH loans AS (\n                SELECT id, customer_id, created_at\n                FROM loans\n                WHERE ($1::uuid IS NULL OR id > $1)\n                ORDER BY id\n                LIMIT $2\n            )\n            SELECT l.id, e.sequence, e.event,\n                l.created_at AS entity_created_at, e.recorded_at AS event_recorded_at\n            FROM loans l\n            JOIN loan_events e ON l.id = e.id\n            ORDER BY l.id, e.sequence;\n            ",
+  "query": "\n            WITH loans AS (\n                SELECT id, customer_id, created_at\n                FROM loans\n                WHERE ($1::uuid IS NULL OR id > $1)\n                ORDER BY created_at DESC, id DESC\n                LIMIT $2\n            )\n            SELECT l.id, e.sequence, e.event,\n                l.created_at AS entity_created_at, e.recorded_at AS event_recorded_at\n            FROM loans l\n            JOIN loan_events e ON l.id = e.id\n            ORDER BY l.created_at DESC, l.id DESC, e.sequence;\n            ",
   "describe": {
     "columns": [
       {
@@ -43,5 +43,5 @@
       false
     ]
   },
-  "hash": "4939a87428dc8bc88aba4ace16e8c82f7696652c29f40c7d54a20d1923233672"
+  "hash": "e91e619d3b01ebf90670d77414326c1a0ee3f75df8cd5987b88b371760c50988"
 }
