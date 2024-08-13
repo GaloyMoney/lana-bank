@@ -794,7 +794,7 @@ export type LoansQueryVariables = Exact<{
 }>;
 
 
-export type LoansQuery = { __typename?: 'Query', loans: { __typename?: 'LoanConnection', edges: Array<{ __typename?: 'LoanEdge', cursor: string, node: { __typename?: 'Loan', id: string, status: LoanStatus, customer: { __typename?: 'Customer', email: string } } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean } } };
+export type LoansQuery = { __typename?: 'Query', loans: { __typename?: 'LoanConnection', edges: Array<{ __typename?: 'LoanEdge', cursor: string, node: { __typename?: 'Loan', loanId: string, status: LoanStatus, startDate: any, customer: { __typename?: 'Customer', customerId: string, email: string }, balance: { __typename?: 'LoanBalance', outstanding: { __typename?: 'LoanOutstanding', usdBalance: any }, interestIncurred: { __typename?: 'InterestIncome', usdBalance: any } } } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, hasNextPage: boolean } } };
 
 export type PnlAccountSetWithBalanceQueryVariables = Exact<{
   accountSetId: Scalars['UUID']['input'];
@@ -1506,14 +1506,25 @@ export const LoansDocument = gql`
     edges {
       cursor
       node {
-        id
+        loanId
         status
+        startDate
         customer {
+          customerId
           email
+        }
+        balance {
+          outstanding {
+            usdBalance
+          }
+          interestIncurred {
+            usdBalance
+          }
         }
       }
     }
     pageInfo {
+      endCursor
       hasNextPage
     }
   }

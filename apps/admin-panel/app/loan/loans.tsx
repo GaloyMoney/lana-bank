@@ -21,6 +21,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/primitive/table"
+import { formatCurrency, formatDate } from "@/lib/utils"
 
 gql`
   query Loans($first: Int!, $after: String) {
@@ -28,14 +29,25 @@ gql`
       edges {
         cursor
         node {
-          id
+          loanId
           status
+          startDate
           customer {
+            customerId
             email
+          }
+          balance {
+            outstanding {
+              usdBalance
+            }
+            interestIncurred {
+              usdBalance
+            }
           }
         }
       }
       pageInfo {
+        endCursor
         hasNextPage
       }
     }
@@ -67,19 +79,45 @@ const Loans = () => {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Loan ID</TableHead>
-              <TableHead>Customer Email</TableHead>
+              <TableHead>Start Date</TableHead>
               <TableHead>Status</TableHead>
+              <TableHead>Customer</TableHead>
+              <TableHead>Outstanding Balance</TableHead>
+              <TableHead></TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {data?.loans.edges.map((edge) => {
               const loan = edge?.node
               return (
-                <TableRow key={loan.id}>
-                  <TableCell>{loan.id}</TableCell>
-                  <TableCell>{loan.customer.email}</TableCell>
+                <TableRow key={loan.loanId}>
+                  <TableCell>{formatDate(loan.startDate)}</TableCell>
                   <TableCell>{loan.status}</TableCell>
+                  <TableCell>
+                    <div className="flex flex-col gap-1">
+                      <div>{loan.customer.email}</div>
+                      <div className="text-xs text-textColor-secondary">
+                        {loan.customer.customerId}
+                      </div>
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex flex-col gap-1">
+                      <div>
+                        {formatCurrency({
+                          amount: loan.balance.outstanding.usdBalance,
+                          currency: "USD",
+                        })}
+                      </div>
+                      <div className="text-xs text-textColor-secondary">
+                        Interest:{" "}
+                        {formatCurrency({
+                          amount: loan.balance.interestIncurred.usdBalance,
+                          currency: "USD",
+                        })}
+                      </div>
+                    </div>
+                  </TableCell>
                   <TableCell>
                     <DropdownMenu>
                       <DropdownMenuTrigger>
@@ -88,9 +126,16 @@ const Loans = () => {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent className="text-sm">
-                        <Link href={`/loan?loanId=${loan.id.substring(5)}`}>
-                          <DropdownMenuItem>View details</DropdownMenuItem>
-                        </Link>
+                        <DropdownMenuItem>
+                          <Link href={`/loan?loanId=${loan.loanId}`}>
+                            View Loan details
+                          </Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem>
+                          <Link href={`/customer/${loan.customer.customerId}`}>
+                            View Customer details
+                          </Link>
+                        </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </TableCell>
