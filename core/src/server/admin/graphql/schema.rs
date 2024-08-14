@@ -163,7 +163,7 @@ impl Query {
                 connection
                     .edges
                     .extend(res.entities.into_iter().map(|loan| {
-                        let cursor = LoanCursor::from(loan.id);
+                        let cursor = LoanCursor::from((loan.id, loan.start_date()));
                         Edge::new(cursor, Loan::from(loan))
                     }));
                 Ok::<_, async_graphql::Error>(connection)

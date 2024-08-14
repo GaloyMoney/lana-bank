@@ -4,6 +4,7 @@ query Loans($first: Int!, $after: String) {
       cursor
       node {
         id
+        loanId
         status
         customer {
           email

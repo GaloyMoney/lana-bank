@@ -193,7 +193,7 @@ wait_for_interest() {
     '{ first: $first }'
   )
   exec_admin_graphql 'loan-list' "$variables"
-  loan_id=$(graphql_output '.data.loans.edges[0].node.id')
+  loan_id=$(graphql_output '.data.loans.edges[0].node.loanId')
   [[ "$loan_id" != "null" ]] || exit 1
   [[ "$(graphql_output '.data.loans.pageInfo.hasNextPage')" == "true" ]] || exit 1
   cursor=$(graphql_output '.data.loans.pageInfo.endCursor')
@@ -205,7 +205,6 @@ wait_for_interest() {
     '{ first: $first, after: $cursor }'
   )
   exec_admin_graphql 'loan-list' "$variables"
-  graphql_output
-  loan_id=$(graphql_output '.data.loans.edges[0].node.id')
+  loan_id=$(graphql_output '.data.loans.edges[0].node.loanId')
   [[ "$loan_id" != "null" ]] || exit 1
 }

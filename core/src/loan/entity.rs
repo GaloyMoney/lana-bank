@@ -67,6 +67,12 @@ pub struct Loan {
 }
 
 impl Loan {
+    pub fn start_date(&self) -> DateTime<Utc> {
+        self.events
+            .entity_first_persisted_at
+            .expect("entity_first_persisted_at not found")
+    }
+
     pub fn initial_principal(&self) -> UsdCents {
         if let Some(LoanEvent::Initialized { principal, .. }) = self.events.iter().next() {
             *principal
