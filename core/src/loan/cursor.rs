@@ -12,7 +12,7 @@ impl From<&Loan> for LoanCursor {
     fn from(values: &Loan) -> Self {
         Self {
             id: values.id,
-            created_at: values.start_date(),
+            created_at: values.created_at(),
         }
     }
 }

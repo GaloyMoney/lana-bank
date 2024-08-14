@@ -67,7 +67,7 @@ pub struct Loan {
 }
 
 impl Loan {
-    pub fn start_date(&self) -> DateTime<Utc> {
+    pub fn created_at(&self) -> DateTime<Utc> {
         self.events
             .entity_first_persisted_at
             .expect("entity_first_persisted_at not found")

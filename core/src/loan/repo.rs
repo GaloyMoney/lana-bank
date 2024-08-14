@@ -117,7 +117,7 @@ impl LoanRepo {
         if let Some(last) = entities.last() {
             end_cursor = Some(LoanCursor {
                 id: last.id,
-                created_at: last.start_date(),
+                created_at: last.created_at(),
             });
         }
         Ok(crate::query::PaginatedQueryRet {
