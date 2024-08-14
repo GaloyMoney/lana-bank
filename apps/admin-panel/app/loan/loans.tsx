@@ -55,7 +55,7 @@ gql`
 `
 
 const Loans = () => {
-  const { data, loading, fetchMore } = useLoansQuery({
+  const { data, loading, error, fetchMore } = useLoansQuery({
     variables: {
       first: 10,
     },
@@ -64,6 +64,8 @@ const Loans = () => {
   if (loading) {
     return <div className="mt-5">Loading...</div>
   }
+
+  if (error) return <div className="text-destructive">{error.message}</div>
 
   if (data?.loans.edges.length === 0) {
     return (
