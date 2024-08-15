@@ -120,7 +120,7 @@ impl NewWithdraw {
     }
 
     pub(super) fn reference(&self) -> String {
-        match self.reference.as_ref().map(|s| s.as_str()) {
+        match self.reference.as_deref() {
             None => self.id.to_string(),
             Some("") => self.id.to_string(),
             Some(reference) => reference.to_string(),
