@@ -25,6 +25,7 @@ import { DetailItem, DetailsGroup } from "@/components/details"
 import { Select } from "@/components/primitive/select"
 import { formatInterval, formatPeriod } from "@/lib/terms/utils"
 import Balance from "@/components/balance/balance"
+import { useRouter } from "next/navigation"
 
 gql`
   mutation LoanCreate($input: LoanCreateInput!) {
@@ -69,6 +70,8 @@ export const CreateLoanDialog = ({
   children: React.ReactNode
   refetch?: () => void
 }) => {
+  const router = useRouter()
+
   const [customerIdValue, setCustomerIdValue] = useState<string>(customerId)
   const { data: defaultTermsData } = useDefaultTermsQuery()
   const [createLoan, { data, loading, error, reset }] = useLoanCreateMutation()
@@ -190,7 +193,7 @@ export const CreateLoanDialog = ({
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Loan Created</DialogTitle>
-            <DialogDescription>Loan Details.</DialogDescription>
+            <DialogDescription>Loan Details</DialogDescription>
           </DialogHeader>
           <DetailsGroup>
             <DetailItem label="Loan ID" value={data.loanCreate.loan.loanId} />
@@ -250,6 +253,9 @@ export const CreateLoanDialog = ({
               value={`${data.loanCreate.loan.loanTerms.liquidationCvl}%`}
             />
           </DetailsGroup>
+          <Button onClick={() => router.push(`/loan/${data.loanCreate.loan.loanId}`)}>
+            View Details
+          </Button>
         </DialogContent>
       ) : (
         <DialogContent>
