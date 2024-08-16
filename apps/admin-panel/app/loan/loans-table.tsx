@@ -54,7 +54,7 @@ gql`
   }
 `
 
-const Loans = () => {
+const LoansTable = () => {
   const { data, loading, error, fetchMore } = useLoansQuery({
     variables: {
       first: 10,
@@ -129,9 +129,7 @@ const Loans = () => {
                       </DropdownMenuTrigger>
                       <DropdownMenuContent className="text-sm">
                         <DropdownMenuItem>
-                          <Link href={`/loan?loanId=${loan.loanId}`}>
-                            View Loan details
-                          </Link>
+                          <Link href={`/loan/${loan.loanId}`}>View Loan details</Link>
                         </DropdownMenuItem>
                         <DropdownMenuItem>
                           <Link href={`/customer/${loan.customer.customerId}`}>
@@ -170,4 +168,4 @@ const Loans = () => {
   )
 }
 
-export default Loans
+export default LoansTable
