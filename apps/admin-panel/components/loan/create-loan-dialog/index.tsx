@@ -1,6 +1,7 @@
 import { gql } from "@apollo/client"
 import { useState } from "react"
 import { toast } from "sonner"
+import { useRouter } from "next/navigation"
 
 import {
   Dialog,
@@ -25,7 +26,6 @@ import { DetailItem, DetailsGroup } from "@/components/details"
 import { Select } from "@/components/primitive/select"
 import { formatInterval, formatPeriod } from "@/lib/terms/utils"
 import Balance from "@/components/balance/balance"
-import { useRouter } from "next/navigation"
 
 gql`
   mutation LoanCreate($input: LoanCreateInput!) {

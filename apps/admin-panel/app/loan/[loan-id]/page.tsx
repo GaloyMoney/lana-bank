@@ -15,22 +15,6 @@ function loanDetails({
     <main>
       <PageHeading>Loan Details</PageHeading>
       <LoanDetailsCard loanId={loanId} />
-      {/* <Tabs defaultValue="loans" className="mt-4">
-        <TabsList>
-          <TabsTrigger value="loans">Loans</TabsTrigger>
-          <TabsTrigger value="deposit">Deposits</TabsTrigger>
-          <TabsTrigger value="withdrawals">Withdrawals</TabsTrigger>
-        </TabsList>
-        <TabsContent value="loans">
-          <CustomerLoansTable customerId={customerId} />
-        </TabsContent>
-        <TabsContent value="deposit">
-          <CustomerDepositsTable customerId={customerId} />
-        </TabsContent>
-        <TabsContent value="withdrawals">
-          <CustomerWithdrawalsTable customerId={customerId} />
-        </TabsContent>
-      </Tabs> */}
     </main>
   )
 }
