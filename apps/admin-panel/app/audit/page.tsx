@@ -74,9 +74,9 @@ function LogsPage() {
     }
   }
   return (
-    <main className="text-white min-h-screen p-4">
+    <main className="text-white min-h-screen">
       <div className="flex flex-col mb-8">
-        <PageHeading className="mb-4 text-white">Logs</PageHeading>
+        <PageHeading className="mb-4 text-white">Audit Logs</PageHeading>
         <div className="overflow-x-auto">
           <Table>
             <TableHeader>

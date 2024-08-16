@@ -39,7 +39,7 @@ export default async function RootLayout({
             <Toaster />
             <main className="flex flex-col md:flex-row min-h-screen w-full">
               <SideBar />
-              <div className="flex-1 p-6">{children}</div>
+              <div className="flex-1 p-6 h-screen overflow-y-auto">{children}</div>
             </main>
           </ApolloServerWrapper>
         </AuthSessionProvider>
