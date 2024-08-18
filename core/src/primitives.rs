@@ -459,6 +459,15 @@ impl PriceOfOneBTC {
         let btc = (cents.to_usd() / self.0.to_usd()).round_dp_with_strategy(8, rounding_strategy);
         Satoshis::try_from_btc(btc)
     }
+
+    pub fn try_sats_to_cents(
+        self,
+        sats: Satoshis,
+        rounding_strategy: RoundingStrategy,
+    ) -> Result<UsdCents, ConversionError> {
+        let usd = (sats.to_btc() * self.0.to_usd()).round_dp_with_strategy(2, rounding_strategy);
+        UsdCents::try_from_usd(usd)
+    }
 }
 
 #[derive(sqlx::Type, Debug, Copy, Clone, Eq, PartialEq, Hash, Serialize, Deserialize)]
@@ -528,6 +537,30 @@ mod test {
             Satoshis::try_from_btc(dec!(0.00166667)).unwrap(),
             price
                 .try_cents_to_sats(cents, rust_decimal::RoundingStrategy::AwayFromZero)
+                .unwrap()
+        );
+    }
+
+    #[test]
+    fn sats_to_cents_trivial() {
+        let price = PriceOfOneBTC::new(UsdCents::from(50_000_00));
+        let sats = Satoshis::from(10_000);
+        assert_eq!(
+            UsdCents::from(500),
+            price
+                .try_sats_to_cents(sats, rust_decimal::RoundingStrategy::ToZero)
+                .unwrap()
+        );
+    }
+
+    #[test]
+    fn sats_to_cents_complex() {
+        let price = PriceOfOneBTC::new(UsdCents::from(50_000_00));
+        let sats = Satoshis::from(12_345);
+        assert_eq!(
+            UsdCents::from(617),
+            price
+                .try_sats_to_cents(sats, rust_decimal::RoundingStrategy::ToZero)
                 .unwrap()
         );
     }

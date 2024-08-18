@@ -33,7 +33,7 @@ impl From<Decimal> for AnnualRatePct {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(transparent)]
 pub struct CVLPct(Decimal);
 
@@ -46,6 +46,17 @@ impl CVLPct {
                 .to_u64()
                 .expect("should return a valid integer"),
         )
+    }
+
+    pub fn from_loan_amounts(
+        collateral_value: UsdCents,
+        total_outstanding_amount: UsdCents,
+    ) -> Self {
+        let ratio = (collateral_value.to_usd() / total_outstanding_amount.to_usd())
+            .round_dp_with_strategy(2, RoundingStrategy::ToZero)
+            * dec!(100);
+
+        CVLPct::from(ratio)
     }
 }
 
@@ -155,6 +166,21 @@ mod test {
         let value = UsdCents::from(333333);
         let scaled = cvl.scale(value);
         assert_eq!(scaled, UsdCents::try_from_usd(dec!(1666.67)).unwrap());
+    }
+
+    #[test]
+    fn current_cvl_from_loan_amounts() {
+        let expected_cvl = CVLPct(dec!(125));
+        let collateral_value = UsdCents::from(125000);
+        let outstanding_amount = UsdCents::from(100000);
+        let cvl = CVLPct::from_loan_amounts(collateral_value, outstanding_amount);
+        assert_eq!(cvl, expected_cvl);
+
+        let expected_cvl = CVLPct(dec!(75));
+        let collateral_value = UsdCents::from(75000);
+        let outstanding_amount = UsdCents::from(100000);
+        let cvl = CVLPct::from_loan_amounts(collateral_value, outstanding_amount);
+        assert_eq!(cvl, expected_cvl);
     }
 
     fn terms() -> TermValues {

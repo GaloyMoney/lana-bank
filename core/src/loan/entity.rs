@@ -11,7 +11,7 @@ use crate::{
     primitives::*,
 };
 
-use super::{error::LoanError, terms::TermValues, LoanApproval, LoanInterestAccrual};
+use super::{error::LoanError, terms::TermValues, CVLPct, LoanApproval, LoanInterestAccrual};
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct LoanReceivable {
@@ -528,6 +528,15 @@ impl Loan {
         }
     }
 
+    pub fn cvl(&mut self, price: PriceOfOneBTC) -> Result<CVLPct, LoanError> {
+        let collateral_value =
+            price.try_sats_to_cents(self.collateral(), rust_decimal::RoundingStrategy::ToZero)?;
+        Ok(CVLPct::from_loan_amounts(
+            collateral_value,
+            self.outstanding().total(),
+        ))
+    }
+
     fn count_recorded_payments(&self) -> usize {
         self.events
             .iter()
@@ -833,5 +842,28 @@ mod test {
         let loan = Loan::try_from(init_events()).unwrap();
         let res = loan.initiate_approval();
         assert!(matches!(res, Err(LoanError::NoCollateral)));
+    }
+
+    #[test]
+    fn calculate_cvl() {
+        let mut loan = Loan::try_from(init_events()).unwrap();
+        let loan_collateral_update = loan
+            .initiate_collateral_update(Satoshis::from(2000))
+            .unwrap();
+        loan.confirm_collateral_update(loan_collateral_update, Utc::now(), dummy_audit_info());
+        let loan_approval = loan.initiate_approval();
+        loan.confirm_approval(loan_approval.unwrap(), Utc::now(), dummy_audit_info());
+
+        let expected_cvl = CVLPct::from(dec!(95));
+        let cvl = loan
+            .cvl(PriceOfOneBTC::new(UsdCents::from(5000000)))
+            .unwrap();
+        assert_eq!(cvl, expected_cvl);
+
+        let expected_cvl = CVLPct::from(dec!(142));
+        let cvl = loan
+            .cvl(PriceOfOneBTC::new(UsdCents::from(7500000)))
+            .unwrap();
+        assert_eq!(cvl, expected_cvl);
     }
 }
