@@ -40,4 +40,6 @@ pub enum LoanError {
     CollateralNotUpdated(Satoshis, Satoshis),
     #[error("LoanError - No Collateral")]
     NoCollateral,
+    #[error("LoanError - StalePrice: Price {0} too old at {1}")]
+    StalePrice(PriceOfOneBTC, chrono::DateTime<chrono::Utc>),
 }

@@ -1,4 +1,4 @@
-use chrono::{DateTime, Utc};
+use chrono::{DateTime, Duration, Utc};
 use rust_decimal::{Decimal, RoundingStrategy};
 use rust_decimal_macros::dec;
 use serde::{Deserialize, Serialize};
@@ -444,10 +444,25 @@ impl std::ops::Add<UsdCents> for UsdCents {
     }
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub struct StalePriceInterval(Duration);
+
+impl StalePriceInterval {
+    pub fn new(value: Duration) -> Self {
+        Self(value)
+    }
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 pub struct PriceOfOneBTC {
     value: UsdCents,
     timestamp: DateTime<Utc>,
+}
+
+impl fmt::Display for PriceOfOneBTC {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> fmt::Result {
+        write!(f, "{} at {}", self.value, self.timestamp)
+    }
 }
 
 impl PriceOfOneBTC {
@@ -476,6 +491,11 @@ impl PriceOfOneBTC {
         let usd =
             (sats.to_btc() * self.value.to_usd()).round_dp_with_strategy(2, rounding_strategy);
         UsdCents::try_from_usd(usd)
+    }
+
+    pub fn is_stale(self, stale_price_interval: StalePriceInterval) -> (bool, DateTime<Utc>) {
+        let now = Utc::now();
+        (now - self.timestamp > stale_price_interval.0, now)
     }
 }
 

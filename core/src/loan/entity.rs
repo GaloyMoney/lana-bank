@@ -528,7 +528,16 @@ impl Loan {
         }
     }
 
-    pub fn cvl(&mut self, price: PriceOfOneBTC) -> Result<CVLPct, LoanError> {
+    pub fn cvl(
+        &mut self,
+        price: PriceOfOneBTC,
+        stale_price_interval: StalePriceInterval,
+    ) -> Result<CVLPct, LoanError> {
+        let (is_stale, now) = price.is_stale(stale_price_interval);
+        if is_stale {
+            return Err(LoanError::StalePrice(price, now));
+        }
+
         let collateral_value =
             price.try_sats_to_cents(self.collateral(), rust_decimal::RoundingStrategy::ToZero)?;
         Ok(CVLPct::from_loan_amounts(
@@ -690,7 +699,10 @@ impl NewLoan {
 mod test {
     use rust_decimal_macros::dec;
 
-    use crate::loan::{Duration, InterestInterval};
+    use crate::{
+        loan::{Duration, InterestInterval},
+        primitives::StalePriceInterval,
+    };
 
     use super::*;
 
@@ -846,6 +858,8 @@ mod test {
 
     #[test]
     fn calculate_cvl() {
+        let stale_price_interval = &StalePriceInterval::new(chrono::Duration::hours(1));
+
         let mut loan = Loan::try_from(init_events()).unwrap();
         let loan_collateral_update = loan
             .initiate_collateral_update(Satoshis::from(2000))
@@ -856,13 +870,19 @@ mod test {
 
         let expected_cvl = CVLPct::from(dec!(95));
         let cvl = loan
-            .cvl(PriceOfOneBTC::new(UsdCents::from(5000000), Utc::now()))
+            .cvl(
+                PriceOfOneBTC::new(UsdCents::from(5000000), Utc::now()),
+                *stale_price_interval,
+            )
             .unwrap();
         assert_eq!(cvl, expected_cvl);
 
         let expected_cvl = CVLPct::from(dec!(142));
         let cvl = loan
-            .cvl(PriceOfOneBTC::new(UsdCents::from(7500000), Utc::now()))
+            .cvl(
+                PriceOfOneBTC::new(UsdCents::from(7500000), Utc::now()),
+                *stale_price_interval,
+            )
             .unwrap();
         assert_eq!(cvl, expected_cvl);
     }
