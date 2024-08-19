@@ -445,6 +445,19 @@ impl std::ops::Add<UsdCents> for UsdCents {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub struct CollateralUpgradeBuffer(Decimal);
+
+impl CollateralUpgradeBuffer {
+    pub fn new(buffer_pct: u64) -> Self {
+        CollateralUpgradeBuffer(Decimal::from(buffer_pct) / dec!(100))
+    }
+
+    pub fn as_multiplier(&self) -> Decimal {
+        dec!(1.0) + self.0
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct StalePriceInterval(Duration);
 
 impl StalePriceInterval {
@@ -466,6 +479,8 @@ impl fmt::Display for PriceOfOneBTC {
 }
 
 impl PriceOfOneBTC {
+    pub const ZERO: Self = Self::new(UsdCents::ZERO, DateTime::<Utc>::from_timestamp_nanos(0));
+
     pub const fn new(price: UsdCents, timestamp: DateTime<Utc>) -> Self {
         Self {
             value: price,

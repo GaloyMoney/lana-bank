@@ -192,7 +192,14 @@ impl Loans {
             .update_collateral(loan_collateral_update.clone())
             .await?;
 
-        loan.confirm_collateral_update(loan_collateral_update, executed_at, audit_info, None);
+        loan.confirm_collateral_update(
+            loan_collateral_update,
+            executed_at,
+            audit_info,
+            None,
+            None,
+            None,
+        );
         let n_events = self.loan_repo.persist_in_tx(&mut db_tx, &mut loan).await?;
         self.export
             .export_last(&mut db_tx, BQ_TABLE_NAME, n_events, &loan.events)

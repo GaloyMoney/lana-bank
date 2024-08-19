@@ -38,8 +38,8 @@ pub enum LoanError {
     AuthorizationError(#[from] crate::authorization::error::AuthorizationError),
     #[error("LoanError - CollateralNotUpdated: before({0}), after({1})")]
     CollateralNotUpdated(Satoshis, Satoshis),
-    #[error("LoanError - No Collateral")]
-    NoCollateral,
+    #[error("LoanError - NotEnoughCollateral")]
+    NotEnoughCollateral,
     #[error("LoanError - StalePrice: Price {0} too old at {1}")]
     StalePrice(PriceOfOneBTC, chrono::DateTime<chrono::Utc>),
 }
