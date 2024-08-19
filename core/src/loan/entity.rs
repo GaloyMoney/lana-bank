@@ -856,13 +856,13 @@ mod test {
 
         let expected_cvl = CVLPct::from(dec!(95));
         let cvl = loan
-            .cvl(PriceOfOneBTC::new(UsdCents::from(5000000)))
+            .cvl(PriceOfOneBTC::new(UsdCents::from(5000000), Utc::now()))
             .unwrap();
         assert_eq!(cvl, expected_cvl);
 
         let expected_cvl = CVLPct::from(dec!(142));
         let cvl = loan
-            .cvl(PriceOfOneBTC::new(UsdCents::from(7500000)))
+            .cvl(PriceOfOneBTC::new(UsdCents::from(7500000), Utc::now()))
             .unwrap();
         assert_eq!(cvl, expected_cvl);
     }
