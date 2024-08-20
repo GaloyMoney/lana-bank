@@ -1,7 +1,10 @@
 use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
 
-use super::{error::LoanError, repo::*, Subject, SystemNode};
+use super::{
+    error::LoanError, repo::*, CLVJobInterval, CVLPct, LoanCursor, PriceForCollateralAdjustment,
+    PriceOfOneBTC, StalePriceInterval, Subject, SystemNode, UsdCents,
+};
 use crate::{
     audit::*,
     authorization::{LoanAction, Object},
@@ -11,17 +14,17 @@ use crate::{
 };
 
 #[derive(Clone, Serialize, Deserialize)]
-pub struct LoanJobConfig {
+pub struct LoanInterestJobConfig {
     pub loan_id: LoanId,
 }
 
-pub struct LoanProcessingJobInitializer {
+pub struct LoanInterestProcessingJobInitializer {
     ledger: Ledger,
     audit: Audit,
     repo: LoanRepo,
 }
 
-impl LoanProcessingJobInitializer {
+impl LoanInterestProcessingJobInitializer {
     pub fn new(ledger: &Ledger, repo: LoanRepo, audit: &Audit) -> Self {
         Self {
             ledger: ledger.clone(),
@@ -31,17 +34,17 @@ impl LoanProcessingJobInitializer {
     }
 }
 
-const LOAN_PROCESSING_JOB: JobType = JobType::new("loan-processing");
-impl JobInitializer for LoanProcessingJobInitializer {
+const LOAN_INTEREST_PROCESSING_JOB: JobType = JobType::new("loan-interest-processing");
+impl JobInitializer for LoanInterestProcessingJobInitializer {
     fn job_type() -> JobType
     where
         Self: Sized,
     {
-        LOAN_PROCESSING_JOB
+        LOAN_INTEREST_PROCESSING_JOB
     }
 
     fn init(&self, job: &Job) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
-        Ok(Box::new(LoanProcessingJobRunner {
+        Ok(Box::new(LoanInterestProcessingJobRunner {
             config: job.config()?,
             repo: self.repo.clone(),
             ledger: self.ledger.clone(),
@@ -50,15 +53,15 @@ impl JobInitializer for LoanProcessingJobInitializer {
     }
 }
 
-pub struct LoanProcessingJobRunner {
-    config: LoanJobConfig,
+pub struct LoanInterestProcessingJobRunner {
+    config: LoanInterestJobConfig,
     repo: LoanRepo,
     ledger: Ledger,
     audit: Audit,
 }
 
 #[async_trait]
-impl JobRunner for LoanProcessingJobRunner {
+impl JobRunner for LoanInterestProcessingJobRunner {
     async fn run(
         &self,
         current_job: CurrentJob,
@@ -100,5 +103,89 @@ impl JobRunner for LoanProcessingJobRunner {
                 Ok(JobCompletion::CompleteWithTx(db_tx))
             }
         }
+    }
+}
+
+#[derive(Clone, Serialize, Deserialize)]
+pub struct LoanCVLJobConfig {
+    pub stale_price_interval: StalePriceInterval,
+    pub job_interval: CLVJobInterval,
+    pub collateral_upgrade_buffer: CVLPct,
+}
+
+pub struct LoanCVLProcessingJobInitializer {
+    repo: LoanRepo,
+}
+
+impl LoanCVLProcessingJobInitializer {
+    pub fn new(repo: LoanRepo) -> Self {
+        Self { repo }
+    }
+}
+
+const LOAN_CVL_PROCESSING_JOB: JobType = JobType::new("loan-cvl-processing");
+impl JobInitializer for LoanCVLProcessingJobInitializer {
+    fn job_type() -> JobType
+    where
+        Self: Sized,
+    {
+        LOAN_CVL_PROCESSING_JOB
+    }
+
+    fn init(&self, job: &Job) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
+        Ok(Box::new(LoanCVLProcessingJobRunner {
+            config: job.config()?,
+            repo: self.repo.clone(),
+        }))
+    }
+}
+
+pub struct LoanCVLProcessingJobRunner {
+    config: LoanCVLJobConfig,
+    repo: LoanRepo,
+}
+
+#[async_trait]
+impl JobRunner for LoanCVLProcessingJobRunner {
+    async fn run(
+        &self,
+        current_job: CurrentJob,
+    ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
+        let price = PriceOfOneBTC::new(UsdCents::from(5000000), chrono::Utc::now());
+
+        let mut db_tx = current_job.pool().begin().await?;
+
+        let mut has_next_page = true;
+        let mut after: Option<LoanCursor> = None;
+        while has_next_page {
+            let mut loans = self
+                .repo
+                .list(crate::query::PaginatedQueryArgs::<LoanCursor> { first: 100, after })
+                .await?;
+            (after, has_next_page) = (loans.end_cursor, loans.has_next_page);
+
+            for loan in loans.entities.iter_mut() {
+                let collateralization =
+                    loan.maybe_update_collateralization(PriceForCollateralAdjustment {
+                        price,
+                        stale_price_interval: self.config.stale_price_interval,
+                        collateral_upgrade_buffer: self.config.collateral_upgrade_buffer,
+                    });
+                match collateralization {
+                    Ok(Some(_)) => {
+                        self.repo.persist_in_tx(&mut db_tx, loan).await?;
+                    }
+                    Ok(None) => (),
+                    Err(_) => {
+                        "TODO: Handle error. Should we commit partial db_tx & reschedule, or fail the entire operation?";
+                    }
+                }
+            }
+        }
+
+        Ok(JobCompletion::RescheduleAtWithTx(
+            db_tx,
+            self.config.job_interval.add_to_time(chrono::Utc::now()),
+        ))
     }
 }
