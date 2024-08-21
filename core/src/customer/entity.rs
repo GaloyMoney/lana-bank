@@ -27,6 +27,17 @@ pub enum CustomerEvent {
     },
 }
 
+impl CustomerEvent {
+    fn audit_info(&self) -> AuditInfo {
+        match self {
+            CustomerEvent::Initialized { audit_info, .. } => audit_info.clone(),
+            CustomerEvent::KycStarted { audit_info, .. } => audit_info.clone(),
+            CustomerEvent::KycApproved { audit_info, .. } => audit_info.clone(),
+            CustomerEvent::KycDeclined { audit_info, .. } => audit_info.clone(),
+        }
+    }
+}
+
 impl EntityEvent for CustomerEvent {
     type EntityId = CustomerId;
     fn event_table_name() -> &'static str {
@@ -45,13 +56,6 @@ pub struct Customer {
     #[builder(setter(strip_option, into), default)]
     pub applicant_id: Option<String>,
     pub(super) events: EntityEvents<CustomerEvent>,
-    pub audit_info: Vec<AuditInfo>,
-}
-
-impl Customer {
-    pub fn may_create_loan(&self) -> bool {
-        true
-    }
 }
 
 impl core::fmt::Display for Customer {
@@ -65,6 +69,14 @@ impl Entity for Customer {
 }
 
 impl Customer {
+    pub fn may_create_loan(&self) -> bool {
+        true
+    }
+
+    pub fn audit_info(&self) -> Vec<AuditInfo> {
+        self.events.iter().map(|e| e.audit_info()).collect()
+    }
+
     pub fn start_kyc(&mut self, applicant_id: String, audit_info: AuditInfo) {
         self.events.push(CustomerEvent::KycStarted {
             applicant_id: applicant_id.clone(),
@@ -100,7 +112,6 @@ impl TryFrom<EntityEvents<CustomerEvent>> for Customer {
 
     fn try_from(events: EntityEvents<CustomerEvent>) -> Result<Self, Self::Error> {
         let mut builder = CustomerBuilder::default();
-        let mut audit_infos = Vec::new();
 
         for event in events.iter() {
             match event {
@@ -108,7 +119,7 @@ impl TryFrom<EntityEvents<CustomerEvent>> for Customer {
                     id,
                     email,
                     account_ids,
-                    audit_info,
+                    ..
                 } => {
                     builder = builder
                         .id(*id)
@@ -117,43 +128,28 @@ impl TryFrom<EntityEvents<CustomerEvent>> for Customer {
                         .account_ids(*account_ids)
                         .level(KycLevel::NotKyced)
                         .status(AccountStatus::Inactive);
-
-                    audit_infos.push(*audit_info);
                 }
-                CustomerEvent::KycStarted {
-                    applicant_id,
-                    audit_info,
-                } => {
+                CustomerEvent::KycStarted { applicant_id, .. } => {
                     builder = builder.applicant_id(applicant_id.clone());
-
-                    audit_infos.push(*audit_info);
                 }
                 CustomerEvent::KycApproved {
                     level,
                     applicant_id,
-                    audit_info,
+                    ..
                 } => {
                     builder = builder
                         .applicant_id(applicant_id.clone())
                         .level(*level)
                         .status(AccountStatus::Active);
-
-                    audit_infos.push(*audit_info);
                 }
-                CustomerEvent::KycDeclined {
-                    applicant_id,
-                    audit_info,
-                } => {
+                CustomerEvent::KycDeclined { applicant_id, .. } => {
                     builder = builder
                         .applicant_id(applicant_id.clone())
                         .status(AccountStatus::Inactive);
-
-                    audit_infos.push(*audit_info);
                 }
             }
         }
 
-        builder = builder.audit_info(audit_infos);
         builder.events(events).build()
     }
 }

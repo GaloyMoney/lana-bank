@@ -123,13 +123,13 @@ impl From<primitives::AccountStatus> for AccountStatus {
 impl From<crate::customer::Customer> for Customer {
     fn from(customer: crate::customer::Customer) -> Self {
         Customer {
+            audit_info: customer.audit_info(),
             customer_id: UUID::from(customer.id),
             applicant_id: customer.applicant_id,
             email: customer.email,
             account_ids: customer.account_ids,
             status: AccountStatus::from(customer.status),
             level: KycLevel::from(customer.level),
-            audit_info: customer.audit_info,
         }
     }
 }
