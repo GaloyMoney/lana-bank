@@ -6,10 +6,7 @@ use serde::{Deserialize, Serialize};
 
 use super::error::*;
 
-use crate::{
-    loan::CollateralUpgradeBuffer,
-    primitives::{PriceOfOneBTC, Satoshis, UsdCents},
-};
+use crate::primitives::{PriceOfOneBTC, Satoshis, UsdCents};
 
 const NUMBER_OF_DAYS_IN_YEAR: Decimal = dec!(366);
 
@@ -40,8 +37,20 @@ impl From<Decimal> for AnnualRatePct {
 #[serde(transparent)]
 pub struct CVLPct(Decimal);
 
+impl std::ops::Add for CVLPct {
+    type Output = Self;
+
+    fn add(self, other: Self) -> Self {
+        CVLPct(self.0 + other.0)
+    }
+}
+
 impl CVLPct {
     pub const ZERO: Self = Self(dec!(0));
+
+    pub fn new(value: u64) -> Self {
+        Self(Decimal::from(value))
+    }
 
     pub fn scale(&self, value: UsdCents) -> UsdCents {
         let cents = value.to_usd() * dec!(100) * (self.0 / dec!(100));
@@ -64,12 +73,8 @@ impl CVLPct {
         CVLPct::from(ratio)
     }
 
-    pub fn is_significantly_lower_than(
-        &self,
-        other: CVLPct,
-        margin: CollateralUpgradeBuffer,
-    ) -> bool {
-        other.0 > self.0 * margin.as_multiplier()
+    pub fn is_significantly_lower_than(&self, other: CVLPct, buffer: CVLPct) -> bool {
+        other > *self + buffer
     }
 }
 
@@ -198,27 +203,27 @@ mod test {
 
     #[test]
     fn cvl_is_significantly_higher() {
-        let margin = CollateralUpgradeBuffer::new(5);
+        let buffer = CVLPct::new(5);
 
         let collateral_value = UsdCents::from(125000);
         let outstanding_amount = UsdCents::from(100000);
         let cvl = CVLPct::from_loan_amounts(collateral_value, outstanding_amount);
 
-        let collateral_value = UsdCents::from(131999);
+        let collateral_value = UsdCents::from(130999);
         let outstanding_amount = UsdCents::from(100000);
         let slightly_higher_cvl = CVLPct::from_loan_amounts(collateral_value, outstanding_amount);
         assert_eq!(
             false,
-            cvl.is_significantly_lower_than(slightly_higher_cvl, margin)
+            cvl.is_significantly_lower_than(slightly_higher_cvl, buffer)
         );
 
-        let collateral_value = UsdCents::from(132000);
+        let collateral_value = UsdCents::from(131000);
         let outstanding_amount = UsdCents::from(100000);
         let significantly_higher_cvl =
             CVLPct::from_loan_amounts(collateral_value, outstanding_amount);
         assert_eq!(
             true,
-            cvl.is_significantly_lower_than(significantly_higher_cvl, margin)
+            cvl.is_significantly_lower_than(significantly_higher_cvl, buffer)
         );
     }
 
