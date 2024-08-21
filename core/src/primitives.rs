@@ -1,7 +1,7 @@
 use chrono::{DateTime, Duration, Utc};
 use rust_decimal::{Decimal, RoundingStrategy};
 use rust_decimal_macros::dec;
-use serde::{Deserialize, Serialize};
+use serde::{de, Deserialize, Deserializer, Serialize, Serializer};
 use uuid::{uuid, Uuid};
 
 use std::{fmt, str::FromStr};
@@ -447,9 +447,106 @@ impl std::ops::Add<UsdCents> for UsdCents {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct StalePriceInterval(Duration);
 
+impl Serialize for StalePriceInterval {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        serializer.serialize_i64(self.0.num_seconds())
+    }
+}
+
+impl<'de> Deserialize<'de> for StalePriceInterval {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        struct StalePriceIntervalVisitor;
+
+        impl<'de> de::Visitor<'de> for StalePriceIntervalVisitor {
+            type Value = StalePriceInterval;
+
+            fn expecting(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {
+                formatter.write_str("a duration in seconds as a 64-bit integer")
+            }
+
+            fn visit_i64<E>(self, value: i64) -> Result<Self::Value, E>
+            where
+                E: de::Error,
+            {
+                Ok(StalePriceInterval(Duration::seconds(value)))
+            }
+
+            fn visit_u64<E>(self, value: u64) -> Result<Self::Value, E>
+            where
+                E: de::Error,
+            {
+                Ok(StalePriceInterval(Duration::seconds(value as i64)))
+            }
+        }
+
+        deserializer.deserialize_i64(StalePriceIntervalVisitor)
+    }
+}
+
 impl StalePriceInterval {
     pub fn new(value: Duration) -> Self {
         Self(value)
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub struct CLVJobInterval(Duration);
+
+impl Serialize for CLVJobInterval {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        serializer.serialize_i64(self.0.num_seconds())
+    }
+}
+
+impl<'de> Deserialize<'de> for CLVJobInterval {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        struct CLVJobIntervalVisitor;
+
+        impl<'de> de::Visitor<'de> for CLVJobIntervalVisitor {
+            type Value = CLVJobInterval;
+
+            fn expecting(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {
+                formatter.write_str("a duration in seconds as a 64-bit integer")
+            }
+
+            fn visit_i64<E>(self, value: i64) -> Result<Self::Value, E>
+            where
+                E: de::Error,
+            {
+                Ok(CLVJobInterval(Duration::seconds(value)))
+            }
+
+            fn visit_u64<E>(self, value: u64) -> Result<Self::Value, E>
+            where
+                E: de::Error,
+            {
+                Ok(CLVJobInterval(Duration::seconds(value as i64)))
+            }
+        }
+
+        deserializer.deserialize_i64(CLVJobIntervalVisitor)
+    }
+}
+
+impl CLVJobInterval {
+    pub fn new(value: Duration) -> Self {
+        Self(value)
+    }
+
+    pub fn add_to_time(&self, timestamp: DateTime<Utc>) -> DateTime<Utc> {
+        timestamp + self.0
     }
 }
 
