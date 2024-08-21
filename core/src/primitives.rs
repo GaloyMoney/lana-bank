@@ -112,13 +112,11 @@ impl FromStr for Subject {
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let parts: Vec<&str> = s.split(':').collect();
         if parts.len() != 2 {
-            return Err(ParseSubjectError::ParseError(
-                "Invalid subject format".to_string(),
-            ));
+            return Err(ParseSubjectError("Invalid subject format".to_string()));
         }
-        let id = parts[1].parse().map_err(|err| {
-            ParseSubjectError::ParseError(format!("Failed to parse UUID: {}", err))
-        })?;
+        let id = parts[1]
+            .parse()
+            .map_err(|err| ParseSubjectError(format!("Failed to parse UUID: {}", err)))?;
         match parts[0] {
             "customer" => Ok(Subject::Customer(CustomerId(id))),
             "user" => Ok(Subject::User(UserId(id))),
@@ -127,23 +125,16 @@ impl FromStr for Subject {
                 SYSTEM_CORE => Ok(Subject::System(SystemNode::Core)),
                 SYSTEM_KRATOS => Ok(Subject::System(SystemNode::Kratos)),
                 SYSTEM_SUMSUB => Ok(Subject::System(SystemNode::Sumsub)),
-                _ => Err(ParseSubjectError::ParseError(
-                    "Unknown system node".to_string(),
-                )),
+                _ => Err(ParseSubjectError("Unknown system node".to_string())),
             },
-            _ => Err(ParseSubjectError::ParseError(
-                "Unknown subject type".to_string(),
-            )),
+            _ => Err(ParseSubjectError("Unknown subject type".to_string())),
         }
     }
 }
 
-// subject Error
 #[derive(Error, Debug)]
-pub enum ParseSubjectError {
-    #[error("ParseSubjectError: {0}")]
-    ParseError(String),
-}
+#[error("ParseSubjectError: {0}")]
+pub struct ParseSubjectError(String);
 
 impl From<UserId> for Subject {
     fn from(s: UserId) -> Self {
