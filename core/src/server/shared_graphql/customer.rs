@@ -4,7 +4,7 @@ use dataloader::DataLoader;
 use crate::{
     app::LavaApp,
     ledger,
-    primitives::{self, AuditEntryId},
+    primitives::{self},
     server::{
         admin::{
             graphql::{audit::AuditEntry, loader::LavaDataLoader},
@@ -93,15 +93,11 @@ impl Customer {
 
     async fn audit(&self, ctx: &Context<'_>) -> async_graphql::Result<Vec<AuditEntry>> {
         let loader = ctx.data_unchecked::<DataLoader<LavaDataLoader>>();
-        let ids: Vec<AuditEntryId> = self
-            .audit_info
-            .iter()
-            .map(|info| info.audit_entry_id)
-            .collect();
+        let entries = loader
+            .load_many(self.audit_info.iter().map(|info| info.audit_entry_id))
+            .await?;
 
-        let entries = loader.load_many(ids).await?;
-
-        Ok(entries.into_iter().map(|entry| entry.1).collect())
+        Ok(entries.into_values().collect())
     }
 }
 
