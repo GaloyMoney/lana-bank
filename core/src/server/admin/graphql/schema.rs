@@ -37,9 +37,9 @@ impl Query {
         let app = ctx.data_unchecked::<LavaApp>();
         let AdminAuthContext { sub } = ctx.data()?;
 
-        let after_cursor = after.map(|cursor| AuditCursor {
-            id: cursor.parse::<i64>().unwrap(),
-        });
+        let after_cursor = after
+            .map(|cursor| cursor.parse::<AuditCursor>())
+            .transpose()?;
 
         let query_args = crate::query::PaginatedQueryArgs {
             first: first.try_into().expect("convert to usize failed"),
@@ -50,9 +50,8 @@ impl Query {
 
         let mut connection = Connection::new(false, res.has_next_page);
         for entry in res.entities {
-            let id = i64::from(entry.id);
+            let cursor = AuditCursor::from(&entry);
             let audit_entry = AuditEntry::from(entry);
-            let cursor = AuditCursor { id };
             connection.edges.push(Edge::new(cursor, audit_entry));
         }
 

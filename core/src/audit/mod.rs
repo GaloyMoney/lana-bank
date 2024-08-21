@@ -89,7 +89,7 @@ impl Audit {
         query: crate::query::PaginatedQueryArgs<AuditCursor>,
     ) -> Result<crate::query::PaginatedQueryRet<AuditEntry, AuditCursor>, AuditError> {
         // Extract the after_id and limit from the query
-        let after_id: Option<i64> = query.after.map(|cursor| cursor.id);
+        let after_id: Option<AuditEntryId> = query.after.map(|cursor| cursor.id);
 
         let limit = i64::try_from(query.first)?;
 
@@ -103,7 +103,7 @@ impl Audit {
             ORDER BY id DESC
             LIMIT $2
             "#,
-            after_id,
+            after_id as Option<AuditEntryId>,
             limit + 1,
         )
         .fetch_all(&self.pool)
@@ -124,7 +124,7 @@ impl Audit {
 
         // Create the next cursor if there is a next page
         let end_cursor = if has_next_page {
-            events.last().map(|event| AuditCursor { id: event.id.0 })
+            events.last().map(|event| AuditCursor { id: event.id })
         } else {
             None
         };
@@ -152,8 +152,6 @@ impl Audit {
         &self,
         ids: &[AuditEntryId],
     ) -> Result<HashMap<AuditEntryId, T>, AuditError> {
-        let id_entries: Vec<i64> = ids.iter().map(|id| id.0).collect();
-
         let raw_entries = sqlx::query_as!(
             RawAuditEntry,
             r#"
@@ -161,7 +159,7 @@ impl Audit {
             FROM audit_entries
             WHERE id = ANY($1)
             "#,
-            &id_entries,
+            &ids as &[AuditEntryId],
         )
         .fetch_all(&self.pool)
         .await?;

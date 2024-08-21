@@ -470,8 +470,15 @@ impl PriceOfOneBTC {
     }
 }
 
-#[derive(Debug, Copy, Clone, Eq, PartialEq, Hash, Serialize, Deserialize)]
-pub struct AuditEntryId(pub i64);
+#[derive(sqlx::Type, Debug, Copy, Clone, Eq, PartialEq, Hash, Serialize, Deserialize)]
+#[sqlx(transparent)]
+pub struct AuditEntryId(i64);
+
+impl std::fmt::Display for AuditEntryId {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        self.0.fmt(f)
+    }
+}
 
 impl From<i64> for AuditEntryId {
     fn from(value: i64) -> AuditEntryId {

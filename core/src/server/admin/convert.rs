@@ -6,11 +6,11 @@ impl CursorType for AuditCursor {
     type Error = String;
 
     fn encode_cursor(&self) -> String {
-        self.id.to_string()
+        self.to_string()
     }
 
     fn decode_cursor(s: &str) -> Result<Self, Self::Error> {
-        let id = s.parse::<i64>().map_err(|e| e.to_string())?;
-        Ok(AuditCursor { id })
+        let cursor = s.parse::<Self>().map_err(|e| e.to_string())?;
+        Ok(cursor)
     }
 }

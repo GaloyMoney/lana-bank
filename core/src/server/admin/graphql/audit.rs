@@ -2,7 +2,7 @@ use async_graphql::{dataloader::DataLoader, ComplexObject, Context, SimpleObject
 
 use crate::{
     primitives::Subject as DomainSubject,
-    server::shared_graphql::{customer::Customer, primitives::Timestamp},
+    server::shared_graphql::{convert::*, customer::Customer, primitives::Timestamp},
 };
 
 use super::{loader::LavaDataLoader, user::User};
@@ -65,12 +65,18 @@ impl AuditEntry {
 impl From<crate::audit::AuditEntry> for AuditEntry {
     fn from(entry: crate::audit::AuditEntry) -> Self {
         Self {
-            id: entry.id.0.into(),
+            id: entry.id.to_global_id(),
             subject: entry.subject,
             object: entry.object.as_ref().into(),
             action: entry.action.as_ref().into(),
             authorized: entry.authorized,
             created_at: entry.created_at.into(),
         }
+    }
+}
+
+impl ToGlobalId for crate::primitives::AuditEntryId {
+    fn to_global_id(&self) -> async_graphql::types::ID {
+        async_graphql::types::ID::from(format!("audit_entry:{}", self))
     }
 }
