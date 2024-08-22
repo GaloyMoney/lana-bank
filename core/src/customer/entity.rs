@@ -30,10 +30,10 @@ pub enum CustomerEvent {
 impl CustomerEvent {
     fn audit_info(&self) -> AuditInfo {
         match self {
-            CustomerEvent::Initialized { audit_info, .. } => audit_info.clone(),
-            CustomerEvent::KycStarted { audit_info, .. } => audit_info.clone(),
-            CustomerEvent::KycApproved { audit_info, .. } => audit_info.clone(),
-            CustomerEvent::KycDeclined { audit_info, .. } => audit_info.clone(),
+            CustomerEvent::Initialized { audit_info, .. } => *audit_info,
+            CustomerEvent::KycStarted { audit_info, .. } => *audit_info,
+            CustomerEvent::KycApproved { audit_info, .. } => *audit_info,
+            CustomerEvent::KycDeclined { audit_info, .. } => *audit_info,
         }
     }
 }
