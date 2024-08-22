@@ -1,3 +1,4 @@
+mod config;
 mod entity;
 pub mod error;
 mod job;
@@ -21,6 +22,7 @@ use crate::{
     primitives::*,
 };
 
+pub use config::*;
 pub use entity::*;
 use error::*;
 use job::*;
@@ -39,6 +41,7 @@ pub struct Loans {
     jobs: Option<Jobs>,
     authz: Authorization,
     export: Export,
+    config: LoanConfig,
 }
 
 impl Loans {
@@ -50,6 +53,7 @@ impl Loans {
         authz: &Authorization,
         audit: &Audit,
         export: &Export,
+        config: LoanConfig,
     ) -> Self {
         let loan_repo = LoanRepo::new(pool);
         let term_repo = TermRepo::new(pool);
@@ -67,6 +71,7 @@ impl Loans {
             jobs: None,
             authz: authz.clone(),
             export: export.clone(),
+            config,
         }
     }
 
@@ -197,8 +202,8 @@ impl Loans {
             executed_at,
             audit_info,
             None,
-            None,
-            None,
+            self.config.stale_price_interval,
+            self.config.collateral_upgrade_buffer,
         );
         let n_events = self.loan_repo.persist_in_tx(&mut db_tx, &mut loan).await?;
         self.export

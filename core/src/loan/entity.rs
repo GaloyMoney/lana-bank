@@ -846,8 +846,8 @@ impl Loan {
         executed_at: DateTime<Utc>,
         audit_info: AuditInfo,
         price: Option<PriceOfOneBTC>, // TODO: add price service and remove Option
-        stale_price_interval: Option<StalePriceInterval>, // TODO: pass from config and remove Option
-        collateral_upgrade_buffer: Option<CVLPct>, // TODO: pass from config and remove Option
+        stale_price_interval: StalePriceInterval,
+        collateral_upgrade_buffer: CVLPct,
     ) -> Result<Option<LoanCollaterization>, LoanError> {
         self.events.push(LoanEvent::CollateralUpdated {
             tx_id,
@@ -862,19 +862,11 @@ impl Loan {
             Some(price) => price,
             None => PriceOfOneBTC::new(UsdCents::from(5000000), Utc::now()),
         };
-        let default_stale_price_interval = match stale_price_interval {
-            Some(stale_price_interval) => stale_price_interval,
-            None => StalePriceInterval::new(chrono::Duration::hours(1)),
-        };
-        let default_upgrade_buffer = match collateral_upgrade_buffer {
-            Some(collateral_upgrade_buffer) => collateral_upgrade_buffer,
-            None => CVLPct::new(5),
-        };
 
         self.maybe_update_collateralization(PriceForCollateralAdjustment {
             price: default_price,
-            stale_price_interval: default_stale_price_interval,
-            collateral_upgrade_buffer: default_upgrade_buffer,
+            stale_price_interval,
+            collateral_upgrade_buffer,
         })
     }
 }
@@ -1009,12 +1001,12 @@ mod test {
         Some(PriceOfOneBTC::new(UsdCents::from(5000000), Utc::now()))
     }
 
-    fn default_stale_price_interval() -> Option<StalePriceInterval> {
-        Some(StalePriceInterval::new(chrono::Duration::hours(1)))
+    fn default_stale_price_interval() -> StalePriceInterval {
+        StalePriceInterval::new(chrono::Duration::hours(1))
     }
 
-    fn default_upgrade_buffer() -> Option<CVLPct> {
-        Some(CVLPct::new(5))
+    fn default_upgrade_buffer() -> CVLPct {
+        CVLPct::new(5)
     }
 
     #[test]

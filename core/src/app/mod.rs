@@ -55,6 +55,7 @@ impl LavaApp {
             &authz,
             &audit,
             &export,
+            config.loan,
         );
         let mut jobs = Jobs::new(&pool, config.job_execution, registry);
         loans.set_jobs(&jobs);
