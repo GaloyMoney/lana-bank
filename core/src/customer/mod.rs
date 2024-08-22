@@ -79,7 +79,7 @@ impl Customers {
             .expect("Could not build customer");
 
         let mut db = self.pool.begin().await?;
-        let customer = self.repo.create(&mut db, new_customer).await;
+        let customer = self.repo.create_in_tx(&mut db, new_customer).await;
         db.commit().await?;
 
         customer
@@ -112,7 +112,7 @@ impl Customers {
             .build()
             .expect("Could not build customer");
 
-        let customer = self.repo.create(&mut db, new_customer).await;
+        let customer = self.repo.create_in_tx(&mut db, new_customer).await;
         db.commit().await?;
 
         customer

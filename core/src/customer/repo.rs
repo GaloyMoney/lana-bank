@@ -15,7 +15,7 @@ impl CustomerRepo {
         Self { pool: pool.clone() }
     }
 
-    pub(super) async fn create(
+    pub(super) async fn create_in_tx(
         &self,
         db: &mut sqlx::Transaction<'_, sqlx::Postgres>,
         new_customer: NewCustomer,
