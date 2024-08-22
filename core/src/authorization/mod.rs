@@ -201,9 +201,9 @@ impl Authorization {
 
         let action = action.into();
         match enforcer.enforce((sub.to_string(), object.as_ref(), action.as_ref())) {
-            Ok(true) => Ok(self.audit.persist(sub, object, action, true).await?),
+            Ok(true) => Ok(self.audit.record_entry(sub, object, action, true).await?),
             Ok(false) => {
-                self.audit.persist(sub, object, action, false).await?;
+                self.audit.record_entry(sub, object, action, false).await?;
                 Err(AuthorizationError::NotAuthorized)
             }
             Err(e) => Err(AuthorizationError::Casbin(e)),

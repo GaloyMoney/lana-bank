@@ -94,7 +94,7 @@ impl Customers {
 
         let audit_info = &self
             .audit
-            .persist_in_tx(
+            .record_entry_in_tx(
                 &mut db,
                 &Subject::System(crate::primitives::SystemNode::Kratos),
                 Object::Customer,
@@ -185,7 +185,7 @@ impl Customers {
 
         let audit_info = self
             .audit
-            .persist_in_tx(
+            .record_entry_in_tx(
                 &mut db_tx,
                 &Subject::System(crate::primitives::SystemNode::Sumsub),
                 Object::Customer,
@@ -213,7 +213,7 @@ impl Customers {
 
         let audit_info = self
             .audit
-            .persist_in_tx(
+            .record_entry_in_tx(
                 &mut db_tx,
                 &Subject::System(crate::primitives::SystemNode::Sumsub),
                 Object::Customer,
@@ -241,7 +241,7 @@ impl Customers {
 
         let audit_info = self
             .audit
-            .persist_in_tx(
+            .record_entry_in_tx(
                 &mut db_tx,
                 &Subject::System(crate::primitives::SystemNode::Sumsub),
                 Object::Customer,

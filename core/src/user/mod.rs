@@ -50,7 +50,7 @@ impl Users {
         let subject = Subject::System(SystemNode::Init);
         let audit_info = self
             .audit
-            .persist(&subject, Object::User, UserAction::Create, true)
+            .record_entry(&subject, Object::User, UserAction::Create, true)
             .await?;
 
         if self.find_by_email(&email).await?.is_none() {

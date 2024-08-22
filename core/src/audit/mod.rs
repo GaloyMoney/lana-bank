@@ -44,7 +44,7 @@ impl Audit {
         Self { pool: pool.clone() }
     }
 
-    pub async fn persist(
+    pub async fn record_entry(
         &self,
         subject: &Subject,
         object: Object,
@@ -53,13 +53,13 @@ impl Audit {
     ) -> Result<AuditInfo, AuditError> {
         let mut db = self.pool.begin().await?;
         let info = self
-            .persist_in_tx(&mut db, subject, object, action, authorized)
+            .record_entry_in_tx(&mut db, subject, object, action, authorized)
             .await?;
         db.commit().await?;
         Ok(info)
     }
 
-    pub async fn persist_in_tx(
+    pub async fn record_entry_in_tx(
         &self,
         db: &mut sqlx::Transaction<'_, sqlx::Postgres>,
         subject: &Subject,
