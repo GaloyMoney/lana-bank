@@ -2,6 +2,7 @@
 import { gql } from "@apollo/client"
 
 import { useState } from "react"
+import Link from "next/link"
 
 import { IoEllipsisHorizontal } from "react-icons/io5"
 
@@ -28,6 +29,7 @@ import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
+  DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
@@ -174,6 +176,9 @@ const RolesDropDown = ({
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent>
+        <Link href={`/users/${userId}`}>
+          <DropdownMenuItem>View details</DropdownMenuItem>
+        </Link>
         <DropdownMenuLabel>Roles</DropdownMenuLabel>
         <DropdownMenuSeparator />
         {Object.values(Role).map((role) => (
@@ -192,7 +197,7 @@ const RolesDropDown = ({
   )
 }
 
-const formatRole = (role: string) => {
+export const formatRole = (role: string) => {
   return role
     .toLowerCase()
     .split("_")

@@ -1005,6 +1005,13 @@ export type BtcBalancesFragment = { __typename?: 'LayeredBtcAccountAmounts', all
 
 export type UsdBalancesFragment = { __typename?: 'LayeredUsdAccountAmounts', all: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } };
 
+export type GetUserDetailsQueryVariables = Exact<{
+  id: Scalars['UUID']['input'];
+}>;
+
+
+export type GetUserDetailsQuery = { __typename?: 'Query', user?: { __typename?: 'User', userId: string, email: string, roles: Array<Role> } | null };
+
 export type UsersQueryVariables = Exact<{ [key: string]: never; }>;
 
 
@@ -2245,6 +2252,43 @@ export function useGetOffBalanceSheetTrialBalanceLazyQuery(baseOptions?: Apollo.
 export type GetOffBalanceSheetTrialBalanceQueryHookResult = ReturnType<typeof useGetOffBalanceSheetTrialBalanceQuery>;
 export type GetOffBalanceSheetTrialBalanceLazyQueryHookResult = ReturnType<typeof useGetOffBalanceSheetTrialBalanceLazyQuery>;
 export type GetOffBalanceSheetTrialBalanceQueryResult = Apollo.QueryResult<GetOffBalanceSheetTrialBalanceQuery, GetOffBalanceSheetTrialBalanceQueryVariables>;
+export const GetUserDetailsDocument = gql`
+    query GetUserDetails($id: UUID!) {
+  user(id: $id) {
+    userId
+    email
+    roles
+  }
+}
+    `;
+
+/**
+ * __useGetUserDetailsQuery__
+ *
+ * To run a query within a React component, call `useGetUserDetailsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetUserDetailsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetUserDetailsQuery({
+ *   variables: {
+ *      id: // value for 'id'
+ *   },
+ * });
+ */
+export function useGetUserDetailsQuery(baseOptions: Apollo.QueryHookOptions<GetUserDetailsQuery, GetUserDetailsQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetUserDetailsQuery, GetUserDetailsQueryVariables>(GetUserDetailsDocument, options);
+      }
+export function useGetUserDetailsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetUserDetailsQuery, GetUserDetailsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetUserDetailsQuery, GetUserDetailsQueryVariables>(GetUserDetailsDocument, options);
+        }
+export type GetUserDetailsQueryHookResult = ReturnType<typeof useGetUserDetailsQuery>;
+export type GetUserDetailsLazyQueryHookResult = ReturnType<typeof useGetUserDetailsLazyQuery>;
+export type GetUserDetailsQueryResult = Apollo.QueryResult<GetUserDetailsQuery, GetUserDetailsQueryVariables>;
 export const UsersDocument = gql`
     query Users {
   users {

@@ -1,6 +1,7 @@
 import React, { useState } from "react"
 import { gql } from "@apollo/client"
 import { toast } from "sonner"
+import { useRouter } from "next/navigation"
 
 import {
   Dialog,
@@ -37,6 +38,8 @@ function CreateUserDialog({
   openCreateUserDialog: boolean
   refetch: () => void
 }) {
+  const router = useRouter()
+
   const [createUser, { loading, reset }] = useUserCreateMutation()
   const [email, setEmail] = useState<string>("")
   const [error, setError] = useState<string | null>(null)
@@ -50,11 +53,14 @@ function CreateUserDialog({
             email,
           },
         },
+        onCompleted: async (data) => {
+          refetch()
+          toast.success("User created successfully")
+          await sendMagicLinkToEmail(email)
+          setOpenCreateUserDialog(false)
+          router.push(`/users/${data.userCreate.user.userId}`)
+        },
       })
-      refetch()
-      toast.success("User created successfully")
-      await sendMagicLinkToEmail(email)
-      setOpenCreateUserDialog(false)
     } catch (error) {
       console.error(error)
       if (error instanceof Error) {
