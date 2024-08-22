@@ -45,6 +45,6 @@ teardown_file() {
   expected_id1=$((end_cursor - 1))
   expected_id2=$((end_cursor - 2))
 
-  [[ "$id1" -eq "$expected_id1" ]] || exit 1
-  [[ "$id2" -eq "$expected_id2" ]] || exit 1
+  [[ "$id1" == "audit_entry:$expected_id1" ]] || exit 1
+  [[ "$id2" == "audit_entry:$expected_id2" ]] || exit 1
 }
