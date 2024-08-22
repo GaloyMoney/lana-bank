@@ -36,6 +36,7 @@ import {
 } from "@/components/primitive/dropdown-menu"
 import { Badge } from "@/components/primitive/badge"
 import { Card, CardContent } from "@/components/primitive/card"
+import { formatRole } from "@/lib/utils"
 
 gql`
   query Users {
@@ -195,12 +196,4 @@ const RolesDropDown = ({
       </DropdownMenuContent>
     </DropdownMenu>
   )
-}
-
-export const formatRole = (role: string) => {
-  return role
-    .toLowerCase()
-    .split("_")
-    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(" ")
 }

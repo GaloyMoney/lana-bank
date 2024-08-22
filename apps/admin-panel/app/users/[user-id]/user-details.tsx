@@ -1,6 +1,7 @@
 "use client"
 
 import { gql } from "@apollo/client"
+import { toast } from "sonner"
 
 import {
   Role,
@@ -12,8 +13,7 @@ import { DetailItem } from "@/components/details"
 import { Card, CardContent, CardHeader } from "@/components/primitive/card"
 import { Separator } from "@/components/primitive/separator"
 import { Checkbox } from "@/components/primitive/check-box"
-import { formatRole } from "../page"
-import { toast } from "sonner"
+import { formatRole } from "@/lib/utils"
 
 gql`
   query GetUserDetails($id: UUID!) {

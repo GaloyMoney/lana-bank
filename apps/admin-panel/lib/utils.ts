@@ -66,3 +66,11 @@ export const isEmail = (str: string) => {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
   return emailRegex.test(str)
 }
+
+export const formatRole = (role: string) => {
+  return role
+    .toLowerCase()
+    .split("_")
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ")
+}
