@@ -72,7 +72,7 @@ export const CreateLoanDialog = ({
 
   const [customerIdValue, setCustomerIdValue] = useState<string>(customerId)
   const { data: defaultTermsData } = useDefaultTermsQuery()
-  const [createLoan, { data, loading, error, reset }] = useLoanCreateMutation()
+  const [createLoan, { loading, error, reset }] = useLoanCreateMutation()
 
   const [formValues, setFormValues] = useState({
     desiredPrincipal: "",
@@ -121,7 +121,7 @@ export const CreateLoanDialog = ({
     }
 
     try {
-      const { data } = await createLoan({
+      await createLoan({
         variables: {
           input: {
             customerId: customerIdValue,
@@ -139,9 +139,12 @@ export const CreateLoanDialog = ({
             },
           },
         },
+        onCompleted: (data) => {
+          toast.success("Loan created successfully")
+          router.push(`/loan/${data?.loanCreate.loan.loanId}`)
+        },
       })
-      toast.success("Loan created successfully")
-      router.push(`/loan/${data?.loanCreate.loan.loanId}`)
+
       if (refetch) refetch()
     } catch (err) {
       console.error(err)
@@ -310,6 +313,7 @@ export const CreateLoanDialog = ({
               className="w-32"
               disabled={loading}
               type="submit"
+              loading={loading}
             >
               Create New Loan
             </Button>
