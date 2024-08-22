@@ -15,6 +15,14 @@ function makeClient({ coreAdminGqlUrl }: { coreAdminGqlUrl: string }) {
   })
 
   return new ApolloClient({
+    defaultOptions: {
+      query: {
+        fetchPolicy: "no-cache",
+      },
+      watchQuery: {
+        fetchPolicy: "no-cache",
+      },
+    },
     cache: new InMemoryCache({
       typePolicies: {
         AccountSetAndSubAccounts: {
