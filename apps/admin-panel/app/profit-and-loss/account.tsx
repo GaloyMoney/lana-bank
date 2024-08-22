@@ -135,6 +135,7 @@ const SubAccountsForAccountSet = ({
       from: dateRange.from,
       until: dateRange.until,
     },
+    fetchPolicy: "cache-and-network",
   })
 
   const hasMoreSubAccounts = data?.accountSet?.subAccounts.pageInfo.hasNextPage

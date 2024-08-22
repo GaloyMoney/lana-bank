@@ -59,6 +59,7 @@ const LoansTable = () => {
     variables: {
       first: 10,
     },
+    fetchPolicy: "cache-and-network",
   })
 
   if (loading) {

@@ -66,6 +66,7 @@ const SubAccountsForAccountSet: React.FC<AccountProps> = ({
       first: 10,
       from: dateRange.from,
     },
+    fetchPolicy: "cache-and-network",
   })
 
   const hasMoreSubAccounts = data?.accountSet?.subAccounts.pageInfo.hasNextPage

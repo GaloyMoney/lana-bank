@@ -53,7 +53,10 @@ gql`
 `
 
 function LogsPage() {
-  const { data, fetchMore, loading } = useAuditLogsQuery({ variables: { first: 100 } })
+  const { data, fetchMore, loading } = useAuditLogsQuery({
+    variables: { first: 100 },
+    fetchPolicy: "cache-and-network",
+  })
 
   const handleFetchMore = async () => {
     if (data?.audit.pageInfo.hasNextPage && !loading) {

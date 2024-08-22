@@ -83,6 +83,7 @@ function WithdrawalsTable() {
   } = useWithdrawalsQuery({
     variables: { first: pageSize },
     skip: !!searchQuery,
+    fetchPolicy: "cache-and-network",
   })
 
   const {

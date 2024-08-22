@@ -60,6 +60,7 @@ function CustomerTable({
   } = useCustomersQuery({
     variables: { first: pageSize },
     skip: !!searchValue,
+    fetchPolicy: "cache-and-network",
   })
 
   const {
