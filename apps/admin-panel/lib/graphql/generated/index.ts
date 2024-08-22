@@ -1024,6 +1024,13 @@ export type UserRevokeRoleMutationVariables = Exact<{
 
 export type UserRevokeRoleMutation = { __typename?: 'Mutation', userRevokeRole: { __typename?: 'UserRevokeRolePayload', user: { __typename?: 'User', userId: string, email: string, roles: Array<Role> } } };
 
+export type GetWithdrawalDetailsQueryVariables = Exact<{
+  id: Scalars['UUID']['input'];
+}>;
+
+
+export type GetWithdrawalDetailsQuery = { __typename?: 'Query', withdrawal?: { __typename?: 'Withdrawal', customerId: string, withdrawalId: string, amount: any, status: WithdrawalStatus } | null };
+
 export type WithdrawalsQueryVariables = Exact<{
   first: Scalars['Int']['input'];
   after?: InputMaybe<Scalars['String']['input']>;
@@ -2348,6 +2355,44 @@ export function useUserRevokeRoleMutation(baseOptions?: Apollo.MutationHookOptio
 export type UserRevokeRoleMutationHookResult = ReturnType<typeof useUserRevokeRoleMutation>;
 export type UserRevokeRoleMutationResult = Apollo.MutationResult<UserRevokeRoleMutation>;
 export type UserRevokeRoleMutationOptions = Apollo.BaseMutationOptions<UserRevokeRoleMutation, UserRevokeRoleMutationVariables>;
+export const GetWithdrawalDetailsDocument = gql`
+    query GetWithdrawalDetails($id: UUID!) {
+  withdrawal(id: $id) {
+    customerId
+    withdrawalId
+    amount
+    status
+  }
+}
+    `;
+
+/**
+ * __useGetWithdrawalDetailsQuery__
+ *
+ * To run a query within a React component, call `useGetWithdrawalDetailsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetWithdrawalDetailsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetWithdrawalDetailsQuery({
+ *   variables: {
+ *      id: // value for 'id'
+ *   },
+ * });
+ */
+export function useGetWithdrawalDetailsQuery(baseOptions: Apollo.QueryHookOptions<GetWithdrawalDetailsQuery, GetWithdrawalDetailsQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetWithdrawalDetailsQuery, GetWithdrawalDetailsQueryVariables>(GetWithdrawalDetailsDocument, options);
+      }
+export function useGetWithdrawalDetailsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetWithdrawalDetailsQuery, GetWithdrawalDetailsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetWithdrawalDetailsQuery, GetWithdrawalDetailsQueryVariables>(GetWithdrawalDetailsDocument, options);
+        }
+export type GetWithdrawalDetailsQueryHookResult = ReturnType<typeof useGetWithdrawalDetailsQuery>;
+export type GetWithdrawalDetailsLazyQueryHookResult = ReturnType<typeof useGetWithdrawalDetailsLazyQuery>;
+export type GetWithdrawalDetailsQueryResult = Apollo.QueryResult<GetWithdrawalDetailsQuery, GetWithdrawalDetailsQueryVariables>;
 export const WithdrawalsDocument = gql`
     query Withdrawals($first: Int!, $after: String) {
   withdrawals(first: $first, after: $after) {

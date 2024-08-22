@@ -1,6 +1,7 @@
 import React, { useState } from "react"
 import { gql } from "@apollo/client"
 import { toast } from "sonner"
+import { useRouter } from "next/navigation"
 
 import {
   Dialog,
@@ -54,6 +55,8 @@ function WithdrawalInitiateDialog({
   customerId: string
   refetch?: () => void
 }) {
+  const router = useRouter()
+
   const [initiateWithdrawal, { loading, reset, data }] = useWithdrawalInitiateMutation()
   const [amount, setAmount] = useState<string>("")
   const [reference, setReference] = useState<string>("")
@@ -82,6 +85,9 @@ function WithdrawalInitiateDialog({
         toast.success("Withdrawal initiated successfully")
         setIsInitiated(true)
         if (refetch) refetch()
+        router.push(
+          `/withdrawals/${result.data.withdrawalInitiate.withdrawal.withdrawalId}`,
+        )
       } else {
         throw new Error("No data returned from mutation")
       }
