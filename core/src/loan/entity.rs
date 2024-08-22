@@ -82,10 +82,11 @@ pub enum LoanCollaterization {
     Closed,
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 pub struct PriceForCollateralAdjustment {
-    price: PriceOfOneBTC,
-    stale_price_interval: StalePriceInterval,
-    collateral_upgrade_buffer: CVLPct,
+    pub price: PriceOfOneBTC,
+    pub stale_price_interval: StalePriceInterval,
+    pub collateral_upgrade_buffer: CVLPct,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -845,9 +846,7 @@ impl Loan {
         }: LoanCollateralUpdate,
         executed_at: DateTime<Utc>,
         audit_info: AuditInfo,
-        price: Option<PriceOfOneBTC>, // TODO: add price service and remove Option
-        stale_price_interval: StalePriceInterval,
-        collateral_upgrade_buffer: CVLPct,
+        price_for_adjustment: PriceForCollateralAdjustment,
     ) -> Result<Option<LoanCollaterization>, LoanError> {
         self.events.push(LoanEvent::CollateralUpdated {
             tx_id,
@@ -858,16 +857,7 @@ impl Loan {
             audit_info,
         });
 
-        let default_price = match price {
-            Some(price) => price,
-            None => PriceOfOneBTC::new(UsdCents::from(5000000), Utc::now()),
-        };
-
-        self.maybe_update_collateralization(PriceForCollateralAdjustment {
-            price: default_price,
-            stale_price_interval,
-            collateral_upgrade_buffer,
-        })
+        self.maybe_update_collateralization(price_for_adjustment)
     }
 }
 
@@ -997,16 +987,12 @@ mod test {
         )
     }
 
-    fn default_price() -> Option<PriceOfOneBTC> {
-        Some(PriceOfOneBTC::new(UsdCents::from(5000000), Utc::now()))
-    }
-
-    fn default_stale_price_interval() -> StalePriceInterval {
-        StalePriceInterval::new(chrono::Duration::hours(1))
-    }
-
-    fn default_upgrade_buffer() -> CVLPct {
-        CVLPct::new(5)
+    fn default_price_for_adjustment() -> PriceForCollateralAdjustment {
+        PriceForCollateralAdjustment {
+            price: PriceOfOneBTC::new(UsdCents::from(5000000), Utc::now()),
+            stale_price_interval: StalePriceInterval::new(chrono::Duration::hours(1)),
+            collateral_upgrade_buffer: CVLPct::new(5),
+        }
     }
 
     #[test]
@@ -1068,9 +1054,7 @@ mod test {
             loan_collateral_update,
             Utc::now(),
             dummy_audit_info(),
-            default_price(),
-            default_stale_price_interval(),
-            default_upgrade_buffer(),
+            default_price_for_adjustment(),
         )
         .unwrap();
         let loan_approval = loan.initiate_approval();
@@ -1092,9 +1076,7 @@ mod test {
             loan_collateral_update,
             Utc::now(),
             dummy_audit_info(),
-            default_price(),
-            default_stale_price_interval(),
-            default_upgrade_buffer(),
+            default_price_for_adjustment(),
         )
         .unwrap();
         let loan_approval = loan.initiate_approval().unwrap();
@@ -1119,10 +1101,9 @@ mod test {
             loan_collateral_update,
             Utc::now(),
             dummy_audit_info(),
-            default_price(),
-            default_stale_price_interval(),
-            default_upgrade_buffer(),
-        );
+            default_price_for_adjustment(),
+        )
+        .unwrap();
         assert_eq!(loan.collateral(), Satoshis::from(10000));
 
         let loan_collateral_update = loan
@@ -1132,10 +1113,9 @@ mod test {
             loan_collateral_update,
             Utc::now(),
             dummy_audit_info(),
-            default_price(),
-            default_stale_price_interval(),
-            default_upgrade_buffer(),
-        );
+            default_price_for_adjustment(),
+        )
+        .unwrap();
         assert_eq!(loan.collateral(), Satoshis::from(5000));
     }
 
@@ -1163,9 +1143,7 @@ mod test {
             loan_collateral_update,
             Utc::now(),
             dummy_audit_info(),
-            default_price(),
-            default_stale_price_interval(),
-            default_upgrade_buffer(),
+            default_price_for_adjustment(),
         )
         .unwrap();
         let loan_approval = loan.initiate_approval();
@@ -1191,9 +1169,7 @@ mod test {
             loan_collateral_update,
             Utc::now(),
             dummy_audit_info(),
-            default_price(),
-            default_stale_price_interval(),
-            default_upgrade_buffer(),
+            default_price_for_adjustment(),
         );
         let loan_approval = loan.initiate_approval();
         loan.confirm_approval(loan_approval.unwrap(), Utc::now(), dummy_audit_info());
@@ -1253,9 +1229,7 @@ mod test {
                 loan_collateral_update,
                 Utc::now(),
                 dummy_audit_info(),
-                default_price(),
-                default_stale_price_interval(),
-                default_upgrade_buffer(),
+                default_price_for_adjustment(),
             )
             .unwrap();
             let loan_approval = loan.initiate_approval();
@@ -1371,9 +1345,7 @@ mod test {
                 loan_collateral_update,
                 Utc::now(),
                 dummy_audit_info(),
-                default_price(),
-                default_stale_price_interval(),
-                default_upgrade_buffer(),
+                default_price_for_adjustment(),
             )
             .unwrap();
             let (c, _) = loan.collateralization();

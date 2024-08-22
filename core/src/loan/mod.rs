@@ -187,6 +187,10 @@ impl Loans {
             .check_permission(sub, Object::Loan, LoanAction::UpdateCollateral)
             .await?;
 
+        // TODO: Add price service call here
+        #[allow(clippy::inconsistent_digit_grouping)]
+        let price = PriceOfOneBTC::new(UsdCents::from(100_000_00), chrono::Utc::now());
+
         let mut loan = self.loan_repo.find_by_id(loan_id).await?;
 
         let loan_collateral_update = loan.initiate_collateral_update(updated_collateral)?;
@@ -201,9 +205,11 @@ impl Loans {
             loan_collateral_update,
             executed_at,
             audit_info,
-            None,
-            self.config.stale_price_interval,
-            self.config.collateral_upgrade_buffer,
+            PriceForCollateralAdjustment {
+                price,
+                stale_price_interval: self.config.stale_price_interval,
+                collateral_upgrade_buffer: self.config.collateral_upgrade_buffer,
+            },
         );
         let n_events = self.loan_repo.persist_in_tx(&mut db_tx, &mut loan).await?;
         self.export
