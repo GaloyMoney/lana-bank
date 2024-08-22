@@ -198,7 +198,6 @@ impl Loans {
     ) -> Result<Loan, LoanError> {
         let mut db_tx = self.pool.begin().await?;
 
-        // TODO add db_tx to check_permission
         let audit_info = self
             .authz
             .check_permission(sub, Object::Loan, LoanAction::RecordPayment)
@@ -224,7 +223,6 @@ impl Loans {
 
         let repayment = loan.initiate_repayment(amount)?;
 
-        // @vaibhav, isn't this missing the db_tx?
         let executed_at = self.ledger.record_loan_repayment(repayment.clone()).await?;
         loan.confirm_repayment(repayment, executed_at, audit_info);
 
