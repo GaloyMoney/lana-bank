@@ -48,7 +48,7 @@ impl Audit {
         &self,
         subject: &Subject,
         object: Object,
-        action: Action,
+        action: impl Into<Action>,
         authorized: bool,
     ) -> Result<AuditInfo, AuditError> {
         let mut db = self.pool.begin().await?;
@@ -64,9 +64,10 @@ impl Audit {
         db: &mut sqlx::Transaction<'_, sqlx::Postgres>,
         subject: &Subject,
         object: Object,
-        action: Action,
+        action: impl Into<Action>,
         authorized: bool,
     ) -> Result<AuditInfo, AuditError> {
+        let action = action.into();
         let record = sqlx::query!(
             r#"
                 INSERT INTO audit_entries (subject, object, action, authorized)

@@ -46,7 +46,7 @@ pub struct Authorization {
 }
 
 impl Authorization {
-    pub async fn init(pool: &sqlx::PgPool, audit: Audit) -> Result<Self, AuthorizationError> {
+    pub async fn init(pool: &sqlx::PgPool, audit: &Audit) -> Result<Self, AuthorizationError> {
         let model = DefaultModel::from_str(MODEL).await?;
         let adapter = SqlxAdapter::new_with_pool(pool.clone()).await?;
 
@@ -54,7 +54,7 @@ impl Authorization {
 
         let mut auth = Authorization {
             enforcer: Arc::new(RwLock::new(enforcer)),
-            audit,
+            audit: audit.clone(),
         };
 
         auth.seed_roles().await?;
@@ -222,58 +222,6 @@ impl Authorization {
         match enforcer
             .add_policy(vec![
                 role.to_string(),
-                object.to_string(),
-                action.to_string(),
-            ])
-            .await
-        {
-            Ok(_) => Ok(()),
-            Err(e) => match AuthorizationError::from(e) {
-                AuthorizationError::PermissionAlreadyExistsForRole(_) => Ok(()),
-                e => Err(e),
-            },
-        }
-    }
-
-    // only used for init so far... relevant to keep here?
-    pub async fn add_permission_to_subject(
-        &self,
-        subject: Subject,
-        object: Object,
-        action: impl Into<Action>,
-    ) -> Result<(), AuthorizationError> {
-        let mut enforcer = self.enforcer.write().await;
-
-        let action = action.into();
-        match enforcer
-            .add_policy(vec![
-                subject.to_string(),
-                object.to_string(),
-                action.to_string(),
-            ])
-            .await
-        {
-            Ok(_) => Ok(()),
-            Err(e) => match AuthorizationError::from(e) {
-                AuthorizationError::PermissionAlreadyExistsForRole(_) => Ok(()),
-                e => Err(e),
-            },
-        }
-    }
-
-    // only used for init so far... relevant to keep here?
-    pub async fn remove_permission_from_subject(
-        &self,
-        subject: Subject,
-        object: Object,
-        action: impl Into<Action>,
-    ) -> Result<(), AuthorizationError> {
-        let mut enforcer = self.enforcer.write().await;
-
-        let action = action.into();
-        match enforcer
-            .remove_policy(vec![
-                subject.to_string(),
                 object.to_string(),
                 action.to_string(),
             ])

@@ -14,4 +14,6 @@ pub enum UserError {
     CouldNotFindById(UserId),
     #[error("UserError - AuthorizationError: {0}")]
     AuthorizationError(#[from] crate::authorization::error::AuthorizationError),
+    #[error("UserError - AuditError: {0}")]
+    AuditError(#[from] crate::audit::error::AuditError),
 }

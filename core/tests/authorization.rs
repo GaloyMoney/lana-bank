@@ -17,14 +17,16 @@ fn random_email() -> String {
 async fn init_users(
     pool: &sqlx::PgPool,
     authz: &Authorization,
+    audit: &Audit,
 ) -> anyhow::Result<(Users, Subject)> {
     let superuser_email = "superuser@test.io";
     let users = Users::init(
         &pool,
-        &authz,
         UserConfig {
             superuser_email: Some("superuser@test.io".to_string()),
         },
+        &authz,
+        &audit,
     )
     .await?;
     let superuser = users
@@ -53,8 +55,8 @@ async fn create_user_with_role(
 async fn superuser_permissions() -> anyhow::Result<()> {
     let pool = helpers::init_pool().await?;
     let audit = Audit::new(&pool);
-    let authz = Authorization::init(&pool, audit).await?;
-    let (_, superuser_subject) = init_users(&pool, &authz).await?;
+    let authz = Authorization::init(&pool, &audit).await?;
+    let (_, superuser_subject) = init_users(&pool, &authz, &audit).await?;
 
     // Superuser can create users
     assert!(authz
@@ -106,8 +108,8 @@ async fn superuser_permissions() -> anyhow::Result<()> {
 async fn admin_permissions() -> anyhow::Result<()> {
     let pool = helpers::init_pool().await?;
     let audit = Audit::new(&pool);
-    let authz = Authorization::init(&pool, audit).await?;
-    let (users, superuser_subject) = init_users(&pool, &authz).await?;
+    let authz = Authorization::init(&pool, &audit).await?;
+    let (users, superuser_subject) = init_users(&pool, &authz, &audit).await?;
 
     let admin_subject = create_user_with_role(&users, &superuser_subject, Role::Admin).await?;
 
@@ -163,8 +165,8 @@ async fn admin_permissions() -> anyhow::Result<()> {
 async fn bank_manager_permissions() -> anyhow::Result<()> {
     let pool = helpers::init_pool().await?;
     let audit = Audit::new(&pool);
-    let authz = Authorization::init(&pool, audit).await?;
-    let (users, superuser_subject) = init_users(&pool, &authz).await?;
+    let authz = Authorization::init(&pool, &audit).await?;
+    let (users, superuser_subject) = init_users(&pool, &authz, &audit).await?;
 
     let bank_manager_subject =
         create_user_with_role(&users, &superuser_subject, Role::BankManager).await?;

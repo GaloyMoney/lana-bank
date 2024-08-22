@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 use super::{error::LoanError, repo::*, Subject, SystemNode};
 use crate::{
     audit::*,
-    authorization::{Action, LoanAction, Object},
+    authorization::{LoanAction, Object},
     job::*,
     ledger::*,
     primitives::{LedgerTxId, LoanId},
@@ -71,7 +71,7 @@ impl JobRunner for LoanProcessingJobRunner {
                 &mut db_tx,
                 &Subject::System(SystemNode::Core),
                 Object::Loan,
-                Action::Loan(LoanAction::RecordInterest),
+                LoanAction::RecordInterest,
                 true,
             )
             .await?;
