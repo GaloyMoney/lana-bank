@@ -132,7 +132,8 @@ impl Withdraws {
         sub: &Subject,
         withdrawal_id: impl Into<WithdrawId> + std::fmt::Debug,
     ) -> Result<Withdraw, WithdrawError> {
-        let audit_info = self.authz
+        let audit_info = self
+            .authz
             .check_permission(sub, Object::Withdraw, WithdrawAction::Cancel)
             .await?;
 
