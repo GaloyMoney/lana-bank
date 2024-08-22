@@ -21,11 +21,9 @@ import {
   useLoanCreateMutation,
 } from "@/lib/graphql/generated"
 import { Button } from "@/components/primitive/button"
-import { currencyConverter, formatDate } from "@/lib/utils"
-import { DetailItem, DetailsGroup } from "@/components/details"
+import { currencyConverter } from "@/lib/utils"
 import { Select } from "@/components/primitive/select"
 import { formatInterval, formatPeriod } from "@/lib/terms/utils"
-import Balance from "@/components/balance/balance"
 
 gql`
   mutation LoanCreate($input: LoanCreateInput!) {
@@ -123,7 +121,7 @@ export const CreateLoanDialog = ({
     }
 
     try {
-      await createLoan({
+      const { data } = await createLoan({
         variables: {
           input: {
             customerId: customerIdValue,
@@ -143,6 +141,7 @@ export const CreateLoanDialog = ({
         },
       })
       toast.success("Loan created successfully")
+      router.push(`/loan/${data?.loanCreate.loan.loanId}`)
       if (refetch) refetch()
     } catch (err) {
       console.error(err)
@@ -189,204 +188,134 @@ export const CreateLoanDialog = ({
       }}
     >
       <DialogTrigger asChild>{children}</DialogTrigger>
-      {data ? (
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Loan Created</DialogTitle>
-            <DialogDescription>Loan Details</DialogDescription>
-          </DialogHeader>
-          <DetailsGroup>
-            <DetailItem label="Loan ID" value={data.loanCreate.loan.loanId} />
-            <DetailItem
-              label="Created At"
-              value={formatDate(data.loanCreate.loan.createdAt)}
-            />
-            <DetailItem
-              label="Collateral"
-              valueComponent={
-                <Balance
-                  amount={data.loanCreate.loan.balance.collateral.btcBalance}
-                  currency="btc"
-                />
-              }
-            />
-            <DetailItem
-              label="Interest Incurred"
-              valueComponent={
-                <Balance
-                  amount={data.loanCreate.loan.balance.interestIncurred.usdBalance}
-                  currency="usd"
-                />
-              }
-            />
-            <DetailItem
-              label="Outstanding"
-              valueComponent={
-                <Balance
-                  amount={data.loanCreate.loan.balance.outstanding.usdBalance}
-                  currency="usd"
-                />
-              }
-            />
-            <DetailItem
-              label="Duration"
-              value={`${String(data.loanCreate.loan.loanTerms.duration.units)} ${formatPeriod(data.loanCreate.loan.loanTerms.duration.period)}`}
-            />
-            <DetailItem
-              label="Interest Payment Schedule"
-              value={formatInterval(data.loanCreate.loan.loanTerms.interval)}
-            />
-            <DetailItem
-              label="Annual Rate"
-              value={`${data.loanCreate.loan.loanTerms.annualRate}%`}
-            />
-            <DetailItem
-              label="Initial CVL"
-              value={`${data.loanCreate.loan.loanTerms.initialCvl}%`}
-            />
-            <DetailItem
-              label="Margin Call CVL"
-              value={`${data.loanCreate.loan.loanTerms.marginCallCvl}%`}
-            />
-            <DetailItem
-              label="Liquidation CVL"
-              value={`${data.loanCreate.loan.loanTerms.liquidationCvl}%`}
-            />
-          </DetailsGroup>
-          <Button onClick={() => router.push(`/loan/${data.loanCreate.loan.loanId}`)}>
-            View Details
-          </Button>
-        </DialogContent>
-      ) : (
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Create Loan</DialogTitle>
-            <DialogDescription>Fill in the details to create a loan.</DialogDescription>
-          </DialogHeader>
-          <form className="flex flex-col gap-4" onSubmit={handleCreateLoan}>
-            <div>
-              <Label>Principal</Label>
-              <div className="flex items-center gap-1">
-                <Input
-                  type="number"
-                  name="desiredPrincipal"
-                  value={formValues.desiredPrincipal}
-                  onChange={handleChange}
-                  placeholder="Enter the desired principal amount"
-                  min={0}
-                  required
-                />
-                <div className="p-1.5 bg-input-text rounded-md px-4">USD</div>
-              </div>
-            </div>
-            <div>
-              <Label>Initial CVL (%)</Label>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Create Loan</DialogTitle>
+          <DialogDescription>Fill in the details to create a loan.</DialogDescription>
+        </DialogHeader>
+        <form className="flex flex-col gap-4" onSubmit={handleCreateLoan}>
+          <div>
+            <Label>Principal</Label>
+            <div className="flex items-center gap-1">
               <Input
                 type="number"
-                name="initialCvl"
-                value={formValues.initialCvl}
+                name="desiredPrincipal"
+                value={formValues.desiredPrincipal}
                 onChange={handleChange}
-                placeholder="Enter the initial CVL"
-                required
-              />
-            </div>
-            <div>
-              <Label>Margin Call CVL (%)</Label>
-              <Input
-                type="number"
-                name="marginCallCvl"
-                value={formValues.marginCallCvl}
-                onChange={handleChange}
-                placeholder="Enter the margin call CVL"
-                required
-              />
-            </div>
-
-            <div>
-              <Label>Liquidation CVL (%)</Label>
-              <Input
-                type="number"
-                name="liquidationCvl"
-                value={formValues.liquidationCvl}
-                onChange={handleChange}
-                placeholder="Enter the liquidation CVL"
+                placeholder="Enter the desired principal amount"
                 min={0}
                 required
               />
+              <div className="p-1.5 bg-input-text rounded-md px-4">USD</div>
             </div>
-            <div>
-              <Label>Duration</Label>
-              <div className="flex gap-2">
-                <Input
-                  type="number"
-                  name="durationUnits"
-                  value={formValues.durationUnits}
-                  onChange={handleChange}
-                  placeholder="Duration"
-                  min={0}
-                  required
-                  className="w-1/2"
-                />
-                <Select
-                  name="durationPeriod"
-                  value={formValues.durationPeriod}
-                  onChange={handleChange}
-                  required
-                >
-                  <option value="" disabled>
-                    Select period
-                  </option>
-                  {Object.values(Period).map((period) => (
-                    <option key={period} value={period}>
-                      {formatPeriod(period)}
-                    </option>
-                  ))}
-                </Select>
-              </div>
-            </div>
-            <div>
-              <Label>Interest Payment Schedule</Label>
+          </div>
+          <div>
+            <Label>Initial CVL (%)</Label>
+            <Input
+              type="number"
+              name="initialCvl"
+              value={formValues.initialCvl}
+              onChange={handleChange}
+              placeholder="Enter the initial CVL"
+              required
+            />
+          </div>
+          <div>
+            <Label>Margin Call CVL (%)</Label>
+            <Input
+              type="number"
+              name="marginCallCvl"
+              value={formValues.marginCallCvl}
+              onChange={handleChange}
+              placeholder="Enter the margin call CVL"
+              required
+            />
+          </div>
+
+          <div>
+            <Label>Liquidation CVL (%)</Label>
+            <Input
+              type="number"
+              name="liquidationCvl"
+              value={formValues.liquidationCvl}
+              onChange={handleChange}
+              placeholder="Enter the liquidation CVL"
+              min={0}
+              required
+            />
+          </div>
+          <div>
+            <Label>Duration</Label>
+            <div className="flex gap-2">
+              <Input
+                type="number"
+                name="durationUnits"
+                value={formValues.durationUnits}
+                onChange={handleChange}
+                placeholder="Duration"
+                min={0}
+                required
+                className="w-1/2"
+              />
               <Select
-                name="interval"
-                value={formValues.interval}
+                name="durationPeriod"
+                value={formValues.durationPeriod}
                 onChange={handleChange}
                 required
               >
                 <option value="" disabled>
-                  Select interval
+                  Select period
                 </option>
-                {Object.values(InterestInterval).map((interval) => (
-                  <option key={interval} value={interval}>
-                    {formatInterval(interval)}
+                {Object.values(Period).map((period) => (
+                  <option key={period} value={period}>
+                    {formatPeriod(period)}
                   </option>
                 ))}
               </Select>
             </div>
-            <div>
-              <Label>Annual Rate (%)</Label>
-              <Input
-                type="number"
-                name="annualRate"
-                value={formValues.annualRate}
-                onChange={handleChange}
-                placeholder="Enter the annual rate"
-                required
-              />
-            </div>
-            {error && <span className="text-destructive">{error.message}</span>}
-            <DialogFooter className="mt-4">
-              <Button
-                onClick={handleCreateLoan}
-                className="w-32"
-                disabled={loading}
-                type="submit"
-              >
-                Create New Loan
-              </Button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
-      )}
+          </div>
+          <div>
+            <Label>Interest Payment Schedule</Label>
+            <Select
+              name="interval"
+              value={formValues.interval}
+              onChange={handleChange}
+              required
+            >
+              <option value="" disabled>
+                Select interval
+              </option>
+              {Object.values(InterestInterval).map((interval) => (
+                <option key={interval} value={interval}>
+                  {formatInterval(interval)}
+                </option>
+              ))}
+            </Select>
+          </div>
+          <div>
+            <Label>Annual Rate (%)</Label>
+            <Input
+              type="number"
+              name="annualRate"
+              value={formValues.annualRate}
+              onChange={handleChange}
+              placeholder="Enter the annual rate"
+              required
+            />
+          </div>
+          {error && <span className="text-destructive">{error.message}</span>}
+          <DialogFooter className="mt-4">
+            <Button
+              onClick={handleCreateLoan}
+              className="w-32"
+              disabled={loading}
+              type="submit"
+            >
+              Create New Loan
+            </Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
     </Dialog>
   )
 }
