@@ -14,6 +14,7 @@ import { Card, CardContent, CardHeader } from "@/components/primitive/card"
 import { Separator } from "@/components/primitive/separator"
 import { Checkbox } from "@/components/primitive/check-box"
 import { formatRole } from "@/lib/utils"
+import { Badge } from "@/components/primitive/badge"
 
 gql`
   query GetUserDetails($id: UUID!) {
@@ -73,29 +74,36 @@ const UserDetailsCard: React.FC<UserDetailsProps> = ({ userId }) => {
                   {data.user?.email}
                 </p>
               </div>
+              {data.user?.roles.includes(Role.Superuser) && (
+                <Badge variant="success" className="uppercase text-sm">
+                  {formatRole(Role.Superuser)}
+                </Badge>
+              )}
             </CardHeader>
             <Separator className="mb-6" />
             <CardContent>
-              <div className="grid grid-rows-min max-w-xl">
+              <div className="grid grid-rows-min">
                 <DetailItem label="Email" value={data.user?.email} />
                 <DetailItem label="User ID" value={data.user?.userId} />
               </div>
               <div className="mt-4 grid grid-rows-min">
                 <h3 className="ml-2 font-semibold leading-none tracking-tight">Roles</h3>
                 <div className="ml-2 mt-4 flex space-y-1 flex-col">
-                  {Object.values(Role).map((role) => (
-                    <div key={role}>
-                      <Checkbox
-                        id={role}
-                        checked={data.user?.roles.includes(role as Role)}
-                        onCheckedChange={() => handleRoleChange(role as Role)}
-                        disabled={assigning || revoking}
-                      />
-                      <label htmlFor={role} className="ml-2">
-                        {formatRole(role as Role)}
-                      </label>
-                    </div>
-                  ))}
+                  {Object.values(Role)
+                    .filter((role) => role !== Role.Superuser)
+                    .map((role) => (
+                      <div className="flex flex-row items-center" key={role}>
+                        <Checkbox
+                          id={role}
+                          checked={data.user?.roles.includes(role as Role)}
+                          onCheckedChange={() => handleRoleChange(role as Role)}
+                          disabled={assigning || revoking}
+                        />
+                        <label htmlFor={role} className="ml-2">
+                          {formatRole(role as Role)}
+                        </label>
+                      </div>
+                    ))}
                 </div>
               </div>
             </CardContent>
