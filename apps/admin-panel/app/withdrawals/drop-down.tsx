@@ -46,7 +46,7 @@ const WithdrawalDropdown: React.FC<WithdrawalDropdownProps> = ({
           </>
         )}
         <DropdownMenuItem
-          onClick={() => router.push(`/customer/${withdrawal.customer?.customerId}`)}
+          onClick={() => router.push(`/customers/${withdrawal.customer?.customerId}`)}
         >
           View Customer Details
         </DropdownMenuItem>

@@ -122,10 +122,10 @@ const LoansTable = () => {
                       </DropdownMenuTrigger>
                       <DropdownMenuContent className="text-sm">
                         <DropdownMenuItem>
-                          <Link href={`/loan/${loan.loanId}`}>View Loan details</Link>
+                          <Link href={`/loans/${loan.loanId}`}>View Loan details</Link>
                         </DropdownMenuItem>
                         <DropdownMenuItem>
-                          <Link href={`/customer/${loan.customer.customerId}`}>
+                          <Link href={`/customers/${loan.customer.customerId}`}>
                             View Customer details
                           </Link>
                         </DropdownMenuItem>

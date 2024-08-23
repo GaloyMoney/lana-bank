@@ -221,7 +221,7 @@ const LoanRow = ({ loan, refetch }: { loan: LoanRowProps; refetch: () => void })
                 </DropdownMenuTrigger>
                 <DropdownMenuContent className="text-sm">
                   <DropdownMenuItem onClick={(e) => e.preventDefault()}>
-                    <Link href={`/loan/${loan.loanId}`}>
+                    <Link href={`/loans/${loan.loanId}`}>
                       <span>View Details</span>
                     </Link>
                   </DropdownMenuItem>

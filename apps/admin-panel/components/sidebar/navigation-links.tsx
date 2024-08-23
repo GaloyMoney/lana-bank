@@ -23,8 +23,8 @@ import {
 } from "@/components/primitive/collapsible"
 
 const navLinks = [
-  { href: "/customer", label: "Customers", icon: IoPersonOutline },
-  { href: "/loan", label: "Loan", icon: IoReceiptOutline },
+  { href: "/customers", label: "Customers", icon: IoPersonOutline },
+  { href: "/loans", label: "Loan", icon: IoReceiptOutline },
   { href: "/terms", label: "Default Terms", icon: IoDocumentOutline },
   { href: "/audit", label: "Audit Logs", icon: IoTimeOutline },
   { href: "/users", label: "Users", icon: RiAdminLine },

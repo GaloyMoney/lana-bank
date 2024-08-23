@@ -58,7 +58,7 @@ function CreateCustomerDialog({
       toast.success("customer created successfully")
       if (refetch) refetch()
       setOpenCreateCustomerDialog(false)
-      router.push(`/customer/${data?.customerCreate.customer.customerId}`)
+      router.push(`/customers/${data?.customerCreate.customer.customerId}`)
     } catch (error) {
       console.error(error)
       if (error instanceof Error) {

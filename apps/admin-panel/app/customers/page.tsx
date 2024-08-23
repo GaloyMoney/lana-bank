@@ -70,13 +70,13 @@ function CustomerPage({ searchParams }: { searchParams: { search?: string } }) {
         `/customer?search=${encodeURIComponent(searchInput)}&searchType=${searchType}`,
       )
     } else {
-      router.push("/customer")
+      router.push("/customers")
     }
   }
 
   const handleClear = () => {
     setSearchInput("")
-    router.push("/customer")
+    router.push("/customers")
   }
 
   const searchType = search

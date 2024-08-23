@@ -13,13 +13,13 @@ function LoanPage() {
   const [inputLoanId, setInputLoanId] = useState("")
 
   const handleSearch = () => {
-    router.push(`/loan/${inputLoanId}`)
+    router.push(`/loans/${inputLoanId}`)
   }
 
   return (
     <main>
       <div className="flex justify-between items-center mb-8">
-        <PageHeading className="mb-0">Loan</PageHeading>
+        <PageHeading className="mb-0">Loans</PageHeading>
         <div className="flex gap-2">
           <Input
             onChange={(e) => setInputLoanId(e.target.value)}

@@ -94,7 +94,7 @@ const WithdrawalDetailsCard: React.FC<LoanDetailsProps> = ({ withdrawalId }) => 
               <div className="flex items-center justify-between">
                 <Button
                   onClick={() =>
-                    router.push(`/customer/${withdrawalDetails.withdrawal?.customerId}`)
+                    router.push(`/customers/${withdrawalDetails.withdrawal?.customerId}`)
                   }
                   className=""
                 >

@@ -141,7 +141,7 @@ export const CreateLoanDialog = ({
         },
         onCompleted: (data) => {
           toast.success("Loan created successfully")
-          router.push(`/loan/${data?.loanCreate.loan.loanId}`)
+          router.push(`/loans/${data?.loanCreate.loan.loanId}`)
         },
       })
 

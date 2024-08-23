@@ -3,12 +3,12 @@ import { redirect } from "next/navigation"
 
 export const handleCustomerSearchFormSubmit = async (formData: FormData) => {
   if (formData.get("submit") === "clear") {
-    redirect(`/customer`)
+    redirect(`/customers`)
   }
 
   const customerId = formData.get("customerId")
   if (!customerId || typeof customerId !== "string") {
-    redirect(`/customer`)
+    redirect(`/customers`)
   }
-  redirect(`/customer?customerId=${customerId}`)
+  redirect(`/customers?customerId=${customerId}`)
 }

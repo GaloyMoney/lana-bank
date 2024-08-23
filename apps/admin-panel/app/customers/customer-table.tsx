@@ -172,7 +172,7 @@ function CustomerTable({
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent className="text-sm">
-                            <Link href={`/customer/${customer.customerId}`}>
+                            <Link href={`/customers/${customer.customerId}`}>
                               <DropdownMenuItem>View details</DropdownMenuItem>
                             </Link>
                             <DropdownMenuItem onClick={(e) => e.preventDefault()}>
