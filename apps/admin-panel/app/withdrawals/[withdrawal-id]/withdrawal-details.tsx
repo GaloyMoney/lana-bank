@@ -21,6 +21,11 @@ gql`
       withdrawalId
       amount
       status
+      customer {
+        email
+        customerId
+        applicantId
+      }
     }
   }
 `

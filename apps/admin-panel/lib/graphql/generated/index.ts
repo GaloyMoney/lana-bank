@@ -1036,7 +1036,7 @@ export type GetWithdrawalDetailsQueryVariables = Exact<{
 }>;
 
 
-export type GetWithdrawalDetailsQuery = { __typename?: 'Query', withdrawal?: { __typename?: 'Withdrawal', customerId: string, withdrawalId: string, amount: any, status: WithdrawalStatus } | null };
+export type GetWithdrawalDetailsQuery = { __typename?: 'Query', withdrawal?: { __typename?: 'Withdrawal', customerId: string, withdrawalId: string, amount: any, status: WithdrawalStatus, customer?: { __typename?: 'Customer', email: string, customerId: string, applicantId?: string | null } | null } | null };
 
 export type WithdrawalsQueryVariables = Exact<{
   first: Scalars['Int']['input'];
@@ -2406,6 +2406,11 @@ export const GetWithdrawalDetailsDocument = gql`
     withdrawalId
     amount
     status
+    customer {
+      email
+      customerId
+      applicantId
+    }
   }
 }
     `;
