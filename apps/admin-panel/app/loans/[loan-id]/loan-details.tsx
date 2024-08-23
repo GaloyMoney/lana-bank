@@ -222,31 +222,32 @@ const LoanDetails: React.FC<LoanDetailsProps> = ({ loanId }) => {
                 </div>
               </div>
             </CardContent>
-            {loanDetails.loan.status !== LoanStatus.Closed && (
-              <Separator className="mb-6" />
-            )}
-            <div className="flex flex-row gap-2 p-6 pt-0 mt-0">
-              {loanDetails.loan.status !== LoanStatus.Closed && (
-                <Button onClick={() => setOpenCollateralUpdateDialog(true)}>
-                  Update collateral
-                </Button>
-              )}
-              {loanDetails.loan.status === LoanStatus.Active && (
-                <LoanPartialPaymentDialog
-                  refetch={refetch}
-                  loanId={loanDetails.loan.loanId}
-                >
-                  <Button>Make Payment</Button>
-                </LoanPartialPaymentDialog>
-              )}
-              {loanDetails.loan.status === LoanStatus.New && (
-                <LoanApproveDialog
-                  refetch={refetch}
-                  loanDetails={loanDetails.loan as Loan}
-                >
-                  <Button>Approve Loan</Button>
-                </LoanApproveDialog>
-              )}
+            <Separator className="mb-6" />
+            <div className="flex justify-between items-center p-6 pt-0 mt-0">
+              <Button>View Customer</Button>
+              <div className="flex flex-row gap-2">
+                {loanDetails.loan.status !== LoanStatus.Closed && (
+                  <Button onClick={() => setOpenCollateralUpdateDialog(true)}>
+                    Update collateral
+                  </Button>
+                )}
+                {loanDetails.loan.status === LoanStatus.Active && (
+                  <LoanPartialPaymentDialog
+                    refetch={refetch}
+                    loanId={loanDetails.loan.loanId}
+                  >
+                    <Button>Make Payment</Button>
+                  </LoanPartialPaymentDialog>
+                )}
+                {loanDetails.loan.status === LoanStatus.New && (
+                  <LoanApproveDialog
+                    refetch={refetch}
+                    loanDetails={loanDetails.loan as Loan}
+                  >
+                    <Button>Approve Loan</Button>
+                  </LoanApproveDialog>
+                )}
+              </div>
             </div>
           </>
         ) : (

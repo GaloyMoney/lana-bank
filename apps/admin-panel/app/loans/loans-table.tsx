@@ -23,6 +23,7 @@ import {
 } from "@/components/primitive/table"
 import { formatDate } from "@/lib/utils"
 import Balance from "@/components/balance/balance"
+import { LoanBadge } from "@/components/loan/loan-badge"
 
 gql`
   query Loans($first: Int!, $after: String) {
@@ -83,8 +84,8 @@ const LoansTable = () => {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Created At</TableHead>
               <TableHead>Status</TableHead>
+              <TableHead>Created At</TableHead>
               <TableHead>Customer</TableHead>
               <TableHead>Outstanding Balance</TableHead>
               <TableHead></TableHead>
@@ -95,8 +96,10 @@ const LoansTable = () => {
               const loan = edge?.node
               return (
                 <TableRow key={loan.loanId}>
+                  <TableCell>
+                    <LoanBadge status={loan.status} className="p-1 px-4" />
+                  </TableCell>
                   <TableCell>{formatDate(loan.createdAt)}</TableCell>
-                  <TableCell>{loan.status}</TableCell>
                   <TableCell>{loan.customer.email}</TableCell>
                   <TableCell>
                     <div className="flex flex-col gap-1">

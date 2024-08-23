@@ -91,10 +91,10 @@ function UsersPage() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="w-1/5">UserId</TableHead>
-                <TableHead className="w-1/5">Email</TableHead>
-                <TableHead className="w-2/5">Roles</TableHead>
-                <TableHead className="w-1/5 text-left pl-4"></TableHead>
+                <TableHead>User ID</TableHead>
+                <TableHead>Email</TableHead>
+                <TableHead>Roles</TableHead>
+                <TableHead></TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
