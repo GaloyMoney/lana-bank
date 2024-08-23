@@ -347,18 +347,8 @@ impl Loan {
             return Err(LoanError::AlreadyApproved);
         }
 
-        let default_price = PriceOfOneBTC::new(UsdCents::from(5000000), Utc::now());
-        let default_stale_price_interval = StalePriceInterval::new(chrono::Duration::hours(1));
-        let default_upgrade_buffer = CVLPct::new(5);
-
-        self.maybe_update_collateralization(PriceForCollateralAdjustment {
-            price: default_price,
-            stale_price_interval: default_stale_price_interval,
-            collateral_upgrade_buffer: default_upgrade_buffer,
-        })?;
-        let (collaterization, _) = self.collateralization();
-        if collaterization != LoanCollaterization::NewCollateralized {
-            return Err(LoanError::NotEnoughCollateral);
+        if self.collateral() == Satoshis::ZERO {
+            return Err(LoanError::NoCollateral);
         }
         let tx_ref = format!("{}-approval", self.id);
         Ok(LoanApproval {
@@ -1055,8 +1045,7 @@ mod test {
             Utc::now(),
             dummy_audit_info(),
             default_price_for_adjustment(),
-        )
-        .unwrap();
+        );
         let loan_approval = loan.initiate_approval();
         assert!(loan_approval.is_ok());
         loan.confirm_approval(loan_approval.unwrap(), Utc::now(), dummy_audit_info());
@@ -1077,8 +1066,7 @@ mod test {
             Utc::now(),
             dummy_audit_info(),
             default_price_for_adjustment(),
-        )
-        .unwrap();
+        );
         let loan_approval = loan.initiate_approval().unwrap();
         loan.confirm_approval(loan_approval, Utc::now(), dummy_audit_info());
         assert_eq!(loan.status(), LoanStatus::Active);
@@ -1121,7 +1109,7 @@ mod test {
     fn cannot_approve_if_loan_has_no_collateral() {
         let loan = Loan::try_from(init_events()).unwrap();
         let res = loan.initiate_approval();
-        assert!(matches!(res, Err(LoanError::NotEnoughCollateral)));
+        assert!(matches!(res, Err(LoanError::NoCollateral)));
     }
 
     #[test]
@@ -1135,17 +1123,16 @@ mod test {
         let loan_collateral_update = loan
             .initiate_collateral_update(Satoshis::from(12000000))
             .unwrap();
-        let loan_approval = loan.initiate_approval();
-        loan.confirm_approval(loan_approval.unwrap(), Utc::now(), dummy_audit_info());
         loan.confirm_collateral_update(
             loan_collateral_update,
             Utc::now(),
             dummy_audit_info(),
             default_price_for_adjustment(),
-        )
-        .unwrap();
+        );
         let loan_approval = loan.initiate_approval();
         loan.confirm_approval(loan_approval.unwrap(), Utc::now(), dummy_audit_info());
+        loan.maybe_update_collateralization(default_price_for_adjustment())
+            .unwrap();
         assert_eq!(
             loan.collateralization(),
             (
@@ -1228,7 +1215,15 @@ mod test {
                 Utc::now(),
                 dummy_audit_info(),
                 default_price_for_adjustment(),
-            )
+            );
+            let loan_approval = loan.initiate_approval();
+            loan.confirm_approval(loan_approval.unwrap(), Utc::now(), dummy_audit_info());
+
+            loan.maybe_update_collateralization(PriceForCollateralAdjustment {
+                price: price_from(7500000),
+                stale_price_interval: *stale_price_interval,
+                collateral_upgrade_buffer,
+            })
             .unwrap();
             let loan_approval = loan.initiate_approval();
             loan.confirm_approval(loan_approval.unwrap(), Utc::now(), dummy_audit_info());
@@ -1350,7 +1345,10 @@ mod test {
 
             let loan_approval = loan.initiate_approval();
             loan.confirm_approval(loan_approval.unwrap(), Utc::now(), dummy_audit_info());
+            loan.maybe_update_collateralization(default_price_for_adjustment())
+                .unwrap();
             assert_eq!(loan.status(), LoanStatus::Active);
+
             assert_eq!(
                 loan.maybe_update_collateralization(PriceForCollateralAdjustment {
                     price: price_from(4350000),
