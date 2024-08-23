@@ -73,13 +73,11 @@ impl LoanReceivable {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
-pub enum LoanCollaterization {
-    NewNotCollateralized,
-    NewCollateralized,
-    ActiveCollateralized,
-    ActiveMarginCalled,
-    ActiveInLiquidation,
-    Closed,
+pub enum LoanCollaterizationState {
+    FullyCollateralized,
+    UnderMarginCallThreshold,
+    UnderLiquidationThreshold,
+    NoCollateral,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
@@ -107,7 +105,7 @@ pub enum LoanEvent {
         recorded_at: DateTime<Utc>,
     },
     CollateralizationChanged {
-        state: LoanCollaterization,
+        state: LoanCollaterizationState,
         collateral: Satoshis,
         outstanding: LoanReceivable,
         price: PriceOfOneBTC,
@@ -329,7 +327,7 @@ impl Loan {
         }
     }
 
-    pub fn collateralization(&self) -> (LoanCollaterization, Satoshis) {
+    pub fn collateralization(&self) -> (LoanCollaterizationState, Satoshis) {
         self.events
             .iter()
             .rev()
@@ -339,7 +337,7 @@ impl Loan {
                 } => Some((*state, *collateral)),
                 _ => None,
             })
-            .unwrap_or((LoanCollaterization::NewNotCollateralized, self.collateral()))
+            .unwrap_or((LoanCollaterizationState::NoCollateral, Satoshis::ZERO))
     }
 
     pub(super) fn initiate_approval(&mut self) -> Result<LoanApproval, LoanError> {
@@ -555,7 +553,7 @@ impl Loan {
                     audit_info,
                 });
                 self.events.push(LoanEvent::CollateralizationChanged {
-                    state: LoanCollaterization::Closed,
+                    state: LoanCollaterizationState::NoCollateral,
                     collateral,
                     outstanding: self.outstanding(),
                     price: PriceOfOneBTC::ZERO,
@@ -596,111 +594,51 @@ impl Loan {
     pub fn maybe_update_collateralization(
         &mut self,
         price_for_adjustment: PriceForCollateralAdjustment,
-    ) -> Result<Option<LoanCollaterization>, LoanError> {
+    ) -> Result<Option<LoanCollaterizationState>, LoanError> {
         let PriceForCollateralAdjustment {
             price,
             stale_price_interval,
             collateral_upgrade_buffer,
         } = price_for_adjustment;
 
-        let loan_status = self.status();
-
         let margin_call_cvl = self.terms.margin_call_cvl;
         let liquidation_cvl = self.terms.liquidation_cvl;
         let current_cvl = self.cvl(price, stale_price_interval)?;
 
         let (current_collateralization, collateral) = self.collateralization();
-        let calculated_collateralization = match (current_cvl, loan_status) {
-            _ if current_cvl == CVLPct::ZERO => {
-                if loan_status == LoanStatus::New {
-                    &LoanCollaterization::NewNotCollateralized
-                } else {
-                    &LoanCollaterization::Closed
-                }
-            }
-            _ if current_cvl >= margin_call_cvl => {
-                if loan_status == LoanStatus::New {
-                    &LoanCollaterization::NewCollateralized
-                } else {
-                    &LoanCollaterization::ActiveCollateralized
-                }
-            }
-            _ if current_cvl >= liquidation_cvl => {
-                if loan_status == LoanStatus::New {
-                    &LoanCollaterization::NewNotCollateralized
-                } else {
-                    &LoanCollaterization::ActiveMarginCalled
-                }
-            }
-            _ => {
-                if loan_status == LoanStatus::New {
-                    &LoanCollaterization::NewNotCollateralized
-                } else {
-                    &LoanCollaterization::ActiveInLiquidation
-                }
-            }
+        let calculated_collateralization = if current_cvl == CVLPct::ZERO {
+            &LoanCollaterizationState::NoCollateral
+        } else if current_cvl >= margin_call_cvl {
+            &LoanCollaterizationState::FullyCollateralized
+        } else if current_cvl >= liquidation_cvl {
+            &LoanCollaterizationState::UnderMarginCallThreshold
+        } else {
+            &LoanCollaterizationState::UnderLiquidationThreshold
         };
 
         match (current_collateralization, *calculated_collateralization) {
-            // Invalid "New loan" state changes
-            (
-                LoanCollaterization::NewNotCollateralized,
-                LoanCollaterization::ActiveMarginCalled,
+            // Redundant same state changes
+            (LoanCollaterizationState::NoCollateral, LoanCollaterizationState::NoCollateral)
+            | (
+                LoanCollaterizationState::FullyCollateralized,
+                LoanCollaterizationState::FullyCollateralized,
             )
             | (
-                LoanCollaterization::NewNotCollateralized,
-                LoanCollaterization::ActiveInLiquidation,
-            )
-            | (LoanCollaterization::NewCollateralized, LoanCollaterization::ActiveMarginCalled)
-            | (LoanCollaterization::NewCollateralized, LoanCollaterization::ActiveInLiquidation) => {
-                Ok(None)
-            }
-
-            // Valid "New loan" state changes
-            (LoanCollaterization::NewNotCollateralized, LoanCollaterization::NewCollateralized)
-            | (
-                LoanCollaterization::NewNotCollateralized,
-                LoanCollaterization::ActiveCollateralized,
-            )
-            | (LoanCollaterization::NewNotCollateralized, LoanCollaterization::Closed)
-            | (LoanCollaterization::NewCollateralized, LoanCollaterization::NewNotCollateralized)
-            | (LoanCollaterization::NewCollateralized, LoanCollaterization::ActiveCollateralized)
-            | (LoanCollaterization::NewCollateralized, LoanCollaterization::Closed) => {
-                self.events.push(LoanEvent::CollateralizationChanged {
-                    state: *calculated_collateralization,
-                    collateral,
-                    outstanding: self.outstanding(),
-                    price,
-                });
-
-                Ok(Some(*calculated_collateralization))
-            }
-
-            // Valid active collateral degraded changes
-            (
-                LoanCollaterization::ActiveCollateralized,
-                LoanCollaterization::ActiveMarginCalled,
+                LoanCollaterizationState::UnderMarginCallThreshold,
+                LoanCollaterizationState::UnderMarginCallThreshold,
             )
             | (
-                LoanCollaterization::ActiveCollateralized,
-                LoanCollaterization::ActiveInLiquidation,
-            )
-            | (LoanCollaterization::ActiveMarginCalled, LoanCollaterization::ActiveInLiquidation) =>
-            {
-                self.events.push(LoanEvent::CollateralizationChanged {
-                    state: *calculated_collateralization,
-                    collateral,
-                    outstanding: self.outstanding(),
-                    price,
-                });
+                LoanCollaterizationState::UnderLiquidationThreshold,
+                LoanCollaterizationState::UnderLiquidationThreshold,
+            ) => Ok(None),
 
-                Ok(Some(*calculated_collateralization))
-            }
+            // Invalid collateral liquidation changes
+            (LoanCollaterizationState::UnderLiquidationThreshold, _) => Ok(None),
 
-            // Valid active collateral upgraded changes
+            // Valid buffered collateral upgraded change
             (
-                LoanCollaterization::ActiveMarginCalled,
-                LoanCollaterization::ActiveCollateralized,
+                LoanCollaterizationState::UnderMarginCallThreshold,
+                LoanCollaterizationState::FullyCollateralized,
             ) => {
                 if margin_call_cvl
                     .is_significantly_lower_than(current_cvl, collateral_upgrade_buffer)
@@ -718,44 +656,10 @@ impl Loan {
                 }
             }
 
-            // Invalid active collateral changes back to new
-            (
-                LoanCollaterization::ActiveCollateralized,
-                LoanCollaterization::NewNotCollateralized,
-            )
-            | (LoanCollaterization::ActiveCollateralized, LoanCollaterization::NewCollateralized)
-            | (
-                LoanCollaterization::ActiveMarginCalled,
-                LoanCollaterization::NewNotCollateralized,
-            )
-            | (LoanCollaterization::ActiveMarginCalled, LoanCollaterization::NewCollateralized)
-            | (
-                LoanCollaterization::ActiveInLiquidation,
-                LoanCollaterization::NewNotCollateralized,
-            )
-            | (LoanCollaterization::ActiveInLiquidation, LoanCollaterization::NewCollateralized) => {
-                Ok(None)
-            }
-
-            // No collateral change
-            (
-                LoanCollaterization::NewNotCollateralized,
-                LoanCollaterization::NewNotCollateralized,
-            )
-            | (LoanCollaterization::NewCollateralized, LoanCollaterization::NewCollateralized)
-            | (
-                LoanCollaterization::ActiveCollateralized,
-                LoanCollaterization::ActiveCollateralized,
-            )
-            | (LoanCollaterization::ActiveMarginCalled, LoanCollaterization::ActiveMarginCalled)
-            | (
-                LoanCollaterization::ActiveInLiquidation,
-                LoanCollaterization::ActiveInLiquidation,
-            )
-            | (LoanCollaterization::Closed, LoanCollaterization::Closed) => Ok(None),
-
-            // Valid collateral changes to closed
-            (_, LoanCollaterization::Closed) => {
+            // Valid other collateral changes
+            (LoanCollaterizationState::NoCollateral, _)
+            | (LoanCollaterizationState::FullyCollateralized, _)
+            | (LoanCollaterizationState::UnderMarginCallThreshold, _) => {
                 self.events.push(LoanEvent::CollateralizationChanged {
                     state: *calculated_collateralization,
                     collateral,
@@ -765,11 +669,6 @@ impl Loan {
 
                 Ok(Some(*calculated_collateralization))
             }
-
-            // Invalid state changes
-            (_, LoanCollaterization::NewNotCollateralized)
-            | (LoanCollaterization::ActiveInLiquidation, _)
-            | (LoanCollaterization::Closed, _) => Ok(None),
         }
     }
 
@@ -1117,7 +1016,7 @@ mod test {
         let mut loan = Loan::try_from(init_events()).unwrap();
         assert_eq!(
             loan.collateralization(),
-            (LoanCollaterization::NewNotCollateralized, Satoshis::ZERO)
+            (LoanCollaterizationState::NoCollateral, Satoshis::ZERO)
         );
 
         let loan_collateral_update = loan
@@ -1136,7 +1035,7 @@ mod test {
         assert_eq!(
             loan.collateralization(),
             (
-                LoanCollaterization::ActiveCollateralized,
+                LoanCollaterizationState::FullyCollateralized,
                 Satoshis::from(12000000)
             )
         );
@@ -1189,14 +1088,15 @@ mod test {
         }
 
         #[test]
-        fn test_transitions_on_active_loan() {
+        fn test_transitions_no_status_change() {
             let stale_price_interval = &StalePriceInterval::new(chrono::Duration::hours(1));
             let collateral_upgrade_buffer = CVLPct::new(5);
 
+            // NoCollateral
             let mut loan = Loan::try_from(init_events()).unwrap();
             assert_eq!(
                 loan.collateralization(),
-                (LoanCollaterization::NewNotCollateralized, Satoshis::ZERO)
+                (LoanCollaterizationState::NoCollateral, Satoshis::ZERO)
             );
             assert_eq!(
                 loan.maybe_update_collateralization(PriceForCollateralAdjustment {
@@ -1207,6 +1107,8 @@ mod test {
                 .unwrap(),
                 None
             );
+
+            // NoCollateral -> FullyCollateralized
             let loan_collateral_update = loan
                 .initiate_collateral_update(Satoshis::from(3000))
                 .unwrap();
@@ -1216,21 +1118,10 @@ mod test {
                 dummy_audit_info(),
                 default_price_for_adjustment(),
             );
-            let loan_approval = loan.initiate_approval();
-            loan.confirm_approval(loan_approval.unwrap(), Utc::now(), dummy_audit_info());
-
-            loan.maybe_update_collateralization(PriceForCollateralAdjustment {
-                price: price_from(7500000),
-                stale_price_interval: *stale_price_interval,
-                collateral_upgrade_buffer,
-            })
-            .unwrap();
-            let loan_approval = loan.initiate_approval();
-            loan.confirm_approval(loan_approval.unwrap(), Utc::now(), dummy_audit_info());
             let (c, _) = loan.collateralization();
-            assert_eq!(c, LoanCollaterization::ActiveCollateralized);
+            assert_eq!(c, LoanCollaterizationState::FullyCollateralized);
 
-            // Collateralized -> None
+            // FullyCollateralized -> None
             assert_eq!(
                 loan.maybe_update_collateralization(PriceForCollateralAdjustment {
                     price: price_from(7500000),
@@ -1241,9 +1132,9 @@ mod test {
                 None
             );
             let (c, _) = loan.collateralization();
-            assert_eq!(c, LoanCollaterization::ActiveCollateralized);
+            assert_eq!(c, LoanCollaterizationState::FullyCollateralized);
 
-            // Collateralized -> MarginCalled
+            // FullyCollateralized -> UnderMarginCallThreshold
             assert_eq!(
                 loan.maybe_update_collateralization(PriceForCollateralAdjustment {
                     price: price_from(4350000),
@@ -1251,12 +1142,12 @@ mod test {
                     collateral_upgrade_buffer,
                 })
                 .unwrap(),
-                Some(LoanCollaterization::ActiveMarginCalled)
+                Some(LoanCollaterizationState::UnderMarginCallThreshold)
             );
             let (c, _) = loan.collateralization();
-            assert_eq!(c, LoanCollaterization::ActiveMarginCalled);
+            assert_eq!(c, LoanCollaterizationState::UnderMarginCallThreshold);
 
-            // MarginCalled -> None (CVL above margin_call but below buffer)
+            // UnderMarginCallThreshold -> None (CVL above margin_call but below buffer)
             assert_eq!(
                 loan.maybe_update_collateralization(PriceForCollateralAdjustment {
                     price: price_from(4550000),
@@ -1267,9 +1158,9 @@ mod test {
                 None
             );
             let (c, _) = loan.collateralization();
-            assert_eq!(c, LoanCollaterization::ActiveMarginCalled);
+            assert_eq!(c, LoanCollaterizationState::UnderMarginCallThreshold);
 
-            // MarginCalled -> Collateralized (CVL above margin_call and buffer)
+            // UnderMarginCallThreshold -> FullyCollateralized (CVL above margin_call and buffer)
             assert_eq!(
                 loan.maybe_update_collateralization(PriceForCollateralAdjustment {
                     price: price_from(4600000),
@@ -1277,12 +1168,12 @@ mod test {
                     collateral_upgrade_buffer,
                 })
                 .unwrap(),
-                Some(LoanCollaterization::ActiveCollateralized)
+                Some(LoanCollaterizationState::FullyCollateralized)
             );
             let (c, _) = loan.collateralization();
-            assert_eq!(c, LoanCollaterization::ActiveCollateralized);
+            assert_eq!(c, LoanCollaterizationState::FullyCollateralized);
 
-            // MarginCalled -> InLiquidation
+            // UnderMarginCallThreshold -> UnderLiquidationThreshold
             assert_eq!(
                 loan.maybe_update_collateralization(PriceForCollateralAdjustment {
                     price: price_from(3000000),
@@ -1290,12 +1181,12 @@ mod test {
                     collateral_upgrade_buffer,
                 })
                 .unwrap(),
-                Some(LoanCollaterization::ActiveInLiquidation)
+                Some(LoanCollaterizationState::UnderLiquidationThreshold)
             );
             let (c, _) = loan.collateralization();
-            assert_eq!(c, LoanCollaterization::ActiveInLiquidation);
+            assert_eq!(c, LoanCollaterizationState::UnderLiquidationThreshold);
 
-            // InLiquidation -> None (CVL above Collaterization requirement)
+            // UnderLiquidationThreshold -> None (CVL above Collaterization requirement)
             assert_eq!(
                 loan.maybe_update_collateralization(PriceForCollateralAdjustment {
                     price: price_from(10000000),
@@ -1306,11 +1197,13 @@ mod test {
                 None
             );
             let (c, _) = loan.collateralization();
-            assert_eq!(c, LoanCollaterization::ActiveInLiquidation);
+            assert_eq!(c, LoanCollaterizationState::UnderLiquidationThreshold);
+
+            assert_eq!(loan.status(), LoanStatus::New);
         }
 
         #[test]
-        fn test_transitions_on_non_active_loans() {
+        fn test_transitions_with_status_change() {
             let stale_price_interval = &StalePriceInterval::new(chrono::Duration::hours(1));
             let collateral_upgrade_buffer = CVLPct::new(5);
 
@@ -1328,7 +1221,7 @@ mod test {
                 None
             );
             let (c, _) = loan.collateralization();
-            assert_eq!(c, LoanCollaterization::NewNotCollateralized);
+            assert_eq!(c, LoanCollaterizationState::NoCollateral);
 
             // LoanStatus::Active
             let loan_collateral_update = loan
@@ -1341,12 +1234,10 @@ mod test {
                 default_price_for_adjustment(),
             );
             let (c, _) = loan.collateralization();
-            assert_eq!(c, LoanCollaterization::NewCollateralized);
+            assert_eq!(c, LoanCollaterizationState::FullyCollateralized);
 
             let loan_approval = loan.initiate_approval();
             loan.confirm_approval(loan_approval.unwrap(), Utc::now(), dummy_audit_info());
-            loan.maybe_update_collateralization(default_price_for_adjustment())
-                .unwrap();
             assert_eq!(loan.status(), LoanStatus::Active);
 
             assert_eq!(
@@ -1356,10 +1247,10 @@ mod test {
                     collateral_upgrade_buffer,
                 })
                 .unwrap(),
-                Some(LoanCollaterization::ActiveMarginCalled)
+                Some(LoanCollaterizationState::UnderMarginCallThreshold)
             );
             let (c, _) = loan.collateralization();
-            assert_eq!(c, LoanCollaterization::ActiveMarginCalled);
+            assert_eq!(c, LoanCollaterizationState::UnderMarginCallThreshold);
 
             // LoanStatus::Closed
             assert_eq!(loan.status(), LoanStatus::Active);
@@ -1367,7 +1258,7 @@ mod test {
             loan.confirm_repayment(repayment, Utc::now(), dummy_audit_info());
             assert_eq!(loan.status(), LoanStatus::Closed);
             let (c, _) = loan.collateralization();
-            assert_eq!(c, LoanCollaterization::Closed);
+            assert_eq!(c, LoanCollaterizationState::NoCollateral);
 
             assert_eq!(
                 loan.maybe_update_collateralization(PriceForCollateralAdjustment {
@@ -1379,7 +1270,7 @@ mod test {
                 None
             );
             let (c, _) = loan.collateralization();
-            assert_eq!(c, LoanCollaterization::Closed);
+            assert_eq!(c, LoanCollaterizationState::NoCollateral);
         }
     }
 }
