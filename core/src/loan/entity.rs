@@ -847,7 +847,7 @@ impl Loan {
         executed_at: DateTime<Utc>,
         audit_info: AuditInfo,
         price_for_adjustment: PriceForCollateralAdjustment,
-    ) -> Result<Option<LoanCollaterization>, LoanError> {
+    ) {
         self.events.push(LoanEvent::CollateralUpdated {
             tx_id,
             tx_ref,
@@ -857,7 +857,7 @@ impl Loan {
             audit_info,
         });
 
-        self.maybe_update_collateralization(price_for_adjustment)
+        let _ = self.maybe_update_collateralization(price_for_adjustment);
     }
 }
 
@@ -1102,8 +1102,7 @@ mod test {
             Utc::now(),
             dummy_audit_info(),
             default_price_for_adjustment(),
-        )
-        .unwrap();
+        );
         assert_eq!(loan.collateral(), Satoshis::from(10000));
 
         let loan_collateral_update = loan
@@ -1114,8 +1113,7 @@ mod test {
             Utc::now(),
             dummy_audit_info(),
             default_price_for_adjustment(),
-        )
-        .unwrap();
+        );
         assert_eq!(loan.collateral(), Satoshis::from(5000));
     }
 
@@ -1346,8 +1344,7 @@ mod test {
                 Utc::now(),
                 dummy_audit_info(),
                 default_price_for_adjustment(),
-            )
-            .unwrap();
+            );
             let (c, _) = loan.collateralization();
             assert_eq!(c, LoanCollaterization::NewCollateralized);
 
