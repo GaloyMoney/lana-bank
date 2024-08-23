@@ -165,20 +165,15 @@ impl JobRunner for LoanCVLProcessingJobRunner {
             (after, has_next_page) = (loans.end_cursor, loans.has_next_page);
 
             for loan in loans.entities.iter_mut() {
-                let collateralization =
-                    loan.maybe_update_collateralization(PriceForCollateralAdjustment {
+                if loan
+                    .maybe_update_collateralization(PriceForCollateralAdjustment {
                         price,
                         stale_price_interval: self.config.stale_price_interval,
                         collateral_upgrade_buffer: self.config.collateral_upgrade_buffer,
-                    });
-                match collateralization {
-                    Ok(Some(_)) => {
-                        self.repo.persist_in_tx(&mut db_tx, loan).await?;
-                    }
-                    Ok(None) => (),
-                    Err(_) => {
-                        "TODO: Handle error. Should we commit partial db_tx & reschedule, or fail the entire operation?";
-                    }
+                    })?
+                    .is_some()
+                {
+                    self.repo.persist_in_tx(&mut db_tx, loan).await?;
                 }
             }
         }
