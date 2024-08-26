@@ -2,8 +2,8 @@ use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
 
 use super::{
-    error::LoanError, repo::*, CLVJobInterval, CVLPct, LoanCursor, PriceOfOneBTC,
-    StalePriceInterval, Subject, SystemNode, UsdCents,
+    error::LoanError, repo::*, CLVJobInterval, CVLPct, LoanCursor, PriceOfOneBTC, Subject,
+    SystemNode, UsdCents,
 };
 use crate::{
     audit::*,
@@ -108,7 +108,6 @@ impl JobRunner for LoanInterestProcessingJobRunner {
 
 #[derive(Clone, Serialize, Deserialize)]
 pub struct LoanCVLJobConfig {
-    pub stale_price_interval: StalePriceInterval,
     pub job_interval: CLVJobInterval,
     pub collateral_upgrade_buffer: CVLPct,
 }
@@ -151,7 +150,8 @@ impl JobRunner for LoanCVLProcessingJobRunner {
         &self,
         current_job: CurrentJob,
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
-        let price = PriceOfOneBTC::new(UsdCents::from(5000000), chrono::Utc::now());
+        // TODO: Add price service call here (consider checking for stale)
+        let price = PriceOfOneBTC::new(UsdCents::from(5000000));
 
         let mut db_tx = current_job.pool().begin().await?;
 

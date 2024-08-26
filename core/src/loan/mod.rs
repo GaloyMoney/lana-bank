@@ -188,9 +188,9 @@ impl Loans {
             .check_permission(sub, Object::Loan, LoanAction::UpdateCollateral)
             .await?;
 
-        // TODO: Add price service call here
+        // TODO: Add price service call here (consider checking for stale)
         #[allow(clippy::inconsistent_digit_grouping)]
-        let price = PriceOfOneBTC::new(UsdCents::from(100_000_00), chrono::Utc::now());
+        let price = PriceOfOneBTC::new(UsdCents::from(100_000_00));
 
         let mut loan = self.loan_repo.find_by_id(loan_id).await?;
 

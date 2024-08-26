@@ -241,10 +241,8 @@ mod test {
 
     #[test]
     fn required_collateral() {
-        let price = PriceOfOneBTC::new(
-            UsdCents::try_from_usd(rust_decimal_macros::dec!(1000)).unwrap(),
-            Utc::now(),
-        );
+        let price =
+            PriceOfOneBTC::new(UsdCents::try_from_usd(rust_decimal_macros::dec!(1000)).unwrap());
         let terms = terms();
         let principal = UsdCents::from(100000);
         let required_collateral = terms.required_collateral(principal, price).unwrap();

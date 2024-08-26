@@ -857,7 +857,7 @@ mod test {
     }
 
     fn default_price() -> PriceOfOneBTC {
-        PriceOfOneBTC::new(UsdCents::from(5000000), Utc::now())
+        PriceOfOneBTC::new(UsdCents::from(5000000))
     }
 
     fn default_collateral_upgrade_buffer() -> CVLPct {
@@ -1044,13 +1044,13 @@ mod test {
 
         let expected_cvl = CVLPct::from(dec!(142));
         let cvl = loan
-            .cvl(PriceOfOneBTC::new(UsdCents::from(5000000), Utc::now()))
+            .cvl(PriceOfOneBTC::new(UsdCents::from(5000000)))
             .unwrap();
         assert_eq!(cvl, expected_cvl);
 
         let expected_cvl = CVLPct::from(dec!(100));
         let cvl = loan
-            .cvl(PriceOfOneBTC::new(UsdCents::from(3500000), Utc::now()))
+            .cvl(PriceOfOneBTC::new(UsdCents::from(3500000)))
             .unwrap();
         assert_eq!(cvl, expected_cvl);
     }
@@ -1060,7 +1060,7 @@ mod test {
         use super::*;
 
         fn price_from(value: u64) -> PriceOfOneBTC {
-            PriceOfOneBTC::new(UsdCents::from(value), Utc::now())
+            PriceOfOneBTC::new(UsdCents::from(value))
         }
 
         #[test]

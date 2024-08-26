@@ -444,22 +444,6 @@ impl std::ops::Add<UsdCents> for UsdCents {
     }
 }
 
-pub const SECS_IN_1_MIN: u64 = 60;
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Deserialize, Serialize)]
-pub struct StalePriceInterval(std::time::Duration);
-
-impl StalePriceInterval {
-    pub fn new(value: std::time::Duration) -> Self {
-        Self(value)
-    }
-
-    pub fn to_time_delta(&self) -> chrono::Duration {
-        let err_msg = &format!("Time value {:?} too large to convert", self.0);
-        chrono::TimeDelta::from_std(self.0).expect(err_msg)
-    }
-}
-
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Deserialize, Serialize)]
 pub struct CLVJobInterval(std::time::Duration);
 
@@ -474,25 +458,13 @@ impl CLVJobInterval {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
-pub struct PriceOfOneBTC {
-    value: UsdCents,
-    timestamp: DateTime<Utc>,
-}
-
-impl fmt::Display for PriceOfOneBTC {
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> fmt::Result {
-        write!(f, "{} at {}", self.value, self.timestamp)
-    }
-}
+pub struct PriceOfOneBTC(UsdCents);
 
 impl PriceOfOneBTC {
-    pub const ZERO: Self = Self::new(UsdCents::ZERO, DateTime::<Utc>::from_timestamp_nanos(0));
+    pub const ZERO: Self = Self::new(UsdCents::ZERO);
 
-    pub const fn new(price: UsdCents, timestamp: DateTime<Utc>) -> Self {
-        Self {
-            value: price,
-            timestamp,
-        }
+    pub const fn new(price: UsdCents) -> Self {
+        Self(price)
     }
 
     pub fn try_cents_to_sats(
@@ -500,8 +472,7 @@ impl PriceOfOneBTC {
         cents: UsdCents,
         rounding_strategy: RoundingStrategy,
     ) -> Result<Satoshis, ConversionError> {
-        let btc =
-            (cents.to_usd() / self.value.to_usd()).round_dp_with_strategy(8, rounding_strategy);
+        let btc = (cents.to_usd() / self.0.to_usd()).round_dp_with_strategy(8, rounding_strategy);
         Satoshis::try_from_btc(btc)
     }
 
@@ -510,17 +481,8 @@ impl PriceOfOneBTC {
         sats: Satoshis,
         rounding_strategy: RoundingStrategy,
     ) -> Result<UsdCents, ConversionError> {
-        let usd =
-            (sats.to_btc() * self.value.to_usd()).round_dp_with_strategy(2, rounding_strategy);
+        let usd = (sats.to_btc() * self.0.to_usd()).round_dp_with_strategy(2, rounding_strategy);
         UsdCents::try_from_usd(usd)
-    }
-
-    pub fn is_stale(self, stale_price_interval: StalePriceInterval) -> (bool, DateTime<Utc>) {
-        let now = Utc::now();
-        (
-            now - self.timestamp > stale_price_interval.to_time_delta(),
-            now,
-        )
     }
 }
 
@@ -571,10 +533,8 @@ mod test {
 
     #[test]
     fn cents_to_sats_trivial() {
-        let price = PriceOfOneBTC::new(
-            UsdCents::try_from_usd(rust_decimal_macros::dec!(1000)).unwrap(),
-            Utc::now(),
-        );
+        let price =
+            PriceOfOneBTC::new(UsdCents::try_from_usd(rust_decimal_macros::dec!(1000)).unwrap());
         let cents = UsdCents::try_from_usd(rust_decimal_macros::dec!(1000)).unwrap();
         assert_eq!(
             Satoshis::try_from_btc(dec!(1)).unwrap(),
@@ -586,10 +546,8 @@ mod test {
 
     #[test]
     fn cents_to_sats_complex() {
-        let price = PriceOfOneBTC::new(
-            UsdCents::try_from_usd(rust_decimal_macros::dec!(60000)).unwrap(),
-            Utc::now(),
-        );
+        let price =
+            PriceOfOneBTC::new(UsdCents::try_from_usd(rust_decimal_macros::dec!(60000)).unwrap());
         let cents = UsdCents::try_from_usd(rust_decimal_macros::dec!(100)).unwrap();
         assert_eq!(
             Satoshis::try_from_btc(dec!(0.00166667)).unwrap(),
@@ -601,7 +559,7 @@ mod test {
 
     #[test]
     fn sats_to_cents_trivial() {
-        let price = PriceOfOneBTC::new(UsdCents::from(50_000_00), Utc::now());
+        let price = PriceOfOneBTC::new(UsdCents::from(50_000_00));
         let sats = Satoshis::from(10_000);
         assert_eq!(
             UsdCents::from(500),
@@ -613,7 +571,7 @@ mod test {
 
     #[test]
     fn sats_to_cents_complex() {
-        let price = PriceOfOneBTC::new(UsdCents::from(50_000_00), Utc::now());
+        let price = PriceOfOneBTC::new(UsdCents::from(50_000_00));
         let sats = Satoshis::from(12_345);
         assert_eq!(
             UsdCents::from(617),
