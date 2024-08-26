@@ -80,13 +80,6 @@ pub enum LoanCollaterizationState {
     NoCollateral,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
-pub struct PriceForCollateralAdjustment {
-    pub price: PriceOfOneBTC,
-    pub stale_price_interval: StalePriceInterval,
-    pub collateral_upgrade_buffer: CVLPct,
-}
-
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
 pub enum LoanEvent {
@@ -568,16 +561,7 @@ impl Loan {
         }
     }
 
-    pub fn cvl(
-        &mut self,
-        price: PriceOfOneBTC,
-        stale_price_interval: StalePriceInterval,
-    ) -> Result<CVLPct, LoanError> {
-        let (is_stale, now) = price.is_stale(stale_price_interval);
-        if is_stale {
-            return Err(LoanError::StalePrice(price, now));
-        }
-
+    pub fn cvl(&mut self, price: PriceOfOneBTC) -> Result<CVLPct, LoanError> {
         let collateral_value =
             price.try_sats_to_cents(self.collateral(), rust_decimal::RoundingStrategy::ToZero)?;
 
@@ -593,17 +577,12 @@ impl Loan {
 
     pub fn maybe_update_collateralization(
         &mut self,
-        price_for_adjustment: PriceForCollateralAdjustment,
+        price: PriceOfOneBTC,
+        collateral_upgrade_buffer: CVLPct,
     ) -> Result<Option<LoanCollaterizationState>, LoanError> {
-        let PriceForCollateralAdjustment {
-            price,
-            stale_price_interval,
-            collateral_upgrade_buffer,
-        } = price_for_adjustment;
-
         let margin_call_cvl = self.terms.margin_call_cvl;
         let liquidation_cvl = self.terms.liquidation_cvl;
-        let current_cvl = self.cvl(price, stale_price_interval)?;
+        let current_cvl = self.cvl(price)?;
 
         let (current_collateralization, collateral) = self.collateralization();
         let calculated_collateralization = if current_cvl == CVLPct::ZERO {
@@ -735,7 +714,8 @@ impl Loan {
         }: LoanCollateralUpdate,
         executed_at: DateTime<Utc>,
         audit_info: AuditInfo,
-        price_for_adjustment: PriceForCollateralAdjustment,
+        price: PriceOfOneBTC,
+        collateral_upgrade_buffer: CVLPct,
     ) {
         self.events.push(LoanEvent::CollateralUpdated {
             tx_id,
@@ -746,7 +726,7 @@ impl Loan {
             audit_info,
         });
 
-        let _ = self.maybe_update_collateralization(price_for_adjustment);
+        let _ = self.maybe_update_collateralization(price, collateral_upgrade_buffer);
     }
 }
 
@@ -876,12 +856,12 @@ mod test {
         )
     }
 
-    fn default_price_for_adjustment() -> PriceForCollateralAdjustment {
-        PriceForCollateralAdjustment {
-            price: PriceOfOneBTC::new(UsdCents::from(5000000), Utc::now()),
-            stale_price_interval: StalePriceInterval::new(chrono::Duration::hours(1)),
-            collateral_upgrade_buffer: CVLPct::new(5),
-        }
+    fn default_price() -> PriceOfOneBTC {
+        PriceOfOneBTC::new(UsdCents::from(5000000), Utc::now())
+    }
+
+    fn default_collateral_upgrade_buffer() -> CVLPct {
+        CVLPct::new(5)
     }
 
     #[test]
@@ -943,7 +923,8 @@ mod test {
             loan_collateral_update,
             Utc::now(),
             dummy_audit_info(),
-            default_price_for_adjustment(),
+            default_price(),
+            default_collateral_upgrade_buffer(),
         );
         let loan_approval = loan.initiate_approval();
         assert!(loan_approval.is_ok());
@@ -964,7 +945,8 @@ mod test {
             loan_collateral_update,
             Utc::now(),
             dummy_audit_info(),
-            default_price_for_adjustment(),
+            default_price(),
+            default_collateral_upgrade_buffer(),
         );
         let loan_approval = loan.initiate_approval().unwrap();
         loan.confirm_approval(loan_approval, Utc::now(), dummy_audit_info());
@@ -988,7 +970,8 @@ mod test {
             loan_collateral_update,
             Utc::now(),
             dummy_audit_info(),
-            default_price_for_adjustment(),
+            default_price(),
+            default_collateral_upgrade_buffer(),
         );
         assert_eq!(loan.collateral(), Satoshis::from(10000));
 
@@ -999,7 +982,8 @@ mod test {
             loan_collateral_update,
             Utc::now(),
             dummy_audit_info(),
-            default_price_for_adjustment(),
+            default_price(),
+            default_collateral_upgrade_buffer(),
         );
         assert_eq!(loan.collateral(), Satoshis::from(5000));
     }
@@ -1026,11 +1010,12 @@ mod test {
             loan_collateral_update,
             Utc::now(),
             dummy_audit_info(),
-            default_price_for_adjustment(),
+            default_price(),
+            default_collateral_upgrade_buffer(),
         );
         let loan_approval = loan.initiate_approval();
         loan.confirm_approval(loan_approval.unwrap(), Utc::now(), dummy_audit_info());
-        loan.maybe_update_collateralization(default_price_for_adjustment())
+        loan.maybe_update_collateralization(default_price(), default_collateral_upgrade_buffer())
             .unwrap();
         assert_eq!(
             loan.collateralization(),
@@ -1043,8 +1028,6 @@ mod test {
 
     #[test]
     fn calculate_cvl() {
-        let stale_price_interval = &StalePriceInterval::new(chrono::Duration::hours(1));
-
         let mut loan = Loan::try_from(init_events()).unwrap();
         let loan_collateral_update = loan
             .initiate_collateral_update(Satoshis::from(3000))
@@ -1053,33 +1036,26 @@ mod test {
             loan_collateral_update,
             Utc::now(),
             dummy_audit_info(),
-            default_price_for_adjustment(),
+            default_price(),
+            default_collateral_upgrade_buffer(),
         );
         let loan_approval = loan.initiate_approval();
         loan.confirm_approval(loan_approval.unwrap(), Utc::now(), dummy_audit_info());
 
         let expected_cvl = CVLPct::from(dec!(142));
         let cvl = loan
-            .cvl(
-                PriceOfOneBTC::new(UsdCents::from(5000000), Utc::now()),
-                *stale_price_interval,
-            )
+            .cvl(PriceOfOneBTC::new(UsdCents::from(5000000), Utc::now()))
             .unwrap();
         assert_eq!(cvl, expected_cvl);
 
         let expected_cvl = CVLPct::from(dec!(100));
         let cvl = loan
-            .cvl(
-                PriceOfOneBTC::new(UsdCents::from(3500000), Utc::now()),
-                *stale_price_interval,
-            )
+            .cvl(PriceOfOneBTC::new(UsdCents::from(3500000), Utc::now()))
             .unwrap();
         assert_eq!(cvl, expected_cvl);
     }
 
     mod maybe_update_collateralization {
-
-        use crate::primitives::StalePriceInterval;
 
         use super::*;
 
@@ -1089,7 +1065,6 @@ mod test {
 
         #[test]
         fn test_transitions_no_status_change() {
-            let stale_price_interval = &StalePriceInterval::new(chrono::Duration::hours(1));
             let collateral_upgrade_buffer = CVLPct::new(5);
 
             // NoCollateral
@@ -1099,11 +1074,10 @@ mod test {
                 (LoanCollaterizationState::NoCollateral, Satoshis::ZERO)
             );
             assert_eq!(
-                loan.maybe_update_collateralization(PriceForCollateralAdjustment {
-                    price: price_from(7500000),
-                    stale_price_interval: *stale_price_interval,
+                loan.maybe_update_collateralization(
+                    price_from(7500000),
                     collateral_upgrade_buffer,
-                })
+                )
                 .unwrap(),
                 None
             );
@@ -1116,18 +1090,18 @@ mod test {
                 loan_collateral_update,
                 Utc::now(),
                 dummy_audit_info(),
-                default_price_for_adjustment(),
+                default_price(),
+                default_collateral_upgrade_buffer(),
             );
             let (c, _) = loan.collateralization();
             assert_eq!(c, LoanCollaterizationState::FullyCollateralized);
 
             // FullyCollateralized -> None
             assert_eq!(
-                loan.maybe_update_collateralization(PriceForCollateralAdjustment {
-                    price: price_from(7500000),
-                    stale_price_interval: *stale_price_interval,
+                loan.maybe_update_collateralization(
+                    price_from(7500000),
                     collateral_upgrade_buffer,
-                })
+                )
                 .unwrap(),
                 None
             );
@@ -1136,11 +1110,10 @@ mod test {
 
             // FullyCollateralized -> UnderMarginCallThreshold
             assert_eq!(
-                loan.maybe_update_collateralization(PriceForCollateralAdjustment {
-                    price: price_from(4350000),
-                    stale_price_interval: *stale_price_interval,
+                loan.maybe_update_collateralization(
+                    price_from(4350000),
                     collateral_upgrade_buffer,
-                })
+                )
                 .unwrap(),
                 Some(LoanCollaterizationState::UnderMarginCallThreshold)
             );
@@ -1149,11 +1122,10 @@ mod test {
 
             // UnderMarginCallThreshold -> None (CVL above margin_call but below buffer)
             assert_eq!(
-                loan.maybe_update_collateralization(PriceForCollateralAdjustment {
-                    price: price_from(4550000),
-                    stale_price_interval: *stale_price_interval,
+                loan.maybe_update_collateralization(
+                    price_from(4550000),
                     collateral_upgrade_buffer,
-                })
+                )
                 .unwrap(),
                 None
             );
@@ -1162,11 +1134,10 @@ mod test {
 
             // UnderMarginCallThreshold -> FullyCollateralized (CVL above margin_call and buffer)
             assert_eq!(
-                loan.maybe_update_collateralization(PriceForCollateralAdjustment {
-                    price: price_from(4600000),
-                    stale_price_interval: *stale_price_interval,
+                loan.maybe_update_collateralization(
+                    price_from(4600000),
                     collateral_upgrade_buffer,
-                })
+                )
                 .unwrap(),
                 Some(LoanCollaterizationState::FullyCollateralized)
             );
@@ -1175,11 +1146,10 @@ mod test {
 
             // UnderMarginCallThreshold -> UnderLiquidationThreshold
             assert_eq!(
-                loan.maybe_update_collateralization(PriceForCollateralAdjustment {
-                    price: price_from(3000000),
-                    stale_price_interval: *stale_price_interval,
+                loan.maybe_update_collateralization(
+                    price_from(3000000),
                     collateral_upgrade_buffer,
-                })
+                )
                 .unwrap(),
                 Some(LoanCollaterizationState::UnderLiquidationThreshold)
             );
@@ -1188,11 +1158,10 @@ mod test {
 
             // UnderLiquidationThreshold -> None (CVL above Collaterization requirement)
             assert_eq!(
-                loan.maybe_update_collateralization(PriceForCollateralAdjustment {
-                    price: price_from(10000000),
-                    stale_price_interval: *stale_price_interval,
+                loan.maybe_update_collateralization(
+                    price_from(10000000),
                     collateral_upgrade_buffer,
-                })
+                )
                 .unwrap(),
                 None
             );
@@ -1204,7 +1173,6 @@ mod test {
 
         #[test]
         fn test_transitions_with_status_change() {
-            let stale_price_interval = &StalePriceInterval::new(chrono::Duration::hours(1));
             let collateral_upgrade_buffer = CVLPct::new(5);
 
             // LoanStatus::New
@@ -1212,11 +1180,10 @@ mod test {
 
             assert_eq!(loan.status(), LoanStatus::New);
             assert_eq!(
-                loan.maybe_update_collateralization(PriceForCollateralAdjustment {
-                    price: price_from(6500000),
-                    stale_price_interval: *stale_price_interval,
+                loan.maybe_update_collateralization(
+                    price_from(6500000),
                     collateral_upgrade_buffer,
-                })
+                )
                 .unwrap(),
                 None
             );
@@ -1231,7 +1198,8 @@ mod test {
                 loan_collateral_update,
                 Utc::now(),
                 dummy_audit_info(),
-                default_price_for_adjustment(),
+                default_price(),
+                default_collateral_upgrade_buffer(),
             );
             let (c, _) = loan.collateralization();
             assert_eq!(c, LoanCollaterizationState::FullyCollateralized);
@@ -1241,11 +1209,10 @@ mod test {
             assert_eq!(loan.status(), LoanStatus::Active);
 
             assert_eq!(
-                loan.maybe_update_collateralization(PriceForCollateralAdjustment {
-                    price: price_from(4350000),
-                    stale_price_interval: *stale_price_interval,
+                loan.maybe_update_collateralization(
+                    price_from(4350000),
                     collateral_upgrade_buffer,
-                })
+                )
                 .unwrap(),
                 Some(LoanCollaterizationState::UnderMarginCallThreshold)
             );
@@ -1261,11 +1228,10 @@ mod test {
             assert_eq!(c, LoanCollaterizationState::NoCollateral);
 
             assert_eq!(
-                loan.maybe_update_collateralization(PriceForCollateralAdjustment {
-                    price: price_from(10000000),
-                    stale_price_interval: *stale_price_interval,
+                loan.maybe_update_collateralization(
+                    price_from(10000000),
                     collateral_upgrade_buffer,
-                })
+                )
                 .unwrap(),
                 None
             );

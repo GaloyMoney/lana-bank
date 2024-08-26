@@ -206,11 +206,8 @@ impl Loans {
             loan_collateral_update,
             executed_at,
             audit_info,
-            PriceForCollateralAdjustment {
-                price,
-                stale_price_interval: self.config.stale_price_interval,
-                collateral_upgrade_buffer: self.config.collateral_upgrade_buffer,
-            },
+            price,
+            self.config.collateral_upgrade_buffer,
         );
         let n_events = self.loan_repo.persist_in_tx(&mut db_tx, &mut loan).await?;
         self.export

@@ -2,8 +2,8 @@ use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
 
 use super::{
-    error::LoanError, repo::*, CLVJobInterval, CVLPct, LoanCursor, PriceForCollateralAdjustment,
-    PriceOfOneBTC, StalePriceInterval, Subject, SystemNode, UsdCents,
+    error::LoanError, repo::*, CLVJobInterval, CVLPct, LoanCursor, PriceOfOneBTC,
+    StalePriceInterval, Subject, SystemNode, UsdCents,
 };
 use crate::{
     audit::*,
@@ -166,11 +166,7 @@ impl JobRunner for LoanCVLProcessingJobRunner {
 
             for loan in loans.entities.iter_mut() {
                 if loan
-                    .maybe_update_collateralization(PriceForCollateralAdjustment {
-                        price,
-                        stale_price_interval: self.config.stale_price_interval,
-                        collateral_upgrade_buffer: self.config.collateral_upgrade_buffer,
-                    })?
+                    .maybe_update_collateralization(price, self.config.collateral_upgrade_buffer)?
                     .is_some()
                 {
                     self.repo.persist_in_tx(&mut db_tx, loan).await?;
