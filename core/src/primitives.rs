@@ -1,7 +1,7 @@
-use chrono::{DateTime, Duration, Utc};
+use chrono::{DateTime, Utc};
 use rust_decimal::{Decimal, RoundingStrategy};
 use rust_decimal_macros::dec;
-use serde::{de, Deserialize, Deserializer, Serialize, Serializer};
+use serde::{Deserialize, Serialize};
 use uuid::{uuid, Uuid};
 
 use std::{fmt, str::FromStr};
@@ -444,104 +444,27 @@ impl std::ops::Add<UsdCents> for UsdCents {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct StalePriceInterval(Duration);
+pub const SECS_IN_1_MIN: u64 = 60;
 
-impl Serialize for StalePriceInterval {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: Serializer,
-    {
-        serializer.serialize_i64(self.0.num_seconds())
-    }
-}
-
-impl<'de> Deserialize<'de> for StalePriceInterval {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-    where
-        D: Deserializer<'de>,
-    {
-        struct StalePriceIntervalVisitor;
-
-        impl<'de> de::Visitor<'de> for StalePriceIntervalVisitor {
-            type Value = StalePriceInterval;
-
-            fn expecting(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {
-                formatter.write_str("a duration in seconds as a 64-bit integer")
-            }
-
-            fn visit_i64<E>(self, value: i64) -> Result<Self::Value, E>
-            where
-                E: de::Error,
-            {
-                Ok(StalePriceInterval(Duration::seconds(value)))
-            }
-
-            fn visit_u64<E>(self, value: u64) -> Result<Self::Value, E>
-            where
-                E: de::Error,
-            {
-                Ok(StalePriceInterval(Duration::seconds(value as i64)))
-            }
-        }
-
-        deserializer.deserialize_i64(StalePriceIntervalVisitor)
-    }
-}
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Deserialize, Serialize)]
+pub struct StalePriceInterval(std::time::Duration);
 
 impl StalePriceInterval {
-    pub fn new(value: Duration) -> Self {
+    pub fn new(value: std::time::Duration) -> Self {
         Self(value)
     }
-}
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct CLVJobInterval(Duration);
-
-impl Serialize for CLVJobInterval {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: Serializer,
-    {
-        serializer.serialize_i64(self.0.num_seconds())
+    pub fn to_time_delta(&self) -> chrono::Duration {
+        let err_msg = &format!("Time value {:?} too large to convert", self.0);
+        chrono::TimeDelta::from_std(self.0).expect(err_msg)
     }
 }
 
-impl<'de> Deserialize<'de> for CLVJobInterval {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-    where
-        D: Deserializer<'de>,
-    {
-        struct CLVJobIntervalVisitor;
-
-        impl<'de> de::Visitor<'de> for CLVJobIntervalVisitor {
-            type Value = CLVJobInterval;
-
-            fn expecting(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {
-                formatter.write_str("a duration in seconds as a 64-bit integer")
-            }
-
-            fn visit_i64<E>(self, value: i64) -> Result<Self::Value, E>
-            where
-                E: de::Error,
-            {
-                Ok(CLVJobInterval(Duration::seconds(value)))
-            }
-
-            fn visit_u64<E>(self, value: u64) -> Result<Self::Value, E>
-            where
-                E: de::Error,
-            {
-                Ok(CLVJobInterval(Duration::seconds(value as i64)))
-            }
-        }
-
-        deserializer.deserialize_i64(CLVJobIntervalVisitor)
-    }
-}
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Deserialize, Serialize)]
+pub struct CLVJobInterval(std::time::Duration);
 
 impl CLVJobInterval {
-    pub fn new(value: Duration) -> Self {
+    pub fn new(value: std::time::Duration) -> Self {
         Self(value)
     }
 
@@ -594,7 +517,10 @@ impl PriceOfOneBTC {
 
     pub fn is_stale(self, stale_price_interval: StalePriceInterval) -> (bool, DateTime<Utc>) {
         let now = Utc::now();
-        (now - self.timestamp > stale_price_interval.0, now)
+        (
+            now - self.timestamp > stale_price_interval.to_time_delta(),
+            now,
+        )
     }
 }
 

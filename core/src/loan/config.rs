@@ -1,5 +1,7 @@
 use serde::{Deserialize, Serialize};
 
+use crate::primitives::SECS_IN_1_MIN;
+
 use super::{CVLPct, StalePriceInterval};
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
@@ -20,7 +22,7 @@ impl Default for LoanConfig {
 }
 
 fn default_stale_price_interval() -> StalePriceInterval {
-    StalePriceInterval::new(chrono::Duration::minutes(20))
+    StalePriceInterval::new(std::time::Duration::from_secs(20 * SECS_IN_1_MIN))
 }
 
 fn default_collateral_upgrade_buffer() -> CVLPct {
