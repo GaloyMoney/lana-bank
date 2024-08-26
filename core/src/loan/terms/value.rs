@@ -156,10 +156,7 @@ impl TermValues {
         price: PriceOfOneBTC,
     ) -> Result<Satoshis, LoanTermsError> {
         let collateral_value = self.initial_cvl.scale(desired_principal);
-        Ok(price.try_cents_to_sats(
-            collateral_value,
-            rust_decimal::RoundingStrategy::AwayFromZero,
-        )?)
+        Ok(price.try_cents_to_sats_round_up(collateral_value)?)
     }
 
     pub fn calculate_interest(&self, principal: UsdCents, days: u32) -> UsdCents {

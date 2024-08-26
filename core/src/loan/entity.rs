@@ -562,8 +562,7 @@ impl Loan {
     }
 
     pub fn cvl(&mut self, price: PriceOfOneBTC) -> Result<CVLPct, LoanError> {
-        let collateral_value =
-            price.try_sats_to_cents(self.collateral(), rust_decimal::RoundingStrategy::ToZero)?;
+        let collateral_value = price.try_sats_to_cents_round_down(self.collateral())?;
 
         if collateral_value == UsdCents::ZERO {
             Ok(CVLPct::ZERO)

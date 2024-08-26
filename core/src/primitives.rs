@@ -467,21 +467,15 @@ impl PriceOfOneBTC {
         Self(price)
     }
 
-    pub fn try_cents_to_sats(
-        self,
-        cents: UsdCents,
-        rounding_strategy: RoundingStrategy,
-    ) -> Result<Satoshis, ConversionError> {
-        let btc = (cents.to_usd() / self.0.to_usd()).round_dp_with_strategy(8, rounding_strategy);
+    pub fn try_cents_to_sats_round_up(self, cents: UsdCents) -> Result<Satoshis, ConversionError> {
+        let btc = (cents.to_usd() / self.0.to_usd())
+            .round_dp_with_strategy(8, RoundingStrategy::AwayFromZero);
         Satoshis::try_from_btc(btc)
     }
 
-    pub fn try_sats_to_cents(
-        self,
-        sats: Satoshis,
-        rounding_strategy: RoundingStrategy,
-    ) -> Result<UsdCents, ConversionError> {
-        let usd = (sats.to_btc() * self.0.to_usd()).round_dp_with_strategy(2, rounding_strategy);
+    pub fn try_sats_to_cents_round_down(self, sats: Satoshis) -> Result<UsdCents, ConversionError> {
+        let usd =
+            (sats.to_btc() * self.0.to_usd()).round_dp_with_strategy(2, RoundingStrategy::ToZero);
         UsdCents::try_from_usd(usd)
     }
 }
@@ -538,9 +532,7 @@ mod test {
         let cents = UsdCents::try_from_usd(rust_decimal_macros::dec!(1000)).unwrap();
         assert_eq!(
             Satoshis::try_from_btc(dec!(1)).unwrap(),
-            price
-                .try_cents_to_sats(cents, rust_decimal::RoundingStrategy::AwayFromZero)
-                .unwrap()
+            price.try_cents_to_sats_round_up(cents).unwrap()
         );
     }
 
@@ -551,9 +543,7 @@ mod test {
         let cents = UsdCents::try_from_usd(rust_decimal_macros::dec!(100)).unwrap();
         assert_eq!(
             Satoshis::try_from_btc(dec!(0.00166667)).unwrap(),
-            price
-                .try_cents_to_sats(cents, rust_decimal::RoundingStrategy::AwayFromZero)
-                .unwrap()
+            price.try_cents_to_sats_round_up(cents).unwrap()
         );
     }
 
@@ -563,9 +553,7 @@ mod test {
         let sats = Satoshis::from(10_000);
         assert_eq!(
             UsdCents::from(500),
-            price
-                .try_sats_to_cents(sats, rust_decimal::RoundingStrategy::ToZero)
-                .unwrap()
+            price.try_sats_to_cents_round_down(sats).unwrap()
         );
     }
 
@@ -575,9 +563,7 @@ mod test {
         let sats = Satoshis::from(12_345);
         assert_eq!(
             UsdCents::from(617),
-            price
-                .try_sats_to_cents(sats, rust_decimal::RoundingStrategy::ToZero)
-                .unwrap()
+            price.try_sats_to_cents_round_down(sats).unwrap()
         );
     }
 }
