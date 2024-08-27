@@ -1,8 +1,11 @@
 use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
 
-use super::{repo::*, CLVJobInterval, CVLPct, LoanCursor, PriceOfOneBTC, UsdCents};
-use crate::job::*;
+use crate::{
+    job::*,
+    loan::{repo::*, terms::CVLPct, LoanCursor},
+    primitives::{CLVJobInterval, PriceOfOneBTC, UsdCents},
+};
 
 #[derive(Clone, Serialize, Deserialize)]
 pub struct LoanJobConfig {

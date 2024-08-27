@@ -1,12 +1,12 @@
 use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
 
-use super::{error::LoanError, repo::*, Subject, SystemNode};
 use crate::{
     audit::*,
     authorization::{LoanAction, Object},
     job::*,
     ledger::*,
+    loan::{error::LoanError, repo::*, Subject, SystemNode},
     primitives::LoanId,
 };
 
