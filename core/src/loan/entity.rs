@@ -330,7 +330,7 @@ impl Loan {
                 } => Some((*state, *collateral)),
                 _ => None,
             })
-            .unwrap_or((LoanCollaterizationState::NoCollateral, Satoshis::ZERO))
+            .unwrap_or((LoanCollaterizationState::NoCollateral, self.collateral()))
     }
 
     pub(super) fn initiate_approval(&mut self) -> Result<LoanApproval, LoanError> {
