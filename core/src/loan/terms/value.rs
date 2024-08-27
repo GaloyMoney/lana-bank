@@ -4,8 +4,6 @@ use rust_decimal::{prelude::*, Decimal};
 use rust_decimal_macros::dec;
 use serde::{Deserialize, Serialize};
 
-use super::error::*;
-
 use crate::primitives::{PriceOfOneBTC, Satoshis, UsdCents};
 
 const NUMBER_OF_DAYS_IN_YEAR: Decimal = dec!(366);
@@ -154,9 +152,9 @@ impl TermValues {
         &self,
         desired_principal: UsdCents,
         price: PriceOfOneBTC,
-    ) -> Result<Satoshis, LoanTermsError> {
+    ) -> Satoshis {
         let collateral_value = self.initial_cvl.scale(desired_principal);
-        Ok(price.try_cents_to_sats_round_up(collateral_value)?)
+        price.cents_to_sats_round_up(collateral_value)
     }
 
     pub fn calculate_interest(&self, principal: UsdCents, days: u32) -> UsdCents {
@@ -242,7 +240,7 @@ mod test {
             PriceOfOneBTC::new(UsdCents::try_from_usd(rust_decimal_macros::dec!(1000)).unwrap());
         let terms = terms();
         let principal = UsdCents::from(100000);
-        let required_collateral = terms.required_collateral(principal, price).unwrap();
+        let required_collateral = terms.required_collateral(principal, price);
         let sats = Satoshis::try_from_btc(dec!(1.4)).unwrap();
         assert_eq!(required_collateral, sats);
     }

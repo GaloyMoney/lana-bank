@@ -561,16 +561,13 @@ impl Loan {
         }
     }
 
-    pub fn cvl(&mut self, price: PriceOfOneBTC) -> Result<CVLPct, LoanError> {
-        let collateral_value = price.try_sats_to_cents_round_down(self.collateral())?;
+    pub fn cvl(&mut self, price: PriceOfOneBTC) -> CVLPct {
+        let collateral_value = price.sats_to_cents_round_down(self.collateral());
 
         if collateral_value == UsdCents::ZERO {
-            Ok(CVLPct::ZERO)
+            CVLPct::ZERO
         } else {
-            Ok(CVLPct::from_loan_amounts(
-                collateral_value,
-                self.outstanding().total(),
-            ))
+            CVLPct::from_loan_amounts(collateral_value, self.outstanding().total())
         }
     }
 
@@ -578,10 +575,10 @@ impl Loan {
         &mut self,
         price: PriceOfOneBTC,
         collateral_upgrade_buffer: CVLPct,
-    ) -> Result<Option<LoanCollaterizationState>, LoanError> {
+    ) -> Option<LoanCollaterizationState> {
         let margin_call_cvl = self.terms.margin_call_cvl;
         let liquidation_cvl = self.terms.liquidation_cvl;
-        let current_cvl = self.cvl(price)?;
+        let current_cvl = self.cvl(price);
 
         let (current_collateralization, collateral) = self.collateralization();
         let calculated_collateralization = if current_cvl == CVLPct::ZERO {
@@ -608,10 +605,10 @@ impl Loan {
             | (
                 LoanCollaterizationState::UnderLiquidationThreshold,
                 LoanCollaterizationState::UnderLiquidationThreshold,
-            ) => Ok(None),
+            ) => None,
 
             // Invalid collateral liquidation changes
-            (LoanCollaterizationState::UnderLiquidationThreshold, _) => Ok(None),
+            (LoanCollaterizationState::UnderLiquidationThreshold, _) => None,
 
             // Valid buffered collateral upgraded change
             (
@@ -628,9 +625,9 @@ impl Loan {
                         price,
                     });
 
-                    Ok(Some(*calculated_collateralization))
+                    Some(*calculated_collateralization)
                 } else {
-                    Ok(None)
+                    None
                 }
             }
 
@@ -645,7 +642,7 @@ impl Loan {
                     price,
                 });
 
-                Ok(Some(*calculated_collateralization))
+                Some(*calculated_collateralization)
             }
         }
     }
@@ -989,7 +986,7 @@ mod test {
 
     #[test]
     fn cannot_approve_if_loan_has_no_collateral() {
-        let loan = Loan::try_from(init_events()).unwrap();
+        let mut loan = Loan::try_from(init_events()).unwrap();
         let res = loan.initiate_approval();
         assert!(matches!(res, Err(LoanError::NoCollateral)));
     }
@@ -1014,8 +1011,7 @@ mod test {
         );
         let loan_approval = loan.initiate_approval();
         loan.confirm_approval(loan_approval.unwrap(), Utc::now(), dummy_audit_info());
-        loan.maybe_update_collateralization(default_price(), default_collateral_upgrade_buffer())
-            .unwrap();
+        loan.maybe_update_collateralization(default_price(), default_collateral_upgrade_buffer());
         assert_eq!(
             loan.collateralization(),
             (
@@ -1042,15 +1038,11 @@ mod test {
         loan.confirm_approval(loan_approval.unwrap(), Utc::now(), dummy_audit_info());
 
         let expected_cvl = CVLPct::from(dec!(142));
-        let cvl = loan
-            .cvl(PriceOfOneBTC::new(UsdCents::from(5000000)))
-            .unwrap();
+        let cvl = loan.cvl(PriceOfOneBTC::new(UsdCents::from(5000000)));
         assert_eq!(cvl, expected_cvl);
 
         let expected_cvl = CVLPct::from(dec!(100));
-        let cvl = loan
-            .cvl(PriceOfOneBTC::new(UsdCents::from(3500000)))
-            .unwrap();
+        let cvl = loan.cvl(PriceOfOneBTC::new(UsdCents::from(3500000)));
         assert_eq!(cvl, expected_cvl);
     }
 
@@ -1076,8 +1068,7 @@ mod test {
                 loan.maybe_update_collateralization(
                     price_from(7500000),
                     collateral_upgrade_buffer,
-                )
-                .unwrap(),
+                ),
                 None
             );
 
@@ -1100,8 +1091,7 @@ mod test {
                 loan.maybe_update_collateralization(
                     price_from(7500000),
                     collateral_upgrade_buffer,
-                )
-                .unwrap(),
+                ),
                 None
             );
             let (c, _) = loan.collateralization();
@@ -1112,8 +1102,7 @@ mod test {
                 loan.maybe_update_collateralization(
                     price_from(4350000),
                     collateral_upgrade_buffer,
-                )
-                .unwrap(),
+                ),
                 Some(LoanCollaterizationState::UnderMarginCallThreshold)
             );
             let (c, _) = loan.collateralization();
@@ -1124,8 +1113,7 @@ mod test {
                 loan.maybe_update_collateralization(
                     price_from(4550000),
                     collateral_upgrade_buffer,
-                )
-                .unwrap(),
+                ),
                 None
             );
             let (c, _) = loan.collateralization();
@@ -1136,8 +1124,7 @@ mod test {
                 loan.maybe_update_collateralization(
                     price_from(4600000),
                     collateral_upgrade_buffer,
-                )
-                .unwrap(),
+                ),
                 Some(LoanCollaterizationState::FullyCollateralized)
             );
             let (c, _) = loan.collateralization();
@@ -1148,8 +1135,7 @@ mod test {
                 loan.maybe_update_collateralization(
                     price_from(3000000),
                     collateral_upgrade_buffer,
-                )
-                .unwrap(),
+                ),
                 Some(LoanCollaterizationState::UnderLiquidationThreshold)
             );
             let (c, _) = loan.collateralization();
@@ -1160,8 +1146,7 @@ mod test {
                 loan.maybe_update_collateralization(
                     price_from(10000000),
                     collateral_upgrade_buffer,
-                )
-                .unwrap(),
+                ),
                 None
             );
             let (c, _) = loan.collateralization();
@@ -1182,8 +1167,7 @@ mod test {
                 loan.maybe_update_collateralization(
                     price_from(6500000),
                     collateral_upgrade_buffer,
-                )
-                .unwrap(),
+                ),
                 None
             );
             let (c, _) = loan.collateralization();
@@ -1211,8 +1195,7 @@ mod test {
                 loan.maybe_update_collateralization(
                     price_from(4350000),
                     collateral_upgrade_buffer,
-                )
-                .unwrap(),
+                ),
                 Some(LoanCollaterizationState::UnderMarginCallThreshold)
             );
             let (c, _) = loan.collateralization();
@@ -1230,8 +1213,7 @@ mod test {
                 loan.maybe_update_collateralization(
                     price_from(10000000),
                     collateral_upgrade_buffer,
-                )
-                .unwrap(),
+                ),
                 None
             );
             let (c, _) = loan.collateralization();

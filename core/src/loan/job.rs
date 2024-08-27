@@ -166,7 +166,7 @@ impl JobRunner for LoanCVLProcessingJobRunner {
 
             for loan in loans.entities.iter_mut() {
                 if loan
-                    .maybe_update_collateralization(price, self.config.collateral_upgrade_buffer)?
+                    .maybe_update_collateralization(price, self.config.collateral_upgrade_buffer)
                     .is_some()
                 {
                     self.repo.persist_in_tx(&mut db_tx, loan).await?;

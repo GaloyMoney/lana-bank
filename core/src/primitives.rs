@@ -467,16 +467,16 @@ impl PriceOfOneBTC {
         Self(price)
     }
 
-    pub fn try_cents_to_sats_round_up(self, cents: UsdCents) -> Result<Satoshis, ConversionError> {
+    pub fn cents_to_sats_round_up(self, cents: UsdCents) -> Satoshis {
         let btc = (cents.to_usd() / self.0.to_usd())
             .round_dp_with_strategy(8, RoundingStrategy::AwayFromZero);
-        Satoshis::try_from_btc(btc)
+        Satoshis::try_from_btc(btc).expect("Decimal should have no fractional component here")
     }
 
-    pub fn try_sats_to_cents_round_down(self, sats: Satoshis) -> Result<UsdCents, ConversionError> {
+    pub fn sats_to_cents_round_down(self, sats: Satoshis) -> UsdCents {
         let usd =
             (sats.to_btc() * self.0.to_usd()).round_dp_with_strategy(2, RoundingStrategy::ToZero);
-        UsdCents::try_from_usd(usd)
+        UsdCents::try_from_usd(usd).expect("Decimal should have no fractional component here")
     }
 }
 
@@ -532,7 +532,7 @@ mod test {
         let cents = UsdCents::try_from_usd(rust_decimal_macros::dec!(1000)).unwrap();
         assert_eq!(
             Satoshis::try_from_btc(dec!(1)).unwrap(),
-            price.try_cents_to_sats_round_up(cents).unwrap()
+            price.cents_to_sats_round_up(cents)
         );
     }
 
@@ -543,7 +543,7 @@ mod test {
         let cents = UsdCents::try_from_usd(rust_decimal_macros::dec!(100)).unwrap();
         assert_eq!(
             Satoshis::try_from_btc(dec!(0.00166667)).unwrap(),
-            price.try_cents_to_sats_round_up(cents).unwrap()
+            price.cents_to_sats_round_up(cents)
         );
     }
 
@@ -551,20 +551,14 @@ mod test {
     fn sats_to_cents_trivial() {
         let price = PriceOfOneBTC::new(UsdCents::from(50_000_00));
         let sats = Satoshis::from(10_000);
-        assert_eq!(
-            UsdCents::from(500),
-            price.try_sats_to_cents_round_down(sats).unwrap()
-        );
+        assert_eq!(UsdCents::from(500), price.sats_to_cents_round_down(sats));
     }
 
     #[test]
     fn sats_to_cents_complex() {
         let price = PriceOfOneBTC::new(UsdCents::from(50_000_00));
         let sats = Satoshis::from(12_345);
-        assert_eq!(
-            UsdCents::from(617),
-            price.try_sats_to_cents_round_down(sats).unwrap()
-        );
+        assert_eq!(UsdCents::from(617), price.sats_to_cents_round_down(sats));
     }
 }
 
