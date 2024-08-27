@@ -1,7 +1,7 @@
 mod config;
 mod entity;
 pub mod error;
-mod job;
+mod jobs;
 mod repo;
 mod terms;
 
@@ -25,7 +25,7 @@ use crate::{
 pub use config::*;
 pub use entity::*;
 use error::*;
-use job::*;
+use jobs::*;
 use repo::*;
 pub use terms::*;
 
@@ -57,12 +57,12 @@ impl Loans {
     ) -> Self {
         let loan_repo = LoanRepo::new(pool);
         let term_repo = TermRepo::new(pool);
-        registry.add_initializer(LoanInterestProcessingJobInitializer::new(
+        registry.add_initializer(interest::LoanProcessingJobInitializer::new(
             ledger,
             loan_repo.clone(),
             audit,
         ));
-        registry.add_initializer(LoanCVLProcessingJobInitializer::new(loan_repo.clone()));
+        registry.add_initializer(cvl::LoanProcessingJobInitializer::new(loan_repo.clone()));
         Self {
             loan_repo,
             term_repo,
@@ -162,11 +162,11 @@ impl Loans {
 
         let n_events = self.loan_repo.persist_in_tx(&mut db_tx, &mut loan).await?;
         self.jobs()
-            .create_and_spawn_job::<LoanInterestProcessingJobInitializer, _>(
+            .create_and_spawn_job::<interest::LoanProcessingJobInitializer, _>(
                 &mut db_tx,
                 loan.id,
                 format!("loan-interest-processing-{}", loan.id),
-                LoanInterestJobConfig { loan_id: loan.id },
+                interest::LoanJobConfig { loan_id: loan.id },
             )
             .await?;
         self.export
