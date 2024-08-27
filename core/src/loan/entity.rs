@@ -92,16 +92,25 @@ pub enum LoanEvent {
         customer_account_ids: CustomerLedgerAccountIds,
         audit_info: AuditInfo,
     },
-    Approved {
+    CollateralUpdated {
         tx_id: LedgerTxId,
-        audit_info: AuditInfo,
+        tx_ref: String,
+        total_collateral: Satoshis,
+        abs_diff: Satoshis,
+        action: CollateralAction,
         recorded_at: DateTime<Utc>,
+        audit_info: AuditInfo,
     },
     CollateralizationChanged {
         state: LoanCollaterizationState,
         collateral: Satoshis,
         outstanding: LoanReceivable,
         price: PriceOfOneBTC,
+    },
+    Approved {
+        tx_id: LedgerTxId,
+        audit_info: AuditInfo,
+        recorded_at: DateTime<Utc>,
     },
     InterestIncurred {
         tx_id: LedgerTxId,
@@ -118,18 +127,7 @@ pub enum LoanEvent {
         recorded_at: DateTime<Utc>,
         audit_info: AuditInfo,
     },
-    CollateralUpdated {
-        tx_id: LedgerTxId,
-        tx_ref: String,
-        total_collateral: Satoshis,
-        abs_diff: Satoshis,
-        action: CollateralAction,
-        recorded_at: DateTime<Utc>,
-        audit_info: AuditInfo,
-    },
     Completed {
-        tx_id: LedgerTxId,
-        tx_ref: String,
         completed_at: DateTime<Utc>,
         audit_info: AuditInfo,
     },
@@ -210,16 +208,16 @@ impl Loan {
     }
 
     pub fn collateral(&self) -> Satoshis {
-        self.events.iter().fold(Satoshis::ZERO, |acc, event| {
-            if let LoanEvent::CollateralUpdated {
-                total_collateral, ..
-            } = event
-            {
-                *total_collateral
-            } else {
-                acc
-            }
-        })
+        self.events
+            .iter()
+            .rev()
+            .find_map(|event| match event {
+                LoanEvent::CollateralUpdated {
+                    total_collateral, ..
+                } => Some(*total_collateral),
+                _ => None,
+            })
+            .unwrap_or(Satoshis::ZERO)
     }
 
     pub fn transactions(&self) -> Vec<LoanTransaction> {
@@ -495,6 +493,8 @@ impl Loan {
         repayment: LoanRepayment,
         recorded_at: DateTime<Utc>,
         audit_info: AuditInfo,
+        price: PriceOfOneBTC,
+        upgrade_buffer_cvl_pct: CVLPct,
     ) {
         match repayment {
             LoanRepayment::Partial {
@@ -515,6 +515,7 @@ impl Loan {
                     recorded_at,
                     audit_info,
                 });
+                self.maybe_update_collateralization(price, upgrade_buffer_cvl_pct);
             }
             LoanRepayment::Final {
                 payment_tx_id,
@@ -537,18 +538,20 @@ impl Loan {
                     recorded_at,
                     audit_info,
                 });
-                self.events.push(LoanEvent::CollateralUpdated {
-                    tx_id: collateral_tx_id,
-                    tx_ref: collateral_tx_ref.clone(),
-                    total_collateral: Satoshis::ZERO,
-                    abs_diff: collateral,
-                    action: CollateralAction::Remove,
+                self.confirm_collateral_update(
+                    LoanCollateralUpdate {
+                        loan_account_ids: self.account_ids,
+                        tx_id: collateral_tx_id,
+                        tx_ref: collateral_tx_ref.clone(),
+                        abs_diff: collateral,
+                        action: CollateralAction::Remove,
+                    },
                     recorded_at,
                     audit_info,
-                });
+                    price,
+                    upgrade_buffer_cvl_pct,
+                );
                 self.events.push(LoanEvent::Completed {
-                    tx_id: collateral_tx_id,
-                    tx_ref: collateral_tx_ref,
                     completed_at: recorded_at,
                     audit_info,
                 });
@@ -706,7 +709,7 @@ impl Loan {
         audit_info: AuditInfo,
         price: PriceOfOneBTC,
         upgrade_buffer_cvl_pct: CVLPct,
-    ) {
+    ) -> Option<LoanCollaterizationState> {
         let mut total_collateral = self.collateral();
         total_collateral = match action {
             CollateralAction::Add => total_collateral + abs_diff,
@@ -722,7 +725,7 @@ impl Loan {
             audit_info,
         });
 
-        let _ = self.maybe_update_collateralization(price, upgrade_buffer_cvl_pct);
+        self.maybe_update_collateralization(price, upgrade_buffer_cvl_pct)
     }
 }
 
@@ -872,7 +875,13 @@ mod test {
         );
         let amount = UsdCents::from(4);
         let repayment = loan.initiate_repayment(amount).unwrap();
-        loan.confirm_repayment(repayment, Utc::now(), dummy_audit_info());
+        loan.confirm_repayment(
+            repayment,
+            Utc::now(),
+            dummy_audit_info(),
+            default_price(),
+            default_upgrade_buffer_cvl_pct(),
+        );
         assert_eq!(
             loan.outstanding(),
             LoanReceivable {
@@ -882,7 +891,13 @@ mod test {
         );
         let amount = UsdCents::from(2);
         let repayment = loan.initiate_repayment(amount).unwrap();
-        loan.confirm_repayment(repayment, Utc::now(), dummy_audit_info());
+        loan.confirm_repayment(
+            repayment,
+            Utc::now(),
+            dummy_audit_info(),
+            default_price(),
+            default_upgrade_buffer_cvl_pct(),
+        );
         assert_eq!(
             loan.outstanding(),
             LoanReceivable {
@@ -897,7 +912,13 @@ mod test {
 
         let amount = UsdCents::from(99);
         let repayment = loan.initiate_repayment(amount).unwrap();
-        loan.confirm_repayment(repayment, Utc::now(), dummy_audit_info());
+        loan.confirm_repayment(
+            repayment,
+            Utc::now(),
+            dummy_audit_info(),
+            default_price(),
+            default_upgrade_buffer_cvl_pct(),
+        );
         assert_eq!(
             loan.outstanding(),
             LoanReceivable {
@@ -949,7 +970,13 @@ mod test {
         assert_eq!(loan.status(), LoanStatus::Active);
         let amount = UsdCents::from(105);
         let repayment = loan.initiate_repayment(amount).unwrap();
-        loan.confirm_repayment(repayment, Utc::now(), dummy_audit_info());
+        loan.confirm_repayment(
+            repayment,
+            Utc::now(),
+            dummy_audit_info(),
+            default_price(),
+            default_upgrade_buffer_cvl_pct(),
+        );
         assert_eq!(loan.status(), LoanStatus::Closed);
     }
 
@@ -1177,7 +1204,13 @@ mod test {
             // LoanStatus::Closed
             assert_eq!(loan.status(), LoanStatus::Active);
             let repayment = loan.initiate_repayment(loan.outstanding().total()).unwrap();
-            loan.confirm_repayment(repayment, Utc::now(), dummy_audit_info());
+            loan.confirm_repayment(
+                repayment,
+                Utc::now(),
+                dummy_audit_info(),
+                default_price(),
+                default_upgrade_buffer_cvl_pct(),
+            );
             assert_eq!(loan.status(), LoanStatus::Closed);
             let (c, _) = loan.collateralization();
             assert_eq!(c, LoanCollaterizationState::NoCollateral);

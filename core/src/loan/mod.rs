@@ -231,6 +231,10 @@ impl Loans {
             .check_permission(sub, Object::Loan, LoanAction::RecordPayment)
             .await?;
 
+        // TODO: Add price service call here (consider checking for stale)
+        #[allow(clippy::inconsistent_digit_grouping)]
+        let price = PriceOfOneBTC::new(UsdCents::from(100_000_00));
+
         let mut loan = self.loan_repo.find_by_id(loan_id).await?;
 
         let customer = self.customers.repo().find_by_id(loan.customer_id).await?;
@@ -252,7 +256,13 @@ impl Loans {
         let repayment = loan.initiate_repayment(amount)?;
 
         let executed_at = self.ledger.record_loan_repayment(repayment.clone()).await?;
-        loan.confirm_repayment(repayment, executed_at, audit_info);
+        loan.confirm_repayment(
+            repayment,
+            executed_at,
+            audit_info,
+            price,
+            self.config.upgrade_buffer_cvl_pct,
+        );
 
         let n_events = self.loan_repo.persist_in_tx(&mut db_tx, &mut loan).await?;
         self.export
