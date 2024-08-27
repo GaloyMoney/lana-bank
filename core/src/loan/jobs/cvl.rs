@@ -1,15 +1,19 @@
 use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
 
+use std::time::Duration;
+
 use crate::{
     job::*,
     loan::{repo::*, terms::CVLPct, LoanCursor},
-    primitives::{CLVJobInterval, PriceOfOneBTC, UsdCents},
+    primitives::{PriceOfOneBTC, UsdCents},
 };
 
+#[serde_with::serde_as]
 #[derive(Clone, Serialize, Deserialize)]
 pub struct LoanJobConfig {
-    pub job_interval: CLVJobInterval,
+    #[serde_as(as = "serde_with::DurationSeconds<u64>")]
+    pub job_interval: Duration,
     pub upgrade_buffer_cvl_pct: CVLPct,
 }
 
@@ -77,7 +81,7 @@ impl JobRunner for LoanProcessingJobRunner {
 
         Ok(JobCompletion::RescheduleAtWithTx(
             db_tx,
-            self.config.job_interval.add_to_time(chrono::Utc::now()),
+            chrono::Utc::now() + self.config.job_interval,
         ))
     }
 }

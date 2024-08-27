@@ -1,4 +1,3 @@
-use chrono::{DateTime, Utc};
 use rust_decimal::{Decimal, RoundingStrategy};
 use rust_decimal_macros::dec;
 use serde::{Deserialize, Serialize};
@@ -449,19 +448,6 @@ impl std::ops::Add<UsdCents> for UsdCents {
 
     fn add(self, other: UsdCents) -> Self {
         Self(self.0 + other.0)
-    }
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Deserialize, Serialize)]
-pub struct CLVJobInterval(std::time::Duration);
-
-impl CLVJobInterval {
-    pub fn new(value: std::time::Duration) -> Self {
-        Self(value)
-    }
-
-    pub fn add_to_time(&self, timestamp: DateTime<Utc>) -> DateTime<Utc> {
-        timestamp + self.0
     }
 }
 
