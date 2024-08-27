@@ -43,19 +43,19 @@ impl LavaApp {
         let audit = Audit::new(&pool);
         let authz = Authorization::init(&pool, &audit).await?;
         let ledger = Ledger::init(config.ledger, &authz).await?;
-        let customers = Customers::new(&pool, &ledger, &config.customer, &authz, &audit);
+        let customers = Customers::new(&pool, &config.customer, &ledger, &authz, &audit);
         let applicants = Applicants::new(&pool, &config.sumsub, &customers);
         let withdraws = Withdraws::new(&pool, &customers, &ledger, &authz);
         let deposits = Deposits::new(&pool, &customers, &ledger, &authz);
         let mut loans = Loans::new(
             &pool,
+            config.loan,
             &mut registry,
             &customers,
             &ledger,
             &authz,
             &audit,
             &export,
-            config.loan,
         );
         let mut jobs = Jobs::new(&pool, config.job_execution, registry);
         loans.set_jobs(&jobs);

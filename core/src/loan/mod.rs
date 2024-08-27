@@ -45,15 +45,16 @@ pub struct Loans {
 }
 
 impl Loans {
+    #[allow(clippy::too_many_arguments)]
     pub fn new(
         pool: &PgPool,
+        config: LoanConfig,
         registry: &mut JobRegistry,
         customers: &Customers,
         ledger: &Ledger,
         authz: &Authorization,
         audit: &Audit,
         export: &Export,
-        config: LoanConfig,
     ) -> Self {
         let loan_repo = LoanRepo::new(pool);
         let term_repo = TermRepo::new(pool);

@@ -34,8 +34,8 @@ pub struct Customers {
 impl Customers {
     pub fn new(
         pool: &sqlx::PgPool,
-        ledger: &Ledger,
         config: &CustomerConfig,
+        ledger: &Ledger,
         authz: &Authorization,
         audit: &Audit,
     ) -> Self {
