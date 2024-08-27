@@ -277,7 +277,7 @@ impl Ledger {
         LoanCollateralUpdate {
             tx_id,
             loan_account_ids,
-            collateral,
+            abs_diff,
             tx_ref,
             action,
         }: LoanCollateralUpdate,
@@ -285,12 +285,12 @@ impl Ledger {
         let created_at = match action {
             CollateralAction::Add => {
                 self.cala
-                    .add_collateral(tx_id, loan_account_ids, collateral.to_btc(), tx_ref)
+                    .add_collateral(tx_id, loan_account_ids, abs_diff.to_btc(), tx_ref)
                     .await
             }
             CollateralAction::Remove => {
                 self.cala
-                    .remove_collateral(tx_id, loan_account_ids, collateral.to_btc(), tx_ref)
+                    .remove_collateral(tx_id, loan_account_ids, abs_diff.to_btc(), tx_ref)
                     .await
             }
         }?;

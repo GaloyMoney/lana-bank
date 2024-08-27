@@ -121,7 +121,8 @@ pub enum LoanEvent {
     CollateralUpdated {
         tx_id: LedgerTxId,
         tx_ref: String,
-        collateral: Satoshis,
+        total_collateral: Satoshis,
+        abs_diff: Satoshis,
         action: CollateralAction,
         recorded_at: DateTime<Utc>,
         audit_info: AuditInfo,
@@ -209,21 +210,16 @@ impl Loan {
     }
 
     pub fn collateral(&self) -> Satoshis {
-        let total = self.events.iter().fold(SignedSatoshis::ZERO, |acc, event| {
+        self.events.iter().fold(Satoshis::ZERO, |acc, event| {
             if let LoanEvent::CollateralUpdated {
-                action, collateral, ..
+                total_collateral, ..
             } = event
             {
-                let signed_collateral = SignedSatoshis::from(*collateral);
-                match action {
-                    CollateralAction::Add => acc + signed_collateral,
-                    CollateralAction::Remove => acc - signed_collateral,
-                }
+                *total_collateral
             } else {
                 acc
             }
-        });
-        Satoshis::try_from(total).expect("should be a valid satoshi amount")
+        })
     }
 
     pub fn transactions(&self) -> Vec<LoanTransaction> {
@@ -232,7 +228,7 @@ impl Loan {
         for event in self.events.iter().rev() {
             match event {
                 LoanEvent::CollateralUpdated {
-                    collateral,
+                    abs_diff,
                     action,
                     recorded_at,
                     tx_id,
@@ -240,7 +236,7 @@ impl Loan {
                 } => match action {
                     CollateralAction::Add => {
                         transactions.push(LoanTransaction::Collateral(CollateralUpdated {
-                            satoshis: *collateral,
+                            satoshis: *abs_diff,
                             action: *action,
                             recorded_at: *recorded_at,
                             tx_id: *tx_id,
@@ -248,7 +244,7 @@ impl Loan {
                     }
                     CollateralAction::Remove => {
                         transactions.push(LoanTransaction::Collateral(CollateralUpdated {
-                            satoshis: *collateral,
+                            satoshis: *abs_diff,
                             action: *action,
                             recorded_at: *recorded_at,
                             tx_id: *tx_id,
@@ -320,7 +316,7 @@ impl Loan {
         }
     }
 
-    pub fn collateralization(&self) -> (LoanCollaterizationState, Satoshis) {
+    fn collateralization(&self) -> (LoanCollaterizationState, Satoshis) {
         if self.status() == LoanStatus::Closed {
             return (LoanCollaterizationState::NoCollateral, Satoshis::ZERO);
         }
@@ -544,7 +540,8 @@ impl Loan {
                 self.events.push(LoanEvent::CollateralUpdated {
                     tx_id: collateral_tx_id,
                     tx_ref: collateral_tx_ref.clone(),
-                    collateral,
+                    total_collateral: Satoshis::ZERO,
+                    abs_diff: collateral,
                     action: CollateralAction::Remove,
                     recorded_at,
                     audit_info,
@@ -688,7 +685,7 @@ impl Loan {
         let tx_id = LedgerTxId::new();
 
         Ok(LoanCollateralUpdate {
-            collateral,
+            abs_diff: collateral,
             loan_account_ids: self.account_ids,
             tx_ref,
             tx_id,
@@ -701,7 +698,7 @@ impl Loan {
         LoanCollateralUpdate {
             tx_id,
             tx_ref,
-            collateral,
+            abs_diff,
             action,
             ..
         }: LoanCollateralUpdate,
@@ -710,10 +707,16 @@ impl Loan {
         price: PriceOfOneBTC,
         upgrade_buffer_cvl_pct: CVLPct,
     ) {
+        let mut total_collateral = self.collateral();
+        total_collateral = match action {
+            CollateralAction::Add => total_collateral + abs_diff,
+            CollateralAction::Remove => total_collateral - abs_diff,
+        };
         self.events.push(LoanEvent::CollateralUpdated {
             tx_id,
             tx_ref,
-            collateral,
+            total_collateral,
+            abs_diff,
             action,
             recorded_at: executed_at,
             audit_info,

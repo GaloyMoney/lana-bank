@@ -291,6 +291,14 @@ impl Default for Satoshis {
     }
 }
 
+impl std::ops::Add<Satoshis> for Satoshis {
+    type Output = Self;
+
+    fn add(self, other: Self) -> Self {
+        Satoshis(self.0 + other.0)
+    }
+}
+
 impl std::ops::Sub<Satoshis> for Satoshis {
     type Output = Satoshis;
 

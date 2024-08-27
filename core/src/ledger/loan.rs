@@ -85,9 +85,9 @@ impl TryFrom<loan_balance::ResponseData> for LoanBalance {
 
 #[derive(Debug, Clone)]
 pub struct LoanCollateralUpdate {
-    pub collateral: Satoshis,
     pub tx_ref: String,
     pub tx_id: LedgerTxId,
+    pub abs_diff: Satoshis,
     pub action: CollateralAction,
     pub loan_account_ids: LoanAccountIds,
 }
