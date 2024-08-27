@@ -49,7 +49,7 @@ resource "cala_account_set" "obs_liabilities" {
   id                  = random_uuid.obs_liabilities.result
   journal_id          = cala_journal.journal.id
   name                = "Liabilities (Off-Balance-Sheet)"
-  normal_balance_type = "DEBIT"
+  normal_balance_type = "CREDIT"
 }
 resource "cala_account_set_member_account_set" "obs_liabilities" {
   account_set_id        = cala_account_set.obs_chart_of_accounts.id
