@@ -4,6 +4,7 @@ use serde::{Deserialize, Serialize};
 use crate::{
     audit::*,
     authorization::{LoanAction, Object},
+    data_export::Export,
     job::*,
     ledger::*,
     loan::{error::LoanError, repo::*, Subject, SystemNode},
@@ -19,14 +20,16 @@ pub struct LoanProcessingJobInitializer {
     ledger: Ledger,
     audit: Audit,
     repo: LoanRepo,
+    export: Export,
 }
 
 impl LoanProcessingJobInitializer {
-    pub fn new(ledger: &Ledger, repo: LoanRepo, audit: &Audit) -> Self {
+    pub fn new(ledger: &Ledger, repo: LoanRepo, audit: &Audit, export: &Export) -> Self {
         Self {
             ledger: ledger.clone(),
             repo,
             audit: audit.clone(),
+            export: export.clone(),
         }
     }
 }
@@ -46,6 +49,7 @@ impl JobInitializer for LoanProcessingJobInitializer {
             repo: self.repo.clone(),
             ledger: self.ledger.clone(),
             audit: self.audit.clone(),
+            export: self.export.clone(),
         }))
     }
 }
@@ -55,6 +59,7 @@ pub struct LoanProcessingJobRunner {
     repo: LoanRepo,
     ledger: Ledger,
     audit: Audit,
+    export: Export,
 }
 
 #[async_trait]
@@ -89,7 +94,15 @@ impl JobRunner for LoanProcessingJobRunner {
             .await?;
 
         loan.confirm_interest(interest_accrual, executed_at, audit_info);
-        self.repo.persist_in_tx(&mut db_tx, &mut loan).await?;
+        let n_events = self.repo.persist_in_tx(&mut db_tx, &mut loan).await?;
+        self.export
+            .export_last(
+                &mut db_tx,
+                crate::loan::BQ_TABLE_NAME,
+                n_events,
+                &loan.events,
+            )
+            .await?;
 
         match loan.next_interest_at() {
             Some(next_interest_at) => {

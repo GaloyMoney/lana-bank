@@ -4,6 +4,7 @@ use serde::{Deserialize, Serialize};
 use std::time::Duration;
 
 use crate::{
+    data_export::Export,
     job::*,
     loan::{repo::*, terms::CVLPct, LoanCursor},
     primitives::{PriceOfOneBTC, UsdCents},
@@ -19,11 +20,12 @@ pub struct LoanJobConfig {
 
 pub struct LoanProcessingJobInitializer {
     repo: LoanRepo,
+    export: Export,
 }
 
 impl LoanProcessingJobInitializer {
-    pub fn new(repo: LoanRepo) -> Self {
-        Self { repo }
+    pub fn new(repo: LoanRepo, export: Export) -> Self {
+        Self { repo, export }
     }
 }
 
@@ -40,6 +42,7 @@ impl JobInitializer for LoanProcessingJobInitializer {
         Ok(Box::new(LoanProcessingJobRunner {
             config: job.config()?,
             repo: self.repo.clone(),
+            export: self.export.clone(),
         }))
     }
 }
@@ -47,6 +50,7 @@ impl JobInitializer for LoanProcessingJobInitializer {
 pub struct LoanProcessingJobRunner {
     config: LoanJobConfig,
     repo: LoanRepo,
+    export: Export,
 }
 
 #[async_trait]
@@ -57,8 +61,6 @@ impl JobRunner for LoanProcessingJobRunner {
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
         // TODO: Add price service call here (consider checking for stale)
         let price = PriceOfOneBTC::new(UsdCents::from(5000000));
-
-        let mut db_tx = current_job.pool().begin().await?;
 
         let mut has_next_page = true;
         let mut after: Option<LoanCursor> = None;
@@ -74,13 +76,23 @@ impl JobRunner for LoanProcessingJobRunner {
                     .maybe_update_collateralization(price, self.config.upgrade_buffer_cvl_pct)
                     .is_some()
                 {
-                    self.repo.persist_in_tx(&mut db_tx, loan).await?;
+                    let mut db_tx = current_job.pool().begin().await?;
+
+                    let n_events = self.repo.persist_in_tx(&mut db_tx, loan).await?;
+                    self.export
+                        .export_last(
+                            &mut db_tx,
+                            crate::loan::BQ_TABLE_NAME,
+                            n_events,
+                            &loan.events,
+                        )
+                        .await?;
+                    db_tx.commit().await?;
                 }
             }
         }
 
-        Ok(JobCompletion::RescheduleAtWithTx(
-            db_tx,
+        Ok(JobCompletion::RescheduleAt(
             chrono::Utc::now() + self.config.job_interval,
         ))
     }

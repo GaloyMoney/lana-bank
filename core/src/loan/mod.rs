@@ -62,8 +62,12 @@ impl Loans {
             ledger,
             loan_repo.clone(),
             audit,
+            export,
         ));
-        registry.add_initializer(cvl::LoanProcessingJobInitializer::new(loan_repo.clone()));
+        registry.add_initializer(cvl::LoanProcessingJobInitializer::new(
+            loan_repo.clone(),
+            export.clone(),
+        ));
         Self {
             loan_repo,
             term_repo,
