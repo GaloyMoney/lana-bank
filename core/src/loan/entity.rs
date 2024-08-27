@@ -321,6 +321,10 @@ impl Loan {
     }
 
     pub fn collateralization(&self) -> (LoanCollaterizationState, Satoshis) {
+        if self.status() == LoanStatus::Closed {
+            return (LoanCollaterizationState::NoCollateral, Satoshis::ZERO);
+        }
+
         self.events
             .iter()
             .rev()
@@ -544,12 +548,6 @@ impl Loan {
                     action: CollateralAction::Remove,
                     recorded_at,
                     audit_info,
-                });
-                self.events.push(LoanEvent::CollateralizationChanged {
-                    state: LoanCollaterizationState::NoCollateral,
-                    collateral,
-                    outstanding: self.outstanding(),
-                    price: PriceOfOneBTC::ZERO,
                 });
                 self.events.push(LoanEvent::Completed {
                     tx_id: collateral_tx_id,
