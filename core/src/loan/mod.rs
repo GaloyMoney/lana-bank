@@ -208,7 +208,7 @@ impl Loans {
             executed_at,
             audit_info,
             price,
-            self.config.collateral_upgrade_buffer,
+            self.config.upgrade_buffer_cvl_pct,
         );
         let n_events = self.loan_repo.persist_in_tx(&mut db_tx, &mut loan).await?;
         self.export

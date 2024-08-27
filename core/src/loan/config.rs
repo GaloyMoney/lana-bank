@@ -4,18 +4,18 @@ use super::CVLPct;
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct LoanConfig {
-    #[serde(default = "default_collateral_upgrade_buffer")]
-    pub collateral_upgrade_buffer: CVLPct,
+    #[serde(default = "default_upgrade_buffer_cvl_pct")]
+    pub upgrade_buffer_cvl_pct: CVLPct,
 }
 
 impl Default for LoanConfig {
     fn default() -> Self {
         LoanConfig {
-            collateral_upgrade_buffer: default_collateral_upgrade_buffer(),
+            upgrade_buffer_cvl_pct: default_upgrade_buffer_cvl_pct(),
         }
     }
 }
 
-fn default_collateral_upgrade_buffer() -> CVLPct {
+fn default_upgrade_buffer_cvl_pct() -> CVLPct {
     CVLPct::new(5)
 }

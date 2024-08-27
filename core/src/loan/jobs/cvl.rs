@@ -7,7 +7,7 @@ use crate::job::*;
 #[derive(Clone, Serialize, Deserialize)]
 pub struct LoanJobConfig {
     pub job_interval: CLVJobInterval,
-    pub collateral_upgrade_buffer: CVLPct,
+    pub upgrade_buffer_cvl_pct: CVLPct,
 }
 
 pub struct LoanProcessingJobInitializer {
@@ -64,7 +64,7 @@ impl JobRunner for LoanProcessingJobRunner {
 
             for loan in loans.entities.iter_mut() {
                 if loan
-                    .maybe_update_collateralization(price, self.config.collateral_upgrade_buffer)
+                    .maybe_update_collateralization(price, self.config.upgrade_buffer_cvl_pct)
                     .is_some()
                 {
                     self.repo.persist_in_tx(&mut db_tx, loan).await?;
