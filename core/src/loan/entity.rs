@@ -589,30 +589,39 @@ impl Loan {
             &LoanCollaterizationState::UnderLiquidationThreshold
         };
 
-        match (current_collateralization, *calculated_collateralization) {
+        match (
+            self.status(),
+            current_collateralization,
+            *calculated_collateralization,
+        ) {
             // Redundant same state changes
-            (LoanCollaterizationState::NoCollateral, LoanCollaterizationState::NoCollateral)
+            (_, LoanCollaterizationState::NoCollateral, LoanCollaterizationState::NoCollateral)
             | (
+                _,
                 LoanCollaterizationState::FullyCollateralized,
                 LoanCollaterizationState::FullyCollateralized,
             )
             | (
+                _,
                 LoanCollaterizationState::UnderMarginCallThreshold,
                 LoanCollaterizationState::UnderMarginCallThreshold,
             )
             | (
+                _,
                 LoanCollaterizationState::UnderLiquidationThreshold,
                 LoanCollaterizationState::UnderLiquidationThreshold,
             ) => None,
 
             // Invalid collateral liquidation changes
-            (LoanCollaterizationState::UnderLiquidationThreshold, _) => None,
+            (LoanStatus::Active, LoanCollaterizationState::UnderLiquidationThreshold, _) => None,
 
             // Valid buffered collateral upgraded change
             (
+                _,
                 LoanCollaterizationState::UnderMarginCallThreshold,
                 LoanCollaterizationState::FullyCollateralized,
-            ) => {
+            )
+            | (_, LoanCollaterizationState::UnderLiquidationThreshold, _) => {
                 if margin_call_cvl.is_significantly_lower_than(current_cvl, upgrade_buffer_cvl_pct)
                 {
                     self.events.push(LoanEvent::CollateralizationChanged {
@@ -629,9 +638,9 @@ impl Loan {
             }
 
             // Valid other collateral changes
-            (LoanCollaterizationState::NoCollateral, _)
-            | (LoanCollaterizationState::FullyCollateralized, _)
-            | (LoanCollaterizationState::UnderMarginCallThreshold, _) => {
+            (_, LoanCollaterizationState::NoCollateral, _)
+            | (_, LoanCollaterizationState::FullyCollateralized, _)
+            | (_, LoanCollaterizationState::UnderMarginCallThreshold, _) => {
                 self.events.push(LoanEvent::CollateralizationChanged {
                     state: *calculated_collateralization,
                     collateral,
@@ -1110,6 +1119,10 @@ mod test {
             let (c, _) = loan.collateralization();
             assert_eq!(c, LoanCollaterizationState::FullyCollateralized);
 
+            let loan_approval = loan.initiate_approval();
+            loan.confirm_approval(loan_approval.unwrap(), Utc::now(), dummy_audit_info());
+            assert_eq!(loan.status(), LoanStatus::Active);
+
             // FullyCollateralized -> None
             assert_eq!(
                 loan.maybe_update_collateralization(price_from(7500000), upgrade_buffer_cvl_pct,),
@@ -1157,8 +1170,6 @@ mod test {
             );
             let (c, _) = loan.collateralization();
             assert_eq!(c, LoanCollaterizationState::UnderLiquidationThreshold);
-
-            assert_eq!(loan.status(), LoanStatus::New);
         }
 
         #[test]
@@ -1176,9 +1187,21 @@ mod test {
             let (c, _) = loan.collateralization();
             assert_eq!(c, LoanCollaterizationState::NoCollateral);
 
-            // LoanStatus::Active
             let loan_collateral_update = loan
-                .initiate_collateral_update(Satoshis::from(3000))
+                .initiate_collateral_update(Satoshis::from(100))
+                .unwrap();
+            loan.confirm_collateral_update(
+                loan_collateral_update,
+                Utc::now(),
+                dummy_audit_info(),
+                default_price(),
+                default_upgrade_buffer_cvl_pct(),
+            );
+            let (c, _) = loan.collateralization();
+            assert_eq!(c, LoanCollaterizationState::UnderLiquidationThreshold);
+
+            let loan_collateral_update = loan
+                .initiate_collateral_update(Satoshis::from(2900))
                 .unwrap();
             loan.confirm_collateral_update(
                 loan_collateral_update,
@@ -1190,6 +1213,7 @@ mod test {
             let (c, _) = loan.collateralization();
             assert_eq!(c, LoanCollaterizationState::FullyCollateralized);
 
+            // LoanStatus::Active
             let loan_approval = loan.initiate_approval();
             loan.confirm_approval(loan_approval.unwrap(), Utc::now(), dummy_audit_info());
             assert_eq!(loan.status(), LoanStatus::Active);
