@@ -385,6 +385,11 @@ impl Loan {
         Utc::now() > self.terms.duration.expiration_date(self.created_at())
     }
 
+    pub fn expires_at(&self) -> Option<DateTime<Utc>> {
+        self.approved_at()
+            .map(|a| self.terms.duration.expiration_date(a))
+    }
+
     fn count_interest_incurred(&self) -> usize {
         self.events
             .iter()
@@ -962,6 +967,7 @@ mod test {
     fn check_approved_at() {
         let mut loan = Loan::try_from(init_events()).unwrap();
         assert_eq!(loan.approved_at(), None);
+        assert_eq!(loan.expires_at(), None);
 
         let loan_collateral_update = loan
             .initiate_collateral_update(Satoshis::from(10000))
@@ -979,6 +985,7 @@ mod test {
         assert!(loan_approval.is_ok());
         loan.confirm_approval(loan_approval.unwrap(), approval_time, dummy_audit_info());
         assert_eq!(loan.approved_at(), Some(approval_time));
+        assert!(loan.expires_at().is_some())
     }
 
     #[test]
