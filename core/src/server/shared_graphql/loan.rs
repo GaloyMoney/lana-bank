@@ -25,6 +25,7 @@ pub struct Loan {
     account_ids: crate::ledger::loan::LoanAccountIds,
     status: LoanStatus,
     collateral: Satoshis,
+    principal: UsdCents,
     transactions: Vec<LoanTransaction>,
     collateralization_state: LoanCollaterizationState,
 }
@@ -139,6 +140,7 @@ impl From<crate::loan::Loan> for Loan {
         let expires_at: Option<Timestamp> = loan.expires_at().map(|e| e.into());
 
         let collateral = loan.collateral();
+        let principal = loan.initial_principal();
         let transactions = loan
             .transactions()
             .into_iter()
@@ -157,6 +159,7 @@ impl From<crate::loan::Loan> for Loan {
             approved_at,
             expires_at,
             collateral,
+            principal,
             transactions,
             collateralization_state,
         }

@@ -353,6 +353,7 @@ export type Loan = {
   id: Scalars['ID']['output'];
   loanId: Scalars['UUID']['output'];
   loanTerms: TermValues;
+  principal: Scalars['UsdCents']['output'];
   status: LoanStatus;
   transactions: Array<LoanTransaction>;
 };

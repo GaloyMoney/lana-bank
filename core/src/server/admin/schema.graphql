@@ -337,6 +337,7 @@ type Loan {
 	loanTerms: TermValues!
 	status: LoanStatus!
 	collateral: Satoshis!
+	principal: UsdCents!
 	transactions: [LoanTransaction!]!
 	collateralizationState: LoanCollaterizationState!
 	balance: LoanBalance!
