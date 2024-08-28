@@ -362,6 +362,13 @@ impl Loan {
         });
     }
 
+    pub fn approved_at(&self) -> Option<DateTime<Utc>> {
+        self.events.iter().find_map(|event| match event {
+            LoanEvent::Approved { recorded_at, .. } => Some(*recorded_at),
+            _ => None,
+        })
+    }
+
     pub fn next_interest_at(&self) -> Option<DateTime<Utc>> {
         if !self.is_completed() && !self.is_expired() {
             Some(
@@ -949,6 +956,29 @@ mod test {
 
         let loan_approval = loan.initiate_approval();
         assert!(loan_approval.is_err())
+    }
+
+    #[test]
+    fn check_approved_at() {
+        let mut loan = Loan::try_from(init_events()).unwrap();
+        assert_eq!(loan.approved_at(), None);
+
+        let loan_collateral_update = loan
+            .initiate_collateral_update(Satoshis::from(10000))
+            .unwrap();
+        loan.confirm_collateral_update(
+            loan_collateral_update,
+            Utc::now(),
+            dummy_audit_info(),
+            default_price(),
+            default_upgrade_buffer_cvl_pct(),
+        );
+
+        let approval_time = Utc::now();
+        let loan_approval = loan.initiate_approval();
+        assert!(loan_approval.is_ok());
+        loan.confirm_approval(loan_approval.unwrap(), approval_time, dummy_audit_info());
+        assert_eq!(loan.approved_at(), Some(approval_time));
     }
 
     #[test]
