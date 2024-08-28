@@ -343,11 +343,13 @@ export type LayeredUsdAccountAmounts = {
 
 export type Loan = {
   __typename?: 'Loan';
+  approvedAt?: Maybe<Scalars['Timestamp']['output']>;
   balance: LoanBalance;
   collateral: Scalars['Satoshis']['output'];
   collateralizationState: LoanCollaterizationState;
   createdAt: Scalars['Timestamp']['output'];
   customer: Customer;
+  expiresAt?: Maybe<Scalars['Timestamp']['output']>;
   id: Scalars['ID']['output'];
   loanId: Scalars['UUID']['output'];
   loanTerms: TermValues;

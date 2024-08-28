@@ -100,6 +100,8 @@ type Loan {
 	id: ID!
 	loanId: UUID!
 	createdAt: Timestamp!
+	approvedAt: Timestamp
+	expiresAt: Timestamp
 	loanTerms: TermValues!
 	status: LoanStatus!
 	collateral: Satoshis!

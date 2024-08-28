@@ -16,6 +16,8 @@ pub struct Loan {
     id: ID,
     loan_id: UUID,
     created_at: Timestamp,
+    approved_at: Option<Timestamp>,
+    expires_at: Option<Timestamp>,
     loan_terms: TermValues,
     #[graphql(skip)]
     customer_id: UUID,
@@ -133,6 +135,9 @@ impl ToGlobalId for crate::primitives::LoanId {
 impl From<crate::loan::Loan> for Loan {
     fn from(loan: crate::loan::Loan) -> Self {
         let created_at = loan.created_at().into();
+        let approved_at: Option<Timestamp> = loan.approved_at().map(|a| a.into());
+        let expires_at: Option<Timestamp> = loan.expires_at().map(|e| e.into());
+
         let collateral = loan.collateral();
         let transactions = loan
             .transactions()
@@ -149,6 +154,8 @@ impl From<crate::loan::Loan> for Loan {
             loan_terms: TermValues::from(loan.terms),
             account_ids: loan.account_ids,
             created_at,
+            approved_at,
+            expires_at,
             collateral,
             transactions,
             collateralization_state,
