@@ -13,6 +13,7 @@ import {
   GetRealtimePriceUpdatesDocument,
   GetRealtimePriceUpdatesQuery,
   Loan,
+  LoanStatus,
 } from "@/lib/graphql/generated"
 
 function makeClient({ coreAdminGqlUrl }: { coreAdminGqlUrl: string }) {
@@ -62,6 +63,8 @@ function makeClient({ coreAdminGqlUrl }: { coreAdminGqlUrl: string }) {
 
           const priceInfo = (await fetchData()) as GetRealtimePriceUpdatesQuery
 
+          const principalValueInUsd = loan.principal / 100
+
           const collateralValueInSats = loan.balance.collateral.btcBalance
           const collateralValueInCents =
             (priceInfo.realtimePrice.usdCentsPerBtc * collateralValueInSats) / 100_000_000
@@ -69,8 +72,11 @@ function makeClient({ coreAdminGqlUrl }: { coreAdminGqlUrl: string }) {
 
           const outstandingAmountInUsd = loan.balance.outstanding.usdBalance / 100
 
-          if (collateralValueInUsd == 0 || outstandingAmountInUsd == 0) return 0
-          const cvl = (collateralValueInUsd / outstandingAmountInUsd) * 100
+          if (collateralValueInUsd == 0 || loan.status === LoanStatus.Closed) return 0
+
+          const newOutstandingAmount =
+            outstandingAmountInUsd === 0 ? principalValueInUsd : outstandingAmountInUsd
+          const cvl = (collateralValueInUsd / newOutstandingAmount) * 100
 
           return Number(cvl.toFixed(2))
         },

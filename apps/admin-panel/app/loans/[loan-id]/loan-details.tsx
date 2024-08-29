@@ -1,7 +1,7 @@
 "use client"
 
 import { gql } from "@apollo/client"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 
 import Link from "next/link"
 
@@ -120,6 +120,11 @@ const LoanDetails: React.FC<LoanDetailsProps> = ({ loanId }) => {
     error,
     refetch,
   } = useGetLoanDetailsQuery({ variables: { id: loanId } })
+
+  // If price changes, refetch current CVL
+  useEffect(() => {
+    refetch()
+  }, [priceInfo?.realtimePrice.usdCentsPerBtc, refetch])
 
   const formatTransactionType = (typename: string) => {
     return typename
