@@ -1,0 +1,18 @@
+config {
+	type: "table",
+}
+
+WITH clase_de_tarjeta_de_credito AS (
+
+    SELECT '1' AS code, 'VISA' AS description UNION ALL
+    SELECT '2', 'Master Card' UNION ALL
+    SELECT '3', 'American Express' UNION ALL
+    SELECT '4', 'Otras'
+
+)
+
+
+SELECT
+    code,
+    description
+FROM clase_de_tarjeta_de_credito

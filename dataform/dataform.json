@@ -1,0 +1,10 @@
+{
+  "defaultSchema": "jireva_lava_dev_dataset",
+  "assertionSchema": "jireva_lava_dev_dataset",
+  "warehouse": "bigquery",
+  "defaultDatabase": "cala-enterprise",
+  "defaultLocation": "US",
+  "vars": {
+    "executionEnv": "TODO"
+  }
+}

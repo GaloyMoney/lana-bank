@@ -1,0 +1,20 @@
+config {
+	type: "table",
+}
+
+WITH tamano_de_empresa AS (
+
+    SELECT 'PA' AS code, 'Cuenta propia o Autoempleo (11)' AS description UNION ALL
+    SELECT 'MI', 'Micro empresa' UNION ALL
+    SELECT 'PE', 'Pequeña Empresa' UNION ALL
+    SELECT 'ME', 'Mediana Empresa' UNION ALL
+    SELECT 'GE', 'Gran Empresa' UNION ALL
+    SELECT 'GO', 'Gobierno'
+
+)
+
+
+SELECT
+    code,
+    description
+FROM tamano_de_empresa

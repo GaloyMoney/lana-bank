@@ -1,0 +1,16 @@
+config {
+	type: "table",
+}
+
+WITH monedas AS (
+
+    SELECT '1' AS code, 'Dólares' AS description UNION ALL
+    SELECT '2', 'Otras monedas'
+
+)
+
+
+SELECT
+    code,
+    description
+FROM monedas

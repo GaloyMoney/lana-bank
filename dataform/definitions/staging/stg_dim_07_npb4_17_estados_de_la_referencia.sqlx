@@ -1,0 +1,19 @@
+config {
+	type: "table",
+}
+
+WITH estados_de_la_referencia AS (
+
+    SELECT '1' AS code, 'Vigente' AS description UNION ALL
+    SELECT '2', 'Vencido' UNION ALL
+    SELECT '3', 'Cancelado' UNION ALL
+    SELECT '4', 'Saneado' UNION ALL
+    SELECT '5', 'Vía Judicial'
+
+)
+
+
+SELECT
+    code,
+    description
+FROM estados_de_la_referencia

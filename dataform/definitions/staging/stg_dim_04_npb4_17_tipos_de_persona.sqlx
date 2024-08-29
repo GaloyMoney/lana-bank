@@ -1,0 +1,16 @@
+config {
+	type: "table",
+}
+
+WITH tipos_de_persona AS (
+
+    SELECT '1' AS code, 'Natural' as description UNION ALL
+    SELECT '2', 'Jurídica'
+
+)
+
+
+SELECT
+    code,
+    description
+FROM tipos_de_persona

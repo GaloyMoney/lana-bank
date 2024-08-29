@@ -1,0 +1,84 @@
+config {
+	type: "table",
+	assertions: {
+		uniqueKey: ["loan_id"],
+		nonNull: ["loan_id", "principal"],
+	},
+}
+
+WITH approved AS (
+
+	SELECT DISTINCT id AS loan_id
+
+	FROM ${ref({
+		name: "loan_events",
+		schema: "jireva_lava_dev_dataset"
+	})}
+
+	WHERE event_type = "approved"
+
+), initial AS (
+
+	SELECT DISTINCT id AS loan_id
+		, CAST(JSON_VALUE(event, "$.principal") AS NUMERIC) AS principal
+		, TIMESTAMP(SUBSTR(JSON_VALUE(event, "$.start_date"), 1, 26)) AS start_timestamp
+		, CASE
+			WHEN JSON_VALUE(event, "$.terms.duration.type") = "months"
+			THEN TIMESTAMP_ADD(
+				DATE(TIMESTAMP(SUBSTR(JSON_VALUE(event, "$.start_date"), 1, 26))),
+				INTERVAL CAST(JSON_VALUE(event, "$.terms.duration.value") AS INTEGER) MONTH
+			)
+		END AS end_date
+		, JSON_VALUE(event, "$.terms.interval.type") AS payment_interval
+
+	FROM ${ref({
+		name: "loan_events",
+		schema: "jireva_lava_dev_dataset"
+	})}
+
+	WHERE event_type = "initialized"
+
+), payments AS (
+
+	SELECT id AS loan_id
+		, SUM(CAST(JSON_VALUE(event, "$.amount") AS NUMERIC)) AS total_paid
+		, MAX(recorded_at) AS most_recent_payment_timestamp
+
+	FROM ${ref({
+		name: "loan_events",
+		schema: "jireva_lava_dev_dataset"
+	})}
+
+	WHERE event_type = "payment_recorded"
+
+	GROUP BY loan_id
+
+), interest AS (
+
+	SELECT id AS loan_id
+		, SUM(CAST(JSON_VALUE(event, "$.amount") AS NUMERIC)) AS total_interest_incurred
+
+	FROM ${ref({
+		name: "loan_events",
+		schema: "jireva_lava_dev_dataset"
+	})}
+
+	WHERE event_type = "interest_incurred"
+
+	GROUP BY loan_id
+
+)
+
+SELECT loan_id
+	, start_timestamp
+	, end_date
+	, payment_interval
+	, most_recent_payment_timestamp
+	, COALESCE(principal, 0) AS principal
+	, COALESCE(total_paid, 0) AS total_paid
+	, COALESCE(total_interest_incurred, 0) AS total_interest_incurred
+
+FROM approved
+	JOIN initial USING (loan_id)
+	JOIN payments USING (loan_id)
+	JOIN interest USING (loan_id)

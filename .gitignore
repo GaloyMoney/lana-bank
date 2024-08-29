@@ -16,3 +16,5 @@ target/
 .lava
 .env
 tilt.log
+
+dataform/node_modules/

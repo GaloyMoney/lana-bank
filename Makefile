@@ -101,3 +101,10 @@ ngrok:
 
 tilt-in-ci:
 	./dev/bin/tilt-ci.sh
+
+dataform-install:
+	yarn install --cwd ./dataform
+	dataform/node_modules/.bin/dataform install dataform
+
+dataform-run:
+	dataform/node_modules/.bin/dataform run dataform --timeout 5m --schema-suffix=${DATAFORM_SCHEMA_SUFFIX} --vars=${DATAFORM_VARS}

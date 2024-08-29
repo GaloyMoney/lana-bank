@@ -1,0 +1,19 @@
+config {
+	type: "table",
+}
+
+WITH programa_de_asistencia_tecnica AS (
+
+    SELECT '1' AS code , 'Asistencia del Ministerio de Agricultura y Ganadería' AS description UNION ALL
+    SELECT '2', 'Asistencia del Consejo Salvadoreño del Café' UNION ALL
+    SELECT '3', 'Otros' UNION ALL
+    SELECT '4', 'No suscrito' UNION ALL
+    SELECT '5', 'Suscripción revocada'
+
+)
+
+
+SELECT
+    code,
+    description
+FROM programa_de_asistencia_tecnica

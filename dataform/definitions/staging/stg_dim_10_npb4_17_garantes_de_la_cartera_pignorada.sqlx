@@ -1,0 +1,20 @@
+config {
+	type: "table",
+}
+
+WITH garantes_de_la_cartera_pignorada AS (
+
+    SELECT 'SV01' AS code, 'Superintendencia del Sistema Financiero - Superintendencia Adjunta de Valores y Conductas (Certificados de inversión)' AS description UNION ALL
+    SELECT 'BC01', 'Banco Central de Reserva de El Salvador' UNION ALL
+    SELECT 'IGD', 'Instituto de Garantía de Depósitos' UNION ALL
+    SELECT 'BANDESAL', 'Banco de Desarrollo de El Salvador' UNION ALL
+    SELECT 'BCIE', 'Banco Centroamericano de Integración Económica' UNION ALL
+    SELECT 'FONAVIPO', 'Fondo Nacional para la Vivienda Popular'
+
+)
+
+
+SELECT
+    code,
+    description
+FROM garantes_de_la_cartera_pignorada

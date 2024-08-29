@@ -1,0 +1,20 @@
+config {
+	type: "table",
+}
+
+WITH tipos_de_activos_de_riesgo AS (
+
+    SELECT 'PD' AS code, 'Préstamos' AS description UNION ALL
+    SELECT 'CP', 'Cuentas por cobrar' UNION ALL
+    SELECT 'CC', 'Contingentes cartas de crédito' UNION ALL
+    SELECT 'FA', 'Contingentes fianzas/avales/garantías' UNION ALL
+    SELECT 'PR', 'Primas documentadas' UNION ALL
+    SELECT 'SN', 'Referencias saneadas'
+
+)
+
+
+SELECT
+    code,
+    description
+FROM tipos_de_activos_de_riesgo

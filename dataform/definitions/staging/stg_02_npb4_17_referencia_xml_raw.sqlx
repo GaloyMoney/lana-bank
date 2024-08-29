@@ -1,0 +1,102 @@
+config {
+  type: "table",
+  description: "Regulatory Report 'referencia.xml' of norm 'NPB4-17'",
+}
+
+WITH loans AS (
+
+	SELECT
+		id AS loan_id,
+
+	FROM ${ref({
+		name: "loan_events",
+		schema: "jireva_lava_dev_dataset"
+	})}
+
+	GROUP BY loan_id
+
+)
+
+SELECT
+    CAST(NULL AS STRING) AS `nit_deudor`
+  , '33' AS `cod_cartera` -- Anexo B, Tabla 1: Cartera propia Ley Acceso al Crédito
+  , 'PD' AS `cod_activo` -- Anexo B, Tabla 2: Préstamos
+  , loan_id AS `num_referencia`
+  , principal AS `monto_referencia` -- Original loan amount
+  , principal + total_interest_incurred - total_paid AS `saldo_referencia` -- Remaining balance
+  , CAST(NULL AS NUMERIC) AS `saldo_vigente_k`
+  , CAST(NULL AS NUMERIC) AS `saldo_vencido_k`
+  , CAST(NULL AS NUMERIC) AS `saldo_vigente_i`
+  , CAST(NULL AS NUMERIC) AS `saldo_vencido_i`
+  , CAST(NULL AS NUMERIC) AS `abono_deposito`
+  , DATE(start_timestamp) AS `fecha_otorgamiento`
+  , end_date AS `fecha_vencimiento`
+  , CAST(NULL AS DATE) AS `fecha_castigo`
+  , CAST(NULL AS STRING) AS `estado_credito`
+  , CAST(NULL AS NUMERIC) AS `saldo_mora_k`
+  , CAST(NULL AS NUMERIC) AS `saldo_mora_i`
+  , CAST(NULL AS NUMERIC) AS `dias_mora_k`
+  , CAST(NULL AS NUMERIC) AS `dias_mora_i`
+  , CAST(NULL AS DATE) AS `fecha_inicio_mora_k`
+  , CAST(NULL AS DATE) AS `fecha_inicio_mora_i`
+  , CASE
+      WHEN payment_interval = "end_of_month"
+      THEN "M"
+    END AS `pago_capital` -- Anexo B, Tabla 8
+  , CAST(NULL AS STRING) AS `pago_interes`
+  , CAST(NULL AS NUMERIC) AS `periodo_gracia_k`
+  , CAST(NULL AS NUMERIC) AS `periodo_gracia_i`
+  , CAST(NULL AS STRING) AS `garante`
+  , CAST(NULL AS STRING) AS `emisión`
+  , CAST(NULL AS NUMERIC) AS `pais_destino_credito`
+  , CAST(NULL AS STRING) AS `destino`
+  , '1' AS `codigo_moneda`-- Anexo B, Tabla 17: Monedas
+  , CAST(NULL AS NUMERIC) AS `tasa_interes`
+  , CAST(NULL AS NUMERIC) AS `tasa_contractual`
+  , CAST(NULL AS NUMERIC) AS `tasa_referencia`
+  , CAST(NULL AS NUMERIC) AS `tasa_efectiva`
+  , CAST(NULL AS STRING) AS `tipo_tasa_interes`
+  , CAST(NULL AS STRING) AS `tipo_prestamo`
+  , CAST(NULL AS STRING) AS `codigo_recurso`
+  , CAST(NULL AS DATE) AS `ultima_fecha_venc`
+  , CAST(NULL AS NUMERIC) AS `dias_prorroga`
+  , CAST(NULL AS NUMERIC) AS `monto_desembolsado`
+  , CAST(NULL AS STRING) AS `tipo_credito`
+  , DATE(most_recent_payment_timestamp) AS `fecha_ultimo_pago_k`
+  , DATE(most_recent_payment_timestamp) AS `fecha_ultimo_pago_i`
+  , CAST(NULL AS NUMERIC) AS `dia_pago_k`
+  , CAST(NULL AS NUMERIC) AS `dia_pago_i`
+  , CAST(NULL AS NUMERIC) AS `cuota_mora_k`
+  , CAST(NULL AS NUMERIC) AS `cuota_mora_i`
+  , CAST(NULL AS NUMERIC) AS `monto_cuota`
+  , CAST(NULL AS STRING) AS `cuenta_contable_k`
+  , CAST(NULL AS STRING) AS `cuenta_contable_i`
+  , CAST(NULL AS DATE) AS `fecha_cancelacion`
+  , CAST(NULL AS NUMERIC) AS `adelanto_capital`
+  , CAST(NULL AS NUMERIC) AS `riesgo_neto` -- Corresponde al saldo de la referencia (2.6. saldo_referencia) menos el valor proporcional de las garantías que cubren esa referencia (3.6. valor_garantia_proporcional).
+  , CAST(NULL AS NUMERIC) AS `saldo_seguro`
+  , CAST(NULL AS NUMERIC) AS `saldo_costas_procesales`
+  , CAST(NULL AS STRING) AS `tipo_tarjeta_credito`
+  , CAST(NULL AS STRING) AS `clase_tarjeta_credito`
+  , CAST(NULL AS STRING) AS `producto_tarjeta_credito`
+  , CAST(NULL AS NUMERIC) AS `valor_garantia_cons`
+  , CAST(NULL AS STRING) AS `municipio_otorgamiento`
+  , CAST(NULL AS NUMERIC) AS `reserva_referencia`
+  , CAST(NULL AS STRING) AS `etapa_judicial`
+  , CAST(NULL AS DATE) AS `fecha_demanda`
+  , CAST(NULL AS NUMERIC) AS `plazo_credito`
+  , CAST(NULL AS STRING) AS `orden_descuento`
+  , CAST(NULL AS STRING) AS `categoria_riesgo_ref`
+  , CAST(NULL AS NUMERIC) AS `reserva_constituir`
+  , CAST(NULL AS NUMERIC) AS `porcentaje_reserva`
+  , CAST(NULL AS NUMERIC) AS `pago_cuota`
+  , CAST(NULL AS DATE) AS `fecha_pago`
+  , CAST(NULL AS NUMERIC) AS `porcenta_reserva_descon`
+  , CAST(NULL AS NUMERIC) AS `porcenta_adiciona_descon`
+  , CAST(NULL AS STRING) AS `depto_destino_credito`
+  , CAST(NULL AS NUMERIC) AS `porc_reserva_referencia`
+  , CAST(NULL AS NUMERIC) AS `calculo_brecha`
+  , CAST(NULL AS NUMERIC) AS `ajuste_brecha`
+  , CAST(NULL AS STRING) AS `programa_asist_cafe`
+
+FROM ${ref("stg_approved_loans")}
