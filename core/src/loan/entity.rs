@@ -382,8 +382,8 @@ impl Loan {
     }
 
     fn is_expired(&self) -> bool {
-        match self.approved_at() {
-            Some(approved_at) => Utc::now() > self.terms.duration.expiration_date(approved_at),
+        match self.expires_at() {
+            Some(expiration_date) => Utc::now() > expiration_date,
             None => false,
         }
     }
