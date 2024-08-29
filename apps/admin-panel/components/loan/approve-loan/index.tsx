@@ -72,14 +72,15 @@ export const LoanApproveDialog = ({
     }
   }
 
-  const collateralRequired =
-    Math.abs(
-      (((((loanDetails.loanTerms.initialCvl - loanDetails.currentCvl) / 100) *
-        loanDetails.principal) /
-        100) *
-        priceInfo?.realtimePrice.usdCentsPerBtc) /
-        100,
-    ) / 100_000_000
+  const btcToUsd = priceInfo?.realtimePrice.usdCentsPerBtc / 100
+  const btcToSats = 100_000_000
+  const collateralValue =
+    (btcToUsd * loanDetails.balance.collateral.btcBalance) / btcToSats
+  const currentCvl = (collateralValue / (loanDetails.principal / 100)) * 100
+  const cvlDiff = loanDetails.loanTerms.initialCvl - currentCvl
+  const collateralRequired = ((cvlDiff / 100) * loanDetails.principal) / btcToUsd
+
+  const disallowApproval = loanDetails.currentCvl < loanDetails.loanTerms.marginCallCvl
 
   return (
     <Dialog
@@ -157,12 +158,33 @@ export const LoanApproveDialog = ({
             />
             <DetailItem
               label="Collateral to meet target CVL"
-              valueComponent={<Balance amount={collateralRequired} currency="btc" />}
+              valueComponent={
+                <span className="font-mono">
+                  {formatCurrency({
+                    amount: collateralRequired,
+                    currency: "BTC",
+                  })}
+                </span>
+              }
+            />
+            <DetailItem
+              label="Margin Call CVL %"
+              value={`${loanDetails.loanTerms.marginCallCvl}%`}
             />
           </DetailsGroup>
           {error && <span className="text-destructive">{error.message}</span>}
+          {loanDetails.currentCvl < loanDetails.loanTerms.marginCallCvl && (
+            <span className="text-destructive">
+              Loan cannot be approved if Current CVL {"<"} Margin Call CVL
+            </span>
+          )}
           <DialogFooter className="mt-4">
-            <Button className="w-32" disabled={loading} onClick={handleLoanApprove}>
+            <Button
+              className={`w-32 ${disallowApproval && "cursor-not-allowed"}`}
+              variant={disallowApproval ? "secondary" : "primary"}
+              disabled={loading || disallowApproval}
+              onClick={handleLoanApprove}
+            >
               Approve Loan
             </Button>
           </DialogFooter>
