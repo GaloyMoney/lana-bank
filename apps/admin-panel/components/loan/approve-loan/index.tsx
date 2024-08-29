@@ -11,10 +11,15 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/primitive/dialog"
-import { Loan, useLoanApproveMutation } from "@/lib/graphql/generated"
+import {
+  Loan,
+  useGetRealtimePriceUpdatesQuery,
+  useLoanApproveMutation,
+} from "@/lib/graphql/generated"
 import { Button } from "@/components/primitive/button"
 import { DetailItem, DetailsGroup } from "@/components/details"
 import Balance from "@/components/balance/balance"
+import { formatCurrency } from "@/lib/utils"
 
 gql`
   mutation LoanApprove($input: LoanApproveInput!) {
@@ -48,6 +53,7 @@ export const LoanApproveDialog = ({
   children: React.ReactNode
   refetch?: () => void
 }) => {
+  const { data: priceInfo } = useGetRealtimePriceUpdatesQuery()
   const [LoanApprove, { data, loading, error, reset }] = useLoanApproveMutation()
 
   const handleLoanApprove = async () => {
@@ -65,6 +71,15 @@ export const LoanApproveDialog = ({
       console.error(err)
     }
   }
+
+  const collateralRequired =
+    Math.abs(
+      (((((loanDetails.loanTerms.initialCvl - loanDetails.currentCvl) / 100) *
+        loanDetails.principal) /
+        100) *
+        priceInfo?.realtimePrice.usdCentsPerBtc) /
+        100,
+    ) / 100_000_000
 
   return (
     <Dialog
@@ -120,10 +135,8 @@ export const LoanApproveDialog = ({
             <DialogDescription>Fill in the details to Approve loan.</DialogDescription>
           </DialogHeader>
           <DetailsGroup>
-            <DetailItem label="Loan ID" value={loanDetails.loanId} />
-            <DetailItem label="Created At" value={loanDetails.createdAt} />
             <DetailItem
-              label="Collateral"
+              label="Collateral Balance"
               valueComponent={
                 <Balance
                   amount={loanDetails.balance.collateral.btcBalance}
@@ -132,22 +145,19 @@ export const LoanApproveDialog = ({
               }
             />
             <DetailItem
-              label="Interest Incurred"
-              valueComponent={
-                <Balance
-                  amount={loanDetails.balance.interestIncurred.usdBalance}
-                  currency="usd"
-                />
-              }
+              label={`Current CVL (BTC/USD: ${formatCurrency({
+                amount: priceInfo?.realtimePrice.usdCentsPerBtc / 100,
+                currency: "USD",
+              })})`}
+              value={`${loanDetails.currentCvl}%`}
             />
             <DetailItem
-              label="Outstanding"
-              valueComponent={
-                <Balance
-                  amount={loanDetails.balance.outstanding.usdBalance}
-                  currency="usd"
-                />
-              }
+              label="Target (Initial) CVL %"
+              value={`${loanDetails.loanTerms.initialCvl}%`}
+            />
+            <DetailItem
+              label="Collateral to meet target CVL"
+              valueComponent={<Balance amount={collateralRequired} currency="btc" />}
             />
           </DetailsGroup>
           {error && <span className="text-destructive">{error.message}</span>}
