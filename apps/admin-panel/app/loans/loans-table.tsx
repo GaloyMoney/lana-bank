@@ -38,7 +38,12 @@ gql`
             customerId
             email
           }
+          principal
+          currentCvl @client
           balance {
+            collateral {
+              btcBalance
+            }
             outstanding {
               usdBalance
             }
@@ -86,6 +91,7 @@ const LoansTable = () => {
             <TableRow>
               <TableHead>Created At</TableHead>
               <TableHead>Customer</TableHead>
+              <TableHead>Current CVL</TableHead>
               <TableHead>Outstanding Balance</TableHead>
               <TableHead>Status</TableHead>
               <TableHead></TableHead>
@@ -101,6 +107,10 @@ const LoansTable = () => {
                     <Link href={`/customers/${loan.customer.customerId}`}>
                       {loan.customer.email}
                     </Link>
+                  </TableCell>
+                  <TableCell>
+                    <span className="font-mono">{loan.currentCvl}</span>
+                    {" %"}
                   </TableCell>
                   <TableCell>
                     <div className="flex flex-col gap-1">
