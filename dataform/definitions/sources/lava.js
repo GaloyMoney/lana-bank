@@ -1,10 +1,12 @@
 const tables = ["loans", "loan_events"]
 
+envs.all.forEach((env) => {
   tables.forEach((table) => {
     declare({
-      database: "cala-enterprise",
-      schema: "jireva_lava_dev_dataset",
+      database: env.database,
+      schema: env.importSchema,
       name: table,
       tags: ["lava"]
     })
   })
+})
