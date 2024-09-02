@@ -224,14 +224,13 @@ export const CreateLoanDialog = ({
               />
               <div className="p-1.5 bg-input-text rounded-md px-4">USD</div>
             </div>
-            {formValues.desiredPrincipal && priceInfo && (
+            {priceInfo && (
               <div className="mt-2 text-sm">
                 {formatCurrency({
-                  currency: "SATS",
+                  currency: "BTC",
                   amount:
-                    ((Number(formValues.desiredPrincipal) * 100) /
-                      priceInfo.realtimePrice.usdCentsPerBtc) *
-                    100_000_000,
+                    (Number(formValues.desiredPrincipal || 0) * 100) /
+                    priceInfo.realtimePrice.usdCentsPerBtc,
                 })}{" "}
                 collateral required (BTC/USD:{" "}
                 {formatCurrency({

@@ -139,18 +139,7 @@ export const LoanApproveDialog = ({
               }
             />
             <DetailItem
-              label={`Current CVL (BTC/USD: ${formatCurrency({
-                amount: priceInfo?.realtimePrice.usdCentsPerBtc / 100,
-                currency: "USD",
-              })})`}
-              value={`${loanDetails.currentCvl}%`}
-            />
-            <DetailItem
-              label="Target (Initial) CVL %"
-              value={`${loanDetails.loanTerms.initialCvl}%`}
-            />
-            <DetailItem
-              label="Collateral to meet target CVL"
+              label="Expected Collateral to meet target CVL"
               valueComponent={
                 loanDetails.collateralToMatchInitialCvl ? (
                   <span className="font-mono">
@@ -163,6 +152,17 @@ export const LoanApproveDialog = ({
                   <>Price not available</>
                 )
               }
+            />
+            <DetailItem
+              label={`Current CVL (BTC/USD: ${formatCurrency({
+                amount: priceInfo?.realtimePrice.usdCentsPerBtc / 100,
+                currency: "USD",
+              })})`}
+              value={`${loanDetails.currentCvl}%`}
+            />
+            <DetailItem
+              label="Target (Initial) CVL %"
+              value={`${loanDetails.loanTerms.initialCvl}%`}
             />
             <DetailItem
               label="Margin Call CVL %"

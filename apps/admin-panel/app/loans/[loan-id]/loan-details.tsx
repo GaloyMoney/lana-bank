@@ -341,7 +341,7 @@ const LoanDetails: React.FC<LoanDetailsProps> = ({ loanId }) => {
 
                   {loanDetails.loan.currentCvl === 0 ? (
                     <DetailItem
-                      label="Required Collateral"
+                      label="Expected Collateral"
                       valueComponent={
                         loanDetails.loan.collateralToMatchInitialCvl ? (
                           <span className="font-mono">
