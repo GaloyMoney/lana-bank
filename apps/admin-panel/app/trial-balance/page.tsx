@@ -128,12 +128,6 @@ gql`
       netDebit
       netCredit
     }
-    encumbrance {
-      debit
-      credit
-      netDebit
-      netCredit
-    }
   }
 
   fragment usdBalances on LayeredUsdAccountAmounts {
@@ -155,16 +149,10 @@ gql`
       netDebit
       netCredit
     }
-    encumbrance {
-      debit
-      credit
-      netDebit
-      netCredit
-    }
   }
 `
 
-type Layers = "all" | "settled" | "pending" | "encumbrance"
+type Layers = "all" | "settled" | "pending"
 type TrialBalanceValuesProps = {
   data:
     | GetOffBalanceSheetTrialBalanceQuery["offBalanceSheetTrialBalance"]

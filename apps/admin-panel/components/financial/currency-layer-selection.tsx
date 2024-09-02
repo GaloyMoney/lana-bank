@@ -57,10 +57,6 @@ export const CurrencyLayerSelection: React.FC<CurrencyLayerSelectionProps> = ({
             <RadioGroupItem value="pending" id="layer-pending" />
             <Label htmlFor="layer-pending">Pending</Label>
           </div>
-          <div className="flex items-center space-x-2">
-            <RadioGroupItem value="encumbrance" id="layer-encumbrance" />
-            <Label htmlFor="layer-encumbrance">Encumbrance</Label>
-          </div>
         </RadioGroup>
       </div>
     </div>

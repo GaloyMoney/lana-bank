@@ -1,4 +1,4 @@
-type Layers = "all" | "settled" | "pending" | "encumbrance"
+type Layers = "all" | "settled" | "pending"
 type TransactionType = "netCredit" | "netDebit" | "debit" | "credit"
 
 type WithdrawalWithCustomer = {
