@@ -181,7 +181,7 @@ impl CalaClient {
                 loan_id
             ),
             loan_principal_receivable_account_name: format!(
-                "Loan Interest Receivable Account for {}",
+                "Loan Principal Receivable Account for {}",
                 loan_id
             ),
             loans_principal_receivable_control_account_set_id:
@@ -189,7 +189,7 @@ impl CalaClient {
             loan_interest_receivable_account_id: Uuid::from(interest_receivable_account_id),
             loan_interest_receivable_account_code: format!("LOANS.INTEREST_RECEIVABLE.{}", loan_id),
             loan_interest_receivable_account_name: format!(
-                "Loan Principal Receivable Account for {}",
+                "Loan Interest Receivable Account for {}",
                 loan_id
             ),
             loans_interest_receivable_control_account_set_id:
