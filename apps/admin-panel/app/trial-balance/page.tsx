@@ -128,6 +128,12 @@ gql`
       netDebit
       netCredit
     }
+    encumbrance {
+      debit
+      credit
+      netDebit
+      netCredit
+    }
   }
 
   fragment usdBalances on LayeredUsdAccountAmounts {
@@ -144,6 +150,12 @@ gql`
       netCredit
     }
     pending {
+      debit
+      credit
+      netDebit
+      netCredit
+    }
+    encumbrance {
       debit
       credit
       netDebit
