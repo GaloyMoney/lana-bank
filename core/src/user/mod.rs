@@ -50,7 +50,7 @@ impl Users {
 
     async fn create_and_assign_role_to_superuser(&self, email: String) -> Result<(), UserError> {
         let subject = Subject::System(SystemNode::Init);
-        let audit_info = self
+        let audit_id = self
             .audit
             .record_entry(&subject, Object::User, UserAction::Create, true)
             .await?;
@@ -58,12 +58,12 @@ impl Users {
         if self.find_by_email(&email).await?.is_none() {
             let new_user = NewUser::builder()
                 .email(&email)
-                .audit_info(audit_info)
+                .audit_id(audit_id)
                 .build()
                 .expect("Could not build user");
             let mut db = self.pool.begin().await?;
             let mut user = self.repo.create_in_tx(&mut db, new_user).await?;
-            user.assign_role(Role::Superuser, audit_info);
+            user.assign_role(Role::Superuser, audit_id);
             self.authz
                 .assign_role_to_subject(user.id, &Role::Superuser)
                 .await?;
@@ -82,13 +82,13 @@ impl Users {
         sub: &Subject,
         email: impl Into<String>,
     ) -> Result<User, UserError> {
-        let audit_info = self
+        let audit_id = self
             .authz
             .check_permission(sub, Object::User, UserAction::Create)
             .await?;
         let new_user = NewUser::builder()
             .email(email)
-            .audit_info(audit_info)
+            .audit_id(audit_id)
             .build()
             .expect("Could not build user");
         let mut db = self.pool.begin().await?;
@@ -144,13 +144,13 @@ impl Users {
         id: UserId,
         role: Role,
     ) -> Result<User, UserError> {
-        let audit_info = self
+        let audit_id = self
             .authz
             .check_permission(sub, Object::User, UserAction::AssignRole(role))
             .await?;
 
         let mut user = self.repo.find_by_id(id).await?;
-        if user.assign_role(role, audit_info) {
+        if user.assign_role(role, audit_id) {
             self.authz.assign_role_to_subject(user.id, &role).await?;
             self.repo.persist(&mut user).await?;
         }

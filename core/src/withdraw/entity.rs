@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 use super::error::*;
 use crate::{
     entity::*,
-    primitives::{AuditInfo, CustomerId, LedgerAccountId, LedgerTxId, UsdCents, WithdrawId},
+    primitives::{AuditEntryId, CustomerId, LedgerAccountId, LedgerTxId, UsdCents, WithdrawId},
 };
 
 #[derive(async_graphql::Enum, Debug, Copy, Clone, Serialize, Deserialize, Eq, PartialEq)]
@@ -24,15 +24,15 @@ pub enum WithdrawEvent {
         reference: String,
         debit_account_id: LedgerAccountId,
         ledger_tx_id: LedgerTxId,
-        audit_info: AuditInfo,
+        audit_id: AuditEntryId,
     },
     Confirmed {
         ledger_tx_id: LedgerTxId,
-        audit_info: AuditInfo,
+        audit_id: AuditEntryId,
     },
     Cancelled {
         ledger_tx_id: LedgerTxId,
-        audit_info: AuditInfo,
+        audit_id: AuditEntryId,
     },
 }
 
@@ -62,7 +62,7 @@ impl Withdraw {
 }
 
 impl Withdraw {
-    pub(super) fn confirm(&mut self, audit_info: AuditInfo) -> Result<LedgerTxId, WithdrawError> {
+    pub(super) fn confirm(&mut self, audit_id: AuditEntryId) -> Result<LedgerTxId, WithdrawError> {
         if self.is_confirmed() {
             return Err(WithdrawError::AlreadyConfirmed(self.id));
         }
@@ -74,13 +74,13 @@ impl Withdraw {
         let ledger_tx_id = LedgerTxId::new();
         self.events.push(WithdrawEvent::Confirmed {
             ledger_tx_id,
-            audit_info,
+            audit_id,
         });
 
         Ok(ledger_tx_id)
     }
 
-    pub(super) fn cancel(&mut self, audit_info: AuditInfo) -> Result<LedgerTxId, WithdrawError> {
+    pub(super) fn cancel(&mut self, audit_id: AuditEntryId) -> Result<LedgerTxId, WithdrawError> {
         if self.is_confirmed() {
             return Err(WithdrawError::AlreadyConfirmed(self.id));
         }
@@ -92,7 +92,7 @@ impl Withdraw {
         let ledger_tx_id = LedgerTxId::new();
         self.events.push(WithdrawEvent::Cancelled {
             ledger_tx_id,
-            audit_info,
+            audit_id,
         });
         Ok(ledger_tx_id)
     }
@@ -169,7 +169,7 @@ pub struct NewWithdraw {
     reference: Option<String>,
     pub(super) debit_account_id: LedgerAccountId,
     #[builder(setter(into))]
-    pub(super) audit_info: AuditInfo,
+    pub(super) audit_id: AuditEntryId,
 }
 
 impl NewWithdraw {
@@ -195,7 +195,7 @@ impl NewWithdraw {
                 customer_id: self.customer_id,
                 amount: self.amount,
                 debit_account_id: self.debit_account_id,
-                audit_info: self.audit_info,
+                audit_id: self.audit_id,
             }],
         )
     }

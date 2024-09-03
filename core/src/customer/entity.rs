@@ -10,30 +10,30 @@ pub enum CustomerEvent {
         id: CustomerId,
         email: String,
         account_ids: CustomerLedgerAccountIds,
-        audit_info: AuditInfo,
+        audit_id: AuditEntryId,
     },
     KycStarted {
         applicant_id: String,
-        audit_info: AuditInfo,
+        audit_id: AuditEntryId,
     },
     KycApproved {
         applicant_id: String,
         level: KycLevel,
-        audit_info: AuditInfo,
+        audit_id: AuditEntryId,
     },
     KycDeclined {
         applicant_id: String,
-        audit_info: AuditInfo,
+        audit_id: AuditEntryId,
     },
 }
 
 impl CustomerEvent {
-    fn audit_info(&self) -> AuditInfo {
+    fn audit_id(&self) -> AuditEntryId {
         match self {
-            CustomerEvent::Initialized { audit_info, .. } => *audit_info,
-            CustomerEvent::KycStarted { audit_info, .. } => *audit_info,
-            CustomerEvent::KycApproved { audit_info, .. } => *audit_info,
-            CustomerEvent::KycDeclined { audit_info, .. } => *audit_info,
+            CustomerEvent::Initialized { audit_id, .. } => *audit_id,
+            CustomerEvent::KycStarted { audit_id, .. } => *audit_id,
+            CustomerEvent::KycApproved { audit_id, .. } => *audit_id,
+            CustomerEvent::KycDeclined { audit_id, .. } => *audit_id,
         }
     }
 }
@@ -73,23 +73,23 @@ impl Customer {
         true
     }
 
-    pub fn audit_info(&self) -> Vec<AuditInfo> {
-        self.events.iter().map(|e| e.audit_info()).collect()
+    pub fn audit_ids(&self) -> Vec<AuditEntryId> {
+        self.events.iter().map(|e| e.audit_id()).collect()
     }
 
-    pub fn start_kyc(&mut self, applicant_id: String, audit_info: AuditInfo) {
+    pub fn start_kyc(&mut self, applicant_id: String, audit_id: AuditEntryId) {
         self.events.push(CustomerEvent::KycStarted {
             applicant_id: applicant_id.clone(),
-            audit_info,
+            audit_id,
         });
         self.applicant_id = Some(applicant_id);
     }
 
-    pub fn approve_kyc(&mut self, level: KycLevel, applicant_id: String, audit_info: AuditInfo) {
+    pub fn approve_kyc(&mut self, level: KycLevel, applicant_id: String, audit_id: AuditEntryId) {
         self.events.push(CustomerEvent::KycApproved {
             level,
             applicant_id: applicant_id.clone(),
-            audit_info,
+            audit_id,
         });
 
         self.applicant_id = Some(applicant_id);
@@ -97,10 +97,10 @@ impl Customer {
         self.status = AccountStatus::Active;
     }
 
-    pub fn deactivate(&mut self, applicant_id: String, audit_info: AuditInfo) {
+    pub fn deactivate(&mut self, applicant_id: String, audit_id: AuditEntryId) {
         self.events.push(CustomerEvent::KycDeclined {
             applicant_id,
-            audit_info,
+            audit_id,
         });
         self.level = KycLevel::NotKyced;
         self.status = AccountStatus::Inactive;
@@ -162,7 +162,7 @@ pub struct NewCustomer {
     pub(super) email: String,
     pub(super) account_ids: CustomerLedgerAccountIds,
     #[builder(setter(into))]
-    pub(super) audit_info: AuditInfo,
+    pub(super) audit_id: AuditEntryId,
 }
 
 impl NewCustomer {
@@ -177,7 +177,7 @@ impl NewCustomer {
                 id: self.id,
                 email: self.email,
                 account_ids: self.account_ids,
-                audit_info: self.audit_info,
+                audit_id: self.audit_id,
             }],
         )
     }

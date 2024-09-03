@@ -101,7 +101,7 @@ pub enum LoanEvent {
         terms: TermValues,
         account_ids: LoanAccountIds,
         customer_account_ids: CustomerLedgerAccountIds,
-        audit_info: AuditInfo,
+        audit_id: AuditEntryId,
     },
     CollateralUpdated {
         tx_id: LedgerTxId,
@@ -110,7 +110,7 @@ pub enum LoanEvent {
         abs_diff: Satoshis,
         action: CollateralAction,
         recorded_at: DateTime<Utc>,
-        audit_info: AuditInfo,
+        audit_id: AuditEntryId,
     },
     CollateralizationChanged {
         state: LoanCollaterizationState,
@@ -118,11 +118,11 @@ pub enum LoanEvent {
         outstanding: LoanReceivable,
         price: PriceOfOneBTC,
         recorded_at: DateTime<Utc>,
-        audit_info: AuditInfo,
+        audit_id: AuditEntryId,
     },
     Approved {
         tx_id: LedgerTxId,
-        audit_info: AuditInfo,
+        audit_id: AuditEntryId,
         recorded_at: DateTime<Utc>,
     },
     InterestIncurred {
@@ -130,7 +130,7 @@ pub enum LoanEvent {
         tx_ref: String,
         amount: UsdCents,
         recorded_at: DateTime<Utc>,
-        audit_info: AuditInfo,
+        audit_id: AuditEntryId,
     },
     PaymentRecorded {
         tx_id: LedgerTxId,
@@ -138,11 +138,11 @@ pub enum LoanEvent {
         principal_amount: UsdCents,
         interest_amount: UsdCents,
         recorded_at: DateTime<Utc>,
-        audit_info: AuditInfo,
+        audit_id: AuditEntryId,
     },
     Completed {
         completed_at: DateTime<Utc>,
-        audit_info: AuditInfo,
+        audit_id: AuditEntryId,
     },
 }
 
@@ -390,11 +390,11 @@ impl Loan {
         &mut self,
         LoanApproval { tx_id, .. }: LoanApproval,
         executed_at: DateTime<Utc>,
-        audit_info: AuditInfo,
+        audit_id: AuditEntryId,
     ) {
         self.events.push(LoanEvent::Approved {
             tx_id,
-            audit_info,
+            audit_id,
             recorded_at: executed_at,
         });
     }
@@ -489,14 +489,14 @@ impl Loan {
             ..
         }: LoanInterestAccrual,
         executed_at: DateTime<Utc>,
-        audit_info: AuditInfo,
+        audit_id: AuditEntryId,
     ) {
         self.events.push(LoanEvent::InterestIncurred {
             tx_id,
             tx_ref,
             amount: interest,
             recorded_at: executed_at,
-            audit_info,
+            audit_id,
         });
     }
 
@@ -544,7 +544,7 @@ impl Loan {
         &mut self,
         repayment: LoanRepayment,
         recorded_at: DateTime<Utc>,
-        audit_info: AuditInfo,
+        audit_id: AuditEntryId,
         price: PriceOfOneBTC,
         upgrade_buffer_cvl_pct: CVLPct,
     ) {
@@ -565,9 +565,9 @@ impl Loan {
                     principal_amount: principal,
                     interest_amount: interest,
                     recorded_at,
-                    audit_info,
+                    audit_id,
                 });
-                self.maybe_update_collateralization(price, upgrade_buffer_cvl_pct, audit_info);
+                self.maybe_update_collateralization(price, upgrade_buffer_cvl_pct, audit_id);
             }
             LoanRepayment::Final {
                 payment_tx_id,
@@ -588,7 +588,7 @@ impl Loan {
                     principal_amount: principal,
                     interest_amount: interest,
                     recorded_at,
-                    audit_info,
+                    audit_id,
                 });
                 self.confirm_collateral_update(
                     LoanCollateralUpdate {
@@ -599,13 +599,13 @@ impl Loan {
                         action: CollateralAction::Remove,
                     },
                     recorded_at,
-                    audit_info,
+                    audit_id,
                     price,
                     upgrade_buffer_cvl_pct,
                 );
                 self.events.push(LoanEvent::Completed {
                     completed_at: recorded_at,
-                    audit_info,
+                    audit_id,
                 });
             }
         }
@@ -641,7 +641,7 @@ impl Loan {
         &mut self,
         price: PriceOfOneBTC,
         upgrade_buffer_cvl_pct: CVLPct,
-        audit_info: AuditInfo,
+        audit_id: AuditEntryId,
     ) -> Option<LoanCollaterizationState> {
         let current_collateralization = self.collateralization();
         let calculated_collateralization = &self.calculate_collaterization(price);
@@ -655,20 +655,20 @@ impl Loan {
                 outstanding: self.outstanding(),
                 price,
                 recorded_at: Utc::now(),
-                audit_info,
+                audit_id,
             });
 
             return Some(*calculated_collateralization);
         }
 
-        self.maybe_update_collateralization(price, upgrade_buffer_cvl_pct, audit_info)
+        self.maybe_update_collateralization(price, upgrade_buffer_cvl_pct, audit_id)
     }
 
     pub fn maybe_update_collateralization(
         &mut self,
         price: PriceOfOneBTC,
         upgrade_buffer_cvl_pct: CVLPct,
-        audit_info: AuditInfo,
+        audit_id: AuditEntryId,
     ) -> Option<LoanCollaterizationState> {
         let collateral = self.collateral();
         let current_collateralization = self.collateralization();
@@ -717,7 +717,7 @@ impl Loan {
                         outstanding: self.outstanding(),
                         price,
                         recorded_at: Utc::now(),
-                        audit_info,
+                        audit_id,
                     });
 
                     Some(*calculated_collateralization)
@@ -737,7 +737,7 @@ impl Loan {
                     outstanding: self.outstanding(),
                     price,
                     recorded_at: Utc::now(),
-                    audit_info,
+                    audit_id,
                 });
 
                 Some(*calculated_collateralization)
@@ -807,7 +807,7 @@ impl Loan {
             ..
         }: LoanCollateralUpdate,
         executed_at: DateTime<Utc>,
-        audit_info: AuditInfo,
+        audit_id: AuditEntryId,
         price: PriceOfOneBTC,
         upgrade_buffer_cvl_pct: CVLPct,
     ) -> Option<LoanCollaterizationState> {
@@ -823,10 +823,10 @@ impl Loan {
             abs_diff,
             action,
             recorded_at: executed_at,
-            audit_info,
+            audit_id,
         });
 
-        self.maybe_update_collateralization(price, upgrade_buffer_cvl_pct, audit_info)
+        self.maybe_update_collateralization(price, upgrade_buffer_cvl_pct, audit_id)
     }
 }
 
@@ -879,13 +879,13 @@ pub struct NewLoan {
     account_ids: LoanAccountIds,
     customer_account_ids: CustomerLedgerAccountIds,
     #[builder(setter(into))]
-    pub(super) audit_info: AuditInfo,
+    pub(super) audit_id: AuditEntryId,
 }
 
 impl NewLoan {
-    pub fn builder(audit_info: AuditInfo) -> NewLoanBuilder {
+    pub fn builder(audit_id: AuditEntryId) -> NewLoanBuilder {
         let mut builder = NewLoanBuilder::default();
-        builder.audit_info(audit_info);
+        builder.audit_id(audit_id);
         builder
     }
 
@@ -899,7 +899,7 @@ impl NewLoan {
                 terms: self.terms,
                 account_ids: self.account_ids,
                 customer_account_ids: self.customer_account_ids,
-                audit_info: self.audit_info,
+                audit_id: self.audit_id,
             }],
         )
     }
@@ -925,11 +925,9 @@ mod test {
             .expect("should build a valid term")
     }
 
-    fn dummy_audit_info() -> AuditInfo {
-        AuditInfo {
-            audit_entry_id: AuditEntryId::from(1),
-            sub: Subject::from(UserId::new()),
-        }
+    fn dummy_audit_id() -> AuditEntryId {
+        let i: i64 = 0;
+        i.into()
     }
 
     fn init_events() -> EntityEvents<LoanEvent> {
@@ -943,14 +941,14 @@ mod test {
                     terms: terms(),
                     account_ids: LoanAccountIds::new(),
                     customer_account_ids: CustomerLedgerAccountIds::new(),
-                    audit_info: dummy_audit_info(),
+                    audit_id: dummy_audit_id(),
                 },
                 LoanEvent::InterestIncurred {
                     tx_id: LedgerTxId::new(),
                     tx_ref: "tx_ref".to_string(),
                     amount: UsdCents::from(5),
                     recorded_at: Utc::now(),
-                    audit_info: dummy_audit_info(),
+                    audit_id: dummy_audit_id(),
                 },
             ],
         )
@@ -979,7 +977,7 @@ mod test {
         loan.confirm_repayment(
             repayment,
             Utc::now(),
-            dummy_audit_info(),
+            dummy_audit_id(),
             default_price(),
             default_upgrade_buffer_cvl_pct(),
         );
@@ -995,7 +993,7 @@ mod test {
         loan.confirm_repayment(
             repayment,
             Utc::now(),
-            dummy_audit_info(),
+            dummy_audit_id(),
             default_price(),
             default_upgrade_buffer_cvl_pct(),
         );
@@ -1016,7 +1014,7 @@ mod test {
         loan.confirm_repayment(
             repayment,
             Utc::now(),
-            dummy_audit_info(),
+            dummy_audit_id(),
             default_price(),
             default_upgrade_buffer_cvl_pct(),
         );
@@ -1040,13 +1038,13 @@ mod test {
         loan.confirm_collateral_update(
             loan_collateral_update,
             Utc::now(),
-            dummy_audit_info(),
+            dummy_audit_id(),
             default_price(),
             default_upgrade_buffer_cvl_pct(),
         );
         let loan_approval = loan.initiate_approval();
         assert!(loan_approval.is_ok());
-        loan.confirm_approval(loan_approval.unwrap(), Utc::now(), dummy_audit_info());
+        loan.confirm_approval(loan_approval.unwrap(), Utc::now(), dummy_audit_id());
 
         let loan_approval = loan.initiate_approval();
         assert!(loan_approval.is_err())
@@ -1064,7 +1062,7 @@ mod test {
         loan.confirm_collateral_update(
             loan_collateral_update,
             Utc::now(),
-            dummy_audit_info(),
+            dummy_audit_id(),
             default_price(),
             default_upgrade_buffer_cvl_pct(),
         );
@@ -1072,7 +1070,7 @@ mod test {
         let approval_time = Utc::now();
         let loan_approval = loan.initiate_approval();
         assert!(loan_approval.is_ok());
-        loan.confirm_approval(loan_approval.unwrap(), approval_time, dummy_audit_info());
+        loan.confirm_approval(loan_approval.unwrap(), approval_time, dummy_audit_id());
         assert_eq!(loan.approved_at(), Some(approval_time));
         assert!(loan.expires_at().is_some())
     }
@@ -1087,19 +1085,19 @@ mod test {
         loan.confirm_collateral_update(
             loan_collateral_update,
             Utc::now(),
-            dummy_audit_info(),
+            dummy_audit_id(),
             default_price(),
             default_upgrade_buffer_cvl_pct(),
         );
         let loan_approval = loan.initiate_approval().unwrap();
-        loan.confirm_approval(loan_approval, Utc::now(), dummy_audit_info());
+        loan.confirm_approval(loan_approval, Utc::now(), dummy_audit_id());
         assert_eq!(loan.status(), LoanStatus::Active);
         let amount = UsdCents::from(105);
         let repayment = loan.initiate_repayment(amount).unwrap();
         loan.confirm_repayment(
             repayment,
             Utc::now(),
-            dummy_audit_info(),
+            dummy_audit_id(),
             default_price(),
             default_upgrade_buffer_cvl_pct(),
         );
@@ -1118,7 +1116,7 @@ mod test {
         loan.confirm_collateral_update(
             loan_collateral_update,
             Utc::now(),
-            dummy_audit_info(),
+            dummy_audit_id(),
             default_price(),
             default_upgrade_buffer_cvl_pct(),
         );
@@ -1130,7 +1128,7 @@ mod test {
         loan.confirm_collateral_update(
             loan_collateral_update,
             Utc::now(),
-            dummy_audit_info(),
+            dummy_audit_id(),
             default_price(),
             default_upgrade_buffer_cvl_pct(),
         );
@@ -1159,16 +1157,16 @@ mod test {
         loan.confirm_collateral_update(
             loan_collateral_update,
             Utc::now(),
-            dummy_audit_info(),
+            dummy_audit_id(),
             default_price(),
             default_upgrade_buffer_cvl_pct(),
         );
         let loan_approval = loan.initiate_approval();
-        loan.confirm_approval(loan_approval.unwrap(), Utc::now(), dummy_audit_info());
+        loan.confirm_approval(loan_approval.unwrap(), Utc::now(), dummy_audit_id());
         loan.maybe_update_collateralization(
             default_price(),
             default_upgrade_buffer_cvl_pct(),
-            dummy_audit_info(),
+            dummy_audit_id(),
         );
         assert_eq!(
             loan.collateralization(),
@@ -1186,12 +1184,12 @@ mod test {
         loan.confirm_collateral_update(
             loan_collateral_update,
             Utc::now(),
-            dummy_audit_info(),
+            dummy_audit_id(),
             default_price(),
             default_upgrade_buffer_cvl_pct(),
         );
         let loan_approval = loan.initiate_approval();
-        loan.confirm_approval(loan_approval.unwrap(), Utc::now(), dummy_audit_info());
+        loan.confirm_approval(loan_approval.unwrap(), Utc::now(), dummy_audit_id());
 
         let expected_cvl = CVLPct::from(dec!(142));
         let cvl = loan.cvl(PriceOfOneBTC::new(UsdCents::from(5000000)));
@@ -1225,7 +1223,7 @@ mod test {
                 loan.maybe_update_collateralization(
                     price_from(7500000),
                     upgrade_buffer_cvl_pct,
-                    dummy_audit_info()
+                    dummy_audit_id()
                 ),
                 None
             );
@@ -1237,7 +1235,7 @@ mod test {
             loan.confirm_collateral_update(
                 loan_collateral_update,
                 Utc::now(),
-                dummy_audit_info(),
+                dummy_audit_id(),
                 default_price(),
                 default_upgrade_buffer_cvl_pct(),
             );
@@ -1245,7 +1243,7 @@ mod test {
             assert_eq!(c, LoanCollaterizationState::FullyCollateralized);
 
             let loan_approval = loan.initiate_approval();
-            loan.confirm_approval(loan_approval.unwrap(), Utc::now(), dummy_audit_info());
+            loan.confirm_approval(loan_approval.unwrap(), Utc::now(), dummy_audit_id());
             assert_eq!(loan.status(), LoanStatus::Active);
 
             // FullyCollateralized -> None
@@ -1253,7 +1251,7 @@ mod test {
                 loan.maybe_update_collateralization(
                     price_from(7500000),
                     upgrade_buffer_cvl_pct,
-                    dummy_audit_info()
+                    dummy_audit_id()
                 ),
                 None
             );
@@ -1265,7 +1263,7 @@ mod test {
                 loan.maybe_update_collateralization(
                     price_from(4350000),
                     upgrade_buffer_cvl_pct,
-                    dummy_audit_info()
+                    dummy_audit_id()
                 ),
                 Some(LoanCollaterizationState::UnderMarginCallThreshold)
             );
@@ -1277,7 +1275,7 @@ mod test {
                 loan.maybe_update_collateralization(
                     price_from(4550000),
                     upgrade_buffer_cvl_pct,
-                    dummy_audit_info()
+                    dummy_audit_id()
                 ),
                 None
             );
@@ -1289,7 +1287,7 @@ mod test {
                 loan.maybe_update_collateralization(
                     price_from(4600000),
                     upgrade_buffer_cvl_pct,
-                    dummy_audit_info()
+                    dummy_audit_id()
                 ),
                 Some(LoanCollaterizationState::FullyCollateralized)
             );
@@ -1301,7 +1299,7 @@ mod test {
                 loan.maybe_update_collateralization(
                     price_from(3000000),
                     upgrade_buffer_cvl_pct,
-                    dummy_audit_info()
+                    dummy_audit_id()
                 ),
                 Some(LoanCollaterizationState::UnderLiquidationThreshold)
             );
@@ -1313,7 +1311,7 @@ mod test {
                 loan.maybe_update_collateralization(
                     price_from(10000000),
                     upgrade_buffer_cvl_pct,
-                    dummy_audit_info()
+                    dummy_audit_id()
                 ),
                 None
             );
@@ -1333,7 +1331,7 @@ mod test {
                 loan.maybe_update_collateralization(
                     price_from(6500000),
                     upgrade_buffer_cvl_pct,
-                    dummy_audit_info()
+                    dummy_audit_id()
                 ),
                 None
             );
@@ -1346,7 +1344,7 @@ mod test {
             loan.confirm_collateral_update(
                 loan_collateral_update,
                 Utc::now(),
-                dummy_audit_info(),
+                dummy_audit_id(),
                 default_price(),
                 default_upgrade_buffer_cvl_pct(),
             );
@@ -1359,7 +1357,7 @@ mod test {
             loan.confirm_collateral_update(
                 loan_collateral_update,
                 Utc::now(),
-                dummy_audit_info(),
+                dummy_audit_id(),
                 default_price(),
                 default_upgrade_buffer_cvl_pct(),
             );
@@ -1368,14 +1366,14 @@ mod test {
 
             // LoanStatus::Active
             let loan_approval = loan.initiate_approval();
-            loan.confirm_approval(loan_approval.unwrap(), Utc::now(), dummy_audit_info());
+            loan.confirm_approval(loan_approval.unwrap(), Utc::now(), dummy_audit_id());
             assert_eq!(loan.status(), LoanStatus::Active);
 
             assert_eq!(
                 loan.maybe_update_collateralization(
                     price_from(4350000),
                     upgrade_buffer_cvl_pct,
-                    dummy_audit_info()
+                    dummy_audit_id()
                 ),
                 Some(LoanCollaterizationState::UnderMarginCallThreshold)
             );
@@ -1388,7 +1386,7 @@ mod test {
             loan.confirm_repayment(
                 repayment,
                 Utc::now(),
-                dummy_audit_info(),
+                dummy_audit_id(),
                 default_price(),
                 default_upgrade_buffer_cvl_pct(),
             );
@@ -1400,7 +1398,7 @@ mod test {
                 loan.maybe_update_collateralization(
                     price_from(10000000),
                     upgrade_buffer_cvl_pct,
-                    dummy_audit_info()
+                    dummy_audit_id()
                 ),
                 None
             );
@@ -1418,7 +1416,7 @@ mod test {
             loan.confirm_collateral_update(
                 loan_collateral_update,
                 Utc::now(),
-                dummy_audit_info(),
+                dummy_audit_id(),
                 default_price(),
                 default_upgrade_buffer_cvl_pct(),
             );
@@ -1426,7 +1424,7 @@ mod test {
             assert_eq!(c, LoanCollaterizationState::UnderLiquidationThreshold);
 
             let loan_approval = loan.initiate_approval();
-            loan.confirm_approval(loan_approval.unwrap(), Utc::now(), dummy_audit_info());
+            loan.confirm_approval(loan_approval.unwrap(), Utc::now(), dummy_audit_id());
             assert_eq!(loan.status(), LoanStatus::Active);
 
             // Check allowed changes from Liquidation state
@@ -1436,7 +1434,7 @@ mod test {
             loan.confirm_collateral_update(
                 loan_collateral_update,
                 Utc::now(),
-                dummy_audit_info(),
+                dummy_audit_id(),
                 default_price(),
                 default_upgrade_buffer_cvl_pct(),
             );
@@ -1448,7 +1446,7 @@ mod test {
                 loan.maybe_update_collateralization(
                     price,
                     default_upgrade_buffer_cvl_pct(),
-                    dummy_audit_info()
+                    dummy_audit_id()
                 ),
                 None
             );
@@ -1459,7 +1457,7 @@ mod test {
                 loan.maybe_update_collateralization_with_liquidation_override(
                     price,
                     default_upgrade_buffer_cvl_pct(),
-                    dummy_audit_info()
+                    dummy_audit_id()
                 ),
                 Some(LoanCollaterizationState::FullyCollateralized)
             );

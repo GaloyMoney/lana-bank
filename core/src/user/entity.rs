@@ -11,15 +11,15 @@ pub enum UserEvent {
     Initialized {
         id: UserId,
         email: String,
-        audit_info: AuditInfo,
+        audit_id: AuditEntryId,
     },
     RoleAssigned {
         role: Role,
-        audit_info: AuditInfo,
+        audit_id: AuditEntryId,
     },
     RoleRevoked {
         role: Role,
-        audit_info: AuditInfo,
+        audit_id: AuditEntryId,
     },
 }
 
@@ -39,22 +39,20 @@ pub struct User {
 }
 
 impl User {
-    pub fn assign_role(&mut self, role: Role, audit_info: AuditInfo) -> bool {
+    pub fn assign_role(&mut self, role: Role, audit_id: AuditEntryId) -> bool {
         let mut roles = self.current_roles();
         if roles.insert(role) {
-            self.events
-                .push(UserEvent::RoleAssigned { role, audit_info });
+            self.events.push(UserEvent::RoleAssigned { role, audit_id });
             true
         } else {
             false
         }
     }
 
-    pub fn revoke_role(&mut self, role: Role, audit_info: AuditInfo) -> bool {
+    pub fn revoke_role(&mut self, role: Role, audit_id: AuditEntryId) -> bool {
         let mut roles = self.current_roles();
         if roles.remove(&role) {
-            self.events
-                .push(UserEvent::RoleRevoked { role, audit_info });
+            self.events.push(UserEvent::RoleRevoked { role, audit_id });
             true
         } else {
             false
@@ -112,7 +110,7 @@ pub struct NewUser {
     pub(super) id: UserId,
     #[builder(setter(into))]
     pub(super) email: String,
-    pub(super) audit_info: AuditInfo,
+    pub(super) audit_id: AuditEntryId,
 }
 
 impl NewUser {
@@ -130,7 +128,7 @@ impl NewUser {
             [UserEvent::Initialized {
                 id: self.id,
                 email: self.email,
-                audit_info: self.audit_info,
+                audit_id: self.audit_id,
             }],
         )
     }

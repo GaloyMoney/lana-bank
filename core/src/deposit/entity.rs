@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::{
     entity::*,
-    primitives::{AuditInfo, CustomerId, DepositId, LedgerAccountId, UsdCents},
+    primitives::{AuditEntryId, CustomerId, DepositId, LedgerAccountId, UsdCents},
 };
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -15,7 +15,7 @@ pub enum DepositEvent {
         amount: UsdCents,
         reference: String,
         credit_account_id: LedgerAccountId,
-        audit_info: AuditInfo,
+        audit_id: AuditEntryId,
     },
 }
 
@@ -35,7 +35,7 @@ pub struct Deposit {
     pub credit_account_id: LedgerAccountId,
     pub reference: String,
     pub(super) events: EntityEvents<DepositEvent>,
-    pub audit_info: AuditInfo,
+    pub audit_id: AuditEntryId,
 }
 
 impl std::fmt::Display for Deposit {
@@ -68,7 +68,7 @@ impl TryFrom<EntityEvents<DepositEvent>> for Deposit {
                     customer_id,
                     amount,
                     credit_account_id,
-                    audit_info,
+                    audit_id,
                     reference,
                     ..
                 } => {
@@ -77,7 +77,7 @@ impl TryFrom<EntityEvents<DepositEvent>> for Deposit {
                         .customer_id(*customer_id)
                         .amount(*amount)
                         .credit_account_id(*credit_account_id)
-                        .audit_info(*audit_info)
+                        .audit_id(*audit_id)
                         .reference(reference.clone());
                 }
             }
@@ -97,7 +97,7 @@ pub struct NewDeposit {
     reference: Option<String>,
     pub(super) credit_account_id: LedgerAccountId,
     #[builder(setter(into))]
-    pub audit_info: AuditInfo,
+    pub audit_id: AuditEntryId,
 }
 
 impl NewDeposit {
@@ -122,7 +122,7 @@ impl NewDeposit {
                 customer_id: self.customer_id,
                 amount: self.amount,
                 credit_account_id: self.credit_account_id,
-                audit_info: self.audit_info,
+                audit_id: self.audit_id,
             }],
         )
     }

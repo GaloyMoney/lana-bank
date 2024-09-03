@@ -64,7 +64,7 @@ impl Customers {
         sub: &Subject,
         email: String,
     ) -> Result<Customer, CustomerError> {
-        let audit_info = self
+        let audit_id = self
             .authz
             .check_permission(sub, Object::Customer, CustomerAction::Create)
             .await?;
@@ -78,7 +78,7 @@ impl Customers {
             .id(customer_id)
             .email(email)
             .account_ids(ledger_account_ids)
-            .audit_info(audit_info)
+            .audit_id(audit_id)
             .build()
             .expect("Could not build customer");
 
@@ -96,7 +96,7 @@ impl Customers {
     ) -> Result<Customer, CustomerError> {
         let mut db = self.pool.begin().await?;
 
-        let audit_info = &self
+        let audit_id = &self
             .audit
             .record_entry_in_tx(
                 &mut db,
@@ -112,7 +112,7 @@ impl Customers {
             .id(id)
             .email(email)
             .account_ids(ledger_account_ids)
-            .audit_info(*audit_info)
+            .audit_id(*audit_id)
             .build()
             .expect("Could not build customer");
 
@@ -187,7 +187,7 @@ impl Customers {
 
         let mut db_tx = self.pool.begin().await?;
 
-        let audit_info = self
+        let audit_id = self
             .audit
             .record_entry_in_tx(
                 &mut db_tx,
@@ -198,7 +198,7 @@ impl Customers {
             )
             .await?;
 
-        customer.start_kyc(applicant_id, audit_info);
+        customer.start_kyc(applicant_id, audit_id);
 
         self.repo.persist_in_tx(&mut db_tx, &mut customer).await?;
         db_tx.commit().await?;
@@ -215,7 +215,7 @@ impl Customers {
 
         let mut db_tx = self.pool.begin().await?;
 
-        let audit_info = self
+        let audit_id = self
             .audit
             .record_entry_in_tx(
                 &mut db_tx,
@@ -226,7 +226,7 @@ impl Customers {
             )
             .await?;
 
-        customer.approve_kyc(KycLevel::Basic, applicant_id, audit_info);
+        customer.approve_kyc(KycLevel::Basic, applicant_id, audit_id);
 
         self.repo.persist_in_tx(&mut db_tx, &mut customer).await?;
         db_tx.commit().await?;
@@ -243,7 +243,7 @@ impl Customers {
 
         let mut db_tx = self.pool.begin().await?;
 
-        let audit_info = self
+        let audit_id = self
             .audit
             .record_entry_in_tx(
                 &mut db_tx,
@@ -254,7 +254,7 @@ impl Customers {
             )
             .await?;
 
-        customer.deactivate(applicant_id, audit_info);
+        customer.deactivate(applicant_id, audit_id);
 
         self.repo.persist_in_tx(&mut db_tx, &mut customer).await?;
         db_tx.commit().await?;

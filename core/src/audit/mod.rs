@@ -12,7 +12,7 @@ use sqlx::prelude::FromRow;
 
 use crate::{
     authorization::{Action, Object},
-    primitives::{AuditEntryId, AuditInfo, Subject},
+    primitives::{AuditEntryId, Subject},
 };
 
 pub struct AuditEntry {
@@ -50,7 +50,7 @@ impl Audit {
         object: Object,
         action: impl Into<Action>,
         authorized: bool,
-    ) -> Result<AuditInfo, AuditError> {
+    ) -> Result<AuditEntryId, AuditError> {
         let mut db = self.pool.begin().await?;
         let info = self
             .record_entry_in_tx(&mut db, subject, object, action, authorized)
@@ -66,7 +66,7 @@ impl Audit {
         object: Object,
         action: impl Into<Action>,
         authorized: bool,
-    ) -> Result<AuditInfo, AuditError> {
+    ) -> Result<AuditEntryId, AuditError> {
         let action = action.into();
         let record = sqlx::query!(
             r#"
@@ -82,7 +82,7 @@ impl Audit {
         .fetch_one(&mut **db)
         .await?;
 
-        Ok(AuditInfo::from((record.id, *subject)))
+        Ok(record.id.into())
     }
 
     pub async fn list(

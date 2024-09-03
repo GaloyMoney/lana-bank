@@ -12,7 +12,7 @@ use tokio::sync::RwLock;
 use tracing::instrument;
 
 use super::audit::Audit;
-use crate::primitives::{AuditInfo, Role, Subject};
+use crate::primitives::{AuditEntryId, Role, Subject};
 
 use error::AuthorizationError;
 
@@ -206,7 +206,7 @@ impl Authorization {
         sub: &Subject,
         object: Object,
         action: impl Into<Action> + std::fmt::Debug,
-    ) -> Result<AuditInfo, AuthorizationError> {
+    ) -> Result<AuditEntryId, AuthorizationError> {
         let mut enforcer = self.enforcer.write().await;
         enforcer.load_policy().await?;
 

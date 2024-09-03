@@ -500,23 +500,10 @@ impl From<AuditEntryId> for i64 {
     }
 }
 
-#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
-pub struct AuditInfo {
-    pub sub: Subject,
-    pub audit_entry_id: AuditEntryId,
-}
-
-impl<T, U> From<(T, U)> for AuditInfo
-where
-    T: Into<AuditEntryId>,
-    U: Into<Subject>,
-{
-    fn from((audit_entry_id, sub): (T, U)) -> Self {
-        Self {
-            sub: sub.into(),
-            audit_entry_id: audit_entry_id.into(),
-        }
-    }
+#[derive(async_graphql::Enum, Debug, Clone, Copy, Serialize, Deserialize, Eq, PartialEq)]
+pub enum CollateralAction {
+    Add,
+    Remove,
 }
 
 #[cfg(test)]
@@ -558,10 +545,4 @@ mod test {
         let sats = Satoshis::from(12_345);
         assert_eq!(UsdCents::from(617), price.sats_to_cents_round_down(sats));
     }
-}
-
-#[derive(async_graphql::Enum, Debug, Clone, Copy, Serialize, Deserialize, Eq, PartialEq)]
-pub enum CollateralAction {
-    Add,
-    Remove,
 }

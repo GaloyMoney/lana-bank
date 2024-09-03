@@ -40,7 +40,7 @@ pub struct Customer {
     #[graphql(skip)]
     account_ids: ledger::customer::CustomerLedgerAccountIds,
     #[graphql(skip)]
-    audit_info: Vec<primitives::AuditInfo>,
+    audit_ids: Vec<primitives::AuditEntryId>,
 }
 
 #[ComplexObject]
@@ -93,9 +93,7 @@ impl Customer {
 
     async fn audit(&self, ctx: &Context<'_>) -> async_graphql::Result<Vec<AuditEntry>> {
         let loader = ctx.data_unchecked::<DataLoader<LavaDataLoader>>();
-        let entries = loader
-            .load_many(self.audit_info.iter().map(|info| info.audit_entry_id))
-            .await?;
+        let entries = loader.load_many(self.audit_ids.clone()).await?;
 
         Ok(entries.into_values().collect())
     }
@@ -123,7 +121,7 @@ impl From<primitives::AccountStatus> for AccountStatus {
 impl From<crate::customer::Customer> for Customer {
     fn from(customer: crate::customer::Customer) -> Self {
         Customer {
-            audit_info: customer.audit_info(),
+            audit_ids: customer.audit_ids(),
             customer_id: UUID::from(customer.id),
             applicant_id: customer.applicant_id,
             email: customer.email,
