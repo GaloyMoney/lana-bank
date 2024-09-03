@@ -62,6 +62,14 @@ pub struct AddToAccountSet;
 #[derive(GraphQLQuery)]
 #[graphql(
     schema_path = "src/ledger/cala/graphql/schema.graphql",
+    query_path = "src/ledger/cala/graphql/bank-deposits.gql",
+    response_derives = "Debug, PartialEq, Eq, Clone"
+)]
+pub struct BankDepositsBalance;
+
+#[derive(GraphQLQuery)]
+#[graphql(
+    schema_path = "src/ledger/cala/graphql/schema.graphql",
     query_path = "src/ledger/cala/graphql/customer.gql",
     response_derives = "Debug, PartialEq, Eq, Clone"
 )]

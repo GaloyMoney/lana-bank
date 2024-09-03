@@ -1,5 +1,7 @@
 use thiserror::Error;
 
+use crate::primitives::UsdCents;
+
 #[derive(Error, Debug)]
 pub enum LedgerError {
     #[error("LedgerError - CalaError: {0}")]
@@ -22,6 +24,10 @@ pub enum LedgerError {
     CouldNotInitializeJournal,
     #[error("LedgerError - AccountNotFound")]
     AccountNotFound,
+    #[error(
+        "LoanError - WithdrawalAmountTooLarge: amount '{0}' is larger than bank balance '{1}'"
+    )]
+    WithdrawalAmountTooLarge(UsdCents, UsdCents),
     #[error("LedgerError - AuthorizationError: {0}")]
     AuthorizationError(#[from] crate::authorization::error::AuthorizationError),
 }

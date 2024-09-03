@@ -1,0 +1,20 @@
+query BankDepositsBalance($journalId: UUID!, $bank_deposits_omnibus_id: UUID!) {
+  usd_balance: balance(
+    journalId: $journalId
+    accountId: $bank_deposits_omnibus_id
+    currency: "USD"
+  ) {
+    settled {
+      normalBalance {
+        units
+        currency
+      }
+    }
+    pending {
+      normalBalance {
+        units
+        currency
+      }
+    }
+  }
+}

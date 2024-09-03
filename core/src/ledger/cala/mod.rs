@@ -277,6 +277,26 @@ impl CalaClient {
             .map(T::from))
     }
 
+    #[instrument(name = "lava.ledger.cala.get_bank_deposits_balance", skip(self), err)]
+    pub async fn get_bank_deposits_balance<T, E>(
+        &self,
+        account_id: impl Into<Uuid> + std::fmt::Debug,
+    ) -> Result<Option<T>, E>
+    where
+        T: TryFrom<bank_deposits_balance::ResponseData, Error = E>,
+        E: From<CalaError> + std::fmt::Display,
+    {
+        let variables = bank_deposits_balance::Variables {
+            journal_id: super::constants::CORE_JOURNAL_ID,
+            bank_deposits_omnibus_id: account_id.into(),
+        };
+        let response =
+            Self::traced_gql_request::<BankDepositsBalance, _>(&self.client, &self.url, variables)
+                .await?;
+
+        response.data.map(T::try_from).transpose()
+    }
+
     #[instrument(name = "lava.ledger.cala.get_customer_balance", skip(self), err)]
     pub async fn get_customer_balance<T, E>(
         &self,
