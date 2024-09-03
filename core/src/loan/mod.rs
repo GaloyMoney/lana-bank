@@ -279,8 +279,8 @@ impl Loans {
             .await?;
         if customer_balances.usd_balance.settled < amount {
             return Err(LoanError::InsufficientBalance(
-                customer_balances.usd_balance.settled,
                 amount,
+                customer_balances.usd_balance.settled,
             ));
         }
 

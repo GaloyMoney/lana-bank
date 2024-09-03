@@ -79,8 +79,8 @@ impl Withdraws {
             .await?;
         if customer_balances.usd_balance.settled < amount {
             return Err(WithdrawError::InsufficientBalance(
-                customer_balances.usd_balance.settled,
                 amount,
+                customer_balances.usd_balance.settled,
             ));
         }
 
