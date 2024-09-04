@@ -26,16 +26,12 @@ import {
   useGetLoansForCustomerQuery,
 } from "@/lib/graphql/generated"
 import { Button } from "@/components/primitive/button"
-import { CreateLoanDialog } from "@/components/loan/create-loan-dialog"
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/primitive/dropdown-menu"
-import { LoanPartialPaymentDialog } from "@/components/loan/loan-partial-payment"
-import { LoanApproveDialog } from "@/components/loan/approve-loan"
-import { LoanBadge } from "@/components/loan/loan-badge"
 import {
   Collapsible,
   CollapsibleTrigger,
@@ -44,7 +40,12 @@ import {
 import { DetailItem } from "@/components/details"
 import { formatInterval, formatPeriod } from "@/lib/utils"
 import Balance from "@/components/balance/balance"
-import { CollateralUpdateDialog } from "@/components/loan/collateral-update-dialog"
+
+import { CreateLoanDialog } from "@/app/loans/create"
+import { CollateralUpdateDialog } from "@/app/loans/update-collateral"
+import { LoanStatusBadge } from "@/app/loans/status-badge"
+import { LoanPartialPaymentDialog } from "@/app/loans/partial-payment"
+import { LoanApproveDialog } from "@/app/loans/approve"
 
 type LoanRowProps = {
   loanId: string
@@ -210,7 +211,7 @@ const LoanRow = ({ loan, refetch }: { loan: LoanRowProps; refetch: () => void })
               <Balance amount={loan.balance.outstanding.usdBalance} currency="usd" />
             </TableCell>
             <TableCell>
-              <LoanBadge status={loan.status} />
+              <LoanStatusBadge status={loan.status} />
             </TableCell>
             <TableCell>
               <DropdownMenu>

@@ -43,17 +43,19 @@ gql`
   }
 `
 
-export function WithdrawalConfirmDialog({
-  setOpenWithdrawalConfirmDialog,
-  openWithdrawalConfirmDialog,
-  withdrawalData,
-  refetch,
-}: {
+type WithdrawalConfirmDialogProps = {
   setOpenWithdrawalConfirmDialog: (isOpen: boolean) => void
   openWithdrawalConfirmDialog: boolean
   withdrawalData: WithdrawalWithCustomer
   refetch?: () => void
-}) {
+}
+
+export const WithdrawalConfirmDialog: React.FC<WithdrawalConfirmDialogProps> = ({
+  setOpenWithdrawalConfirmDialog,
+  openWithdrawalConfirmDialog,
+  withdrawalData,
+  refetch,
+}) => {
   const [confirmWithdrawal, { loading, reset }] = useWithdrawalConfirmMutation()
   const [error, setError] = useState<string | null>(null)
 

@@ -1,3 +1,4 @@
+import React from "react"
 import { gql } from "@apollo/client"
 import { FaExclamationCircle } from "react-icons/fa"
 
@@ -44,15 +45,14 @@ gql`
   }
 `
 
-export const LoanApproveDialog = ({
-  loanDetails,
-  children,
-  refetch,
-}: {
+type LoanApproveDialogProps = {
   loanDetails: Loan
-  children: React.ReactNode
   refetch?: () => void
-}) => {
+}
+
+export const LoanApproveDialog: React.FC<
+  React.PropsWithChildren<LoanApproveDialogProps>
+> = ({ loanDetails, children, refetch }) => {
   const { data: priceInfo } = useGetRealtimePriceUpdatesQuery({
     fetchPolicy: "cache-only",
   })

@@ -25,12 +25,7 @@ gql`
   }
 `
 
-export function CollateralizationStateUpdateDialog({
-  setOpenDialog,
-  openDialog,
-  loanData,
-  refetch,
-}: {
+type CollateralizationStateUpdateDialogProps = {
   setOpenDialog: (isOpen: boolean) => void
   openDialog: boolean
   loanData: {
@@ -38,7 +33,11 @@ export function CollateralizationStateUpdateDialog({
     currentState: string
   }
   refetch?: () => void
-}) {
+}
+
+export const CollateralizationStateUpdateDialog: React.FC<
+  CollateralizationStateUpdateDialogProps
+> = ({ setOpenDialog, openDialog, loanData, refetch }) => {
   const [updateCollateralizationState, { loading, reset }] =
     useCollateralizationStateUpdateMutation()
   const [error, setError] = useState<string | null>(null)

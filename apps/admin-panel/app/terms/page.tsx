@@ -1,13 +1,12 @@
 "use client"
 import React from "react"
-
+import { PiPencilSimpleLineLight } from "react-icons/pi"
 import { gql } from "@apollo/client"
 
-import { PiPencilSimpleLineLight } from "react-icons/pi"
+import { UpdateDefaultTermDialog } from "./update"
 
 import { PageHeading } from "@/components/page-heading"
 import { Button } from "@/components/primitive/button"
-import { UpdateDefaultTermDialog } from "@/components/terms/update-default-terms-dialog"
 import { useDefaultTermsQuery } from "@/lib/graphql/generated"
 import { Card, CardContent, CardHeader } from "@/components/primitive/card"
 import { DetailItem, DetailsGroup } from "@/components/details"

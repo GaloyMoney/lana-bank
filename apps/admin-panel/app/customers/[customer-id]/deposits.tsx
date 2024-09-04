@@ -20,8 +20,9 @@ import {
 } from "@/components/primitive/table"
 import { useGetDepositsForCustomerQuery } from "@/lib/graphql/generated"
 import { Button } from "@/components/primitive/button"
-import RecordDepositDialog from "@/components/customer/record-deposit-dialog"
 import Balance from "@/components/balance/balance"
+
+import { RecordDepositDialog } from "@/app/deposits/record"
 
 gql`
   query GetDepositsForCustomer($id: UUID!) {

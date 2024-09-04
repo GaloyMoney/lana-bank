@@ -1,13 +1,10 @@
-import { CustomerDetailsCard } from "./customer-details-card"
-import { CustomerLoansTable } from "./customer-loans-table"
-
-import { CustomerDepositsTable } from "./customer-deposits-table"
-
-import { CustomerWithdrawalsTable } from "./customer-withdrawls-table"
-
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/primitive/tab"
+import { CustomerDetailsCard } from "./details"
+import { CustomerLoansTable } from "./loans"
+import { CustomerDepositsTable } from "./deposits"
+import { CustomerWithdrawalsTable } from "./withdrawals"
 
 import { PageHeading } from "@/components/page-heading"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/primitive/tab"
 
 function customerDetails({
   params,

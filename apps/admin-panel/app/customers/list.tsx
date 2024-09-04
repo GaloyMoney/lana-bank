@@ -26,10 +26,11 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/primitive/dropdown-menu"
-import { CreateLoanDialog } from "@/components/loan/create-loan-dialog"
-import WithdrawalInitiateDialog from "@/components/customer/withdrawal-initiate-dialog"
-import RecordDepositDialog from "@/components/customer/record-deposit-dialog"
 import Balance from "@/components/balance/balance"
+
+import { CreateLoanDialog } from "@/app/loans/create"
+import { WithdrawalInitiateDialog } from "@/app/withdrawals/initiate"
+import { RecordDepositDialog } from "@/app/deposits/record"
 
 type CustomerType = NonNullable<CustomersQuery["customers"]["nodes"][number]>
 

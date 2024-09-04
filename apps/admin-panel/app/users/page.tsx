@@ -3,10 +3,18 @@ import { gql } from "@apollo/client"
 
 import { useState } from "react"
 import Link from "next/link"
-
 import { IoEllipsisHorizontal } from "react-icons/io5"
-
 import { toast } from "sonner"
+
+import { CreateUserDialog } from "./create"
+
+import {
+  Role,
+  useUserAssignRoleMutation,
+  useUserRevokeRoleMutation,
+  useUsersQuery,
+} from "@/lib/graphql/generated"
+import { formatRole } from "@/lib/utils"
 
 import { PageHeading } from "@/components/page-heading"
 import { Button } from "@/components/primitive/button"
@@ -19,13 +27,6 @@ import {
   TableRow,
 } from "@/components/primitive/table"
 import {
-  Role,
-  useUserAssignRoleMutation,
-  useUserRevokeRoleMutation,
-  useUsersQuery,
-} from "@/lib/graphql/generated"
-import CreateUserDialog from "@/components/user/create-user-dialog"
-import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
@@ -36,7 +37,6 @@ import {
 } from "@/components/primitive/dropdown-menu"
 import { Badge } from "@/components/primitive/badge"
 import { Card, CardContent } from "@/components/primitive/card"
-import { formatRole } from "@/lib/utils"
 
 gql`
   query Users {

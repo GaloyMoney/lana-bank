@@ -35,15 +35,17 @@ gql`
   }
 `
 
-function CreateUserDialog({
-  setOpenCreateUserDialog,
-  openCreateUserDialog,
-  refetch,
-}: {
+type CreateUserDialogProps = {
   setOpenCreateUserDialog: (isOpen: boolean) => void
   openCreateUserDialog: boolean
   refetch: () => void
-}) {
+}
+
+export const CreateUserDialog: React.FC<CreateUserDialogProps> = ({
+  setOpenCreateUserDialog,
+  openCreateUserDialog,
+  refetch,
+}) => {
   const router = useRouter()
   const [createUser, { loading: creatingUser, reset: resetCreateUser }] =
     useUserCreateMutation()
@@ -208,5 +210,3 @@ function CreateUserDialog({
     </Dialog>
   )
 }
-
-export default CreateUserDialog

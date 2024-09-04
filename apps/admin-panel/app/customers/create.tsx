@@ -30,15 +30,17 @@ gql`
   }
 `
 
-function CreateCustomerDialog({
-  setOpenCreateCustomerDialog,
-  openCreateCustomerDialog,
-  refetch,
-}: {
+type CreateCustomerDialogProps = {
   setOpenCreateCustomerDialog: (isOpen: boolean) => void
   openCreateCustomerDialog: boolean
   refetch?: () => void
-}) {
+}
+
+export const CreateCustomerDialog: React.FC<CreateCustomerDialogProps> = ({
+  setOpenCreateCustomerDialog,
+  openCreateCustomerDialog,
+  refetch,
+}) => {
   const router = useRouter()
 
   const [createCustomer, { loading, reset }] = useCustomerCreateMutation()
@@ -111,5 +113,3 @@ function CreateCustomerDialog({
     </Dialog>
   )
 }
-
-export default CreateCustomerDialog

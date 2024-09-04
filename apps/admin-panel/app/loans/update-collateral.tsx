@@ -42,12 +42,7 @@ gql`
   }
 `
 
-export function CollateralUpdateDialog({
-  setOpenCollateralUpdateDialog,
-  openCollateralUpdateDialog,
-  loanData,
-  refetch,
-}: {
+type CollateralUpdateDialogProps = {
   setOpenCollateralUpdateDialog: (isOpen: boolean) => void
   openCollateralUpdateDialog: boolean
   loanData: {
@@ -55,7 +50,16 @@ export function CollateralUpdateDialog({
     existingCollateral: number
   }
   refetch?: () => void
-}) {
+}
+
+export const CollateralUpdateDialog: React.FC<
+  React.PropsWithChildren<CollateralUpdateDialogProps>
+> = ({
+  setOpenCollateralUpdateDialog,
+  openCollateralUpdateDialog,
+  loanData,
+  refetch,
+}) => {
   const [updateCollateral, { loading, reset }] = useCollateralUpdateMutation()
   const [error, setError] = useState<string | null>(null)
   const [isConfirmed, setIsConfirmed] = useState(false)

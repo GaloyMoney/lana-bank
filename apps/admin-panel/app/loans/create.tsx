@@ -1,5 +1,5 @@
 import { gql } from "@apollo/client"
-import { useEffect, useState } from "react"
+import React, { useEffect, useState } from "react"
 import { toast } from "sonner"
 import { useRouter } from "next/navigation"
 import { PiPencilSimpleLineLight } from "react-icons/pi"
@@ -62,15 +62,14 @@ gql`
   }
 `
 
-export const CreateLoanDialog = ({
-  customerId,
-  children,
-  refetch,
-}: {
+type CreateLoanDialogProps = {
   customerId: string
-  children: React.ReactNode
   refetch?: () => void
-}) => {
+}
+
+export const CreateLoanDialog: React.FC<
+  React.PropsWithChildren<CreateLoanDialogProps>
+> = ({ customerId, children, refetch }) => {
   const router = useRouter()
 
   const { data: priceInfo } = useGetRealtimePriceUpdatesQuery({

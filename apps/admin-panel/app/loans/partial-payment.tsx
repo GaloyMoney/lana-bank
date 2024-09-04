@@ -1,6 +1,9 @@
 import { gql } from "@apollo/client"
-import { useState } from "react"
+import React, { useState } from "react"
 import { toast } from "sonner"
+
+import { useLoanPartialPaymentMutation } from "@/lib/graphql/generated"
+import { currencyConverter } from "@/lib/utils"
 
 import {
   Dialog,
@@ -13,9 +16,7 @@ import {
 } from "@/components/primitive/dialog"
 import { Input } from "@/components/primitive/input"
 import { Label } from "@/components/primitive/label"
-import { useLoanPartialPaymentMutation } from "@/lib/graphql/generated"
 import { Button } from "@/components/primitive/button"
-import { currencyConverter } from "@/lib/utils"
 
 gql`
   mutation loanPartialPayment($input: LoanPartialPaymentInput!) {
@@ -40,15 +41,14 @@ gql`
   }
 `
 
-export const LoanPartialPaymentDialog = ({
-  loanId,
-  refetch,
-  children,
-}: {
+type LoanPartialPaymentDialogProps = {
   loanId: string
   refetch?: () => void
-  children: React.ReactNode
-}) => {
+}
+
+export const LoanPartialPaymentDialog: React.FC<
+  React.PropsWithChildren<LoanPartialPaymentDialogProps>
+> = ({ loanId, refetch, children }) => {
   const [loanIdValue, setLoanIdValue] = useState<string>(loanId)
   const [amount, setAmount] = useState<number>(0)
   const [open, setOpen] = useState<boolean>(false)

@@ -1,6 +1,7 @@
 import React, { useState } from "react"
 import { gql } from "@apollo/client"
 import { toast } from "sonner"
+import { useRouter } from "next/navigation"
 
 import {
   Dialog,
@@ -17,22 +18,22 @@ import {
   CustomersDocument,
   GetCustomerByCustomerEmailDocument,
   GetCustomerByCustomerIdDocument,
-  useRecordDepositMutation,
+  useWithdrawalInitiateMutation,
 } from "@/lib/graphql/generated"
 import { currencyConverter } from "@/lib/utils"
 
 gql`
-  mutation RecordDeposit($input: DepositRecordInput!) {
-    depositRecord(input: $input) {
-      deposit {
-        depositId
+  mutation WithdrawalInitiate($input: WithdrawalInitiateInput!) {
+    withdrawalInitiate(input: $input) {
+      withdrawal {
+        withdrawalId
         amount
         customer {
           customerId
-          email
           balance {
             checking {
               settled
+              pending
             }
           }
         }
@@ -41,18 +42,22 @@ gql`
   }
 `
 
-function RecordDepositDialog({
-  setOpenRecordDepositDialog,
-  openRecordDepositDialog,
-  customerId,
-  refetch,
-}: {
-  setOpenRecordDepositDialog: (isOpen: boolean) => void
-  openRecordDepositDialog: boolean
+type WithdrawalInitiateDialogProps = {
+  setOpenWithdrawalInitiateDialog: (isOpen: boolean) => void
+  openWithdrawalInitiateDialog: boolean
   customerId: string
   refetch?: () => void
-}) {
-  const [recordDeposit, { loading, reset }] = useRecordDepositMutation()
+}
+
+export const WithdrawalInitiateDialog: React.FC<WithdrawalInitiateDialogProps> = ({
+  setOpenWithdrawalInitiateDialog,
+  openWithdrawalInitiateDialog,
+  customerId,
+  refetch,
+}) => {
+  const router = useRouter()
+
+  const [initiateWithdrawal, { loading, reset }] = useWithdrawalInitiateMutation()
   const [amount, setAmount] = useState<string>("")
   const [reference, setReference] = useState<string>("")
   const [error, setError] = useState<string | null>(null)
@@ -61,7 +66,7 @@ function RecordDepositDialog({
     e.preventDefault()
     setError(null)
     try {
-      const result = await recordDeposit({
+      await initiateWithdrawal({
         variables: {
           input: {
             customerId,
@@ -74,16 +79,14 @@ function RecordDepositDialog({
           GetCustomerByCustomerEmailDocument,
           CustomersDocument,
         ],
+        onCompleted: (data) => {
+          toast.success("Withdrawal initiated successfully")
+          if (refetch) refetch()
+          router.push(`/withdrawals/${data.withdrawalInitiate.withdrawal.withdrawalId}`)
+        },
       })
-      if (result.data) {
-        toast.success("Deposit recorded successfully")
-        if (refetch) refetch()
-        handleCloseDialog()
-      } else {
-        throw new Error("No data returned from mutation")
-      }
     } catch (error) {
-      console.error("Error recording deposit:", error)
+      console.error("Error initiating withdrawal:", error)
       if (error instanceof Error) {
         setError(error.message)
       } else {
@@ -92,25 +95,21 @@ function RecordDepositDialog({
     }
   }
 
-  const resetStates = () => {
+  const handleCloseDialog = () => {
+    setOpenWithdrawalInitiateDialog(false)
     setAmount("")
     setReference("")
     setError(null)
     reset()
   }
 
-  const handleCloseDialog = () => {
-    setOpenRecordDepositDialog(false)
-    resetStates()
-  }
-
   return (
-    <Dialog open={openRecordDepositDialog} onOpenChange={handleCloseDialog}>
+    <Dialog open={openWithdrawalInitiateDialog} onOpenChange={handleCloseDialog}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Record Deposit</DialogTitle>
+          <DialogTitle>Initiate Withdrawal</DialogTitle>
           <DialogDescription>
-            Provide the required details to record a deposit.
+            Provide the required details to initiate a withdrawal.
           </DialogDescription>
         </DialogHeader>
         <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
@@ -121,7 +120,7 @@ function RecordDepositDialog({
                 id="amount"
                 type="number"
                 required
-                placeholder="Enter the deposit amount"
+                placeholder="Enter amount"
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}
               />
@@ -141,7 +140,7 @@ function RecordDepositDialog({
           {error && <p className="text-destructive">{error}</p>}
           <DialogFooter>
             <Button type="submit" disabled={loading}>
-              {loading ? "Submitting..." : "Submit"}
+              {loading ? "Initiating..." : "Initiate Withdrawal"}
             </Button>
           </DialogFooter>
         </form>
@@ -149,5 +148,3 @@ function RecordDepositDialog({
     </Dialog>
   )
 }
-
-export default RecordDepositDialog

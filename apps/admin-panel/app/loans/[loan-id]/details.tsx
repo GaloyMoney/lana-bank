@@ -5,11 +5,14 @@ import { useEffect, useState } from "react"
 
 import Link from "next/link"
 
+import { CollateralUpdateDialog } from "../update-collateral"
+import { CollateralizationStateUpdateDialog } from "../update-collateralization-state"
+import { LoanStatusBadge } from "../status-badge"
+import { LoanPartialPaymentDialog } from "../partial-payment"
+import { LoanApproveDialog } from "../approve"
+
 import Balance from "@/components/balance/balance"
 import { DetailItem } from "@/components/details"
-import { LoanApproveDialog } from "@/components/loan/approve-loan"
-import { LoanBadge } from "@/components/loan/loan-badge"
-import { LoanPartialPaymentDialog } from "@/components/loan/loan-partial-payment"
 import { Button } from "@/components/primitive/button"
 import {
   Card,
@@ -27,6 +30,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/primitive/table"
+
 import {
   LoanStatus,
   useGetLoanDetailsQuery,
@@ -37,8 +41,6 @@ import {
   CollateralAction,
 } from "@/lib/graphql/generated"
 import { formatInterval, formatPeriod, currencyConverter, formatDate } from "@/lib/utils"
-import { CollateralUpdateDialog } from "@/components/loan/collateral-update-dialog"
-import { CollateralizationStateUpdateDialog } from "@/components/loan/collateralization-state-update-dialog"
 
 gql`
   query GetLoanDetails($id: UUID!) {
@@ -260,7 +262,7 @@ const LoanDetails: React.FC<LoanDetailsProps> = ({ loanId }) => {
                 </p>
               </div>
               <div className="flex flex-col gap-2">
-                <LoanBadge status={loanDetails.loan.status} className="p-1 px-4" />
+                <LoanStatusBadge status={loanDetails.loan.status} className="p-1 px-4" />
               </div>
             </CardHeader>
             <Separator className="mb-6" />

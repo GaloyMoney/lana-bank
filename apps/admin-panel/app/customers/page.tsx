@@ -4,12 +4,12 @@ import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { gql } from "@apollo/client"
 
-import CustomerTable from "./customer-table"
+import CustomerTable from "./list"
+import { CreateCustomerDialog } from "./create"
 
 import { Input } from "@/components/primitive/input"
 import { Button } from "@/components/primitive/button"
 import { PageHeading } from "@/components/page-heading"
-import CreateCustomerDialog from "@/components/customer/create-customer-dialog"
 import { isEmail, isUUID } from "@/lib/utils"
 
 gql`
@@ -67,7 +67,7 @@ function CustomerPage({ searchParams }: { searchParams: { search?: string } }) {
         searchType = "email"
       }
       router.push(
-        `/customer?search=${encodeURIComponent(searchInput)}&searchType=${searchType}`,
+        `/customers?search=${encodeURIComponent(searchInput)}&searchType=${searchType}`,
       )
     } else {
       router.push("/customers")

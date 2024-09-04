@@ -12,12 +12,12 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "../primitive/dialog"
-import { DetailItem, DetailsGroup } from "../details"
-import { Label } from "../primitive/label"
-import { Input } from "../primitive/input"
-import { Select } from "../primitive/select"
-import { Button } from "../primitive/button"
+} from "@/components/primitive/dialog"
+import { DetailItem, DetailsGroup } from "@/components/details"
+import { Label } from "@/components/primitive/label"
+import { Input } from "@/components/primitive/input"
+import { Select } from "@/components/primitive/select"
+import { Button } from "@/components/primitive/button"
 
 import {
   DefaultTermsQuery,
@@ -49,11 +49,14 @@ gql`
   }
 `
 
-export const UpdateDefaultTermDialog: React.FC<{
-  children: React.ReactNode
+type UpdateDefaultTermDialogProps = {
   refetch?: () => void
   termsData?: DefaultTermsQuery | undefined
-}> = ({ children, refetch, termsData }) => {
+}
+
+export const UpdateDefaultTermDialog: React.FC<
+  React.PropsWithChildren<UpdateDefaultTermDialogProps>
+> = ({ children, refetch, termsData }) => {
   const [interval, setInterval] = useState<InterestInterval | "">("")
   const [liquidationCvl, setLiquidationCvl] = useState<string>("")
   const [marginCallCvl, setMarginCallCvl] = useState<string>("")

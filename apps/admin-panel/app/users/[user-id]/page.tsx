@@ -1,4 +1,4 @@
-import UserDetailsCard from "./user-details"
+import UserDetailsCard from "./details"
 
 import { PageHeading } from "@/components/page-heading"
 

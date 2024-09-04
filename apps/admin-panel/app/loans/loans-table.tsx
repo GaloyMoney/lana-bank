@@ -4,6 +4,8 @@ import { gql } from "@apollo/client"
 import { IoEllipsisHorizontal } from "react-icons/io5"
 import Link from "next/link"
 
+import { LoanStatusBadge } from "./status-badge"
+
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -23,7 +25,6 @@ import {
 } from "@/components/primitive/table"
 import { formatDate } from "@/lib/utils"
 import Balance from "@/components/balance/balance"
-import { LoanBadge } from "@/components/loan/loan-badge"
 
 gql`
   query Loans($first: Int!, $after: String) {
@@ -128,7 +129,7 @@ const LoansTable = () => {
                     </div>
                   </TableCell>
                   <TableCell>
-                    <LoanBadge status={loan.status} className="p-1 px-4" />
+                    <LoanStatusBadge status={loan.status} className="p-1 px-4" />
                   </TableCell>
                   <TableCell>
                     <DropdownMenu>

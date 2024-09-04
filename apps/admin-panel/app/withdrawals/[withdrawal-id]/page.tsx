@@ -1,4 +1,4 @@
-import WithdrawalDetailsCard from "./withdrawal-details"
+import WithdrawalDetailsCard from "./details"
 
 import { PageHeading } from "@/components/page-heading"
 

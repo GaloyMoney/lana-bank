@@ -20,13 +20,13 @@ import {
 } from "@/components/primitive/table"
 import { useGetWithdrawalsForCustomerQuery } from "@/lib/graphql/generated"
 import { Button } from "@/components/primitive/button"
-import WithdrawalInitiateDialog from "@/components/customer/withdrawal-initiate-dialog"
-import { WithdrawalConfirmDialog } from "@/components/customer/withdrawal-confirm-dialog"
-
 import Balance from "@/components/balance/balance"
+
 import WithdrawalDropdown from "@/app/withdrawals/drop-down"
-import { WithdrawalStatusBadge } from "@/components/withdrawal/withdrawal-status-badge"
-import { WithdrawalCancelDialog } from "@/components/withdrawal/cancel-withdrawal-dialog"
+import { WithdrawalStatusBadge } from "@/app/withdrawals/status-badge"
+import { WithdrawalInitiateDialog } from "@/app/withdrawals/initiate"
+import { WithdrawalConfirmDialog } from "@/app/withdrawals/confirm"
+import { WithdrawalCancelDialog } from "@/app/withdrawals/cancel"
 
 gql`
   query GetWithdrawalsForCustomer($id: UUID!) {

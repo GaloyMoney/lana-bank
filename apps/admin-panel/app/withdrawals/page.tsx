@@ -1,11 +1,15 @@
 "use client"
 import { useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
+import Link from "next/link"
 import { gql } from "@apollo/client"
 
-import Link from "next/link"
-
 import WithdrawalDropdown from "./drop-down"
+import { WithdrawalStatusBadge } from "./status-badge"
+import { WithdrawalConfirmDialog } from "./confirm"
+import { WithdrawalCancelDialog } from "./cancel"
+
+import { useWithdrawalQuery, useWithdrawalsQuery } from "@/lib/graphql/generated"
 
 import {
   Table,
@@ -17,15 +21,9 @@ import {
 } from "@/components/primitive/table"
 import { Card, CardContent } from "@/components/primitive/card"
 import { Button } from "@/components/primitive/button"
-
 import { Input } from "@/components/primitive/input"
 import { PageHeading } from "@/components/page-heading"
-import { useWithdrawalQuery, useWithdrawalsQuery } from "@/lib/graphql/generated"
-import { WithdrawalConfirmDialog } from "@/components/customer/withdrawal-confirm-dialog"
 import Balance from "@/components/balance/balance"
-
-import { WithdrawalStatusBadge } from "@/components/withdrawal/withdrawal-status-badge"
-import { WithdrawalCancelDialog } from "@/components/withdrawal/cancel-withdrawal-dialog"
 
 gql`
   query Withdrawals($first: Int!, $after: String) {

@@ -1,4 +1,4 @@
-import LoanDetailsCard from "./loan-details"
+import LoanDetailsCard from "./details"
 
 import { PageHeading } from "@/components/page-heading"
 

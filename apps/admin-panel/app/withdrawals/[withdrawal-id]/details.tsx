@@ -4,14 +4,15 @@ import { useState } from "react"
 import { gql } from "@apollo/client"
 import { useRouter } from "next/navigation"
 
-import { WithdrawalStatusBadge } from "@/components/withdrawal/withdrawal-status-badge"
+import { WithdrawalStatusBadge } from "../status-badge"
+import { WithdrawalConfirmDialog } from "../confirm"
+import { WithdrawalCancelDialog } from "../cancel"
+
 import { useGetWithdrawalDetailsQuery, WithdrawalStatus } from "@/lib/graphql/generated"
 import { DetailItem } from "@/components/details"
 import { Card, CardContent, CardHeader } from "@/components/primitive/card"
 import { Separator } from "@/components/primitive/separator"
 import { Button } from "@/components/primitive/button"
-import { WithdrawalConfirmDialog } from "@/components/customer/withdrawal-confirm-dialog"
-import { WithdrawalCancelDialog } from "@/components/withdrawal/cancel-withdrawal-dialog"
 import Balance from "@/components/balance/balance"
 
 gql`

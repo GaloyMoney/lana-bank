@@ -36,17 +36,19 @@ gql`
   }
 `
 
-export function WithdrawalCancelDialog({
-  setOpenWithdrawalCancelDialog,
-  openWithdrawalCancelDialog,
-  withdrawalData,
-  refetch,
-}: {
+type WithdrawalCancelDialogProps = {
   setOpenWithdrawalCancelDialog: (isOpen: boolean) => void
   openWithdrawalCancelDialog: boolean
   withdrawalData: WithdrawalWithCustomer
   refetch?: () => void
-}) {
+}
+
+export const WithdrawalCancelDialog: React.FC<WithdrawalCancelDialogProps> = ({
+  setOpenWithdrawalCancelDialog,
+  openWithdrawalCancelDialog,
+  withdrawalData,
+  refetch,
+}) => {
   const [cancelWithdrawal, { loading, data, reset }] = useWithdrawalCancelMutation()
   const [error, setError] = useState<string | null>(null)
   const [isCanceled, setIsCanceled] = useState(false)
