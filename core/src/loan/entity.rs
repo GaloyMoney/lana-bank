@@ -543,17 +543,29 @@ impl Loan {
             .any(|event| matches!(event, LoanEvent::Completed { .. }))
     }
 
-    fn days_for_interest_calculation(&self) -> u32 {
+    fn days_for_interest_calculation(&self) -> Option<u32> {
         if self.count_interest_incurred() == 0 {
-            self.terms
-                .interval
-                .next_interest_payment(self.created_at())
-                .day()
-                - self.created_at().day()
-                + 1 // 1 is added to account for the day when the loan was
-                    // approved
+            let approved_at_date = match self.approved_at() {
+                Some(t) => t,
+                None => return None,
+            };
+            let next_payment_date = self.terms.interval.next_interest_payment(approved_at_date);
+
+            return Some(
+                next_payment_date.day() - approved_at_date.day() + 1,
+                // 1 is added to account for the day when the loan was approved
+            );
+        }
+
+        let expires_at_date = match self.expires_at() {
+            Some(t) => t,
+            None => return None,
+        };
+        let next_payment_date = self.terms.interval.next_interest_payment(Utc::now());
+        if expires_at_date < next_payment_date {
+            Some(expires_at_date.day())
         } else {
-            self.terms.interval.next_interest_payment(Utc::now()).day()
+            Some(next_payment_date.day())
         }
     }
 
@@ -562,10 +574,13 @@ impl Loan {
             return Err(LoanError::AlreadyCompleted);
         }
 
-        let interest = self.terms.calculate_interest(
-            self.initial_principal(),
-            self.days_for_interest_calculation(),
-        );
+        let interest_days = match self.days_for_interest_calculation() {
+            Some(d) => d,
+            None => return Err(LoanError::NotApprovedYet),
+        };
+        let interest = self
+            .terms
+            .calculate_interest(self.initial_principal(), interest_days);
 
         let tx_ref = format!(
             "{}-interest-{}",
