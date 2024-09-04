@@ -6,10 +6,10 @@ pub struct BankDepositsBalance {
     pub usd_balance: LayeredUsdBalance,
 }
 
-impl TryFrom<bank_deposits_balance::ResponseData> for BankDepositsBalance {
+impl TryFrom<account_by_code::AccountByCodeAccountByCode> for BankDepositsBalance {
     type Error = LedgerError;
 
-    fn try_from(data: bank_deposits_balance::ResponseData) -> Result<Self, Self::Error> {
+    fn try_from(data: account_by_code::AccountByCodeAccountByCode) -> Result<Self, Self::Error> {
         Ok(BankDepositsBalance {
             usd_balance: LayeredUsdBalance {
                 settled: data

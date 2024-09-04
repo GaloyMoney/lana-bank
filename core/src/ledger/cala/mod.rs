@@ -107,7 +107,6 @@ impl CalaClient {
         after: Option<String>,
         from: DateTime<Utc>,
         until: Option<DateTime<Utc>>
-
     ) -> Result<Option<T>, E>
     where
         T: TryFrom<account_set_and_sub_accounts_with_balance::AccountSetAndSubAccountsWithBalanceAccountSet, Error = E>,
@@ -275,26 +274,6 @@ impl CalaClient {
             .data
             .and_then(|d| d.account_by_external_id)
             .map(T::from))
-    }
-
-    #[instrument(name = "lava.ledger.cala.get_bank_deposits_balance", skip(self), err)]
-    pub async fn get_bank_deposits_balance<T, E>(
-        &self,
-        account_id: impl Into<Uuid> + std::fmt::Debug,
-    ) -> Result<Option<T>, E>
-    where
-        T: TryFrom<bank_deposits_balance::ResponseData, Error = E>,
-        E: From<CalaError> + std::fmt::Display,
-    {
-        let variables = bank_deposits_balance::Variables {
-            journal_id: super::constants::CORE_JOURNAL_ID,
-            bank_deposits_omnibus_id: account_id.into(),
-        };
-        let response =
-            Self::traced_gql_request::<BankDepositsBalance, _>(&self.client, &self.url, variables)
-                .await?;
-
-        response.data.map(T::try_from).transpose()
     }
 
     #[instrument(name = "lava.ledger.cala.get_customer_balance", skip(self), err)]
@@ -1239,17 +1218,48 @@ impl CalaClient {
             .transpose()
     }
 
-    #[instrument(name = "lava.ledger.cala.find_by_id", skip(self), err)]
+    #[instrument(name = "lava.ledger.cala.find_account_by_code", skip(self), err)]
     async fn find_account_by_code<T: From<account_by_code::AccountByCodeAccountByCode>>(
         &self,
         code: String,
     ) -> Result<Option<T>, CalaError> {
-        let variables = account_by_code::Variables { code };
+        let variables = account_by_code::Variables {
+            code,
+            journal_id: super::constants::CORE_JOURNAL_ID,
+        };
         let response =
             Self::traced_gql_request::<AccountByCode, _>(&self.client, &self.url, variables)
                 .await?;
 
         Ok(response.data.and_then(|d| d.account_by_code).map(T::from))
+    }
+
+    #[instrument(
+        name = "lava.ledger.cala.find_account_with_balance_by_code",
+        skip(self),
+        err
+    )]
+    pub async fn find_account_with_balance_by_code<T, E>(
+        &self,
+        code: String,
+    ) -> Result<Option<T>, E>
+    where
+        T: TryFrom<account_by_code::AccountByCodeAccountByCode, Error = E>,
+        E: From<CalaError> + std::fmt::Display,
+    {
+        let variables = account_by_code::Variables {
+            code,
+            journal_id: super::constants::CORE_JOURNAL_ID,
+        };
+        let response =
+            Self::traced_gql_request::<AccountByCode, _>(&self.client, &self.url, variables)
+                .await?;
+
+        response
+            .data
+            .and_then(|d| d.account_by_code)
+            .map(T::try_from)
+            .transpose()
     }
 
     async fn traced_gql_request<Q: GraphQLQuery, U: reqwest::IntoUrl>(

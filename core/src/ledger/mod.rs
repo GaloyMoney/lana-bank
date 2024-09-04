@@ -49,12 +49,11 @@ impl Ledger {
     }
 
     #[instrument(name = "lava.ledger.get_bank_deposits_balance", skip(self), err)]
-    async fn get_bank_deposits_balance(
-        &self,
-        account_id: LedgerAccountId,
-    ) -> Result<BankDepositsBalance, LedgerError> {
+    async fn get_bank_deposits_balance(&self) -> Result<BankDepositsBalance, LedgerError> {
         self.cala
-            .get_bank_deposits_balance(account_id)
+            .find_account_with_balance_by_code::<BankDepositsBalance, LedgerError>(
+                constants::BANK_DEPOSITS_OMNIBUS_CODE.into(),
+            )
             .await?
             .ok_or(LedgerError::AccountNotFound)
     }
@@ -121,12 +120,8 @@ impl Ledger {
         amount: UsdCents,
         external_id: String,
     ) -> Result<WithdrawId, LedgerError> {
-        self.cala
-            .get_bank_deposits_balance::<BankDepositsBalance, LedgerError>(
-                constants::TEMP_BANK_OMNIBUS_ACCOUNT_ID,
-            )
+        self.get_bank_deposits_balance()
             .await?
-            .unwrap_or(BankDepositsBalance::ZERO)
             .check_withdrawal_amount(amount)?;
 
         self.cala

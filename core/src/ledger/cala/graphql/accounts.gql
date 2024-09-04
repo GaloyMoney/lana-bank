@@ -64,8 +64,22 @@ query AccountByExternalId($externalId: String!, $journalId: UUID!) {
   }
 }
 
-query AccountByCode($code: String!) {
+query AccountByCode($code: String!, $journalId: UUID!) {
   accountByCode(code: $code) {
     accountId
+    usdBalance: balance(journalId: $journalId, currency: "USD") {
+      settled {
+        normalBalance {
+          units
+          currency
+        }
+      }
+      pending {
+        normalBalance {
+          units
+          currency
+        }
+      }
+    }
   }
 }
