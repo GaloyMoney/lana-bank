@@ -63,7 +63,7 @@ impl Audit {
                 RETURNING id, subject
                 "#,
             subject.to_string(),
-            object.as_ref(),
+            object.to_string(),
             action.to_string(),
             authorized,
         )

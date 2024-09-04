@@ -19,7 +19,7 @@ macro_rules! impl_from_for_action {
 macro_rules! impl_trivial_action {
     ($from_type:ty, $variant:ident) => {
         impl $from_type {
-            fn add_to<'a>(&self, elems: &mut ActionElements<'a>) {
+            fn add_to(&self, elems: &mut ActionElements<'_>) {
                 elems.push_static(self)
             }
         }

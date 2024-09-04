@@ -194,7 +194,7 @@ impl Authorization {
         enforcer.load_policy().await?;
 
         let action = action.into();
-        match enforcer.enforce((sub.to_string(), object.as_ref(), action.to_string())) {
+        match enforcer.enforce((sub.to_string(), object.to_string(), action.to_string())) {
             Ok(true) => Ok(self.audit.record_entry(sub, object, action, true).await?),
             Ok(false) => {
                 self.audit.record_entry(sub, object, action, false).await?;
