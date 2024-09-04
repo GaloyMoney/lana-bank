@@ -1,11 +1,11 @@
 {
   "db_name": "PostgreSQL",
-  "query": "\n            SELECT id, subject, object, action, authorized, recorded_at\n            FROM audit_entries\n            WHERE id = ANY($1)\n            ",
+  "query": "\n            SELECT id AS \"id: AuditEntryId\", subject, object, action, authorized, recorded_at\n            FROM audit_entries\n            WHERE id = ANY($1)\n            ",
   "describe": {
     "columns": [
       {
         "ordinal": 0,
-        "name": "id",
+        "name": "id: AuditEntryId",
         "type_info": "Int8"
       },
       {
@@ -48,5 +48,5 @@
       false
     ]
   },
-  "hash": "9831a5e7c930f6f4b60106770d0a4724cdd0c8c40fc6caa15b113c2c9f24f0c8"
+  "hash": "92d686d896ae2a78d39a455b21fefc2ef06ac957377649c525ce9f6fae71dd02"
 }
