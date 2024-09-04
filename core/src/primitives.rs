@@ -119,7 +119,7 @@ impl FromStr for Subject {
 
         let id = parts[1].parse()?;
         use SubjectDiscriminants::*;
-        let res = match SubjectDiscriminants::from_str(parts[0].as_ref())? {
+        let res = match SubjectDiscriminants::from_str(parts[0])? {
             Customer => Subject::Customer(CustomerId::from(id)),
             User => Subject::User(UserId::from(id)),
             System => match id {

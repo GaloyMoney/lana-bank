@@ -154,7 +154,7 @@ pub enum UserAction {
 }
 
 impl UserAction {
-    fn add_to<'a>(&self, elems: &mut ActionElements<'a>) {
+    fn add_to(&self, elems: &mut ActionElements<'_>) {
         elems.push_static(UserActionDiscriminants::from(self));
         use UserAction::*;
         match self {
