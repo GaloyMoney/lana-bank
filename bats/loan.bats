@@ -50,7 +50,7 @@ wait_for_interest() {
   [[ "$cash_flow_net_before" != "null" ]] || exit 1
 
   # Create Loan
-  principal=10000
+  principal=100000
   variables=$(
     jq -n \
     --arg customerId "$customer_id" \
@@ -80,7 +80,7 @@ wait_for_interest() {
     '{
       input: {
         loanId: $loanId,
-        collateral: 233334,
+        collateral: 2333334,
       }
     }'
   )
@@ -119,7 +119,7 @@ wait_for_interest() {
   [[ "$outstanding_before" == "$expected_outstanding" ]] || exit 1
 
   collateral_sats=$(read_value 'collateral_sats')
-  [[ "$collateral_sats" == "233334" ]] || exit 1
+  [[ "$collateral_sats" == "2333334" ]] || exit 1
 
   variables=$(
     jq -n \
@@ -131,6 +131,24 @@ wait_for_interest() {
   cash_flow_credit_during=$(graphql_output '.data.cashFlowStatement.total.usd.balancesByLayer.all.credit')
   [[ $(sub "$cash_flow_debit_during" "$cash_flow_debit_before") == "$interest_before" ]] || exit 1
   [[ $(sub "$cash_flow_credit_during" "$cash_flow_credit_before") == "$interest_before" ]] || exit 1
+
+  # Check can't withdraw with no bank deposits
+  variables=$(
+    jq -n \
+      --arg customerId "$customer_id" \
+      --argjson principal "$principal" \
+      --arg date "$(date +%s%N)" \
+    '{
+      input: {
+        customerId: $customerId,
+        amount: $principal,
+        reference: ("withdrawal-ref-" + $date)
+      }
+    }'
+  )
+  exec_admin_graphql 'initiate-withdrawal' "$variables"
+  err_msg=$(graphql_output '.errors[0].message')
+  [[ "$err_msg" =~ "WithdrawalAmountTooLarge" ]] || exit 1
 
   # Pay-off Loan
   variables=$(
