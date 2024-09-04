@@ -42,7 +42,7 @@ import {
   CollapsibleContent,
 } from "@/components/primitive/collapsible"
 import { DetailItem } from "@/components/details"
-import { formatInterval, formatPeriod } from "@/lib/terms/utils"
+import { formatInterval, formatPeriod } from "@/lib/utils"
 import Balance from "@/components/balance/balance"
 import { CollateralUpdateDialog } from "@/components/loan/collateral-update-dialog"
 

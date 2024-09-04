@@ -25,7 +25,7 @@ import {
 import { Button } from "@/components/primitive/button"
 import { currencyConverter, formatCurrency } from "@/lib/utils"
 import { Select } from "@/components/primitive/select"
-import { formatInterval, formatPeriod } from "@/lib/terms/utils"
+import { formatInterval, formatPeriod } from "@/lib/utils"
 import { DetailItem } from "@/components/details"
 
 gql`

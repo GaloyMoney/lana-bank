@@ -25,7 +25,7 @@ import {
   Period,
   useDefaultTermsUpdateMutation,
 } from "@/lib/graphql/generated"
-import { formatInterval, formatPeriod } from "@/lib/term/utils"
+import { formatInterval, formatPeriod } from "@/lib/utils"
 
 gql`
   mutation DefaultTermsUpdate($input: DefaultTermsUpdateInput!) {

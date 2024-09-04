@@ -8,7 +8,7 @@ import { getServerSession } from "next-auth"
 import { authOptions } from "./api/auth/[...nextauth]/options"
 import { AuthSessionProvider } from "./session-provider"
 
-import { ApolloClient } from "@/lib/core-admin-client"
+import { ApolloClient } from "@/lib/apollo-client"
 
 import { redirect } from "next/navigation"
 

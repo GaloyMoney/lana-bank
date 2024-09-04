@@ -1,6 +1,8 @@
 import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
 
+import { InterestInterval, Period } from "./graphql/generated"
+
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
@@ -87,6 +89,18 @@ export const isEmail = (str: string) => {
 
 export const formatRole = (role: string) => {
   return role
+    .toLowerCase()
+    .split("_")
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ")
+}
+
+export const formatPeriod = (period: Period) => {
+  return period.charAt(0).toUpperCase() + period.slice(1).toLowerCase()
+}
+
+export const formatInterval = (interval: InterestInterval) => {
+  return interval
     .toLowerCase()
     .split("_")
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1))

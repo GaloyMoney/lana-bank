@@ -36,7 +36,7 @@ import {
   useGetRealtimePriceUpdatesQuery,
   CollateralAction,
 } from "@/lib/graphql/generated"
-import { formatInterval, formatPeriod } from "@/lib/term/utils"
+import { formatInterval, formatPeriod } from "@/lib/utils"
 import { currencyConverter, formatCurrency, formatDate } from "@/lib/utils"
 import { CollateralUpdateDialog } from "@/components/loan/collateral-update-dialog"
 import { CollateralizationStateUpdateDialog } from "@/components/loan/collateralization-state-update-dialog"

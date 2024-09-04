@@ -11,7 +11,7 @@ import { UpdateDefaultTermDialog } from "@/components/terms/update-default-terms
 import { useDefaultTermsQuery } from "@/lib/graphql/generated"
 import { Card, CardContent, CardHeader } from "@/components/primitive/card"
 import { DetailItem, DetailsGroup } from "@/components/details"
-import { formatInterval, formatPeriod } from "@/lib/term/utils"
+import { formatInterval, formatPeriod } from "@/lib/utils"
 import { Separator } from "@/components/primitive/separator"
 
 gql`
