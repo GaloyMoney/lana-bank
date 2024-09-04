@@ -1,5 +1,6 @@
 mod action;
 pub mod error;
+mod object;
 
 use sqlx_adapter::{
     casbin::{
@@ -8,7 +9,7 @@ use sqlx_adapter::{
     },
     SqlxAdapter,
 };
-use std::{str::FromStr, sync::Arc};
+use std::sync::Arc;
 use tokio::sync::RwLock;
 use tracing::instrument;
 
@@ -17,17 +18,7 @@ use crate::primitives::{AuditInfo, Role, Subject};
 
 pub use action::*;
 use error::AuthorizationError;
-
-macro_rules! impl_deref_to_str {
-    ($type:ty) => {
-        impl std::ops::Deref for $type {
-            type Target = str;
-            fn deref(&self) -> &Self::Target {
-                self.as_ref()
-            }
-        }
-    };
-}
+pub use object::*;
 
 const MODEL: &str = include_str!("./rbac.conf");
 
@@ -377,19 +368,6 @@ impl Authorization {
     }
 }
 
-#[derive(Clone, Copy, Debug)]
-pub enum Object {
-    Applicant,
-    Loan,
-    Term,
-    User,
-    Customer,
-    Deposit,
-    Withdraw,
-    Audit,
-    Ledger,
-}
-
 #[derive(async_graphql::SimpleObject)]
 pub struct VisibleNavigationItems {
     pub loan: bool,
@@ -400,55 +378,4 @@ pub struct VisibleNavigationItems {
     pub withdraw: bool,
     pub audit: bool,
     pub financials: bool,
-}
-
-impl Object {
-    const APPLICANT_STR: &'static str = "applicant";
-    const LOAN_STR: &'static str = "loan";
-    const TERM_STR: &'static str = "term";
-    const USER_STR: &'static str = "user";
-    const DEPOSIT_STR: &'static str = "deposit";
-    const WITHDRAW_STR: &'static str = "withdraw";
-    const CUSTOMER_STR: &'static str = "customer";
-    const AUDIT_STR: &'static str = "audit";
-    const LEDGER_STR: &'static str = "ledger";
-}
-
-impl AsRef<str> for Object {
-    fn as_ref(&self) -> &str {
-        match self {
-            Self::Applicant => Self::APPLICANT_STR,
-            Self::Loan => Self::LOAN_STR,
-            Self::Term => Self::TERM_STR,
-            Self::User => Self::USER_STR,
-            Self::Deposit => Self::DEPOSIT_STR,
-            Self::Withdraw => Self::WITHDRAW_STR,
-            Self::Customer => Self::CUSTOMER_STR,
-            Self::Audit => Self::AUDIT_STR,
-            Self::Ledger => Self::LEDGER_STR,
-        }
-    }
-}
-
-impl_deref_to_str!(Object);
-
-impl FromStr for Object {
-    type Err = crate::authorization::AuthorizationError;
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        match s {
-            Self::APPLICANT_STR => Ok(Self::Applicant),
-            Self::LOAN_STR => Ok(Self::Loan),
-            Self::TERM_STR => Ok(Self::Term),
-            Self::USER_STR => Ok(Self::User),
-            Self::AUDIT_STR => Ok(Self::Audit),
-            Self::CUSTOMER_STR => Ok(Self::Customer),
-            Self::DEPOSIT_STR => Ok(Self::Deposit),
-            Self::WITHDRAW_STR => Ok(Self::Withdraw),
-            Self::LEDGER_STR => Ok(Self::Ledger),
-            _ => Err(AuthorizationError::ObjectParseError {
-                value: s.to_string(),
-            }),
-        }
-    }
 }

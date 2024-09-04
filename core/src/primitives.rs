@@ -76,13 +76,6 @@ pub const SATS_PER_BTC: Decimal = dec!(100_000_000);
 pub const CENTS_PER_USD: Decimal = dec!(100);
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
-pub enum Subject {
-    Customer(CustomerId),
-    User(UserId),
-    System(SystemNode),
-}
-
-#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
 pub enum SystemNode {
     Init,
     Core,
@@ -104,6 +97,13 @@ impl std::fmt::Display for SystemNode {
             SystemNode::Sumsub => SYSTEM_SUMSUB.fmt(f),
         }
     }
+}
+
+#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
+pub enum Subject {
+    Customer(CustomerId),
+    User(UserId),
+    System(SystemNode),
 }
 
 impl FromStr for Subject {
@@ -176,30 +176,13 @@ impl From<String> for Subject {
     Hash,
     strum::IntoStaticStr,
     strum::EnumString,
+    strum::Display,
 )]
 #[strum(serialize_all = "kebab-case")]
 pub enum Role {
     Superuser,
     Admin,
     BankManager,
-}
-
-impl AsRef<str> for Role {
-    fn as_ref(&self) -> &str {
-        match self {
-            Role::Superuser => "superuser",
-            Role::BankManager => "bank-manager",
-            Role::Admin => "admin",
-        }
-    }
-}
-
-impl std::ops::Deref for Role {
-    type Target = str;
-
-    fn deref(&self) -> &Self::Target {
-        self.as_ref()
-    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
