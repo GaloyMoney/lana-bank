@@ -164,7 +164,20 @@ impl From<String> for Subject {
     }
 }
 
-#[derive(async_graphql::Enum, Serialize, Deserialize, Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(
+    async_graphql::Enum,
+    Serialize,
+    Deserialize,
+    Debug,
+    Clone,
+    Copy,
+    PartialEq,
+    Eq,
+    Hash,
+    strum::IntoStaticStr,
+    strum::EnumString,
+)]
+#[strum(serialize_all = "kebab-case")]
 pub enum Role {
     Superuser,
     Admin,
@@ -178,24 +191,6 @@ impl AsRef<str> for Role {
             Role::BankManager => "bank-manager",
             Role::Admin => "admin",
         }
-    }
-}
-
-#[derive(Error, Debug)]
-#[error("ParseRoleError: {0}")]
-pub struct ParseRoleError(String);
-
-impl FromStr for Role {
-    type Err = ParseRoleError;
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let res = match s {
-            "superuser" => Role::Superuser,
-            "bank-manager" => Role::BankManager,
-            "admin" => Role::Admin,
-            _ => return Err(ParseRoleError(format!("Unknown role: {}", s))),
-        };
-        Ok(res)
     }
 }
 

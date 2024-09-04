@@ -1788,6 +1788,7 @@ dependencies = [
  "sha2",
  "sqlx",
  "sqlx-adapter",
+ "strum",
  "thiserror",
  "tokio",
  "tower-http",

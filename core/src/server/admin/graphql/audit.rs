@@ -68,7 +68,7 @@ impl From<crate::audit::AuditEntry> for AuditEntry {
             id: entry.id.to_global_id(),
             subject: entry.subject,
             object: entry.object.as_ref().into(),
-            action: entry.action.as_ref().into(),
+            action: entry.action.to_string(),
             authorized: entry.authorized,
             recorded_at: entry.recorded_at.into(),
         }

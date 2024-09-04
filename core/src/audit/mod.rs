@@ -8,8 +8,6 @@ use error::AuditError;
 mod cursor;
 pub use cursor::AuditCursor;
 
-use sqlx::prelude::FromRow;
-
 use crate::{
     authorization::{Action, Object},
     primitives::{AuditEntryId, AuditInfo, Subject},
@@ -22,16 +20,6 @@ pub struct AuditEntry {
     pub action: Action,
     pub authorized: bool,
     pub recorded_at: DateTime<Utc>,
-}
-
-#[derive(Debug, FromRow)]
-struct RawAuditEntry {
-    id: AuditEntryId,
-    subject: String,
-    object: String,
-    action: String,
-    authorized: bool,
-    recorded_at: DateTime<Utc>,
 }
 
 #[derive(Clone)]
@@ -76,7 +64,7 @@ impl Audit {
                 "#,
             subject.to_string(),
             object.as_ref(),
-            action.as_ref(),
+            action.to_string(),
             authorized,
         )
         .fetch_one(&mut **db)
@@ -89,16 +77,12 @@ impl Audit {
         &self,
         query: crate::query::PaginatedQueryArgs<AuditCursor>,
     ) -> Result<crate::query::PaginatedQueryRet<AuditEntry, AuditCursor>, AuditError> {
-        // Extract the after_id and limit from the query
         let after_id: Option<AuditEntryId> = query.after.map(|cursor| cursor.id);
-
         let limit = i64::try_from(query.first)?;
 
-        // Fetch the raw events with pagination
-        let raw_events: Vec<RawAuditEntry> = sqlx::query_as!(
-            RawAuditEntry,
+        let raw_events = sqlx::query!(
             r#"
-            SELECT id, subject, object, action, authorized, recorded_at
+            SELECT id AS "id: AuditEntryId", subject, object, action, authorized, recorded_at
             FROM audit_entries
             WHERE ($1::BIGINT IS NULL OR id < $1::BIGINT)
             ORDER BY id DESC
@@ -153,10 +137,9 @@ impl Audit {
         &self,
         ids: &[AuditEntryId],
     ) -> Result<HashMap<AuditEntryId, T>, AuditError> {
-        let raw_entries = sqlx::query_as!(
-            RawAuditEntry,
+        let raw_entries = sqlx::query!(
             r#"
-            SELECT id, subject, object, action, authorized, recorded_at
+            SELECT id AS "id: AuditEntryId", subject, object, action, authorized, recorded_at
             FROM audit_entries
             WHERE id = ANY($1)
             "#,
