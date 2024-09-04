@@ -37,7 +37,7 @@ import {
   CollateralAction,
 } from "@/lib/graphql/generated"
 import { formatInterval, formatPeriod } from "@/lib/utils"
-import { currencyConverter, formatCurrency, formatDate } from "@/lib/utils"
+import { currencyConverter, formatDate } from "@/lib/utils"
 import { CollateralUpdateDialog } from "@/components/loan/collateral-update-dialog"
 import { CollateralizationStateUpdateDialog } from "@/components/loan/collateralization-state-update-dialog"
 
@@ -126,8 +126,6 @@ const LoanDetails: React.FC<LoanDetailsProps> = ({ loanId }) => {
   const { data: priceInfo } = useGetRealtimePriceUpdatesQuery({
     fetchPolicy: "cache-only",
   })
-
-  const BtcUsdPrice = currencyConverter.centsToUsd(priceInfo?.realtimePrice.usdCentsPerBtc)
 
   const {
     data: loanDetails,
@@ -351,10 +349,13 @@ const LoanDetails: React.FC<LoanDetailsProps> = ({ loanId }) => {
                     />
                   ) : loanDetails.loan.currentCvl ? (
                     <DetailItem
-                      label={`Current CVL (BTC/USD: ${formatCurrency({
-                        amount: BtcUsdPrice,
-                        currency: "USD",
-                      })})`}
+                      labelComponent={
+                        <p className="text-textColor-secondary flex items-center">
+                          <div className="mr-2">Current CVL (BTC/USD:</div>
+                          <Balance amount={priceInfo?.realtimePrice.usdCentsPerBtc} currency="usd" />
+                          <div>)</div>
+                        </p>
+                      }
                       value={`${loanDetails.loan.currentCvl}%`}
                     />
                   ) : (

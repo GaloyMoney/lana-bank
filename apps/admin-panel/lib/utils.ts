@@ -28,23 +28,6 @@ export const currencyConverter = {
   },
 }
 
-export function formatCurrency({
-  amount,
-  currency,
-}: {
-  amount: number
-  currency: string
-}) {
-  if (currency === "BTC") {
-    return `${amount.toFixed(8)} BTC`
-  }
-
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency,
-  }).format(amount)
-}
-
 export const formatDate = (isoDateString: string): string => {
   if (isoDateString === "-") return "-"
 
@@ -67,17 +50,6 @@ export const formatDate = (isoDateString: string): string => {
   return `${formattedDate}, ${formattedTime}`
 }
 
-export const isUUID = (str: string) => {
-  const uuidRegex =
-    /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
-  return uuidRegex.test(str)
-}
-
-export const isEmail = (str: string) => {
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-  return emailRegex.test(str)
-}
-
 export const formatRole = (role: string) => {
   return role
     .toLowerCase()
@@ -96,4 +68,15 @@ export const formatInterval = (interval: InterestInterval) => {
     .split("_")
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
     .join(" ")
+}
+
+export const isUUID = (str: string) => {
+  const uuidRegex =
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+  return uuidRegex.test(str)
+}
+
+export const isEmail = (str: string) => {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+  return emailRegex.test(str)
 }
