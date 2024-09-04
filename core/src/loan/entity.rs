@@ -22,6 +22,29 @@ pub struct LoanReceivable {
     pub interest: UsdCents,
 }
 
+#[derive(Debug, Clone, PartialEq)]
+pub enum LoanRepaymentInPlan {
+    Interest(RepaymentInPlan),
+    Principal(RepaymentInPlan),
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub enum RepaymentStatus {
+    Upcoming,
+    Due(UsdCents),
+    Overdue(UsdCents),
+    Paid,
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct RepaymentInPlan {
+    pub status: RepaymentStatus,
+    pub initial: UsdCents,
+    pub outstanding: UsdCents,
+    pub accrual_at: DateTime<Utc>,
+    pub due_at: DateTime<Utc>,
+}
+
 pub enum LoanHistory {
     Payment(IncrementalPayment),
     Interest(InterestAccrued),
@@ -337,6 +360,94 @@ impl Loan {
         history
     }
 
+    pub fn repayment_plan(&self) -> Result<Vec<LoanRepaymentInPlan>, LoanError> {
+        let mut remaining_interest_paid = self.interest_payments();
+        let mut interest_projections: Vec<LoanRepaymentInPlan> = self
+            .events
+            .iter()
+            .filter_map(|event| match event {
+                LoanEvent::InterestIncurred {
+                    amount,
+                    recorded_at,
+                    ..
+                } => {
+                    let interest_applied = std::cmp::min(*amount, remaining_interest_paid);
+                    let interest_outstanding_for_payment = *amount - interest_applied;
+                    remaining_interest_paid -= interest_applied;
+
+                    let due_at = *recorded_at;
+                    let status = if interest_outstanding_for_payment == UsdCents::ZERO {
+                        RepaymentStatus::Paid
+                    } else if Utc::now() < due_at {
+                        RepaymentStatus::Due(interest_outstanding_for_payment)
+                    } else {
+                        RepaymentStatus::Overdue(interest_outstanding_for_payment)
+                    };
+
+                    Some(LoanRepaymentInPlan::Interest(RepaymentInPlan {
+                        status,
+                        outstanding: interest_outstanding_for_payment,
+                        initial: *amount,
+                        accrual_at: *recorded_at,
+                        due_at,
+                    }))
+                }
+                _ => None,
+            })
+            .collect();
+
+        let approved_at = self.approved_at().ok_or(LoanError::NotApprovedYet)?;
+        let next_interest_starts_at =
+            interest_projections
+                .last()
+                .map_or(Some(approved_at), |repayment| match repayment {
+                    LoanRepaymentInPlan::Interest(interest) => Some(interest.accrual_at),
+                    _ => None,
+                });
+        let mut interest_starts_at = match next_interest_starts_at {
+            Some(date) => date,
+            _ => return Ok(interest_projections),
+        };
+
+        while let Some(interest_accrues_at) = self.projected_next_interest_at(interest_starts_at) {
+            let interest_days = self.projected_days_for_interest_calculation(
+                interest_starts_at,
+                interest_projections.is_empty(),
+            );
+            let interest = self
+                .terms
+                .calculate_interest(self.initial_principal(), interest_days);
+
+            interest_projections.push(LoanRepaymentInPlan::Interest(RepaymentInPlan {
+                status: RepaymentStatus::Upcoming,
+                outstanding: interest,
+                initial: interest,
+                accrual_at: interest_accrues_at,
+                due_at: interest_accrues_at,
+            }));
+
+            interest_starts_at = interest_accrues_at + chrono::Duration::days(1);
+        }
+
+        let due_at = self.expires_at().ok_or(LoanError::NotApprovedYet)?;
+        let status = if self.outstanding().principal == UsdCents::ZERO {
+            RepaymentStatus::Paid
+        } else if Utc::now() < due_at {
+            RepaymentStatus::Due(self.outstanding().principal)
+        } else {
+            RepaymentStatus::Overdue(self.outstanding().principal)
+        };
+        interest_projections.push(LoanRepaymentInPlan::Principal(RepaymentInPlan {
+            status,
+            outstanding: self.outstanding().principal,
+            initial: self.initial_principal(),
+            accrual_at: approved_at,
+            due_at,
+        }));
+
+        Ok(interest_projections)
+    }
+
     pub(super) fn is_approved(&self) -> bool {
         for event in self.events.iter() {
             match event {
@@ -506,21 +617,24 @@ impl Loan {
         })
     }
 
-    pub fn next_interest_at(&self) -> Option<DateTime<Utc>> {
-        if !self.is_completed() && !self.is_expired() {
-            Some(
-                self.terms
-                    .interval
-                    .next_interest_payment(chrono::Utc::now()),
-            )
+    pub fn projected_next_interest_at(
+        &self,
+        from_timestamp: DateTime<Utc>,
+    ) -> Option<DateTime<Utc>> {
+        if !self.is_completed() && !self.is_expired_at(from_timestamp) {
+            Some(self.terms.interval.next_interest_payment(from_timestamp))
         } else {
             None
         }
     }
 
-    fn is_expired(&self) -> bool {
+    pub fn next_interest_at(&self) -> Option<DateTime<Utc>> {
+        self.projected_next_interest_at(Utc::now())
+    }
+
+    fn is_expired_at(&self, timestamp: DateTime<Utc>) -> bool {
         match self.expires_at() {
-            Some(expiration_date) => Utc::now() > expiration_date,
+            Some(expiration_date) => timestamp > expiration_date,
             None => false,
         }
     }
@@ -566,6 +680,26 @@ impl Loan {
             Some(expires_at_date.day())
         } else {
             Some(next_payment_date.day())
+        }
+    }
+
+    fn projected_days_for_interest_calculation(
+        &self,
+        from_timestamp: DateTime<Utc>,
+        is_first_payment: bool,
+    ) -> u32 {
+        let next_payment_date = self.terms.interval.next_interest_payment(from_timestamp);
+        let expires_at_date = match self.expires_at() {
+            Some(t) => t,
+            None => return 0,
+        };
+        if is_first_payment {
+            next_payment_date.day() - from_timestamp.day() + 1
+            // 1 is added to account for the day when the loan was approved
+        } else if expires_at_date < next_payment_date {
+            expires_at_date.day()
+        } else {
+            next_payment_date.day()
         }
     }
 
@@ -1061,11 +1195,12 @@ mod test {
     }
 
     fn init_events() -> EntityEvents<LoanEvent> {
+        let loan_id = LoanId::new();
         EntityEvents::init(
             LoanId::new(),
             [
                 LoanEvent::Initialized {
-                    id: LoanId::new(),
+                    id: loan_id,
                     customer_id: CustomerId::new(),
                     principal: UsdCents::from(100),
                     terms: terms(),
@@ -1075,7 +1210,7 @@ mod test {
                 },
                 LoanEvent::InterestIncurred {
                     tx_id: LedgerTxId::new(),
-                    tx_ref: "tx_ref".to_string(),
+                    tx_ref: format!("{}-interest-{}", loan_id, 1),
                     amount: UsdCents::from(5),
                     recorded_at: Utc::now(),
                     audit_info: dummy_audit_info(),
