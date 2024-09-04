@@ -17,6 +17,7 @@ import {
 } from "@/lib/graphql/generated"
 
 import { env } from "@/env";
+import { CENTS_PER_USD, SATS_PER_BTC } from "../utils"
 
 const httpLink = new HttpLink({
   uri: env.NEXT_PUBLIC_CORE_ADMIN_URL,
@@ -53,20 +54,20 @@ const resolvers: Resolvers = {
       const priceInfo = await fetchData(cache)
       if (!priceInfo) return null
 
-      const principalValueInUsd = loan.principal / 100
+      const principalValueInUsd = loan.principal / CENTS_PER_USD
 
       const collateralValueInSats = loan.balance.collateral.btcBalance
       const collateralValueInCents =
-        (priceInfo.realtimePrice.usdCentsPerBtc * collateralValueInSats) / 100_000_000
-      const collateralValueInUsd = collateralValueInCents / 100
+        (priceInfo.realtimePrice.usdCentsPerBtc * collateralValueInSats) / SATS_PER_BTC
+      const collateralValueInUsd = collateralValueInCents / CENTS_PER_USD
 
-      const outstandingAmountInUsd = loan.balance.outstanding.usdBalance / 100
+      const outstandingAmountInUsd = loan.balance.outstanding.usdBalance / CENTS_PER_USD
 
       if (collateralValueInUsd == 0 || loan.status === LoanStatus.Closed) return 0
 
       const newOutstandingAmount =
         outstandingAmountInUsd === 0 ? principalValueInUsd : outstandingAmountInUsd
-      const cvl = (collateralValueInUsd / newOutstandingAmount) * 100
+      const cvl = (collateralValueInUsd / newOutstandingAmount) * CENTS_PER_USD
 
       return Number(cvl.toFixed(2))
     },
@@ -74,10 +75,10 @@ const resolvers: Resolvers = {
       const priceInfo = await fetchData(cache)
       if (!priceInfo) return null
 
-      return (
+      return Math.floor(
         (loan.loanTerms.initialCvl * loan.principal) /
         priceInfo.realtimePrice.usdCentsPerBtc /
-        100
+        CENTS_PER_USD * SATS_PER_BTC
       )
     },
   },

@@ -23,10 +23,11 @@ import {
   useLoanCreateMutation,
 } from "@/lib/graphql/generated"
 import { Button } from "@/components/primitive/button"
-import { currencyConverter, formatCurrency } from "@/lib/utils"
+import { currencyConverter } from "@/lib/utils"
 import { Select } from "@/components/primitive/select"
 import { formatInterval, formatPeriod } from "@/lib/utils"
 import { DetailItem } from "@/components/details"
+import Balance from "@/components/balance/balance"
 
 gql`
   mutation LoanCreate($input: LoanCreateInput!) {
@@ -191,6 +192,11 @@ export const CreateLoanDialog = ({
     }
   }
 
+  const collateralRequiredForDesiredPrincipal = currencyConverter.btcToSatoshi(
+    currencyConverter.usdToCents(Number(formValues.desiredPrincipal || 0)) /
+    priceInfo?.realtimePrice.usdCentsPerBtc
+  )
+
   return (
     <Dialog
       onOpenChange={(isOpen) => {
@@ -225,19 +231,11 @@ export const CreateLoanDialog = ({
               <div className="p-1.5 bg-input-text rounded-md px-4">USD</div>
             </div>
             {priceInfo && (
-              <div className="mt-2 text-sm">
-                {formatCurrency({
-                  currency: "BTC",
-                  amount:
-                    (Number(formValues.desiredPrincipal || 0) * 100) /
-                    priceInfo.realtimePrice.usdCentsPerBtc,
-                })}{" "}
-                collateral required (BTC/USD:{" "}
-                {formatCurrency({
-                  amount: priceInfo.realtimePrice.usdCentsPerBtc / 100,
-                  currency: "USD",
-                })}
-                )
+              <div className="mt-2 text-sm flex space-x-1 items-center">
+                <Balance amount={collateralRequiredForDesiredPrincipal} currency="btc" />
+                <div>collateral required (</div>
+                <div>BTC/USD: </div>{<Balance amount={priceInfo?.realtimePrice.usdCentsPerBtc} currency="usd" />}
+                <div>)</div>
               </div>
             )}
           </div>
@@ -393,6 +391,6 @@ export const CreateLoanDialog = ({
           </DialogFooter>
         </form>
       </DialogContent>
-    </Dialog>
+    </Dialog >
   )
 }

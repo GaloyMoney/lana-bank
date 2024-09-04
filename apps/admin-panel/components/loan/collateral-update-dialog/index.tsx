@@ -17,7 +17,7 @@ import {
   useGetLoanDetailsQuery,
 } from "@/lib/graphql/generated"
 import { DetailItem, DetailsGroup } from "@/components/details"
-import { currencyConverter, formatCurrency } from "@/lib/utils"
+import { currencyConverter } from "@/lib/utils"
 import Balance from "@/components/balance/balance"
 import { Label } from "@/components/primitive/label"
 
@@ -180,16 +180,7 @@ export function CollateralUpdateDialog({
                   <DetailItem
                     label="Expected Collateral"
                     valueComponent={
-                      loanDetails?.loan?.collateralToMatchInitialCvl ? (
-                        <span className="font-mono">
-                          {formatCurrency({
-                            amount: loanDetails.loan.collateralToMatchInitialCvl,
-                            currency: "BTC",
-                          })}
-                        </span>
-                      ) : (
-                        <>Price not available</>
-                      )
+                      <Balance amount={loanDetails?.loan?.collateralToMatchInitialCvl} currency="btc" />
                     }
                   />
                 </DetailsGroup>

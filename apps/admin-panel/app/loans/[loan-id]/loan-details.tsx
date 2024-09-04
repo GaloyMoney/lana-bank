@@ -127,6 +127,8 @@ const LoanDetails: React.FC<LoanDetailsProps> = ({ loanId }) => {
     fetchPolicy: "cache-only",
   })
 
+  const BtcUsdPrice = currencyConverter.centsToUsd(priceInfo?.realtimePrice.usdCentsPerBtc)
+
   const {
     data: loanDetails,
     loading,
@@ -145,6 +147,7 @@ const LoanDetails: React.FC<LoanDetailsProps> = ({ loanId }) => {
     principalInCents: loanDetails?.loan?.principal,
     collateralInSatoshis: loanDetails?.loan?.balance.collateral.btcBalance,
   })
+
   // If price changes, refetch current CVL
   useEffect(() => {
     refetch()
@@ -343,22 +346,13 @@ const LoanDetails: React.FC<LoanDetailsProps> = ({ loanId }) => {
                     <DetailItem
                       label="Expected Collateral"
                       valueComponent={
-                        loanDetails.loan.collateralToMatchInitialCvl ? (
-                          <span className="font-mono">
-                            {formatCurrency({
-                              amount: loanDetails.loan.collateralToMatchInitialCvl,
-                              currency: "BTC",
-                            })}
-                          </span>
-                        ) : (
-                          <>Price not available</>
-                        )
+                        <Balance amount={loanDetails.loan.collateralToMatchInitialCvl} currency="btc" />
                       }
                     />
                   ) : loanDetails.loan.currentCvl ? (
                     <DetailItem
                       label={`Current CVL (BTC/USD: ${formatCurrency({
-                        amount: priceInfo?.realtimePrice.usdCentsPerBtc / 100,
+                        amount: BtcUsdPrice,
                         currency: "USD",
                       })})`}
                       value={`${loanDetails.loan.currentCvl}%`}
@@ -371,20 +365,30 @@ const LoanDetails: React.FC<LoanDetailsProps> = ({ loanId }) => {
                     value={`${loanDetails.loan.loanTerms.initialCvl}%`}
                   />
                   <DetailItem
-                    label={`Margin Call CVL ${
-                      loanDetails.loan.balance.collateral.btcBalance > 0
-                        ? `(${formatCurrency({ amount: MarginCallPrice, currency: "USD" })})`
-                        : ""
-                    }`}
+                    labelComponent={
+                      <p className="text-textColor-secondary flex items-center">
+                        <div className="mr-1">Margin Call CVL</div>
+                        {loanDetails.loan.balance.collateral.btcBalance > 0 ? <>
+                          <div>(</div>
+                          <Balance amount={MarginCallPrice} currency="usd" />
+                          <div>)</div>
+                        </> : <></>}
+                      </p>
+                    }
                     value={`${loanDetails.loan.loanTerms.marginCallCvl}%`}
                   />
 
                   <DetailItem
-                    label={`Liquidation CVL ${
-                      loanDetails.loan.balance.collateral.btcBalance > 0
-                        ? `(${formatCurrency({ amount: LiquidationCallPrice, currency: "USD" })})`
-                        : ""
-                    }`}
+                    labelComponent={
+                      <p className="text-textColor-secondary flex items-center">
+                        <div className="mr-1">Liquidation CVL</div>
+                        {loanDetails.loan.balance.collateral.btcBalance > 0 ? <>
+                          <div>(</div>
+                          <Balance amount={LiquidationCallPrice} currency="usd" />
+                          <div>)</div>
+                        </> : <></>}
+                      </p>
+                    }
                     value={`${loanDetails.loan.loanTerms.liquidationCvl}%`}
                   />
 
@@ -429,7 +433,7 @@ const LoanDetails: React.FC<LoanDetailsProps> = ({ loanId }) => {
                 )}
                 {loanDetails.loan.status === LoanStatus.Active &&
                   loanDetails.loan.collateralizationState ===
-                    LoanCollaterizationState.UnderLiquidationThreshold && (
+                  LoanCollaterizationState.UnderLiquidationThreshold && (
                     <Button onClick={() => setOpenCollateralizationStateDialog(true)}>
                       Update Collateralization
                     </Button>
@@ -502,7 +506,7 @@ const calculatePrice = ({
   collateralInSatoshis: number
 }) => {
   return (
-    ((cvlPercentage / 100) * currencyConverter.centsToUsd(principalInCents)) /
+    (cvlPercentage * currencyConverter.centsToUsd(principalInCents)) /
     currencyConverter.satoshiToBtc(collateralInSatoshis)
   )
 }

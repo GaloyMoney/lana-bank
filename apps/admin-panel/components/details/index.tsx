@@ -13,7 +13,7 @@ const DetailItem = ({
   labelComponent,
   valueComponent,
 }: {
-  label: string
+  label?: string
   value?: string
   className?: string
   labelComponent?: React.ReactNode

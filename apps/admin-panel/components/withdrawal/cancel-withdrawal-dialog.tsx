@@ -14,7 +14,7 @@ import { Button } from "@/components/primitive/button"
 import { useWithdrawalCancelMutation } from "@/lib/graphql/generated"
 import Balance from "@/components/balance/balance"
 import { DetailItem, DetailsGroup } from "@/components/details"
-import { currencyConverter, formatCurrency } from "@/lib/utils"
+import { currencyConverter } from "@/lib/utils"
 
 gql`
   mutation WithdrawalCancel($input: WithdrawalCancelInput!) {
@@ -141,10 +141,7 @@ export function WithdrawalCancelDialog({
                 <DetailItem
                   className="text-sm"
                   label="Amount"
-                  value={formatCurrency({
-                    currency: "USD",
-                    amount: currencyConverter.centsToUsd(withdrawalData.amount),
-                  })}
+                  valueComponent={<Balance amount={currencyConverter.centsToUsd(withdrawalData.amount)} currency="usd" />}
                 />
               </DetailsGroup>
               {error && <p className="text-destructive">{error}</p>}

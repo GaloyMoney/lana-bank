@@ -1,22 +1,21 @@
 import { cva, VariantProps } from "class-variance-authority"
 
-import { cn } from "@/lib/utils"
-
-const BTC_PER_SATOSHI = 100000000
-const USD_PER_CENT = 100
+import { cn, CENTS_PER_USD, SATS_PER_BTC } from "@/lib/utils"
 
 const formatAmount = (amount: number, currency: Currency) => {
   const formatter = new Intl.NumberFormat("en-US")
 
+  console.log({amount, currency})
+
   switch (currency) {
     case "btc": {
-      const btc = Math.floor(amount / BTC_PER_SATOSHI)
-      const sats = amount % BTC_PER_SATOSHI
+      const btc = Math.floor(amount / SATS_PER_BTC)
+      const sats = amount % SATS_PER_BTC
       return `${formatter.format(btc)}.${sats.toString().padStart(8, "0")}`
     }
     case "usd": {
-      const dollars = Math.floor(amount / USD_PER_CENT)
-      const cents = amount % USD_PER_CENT
+      const dollars = Math.floor(amount / CENTS_PER_USD)
+      const cents = amount % CENTS_PER_USD
       return `${formatter.format(dollars)}.${cents.toString().padStart(2, "0")}`
     }
   }
@@ -44,6 +43,7 @@ const balanceVariants = cva("", {
 const Balance: React.FC<BalanceProps> = ({ amount, currency, className, align }) => {
   const isNegative = amount < 0
   const formattedAmount = formatAmount(Math.abs(amount), currency)
+  console.log({formattedAmount})
   const formattedAmountWithSymbol = isNegative
     ? `(${formattedAmount})`
     : `${formattedAmount}`

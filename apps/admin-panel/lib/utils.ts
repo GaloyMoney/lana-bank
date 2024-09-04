@@ -7,21 +7,24 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
+export const SATS_PER_BTC = 100_000_000
+export const CENTS_PER_USD = 100
+
 export const currencyConverter = {
   centsToUsd: (cents: number) => {
-    return Number((cents / 100).toFixed(2))
+    return Number((cents / CENTS_PER_USD).toFixed(2))
   },
 
   btcToSatoshi: (btc: number) => {
-    return Number((btc * 100000000).toFixed(0))
+    return Number((btc * SATS_PER_BTC).toFixed(0))
   },
 
   satoshiToBtc: (satoshi: number) => {
-    return satoshi / 100000000
+    return satoshi / SATS_PER_BTC
   },
 
   usdToCents: (usd: number) => {
-    return Number((usd * 100).toFixed(0))
+    return Number((usd * CENTS_PER_USD).toFixed(0))
   },
 }
 
@@ -32,18 +35,6 @@ export function formatCurrency({
   amount: number
   currency: string
 }) {
-  if (currency === "SATS" && amount >= 100_000_000)
-    return formatCurrency({ amount: amount / 100_000_000, currency: "BTC" })
-
-  if (currency === "SATS") {
-    return (
-      new Intl.NumberFormat("en-US", {
-        maximumFractionDigits: 0,
-        useGrouping: true,
-      }).format(amount) + " SATS"
-    )
-  }
-
   if (currency === "BTC") {
     return `${amount.toFixed(8)} BTC`
   }

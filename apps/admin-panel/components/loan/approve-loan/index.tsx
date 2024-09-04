@@ -20,7 +20,6 @@ import {
 import { Button } from "@/components/primitive/button"
 import { DetailItem, DetailsGroup } from "@/components/details"
 import Balance from "@/components/balance/balance"
-import { formatCurrency } from "@/lib/utils"
 
 gql`
   mutation LoanApprove($input: LoanApproveInput!) {
@@ -141,23 +140,17 @@ export const LoanApproveDialog = ({
             <DetailItem
               label="Expected Collateral to meet target CVL"
               valueComponent={
-                loanDetails.collateralToMatchInitialCvl ? (
-                  <span className="font-mono">
-                    {formatCurrency({
-                      amount: loanDetails.collateralToMatchInitialCvl,
-                      currency: "BTC",
-                    })}
-                  </span>
-                ) : (
-                  <>Price not available</>
-                )
+                <Balance amount={loanDetails.collateralToMatchInitialCvl} currency="btc" />
               }
             />
             <DetailItem
-              label={`Current CVL (BTC/USD: ${formatCurrency({
-                amount: priceInfo?.realtimePrice.usdCentsPerBtc / 100,
-                currency: "USD",
-              })})`}
+              labelComponent={
+                <p className="text-textColor-secondary flex items-center">
+                  <div className="mr-2">Current CVL (BTC/USD:</div>
+                  <Balance amount={priceInfo?.realtimePrice.usdCentsPerBtc} currency="usd" />
+                  <div>)</div>
+                </p>
+              }
               value={`${loanDetails.currentCvl}%`}
             />
             <DetailItem
