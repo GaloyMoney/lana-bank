@@ -5,14 +5,14 @@ import { Inter_Tight } from "next/font/google"
 import "./globals.css"
 import { getServerSession } from "next-auth"
 
-import { redirect } from "next/navigation"
-
+import { authOptions } from "./api/auth/[...nextauth]/options"
 import { AuthSessionProvider } from "./session-provider"
 
-import { authOptions } from "./api/auth/[...nextauth]/options"
+import { ApolloClient } from "@/lib/core-admin-client"
 
-import SideBar from "@/components/sidebar"
-import ApolloServerWrapper from "@/lib/core-admin-client/apollo-server-wrapper"
+import { redirect } from "next/navigation"
+
+import { SideBar } from "@/components/sidebar"
 import { Toaster } from "@/components/primitive/toast"
 import { RealtimePriceUpdates } from "@/components/realtime-price"
 
@@ -36,14 +36,14 @@ export default async function RootLayout({
     <html lang="en">
       <body className={inter.className}>
         <AuthSessionProvider session={session}>
-          <ApolloServerWrapper>
+          <ApolloClient>
             <Toaster />
             <RealtimePriceUpdates />
             <main className="flex flex-col md:flex-row min-h-screen w-full">
               <SideBar />
               <div className="flex-1 p-6 h-screen overflow-y-auto">{children}</div>
             </main>
-          </ApolloServerWrapper>
+          </ApolloClient>
         </AuthSessionProvider>
       </body>
     </html>

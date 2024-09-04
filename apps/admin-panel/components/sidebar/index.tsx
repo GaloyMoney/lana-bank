@@ -8,7 +8,7 @@ import { NavigationLinks } from "./navigation-links"
 import { Sheet, SheetTrigger, SheetContent } from "@/components/primitive/sheet"
 import { Button } from "@/components/primitive/button"
 
-export default function SideBar() {
+export function SideBar() {
   return (
     <>
       <div className="hidden md:block bg-primary-foreground border-r border-secondary-foreground w-64">
