@@ -36,8 +36,7 @@ import {
   useGetRealtimePriceUpdatesQuery,
   CollateralAction,
 } from "@/lib/graphql/generated"
-import { formatInterval, formatPeriod } from "@/lib/utils"
-import { currencyConverter, formatDate } from "@/lib/utils"
+import { formatInterval, formatPeriod, currencyConverter, formatDate } from "@/lib/utils"
 import { CollateralUpdateDialog } from "@/components/loan/collateral-update-dialog"
 import { CollateralizationStateUpdateDialog } from "@/components/loan/collateralization-state-update-dialog"
 
@@ -344,7 +343,10 @@ const LoanDetails: React.FC<LoanDetailsProps> = ({ loanId }) => {
                     <DetailItem
                       label="Expected Collateral"
                       valueComponent={
-                        <Balance amount={loanDetails.loan.collateralToMatchInitialCvl} currency="btc" />
+                        <Balance
+                          amount={loanDetails.loan.collateralToMatchInitialCvl}
+                          currency="btc"
+                        />
                       }
                     />
                   ) : loanDetails.loan.currentCvl ? (
@@ -352,7 +354,10 @@ const LoanDetails: React.FC<LoanDetailsProps> = ({ loanId }) => {
                       labelComponent={
                         <p className="text-textColor-secondary flex items-center">
                           <div className="mr-2">Current CVL (BTC/USD:</div>
-                          <Balance amount={priceInfo?.realtimePrice.usdCentsPerBtc} currency="usd" />
+                          <Balance
+                            amount={priceInfo?.realtimePrice.usdCentsPerBtc}
+                            currency="usd"
+                          />
                           <div>)</div>
                         </p>
                       }
@@ -369,11 +374,15 @@ const LoanDetails: React.FC<LoanDetailsProps> = ({ loanId }) => {
                     labelComponent={
                       <p className="text-textColor-secondary flex items-center">
                         <div className="mr-1">Margin Call CVL</div>
-                        {loanDetails.loan.balance.collateral.btcBalance > 0 ? <>
-                          <div>(</div>
-                          <Balance amount={MarginCallPrice} currency="usd" />
-                          <div>)</div>
-                        </> : <></>}
+                        {loanDetails.loan.balance.collateral.btcBalance > 0 ? (
+                          <>
+                            <div>(</div>
+                            <Balance amount={MarginCallPrice} currency="usd" />
+                            <div>)</div>
+                          </>
+                        ) : (
+                          <></>
+                        )}
                       </p>
                     }
                     value={`${loanDetails.loan.loanTerms.marginCallCvl}%`}
@@ -383,11 +392,15 @@ const LoanDetails: React.FC<LoanDetailsProps> = ({ loanId }) => {
                     labelComponent={
                       <p className="text-textColor-secondary flex items-center">
                         <div className="mr-1">Liquidation CVL</div>
-                        {loanDetails.loan.balance.collateral.btcBalance > 0 ? <>
-                          <div>(</div>
-                          <Balance amount={LiquidationCallPrice} currency="usd" />
-                          <div>)</div>
-                        </> : <></>}
+                        {loanDetails.loan.balance.collateral.btcBalance > 0 ? (
+                          <>
+                            <div>(</div>
+                            <Balance amount={LiquidationCallPrice} currency="usd" />
+                            <div>)</div>
+                          </>
+                        ) : (
+                          <></>
+                        )}
                       </p>
                     }
                     value={`${loanDetails.loan.loanTerms.liquidationCvl}%`}
@@ -434,7 +447,7 @@ const LoanDetails: React.FC<LoanDetailsProps> = ({ loanId }) => {
                 )}
                 {loanDetails.loan.status === LoanStatus.Active &&
                   loanDetails.loan.collateralizationState ===
-                  LoanCollaterizationState.UnderLiquidationThreshold && (
+                    LoanCollaterizationState.UnderLiquidationThreshold && (
                     <Button onClick={() => setOpenCollateralizationStateDialog(true)}>
                       Update Collateralization
                     </Button>

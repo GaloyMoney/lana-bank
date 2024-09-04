@@ -16,8 +16,8 @@ import {
   LoanStatus,
 } from "@/lib/graphql/generated"
 
-import { env } from "@/env";
-import { CENTS_PER_USD, SATS_PER_BTC } from "../utils"
+import { env } from "@/env"
+import { CENTS_PER_USD, SATS_PER_BTC } from "@/lib/utils"
 
 const httpLink = new HttpLink({
   uri: env.NEXT_PUBLIC_CORE_ADMIN_URL,
@@ -39,7 +39,7 @@ const cache = new InMemoryCache({
   },
 })
 
-const fetchData = (cache: any): Promise<GetRealtimePriceUpdatesQuery> =>
+const fetchData = (cache: InMemoryCache): Promise<GetRealtimePriceUpdatesQuery> =>
   new Promise((resolve) => {
     const priceInfo = cache.readQuery({
       query: GetRealtimePriceUpdatesDocument,
@@ -76,9 +76,10 @@ const resolvers: Resolvers = {
       if (!priceInfo) return null
 
       return Math.floor(
-        (loan.loanTerms.initialCvl * loan.principal) /
-        priceInfo.realtimePrice.usdCentsPerBtc /
-        CENTS_PER_USD * SATS_PER_BTC
+        ((loan.loanTerms.initialCvl * loan.principal) /
+          priceInfo.realtimePrice.usdCentsPerBtc /
+          CENTS_PER_USD) *
+          SATS_PER_BTC,
       )
     },
   },

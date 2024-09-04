@@ -4,13 +4,12 @@ import { Inter_Tight } from "next/font/google"
 // eslint-disable-next-line import/no-unassigned-import
 import "./globals.css"
 import { getServerSession } from "next-auth"
+import { redirect } from "next/navigation"
 
 import { authOptions } from "./api/auth/[...nextauth]/options"
 import { AuthSessionProvider } from "./session-provider"
 
 import { ApolloClient } from "@/lib/apollo-client"
-
-import { redirect } from "next/navigation"
 
 import { SideBar } from "@/components/sidebar"
 import { Toaster } from "@/components/primitive/toast"

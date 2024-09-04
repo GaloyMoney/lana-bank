@@ -140,14 +140,20 @@ export const LoanApproveDialog = ({
             <DetailItem
               label="Expected Collateral to meet target CVL"
               valueComponent={
-                <Balance amount={loanDetails.collateralToMatchInitialCvl} currency="btc" />
+                <Balance
+                  amount={loanDetails.collateralToMatchInitialCvl}
+                  currency="btc"
+                />
               }
             />
             <DetailItem
               labelComponent={
                 <p className="text-textColor-secondary flex items-center">
                   <div className="mr-2">Current CVL (BTC/USD:</div>
-                  <Balance amount={priceInfo?.realtimePrice.usdCentsPerBtc} currency="usd" />
+                  <Balance
+                    amount={priceInfo?.realtimePrice.usdCentsPerBtc}
+                    currency="usd"
+                  />
                   <div>)</div>
                 </p>
               }

@@ -180,7 +180,10 @@ export function CollateralUpdateDialog({
                   <DetailItem
                     label="Expected Collateral"
                     valueComponent={
-                      <Balance amount={loanDetails?.loan?.collateralToMatchInitialCvl} currency="btc" />
+                      <Balance
+                        amount={loanDetails?.loan?.collateralToMatchInitialCvl}
+                        currency="btc"
+                      />
                     }
                   />
                 </DetailsGroup>

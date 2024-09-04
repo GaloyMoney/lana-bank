@@ -120,7 +120,10 @@ export function WithdrawalConfirmDialog({
               className="text-sm"
               label="Amount"
               valueComponent={
-                <Balance amount={currencyConverter.centsToUsd(withdrawalData.amount)} currency="usd" />
+                <Balance
+                  amount={currencyConverter.centsToUsd(withdrawalData.amount)}
+                  currency="usd"
+                />
               }
             />
           </DetailsGroup>

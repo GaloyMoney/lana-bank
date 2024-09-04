@@ -23,9 +23,8 @@ import {
   useLoanCreateMutation,
 } from "@/lib/graphql/generated"
 import { Button } from "@/components/primitive/button"
-import { currencyConverter } from "@/lib/utils"
 import { Select } from "@/components/primitive/select"
-import { formatInterval, formatPeriod } from "@/lib/utils"
+import { formatInterval, formatPeriod, currencyConverter } from "@/lib/utils"
 import { DetailItem } from "@/components/details"
 import Balance from "@/components/balance/balance"
 
@@ -194,7 +193,7 @@ export const CreateLoanDialog = ({
 
   const collateralRequiredForDesiredPrincipal = currencyConverter.btcToSatoshi(
     currencyConverter.usdToCents(Number(formValues.desiredPrincipal || 0)) /
-    priceInfo?.realtimePrice.usdCentsPerBtc
+      priceInfo?.realtimePrice.usdCentsPerBtc,
   )
 
   return (
@@ -234,7 +233,13 @@ export const CreateLoanDialog = ({
               <div className="mt-2 text-sm flex space-x-1 items-center">
                 <Balance amount={collateralRequiredForDesiredPrincipal} currency="btc" />
                 <div>collateral required (</div>
-                <div>BTC/USD: </div>{<Balance amount={priceInfo?.realtimePrice.usdCentsPerBtc} currency="usd" />}
+                <div>BTC/USD: </div>
+                {
+                  <Balance
+                    amount={priceInfo?.realtimePrice.usdCentsPerBtc}
+                    currency="usd"
+                  />
+                }
                 <div>)</div>
               </div>
             )}
@@ -391,6 +396,6 @@ export const CreateLoanDialog = ({
           </DialogFooter>
         </form>
       </DialogContent>
-    </Dialog >
+    </Dialog>
   )
 }

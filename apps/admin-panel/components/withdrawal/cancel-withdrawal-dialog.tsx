@@ -141,7 +141,12 @@ export function WithdrawalCancelDialog({
                 <DetailItem
                   className="text-sm"
                   label="Amount"
-                  valueComponent={<Balance amount={currencyConverter.centsToUsd(withdrawalData.amount)} currency="usd" />}
+                  valueComponent={
+                    <Balance
+                      amount={currencyConverter.centsToUsd(withdrawalData.amount)}
+                      currency="usd"
+                    />
+                  }
                 />
               </DetailsGroup>
               {error && <p className="text-destructive">{error}</p>}
