@@ -32,5 +32,13 @@ query loan($id: UUID!) {
         recordedAt
       }
     }
+    repaymentPlan {
+      repaymentType
+      status
+      initial
+      outstanding
+      accrualAt
+      dueAt
+    }
   }
 }

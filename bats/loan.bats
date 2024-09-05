@@ -217,6 +217,11 @@ wait_for_interest() {
   transactions_len=$(graphql_output '.data.loan.transactions' | jq 'length')
   echo "Number of transactions: $transactions_len"
   [[ "$transactions_len" == "7" ]] || exit 1
+
+  interest_repayments_len=$(
+    graphql_output '[.data.loan.repaymentPlan[] | select(.repaymentType == "INTEREST")] | length'
+  )
+  [[ "$interest_repayments_len" == "5" ]] || exit 1
 }
 
 @test "loan: paginated listing" {
