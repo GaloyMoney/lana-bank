@@ -622,7 +622,13 @@ impl Loan {
         from_timestamp: DateTime<Utc>,
     ) -> Option<DateTime<Utc>> {
         if !self.is_completed() && !self.is_expired_at(from_timestamp) {
-            Some(self.terms.interval.next_interest_payment(from_timestamp))
+            match self.expires_at() {
+                Some(expires_at) => Some(std::cmp::min(
+                    expires_at,
+                    self.terms.interval.next_interest_payment(from_timestamp),
+                )),
+                None => Some(self.terms.interval.next_interest_payment(from_timestamp)),
+            }
         } else {
             None
         }
