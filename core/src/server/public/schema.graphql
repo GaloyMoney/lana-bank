@@ -119,6 +119,7 @@ type Loan {
 	principal: UsdCents!
 	transactions: [LoanHistory!]!
 	approvals: [LoanApproval!]!
+	repaymentPlan: [LoanRepaymentInPlan!]!
 	collateralizationState: LoanCollaterizationState!
 	balance: LoanBalance!
 	customer: Customer!
@@ -153,6 +154,27 @@ type LoanOrigination {
 
 type LoanOutstanding {
 	usdBalance: UsdCents!
+}
+
+type LoanRepaymentInPlan {
+	repaymentType: LoanRepaymentType!
+	status: LoanRepaymentStatus!
+	initial: UsdCents!
+	outstanding: UsdCents!
+	accrualAt: Timestamp!
+	dueAt: Timestamp!
+}
+
+enum LoanRepaymentStatus {
+	UPCOMING
+	DUE
+	OVERDUE
+	PAID
+}
+
+enum LoanRepaymentType {
+	PRINCIPAL
+	INTEREST
 }
 
 enum LoanStatus {

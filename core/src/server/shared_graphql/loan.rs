@@ -29,7 +29,66 @@ pub struct Loan {
     principal: UsdCents,
     transactions: Vec<LoanHistory>,
     approvals: Vec<LoanApproval>,
+    repayment_plan: Vec<LoanRepaymentInPlan>,
     collateralization_state: LoanCollaterizationState,
+}
+
+#[derive(SimpleObject)]
+pub struct LoanRepaymentInPlan {
+    pub repayment_type: LoanRepaymentType,
+    pub status: LoanRepaymentStatus,
+    pub initial: UsdCents,
+    pub outstanding: UsdCents,
+    pub accrual_at: Timestamp,
+    pub due_at: Timestamp,
+}
+
+impl From<crate::loan::LoanRepaymentInPlan> for LoanRepaymentInPlan {
+    fn from(repayment: crate::loan::LoanRepaymentInPlan) -> Self {
+        match repayment {
+            crate::loan::LoanRepaymentInPlan::Interest(interest) => LoanRepaymentInPlan {
+                repayment_type: LoanRepaymentType::Interest,
+                status: interest.status.into(),
+                initial: interest.initial,
+                outstanding: interest.outstanding,
+                accrual_at: interest.accrual_at.into(),
+                due_at: interest.due_at.into(),
+            },
+            crate::loan::LoanRepaymentInPlan::Principal(interest) => LoanRepaymentInPlan {
+                repayment_type: LoanRepaymentType::Principal,
+                status: interest.status.into(),
+                initial: interest.initial,
+                outstanding: interest.outstanding,
+                accrual_at: interest.accrual_at.into(),
+                due_at: interest.due_at.into(),
+            },
+        }
+    }
+}
+
+#[derive(async_graphql::Enum, Clone, Copy, PartialEq, Eq)]
+pub enum LoanRepaymentType {
+    Principal,
+    Interest,
+}
+
+#[derive(async_graphql::Enum, Clone, Copy, PartialEq, Eq)]
+pub enum LoanRepaymentStatus {
+    Upcoming,
+    Due,
+    Overdue,
+    Paid,
+}
+
+impl From<crate::loan::RepaymentStatus> for LoanRepaymentStatus {
+    fn from(status: crate::loan::RepaymentStatus) -> Self {
+        match status {
+            crate::loan::RepaymentStatus::Paid => LoanRepaymentStatus::Paid,
+            crate::loan::RepaymentStatus::Due => LoanRepaymentStatus::Due,
+            crate::loan::RepaymentStatus::Overdue => LoanRepaymentStatus::Overdue,
+            crate::loan::RepaymentStatus::Upcoming => LoanRepaymentStatus::Upcoming,
+        }
+    }
 }
 
 #[derive(async_graphql::Union)]
@@ -175,6 +234,12 @@ impl From<crate::loan::Loan> for Loan {
         let collateral = loan.collateral();
         let principal = loan.initial_principal();
         let transactions = loan.history().into_iter().map(LoanHistory::from).collect();
+        let repayment_plan = loan
+            .repayment_plan()
+            .unwrap_or_default()
+            .into_iter()
+            .map(LoanRepaymentInPlan::from)
+            .collect();
         let collateralization_state = loan.collateralization();
         let approvals = loan
             .approvals()
@@ -196,6 +261,7 @@ impl From<crate::loan::Loan> for Loan {
             principal,
             transactions,
             approvals,
+            repayment_plan,
             collateralization_state,
         }
     }

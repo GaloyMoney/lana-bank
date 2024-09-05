@@ -25,13 +25,13 @@ pub struct LoanReceivable {
     pub interest: UsdCents,
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub enum LoanRepaymentInPlan {
     Interest(RepaymentInPlan),
     Principal(RepaymentInPlan),
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub enum RepaymentStatus {
     Upcoming,
     Due,
@@ -39,7 +39,7 @@ pub enum RepaymentStatus {
     Paid,
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub struct RepaymentInPlan {
     pub status: RepaymentStatus,
     pub initial: UsdCents,
