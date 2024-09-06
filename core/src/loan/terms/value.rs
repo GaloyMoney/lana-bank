@@ -120,7 +120,7 @@ impl InterestPeriodStartDate {
         Self(value)
     }
 
-    pub fn as_before_now(&self) -> Option<Self> {
+    pub fn maybe_if_before_now(&self) -> Option<Self> {
         if *self < Utc::now() {
             Some(*self)
         } else {
@@ -128,24 +128,29 @@ impl InterestPeriodStartDate {
         }
     }
 
-    pub fn end_date_for_period(&self, interval: InterestInterval) -> InterestPeriodEndDate {
+    pub fn absolute_end_date_for_period(
+        &self,
+        interval: InterestInterval,
+    ) -> InterestPeriodEndDate {
         interval.end_date_for_period(self.0)
-    }
-
-    pub fn days_in_period(&self, interval: InterestInterval) -> Result<u32, LoanTermsError> {
-        interval.end_date_for_period(self.0).days_in_period(*self)
     }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 pub struct InterestPeriodEndDate(DateTime<Utc>);
 
+impl From<InterestPeriodEndDate> for DateTime<Utc> {
+    fn from(end_date: InterestPeriodEndDate) -> Self {
+        end_date.inner()
+    }
+}
+
 impl InterestPeriodEndDate {
     pub fn new(value: DateTime<Utc>) -> Self {
         Self(value)
     }
 
-    pub fn value(&self) -> DateTime<Utc> {
+    pub fn inner(&self) -> DateTime<Utc> {
         self.0
     }
 
@@ -316,7 +321,10 @@ mod test {
         let next_payment =
             InterestPeriodEndDate("2024-12-31T23:59:59Z".parse::<DateTime<Utc>>().unwrap());
 
-        assert_eq!(current_date.end_date_for_period(interval), next_payment);
+        assert_eq!(
+            current_date.absolute_end_date_for_period(interval),
+            next_payment
+        );
     }
 
     #[test]
