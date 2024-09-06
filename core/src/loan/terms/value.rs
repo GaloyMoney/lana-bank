@@ -120,6 +120,14 @@ impl InterestPeriodStartDate {
         Self(value)
     }
 
+    pub fn as_before_now(&self) -> Option<Self> {
+        if *self < Utc::now() {
+            Some(*self)
+        } else {
+            None
+        }
+    }
+
     pub fn value(&self) -> DateTime<Utc> {
         self.0
     }

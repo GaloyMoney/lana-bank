@@ -509,9 +509,9 @@ impl Loan {
         })
     }
 
-    pub fn next_interest_period_start_date(
+    pub fn calculate_next_interest_period_start_date(
         &self,
-    ) -> Result<Option<InterestPeriodStartDate>, LoanError> {
+    ) -> Result<InterestPeriodStartDate, LoanError> {
         let approved_at = self.approved_at().ok_or(LoanError::NotApprovedYet)?;
         let calculated_start_date = InterestPeriodStartDate::new(
             self.events
@@ -532,6 +532,14 @@ impl Loan {
         } else {
             Err(LoanError::AllInterestAccrualsGeneratedForLoan)
         }
+    }
+
+    pub fn next_interest_period_start_date(
+        &self,
+    ) -> Result<Option<InterestPeriodStartDate>, LoanError> {
+        Ok(self
+            .calculate_next_interest_period_start_date()?
+            .as_before_now())
     }
 
     pub fn calculate_interest(&self, days_in_interest_period: u32) -> UsdCents {
@@ -565,7 +573,7 @@ impl Loan {
 
         let days_in_interest_period = self
             .next_interest_period_start_date()?
-            .ok_or(LoanError::AlreadyCompleted)?
+            .ok_or(LoanError::InterestPeriodStartDateInFuture)?
             .days_in_period(self.terms.interval)?;
         let interest_for_period = self.calculate_interest(days_in_interest_period);
 
