@@ -15,8 +15,8 @@ use crate::{
 };
 
 use super::{
-    error::LoanError, terms::TermValues, CVLPct, InterestPeriodStartDate, LoanApprovalData,
-    LoanInterestAccrual,
+    error::LoanError, terms::TermValues, CVLPct, InterestPeriodEndDate, InterestPeriodStartDate,
+    LoanApprovalData, LoanInterestAccrual,
 };
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -509,7 +509,7 @@ impl Loan {
         })
     }
 
-    pub fn calculate_next_interest_period_start_date(
+    fn calculate_next_interest_period_start_date(
         &self,
     ) -> Result<InterestPeriodStartDate, LoanError> {
         let approved_at = self.approved_at().ok_or(LoanError::NotApprovedYet)?;
@@ -534,12 +534,20 @@ impl Loan {
         }
     }
 
-    pub fn next_interest_period_start_date(
+    fn next_interest_period_start_date(
         &self,
     ) -> Result<Option<InterestPeriodStartDate>, LoanError> {
         Ok(self
             .calculate_next_interest_period_start_date()?
             .as_before_now())
+    }
+
+    pub fn next_interest_period_end_date(
+        &self,
+    ) -> Result<Option<InterestPeriodEndDate>, LoanError> {
+        Ok(self
+            .next_interest_period_start_date()?
+            .map(|start_date| start_date.end_date_for_period(self.terms.interval)))
     }
 
     pub fn calculate_interest(&self, days_in_interest_period: u32) -> UsdCents {

@@ -128,8 +128,8 @@ impl InterestPeriodStartDate {
         }
     }
 
-    pub fn value(&self) -> DateTime<Utc> {
-        self.0
+    pub fn end_date_for_period(&self, interval: InterestInterval) -> InterestPeriodEndDate {
+        interval.end_date_for_period(self.0)
     }
 
     pub fn days_in_period(&self, interval: InterestInterval) -> Result<u32, LoanTermsError> {
@@ -143,6 +143,10 @@ pub struct InterestPeriodEndDate(DateTime<Utc>);
 impl InterestPeriodEndDate {
     pub fn new(value: DateTime<Utc>) -> Self {
         Self(value)
+    }
+
+    pub fn value(&self) -> DateTime<Utc> {
+        self.0
     }
 
     pub fn days_in_period(
@@ -307,11 +311,12 @@ mod test {
     #[test]
     fn next_interest_accrual_date() {
         let interval = InterestInterval::EndOfMonth;
-        let current_date = "2024-12-03T14:00:00Z".parse::<DateTime<Utc>>().unwrap();
+        let current_date =
+            InterestPeriodStartDate::new("2024-12-03T14:00:00Z".parse::<DateTime<Utc>>().unwrap());
         let next_payment =
             InterestPeriodEndDate("2024-12-31T23:59:59Z".parse::<DateTime<Utc>>().unwrap());
 
-        assert_eq!(interval.end_date_for_period(current_date), next_payment);
+        assert_eq!(current_date.end_date_for_period(interval), next_payment);
     }
 
     #[test]
