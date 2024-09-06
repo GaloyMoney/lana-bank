@@ -545,9 +545,17 @@ impl Loan {
     pub fn next_interest_period_end_date(
         &self,
     ) -> Result<Option<InterestPeriodEndDate>, LoanError> {
-        Ok(self
+        let calculated_end_date = self
             .next_interest_period_start_date()?
-            .map(|start_date| start_date.end_date_for_period(self.terms.interval)))
+            .map(|start_date| start_date.end_date_for_period(self.terms.interval));
+
+        if let Some(end_date) = calculated_end_date {
+            Ok(Some(self.expires_at().map_or(end_date, |expires_at| {
+                std::cmp::min(end_date, InterestPeriodEndDate::new(expires_at))
+            })))
+        } else {
+            Ok(None)
+        }
     }
 
     pub fn calculate_interest(&self, days_in_interest_period: u32) -> UsdCents {

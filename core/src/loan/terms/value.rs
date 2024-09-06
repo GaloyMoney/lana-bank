@@ -137,7 +137,7 @@ impl InterestPeriodStartDate {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 pub struct InterestPeriodEndDate(DateTime<Utc>);
 
 impl InterestPeriodEndDate {
