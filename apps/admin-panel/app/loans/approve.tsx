@@ -1,6 +1,7 @@
 import React from "react"
 import { gql } from "@apollo/client"
 import { FaExclamationCircle } from "react-icons/fa"
+import { useSession } from "next-auth/react"
 
 import { toast } from "sonner"
 
@@ -15,6 +16,7 @@ import {
 } from "@/components/primitive/dialog"
 import {
   Loan,
+  LoanCollaterizationState,
   useGetRealtimePriceUpdatesQuery,
   useLoanApproveMutation,
 } from "@/lib/graphql/generated"
@@ -53,6 +55,8 @@ type LoanApproveDialogProps = {
 export const LoanApproveDialog: React.FC<
   React.PropsWithChildren<LoanApproveDialogProps>
 > = ({ loanDetails, children, refetch }) => {
+  const { data: session } = useSession()
+
   const { data: priceInfo } = useGetRealtimePriceUpdatesQuery({
     fetchPolicy: "cache-only",
   })
@@ -73,6 +77,16 @@ export const LoanApproveDialog: React.FC<
       console.error(err)
     }
   }
+
+  const hasApprovals = loanDetails.approvals.length > 0
+  const noCollateral = loanDetails.balance.collateral.btcBalance === 0
+  const approvedBy = loanDetails.approvals.map((a) => a.user.email).join(", ")
+  const userHasAlreadyApproved = loanDetails.approvals
+    .map((a) => a.user.email)
+    .includes(session?.user?.email || "")
+  const canApproveLoan =
+    loanDetails.collateralizationState === LoanCollaterizationState.FullyCollateralized &&
+    !userHasAlreadyApproved
 
   return (
     <Dialog
@@ -190,11 +204,26 @@ export const LoanApproveDialog: React.FC<
           ) : (
             <></>
           )}
-          <DialogFooter className="mt-4">
-            <Button disabled={loading} className="w-32" onClick={handleLoanApprove}>
-              Approve Loan
-            </Button>
-          </DialogFooter>
+          {noCollateral && (
+            <span className="text-destructive">Loan approval requires collateral</span>
+          )}
+          {userHasAlreadyApproved && (
+            <span className="text-primary">You have already approved this loan</span>
+          )}
+          {canApproveLoan && (
+            <DialogFooter
+              className={`mt-4 flex items-center ${hasApprovals && "sm:justify-between"}`}
+            >
+              {hasApprovals && (
+                <div className="text-primary">
+                  Approved by <span>{approvedBy}</span>
+                </div>
+              )}
+              <Button disabled={loading} className="w-32" onClick={handleLoanApprove}>
+                Approve Loan
+              </Button>
+            </DialogFooter>
+          )}
         </DialogContent>
       )}
     </Dialog>

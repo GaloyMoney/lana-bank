@@ -7,6 +7,7 @@ import { LoanSnapshot } from "./snapshot"
 import { LoanDetailsCard } from "./details"
 import { LoanTerms } from "./terms"
 import { LoanTransactionHistory } from "./transactions"
+import { LoanApprovers } from "./approvers"
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/primitive/tab"
 import { PageHeading } from "@/components/page-heading"
@@ -85,6 +86,13 @@ gql`
           units
         }
       }
+      approvals {
+        user {
+          email
+          roles
+        }
+        approvedAt
+      }
       currentCvl @client
       collateralToMatchInitialCvl @client
     }
@@ -113,6 +121,8 @@ const Loan = ({
     refetch()
   }, [priceInfo?.realtimePrice.usdCentsPerBtc, refetch])
 
+  const hasApprovers = !!data?.loan?.approvals?.length
+
   return (
     <main className="max-w-7xl m-auto">
       <PageHeading>Loan Details</PageHeading>
@@ -127,6 +137,7 @@ const Loan = ({
               <TabsTrigger value="snapshot">Snapshot</TabsTrigger>
               <TabsTrigger value="transactions">Transactions</TabsTrigger>
               <TabsTrigger value="terms">Terms</TabsTrigger>
+              {hasApprovers && <TabsTrigger value="approvers">Approvers</TabsTrigger>}
             </TabsList>
             <TabsContent value="overview">
               <LoanSnapshot loan={data.loan} />
@@ -142,6 +153,11 @@ const Loan = ({
             <TabsContent value="terms">
               <LoanTerms loan={data.loan} />
             </TabsContent>
+            {hasApprovers && (
+              <TabsContent value="approvers">
+                <LoanApprovers loan={data.loan} />
+              </TabsContent>
+            )}
           </Tabs>
         </>
       )}
