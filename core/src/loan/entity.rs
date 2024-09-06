@@ -15,8 +15,8 @@ use crate::{
 };
 
 use super::{
-    error::LoanError, history, repayment_plan, terms::TermValues, CVLPct, InterestPeriod,
-    LoanApprovalData, LoanInterestAccrual,
+    disbursement::*, error::LoanError, history, repayment_plan, terms::TermValues, CVLPct,
+    InterestPeriod, LoanApprovalData, LoanInterestAccrual,
 };
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -112,6 +112,11 @@ pub enum LoanEvent {
         principal_amount: UsdCents,
         interest_amount: UsdCents,
         recorded_at: DateTime<Utc>,
+        audit_info: AuditInfo,
+    },
+    DisbursementInitiated {
+        idx: DisbursementIdx,
+        amount: UsdCents,
         audit_info: AuditInfo,
     },
     Completed {
@@ -819,6 +824,34 @@ impl Loan {
 
         self.maybe_update_collateralization(price, upgrade_buffer_cvl_pct, audit_info)
     }
+
+    pub(super) fn initiate_disbursement(
+        &mut self,
+        audit_info: AuditInfo,
+        amount: UsdCents,
+    ) -> Result<NewDisbursement, LoanError> {
+        if self.is_completed() {
+            return Err(LoanError::AlreadyCompleted);
+        }
+
+        let idx = self
+            .events
+            .iter()
+            .rev()
+            .find_map(|event| match event {
+                LoanEvent::DisbursementInitiated { idx, .. } => Some(idx.next()),
+                _ => None,
+            })
+            .unwrap_or(DisbursementIdx::FIRST);
+
+        self.events.push(LoanEvent::DisbursementInitiated {
+            idx,
+            amount,
+            audit_info,
+        });
+
+        Ok(NewDisbursement::new(audit_info, self.id, idx, amount))
+    }
 }
 
 impl Entity for Loan {
@@ -863,6 +896,7 @@ impl TryFrom<EntityEvents<LoanEvent>> for Loan {
                 LoanEvent::Completed { .. } => (),
                 LoanEvent::CollateralUpdated { .. } => (),
                 LoanEvent::ApprovalAdded { .. } => (),
+                LoanEvent::DisbursementInitiated { .. } => (),
             }
         }
         builder.events(events).build()

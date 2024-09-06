@@ -54,6 +54,23 @@ CREATE TABLE loan_events (
   UNIQUE(id, sequence)
 );
 
+CREATE TABLE disbursements (
+  id UUID PRIMARY KEY,
+  loan_id UUID NOT NULL REFERENCES loans(id),
+  idx INT NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  UNIQUE(loan_id, idx)
+);
+
+CREATE TABLE disbursement_events (
+  id UUID NOT NULL REFERENCES disbursements(id),
+  sequence INT NOT NULL,
+  event_type VARCHAR NOT NULL,
+  event JSONB NOT NULL,
+  recorded_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  UNIQUE(id, sequence)
+);
+
 CREATE TABLE withdraws (
   id UUID PRIMARY KEY,
   customer_id UUID NOT NULL REFERENCES customers(id),
