@@ -34,6 +34,8 @@ pub enum LoanError {
     AlreadyApproved,
     #[error("LoanError - UserCannotApproveTwice")]
     UserCannotApproveTwice,
+    #[error("LoanError - NotApprovedYet")]
+    NotApprovedYet,
     #[error("LoanError - PaymentExceedsOutstandingLoanAmount: {0} > {1}")]
     PaymentExceedsOutstandingLoanAmount(UsdCents, UsdCents),
     #[error("LoanError - UnexpectedZeroPrincipalAmount: totalAmount({0}), interestAmount({1})")]

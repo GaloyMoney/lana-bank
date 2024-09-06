@@ -1,4 +1,4 @@
-use chrono::{DateTime, Datelike, Utc};
+use chrono::{DateTime, Duration, Utc};
 use derive_builder::Builder;
 use rust_decimal::Decimal;
 use serde::{Deserialize, Serialize};
@@ -14,7 +14,10 @@ use crate::{
     primitives::*,
 };
 
-use super::{error::LoanError, terms::TermValues, CVLPct, LoanApprovalData, LoanInterestAccrual};
+use super::{
+    error::LoanError, terms::TermValues, CVLPct, InterestPeriodStartDate, LoanApprovalData,
+    LoanInterestAccrual,
+};
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct LoanReceivable {
@@ -506,23 +509,35 @@ impl Loan {
         })
     }
 
-    pub fn next_interest_at(&self) -> Option<DateTime<Utc>> {
-        if !self.is_completed() && !self.is_expired() {
-            Some(
-                self.terms
-                    .interval
-                    .next_interest_payment(chrono::Utc::now()),
-            )
+    pub fn next_interest_period_start_date(
+        &self,
+    ) -> Result<Option<InterestPeriodStartDate>, LoanError> {
+        let approved_at = self.approved_at().ok_or(LoanError::NotApprovedYet)?;
+        let calculated_start_date = InterestPeriodStartDate::new(
+            self.events
+                .iter()
+                .rev()
+                .find_map(|event| match event {
+                    LoanEvent::InterestIncurred { recorded_at, .. } => {
+                        Some(*recorded_at + Duration::days(1))
+                    }
+                    _ => None,
+                })
+                .unwrap_or(approved_at),
+        );
+
+        let expiry_date = self.expires_at().ok_or(LoanError::NotApprovedYet)?;
+        if calculated_start_date <= expiry_date {
+            Ok(calculated_start_date)
         } else {
-            None
+            Err(LoanError::AllInterestAccrualsGeneratedForLoan)
         }
     }
 
-    fn is_expired(&self) -> bool {
-        match self.expires_at() {
-            Some(expiration_date) => Utc::now() > expiration_date,
-            None => false,
-        }
+    pub fn calculate_interest(&self, days_in_interest_period: u32) -> UsdCents {
+        self.terms
+            .annual_rate
+            .interest_for_time_period(self.initial_principal(), days_in_interest_period)
     }
 
     pub fn expires_at(&self) -> Option<DateTime<Utc>> {
@@ -543,29 +558,16 @@ impl Loan {
             .any(|event| matches!(event, LoanEvent::Completed { .. }))
     }
 
-    fn days_for_interest_calculation(&self) -> u32 {
-        if self.count_interest_incurred() == 0 {
-            self.terms
-                .interval
-                .next_interest_payment(self.created_at())
-                .day()
-                - self.created_at().day()
-                + 1 // 1 is added to account for the day when the loan was
-                    // approved
-        } else {
-            self.terms.interval.next_interest_payment(Utc::now()).day()
-        }
-    }
-
     pub fn initiate_interest(&self) -> Result<LoanInterestAccrual, LoanError> {
         if self.is_completed() {
             return Err(LoanError::AlreadyCompleted);
         }
 
-        let interest = self.terms.calculate_interest(
-            self.initial_principal(),
-            self.days_for_interest_calculation(),
-        );
+        let days_in_interest_period = self
+            .next_interest_period_start_date()?
+            .ok_or(LoanError::AlreadyCompleted)?
+            .days_in_period(self.terms.interval)?;
+        let interest_for_period = self.calculate_interest(days_in_interest_period);
 
         let tx_ref = format!(
             "{}-interest-{}",
@@ -573,7 +575,7 @@ impl Loan {
             self.count_interest_incurred() + 1
         );
         Ok(LoanInterestAccrual {
-            interest,
+            interest: interest_for_period,
             tx_ref,
             tx_id: LedgerTxId::new(),
             loan_account_ids: self.account_ids,
