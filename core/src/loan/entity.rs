@@ -366,6 +366,10 @@ impl Loan {
     fn interest_accrued_to_repayments_in_plan(
         &self,
     ) -> Result<Vec<LoanRepaymentInPlan>, LoanError> {
+        if !self.is_approved() {
+            return Err(LoanError::NotApprovedYet);
+        }
+
         let mut remaining_interest_paid = self.interest_payments();
         Ok(self
             .events
@@ -379,11 +383,14 @@ impl Loan {
                     let interest_applied = std::cmp::min(*amount, remaining_interest_paid);
                     remaining_interest_paid -= interest_applied;
 
-                    let due_at = *recorded_at;
                     let interest_outstanding_for_payment = *amount - interest_applied;
+                    let due_at = self
+                        .current_period_for_start_date(InterestPeriodStartDate::new(*recorded_at))
+                        .expect("Already checked if approved")
+                        .end;
                     let status = if interest_outstanding_for_payment == UsdCents::ZERO {
                         RepaymentStatus::Paid
-                    } else if Utc::now() < due_at {
+                    } else if due_at > Utc::now() {
                         RepaymentStatus::Due
                     } else {
                         RepaymentStatus::Overdue
@@ -394,7 +401,7 @@ impl Loan {
                         outstanding: interest_outstanding_for_payment,
                         initial: *amount,
                         accrual_at: *recorded_at,
-                        due_at,
+                        due_at: due_at.into(),
                     }))
                 }
                 _ => None,
@@ -632,6 +639,18 @@ impl Loan {
         })
     }
 
+    pub fn current_period_for_start_date(
+        &self,
+        start_date: InterestPeriodStartDate,
+    ) -> Result<InterestPeriod, LoanError> {
+        let expiry_date = self.expires_at().ok_or(LoanError::NotApprovedYet)?;
+
+        let calculated_end_date = start_date.absolute_end_date_for_period(self.terms.interval);
+        let end_date = std::cmp::min(calculated_end_date, InterestPeriodEndDate::new(expiry_date));
+
+        Ok(InterestPeriod::new(start_date, end_date)?)
+    }
+
     pub fn next_period_from_end_date(
         &self,
         end_date: InterestPeriodEndDate,
@@ -645,16 +664,11 @@ impl Loan {
             Err(LoanError::AllInterestAccrualsGeneratedForLoan)?
         };
 
-        let calculated_end_date = next_start_date.absolute_end_date_for_period(self.terms.interval);
-        let next_end_date = self.expires_at().map_or(calculated_end_date, |expires_at| {
-            std::cmp::min(calculated_end_date, InterestPeriodEndDate::new(expires_at))
-        });
-
-        Ok(InterestPeriod::new(next_start_date, next_end_date)?)
+        self.current_period_for_start_date(next_start_date)
     }
 
     pub fn next_interest_period(&self) -> Result<InterestPeriod, LoanError> {
-        let last_end_date = InterestPeriodEndDate::new(
+        let last_start_date = InterestPeriodStartDate::new(
             self.events
                 .iter()
                 .rev()
@@ -664,7 +678,7 @@ impl Loan {
                 })
                 .ok_or_else(|| LoanError::NotApprovedYet)?,
         );
-
+        let last_end_date = self.current_period_for_start_date(last_start_date)?.end;
         self.next_period_from_end_date(last_end_date)
     }
 

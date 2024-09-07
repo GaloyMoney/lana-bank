@@ -145,6 +145,18 @@ impl From<InterestPeriodEndDate> for DateTime<Utc> {
     }
 }
 
+impl PartialEq<DateTime<Utc>> for InterestPeriodEndDate {
+    fn eq(&self, other: &DateTime<Utc>) -> bool {
+        self.0 == *other
+    }
+}
+
+impl PartialOrd<DateTime<Utc>> for InterestPeriodEndDate {
+    fn partial_cmp(&self, other: &DateTime<Utc>) -> Option<std::cmp::Ordering> {
+        self.0.partial_cmp(other)
+    }
+}
+
 impl InterestPeriodEndDate {
     pub fn new(value: DateTime<Utc>) -> Self {
         Self(value)
