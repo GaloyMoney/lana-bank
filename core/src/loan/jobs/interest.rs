@@ -91,16 +91,8 @@ impl JobRunner for LoanProcessingJobRunner {
         loan.confirm_interest(interest_accrual, executed_at, audit_info);
         self.repo.persist_in_tx(&mut db_tx, &mut loan).await?;
 
-        let valid_end_date = loan
-            .next_interest_period_start_date()?
-            .maybe_if_before_now()
-            .map(|start_date| start_date.absolute_end_date_for_period(loan.terms.interval));
-
-        match valid_end_date {
-            Some(next_interest_at) => Ok(JobCompletion::RescheduleAtWithTx(
-                db_tx,
-                next_interest_at.into(),
-            )),
+        match loan.maybe_next_interest_period()? {
+            Some(period) => Ok(JobCompletion::RescheduleAtWithTx(db_tx, period.end.into())),
             None => {
                 println!("Loan interest job completed for loan: {:?}", loan.id);
                 Ok(JobCompletion::CompleteWithTx(db_tx))

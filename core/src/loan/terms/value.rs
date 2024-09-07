@@ -141,7 +141,7 @@ pub struct InterestPeriodEndDate(DateTime<Utc>);
 
 impl From<InterestPeriodEndDate> for DateTime<Utc> {
     fn from(end_date: InterestPeriodEndDate) -> Self {
-        end_date.inner()
+        end_date.0
     }
 }
 
@@ -150,8 +150,8 @@ impl InterestPeriodEndDate {
         Self(value)
     }
 
-    pub fn inner(&self) -> DateTime<Utc> {
-        self.0
+    pub fn next_start_date(&self) -> InterestPeriodStartDate {
+        InterestPeriodStartDate::new(self.0 + chrono::Duration::days(1))
     }
 
     pub fn days_in_period(
@@ -165,6 +165,36 @@ impl InterestPeriodEndDate {
             ));
         }
         Ok(self.0.day() - start_date.0.day() + 1)
+    }
+}
+
+pub struct InterestPeriod {
+    pub start: InterestPeriodStartDate,
+    pub end: InterestPeriodEndDate,
+}
+
+impl InterestPeriod {
+    pub fn new(
+        start_date: InterestPeriodStartDate,
+        end_date: InterestPeriodEndDate,
+    ) -> Result<Self, LoanTermsError> {
+        if start_date.0 > end_date.0 {
+            return Err(LoanTermsError::InvalidFutureDateComparisonForAccrualDate(
+                end_date.0,
+                start_date.0,
+            ));
+        }
+
+        Ok(Self {
+            start: start_date,
+            end: end_date,
+        })
+    }
+
+    pub fn days(&self) -> u32 {
+        self.end
+            .days_in_period(self.start)
+            .expect("Impossible cmp error for struct")
     }
 }
 
