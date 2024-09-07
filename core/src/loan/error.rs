@@ -54,4 +54,6 @@ pub enum LoanError {
     NoCollateral,
     #[error("LoanError - BelowMarginLimit")]
     BelowMarginLimit,
+    #[error("LoanError - DisbursementInProgress")]
+    DisbursementInProgress,
 }

@@ -119,6 +119,9 @@ pub enum LoanEvent {
         amount: UsdCents,
         audit_info: AuditInfo,
     },
+    DisbursementConcluded {
+        idx: DisbursementIdx,
+    },
     Completed {
         completed_at: DateTime<Utc>,
         audit_info: AuditInfo,
@@ -834,6 +837,10 @@ impl Loan {
             return Err(LoanError::AlreadyCompleted);
         }
 
+        if self.disbursement_in_progress() {
+            return Err(LoanError::DisbursementInProgress);
+        }
+
         let idx = self
             .events
             .iter()
@@ -851,6 +858,17 @@ impl Loan {
         });
 
         Ok(NewDisbursement::new(audit_info, self.id, idx, amount))
+    }
+
+    fn disbursement_in_progress(&self) -> bool {
+        for e in self.events.iter().rev() {
+            match e {
+                LoanEvent::DisbursementInitiated { .. } => return true,
+                LoanEvent::DisbursementConcluded { .. } => return false,
+                _ => continue,
+            }
+        }
+        false
     }
 }
 
@@ -897,6 +915,7 @@ impl TryFrom<EntityEvents<LoanEvent>> for Loan {
                 LoanEvent::CollateralUpdated { .. } => (),
                 LoanEvent::ApprovalAdded { .. } => (),
                 LoanEvent::DisbursementInitiated { .. } => (),
+                LoanEvent::DisbursementConcluded { .. } => (),
             }
         }
         builder.events(events).build()
