@@ -1,0 +1,96 @@
+mutation IncrementalPrincipalDisbursementTemplateCreate(
+  $templateId: UUID!
+  $journalId: Expression!
+) {
+  txTemplateCreate(
+    input: {
+      txTemplateId: $templateId
+      code: "INCREMENTAL_PRINCIPAL_DISBURSEMENT"
+      description: "Payout principal."
+      params: [
+        {
+          name: "loanPrincipalReceivableAccount"
+          type: UUID
+          description: "Loan amount-outstanding account ID."
+        }
+        {
+          name: "checkingAccount"
+          type: UUID
+          description: "User Checking account ID."
+        }
+        {
+          name: "principalAmount"
+          type: DECIMAL
+          description: "Amount of USD being issued for the loan."
+        }
+        {
+          name: "externalId"
+          type: STRING
+          description: "External ID for the transaction"
+        }
+        {
+          name: "effective"
+          type: DATE
+          description: "Effective date for transaction."
+          default: "date()"
+        }
+      ]
+      transaction: {
+        journalId: $journalId
+        effective: "params.effective"
+        externalId: "params.externalId"
+      }
+      entries: [
+        {
+          accountId: "params.loanPrincipalReceivableAccount"
+          units: "params.principalAmount"
+          currency: "'USD'"
+          entryType: "'INCREMENTAL_PRINCIPAL_DISBURSEMENT_DR'"
+          direction: "DEBIT"
+          layer: "SETTLED"
+        }
+        {
+          accountId: "params.checkingAccount"
+          units: "params.principalAmount"
+          currency: "'USD'"
+          entryType: "'INCREMENTAL_PRINCIPAL_DISBURSEMENT_CR'"
+          direction: "CREDIT"
+          layer: "SETTLED"
+        }
+      ]
+    }
+  ) {
+    txTemplate {
+      txTemplateId
+      code
+      version
+    }
+  }
+}
+
+mutation PostIncrementalPrincipalDisbursementTransaction(
+  $transactionId: UUID!
+  $loanPrincipalReceivableAccount: UUID!
+  $checkingAccount: UUID!
+  $principalAmount: Decimal!
+  $externalId: String!
+) {
+  transactionPost(
+    input: {
+      transactionId: $transactionId
+      txTemplateCode: "INCREMENTAL_PRINCIPAL_DISBURSEMENT"
+      params: {
+        loanPrincipalReceivableAccount: $loanPrincipalReceivableAccount
+        checkingAccount: $checkingAccount
+        principalAmount: $principalAmount
+        externalId: $externalId
+      }
+    }
+  ) {
+    transaction {
+      transactionId
+      correlationId
+      createdAt
+    }
+  }
+}

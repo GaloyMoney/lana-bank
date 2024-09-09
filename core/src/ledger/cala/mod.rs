@@ -756,6 +756,70 @@ impl CalaClient {
         Ok(created_at)
     }
 
+    #[instrument(
+        name = "lava.ledger.cala.create_incremental_principal_disbursement_tx_template",
+        skip(self),
+        err
+    )]
+    pub async fn create_incremental_principal_disbursement_tx_template(
+        &self,
+        template_id: TxTemplateId,
+    ) -> Result<TxTemplateId, CalaError> {
+        let variables = incremental_principal_disbursement_template_create::Variables {
+            template_id: Uuid::from(template_id),
+            journal_id: format!("uuid(\"{}\")", super::constants::CORE_JOURNAL_ID),
+        };
+        let response =
+            Self::traced_gql_request::<IncrementalPrincipalDisbursementTemplateCreate, _>(
+                &self.client,
+                &self.url,
+                variables,
+            )
+            .await?;
+
+        response
+            .data
+            .map(|d| TxTemplateId::from(d.tx_template_create.tx_template.tx_template_id))
+            .ok_or_else(|| CalaError::MissingDataField)
+    }
+
+    #[instrument(
+        name = "lava.ledger.cala.execute_incremental_principal_disbursement_tx",
+        skip(self),
+        err
+    )]
+    pub async fn execute_incremental_principal_disbursement_tx(
+        &self,
+        transaction_id: LedgerTxId,
+        loan_account_ids: LoanAccountIds,
+        user_account_ids: CustomerLedgerAccountIds,
+        principal_amount: Decimal,
+        external_id: String,
+    ) -> Result<chrono::DateTime<chrono::Utc>, CalaError> {
+        let variables = post_incremental_principal_disbursement_transaction::Variables {
+            transaction_id: transaction_id.into(),
+            loan_principal_receivable_account: loan_account_ids
+                .principal_receivable_account_id
+                .into(),
+            checking_account: user_account_ids.on_balance_sheet_deposit_account_id.into(),
+            principal_amount,
+            external_id,
+        };
+        let response =
+            Self::traced_gql_request::<PostIncrementalPrincipalDisbursementTransaction, _>(
+                &self.client,
+                &self.url,
+                variables,
+            )
+            .await?;
+
+        let created_at = response
+            .data
+            .map(|d| d.transaction_post.transaction.created_at)
+            .ok_or_else(|| CalaError::MissingDataField)?;
+        Ok(created_at)
+    }
+
     #[allow(clippy::too_many_arguments)]
     pub async fn execute_complete_loan_tx(
         &self,

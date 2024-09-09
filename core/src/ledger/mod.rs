@@ -505,6 +505,11 @@ impl Ledger {
 
         Self::assert_cancel_withdraw_tx_template_exists(cala, constants::CANCEL_WITHDRAW).await?;
         Self::assert_approve_loan_tx_template_exists(cala, constants::APPROVE_LOAN_CODE).await?;
+        Self::assert_incremental_principal_disbursement_tx_template_exists(
+            cala,
+            constants::INCREMENTAL_PRINCIPAL_DISBURSEMENT_CODE,
+        )
+        .await?;
         Self::assert_add_collateral_tx_template_exists(cala, constants::ADD_COLLATERAL_CODE)
             .await?;
         Self::assert_remove_collateral_tx_template_exists(cala, constants::REMOVE_COLLATERAL_CODE)
@@ -656,6 +661,34 @@ impl Ledger {
 
         let template_id = LedgerTxTemplateId::new();
         let err = match cala.create_approve_loan_tx_template(template_id).await {
+            Ok(id) => {
+                return Ok(id);
+            }
+            Err(e) => e,
+        };
+
+        Ok(cala
+            .find_tx_template_by_code::<LedgerTxTemplateId>(template_code.to_owned())
+            .await
+            .map_err(|_| err)?)
+    }
+
+    async fn assert_incremental_principal_disbursement_tx_template_exists(
+        cala: &CalaClient,
+        template_code: &str,
+    ) -> Result<LedgerTxTemplateId, LedgerError> {
+        if let Ok(id) = cala
+            .find_tx_template_by_code::<LedgerTxTemplateId>(template_code.to_owned())
+            .await
+        {
+            return Ok(id);
+        }
+
+        let template_id = LedgerTxTemplateId::new();
+        let err = match cala
+            .create_incremental_principal_disbursement_tx_template(template_id)
+            .await
+        {
             Ok(id) => {
                 return Ok(id);
             }
