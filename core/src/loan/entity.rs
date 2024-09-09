@@ -230,7 +230,7 @@ impl Loan {
             .unwrap_or(Satoshis::ZERO)
     }
 
-    pub fn history(&self) -> Vec<history::LoanHistory> {
+    pub fn history(&self) -> Vec<history::LoanHistoryEntry> {
         history::project(self.events.iter())
     }
 

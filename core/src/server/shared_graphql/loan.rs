@@ -27,7 +27,7 @@ pub struct Loan {
     status: LoanStatus,
     collateral: Satoshis,
     principal: UsdCents,
-    transactions: Vec<LoanHistory>,
+    transactions: Vec<LoanHistoryEntry>,
     approvals: Vec<LoanApproval>,
     repayment_plan: Vec<LoanRepaymentInPlan>,
     collateralization_state: LoanCollaterizationState,
@@ -92,7 +92,7 @@ impl From<crate::loan::RepaymentStatus> for LoanRepaymentStatus {
 }
 
 #[derive(async_graphql::Union)]
-pub enum LoanHistory {
+pub enum LoanHistoryEntry {
     Payment(IncrementalPayment),
     Interest(InterestAccrued),
     Collateral(CollateralUpdated),
@@ -233,7 +233,11 @@ impl From<crate::loan::Loan> for Loan {
 
         let collateral = loan.collateral();
         let principal = loan.initial_principal();
-        let transactions = loan.history().into_iter().map(LoanHistory::from).collect();
+        let transactions = loan
+            .history()
+            .into_iter()
+            .map(LoanHistoryEntry::from)
+            .collect();
         let repayment_plan = loan
             .repayment_plan()
             .unwrap_or_default()
@@ -267,19 +271,23 @@ impl From<crate::loan::Loan> for Loan {
     }
 }
 
-impl From<crate::loan::LoanHistory> for LoanHistory {
-    fn from(transaction: crate::loan::LoanHistory) -> Self {
+impl From<crate::loan::LoanHistoryEntry> for LoanHistoryEntry {
+    fn from(transaction: crate::loan::LoanHistoryEntry) -> Self {
         match transaction {
-            crate::loan::LoanHistory::Payment(payment) => LoanHistory::Payment(payment.into()),
-            crate::loan::LoanHistory::Interest(interest) => LoanHistory::Interest(interest.into()),
-            crate::loan::LoanHistory::Collateral(collateral) => {
-                LoanHistory::Collateral(collateral.into())
+            crate::loan::LoanHistoryEntry::Payment(payment) => {
+                LoanHistoryEntry::Payment(payment.into())
             }
-            crate::loan::LoanHistory::Origination(origination) => {
-                LoanHistory::Origination(origination.into())
+            crate::loan::LoanHistoryEntry::Interest(interest) => {
+                LoanHistoryEntry::Interest(interest.into())
             }
-            crate::loan::LoanHistory::Collateralization(collateralization) => {
-                LoanHistory::Collateralization(collateralization.into())
+            crate::loan::LoanHistoryEntry::Collateral(collateral) => {
+                LoanHistoryEntry::Collateral(collateral.into())
+            }
+            crate::loan::LoanHistoryEntry::Origination(origination) => {
+                LoanHistoryEntry::Origination(origination.into())
+            }
+            crate::loan::LoanHistoryEntry::Collateralization(collateralization) => {
+                LoanHistoryEntry::Collateralization(collateralization.into())
             }
         }
     }

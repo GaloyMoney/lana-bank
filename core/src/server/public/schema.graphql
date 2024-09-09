@@ -117,7 +117,7 @@ type Loan {
 	status: LoanStatus!
 	collateral: Satoshis!
 	principal: UsdCents!
-	transactions: [LoanHistory!]!
+	transactions: [LoanHistoryEntry!]!
 	approvals: [LoanApproval!]!
 	repaymentPlan: [LoanRepaymentInPlan!]!
 	collateralizationState: LoanCollaterizationState!
@@ -144,7 +144,7 @@ enum LoanCollaterizationState {
 	NO_COLLATERAL
 }
 
-union LoanHistory = IncrementalPayment | InterestAccrued | CollateralUpdated | LoanOrigination | CollateralizationUpdated
+union LoanHistoryEntry = IncrementalPayment | InterestAccrued | CollateralUpdated | LoanOrigination | CollateralizationUpdated
 
 type LoanOrigination {
 	cents: UsdCents!

@@ -38,7 +38,7 @@ pub struct CollateralizationUpdated {
     pub price: PriceOfOneBTC,
 }
 
-pub enum LoanHistory {
+pub enum LoanHistoryEntry {
     Payment(IncrementalPayment),
     Interest(InterestAccrued),
     Collateral(CollateralUpdated),
@@ -48,7 +48,7 @@ pub enum LoanHistory {
 
 pub(super) fn project<'a>(
     events: impl DoubleEndedIterator<Item = &'a LoanEvent>,
-) -> Vec<LoanHistory> {
+) -> Vec<LoanHistoryEntry> {
     let mut history = vec![];
 
     let mut initial_principal = None;
@@ -63,7 +63,7 @@ pub(super) fn project<'a>(
                 ..
             } => match action {
                 CollateralAction::Add => {
-                    history.push(LoanHistory::Collateral(CollateralUpdated {
+                    history.push(LoanHistoryEntry::Collateral(CollateralUpdated {
                         satoshis: *abs_diff,
                         action: *action,
                         recorded_at: *recorded_at,
@@ -71,7 +71,7 @@ pub(super) fn project<'a>(
                     }));
                 }
                 CollateralAction::Remove => {
-                    history.push(LoanHistory::Collateral(CollateralUpdated {
+                    history.push(LoanHistoryEntry::Collateral(CollateralUpdated {
                         satoshis: *abs_diff,
                         action: *action,
                         recorded_at: *recorded_at,
@@ -86,7 +86,7 @@ pub(super) fn project<'a>(
                 tx_id,
                 ..
             } => {
-                history.push(LoanHistory::Interest(InterestAccrued {
+                history.push(LoanHistoryEntry::Interest(InterestAccrued {
                     cents: *amount,
                     recorded_at: *recorded_at,
                     tx_id: *tx_id,
@@ -100,7 +100,7 @@ pub(super) fn project<'a>(
                 tx_id,
                 ..
             } => {
-                history.push(LoanHistory::Payment(IncrementalPayment {
+                history.push(LoanHistoryEntry::Payment(IncrementalPayment {
                     cents: *principal_amount + *interest_amount,
                     recorded_at: *transaction_recorded_at,
                     tx_id: *tx_id,
@@ -110,7 +110,7 @@ pub(super) fn project<'a>(
             LoanEvent::Approved {
                 tx_id, recorded_at, ..
             } => {
-                history.push(LoanHistory::Origination(LoanOrigination {
+                history.push(LoanHistoryEntry::Origination(LoanOrigination {
                     cents: initial_principal.expect("Loan must have initial principal"),
                     recorded_at: *recorded_at,
                     tx_id: *tx_id,
@@ -125,14 +125,16 @@ pub(super) fn project<'a>(
                 recorded_at,
                 ..
             } => {
-                history.push(LoanHistory::Collateralization(CollateralizationUpdated {
-                    state: *state,
-                    collateral: *collateral,
-                    outstanding_interest: outstanding.interest,
-                    outstanding_principal: outstanding.principal,
-                    price: *price,
-                    recorded_at: *recorded_at,
-                }));
+                history.push(LoanHistoryEntry::Collateralization(
+                    CollateralizationUpdated {
+                        state: *state,
+                        collateral: *collateral,
+                        outstanding_interest: outstanding.interest,
+                        outstanding_principal: outstanding.principal,
+                        price: *price,
+                        recorded_at: *recorded_at,
+                    },
+                ));
             }
             _ => {}
         }
