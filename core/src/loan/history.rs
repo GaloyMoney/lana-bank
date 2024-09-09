@@ -52,7 +52,7 @@ pub(super) fn project<'a>(
     let mut history = vec![];
 
     let mut initial_principal = None;
-    for event in events.rev() {
+    for event in events {
         match event {
             LoanEvent::Initialized { principal, .. } => initial_principal = Some(*principal),
             LoanEvent::CollateralUpdated {
@@ -139,6 +139,6 @@ pub(super) fn project<'a>(
             _ => {}
         }
     }
-
+    history.reverse();
     history
 }
