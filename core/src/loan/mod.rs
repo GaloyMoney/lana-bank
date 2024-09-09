@@ -1,12 +1,11 @@
 mod config;
+mod cursor;
 mod entity;
 pub mod error;
+mod history;
 mod jobs;
 mod repo;
 mod terms;
-
-mod cursor;
-pub use cursor::*;
 
 use sqlx::PgPool;
 use tracing::instrument;
@@ -25,8 +24,10 @@ use crate::{
 };
 
 pub use config::*;
+pub use cursor::*;
 pub use entity::*;
 use error::*;
+pub use history::*;
 use jobs::*;
 use repo::*;
 pub use terms::*;
