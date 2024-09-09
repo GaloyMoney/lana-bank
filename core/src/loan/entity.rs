@@ -15,8 +15,8 @@ use crate::{
 };
 
 use super::{
-    error::LoanError, history, terms::TermValues, CVLPct, InterestPeriod, InterestPeriodEndDate,
-    InterestPeriodStartDate, LoanApprovalData, LoanInterestAccrual,
+    error::LoanError, history, terms::TermValues, CVLPct, InterestPeriod, InterestPeriodStartDate,
+    LoanApprovalData, LoanInterestAccrual,
 };
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -237,9 +237,7 @@ impl Loan {
     fn interest_accrued_to_repayments_in_plan(
         &self,
     ) -> Result<Vec<LoanRepaymentInPlan>, LoanError> {
-        if !self.is_approved() {
-            return Err(LoanError::NotApprovedYet);
-        }
+        let expiry_date = self.expires_at().ok_or(LoanError::NotApprovedYet)?;
 
         let mut remaining_interest_paid = self.interest_payments();
         Ok(self
@@ -255,10 +253,13 @@ impl Loan {
                     remaining_interest_paid -= interest_applied;
 
                     let interest_outstanding_for_payment = *amount - interest_applied;
-                    let due_at = self
-                        .current_period_for_start_date(InterestPeriodStartDate::new(*recorded_at))
-                        .expect("Already checked if approved")
-                        .end;
+                    let due_at = match InterestPeriodStartDate::new(*recorded_at)
+                        .current_period(self.terms.interval, expiry_date)
+                    {
+                        Some(period) => period.end,
+                        None => return None,
+                    };
+
                     let status = if interest_outstanding_for_payment == UsdCents::ZERO {
                         RepaymentStatus::Paid
                     } else if due_at > Utc::now() {
@@ -283,9 +284,11 @@ impl Loan {
     fn interest_upcoming_to_repayments_in_plan(
         &self,
     ) -> Result<Vec<LoanRepaymentInPlan>, LoanError> {
+        let expiry_date = self.expires_at().ok_or(LoanError::NotApprovedYet)?;
+
         let mut interest_projections = vec![];
         let mut next_interest_period = match self.next_interest_period() {
-            Ok(period) => Some(period),
+            Ok(period) => period,
             Err(LoanError::NotApprovedYet) => Err(LoanError::NotApprovedYet)?,
             Err(LoanError::AllInterestAccrualsGeneratedForLoan) | Err(_) => None,
         };
@@ -299,11 +302,7 @@ impl Loan {
                 due_at: period.end.into(),
             }));
 
-            next_interest_period = match self.next_period_from_end_date(period.end) {
-                Ok(period) => Some(period),
-                Err(LoanError::NotApprovedYet) => Err(LoanError::NotApprovedYet)?,
-                Err(LoanError::AllInterestAccrualsGeneratedForLoan) | Err(_) => None,
-            };
+            next_interest_period = period.end.next_period(self.terms.interval, expiry_date);
         }
 
         Ok(interest_projections)
@@ -313,7 +312,7 @@ impl Loan {
         let due_at = self.expires_at().ok_or(LoanError::NotApprovedYet)?;
         let status = if self.outstanding().principal == UsdCents::ZERO {
             RepaymentStatus::Paid
-        } else if self.next_interest_period().is_ok() {
+        } else if self.next_interest_period()?.is_some() {
             RepaymentStatus::Upcoming
         } else if Utc::now() < due_at {
             RepaymentStatus::Due
@@ -510,55 +509,28 @@ impl Loan {
         })
     }
 
-    pub fn current_period_for_start_date(
-        &self,
-        start_date: InterestPeriodStartDate,
-    ) -> Result<InterestPeriod, LoanError> {
+    pub fn next_interest_period(&self) -> Result<Option<InterestPeriod>, LoanError> {
         let expiry_date = self.expires_at().ok_or(LoanError::NotApprovedYet)?;
 
-        let calculated_end_date = start_date.absolute_end_date_for_period(self.terms.interval);
-        let end_date = std::cmp::min(calculated_end_date, InterestPeriodEndDate::new(expiry_date));
-
-        Ok(InterestPeriod::new(start_date, end_date)?)
-    }
-
-    pub fn next_period_from_end_date(
-        &self,
-        end_date: InterestPeriodEndDate,
-    ) -> Result<InterestPeriod, LoanError> {
-        let expiry_date = self.expires_at().ok_or(LoanError::NotApprovedYet)?;
-
-        let calculated_start_date = end_date.next_start_date();
-        let next_start_date = if calculated_start_date <= expiry_date {
-            calculated_start_date
-        } else {
-            Err(LoanError::AllInterestAccrualsGeneratedForLoan)?
-        };
-
-        self.current_period_for_start_date(next_start_date)
-    }
-
-    pub fn next_interest_period(&self) -> Result<InterestPeriod, LoanError> {
         let last_start_date = InterestPeriodStartDate::new(
             self.events
                 .iter()
                 .rev()
                 .find_map(|event| match event {
                     LoanEvent::InterestIncurred { recorded_at, .. } => Some(*recorded_at),
-                    _ => self.approved_at(),
+                    _ => None,
                 })
-                .ok_or_else(|| LoanError::NotApprovedYet)?,
+                .or_else(|| self.approved_at())
+                .ok_or(LoanError::NotApprovedYet)?,
         );
-        let last_end_date = self.current_period_for_start_date(last_start_date)?.end;
-        self.next_period_from_end_date(last_end_date)
+
+        Ok(last_start_date.next_period(self.terms.interval, expiry_date))
     }
 
     pub fn maybe_next_interest_period(&self) -> Result<Option<InterestPeriod>, LoanError> {
-        let next_period = self.next_interest_period()?;
-        Ok(next_period
-            .start
-            .maybe_if_before_now()
-            .and(Some(next_period)))
+        Ok(self
+            .next_interest_period()?
+            .and_then(|period| period.start.maybe_if_before_now().and(Some(period))))
     }
 
     pub fn calculate_interest(&self, days_in_interest_period: u32) -> UsdCents {
@@ -1947,7 +1919,7 @@ mod test {
         let mut loan = Loan::try_from(repayment_plan_events()).unwrap();
 
         let mut next_interest_period = loan.next_interest_period();
-        while let Ok(period) = next_interest_period {
+        while let Ok(Some(period)) = next_interest_period {
             let executed_at = period.end;
 
             let loan_interest_accrual = loan.initiate_interest().unwrap();

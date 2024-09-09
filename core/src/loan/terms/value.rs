@@ -10,7 +10,7 @@ use super::error::*;
 
 const NUMBER_OF_DAYS_IN_YEAR: Decimal = dec!(366);
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(transparent)]
 pub struct AnnualRatePct(Decimal);
 
@@ -84,7 +84,7 @@ impl From<Decimal> for CVLPct {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
 #[serde(tag = "type", content = "value", rename_all = "snake_case")]
 pub enum Duration {
     Months(u32),
@@ -118,6 +118,41 @@ impl PartialOrd<DateTime<Utc>> for InterestPeriodStartDate {
 impl InterestPeriodStartDate {
     pub fn new(value: DateTime<Utc>) -> Self {
         Self(value)
+    }
+
+    pub fn current_period(
+        &self,
+        interval: InterestInterval,
+        expiry_date: DateTime<Utc>,
+    ) -> Option<InterestPeriod> {
+        if self.0 > expiry_date {
+            return None;
+        }
+
+        let calculated_end_date = interval.end_date_for_period(self.0);
+        let end_date = std::cmp::min(calculated_end_date, InterestPeriodEndDate::new(expiry_date));
+
+        Some(InterestPeriod::new(*self, end_date).expect("start_date is before end_date"))
+    }
+
+    pub fn next_period(
+        &self,
+        interval: InterestInterval,
+        expiry_date: DateTime<Utc>,
+    ) -> Option<InterestPeriod> {
+        let current_end_date = match self.current_period(interval, expiry_date) {
+            Some(period) => period.end,
+            None => return None,
+        };
+
+        let calculated_start_date = current_end_date.next_start_date();
+        let next_start_date = if calculated_start_date <= expiry_date {
+            calculated_start_date
+        } else {
+            return None;
+        };
+
+        next_start_date.current_period(interval, expiry_date)
     }
 
     pub fn maybe_if_before_now(&self) -> Option<Self> {
@@ -166,20 +201,23 @@ impl InterestPeriodEndDate {
         InterestPeriodStartDate::new(self.0 + chrono::Duration::days(1))
     }
 
-    pub fn days_in_period(
+    pub fn next_period(
         &self,
-        start_date: InterestPeriodStartDate,
-    ) -> Result<u32, LoanTermsError> {
-        if start_date.0 > self.0 {
-            return Err(LoanTermsError::InvalidFutureDateComparisonForAccrualDate(
-                self.0,
-                start_date.0,
-            ));
-        }
-        Ok(self.0.day() - start_date.0.day() + 1)
+        interval: InterestInterval,
+        expiry_date: DateTime<Utc>,
+    ) -> Option<InterestPeriod> {
+        let calculated_start_date = self.next_start_date();
+        let next_start_date = if calculated_start_date <= expiry_date {
+            calculated_start_date
+        } else {
+            return None;
+        };
+
+        next_start_date.current_period(interval, expiry_date)
     }
 }
 
+#[derive(Debug, Clone, Copy)]
 pub struct InterestPeriod {
     pub start: InterestPeriodStartDate,
     pub end: InterestPeriodEndDate,
@@ -204,9 +242,7 @@ impl InterestPeriod {
     }
 
     pub fn days(&self) -> u32 {
-        self.end
-            .days_in_period(self.start)
-            .expect("Impossible cmp error for struct")
+        self.end.0.day() - self.start.0.day() + 1
     }
 }
 
@@ -240,7 +276,7 @@ impl InterestInterval {
     }
 }
 
-#[derive(Builder, Debug, Serialize, Deserialize, Clone)]
+#[derive(Builder, Debug, Serialize, Deserialize, Clone, Copy)]
 pub struct TermValues {
     #[builder(setter(into))]
     pub(crate) annual_rate: AnnualRatePct,
@@ -370,21 +406,36 @@ mod test {
     }
 
     #[test]
-    fn days_in_period() {
+    fn new_interest_period() {
+        let start_date =
+            InterestPeriodStartDate::new("2025-01-01T14:00:00Z".parse::<DateTime<Utc>>().unwrap());
+        let end_date =
+            InterestPeriodEndDate::new("2024-12-31T23:59:59Z".parse::<DateTime<Utc>>().unwrap());
+        assert!(InterestPeriod::new(start_date, end_date).is_err());
+    }
+
+    #[test]
+    fn days() {
         let end_date =
             InterestPeriodEndDate::new("2024-12-31T23:59:59Z".parse::<DateTime<Utc>>().unwrap());
 
         let start_date =
             InterestPeriodStartDate::new("2024-12-03T14:00:00Z".parse::<DateTime<Utc>>().unwrap());
-        assert_eq!(end_date.days_in_period(start_date).unwrap(), 29);
+        assert_eq!(
+            InterestPeriod::new(start_date, end_date).unwrap().days(),
+            29
+        );
 
         let start_date =
             InterestPeriodStartDate::new("2024-12-01T14:00:00Z".parse::<DateTime<Utc>>().unwrap());
-        assert_eq!(end_date.days_in_period(start_date).unwrap(), 31);
+        assert_eq!(
+            InterestPeriod::new(start_date, end_date).unwrap().days(),
+            31
+        );
 
         let start_date =
             InterestPeriodStartDate::new("2025-01-01T14:00:00Z".parse::<DateTime<Utc>>().unwrap());
-        assert!(end_date.days_in_period(start_date).is_err());
+        assert!(InterestPeriod::new(start_date, end_date).is_err());
     }
 
     #[test]
