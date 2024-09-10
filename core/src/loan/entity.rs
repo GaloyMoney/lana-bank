@@ -427,15 +427,38 @@ impl Loan {
     }
 
     pub fn initiate_interest(&self) -> Result<LoanInterestAccrual, LoanError> {
+        let expiry_date = if let Some(expires_at) = self.expires_at {
+            expires_at
+        } else {
+            return Err(LoanError::NotApprovedYet);
+        };
         if self.is_completed() {
             return Err(LoanError::AlreadyCompleted);
         }
 
+        let last_interest_payment = self
+            .events
+            .iter()
+            .rev()
+            .find_map(|event| match event {
+                LoanEvent::InterestIncurred { recorded_at, .. } => Some(*recorded_at),
+                _ => None,
+            })
+            .unwrap_or(self.approved_at.expect("already approved"));
+
         let days_in_interest_period = self
-            .maybe_next_interest_period()?
+            .terms
+            .interval
+            .period_from(InterestPeriodStartDate::new(last_interest_payment))
+            .next()
+            .truncate(expiry_date)
             .ok_or(LoanError::InterestPeriodStartDateInFuture)?
             .days();
-        let interest_for_period = self.calculate_interest(days_in_interest_period);
+
+        let interest_for_period = self
+            .terms
+            .annual_rate
+            .interest_for_time_period(self.initial_principal(), days_in_interest_period);
 
         let tx_ref = format!(
             "{}-interest-{}",

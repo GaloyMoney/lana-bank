@@ -6,8 +6,6 @@ use serde::{Deserialize, Serialize};
 
 use crate::primitives::{PriceOfOneBTC, Satoshis, UsdCents};
 
-use super::error::*;
-
 const NUMBER_OF_DAYS_IN_YEAR: Decimal = dec!(366);
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
@@ -129,10 +127,7 @@ impl InterestPeriodStartDate {
             return None;
         }
 
-        let calculated_end_date = interval.end_date_for_period(self.0);
-        let end_date = std::cmp::min(calculated_end_date, InterestPeriodEndDate::new(expiry_date));
-
-        Some(InterestPeriod::new(*self, end_date).expect("start_date is before end_date"))
+        Some(InterestPeriod::new(interval, *self))
     }
 
     pub fn next_period(
@@ -219,25 +214,37 @@ impl InterestPeriodEndDate {
 
 #[derive(Debug, Clone, Copy)]
 pub struct InterestPeriod {
+    pub interval: InterestInterval,
     pub start: InterestPeriodStartDate,
     pub end: InterestPeriodEndDate,
 }
 
 impl InterestPeriod {
-    pub fn new(
-        start_date: InterestPeriodStartDate,
-        end_date: InterestPeriodEndDate,
-    ) -> Result<Self, LoanTermsError> {
-        if start_date.0 > end_date.0 {
-            return Err(LoanTermsError::InvalidFutureDateComparisonForAccrualDate(
-                end_date.0,
-                start_date.0,
-            ));
+    fn new(interval: InterestInterval, start: InterestPeriodStartDate) -> Self {
+        let end = interval.end_date_for_period(start.0);
+        Self {
+            interval,
+            start,
+            end,
+        }
+    }
+
+    pub fn next(&self) -> Self {
+        Self::new(
+            self.interval,
+            InterestPeriodStartDate(self.end.0 + chrono::Duration::days(1)),
+        )
+    }
+
+    pub fn truncate(&self, latest_possible_end_date: DateTime<Utc>) -> Option<Self> {
+        if self.end.0 > latest_possible_end_date {
+            return None;
         }
 
-        Ok(Self {
-            start: start_date,
-            end: end_date,
+        Some(Self {
+            interval: self.interval,
+            start: self.start,
+            end: InterestPeriodEndDate(self.end.0.min(latest_possible_end_date)),
         })
     }
 
@@ -253,6 +260,10 @@ pub enum InterestInterval {
 }
 
 impl InterestInterval {
+    pub fn period_from(&self, start_date: InterestPeriodStartDate) -> InterestPeriod {
+        InterestPeriod::new(*self, start_date)
+    }
+
     pub fn end_date_for_period(&self, current_date: DateTime<Utc>) -> InterestPeriodEndDate {
         match self {
             InterestInterval::EndOfMonth => {
@@ -406,36 +417,20 @@ mod test {
     }
 
     #[test]
-    fn new_interest_period() {
-        let start_date =
-            InterestPeriodStartDate::new("2025-01-01T14:00:00Z".parse::<DateTime<Utc>>().unwrap());
-        let end_date =
-            InterestPeriodEndDate::new("2024-12-31T23:59:59Z".parse::<DateTime<Utc>>().unwrap());
-        assert!(InterestPeriod::new(start_date, end_date).is_err());
-    }
-
-    #[test]
     fn days() {
-        let end_date =
-            InterestPeriodEndDate::new("2024-12-31T23:59:59Z".parse::<DateTime<Utc>>().unwrap());
-
         let start_date =
             InterestPeriodStartDate::new("2024-12-03T14:00:00Z".parse::<DateTime<Utc>>().unwrap());
         assert_eq!(
-            InterestPeriod::new(start_date, end_date).unwrap().days(),
+            InterestPeriod::new(InterestInterval::EndOfMonth, start_date).days(),
             29
         );
 
         let start_date =
             InterestPeriodStartDate::new("2024-12-01T14:00:00Z".parse::<DateTime<Utc>>().unwrap());
         assert_eq!(
-            InterestPeriod::new(start_date, end_date).unwrap().days(),
+            InterestPeriod::new(InterestInterval::EndOfMonth, start_date).days(),
             31
         );
-
-        let start_date =
-            InterestPeriodStartDate::new("2025-01-01T14:00:00Z".parse::<DateTime<Utc>>().unwrap());
-        assert!(InterestPeriod::new(start_date, end_date).is_err());
     }
 
     #[test]

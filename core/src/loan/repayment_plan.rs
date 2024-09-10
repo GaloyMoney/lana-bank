@@ -102,7 +102,6 @@ pub(super) fn project<'a>(
     let approved_at = if let Some(time) = approved_at {
         time
     } else {
-        // Early return if not approved yet
         return Vec::new();
     };
 

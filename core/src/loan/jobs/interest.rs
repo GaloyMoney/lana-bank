@@ -80,7 +80,10 @@ impl JobRunner for LoanProcessingJobRunner {
                 return Ok(JobCompletion::Complete);
             }
             Ok(tx_ref) => tx_ref,
-            Err(_) => unreachable!(),
+            Err(e) => {
+                dbg!(e);
+                unreachable!()
+            }
         };
 
         let executed_at = self
