@@ -394,7 +394,7 @@ impl Loan {
                     LoanEvent::InterestIncurred { recorded_at, .. } => Some(*recorded_at),
                     _ => None,
                 })
-                .or_else(|| self.approved_at)
+                .or(self.approved_at)
                 .ok_or(LoanError::NotApprovedYet)?,
         );
 
