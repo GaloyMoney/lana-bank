@@ -87,10 +87,8 @@ pub(super) fn project<'a>(
             payment.outstanding -= amount;
             if payment.outstanding == UsdCents::ZERO {
                 payment.status = RepaymentStatus::Paid;
-            } else {
-                if Utc::now() < payment.due_at {
-                    payment.status = RepaymentStatus::Due;
-                }
+            } else if Utc::now() < payment.due_at {
+                payment.status = RepaymentStatus::Due;
             }
         } else {
             if Utc::now() < payment.due_at {
