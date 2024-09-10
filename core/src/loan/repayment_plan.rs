@@ -81,6 +81,7 @@ pub(super) fn project<'a>(
             _ => (),
         }
     }
+
     let mut repayment_iter = repayments.into_iter();
     for payment in interest_payments.iter_mut() {
         if let Some((amount, _)) = repayment_iter.next() {
@@ -130,6 +131,7 @@ pub(super) fn project<'a>(
 
         next_interest_period = period.end.next_period(terms.interval, expiry_date);
     }
+
     res.push(LoanRepaymentInPlan::Principal(RepaymentInPlan {
         status: if outstanding_principal == UsdCents::ZERO {
             RepaymentStatus::Paid
