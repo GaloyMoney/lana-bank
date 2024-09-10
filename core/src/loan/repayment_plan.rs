@@ -114,7 +114,6 @@ pub(super) fn project<'a>(
     let last_start_date =
         InterestPeriodStartDate::new(last_interest_accrual_at.unwrap_or(approved_at));
     let mut next_interest_period = last_start_date.next_period(terms.interval, expiry_date);
-    dbg!(&next_interest_period);
 
     while let Some(period) = next_interest_period {
         let interest = terms
@@ -301,7 +300,6 @@ mod tests {
         let n_upcoming_interest_payments = 1;
         let n_principal_repayment = 1;
 
-        dbg!(&repayment_plan);
         assert_eq!(
             repayment_plan.len(),
             n_existing_payments + n_overdue + n_upcoming_interest_payments + n_principal_repayment
