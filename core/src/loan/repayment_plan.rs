@@ -123,7 +123,7 @@ pub(super) fn project<'a>(
         while let Some(period) = next_interest_period {
             let interest = terms
                 .annual_rate
-                .interest_for_time_period(outstanding_principal, period.days());
+                .interest_for_time_period(initial_principal, period.days());
 
             res.push(LoanRepaymentInPlan::Interest(RepaymentInPlan {
                 status: RepaymentStatus::Upcoming,
