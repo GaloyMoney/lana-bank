@@ -98,7 +98,7 @@ impl Duration {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 pub struct InterestPeriodStartDate(DateTime<Utc>);
 
 impl PartialEq<DateTime<Utc>> for InterestPeriodStartDate {
@@ -212,7 +212,7 @@ impl InterestPeriodEndDate {
     }
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 pub struct InterestPeriod {
     pub interval: InterestInterval,
     pub start: InterestPeriodStartDate,
@@ -237,7 +237,7 @@ impl InterestPeriod {
     }
 
     pub fn truncate(&self, latest_possible_end_date: DateTime<Utc>) -> Option<Self> {
-        if self.end.0 > latest_possible_end_date {
+        if self.start.0 > latest_possible_end_date {
             return None;
         }
 
@@ -253,7 +253,7 @@ impl InterestPeriod {
     }
 }
 
-#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
 pub enum InterestInterval {
     EndOfMonth,
@@ -430,6 +430,32 @@ mod test {
         assert_eq!(
             InterestPeriod::new(InterestInterval::EndOfMonth, start_date).days(),
             31
+        );
+    }
+
+    #[test]
+    fn truncate() {
+        let start_date =
+            InterestPeriodStartDate::new("2024-12-03T14:00:00Z".parse::<DateTime<Utc>>().unwrap());
+        let period = InterestInterval::EndOfMonth.period_from(start_date);
+
+        let latest_before_start_date = "2024-12-02T14:00:00Z".parse::<DateTime<Utc>>().unwrap();
+        assert_eq!(period.truncate(latest_before_start_date), None);
+
+        let latest_after_start_date_before_end_date =
+            "2024-12-20T14:00:00Z".parse::<DateTime<Utc>>().unwrap();
+        assert!(
+            period
+                .truncate(latest_after_start_date_before_end_date)
+                .unwrap()
+                .end
+                < period.end
+        );
+
+        let latest_after_end_date = "2025-01-03T14:00:00Z".parse::<DateTime<Utc>>().unwrap();
+        assert_eq!(
+            period.truncate(latest_after_end_date).unwrap().end,
+            period.end
         );
     }
 
