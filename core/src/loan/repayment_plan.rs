@@ -37,7 +37,8 @@ pub(super) fn project<'a>(
     let mut initial_principal = UsdCents::ZERO;
 
     let mut interest_accruals = Vec::new();
-    let mut repayments = Vec::new();
+
+    let mut interest_repayments = UsdCents::ZERO;
 
     for event in events {
         match event {
@@ -72,20 +73,20 @@ pub(super) fn project<'a>(
             LoanEvent::PaymentRecorded {
                 interest_amount,
                 principal_amount,
-                recorded_at,
                 ..
             } => {
-                repayments.push((*interest_amount, *recorded_at));
                 outstanding_principal -= *principal_amount;
+                interest_repayments += *interest_amount;
             }
             _ => (),
         }
     }
 
-    let mut repayment_iter = repayments.into_iter();
     for payment in interest_accruals.iter_mut() {
-        if let Some((amount, _)) = repayment_iter.next() {
-            payment.outstanding -= amount;
+        if interest_repayments > UsdCents::ZERO {
+            let applied_payment = payment.outstanding.min(interest_repayments);
+            payment.outstanding -= applied_payment;
+            interest_repayments -= applied_payment;
             if payment.outstanding == UsdCents::ZERO {
                 payment.status = RepaymentStatus::Paid;
             } else if Utc::now() < payment.due_at {
