@@ -519,4 +519,38 @@ mod tests {
             _ => panic!("Expected fourth element to be Principal"),
         }
     }
+
+    #[test]
+    fn early_completed_loan() {
+        let mut events = happy_loan_events();
+        let loan_id = LoanId::new();
+        events.extend(
+            [LoanEvent::PaymentRecorded {
+                tx_id: LedgerTxId::new(),
+                tx_ref: format!("{}-payment-{}", loan_id, 2),
+                principal_amount: UsdCents::from(10_000_00),
+                interest_amount: UsdCents::ZERO,
+                recorded_at: "2020-04-01T00:00:00Z".parse::<DateTime<Utc>>().unwrap(),
+                audit_info: dummy_audit_info(),
+            }]
+            .into_iter(),
+        );
+        let repayment_plan = super::project(events.iter());
+
+        let n_existing_interest_accruals = 1;
+        let n_principal_accruals = 1;
+
+        assert_eq!(
+            repayment_plan.len(),
+            n_existing_interest_accruals + n_principal_accruals
+        );
+
+        match &repayment_plan[1] {
+            LoanRepaymentInPlan::Principal(second) => {
+                assert_eq!(second.status, RepaymentStatus::Paid);
+                assert_eq!(second.outstanding, UsdCents::ZERO);
+            }
+            _ => panic!("Expected second element to be Principal"),
+        }
+    }
 }
