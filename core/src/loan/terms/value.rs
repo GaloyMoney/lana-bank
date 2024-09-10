@@ -107,7 +107,7 @@ pub struct InterestPeriod {
 
 impl InterestPeriod {
     fn new(interval: InterestInterval, start: DateTime<Utc>) -> Self {
-        let end = interval.end_date_for_period(start);
+        let end = interval.end_date_starting_at(start);
         Self {
             interval,
             start,
@@ -147,7 +147,7 @@ impl InterestInterval {
         InterestPeriod::new(*self, start_date)
     }
 
-    pub fn end_date_for_period(&self, current_date: DateTime<Utc>) -> DateTime<Utc> {
+    fn end_date_starting_at(&self, current_date: DateTime<Utc>) -> DateTime<Utc> {
         match self {
             InterestInterval::EndOfMonth => {
                 let current_year = current_date.year();
