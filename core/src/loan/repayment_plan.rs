@@ -111,9 +111,12 @@ pub(super) fn project<'a>(
         .collect();
 
     let expiry_date = terms.duration.expiration_date(approved_at);
-    let last_start_date =
-        InterestPeriodStartDate::new(last_interest_accrual_at.unwrap_or(approved_at));
-    let mut next_interest_period = last_start_date.next_period(terms.interval, expiry_date);
+    let last_interest_payment = last_interest_accrual_at.unwrap_or(approved_at);
+    let mut next_interest_period = terms
+        .interval
+        .period_from(InterestPeriodStartDate::new(last_interest_payment))
+        .next()
+        .truncate(expiry_date);
 
     while let Some(period) = next_interest_period {
         let interest = terms
@@ -128,7 +131,7 @@ pub(super) fn project<'a>(
             due_at: DateTime::from(period.end) + INTEREST_DUE_IN,
         }));
 
-        next_interest_period = period.end.next_period(terms.interval, expiry_date);
+        next_interest_period = period.next().truncate(expiry_date);
     }
 
     res.push(LoanRepaymentInPlan::Principal(RepaymentInPlan {
