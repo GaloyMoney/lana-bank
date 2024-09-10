@@ -466,6 +466,57 @@ mod tests {
     }
 
     #[test]
+    fn expect_interest_to_be_calculated_on_initial_principal() {
+        let mut events = happy_loan_events();
+        let loan_id = LoanId::new();
+        events.extend(
+            [
+                LoanEvent::InterestIncurred {
+                    tx_id: LedgerTxId::new(),
+                    tx_ref: format!("{}-interest-{}", loan_id, 2),
+                    amount: UsdCents::from(100_00),
+                    recorded_at: "2020-04-30T23:59:59Z".parse::<DateTime<Utc>>().unwrap(),
+                    audit_info: dummy_audit_info(),
+                },
+                LoanEvent::PaymentRecorded {
+                    tx_id: LedgerTxId::new(),
+                    tx_ref: format!("{}-payment-{}", loan_id, 2),
+                    principal_amount: UsdCents::from(9_999_99),
+                    interest_amount: UsdCents::from(100_00),
+                    recorded_at: "2020-04-01T14:10:00Z".parse::<DateTime<Utc>>().unwrap(),
+                    audit_info: dummy_audit_info(),
+                },
+            ]
+            .into_iter(),
+        );
+        let repayment_plan = super::project(events.iter());
+
+        let n_existing_interest_accruals = 2;
+        let n_upcoming_interest_accruals = 1;
+        let n_principal_accruals = 1;
+
+        assert_eq!(
+            repayment_plan.len(),
+            n_existing_interest_accruals + n_upcoming_interest_accruals + n_principal_accruals
+        );
+
+        match &repayment_plan[2] {
+            LoanRepaymentInPlan::Interest(third) => {
+                assert_eq!(third.status, RepaymentStatus::Upcoming);
+                assert!(third.initial > UsdCents::ONE);
+            }
+            _ => panic!("Expected third element to be Interest"),
+        }
+        match &repayment_plan[3] {
+            LoanRepaymentInPlan::Principal(fourth) => {
+                assert_eq!(fourth.status, RepaymentStatus::Upcoming);
+                assert_eq!(fourth.outstanding, UsdCents::ONE);
+            }
+            _ => panic!("Expected fourth element to be Principal"),
+        }
+    }
+
+    #[test]
     fn completed_loan() {
         let mut events = happy_loan_events();
         let loan_id = LoanId::new();
