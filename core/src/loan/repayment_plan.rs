@@ -122,12 +122,13 @@ pub(super) fn project<'a>(
         let interest = terms
             .annual_rate
             .interest_for_time_period(outstanding_principal, period.days());
+
         res.push(LoanRepaymentInPlan::Interest(RepaymentInPlan {
             status: RepaymentStatus::Upcoming,
             outstanding: interest,
             initial: interest,
             accrual_at: period.end.into(),
-            due_at: period.end.into(),
+            due_at: DateTime::from(period.end) + INTEREST_DUE_IN,
         }));
 
         next_interest_period = period.end.next_period(terms.interval, expiry_date);
@@ -219,9 +220,8 @@ mod tests {
         let repayment_plan = super::project(events.iter());
 
         let n_existing_payments = 1;
-        let n_future_interest_payments = 1;
+        let n_future_interest_payments = 2; //1 for april and 1 for first 14 days of may
         let n_principal_repayment = 1;
-        dbg!(&repayment_plan);
         assert_eq!(
             repayment_plan.len(),
             n_existing_payments + n_future_interest_payments + n_principal_repayment
@@ -241,181 +241,88 @@ mod tests {
             }
             _ => panic!("Expected first element to be Interest"),
         }
-        // match &repayment_plan[0] {
-        //     LoanRepaymentInPlan::Interest(first) => {
-        //         assert_eq!(first.status, RepaymentStatus::Paid);
-        //         assert_eq!(first.outstanding, UsdCents::from(0));
-        //         assert_eq!(
-        //             first.accrual_at,
-        //             "2020-03-31T23:59:59Z".parse::<DateTime<Utc>>().unwrap()
-        //         );
-        //         assert_eq!(
-        //             first.due_at,
-        //             "2020-04-01T23:59:59Z".parse::<DateTime<Utc>>().unwrap()
-        //         );
-        //     }
-        //     _ => panic!("Expected first element to be Interest"),
-        // }
-        // match &repayment_plan[2] {
-        //     LoanRepaymentInPlan::Interest(first) => {
-        //         assert_eq!(first.status, RepaymentStatus::Paid);
-        //         assert_eq!(first.outstanding, UsdCents::from(0));
-        //         assert_eq!(
-        //             first.accrual_at,
-        //             "2020-03-31T23:59:59Z".parse::<DateTime<Utc>>().unwrap()
-        //         );
-        //         assert_eq!(
-        //             first.due_at,
-        //             "2020-04-01T23:59:59Z".parse::<DateTime<Utc>>().unwrap()
-        //         );
-        //     }
-        //     _ => panic!("Expected first element to be Interest"),
-        // }
+        match &repayment_plan[1] {
+            LoanRepaymentInPlan::Interest(second) => {
+                assert_eq!(second.status, RepaymentStatus::Upcoming);
+                assert_eq!(
+                    second.accrual_at,
+                    "2020-04-30T23:59:59Z".parse::<DateTime<Utc>>().unwrap()
+                );
+                assert_eq!(
+                    second.due_at,
+                    "2020-05-01T23:59:59Z".parse::<DateTime<Utc>>().unwrap()
+                );
+            }
+            _ => panic!("Expected second element to be Interest"),
+        }
+        match &repayment_plan[2] {
+            LoanRepaymentInPlan::Interest(third) => {
+                assert_eq!(third.status, RepaymentStatus::Upcoming);
+                assert_eq!(
+                    third.accrual_at,
+                    "2020-05-14T14:20:00Z".parse::<DateTime<Utc>>().unwrap()
+                );
+                assert_eq!(
+                    third.due_at,
+                    "2020-05-15T14:20:00Z".parse::<DateTime<Utc>>().unwrap()
+                );
+            }
+            _ => panic!("Expected third element to be Interest"),
+        }
+        match &repayment_plan[3] {
+            LoanRepaymentInPlan::Principal(fourth) => {
+                assert_eq!(fourth.status, RepaymentStatus::Upcoming);
+                assert_eq!(
+                    fourth.accrual_at,
+                    "2020-03-14T14:20:00Z".parse::<DateTime<Utc>>().unwrap()
+                );
+                assert_eq!(
+                    fourth.due_at,
+                    "2020-05-14T14:20:00Z".parse::<DateTime<Utc>>().unwrap()
+                );
+            }
+            _ => panic!("Expected fourth element to be Principal"),
+        }
     }
 
     #[test]
     fn overdue_payment() {
         let mut events = happy_loan_events();
-        // events.push( <- insert overdue interest payment
-        // ASSERT OVERDUE
-        // match &repayment_plan[0] {
-        //     LoanRepaymentInPlan::Interest(first) => {
-        //         assert_eq!(first.status, RepaymentStatus::Paid);
-        //         assert_eq!(first.outstanding, UsdCents::from(0));
-        //         assert_eq!(
-        //             first.accrual_at,
-        //             "2020-03-31T23:59:59Z".parse::<DateTime<Utc>>().unwrap()
-        //         );
-        //         assert_eq!(
-        //             first.due_at,
-        //             "2020-04-01T23:59:59Z".parse::<DateTime<Utc>>().unwrap()
-        //         );
-        //     }
-        //     _ => panic!("Expected first element to be Interest"),
-        // }
+        let loan_id = LoanId::new();
+        events.push(LoanEvent::InterestIncurred {
+            tx_id: LedgerTxId::new(),
+            tx_ref: format!("{}-interest-{}", loan_id, 1),
+            amount: UsdCents::from(100_00),
+            recorded_at: "2020-04-30T23:59:59Z".parse::<DateTime<Utc>>().unwrap(),
+            audit_info: dummy_audit_info(),
+        });
+        let repayment_plan = super::project(events.iter());
+
+        let n_existing_payments = 1;
+        let n_overdue = 1;
+        let n_upcoming_interest_payments = 1;
+        let n_principal_repayment = 1;
+
+        dbg!(&repayment_plan);
+        assert_eq!(
+            repayment_plan.len(),
+            n_existing_payments + n_overdue + n_upcoming_interest_payments + n_principal_repayment
+        );
+
+        match &repayment_plan[1] {
+            LoanRepaymentInPlan::Interest(second) => {
+                assert_eq!(second.status, RepaymentStatus::Overdue);
+                assert_eq!(second.outstanding, UsdCents::from(100_00));
+                assert_eq!(
+                    second.accrual_at,
+                    "2020-04-30T23:59:59Z".parse::<DateTime<Utc>>().unwrap()
+                );
+                assert_eq!(
+                    second.due_at,
+                    "2020-05-01T23:59:59Z".parse::<DateTime<Utc>>().unwrap()
+                );
+            }
+            _ => panic!("Expected second element to be Interest"),
+        }
     }
-
-    #[test]
-    fn parital_repayment() {
-        let mut events = happy_loan_events();
-        // events.push <- interest
-        // events.push <- repayment that is not enough
-        // events.push( <- insert overdue interest payment
-        // ASSERT OVERDUE
-        // match &repayment_plan[0] {
-        //     LoanRepaymentInPlan::Interest(first) => {
-        //         assert_eq!(first.status, RepaymentStatus::Paid);
-        //         assert_eq!(first.outstanding, UsdCents::from(0));
-        //         assert_eq!(
-        //             first.accrual_at,
-        //             "2020-03-31T23:59:59Z".parse::<DateTime<Utc>>().unwrap()
-        //         );
-        //         assert_eq!(
-        //             first.due_at,
-        //             "2020-04-01T23:59:59Z".parse::<DateTime<Utc>>().unwrap()
-        //         );
-        //     }
-        //     _ => panic!("Expected first element to be Interest"),
-        // }
-    }
-
-    // #[test]
-    // fn generates_upcoming_interest_as_repayments_in_plan() {
-    //     let events = repayment_plan_events();
-    //     let repayment_plan = super::project(events.iter());
-
-    //     if let LoanRepaymentInPlan::Interest(first) = &interest_upcoming_as_repayments[0] {
-    //         assert_eq!(first.status, RepaymentStatus::Upcoming);
-    //         assert_eq!(first.outstanding, UsdCents::from(10164));
-    //         assert_eq!(
-    //             first.accrual_at,
-    //             "2020-05-31T23:59:59Z".parse::<DateTime<Utc>>().unwrap()
-    //         )
-    //     } else {
-    //         panic!("Expected first element to be Interest");
-    //     }
-
-    //     if let LoanRepaymentInPlan::Interest(second) = &interest_upcoming_as_repayments[1] {
-    //         assert_eq!(second.status, RepaymentStatus::Upcoming);
-    //         assert_eq!(second.outstanding, UsdCents::from(4591));
-    //         assert_eq!(
-    //             second.accrual_at,
-    //             "2020-06-14T14:20:00Z".parse::<DateTime<Utc>>().unwrap()
-    //         )
-    //     } else {
-    //         panic!("Expected second element to be Interest");
-    //     }
-    // }
-
-    // #[test]
-    // fn generates_principal_as_repayment_in_plan() {
-    //     let loan = Loan::try_from(repayment_plan_events()).unwrap();
-    //     let principal_as_repayment = loan.initial_principal_to_repayment_in_plan().unwrap();
-
-    //     if let LoanRepaymentInPlan::Principal(principal) = principal_as_repayment {
-    //         assert_eq!(principal.status, RepaymentStatus::Upcoming);
-    //         assert_eq!(principal.outstanding, UsdCents::from(6_000_00));
-    //         assert_eq!(
-    //             principal.accrual_at,
-    //             "2020-03-14T14:20:00Z".parse::<DateTime<Utc>>().unwrap()
-    //         );
-    //         assert_eq!(
-    //             principal.due_at,
-    //             "2020-06-14T14:20:00Z".parse::<DateTime<Utc>>().unwrap()
-    //         );
-    //     } else {
-    //         panic!("Expected element to be Principal");
-    //     }
-    // }
-
-    // #[test]
-    // fn repayment_plan_for_completed_loan() {
-    //     let mut loan = Loan::try_from(repayment_plan_events()).unwrap();
-
-    //     let mut next_interest_period = loan.next_interest_period();
-    //     while let Ok(Some(period)) = next_interest_period {
-    //         let executed_at = period.end;
-
-    //         let loan_interest_accrual = loan.initiate_interest().unwrap();
-    //         loan.confirm_interest(
-    //             loan_interest_accrual,
-    //             executed_at.into(),
-    //             dummy_audit_info(),
-    //         );
-
-    //         next_interest_period = loan.next_interest_period();
-    //     }
-
-    //     let interest_accruals = loan.interest_accrued_to_repayments_in_plan().unwrap();
-    //     assert_eq!(interest_accruals.len(), 4);
-    //     if let Some(LoanRepaymentInPlan::Interest(last)) = &interest_accruals.last() {
-    //         assert_eq!(last.status, RepaymentStatus::Overdue);
-    //         assert_eq!(last.outstanding, UsdCents::from(4591));
-    //         assert_eq!(
-    //             last.accrual_at,
-    //             "2020-06-14T14:20:00Z".parse::<DateTime<Utc>>().unwrap()
-    //         )
-    //     } else {
-    //         panic!("Expected last element to be present and Interest");
-    //     }
-
-    //     let upcoming_interest = loan.interest_upcoming_to_repayments_in_plan().unwrap();
-    //     assert!(upcoming_interest.is_empty());
-
-    //     let principal_as_repayment = loan.initial_principal_to_repayment_in_plan().unwrap();
-    //     if let LoanRepaymentInPlan::Principal(principal) = principal_as_repayment {
-    //         assert_eq!(principal.status, RepaymentStatus::Overdue);
-    //         assert_eq!(principal.outstanding, UsdCents::from(6_000_00));
-    //         assert_eq!(
-    //             principal.accrual_at,
-    //             "2020-03-14T14:20:00Z".parse::<DateTime<Utc>>().unwrap()
-    //         );
-    //         assert_eq!(
-    //             principal.due_at,
-    //             "2020-06-14T14:20:00Z".parse::<DateTime<Utc>>().unwrap()
-    //         );
-    //     } else {
-    //         panic!("Expected element to be Principal");
-    //     }
-    // }
 }
