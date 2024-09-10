@@ -357,7 +357,7 @@ type Loan {
 	status: LoanStatus!
 	collateral: Satoshis!
 	principal: UsdCents!
-	transactions: [LoanHistory!]!
+	transactions: [LoanHistoryEntry!]!
 	approvals: [LoanApproval!]!
 	repaymentPlan: [LoanRepaymentInPlan!]!
 	collateralizationState: LoanCollaterizationState!
@@ -431,7 +431,7 @@ type LoanEdge {
 	cursor: String!
 }
 
-union LoanHistory = IncrementalPayment | InterestAccrued | CollateralUpdated | LoanOrigination | CollateralizationUpdated
+union LoanHistoryEntry = IncrementalPayment | InterestAccrued | CollateralUpdated | LoanOrigination | CollateralizationUpdated
 
 type LoanOrigination {
 	cents: UsdCents!

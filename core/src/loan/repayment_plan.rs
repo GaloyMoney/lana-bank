@@ -1,6 +1,6 @@
 use chrono::{DateTime, Utc};
 
-use super::{InterestPeriodStartDate, LoanEvent, LoanReceivable, TermValues, UsdCents};
+use super::{InterestPeriodStartDate, LoanEvent, UsdCents};
 
 const INTEREST_DUE_IN: chrono::Duration = chrono::Duration::hours(24);
 

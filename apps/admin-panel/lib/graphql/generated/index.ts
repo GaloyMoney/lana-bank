@@ -381,7 +381,7 @@ export type Loan = {
   principal: Scalars['UsdCents']['output'];
   repaymentPlan: Array<LoanRepaymentInPlan>;
   status: LoanStatus;
-  transactions: Array<LoanHistory>;
+  transactions: Array<LoanHistoryEntry>;
 };
 
 export type LoanApproval = {
@@ -444,7 +444,7 @@ export type LoanEdge = {
   node: Loan;
 };
 
-export type LoanHistory = CollateralUpdated | CollateralizationUpdated | IncrementalPayment | InterestAccrued | LoanOrigination;
+export type LoanHistoryEntry = CollateralUpdated | CollateralizationUpdated | IncrementalPayment | InterestAccrued | LoanOrigination;
 
 export type LoanOrigination = {
   __typename?: 'LoanOrigination';

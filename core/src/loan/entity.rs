@@ -15,11 +15,8 @@ use crate::{
 };
 
 use super::{
-    error::LoanError,
-    history,
-    repayment_plan::{self, RepaymentInPlan},
-    terms::TermValues,
-    CVLPct, InterestPeriod, InterestPeriodStartDate, LoanApprovalData, LoanInterestAccrual,
+    error::LoanError, history, repayment_plan, terms::TermValues, CVLPct, InterestPeriod,
+    InterestPeriodStartDate, LoanApprovalData, LoanInterestAccrual,
 };
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -214,7 +211,7 @@ impl Loan {
         history::project(self.events.iter())
     }
 
-    pub fn repayment_plan(&self) -> Vec<LoanRepaymentInPlan> {
+    pub fn repayment_plan(&self) -> Vec<repayment_plan::LoanRepaymentInPlan> {
         repayment_plan::project(self.events.iter())
     }
 
@@ -831,7 +828,7 @@ impl TryFrom<EntityEvents<LoanEvent>> for Loan {
                     builder = builder
                         .id(*id)
                         .customer_id(*customer_id)
-                        .terms(terms.clone())
+                        .terms(*terms)
                         .account_ids(*account_ids)
                         .customer_account_ids(*customer_account_ids)
                 }
