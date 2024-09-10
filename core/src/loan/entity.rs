@@ -15,37 +15,17 @@ use crate::{
 };
 
 use super::{
-    error::LoanError, history, terms::TermValues, CVLPct, InterestPeriod, InterestPeriodStartDate,
-    LoanApprovalData, LoanInterestAccrual,
+    error::LoanError,
+    history,
+    repayment_plan::{self, RepaymentInPlan},
+    terms::TermValues,
+    CVLPct, InterestPeriod, InterestPeriodStartDate, LoanApprovalData, LoanInterestAccrual,
 };
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct LoanReceivable {
     pub principal: UsdCents,
     pub interest: UsdCents,
-}
-
-#[derive(Debug, Clone, Copy, PartialEq)]
-pub enum LoanRepaymentInPlan {
-    Interest(RepaymentInPlan),
-    Principal(RepaymentInPlan),
-}
-
-#[derive(Debug, Clone, Copy, PartialEq)]
-pub enum RepaymentStatus {
-    Upcoming,
-    Due,
-    Overdue,
-    Paid,
-}
-
-#[derive(Debug, Clone, Copy, PartialEq)]
-pub struct RepaymentInPlan {
-    pub status: RepaymentStatus,
-    pub initial: UsdCents,
-    pub outstanding: UsdCents,
-    pub accrual_at: DateTime<Utc>,
-    pub due_at: DateTime<Utc>,
 }
 
 pub struct LoanApproval {
@@ -234,110 +214,8 @@ impl Loan {
         history::project(self.events.iter())
     }
 
-    fn interest_accrued_to_repayments_in_plan(
-        &self,
-    ) -> Result<Vec<LoanRepaymentInPlan>, LoanError> {
-        let expiry_date = self.expires_at().ok_or(LoanError::NotApprovedYet)?;
-
-        let mut remaining_interest_paid = self.interest_payments();
-        Ok(self
-            .events
-            .iter()
-            .filter_map(|event| match event {
-                LoanEvent::InterestIncurred {
-                    amount,
-                    recorded_at,
-                    ..
-                } => {
-                    let interest_applied = std::cmp::min(*amount, remaining_interest_paid);
-                    remaining_interest_paid -= interest_applied;
-
-                    let interest_outstanding_for_payment = *amount - interest_applied;
-                    let due_at = match InterestPeriodStartDate::new(*recorded_at)
-                        .current_period(self.terms.interval, expiry_date)
-                    {
-                        Some(period) => period.end,
-                        None => return None,
-                    };
-
-                    let status = if interest_outstanding_for_payment == UsdCents::ZERO {
-                        RepaymentStatus::Paid
-                    } else if due_at > Utc::now() {
-                        RepaymentStatus::Due
-                    } else {
-                        RepaymentStatus::Overdue
-                    };
-
-                    Some(LoanRepaymentInPlan::Interest(RepaymentInPlan {
-                        status,
-                        outstanding: interest_outstanding_for_payment,
-                        initial: *amount,
-                        accrual_at: *recorded_at,
-                        due_at: due_at.into(),
-                    }))
-                }
-                _ => None,
-            })
-            .collect())
-    }
-
-    fn interest_upcoming_to_repayments_in_plan(
-        &self,
-    ) -> Result<Vec<LoanRepaymentInPlan>, LoanError> {
-        let expiry_date = self.expires_at().ok_or(LoanError::NotApprovedYet)?;
-
-        let mut interest_projections = vec![];
-        let mut next_interest_period = match self.next_interest_period() {
-            Ok(period) => period,
-            Err(LoanError::NotApprovedYet) => Err(LoanError::NotApprovedYet)?,
-            Err(LoanError::AllInterestAccrualsGeneratedForLoan) | Err(_) => None,
-        };
-        while let Some(period) = next_interest_period {
-            let interest = self.calculate_interest(period.days());
-            interest_projections.push(LoanRepaymentInPlan::Interest(RepaymentInPlan {
-                status: RepaymentStatus::Upcoming,
-                outstanding: interest,
-                initial: interest,
-                accrual_at: period.end.into(),
-                due_at: period.end.into(),
-            }));
-
-            next_interest_period = period.end.next_period(self.terms.interval, expiry_date);
-        }
-
-        Ok(interest_projections)
-    }
-
-    fn initial_principal_to_repayment_in_plan(&self) -> Result<LoanRepaymentInPlan, LoanError> {
-        let due_at = self.expires_at().ok_or(LoanError::NotApprovedYet)?;
-        let status = if self.outstanding().principal == UsdCents::ZERO {
-            RepaymentStatus::Paid
-        } else if self.next_interest_period()?.is_some() {
-            RepaymentStatus::Upcoming
-        } else if Utc::now() < due_at {
-            RepaymentStatus::Due
-        } else {
-            RepaymentStatus::Overdue
-        };
-
-        Ok(LoanRepaymentInPlan::Principal(RepaymentInPlan {
-            status,
-            outstanding: self.outstanding().principal,
-            initial: self.initial_principal(),
-            accrual_at: self.approved_at().ok_or(LoanError::NotApprovedYet)?,
-            due_at,
-        }))
-    }
-
-    pub fn repayment_plan(&self) -> Result<Vec<LoanRepaymentInPlan>, LoanError> {
-        Ok(self
-            .interest_accrued_to_repayments_in_plan()?
-            .into_iter()
-            .chain(self.interest_upcoming_to_repayments_in_plan()?)
-            .chain(std::iter::once(
-                self.initial_principal_to_repayment_in_plan()?,
-            ))
-            .collect())
+    pub fn repayment_plan(&self) -> Vec<LoanRepaymentInPlan> {
+        repayment_plan::project(self.events.iter())
     }
 
     pub(super) fn is_approved(&self) -> bool {

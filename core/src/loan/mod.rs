@@ -30,6 +30,7 @@ pub use entity::*;
 use error::*;
 pub use history::*;
 use jobs::*;
+pub use repayment_plan::*;
 use repo::*;
 pub use terms::*;
 

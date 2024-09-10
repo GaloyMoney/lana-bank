@@ -240,7 +240,6 @@ impl From<crate::loan::Loan> for Loan {
             .collect();
         let repayment_plan = loan
             .repayment_plan()
-            .unwrap_or_default()
             .into_iter()
             .map(LoanRepaymentInPlan::from)
             .collect();

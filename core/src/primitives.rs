@@ -403,6 +403,12 @@ impl std::ops::SubAssign for UsdCents {
     }
 }
 
+impl std::ops::AddAssign for UsdCents {
+    fn add_assign(&mut self, other: Self) {
+        self.0 += other.0;
+    }
+}
+
 impl UsdCents {
     pub const ZERO: Self = Self(0);
     pub const ONE: Self = Self(1);

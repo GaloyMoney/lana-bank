@@ -1,144 +1,123 @@
 use chrono::{DateTime, Utc};
 
-use super::{
-    InterestPeriodStartDate, LoanEvent, LoanReceivable, LoanRepaymentInPlan, RepaymentInPlan,
-    RepaymentStatus, TermValues, UsdCents,
-};
+use super::{InterestPeriodStartDate, LoanEvent, LoanReceivable, TermValues, UsdCents};
 
-fn initial_terms<'a>(
-    events: &(impl DoubleEndedIterator<Item = &'a LoanEvent> + Clone),
-) -> TermValues {
-    if let Some(LoanEvent::Initialized { terms, .. }) = events.clone().next() {
-        *terms
-    } else {
-        unreachable!("Initialized event not found")
-    }
+const INTEREST_DUE_IN: chrono::Duration = chrono::Duration::hours(24);
+
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub enum RepaymentStatus {
+    Upcoming,
+    Due,
+    Overdue,
+    Paid,
 }
 
-pub fn initial_principal<'a>(
-    events: &(impl DoubleEndedIterator<Item = &'a LoanEvent> + Clone),
-) -> UsdCents {
-    if let Some(LoanEvent::Initialized { principal, .. }) = events.clone().next() {
-        *principal
-    } else {
-        unreachable!("Initialized event not found")
-    }
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct RepaymentInPlan {
+    pub status: RepaymentStatus,
+    pub initial: UsdCents,
+    pub outstanding: UsdCents,
+    pub accrual_at: DateTime<Utc>,
+    pub due_at: DateTime<Utc>,
 }
 
-fn principal_payments<'a>(
-    events: &(impl DoubleEndedIterator<Item = &'a LoanEvent> + Clone),
-) -> UsdCents {
-    events
-        .clone()
-        .filter_map(|event| match event {
-            LoanEvent::PaymentRecorded {
-                principal_amount, ..
-            } => Some(*principal_amount),
-            _ => None,
-        })
-        .fold(UsdCents::ZERO, |acc, amount| acc + amount)
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub enum LoanRepaymentInPlan {
+    Interest(RepaymentInPlan),
+    Principal(RepaymentInPlan),
 }
 
-fn interest_payments<'a>(
-    events: &(impl DoubleEndedIterator<Item = &'a LoanEvent> + Clone),
-) -> UsdCents {
-    events
-        .clone()
-        .filter_map(|event| match event {
-            LoanEvent::PaymentRecorded {
-                interest_amount, ..
-            } => Some(*interest_amount),
-            _ => None,
-        })
-        .fold(UsdCents::ZERO, |acc, amount| acc + amount)
-}
-
-fn interest_recorded<'a>(
-    events: &(impl DoubleEndedIterator<Item = &'a LoanEvent> + Clone),
-) -> UsdCents {
-    events
-        .clone()
-        .filter_map(|event| match event {
-            LoanEvent::InterestIncurred { amount, .. } => Some(*amount),
-            _ => None,
-        })
-        .fold(UsdCents::ZERO, |acc, amount| acc + amount)
-}
-
-fn interest_accrued_to_repayments_in_plan<'a>(
-    events: &(impl DoubleEndedIterator<Item = &'a LoanEvent> + Clone),
-    expiry_date: DateTime<Utc>,
+pub(super) fn project<'a>(
+    events: impl DoubleEndedIterator<Item = &'a LoanEvent>,
 ) -> Vec<LoanRepaymentInPlan> {
-    let interval = initial_terms(events).interval;
+    let mut terms = None;
+    let mut last_interest_accrual_at = None;
+    let mut approved_at = None;
+    let mut outstanding_principal = UsdCents::ZERO;
+    let mut initial_principal = UsdCents::ZERO;
 
-    let mut remaining_interest_paid = interest_payments(events);
-    events
-        .clone()
-        .filter_map(|event| match event {
+    let mut interest_payments = Vec::new();
+    let mut repayments = Vec::new();
+
+    for event in events {
+        match event {
+            LoanEvent::Initialized {
+                terms: t,
+                principal,
+                ..
+            } => {
+                terms = Some(t);
+                initial_principal = *principal;
+                outstanding_principal += *principal;
+            }
+            LoanEvent::PaymentRecorded {
+                interest_amount,
+                principal_amount,
+                recorded_at,
+                ..
+            } => {
+                repayments.push((*interest_amount, *recorded_at));
+                outstanding_principal -= *principal_amount;
+            }
+            LoanEvent::Approved { recorded_at, .. } => {
+                approved_at = Some(*recorded_at);
+            }
             LoanEvent::InterestIncurred {
                 amount,
                 recorded_at,
                 ..
             } => {
-                let interest_applied = std::cmp::min(*amount, remaining_interest_paid);
-                remaining_interest_paid -= interest_applied;
+                last_interest_accrual_at = Some(*recorded_at);
+                let due_at = *recorded_at + INTEREST_DUE_IN;
 
-                let interest_outstanding_for_payment = *amount - interest_applied;
-                let due_at = match InterestPeriodStartDate::new(*recorded_at)
-                    .current_period(interval, expiry_date)
-                {
-                    Some(period) => period.end,
-                    None => return None,
-                };
-
-                let status = if interest_outstanding_for_payment == UsdCents::ZERO {
-                    RepaymentStatus::Paid
-                } else if due_at > Utc::now() {
-                    RepaymentStatus::Due
-                } else {
-                    RepaymentStatus::Overdue
-                };
-
-                Some(LoanRepaymentInPlan::Interest(RepaymentInPlan {
-                    status,
-                    outstanding: interest_outstanding_for_payment,
+                interest_payments.push(RepaymentInPlan {
+                    status: RepaymentStatus::Overdue,
+                    outstanding: *amount,
                     initial: *amount,
                     accrual_at: *recorded_at,
-                    due_at: due_at.into(),
-                }))
+                    due_at,
+                });
             }
-            _ => None,
-        })
-        .collect()
-}
+            _ => (),
+        }
+    }
+    let mut repayment_iter = repayments.into_iter();
+    for payment in interest_payments.iter_mut() {
+        if let Some((amount, _)) = repayment_iter.next() {
+            // Currently assuming every repayment covers the interest for exactly 1 interest
+            // accrual. Needs to updated with unit tests.
+            payment.outstanding -= amount;
+            payment.status = RepaymentStatus::Paid;
+        } else {
+            if Utc::now() - payment.accrual_at < INTEREST_DUE_IN {
+                payment.status = RepaymentStatus::Due;
+            }
+            break;
+        }
+    }
+    let terms = terms.expect("Initialized event not found");
+    let approved_at = if let Some(time) = approved_at {
+        time
+    } else {
+        // Early return if not approved yet
+        return Vec::new();
+    };
 
-fn interest_upcoming_to_repayments_in_plan<'a>(
-    events: &(impl DoubleEndedIterator<Item = &'a LoanEvent> + Clone),
-    approval_date: DateTime<Utc>,
-    expiry_date: DateTime<Utc>,
-) -> Vec<LoanRepaymentInPlan> {
-    let principal = initial_principal(events);
-    let TermValues {
-        interval,
-        annual_rate,
-        ..
-    } = initial_terms(events);
+    let mut res: Vec<_> = interest_payments
+        .into_iter()
+        .map(LoanRepaymentInPlan::Interest)
+        .collect();
 
-    let last_start_date = InterestPeriodStartDate::new(
-        events
-            .clone()
-            .rev()
-            .find_map(|event| match event {
-                LoanEvent::InterestIncurred { recorded_at, .. } => Some(*recorded_at),
-                _ => None,
-            })
-            .unwrap_or(approval_date),
-    );
-    let mut next_interest_period = last_start_date.next_period(interval, expiry_date);
+    let expiry_date = terms.duration.expiration_date(approved_at);
+    let last_start_date =
+        InterestPeriodStartDate::new(last_interest_accrual_at.unwrap_or(approved_at));
+    let mut next_interest_period = last_start_date.next_period(terms.interval, expiry_date);
 
     let mut interest_projections = vec![];
     while let Some(period) = next_interest_period {
-        let interest = annual_rate.interest_for_time_period(principal, period.days());
+        let interest = terms
+            .annual_rate
+            .interest_for_time_period(outstanding_principal, period.days());
         interest_projections.push(LoanRepaymentInPlan::Interest(RepaymentInPlan {
             status: RepaymentStatus::Upcoming,
             outstanding: interest,
@@ -147,81 +126,19 @@ fn interest_upcoming_to_repayments_in_plan<'a>(
             due_at: period.end.into(),
         }));
 
-        next_interest_period = period.end.next_period(interval, expiry_date);
+        next_interest_period = period.end.next_period(terms.interval, expiry_date);
     }
-
-    interest_projections
-}
-
-fn initial_principal_to_repayment_in_plan<'a>(
-    events: &(impl DoubleEndedIterator<Item = &'a LoanEvent> + Clone),
-    approval_date: DateTime<Utc>,
-    expiry_date: DateTime<Utc>,
-) -> LoanRepaymentInPlan {
-    let interval = initial_terms(events).interval;
-    let principal = initial_principal(events);
-
-    let outstanding = LoanReceivable {
-        principal: principal - principal_payments(events),
-        interest: interest_recorded(events) - interest_payments(events),
-    };
-
-    let last_start_date = InterestPeriodStartDate::new(
-        events
-            .clone()
-            .rev()
-            .find_map(|event| match event {
-                LoanEvent::InterestIncurred { recorded_at, .. } => Some(*recorded_at),
-                _ => None,
-            })
-            .unwrap_or(approval_date),
-    );
-    let next_interest_period = last_start_date.next_period(interval, expiry_date);
-
-    let status = if outstanding.principal == UsdCents::ZERO {
-        RepaymentStatus::Paid
-    } else if next_interest_period.is_some() {
-        RepaymentStatus::Upcoming
-    } else if Utc::now() < expiry_date {
-        RepaymentStatus::Due
-    } else {
-        RepaymentStatus::Overdue
-    };
-
-    LoanRepaymentInPlan::Principal(RepaymentInPlan {
-        status,
-        outstanding: outstanding.principal,
-        initial: principal,
-        accrual_at: approval_date,
+    res.push(LoanRepaymentInPlan::Principal(RepaymentInPlan {
+        status: if outstanding_principal == UsdCents::ZERO {
+            RepaymentStatus::Paid
+        } else {
+            RepaymentStatus::Upcoming
+        },
+        outstanding: outstanding_principal,
+        initial: initial_principal,
+        accrual_at: approved_at,
         due_at: expiry_date,
-    })
-}
+    }));
 
-pub(super) fn project<'a>(
-    events: impl DoubleEndedIterator<Item = &'a LoanEvent> + Clone,
-) -> Vec<LoanRepaymentInPlan> {
-    let approval_date = match events.clone().find_map(|event| match event {
-        LoanEvent::Approved { recorded_at, .. } => Some(*recorded_at),
-        _ => None,
-    }) {
-        Some(date) => date,
-        None => return Default::default(),
-    };
-    let expiry_date = initial_terms(&events)
-        .duration
-        .expiration_date(approval_date);
-
-    interest_accrued_to_repayments_in_plan(&events, expiry_date)
-        .into_iter()
-        .chain(interest_upcoming_to_repayments_in_plan(
-            &events,
-            approval_date,
-            expiry_date,
-        ))
-        .chain(std::iter::once(initial_principal_to_repayment_in_plan(
-            &events,
-            approval_date,
-            expiry_date,
-        )))
-        .collect()
+    res
 }
