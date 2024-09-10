@@ -888,7 +888,7 @@ mod test {
 
     use crate::loan::{Duration, InterestInterval};
 
-    use super::*;
+    use super::{repayment_plan::*, *};
 
     fn terms() -> TermValues {
         TermValues::builder()
@@ -1708,7 +1708,7 @@ mod test {
                     tx_ref: format!("{}-payment-{}", loan_id, 1),
                     principal_amount: UsdCents::ZERO,
                     interest_amount: UsdCents::from(40_00),
-                    recorded_at: "2020-04-01T14:10:00Z".parse::<DateTime<Utc>>().unwrap(),
+                    recorded_at: "2020-05-01T14:10:00Z".parse::<DateTime<Utc>>().unwrap(),
                     audit_info: dummy_audit_info(),
                 },
             ],
@@ -1718,22 +1718,39 @@ mod test {
     #[test]
     fn generates_accrued_interest_as_repayments_in_plan() {
         let loan = Loan::try_from(repayment_plan_events()).unwrap();
-        let interest_accrued_as_repayments = loan.interest_accrued_to_repayments_in_plan().unwrap();
+        let repayment_plan = loan.repayment_plan();
 
-        assert_eq!(interest_accrued_as_repayments.len(), 2);
-
-        if let LoanRepaymentInPlan::Interest(first) = &interest_accrued_as_repayments[0] {
-            assert_eq!(first.status, RepaymentStatus::Paid);
-            assert_eq!(first.outstanding, UsdCents::from(0));
-        } else {
-            panic!("Expected first element to be Interest");
+        dbg!(&repayment_plan);
+        match &repayment_plan[0] {
+            LoanRepaymentInPlan::Interest(first) => {
+                assert_eq!(first.status, RepaymentStatus::Paid);
+                assert_eq!(first.outstanding, UsdCents::from(0));
+                assert_eq!(
+                    first.accrual_at,
+                    "2020-03-31T23:59:59Z".parse::<DateTime<Utc>>().unwrap()
+                );
+                assert_eq!(
+                    first.due_at,
+                    "2020-04-01T23:59:59Z".parse::<DateTime<Utc>>().unwrap()
+                );
+            }
+            _ => panic!("Expected first element to be Interest"),
         }
 
-        if let LoanRepaymentInPlan::Interest(second) = &interest_accrued_as_repayments[1] {
-            assert_eq!(second.status, RepaymentStatus::Overdue);
-            assert_eq!(second.outstanding, UsdCents::from(6000));
-        } else {
-            panic!("Expected second element to be Interest");
+        match &repayment_plan[1] {
+            LoanRepaymentInPlan::Interest(second) => {
+                assert_eq!(second.status, RepaymentStatus::Overdue);
+                assert_eq!(second.outstanding, UsdCents::from(6000));
+                assert_eq!(
+                    second.accrual_at,
+                    "2020-04-30T23:59:59Z".parse::<DateTime<Utc>>().unwrap()
+                );
+                assert_eq!(
+                    second.due_at,
+                    "2020-05-01T23:59:59Z".parse::<DateTime<Utc>>().unwrap()
+                );
+            }
+            _ => panic!("Expected second element to be Interest"),
         }
     }
 

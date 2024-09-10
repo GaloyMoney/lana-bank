@@ -50,15 +50,6 @@ pub(super) fn project<'a>(
                 initial_principal = *principal;
                 outstanding_principal += *principal;
             }
-            LoanEvent::PaymentRecorded {
-                interest_amount,
-                principal_amount,
-                recorded_at,
-                ..
-            } => {
-                repayments.push((*interest_amount, *recorded_at));
-                outstanding_principal -= *principal_amount;
-            }
             LoanEvent::Approved { recorded_at, .. } => {
                 approved_at = Some(*recorded_at);
             }
@@ -78,6 +69,15 @@ pub(super) fn project<'a>(
                     due_at,
                 });
             }
+            LoanEvent::PaymentRecorded {
+                interest_amount,
+                principal_amount,
+                recorded_at,
+                ..
+            } => {
+                repayments.push((*interest_amount, *recorded_at));
+                outstanding_principal -= *principal_amount;
+            }
             _ => (),
         }
     }
@@ -87,9 +87,15 @@ pub(super) fn project<'a>(
             // Currently assuming every repayment covers the interest for exactly 1 interest
             // accrual. Needs to updated with unit tests.
             payment.outstanding -= amount;
-            payment.status = RepaymentStatus::Paid;
+            if payment.outstanding == UsdCents::ZERO {
+                payment.status = RepaymentStatus::Paid;
+            } else {
+                if Utc::now() < payment.due_at {
+                    payment.status = RepaymentStatus::Due;
+                }
+            }
         } else {
-            if Utc::now() - payment.accrual_at < INTEREST_DUE_IN {
+            if Utc::now() < payment.due_at {
                 payment.status = RepaymentStatus::Due;
             }
             break;
