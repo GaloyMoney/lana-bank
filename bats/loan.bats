@@ -150,6 +150,20 @@ wait_for_interest() {
   err_msg=$(graphql_output '.errors[0].message')
   [[ "$err_msg" =~ "WithdrawalAmountTooLarge" ]] || exit 1
 
+  # Check repayments plan
+  variables=$(
+    jq -n \
+      --arg loanId "$loan_id" \
+    '{
+      id: $loanId
+    }'
+  )
+  exec_admin_graphql 'find-loan' "$variables"
+  interest_repayments_len=$(
+    graphql_output '[.data.loan.repaymentPlan[] | select(.repaymentType == "INTEREST")] | length'
+  )
+  [[ "$interest_repayments_len" == "4" ]] || exit 1
+
   # Pay-off Loan
   variables=$(
     jq -n \
@@ -217,11 +231,6 @@ wait_for_interest() {
   transactions_len=$(graphql_output '.data.loan.transactions' | jq 'length')
   echo "Number of transactions: $transactions_len"
   [[ "$transactions_len" == "7" ]] || exit 1
-
-  interest_repayments_len=$(
-    graphql_output '[.data.loan.repaymentPlan[] | select(.repaymentType == "INTEREST")] | length'
-  )
-  [[ "$interest_repayments_len" == "5" ]] || exit 1
 }
 
 @test "loan: paginated listing" {
