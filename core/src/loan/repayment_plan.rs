@@ -36,7 +36,7 @@ pub(super) fn project<'a>(
     let mut outstanding_principal = UsdCents::ZERO;
     let mut initial_principal = UsdCents::ZERO;
 
-    let mut interest_payments = Vec::new();
+    let mut interest_accruals = Vec::new();
     let mut repayments = Vec::new();
 
     for event in events {
@@ -61,7 +61,7 @@ pub(super) fn project<'a>(
                 last_interest_accrual_at = Some(*recorded_at);
                 let due_at = *recorded_at + INTEREST_DUE_IN;
 
-                interest_payments.push(RepaymentInPlan {
+                interest_accruals.push(RepaymentInPlan {
                     status: RepaymentStatus::Overdue,
                     outstanding: *amount,
                     initial: *amount,
@@ -83,7 +83,7 @@ pub(super) fn project<'a>(
     }
 
     let mut repayment_iter = repayments.into_iter();
-    for payment in interest_payments.iter_mut() {
+    for payment in interest_accruals.iter_mut() {
         if let Some((amount, _)) = repayment_iter.next() {
             payment.outstanding -= amount;
             if payment.outstanding == UsdCents::ZERO {
@@ -105,7 +105,7 @@ pub(super) fn project<'a>(
         return Vec::new();
     };
 
-    let mut res: Vec<_> = interest_payments
+    let mut res: Vec<_> = interest_accruals
         .into_iter()
         .map(LoanRepaymentInPlan::Interest)
         .collect();
@@ -220,12 +220,12 @@ mod tests {
         let events = happy_loan_events();
         let repayment_plan = super::project(events.iter());
 
-        let n_existing_payments = 1;
-        let n_future_interest_payments = 2; //1 for april and 1 for first 14 days of may
-        let n_principal_repayment = 1;
+        let n_existing_interest_accruals = 1;
+        let n_future_interest_accruals = 2; //1 for april and 1 for first 14 days of may
+        let n_principal_accruals = 1;
         assert_eq!(
             repayment_plan.len(),
-            n_existing_payments + n_future_interest_payments + n_principal_repayment
+            n_existing_interest_accruals + n_future_interest_accruals + n_principal_accruals
         );
         match &repayment_plan[0] {
             LoanRepaymentInPlan::Interest(first) => {
@@ -299,14 +299,17 @@ mod tests {
         });
         let repayment_plan = super::project(events.iter());
 
-        let n_existing_payments = 1;
+        let n_existing_interest_accruals = 1;
         let n_overdue = 1;
-        let n_upcoming_interest_payments = 1;
-        let n_principal_repayment = 1;
+        let n_upcoming_interest_accruals = 1;
+        let n_principal_accruals = 1;
 
         assert_eq!(
             repayment_plan.len(),
-            n_existing_payments + n_overdue + n_upcoming_interest_payments + n_principal_repayment
+            n_existing_interest_accruals
+                + n_overdue
+                + n_upcoming_interest_accruals
+                + n_principal_accruals
         );
 
         match &repayment_plan[1] {
@@ -357,14 +360,17 @@ mod tests {
         );
         let repayment_plan = super::project(events.iter());
 
-        let n_existing_payments = 1;
+        let n_existing_interest_accruals = 1;
         let n_overdue = 1;
-        let n_upcoming_interest_payments = 1;
-        let n_principal_repayment = 1;
+        let n_upcoming_interest_accruals = 1;
+        let n_principal_accruals = 1;
 
         assert_eq!(
             repayment_plan.len(),
-            n_existing_payments + n_overdue + n_upcoming_interest_payments + n_principal_repayment
+            n_existing_interest_accruals
+                + n_overdue
+                + n_upcoming_interest_accruals
+                + n_principal_accruals
         );
 
         match &repayment_plan[1] {
@@ -415,13 +421,13 @@ mod tests {
         );
         let repayment_plan = super::project(events.iter());
 
-        let n_existing_payments = 2;
-        let n_upcoming_interest_payments = 1;
-        let n_principal_repayment = 1;
+        let n_existing_interest_accruals = 2;
+        let n_upcoming_interest_accruals = 1;
+        let n_principal_accruals = 1;
 
         assert_eq!(
             repayment_plan.len(),
-            n_existing_payments + n_upcoming_interest_payments + n_principal_repayment
+            n_existing_interest_accruals + n_upcoming_interest_accruals + n_principal_accruals
         );
 
         match &repayment_plan[1] {
@@ -489,12 +495,12 @@ mod tests {
         );
         let repayment_plan = super::project(events.iter());
 
-        let n_existing_payments = 3;
-        let n_principal_repayment = 1;
+        let n_existing_interest_accruals = 3;
+        let n_principal_accruals = 1;
 
         assert_eq!(
             repayment_plan.len(),
-            n_existing_payments + n_principal_repayment
+            n_existing_interest_accruals + n_principal_accruals
         );
 
         match &repayment_plan[2] {
