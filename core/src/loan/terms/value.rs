@@ -99,129 +99,15 @@ impl Duration {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
-pub struct InterestPeriodStartDate(DateTime<Utc>);
-
-impl PartialEq<DateTime<Utc>> for InterestPeriodStartDate {
-    fn eq(&self, other: &DateTime<Utc>) -> bool {
-        self.0 == *other
-    }
-}
-
-impl PartialOrd<DateTime<Utc>> for InterestPeriodStartDate {
-    fn partial_cmp(&self, other: &DateTime<Utc>) -> Option<std::cmp::Ordering> {
-        self.0.partial_cmp(other)
-    }
-}
-
-impl InterestPeriodStartDate {
-    pub fn new(value: DateTime<Utc>) -> Self {
-        Self(value)
-    }
-
-    pub fn current_period(
-        &self,
-        interval: InterestInterval,
-        expiry_date: DateTime<Utc>,
-    ) -> Option<InterestPeriod> {
-        if self.0 > expiry_date {
-            return None;
-        }
-
-        Some(InterestPeriod::new(interval, *self))
-    }
-
-    pub fn next_period(
-        &self,
-        interval: InterestInterval,
-        expiry_date: DateTime<Utc>,
-    ) -> Option<InterestPeriod> {
-        let current_end_date = match self.current_period(interval, expiry_date) {
-            Some(period) => period.end,
-            None => return None,
-        };
-
-        let calculated_start_date = current_end_date.next_start_date();
-        let next_start_date = if calculated_start_date <= expiry_date {
-            calculated_start_date
-        } else {
-            return None;
-        };
-
-        next_start_date.current_period(interval, expiry_date)
-    }
-
-    pub fn maybe_if_before_now(&self) -> Option<Self> {
-        if *self < Utc::now() {
-            Some(*self)
-        } else {
-            None
-        }
-    }
-
-    pub fn absolute_end_date_for_period(
-        &self,
-        interval: InterestInterval,
-    ) -> InterestPeriodEndDate {
-        interval.end_date_for_period(self.0)
-    }
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
-pub struct InterestPeriodEndDate(DateTime<Utc>);
-
-impl From<InterestPeriodEndDate> for DateTime<Utc> {
-    fn from(end_date: InterestPeriodEndDate) -> Self {
-        end_date.0
-    }
-}
-
-impl PartialEq<DateTime<Utc>> for InterestPeriodEndDate {
-    fn eq(&self, other: &DateTime<Utc>) -> bool {
-        self.0 == *other
-    }
-}
-
-impl PartialOrd<DateTime<Utc>> for InterestPeriodEndDate {
-    fn partial_cmp(&self, other: &DateTime<Utc>) -> Option<std::cmp::Ordering> {
-        self.0.partial_cmp(other)
-    }
-}
-
-impl InterestPeriodEndDate {
-    pub fn new(value: DateTime<Utc>) -> Self {
-        Self(value)
-    }
-
-    pub fn next_start_date(&self) -> InterestPeriodStartDate {
-        InterestPeriodStartDate::new(self.0 + chrono::Duration::days(1))
-    }
-
-    pub fn next_period(
-        &self,
-        interval: InterestInterval,
-        expiry_date: DateTime<Utc>,
-    ) -> Option<InterestPeriod> {
-        let calculated_start_date = self.next_start_date();
-        let next_start_date = if calculated_start_date <= expiry_date {
-            calculated_start_date
-        } else {
-            return None;
-        };
-
-        next_start_date.current_period(interval, expiry_date)
-    }
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 pub struct InterestPeriod {
     pub interval: InterestInterval,
-    pub start: InterestPeriodStartDate,
-    pub end: InterestPeriodEndDate,
+    pub start: DateTime<Utc>,
+    pub end: DateTime<Utc>,
 }
 
 impl InterestPeriod {
-    fn new(interval: InterestInterval, start: InterestPeriodStartDate) -> Self {
-        let end = interval.end_date_for_period(start.0);
+    fn new(interval: InterestInterval, start: DateTime<Utc>) -> Self {
+        let end = interval.end_date_for_period(start);
         Self {
             interval,
             start,
@@ -230,26 +116,23 @@ impl InterestPeriod {
     }
 
     pub fn next(&self) -> Self {
-        Self::new(
-            self.interval,
-            InterestPeriodStartDate(self.end.0 + chrono::Duration::days(1)),
-        )
+        Self::new(self.interval, self.end + chrono::Duration::days(1))
     }
 
     pub fn truncate(&self, latest_possible_end_date: DateTime<Utc>) -> Option<Self> {
-        if self.start.0 > latest_possible_end_date {
+        if self.start > latest_possible_end_date {
             return None;
         }
 
         Some(Self {
             interval: self.interval,
             start: self.start,
-            end: InterestPeriodEndDate(self.end.0.min(latest_possible_end_date)),
+            end: self.end.min(latest_possible_end_date),
         })
     }
 
     pub fn days(&self) -> u32 {
-        self.end.0.day() - self.start.0.day() + 1
+        self.end.day() - self.start.day() + 1
     }
 }
 
@@ -260,11 +143,11 @@ pub enum InterestInterval {
 }
 
 impl InterestInterval {
-    pub fn period_from(&self, start_date: InterestPeriodStartDate) -> InterestPeriod {
+    pub fn period_from(&self, start_date: DateTime<Utc>) -> InterestPeriod {
         InterestPeriod::new(*self, start_date)
     }
 
-    pub fn end_date_for_period(&self, current_date: DateTime<Utc>) -> InterestPeriodEndDate {
+    pub fn end_date_for_period(&self, current_date: DateTime<Utc>) -> DateTime<Utc> {
         match self {
             InterestInterval::EndOfMonth => {
                 let current_year = current_date.year();
@@ -276,12 +159,10 @@ impl InterestInterval {
                     (current_year, current_month + 1)
                 };
 
-                InterestPeriodEndDate(
-                    Utc.with_ymd_and_hms(year, month, 1, 0, 0, 0)
-                        .single()
-                        .expect("should return a valid date time")
-                        - chrono::Duration::seconds(1),
-                )
+                Utc.with_ymd_and_hms(year, month, 1, 0, 0, 0)
+                    .single()
+                    .expect("should return a valid date time")
+                    - chrono::Duration::seconds(1)
             }
         }
     }
@@ -403,40 +284,23 @@ mod test {
     }
 
     #[test]
-    fn next_interest_accrual_date() {
-        let interval = InterestInterval::EndOfMonth;
-        let current_date =
-            InterestPeriodStartDate::new("2024-12-03T14:00:00Z".parse::<DateTime<Utc>>().unwrap());
-        let next_payment =
-            InterestPeriodEndDate("2024-12-31T23:59:59Z".parse::<DateTime<Utc>>().unwrap());
-
-        assert_eq!(
-            current_date.absolute_end_date_for_period(interval),
-            next_payment
-        );
-    }
-
-    #[test]
     fn days() {
-        let start_date =
-            InterestPeriodStartDate::new("2024-12-03T14:00:00Z".parse::<DateTime<Utc>>().unwrap());
+        let start_date = "2024-12-03T14:00:00Z".parse::<DateTime<Utc>>().unwrap();
         assert_eq!(
-            InterestPeriod::new(InterestInterval::EndOfMonth, start_date).days(),
+            InterestInterval::EndOfMonth.period_from(start_date).days(),
             29
         );
 
-        let start_date =
-            InterestPeriodStartDate::new("2024-12-01T14:00:00Z".parse::<DateTime<Utc>>().unwrap());
+        let start_date = "2024-12-01T14:00:00Z".parse::<DateTime<Utc>>().unwrap();
         assert_eq!(
-            InterestPeriod::new(InterestInterval::EndOfMonth, start_date).days(),
+            InterestInterval::EndOfMonth.period_from(start_date).days(),
             31
         );
     }
 
     #[test]
     fn truncate() {
-        let start_date =
-            InterestPeriodStartDate::new("2024-12-03T14:00:00Z".parse::<DateTime<Utc>>().unwrap());
+        let start_date = "2024-12-03T14:00:00Z".parse::<DateTime<Utc>>().unwrap();
         let period = InterestInterval::EndOfMonth.period_from(start_date);
 
         let latest_before_start_date = "2024-12-02T14:00:00Z".parse::<DateTime<Utc>>().unwrap();

@@ -1,6 +1,6 @@
 use chrono::{DateTime, Utc};
 
-use super::{InterestPeriodStartDate, LoanEvent, UsdCents};
+use super::{LoanEvent, UsdCents};
 
 const INTEREST_DUE_IN: chrono::Duration = chrono::Duration::hours(24);
 
@@ -114,7 +114,7 @@ pub(super) fn project<'a>(
     let last_interest_payment = last_interest_accrual_at.unwrap_or(approved_at);
     let mut next_interest_period = terms
         .interval
-        .period_from(InterestPeriodStartDate::new(last_interest_payment))
+        .period_from(last_interest_payment)
         .next()
         .truncate(expiry_date);
 
@@ -127,8 +127,8 @@ pub(super) fn project<'a>(
             status: RepaymentStatus::Upcoming,
             outstanding: interest,
             initial: interest,
-            accrual_at: period.end.into(),
-            due_at: DateTime::from(period.end) + INTEREST_DUE_IN,
+            accrual_at: period.end,
+            due_at: period.end + INTEREST_DUE_IN,
         }));
 
         next_interest_period = period.next().truncate(expiry_date);

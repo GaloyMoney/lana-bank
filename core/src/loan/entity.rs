@@ -16,7 +16,7 @@ use crate::{
 
 use super::{
     error::LoanError, history, repayment_plan, terms::TermValues, CVLPct, InterestPeriod,
-    InterestPeriodStartDate, LoanApprovalData, LoanInterestAccrual,
+    LoanApprovalData, LoanInterestAccrual,
 };
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -384,33 +384,31 @@ impl Loan {
     }
 
     pub fn next_interest_period(&self) -> Result<Option<InterestPeriod>, LoanError> {
-        let expiry_date = self.expires_at.ok_or(LoanError::NotApprovedYet)?;
+        let expiry_date = if let Some(expires_at) = self.expires_at {
+            expires_at
+        } else {
+            return Err(LoanError::NotApprovedYet);
+        };
+        if self.is_completed() {
+            return Err(LoanError::AlreadyCompleted);
+        }
 
-        let last_start_date = InterestPeriodStartDate::new(
-            self.events
-                .iter()
-                .rev()
-                .find_map(|event| match event {
-                    LoanEvent::InterestIncurred { recorded_at, .. } => Some(*recorded_at),
-                    _ => None,
-                })
-                .or(self.approved_at)
-                .ok_or(LoanError::NotApprovedYet)?,
-        );
+        let last_interest_payment = self
+            .events
+            .iter()
+            .rev()
+            .find_map(|event| match event {
+                LoanEvent::InterestIncurred { recorded_at, .. } => Some(*recorded_at),
+                _ => None,
+            })
+            .unwrap_or(self.approved_at.expect("already approved"));
 
-        Ok(last_start_date.next_period(self.terms.interval, expiry_date))
-    }
-
-    pub fn maybe_next_interest_period(&self) -> Result<Option<InterestPeriod>, LoanError> {
         Ok(self
-            .next_interest_period()?
-            .and_then(|period| period.start.maybe_if_before_now().and(Some(period))))
-    }
-
-    pub fn calculate_interest(&self, days_in_interest_period: u32) -> UsdCents {
-        self.terms
-            .annual_rate
-            .interest_for_time_period(self.initial_principal(), days_in_interest_period)
+            .terms
+            .interval
+            .period_from(last_interest_payment)
+            .next()
+            .truncate(expiry_date))
     }
 
     fn count_interest_incurred(&self) -> usize {
@@ -449,7 +447,7 @@ impl Loan {
         let days_in_interest_period = self
             .terms
             .interval
-            .period_from(InterestPeriodStartDate::new(last_interest_payment))
+            .period_from(last_interest_payment)
             .next()
             .truncate(expiry_date)
             .ok_or(LoanError::InterestPeriodStartDateInFuture)?
