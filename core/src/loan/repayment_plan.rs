@@ -119,20 +119,22 @@ pub(super) fn project<'a>(
         .next()
         .truncate(expiry_date);
 
-    while let Some(period) = next_interest_period {
-        let interest = terms
-            .annual_rate
-            .interest_for_time_period(outstanding_principal, period.days());
+    if outstanding_principal > UsdCents::ZERO {
+        while let Some(period) = next_interest_period {
+            let interest = terms
+                .annual_rate
+                .interest_for_time_period(outstanding_principal, period.days());
 
-        res.push(LoanRepaymentInPlan::Interest(RepaymentInPlan {
-            status: RepaymentStatus::Upcoming,
-            outstanding: interest,
-            initial: interest,
-            accrual_at: period.end,
-            due_at: period.end + INTEREST_DUE_IN,
-        }));
+            res.push(LoanRepaymentInPlan::Interest(RepaymentInPlan {
+                status: RepaymentStatus::Upcoming,
+                outstanding: interest,
+                initial: interest,
+                accrual_at: period.end,
+                due_at: period.end + INTEREST_DUE_IN,
+            }));
 
-        next_interest_period = period.next().truncate(expiry_date);
+            next_interest_period = period.next().truncate(expiry_date);
+        }
     }
 
     res.push(LoanRepaymentInPlan::Principal(RepaymentInPlan {
