@@ -455,4 +455,61 @@ mod tests {
             _ => panic!("Expected fourth element to be Principal"),
         }
     }
+
+    #[test]
+    fn completed_loan() {
+        let mut events = happy_loan_events();
+        let loan_id = LoanId::new();
+        events.extend(
+            [
+                LoanEvent::InterestIncurred {
+                    tx_id: LedgerTxId::new(),
+                    tx_ref: format!("{}-interest-{}", loan_id, 2),
+                    amount: UsdCents::from(100_00),
+                    recorded_at: "2020-04-30T23:59:59Z".parse::<DateTime<Utc>>().unwrap(),
+                    audit_info: dummy_audit_info(),
+                },
+                LoanEvent::InterestIncurred {
+                    tx_id: LedgerTxId::new(),
+                    tx_ref: format!("{}-interest-{}", loan_id, 3),
+                    amount: UsdCents::from(100_00),
+                    recorded_at: "2020-05-14T14:20:00Z".parse::<DateTime<Utc>>().unwrap(),
+                    audit_info: dummy_audit_info(),
+                },
+                LoanEvent::PaymentRecorded {
+                    tx_id: LedgerTxId::new(),
+                    tx_ref: format!("{}-payment-{}", loan_id, 2),
+                    principal_amount: UsdCents::from(10_000_00),
+                    interest_amount: UsdCents::from(200_00),
+                    recorded_at: "2020-05-14T14:20:00Z".parse::<DateTime<Utc>>().unwrap(),
+                    audit_info: dummy_audit_info(),
+                },
+            ]
+            .into_iter(),
+        );
+        let repayment_plan = super::project(events.iter());
+
+        let n_existing_payments = 3;
+        let n_principal_repayment = 1;
+
+        assert_eq!(
+            repayment_plan.len(),
+            n_existing_payments + n_principal_repayment
+        );
+
+        match &repayment_plan[2] {
+            LoanRepaymentInPlan::Interest(third) => {
+                assert_eq!(third.status, RepaymentStatus::Paid);
+                assert_eq!(third.outstanding, UsdCents::ZERO);
+            }
+            _ => panic!("Expected third element to be Interest"),
+        }
+        match &repayment_plan[3] {
+            LoanRepaymentInPlan::Principal(fourth) => {
+                assert_eq!(fourth.status, RepaymentStatus::Paid);
+                assert_eq!(fourth.outstanding, UsdCents::ZERO);
+            }
+            _ => panic!("Expected fourth element to be Principal"),
+        }
+    }
 }
