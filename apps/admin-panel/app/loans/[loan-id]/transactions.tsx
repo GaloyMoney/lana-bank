@@ -14,7 +14,7 @@ import Balance from "@/components/balance/balance"
 import {
   CollateralAction,
   GetLoanDetailsQuery,
-  LoanHistory,
+  LoanHistoryEntry,
 } from "@/lib/graphql/generated"
 import {
   formatCollateralAction,
@@ -56,7 +56,7 @@ export const LoanTransactionHistory: React.FC<LoanTransactionHistoryProps> = ({
   )
 }
 
-const renderTransactionRow = (transaction: LoanHistory) => {
+const renderTransactionRow = (transaction: LoanHistoryEntry) => {
   const renderAmount = () => {
     switch (transaction.__typename) {
       case "CollateralUpdated":
