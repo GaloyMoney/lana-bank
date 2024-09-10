@@ -207,7 +207,7 @@ mod tests {
             LoanEvent::PaymentRecorded {
                 tx_id: LedgerTxId::new(),
                 tx_ref: format!("{}-payment-{}", loan_id, 1),
-                principal_amount: UsdCents::from(4_000_00),
+                principal_amount: UsdCents::ZERO,
                 interest_amount: UsdCents::from(100_00),
                 recorded_at: "2020-04-01T14:10:00Z".parse::<DateTime<Utc>>().unwrap(),
                 audit_info: dummy_audit_info(),
@@ -292,7 +292,7 @@ mod tests {
         let loan_id = LoanId::new();
         events.push(LoanEvent::InterestIncurred {
             tx_id: LedgerTxId::new(),
-            tx_ref: format!("{}-interest-{}", loan_id, 1),
+            tx_ref: format!("{}-interest-{}", loan_id, 2),
             amount: UsdCents::from(100_00),
             recorded_at: "2020-04-30T23:59:59Z".parse::<DateTime<Utc>>().unwrap(),
             audit_info: dummy_audit_info(),
@@ -323,6 +323,136 @@ mod tests {
                 );
             }
             _ => panic!("Expected second element to be Interest"),
+        }
+    }
+
+    #[test]
+    fn partial_interest_payment() {
+        let mut events = happy_loan_events();
+        let loan_id = LoanId::new();
+
+        let full_amount = UsdCents::from(100_00);
+        let partial_amount = UsdCents::from(40_00);
+        let expected_remaining_amount = full_amount - partial_amount;
+
+        events.extend(
+            [
+                LoanEvent::InterestIncurred {
+                    tx_id: LedgerTxId::new(),
+                    tx_ref: format!("{}-interest-{}", loan_id, 2),
+                    amount: UsdCents::from(100_00),
+                    recorded_at: "2020-04-30T23:59:59Z".parse::<DateTime<Utc>>().unwrap(),
+                    audit_info: dummy_audit_info(),
+                },
+                LoanEvent::PaymentRecorded {
+                    tx_id: LedgerTxId::new(),
+                    tx_ref: format!("{}-payment-{}", loan_id, 2),
+                    principal_amount: UsdCents::ZERO,
+                    interest_amount: partial_amount,
+                    recorded_at: "2020-04-01T14:10:00Z".parse::<DateTime<Utc>>().unwrap(),
+                    audit_info: dummy_audit_info(),
+                },
+            ]
+            .into_iter(),
+        );
+        let repayment_plan = super::project(events.iter());
+
+        let n_existing_payments = 1;
+        let n_overdue = 1;
+        let n_upcoming_interest_payments = 1;
+        let n_principal_repayment = 1;
+
+        assert_eq!(
+            repayment_plan.len(),
+            n_existing_payments + n_overdue + n_upcoming_interest_payments + n_principal_repayment
+        );
+
+        match &repayment_plan[1] {
+            LoanRepaymentInPlan::Interest(second) => {
+                assert_eq!(second.status, RepaymentStatus::Overdue);
+                assert_eq!(second.outstanding, expected_remaining_amount);
+                assert_eq!(
+                    second.accrual_at,
+                    "2020-04-30T23:59:59Z".parse::<DateTime<Utc>>().unwrap()
+                );
+                assert_eq!(
+                    second.due_at,
+                    "2020-05-01T23:59:59Z".parse::<DateTime<Utc>>().unwrap()
+                );
+            }
+            _ => panic!("Expected second element to be Interest"),
+        }
+    }
+
+    #[test]
+    fn partial_principal_payment() {
+        let mut events = happy_loan_events();
+        let loan_id = LoanId::new();
+
+        let full_amount = UsdCents::from(10_000_00);
+        let partial_amount = UsdCents::from(1_000_00);
+        let expected_remaining_amount = full_amount - partial_amount;
+
+        events.extend(
+            [
+                LoanEvent::InterestIncurred {
+                    tx_id: LedgerTxId::new(),
+                    tx_ref: format!("{}-interest-{}", loan_id, 2),
+                    amount: UsdCents::from(100_00),
+                    recorded_at: "2020-04-30T23:59:59Z".parse::<DateTime<Utc>>().unwrap(),
+                    audit_info: dummy_audit_info(),
+                },
+                LoanEvent::PaymentRecorded {
+                    tx_id: LedgerTxId::new(),
+                    tx_ref: format!("{}-payment-{}", loan_id, 2),
+                    principal_amount: partial_amount,
+                    interest_amount: UsdCents::from(100_00),
+                    recorded_at: "2020-04-01T14:10:00Z".parse::<DateTime<Utc>>().unwrap(),
+                    audit_info: dummy_audit_info(),
+                },
+            ]
+            .into_iter(),
+        );
+        let repayment_plan = super::project(events.iter());
+
+        let n_existing_payments = 2;
+        let n_upcoming_interest_payments = 1;
+        let n_principal_repayment = 1;
+
+        assert_eq!(
+            repayment_plan.len(),
+            n_existing_payments + n_upcoming_interest_payments + n_principal_repayment
+        );
+
+        match &repayment_plan[1] {
+            LoanRepaymentInPlan::Interest(second) => {
+                assert_eq!(second.status, RepaymentStatus::Paid);
+                assert_eq!(second.outstanding, UsdCents::ZERO);
+                assert_eq!(
+                    second.accrual_at,
+                    "2020-04-30T23:59:59Z".parse::<DateTime<Utc>>().unwrap()
+                );
+                assert_eq!(
+                    second.due_at,
+                    "2020-05-01T23:59:59Z".parse::<DateTime<Utc>>().unwrap()
+                );
+            }
+            _ => panic!("Expected second element to be Interest"),
+        }
+        match &repayment_plan[3] {
+            LoanRepaymentInPlan::Principal(fourth) => {
+                assert_eq!(fourth.status, RepaymentStatus::Upcoming);
+                assert_eq!(fourth.outstanding, expected_remaining_amount);
+                assert_eq!(
+                    fourth.accrual_at,
+                    "2020-03-14T14:20:00Z".parse::<DateTime<Utc>>().unwrap()
+                );
+                assert_eq!(
+                    fourth.due_at,
+                    "2020-05-14T14:20:00Z".parse::<DateTime<Utc>>().unwrap()
+                );
+            }
+            _ => panic!("Expected fourth element to be Principal"),
         }
     }
 }
