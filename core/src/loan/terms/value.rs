@@ -131,6 +131,14 @@ impl InterestPeriod {
         })
     }
 
+    pub fn as_not_in_future(&self) -> Option<Self> {
+        if self.start > Utc::now() {
+            return None;
+        }
+
+        Some(*self)
+    }
+
     pub fn days(&self) -> u32 {
         self.end.day() - self.start.day() + 1
     }
@@ -321,6 +329,17 @@ mod test {
             period.truncate(latest_after_end_date).unwrap().end,
             period.end
         );
+    }
+
+    #[test]
+    fn as_not_in_future() {
+        let start_date = Utc::now();
+        let period = InterestInterval::EndOfMonth.period_from(start_date);
+        assert_eq!(period.as_not_in_future(), Some(period));
+
+        let start_date = Utc::now() + chrono::Duration::days(1);
+        let period = InterestInterval::EndOfMonth.period_from(start_date);
+        assert_eq!(period.as_not_in_future(), None);
     }
 
     #[test]

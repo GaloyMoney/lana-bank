@@ -449,8 +449,10 @@ impl Loan {
             .interval
             .period_from(last_interest_payment)
             .next()
-            .truncate(expiry_date)
+            .as_not_in_future()
             .ok_or(LoanError::InterestPeriodStartDateInFuture)?
+            .truncate(expiry_date)
+            .ok_or(LoanError::AllInterestAccrualsGeneratedForLoan)?
             .days();
 
         let interest_for_period = self
