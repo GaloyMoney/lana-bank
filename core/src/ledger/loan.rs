@@ -55,8 +55,9 @@ pub struct LoanPaymentAmounts {
 
 pub struct LoanBalance {
     pub collateral: Satoshis,
-    pub principal_receivable: UsdCents,
+    pub disbursed_receivable: UsdCents,
     pub interest_receivable: UsdCents,
+    pub facility_remaining: UsdCents,
     pub interest_incurred: UsdCents,
 }
 
@@ -69,12 +70,16 @@ impl TryFrom<loan_balance::ResponseData> for LoanBalance {
                 .collateral
                 .map(|b| Satoshis::try_from_btc(b.settled.normal_balance.units))
                 .unwrap_or_else(|| Ok(Satoshis::ZERO))?,
-            principal_receivable: data
-                .loan_principal_receivable
+            disbursed_receivable: data
+                .loan_disbursed_receivable
                 .map(|b| UsdCents::try_from_usd(b.settled.normal_balance.units))
                 .unwrap_or_else(|| Ok(UsdCents::ZERO))?,
             interest_receivable: data
                 .loan_interest_receivable
+                .map(|b| UsdCents::try_from_usd(b.settled.normal_balance.units))
+                .unwrap_or_else(|| Ok(UsdCents::ZERO))?,
+            facility_remaining: data
+                .loan_facility
                 .map(|b| UsdCents::try_from_usd(b.settled.normal_balance.units))
                 .unwrap_or_else(|| Ok(UsdCents::ZERO))?,
             interest_incurred: data

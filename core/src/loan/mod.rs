@@ -329,7 +329,7 @@ impl Loans {
         }
 
         let balances = self.ledger.get_loan_balance(loan.account_ids).await?;
-        assert_eq!(balances.principal_receivable, loan.outstanding().principal);
+        assert_eq!(balances.disbursed_receivable, loan.outstanding().principal);
         assert_eq!(balances.interest_receivable, loan.outstanding().interest);
 
         let repayment = loan.initiate_repayment(amount)?;

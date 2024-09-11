@@ -316,8 +316,9 @@ impl CalaClient {
         let variables = loan_balance::Variables {
             journal_id: super::constants::CORE_JOURNAL_ID,
             collateral_id: Uuid::from(account_ids.collateral_account_id),
-            loan_principal_receivable_id: Uuid::from(account_ids.disbursed_receivable_account_id),
+            loan_disbursed_receivable_id: Uuid::from(account_ids.disbursed_receivable_account_id),
             loan_interest_receivable_id: Uuid::from(account_ids.interest_receivable_account_id),
+            loan_facility_id: Uuid::from(account_ids.facility_account_id),
             interest_income_id: Uuid::from(account_ids.interest_account_id),
         };
         let response =
