@@ -453,19 +453,21 @@ impl Loans {
     pub async fn add_disbursement_approval(
         &self,
         sub: &Subject,
-        disbursement_id: DisbursementId,
+        loan_id: LoanId,
     ) -> Result<Disbursement, LoanError> {
         let audit_info = self
             .authz
             .check_permission(sub, Object::Loan, LoanAction::ApproveDisbursement)
             .await?;
 
-        let mut disbursement = self.disbursement_repo.find_by_id(disbursement_id).await?;
-        if disbursement.is_concluded() {
-            return Err(LoanError::DisbursementAlreadyConcluded);
-        }
-
-        let mut loan = self.loan_repo.find_by_id(disbursement.loan_id).await?;
+        let mut loan = self.loan_repo.find_by_id(loan_id).await?;
+        let in_progress_disbursement_idx = loan
+            .disbursement_in_progress()
+            .ok_or(LoanError::NoDisbursementInProgress)?;
+        let mut disbursement = self
+            .disbursement_repo
+            .find_by_idx_for_loan(loan_id, in_progress_disbursement_idx)
+            .await?;
         let customer = self.customers.repo().find_by_id(loan.customer_id).await?;
 
         let mut db_tx = self.pool.begin().await?;

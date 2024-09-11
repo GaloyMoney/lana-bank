@@ -60,16 +60,21 @@ impl DisbursementRepo {
         Ok(())
     }
 
-    pub async fn find_by_id(&self, id: DisbursementId) -> Result<Disbursement, LoanError> {
+    pub async fn find_by_idx_for_loan(
+        &self,
+        loan_id: LoanId,
+        idx: DisbursementIdx,
+    ) -> Result<Disbursement, LoanError> {
         let rows = sqlx::query_as!(
             GenericEvent,
             r#"SELECT d.id, e.sequence, e.event,
                       d.created_at AS entity_created_at, e.recorded_at AS event_recorded_at
             FROM disbursements d
             JOIN disbursement_events e ON d.id = e.id
-            WHERE d.id = $1
+            WHERE d.loan_id = $1 AND d.idx = $2
             ORDER BY e.sequence"#,
-            id as DisbursementId,
+            loan_id as LoanId,
+            idx as DisbursementIdx,
         )
         .fetch_all(&self._pool)
         .await?;

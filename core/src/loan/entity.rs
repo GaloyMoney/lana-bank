@@ -839,7 +839,7 @@ impl Loan {
             return Err(LoanError::AlreadyCompleted);
         }
 
-        if self.disbursement_in_progress() {
+        if self.disbursement_in_progress().is_some() {
             return Err(LoanError::DisbursementInProgress);
         }
 
@@ -875,15 +875,11 @@ impl Loan {
         });
     }
 
-    fn disbursement_in_progress(&self) -> bool {
-        for e in self.events.iter().rev() {
-            match e {
-                LoanEvent::DisbursementInitiated { .. } => return true,
-                LoanEvent::DisbursementConcluded { .. } => return false,
-                _ => continue,
-            }
-        }
-        false
+    pub fn disbursement_in_progress(&self) -> Option<DisbursementIdx> {
+        self.events.iter().rev().find_map(|event| match event {
+            LoanEvent::DisbursementInitiated { idx, .. } => Some(*idx),
+            _ => None,
+        })
     }
 }
 

@@ -68,15 +68,18 @@ impl TryFrom<EntityEvents<DisbursementEvent>> for Disbursement {
 
 impl Disbursement {
     pub fn conclude(&mut self, recorded_at: DateTime<Utc>, audit_info: AuditInfo) {
-        if self.is_concluded() {
-            return;
-        }
+        let is_concluded = self
+            ._events
+            .iter()
+            .any(|event| matches!(event, DisbursementEvent::Concluded { .. }));
 
-        self._events.push(DisbursementEvent::Concluded {
-            id: self.id,
-            recorded_at,
-            audit_info,
-        })
+        if !is_concluded {
+            self._events.push(DisbursementEvent::Concluded {
+                id: self.id,
+                recorded_at,
+                audit_info,
+            })
+        }
     }
 
     pub fn is_concluded(&self) -> bool {

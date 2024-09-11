@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "SELECT d.id, e.sequence, e.event,\n                      d.created_at AS entity_created_at, e.recorded_at AS event_recorded_at\n            FROM disbursements d\n            JOIN disbursement_events e ON d.id = e.id\n            WHERE d.id = $1\n            ORDER BY e.sequence",
+  "query": "SELECT d.id, e.sequence, e.event,\n                      d.created_at AS entity_created_at, e.recorded_at AS event_recorded_at\n            FROM disbursements d\n            JOIN disbursement_events e ON d.id = e.id\n            WHERE d.loan_id = $1 AND d.idx = $2\n            ORDER BY e.sequence",
   "describe": {
     "columns": [
       {
@@ -31,7 +31,8 @@
     ],
     "parameters": {
       "Left": [
-        "Uuid"
+        "Uuid",
+        "Int4"
       ]
     },
     "nullable": [
@@ -42,5 +43,5 @@
       false
     ]
   },
-  "hash": "be0e9fe208e535b906e9d6797976e4f96bf58f6b8390a55f0db524302f79f5fd"
+  "hash": "ce951b46e65b38bbec8e40bea803b88706165c456d2b85daa4c82c18b1374637"
 }
