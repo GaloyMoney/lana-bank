@@ -3,17 +3,21 @@ mutation CreateLoanAccounts(
   $loanCollateralAccountCode: String!
   $loanCollateralAccountName: String!
   $loansCollateralControlAccountSetId: UUID!
-  $loanPrincipalReceivableAccountId: UUID!
-  $loanPrincipalReceivableAccountCode: String!
-  $loanPrincipalReceivableAccountName: String!
+  $loanDisbursedReceivableAccountId: UUID!
+  $loanDisbursedReceivableAccountCode: String!
+  $loanDisbursedReceivableAccountName: String!
   $loanInterestReceivableAccountId: UUID!
   $loanInterestReceivableAccountCode: String!
   $loanInterestReceivableAccountName: String!
+  $loanFacilityAccountId: UUID!
+  $loanFacilityAccountCode: String!
+  $loanFacilityAccountName: String!
   $interestAccountId: UUID!
   $interestAccountCode: String!
   $interestAccountName: String!
-  $loansPrincipalReceivableControlAccountSetId: UUID!
+  $loansDisbursedReceivableControlAccountSetId: UUID!
   $loansInterestReceivableControlAccountSetId: UUID!
+  $loansFacilityControlAccountSetId: UUID!
   $interestRevenueControlAccountSetId: UUID!
 ) {
   collateral: accountCreate(
@@ -28,13 +32,13 @@ mutation CreateLoanAccounts(
       accountId
     }
   }
-  principalReceivable: accountCreate(
+  disbursedReceivable: accountCreate(
     input: {
-      accountId: $loanPrincipalReceivableAccountId
-      code: $loanPrincipalReceivableAccountCode
-      name: $loanPrincipalReceivableAccountName
+      accountId: $loanDisbursedReceivableAccountId
+      code: $loanDisbursedReceivableAccountCode
+      name: $loanDisbursedReceivableAccountName
       normalBalanceType: "DEBIT"
-      accountSetIds: [$loansPrincipalReceivableControlAccountSetId]
+      accountSetIds: [$loansDisbursedReceivableControlAccountSetId]
     }
   ) {
     account {
@@ -48,6 +52,19 @@ mutation CreateLoanAccounts(
       name: $loanInterestReceivableAccountName
       normalBalanceType: "DEBIT"
       accountSetIds: [$loansInterestReceivableControlAccountSetId]
+    }
+  ) {
+    account {
+      accountId
+    }
+  }
+  facility: accountCreate(
+    input: {
+      accountId: $loanFacilityAccountId
+      code: $loanFacilityAccountCode
+      name: $loanFacilityAccountName
+      normalBalanceType: "DEBIT"
+      accountSetIds: [$loansFacilityControlAccountSetId]
     }
   ) {
     account {

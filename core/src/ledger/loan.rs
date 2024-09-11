@@ -7,8 +7,9 @@ use super::{cala::graphql::*, customer::CustomerLedgerAccountIds, error::*};
 #[derive(Debug, Copy, Clone, Serialize, Deserialize)]
 pub struct LoanAccountIds {
     pub collateral_account_id: LedgerAccountId,
-    pub principal_receivable_account_id: LedgerAccountId,
+    pub disbursed_receivable_account_id: LedgerAccountId,
     pub interest_receivable_account_id: LedgerAccountId,
+    pub facility_account_id: LedgerAccountId,
     pub interest_account_id: LedgerAccountId,
 }
 
@@ -17,8 +18,9 @@ impl LoanAccountIds {
     pub fn new() -> Self {
         Self {
             collateral_account_id: LedgerAccountId::new(),
-            principal_receivable_account_id: LedgerAccountId::new(),
+            disbursed_receivable_account_id: LedgerAccountId::new(),
             interest_receivable_account_id: LedgerAccountId::new(),
+            facility_account_id: LedgerAccountId::new(),
             interest_account_id: LedgerAccountId::new(),
         }
     }

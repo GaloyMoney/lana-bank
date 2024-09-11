@@ -43,6 +43,21 @@ resource "cala_account_set_member_account" "collateral_deposits_omnibus_in_obs_t
   member_account_id = cala_account.collateral_deposits_omnibus.id
 }
 
+resource "cala_account_set" "loans_facility_control" {
+  id                  = "00000000-0000-0000-0000-110000000003"
+  journal_id          = cala_journal.journal.id
+  name                = "Loans Facility Control Account"
+  normal_balance_type = "DEBIT"
+}
+resource "cala_account_set_member_account_set" "loans_facility_control_in_obs_assets" {
+  account_set_id        = cala_account_set.obs_assets.id
+  member_account_set_id = cala_account_set.loans_facility_control.id
+}
+resource "cala_account_set_member_account_set" "loans_facility_control_in_obs_trial_balance" {
+  account_set_id        = cala_account_set.obs_trial_balance.id
+  member_account_set_id = cala_account_set.loans_facility_control.id
+}
+
 # LIABILITIES
 resource "random_uuid" "obs_liabilities" {}
 resource "cala_account_set" "obs_liabilities" {
@@ -85,4 +100,20 @@ resource "cala_account_set_member_account_set" "loans_collateral_control_in_obs_
 resource "cala_account_set_member_account_set" "loans_collateral_control_in_obs_trial_balance" {
   account_set_id        = cala_account_set.obs_trial_balance.id
   member_account_set_id = cala_account_set.loans_collateral_control.id
+}
+
+resource "random_uuid" "loans_facility_omnibus" {}
+resource "cala_account" "loans_facility_omnibus" {
+  id                  = random_uuid.loans_facility_omnibus.result
+  name                = "Omnibus account for loans facility"
+  code                = "BANK.LOANS_FACILITY.OMNIBUS"
+  normal_balance_type = "CREDIT"
+}
+resource "cala_account_set_member_account" "loans_facility_omnibus_in_obs_liabilities" {
+  account_set_id    = cala_account_set.obs_liabilities.id
+  member_account_id = cala_account.loans_facility_omnibus.id
+}
+resource "cala_account_set_member_account" "loans_facility_omnibus_in_obs_trial_balance" {
+  account_set_id    = cala_account_set.obs_trial_balance.id
+  member_account_id = cala_account.loans_facility_omnibus.id
 }

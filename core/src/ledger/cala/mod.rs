@@ -162,8 +162,9 @@ impl CalaClient {
         loan_id: impl Into<Uuid> + std::fmt::Debug,
         LoanAccountIds {
             collateral_account_id,
-            principal_receivable_account_id,
+            disbursed_receivable_account_id,
             interest_receivable_account_id,
+            facility_account_id,
             interest_account_id,
         }: LoanAccountIds,
     ) -> Result<(), CalaError> {
@@ -174,17 +175,25 @@ impl CalaClient {
             loan_collateral_account_name: format!("Loan Collateral Account for {}", loan_id),
             loans_collateral_control_account_set_id:
                 super::constants::LOANS_COLLATERAL_CONTROL_ACCOUNT_SET_ID,
-            loan_principal_receivable_account_id: Uuid::from(principal_receivable_account_id),
-            loan_principal_receivable_account_code: format!(
-                "LOANS.PRINCIPAL_RECEIVABLE.{}",
+            loan_disbursed_receivable_account_id: Uuid::from(disbursed_receivable_account_id),
+            loan_disbursed_receivable_account_code: format!(
+                "LOANS.DISBURSED_RECEIVABLE.{}",
                 loan_id
             ),
-            loan_principal_receivable_account_name: format!(
-                "Loan Principal Receivable Account for {}",
+            loan_disbursed_receivable_account_name: format!(
+                "Loan Disbursed Receivable Account for {}",
                 loan_id
             ),
-            loans_principal_receivable_control_account_set_id:
-                super::constants::LOANS_PRINCIPAL_RECEIVABLE_CONTROL_ACCOUNT_SET_ID,
+            loans_disbursed_receivable_control_account_set_id:
+                super::constants::LOANS_DISBURSED_RECEIVABLE_CONTROL_ACCOUNT_SET_ID,
+            loan_facility_account_id: Uuid::from(facility_account_id),
+            loan_facility_account_code: format!("LOANS.OBS_FACILITY.{}", loan_id),
+            loan_facility_account_name: format!(
+                "Off-Balance-Sheet Loan Facility Account for {}",
+                loan_id
+            ),
+            loans_facility_control_account_set_id:
+                super::constants::OBS_LOANS_FACILITY_CONTROL_ACCOUNT_SET_ID,
             loan_interest_receivable_account_id: Uuid::from(interest_receivable_account_id),
             loan_interest_receivable_account_code: format!("LOANS.INTEREST_RECEIVABLE.{}", loan_id),
             loan_interest_receivable_account_name: format!(
@@ -307,7 +316,7 @@ impl CalaClient {
         let variables = loan_balance::Variables {
             journal_id: super::constants::CORE_JOURNAL_ID,
             collateral_id: Uuid::from(account_ids.collateral_account_id),
-            loan_principal_receivable_id: Uuid::from(account_ids.principal_receivable_account_id),
+            loan_principal_receivable_id: Uuid::from(account_ids.disbursed_receivable_account_id),
             loan_interest_receivable_id: Uuid::from(account_ids.interest_receivable_account_id),
             interest_income_id: Uuid::from(account_ids.interest_account_id),
         };
@@ -736,7 +745,7 @@ impl CalaClient {
         let variables = post_approve_loan_transaction::Variables {
             transaction_id: transaction_id.into(),
             loan_principal_receivable_account: loan_account_ids
-                .principal_receivable_account_id
+                .disbursed_receivable_account_id
                 .into(),
             checking_account: user_account_ids.on_balance_sheet_deposit_account_id.into(),
             principal_amount,
@@ -799,7 +808,7 @@ impl CalaClient {
         let variables = post_incremental_principal_disbursement_transaction::Variables {
             transaction_id: transaction_id.into(),
             loan_principal_receivable_account: loan_account_ids
-                .principal_receivable_account_id
+                .disbursed_receivable_account_id
                 .into(),
             checking_account: user_account_ids.on_balance_sheet_deposit_account_id.into(),
             principal_amount,
@@ -841,7 +850,7 @@ impl CalaClient {
                 .interest_receivable_account_id
                 .into(),
             loan_principal_receivable_account: loan_account_ids
-                .principal_receivable_account_id
+                .disbursed_receivable_account_id
                 .into(),
             loan_collateral_account: loan_account_ids.collateral_account_id.into(),
             interest_payment_amount,
@@ -1095,7 +1104,7 @@ impl CalaClient {
                 .interest_receivable_account_id
                 .into(),
             loan_principal_receivable_account: loan_account_ids
-                .principal_receivable_account_id
+                .disbursed_receivable_account_id
                 .into(),
             interest_payment_amount,
             principal_payment_amount,
