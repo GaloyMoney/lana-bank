@@ -34,6 +34,19 @@ pub struct Loan {
 }
 
 #[derive(SimpleObject)]
+pub struct LoanDisbursement {
+    id: ID,
+}
+
+impl From<crate::loan::Disbursement> for LoanDisbursement {
+    fn from(disbursement: crate::loan::Disbursement) -> Self {
+        Self {
+            id: disbursement.id().into(),
+        }
+    }
+}
+
+#[derive(SimpleObject)]
 pub struct LoanRepaymentInPlan {
     pub repayment_type: LoanRepaymentType,
     pub status: LoanRepaymentStatus,

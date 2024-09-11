@@ -428,6 +428,19 @@ type LoanCreatePayload {
 	loan: Loan!
 }
 
+type LoanDisbursement {
+	id: ID!
+}
+
+input LoanDisbursementInitiateInput {
+	loanId: UUID!
+	amount: UsdCents!
+}
+
+type LoanDisbursementInitiatePayload {
+	disbursement: LoanDisbursement!
+}
+
 """
 An edge in a connection.
 """
@@ -503,6 +516,7 @@ type Mutation {
 	withdrawalInitiate(input: WithdrawalInitiateInput!): WithdrawalInitiatePayload!
 	withdrawalConfirm(input: WithdrawalConfirmInput!): WithdrawalConfirmPayload!
 	withdrawalCancel(input: WithdrawalCancelInput!): WithdrawalCancelPayload!
+	loanDisbursementInitiate(input: LoanDisbursementInitiateInput!): LoanDisbursementInitiatePayload!
 	customerCreate(input: CustomerCreateInput!): CustomerCreatePayload!
 	customerUpdate(input: CustomerUpdateInput!): CustomerUpdatePayload!
 	userCreate(input: UserCreateInput!): UserCreatePayload!

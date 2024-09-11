@@ -67,6 +67,25 @@ impl From<crate::loan::Loan> for LoanPartialPaymentPayload {
     }
 }
 
+#[derive(InputObject)]
+pub struct LoanDisbursementInitiateInput {
+    pub loan_id: UUID,
+    pub amount: UsdCents,
+}
+
+#[derive(SimpleObject)]
+pub struct LoanDisbursementInitiatePayload {
+    disbursement: LoanDisbursement,
+}
+
+impl From<crate::loan::Disbursement> for LoanDisbursementInitiatePayload {
+    fn from(disbursement: crate::loan::Disbursement) -> Self {
+        Self {
+            disbursement: LoanDisbursement::from(disbursement),
+        }
+    }
+}
+
 pub use crate::loan::LoanByCreatedAtCursor;
 impl CursorType for LoanByCreatedAtCursor {
     type Error = String;
