@@ -1,3 +1,4 @@
+use chrono::{DateTime, Utc};
 use derive_builder::Builder;
 use serde::{Deserialize, Serialize};
 
@@ -16,6 +17,11 @@ pub enum DisbursementEvent {
         amount: UsdCents,
         audit_info: AuditInfo,
     },
+    Concluded {
+        id: DisbursementId,
+        recorded_at: DateTime<Utc>,
+        audit_info: AuditInfo,
+    },
 }
 
 impl EntityEvent for DisbursementEvent {
@@ -31,6 +37,7 @@ pub struct Disbursement {
     pub id: DisbursementId,
     pub loan_id: LoanId,
     pub idx: DisbursementIdx,
+    pub amount: UsdCents,
     pub(super) _events: EntityEvents<DisbursementEvent>,
 }
 
@@ -46,11 +53,36 @@ impl TryFrom<EntityEvents<DisbursementEvent>> for Disbursement {
         for event in events.iter() {
             match event {
                 DisbursementEvent::Initialized {
-                    id, loan_id, idx, ..
-                } => builder = builder.id(*id).loan_id(*loan_id).idx(*idx),
+                    id,
+                    loan_id,
+                    idx,
+                    amount,
+                    ..
+                } => builder = builder.id(*id).loan_id(*loan_id).idx(*idx).amount(*amount),
+                DisbursementEvent::Concluded { .. } => (),
             }
         }
         builder._events(events).build()
+    }
+}
+
+impl Disbursement {
+    pub fn conclude(&mut self, recorded_at: DateTime<Utc>, audit_info: AuditInfo) {
+        if self.is_concluded() {
+            return;
+        }
+
+        self._events.push(DisbursementEvent::Concluded {
+            id: self.id,
+            recorded_at,
+            audit_info,
+        })
+    }
+
+    pub fn is_concluded(&self) -> bool {
+        self._events
+            .iter()
+            .any(|event| matches!(event, DisbursementEvent::Concluded { .. }))
     }
 }
 

@@ -32,6 +32,8 @@ pub enum LoanError {
     AlreadyCompleted,
     #[error("LoanError - AlreadyApproved")]
     AlreadyApproved,
+    #[error("LoanError - DisbursementAlreadyConcluded")]
+    DisbursementAlreadyConcluded,
     #[error("LoanError - UserCannotApproveTwice")]
     UserCannotApproveTwice,
     #[error("LoanError - NotApprovedYet")]

@@ -438,8 +438,6 @@ impl Loans {
         let balances = self.ledger.get_loan_balance(loan.account_ids).await?;
         balances.check_disbursement_amount(amount)?;
 
-        let customer = self.customers.repo().find_by_id(loan.customer_id).await?;
-
         let mut db_tx = self.pool.begin().await?;
         let new_disbursement = loan.initiate_disbursement(audit_info, amount)?;
         self.loan_repo.persist_in_tx(&mut db_tx, &mut loan).await?;
@@ -448,20 +446,46 @@ impl Loans {
             .create_in_tx(&mut db_tx, new_disbursement)
             .await?;
 
-        // FIXME: These need to be gated by approvals in a separate function
-        {
-            let executed_at = self
-                .ledger
-                .record_disbursement(
-                    customer.account_ids,
-                    loan.account_ids,
-                    amount,
-                    disbursement.id.to_string(),
-                )
-                .await?;
-            loan.confirm_disbursement(&disbursement, executed_at, audit_info);
-            self.loan_repo.persist_in_tx(&mut db_tx, &mut loan).await?;
+        db_tx.commit().await?;
+        Ok(disbursement)
+    }
+
+    pub async fn add_disbursement_approval(
+        &self,
+        sub: &Subject,
+        disbursement_id: DisbursementId,
+    ) -> Result<Disbursement, LoanError> {
+        let audit_info = self
+            .authz
+            .check_permission(sub, Object::Loan, LoanAction::ApproveDisbursement)
+            .await?;
+
+        let mut disbursement = self.disbursement_repo.find_by_id(disbursement_id).await?;
+        if disbursement.is_concluded() {
+            return Err(LoanError::DisbursementAlreadyConcluded);
         }
+
+        let mut loan = self.loan_repo.find_by_id(disbursement.loan_id).await?;
+        let customer = self.customers.repo().find_by_id(loan.customer_id).await?;
+
+        let mut db_tx = self.pool.begin().await?;
+        // TODO: call multi-approval logic functions here
+        let executed_at = self
+            .ledger
+            .record_disbursement(
+                customer.account_ids,
+                loan.account_ids,
+                disbursement.amount,
+                disbursement.id.to_string(),
+            )
+            .await?;
+
+        disbursement.conclude(executed_at, audit_info);
+        self.disbursement_repo
+            .persist_in_tx(&mut db_tx, &mut disbursement)
+            .await?;
+        loan.confirm_disbursement(&disbursement, executed_at, audit_info);
+        self.loan_repo.persist_in_tx(&mut db_tx, &mut loan).await?;
 
         db_tx.commit().await?;
         Ok(disbursement)

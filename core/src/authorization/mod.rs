@@ -135,6 +135,18 @@ impl Authorization {
         self.add_permission_to_role(
             &role,
             Object::Loan(LoanAllOrOne::All),
+            LoanAction::InitiateDisbursement,
+        )
+        .await?;
+        self.add_permission_to_role(
+            &role,
+            Object::Loan(LoanAllOrOne::All),
+            LoanAction::ApproveDisbursement,
+        )
+        .await?;
+        self.add_permission_to_role(
+            &role,
+            Object::Loan(LoanAllOrOne::All),
             LoanAction::RecordPayment,
         )
         .await?;
