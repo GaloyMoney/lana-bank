@@ -423,8 +423,6 @@ impl Loans {
         self.loan_repo.list_by_collateralization_ratio(query).await
     }
 
-    // Disbursements
-
     pub async fn initiate_disbursement(
         &self,
         sub: &Subject,
@@ -435,14 +433,36 @@ impl Loans {
             .authz
             .check_permission(sub, Object::Loan, LoanAction::InitiateDisbursement)
             .await?;
-        let mut db_tx = self.pool.begin().await?;
+
         let mut loan = self.loan_repo.find_by_id(loan_id).await?;
+        let balances = self.ledger.get_loan_balance(loan.account_ids).await?;
+        balances.check_disbursement_amount(amount)?;
+
+        let customer = self.customers.repo().find_by_id(loan.customer_id).await?;
+
+        let mut db_tx = self.pool.begin().await?;
         let new_disbursement = loan.initiate_disbursement(audit_info, amount)?;
         self.loan_repo.persist_in_tx(&mut db_tx, &mut loan).await?;
         let disbursement = self
             .disbursement_repo
             .create_in_tx(&mut db_tx, new_disbursement)
             .await?;
+
+        // FIXME: These need to be gated by approvals in a separate function
+        {
+            let executed_at = self
+                .ledger
+                .record_disbursement(
+                    customer.account_ids,
+                    loan.account_ids,
+                    amount,
+                    disbursement.id(),
+                )
+                .await?;
+            loan.confirm_disbursement(&disbursement, executed_at, audit_info);
+            self.loan_repo.persist_in_tx(&mut db_tx, &mut loan).await?;
+        }
+
         db_tx.commit().await?;
         Ok(disbursement)
     }

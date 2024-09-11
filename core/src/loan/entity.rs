@@ -121,6 +121,8 @@ pub enum LoanEvent {
     },
     DisbursementConcluded {
         idx: DisbursementIdx,
+        recorded_at: DateTime<Utc>,
+        audit_info: AuditInfo,
     },
     Completed {
         completed_at: DateTime<Utc>,
@@ -858,6 +860,19 @@ impl Loan {
         });
 
         Ok(NewDisbursement::new(audit_info, self.id, idx, amount))
+    }
+
+    pub(super) fn confirm_disbursement(
+        &mut self,
+        disbursement: &Disbursement,
+        executed_at: DateTime<Utc>,
+        audit_info: AuditInfo,
+    ) {
+        self.events.push(LoanEvent::DisbursementConcluded {
+            idx: disbursement.idx,
+            recorded_at: executed_at,
+            audit_info,
+        });
     }
 
     fn disbursement_in_progress(&self) -> bool {

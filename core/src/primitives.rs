@@ -25,6 +25,13 @@ impl From<LoanId> for JobId {
 #[serde(transparent)]
 #[sqlx(transparent)]
 pub struct DisbursementIdx(i32);
+
+impl fmt::Display for DisbursementIdx {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> fmt::Result {
+        write!(f, "{}", self.0)
+    }
+}
+
 impl DisbursementIdx {
     pub const FIRST: Self = Self(1);
     pub const fn next(&self) -> Self {

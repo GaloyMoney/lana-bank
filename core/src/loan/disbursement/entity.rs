@@ -27,7 +27,7 @@ impl EntityEvent for DisbursementEvent {
     }
 }
 
-#[derive(Builder)]
+#[derive(Builder, Clone)]
 #[builder(pattern = "owned", build_fn(error = "EntityError"))]
 pub struct Disbursement {
     pub(super) _id: DisbursementId,
@@ -53,6 +53,12 @@ impl TryFrom<EntityEvents<DisbursementEvent>> for Disbursement {
             }
         }
         builder._events(events).build()
+    }
+}
+
+impl Disbursement {
+    pub fn id(&self) -> String {
+        format!("{}:{}", self.loan_id, self.idx)
     }
 }
 

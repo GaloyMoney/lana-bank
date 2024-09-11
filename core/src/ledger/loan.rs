@@ -90,6 +90,18 @@ impl TryFrom<loan_balance::ResponseData> for LoanBalance {
     }
 }
 
+impl LoanBalance {
+    pub fn check_disbursement_amount(&self, amount: UsdCents) -> Result<(), LedgerError> {
+        if amount > self.facility_remaining {
+            return Err(LedgerError::DisbursementAmountTooLarge(
+                amount,
+                self.facility_remaining,
+            ));
+        }
+        Ok(())
+    }
+}
+
 #[derive(Debug, Clone)]
 pub struct LoanCollateralUpdate {
     pub tx_ref: String,

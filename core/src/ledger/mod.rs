@@ -210,6 +210,26 @@ impl Ledger {
             .await?)
     }
 
+    #[instrument(name = "lava.ledger.record_disbursement", skip(self), err)]
+    pub async fn record_disbursement(
+        &self,
+        customer_account_ids: CustomerLedgerAccountIds,
+        loan_account_ids: LoanAccountIds,
+        amount: UsdCents,
+        tx_ref: String,
+    ) -> Result<chrono::DateTime<chrono::Utc>, LedgerError> {
+        Ok(self
+            .cala
+            .execute_loan_disbursement_tx(
+                LedgerTxId::new(),
+                loan_account_ids,
+                customer_account_ids,
+                amount.to_usd(),
+                tx_ref,
+            )
+            .await?)
+    }
+
     #[instrument(name = "lava.ledger.record_interest", skip(self), err)]
     pub async fn record_loan_interest(
         &self,
