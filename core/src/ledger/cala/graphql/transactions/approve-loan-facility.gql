@@ -1,27 +1,23 @@
-mutation ApproveLoanTemplateCreate(
+mutation ApproveLoanFacilityTemplateCreate(
   $templateId: UUID!
   $journalId: Expression!
+  $omnibusLoanFacilityAccount: UUID!
 ) {
   txTemplateCreate(
     input: {
       txTemplateId: $templateId
-      code: "APPROVE_LOAN"
-      description: "Payout principal."
+      code: "APPROVE_LOAN_FACILITY"
+      description: "Create loan facility."
       params: [
         {
-          name: "loanPrincipalReceivableAccount"
+          name: "loanFacilityAccount"
           type: UUID
-          description: "Loan amount-outstanding account ID."
+          description: "Loan facility account ID."
         }
         {
-          name: "checkingAccount"
-          type: UUID
-          description: "User Checking account ID."
-        }
-        {
-          name: "principalAmount"
+          name: "facilityAmount"
           type: DECIMAL
-          description: "Amount of USD being issued for the loan."
+          description: "Amount of USD being approved as a facility for the loan."
         }
         {
           name: "externalId"
@@ -42,18 +38,18 @@ mutation ApproveLoanTemplateCreate(
       }
       entries: [
         {
-          accountId: "params.loanPrincipalReceivableAccount"
-          units: "params.principalAmount"
+          accountId: "params.loanFacilityAccount"
+          units: "params.facilityAmount"
           currency: "'USD'"
-          entryType: "'APPROVE_LOAN_PRINCIPAL_DR'"
+          entryType: "'APPROVE_LOAN_FACILITY_DR'"
           direction: "DEBIT"
           layer: "SETTLED"
         }
         {
-          accountId: "params.checkingAccount"
-          units: "params.principalAmount"
+          accountId: $omnibusLoanFacilityAccount
+          units: "params.facilityAmount"
           currency: "'USD'"
-          entryType: "'APPROVE_LOAN_PRINCIPAL_CR'"
+          entryType: "'APPROVE_LOAN_FACILITY_CR'"
           direction: "CREDIT"
           layer: "SETTLED"
         }
@@ -68,21 +64,19 @@ mutation ApproveLoanTemplateCreate(
   }
 }
 
-mutation PostApproveLoanTransaction(
+mutation PostApproveLoanFacilityTransaction(
   $transactionId: UUID!
-  $loanPrincipalReceivableAccount: UUID!
-  $checkingAccount: UUID!
-  $principalAmount: Decimal!
+  $loanFacilityAccount: UUID!
+  $facilityAmount: Decimal!
   $externalId: String!
 ) {
   transactionPost(
     input: {
       transactionId: $transactionId
-      txTemplateCode: "APPROVE_LOAN"
+      txTemplateCode: "APPROVE_LOAN_FACILITY"
       params: {
-        loanPrincipalReceivableAccount: $loanPrincipalReceivableAccount
-        checkingAccount: $checkingAccount
-        principalAmount: $principalAmount
+        loanFacilityAccount: $loanFacilityAccount
+        facilityAmount: $facilityAmount
         externalId: $externalId
       }
     }

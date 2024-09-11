@@ -182,18 +182,18 @@ pub struct PostCancelWithdrawTransaction;
 #[derive(GraphQLQuery)]
 #[graphql(
     schema_path = "src/ledger/cala/graphql/schema.graphql",
-    query_path = "src/ledger/cala/graphql/transactions/approve-loan.gql",
+    query_path = "src/ledger/cala/graphql/transactions/approve-loan-facility.gql",
     response_derives = "Debug, PartialEq, Eq, Clone"
 )]
-pub struct ApproveLoanTemplateCreate;
+pub struct ApproveLoanFacilityTemplateCreate;
 
 #[derive(GraphQLQuery)]
 #[graphql(
     schema_path = "src/ledger/cala/graphql/schema.graphql",
-    query_path = "src/ledger/cala/graphql/transactions/approve-loan.gql",
+    query_path = "src/ledger/cala/graphql/transactions/approve-loan-facility.gql",
     response_derives = "Debug, PartialEq, Eq, Clone"
 )]
-pub struct PostApproveLoanTransaction;
+pub struct PostApproveLoanFacilityTransaction;
 
 #[derive(GraphQLQuery)]
 #[graphql(

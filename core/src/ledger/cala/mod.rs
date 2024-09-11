@@ -708,19 +708,31 @@ impl CalaClient {
     }
 
     #[instrument(
-        name = "lava.ledger.cala.create_approve_loan_template",
+        name = "lava.ledger.cala.create_approve_loan_facility_template",
         skip(self),
         err
     )]
-    pub async fn create_approve_loan_tx_template(
+    pub async fn create_approve_loan_facility_tx_template(
         &self,
         template_id: TxTemplateId,
     ) -> Result<TxTemplateId, CalaError> {
-        let variables = approve_loan_template_create::Variables {
+        let obs_loans_facility_id = match Self::find_account_by_code::<LedgerAccountId>(
+            self,
+            super::constants::OBS_LOANS_FACILITY_ACCOUNT_CODE.to_string(),
+        )
+        .await?
+        {
+            Some(id) => Ok(id),
+            None => Err(CalaError::CouldNotFindAccountByCode(
+                super::constants::OBS_LOANS_FACILITY_ACCOUNT_CODE.to_string(),
+            )),
+        }?;
+        let variables = approve_loan_facility_template_create::Variables {
             template_id: Uuid::from(template_id),
             journal_id: format!("uuid(\"{}\")", super::constants::CORE_JOURNAL_ID),
+            omnibus_loan_facility_account: obs_loans_facility_id.into(),
         };
-        let response = Self::traced_gql_request::<ApproveLoanTemplateCreate, _>(
+        let response = Self::traced_gql_request::<ApproveLoanFacilityTemplateCreate, _>(
             &self.client,
             &self.url,
             variables,
@@ -733,25 +745,25 @@ impl CalaClient {
             .ok_or_else(|| CalaError::MissingDataField)
     }
 
-    #[instrument(name = "lava.ledger.cala.execute_approve_loan_tx", skip(self), err)]
-    pub async fn execute_approve_loan_tx(
+    #[instrument(
+        name = "lava.ledger.cala.execute_approve_loan_facility_tx",
+        skip(self),
+        err
+    )]
+    pub async fn execute_approve_loan_facility_tx(
         &self,
         transaction_id: LedgerTxId,
         loan_account_ids: LoanAccountIds,
-        user_account_ids: CustomerLedgerAccountIds,
-        principal_amount: Decimal,
+        facility_amount: Decimal,
         external_id: String,
     ) -> Result<chrono::DateTime<chrono::Utc>, CalaError> {
-        let variables = post_approve_loan_transaction::Variables {
+        let variables = post_approve_loan_facility_transaction::Variables {
             transaction_id: transaction_id.into(),
-            loan_principal_receivable_account: loan_account_ids
-                .disbursed_receivable_account_id
-                .into(),
-            checking_account: user_account_ids.on_balance_sheet_deposit_account_id.into(),
-            principal_amount,
+            loan_facility_account: loan_account_ids.facility_account_id.into(),
+            facility_amount,
             external_id,
         };
-        let response = Self::traced_gql_request::<PostApproveLoanTransaction, _>(
+        let response = Self::traced_gql_request::<PostApproveLoanFacilityTransaction, _>(
             &self.client,
             &self.url,
             variables,

@@ -201,10 +201,9 @@ impl Ledger {
     ) -> Result<chrono::DateTime<chrono::Utc>, LedgerError> {
         Ok(self
             .cala
-            .execute_approve_loan_tx(
+            .execute_approve_loan_facility_tx(
                 tx_id,
                 loan_account_ids,
-                customer_account_ids,
                 initial_principal.to_usd(),
                 tx_ref,
             )
@@ -504,7 +503,11 @@ impl Ledger {
         Self::assert_confirm_withdraw_tx_template_exists(cala, constants::CONFIRM_WITHDRAW).await?;
 
         Self::assert_cancel_withdraw_tx_template_exists(cala, constants::CANCEL_WITHDRAW).await?;
-        Self::assert_approve_loan_tx_template_exists(cala, constants::APPROVE_LOAN_CODE).await?;
+        Self::assert_approve_loan_facility_tx_template_exists(
+            cala,
+            constants::APPROVE_LOAN_FACILITY_CODE,
+        )
+        .await?;
         Self::assert_incremental_principal_disbursement_tx_template_exists(
             cala,
             constants::INCREMENTAL_PRINCIPAL_DISBURSEMENT_CODE,
@@ -648,7 +651,7 @@ impl Ledger {
             .map_err(|_| err)?)
     }
 
-    async fn assert_approve_loan_tx_template_exists(
+    async fn assert_approve_loan_facility_tx_template_exists(
         cala: &CalaClient,
         template_code: &str,
     ) -> Result<LedgerTxTemplateId, LedgerError> {
@@ -660,7 +663,10 @@ impl Ledger {
         }
 
         let template_id = LedgerTxTemplateId::new();
-        let err = match cala.create_approve_loan_tx_template(template_id).await {
+        let err = match cala
+            .create_approve_loan_facility_tx_template(template_id)
+            .await
+        {
             Ok(id) => {
                 return Ok(id);
             }
