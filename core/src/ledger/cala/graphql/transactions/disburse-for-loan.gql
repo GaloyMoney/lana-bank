@@ -1,15 +1,15 @@
-mutation IncrementalPrincipalDisbursementTemplateCreate(
+mutation LoanDisbursementTemplateCreate(
   $templateId: UUID!
   $journalId: Expression!
 ) {
   txTemplateCreate(
     input: {
       txTemplateId: $templateId
-      code: "INCREMENTAL_PRINCIPAL_DISBURSEMENT"
-      description: "Payout principal."
+      code: "LOAN_DISBURSEMENT"
+      description: "Payout disbursement."
       params: [
         {
-          name: "loanPrincipalReceivableAccount"
+          name: "loanDisbursedReceivableAccount"
           type: UUID
           description: "Loan amount-outstanding account ID."
         }
@@ -19,7 +19,7 @@ mutation IncrementalPrincipalDisbursementTemplateCreate(
           description: "User Checking account ID."
         }
         {
-          name: "principalAmount"
+          name: "disbursedAmount"
           type: DECIMAL
           description: "Amount of USD being issued for the loan."
         }
@@ -42,18 +42,18 @@ mutation IncrementalPrincipalDisbursementTemplateCreate(
       }
       entries: [
         {
-          accountId: "params.loanPrincipalReceivableAccount"
-          units: "params.principalAmount"
+          accountId: "params.loanDisbursedReceivableAccount"
+          units: "params.disbursedAmount"
           currency: "'USD'"
-          entryType: "'INCREMENTAL_PRINCIPAL_DISBURSEMENT_DR'"
+          entryType: "'LOAN_DISBURSEMENT_DR'"
           direction: "DEBIT"
           layer: "SETTLED"
         }
         {
           accountId: "params.checkingAccount"
-          units: "params.principalAmount"
+          units: "params.disbursedAmount"
           currency: "'USD'"
-          entryType: "'INCREMENTAL_PRINCIPAL_DISBURSEMENT_CR'"
+          entryType: "'LOAN_DISBURSEMENT_CR'"
           direction: "CREDIT"
           layer: "SETTLED"
         }
@@ -68,21 +68,21 @@ mutation IncrementalPrincipalDisbursementTemplateCreate(
   }
 }
 
-mutation PostIncrementalPrincipalDisbursementTransaction(
+mutation PostLoanDisbursementTransaction(
   $transactionId: UUID!
-  $loanPrincipalReceivableAccount: UUID!
+  $loanDisbursedReceivableAccount: UUID!
   $checkingAccount: UUID!
-  $principalAmount: Decimal!
+  $disbursedAmount: Decimal!
   $externalId: String!
 ) {
   transactionPost(
     input: {
       transactionId: $transactionId
-      txTemplateCode: "INCREMENTAL_PRINCIPAL_DISBURSEMENT"
+      txTemplateCode: "LOAN_DISBURSEMENT"
       params: {
-        loanPrincipalReceivableAccount: $loanPrincipalReceivableAccount
+        loanDisbursedReceivableAccount: $loanDisbursedReceivableAccount
         checkingAccount: $checkingAccount
-        principalAmount: $principalAmount
+        disbursedAmount: $disbursedAmount
         externalId: $externalId
       }
     }

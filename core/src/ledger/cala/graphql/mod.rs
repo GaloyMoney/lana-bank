@@ -198,18 +198,19 @@ pub struct PostApproveLoanFacilityTransaction;
 #[derive(GraphQLQuery)]
 #[graphql(
     schema_path = "src/ledger/cala/graphql/schema.graphql",
-    query_path = "src/ledger/cala/graphql/transactions/incremental-principal-disbursement.gql",
+    query_path = "src/ledger/cala/graphql/transactions/disburse-for-loan.gql",
     response_derives = "Debug, PartialEq, Eq, Clone"
 )]
-pub struct IncrementalPrincipalDisbursementTemplateCreate;
+pub struct LoanDisbursementTemplateCreate;
 
 #[derive(GraphQLQuery)]
 #[graphql(
     schema_path = "src/ledger/cala/graphql/schema.graphql",
-    query_path = "src/ledger/cala/graphql/transactions/incremental-principal-disbursement.gql",
+    query_path = "src/ledger/cala/graphql/transactions/disburse-for-loan.gql",
     response_derives = "Debug, PartialEq, Eq, Clone"
 )]
-pub struct PostIncrementalPrincipalDisbursementTransaction;
+pub struct PostLoanDisbursementTransaction;
+
 #[derive(GraphQLQuery)]
 #[graphql(
     schema_path = "src/ledger/cala/graphql/schema.graphql",

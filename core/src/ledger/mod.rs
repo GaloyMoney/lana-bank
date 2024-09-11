@@ -508,7 +508,7 @@ impl Ledger {
             constants::APPROVE_LOAN_FACILITY_CODE,
         )
         .await?;
-        Self::assert_incremental_principal_disbursement_tx_template_exists(
+        Self::assert_loan_disbursement_tx_template_exists(
             cala,
             constants::INCREMENTAL_PRINCIPAL_DISBURSEMENT_CODE,
         )
@@ -679,7 +679,7 @@ impl Ledger {
             .map_err(|_| err)?)
     }
 
-    async fn assert_incremental_principal_disbursement_tx_template_exists(
+    async fn assert_loan_disbursement_tx_template_exists(
         cala: &CalaClient,
         template_code: &str,
     ) -> Result<LedgerTxTemplateId, LedgerError> {
@@ -691,10 +691,7 @@ impl Ledger {
         }
 
         let template_id = LedgerTxTemplateId::new();
-        let err = match cala
-            .create_incremental_principal_disbursement_tx_template(template_id)
-            .await
-        {
+        let err = match cala.create_loan_disbursement_tx_template(template_id).await {
             Ok(id) => {
                 return Ok(id);
             }
