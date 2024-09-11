@@ -2,7 +2,7 @@ use sqlx::{PgPool, Postgres, Transaction};
 
 use crate::{
     data_export::Export,
-    primitives::{DisbursementIdx, LoanId},
+    primitives::{DisbursementId, DisbursementIdx, LoanId},
 };
 
 use crate::loan::error::LoanError;

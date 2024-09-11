@@ -456,7 +456,7 @@ impl Loans {
                     customer.account_ids,
                     loan.account_ids,
                     amount,
-                    disbursement.id(),
+                    disbursement.id.to_string(),
                 )
                 .await?;
             loan.confirm_disbursement(&disbursement, executed_at, audit_info);

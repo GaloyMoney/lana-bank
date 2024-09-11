@@ -21,6 +21,8 @@ impl From<LoanId> for JobId {
     }
 }
 
+crate::entity_id! { DisbursementId }
+
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, sqlx::Type)]
 #[serde(transparent)]
 #[sqlx(transparent)]

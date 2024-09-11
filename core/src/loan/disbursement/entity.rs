@@ -3,10 +3,8 @@ use serde::{Deserialize, Serialize};
 
 use crate::{
     entity::*,
-    primitives::{AuditInfo, DisbursementIdx, LoanId, UsdCents},
+    primitives::{AuditInfo, DisbursementId, DisbursementIdx, LoanId, UsdCents},
 };
-
-crate::entity_id! { DisbursementId }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
@@ -30,7 +28,7 @@ impl EntityEvent for DisbursementEvent {
 #[derive(Builder, Clone)]
 #[builder(pattern = "owned", build_fn(error = "EntityError"))]
 pub struct Disbursement {
-    pub(super) _id: DisbursementId,
+    pub id: DisbursementId,
     pub loan_id: LoanId,
     pub idx: DisbursementIdx,
     pub(super) _events: EntityEvents<DisbursementEvent>,
@@ -49,16 +47,10 @@ impl TryFrom<EntityEvents<DisbursementEvent>> for Disbursement {
             match event {
                 DisbursementEvent::Initialized {
                     id, loan_id, idx, ..
-                } => builder = builder._id(*id).loan_id(*loan_id).idx(*idx),
+                } => builder = builder.id(*id).loan_id(*loan_id).idx(*idx),
             }
         }
         builder._events(events).build()
-    }
-}
-
-impl Disbursement {
-    pub fn id(&self) -> String {
-        format!("{}:{}", self.loan_id, self.idx)
     }
 }
 

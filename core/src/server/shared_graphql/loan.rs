@@ -41,8 +41,14 @@ pub struct LoanDisbursement {
 impl From<crate::loan::Disbursement> for LoanDisbursement {
     fn from(disbursement: crate::loan::Disbursement) -> Self {
         Self {
-            id: disbursement.id().into(),
+            id: disbursement.id.to_global_id(),
         }
+    }
+}
+
+impl ToGlobalId for crate::primitives::DisbursementId {
+    fn to_global_id(&self) -> async_graphql::types::ID {
+        async_graphql::types::ID::from(format!("disbursement:{}", self))
     }
 }
 
