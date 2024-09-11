@@ -452,6 +452,15 @@ export type LoanDisbursement = {
   id: Scalars['ID']['output'];
 };
 
+export type LoanDisbursementApproveInput = {
+  loanId: Scalars['UUID']['input'];
+};
+
+export type LoanDisbursementApprovePayload = {
+  __typename?: 'LoanDisbursementApprovePayload';
+  disbursement: LoanDisbursement;
+};
+
 export type LoanDisbursementInitiateInput = {
   amount: Scalars['UsdCents']['input'];
   loanId: Scalars['UUID']['input'];
@@ -533,6 +542,7 @@ export type Mutation = {
   depositRecord: DepositRecordPayload;
   loanApprove: LoanApprovePayload;
   loanCreate: LoanCreatePayload;
+  loanDisbursementApprove: LoanDisbursementApprovePayload;
   loanDisbursementInitiate: LoanDisbursementInitiatePayload;
   loanPartialPayment: LoanPartialPaymentPayload;
   shareholderEquityAdd: SuccessPayload;
@@ -583,6 +593,11 @@ export type MutationLoanApproveArgs = {
 
 export type MutationLoanCreateArgs = {
   input: LoanCreateInput;
+};
+
+
+export type MutationLoanDisbursementApproveArgs = {
+  input: LoanDisbursementApproveInput;
 };
 
 

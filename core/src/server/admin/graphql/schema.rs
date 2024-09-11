@@ -637,6 +637,22 @@ impl Mutation {
         Ok(LoanDisbursementInitiatePayload::from(disbursement))
     }
 
+    async fn loan_disbursement_approve(
+        &self,
+        ctx: &Context<'_>,
+        input: LoanDisbursementApproveInput,
+    ) -> async_graphql::Result<LoanDisbursementApprovePayload> {
+        let app = ctx.data_unchecked::<LavaApp>();
+
+        let AdminAuthContext { sub } = ctx.data()?;
+
+        let loan = app
+            .loans()
+            .add_disbursement_approval(sub, input.loan_id.into())
+            .await?;
+        Ok(LoanDisbursementApprovePayload::from(loan))
+    }
+
     async fn customer_create(
         &self,
         ctx: &Context<'_>,

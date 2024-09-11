@@ -432,6 +432,14 @@ type LoanDisbursement {
 	id: ID!
 }
 
+input LoanDisbursementApproveInput {
+	loanId: UUID!
+}
+
+type LoanDisbursementApprovePayload {
+	disbursement: LoanDisbursement!
+}
+
 input LoanDisbursementInitiateInput {
 	loanId: UUID!
 	amount: UsdCents!
@@ -517,6 +525,7 @@ type Mutation {
 	withdrawalConfirm(input: WithdrawalConfirmInput!): WithdrawalConfirmPayload!
 	withdrawalCancel(input: WithdrawalCancelInput!): WithdrawalCancelPayload!
 	loanDisbursementInitiate(input: LoanDisbursementInitiateInput!): LoanDisbursementInitiatePayload!
+	loanDisbursementApprove(input: LoanDisbursementApproveInput!): LoanDisbursementApprovePayload!
 	customerCreate(input: CustomerCreateInput!): CustomerCreatePayload!
 	customerUpdate(input: CustomerUpdateInput!): CustomerUpdatePayload!
 	userCreate(input: UserCreateInput!): UserCreatePayload!
