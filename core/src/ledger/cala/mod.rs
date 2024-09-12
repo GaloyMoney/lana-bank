@@ -861,7 +861,7 @@ impl CalaClient {
         loan_account_ids: LoanAccountIds,
         user_account_ids: CustomerLedgerAccountIds,
         interest_payment_amount: Decimal,
-        principal_payment_amount: Decimal,
+        disbursements_payment_amount: Decimal,
         collateral_amount: Decimal,
         payment_external_id: String,
         collateral_external_id: String,
@@ -873,12 +873,12 @@ impl CalaClient {
             loan_interest_receivable_account: loan_account_ids
                 .interest_receivable_account_id
                 .into(),
-            loan_principal_receivable_account: loan_account_ids
+            loan_disbursed_receivable_account: loan_account_ids
                 .disbursed_receivable_account_id
                 .into(),
             loan_collateral_account: loan_account_ids.collateral_account_id.into(),
             interest_payment_amount,
-            principal_payment_amount,
+            disbursements_payment_amount,
             collateral_amount,
             payment_external_id,
             collateral_external_id,
@@ -1118,7 +1118,7 @@ impl CalaClient {
         loan_account_ids: LoanAccountIds,
         user_account_ids: CustomerLedgerAccountIds,
         interest_payment_amount: Decimal,
-        principal_payment_amount: Decimal,
+        disbursements_payment_amount: Decimal,
         external_id: String,
     ) -> Result<chrono::DateTime<chrono::Utc>, CalaError> {
         let variables = post_record_payment_transaction::Variables {
@@ -1127,11 +1127,11 @@ impl CalaClient {
             loan_interest_receivable_account: loan_account_ids
                 .interest_receivable_account_id
                 .into(),
-            loan_principal_receivable_account: loan_account_ids
+            loan_disbursements_receivable_account: loan_account_ids
                 .disbursed_receivable_account_id
                 .into(),
             interest_payment_amount,
-            principal_payment_amount,
+            disbursements_payment_amount,
             external_id,
         };
         let response = Self::traced_gql_request::<PostRecordPaymentTransaction, _>(

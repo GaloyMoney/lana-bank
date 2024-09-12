@@ -2,10 +2,10 @@ mutation PostCompleteLoanTransaction(
   $paymentTransactionId: UUID!
   $collateralTransactionId: UUID!
   $checkingAccount: UUID!
-  $loanPrincipalReceivableAccount: UUID!
+  $loanDisbursedReceivableAccount: UUID!
   $loanInterestReceivableAccount: UUID!
   $loanCollateralAccount: UUID!
-  $principalPaymentAmount: Decimal!
+  $disbursementsPaymentAmount: Decimal!
   $interestPaymentAmount: Decimal!
   $collateralAmount: Decimal!
   $paymentExternalId: String!
@@ -17,9 +17,9 @@ mutation PostCompleteLoanTransaction(
       txTemplateCode: "RECORD_PAYMENT"
       params: {
         checkingAccount: $checkingAccount
-        loanPrincipalReceivableAccount: $loanPrincipalReceivableAccount
+        loanDisbursedReceivableAccount: $loanDisbursedReceivableAccount
         loanInterestReceivableAccount: $loanInterestReceivableAccount
-        principalPaymentAmount: $principalPaymentAmount
+        disbursementsPaymentAmount: $disbursementsPaymentAmount
         interestPaymentAmount: $interestPaymentAmount
         externalId: $paymentExternalId
       }

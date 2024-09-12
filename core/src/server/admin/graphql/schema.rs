@@ -482,7 +482,7 @@ impl Mutation {
 
         let LoanCreateInput {
             customer_id,
-            desired_principal,
+            desired_facility,
             loan_terms,
         } = input;
         let term_values = crate::loan::TermValues::builder()
@@ -495,7 +495,7 @@ impl Mutation {
             .build()?;
         let loan = app
             .loans()
-            .create_loan_for_customer(sub, customer_id, desired_principal, term_values)
+            .create_loan_for_customer(sub, customer_id, desired_facility, term_values)
             .await?;
         Ok(LoanCreatePayload::from(loan))
     }

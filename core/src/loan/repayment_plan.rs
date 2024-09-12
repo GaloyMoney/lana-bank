@@ -24,7 +24,7 @@ pub struct RepaymentInPlan {
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum LoanRepaymentInPlan {
     Interest(RepaymentInPlan),
-    Principal(RepaymentInPlan),
+    Disbursements(RepaymentInPlan),
 }
 
 pub(super) fn project<'a>(
@@ -33,8 +33,8 @@ pub(super) fn project<'a>(
     let mut terms = None;
     let mut last_interest_accrual_at = None;
     let mut approved_at = None;
-    let mut outstanding_principal = UsdCents::ZERO;
-    let mut initial_principal = UsdCents::ZERO;
+    let mut outstanding_disbursements = UsdCents::ZERO;
+    let mut total_disbursed = UsdCents::ZERO;
 
     let mut interest_accruals = Vec::new();
 
@@ -42,14 +42,8 @@ pub(super) fn project<'a>(
 
     for event in events {
         match event {
-            LoanEvent::Initialized {
-                terms: t,
-                principal,
-                ..
-            } => {
+            LoanEvent::Initialized { terms: t, .. } => {
                 terms = Some(t);
-                initial_principal = *principal;
-                outstanding_principal += *principal;
             }
             LoanEvent::Approved { recorded_at, .. } => {
                 approved_at = Some(*recorded_at);
@@ -70,12 +64,16 @@ pub(super) fn project<'a>(
                     due_at,
                 });
             }
+            LoanEvent::DisbursementConcluded { amount, .. } => {
+                total_disbursed += *amount;
+                outstanding_disbursements += *amount;
+            }
             LoanEvent::PaymentRecorded {
                 interest_amount,
-                principal_amount,
+                disbursements_amount,
                 ..
             } => {
-                outstanding_principal -= *principal_amount;
+                outstanding_disbursements -= *disbursements_amount;
                 interest_repayments += *interest_amount;
             }
             _ => (),
@@ -119,35 +117,37 @@ pub(super) fn project<'a>(
         .next()
         .truncate(expiry_date);
 
-    if outstanding_principal > UsdCents::ZERO {
-        while let Some(period) = next_interest_period {
-            let interest = terms
-                .annual_rate
-                .interest_for_time_period(initial_principal, period.days());
+    if total_disbursed > UsdCents::ZERO {
+        if outstanding_disbursements > UsdCents::ZERO {
+            while let Some(period) = next_interest_period {
+                let interest = terms
+                    .annual_rate
+                    .interest_for_time_period(outstanding_disbursements, period.days());
 
-            res.push(LoanRepaymentInPlan::Interest(RepaymentInPlan {
-                status: RepaymentStatus::Upcoming,
-                outstanding: interest,
-                initial: interest,
-                accrual_at: period.end,
-                due_at: period.end + INTEREST_DUE_IN,
-            }));
+                res.push(LoanRepaymentInPlan::Interest(RepaymentInPlan {
+                    status: RepaymentStatus::Upcoming,
+                    outstanding: interest,
+                    initial: interest,
+                    accrual_at: period.end,
+                    due_at: period.end + INTEREST_DUE_IN,
+                }));
 
-            next_interest_period = period.next().truncate(expiry_date);
+                next_interest_period = period.next().truncate(expiry_date);
+            }
         }
-    }
 
-    res.push(LoanRepaymentInPlan::Principal(RepaymentInPlan {
-        status: if outstanding_principal == UsdCents::ZERO {
-            RepaymentStatus::Paid
-        } else {
-            RepaymentStatus::Upcoming
-        },
-        outstanding: outstanding_principal,
-        initial: initial_principal,
-        accrual_at: approved_at,
-        due_at: expiry_date,
-    }));
+        res.push(LoanRepaymentInPlan::Disbursements(RepaymentInPlan {
+            status: if outstanding_disbursements == UsdCents::ZERO {
+                RepaymentStatus::Paid
+            } else {
+                RepaymentStatus::Upcoming
+            },
+            outstanding: outstanding_disbursements,
+            initial: total_disbursed,
+            accrual_at: approved_at,
+            due_at: expiry_date,
+        }));
+    }
 
     res
 }
@@ -189,7 +189,7 @@ mod tests {
             LoanEvent::Initialized {
                 id: loan_id,
                 customer_id: CustomerId::new(),
-                principal: UsdCents::from(10_000_00),
+                facility: UsdCents::from(10_000_00),
                 terms: terms(),
                 account_ids: LoanAccountIds::new(),
                 customer_account_ids: CustomerLedgerAccountIds::new(),
@@ -210,7 +210,7 @@ mod tests {
             LoanEvent::PaymentRecorded {
                 tx_id: LedgerTxId::new(),
                 tx_ref: format!("{}-payment-{}", loan_id, 1),
-                principal_amount: UsdCents::ZERO,
+                disbursements_amount: UsdCents::ZERO,
                 interest_amount: UsdCents::from(100_00),
                 recorded_at: "2020-04-01T14:10:00Z".parse::<DateTime<Utc>>().unwrap(),
                 audit_info: dummy_audit_info(),
@@ -225,10 +225,10 @@ mod tests {
 
         let n_existing_interest_accruals = 1;
         let n_future_interest_accruals = 2; //1 for april and 1 for first 14 days of may
-        let n_principal_accruals = 1;
+        let n_disbursements_accruals = 1;
         assert_eq!(
             repayment_plan.len(),
-            n_existing_interest_accruals + n_future_interest_accruals + n_principal_accruals
+            n_existing_interest_accruals + n_future_interest_accruals + n_disbursements_accruals
         );
         match &repayment_plan[0] {
             LoanRepaymentInPlan::Interest(first) => {
@@ -274,7 +274,7 @@ mod tests {
             _ => panic!("Expected third element to be Interest"),
         }
         match &repayment_plan[3] {
-            LoanRepaymentInPlan::Principal(fourth) => {
+            LoanRepaymentInPlan::Disbursements(fourth) => {
                 assert_eq!(fourth.status, RepaymentStatus::Upcoming);
                 assert_eq!(
                     fourth.accrual_at,
@@ -305,14 +305,14 @@ mod tests {
         let n_existing_interest_accruals = 1;
         let n_overdue = 1;
         let n_upcoming_interest_accruals = 1;
-        let n_principal_accruals = 1;
+        let n_disbursements_accruals = 1;
 
         assert_eq!(
             repayment_plan.len(),
             n_existing_interest_accruals
                 + n_overdue
                 + n_upcoming_interest_accruals
-                + n_principal_accruals
+                + n_disbursements_accruals
         );
 
         match &repayment_plan[1] {
@@ -353,7 +353,7 @@ mod tests {
                 LoanEvent::PaymentRecorded {
                     tx_id: LedgerTxId::new(),
                     tx_ref: format!("{}-payment-{}", loan_id, 2),
-                    principal_amount: UsdCents::ZERO,
+                    disbursements_amount: UsdCents::ZERO,
                     interest_amount: partial_amount,
                     recorded_at: "2020-04-01T14:10:00Z".parse::<DateTime<Utc>>().unwrap(),
                     audit_info: dummy_audit_info(),
@@ -366,14 +366,14 @@ mod tests {
         let n_existing_interest_accruals = 1;
         let n_overdue = 1;
         let n_upcoming_interest_accruals = 1;
-        let n_principal_accruals = 1;
+        let n_disbursements_accruals = 1;
 
         assert_eq!(
             repayment_plan.len(),
             n_existing_interest_accruals
                 + n_overdue
                 + n_upcoming_interest_accruals
-                + n_principal_accruals
+                + n_disbursements_accruals
         );
 
         match &repayment_plan[1] {
@@ -394,7 +394,7 @@ mod tests {
     }
 
     #[test]
-    fn partial_principal_payment() {
+    fn partial_disbursements_payment() {
         let mut events = happy_loan_events();
         let loan_id = LoanId::new();
 
@@ -414,7 +414,7 @@ mod tests {
                 LoanEvent::PaymentRecorded {
                     tx_id: LedgerTxId::new(),
                     tx_ref: format!("{}-payment-{}", loan_id, 2),
-                    principal_amount: partial_amount,
+                    disbursements_amount: partial_amount,
                     interest_amount: UsdCents::from(100_00),
                     recorded_at: "2020-04-01T14:10:00Z".parse::<DateTime<Utc>>().unwrap(),
                     audit_info: dummy_audit_info(),
@@ -426,11 +426,11 @@ mod tests {
 
         let n_existing_interest_accruals = 2;
         let n_upcoming_interest_accruals = 1;
-        let n_principal_accruals = 1;
+        let n_disbursements_accruals = 1;
 
         assert_eq!(
             repayment_plan.len(),
-            n_existing_interest_accruals + n_upcoming_interest_accruals + n_principal_accruals
+            n_existing_interest_accruals + n_upcoming_interest_accruals + n_disbursements_accruals
         );
 
         match &repayment_plan[1] {
@@ -449,7 +449,7 @@ mod tests {
             _ => panic!("Expected second element to be Interest"),
         }
         match &repayment_plan[3] {
-            LoanRepaymentInPlan::Principal(fourth) => {
+            LoanRepaymentInPlan::Disbursements(fourth) => {
                 assert_eq!(fourth.status, RepaymentStatus::Upcoming);
                 assert_eq!(fourth.outstanding, expected_remaining_amount);
                 assert_eq!(
@@ -466,7 +466,7 @@ mod tests {
     }
 
     #[test]
-    fn expect_interest_to_be_calculated_on_initial_principal() {
+    fn expect_interest_to_be_calculated_on_outstanding_disbursements() {
         let mut events = happy_loan_events();
         let loan_id = LoanId::new();
         events.extend(
@@ -481,7 +481,7 @@ mod tests {
                 LoanEvent::PaymentRecorded {
                     tx_id: LedgerTxId::new(),
                     tx_ref: format!("{}-payment-{}", loan_id, 2),
-                    principal_amount: UsdCents::from(9_999_99),
+                    disbursements_amount: UsdCents::from(9_999_99),
                     interest_amount: UsdCents::from(100_00),
                     recorded_at: "2020-04-01T14:10:00Z".parse::<DateTime<Utc>>().unwrap(),
                     audit_info: dummy_audit_info(),
@@ -493,22 +493,22 @@ mod tests {
 
         let n_existing_interest_accruals = 2;
         let n_upcoming_interest_accruals = 1;
-        let n_principal_accruals = 1;
+        let n_disbursements_accruals = 1;
 
         assert_eq!(
             repayment_plan.len(),
-            n_existing_interest_accruals + n_upcoming_interest_accruals + n_principal_accruals
+            n_existing_interest_accruals + n_upcoming_interest_accruals + n_disbursements_accruals
         );
 
         match &repayment_plan[2] {
             LoanRepaymentInPlan::Interest(third) => {
                 assert_eq!(third.status, RepaymentStatus::Upcoming);
-                assert!(third.initial > UsdCents::ONE);
+                assert!(third.initial == UsdCents::ONE);
             }
             _ => panic!("Expected third element to be Interest"),
         }
         match &repayment_plan[3] {
-            LoanRepaymentInPlan::Principal(fourth) => {
+            LoanRepaymentInPlan::Disbursements(fourth) => {
                 assert_eq!(fourth.status, RepaymentStatus::Upcoming);
                 assert_eq!(fourth.outstanding, UsdCents::ONE);
             }
@@ -539,7 +539,7 @@ mod tests {
                 LoanEvent::PaymentRecorded {
                     tx_id: LedgerTxId::new(),
                     tx_ref: format!("{}-payment-{}", loan_id, 2),
-                    principal_amount: UsdCents::from(10_000_00),
+                    disbursements_amount: UsdCents::from(10_000_00),
                     interest_amount: UsdCents::from(200_00),
                     recorded_at: "2020-05-14T14:20:00Z".parse::<DateTime<Utc>>().unwrap(),
                     audit_info: dummy_audit_info(),
@@ -550,11 +550,11 @@ mod tests {
         let repayment_plan = super::project(events.iter());
 
         let n_existing_interest_accruals = 3;
-        let n_principal_accruals = 1;
+        let n_disbursements_accruals = 1;
 
         assert_eq!(
             repayment_plan.len(),
-            n_existing_interest_accruals + n_principal_accruals
+            n_existing_interest_accruals + n_disbursements_accruals
         );
 
         match &repayment_plan[2] {
@@ -565,7 +565,7 @@ mod tests {
             _ => panic!("Expected third element to be Interest"),
         }
         match &repayment_plan[3] {
-            LoanRepaymentInPlan::Principal(fourth) => {
+            LoanRepaymentInPlan::Disbursements(fourth) => {
                 assert_eq!(fourth.status, RepaymentStatus::Paid);
                 assert_eq!(fourth.outstanding, UsdCents::ZERO);
             }
@@ -581,7 +581,7 @@ mod tests {
             [LoanEvent::PaymentRecorded {
                 tx_id: LedgerTxId::new(),
                 tx_ref: format!("{}-payment-{}", loan_id, 2),
-                principal_amount: UsdCents::from(10_000_00),
+                disbursements_amount: UsdCents::from(10_000_00),
                 interest_amount: UsdCents::ZERO,
                 recorded_at: "2020-04-01T00:00:00Z".parse::<DateTime<Utc>>().unwrap(),
                 audit_info: dummy_audit_info(),
@@ -591,15 +591,15 @@ mod tests {
         let repayment_plan = super::project(events.iter());
 
         let n_existing_interest_accruals = 1;
-        let n_principal_accruals = 1;
+        let n_disbursements_accruals = 1;
 
         assert_eq!(
             repayment_plan.len(),
-            n_existing_interest_accruals + n_principal_accruals
+            n_existing_interest_accruals + n_disbursements_accruals
         );
 
         match &repayment_plan[1] {
-            LoanRepaymentInPlan::Principal(second) => {
+            LoanRepaymentInPlan::Disbursements(second) => {
                 assert_eq!(second.status, RepaymentStatus::Paid);
                 assert_eq!(second.outstanding, UsdCents::ZERO);
             }

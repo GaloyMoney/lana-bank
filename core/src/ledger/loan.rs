@@ -50,7 +50,7 @@ pub enum LoanRepayment {
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct LoanPaymentAmounts {
     pub interest: UsdCents,
-    pub principal: UsdCents,
+    pub disbursements: UsdCents,
 }
 
 pub struct LoanBalance {
@@ -121,7 +121,7 @@ pub struct LoanInterestAccrual {
 
 #[derive(Debug, Clone)]
 pub struct LoanApprovalData {
-    pub initial_principal: UsdCents,
+    pub initial_facility: UsdCents,
     pub tx_ref: String,
     pub tx_id: LedgerTxId,
     pub loan_account_ids: LoanAccountIds,

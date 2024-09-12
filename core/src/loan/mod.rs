@@ -135,7 +135,7 @@ impl Loans {
         &self,
         sub: &Subject,
         customer_id: impl Into<CustomerId> + std::fmt::Debug,
-        desired_principal: UsdCents,
+        desired_facility: UsdCents,
         terms: TermValues,
     ) -> Result<Loan, LoanError> {
         let customer_id = customer_id.into();
@@ -162,7 +162,7 @@ impl Loans {
         let new_loan = NewLoan::builder(audit_info)
             .id(LoanId::new())
             .customer_id(customer_id)
-            .principal(desired_principal)
+            .facility(desired_facility)
             .account_ids(LoanAccountIds::new())
             .terms(terms)
             .customer_account_ids(customer.account_ids)
@@ -329,7 +329,10 @@ impl Loans {
         }
 
         let balances = self.ledger.get_loan_balance(loan.account_ids).await?;
-        assert_eq!(balances.disbursed_receivable, loan.outstanding().principal);
+        assert_eq!(
+            balances.disbursed_receivable,
+            loan.outstanding().disbursements
+        );
         assert_eq!(balances.interest_receivable, loan.outstanding().interest);
 
         let repayment = loan.initiate_repayment(amount)?;

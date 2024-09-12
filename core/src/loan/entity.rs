@@ -21,7 +21,7 @@ use super::{
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct LoanReceivable {
-    pub principal: UsdCents,
+    pub disbursements: UsdCents,
     pub interest: UsdCents,
 }
 
@@ -32,7 +32,7 @@ pub struct LoanApproval {
 
 impl LoanReceivable {
     pub fn total(&self) -> UsdCents {
-        self.interest + self.principal
+        self.interest + self.disbursements
     }
 
     fn allocate_payment(&self, amount: UsdCents) -> Result<LoanPaymentAmounts, LoanError> {
@@ -41,12 +41,12 @@ impl LoanReceivable {
         let interest = std::cmp::min(amount, self.interest);
         remaining -= interest;
 
-        let principal = std::cmp::min(remaining, self.principal);
-        remaining -= principal;
+        let disbursements = std::cmp::min(remaining, self.disbursements);
+        remaining -= disbursements;
 
         Ok(LoanPaymentAmounts {
             interest,
-            principal,
+            disbursements,
         })
     }
 }
@@ -65,7 +65,7 @@ pub enum LoanEvent {
     Initialized {
         id: LoanId,
         customer_id: CustomerId,
-        principal: UsdCents,
+        facility: UsdCents,
         terms: TermValues,
         account_ids: LoanAccountIds,
         customer_account_ids: CustomerLedgerAccountIds,
@@ -109,7 +109,7 @@ pub enum LoanEvent {
     PaymentRecorded {
         tx_id: LedgerTxId,
         tx_ref: String,
-        principal_amount: UsdCents,
+        disbursements_amount: UsdCents,
         interest_amount: UsdCents,
         recorded_at: DateTime<Utc>,
         audit_info: AuditInfo,
@@ -121,6 +121,7 @@ pub enum LoanEvent {
     },
     DisbursementConcluded {
         idx: DisbursementIdx,
+        amount: UsdCents,
         recorded_at: DateTime<Utc>,
         audit_info: AuditInfo,
     },
@@ -159,21 +160,32 @@ impl Loan {
             .expect("entity_first_persisted_at not found")
     }
 
-    pub fn initial_principal(&self) -> UsdCents {
-        if let Some(LoanEvent::Initialized { principal, .. }) = self.events.iter().next() {
-            *principal
+    pub fn initial_facility(&self) -> UsdCents {
+        if let Some(LoanEvent::Initialized { facility, .. }) = self.events.iter().next() {
+            *facility
         } else {
             unreachable!("Initialized event not found")
         }
     }
 
-    fn principal_payments(&self) -> UsdCents {
+    pub fn total_disbursed(&self) -> UsdCents {
+        self.events
+            .iter()
+            .filter_map(|event| match event {
+                LoanEvent::DisbursementConcluded { amount, .. } => Some(*amount),
+                _ => None,
+            })
+            .fold(UsdCents::ZERO, |acc, amount| acc + amount)
+    }
+
+    fn disbursement_repayments(&self) -> UsdCents {
         self.events
             .iter()
             .filter_map(|event| match event {
                 LoanEvent::PaymentRecorded {
-                    principal_amount, ..
-                } => Some(*principal_amount),
+                    disbursements_amount,
+                    ..
+                } => Some(*disbursements_amount),
                 _ => None,
             })
             .fold(UsdCents::ZERO, |acc, amount| acc + amount)
@@ -203,7 +215,7 @@ impl Loan {
 
     pub fn outstanding(&self) -> LoanReceivable {
         LoanReceivable {
-            principal: self.initial_principal() - self.principal_payments(),
+            disbursements: self.total_disbursed() - self.disbursement_repayments(),
             interest: self.interest_recorded() - self.interest_payments(),
         }
     }
@@ -324,7 +336,7 @@ impl Loan {
         if self.approval_threshold_met() {
             let tx_ref = format!("{}-approval", self.id);
             Ok(Some(LoanApprovalData {
-                initial_principal: self.initial_principal(),
+                initial_facility: self.initial_facility(),
                 tx_ref,
                 tx_id: LedgerTxId::new(),
                 loan_account_ids: self.account_ids,
@@ -466,7 +478,7 @@ impl Loan {
         let interest_for_period = self
             .terms
             .annual_rate
-            .interest_for_time_period(self.initial_principal(), days_in_interest_period);
+            .interest_for_time_period(self.outstanding().disbursements, days_in_interest_period);
 
         let tx_ref = format!(
             "{}-interest-{}",
@@ -556,14 +568,14 @@ impl Loan {
                 amounts:
                     LoanPaymentAmounts {
                         interest,
-                        principal,
+                        disbursements,
                     },
                 ..
             } => {
                 self.events.push(LoanEvent::PaymentRecorded {
                     tx_id,
                     tx_ref,
-                    principal_amount: principal,
+                    disbursements_amount: disbursements,
                     interest_amount: interest,
                     recorded_at,
                     audit_info,
@@ -578,7 +590,7 @@ impl Loan {
                 amounts:
                     LoanPaymentAmounts {
                         interest,
-                        principal,
+                        disbursements,
                     },
                 collateral,
                 ..
@@ -586,7 +598,7 @@ impl Loan {
                 self.events.push(LoanEvent::PaymentRecorded {
                     tx_id: payment_tx_id,
                     tx_ref: payment_tx_ref,
-                    principal_amount: principal,
+                    disbursements_amount: disbursements,
                     interest_amount: interest,
                     recorded_at,
                     audit_info,
@@ -878,6 +890,7 @@ impl Loan {
         self.events.push(LoanEvent::DisbursementConcluded {
             idx: disbursement.idx,
             recorded_at: executed_at,
+            amount: disbursement.amount,
             audit_info,
         });
     }
@@ -947,7 +960,7 @@ pub struct NewLoan {
     #[builder(setter(into))]
     pub(super) customer_id: CustomerId,
     terms: TermValues,
-    principal: UsdCents,
+    facility: UsdCents,
     account_ids: LoanAccountIds,
     customer_account_ids: CustomerLedgerAccountIds,
     #[builder(setter(into))]
@@ -967,7 +980,7 @@ impl NewLoan {
             [LoanEvent::Initialized {
                 id: self.id,
                 customer_id: self.customer_id,
-                principal: self.principal,
+                facility: self.facility,
                 terms: self.terms,
                 account_ids: self.account_ids,
                 customer_account_ids: self.customer_account_ids,
@@ -1023,7 +1036,7 @@ mod test {
                 LoanEvent::Initialized {
                     id: LoanId::new(),
                     customer_id: CustomerId::new(),
-                    principal: UsdCents::from(100),
+                    facility: UsdCents::from(100),
                     terms: terms(),
                     account_ids: LoanAccountIds::new(),
                     customer_account_ids: CustomerLedgerAccountIds::new(),
@@ -1054,7 +1067,7 @@ mod test {
         assert_eq!(
             loan.outstanding(),
             LoanReceivable {
-                principal: UsdCents::from(100),
+                disbursements: UsdCents::from(100),
                 interest: UsdCents::from(5)
             }
         );
@@ -1070,7 +1083,7 @@ mod test {
         assert_eq!(
             loan.outstanding(),
             LoanReceivable {
-                principal: UsdCents::from(100),
+                disbursements: UsdCents::from(100),
                 interest: UsdCents::from(1)
             }
         );
@@ -1086,7 +1099,7 @@ mod test {
         assert_eq!(
             loan.outstanding(),
             LoanReceivable {
-                principal: UsdCents::from(99),
+                disbursements: UsdCents::from(99),
                 interest: UsdCents::ZERO
             }
         );
@@ -1107,7 +1120,7 @@ mod test {
         assert_eq!(
             loan.outstanding(),
             LoanReceivable {
-                principal: UsdCents::ZERO,
+                disbursements: UsdCents::ZERO,
                 interest: UsdCents::ZERO
             }
         );

@@ -13,8 +13,8 @@ const NUMBER_OF_DAYS_IN_YEAR: Decimal = dec!(366);
 pub struct AnnualRatePct(Decimal);
 
 impl AnnualRatePct {
-    pub fn interest_for_time_period(&self, principal: UsdCents, days: u32) -> UsdCents {
-        let cents = principal.to_usd() * Decimal::from(days) * self.0 / NUMBER_OF_DAYS_IN_YEAR;
+    pub fn interest_for_time_period(&self, amount: UsdCents, days: u32) -> UsdCents {
+        let cents = amount.to_usd() * Decimal::from(days) * self.0 / NUMBER_OF_DAYS_IN_YEAR;
 
         UsdCents::from(
             cents
@@ -192,10 +192,10 @@ impl TermValues {
 
     pub fn required_collateral(
         &self,
-        desired_principal: UsdCents,
+        desired_facility: UsdCents,
         price: PriceOfOneBTC,
     ) -> Satoshis {
-        let collateral_value = self.initial_cvl.scale(desired_principal);
+        let collateral_value = self.initial_cvl.scale(desired_facility);
         price.cents_to_sats_round_up(collateral_value)
     }
 }
@@ -277,8 +277,8 @@ mod test {
         let price =
             PriceOfOneBTC::new(UsdCents::try_from_usd(rust_decimal_macros::dec!(1000)).unwrap());
         let terms = terms();
-        let principal = UsdCents::from(100000);
-        let required_collateral = terms.required_collateral(principal, price);
+        let facility = UsdCents::from(100000);
+        let required_collateral = terms.required_collateral(facility, price);
         let sats = Satoshis::try_from_btc(dec!(1.4)).unwrap();
         assert_eq!(required_collateral, sats);
     }
@@ -326,14 +326,18 @@ mod test {
     #[test]
     fn interest_calculation() {
         let terms = terms();
-        let principal = UsdCents::try_from_usd(dec!(100)).unwrap();
+        let disbursements = UsdCents::try_from_usd(dec!(100)).unwrap();
         let days = 366;
-        let interest = terms.annual_rate.interest_for_time_period(principal, days);
+        let interest = terms
+            .annual_rate
+            .interest_for_time_period(disbursements, days);
         assert_eq!(interest, UsdCents::from(1200));
 
-        let principal = UsdCents::try_from_usd(dec!(1000)).unwrap();
+        let disbursements = UsdCents::try_from_usd(dec!(1000)).unwrap();
         let days = 23;
-        let interest = terms.annual_rate.interest_for_time_period(principal, days);
+        let interest = terms
+            .annual_rate
+            .interest_for_time_period(disbursements, days);
         assert_eq!(interest, UsdCents::from(755));
     }
 

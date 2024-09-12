@@ -42,7 +42,7 @@ type CollateralizationUpdated {
 	state: LoanCollaterizationState!
 	collateral: Satoshis!
 	outstandingInterest: UsdCents!
-	outstandingPrincipal: UsdCents!
+	outstandingDisbursements: UsdCents!
 	price: UsdCents!
 	recordedAt: Timestamp!
 }
@@ -117,7 +117,7 @@ type Loan {
 	loanTerms: TermValues!
 	status: LoanStatus!
 	collateral: Satoshis!
-	principal: UsdCents!
+	facility: UsdCents!
 	transactions: [LoanHistoryEntry!]!
 	approvals: [LoanApproval!]!
 	repaymentPlan: [LoanRepaymentInPlan!]!
@@ -174,7 +174,7 @@ enum LoanRepaymentStatus {
 }
 
 enum LoanRepaymentType {
-	PRINCIPAL
+	DISBURSEMENTS
 	INTEREST
 }
 

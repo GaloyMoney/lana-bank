@@ -26,7 +26,7 @@ pub struct Loan {
     account_ids: crate::ledger::loan::LoanAccountIds,
     status: LoanStatus,
     collateral: Satoshis,
-    principal: UsdCents,
+    facility: UsdCents,
     transactions: Vec<LoanHistoryEntry>,
     approvals: Vec<LoanApproval>,
     repayment_plan: Vec<LoanRepaymentInPlan>,
@@ -73,13 +73,13 @@ impl From<crate::loan::LoanRepaymentInPlan> for LoanRepaymentInPlan {
                 accrual_at: interest.accrual_at.into(),
                 due_at: interest.due_at.into(),
             },
-            crate::loan::LoanRepaymentInPlan::Principal(interest) => LoanRepaymentInPlan {
-                repayment_type: LoanRepaymentType::Principal,
-                status: interest.status.into(),
-                initial: interest.initial,
-                outstanding: interest.outstanding,
-                accrual_at: interest.accrual_at.into(),
-                due_at: interest.due_at.into(),
+            crate::loan::LoanRepaymentInPlan::Disbursements(disbursements) => LoanRepaymentInPlan {
+                repayment_type: LoanRepaymentType::Disbursements,
+                status: disbursements.status.into(),
+                initial: disbursements.initial,
+                outstanding: disbursements.outstanding,
+                accrual_at: disbursements.accrual_at.into(),
+                due_at: disbursements.due_at.into(),
             },
         }
     }
@@ -87,7 +87,7 @@ impl From<crate::loan::LoanRepaymentInPlan> for LoanRepaymentInPlan {
 
 #[derive(async_graphql::Enum, Clone, Copy, PartialEq, Eq)]
 pub enum LoanRepaymentType {
-    Principal,
+    Disbursements,
     Interest,
 }
 
@@ -153,7 +153,7 @@ pub struct CollateralizationUpdated {
     pub state: LoanCollaterizationState,
     pub collateral: Satoshis,
     pub outstanding_interest: UsdCents,
-    pub outstanding_principal: UsdCents,
+    pub outstanding_disbursements: UsdCents,
     pub price: UsdCents,
     pub recorded_at: Timestamp,
 }
@@ -251,7 +251,7 @@ impl From<crate::loan::Loan> for Loan {
         let expires_at: Option<Timestamp> = loan.expires_at.map(|e| e.into());
 
         let collateral = loan.collateral();
-        let principal = loan.initial_principal();
+        let facility = loan.initial_facility();
         let transactions = loan
             .history()
             .into_iter()
@@ -280,7 +280,7 @@ impl From<crate::loan::Loan> for Loan {
             approved_at,
             expires_at,
             collateral,
-            principal,
+            facility,
             transactions,
             approvals,
             repayment_plan,
@@ -358,7 +358,7 @@ impl From<crate::loan::CollateralizationUpdated> for CollateralizationUpdated {
             state: collateralization.state,
             collateral: collateralization.collateral,
             outstanding_interest: collateralization.outstanding_interest,
-            outstanding_principal: collateralization.outstanding_principal,
+            outstanding_disbursements: collateralization.outstanding_disbursements,
             price: collateralization.price.into_inner(),
             recorded_at: collateralization.recorded_at.into(),
         }

@@ -198,7 +198,7 @@ impl Ledger {
             tx_ref,
             loan_account_ids,
             customer_account_ids,
-            initial_principal,
+            initial_facility,
         }: LoanApprovalData,
     ) -> Result<chrono::DateTime<chrono::Utc>, LedgerError> {
         Ok(self
@@ -206,7 +206,7 @@ impl Ledger {
             .execute_approve_loan_facility_tx(
                 tx_id,
                 loan_account_ids,
-                initial_principal.to_usd(),
+                initial_facility.to_usd(),
                 tx_ref,
             )
             .await?)
@@ -265,7 +265,7 @@ impl Ledger {
                 amounts:
                     LoanPaymentAmounts {
                         interest,
-                        principal,
+                        disbursements,
                     },
             } => {
                 self.cala
@@ -274,7 +274,7 @@ impl Ledger {
                         loan_account_ids,
                         customer_account_ids,
                         interest.to_usd(),
-                        principal.to_usd(),
+                        disbursements.to_usd(),
                         tx_ref,
                     )
                     .await?
@@ -290,7 +290,7 @@ impl Ledger {
                 amounts:
                     LoanPaymentAmounts {
                         interest,
-                        principal,
+                        disbursements,
                     },
             } => {
                 self.cala
@@ -300,7 +300,7 @@ impl Ledger {
                         loan_account_ids,
                         customer_account_ids,
                         interest.to_usd(),
-                        principal.to_usd(),
+                        disbursements.to_usd(),
                         collateral.to_btc(),
                         payment_tx_ref,
                         collateral_tx_ref,

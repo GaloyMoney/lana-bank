@@ -33,7 +33,7 @@ pub struct CollateralizationUpdated {
     pub state: LoanCollaterizationState,
     pub collateral: Satoshis,
     pub outstanding_interest: UsdCents,
-    pub outstanding_principal: UsdCents,
+    pub outstanding_disbursements: UsdCents,
     pub recorded_at: DateTime<Utc>,
     pub price: PriceOfOneBTC,
 }
@@ -51,10 +51,10 @@ pub(super) fn project<'a>(
 ) -> Vec<LoanHistoryEntry> {
     let mut history = vec![];
 
-    let mut initial_principal = None;
+    let mut initial_facility = None;
     for event in events {
         match event {
-            LoanEvent::Initialized { principal, .. } => initial_principal = Some(*principal),
+            LoanEvent::Initialized { facility, .. } => initial_facility = Some(*facility),
             LoanEvent::CollateralUpdated {
                 abs_diff,
                 action,
@@ -94,14 +94,14 @@ pub(super) fn project<'a>(
             }
 
             LoanEvent::PaymentRecorded {
-                principal_amount,
+                disbursements_amount,
                 interest_amount,
                 recorded_at: transaction_recorded_at,
                 tx_id,
                 ..
             } => {
                 history.push(LoanHistoryEntry::Payment(IncrementalPayment {
-                    cents: *principal_amount + *interest_amount,
+                    cents: *disbursements_amount + *interest_amount,
                     recorded_at: *transaction_recorded_at,
                     tx_id: *tx_id,
                 }));
@@ -111,7 +111,7 @@ pub(super) fn project<'a>(
                 tx_id, recorded_at, ..
             } => {
                 history.push(LoanHistoryEntry::Origination(LoanOrigination {
-                    cents: initial_principal.expect("Loan must have initial principal"),
+                    cents: initial_facility.expect("Loan must have initial facility"),
                     recorded_at: *recorded_at,
                     tx_id: *tx_id,
                 }));
@@ -130,7 +130,7 @@ pub(super) fn project<'a>(
                         state: *state,
                         collateral: *collateral,
                         outstanding_interest: outstanding.interest,
-                        outstanding_principal: outstanding.principal,
+                        outstanding_disbursements: outstanding.disbursements,
                         price: *price,
                         recorded_at: *recorded_at,
                     },

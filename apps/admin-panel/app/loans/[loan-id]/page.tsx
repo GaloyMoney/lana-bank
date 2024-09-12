@@ -26,7 +26,7 @@ gql`
       loanId
       createdAt
       approvedAt
-      principal
+      facility
       expiresAt
       collateral
       status
@@ -70,7 +70,7 @@ gql`
         }
         ... on CollateralizationUpdated {
           state
-          outstandingPrincipal
+          outstandingDisbursements
           outstandingInterest
           price
           collateral
