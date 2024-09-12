@@ -1,6 +1,7 @@
 mutation LoanDisbursementTemplateCreate(
   $templateId: UUID!
   $journalId: Expression!
+  $omnibusLoanFacilityAccount: UUID!
 ) {
   txTemplateCreate(
     input: {
@@ -8,6 +9,11 @@ mutation LoanDisbursementTemplateCreate(
       code: "LOAN_DISBURSEMENT"
       description: "Payout disbursement."
       params: [
+        {
+          name: "loanFacilityAccount"
+          type: UUID
+          description: "Loan facility account ID."
+        }
         {
           name: "loanDisbursedReceivableAccount"
           type: UUID
@@ -42,6 +48,22 @@ mutation LoanDisbursementTemplateCreate(
       }
       entries: [
         {
+          accountId: $omnibusLoanFacilityAccount
+          units: "params.disbursedAmount"
+          currency: "'USD'"
+          entryType: "'LOAN_DISBURSEMENT_FACILITY_ADJUST_DR'"
+          direction: "DEBIT"
+          layer: "SETTLED"
+        }
+        {
+          accountId: "params.loanFacilityAccount"
+          units: "params.disbursedAmount"
+          currency: "'USD'"
+          entryType: "'LOAN_DISBURSEMENT_FACILITY_ADJUST_CR'"
+          direction: "CREDIT"
+          layer: "SETTLED"
+        }
+        {
           accountId: "params.loanDisbursedReceivableAccount"
           units: "params.disbursedAmount"
           currency: "'USD'"
@@ -70,6 +92,7 @@ mutation LoanDisbursementTemplateCreate(
 
 mutation PostLoanDisbursementTransaction(
   $transactionId: UUID!
+  $loanFacilityAccount: UUID!
   $loanDisbursedReceivableAccount: UUID!
   $checkingAccount: UUID!
   $disbursedAmount: Decimal!
@@ -80,6 +103,7 @@ mutation PostLoanDisbursementTransaction(
       transactionId: $transactionId
       txTemplateCode: "LOAN_DISBURSEMENT"
       params: {
+        loanFacilityAccount: $loanFacilityAccount
         loanDisbursedReceivableAccount: $loanDisbursedReceivableAccount
         checkingAccount: $checkingAccount
         disbursedAmount: $disbursedAmount

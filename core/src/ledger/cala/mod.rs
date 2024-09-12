@@ -787,9 +787,21 @@ impl CalaClient {
         &self,
         template_id: TxTemplateId,
     ) -> Result<TxTemplateId, CalaError> {
+        let obs_loans_facility_id = match Self::find_account_by_code::<LedgerAccountId>(
+            self,
+            super::constants::OBS_LOANS_FACILITY_ACCOUNT_CODE.to_string(),
+        )
+        .await?
+        {
+            Some(id) => Ok(id),
+            None => Err(CalaError::CouldNotFindAccountByCode(
+                super::constants::OBS_LOANS_FACILITY_ACCOUNT_CODE.to_string(),
+            )),
+        }?;
         let variables = loan_disbursement_template_create::Variables {
             template_id: Uuid::from(template_id),
             journal_id: format!("uuid(\"{}\")", super::constants::CORE_JOURNAL_ID),
+            omnibus_loan_facility_account: obs_loans_facility_id.into(),
         };
         let response = Self::traced_gql_request::<LoanDisbursementTemplateCreate, _>(
             &self.client,
@@ -819,6 +831,7 @@ impl CalaClient {
     ) -> Result<chrono::DateTime<chrono::Utc>, CalaError> {
         let variables = post_loan_disbursement_transaction::Variables {
             transaction_id: transaction_id.into(),
+            loan_facility_account: loan_account_ids.facility_account_id.into(),
             loan_disbursed_receivable_account: loan_account_ids
                 .disbursed_receivable_account_id
                 .into(),
