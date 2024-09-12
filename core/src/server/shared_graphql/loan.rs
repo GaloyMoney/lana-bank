@@ -117,6 +117,7 @@ pub enum LoanHistoryEntry {
     Collateral(CollateralUpdated),
     Origination(LoanOrigination),
     Collateralization(CollateralizationUpdated),
+    Disbursement(IncrementalDisbursement),
 }
 
 #[derive(SimpleObject)]
@@ -156,6 +157,13 @@ pub struct CollateralizationUpdated {
     pub outstanding_disbursements: UsdCents,
     pub price: UsdCents,
     pub recorded_at: Timestamp,
+}
+
+#[derive(SimpleObject)]
+pub struct IncrementalDisbursement {
+    pub cents: UsdCents,
+    pub recorded_at: Timestamp,
+    pub tx_id: UUID,
 }
 
 #[derive(SimpleObject)]
@@ -307,6 +315,9 @@ impl From<crate::loan::LoanHistoryEntry> for LoanHistoryEntry {
             crate::loan::LoanHistoryEntry::Collateralization(collateralization) => {
                 LoanHistoryEntry::Collateralization(collateralization.into())
             }
+            crate::loan::LoanHistoryEntry::Disbursement(disbursement) => {
+                LoanHistoryEntry::Disbursement(disbursement.into())
+            }
         }
     }
 }
@@ -361,6 +372,16 @@ impl From<crate::loan::CollateralizationUpdated> for CollateralizationUpdated {
             outstanding_disbursements: collateralization.outstanding_disbursements,
             price: collateralization.price.into_inner(),
             recorded_at: collateralization.recorded_at.into(),
+        }
+    }
+}
+
+impl From<crate::loan::IncrementalDisbursement> for IncrementalDisbursement {
+    fn from(disbursement: crate::loan::IncrementalDisbursement) -> Self {
+        IncrementalDisbursement {
+            cents: disbursement.cents,
+            recorded_at: disbursement.recorded_at.into(),
+            tx_id: disbursement.tx_id.into(),
         }
     }
 }

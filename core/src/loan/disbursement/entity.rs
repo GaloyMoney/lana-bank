@@ -206,7 +206,7 @@ impl Disbursement {
 
     pub fn confirm_approval(
         &mut self,
-        DisbursementData { tx_id, .. }: DisbursementData,
+        &DisbursementData { tx_id, .. }: &DisbursementData,
         executed_at: DateTime<Utc>,
         audit_info: AuditInfo,
     ) {

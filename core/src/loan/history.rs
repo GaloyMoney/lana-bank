@@ -38,12 +38,19 @@ pub struct CollateralizationUpdated {
     pub price: PriceOfOneBTC,
 }
 
+pub struct IncrementalDisbursement {
+    pub cents: UsdCents,
+    pub recorded_at: DateTime<Utc>,
+    pub tx_id: LedgerTxId,
+}
+
 pub enum LoanHistoryEntry {
     Payment(IncrementalPayment),
     Interest(InterestAccrued),
     Collateral(CollateralUpdated),
     Origination(LoanOrigination),
     Collateralization(CollateralizationUpdated),
+    Disbursement(IncrementalDisbursement),
 }
 
 pub(super) fn project<'a>(
@@ -79,6 +86,19 @@ pub(super) fn project<'a>(
                     }));
                 }
             },
+
+            LoanEvent::DisbursementConcluded {
+                amount,
+                recorded_at,
+                tx_id,
+                ..
+            } => {
+                history.push(LoanHistoryEntry::Disbursement(IncrementalDisbursement {
+                    cents: *amount,
+                    recorded_at: *recorded_at,
+                    tx_id: *tx_id,
+                }));
+            }
 
             LoanEvent::InterestIncurred {
                 amount,

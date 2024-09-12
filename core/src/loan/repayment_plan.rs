@@ -202,6 +202,7 @@ mod tests {
             },
             LoanEvent::DisbursementConcluded {
                 idx: DisbursementIdx::FIRST,
+                tx_id: LedgerTxId::new(),
                 amount: UsdCents::from(10_000_00),
                 recorded_at: "2020-03-14T14:20:00Z".parse::<DateTime<Utc>>().unwrap(),
                 audit_info: dummy_audit_info(),

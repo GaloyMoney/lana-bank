@@ -317,6 +317,12 @@ input DurationInput {
 
 
 
+type IncrementalDisbursement {
+	cents: UsdCents!
+	recordedAt: Timestamp!
+	txId: UUID!
+}
+
 type IncrementalPayment {
 	cents: UsdCents!
 	recordedAt: Timestamp!
@@ -463,7 +469,7 @@ type LoanEdge {
 	cursor: String!
 }
 
-union LoanHistoryEntry = IncrementalPayment | InterestAccrued | CollateralUpdated | LoanOrigination | CollateralizationUpdated
+union LoanHistoryEntry = IncrementalPayment | InterestAccrued | CollateralUpdated | LoanOrigination | CollateralizationUpdated | IncrementalDisbursement
 
 type LoanOrigination {
 	cents: UsdCents!

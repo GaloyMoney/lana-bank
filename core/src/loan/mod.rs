@@ -493,10 +493,15 @@ impl Loans {
                 .ledger
                 .record_disbursement(disbursement_data.clone())
                 .await?;
-            disbursement.confirm_approval(disbursement_data, executed_at, audit_info);
+            disbursement.confirm_approval(&disbursement_data, executed_at, audit_info);
 
             disbursement.conclude(executed_at, audit_info);
-            loan.confirm_disbursement(&disbursement, executed_at, audit_info);
+            loan.confirm_disbursement(
+                &disbursement,
+                disbursement_data.tx_id,
+                executed_at,
+                audit_info,
+            );
         }
 
         self.disbursement_repo

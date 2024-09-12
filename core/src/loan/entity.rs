@@ -122,6 +122,7 @@ pub enum LoanEvent {
     DisbursementConcluded {
         idx: DisbursementIdx,
         amount: UsdCents,
+        tx_id: LedgerTxId,
         recorded_at: DateTime<Utc>,
         audit_info: AuditInfo,
     },
@@ -884,12 +885,14 @@ impl Loan {
     pub(super) fn confirm_disbursement(
         &mut self,
         disbursement: &Disbursement,
+        tx_id: LedgerTxId,
         executed_at: DateTime<Utc>,
         audit_info: AuditInfo,
     ) {
         self.events.push(LoanEvent::DisbursementConcluded {
             idx: disbursement.idx,
             recorded_at: executed_at,
+            tx_id,
             amount: disbursement.amount,
             audit_info,
         });
@@ -1068,7 +1071,12 @@ mod test {
             .initiate_disbursement(dummy_audit_info(), loan.initial_facility())
             .unwrap();
         let disbursement = Disbursement::try_from(new_disbursement.initial_events()).unwrap();
-        loan.confirm_disbursement(&disbursement, Utc::now(), dummy_audit_info());
+        loan.confirm_disbursement(
+            &disbursement,
+            LedgerTxId::new(),
+            Utc::now(),
+            dummy_audit_info(),
+        );
 
         assert_eq!(
             loan.outstanding(),
@@ -1205,7 +1213,12 @@ mod test {
             .initiate_disbursement(dummy_audit_info(), loan.initial_facility())
             .unwrap();
         let disbursement = Disbursement::try_from(new_disbursement.initial_events()).unwrap();
-        loan.confirm_disbursement(&disbursement, Utc::now(), dummy_audit_info());
+        loan.confirm_disbursement(
+            &disbursement,
+            LedgerTxId::new(),
+            Utc::now(),
+            dummy_audit_info(),
+        );
 
         let amount = UsdCents::from(105);
         let repayment = loan.initiate_repayment(amount).unwrap();
@@ -1314,7 +1327,12 @@ mod test {
             .initiate_disbursement(dummy_audit_info(), loan.initial_facility())
             .unwrap();
         let disbursement = Disbursement::try_from(new_disbursement.initial_events()).unwrap();
-        loan.confirm_disbursement(&disbursement, Utc::now(), dummy_audit_info());
+        loan.confirm_disbursement(
+            &disbursement,
+            LedgerTxId::new(),
+            Utc::now(),
+            dummy_audit_info(),
+        );
 
         let expected_cvl = CVLPct::from(dec!(142));
         let cvl = loan.cvl(PriceOfOneBTC::new(UsdCents::from(5000000)));
@@ -1375,7 +1393,12 @@ mod test {
                 .initiate_disbursement(dummy_audit_info(), loan.initial_facility())
                 .unwrap();
             let disbursement = Disbursement::try_from(new_disbursement.initial_events()).unwrap();
-            loan.confirm_disbursement(&disbursement, Utc::now(), dummy_audit_info());
+            loan.confirm_disbursement(
+                &disbursement,
+                LedgerTxId::new(),
+                Utc::now(),
+                dummy_audit_info(),
+            );
 
             // FullyCollateralized -> None
             assert_eq!(
@@ -1503,7 +1526,12 @@ mod test {
                 .initiate_disbursement(dummy_audit_info(), loan.initial_facility())
                 .unwrap();
             let disbursement = Disbursement::try_from(new_disbursement.initial_events()).unwrap();
-            loan.confirm_disbursement(&disbursement, Utc::now(), dummy_audit_info());
+            loan.confirm_disbursement(
+                &disbursement,
+                LedgerTxId::new(),
+                Utc::now(),
+                dummy_audit_info(),
+            );
 
             assert_eq!(
                 loan.maybe_update_collateralization(
@@ -1567,7 +1595,12 @@ mod test {
                 .initiate_disbursement(dummy_audit_info(), loan.initial_facility())
                 .unwrap();
             let disbursement = Disbursement::try_from(new_disbursement.initial_events()).unwrap();
-            loan.confirm_disbursement(&disbursement, Utc::now(), dummy_audit_info());
+            loan.confirm_disbursement(
+                &disbursement,
+                LedgerTxId::new(),
+                Utc::now(),
+                dummy_audit_info(),
+            );
 
             // Check allowed changes from Liquidation state
             let loan_collateral_update = loan
