@@ -533,11 +533,8 @@ impl Ledger {
             constants::APPROVE_LOAN_FACILITY_CODE,
         )
         .await?;
-        Self::assert_loan_disbursement_tx_template_exists(
-            cala,
-            constants::INCREMENTAL_PRINCIPAL_DISBURSEMENT_CODE,
-        )
-        .await?;
+        Self::assert_loan_disbursement_tx_template_exists(cala, constants::LOAN_DISBURSEMENT_CODE)
+            .await?;
         Self::assert_add_collateral_tx_template_exists(cala, constants::ADD_COLLATERAL_CODE)
             .await?;
         Self::assert_remove_collateral_tx_template_exists(cala, constants::REMOVE_COLLATERAL_CODE)
