@@ -1,7 +1,7 @@
 mutation ApproveLoanFacilityTemplateCreate(
   $templateId: UUID!
   $journalId: Expression!
-  $omnibusLoanFacilityAccount: UUID!
+  $omnibusLoanFacilityAccount: Expression!
 ) {
   txTemplateCreate(
     input: {
