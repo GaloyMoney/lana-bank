@@ -1064,6 +1064,12 @@ mod test {
     #[test]
     fn outstanding() {
         let mut loan = Loan::try_from(init_events()).unwrap();
+        let new_disbursement = loan
+            .initiate_disbursement(dummy_audit_info(), loan.initial_facility())
+            .unwrap();
+        let disbursement = Disbursement::try_from(new_disbursement.initial_events()).unwrap();
+        loan.confirm_disbursement(&disbursement, Utc::now(), dummy_audit_info());
+
         assert_eq!(
             loan.outstanding(),
             LoanReceivable {
@@ -1194,6 +1200,13 @@ mod test {
         let loan_approval = add_approvals(&mut loan);
         loan.confirm_approval(loan_approval, Utc::now(), dummy_audit_info());
         assert_eq!(loan.status(), LoanStatus::Active);
+
+        let new_disbursement = loan
+            .initiate_disbursement(dummy_audit_info(), loan.initial_facility())
+            .unwrap();
+        let disbursement = Disbursement::try_from(new_disbursement.initial_events()).unwrap();
+        loan.confirm_disbursement(&disbursement, Utc::now(), dummy_audit_info());
+
         let amount = UsdCents::from(105);
         let repayment = loan.initiate_repayment(amount).unwrap();
         loan.confirm_repayment(
@@ -1297,6 +1310,11 @@ mod test {
         );
         let loan_approval = add_approvals(&mut loan);
         loan.confirm_approval(loan_approval, Utc::now(), dummy_audit_info());
+        let new_disbursement = loan
+            .initiate_disbursement(dummy_audit_info(), loan.initial_facility())
+            .unwrap();
+        let disbursement = Disbursement::try_from(new_disbursement.initial_events()).unwrap();
+        loan.confirm_disbursement(&disbursement, Utc::now(), dummy_audit_info());
 
         let expected_cvl = CVLPct::from(dec!(142));
         let cvl = loan.cvl(PriceOfOneBTC::new(UsdCents::from(5000000)));
@@ -1352,6 +1370,12 @@ mod test {
             let loan_approval = add_approvals(&mut loan);
             loan.confirm_approval(loan_approval, Utc::now(), dummy_audit_info());
             assert_eq!(loan.status(), LoanStatus::Active);
+
+            let new_disbursement = loan
+                .initiate_disbursement(dummy_audit_info(), loan.initial_facility())
+                .unwrap();
+            let disbursement = Disbursement::try_from(new_disbursement.initial_events()).unwrap();
+            loan.confirm_disbursement(&disbursement, Utc::now(), dummy_audit_info());
 
             // FullyCollateralized -> None
             assert_eq!(
@@ -1475,6 +1499,11 @@ mod test {
             let loan_approval = add_approvals(&mut loan);
             loan.confirm_approval(loan_approval, Utc::now(), dummy_audit_info());
             assert_eq!(loan.status(), LoanStatus::Active);
+            let new_disbursement = loan
+                .initiate_disbursement(dummy_audit_info(), loan.initial_facility())
+                .unwrap();
+            let disbursement = Disbursement::try_from(new_disbursement.initial_events()).unwrap();
+            loan.confirm_disbursement(&disbursement, Utc::now(), dummy_audit_info());
 
             assert_eq!(
                 loan.maybe_update_collateralization(
@@ -1533,6 +1562,12 @@ mod test {
             let loan_approval = add_approvals(&mut loan);
             loan.confirm_approval(loan_approval, Utc::now(), dummy_audit_info());
             assert_eq!(loan.status(), LoanStatus::Active);
+
+            let new_disbursement = loan
+                .initiate_disbursement(dummy_audit_info(), loan.initial_facility())
+                .unwrap();
+            let disbursement = Disbursement::try_from(new_disbursement.initial_events()).unwrap();
+            loan.confirm_disbursement(&disbursement, Utc::now(), dummy_audit_info());
 
             // Check allowed changes from Liquidation state
             let loan_collateral_update = loan

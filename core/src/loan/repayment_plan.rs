@@ -200,6 +200,12 @@ mod tests {
                 audit_info: dummy_audit_info(),
                 recorded_at: "2020-03-14T14:20:00Z".parse::<DateTime<Utc>>().unwrap(),
             },
+            LoanEvent::DisbursementConcluded {
+                idx: DisbursementIdx::FIRST,
+                amount: UsdCents::from(10_000_00),
+                recorded_at: "2020-03-14T14:20:00Z".parse::<DateTime<Utc>>().unwrap(),
+                audit_info: dummy_audit_info(),
+            },
             LoanEvent::InterestIncurred {
                 tx_id: LedgerTxId::new(),
                 tx_ref: format!("{}-interest-{}", loan_id, 1),

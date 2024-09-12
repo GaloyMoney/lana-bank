@@ -249,7 +249,7 @@ impl NewDisbursement {
         }
     }
 
-    pub(super) fn initial_events(self) -> EntityEvents<DisbursementEvent> {
+    pub fn initial_events(self) -> EntityEvents<DisbursementEvent> {
         EntityEvents::init(
             self.id,
             [DisbursementEvent::Initialized {
