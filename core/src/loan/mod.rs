@@ -434,7 +434,11 @@ impl Loans {
     ) -> Result<Disbursement, LoanError> {
         let audit_info = self
             .authz
-            .check_permission(sub, Object::Loan, LoanAction::InitiateDisbursement)
+            .check_permission(
+                sub,
+                Object::Loan(LoanAllOrOne::All),
+                LoanAction::InitiateDisbursement,
+            )
             .await?;
 
         let mut loan = self.loan_repo.find_by_id(loan_id).await?;
@@ -460,7 +464,11 @@ impl Loans {
     ) -> Result<Disbursement, LoanError> {
         let audit_info = self
             .authz
-            .check_permission(sub, Object::Loan, LoanAction::ApproveDisbursement)
+            .check_permission(
+                sub,
+                Object::Loan(LoanAllOrOne::All),
+                LoanAction::ApproveDisbursement,
+            )
             .await?;
 
         let mut loan = self.loan_repo.find_by_id(loan_id).await?;
