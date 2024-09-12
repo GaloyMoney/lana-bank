@@ -5,6 +5,7 @@ mod cala;
 mod config;
 mod constants;
 pub mod customer;
+pub mod disbursement;
 pub mod error;
 pub mod loan;
 pub mod primitives;
@@ -29,6 +30,7 @@ use bank::*;
 use cala::*;
 pub use config::*;
 use customer::*;
+use disbursement::*;
 use error::*;
 use loan::*;
 
@@ -213,16 +215,19 @@ impl Ledger {
     #[instrument(name = "lava.ledger.record_disbursement", skip(self), err)]
     pub async fn record_disbursement(
         &self,
-        customer_account_ids: CustomerLedgerAccountIds,
-        loan_account_ids: LoanAccountIds,
-        amount: UsdCents,
-        tx_ref: String,
+        DisbursementData {
+            amount,
+            tx_ref,
+            tx_id,
+            account_ids,
+            customer_account_ids,
+        }: DisbursementData,
     ) -> Result<chrono::DateTime<chrono::Utc>, LedgerError> {
         Ok(self
             .cala
             .execute_loan_disbursement_tx(
-                LedgerTxId::new(),
-                loan_account_ids,
+                tx_id,
+                account_ids,
                 customer_account_ids,
                 amount.to_usd(),
                 tx_ref,

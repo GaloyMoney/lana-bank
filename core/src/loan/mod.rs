@@ -464,32 +464,36 @@ impl Loans {
         let in_progress_disbursement_idx = loan
             .disbursement_in_progress()
             .ok_or(LoanError::NoDisbursementInProgress)?;
+
+        let subject_id = uuid::Uuid::from(sub);
+        let user = self.user_repo.find_by_id(UserId::from(subject_id)).await?;
+
         let mut disbursement = self
             .disbursement_repo
             .find_by_idx_for_loan(loan_id, in_progress_disbursement_idx)
             .await?;
-        let customer = self.customers.repo().find_by_id(loan.customer_id).await?;
 
         let mut db_tx = self.pool.begin().await?;
-        // TODO: call multi-approval logic functions here
-        let executed_at = self
-            .ledger
-            .record_disbursement(
-                customer.account_ids,
-                loan.account_ids,
-                disbursement.amount,
-                disbursement.id.to_string(),
-            )
-            .await?;
 
-        disbursement.conclude(executed_at, audit_info);
+        if let Some(disbursement_data) =
+            disbursement.add_approval(user.id, user.current_roles(), audit_info)?
+        {
+            let executed_at = self
+                .ledger
+                .record_disbursement(disbursement_data.clone())
+                .await?;
+            disbursement.confirm_approval(disbursement_data, executed_at, audit_info);
+
+            disbursement.conclude(executed_at, audit_info);
+            loan.confirm_disbursement(&disbursement, executed_at, audit_info);
+        }
+
         self.disbursement_repo
             .persist_in_tx(&mut db_tx, &mut disbursement)
             .await?;
-        loan.confirm_disbursement(&disbursement, executed_at, audit_info);
         self.loan_repo.persist_in_tx(&mut db_tx, &mut loan).await?;
-
         db_tx.commit().await?;
+
         Ok(disbursement)
     }
 }

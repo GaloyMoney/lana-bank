@@ -53,9 +53,9 @@ impl DisbursementRepo {
         db: &mut Transaction<'_, Postgres>,
         disbursement: &mut Disbursement,
     ) -> Result<(), LoanError> {
-        let n_events = disbursement._events.persist(db).await?;
+        let n_events = disbursement.events.persist(db).await?;
         self.export
-            .export_last(db, BQ_TABLE_NAME, n_events, &disbursement._events)
+            .export_last(db, BQ_TABLE_NAME, n_events, &disbursement.events)
             .await?;
         Ok(())
     }

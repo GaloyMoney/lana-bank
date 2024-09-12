@@ -859,7 +859,14 @@ impl Loan {
             audit_info,
         });
 
-        Ok(NewDisbursement::new(audit_info, self.id, idx, amount))
+        Ok(NewDisbursement::new(
+            self.id,
+            idx,
+            amount,
+            self.account_ids,
+            self.customer_account_ids,
+            audit_info,
+        ))
     }
 
     pub(super) fn confirm_disbursement(

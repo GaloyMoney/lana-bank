@@ -12,6 +12,8 @@ pub enum LoanError {
     LedgerError(#[from] crate::ledger::error::LedgerError),
     #[error("LoanError - UserError: {0}")]
     UserError(#[from] crate::user::error::UserError),
+    #[error("LoanError - DisbursementError: {0}")]
+    DisbursementError(#[from] super::disbursement::error::DisbursementError),
     #[error("LoanError - PriceError: {0}")]
     PriceError(#[from] crate::price::error::PriceError),
     #[error("LoanError - LoanTermsError: {0}")]
