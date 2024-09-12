@@ -801,7 +801,7 @@ impl CalaClient {
         let variables = loan_disbursement_template_create::Variables {
             template_id: Uuid::from(template_id),
             journal_id: format!("uuid(\"{}\")", super::constants::CORE_JOURNAL_ID),
-            omnibus_loan_facility_account: obs_loans_facility_id.into(),
+            omnibus_loan_facility_account: format!("uuid(\"{}\")", obs_loans_facility_id),
         };
         let response = Self::traced_gql_request::<LoanDisbursementTemplateCreate, _>(
             &self.client,
