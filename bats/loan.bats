@@ -50,15 +50,15 @@ wait_for_interest() {
   [[ "$cash_flow_net_before" != "null" ]] || exit 1
 
   # Create Loan
-  principal=100000
+  facility=100000
   variables=$(
     jq -n \
     --arg customerId "$customer_id" \
-    --argjson principal "$principal" \
+    --argjson facility "$facility" \
     '{
       input: {
         customerId: $customerId,
-        desiredPrincipal: $principal,
+        desiredFacility: $facility,
         loanTerms: {
           annualRate: "12",
           interval: "END_OF_MONTH",
@@ -101,6 +101,36 @@ wait_for_interest() {
   loan_id=$(graphql_output '.data.loanApprove.loan.loanId')
   [[ "$loan_id" != "null" ]] || exit 1
 
+  # Add disbursements
+  disbursement_amount=50000
+  variables=$(
+    jq -n \
+      --arg loanId "$loan_id" \
+      --argjson amount "$disbursement_amount" \
+    '{
+      input: {
+        loanId: $loanId,
+        amount: $amount
+      }
+    }'
+  )
+  exec_admin_graphql 'loan-disbursement-initiate' "$variables"
+  disbursement_id=$(graphql_output '.data.loanDisbursementInitiate.disbursement.id')
+  [[ "$disbursement_id" != "null" ]] || exit 1
+
+  variables=$(
+    jq -n \
+      --arg loanId "$loan_id" \
+    '{
+      input: {
+        loanId: $loanId,
+      }
+    }'
+  )
+  exec_admin_graphql 'loan-disbursement-approve' "$variables"
+  disbursement_id=$(graphql_output '.data.loanDisbursementApprove.disbursement.id')
+  [[ "$disbursement_id" != "null" ]] || exit 1
+
   variables=$(
     jq -n \
       --arg customerId "$customer_id" \
@@ -110,12 +140,12 @@ wait_for_interest() {
   )
   exec_admin_graphql 'customer' "$variables"
   usd_balance=$(graphql_output '.data.customer.balance.checking.settled')
-  [[ "$usd_balance" == "$principal" ]] || exit 1
+  [[ "$usd_balance" == "$disbursement_amount" ]] || exit 1
 
   retry 20 1 wait_for_interest "$loan_id"
   interest_before=$(read_value "interest")
   outstanding_before=$(read_value "outstanding")
-  expected_outstanding=$(add $principal $interest_before)
+  expected_outstanding=$(add $disbursement_amount $interest_before)
   [[ "$outstanding_before" == "$expected_outstanding" ]] || exit 1
 
   collateral_sats=$(read_value 'collateral_sats')
@@ -136,12 +166,12 @@ wait_for_interest() {
   variables=$(
     jq -n \
       --arg customerId "$customer_id" \
-      --argjson principal "$principal" \
+      --argjson amount "$disbursement_amount" \
       --arg date "$(date +%s%N)" \
     '{
       input: {
         customerId: $customerId,
-        amount: $principal,
+        amount: $amount,
         reference: ("withdrawal-ref-" + $date)
       }
     }'
@@ -209,7 +239,7 @@ wait_for_interest() {
   )
   exec_admin_graphql 'customer' "$variables"
   usd_balance=$(graphql_output '.data.customer.balance.checking.settled')
-  [[ "$usd_balance" == "$principal" ]] || exit 1
+  [[ "$usd_balance" == "$facility" ]] || exit 1
 
   variables=$(
     jq -n \
@@ -238,15 +268,15 @@ wait_for_interest() {
 
   # Create 2 loans
   for i in {1..2}; do
-    principal=10000
+    facility=10000
     variables=$(
       jq -n \
       --arg customerId "$customer_id" \
-      --argjson principal "$principal" \
+      --argjson facility "$facility" \
       '{
         input: {
           customerId: $customerId,
-          desiredPrincipal: $principal,
+          desiredFacility: $facility,
           loanTerms: {
             annualRate: "12",
             interval: "END_OF_MONTH",
@@ -327,15 +357,15 @@ wait_for_interest() {
   [[ "$cash_flow_net_before" != "null" ]] || exit 1
 
   # Create Loan
-  principal=10000
+  facility=10000
   variables=$(
     jq -n \
     --arg customerId "$customer_id" \
-    --argjson principal "$principal" \
+    --argjson facility "$facility" \
     '{
       input: {
         customerId: $customerId,
-        desiredPrincipal: $principal,
+        desiredFacility: $facility,
         loanTerms: {
           annualRate: "12",
           interval: "END_OF_MONTH",

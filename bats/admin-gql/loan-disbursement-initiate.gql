@@ -1,0 +1,7 @@
+mutation LoanDisbursementInitiate($input: LoanDisbursementInitiateInput!) {
+  loanDisbursementInitiate(input: $input) {
+    disbursement {
+      id
+    }
+  }
+}
