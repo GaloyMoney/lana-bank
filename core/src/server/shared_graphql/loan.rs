@@ -4,7 +4,7 @@ use crate::{
     app::LavaApp,
     ledger,
     loan::LoanCollaterizationState,
-    primitives::{CollateralAction, CustomerId, LoanStatus, UserId},
+    primitives::*,
     server::admin::graphql::user::User,
     server::shared_graphql::{customer::Customer, primitives::*, terms::TermValues},
 };
@@ -192,6 +192,22 @@ impl Loan {
             Some(user) => Ok(Customer::from(user)),
             None => panic!("user not found for a loan. should not be possible"),
         }
+    }
+
+    async fn disbursements(
+        &self,
+        ctx: &Context<'_>,
+    ) -> async_graphql::Result<Vec<LoanDisbursement>> {
+        let app = ctx.data_unchecked::<LavaApp>();
+        let disbursements = app
+            .loans()
+            .list_disbursements(LoanId::from(&self.loan_id))
+            .await?;
+
+        Ok(disbursements
+            .into_iter()
+            .map(LoanDisbursement::from)
+            .collect())
     }
 }
 

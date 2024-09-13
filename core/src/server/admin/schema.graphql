@@ -380,6 +380,7 @@ type Loan {
 	collateralizationState: LoanCollaterizationState!
 	balance: LoanBalance!
 	customer: Customer!
+	disbursements: [LoanDisbursement!]!
 }
 
 type LoanApproval {

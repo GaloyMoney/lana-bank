@@ -393,6 +393,7 @@ export type Loan = {
   createdAt: Scalars['Timestamp']['output'];
   currentCvl?: Maybe<Scalars['Float']['output']>;
   customer: Customer;
+  disbursements: Array<LoanDisbursement>;
   expiresAt?: Maybe<Scalars['Timestamp']['output']>;
   facility: Scalars['UsdCents']['output'];
   id: Scalars['ID']['output'];

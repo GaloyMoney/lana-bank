@@ -512,4 +512,11 @@ impl Loans {
 
         Ok(disbursement)
     }
+
+    pub async fn list_disbursements(
+        &self,
+        loan_id: LoanId,
+    ) -> Result<Vec<Disbursement>, LoanError> {
+        self.disbursement_repo.list_for_loan(loan_id).await
+    }
 }

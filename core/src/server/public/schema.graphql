@@ -130,6 +130,7 @@ type Loan {
 	collateralizationState: LoanCollaterizationState!
 	balance: LoanBalance!
 	customer: Customer!
+	disbursements: [LoanDisbursement!]!
 }
 
 type LoanApproval {
@@ -149,6 +150,10 @@ enum LoanCollaterizationState {
 	UNDER_MARGIN_CALL_THRESHOLD
 	UNDER_LIQUIDATION_THRESHOLD
 	NO_COLLATERAL
+}
+
+type LoanDisbursement {
+	id: ID!
 }
 
 union LoanHistoryEntry = IncrementalPayment | InterestAccrued | CollateralUpdated | LoanOrigination | CollateralizationUpdated | IncrementalDisbursement
