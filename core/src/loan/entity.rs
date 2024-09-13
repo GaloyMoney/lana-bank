@@ -320,7 +320,7 @@ impl Loan {
             return Err(LoanError::NoCollateral);
         }
 
-        let current_cvl = self.cvl(price);
+        let current_cvl = self.facility_cvl(price);
         let margin_call_cvl = self.terms.margin_call_cvl;
 
         if current_cvl < margin_call_cvl {
@@ -625,10 +625,20 @@ impl Loan {
         }
     }
 
+    pub fn facility_cvl(&self, price: PriceOfOneBTC) -> CVLPct {
+        let collateral_value = price.sats_to_cents_round_down(self.collateral());
+
+        if collateral_value == UsdCents::ZERO || self.initial_facility() == UsdCents::ZERO {
+            CVLPct::ZERO
+        } else {
+            CVLPct::from_loan_amounts(collateral_value, self.initial_facility())
+        }
+    }
+
     pub fn cvl(&self, price: PriceOfOneBTC) -> CVLPct {
         let collateral_value = price.sats_to_cents_round_down(self.collateral());
 
-        if collateral_value == UsdCents::ZERO {
+        if collateral_value == UsdCents::ZERO || self.outstanding().total() == UsdCents::ZERO {
             CVLPct::ZERO
         } else {
             CVLPct::from_loan_amounts(collateral_value, self.outstanding().total())
