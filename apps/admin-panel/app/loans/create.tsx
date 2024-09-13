@@ -86,7 +86,7 @@ export const CreateLoanDialog: React.FC<
   }, [defaultTermsData, setUseDefaultTerms])
 
   const [formValues, setFormValues] = useState({
-    desiredPrincipal: "0",
+    desiredFacility: "0",
     annualRate: "",
     interval: "",
     liquidationCvl: "",
@@ -107,7 +107,7 @@ export const CreateLoanDialog: React.FC<
   const handleCreateLoan = async (event: React.FormEvent) => {
     event.preventDefault()
     const {
-      desiredPrincipal,
+      desiredFacility,
       annualRate,
       interval,
       liquidationCvl,
@@ -118,7 +118,7 @@ export const CreateLoanDialog: React.FC<
     } = formValues
 
     if (
-      !desiredPrincipal ||
+      !desiredFacility ||
       !annualRate ||
       !interval ||
       !liquidationCvl ||
@@ -136,7 +136,7 @@ export const CreateLoanDialog: React.FC<
         variables: {
           input: {
             customerId: customerIdValue,
-            desiredPrincipal: currencyConverter.usdToCents(Number(desiredPrincipal)),
+            desiredFacility: currencyConverter.usdToCents(Number(desiredFacility)),
             loanTerms: {
               annualRate: parseFloat(annualRate),
               interval: interval as InterestInterval,
@@ -167,7 +167,7 @@ export const CreateLoanDialog: React.FC<
     if (defaultTermsData && defaultTermsData.defaultTerms) {
       const terms = defaultTermsData.defaultTerms.values
       setFormValues({
-        desiredPrincipal: "0",
+        desiredFacility: "0",
         annualRate: terms.annualRate.toString(),
         interval: terms.interval,
         liquidationCvl: terms.liquidationCvl.toString(),
@@ -178,7 +178,7 @@ export const CreateLoanDialog: React.FC<
       })
     } else {
       setFormValues({
-        desiredPrincipal: "0",
+        desiredFacility: "0",
         annualRate: "",
         interval: "",
         liquidationCvl: "",
@@ -190,8 +190,8 @@ export const CreateLoanDialog: React.FC<
     }
   }
 
-  const collateralRequiredForDesiredPrincipal = currencyConverter.btcToSatoshi(
-    currencyConverter.usdToCents(Number(formValues.desiredPrincipal || 0)) /
+  const collateralRequiredForDesiredFacility = currencyConverter.btcToSatoshi(
+    currencyConverter.usdToCents(Number(formValues.desiredFacility || 0)) /
       priceInfo?.realtimePrice.usdCentsPerBtc,
   )
 
@@ -219,8 +219,8 @@ export const CreateLoanDialog: React.FC<
             <div className="flex items-center gap-1">
               <Input
                 type="number"
-                name="desiredPrincipal"
-                value={formValues.desiredPrincipal}
+                name="desiredFacility"
+                value={formValues.desiredFacility}
                 onChange={handleChange}
                 placeholder="Enter the desired principal amount"
                 min={0}
@@ -230,7 +230,7 @@ export const CreateLoanDialog: React.FC<
             </div>
             {priceInfo && (
               <div className="mt-2 text-sm flex space-x-1 items-center">
-                <Balance amount={collateralRequiredForDesiredPrincipal} currency="btc" />
+                <Balance amount={collateralRequiredForDesiredFacility} currency="btc" />
                 <div>collateral required (</div>
                 <div>BTC/USD: </div>
                 {

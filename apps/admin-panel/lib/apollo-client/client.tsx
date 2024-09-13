@@ -56,7 +56,7 @@ function makeClient({ coreAdminGqlUrl }: { coreAdminGqlUrl: string }) {
         const priceInfo = await fetchData(cache)
         if (!priceInfo) return null
 
-        const principalValueInUsd = loan.principal / CENTS_PER_USD
+        const principalValueInUsd = loan.facility / CENTS_PER_USD
 
         const collateralValueInSats = loan.balance.collateral.btcBalance
         const collateralValueInCents =
@@ -78,7 +78,7 @@ function makeClient({ coreAdminGqlUrl }: { coreAdminGqlUrl: string }) {
         if (!priceInfo) return null
 
         return Math.floor(
-          ((loan.loanTerms.initialCvl * loan.principal) /
+          ((loan.loanTerms.initialCvl * loan.facility) /
             priceInfo.realtimePrice.usdCentsPerBtc /
             CENTS_PER_USD) *
             SATS_PER_BTC,

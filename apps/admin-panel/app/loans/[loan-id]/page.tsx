@@ -76,6 +76,11 @@ gql`
           collateral
           recordedAt
         }
+        ... on IncrementalDisbursement {
+          cents
+          recordedAt
+          txId
+        }
       }
       loanTerms {
         annualRate
@@ -139,6 +144,9 @@ const Loan = ({
       <PageHeading>Loan Details</PageHeading>
       {loading && <p>Loading...</p>}
       {error && <div className="text-destructive">{error.message}</div>}
+      {data?.loan === null && (
+        <div className="text-destructive">No Loan found with this ID</div>
+      )}
       {data && data.loan && (
         <>
           <LoanDetailsCard loan={data.loan} refetch={refetch} />

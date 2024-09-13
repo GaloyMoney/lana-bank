@@ -21,13 +21,13 @@ export const LoanSnapshot: React.FC<LoanSnapshotProps> = ({ loan }) => {
 
   const MarginCallPrice = calculatePrice({
     cvlPercentage: loan?.loanTerms.marginCallCvl,
-    principalInCents: loan?.principal,
+    principalInCents: loan?.facility,
     collateralInSatoshis: loan?.balance.collateral.btcBalance,
   })
 
   const LiquidationCallPrice = calculatePrice({
     cvlPercentage: loan?.loanTerms.liquidationCvl,
-    principalInCents: loan?.principal,
+    principalInCents: loan?.facility,
     collateralInSatoshis: loan?.balance.collateral.btcBalance,
   })
 
