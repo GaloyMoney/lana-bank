@@ -1,8 +1,13 @@
 variable "name_prefix" {}
 variable "gcp_project" {}
 variable "gcp_region" {}
+
 variable "dataform_git_commitish" {
   type    = string
+  default = ""
+}
+variable "dataform_dev_user" {
+  type = string
   default = ""
 }
 
@@ -19,6 +24,9 @@ locals {
   name_prefix = var.name_prefix
   gcp_project = var.gcp_project
   gcp_region  = var.gcp_region
+  dataform_dev_user    = var.dataform_dev_user
+  dataform_execution_env = local.dataform_dev_user == "" ? local.name_prefix : "volcano-dev"
+  dataform_location = "EU"
 
   additional_owners = var.additional_owners
 

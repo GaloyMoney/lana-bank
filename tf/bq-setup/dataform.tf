@@ -55,11 +55,12 @@ resource "google_dataform_repository_release_config" "release" {
   code_compilation_config {
     default_database = local.gcp_project
     default_schema   = "dataform"
-    default_location = local.gcp_region
+    default_location = local.dataform_location
     assertion_schema = "dataform_assertions"
     schema_suffix    = local.name_prefix
     vars = {
-      executionEnv = "volcano-dev"
+      executionEnv = local.dataform_execution_env
+      devUser = local.dataform_dev_user
     }
   }
 }

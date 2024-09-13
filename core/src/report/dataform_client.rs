@@ -1,0 +1,113 @@
+use gcp_auth::{CustomServiceAccount, TokenProvider};
+use reqwest::Client;
+use serde::{Deserialize, Serialize};
+
+use super::ReportConfig;
+
+#[derive(Deserialize, Serialize)]
+pub struct DataformConfig {
+    service_account_creds_base64: String,
+}
+
+pub struct DataformClient {
+    base_url: String,
+    config: ReportConfig,
+    provider: CustomServiceAccount,
+}
+
+impl DataformClient {
+    pub async fn connect(config: &ReportConfig) -> Result<Self, anyhow::Error> {
+        use base64::{engine::general_purpose, Engine as _};
+        let bytes = general_purpose::STANDARD.decode(config.sa_creds_base64.as_bytes())?;
+        let json = String::from_utf8(bytes)?;
+        let provider = CustomServiceAccount::from_json(&json)?;
+
+        let scopes = &["https://www.googleapis.com/auth/cloud-platform"];
+
+        Ok(Self {
+            provider,
+            config: config.clone(),
+            base_url: format!(
+                "https://dataform.googleapis.com/v1beta1/projects/{}/locations/{}/repositories/{}",
+                config.gcp_project, config.gcp_location, config.dataform_repo
+            ),
+        })
+    }
+
+    pub async fn compile(&mut self) -> Result<CompilationResult, anyhow::Error> {
+        let res: CompilationResult = self
+            .make_post_request("compilationResults", serde_json::json!({
+                "releaseConfig": format!("projects/{}/locations/{}/repositories/{}/releaseConfigs/{}", self.config.gcp_project, self.config.gcp_location, self.config.dataform_repo, self.config.dataform_release_config)
+            }))
+        .await?;
+        Ok(res)
+    }
+
+    pub async fn invoke(
+        &mut self,
+        compilation: &CompilationResult,
+    ) -> Result<serde_json::Value, anyhow::Error> {
+        let res: serde_json::Value = self
+            .make_post_request(
+                "workflowInvocations",
+                serde_json::json!({
+                    "invocationConfig": {
+                        "serviceAccount": "jcarter-lava-bq-access@cala-enterprise.iam.gserviceaccount.com",
+                    },
+                    "compilationResult": compilation.name
+                }),
+            )
+            .await?;
+        Ok(res)
+    }
+
+    async fn make_post_request<T: serde::de::DeserializeOwned>(
+        &self,
+        api_path: &str,
+        body: serde_json::Value,
+    ) -> anyhow::Result<T> {
+        let body_json = serde_json::to_string(&body).expect("Couldn't serialize body");
+        let client = Client::new();
+        let scopes = &["https://www.googleapis.com/auth/cloud-platform"];
+        let res = client
+            .post(format!("{}/{}", self.base_url, api_path))
+            .header("Content-Type", "application/json")
+            .header(
+                "Authorization",
+                format!("Bearer {}", self.provider.token(scopes).await?.as_str()),
+            )
+            .body(body_json)
+            .send()
+            .await?;
+        dbg!(&res);
+        let res: T = res.json().await?;
+        Ok(res)
+    }
+
+    async fn make_get_request<T: serde::de::DeserializeOwned>(
+        &self,
+        api_path: &str,
+    ) -> anyhow::Result<T> {
+        let client = Client::new();
+        let scopes = &["https://www.googleapis.com/auth/cloud-platform"];
+        let res = client
+            .get(format!("{}/{}", self.base_url, api_path))
+            .header("Content-Type", "application/json")
+            .header(
+                "Authorization",
+                format!("Bearer {}", self.provider.token(scopes).await?.as_str()),
+            )
+            .send()
+            .await?;
+        let res: T = res.json().await?;
+        Ok(res)
+    }
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct CompilationResult {
+    name: String,
+    release_config: String,
+    resolved_git_commit_sha: String,
+}
