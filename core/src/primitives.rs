@@ -14,9 +14,15 @@ crate::entity_id! { DepositId }
 crate::entity_id! { JobId }
 crate::entity_id! { LoanId }
 crate::entity_id! { LoanTermsId }
+crate::entity_id! { ReportId }
 
 impl From<LoanId> for JobId {
     fn from(id: LoanId) -> Self {
+        JobId::from(id.0)
+    }
+}
+impl From<ReportId> for JobId {
+    fn from(id: ReportId) -> Self {
         JobId::from(id.0)
     }
 }

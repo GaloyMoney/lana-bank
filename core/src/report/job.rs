@@ -2,22 +2,22 @@
 use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
 
-use crate::job::*;
+use crate::{job::*, primitives::ReportId};
 
-// use super::{cala::CalaClient, ExportData};
+use super::repo::ReportRepo;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GenerateReportConfig {
-    // pub(super) cala_url: String,
-    // pub(super) table_name: Cow<'static, str>,
-    // pub(super) data: ExportData,
+    pub(super) report_id: ReportId,
 }
 
-pub struct GenerateReportInitializer {}
+pub struct GenerateReportInitializer {
+    repo: ReportRepo,
+}
 
 impl GenerateReportInitializer {
-    pub fn new() -> Self {
-        Self {}
+    pub fn new(repo: &ReportRepo) -> Self {
+        Self { repo: repo.clone() }
     }
 }
 
@@ -33,12 +33,14 @@ impl JobInitializer for GenerateReportInitializer {
     fn init(&self, job: &Job) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
         Ok(Box::new(GenerateReportJobRunner {
             config: job.config()?,
+            repo: self.repo.clone(),
         }))
     }
 }
 
 pub struct GenerateReportJobRunner {
     config: GenerateReportConfig,
+    repo: ReportRepo,
 }
 
 #[async_trait]

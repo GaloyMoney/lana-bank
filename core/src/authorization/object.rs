@@ -15,6 +15,7 @@ pub enum Object {
     Customer(CustomerAllOrOne),
     Deposit,
     Withdraw,
+    Report,
     Audit,
     Ledger,
 }
@@ -70,6 +71,7 @@ impl FromStr for Object {
             }
             Deposit => Object::Deposit,
             Withdraw => Object::Withdraw,
+            Report => Object::Report,
             Audit => Object::Audit,
             Ledger => Object::Ledger,
         };

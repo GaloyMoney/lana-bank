@@ -4,6 +4,8 @@ use serde::{Deserialize, Serialize};
 
 use super::ReportConfig;
 
+const SCOPES: &[&str] = &["https://www.googleapis.com/auth/cloud-platform"];
+
 #[derive(Deserialize, Serialize)]
 pub struct DataformConfig {
     service_account_creds_base64: String,
@@ -22,7 +24,7 @@ impl DataformClient {
         let json = String::from_utf8(bytes)?;
         let provider = CustomServiceAccount::from_json(&json)?;
 
-        let scopes = &["https://www.googleapis.com/auth/cloud-platform"];
+        let _ = provider.token(SCOPES).await?;
 
         Ok(Self {
             provider,
@@ -68,13 +70,12 @@ impl DataformClient {
     ) -> anyhow::Result<T> {
         let body_json = serde_json::to_string(&body).expect("Couldn't serialize body");
         let client = Client::new();
-        let scopes = &["https://www.googleapis.com/auth/cloud-platform"];
         let res = client
             .post(format!("{}/{}", self.base_url, api_path))
             .header("Content-Type", "application/json")
             .header(
                 "Authorization",
-                format!("Bearer {}", self.provider.token(scopes).await?.as_str()),
+                format!("Bearer {}", self.provider.token(SCOPES).await?.as_str()),
             )
             .body(body_json)
             .send()
@@ -89,13 +90,12 @@ impl DataformClient {
         api_path: &str,
     ) -> anyhow::Result<T> {
         let client = Client::new();
-        let scopes = &["https://www.googleapis.com/auth/cloud-platform"];
         let res = client
             .get(format!("{}/{}", self.base_url, api_path))
             .header("Content-Type", "application/json")
             .header(
                 "Authorization",
-                format!("Bearer {}", self.provider.token(scopes).await?.as_str()),
+                format!("Bearer {}", self.provider.token(SCOPES).await?.as_str()),
             )
             .send()
             .await?;
