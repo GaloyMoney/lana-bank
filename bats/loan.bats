@@ -163,6 +163,7 @@ wait_for_interest() {
   [[ $(sub "$cash_flow_credit_during" "$cash_flow_credit_before") == "$interest_before" ]] || exit 1
 
   # Check can't withdraw with no bank deposits
+  empty_deposit_balance
   variables=$(
     jq -n \
       --arg customerId "$customer_id" \
