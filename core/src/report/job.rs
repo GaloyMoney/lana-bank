@@ -61,7 +61,7 @@ impl JobRunner for GenerateReportJobRunner {
                 let mut client = DataformClient::connect(&self.report_config).await?;
                 match client.compile().await {
                     Ok(res) => {
-                        report.compile(res);
+                        report.compilation_completed(res);
                     }
                     Err(e) => {
                         report.compilation_failed(e.to_string());
@@ -72,7 +72,17 @@ impl JobRunner for GenerateReportJobRunner {
             }
 
             Step::Invocation => {
-                // Do invocation
+                let mut client = DataformClient::connect(&self.report_config).await?;
+                match client.invoke(&report.compilation_result()).await {
+                    Ok(res) => {
+                        report.invocation_completed(res);
+                    }
+                    Err(e) => {
+                        report.invocation_failed(e.to_string());
+                    }
+                }
+                self.repo.persist(&mut report).await?;
+                return Ok(JobCompletion::RescheduleAt(chrono::Utc::now()));
             }
 
             Step::Upload => {

@@ -20,6 +20,14 @@ pub enum ReportEvent {
         id: ReportId,
         error: String,
     },
+    InvocationCompleted {
+        id: ReportId,
+        result: serde_json::Value,
+    },
+    InvocationFailed {
+        id: ReportId,
+        error: String,
+    },
 }
 
 impl EntityEvent for ReportEvent {
@@ -51,20 +59,37 @@ impl Report {
         unimplemented!()
     }
 
-    fn last_completed_step(&self) -> Option<Step> {
-        unimplemented!()
-    }
-
-    pub(super) fn compile(&mut self, comiplation_result: CompilationResult) {
+    pub(super) fn compilation_completed(&mut self, compilation_result: CompilationResult) {
         self.events.push(ReportEvent::CompilationCompleted {
             id: self.id,
-            result: comiplation_result,
+            result: compilation_result,
         });
     }
 
     pub(super) fn compilation_failed(&mut self, error: String) {
         self.events
             .push(ReportEvent::CompilationFailed { id: self.id, error });
+    }
+
+    pub fn compilation_result(&self) -> CompilationResult {
+        let res = self.events.iter().rev().find_map(|event| match event {
+            ReportEvent::CompilationCompleted { result, .. } => Some(result.clone()),
+            _ => None,
+        });
+
+        res.expect("Only called after successful compilation")
+    }
+
+    pub(super) fn invocation_completed(&mut self, invocation_result: serde_json::Value) {
+        self.events.push(ReportEvent::InvocationCompleted {
+            id: self.id,
+            result: invocation_result,
+        });
+    }
+
+    pub(super) fn invocation_failed(&mut self, error: String) {
+        self.events
+            .push(ReportEvent::InvocationFailed { id: self.id, error });
     }
 }
 
