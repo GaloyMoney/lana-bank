@@ -16,6 +16,7 @@ use crate::{
     loan::Loans,
     price::Price,
     primitives::Subject,
+    report::Reports,
     user::Users,
     withdraw::Withdraws,
 };
@@ -37,6 +38,7 @@ pub struct LavaApp {
     applicants: Applicants,
     users: Users,
     price: Price,
+    report: Reports,
 }
 
 impl LavaApp {
@@ -51,6 +53,7 @@ impl LavaApp {
         let withdraws = Withdraws::new(&pool, &customers, &ledger, &authz, &export);
         let deposits = Deposits::new(&pool, &customers, &ledger, &authz, &export);
         let price = Price::new();
+        let report = Reports::new(&pool, &config.report, &authz, &jobs);
         let users = Users::init(&pool, config.user, &authz, &audit, &export).await?;
         let loans = Loans::new(
             &pool,
@@ -81,6 +84,7 @@ impl LavaApp {
             applicants,
             users,
             price,
+            report,
         })
     }
 
@@ -90,6 +94,10 @@ impl LavaApp {
 
     pub fn audit(&self) -> &Audit {
         &self.audit
+    }
+
+    pub fn reports(&self) -> &Reports {
+        &self.report
     }
 
     pub fn price(&self) -> &Price {

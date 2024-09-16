@@ -16,6 +16,7 @@ pub use entity::*;
 use error::*;
 use repo::*;
 
+#[derive(Clone)]
 pub struct Reports {
     pool: sqlx::PgPool,
     authz: Authorization,
@@ -24,7 +25,12 @@ pub struct Reports {
 }
 
 impl Reports {
-    pub fn new(pool: &sqlx::PgPool, authz: &Authorization, jobs: &Jobs) -> Self {
+    pub fn new(
+        pool: &sqlx::PgPool,
+        _config: &ReportConfig,
+        authz: &Authorization,
+        jobs: &Jobs,
+    ) -> Self {
         let repo = ReportRepo::new(pool);
         jobs.add_initializer(job::GenerateReportInitializer::new(&repo));
         Self {

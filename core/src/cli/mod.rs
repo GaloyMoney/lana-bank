@@ -32,6 +32,8 @@ struct Cli {
     #[clap(env = "SUMSUB_SECRET", default_value = "")]
     sumsub_secret: String,
     // TODO: callback secret
+    #[clap(env = "TF_VAR_bq_creds", default_value = "")]
+    sa_creds_base64: String,
 }
 
 pub async fn run() -> anyhow::Result<()> {
@@ -43,6 +45,7 @@ pub async fn run() -> anyhow::Result<()> {
             db_con: cli.pg_con,
             sumsub_key: cli.sumsub_key,
             sumsub_secret: cli.sumsub_secret,
+            sa_creds_base64: cli.sa_creds_base64,
         },
     )?;
 

@@ -28,6 +28,7 @@ pub struct EnvOverride {
     pub db_con: String,
     pub sumsub_key: String,
     pub sumsub_secret: String,
+    pub sa_creds_base64: String,
 }
 
 impl Config {
@@ -37,6 +38,7 @@ impl Config {
             db_con,
             sumsub_key,
             sumsub_secret,
+            sa_creds_base64,
         }: EnvOverride,
     ) -> anyhow::Result<Self> {
         let config_file = std::fs::read_to_string(&path)
@@ -46,6 +48,7 @@ impl Config {
         config.db.pg_con.clone_from(&db_con);
         config.app.sumsub.sumsub_key = sumsub_key;
         config.app.sumsub.sumsub_secret = sumsub_secret;
+        config.app.report.sa_creds_base64 = sa_creds_base64;
 
         Ok(config)
     }
