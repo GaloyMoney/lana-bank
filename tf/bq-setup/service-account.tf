@@ -26,12 +26,6 @@ resource "google_project_iam_member" "dataform_agent" {
   member  = "serviceAccount:${google_service_account.bq_access_sa.email}"
 }
 
-# resource "google_project_iam_member" "bq_user" {
-#   project  = local.gcp_project
-#   role     = "roles/bigquery.user"
-#   member     = "serviceAccount:${google_service_account.bq_access_sa.email}"
-# }
-
 resource "google_project_iam_member" "bq_jobuser" {
   project = local.gcp_project
   role    = "roles/bigquery.jobUser"
