@@ -16,9 +16,13 @@ locals {
   justin = "justin@galoy.io"
 
   lava_dev = {
-    jireva  = "jir@galoy.io",
-    jcarter = "justin@galoy.io"
-    sv      = "sv@galoy.io"
+    jireva     = "jir@galoy.io",
+    jcarter    = "justin@galoy.io"
+    sv         = "sv@galoy.io"
+    sandipndev = "sandipan@galoy.io"
+    vaibhav    = "vaibhav@galoy.io"
+    siddharth  = "siddharth@galoy.io"
+    vindard    = "arvin@galoy.io"
   }
 }
 
