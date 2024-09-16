@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::{job::*, primitives::ReportId};
 
-use super::repo::ReportRepo;
+use super::{dataform_client::DataformClient, entity::Step, repo::ReportRepo, ReportConfig};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GenerateReportConfig {
@@ -13,11 +13,15 @@ pub struct GenerateReportConfig {
 
 pub struct GenerateReportInitializer {
     repo: ReportRepo,
+    report_config: ReportConfig,
 }
 
 impl GenerateReportInitializer {
-    pub fn new(repo: &ReportRepo) -> Self {
-        Self { repo: repo.clone() }
+    pub fn new(repo: &ReportRepo, report_config: &ReportConfig) -> Self {
+        Self {
+            repo: repo.clone(),
+            report_config: report_config.clone(),
+        }
     }
 }
 
@@ -34,6 +38,7 @@ impl JobInitializer for GenerateReportInitializer {
         Ok(Box::new(GenerateReportJobRunner {
             config: job.config()?,
             repo: self.repo.clone(),
+            report_config: self.report_config.clone(),
         }))
     }
 }
@@ -41,12 +46,40 @@ impl JobInitializer for GenerateReportInitializer {
 pub struct GenerateReportJobRunner {
     config: GenerateReportConfig,
     repo: ReportRepo,
+    report_config: ReportConfig,
 }
 
 #[async_trait]
 impl JobRunner for GenerateReportJobRunner {
     #[tracing::instrument(name = "lava.report.job.run", skip_all, fields(insert_id), err)]
     async fn run(&self, _: CurrentJob) -> Result<JobCompletion, Box<dyn std::error::Error>> {
-        unimplemented!()
+        let mut report = self.repo.find_by_id(self.config.report_id).await?;
+        // audit step needs to be added
+
+        match report.next_step() {
+            Step::Compilation => {
+                let mut client = DataformClient::connect(&self.report_config).await?;
+                match client.compile().await {
+                    Ok(res) => {
+                        report.compile(res);
+                    }
+                    Err(e) => {
+                        report.compilation_failed(e.to_string());
+                    }
+                }
+                self.repo.persist(&mut report).await?;
+                return Ok(JobCompletion::RescheduleAt(chrono::Utc::now()));
+            }
+
+            Step::Invocation => {
+                // Do invocation
+            }
+
+            Step::Upload => {
+                // Do upload
+            }
+        }
+
+        Ok(JobCompletion::Complete)
     }
 }

@@ -1,6 +1,6 @@
-use sqlx::PgPool;
+use sqlx::{PgPool, Transaction};
 
-use crate::primitives::*;
+use crate::{entity::*, primitives::ReportId};
 
 use super::{entity::*, error::*};
 
@@ -16,7 +16,7 @@ impl ReportRepo {
 
     pub(super) async fn create_in_tx(
         &self,
-        db: &mut sqlx::Transaction<'_, sqlx::Postgres>,
+        db: &mut Transaction<'_, sqlx::Postgres>,
         new_report: NewReport,
     ) -> Result<Report, ReportError> {
         sqlx::query!(
@@ -29,5 +29,41 @@ impl ReportRepo {
         let mut events = new_report.initial_events();
         events.persist(db).await?;
         Ok(Report::try_from(events)?)
+    }
+
+    pub async fn find_by_id(&self, id: ReportId) -> Result<Report, ReportError> {
+        let rows = sqlx::query_as!(
+            GenericEvent,
+            r#"SELECT a.id, e.sequence, e.event,
+                a.created_at AS entity_created_at, e.recorded_at AS event_recorded_at
+            FROM reports a
+            JOIN report_events e
+            ON a.id = e.id
+            WHERE a.id = $1"#,
+            id as ReportId
+        )
+        .fetch_all(&self.pool)
+        .await?;
+        match EntityEvents::load_first(rows) {
+            Ok(user) => Ok(user),
+            Err(EntityError::NoEntityEventsPresent) => Err(ReportError::CouldNotFindById(id)),
+            Err(e) => Err(e.into()),
+        }
+    }
+
+    pub async fn persist(&self, report: &mut Report) -> Result<(), ReportError> {
+        let mut db = self.pool.begin().await?;
+        self.persist_in_tx(&mut db, report).await?;
+        db.commit().await?;
+        Ok(())
+    }
+
+    pub async fn persist_in_tx(
+        &self,
+        db: &mut Transaction<'_, sqlx::Postgres>,
+        report: &mut Report,
+    ) -> Result<(), ReportError> {
+        report.events.persist(db).await?;
+        Ok(())
     }
 }

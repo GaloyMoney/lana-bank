@@ -3,10 +3,23 @@ use serde::{Deserialize, Serialize};
 
 use crate::{entity::*, primitives::*};
 
+use super::dataform_client::CompilationResult;
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
 pub enum ReportEvent {
-    Initialized { id: ReportId, audit_info: AuditInfo },
+    Initialized {
+        id: ReportId,
+        audit_info: AuditInfo,
+    },
+    CompilationCompleted {
+        id: ReportId,
+        result: CompilationResult,
+    },
+    CompilationFailed {
+        id: ReportId,
+        error: String,
+    },
 }
 
 impl EntityEvent for ReportEvent {
@@ -14,6 +27,12 @@ impl EntityEvent for ReportEvent {
     fn event_table_name() -> &'static str {
         "report_events"
     }
+}
+
+pub(super) enum Step {
+    Compilation,
+    Invocation,
+    Upload,
 }
 
 #[derive(Builder)]
@@ -27,6 +46,28 @@ impl Entity for Report {
     type Event = ReportEvent;
 }
 
+impl Report {
+    pub(super) fn next_step(&self) -> Step {
+        unimplemented!()
+    }
+
+    fn last_completed_step(&self) -> Option<Step> {
+        unimplemented!()
+    }
+
+    pub(super) fn compile(&mut self, comiplation_result: CompilationResult) {
+        self.events.push(ReportEvent::CompilationCompleted {
+            id: self.id,
+            result: comiplation_result,
+        });
+    }
+
+    pub(super) fn compilation_failed(&mut self, error: String) {
+        self.events
+            .push(ReportEvent::CompilationFailed { id: self.id, error });
+    }
+}
+
 impl TryFrom<EntityEvents<ReportEvent>> for Report {
     type Error = EntityError;
 
@@ -36,6 +77,7 @@ impl TryFrom<EntityEvents<ReportEvent>> for Report {
         for event in events.iter() {
             match event {
                 ReportEvent::Initialized { id, .. } => builder = builder.id(*id),
+                _ => {}
             }
         }
 

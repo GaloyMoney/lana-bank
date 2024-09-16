@@ -27,12 +27,12 @@ pub struct Reports {
 impl Reports {
     pub fn new(
         pool: &sqlx::PgPool,
-        _config: &ReportConfig,
+        config: &ReportConfig,
         authz: &Authorization,
         jobs: &Jobs,
     ) -> Self {
         let repo = ReportRepo::new(pool);
-        jobs.add_initializer(job::GenerateReportInitializer::new(&repo));
+        jobs.add_initializer(job::GenerateReportInitializer::new(&repo, config));
         Self {
             repo,
             pool: pool.clone(),
