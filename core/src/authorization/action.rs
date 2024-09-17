@@ -151,6 +151,7 @@ impl_trivial_action!(WithdrawAction, Withdraw);
 #[derive(PartialEq, Clone, Copy, Debug, strum::Display, strum::EnumString)]
 #[strum(serialize_all = "kebab-case")]
 pub enum ReportAction {
+    Read,
     Create,
     Compile,
     Invoke,

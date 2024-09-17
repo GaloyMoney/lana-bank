@@ -69,6 +69,16 @@ impl From<UUID> for LedgerAccountSetId {
         Self::from(uuid.0)
     }
 }
+impl From<&UUID> for ReportId {
+    fn from(uuid: &UUID) -> Self {
+        Self::from(uuid.0)
+    }
+}
+impl From<UUID> for ReportId {
+    fn from(uuid: UUID) -> Self {
+        Self::from(uuid.0)
+    }
+}
 
 #[derive(Clone, Serialize, Deserialize)]
 #[serde(transparent)]

@@ -509,6 +509,7 @@ type Mutation {
 	userAssignRole(input: UserAssignRoleInput!): UserAssignRolePayload!
 	userRevokeRole(input: UserRevokeRoleInput!): UserRevokeRolePayload!
 	reportCreate: Report!
+	report(id: UUID!): Report
 }
 
 """

@@ -9,8 +9,9 @@ pub mod upload;
 use crate::{
     audit::*,
     authorization::{Authorization, Object, ReportAction},
+    entity::EntityError,
     job::Jobs,
-    primitives::Subject,
+    primitives::{ReportId, Subject},
 };
 
 pub use config::*;
@@ -70,5 +71,23 @@ impl Reports {
             .await?;
         db.commit().await?;
         Ok(report)
+    }
+
+    pub async fn find_by_id(
+        &self,
+        sub: Option<&Subject>,
+        id: ReportId,
+    ) -> Result<Option<Report>, ReportError> {
+        if let Some(sub) = sub {
+            self.authz
+                .check_permission(sub, Object::Report, ReportAction::Read)
+                .await?;
+        }
+
+        match self.repo.find_by_id(id).await {
+            Ok(loan) => Ok(Some(loan)),
+            Err(ReportError::EntityError(EntityError::NoEntityEventsPresent)) => Ok(None),
+            Err(e) => Err(e),
+        }
     }
 }

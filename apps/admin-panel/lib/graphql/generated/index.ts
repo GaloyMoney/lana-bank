@@ -519,6 +519,7 @@ export type Mutation = {
   loanApprove: LoanApprovePayload;
   loanCreate: LoanCreatePayload;
   loanPartialPayment: LoanPartialPaymentPayload;
+  report?: Maybe<Report>;
   reportCreate: Report;
   shareholderEquityAdd: SuccessPayload;
   sumsubPermalinkCreate: SumsubPermalinkCreatePayload;
@@ -573,6 +574,11 @@ export type MutationLoanCreateArgs = {
 
 export type MutationLoanPartialPaymentArgs = {
   input: LoanPartialPaymentInput;
+};
+
+
+export type MutationReportArgs = {
+  id: Scalars['UUID']['input'];
 };
 
 

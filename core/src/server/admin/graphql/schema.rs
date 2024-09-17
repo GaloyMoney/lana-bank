@@ -9,7 +9,7 @@ use super::{
 use crate::{
     app::LavaApp,
     audit::AuditCursor,
-    primitives::{CustomerId, LoanId, UserId},
+    primitives::{CustomerId, LoanId, ReportId, UserId},
     server::{
         admin::AdminAuthContext,
         shared_graphql::{
@@ -696,5 +696,17 @@ impl Mutation {
         let AdminAuthContext { sub } = ctx.data()?;
         let report = app.reports().create(sub).await?;
         Ok(Report::from(report))
+    }
+
+    async fn report(&self, ctx: &Context<'_>, id: UUID) -> async_graphql::Result<Option<Report>> {
+        let app = ctx.data_unchecked::<LavaApp>();
+
+        let AdminAuthContext { sub } = ctx.data()?;
+
+        let report = app
+            .reports()
+            .find_by_id(Some(sub), ReportId::from(id))
+            .await?;
+        Ok(report.map(Report::from))
     }
 }
