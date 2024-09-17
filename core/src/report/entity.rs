@@ -58,6 +58,7 @@ impl EntityEvent for ReportEvent {
     }
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub(super) enum ReportGenerationProcessStep {
     Compilation,
     Invocation,
@@ -77,7 +78,18 @@ impl Entity for Report {
 
 impl Report {
     pub(super) fn next_step(&self) -> ReportGenerationProcessStep {
-        unimplemented!()
+        let last_step = self.events.iter().rev().find_map(|event| match event {
+            ReportEvent::CompilationCompleted { .. } | ReportEvent::InvocationFailed { .. } => {
+                Some(ReportGenerationProcessStep::Invocation)
+            }
+            ReportEvent::InvocationCompleted { .. } | ReportEvent::UploadFailed { .. } => {
+                Some(ReportGenerationProcessStep::Upload)
+            }
+
+            _ => None,
+        });
+
+        last_step.unwrap_or(ReportGenerationProcessStep::Compilation)
     }
 
     pub(super) fn compilation_completed(
@@ -190,5 +202,92 @@ impl NewReport {
                 audit_info: self.audit_info,
             }],
         )
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    fn dummy_audit_info() -> AuditInfo {
+        AuditInfo {
+            audit_entry_id: AuditEntryId::from(1),
+            sub: Subject::from(UserId::new()),
+        }
+    }
+
+    fn init_report(events: Vec<ReportEvent>) -> Report {
+        Report::try_from(EntityEvents::init(ReportId::new(), events)).unwrap()
+    }
+
+    #[test]
+    fn next_step() {
+        let id = ReportId::new();
+        let mut events = vec![ReportEvent::Initialized {
+            id,
+            audit_info: dummy_audit_info(),
+        }];
+        assert_eq!(
+            init_report(events.clone()).next_step(),
+            ReportGenerationProcessStep::Compilation
+        );
+
+        events.push(ReportEvent::CompilationFailed {
+            id,
+            error: "".to_string(),
+            audit_info: dummy_audit_info(),
+            recorded_at: Utc::now(),
+        });
+        assert_eq!(
+            init_report(events.clone()).next_step(),
+            ReportGenerationProcessStep::Compilation
+        );
+
+        events.push(ReportEvent::CompilationCompleted {
+            id,
+            result: CompilationResult::default(),
+            audit_info: dummy_audit_info(),
+            recorded_at: Utc::now(),
+        });
+        assert_eq!(
+            init_report(events.clone()).next_step(),
+            ReportGenerationProcessStep::Invocation
+        );
+
+        events.push(ReportEvent::InvocationFailed {
+            id,
+            error: "".to_string(),
+            audit_info: dummy_audit_info(),
+            recorded_at: Utc::now(),
+        });
+        assert_eq!(
+            init_report(events.clone()).next_step(),
+            ReportGenerationProcessStep::Invocation
+        );
+
+        events.push(ReportEvent::InvocationCompleted {
+            id,
+            result: WorkflowInvocation {
+                name: "".to_string(),
+                state: crate::report::dataform_client::WorkflowInvocationState::Succeeded,
+            },
+            audit_info: dummy_audit_info(),
+            recorded_at: Utc::now(),
+        });
+        assert_eq!(
+            init_report(events.clone()).next_step(),
+            ReportGenerationProcessStep::Upload
+        );
+
+        events.push(ReportEvent::UploadFailed {
+            id,
+            error: "".to_string(),
+            audit_info: dummy_audit_info(),
+            recorded_at: Utc::now(),
+        });
+        assert_eq!(
+            init_report(events.clone()).next_step(),
+            ReportGenerationProcessStep::Upload
+        );
     }
 }

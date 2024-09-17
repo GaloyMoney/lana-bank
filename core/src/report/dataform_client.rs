@@ -104,7 +104,7 @@ impl DataformClient {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone, Default)]
 #[serde(rename_all = "camelCase")]
 pub struct CompilationResult {
     name: String,
@@ -114,7 +114,7 @@ pub struct CompilationResult {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
-pub enum State {
+pub enum WorkflowInvocationState {
     Unspecified,
     Running,
     Succeeded,
@@ -126,8 +126,8 @@ pub enum State {
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct WorkflowInvocation {
-    name: String,
-    state: State,
+    pub name: String,
+    pub state: WorkflowInvocationState,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default)]
