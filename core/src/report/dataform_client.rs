@@ -54,7 +54,7 @@ impl DataformClient {
                 "workflowInvocations",
                 serde_json::json!({
                     "invocationConfig": {
-                        "serviceAccount": "jcarter-lava-bq-access@cala-enterprise.iam.gserviceaccount.com",
+                        "serviceAccount": self.config.service_account_key().client_email,
                     },
                     "compilationResult": compilation.name
                 }),

@@ -4,6 +4,7 @@ mod entity;
 pub mod error;
 mod job;
 mod repo;
+pub mod upload;
 
 use crate::{
     audit::*,

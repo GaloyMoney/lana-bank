@@ -48,7 +48,7 @@ impl Config {
         config.db.pg_con.clone_from(&db_con);
         config.app.sumsub.sumsub_key = sumsub_key;
         config.app.sumsub.sumsub_secret = sumsub_secret;
-        config.app.report.sa_creds_base64 = sa_creds_base64;
+        config.app.report.set_sa_creds_base64(sa_creds_base64)?;
 
         Ok(config)
     }
