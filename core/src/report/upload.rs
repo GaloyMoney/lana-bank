@@ -31,10 +31,8 @@ pub mod bq {
             .unwrap_or_else(|| Vec::new())
             .into_iter()
             .filter_map(|t| {
-                if let Some(s) = t.friendly_name {
-                    if s.starts_with("report") {
-                        return Some(s);
-                    }
+                if t.table_reference.table_id.starts_with("report") {
+                    return Some(t.table_reference.table_id);
                 }
                 None
             })

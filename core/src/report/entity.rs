@@ -46,7 +46,7 @@ impl EntityEvent for ReportEvent {
     }
 }
 
-pub(super) enum Step {
+pub(super) enum ReportGenerationProcessStep {
     Compilation,
     Invocation,
     Upload,
@@ -64,7 +64,7 @@ impl Entity for Report {
 }
 
 impl Report {
-    pub(super) fn next_step(&self) -> Step {
+    pub(super) fn next_step(&self) -> ReportGenerationProcessStep {
         unimplemented!()
     }
 

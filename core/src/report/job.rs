@@ -9,7 +9,10 @@ use crate::{
     primitives::*,
 };
 
-use super::{dataform_client::DataformClient, entity::Step, repo::ReportRepo, ReportConfig};
+use super::{
+    dataform_client::DataformClient, entity::ReportGenerationProcessStep, repo::ReportRepo,
+    ReportConfig,
+};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GenerateReportConfig {
@@ -69,7 +72,7 @@ impl JobRunner for GenerateReportJobRunner {
         let mut client = DataformClient::connect(&self.report_config).await?;
 
         match report.next_step() {
-            Step::Compilation => {
+            ReportGenerationProcessStep::Compilation => {
                 let mut db_tx = current_job.pool().begin().await?;
 
                 let audit_info = self
@@ -96,7 +99,7 @@ impl JobRunner for GenerateReportJobRunner {
                 return Ok(JobCompletion::RescheduleAt(chrono::Utc::now()));
             }
 
-            Step::Invocation => {
+            ReportGenerationProcessStep::Invocation => {
                 let mut db_tx = current_job.pool().begin().await?;
 
                 let audit_info = self
@@ -123,8 +126,8 @@ impl JobRunner for GenerateReportJobRunner {
                 return Ok(JobCompletion::RescheduleAt(chrono::Utc::now()));
             }
 
-            Step::Upload => {
-                // Do upload
+            ReportGenerationProcessStep::Upload => {
+                // super::upload::execute(&self.cfg)
             }
         }
 

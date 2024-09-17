@@ -32,7 +32,6 @@ async fn upload_test() -> anyhow::Result<()> {
 
     let cfg = ReportConfig::init(creds, prefix, "europe-west6".to_string())?;
     let all_reports = upload::bq::find_report_outputs(&cfg).await?;
-    dbg!(&all_reports);
-    assert_eq!(all_reports.len(), 1);
+    assert_eq!(all_reports.len(), 2);
     Ok(())
 }
