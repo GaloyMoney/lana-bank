@@ -37,18 +37,18 @@ impl DataformClient {
     }
 
     pub async fn compile(&mut self) -> Result<CompilationResult, anyhow::Error> {
-        let res: CompilationResult = self
+        let res: serde_json::Value= self
             .make_post_request("compilationResults", serde_json::json!({
                 "releaseConfig": format!("projects/{}/locations/{}/repositories/{}/releaseConfigs/{}", self.config.gcp_project, self.config.gcp_location, self.config.dataform_repo, self.config.dataform_release_config)
             }))
         .await?;
-        Ok(res)
+        Ok(serde_json::from_value(res)?)
     }
 
     pub async fn invoke(
         &mut self,
         compilation: &CompilationResult,
-    ) -> Result<serde_json::Value, anyhow::Error> {
+    ) -> Result<WorkflowInvocation, anyhow::Error> {
         let res: serde_json::Value = self
             .make_post_request(
                 "workflowInvocations",
@@ -60,7 +60,7 @@ impl DataformClient {
                 }),
             )
             .await?;
-        Ok(res)
+        Ok(serde_json::from_value(res)?)
     }
 
     async fn make_post_request<T: serde::de::DeserializeOwned>(
@@ -110,4 +110,22 @@ pub struct CompilationResult {
     name: String,
     release_config: String,
     resolved_git_commit_sha: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
+pub enum State {
+    Unspecified,
+    Running,
+    Succeeded,
+    Cancelled,
+    Failed,
+    Canceling,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct WorkflowInvocation {
+    name: String,
+    state: State,
 }

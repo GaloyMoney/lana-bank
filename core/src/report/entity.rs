@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::{entity::*, primitives::*};
 
-use super::dataform_client::CompilationResult;
+use super::dataform_client::{CompilationResult, WorkflowInvocation};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
@@ -27,7 +27,7 @@ pub enum ReportEvent {
     },
     InvocationCompleted {
         id: ReportId,
-        result: serde_json::Value,
+        result: WorkflowInvocation,
         audit_info: AuditInfo,
         recorded_at: DateTime<Utc>,
     },
@@ -101,7 +101,7 @@ impl Report {
 
     pub(super) fn invocation_completed(
         &mut self,
-        invocation_result: serde_json::Value,
+        invocation_result: WorkflowInvocation,
         audit_info: AuditInfo,
     ) {
         self.events.push(ReportEvent::InvocationCompleted {
