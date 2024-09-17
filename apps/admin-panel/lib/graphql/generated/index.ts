@@ -519,6 +519,7 @@ export type Mutation = {
   loanApprove: LoanApprovePayload;
   loanCreate: LoanCreatePayload;
   loanPartialPayment: LoanPartialPaymentPayload;
+  reportCreate: Report;
   shareholderEquityAdd: SuccessPayload;
   sumsubPermalinkCreate: SumsubPermalinkCreatePayload;
   userAssignRole: UserAssignRolePayload;
@@ -765,6 +766,11 @@ export type QueryWithdrawalsArgs = {
 export type RealtimePrice = {
   __typename?: 'RealtimePrice';
   usdCentsPerBtc: Scalars['UsdCents']['output'];
+};
+
+export type Report = {
+  __typename?: 'Report';
+  reportId: Scalars['UUID']['output'];
 };
 
 export enum Role {

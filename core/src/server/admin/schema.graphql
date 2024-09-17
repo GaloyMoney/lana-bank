@@ -508,6 +508,7 @@ type Mutation {
 	userCreate(input: UserCreateInput!): UserCreatePayload!
 	userAssignRole(input: UserAssignRoleInput!): UserAssignRolePayload!
 	userRevokeRole(input: UserRevokeRoleInput!): UserRevokeRolePayload!
+	reportCreate: Report!
 }
 
 """
@@ -570,6 +571,10 @@ type Query {
 
 type RealtimePrice {
 	usdCentsPerBtc: UsdCents!
+}
+
+type Report {
+	reportId: UUID!
 }
 
 enum Role {

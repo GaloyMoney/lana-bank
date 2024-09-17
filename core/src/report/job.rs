@@ -71,6 +71,7 @@ impl JobRunner for GenerateReportJobRunner {
         match report.next_step() {
             Step::Compilation => {
                 let mut db_tx = current_job.pool().begin().await?;
+
                 let audit_info = self
                     .audit
                     .record_entry_in_tx(
@@ -97,6 +98,7 @@ impl JobRunner for GenerateReportJobRunner {
 
             Step::Invocation => {
                 let mut db_tx = current_job.pool().begin().await?;
+
                 let audit_info = self
                     .audit
                     .record_entry_in_tx(
@@ -116,6 +118,8 @@ impl JobRunner for GenerateReportJobRunner {
                     }
                 }
                 self.repo.persist_in_tx(&mut db_tx, &mut report).await?;
+                db_tx.commit().await?;
+
                 return Ok(JobCompletion::RescheduleAt(chrono::Utc::now()));
             }
 

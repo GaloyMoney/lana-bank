@@ -2,9 +2,10 @@ use async_graphql::{types::connection::*, Context, Object};
 use uuid::Uuid;
 
 use super::{
-    account_set::*, audit::AuditEntry, customer::*, deposit::*, loan::*, price::*,
+    account_set::*, audit::AuditEntry, customer::*, deposit::*, loan::*, price::*, report::*,
     shareholder_equity::*, terms::*, user::*, withdraw::*,
 };
+
 use crate::{
     app::LavaApp,
     audit::AuditCursor,
@@ -688,5 +689,12 @@ impl Mutation {
             .revoke_role_from_user(sub, id.into(), role)
             .await?;
         Ok(UserRevokeRolePayload::from(user))
+    }
+
+    async fn report_create(&self, ctx: &Context<'_>) -> async_graphql::Result<Report> {
+        let app = ctx.data_unchecked::<LavaApp>();
+        let AdminAuthContext { sub } = ctx.data()?;
+        let report = app.reports().create(sub).await?;
+        Ok(Report::from(report))
     }
 }

@@ -6,6 +6,7 @@ mod deposit;
 pub mod loader;
 mod loan;
 mod price;
+mod report;
 mod schema;
 mod shareholder_equity;
 mod terms;
