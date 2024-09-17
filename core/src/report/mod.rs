@@ -6,6 +6,7 @@ mod job;
 mod repo;
 
 use crate::{
+    audit::*,
     authorization::{Authorization, Object, ReportAction},
     job::Jobs,
     primitives::Subject,
@@ -29,10 +30,12 @@ impl Reports {
         pool: &sqlx::PgPool,
         config: &ReportConfig,
         authz: &Authorization,
+        audit: &Audit,
         jobs: &Jobs,
     ) -> Self {
         let repo = ReportRepo::new(pool);
-        jobs.add_initializer(job::GenerateReportInitializer::new(&repo, config));
+        jobs.add_initializer(job::GenerateReportInitializer::new(&repo, config, audit));
+
         Self {
             repo,
             pool: pool.clone(),

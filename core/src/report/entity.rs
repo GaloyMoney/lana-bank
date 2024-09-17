@@ -1,3 +1,4 @@
+use chrono::{DateTime, Utc};
 use derive_builder::Builder;
 use serde::{Deserialize, Serialize};
 
@@ -15,18 +16,26 @@ pub enum ReportEvent {
     CompilationCompleted {
         id: ReportId,
         result: CompilationResult,
+        audit_info: AuditInfo,
+        recorded_at: DateTime<Utc>,
     },
     CompilationFailed {
         id: ReportId,
         error: String,
+        audit_info: AuditInfo,
+        recorded_at: DateTime<Utc>,
     },
     InvocationCompleted {
         id: ReportId,
         result: serde_json::Value,
+        audit_info: AuditInfo,
+        recorded_at: DateTime<Utc>,
     },
     InvocationFailed {
         id: ReportId,
         error: String,
+        audit_info: AuditInfo,
+        recorded_at: DateTime<Utc>,
     },
 }
 
@@ -59,16 +68,26 @@ impl Report {
         unimplemented!()
     }
 
-    pub(super) fn compilation_completed(&mut self, compilation_result: CompilationResult) {
+    pub(super) fn compilation_completed(
+        &mut self,
+        compilation_result: CompilationResult,
+        audit_info: AuditInfo,
+    ) {
         self.events.push(ReportEvent::CompilationCompleted {
             id: self.id,
             result: compilation_result,
+            audit_info,
+            recorded_at: Utc::now(),
         });
     }
 
-    pub(super) fn compilation_failed(&mut self, error: String) {
-        self.events
-            .push(ReportEvent::CompilationFailed { id: self.id, error });
+    pub(super) fn compilation_failed(&mut self, error: String, audit_info: AuditInfo) {
+        self.events.push(ReportEvent::CompilationFailed {
+            id: self.id,
+            error,
+            audit_info,
+            recorded_at: Utc::now(),
+        });
     }
 
     pub fn compilation_result(&self) -> CompilationResult {
@@ -80,16 +99,26 @@ impl Report {
         res.expect("Only called after successful compilation")
     }
 
-    pub(super) fn invocation_completed(&mut self, invocation_result: serde_json::Value) {
+    pub(super) fn invocation_completed(
+        &mut self,
+        invocation_result: serde_json::Value,
+        audit_info: AuditInfo,
+    ) {
         self.events.push(ReportEvent::InvocationCompleted {
             id: self.id,
             result: invocation_result,
+            audit_info,
+            recorded_at: Utc::now(),
         });
     }
 
-    pub(super) fn invocation_failed(&mut self, error: String) {
-        self.events
-            .push(ReportEvent::InvocationFailed { id: self.id, error });
+    pub(super) fn invocation_failed(&mut self, error: String, audit_info: AuditInfo) {
+        self.events.push(ReportEvent::InvocationFailed {
+            id: self.id,
+            error,
+            audit_info,
+            recorded_at: Utc::now(),
+        });
     }
 }
 

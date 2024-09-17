@@ -53,7 +53,7 @@ impl LavaApp {
         let withdraws = Withdraws::new(&pool, &customers, &ledger, &authz, &export);
         let deposits = Deposits::new(&pool, &customers, &ledger, &authz, &export);
         let price = Price::new();
-        let report = Reports::new(&pool, &config.report, &authz, &jobs);
+        let report = Reports::new(&pool, &config.report, &authz, &audit, &jobs);
         let users = Users::init(&pool, config.user, &authz, &audit, &export).await?;
         let loans = Loans::new(
             &pool,
