@@ -6,6 +6,16 @@ use crate::primitives::ReportId;
 pub enum ReportError {
     #[error("ReportError - Sqlx: {0}")]
     Sqlx(#[from] sqlx::Error),
+    #[error("ReportError - SerdeJson: {0}")]
+    Deserialization(#[from] serde_json::Error),
+    #[error("ReportError - Reqwest: {0}")]
+    Reqwest(#[from] reqwest::Error),
+    #[error("ReportError - GCPAuth: {0}")]
+    GCPAuth(#[from] gcp_auth::Error),
+    #[error("ReportError - Base64Decode: {0}")]
+    Base64Decode(#[from] base64::DecodeError),
+    #[error("ReportError - FromUtf8Error : {0}")]
+    FromUtf8Error(#[from] std::string::FromUtf8Error),
     #[error("ReportError - EntityError: {0}")]
     EntityError(#[from] crate::entity::EntityError),
     #[error("ReportError - AuthorizationError: {0}")]
