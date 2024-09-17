@@ -127,7 +127,35 @@ impl JobRunner for GenerateReportJobRunner {
             }
 
             ReportGenerationProcessStep::Upload => {
-                // super::upload::execute(&self.cfg)
+                let mut db_tx = current_job.pool().begin().await?;
+
+                let audit_info = self
+                    .audit
+                    .record_entry_in_tx(
+                        &mut db_tx,
+                        &Subject::System(SystemNode::Core),
+                        Object::Report,
+                        ReportAction::Upload,
+                        true,
+                    )
+                    .await?;
+
+                match super::upload::execute(&self.report_config).await {
+                    Ok(res) => {
+                        report.upload_completed(res, audit_info);
+                    }
+                    Err(e) => {
+                        report.upload_failed(e.to_string(), audit_info);
+
+                        self.repo.persist_in_tx(&mut db_tx, &mut report).await?;
+                        db_tx.commit().await?;
+
+                        return Ok(JobCompletion::RescheduleAt(chrono::Utc::now()));
+                    }
+                }
+
+                self.repo.persist_in_tx(&mut db_tx, &mut report).await?;
+                db_tx.commit().await?;
             }
         }
 

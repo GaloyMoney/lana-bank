@@ -1,6 +1,6 @@
-use super::config::ReportConfig;
+use super::{config::ReportConfig, dataform_client::UploadResult};
 
-pub async fn execute(config: &ReportConfig) -> anyhow::Result<()> {
+pub async fn execute(config: &ReportConfig) -> anyhow::Result<UploadResult> {
     for table in bq::find_report_outputs(config).await? {
         // let rows = big_query::query_report(
         //     &config.gcp_project,
@@ -26,7 +26,7 @@ pub async fn execute(config: &ReportConfig) -> anyhow::Result<()> {
         //     let download_url = note.download_url(60 * 10).map_err(err_into_status)?; <- lazy
         //     evaluate the download link
     }
-    Ok(())
+    Ok(UploadResult::default())
 }
 
 // fn path_to_report(docs_bucket: &str, company_id: &str, cn_ref: &str) -> String {

@@ -154,6 +154,7 @@ pub enum ReportAction {
     Create,
     Compile,
     Invoke,
+    Upload,
 }
 
 impl_trivial_action!(ReportAction, Report);

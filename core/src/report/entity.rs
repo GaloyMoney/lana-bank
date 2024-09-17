@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::{entity::*, primitives::*};
 
-use super::dataform_client::{CompilationResult, WorkflowInvocation};
+use super::dataform_client::{CompilationResult, UploadResult, WorkflowInvocation};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
@@ -37,11 +37,17 @@ pub enum ReportEvent {
         audit_info: AuditInfo,
         recorded_at: DateTime<Utc>,
     },
-    FileUploadComplete {
-        audit_info: AuditInfo,
-        date: DateTime<Utc>,
-        report_name: String,
+    UploadCompleted {
+        id: ReportId,
         gcs_path: String,
+        audit_info: AuditInfo,
+        recorded_at: DateTime<Utc>,
+    },
+    UploadFailed {
+        id: ReportId,
+        error: String,
+        audit_info: AuditInfo,
+        recorded_at: DateTime<Utc>,
     },
 }
 
@@ -120,6 +126,24 @@ impl Report {
 
     pub(super) fn invocation_failed(&mut self, error: String, audit_info: AuditInfo) {
         self.events.push(ReportEvent::InvocationFailed {
+            id: self.id,
+            error,
+            audit_info,
+            recorded_at: Utc::now(),
+        });
+    }
+
+    pub(super) fn upload_completed(&mut self, upload_result: UploadResult, audit_info: AuditInfo) {
+        self.events.push(ReportEvent::UploadCompleted {
+            id: self.id,
+            gcs_path: upload_result.gcs_path,
+            audit_info,
+            recorded_at: Utc::now(),
+        });
+    }
+
+    pub(super) fn upload_failed(&mut self, error: String, audit_info: AuditInfo) {
+        self.events.push(ReportEvent::UploadFailed {
             id: self.id,
             error,
             audit_info,
