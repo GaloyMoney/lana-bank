@@ -1,11 +1,36 @@
 use super::config::ReportConfig;
 
-// pub async fn execute(config: &ReportConfig) {
-//     big_query::query_report(
-//         &config.gcp_project,
-//         &config.gcp_location,
-//         config.service_account_key(),
-//     )
+pub async fn execute(config: &ReportConfig) -> anyhow::Result<()> {
+    for table in bq::find_report_outputs(config).await? {
+        // let rows = big_query::query_report(
+        //     &config.gcp_project,
+        //     &config.gcp_location,
+        //     config.service_account_key(),
+        // )
+        //     let xml_bytes = convert_to_xml_data(rows)
+        //     use cloud_storage
+        //     Object::create(
+        //         &self.bucket_name,
+        //         pdf_bytes.to_vec(),
+        //         &path_to_report(&self.folder_prefix, &data.debitor_company_id, &data.cn_ref),
+        //         "application/pdf",
+        //     )
+        //     .await
+        //     .map_err(err_into_status)?;
+        //     let note = Object::read(
+        //         &self.bucket_name,
+        //         &path_to_report(&self.folder_prefix, &company_id, &cn_ref),
+        //     )
+        //     .await
+        //     .map_err(err_into_status)?;
+        //     let download_url = note.download_url(60 * 10).map_err(err_into_status)?; <- lazy
+        //     evaluate the download link
+    }
+    Ok(())
+}
+
+// fn path_to_report(docs_bucket: &str, company_id: &str, cn_ref: &str) -> String {
+//     format!("{}/reports/{}/{}.xml", docs_bucket, day, table_name)
 // }
 
 pub mod bq {

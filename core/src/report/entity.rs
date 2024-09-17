@@ -37,6 +37,12 @@ pub enum ReportEvent {
         audit_info: AuditInfo,
         recorded_at: DateTime<Utc>,
     },
+    FileUploadComplete {
+        audit_info: AuditInfo,
+        date: DateTime<Utc>,
+        report_name: String,
+        gcs_path: String,
+    },
 }
 
 impl EntityEvent for ReportEvent {
