@@ -1,0 +1,6 @@
+query Report($id: UUID!) {
+  report(id: $id) {
+    reportId
+    progress
+  }
+}
