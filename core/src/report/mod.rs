@@ -1,3 +1,4 @@
+mod cloud_storage_client;
 mod config;
 pub mod dataform_client;
 mod entity;
@@ -14,6 +15,7 @@ use crate::{
     primitives::{ReportId, Subject},
 };
 
+use cloud_storage_client::generate_download_link;
 pub use config::*;
 pub use entity::*;
 use error::*;
@@ -25,6 +27,7 @@ pub struct Reports {
     authz: Authorization,
     repo: ReportRepo,
     jobs: Jobs,
+    config: ReportConfig,
 }
 
 impl Reports {
@@ -43,6 +46,7 @@ impl Reports {
             pool: pool.clone(),
             authz: authz.clone(),
             jobs: jobs.clone(),
+            config: config.clone(),
         }
     }
 
@@ -76,19 +80,55 @@ impl Reports {
 
     pub async fn find_by_id(
         &self,
-        sub: Option<&Subject>,
+        sub: &Subject,
         id: ReportId,
     ) -> Result<Option<Report>, ReportError> {
-        if let Some(sub) = sub {
-            self.authz
-                .check_permission(sub, Object::Report, ReportAction::Read)
-                .await?;
-        }
+        self.authz
+            .check_permission(sub, Object::Report, ReportAction::Read)
+            .await?;
 
         match self.repo.find_by_id(id).await {
-            Ok(loan) => Ok(Some(loan)),
+            Ok(report) => Ok(Some(report)),
             Err(ReportError::EntityError(EntityError::NoEntityEventsPresent)) => Ok(None),
             Err(e) => Err(e),
         }
+    }
+
+    pub async fn generate_download_links(
+        &self,
+        sub: &Subject,
+        report_id: ReportId,
+    ) -> Result<GeneratedReportDownloadLinks, ReportError> {
+        let audit_info = self
+            .authz
+            .check_permission(sub, Object::Report, ReportAction::GenerateDownloadLink)
+            .await?;
+
+        let mut report = self.repo.find_by_id(report_id).await?;
+
+        let mut db_tx = self.pool.begin().await?;
+
+        let mut download_links = vec![];
+        for location in report.download_links() {
+            let url = generate_download_link(
+                &location.bucket,
+                &location.path_in_bucket,
+                self.config.download_link_duration,
+            )
+            .await?;
+
+            download_links.push(ReportDownloadLink {
+                report_name: location.report_name.clone(),
+                url,
+            });
+
+            report.download_link_generated(audit_info, location);
+        }
+
+        self.repo.persist_in_tx(&mut db_tx, &mut report).await?;
+        Ok(GeneratedReportDownloadLinks {
+            report_id,
+            links: download_links,
+        })
     }
 }

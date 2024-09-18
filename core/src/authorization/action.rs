@@ -156,7 +156,7 @@ pub enum ReportAction {
     Compile,
     Invoke,
     Upload,
-    ViewDownloadLinks,
+    GenerateDownloadLink,
 }
 
 impl_trivial_action!(ReportAction, Report);

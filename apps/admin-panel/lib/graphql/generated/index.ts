@@ -520,6 +520,7 @@ export type Mutation = {
   loanCreate: LoanCreatePayload;
   loanPartialPayment: LoanPartialPaymentPayload;
   reportCreate: ReportCreatePayload;
+  reportDownloadLinksGenerate: ReportDownloadLinksGeneratePayload;
   shareholderEquityAdd: SuccessPayload;
   sumsubPermalinkCreate: SumsubPermalinkCreatePayload;
   userAssignRole: UserAssignRolePayload;
@@ -573,6 +574,11 @@ export type MutationLoanCreateArgs = {
 
 export type MutationLoanPartialPaymentArgs = {
   input: LoanPartialPaymentInput;
+};
+
+
+export type MutationReportDownloadLinksGenerateArgs = {
+  input: ReportDownloadLinksGenerateInput;
 };
 
 
@@ -776,6 +782,7 @@ export type RealtimePrice = {
 
 export type Report = {
   __typename?: 'Report';
+  progress: ReportProgress;
   reportId: Scalars['UUID']['output'];
 };
 
@@ -783,6 +790,27 @@ export type ReportCreatePayload = {
   __typename?: 'ReportCreatePayload';
   report: Report;
 };
+
+export type ReportDownloadLink = {
+  __typename?: 'ReportDownloadLink';
+  reportName: Scalars['String']['output'];
+  url: Scalars['String']['output'];
+};
+
+export type ReportDownloadLinksGenerateInput = {
+  reportId: Scalars['UUID']['input'];
+};
+
+export type ReportDownloadLinksGeneratePayload = {
+  __typename?: 'ReportDownloadLinksGeneratePayload';
+  links: Array<ReportDownloadLink>;
+  reportId: Scalars['UUID']['output'];
+};
+
+export enum ReportProgress {
+  Complete = 'COMPLETE',
+  Running = 'RUNNING'
+}
 
 export enum Role {
   Admin = 'ADMIN',

@@ -1,9 +1,8 @@
-use cloud_storage::Object;
 use serde::{Deserialize, Serialize};
 
 use std::collections::HashMap;
 
-use super::config::ReportConfig;
+use super::{cloud_storage_client::upload_xml_file, config::ReportConfig};
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
@@ -36,11 +35,10 @@ pub async fn execute(config: &ReportConfig) -> anyhow::Result<Vec<ReportFileUplo
             }
         };
         let xml_bytes = convert_to_xml_data(rows);
-        match Object::create(
+        match upload_xml_file(
             &config.bucket_name,
-            xml_bytes.to_vec(),
             &path_to_report(&config.reports_root_folder, &report_name),
-            "application/xml",
+            xml_bytes.to_vec(),
         )
         .await
         {
@@ -56,14 +54,6 @@ pub async fn execute(config: &ReportConfig) -> anyhow::Result<Vec<ReportFileUplo
                 report_name,
             }),
         }
-
-        // let note = Object::read(
-        //     &config.bucket_name,
-        //     &path_to_report(&config.reports_root_folder, &report),
-        // )
-        // .await?;
-
-        // let _download_url = note.download_url(60 * 10)?;
     }
 
     Ok(res)

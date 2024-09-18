@@ -118,6 +118,9 @@ impl Authorization {
             .await?;
         self.add_permission_to_role(&role, Object::Report, ReportAction::Read)
             .await?;
+        self.add_permission_to_role(&role, Object::Report, ReportAction::GenerateDownloadLink)
+            .await?;
+
         Ok(())
     }
 

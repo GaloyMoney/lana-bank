@@ -424,10 +424,7 @@ impl Query {
 
         let AdminAuthContext { sub } = ctx.data()?;
 
-        let report = app
-            .reports()
-            .find_by_id(Some(sub), ReportId::from(id))
-            .await?;
+        let report = app.reports().find_by_id(sub, ReportId::from(id)).await?;
         Ok(report.map(Report::from))
     }
 }
@@ -713,10 +710,14 @@ impl Mutation {
     async fn report_download_links_generate(
         &self,
         ctx: &Context<'_>,
+        input: ReportDownloadLinksGenerateInput,
     ) -> async_graphql::Result<ReportDownloadLinksGeneratePayload> {
         let app = ctx.data_unchecked::<LavaApp>();
         let AdminAuthContext { sub } = ctx.data()?;
-        let links = app.reports().gen_download_links(sub).await?;
-        Ok(ReportDownloadLinksPayload::from(links))
+        let links = app
+            .reports()
+            .generate_download_links(sub, input.report_id.into())
+            .await?;
+        Ok(ReportDownloadLinksGeneratePayload::from(links))
     }
 }

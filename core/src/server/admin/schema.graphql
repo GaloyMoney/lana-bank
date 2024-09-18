@@ -509,6 +509,7 @@ type Mutation {
 	userAssignRole(input: UserAssignRoleInput!): UserAssignRolePayload!
 	userRevokeRole(input: UserRevokeRoleInput!): UserRevokeRolePayload!
 	reportCreate: ReportCreatePayload!
+	reportDownloadLinksGenerate(input: ReportDownloadLinksGenerateInput!): ReportDownloadLinksGeneratePayload!
 }
 
 """
@@ -576,10 +577,30 @@ type RealtimePrice {
 
 type Report {
 	reportId: UUID!
+	progress: ReportProgress!
 }
 
 type ReportCreatePayload {
 	report: Report!
+}
+
+type ReportDownloadLink {
+	reportName: String!
+	url: String!
+}
+
+input ReportDownloadLinksGenerateInput {
+	reportId: UUID!
+}
+
+type ReportDownloadLinksGeneratePayload {
+	reportId: UUID!
+	links: [ReportDownloadLink!]!
+}
+
+enum ReportProgress {
+	RUNNING
+	COMPLETE
 }
 
 enum Role {

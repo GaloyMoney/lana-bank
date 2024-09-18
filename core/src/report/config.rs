@@ -22,6 +22,8 @@ pub struct ReportConfig {
     pub bucket_name: String,
     #[serde(default)]
     pub reports_root_folder: String,
+    #[serde(default)]
+    pub download_link_duration: u32,
 }
 
 impl ReportConfig {
@@ -29,6 +31,7 @@ impl ReportConfig {
         sa_creds_base64: String,
         name_prefix: String,
         gcp_location: String,
+        download_link_duration: u32,
     ) -> anyhow::Result<Self> {
         let mut cfg = Self {
             dataform_repo: format!("{}-repo", name_prefix),
@@ -37,6 +40,7 @@ impl ReportConfig {
             bucket_name: format!("{}-volcano-docs", name_prefix),
             gcp_location,
             reports_root_folder: name_prefix,
+            download_link_duration,
             ..Default::default()
         };
         cfg.set_sa_creds_base64(sa_creds_base64)?;

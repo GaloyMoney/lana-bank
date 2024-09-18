@@ -30,6 +30,7 @@ pub struct EnvOverride {
     pub sumsub_key: String,
     pub sumsub_secret: String,
     pub sa_creds_base64: String,
+    pub report_download_link_duration: String,
 }
 
 impl Config {
@@ -40,6 +41,7 @@ impl Config {
             sumsub_key,
             sumsub_secret,
             sa_creds_base64,
+            report_download_link_duration,
         }: EnvOverride,
         dev_env_name_prefix: Option<String>,
     ) -> anyhow::Result<Self> {
@@ -59,6 +61,7 @@ impl Config {
                 sa_creds_base64.clone(),
                 dev_env_name_prefix,
                 config.app.report.gcp_location,
+                report_download_link_duration.parse()?,
             )?;
         };
         let service_account_creds = config.app.report.set_sa_creds_base64(sa_creds_base64)?;

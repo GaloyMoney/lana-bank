@@ -9,6 +9,25 @@ use super::{
     upload::ReportFileUpload,
 };
 
+#[derive(Debug, Clone)]
+pub struct ReportLocationInCloud {
+    pub report_name: String,
+    pub bucket: String,
+    pub path_in_bucket: String,
+}
+
+#[derive(Debug, Clone)]
+pub struct ReportDownloadLink {
+    pub report_name: String,
+    pub url: String,
+}
+
+#[derive(Debug, Clone)]
+pub struct GeneratedReportDownloadLinks {
+    pub report_id: ReportId,
+    pub links: Vec<ReportDownloadLink>,
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
 pub enum ReportEvent {
@@ -51,6 +70,13 @@ pub enum ReportEvent {
     },
     UploadFailed {
         error: String,
+        audit_info: AuditInfo,
+        recorded_at: DateTime<Utc>,
+    },
+    DownloadLinkGenerated {
+        report_name: String,
+        bucket: String,
+        path_in_bucket: String,
         audit_info: AuditInfo,
         recorded_at: DateTime<Utc>,
     },
@@ -189,6 +215,39 @@ impl Report {
     pub(super) fn upload_failed(&mut self, error: String, audit_info: AuditInfo) {
         self.events.push(ReportEvent::UploadFailed {
             error,
+            audit_info,
+            recorded_at: Utc::now(),
+        });
+    }
+
+    pub(super) fn download_links(&self) -> Vec<ReportLocationInCloud> {
+        self.events
+            .iter()
+            .filter_map(|e| match e {
+                ReportEvent::FileUploaded {
+                    report_name,
+                    bucket,
+                    path_in_bucket,
+                    ..
+                } => Some(ReportLocationInCloud {
+                    report_name: report_name.to_string(),
+                    bucket: bucket.to_string(),
+                    path_in_bucket: path_in_bucket.to_string(),
+                }),
+                _ => None,
+            })
+            .collect()
+    }
+
+    pub(super) fn download_link_generated(
+        &mut self,
+        audit_info: AuditInfo,
+        location: ReportLocationInCloud,
+    ) {
+        self.events.push(ReportEvent::DownloadLinkGenerated {
+            report_name: location.report_name,
+            bucket: location.bucket,
+            path_in_bucket: location.path_in_bucket,
             audit_info,
             recorded_at: Utc::now(),
         });
