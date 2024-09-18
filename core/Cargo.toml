@@ -48,6 +48,7 @@ cached = { workspace = true }
 gcp_auth = { workspace = true }
 gcp-bigquery-client = { workspace = true }
 cloud-storage = { workspace = true }
+serde-xml-rs = { workspace = true }
 
 [dev-dependencies]
 rand = "0.8"

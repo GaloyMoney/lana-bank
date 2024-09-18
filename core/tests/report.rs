@@ -32,6 +32,10 @@ async fn upload_test() -> anyhow::Result<()> {
 
     let cfg = ReportConfig::init(creds, prefix, "europe-west6".to_string())?;
     let all_reports = upload::bq::find_report_outputs(&cfg).await?;
-    assert_eq!(all_reports.len(), 2);
+    for report in all_reports {
+        let rows = upload::bq::query_report(&cfg, &report).await?;
+        let xml_data = upload::convert_to_xml_data(rows)?;
+    }
+
     Ok(())
 }

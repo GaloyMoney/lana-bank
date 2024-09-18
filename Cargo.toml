@@ -50,8 +50,8 @@ ory-kratos-client = "1.1.0"
 cached = { version = "0.53.1", features = ["async"] }
 gcp_auth = { version = "0.12.2", features = ["webpki-roots"] }
 gcp-bigquery-client = { git = "https://github.com/bodymindarts/gcp-bigquery-client.git", branch = "feat--webpki", features = ["rust-tls"] }
-cloud-storage = { version = "0.11.1",default-features = false, features = ["rustls-tls"] }
-
+cloud-storage = { version = "0.11.1",default-features = false, features = ["rustls-tls", "sync", "global-client"] }
+serde-xml-rs = "0.6.0"
 
 [profile.release]
 lto = true

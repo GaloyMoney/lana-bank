@@ -17,6 +17,10 @@ pub struct ReportConfig {
     pub dataform_output_dataset: String,
     #[serde(default)]
     pub dataform_release_config: String,
+    #[serde(default)]
+    pub bucket_name: String,
+    #[serde(default)]
+    pub folder_prefix: String,
 }
 
 impl ReportConfig {
