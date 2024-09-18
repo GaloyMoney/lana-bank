@@ -4,7 +4,7 @@ use crate::{
     app::LavaApp,
     ledger,
     loan::LoanCollaterizationState,
-    primitives::{CollateralAction, CustomerId, LoanStatus, UserId},
+    primitives::*,
     server::admin::graphql::user::User,
     server::shared_graphql::{customer::Customer, primitives::*, terms::TermValues},
 };
@@ -26,11 +26,30 @@ pub struct Loan {
     account_ids: crate::ledger::loan::LoanAccountIds,
     status: LoanStatus,
     collateral: Satoshis,
-    principal: UsdCents,
+    facility: UsdCents,
     transactions: Vec<LoanHistoryEntry>,
     approvals: Vec<LoanApproval>,
     repayment_plan: Vec<LoanRepaymentInPlan>,
     collateralization_state: LoanCollaterizationState,
+}
+
+#[derive(SimpleObject)]
+pub struct LoanDisbursement {
+    id: ID,
+}
+
+impl From<crate::loan::Disbursement> for LoanDisbursement {
+    fn from(disbursement: crate::loan::Disbursement) -> Self {
+        Self {
+            id: disbursement.id.to_global_id(),
+        }
+    }
+}
+
+impl ToGlobalId for crate::primitives::DisbursementId {
+    fn to_global_id(&self) -> async_graphql::types::ID {
+        async_graphql::types::ID::from(format!("disbursement:{}", self))
+    }
 }
 
 #[derive(SimpleObject)]
@@ -54,13 +73,13 @@ impl From<crate::loan::LoanRepaymentInPlan> for LoanRepaymentInPlan {
                 accrual_at: interest.accrual_at.into(),
                 due_at: interest.due_at.into(),
             },
-            crate::loan::LoanRepaymentInPlan::Principal(interest) => LoanRepaymentInPlan {
-                repayment_type: LoanRepaymentType::Principal,
-                status: interest.status.into(),
-                initial: interest.initial,
-                outstanding: interest.outstanding,
-                accrual_at: interest.accrual_at.into(),
-                due_at: interest.due_at.into(),
+            crate::loan::LoanRepaymentInPlan::Disbursements(disbursements) => LoanRepaymentInPlan {
+                repayment_type: LoanRepaymentType::Disbursements,
+                status: disbursements.status.into(),
+                initial: disbursements.initial,
+                outstanding: disbursements.outstanding,
+                accrual_at: disbursements.accrual_at.into(),
+                due_at: disbursements.due_at.into(),
             },
         }
     }
@@ -68,7 +87,7 @@ impl From<crate::loan::LoanRepaymentInPlan> for LoanRepaymentInPlan {
 
 #[derive(async_graphql::Enum, Clone, Copy, PartialEq, Eq)]
 pub enum LoanRepaymentType {
-    Principal,
+    Disbursements,
     Interest,
 }
 
@@ -98,6 +117,7 @@ pub enum LoanHistoryEntry {
     Collateral(CollateralUpdated),
     Origination(LoanOrigination),
     Collateralization(CollateralizationUpdated),
+    Disbursement(IncrementalDisbursement),
 }
 
 #[derive(SimpleObject)]
@@ -134,9 +154,16 @@ pub struct CollateralizationUpdated {
     pub state: LoanCollaterizationState,
     pub collateral: Satoshis,
     pub outstanding_interest: UsdCents,
-    pub outstanding_principal: UsdCents,
+    pub outstanding_disbursements: UsdCents,
     pub price: UsdCents,
     pub recorded_at: Timestamp,
+}
+
+#[derive(SimpleObject)]
+pub struct IncrementalDisbursement {
+    pub cents: UsdCents,
+    pub recorded_at: Timestamp,
+    pub tx_id: UUID,
 }
 
 #[derive(SimpleObject)]
@@ -165,6 +192,22 @@ impl Loan {
             Some(user) => Ok(Customer::from(user)),
             None => panic!("user not found for a loan. should not be possible"),
         }
+    }
+
+    async fn disbursements(
+        &self,
+        ctx: &Context<'_>,
+    ) -> async_graphql::Result<Vec<LoanDisbursement>> {
+        let app = ctx.data_unchecked::<LavaApp>();
+        let disbursements = app
+            .loans()
+            .list_disbursements(LoanId::from(&self.loan_id))
+            .await?;
+
+        Ok(disbursements
+            .into_iter()
+            .map(LoanDisbursement::from)
+            .collect())
     }
 }
 
@@ -210,7 +253,7 @@ impl From<ledger::loan::LoanBalance> for LoanBalance {
                 btc_balance: balance.collateral,
             },
             outstanding: LoanOutstanding {
-                usd_balance: balance.principal_receivable + balance.interest_receivable,
+                usd_balance: balance.disbursed_receivable + balance.interest_receivable,
             },
             interest_incurred: InterestIncome {
                 usd_balance: balance.interest_incurred,
@@ -232,7 +275,7 @@ impl From<crate::loan::Loan> for Loan {
         let expires_at: Option<Timestamp> = loan.expires_at.map(|e| e.into());
 
         let collateral = loan.collateral();
-        let principal = loan.initial_principal();
+        let facility = loan.initial_facility();
         let transactions = loan
             .history()
             .into_iter()
@@ -261,7 +304,7 @@ impl From<crate::loan::Loan> for Loan {
             approved_at,
             expires_at,
             collateral,
-            principal,
+            facility,
             transactions,
             approvals,
             repayment_plan,
@@ -287,6 +330,9 @@ impl From<crate::loan::LoanHistoryEntry> for LoanHistoryEntry {
             }
             crate::loan::LoanHistoryEntry::Collateralization(collateralization) => {
                 LoanHistoryEntry::Collateralization(collateralization.into())
+            }
+            crate::loan::LoanHistoryEntry::Disbursement(disbursement) => {
+                LoanHistoryEntry::Disbursement(disbursement.into())
             }
         }
     }
@@ -339,9 +385,19 @@ impl From<crate::loan::CollateralizationUpdated> for CollateralizationUpdated {
             state: collateralization.state,
             collateral: collateralization.collateral,
             outstanding_interest: collateralization.outstanding_interest,
-            outstanding_principal: collateralization.outstanding_principal,
+            outstanding_disbursements: collateralization.outstanding_disbursements,
             price: collateralization.price.into_inner(),
             recorded_at: collateralization.recorded_at.into(),
+        }
+    }
+}
+
+impl From<crate::loan::IncrementalDisbursement> for IncrementalDisbursement {
+    fn from(disbursement: crate::loan::IncrementalDisbursement) -> Self {
+        IncrementalDisbursement {
+            cents: disbursement.cents,
+            recorded_at: disbursement.recorded_at.into(),
+            tx_id: disbursement.tx_id.into(),
         }
     }
 }

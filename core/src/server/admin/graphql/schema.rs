@@ -482,7 +482,7 @@ impl Mutation {
 
         let LoanCreateInput {
             customer_id,
-            desired_principal,
+            desired_facility,
             loan_terms,
         } = input;
         let term_values = crate::loan::TermValues::builder()
@@ -495,7 +495,7 @@ impl Mutation {
             .build()?;
         let loan = app
             .loans()
-            .create_loan_for_customer(sub, customer_id, desired_principal, term_values)
+            .create_loan_for_customer(sub, customer_id, desired_facility, term_values)
             .await?;
         Ok(LoanCreatePayload::from(loan))
     }
@@ -619,6 +619,38 @@ impl Mutation {
         let withdraw = app.withdraws().cancel(sub, input.withdrawal_id).await?;
 
         Ok(WithdrawalCancelPayload::from(withdraw))
+    }
+
+    pub async fn loan_disbursement_initiate(
+        &self,
+        ctx: &Context<'_>,
+        input: LoanDisbursementInitiateInput,
+    ) -> async_graphql::Result<LoanDisbursementInitiatePayload> {
+        let app = ctx.data_unchecked::<LavaApp>();
+        let AdminAuthContext { sub } = ctx.data()?;
+
+        let disbursement = app
+            .loans()
+            .initiate_disbursement(sub, input.loan_id.into(), input.amount)
+            .await?;
+
+        Ok(LoanDisbursementInitiatePayload::from(disbursement))
+    }
+
+    async fn loan_disbursement_approve(
+        &self,
+        ctx: &Context<'_>,
+        input: LoanDisbursementApproveInput,
+    ) -> async_graphql::Result<LoanDisbursementApprovePayload> {
+        let app = ctx.data_unchecked::<LavaApp>();
+
+        let AdminAuthContext { sub } = ctx.data()?;
+
+        let loan = app
+            .loans()
+            .add_disbursement_approval(sub, input.loan_id.into())
+            .await?;
+        Ok(LoanDisbursementApprovePayload::from(loan))
     }
 
     async fn customer_create(

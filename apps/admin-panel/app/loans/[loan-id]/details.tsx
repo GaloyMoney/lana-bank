@@ -61,7 +61,7 @@ export const LoanDetailsCard: React.FC<LoanDetailsCardProps> = ({ loan, refetch 
               />
               <DetailItem
                 label="Principal"
-                valueComponent={<Balance amount={loan.principal} currency="usd" />}
+                valueComponent={<Balance amount={loan.facility} currency="usd" />}
               />
               <DetailItem
                 label="Collaterization State"

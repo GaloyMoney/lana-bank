@@ -42,7 +42,7 @@ type CollateralizationUpdated {
 	state: LoanCollaterizationState!
 	collateral: Satoshis!
 	outstandingInterest: UsdCents!
-	outstandingPrincipal: UsdCents!
+	outstandingDisbursements: UsdCents!
 	price: UsdCents!
 	recordedAt: Timestamp!
 }
@@ -81,6 +81,12 @@ type Duration {
 
 
 
+type IncrementalDisbursement {
+	cents: UsdCents!
+	recordedAt: Timestamp!
+	txId: UUID!
+}
+
 type IncrementalPayment {
 	cents: UsdCents!
 	recordedAt: Timestamp!
@@ -117,13 +123,14 @@ type Loan {
 	loanTerms: TermValues!
 	status: LoanStatus!
 	collateral: Satoshis!
-	principal: UsdCents!
+	facility: UsdCents!
 	transactions: [LoanHistoryEntry!]!
 	approvals: [LoanApproval!]!
 	repaymentPlan: [LoanRepaymentInPlan!]!
 	collateralizationState: LoanCollaterizationState!
 	balance: LoanBalance!
 	customer: Customer!
+	disbursements: [LoanDisbursement!]!
 }
 
 type LoanApproval {
@@ -145,7 +152,11 @@ enum LoanCollaterizationState {
 	NO_COLLATERAL
 }
 
-union LoanHistoryEntry = IncrementalPayment | InterestAccrued | CollateralUpdated | LoanOrigination | CollateralizationUpdated
+type LoanDisbursement {
+	id: ID!
+}
+
+union LoanHistoryEntry = IncrementalPayment | InterestAccrued | CollateralUpdated | LoanOrigination | CollateralizationUpdated | IncrementalDisbursement
 
 type LoanOrigination {
 	cents: UsdCents!
@@ -174,7 +185,7 @@ enum LoanRepaymentStatus {
 }
 
 enum LoanRepaymentType {
-	PRINCIPAL
+	DISBURSEMENTS
 	INTEREST
 }
 

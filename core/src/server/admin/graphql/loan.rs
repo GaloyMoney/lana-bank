@@ -9,7 +9,7 @@ use crate::server::shared_graphql::{
 #[derive(InputObject)]
 pub struct LoanCreateInput {
     pub customer_id: UUID,
-    pub desired_principal: UsdCents,
+    pub desired_facility: UsdCents,
     pub loan_terms: TermsInput,
 }
 
@@ -64,6 +64,43 @@ pub struct LoanPartialPaymentPayload {
 impl From<crate::loan::Loan> for LoanPartialPaymentPayload {
     fn from(loan: crate::loan::Loan) -> Self {
         Self { loan: loan.into() }
+    }
+}
+
+#[derive(InputObject)]
+pub struct LoanDisbursementInitiateInput {
+    pub loan_id: UUID,
+    pub amount: UsdCents,
+}
+
+#[derive(SimpleObject)]
+pub struct LoanDisbursementInitiatePayload {
+    disbursement: LoanDisbursement,
+}
+
+impl From<crate::loan::Disbursement> for LoanDisbursementInitiatePayload {
+    fn from(disbursement: crate::loan::Disbursement) -> Self {
+        Self {
+            disbursement: LoanDisbursement::from(disbursement),
+        }
+    }
+}
+
+#[derive(InputObject)]
+pub struct LoanDisbursementApproveInput {
+    pub loan_id: UUID,
+}
+
+#[derive(SimpleObject)]
+pub struct LoanDisbursementApprovePayload {
+    disbursement: LoanDisbursement,
+}
+
+impl From<crate::loan::Disbursement> for LoanDisbursementApprovePayload {
+    fn from(disbursement: crate::loan::Disbursement) -> Self {
+        Self {
+            disbursement: LoanDisbursement::from(disbursement),
+        }
     }
 }
 

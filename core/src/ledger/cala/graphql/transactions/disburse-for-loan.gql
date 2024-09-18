@@ -1,15 +1,21 @@
-mutation ApproveLoanTemplateCreate(
+mutation LoanDisbursementTemplateCreate(
   $templateId: UUID!
   $journalId: Expression!
+  $omnibusLoanFacilityAccount: Expression!
 ) {
   txTemplateCreate(
     input: {
       txTemplateId: $templateId
-      code: "APPROVE_LOAN"
-      description: "Payout principal."
+      code: "LOAN_DISBURSEMENT"
+      description: "Payout disbursement."
       params: [
         {
-          name: "loanPrincipalReceivableAccount"
+          name: "loanFacilityAccount"
+          type: UUID
+          description: "Loan facility account ID."
+        }
+        {
+          name: "loanDisbursedReceivableAccount"
           type: UUID
           description: "Loan amount-outstanding account ID."
         }
@@ -19,7 +25,7 @@ mutation ApproveLoanTemplateCreate(
           description: "User Checking account ID."
         }
         {
-          name: "principalAmount"
+          name: "disbursedAmount"
           type: DECIMAL
           description: "Amount of USD being issued for the loan."
         }
@@ -42,18 +48,34 @@ mutation ApproveLoanTemplateCreate(
       }
       entries: [
         {
-          accountId: "params.loanPrincipalReceivableAccount"
-          units: "params.principalAmount"
+          accountId: $omnibusLoanFacilityAccount
+          units: "params.disbursedAmount"
           currency: "'USD'"
-          entryType: "'APPROVE_LOAN_PRINCIPAL_DR'"
+          entryType: "'LOAN_DISBURSEMENT_FACILITY_ADJUST_DR'"
+          direction: "DEBIT"
+          layer: "SETTLED"
+        }
+        {
+          accountId: "params.loanFacilityAccount"
+          units: "params.disbursedAmount"
+          currency: "'USD'"
+          entryType: "'LOAN_DISBURSEMENT_FACILITY_ADJUST_CR'"
+          direction: "CREDIT"
+          layer: "SETTLED"
+        }
+        {
+          accountId: "params.loanDisbursedReceivableAccount"
+          units: "params.disbursedAmount"
+          currency: "'USD'"
+          entryType: "'LOAN_DISBURSEMENT_DR'"
           direction: "DEBIT"
           layer: "SETTLED"
         }
         {
           accountId: "params.checkingAccount"
-          units: "params.principalAmount"
+          units: "params.disbursedAmount"
           currency: "'USD'"
-          entryType: "'APPROVE_LOAN_PRINCIPAL_CR'"
+          entryType: "'LOAN_DISBURSEMENT_CR'"
           direction: "CREDIT"
           layer: "SETTLED"
         }
@@ -68,21 +90,23 @@ mutation ApproveLoanTemplateCreate(
   }
 }
 
-mutation PostApproveLoanTransaction(
+mutation PostLoanDisbursementTransaction(
   $transactionId: UUID!
-  $loanPrincipalReceivableAccount: UUID!
+  $loanFacilityAccount: UUID!
+  $loanDisbursedReceivableAccount: UUID!
   $checkingAccount: UUID!
-  $principalAmount: Decimal!
+  $disbursedAmount: Decimal!
   $externalId: String!
 ) {
   transactionPost(
     input: {
       transactionId: $transactionId
-      txTemplateCode: "APPROVE_LOAN"
+      txTemplateCode: "LOAN_DISBURSEMENT"
       params: {
-        loanPrincipalReceivableAccount: $loanPrincipalReceivableAccount
+        loanFacilityAccount: $loanFacilityAccount
+        loanDisbursedReceivableAccount: $loanDisbursedReceivableAccount
         checkingAccount: $checkingAccount
-        principalAmount: $principalAmount
+        disbursedAmount: $disbursedAmount
         externalId: $externalId
       }
     }

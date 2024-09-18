@@ -325,3 +325,135 @@ net_usd_revenue() {
 from_utc() {
   date -u -d @0 +"%Y-%m-%dT%H:%M:%S.%3NZ"
 }
+
+empty_deposit_balance() {
+  local customer_id=$(create_customer)
+
+  # Fetch deposits balance
+  local variables=$(
+    jq -n \
+    --arg from "$(from_utc)" \
+    '{ from: $from }'
+  )
+  exec_admin_graphql 'balance-sheet' "$variables"
+  local deposit_balance=$(
+    graphql_output \
+    '.data.balanceSheet.categories[].accounts[] | select(.name == "Bank Deposits from Users Omnibus Account") | .amounts.usd.balancesByLayer.settled.netDebit'
+  )
+  local deposit=$(
+    graphql_output \
+    '.data.balanceSheet.categories[].accounts[] | select(.name == "Bank Deposits from Users Omnibus Account")'
+  )
+  if [[ "$deposit_balance" == "0" ]]; then
+    return 0
+  fi
+
+  # Setup a loan
+  local variables=$(
+    jq -n \
+    --arg customerId "$customer_id" \
+    --argjson facility "$deposit_balance" \
+    '{
+      input: {
+        customerId: $customerId,
+        desiredFacility: $facility,
+        loanTerms: {
+          annualRate: "12",
+          interval: "END_OF_MONTH",
+          duration: { period: "MONTHS", units: 3 },
+          liquidationCvl: "105",
+          marginCallCvl: "125",
+          initialCvl: "140"
+        }
+      }
+    }'
+  )
+  exec_admin_graphql 'loan-create' "$variables"
+  local loan_id=$(graphql_output '.data.loanCreate.loan.loanId')
+
+  local variables=$(
+    jq -n \
+      --arg loanId "$loan_id" \
+    '{
+      input: {
+        loanId: $loanId,
+        collateral: 100000000,
+      }
+    }'
+  )
+  exec_admin_graphql 'collateral-update' "$variables"
+  local loan_id=$(graphql_output '.data.collateralUpdate.loan.loanId')
+  [[ "$loan_id" != "null" ]] || exit 1
+
+  local variables=$(
+    jq -n \
+      --arg loanId "$loan_id" \
+    '{
+      input: {
+        loanId: $loanId,
+      }
+    }'
+  )
+  exec_admin_graphql 'loan-approve' "$variables"
+  local loan_id=$(graphql_output '.data.loanApprove.loan.loanId')
+  [[ "$loan_id" != "null" ]] || exit 1
+
+  # Add disbursements
+  local variables=$(
+    jq -n \
+      --arg loanId "$loan_id" \
+      --argjson amount "$deposit_balance" \
+    '{
+      input: {
+        loanId: $loanId,
+        amount: $amount
+      }
+    }'
+  )
+  exec_admin_graphql 'loan-disbursement-initiate' "$variables"
+  local disbursement_id=$(graphql_output '.data.loanDisbursementInitiate.disbursement.id')
+  [[ "$disbursement_id" != "null" ]] || exit 1
+
+  local variables=$(
+    jq -n \
+      --arg loanId "$loan_id" \
+    '{
+      input: {
+        loanId: $loanId,
+      }
+    }'
+  )
+  exec_admin_graphql 'loan-disbursement-approve' "$variables"
+  local disbursement_id=$(graphql_output '.data.loanDisbursementApprove.disbursement.id')
+  [[ "$disbursement_id" != "null" ]] || exit 1
+
+  local variables=$(
+    jq -n \
+      --arg customerId "$customer_id" \
+      --argjson amount "$deposit_balance" \
+      --arg date "$(date +%s%N)" \
+    '{
+      input: {
+        customerId: $customerId,
+        amount: $amount,
+        reference: ("withdrawal-ref-" + $date)
+      }
+    }'
+  )
+  exec_admin_graphql 'initiate-withdrawal' "$variables"
+  local withdrawal_id=$(graphql_output '.data.withdrawalInitiate.withdrawal.withdrawalId')
+  [[ "$withdrawal_id" != "null" ]] || exit 1
+
+  local variables=$(
+    jq -n \
+      --arg withdrawalId "$withdrawal_id" \
+    '{
+      input: {
+        withdrawalId: $withdrawalId
+      }
+    }'
+  )
+  exec_admin_graphql 'confirm-withdrawal' "$variables"
+  local withdrawal_id=$(graphql_output '.data.withdrawalInitiate.withdrawal.withdrawalId')
+  [[ "$withdrawal_id" != "null" ]] || exit 1
+}

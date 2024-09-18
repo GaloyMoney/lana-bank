@@ -174,7 +174,7 @@ type CollateralizationUpdated {
 	state: LoanCollaterizationState!
 	collateral: Satoshis!
 	outstandingInterest: UsdCents!
-	outstandingPrincipal: UsdCents!
+	outstandingDisbursements: UsdCents!
 	price: UsdCents!
 	recordedAt: Timestamp!
 }
@@ -317,6 +317,12 @@ input DurationInput {
 
 
 
+type IncrementalDisbursement {
+	cents: UsdCents!
+	recordedAt: Timestamp!
+	txId: UUID!
+}
+
 type IncrementalPayment {
 	cents: UsdCents!
 	recordedAt: Timestamp!
@@ -367,13 +373,14 @@ type Loan {
 	loanTerms: TermValues!
 	status: LoanStatus!
 	collateral: Satoshis!
-	principal: UsdCents!
+	facility: UsdCents!
 	transactions: [LoanHistoryEntry!]!
 	approvals: [LoanApproval!]!
 	repaymentPlan: [LoanRepaymentInPlan!]!
 	collateralizationState: LoanCollaterizationState!
 	balance: LoanBalance!
 	customer: Customer!
+	disbursements: [LoanDisbursement!]!
 }
 
 type LoanApproval {
@@ -420,12 +427,33 @@ type LoanConnection {
 
 input LoanCreateInput {
 	customerId: UUID!
-	desiredPrincipal: UsdCents!
+	desiredFacility: UsdCents!
 	loanTerms: TermsInput!
 }
 
 type LoanCreatePayload {
 	loan: Loan!
+}
+
+type LoanDisbursement {
+	id: ID!
+}
+
+input LoanDisbursementApproveInput {
+	loanId: UUID!
+}
+
+type LoanDisbursementApprovePayload {
+	disbursement: LoanDisbursement!
+}
+
+input LoanDisbursementInitiateInput {
+	loanId: UUID!
+	amount: UsdCents!
+}
+
+type LoanDisbursementInitiatePayload {
+	disbursement: LoanDisbursement!
 }
 
 """
@@ -442,7 +470,7 @@ type LoanEdge {
 	cursor: String!
 }
 
-union LoanHistoryEntry = IncrementalPayment | InterestAccrued | CollateralUpdated | LoanOrigination | CollateralizationUpdated
+union LoanHistoryEntry = IncrementalPayment | InterestAccrued | CollateralUpdated | LoanOrigination | CollateralizationUpdated | IncrementalDisbursement
 
 type LoanOrigination {
 	cents: UsdCents!
@@ -480,7 +508,7 @@ enum LoanRepaymentStatus {
 }
 
 enum LoanRepaymentType {
-	PRINCIPAL
+	DISBURSEMENTS
 	INTEREST
 }
 
@@ -503,6 +531,8 @@ type Mutation {
 	withdrawalInitiate(input: WithdrawalInitiateInput!): WithdrawalInitiatePayload!
 	withdrawalConfirm(input: WithdrawalConfirmInput!): WithdrawalConfirmPayload!
 	withdrawalCancel(input: WithdrawalCancelInput!): WithdrawalCancelPayload!
+	loanDisbursementInitiate(input: LoanDisbursementInitiateInput!): LoanDisbursementInitiatePayload!
+	loanDisbursementApprove(input: LoanDisbursementApproveInput!): LoanDisbursementApprovePayload!
 	customerCreate(input: CustomerCreateInput!): CustomerCreatePayload!
 	customerUpdate(input: CustomerUpdateInput!): CustomerUpdatePayload!
 	userCreate(input: UserCreateInput!): UserCreatePayload!

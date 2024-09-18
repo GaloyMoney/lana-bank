@@ -198,8 +198,8 @@ export type CollateralizationStateUpdatePayload = {
 export type CollateralizationUpdated = {
   __typename?: 'CollateralizationUpdated';
   collateral: Scalars['Satoshis']['output'];
+  outstandingDisbursements: Scalars['UsdCents']['output'];
   outstandingInterest: Scalars['UsdCents']['output'];
-  outstandingPrincipal: Scalars['UsdCents']['output'];
   price: Scalars['UsdCents']['output'];
   recordedAt: Scalars['Timestamp']['output'];
   state: LoanCollaterizationState;
@@ -330,6 +330,13 @@ export type DurationInput = {
   units: Scalars['Int']['input'];
 };
 
+export type IncrementalDisbursement = {
+  __typename?: 'IncrementalDisbursement';
+  cents: Scalars['UsdCents']['output'];
+  recordedAt: Scalars['Timestamp']['output'];
+  txId: Scalars['UUID']['output'];
+};
+
 export type IncrementalPayment = {
   __typename?: 'IncrementalPayment';
   cents: Scalars['UsdCents']['output'];
@@ -386,11 +393,12 @@ export type Loan = {
   createdAt: Scalars['Timestamp']['output'];
   currentCvl?: Maybe<Scalars['Float']['output']>;
   customer: Customer;
+  disbursements: Array<LoanDisbursement>;
   expiresAt?: Maybe<Scalars['Timestamp']['output']>;
+  facility: Scalars['UsdCents']['output'];
   id: Scalars['ID']['output'];
   loanId: Scalars['UUID']['output'];
   loanTerms: TermValues;
-  principal: Scalars['UsdCents']['output'];
   repaymentPlan: Array<LoanRepaymentInPlan>;
   status: LoanStatus;
   transactions: Array<LoanHistoryEntry>;
@@ -438,13 +446,37 @@ export type LoanConnection = {
 
 export type LoanCreateInput = {
   customerId: Scalars['UUID']['input'];
-  desiredPrincipal: Scalars['UsdCents']['input'];
+  desiredFacility: Scalars['UsdCents']['input'];
   loanTerms: TermsInput;
 };
 
 export type LoanCreatePayload = {
   __typename?: 'LoanCreatePayload';
   loan: Loan;
+};
+
+export type LoanDisbursement = {
+  __typename?: 'LoanDisbursement';
+  id: Scalars['ID']['output'];
+};
+
+export type LoanDisbursementApproveInput = {
+  loanId: Scalars['UUID']['input'];
+};
+
+export type LoanDisbursementApprovePayload = {
+  __typename?: 'LoanDisbursementApprovePayload';
+  disbursement: LoanDisbursement;
+};
+
+export type LoanDisbursementInitiateInput = {
+  amount: Scalars['UsdCents']['input'];
+  loanId: Scalars['UUID']['input'];
+};
+
+export type LoanDisbursementInitiatePayload = {
+  __typename?: 'LoanDisbursementInitiatePayload';
+  disbursement: LoanDisbursement;
 };
 
 /** An edge in a connection. */
@@ -456,7 +488,7 @@ export type LoanEdge = {
   node: Loan;
 };
 
-export type LoanHistoryEntry = CollateralUpdated | CollateralizationUpdated | IncrementalPayment | InterestAccrued | LoanOrigination;
+export type LoanHistoryEntry = CollateralUpdated | CollateralizationUpdated | IncrementalDisbursement | IncrementalPayment | InterestAccrued | LoanOrigination;
 
 export type LoanOrigination = {
   __typename?: 'LoanOrigination';
@@ -498,8 +530,8 @@ export enum LoanRepaymentStatus {
 }
 
 export enum LoanRepaymentType {
-  Interest = 'INTEREST',
-  Principal = 'PRINCIPAL'
+  Disbursements = 'DISBURSEMENTS',
+  Interest = 'INTEREST'
 }
 
 export enum LoanStatus {
@@ -518,6 +550,8 @@ export type Mutation = {
   depositRecord: DepositRecordPayload;
   loanApprove: LoanApprovePayload;
   loanCreate: LoanCreatePayload;
+  loanDisbursementApprove: LoanDisbursementApprovePayload;
+  loanDisbursementInitiate: LoanDisbursementInitiatePayload;
   loanPartialPayment: LoanPartialPaymentPayload;
   shareholderEquityAdd: SuccessPayload;
   sumsubPermalinkCreate: SumsubPermalinkCreatePayload;
@@ -567,6 +601,16 @@ export type MutationLoanApproveArgs = {
 
 export type MutationLoanCreateArgs = {
   input: LoanCreateInput;
+};
+
+
+export type MutationLoanDisbursementApproveArgs = {
+  input: LoanDisbursementApproveInput;
+};
+
+
+export type MutationLoanDisbursementInitiateArgs = {
+  input: LoanDisbursementInitiateInput;
 };
 
 
@@ -1104,7 +1148,7 @@ export type GetLoanDetailsQueryVariables = Exact<{
 }>;
 
 
-export type GetLoanDetailsQuery = { __typename?: 'Query', loan?: { __typename?: 'Loan', id: string, loanId: string, createdAt: any, approvedAt?: any | null, principal: any, expiresAt?: any | null, collateral: any, status: LoanStatus, collateralizationState: LoanCollaterizationState, currentCvl?: number | null, collateralToMatchInitialCvl?: any | null, customer: { __typename?: 'Customer', customerId: string, email: string }, balance: { __typename?: 'LoanBalance', collateral: { __typename?: 'Collateral', btcBalance: any }, outstanding: { __typename?: 'LoanOutstanding', usdBalance: any }, interestIncurred: { __typename?: 'InterestIncome', usdBalance: any } }, transactions: Array<{ __typename?: 'CollateralUpdated', satoshis: any, recordedAt: any, action: CollateralAction, txId: string } | { __typename?: 'CollateralizationUpdated', state: LoanCollaterizationState, outstandingPrincipal: any, outstandingInterest: any, price: any, collateral: any, recordedAt: any } | { __typename?: 'IncrementalPayment', cents: any, recordedAt: any, txId: string } | { __typename?: 'InterestAccrued', cents: any, recordedAt: any, txId: string } | { __typename?: 'LoanOrigination', cents: any, recordedAt: any, txId: string }>, loanTerms: { __typename?: 'TermValues', annualRate: any, interval: InterestInterval, liquidationCvl: any, marginCallCvl: any, initialCvl: any, duration: { __typename?: 'Duration', period: Period, units: number } }, approvals: Array<{ __typename?: 'LoanApproval', approvedAt: any, user: { __typename?: 'User', email: string, roles: Array<Role> } }>, repaymentPlan: Array<{ __typename?: 'LoanRepaymentInPlan', repaymentType: LoanRepaymentType, status: LoanRepaymentStatus, initial: any, outstanding: any, accrualAt: any, dueAt: any }> } | null };
+export type GetLoanDetailsQuery = { __typename?: 'Query', loan?: { __typename?: 'Loan', id: string, loanId: string, createdAt: any, approvedAt?: any | null, facility: any, expiresAt?: any | null, collateral: any, status: LoanStatus, collateralizationState: LoanCollaterizationState, currentCvl?: number | null, collateralToMatchInitialCvl?: any | null, customer: { __typename?: 'Customer', customerId: string, email: string }, balance: { __typename?: 'LoanBalance', collateral: { __typename?: 'Collateral', btcBalance: any }, outstanding: { __typename?: 'LoanOutstanding', usdBalance: any }, interestIncurred: { __typename?: 'InterestIncome', usdBalance: any } }, transactions: Array<{ __typename?: 'CollateralUpdated', satoshis: any, recordedAt: any, action: CollateralAction, txId: string } | { __typename?: 'CollateralizationUpdated', state: LoanCollaterizationState, outstandingDisbursements: any, outstandingInterest: any, price: any, collateral: any, recordedAt: any } | { __typename?: 'IncrementalDisbursement', cents: any, recordedAt: any, txId: string } | { __typename?: 'IncrementalPayment', cents: any, recordedAt: any, txId: string } | { __typename?: 'InterestAccrued', cents: any, recordedAt: any, txId: string } | { __typename?: 'LoanOrigination', cents: any, recordedAt: any, txId: string }>, loanTerms: { __typename?: 'TermValues', annualRate: any, interval: InterestInterval, liquidationCvl: any, marginCallCvl: any, initialCvl: any, duration: { __typename?: 'Duration', period: Period, units: number } }, approvals: Array<{ __typename?: 'LoanApproval', approvedAt: any, user: { __typename?: 'User', email: string, roles: Array<Role> } }>, repaymentPlan: Array<{ __typename?: 'LoanRepaymentInPlan', repaymentType: LoanRepaymentType, status: LoanRepaymentStatus, initial: any, outstanding: any, accrualAt: any, dueAt: any }> } | null };
 
 export type LoanApproveMutationVariables = Exact<{
   input: LoanApproveInput;
@@ -1126,7 +1170,7 @@ export type LoansQueryVariables = Exact<{
 }>;
 
 
-export type LoansQuery = { __typename?: 'Query', loans: { __typename?: 'LoanConnection', edges: Array<{ __typename?: 'LoanEdge', cursor: string, node: { __typename?: 'Loan', loanId: string, status: LoanStatus, createdAt: any, principal: any, currentCvl?: number | null, customer: { __typename?: 'Customer', customerId: string, email: string }, balance: { __typename?: 'LoanBalance', collateral: { __typename?: 'Collateral', btcBalance: any }, outstanding: { __typename?: 'LoanOutstanding', usdBalance: any }, interestIncurred: { __typename?: 'InterestIncome', usdBalance: any } } } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, hasNextPage: boolean } } };
+export type LoansQuery = { __typename?: 'Query', loans: { __typename?: 'LoanConnection', edges: Array<{ __typename?: 'LoanEdge', cursor: string, node: { __typename?: 'Loan', loanId: string, status: LoanStatus, createdAt: any, facility: any, currentCvl?: number | null, customer: { __typename?: 'Customer', customerId: string, email: string }, balance: { __typename?: 'LoanBalance', collateral: { __typename?: 'Collateral', btcBalance: any }, outstanding: { __typename?: 'LoanOutstanding', usdBalance: any }, interestIncurred: { __typename?: 'InterestIncome', usdBalance: any } } } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, hasNextPage: boolean } } };
 
 export type LoanPartialPaymentMutationVariables = Exact<{
   input: LoanPartialPaymentInput;
@@ -2321,7 +2365,7 @@ export const GetLoanDetailsDocument = gql`
     loanId
     createdAt
     approvedAt
-    principal
+    facility
     expiresAt
     collateral
     status
@@ -2365,11 +2409,16 @@ export const GetLoanDetailsDocument = gql`
       }
       ... on CollateralizationUpdated {
         state
-        outstandingPrincipal
+        outstandingDisbursements
         outstandingInterest
         price
         collateral
         recordedAt
+      }
+      ... on IncrementalDisbursement {
+        cents
+        recordedAt
+        txId
       }
     }
     loanTerms {
@@ -2551,7 +2600,7 @@ export const LoansDocument = gql`
           customerId
           email
         }
-        principal
+        facility
         currentCvl @client
         balance {
           collateral {

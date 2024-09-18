@@ -74,6 +74,8 @@ pub enum LoanAction {
     UpdateCollateral,
     RecordInterest,
     UpdateCollateralizationState,
+    InitiateDisbursement,
+    ApproveDisbursement,
 }
 
 impl_trivial_action!(LoanAction, Loan);

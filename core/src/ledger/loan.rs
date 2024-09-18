@@ -7,8 +7,9 @@ use super::{cala::graphql::*, customer::CustomerLedgerAccountIds, error::*};
 #[derive(Debug, Copy, Clone, Serialize, Deserialize)]
 pub struct LoanAccountIds {
     pub collateral_account_id: LedgerAccountId,
-    pub principal_receivable_account_id: LedgerAccountId,
+    pub disbursed_receivable_account_id: LedgerAccountId,
     pub interest_receivable_account_id: LedgerAccountId,
+    pub facility_account_id: LedgerAccountId,
     pub interest_account_id: LedgerAccountId,
 }
 
@@ -17,8 +18,9 @@ impl LoanAccountIds {
     pub fn new() -> Self {
         Self {
             collateral_account_id: LedgerAccountId::new(),
-            principal_receivable_account_id: LedgerAccountId::new(),
+            disbursed_receivable_account_id: LedgerAccountId::new(),
             interest_receivable_account_id: LedgerAccountId::new(),
+            facility_account_id: LedgerAccountId::new(),
             interest_account_id: LedgerAccountId::new(),
         }
     }
@@ -48,13 +50,14 @@ pub enum LoanRepayment {
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct LoanPaymentAmounts {
     pub interest: UsdCents,
-    pub principal: UsdCents,
+    pub disbursements: UsdCents,
 }
 
 pub struct LoanBalance {
     pub collateral: Satoshis,
-    pub principal_receivable: UsdCents,
+    pub disbursed_receivable: UsdCents,
     pub interest_receivable: UsdCents,
+    pub facility_remaining: UsdCents,
     pub interest_incurred: UsdCents,
 }
 
@@ -67,12 +70,16 @@ impl TryFrom<loan_balance::ResponseData> for LoanBalance {
                 .collateral
                 .map(|b| Satoshis::try_from_btc(b.settled.normal_balance.units))
                 .unwrap_or_else(|| Ok(Satoshis::ZERO))?,
-            principal_receivable: data
-                .loan_principal_receivable
+            disbursed_receivable: data
+                .loan_disbursed_receivable
                 .map(|b| UsdCents::try_from_usd(b.settled.normal_balance.units))
                 .unwrap_or_else(|| Ok(UsdCents::ZERO))?,
             interest_receivable: data
                 .loan_interest_receivable
+                .map(|b| UsdCents::try_from_usd(b.settled.normal_balance.units))
+                .unwrap_or_else(|| Ok(UsdCents::ZERO))?,
+            facility_remaining: data
+                .loan_facility
                 .map(|b| UsdCents::try_from_usd(b.settled.normal_balance.units))
                 .unwrap_or_else(|| Ok(UsdCents::ZERO))?,
             interest_incurred: data
@@ -80,6 +87,18 @@ impl TryFrom<loan_balance::ResponseData> for LoanBalance {
                 .map(|b| UsdCents::try_from_usd(b.settled.normal_balance.units))
                 .unwrap_or_else(|| Ok(UsdCents::ZERO))?,
         })
+    }
+}
+
+impl LoanBalance {
+    pub fn check_disbursement_amount(&self, amount: UsdCents) -> Result<(), LedgerError> {
+        if amount > self.facility_remaining {
+            return Err(LedgerError::DisbursementAmountTooLarge(
+                amount,
+                self.facility_remaining,
+            ));
+        }
+        Ok(())
     }
 }
 
@@ -102,7 +121,7 @@ pub struct LoanInterestAccrual {
 
 #[derive(Debug, Clone)]
 pub struct LoanApprovalData {
-    pub initial_principal: UsdCents,
+    pub initial_facility: UsdCents,
     pub tx_ref: String,
     pub tx_id: LedgerTxId,
     pub loan_account_ids: LoanAccountIds,

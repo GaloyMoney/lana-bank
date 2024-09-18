@@ -77,7 +77,7 @@ export const RepaymentPlan: React.FC<RepaymentPlanProps> = ({ loan }) => {
 }
 
 const LoanAmortizationGraph: React.FC<RepaymentPlanProps> = ({
-  loan: { repaymentPlan: repaymentPlanData },
+  loan: { repaymentPlan: repaymentPlanData, facility },
 }) => {
   const repaymentPlan = repaymentPlanData.map((r) => ({
     ...r,
@@ -86,11 +86,7 @@ const LoanAmortizationGraph: React.FC<RepaymentPlanProps> = ({
   }))
 
   const processRepaymentData = () => {
-    let outstandingBalance = repaymentPlan.reduce(
-      (sum, payment) =>
-        payment.repaymentType === "PRINCIPAL" ? sum + payment.initial : sum,
-      0,
-    )
+    let outstandingBalance = facility
 
     const labels: string[] = []
     const principalPaid: (number | null)[] = []
@@ -100,7 +96,7 @@ const LoanAmortizationGraph: React.FC<RepaymentPlanProps> = ({
     repaymentPlan.forEach((payment) => {
       labels.push(new Date(payment.dueAt).toLocaleDateString())
 
-      if (payment.repaymentType === "PRINCIPAL") {
+      if (payment.repaymentType === "DISBURSEMENTS") {
         if (payment.status === "PAID") {
           outstandingBalance -= payment.initial
         }

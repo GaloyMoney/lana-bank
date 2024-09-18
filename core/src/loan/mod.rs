@@ -1,5 +1,6 @@
 mod config;
 mod cursor;
+mod disbursement;
 mod entity;
 pub mod error;
 mod history;
@@ -28,6 +29,7 @@ use crate::{
 
 pub use config::*;
 pub use cursor::*;
+pub use disbursement::*;
 pub use entity::*;
 use error::*;
 pub use history::*;
@@ -40,6 +42,7 @@ pub use terms::*;
 pub struct Loans {
     loan_repo: LoanRepo,
     term_repo: TermRepo,
+    disbursement_repo: DisbursementRepo,
     customers: Customers,
     ledger: Ledger,
     pool: PgPool,
@@ -65,6 +68,7 @@ impl Loans {
         users: &Users,
     ) -> Self {
         let loan_repo = LoanRepo::new(pool, export);
+        let disbursement_repo = DisbursementRepo::new(pool, export);
         let term_repo = TermRepo::new(pool);
         jobs.add_initializer(interest::LoanProcessingJobInitializer::new(
             ledger,
@@ -79,6 +83,7 @@ impl Loans {
         Self {
             loan_repo,
             term_repo,
+            disbursement_repo,
             customers: customers.clone(),
             ledger: ledger.clone(),
             pool: pool.clone(),
@@ -130,7 +135,7 @@ impl Loans {
         &self,
         sub: &Subject,
         customer_id: impl Into<CustomerId> + std::fmt::Debug,
-        desired_principal: UsdCents,
+        desired_facility: UsdCents,
         terms: TermValues,
     ) -> Result<Loan, LoanError> {
         let customer_id = customer_id.into();
@@ -157,7 +162,7 @@ impl Loans {
         let new_loan = NewLoan::builder(audit_info)
             .id(LoanId::new())
             .customer_id(customer_id)
-            .principal(desired_principal)
+            .facility(desired_facility)
             .account_ids(LoanAccountIds::new())
             .terms(terms)
             .customer_account_ids(customer.account_ids)
@@ -324,7 +329,10 @@ impl Loans {
         }
 
         let balances = self.ledger.get_loan_balance(loan.account_ids).await?;
-        assert_eq!(balances.principal_receivable, loan.outstanding().principal);
+        assert_eq!(
+            balances.disbursed_receivable,
+            loan.outstanding().disbursements
+        );
         assert_eq!(balances.interest_receivable, loan.outstanding().interest);
 
         let repayment = loan.initiate_repayment(amount)?;
@@ -416,5 +424,99 @@ impl Loans {
             .check_permission(sub, Object::Loan(LoanAllOrOne::All), LoanAction::List)
             .await?;
         self.loan_repo.list_by_collateralization_ratio(query).await
+    }
+
+    pub async fn initiate_disbursement(
+        &self,
+        sub: &Subject,
+        loan_id: LoanId,
+        amount: UsdCents,
+    ) -> Result<Disbursement, LoanError> {
+        let audit_info = self
+            .authz
+            .check_permission(
+                sub,
+                Object::Loan(LoanAllOrOne::All),
+                LoanAction::InitiateDisbursement,
+            )
+            .await?;
+
+        let mut loan = self.loan_repo.find_by_id(loan_id).await?;
+        let balances = self.ledger.get_loan_balance(loan.account_ids).await?;
+        balances.check_disbursement_amount(amount)?;
+
+        let mut db_tx = self.pool.begin().await?;
+        let new_disbursement = loan.initiate_disbursement(audit_info, amount)?;
+        self.loan_repo.persist_in_tx(&mut db_tx, &mut loan).await?;
+        let disbursement = self
+            .disbursement_repo
+            .create_in_tx(&mut db_tx, new_disbursement)
+            .await?;
+
+        db_tx.commit().await?;
+        Ok(disbursement)
+    }
+
+    pub async fn add_disbursement_approval(
+        &self,
+        sub: &Subject,
+        loan_id: LoanId,
+    ) -> Result<Disbursement, LoanError> {
+        let audit_info = self
+            .authz
+            .check_permission(
+                sub,
+                Object::Loan(LoanAllOrOne::All),
+                LoanAction::ApproveDisbursement,
+            )
+            .await?;
+
+        let mut loan = self.loan_repo.find_by_id(loan_id).await?;
+        let in_progress_disbursement_idx = loan
+            .disbursement_in_progress()
+            .ok_or(LoanError::NoDisbursementInProgress)?;
+
+        let subject_id = uuid::Uuid::from(sub);
+        let user = self.user_repo.find_by_id(UserId::from(subject_id)).await?;
+
+        let mut disbursement = self
+            .disbursement_repo
+            .find_by_idx_for_loan(loan_id, in_progress_disbursement_idx)
+            .await?;
+
+        let mut db_tx = self.pool.begin().await?;
+
+        if let Some(disbursement_data) =
+            disbursement.add_approval(user.id, user.current_roles(), audit_info)?
+        {
+            let executed_at = self
+                .ledger
+                .record_disbursement(disbursement_data.clone())
+                .await?;
+            disbursement.confirm_approval(&disbursement_data, executed_at, audit_info);
+
+            disbursement.conclude(executed_at, audit_info);
+            loan.confirm_disbursement(
+                &disbursement,
+                disbursement_data.tx_id,
+                executed_at,
+                audit_info,
+            );
+        }
+
+        self.disbursement_repo
+            .persist_in_tx(&mut db_tx, &mut disbursement)
+            .await?;
+        self.loan_repo.persist_in_tx(&mut db_tx, &mut loan).await?;
+        db_tx.commit().await?;
+
+        Ok(disbursement)
+    }
+
+    pub async fn list_disbursements(
+        &self,
+        loan_id: LoanId,
+    ) -> Result<Vec<Disbursement>, LoanError> {
+        self.disbursement_repo.list_for_loan(loan_id).await
     }
 }

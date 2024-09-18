@@ -162,8 +162,9 @@ impl CalaClient {
         loan_id: impl Into<Uuid> + std::fmt::Debug,
         LoanAccountIds {
             collateral_account_id,
-            principal_receivable_account_id,
+            disbursed_receivable_account_id,
             interest_receivable_account_id,
+            facility_account_id,
             interest_account_id,
         }: LoanAccountIds,
     ) -> Result<(), CalaError> {
@@ -174,17 +175,25 @@ impl CalaClient {
             loan_collateral_account_name: format!("Loan Collateral Account for {}", loan_id),
             loans_collateral_control_account_set_id:
                 super::constants::LOANS_COLLATERAL_CONTROL_ACCOUNT_SET_ID,
-            loan_principal_receivable_account_id: Uuid::from(principal_receivable_account_id),
-            loan_principal_receivable_account_code: format!(
-                "LOANS.PRINCIPAL_RECEIVABLE.{}",
+            loan_disbursed_receivable_account_id: Uuid::from(disbursed_receivable_account_id),
+            loan_disbursed_receivable_account_code: format!(
+                "LOANS.DISBURSED_RECEIVABLE.{}",
                 loan_id
             ),
-            loan_principal_receivable_account_name: format!(
-                "Loan Principal Receivable Account for {}",
+            loan_disbursed_receivable_account_name: format!(
+                "Loan Disbursed Receivable Account for {}",
                 loan_id
             ),
-            loans_principal_receivable_control_account_set_id:
-                super::constants::LOANS_PRINCIPAL_RECEIVABLE_CONTROL_ACCOUNT_SET_ID,
+            loans_disbursed_receivable_control_account_set_id:
+                super::constants::LOANS_DISBURSED_RECEIVABLE_CONTROL_ACCOUNT_SET_ID,
+            loan_facility_account_id: Uuid::from(facility_account_id),
+            loan_facility_account_code: format!("LOANS.OBS_FACILITY.{}", loan_id),
+            loan_facility_account_name: format!(
+                "Off-Balance-Sheet Loan Facility Account for {}",
+                loan_id
+            ),
+            loans_facility_control_account_set_id:
+                super::constants::OBS_LOANS_FACILITY_CONTROL_ACCOUNT_SET_ID,
             loan_interest_receivable_account_id: Uuid::from(interest_receivable_account_id),
             loan_interest_receivable_account_code: format!("LOANS.INTEREST_RECEIVABLE.{}", loan_id),
             loan_interest_receivable_account_name: format!(
@@ -307,8 +316,9 @@ impl CalaClient {
         let variables = loan_balance::Variables {
             journal_id: super::constants::CORE_JOURNAL_ID,
             collateral_id: Uuid::from(account_ids.collateral_account_id),
-            loan_principal_receivable_id: Uuid::from(account_ids.principal_receivable_account_id),
+            loan_disbursed_receivable_id: Uuid::from(account_ids.disbursed_receivable_account_id),
             loan_interest_receivable_id: Uuid::from(account_ids.interest_receivable_account_id),
+            loan_facility_id: Uuid::from(account_ids.facility_account_id),
             interest_income_id: Uuid::from(account_ids.interest_account_id),
         };
         let response =
@@ -699,19 +709,31 @@ impl CalaClient {
     }
 
     #[instrument(
-        name = "lava.ledger.cala.create_approve_loan_template",
+        name = "lava.ledger.cala.create_approve_loan_facility_template",
         skip(self),
         err
     )]
-    pub async fn create_approve_loan_tx_template(
+    pub async fn create_approve_loan_facility_tx_template(
         &self,
         template_id: TxTemplateId,
     ) -> Result<TxTemplateId, CalaError> {
-        let variables = approve_loan_template_create::Variables {
+        let obs_loans_facility_id = match Self::find_account_by_code::<LedgerAccountId>(
+            self,
+            super::constants::OBS_LOANS_FACILITY_ACCOUNT_CODE.to_string(),
+        )
+        .await?
+        {
+            Some(id) => Ok(id),
+            None => Err(CalaError::CouldNotFindAccountByCode(
+                super::constants::OBS_LOANS_FACILITY_ACCOUNT_CODE.to_string(),
+            )),
+        }?;
+        let variables = approve_loan_facility_template_create::Variables {
             template_id: Uuid::from(template_id),
             journal_id: format!("uuid(\"{}\")", super::constants::CORE_JOURNAL_ID),
+            omnibus_loan_facility_account: format!("uuid(\"{}\")", obs_loans_facility_id),
         };
-        let response = Self::traced_gql_request::<ApproveLoanTemplateCreate, _>(
+        let response = Self::traced_gql_request::<ApproveLoanFacilityTemplateCreate, _>(
             &self.client,
             &self.url,
             variables,
@@ -724,25 +746,100 @@ impl CalaClient {
             .ok_or_else(|| CalaError::MissingDataField)
     }
 
-    #[instrument(name = "lava.ledger.cala.execute_approve_loan_tx", skip(self), err)]
-    pub async fn execute_approve_loan_tx(
+    #[instrument(
+        name = "lava.ledger.cala.execute_approve_loan_facility_tx",
+        skip(self),
+        err
+    )]
+    pub async fn execute_approve_loan_facility_tx(
+        &self,
+        transaction_id: LedgerTxId,
+        loan_account_ids: LoanAccountIds,
+        facility_amount: Decimal,
+        external_id: String,
+    ) -> Result<chrono::DateTime<chrono::Utc>, CalaError> {
+        let variables = post_approve_loan_facility_transaction::Variables {
+            transaction_id: transaction_id.into(),
+            loan_facility_account: loan_account_ids.facility_account_id.into(),
+            facility_amount,
+            external_id,
+        };
+        let response = Self::traced_gql_request::<PostApproveLoanFacilityTransaction, _>(
+            &self.client,
+            &self.url,
+            variables,
+        )
+        .await?;
+
+        let created_at = response
+            .data
+            .map(|d| d.transaction_post.transaction.created_at)
+            .ok_or_else(|| CalaError::MissingDataField)?;
+        Ok(created_at)
+    }
+
+    #[instrument(
+        name = "lava.ledger.cala.create_loan_disbursement_tx_template",
+        skip(self),
+        err
+    )]
+    pub async fn create_loan_disbursement_tx_template(
+        &self,
+        template_id: TxTemplateId,
+    ) -> Result<TxTemplateId, CalaError> {
+        let obs_loans_facility_id = match Self::find_account_by_code::<LedgerAccountId>(
+            self,
+            super::constants::OBS_LOANS_FACILITY_ACCOUNT_CODE.to_string(),
+        )
+        .await?
+        {
+            Some(id) => Ok(id),
+            None => Err(CalaError::CouldNotFindAccountByCode(
+                super::constants::OBS_LOANS_FACILITY_ACCOUNT_CODE.to_string(),
+            )),
+        }?;
+        let variables = loan_disbursement_template_create::Variables {
+            template_id: Uuid::from(template_id),
+            journal_id: format!("uuid(\"{}\")", super::constants::CORE_JOURNAL_ID),
+            omnibus_loan_facility_account: format!("uuid(\"{}\")", obs_loans_facility_id),
+        };
+        let response = Self::traced_gql_request::<LoanDisbursementTemplateCreate, _>(
+            &self.client,
+            &self.url,
+            variables,
+        )
+        .await?;
+
+        response
+            .data
+            .map(|d| TxTemplateId::from(d.tx_template_create.tx_template.tx_template_id))
+            .ok_or_else(|| CalaError::MissingDataField)
+    }
+
+    #[instrument(
+        name = "lava.ledger.cala.execute_loan_disbursement_tx",
+        skip(self),
+        err
+    )]
+    pub async fn execute_loan_disbursement_tx(
         &self,
         transaction_id: LedgerTxId,
         loan_account_ids: LoanAccountIds,
         user_account_ids: CustomerLedgerAccountIds,
-        principal_amount: Decimal,
+        disbursed_amount: Decimal,
         external_id: String,
     ) -> Result<chrono::DateTime<chrono::Utc>, CalaError> {
-        let variables = post_approve_loan_transaction::Variables {
+        let variables = post_loan_disbursement_transaction::Variables {
             transaction_id: transaction_id.into(),
-            loan_principal_receivable_account: loan_account_ids
-                .principal_receivable_account_id
+            loan_facility_account: loan_account_ids.facility_account_id.into(),
+            loan_disbursed_receivable_account: loan_account_ids
+                .disbursed_receivable_account_id
                 .into(),
             checking_account: user_account_ids.on_balance_sheet_deposit_account_id.into(),
-            principal_amount,
+            disbursed_amount,
             external_id,
         };
-        let response = Self::traced_gql_request::<PostApproveLoanTransaction, _>(
+        let response = Self::traced_gql_request::<PostLoanDisbursementTransaction, _>(
             &self.client,
             &self.url,
             variables,
@@ -764,7 +861,7 @@ impl CalaClient {
         loan_account_ids: LoanAccountIds,
         user_account_ids: CustomerLedgerAccountIds,
         interest_payment_amount: Decimal,
-        principal_payment_amount: Decimal,
+        disbursements_payment_amount: Decimal,
         collateral_amount: Decimal,
         payment_external_id: String,
         collateral_external_id: String,
@@ -776,12 +873,12 @@ impl CalaClient {
             loan_interest_receivable_account: loan_account_ids
                 .interest_receivable_account_id
                 .into(),
-            loan_principal_receivable_account: loan_account_ids
-                .principal_receivable_account_id
+            loan_disbursed_receivable_account: loan_account_ids
+                .disbursed_receivable_account_id
                 .into(),
             loan_collateral_account: loan_account_ids.collateral_account_id.into(),
             interest_payment_amount,
-            principal_payment_amount,
+            disbursements_payment_amount,
             collateral_amount,
             payment_external_id,
             collateral_external_id,
@@ -1021,7 +1118,7 @@ impl CalaClient {
         loan_account_ids: LoanAccountIds,
         user_account_ids: CustomerLedgerAccountIds,
         interest_payment_amount: Decimal,
-        principal_payment_amount: Decimal,
+        disbursements_payment_amount: Decimal,
         external_id: String,
     ) -> Result<chrono::DateTime<chrono::Utc>, CalaError> {
         let variables = post_record_payment_transaction::Variables {
@@ -1030,11 +1127,11 @@ impl CalaClient {
             loan_interest_receivable_account: loan_account_ids
                 .interest_receivable_account_id
                 .into(),
-            loan_principal_receivable_account: loan_account_ids
-                .principal_receivable_account_id
+            loan_disbursements_receivable_account: loan_account_ids
+                .disbursed_receivable_account_id
                 .into(),
             interest_payment_amount,
-            principal_payment_amount,
+            disbursements_payment_amount,
             external_id,
         };
         let response = Self::traced_gql_request::<PostRecordPaymentTransaction, _>(

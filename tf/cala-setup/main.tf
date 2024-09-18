@@ -27,6 +27,7 @@ locals {
     "user_events",
     "customer_events",
     "loan_events",
+    "disbursement_events",
     "withdraw_events",
     "deposit_events"
   ] : []

@@ -28,6 +28,10 @@ pub enum LedgerError {
         "LoanError - WithdrawalAmountTooLarge: amount '{0}' is larger than bank balance '{1}'"
     )]
     WithdrawalAmountTooLarge(UsdCents, UsdCents),
+    #[error(
+        "LoanError - DisbursementAmountTooLarge: amount '{0}' is larger than facility balance '{1}'"
+    )]
+    DisbursementAmountTooLarge(UsdCents, UsdCents),
     #[error("LedgerError - AuthorizationError: {0}")]
     AuthorizationError(#[from] crate::authorization::error::AuthorizationError),
 }

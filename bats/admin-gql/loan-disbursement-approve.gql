@@ -1,0 +1,7 @@
+mutation LoanDisbursementApprove($input: LoanDisbursementApproveInput!) {
+  loanDisbursementApprove(input: $input) {
+    disbursement {
+      id
+    }
+  }
+}

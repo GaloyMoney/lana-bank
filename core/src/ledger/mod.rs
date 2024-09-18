@@ -5,6 +5,7 @@ mod cala;
 mod config;
 mod constants;
 pub mod customer;
+pub mod disbursement;
 pub mod error;
 pub mod loan;
 pub mod primitives;
@@ -29,6 +30,7 @@ use bank::*;
 use cala::*;
 pub use config::*;
 use customer::*;
+use disbursement::*;
 use error::*;
 use loan::*;
 
@@ -196,16 +198,38 @@ impl Ledger {
             tx_ref,
             loan_account_ids,
             customer_account_ids,
-            initial_principal,
+            initial_facility,
         }: LoanApprovalData,
     ) -> Result<chrono::DateTime<chrono::Utc>, LedgerError> {
         Ok(self
             .cala
-            .execute_approve_loan_tx(
+            .execute_approve_loan_facility_tx(
                 tx_id,
                 loan_account_ids,
+                initial_facility.to_usd(),
+                tx_ref,
+            )
+            .await?)
+    }
+
+    #[instrument(name = "lava.ledger.record_disbursement", skip(self), err)]
+    pub async fn record_disbursement(
+        &self,
+        DisbursementData {
+            amount,
+            tx_ref,
+            tx_id,
+            account_ids,
+            customer_account_ids,
+        }: DisbursementData,
+    ) -> Result<chrono::DateTime<chrono::Utc>, LedgerError> {
+        Ok(self
+            .cala
+            .execute_loan_disbursement_tx(
+                tx_id,
+                account_ids,
                 customer_account_ids,
-                initial_principal.to_usd(),
+                amount.to_usd(),
                 tx_ref,
             )
             .await?)
@@ -241,7 +265,7 @@ impl Ledger {
                 amounts:
                     LoanPaymentAmounts {
                         interest,
-                        principal,
+                        disbursements,
                     },
             } => {
                 self.cala
@@ -250,7 +274,7 @@ impl Ledger {
                         loan_account_ids,
                         customer_account_ids,
                         interest.to_usd(),
-                        principal.to_usd(),
+                        disbursements.to_usd(),
                         tx_ref,
                     )
                     .await?
@@ -266,7 +290,7 @@ impl Ledger {
                 amounts:
                     LoanPaymentAmounts {
                         interest,
-                        principal,
+                        disbursements,
                     },
             } => {
                 self.cala
@@ -276,7 +300,7 @@ impl Ledger {
                         loan_account_ids,
                         customer_account_ids,
                         interest.to_usd(),
-                        principal.to_usd(),
+                        disbursements.to_usd(),
                         collateral.to_btc(),
                         payment_tx_ref,
                         collateral_tx_ref,
@@ -504,7 +528,13 @@ impl Ledger {
         Self::assert_confirm_withdraw_tx_template_exists(cala, constants::CONFIRM_WITHDRAW).await?;
 
         Self::assert_cancel_withdraw_tx_template_exists(cala, constants::CANCEL_WITHDRAW).await?;
-        Self::assert_approve_loan_tx_template_exists(cala, constants::APPROVE_LOAN_CODE).await?;
+        Self::assert_approve_loan_facility_tx_template_exists(
+            cala,
+            constants::APPROVE_LOAN_FACILITY_CODE,
+        )
+        .await?;
+        Self::assert_loan_disbursement_tx_template_exists(cala, constants::LOAN_DISBURSEMENT_CODE)
+            .await?;
         Self::assert_add_collateral_tx_template_exists(cala, constants::ADD_COLLATERAL_CODE)
             .await?;
         Self::assert_remove_collateral_tx_template_exists(cala, constants::REMOVE_COLLATERAL_CODE)
@@ -643,7 +673,7 @@ impl Ledger {
             .map_err(|_| err)?)
     }
 
-    async fn assert_approve_loan_tx_template_exists(
+    async fn assert_approve_loan_facility_tx_template_exists(
         cala: &CalaClient,
         template_code: &str,
     ) -> Result<LedgerTxTemplateId, LedgerError> {
@@ -655,7 +685,35 @@ impl Ledger {
         }
 
         let template_id = LedgerTxTemplateId::new();
-        let err = match cala.create_approve_loan_tx_template(template_id).await {
+        let err = match cala
+            .create_approve_loan_facility_tx_template(template_id)
+            .await
+        {
+            Ok(id) => {
+                return Ok(id);
+            }
+            Err(e) => e,
+        };
+
+        Ok(cala
+            .find_tx_template_by_code::<LedgerTxTemplateId>(template_code.to_owned())
+            .await
+            .map_err(|_| err)?)
+    }
+
+    async fn assert_loan_disbursement_tx_template_exists(
+        cala: &CalaClient,
+        template_code: &str,
+    ) -> Result<LedgerTxTemplateId, LedgerError> {
+        if let Ok(id) = cala
+            .find_tx_template_by_code::<LedgerTxTemplateId>(template_code.to_owned())
+            .await
+        {
+            return Ok(id);
+        }
+
+        let template_id = LedgerTxTemplateId::new();
+        let err = match cala.create_loan_disbursement_tx_template(template_id).await {
             Ok(id) => {
                 return Ok(id);
             }

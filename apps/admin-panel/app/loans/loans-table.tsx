@@ -39,7 +39,7 @@ gql`
             customerId
             email
           }
-          principal
+          facility
           currentCvl @client
           balance {
             collateral {
