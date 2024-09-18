@@ -20,13 +20,22 @@ jobs:
       - name: Run the Magic Nix Cache
         uses: DeterminateSystems/magic-nix-cache-action@v2
       - uses: actions/checkout@v3
-      - id: 'gcp-auth'
-        uses: 'google-github-actions/auth@v2'
+      - id: "gcp-auth"
+        uses: "google-github-actions/auth@v2"
         with:
-          credentials_json: '${{ secrets.GOOGLE_CREDENTIALS }}'
+          credentials_json: "${{ secrets.GOOGLE_CREDENTIALS }}"
       - name: Run e2e tests
         run: nix develop -c make e2e
         env:
           GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
           TF_VAR_bq_creds: ${{ secrets.GOOGLE_SA_BASE64 }}
           TF_VAR_name_prefix: "gha"
+      - name: Rename Tilt log
+        if: always()
+        run: mv .e2e-logs e2e-logs
+      - name: Upload Tilt log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: Tilt log
+          path: e2e-logs
