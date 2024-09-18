@@ -143,7 +143,7 @@ pub mod bq {
             .as_ref()
             .and_then(|schema| schema.fields().as_ref())
             .map(|fields| fields.iter().map(|field| field.name.clone()).collect())
-            .unwrap_or_default(); // Return an em
+            .unwrap_or_default();
 
         let rows = res
             .query_response()
