@@ -12,10 +12,10 @@ async fn client_test() -> anyhow::Result<()> {
         return Ok(());
     };
 
-    let cfg = ReportConfig::init(creds, prefix, "europe-west6".to_string())?;
+    let cfg = ReportConfig::init(creds, prefix, "europe-west6".to_string(), 600)?;
     let mut client = DataformClient::connect(&cfg).await?;
     let res = client.compile().await?;
-    let res = client.invoke(&res).await?;
+    let _res = client.invoke(&res).await?;
     Ok(())
 }
 
@@ -31,10 +31,10 @@ async fn upload_test() -> anyhow::Result<()> {
         return Ok(());
     };
 
-    let cfg = ReportConfig::init(creds, prefix, "europe-west6".to_string())?;
+    let cfg = ReportConfig::init(creds, prefix, "europe-west6".to_string(), 600)?;
     let all_reports = upload::bq::find_report_outputs(&cfg).await?;
     for report in all_reports {
-        let rows = upload::bq::query_report(&cfg, &report).await?;
+        let _rows = upload::bq::query_report(&cfg, &report).await?;
     }
 
     Ok(())

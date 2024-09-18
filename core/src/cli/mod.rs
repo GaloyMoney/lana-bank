@@ -35,8 +35,6 @@ struct Cli {
     bq_service_account_base64: String,
     #[clap(env = "DEV_ENV_NAME_PREFIX")]
     dev_env_name_prefix: Option<String>,
-    #[clap(env = "REPORT_DOWNLOAD_LINK_DURATION_IN_SECS", default_value = "600")]
-    report_download_link_duration: String,
 }
 
 pub async fn run() -> anyhow::Result<()> {
@@ -49,7 +47,6 @@ pub async fn run() -> anyhow::Result<()> {
             sumsub_key: cli.sumsub_key,
             sumsub_secret: cli.sumsub_secret,
             sa_creds_base64: cli.bq_service_account_base64,
-            report_download_link_duration: cli.report_download_link_duration,
         },
         cli.dev_env_name_prefix,
     )?;
