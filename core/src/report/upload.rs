@@ -14,14 +14,14 @@ pub async fn execute(config: &ReportConfig) -> anyhow::Result<UploadResult> {
         Object::create(
             &config.bucket_name,
             xml_bytes.to_vec(),
-            &path_to_report(&config.folder_prefix, &report),
+            &path_to_report(&config.reports_root_folder, &report),
             "application/xml",
         )
         .await?;
 
         let note = Object::read(
             &config.bucket_name,
-            &path_to_report(&config.folder_prefix, &report),
+            &path_to_report(&config.reports_root_folder, &report),
         )
         .await?;
 
@@ -31,9 +31,9 @@ pub async fn execute(config: &ReportConfig) -> anyhow::Result<UploadResult> {
     Ok(UploadResult::default())
 }
 
-fn path_to_report(folder_prefix: &str, report: &str) -> String {
+fn path_to_report(reports_root_folder: &str, report: &str) -> String {
     let day = chrono::Utc::now().format("%Y-%m-%d").to_string();
-    format!("{}/{}/{}.xml", folder_prefix, day, report)
+    format!("{}/reports/{}/{}.xml", reports_root_folder, day, report)
 }
 
 pub fn convert_to_xml_data(rows: Vec<QueryRow>) -> anyhow::Result<Vec<u8>> {

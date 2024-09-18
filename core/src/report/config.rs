@@ -20,7 +20,7 @@ pub struct ReportConfig {
     #[serde(default)]
     pub bucket_name: String,
     #[serde(default)]
-    pub folder_prefix: String,
+    pub reports_root_folder: String,
 }
 
 impl ReportConfig {
@@ -34,6 +34,7 @@ impl ReportConfig {
             dataform_output_dataset: format!("dataform_{}", name_prefix),
             dataform_release_config: format!("{}-release", name_prefix),
             gcp_location,
+            reports_root_folder: name_prefix,
             ..Default::default()
         };
         cfg.set_sa_creds_base64(sa_creds_base64)?;
