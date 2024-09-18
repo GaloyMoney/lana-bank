@@ -1,4 +1,4 @@
-mod cloud_storage_client;
+mod cloud_storage;
 mod config;
 pub mod dataform_client;
 mod entity;
@@ -15,7 +15,7 @@ use crate::{
     primitives::{ReportId, Subject},
 };
 
-use cloud_storage_client::generate_download_link;
+use cloud_storage::generate_download_link;
 pub use config::*;
 pub use entity::*;
 use error::*;

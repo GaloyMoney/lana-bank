@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 
 use std::collections::HashMap;
 
-use super::{cloud_storage_client::upload_xml_file, config::ReportConfig};
+use super::{cloud_storage::upload_xml_file, config::ReportConfig};
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
