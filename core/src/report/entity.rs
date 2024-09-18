@@ -118,12 +118,12 @@ impl Report {
     }
 
     pub fn compilation_result(&self) -> CompilationResult {
-        let res = self.events.iter().rev().find_map(|event| match event {
-            ReportEvent::CompilationCompleted { result, .. } => Some(result.clone()),
-            _ => None,
-        });
-
-        res.expect("Only called after successful compilation")
+        for e in self.events.iter().rev() {
+            if let ReportEvent::CompilationCompleted { result, .. } = e {
+                return result.clone();
+            }
+        }
+        unreachable!("Only called after successful compilation");
     }
 
     pub(super) fn invocation_completed(
