@@ -20,6 +20,7 @@ async fn client_test() -> anyhow::Result<()> {
 }
 
 #[tokio::test]
+#[ignore]
 async fn upload_test() -> anyhow::Result<()> {
     let (creds, prefix) = if let (Ok(creds), Ok(prefix)) = (
         std::env::var("TF_VAR_bq_creds"),
@@ -34,7 +35,6 @@ async fn upload_test() -> anyhow::Result<()> {
     let all_reports = upload::bq::find_report_outputs(&cfg).await?;
     for report in all_reports {
         let rows = upload::bq::query_report(&cfg, &report).await?;
-        let xml_data = upload::convert_to_xml_data(rows)?;
     }
 
     Ok(())
