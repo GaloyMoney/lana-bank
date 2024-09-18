@@ -129,9 +129,3 @@ pub struct WorkflowInvocation {
     pub name: String,
     pub state: WorkflowInvocationState,
 }
-
-#[derive(Debug, Serialize, Deserialize, Clone, Default)]
-#[serde(rename_all = "camelCase")]
-pub struct UploadResult {
-    pub gcs_path: String,
-}

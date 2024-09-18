@@ -1,34 +1,72 @@
 use cloud_storage::Object;
+use serde::{Deserialize, Serialize};
 
 use std::collections::HashMap;
 
-use super::{config::ReportConfig, dataform_client::UploadResult};
+use super::config::ReportConfig;
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+#[serde(rename_all = "camelCase")]
+pub enum ReportFileUpload {
+    Success {
+        report_name: String,
+        path_in_bucket: String,
+        bucket: String,
+    },
+    Failure {
+        report_name: String,
+        reason: String,
+    },
+}
 
 #[derive(Debug, Default)]
 pub struct QueryRow(HashMap<String, serde_json::Value>);
 
-pub async fn execute(config: &ReportConfig) -> anyhow::Result<UploadResult> {
-    for report in bq::find_report_outputs(config).await? {
-        let rows = bq::query_report(config, &report).await?;
-        let xml_bytes = convert_to_xml_data(rows)?;
-        Object::create(
+pub async fn execute(config: &ReportConfig) -> anyhow::Result<Vec<ReportFileUpload>> {
+    let mut res = Vec::new();
+    for report_name in bq::find_report_outputs(config).await? {
+        let rows = match bq::query_report(config, &report_name).await {
+            Ok(rows) => rows,
+            Err(e) => {
+                res.push(ReportFileUpload::Failure {
+                    reason: e.to_string(),
+                    report_name,
+                });
+                continue;
+            }
+        };
+        let xml_bytes = convert_to_xml_data(rows);
+        match Object::create(
             &config.bucket_name,
             xml_bytes.to_vec(),
-            &path_to_report(&config.reports_root_folder, &report),
+            &path_to_report(&config.reports_root_folder, &report_name),
             "application/xml",
         )
-        .await?;
+        .await
+        {
+            Ok(_) => {
+                res.push(ReportFileUpload::Success {
+                    path_in_bucket: path_to_report(&config.reports_root_folder, &report_name),
+                    report_name,
+                    bucket: config.bucket_name.clone(),
+                });
+            }
+            Err(e) => res.push(ReportFileUpload::Failure {
+                reason: e.to_string(),
+                report_name,
+            }),
+        }
 
-        let note = Object::read(
-            &config.bucket_name,
-            &path_to_report(&config.reports_root_folder, &report),
-        )
-        .await?;
+        // let note = Object::read(
+        //     &config.bucket_name,
+        //     &path_to_report(&config.reports_root_folder, &report),
+        // )
+        // .await?;
 
-        let _download_url = note.download_url(60 * 10)?;
+        // let _download_url = note.download_url(60 * 10)?;
     }
 
-    Ok(UploadResult::default())
+    Ok(res)
 }
 
 fn path_to_report(reports_root_folder: &str, report: &str) -> String {
@@ -36,7 +74,7 @@ fn path_to_report(reports_root_folder: &str, report: &str) -> String {
     format!("{}/reports/{}/{}.xml", reports_root_folder, day, report)
 }
 
-pub fn convert_to_xml_data(rows: Vec<QueryRow>) -> anyhow::Result<Vec<u8>> {
+pub fn convert_to_xml_data(rows: Vec<QueryRow>) -> Vec<u8> {
     let mut xml = String::new();
 
     xml.push_str("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
@@ -55,7 +93,7 @@ pub fn convert_to_xml_data(rows: Vec<QueryRow>) -> anyhow::Result<Vec<u8>> {
     }
     xml.push_str("</data>\n");
 
-    Ok(xml.into_bytes())
+    xml.into_bytes()
 }
 
 pub mod bq {

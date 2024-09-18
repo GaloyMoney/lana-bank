@@ -4,7 +4,10 @@ use serde::{Deserialize, Serialize};
 
 use crate::{entity::*, primitives::*};
 
-use super::dataform_client::{CompilationResult, UploadResult, WorkflowInvocation};
+use super::{
+    dataform_client::{CompilationResult, WorkflowInvocation},
+    upload::ReportFileUpload,
+};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
@@ -14,37 +17,41 @@ pub enum ReportEvent {
         audit_info: AuditInfo,
     },
     CompilationCompleted {
-        id: ReportId,
         result: CompilationResult,
         audit_info: AuditInfo,
         recorded_at: DateTime<Utc>,
     },
     CompilationFailed {
-        id: ReportId,
+        audit_info: AuditInfo,
         error: String,
         audit_info: AuditInfo,
         recorded_at: DateTime<Utc>,
     },
     InvocationCompleted {
-        id: ReportId,
         result: WorkflowInvocation,
         audit_info: AuditInfo,
         recorded_at: DateTime<Utc>,
     },
     InvocationFailed {
-        id: ReportId,
+        audit_info: AuditInfo,
         error: String,
         audit_info: AuditInfo,
         recorded_at: DateTime<Utc>,
     },
-    UploadCompleted {
-        id: ReportId,
-        gcs_path: String,
+    FileUploaded {
+        audit_info: AuditInfo,
+        report_name: String,
+        path_in_bucket: String,
+        bucket: String,
+        recorded_at: DateTime<Utc>,
+    },
+    FileUploadFailed {
+        report_name: String,
+        reason: String,
         audit_info: AuditInfo,
         recorded_at: DateTime<Utc>,
     },
     UploadFailed {
-        id: ReportId,
         error: String,
         audit_info: AuditInfo,
         recorded_at: DateTime<Utc>,
@@ -98,7 +105,6 @@ impl Report {
         audit_info: AuditInfo,
     ) {
         self.events.push(ReportEvent::CompilationCompleted {
-            id: self.id,
             result: compilation_result,
             audit_info,
             recorded_at: Utc::now(),
@@ -107,7 +113,6 @@ impl Report {
 
     pub(super) fn compilation_failed(&mut self, error: String, audit_info: AuditInfo) {
         self.events.push(ReportEvent::CompilationFailed {
-            id: self.id,
             error,
             audit_info,
             recorded_at: Utc::now(),
@@ -129,7 +134,6 @@ impl Report {
         audit_info: AuditInfo,
     ) {
         self.events.push(ReportEvent::InvocationCompleted {
-            id: self.id,
             result: invocation_result,
             audit_info,
             recorded_at: Utc::now(),
@@ -138,25 +142,45 @@ impl Report {
 
     pub(super) fn invocation_failed(&mut self, error: String, audit_info: AuditInfo) {
         self.events.push(ReportEvent::InvocationFailed {
-            id: self.id,
             error,
             audit_info,
             recorded_at: Utc::now(),
         });
     }
 
-    pub(super) fn upload_completed(&mut self, upload_result: UploadResult, audit_info: AuditInfo) {
-        self.events.push(ReportEvent::UploadCompleted {
-            id: self.id,
-            gcs_path: upload_result.gcs_path,
-            audit_info,
-            recorded_at: Utc::now(),
-        });
+    pub(super) fn files_uploaded(
+        &mut self,
+        upload_results: Vec<ReportFileUpload>,
+        audit_info: AuditInfo,
+    ) {
+        for res in upload_results {
+            match res {
+                ReportFileUpload::Success {
+                    report_name,
+                    path_in_bucket,
+                    bucket,
+                } => self.events.push(ReportEvent::FileUploaded {
+                    report_name,
+                    path_in_bucket,
+                    bucket,
+                    audit_info: audit_info.clone(),
+                    recorded_at: Utc::now(),
+                }),
+                ReportFileUpload::Failure {
+                    report_name,
+                    reason,
+                } => self.events.push(ReportEvent::FileUploadFailed {
+                    report_name,
+                    reason,
+                    audit_info: audit_info.clone(),
+                    recorded_at: Utc::now(),
+                }),
+            }
+        }
     }
 
     pub(super) fn upload_failed(&mut self, error: String, audit_info: AuditInfo) {
         self.events.push(ReportEvent::UploadFailed {
-            id: self.id,
             error,
             audit_info,
             recorded_at: Utc::now(),
