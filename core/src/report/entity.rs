@@ -97,6 +97,15 @@ impl Report {
         last_step.unwrap_or(ReportGenerationProcessStep::Compilation)
     }
 
+    pub fn progress(&self) -> ReportProgress {
+        for e in self.events.iter().rev() {
+            if let ReportEvent::FileUploaded { .. } = e {
+                return ReportProgress::Complete;
+            }
+        }
+        ReportProgress::Running
+    }
+
     pub(super) fn compilation_completed(
         &mut self,
         compilation_result: CompilationResult,

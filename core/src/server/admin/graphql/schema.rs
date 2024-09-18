@@ -709,4 +709,14 @@ impl Mutation {
         let report = app.reports().create(sub).await?;
         Ok(ReportCreatePayload::from(report))
     }
+
+    async fn report_download_links_generate(
+        &self,
+        ctx: &Context<'_>,
+    ) -> async_graphql::Result<ReportDownloadLinksGeneratePayload> {
+        let app = ctx.data_unchecked::<LavaApp>();
+        let AdminAuthContext { sub } = ctx.data()?;
+        let links = app.reports().gen_download_links(sub).await?;
+        Ok(ReportDownloadLinksPayload::from(links))
+    }
 }

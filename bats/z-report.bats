@@ -15,4 +15,9 @@ teardown_file() {
   echo $(graphql_output)
   report_id=$(graphql_output .data.reportCreate.report.reportId)
   [[ "$report_id" != "null" ]] || exit 1
+  # test progress
+  # read report in loop to until progreess = complete
+  # get download urls
+  # download first one
+  # be happy
 }

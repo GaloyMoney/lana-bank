@@ -534,6 +534,12 @@ where
     }
 }
 
+#[derive(async_graphql::Enum, Debug, Clone, Copy, PartialEq, Eq)]
+pub enum ReportProgress {
+    Running,
+    Complete,
+}
+
 #[cfg(test)]
 mod test {
     use super::*;
