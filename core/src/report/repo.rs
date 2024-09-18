@@ -51,13 +51,6 @@ impl ReportRepo {
         }
     }
 
-    pub async fn persist(&self, report: &mut Report) -> Result<(), ReportError> {
-        let mut db = self.pool.begin().await?;
-        self.persist_in_tx(&mut db, report).await?;
-        db.commit().await?;
-        Ok(())
-    }
-
     pub async fn persist_in_tx(
         &self,
         db: &mut Transaction<'_, sqlx::Postgres>,

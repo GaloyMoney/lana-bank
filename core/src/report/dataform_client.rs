@@ -85,7 +85,7 @@ impl DataformClient {
         Ok(res)
     }
 
-    async fn make_get_request<T: serde::de::DeserializeOwned>(
+    async fn _make_get_request<T: serde::de::DeserializeOwned>(
         &self,
         api_path: &str,
     ) -> anyhow::Result<T> {

@@ -113,7 +113,7 @@ pub mod bq {
             .await?;
         let res = tables
             .tables
-            .unwrap_or_else(|| Vec::new())
+            .unwrap_or_default()
             .into_iter()
             .filter_map(|t| {
                 if t.table_reference.table_id.starts_with("report") {
@@ -138,7 +138,7 @@ pub mod bq {
         let res = client
             .job()
             .query(
-                &gcp_project,
+                gcp_project,
                 QueryRequest {
                     query,
                     dry_run: Some(false),

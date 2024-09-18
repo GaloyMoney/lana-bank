@@ -22,7 +22,6 @@ pub enum ReportEvent {
         recorded_at: DateTime<Utc>,
     },
     CompilationFailed {
-        audit_info: AuditInfo,
         error: String,
         audit_info: AuditInfo,
         recorded_at: DateTime<Utc>,
@@ -33,16 +32,15 @@ pub enum ReportEvent {
         recorded_at: DateTime<Utc>,
     },
     InvocationFailed {
-        audit_info: AuditInfo,
         error: String,
         audit_info: AuditInfo,
         recorded_at: DateTime<Utc>,
     },
     FileUploaded {
-        audit_info: AuditInfo,
         report_name: String,
         path_in_bucket: String,
         bucket: String,
+        audit_info: AuditInfo,
         recorded_at: DateTime<Utc>,
     },
     FileUploadFailed {
@@ -163,7 +161,7 @@ impl Report {
                     report_name,
                     path_in_bucket,
                     bucket,
-                    audit_info: audit_info.clone(),
+                    audit_info,
                     recorded_at: Utc::now(),
                 }),
                 ReportFileUpload::Failure {
@@ -172,7 +170,7 @@ impl Report {
                 } => self.events.push(ReportEvent::FileUploadFailed {
                     report_name,
                     reason,
-                    audit_info: audit_info.clone(),
+                    audit_info,
                     recorded_at: Utc::now(),
                 }),
             }
@@ -195,9 +193,8 @@ impl TryFrom<EntityEvents<ReportEvent>> for Report {
         let mut builder = ReportBuilder::default();
 
         for event in events.iter() {
-            match event {
-                ReportEvent::Initialized { id, .. } => builder = builder.id(*id),
-                _ => {}
+            if let ReportEvent::Initialized { id, .. } = event {
+                builder = builder.id(*id)
             }
         }
 
@@ -257,7 +254,6 @@ mod test {
         );
 
         events.push(ReportEvent::CompilationFailed {
-            id,
             error: "".to_string(),
             audit_info: dummy_audit_info(),
             recorded_at: Utc::now(),
@@ -268,7 +264,6 @@ mod test {
         );
 
         events.push(ReportEvent::CompilationCompleted {
-            id,
             result: CompilationResult::default(),
             audit_info: dummy_audit_info(),
             recorded_at: Utc::now(),
@@ -279,7 +274,6 @@ mod test {
         );
 
         events.push(ReportEvent::InvocationFailed {
-            id,
             error: "".to_string(),
             audit_info: dummy_audit_info(),
             recorded_at: Utc::now(),
@@ -290,7 +284,6 @@ mod test {
         );
 
         events.push(ReportEvent::InvocationCompleted {
-            id,
             result: WorkflowInvocation {
                 name: "".to_string(),
                 state: crate::report::dataform_client::WorkflowInvocationState::Succeeded,
@@ -304,7 +297,6 @@ mod test {
         );
 
         events.push(ReportEvent::UploadFailed {
-            id,
             error: "".to_string(),
             audit_info: dummy_audit_info(),
             recorded_at: Utc::now(),

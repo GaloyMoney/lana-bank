@@ -141,9 +141,7 @@ impl JobRunner for GenerateReportJobRunner {
                     .await?;
 
                 match super::upload::execute(&self.report_config).await {
-                    Ok(res) => {
-                        report.upload_completed(res, audit_info);
-                    }
+                    Ok(files) => report.files_uploaded(files, audit_info),
                     Err(e) => {
                         report.upload_failed(e.to_string(), audit_info);
 
