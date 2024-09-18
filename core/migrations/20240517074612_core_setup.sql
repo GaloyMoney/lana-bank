@@ -102,9 +102,10 @@ CREATE TABLE report_events (
 
 CREATE TABLE jobs (
   id UUID NOT NULL UNIQUE,
-  name VARCHAR NOT NULL UNIQUE,
+  name VARCHAR NOT NULL,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
+CREATE INDEX idx_job_name ON jobs(name);
 
 CREATE TABLE job_events (
   id UUID REFERENCES jobs(id) NOT NULL,

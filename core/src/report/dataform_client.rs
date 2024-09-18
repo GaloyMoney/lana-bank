@@ -80,9 +80,7 @@ impl DataformClient {
             .body(body_json)
             .send()
             .await?;
-        dbg!(&res);
-        let res: T = res.json().await?;
-        Ok(res)
+        Ok(res.json().await?)
     }
 
     async fn _make_get_request<T: serde::de::DeserializeOwned>(

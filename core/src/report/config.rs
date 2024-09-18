@@ -3,14 +3,15 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Deserialize, Serialize, Default)]
 pub struct ReportConfig {
-    #[serde(default)]
+    #[serde(skip)]
+    pub gcp_project: String,
+    #[serde(skip)]
     pub sa_creds_base64: String,
     #[serde(skip)]
     service_account_key: Option<ServiceAccountKey>,
-    #[serde(default)]
-    pub gcp_project: String,
-    #[serde(default)]
+
     pub gcp_location: String,
+
     #[serde(default)]
     pub dataform_repo: String,
     #[serde(default)]
@@ -33,6 +34,7 @@ impl ReportConfig {
             dataform_repo: format!("{}-repo", name_prefix),
             dataform_output_dataset: format!("dataform_{}", name_prefix),
             dataform_release_config: format!("{}-release", name_prefix),
+            bucket_name: format!("{}-volcano-docs", name_prefix),
             gcp_location,
             reports_root_folder: name_prefix,
             ..Default::default()
@@ -41,7 +43,7 @@ impl ReportConfig {
         Ok(cfg)
     }
 
-    pub fn set_sa_creds_base64(&mut self, sa_creds_base64: String) -> anyhow::Result<()> {
+    pub fn set_sa_creds_base64(&mut self, sa_creds_base64: String) -> anyhow::Result<String> {
         use base64::{engine::general_purpose, Engine as _};
 
         let creds =
@@ -56,7 +58,7 @@ impl ReportConfig {
         self.service_account_key = Some(service_account_key);
         self.sa_creds_base64 = sa_creds_base64;
 
-        Ok(())
+        Ok(creds)
     }
 
     pub fn service_account_key(&self) -> ServiceAccountKey {

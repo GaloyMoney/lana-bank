@@ -7,6 +7,7 @@ use std::path::Path;
 use super::db::*;
 use crate::{
     app::AppConfig,
+    report::ReportConfig,
     server::{admin::AdminServerConfig, public::PublicServerConfig},
 };
 
@@ -40,6 +41,7 @@ impl Config {
             sumsub_secret,
             sa_creds_base64,
         }: EnvOverride,
+        dev_env_name_prefix: Option<String>,
     ) -> anyhow::Result<Self> {
         let config_file = std::fs::read_to_string(&path)
             .context(format!("Couldn't read config file {:?}", path.as_ref()))?;
@@ -48,7 +50,19 @@ impl Config {
         config.db.pg_con.clone_from(&db_con);
         config.app.sumsub.sumsub_key = sumsub_key;
         config.app.sumsub.sumsub_secret = sumsub_secret;
-        config.app.report.set_sa_creds_base64(sa_creds_base64)?;
+        if let Some(dev_env_name_prefix) = dev_env_name_prefix {
+            println!(
+                "WARNING - overriding report config from DEV_ENV_NAME_PREFIX={}",
+                dev_env_name_prefix
+            );
+            config.app.report = ReportConfig::init(
+                sa_creds_base64.clone(),
+                dev_env_name_prefix,
+                config.app.report.gcp_location,
+            )?;
+        };
+        let service_account_creds = config.app.report.set_sa_creds_base64(sa_creds_base64)?;
+        std::env::set_var("SERVICE_ACCOUNT_JSON", service_account_creds);
 
         Ok(config)
     }
