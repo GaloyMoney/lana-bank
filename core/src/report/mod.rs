@@ -53,6 +53,7 @@ impl Reports {
             .await?;
 
         let new_report = NewReport::builder()
+            .id(ReportId::new())
             .audit_info(audit_info)
             .build()
             .expect("Could not build report");

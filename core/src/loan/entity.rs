@@ -884,10 +884,8 @@ pub struct NewLoan {
 }
 
 impl NewLoan {
-    pub fn builder(audit_info: AuditInfo) -> NewLoanBuilder {
-        let mut builder = NewLoanBuilder::default();
-        builder.audit_info(audit_info);
-        builder
+    pub fn builder() -> NewLoanBuilder {
+        NewLoanBuilder::default()
     }
 
     pub(super) fn initial_events(self) -> EntityEvents<LoanEvent> {

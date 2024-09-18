@@ -154,8 +154,9 @@ impl Loans {
         }
         let mut db_tx = self.pool.begin().await?;
 
-        let new_loan = NewLoan::builder(audit_info)
+        let new_loan = NewLoan::builder()
             .id(LoanId::new())
+            .audit_info(audit_info)
             .customer_id(customer_id)
             .principal(desired_principal)
             .account_ids(LoanAccountIds::new())

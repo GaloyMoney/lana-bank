@@ -508,8 +508,7 @@ type Mutation {
 	userCreate(input: UserCreateInput!): UserCreatePayload!
 	userAssignRole(input: UserAssignRoleInput!): UserAssignRolePayload!
 	userRevokeRole(input: UserRevokeRoleInput!): UserRevokeRolePayload!
-	reportCreate: Report!
-	report(id: UUID!): Report
+	reportCreate: ReportCreatePayload!
 }
 
 """
@@ -568,6 +567,7 @@ type Query {
 	withdrawal(id: UUID!): Withdrawal
 	withdrawals(first: Int!, after: String): WithdrawalConnection!
 	realtimePrice: RealtimePrice!
+	report(id: UUID!): Report
 }
 
 type RealtimePrice {
@@ -576,6 +576,10 @@ type RealtimePrice {
 
 type Report {
 	reportId: UUID!
+}
+
+type ReportCreatePayload {
+	report: Report!
 }
 
 enum Role {

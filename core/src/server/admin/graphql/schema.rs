@@ -418,6 +418,18 @@ impl Query {
         let usd_cents_per_btc = app.price().usd_cents_per_btc().await?;
         Ok(usd_cents_per_btc.into())
     }
+
+    async fn report(&self, ctx: &Context<'_>, id: UUID) -> async_graphql::Result<Option<Report>> {
+        let app = ctx.data_unchecked::<LavaApp>();
+
+        let AdminAuthContext { sub } = ctx.data()?;
+
+        let report = app
+            .reports()
+            .find_by_id(Some(sub), ReportId::from(id))
+            .await?;
+        Ok(report.map(Report::from))
+    }
 }
 
 pub struct Mutation;
@@ -691,22 +703,10 @@ impl Mutation {
         Ok(UserRevokeRolePayload::from(user))
     }
 
-    async fn report_create(&self, ctx: &Context<'_>) -> async_graphql::Result<Report> {
+    async fn report_create(&self, ctx: &Context<'_>) -> async_graphql::Result<ReportCreatePayload> {
         let app = ctx.data_unchecked::<LavaApp>();
         let AdminAuthContext { sub } = ctx.data()?;
         let report = app.reports().create(sub).await?;
-        Ok(Report::from(report))
-    }
-
-    async fn report(&self, ctx: &Context<'_>, id: UUID) -> async_graphql::Result<Option<Report>> {
-        let app = ctx.data_unchecked::<LavaApp>();
-
-        let AdminAuthContext { sub } = ctx.data()?;
-
-        let report = app
-            .reports()
-            .find_by_id(Some(sub), ReportId::from(id))
-            .await?;
-        Ok(report.map(Report::from))
+        Ok(ReportCreatePayload::from(report))
     }
 }

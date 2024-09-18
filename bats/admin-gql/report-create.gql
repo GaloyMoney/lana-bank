@@ -1,0 +1,7 @@
+mutation ReportCreate() {
+  reportCreate {
+    report {
+      reportId
+    }
+  }
+}

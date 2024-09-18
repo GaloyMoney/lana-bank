@@ -519,8 +519,7 @@ export type Mutation = {
   loanApprove: LoanApprovePayload;
   loanCreate: LoanCreatePayload;
   loanPartialPayment: LoanPartialPaymentPayload;
-  report?: Maybe<Report>;
-  reportCreate: Report;
+  reportCreate: ReportCreatePayload;
   shareholderEquityAdd: SuccessPayload;
   sumsubPermalinkCreate: SumsubPermalinkCreatePayload;
   userAssignRole: UserAssignRolePayload;
@@ -574,11 +573,6 @@ export type MutationLoanCreateArgs = {
 
 export type MutationLoanPartialPaymentArgs = {
   input: LoanPartialPaymentInput;
-};
-
-
-export type MutationReportArgs = {
-  id: Scalars['UUID']['input'];
 };
 
 
@@ -665,6 +659,7 @@ export type Query = {
   offBalanceSheetTrialBalance?: Maybe<TrialBalance>;
   profitAndLossStatement?: Maybe<ProfitAndLossStatement>;
   realtimePrice: RealtimePrice;
+  report?: Maybe<Report>;
   trialBalance?: Maybe<TrialBalance>;
   user?: Maybe<User>;
   users: Array<User>;
@@ -748,6 +743,11 @@ export type QueryProfitAndLossStatementArgs = {
 };
 
 
+export type QueryReportArgs = {
+  id: Scalars['UUID']['input'];
+};
+
+
 export type QueryTrialBalanceArgs = {
   from: Scalars['Timestamp']['input'];
   until?: InputMaybe<Scalars['Timestamp']['input']>;
@@ -777,6 +777,11 @@ export type RealtimePrice = {
 export type Report = {
   __typename?: 'Report';
   reportId: Scalars['UUID']['output'];
+};
+
+export type ReportCreatePayload = {
+  __typename?: 'ReportCreatePayload';
+  report: Report;
 };
 
 export enum Role {
