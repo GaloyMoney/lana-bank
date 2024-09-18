@@ -2,7 +2,9 @@ use serde::{Deserialize, Serialize};
 
 use std::collections::HashMap;
 
-use super::{cloud_storage::upload_xml_file, config::ReportConfig, ReportLocationInCloud};
+use super::{
+    cloud_storage::upload_xml_file, config::ReportConfig, ReportError, ReportLocationInCloud,
+};
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
@@ -21,7 +23,7 @@ pub enum ReportFileUpload {
 #[derive(Debug, Default)]
 pub struct QueryRow(HashMap<String, serde_json::Value>);
 
-pub async fn execute(config: &ReportConfig) -> anyhow::Result<Vec<ReportFileUpload>> {
+pub async fn execute(config: &ReportConfig) -> Result<Vec<ReportFileUpload>, ReportError> {
     let mut res = Vec::new();
     for report_name in bq::find_report_outputs(config).await? {
         let location = ReportLocationInCloud {
@@ -85,12 +87,14 @@ pub fn convert_to_xml_data(rows: Vec<QueryRow>) -> Vec<u8> {
     xml.into_bytes()
 }
 
-pub mod bq {
+pub(super) mod bq {
     use super::*;
 
     use gcp_bigquery_client::{model::query_request::QueryRequest, table::ListOptions, Client};
 
-    pub async fn find_report_outputs(config: &ReportConfig) -> anyhow::Result<Vec<String>> {
+    pub(super) async fn find_report_outputs(
+        config: &ReportConfig,
+    ) -> Result<Vec<String>, ReportError> {
         let client = Client::from_service_account_key(config.service_account_key(), false).await?;
         let tables = client
             .table()
@@ -114,10 +118,10 @@ pub mod bq {
         Ok(res)
     }
 
-    pub async fn query_report(
+    pub(super) async fn query_report(
         config: &ReportConfig,
         report: &str,
-    ) -> anyhow::Result<Vec<QueryRow>> {
+    ) -> Result<Vec<QueryRow>, ReportError> {
         let client = Client::from_service_account_key(config.service_account_key(), false).await?;
         let gcp_project = &config.gcp_project;
         let query = format!(
