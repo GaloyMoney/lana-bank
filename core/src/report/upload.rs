@@ -19,14 +19,15 @@ pub async fn execute(config: &ReportConfig) -> anyhow::Result<UploadResult> {
         )
         .await?;
 
-        // let note = Object::read(
-        //     config.bucket_name,
-        //     &path_to_report(&config.folder_prefix, &report),
-        // )
-        // .await
-        //     let download_url = note.download_url(60 * 10).map_err(err_into_status)?; <- lazy
-        //     evaluate the download link
+        let note = Object::read(
+            &config.bucket_name,
+            &path_to_report(&config.folder_prefix, &report),
+        )
+        .await?;
+
+        let _download_url = note.download_url(60 * 10)?;
     }
+
     Ok(UploadResult::default())
 }
 
@@ -77,7 +78,7 @@ pub mod bq {
             .unwrap_or_else(|| Vec::new())
             .into_iter()
             .filter_map(|t| {
-                if t.table_reference.table_id.starts_with("report_01") {
+                if t.table_reference.table_id.starts_with("report") {
                     return Some(t.table_reference.table_id);
                 }
                 None
