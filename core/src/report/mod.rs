@@ -110,12 +110,7 @@ impl Reports {
 
         let mut download_links = vec![];
         for location in report.download_links() {
-            let url = generate_download_link(
-                &location.bucket,
-                &location.path_in_bucket,
-                self.config.download_link_duration,
-            )
-            .await?;
+            let url = generate_download_link(&location, self.config.download_link_duration).await?;
 
             download_links.push(ReportDownloadLink {
                 report_name: location.report_name.clone(),

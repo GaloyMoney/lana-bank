@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 
 use std::collections::HashMap;
 
-use super::{cloud_storage::upload_xml_file, config::ReportConfig};
+use super::{cloud_storage::upload_xml_file, config::ReportConfig, ReportLocationInCloud};
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
@@ -24,6 +24,11 @@ pub struct QueryRow(HashMap<String, serde_json::Value>);
 pub async fn execute(config: &ReportConfig) -> anyhow::Result<Vec<ReportFileUpload>> {
     let mut res = Vec::new();
     for report_name in bq::find_report_outputs(config).await? {
+        let location = ReportLocationInCloud {
+            report_name: report_name.clone(),
+            bucket: config.bucket_name.clone(),
+            path_in_bucket: path_to_report(&config.reports_root_folder, &report_name),
+        };
         let rows = match bq::query_report(config, &report_name).await {
             Ok(rows) => rows,
             Err(e) => {
@@ -35,13 +40,7 @@ pub async fn execute(config: &ReportConfig) -> anyhow::Result<Vec<ReportFileUplo
             }
         };
         let xml_bytes = convert_to_xml_data(rows);
-        match upload_xml_file(
-            &config.bucket_name,
-            &path_to_report(&config.reports_root_folder, &report_name),
-            xml_bytes.to_vec(),
-        )
-        .await
-        {
+        match upload_xml_file(&location, xml_bytes.to_vec()).await {
             Ok(_) => {
                 res.push(ReportFileUpload::Success {
                     path_in_bucket: path_to_report(&config.reports_root_folder, &report_name),
