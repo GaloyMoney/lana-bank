@@ -53,4 +53,11 @@ wait_for_complete() {
   url=$(echo $links | jq -r '.[0].url')
   xml_file_contents=$(curl -fsSL "$url") || exit 1
   echo $xml_file_contents | grep "<?xml" || exit 1
+
+  exec_admin_graphql 'report-list'
+  report_id_from_list=$(graphql_output \
+    --arg reportId "$report_id" \
+    '.data.reports[] | select(.reportId == $reportId) .reportId'
+  )
+  [[ "$report_id_from_list" == "$report_id" ]] || exit 1
 }
