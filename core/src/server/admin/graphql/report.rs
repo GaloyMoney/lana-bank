@@ -1,6 +1,9 @@
 use async_graphql::*;
 
-use crate::{primitives::ReportProgress, server::shared_graphql::primitives::UUID};
+use crate::{
+    primitives::ReportProgress,
+    server::shared_graphql::primitives::{Timestamp, UUID},
+};
 
 #[derive(SimpleObject)]
 pub(super) struct ReportCreatePayload {
@@ -18,6 +21,7 @@ impl From<crate::report::Report> for ReportCreatePayload {
 #[derive(SimpleObject)]
 pub(super) struct Report {
     report_id: UUID,
+    created_at: Timestamp,
     last_error: Option<String>,
     progress: ReportProgress,
 }
@@ -26,6 +30,7 @@ impl From<crate::report::Report> for Report {
     fn from(report: crate::report::Report) -> Self {
         Self {
             report_id: UUID::from(report.id),
+            created_at: report.created_at().into(),
             last_error: report.last_error(),
             progress: report.progress(),
         }

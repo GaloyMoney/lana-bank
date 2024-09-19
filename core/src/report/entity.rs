@@ -108,6 +108,12 @@ impl Entity for Report {
 }
 
 impl Report {
+    pub fn created_at(&self) -> DateTime<Utc> {
+        self.events
+            .entity_first_persisted_at
+            .expect("entity_first_persisted_at not found")
+    }
+
     pub(super) fn next_step(&self) -> ReportGenerationProcessStep {
         let last_step = self.events.iter().rev().find_map(|event| match event {
             ReportEvent::CompilationCompleted { .. } | ReportEvent::InvocationFailed { .. } => {
