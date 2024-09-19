@@ -41,4 +41,5 @@ extend-exclude = [
 	"definitions/staging/stg_03_npb4_17_referencia_garantia_xml_raw.sqlx",
 	"definitions/reports/report_02_npb4_17_referencia_xml.sqlx",
 	"definitions/reports/report_01_npb4_17_persona_xml.sqlx",
+	"dev/fake-service-account.json",
 ]
