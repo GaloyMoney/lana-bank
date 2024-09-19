@@ -24,11 +24,16 @@ jobs:
         uses: "google-github-actions/auth@v2"
         with:
           credentials_json: "${{ secrets.GOOGLE_CREDENTIALS }}"
+      - name: Sync dataform-branch
+        run: nix develop -c push-dataform-branch
+        env:
+          DATAFORM_BRANCH: "gha-dataform"
       - name: Run e2e tests
         run: nix develop -c make e2e
         env:
           GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
           TF_VAR_bq_creds: ${{ secrets.GOOGLE_SA_BASE64 }}
+          BQ_SERVICE_ACCOUNT_BASE64: ${{ secrets.GOOGLE_SA_BASE64 }}
           TF_VAR_name_prefix: "gha"
       - name: Rename Tilt log
         if: always()
