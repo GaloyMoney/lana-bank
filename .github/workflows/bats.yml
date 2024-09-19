@@ -25,7 +25,7 @@ jobs:
         with:
           credentials_json: "${{ secrets.GOOGLE_CREDENTIALS }}"
       - name: Sync dataform-branch
-        run: nix develop -c push-dataform-branch
+        run: nix develop -c make push-dataform-branch
         env:
           DATAFORM_BRANCH: "gha-dataform"
       - name: Run e2e tests
