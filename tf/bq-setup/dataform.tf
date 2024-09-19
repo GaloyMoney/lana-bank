@@ -10,7 +10,7 @@ resource "google_service_account_iam_member" "service_account_impersonation_targ
   member             = "serviceAccount:service-${data.google_project.project.number}@gcp-sa-dataform.iam.gserviceaccount.com"
 }
 
-resource "google_project_iam_member" "dev_jobuser" {
+resource "google_project_iam_member" "jobuser" {
   project = local.gcp_project
   role    = "roles/bigquery.jobUser"
   member  = "serviceAccount:${google_service_account.bq_access_sa.email}"
