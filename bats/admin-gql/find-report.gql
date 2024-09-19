@@ -1,6 +1,7 @@
 query Report($id: UUID!) {
   report(id: $id) {
     reportId
+    last_error
     progress
   }
 }

@@ -18,6 +18,7 @@ impl From<crate::report::Report> for ReportCreatePayload {
 #[derive(SimpleObject)]
 pub(super) struct Report {
     report_id: UUID,
+    last_error: Option<String>,
     progress: ReportProgress,
 }
 
@@ -25,6 +26,7 @@ impl From<crate::report::Report> for Report {
     fn from(report: crate::report::Report) -> Self {
         Self {
             report_id: UUID::from(report.id),
+            last_error: report.last_error(),
             progress: report.progress(),
         }
     }

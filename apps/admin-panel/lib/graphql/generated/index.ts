@@ -782,6 +782,7 @@ export type RealtimePrice = {
 
 export type Report = {
   __typename?: 'Report';
+  lastError?: Maybe<Scalars['String']['output']>;
   progress: ReportProgress;
   reportId: Scalars['UUID']['output'];
 };

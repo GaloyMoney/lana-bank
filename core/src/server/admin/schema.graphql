@@ -577,6 +577,7 @@ type RealtimePrice {
 
 type Report {
 	reportId: UUID!
+	lastError: String
 	progress: ReportProgress!
 }
 

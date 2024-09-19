@@ -123,6 +123,24 @@ impl Report {
         last_step.unwrap_or(ReportGenerationProcessStep::Compilation)
     }
 
+    pub fn last_error(&self) -> Option<String> {
+        for e in self.events.iter().rev() {
+            if let ReportEvent::CompilationFailed { error, .. } = e {
+                return Some(format!("CompilationFailed: {}", error));
+            }
+            if let ReportEvent::InvocationFailed { error, .. } = e {
+                return Some(format!("InvocationFailed: {}", error));
+            }
+            if let ReportEvent::UploadFailed { error, .. } = e {
+                return Some(format!("UploadFailed: {}", error));
+            }
+            if let ReportEvent::FileUploadFailed { reason, .. } = e {
+                return Some(format!("FiledUploadFailed: {}", reason));
+            }
+        }
+        None
+    }
+
     pub fn progress(&self) -> ReportProgress {
         for e in self.events.iter().rev() {
             if let ReportEvent::FileUploaded { .. } = e {

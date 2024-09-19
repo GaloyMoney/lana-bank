@@ -19,6 +19,7 @@ wait_for_complete() {
     }'
   )
   exec_admin_graphql 'find-report' "$variables"
+  echo $(graphql_output)
   progress=$(graphql_output .data.report.progress)
   [[ "$progress" == "COMPLETE" ]] || return 1
 }
