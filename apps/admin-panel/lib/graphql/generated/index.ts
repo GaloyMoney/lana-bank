@@ -666,6 +666,7 @@ export type Query = {
   profitAndLossStatement?: Maybe<ProfitAndLossStatement>;
   realtimePrice: RealtimePrice;
   report?: Maybe<Report>;
+  reports: Array<Report>;
   trialBalance?: Maybe<TrialBalance>;
   user?: Maybe<User>;
   users: Array<User>;

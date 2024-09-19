@@ -51,6 +51,23 @@ impl ReportRepo {
         }
     }
 
+    pub async fn list(&self) -> Result<Vec<Report>, ReportError> {
+        let rows = sqlx::query_as!(
+            GenericEvent,
+            r#"SELECT a.id, e.sequence, e.event,
+                a.created_at AS entity_created_at, e.recorded_at AS event_recorded_at
+            FROM reports a
+            JOIN report_events e
+            ON a.id = e.id
+            ORDER BY a.created_at DESC, a.id, e.sequence"#,
+        )
+        .fetch_all(&self.pool)
+        .await?;
+        let n = rows.len();
+        let res = EntityEvents::load_n::<Report>(rows, n)?;
+        Ok(res.0)
+    }
+
     pub async fn persist_in_tx(
         &self,
         db: &mut Transaction<'_, sqlx::Postgres>,

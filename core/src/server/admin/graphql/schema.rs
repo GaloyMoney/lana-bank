@@ -419,6 +419,13 @@ impl Query {
         Ok(usd_cents_per_btc.into())
     }
 
+    async fn reports(&self, ctx: &Context<'_>) -> async_graphql::Result<Vec<Report>> {
+        let app = ctx.data_unchecked::<LavaApp>();
+        let AdminAuthContext { sub } = ctx.data()?;
+        let users = app.reports().list_reports(sub).await?;
+        Ok(users.into_iter().map(Report::from).collect())
+    }
+
     async fn report(&self, ctx: &Context<'_>, id: UUID) -> async_graphql::Result<Option<Report>> {
         let app = ctx.data_unchecked::<LavaApp>();
 

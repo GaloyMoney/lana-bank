@@ -94,6 +94,13 @@ impl Reports {
         }
     }
 
+    pub async fn list_reports(&self, sub: &Subject) -> Result<Vec<Report>, ReportError> {
+        self.authz
+            .check_permission(sub, Object::Report, ReportAction::List)
+            .await?;
+        self.repo.list().await
+    }
+
     pub async fn generate_download_links(
         &self,
         sub: &Subject,

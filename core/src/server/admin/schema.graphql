@@ -568,6 +568,7 @@ type Query {
 	withdrawal(id: UUID!): Withdrawal
 	withdrawals(first: Int!, after: String): WithdrawalConnection!
 	realtimePrice: RealtimePrice!
+	reports: [Report!]!
 	report(id: UUID!): Report
 }
 

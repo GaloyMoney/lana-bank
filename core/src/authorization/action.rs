@@ -152,6 +152,7 @@ impl_trivial_action!(WithdrawAction, Withdraw);
 #[strum(serialize_all = "kebab-case")]
 pub enum ReportAction {
     Read,
+    List,
     Create,
     Compile,
     Invoke,
