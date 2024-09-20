@@ -18,4 +18,6 @@ pub enum ApplicationError {
     AuditError(#[from] crate::audit::error::AuditError),
     #[error("ApplicationError - LoanError: {0}")]
     LoanError(#[from] crate::loan::error::LoanError),
+    #[error("ApplicationError - ReportError: {0}")]
+    ReportError(#[from] crate::report::error::ReportError),
 }

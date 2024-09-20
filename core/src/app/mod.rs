@@ -70,6 +70,7 @@ impl LavaApp {
         jobs.start_poll().await?;
 
         loans.spawn_global_jobs().await?;
+        report.spawn_global_jobs().await?;
 
         Ok(Self {
             _pool: pool,

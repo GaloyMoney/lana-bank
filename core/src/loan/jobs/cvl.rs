@@ -1,6 +1,5 @@
 use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
-use uuid::{uuid, Uuid};
 
 use std::time::Duration;
 
@@ -11,8 +10,6 @@ use crate::{
     loan::{repo::*, terms::CVLPct, LoanByCollateralizationRatioCursor, Subject, SystemNode},
     price::Price,
 };
-
-pub(crate) const CVL_JOB_ID: Uuid = uuid!("00000000-0000-0000-0000-000000000001");
 
 #[serde_with::serde_as]
 #[derive(Clone, Serialize, Deserialize)]

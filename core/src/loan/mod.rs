@@ -16,6 +16,7 @@ use crate::{
     authorization::{
         Authorization, CustomerAllOrOne, LoanAction, LoanAllOrOne, Object, TermAction,
     },
+    constants::CVL_JOB_ID,
     customer::Customers,
     data_export::Export,
     entity::EntityError,
@@ -96,7 +97,7 @@ impl Loans {
             .jobs
             .create_and_spawn_job::<cvl::LoanProcessingJobInitializer, _>(
                 &mut db_tx,
-                jobs::cvl::CVL_JOB_ID,
+                CVL_JOB_ID,
                 "cvl-update-job".to_string(),
                 cvl::LoanJobConfig {
                     job_interval: std::time::Duration::from_secs(30),

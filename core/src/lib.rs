@@ -6,6 +6,7 @@ pub mod applicant;
 pub mod audit;
 pub mod authorization;
 pub mod cli;
+pub mod constants;
 pub mod customer;
 pub mod data_export;
 pub mod deposit;

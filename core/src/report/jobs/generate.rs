@@ -9,14 +9,14 @@ use crate::{
     primitives::*,
 };
 
-use super::{
-    dataform_client::DataformClient, entity::ReportGenerationProcessStep, repo::ReportRepo,
+use crate::report::{
+    dataform_client::DataformClient, entity::ReportGenerationProcessStep, repo::ReportRepo, upload,
     ReportConfig,
 };
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GenerateReportConfig {
-    pub(super) report_id: ReportId,
+    pub(crate) report_id: ReportId,
 }
 
 pub struct GenerateReportInitializer {
@@ -63,7 +63,12 @@ pub struct GenerateReportJobRunner {
 
 #[async_trait]
 impl JobRunner for GenerateReportJobRunner {
-    #[tracing::instrument(name = "lava.report.job.run", skip_all, fields(insert_id), err)]
+    #[tracing::instrument(
+        name = "lava.report.jobs.generate.run",
+        skip_all,
+        fields(insert_id),
+        err
+    )]
     async fn run(
         &self,
         current_job: CurrentJob,
@@ -140,7 +145,7 @@ impl JobRunner for GenerateReportJobRunner {
                     )
                     .await?;
 
-                match super::upload::execute(&self.report_config).await {
+                match upload::execute(&self.report_config).await {
                     Ok(files) => report.files_uploaded(files, audit_info),
                     Err(e) => {
                         report.upload_failed(e.to_string(), audit_info);

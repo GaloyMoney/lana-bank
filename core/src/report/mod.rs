@@ -3,13 +3,14 @@ mod config;
 pub mod dataform_client;
 mod entity;
 pub mod error;
-mod job;
+mod jobs;
 mod repo;
 pub mod upload;
 
 use crate::{
     audit::*,
     authorization::{Authorization, Object, ReportAction},
+    constants::CREATE_REPORT_JOB_ID,
     entity::EntityError,
     job::Jobs,
     primitives::{ReportId, Subject},
@@ -19,6 +20,7 @@ use cloud_storage::generate_download_link;
 pub use config::*;
 pub use entity::*;
 use error::*;
+use jobs as report_jobs;
 use repo::*;
 
 #[derive(Clone)]
@@ -39,7 +41,12 @@ impl Reports {
         jobs: &Jobs,
     ) -> Self {
         let repo = ReportRepo::new(pool);
-        jobs.add_initializer(job::GenerateReportInitializer::new(&repo, config, audit));
+        jobs.add_initializer(report_jobs::generate::GenerateReportInitializer::new(
+            &repo, config, audit,
+        ));
+        jobs.add_initializer(report_jobs::create::CreateReportInitializer::new(
+            &repo, jobs, audit,
+        ));
 
         Self {
             repo,
@@ -48,6 +55,28 @@ impl Reports {
             jobs: jobs.clone(),
             config: config.clone(),
         }
+    }
+
+    pub async fn spawn_global_jobs(&self) -> Result<(), ReportError> {
+        let mut db_tx = self.pool.begin().await?;
+        match self
+            .jobs
+            .create_and_spawn_job::<report_jobs::create::CreateReportInitializer, _>(
+                &mut db_tx,
+                CREATE_REPORT_JOB_ID,
+                "create-report-job".to_string(),
+                report_jobs::create::CreateReportJobConfig {
+                    job_interval: report_jobs::create::CreateReportInterval::EndOfDay,
+                },
+            )
+            .await
+        {
+            Err(crate::job::error::JobError::DuplicateId) => (),
+            Err(e) => return Err(e.into()),
+            _ => (),
+        }
+        db_tx.commit().await?;
+        Ok(())
     }
 
     pub async fn create(&self, sub: &Subject) -> Result<Report, ReportError> {
@@ -65,11 +94,11 @@ impl Reports {
         let mut db = self.pool.begin().await?;
         let report = self.repo.create_in_tx(&mut db, new_report).await?;
         self.jobs
-            .create_and_spawn_job::<job::GenerateReportInitializer, _>(
+            .create_and_spawn_job::<report_jobs::generate::GenerateReportInitializer, _>(
                 &mut db,
                 report.id,
                 "generate_report".to_string(),
-                job::GenerateReportConfig {
+                report_jobs::generate::GenerateReportConfig {
                     report_id: report.id,
                 },
             )
