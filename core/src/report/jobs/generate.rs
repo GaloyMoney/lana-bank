@@ -16,7 +16,7 @@ use crate::report::{
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GenerateReportConfig {
-    pub(crate) report_id: ReportId,
+    pub(in crate::report) report_id: ReportId,
 }
 
 pub struct GenerateReportInitializer {

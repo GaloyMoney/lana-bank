@@ -9,10 +9,8 @@ use crate::{
     authorization::{Object, ReportAction},
     job::*,
     primitives::*,
-    report::NewReport,
+    report::{repo::ReportRepo, NewReport},
 };
-
-use crate::report::repo::ReportRepo;
 
 #[derive(Clone, Serialize, Deserialize)]
 pub struct CreateReportJobConfig {
