@@ -116,9 +116,9 @@ impl JobRunner for CreateReportJobRunner {
                 },
             )
             .await?;
-        db_tx.commit().await?;
 
-        Ok(JobCompletion::RescheduleAt(
+        Ok(JobCompletion::RescheduleAtWithTx(
+            db_tx,
             self.config.job_interval.timestamp(),
         ))
     }
