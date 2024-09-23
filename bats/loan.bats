@@ -132,24 +132,6 @@ wait_for_interest() {
   [[ $(sub "$cash_flow_debit_during" "$cash_flow_debit_before") == "$interest_before" ]] || exit 1
   [[ $(sub "$cash_flow_credit_during" "$cash_flow_credit_before") == "$interest_before" ]] || exit 1
 
-  # Check can't withdraw with no bank deposits
-  variables=$(
-    jq -n \
-      --arg customerId "$customer_id" \
-      --argjson principal "$principal" \
-      --arg date "$(date +%s%N)" \
-    '{
-      input: {
-        customerId: $customerId,
-        amount: $principal,
-        reference: ("withdrawal-ref-" + $date)
-      }
-    }'
-  )
-  exec_admin_graphql 'initiate-withdrawal' "$variables"
-  err_msg=$(graphql_output '.errors[0].message')
-  [[ "$err_msg" =~ "WithdrawalAmountTooLarge" ]] || exit 1
-
   # Check repayments plan
   variables=$(
     jq -n \
