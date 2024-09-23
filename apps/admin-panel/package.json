@@ -33,7 +33,7 @@
     "chart.js": "^4.4.4",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
-    "next": "14.2.3",
+    "next": "14.2.10",
     "next-auth": "^4.24.3",
     "nodemailer": "^6.9.14",
     "pg": "^8.12.0",
