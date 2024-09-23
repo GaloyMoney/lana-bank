@@ -7,6 +7,7 @@ pub mod audit;
 pub mod authorization;
 pub mod cli;
 pub mod constants;
+pub mod credit_facility;
 pub mod customer;
 pub mod data_export;
 pub mod deposit;

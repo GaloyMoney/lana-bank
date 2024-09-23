@@ -13,6 +13,7 @@ crate::entity_id! { WithdrawId }
 crate::entity_id! { DepositId }
 crate::entity_id! { JobId }
 crate::entity_id! { LoanId }
+crate::entity_id! { CreditFacilityId }
 crate::entity_id! { LoanTermsId }
 crate::entity_id! { ReportId }
 
