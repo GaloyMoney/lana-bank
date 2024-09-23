@@ -41,3 +41,17 @@ impl BankDepositsBalance {
         Ok(amount)
     }
 }
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn check_withdrawal_amount() {
+        let balance = BankDepositsBalance::ZERO;
+        assert!(matches!(
+            balance.check_withdrawal_amount(UsdCents::ONE),
+            Err(LedgerError::WithdrawalAmountTooLarge(_, _))
+        ));
+    }
+}
