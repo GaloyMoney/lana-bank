@@ -1228,6 +1228,69 @@ mod test {
             PriceOfOneBTC::new(UsdCents::from(value))
         }
 
+        fn sats_for_cvl(loan: &Loan, target_cvl_value: u64) -> Satoshis {
+            let price = default_price();
+            let outstanding = loan.outstanding();
+            let cvl_as_decimal = Decimal::from(target_cvl_value) / dec!(100);
+
+            let sats_value_decimal =
+                cvl_as_decimal * Decimal::from(outstanding.total().into_inner());
+            let sats_value = UsdCents::from(u64::try_from(sats_value_decimal).unwrap());
+
+            price.cents_to_sats_round_up(sats_value)
+        }
+
+        struct TestCollateral {
+            above_fully_collateralized: Satoshis,
+            above_margin_called_and_buffer: Satoshis,
+            above_margin_called_and_below_buffer: Satoshis,
+            below_margin_called: Satoshis,
+            below_liquidation: Satoshis,
+        }
+        fn test_collateral(loan: &Loan) -> TestCollateral {
+            let above_fully_collateralized_cvl = loan.terms.initial_cvl.into_inner() + 1;
+            let above_margin_called_and_buffer_cvl = loan.terms.margin_call_cvl.into_inner()
+                + default_upgrade_buffer_cvl_pct().into_inner()
+                + 1;
+            let above_margin_called_and_below_buffer_cvl = loan.terms.margin_call_cvl.into_inner()
+                + default_upgrade_buffer_cvl_pct().into_inner()
+                - 1;
+            let below_margin_called_cvl = loan.terms.margin_call_cvl.into_inner() - 1;
+            let below_liquidation_cvl = loan.terms.liquidation_cvl.into_inner() - 1;
+
+            TestCollateral {
+                above_fully_collateralized: sats_for_cvl(loan, above_fully_collateralized_cvl),
+                above_margin_called_and_buffer: sats_for_cvl(
+                    loan,
+                    above_margin_called_and_buffer_cvl,
+                ),
+                above_margin_called_and_below_buffer: sats_for_cvl(
+                    loan,
+                    above_margin_called_and_below_buffer_cvl,
+                ),
+                below_margin_called: sats_for_cvl(loan, below_margin_called_cvl),
+                below_liquidation: sats_for_cvl(loan, below_liquidation_cvl),
+            }
+        }
+
+        struct TestPrices {
+            above_fully_collateralized: PriceOfOneBTC,
+            above_margin_called_and_buffer: PriceOfOneBTC,
+            above_margin_called_and_below_buffer: PriceOfOneBTC,
+            below_margin_called: PriceOfOneBTC,
+            below_liquidation: PriceOfOneBTC,
+        }
+        fn test_prices() -> TestPrices {
+            // FIXME: Values coupled to 3,000 sat collateral in fully_collateralized_loan
+            TestPrices {
+                above_fully_collateralized: price_from(100_000_00),
+                above_margin_called_and_buffer: price_from(46_000_00),
+                above_margin_called_and_below_buffer: price_from(45_500_00),
+                below_margin_called: price_from(43_500_00),
+                below_liquidation: price_from(30_000_00),
+            }
+        }
+
         fn fully_collateralized_loan() -> Loan {
             let mut loan = Loan::try_from(init_events()).unwrap();
 
@@ -1246,23 +1309,6 @@ mod test {
             assert_eq!(loan.status(), LoanStatus::Active);
 
             loan
-        }
-
-        struct TestPrices {
-            above_fully_collateralized: PriceOfOneBTC,
-            above_margin_called_and_buffer: PriceOfOneBTC,
-            above_margin_called_and_below_buffer: PriceOfOneBTC,
-            below_margin_called: PriceOfOneBTC,
-            below_liquidation: PriceOfOneBTC,
-        }
-        fn test_prices() -> TestPrices {
-            TestPrices {
-                above_fully_collateralized: price_from(100_000_00),
-                above_margin_called_and_buffer: price_from(46_000_00),
-                above_margin_called_and_below_buffer: price_from(45_500_00),
-                below_margin_called: price_from(43_500_00),
-                below_liquidation: price_from(30_000_00),
-            }
         }
 
         mod new_loan {
@@ -1290,7 +1336,7 @@ mod test {
                 let mut loan = Loan::try_from(init_events()).unwrap();
 
                 let loan_collateral_update = loan
-                    .initiate_collateral_update(Satoshis::from(100))
+                    .initiate_collateral_update(test_collateral(&loan).below_liquidation)
                     .unwrap();
                 loan.confirm_collateral_update(
                     loan_collateral_update,
@@ -1304,10 +1350,58 @@ mod test {
             }
 
             #[test]
+            fn fully_collateralized_to_under_margin_called() {
+                let mut loan = Loan::try_from(init_events()).unwrap();
+
+                let loan_collateral_update = loan
+                    .initiate_collateral_update(
+                        test_collateral(&loan).above_margin_called_and_buffer,
+                    )
+                    .unwrap();
+                loan.confirm_collateral_update(
+                    loan_collateral_update,
+                    Utc::now(),
+                    dummy_audit_info(),
+                    default_price(),
+                    default_upgrade_buffer_cvl_pct(),
+                );
+                let c = loan.collateralization();
+                assert_eq!(c, LoanCollaterizationState::FullyCollateralized);
+
+                let loan_collateral_update = loan
+                    .initiate_collateral_update(
+                        test_collateral(&loan).above_margin_called_and_below_buffer,
+                    )
+                    .unwrap();
+                loan.confirm_collateral_update(
+                    loan_collateral_update,
+                    Utc::now(),
+                    dummy_audit_info(),
+                    default_price(),
+                    default_upgrade_buffer_cvl_pct(),
+                );
+                let c = loan.collateralization();
+                assert_eq!(c, LoanCollaterizationState::FullyCollateralized);
+
+                let loan_collateral_update = loan
+                    .initiate_collateral_update(test_collateral(&loan).below_margin_called)
+                    .unwrap();
+                loan.confirm_collateral_update(
+                    loan_collateral_update,
+                    Utc::now(),
+                    dummy_audit_info(),
+                    default_price(),
+                    default_upgrade_buffer_cvl_pct(),
+                );
+                let c = loan.collateralization();
+                assert_eq!(c, LoanCollaterizationState::UnderMarginCallThreshold);
+            }
+
+            #[test]
             fn under_liquidation_to_under_margin_called() {
                 let mut loan = Loan::try_from(init_events()).unwrap();
                 let loan_collateral_update = loan
-                    .initiate_collateral_update(Satoshis::from(100))
+                    .initiate_collateral_update(test_collateral(&loan).below_liquidation)
                     .unwrap();
                 loan.confirm_collateral_update(
                     loan_collateral_update,
@@ -1320,7 +1414,7 @@ mod test {
                 assert_eq!(c, LoanCollaterizationState::UnderLiquidationThreshold);
 
                 let loan_collateral_update = loan
-                    .initiate_collateral_update(Satoshis::from(2500))
+                    .initiate_collateral_update(test_collateral(&loan).below_margin_called)
                     .unwrap();
                 loan.confirm_collateral_update(
                     loan_collateral_update,
@@ -1336,8 +1430,9 @@ mod test {
             #[test]
             fn under_margin_called_to_fully_collateralized() {
                 let mut loan = Loan::try_from(init_events()).unwrap();
+
                 let loan_collateral_update = loan
-                    .initiate_collateral_update(Satoshis::from(2500))
+                    .initiate_collateral_update(test_collateral(&loan).below_margin_called)
                     .unwrap();
                 loan.confirm_collateral_update(
                     loan_collateral_update,
@@ -1350,7 +1445,7 @@ mod test {
                 assert_eq!(c, LoanCollaterizationState::UnderMarginCallThreshold);
 
                 let loan_collateral_update = loan
-                    .initiate_collateral_update(Satoshis::from(2900))
+                    .initiate_collateral_update(test_collateral(&loan).above_fully_collateralized)
                     .unwrap();
                 loan.confirm_collateral_update(
                     loan_collateral_update,

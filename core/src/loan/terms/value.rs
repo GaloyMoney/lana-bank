@@ -50,6 +50,12 @@ impl CVLPct {
         Self(Decimal::from(value))
     }
 
+    pub fn into_inner(self) -> u64 {
+        let val = self.0;
+        assert!(val.trunc() == val, "CVT must be an integer");
+        u64::try_from(val).expect("CVT must be positive")
+    }
+
     pub fn scale(&self, value: UsdCents) -> UsdCents {
         let cents = value.to_usd() * dec!(100) * (self.0 / dec!(100));
         UsdCents::from(
