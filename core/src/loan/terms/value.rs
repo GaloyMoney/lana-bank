@@ -4,7 +4,10 @@ use rust_decimal::{prelude::*, Decimal};
 use rust_decimal_macros::dec;
 use serde::{Deserialize, Serialize};
 
-use crate::primitives::{PriceOfOneBTC, Satoshis, UsdCents};
+use crate::{
+    loan::ConversionError,
+    primitives::{PriceOfOneBTC, Satoshis, UsdCents},
+};
 
 const NUMBER_OF_DAYS_IN_YEAR: Decimal = dec!(366);
 
@@ -43,17 +46,19 @@ impl std::ops::Add for CVLPct {
     }
 }
 
+impl TryFrom<CVLPct> for u64 {
+    type Error = ConversionError;
+
+    fn try_from(value: CVLPct) -> Result<Self, Self::Error> {
+        Ok(Self::try_from(value.0)?)
+    }
+}
+
 impl CVLPct {
     pub const ZERO: Self = Self(dec!(0));
 
     pub fn new(value: u64) -> Self {
         Self(Decimal::from(value))
-    }
-
-    pub fn into_inner(self) -> u64 {
-        let val = self.0;
-        assert!(val.trunc() == val, "CVT must be an integer");
-        u64::try_from(val).expect("CVT must be positive")
     }
 
     pub fn scale(&self, value: UsdCents) -> UsdCents {
