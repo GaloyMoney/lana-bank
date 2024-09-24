@@ -8,6 +8,8 @@ use crate::{entity::*, primitives::*};
 pub enum CreditFacilityEvent {
     Initialized {
         id: CreditFacilityId,
+        customer_id: CustomerId,
+        facility: UsdCents,
         audit_info: AuditInfo,
     },
 }
@@ -23,6 +25,7 @@ impl EntityEvent for CreditFacilityEvent {
 #[builder(pattern = "owned", build_fn(error = "EntityError"))]
 pub struct CreditFacility {
     pub id: CreditFacilityId,
+    pub customer_id: CustomerId,
     pub(super) _events: EntityEvents<CreditFacilityEvent>,
 }
 
@@ -39,7 +42,9 @@ impl TryFrom<EntityEvents<CreditFacilityEvent>> for CreditFacility {
         let mut builder = CreditFacilityBuilder::default();
         for event in events.iter() {
             match event {
-                CreditFacilityEvent::Initialized { id, .. } => builder = builder.id(*id),
+                CreditFacilityEvent::Initialized {
+                    id, customer_id, ..
+                } => builder = builder.id(*id).customer_id(*customer_id),
             }
         }
         builder._events(events).build()
@@ -50,6 +55,9 @@ impl TryFrom<EntityEvents<CreditFacilityEvent>> for CreditFacility {
 pub struct NewCreditFacility {
     #[builder(setter(into))]
     pub(super) id: CreditFacilityId,
+    #[builder(setter(into))]
+    pub(super) customer_id: CustomerId,
+    facility: UsdCents,
     #[builder(setter(into))]
     pub(super) audit_info: AuditInfo,
 }
@@ -65,6 +73,8 @@ impl NewCreditFacility {
             [CreditFacilityEvent::Initialized {
                 id: self.id,
                 audit_info: self.audit_info,
+                customer_id: self.customer_id,
+                facility: self.facility,
             }],
         )
     }

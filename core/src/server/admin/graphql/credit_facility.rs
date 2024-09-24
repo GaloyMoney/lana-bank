@@ -7,8 +7,8 @@ use crate::{
 
 #[derive(InputObject)]
 pub struct CreditFacilityCreateInput {
-    customer_id: UUID,
-    amount: UsdCents,
+    pub customer_id: UUID,
+    pub facility: UsdCents,
 }
 
 #[derive(SimpleObject, Clone)]

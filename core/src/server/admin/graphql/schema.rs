@@ -583,12 +583,15 @@ impl Mutation {
     pub async fn credit_facility_create(
         &self,
         ctx: &Context<'_>,
-        _input: CreditFacilityCreateInput,
+        input: CreditFacilityCreateInput,
     ) -> async_graphql::Result<CreditFacilityCreatePayload> {
         let app = ctx.data_unchecked::<LavaApp>();
         let AdminAuthContext { sub } = ctx.data()?;
 
-        let credit_facility = app.credit_facilities().create(sub).await?;
+        let credit_facility = app
+            .credit_facilities()
+            .create(sub, input.customer_id, input.facility)
+            .await?;
 
         Ok(CreditFacilityCreatePayload::from(credit_facility))
     }

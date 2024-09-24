@@ -18,6 +18,7 @@ pub enum Object {
     Report,
     Audit,
     Ledger,
+    CreditFacility,
 }
 
 impl Display for Object {
@@ -74,6 +75,7 @@ impl FromStr for Object {
             Report => Object::Report,
             Audit => Object::Audit,
             Ledger => Object::Ledger,
+            CreditFacility => Object::CreditFacility,
         };
         Ok(res)
     }

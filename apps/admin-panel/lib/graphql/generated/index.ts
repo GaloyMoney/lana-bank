@@ -212,8 +212,8 @@ export type CreditFacility = {
 };
 
 export type CreditFacilityCreateInput = {
-  amount: Scalars['UsdCents']['input'];
   customerId: Scalars['UUID']['input'];
+  facility: Scalars['UsdCents']['input'];
 };
 
 export type CreditFacilityCreatePayload = {

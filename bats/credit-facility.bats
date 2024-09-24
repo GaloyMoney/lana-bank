@@ -14,15 +14,15 @@ teardown_file() {
   # Setup prerequisites
   customer_id=$(create_customer)
 
-  amount=100000
+  facility=100000
   variables=$(
     jq -n \
     --arg customerId "$customer_id" \
-    --argjson amount "$amount" \
+    --argjson facility "$facility" \
     '{
       input: {
         customerId: $customerId,
-        amount: $amount,
+        facility: $facility,
       }
     }'
   )

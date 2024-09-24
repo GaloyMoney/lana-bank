@@ -186,7 +186,7 @@ type CreditFacility {
 
 input CreditFacilityCreateInput {
 	customerId: UUID!
-	amount: UsdCents!
+	facility: UsdCents!
 }
 
 type CreditFacilityCreatePayload {

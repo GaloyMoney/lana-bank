@@ -1,5 +1,7 @@
 use thiserror::Error;
 
+use crate::primitives::CustomerId;
+
 #[derive(Error, Debug)]
 pub enum CreditFacilityError {
     #[error("CreditFacilityError - Sqlx: {0}")]
@@ -10,4 +12,8 @@ pub enum CreditFacilityError {
     JobError(#[from] crate::job::error::JobError),
     #[error("CreditFacilityError - AuthorizationError: {0}")]
     AuthorizationError(#[from] crate::authorization::error::AuthorizationError),
+    #[error("CreditFacilityError - CustomerNotFound: {0}")]
+    CustomerNotFound(CustomerId),
+    #[error("CreditFacilityError- CustomerError: '{0}'")]
+    CustomerError(#[from] crate::customer::error::CustomerError),
 }

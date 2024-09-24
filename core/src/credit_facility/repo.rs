@@ -26,9 +26,10 @@ impl CreditFacilityRepo {
         new_credit_facility: NewCreditFacility,
     ) -> Result<CreditFacility, CreditFacilityError> {
         sqlx::query!(
-            r#"INSERT INTO credit_facilities (id)
-            VALUES ($1)"#,
+            r#"INSERT INTO credit_facilities (id, customer_id)
+            VALUES ($1, $2)"#,
             new_credit_facility.id as CreditFacilityId,
+            new_credit_facility.customer_id as CustomerId,
         )
         .execute(&mut **db)
         .await?;

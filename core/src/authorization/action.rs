@@ -23,6 +23,7 @@ pub enum Action {
     Report(ReportAction),
     Audit(AuditAction),
     Ledger(LedgerAction),
+    CreditFacility(CreditFacilityAction),
 }
 
 impl Display for Action {
@@ -39,6 +40,7 @@ impl Display for Action {
             Report(action) => action.fmt(f),
             Audit(action) => action.fmt(f),
             Ledger(action) => action.fmt(f),
+            CreditFacility(action) => action.fmt(f),
         }
     }
 }
@@ -61,6 +63,7 @@ impl FromStr for Action {
             Report => Action::from(action.parse::<ReportAction>()?),
             Audit => Action::from(action.parse::<AuditAction>()?),
             Ledger => Action::from(action.parse::<LedgerAction>()?),
+            CreditFacility => Action::from(action.parse::<CreditFacilityAction>()?),
         };
         Ok(res)
     }
@@ -80,6 +83,14 @@ pub enum LoanAction {
 }
 
 impl_trivial_action!(LoanAction, Loan);
+
+#[derive(PartialEq, Clone, Copy, Debug, strum::Display, strum::EnumString)]
+#[strum(serialize_all = "kebab-case")]
+pub enum CreditFacilityAction {
+    Create,
+}
+
+impl_trivial_action!(CreditFacilityAction, CreditFacility);
 
 #[derive(PartialEq, Clone, Copy, Debug, strum::Display, strum::EnumString)]
 #[strum(serialize_all = "kebab-case")]
