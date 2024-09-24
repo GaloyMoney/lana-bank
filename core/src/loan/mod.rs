@@ -7,6 +7,7 @@ mod jobs;
 mod repayment_plan;
 mod repo;
 mod terms;
+mod unaccrued_interest;
 
 use sqlx::PgPool;
 use tracing::instrument;
@@ -36,11 +37,13 @@ use jobs::*;
 pub use repayment_plan::*;
 use repo::*;
 pub use terms::*;
+pub use unaccrued_interest::*;
 
 #[derive(Clone)]
 pub struct Loans {
     loan_repo: LoanRepo,
     term_repo: TermRepo,
+    unaccrued_interest_repo: UnaccruedInterestRepo,
     customers: Customers,
     ledger: Ledger,
     pool: PgPool,
@@ -67,6 +70,7 @@ impl Loans {
     ) -> Self {
         let loan_repo = LoanRepo::new(pool, export);
         let term_repo = TermRepo::new(pool);
+        let unaccrued_interest_repo = UnaccruedInterestRepo::new(pool, export);
         jobs.add_initializer(interest::LoanProcessingJobInitializer::new(
             ledger,
             loan_repo.clone(),
@@ -80,6 +84,7 @@ impl Loans {
         Self {
             loan_repo,
             term_repo,
+            unaccrued_interest_repo,
             customers: customers.clone(),
             ledger: ledger.clone(),
             pool: pool.clone(),
@@ -418,5 +423,33 @@ impl Loans {
             .check_permission(sub, Object::Loan(LoanAllOrOne::All), LoanAction::List)
             .await?;
         self.loan_repo.list_by_collateralization_ratio(query).await
+    }
+
+    pub async fn initiate_unaccrued_interest(
+        &self,
+        sub: &Subject,
+        loan_id: LoanId,
+    ) -> Result<UnaccruedInterest, LoanError> {
+        let audit_info = self
+            .authz
+            .check_permission(
+                sub,
+                Object::Loan(LoanAllOrOne::All),
+                LoanAction::InitiateUnaccruedInterest,
+            )
+            .await?;
+
+        let mut loan = self.loan_repo.find_by_id(loan_id).await?;
+
+        let mut db_tx = self.pool.begin().await?;
+        let new_unaccrued_interest = loan.initiate_unaccrued_interest(audit_info)?;
+        self.loan_repo.persist_in_tx(&mut db_tx, &mut loan).await?;
+        let unaccrued_interest = self
+            .unaccrued_interest_repo
+            .create_in_tx(&mut db_tx, new_unaccrued_interest)
+            .await?;
+
+        db_tx.commit().await?;
+        Ok(unaccrued_interest)
     }
 }

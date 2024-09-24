@@ -76,6 +76,7 @@ pub enum LoanAction {
     RecordPayment,
     UpdateCollateral,
     RecordInterest,
+    InitiateUnaccruedInterest,
     UpdateCollateralizationState,
 }
 

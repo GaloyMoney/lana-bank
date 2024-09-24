@@ -15,8 +15,8 @@ use crate::{
 };
 
 use super::{
-    error::LoanError, history, repayment_plan, terms::TermValues, CVLPct, InterestPeriod,
-    LoanApprovalData, LoanInterestAccrual,
+    error::LoanError, history, repayment_plan, terms::TermValues, unaccrued_interest::*, CVLPct,
+    InterestPeriod, LoanApprovalData, LoanInterestAccrual,
 };
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -98,6 +98,10 @@ pub enum LoanEvent {
         tx_id: LedgerTxId,
         audit_info: AuditInfo,
         recorded_at: DateTime<Utc>,
+    },
+    UnaccruedInterestInitiated {
+        idx: UnaccruedInterestIdx,
+        audit_info: AuditInfo,
     },
     InterestIncurred {
         tx_id: LedgerTxId,
@@ -819,6 +823,41 @@ impl Loan {
 
         self.maybe_update_collateralization(price, upgrade_buffer_cvl_pct, audit_info)
     }
+
+    pub(super) fn initiate_unaccrued_interest(
+        &mut self,
+        audit_info: AuditInfo,
+    ) -> Result<NewUnaccruedInterest, LoanError> {
+        if self.is_completed() {
+            return Err(LoanError::AlreadyCompleted);
+        }
+
+        if self.unaccrued_interest_in_progress().is_some() {
+            return Err(LoanError::UnaccruedInterestInProgress);
+        }
+
+        let idx = self
+            .events
+            .iter()
+            .rev()
+            .find_map(|event| match event {
+                LoanEvent::UnaccruedInterestInitiated { idx, .. } => Some(idx.next()),
+                _ => None,
+            })
+            .unwrap_or(UnaccruedInterestIdx::FIRST);
+
+        self.events
+            .push(LoanEvent::UnaccruedInterestInitiated { idx, audit_info });
+
+        Ok(NewUnaccruedInterest::new(self.id, idx, audit_info))
+    }
+
+    pub fn unaccrued_interest_in_progress(&self) -> Option<UnaccruedInterestIdx> {
+        self.events.iter().rev().find_map(|event| match event {
+            LoanEvent::UnaccruedInterestInitiated { idx, .. } => Some(*idx),
+            _ => None,
+        })
+    }
 }
 
 impl Entity for Loan {
@@ -859,6 +898,7 @@ impl TryFrom<EntityEvents<LoanEvent>> for Loan {
                 }
                 LoanEvent::CollateralizationChanged { .. } => (),
                 LoanEvent::InterestIncurred { .. } => (),
+                LoanEvent::UnaccruedInterestInitiated { .. } => (),
                 LoanEvent::PaymentRecorded { .. } => (),
                 LoanEvent::Completed { .. } => (),
                 LoanEvent::CollateralUpdated { .. } => (),
