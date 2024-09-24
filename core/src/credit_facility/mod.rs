@@ -3,7 +3,7 @@ pub mod error;
 mod repo;
 
 use crate::{
-    authorization::{Authorization, Object, UserAction},
+    authorization::{Authorization, CreditFacilityAction, Object},
     customer::Customers,
     data_export::Export,
     primitives::{CreditFacilityId, CustomerId, Subject, UsdCents},
@@ -47,7 +47,7 @@ impl CreditFacilities {
 
         let audit_info = self
             .authz
-            .check_permission(sub, Object::User, UserAction::Create)
+            .check_permission(sub, Object::CreditFacility, CreditFacilityAction::Create)
             .await?;
 
         let _customer = match self.customers.find_by_id(Some(sub), customer_id).await? {
