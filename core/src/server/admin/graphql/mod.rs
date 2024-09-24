@@ -1,6 +1,7 @@
 mod account;
 mod account_set;
 pub mod audit;
+mod credit_facility;
 mod customer;
 mod deposit;
 pub mod loader;

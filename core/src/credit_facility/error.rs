@@ -1,7 +1,5 @@
 use thiserror::Error;
 
-use crate::primitives::*;
-
 #[derive(Error, Debug)]
 pub enum CreditFacilityError {
     #[error("CreditFacilityError - Sqlx: {0}")]
@@ -10,4 +8,6 @@ pub enum CreditFacilityError {
     EntityError(#[from] crate::entity::EntityError),
     #[error("CreditFacilityError - JobError: {0}")]
     JobError(#[from] crate::job::error::JobError),
+    #[error("CreditFacilityError - AuthorizationError: {0}")]
+    AuthorizationError(#[from] crate::authorization::error::AuthorizationError),
 }

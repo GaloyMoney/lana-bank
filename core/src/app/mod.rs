@@ -8,6 +8,7 @@ use crate::{
     applicant::Applicants,
     audit::{Audit, AuditCursor, AuditEntry},
     authorization::{Action, AuditAction, Authorization, Object},
+    credit_facility::CreditFacilities,
     customer::Customers,
     data_export::Export,
     deposit::Deposits,
@@ -37,6 +38,7 @@ pub struct LavaApp {
     ledger: Ledger,
     applicants: Applicants,
     users: Users,
+    credit_facilities: CreditFacilities,
     price: Price,
     report: Reports,
 }
@@ -55,6 +57,7 @@ impl LavaApp {
         let price = Price::new();
         let report = Reports::new(&pool, &config.report, &authz, &audit, &jobs);
         let users = Users::init(&pool, config.user, &authz, &audit, &export).await?;
+        let credit_facilities = CreditFacilities::new(&pool, &export, &authz);
         let loans = Loans::new(
             &pool,
             config.loan,
@@ -86,6 +89,7 @@ impl LavaApp {
             users,
             price,
             report,
+            credit_facilities,
         })
     }
 
@@ -136,6 +140,10 @@ impl LavaApp {
 
     pub fn loans(&self) -> &Loans {
         &self.loans
+    }
+
+    pub fn credit_facilities(&self) -> &CreditFacilities {
+        &self.credit_facilities
     }
 
     pub fn users(&self) -> &Users {

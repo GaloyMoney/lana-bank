@@ -1,6 +1,4 @@
-use chrono::{DateTime, Utc};
 use derive_builder::Builder;
-use rust_decimal::Decimal;
 use serde::{Deserialize, Serialize};
 
 use crate::{entity::*, primitives::*};
@@ -25,7 +23,7 @@ impl EntityEvent for CreditFacilityEvent {
 #[builder(pattern = "owned", build_fn(error = "EntityError"))]
 pub struct CreditFacility {
     pub id: CreditFacilityId,
-    pub(super) events: EntityEvents<CreditFacilityEvent>,
+    pub(super) _events: EntityEvents<CreditFacilityEvent>,
 }
 
 impl Entity for CreditFacility {
@@ -44,7 +42,7 @@ impl TryFrom<EntityEvents<CreditFacilityEvent>> for CreditFacility {
                 CreditFacilityEvent::Initialized { id, .. } => builder = builder.id(*id),
             }
         }
-        builder.events(events).build()
+        builder._events(events).build()
     }
 }
 

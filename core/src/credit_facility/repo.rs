@@ -1,7 +1,6 @@
 use sqlx::{PgPool, Postgres, Transaction};
-use tracing::instrument;
 
-use crate::{data_export::Export, entity::*, primitives::*};
+use crate::{data_export::Export, primitives::*};
 
 use super::{entity::*, error::CreditFacilityError};
 
@@ -9,14 +8,14 @@ const BQ_TABLE_NAME: &str = "credit_facility_events";
 
 #[derive(Clone)]
 pub struct CreditFacilityRepo {
-    pool: PgPool,
+    _pool: PgPool,
     export: Export,
 }
 
 impl CreditFacilityRepo {
     pub(super) fn new(pool: &PgPool, export: &Export) -> Self {
         Self {
-            pool: pool.clone(),
+            _pool: pool.clone(),
             export: export.clone(),
         }
     }

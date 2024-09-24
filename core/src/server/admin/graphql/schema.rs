@@ -2,8 +2,8 @@ use async_graphql::{types::connection::*, Context, Object};
 use uuid::Uuid;
 
 use super::{
-    account_set::*, audit::AuditEntry, customer::*, deposit::*, loan::*, price::*, report::*,
-    shareholder_equity::*, terms::*, user::*, withdraw::*,
+    account_set::*, audit::AuditEntry, credit_facility::*, customer::*, deposit::*, loan::*,
+    price::*, report::*, shareholder_equity::*, terms::*, user::*, withdraw::*,
 };
 
 use crate::{
@@ -578,6 +578,19 @@ impl Mutation {
             .update_collateralization_state(sub, loan_id.into())
             .await?;
         Ok(CollateralizationStateUpdatePayload::from(loan))
+    }
+
+    pub async fn credit_facility_create(
+        &self,
+        ctx: &Context<'_>,
+        _input: CreditFacilityCreateInput,
+    ) -> async_graphql::Result<CreditFacilityCreatePayload> {
+        let app = ctx.data_unchecked::<LavaApp>();
+        let AdminAuthContext { sub } = ctx.data()?;
+
+        let credit_facility = app.credit_facilities().create(sub).await?;
+
+        Ok(CreditFacilityCreatePayload::from(credit_facility))
     }
 
     pub async fn deposit_record(
