@@ -180,6 +180,7 @@ type CollateralizationUpdated {
 }
 
 type CreditFacility {
+	id: ID!
 	creditFacilityId: UUID!
 }
 

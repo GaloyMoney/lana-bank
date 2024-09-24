@@ -208,6 +208,7 @@ export type CollateralizationUpdated = {
 export type CreditFacility = {
   __typename?: 'CreditFacility';
   creditFacilityId: Scalars['UUID']['output'];
+  id: Scalars['ID']['output'];
 };
 
 export type CreditFacilityCreateInput = {
