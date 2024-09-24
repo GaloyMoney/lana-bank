@@ -1,6 +1,8 @@
 use serde::{Deserialize, Serialize};
 
-use crate::primitives::{CollateralAction, LedgerAccountId, LedgerTxId, Satoshis, UsdCents};
+use crate::primitives::{
+    CollateralAction, LedgerAccountId, LedgerTxId, Satoshis, UnaccruedInterestIdx, UsdCents,
+};
 
 use super::{cala::graphql::*, customer::CustomerLedgerAccountIds, error::*};
 
@@ -98,6 +100,14 @@ pub struct LoanInterestAccrual {
     pub tx_ref: String,
     pub tx_id: LedgerTxId,
     pub loan_account_ids: LoanAccountIds,
+}
+
+#[derive(Debug, Clone)]
+pub struct LoanUnaccruedInterestIncurred {
+    pub interest: UsdCents,
+    pub tx_ref: String,
+    pub tx_id: LedgerTxId,
+    pub unaccrued_interest_idx: UnaccruedInterestIdx,
 }
 
 #[derive(Debug, Clone)]
