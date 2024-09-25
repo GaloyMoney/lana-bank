@@ -78,7 +78,7 @@ teardown_file() {
 }
 
 @test "customer: withdraw can be cancelled" {
-  customer_id=$(read_value "customer_id")
+  customer_id=$(read_value 'customer_id')
 
   variables=$(
     jq -n \
@@ -138,7 +138,7 @@ teardown_file() {
 }
 
 @test "customer: can withdraw" {
-  customer_id=$(read_value "customer_id")
+  customer_id=$(read_value 'customer_id')
 
   variables=$(
     jq -n \

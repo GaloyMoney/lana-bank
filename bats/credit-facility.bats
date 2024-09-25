@@ -10,7 +10,7 @@ teardown_file() {
   stop_server
 }
 
-@test "credit-facility: credit-facility lifecycle" {
+@test "credit-facility: can create" {
   # Setup prerequisites
   customer_id=$(create_customer)
 
@@ -31,6 +31,12 @@ teardown_file() {
   credit_facility_id=$(graphql_output '.data.creditFacilityCreate.creditFacility.creditFacilityId')
   [[ "$credit_facility_id" != "null" ]] || exit 1
 
+  cache_value 'credit_facility_id' "$credit_facility_id"
+}
+
+@test "credit-facility: can approve" {
+  credit_facility_id=$(read_value 'credit_facility_id')
+
   variables=$(
     jq -n \
       --arg credit_facility_id "$credit_facility_id" \
@@ -43,6 +49,5 @@ teardown_file() {
   exec_admin_graphql 'credit-facility-approve' "$variables"
   loan_id=$(graphql_output '.data.creditFacilityApprove.creditFacility.creditFacilityId')
   [[ "$loan_id" != "null" ]] || exit 1
-
 }
 

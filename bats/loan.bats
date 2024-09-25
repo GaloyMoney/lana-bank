@@ -113,8 +113,8 @@ wait_for_interest() {
   [[ "$usd_balance" == "$principal" ]] || exit 1
 
   retry 20 1 wait_for_interest "$loan_id"
-  interest_before=$(read_value "interest")
-  outstanding_before=$(read_value "outstanding")
+  interest_before=$(read_value 'interest')
+  outstanding_before=$(read_value 'outstanding')
   expected_outstanding=$(add $principal $interest_before)
   [[ "$outstanding_before" == "$expected_outstanding" ]] || exit 1
 
@@ -174,7 +174,7 @@ wait_for_interest() {
   exec_admin_graphql 'loan-partial-payment' "$variables"
 
   loan_balance "$loan_id"
-  outstanding_after=$(read_value "outstanding")
+  outstanding_after=$(read_value 'outstanding')
   [[ "$outstanding_after" == "0" ]] || exit 1
   collateral_sats=$(read_value 'collateral_sats')
   [[ "$collateral_sats" == "0" ]] || exit 1
