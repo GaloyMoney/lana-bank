@@ -177,8 +177,18 @@ impl TryFrom<EntityEvents<CreditFacilityEvent>> for CreditFacility {
         for event in events.iter() {
             match event {
                 CreditFacilityEvent::Initialized {
-                    id, customer_id, ..
-                } => builder = builder.id(*id).customer_id(*customer_id),
+                    id,
+                    customer_id,
+                    account_ids,
+                    customer_account_ids,
+                    ..
+                } => {
+                    builder = builder
+                        .id(*id)
+                        .customer_id(*customer_id)
+                        .account_ids(*account_ids)
+                        .customer_account_ids(*customer_account_ids)
+                }
                 CreditFacilityEvent::Approved { .. } => (),
                 CreditFacilityEvent::ApprovalAdded { .. } => (),
             }

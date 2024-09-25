@@ -6,11 +6,11 @@ mutation CreateCreditFacilityAccounts(
 ) {
   facility: accountCreate(
     input: {
-      accountId: $loanFacilityAccountId
-      code: $loanFacilityAccountCode
-      name: $loanFacilityAccountName
+      accountId: $facilityAccountId
+      code: $facilityAccountCode
+      name: $facilityAccountName
       normalBalanceType: "DEBIT"
-      accountSetIds: [$loansFacilityControlAccountSetId]
+      accountSetIds: [$facilitiesControlAccountSetId]
     }
   ) {
     account {
