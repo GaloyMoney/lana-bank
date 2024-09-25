@@ -6,14 +6,14 @@ use super::CustomerLedgerAccountIds;
 
 #[derive(Debug, Copy, Clone, Serialize, Deserialize)]
 pub struct CreditFacilityAccountIds {
-    pub account_id: LedgerAccountId,
+    pub facility_account_id: LedgerAccountId,
 }
 
 impl CreditFacilityAccountIds {
     #[allow(clippy::new_without_default)]
     pub fn new() -> Self {
         Self {
-            account_id: LedgerAccountId::new(),
+            facility_account_id: LedgerAccountId::new(),
         }
     }
 }

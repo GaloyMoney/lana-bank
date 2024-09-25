@@ -208,6 +208,36 @@ impl CalaClient {
         Ok(())
     }
 
+    #[instrument(
+        name = "lava.ledger.cala.create_credit_facility_accounts",
+        skip(self),
+        err
+    )]
+    pub async fn create_credit_facility_accounts(
+        &self,
+        credit_facility_id: impl Into<Uuid> + std::fmt::Debug,
+        CreditFacilityAccountIds {
+            facility_account_id,
+        }: CreditFacilityAccountIds,
+    ) -> Result<(), CalaError> {
+        let credit_facility_id = credit_facility_id.into();
+        let variables = create_credit_facility_accounts::Variables {
+            facility_account_id: Uuid::from(facility_account_id),
+            facility_account_code: format!("CREDIT_FACILITY.{}", credit_facility_id),
+            facility_account_name: format!("Account for Credit Facility {}", credit_facility_id),
+            facilities_control_account_set_id:
+                super::constants::OBS_CREDIT_FACILITY_CONTROL_ACCOUNT_SET_ID,
+        };
+        let response = Self::traced_gql_request::<CreateCreditFacilityAccounts, _>(
+            &self.client,
+            &self.url,
+            variables,
+        )
+        .await?;
+        response.data.ok_or(CalaError::MissingDataField)?;
+        Ok(())
+    }
+
     #[instrument(name = "lava.ledger.cala.create_account", skip(self), err)]
     pub async fn create_account(
         &self,
@@ -810,7 +840,7 @@ impl CalaClient {
     ) -> Result<chrono::DateTime<chrono::Utc>, CalaError> {
         let variables = post_approve_credit_facility_transaction::Variables {
             transaction_id: transaction_id.into(),
-            credit_facility_account: credit_facility_account_ids.account_id.into(),
+            credit_facility_account: credit_facility_account_ids.facility_account_id.into(),
             facility_amount,
             external_id,
         };

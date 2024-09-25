@@ -79,6 +79,10 @@ impl CreditFacilities {
             .credit_facility_repo
             .create_in_tx(&mut db_tx, new_credit_facility)
             .await?;
+        self.ledger
+            .create_accounts_for_credit_facility(credit_facility.id, credit_facility.account_ids)
+            .await?;
+
         db_tx.commit().await?;
 
         Ok(credit_facility)

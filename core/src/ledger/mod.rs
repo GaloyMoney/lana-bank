@@ -16,8 +16,8 @@ use tracing::instrument;
 use crate::{
     authorization::{Authorization, LedgerAction, Object},
     primitives::{
-        CollateralAction, CustomerId, DepositId, LedgerAccountId, LedgerAccountSetId, LedgerTxId,
-        LedgerTxTemplateId, LoanId, Subject, UsdCents, WithdrawId,
+        CollateralAction, CreditFacilityId, CustomerId, DepositId, LedgerAccountId,
+        LedgerAccountSetId, LedgerTxId, LedgerTxTemplateId, LoanId, Subject, UsdCents, WithdrawId,
     },
 };
 
@@ -345,6 +345,22 @@ impl Ledger {
     ) -> Result<(), LedgerError> {
         self.cala
             .create_loan_accounts(loan_id, loan_account_ids)
+            .await?;
+        Ok(())
+    }
+
+    #[instrument(
+        name = "lava.ledger.create_accounts_for_credit_facility",
+        skip(self),
+        err
+    )]
+    pub async fn create_accounts_for_credit_facility(
+        &self,
+        credit_facility_id: CreditFacilityId,
+        credit_facility_account_ids: CreditFacilityAccountIds,
+    ) -> Result<(), LedgerError> {
+        self.cala
+            .create_credit_facility_accounts(credit_facility_id, credit_facility_account_ids)
             .await?;
         Ok(())
     }

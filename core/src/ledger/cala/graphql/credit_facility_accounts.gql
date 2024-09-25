@@ -1,0 +1,20 @@
+mutation CreateCreditFacilityAccounts(
+  $facilityAccountId: UUID!
+  $facilityAccountCode: String!
+  $facilityAccountName: String!
+  $facilitiesControlAccountSetId: UUID!
+) {
+  facility: accountCreate(
+    input: {
+      accountId: $loanFacilityAccountId
+      code: $loanFacilityAccountCode
+      name: $loanFacilityAccountName
+      normalBalanceType: "DEBIT"
+      accountSetIds: [$loansFacilityControlAccountSetId]
+    }
+  ) {
+    account {
+      accountId
+    }
+  }
+}
