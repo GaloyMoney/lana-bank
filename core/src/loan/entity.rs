@@ -1228,16 +1228,10 @@ mod test {
             PriceOfOneBTC::new(UsdCents::from(value))
         }
 
-        fn sats_for_cvl(loan: &Loan, target_cvl_value: u64) -> Satoshis {
-            let price = default_price();
-            let outstanding = loan.outstanding();
-            let cvl_as_decimal = Decimal::from(target_cvl_value) / dec!(100);
-
-            let sats_value_decimal =
-                cvl_as_decimal * Decimal::from(outstanding.total().into_inner());
-            let sats_value = UsdCents::from(u64::try_from(sats_value_decimal).unwrap());
-
-            price.cents_to_sats_round_up(sats_value)
+        fn sats_for_cvl(loan: &Loan, target_cvl: CVLPct) -> Satoshis {
+            default_price().cents_to_sats_round_up(
+                target_cvl.target_value_given_outstanding(loan.outstanding().total()),
+            )
         }
 
         struct TestCollateral {
@@ -1248,16 +1242,15 @@ mod test {
             below_liquidation: Satoshis,
         }
         fn test_collateral(loan: &Loan) -> TestCollateral {
-            let initial_cvl = u64::try_from(loan.terms.initial_cvl).unwrap();
-            let margin_call_cvl = u64::try_from(loan.terms.margin_call_cvl).unwrap();
-            let liquidation_cvl = u64::try_from(loan.terms.liquidation_cvl).unwrap();
-            let upgrade_buffer_cvl = u64::try_from(default_upgrade_buffer_cvl_pct()).unwrap();
+            let upgrade_buffer_cvl = default_upgrade_buffer_cvl_pct();
 
-            let above_fully_collateralized_cvl = initial_cvl + 1;
-            let above_margin_called_and_buffer_cvl = margin_call_cvl + upgrade_buffer_cvl + 1;
-            let above_margin_called_and_below_buffer_cvl = margin_call_cvl + upgrade_buffer_cvl - 1;
-            let below_margin_called_cvl = margin_call_cvl - 1;
-            let below_liquidation_cvl = liquidation_cvl - 1;
+            let above_fully_collateralized_cvl = loan.terms.initial_cvl + dec!(1);
+            let above_margin_called_and_buffer_cvl =
+                loan.terms.margin_call_cvl + upgrade_buffer_cvl + dec!(1);
+            let above_margin_called_and_below_buffer_cvl =
+                loan.terms.margin_call_cvl + upgrade_buffer_cvl - dec!(1);
+            let below_margin_called_cvl = loan.terms.margin_call_cvl - dec!(1);
+            let below_liquidation_cvl = loan.terms.liquidation_cvl - dec!(1);
 
             TestCollateral {
                 above_fully_collateralized: sats_for_cvl(loan, above_fully_collateralized_cvl),

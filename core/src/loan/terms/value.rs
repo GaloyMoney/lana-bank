@@ -4,10 +4,7 @@ use rust_decimal::{prelude::*, Decimal};
 use rust_decimal_macros::dec;
 use serde::{Deserialize, Serialize};
 
-use crate::{
-    loan::ConversionError,
-    primitives::{PriceOfOneBTC, Satoshis, UsdCents},
-};
+use crate::primitives::{PriceOfOneBTC, Satoshis, UsdCents};
 
 const NUMBER_OF_DAYS_IN_YEAR: Decimal = dec!(366);
 
@@ -46,11 +43,19 @@ impl std::ops::Add for CVLPct {
     }
 }
 
-impl TryFrom<CVLPct> for u64 {
-    type Error = ConversionError;
+impl std::ops::Add<Decimal> for CVLPct {
+    type Output = CVLPct;
 
-    fn try_from(value: CVLPct) -> Result<Self, Self::Error> {
-        Ok(Self::try_from(value.0)?)
+    fn add(self, other: Decimal) -> Self {
+        CVLPct(self.0 + other)
+    }
+}
+
+impl std::ops::Sub<Decimal> for CVLPct {
+    type Output = CVLPct;
+
+    fn sub(self, other: Decimal) -> Self {
+        CVLPct(self.0 - other)
     }
 }
 
@@ -84,6 +89,17 @@ impl CVLPct {
 
     pub fn is_significantly_lower_than(&self, other: CVLPct, buffer: CVLPct) -> bool {
         other > *self + buffer
+    }
+
+    #[cfg(test)]
+    pub fn target_value_given_outstanding(&self, outstanding: UsdCents) -> UsdCents {
+        let target_in_usd = self.0 / dec!(100) * outstanding.to_usd();
+        UsdCents::from(
+            (target_in_usd * dec!(100))
+                .round_dp_with_strategy(0, RoundingStrategy::AwayFromZero)
+                .to_u64()
+                .expect("should return a valid integer"),
+        )
     }
 }
 
