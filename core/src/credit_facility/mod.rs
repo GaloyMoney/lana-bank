@@ -6,6 +6,7 @@ use crate::{
     authorization::{Authorization, CreditFacilityAction, Object},
     customer::Customers,
     data_export::Export,
+    ledger::{credit_facility::*, Ledger},
     primitives::{CreditFacilityId, CustomerId, Subject, UsdCents, UserId},
     user::{UserRepo, Users},
 };
@@ -21,6 +22,7 @@ pub struct CreditFacilities {
     customers: Customers,
     credit_facility_repo: CreditFacilityRepo,
     user_repo: UserRepo,
+    ledger: Ledger,
 }
 
 impl CreditFacilities {
@@ -30,6 +32,7 @@ impl CreditFacilities {
         authz: &Authorization,
         customers: &Customers,
         users: &Users,
+        ledger: &Ledger,
     ) -> Self {
         let repo = CreditFacilityRepo::new(pool, export);
 
@@ -39,6 +42,7 @@ impl CreditFacilities {
             customers: customers.clone(),
             credit_facility_repo: repo,
             user_repo: users.repo().clone(),
+            ledger: ledger.clone(),
         }
     }
 
@@ -55,7 +59,7 @@ impl CreditFacilities {
             .check_permission(sub, Object::CreditFacility, CreditFacilityAction::Create)
             .await?;
 
-        let _customer = match self.customers.find_by_id(Some(sub), customer_id).await? {
+        let customer = match self.customers.find_by_id(Some(sub), customer_id).await? {
             Some(customer) => customer,
             None => return Err(CreditFacilityError::CustomerNotFound(customer_id)),
         };
@@ -64,6 +68,8 @@ impl CreditFacilities {
             .id(CreditFacilityId::new())
             .customer_id(customer_id)
             .facility(facility)
+            .account_ids(CreditFacilityAccountIds::new())
+            .customer_account_ids(customer.account_ids)
             .audit_info(audit_info)
             .build()
             .expect("could not build new credit facility");
@@ -100,15 +106,15 @@ impl CreditFacilities {
 
         let mut db_tx = self.pool.begin().await?;
 
-        // if let Some(credit_facility_approval) =
-        //     credit_facility.add_approval(user.id, user.current_roles(), audit_info)?
-        // {
-        //     // let executed_at = self
-        //     //     .ledger
-        //     //     .approve_credit_facility(credit_facility_approval.clone())
-        //     //     .await?;
-        //     credit_facility.confirm_approval(credit_facility_approval, executed_at, audit_info);
-        // }
+        if let Some(credit_facility_approval) =
+            credit_facility.add_approval(user.id, user.current_roles(), audit_info)?
+        {
+            let executed_at = self
+                .ledger
+                .approve_credit_facility(credit_facility_approval.clone())
+                .await?;
+            credit_facility.confirm_approval(credit_facility_approval, executed_at, audit_info);
+        }
 
         self.credit_facility_repo
             .persist_in_tx(&mut db_tx, &mut credit_facility)

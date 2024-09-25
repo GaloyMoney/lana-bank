@@ -4,7 +4,14 @@ use serde::{Deserialize, Serialize};
 
 use std::collections::HashSet;
 
-use crate::{entity::*, primitives::*};
+use crate::{
+    entity::*,
+    ledger::{
+        credit_facility::{CreditFacilityAccountIds, CreditFacilityApprovalData},
+        customer::CustomerLedgerAccountIds,
+    },
+    primitives::*,
+};
 
 use super::CreditFacilityError;
 
@@ -15,6 +22,8 @@ pub enum CreditFacilityEvent {
         id: CreditFacilityId,
         customer_id: CustomerId,
         facility: UsdCents,
+        account_ids: CreditFacilityAccountIds,
+        customer_account_ids: CustomerLedgerAccountIds,
         audit_info: AuditInfo,
     },
     ApprovalAdded {
@@ -42,6 +51,8 @@ impl EntityEvent for CreditFacilityEvent {
 pub struct CreditFacility {
     pub id: CreditFacilityId,
     pub customer_id: CustomerId,
+    pub account_ids: CreditFacilityAccountIds,
+    pub customer_account_ids: CustomerLedgerAccountIds,
     pub(super) events: EntityEvents<CreditFacilityEvent>,
 }
 
@@ -50,6 +61,16 @@ impl Entity for CreditFacility {
 }
 
 impl CreditFacility {
+    fn facility(&self) -> UsdCents {
+        for event in self.events.iter() {
+            match event {
+                CreditFacilityEvent::Initialized { facility, .. } => return *facility,
+                _ => continue,
+            }
+        }
+        UsdCents::ZERO
+    }
+
     pub(super) fn is_approved(&self) -> bool {
         for event in self.events.iter() {
             match event {
@@ -100,12 +121,51 @@ impl CreditFacility {
     }
 
     pub(super) fn add_approval(
-        &self,
+        &mut self,
         approving_user_id: UserId,
         approving_user_roles: HashSet<Role>,
         audit_info: AuditInfo,
-    ) -> Result<Option<()>, CreditFacilityError> {
-        unimplemented!()
+    ) -> Result<Option<CreditFacilityApprovalData>, CreditFacilityError> {
+        if self.has_user_previously_approved(approving_user_id) {
+            return Err(CreditFacilityError::UserCannotApproveTwice);
+        }
+
+        if self.is_approved() {
+            return Err(CreditFacilityError::AlreadyApproved);
+        }
+
+        self.events.push(CreditFacilityEvent::ApprovalAdded {
+            approving_user_id,
+            approving_user_roles,
+            audit_info,
+            recorded_at: Utc::now(),
+        });
+
+        if self.approval_threshold_met() {
+            let tx_ref = format!("{}-approval", self.id);
+            Ok(Some(CreditFacilityApprovalData {
+                facility: self.facility(),
+                tx_ref,
+                tx_id: LedgerTxId::new(),
+                credit_facility_account_ids: self.account_ids,
+                customer_account_ids: self.customer_account_ids,
+            }))
+        } else {
+            Ok(None)
+        }
+    }
+
+    pub(super) fn confirm_approval(
+        &mut self,
+        CreditFacilityApprovalData { tx_id, .. }: CreditFacilityApprovalData,
+        executed_at: DateTime<Utc>,
+        audit_info: AuditInfo,
+    ) {
+        self.events.push(CreditFacilityEvent::Approved {
+            tx_id,
+            audit_info,
+            recorded_at: executed_at,
+        });
     }
 }
 
@@ -134,6 +194,8 @@ pub struct NewCreditFacility {
     #[builder(setter(into))]
     pub(super) customer_id: CustomerId,
     facility: UsdCents,
+    account_ids: CreditFacilityAccountIds,
+    customer_account_ids: CustomerLedgerAccountIds,
     #[builder(setter(into))]
     pub(super) audit_info: AuditInfo,
 }
@@ -151,6 +213,8 @@ impl NewCreditFacility {
                 audit_info: self.audit_info,
                 customer_id: self.customer_id,
                 facility: self.facility,
+                account_ids: self.account_ids,
+                customer_account_ids: self.customer_account_ids,
             }],
         )
     }

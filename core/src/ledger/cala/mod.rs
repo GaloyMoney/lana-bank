@@ -15,7 +15,9 @@ use crate::primitives::{
     LedgerJournalId, LedgerTxId,
 };
 
-use super::{constants, customer::CustomerLedgerAccountIds, loan::LoanAccountIds};
+use super::{
+    constants, customer::CustomerLedgerAccountIds, loan::LoanAccountIds, CreditFacilityAccountIds,
+};
 
 use error::*;
 use graphql::*;
@@ -743,6 +745,76 @@ impl CalaClient {
             external_id,
         };
         let response = Self::traced_gql_request::<PostApproveLoanTransaction, _>(
+            &self.client,
+            &self.url,
+            variables,
+        )
+        .await?;
+
+        let created_at = response
+            .data
+            .map(|d| d.transaction_post.transaction.created_at)
+            .ok_or_else(|| CalaError::MissingDataField)?;
+        Ok(created_at)
+    }
+
+    #[instrument(
+        name = "lava.ledger.cala.create_approve_credit_facility_template",
+        skip(self),
+        err
+    )]
+    pub async fn create_approve_credit_facility_tx_template(
+        &self,
+        template_id: TxTemplateId,
+    ) -> Result<TxTemplateId, CalaError> {
+        let obs_credit_facility_id = match Self::find_account_by_code::<LedgerAccountId>(
+            self,
+            super::constants::OBS_CREDIT_FACILITY_ACCOUNT_CODE.to_string(),
+        )
+        .await?
+        {
+            Some(id) => Ok(id),
+            None => Err(CalaError::CouldNotFindAccountByCode(
+                super::constants::OBS_CREDIT_FACILITY_ACCOUNT_CODE.to_string(),
+            )),
+        }?;
+        let variables = approve_credit_facility_template_create::Variables {
+            template_id: Uuid::from(template_id),
+            journal_id: format!("uuid(\"{}\")", super::constants::CORE_JOURNAL_ID),
+            omnibus_credit_facility_account: format!("uuid(\"{}\")", obs_credit_facility_id),
+        };
+        let response = Self::traced_gql_request::<ApproveCreditFacilityTemplateCreate, _>(
+            &self.client,
+            &self.url,
+            variables,
+        )
+        .await?;
+
+        response
+            .data
+            .map(|d| TxTemplateId::from(d.tx_template_create.tx_template.tx_template_id))
+            .ok_or_else(|| CalaError::MissingDataField)
+    }
+
+    #[instrument(
+        name = "lava.ledger.cala.execute_approve_credit_facility_tx",
+        skip(self),
+        err
+    )]
+    pub async fn execute_approve_credit_facility_tx(
+        &self,
+        transaction_id: LedgerTxId,
+        credit_facility_account_ids: CreditFacilityAccountIds,
+        facility_amount: Decimal,
+        external_id: String,
+    ) -> Result<chrono::DateTime<chrono::Utc>, CalaError> {
+        let variables = post_approve_credit_facility_transaction::Variables {
+            transaction_id: transaction_id.into(),
+            credit_facility_account: credit_facility_account_ids.account_id.into(),
+            facility_amount,
+            external_id,
+        };
+        let response = Self::traced_gql_request::<PostApproveCreditFacilityTransaction, _>(
             &self.client,
             &self.url,
             variables,

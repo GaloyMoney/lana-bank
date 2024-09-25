@@ -4,6 +4,7 @@ pub mod bank;
 mod cala;
 mod config;
 mod constants;
+pub mod credit_facility;
 pub mod customer;
 pub mod error;
 pub mod loan;
@@ -28,6 +29,7 @@ use account_set::{
 use bank::*;
 use cala::*;
 pub use config::*;
+use credit_facility::*;
 use customer::*;
 use error::*;
 use loan::*;
@@ -206,6 +208,28 @@ impl Ledger {
                 loan_account_ids,
                 customer_account_ids,
                 initial_principal.to_usd(),
+                tx_ref,
+            )
+            .await?)
+    }
+
+    #[instrument(name = "lava.ledger.approve_loan", skip(self), err)]
+    pub async fn approve_credit_facility(
+        &self,
+        CreditFacilityApprovalData {
+            tx_id,
+            tx_ref,
+            credit_facility_account_ids,
+            customer_account_ids,
+            facility,
+        }: CreditFacilityApprovalData,
+    ) -> Result<chrono::DateTime<chrono::Utc>, LedgerError> {
+        Ok(self
+            .cala
+            .execute_approve_credit_facility_tx(
+                tx_id,
+                credit_facility_account_ids,
+                facility.to_usd(),
                 tx_ref,
             )
             .await?)
@@ -505,6 +529,11 @@ impl Ledger {
 
         Self::assert_cancel_withdraw_tx_template_exists(cala, constants::CANCEL_WITHDRAW).await?;
         Self::assert_approve_loan_tx_template_exists(cala, constants::APPROVE_LOAN_CODE).await?;
+        Self::assert_approve_credit_facility_tx_template_exists(
+            cala,
+            constants::APPROVE_CREDIT_FACILITY_CODE,
+        )
+        .await?;
         Self::assert_add_collateral_tx_template_exists(cala, constants::ADD_COLLATERAL_CODE)
             .await?;
         Self::assert_remove_collateral_tx_template_exists(cala, constants::REMOVE_COLLATERAL_CODE)
@@ -656,6 +685,34 @@ impl Ledger {
 
         let template_id = LedgerTxTemplateId::new();
         let err = match cala.create_approve_loan_tx_template(template_id).await {
+            Ok(id) => {
+                return Ok(id);
+            }
+            Err(e) => e,
+        };
+
+        Ok(cala
+            .find_tx_template_by_code::<LedgerTxTemplateId>(template_code.to_owned())
+            .await
+            .map_err(|_| err)?)
+    }
+
+    async fn assert_approve_credit_facility_tx_template_exists(
+        cala: &CalaClient,
+        template_code: &str,
+    ) -> Result<LedgerTxTemplateId, LedgerError> {
+        if let Ok(id) = cala
+            .find_tx_template_by_code::<LedgerTxTemplateId>(template_code.to_owned())
+            .await
+        {
+            return Ok(id);
+        }
+
+        let template_id = LedgerTxTemplateId::new();
+        let err = match cala
+            .create_approve_credit_facility_tx_template(template_id)
+            .await
+        {
             Ok(id) => {
                 return Ok(id);
             }
