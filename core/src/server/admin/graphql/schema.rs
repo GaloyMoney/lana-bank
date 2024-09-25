@@ -596,6 +596,22 @@ impl Mutation {
         Ok(CreditFacilityCreatePayload::from(credit_facility))
     }
 
+    async fn credit_facility_approve(
+        &self,
+        ctx: &Context<'_>,
+        input: CreditFacilityApproveInput,
+    ) -> async_graphql::Result<CreditFacilityApprovePayload> {
+        let app = ctx.data_unchecked::<LavaApp>();
+
+        let AdminAuthContext { sub } = ctx.data()?;
+
+        let credit_facility = app
+            .credit_facilities()
+            .add_approval(sub, input.credit_facility_id)
+            .await?;
+        Ok(CreditFacilityApprovePayload::from(credit_facility))
+    }
+
     pub async fn deposit_record(
         &self,
         ctx: &Context<'_>,

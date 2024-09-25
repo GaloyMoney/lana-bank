@@ -16,4 +16,6 @@ pub enum CreditFacilityError {
     CustomerNotFound(CustomerId),
     #[error("CreditFacilityError- CustomerError: '{0}'")]
     CustomerError(#[from] crate::customer::error::CustomerError),
+    #[error("CreditFacilityError- UserError: '{0}'")]
+    UserError(#[from] crate::user::error::UserError),
 }

@@ -211,6 +211,15 @@ export type CreditFacility = {
   id: Scalars['ID']['output'];
 };
 
+export type CreditFacilityApproveInput = {
+  creditFacilityId: Scalars['UUID']['input'];
+};
+
+export type CreditFacilityApprovePayload = {
+  __typename?: 'CreditFacilityApprovePayload';
+  creditFacility: CreditFacility;
+};
+
 export type CreditFacilityCreateInput = {
   customerId: Scalars['UUID']['input'];
   facility: Scalars['UsdCents']['input'];
@@ -528,6 +537,7 @@ export type Mutation = {
   __typename?: 'Mutation';
   collateralUpdate: CollateralUpdatePayload;
   collateralizationStateUpdate: CollateralizationStateUpdatePayload;
+  creditFacilityApprove: CreditFacilityApprovePayload;
   creditFacilityCreate: CreditFacilityCreatePayload;
   customerCreate: CustomerCreatePayload;
   customerUpdate: CustomerUpdatePayload;
@@ -556,6 +566,11 @@ export type MutationCollateralUpdateArgs = {
 
 export type MutationCollateralizationStateUpdateArgs = {
   input: CollateralizationStateUpdateInput;
+};
+
+
+export type MutationCreditFacilityApproveArgs = {
+  input: CreditFacilityApproveInput;
 };
 
 

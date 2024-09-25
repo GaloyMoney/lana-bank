@@ -1,6 +1,6 @@
 use sqlx::{PgPool, Postgres, Transaction};
 
-use crate::{data_export::Export, primitives::*};
+use crate::{data_export::Export, entity::*, primitives::*};
 
 use super::{entity::*, error::CreditFacilityError};
 
@@ -8,14 +8,14 @@ const BQ_TABLE_NAME: &str = "credit_facility_events";
 
 #[derive(Clone)]
 pub struct CreditFacilityRepo {
-    _pool: PgPool,
+    pool: PgPool,
     export: Export,
 }
 
 impl CreditFacilityRepo {
     pub(super) fn new(pool: &PgPool, export: &Export) -> Self {
         Self {
-            _pool: pool.clone(),
+            pool: pool.clone(),
             export: export.clone(),
         }
     }
@@ -39,5 +39,38 @@ impl CreditFacilityRepo {
             .export_last(db, BQ_TABLE_NAME, n_events, &events)
             .await?;
         Ok(CreditFacility::try_from(events)?)
+    }
+
+    pub(super) async fn persist_in_tx(
+        &self,
+        db: &mut Transaction<'_, Postgres>,
+        credit_facility: &mut CreditFacility,
+    ) -> Result<(), CreditFacilityError> {
+        let n_events = credit_facility.events.persist(db).await?;
+        self.export
+            .export_last(db, BQ_TABLE_NAME, n_events, &credit_facility.events)
+            .await?;
+        Ok(())
+    }
+
+    pub async fn find_by_id(
+        &self,
+        id: CreditFacilityId,
+    ) -> Result<CreditFacility, CreditFacilityError> {
+        let rows = sqlx::query_as!(
+            GenericEvent,
+            r#"SELECT c.id, e.sequence, e.event,
+                      c.created_at AS entity_created_at, e.recorded_at AS event_recorded_at
+            FROM credit_facilities c
+            JOIN credit_facility_events e ON c.id = e.id
+            WHERE c.id = $1
+            ORDER BY e.sequence"#,
+            id as CreditFacilityId,
+        )
+        .fetch_all(&self.pool)
+        .await?;
+
+        let res = EntityEvents::load_first::<CreditFacility>(rows)?;
+        Ok(res)
     }
 }

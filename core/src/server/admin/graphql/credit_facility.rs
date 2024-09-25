@@ -22,6 +22,24 @@ pub struct CreditFacilityCreatePayload {
     credit_facility: CreditFacility,
 }
 
+#[derive(InputObject)]
+pub struct CreditFacilityApproveInput {
+    pub credit_facility_id: UUID,
+}
+
+#[derive(SimpleObject)]
+pub struct CreditFacilityApprovePayload {
+    credit_facility: CreditFacility,
+}
+
+impl From<crate::credit_facility::CreditFacility> for CreditFacilityApprovePayload {
+    fn from(credit_facility: crate::credit_facility::CreditFacility) -> Self {
+        Self {
+            credit_facility: credit_facility.into(),
+        }
+    }
+}
+
 impl ToGlobalId for crate::primitives::CreditFacilityId {
     fn to_global_id(&self) -> async_graphql::types::ID {
         async_graphql::types::ID::from(format!("credit-facility:{}", self))

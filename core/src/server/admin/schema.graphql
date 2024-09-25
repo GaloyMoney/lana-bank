@@ -184,6 +184,14 @@ type CreditFacility {
 	creditFacilityId: UUID!
 }
 
+input CreditFacilityApproveInput {
+	creditFacilityId: UUID!
+}
+
+type CreditFacilityApprovePayload {
+	creditFacility: CreditFacility!
+}
+
 input CreditFacilityCreateInput {
 	customerId: UUID!
 	facility: UsdCents!
@@ -514,6 +522,7 @@ type Mutation {
 	collateralUpdate(input: CollateralUpdateInput!): CollateralUpdatePayload!
 	collateralizationStateUpdate(input: CollateralizationStateUpdateInput!): CollateralizationStateUpdatePayload!
 	creditFacilityCreate(input: CreditFacilityCreateInput!): CreditFacilityCreatePayload!
+	creditFacilityApprove(input: CreditFacilityApproveInput!): CreditFacilityApprovePayload!
 	depositRecord(input: DepositRecordInput!): DepositRecordPayload!
 	withdrawalInitiate(input: WithdrawalInitiateInput!): WithdrawalInitiatePayload!
 	withdrawalConfirm(input: WithdrawalConfirmInput!): WithdrawalConfirmPayload!
