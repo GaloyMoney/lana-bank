@@ -8,7 +8,7 @@ members = [
 [workspace.dependencies]
 anyhow = "1.0.89"
 async-graphql = { version = "7.0.10", default-features = false, features = ["dataloader", "tracing", "chrono", "playground"] }
-async-graphql-axum = "7.0.9"
+async-graphql-axum = "7.0.10"
 async-trait = "0.1.80"
 axum = { version = "0.7.6", features = ["macros"] }
 axum-extra = { version = "0.9.4", default-features = false, features = ["tracing", "typed-header"] }
