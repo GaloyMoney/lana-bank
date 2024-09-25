@@ -124,6 +124,8 @@ impl Authorization {
             .await?;
         self.add_permission_to_role(&role, Object::CreditFacility, CreditFacilityAction::Create)
             .await?;
+        self.add_permission_to_role(&role, Object::CreditFacility, CreditFacilityAction::Approve)
+            .await?;
 
         Ok(())
     }
