@@ -62,7 +62,6 @@ impl Config {
                 sa_creds_base64.clone(),
                 dev_env_name_prefix,
                 config.app.report.gcp_location,
-                config.app.report.download_link_duration,
             )?;
         };
         config.app.report.set_sa_creds_base64(sa_creds_base64)?;

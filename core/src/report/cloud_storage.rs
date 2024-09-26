@@ -2,13 +2,14 @@ use cloud_storage::Object;
 
 use super::{ReportError, ReportLocationInCloud};
 
+const LINK_DURATION_IN_SECS: u32 = 60 * 5;
+
 pub(super) async fn generate_download_link(
     location: &ReportLocationInCloud,
-    duration_in_secs: u32,
 ) -> Result<String, ReportError> {
     Ok(Object::read(&location.bucket, &location.path_in_bucket)
         .await?
-        .download_url(duration_in_secs)?)
+        .download_url(LINK_DURATION_IN_SECS)?)
 }
 
 pub(super) async fn upload_xml_file(
