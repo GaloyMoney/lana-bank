@@ -223,11 +223,25 @@ export type CreditFacilityApprovePayload = {
 export type CreditFacilityCreateInput = {
   customerId: Scalars['UUID']['input'];
   facility: Scalars['UsdCents']['input'];
+  terms: CreditFacilityTermsInput;
 };
 
 export type CreditFacilityCreatePayload = {
   __typename?: 'CreditFacilityCreatePayload';
   creditFacility: CreditFacility;
+};
+
+export type CreditFacilityDurationInput = {
+  period: CreditFacilityPeriod;
+  units: Scalars['Int']['input'];
+};
+
+export enum CreditFacilityPeriod {
+  Months = 'MONTHS'
+}
+
+export type CreditFacilityTermsInput = {
+  duration: CreditFacilityDurationInput;
 };
 
 export type Customer = {

@@ -16,6 +16,7 @@ crate::entity_id! { LoanId }
 crate::entity_id! { CreditFacilityId }
 crate::entity_id! { DisbursementId }
 crate::entity_id! { LoanTermsId }
+crate::entity_id! { CreditFacilityTermsId }
 crate::entity_id! { ReportId }
 
 impl From<LoanId> for JobId {

@@ -195,10 +195,24 @@ type CreditFacilityApprovePayload {
 input CreditFacilityCreateInput {
 	customerId: UUID!
 	facility: UsdCents!
+	terms: CreditFacilityTermsInput!
 }
 
 type CreditFacilityCreatePayload {
 	creditFacility: CreditFacility!
+}
+
+input CreditFacilityDurationInput {
+	period: CreditFacilityPeriod!
+	units: Int!
+}
+
+enum CreditFacilityPeriod {
+	MONTHS
+}
+
+input CreditFacilityTermsInput {
+	duration: CreditFacilityDurationInput!
 }
 
 type Customer {

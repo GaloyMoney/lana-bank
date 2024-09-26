@@ -2,6 +2,7 @@ mod disbursement;
 mod entity;
 pub mod error;
 mod repo;
+mod terms;
 
 use crate::{
     authorization::{Authorization, CreditFacilityAction, Object},
@@ -16,6 +17,7 @@ pub use disbursement::*;
 pub use entity::*;
 use error::*;
 use repo::*;
+pub use terms::*;
 
 #[derive(Clone)]
 pub struct CreditFacilities {
@@ -56,6 +58,7 @@ impl CreditFacilities {
         sub: &Subject,
         customer_id: impl Into<CustomerId> + std::fmt::Debug,
         facility: UsdCents,
+        terms: CreditFacilityTermValues,
     ) -> Result<CreditFacility, CreditFacilityError> {
         let customer_id = customer_id.into();
 
@@ -72,6 +75,7 @@ impl CreditFacilities {
         let new_credit_facility = NewCreditFacility::builder()
             .id(CreditFacilityId::new())
             .customer_id(customer_id)
+            .terms(terms)
             .facility(facility)
             .account_ids(CreditFacilityAccountIds::new())
             .customer_account_ids(customer.account_ids)
