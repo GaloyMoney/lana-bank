@@ -19,13 +19,13 @@ impl Duration {
 }
 
 #[derive(Builder, Debug, Serialize, Deserialize, Clone, Copy)]
-pub struct CreditFacilityTermValues {
+pub struct TermValues {
     #[builder(setter(into))]
     pub(crate) duration: Duration,
 }
 
-impl CreditFacilityTermValues {
-    pub fn builder() -> CreditFacilityTermValuesBuilder {
-        CreditFacilityTermValuesBuilder::default()
+impl TermValues {
+    pub fn builder() -> TermValuesBuilder {
+        TermValuesBuilder::default()
     }
 }

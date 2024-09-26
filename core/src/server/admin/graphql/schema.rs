@@ -593,10 +593,9 @@ impl Mutation {
             terms,
         } = input;
 
-        let credit_facility_term_values =
-            crate::credit_facility::CreditFacilityTermValues::builder()
-                .duration(terms.duration)
-                .build()?;
+        let credit_facility_term_values = crate::credit_facility::TermValues::builder()
+            .duration(terms.duration)
+            .build()?;
 
         let credit_facility = app
             .credit_facilities()

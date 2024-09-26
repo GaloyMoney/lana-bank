@@ -13,7 +13,7 @@ use crate::{
     primitives::*,
 };
 
-use super::{disbursement::*, CreditFacilityError, CreditFacilityTermValues};
+use super::{disbursement::*, CreditFacilityError, TermValues};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
@@ -21,7 +21,7 @@ pub enum CreditFacilityEvent {
     Initialized {
         id: CreditFacilityId,
         customer_id: CustomerId,
-        terms: CreditFacilityTermValues,
+        terms: TermValues,
         facility: UsdCents,
         account_ids: CreditFacilityAccountIds,
         customer_account_ids: CustomerLedgerAccountIds,
@@ -64,7 +64,7 @@ impl EntityEvent for CreditFacilityEvent {
 pub struct CreditFacility {
     pub id: CreditFacilityId,
     pub customer_id: CustomerId,
-    pub terms: CreditFacilityTermValues,
+    pub terms: TermValues,
     pub account_ids: CreditFacilityAccountIds,
     pub customer_account_ids: CustomerLedgerAccountIds,
     #[builder(setter(strip_option), default)]
@@ -303,7 +303,7 @@ pub struct NewCreditFacility {
     pub(super) id: CreditFacilityId,
     #[builder(setter(into))]
     pub(super) customer_id: CustomerId,
-    terms: CreditFacilityTermValues,
+    terms: TermValues,
     facility: UsdCents,
     account_ids: CreditFacilityAccountIds,
     customer_account_ids: CustomerLedgerAccountIds,

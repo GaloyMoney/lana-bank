@@ -2,7 +2,7 @@ use sqlx::PgPool;
 
 use crate::primitives::CreditFacilityTermsId;
 
-use super::{error::CreditFacilityTermsError, CreditFacilityTermValues, CreditFacilityTerms};
+use super::{error::CreditFacilityTermsError, TermValues, Terms};
 
 #[derive(Clone)]
 pub struct TermRepo {
@@ -16,8 +16,8 @@ impl TermRepo {
 
     pub async fn update_default(
         &self,
-        terms: CreditFacilityTermValues,
-    ) -> Result<CreditFacilityTerms, CreditFacilityTermsError> {
+        terms: TermValues,
+    ) -> Result<Terms, CreditFacilityTermsError> {
         let mut tx = self.pool.begin().await?;
 
         sqlx::query!(
@@ -43,13 +43,13 @@ impl TermRepo {
 
         tx.commit().await?;
 
-        Ok(CreditFacilityTerms {
+        Ok(Terms {
             id: CreditFacilityTermsId::from(row.id),
             values: terms,
         })
     }
 
-    pub async fn find_default(&self) -> Result<CreditFacilityTerms, CreditFacilityTermsError> {
+    pub async fn find_default(&self) -> Result<Terms, CreditFacilityTermsError> {
         let row = sqlx::query!(
             r#"
             SELECT id, values
@@ -61,7 +61,7 @@ impl TermRepo {
         .await;
 
         match row {
-            Ok(row) => Ok(CreditFacilityTerms {
+            Ok(row) => Ok(Terms {
                 id: CreditFacilityTermsId::from(row.id),
                 values: serde_json::from_value(row.values).expect("should deserialize term values"),
             }),

@@ -58,7 +58,7 @@ impl CreditFacilities {
         sub: &Subject,
         customer_id: impl Into<CustomerId> + std::fmt::Debug,
         facility: UsdCents,
-        terms: CreditFacilityTermValues,
+        terms: TermValues,
     ) -> Result<CreditFacility, CreditFacilityError> {
         let customer_id = customer_id.into();
 
