@@ -1,6 +1,6 @@
 const dev = {
   name: "volcano-dev",
-  database: "lava-dev",
+  database: "lava-dev-436720",
   importSchema: dataform.projectConfig.vars.devUser + "_dataset",
 }
 
