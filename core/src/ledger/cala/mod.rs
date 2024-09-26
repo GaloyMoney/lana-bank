@@ -231,7 +231,7 @@ impl CalaClient {
             ),
             facilities_control_account_set_id:
                 super::constants::OBS_CREDIT_FACILITY_CONTROL_ACCOUNT_SET_ID,
-            facility_disbursed_receivable_account_id: Uuid::from(facility_account_id),
+            facility_disbursed_receivable_account_id: Uuid::from(disbursed_receivable_account_id),
             facility_disbursed_receivable_account_code: format!(
                 "CREDIT_FACILITY.DISBURSED_RECEIVABLE.{}",
                 credit_facility_id
