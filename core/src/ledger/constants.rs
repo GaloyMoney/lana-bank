@@ -46,6 +46,7 @@ pub(super) const CONFIRM_WITHDRAW: &str = "CONFIRM_WITHDRAW";
 pub(super) const CANCEL_WITHDRAW: &str = "CANCEL_WITHDRAW";
 pub(super) const APPROVE_LOAN_CODE: &str = "APPROVE_LOAN";
 pub(super) const APPROVE_CREDIT_FACILITY_CODE: &str = "APPROVE_CREDIT_FACILITY";
+pub(super) const CREDIT_FACILITY_DISBURSEMENT_CODE: &str = "CREDIT_FACILITY_DISBURSEMENT";
 pub(super) const INCUR_INTEREST_CODE: &str = "INCUR_INTEREST";
 pub(super) const RECORD_PAYMENT_CODE: &str = "RECORD_PAYMENT";
 pub(super) const ADD_EQUITY_CODE: &str = "ADD_EQUITY";

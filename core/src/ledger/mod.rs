@@ -586,6 +586,11 @@ impl Ledger {
             constants::APPROVE_CREDIT_FACILITY_CODE,
         )
         .await?;
+        Self::assert_credit_facility_disbursement_tx_template_exists(
+            cala,
+            constants::CREDIT_FACILITY_DISBURSEMENT_CODE,
+        )
+        .await?;
         Self::assert_add_collateral_tx_template_exists(cala, constants::ADD_COLLATERAL_CODE)
             .await?;
         Self::assert_remove_collateral_tx_template_exists(cala, constants::REMOVE_COLLATERAL_CODE)
@@ -815,6 +820,34 @@ impl Ledger {
 
         let template_id = LedgerTxTemplateId::new();
         let err = match cala.create_remove_collateral_tx_template(template_id).await {
+            Ok(id) => {
+                return Ok(id);
+            }
+            Err(e) => e,
+        };
+
+        Ok(cala
+            .find_tx_template_by_code::<LedgerTxTemplateId>(template_code.to_owned())
+            .await
+            .map_err(|_| err)?)
+    }
+
+    async fn assert_credit_facility_disbursement_tx_template_exists(
+        cala: &CalaClient,
+        template_code: &str,
+    ) -> Result<LedgerTxTemplateId, LedgerError> {
+        if let Ok(id) = cala
+            .find_tx_template_by_code::<LedgerTxTemplateId>(template_code.to_owned())
+            .await
+        {
+            return Ok(id);
+        }
+
+        let template_id = LedgerTxTemplateId::new();
+        let err = match cala
+            .create_facility_disbursement_tx_template(template_id)
+            .await
+        {
             Ok(id) => {
                 return Ok(id);
             }
