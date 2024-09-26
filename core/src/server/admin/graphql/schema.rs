@@ -679,6 +679,42 @@ impl Mutation {
         Ok(WithdrawalCancelPayload::from(withdraw))
     }
 
+    pub async fn credit_facility_disbursement_initiate(
+        &self,
+        ctx: &Context<'_>,
+        input: CreditFacilityDisbursementInitiateInput,
+    ) -> async_graphql::Result<CreditFacilityDisbursementInitiatePayload> {
+        let app = ctx.data_unchecked::<LavaApp>();
+        let AdminAuthContext { sub } = ctx.data()?;
+
+        let disbursement = app
+            .credit_facilities()
+            .initiate_disbursement(sub, input.credit_facility_id.into(), input.amount)
+            .await?;
+
+        Ok(CreditFacilityDisbursementInitiatePayload::from(
+            disbursement,
+        ))
+    }
+
+    async fn credit_facility_disbursement_approve(
+        &self,
+        ctx: &Context<'_>,
+        input: CreditFacilityDisbursementApproveInput,
+    ) -> async_graphql::Result<CreditFacilityDisbursementApprovePayload> {
+        let app = ctx.data_unchecked::<LavaApp>();
+
+        let AdminAuthContext { sub } = ctx.data()?;
+
+        let credit_facility = app
+            .credit_facilities()
+            .add_disbursement_approval(sub, input.credit_facility_id.into())
+            .await?;
+        Ok(CreditFacilityDisbursementApprovePayload::from(
+            credit_facility,
+        ))
+    }
+
     async fn customer_create(
         &self,
         ctx: &Context<'_>,

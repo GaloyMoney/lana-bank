@@ -89,3 +89,58 @@ impl From<CreditFacilityDurationInput> for crate::credit_facility::Duration {
         }
     }
 }
+
+#[derive(SimpleObject)]
+pub struct CreditFacilityDisbursement {
+    id: ID,
+}
+
+impl From<crate::credit_facility::Disbursement> for CreditFacilityDisbursement {
+    fn from(disbursement: crate::credit_facility::Disbursement) -> Self {
+        Self {
+            id: disbursement.id.to_global_id(),
+        }
+    }
+}
+
+impl ToGlobalId for crate::primitives::DisbursementId {
+    fn to_global_id(&self) -> async_graphql::types::ID {
+        async_graphql::types::ID::from(format!("disbursement:{}", self))
+    }
+}
+#[derive(InputObject)]
+pub struct CreditFacilityDisbursementInitiateInput {
+    pub credit_facility_id: UUID,
+    pub amount: UsdCents,
+}
+
+#[derive(SimpleObject)]
+pub struct CreditFacilityDisbursementInitiatePayload {
+    disbursement: CreditFacilityDisbursement,
+}
+
+impl From<crate::credit_facility::Disbursement> for CreditFacilityDisbursementInitiatePayload {
+    fn from(disbursement: crate::credit_facility::Disbursement) -> Self {
+        Self {
+            disbursement: CreditFacilityDisbursement::from(disbursement),
+        }
+    }
+}
+
+#[derive(InputObject)]
+pub struct CreditFacilityDisbursementApproveInput {
+    pub credit_facility_id: UUID,
+}
+
+#[derive(SimpleObject)]
+pub struct CreditFacilityDisbursementApprovePayload {
+    disbursement: CreditFacilityDisbursement,
+}
+
+impl From<crate::credit_facility::Disbursement> for CreditFacilityDisbursementApprovePayload {
+    fn from(disbursement: crate::credit_facility::Disbursement) -> Self {
+        Self {
+            disbursement: CreditFacilityDisbursement::from(disbursement),
+        }
+    }
+}

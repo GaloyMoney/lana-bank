@@ -202,6 +202,27 @@ type CreditFacilityCreatePayload {
 	creditFacility: CreditFacility!
 }
 
+type CreditFacilityDisbursement {
+	id: ID!
+}
+
+input CreditFacilityDisbursementApproveInput {
+	creditFacilityId: UUID!
+}
+
+type CreditFacilityDisbursementApprovePayload {
+	disbursement: CreditFacilityDisbursement!
+}
+
+input CreditFacilityDisbursementInitiateInput {
+	creditFacilityId: UUID!
+	amount: UsdCents!
+}
+
+type CreditFacilityDisbursementInitiatePayload {
+	disbursement: CreditFacilityDisbursement!
+}
+
 input CreditFacilityDurationInput {
 	period: CreditFacilityPeriod!
 	units: Int!
@@ -541,6 +562,8 @@ type Mutation {
 	withdrawalInitiate(input: WithdrawalInitiateInput!): WithdrawalInitiatePayload!
 	withdrawalConfirm(input: WithdrawalConfirmInput!): WithdrawalConfirmPayload!
 	withdrawalCancel(input: WithdrawalCancelInput!): WithdrawalCancelPayload!
+	creditFacilityDisbursementInitiate(input: CreditFacilityDisbursementInitiateInput!): CreditFacilityDisbursementInitiatePayload!
+	creditFacilityDisbursementApprove(input: CreditFacilityDisbursementApproveInput!): CreditFacilityDisbursementApprovePayload!
 	customerCreate(input: CustomerCreateInput!): CustomerCreatePayload!
 	customerUpdate(input: CustomerUpdateInput!): CustomerUpdatePayload!
 	userCreate(input: UserCreateInput!): UserCreatePayload!
