@@ -13,7 +13,7 @@ use crate::{
     primitives::*,
 };
 
-use super::{disbursement::*, CreditFacilityError};
+use super::{disbursement::*, CreditFacilityError, CreditFacilityTermValues};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
@@ -21,6 +21,7 @@ pub enum CreditFacilityEvent {
     Initialized {
         id: CreditFacilityId,
         customer_id: CustomerId,
+        terms: CreditFacilityTermValues,
         facility: UsdCents,
         account_ids: CreditFacilityAccountIds,
         customer_account_ids: CustomerLedgerAccountIds,
@@ -63,8 +64,13 @@ impl EntityEvent for CreditFacilityEvent {
 pub struct CreditFacility {
     pub id: CreditFacilityId,
     pub customer_id: CustomerId,
+    pub terms: CreditFacilityTermValues,
     pub account_ids: CreditFacilityAccountIds,
     pub customer_account_ids: CustomerLedgerAccountIds,
+    #[builder(setter(strip_option), default)]
+    pub approved_at: Option<DateTime<Utc>>,
+    #[builder(setter(strip_option), default)]
+    pub expires_at: Option<DateTime<Utc>>,
     pub(super) events: EntityEvents<CreditFacilityEvent>,
 }
 
@@ -94,7 +100,8 @@ impl CreditFacility {
     }
 
     pub(super) fn is_expired(&self) -> bool {
-        unimplemented!()
+        self.expires_at
+            .map_or(false, |expires_at| Utc::now() > expires_at)
     }
 
     fn approval_threshold_met(&self) -> bool {
@@ -254,6 +261,7 @@ impl TryFrom<EntityEvents<CreditFacilityEvent>> for CreditFacility {
 
     fn try_from(events: EntityEvents<CreditFacilityEvent>) -> Result<Self, Self::Error> {
         let mut builder = CreditFacilityBuilder::default();
+        let mut terms = None;
         for event in events.iter() {
             match event {
                 CreditFacilityEvent::Initialized {
@@ -261,15 +269,25 @@ impl TryFrom<EntityEvents<CreditFacilityEvent>> for CreditFacility {
                     customer_id,
                     account_ids,
                     customer_account_ids,
+                    terms: t,
                     ..
                 } => {
+                    terms = Some(*t);
                     builder = builder
                         .id(*id)
                         .customer_id(*customer_id)
+                        .terms(*t)
                         .account_ids(*account_ids)
                         .customer_account_ids(*customer_account_ids)
                 }
-                CreditFacilityEvent::Approved { .. } => (),
+                CreditFacilityEvent::Approved { recorded_at, .. } => {
+                    builder = builder.approved_at(*recorded_at).expires_at(
+                        terms
+                            .expect("terms should be set")
+                            .duration
+                            .expiration_date(*recorded_at),
+                    )
+                }
                 CreditFacilityEvent::ApprovalAdded { .. } => (),
                 CreditFacilityEvent::DisbursementInitiated { .. } => (),
                 CreditFacilityEvent::DisbursementConcluded { .. } => (),
@@ -285,6 +303,7 @@ pub struct NewCreditFacility {
     pub(super) id: CreditFacilityId,
     #[builder(setter(into))]
     pub(super) customer_id: CustomerId,
+    terms: CreditFacilityTermValues,
     facility: UsdCents,
     account_ids: CreditFacilityAccountIds,
     customer_account_ids: CustomerLedgerAccountIds,
@@ -304,6 +323,7 @@ impl NewCreditFacility {
                 id: self.id,
                 audit_info: self.audit_info,
                 customer_id: self.customer_id,
+                terms: self.terms,
                 facility: self.facility,
                 account_ids: self.account_ids,
                 customer_account_ids: self.customer_account_ids,

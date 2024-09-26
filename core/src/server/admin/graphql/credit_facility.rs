@@ -9,6 +9,23 @@ use crate::{
 pub struct CreditFacilityCreateInput {
     pub customer_id: UUID,
     pub facility: UsdCents,
+    pub terms: CreditFacilityTermsInput,
+}
+
+#[derive(InputObject)]
+pub struct CreditFacilityTermsInput {
+    pub duration: CreditFacilityDurationInput,
+}
+
+#[derive(Enum, Copy, Clone, Eq, PartialEq)]
+pub enum CreditFacilityPeriod {
+    Months,
+}
+
+#[derive(InputObject)]
+pub struct CreditFacilityDurationInput {
+    pub period: CreditFacilityPeriod,
+    pub units: u32,
 }
 
 #[derive(SimpleObject, Clone)]
@@ -59,6 +76,16 @@ impl From<crate::credit_facility::CreditFacility> for CreditFacilityCreatePayloa
     fn from(credit_facility: crate::credit_facility::CreditFacility) -> Self {
         Self {
             credit_facility: CreditFacility::from(credit_facility),
+        }
+    }
+}
+
+impl From<CreditFacilityDurationInput> for crate::credit_facility::Duration {
+    fn from(duration: CreditFacilityDurationInput) -> Self {
+        match duration.period {
+            CreditFacilityPeriod::Months => {
+                crate::credit_facility::Duration::Months(duration.units)
+            }
         }
     }
 }
