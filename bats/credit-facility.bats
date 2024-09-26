@@ -51,3 +51,46 @@ teardown_file() {
   [[ "$loan_id" != "null" ]] || exit 1
 }
 
+@test "credit-facility: can initiate disbursement" {
+  credit_facility_id=$(read_value 'credit_facility_id')
+
+  amount=50000
+  variables=$(
+    jq -n \
+      --arg creditFacilityId "$credit_facility_id" \
+      --argjson amount "$amount" \
+    '{
+      input: {
+        creditFacilityId: $creditFacilityId,
+        amount: $amount,
+      }
+    }'
+  )
+  exec_admin_graphql 'credit-facility-disbursement-initiate' "$variables"
+  disbursement_index=$(graphql_output '.data.creditFacilityDisbursementInitiate.disbursement.index')
+  [[ "$disbursement_index" != "null" ]] || exit 1
+
+  cache_value 'disbursement_index' "$disbursement_index"
+}
+
+@test "credit-facility: can approve disbursement" {
+  credit_facility_id=$(read_value 'credit_facility_id')
+  disbursement_index=$(read_value 'disbursement_index')
+
+  variables=$(
+    jq -n \
+      --arg creditFacilityId "$credit_facility_id" \
+      --argjson disbursementIdx "$disbursement_index" \
+    '{
+      input: {
+        creditFacilityId: $creditFacilityId,
+        disbursementIdx: $disbursementIdx,
+      }
+    }'
+  )
+  exec_admin_graphql 'credit-facility-disbursement-approve' "$variables"
+  disbursement_id=$(graphql_output '.data.creditFacilityDisbursementApprove.disbursement.id')
+  [[ "$disbursement_id" != "null" ]] || exit 1
+
+  assert_accounts_balanced
+}
