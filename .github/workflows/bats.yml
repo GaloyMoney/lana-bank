@@ -32,7 +32,7 @@ jobs:
         run: nix develop -c make e2e
         env:
           GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
-          TF_VAR_bq_creds: ${{ secrets.GOOGLE_SA_BASE64 }}
+          TF_VAR_sa_creds: ${{ secrets.GOOGLE_SA_BASE64 }}
           SA_CREDS_BASE64: ${{ secrets.GOOGLE_SA_BASE64 }}
           SUMSUB_KEY: ${{ secrets.SUMSUB_KEY }}
           SUMSUB_SECRET: ${{ secrets.SUMSUB_SECRET }}
