@@ -4,7 +4,7 @@ mod value;
 
 use crate::primitives::CreditFacilityTermsId;
 
-use error::*;
+pub use repo::*;
 pub use value::*;
 
 pub struct Terms {

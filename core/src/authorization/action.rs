@@ -16,6 +16,7 @@ macro_rules! impl_trivial_action {
 pub enum Action {
     Loan(LoanAction),
     Term(TermAction),
+    CreditFacilityTerm(CreditFacilityTermAction),
     User(UserAction),
     Customer(CustomerAction),
     Deposit(DepositAction),
@@ -33,6 +34,7 @@ impl Display for Action {
         match self {
             Loan(action) => action.fmt(f),
             Term(action) => action.fmt(f),
+            CreditFacilityTerm(action) => action.fmt(f),
             User(action) => action.fmt(f),
             Customer(action) => action.fmt(f),
             Deposit(action) => action.fmt(f),
@@ -56,6 +58,7 @@ impl FromStr for Action {
         let res = match entity.parse()? {
             Loan => Action::from(action.parse::<LoanAction>()?),
             Term => Action::from(action.parse::<TermAction>()?),
+            CreditFacilityTerm => Action::from(action.parse::<CreditFacilityTermAction>()?),
             User => Action::from(action.parse::<UserAction>()?),
             Customer => Action::from(action.parse::<CustomerAction>()?),
             Deposit => Action::from(action.parse::<DepositAction>()?),
@@ -103,6 +106,15 @@ pub enum TermAction {
 }
 
 impl_trivial_action!(TermAction, Term);
+
+#[derive(PartialEq, Clone, Copy, Debug, strum::Display, strum::EnumString)]
+#[strum(serialize_all = "kebab-case")]
+pub enum CreditFacilityTermAction {
+    Read,
+    Update,
+}
+
+impl_trivial_action!(CreditFacilityTermAction, CreditFacilityTerm);
 
 #[derive(Clone, PartialEq, Copy, Debug, strum::Display, strum::EnumString)]
 #[strum(serialize_all = "kebab-case")]

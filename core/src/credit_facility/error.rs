@@ -16,6 +16,8 @@ pub enum CreditFacilityError {
     AuthorizationError(#[from] crate::authorization::error::AuthorizationError),
     #[error("CreditFacilityError - DisbursementError: {0}")]
     DisbursementError(#[from] super::disbursement::error::DisbursementError),
+    #[error("CreditFacilityError - CreditFacilityTermsError: {0}")]
+    CreditFacilityTermsError(#[from] super::terms::error::CreditFacilityTermsError),
     #[error("CreditFacilityError - CustomerNotFound: {0}")]
     CustomerNotFound(CustomerId),
     #[error("CreditFacilityError - CustomerError: '{0}'")]

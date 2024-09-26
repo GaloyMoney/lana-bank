@@ -5,7 +5,7 @@ mod repo;
 mod terms;
 
 use crate::{
-    authorization::{Authorization, CreditFacilityAction, Object},
+    authorization::{Authorization, CreditFacilityAction, CreditFacilityTermAction, Object},
     customer::Customers,
     data_export::Export,
     ledger::{credit_facility::*, Ledger},
@@ -25,6 +25,7 @@ pub struct CreditFacilities {
     authz: Authorization,
     customers: Customers,
     credit_facility_repo: CreditFacilityRepo,
+    term_repo: TermRepo,
     disbursement_repo: DisbursementRepo,
     user_repo: UserRepo,
     ledger: Ledger,
@@ -40,6 +41,7 @@ impl CreditFacilities {
         ledger: &Ledger,
     ) -> Self {
         let credit_facility_repo = CreditFacilityRepo::new(pool, export);
+        let term_repo = TermRepo::new(pool);
         let disbursement_repo = DisbursementRepo::new(pool, export);
 
         Self {
@@ -47,10 +49,23 @@ impl CreditFacilities {
             authz: authz.clone(),
             customers: customers.clone(),
             credit_facility_repo,
+            term_repo,
             disbursement_repo,
             user_repo: users.repo().clone(),
             ledger: ledger.clone(),
         }
+    }
+
+    pub async fn update_default_terms(
+        &self,
+        sub: &Subject,
+        terms: TermValues,
+    ) -> Result<Terms, CreditFacilityError> {
+        self.authz
+            .check_permission(sub, Object::Term, CreditFacilityTermAction::Update)
+            .await?;
+
+        Ok(self.term_repo.update_default(terms).await?)
     }
 
     pub async fn create(
