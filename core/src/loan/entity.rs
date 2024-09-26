@@ -1244,13 +1244,13 @@ mod test {
         fn test_collateral(loan: &Loan) -> TestCollateral {
             let upgrade_buffer_cvl = default_upgrade_buffer_cvl_pct();
 
-            let above_fully_collateralized_cvl = loan.terms.initial_cvl + dec!(1);
+            let above_fully_collateralized_cvl = loan.terms.initial_cvl + CVLPct::new(1);
             let above_margin_called_and_buffer_cvl =
-                loan.terms.margin_call_cvl + upgrade_buffer_cvl + dec!(1);
+                loan.terms.margin_call_cvl + upgrade_buffer_cvl + CVLPct::new(1);
             let above_margin_called_and_below_buffer_cvl =
-                loan.terms.margin_call_cvl + upgrade_buffer_cvl - dec!(1);
-            let below_margin_called_cvl = loan.terms.margin_call_cvl - dec!(1);
-            let below_liquidation_cvl = loan.terms.liquidation_cvl - dec!(1);
+                loan.terms.margin_call_cvl + upgrade_buffer_cvl - CVLPct::new(1);
+            let below_margin_called_cvl = loan.terms.margin_call_cvl - CVLPct::new(1);
+            let below_liquidation_cvl = loan.terms.liquidation_cvl - CVLPct::new(1);
 
             TestCollateral {
                 above_fully_collateralized: sats_for_cvl(loan, above_fully_collateralized_cvl),

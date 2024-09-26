@@ -43,19 +43,11 @@ impl std::ops::Add for CVLPct {
     }
 }
 
-impl std::ops::Add<Decimal> for CVLPct {
-    type Output = CVLPct;
+impl std::ops::Sub for CVLPct {
+    type Output = Self;
 
-    fn add(self, other: Decimal) -> Self {
-        CVLPct(self.0 + other)
-    }
-}
-
-impl std::ops::Sub<Decimal> for CVLPct {
-    type Output = CVLPct;
-
-    fn sub(self, other: Decimal) -> Self {
-        CVLPct(self.0 - other)
+    fn sub(self, other: Self) -> Self {
+        CVLPct(self.0 - other.0)
     }
 }
 
