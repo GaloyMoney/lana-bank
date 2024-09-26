@@ -40,6 +40,18 @@ impl fmt::Display for DisbursementIdx {
     }
 }
 
+impl From<i32> for DisbursementIdx {
+    fn from(value: i32) -> Self {
+        Self(value)
+    }
+}
+
+impl From<DisbursementIdx> for i32 {
+    fn from(idx: DisbursementIdx) -> Self {
+        idx.0
+    }
+}
+
 impl DisbursementIdx {
     pub const FIRST: Self = Self(1);
     pub const fn next(&self) -> Self {

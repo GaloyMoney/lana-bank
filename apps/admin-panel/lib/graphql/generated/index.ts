@@ -230,6 +230,32 @@ export type CreditFacilityCreatePayload = {
   creditFacility: CreditFacility;
 };
 
+export type CreditFacilityDisbursement = {
+  __typename?: 'CreditFacilityDisbursement';
+  id: Scalars['ID']['output'];
+  index: Scalars['Int']['output'];
+};
+
+export type CreditFacilityDisbursementApproveInput = {
+  creditFacilityId: Scalars['UUID']['input'];
+  disbursementIdx: Scalars['Int']['input'];
+};
+
+export type CreditFacilityDisbursementApprovePayload = {
+  __typename?: 'CreditFacilityDisbursementApprovePayload';
+  disbursement: CreditFacilityDisbursement;
+};
+
+export type CreditFacilityDisbursementInitiateInput = {
+  amount: Scalars['UsdCents']['input'];
+  creditFacilityId: Scalars['UUID']['input'];
+};
+
+export type CreditFacilityDisbursementInitiatePayload = {
+  __typename?: 'CreditFacilityDisbursementInitiatePayload';
+  disbursement: CreditFacilityDisbursement;
+};
+
 export type Customer = {
   __typename?: 'Customer';
   applicantId?: Maybe<Scalars['String']['output']>;
@@ -539,6 +565,8 @@ export type Mutation = {
   collateralizationStateUpdate: CollateralizationStateUpdatePayload;
   creditFacilityApprove: CreditFacilityApprovePayload;
   creditFacilityCreate: CreditFacilityCreatePayload;
+  creditFacilityDisbursementApprove: CreditFacilityDisbursementApprovePayload;
+  creditFacilityDisbursementInitiate: CreditFacilityDisbursementInitiatePayload;
   customerCreate: CustomerCreatePayload;
   customerUpdate: CustomerUpdatePayload;
   defaultTermsUpdate: DefaultTermsUpdatePayload;
@@ -576,6 +604,16 @@ export type MutationCreditFacilityApproveArgs = {
 
 export type MutationCreditFacilityCreateArgs = {
   input: CreditFacilityCreateInput;
+};
+
+
+export type MutationCreditFacilityDisbursementApproveArgs = {
+  input: CreditFacilityDisbursementApproveInput;
+};
+
+
+export type MutationCreditFacilityDisbursementInitiateArgs = {
+  input: CreditFacilityDisbursementInitiateInput;
 };
 
 
