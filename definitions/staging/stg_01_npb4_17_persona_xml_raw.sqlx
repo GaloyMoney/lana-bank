@@ -16,11 +16,6 @@ customers_identities AS (
   SELECT *
   FROM
   ${ref("stg_customers_identities")}
-),
-approved_loans AS (
-  SELECT *
-  FROM
-  ${ref("stg_approved_loans")}
 )
 
 SELECT
