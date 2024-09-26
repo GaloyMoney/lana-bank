@@ -1,0 +1,9 @@
+mutation CreditFacilityDisbursementInitiate(
+  $input: CreditFacilityDisbursementInitiateInput!
+) {
+  creditFacilityDisbursementInitiate(input: $input) {
+    disbursement {
+      id
+    }
+  }
+}
