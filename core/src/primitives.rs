@@ -14,6 +14,7 @@ crate::entity_id! { DepositId }
 crate::entity_id! { JobId }
 crate::entity_id! { LoanId }
 crate::entity_id! { CreditFacilityId }
+crate::entity_id! { DisbursementId }
 crate::entity_id! { LoanTermsId }
 crate::entity_id! { ReportId }
 
@@ -25,6 +26,24 @@ impl From<LoanId> for JobId {
 impl From<ReportId> for JobId {
     fn from(id: ReportId) -> Self {
         JobId::from(id.0)
+    }
+}
+
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, sqlx::Type)]
+#[serde(transparent)]
+#[sqlx(transparent)]
+pub struct DisbursementIdx(i32);
+
+impl fmt::Display for DisbursementIdx {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> fmt::Result {
+        write!(f, "{}", self.0)
+    }
+}
+
+impl DisbursementIdx {
+    pub const FIRST: Self = Self(1);
+    pub const fn next(&self) -> Self {
+        Self(self.0 + 1)
     }
 }
 

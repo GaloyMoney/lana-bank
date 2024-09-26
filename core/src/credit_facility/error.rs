@@ -14,6 +14,8 @@ pub enum CreditFacilityError {
     LedgerError(#[from] crate::ledger::error::LedgerError),
     #[error("CreditFacilityError - AuthorizationError: {0}")]
     AuthorizationError(#[from] crate::authorization::error::AuthorizationError),
+    #[error("CreditFacilityError - DisbursementError: {0}")]
+    DisbursementError(#[from] super::disbursement::error::DisbursementError),
     #[error("CreditFacilityError - CustomerNotFound: {0}")]
     CustomerNotFound(CustomerId),
     #[error("CreditFacilityError - CustomerError: '{0}'")]
@@ -24,4 +26,10 @@ pub enum CreditFacilityError {
     UserCannotApproveTwice,
     #[error("CreditFacilityError - AlreadyApproved")]
     AlreadyApproved,
+    #[error("CreditFacilityError - AlreadyExpired")]
+    AlreadyExpired,
+    #[error("CreditFacilityError - NoDisbursementInProgress")]
+    NoDisbursementInProgress,
+    #[error("CreditFacilityError - DisbursementInProgress")]
+    DisbursementInProgress,
 }

@@ -89,6 +89,8 @@ impl_trivial_action!(LoanAction, Loan);
 pub enum CreditFacilityAction {
     Create,
     Approve,
+    InitiateDisbursement,
+    ApproveDisbursement,
 }
 
 impl_trivial_action!(CreditFacilityAction, CreditFacility);
