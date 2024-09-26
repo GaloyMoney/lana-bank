@@ -4,7 +4,7 @@ use crate::primitives::CreditFacilityTermsId;
 
 pub use value::*;
 
-pub struct CreditFacilityTerms {
+pub struct Terms {
     pub id: CreditFacilityTermsId,
-    pub values: CreditFacilityTermValues,
+    pub values: TermValues,
 }
