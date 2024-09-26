@@ -302,6 +302,30 @@ pub struct LoanBalance;
 #[derive(GraphQLQuery)]
 #[graphql(
     schema_path = "src/ledger/cala/graphql/schema.graphql",
+    query_path = "src/ledger/cala/graphql/credit-facility.gql",
+    response_derives = "Debug, PartialEq, Eq, Clone"
+)]
+pub struct CreditFacilityBalance;
+
+#[derive(GraphQLQuery)]
+#[graphql(
+    schema_path = "src/ledger/cala/graphql/schema.graphql",
+    query_path = "src/ledger/cala/graphql/transactions/disburse-for-facility.gql",
+    response_derives = "Debug, PartialEq, Eq, Clone"
+)]
+pub struct CreditFacilityDisbursementTemplateCreate;
+
+#[derive(GraphQLQuery)]
+#[graphql(
+    schema_path = "src/ledger/cala/graphql/schema.graphql",
+    query_path = "src/ledger/cala/graphql/transactions/disburse-for-facility.gql",
+    response_derives = "Debug, PartialEq, Eq, Clone"
+)]
+pub struct PostCreditFacilityDisbursementTransaction;
+
+#[derive(GraphQLQuery)]
+#[graphql(
+    schema_path = "src/ledger/cala/graphql/schema.graphql",
     query_path = "src/ledger/cala/graphql/trial-balance.gql",
     response_derives = "Debug, PartialEq, Eq, Clone"
 )]

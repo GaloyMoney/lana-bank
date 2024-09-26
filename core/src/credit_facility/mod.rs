@@ -1,3 +1,4 @@
+mod disbursement;
 mod entity;
 pub mod error;
 mod repo;
@@ -11,6 +12,7 @@ use crate::{
     user::{UserRepo, Users},
 };
 
+pub use disbursement::*;
 pub use entity::*;
 use error::*;
 use repo::*;
@@ -21,6 +23,7 @@ pub struct CreditFacilities {
     authz: Authorization,
     customers: Customers,
     credit_facility_repo: CreditFacilityRepo,
+    disbursement_repo: DisbursementRepo,
     user_repo: UserRepo,
     ledger: Ledger,
 }
@@ -34,13 +37,15 @@ impl CreditFacilities {
         users: &Users,
         ledger: &Ledger,
     ) -> Self {
-        let repo = CreditFacilityRepo::new(pool, export);
+        let credit_facility_repo = CreditFacilityRepo::new(pool, export);
+        let disbursement_repo = DisbursementRepo::new(pool, export);
 
         Self {
             pool: pool.clone(),
             authz: authz.clone(),
             customers: customers.clone(),
-            credit_facility_repo: repo,
+            credit_facility_repo,
+            disbursement_repo,
             user_repo: users.repo().clone(),
             ledger: ledger.clone(),
         }
@@ -126,5 +131,105 @@ impl CreditFacilities {
         db_tx.commit().await?;
 
         Ok(credit_facility)
+    }
+
+    pub async fn initiate_disbursement(
+        &self,
+        sub: &Subject,
+        credit_facility_id: CreditFacilityId,
+        amount: UsdCents,
+    ) -> Result<Disbursement, CreditFacilityError> {
+        let audit_info = self
+            .authz
+            .check_permission(
+                sub,
+                Object::CreditFacility,
+                CreditFacilityAction::InitiateDisbursement,
+            )
+            .await?;
+
+        let mut credit_facility = self
+            .credit_facility_repo
+            .find_by_id(credit_facility_id)
+            .await?;
+        let balances = self
+            .ledger
+            .get_credit_facility_balance(credit_facility.account_ids)
+            .await?;
+        balances.check_disbursement_amount(amount)?;
+
+        let mut db_tx = self.pool.begin().await?;
+        let new_disbursement = credit_facility.initiate_disbursement(audit_info, amount)?;
+        self.credit_facility_repo
+            .persist_in_tx(&mut db_tx, &mut credit_facility)
+            .await?;
+        let disbursement = self
+            .disbursement_repo
+            .create_in_tx(&mut db_tx, new_disbursement)
+            .await?;
+
+        db_tx.commit().await?;
+        Ok(disbursement)
+    }
+
+    pub async fn add_disbursement_approval(
+        &self,
+        sub: &Subject,
+        credit_facility_id: CreditFacilityId,
+    ) -> Result<Disbursement, CreditFacilityError> {
+        let audit_info = self
+            .authz
+            .check_permission(
+                sub,
+                Object::CreditFacility,
+                CreditFacilityAction::ApproveDisbursement,
+            )
+            .await?;
+
+        let mut credit_facility = self
+            .credit_facility_repo
+            .find_by_id(credit_facility_id)
+            .await?;
+        let in_progress_disbursement_idx = credit_facility
+            .disbursement_in_progress()
+            .ok_or(CreditFacilityError::NoDisbursementInProgress)?;
+
+        let subject_id = uuid::Uuid::from(sub);
+        let user = self.user_repo.find_by_id(UserId::from(subject_id)).await?;
+
+        let mut disbursement = self
+            .disbursement_repo
+            .find_by_idx_for_credit_facility(credit_facility_id, in_progress_disbursement_idx)
+            .await?;
+
+        let mut db_tx = self.pool.begin().await?;
+
+        if let Some(disbursement_data) =
+            disbursement.add_approval(user.id, user.current_roles(), audit_info)?
+        {
+            let executed_at = self
+                .ledger
+                .record_disbursement(disbursement_data.clone())
+                .await?;
+            disbursement.confirm_approval(&disbursement_data, executed_at, audit_info);
+
+            disbursement.conclude(executed_at, audit_info);
+            credit_facility.confirm_disbursement(
+                &disbursement,
+                disbursement_data.tx_id,
+                executed_at,
+                audit_info,
+            );
+        }
+
+        self.disbursement_repo
+            .persist_in_tx(&mut db_tx, &mut disbursement)
+            .await?;
+        self.credit_facility_repo
+            .persist_in_tx(&mut db_tx, &mut credit_facility)
+            .await?;
+        db_tx.commit().await?;
+
+        Ok(disbursement)
     }
 }

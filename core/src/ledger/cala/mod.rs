@@ -218,15 +218,30 @@ impl CalaClient {
         credit_facility_id: impl Into<Uuid> + std::fmt::Debug,
         CreditFacilityAccountIds {
             facility_account_id,
+            disbursed_receivable_account_id,
         }: CreditFacilityAccountIds,
     ) -> Result<(), CalaError> {
         let credit_facility_id = credit_facility_id.into();
         let variables = create_credit_facility_accounts::Variables {
             facility_account_id: Uuid::from(facility_account_id),
-            facility_account_code: format!("CREDIT_FACILITY.{}", credit_facility_id),
-            facility_account_name: format!("Account for Credit Facility {}", credit_facility_id),
+            facility_account_code: format!("CREDIT_FACILITY.OBS_FACILITY.{}", credit_facility_id),
+            facility_account_name: format!(
+                "Off-Balance-Sheet Facility Account for Credit Facility {}",
+                credit_facility_id
+            ),
             facilities_control_account_set_id:
                 super::constants::OBS_CREDIT_FACILITY_CONTROL_ACCOUNT_SET_ID,
+            facility_disbursed_receivable_account_id: Uuid::from(facility_account_id),
+            facility_disbursed_receivable_account_code: format!(
+                "CREDIT_FACILITY.DISBURSED_RECEIVABLE.{}",
+                credit_facility_id
+            ),
+            facility_disbursed_receivable_account_name: format!(
+                "Disbursed Receivable Account for Credit Facility {}",
+                credit_facility_id
+            ),
+            facilities_disbursed_receivable_control_account_set_id:
+                super::constants::CREDIT_FACILITIES_DISBURSED_RECEIVABLE_CONTROL_ACCOUNT_SET_ID,
         };
         let response = Self::traced_gql_request::<CreateCreditFacilityAccounts, _>(
             &self.client,
@@ -347,6 +362,104 @@ impl CalaClient {
             Self::traced_gql_request::<LoanBalance, _>(&self.client, &self.url, variables).await?;
 
         response.data.map(T::try_from).transpose()
+    }
+
+    #[instrument(name = "lava.ledger.cala.get_credit_facility_balance", skip(self), err)]
+    pub async fn get_credit_facility_balance<T, E>(
+        &self,
+        account_ids: CreditFacilityAccountIds,
+    ) -> Result<Option<T>, E>
+    where
+        T: TryFrom<credit_facility_balance::ResponseData, Error = E>,
+        E: From<CalaError> + std::fmt::Display,
+    {
+        let variables = credit_facility_balance::Variables {
+            journal_id: super::constants::CORE_JOURNAL_ID,
+            facility_id: Uuid::from(account_ids.facility_account_id),
+        };
+        let response = Self::traced_gql_request::<CreditFacilityBalance, _>(
+            &self.client,
+            &self.url,
+            variables,
+        )
+        .await?;
+
+        response.data.map(T::try_from).transpose()
+    }
+
+    #[instrument(
+        name = "lava.ledger.cala.create_facility_disbursement_tx_template",
+        skip(self),
+        err
+    )]
+    pub async fn create_facility_disbursement_tx_template(
+        &self,
+        template_id: TxTemplateId,
+    ) -> Result<TxTemplateId, CalaError> {
+        let obs_credit_facility_id = match Self::find_account_by_code::<LedgerAccountId>(
+            self,
+            super::constants::OBS_CREDIT_FACILITY_ACCOUNT_CODE.to_string(),
+        )
+        .await?
+        {
+            Some(id) => Ok(id),
+            None => Err(CalaError::CouldNotFindAccountByCode(
+                super::constants::OBS_CREDIT_FACILITY_ACCOUNT_CODE.to_string(),
+            )),
+        }?;
+        let variables = credit_facility_disbursement_template_create::Variables {
+            template_id: Uuid::from(template_id),
+            journal_id: format!("uuid(\"{}\")", super::constants::CORE_JOURNAL_ID),
+            omnibus_credit_facility_account: format!("uuid(\"{}\")", obs_credit_facility_id),
+        };
+        let response = Self::traced_gql_request::<CreditFacilityDisbursementTemplateCreate, _>(
+            &self.client,
+            &self.url,
+            variables,
+        )
+        .await?;
+
+        response
+            .data
+            .map(|d| TxTemplateId::from(d.tx_template_create.tx_template.tx_template_id))
+            .ok_or_else(|| CalaError::MissingDataField)
+    }
+
+    #[instrument(
+        name = "lava.ledger.cala.execute_credit_facility_disbursement_tx",
+        skip(self),
+        err
+    )]
+    pub async fn execute_credit_facility_disbursement_tx(
+        &self,
+        transaction_id: LedgerTxId,
+        facility_account_ids: CreditFacilityAccountIds,
+        user_account_ids: CustomerLedgerAccountIds,
+        disbursed_amount: Decimal,
+        external_id: String,
+    ) -> Result<chrono::DateTime<chrono::Utc>, CalaError> {
+        let variables = post_credit_facility_disbursement_transaction::Variables {
+            transaction_id: transaction_id.into(),
+            facility_account: facility_account_ids.facility_account_id.into(),
+            facility_disbursed_receivable_account: facility_account_ids
+                .disbursed_receivable_account_id
+                .into(),
+            checking_account: user_account_ids.on_balance_sheet_deposit_account_id.into(),
+            disbursed_amount,
+            external_id,
+        };
+        let response = Self::traced_gql_request::<PostCreditFacilityDisbursementTransaction, _>(
+            &self.client,
+            &self.url,
+            variables,
+        )
+        .await?;
+
+        let created_at = response
+            .data
+            .map(|d| d.transaction_post.transaction.created_at)
+            .ok_or_else(|| CalaError::MissingDataField)?;
+        Ok(created_at)
     }
 
     #[instrument(name = "lava.ledger.cala.find_tx_template_by_code", skip(self), err)]

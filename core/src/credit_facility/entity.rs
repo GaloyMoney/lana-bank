@@ -13,7 +13,7 @@ use crate::{
     primitives::*,
 };
 
-use super::CreditFacilityError;
+use super::{disbursement::*, CreditFacilityError};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
@@ -36,6 +36,18 @@ pub enum CreditFacilityEvent {
         tx_id: LedgerTxId,
         audit_info: AuditInfo,
         recorded_at: DateTime<Utc>,
+    },
+    DisbursementInitiated {
+        idx: DisbursementIdx,
+        amount: UsdCents,
+        audit_info: AuditInfo,
+    },
+    DisbursementConcluded {
+        idx: DisbursementIdx,
+        amount: UsdCents,
+        tx_id: LedgerTxId,
+        recorded_at: DateTime<Utc>,
+        audit_info: AuditInfo,
     },
 }
 
@@ -61,7 +73,7 @@ impl Entity for CreditFacility {
 }
 
 impl CreditFacility {
-    fn facility(&self) -> UsdCents {
+    fn initial_facility(&self) -> UsdCents {
         for event in self.events.iter() {
             match event {
                 CreditFacilityEvent::Initialized { facility, .. } => return *facility,
@@ -79,6 +91,10 @@ impl CreditFacility {
             }
         }
         false
+    }
+
+    pub(super) fn is_expired(&self) -> bool {
+        unimplemented!()
     }
 
     fn approval_threshold_met(&self) -> bool {
@@ -144,7 +160,7 @@ impl CreditFacility {
         if self.approval_threshold_met() {
             let tx_ref = format!("{}-approval", self.id);
             Ok(Some(CreditFacilityApprovalData {
-                facility: self.facility(),
+                facility: self.initial_facility(),
                 tx_ref,
                 tx_id: LedgerTxId::new(),
                 credit_facility_account_ids: self.account_ids,
@@ -166,6 +182,70 @@ impl CreditFacility {
             audit_info,
             recorded_at: executed_at,
         });
+    }
+
+    pub(super) fn initiate_disbursement(
+        &mut self,
+        audit_info: AuditInfo,
+        amount: UsdCents,
+    ) -> Result<NewDisbursement, CreditFacilityError> {
+        if self.is_expired() {
+            return Err(CreditFacilityError::AlreadyExpired);
+        }
+
+        if self.disbursement_in_progress().is_some() {
+            return Err(CreditFacilityError::DisbursementInProgress);
+        }
+
+        let idx = self
+            .events
+            .iter()
+            .rev()
+            .find_map(|event| match event {
+                CreditFacilityEvent::DisbursementInitiated { idx, .. } => Some(idx.next()),
+                _ => None,
+            })
+            .unwrap_or(DisbursementIdx::FIRST);
+
+        self.events
+            .push(CreditFacilityEvent::DisbursementInitiated {
+                idx,
+                amount,
+                audit_info,
+            });
+
+        Ok(NewDisbursement::new(
+            self.id,
+            idx,
+            amount,
+            self.account_ids,
+            self.customer_account_ids,
+            audit_info,
+        ))
+    }
+
+    pub(super) fn confirm_disbursement(
+        &mut self,
+        disbursement: &Disbursement,
+        tx_id: LedgerTxId,
+        executed_at: DateTime<Utc>,
+        audit_info: AuditInfo,
+    ) {
+        self.events
+            .push(CreditFacilityEvent::DisbursementConcluded {
+                idx: disbursement.idx,
+                recorded_at: executed_at,
+                tx_id,
+                amount: disbursement.amount,
+                audit_info,
+            });
+    }
+
+    pub fn disbursement_in_progress(&self) -> Option<DisbursementIdx> {
+        self.events.iter().rev().find_map(|event| match event {
+            CreditFacilityEvent::DisbursementInitiated { idx, .. } => Some(*idx),
+            _ => None,
+        })
     }
 }
 
@@ -191,6 +271,8 @@ impl TryFrom<EntityEvents<CreditFacilityEvent>> for CreditFacility {
                 }
                 CreditFacilityEvent::Approved { .. } => (),
                 CreditFacilityEvent::ApprovalAdded { .. } => (),
+                CreditFacilityEvent::DisbursementInitiated { .. } => (),
+                CreditFacilityEvent::DisbursementConcluded { .. } => (),
             }
         }
         builder.events(events).build()
