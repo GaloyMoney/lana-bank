@@ -69,6 +69,14 @@ CREATE TABLE credit_facility_events (
   UNIQUE(id, sequence)
 );
 
+CREATE TABLE credit_facility_terms (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  current BOOLEAN NOT NULL,
+  values JSONB NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+CREATE UNIQUE INDEX idx_credit_facility_terms_current ON credit_facility_terms (current) WHERE current IS TRUE;
+
 CREATE TABLE disbursements (
   id UUID PRIMARY KEY,
   credit_facility_id UUID NOT NULL REFERENCES credit_facilities(id),

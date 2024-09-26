@@ -1,0 +1,12 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n             UPDATE credit_facility_terms\n             SET current = FALSE\n             WHERE current IS TRUE\n            ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": []
+    },
+    "nullable": []
+  },
+  "hash": "22a4f9224580d56c7b1e8b993f891a05269912391f61446c8e2ddb8231262426"
+}

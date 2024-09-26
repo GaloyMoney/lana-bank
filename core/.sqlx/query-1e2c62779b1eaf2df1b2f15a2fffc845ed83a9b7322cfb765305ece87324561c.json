@@ -1,0 +1,22 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n             INSERT INTO credit_facility_terms (current, values)\n             VALUES (TRUE, $1)\n             RETURNING id\n            ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Jsonb"
+      ]
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "1e2c62779b1eaf2df1b2f15a2fffc845ed83a9b7322cfb765305ece87324561c"
+}
