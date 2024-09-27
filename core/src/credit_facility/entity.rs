@@ -240,10 +240,15 @@ impl CreditFacility {
     }
 
     pub fn disbursement_in_progress(&self) -> Option<DisbursementIdx> {
-        self.events.iter().rev().find_map(|event| match event {
-            CreditFacilityEvent::DisbursementInitiated { idx, .. } => Some(*idx),
-            _ => None,
-        })
+        self.events
+            .iter()
+            .rev()
+            .find_map(|event| match event {
+                CreditFacilityEvent::DisbursementConcluded { .. } => Some(None),
+                CreditFacilityEvent::DisbursementInitiated { idx, .. } => Some(Some(*idx)),
+                _ => None,
+            })
+            .and_then(|idx| idx)
     }
 }
 
@@ -307,5 +312,65 @@ impl NewCreditFacility {
                 customer_account_ids: self.customer_account_ids,
             }],
         )
+    }
+}
+
+#[cfg(test)]
+mod test {
+
+    use super::*;
+
+    fn dummy_audit_info() -> AuditInfo {
+        AuditInfo {
+            audit_entry_id: AuditEntryId::from(1),
+            sub: Subject::from(UserId::new()),
+        }
+    }
+
+    fn facility_from(events: &Vec<CreditFacilityEvent>) -> CreditFacility {
+        CreditFacility::try_from(EntityEvents::init(CreditFacilityId::new(), events.clone()))
+            .unwrap()
+    }
+
+    #[test]
+    fn disbursement_in_progress() {
+        let mut events = vec![CreditFacilityEvent::Initialized {
+            id: CreditFacilityId::new(),
+            audit_info: dummy_audit_info(),
+            customer_id: CustomerId::new(),
+            facility: UsdCents::from(10000),
+            account_ids: CreditFacilityAccountIds::new(),
+            customer_account_ids: CustomerLedgerAccountIds::new(),
+        }];
+
+        let first_idx = DisbursementIdx::FIRST;
+        events.push(CreditFacilityEvent::DisbursementInitiated {
+            idx: first_idx,
+            amount: UsdCents::ONE,
+            audit_info: dummy_audit_info(),
+        });
+        assert_eq!(
+            facility_from(&events).disbursement_in_progress(),
+            Some(first_idx)
+        );
+
+        events.push(CreditFacilityEvent::DisbursementConcluded {
+            idx: first_idx,
+            tx_id: LedgerTxId::new(),
+            recorded_at: Utc::now(),
+            audit_info: dummy_audit_info(),
+        });
+        assert_eq!(facility_from(&events).disbursement_in_progress(), None,);
+
+        let second_idx = first_idx.next();
+        events.push(CreditFacilityEvent::DisbursementInitiated {
+            idx: second_idx,
+            amount: UsdCents::ONE,
+            audit_info: dummy_audit_info(),
+        });
+        assert_eq!(
+            facility_from(&events).disbursement_in_progress(),
+            Some(second_idx),
+        );
     }
 }

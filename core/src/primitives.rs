@@ -29,7 +29,7 @@ impl From<ReportId> for JobId {
     }
 }
 
-#[derive(Debug, Clone, Copy, Serialize, Deserialize, sqlx::Type)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, sqlx::Type)]
 #[serde(transparent)]
 #[sqlx(transparent)]
 pub struct DisbursementIdx(i32);
