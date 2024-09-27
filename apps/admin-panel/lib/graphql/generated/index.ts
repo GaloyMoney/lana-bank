@@ -205,6 +205,21 @@ export type CollateralizationUpdated = {
   state: LoanCollaterizationState;
 };
 
+export type CreateTermsTemplateInput = {
+  annualRate: Scalars['AnnualRatePct']['input'];
+  duration: DurationInput;
+  initialCvl: Scalars['CVLPct']['input'];
+  interval: InterestInterval;
+  liquidationCvl: Scalars['CVLPct']['input'];
+  marginCallCvl: Scalars['CVLPct']['input'];
+  name: Scalars['String']['input'];
+};
+
+export type CreateTermsTemplatePayload = {
+  __typename?: 'CreateTermsTemplatePayload';
+  termsTemplate: TermsTemplate;
+};
+
 export type CreditFacility = {
   __typename?: 'CreditFacility';
   creditFacilityId: Scalars['UUID']['output'];
@@ -537,6 +552,7 @@ export type Mutation = {
   __typename?: 'Mutation';
   collateralUpdate: CollateralUpdatePayload;
   collateralizationStateUpdate: CollateralizationStateUpdatePayload;
+  createTermsTemplate: CreateTermsTemplatePayload;
   creditFacilityApprove: CreditFacilityApprovePayload;
   creditFacilityCreate: CreditFacilityCreatePayload;
   customerCreate: CustomerCreatePayload;
@@ -566,6 +582,11 @@ export type MutationCollateralUpdateArgs = {
 
 export type MutationCollateralizationStateUpdateArgs = {
   input: CollateralizationStateUpdateInput;
+};
+
+
+export type MutationCreateTermsTemplateArgs = {
+  input: CreateTermsTemplateInput;
 };
 
 
@@ -704,6 +725,7 @@ export type Query = {
   realtimePrice: RealtimePrice;
   report?: Maybe<Report>;
   reports: Array<Report>;
+  termsTemplates: Array<TermsTemplate>;
   trialBalance?: Maybe<TrialBalance>;
   user?: Maybe<User>;
   users: Array<User>;
@@ -915,6 +937,14 @@ export type TermsInput = {
   interval: InterestInterval;
   liquidationCvl: Scalars['CVLPct']['input'];
   marginCallCvl: Scalars['CVLPct']['input'];
+};
+
+export type TermsTemplate = {
+  __typename?: 'TermsTemplate';
+  id: Scalars['ID']['output'];
+  name: Scalars['String']['output'];
+  termsId: Scalars['UUID']['output'];
+  values: TermValues;
 };
 
 export type Transaction = Deposit | Withdrawal;

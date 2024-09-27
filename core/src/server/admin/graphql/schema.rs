@@ -3,7 +3,8 @@ use uuid::Uuid;
 
 use super::{
     account_set::*, audit::AuditEntry, credit_facility::*, customer::*, deposit::*, loan::*,
-    price::*, report::*, shareholder_equity::*, terms::*, user::*, withdraw::*,
+    price::*, report::*, shareholder_equity::*, terms::*, terms_template::TermsTemplate, user::*,
+    withdraw::*,
 };
 
 use crate::{
@@ -11,7 +12,10 @@ use crate::{
     audit::AuditCursor,
     primitives::{CustomerId, LoanId, ReportId, UserId},
     server::{
-        admin::AdminAuthContext,
+        admin::{
+            graphql::terms_template::{CreateTermsTemplateInput, CreateTermsTemplatePayload},
+            AdminAuthContext,
+        },
         shared_graphql::{
             customer::Customer,
             deposit::Deposit,
@@ -105,6 +109,19 @@ impl Query {
         let AdminAuthContext { sub } = ctx.data()?;
         let users = app.users().list_users(sub).await?;
         Ok(users.into_iter().map(User::from).collect())
+    }
+
+    async fn terms_templates(
+        &self,
+        ctx: &Context<'_>,
+    ) -> async_graphql::Result<Vec<TermsTemplate>> {
+        let app = ctx.data_unchecked::<LavaApp>();
+        let AdminAuthContext { sub } = ctx.data()?;
+        let terms_templates = app.terms_templates().list_terms_templates(sub).await?;
+        Ok(terms_templates
+            .into_iter()
+            .map(TermsTemplate::from)
+            .collect())
     }
 
     async fn user(&self, ctx: &Context<'_>, id: UUID) -> async_graphql::Result<Option<User>> {
@@ -758,5 +775,28 @@ impl Mutation {
             .generate_download_links(sub, input.report_id.into())
             .await?;
         Ok(ReportDownloadLinksGeneratePayload::from(links))
+    }
+
+    async fn create_terms_template(
+        &self,
+        ctx: &Context<'_>,
+        input: CreateTermsTemplateInput,
+    ) -> async_graphql::Result<CreateTermsTemplatePayload> {
+        let app = ctx.data_unchecked::<LavaApp>();
+        let AdminAuthContext { sub } = ctx.data()?;
+        let term_values = crate::loan::TermValues::builder()
+            .annual_rate(input.annual_rate)
+            .interval(input.interval)
+            .duration(input.duration)
+            .liquidation_cvl(input.liquidation_cvl)
+            .margin_call_cvl(input.margin_call_cvl)
+            .initial_cvl(input.initial_cvl)
+            .build()?;
+
+        let terms_template = app
+            .terms_templates()
+            .create_terms_template(sub, input.name, term_values)
+            .await?;
+        Ok(CreateTermsTemplatePayload::from(terms_template))
     }
 }

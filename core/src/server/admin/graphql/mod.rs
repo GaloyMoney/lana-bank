@@ -11,6 +11,7 @@ mod report;
 mod schema;
 mod shareholder_equity;
 mod terms;
+mod terms_template;
 pub mod user;
 mod withdraw;
 

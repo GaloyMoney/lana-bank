@@ -33,10 +33,6 @@ impl TermsTemplates {
         }
     }
 
-    pub fn repo(&self) -> &TermsTemplateRepo {
-        &self.repo
-    }
-
     pub async fn create_terms_template(
         &self,
         sub: &Subject,
@@ -44,7 +40,8 @@ impl TermsTemplates {
         values: TermValues,
     ) -> Result<TermsTemplate, TermsTemplateError> {
         // TODO change this to Create terms template
-        let audit_info = self.authz
+        let audit_info = self
+            .authz
             .check_permission(sub, Object::Term, TermAction::Update)
             .await?;
         let new_terms_template = NewTermsTemplate::builder()
