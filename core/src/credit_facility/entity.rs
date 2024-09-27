@@ -44,7 +44,6 @@ pub enum CreditFacilityEvent {
     },
     DisbursementConcluded {
         idx: DisbursementIdx,
-        amount: UsdCents,
         tx_id: LedgerTxId,
         recorded_at: DateTime<Utc>,
         audit_info: AuditInfo,
@@ -236,7 +235,6 @@ impl CreditFacility {
                 idx: disbursement.idx,
                 recorded_at: executed_at,
                 tx_id,
-                amount: disbursement.amount,
                 audit_info,
             });
     }
