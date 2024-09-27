@@ -8,7 +8,7 @@ use crate::{
     customer::Customers,
     data_export::Export,
     ledger::{credit_facility::*, Ledger},
-    primitives::{CreditFacilityId, CustomerId, Subject, UsdCents, UserId},
+    primitives::{CreditFacilityId, CustomerId, DisbursementIdx, Subject, UsdCents, UserId},
     user::{UserRepo, Users},
 };
 
@@ -176,6 +176,7 @@ impl CreditFacilities {
         &self,
         sub: &Subject,
         credit_facility_id: CreditFacilityId,
+        disbursement_idx: DisbursementIdx,
     ) -> Result<Disbursement, CreditFacilityError> {
         let audit_info = self
             .authz
@@ -190,16 +191,13 @@ impl CreditFacilities {
             .credit_facility_repo
             .find_by_id(credit_facility_id)
             .await?;
-        let in_progress_disbursement_idx = credit_facility
-            .disbursement_in_progress()
-            .ok_or(CreditFacilityError::NoDisbursementInProgress)?;
 
         let subject_id = uuid::Uuid::from(sub);
         let user = self.user_repo.find_by_id(UserId::from(subject_id)).await?;
 
         let mut disbursement = self
             .disbursement_repo
-            .find_by_idx_for_credit_facility(credit_facility_id, in_progress_disbursement_idx)
+            .find_by_idx_for_credit_facility(credit_facility_id, disbursement_idx)
             .await?;
 
         let mut db_tx = self.pool.begin().await?;
@@ -213,7 +211,6 @@ impl CreditFacilities {
                 .await?;
             disbursement.confirm_approval(&disbursement_data, executed_at, audit_info);
 
-            disbursement.conclude(executed_at, audit_info);
             credit_facility.confirm_disbursement(
                 &disbursement,
                 disbursement_data.tx_id,

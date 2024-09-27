@@ -35,10 +35,6 @@ pub enum DisbursementEvent {
         audit_info: AuditInfo,
         recorded_at: DateTime<Utc>,
     },
-    Concluded {
-        recorded_at: DateTime<Utc>,
-        audit_info: AuditInfo,
-    },
 }
 
 impl EntityEvent for DisbursementEvent {
@@ -88,7 +84,6 @@ impl TryFrom<EntityEvents<DisbursementEvent>> for Disbursement {
                         .account_ids(*account_ids)
                         .customer_account_ids(*customer_account_ids)
                 }
-                DisbursementEvent::Concluded { .. } => (),
                 DisbursementEvent::ApprovalAdded { .. } => (),
                 DisbursementEvent::Approved { .. } => (),
             }
@@ -98,21 +93,6 @@ impl TryFrom<EntityEvents<DisbursementEvent>> for Disbursement {
 }
 
 impl Disbursement {
-    fn is_concluded(&self) -> bool {
-        self.events
-            .iter()
-            .any(|event| matches!(event, DisbursementEvent::Concluded { .. }))
-    }
-
-    pub fn conclude(&mut self, recorded_at: DateTime<Utc>, audit_info: AuditInfo) {
-        if !self.is_concluded() {
-            self.events.push(DisbursementEvent::Concluded {
-                recorded_at,
-                audit_info,
-            })
-        }
-    }
-
     fn has_user_previously_approved(&self, user_id: UserId) -> bool {
         for event in self.events.iter() {
             match event {
