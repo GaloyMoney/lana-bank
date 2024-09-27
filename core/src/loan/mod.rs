@@ -123,7 +123,7 @@ impl Loans {
             .check_permission(sub, Object::Term, TermAction::Update)
             .await?;
 
-        Ok(self.term_repo.update_default(terms).await?)
+        self.term_repo.update_default(terms).await
     }
 
     #[instrument(name = "lava.loan.create_loan_for_customer", skip(self), err)]
@@ -390,8 +390,8 @@ impl Loans {
             .await?;
         match self.term_repo.find_default().await {
             Ok(terms) => Ok(Some(terms)),
-            Err(terms::error::LoanTermsError::TermsNotSet) => Ok(None),
-            Err(e) => Err(e.into()),
+            Err(LoanError::TermsNotSet) => Ok(None),
+            Err(e) => Err(e),
         }
     }
 

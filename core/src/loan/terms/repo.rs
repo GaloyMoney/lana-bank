@@ -1,8 +1,8 @@
 use sqlx::PgPool;
 
-use crate::primitives::*;
+use crate::{loan::LoanError, primitives::*};
 
-use super::{error::LoanTermsError, TermValues, Terms};
+use super::{TermValues, Terms};
 
 #[derive(Clone)]
 pub struct TermRepo {
@@ -14,7 +14,7 @@ impl TermRepo {
         Self { pool: pool.clone() }
     }
 
-    pub async fn update_default(&self, terms: TermValues) -> Result<Terms, LoanTermsError> {
+    pub async fn update_default(&self, terms: TermValues) -> Result<Terms, LoanError> {
         let mut tx = self.pool.begin().await?;
 
         sqlx::query!(
@@ -46,7 +46,7 @@ impl TermRepo {
         })
     }
 
-    pub async fn find_default(&self) -> Result<Terms, LoanTermsError> {
+    pub async fn find_default(&self) -> Result<Terms, LoanError> {
         let row = sqlx::query!(
             r#"
             SELECT id, values
@@ -62,7 +62,7 @@ impl TermRepo {
                 id: LoanTermsId::from(row.id),
                 values: serde_json::from_value(row.values).expect("should deserialize term values"),
             }),
-            Err(sqlx::Error::RowNotFound) => Err(LoanTermsError::TermsNotSet),
+            Err(sqlx::Error::RowNotFound) => Err(LoanError::TermsNotSet),
             Err(err) => Err(err.into()),
         }
     }
