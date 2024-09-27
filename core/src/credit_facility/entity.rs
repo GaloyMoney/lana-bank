@@ -213,14 +213,16 @@ impl CreditFacility {
                 audit_info,
             });
 
-        Ok(NewDisbursement::new(
-            self.id,
-            idx,
-            amount,
-            self.account_ids,
-            self.customer_account_ids,
-            audit_info,
-        ))
+        Ok(NewDisbursement::builder()
+            .id(DisbursementId::new())
+            .facility_id(self.id)
+            .idx(idx)
+            .amount(amount)
+            .account_ids(self.account_ids)
+            .customer_account_ids(self.customer_account_ids)
+            .audit_info(audit_info)
+            .build()
+            .expect("could not build new disbursement"))
     }
 
     pub(super) fn confirm_disbursement(

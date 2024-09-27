@@ -188,35 +188,23 @@ impl Disbursement {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Builder)]
 pub struct NewDisbursement {
+    #[builder(setter(into))]
     pub(super) id: DisbursementId,
+    #[builder(setter(into))]
     pub(super) facility_id: CreditFacilityId,
     pub(super) idx: DisbursementIdx,
     pub(super) amount: UsdCents,
     pub(super) account_ids: CreditFacilityAccountIds,
     pub(super) customer_account_ids: CustomerLedgerAccountIds,
+    #[builder(setter(into))]
     pub(super) audit_info: AuditInfo,
 }
 
 impl NewDisbursement {
-    pub fn new(
-        facility_id: CreditFacilityId,
-        idx: DisbursementIdx,
-        amount: UsdCents,
-        account_ids: CreditFacilityAccountIds,
-        customer_account_ids: CustomerLedgerAccountIds,
-        audit_info: AuditInfo,
-    ) -> Self {
-        Self {
-            id: DisbursementId::new(),
-            facility_id,
-            idx,
-            amount,
-            account_ids,
-            customer_account_ids,
-            audit_info,
-        }
+    pub fn builder() -> NewDisbursementBuilder {
+        NewDisbursementBuilder::default()
     }
 
     pub fn initial_events(self) -> EntityEvents<DisbursementEvent> {
