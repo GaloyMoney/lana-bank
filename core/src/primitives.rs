@@ -226,6 +226,7 @@ pub enum Role {
     Superuser,
     Admin,
     BankManager,
+    Accountant,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
