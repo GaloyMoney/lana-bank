@@ -26,7 +26,6 @@ pub enum DisbursementEvent {
         audit_info: AuditInfo,
     },
     ApprovalAdded {
-        id: DisbursementId,
         approving_user_id: UserId,
         approving_user_roles: HashSet<Role>,
         audit_info: AuditInfo,
@@ -37,7 +36,6 @@ pub enum DisbursementEvent {
         recorded_at: DateTime<Utc>,
     },
     Concluded {
-        id: DisbursementId,
         recorded_at: DateTime<Utc>,
         audit_info: AuditInfo,
     },
@@ -108,7 +106,6 @@ impl Disbursement {
 
         if !is_concluded {
             self.events.push(DisbursementEvent::Concluded {
-                id: self.id,
                 recorded_at,
                 audit_info,
             })
@@ -185,7 +182,6 @@ impl Disbursement {
         }
 
         self.events.push(DisbursementEvent::ApprovalAdded {
-            id: self.id,
             approving_user_id,
             approving_user_roles,
             audit_info,

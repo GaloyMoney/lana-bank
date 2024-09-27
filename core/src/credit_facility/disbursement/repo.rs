@@ -14,14 +14,14 @@ const BQ_TABLE_NAME: &str = "disbursement_events";
 
 #[derive(Clone)]
 pub(in crate::credit_facility) struct DisbursementRepo {
-    _pool: PgPool,
+    pool: PgPool,
     export: Export,
 }
 
 impl DisbursementRepo {
     pub fn new(pool: &PgPool, export: &Export) -> Self {
         Self {
-            _pool: pool.clone(),
+            pool: pool.clone(),
             export: export.clone(),
         }
     }
@@ -76,7 +76,7 @@ impl DisbursementRepo {
             facility_id as CreditFacilityId,
             idx as DisbursementIdx,
         )
-        .fetch_all(&self._pool)
+        .fetch_all(&self.pool)
         .await?;
 
         let res = EntityEvents::load_first::<Disbursement>(rows)?;
