@@ -14,6 +14,21 @@ CREATE TABLE customer_events (
   UNIQUE(id, sequence)
 );
 
+CREATE TABLE terms_templates (
+  id UUID PRIMARY KEY,
+  name VARCHAR NOT NULL UNIQUE,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE terms_template_events (
+  id UUID NOT NULL REFERENCES terms_templates(id),
+  sequence INT NOT NULL,
+  event_type VARCHAR NOT NULL,
+  event JSONB NOT NULL,
+  recorded_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  UNIQUE(id, sequence)
+);
+
 CREATE TABLE users (
   id UUID PRIMARY KEY,
   email VARCHAR NOT NULL UNIQUE,

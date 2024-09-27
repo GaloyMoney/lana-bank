@@ -18,6 +18,7 @@ use crate::{
     price::Price,
     primitives::Subject,
     report::Reports,
+    terms_template::TermsTemplates,
     user::Users,
     withdraw::Withdraws,
 };
@@ -41,6 +42,7 @@ pub struct LavaApp {
     credit_facilities: CreditFacilities,
     price: Price,
     report: Reports,
+    terms_templates: TermsTemplates,
 }
 
 impl LavaApp {
@@ -59,6 +61,7 @@ impl LavaApp {
         let users = Users::init(&pool, config.user, &authz, &audit, &export).await?;
         let credit_facilities =
             CreditFacilities::new(&pool, &export, &authz, &customers, &users, &ledger);
+        let terms_templates = TermsTemplates::new(&pool, &authz, &audit, &export);
         let loans = Loans::new(
             &pool,
             config.loan,
@@ -92,6 +95,7 @@ impl LavaApp {
             price,
             report,
             credit_facilities,
+            terms_templates,
         })
     }
 
@@ -154,5 +158,9 @@ impl LavaApp {
 
     pub fn authz(&self) -> &Authorization {
         &self.authz
+    }
+
+    pub fn terms_templates(&self) -> &TermsTemplates {
+        &self.terms_templates
     }
 }
