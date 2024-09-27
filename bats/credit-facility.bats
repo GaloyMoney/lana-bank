@@ -23,6 +23,9 @@ teardown_file() {
       input: {
         customerId: $customerId,
         facility: $facility,
+        terms: {
+          duration: { period: "MONTHS", units: 12 },
+        }
       }
     }'
   )
@@ -39,10 +42,10 @@ teardown_file() {
 
   variables=$(
     jq -n \
-      --arg credit_facility_id "$credit_facility_id" \
+      --arg creditFacilityId "$credit_facility_id" \
     '{
       input: {
-        creditFacilityId: $credit_facility_id,
+        creditFacilityId: $creditFacilityId,
       }
     }'
   )
