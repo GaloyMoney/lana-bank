@@ -1,0 +1,18 @@
+config {
+	type: "operations",
+	hasOutput: true,
+	description: "Ready for export Regulatory Report garantia_pignorada.xml of norm NPB4-17",
+}
+
+CREATE OR REPLACE TABLE FUNCTION ${self()} (asof TIMESTAMP) AS (
+
+	SELECT
+		LEFT(`identificacion_garantia`, 20) AS `identificacion_garantia`
+		, LEFT(REPLACE(nit_depositante, '-', ''), 14) AS `nit_depositante`
+		, FORMAT_DATE('%Y-%m-%d', CAST(`fecha_deposito` AS DATE)) AS `fecha_deposito`
+		, FORMAT_DATE('%Y-%m-%d', CAST(`fecha_vencimiento` AS DATE)) AS `fecha_vencimiento`
+		, FORMAT('%.2f', ROUND(`valor_deposito`, 2)) AS `valor_deposito`
+
+	FROM ${ref("stg_07_npb4_17_garantia_pignorada_xml_raw")}(asof)
+
+)

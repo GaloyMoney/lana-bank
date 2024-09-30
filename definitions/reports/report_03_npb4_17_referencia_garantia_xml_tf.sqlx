@@ -1,0 +1,19 @@
+config {
+	type: "operations",
+	hasOutput: true,
+	description: "Ready for export Regulatory Report referencia_garantia.xml of norm NPB4-17",
+}
+
+CREATE OR REPLACE TABLE FUNCTION ${self()} (asof TIMESTAMP) AS (
+
+	SELECT
+		LEFT(`num_referencia`, 20) AS `num_referencia`
+		, LEFT(`cod_cartera`, 2) AS cod_cartera
+		, LEFT(`cod_activo`, 2) AS cod_activo
+		, LEFT(`identificacion_garantia`, 20) AS identificacion_garantia
+		, LEFT(`tipo_garantia`, 2) AS tipo_garantia
+		, FORMAT('%.2f', ROUND(`valor_garantia_proporcional`, 2)) AS valor_garantia_proporcional
+
+	FROM ${ref("stg_03_npb4_17_referencia_garantia_xml_raw")}(asof)
+
+)
