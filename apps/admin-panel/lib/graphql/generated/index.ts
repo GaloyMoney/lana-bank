@@ -944,6 +944,8 @@ export type UsdAccountAmountsInPeriod = {
 
 export type User = {
   __typename?: 'User';
+  canCreateCustomer: Scalars['Boolean']['output'];
+  canCreateLoan: Scalars['Boolean']['output'];
   email: Scalars['String']['output'];
   roles: Array<Role>;
   userId: Scalars['UUID']['output'];
@@ -1372,7 +1374,7 @@ export type GetRealtimePriceUpdatesQuery = { __typename?: 'Query', realtimePrice
 export type MeQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type MeQuery = { __typename?: 'Query', me: { __typename?: 'User', userId: string, email: string, roles: Array<Role>, visibleNavigationItems: { __typename?: 'VisibleNavigationItems', loan: boolean, term: boolean, user: boolean, customer: boolean, deposit: boolean, withdraw: boolean, audit: boolean, financials: boolean } } };
+export type MeQuery = { __typename?: 'Query', me: { __typename?: 'User', userId: string, email: string, roles: Array<Role>, canCreateCustomer: boolean, canCreateLoan: boolean, visibleNavigationItems: { __typename?: 'VisibleNavigationItems', loan: boolean, term: boolean, user: boolean, customer: boolean, deposit: boolean, withdraw: boolean, audit: boolean, financials: boolean } } };
 
 export type CustomersQueryVariables = Exact<{
   first: Scalars['Int']['input'];
@@ -3651,6 +3653,8 @@ export const MeDocument = gql`
       audit
       financials
     }
+    canCreateCustomer
+    canCreateLoan
   }
 }
     `;

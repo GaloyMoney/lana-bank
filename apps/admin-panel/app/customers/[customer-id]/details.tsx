@@ -19,7 +19,7 @@ import { Button } from "@/components/primitive/button"
 import { RecordDepositDialog } from "@/app/deposits/record"
 import { WithdrawalInitiateDialog } from "@/app/withdrawals/initiate"
 
-import { GetCustomerQuery } from "@/lib/graphql/generated"
+import { GetCustomerQuery, useMeQuery } from "@/lib/graphql/generated"
 
 type CustomerDetailsCardProps = {
   customer: NonNullable<GetCustomerQuery["customer"]>
@@ -33,6 +33,9 @@ export const CustomerDetailsCard: React.FC<CustomerDetailsCardProps> = ({
   const [openWithdrawalInitiateDialog, setOpenWithdrawalInitiateDialog] = useState(false)
   const [openRecordDepositDialog, setOpenRecordDepositDialog] = useState(false)
   const [openUpdateTelegramIdDialog, setOpenUpdateTelegramIdDialog] = useState(false)
+
+  const { data } = useMeQuery()
+  const canCreateLoan = data?.me.canCreateLoan || false
 
   return (
     <>
@@ -63,9 +66,11 @@ export const CustomerDetailsCard: React.FC<CustomerDetailsCardProps> = ({
             </DetailsGroup>
           </CardContent>
           <CardFooter className="flex space-x-4 justify-end">
-            <CreateLoanDialog refetch={refetch} customerId={customer.customerId}>
-              <Button>New Loan</Button>
-            </CreateLoanDialog>
+            {canCreateLoan && (
+              <CreateLoanDialog refetch={refetch} customerId={customer.customerId}>
+                <Button>New Loan</Button>
+              </CreateLoanDialog>
+            )}
             <Button onClick={() => setOpenRecordDepositDialog(true)}>
               Record Deposit
             </Button>

@@ -4,7 +4,7 @@ use crate::{
     app::LavaApp,
     authorization::VisibleNavigationItems,
     primitives::{Role, Subject, UserId},
-    server::shared_graphql::primitives::UUID,
+    server::{admin::AdminAuthContext, shared_graphql::primitives::UUID},
 };
 
 #[derive(InputObject)]
@@ -22,6 +22,18 @@ pub struct User {
 
 #[ComplexObject]
 impl User {
+    async fn can_create_customer(&self, ctx: &Context<'_>) -> Result<bool> {
+        let app = ctx.data_unchecked::<crate::app::LavaApp>();
+        let AdminAuthContext { sub } = ctx.data()?;
+        Ok(app.customers().can_subject_create(sub).await.is_ok())
+    }
+
+    async fn can_create_loan(&self, ctx: &Context<'_>) -> Result<bool> {
+        let app = ctx.data_unchecked::<crate::app::LavaApp>();
+        let AdminAuthContext { sub } = ctx.data()?;
+        Ok(app.loans().can_subject_create(sub, None).await.is_ok())
+    }
+
     async fn visible_navigation_items(
         &self,
         ctx: &Context<'_>,

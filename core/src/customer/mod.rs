@@ -13,7 +13,7 @@ use crate::{
     authorization::{Action, Authorization, CustomerAction, CustomerAllOrOne, Object},
     data_export::Export,
     ledger::*,
-    primitives::{CustomerId, KycLevel, Subject},
+    primitives::{AuditInfo, CustomerId, KycLevel, Subject},
 };
 
 pub use config::*;
@@ -58,6 +58,17 @@ impl Customers {
         &self.repo
     }
 
+    pub async fn can_subject_create(&self, sub: &Subject) -> Result<AuditInfo, CustomerError> {
+        Ok(self
+            .authz
+            .check_permission(
+                sub,
+                Object::Customer(CustomerAllOrOne::All),
+                CustomerAction::Create,
+            )
+            .await?)
+    }
+
     #[instrument(name = "lava.customer.create_customer_through_admin", skip(self), err)]
     pub async fn create_customer_through_admin(
         &self,
@@ -65,14 +76,7 @@ impl Customers {
         email: String,
         telegram_id: String,
     ) -> Result<Customer, CustomerError> {
-        let audit_info = self
-            .authz
-            .check_permission(
-                sub,
-                Object::Customer(CustomerAllOrOne::All),
-                CustomerAction::Create,
-            )
-            .await?;
+        let audit_info = self.can_subject_create(sub).await?;
         let customer_id = self.kratos.create_identity(&email).await?.into();
 
         let ledger_account_ids = self

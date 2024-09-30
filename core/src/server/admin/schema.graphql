@@ -726,6 +726,8 @@ type User {
 	userId: UUID!
 	email: String!
 	roles: [Role!]!
+	canCreateCustomer: Boolean!
+	canCreateLoan: Boolean!
 	visibleNavigationItems: VisibleNavigationItems!
 }
 

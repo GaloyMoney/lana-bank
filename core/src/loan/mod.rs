@@ -126,6 +126,31 @@ impl Loans {
         self.term_repo.update_default(terms).await
     }
 
+    pub async fn can_subject_create(
+        &self,
+        sub: &Subject,
+        customer_id: Option<CustomerId>,
+    ) -> Result<AuditInfo, LoanError> {
+        match customer_id {
+            Some(customer_id) => Ok(self
+                .authz
+                .check_permission(
+                    sub,
+                    Object::Customer(CustomerAllOrOne::ById(customer_id)),
+                    LoanAction::Create,
+                )
+                .await?),
+            None => Ok(self
+                .authz
+                .check_permission(
+                    sub,
+                    Object::Customer(CustomerAllOrOne::All),
+                    LoanAction::Create,
+                )
+                .await?),
+        }
+    }
+
     #[instrument(name = "lava.loan.create_loan_for_customer", skip(self), err)]
     pub async fn create_loan_for_customer(
         &self,
@@ -135,15 +160,7 @@ impl Loans {
         terms: TermValues,
     ) -> Result<Loan, LoanError> {
         let customer_id = customer_id.into();
-
-        let audit_info = self
-            .authz
-            .check_permission(
-                sub,
-                Object::Customer(CustomerAllOrOne::ById(customer_id)),
-                LoanAction::Create,
-            )
-            .await?;
+        let audit_info = self.can_subject_create(sub, Some(customer_id)).await?;
 
         let customer = match self.customers.find_by_id(Some(sub), customer_id).await? {
             Some(customer) => customer,

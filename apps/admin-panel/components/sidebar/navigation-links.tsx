@@ -42,6 +42,8 @@ gql`
         audit
         financials
       }
+      canCreateCustomer
+      canCreateLoan
     }
   }
 `
