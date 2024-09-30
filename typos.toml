@@ -40,9 +40,13 @@ extend-exclude = [
 	"definitions/staging/stg_customers_identities.sqlx",
 	"definitions/staging/stg_03_npb4_17_referencia_garantia_xml_raw.sqlx",
 	"definitions/reports/report_02_npb4_17_referencia_xml.sqlx",
+	"definitions/reports/report_02_npb4_17_referencia_xml_tf.sqlx",
 	"definitions/reports/report_01_npb4_17_persona_xml.sqlx",
+	"definitions/reports/report_01_npb4_17_persona_xml_tf.sqlx",
 	"dev/fake-service-account.json",
 	"definitions/staging/stg_07_npb4_17_garantia_pignorada_xml_raw.sqlx",
 	"definitions/reports/report_07_npb4_17_garantia_pignorada_xml.sqlx",
+	"definitions/reports/report_07_npb4_17_garantia_pignorada_xml_tf.sqlx",
 	"definitions/reports/report_03_npb4_17_referencia_garantia_xml.sqlx",
+	"definitions/reports/report_03_npb4_17_referencia_garantia_xml_tf.sqlx",
 ]
