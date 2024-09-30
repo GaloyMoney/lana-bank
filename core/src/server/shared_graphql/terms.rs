@@ -53,16 +53,6 @@ impl ToGlobalId for crate::primitives::LoanTermsId {
     }
 }
 
-impl From<crate::loan::Terms> for Terms {
-    fn from(terms: crate::loan::Terms) -> Self {
-        Self {
-            id: terms.id.to_global_id(),
-            terms_id: terms.id.into(),
-            values: terms.values.into(),
-        }
-    }
-}
-
 impl From<crate::loan::TermValues> for TermValues {
     fn from(values: crate::loan::TermValues) -> Self {
         Self {

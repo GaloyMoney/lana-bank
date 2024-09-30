@@ -10,7 +10,7 @@ use super::{
 use crate::{
     app::LavaApp,
     audit::AuditCursor,
-    primitives::{CustomerId, LoanId, ReportId, UserId},
+    primitives::{CustomerId, LoanId, LoanTermsId, ReportId, UserId},
     server::{
         admin::{
             graphql::terms_template::{CreateTermsTemplateInput, CreateTermsTemplatePayload},
@@ -441,6 +441,20 @@ impl Query {
 
         let report = app.reports().find_by_id(sub, ReportId::from(id)).await?;
         Ok(report.map(Report::from))
+    }
+
+    async fn terms_template(
+        &self,
+        ctx: &Context<'_>,
+        id: UUID,
+    ) -> async_graphql::Result<Option<TermsTemplate>> {
+        let app = ctx.data_unchecked::<LavaApp>();
+        let AdminAuthContext { sub } = ctx.data()?;
+        let terms_template = app
+            .terms_templates()
+            .find_by_id(sub, LoanTermsId::from(id))
+            .await?;
+        Ok(terms_template.map(TermsTemplate::from))
     }
 }
 

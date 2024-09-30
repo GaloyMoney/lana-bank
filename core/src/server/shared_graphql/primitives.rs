@@ -89,6 +89,11 @@ impl From<UUID> for CreditFacilityId {
         Self::from(uuid.0)
     }
 }
+impl From<UUID> for LoanTermsId {
+    fn from(uuid: UUID) -> Self {
+        Self::from(uuid.0)
+    }
+}
 
 #[derive(Clone, Serialize, Deserialize)]
 #[serde(transparent)]

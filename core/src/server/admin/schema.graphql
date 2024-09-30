@@ -595,6 +595,7 @@ type Query {
 	realtimePrice: RealtimePrice!
 	reports: [Report!]!
 	report(id: UUID!): Report
+	termsTemplate(id: UUID!): TermsTemplate
 }
 
 type RealtimePrice {

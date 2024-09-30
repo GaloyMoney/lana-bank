@@ -8,11 +8,6 @@ use crate::primitives::LoanTermsId;
 pub use template::*;
 pub use value::*;
 
-pub struct Terms {
-    pub id: LoanTermsId,
-    pub values: TermValues,
-}
-
 use crate::{
     authorization::{Authorization, Object, TermsTemplateAction},
     data_export::Export,
