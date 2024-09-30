@@ -44,14 +44,6 @@ CREATE TABLE user_events (
   UNIQUE(id, sequence)
 );
 
-CREATE TABLE loan_terms (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  current BOOLEAN NOT NULL,
-  values JSONB NOT NULL,
-  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-);
-CREATE UNIQUE INDEX idx_loan_terms_current ON loan_terms (current) WHERE current IS TRUE;
-
 CREATE TABLE loans (
   id UUID PRIMARY KEY,
   customer_id UUID NOT NULL REFERENCES customers(id),

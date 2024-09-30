@@ -1,4 +1,4 @@
-use crate::{entity::*, loan::TermValues, primitives::*};
+use crate::{entity::*, loan::terms::TermValues, primitives::*};
 use derive_builder::Builder;
 use serde::{Deserialize, Serialize};
 
@@ -11,15 +11,6 @@ pub enum TermsTemplateEvent {
         values: TermValues,
         audit_info: AuditInfo,
     },
-    // TODO add update event.
-}
-
-impl TermsTemplateEvent {
-    fn audit_info(&self) -> AuditInfo {
-        match self {
-            TermsTemplateEvent::Initialized { audit_info, .. } => *audit_info,
-        }
-    }
 }
 
 impl EntityEvent for TermsTemplateEvent {
@@ -43,8 +34,10 @@ impl Entity for TermsTemplate {
 }
 
 impl TermsTemplate {
-    pub fn audit_info(&self) -> Vec<AuditInfo> {
-        self.events.iter().map(|e| e.audit_info()).collect()
+    pub fn created_at(&self) -> chrono::DateTime<chrono::Utc> {
+        self.events
+            .entity_first_persisted_at
+            .expect("No events for terms template")
     }
 }
 

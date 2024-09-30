@@ -280,19 +280,6 @@ type CustomerUpdatePayload {
 	customer: Customer!
 }
 
-input DefaultTermsUpdateInput {
-	annualRate: AnnualRatePct!
-	interval: InterestInterval!
-	liquidationCvl: CVLPct!
-	duration: DurationInput!
-	marginCallCvl: CVLPct!
-	initialCvl: CVLPct!
-}
-
-type DefaultTermsUpdatePayload {
-	terms: Terms!
-}
-
 type Deposit {
 	customerId: UUID!
 	depositId: UUID!
@@ -529,7 +516,6 @@ enum LoanStatus {
 type Mutation {
 	shareholderEquityAdd(input: ShareholderEquityAddInput!): SuccessPayload!
 	sumsubPermalinkCreate(input: SumsubPermalinkCreateInput!): SumsubPermalinkCreatePayload!
-	defaultTermsUpdate(input: DefaultTermsUpdateInput!): DefaultTermsUpdatePayload!
 	loanCreate(input: LoanCreateInput!): LoanCreatePayload!
 	loanApprove(input: LoanApproveInput!): LoanApprovePayload!
 	loanPartialPayment(input: LoanPartialPaymentInput!): LoanPartialPaymentPayload!
@@ -594,7 +580,6 @@ type Query {
 	user(id: UUID!): User
 	customers(first: Int!, after: String): CustomerConnection!
 	loans(first: Int!, after: String): LoanConnection!
-	defaultTerms: Terms
 	trialBalance(from: Timestamp!, until: Timestamp): TrialBalance
 	offBalanceSheetTrialBalance(from: Timestamp!, until: Timestamp): TrialBalance
 	chartOfAccounts: ChartOfAccounts
@@ -695,12 +680,6 @@ type TermValues {
 	liquidationCvl: CVLPct!
 	marginCallCvl: CVLPct!
 	initialCvl: CVLPct!
-}
-
-type Terms {
-	id: ID!
-	termsId: UUID!
-	values: TermValues!
 }
 
 input TermsInput {

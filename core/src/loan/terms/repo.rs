@@ -1,69 +1,98 @@
-use sqlx::PgPool;
+use sqlx::{PgPool, Postgres, Transaction};
 
-use crate::{loan::LoanError, primitives::*};
+use crate::{data_export::Export, entity::*, primitives::LoanTermsId};
 
-use super::{TermValues, Terms};
+use super::{
+    error::TermsTemplateError,
+    template::{NewTermsTemplate, TermsTemplate},
+};
+
+const BQ_TABLE_NAME: &str = "terms_template_events";
 
 #[derive(Clone)]
-pub struct TermRepo {
+pub struct TermsTemplateRepo {
     pool: PgPool,
+    export: Export,
 }
 
-impl TermRepo {
-    pub fn new(pool: &PgPool) -> Self {
-        Self { pool: pool.clone() }
-    }
-
-    pub async fn update_default(&self, terms: TermValues) -> Result<Terms, LoanError> {
-        let mut tx = self.pool.begin().await?;
-
-        sqlx::query!(
-            r#"
-             UPDATE loan_terms
-             SET current = FALSE
-             WHERE current IS TRUE
-            "#,
-        )
-        .execute(&mut *tx)
-        .await?;
-
-        let row = sqlx::query!(
-            r#"
-             INSERT INTO loan_terms (current, values)
-             VALUES (TRUE, $1)
-             RETURNING id
-            "#,
-            serde_json::to_value(&terms).expect("should serialize term values"),
-        )
-        .fetch_one(&mut *tx)
-        .await?;
-
-        tx.commit().await?;
-
-        Ok(Terms {
-            id: LoanTermsId::from(row.id),
-            values: terms,
-        })
-    }
-
-    pub async fn find_default(&self) -> Result<Terms, LoanError> {
-        let row = sqlx::query!(
-            r#"
-            SELECT id, values
-            FROM loan_terms
-            WHERE current IS TRUE
-            "#,
-        )
-        .fetch_one(&self.pool)
-        .await;
-
-        match row {
-            Ok(row) => Ok(Terms {
-                id: LoanTermsId::from(row.id),
-                values: serde_json::from_value(row.values).expect("should deserialize term values"),
-            }),
-            Err(sqlx::Error::RowNotFound) => Err(LoanError::TermsNotSet),
-            Err(err) => Err(err.into()),
+impl TermsTemplateRepo {
+    pub fn new(pool: &PgPool, export: &Export) -> Self {
+        Self {
+            pool: pool.clone(),
+            export: export.clone(),
         }
+    }
+
+    pub async fn create_in_tx(
+        &self,
+        db: &mut Transaction<'_, Postgres>,
+        new_template: NewTermsTemplate,
+    ) -> Result<TermsTemplate, TermsTemplateError> {
+        sqlx::query!(
+            r#"INSERT INTO terms_templates (id, name)
+            VALUES ($1, $2)
+            "#,
+            new_template.id as LoanTermsId,
+            new_template.name,
+        )
+        .execute(&mut **db)
+        .await?;
+        let mut events = new_template.initial_events();
+        let n_events = events.persist(db).await?;
+        self.export
+            .export_last(db, BQ_TABLE_NAME, n_events, &events)
+            .await?;
+        Ok(TermsTemplate::try_from(events)?)
+    }
+
+    pub async fn find_by_id(&self, id: LoanTermsId) -> Result<TermsTemplate, TermsTemplateError> {
+        let rows = sqlx::query_as!(
+            GenericEvent,
+            r#"SELECT a.id, e.sequence, e.event,
+                a.created_at AS entity_created_at, e.recorded_at AS event_recorded_at
+            FROM terms_templates a
+            JOIN terms_template_events e
+            ON a.id = e.id
+            WHERE a.id = $1"#,
+            id as LoanTermsId
+        )
+        .fetch_all(&self.pool)
+        .await?;
+        match EntityEvents::load_first(rows) {
+            Ok(template) => Ok(template),
+            Err(EntityError::NoEntityEventsPresent) => {
+                Err(TermsTemplateError::CouldNotFindById(id))
+            }
+            Err(e) => Err(e.into()),
+        }
+    }
+
+    pub async fn list(&self) -> Result<Vec<TermsTemplate>, TermsTemplateError> {
+        let rows = sqlx::query_as!(
+            GenericEvent,
+            r#"SELECT a.id, e.sequence, e.event,
+                a.created_at AS entity_created_at, e.recorded_at AS event_recorded_at
+            FROM terms_templates a
+            JOIN terms_template_events e
+            ON a.id = e.id
+            ORDER BY a.name, a.id, e.sequence"#,
+        )
+        .fetch_all(&self.pool)
+        .await?;
+        let n = rows.len();
+        let res = EntityEvents::load_n::<TermsTemplate>(rows, n)?;
+        Ok(res.0)
+    }
+
+    pub async fn persist_in_tx(
+        &self,
+        db: &mut Transaction<'_, Postgres>,
+        template: &mut TermsTemplate,
+    ) -> Result<(), TermsTemplateError> {
+        let n_events = template.events.persist(db).await?;
+        self.export
+            .export_last(db, BQ_TABLE_NAME, n_events, &template.events)
+            .await?;
+        Ok(())
     }
 }

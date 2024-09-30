@@ -25,8 +25,8 @@ pub struct CreateTermsTemplatePayload {
     pub terms_template: TermsTemplate,
 }
 
-impl From<crate::terms_template::TermsTemplate> for CreateTermsTemplatePayload {
-    fn from(terms_template: crate::terms_template::TermsTemplate) -> Self {
+impl From<crate::loan::TermsTemplate> for CreateTermsTemplatePayload {
+    fn from(terms_template: crate::loan::TermsTemplate) -> Self {
         Self {
             terms_template: terms_template.into(),
         }
@@ -41,8 +41,8 @@ pub struct TermsTemplate {
     values: TermValues,
 }
 
-impl From<crate::terms_template::TermsTemplate> for TermsTemplate {
-    fn from(terms: crate::terms_template::TermsTemplate) -> Self {
+impl From<crate::loan::TermsTemplate> for TermsTemplate {
+    fn from(terms: crate::loan::TermsTemplate) -> Self {
         Self {
             id: terms.id.to_global_id(),
             name: terms.name,
