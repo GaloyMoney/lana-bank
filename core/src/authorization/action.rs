@@ -15,7 +15,7 @@ macro_rules! impl_trivial_action {
 #[strum_discriminants(strum(serialize_all = "kebab-case"))]
 pub enum Action {
     Loan(LoanAction),
-    Term(TermAction),
+    TermsTemplate(TermsTemplateAction),
     User(UserAction),
     Customer(CustomerAction),
     Deposit(DepositAction),
@@ -32,7 +32,7 @@ impl Display for Action {
         use Action::*;
         match self {
             Loan(action) => action.fmt(f),
-            Term(action) => action.fmt(f),
+            TermsTemplate(action) => action.fmt(f),
             User(action) => action.fmt(f),
             Customer(action) => action.fmt(f),
             Deposit(action) => action.fmt(f),
@@ -55,7 +55,7 @@ impl FromStr for Action {
         use ActionDiscriminants::*;
         let res = match entity.parse()? {
             Loan => Action::from(action.parse::<LoanAction>()?),
-            Term => Action::from(action.parse::<TermAction>()?),
+            TermsTemplate => Action::from(action.parse::<TermsTemplateAction>()?),
             User => Action::from(action.parse::<UserAction>()?),
             Customer => Action::from(action.parse::<CustomerAction>()?),
             Deposit => Action::from(action.parse::<DepositAction>()?),
@@ -97,12 +97,14 @@ impl_trivial_action!(CreditFacilityAction, CreditFacility);
 
 #[derive(PartialEq, Clone, Copy, Debug, strum::Display, strum::EnumString)]
 #[strum(serialize_all = "kebab-case")]
-pub enum TermAction {
+pub enum TermsTemplateAction {
     Read,
     Update,
+    Create,
+    List,
 }
 
-impl_trivial_action!(TermAction, Term);
+impl_trivial_action!(TermsTemplateAction, TermsTemplate);
 
 #[derive(Clone, PartialEq, Copy, Debug, strum::Display, strum::EnumString)]
 #[strum(serialize_all = "kebab-case")]

@@ -3,8 +3,7 @@ pub mod error;
 mod repo;
 
 use crate::{
-    audit::Audit,
-    authorization::{Authorization, Object, TermAction},
+    authorization::{Authorization, Object, TermsTemplateAction},
     data_export::Export,
     loan::TermValues,
     primitives::{LoanTermsId, Subject},
@@ -18,17 +17,15 @@ pub use repo::TermsTemplateRepo;
 pub struct TermsTemplates {
     pool: sqlx::PgPool,
     authz: Authorization,
-    audit: Audit,
     repo: TermsTemplateRepo,
 }
 
 impl TermsTemplates {
-    pub fn new(pool: &sqlx::PgPool, authz: &Authorization, audit: &Audit, export: &Export) -> Self {
+    pub fn new(pool: &sqlx::PgPool, authz: &Authorization, export: &Export) -> Self {
         let repo = TermsTemplateRepo::new(pool, export);
         Self {
             pool: pool.clone(),
             authz: authz.clone(),
-            audit: audit.clone(),
             repo,
         }
     }
@@ -39,10 +36,9 @@ impl TermsTemplates {
         name: String,
         values: TermValues,
     ) -> Result<TermsTemplate, TermsTemplateError> {
-        // TODO change this to Create terms template
         let audit_info = self
             .authz
-            .check_permission(sub, Object::Term, TermAction::Update)
+            .check_permission(sub, Object::TermsTemplate, TermsTemplateAction::Create)
             .await?;
         let new_terms_template = NewTermsTemplate::builder()
             .id(LoanTermsId::new())
@@ -63,6 +59,9 @@ impl TermsTemplates {
         sub: &Subject,
         id: LoanTermsId,
     ) -> Result<Option<TermsTemplate>, TermsTemplateError> {
+        self.authz
+            .check_permission(sub, Object::TermsTemplate, TermsTemplateAction::Read)
+            .await?;
         match self.repo.find_by_id(id).await {
             Ok(template) => Ok(Some(template)),
             Err(TermsTemplateError::CouldNotFindById(_)) => Ok(None),
@@ -74,6 +73,9 @@ impl TermsTemplates {
         &self,
         sub: &Subject,
     ) -> Result<Vec<TermsTemplate>, TermsTemplateError> {
+        self.authz
+            .check_permission(sub, Object::TermsTemplate, TermsTemplateAction::List)
+            .await?;
         self.repo.list().await
     }
 }

@@ -61,7 +61,7 @@ impl LavaApp {
         let users = Users::init(&pool, config.user, &authz, &audit, &export).await?;
         let credit_facilities =
             CreditFacilities::new(&pool, &export, &authz, &customers, &users, &ledger);
-        let terms_templates = TermsTemplates::new(&pool, &authz, &audit, &export);
+        let terms_templates = TermsTemplates::new(&pool, &authz, &export);
         let loans = Loans::new(
             &pool,
             config.loan,

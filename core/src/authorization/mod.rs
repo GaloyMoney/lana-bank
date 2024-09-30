@@ -175,9 +175,13 @@ impl Authorization {
             LoanAction::UpdateCollateralizationState,
         )
         .await?;
-        self.add_permission_to_role(&role, Object::Term, TermAction::Update)
+        self.add_permission_to_role(&role, Object::TermsTemplate, TermsTemplateAction::Update)
             .await?;
-        self.add_permission_to_role(&role, Object::Term, TermAction::Read)
+        self.add_permission_to_role(&role, Object::TermsTemplate, TermsTemplateAction::Read)
+            .await?;
+        self.add_permission_to_role(&role, Object::TermsTemplate, TermsTemplateAction::Create)
+            .await?;
+        self.add_permission_to_role(&role, Object::TermsTemplate, TermsTemplateAction::List)
             .await?;
         self.add_permission_to_role(
             &role,
@@ -356,7 +360,14 @@ impl Authorization {
                 )
                 .await?,
             term: self
-                .check_all_permissions(sub, Object::Term, &[Action::Term(TermAction::Read)])
+                .check_all_permissions(
+                    sub,
+                    Object::TermsTemplate,
+                    &[
+                        Action::TermsTemplate(TermsTemplateAction::Read),
+                        Action::TermsTemplate(TermsTemplateAction::List),
+                    ],
+                )
                 .await?,
             user: self
                 .check_all_permissions(

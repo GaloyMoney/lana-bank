@@ -10,7 +10,7 @@ use super::error::AuthorizationError;
 pub enum Object {
     Applicant,
     Loan(LoanAllOrOne),
-    Term,
+    TermsTemplate,
     User,
     Customer(CustomerAllOrOne),
     Deposit,
@@ -56,7 +56,7 @@ impl FromStr for Object {
                     })?;
                 Object::Loan(loan_ref)
             }
-            Term => Object::Term,
+            TermsTemplate => Object::TermsTemplate,
             User => Object::User,
             Customer => {
                 let customer_ref = elems

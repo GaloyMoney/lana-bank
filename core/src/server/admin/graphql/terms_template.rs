@@ -45,7 +45,7 @@ impl From<crate::terms_template::TermsTemplate> for TermsTemplate {
     fn from(terms: crate::terms_template::TermsTemplate) -> Self {
         Self {
             id: terms.id.to_global_id(),
-            name: terms.name.into(),
+            name: terms.name,
             terms_id: terms.id.into(),
             values: terms.values.into(),
         }

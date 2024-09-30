@@ -14,7 +14,7 @@ use tracing::instrument;
 use crate::{
     audit::Audit,
     authorization::{
-        Authorization, CustomerAllOrOne, LoanAction, LoanAllOrOne, Object, TermAction,
+        Authorization, CustomerAllOrOne, LoanAction, LoanAllOrOne, Object, TermsTemplateAction,
     },
     constants::CVL_JOB_ID,
     customer::Customers,
@@ -120,7 +120,7 @@ impl Loans {
         terms: TermValues,
     ) -> Result<Terms, LoanError> {
         self.authz
-            .check_permission(sub, Object::Term, TermAction::Update)
+            .check_permission(sub, Object::TermsTemplate, TermsTemplateAction::Update)
             .await?;
 
         self.term_repo.update_default(terms).await
@@ -386,7 +386,7 @@ impl Loans {
 
     pub async fn find_default_terms(&self, sub: &Subject) -> Result<Option<Terms>, LoanError> {
         self.authz
-            .check_permission(sub, Object::Term, TermAction::Read)
+            .check_permission(sub, Object::TermsTemplate, TermsTemplateAction::Read)
             .await?;
         match self.term_repo.find_default().await {
             Ok(terms) => Ok(Some(terms)),
