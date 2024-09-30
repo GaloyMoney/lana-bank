@@ -215,46 +215,12 @@ impl Authorization {
     async fn add_permissions_for_accountant(&mut self) -> Result<(), AuthorizationError> {
         let role = Role::Accountant;
 
-        self.add_permission_to_role(
-            &role,
-            Object::Customer(CustomerAllOrOne::All),
-            LoanAction::Create,
-        )
-        .await?;
         self.add_permission_to_role(&role, Object::Loan(LoanAllOrOne::All), LoanAction::Read)
             .await?;
         self.add_permission_to_role(&role, Object::Loan(LoanAllOrOne::All), LoanAction::List)
             .await?;
-        self.add_permission_to_role(&role, Object::Loan(LoanAllOrOne::All), LoanAction::Approve)
-            .await?;
-        self.add_permission_to_role(
-            &role,
-            Object::Loan(LoanAllOrOne::All),
-            LoanAction::RecordPayment,
-        )
-        .await?;
-        self.add_permission_to_role(
-            &role,
-            Object::Loan(LoanAllOrOne::All),
-            LoanAction::UpdateCollateral,
-        )
-        .await?;
-        self.add_permission_to_role(
-            &role,
-            Object::Loan(LoanAllOrOne::All),
-            LoanAction::UpdateCollateralizationState,
-        )
-        .await?;
-        self.add_permission_to_role(&role, Object::Term, TermAction::Update)
-            .await?;
         self.add_permission_to_role(&role, Object::Term, TermAction::Read)
             .await?;
-        self.add_permission_to_role(
-            &role,
-            Object::Customer(CustomerAllOrOne::All),
-            CustomerAction::Create,
-        )
-        .await?;
         self.add_permission_to_role(
             &role,
             Object::Customer(CustomerAllOrOne::All),
@@ -267,23 +233,9 @@ impl Authorization {
             CustomerAction::Read,
         )
         .await?;
-        self.add_permission_to_role(
-            &role,
-            Object::Customer(CustomerAllOrOne::All),
-            CustomerAction::Update,
-        )
-        .await?;
-        self.add_permission_to_role(&role, Object::Deposit, DepositAction::Record)
-            .await?;
         self.add_permission_to_role(&role, Object::Deposit, DepositAction::Read)
             .await?;
         self.add_permission_to_role(&role, Object::Deposit, DepositAction::List)
-            .await?;
-        self.add_permission_to_role(&role, Object::Withdraw, WithdrawAction::Initiate)
-            .await?;
-        self.add_permission_to_role(&role, Object::Withdraw, WithdrawAction::Confirm)
-            .await?;
-        self.add_permission_to_role(&role, Object::Withdraw, WithdrawAction::Cancel)
             .await?;
         self.add_permission_to_role(&role, Object::Withdraw, WithdrawAction::Read)
             .await?;
