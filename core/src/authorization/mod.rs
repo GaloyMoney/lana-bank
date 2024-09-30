@@ -60,8 +60,6 @@ impl Authorization {
             .await?;
         self.add_role_hierarchy(Role::BankManager, Role::Admin)
             .await?;
-        self.add_role_hierarchy(Role::Accountant, Role::BankManager)
-            .await?;
 
         Ok(())
     }
