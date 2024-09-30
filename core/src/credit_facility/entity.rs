@@ -250,7 +250,8 @@ impl CreditFacility {
                 return false;
             }
         }
-        return false;
+
+        false
     }
 }
 
