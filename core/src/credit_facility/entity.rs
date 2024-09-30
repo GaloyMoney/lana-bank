@@ -92,7 +92,7 @@ impl CreditFacility {
         false
     }
 
-    pub(super) fn is_expired(&self) -> bool {
+    pub(super) fn _is_expired(&self) -> bool {
         unimplemented!()
     }
 
@@ -188,10 +188,6 @@ impl CreditFacility {
         audit_info: AuditInfo,
         amount: UsdCents,
     ) -> Result<NewDisbursement, CreditFacilityError> {
-        if self.is_expired() {
-            return Err(CreditFacilityError::AlreadyExpired);
-        }
-
         if self.disbursement_in_progress() {
             return Err(CreditFacilityError::DisbursementInProgress);
         }
