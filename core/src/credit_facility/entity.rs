@@ -192,7 +192,7 @@ impl CreditFacility {
             return Err(CreditFacilityError::AlreadyExpired);
         }
 
-        if self.disbursement_in_progress().is_some() {
+        if self.disbursement_in_progress() {
             return Err(CreditFacilityError::DisbursementInProgress);
         }
 
@@ -241,16 +241,16 @@ impl CreditFacility {
             });
     }
 
-    pub fn disbursement_in_progress(&self) -> Option<DisbursementIdx> {
-        self.events
-            .iter()
-            .rev()
-            .find_map(|event| match event {
-                CreditFacilityEvent::DisbursementConcluded { .. } => Some(None),
-                CreditFacilityEvent::DisbursementInitiated { idx, .. } => Some(Some(*idx)),
-                _ => None,
-            })
-            .and_then(|idx| idx)
+    fn disbursement_in_progress(&self) -> bool {
+        for event in self.events.iter().rev() {
+            if let CreditFacilityEvent::DisbursementInitiated { .. } = event {
+                return true;
+            }
+            if let CreditFacilityEvent::DisbursementConcluded { .. } = event {
+                return false;
+            }
+        }
+        return false;
     }
 }
 
@@ -351,10 +351,10 @@ mod test {
             amount: UsdCents::ONE,
             audit_info: dummy_audit_info(),
         });
-        assert_eq!(
-            facility_from(&events).disbursement_in_progress(),
-            Some(first_idx)
-        );
+        assert!(matches!(
+            facility_from(&events).initiate_disbursement(dummy_audit_info(), UsdCents::ONE),
+            Err(CreditFacilityError::DisbursementInProgress)
+        ));
 
         events.push(CreditFacilityEvent::DisbursementConcluded {
             idx: first_idx,
@@ -362,17 +362,8 @@ mod test {
             recorded_at: Utc::now(),
             audit_info: dummy_audit_info(),
         });
-        assert_eq!(facility_from(&events).disbursement_in_progress(), None,);
-
-        let second_idx = first_idx.next();
-        events.push(CreditFacilityEvent::DisbursementInitiated {
-            idx: second_idx,
-            amount: UsdCents::ONE,
-            audit_info: dummy_audit_info(),
-        });
-        assert_eq!(
-            facility_from(&events).disbursement_in_progress(),
-            Some(second_idx),
-        );
+        assert!(facility_from(&events)
+            .initiate_disbursement(dummy_audit_info(), UsdCents::ONE)
+            .is_ok());
     }
 }
