@@ -195,6 +195,7 @@ type CreditFacilityApprovePayload {
 input CreditFacilityCreateInput {
 	customerId: UUID!
 	facility: UsdCents!
+	terms: TermsInput!
 }
 
 type CreditFacilityCreatePayload {

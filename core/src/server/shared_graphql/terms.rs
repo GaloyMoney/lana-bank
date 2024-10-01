@@ -15,6 +15,16 @@ pub struct TermValues {
     initial_cvl: CVLPct,
 }
 
+#[derive(InputObject)]
+pub struct TermsInput {
+    pub annual_rate: AnnualRatePct,
+    pub interval: InterestInterval,
+    pub liquidation_cvl: CVLPct,
+    pub duration: DurationInput,
+    pub margin_call_cvl: CVLPct,
+    pub initial_cvl: CVLPct,
+}
+
 #[derive(SimpleObject)]
 pub(super) struct Duration {
     period: Period,
@@ -57,9 +67,9 @@ impl From<crate::terms::Duration> for Duration {
 }
 
 impl From<DurationInput> for crate::terms::Duration {
-    fn from(loan_duration: DurationInput) -> Self {
-        match loan_duration.period {
-            Period::Months => Self::Months(loan_duration.units),
+    fn from(duration: DurationInput) -> Self {
+        match duration.period {
+            Period::Months => Self::Months(duration.units),
         }
     }
 }

@@ -2,7 +2,7 @@ use async_graphql::*;
 
 use crate::{
     primitives::UsdCents,
-    server::shared_graphql::{convert::ToGlobalId, primitives::UUID},
+    server::shared_graphql::{convert::ToGlobalId, primitives::UUID, terms::*},
 };
 
 pub use crate::primitives::DisbursementIdx;
@@ -13,6 +13,7 @@ scalar!(DisbursementIdx);
 pub struct CreditFacilityCreateInput {
     pub customer_id: UUID,
     pub facility: UsdCents,
+    pub terms: TermsInput,
 }
 
 #[derive(SimpleObject, Clone)]

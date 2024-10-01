@@ -589,10 +589,24 @@ impl Mutation {
     ) -> async_graphql::Result<CreditFacilityCreatePayload> {
         let app = ctx.data_unchecked::<LavaApp>();
         let AdminAuthContext { sub } = ctx.data()?;
+        let CreditFacilityCreateInput {
+            facility,
+            customer_id,
+            terms,
+        } = input;
+
+        let credit_facility_term_values = crate::terms::TermValues::builder()
+            .annual_rate(terms.annual_rate)
+            .interval(terms.interval)
+            .duration(terms.duration)
+            .liquidation_cvl(terms.liquidation_cvl)
+            .margin_call_cvl(terms.margin_call_cvl)
+            .initial_cvl(terms.initial_cvl)
+            .build()?;
 
         let credit_facility = app
             .credit_facilities()
-            .create(sub, input.customer_id, input.facility)
+            .create(sub, customer_id, facility, credit_facility_term_values)
             .await?;
 
         Ok(CreditFacilityCreatePayload::from(credit_facility))

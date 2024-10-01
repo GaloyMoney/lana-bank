@@ -224,6 +224,7 @@ export type CreditFacilityApprovePayload = {
 export type CreditFacilityCreateInput = {
   customerId: Scalars['UUID']['input'];
   facility: Scalars['UsdCents']['input'];
+  terms: TermsInput;
 };
 
 export type CreditFacilityCreatePayload = {

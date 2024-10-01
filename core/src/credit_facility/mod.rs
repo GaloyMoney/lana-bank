@@ -9,6 +9,7 @@ use crate::{
     data_export::Export,
     ledger::{credit_facility::*, Ledger},
     primitives::{CreditFacilityId, CustomerId, DisbursementIdx, Subject, UsdCents, UserId},
+    terms::TermValues,
     user::{UserRepo, Users},
 };
 
@@ -56,6 +57,7 @@ impl CreditFacilities {
         sub: &Subject,
         customer_id: impl Into<CustomerId> + std::fmt::Debug,
         facility: UsdCents,
+        terms: TermValues,
     ) -> Result<CreditFacility, CreditFacilityError> {
         let customer_id = customer_id.into();
 
@@ -72,6 +74,7 @@ impl CreditFacilities {
         let new_credit_facility = NewCreditFacility::builder()
             .id(CreditFacilityId::new())
             .customer_id(customer_id)
+            .terms(terms)
             .facility(facility)
             .account_ids(CreditFacilityAccountIds::new())
             .customer_account_ids(customer.account_ids)
