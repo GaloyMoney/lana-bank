@@ -1,5 +1,6 @@
-use crate::primitives::LoanTermsId;
 use thiserror::Error;
+
+use crate::primitives::LoanTermsId;
 
 #[derive(Error, Debug)]
 pub enum LoanTermsError {

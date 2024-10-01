@@ -3,19 +3,17 @@ mod repo;
 pub mod template;
 mod value;
 
-use crate::primitives::LoanTermsId;
-
-pub use template::*;
-pub use value::*;
-
 use crate::{
     authorization::{Authorization, Object, TermsTemplateAction},
     data_export::Export,
     primitives::Subject,
 };
 
+use super::LoanTermsId;
 use error::TermsTemplateError;
 pub use repo::TermsTemplateRepo;
+pub use template::*;
+pub use value::*;
 
 #[derive(Clone)]
 pub struct TermsTemplates {

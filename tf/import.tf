@@ -5,7 +5,8 @@ locals {
     "loan_events",
     "withdraw_events",
     "deposit_events",
-    "credit_facility_events"
+    "credit_facility_events",
+    "terms_template_events"
   ] : []
 }
 

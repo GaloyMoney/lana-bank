@@ -179,20 +179,6 @@ type CollateralizationUpdated {
 	recordedAt: Timestamp!
 }
 
-input CreateTermsTemplateInput {
-	name: String!
-	annualRate: AnnualRatePct!
-	interval: InterestInterval!
-	duration: DurationInput!
-	liquidationCvl: CVLPct!
-	marginCallCvl: CVLPct!
-	initialCvl: CVLPct!
-}
-
-type CreateTermsTemplatePayload {
-	termsTemplate: TermsTemplate!
-}
-
 type CreditFacility {
 	id: ID!
 	creditFacilityId: UUID!
@@ -534,7 +520,7 @@ type Mutation {
 	userRevokeRole(input: UserRevokeRoleInput!): UserRevokeRolePayload!
 	reportCreate: ReportCreatePayload!
 	reportDownloadLinksGenerate(input: ReportDownloadLinksGenerateInput!): ReportDownloadLinksGeneratePayload!
-	createTermsTemplate(input: CreateTermsTemplateInput!): CreateTermsTemplatePayload!
+	termsTemplateCreate(input: TermsTemplateCreateInput!): TermsTemplateCreatePayload!
 }
 
 """
@@ -694,9 +680,23 @@ input TermsInput {
 
 type TermsTemplate {
 	id: ID!
-	name: String!
 	termsId: UUID!
+	name: String!
 	values: TermValues!
+}
+
+input TermsTemplateCreateInput {
+	name: String!
+	annualRate: AnnualRatePct!
+	interval: InterestInterval!
+	duration: DurationInput!
+	liquidationCvl: CVLPct!
+	marginCallCvl: CVLPct!
+	initialCvl: CVLPct!
+}
+
+type TermsTemplateCreatePayload {
+	termsTemplate: TermsTemplate!
 }
 
 scalar Timestamp

@@ -13,7 +13,7 @@ use crate::{
     primitives::{CustomerId, LoanId, LoanTermsId, ReportId, UserId},
     server::{
         admin::{
-            graphql::terms_template::{CreateTermsTemplateInput, CreateTermsTemplatePayload},
+            graphql::terms_template::{TermsTemplateCreateInput, TermsTemplateCreatePayload},
             AdminAuthContext,
         },
         shared_graphql::{
@@ -762,11 +762,11 @@ impl Mutation {
         Ok(ReportDownloadLinksGeneratePayload::from(links))
     }
 
-    async fn create_terms_template(
+    async fn terms_template_create(
         &self,
         ctx: &Context<'_>,
-        input: CreateTermsTemplateInput,
-    ) -> async_graphql::Result<CreateTermsTemplatePayload> {
+        input: TermsTemplateCreateInput,
+    ) -> async_graphql::Result<TermsTemplateCreatePayload> {
         let app = ctx.data_unchecked::<LavaApp>();
         let AdminAuthContext { sub } = ctx.data()?;
         let term_values = crate::loan::TermValues::builder()
@@ -782,6 +782,6 @@ impl Mutation {
             .terms_templates()
             .create_terms_template(sub, input.name, term_values)
             .await?;
-        Ok(CreateTermsTemplatePayload::from(terms_template))
+        Ok(TermsTemplateCreatePayload::from(terms_template))
     }
 }

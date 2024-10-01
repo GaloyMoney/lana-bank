@@ -10,7 +10,7 @@ use crate::{
 };
 
 #[derive(InputObject)]
-pub(super) struct CreateTermsTemplateInput {
+pub(super) struct TermsTemplateCreateInput {
     pub name: String,
     pub annual_rate: AnnualRatePct,
     pub interval: InterestInterval,
@@ -21,11 +21,11 @@ pub(super) struct CreateTermsTemplateInput {
 }
 
 #[derive(SimpleObject)]
-pub struct CreateTermsTemplatePayload {
+pub struct TermsTemplateCreatePayload {
     pub terms_template: TermsTemplate,
 }
 
-impl From<crate::loan::TermsTemplate> for CreateTermsTemplatePayload {
+impl From<crate::loan::TermsTemplate> for TermsTemplateCreatePayload {
     fn from(terms_template: crate::loan::TermsTemplate) -> Self {
         Self {
             terms_template: terms_template.into(),
@@ -36,8 +36,8 @@ impl From<crate::loan::TermsTemplate> for CreateTermsTemplatePayload {
 #[derive(SimpleObject)]
 pub struct TermsTemplate {
     id: ID,
-    name: String,
     terms_id: UUID,
+    name: String,
     values: TermValues,
 }
 

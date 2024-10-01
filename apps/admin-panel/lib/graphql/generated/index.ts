@@ -205,21 +205,6 @@ export type CollateralizationUpdated = {
   state: LoanCollaterizationState;
 };
 
-export type CreateTermsTemplateInput = {
-  annualRate: Scalars['AnnualRatePct']['input'];
-  duration: DurationInput;
-  initialCvl: Scalars['CVLPct']['input'];
-  interval: InterestInterval;
-  liquidationCvl: Scalars['CVLPct']['input'];
-  marginCallCvl: Scalars['CVLPct']['input'];
-  name: Scalars['String']['input'];
-};
-
-export type CreateTermsTemplatePayload = {
-  __typename?: 'CreateTermsTemplatePayload';
-  termsTemplate: TermsTemplate;
-};
-
 export type CreditFacility = {
   __typename?: 'CreditFacility';
   creditFacilityId: Scalars['UUID']['output'];
@@ -538,7 +523,6 @@ export type Mutation = {
   __typename?: 'Mutation';
   collateralUpdate: CollateralUpdatePayload;
   collateralizationStateUpdate: CollateralizationStateUpdatePayload;
-  createTermsTemplate: CreateTermsTemplatePayload;
   creditFacilityApprove: CreditFacilityApprovePayload;
   creditFacilityCreate: CreditFacilityCreatePayload;
   customerCreate: CustomerCreatePayload;
@@ -551,6 +535,7 @@ export type Mutation = {
   reportDownloadLinksGenerate: ReportDownloadLinksGeneratePayload;
   shareholderEquityAdd: SuccessPayload;
   sumsubPermalinkCreate: SumsubPermalinkCreatePayload;
+  termsTemplateCreate: TermsTemplateCreatePayload;
   userAssignRole: UserAssignRolePayload;
   userCreate: UserCreatePayload;
   userRevokeRole: UserRevokeRolePayload;
@@ -567,11 +552,6 @@ export type MutationCollateralUpdateArgs = {
 
 export type MutationCollateralizationStateUpdateArgs = {
   input: CollateralizationStateUpdateInput;
-};
-
-
-export type MutationCreateTermsTemplateArgs = {
-  input: CreateTermsTemplateInput;
 };
 
 
@@ -627,6 +607,11 @@ export type MutationShareholderEquityAddArgs = {
 
 export type MutationSumsubPermalinkCreateArgs = {
   input: SumsubPermalinkCreateInput;
+};
+
+
+export type MutationTermsTemplateCreateArgs = {
+  input: TermsTemplateCreateInput;
 };
 
 
@@ -923,6 +908,21 @@ export type TermsTemplate = {
   name: Scalars['String']['output'];
   termsId: Scalars['UUID']['output'];
   values: TermValues;
+};
+
+export type TermsTemplateCreateInput = {
+  annualRate: Scalars['AnnualRatePct']['input'];
+  duration: DurationInput;
+  initialCvl: Scalars['CVLPct']['input'];
+  interval: InterestInterval;
+  liquidationCvl: Scalars['CVLPct']['input'];
+  marginCallCvl: Scalars['CVLPct']['input'];
+  name: Scalars['String']['input'];
+};
+
+export type TermsTemplateCreatePayload = {
+  __typename?: 'TermsTemplateCreatePayload';
+  termsTemplate: TermsTemplate;
 };
 
 export type Transaction = Deposit | Withdrawal;
@@ -1265,11 +1265,11 @@ export type TermsTemplateQueryVariables = Exact<{
 export type TermsTemplateQuery = { __typename?: 'Query', termsTemplate?: { __typename?: 'TermsTemplate', id: string, name: string, termsId: string, values: { __typename?: 'TermValues', interval: InterestInterval, annualRate: any, initialCvl: any, marginCallCvl: any, liquidationCvl: any, duration: { __typename?: 'Duration', units: number, period: Period } } } | null };
 
 export type CreateTermsTemplateMutationVariables = Exact<{
-  input: CreateTermsTemplateInput;
+  input: TermsTemplateCreateInput;
 }>;
 
 
-export type CreateTermsTemplateMutation = { __typename?: 'Mutation', createTermsTemplate: { __typename?: 'CreateTermsTemplatePayload', termsTemplate: { __typename?: 'TermsTemplate', id: string, termsId: string, values: { __typename?: 'TermValues', annualRate: any, interval: InterestInterval, liquidationCvl: any, marginCallCvl: any, initialCvl: any, duration: { __typename?: 'Duration', period: Period, units: number } } } } };
+export type CreateTermsTemplateMutation = { __typename?: 'Mutation', termsTemplateCreate: { __typename?: 'TermsTemplateCreatePayload', termsTemplate: { __typename?: 'TermsTemplate', id: string, termsId: string, values: { __typename?: 'TermValues', annualRate: any, interval: InterestInterval, liquidationCvl: any, marginCallCvl: any, initialCvl: any, duration: { __typename?: 'Duration', period: Period, units: number } } } } };
 
 export type TermsTemplatesQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -3004,8 +3004,8 @@ export type TermsTemplateQueryHookResult = ReturnType<typeof useTermsTemplateQue
 export type TermsTemplateLazyQueryHookResult = ReturnType<typeof useTermsTemplateLazyQuery>;
 export type TermsTemplateQueryResult = Apollo.QueryResult<TermsTemplateQuery, TermsTemplateQueryVariables>;
 export const CreateTermsTemplateDocument = gql`
-    mutation CreateTermsTemplate($input: CreateTermsTemplateInput!) {
-  createTermsTemplate(input: $input) {
+    mutation CreateTermsTemplate($input: TermsTemplateCreateInput!) {
+  termsTemplateCreate(input: $input) {
     termsTemplate {
       id
       termsId
