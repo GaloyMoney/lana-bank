@@ -5,6 +5,10 @@ use crate::{
     server::shared_graphql::{convert::ToGlobalId, primitives::UUID},
 };
 
+pub use crate::primitives::DisbursementIdx;
+
+scalar!(DisbursementIdx);
+
 #[derive(InputObject)]
 pub struct CreditFacilityCreateInput {
     pub customer_id: UUID,
@@ -66,7 +70,7 @@ impl From<crate::credit_facility::CreditFacility> for CreditFacilityCreatePayloa
 #[derive(SimpleObject)]
 pub struct CreditFacilityDisbursement {
     id: ID,
-    index: i32,
+    index: DisbursementIdx,
 }
 
 impl From<crate::credit_facility::Disbursement> for CreditFacilityDisbursement {
@@ -105,7 +109,7 @@ impl From<crate::credit_facility::Disbursement> for CreditFacilityDisbursementIn
 #[derive(InputObject)]
 pub struct CreditFacilityDisbursementApproveInput {
     pub credit_facility_id: UUID,
-    pub disbursement_idx: i32,
+    pub disbursement_idx: DisbursementIdx,
 }
 
 #[derive(SimpleObject)]

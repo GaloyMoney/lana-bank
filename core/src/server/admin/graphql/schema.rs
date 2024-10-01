@@ -699,11 +699,7 @@ impl Mutation {
 
         let credit_facility = app
             .credit_facilities()
-            .add_disbursement_approval(
-                sub,
-                input.credit_facility_id.into(),
-                input.disbursement_idx.into(),
-            )
+            .add_disbursement_approval(sub, input.credit_facility_id.into(), input.disbursement_idx)
             .await?;
         Ok(CreditFacilityDisbursementApprovePayload::from(
             credit_facility,

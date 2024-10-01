@@ -203,12 +203,12 @@ type CreditFacilityCreatePayload {
 
 type CreditFacilityDisbursement {
 	id: ID!
-	index: Int!
+	index: DisbursementIdx!
 }
 
 input CreditFacilityDisbursementApproveInput {
 	creditFacilityId: UUID!
-	disbursementIdx: Int!
+	disbursementIdx: DisbursementIdx!
 }
 
 type CreditFacilityDisbursementApprovePayload {
@@ -349,6 +349,8 @@ input DepositRecordInput {
 type DepositRecordPayload {
 	deposit: Deposit!
 }
+
+scalar DisbursementIdx
 
 type Duration {
 	period: Period!

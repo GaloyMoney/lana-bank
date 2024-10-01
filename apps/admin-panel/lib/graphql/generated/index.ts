@@ -19,6 +19,7 @@ export type Scalars = {
   Float: { input: number; output: number; }
   AnnualRatePct: { input: any; output: any; }
   CVLPct: { input: any; output: any; }
+  DisbursementIdx: { input: any; output: any; }
   Satoshis: { input: any; output: any; }
   SignedSatoshis: { input: any; output: any; }
   SignedUsdCents: { input: any; output: any; }
@@ -233,12 +234,12 @@ export type CreditFacilityCreatePayload = {
 export type CreditFacilityDisbursement = {
   __typename?: 'CreditFacilityDisbursement';
   id: Scalars['ID']['output'];
-  index: Scalars['Int']['output'];
+  index: Scalars['DisbursementIdx']['output'];
 };
 
 export type CreditFacilityDisbursementApproveInput = {
   creditFacilityId: Scalars['UUID']['input'];
-  disbursementIdx: Scalars['Int']['input'];
+  disbursementIdx: Scalars['DisbursementIdx']['input'];
 };
 
 export type CreditFacilityDisbursementApprovePayload = {
