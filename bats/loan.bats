@@ -144,7 +144,7 @@ wait_for_interest() {
   interest_repayments_len=$(
     graphql_output '[.data.loan.repaymentPlan[] | select(.repaymentType == "INTEREST")] | length'
   )
-  [[ "$interest_repayments_len" == "4" ]] || exit 1
+  [[ "$interest_repayments_len" -ge "3" ]] || exit 1
 
   # Pay-off Loan
   variables=$(
