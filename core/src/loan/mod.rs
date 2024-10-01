@@ -6,7 +6,6 @@ mod history;
 mod jobs;
 mod repayment_plan;
 mod repo;
-mod terms;
 
 use sqlx::PgPool;
 use tracing::instrument;
@@ -22,6 +21,7 @@ use crate::{
     ledger::{loan::*, Ledger},
     price::Price,
     primitives::*,
+    terms::*,
     user::*,
 };
 
@@ -33,7 +33,6 @@ pub use history::*;
 use jobs::*;
 pub use repayment_plan::*;
 use repo::*;
-pub use terms::*;
 
 #[derive(Clone)]
 pub struct Loans {

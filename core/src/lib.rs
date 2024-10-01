@@ -19,6 +19,7 @@ pub mod price;
 pub mod primitives;
 pub mod report;
 pub mod server;
+pub mod terms;
 pub mod user;
 pub mod withdraw;
 

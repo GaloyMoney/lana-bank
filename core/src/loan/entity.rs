@@ -12,12 +12,10 @@ use crate::{
         loan::{LoanAccountIds, LoanCollateralUpdate, LoanPaymentAmounts, LoanRepayment},
     },
     primitives::*,
+    terms::{CVLPct, InterestPeriod, TermValues},
 };
 
-use super::{
-    error::LoanError, history, repayment_plan, terms::TermValues, CVLPct, InterestPeriod,
-    LoanApprovalData, LoanInterestAccrual,
-};
+use super::{error::LoanError, history, repayment_plan, LoanApprovalData, LoanInterestAccrual};
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct LoanReceivable {

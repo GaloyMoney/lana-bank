@@ -155,7 +155,9 @@ impl InterestPeriod {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
+#[derive(
+    Debug, async_graphql::Enum, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize,
+)]
 #[serde(tag = "type", rename_all = "snake_case")]
 pub enum InterestInterval {
     EndOfMonth,

@@ -1,12 +1,12 @@
 use async_graphql::*;
 
 use crate::{
-    loan::{AnnualRatePct, CVLPct},
     server::shared_graphql::{
         convert::ToGlobalId,
         primitives::UUID,
         terms::{DurationInput, InterestInterval, TermValues},
     },
+    terms::{AnnualRatePct, CVLPct},
 };
 
 #[derive(InputObject)]
@@ -25,8 +25,8 @@ pub struct TermsTemplateCreatePayload {
     pub terms_template: TermsTemplate,
 }
 
-impl From<crate::loan::TermsTemplate> for TermsTemplateCreatePayload {
-    fn from(terms_template: crate::loan::TermsTemplate) -> Self {
+impl From<crate::terms::TermsTemplate> for TermsTemplateCreatePayload {
+    fn from(terms_template: crate::terms::TermsTemplate) -> Self {
         Self {
             terms_template: terms_template.into(),
         }
@@ -41,8 +41,8 @@ pub struct TermsTemplate {
     values: TermValues,
 }
 
-impl From<crate::loan::TermsTemplate> for TermsTemplate {
-    fn from(terms: crate::loan::TermsTemplate) -> Self {
+impl From<crate::terms::TermsTemplate> for TermsTemplate {
+    fn from(terms: crate::terms::TermsTemplate) -> Self {
         Self {
             id: terms.id.to_global_id(),
             name: terms.name,

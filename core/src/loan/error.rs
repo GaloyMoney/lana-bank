@@ -15,7 +15,7 @@ pub enum LoanError {
     #[error("LoanError - PriceError: {0}")]
     PriceError(#[from] crate::price::error::PriceError),
     #[error("LoanError - LoanTermsError: {0}")]
-    LoanTermsError(#[from] super::terms::error::LoanTermsError),
+    LoanTermsError(#[from] crate::terms::error::TermsError),
     #[error("LoanError - ConversionError: {0}")]
     ConversionError(#[from] crate::primitives::ConversionError),
     #[error("LoanError - UserError: '{0}'")]

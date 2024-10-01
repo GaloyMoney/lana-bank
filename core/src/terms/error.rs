@@ -3,7 +3,7 @@ use thiserror::Error;
 use crate::primitives::LoanTermsId;
 
 #[derive(Error, Debug)]
-pub enum LoanTermsError {
+pub enum TermsError {
     #[error("LoanTermsError - ConversionError: {0}")]
     ConversionError(#[from] crate::primitives::ConversionError),
     #[error(

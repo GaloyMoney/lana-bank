@@ -1,18 +1,11 @@
 use async_graphql::*;
 
-use crate::server::shared_graphql::{convert::*, primitives::UUID};
+use crate::server::shared_graphql::convert::*;
 
-pub use crate::loan::AnnualRatePct;
+pub use crate::terms::{AnnualRatePct, CVLPct, InterestInterval};
+
 scalar!(AnnualRatePct);
-pub use crate::loan::CVLPct;
 scalar!(CVLPct);
-
-#[derive(SimpleObject)]
-pub struct Terms {
-    id: ID,
-    terms_id: UUID,
-    values: TermValues,
-}
 
 #[derive(SimpleObject)]
 pub struct TermValues {
@@ -28,12 +21,6 @@ pub struct TermValues {
 pub(super) struct Duration {
     period: Period,
     units: u32,
-}
-
-#[derive(Enum, Copy, Clone, Eq, PartialEq)]
-#[graphql(remote = "crate::loan::InterestInterval")]
-pub enum InterestInterval {
-    EndOfMonth,
 }
 
 #[derive(Enum, Copy, Clone, Eq, PartialEq)]
@@ -53,8 +40,8 @@ impl ToGlobalId for crate::primitives::LoanTermsId {
     }
 }
 
-impl From<crate::loan::TermValues> for TermValues {
-    fn from(values: crate::loan::TermValues) -> Self {
+impl From<crate::terms::TermValues> for TermValues {
+    fn from(values: crate::terms::TermValues) -> Self {
         Self {
             annual_rate: values.annual_rate,
             interval: values.interval.into(),
@@ -66,10 +53,10 @@ impl From<crate::loan::TermValues> for TermValues {
     }
 }
 
-impl From<crate::loan::Duration> for Duration {
-    fn from(duration: crate::loan::Duration) -> Self {
+impl From<crate::terms::Duration> for Duration {
+    fn from(duration: crate::terms::Duration) -> Self {
         match duration {
-            crate::loan::Duration::Months(months) => Self {
+            crate::terms::Duration::Months(months) => Self {
                 period: Period::Months,
                 units: months,
             },
@@ -77,7 +64,7 @@ impl From<crate::loan::Duration> for Duration {
     }
 }
 
-impl From<DurationInput> for crate::loan::Duration {
+impl From<DurationInput> for crate::terms::Duration {
     fn from(loan_duration: DurationInput) -> Self {
         match loan_duration.period {
             Period::Months => Self::Months(loan_duration.units),

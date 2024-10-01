@@ -14,10 +14,11 @@ use crate::{
     deposit::Deposits,
     job::Jobs,
     ledger::Ledger,
-    loan::{Loans, TermsTemplates},
+    loan::Loans,
     price::Price,
     primitives::Subject,
     report::Reports,
+    terms::TermsTemplates,
     user::Users,
     withdraw::Withdraws,
 };

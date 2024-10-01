@@ -6,12 +6,11 @@ mod value;
 use crate::{
     authorization::{Authorization, Object, TermsTemplateAction},
     data_export::Export,
-    primitives::Subject,
+    primitives::{LoanTermsId, Subject},
 };
 
-use super::LoanTermsId;
 use error::TermsTemplateError;
-pub use repo::TermsTemplateRepo;
+use repo::TermsTemplateRepo;
 pub use template::*;
 pub use value::*;
 

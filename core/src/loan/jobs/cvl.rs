@@ -7,8 +7,9 @@ use crate::{
     audit::*,
     authorization::{LoanAction, LoanAllOrOne, Object},
     job::*,
-    loan::{repo::*, terms::CVLPct, LoanByCollateralizationRatioCursor, Subject, SystemNode},
+    loan::{repo::*, LoanByCollateralizationRatioCursor, Subject, SystemNode},
     price::Price,
+    terms::CVLPct,
 };
 
 #[serde_with::serde_as]

@@ -1,6 +1,9 @@
-use crate::{entity::*, loan::terms::TermValues, primitives::*};
 use derive_builder::Builder;
 use serde::{Deserialize, Serialize};
+
+use crate::{entity::*, primitives::*};
+
+use super::value::*;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]

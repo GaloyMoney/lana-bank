@@ -504,7 +504,7 @@ impl Mutation {
             desired_principal,
             loan_terms,
         } = input;
-        let term_values = crate::loan::TermValues::builder()
+        let term_values = crate::terms::TermValues::builder()
             .annual_rate(loan_terms.annual_rate)
             .interval(loan_terms.interval)
             .duration(loan_terms.duration)
@@ -769,7 +769,7 @@ impl Mutation {
     ) -> async_graphql::Result<TermsTemplateCreatePayload> {
         let app = ctx.data_unchecked::<LavaApp>();
         let AdminAuthContext { sub } = ctx.data()?;
-        let term_values = crate::loan::TermValues::builder()
+        let term_values = crate::terms::TermValues::builder()
             .annual_rate(input.annual_rate)
             .interval(input.interval)
             .duration(input.duration)

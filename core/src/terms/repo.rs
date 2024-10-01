@@ -84,7 +84,7 @@ impl TermsTemplateRepo {
         Ok(res.0)
     }
 
-    pub async fn persist_in_tx(
+    pub async fn _persist_in_tx(
         &self,
         db: &mut Transaction<'_, Postgres>,
         template: &mut TermsTemplate,
