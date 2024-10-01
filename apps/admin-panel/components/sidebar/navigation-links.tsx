@@ -73,8 +73,8 @@ const NavigationLinks = () => {
       visible: visibleItems?.loan,
     },
     {
-      href: "/terms",
-      label: "Default Terms",
+      href: "/terms-templates",
+      label: "Terms Templates",
       icon: IoDocumentOutline,
       visible: visibleItems?.term,
     },

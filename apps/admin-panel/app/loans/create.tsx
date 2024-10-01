@@ -18,9 +18,9 @@ import { Label } from "@/components/primitive/label"
 import {
   InterestInterval,
   Period,
-  useDefaultTermsQuery,
   useGetRealtimePriceUpdatesQuery,
   useLoanCreateMutation,
+  useTermsTemplatesQuery,
 } from "@/lib/graphql/generated"
 import { Button } from "@/components/primitive/button"
 import { Select } from "@/components/primitive/select"
@@ -61,7 +61,6 @@ gql`
     }
   }
 `
-
 type CreateLoanDialogProps = {
   customerId: string
   refetch?: () => void
@@ -76,14 +75,22 @@ export const CreateLoanDialog: React.FC<
     fetchPolicy: "cache-only",
   })
 
+  const [isCustomTerms, setIsCustomTerms] = useState(false)
   const [customerIdValue, setCustomerIdValue] = useState<string>(customerId)
-  const { data: defaultTermsData } = useDefaultTermsQuery()
+  const { data: termsTemplatesData, loading: termsTemplatesLoading } =
+    useTermsTemplatesQuery()
   const [createLoan, { loading, error, reset }] = useLoanCreateMutation()
-  const [useDefaultTerms, setUseDefaultTerms] = useState(true)
+  const [useTemplateTerms, setUseTemplateTerms] = useState(true)
+  const [selectedTemplateId, setSelectedTemplateId] = useState<string>("")
 
   useEffect(() => {
-    if (!defaultTermsData) setUseDefaultTerms(false)
-  }, [defaultTermsData, setUseDefaultTerms])
+    if (
+      termsTemplatesData?.termsTemplates &&
+      termsTemplatesData.termsTemplates.length > 0
+    ) {
+      setSelectedTemplateId(termsTemplatesData.termsTemplates[0].id)
+    }
+  }, [termsTemplatesData])
 
   const [formValues, setFormValues] = useState({
     desiredPrincipal: "0",
@@ -102,6 +109,30 @@ export const CreateLoanDialog: React.FC<
       ...prevValues,
       [name]: value,
     }))
+    if (name === "desiredPrincipal") return
+    setIsCustomTerms(true)
+    setSelectedTemplateId("")
+  }
+
+  const handleTemplateChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const templateId = e.target.value
+    setSelectedTemplateId(templateId)
+    setIsCustomTerms(false)
+    const selectedTemplate = termsTemplatesData?.termsTemplates.find(
+      (t) => t.id === templateId,
+    )
+    if (selectedTemplate) {
+      setFormValues({
+        ...formValues,
+        annualRate: selectedTemplate.values.annualRate.toString(),
+        interval: selectedTemplate.values.interval,
+        liquidationCvl: selectedTemplate.values.liquidationCvl.toString(),
+        marginCallCvl: selectedTemplate.values.marginCallCvl.toString(),
+        initialCvl: selectedTemplate.values.initialCvl.toString(),
+        durationUnits: selectedTemplate.values.duration.units.toString(),
+        durationPeriod: selectedTemplate.values.duration.period,
+      })
+    }
   }
 
   const handleCreateLoan = async (event: React.FormEvent) => {
@@ -163,18 +194,22 @@ export const CreateLoanDialog: React.FC<
   }
 
   const resetForm = () => {
-    setUseDefaultTerms(!!defaultTermsData?.defaultTerms?.id)
-    if (defaultTermsData && defaultTermsData.defaultTerms) {
-      const terms = defaultTermsData.defaultTerms.values
+    setUseTemplateTerms(true)
+    if (
+      termsTemplatesData?.termsTemplates &&
+      termsTemplatesData.termsTemplates.length > 0
+    ) {
+      const latestTemplate = termsTemplatesData.termsTemplates[0]
+      setSelectedTemplateId(latestTemplate.id)
       setFormValues({
         desiredPrincipal: "0",
-        annualRate: terms.annualRate.toString(),
-        interval: terms.interval,
-        liquidationCvl: terms.liquidationCvl.toString(),
-        marginCallCvl: terms.marginCallCvl.toString(),
-        initialCvl: terms.initialCvl.toString(),
-        durationUnits: terms.duration.units.toString(),
-        durationPeriod: terms.duration.period,
+        annualRate: latestTemplate.values.annualRate.toString(),
+        interval: latestTemplate.values.interval,
+        liquidationCvl: latestTemplate.values.liquidationCvl.toString(),
+        marginCallCvl: latestTemplate.values.marginCallCvl.toString(),
+        initialCvl: latestTemplate.values.initialCvl.toString(),
+        durationUnits: latestTemplate.values.duration.units.toString(),
+        durationPeriod: latestTemplate.values.duration.period,
       })
     } else {
       setFormValues({
@@ -243,10 +278,29 @@ export const CreateLoanDialog: React.FC<
               </div>
             )}
           </div>
-          {useDefaultTerms ? (
+          {useTemplateTerms && (
+            <div>
+              <Label>Terms Template</Label>
+              <Select
+                value={selectedTemplateId}
+                onChange={handleTemplateChange}
+                disabled={termsTemplatesLoading}
+              >
+                <option value="" disabled selected={isCustomTerms}>
+                  Select from predefined terms template
+                </option>
+                {termsTemplatesData?.termsTemplates.map((template) => (
+                  <option key={template.id} value={template.id}>
+                    {template.name}
+                  </option>
+                ))}
+              </Select>
+            </div>
+          )}
+          {useTemplateTerms ? (
             <>
               <div
-                onClick={() => setUseDefaultTerms(false)}
+                onClick={() => setUseTemplateTerms(false)}
                 className="mt-2 flex items-center space-x-2 ml-2 cursor-pointer text-sm hover:underline w-fit"
               >
                 <div>Loan Terms</div>
@@ -299,7 +353,6 @@ export const CreateLoanDialog: React.FC<
                   required
                 />
               </div>
-
               <div>
                 <Label>Liquidation CVL (%)</Label>
                 <Input
@@ -374,10 +427,10 @@ export const CreateLoanDialog: React.FC<
             </>
           )}
           {error && <span className="text-destructive">{error.message}</span>}
-          <DialogFooter className={!useDefaultTerms ? "sm:justify-between" : ""}>
-            {!useDefaultTerms && (
+          <DialogFooter className={!useTemplateTerms ? "sm:justify-between" : ""}>
+            {!useTemplateTerms && (
               <div
-                onClick={() => setUseDefaultTerms(true)}
+                onClick={() => setUseTemplateTerms(true)}
                 className="flex items-center space-x-2 cursor-pointer text-sm hover:underline"
               >
                 Show less...
