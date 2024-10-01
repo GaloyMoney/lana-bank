@@ -297,6 +297,7 @@ assert_trial_balance() {
       '{ from: $from }'
   )
   exec_admin_graphql 'trial-balance' "$variables"
+  echo $(graphql_output)
 
   all_btc=$(graphql_output '.data.trialBalance.total.btc.balancesByLayer.all.netDebit')
   [[ "$all_btc" == "0" ]] || exit 1
