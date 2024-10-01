@@ -14,7 +14,7 @@ use crate::{
     terms::{CVLPct, TermValues},
 };
 
-use super::{disbursement::*, CreditFacilityError};
+use super::{disbursement::*, CreditFacilityCollateralUpdate, CreditFacilityError};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
@@ -366,6 +366,79 @@ impl CreditFacility {
             ),
             disbursed: CVLPct::from_loan_amounts(collateral_value, self.outstanding().total()),
         }
+    }
+
+    fn count_collateral_adjustments(&self) -> usize {
+        self.events
+            .iter()
+            .filter(|event| matches!(event, CreditFacilityEvent::CollateralUpdated { .. }))
+            .count()
+    }
+
+    pub(super) fn initiate_collateral_update(
+        &self,
+        updated_collateral: Satoshis,
+    ) -> Result<CreditFacilityCollateralUpdate, CreditFacilityError> {
+        let current_collateral = self.collateral();
+        let diff =
+            SignedSatoshis::from(updated_collateral) - SignedSatoshis::from(current_collateral);
+
+        if diff == SignedSatoshis::ZERO {
+            return Err(CreditFacilityError::CollateralNotUpdated(
+                current_collateral,
+                updated_collateral,
+            ));
+        }
+
+        let (collateral, action) = if diff > SignedSatoshis::ZERO {
+            (Satoshis::try_from(diff)?, CollateralAction::Add)
+        } else {
+            (Satoshis::try_from(diff.abs())?, CollateralAction::Remove)
+        };
+
+        let tx_ref = format!(
+            "{}-collateral-{}",
+            self.id,
+            self.count_collateral_adjustments() + 1
+        );
+
+        let tx_id = LedgerTxId::new();
+
+        Ok(CreditFacilityCollateralUpdate {
+            abs_diff: collateral,
+            credit_facility_account_ids: self.account_ids,
+            tx_ref,
+            tx_id,
+            action,
+        })
+    }
+
+    pub(super) fn confirm_collateral_update(
+        &mut self,
+        CreditFacilityCollateralUpdate {
+            tx_id,
+            tx_ref,
+            abs_diff,
+            action,
+            ..
+        }: CreditFacilityCollateralUpdate,
+        executed_at: DateTime<Utc>,
+        audit_info: AuditInfo,
+    ) {
+        let mut total_collateral = self.collateral();
+        total_collateral = match action {
+            CollateralAction::Add => total_collateral + abs_diff,
+            CollateralAction::Remove => total_collateral - abs_diff,
+        };
+        self.events.push(CreditFacilityEvent::CollateralUpdated {
+            tx_id,
+            tx_ref,
+            total_collateral,
+            abs_diff,
+            action,
+            recorded_in_ledger_at: executed_at,
+            audit_info,
+        });
     }
 }
 

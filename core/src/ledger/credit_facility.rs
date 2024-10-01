@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::primitives::{LedgerAccountId, LedgerTxId, UsdCents};
+use crate::primitives::{CollateralAction, LedgerAccountId, LedgerTxId, Satoshis, UsdCents};
 
 use super::{cala::graphql::*, error::*, CustomerLedgerAccountIds};
 
@@ -47,6 +47,15 @@ impl CreditFacilityBalance {
         }
         Ok(())
     }
+}
+
+#[derive(Debug, Clone)]
+pub struct CreditFacilityCollateralUpdate {
+    pub tx_ref: String,
+    pub tx_id: LedgerTxId,
+    pub abs_diff: Satoshis,
+    pub action: CollateralAction,
+    pub credit_facility_account_ids: CreditFacilityAccountIds,
 }
 
 #[derive(Debug, Clone)]
