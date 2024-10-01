@@ -23,6 +23,14 @@ teardown_file() {
       input: {
         customerId: $customerId,
         facility: $facility,
+        terms: {
+          annualRate: "12",
+          interval: "END_OF_MONTH",
+          duration: { period: "MONTHS", units: 3 },
+          liquidationCvl: "105",
+          marginCallCvl: "125",
+          initialCvl: "140"
+        }
       }
     }'
   )
