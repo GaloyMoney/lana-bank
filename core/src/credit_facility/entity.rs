@@ -11,7 +11,7 @@ use crate::{
         customer::CustomerLedgerAccountIds,
     },
     primitives::*,
-    terms::{CVLPct, CollaterizationState, TermValues},
+    terms::{CVLPct, CollateralizationState, TermValues},
 };
 
 use super::{disbursement::*, CreditFacilityCollateralUpdate, CreditFacilityError};
@@ -60,7 +60,7 @@ pub enum CreditFacilityEvent {
         recorded_in_ledger_at: DateTime<Utc>,
     },
     CollateralizationChanged {
-        state: CreditFacilityCollateralizationState,
+        state: CollateralizationState,
         collateral: Satoshis,
         outstanding: CreditFacilityReceivable,
         price: PriceOfOneBTC,
@@ -97,19 +97,6 @@ impl FacilityCVL {
     pub const ZERO: Self = Self {
         total: CVLPct::ZERO,
         disbursed: CVLPct::ZERO,
-    };
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize, Eq)]
-pub struct CreditFacilityCollateralizationState {
-    total: CollaterizationState,
-    disbursed: CollaterizationState,
-}
-
-impl CreditFacilityCollateralizationState {
-    pub const NO_COLLATERAL: Self = Self {
-        total: CollaterizationState::NoCollateral,
-        disbursed: CollaterizationState::NoCollateral,
     };
 }
 
@@ -400,9 +387,9 @@ impl CreditFacility {
         }
     }
 
-    pub fn last_facility_collateralization_state(&self) -> CreditFacilityCollateralizationState {
+    pub fn last_collateralization_state(&self) -> CollateralizationState {
         if self.status() == CreditFacilityStatus::Closed {
-            return CreditFacilityCollateralizationState::NO_COLLATERAL;
+            return CollateralizationState::NoCollateral;
         }
 
         self.events
@@ -412,7 +399,7 @@ impl CreditFacility {
                 CreditFacilityEvent::CollateralizationChanged { state, .. } => Some(*state),
                 _ => None,
             })
-            .unwrap_or(CreditFacilityCollateralizationState::NO_COLLATERAL)
+            .unwrap_or(CollateralizationState::NoCollateral)
     }
 
     pub fn maybe_update_collateralization(
@@ -420,39 +407,38 @@ impl CreditFacility {
         price: PriceOfOneBTC,
         upgrade_buffer_cvl_pct: CVLPct,
         audit_info: AuditInfo,
-    ) -> Option<CreditFacilityCollateralizationState> {
+    ) -> Option<CollateralizationState> {
         let facility_cvl = self.facility_cvl(price);
-        let last_facility_collateralization_state = self.last_facility_collateralization_state();
-        let status = self.status();
+        let last_collateralization_state = self.last_collateralization_state();
 
-        let collateralization_update_for_total = facility_cvl.total.collateralization_update(
-            self.terms,
-            upgrade_buffer_cvl_pct,
-            last_facility_collateralization_state.total,
-            status,
-        );
-
-        let collateralization_update_for_disbursed =
-            facility_cvl.disbursed.collateralization_update(
+        let collateralization_update = match self.status() {
+            CreditFacilityStatus::New => facility_cvl.total.collateralization_update(
                 self.terms,
-                upgrade_buffer_cvl_pct,
-                last_facility_collateralization_state.disbursed,
-                status,
-            );
+                last_collateralization_state,
+                None,
+                true,
+            ),
+            CreditFacilityStatus::Active => {
+                let cvl = if self.total_disbursed() == UsdCents::ZERO {
+                    facility_cvl.total
+                } else {
+                    facility_cvl.disbursed
+                };
 
-        if collateralization_update_for_total.is_some()
-            || collateralization_update_for_disbursed.is_some()
-        {
-            let calculated_collateralization = &CreditFacilityCollateralizationState {
-                total: collateralization_update_for_total
-                    .unwrap_or(last_facility_collateralization_state.total),
-                disbursed: collateralization_update_for_disbursed
-                    .unwrap_or(last_facility_collateralization_state.disbursed),
-            };
+                cvl.collateralization_update(
+                    self.terms,
+                    last_collateralization_state,
+                    Some(upgrade_buffer_cvl_pct),
+                    false,
+                )
+            }
+            CreditFacilityStatus::Closed => Some(CollateralizationState::NoCollateral),
+        };
 
+        if let Some(calculated_collateralization) = collateralization_update {
             self.events
                 .push(CreditFacilityEvent::CollateralizationChanged {
-                    state: *calculated_collateralization,
+                    state: calculated_collateralization,
                     collateral: self.collateral(),
                     outstanding: self.outstanding(),
                     price,
@@ -460,7 +446,7 @@ impl CreditFacility {
                     audit_info,
                 });
 
-            return Some(*calculated_collateralization);
+            return Some(calculated_collateralization);
         }
 
         None
@@ -524,7 +510,7 @@ impl CreditFacility {
         audit_info: AuditInfo,
         price: PriceOfOneBTC,
         upgrade_buffer_cvl_pct: CVLPct,
-    ) -> Option<CreditFacilityCollateralizationState> {
+    ) -> Option<CollateralizationState> {
         let mut total_collateral = self.collateral();
         total_collateral = match action {
             CollateralAction::Add => total_collateral + abs_diff,

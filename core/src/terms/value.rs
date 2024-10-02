@@ -4,12 +4,12 @@ use rust_decimal::{prelude::*, Decimal};
 use rust_decimal_macros::dec;
 use serde::{Deserialize, Serialize};
 
-use crate::primitives::{CreditFacilityStatus, PriceOfOneBTC, Satoshis, UsdCents};
+use crate::primitives::{PriceOfOneBTC, Satoshis, UsdCents};
 
 const NUMBER_OF_DAYS_IN_YEAR: Decimal = dec!(366);
 
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize, Eq, async_graphql::Enum)]
-pub enum CollaterizationState {
+pub enum CollateralizationState {
     FullyCollateralized,
     UnderMarginCallThreshold,
     UnderLiquidationThreshold,
@@ -91,79 +91,77 @@ impl CVLPct {
         other > *self + buffer
     }
 
-    pub fn collateralization(self, terms: TermValues) -> CollaterizationState {
+    pub fn collateralization(self, terms: TermValues) -> CollateralizationState {
         let margin_call_cvl = terms.margin_call_cvl;
         let liquidation_cvl = terms.liquidation_cvl;
 
         if self == CVLPct::ZERO {
-            CollaterizationState::NoCollateral
+            CollateralizationState::NoCollateral
         } else if self >= margin_call_cvl {
-            CollaterizationState::FullyCollateralized
+            CollateralizationState::FullyCollateralized
         } else if self >= liquidation_cvl {
-            CollaterizationState::UnderMarginCallThreshold
+            CollateralizationState::UnderMarginCallThreshold
         } else {
-            CollaterizationState::UnderLiquidationThreshold
+            CollateralizationState::UnderLiquidationThreshold
         }
     }
 
     pub fn collateralization_update(
         self,
         terms: TermValues,
-        upgrade_buffer_cvl_pct: CVLPct,
-        last_collateralization_state: CollaterizationState,
-        current_status: CreditFacilityStatus,
-    ) -> Option<CollaterizationState> {
+        last_collateralization_state: CollateralizationState,
+        upgrade_buffer_cvl_pct: Option<CVLPct>,
+        liquidation_upgrade_allowed: bool,
+    ) -> Option<CollateralizationState> {
         let calculated_collateralization = &self.collateralization(terms);
 
-        match (
-            current_status,
-            last_collateralization_state,
-            *calculated_collateralization,
-        ) {
+        match (last_collateralization_state, *calculated_collateralization) {
             // Redundant same state changes
-            (_, CollaterizationState::NoCollateral, CollaterizationState::NoCollateral)
+            (CollateralizationState::NoCollateral, CollateralizationState::NoCollateral)
             | (
-                _,
-                CollaterizationState::FullyCollateralized,
-                CollaterizationState::FullyCollateralized,
+                CollateralizationState::FullyCollateralized,
+                CollateralizationState::FullyCollateralized,
             )
             | (
-                _,
-                CollaterizationState::UnderMarginCallThreshold,
-                CollaterizationState::UnderMarginCallThreshold,
+                CollateralizationState::UnderMarginCallThreshold,
+                CollateralizationState::UnderMarginCallThreshold,
             )
             | (
-                _,
-                CollaterizationState::UnderLiquidationThreshold,
-                CollaterizationState::UnderLiquidationThreshold,
+                CollateralizationState::UnderLiquidationThreshold,
+                CollateralizationState::UnderLiquidationThreshold,
             ) => None,
 
-            // Invalid collateral liquidation changes
-            (CreditFacilityStatus::Active, CollaterizationState::UnderLiquidationThreshold, _) => {
-                None
-            }
-
-            // Valid buffered collateral upgraded change
-            (
-                CreditFacilityStatus::Active,
-                CollaterizationState::UnderMarginCallThreshold,
-                CollaterizationState::FullyCollateralized,
-            ) => {
-                if terms
-                    .margin_call_cvl
-                    .is_significantly_lower_than(self, upgrade_buffer_cvl_pct)
-                {
+            // Validated liquidation changes
+            (CollateralizationState::UnderLiquidationThreshold, _) => {
+                if liquidation_upgrade_allowed {
                     Some(*calculated_collateralization)
                 } else {
                     None
                 }
             }
 
+            // Optionally buffered collateral upgraded change
+            (
+                CollateralizationState::UnderMarginCallThreshold,
+                CollateralizationState::FullyCollateralized,
+            ) => match upgrade_buffer_cvl_pct {
+                Some(buffer) => {
+                    if terms
+                        .margin_call_cvl
+                        .is_significantly_lower_than(self, buffer)
+                    {
+                        Some(*calculated_collateralization)
+                    } else {
+                        None
+                    }
+                }
+                _ => Some(*calculated_collateralization),
+            },
+
             // Valid other collateral changes
-            (_, CollaterizationState::NoCollateral, _)
-            | (_, CollaterizationState::FullyCollateralized, _)
-            | (_, CollaterizationState::UnderMarginCallThreshold, _)
-            | (_, CollaterizationState::UnderLiquidationThreshold, _) => {
+            (CollateralizationState::NoCollateral, _)
+            | (CollateralizationState::FullyCollateralized, _)
+            | (CollateralizationState::UnderMarginCallThreshold, _) => {
                 Some(*calculated_collateralization)
             }
         }
