@@ -1,3 +1,4 @@
+mod config;
 mod disbursement;
 mod entity;
 pub mod error;
@@ -8,15 +9,20 @@ use crate::{
     customer::Customers,
     data_export::Export,
     ledger::{credit_facility::*, Ledger},
-    primitives::{CreditFacilityId, CustomerId, DisbursementIdx, Subject, UsdCents, UserId},
+    price::Price,
+    primitives::{
+        CreditFacilityId, CustomerId, DisbursementIdx, Satoshis, Subject, UsdCents, UserId,
+    },
     terms::TermValues,
     user::{UserRepo, Users},
 };
 
+pub use config::*;
 pub use disbursement::*;
 pub use entity::*;
 use error::*;
 use repo::*;
+use tracing::instrument;
 
 #[derive(Clone)]
 pub struct CreditFacilities {
@@ -27,16 +33,21 @@ pub struct CreditFacilities {
     disbursement_repo: DisbursementRepo,
     user_repo: UserRepo,
     ledger: Ledger,
+    price: Price,
+    config: CreditFacilityConfig,
 }
 
 impl CreditFacilities {
+    #[allow(clippy::too_many_arguments)]
     pub fn new(
         pool: &sqlx::PgPool,
+        config: CreditFacilityConfig,
         export: &Export,
         authz: &Authorization,
         customers: &Customers,
         users: &Users,
         ledger: &Ledger,
+        price: &Price,
     ) -> Self {
         let credit_facility_repo = CreditFacilityRepo::new(pool, export);
         let disbursement_repo = DisbursementRepo::new(pool, export);
@@ -49,9 +60,12 @@ impl CreditFacilities {
             disbursement_repo,
             user_repo: users.repo().clone(),
             ledger: ledger.clone(),
+            price: price.clone(),
+            config,
         }
     }
 
+    #[instrument(name = "lava.credit_facility.create", skip(self), err)]
     pub async fn create(
         &self,
         sub: &Subject,
@@ -96,6 +110,7 @@ impl CreditFacilities {
         Ok(credit_facility)
     }
 
+    #[instrument(name = "lava.credit_facility.add_approval", skip(self), err)]
     pub async fn add_approval(
         &self,
         sub: &Subject,
@@ -136,6 +151,7 @@ impl CreditFacilities {
         Ok(credit_facility)
     }
 
+    #[instrument(name = "lava.credit_facility.initiate_disbursement", skip(self), err)]
     pub async fn initiate_disbursement(
         &self,
         sub: &Subject,
@@ -175,6 +191,11 @@ impl CreditFacilities {
         Ok(disbursement)
     }
 
+    #[instrument(
+        name = "lava.credit_facility.add_disbursement_approval",
+        skip(self),
+        err
+    )]
     pub async fn add_disbursement_approval(
         &self,
         sub: &Subject,
@@ -231,5 +252,51 @@ impl CreditFacilities {
         db_tx.commit().await?;
 
         Ok(disbursement)
+    }
+
+    #[instrument(name = "lava.credit_facility.update_collateral", skip(self), err)]
+    pub async fn update_collateral(
+        &self,
+        sub: &Subject,
+        credit_facility_id: CreditFacilityId,
+        updated_collateral: Satoshis,
+    ) -> Result<CreditFacility, CreditFacilityError> {
+        let audit_info = self
+            .authz
+            .check_permission(
+                sub,
+                Object::CreditFacility,
+                CreditFacilityAction::UpdateCollateral,
+            )
+            .await?;
+
+        let price = self.price.usd_cents_per_btc().await?;
+
+        let mut credit_facility = self
+            .credit_facility_repo
+            .find_by_id(credit_facility_id)
+            .await?;
+
+        let credit_facility_collateral_update =
+            credit_facility.initiate_collateral_update(updated_collateral)?;
+
+        let mut db_tx = self.pool.begin().await?;
+        let executed_at = self
+            .ledger
+            .update_credit_facility_collateral(credit_facility_collateral_update.clone())
+            .await?;
+
+        credit_facility.confirm_collateral_update(
+            credit_facility_collateral_update,
+            executed_at,
+            audit_info,
+            price,
+            self.config.upgrade_buffer_cvl_pct,
+        );
+        self.credit_facility_repo
+            .persist_in_tx(&mut db_tx, &mut credit_facility)
+            .await?;
+        db_tx.commit().await?;
+        Ok(credit_facility)
     }
 }

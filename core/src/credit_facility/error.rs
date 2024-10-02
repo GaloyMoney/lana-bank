@@ -12,6 +12,8 @@ pub enum CreditFacilityError {
     JobError(#[from] crate::job::error::JobError),
     #[error("CreditFacilityError - LedgerError: {0}")]
     LedgerError(#[from] crate::ledger::error::LedgerError),
+    #[error("LoanError - PriceError: {0}")]
+    PriceError(#[from] crate::price::error::PriceError),
     #[error("CreditFacilityError - AuthorizationError: {0}")]
     AuthorizationError(#[from] crate::authorization::error::AuthorizationError),
     #[error("CreditFacilityError - ConversionError: {0}")]

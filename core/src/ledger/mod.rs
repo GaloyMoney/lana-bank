@@ -373,6 +373,46 @@ impl Ledger {
         Ok(created_at)
     }
 
+    #[instrument(
+        name = "lava.ledger.manage_credit_facility_collateral",
+        skip(self),
+        err
+    )]
+    pub async fn update_credit_facility_collateral(
+        &self,
+        CreditFacilityCollateralUpdate {
+            tx_id,
+            credit_facility_account_ids,
+            abs_diff,
+            tx_ref,
+            action,
+        }: CreditFacilityCollateralUpdate,
+    ) -> Result<chrono::DateTime<chrono::Utc>, LedgerError> {
+        let created_at = match action {
+            CollateralAction::Add => {
+                self.cala
+                    .add_credit_facility_collateral(
+                        tx_id,
+                        credit_facility_account_ids,
+                        abs_diff.to_btc(),
+                        tx_ref,
+                    )
+                    .await
+            }
+            CollateralAction::Remove => {
+                self.cala
+                    .remove_credit_facility_collateral(
+                        tx_id,
+                        credit_facility_account_ids,
+                        abs_diff.to_btc(),
+                        tx_ref,
+                    )
+                    .await
+            }
+        }?;
+        Ok(created_at)
+    }
+
     #[instrument(name = "lava.ledger.create_accounts_for_loan", skip(self), err)]
     pub async fn create_accounts_for_loan(
         &self,
