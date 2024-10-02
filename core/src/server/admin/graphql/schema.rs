@@ -547,15 +547,15 @@ impl Mutation {
         Ok(LoanPartialPaymentPayload::from(loan))
     }
 
-    pub async fn collateral_update(
+    pub async fn loan_collateral_update(
         &self,
         ctx: &Context<'_>,
-        input: CollateralUpdateInput,
-    ) -> async_graphql::Result<CollateralUpdatePayload> {
+        input: LoanCollateralUpdateInput,
+    ) -> async_graphql::Result<LoanCollateralUpdatePayload> {
         let app = ctx.data_unchecked::<LavaApp>();
         let AdminAuthContext { sub } = ctx.data()?;
 
-        let CollateralUpdateInput {
+        let LoanCollateralUpdateInput {
             loan_id,
             collateral,
         } = input;
@@ -563,7 +563,7 @@ impl Mutation {
             .loans()
             .update_collateral(sub, loan_id.into(), collateral)
             .await?;
-        Ok(CollateralUpdatePayload::from(loan))
+        Ok(LoanCollateralUpdatePayload::from(loan))
     }
 
     pub async fn collateralization_state_update(

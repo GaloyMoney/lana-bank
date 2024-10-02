@@ -98,17 +98,17 @@ impl CursorType for LoanByCollateralizationRatioCursor {
 }
 
 #[derive(InputObject)]
-pub struct CollateralUpdateInput {
+pub struct LoanCollateralUpdateInput {
     pub loan_id: UUID,
     pub collateral: Satoshis,
 }
 
 #[derive(SimpleObject)]
-pub struct CollateralUpdatePayload {
+pub struct LoanCollateralUpdatePayload {
     loan: Loan,
 }
 
-impl From<crate::loan::Loan> for CollateralUpdatePayload {
+impl From<crate::loan::Loan> for LoanCollateralUpdatePayload {
     fn from(loan: crate::loan::Loan) -> Self {
         Self { loan: loan.into() }
     }

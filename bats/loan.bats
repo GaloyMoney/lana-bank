@@ -84,8 +84,8 @@ wait_for_interest() {
       }
     }'
   )
-  exec_admin_graphql 'collateral-update' "$variables"
-  loan_id=$(graphql_output '.data.collateralUpdate.loan.loanId')
+  exec_admin_graphql 'loan-collateral-update' "$variables"
+  loan_id=$(graphql_output '.data.loanCollateralUpdate.loan.loanId')
   [[ "$loan_id" != "null" ]] || exit 1
 
   variables=$(
@@ -253,7 +253,7 @@ wait_for_interest() {
         }
       }'
     )
-    exec_admin_graphql 'collateral-update' "$variables"
+    exec_admin_graphql 'loan-collateral-update' "$variables"
 
       variables=$(
         jq -n \
@@ -343,8 +343,8 @@ wait_for_interest() {
       }
     }'
   )
-  exec_admin_graphql 'collateral-update' "$variables"
-  loan_id=$(graphql_output '.data.collateralUpdate.loan.loanId')
+  exec_admin_graphql 'loan-collateral-update' "$variables"
+  loan_id=$(graphql_output '.data.loanCollateralUpdate.loan.loanId')
   [[ "$loan_id" != "null" ]] || exit 1
 
   variables=$(
@@ -371,8 +371,8 @@ wait_for_interest() {
       }
     }'
   )
-  exec_admin_graphql 'collateral-update' "$variables"
-  loan_id=$(graphql_output '.data.collateralUpdate.loan.loanId')
+  exec_admin_graphql 'loan-collateral-update' "$variables"
+  loan_id=$(graphql_output '.data.loanCollateralUpdate.loan.loanId')
   [[ "$loan_id" != "null" ]] || exit 1
 
 
@@ -386,8 +386,8 @@ wait_for_interest() {
       }
     }'
   )
-  exec_admin_graphql 'collateral-update' "$variables"
-  collateralization_state=$(graphql_output '.data.collateralUpdate.loan.collateralizationState')
+  exec_admin_graphql 'loan-collateral-update' "$variables"
+  collateralization_state=$(graphql_output '.data.loanCollateralUpdate.loan.collateralizationState')
   [[ "$collateralization_state" == "UNDER_LIQUIDATION_THRESHOLD" ]] || exit 1
 
   variables=$(

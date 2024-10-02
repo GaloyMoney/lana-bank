@@ -22,8 +22,8 @@ import Balance from "@/components/balance/balance"
 import { Label } from "@/components/primitive/label"
 
 gql`
-  mutation CollateralUpdate($input: CollateralUpdateInput!) {
-    collateralUpdate(input: $input) {
+  mutation CollateralUpdate($input: LoanCollateralUpdateInput!) {
+    loanCollateralUpdate(input: $input) {
       loan {
         loanId
         balance {

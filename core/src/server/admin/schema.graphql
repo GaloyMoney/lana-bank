@@ -146,15 +146,6 @@ enum CollateralAction {
 	REMOVE
 }
 
-input CollateralUpdateInput {
-	loanId: UUID!
-	collateral: Satoshis!
-}
-
-type CollateralUpdatePayload {
-	loan: Loan!
-}
-
 type CollateralUpdated {
 	satoshis: Satoshis!
 	recordedAt: Timestamp!
@@ -431,6 +422,15 @@ type LoanBalance {
 	interestIncurred: InterestIncome!
 }
 
+input LoanCollateralUpdateInput {
+	loanId: UUID!
+	collateral: Satoshis!
+}
+
+type LoanCollateralUpdatePayload {
+	loan: Loan!
+}
+
 enum LoanCollaterizationState {
 	FULLY_COLLATERALIZED
 	UNDER_MARGIN_CALL_THRESHOLD
@@ -531,7 +531,7 @@ type Mutation {
 	loanCreate(input: LoanCreateInput!): LoanCreatePayload!
 	loanApprove(input: LoanApproveInput!): LoanApprovePayload!
 	loanPartialPayment(input: LoanPartialPaymentInput!): LoanPartialPaymentPayload!
-	collateralUpdate(input: CollateralUpdateInput!): CollateralUpdatePayload!
+	loanCollateralUpdate(input: LoanCollateralUpdateInput!): LoanCollateralUpdatePayload!
 	collateralizationStateUpdate(input: CollateralizationStateUpdateInput!): CollateralizationStateUpdatePayload!
 	creditFacilityCreate(input: CreditFacilityCreateInput!): CreditFacilityCreatePayload!
 	creditFacilityApprove(input: CreditFacilityApproveInput!): CreditFacilityApprovePayload!
