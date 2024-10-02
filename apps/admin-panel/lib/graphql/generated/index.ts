@@ -211,6 +211,16 @@ export type CreditFacilityApprovePayload = {
   creditFacility: CreditFacility;
 };
 
+export type CreditFacilityCollateralUpdateInput = {
+  collateral: Scalars['Satoshis']['input'];
+  creditFacilityId: Scalars['UUID']['input'];
+};
+
+export type CreditFacilityCollateralUpdatePayload = {
+  __typename?: 'CreditFacilityCollateralUpdatePayload';
+  creditFacility: CreditFacility;
+};
+
 export type CreditFacilityCreateInput = {
   customerId: Scalars['UUID']['input'];
   facility: Scalars['UsdCents']['input'];
@@ -551,6 +561,7 @@ export type Mutation = {
   __typename?: 'Mutation';
   collateralizationStateUpdate: CollateralizationStateUpdatePayload;
   creditFacilityApprove: CreditFacilityApprovePayload;
+  creditFacilityCollateralUpdate: CreditFacilityCollateralUpdatePayload;
   creditFacilityCreate: CreditFacilityCreatePayload;
   creditFacilityDisbursementApprove: CreditFacilityDisbursementApprovePayload;
   creditFacilityDisbursementInitiate: CreditFacilityDisbursementInitiatePayload;
@@ -582,6 +593,11 @@ export type MutationCollateralizationStateUpdateArgs = {
 
 export type MutationCreditFacilityApproveArgs = {
   input: CreditFacilityApproveInput;
+};
+
+
+export type MutationCreditFacilityCollateralUpdateArgs = {
+  input: CreditFacilityCollateralUpdateInput;
 };
 
 

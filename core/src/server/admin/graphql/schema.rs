@@ -628,6 +628,25 @@ impl Mutation {
         Ok(CreditFacilityApprovePayload::from(credit_facility))
     }
 
+    pub async fn credit_facility_collateral_update(
+        &self,
+        ctx: &Context<'_>,
+        input: CreditFacilityCollateralUpdateInput,
+    ) -> async_graphql::Result<CreditFacilityCollateralUpdatePayload> {
+        let app = ctx.data_unchecked::<LavaApp>();
+        let AdminAuthContext { sub } = ctx.data()?;
+
+        let CreditFacilityCollateralUpdateInput {
+            credit_facility_id,
+            collateral,
+        } = input;
+        let credit_facility = app
+            .credit_facilities()
+            .update_collateral(sub, credit_facility_id.into(), collateral)
+            .await?;
+        Ok(CreditFacilityCollateralUpdatePayload::from(credit_facility))
+    }
+
     pub async fn deposit_record(
         &self,
         ctx: &Context<'_>,

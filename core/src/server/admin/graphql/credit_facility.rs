@@ -1,7 +1,7 @@
 use async_graphql::*;
 
 use crate::{
-    primitives::UsdCents,
+    primitives::{Satoshis, UsdCents},
     server::shared_graphql::{convert::ToGlobalId, primitives::UUID, terms::*},
 };
 
@@ -122,6 +122,25 @@ impl From<crate::credit_facility::Disbursement> for CreditFacilityDisbursementAp
     fn from(disbursement: crate::credit_facility::Disbursement) -> Self {
         Self {
             disbursement: CreditFacilityDisbursement::from(disbursement),
+        }
+    }
+}
+
+#[derive(InputObject)]
+pub struct CreditFacilityCollateralUpdateInput {
+    pub credit_facility_id: UUID,
+    pub collateral: Satoshis,
+}
+
+#[derive(SimpleObject)]
+pub struct CreditFacilityCollateralUpdatePayload {
+    credit_facility: CreditFacility,
+}
+
+impl From<crate::credit_facility::CreditFacility> for CreditFacilityCollateralUpdatePayload {
+    fn from(credit_facility: crate::credit_facility::CreditFacility) -> Self {
+        Self {
+            credit_facility: credit_facility.into(),
         }
     }
 }
