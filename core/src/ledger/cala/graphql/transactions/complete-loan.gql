@@ -37,7 +37,7 @@ mutation PostCompleteLoanTransaction(
       transactionId: $collateralTransactionId
       txTemplateCode: "REMOVE_COLLATERAL"
       params: {
-        loanCollateralAccount: $loanCollateralAccount
+        collateralAccount: $loanCollateralAccount
         collateralAmount: $collateralAmount
         externalId: $collateralExternalId
       }

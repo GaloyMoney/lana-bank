@@ -226,7 +226,7 @@ impl Loans {
         let mut db_tx = self.pool.begin().await?;
         let executed_at = self
             .ledger
-            .update_collateral(loan_collateral_update.clone())
+            .update_loan_collateral(loan_collateral_update.clone())
             .await?;
 
         loan.confirm_collateral_update(

@@ -347,8 +347,8 @@ impl Ledger {
             .await?)
     }
 
-    #[instrument(name = "lava.ledger.manage_collateral", skip(self), err)]
-    pub async fn update_collateral(
+    #[instrument(name = "lava.ledger.manage_loan_collateral", skip(self), err)]
+    pub async fn update_loan_collateral(
         &self,
         LoanCollateralUpdate {
             tx_id,
@@ -361,12 +361,12 @@ impl Ledger {
         let created_at = match action {
             CollateralAction::Add => {
                 self.cala
-                    .add_collateral(tx_id, loan_account_ids, abs_diff.to_btc(), tx_ref)
+                    .add_loan_collateral(tx_id, loan_account_ids, abs_diff.to_btc(), tx_ref)
                     .await
             }
             CollateralAction::Remove => {
                 self.cala
-                    .remove_collateral(tx_id, loan_account_ids, abs_diff.to_btc(), tx_ref)
+                    .remove_loan_collateral(tx_id, loan_account_ids, abs_diff.to_btc(), tx_ref)
                     .await
             }
         }?;

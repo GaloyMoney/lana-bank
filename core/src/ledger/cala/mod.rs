@@ -1053,7 +1053,7 @@ impl CalaClient {
             .ok_or_else(|| CalaError::MissingDataField)
     }
 
-    pub async fn add_collateral(
+    pub async fn add_loan_collateral(
         &self,
         transaction_id: LedgerTxId,
         loan_account_ids: LoanAccountIds,
@@ -1062,7 +1062,7 @@ impl CalaClient {
     ) -> Result<chrono::DateTime<chrono::Utc>, CalaError> {
         let variables = post_add_collateral_transaction::Variables {
             transaction_id: transaction_id.into(),
-            loan_collateral_account: loan_account_ids.collateral_account_id.into(),
+            collateral_account: loan_account_ids.collateral_account_id.into(),
             collateral_amount,
             external_id,
         };
@@ -1119,7 +1119,7 @@ impl CalaClient {
             .ok_or_else(|| CalaError::MissingDataField)
     }
 
-    pub async fn remove_collateral(
+    pub async fn remove_loan_collateral(
         &self,
         transaction_id: LedgerTxId,
         loan_account_ids: LoanAccountIds,
@@ -1128,7 +1128,7 @@ impl CalaClient {
     ) -> Result<chrono::DateTime<chrono::Utc>, CalaError> {
         let variables = post_remove_collateral_transaction::Variables {
             transaction_id: transaction_id.into(),
-            loan_collateral_account: loan_account_ids.collateral_account_id.into(),
+            collateral_account: loan_account_ids.collateral_account_id.into(),
             collateral_amount,
             external_id,
         };

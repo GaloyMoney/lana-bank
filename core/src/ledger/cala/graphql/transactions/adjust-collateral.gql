@@ -7,17 +7,17 @@ mutation AddCollateralTemplateCreate(
     input: {
       txTemplateId: $templateId
       code: "ADD_COLLATERAL"
-      description: "Add collateral to the loan."
+      description: "Add collateral to a lending product."
       params: [
         {
-          name: "loanCollateralAccount"
+          name: "collateralAccount"
           type: UUID
-          description: "Loan Collateral account ID."
+          description: "Lending Product Collateral account ID."
         }
         {
           name: "collateralAmount"
           type: DECIMAL
-          description: "Amount of BTC being put into the loan."
+          description: "Amount of BTC being put into the lending product."
         }
         {
           name: "externalId"
@@ -46,7 +46,7 @@ mutation AddCollateralTemplateCreate(
           layer: "SETTLED"
         }
         {
-          accountId: "params.loanCollateralAccount"
+          accountId: "params.collateralAccount"
           units: "params.collateralAmount"
           currency: "'BTC'"
           entryType: "'ADD_COLLATERAL_CR'"
@@ -73,17 +73,17 @@ mutation RemoveCollateralTemplateCreate(
     input: {
       txTemplateId: $templateId
       code: "REMOVE_COLLATERAL"
-      description: "Remove collateral from the loan."
+      description: "Remove collateral from the lending product."
       params: [
         {
-          name: "loanCollateralAccount"
+          name: "collateralAccount"
           type: UUID
-          description: "Loan Collateral account ID."
+          description: "Lending Product Collateral account ID."
         }
         {
           name: "collateralAmount"
           type: DECIMAL
-          description: "Amount of BTC being removed from the loan."
+          description: "Amount of BTC being removed from the lending product."
         }
         {
           name: "externalId"
@@ -104,7 +104,7 @@ mutation RemoveCollateralTemplateCreate(
       }
       entries: [
         {
-          accountId: "params.loanCollateralAccount"
+          accountId: "params.collateralAccount"
           units: "params.collateralAmount"
           currency: "'BTC'"
           entryType: "'REMOVE_COLLATERAL_DR'"
@@ -132,7 +132,7 @@ mutation RemoveCollateralTemplateCreate(
 
 mutation PostAddCollateralTransaction(
   $transactionId: UUID!
-  $loanCollateralAccount: UUID!
+  $collateralAccount: UUID!
   $collateralAmount: Decimal!
   $externalId: String!
 ) {
@@ -141,7 +141,7 @@ mutation PostAddCollateralTransaction(
       transactionId: $transactionId
       txTemplateCode: "ADD_COLLATERAL"
       params: {
-        loanCollateralAccount: $loanCollateralAccount
+        collateralAccount: $collateralAccount
         collateralAmount: $collateralAmount
         externalId: $externalId
       }
@@ -157,7 +157,7 @@ mutation PostAddCollateralTransaction(
 
 mutation PostRemoveCollateralTransaction(
   $transactionId: UUID!
-  $loanCollateralAccount: UUID!
+  $collateralAccount: UUID!
   $collateralAmount: Decimal!
   $externalId: String!
 ) {
@@ -166,7 +166,7 @@ mutation PostRemoveCollateralTransaction(
       transactionId: $transactionId
       txTemplateCode: "REMOVE_COLLATERAL"
       params: {
-        loanCollateralAccount: $loanCollateralAccount
+        collateralAccount: $collateralAccount
         collateralAmount: $collateralAmount
         externalId: $externalId
       }
