@@ -219,10 +219,22 @@ impl CalaClient {
         CreditFacilityAccountIds {
             facility_account_id,
             disbursed_receivable_account_id,
+            collateral_account_id,
         }: CreditFacilityAccountIds,
     ) -> Result<(), CalaError> {
         let credit_facility_id = credit_facility_id.into();
         let variables = create_credit_facility_accounts::Variables {
+            facility_collateral_account_id: Uuid::from(collateral_account_id),
+            facility_collateral_account_code: format!(
+                "CREDIT_FACILITY.COLLATERAL.{}",
+                credit_facility_id
+            ),
+            facility_collateral_account_name: format!(
+                "Credit Facility Collateral Account for {}",
+                credit_facility_id
+            ),
+            facilities_collateral_control_account_set_id:
+                super::constants::CREDIT_FACILITIES_COLLATERAL_CONTROL_ACCOUNT_SET_ID,
             facility_account_id: Uuid::from(facility_account_id),
             facility_account_code: format!("CREDIT_FACILITY.OBS_FACILITY.{}", credit_facility_id),
             facility_account_name: format!(

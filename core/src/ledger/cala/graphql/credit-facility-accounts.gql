@@ -1,4 +1,8 @@
 mutation CreateCreditFacilityAccounts(
+  $facilityCollateralAccountId: UUID!
+  $facilityCollateralAccountCode: String!
+  $facilityCollateralAccountName: String!
+  $facilitiesCollateralControlAccountSetId: UUID!
   $facilityAccountId: UUID!
   $facilityAccountCode: String!
   $facilityAccountName: String!
@@ -8,6 +12,18 @@ mutation CreateCreditFacilityAccounts(
   $facilityDisbursedReceivableAccountName: String!
   $facilitiesDisbursedReceivableControlAccountSetId: UUID!
 ) {
+  collateral: accountCreate(
+    input: {
+      accountId: $facilityCollateralAccountId
+      code: $facilityCollateralAccountCode
+      name: $facilityCollateralAccountName
+      accountSetIds: [$facilitiesCollateralControlAccountSetId]
+    }
+  ) {
+    account {
+      accountId
+    }
+  }
   facility: accountCreate(
     input: {
       accountId: $facilityAccountId
