@@ -38,4 +38,8 @@ pub enum CreditFacilityError {
     DisbursementInProgress,
     #[error("CreditFacilityError - CollateralNotUpdated: before({0}), after({1})")]
     CollateralNotUpdated(Satoshis, Satoshis),
+    #[error("CreditFacilityError - NoCollateral")]
+    NoCollateral,
+    #[error("CreditFacilityError - BelowMarginLimit")]
+    BelowMarginLimit,
 }

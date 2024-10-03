@@ -132,9 +132,10 @@ impl CreditFacilities {
         let user = self.user_repo.find_by_id(UserId::from(subject_id)).await?;
 
         let mut db_tx = self.pool.begin().await?;
+        let price = self.price.usd_cents_per_btc().await?;
 
         if let Some(credit_facility_approval) =
-            credit_facility.add_approval(user.id, user.current_roles(), audit_info)?
+            credit_facility.add_approval(user.id, user.current_roles(), audit_info, price)?
         {
             let executed_at = self
                 .ledger
