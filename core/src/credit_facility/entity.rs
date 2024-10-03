@@ -635,14 +635,21 @@ mod test {
         }
     }
 
+    fn default_price() -> PriceOfOneBTC {
+        PriceOfOneBTC::new(UsdCents::from(5000000))
+    }
+
+    fn default_upgrade_buffer_cvl_pct() -> CVLPct {
+        CVLPct::new(5)
+    }
+
     fn facility_from(events: &Vec<CreditFacilityEvent>) -> CreditFacility {
         CreditFacility::try_from(EntityEvents::init(CreditFacilityId::new(), events.clone()))
             .unwrap()
     }
 
-    #[test]
-    fn is_disbursement_in_progress() {
-        let mut events = vec![CreditFacilityEvent::Initialized {
+    fn initial_events() -> Vec<CreditFacilityEvent> {
+        vec![CreditFacilityEvent::Initialized {
             id: CreditFacilityId::new(),
             audit_info: dummy_audit_info(),
             customer_id: CustomerId::new(),
@@ -650,7 +657,12 @@ mod test {
             terms: terms(),
             account_ids: CreditFacilityAccountIds::new(),
             customer_account_ids: CustomerLedgerAccountIds::new(),
-        }];
+        }]
+    }
+
+    #[test]
+    fn is_disbursement_in_progress() {
+        let mut events = initial_events();
 
         let first_idx = DisbursementIdx::FIRST;
         events.push(CreditFacilityEvent::DisbursementInitiated {
@@ -672,5 +684,62 @@ mod test {
         assert!(facility_from(&events)
             .initiate_disbursement(dummy_audit_info(), UsdCents::ONE)
             .is_ok());
+    }
+
+    #[test]
+    fn outstanding() {
+        let mut events = initial_events();
+        events.extend([
+            CreditFacilityEvent::DisbursementInitiated {
+                idx: DisbursementIdx::FIRST,
+                amount: UsdCents::from(100),
+                audit_info: dummy_audit_info(),
+            },
+            CreditFacilityEvent::DisbursementConcluded {
+                idx: DisbursementIdx::FIRST,
+                tx_id: LedgerTxId::new(),
+                recorded_at: Utc::now(),
+                audit_info: dummy_audit_info(),
+            },
+        ]);
+        let credit_facility = facility_from(&events);
+
+        assert_eq!(
+            credit_facility.outstanding(),
+            CreditFacilityReceivable {
+                disbursed: UsdCents::from(100),
+                interest: UsdCents::ZERO
+            }
+        );
+    }
+
+    #[test]
+    fn collateral() {
+        let mut credit_facility = facility_from(&initial_events());
+        assert_eq!(credit_facility.collateral(), Satoshis::ZERO);
+
+        let credit_facility_collateral_update = credit_facility
+            .initiate_collateral_update(Satoshis::from(10000))
+            .unwrap();
+        credit_facility.confirm_collateral_update(
+            credit_facility_collateral_update,
+            Utc::now(),
+            dummy_audit_info(),
+            default_price(),
+            default_upgrade_buffer_cvl_pct(),
+        );
+        assert_eq!(credit_facility.collateral(), Satoshis::from(10000));
+
+        let credit_facility_collateral_update = credit_facility
+            .initiate_collateral_update(Satoshis::from(5000))
+            .unwrap();
+        credit_facility.confirm_collateral_update(
+            credit_facility_collateral_update,
+            Utc::now(),
+            dummy_audit_info(),
+            default_price(),
+            default_upgrade_buffer_cvl_pct(),
+        );
+        assert_eq!(credit_facility.collateral(), Satoshis::from(5000));
     }
 }
