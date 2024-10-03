@@ -111,7 +111,7 @@ impl CVLPct {
         terms: TermValues,
         last_collateralization_state: CollateralizationState,
         upgrade_buffer_cvl_pct: Option<CVLPct>,
-        liquidation_upgrade_allowed: bool,
+        liquidation_upgrade_blocked: bool,
     ) -> Option<CollateralizationState> {
         let calculated_collateralization = &self.collateralization(terms);
 
@@ -133,10 +133,10 @@ impl CVLPct {
 
             // Validated liquidation changes
             (CollateralizationState::UnderLiquidationThreshold, _) => {
-                if liquidation_upgrade_allowed {
-                    Some(*calculated_collateralization)
-                } else {
+                if liquidation_upgrade_blocked {
                     None
+                } else {
+                    Some(*calculated_collateralization)
                 }
             }
 
@@ -496,7 +496,7 @@ mod test {
             last_state: CollateralizationState,
             cvl: CVLPct,
         ) -> Option<CollateralizationState> {
-            cvl.collateralization_update(default_terms(), last_state, None, true)
+            cvl.collateralization_update(default_terms(), last_state, None, false)
         }
 
         fn collateralization_update_with_buffer(
@@ -507,7 +507,7 @@ mod test {
                 default_terms(),
                 last_state,
                 Some(default_upgrade_buffer_cvl_pct()),
-                true,
+                false,
             )
         }
 
@@ -515,7 +515,7 @@ mod test {
             last_state: CollateralizationState,
             cvl: CVLPct,
         ) -> Option<CollateralizationState> {
-            cvl.collateralization_update(default_terms(), last_state, None, false)
+            cvl.collateralization_update(default_terms(), last_state, None, true)
         }
 
         fn all_collaterization_update_fns(
