@@ -5,6 +5,8 @@ CREATE TABLE customers (
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
+CREATE INDEX idx_customers_email_id ON customers (email, id);
+
 CREATE TABLE customer_events (
   id UUID NOT NULL REFERENCES customers(id),
   sequence INT NOT NULL,
