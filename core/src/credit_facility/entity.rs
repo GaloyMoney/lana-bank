@@ -374,9 +374,6 @@ impl CreditFacility {
 
     pub fn facility_cvl(&self, price: PriceOfOneBTC) -> FacilityCVL {
         let collateral_value = price.sats_to_cents_round_down(self.collateral());
-        if collateral_value == UsdCents::ZERO {
-            return FacilityCVL::ZERO;
-        }
 
         FacilityCVL {
             total: CVLPct::from_loan_amounts(

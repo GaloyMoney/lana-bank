@@ -80,6 +80,10 @@ impl CVLPct {
         collateral_value: UsdCents,
         total_outstanding_amount: UsdCents,
     ) -> Self {
+        if collateral_value == UsdCents::ZERO || total_outstanding_amount == UsdCents::ZERO {
+            return CVLPct::ZERO;
+        }
+
         let ratio = (collateral_value.to_usd() / total_outstanding_amount.to_usd())
             .round_dp_with_strategy(2, RoundingStrategy::ToZero)
             * dec!(100);
@@ -335,6 +339,21 @@ mod test {
         let expected_cvl = CVLPct(dec!(75));
         let collateral_value = UsdCents::from(75000);
         let outstanding_amount = UsdCents::from(100000);
+        let cvl = CVLPct::from_loan_amounts(collateral_value, outstanding_amount);
+        assert_eq!(cvl, expected_cvl);
+    }
+
+    #[test]
+    fn current_cvl_for_zero_amounts() {
+        let expected_cvl = CVLPct::ZERO;
+        let collateral_value = UsdCents::ZERO;
+        let outstanding_amount = UsdCents::from(100000);
+        let cvl = CVLPct::from_loan_amounts(collateral_value, outstanding_amount);
+        assert_eq!(cvl, expected_cvl);
+
+        let expected_cvl = CVLPct::ZERO;
+        let collateral_value = UsdCents::from(75000);
+        let outstanding_amount = UsdCents::ZERO;
         let cvl = CVLPct::from_loan_amounts(collateral_value, outstanding_amount);
         assert_eq!(cvl, expected_cvl);
     }
