@@ -650,6 +650,21 @@ impl Mutation {
         Ok(CreditFacilityCollateralUpdatePayload::from(credit_facility))
     }
 
+    pub async fn credit_facility_partial_payment(
+        &self,
+        ctx: &Context<'_>,
+        input: CreditFacilityPartialPaymentInput,
+    ) -> async_graphql::Result<CreditFacilityPartialPaymentPayload> {
+        let app = ctx.data_unchecked::<LavaApp>();
+        let AdminAuthContext { sub } = ctx.data()?;
+
+        let credit_facility = app
+            .credit_facilities()
+            .record_payment(sub, input.credit_facility_id.into(), input.amount)
+            .await?;
+        Ok(CreditFacilityPartialPaymentPayload::from(credit_facility))
+    }
+
     pub async fn deposit_record(
         &self,
         ctx: &Context<'_>,

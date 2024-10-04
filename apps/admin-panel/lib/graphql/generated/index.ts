@@ -258,6 +258,16 @@ export type CreditFacilityDisbursementInitiatePayload = {
   disbursement: CreditFacilityDisbursement;
 };
 
+export type CreditFacilityPartialPaymentInput = {
+  amount: Scalars['UsdCents']['input'];
+  creditFacilityId: Scalars['UUID']['input'];
+};
+
+export type CreditFacilityPartialPaymentPayload = {
+  __typename?: 'CreditFacilityPartialPaymentPayload';
+  creditFacility: CreditFacility;
+};
+
 export type Customer = {
   __typename?: 'Customer';
   applicantId?: Maybe<Scalars['String']['output']>;
@@ -572,6 +582,7 @@ export type Mutation = {
   creditFacilityCreate: CreditFacilityCreatePayload;
   creditFacilityDisbursementApprove: CreditFacilityDisbursementApprovePayload;
   creditFacilityDisbursementInitiate: CreditFacilityDisbursementInitiatePayload;
+  creditFacilityPartialPayment: CreditFacilityPartialPaymentPayload;
   customerCreate: CustomerCreatePayload;
   customerUpdate: CustomerUpdatePayload;
   depositRecord: DepositRecordPayload;
@@ -621,6 +632,11 @@ export type MutationCreditFacilityDisbursementApproveArgs = {
 
 export type MutationCreditFacilityDisbursementInitiateArgs = {
   input: CreditFacilityDisbursementInitiateInput;
+};
+
+
+export type MutationCreditFacilityPartialPaymentArgs = {
+  input: CreditFacilityPartialPaymentInput;
 };
 
 

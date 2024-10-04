@@ -68,6 +68,25 @@ impl From<crate::credit_facility::CreditFacility> for CreditFacilityCreatePayloa
     }
 }
 
+#[derive(InputObject)]
+pub struct CreditFacilityPartialPaymentInput {
+    pub credit_facility_id: UUID,
+    pub amount: UsdCents,
+}
+
+#[derive(SimpleObject)]
+pub struct CreditFacilityPartialPaymentPayload {
+    credit_facility: CreditFacility,
+}
+
+impl From<crate::credit_facility::CreditFacility> for CreditFacilityPartialPaymentPayload {
+    fn from(credit_facility: crate::credit_facility::CreditFacility) -> Self {
+        Self {
+            credit_facility: credit_facility.into(),
+        }
+    }
+}
+
 #[derive(SimpleObject)]
 pub struct CreditFacilityDisbursement {
     id: ID,
