@@ -1226,4 +1226,41 @@ mod test {
             assert_eq!(credit_facility.status(), CreditFacilityStatus::Active);
         }
     }
+
+    #[test]
+    fn confirm_repayment() {
+        let mut events = initial_events();
+        events.extend([
+            CreditFacilityEvent::DisbursementInitiated {
+                idx: DisbursementIdx::FIRST,
+                amount: UsdCents::from(100),
+                audit_info: dummy_audit_info(),
+            },
+            CreditFacilityEvent::DisbursementConcluded {
+                idx: DisbursementIdx::FIRST,
+                tx_id: LedgerTxId::new(),
+                recorded_at: Utc::now(),
+                audit_info: dummy_audit_info(),
+            },
+        ]);
+        let mut credit_facility = facility_from(&events);
+
+        let _repayment_amount = UsdCents::from(5);
+        let repayment = credit_facility
+            .initiate_repayment(_repayment_amount)
+            .unwrap();
+        let outstanding_before_repayment = credit_facility.outstanding();
+
+        credit_facility.confirm_repayment(
+            repayment,
+            Utc::now(),
+            dummy_audit_info(),
+            default_price(),
+            default_upgrade_buffer_cvl_pct(),
+        );
+        assert!(matches!(
+            outstanding_before_repayment.total() - credit_facility.outstanding().total(),
+            _repayment_amount
+        ));
+    }
 }
