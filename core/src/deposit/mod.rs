@@ -56,7 +56,7 @@ impl Deposits {
     ) -> Result<Deposit, DepositError> {
         let audit_info = self
             .authz
-            .check_permission(sub, Object::Deposit, DepositAction::Record)
+            .enforce_permission(sub, Object::Deposit, DepositAction::Record)
             .await?;
 
         let customer_id = customer_id.into();
@@ -94,7 +94,7 @@ impl Deposits {
         id: impl Into<DepositId> + std::fmt::Debug,
     ) -> Result<Option<Deposit>, DepositError> {
         self.authz
-            .check_permission(sub, Object::Deposit, DepositAction::Read)
+            .enforce_permission(sub, Object::Deposit, DepositAction::Read)
             .await?;
 
         match self.repo.find_by_id(id.into()).await {
@@ -110,7 +110,7 @@ impl Deposits {
         customer_id: CustomerId,
     ) -> Result<Vec<Deposit>, DepositError> {
         self.authz
-            .check_permission(sub, Object::Deposit, DepositAction::List)
+            .enforce_permission(sub, Object::Deposit, DepositAction::List)
             .await?;
 
         self.repo.list_for_customer(customer_id).await
@@ -122,7 +122,7 @@ impl Deposits {
         query: crate::query::PaginatedQueryArgs<DepositCursor>,
     ) -> Result<crate::query::PaginatedQueryRet<Deposit, DepositCursor>, DepositError> {
         self.authz
-            .check_permission(sub, Object::Deposit, DepositAction::List)
+            .enforce_permission(sub, Object::Deposit, DepositAction::List)
             .await?;
         self.repo.list(query).await
     }

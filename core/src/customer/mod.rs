@@ -67,7 +67,7 @@ impl Customers {
     ) -> Result<Customer, CustomerError> {
         let audit_info = self
             .authz
-            .check_permission(
+            .enforce_permission(
                 sub,
                 Object::Customer(CustomerAllOrOne::All),
                 CustomerAction::Create,
@@ -137,7 +137,7 @@ impl Customers {
 
         if let Some(sub) = sub {
             self.authz
-                .check_permission(
+                .enforce_permission(
                     sub,
                     Object::Customer(CustomerAllOrOne::ById(id)),
                     CustomerAction::Read,
@@ -157,7 +157,7 @@ impl Customers {
         email: String,
     ) -> Result<Option<Customer>, CustomerError> {
         self.authz
-            .check_permission(
+            .enforce_permission(
                 sub,
                 Object::Customer(CustomerAllOrOne::All),
                 CustomerAction::Read,
@@ -189,7 +189,7 @@ impl Customers {
     ) -> Result<crate::query::PaginatedQueryRet<Customer, CustomerByNameCursor>, CustomerError>
     {
         self.authz
-            .check_permission(
+            .enforce_permission(
                 sub,
                 Object::Customer(CustomerAllOrOne::All),
                 CustomerAction::List,
@@ -290,7 +290,7 @@ impl Customers {
     ) -> Result<Customer, CustomerError> {
         let audit_info = self
             .authz
-            .check_permission(
+            .enforce_permission(
                 sub,
                 Object::Customer(CustomerAllOrOne::ById(customer_id)),
                 CustomerAction::Update,

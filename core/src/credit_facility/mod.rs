@@ -77,7 +77,7 @@ impl CreditFacilities {
 
         let audit_info = self
             .authz
-            .check_permission(sub, Object::CreditFacility, CreditFacilityAction::Create)
+            .enforce_permission(sub, Object::CreditFacility, CreditFacilityAction::Create)
             .await?;
 
         let customer = match self.customers.find_by_id(Some(sub), customer_id).await? {
@@ -120,7 +120,7 @@ impl CreditFacilities {
 
         let audit_info = self
             .authz
-            .check_permission(sub, Object::CreditFacility, CreditFacilityAction::Approve)
+            .enforce_permission(sub, Object::CreditFacility, CreditFacilityAction::Approve)
             .await?;
 
         let mut credit_facility = self
@@ -161,7 +161,7 @@ impl CreditFacilities {
     ) -> Result<Disbursement, CreditFacilityError> {
         let audit_info = self
             .authz
-            .check_permission(
+            .enforce_permission(
                 sub,
                 Object::CreditFacility,
                 CreditFacilityAction::InitiateDisbursement,
@@ -205,7 +205,7 @@ impl CreditFacilities {
     ) -> Result<Disbursement, CreditFacilityError> {
         let audit_info = self
             .authz
-            .check_permission(
+            .enforce_permission(
                 sub,
                 Object::CreditFacility,
                 CreditFacilityAction::ApproveDisbursement,
@@ -264,7 +264,7 @@ impl CreditFacilities {
     ) -> Result<CreditFacility, CreditFacilityError> {
         let audit_info = self
             .authz
-            .check_permission(
+            .enforce_permission(
                 sub,
                 Object::CreditFacility,
                 CreditFacilityAction::UpdateCollateral,

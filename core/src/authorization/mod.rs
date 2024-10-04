@@ -267,44 +267,36 @@ impl Authorization {
         Ok(())
     }
 
-    async fn enforce_permission(
-        &self,
-        sub: &Subject,
-        object: Object,
-        action: impl Into<Action> + std::fmt::Debug,
-    ) -> Result<bool, sqlx_adapter::casbin::Error> {
-        let action = action.into();
-        let mut enforcer = self.enforcer.write().await;
-        enforcer.load_policy().await?;
-        enforcer.enforce((sub.to_string(), object.to_string(), action.to_string()))
-    }
-
-    #[instrument(name = "lava.authz.check_permission", skip(self))]
-    pub async fn check_permission(
+    #[instrument(name = "lava.authz.enforce_permission", skip(self))]
+    pub async fn enforce_permission(
         &self,
         sub: &Subject,
         object: Object,
         action: impl Into<Action> + std::fmt::Debug + std::marker::Copy,
     ) -> Result<AuditInfo, AuthorizationError> {
-        let result = self.enforce_permission(sub, object, action).await;
+        let result = self.inspect_permission(sub, object, action).await;
         match result {
-            Ok(true) => Ok(self.audit.record_entry(sub, object, action, true).await?),
-            Ok(false) => {
+            Ok(()) => Ok(self.audit.record_entry(sub, object, action, true).await?),
+            Err(AuthorizationError::NotAuthorized) => {
                 self.audit.record_entry(sub, object, action, false).await?;
                 Err(AuthorizationError::NotAuthorized)
             }
-            Err(e) => Err(AuthorizationError::Casbin(e)),
+            Err(e) => Err(e),
         }
     }
 
-    #[instrument(name = "lava.authz.check_permission_without_audit", skip(self))]
-    pub async fn check_permission_without_audit_trail(
+    #[instrument(name = "lava.authz.inspect_permission", skip(self))]
+    pub async fn inspect_permission(
         &self,
         sub: &Subject,
         object: Object,
         action: impl Into<Action> + std::fmt::Debug,
     ) -> Result<(), AuthorizationError> {
-        match self.enforce_permission(sub, object, action).await {
+        let action = action.into();
+        let mut enforcer = self.enforcer.write().await;
+        enforcer.load_policy().await?;
+
+        match enforcer.enforce((sub.to_string(), object.to_string(), action.to_string())) {
             Ok(true) => Ok(()),
             Ok(false) => Err(AuthorizationError::NotAuthorized),
             Err(e) => Err(AuthorizationError::Casbin(e)),
@@ -398,7 +390,7 @@ impl Authorization {
         actions: &[Action],
     ) -> Result<bool, AuthorizationError> {
         for action in actions {
-            match self.check_permission(sub, object, *action).await {
+            match self.enforce_permission(sub, object, *action).await {
                 Ok(_) => continue,
                 Err(AuthorizationError::NotAuthorized) => return Ok(false),
                 Err(e) => return Err(e),

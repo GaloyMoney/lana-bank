@@ -82,7 +82,7 @@ impl Reports {
     pub async fn create(&self, sub: &Subject) -> Result<Report, ReportError> {
         let audit_info = self
             .authz
-            .check_permission(sub, Object::Report, ReportAction::Create)
+            .enforce_permission(sub, Object::Report, ReportAction::Create)
             .await?;
 
         let new_report = NewReport::builder()
@@ -113,7 +113,7 @@ impl Reports {
         id: ReportId,
     ) -> Result<Option<Report>, ReportError> {
         self.authz
-            .check_permission(sub, Object::Report, ReportAction::Read)
+            .enforce_permission(sub, Object::Report, ReportAction::Read)
             .await?;
 
         match self.repo.find_by_id(id).await {
@@ -125,7 +125,7 @@ impl Reports {
 
     pub async fn list_reports(&self, sub: &Subject) -> Result<Vec<Report>, ReportError> {
         self.authz
-            .check_permission(sub, Object::Report, ReportAction::List)
+            .enforce_permission(sub, Object::Report, ReportAction::List)
             .await?;
         self.repo.list().await
     }
@@ -137,7 +137,7 @@ impl Reports {
     ) -> Result<GeneratedReportDownloadLinks, ReportError> {
         let audit_info = self
             .authz
-            .check_permission(sub, Object::Report, ReportAction::GenerateDownloadLink)
+            .enforce_permission(sub, Object::Report, ReportAction::GenerateDownloadLink)
             .await?;
 
         let mut report = self.repo.find_by_id(report_id).await?;

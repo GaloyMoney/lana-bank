@@ -56,7 +56,7 @@ impl Withdraws {
     ) -> Result<Withdraw, WithdrawError> {
         let audit_info = self
             .authz
-            .check_permission(sub, Object::Withdraw, WithdrawAction::Initiate)
+            .enforce_permission(sub, Object::Withdraw, WithdrawAction::Initiate)
             .await?;
         let customer_id = customer_id.into();
         let customer = self.customers.repo().find_by_id(customer_id).await?;
@@ -105,7 +105,7 @@ impl Withdraws {
     ) -> Result<Withdraw, WithdrawError> {
         let audit_info = self
             .authz
-            .check_permission(sub, Object::Withdraw, WithdrawAction::Confirm)
+            .enforce_permission(sub, Object::Withdraw, WithdrawAction::Confirm)
             .await?;
         let id = withdrawal_id.into();
         let mut withdrawal = self.repo.find_by_id(id).await?;
@@ -136,7 +136,7 @@ impl Withdraws {
     ) -> Result<Withdraw, WithdrawError> {
         let audit_info = self
             .authz
-            .check_permission(sub, Object::Withdraw, WithdrawAction::Cancel)
+            .enforce_permission(sub, Object::Withdraw, WithdrawAction::Cancel)
             .await?;
 
         let id = withdrawal_id.into();
@@ -167,7 +167,7 @@ impl Withdraws {
         id: impl Into<WithdrawId> + std::fmt::Debug,
     ) -> Result<Option<Withdraw>, WithdrawError> {
         self.authz
-            .check_permission(sub, Object::Withdraw, WithdrawAction::Read)
+            .enforce_permission(sub, Object::Withdraw, WithdrawAction::Read)
             .await?;
 
         match self.repo.find_by_id(id.into()).await {
@@ -183,7 +183,7 @@ impl Withdraws {
         customer_id: CustomerId,
     ) -> Result<Vec<Withdraw>, WithdrawError> {
         self.authz
-            .check_permission(sub, Object::Withdraw, WithdrawAction::List)
+            .enforce_permission(sub, Object::Withdraw, WithdrawAction::List)
             .await?;
 
         self.repo.list_for_customer(customer_id).await
@@ -195,7 +195,7 @@ impl Withdraws {
         query: crate::query::PaginatedQueryArgs<WithdrawCursor>,
     ) -> Result<crate::query::PaginatedQueryRet<Withdraw, WithdrawCursor>, WithdrawError> {
         self.authz
-            .check_permission(sub, Object::Withdraw, WithdrawAction::List)
+            .enforce_permission(sub, Object::Withdraw, WithdrawAction::List)
             .await?;
         self.repo.list(query).await
     }

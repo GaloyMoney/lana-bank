@@ -38,7 +38,7 @@ impl TermsTemplates {
     ) -> Result<TermsTemplate, TermsTemplateError> {
         let audit_info = self
             .authz
-            .check_permission(sub, Object::TermsTemplate, TermsTemplateAction::Create)
+            .enforce_permission(sub, Object::TermsTemplate, TermsTemplateAction::Create)
             .await?;
         let new_terms_template = NewTermsTemplate::builder()
             .id(TermsTemplateId::new())
@@ -60,7 +60,7 @@ impl TermsTemplates {
         id: TermsTemplateId,
     ) -> Result<Option<TermsTemplate>, TermsTemplateError> {
         self.authz
-            .check_permission(sub, Object::TermsTemplate, TermsTemplateAction::Read)
+            .enforce_permission(sub, Object::TermsTemplate, TermsTemplateAction::Read)
             .await?;
         match self.repo.find_by_id(id).await {
             Ok(template) => Ok(Some(template)),
@@ -74,7 +74,7 @@ impl TermsTemplates {
         sub: &Subject,
     ) -> Result<Vec<TermsTemplate>, TermsTemplateError> {
         self.authz
-            .check_permission(sub, Object::TermsTemplate, TermsTemplateAction::List)
+            .enforce_permission(sub, Object::TermsTemplate, TermsTemplateAction::List)
             .await?;
         self.repo.list().await
     }
@@ -87,7 +87,7 @@ impl TermsTemplates {
     ) -> Result<TermsTemplate, TermsTemplateError> {
         let audit_info = self
             .authz
-            .check_permission(sub, Object::TermsTemplate, TermsTemplateAction::Update)
+            .enforce_permission(sub, Object::TermsTemplate, TermsTemplateAction::Update)
             .await?;
 
         let mut terms_template = self.repo.find_by_id(id).await?;

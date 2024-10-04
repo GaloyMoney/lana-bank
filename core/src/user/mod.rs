@@ -84,7 +84,7 @@ impl Users {
     ) -> Result<User, UserError> {
         let audit_info = self
             .authz
-            .check_permission(sub, Object::User, UserAction::Create)
+            .enforce_permission(sub, Object::User, UserAction::Create)
             .await?;
         let new_user = NewUser::builder()
             .email(email)
@@ -99,7 +99,7 @@ impl Users {
 
     pub async fn find_by_id(&self, sub: &Subject, id: UserId) -> Result<Option<User>, UserError> {
         self.authz
-            .check_permission(sub, Object::User, UserAction::Read)
+            .enforce_permission(sub, Object::User, UserAction::Read)
             .await?;
         match self.repo.find_by_id(id).await {
             Ok(user) => Ok(Some(user)),
@@ -133,7 +133,7 @@ impl Users {
 
     pub async fn list_users(&self, sub: &Subject) -> Result<Vec<User>, UserError> {
         self.authz
-            .check_permission(sub, Object::User, UserAction::List)
+            .enforce_permission(sub, Object::User, UserAction::List)
             .await?;
         self.repo.list().await
     }
@@ -151,7 +151,7 @@ impl Users {
         }
         let audit_info = self
             .authz
-            .check_permission(sub, Object::User, UserAction::AssignRole)
+            .enforce_permission(sub, Object::User, UserAction::AssignRole)
             .await?;
 
         let mut user = self.repo.find_by_id(id).await?;
@@ -176,7 +176,7 @@ impl Users {
         }
         let audit_role = self
             .authz
-            .check_permission(sub, Object::User, UserAction::RevokeRole)
+            .enforce_permission(sub, Object::User, UserAction::RevokeRole)
             .await?;
 
         let mut user = self.repo.find_by_id(id).await?;

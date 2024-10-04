@@ -65,7 +65,7 @@ async fn superuser_permissions() -> anyhow::Result<()> {
 
     // Superuser can create users
     assert!(authz
-        .check_permission(
+        .enforce_permission(
             &superuser_subject,
             Object::User,
             Action::User(UserAction::Create)
@@ -75,7 +75,7 @@ async fn superuser_permissions() -> anyhow::Result<()> {
 
     // Superuser can assign Admin role
     assert!(authz
-        .check_permission(
+        .enforce_permission(
             &superuser_subject,
             Object::User,
             Action::User(UserAction::AssignRole)
@@ -85,7 +85,7 @@ async fn superuser_permissions() -> anyhow::Result<()> {
 
     // Superuser can assign Bank Manager role
     assert!(authz
-        .check_permission(
+        .enforce_permission(
             &superuser_subject,
             Object::User,
             Action::User(UserAction::AssignRole)
@@ -108,7 +108,7 @@ async fn admin_permissions() -> anyhow::Result<()> {
 
     // Admin can create users
     assert!(authz
-        .check_permission(
+        .enforce_permission(
             &admin_subject,
             Object::User,
             Action::User(UserAction::Create)
@@ -118,7 +118,7 @@ async fn admin_permissions() -> anyhow::Result<()> {
 
     // Admin can assign Bank Manager role
     assert!(authz
-        .check_permission(
+        .enforce_permission(
             &admin_subject,
             Object::User,
             Action::User(UserAction::AssignRole)
@@ -128,7 +128,7 @@ async fn admin_permissions() -> anyhow::Result<()> {
 
     // Admin can assign roles
     assert!(authz
-        .check_permission(
+        .enforce_permission(
             &admin_subject,
             Object::User,
             Action::User(UserAction::AssignRole)
@@ -153,7 +153,7 @@ async fn bank_manager_permissions() -> anyhow::Result<()> {
     // Bank Manager cannot create users
     assert!(matches!(
         authz
-            .check_permission(
+            .enforce_permission(
                 &bank_manager_subject,
                 Object::User,
                 Action::User(UserAction::Create)
@@ -165,7 +165,7 @@ async fn bank_manager_permissions() -> anyhow::Result<()> {
     // Bank Manager cannot assign roles
     assert!(matches!(
         authz
-            .check_permission(
+            .enforce_permission(
                 &bank_manager_subject,
                 Object::User,
                 Action::User(UserAction::AssignRole)
