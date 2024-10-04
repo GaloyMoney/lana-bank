@@ -294,6 +294,22 @@ pub struct PostRecordPaymentTransaction;
 #[derive(GraphQLQuery)]
 #[graphql(
     schema_path = "src/ledger/cala/graphql/schema.graphql",
+    query_path = "src/ledger/cala/graphql/transactions/record-credit-facility-payment.gql",
+    response_derives = "Debug, PartialEq, Eq, Clone"
+)]
+pub struct RecordCreditFacilityPaymentTemplateCreate;
+
+#[derive(GraphQLQuery)]
+#[graphql(
+    schema_path = "src/ledger/cala/graphql/schema.graphql",
+    query_path = "src/ledger/cala/graphql/transactions/record-credit-facility-payment.gql",
+    response_derives = "Debug, PartialEq, Eq, Clone"
+)]
+pub struct PostRecordCreditFacilityPaymentTransaction;
+
+#[derive(GraphQLQuery)]
+#[graphql(
+    schema_path = "src/ledger/cala/graphql/schema.graphql",
     query_path = "src/ledger/cala/graphql/loan.gql",
     response_derives = "Debug, PartialEq, Eq, Clone"
 )]

@@ -300,4 +300,72 @@ impl CreditFacilities {
         db_tx.commit().await?;
         Ok(credit_facility)
     }
+
+    #[instrument(name = "lava.credit_facility.record_payment", skip(self), err)]
+    pub async fn record_payment(
+        &self,
+        sub: &Subject,
+        credit_facility_id: CreditFacilityId,
+        amount: UsdCents,
+    ) -> Result<CreditFacility, CreditFacilityError> {
+        let mut db_tx = self.pool.begin().await?;
+
+        let audit_info = self
+            .authz
+            .enforce_permission(
+                sub,
+                Object::CreditFacility,
+                CreditFacilityAction::RecordPayment,
+            )
+            .await?;
+
+        let price = self.price.usd_cents_per_btc().await?;
+
+        let mut credit_facility = self
+            .credit_facility_repo
+            .find_by_id(credit_facility_id)
+            .await?;
+
+        let customer = self
+            .customers
+            .repo()
+            .find_by_id(credit_facility.customer_id)
+            .await?;
+        let customer_balances = self
+            .ledger
+            .get_customer_balance(customer.account_ids)
+            .await?;
+        // if customer_balances.usd_balance.settled < amount {
+        //     return Err(LoanError::InsufficientBalance(
+        //         amount,
+        //         customer_balances.usd_balance.settled,
+        //     ));
+        // }
+
+        let balances = self
+            .ledger
+            .get_credit_facility_balance(credit_facility.account_ids)
+            .await?;
+
+        let repayment = credit_facility.initiate_repayment(amount)?;
+        let executed_at = self
+            .ledger
+            .record_credit_facility_repayment(repayment.clone())
+            .await?;
+        credit_facility.confirm_repayment(
+            repayment,
+            executed_at,
+            audit_info,
+            price,
+            self.config.upgrade_buffer_cvl_pct,
+        );
+
+        self.credit_facility_repo
+            .persist_in_tx(&mut db_tx, &mut credit_facility)
+            .await?;
+
+        db_tx.commit().await?;
+
+        Ok(credit_facility)
+    }
 }

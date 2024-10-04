@@ -6,10 +6,7 @@ use std::collections::HashSet;
 
 use crate::{
     entity::*,
-    ledger::{
-        credit_facility::{CreditFacilityAccountIds, CreditFacilityApprovalData},
-        customer::CustomerLedgerAccountIds,
-    },
+    ledger::{credit_facility::*, customer::CustomerLedgerAccountIds},
     primitives::*,
     terms::{CVLPct, CollateralizationState, TermValues},
 };
@@ -67,6 +64,14 @@ pub enum CreditFacilityEvent {
         audit_info: AuditInfo,
         recorded_at: DateTime<Utc>,
     },
+    PaymentRecorded {
+        tx_id: LedgerTxId,
+        tx_ref: String,
+        disbursement_amount: UsdCents,
+        interest_amount: UsdCents,
+        audit_info: AuditInfo,
+        recorded_at: DateTime<Utc>,
+    },
 }
 
 impl EntityEvent for CreditFacilityEvent {
@@ -85,6 +90,24 @@ pub struct CreditFacilityReceivable {
 impl CreditFacilityReceivable {
     pub fn total(&self) -> UsdCents {
         self.interest + self.disbursed
+    }
+
+    fn allocate_payment(
+        &self,
+        amount: UsdCents,
+    ) -> Result<CreditFacilityPaymentAmounts, CreditFacilityError> {
+        let mut remaining = amount;
+
+        let interest = std::cmp::min(amount, self.interest);
+        remaining -= interest;
+
+        let disbursement = std::cmp::min(remaining, self.disbursed);
+        remaining -= disbursement;
+
+        Ok(CreditFacilityPaymentAmounts {
+            interest,
+            disbursement,
+        })
     }
 }
 
@@ -400,6 +423,63 @@ impl CreditFacility {
         }
     }
 
+    pub(super) fn initiate_repayment(
+        &self,
+        amount: UsdCents,
+    ) -> Result<CreditFacilityRepayment, CreditFacilityError> {
+        let outstanding = self.outstanding();
+
+        if outstanding.total() < amount {
+            return Err(
+                CreditFacilityError::PaymentExceedsOustandingCreditFacilityAmount(
+                    amount,
+                    outstanding.total(),
+                ),
+            );
+        }
+
+        let amounts = outstanding.allocate_payment(amount)?;
+
+        let tx_ref = format!("{}-payment-{}", self.id, self.count_recorded_payments() + 1);
+
+        let res = CreditFacilityRepayment {
+            tx_id: LedgerTxId::new(),
+            tx_ref,
+            credit_facility_account_ids: self.account_ids,
+            customer_account_ids: self.customer_account_ids,
+            amounts,
+        };
+
+        Ok(res)
+    }
+
+    pub fn confirm_repayment(
+        &mut self,
+        repayment: CreditFacilityRepayment,
+        recorded_at: DateTime<Utc>,
+        audit_info: AuditInfo,
+        price: PriceOfOneBTC,
+        upgrade_buffer_cvl_pct: CVLPct,
+    ) {
+        self.events.push(CreditFacilityEvent::PaymentRecorded {
+            tx_id: repayment.tx_id,
+            tx_ref: repayment.tx_ref,
+            disbursement_amount: repayment.amounts.disbursement,
+            interest_amount: repayment.amounts.interest,
+            audit_info,
+            recorded_at,
+        });
+
+        self.maybe_update_collateralization(price, upgrade_buffer_cvl_pct, audit_info);
+    }
+
+    fn count_recorded_payments(&self) -> usize {
+        self.events
+            .iter()
+            .filter(|event| matches!(event, CreditFacilityEvent::PaymentRecorded { .. }))
+            .count()
+    }
+
     pub fn last_collateralization_state(&self) -> CollateralizationState {
         if self.status() == CreditFacilityStatus::Closed {
             return CollateralizationState::NoCollateral;
@@ -580,6 +660,7 @@ impl TryFrom<EntityEvents<CreditFacilityEvent>> for CreditFacility {
                 CreditFacilityEvent::DisbursementConcluded { .. } => (),
                 CreditFacilityEvent::CollateralUpdated { .. } => (),
                 CreditFacilityEvent::CollateralizationChanged { .. } => (),
+                CreditFacilityEvent::PaymentRecorded { .. } => (),
             }
         }
         builder.events(events).build()

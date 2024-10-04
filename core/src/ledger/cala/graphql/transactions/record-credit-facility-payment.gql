@@ -1,0 +1,118 @@
+mutation RecordCreditFacilityPaymentTemplateCreate(
+  $templateId: UUID!
+  $journalId: Expression!
+) {
+  txTemplateCreate(
+    input: {
+      txTemplateId: $templateId
+      code: "RECORD_CREDIT_FACILITY_PAYMENT"
+      description: "Make payment for credit facility."
+      params: [
+        {
+          name: "checkingAccount"
+          type: UUID
+          description: "User Checking account ID."
+        }
+        {
+          name: "facilityDisbursedReceivableAccount"
+          type: UUID
+          description: "Credit facility amount-outstanding account ID."
+        }
+        {
+          name: "facilityInterestReceivableAccount"
+          type: UUID
+          description: "Credit facility interest amount outstanding account ID."
+        }
+        {
+          name: "disbursementPaymentAmount"
+          type: DECIMAL
+          description: "Amount of USD being paid against outstanding disbursement amount."
+        }
+        {
+          name: "interestPaymentAmount"
+          type: DECIMAL
+          description: "Amount of USD being paid against outstanding interest amount."
+        }
+        {
+          name: "externalId"
+          type: STRING
+          description: "External ID for the transaction"
+        }
+        {
+          name: "effective"
+          type: DATE
+          description: "Effective date for transaction."
+          default: "date()"
+        }
+      ]
+      transaction: {
+        journalId: $journalId
+        effective: "params.effective"
+        externalId: "params.externalId"
+      }
+      entries: [
+        {
+          accountId: "params.checkingAccount"
+          units: "params.disbursementPaymentAmount + params.interestPaymentAmount"
+          currency: "'USD'"
+          entryType: "'RECORD_PAYMENT_DR'"
+          direction: "DEBIT"
+          layer: "SETTLED"
+        }
+        {
+          accountId: "params.facilityDisbursedReceivableAccount"
+          units: "params.disbursementPaymentAmount"
+          currency: "'USD'"
+          entryType: "'RECORD_PRINCIPAL_PAYMENT_CR'"
+          direction: "CREDIT"
+          layer: "SETTLED"
+        }
+        {
+          accountId: "params.facilityInterestReceivableAccount"
+          units: "params.interestPaymentAmount"
+          currency: "'USD'"
+          entryType: "'RECORD_INTEREST_PAYMENT_CR'"
+          direction: "CREDIT"
+          layer: "SETTLED"
+        }
+      ]
+    }
+  ) {
+    txTemplate {
+      txTemplateId
+      code
+      version
+    }
+  }
+}
+
+mutation PostRecordCreditFacilityPaymentTransaction(
+  $transactionId: UUID!
+  $checkingAccount: UUID!
+  $facilityDisbursedReceivableAccount: UUID!
+  $facilityInterestReceivableAccount: UUID!
+  $disbursementPaymentAmount: Decimal!
+  $interestPaymentAmount: Decimal!
+  $externalId: String!
+) {
+  transactionPost(
+    input: {
+      transactionId: $transactionId
+      txTemplateCode: "RECORD_CREDIT_FACILITY_PAYMENT"
+      params: {
+        checkingAccount: $checkingAccount
+        facilityDisbursedReceivableAccount: $facilityDisbursedReceivableAccount
+        facilityInterestReceivableAccount: $facilityInterestReceivableAccount
+        disbursementPaymentAmount: $disbursementPaymentAmount
+        interestPaymentAmount: $interestPaymentAmount
+        externalId: $externalId
+      }
+    }
+  ) {
+    transaction {
+      transactionId
+      correlationId
+      createdAt
+    }
+  }
+}

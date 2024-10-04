@@ -9,6 +9,7 @@ pub struct CreditFacilityAccountIds {
     pub facility_account_id: LedgerAccountId,
     pub disbursed_receivable_account_id: LedgerAccountId,
     pub collateral_account_id: LedgerAccountId,
+    pub interest_receivable_account_id: LedgerAccountId,
 }
 
 impl CreditFacilityAccountIds {
@@ -18,6 +19,7 @@ impl CreditFacilityAccountIds {
             facility_account_id: LedgerAccountId::new(),
             disbursed_receivable_account_id: LedgerAccountId::new(),
             collateral_account_id: LedgerAccountId::new(),
+            interest_receivable_account_id: LedgerAccountId::new(),
         }
     }
 }
@@ -67,4 +69,19 @@ pub struct CreditFacilityApprovalData {
     pub tx_id: LedgerTxId,
     pub credit_facility_account_ids: CreditFacilityAccountIds,
     pub customer_account_ids: CustomerLedgerAccountIds,
+}
+
+#[derive(Debug, Clone)]
+pub struct CreditFacilityRepayment {
+    pub tx_id: LedgerTxId,
+    pub tx_ref: String,
+    pub credit_facility_account_ids: CreditFacilityAccountIds,
+    pub customer_account_ids: CustomerLedgerAccountIds,
+    pub amounts: CreditFacilityPaymentAmounts,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct CreditFacilityPaymentAmounts {
+    pub interest: UsdCents,
+    pub disbursement: UsdCents,
 }

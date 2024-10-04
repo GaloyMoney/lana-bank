@@ -413,6 +413,34 @@ impl Ledger {
         Ok(created_at)
     }
 
+    #[instrument(name = "lava.ledger.record_credit_facility_repayment", skip(self), err)]
+    pub async fn record_credit_facility_repayment(
+        &self,
+        CreditFacilityRepayment {
+            tx_id,
+            tx_ref,
+            credit_facility_account_ids,
+            customer_account_ids,
+            amounts:
+                CreditFacilityPaymentAmounts {
+                    interest,
+                    disbursement,
+                },
+        }: CreditFacilityRepayment,
+    ) -> Result<chrono::DateTime<chrono::Utc>, LedgerError> {
+        Ok(self
+            .cala
+            .execute_repay_credit_facility_tx(
+                tx_id,
+                credit_facility_account_ids,
+                customer_account_ids,
+                interest.to_usd(),
+                disbursement.to_usd(),
+                tx_ref,
+            )
+            .await?)
+    }
+
     #[instrument(name = "lava.ledger.create_accounts_for_loan", skip(self), err)]
     pub async fn create_accounts_for_loan(
         &self,

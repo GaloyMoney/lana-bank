@@ -40,7 +40,7 @@ pub enum LoanError {
     AllInterestAccrualsGeneratedForLoan,
     #[error("LoanError - InterestPeriodStartDateInFuture")]
     InterestPeriodStartDateInFuture,
-    #[error("LoanError - PaymentExceedsOutstandingLoanAmount: {0} > {1}")]
+    #[error("LoanError - paymentexceedsoutstandingloanamount: {0} > {1}")]
     PaymentExceedsOutstandingLoanAmount(UsdCents, UsdCents),
     #[error("LoanError - UnexpectedZeroPrincipalAmount: totalAmount({0}), interestAmount({1})")]
     UnexpectedZeroPrincipalAmount(UsdCents, UsdCents),

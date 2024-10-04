@@ -1,6 +1,6 @@
 use thiserror::Error;
 
-use crate::primitives::{CustomerId, Satoshis};
+use crate::primitives::{CustomerId, Satoshis, UsdCents};
 
 #[derive(Error, Debug)]
 pub enum CreditFacilityError {
@@ -42,4 +42,6 @@ pub enum CreditFacilityError {
     NoCollateral,
     #[error("CreditFacilityError - BelowMarginLimit")]
     BelowMarginLimit,
+    #[error("CreditFacilityError - PaymentExceedsOustandingCreditFacilityAmount: {0} > {1}")]
+    PaymentExceedsOustandingCreditFacilityAmount(UsdCents, UsdCents),
 }

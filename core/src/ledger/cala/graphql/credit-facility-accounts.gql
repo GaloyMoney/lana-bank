@@ -11,6 +11,10 @@ mutation CreateCreditFacilityAccounts(
   $facilityDisbursedReceivableAccountCode: String!
   $facilityDisbursedReceivableAccountName: String!
   $facilitiesDisbursedReceivableControlAccountSetId: UUID!
+  $facilityInterestReceivableAccountId: UUID!
+  $facilityInterestReceivableAccountCode: String!
+  $facilityInterestReceivableAccountName: String!
+  $facilitiesInterestReceivableControlAccountSetId: UUID!
 ) {
   collateral: accountCreate(
     input: {
@@ -44,6 +48,19 @@ mutation CreateCreditFacilityAccounts(
       name: $facilityDisbursedReceivableAccountName
       normalBalanceType: "DEBIT"
       accountSetIds: [$facilitiesDisbursedReceivableControlAccountSetId]
+    }
+  ) {
+    account {
+      accountId
+    }
+  }
+  interestReceivable: accountCreate(
+    input: {
+      accountId: $facilityInterestReceivableAccountId
+      code: $facilityInterestReceivableAccountCode
+      name: $facilityInterestReceivableAccountName
+      normalBalanceType: "DEBIT"
+      accountSetIds: [$facilitiesInterestReceivableControlAccountSetId]
     }
   ) {
     account {
