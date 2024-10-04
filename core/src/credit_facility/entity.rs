@@ -87,6 +87,15 @@ pub struct CreditFacilityReceivable {
     pub interest: UsdCents,
 }
 
+impl From<CreditFacilityBalance> for CreditFacilityReceivable {
+    fn from(balance: CreditFacilityBalance) -> Self {
+        Self {
+            disbursed: balance.disbursed_receivable,
+            interest: balance.interest_receivable,
+        }
+    }
+}
+
 impl CreditFacilityReceivable {
     pub fn total(&self) -> UsdCents {
         self.interest + self.disbursed
@@ -108,6 +117,14 @@ impl CreditFacilityReceivable {
             interest,
             disbursement,
         })
+    }
+
+    pub fn check_equal_to(self, other: Self) -> Result<(), CreditFacilityError> {
+        if self == other {
+            Ok(())
+        } else {
+            Err(CreditFacilityError::ReceivableBalanceMismatch)
+        }
     }
 }
 

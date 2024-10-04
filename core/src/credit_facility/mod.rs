@@ -326,6 +326,14 @@ impl CreditFacilities {
             .find_by_id(credit_facility_id)
             .await?;
 
+        let facility_balances = self
+            .ledger
+            .get_credit_facility_balance(credit_facility.account_ids)
+            .await?;
+        credit_facility
+            .outstanding()
+            .check_equal_to(facility_balances.into())?;
+
         let customer = self
             .customers
             .repo()
@@ -335,11 +343,6 @@ impl CreditFacilities {
             .get_customer_balance(customer.account_ids)
             .await?
             .check_withdraw_amount(amount)?;
-
-        let balances = self
-            .ledger
-            .get_credit_facility_balance(credit_facility.account_ids)
-            .await?;
 
         let repayment = credit_facility.initiate_repayment(amount)?;
         let executed_at = self
@@ -353,6 +356,9 @@ impl CreditFacilities {
             price,
             self.config.upgrade_buffer_cvl_pct,
         );
+        self.credit_facility_repo
+            .persist_in_tx(&mut db_tx, &mut credit_facility)
+            .await?;
 
         self.credit_facility_repo
             .persist_in_tx(&mut db_tx, &mut credit_facility)

@@ -44,4 +44,6 @@ pub enum CreditFacilityError {
     BelowMarginLimit,
     #[error("CreditFacilityError - PaymentExceedsOutstandingCreditFacilityAmount: {0} > {1}")]
     PaymentExceedsOutstandingCreditFacilityAmount(UsdCents, UsdCents),
+    #[error("CreditFacilityError - ReceivableBalanceMismatch")]
+    ReceivableBalanceMismatch,
 }
