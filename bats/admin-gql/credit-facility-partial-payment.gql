@@ -1,0 +1,14 @@
+mutation creditFacilityPartialPayment(
+  $input: CreditFacilityPartialPaymentInput!
+) {
+  creditFacilityPartialPayment(input: $input) {
+    creditFacility {
+      creditFacilityId
+      balance {
+        outstanding {
+          usdBalance
+        }
+      }
+    }
+  }
+}

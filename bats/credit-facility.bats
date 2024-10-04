@@ -121,3 +121,35 @@ teardown_file() {
 
   assert_accounts_balanced
 }
+
+@test "credit-facility: can pay down disbursement" {
+  credit_facility_id=$(read_value 'credit_facility_id')
+
+  variables=$(
+    jq -n \
+    --arg creditFacilityId "$credit_facility_id" \
+    '{ id: $creditFacilityId }'
+  )
+  exec_admin_graphql 'find-credit-facility' "$variables"
+  outstanding_balance_before=$(graphql_output '.data.creditFacility.balance.outstanding.usdBalance')
+
+  repayment_amount=20000
+  variables=$(
+    jq -n \
+      --arg creditFacilityId "$credit_facility_id" \
+      --argjson amount "$repayment_amount" \
+    '{
+      input: {
+        creditFacilityId: $creditFacilityId,
+        amount: $amount,
+      }
+    }'
+  )
+  exec_admin_graphql 'credit-facility-partial-payment' "$variables"
+  outstanding_balance_after=$(
+    graphql_output '.data.creditFacilityPartialPayment.creditFacility.balance.outstanding.usdBalance'
+  )
+
+  outstanding_diff=$(sub "$outstanding_balance_before" "$outstanding_balance_after")
+  [[ "$outstanding_diff" == "$repayment_amount" ]] || exit 1
+}

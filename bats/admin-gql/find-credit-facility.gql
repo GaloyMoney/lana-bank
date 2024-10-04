@@ -1,0 +1,11 @@
+query creditFacility($id: UUID!) {
+  creditFacility(id: $id) {
+    creditFacilityId
+    collateralizationState
+    balance {
+      outstanding {
+        usdBalance
+      }
+    }
+  }
+}
