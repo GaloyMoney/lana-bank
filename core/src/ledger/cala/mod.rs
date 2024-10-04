@@ -1321,6 +1321,27 @@ impl CalaClient {
             .ok_or_else(|| CalaError::MissingDataField)
     }
 
+    pub async fn create_record_credit_facility_payment_tx_template(
+        &self,
+        template_id: TxTemplateId,
+    ) -> Result<TxTemplateId, CalaError> {
+        let variables = record_credit_facility_payment_template_create::Variables {
+            template_id: Uuid::from(template_id),
+            journal_id: format!("uuid(\"{}\")", super::constants::CORE_JOURNAL_ID),
+        };
+        let response = Self::traced_gql_request::<RecordCreditFacilityPaymentTemplateCreate, _>(
+            &self.client,
+            &self.url,
+            variables,
+        )
+        .await?;
+
+        response
+            .data
+            .map(|d| TxTemplateId::from(d.tx_template_create.tx_template.tx_template_id))
+            .ok_or_else(|| CalaError::MissingDataField)
+    }
+
     #[instrument(name = "lava.ledger.cala.execute_repay_loan_tx", skip(self), err)]
     pub async fn execute_repay_loan_tx(
         &self,
