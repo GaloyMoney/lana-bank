@@ -431,7 +431,7 @@ impl CreditFacility {
 
         if outstanding.total() < amount {
             return Err(
-                CreditFacilityError::PaymentExceedsOustandingCreditFacilityAmount(
+                CreditFacilityError::PaymentExceedsOutstandingCreditFacilityAmount(
                     amount,
                     outstanding.total(),
                 ),

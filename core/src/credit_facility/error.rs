@@ -42,6 +42,6 @@ pub enum CreditFacilityError {
     NoCollateral,
     #[error("CreditFacilityError - BelowMarginLimit")]
     BelowMarginLimit,
-    #[error("CreditFacilityError - PaymentExceedsOustandingCreditFacilityAmount: {0} > {1}")]
-    PaymentExceedsOustandingCreditFacilityAmount(UsdCents, UsdCents),
+    #[error("CreditFacilityError - PaymentExceedsOutstandingCreditFacilityAmount: {0} > {1}")]
+    PaymentExceedsOutstandingCreditFacilityAmount(UsdCents, UsdCents),
 }
