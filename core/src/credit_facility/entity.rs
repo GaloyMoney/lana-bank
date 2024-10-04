@@ -428,6 +428,21 @@ impl CreditFacility {
             .unwrap_or(Satoshis::ZERO)
     }
 
+    pub fn collateralization(&self) -> CollateralizationState {
+        if self.status() == CreditFacilityStatus::Closed {
+            return CollateralizationState::NoCollateral;
+        }
+
+        self.events
+            .iter()
+            .rev()
+            .find_map(|event| match event {
+                CreditFacilityEvent::CollateralizationChanged { state, .. } => Some(*state),
+                _ => None,
+            })
+            .unwrap_or(CollateralizationState::NoCollateral)
+    }
+
     pub fn facility_cvl(&self, price: PriceOfOneBTC) -> FacilityCVL {
         let collateral_value = price.sats_to_cents_round_down(self.collateral());
 

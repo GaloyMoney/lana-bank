@@ -11,7 +11,10 @@ use crate::{
     },
 };
 
-use super::convert::ToGlobalId;
+use super::{
+    convert::ToGlobalId,
+    objects::{Collateral, Outstanding},
+};
 
 #[derive(SimpleObject)]
 #[graphql(complex)]
@@ -234,16 +237,6 @@ impl LoanApproval {
 }
 
 #[derive(SimpleObject)]
-struct Collateral {
-    btc_balance: Satoshis,
-}
-
-#[derive(SimpleObject)]
-struct LoanOutstanding {
-    usd_balance: UsdCents,
-}
-
-#[derive(SimpleObject)]
 struct InterestIncome {
     usd_balance: UsdCents,
 }
@@ -251,7 +244,7 @@ struct InterestIncome {
 #[derive(SimpleObject)]
 pub(super) struct LoanBalance {
     collateral: Collateral,
-    outstanding: LoanOutstanding,
+    outstanding: Outstanding,
     interest_incurred: InterestIncome,
 }
 
@@ -261,7 +254,7 @@ impl From<ledger::loan::LoanBalance> for LoanBalance {
             collateral: Collateral {
                 btc_balance: balance.collateral,
             },
-            outstanding: LoanOutstanding {
+            outstanding: Outstanding {
                 usd_balance: balance.principal_receivable + balance.interest_receivable,
             },
             interest_incurred: InterestIncome {

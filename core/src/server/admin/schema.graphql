@@ -153,6 +153,13 @@ type CollateralUpdated {
 	txId: UUID!
 }
 
+enum CollateralizationState {
+	FULLY_COLLATERALIZED
+	UNDER_MARGIN_CALL_THRESHOLD
+	UNDER_LIQUIDATION_THRESHOLD
+	NO_COLLATERAL
+}
+
 input CollateralizationStateUpdateInput {
 	loanId: UUID!
 }
@@ -173,6 +180,8 @@ type CollateralizationUpdated {
 type CreditFacility {
 	id: ID!
 	creditFacilityId: UUID!
+	collateralizationState: CollateralizationState!
+	balance: CreditFacilityBalance!
 }
 
 input CreditFacilityApproveInput {
@@ -181,6 +190,10 @@ input CreditFacilityApproveInput {
 
 type CreditFacilityApprovePayload {
 	creditFacility: CreditFacility!
+}
+
+type CreditFacilityBalance {
+	outstanding: Outstanding!
 }
 
 input CreditFacilityCollateralUpdateInput {
@@ -443,7 +456,7 @@ type LoanApprovePayload {
 
 type LoanBalance {
 	collateral: Collateral!
-	outstanding: LoanOutstanding!
+	outstanding: Outstanding!
 	interestIncurred: InterestIncome!
 }
 
@@ -510,10 +523,6 @@ type LoanOrigination {
 	txId: UUID!
 }
 
-type LoanOutstanding {
-	usdBalance: UsdCents!
-}
-
 input LoanPartialPaymentInput {
 	loanId: UUID!
 	amount: UsdCents!
@@ -577,6 +586,10 @@ type Mutation {
 	reportDownloadLinksGenerate(input: ReportDownloadLinksGenerateInput!): ReportDownloadLinksGeneratePayload!
 	termsTemplateCreate(input: TermsTemplateCreateInput!): TermsTemplateCreatePayload!
 	termsTemplateUpdate(input: TermsTemplateUpdateInput!): TermsTemplateUpdatePayload!
+}
+
+type Outstanding {
+	usdBalance: UsdCents!
 }
 
 """
