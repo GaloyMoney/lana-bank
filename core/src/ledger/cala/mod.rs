@@ -400,6 +400,8 @@ impl CalaClient {
         let variables = credit_facility_balance::Variables {
             journal_id: super::constants::CORE_JOURNAL_ID,
             facility_id: Uuid::from(account_ids.facility_account_id),
+            disbursed_receivable_id: Uuid::from(account_ids.disbursed_receivable_account_id),
+            interest_receivable_id: Uuid::from(account_ids.interest_receivable_account_id),
         };
         let response = Self::traced_gql_request::<CreditFacilityBalance, _>(
             &self.client,

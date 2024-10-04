@@ -1,7 +1,36 @@
-query CreditFacilityBalance($journalId: UUID!, $facilityId: UUID!) {
+query CreditFacilityBalance(
+  $journalId: UUID!
+  $facilityId: UUID!
+  $disbursedReceivableId: UUID!
+  $interestReceivableId: UUID!
+) {
   facility: balance(
     journalId: $journalId
     accountId: $facilityId
+    currency: "USD"
+  ) {
+    settled {
+      normalBalance {
+        units
+        currency
+      }
+    }
+  }
+  disbursedReceivable: balance(
+    journalId: $journalId
+    accountId: $disbursedReceivableId
+    currency: "USD"
+  ) {
+    settled {
+      normalBalance {
+        units
+        currency
+      }
+    }
+  }
+  interestReceivable: balance(
+    journalId: $journalId
+    accountId: $interestReceivableId
     currency: "USD"
   ) {
     settled {

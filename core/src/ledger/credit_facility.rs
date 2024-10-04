@@ -26,6 +26,8 @@ impl CreditFacilityAccountIds {
 
 pub struct CreditFacilityBalance {
     pub facility: UsdCents,
+    pub disbursed_receivable: UsdCents,
+    pub interest_receivable: UsdCents,
 }
 
 impl TryFrom<credit_facility_balance::ResponseData> for CreditFacilityBalance {
@@ -35,6 +37,14 @@ impl TryFrom<credit_facility_balance::ResponseData> for CreditFacilityBalance {
         Ok(CreditFacilityBalance {
             facility: data
                 .facility
+                .map(|b| UsdCents::try_from_usd(b.settled.normal_balance.units))
+                .unwrap_or_else(|| Ok(UsdCents::ZERO))?,
+            disbursed_receivable: data
+                .disbursed_receivable
+                .map(|b| UsdCents::try_from_usd(b.settled.normal_balance.units))
+                .unwrap_or_else(|| Ok(UsdCents::ZERO))?,
+            interest_receivable: data
+                .interest_receivable
                 .map(|b| UsdCents::try_from_usd(b.settled.normal_balance.units))
                 .unwrap_or_else(|| Ok(UsdCents::ZERO))?,
         })
