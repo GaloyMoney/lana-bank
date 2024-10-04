@@ -105,6 +105,15 @@ impl CreditFacilityReceivable {
         &self,
         amount: UsdCents,
     ) -> Result<CreditFacilityPaymentAmounts, CreditFacilityError> {
+        if self.total() < amount {
+            return Err(
+                CreditFacilityError::PaymentExceedsOutstandingCreditFacilityAmount(
+                    amount,
+                    self.total(),
+                ),
+            );
+        }
+
         let mut remaining = amount;
 
         let interest = std::cmp::min(amount, self.interest);
@@ -459,18 +468,7 @@ impl CreditFacility {
         &self,
         amount: UsdCents,
     ) -> Result<CreditFacilityRepayment, CreditFacilityError> {
-        let outstanding = self.outstanding();
-
-        if outstanding.total() < amount {
-            return Err(
-                CreditFacilityError::PaymentExceedsOutstandingCreditFacilityAmount(
-                    amount,
-                    outstanding.total(),
-                ),
-            );
-        }
-
-        let amounts = outstanding.allocate_payment(amount)?;
+        let amounts = self.outstanding().allocate_payment(amount)?;
 
         let tx_ref = format!("{}-payment-{}", self.id, self.count_recorded_payments() + 1);
 
@@ -787,6 +785,16 @@ mod test {
             account_ids: CreditFacilityAccountIds::new(),
             customer_account_ids: CustomerLedgerAccountIds::new(),
         }]
+    }
+
+    #[test]
+    fn allocate_payment() {
+        let outstanding = CreditFacilityReceivable {
+            disbursed: UsdCents::from(100),
+            interest: UsdCents::from(2),
+        };
+        assert!(outstanding.allocate_payment(UsdCents::from(200)).is_err());
+        assert!(outstanding.allocate_payment(UsdCents::from(100)).is_ok());
     }
 
     #[test]
