@@ -1,0 +1,9 @@
+mutation CreditFacilityCollateralUpdate(
+  $input: CreditFacilityCollateralUpdateInput!
+) {
+  creditFacilityCollateralUpdate(input: $input) {
+    creditFacility {
+      creditFacilityId
+    }
+  }
+}

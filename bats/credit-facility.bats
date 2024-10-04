@@ -42,6 +42,25 @@ teardown_file() {
   cache_value 'credit_facility_id' "$credit_facility_id"
 }
 
+@test "credit-facility: can update collateral" {
+  credit_facility_id=$(read_value 'credit_facility_id')
+
+  variables=$(
+    jq -n \
+      --arg credit_facility_id "$credit_facility_id" \
+    '{
+      input: {
+        creditFacilityId: $credit_facility_id,
+        collateral: 50000000,
+      }
+    }'
+  )
+  exec_admin_graphql 'credit-facility-collateral-update' "$variables"
+  credit_facility_id=$(graphql_output '.data.creditFacilityCollateralUpdate.creditFacility.creditFacilityId')
+  [[ "$credit_facility_id" != "null" ]] || exit 1
+
+}
+
 @test "credit-facility: can approve" {
   credit_facility_id=$(read_value 'credit_facility_id')
 
@@ -55,8 +74,8 @@ teardown_file() {
     }'
   )
   exec_admin_graphql 'credit-facility-approve' "$variables"
-  loan_id=$(graphql_output '.data.creditFacilityApprove.creditFacility.creditFacilityId')
-  [[ "$loan_id" != "null" ]] || exit 1
+  credit_facility_id=$(graphql_output '.data.creditFacilityApprove.creditFacility.creditFacilityId')
+  [[ "$credit_facility_id" != "null" ]] || exit 1
 }
 
 @test "credit-facility: can initiate disbursement" {
