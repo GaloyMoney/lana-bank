@@ -361,16 +361,10 @@ impl Loans {
         let mut loan = self.loan_repo.find_by_id(loan_id).await?;
 
         let customer = self.customers.repo().find_by_id(loan.customer_id).await?;
-        let customer_balances = self
-            .ledger
+        self.ledger
             .get_customer_balance(customer.account_ids)
-            .await?;
-        if customer_balances.usd_balance.settled < amount {
-            return Err(LoanError::InsufficientBalance(
-                amount,
-                customer_balances.usd_balance.settled,
-            ));
-        }
+            .await?
+            .check_withdraw_amount(amount)?;
 
         let balances = self.ledger.get_loan_balance(loan.account_ids).await?;
         assert_eq!(balances.principal_receivable, loan.outstanding().principal);

@@ -34,4 +34,6 @@ pub enum LedgerError {
     DisbursementAmountTooLarge(UsdCents, UsdCents),
     #[error("LedgerError - AuthorizationError: {0}")]
     AuthorizationError(#[from] crate::authorization::error::AuthorizationError),
+    #[error("LedgerError - InsufficientBalance: {0} < {1}")]
+    InsufficientBalance(UsdCents, UsdCents),
 }

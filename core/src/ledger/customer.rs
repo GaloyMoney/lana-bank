@@ -40,3 +40,16 @@ impl TryFrom<customer_balance::ResponseData> for CustomerBalance {
         })
     }
 }
+
+impl CustomerBalance {
+    pub fn check_withdraw_amount(self, amount: UsdCents) -> Result<(), LedgerError> {
+        if self.usd_balance.settled < amount {
+            return Err(LedgerError::InsufficientBalance(
+                amount,
+                self.usd_balance.settled,
+            ));
+        }
+
+        Ok(())
+    }
+}

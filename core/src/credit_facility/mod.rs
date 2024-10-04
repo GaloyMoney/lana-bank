@@ -331,16 +331,10 @@ impl CreditFacilities {
             .repo()
             .find_by_id(credit_facility.customer_id)
             .await?;
-        let customer_balances = self
-            .ledger
+        self.ledger
             .get_customer_balance(customer.account_ids)
-            .await?;
-        // if customer_balances.usd_balance.settled < amount {
-        //     return Err(LoanError::InsufficientBalance(
-        //         amount,
-        //         customer_balances.usd_balance.settled,
-        //     ));
-        // }
+            .await?
+            .check_withdraw_amount(amount)?;
 
         let balances = self
             .ledger
