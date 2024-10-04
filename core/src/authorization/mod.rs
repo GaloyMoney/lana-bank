@@ -138,6 +138,12 @@ impl Authorization {
             CreditFacilityAction::ApproveDisbursement,
         )
         .await?;
+        self.add_permission_to_role(
+            &role,
+            Object::CreditFacility,
+            CreditFacilityAction::UpdateCollateral,
+        )
+        .await?;
 
         Ok(())
     }
