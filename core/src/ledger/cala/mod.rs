@@ -175,7 +175,7 @@ impl CalaClient {
             loan_collateral_account_code: format!("LOANS.COLLATERAL.{}", loan_id),
             loan_collateral_account_name: format!("Loan Collateral Account for {}", loan_id),
             loans_collateral_control_account_set_id:
-                super::constants::LOANS_COLLATERAL_CONTROL_ACCOUNT_SET_ID,
+                super::constants::OBS_LOANS_COLLATERAL_CONTROL_ACCOUNT_SET_ID,
             loan_principal_receivable_account_id: Uuid::from(principal_receivable_account_id),
             loan_principal_receivable_account_code: format!(
                 "LOANS.PRINCIPAL_RECEIVABLE.{}",
@@ -235,7 +235,7 @@ impl CalaClient {
                 credit_facility_id
             ),
             facilities_collateral_control_account_set_id:
-                super::constants::CREDIT_FACILITIES_COLLATERAL_CONTROL_ACCOUNT_SET_ID,
+                super::constants::OBS_CREDIT_FACILITIES_COLLATERAL_CONTROL_ACCOUNT_SET_ID,
             facility_account_id: Uuid::from(facility_account_id),
             facility_account_code: format!("CREDIT_FACILITY.OBS_FACILITY.{}", credit_facility_id),
             facility_account_name: format!(

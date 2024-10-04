@@ -44,7 +44,7 @@ resource "cala_account_set_member_account" "collateral_deposits_omnibus_in_obs_t
 }
 
 resource "cala_account_set" "credit_facility_control" {
-  id                  = "00000000-0000-0000-0000-110000000003"
+  id                  = "10000000-0000-0000-0000-110000000001"
   journal_id          = cala_journal.journal.id
   name                = "Credit Facility Control Account"
   normal_balance_type = "DEBIT"
@@ -73,7 +73,7 @@ resource "cala_account_set_member_account_set" "obs_liabilities" {
 
 # LIABILITIES: Members
 resource "cala_account_set" "loans_collateral_control" {
-  id                  = "00000000-0000-0000-0000-210000000002"
+  id                  = "10000000-0000-0000-0000-210000000001"
   journal_id          = cala_journal.journal.id
   name                = "Loans Collateral Control Account"
   normal_balance_type = "CREDIT"
@@ -88,7 +88,7 @@ resource "cala_account_set_member_account_set" "loans_collateral_control_in_obs_
 }
 
 resource "cala_account_set" "credit_facilities_collateral_control" {
-  id                  = "00000000-0000-0000-0000-210000000003"
+  id                  = "10000000-0000-0000-0000-210000000002"
   journal_id          = cala_journal.journal.id
   name                = "Credit Facilities Collateral Control Account"
   normal_balance_type = "CREDIT"

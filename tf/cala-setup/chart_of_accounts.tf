@@ -53,7 +53,7 @@ resource "cala_account_set_member_account_set" "loans_interest_receivable_contro
 }
 
 resource "cala_account_set" "credit_facility_disbursed_receivable_control" {
-  id                  = "00000000-0000-0000-0000-110000000004"
+  id                  = "00000000-0000-0000-0000-110000000003"
   journal_id          = cala_journal.journal.id
   name                = "Credit Facilities Disbursed Receivable Control Account"
   normal_balance_type = "DEBIT"
