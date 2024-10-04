@@ -22,16 +22,20 @@ resource "cala_account_set_member_account_set" "loans_interest_receivable_contro
   member_account_set_id = cala_account_set.loans_interest_receivable_control.id
 }
 
+resource "cala_account_set_member_account_set" "credit_facilities_disbursed_receivable_control_in_trial_balance" {
+  account_set_id        = cala_account_set.trial_balance.id
+  member_account_set_id = cala_account_set.credit_facilities_disbursed_receivable_control.id
+}
+
+resource "cala_account_set_member_account_set" "credit_facilities_interest_receivable_control_in_trial_balance" {
+  account_set_id        = cala_account_set.trial_balance.id
+  member_account_set_id = cala_account_set.credit_facilities_interest_receivable_control.id
+}
+
 resource "cala_account_set_member_account" "bank_reserve_in_trial_balance" {
   account_set_id    = cala_account_set.trial_balance.id
   member_account_id = cala_account.bank_reserve.id
 }
-
-resource "cala_account_set_member_account_set" "credit_facility_disbursed_receivable_control_in_trial_balance" {
-  account_set_id        = cala_account_set.trial_balance.id
-  member_account_set_id = cala_account_set.credit_facility_disbursed_receivable_control.id
-}
-
 
 # LIABILITIES: Members
 resource "cala_account_set_member_account_set" "customer_checking_in_trial_balance" {

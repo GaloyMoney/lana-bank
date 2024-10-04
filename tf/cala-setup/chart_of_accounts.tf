@@ -52,15 +52,26 @@ resource "cala_account_set_member_account_set" "loans_interest_receivable_contro
   member_account_set_id = cala_account_set.loans_interest_receivable_control.id
 }
 
-resource "cala_account_set" "credit_facility_disbursed_receivable_control" {
+resource "cala_account_set" "credit_facilities_disbursed_receivable_control" {
   id                  = "00000000-0000-0000-0000-110000000003"
   journal_id          = cala_journal.journal.id
   name                = "Credit Facilities Disbursed Receivable Control Account"
   normal_balance_type = "DEBIT"
 }
-resource "cala_account_set_member_account_set" "credit_facility_disbursed_receivable_control_in_assets" {
+resource "cala_account_set_member_account_set" "credit_facilities_disbursed_receivable_control_in_assets" {
   account_set_id        = cala_account_set.assets.id
-  member_account_set_id = cala_account_set.credit_facility_disbursed_receivable_control.id
+  member_account_set_id = cala_account_set.credit_facilities_disbursed_receivable_control.id
+}
+
+resource "cala_account_set" "credit_facilities_interest_receivable_control" {
+  id                  = "00000000-0000-0000-0000-110000000004"
+  journal_id          = cala_journal.journal.id
+  name                = "Credit Facilities Interest Receivable Control Account"
+  normal_balance_type = "DEBIT"
+}
+resource "cala_account_set_member_account_set" "credit_facilities_interest_receivable_control_in_assets" {
+  account_set_id        = cala_account_set.assets.id
+  member_account_set_id = cala_account_set.credit_facilities_interest_receivable_control.id
 }
 
 resource "random_uuid" "bank_reserve" {}
