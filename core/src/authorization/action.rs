@@ -88,6 +88,7 @@ impl_trivial_action!(LoanAction, Loan);
 #[strum(serialize_all = "kebab-case")]
 pub enum CreditFacilityAction {
     Create,
+    Read,
     Approve,
     InitiateDisbursement,
     ApproveDisbursement,

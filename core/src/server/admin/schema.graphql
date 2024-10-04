@@ -627,6 +627,7 @@ type ProfitAndLossStatement {
 type Query {
 	audit(first: Int!, after: String): AuditEntryConnection!
 	loan(id: UUID!): Loan
+	creditFacility(id: UUID!): CreditFacility
 	customer(id: UUID!): Customer
 	customerByEmail(email: String!): Customer
 	me: User!

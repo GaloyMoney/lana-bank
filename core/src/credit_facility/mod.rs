@@ -8,6 +8,7 @@ use crate::{
     authorization::{Authorization, CreditFacilityAction, Object},
     customer::Customers,
     data_export::Export,
+    entity::EntityError,
     ledger::{credit_facility::*, Ledger},
     price::Price,
     primitives::{
@@ -108,6 +109,25 @@ impl CreditFacilities {
         db_tx.commit().await?;
 
         Ok(credit_facility)
+    }
+
+    #[instrument(name = "lava.credit_facility.find", skip(self), err)]
+    pub async fn find_by_id(
+        &self,
+        sub: Option<&Subject>,
+        id: CreditFacilityId,
+    ) -> Result<Option<CreditFacility>, CreditFacilityError> {
+        if let Some(sub) = sub {
+            self.authz
+                .enforce_permission(sub, Object::CreditFacility, CreditFacilityAction::Read)
+                .await?;
+        }
+
+        match self.credit_facility_repo.find_by_id(id).await {
+            Ok(loan) => Ok(Some(loan)),
+            Err(CreditFacilityError::EntityError(EntityError::NoEntityEventsPresent)) => Ok(None),
+            Err(e) => Err(e),
+        }
     }
 
     #[instrument(name = "lava.credit_facility.add_approval", skip(self), err)]
