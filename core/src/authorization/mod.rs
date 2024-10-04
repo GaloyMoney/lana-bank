@@ -145,6 +145,12 @@ impl Authorization {
             CreditFacilityAction::UpdateCollateral,
         )
         .await?;
+        self.add_permission_to_role(
+            &role,
+            Object::CreditFacility,
+            CreditFacilityAction::RecordPayment,
+        )
+        .await?;
 
         Ok(())
     }
