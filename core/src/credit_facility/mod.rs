@@ -4,6 +4,7 @@ mod disbursement;
 mod entity;
 pub mod error;
 mod history;
+mod interest_accrual;
 mod repo;
 
 use crate::{
@@ -27,6 +28,7 @@ pub use disbursement::*;
 pub use entity::*;
 use error::*;
 pub use history::*;
+pub use interest_accrual::*;
 use repo::*;
 use tracing::instrument;
 
