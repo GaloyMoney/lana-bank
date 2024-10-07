@@ -208,13 +208,28 @@ impl CreditFacility {
     }
 
     fn disbursed_payments(&self) -> UsdCents {
-        // TODO: implement
-        UsdCents::ZERO
+        self.events
+            .iter()
+            .filter_map(|event| match event {
+                CreditFacilityEvent::PaymentRecorded {
+                    disbursement_amount,
+                    ..
+                } => Some(*disbursement_amount),
+                _ => None,
+            })
+            .fold(UsdCents::ZERO, |acc, amount| acc + amount)
     }
 
     fn interest_payments(&self) -> UsdCents {
-        // TODO: implement
-        UsdCents::ZERO
+        self.events
+            .iter()
+            .filter_map(|event| match event {
+                CreditFacilityEvent::PaymentRecorded {
+                    interest_amount, ..
+                } => Some(*interest_amount),
+                _ => None,
+            })
+            .fold(UsdCents::ZERO, |acc, amount| acc + amount)
     }
 
     pub(super) fn is_approved(&self) -> bool {
