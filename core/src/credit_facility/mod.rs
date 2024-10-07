@@ -349,10 +349,12 @@ impl CreditFacilities {
         let facility_balances = self
             .ledger
             .get_credit_facility_balance(credit_facility.account_ids)
-            .await?;
-        credit_facility
-            .outstanding()
-            .check_equal_to(facility_balances.into())?;
+            .await?
+            .into();
+
+        if credit_facility.outstanding() != facility_balances {
+            return Err(CreditFacilityError::ReceivableBalanceMismatch);
+        }
 
         let customer = self
             .customers

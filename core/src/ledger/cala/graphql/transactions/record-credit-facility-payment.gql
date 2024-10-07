@@ -63,7 +63,7 @@ mutation RecordCreditFacilityPaymentTemplateCreate(
           accountId: "params.facilityDisbursedReceivableAccount"
           units: "params.disbursementPaymentAmount"
           currency: "'USD'"
-          entryType: "'RECORD_PRINCIPAL_PAYMENT_CR'"
+          entryType: "'RECORD_DISBURSEMENT_PAYMENT_CR'"
           direction: "CREDIT"
           layer: "SETTLED"
         }

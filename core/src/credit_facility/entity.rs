@@ -28,13 +28,13 @@ pub enum CreditFacilityEvent {
     ApprovalAdded {
         approving_user_id: UserId,
         approving_user_roles: HashSet<Role>,
-        audit_info: AuditInfo,
         recorded_at: DateTime<Utc>,
+        audit_info: AuditInfo,
     },
     Approved {
         tx_id: LedgerTxId,
-        audit_info: AuditInfo,
         recorded_at: DateTime<Utc>,
+        audit_info: AuditInfo,
     },
     DisbursementInitiated {
         idx: DisbursementIdx,
@@ -44,8 +44,8 @@ pub enum CreditFacilityEvent {
     DisbursementConcluded {
         idx: DisbursementIdx,
         tx_id: LedgerTxId,
-        recorded_at: DateTime<Utc>,
         audit_info: AuditInfo,
+        recorded_at: DateTime<Utc>,
     },
     CollateralUpdated {
         tx_id: LedgerTxId,
@@ -53,16 +53,16 @@ pub enum CreditFacilityEvent {
         total_collateral: Satoshis,
         abs_diff: Satoshis,
         action: CollateralAction,
-        audit_info: AuditInfo,
         recorded_in_ledger_at: DateTime<Utc>,
+        audit_info: AuditInfo,
     },
     CollateralizationChanged {
         state: CollateralizationState,
         collateral: Satoshis,
         outstanding: CreditFacilityReceivable,
         price: PriceOfOneBTC,
-        audit_info: AuditInfo,
         recorded_at: DateTime<Utc>,
+        audit_info: AuditInfo,
     },
     PaymentRecorded {
         tx_id: LedgerTxId,
@@ -70,7 +70,7 @@ pub enum CreditFacilityEvent {
         disbursement_amount: UsdCents,
         interest_amount: UsdCents,
         audit_info: AuditInfo,
-        recorded_at: DateTime<Utc>,
+        recorded_in_ledger_at: DateTime<Utc>,
     },
 }
 
@@ -126,14 +126,6 @@ impl CreditFacilityReceivable {
             interest,
             disbursement,
         })
-    }
-
-    pub fn check_equal_to(self, other: Self) -> Result<(), CreditFacilityError> {
-        if self == other {
-            Ok(())
-        } else {
-            Err(CreditFacilityError::ReceivableBalanceMismatch)
-        }
     }
 }
 
@@ -497,7 +489,7 @@ impl CreditFacility {
             disbursement_amount: repayment.amounts.disbursement,
             interest_amount: repayment.amounts.interest,
             audit_info,
-            recorded_at,
+            recorded_in_ledger_at: recorded_at,
         });
 
         self.maybe_update_collateralization(price, upgrade_buffer_cvl_pct, audit_info);
@@ -1245,9 +1237,9 @@ mod test {
         ]);
         let mut credit_facility = facility_from(&events);
 
-        let _repayment_amount = UsdCents::from(5);
+        let repayment_amount = UsdCents::from(5);
         let repayment = credit_facility
-            .initiate_repayment(_repayment_amount)
+            .initiate_repayment(repayment_amount)
             .unwrap();
         let outstanding_before_repayment = credit_facility.outstanding();
 
