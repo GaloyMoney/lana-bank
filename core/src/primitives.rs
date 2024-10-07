@@ -15,6 +15,7 @@ crate::entity_id! { DocumentId }
 crate::entity_id! { LoanId }
 crate::entity_id! { CreditFacilityId }
 crate::entity_id! { DisbursementId }
+crate::entity_id! { InterestAccrualId }
 crate::entity_id! { TermsTemplateId }
 crate::entity_id! { ReportId }
 
@@ -43,6 +44,22 @@ impl fmt::Display for DisbursementIdx {
 }
 
 impl DisbursementIdx {
+    pub const FIRST: Self = Self(1);
+    pub const fn next(&self) -> Self {
+        Self(self.0 + 1)
+    }
+}
+
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, sqlx::Type)]
+#[serde(transparent)]
+#[sqlx(transparent)]
+pub struct InterestAccrualIdx(i32);
+impl fmt::Display for InterestAccrualIdx {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> fmt::Result {
+        write!(f, "{}", self.0)
+    }
+}
+impl InterestAccrualIdx {
     pub const FIRST: Self = Self(1);
     pub const fn next(&self) -> Self {
         Self(self.0 + 1)
