@@ -1250,9 +1250,9 @@ mod test {
             default_price(),
             default_upgrade_buffer_cvl_pct(),
         );
-        assert!(matches!(
+        assert_eq!(
             outstanding_before_repayment.total() - credit_facility.outstanding().total(),
-            _repayment_amount
-        ));
+            repayment_amount
+        );
     }
 }
