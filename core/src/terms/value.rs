@@ -8,7 +8,10 @@ use std::fmt;
 use super::error::TermsError;
 use crate::primitives::{PriceOfOneBTC, Satoshis, UsdCents};
 
-const NUMBER_OF_DAYS_IN_YEAR: Decimal = dec!(366);
+const NUMBER_OF_DAYS_IN_YEAR: u64 = 366;
+
+const NUMBER_OF_SECONDS_IN_DAY: u64 = 86400;
+const NUMBER_OF_SECONDS_IN_YEAR: u64 = NUMBER_OF_DAYS_IN_YEAR * NUMBER_OF_SECONDS_IN_DAY;
 
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize, Eq, async_graphql::Enum)]
 pub enum CollateralizationState {
@@ -24,7 +27,20 @@ pub struct AnnualRatePct(Decimal);
 
 impl AnnualRatePct {
     pub fn interest_for_time_period(&self, principal: UsdCents, days: u32) -> UsdCents {
-        let cents = principal.to_usd() * Decimal::from(days) * self.0 / NUMBER_OF_DAYS_IN_YEAR;
+        let cents = principal.to_usd() * Decimal::from(days) * self.0
+            / Decimal::from(NUMBER_OF_DAYS_IN_YEAR);
+
+        UsdCents::from(
+            cents
+                .round_dp_with_strategy(0, RoundingStrategy::AwayFromZero)
+                .to_u64()
+                .expect("should return a valid integer"),
+        )
+    }
+
+    pub fn interest_for_time_period_in_secs(&self, principal: UsdCents, secs: u64) -> UsdCents {
+        let cents = principal.to_usd() * Decimal::from(secs) * self.0
+            / Decimal::from(NUMBER_OF_SECONDS_IN_YEAR);
 
         UsdCents::from(
             cents
@@ -248,6 +264,13 @@ impl InterestPeriod {
 
     pub fn days(&self) -> u32 {
         self.end.day() - self.start.day() + 1
+    }
+
+    pub fn seconds(&self) -> u64 {
+        let end = u64::try_from(self.end.timestamp()).expect("'end' is positive");
+        let start = u64::try_from(self.start.timestamp()).expect("'start' is positive");
+
+        end - start + 1
     }
 }
 
