@@ -11,7 +11,10 @@ use crate::{
     terms::{CVLPct, CollateralizationState, TermValues},
 };
 
-use super::{disbursement::*, history, CreditFacilityCollateralUpdate, CreditFacilityError};
+use super::{
+    disbursement::*, history, CreditFacilityCollateralUpdate, CreditFacilityError,
+    NewInterestAccrual,
+};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
@@ -46,6 +49,10 @@ pub enum CreditFacilityEvent {
         tx_id: LedgerTxId,
         audit_info: AuditInfo,
         recorded_at: DateTime<Utc>,
+    },
+    InterestAccrualInitiated {
+        idx: InterestAccrualIdx,
+        audit_info: AuditInfo,
     },
     CollateralUpdated {
         tx_id: LedgerTxId,
@@ -463,6 +470,39 @@ impl CreditFacility {
         false
     }
 
+    pub(super) fn initiate_interest_accrual(
+        &mut self,
+        audit_info: AuditInfo,
+    ) -> Result<NewInterestAccrual, CreditFacilityError> {
+        if self.is_expired() {
+            return Err(CreditFacilityError::AlreadyExpired);
+        }
+
+        if self.interest_accrual_in_progress().is_some() {
+            return Err(CreditFacilityError::InterestAccrualInProgress);
+        }
+
+        let idx = self
+            .events
+            .iter()
+            .rev()
+            .find_map(|event| match event {
+                CreditFacilityEvent::InterestAccrualInitiated { idx, .. } => Some(idx.next()),
+                _ => None,
+            })
+            .unwrap_or(InterestAccrualIdx::FIRST);
+        self.events
+            .push(CreditFacilityEvent::InterestAccrualInitiated { idx, audit_info });
+        Ok(NewInterestAccrual::new(self.id, idx, audit_info))
+    }
+
+    pub fn interest_accrual_in_progress(&self) -> Option<InterestAccrualIdx> {
+        self.events.iter().rev().find_map(|event| match event {
+            CreditFacilityEvent::InterestAccrualInitiated { idx, .. } => Some(*idx),
+            _ => None,
+        })
+    }
+
     pub fn outstanding(&self) -> CreditFacilityReceivable {
         CreditFacilityReceivable {
             disbursed: self.total_disbursed() - self.disbursed_payments(),
@@ -796,6 +836,7 @@ impl TryFrom<EntityEvents<CreditFacilityEvent>> for CreditFacility {
                 CreditFacilityEvent::ApprovalAdded { .. } => (),
                 CreditFacilityEvent::DisbursementInitiated { .. } => (),
                 CreditFacilityEvent::DisbursementConcluded { .. } => (),
+                CreditFacilityEvent::InterestAccrualInitiated { .. } => (),
                 CreditFacilityEvent::CollateralUpdated { .. } => (),
                 CreditFacilityEvent::CollateralizationChanged { .. } => (),
                 CreditFacilityEvent::PaymentRecorded { .. } => (),
