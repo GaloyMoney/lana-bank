@@ -223,7 +223,7 @@ impl InterestPeriod {
     }
 
     pub fn next(&self) -> Self {
-        Self::new(self.interval, self.end + chrono::Duration::days(1))
+        Self::new(self.interval, self.end + chrono::Duration::seconds(1))
     }
 
     pub fn truncate(&self, latest_possible_end_date: DateTime<Utc>) -> Option<Self> {
