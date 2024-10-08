@@ -586,6 +586,7 @@ export type InterestIncome = {
 };
 
 export enum InterestInterval {
+  EndOfDay = 'END_OF_DAY',
   EndOfMonth = 'END_OF_MONTH'
 }
 

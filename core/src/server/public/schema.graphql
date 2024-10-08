@@ -236,6 +236,7 @@ type InterestIncome {
 
 enum InterestInterval {
 	END_OF_MONTH
+	END_OF_DAY
 }
 
 enum KycLevel {

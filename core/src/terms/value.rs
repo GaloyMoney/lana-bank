@@ -1,4 +1,4 @@
-use chrono::{DateTime, Datelike, TimeZone, Utc};
+use chrono::{DateTime, Datelike, TimeZone, Timelike, Utc};
 use derive_builder::Builder;
 use rust_decimal::{prelude::*, Decimal};
 use rust_decimal_macros::dec;
@@ -249,6 +249,7 @@ impl InterestPeriod {
 #[serde(tag = "type", rename_all = "snake_case")]
 pub enum InterestInterval {
     EndOfMonth,
+    EndOfDay,
 }
 
 impl InterestInterval {
@@ -273,6 +274,11 @@ impl InterestInterval {
                     .expect("should return a valid date time")
                     - chrono::Duration::seconds(1)
             }
+            InterestInterval::EndOfDay => current_date
+                .with_hour(23)
+                .and_then(|d| d.with_minute(59))
+                .and_then(|d| d.with_second(59))
+                .expect("should return a valid date time"),
         }
     }
 }
