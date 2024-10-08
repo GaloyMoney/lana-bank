@@ -72,6 +72,10 @@ pub enum CreditFacilityEvent {
         audit_info: AuditInfo,
         recorded_in_ledger_at: DateTime<Utc>,
     },
+    Completed {
+        completed_at: DateTime<Utc>,
+        audit_info: AuditInfo,
+    },
 }
 
 impl EntityEvent for CreditFacilityEvent {
@@ -663,6 +667,55 @@ impl CreditFacility {
 
         self.maybe_update_collateralization(price, upgrade_buffer_cvl_pct, audit_info)
     }
+
+    pub(super) fn initiate_completion(
+        &self,
+    ) -> Result<CreditFacilityCompletion, CreditFacilityError> {
+        if !self.outstanding().total().is_zero() {
+            return Err(CreditFacilityError::OutstandingAmount);
+        }
+
+        Ok(CreditFacilityCompletion {
+            tx_id: LedgerTxId::new(),
+            tx_ref: format!("{}-completion", self.id),
+            collateral: self.collateral(),
+            credit_facility_account_ids: self.account_ids,
+            customer_account_ids: self.customer_account_ids,
+        })
+    }
+
+    pub(super) fn confirm_completion(
+        &mut self,
+        CreditFacilityCompletion {
+            tx_id,
+            tx_ref,
+            collateral,
+            ..
+        }: CreditFacilityCompletion,
+        executed_at: DateTime<Utc>,
+        audit_info: AuditInfo,
+        price: PriceOfOneBTC,
+        upgrade_buffer_cvl_pct: CVLPct,
+    ) {
+        self.confirm_collateral_update(
+            CreditFacilityCollateralUpdate {
+                credit_facility_account_ids: self.account_ids,
+                tx_id,
+                tx_ref,
+                abs_diff: collateral,
+                action: CollateralAction::Remove,
+            },
+            executed_at,
+            audit_info,
+            price,
+            upgrade_buffer_cvl_pct,
+        );
+
+        self.events.push(CreditFacilityEvent::Completed {
+            completed_at: executed_at,
+            audit_info,
+        });
+    }
 }
 
 impl TryFrom<EntityEvents<CreditFacilityEvent>> for CreditFacility {
@@ -703,6 +756,7 @@ impl TryFrom<EntityEvents<CreditFacilityEvent>> for CreditFacility {
                 CreditFacilityEvent::CollateralUpdated { .. } => (),
                 CreditFacilityEvent::CollateralizationChanged { .. } => (),
                 CreditFacilityEvent::PaymentRecorded { .. } => (),
+                CreditFacilityEvent::Completed { .. } => (),
             }
         }
         builder.events(events).build()

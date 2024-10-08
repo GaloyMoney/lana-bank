@@ -428,4 +428,34 @@ impl CreditFacilities {
             .await?;
         self.credit_facility_repo.list(query).await
     }
+
+    #[instrument(name = "lava.credit_facility.complete", skip(self), err)]
+    pub async fn complete(
+        &self,
+        sub: &Subject,
+        credit_facility_id: CreditFacilityId,
+    ) -> Result<CreditFacility, CreditFacilityError> {
+        let mut db_tx = self.pool.begin().await?;
+
+        let audit_info = self
+            .authz
+            .enforce_permission(
+                sub,
+                Object::CreditFacility,
+                CreditFacilityAction::Completion,
+            )
+            .await?;
+
+        let mut credit_facility = self
+            .credit_facility_repo
+            .find_by_id(credit_facility_id)
+            .await?;
+
+        let completion = credit_facility.initiate_completion()?;
+
+        // in ledger REMOVE COLLATERAL
+        // confirm completion
+        //
+        Ok(credit_facility)
+    }
 }

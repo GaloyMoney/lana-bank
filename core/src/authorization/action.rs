@@ -95,6 +95,7 @@ pub enum CreditFacilityAction {
     ApproveDisbursement,
     UpdateCollateral,
     RecordPayment,
+    Completion,
 }
 
 impl_trivial_action!(CreditFacilityAction, CreditFacility);
