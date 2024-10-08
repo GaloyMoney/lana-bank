@@ -441,6 +441,29 @@ impl Ledger {
             .await?)
     }
 
+    #[instrument(name = "lava.ledger.complete_credit_facility", skip(self), err)]
+    pub async fn complete_credit_facility(
+        &self,
+        CreditFacilityCompletion {
+            tx_id,
+            tx_ref,
+            collateral,
+            credit_facility_account_ids,
+            customer_account_ids,
+        }: CreditFacilityCompletion,
+    ) -> Result<chrono::DateTime<chrono::Utc>, LedgerError> {
+        let created_at = self
+            .cala
+            .remove_credit_facility_collateral(
+                tx_id,
+                credit_facility_account_ids,
+                collateral.to_btc(),
+                tx_ref,
+            )
+            .await?;
+        Ok(created_at)
+    }
+
     #[instrument(name = "lava.ledger.create_accounts_for_loan", skip(self), err)]
     pub async fn create_accounts_for_loan(
         &self,

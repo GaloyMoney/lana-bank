@@ -48,4 +48,6 @@ pub enum CreditFacilityError {
     ReceivableBalanceMismatch,
     #[error("CreditFacilityError - OutstandingAmount")]
     OutstandingAmount,
+    #[error("CreditFacilityError - AlreadyCompleted")]
+    AlreadyCompleted,
 }

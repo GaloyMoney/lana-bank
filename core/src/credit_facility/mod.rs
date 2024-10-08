@@ -446,6 +446,8 @@ impl CreditFacilities {
             )
             .await?;
 
+        let price = self.price.usd_cents_per_btc().await?;
+
         let mut credit_facility = self
             .credit_facility_repo
             .find_by_id(credit_facility_id)
@@ -453,9 +455,23 @@ impl CreditFacilities {
 
         let completion = credit_facility.initiate_completion()?;
 
-        // in ledger REMOVE COLLATERAL
-        // confirm completion
-        //
+        let executed_at = self
+            .ledger
+            .complete_credit_facility(completion.clone())
+            .await?;
+        credit_facility.confirm_completion(
+            completion,
+            executed_at,
+            audit_info,
+            price,
+            self.config.upgrade_buffer_cvl_pct,
+        );
+
+        self.credit_facility_repo
+            .persist_in_tx(&mut db_tx, &mut credit_facility)
+            .await?;
+        db_tx.commit().await?;
+
         Ok(credit_facility)
     }
 }

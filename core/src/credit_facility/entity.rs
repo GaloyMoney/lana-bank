@@ -257,7 +257,7 @@ impl CreditFacility {
     }
 
     pub fn status(&self) -> CreditFacilityStatus {
-        if self.is_expired() {
+        if self.is_expired() || self.is_completed() {
             CreditFacilityStatus::Closed
         } else if self.is_approved() {
             CreditFacilityStatus::Active
@@ -668,9 +668,18 @@ impl CreditFacility {
         self.maybe_update_collateralization(price, upgrade_buffer_cvl_pct, audit_info)
     }
 
+    fn is_completed(&self) -> bool {
+        self.events
+            .iter()
+            .any(|event| matches!(event, CreditFacilityEvent::Completed { .. }))
+    }
+
     pub(super) fn initiate_completion(
         &self,
     ) -> Result<CreditFacilityCompletion, CreditFacilityError> {
+        if self.is_completed() {
+            return Err(CreditFacilityError::AlreadyCompleted);
+        }
         if !self.outstanding().total().is_zero() {
             return Err(CreditFacilityError::OutstandingAmount);
         }
@@ -1328,5 +1337,53 @@ mod test {
             outstanding_before_repayment.total() - credit_facility.outstanding().total(),
             repayment_amount
         );
+    }
+
+    #[test]
+    fn confirm_completion() {
+        let mut events = initial_events();
+        events.extend([
+            CreditFacilityEvent::DisbursementInitiated {
+                idx: DisbursementIdx::FIRST,
+                amount: UsdCents::from(100),
+                audit_info: dummy_audit_info(),
+            },
+            CreditFacilityEvent::DisbursementConcluded {
+                idx: DisbursementIdx::FIRST,
+                tx_id: LedgerTxId::new(),
+                recorded_at: Utc::now(),
+                audit_info: dummy_audit_info(),
+            },
+        ]);
+        let mut credit_facility = facility_from(&events);
+
+        let repayment_amount = UsdCents::from(100);
+        let repayment = credit_facility
+            .initiate_repayment(repayment_amount)
+            .unwrap();
+        let outstanding_before_repayment = credit_facility.outstanding();
+
+        credit_facility.confirm_repayment(
+            repayment,
+            Utc::now(),
+            dummy_audit_info(),
+            default_price(),
+            default_upgrade_buffer_cvl_pct(),
+        );
+        assert_eq!(
+            outstanding_before_repayment.total() - credit_facility.outstanding().total(),
+            repayment_amount
+        );
+
+        let completion = credit_facility.initiate_completion().unwrap();
+        credit_facility.confirm_completion(
+            completion,
+            Utc::now(),
+            dummy_audit_info(),
+            default_price(),
+            default_upgrade_buffer_cvl_pct(),
+        );
+        assert!(credit_facility.is_completed());
+        assert!(credit_facility.status() == CreditFacilityStatus::Closed);
     }
 }
