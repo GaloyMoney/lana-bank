@@ -155,6 +155,12 @@ impl Authorization {
             CreditFacilityAction::RecordPayment,
         )
         .await?;
+        self.add_permission_to_role(
+            &role,
+            Object::CreditFacility,
+            CreditFacilityAction::Completion,
+        )
+        .await?;
 
         Ok(())
     }

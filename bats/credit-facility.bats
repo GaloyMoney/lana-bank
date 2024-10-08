@@ -184,9 +184,14 @@ teardown_file() {
 
   variables=$(
     jq -n \
-    --arg creditFacilityId "$credit_facility_id" \
-    '{ id: $creditFacilityId }'
+      --arg creditFacilityId "$credit_facility_id" \
+    '{
+      input: {
+        creditFacilityId: $creditFacilityId,
+      }
+    }'
   )
+
   exec_admin_graphql 'credit-facility-complete' "$variables"
   collateral_balance_after=$(graphql_output '.data.creditFacilityComplete.creditFacility.balance.collateral.btcBalance')
   [[ "$collateral_balance_after" == "0" ]] || exit 1
