@@ -403,7 +403,7 @@ impl Loan {
 
         Ok(self
             .terms
-            .interval
+            .accrual_interval
             .period_from(last_interest_payment)
             .next()
             .truncate(expiry_date))
@@ -444,7 +444,7 @@ impl Loan {
 
         let days_in_interest_period = self
             .terms
-            .interval
+            .accrual_interval
             .period_from(last_interest_payment)
             .next()
             .truncate(expiry_date)
@@ -913,7 +913,7 @@ mod test {
         TermValues::builder()
             .annual_rate(dec!(12))
             .duration(Duration::Months(3))
-            .interval(InterestInterval::EndOfMonth)
+            .accrual_interval(InterestInterval::EndOfMonth)
             .liquidation_cvl(dec!(105))
             .margin_call_cvl(dec!(125))
             .initial_cvl(dec!(140))
