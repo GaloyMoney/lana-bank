@@ -4,9 +4,16 @@ use serde::{Deserialize, Serialize};
 
 use crate::{
     entity::{Entity, EntityError, EntityEvent, EntityEvents},
-    primitives::{AuditInfo, CreditFacilityId, InterestAccrualId, InterestAccrualIdx},
-    terms::TermValues,
+    primitives::{AuditInfo, CreditFacilityId, InterestAccrualId, InterestAccrualIdx, UsdCents},
+    terms::{InterestPeriod, TermValues},
 };
+
+use super::InterestAccrualError;
+
+pub struct OutstandingForPeriod {
+    period: InterestPeriod,
+    amount: UsdCents,
+}
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
@@ -19,6 +26,14 @@ pub enum InterestAccrualEvent {
         facility_expires_at: DateTime<Utc>,
         terms: TermValues,
         audit_info: AuditInfo,
+    },
+    InterestIncurred {
+        amount: UsdCents,
+        incurred_at: DateTime<Utc>,
+    },
+    InterestAccrued {
+        total: UsdCents,
+        accrued_at: DateTime<Utc>,
     },
 }
 
@@ -74,6 +89,100 @@ impl TryFrom<EntityEvents<InterestAccrualEvent>> for InterestAccrual {
             }
         }
         builder.events(events).build()
+    }
+}
+
+impl InterestAccrual {
+    fn accrues_at(&self) -> DateTime<Utc> {
+        self.terms
+            .accrual_interval
+            .period_from(self.started_at)
+            .truncate(self.facility_expires_at)
+            .expect("'started_at' should be before 'facility_expires_at'")
+            .end
+    }
+
+    pub fn is_accrued(&self) -> bool {
+        for event in self.events.iter() {
+            match event {
+                InterestAccrualEvent::InterestAccrued { .. } => return true,
+                _ => continue,
+            }
+        }
+        false
+    }
+
+    fn total_incurred(&self) -> UsdCents {
+        self.events
+            .iter()
+            .filter_map(|event| match event {
+                InterestAccrualEvent::InterestIncurred { amount, .. } => Some(*amount),
+                _ => None,
+            })
+            .fold(UsdCents::ZERO, |acc, amount| acc + amount)
+    }
+
+    fn next_incurrence_period(&self) -> Result<InterestPeriod, InterestAccrualError> {
+        let last_incurrence = self.events.iter().rev().find_map(|event| match event {
+            InterestAccrualEvent::InterestIncurred { incurred_at, .. } => Some(*incurred_at),
+            _ => None,
+        });
+
+        let incurrence_interval = self
+            .terms
+            .incurrence_interval
+            .expect("'incurrence_interval' should exist");
+
+        let untruncated_period = match last_incurrence {
+            Some(last_end_date) => incurrence_interval.period_from(last_end_date).next(),
+            None => incurrence_interval.period_from(self.started_at),
+        };
+
+        Ok(untruncated_period
+            .truncate(self.accrues_at())
+            .ok_or(InterestAccrualError::InterestPeriodStartDatePastAccrualDate)?)
+    }
+
+    fn initiate_incurrence(
+        &mut self,
+        outstanding: OutstandingForPeriod,
+    ) -> Result<Option<()>, InterestAccrualError> {
+        if self.is_accrued() {
+            return Err(InterestAccrualError::AlreadyAccrued);
+        }
+
+        let OutstandingForPeriod {
+            period: incurrence_period,
+            amount: outstanding_amount,
+        } = outstanding;
+        if incurrence_period != self.next_incurrence_period()? {
+            return Err(InterestAccrualError::NonCurrentIncurrencePeriod);
+        }
+
+        let secs_in_interest_period = incurrence_period.seconds();
+        let interest_for_period = self
+            .terms
+            .annual_rate
+            .interest_for_time_period_in_secs(outstanding_amount, secs_in_interest_period);
+
+        self.events.push(InterestAccrualEvent::InterestIncurred {
+            amount: interest_for_period,
+            incurred_at: incurrence_period.end,
+        });
+
+        if incurrence_period
+            .next()
+            .truncate(self.accrues_at())
+            .is_none()
+        {
+            self.events.push(InterestAccrualEvent::InterestAccrued {
+                total: self.total_incurred(),
+                accrued_at: incurrence_period.end,
+            });
+            return Ok(Some(()));
+        } else {
+            return Ok(None);
+        }
     }
 }
 

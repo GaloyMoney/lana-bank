@@ -32,6 +32,8 @@ pub enum CreditFacilityError {
     UserCannotApproveTwice,
     #[error("CreditFacilityError - AlreadyApproved")]
     AlreadyApproved,
+    #[error("CreditFacilityError - NotApprovedYet")]
+    NotApprovedYet,
     #[error("CreditFacilityError - AlreadyExpired")]
     AlreadyExpired,
     #[error("CreditFacilityError - NoDisbursementInProgress")]

@@ -6,3 +6,4 @@ pub(super) use entity::*;
 pub(super) use repo::*;
 
 pub use entity::InterestAccrual;
+use error::*;
