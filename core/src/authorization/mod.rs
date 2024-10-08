@@ -158,7 +158,7 @@ impl Authorization {
         self.add_permission_to_role(
             &role,
             Object::CreditFacility,
-            CreditFacilityAction::Completion,
+            CreditFacilityAction::Complete,
         )
         .await?;
 

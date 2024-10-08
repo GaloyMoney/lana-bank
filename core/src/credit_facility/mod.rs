@@ -439,11 +439,7 @@ impl CreditFacilities {
 
         let audit_info = self
             .authz
-            .enforce_permission(
-                sub,
-                Object::CreditFacility,
-                CreditFacilityAction::Completion,
-            )
+            .enforce_permission(sub, Object::CreditFacility, CreditFacilityAction::Complete)
             .await?;
 
         let price = self.price.usd_cents_per_btc().await?;
