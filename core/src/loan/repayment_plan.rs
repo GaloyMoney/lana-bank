@@ -114,7 +114,7 @@ pub(super) fn project<'a>(
     let expiry_date = terms.duration.expiration_date(approved_at);
     let last_interest_payment = last_interest_accrual_at.unwrap_or(approved_at);
     let mut next_interest_period = terms
-        .interval
+        .accrual_interval
         .period_from(last_interest_payment)
         .next()
         .truncate(expiry_date);
@@ -168,7 +168,7 @@ mod tests {
         TermValues::builder()
             .annual_rate(dec!(12))
             .duration(Duration::Months(2))
-            .interval(InterestInterval::EndOfMonth)
+            .accrual_interval(InterestInterval::EndOfMonth)
             .liquidation_cvl(dec!(105))
             .margin_call_cvl(dec!(125))
             .initial_cvl(dec!(140))
