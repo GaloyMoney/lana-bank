@@ -430,12 +430,12 @@ impl CreditFacilities {
     }
 
     #[instrument(name = "lava.credit_facility.complete", skip(self), err)]
-    pub async fn complete(
+    pub async fn complete_facility(
         &self,
         sub: &Subject,
-        credit_facility_id: CreditFacilityId,
+        credit_facility_id: impl Into<CreditFacilityId> + std::fmt::Debug,
     ) -> Result<CreditFacility, CreditFacilityError> {
-        let mut db_tx = self.pool.begin().await?;
+        let credit_facility_id = credit_facility_id.into();
 
         let audit_info = self
             .authz
@@ -467,6 +467,7 @@ impl CreditFacilities {
             self.config.upgrade_buffer_cvl_pct,
         );
 
+        let mut db_tx = self.pool.begin().await?;
         self.credit_facility_repo
             .persist_in_tx(&mut db_tx, &mut credit_facility)
             .await?;

@@ -6,7 +6,10 @@ use crate::{
     ledger,
     primitives::{Satoshis, UsdCents},
     server::shared_graphql::{
-        convert::ToGlobalId, objects::Outstanding, primitives::UUID, terms::*,
+        convert::ToGlobalId,
+        objects::{Collateral, Outstanding},
+        primitives::UUID,
+        terms::*,
     },
     terms::CollateralizationState,
 };
@@ -18,6 +21,7 @@ scalar!(DisbursementIdx);
 #[derive(SimpleObject)]
 pub(super) struct CreditFacilityBalance {
     outstanding: Outstanding,
+    collateral: Collateral,
 }
 
 impl From<ledger::credit_facility::CreditFacilityBalance> for CreditFacilityBalance {
@@ -25,6 +29,9 @@ impl From<ledger::credit_facility::CreditFacilityBalance> for CreditFacilityBala
         Self {
             outstanding: Outstanding {
                 usd_balance: balance.disbursed_receivable + balance.interest_receivable,
+            },
+            collateral: Collateral {
+                btc_balance: balance.collateral,
             },
         }
     }
@@ -75,6 +82,24 @@ pub struct CreditFacilityApprovePayload {
 }
 
 impl From<crate::credit_facility::CreditFacility> for CreditFacilityApprovePayload {
+    fn from(credit_facility: crate::credit_facility::CreditFacility) -> Self {
+        Self {
+            credit_facility: credit_facility.into(),
+        }
+    }
+}
+
+#[derive(InputObject)]
+pub struct CreditFacilityCompleteInput {
+    pub credit_facility_id: UUID,
+}
+
+#[derive(SimpleObject)]
+pub struct CreditFacilityCompletePayload {
+    credit_facility: CreditFacility,
+}
+
+impl From<crate::credit_facility::CreditFacility> for CreditFacilityCompletePayload {
     fn from(credit_facility: crate::credit_facility::CreditFacility) -> Self {
         Self {
             credit_facility: credit_facility.into(),

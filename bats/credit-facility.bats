@@ -153,3 +153,42 @@ teardown_file() {
   outstanding_diff=$(sub "$outstanding_balance_before" "$outstanding_balance_after")
   [[ "$outstanding_diff" == "$repayment_amount" ]] || exit 1
 }
+
+@test "credit-facility: can complete facility" {
+  credit_facility_id=$(read_value 'credit_facility_id')
+
+  variables=$(
+    jq -n \
+    --arg creditFacilityId "$credit_facility_id" \
+    '{ id: $creditFacilityId }'
+  )
+
+  exec_admin_graphql 'find-credit-facility' "$variables"
+  collateral_balance_before=$(graphql_output '.data.loan.balance.collateral.btcBalance')
+  [[ "$collateral_balance_before" != "0" ]] || exit 1
+
+  # repay the complete amount
+  repayment_amount=30000
+  variables=$(
+    jq -n \
+      --arg creditFacilityId "$credit_facility_id" \
+      --argjson amount "$repayment_amount" \
+    '{
+      input: {
+        creditFacilityId: $creditFacilityId,
+        amount: $amount,
+      }
+    }'
+  )
+  exec_admin_graphql 'credit-facility-partial-payment' "$variables"
+
+  variables=$(
+    jq -n \
+    --arg creditFacilityId "$credit_facility_id" \
+    '{ id: $creditFacilityId }'
+  )
+  exec_admin_graphql 'credit-facility-complete' "$variables"
+  collateral_balance_after=$(graphql_output '.data.creditFacilityComplete.creditFacility.balance.collateral.btcBalance')
+  [[ "$collateral_balance_after" == "0" ]] || exit 1
+
+}

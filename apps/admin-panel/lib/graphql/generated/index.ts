@@ -222,6 +222,7 @@ export type CreditFacilityApprovePayload = {
 
 export type CreditFacilityBalance = {
   __typename?: 'CreditFacilityBalance';
+  collateral: Collateral;
   outstanding: Outstanding;
 };
 
@@ -232,6 +233,15 @@ export type CreditFacilityCollateralUpdateInput = {
 
 export type CreditFacilityCollateralUpdatePayload = {
   __typename?: 'CreditFacilityCollateralUpdatePayload';
+  creditFacility: CreditFacility;
+};
+
+export type CreditFacilityCompleteInput = {
+  creditFacilityId: Scalars['UUID']['input'];
+};
+
+export type CreditFacilityCompletePayload = {
+  __typename?: 'CreditFacilityCompletePayload';
   creditFacility: CreditFacility;
 };
 
@@ -608,6 +618,7 @@ export type Mutation = {
   collateralizationStateUpdate: CollateralizationStateUpdatePayload;
   creditFacilityApprove: CreditFacilityApprovePayload;
   creditFacilityCollateralUpdate: CreditFacilityCollateralUpdatePayload;
+  creditFacilityComplete: CreditFacilityCompletePayload;
   creditFacilityCreate: CreditFacilityCreatePayload;
   creditFacilityDisbursementApprove: CreditFacilityDisbursementApprovePayload;
   creditFacilityDisbursementInitiate: CreditFacilityDisbursementInitiatePayload;
@@ -646,6 +657,11 @@ export type MutationCreditFacilityApproveArgs = {
 
 export type MutationCreditFacilityCollateralUpdateArgs = {
   input: CreditFacilityCollateralUpdateInput;
+};
+
+
+export type MutationCreditFacilityCompleteArgs = {
+  input: CreditFacilityCompleteInput;
 };
 
 

@@ -682,6 +682,23 @@ impl Mutation {
         Ok(CreditFacilityApprovePayload::from(credit_facility))
     }
 
+    async fn credit_facility_complete(
+        &self,
+        ctx: &Context<'_>,
+        input: CreditFacilityCompleteInput,
+    ) -> async_graphql::Result<CreditFacilityCompletePayload> {
+        let app = ctx.data_unchecked::<LavaApp>();
+
+        let AdminAuthContext { sub } = ctx.data()?;
+
+        let credit_facility = app
+            .credit_facilities()
+            .complete_facility(sub, input.credit_facility_id)
+            .await?;
+
+        Ok(CreditFacilityCompletePayload::from(credit_facility))
+    }
+
     pub async fn credit_facility_collateral_update(
         &self,
         ctx: &Context<'_>,

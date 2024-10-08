@@ -194,6 +194,7 @@ type CreditFacilityApprovePayload {
 
 type CreditFacilityBalance {
 	outstanding: Outstanding!
+	collateral: Collateral!
 }
 
 input CreditFacilityCollateralUpdateInput {
@@ -202,6 +203,14 @@ input CreditFacilityCollateralUpdateInput {
 }
 
 type CreditFacilityCollateralUpdatePayload {
+	creditFacility: CreditFacility!
+}
+
+input CreditFacilityCompleteInput {
+	creditFacilityId: UUID!
+}
+
+type CreditFacilityCompletePayload {
 	creditFacility: CreditFacility!
 }
 
@@ -599,6 +608,7 @@ type Mutation {
 	collateralizationStateUpdate(input: CollateralizationStateUpdateInput!): CollateralizationStateUpdatePayload!
 	creditFacilityCreate(input: CreditFacilityCreateInput!): CreditFacilityCreatePayload!
 	creditFacilityApprove(input: CreditFacilityApproveInput!): CreditFacilityApprovePayload!
+	creditFacilityComplete(input: CreditFacilityCompleteInput!): CreditFacilityCompletePayload!
 	creditFacilityCollateralUpdate(input: CreditFacilityCollateralUpdateInput!): CreditFacilityCollateralUpdatePayload!
 	creditFacilityPartialPayment(input: CreditFacilityPartialPaymentInput!): CreditFacilityPartialPaymentPayload!
 	depositRecord(input: DepositRecordInput!): DepositRecordPayload!

@@ -63,6 +63,7 @@ type CreditFacility {
 
 type CreditFacilityBalance {
 	outstanding: Outstanding!
+	collateral: Collateral!
 }
 
 type Customer {

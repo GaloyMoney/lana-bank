@@ -26,6 +26,7 @@ impl CreditFacilityAccountIds {
 
 pub struct CreditFacilityBalance {
     pub facility: UsdCents,
+    pub collateral: Satoshis,
     pub disbursed_receivable: UsdCents,
     pub interest_receivable: UsdCents,
 }
@@ -47,6 +48,10 @@ impl TryFrom<credit_facility_balance::ResponseData> for CreditFacilityBalance {
                 .interest_receivable
                 .map(|b| UsdCents::try_from_usd(b.settled.normal_balance.units))
                 .unwrap_or_else(|| Ok(UsdCents::ZERO))?,
+            collateral: data
+                .collateral
+                .map(|b| Satoshis::try_from_btc(b.settled.normal_balance.units))
+                .unwrap_or_else(|| Ok(Satoshis::ZERO))?,
         })
     }
 }

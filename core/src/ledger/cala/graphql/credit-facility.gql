@@ -1,9 +1,22 @@
 query CreditFacilityBalance(
   $journalId: UUID!
+  $collateralId: UUID!
   $facilityId: UUID!
   $disbursedReceivableId: UUID!
   $interestReceivableId: UUID!
 ) {
+  collateral: balance(
+    journalId: $journalId
+    accountId: $collateralId
+    currency: "BTC"
+  ) {
+    settled {
+      normalBalance {
+        units
+        currency
+      }
+    }
+  }
   facility: balance(
     journalId: $journalId
     accountId: $facilityId
