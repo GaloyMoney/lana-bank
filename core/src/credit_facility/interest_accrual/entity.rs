@@ -1,9 +1,11 @@
+use chrono::{DateTime, Utc};
 use derive_builder::Builder;
 use serde::{Deserialize, Serialize};
 
 use crate::{
     entity::{Entity, EntityError, EntityEvent, EntityEvents},
     primitives::{AuditInfo, CreditFacilityId, InterestAccrualId, InterestAccrualIdx},
+    terms::TermValues,
 };
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -13,6 +15,9 @@ pub enum InterestAccrualEvent {
         id: InterestAccrualId,
         facility_id: CreditFacilityId,
         idx: InterestAccrualIdx,
+        started_at: DateTime<Utc>,
+        facility_expires_at: DateTime<Utc>,
+        terms: TermValues,
         audit_info: AuditInfo,
     },
 }
@@ -30,7 +35,10 @@ pub struct InterestAccrual {
     pub id: InterestAccrualId,
     pub facility_id: CreditFacilityId,
     pub idx: InterestAccrualIdx,
-    pub(super) _events: EntityEvents<InterestAccrualEvent>,
+    pub started_at: DateTime<Utc>,
+    pub facility_expires_at: DateTime<Utc>,
+    pub terms: TermValues,
+    pub(super) events: EntityEvents<InterestAccrualEvent>,
 }
 
 impl Entity for InterestAccrual {
@@ -48,11 +56,24 @@ impl TryFrom<EntityEvents<InterestAccrualEvent>> for InterestAccrual {
                     id,
                     facility_id,
                     idx,
+                    started_at,
+                    facility_expires_at,
+                    terms,
                     ..
-                } => builder = builder.id(*id).facility_id(*facility_id).idx(*idx),
+                } => {
+                    builder = builder
+                        .id(*id)
+                        .facility_id(*facility_id)
+                        .idx(*idx)
+                        .started_at(*started_at)
+                        .facility_expires_at(*facility_expires_at)
+                        .terms(*terms)
+                }
+                InterestAccrualEvent::InterestIncurred { .. } => (),
+                InterestAccrualEvent::InterestAccrued { .. } => (),
             }
         }
-        builder._events(events).build()
+        builder.events(events).build()
     }
 }
 
@@ -61,6 +82,9 @@ pub struct NewInterestAccrual {
     pub(super) id: InterestAccrualId,
     pub(super) facility_id: CreditFacilityId,
     pub(super) idx: InterestAccrualIdx,
+    pub(super) started_at: DateTime<Utc>,
+    pub(super) facility_expires_at: DateTime<Utc>,
+    pub(super) terms: TermValues,
     pub(super) audit_info: AuditInfo,
 }
 
@@ -68,12 +92,18 @@ impl NewInterestAccrual {
     pub fn new(
         facility_id: CreditFacilityId,
         idx: InterestAccrualIdx,
+        started_at: DateTime<Utc>,
+        facility_expires_at: DateTime<Utc>,
+        terms: TermValues,
         audit_info: AuditInfo,
     ) -> Self {
         Self {
             id: InterestAccrualId::new(),
             facility_id,
             idx,
+            started_at,
+            facility_expires_at,
+            terms,
             audit_info,
         }
     }
@@ -85,6 +115,9 @@ impl NewInterestAccrual {
                 id: self.id,
                 facility_id: self.facility_id,
                 idx: self.idx,
+                started_at: self.started_at,
+                facility_expires_at: self.facility_expires_at,
+                terms: self.terms,
                 audit_info: self.audit_info,
             }],
         )

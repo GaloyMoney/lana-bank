@@ -473,6 +473,7 @@ impl CreditFacility {
 
     pub(super) fn initiate_interest_accrual(
         &mut self,
+        started_at: DateTime<Utc>,
         audit_info: AuditInfo,
     ) -> Result<NewInterestAccrual, CreditFacilityError> {
         if self.is_expired() {
@@ -494,7 +495,15 @@ impl CreditFacility {
             .unwrap_or(InterestAccrualIdx::FIRST);
         self.events
             .push(CreditFacilityEvent::InterestAccrualInitiated { idx, audit_info });
-        Ok(NewInterestAccrual::new(self.id, idx, audit_info))
+
+        Ok(NewInterestAccrual::new(
+            self.id,
+            idx,
+            started_at,
+            self.expires_at.ok_or(CreditFacilityError::NotApprovedYet)?,
+            self.terms,
+            audit_info,
+        ))
     }
 
     pub fn interest_accrual_in_progress(&self) -> Option<InterestAccrualIdx> {
