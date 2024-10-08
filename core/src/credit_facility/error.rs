@@ -20,6 +20,8 @@ pub enum CreditFacilityError {
     ConversionError(#[from] crate::primitives::ConversionError),
     #[error("CreditFacilityError - DisbursementError: {0}")]
     DisbursementError(#[from] super::disbursement::error::DisbursementError),
+    #[error("CreditFacilityError - InterestAccrualError: {0}")]
+    InterestAccrualError(#[from] super::interest_accrual::error::InterestAccrualError),
     #[error("CreditFacilityError - CustomerNotFound: {0}")]
     CustomerNotFound(CustomerId),
     #[error("CreditFacilityError - CustomerError: '{0}'")]
@@ -50,4 +52,6 @@ pub enum CreditFacilityError {
     OutstandingAmount,
     #[error("CreditFacilityError - AlreadyCompleted")]
     AlreadyCompleted,
+    #[error("CreditFacilityError - InterestAccrualInProgress")]
+    InterestAccrualInProgress,
 }
