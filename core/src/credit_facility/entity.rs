@@ -9,7 +9,7 @@ use crate::{
     entity::*,
     ledger::{credit_facility::*, customer::CustomerLedgerAccountIds},
     primitives::*,
-    terms::{CVLPct, CollateralizationState, TermValues},
+    terms::{CVLPct, CollateralizationState, InterestPeriod, TermValues},
 };
 
 use super::{
@@ -206,6 +206,13 @@ impl CreditFacility {
             }
         }
         UsdCents::ZERO
+    }
+
+    pub fn initial_disbursement_recorded_at(&self) -> Option<DateTime<Utc>> {
+        self.events.iter().find_map(|event| match event {
+            CreditFacilityEvent::DisbursementConcluded { recorded_at, .. } => Some(*recorded_at),
+            _ => None,
+        })
     }
 
     fn total_disbursed(&self) -> UsdCents {
@@ -478,20 +485,40 @@ impl CreditFacility {
         false
     }
 
+    fn next_interest_accrual_period(&self) -> Result<Option<InterestPeriod>, CreditFacilityError> {
+        let last_accrual_start_date = self
+            .events
+            .iter()
+            .rev()
+            .find_map(|event| match event {
+                CreditFacilityEvent::InterestAccrualInitiated { initiated_at, .. } => {
+                    Some(*initiated_at)
+                }
+                _ => None,
+            })
+            .unwrap_or(
+                self.initial_disbursement_recorded_at()
+                    .ok_or(CreditFacilityError::NoDisbursementsApprovedYet)?,
+            );
+
+        Ok(self
+            .terms
+            .accrual_interval
+            .period_from(last_accrual_start_date)
+            .next()
+            .truncate(self.expires_at.expect("Facility is already approved")))
+    }
+
     pub(super) fn initiate_interest_accrual(
         &mut self,
-        started_at: DateTime<Utc>,
         audit_info: AuditInfo,
-    ) -> Result<NewInterestAccrual, CreditFacilityError> {
-        if self.is_expired() {
-            return Err(CreditFacilityError::AlreadyExpired);
+    ) -> Result<Option<NewInterestAccrual>, CreditFacilityError> {
+        let accrual_starts_at = match self.next_interest_accrual_period()? {
+            Some(period) => period,
+            None => return Ok(None),
         }
-
-        if self.interest_accrual_in_progress().is_some() {
-            return Err(CreditFacilityError::InterestAccrualInProgress);
-        }
-
-        if started_at > Utc::now() {
+        .start;
+        if accrual_starts_at > Utc::now() {
             return Err(CreditFacilityError::InterestAccrualWithInvalidFutureStartDate);
         }
 
@@ -507,18 +534,18 @@ impl CreditFacility {
         self.events
             .push(CreditFacilityEvent::InterestAccrualInitiated {
                 idx,
-                initiated_at: started_at,
+                initiated_at: accrual_starts_at,
                 audit_info,
             });
 
-        Ok(NewInterestAccrual::new(
+        Ok(Some(NewInterestAccrual::new(
             self.id,
             idx,
-            started_at,
-            self.expires_at.ok_or(CreditFacilityError::NotApprovedYet)?,
+            accrual_starts_at,
+            self.expires_at.expect("Facility is already approved"),
             self.terms,
             audit_info,
-        ))
+        )))
     }
 
     pub fn interest_accrual_in_progress(&self) -> Option<InterestAccrualIdx> {

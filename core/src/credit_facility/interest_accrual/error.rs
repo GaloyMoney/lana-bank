@@ -12,6 +12,4 @@ pub enum InterestAccrualError {
     AlreadyAccrued,
     #[error("InterestAccrualError - InterestPeriodStartDatePastAccrualDate")]
     InterestPeriodStartDatePastAccrualDate,
-    #[error("InterestAccrualError - NonCurrentIncurrencePeriod")]
-    NonCurrentIncurrencePeriod,
 }

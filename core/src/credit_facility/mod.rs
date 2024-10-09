@@ -33,7 +33,7 @@ pub use entity::*;
 use error::*;
 pub use history::*;
 pub use interest_accrual::*;
-pub use jobs::*;
+use jobs::*;
 use repo::*;
 use tracing::instrument;
 
@@ -57,8 +57,8 @@ impl CreditFacilities {
     pub fn new(
         pool: &sqlx::PgPool,
         config: CreditFacilityConfig,
-        export: &Export,
         jobs: &Jobs,
+        export: &Export,
         authz: &Authorization,
         audit: &Audit,
         customers: &Customers,
@@ -72,6 +72,12 @@ impl CreditFacilities {
         jobs.add_initializer(cvl::CreditFacilityProcessingJobInitializer::new(
             credit_facility_repo.clone(),
             price,
+            audit,
+        ));
+        jobs.add_initializer(interest::CreditFacilityProcessingJobInitializer::new(
+            ledger,
+            credit_facility_repo.clone(),
+            interest_accrual_repo.clone(),
             audit,
         ));
 
@@ -366,9 +372,26 @@ impl CreditFacilities {
                 audit_info,
             );
 
-            let new_accrual = credit_facility.initiate_interest_accrual(audit_info)?;
-            self.interest_accrual_repo
+            let new_accrual = credit_facility
+                .initiate_interest_accrual(audit_info)?
+                .expect("Accrual start date is before facility expiry date");
+            let accrual = self
+                .interest_accrual_repo
                 .create_in_tx(&mut db_tx, new_accrual)
+                .await?;
+            self.jobs
+                .create_and_spawn_at_in_tx::<interest::CreditFacilityProcessingJobInitializer, _>(
+                    &mut db_tx,
+                    credit_facility.id,
+                    format!("credit-facility-interest-processing-{}", credit_facility.id),
+                    interest::CreditFacilityJobConfig {
+                        credit_facility_id: credit_facility.id,
+                    },
+                    accrual
+                        .next_incurrence_period()
+                        .expect("New accrual has first incurrence period")
+                        .end,
+                )
                 .await?;
         }
 

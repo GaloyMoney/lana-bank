@@ -67,8 +67,8 @@ impl LavaApp {
         let credit_facilities = CreditFacilities::new(
             &pool,
             config.credit_facility,
-            &export,
             &jobs,
+            &export,
             &authz,
             &audit,
             &customers,

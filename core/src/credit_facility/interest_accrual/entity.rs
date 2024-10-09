@@ -3,17 +3,13 @@ use derive_builder::Builder;
 use serde::{Deserialize, Serialize};
 
 use crate::{
+    credit_facility::CreditFacilityReceivable,
     entity::{Entity, EntityError, EntityEvent, EntityEvents},
     primitives::{AuditInfo, CreditFacilityId, InterestAccrualId, InterestAccrualIdx, UsdCents},
     terms::{InterestPeriod, TermValues},
 };
 
 use super::InterestAccrualError;
-
-pub struct OutstandingForPeriod {
-    period: InterestPeriod,
-    amount: UsdCents,
-}
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
@@ -122,7 +118,7 @@ impl InterestAccrual {
             .fold(UsdCents::ZERO, |acc, amount| acc + amount)
     }
 
-    fn next_incurrence_period(&self) -> Result<InterestPeriod, InterestAccrualError> {
+    pub fn next_incurrence_period(&self) -> Option<InterestPeriod> {
         let last_incurrence = self.events.iter().rev().find_map(|event| match event {
             InterestAccrualEvent::InterestIncurred { incurred_at, .. } => Some(*incurred_at),
             _ => None,
@@ -138,50 +134,38 @@ impl InterestAccrual {
             None => incurrence_interval.period_from(self.started_at),
         };
 
-        Ok(untruncated_period
-            .truncate(self.accrues_at())
-            .ok_or(InterestAccrualError::InterestPeriodStartDatePastAccrualDate)?)
+        untruncated_period.truncate(self.accrues_at())
     }
 
-    fn initiate_incurrence(
+    pub fn initiate_incurrence(
         &mut self,
-        outstanding: OutstandingForPeriod,
+        outstanding: CreditFacilityReceivable,
     ) -> Result<Option<()>, InterestAccrualError> {
-        if self.is_accrued() {
-            return Err(InterestAccrualError::AlreadyAccrued);
-        }
-
-        let OutstandingForPeriod {
-            period: incurrence_period,
-            amount: outstanding_amount,
-        } = outstanding;
-        if incurrence_period != self.next_incurrence_period()? {
-            return Err(InterestAccrualError::NonCurrentIncurrencePeriod);
-        }
+        let incurrence_period = self
+            .next_incurrence_period()
+            .expect("Incurrence period should exist inside this function");
 
         let secs_in_interest_period = incurrence_period.seconds();
         let interest_for_period = self
             .terms
             .annual_rate
-            .interest_for_time_period_in_secs(outstanding_amount, secs_in_interest_period);
+            .interest_for_time_period_in_secs(outstanding.total(), secs_in_interest_period);
 
         self.events.push(InterestAccrualEvent::InterestIncurred {
             amount: interest_for_period,
             incurred_at: incurrence_period.end,
         });
 
-        if incurrence_period
-            .next()
-            .truncate(self.accrues_at())
-            .is_none()
-        {
-            self.events.push(InterestAccrualEvent::InterestAccrued {
-                total: self.total_incurred(),
-                accrued_at: incurrence_period.end,
-            });
-            return Ok(Some(()));
-        } else {
-            return Ok(None);
+        match incurrence_period.next().truncate(self.accrues_at()) {
+            Some(_) => Ok(None),
+            None => {
+                self.events.push(InterestAccrualEvent::InterestAccrued {
+                    total: self.total_incurred(),
+                    accrued_at: incurrence_period.end,
+                });
+
+                Ok(Some(()))
+            }
         }
     }
 }
