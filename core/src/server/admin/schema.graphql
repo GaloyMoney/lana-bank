@@ -188,6 +188,7 @@ type CreditFacility {
 	collateral: Satoshis!
 	balance: CreditFacilityBalance!
 	customer: Customer!
+	disbursements: [CreditFacilityDisbursement!]!
 	userCanApprove: Boolean!
 	userCanUpdateCollateral: Boolean!
 	userCanInitiateDisbursement: Boolean!

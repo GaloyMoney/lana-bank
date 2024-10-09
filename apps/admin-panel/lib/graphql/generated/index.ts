@@ -213,6 +213,7 @@ export type CreditFacility = {
   creditFacilityId: Scalars['UUID']['output'];
   creditFacilityTerms: TermValues;
   customer: Customer;
+  disbursements: Array<CreditFacilityDisbursement>;
   faciiltyAmount: Scalars['UsdCents']['output'];
   id: Scalars['ID']['output'];
   status: CreditFacilityStatus;

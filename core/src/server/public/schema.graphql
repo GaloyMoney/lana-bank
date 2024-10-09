@@ -65,6 +65,7 @@ type CreditFacility {
 	collateral: Satoshis!
 	balance: CreditFacilityBalance!
 	customer: Customer!
+	disbursements: [CreditFacilityDisbursement!]!
 	userCanApprove: Boolean!
 	userCanUpdateCollateral: Boolean!
 	userCanInitiateDisbursement: Boolean!
@@ -80,6 +81,11 @@ type CreditFacilityApproval {
 type CreditFacilityBalance {
 	outstanding: Outstanding!
 	collateral: Collateral!
+}
+
+type CreditFacilityDisbursement {
+	id: ID!
+	index: DisbursementIdx!
 }
 
 enum CreditFacilityStatus {
@@ -120,6 +126,8 @@ type Deposit {
 	createdAt: Timestamp!
 	customer: Customer
 }
+
+scalar DisbursementIdx
 
 type Document {
 	id: UUID!

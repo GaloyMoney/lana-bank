@@ -552,4 +552,21 @@ impl CreditFacilities {
 
         Ok(credit_facility)
     }
+
+    pub async fn list_disbursements(
+        &self,
+        sub: &Subject,
+        credit_facility_id: CreditFacilityId,
+    ) -> Result<Vec<Disbursement>, CreditFacilityError> {
+        self.authz
+            .enforce_permission(
+                sub,
+                Object::CreditFacility,
+                CreditFacilityAction::ListDisbursement,
+            )
+            .await?;
+
+        let disbursements = self.disbursement_repo.list(credit_facility_id).await?;
+        Ok(disbursements)
+    }
 }

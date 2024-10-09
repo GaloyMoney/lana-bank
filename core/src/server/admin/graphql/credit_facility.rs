@@ -4,7 +4,7 @@ use connection::CursorType;
 use crate::{
     app::LavaApp,
     ledger,
-    primitives::{CreditFacilityStatus, CustomerId, Satoshis, UsdCents},
+    primitives::{CreditFacilityId, CreditFacilityStatus, CustomerId, Satoshis, UsdCents},
     server::{
         admin::AdminAuthContext,
         shared_graphql::{
@@ -93,6 +93,23 @@ impl CreditFacility {
             Some(user) => Ok(Customer::from(user)),
             None => panic!("user not found for a loan. should not be possible"),
         }
+    }
+
+    async fn disbursements(
+        &self,
+        ctx: &Context<'_>,
+    ) -> async_graphql::Result<Vec<CreditFacilityDisbursement>> {
+        let app = ctx.data_unchecked::<LavaApp>();
+        let AdminAuthContext { sub } = ctx.data()?;
+        let disbursements = app
+            .credit_facilities()
+            .list_disbursements(sub, CreditFacilityId::from(&self.credit_facility_id))
+            .await?;
+
+        Ok(disbursements
+            .into_iter()
+            .map(CreditFacilityDisbursement::from)
+            .collect())
     }
 
     async fn user_can_approve(&self, ctx: &Context<'_>) -> async_graphql::Result<bool> {

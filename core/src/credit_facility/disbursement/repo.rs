@@ -82,4 +82,26 @@ impl DisbursementRepo {
         let res = EntityEvents::load_first::<Disbursement>(rows)?;
         Ok(res)
     }
+
+    pub async fn list(
+        &self,
+        facility_id: CreditFacilityId,
+    ) -> Result<Vec<Disbursement>, DisbursementError> {
+        let rows = sqlx::query_as!(
+            GenericEvent,
+            r#"SELECT d.id, e.sequence, e.event,
+                      d.created_at AS entity_created_at, e.recorded_at AS event_recorded_at
+            FROM disbursements d
+            JOIN disbursement_events e ON d.id = e.id
+            where d.credit_facility_id = $1
+            ORDER BY d.id, e.sequence"#,
+            facility_id as CreditFacilityId,
+        )
+        .fetch_all(&self.pool)
+        .await?;
+
+        let n = rows.len();
+        let res = EntityEvents::load_n::<Disbursement>(rows, n)?;
+        Ok(res.0)
+    }
 }
