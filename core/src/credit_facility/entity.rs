@@ -484,6 +484,10 @@ impl CreditFacility {
             return Err(CreditFacilityError::InterestAccrualInProgress);
         }
 
+        if started_at > Utc::now() {
+            return Err(CreditFacilityError::InterestAccrualWithInvalidFutureStartDate);
+        }
+
         let idx = self
             .events
             .iter()
