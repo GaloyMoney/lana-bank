@@ -180,6 +180,8 @@ type CollateralizationUpdated {
 type CreditFacility {
 	id: ID!
 	creditFacilityId: UUID!
+	approvedAt: Timestamp
+	expiresAt: Timestamp
 	creditFacilityTerms: TermValues!
 	status: CreditFacilityStatus!
 	approvals: [CreditFacilityApproval!]!

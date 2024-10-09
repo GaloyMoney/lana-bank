@@ -56,6 +56,8 @@ pub struct CreditFacilityCreateInput {
 pub struct CreditFacility {
     id: ID,
     credit_facility_id: UUID,
+    approved_at: Option<Timestamp>,
+    expires_at: Option<Timestamp>,
     credit_facility_terms: TermValues,
     status: CreditFacilityStatus,
     approvals: Vec<CreditFacilityApproval>,
@@ -235,6 +237,8 @@ impl ToGlobalId for crate::primitives::CreditFacilityId {
 
 impl From<crate::credit_facility::CreditFacility> for CreditFacility {
     fn from(credit_facility: crate::credit_facility::CreditFacility) -> Self {
+        let approved_at: Option<Timestamp> = credit_facility.approved_at.map(|t| t.into());
+        let expires_at: Option<Timestamp> = credit_facility.expires_at.map(|t| t.into());
         let approvals = credit_facility
             .approvals()
             .into_iter()
@@ -244,6 +248,8 @@ impl From<crate::credit_facility::CreditFacility> for CreditFacility {
         Self {
             id: credit_facility.id.to_global_id(),
             credit_facility_id: UUID::from(credit_facility.id),
+            approved_at,
+            expires_at,
             account_ids: credit_facility.account_ids,
             credit_facility_terms: TermValues::from(credit_facility.terms),
             status: credit_facility.status(),

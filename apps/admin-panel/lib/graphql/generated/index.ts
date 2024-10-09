@@ -207,6 +207,7 @@ export type CollateralizationUpdated = {
 export type CreditFacility = {
   __typename?: 'CreditFacility';
   approvals: Array<CreditFacilityApproval>;
+  approvedAt?: Maybe<Scalars['Timestamp']['output']>;
   balance: CreditFacilityBalance;
   collateral: Scalars['Satoshis']['output'];
   collateralizationState: CollateralizationState;
@@ -214,6 +215,7 @@ export type CreditFacility = {
   creditFacilityTerms: TermValues;
   customer: Customer;
   disbursements: Array<CreditFacilityDisbursement>;
+  expiresAt?: Maybe<Scalars['Timestamp']['output']>;
   faciiltyAmount: Scalars['UsdCents']['output'];
   id: Scalars['ID']['output'];
   status: CreditFacilityStatus;
