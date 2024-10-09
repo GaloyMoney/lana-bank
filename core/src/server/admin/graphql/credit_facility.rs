@@ -57,6 +57,8 @@ pub struct CreditFacility {
     status: CreditFacilityStatus,
     approvals: Vec<CreditFacilityApproval>,
     collateralization_state: CollateralizationState,
+    faciilty_amount: UsdCents,
+    collateral: Satoshis,
     #[graphql(skip)]
     customer_id: UUID,
     #[graphql(skip)]
@@ -212,6 +214,8 @@ impl From<crate::credit_facility::CreditFacility> for CreditFacility {
             credit_facility_terms: TermValues::from(credit_facility.terms),
             status: credit_facility.status(),
             approvals,
+            faciilty_amount: credit_facility.initial_facility(),
+            collateral: credit_facility.collateral(),
             collateralization_state: credit_facility.collateralization(),
             customer_id: UUID::from(credit_facility.customer_id),
         }

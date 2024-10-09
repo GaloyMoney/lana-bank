@@ -61,6 +61,8 @@ type CreditFacility {
 	status: CreditFacilityStatus!
 	approvals: [CreditFacilityApproval!]!
 	collateralizationState: CollateralizationState!
+	faciiltyAmount: UsdCents!
+	collateral: Satoshis!
 	balance: CreditFacilityBalance!
 	customer: Customer!
 	userCanApprove: Boolean!

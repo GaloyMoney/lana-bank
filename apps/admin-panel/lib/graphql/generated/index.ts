@@ -208,10 +208,12 @@ export type CreditFacility = {
   __typename?: 'CreditFacility';
   approvals: Array<CreditFacilityApproval>;
   balance: CreditFacilityBalance;
+  collateral: Scalars['Satoshis']['output'];
   collateralizationState: CollateralizationState;
   creditFacilityId: Scalars['UUID']['output'];
   creditFacilityTerms: TermValues;
   customer: Customer;
+  faciiltyAmount: Scalars['UsdCents']['output'];
   id: Scalars['ID']['output'];
   status: CreditFacilityStatus;
   userCanApprove: Scalars['Boolean']['output'];

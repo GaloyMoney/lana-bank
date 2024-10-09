@@ -182,7 +182,8 @@ impl CreditFacility {
             .entity_first_persisted_at
             .expect("entity_first_persisted_at not found")
     }
-    fn initial_facility(&self) -> UsdCents {
+
+    pub fn initial_facility(&self) -> UsdCents {
         for event in self.events.iter() {
             match event {
                 CreditFacilityEvent::Initialized { facility, .. } => return *facility,
