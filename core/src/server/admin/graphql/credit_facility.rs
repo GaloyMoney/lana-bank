@@ -4,9 +4,9 @@ use connection::CursorType;
 use crate::{
     app::LavaApp,
     ledger,
-    primitives::{CreditFacilityId, CreditFacilityStatus, CustomerId, Satoshis, UsdCents},
+    primitives::{CreditFacilityId,UserId, CreditFacilityStatus, CustomerId, Satoshis, UsdCents},
     server::{
-        admin::AdminAuthContext,
+        admin::{graphql::user::User, AdminAuthContext},
         shared_graphql::{
             convert::ToGlobalId,
             customer::Customer,
@@ -66,9 +66,23 @@ pub struct CreditFacility {
 }
 
 #[derive(SimpleObject)]
+#[graphql(complex)]
 pub struct CreditFacilityApproval {
     user_id: UUID,
     approved_at: Timestamp,
+}
+
+#[ComplexObject]
+impl CreditFacilityApproval {
+    async fn user(&self, ctx: &Context<'_>) -> async_graphql::Result<User> {
+        let app = ctx.data_unchecked::<LavaApp>();
+        let user = app
+            .users()
+            .find_by_id_internal(UserId::from(&self.user_id))
+            .await?
+            .expect("should always find user for a given UserId");
+        Ok(User::from(user))
+    }
 }
 
 #[ComplexObject]

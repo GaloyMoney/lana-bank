@@ -227,6 +227,7 @@ export type CreditFacility = {
 export type CreditFacilityApproval = {
   __typename?: 'CreditFacilityApproval';
   approvedAt: Scalars['Timestamp']['output'];
+  user: User;
   userId: Scalars['UUID']['output'];
 };
 

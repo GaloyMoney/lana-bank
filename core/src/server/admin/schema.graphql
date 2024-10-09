@@ -199,6 +199,7 @@ type CreditFacility {
 type CreditFacilityApproval {
 	userId: UUID!
 	approvedAt: Timestamp!
+	user: User!
 }
 
 input CreditFacilityApproveInput {
