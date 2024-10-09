@@ -26,6 +26,11 @@ impl From<LoanId> for JobId {
         JobId::from(id.0)
     }
 }
+impl From<CreditFacilityId> for JobId {
+    fn from(id: CreditFacilityId) -> Self {
+        JobId::from(id.0)
+    }
+}
 impl From<ReportId> for JobId {
     fn from(id: ReportId) -> Self {
         JobId::from(id.0)

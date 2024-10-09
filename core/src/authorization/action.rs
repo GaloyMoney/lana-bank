@@ -99,6 +99,7 @@ pub enum CreditFacilityAction {
     ListDisbursement,
     UpdateCollateral,
     RecordPayment,
+    RecordInterest,
     Complete,
 }
 

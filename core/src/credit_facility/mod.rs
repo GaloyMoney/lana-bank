@@ -5,13 +5,16 @@ mod entity;
 pub mod error;
 mod history;
 mod interest_accrual;
+mod jobs;
 mod repo;
 
 use crate::{
+    audit::Audit,
     authorization::{Authorization, CreditFacilityAction, CustomerAllOrOne, Object},
     customer::Customers,
     data_export::Export,
     entity::EntityError,
+    job::Jobs,
     ledger::{credit_facility::*, Ledger},
     price::Price,
     primitives::{
@@ -29,6 +32,7 @@ pub use entity::*;
 use error::*;
 pub use history::*;
 pub use interest_accrual::*;
+use jobs::*;
 use repo::*;
 use tracing::instrument;
 
@@ -39,9 +43,11 @@ pub struct CreditFacilities {
     customers: Customers,
     credit_facility_repo: CreditFacilityRepo,
     disbursement_repo: DisbursementRepo,
+    interest_accrual_repo: InterestAccrualRepo,
     user_repo: UserRepo,
     ledger: Ledger,
     price: Price,
+    jobs: Jobs,
     config: CreditFacilityConfig,
 }
 
@@ -50,8 +56,10 @@ impl CreditFacilities {
     pub fn new(
         pool: &sqlx::PgPool,
         config: CreditFacilityConfig,
+        jobs: &Jobs,
         export: &Export,
         authz: &Authorization,
+        audit: &Audit,
         customers: &Customers,
         users: &Users,
         ledger: &Ledger,
@@ -59,6 +67,13 @@ impl CreditFacilities {
     ) -> Self {
         let credit_facility_repo = CreditFacilityRepo::new(pool, export);
         let disbursement_repo = DisbursementRepo::new(pool, export);
+        let interest_accrual_repo = InterestAccrualRepo::new(pool, export);
+        jobs.add_initializer(interest::CreditFacilityProcessingJobInitializer::new(
+            ledger,
+            credit_facility_repo.clone(),
+            interest_accrual_repo.clone(),
+            audit,
+        ));
 
         Self {
             pool: pool.clone(),
@@ -66,9 +81,11 @@ impl CreditFacilities {
             customers: customers.clone(),
             credit_facility_repo,
             disbursement_repo,
+            interest_accrual_repo,
             user_repo: users.repo().clone(),
             ledger: ledger.clone(),
             price: price.clone(),
+            jobs: jobs.clone(),
             config,
         }
     }
@@ -325,6 +342,27 @@ impl CreditFacilities {
                 executed_at,
                 audit_info,
             );
+
+            let new_accrual = credit_facility
+                .initiate_interest_accrual(audit_info)?
+                .expect("Accrual start date is before facility expiry date");
+            let accrual = self
+                .interest_accrual_repo
+                .create_in_tx(&mut db_tx, new_accrual)
+                .await?;
+            self.jobs
+                .create_and_spawn_at_in_tx::<interest::CreditFacilityProcessingJobInitializer, _>(
+                    &mut db_tx,
+                    format!("credit-facility-interest-processing-{}", credit_facility.id),
+                    interest::CreditFacilityJobConfig {
+                        credit_facility_id: credit_facility.id,
+                    },
+                    accrual
+                        .next_incurrence_period()
+                        .expect("New accrual has first incurrence period")
+                        .end,
+                )
+                .await?;
         }
 
         self.disbursement_repo
