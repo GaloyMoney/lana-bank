@@ -52,6 +52,13 @@ pub enum CreditFacilityEvent {
     },
     InterestAccrualInitiated {
         idx: InterestAccrualIdx,
+        initiated_at: DateTime<Utc>,
+        audit_info: AuditInfo,
+    },
+    InterestAccrualAccrued {
+        idx: InterestAccrualIdx,
+        amount: UsdCents,
+        accrued_at: DateTime<Utc>,
         audit_info: AuditInfo,
     },
     CollateralUpdated {
@@ -497,7 +504,11 @@ impl CreditFacility {
             })
             .unwrap_or(InterestAccrualIdx::FIRST);
         self.events
-            .push(CreditFacilityEvent::InterestAccrualInitiated { idx, audit_info });
+            .push(CreditFacilityEvent::InterestAccrualInitiated {
+                idx,
+                initiated_at: started_at,
+                audit_info,
+            });
 
         Ok(NewInterestAccrual::new(
             self.id,
@@ -510,10 +521,15 @@ impl CreditFacility {
     }
 
     pub fn interest_accrual_in_progress(&self) -> Option<InterestAccrualIdx> {
-        self.events.iter().rev().find_map(|event| match event {
-            CreditFacilityEvent::InterestAccrualInitiated { idx, .. } => Some(*idx),
-            _ => None,
-        })
+        self.events
+            .iter()
+            .rev()
+            .find_map(|event| match event {
+                CreditFacilityEvent::InterestAccrualAccrued { .. } => Some(None),
+                CreditFacilityEvent::InterestAccrualInitiated { idx, .. } => Some(Some(*idx)),
+                _ => None,
+            })
+            .and_then(|idx| idx)
     }
 
     pub fn outstanding(&self) -> CreditFacilityReceivable {
@@ -850,6 +866,7 @@ impl TryFrom<EntityEvents<CreditFacilityEvent>> for CreditFacility {
                 CreditFacilityEvent::DisbursementInitiated { .. } => (),
                 CreditFacilityEvent::DisbursementConcluded { .. } => (),
                 CreditFacilityEvent::InterestAccrualInitiated { .. } => (),
+                CreditFacilityEvent::InterestAccrualAccrued { .. } => (),
                 CreditFacilityEvent::CollateralUpdated { .. } => (),
                 CreditFacilityEvent::CollateralizationChanged { .. } => (),
                 CreditFacilityEvent::PaymentRecorded { .. } => (),
