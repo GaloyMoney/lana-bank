@@ -109,6 +109,14 @@ impl Disbursement {
         false
     }
 
+    pub fn status(&self) -> DisbursementStatus {
+        if self.is_approved() {
+            DisbursementStatus::Approved
+        } else {
+            DisbursementStatus::New
+        }
+    }
+
     fn approval_threshold_met(&self) -> bool {
         let mut n_admin = 0;
         let mut n_bank_manager = 0;

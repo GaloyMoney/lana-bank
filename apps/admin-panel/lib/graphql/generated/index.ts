@@ -288,9 +288,10 @@ export type CreditFacilityCreatePayload = {
 
 export type CreditFacilityDisbursement = {
   __typename?: 'CreditFacilityDisbursement';
-  approved: Scalars['Boolean']['output'];
+  amount: Scalars['UsdCents']['output'];
   id: Scalars['ID']['output'];
   index: Scalars['DisbursementIdx']['output'];
+  status: DisbursementStatus;
 };
 
 export type CreditFacilityDisbursementApproveInput = {
@@ -443,6 +444,11 @@ export type DepositRecordPayload = {
   __typename?: 'DepositRecordPayload';
   deposit: Deposit;
 };
+
+export enum DisbursementStatus {
+  Approved = 'APPROVED',
+  New = 'NEW'
+}
 
 export type Document = {
   __typename?: 'Document';

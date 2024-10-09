@@ -4,7 +4,10 @@ use connection::CursorType;
 use crate::{
     app::LavaApp,
     ledger,
-    primitives::{CreditFacilityId, CreditFacilityStatus, CustomerId, Satoshis, UsdCents, UserId},
+    primitives::{
+        CreditFacilityId, CreditFacilityStatus, CustomerId, DisbursementStatus, Satoshis, UsdCents,
+        UserId,
+    },
     server::{
         admin::{graphql::user::User, AdminAuthContext},
         shared_graphql::{
@@ -284,7 +287,8 @@ impl From<crate::credit_facility::CreditFacility> for CreditFacilityPartialPayme
 pub struct CreditFacilityDisbursement {
     id: ID,
     index: DisbursementIdx,
-    approved: bool,
+    amount: UsdCents,
+    status: DisbursementStatus,
 }
 
 impl From<crate::credit_facility::Disbursement> for CreditFacilityDisbursement {
@@ -292,7 +296,8 @@ impl From<crate::credit_facility::Disbursement> for CreditFacilityDisbursement {
         Self {
             id: disbursement.id.to_global_id(),
             index: disbursement.idx,
-            approved: disbursement.is_approved(),
+            amount: disbursement.amount,
+            status: disbursement.status(),
         }
     }
 }

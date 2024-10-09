@@ -87,7 +87,8 @@ type CreditFacilityBalance {
 type CreditFacilityDisbursement {
 	id: ID!
 	index: DisbursementIdx!
-	approved: Boolean!
+	amount: UsdCents!
+	status: DisbursementStatus!
 }
 
 enum CreditFacilityStatus {
@@ -130,6 +131,11 @@ type Deposit {
 }
 
 scalar DisbursementIdx
+
+enum DisbursementStatus {
+	NEW
+	APPROVED
+}
 
 type Document {
 	id: UUID!

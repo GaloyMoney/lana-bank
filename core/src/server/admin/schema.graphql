@@ -260,7 +260,8 @@ type CreditFacilityCreatePayload {
 type CreditFacilityDisbursement {
 	id: ID!
 	index: DisbursementIdx!
-	approved: Boolean!
+	amount: UsdCents!
+	status: DisbursementStatus!
 }
 
 input CreditFacilityDisbursementApproveInput {
@@ -430,6 +431,11 @@ type DepositRecordPayload {
 }
 
 scalar DisbursementIdx
+
+enum DisbursementStatus {
+	NEW
+	APPROVED
+}
 
 type Document {
 	id: UUID!
