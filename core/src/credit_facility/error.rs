@@ -56,4 +56,6 @@ pub enum CreditFacilityError {
     AlreadyCompleted,
     #[error("CreditFacilityError - InterestAccrualInProgress")]
     InterestAccrualInProgress,
+    #[error("CreditFacilityError - InterestAccrualWithInvalidFutureStartDate")]
+    InterestAccrualWithInvalidFutureStartDate,
 }
