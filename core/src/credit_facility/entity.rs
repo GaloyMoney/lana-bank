@@ -85,6 +85,11 @@ impl EntityEvent for CreditFacilityEvent {
     }
 }
 
+pub struct CreditFacilityApproval {
+    pub user_id: UserId,
+    pub approved_at: DateTime<Utc>,
+}
+
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct CreditFacilityReceivable {
     pub disbursed: UsdCents,
@@ -360,6 +365,26 @@ impl CreditFacility {
             audit_info,
             recorded_at: executed_at,
         });
+    }
+
+    pub fn approvals(&self) -> Vec<CreditFacilityApproval> {
+        let mut approvals = Vec::new();
+
+        for event in self.events.iter().rev() {
+            if let CreditFacilityEvent::ApprovalAdded {
+                approving_user_id,
+                recorded_at,
+                ..
+            } = event
+            {
+                approvals.push(CreditFacilityApproval {
+                    user_id: *approving_user_id,
+                    approved_at: *recorded_at,
+                });
+            }
+        }
+
+        approvals
     }
 
     pub(super) fn initiate_disbursement(

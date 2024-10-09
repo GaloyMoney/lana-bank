@@ -4,14 +4,14 @@ use connection::CursorType;
 use crate::{
     app::LavaApp,
     ledger,
-    primitives::{CustomerId, Satoshis, UsdCents},
+    primitives::{CreditFacilityStatus, CustomerId, Satoshis, UsdCents},
     server::{
         admin::AdminAuthContext,
         shared_graphql::{
             convert::ToGlobalId,
             customer::Customer,
             objects::{Collateral, Outstanding},
-            primitives::UUID,
+            primitives::{Timestamp, UUID},
             terms::*,
         },
     },
@@ -48,16 +48,25 @@ pub struct CreditFacilityCreateInput {
     pub terms: TermsInput,
 }
 
-#[derive(SimpleObject, Clone)]
+#[derive(SimpleObject)]
 #[graphql(complex)]
 pub struct CreditFacility {
     id: ID,
     credit_facility_id: UUID,
+    credit_facility_terms: TermValues,
+    status: CreditFacilityStatus,
+    approvals: Vec<CreditFacilityApproval>,
     collateralization_state: CollateralizationState,
     #[graphql(skip)]
     customer_id: UUID,
     #[graphql(skip)]
     account_ids: crate::ledger::credit_facility::CreditFacilityAccountIds,
+}
+
+#[derive(SimpleObject)]
+pub struct CreditFacilityApproval {
+    user_id: UUID,
+    approved_at: Timestamp,
 }
 
 #[ComplexObject]
@@ -190,10 +199,19 @@ impl ToGlobalId for crate::primitives::CreditFacilityId {
 
 impl From<crate::credit_facility::CreditFacility> for CreditFacility {
     fn from(credit_facility: crate::credit_facility::CreditFacility) -> Self {
+        let approvals = credit_facility
+            .approvals()
+            .into_iter()
+            .map(CreditFacilityApproval::from)
+            .collect();
+
         Self {
             id: credit_facility.id.to_global_id(),
             credit_facility_id: UUID::from(credit_facility.id),
             account_ids: credit_facility.account_ids,
+            credit_facility_terms: TermValues::from(credit_facility.terms),
+            status: credit_facility.status(),
+            approvals,
             collateralization_state: credit_facility.collateralization(),
             customer_id: UUID::from(credit_facility.customer_id),
         }
@@ -321,5 +339,14 @@ impl CursorType for CreditFacilityByCreatedAtCursor {
             .map_err(|e| e.to_string())?;
         let json = String::from_utf8(bytes).map_err(|e| e.to_string())?;
         serde_json::from_str(&json).map_err(|e| e.to_string())
+    }
+}
+
+impl From<crate::credit_facility::CreditFacilityApproval> for CreditFacilityApproval {
+    fn from(approver: crate::credit_facility::CreditFacilityApproval) -> Self {
+        CreditFacilityApproval {
+            user_id: UUID::from(approver.user_id),
+            approved_at: approver.approved_at.into(),
+        }
     }
 }

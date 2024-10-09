@@ -180,6 +180,9 @@ type CollateralizationUpdated {
 type CreditFacility {
 	id: ID!
 	creditFacilityId: UUID!
+	creditFacilityTerms: TermValues!
+	status: CreditFacilityStatus!
+	approvals: [CreditFacilityApproval!]!
 	collateralizationState: CollateralizationState!
 	balance: CreditFacilityBalance!
 	customer: Customer!
@@ -188,6 +191,11 @@ type CreditFacility {
 	userCanInitiateDisbursement: Boolean!
 	userCanApproveDisbursement: Boolean!
 	userCanRecordPayment: Boolean!
+}
+
+type CreditFacilityApproval {
+	userId: UUID!
+	approvedAt: Timestamp!
 }
 
 input CreditFacilityApproveInput {
@@ -289,6 +297,12 @@ input CreditFacilityPartialPaymentInput {
 
 type CreditFacilityPartialPaymentPayload {
 	creditFacility: CreditFacility!
+}
+
+enum CreditFacilityStatus {
+	NEW
+	ACTIVE
+	CLOSED
 }
 
 type Customer {

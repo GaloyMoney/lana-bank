@@ -57,6 +57,9 @@ type CollateralizationUpdated {
 type CreditFacility {
 	id: ID!
 	creditFacilityId: UUID!
+	creditFacilityTerms: TermValues!
+	status: CreditFacilityStatus!
+	approvals: [CreditFacilityApproval!]!
 	collateralizationState: CollateralizationState!
 	balance: CreditFacilityBalance!
 	customer: Customer!
@@ -67,9 +70,20 @@ type CreditFacility {
 	userCanRecordPayment: Boolean!
 }
 
+type CreditFacilityApproval {
+	userId: UUID!
+	approvedAt: Timestamp!
+}
+
 type CreditFacilityBalance {
 	outstanding: Outstanding!
 	collateral: Collateral!
+}
+
+enum CreditFacilityStatus {
+	NEW
+	ACTIVE
+	CLOSED
 }
 
 type Customer {
