@@ -260,6 +260,7 @@ type CreditFacilityCreatePayload {
 type CreditFacilityDisbursement {
 	id: ID!
 	index: DisbursementIdx!
+	approved: Boolean!
 }
 
 input CreditFacilityDisbursementApproveInput {

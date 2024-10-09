@@ -288,6 +288,7 @@ export type CreditFacilityCreatePayload = {
 
 export type CreditFacilityDisbursement = {
   __typename?: 'CreditFacilityDisbursement';
+  approved: Scalars['Boolean']['output'];
   id: Scalars['ID']['output'];
   index: Scalars['DisbursementIdx']['output'];
 };

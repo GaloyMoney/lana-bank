@@ -87,6 +87,7 @@ type CreditFacilityBalance {
 type CreditFacilityDisbursement {
 	id: ID!
 	index: DisbursementIdx!
+	approved: Boolean!
 }
 
 enum CreditFacilityStatus {
