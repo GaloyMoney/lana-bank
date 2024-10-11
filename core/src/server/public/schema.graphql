@@ -115,7 +115,13 @@ type CreditFacilityDisbursement {
 	createdAt: Timestamp!
 }
 
-union CreditFacilityHistoryEntry = CreditFacilityIncrementalPayment | CreditFacilityCollateralUpdated | CreditFacilityOrigination | CreditFacilityCollateralizationUpdated
+type CreditFacilityDisbursementExecuted {
+	cents: UsdCents!
+	recordedAt: Timestamp!
+	txId: UUID!
+}
+
+union CreditFacilityHistoryEntry = CreditFacilityIncrementalPayment | CreditFacilityCollateralUpdated | CreditFacilityOrigination | CreditFacilityCollateralizationUpdated | CreditFacilityDisbursementExecuted
 
 type CreditFacilityIncrementalPayment {
 	cents: UsdCents!

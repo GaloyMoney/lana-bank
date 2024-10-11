@@ -76,6 +76,7 @@ pub enum CreditFacilityHistoryEntry {
     Collateral(CreditFacilityCollateralUpdated),
     Origination(CreditFacilityOrigination),
     Collateralization(CreditFacilityCollateralizationUpdated),
+    Disbursement(CreditFacilityDisbursementExecuted),
 }
 
 #[derive(SimpleObject)]
@@ -108,6 +109,13 @@ pub struct CreditFacilityCollateralizationUpdated {
     pub outstanding_disbursement: UsdCents,
     pub recorded_at: Timestamp,
     pub price: UsdCents,
+}
+
+#[derive(SimpleObject)]
+pub struct CreditFacilityDisbursementExecuted {
+    pub cents: UsdCents,
+    pub recorded_at: Timestamp,
+    pub tx_id: UUID,
 }
 
 #[derive(SimpleObject)]
@@ -510,6 +518,9 @@ impl From<crate::credit_facility::CreditFacilityHistoryEntry> for CreditFacility
             crate::credit_facility::CreditFacilityHistoryEntry::Collateralization(
                 collateralization,
             ) => CreditFacilityHistoryEntry::Collateralization(collateralization.into()),
+            crate::credit_facility::CreditFacilityHistoryEntry::Disbursement(disbursement) => {
+                CreditFacilityHistoryEntry::Disbursement(disbursement.into())
+            }
         }
     }
 }
@@ -541,6 +552,16 @@ impl From<crate::credit_facility::CreditFacilityOrigination> for CreditFacilityO
             cents: origination.cents,
             recorded_at: origination.recorded_at.into(),
             tx_id: UUID::from(origination.tx_id),
+        }
+    }
+}
+
+impl From<crate::credit_facility::DisbursementExecuted> for CreditFacilityDisbursementExecuted {
+    fn from(disbursement: crate::credit_facility::DisbursementExecuted) -> Self {
+        Self {
+            cents: disbursement.cents,
+            recorded_at: disbursement.recorded_at.into(),
+            tx_id: UUID::from(disbursement.tx_id),
         }
     }
 }

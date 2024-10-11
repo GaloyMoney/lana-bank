@@ -32,17 +32,25 @@ pub struct CollateralizationUpdated {
     pub price: PriceOfOneBTC,
 }
 
+pub struct DisbursementExecuted {
+    pub cents: UsdCents,
+    pub recorded_at: DateTime<Utc>,
+    pub tx_id: LedgerTxId,
+}
+
 pub enum CreditFacilityHistoryEntry {
     Payment(IncrementalPayment),
     Collateral(CollateralUpdated),
     Origination(CreditFacilityOrigination),
     Collateralization(CollateralizationUpdated),
+    Disbursement(DisbursementExecuted),
 }
 
 pub(super) fn project<'a>(
     events: impl DoubleEndedIterator<Item = &'a CreditFacilityEvent>,
 ) -> Vec<CreditFacilityHistoryEntry> {
     let mut history = vec![];
+    let mut disbursements = std::collections::HashMap::new();
 
     let mut initial_facility = None;
     for event in events {
@@ -116,6 +124,25 @@ pub(super) fn project<'a>(
                         outstanding_disbursement: outstanding.disbursed,
                         price: *price,
                         recorded_at: *recorded_at,
+                    },
+                ));
+            }
+            CreditFacilityEvent::DisbursementInitiated { idx, amount, .. } => {
+                disbursements.insert(*idx, *amount);
+            }
+            CreditFacilityEvent::DisbursementConcluded {
+                idx,
+                recorded_at,
+                tx_id,
+                ..
+            } => {
+                history.push(CreditFacilityHistoryEntry::Disbursement(
+                    DisbursementExecuted {
+                        cents: disbursements
+                            .remove(idx)
+                            .expect("Disbursement must have been initiated"),
+                        recorded_at: *recorded_at,
+                        tx_id: *tx_id,
                     },
                 ));
             }

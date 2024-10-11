@@ -297,6 +297,12 @@ type CreditFacilityDisbursementApprovePayload {
 	disbursement: CreditFacilityDisbursement!
 }
 
+type CreditFacilityDisbursementExecuted {
+	cents: UsdCents!
+	recordedAt: Timestamp!
+	txId: UUID!
+}
+
 input CreditFacilityDisbursementInitiateInput {
 	creditFacilityId: UUID!
 	amount: UsdCents!
@@ -320,7 +326,7 @@ type CreditFacilityEdge {
 	cursor: String!
 }
 
-union CreditFacilityHistoryEntry = CreditFacilityIncrementalPayment | CreditFacilityCollateralUpdated | CreditFacilityOrigination | CreditFacilityCollateralizationUpdated
+union CreditFacilityHistoryEntry = CreditFacilityIncrementalPayment | CreditFacilityCollateralUpdated | CreditFacilityOrigination | CreditFacilityCollateralizationUpdated | CreditFacilityDisbursementExecuted
 
 type CreditFacilityIncrementalPayment {
 	cents: UsdCents!
