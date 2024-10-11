@@ -22,3 +22,25 @@ pub struct Collateral {
 pub struct Outstanding {
     pub usd_balance: UsdCents,
 }
+
+#[derive(SimpleObject)]
+pub struct Total {
+    pub usd_balance: UsdCents,
+}
+
+#[derive(SimpleObject)]
+pub struct FacilityRemaining {
+    pub usd_balance: UsdCents,
+}
+
+#[derive(SimpleObject)]
+pub struct Disbursed {
+    pub total: Total,
+    pub outstanding: Outstanding,
+}
+
+#[derive(SimpleObject)]
+pub struct Interest {
+    pub total: Total,
+    pub outstanding: Outstanding,
+}

@@ -86,6 +86,9 @@ type CreditFacilityApproval {
 }
 
 type CreditFacilityBalance {
+	facilityRemaining: FacilityRemaining!
+	disbursed: Disbursed!
+	interest: Interest!
 	outstanding: Outstanding!
 	collateral: Collateral!
 }
@@ -174,6 +177,11 @@ type Deposit {
 	customer: Customer
 }
 
+type Disbursed {
+	total: Total!
+	outstanding: Outstanding!
+}
+
 type DisbursementApproval {
 	userId: UUID!
 	approvedAt: Timestamp!
@@ -198,6 +206,10 @@ type Duration {
 	units: Int!
 }
 
+type FacilityRemaining {
+	usdBalance: UsdCents!
+}
+
 
 
 type IncrementalPayment {
@@ -206,6 +218,11 @@ type IncrementalPayment {
 	txId: UUID!
 }
 
+
+type Interest {
+	total: Total!
+	outstanding: Outstanding!
+}
 
 type InterestAccrued {
 	cents: UsdCents!
@@ -350,6 +367,10 @@ type TermValues {
 }
 
 scalar Timestamp
+
+type Total {
+	usdBalance: UsdCents!
+}
 
 scalar UUID
 

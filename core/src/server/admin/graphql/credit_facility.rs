@@ -10,7 +10,7 @@ use crate::{
         shared_graphql::{
             convert::ToGlobalId,
             customer::Customer,
-            objects::{Collateral, Outstanding},
+            objects::*,
             primitives::{Timestamp, UUID},
             terms::*,
         },
@@ -24,6 +24,9 @@ scalar!(DisbursementIdx);
 
 #[derive(SimpleObject)]
 pub(super) struct CreditFacilityBalance {
+    facility_remaining: FacilityRemaining,
+    disbursed: Disbursed,
+    interest: Interest,
     outstanding: Outstanding,
     collateral: Collateral,
 }
@@ -31,6 +34,25 @@ pub(super) struct CreditFacilityBalance {
 impl From<ledger::credit_facility::CreditFacilityBalance> for CreditFacilityBalance {
     fn from(balance: ledger::credit_facility::CreditFacilityBalance) -> Self {
         Self {
+            facility_remaining: FacilityRemaining {
+                usd_balance: balance.facility,
+            },
+            disbursed: Disbursed {
+                total: Total {
+                    usd_balance: balance.disbursed,
+                },
+                outstanding: Outstanding {
+                    usd_balance: balance.disbursed_receivable,
+                },
+            },
+            interest: Interest {
+                total: Total {
+                    usd_balance: balance.interest,
+                },
+                outstanding: Outstanding {
+                    usd_balance: balance.interest_receivable,
+                },
+            },
             outstanding: Outstanding {
                 usd_balance: balance.disbursed_receivable + balance.interest_receivable,
             },

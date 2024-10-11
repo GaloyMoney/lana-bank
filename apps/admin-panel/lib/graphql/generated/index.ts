@@ -251,6 +251,9 @@ export type CreditFacilityApprovePayload = {
 export type CreditFacilityBalance = {
   __typename?: 'CreditFacilityBalance';
   collateral: Collateral;
+  disbursed: Disbursed;
+  facilityRemaining: FacilityRemaining;
+  interest: Interest;
   outstanding: Outstanding;
 };
 
@@ -496,6 +499,12 @@ export type DepositRecordPayload = {
   deposit: Deposit;
 };
 
+export type Disbursed = {
+  __typename?: 'Disbursed';
+  outstanding: Outstanding;
+  total: Total;
+};
+
 export type DisbursementApproval = {
   __typename?: 'DisbursementApproval';
   approvedAt: Scalars['Timestamp']['output'];
@@ -546,11 +555,22 @@ export type DurationInput = {
   units: Scalars['Int']['input'];
 };
 
+export type FacilityRemaining = {
+  __typename?: 'FacilityRemaining';
+  usdBalance: Scalars['UsdCents']['output'];
+};
+
 export type IncrementalPayment = {
   __typename?: 'IncrementalPayment';
   cents: Scalars['UsdCents']['output'];
   recordedAt: Scalars['Timestamp']['output'];
   txId: Scalars['UUID']['output'];
+};
+
+export type Interest = {
+  __typename?: 'Interest';
+  outstanding: Outstanding;
+  total: Total;
 };
 
 export type InterestAccrued = {
@@ -1226,6 +1246,11 @@ export type TermsTemplateUpdateInput = {
 export type TermsTemplateUpdatePayload = {
   __typename?: 'TermsTemplateUpdatePayload';
   termsTemplate: TermsTemplate;
+};
+
+export type Total = {
+  __typename?: 'Total';
+  usdBalance: Scalars['UsdCents']['output'];
 };
 
 export type Transaction = Deposit | Withdrawal;
