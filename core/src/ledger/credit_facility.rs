@@ -10,6 +10,7 @@ pub struct CreditFacilityAccountIds {
     pub disbursed_receivable_account_id: LedgerAccountId,
     pub collateral_account_id: LedgerAccountId,
     pub interest_receivable_account_id: LedgerAccountId,
+    pub interest_account_id: LedgerAccountId,
 }
 
 impl CreditFacilityAccountIds {
@@ -20,6 +21,7 @@ impl CreditFacilityAccountIds {
             disbursed_receivable_account_id: LedgerAccountId::new(),
             collateral_account_id: LedgerAccountId::new(),
             interest_receivable_account_id: LedgerAccountId::new(),
+            interest_account_id: LedgerAccountId::new(),
         }
     }
 }

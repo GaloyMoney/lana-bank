@@ -221,6 +221,7 @@ impl CalaClient {
             disbursed_receivable_account_id,
             collateral_account_id,
             interest_receivable_account_id,
+            interest_account_id,
         }: CreditFacilityAccountIds,
     ) -> Result<(), CalaError> {
         let credit_facility_id = credit_facility_id.into();
@@ -266,6 +267,17 @@ impl CalaClient {
             ),
             facilities_interest_receivable_control_account_set_id:
                 super::constants::CREDIT_FACILITIES_INTEREST_RECEIVABLE_CONTROL_ACCOUNT_SET_ID,
+            interest_account_id: Uuid::from(interest_account_id),
+            interest_account_code: format!(
+                "CREDIT_FACILITY.INTEREST_INCOME.{}",
+                credit_facility_id
+            ),
+            interest_account_name: format!(
+                "Interest Income for Credit Facility {}",
+                credit_facility_id
+            ),
+            interest_revenue_control_account_set_id:
+                super::constants::CREDIT_FACILITY_INTEREST_REVENUE_CONTROL_ACCOUNT_SET_ID,
         };
         let response = Self::traced_gql_request::<CreateCreditFacilityAccounts, _>(
             &self.client,
