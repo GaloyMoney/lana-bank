@@ -4,9 +4,32 @@ mutation creditFacilityPartialPayment(
   creditFacilityPartialPayment(input: $input) {
     creditFacility {
       creditFacilityId
+      facilityAmount
       balance {
+        facilityRemaining {
+          usdBalance
+        }
         outstanding {
           usdBalance
+        }
+        collateral {
+          btcBalance
+        }
+        disbursed {
+          total {
+            usdBalance
+          }
+          outstanding {
+            usdBalance
+          }
+        }
+        interest {
+          total {
+            usdBalance
+          }
+          outstanding {
+            usdBalance
+          }
         }
       }
     }
