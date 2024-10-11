@@ -99,6 +99,11 @@ gql`
           recordedAt
           price
         }
+        ... on CreditFacilityDisbursementExecuted {
+          cents
+          recordedAt
+          txId
+        }
       }
       userCanApprove
       userCanUpdateCollateral

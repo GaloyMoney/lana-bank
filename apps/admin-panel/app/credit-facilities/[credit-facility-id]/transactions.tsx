@@ -85,6 +85,7 @@ const renderTransactionRow = (transaction: CreditFacilityHistoryEntry, index: nu
         )
       case "CreditFacilityOrigination":
       case "CreditFacilityIncrementalPayment":
+      case "CreditFacilityDisbursementExecuted":
         return <Balance amount={transaction.cents} currency="usd" align="end" />
       default:
         return <span>-</span>
