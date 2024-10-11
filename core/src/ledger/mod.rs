@@ -338,7 +338,15 @@ impl Ledger {
             credit_facility_account_ids,
         }: CreditFacilityInterestIncurrence,
     ) -> Result<chrono::DateTime<chrono::Utc>, LedgerError> {
-        unimplemented!()
+        Ok(self
+            .cala
+            .execute_credit_facility_incur_interest_tx(
+                tx_id,
+                credit_facility_account_ids,
+                interest.to_usd(),
+                tx_ref,
+            )
+            .await?)
     }
 
     #[instrument(
@@ -355,7 +363,15 @@ impl Ledger {
             credit_facility_account_ids,
         }: CreditFacilityInterestAccrual,
     ) -> Result<chrono::DateTime<chrono::Utc>, LedgerError> {
-        unimplemented!()
+        Ok(self
+            .cala
+            .execute_credit_facility_accrue_interest_tx(
+                tx_id,
+                credit_facility_account_ids,
+                interest.to_usd(),
+                tx_ref,
+            )
+            .await?)
     }
 
     #[instrument(name = "lava.ledger.record_disbursement", skip(self), err)]
