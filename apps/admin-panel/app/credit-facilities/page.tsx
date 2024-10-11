@@ -42,7 +42,7 @@ gql`
           collateralizationState
           createdAt
           status
-          faciiltyAmount
+          facilityAmount
           collateral
           customer {
             customerId

@@ -149,24 +149,24 @@ const calculatePrice = ({
 
 export const calculateBaseAmountInCents = ({
   status,
-  faciiltyAmount,
+  facilityAmount,
   disbursements,
   balance,
 }: {
   status: CreditFacilityStatus
-  faciiltyAmount: number
+  facilityAmount: number
   disbursements: { status: DisbursementStatus }[]
   balance: { outstanding: { usdBalance: number } }
 }) => {
   if (status === CreditFacilityStatus.New) {
-    return faciiltyAmount
+    return facilityAmount
   }
 
   if (status === CreditFacilityStatus.Active) {
     const hasApprovedDisbursements = disbursements.some(
       (d) => d.status === DisbursementStatus.Approved,
     )
-    return hasApprovedDisbursements ? balance.outstanding.usdBalance : faciiltyAmount
+    return hasApprovedDisbursements ? balance.outstanding.usdBalance : facilityAmount
   }
 
   return 0

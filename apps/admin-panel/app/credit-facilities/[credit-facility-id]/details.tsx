@@ -63,7 +63,7 @@ const CreditFacilityDetailsCard: React.FC<CreditFacilityDetailsProps> = ({
               <DetailItem
                 label="Facility Amount"
                 valueComponent={
-                  <Balance amount={creditFacilityDetails.faciiltyAmount} currency="usd" />
+                  <Balance amount={creditFacilityDetails.facilityAmount} currency="usd" />
                 }
               />
               <DetailItem

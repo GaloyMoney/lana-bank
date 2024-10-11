@@ -64,7 +64,7 @@ type CreditFacility {
 	status: CreditFacilityStatus!
 	approvals: [CreditFacilityApproval!]!
 	collateralizationState: CollateralizationState!
-	faciiltyAmount: UsdCents!
+	facilityAmount: UsdCents!
 	collateral: Satoshis!
 	canBeCompleted: Boolean!
 	transactions: [CreditFacilityHistoryEntry!]!

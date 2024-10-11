@@ -26,7 +26,7 @@ gql`
       creditFacilityId
       collateralizationState
       status
-      faciiltyAmount
+      facilityAmount
       collateral
       createdAt
       expiresAt

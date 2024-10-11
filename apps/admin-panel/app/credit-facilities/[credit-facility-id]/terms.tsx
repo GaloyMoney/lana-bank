@@ -62,7 +62,7 @@ export const CreditFacilityTerms: React.FC<CreditFacilityTermsProps> = ({
               <DetailItem
                 label="Facility Amount"
                 valueComponent={
-                  <Balance amount={creditFacility.faciiltyAmount} currency="usd" />
+                  <Balance amount={creditFacility.facilityAmount} currency="usd" />
                 }
               />
             </DetailsGroup>
