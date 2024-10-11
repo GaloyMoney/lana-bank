@@ -1309,6 +1309,132 @@ impl CalaClient {
     }
 
     #[instrument(
+        name = "lava.ledger.cala.create_credit_facility_incur_interest_template",
+        skip(self),
+        err
+    )]
+    pub async fn create_credit_facility_incur_interest_tx_template(
+        &self,
+        template_id: TxTemplateId,
+    ) -> Result<TxTemplateId, CalaError> {
+        let variables = credit_facility_incur_interest_template_create::Variables {
+            template_id: Uuid::from(template_id),
+            journal_id: format!("uuid(\"{}\")", super::constants::CORE_JOURNAL_ID),
+        };
+        let response = Self::traced_gql_request::<CreditFacilityIncurInterestTemplateCreate, _>(
+            &self.client,
+            &self.url,
+            variables,
+        )
+        .await?;
+
+        response
+            .data
+            .map(|d| TxTemplateId::from(d.tx_template_create.tx_template.tx_template_id))
+            .ok_or_else(|| CalaError::MissingDataField)
+    }
+
+    #[instrument(
+        name = "lava.ledger.cala.execute_credit_facility_incur_interest_tx",
+        skip(self),
+        err
+    )]
+    pub async fn execute_credit_facility_incur_interest_tx(
+        &self,
+        transaction_id: LedgerTxId,
+        facility_account_ids: CreditFacilityAccountIds,
+        interest_amount: Decimal,
+        external_id: String,
+    ) -> Result<chrono::DateTime<chrono::Utc>, CalaError> {
+        let variables = post_credit_facility_incur_interest_transaction::Variables {
+            transaction_id: transaction_id.into(),
+            credit_facility_interest_receivable_account: facility_account_ids
+                .interest_receivable_account_id
+                .into(),
+            credit_facility_interest_income_account: facility_account_ids
+                .interest_account_id
+                .into(),
+            interest_amount,
+            external_id,
+        };
+        let response = Self::traced_gql_request::<PostCreditFacilityIncurInterestTransaction, _>(
+            &self.client,
+            &self.url,
+            variables,
+        )
+        .await?;
+
+        let created_at = response
+            .data
+            .map(|d| d.transaction_post.transaction.created_at)
+            .ok_or_else(|| CalaError::MissingDataField)?;
+        Ok(created_at)
+    }
+
+    #[instrument(
+        name = "lava.ledger.cala.create_credit_facility_accrue_interest_template",
+        skip(self),
+        err
+    )]
+    pub async fn create_credit_facility_accrue_interest_tx_template(
+        &self,
+        template_id: TxTemplateId,
+    ) -> Result<TxTemplateId, CalaError> {
+        let variables = credit_facility_accrue_interest_template_create::Variables {
+            template_id: Uuid::from(template_id),
+            journal_id: format!("uuid(\"{}\")", super::constants::CORE_JOURNAL_ID),
+        };
+        let response = Self::traced_gql_request::<CreditFacilityAccrueInterestTemplateCreate, _>(
+            &self.client,
+            &self.url,
+            variables,
+        )
+        .await?;
+
+        response
+            .data
+            .map(|d| TxTemplateId::from(d.tx_template_create.tx_template.tx_template_id))
+            .ok_or_else(|| CalaError::MissingDataField)
+    }
+
+    #[instrument(
+        name = "lava.ledger.cala.execute_credit_facility_accrue_interest_tx",
+        skip(self),
+        err
+    )]
+    pub async fn execute_credit_facility_accrue_interest_tx(
+        &self,
+        transaction_id: LedgerTxId,
+        facility_account_ids: CreditFacilityAccountIds,
+        interest_amount: Decimal,
+        external_id: String,
+    ) -> Result<chrono::DateTime<chrono::Utc>, CalaError> {
+        let variables = post_credit_facility_accrue_interest_transaction::Variables {
+            transaction_id: transaction_id.into(),
+            credit_facility_interest_receivable_account: facility_account_ids
+                .interest_receivable_account_id
+                .into(),
+            credit_facility_interest_income_account: facility_account_ids
+                .interest_account_id
+                .into(),
+            interest_amount,
+            external_id,
+        };
+        let response = Self::traced_gql_request::<PostCreditFacilityAccrueInterestTransaction, _>(
+            &self.client,
+            &self.url,
+            variables,
+        )
+        .await?;
+
+        let created_at = response
+            .data
+            .map(|d| d.transaction_post.transaction.created_at)
+            .ok_or_else(|| CalaError::MissingDataField)?;
+        Ok(created_at)
+    }
+
+    #[instrument(
         name = "lava.ledger.cala.create_record_payment_template",
         skip(self),
         err

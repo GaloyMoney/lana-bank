@@ -278,6 +278,38 @@ pub struct PostIncurInterestTransaction;
 #[derive(GraphQLQuery)]
 #[graphql(
     schema_path = "src/ledger/cala/graphql/schema.graphql",
+    query_path = "src/ledger/cala/graphql/transactions/credit-facility-incur-interest.gql",
+    response_derives = "Debug, PartialEq, Eq, Clone"
+)]
+pub struct CreditFacilityIncurInterestTemplateCreate;
+
+#[derive(GraphQLQuery)]
+#[graphql(
+    schema_path = "src/ledger/cala/graphql/schema.graphql",
+    query_path = "src/ledger/cala/graphql/transactions/credit-facility-incur-interest.gql",
+    response_derives = "Debug, PartialEq, Eq, Clone"
+)]
+pub struct PostCreditFacilityIncurInterestTransaction;
+
+#[derive(GraphQLQuery)]
+#[graphql(
+    schema_path = "src/ledger/cala/graphql/schema.graphql",
+    query_path = "src/ledger/cala/graphql/transactions/credit-facility-accrue-interest.gql",
+    response_derives = "Debug, PartialEq, Eq, Clone"
+)]
+pub struct CreditFacilityAccrueInterestTemplateCreate;
+
+#[derive(GraphQLQuery)]
+#[graphql(
+    schema_path = "src/ledger/cala/graphql/schema.graphql",
+    query_path = "src/ledger/cala/graphql/transactions/credit-facility-accrue-interest.gql",
+    response_derives = "Debug, PartialEq, Eq, Clone"
+)]
+pub struct PostCreditFacilityAccrueInterestTransaction;
+
+#[derive(GraphQLQuery)]
+#[graphql(
+    schema_path = "src/ledger/cala/graphql/schema.graphql",
     query_path = "src/ledger/cala/graphql/transactions/record-payment.gql",
     response_derives = "Debug, PartialEq, Eq, Clone"
 )]
