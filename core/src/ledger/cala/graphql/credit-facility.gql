@@ -29,6 +29,18 @@ query CreditFacilityBalance(
       }
     }
   }
+  totalDisbursed: balance(
+    journalId: $journalId
+    accountId: $disbursedReceivableId
+    currency: "USD"
+  ) {
+    settled {
+      drBalance {
+        units
+        currency
+      }
+    }
+  }
   disbursedReceivable: balance(
     journalId: $journalId
     accountId: $disbursedReceivableId
@@ -36,6 +48,18 @@ query CreditFacilityBalance(
   ) {
     settled {
       normalBalance {
+        units
+        currency
+      }
+    }
+  }
+  totalInterest: balance(
+    journalId: $journalId
+    accountId: $interestReceivableId
+    currency: "USD"
+  ) {
+    settled {
+      drBalance {
         units
         currency
       }
