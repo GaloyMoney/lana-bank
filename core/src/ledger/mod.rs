@@ -333,10 +333,10 @@ impl Ledger {
         &self,
         CreditFacilityInterestIncurrence {
             interest,
+            period,
             tx_ref,
             tx_id,
             credit_facility_account_ids,
-            ..
         }: CreditFacilityInterestIncurrence,
     ) -> Result<chrono::DateTime<chrono::Utc>, LedgerError> {
         Ok(self
@@ -346,6 +346,7 @@ impl Ledger {
                 credit_facility_account_ids,
                 interest.to_usd(),
                 tx_ref,
+                period.end,
             )
             .await?)
     }
