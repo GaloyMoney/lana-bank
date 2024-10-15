@@ -60,7 +60,12 @@ impl JobRepo {
         )
         .fetch_one(&self.pool)
         .await?;
-        let mut job = Job::new(row.name, JobType::from_string(row.job_type), row.data_json);
+        let mut job = Job::new(
+            row.name,
+            None,
+            JobType::from_string(row.job_type),
+            row.data_json,
+        );
         job.id = row.id;
         job.completed_at = row.completed_at;
         job.last_error = row.last_error;
