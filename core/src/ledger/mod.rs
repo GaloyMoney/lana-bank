@@ -336,6 +336,7 @@ impl Ledger {
             tx_ref,
             tx_id,
             credit_facility_account_ids,
+            ..
         }: CreditFacilityInterestIncurrence,
     ) -> Result<chrono::DateTime<chrono::Utc>, LedgerError> {
         Ok(self
