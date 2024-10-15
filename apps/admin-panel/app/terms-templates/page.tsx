@@ -1,9 +1,10 @@
 "use client"
-import React, { useState } from "react"
+import React, { useEffect, useState } from "react"
 import { gql } from "@apollo/client"
 
 import Link from "next/link"
 
+import { useSearchParams } from "next/navigation"
 import { IoEllipsisHorizontal } from "react-icons/io5"
 
 import { CreateTermsTemplateDialog } from "./create"
@@ -56,10 +57,17 @@ gql`
 `
 
 function TermPage() {
+  const searchParams = useSearchParams()
+
   const { data, refetch, loading, error } = useTermsTemplatesQuery()
-  const [openCreateUserDialog, setOpenCreateUserDialog] = useState<boolean>(false)
+  const [openCreateTermsTemplateDialog, setOpenCreateTermsTemplateDialog] =
+    useState<boolean>(false)
   const [openUpdateTermsTemplateDialog, setOpenUpdateTermsTemplateDialog] =
     useState<TermsTemplate | null>(null)
+
+  useEffect(() => {
+    if (searchParams.get("create")) setOpenCreateTermsTemplateDialog(true)
+  }, [searchParams, setOpenCreateTermsTemplateDialog])
 
   const { data: me } = useMeQuery()
 
@@ -74,14 +82,16 @@ function TermPage() {
         />
       )}
       <CreateTermsTemplateDialog
-        openCreateTermsTemplateDialog={openCreateUserDialog}
-        setOpenCreateTermsTemplateDialog={setOpenCreateUserDialog}
+        openCreateTermsTemplateDialog={openCreateTermsTemplateDialog}
+        setOpenCreateTermsTemplateDialog={setOpenCreateTermsTemplateDialog}
         refetch={refetch}
       />
       <div className="flex justify-between items-center mb-8">
         <PageHeading className="mb-0">Terms Template</PageHeading>
         {me?.me.canCreateTermsTemplate && (
-          <Button onClick={() => setOpenCreateUserDialog(true)}>Create New</Button>
+          <Button onClick={() => setOpenCreateTermsTemplateDialog(true)}>
+            Create New
+          </Button>
         )}
       </div>
       <Card>

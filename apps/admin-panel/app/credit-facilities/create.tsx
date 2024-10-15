@@ -2,6 +2,7 @@ import { gql } from "@apollo/client"
 import React, { useEffect, useState } from "react"
 import { toast } from "sonner"
 import { useRouter } from "next/navigation"
+import Link from "next/link"
 import { PiPencilSimpleLineLight } from "react-icons/pi"
 
 import {
@@ -278,7 +279,18 @@ export const CreateCreditFacilityDialog: React.FC<CreateCreditFacilityDialogProp
               <div>)</div>
             </div>
           )}
-          {useTemplateTerms && (
+          {useTemplateTerms && termsTemplatesData?.termsTemplates.length === 0 ? (
+            <div className="text-sm mt-1">
+              No terms templates available,{" "}
+              <Link
+                className="text-primary hover:underline"
+                href="/terms-templates?create=true"
+              >
+                create one here
+              </Link>{" "}
+              or manually specify the terms below.
+            </div>
+          ) : (
             <div>
               <Label>Terms Template</Label>
               <Select
