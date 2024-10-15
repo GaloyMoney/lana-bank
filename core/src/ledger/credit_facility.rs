@@ -130,12 +130,6 @@ pub struct CreditFacilityInterestAccrual {
 }
 
 #[derive(Debug, Clone)]
-pub struct CreditFacilityInterest {
-    pub incurrence: CreditFacilityInterestIncurrence,
-    pub accrual: Option<CreditFacilityInterestAccrual>,
-}
-
-#[derive(Debug, Clone)]
 pub struct CreditFacilityCompletion {
     pub tx_id: LedgerTxId,
     pub tx_ref: String,

@@ -4,15 +4,13 @@ use serde::{Deserialize, Serialize};
 
 use crate::{
     credit_facility::{
-        CreditFacilityAccountIds, CreditFacilityInterest, CreditFacilityInterestAccrual,
-        CreditFacilityInterestIncurrence, CreditFacilityReceivable,
+        CreditFacilityAccountIds, CreditFacilityInterestAccrual, CreditFacilityInterestIncurrence,
+        CreditFacilityReceivable,
     },
     entity::{Entity, EntityError, EntityEvent, EntityEvents},
     primitives::*,
     terms::{InterestPeriod, TermValues},
 };
-
-use super::InterestAccrualError;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
@@ -157,7 +155,7 @@ impl InterestAccrual {
         &mut self,
         outstanding: CreditFacilityReceivable,
         credit_facility_account_ids: CreditFacilityAccountIds,
-    ) -> Result<CreditFacilityInterest, InterestAccrualError> {
+    ) -> CreditFacilityInterestIncurrence {
         let incurrence_period = self
             .next_incurrence_period()
             .expect("Incurrence period should exist inside this function");
@@ -173,32 +171,11 @@ impl InterestAccrual {
             self.id,
             self.count_incurred() + 1
         );
-        let interest_incurrence = CreditFacilityInterestIncurrence {
+        CreditFacilityInterestIncurrence {
             interest: interest_for_period,
             tx_ref: incurrence_tx_ref,
             tx_id: LedgerTxId::new(),
             credit_facility_account_ids,
-        };
-
-        match incurrence_period.next().truncate(self.accrues_at()) {
-            Some(_) => Ok(CreditFacilityInterest {
-                incurrence: interest_incurrence,
-                accrual: None,
-            }),
-            None => {
-                let accrual_tx_ref = format!("{}-interest-accrual-{}", self.facility_id, self.idx);
-                let interest_accrual = CreditFacilityInterestAccrual {
-                    interest: self.total_incurred(),
-                    tx_ref: accrual_tx_ref,
-                    tx_id: LedgerTxId::new(),
-                    credit_facility_account_ids,
-                };
-
-                Ok(CreditFacilityInterest {
-                    incurrence: interest_incurrence,
-                    accrual: Some(interest_accrual),
-                })
-            }
         }
     }
 
@@ -211,8 +188,9 @@ impl InterestAccrual {
             ..
         }: CreditFacilityInterestIncurrence,
         executed_at: DateTime<Utc>,
+        credit_facility_account_ids: CreditFacilityAccountIds,
         audit_info: AuditInfo,
-    ) {
+    ) -> Option<CreditFacilityInterestAccrual> {
         self.events.push(InterestAccrualEvent::InterestIncurred {
             tx_id,
             tx_ref,
@@ -220,6 +198,21 @@ impl InterestAccrual {
             incurred_at: executed_at,
             audit_info,
         });
+
+        match period.next().truncate(self.accrues_at()) {
+            Some(_) => None,
+            None => {
+                let accrual_tx_ref = format!("{}-interest-accrual-{}", self.facility_id, self.idx);
+                let interest_accrual = CreditFacilityInterestAccrual {
+                    interest: self.total_incurred(),
+                    tx_ref: accrual_tx_ref,
+                    tx_id: LedgerTxId::new(),
+                    credit_facility_account_ids,
+                };
+
+                Some(interest_accrual)
+            }
+        }
     }
 
     pub fn confirm_accrual(

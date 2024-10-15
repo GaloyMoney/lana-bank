@@ -1,5 +1,4 @@
 use async_trait::async_trait;
-use credit_facility::CreditFacilityInterest;
 use serde::{Deserialize, Serialize};
 
 use crate::{
@@ -100,17 +99,19 @@ impl JobRunner for CreditFacilityProcessingJobRunner {
             .find_by_idx_for_credit_facility(credit_facility.id, idx)
             .await?;
 
-        let CreditFacilityInterest {
-            incurrence: interest_incurrence,
-            accrual: interest_accrual,
-        } = accrual
-            .initiate_incurrence(credit_facility.outstanding(), credit_facility.account_ids)?;
+        let interest_incurrence =
+            accrual.initiate_incurrence(credit_facility.outstanding(), credit_facility.account_ids);
 
         let executed_at = self
             .ledger
             .record_credit_facility_interest_incurrence(interest_incurrence.clone())
             .await?;
-        accrual.confirm_incurrence(interest_incurrence, executed_at, audit_info);
+        let interest_accrual = accrual.confirm_incurrence(
+            interest_incurrence,
+            executed_at,
+            credit_facility.account_ids,
+            audit_info,
+        );
 
         if let Some(interest_accrual) = interest_accrual {
             let executed_at = self
