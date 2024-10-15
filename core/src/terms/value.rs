@@ -315,7 +315,7 @@ pub struct TermValues {
     #[builder(setter(into))]
     pub(crate) accrual_interval: InterestInterval,
     #[builder(setter(into))]
-    pub(crate) incurrence_interval: Option<InterestInterval>,
+    pub(crate) incurrence_interval: InterestInterval,
     // overdue_penalty_rate: LoanAnnualRate,
     #[builder(setter(into))]
     pub(crate) liquidation_cvl: CVLPct,
@@ -414,6 +414,7 @@ mod test {
             .annual_rate(AnnualRatePct(dec!(12)))
             .duration(Duration::Months(3))
             .accrual_interval(InterestInterval::EndOfMonth)
+            .incurrence_interval(InterestInterval::EndOfDay)
             .liquidation_cvl(CVLPct(dec!(105)))
             .margin_call_cvl(CVLPct(dec!(125)))
             .initial_cvl(CVLPct(dec!(140)))
@@ -506,6 +507,7 @@ mod test {
                 .annual_rate(dec!(12))
                 .duration(Duration::Months(3))
                 .accrual_interval(InterestInterval::EndOfMonth)
+                .incurrence_interval(InterestInterval::EndOfDay)
                 .liquidation_cvl(dec!(105))
                 .margin_call_cvl(dec!(125))
                 .initial_cvl(dec!(140))

@@ -978,6 +978,7 @@ mod test {
             .annual_rate(dec!(12))
             .duration(Duration::Months(3))
             .accrual_interval(InterestInterval::EndOfMonth)
+            .incurrence_interval(InterestInterval::EndOfDay)
             .liquidation_cvl(dec!(105))
             .margin_call_cvl(dec!(125))
             .initial_cvl(dec!(140))

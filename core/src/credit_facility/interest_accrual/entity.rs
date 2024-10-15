@@ -138,10 +138,7 @@ impl InterestAccrual {
             _ => None,
         });
 
-        let incurrence_interval = self
-            .terms
-            .incurrence_interval
-            .expect("'incurrence_interval' should exist");
+        let incurrence_interval = self.terms.incurrence_interval;
 
         let untruncated_period = match last_incurrence {
             Some(last_end_date) => incurrence_interval.period_from(last_end_date).next(),
