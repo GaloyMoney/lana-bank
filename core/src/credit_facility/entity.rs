@@ -488,25 +488,21 @@ impl CreditFacility {
     }
 
     fn next_interest_accrual_period(&self) -> Result<Option<InterestPeriod>, CreditFacilityError> {
-        let last_accrual_start_date = self
-            .events
-            .iter()
-            .rev()
-            .find_map(|event| match event {
-                CreditFacilityEvent::InterestAccrualStarted { started_at, .. } => Some(*started_at),
-                _ => None,
-            })
-            .unwrap_or(
+        let last_accrual_start_date = self.events.iter().rev().find_map(|event| match event {
+            CreditFacilityEvent::InterestAccrualStarted { started_at, .. } => Some(*started_at),
+            _ => None,
+        });
+
+        let interval = self.terms.accrual_interval;
+        let full_period = match last_accrual_start_date {
+            Some(last_accrual_start_date) => interval.period_from(last_accrual_start_date).next(),
+            None => interval.period_from(
                 self.initial_disbursement_recorded_at()
                     .ok_or(CreditFacilityError::NoDisbursementsApprovedYet)?,
-            );
+            ),
+        };
 
-        Ok(self
-            .terms
-            .accrual_interval
-            .period_from(last_accrual_start_date)
-            .next()
-            .truncate(self.expires_at.expect("Facility is already approved")))
+        Ok(full_period.truncate(self.expires_at.expect("Facility is already approved")))
     }
 
     pub(super) fn start_interest_accrual(
@@ -1200,6 +1196,147 @@ mod test {
 
         let credit_facility = facility_from(&events);
         assert_eq!(credit_facility.collateralization_ratio(), Some(dec!(50)));
+    }
+
+    #[test]
+    fn next_interest_accrual_period_handles_first_and_second_periods() {
+        let mut events = initial_events();
+        events.extend([
+            CreditFacilityEvent::Approved {
+                tx_id: LedgerTxId::new(),
+                audit_info: dummy_audit_info(),
+                recorded_at: Utc::now(),
+            },
+            CreditFacilityEvent::DisbursementInitiated {
+                idx: DisbursementIdx::FIRST,
+                amount: UsdCents::from(100),
+                audit_info: dummy_audit_info(),
+            },
+            CreditFacilityEvent::DisbursementConcluded {
+                idx: DisbursementIdx::FIRST,
+                tx_id: LedgerTxId::new(),
+                recorded_at: Utc::now(),
+                audit_info: dummy_audit_info(),
+            },
+        ]);
+        let mut credit_facility = facility_from(&events);
+
+        let first_period = credit_facility
+            .next_interest_accrual_period()
+            .unwrap()
+            .unwrap();
+        let InterestPeriod { start, .. } = first_period;
+        assert_eq!(
+            Utc::now().format("%Y-%m-%d").to_string(),
+            start.format("%Y-%m-%d").to_string()
+        );
+
+        let new_accrual = credit_facility
+            .start_interest_accrual(dummy_audit_info())
+            .unwrap()
+            .unwrap();
+        let accrual = InterestAccrual::try_from(new_accrual.initial_events()).unwrap();
+
+        let second_period = credit_facility
+            .next_interest_accrual_period()
+            .unwrap()
+            .unwrap();
+        assert_eq!(first_period.next(), second_period);
+
+        credit_facility.confirm_interest_accrual(
+            CreditFacilityInterestAccrual {
+                interest: UsdCents::ONE,
+                tx_ref: "tx_ref".to_string(),
+                tx_id: LedgerTxId::new(),
+                credit_facility_account_ids: credit_facility.account_ids,
+            },
+            accrual.idx,
+            accrual
+                .terms
+                .incurrence_interval
+                .period_from(accrual.started_at)
+                .end,
+            dummy_audit_info(),
+        );
+    }
+
+    #[test]
+    fn next_interest_accrual_period_handles_last_period() {
+        let mut events = initial_events();
+        events.extend([
+            CreditFacilityEvent::Approved {
+                tx_id: LedgerTxId::new(),
+                audit_info: dummy_audit_info(),
+                recorded_at: Utc::now(),
+            },
+            CreditFacilityEvent::DisbursementInitiated {
+                idx: DisbursementIdx::FIRST,
+                amount: UsdCents::from(100),
+                audit_info: dummy_audit_info(),
+            },
+            CreditFacilityEvent::DisbursementConcluded {
+                idx: DisbursementIdx::FIRST,
+                tx_id: LedgerTxId::new(),
+                recorded_at: Utc::now(),
+                audit_info: dummy_audit_info(),
+            },
+        ]);
+        let mut credit_facility = facility_from(&events);
+
+        let new_accrual = credit_facility
+            .start_interest_accrual(dummy_audit_info())
+            .unwrap()
+            .unwrap();
+        let mut accrual = InterestAccrual::try_from(new_accrual.initial_events()).unwrap();
+        let mut next_accrual_period = credit_facility.next_interest_accrual_period().unwrap();
+        while next_accrual_period.is_some() {
+            credit_facility.confirm_interest_accrual(
+                CreditFacilityInterestAccrual {
+                    interest: UsdCents::ONE,
+                    tx_ref: "tx_ref".to_string(),
+                    tx_id: LedgerTxId::new(),
+                    credit_facility_account_ids: credit_facility.account_ids,
+                },
+                accrual.idx,
+                accrual
+                    .terms
+                    .incurrence_interval
+                    .period_from(accrual.started_at)
+                    .end,
+                dummy_audit_info(),
+            );
+
+            let new_idx = accrual.idx.next();
+            let accrual_starts_at = next_accrual_period.unwrap().start;
+            credit_facility
+                .events
+                .push(CreditFacilityEvent::InterestAccrualStarted {
+                    idx: new_idx,
+                    started_at: accrual_starts_at,
+                    audit_info: dummy_audit_info(),
+                });
+            let new_accrual = NewInterestAccrual::new(
+                credit_facility.id,
+                new_idx,
+                accrual_starts_at,
+                credit_facility
+                    .expires_at
+                    .expect("Facility is already approved"),
+                credit_facility.terms,
+                dummy_audit_info(),
+            );
+            accrual = InterestAccrual::try_from(new_accrual.initial_events()).unwrap();
+
+            next_accrual_period = credit_facility.next_interest_accrual_period().unwrap();
+        }
+        assert_eq!(
+            accrual.started_at.format("%Y-%m").to_string(),
+            credit_facility
+                .expires_at
+                .unwrap()
+                .format("%Y-%m")
+                .to_string()
+        );
     }
 
     mod approve {
