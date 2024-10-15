@@ -68,7 +68,7 @@ impl CreditFacilities {
         let credit_facility_repo = CreditFacilityRepo::new(pool, export);
         let disbursement_repo = DisbursementRepo::new(pool, export);
         let interest_accrual_repo = InterestAccrualRepo::new(pool, export);
-        jobs.add_initializer(interest::CreditFacilityProcessingJobInitializer::new(
+        jobs.add_initializer(interest::FacilityProcessingJobInitializer::new(
             ledger,
             credit_facility_repo.clone(),
             interest_accrual_repo.clone(),
@@ -343,26 +343,28 @@ impl CreditFacilities {
                 audit_info,
             );
 
-            let new_accrual = credit_facility
-                .start_interest_accrual(audit_info)?
-                .expect("Accrual start date is before facility expiry date");
-            let accrual = self
-                .interest_accrual_repo
-                .create_in_tx(&mut db_tx, new_accrual)
-                .await?;
-            self.jobs
-                .create_and_spawn_at_in_tx::<interest::CreditFacilityProcessingJobInitializer, _>(
-                    &mut db_tx,
-                    format!("credit-facility-interest-processing-{}", credit_facility.id),
-                    interest::CreditFacilityJobConfig {
-                        credit_facility_id: credit_facility.id,
-                    },
-                    accrual
-                        .next_incurrence_period()
-                        .expect("New accrual has first incurrence period")
-                        .end,
-                )
-                .await?;
+            if disbursement.idx == DisbursementIdx::FIRST {
+                let new_accrual = credit_facility
+                    .start_interest_accrual(audit_info)?
+                    .expect("Accrual start date is before facility expiry date");
+                let accrual = self
+                    .interest_accrual_repo
+                    .create_in_tx(&mut db_tx, new_accrual)
+                    .await?;
+                self.jobs
+                    .create_and_spawn_at_in_tx::<interest::FacilityProcessingJobInitializer, _>(
+                        &mut db_tx,
+                        format!("credit-facility-interest-processing-{}", credit_facility.id),
+                        interest::CreditFacilityJobConfig {
+                            credit_facility_id: credit_facility.id,
+                        },
+                        accrual
+                            .next_incurrence_period()
+                            .expect("New accrual has first incurrence period")
+                            .end,
+                    )
+                    .await?;
+            }
         }
 
         self.disbursement_repo

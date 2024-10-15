@@ -15,14 +15,14 @@ pub struct CreditFacilityJobConfig {
     pub credit_facility_id: CreditFacilityId,
 }
 
-pub struct CreditFacilityProcessingJobInitializer {
+pub struct FacilityProcessingJobInitializer {
     ledger: Ledger,
     credit_facility_repo: CreditFacilityRepo,
     interest_accrual_repo: InterestAccrualRepo,
     audit: Audit,
 }
 
-impl CreditFacilityProcessingJobInitializer {
+impl FacilityProcessingJobInitializer {
     pub fn new(
         ledger: &Ledger,
         credit_facility_repo: CreditFacilityRepo,
@@ -40,7 +40,7 @@ impl CreditFacilityProcessingJobInitializer {
 
 const CREDIT_FACILITY_INTEREST_PROCESSING_JOB: JobType =
     JobType::new("credit-facility-interest-processing");
-impl JobInitializer for CreditFacilityProcessingJobInitializer {
+impl JobInitializer for FacilityProcessingJobInitializer {
     fn job_type() -> JobType
     where
         Self: Sized,
