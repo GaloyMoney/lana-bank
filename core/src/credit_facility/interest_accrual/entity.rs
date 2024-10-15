@@ -24,7 +24,7 @@ impl EntityEvent for InterestAccrualEvent {
     }
 }
 
-#[derive(Builder, Clone)]
+#[derive(Builder)]
 #[builder(pattern = "owned", build_fn(error = "EntityError"))]
 pub struct InterestAccrual {
     pub id: InterestAccrualId,
