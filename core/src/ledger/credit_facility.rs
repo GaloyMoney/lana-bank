@@ -1,6 +1,9 @@
 use serde::{Deserialize, Serialize};
 
-use crate::primitives::{CollateralAction, LedgerAccountId, LedgerTxId, Satoshis, UsdCents};
+use crate::{
+    primitives::{CollateralAction, LedgerAccountId, LedgerTxId, Satoshis, UsdCents},
+    terms::InterestPeriod,
+};
 
 use super::{cala::graphql::*, error::*, CustomerLedgerAccountIds};
 
@@ -26,6 +29,7 @@ impl CreditFacilityAccountIds {
     }
 }
 
+#[derive(Debug, Copy, Clone, Serialize, Deserialize)]
 pub struct CreditFacilityBalance {
     pub facility: UsdCents,
     pub collateral: Satoshis,
@@ -116,6 +120,7 @@ pub struct CreditFacilityPaymentAmounts {
 #[derive(Debug, Clone)]
 pub struct CreditFacilityInterestIncurrence {
     pub interest: UsdCents,
+    pub period: InterestPeriod,
     pub tx_ref: String,
     pub tx_id: LedgerTxId,
     pub credit_facility_account_ids: CreditFacilityAccountIds,

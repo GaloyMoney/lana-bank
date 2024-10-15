@@ -173,6 +173,7 @@ impl InterestAccrual {
         );
         CreditFacilityInterestIncurrence {
             interest: interest_for_period,
+            period: incurrence_period,
             tx_ref: incurrence_tx_ref,
             tx_id: LedgerTxId::new(),
             credit_facility_account_ids,
@@ -185,9 +186,9 @@ impl InterestAccrual {
             interest,
             tx_ref,
             tx_id,
+            period,
             ..
         }: CreditFacilityInterestIncurrence,
-        executed_at: DateTime<Utc>,
         credit_facility_account_ids: CreditFacilityAccountIds,
         audit_info: AuditInfo,
     ) -> Option<CreditFacilityInterestAccrual> {
@@ -195,7 +196,7 @@ impl InterestAccrual {
             tx_id,
             tx_ref,
             amount: interest,
-            incurred_at: executed_at,
+            incurred_at: period.end,
             audit_info,
         });
 
