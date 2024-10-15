@@ -1345,6 +1345,7 @@ impl CalaClient {
         facility_account_ids: CreditFacilityAccountIds,
         interest_amount: Decimal,
         external_id: String,
+        effective: DateTime<Utc>,
     ) -> Result<chrono::DateTime<chrono::Utc>, CalaError> {
         let variables = post_credit_facility_incur_interest_transaction::Variables {
             transaction_id: transaction_id.into(),
@@ -1356,6 +1357,7 @@ impl CalaClient {
                 .into(),
             interest_amount,
             external_id,
+            effective: effective.format("%Y-%m-%d").to_string(),
         };
         let response = Self::traced_gql_request::<PostCreditFacilityIncurInterestTransaction, _>(
             &self.client,

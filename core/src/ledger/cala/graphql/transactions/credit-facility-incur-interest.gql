@@ -74,6 +74,7 @@ mutation PostCreditFacilityIncurInterestTransaction(
   $creditFacilityInterestIncomeAccount: UUID!
   $interestAmount: Decimal!
   $externalId: String!
+  $effective: String!
 ) {
   transactionPost(
     input: {
@@ -84,6 +85,7 @@ mutation PostCreditFacilityIncurInterestTransaction(
         creditFacilityInterestIncomeAccount: $creditFacilityInterestIncomeAccount
         interestAmount: $interestAmount
         externalId: $externalId
+        effective: $effective
       }
     }
   ) {
