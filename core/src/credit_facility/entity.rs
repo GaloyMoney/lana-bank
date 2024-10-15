@@ -415,7 +415,7 @@ impl CreditFacility {
         approvals
     }
 
-    pub(super) fn initiate_disbursement(
+    pub fn initiate_disbursement(
         &mut self,
         audit_info: AuditInfo,
         amount: UsdCents,
@@ -457,7 +457,7 @@ impl CreditFacility {
             .expect("could not build new disbursement"))
     }
 
-    pub(super) fn confirm_disbursement(
+    pub fn confirm_disbursement(
         &mut self,
         disbursement: &Disbursement,
         tx_id: LedgerTxId,
@@ -504,7 +504,7 @@ impl CreditFacility {
         Ok(full_period.truncate(self.expires_at.expect("Facility is already approved")))
     }
 
-    pub(super) fn start_interest_accrual(
+    pub fn start_interest_accrual(
         &mut self,
         audit_info: AuditInfo,
     ) -> Result<Option<NewInterestAccrual>, CreditFacilityError> {

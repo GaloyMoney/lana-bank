@@ -1,4 +1,4 @@
 pub mod error;
-mod value;
+pub mod value;
 
 pub use value::*;
