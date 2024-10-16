@@ -51,13 +51,15 @@ pub enum CreditFacilityEvent {
         audit_info: AuditInfo,
         recorded_at: DateTime<Utc>,
     },
-    InterestAccrualInitiated {
+    InterestAccrualStarted {
         idx: InterestAccrualIdx,
-        initiated_at: DateTime<Utc>,
+        started_at: DateTime<Utc>,
         audit_info: AuditInfo,
     },
-    InterestAccrualAccrued {
+    InterestAccrualConcluded {
         idx: InterestAccrualIdx,
+        tx_id: LedgerTxId,
+        tx_ref: String,
         amount: UsdCents,
         accrued_at: DateTime<Utc>,
         audit_info: AuditInfo,
@@ -491,9 +493,7 @@ impl CreditFacility {
             .iter()
             .rev()
             .find_map(|event| match event {
-                CreditFacilityEvent::InterestAccrualInitiated { initiated_at, .. } => {
-                    Some(*initiated_at)
-                }
+                CreditFacilityEvent::InterestAccrualStarted { started_at, .. } => Some(*started_at),
                 _ => None,
             })
             .unwrap_or(
@@ -509,7 +509,7 @@ impl CreditFacility {
             .truncate(self.expires_at.expect("Facility is already approved")))
     }
 
-    pub(super) fn initiate_interest_accrual(
+    pub(super) fn start_interest_accrual(
         &mut self,
         audit_info: AuditInfo,
     ) -> Result<Option<NewInterestAccrual>, CreditFacilityError> {
@@ -527,14 +527,14 @@ impl CreditFacility {
             .iter()
             .rev()
             .find_map(|event| match event {
-                CreditFacilityEvent::InterestAccrualInitiated { idx, .. } => Some(idx.next()),
+                CreditFacilityEvent::InterestAccrualStarted { idx, .. } => Some(idx.next()),
                 _ => None,
             })
             .unwrap_or(InterestAccrualIdx::FIRST);
         self.events
-            .push(CreditFacilityEvent::InterestAccrualInitiated {
+            .push(CreditFacilityEvent::InterestAccrualStarted {
                 idx,
-                initiated_at: accrual_starts_at,
+                started_at: accrual_starts_at,
                 audit_info,
             });
 
@@ -548,13 +548,36 @@ impl CreditFacility {
         )))
     }
 
+    pub fn confirm_interest_accrual(
+        &mut self,
+        CreditFacilityInterestAccrual {
+            interest,
+            tx_ref,
+            tx_id,
+            ..
+        }: CreditFacilityInterestAccrual,
+        idx: InterestAccrualIdx,
+        executed_at: DateTime<Utc>,
+        audit_info: AuditInfo,
+    ) {
+        self.events
+            .push(CreditFacilityEvent::InterestAccrualConcluded {
+                idx,
+                tx_id,
+                tx_ref,
+                amount: interest,
+                accrued_at: executed_at,
+                audit_info,
+            });
+    }
+
     pub fn interest_accrual_in_progress(&self) -> Option<InterestAccrualIdx> {
         self.events
             .iter()
             .rev()
             .find_map(|event| match event {
-                CreditFacilityEvent::InterestAccrualAccrued { .. } => Some(None),
-                CreditFacilityEvent::InterestAccrualInitiated { idx, .. } => Some(Some(*idx)),
+                CreditFacilityEvent::InterestAccrualConcluded { .. } => Some(None),
+                CreditFacilityEvent::InterestAccrualStarted { idx, .. } => Some(Some(*idx)),
                 _ => None,
             })
             .and_then(|idx| idx)
@@ -912,8 +935,8 @@ impl TryFrom<EntityEvents<CreditFacilityEvent>> for CreditFacility {
                 CreditFacilityEvent::ApprovalAdded { .. } => (),
                 CreditFacilityEvent::DisbursementInitiated { .. } => (),
                 CreditFacilityEvent::DisbursementConcluded { .. } => (),
-                CreditFacilityEvent::InterestAccrualInitiated { .. } => (),
-                CreditFacilityEvent::InterestAccrualAccrued { .. } => (),
+                CreditFacilityEvent::InterestAccrualStarted { .. } => (),
+                CreditFacilityEvent::InterestAccrualConcluded { .. } => (),
                 CreditFacilityEvent::CollateralUpdated { .. } => (),
                 CreditFacilityEvent::CollateralizationChanged { .. } => (),
                 CreditFacilityEvent::PaymentRecorded { .. } => (),

@@ -3,9 +3,12 @@ use derive_builder::Builder;
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    credit_facility::CreditFacilityReceivable,
+    credit_facility::{
+        CreditFacilityAccountIds, CreditFacilityInterest, CreditFacilityInterestAccrual,
+        CreditFacilityInterestIncurrence, CreditFacilityReceivable,
+    },
     entity::{Entity, EntityError, EntityEvent, EntityEvents},
-    primitives::{AuditInfo, CreditFacilityId, InterestAccrualId, InterestAccrualIdx, UsdCents},
+    primitives::*,
     terms::{InterestPeriod, TermValues},
 };
 
@@ -24,12 +27,18 @@ pub enum InterestAccrualEvent {
         audit_info: AuditInfo,
     },
     InterestIncurred {
+        tx_id: LedgerTxId,
+        tx_ref: String,
         amount: UsdCents,
         incurred_at: DateTime<Utc>,
+        audit_info: AuditInfo,
     },
     InterestAccrued {
+        tx_id: LedgerTxId,
+        tx_ref: String,
         total: UsdCents,
         accrued_at: DateTime<Utc>,
+        audit_info: AuditInfo,
     },
 }
 
@@ -118,6 +127,13 @@ impl InterestAccrual {
             .fold(UsdCents::ZERO, |acc, amount| acc + amount)
     }
 
+    fn count_incurred(&self) -> usize {
+        self.events
+            .iter()
+            .filter(|event| matches!(event, InterestAccrualEvent::InterestIncurred { .. }))
+            .count()
+    }
+
     pub fn next_incurrence_period(&self) -> Option<InterestPeriod> {
         let last_incurrence = self.events.iter().rev().find_map(|event| match event {
             InterestAccrualEvent::InterestIncurred { incurred_at, .. } => Some(*incurred_at),
@@ -140,7 +156,8 @@ impl InterestAccrual {
     pub fn initiate_incurrence(
         &mut self,
         outstanding: CreditFacilityReceivable,
-    ) -> Result<Option<()>, InterestAccrualError> {
+        credit_facility_account_ids: CreditFacilityAccountIds,
+    ) -> Result<CreditFacilityInterest, InterestAccrualError> {
         let incurrence_period = self
             .next_incurrence_period()
             .expect("Incurrence period should exist inside this function");
@@ -151,22 +168,78 @@ impl InterestAccrual {
             .annual_rate
             .interest_for_time_period_in_secs(outstanding.total(), secs_in_interest_period);
 
-        self.events.push(InterestAccrualEvent::InterestIncurred {
-            amount: interest_for_period,
-            incurred_at: incurrence_period.end,
-        });
+        let incurrence_tx_ref = format!(
+            "{}-interest-incurrence-{}",
+            self.id,
+            self.count_incurred() + 1
+        );
+        let interest_incurrence = CreditFacilityInterestIncurrence {
+            interest: interest_for_period,
+            tx_ref: incurrence_tx_ref,
+            tx_id: LedgerTxId::new(),
+            credit_facility_account_ids,
+        };
 
         match incurrence_period.next().truncate(self.accrues_at()) {
-            Some(_) => Ok(None),
+            Some(_) => Ok(CreditFacilityInterest {
+                incurrence: interest_incurrence,
+                accrual: None,
+            }),
             None => {
-                self.events.push(InterestAccrualEvent::InterestAccrued {
-                    total: self.total_incurred(),
-                    accrued_at: incurrence_period.end,
-                });
+                let accrual_tx_ref = format!("{}-interest-accrual-{}", self.facility_id, self.idx);
+                let interest_accrual = CreditFacilityInterestAccrual {
+                    interest: self.total_incurred(),
+                    tx_ref: accrual_tx_ref,
+                    tx_id: LedgerTxId::new(),
+                    credit_facility_account_ids,
+                };
 
-                Ok(Some(()))
+                Ok(CreditFacilityInterest {
+                    incurrence: interest_incurrence,
+                    accrual: Some(interest_accrual),
+                })
             }
         }
+    }
+
+    pub fn confirm_incurrence(
+        &mut self,
+        CreditFacilityInterestIncurrence {
+            interest,
+            tx_ref,
+            tx_id,
+            ..
+        }: CreditFacilityInterestIncurrence,
+        executed_at: DateTime<Utc>,
+        audit_info: AuditInfo,
+    ) {
+        self.events.push(InterestAccrualEvent::InterestIncurred {
+            tx_id,
+            tx_ref,
+            amount: interest,
+            incurred_at: executed_at,
+            audit_info,
+        });
+    }
+
+    pub fn confirm_accrual(
+        &mut self,
+        CreditFacilityInterestAccrual {
+            interest,
+            tx_ref,
+            tx_id,
+            ..
+        }: CreditFacilityInterestAccrual,
+        executed_at: DateTime<Utc>,
+        audit_info: AuditInfo,
+    ) {
+        self.events.push(InterestAccrualEvent::InterestAccrued {
+            tx_id,
+            tx_ref,
+            total: interest,
+            accrued_at: executed_at,
+            audit_info,
+        });
     }
 }
 

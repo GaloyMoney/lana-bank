@@ -6,8 +6,6 @@ use crate::{
     primitives::{CreditFacilityId, InterestAccrualId, InterestAccrualIdx},
 };
 
-use crate::credit_facility::error::CreditFacilityError;
-
 use super::{entity::*, InterestAccrualError};
 
 const BQ_TABLE_NAME: &str = "interest_accrual_events";
@@ -30,7 +28,7 @@ impl InterestAccrualRepo {
         &self,
         db: &mut Transaction<'_, Postgres>,
         new_interest_accrual: NewInterestAccrual,
-    ) -> Result<InterestAccrual, CreditFacilityError> {
+    ) -> Result<InterestAccrual, InterestAccrualError> {
         sqlx::query!(
             r#"INSERT INTO interest_accruals (id, credit_facility_id, idx)
             VALUES ($1, $2, $3)"#,
@@ -46,6 +44,18 @@ impl InterestAccrualRepo {
             .export_last(db, BQ_TABLE_NAME, n_events, &events)
             .await?;
         Ok(InterestAccrual::try_from(events)?)
+    }
+
+    pub async fn persist_in_tx(
+        &self,
+        db: &mut Transaction<'_, Postgres>,
+        interest_accrual: &mut InterestAccrual,
+    ) -> Result<(), InterestAccrualError> {
+        let n_events = interest_accrual.events.persist(db).await?;
+        self.export
+            .export_last(db, BQ_TABLE_NAME, n_events, &interest_accrual.events)
+            .await?;
+        Ok(())
     }
 
     pub async fn find_by_idx_for_credit_facility(
