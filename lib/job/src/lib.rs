@@ -97,7 +97,7 @@ impl Jobs {
     ) -> Result<Job, JobError> {
         let new_job = Job::new(
             name,
-            Some(id.into()),
+            id.into(),
             <I as JobInitializer>::job_type(),
             initial_data,
         );
@@ -110,11 +110,17 @@ impl Jobs {
     pub async fn create_and_spawn_at_in_tx<I: JobInitializer, D: serde::Serialize>(
         &self,
         db: &mut sqlx::Transaction<'_, sqlx::Postgres>,
+        id: impl Into<JobId> + std::fmt::Debug,
         name: String,
         initial_data: D,
         schedule_at: DateTime<Utc>,
     ) -> Result<Job, JobError> {
-        let new_job = Job::new(name, None, <I as JobInitializer>::job_type(), initial_data);
+        let new_job = Job::new(
+            name,
+            id.into(),
+            <I as JobInitializer>::job_type(),
+            initial_data,
+        );
         let job = self.repo.create_in_tx(db, new_job).await?;
         self.executor
             .spawn_job::<I>(db, &job, Some(schedule_at))

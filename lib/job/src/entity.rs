@@ -38,12 +38,12 @@ pub struct Job {
 impl Job {
     pub(super) fn new<T: serde::Serialize>(
         name: String,
-        id: Option<JobId>,
+        id: JobId,
         job_type: JobType,
         initial_data: T,
     ) -> Self {
         Self {
-            id: id.unwrap_or(JobId::new()),
+            id,
             name,
             job_type,
             data: serde_json::to_value(initial_data).expect("could not serialize job data"),
