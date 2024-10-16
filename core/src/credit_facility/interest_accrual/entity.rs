@@ -280,3 +280,113 @@ impl NewInterestAccrual {
         )
     }
 }
+
+#[cfg(test)]
+mod test {
+    use rust_decimal_macros::dec;
+
+    use crate::terms::{Duration, InterestInterval};
+
+    use super::*;
+
+    fn default_terms() -> TermValues {
+        TermValues::builder()
+            .annual_rate(dec!(12))
+            .duration(Duration::Months(3))
+            .accrual_interval(InterestInterval::EndOfMonth)
+            .incurrence_interval(InterestInterval::EndOfDay)
+            .liquidation_cvl(dec!(105))
+            .margin_call_cvl(dec!(125))
+            .initial_cvl(dec!(140))
+            .build()
+            .expect("should build a valid term")
+    }
+
+    fn default_started_at() -> DateTime<Utc> {
+        "2024-01-15T12:00:00Z".parse::<DateTime<Utc>>().unwrap()
+    }
+
+    fn dummy_audit_info() -> AuditInfo {
+        AuditInfo {
+            audit_entry_id: AuditEntryId::from(1),
+            sub: Subject::from(UserId::new()),
+        }
+    }
+
+    fn accrual_from(events: &Vec<InterestAccrualEvent>) -> InterestAccrual {
+        InterestAccrual::try_from(EntityEvents::init(InterestAccrualId::new(), events.clone()))
+            .unwrap()
+    }
+
+    fn initial_events() -> Vec<InterestAccrualEvent> {
+        let terms = default_terms();
+        let started_at = default_started_at();
+        vec![InterestAccrualEvent::Initialized {
+            id: InterestAccrualId::new(),
+            facility_id: CreditFacilityId::new(),
+            idx: InterestAccrualIdx::FIRST,
+            started_at,
+            facility_expires_at: terms.duration.expiration_date(started_at),
+            terms,
+            audit_info: dummy_audit_info(),
+        }]
+    }
+
+    #[test]
+    fn next_incurrence_period_at_start() {
+        let accrual = accrual_from(&initial_events());
+        assert_eq!(
+            accrual.next_incurrence_period().unwrap().start,
+            accrual.started_at
+        );
+    }
+
+    #[test]
+    fn next_incurrence_period_in_middle() {
+        let mut events = initial_events();
+
+        let first_incurrence_period = default_terms()
+            .incurrence_interval
+            .period_from(default_started_at());
+        let first_incurrence_at = first_incurrence_period.end;
+        events.extend([InterestAccrualEvent::InterestIncurred {
+            tx_id: LedgerTxId::new(),
+            tx_ref: "".to_string(),
+            amount: UsdCents::ONE,
+            incurred_at: first_incurrence_at,
+            audit_info: dummy_audit_info(),
+        }]);
+        let accrual = accrual_from(&events);
+
+        assert_eq!(
+            accrual.next_incurrence_period().unwrap(),
+            first_incurrence_period.next()
+        );
+    }
+
+    #[test]
+    fn next_incurrence_period_at_end() {
+        let mut events = initial_events();
+
+        let facility_expires_at = default_terms()
+            .duration
+            .expiration_date(default_started_at());
+        let final_incurrence_period = default_terms()
+            .accrual_interval
+            .period_from(default_started_at())
+            .truncate(facility_expires_at)
+            .unwrap();
+        let final_incurrence_at = final_incurrence_period.end;
+
+        events.extend([InterestAccrualEvent::InterestIncurred {
+            tx_id: LedgerTxId::new(),
+            tx_ref: "".to_string(),
+            amount: UsdCents::ONE,
+            incurred_at: final_incurrence_at,
+            audit_info: dummy_audit_info(),
+        }]);
+        let accrual = accrual_from(&events);
+
+        assert_eq!(accrual.next_incurrence_period(), None);
+    }
+}
