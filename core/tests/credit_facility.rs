@@ -165,7 +165,15 @@ async fn interest_accrual_lifecycle() -> anyhow::Result<()> {
     }
     assert!(accrual.idx >= InterestAccrualIdx::FIRST);
 
-    // TODO: Check pending interest in ledger
+    let CreditFacilityBalance {
+        pending_interest_receivable,
+        accrued_interest_receivable,
+        ..
+    } = ledger
+        .get_credit_facility_balance(credit_facility.account_ids)
+        .await?;
+    assert_eq!(pending_interest_receivable, incurred_amount);
+    assert_eq!(accrued_interest_receivable, UsdCents::ZERO);
 
     let interest_accrual = interest_accrual.expect("Exists");
     let executed_at = ledger
