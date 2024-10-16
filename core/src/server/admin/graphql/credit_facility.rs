@@ -50,11 +50,11 @@ impl From<ledger::credit_facility::CreditFacilityBalance> for CreditFacilityBala
                     usd_balance: balance.interest,
                 },
                 outstanding: Outstanding {
-                    usd_balance: balance.interest_receivable,
+                    usd_balance: balance.accrued_interest_receivable,
                 },
             },
             outstanding: Outstanding {
-                usd_balance: balance.disbursed_receivable + balance.interest_receivable,
+                usd_balance: balance.disbursed_receivable + balance.accrued_interest_receivable,
             },
             collateral: Collateral {
                 btc_balance: balance.collateral,
