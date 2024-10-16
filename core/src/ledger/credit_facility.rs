@@ -36,7 +36,8 @@ pub struct CreditFacilityBalance {
     pub disbursed: UsdCents,
     pub disbursed_receivable: UsdCents,
     pub interest: UsdCents,
-    pub interest_receivable: UsdCents,
+    pub accrued_interest_receivable: UsdCents,
+    pub pending_interest_receivable: UsdCents,
 }
 
 impl TryFrom<credit_facility_balance::ResponseData> for CreditFacilityBalance {
@@ -60,9 +61,14 @@ impl TryFrom<credit_facility_balance::ResponseData> for CreditFacilityBalance {
                 .total_interest
                 .map(|b| UsdCents::try_from_usd(b.settled.dr_balance.units))
                 .unwrap_or_else(|| Ok(UsdCents::ZERO))?,
-            interest_receivable: data
+            accrued_interest_receivable: data
                 .interest_receivable
+                .clone()
                 .map(|b| UsdCents::try_from_usd(b.settled.normal_balance.units))
+                .unwrap_or_else(|| Ok(UsdCents::ZERO))?,
+            pending_interest_receivable: data
+                .interest_receivable
+                .map(|b| UsdCents::try_from_usd(b.pending.normal_balance.units))
                 .unwrap_or_else(|| Ok(UsdCents::ZERO))?,
             collateral: data
                 .collateral

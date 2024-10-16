@@ -180,12 +180,12 @@ async fn interest_accrual_lifecycle() -> anyhow::Result<()> {
     );
 
     let CreditFacilityBalance {
-        interest_receivable,
+        accrued_interest_receivable,
         ..
     } = ledger
         .get_credit_facility_balance(credit_facility.account_ids)
         .await?;
-    assert_eq!(interest_receivable, incurred_amount);
+    assert_eq!(accrued_interest_receivable, incurred_amount);
 
     Ok(())
 }

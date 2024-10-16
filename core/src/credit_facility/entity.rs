@@ -116,7 +116,7 @@ impl From<CreditFacilityBalance> for CreditFacilityReceivable {
     fn from(balance: CreditFacilityBalance) -> Self {
         Self {
             disbursed: balance.disbursed_receivable,
-            interest: balance.interest_receivable,
+            interest: balance.accrued_interest_receivable,
         }
     }
 }

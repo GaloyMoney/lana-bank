@@ -76,5 +76,11 @@ query CreditFacilityBalance(
         currency
       }
     }
+    pending {
+      normalBalance {
+        units
+        currency
+      }
+    }
   }
 }
