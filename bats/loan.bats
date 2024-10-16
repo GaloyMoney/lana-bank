@@ -62,6 +62,7 @@ wait_for_interest() {
         loanTerms: {
           annualRate: "12",
           interval: "END_OF_MONTH",
+          incurrenceInterval: "END_OF_MONTH",
           duration: { period: "MONTHS", units: 3 },
           liquidationCvl: "105",
           marginCallCvl: "125",
@@ -232,6 +233,7 @@ wait_for_interest() {
           loanTerms: {
             annualRate: "12",
             interval: "END_OF_MONTH",
+            incurrenceInterval: "END_OF_MONTH",
             duration: { period: "MONTHS", units: 3 },
             liquidationCvl: "105",
             marginCallCvl: "125",
@@ -321,6 +323,7 @@ wait_for_interest() {
         loanTerms: {
           annualRate: "12",
           interval: "END_OF_MONTH",
+          incurrenceInterval: "END_OF_MONTH",
           duration: { period: "MONTHS", units: 3 },
           liquidationCvl: "105",
           marginCallCvl: "125",
