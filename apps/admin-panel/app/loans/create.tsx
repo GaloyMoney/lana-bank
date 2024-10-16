@@ -177,6 +177,7 @@ export const CreateLoanDialog: React.FC<
             loanTerms: {
               annualRate: parseFloat(annualRate),
               interval: interval as InterestInterval,
+              incurrenceInterval: interval as InterestInterval,
               liquidationCvl: parseFloat(liquidationCvl),
               marginCallCvl: parseFloat(marginCallCvl),
               initialCvl: parseFloat(initialCvl),

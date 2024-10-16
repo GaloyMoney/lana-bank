@@ -1540,7 +1540,7 @@ export type GetCustomerQueryVariables = Exact<{
 }>;
 
 
-export type GetCustomerQuery = { __typename?: 'Query', customer?: { __typename?: 'Customer', customerId: string, email: string, telegramId: string, status: AccountStatus, level: KycLevel, applicantId?: string | null, userCanCreateLoan: boolean, userCanRecordDeposit: boolean, userCanInitiateWithdrawal: boolean, userCanCreateCreditFacility: boolean, balance: { __typename?: 'CustomerBalance', checking: { __typename?: 'Checking', settled: any, pending: any } }, loans: Array<{ __typename?: 'Loan', id: string, loanId: string, createdAt: any, approvedAt?: any | null, principal: any, expiresAt?: any | null, collateral: any, status: LoanStatus, collateralizationState: LoanCollaterizationState, userCanApprove: boolean, userCanUpdateCollateral: boolean, userCanUpdateCollateralizationState: boolean, userCanRecordPaymentOrCompleteLoan: boolean, currentCvl?: number | null, collateralToMatchInitialCvl?: any | null, customer: { __typename?: 'Customer', customerId: string, email: string }, balance: { __typename?: 'LoanBalance', collateral: { __typename?: 'Collateral', btcBalance: any }, outstanding: { __typename?: 'Outstanding', usdBalance: any }, interestIncurred: { __typename?: 'InterestIncome', usdBalance: any } }, loanTerms: { __typename?: 'TermValues', annualRate: any, interval: InterestInterval, liquidationCvl: any, marginCallCvl: any, initialCvl: any, duration: { __typename?: 'Duration', period: Period, units: number } }, approvals: Array<{ __typename?: 'LoanApproval', approvedAt: any, user: { __typename?: 'User', email: string, roles: Array<Role> } }> }>, creditFacilities: Array<{ __typename?: 'CreditFacility', id: string, creditFacilityId: string, collateralizationState: CollateralizationState, status: CreditFacilityStatus, balance: { __typename?: 'CreditFacilityBalance', collateral: { __typename?: 'Collateral', btcBalance: any }, outstanding: { __typename?: 'Outstanding', usdBalance: any } } }>, deposits: Array<{ __typename?: 'Deposit', createdAt: any, customerId: string, depositId: string, reference: string, amount: any }>, withdrawals: Array<{ __typename?: 'Withdrawal', status: WithdrawalStatus, reference: string, customerId: string, createdAt: any, withdrawalId: string, amount: any, customer?: { __typename?: 'Customer', customerId: string, email: string } | null }>, transactions: Array<{ __typename?: 'Deposit', createdAt: any, customerId: string, depositId: string, reference: string, amount: any } | { __typename?: 'Withdrawal', status: WithdrawalStatus, reference: string, customerId: string, withdrawalId: string, createdAt: any, amount: any, customer?: { __typename?: 'Customer', customerId: string, email: string } | null }>, documents: Array<{ __typename?: 'Document', id: string, filename: string }> } | null };
+export type GetCustomerQuery = { __typename?: 'Query', customer?: { __typename?: 'Customer', customerId: string, email: string, telegramId: string, status: AccountStatus, level: KycLevel, applicantId?: string | null, userCanCreateLoan: boolean, userCanRecordDeposit: boolean, userCanInitiateWithdrawal: boolean, userCanCreateCreditFacility: boolean, balance: { __typename?: 'CustomerBalance', checking: { __typename?: 'Checking', settled: any, pending: any } }, loans: Array<{ __typename?: 'Loan', id: string, loanId: string, createdAt: any, approvedAt?: any | null, principal: any, expiresAt?: any | null, collateral: any, status: LoanStatus, collateralizationState: LoanCollaterizationState, userCanApprove: boolean, userCanUpdateCollateral: boolean, userCanUpdateCollateralizationState: boolean, userCanRecordPaymentOrCompleteLoan: boolean, currentCvl?: number | null, collateralToMatchInitialCvl?: any | null, customer: { __typename?: 'Customer', customerId: string, email: string }, balance: { __typename?: 'LoanBalance', collateral: { __typename?: 'Collateral', btcBalance: any }, outstanding: { __typename?: 'Outstanding', usdBalance: any }, interestIncurred: { __typename?: 'InterestIncome', usdBalance: any } }, loanTerms: { __typename?: 'TermValues', annualRate: any, interval: InterestInterval, incurrenceInterval: InterestInterval, liquidationCvl: any, marginCallCvl: any, initialCvl: any, duration: { __typename?: 'Duration', period: Period, units: number } }, approvals: Array<{ __typename?: 'LoanApproval', approvedAt: any, user: { __typename?: 'User', email: string, roles: Array<Role> } }> }>, creditFacilities: Array<{ __typename?: 'CreditFacility', id: string, creditFacilityId: string, collateralizationState: CollateralizationState, status: CreditFacilityStatus, balance: { __typename?: 'CreditFacilityBalance', collateral: { __typename?: 'Collateral', btcBalance: any }, outstanding: { __typename?: 'Outstanding', usdBalance: any } } }>, deposits: Array<{ __typename?: 'Deposit', createdAt: any, customerId: string, depositId: string, reference: string, amount: any }>, withdrawals: Array<{ __typename?: 'Withdrawal', status: WithdrawalStatus, reference: string, customerId: string, createdAt: any, withdrawalId: string, amount: any, customer?: { __typename?: 'Customer', customerId: string, email: string } | null }>, transactions: Array<{ __typename?: 'Deposit', createdAt: any, customerId: string, depositId: string, reference: string, amount: any } | { __typename?: 'Withdrawal', status: WithdrawalStatus, reference: string, customerId: string, withdrawalId: string, createdAt: any, amount: any, customer?: { __typename?: 'Customer', customerId: string, email: string } | null }>, documents: Array<{ __typename?: 'Document', id: string, filename: string }> } | null };
 
 export type CustomerUpdateMutationVariables = Exact<{
   input: CustomerUpdateInput;
@@ -1691,7 +1691,7 @@ export type TermsTemplateQueryVariables = Exact<{
 }>;
 
 
-export type TermsTemplateQuery = { __typename?: 'Query', termsTemplate?: { __typename?: 'TermsTemplate', id: string, name: string, termsId: string, createdAt: any, values: { __typename?: 'TermValues', interval: InterestInterval, annualRate: any, initialCvl: any, marginCallCvl: any, liquidationCvl: any, duration: { __typename?: 'Duration', units: number, period: Period } } } | null };
+export type TermsTemplateQuery = { __typename?: 'Query', termsTemplate?: { __typename?: 'TermsTemplate', id: string, name: string, termsId: string, createdAt: any, values: { __typename?: 'TermValues', interval: InterestInterval, incurrenceInterval: InterestInterval, annualRate: any, initialCvl: any, marginCallCvl: any, liquidationCvl: any, duration: { __typename?: 'Duration', units: number, period: Period } } } | null };
 
 export type CreateTermsTemplateMutationVariables = Exact<{
   input: TermsTemplateCreateInput;
@@ -1703,7 +1703,7 @@ export type CreateTermsTemplateMutation = { __typename?: 'Mutation', termsTempla
 export type TermsTemplatesQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type TermsTemplatesQuery = { __typename?: 'Query', termsTemplates: Array<{ __typename?: 'TermsTemplate', id: string, name: string, termsId: string, createdAt: any, values: { __typename?: 'TermValues', annualRate: any, interval: InterestInterval, liquidationCvl: any, marginCallCvl: any, initialCvl: any, duration: { __typename?: 'Duration', period: Period, units: number } } }> };
+export type TermsTemplatesQuery = { __typename?: 'Query', termsTemplates: Array<{ __typename?: 'TermsTemplate', id: string, name: string, termsId: string, createdAt: any, values: { __typename?: 'TermValues', annualRate: any, interval: InterestInterval, incurrenceInterval: InterestInterval, liquidationCvl: any, marginCallCvl: any, initialCvl: any, duration: { __typename?: 'Duration', period: Period, units: number } } }> };
 
 export type GetOnBalanceSheetTrialBalanceQueryVariables = Exact<{
   from: Scalars['Timestamp']['input'];
@@ -2849,6 +2849,7 @@ export const GetCustomerDocument = gql`
       loanTerms {
         annualRate
         interval
+        incurrenceInterval
         liquidationCvl
         marginCallCvl
         initialCvl
@@ -4010,6 +4011,7 @@ export const TermsTemplateDocument = gql`
         period
       }
       interval
+      incurrenceInterval
       annualRate
       initialCvl
       marginCallCvl
@@ -4103,6 +4105,7 @@ export const TermsTemplatesDocument = gql`
     values {
       annualRate
       interval
+      incurrenceInterval
       liquidationCvl
       marginCallCvl
       initialCvl

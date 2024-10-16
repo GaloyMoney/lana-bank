@@ -30,6 +30,7 @@ gql`
           period
         }
         interval
+        incurrenceInterval
         annualRate
         initialCvl
         marginCallCvl

@@ -44,6 +44,7 @@ gql`
       values {
         annualRate
         interval
+        incurrenceInterval
         liquidationCvl
         marginCallCvl
         initialCvl

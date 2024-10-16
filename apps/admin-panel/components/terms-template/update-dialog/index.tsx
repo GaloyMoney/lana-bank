@@ -68,6 +68,9 @@ export const UpdateTermsTemplateDialog: React.FC<UpdateTermsTemplateDialogProps>
   const [interval, setInterval] = useState<InterestInterval>(
     termsTemplate.values.interval,
   )
+  const [incurrenceInterval, setIncurrenceInterval] = useState<InterestInterval>(
+    termsTemplate.values.incurrenceInterval,
+  )
   const [duration, setDuration] = useState<{ period: Period; units: string }>({
     period: termsTemplate.values.duration.period,
     units: termsTemplate.values.duration.units.toString(),
@@ -88,6 +91,7 @@ export const UpdateTermsTemplateDialog: React.FC<UpdateTermsTemplateDialogProps>
       setName(termsTemplate.name)
       setAnnualRate(termsTemplate.values.annualRate.toString())
       setInterval(termsTemplate.values.interval)
+      setIncurrenceInterval(termsTemplate.values.incurrenceInterval)
       setDuration({
         period: termsTemplate.values.duration.period,
         units: termsTemplate.values.duration.units.toString(),
@@ -109,6 +113,7 @@ export const UpdateTermsTemplateDialog: React.FC<UpdateTermsTemplateDialogProps>
             id: termsTemplate.termsId,
             annualRate,
             interval,
+            incurrenceInterval,
             duration: {
               period: duration.period,
               units: parseInt(duration.units),
@@ -143,6 +148,7 @@ export const UpdateTermsTemplateDialog: React.FC<UpdateTermsTemplateDialogProps>
     setName(termsTemplate.name)
     setAnnualRate(termsTemplate.values.annualRate.toString())
     setInterval(termsTemplate.values.interval)
+    setIncurrenceInterval(termsTemplate.values.incurrenceInterval)
     setDuration({
       period: termsTemplate.values.duration.period,
       units: termsTemplate.values.duration.units.toString(),
@@ -188,6 +194,21 @@ export const UpdateTermsTemplateDialog: React.FC<UpdateTermsTemplateDialogProps>
             <Select
               id="interval"
               value={interval}
+              onChange={(e) => setInterval(e.target.value as InterestInterval)}
+              required
+            >
+              {Object.values(InterestInterval).map((int) => (
+                <option key={int} value={int}>
+                  {formatInterval(int)}
+                </option>
+              ))}
+            </Select>
+          </div>
+          <div>
+            <Label htmlFor="incurrenceInterval">Incurrence Interval</Label>
+            <Select
+              id="incurrenceInterval"
+              value={incurrenceInterval}
               onChange={(e) => setInterval(e.target.value as InterestInterval)}
               required
             >
