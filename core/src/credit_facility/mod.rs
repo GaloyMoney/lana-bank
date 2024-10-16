@@ -344,7 +344,7 @@ impl CreditFacilities {
             );
 
             let new_accrual = credit_facility
-                .initiate_interest_accrual(audit_info)?
+                .start_interest_accrual(audit_info)?
                 .expect("Accrual start date is before facility expiry date");
             let accrual = self
                 .interest_accrual_repo

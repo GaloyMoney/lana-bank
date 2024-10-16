@@ -1,4 +1,5 @@
 use async_trait::async_trait;
+use credit_facility::CreditFacilityInterest;
 use serde::{Deserialize, Serialize};
 
 use crate::{
@@ -53,7 +54,7 @@ impl JobInitializer for CreditFacilityProcessingJobInitializer {
             config: job.data()?,
             credit_facility_repo: self.credit_facility_repo.clone(),
             interest_accrual_repo: self.interest_accrual_repo.clone(),
-            _ledger: self.ledger.clone(),
+            ledger: self.ledger.clone(),
             audit: self.audit.clone(),
         }))
     }
@@ -63,7 +64,7 @@ pub struct CreditFacilityProcessingJobRunner {
     config: CreditFacilityJobConfig,
     credit_facility_repo: CreditFacilityRepo,
     interest_accrual_repo: InterestAccrualRepo,
-    _ledger: Ledger,
+    ledger: Ledger,
     audit: Audit,
 }
 
@@ -99,24 +100,43 @@ impl JobRunner for CreditFacilityProcessingJobRunner {
             .find_by_idx_for_credit_facility(credit_facility.id, idx)
             .await?;
 
-        if let Some(_interest_accrual) =
-            accrual.initiate_incurrence(credit_facility.outstanding())?
-        {
+        let CreditFacilityInterest {
+            incurrence: interest_incurrence,
+            accrual: interest_accrual,
+        } = accrual
+            .initiate_incurrence(credit_facility.outstanding(), credit_facility.account_ids)?;
 
-            // let executed_at = self
-            //     .ledger
-            //     .record_credit_facility_interest(interest_accrual.clone())
-            //     .await?;
+        let executed_at = self
+            .ledger
+            .record_credit_facility_interest_incurrence(interest_incurrence.clone())
+            .await?;
+        accrual.confirm_incurrence(interest_incurrence, executed_at, audit_info);
 
-            // credit_facility.confirm_interest(interest_accrual, executed_at, audit_info);
-            // self.repo
-            //     .persist_in_tx(&mut db_tx, &mut credit_facility)
-            //     .await?;
+        if let Some(interest_accrual) = interest_accrual {
+            let executed_at = self
+                .ledger
+                .record_credit_facility_interest_accrual(interest_accrual.clone())
+                .await?;
+            accrual.confirm_accrual(interest_accrual.clone(), executed_at, audit_info);
+
+            credit_facility.confirm_interest_accrual(
+                interest_accrual,
+                accrual.idx,
+                executed_at,
+                audit_info,
+            );
+            self.credit_facility_repo
+                .persist_in_tx(&mut db_tx, &mut credit_facility)
+                .await?;
         }
+
+        self.interest_accrual_repo
+            .persist_in_tx(&mut db_tx, &mut accrual)
+            .await?;
 
         if let Some(period) = accrual.next_incurrence_period() {
             Ok(JobCompletion::RescheduleAtWithTx(db_tx, period.end))
-        } else if let Some(new_accrual) = credit_facility.initiate_interest_accrual(audit_info)? {
+        } else if let Some(new_accrual) = credit_facility.start_interest_accrual(audit_info)? {
             self.credit_facility_repo
                 .persist_in_tx(&mut db_tx, &mut credit_facility)
                 .await?;
