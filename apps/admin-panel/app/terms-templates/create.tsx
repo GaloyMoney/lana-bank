@@ -63,6 +63,7 @@ export const CreateTermsTemplateDialog: React.FC<CreateTermsTemplateDialogProps>
   const [name, setName] = useState<string>("")
   const [annualRate, setAnnualRate] = useState<string>("")
   const [interval, setInterval] = useState<InterestInterval | "">("")
+  const [incurrenceInterval, setIncurrenceInterval] = useState<InterestInterval | "">("")
   const [duration, setDuration] = useState<{ period: Period | ""; units: string }>({
     period: "",
     units: "",
@@ -83,6 +84,7 @@ export const CreateTermsTemplateDialog: React.FC<CreateTermsTemplateDialogProps>
             name,
             annualRate,
             interval: interval as InterestInterval,
+            incurrenceInterval: incurrenceInterval as InterestInterval,
             duration: {
               period: duration.period as Period,
               units: parseInt(duration.units),
@@ -118,6 +120,7 @@ export const CreateTermsTemplateDialog: React.FC<CreateTermsTemplateDialogProps>
     setName("")
     setAnnualRate("")
     setInterval("")
+    setIncurrenceInterval("")
     setDuration({ period: "", units: "" })
     setLiquidationCvl("")
     setMarginCallCvl("")
@@ -227,6 +230,24 @@ export const CreateTermsTemplateDialog: React.FC<CreateTermsTemplateDialogProps>
             >
               <option value="" disabled>
                 Select interval
+              </option>
+              {Object.values(InterestInterval).map((int) => (
+                <option key={int} value={int}>
+                  {formatInterval(int)}
+                </option>
+              ))}
+            </Select>
+          </div>
+          <div>
+            <Label htmlFor="incurrenceInterval">Incurrence Interval</Label>
+            <Select
+              id="incurrenceInterval"
+              value={incurrenceInterval}
+              onChange={(e) => setIncurrenceInterval(e.target.value as InterestInterval)}
+              required
+            >
+              <option value="" disabled>
+                Select incurrence interval
               </option>
               {Object.values(InterestInterval).map((int) => (
                 <option key={int} value={int}>

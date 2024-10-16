@@ -75,6 +75,7 @@ export const CreateCreditFacilityDialog: React.FC<CreateCreditFacilityDialogProp
     facility: "0",
     annualRate: "",
     interval: "",
+    incurrenceInterval: "",
     liquidationCvl: "",
     marginCallCvl: "",
     initialCvl: "",
@@ -140,6 +141,7 @@ export const CreateCreditFacilityDialog: React.FC<CreateCreditFacilityDialogProp
       facility,
       annualRate,
       interval,
+      incurrenceInterval,
       liquidationCvl,
       marginCallCvl,
       initialCvl,
@@ -151,6 +153,7 @@ export const CreateCreditFacilityDialog: React.FC<CreateCreditFacilityDialogProp
       !facility ||
       !annualRate ||
       !interval ||
+      !incurrenceInterval ||
       !liquidationCvl ||
       !marginCallCvl ||
       !initialCvl ||
@@ -170,6 +173,7 @@ export const CreateCreditFacilityDialog: React.FC<CreateCreditFacilityDialogProp
             terms: {
               annualRate: parseFloat(annualRate),
               interval: interval as InterestInterval,
+              incurrenceInterval: incurrenceInterval as InterestInterval,
               liquidationCvl: parseFloat(liquidationCvl),
               marginCallCvl: parseFloat(marginCallCvl),
               initialCvl: parseFloat(initialCvl),
@@ -206,6 +210,7 @@ export const CreateCreditFacilityDialog: React.FC<CreateCreditFacilityDialogProp
         facility: "0",
         annualRate: latestTemplate.values.annualRate.toString(),
         interval: latestTemplate.values.interval,
+        incurrenceInterval: latestTemplate.values.incurrenceInterval,
         liquidationCvl: latestTemplate.values.liquidationCvl.toString(),
         marginCallCvl: latestTemplate.values.marginCallCvl.toString(),
         initialCvl: latestTemplate.values.initialCvl.toString(),
@@ -217,6 +222,7 @@ export const CreateCreditFacilityDialog: React.FC<CreateCreditFacilityDialogProp
         facility: "0",
         annualRate: "",
         interval: "",
+        incurrenceInterval: "",
         liquidationCvl: "",
         marginCallCvl: "",
         initialCvl: "",
