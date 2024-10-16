@@ -34,6 +34,7 @@ use error::*;
 pub use history::*;
 pub use interest_accrual::*;
 use jobs::*;
+use lava_job::error::JobError;
 use repo::*;
 use tracing::instrument;
 
@@ -379,7 +380,8 @@ impl CreditFacilities {
                 .interest_accrual_repo
                 .create_in_tx(&mut db_tx, new_accrual)
                 .await?;
-            self.jobs
+            match self
+                .jobs
                 .create_and_spawn_at_in_tx::<interest::CreditFacilityProcessingJobInitializer, _>(
                     &mut db_tx,
                     credit_facility.id,
@@ -392,7 +394,11 @@ impl CreditFacilities {
                         .expect("New accrual has first incurrence period")
                         .end,
                 )
-                .await?;
+                .await
+            {
+                Ok(_) | Err(JobError::DuplicateId) => (),
+                Err(err) => Err(err)?,
+            };
         }
 
         self.disbursement_repo
