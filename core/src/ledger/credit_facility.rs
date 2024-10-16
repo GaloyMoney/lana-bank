@@ -112,6 +112,28 @@ pub struct CreditFacilityPaymentAmounts {
 }
 
 #[derive(Debug, Clone)]
+pub struct CreditFacilityInterestIncurrence {
+    pub interest: UsdCents,
+    pub tx_ref: String,
+    pub tx_id: LedgerTxId,
+    pub credit_facility_account_ids: CreditFacilityAccountIds,
+}
+
+#[derive(Debug, Clone)]
+pub struct CreditFacilityInterestAccrual {
+    pub interest: UsdCents,
+    pub tx_ref: String,
+    pub tx_id: LedgerTxId,
+    pub credit_facility_account_ids: CreditFacilityAccountIds,
+}
+
+#[derive(Debug, Clone)]
+pub struct CreditFacilityInterest {
+    pub incurrence: CreditFacilityInterestIncurrence,
+    pub accrual: Option<CreditFacilityInterestAccrual>,
+}
+
+#[derive(Debug, Clone)]
 pub struct CreditFacilityCompletion {
     pub tx_id: LedgerTxId,
     pub tx_ref: String,

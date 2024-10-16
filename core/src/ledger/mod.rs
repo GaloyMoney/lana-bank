@@ -248,7 +248,7 @@ impl Ledger {
             .await?)
     }
 
-    #[instrument(name = "lava.ledger.record_interest", skip(self), err)]
+    #[instrument(name = "lava.ledger.record_loan_interest", skip(self), err)]
     pub async fn record_loan_interest(
         &self,
         LoanInterestAccrual {
@@ -322,6 +322,40 @@ impl Ledger {
             }
         };
         Ok(executed_at)
+    }
+
+    #[instrument(
+        name = "lava.ledger.record_credit_facility_interest_incurrence",
+        skip(self),
+        err
+    )]
+    pub async fn record_credit_facility_interest_incurrence(
+        &self,
+        CreditFacilityInterestIncurrence {
+            interest,
+            tx_ref,
+            tx_id,
+            credit_facility_account_ids,
+        }: CreditFacilityInterestIncurrence,
+    ) -> Result<chrono::DateTime<chrono::Utc>, LedgerError> {
+        unimplemented!()
+    }
+
+    #[instrument(
+        name = "lava.ledger.record_credit_facility_interest_accrual",
+        skip(self),
+        err
+    )]
+    pub async fn record_credit_facility_interest_accrual(
+        &self,
+        CreditFacilityInterestAccrual {
+            interest,
+            tx_ref,
+            tx_id,
+            credit_facility_account_ids,
+        }: CreditFacilityInterestAccrual,
+    ) -> Result<chrono::DateTime<chrono::Utc>, LedgerError> {
+        unimplemented!()
     }
 
     #[instrument(name = "lava.ledger.record_disbursement", skip(self), err)]
