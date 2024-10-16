@@ -360,6 +360,7 @@ export type CreditFacility = {
   expiresAt?: Maybe<Scalars['Timestamp']['output']>;
   facilityAmount: Scalars['UsdCents']['output'];
   id: Scalars['ID']['output'];
+  repaymentPlan: Array<CreditFacilityRepaymentInPlan>;
   status: CreditFacilityStatus;
   subjectCanComplete: Scalars['Boolean']['output'];
   subjectCanInitiateDisbursal: Scalars['Boolean']['output'];
@@ -518,6 +519,26 @@ export type CreditFacilityPartialPaymentPayload = {
   __typename?: 'CreditFacilityPartialPaymentPayload';
   creditFacility: CreditFacility;
 };
+
+export type CreditFacilityRepaymentInPlan = {
+  __typename?: 'CreditFacilityRepaymentInPlan';
+  accrualAt: Scalars['Timestamp']['output'];
+  amount: Scalars['UsdCents']['output'];
+  dueAt: Scalars['Timestamp']['output'];
+  repaymentType: CreditFacilityRepaymentType;
+  status: CreditFacilityRepaymentStatus;
+};
+
+export enum CreditFacilityRepaymentStatus {
+  Due = 'DUE',
+  Overdue = 'OVERDUE',
+  Paid = 'PAID',
+  Upcoming = 'UPCOMING'
+}
+
+export enum CreditFacilityRepaymentType {
+  Disbursal = 'DISBURSAL'
+}
 
 export enum CreditFacilityStatus {
   Active = 'ACTIVE',
