@@ -26,6 +26,7 @@ teardown_file() {
         terms: {
           annualRate: "12",
           interval: "END_OF_MONTH",
+          incurrenceInterval: "END_OF_DAY",
           duration: { period: "MONTHS", units: 3 },
           liquidationCvl: "105",
           marginCallCvl: "125",
