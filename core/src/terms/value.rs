@@ -573,7 +573,7 @@ mod test {
     }
 
     #[test]
-    fn interest_calculation() {
+    fn interest_calculation_using_days() {
         let terms = terms();
         let principal = UsdCents::try_from_usd(dec!(100)).unwrap();
         let days = 366;
@@ -583,6 +583,24 @@ mod test {
         let principal = UsdCents::try_from_usd(dec!(1000)).unwrap();
         let days = 23;
         let interest = terms.annual_rate.interest_for_time_period(principal, days);
+        assert_eq!(interest, UsdCents::from(755));
+    }
+
+    #[test]
+    fn interest_calculation_using_secs() {
+        let terms = terms();
+        let principal = UsdCents::try_from_usd(dec!(100)).unwrap();
+        let secs = NUMBER_OF_SECONDS_IN_YEAR;
+        let interest = terms
+            .annual_rate
+            .interest_for_time_period_in_secs(principal, secs);
+        assert_eq!(interest, UsdCents::from(1200));
+
+        let principal = UsdCents::try_from_usd(dec!(1000)).unwrap();
+        let secs = 23 * NUMBER_OF_SECONDS_IN_DAY;
+        let interest = terms
+            .annual_rate
+            .interest_for_time_period_in_secs(principal, secs);
         assert_eq!(interest, UsdCents::from(755));
     }
 
