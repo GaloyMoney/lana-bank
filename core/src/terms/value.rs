@@ -584,6 +584,52 @@ mod test {
         assert_eq!(month_period.next().start, expected_next_start_date);
     }
 
+    #[test]
+    fn end_date_starting_at_month_interval() {
+        let expected_end_date = "2024-12-31T23:59:59Z".parse::<DateTime<Utc>>().unwrap();
+
+        let start_of_month = "2024-12-01T00:00:00Z".parse::<DateTime<Utc>>().unwrap();
+        assert_eq!(
+            InterestInterval::EndOfMonth.end_date_starting_at(start_of_month),
+            expected_end_date
+        );
+
+        let middle_of_month = "2024-12-15T12:00:00Z".parse::<DateTime<Utc>>().unwrap();
+        assert_eq!(
+            InterestInterval::EndOfMonth.end_date_starting_at(middle_of_month),
+            expected_end_date
+        );
+
+        let end_of_month = "2024-12-31T23:59:59Z".parse::<DateTime<Utc>>().unwrap();
+        assert_eq!(
+            InterestInterval::EndOfMonth.end_date_starting_at(end_of_month),
+            expected_end_date
+        );
+    }
+
+    #[test]
+    fn end_date_starting_at_day_interval() {
+        let expected_end_date = "2024-12-03T23:59:59Z".parse::<DateTime<Utc>>().unwrap();
+
+        let start_of_day = "2024-12-03T00:00:00Z".parse::<DateTime<Utc>>().unwrap();
+        assert_eq!(
+            InterestInterval::EndOfDay.end_date_starting_at(start_of_day),
+            expected_end_date
+        );
+
+        let middle_of_day = "2024-12-03T12:00:00Z".parse::<DateTime<Utc>>().unwrap();
+        assert_eq!(
+            InterestInterval::EndOfDay.end_date_starting_at(middle_of_day),
+            expected_end_date
+        );
+
+        let end_of_day = "2024-12-03T23:59:59Z".parse::<DateTime<Utc>>().unwrap();
+        assert_eq!(
+            InterestInterval::EndOfDay.end_date_starting_at(end_of_day),
+            expected_end_date
+        );
+    }
+
     mod collateralization_update {
         use super::*;
 
