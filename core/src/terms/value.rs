@@ -571,6 +571,19 @@ mod test {
         assert_eq!(duration.expiration_date(start_date), expiration_date);
     }
 
+    #[test]
+    fn next_period() {
+        let start_date = "2024-12-03T14:00:00Z".parse::<DateTime<Utc>>().unwrap();
+
+        let expected_next_start_date = "2024-12-04T00:00:00Z".parse::<DateTime<Utc>>().unwrap();
+        let day_period = InterestInterval::EndOfDay.period_from(start_date);
+        assert_eq!(day_period.next().start, expected_next_start_date);
+
+        let expected_next_start_date = "2025-01-01T00:00:00Z".parse::<DateTime<Utc>>().unwrap();
+        let month_period = InterestInterval::EndOfMonth.period_from(start_date);
+        assert_eq!(month_period.next().start, expected_next_start_date);
+    }
+
     mod collateralization_update {
         use super::*;
 
