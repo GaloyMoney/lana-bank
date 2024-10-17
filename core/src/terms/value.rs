@@ -330,7 +330,6 @@ impl TermValuesBuilder {
     fn validate(&self) -> Result<(), TermsError> {
         let initial_cvl = self
             .initial_cvl
-            .expect("initial_cvl is required")
             .ok_or(UninitializedFieldError::new("initial_cvl"))?;
         let margin_call_cvl = self
             .margin_call_cvl
@@ -444,7 +443,7 @@ mod test {
         let result = TermValues::builder()
             .annual_rate(AnnualRatePct(dec!(12)))
             .duration(Duration::Months(3))
-            .interval(InterestInterval::EndOfMonth)
+            .accrual_interval(InterestInterval::EndOfMonth)
             .liquidation_cvl(CVLPct(dec!(105)))
             .margin_call_cvl(CVLPct(dec!(150)))
             .initial_cvl(CVLPct(dec!(140)))
@@ -464,7 +463,7 @@ mod test {
         let result = TermValues::builder()
             .annual_rate(AnnualRatePct(dec!(12)))
             .duration(Duration::Months(3))
-            .interval(InterestInterval::EndOfMonth)
+            .accrual_interval(InterestInterval::EndOfMonth)
             .liquidation_cvl(CVLPct(dec!(130)))
             .margin_call_cvl(CVLPct(dec!(125)))
             .initial_cvl(CVLPct(dec!(140)))
@@ -484,7 +483,7 @@ mod test {
         let result = TermValues::builder()
             .annual_rate(AnnualRatePct(dec!(12)))
             .duration(Duration::Months(3))
-            .interval(InterestInterval::EndOfMonth)
+            .accrual_interval(InterestInterval::EndOfMonth)
             .liquidation_cvl(CVLPct(dec!(125)))
             .margin_call_cvl(CVLPct(dec!(125)))
             .initial_cvl(CVLPct(dec!(140)))
