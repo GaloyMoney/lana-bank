@@ -21,6 +21,7 @@ use crate::{
     report::Reports,
     storage::Storage,
     terms_template::TermsTemplates,
+    time_provider::TimeProvider,
     user::Users,
     withdraw::Withdraws,
 };
@@ -49,7 +50,11 @@ pub struct LavaApp {
 }
 
 impl LavaApp {
-    pub async fn run(pool: PgPool, config: AppConfig) -> Result<Self, ApplicationError> {
+    pub async fn run(
+        pool: PgPool,
+        config: AppConfig,
+        time_provider: impl TimeProvider,
+    ) -> Result<Self, ApplicationError> {
         let mut jobs = Jobs::new(&pool, config.job_execution);
         let export = Export::new(config.ledger.cala_url.clone(), &jobs);
         let audit = Audit::new(&pool);
@@ -67,6 +72,7 @@ impl LavaApp {
         let credit_facilities = CreditFacilities::new(
             &pool,
             config.credit_facility,
+            &time_provider,
             &jobs,
             &export,
             &authz,

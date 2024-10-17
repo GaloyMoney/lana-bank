@@ -15,6 +15,7 @@ use lava_core::{
     ledger::{credit_facility::CreditFacilityBalance, Ledger, LedgerConfig},
     primitives::*,
     terms::*,
+    time_provider::MockTimeProvider,
     user::User,
 };
 use uuid::Uuid;
@@ -74,7 +75,7 @@ async fn init_approved_facility_with_disbursement(
     let app_config = AppConfig {
         ..Default::default()
     };
-    let app = LavaApp::run(pool, app_config).await?;
+    let app = LavaApp::run(pool, app_config, MockTimeProvider::new()).await?;
     let credit_facilities = app.credit_facilities();
 
     let (user, sub, audit_info) = superuser().await?;

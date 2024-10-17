@@ -22,6 +22,7 @@ use crate::{
         UserId,
     },
     terms::TermValues,
+    time_provider::TimeProvider,
     user::{UserRepo, Users},
 };
 
@@ -57,6 +58,7 @@ impl CreditFacilities {
     pub fn new(
         pool: &sqlx::PgPool,
         config: CreditFacilityConfig,
+        _time_provider: &impl TimeProvider,
         jobs: &Jobs,
         export: &Export,
         authz: &Authorization,

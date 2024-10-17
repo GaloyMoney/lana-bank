@@ -2,7 +2,7 @@ mod helpers;
 use rand::distributions::{Alphanumeric, DistString};
 use serial_test::file_serial;
 
-use lava_core::{app::*, primitives::*, user::*};
+use lava_core::{app::*, primitives::*, time_provider::RealTimeProvider, user::*};
 
 fn generate_random_email() -> String {
     let random_string: String = Alphanumeric.sample_string(&mut rand::thread_rng(), 32);
@@ -21,7 +21,7 @@ async fn bank_manager_lifecycle() -> anyhow::Result<()> {
         user: user_config,
         ..Default::default()
     };
-    let app = LavaApp::run(pool, app_config).await?;
+    let app = LavaApp::run(pool, app_config, RealTimeProvider).await?;
 
     let superuser = app.users().find_by_email(superuser_email).await?;
     let superuser_subject = Subject::from(superuser.unwrap().id);

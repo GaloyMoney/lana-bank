@@ -5,6 +5,8 @@ use anyhow::Context;
 use clap::Parser;
 use std::{fs, path::PathBuf};
 
+use crate::time_provider::RealTimeProvider;
+
 use self::config::{Config, EnvSecrets};
 
 #[derive(Parser)]
@@ -63,7 +65,7 @@ async fn run_cmd(lava_home: &str, config: Config) -> anyhow::Result<()> {
     let (send, mut receive) = tokio::sync::mpsc::channel(1);
     let mut handles = Vec::new();
     let pool = db::init_pool(&config.db).await?;
-    let public_app = crate::app::LavaApp::run(pool.clone(), config.app).await?;
+    let public_app = crate::app::LavaApp::run(pool.clone(), config.app, RealTimeProvider).await?;
     let admin_app = public_app.clone();
 
     let admin_send = send.clone();

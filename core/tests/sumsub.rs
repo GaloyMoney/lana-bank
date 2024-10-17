@@ -1,6 +1,6 @@
 mod helpers;
 
-use lava_core::{app::*, applicant::*, primitives::CustomerId};
+use lava_core::{app::*, applicant::*, primitives::CustomerId, time_provider::RealTimeProvider};
 
 use std::env;
 
@@ -26,7 +26,7 @@ async fn get_access_token() -> anyhow::Result<()> {
         sumsub: sumsub_config.unwrap(),
         ..Default::default()
     };
-    let app = LavaApp::run(pool, app_config).await?;
+    let app = LavaApp::run(pool, app_config, RealTimeProvider).await?;
 
     let customer_id = CustomerId::new();
     match app.applicants().create_access_token(customer_id).await {
@@ -60,7 +60,7 @@ async fn create_permalink() -> anyhow::Result<()> {
         sumsub: sumsub_config.unwrap(),
         ..Default::default()
     };
-    let app = LavaApp::run(pool, app_config).await?;
+    let app = LavaApp::run(pool, app_config, RealTimeProvider).await?;
 
     let customer_id = CustomerId::new();
     match app.applicants().create_permalink(customer_id).await {
