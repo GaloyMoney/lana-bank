@@ -267,8 +267,8 @@ impl InterestPeriod {
     }
 
     pub fn seconds(&self) -> u64 {
-        let end = u64::try_from(self.end.timestamp()).expect("'end' is positive");
-        let start = u64::try_from(self.start.timestamp()).expect("'start' is positive");
+        let end = self.end.timestamp() as u64;
+        let start = self.start.timestamp() as u64;
 
         end - start + 1
     }
