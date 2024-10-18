@@ -534,14 +534,18 @@ impl CreditFacility {
                 audit_info,
             });
 
-        Ok(Some(NewInterestAccrual::new(
-            self.id,
-            idx,
-            accrual_starts_at,
-            self.expires_at.expect("Facility is already approved"),
-            self.terms,
-            audit_info,
-        )))
+        Ok(Some(
+            NewInterestAccrual::builder()
+                .id(InterestAccrualId::new())
+                .facility_id(self.id)
+                .idx(idx)
+                .started_at(accrual_starts_at)
+                .facility_expires_at(self.expires_at.expect("Facility is already approved"))
+                .terms(self.terms)
+                .audit_info(audit_info)
+                .build()
+                .expect("could not build new interest accrual"),
+        ))
     }
 
     pub fn confirm_interest_accrual(
@@ -1315,16 +1319,20 @@ mod test {
                     started_at: accrual_starts_at,
                     audit_info: dummy_audit_info(),
                 });
-            let new_accrual = NewInterestAccrual::new(
-                credit_facility.id,
-                new_idx,
-                accrual_starts_at,
-                credit_facility
-                    .expires_at
-                    .expect("Facility is already approved"),
-                credit_facility.terms,
-                dummy_audit_info(),
-            );
+            let new_accrual = NewInterestAccrual::builder()
+                .id(InterestAccrualId::new())
+                .facility_id(credit_facility.id)
+                .idx(new_idx)
+                .started_at(accrual_starts_at)
+                .facility_expires_at(
+                    credit_facility
+                        .expires_at
+                        .expect("Facility is already approved"),
+                )
+                .terms(credit_facility.terms)
+                .audit_info(dummy_audit_info())
+                .build()
+                .unwrap();
             accrual = InterestAccrual::try_from(new_accrual.initial_events()).unwrap();
 
             next_accrual_period = credit_facility.next_interest_accrual_period().unwrap();

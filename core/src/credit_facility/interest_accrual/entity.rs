@@ -234,35 +234,23 @@ impl InterestAccrual {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Builder)]
 pub struct NewInterestAccrual {
+    #[builder(setter(into))]
     pub(super) id: InterestAccrualId,
+    #[builder(setter(into))]
     pub(super) facility_id: CreditFacilityId,
     pub(super) idx: InterestAccrualIdx,
     pub(super) started_at: DateTime<Utc>,
     pub(super) facility_expires_at: DateTime<Utc>,
     pub(super) terms: TermValues,
+    #[builder(setter(into))]
     pub(super) audit_info: AuditInfo,
 }
 
 impl NewInterestAccrual {
-    pub fn new(
-        facility_id: CreditFacilityId,
-        idx: InterestAccrualIdx,
-        started_at: DateTime<Utc>,
-        facility_expires_at: DateTime<Utc>,
-        terms: TermValues,
-        audit_info: AuditInfo,
-    ) -> Self {
-        Self {
-            id: InterestAccrualId::new(),
-            facility_id,
-            idx,
-            started_at,
-            facility_expires_at,
-            terms,
-            audit_info,
-        }
+    pub fn builder() -> NewInterestAccrualBuilder {
+        NewInterestAccrualBuilder::default()
     }
 
     pub fn initial_events(self) -> EntityEvents<InterestAccrualEvent> {
