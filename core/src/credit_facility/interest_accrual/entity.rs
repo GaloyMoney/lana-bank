@@ -106,13 +106,9 @@ impl InterestAccrual {
     }
 
     pub fn is_accrued(&self) -> bool {
-        for event in self.events.iter() {
-            match event {
-                InterestAccrualEvent::InterestAccrued { .. } => return true,
-                _ => continue,
-            }
-        }
-        false
+        self.events
+            .iter()
+            .any(|event| matches!(event, InterestAccrualEvent::InterestAccrued { .. }))
     }
 
     fn total_incurred(&self) -> UsdCents {
