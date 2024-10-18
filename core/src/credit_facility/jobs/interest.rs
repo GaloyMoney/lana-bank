@@ -139,7 +139,7 @@ impl JobRunner for CreditFacilityProcessingJobRunner {
             self.credit_facility_repo
                 .persist_in_tx(&mut db_tx, &mut credit_facility)
                 .await?;
-            let new_accrual_period = self
+            let new_incurrence_period = self
                 .interest_accrual_repo
                 .create_in_tx(&mut db_tx, new_accrual)
                 .await?
@@ -148,7 +148,7 @@ impl JobRunner for CreditFacilityProcessingJobRunner {
 
             Ok(JobCompletion::RescheduleAtWithTx(
                 db_tx,
-                new_accrual_period.end,
+                new_incurrence_period.end,
             ))
         } else {
             println!(
