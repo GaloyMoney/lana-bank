@@ -38,4 +38,21 @@ impl UserRepo {
             .await?;
         Ok(())
     }
+
+    pub async fn list(&self) -> Result<Vec<User>, UserError> {
+        let rows = sqlx::query_as!(
+            GenericEvent,
+            r#"SELECT a.id, e.sequence, e.event,
+                a.created_at AS entity_created_at, e.recorded_at AS event_recorded_at
+            FROM users a
+            JOIN user_events e
+            ON a.id = e.id
+            ORDER BY a.email, a.id, e.sequence"#,
+        )
+        .fetch_all(&self.pool)
+        .await?;
+        let n = rows.len();
+        let res = EntityEvents::load_n::<User>(rows, n)?;
+        Ok(res.0)
+    }
 }

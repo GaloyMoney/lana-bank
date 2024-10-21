@@ -129,42 +129,11 @@ impl Query {
         Ok(User::from(user))
     }
 
-    async fn users(
-        &self,
-        ctx: &Context<'_>,
-        first: i32,
-        after: Option<String>,
-    ) -> async_graphql::Result<Connection<UserByEmailCursor, User, EmptyFields, EmptyFields>> {
+    async fn users(&self, ctx: &Context<'_>) -> async_graphql::Result<Vec<User>> {
         let app = ctx.data_unchecked::<LavaApp>();
         let AdminAuthContext { sub } = ctx.data()?;
-        query(
-            after,
-            None,
-            Some(first),
-            None,
-            |after, _, first, _| async move {
-                let first = first.expect("First always exists");
-                let res = app
-                    .users()
-                    .list(
-                        sub,
-                        es_entity::PaginatedQueryArgs {
-                            first,
-                            after: after.map(crate::user::UserByEmailCursor::from),
-                        },
-                    )
-                    .await?;
-                let mut connection = Connection::new(false, res.has_next_page);
-                connection
-                    .edges
-                    .extend(res.entities.into_iter().map(|user| {
-                        let cursor = UserByEmailCursor::from((user.id, user.email.as_ref()));
-                        Edge::new(cursor, User::from(user))
-                    }));
-                Ok::<_, async_graphql::Error>(connection)
-            },
-        )
-        .await
+        let users = app.users().list_users(sub).await?;
+        Ok(users.into_iter().map(User::from).collect())
     }
 
     async fn terms_templates(
@@ -216,10 +185,9 @@ impl Query {
                 let mut connection = Connection::new(false, res.has_next_page);
                 connection
                     .edges
-                    .extend(res.entities.into_iter().map(|customer| {
-                        let cursor =
-                            CustomerByEmailCursor::from((customer.id, customer.email.as_ref()));
-                        Edge::new(cursor, Customer::from(customer))
+                    .extend(res.entities.into_iter().map(|user| {
+                        let cursor = CustomerByEmailCursor::from((user.id, user.email.as_ref()));
+                        Edge::new(cursor, Customer::from(user))
                     }));
                 Ok::<_, async_graphql::Error>(connection)
             },

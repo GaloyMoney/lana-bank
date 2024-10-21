@@ -822,7 +822,7 @@ type Query {
 	customer(id: UUID!): Customer
 	customerByEmail(email: String!): Customer
 	me: User!
-	users(first: Int!, after: String): UserConnection!
+	users: [User!]!
 	termsTemplates: [TermsTemplate!]!
 	user(id: UUID!): User
 	customers(first: Int!, after: String): CustomerConnection!
@@ -1035,41 +1035,12 @@ type UserAssignRolePayload {
 	user: User!
 }
 
-type UserConnection {
-	"""
-	Information to aid in pagination.
-	"""
-	pageInfo: PageInfo!
-	"""
-	A list of edges.
-	"""
-	edges: [UserEdge!]!
-	"""
-	A list of nodes.
-	"""
-	nodes: [User!]!
-}
-
 input UserCreateInput {
 	email: String!
 }
 
 type UserCreatePayload {
 	user: User!
-}
-
-"""
-An edge in a connection.
-"""
-type UserEdge {
-	"""
-	The item at the end of the edge
-	"""
-	node: User!
-	"""
-	A cursor for use in pagination
-	"""
-	cursor: String!
 }
 
 input UserRevokeRoleInput {
