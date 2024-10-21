@@ -115,7 +115,7 @@ impl Users {
             .await?;
         match self.repo.find_by_id(id).await {
             Ok(user) => Ok(Some(user)),
-            Err(UserError::CouldNotFindById(_)) => Ok(None),
+            Err(UserError::NotFound) => Ok(None),
             Err(e) => Err(e),
         }
     }
@@ -123,7 +123,7 @@ impl Users {
     pub async fn find_by_id_internal(&self, id: UserId) -> Result<Option<User>, UserError> {
         match self.repo.find_by_id(id).await {
             Ok(user) => Ok(Some(user)),
-            Err(UserError::CouldNotFindById(_)) => Ok(None),
+            Err(UserError::NotFound) => Ok(None),
             Err(e) => Err(e),
         }
     }
@@ -136,9 +136,9 @@ impl Users {
     }
 
     pub async fn find_by_email(&self, email: impl Into<String>) -> Result<Option<User>, UserError> {
-        match self.repo.find_by_email(email).await {
+        match self.repo.find_by_email(email.into()).await {
             Ok(user) => Ok(Some(user)),
-            Err(UserError::CouldNotFindByEmail(_)) => Ok(None),
+            Err(UserError::NotFound) => Ok(None),
             Err(e) => Err(e),
         }
     }

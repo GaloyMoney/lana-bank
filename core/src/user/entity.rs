@@ -1,12 +1,15 @@
 use derive_builder::Builder;
 use serde::{Deserialize, Serialize};
 
-use crate::{entity::*, primitives::*};
+use es_entity::*;
+
+use crate::primitives::*;
 
 use std::collections::HashSet;
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
+#[es_event(id = "UserId")]
 pub enum UserEvent {
     Initialized {
         id: UserId,
@@ -23,15 +26,8 @@ pub enum UserEvent {
     },
 }
 
-impl EntityEvent for UserEvent {
-    type EntityId = UserId;
-    fn event_table_name() -> &'static str {
-        "user_events"
-    }
-}
-
-#[derive(Builder)]
-#[builder(pattern = "owned", build_fn(error = "EntityError"))]
+#[derive(EsEntity, Builder)]
+#[builder(pattern = "owned", build_fn(error = "EsEntityError"))]
 pub struct User {
     pub id: UserId,
     pub email: String,
@@ -63,7 +59,7 @@ impl User {
 
     pub fn current_roles(&self) -> HashSet<Role> {
         let mut res = HashSet::new();
-        for event in self.events.iter() {
+        for event in self.events.iter_all() {
             match event {
                 UserEvent::RoleAssigned { role, .. } => {
                     res.insert(*role);
@@ -84,16 +80,11 @@ impl core::fmt::Display for User {
     }
 }
 
-impl Entity for User {
-    type Event = UserEvent;
-}
-
-impl TryFrom<EntityEvents<UserEvent>> for User {
-    type Error = EntityError;
-
-    fn try_from(events: EntityEvents<UserEvent>) -> Result<Self, Self::Error> {
+impl TryFromEvents<UserEvent> for User {
+    fn try_from_events(events: EntityEvents<UserEvent>) -> Result<Self, EsEntityError> {
         let mut builder = UserBuilder::default();
-        for event in events.iter() {
+
+        for event in events.iter_all() {
             match event {
                 UserEvent::Initialized { id, email, .. } => {
                     builder = builder.id(*id).email(email.clone())
@@ -123,8 +114,10 @@ impl NewUser {
         builder.id(user_id);
         builder
     }
+}
 
-    pub(super) fn initial_events(self) -> EntityEvents<UserEvent> {
+impl IntoEvents<UserEvent> for NewUser {
+    fn into_events(self) -> EntityEvents<UserEvent> {
         EntityEvents::init(
             self.id,
             [UserEvent::Initialized {
