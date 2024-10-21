@@ -1,4 +1,5 @@
-use async_graphql::*;
+use async_graphql::{types::connection::*, *};
+use serde::{Deserialize, Serialize};
 
 use crate::{
     app::LavaApp,
@@ -108,6 +109,49 @@ impl From<crate::user::User> for UserCreatePayload {
     fn from(user: crate::user::User) -> Self {
         Self {
             user: User::from(user),
+        }
+    }
+}
+
+#[derive(Serialize, Deserialize)]
+pub(super) struct UserByEmailCursor {
+    pub email: String,
+    pub id: UserId,
+}
+
+impl CursorType for UserByEmailCursor {
+    type Error = String;
+
+    fn encode_cursor(&self) -> String {
+        use base64::{engine::general_purpose, Engine as _};
+        let json = serde_json::to_string(&self).expect("could not serialize token");
+        general_purpose::STANDARD_NO_PAD.encode(json.as_bytes())
+    }
+
+    fn decode_cursor(s: &str) -> Result<Self, Self::Error> {
+        use base64::{engine::general_purpose, Engine as _};
+        let bytes = general_purpose::STANDARD_NO_PAD
+            .decode(s.as_bytes())
+            .map_err(|e| e.to_string())?;
+        let json = String::from_utf8(bytes).map_err(|e| e.to_string())?;
+        serde_json::from_str(&json).map_err(|e| e.to_string())
+    }
+}
+
+impl From<(UserId, &str)> for UserByEmailCursor {
+    fn from((id, email): (UserId, &str)) -> Self {
+        Self {
+            id,
+            email: email.to_string(),
+        }
+    }
+}
+
+impl From<UserByEmailCursor> for crate::user::UserByEmailCursor {
+    fn from(cursor: UserByEmailCursor) -> Self {
+        Self {
+            id: cursor.id,
+            email: cursor.email,
         }
     }
 }

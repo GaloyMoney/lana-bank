@@ -15,7 +15,7 @@ use crate::{
 pub use config::*;
 pub use entity::*;
 use error::UserError;
-pub use repo::UserRepo;
+pub use repo::{cursor::*, UserRepo};
 
 #[derive(Clone)]
 pub struct Users {
@@ -143,11 +143,15 @@ impl Users {
         }
     }
 
-    pub async fn list_users(&self, sub: &Subject) -> Result<Vec<User>, UserError> {
+    pub async fn list(
+        &self,
+        sub: &Subject,
+        query: es_entity::PaginatedQueryArgs<UserByEmailCursor>,
+    ) -> Result<es_entity::PaginatedQueryRet<User, UserByEmailCursor>, UserError> {
         self.authz
             .enforce_permission(sub, Object::User, UserAction::List)
             .await?;
-        self.repo.list().await
+        self.repo.list_by_email(query).await
     }
 
     pub async fn can_assign_role_to_user(
