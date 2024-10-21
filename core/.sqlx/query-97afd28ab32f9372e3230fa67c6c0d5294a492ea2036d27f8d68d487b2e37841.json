@@ -1,11 +1,11 @@
 {
   "db_name": "PostgreSQL",
-  "query": "SELECT a.id, e.sequence, e.event,\n                a.created_at AS entity_created_at, e.recorded_at AS event_recorded_at\n            FROM users a\n            JOIN user_events e\n            ON a.id = e.id\n            WHERE a.email = $1",
+  "query": "WITH entities AS (SELECT created_at, id FROM users WHERE ((created_at, id) > ($3, $2)) OR $2 IS NULL ORDER BY created_at, id LIMIT $1) SELECT i.id AS \"entity_id: UserId\", e.sequence, e.event, e.recorded_at FROM entities i JOIN user_events e ON i.id = e.id ORDER BY i.created_at, i.id, i.id, e.sequence",
   "describe": {
     "columns": [
       {
         "ordinal": 0,
-        "name": "id",
+        "name": "entity_id: UserId",
         "type_info": "Uuid"
       },
       {
@@ -20,27 +20,23 @@
       },
       {
         "ordinal": 3,
-        "name": "entity_created_at",
-        "type_info": "Timestamptz"
-      },
-      {
-        "ordinal": 4,
-        "name": "event_recorded_at",
+        "name": "recorded_at",
         "type_info": "Timestamptz"
       }
     ],
     "parameters": {
       "Left": [
-        "Text"
+        "Int8",
+        "Uuid",
+        "Timestamptz"
       ]
     },
     "nullable": [
       false,
       false,
       false,
-      false,
       false
     ]
   },
-  "hash": "fcc22afbd35e609e3c8772c2da381952a4d2debaf57b400fdea714a71e28396e"
+  "hash": "97afd28ab32f9372e3230fa67c6c0d5294a492ea2036d27f8d68d487b2e37841"
 }

@@ -1,11 +1,11 @@
 {
   "db_name": "PostgreSQL",
-  "query": "SELECT a.id, e.sequence, e.event,\n                a.created_at AS entity_created_at, e.recorded_at AS event_recorded_at\n            FROM users a\n            JOIN user_events e\n            ON a.id = e.id\n            WHERE a.id = ANY($1)",
+  "query": "SELECT i.id AS \"id: UserId\", e.sequence, e.event, e.recorded_at FROM users i JOIN user_events e ON i.id = e.id WHERE i.id = ANY($1) ORDER BY i.id, e.sequence",
   "describe": {
     "columns": [
       {
         "ordinal": 0,
-        "name": "id",
+        "name": "id: UserId",
         "type_info": "Uuid"
       },
       {
@@ -20,12 +20,7 @@
       },
       {
         "ordinal": 3,
-        "name": "entity_created_at",
-        "type_info": "Timestamptz"
-      },
-      {
-        "ordinal": 4,
-        "name": "event_recorded_at",
+        "name": "recorded_at",
         "type_info": "Timestamptz"
       }
     ],
@@ -38,9 +33,8 @@
       false,
       false,
       false,
-      false,
       false
     ]
   },
-  "hash": "54025449e18a22c7f6fe515e36328a4b1adc18af98dae68bf207cb059522ff66"
+  "hash": "9e37c4ce1361867bd57f81702dfbf59ec515264a5654c1839c1cfb9adba5901d"
 }
