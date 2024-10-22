@@ -153,11 +153,11 @@ impl InterestAccrual {
             .next_incurrence_period()
             .expect("Incurrence period should exist inside this function");
 
-        let secs_in_interest_period = incurrence_period.seconds();
+        let days_in_interest_period = incurrence_period.days();
         let interest_for_period = self
             .terms
             .annual_rate
-            .interest_for_time_period_in_secs(outstanding.total(), secs_in_interest_period);
+            .interest_for_time_period(outstanding.total(), days_in_interest_period);
 
         let incurrence_tx_ref = format!(
             "{}-interest-incurrence-{}",
