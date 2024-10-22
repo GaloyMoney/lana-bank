@@ -132,6 +132,10 @@ impl CreditFacilityReceivable {
         CVLData::new(collateral, self.total() + facility_remaining)
     }
 
+    pub fn is_zero(&self) -> bool {
+        self.total().is_zero()
+    }
+
     fn allocate_payment_across_total(
         &self,
         amount: UsdCents,
@@ -650,7 +654,7 @@ impl CreditFacility {
     }
 
     pub fn can_be_completed(&self) -> bool {
-        self.outstanding().total().is_zero()
+        self.outstanding().is_zero()
     }
 
     pub fn collateral(&self) -> Satoshis {
@@ -679,7 +683,7 @@ impl CreditFacility {
         &self,
         amount: UsdCents,
     ) -> Result<CreditFacilityRepayment, CreditFacilityError> {
-        if self.outstanding().total() == UsdCents::ZERO {
+        if self.outstanding().is_zero() {
             return Err(
                 CreditFacilityError::PaymentExceedsOutstandingCreditFacilityAmount(
                     self.outstanding().total(),
@@ -891,7 +895,7 @@ impl CreditFacility {
         if self.is_completed() {
             return Err(CreditFacilityError::AlreadyCompleted);
         }
-        if !self.outstanding().total().is_zero() {
+        if !self.outstanding().is_zero() {
             return Err(CreditFacilityError::OutstandingAmount);
         }
 
