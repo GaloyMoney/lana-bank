@@ -660,6 +660,15 @@ impl CreditFacility {
         &self,
         amount: UsdCents,
     ) -> Result<CreditFacilityRepayment, CreditFacilityError> {
+        if self.outstanding().total() == UsdCents::ZERO {
+            return Err(
+                CreditFacilityError::PaymentExceedsOutstandingCreditFacilityAmount(
+                    self.outstanding().total(),
+                    amount,
+                ),
+            );
+        }
+
         let amounts = self.outstanding().allocate_payment(amount)?;
 
         let tx_ref = format!("{}-payment-{}", self.id, self.count_recorded_payments() + 1);
@@ -1758,6 +1767,16 @@ mod test {
             );
             assert_eq!(credit_facility.status(), CreditFacilityStatus::Active);
         }
+    }
+
+    #[test]
+    fn initiate_repayment_errors_when_no_disbursements() {
+        let credit_facility = facility_from(&initial_events());
+
+        let repayment_amount = UsdCents::from(5);
+        assert!(credit_facility
+            .initiate_repayment(repayment_amount)
+            .is_err());
     }
 
     #[test]
