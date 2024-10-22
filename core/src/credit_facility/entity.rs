@@ -242,8 +242,13 @@ impl CreditFacility {
     }
 
     fn interest_accrued(&self) -> UsdCents {
-        // TODO: implement
-        UsdCents::ZERO
+        self.events
+            .iter()
+            .filter_map(|event| match event {
+                CreditFacilityEvent::InterestAccrualConcluded { amount, .. } => Some(*amount),
+                _ => None,
+            })
+            .fold(UsdCents::ZERO, |acc, amount| acc + amount)
     }
 
     fn disbursed_payments(&self) -> UsdCents {
@@ -1057,6 +1062,32 @@ mod test {
         assert!(facility_from(&events)
             .initiate_disbursement(dummy_audit_info(), UsdCents::ONE)
             .is_ok());
+    }
+
+    #[test]
+    fn interest_accrued() {
+        let mut events = initial_events();
+        events.extend([
+            CreditFacilityEvent::InterestAccrualConcluded {
+                idx: InterestAccrualIdx::FIRST,
+                tx_id: LedgerTxId::new(),
+                tx_ref: "".to_string(),
+                amount: UsdCents::from(10),
+                accrued_at: Utc::now(),
+                audit_info: dummy_audit_info(),
+            },
+            CreditFacilityEvent::InterestAccrualConcluded {
+                idx: InterestAccrualIdx::FIRST.next(),
+                tx_id: LedgerTxId::new(),
+                tx_ref: "".to_string(),
+                amount: UsdCents::from(20),
+                accrued_at: Utc::now(),
+                audit_info: dummy_audit_info(),
+            },
+        ]);
+        let credit_facility = facility_from(&events);
+
+        assert_eq!(credit_facility.interest_accrued(), UsdCents::from(30));
     }
 
     #[test]
