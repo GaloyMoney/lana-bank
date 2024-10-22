@@ -145,7 +145,7 @@ impl InterestAccrual {
     }
 
     pub fn initiate_incurrence(
-        &mut self,
+        &self,
         outstanding: CreditFacilityReceivable,
         credit_facility_account_ids: CreditFacilityAccountIds,
     ) -> CreditFacilityInterestIncurrence {
@@ -180,9 +180,8 @@ impl InterestAccrual {
             tx_ref,
             tx_id,
             period,
-            ..
+            credit_facility_account_ids,
         }: CreditFacilityInterestIncurrence,
-        credit_facility_account_ids: CreditFacilityAccountIds,
         audit_info: AuditInfo,
     ) -> Option<CreditFacilityInterestAccrual> {
         self.events.push(InterestAccrualEvent::InterestIncurred {
@@ -267,6 +266,7 @@ impl NewInterestAccrual {
 
 #[cfg(test)]
 mod test {
+    use chrono::{Datelike, TimeZone, Utc};
     use rust_decimal_macros::dec;
 
     use crate::terms::{Duration, InterestInterval};
@@ -372,5 +372,32 @@ mod test {
         let accrual = accrual_from(&events);
 
         assert_eq!(accrual.next_incurrence_period(), None);
+    }
+
+    #[test]
+    fn zero_amount_incurrence() {
+        let account_ids = CreditFacilityAccountIds::new();
+        let mut accrual = accrual_from(&initial_events());
+        let incurrence @ CreditFacilityInterestIncurrence {
+            interest, period, ..
+        } = accrual.initiate_incurrence(
+            CreditFacilityReceivable {
+                disbursed: UsdCents::ZERO,
+                interest: UsdCents::ZERO,
+            },
+            account_ids,
+        );
+        assert_eq!(interest, UsdCents::ZERO);
+        let start = default_started_at();
+        assert_eq!(period.start, start);
+        let start = start.date_naive();
+        let end_of_day = Utc
+            .with_ymd_and_hms(start.year(), start.month(), start.day(), 23, 59, 59)
+            .unwrap();
+        assert_eq!(period.end, end_of_day);
+
+        assert!(accrual
+            .confirm_incurrence(incurrence, dummy_audit_info())
+            .is_none());
     }
 }

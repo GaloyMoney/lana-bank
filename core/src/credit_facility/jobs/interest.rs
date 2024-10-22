@@ -105,11 +105,7 @@ impl JobRunner for CreditFacilityProcessingJobRunner {
         self.ledger
             .record_credit_facility_interest_incurrence(interest_incurrence.clone())
             .await?;
-        let interest_accrual = accrual.confirm_incurrence(
-            interest_incurrence,
-            credit_facility.account_ids,
-            audit_info,
-        );
+        let interest_accrual = accrual.confirm_incurrence(interest_incurrence, audit_info);
 
         if let Some(interest_accrual) = interest_accrual {
             let executed_at = self
