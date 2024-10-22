@@ -132,7 +132,7 @@ impl CreditFacilityReceivable {
         CVLData::new(collateral, self.total() + facility_remaining)
     }
 
-    fn allocate_payment(
+    fn allocate_payment_across_total(
         &self,
         amount: UsdCents,
     ) -> Result<CreditFacilityPaymentAmounts, CreditFacilityError> {
@@ -156,6 +156,25 @@ impl CreditFacilityReceivable {
         Ok(CreditFacilityPaymentAmounts {
             interest,
             disbursement,
+        })
+    }
+
+    fn allocate_payment_to_interest(
+        &self,
+        amount: UsdCents,
+    ) -> Result<CreditFacilityPaymentAmounts, CreditFacilityError> {
+        if self.interest < amount {
+            return Err(
+                CreditFacilityError::PaymentExceedsOutstandingCreditFacilityInterestAmount(
+                    amount,
+                    self.interest,
+                ),
+            );
+        }
+
+        Ok(CreditFacilityPaymentAmounts {
+            interest: amount,
+            disbursement: UsdCents::ZERO,
         })
     }
 }
@@ -669,7 +688,11 @@ impl CreditFacility {
             );
         }
 
-        let amounts = self.outstanding().allocate_payment(amount)?;
+        let amounts = if self.is_expired() {
+            self.outstanding().allocate_payment_across_total(amount)?
+        } else {
+            self.outstanding().allocate_payment_to_interest(amount)?
+        };
 
         let tx_ref = format!("{}-payment-{}", self.id, self.count_recorded_payments() + 1);
 
@@ -1074,13 +1097,31 @@ mod test {
     }
 
     #[test]
-    fn allocate_payment() {
+    fn allocate_payment_across_total() {
         let outstanding = CreditFacilityReceivable {
             disbursed: UsdCents::from(100),
             interest: UsdCents::from(2),
         };
-        assert!(outstanding.allocate_payment(UsdCents::from(200)).is_err());
-        assert!(outstanding.allocate_payment(UsdCents::from(100)).is_ok());
+        assert!(outstanding
+            .allocate_payment_across_total(UsdCents::from(200))
+            .is_err());
+        assert!(outstanding
+            .allocate_payment_across_total(UsdCents::from(100))
+            .is_ok());
+    }
+
+    #[test]
+    fn allocate_payment_to_interest() {
+        let outstanding = CreditFacilityReceivable {
+            disbursed: UsdCents::from(100),
+            interest: UsdCents::from(2),
+        };
+        assert!(outstanding
+            .allocate_payment_to_interest(UsdCents::from(50))
+            .is_err());
+        assert!(outstanding
+            .allocate_payment_to_interest(UsdCents::from(2))
+            .is_ok());
     }
 
     #[test]
@@ -1780,9 +1821,95 @@ mod test {
     }
 
     #[test]
-    fn confirm_repayment() {
+    fn initiate_repayment_before_expiry_errors_for_amount_above_interest() {
         let mut events = initial_events();
+        let approved_at = Utc::now();
         events.extend([
+            CreditFacilityEvent::Approved {
+                tx_id: LedgerTxId::new(),
+                recorded_at: approved_at,
+                audit_info: dummy_audit_info(),
+            },
+            CreditFacilityEvent::DisbursementInitiated {
+                idx: DisbursementIdx::FIRST,
+                amount: UsdCents::from(50),
+                audit_info: dummy_audit_info(),
+            },
+            CreditFacilityEvent::DisbursementConcluded {
+                idx: DisbursementIdx::FIRST,
+                tx_id: LedgerTxId::new(),
+                recorded_at: approved_at,
+                audit_info: dummy_audit_info(),
+            },
+            CreditFacilityEvent::InterestAccrualConcluded {
+                idx: InterestAccrualIdx::FIRST,
+                tx_id: LedgerTxId::new(),
+                tx_ref: "".to_string(),
+                amount: UsdCents::from(2),
+                accrued_at: approved_at,
+                audit_info: dummy_audit_info(),
+            },
+        ]);
+        let credit_facility = facility_from(&events);
+
+        assert!(credit_facility
+            .initiate_repayment(UsdCents::from(3))
+            .is_err());
+        assert!(credit_facility
+            .initiate_repayment(UsdCents::from(2))
+            .is_ok());
+    }
+
+    #[test]
+    fn initiate_repayment_after_expiry_errors_for_amount_above_total() {
+        let mut events = initial_events();
+        let approved_at = "2023-01-01T00:00:00Z".parse::<DateTime<Utc>>().unwrap();
+        events.extend([
+            CreditFacilityEvent::Approved {
+                tx_id: LedgerTxId::new(),
+                recorded_at: approved_at,
+                audit_info: dummy_audit_info(),
+            },
+            CreditFacilityEvent::DisbursementInitiated {
+                idx: DisbursementIdx::FIRST,
+                amount: UsdCents::from(50),
+                audit_info: dummy_audit_info(),
+            },
+            CreditFacilityEvent::DisbursementConcluded {
+                idx: DisbursementIdx::FIRST,
+                tx_id: LedgerTxId::new(),
+                recorded_at: approved_at,
+                audit_info: dummy_audit_info(),
+            },
+            CreditFacilityEvent::InterestAccrualConcluded {
+                idx: InterestAccrualIdx::FIRST,
+                tx_id: LedgerTxId::new(),
+                tx_ref: "".to_string(),
+                amount: UsdCents::from(2),
+                accrued_at: approved_at,
+                audit_info: dummy_audit_info(),
+            },
+        ]);
+        let credit_facility = facility_from(&events);
+
+        assert!(credit_facility
+            .initiate_repayment(UsdCents::from(53))
+            .is_err());
+        assert!(credit_facility
+            .initiate_repayment(UsdCents::from(52))
+            .is_ok());
+    }
+
+    #[test]
+    fn confirm_repayment_before_expiry() {
+        let mut events = initial_events();
+        let approved_at = Utc::now();
+        events.extend([
+            CreditFacilityEvent::Approved {
+                tx_id: LedgerTxId::new(),
+                recorded_at: approved_at,
+                audit_info: dummy_audit_info(),
+            },
             CreditFacilityEvent::DisbursementInitiated {
                 disbursement_id: DisbursementId::new(),
                 idx: DisbursementIdx::FIRST,
@@ -1795,10 +1922,69 @@ mod test {
                 recorded_at: Utc::now(),
                 audit_info: dummy_audit_info(),
             },
+            CreditFacilityEvent::InterestAccrualConcluded {
+                idx: InterestAccrualIdx::FIRST,
+                tx_id: LedgerTxId::new(),
+                tx_ref: "".to_string(),
+                amount: UsdCents::from(2),
+                accrued_at: approved_at,
+                audit_info: dummy_audit_info(),
+            },
         ]);
         let mut credit_facility = facility_from(&events);
 
-        let repayment_amount = UsdCents::from(5);
+        let repayment_amount = UsdCents::from(2);
+        let repayment = credit_facility
+            .initiate_repayment(repayment_amount)
+            .unwrap();
+        let outstanding_before_repayment = credit_facility.outstanding();
+
+        credit_facility.confirm_repayment(
+            repayment,
+            Utc::now(),
+            dummy_audit_info(),
+            default_price(),
+            default_upgrade_buffer_cvl_pct(),
+        );
+        assert_eq!(
+            outstanding_before_repayment.total() - credit_facility.outstanding().total(),
+            repayment_amount
+        );
+    }
+
+    #[test]
+    fn confirm_partial_repayment_after_expiry() {
+        let mut events = initial_events();
+        let approved_at = "2023-01-01T00:00:00Z".parse::<DateTime<Utc>>().unwrap();
+        events.extend([
+            CreditFacilityEvent::Approved {
+                tx_id: LedgerTxId::new(),
+                recorded_at: approved_at,
+                audit_info: dummy_audit_info(),
+            },
+            CreditFacilityEvent::DisbursementInitiated {
+                idx: DisbursementIdx::FIRST,
+                amount: UsdCents::from(100),
+                audit_info: dummy_audit_info(),
+            },
+            CreditFacilityEvent::DisbursementConcluded {
+                idx: DisbursementIdx::FIRST,
+                tx_id: LedgerTxId::new(),
+                recorded_at: Utc::now(),
+                audit_info: dummy_audit_info(),
+            },
+            CreditFacilityEvent::InterestAccrualConcluded {
+                idx: InterestAccrualIdx::FIRST,
+                tx_id: LedgerTxId::new(),
+                tx_ref: "".to_string(),
+                amount: UsdCents::from(2),
+                accrued_at: approved_at,
+                audit_info: dummy_audit_info(),
+            },
+        ]);
+        let mut credit_facility = facility_from(&events);
+
+        let repayment_amount = UsdCents::from(50);
         let repayment = credit_facility
             .initiate_repayment(repayment_amount)
             .unwrap();
@@ -1820,7 +2006,13 @@ mod test {
     #[test]
     fn confirm_completion() {
         let mut events = initial_events();
+        let approved_at = "2023-01-01T00:00:00Z".parse::<DateTime<Utc>>().unwrap();
         events.extend([
+            CreditFacilityEvent::Approved {
+                tx_id: LedgerTxId::new(),
+                recorded_at: approved_at,
+                audit_info: dummy_audit_info(),
+            },
             CreditFacilityEvent::DisbursementInitiated {
                 disbursement_id: DisbursementId::new(),
                 idx: DisbursementIdx::FIRST,
