@@ -283,10 +283,16 @@ impl InterestInterval {
                     .expect("should return a valid date time")
                     - chrono::Duration::seconds(1)
             }
-            InterestInterval::EndOfDay => current_date
-                .with_hour(23)
-                .and_then(|d| d.with_minute(59))
-                .and_then(|d| d.with_second(59))
+            InterestInterval::EndOfDay => Utc
+                .with_ymd_and_hms(
+                    current_date.year(),
+                    current_date.month(),
+                    current_date.day(),
+                    23,
+                    59,
+                    59,
+                )
+                .single()
                 .expect("should return a valid date time"),
         }
     }

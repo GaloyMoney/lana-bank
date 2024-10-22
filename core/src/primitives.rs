@@ -516,6 +516,14 @@ impl std::ops::Add<UsdCents> for UsdCents {
     }
 }
 
+impl std::ops::Mul<u64> for UsdCents {
+    type Output = Self;
+
+    fn mul(self, rhs: u64) -> Self {
+        Self(self.0 * rhs)
+    }
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 pub struct PriceOfOneBTC(UsdCents);
 
