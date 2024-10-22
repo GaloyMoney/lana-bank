@@ -181,7 +181,7 @@ impl Users {
         let mut user = self.repo.find_by_id(id).await?;
         if user.assign_role(role, audit_info) {
             self.authz.assign_role_to_subject(user.id, &role).await?;
-            self.repo.persist(&mut user).await?;
+            self.repo.update(&mut user).await?;
         }
 
         Ok(user)
@@ -217,7 +217,7 @@ impl Users {
         let mut user = self.repo.find_by_id(id).await?;
         if user.revoke_role(role, audit_role) {
             self.authz.revoke_role_from_subject(user.id, &role).await?;
-            self.repo.persist(&mut user).await?;
+            self.repo.update(&mut user).await?;
         }
 
         Ok(user)

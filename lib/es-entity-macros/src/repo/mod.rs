@@ -82,14 +82,18 @@ impl<'a> ToTokens for EsRepo<'a> {
             }
 
             mod repo_types {
-                #![allow(non_camel_case_types)]
 
                 use super::*;
 
+                #[allow(non_camel_case_types)]
                 pub(super) type Repo__Id = #id;
+                #[allow(non_camel_case_types)]
                 pub(super) type Repo__Event = #event;
+                #[allow(non_camel_case_types)]
                 pub(super) type Repo__Entity = #entity;
+                #[allow(non_camel_case_types)]
                 pub(super) type Repo__Error = #error;
+                #[allow(non_camel_case_types)]
                 pub(super) type Repo__DbEvent = es_entity::GenericEvent<#id>;
 
                 pub(super) struct QueryRes {
@@ -115,8 +119,6 @@ impl<'a> ToTokens for EsRepo<'a> {
             }
 
             impl #repo {
-                #![allow(non_camel_case_types)]
-
                 #[inline(always)]
                 fn pool(&self) -> &sqlx::PgPool {
                     &self.pool
