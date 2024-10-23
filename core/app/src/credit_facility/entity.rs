@@ -136,7 +136,7 @@ impl CreditFacilityReceivable {
         self.total().is_zero()
     }
 
-    fn allocate_payment_across_total(
+    fn allocate_payment(
         &self,
         amount: UsdCents,
     ) -> Result<CreditFacilityPaymentAmounts, CreditFacilityError> {
@@ -160,25 +160,6 @@ impl CreditFacilityReceivable {
         Ok(CreditFacilityPaymentAmounts {
             interest,
             disbursement,
-        })
-    }
-
-    fn allocate_payment_to_interest(
-        &self,
-        amount: UsdCents,
-    ) -> Result<CreditFacilityPaymentAmounts, CreditFacilityError> {
-        if self.interest < amount {
-            return Err(
-                CreditFacilityError::PaymentExceedsOutstandingCreditFacilityInterestAmount(
-                    amount,
-                    self.interest,
-                ),
-            );
-        }
-
-        Ok(CreditFacilityPaymentAmounts {
-            interest: amount,
-            disbursement: UsdCents::ZERO,
         })
     }
 }
@@ -279,6 +260,14 @@ impl CreditFacility {
                 }
                 total_sum
             })
+    }
+
+    fn disbursed_due(&self) -> UsdCents {
+        if self.is_expired() {
+            self.total_disbursed()
+        } else {
+            UsdCents::ZERO
+        }
     }
 
     fn facility_remaining(&self) -> UsdCents {
@@ -653,6 +642,16 @@ impl CreditFacility {
         }
     }
 
+    pub fn outstanding_from_due(&self) -> CreditFacilityReceivable {
+        CreditFacilityReceivable {
+            disbursed: std::cmp::max(
+                self.disbursed_due() - self.disbursed_payments(),
+                UsdCents::ZERO,
+            ),
+            interest: self.interest_accrued() - self.interest_payments(),
+        }
+    }
+
     pub fn can_be_completed(&self) -> bool {
         self.outstanding().is_zero()
     }
@@ -692,11 +691,7 @@ impl CreditFacility {
             );
         }
 
-        let amounts = if self.is_expired() {
-            self.outstanding().allocate_payment_across_total(amount)?
-        } else {
-            self.outstanding().allocate_payment_to_interest(amount)?
-        };
+        let amounts = self.outstanding_from_due().allocate_payment(amount)?;
 
         let tx_ref = format!("{}-payment-{}", self.id, self.count_recorded_payments() + 1);
 
@@ -1101,31 +1096,13 @@ mod test {
     }
 
     #[test]
-    fn allocate_payment_across_total() {
+    fn allocate_payment() {
         let outstanding = CreditFacilityReceivable {
             disbursed: UsdCents::from(100),
             interest: UsdCents::from(2),
         };
-        assert!(outstanding
-            .allocate_payment_across_total(UsdCents::from(200))
-            .is_err());
-        assert!(outstanding
-            .allocate_payment_across_total(UsdCents::from(100))
-            .is_ok());
-    }
-
-    #[test]
-    fn allocate_payment_to_interest() {
-        let outstanding = CreditFacilityReceivable {
-            disbursed: UsdCents::from(100),
-            interest: UsdCents::from(2),
-        };
-        assert!(outstanding
-            .allocate_payment_to_interest(UsdCents::from(50))
-            .is_err());
-        assert!(outstanding
-            .allocate_payment_to_interest(UsdCents::from(2))
-            .is_ok());
+        assert!(outstanding.allocate_payment(UsdCents::from(200)).is_err());
+        assert!(outstanding.allocate_payment(UsdCents::from(100)).is_ok());
     }
 
     #[test]
@@ -1206,6 +1183,66 @@ mod test {
                 disbursed: UsdCents::from(100),
                 interest: UsdCents::ZERO
             }
+        );
+    }
+
+    #[test]
+    fn outstanding_from_due_before_expiry() {
+        let mut events = initial_events();
+        let approved_at = Utc::now();
+        events.extend([
+            CreditFacilityEvent::Approved {
+                tx_id: LedgerTxId::new(),
+                recorded_at: approved_at,
+                audit_info: dummy_audit_info(),
+            },
+            CreditFacilityEvent::DisbursementInitiated {
+                idx: DisbursementIdx::FIRST,
+                amount: UsdCents::from(100),
+                audit_info: dummy_audit_info(),
+            },
+            CreditFacilityEvent::DisbursementConcluded {
+                idx: DisbursementIdx::FIRST,
+                tx_id: LedgerTxId::new(),
+                recorded_at: approved_at,
+                audit_info: dummy_audit_info(),
+            },
+        ]);
+        let credit_facility = facility_from(&events);
+
+        assert_eq!(
+            credit_facility.outstanding_from_due().disbursed,
+            UsdCents::ZERO
+        );
+    }
+
+    #[test]
+    fn outstanding_from_due_after_expiry() {
+        let mut events = initial_events();
+        let approved_at = "2023-01-01T00:00:00Z".parse::<DateTime<Utc>>().unwrap();
+        events.extend([
+            CreditFacilityEvent::Approved {
+                tx_id: LedgerTxId::new(),
+                recorded_at: approved_at,
+                audit_info: dummy_audit_info(),
+            },
+            CreditFacilityEvent::DisbursementInitiated {
+                idx: DisbursementIdx::FIRST,
+                amount: UsdCents::from(100),
+                audit_info: dummy_audit_info(),
+            },
+            CreditFacilityEvent::DisbursementConcluded {
+                idx: DisbursementIdx::FIRST,
+                tx_id: LedgerTxId::new(),
+                recorded_at: approved_at,
+                audit_info: dummy_audit_info(),
+            },
+        ]);
+        let credit_facility = facility_from(&events);
+
+        assert_eq!(
+            credit_facility.outstanding_from_due().disbursed,
+            UsdCents::from(100)
         );
     }
 
