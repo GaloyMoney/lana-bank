@@ -268,7 +268,7 @@ mod tests {
     #[test]
     fn generates_repayments_in_plan() {
         let events = happy_credit_facility_events();
-        let repayment_plan = dbg!(super::project(events.iter()));
+        let repayment_plan = super::project(events.iter());
 
         let n_existing_interest_accruals = 1;
         let n_future_interest_accruals = 2;
@@ -326,6 +326,243 @@ mod tests {
                     "2020-05-14T14:20:00Z".parse::<DateTime<Utc>>().unwrap()
                 );
                 assert_eq!(fourth.due_at, fourth.accrual_at);
+            }
+            _ => panic!("Expected fourth element to be Disbursal"),
+        }
+    }
+
+    #[test]
+    fn overdue_payment() {
+        let mut events = happy_credit_facility_events();
+        let first_interest_accrued_at = end_of_month(default_activated_at());
+        let second_interest_idx = InterestAccrualIdx::FIRST.next();
+        let second_interest_accrued_at =
+            end_of_month(first_interest_accrued_at + chrono::Duration::days(1));
+        events.extend([CreditFacilityEvent::InterestAccrualConcluded {
+            idx: second_interest_idx,
+            tx_id: LedgerTxId::new(),
+            tx_ref: "".to_string(),
+            amount: UsdCents::from(12),
+            accrued_at: second_interest_accrued_at,
+            audit_info: dummy_audit_info(),
+        }]);
+        let repayment_plan = super::project(events.iter());
+
+        let n_existing_interest_accruals = 2;
+        let n_future_interest_accruals = 1;
+        let n_principal_accruals = 1;
+        assert_eq!(
+            repayment_plan.len(),
+            n_existing_interest_accruals + n_future_interest_accruals + n_principal_accruals
+        );
+        match &repayment_plan[1] {
+            CreditFacilityRepaymentInPlan::Interest(second) => {
+                assert_eq!(second.status, RepaymentStatus::Overdue);
+            }
+            _ => panic!("Expected second element to be Interest"),
+        }
+    }
+
+    #[test]
+    fn partial_interest_payment() {
+        let mut events = happy_credit_facility_events();
+        let first_interest_accrued_at = end_of_month(default_activated_at());
+        let second_interest_idx = InterestAccrualIdx::FIRST.next();
+        let second_interest_accrued_at =
+            end_of_month(first_interest_accrued_at + chrono::Duration::days(1));
+        events.extend([
+            CreditFacilityEvent::InterestAccrualConcluded {
+                idx: second_interest_idx,
+                tx_id: LedgerTxId::new(),
+                tx_ref: "".to_string(),
+                amount: UsdCents::from(12),
+                accrued_at: second_interest_accrued_at,
+                audit_info: dummy_audit_info(),
+            },
+            CreditFacilityEvent::PaymentRecorded {
+                tx_id: LedgerTxId::new(),
+                disbursal_amount: UsdCents::ZERO,
+                interest_amount: UsdCents::from(2),
+                audit_info: dummy_audit_info(),
+                tx_ref: LedgerTxId::new().to_string(),
+                recorded_in_ledger_at: second_interest_accrued_at,
+            },
+        ]);
+        let repayment_plan = super::project(events.iter());
+
+        let n_existing_interest_accruals = 2;
+        let n_future_interest_accruals = 1;
+        let n_principal_accruals = 1;
+        assert_eq!(
+            repayment_plan.len(),
+            n_existing_interest_accruals + n_future_interest_accruals + n_principal_accruals
+        );
+        match &repayment_plan[1] {
+            CreditFacilityRepaymentInPlan::Interest(second) => {
+                assert_eq!(second.status, RepaymentStatus::Overdue);
+                assert_eq!(second.initial, UsdCents::from(12));
+                assert_eq!(second.outstanding, UsdCents::from(10));
+            }
+            _ => panic!("Expected second element to be Interest"),
+        }
+    }
+
+    #[test]
+    fn increase_disbursal() {
+        let mut events = happy_credit_facility_events();
+        let second_disbursal_idx = DisbursalIdx::FIRST.next();
+        let second_disbursal_at = default_activated_at() + chrono::Duration::days(1);
+        events.extend([
+            CreditFacilityEvent::DisbursalInitiated {
+                disbursal_id: DisbursalId::new(),
+                approval_process_id: ApprovalProcessId::new(),
+                idx: second_disbursal_idx,
+                amount: UsdCents::from(2000),
+                audit_info: dummy_audit_info(),
+            },
+            CreditFacilityEvent::DisbursalConcluded {
+                idx: second_disbursal_idx,
+                tx_id: Some(LedgerTxId::new()),
+                recorded_at: second_disbursal_at,
+                audit_info: dummy_audit_info(),
+            },
+        ]);
+        let repayment_plan = super::project(events.iter());
+
+        let n_existing_interest_accruals = 1;
+        let n_future_interest_accruals = 2;
+        let n_principal_accruals = 1;
+        assert_eq!(
+            repayment_plan.len(),
+            n_existing_interest_accruals + n_future_interest_accruals + n_principal_accruals
+        );
+        match &repayment_plan[3] {
+            CreditFacilityRepaymentInPlan::Disbursal(fourth) => {
+                assert_eq!(fourth.initial, UsdCents::from(3000));
+                assert_eq!(fourth.outstanding, UsdCents::from(3000));
+            }
+            _ => panic!("Expected fourth element to be Disbursal"),
+        }
+    }
+
+    #[test]
+    fn partial_principal_payment() {
+        let mut events = happy_credit_facility_events();
+        let first_interest_accrued_at = end_of_month(default_activated_at());
+        let second_interest_idx = InterestAccrualIdx::FIRST.next();
+        let second_interest_accrued_at =
+            end_of_month(first_interest_accrued_at + chrono::Duration::days(1));
+        let third_interest_accrued_at =
+            end_of_month(second_interest_accrued_at + chrono::Duration::days(1));
+        events.extend([
+            CreditFacilityEvent::InterestAccrualConcluded {
+                idx: second_interest_idx,
+                tx_id: LedgerTxId::new(),
+                tx_ref: "".to_string(),
+                amount: UsdCents::from(12),
+                accrued_at: second_interest_accrued_at,
+                audit_info: dummy_audit_info(),
+            },
+            CreditFacilityEvent::PaymentRecorded {
+                tx_id: LedgerTxId::new(),
+                disbursal_amount: UsdCents::ZERO,
+                interest_amount: UsdCents::from(12),
+                audit_info: dummy_audit_info(),
+                tx_ref: LedgerTxId::new().to_string(),
+                recorded_in_ledger_at: second_interest_accrued_at,
+            },
+            CreditFacilityEvent::InterestAccrualConcluded {
+                idx: second_interest_idx.next(),
+                tx_id: LedgerTxId::new(),
+                tx_ref: "".to_string(),
+                amount: UsdCents::from(6),
+                accrued_at: third_interest_accrued_at,
+                audit_info: dummy_audit_info(),
+            },
+            CreditFacilityEvent::PaymentRecorded {
+                tx_id: LedgerTxId::new(),
+                disbursal_amount: UsdCents::from(100),
+                interest_amount: UsdCents::from(6),
+                audit_info: dummy_audit_info(),
+                tx_ref: LedgerTxId::new().to_string(),
+                recorded_in_ledger_at: third_interest_accrued_at,
+            },
+        ]);
+        let repayment_plan = super::project(events.iter());
+
+        let n_existing_interest_accruals = 3;
+        let n_future_interest_accruals = 0;
+        let n_principal_accruals = 1;
+        assert_eq!(
+            repayment_plan.len(),
+            n_existing_interest_accruals + n_future_interest_accruals + n_principal_accruals
+        );
+
+        match &repayment_plan[3] {
+            CreditFacilityRepaymentInPlan::Disbursal(fourth) => {
+                assert_eq!(fourth.initial, UsdCents::from(1000));
+                assert_eq!(fourth.outstanding, UsdCents::from(900));
+            }
+            _ => panic!("Expected fourth element to be Disbursal"),
+        }
+    }
+
+    #[test]
+    fn completed_facility() {
+        let mut events = happy_credit_facility_events();
+        let first_interest_accrued_at = end_of_month(default_activated_at());
+        let second_interest_idx = InterestAccrualIdx::FIRST.next();
+        let second_interest_accrued_at =
+            end_of_month(first_interest_accrued_at + chrono::Duration::days(1));
+        let third_interest_accrued_at =
+            end_of_month(second_interest_accrued_at + chrono::Duration::days(1));
+        events.extend([
+            CreditFacilityEvent::InterestAccrualConcluded {
+                idx: second_interest_idx,
+                tx_id: LedgerTxId::new(),
+                tx_ref: "".to_string(),
+                amount: UsdCents::from(12),
+                accrued_at: second_interest_accrued_at,
+                audit_info: dummy_audit_info(),
+            },
+            CreditFacilityEvent::PaymentRecorded {
+                tx_id: LedgerTxId::new(),
+                disbursal_amount: UsdCents::ZERO,
+                interest_amount: UsdCents::from(12),
+                audit_info: dummy_audit_info(),
+                tx_ref: LedgerTxId::new().to_string(),
+                recorded_in_ledger_at: second_interest_accrued_at,
+            },
+            CreditFacilityEvent::InterestAccrualConcluded {
+                idx: second_interest_idx.next(),
+                tx_id: LedgerTxId::new(),
+                tx_ref: "".to_string(),
+                amount: UsdCents::from(6),
+                accrued_at: third_interest_accrued_at,
+                audit_info: dummy_audit_info(),
+            },
+            CreditFacilityEvent::PaymentRecorded {
+                tx_id: LedgerTxId::new(),
+                disbursal_amount: UsdCents::from(1000),
+                interest_amount: UsdCents::from(6),
+                audit_info: dummy_audit_info(),
+                tx_ref: LedgerTxId::new().to_string(),
+                recorded_in_ledger_at: third_interest_accrued_at,
+            },
+        ]);
+        let repayment_plan = super::project(events.iter());
+
+        let n_existing_interest_accruals = 3;
+        let n_future_interest_accruals = 0;
+        let n_principal_accruals = 1;
+        assert_eq!(
+            repayment_plan.len(),
+            n_existing_interest_accruals + n_future_interest_accruals + n_principal_accruals
+        );
+
+        match &repayment_plan[3] {
+            CreditFacilityRepaymentInPlan::Disbursal(fourth) => {
+                assert_eq!(fourth.status, RepaymentStatus::Paid);
             }
             _ => panic!("Expected fourth element to be Disbursal"),
         }
