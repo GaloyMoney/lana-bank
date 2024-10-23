@@ -523,8 +523,9 @@ export type CreditFacilityPartialPaymentPayload = {
 export type CreditFacilityRepaymentInPlan = {
   __typename?: 'CreditFacilityRepaymentInPlan';
   accrualAt: Scalars['Timestamp']['output'];
-  amount: Scalars['UsdCents']['output'];
   dueAt: Scalars['Timestamp']['output'];
+  initial: Scalars['UsdCents']['output'];
+  outstanding: Scalars['UsdCents']['output'];
   repaymentType: CreditFacilityRepaymentType;
   status: CreditFacilityRepaymentStatus;
 };
@@ -537,7 +538,8 @@ export enum CreditFacilityRepaymentStatus {
 }
 
 export enum CreditFacilityRepaymentType {
-  Disbursal = 'DISBURSAL'
+  Disbursal = 'DISBURSAL',
+  Interest = 'INTEREST'
 }
 
 export enum CreditFacilityStatus {

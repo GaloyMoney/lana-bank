@@ -516,7 +516,8 @@ type CreditFacilityPartialPaymentPayload {
 type CreditFacilityRepaymentInPlan {
 	repaymentType: CreditFacilityRepaymentType!
 	status: CreditFacilityRepaymentStatus!
-	amount: UsdCents!
+	initial: UsdCents!
+	outstanding: UsdCents!
 	accrualAt: Timestamp!
 	dueAt: Timestamp!
 }
@@ -530,6 +531,7 @@ enum CreditFacilityRepaymentStatus {
 
 enum CreditFacilityRepaymentType {
 	DISBURSAL
+	INTEREST
 }
 
 enum CreditFacilityStatus {

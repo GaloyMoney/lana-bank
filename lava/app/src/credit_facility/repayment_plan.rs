@@ -1,5 +1,7 @@
 use chrono::{DateTime, Utc};
 
+use crate::credit_facility::CreditFacilityReceivable;
+
 use super::{CreditFacilityEvent, UsdCents};
 
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -13,7 +15,8 @@ pub enum RepaymentStatus {
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct RepaymentInPlan {
     pub status: RepaymentStatus,
-    pub amount: UsdCents,
+    pub initial: UsdCents,
+    pub outstanding: UsdCents,
     pub accrual_at: DateTime<Utc>,
     pub due_at: DateTime<Utc>,
 }
@@ -21,7 +24,7 @@ pub struct RepaymentInPlan {
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum CreditFacilityRepaymentInPlan {
     Disbursal(RepaymentInPlan),
-    // TODO: Interest
+    Interest(RepaymentInPlan),
 }
 
 pub(super) fn project<'a>(
@@ -29,8 +32,14 @@ pub(super) fn project<'a>(
 ) -> Vec<CreditFacilityRepaymentInPlan> {
     let mut terms = None;
     let mut activated_at = None;
-    let mut amounts = std::collections::HashMap::new();
-    let mut net_disbursed = UsdCents::ZERO;
+
+    let mut disbursed_amounts = std::collections::HashMap::new();
+    let mut total_disbursed = UsdCents::ZERO;
+    let mut due_and_outstanding_disbursed = UsdCents::ZERO;
+
+    let mut last_interest_accrual_at = None;
+    let mut interest_accruals = Vec::new();
+    let mut due_and_outstanding_interest = UsdCents::ZERO;
 
     for event in events {
         match event {
@@ -44,45 +53,117 @@ pub(super) fn project<'a>(
                 activated_at = Some(*recorded_at);
             }
             CreditFacilityEvent::DisbursalInitiated { idx, amount, .. } => {
-                amounts.insert(*idx, *amount);
+                disbursed_amounts.insert(*idx, *amount);
             }
             CreditFacilityEvent::DisbursalConcluded { idx, .. } => {
-                if let Some(amount) = amounts.remove(idx) {
-                    net_disbursed += amount;
+                if let Some(amount) = disbursed_amounts.remove(idx) {
+                    total_disbursed += amount;
+                    due_and_outstanding_disbursed += amount;
                 }
             }
-            CreditFacilityEvent::PaymentRecorded {
-                disbursal_amount, ..
+            CreditFacilityEvent::InterestAccrualConcluded {
+                amount, accrued_at, ..
             } => {
-                net_disbursed -= *disbursal_amount;
+                last_interest_accrual_at = Some(*accrued_at);
+                let due_at = *accrued_at;
+
+                interest_accruals.push(RepaymentInPlan {
+                    status: RepaymentStatus::Overdue,
+                    initial: *amount,
+                    outstanding: *amount,
+                    accrual_at: *accrued_at,
+                    due_at,
+                });
+            }
+            CreditFacilityEvent::PaymentRecorded {
+                interest_amount,
+                disbursal_amount,
+                ..
+            } => {
+                due_and_outstanding_disbursed -= *disbursal_amount;
+                due_and_outstanding_interest += *interest_amount;
             }
             _ => {}
         }
     }
 
+    for payment in interest_accruals.iter_mut() {
+        if due_and_outstanding_interest > UsdCents::ZERO {
+            let applied_payment = payment.outstanding.min(due_and_outstanding_interest);
+            payment.outstanding -= applied_payment;
+            due_and_outstanding_interest -= applied_payment;
+            if payment.outstanding == UsdCents::ZERO {
+                payment.status = RepaymentStatus::Paid;
+            } else if Utc::now() < payment.due_at {
+                payment.status = RepaymentStatus::Due;
+            }
+        } else {
+            if Utc::now() < payment.due_at {
+                payment.status = RepaymentStatus::Due;
+            }
+            break;
+        }
+    }
+
+    let due_and_outstanding = CreditFacilityReceivable {
+        disbursed: due_and_outstanding_disbursed,
+        interest: due_and_outstanding_interest,
+    };
     let terms = terms.expect("Initialized event not found");
     let activated_at = match activated_at {
         Some(time) => time,
         None => return Vec::new(),
     };
 
-    let expiry_date = terms.duration.expiration_date(activated_at);
-    let status = if net_disbursed == UsdCents::ZERO {
-        RepaymentStatus::Paid
-    } else {
-        RepaymentStatus::Upcoming
-    };
+    let mut res: Vec<_> = interest_accruals
+        .into_iter()
+        .map(CreditFacilityRepaymentInPlan::Interest)
+        .collect();
 
-    vec![CreditFacilityRepaymentInPlan::Disbursal(RepaymentInPlan {
-        status,
-        amount: net_disbursed,
-        accrual_at: activated_at,
+    let expiry_date = terms.duration.expiration_date(activated_at);
+    let last_interest_payment = last_interest_accrual_at.unwrap_or(activated_at);
+    let mut next_interest_period = terms
+        .accrual_interval
+        .period_from(last_interest_payment)
+        .next()
+        .truncate(expiry_date);
+
+    if !due_and_outstanding.is_zero() {
+        while let Some(period) = next_interest_period {
+            let interest = terms
+                .annual_rate
+                .interest_for_time_period(due_and_outstanding.total(), period.days());
+
+            res.push(CreditFacilityRepaymentInPlan::Interest(RepaymentInPlan {
+                status: RepaymentStatus::Upcoming,
+                initial: interest,
+                outstanding: interest,
+                accrual_at: period.end,
+                due_at: period.end,
+            }));
+
+            next_interest_period = period.next().truncate(expiry_date);
+        }
+    }
+
+    res.push(CreditFacilityRepaymentInPlan::Disbursal(RepaymentInPlan {
+        status: if due_and_outstanding_disbursed == UsdCents::ZERO {
+            RepaymentStatus::Paid
+        } else {
+            RepaymentStatus::Upcoming
+        },
+        initial: total_disbursed,
+        outstanding: due_and_outstanding_disbursed,
+        accrual_at: expiry_date,
         due_at: expiry_date,
-    })]
+    }));
+
+    res
 }
 
 #[cfg(test)]
 mod tests {
+    use chrono::{Datelike, TimeZone, Utc};
     use rust_decimal_macros::dec;
 
     use crate::{
@@ -95,7 +176,8 @@ mod tests {
         TermValues::builder()
             .annual_rate(dec!(12))
             .duration(Duration::Months(2))
-            .interval(InterestInterval::EndOfMonth)
+            .accrual_interval(InterestInterval::EndOfMonth)
+            .incurrence_interval(InterestInterval::EndOfDay)
             .liquidation_cvl(dec!(105))
             .margin_call_cvl(dec!(125))
             .initial_cvl(dec!(140))
@@ -110,8 +192,32 @@ mod tests {
         }
     }
 
+    fn default_activated_at() -> DateTime<Utc> {
+        "2020-03-14T14:20:00Z".parse::<DateTime<Utc>>().unwrap()
+    }
+
+    fn end_of_month(start_date: DateTime<Utc>) -> DateTime<Utc> {
+        let current_year = start_date.year();
+        let current_month = start_date.month();
+
+        let (year, month) = if current_month == 12 {
+            (current_year + 1, 1)
+        } else {
+            (current_year, current_month + 1)
+        };
+
+        Utc.with_ymd_and_hms(year, month, 1, 0, 0, 0)
+            .single()
+            .expect("should return a valid date time")
+            - chrono::Duration::seconds(1)
+    }
+
     fn happy_credit_facility_events() -> Vec<CreditFacilityEvent> {
         let credit_facility_id = CreditFacilityId::new();
+        let activated_at = default_activated_at();
+        let first_disbursal_idx = DisbursalIdx::FIRST;
+        let first_interest_idx = InterestAccrualIdx::FIRST;
+        let first_interest_accrued_at = end_of_month(activated_at);
         vec![
             CreditFacilityEvent::Initialized {
                 id: credit_facility_id,
@@ -122,46 +228,106 @@ mod tests {
                 terms: terms(),
                 audit_info: dummy_audit_info(),
             },
-            CreditFacilityEvent::Approved {
-                tx_id: LedgerTxId::new(),
-                recorded_at: Utc::now(),
+            CreditFacilityEvent::Activated {
+                ledger_tx_id: LedgerTxId::new(),
+                activated_at,
                 audit_info: dummy_audit_info(),
             },
             CreditFacilityEvent::DisbursalInitiated {
                 approval_process_id: ApprovalProcessId::new(),
                 disbursal_id: DisbursalId::new(),
-                idx: DisbursalIdx::FIRST,
+                idx: first_disbursal_idx,
                 amount: UsdCents::from(1000),
                 audit_info: dummy_audit_info(),
             },
             CreditFacilityEvent::DisbursalConcluded {
-                idx: DisbursalIdx::FIRST,
+                idx: first_disbursal_idx,
                 tx_id: Some(LedgerTxId::new()),
                 recorded_at: Utc::now(),
                 audit_info: dummy_audit_info(),
             },
+            CreditFacilityEvent::InterestAccrualConcluded {
+                idx: first_interest_idx,
+                tx_id: LedgerTxId::new(),
+                tx_ref: "".to_string(),
+                amount: UsdCents::from(2),
+                accrued_at: first_interest_accrued_at,
+                audit_info: dummy_audit_info(),
+            },
             CreditFacilityEvent::PaymentRecorded {
                 tx_id: LedgerTxId::new(),
-                disbursal_amount: UsdCents::from(100),
-                interest_amount: UsdCents::from(10),
+                disbursal_amount: UsdCents::ZERO,
+                interest_amount: UsdCents::from(2),
                 audit_info: dummy_audit_info(),
                 tx_ref: LedgerTxId::new().to_string(),
-                recorded_in_ledger_at: Utc::now(),
+                recorded_in_ledger_at: first_interest_accrued_at,
             },
         ]
     }
 
     #[test]
-    fn generates_disbursal_minus_paid_in_plan() {
+    fn generates_repayments_in_plan() {
         let events = happy_credit_facility_events();
-        let repayment_plan = super::project(events.iter());
+        let repayment_plan = dbg!(super::project(events.iter()));
 
-        assert_eq!(repayment_plan.len(), 1);
+        let n_existing_interest_accruals = 1;
+        let n_future_interest_accruals = 2;
+        let n_principal_accruals = 1;
+        assert_eq!(
+            repayment_plan.len(),
+            n_existing_interest_accruals + n_future_interest_accruals + n_principal_accruals
+        );
         match &repayment_plan[0] {
-            CreditFacilityRepaymentInPlan::Disbursal(repayment) => {
-                assert_eq!(repayment.status, RepaymentStatus::Upcoming);
-                assert_eq!(repayment.amount, UsdCents::from(900));
+            CreditFacilityRepaymentInPlan::Interest(first) => {
+                assert_eq!(first.status, RepaymentStatus::Paid);
+                assert_eq!(first.initial, UsdCents::from(2));
+                assert_eq!(first.outstanding, UsdCents::from(0));
+                assert_eq!(
+                    first.accrual_at,
+                    "2020-03-31T23:59:59Z".parse::<DateTime<Utc>>().unwrap()
+                );
+                assert_eq!(first.due_at, first.accrual_at,);
             }
+            _ => panic!("Expected first element to be Interest"),
+        }
+        match &repayment_plan[1] {
+            CreditFacilityRepaymentInPlan::Interest(second) => {
+                assert_eq!(second.status, RepaymentStatus::Upcoming);
+                assert_eq!(second.initial, UsdCents::from(10));
+                assert_eq!(second.outstanding, UsdCents::from(10));
+                assert_eq!(
+                    second.accrual_at,
+                    "2020-04-30T23:59:59Z".parse::<DateTime<Utc>>().unwrap()
+                );
+                assert_eq!(second.due_at, second.accrual_at);
+            }
+            _ => panic!("Expected second element to be Interest"),
+        }
+        match &repayment_plan[2] {
+            CreditFacilityRepaymentInPlan::Interest(third) => {
+                assert_eq!(third.status, RepaymentStatus::Upcoming);
+                assert_eq!(third.initial, UsdCents::from(5));
+                assert_eq!(third.outstanding, UsdCents::from(5));
+                assert_eq!(
+                    third.accrual_at,
+                    "2020-05-14T14:20:00Z".parse::<DateTime<Utc>>().unwrap()
+                );
+                assert_eq!(third.due_at, third.accrual_at);
+            }
+            _ => panic!("Expected third element to be Interest"),
+        }
+        match &repayment_plan[3] {
+            CreditFacilityRepaymentInPlan::Disbursal(fourth) => {
+                assert_eq!(fourth.status, RepaymentStatus::Upcoming);
+                assert_eq!(fourth.initial, UsdCents::from(1000));
+                assert_eq!(fourth.outstanding, UsdCents::from(1000));
+                assert_eq!(
+                    fourth.accrual_at,
+                    "2020-05-14T14:20:00Z".parse::<DateTime<Utc>>().unwrap()
+                );
+                assert_eq!(fourth.due_at, fourth.accrual_at);
+            }
+            _ => panic!("Expected fourth element to be Disbursal"),
         }
     }
 }

@@ -5,6 +5,7 @@ use crate::primitives::*;
 #[derive(async_graphql::Enum, Clone, Copy, PartialEq, Eq)]
 pub enum CreditFacilityRepaymentType {
     Disbursal,
+    Interest,
 }
 
 #[derive(async_graphql::Enum, Clone, Copy, PartialEq, Eq)]
@@ -34,7 +35,8 @@ impl From<lava_app::credit_facility::RepaymentStatus> for CreditFacilityRepaymen
 pub struct CreditFacilityRepaymentInPlan {
     pub repayment_type: CreditFacilityRepaymentType,
     pub status: CreditFacilityRepaymentStatus,
-    pub amount: UsdCents,
+    pub initial: UsdCents,
+    pub outstanding: UsdCents,
     pub accrual_at: Timestamp,
     pub due_at: Timestamp,
 }
@@ -48,11 +50,20 @@ impl From<lava_app::credit_facility::CreditFacilityRepaymentInPlan>
                 Self {
                     repayment_type: CreditFacilityRepaymentType::Disbursal,
                     status: repayment.status.into(),
-                    amount: repayment.amount,
+                    initial: repayment.initial,
+                    outstanding: repayment.outstanding,
                     accrual_at: repayment.accrual_at.into(),
                     due_at: repayment.due_at.into(),
                 }
             }
+            lava_app::credit_facility::CreditFacilityRepaymentInPlan::Interest(repayment) => Self {
+                repayment_type: CreditFacilityRepaymentType::Interest,
+                status: repayment.status.into(),
+                initial: repayment.initial,
+                outstanding: repayment.outstanding,
+                accrual_at: repayment.accrual_at.into(),
+                due_at: repayment.due_at.into(),
+            },
         }
     }
 }
