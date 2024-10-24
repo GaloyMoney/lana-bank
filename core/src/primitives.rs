@@ -94,8 +94,10 @@ pub enum LoanStatus {
 
 #[derive(async_graphql::Enum, Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
 pub enum CreditFacilityStatus {
-    New,
+    PendingCollateralization,
+    PendingApproval,
     Active,
+    Expired,
     Closed,
 }
 

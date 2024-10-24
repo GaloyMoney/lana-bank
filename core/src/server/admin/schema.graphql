@@ -353,8 +353,10 @@ type CreditFacilityPartialPaymentPayload {
 }
 
 enum CreditFacilityStatus {
-	NEW
+	PENDING_COLLATERALIZATION
+	PENDING_APPROVAL
 	ACTIVE
+	EXPIRED
 	CLOSED
 }
 

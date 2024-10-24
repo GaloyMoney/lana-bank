@@ -296,12 +296,16 @@ impl CreditFacility {
     }
 
     pub fn status(&self) -> CreditFacilityStatus {
-        if self.is_expired() || self.is_completed() {
+        if self.is_completed() {
             CreditFacilityStatus::Closed
+        } else if self.is_expired() {
+            CreditFacilityStatus::Expired
         } else if self.is_approved() {
             CreditFacilityStatus::Active
+        } else if self.is_fully_collateralized() {
+            CreditFacilityStatus::PendingApproval
         } else {
-            CreditFacilityStatus::New
+            CreditFacilityStatus::PendingCollateralization
         }
     }
 
@@ -671,7 +675,7 @@ impl CreditFacility {
     }
 
     pub fn last_collateralization_state(&self) -> CollateralizationState {
-        if self.status() == CreditFacilityStatus::Closed {
+        if self.is_completed() {
             return CollateralizationState::NoCollateral;
         }
 
@@ -685,6 +689,10 @@ impl CreditFacility {
             .unwrap_or(CollateralizationState::NoCollateral)
     }
 
+    pub fn is_fully_collateralized(&self) -> bool {
+        self.last_collateralization_state() == CollateralizationState::FullyCollateralized
+    }
+
     pub fn maybe_update_collateralization(
         &mut self,
         price: PriceOfOneBTC,
@@ -694,29 +702,28 @@ impl CreditFacility {
         let facility_cvl = self.facility_cvl(price);
         let last_collateralization_state = self.last_collateralization_state();
 
-        let collateralization_update = match self.status() {
-            CreditFacilityStatus::New => facility_cvl.total.collateralization_update(
-                self.terms,
-                last_collateralization_state,
-                None,
-                true,
-            ),
-            CreditFacilityStatus::Active => {
-                let cvl = if self.total_disbursed() == UsdCents::ZERO {
-                    facility_cvl.total
-                } else {
-                    facility_cvl.disbursed
-                };
+        let collateralization_update =
+            match self.status() {
+                CreditFacilityStatus::PendingCollateralization
+                | CreditFacilityStatus::PendingApproval => facility_cvl
+                    .total
+                    .collateralization_update(self.terms, last_collateralization_state, None, true),
+                CreditFacilityStatus::Active | CreditFacilityStatus::Expired => {
+                    let cvl = if self.total_disbursed() == UsdCents::ZERO {
+                        facility_cvl.total
+                    } else {
+                        facility_cvl.disbursed
+                    };
 
-                cvl.collateralization_update(
-                    self.terms,
-                    last_collateralization_state,
-                    Some(upgrade_buffer_cvl_pct),
-                    false,
-                )
-            }
-            CreditFacilityStatus::Closed => Some(CollateralizationState::NoCollateral),
-        };
+                    cvl.collateralization_update(
+                        self.terms,
+                        last_collateralization_state,
+                        Some(upgrade_buffer_cvl_pct),
+                        false,
+                    )
+                }
+                CreditFacilityStatus::Closed => Some(CollateralizationState::NoCollateral),
+            };
 
         if let Some(calculated_collateralization) = collateralization_update {
             self.events
@@ -838,7 +845,8 @@ impl CreditFacility {
     }
 
     pub(super) fn collateralization_ratio(&self) -> Option<Decimal> {
-        let amount = if self.status() == CreditFacilityStatus::New
+        let amount = if self.status() == CreditFacilityStatus::PendingCollateralization
+            || self.status() == CreditFacilityStatus::PendingApproval
             || self.total_disbursed() == UsdCents::ZERO
         {
             self.initial_facility()
@@ -1688,7 +1696,10 @@ mod test {
         #[test]
         fn status() {
             let mut credit_facility = facility_from(&initial_events());
-            assert_eq!(credit_facility.status(), CreditFacilityStatus::New);
+            assert_eq!(
+                credit_facility.status(),
+                CreditFacilityStatus::PendingCollateralization
+            );
 
             let credit_facility_collateral_update = credit_facility
                 .initiate_collateral_update(Satoshis::from(10000))
@@ -1699,6 +1710,10 @@ mod test {
                 dummy_audit_info(),
                 default_price(),
                 default_upgrade_buffer_cvl_pct(),
+            );
+            assert_eq!(
+                credit_facility.status(),
+                CreditFacilityStatus::PendingApproval
             );
             let credit_facility_approval = add_approvals(&mut credit_facility);
             credit_facility.confirm_approval(
