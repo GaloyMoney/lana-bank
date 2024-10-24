@@ -462,11 +462,14 @@ impl CreditFacility {
 
     pub(super) fn initiate_disbursement(
         &mut self,
-        audit_info: AuditInfo,
         amount: UsdCents,
+        initiated_at: DateTime<Utc>,
+        audit_info: AuditInfo,
     ) -> Result<NewDisbursement, CreditFacilityError> {
-        if self.is_expired() {
-            return Err(CreditFacilityError::AlreadyExpired);
+        if let Some(expires_at) = self.expires_at {
+            if initiated_at > expires_at {
+                return Err(CreditFacilityError::DisbursementPastExpiryDate);
+            }
         }
 
         if self.is_disbursement_in_progress() {
@@ -1117,7 +1120,11 @@ mod test {
             audit_info: dummy_audit_info(),
         });
         assert!(matches!(
-            facility_from(&events).initiate_disbursement(dummy_audit_info(), UsdCents::ONE),
+            facility_from(&events).initiate_disbursement(
+                UsdCents::ONE,
+                Utc::now(),
+                dummy_audit_info()
+            ),
             Err(CreditFacilityError::DisbursementInProgress)
         ));
 
@@ -1128,7 +1135,7 @@ mod test {
             audit_info: dummy_audit_info(),
         });
         assert!(facility_from(&events)
-            .initiate_disbursement(dummy_audit_info(), UsdCents::ONE)
+            .initiate_disbursement(UsdCents::ONE, Utc::now(), dummy_audit_info())
             .is_ok());
     }
 

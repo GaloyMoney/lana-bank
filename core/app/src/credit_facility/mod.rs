@@ -299,7 +299,8 @@ impl CreditFacilities {
         balances.check_disbursement_amount(amount)?;
 
         let mut db_tx = self.pool.begin().await?;
-        let new_disbursement = credit_facility.initiate_disbursement(audit_info, amount)?;
+        let new_disbursement =
+            credit_facility.initiate_disbursement(amount, chrono::Utc::now(), audit_info)?;
         self.credit_facility_repo
             .update_in_tx(&mut db_tx, &mut credit_facility)
             .await?;

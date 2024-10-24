@@ -34,8 +34,8 @@ pub enum CreditFacilityError {
     AlreadyApproved,
     #[error("CreditFacilityError - NotApprovedYet")]
     NotApprovedYet,
-    #[error("CreditFacilityError - AlreadyExpired")]
-    AlreadyExpired,
+    #[error("CreditFacilityError - DisbursementPastExpiryDate")]
+    DisbursementPastExpiryDate,
     #[error("CreditFacilityError - NoDisbursementsApprovedYet")]
     NoDisbursementsApprovedYet,
     #[error("CreditFacilityError - NoDisbursementInProgress")]
