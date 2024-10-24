@@ -190,6 +190,7 @@ impl InterestAccrual {
                     interest: self.total_incurred(),
                     tx_ref: accrual_tx_ref,
                     tx_id: LedgerTxId::new(),
+                    accrued_at: period.end,
                     credit_facility_account_ids,
                 };
 
@@ -204,16 +205,16 @@ impl InterestAccrual {
             interest,
             tx_ref,
             tx_id,
+            accrued_at,
             ..
         }: CreditFacilityInterestAccrual,
-        executed_at: DateTime<Utc>,
         audit_info: AuditInfo,
     ) {
         self.events.push(InterestAccrualEvent::InterestAccrued {
             tx_id,
             tx_ref,
             total: interest,
-            accrued_at: executed_at,
+            accrued_at,
             audit_info,
         });
     }

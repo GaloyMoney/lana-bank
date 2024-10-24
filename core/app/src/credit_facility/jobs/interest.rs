@@ -105,18 +105,12 @@ impl JobRunner for CreditFacilityProcessingJobRunner {
         let interest_accrual = accrual.confirm_incurrence(interest_incurrence, audit_info);
 
         if let Some(interest_accrual) = interest_accrual {
-            let executed_at = self
-                .ledger
+            self.ledger
                 .record_credit_facility_interest_accrual(interest_accrual.clone())
                 .await?;
-            accrual.confirm_accrual(interest_accrual.clone(), executed_at, audit_info);
+            accrual.confirm_accrual(interest_accrual.clone(), audit_info);
 
-            credit_facility.confirm_interest_accrual(
-                interest_accrual,
-                accrual.idx,
-                executed_at,
-                audit_info,
-            );
+            credit_facility.confirm_interest_accrual(interest_accrual, accrual.idx, audit_info);
             self.credit_facility_repo
                 .update_in_tx(&mut db_tx, &mut credit_facility)
                 .await?;

@@ -606,10 +606,10 @@ impl CreditFacility {
             interest,
             tx_ref,
             tx_id,
+            accrued_at,
             ..
         }: CreditFacilityInterestAccrual,
         idx: InterestAccrualIdx,
-        executed_at: DateTime<Utc>,
         audit_info: AuditInfo,
     ) {
         self.events
@@ -618,7 +618,7 @@ impl CreditFacility {
                 tx_id,
                 tx_ref,
                 amount: interest,
-                accrued_at: executed_at,
+                accrued_at,
                 audit_info,
             });
     }
@@ -1406,14 +1406,14 @@ mod test {
                 interest: UsdCents::ONE,
                 tx_ref: "tx_ref".to_string(),
                 tx_id: LedgerTxId::new(),
+                accrued_at: accrual
+                    .terms
+                    .incurrence_interval
+                    .period_from(accrual.started_at)
+                    .end,
                 credit_facility_account_ids: credit_facility.account_ids,
             },
             accrual.idx,
-            accrual
-                .terms
-                .incurrence_interval
-                .period_from(accrual.started_at)
-                .end,
             dummy_audit_info(),
         );
     }
@@ -1454,14 +1454,14 @@ mod test {
                     interest: UsdCents::ONE,
                     tx_ref: "tx_ref".to_string(),
                     tx_id: LedgerTxId::new(),
+                    accrued_at: accrual
+                        .terms
+                        .incurrence_interval
+                        .period_from(accrual.started_at)
+                        .end,
                     credit_facility_account_ids: credit_facility.account_ids,
                 },
                 accrual.idx,
-                accrual
-                    .terms
-                    .incurrence_interval
-                    .period_from(accrual.started_at)
-                    .end,
                 dummy_audit_info(),
             );
 
