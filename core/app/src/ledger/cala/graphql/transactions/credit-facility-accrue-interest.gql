@@ -32,7 +32,6 @@ mutation CreditFacilityAccrueInterestTemplateCreate(
           name: "effective"
           type: DATE
           description: "Effective date for transaction."
-          default: "date()"
         }
       ]
       transaction: {
@@ -90,6 +89,7 @@ mutation PostCreditFacilityAccrueInterestTransaction(
   $creditFacilityInterestIncomeAccount: UUID!
   $interestAmount: Decimal!
   $externalId: String!
+  $effective: String!
 ) {
   transactionPost(
     input: {
@@ -100,6 +100,7 @@ mutation PostCreditFacilityAccrueInterestTransaction(
         creditFacilityInterestIncomeAccount: $creditFacilityInterestIncomeAccount
         interestAmount: $interestAmount
         externalId: $externalId
+        effective: $effective
       }
     }
   ) {

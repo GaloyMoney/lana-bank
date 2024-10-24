@@ -1,3 +1,4 @@
+use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
 use crate::{
@@ -137,6 +138,7 @@ pub struct CreditFacilityInterestAccrual {
     pub interest: UsdCents,
     pub tx_ref: String,
     pub tx_id: LedgerTxId,
+    pub accrued_at: DateTime<Utc>,
     pub credit_facility_account_ids: CreditFacilityAccountIds,
 }
 

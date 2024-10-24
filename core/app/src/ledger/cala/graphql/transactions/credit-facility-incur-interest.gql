@@ -32,7 +32,6 @@ mutation CreditFacilityIncurInterestTemplateCreate(
           name: "effective"
           type: DATE
           description: "Effective date for transaction."
-          default: "date()"
         }
       ]
       transaction: {

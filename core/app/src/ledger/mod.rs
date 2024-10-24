@@ -362,6 +362,7 @@ impl Ledger {
             interest,
             tx_ref,
             tx_id,
+            accrued_at,
             credit_facility_account_ids,
         }: CreditFacilityInterestAccrual,
     ) -> Result<chrono::DateTime<chrono::Utc>, LedgerError> {
@@ -372,6 +373,7 @@ impl Ledger {
                 credit_facility_account_ids,
                 interest.to_usd(),
                 tx_ref,
+                accrued_at,
             )
             .await?)
     }
