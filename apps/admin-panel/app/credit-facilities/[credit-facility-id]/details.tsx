@@ -79,7 +79,10 @@ const CreditFacilityDetailsCard: React.FC<CreditFacilityDetailsProps> = ({
       {creditFacilityDetails.status !== CreditFacilityStatus.Closed && (
         <div className="flex flex-col space-y-2 mt-1 ml-4">
           {creditFacilityDetails.userCanApprove &&
-            creditFacilityDetails.status === CreditFacilityStatus.New &&
+            [
+              CreditFacilityStatus.PendingCollateralization,
+              CreditFacilityStatus.PendingApproval,
+            ].includes(creditFacilityDetails.status) &&
             creditFacilityDetails.collateral > 0 && (
               <Button
                 variant="primary"

@@ -193,7 +193,12 @@ export const calculateBaseAmountInCents = ({
   disbursements: { status: DisbursementStatus }[]
   balance: { outstanding: { usdBalance: number } }
 }) => {
-  if (status === CreditFacilityStatus.New) {
+  if (
+    [
+      CreditFacilityStatus.PendingCollateralization,
+      CreditFacilityStatus.PendingApproval,
+    ].includes(status)
+  ) {
     return facilityAmount
   }
 

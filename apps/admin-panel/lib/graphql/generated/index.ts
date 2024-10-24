@@ -390,7 +390,9 @@ export type CreditFacilityPartialPaymentPayload = {
 export enum CreditFacilityStatus {
   Active = 'ACTIVE',
   Closed = 'CLOSED',
-  New = 'NEW'
+  Expired = 'EXPIRED',
+  PendingApproval = 'PENDING_APPROVAL',
+  PendingCollateralization = 'PENDING_COLLATERALIZATION'
 }
 
 export type Customer = {
