@@ -56,6 +56,21 @@ impl From<Decimal> for AnnualRatePct {
     }
 }
 
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(transparent)]
+pub struct OneTimeFeeRatePct(Decimal);
+async_graphql::scalar!(OneTimeFeeRatePct);
+
+impl Default for OneTimeFeeRatePct {
+    fn default() -> Self {
+        Self::ZERO
+    }
+}
+
+impl OneTimeFeeRatePct {
+    pub const ZERO: Self = Self(dec!(0));
+}
+
 #[derive(Clone)]
 pub struct CVLData {
     amount: UsdCents,
@@ -345,6 +360,8 @@ pub struct TermValues {
     pub accrual_interval: InterestInterval,
     #[builder(setter(into), default = "self.accrual_interval.unwrap()")]
     pub incurrence_interval: InterestInterval,
+    #[builder(setter(into), default)]
+    pub one_time_fee_rate: OneTimeFeeRatePct,
     // overdue_penalty_rate: LoanAnnualRate,
     #[builder(setter(into))]
     pub liquidation_cvl: CVLPct,
@@ -474,6 +491,7 @@ mod test {
             .duration(Duration::Months(3))
             .accrual_interval(InterestInterval::EndOfMonth)
             .incurrence_interval(InterestInterval::EndOfDay)
+            .one_time_fee_rate(OneTimeFeeRatePct(dec!(1)))
             .liquidation_cvl(CVLPct(dec!(105)))
             .margin_call_cvl(CVLPct(dec!(125)))
             .initial_cvl(CVLPct(dec!(140)))
@@ -488,6 +506,7 @@ mod test {
             .duration(Duration::Months(3))
             .accrual_interval(InterestInterval::EndOfMonth)
             .incurrence_interval(InterestInterval::EndOfDay)
+            .one_time_fee_rate(OneTimeFeeRatePct(dec!(1)))
             .liquidation_cvl(CVLPct(dec!(105)))
             .margin_call_cvl(CVLPct(dec!(125)))
             .initial_cvl(CVLPct(dec!(140)))
@@ -498,11 +517,27 @@ mod test {
     }
 
     #[test]
+    fn one_time_fee_uses_default() {
+        let result = TermValues::builder()
+            .annual_rate(AnnualRatePct(dec!(12)))
+            .duration(Duration::Months(3))
+            .accrual_interval(InterestInterval::EndOfMonth)
+            .liquidation_cvl(CVLPct(dec!(105)))
+            .margin_call_cvl(CVLPct(dec!(125)))
+            .initial_cvl(CVLPct(dec!(140)))
+            .build()
+            .unwrap();
+
+        assert_eq!(result.one_time_fee_rate, OneTimeFeeRatePct::default());
+    }
+
+    #[test]
     fn invalid_term_values_margin_call_greater_than_initial() {
         let result = TermValues::builder()
             .annual_rate(AnnualRatePct(dec!(12)))
             .duration(Duration::Months(3))
             .accrual_interval(InterestInterval::EndOfMonth)
+            .one_time_fee_rate(OneTimeFeeRatePct(dec!(1)))
             .liquidation_cvl(CVLPct(dec!(105)))
             .margin_call_cvl(CVLPct(dec!(150)))
             .initial_cvl(CVLPct(dec!(140)))
@@ -523,6 +558,7 @@ mod test {
             .annual_rate(AnnualRatePct(dec!(12)))
             .duration(Duration::Months(3))
             .accrual_interval(InterestInterval::EndOfMonth)
+            .one_time_fee_rate(OneTimeFeeRatePct(dec!(1)))
             .liquidation_cvl(CVLPct(dec!(130)))
             .margin_call_cvl(CVLPct(dec!(125)))
             .initial_cvl(CVLPct(dec!(140)))
@@ -543,6 +579,7 @@ mod test {
             .annual_rate(AnnualRatePct(dec!(12)))
             .duration(Duration::Months(3))
             .accrual_interval(InterestInterval::EndOfMonth)
+            .one_time_fee_rate(OneTimeFeeRatePct(dec!(1)))
             .liquidation_cvl(CVLPct(dec!(125)))
             .margin_call_cvl(CVLPct(dec!(125)))
             .initial_cvl(CVLPct(dec!(140)))
@@ -702,6 +739,7 @@ mod test {
                 .duration(Duration::Months(3))
                 .accrual_interval(InterestInterval::EndOfMonth)
                 .incurrence_interval(InterestInterval::EndOfDay)
+                .one_time_fee_rate(OneTimeFeeRatePct(dec!(1)))
                 .liquidation_cvl(dec!(105))
                 .margin_call_cvl(dec!(125))
                 .initial_cvl(dec!(140))

@@ -827,6 +827,8 @@ type Mutation {
 	shareholderEquityAdd(input: ShareholderEquityAddInput!): SuccessPayload!
 }
 
+scalar OneTimeFeeRatePct
+
 type Outstanding {
 	usdBalance: UsdCents!
 }
@@ -1044,6 +1046,7 @@ type TermValues {
 	annualRate: AnnualRatePct!
 	accrualInterval: InterestInterval!
 	incurrenceInterval: InterestInterval!
+	oneTimeFeeRate: OneTimeFeeRatePct!
 	duration: Duration!
 	liquidationCvl: CVLPct!
 	marginCallCvl: CVLPct!
@@ -1055,6 +1058,7 @@ input TermsInput {
 	accrualInterval: InterestInterval!
 	incurrenceInterval: InterestInterval!
 	liquidationCvl: CVLPct!
+	oneTimeFeeRate: OneTimeFeeRatePct!
 	duration: DurationInput!
 	marginCallCvl: CVLPct!
 	initialCvl: CVLPct!
@@ -1074,6 +1078,7 @@ input TermsTemplateCreateInput {
 	annualRate: AnnualRatePct!
 	accrualInterval: InterestInterval!
 	incurrenceInterval: InterestInterval!
+	oneTimeFeeRate: OneTimeFeeRatePct!
 	duration: DurationInput!
 	liquidationCvl: CVLPct!
 	marginCallCvl: CVLPct!
@@ -1089,6 +1094,7 @@ input TermsTemplateUpdateInput {
 	annualRate: AnnualRatePct!
 	accrualInterval: InterestInterval!
 	incurrenceInterval: InterestInterval!
+	oneTimeFeeRate: OneTimeFeeRatePct!
 	liquidationCvl: CVLPct!
 	duration: DurationInput!
 	marginCallCvl: CVLPct!

@@ -87,6 +87,7 @@ ymd() {
           annualRate: "12",
           accrualInterval: "END_OF_MONTH",
           incurrenceInterval: "END_OF_DAY",
+          oneTimeFeeRate: "5",
           duration: { period: "MONTHS", units: 3 },
           liquidationCvl: "105",
           marginCallCvl: "125",

@@ -24,6 +24,7 @@ export type Scalars = {
   AnnualRatePct: { input: any; output: any; }
   CVLPct: { input: any; output: any; }
   DisbursalIdx: { input: any; output: any; }
+  OneTimeFeeRatePct: { input: any; output: any; }
   Satoshis: { input: Satoshis; output: Satoshis; }
   SignedSatoshis: { input: SignedSatoshis; output: SignedSatoshis; }
   SignedUsdCents: { input: SignedUsdCents; output: SignedUsdCents; }
@@ -1359,6 +1360,7 @@ export type TermValues = {
   initialCvl: Scalars['CVLPct']['output'];
   liquidationCvl: Scalars['CVLPct']['output'];
   marginCallCvl: Scalars['CVLPct']['output'];
+  oneTimeFeeRate: Scalars['OneTimeFeeRatePct']['output'];
 };
 
 export type TermsInput = {
@@ -1369,6 +1371,7 @@ export type TermsInput = {
   initialCvl: Scalars['CVLPct']['input'];
   liquidationCvl: Scalars['CVLPct']['input'];
   marginCallCvl: Scalars['CVLPct']['input'];
+  oneTimeFeeRate: Scalars['OneTimeFeeRatePct']['input'];
 };
 
 export type TermsTemplate = {
@@ -1390,6 +1393,7 @@ export type TermsTemplateCreateInput = {
   liquidationCvl: Scalars['CVLPct']['input'];
   marginCallCvl: Scalars['CVLPct']['input'];
   name: Scalars['String']['input'];
+  oneTimeFeeRate: Scalars['OneTimeFeeRatePct']['input'];
 };
 
 export type TermsTemplateCreatePayload = {
@@ -1406,6 +1410,7 @@ export type TermsTemplateUpdateInput = {
   initialCvl: Scalars['CVLPct']['input'];
   liquidationCvl: Scalars['CVLPct']['input'];
   marginCallCvl: Scalars['CVLPct']['input'];
+  oneTimeFeeRate: Scalars['OneTimeFeeRatePct']['input'];
 };
 
 export type TermsTemplateUpdatePayload = {
