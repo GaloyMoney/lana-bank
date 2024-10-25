@@ -167,7 +167,11 @@ mod tests {
     use rust_decimal_macros::dec;
 
     use crate::{
-        credit_facility::CreditFacilityAccountIds, ledger::customer::*, primitives::*, terms::*,
+        audit::{AuditEntryId, AuditInfo},
+        credit_facility::CreditFacilityAccountIds,
+        ledger::customer::*,
+        primitives::*,
+        terms::*,
     };
 
     use super::*;
