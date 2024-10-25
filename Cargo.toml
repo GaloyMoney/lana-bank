@@ -53,7 +53,7 @@ tower-http = { version = "0.5.2", features = ["cors"] }
 sqlx-adapter = { version = "1.6.0", default-features = false, features = ["postgres", "runtime-tokio-rustls"]}
 ory-kratos-client = "1.1.0"
 cached = { version = "0.53.1", features = ["async"] }
-gcp_auth = { version = "0.12.2", features = ["webpki-roots"] }
+gcp_auth = { version = "0.12.3", features = ["webpki-roots"] }
 gcp-bigquery-client = { git = "https://github.com/bodymindarts/gcp-bigquery-client.git", branch = "feat--webpki", features = ["rust-tls"] }
 cloud-storage = { version = "0.11.1",default-features = false, features = ["rustls-tls", "sync", "global-client"] }
 rand = "0.8"
