@@ -343,7 +343,7 @@ pub struct TermValues {
     pub duration: Duration,
     #[builder(setter(into))]
     pub accrual_interval: InterestInterval,
-    #[builder(setter(into))]
+    #[builder(setter(into), default = "self.accrual_interval.unwrap()")]
     pub incurrence_interval: InterestInterval,
     // overdue_penalty_rate: LoanAnnualRate,
     #[builder(setter(into))]
@@ -479,6 +479,22 @@ mod test {
             .initial_cvl(CVLPct(dec!(140)))
             .build()
             .expect("should build a valid term")
+    }
+
+    #[test]
+    fn incurrence_interval_defaults_to_accrual() {
+        let result = TermValues::builder()
+            .annual_rate(AnnualRatePct(dec!(12)))
+            .duration(Duration::Months(3))
+            .accrual_interval(InterestInterval::EndOfMonth)
+            .incurrence_interval(InterestInterval::EndOfDay)
+            .liquidation_cvl(CVLPct(dec!(105)))
+            .margin_call_cvl(CVLPct(dec!(125)))
+            .initial_cvl(CVLPct(dec!(140)))
+            .build()
+            .unwrap();
+
+        assert_eq!(result.accrual_interval, result.incurrence_interval);
     }
 
     #[test]
