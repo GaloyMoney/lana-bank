@@ -296,7 +296,7 @@ mod test {
 
     use crate::{
         audit::AuditEntryId,
-        terms::{Duration, InterestInterval},
+        terms::{Duration, InterestInterval, OneTimeFeeRatePct},
     };
 
     use super::*;
@@ -307,6 +307,7 @@ mod test {
             .duration(Duration::Months(3))
             .accrual_interval(InterestInterval::EndOfMonth)
             .incurrence_interval(InterestInterval::EndOfDay)
+            .one_time_fee_rate(OneTimeFeeRatePct::ZERO)
             .liquidation_cvl(dec!(105))
             .margin_call_cvl(dec!(125))
             .initial_cvl(dec!(140))

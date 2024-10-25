@@ -785,6 +785,7 @@ impl Mutation {
             .annual_rate(terms.annual_rate)
             .accrual_interval(terms.accrual_interval)
             .incurrence_interval(terms.incurrence_interval)
+            .one_time_fee_rate(terms.one_time_fee_rate)
             .duration(terms.duration)
             .liquidation_cvl(terms.liquidation_cvl)
             .margin_call_cvl(terms.margin_call_cvl)
