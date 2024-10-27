@@ -4,6 +4,7 @@ members = [
   "core/app",
   "core/governance",
   "core/shared-primitives",
+  "core/rbac",
   "lib/authz",
   "lib/audit",
   "lib/job",

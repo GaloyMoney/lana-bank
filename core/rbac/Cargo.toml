@@ -1,0 +1,16 @@
+[package]
+name = "rbac"
+version = "0.1.0"
+edition = "2021"
+
+[features]
+
+fail-on-warnings = []
+
+[dependencies]
+governance = { path = "../governance" }
+
+strum = { workspace = true }
+
+[dev-dependencies]
+anyhow = { workspace = true }
