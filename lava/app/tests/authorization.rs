@@ -9,7 +9,6 @@ use lava_app::{
     authorization::{error::AuthorizationError, init as init_authz, *},
     data_export::Export,
     job::*,
-    primitives::*,
     user::{UserConfig, Users},
 };
 use uuid::Uuid;
