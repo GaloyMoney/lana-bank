@@ -8,16 +8,16 @@ edition = "2021"
 fail-on-warnings = []
 
 [dependencies]
+rbac-types = { path = "../rbac-types" }
+
+governance = { path = "../../core/governance" }
+shared-primitives = { path = "../../core/shared-primitives" }
+
 tracing-utils = { path = "../../lib/tracing-utils", features = ["http"] }
 job = { path = "../../lib/job" }
 es-entity = { path = "../../lib/es-entity" }
 audit = { path = "../../lib/audit" }
 authz = { path = "../../lib/authz" }
-
-rbac-types = { path = "../rbac-types" }
-
-shared-primitives = { path = "../shared-primitives" }
-governance = { path = "../governance" }
 
 anyhow = { workspace = true }
 async-graphql = { workspace = true }

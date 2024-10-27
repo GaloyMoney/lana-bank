@@ -1,10 +1,12 @@
 [workspace]
 resolver = "2"
 members = [
-  "core/app",
+  "lava/app",
+  "lava/rbac-types",
+
   "core/governance",
   "core/shared-primitives",
-  "core/rbac-types",
+
   "lib/authz",
   "lib/audit",
   "lib/job",

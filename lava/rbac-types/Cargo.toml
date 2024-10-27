@@ -8,8 +8,8 @@ edition = "2021"
 fail-on-warnings = []
 
 [dependencies]
-governance = { path = "../governance" }
-shared-primitives = { path = "../shared-primitives" }
+governance = { path = "../../core/governance" }
+shared-primitives = { path = "../../core/shared-primitives" }
 
 strum = { workspace = true }
 uuid = { workspace = true }
