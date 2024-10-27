@@ -5,7 +5,7 @@ mod event;
 mod listener;
 mod repo;
 
-use serde::{de::DeserializeOwned, Deserialize, Serialize};
+use serde::{de::DeserializeOwned, Serialize};
 use sqlx::{postgres::PgListener, PgPool, Postgres, Transaction};
 use tokio::sync::broadcast;
 
@@ -27,8 +27,8 @@ where
 {
     repo: OutboxRepo<P>,
     _pool: PgPool,
-    event_sender: broadcast::Sender<Arc<OutboxEvent<P>>>,
-    event_receiver: Arc<broadcast::Receiver<Arc<OutboxEvent<P>>>>,
+    event_sender: broadcast::Sender<OutboxEvent<P>>,
+    event_receiver: Arc<broadcast::Receiver<OutboxEvent<P>>>,
     highest_known_sequence: Arc<AtomicU64>,
     buffer_size: usize,
 }
@@ -69,7 +69,7 @@ where
             new_highest_sequence = event.sequence;
             let _ = self
                 .event_sender
-                .send(Arc::new(OutboxEvent::Persistent(event)))
+                .send(event.into())
                 .map_err(|_| ())
                 .expect("event receiver dropped");
         }
@@ -96,7 +96,7 @@ where
 
     async fn spawn_pg_listener(
         pool: &PgPool,
-        sender: broadcast::Sender<Arc<OutboxEvent<P>>>,
+        sender: broadcast::Sender<OutboxEvent<P>>,
         highest_known_sequence: Arc<AtomicU64>,
     ) -> Result<(), sqlx::Error> {
         let mut listener = PgListener::connect_with(pool).await?;
@@ -109,10 +109,7 @@ where
                     {
                         let new_highest_sequence = u64::from(event.sequence);
                         highest_known_sequence.fetch_max(new_highest_sequence, Ordering::AcqRel);
-                        if sender
-                            .send(Arc::new(OutboxEvent::Persistent(event)))
-                            .is_err()
-                        {
+                        if sender.send(event.into()).is_err() {
                             break;
                         }
                     }

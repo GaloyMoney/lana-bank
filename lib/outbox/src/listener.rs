@@ -14,9 +14,9 @@ where
     repo: OutboxRepo<P>,
     last_returned_sequence: EventSequence,
     latest_known: EventSequence,
-    event_receiver: Pin<Box<BroadcastStream<Arc<OutboxEvent<P>>>>>,
+    event_receiver: Pin<Box<BroadcastStream<OutboxEvent<P>>>>,
     buffer_size: usize,
-    cache: BTreeMap<EventSequence, Arc<OutboxEvent<P>>>,
+    cache: BTreeMap<EventSequence, OutboxEvent<P>>,
     next_page_handle: Option<JoinHandle<Result<Vec<PersistentOutboxEvent<P>>, sqlx::Error>>>,
 }
 
@@ -26,7 +26,7 @@ where
 {
     pub(super) fn new(
         repo: OutboxRepo<P>,
-        event_receiver: broadcast::Receiver<Arc<OutboxEvent<P>>>,
+        event_receiver: broadcast::Receiver<OutboxEvent<P>>,
         start_after: EventSequence,
         latest_known: EventSequence,
         buffer: usize,
@@ -42,10 +42,10 @@ where
         }
     }
 
-    fn maybe_add_to_cache(&mut self, event: impl Into<Arc<OutboxEvent<P>>>) {
+    fn maybe_add_to_cache(&mut self, event: impl Into<OutboxEvent<P>>) {
         let event = event.into();
-        match event.as_ref() {
-            OutboxEvent::Persistent(persistent_event) => {
+        match event {
+            OutboxEvent::Persistent(ref persistent_event) => {
                 self.latest_known = self.latest_known.max(persistent_event.sequence);
 
                 if persistent_event.sequence > self.last_returned_sequence
@@ -66,7 +66,7 @@ impl<P> Stream for OutboxListener<P>
 where
     P: Serialize + DeserializeOwned + Send + Sync + 'static + Unpin,
 {
-    type Item = Arc<OutboxEvent<P>>;
+    type Item = OutboxEvent<P>;
 
     fn poll_next(
         mut self: Pin<&mut Self>,

@@ -8,7 +8,17 @@ pub enum OutboxEvent<P>
 where
     P: Serialize + DeserializeOwned + Send,
 {
-    Persistent(PersistentOutboxEvent<P>),
+    Persistent(Arc<PersistentOutboxEvent<P>>),
+}
+impl<P> Clone for OutboxEvent<P>
+where
+    P: Serialize + DeserializeOwned + Send,
+{
+    fn clone(&self) -> Self {
+        match self {
+            Self::Persistent(event) => Self::Persistent(Arc::clone(&event)),
+        }
+    }
 }
 
 impl<P> From<PersistentOutboxEvent<P>> for OutboxEvent<P>
@@ -16,16 +26,7 @@ where
     P: Serialize + DeserializeOwned + Send,
 {
     fn from(event: PersistentOutboxEvent<P>) -> Self {
-        Self::Persistent(event)
-    }
-}
-
-impl<P> From<PersistentOutboxEvent<P>> for Arc<OutboxEvent<P>>
-where
-    P: Serialize + DeserializeOwned + Send,
-{
-    fn from(event: PersistentOutboxEvent<P>) -> Self {
-        Arc::new(OutboxEvent::Persistent(event))
+        Self::Persistent(Arc::new(event))
     }
 }
 
