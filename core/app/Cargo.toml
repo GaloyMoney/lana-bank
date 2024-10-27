@@ -8,7 +8,7 @@ edition = "2021"
 fail-on-warnings = []
 
 [dependencies]
-lava-tracing = { path = "../../lib/tracing-rs", features = ["http"] }
+tracing-utils = { path = "../../lib/tracing-utils", features = ["http"] }
 job = { path = "../../lib/job" }
 es-entity = { path = "../../lib/es-entity" }
 audit = { path = "../../lib/audit" }

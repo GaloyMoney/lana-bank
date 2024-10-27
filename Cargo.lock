@@ -2063,7 +2063,6 @@ dependencies = [
  "hmac",
  "job",
  "jsonwebtoken 9.3.0",
- "lava-tracing",
  "ory-kratos-client",
  "rand",
  "reqwest 0.12.8",
@@ -2083,26 +2082,8 @@ dependencies = [
  "tokio",
  "tower-http",
  "tracing",
+ "tracing-utils",
  "uuid",
-]
-
-[[package]]
-name = "lava-tracing"
-version = "0.1.143-dev"
-dependencies = [
- "anyhow",
- "axum-extra",
- "opentelemetry",
- "opentelemetry-http",
- "opentelemetry-otlp",
- "opentelemetry-semantic-conventions",
- "opentelemetry_sdk",
- "reqwest 0.12.8",
- "serde",
- "serde_json",
- "tracing",
- "tracing-opentelemetry",
- "tracing-subscriber",
 ]
 
 [[package]]
@@ -4555,6 +4536,25 @@ dependencies = [
  "tracing-core",
  "tracing-log",
  "tracing-serde",
+]
+
+[[package]]
+name = "tracing-utils"
+version = "0.1.143-dev"
+dependencies = [
+ "anyhow",
+ "axum-extra",
+ "opentelemetry",
+ "opentelemetry-http",
+ "opentelemetry-otlp",
+ "opentelemetry-semantic-conventions",
+ "opentelemetry_sdk",
+ "reqwest 0.12.8",
+ "serde",
+ "serde_json",
+ "tracing",
+ "tracing-opentelemetry",
+ "tracing-subscriber",
 ]
 
 [[package]]

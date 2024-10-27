@@ -93,7 +93,7 @@ pub async fn graphql_handler(
     Claims(jwt_claims): Claims<AdminJwtClaims>,
     req: GraphQLRequest,
 ) -> GraphQLResponse {
-    lava_tracing::http::extract_tracing(&headers);
+    tracing_utils::http::extract_tracing(&headers);
     let mut req = req.into_inner();
 
     match uuid::Uuid::parse_str(&jwt_claims.subject) {

@@ -63,7 +63,7 @@ pub async fn graphql_handler(
     Claims(jwt_claims): Claims<PublicJwtClaims>,
     req: GraphQLRequest,
 ) -> GraphQLResponse {
-    lava_tracing::http::extract_tracing(&headers);
+    tracing_utils::http::extract_tracing(&headers);
     let mut req = req.into_inner();
 
     let customer_id: CustomerId = match jwt_claims.sub.parse() {

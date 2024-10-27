@@ -57,7 +57,7 @@ pub async fn run() -> anyhow::Result<()> {
 }
 
 async fn run_cmd(lava_home: &str, config: Config) -> anyhow::Result<()> {
-    lava_tracing::init_tracer(config.tracing)?;
+    tracing_utils::init_tracer(config.tracing)?;
     store_server_pid(lava_home, std::process::id())?;
 
     let (send, mut receive) = tokio::sync::mpsc::channel(1);

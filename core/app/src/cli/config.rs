@@ -1,7 +1,7 @@
 use anyhow::Context;
 
-use lava_tracing::TracingConfig;
 use serde::{Deserialize, Serialize};
+use tracing_utils::TracingConfig;
 
 use std::path::Path;
 

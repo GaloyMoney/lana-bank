@@ -7,7 +7,7 @@ members = [
   "lib/authz",
   "lib/audit",
   "lib/job",
-  "lib/tracing-rs",
+  "lib/tracing-utils",
   "lib/es-entity",
   "lib/es-entity-macros",
 ]

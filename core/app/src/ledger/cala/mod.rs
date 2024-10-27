@@ -1782,7 +1782,7 @@ impl CalaClient {
     where
         <Q as GraphQLQuery>::ResponseData: std::fmt::Debug,
     {
-        let trace_headers = lava_tracing::http::inject_trace();
+        let trace_headers = tracing_utils::http::inject_trace();
         let body = Q::build_query(variables);
         let response = client
             .post(url)

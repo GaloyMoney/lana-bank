@@ -1,5 +1,5 @@
 [package]
-name = "lava-tracing"
+name = "tracing-utils"
 version = "0.1.143-dev"
 edition = "2021"
 
