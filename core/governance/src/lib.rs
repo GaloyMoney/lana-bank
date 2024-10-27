@@ -52,7 +52,7 @@ where
             .authz
             .evaluate_permission(
                 sub,
-                GovernanceObject::Committee,
+                GovernanceObject::Committee(CommitteeAllOrOne::All),
                 g_action(CommitteeAction::Create),
                 true,
             )

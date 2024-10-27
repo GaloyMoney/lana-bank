@@ -9,6 +9,7 @@ fail-on-warnings = []
 
 [dependencies]
 governance = { path = "../governance" }
+shared-primitives = { path = "../shared-primitives" }
 
 strum = { workspace = true }
 

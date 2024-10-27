@@ -2943,6 +2943,7 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "governance",
+ "shared-primitives",
  "strum",
 ]
 
