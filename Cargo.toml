@@ -13,6 +13,7 @@ members = [
   "lib/tracing-utils",
   "lib/es-entity",
   "lib/es-entity-macros",
+  "lib/outbox"
 ]
 
 [workspace.dependencies]

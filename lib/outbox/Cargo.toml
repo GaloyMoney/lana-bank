@@ -1,0 +1,18 @@
+[package]
+name = "outbox"
+version = "0.1.0"
+edition = "2021"
+
+[features]
+
+fail-on-warnings = []
+
+[dependencies]
+es-entity = { path = "../../lib/es-entity" }
+
+serde = { workspace = true }
+serde_json = { workspace = true }
+uuid = { workspace = true }
+sqlx = { workspace = true }
+chrono = { workspace = true }
+tokio = { workspace = true }
