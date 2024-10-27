@@ -2,10 +2,17 @@ use serde::{de::DeserializeOwned, Deserialize, Serialize};
 
 es_entity::entity_id! { OutboxEventId }
 
+pub enum OutboxEvent<P>
+where
+    P: Serialize + DeserializeOwned + Send,
+{
+    Persistent(PersistentOutboxEvent<P>),
+}
+
 #[derive(Debug, Serialize, Deserialize)]
 pub struct PersistentOutboxEvent<T>
 where
-    T: Clone + Serialize + DeserializeOwned,
+    T: Serialize + DeserializeOwned + Send,
 {
     pub id: OutboxEventId,
     pub sequence: EventSequence,
@@ -16,7 +23,7 @@ where
 
 impl<T> Clone for PersistentOutboxEvent<T>
 where
-    T: Clone + Serialize + DeserializeOwned,
+    T: Clone + Serialize + DeserializeOwned + Send,
 {
     fn clone(&self) -> Self {
         Self {

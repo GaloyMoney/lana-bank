@@ -7,7 +7,7 @@ use super::event::*;
 #[derive(Clone)]
 pub(super) struct OutboxRepo<Payload>
 where
-    Payload: Clone + Serialize + DeserializeOwned,
+    Payload: Serialize + DeserializeOwned,
 {
     pool: PgPool,
     _payload: std::marker::PhantomData<Payload>,
@@ -15,7 +15,7 @@ where
 
 impl<P> OutboxRepo<P>
 where
-    P: Clone + Serialize + DeserializeOwned,
+    P: Serialize + DeserializeOwned + Send,
 {
     pub(super) fn new(pool: &PgPool) -> Self {
         Self {
