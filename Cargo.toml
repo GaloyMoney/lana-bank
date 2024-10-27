@@ -3,6 +3,7 @@ resolver = "2"
 members = [
   "core/app",
   "core/governance",
+  "core/shared-primitives",
   "lib/authz",
   "lib/audit",
   "lib/job",

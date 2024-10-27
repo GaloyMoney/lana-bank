@@ -1,6 +1,4 @@
-// use std::str::FromStr;
-
-es_entity::entity_id! { CommitteeId }
+pub use shared_primitives::{CommitteeId, UserId};
 
 #[derive(Clone, Copy, Debug, PartialEq, strum::EnumDiscriminants)]
 #[strum_discriminants(derive(strum::Display, strum::EnumString))]

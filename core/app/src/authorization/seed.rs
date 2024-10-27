@@ -1,4 +1,4 @@
-use lava_authz::error::AuthorizationError;
+use authz::error::AuthorizationError;
 
 use super::{action::*, object::*, Authorization};
 use crate::primitives::Role;

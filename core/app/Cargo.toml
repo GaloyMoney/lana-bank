@@ -9,10 +9,13 @@ fail-on-warnings = []
 
 [dependencies]
 lava-tracing = { path = "../../lib/tracing-rs", features = ["http"] }
-lava-job = { path = "../../lib/job" }
+job = { path = "../../lib/job" }
 es-entity = { path = "../../lib/es-entity" }
-lava-audit = { path = "../../lib/audit" }
-lava-authz = { path = "../../lib/authz" }
+audit = { path = "../../lib/audit" }
+authz = { path = "../../lib/authz" }
+
+shared-primitives = { path = "../shared-primitives" }
+governance = { path = "../governance" }
 
 anyhow = { workspace = true }
 async-graphql = { workspace = true }

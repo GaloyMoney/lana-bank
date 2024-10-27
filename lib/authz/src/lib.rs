@@ -13,7 +13,7 @@ use std::{fmt, marker::PhantomData, str::FromStr, sync::Arc};
 use tokio::sync::RwLock;
 use tracing::instrument;
 
-use lava_audit::{AuditInfo, AuditSvc};
+use audit::{AuditInfo, AuditSvc};
 
 use error::AuthorizationError;
 

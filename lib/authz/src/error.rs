@@ -10,7 +10,7 @@ pub enum AuthorizationError {
     #[error("AuthorizationError - PermissionAlreadyExistsForRole: {0}")]
     PermissionAlreadyExistsForRole(String),
     #[error("AuthorizationError - AuditError: {0}")]
-    AuditError(#[from] lava_audit::error::AuditError),
+    AuditError(#[from] audit::error::AuditError),
     #[error("AuthorizationError - RoleParseError: Could not parse '{0}'")]
     RoleParseError(String),
 }

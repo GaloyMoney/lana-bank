@@ -4,7 +4,7 @@ mod error;
 use sqlx::PgPool;
 use tracing::instrument;
 
-use lava_authz::PermissionCheck;
+use authz::PermissionCheck;
 
 use crate::{
     applicant::Applicants,

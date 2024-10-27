@@ -2,7 +2,7 @@ pub mod entity;
 pub mod error;
 mod repo;
 
-use lava_authz::PermissionCheck;
+use authz::PermissionCheck;
 
 use crate::{
     audit::AuditInfo,

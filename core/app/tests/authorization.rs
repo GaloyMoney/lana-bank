@@ -2,7 +2,7 @@ mod helpers;
 
 use serial_test::file_serial;
 
-use lava_authz::PermissionCheck;
+use authz::PermissionCheck;
 
 use lava_app::{
     audit::*,

@@ -1,11 +1,14 @@
+#![cfg_attr(feature = "fail-on-warnings", deny(warnings))]
+#![cfg_attr(feature = "fail-on-warnings", deny(clippy::all))]
+
 mod committee;
 pub mod error;
 mod primitives;
 
 use tracing::instrument;
 
-use lava_audit::AuditSvc;
-use lava_authz::PermissionCheck;
+use audit::AuditSvc;
+use authz::PermissionCheck;
 
 pub use committee::*;
 use error::*;

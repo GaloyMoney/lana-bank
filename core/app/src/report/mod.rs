@@ -6,7 +6,7 @@ mod jobs;
 mod repo;
 pub mod upload;
 
-use lava_authz::PermissionCheck;
+use authz::PermissionCheck;
 
 use crate::{
     audit::*,

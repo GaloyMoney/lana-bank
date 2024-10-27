@@ -7,7 +7,7 @@ mod interest_accrual;
 mod jobs;
 mod repo;
 
-use lava_authz::PermissionCheck;
+use authz::PermissionCheck;
 
 use crate::{
     audit::{Audit, AuditInfo},
@@ -16,7 +16,7 @@ use crate::{
     customer::Customers,
     data_export::Export,
     entity::EntityError,
-    job::Jobs,
+    job::{error::JobError, *},
     ledger::{credit_facility::*, Ledger},
     price::Price,
     primitives::{
@@ -33,7 +33,6 @@ use error::*;
 pub use history::*;
 pub use interest_accrual::*;
 use jobs::*;
-use lava_job::error::JobError;
 pub use repo::cursor::*;
 use repo::CreditFacilityRepo;
 use tracing::instrument;
@@ -112,7 +111,7 @@ impl CreditFacilities {
             )
             .await
         {
-            Err(crate::job::error::JobError::DuplicateId) => (),
+            Err(JobError::DuplicateId) => (),
             Err(e) => return Err(e.into()),
             _ => (),
         }

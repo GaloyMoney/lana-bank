@@ -1,7 +1,6 @@
 mod action;
 mod object;
 mod seed;
-pub use lava_authz::error;
 
 use crate::{
     audit::Audit,
@@ -9,10 +8,11 @@ use crate::{
 };
 
 pub use action::*;
-use lava_authz::error::AuthorizationError;
+pub use authz::error;
+use authz::error::AuthorizationError;
 pub use object::*;
 
-pub type Authorization = lava_authz::Authorization<Audit, Role>;
+pub type Authorization = authz::Authorization<Audit, Role>;
 
 pub async fn init(pool: &sqlx::PgPool, audit: &Audit) -> Result<Authorization, AuthorizationError> {
     let authz = Authorization::init(pool, audit).await?;

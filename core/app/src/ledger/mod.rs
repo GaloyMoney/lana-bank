@@ -11,7 +11,7 @@ pub mod error;
 pub mod loan;
 pub mod primitives;
 
-use lava_authz::PermissionCheck;
+use authz::PermissionCheck;
 
 use chrono::{DateTime, Utc};
 use disbursement::DisbursementData;

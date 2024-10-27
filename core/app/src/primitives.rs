@@ -6,36 +6,7 @@ use uuid::{uuid, Uuid};
 use std::{fmt, str::FromStr};
 use thiserror::Error;
 
-crate::entity_id! { CustomerId }
-crate::entity_id! { UserId }
-crate::entity_id! { LineOfCreditContractId }
-crate::entity_id! { WithdrawId }
-crate::entity_id! { DepositId }
-crate::entity_id! { DocumentId }
-crate::entity_id! { LoanId }
-crate::entity_id! { CreditFacilityId }
-crate::entity_id! { DisbursementId }
-crate::entity_id! { InterestAccrualId }
-crate::entity_id! { TermsTemplateId }
-crate::entity_id! { ReportId }
-
-pub use lava_job::JobId;
-
-impl From<LoanId> for JobId {
-    fn from(id: LoanId) -> Self {
-        JobId::from(id.0)
-    }
-}
-impl From<CreditFacilityId> for JobId {
-    fn from(id: CreditFacilityId) -> Self {
-        JobId::from(id.0)
-    }
-}
-impl From<ReportId> for JobId {
-    fn from(id: ReportId) -> Self {
-        JobId::from(id.0)
-    }
-}
+pub use shared_primitives::*;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Hash, Deserialize, sqlx::Type)]
 #[serde(transparent)]
@@ -235,8 +206,8 @@ impl std::fmt::Display for Subject {
 impl From<&Subject> for uuid::Uuid {
     fn from(s: &Subject) -> Self {
         match s {
-            Subject::Customer(id) => id.0,
-            Subject::User(id) => id.0,
+            Subject::Customer(id) => uuid::Uuid::from(id),
+            Subject::User(id) => uuid::Uuid::from(id),
             Subject::System(node) => match node {
                 SystemNode::Init => SYSTEM_INIT,
                 SystemNode::Core => SYSTEM_CORE,

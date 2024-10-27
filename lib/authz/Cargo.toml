@@ -1,5 +1,5 @@
 [package]
-name = "lava-authz"
+name = "authz"
 version = "0.1.143-dev"
 edition = "2021"
 
@@ -8,7 +8,7 @@ edition = "2021"
 fail-on-warnings = []
 
 [dependencies]
-lava-audit = { path = "../audit" }
+audit = { path = "../audit" }
 
 sqlx-adapter = { version = "1.6.0", default-features = false, features = ["postgres", "runtime-tokio-rustls"]}
 

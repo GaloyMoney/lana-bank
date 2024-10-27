@@ -1,6 +1,6 @@
 use async_trait::async_trait;
 
-use lava_audit::{AuditInfo, AuditSvc};
+use audit::{AuditInfo, AuditSvc};
 
 use super::error::AuthorizationError;
 

@@ -3,10 +3,15 @@ name = "governance"
 version = "0.1.0"
 edition = "2021"
 
+[features]
+
+fail-on-warnings = []
+
 [dependencies]
-lava-audit = { path = "../../lib/audit" }
-lava-authz = { path = "../../lib/authz" }
+audit = { path = "../../lib/audit" }
+authz = { path = "../../lib/authz" }
 es-entity = { path = "../../lib/es-entity" }
+shared-primitives = { path = "../shared-primitives" }
 
 uuid = { workspace = true }
 sqlx = { workspace = true }

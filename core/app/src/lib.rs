@@ -26,7 +26,7 @@ pub mod user;
 pub mod withdraw;
 
 pub mod job {
-    pub use lava_job::*;
+    pub use job::*;
 }
 
 pub mod audit {
@@ -35,7 +35,7 @@ pub mod audit {
         primitives::Subject,
     };
 
-    pub use lava_audit::{error, AuditCursor, AuditEntryId, AuditInfo, AuditSvc};
-    pub type Audit = lava_audit::Audit<Subject, Object, Action>;
-    pub type AuditEntry = lava_audit::AuditEntry<Subject, Object, Action>;
+    pub use audit::{error, AuditCursor, AuditEntryId, AuditInfo, AuditSvc};
+    pub type Audit = audit::Audit<Subject, Object, Action>;
+    pub type AuditEntry = audit::AuditEntry<Subject, Object, Action>;
 }

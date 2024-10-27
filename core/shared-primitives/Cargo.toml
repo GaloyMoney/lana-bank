@@ -1,6 +1,6 @@
 [package]
-name = "audit"
-version = "0.1.143-dev"
+name = "shared-primitives"
+version = "0.1.0"
 edition = "2021"
 
 [features]
@@ -9,9 +9,8 @@ fail-on-warnings = []
 
 [dependencies]
 es-entity = { path = "../../lib/es-entity" }
+job = { path = "../../lib/job" }
 
+uuid = { workspace = true }
 sqlx = { workspace = true }
-thiserror = { workspace = true }
 serde = { workspace = true }
-chrono = { workspace = true }
-async-trait = { workspace = true }

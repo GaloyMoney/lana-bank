@@ -9,7 +9,7 @@ mod repo;
 use sqlx::PgPool;
 use tracing::instrument;
 
-use lava_authz::PermissionCheck;
+use authz::PermissionCheck;
 
 use crate::{
     audit::{Audit, AuditInfo},
