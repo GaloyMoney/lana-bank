@@ -21,8 +21,7 @@ use repo::*;
 
 const DEFAULT_BUFFER_SIZE: usize = 100;
 
-#[derive(Clone)]
-pub(crate) struct Outbox<P>
+pub struct Outbox<P>
 where
     P: Serialize + DeserializeOwned + Send + Sync + 'static,
 {
@@ -34,11 +33,27 @@ where
     buffer_size: usize,
 }
 
+impl<P> Clone for Outbox<P>
+where
+    P: Serialize + DeserializeOwned + Send + Sync + 'static,
+{
+    fn clone(&self) -> Self {
+        Self {
+            repo: self.repo.clone(),
+            _pool: self._pool.clone(),
+            event_sender: self.event_sender.clone(),
+            event_receiver: self.event_receiver.clone(),
+            highest_known_sequence: self.highest_known_sequence.clone(),
+            buffer_size: self.buffer_size,
+        }
+    }
+}
+
 impl<P> Outbox<P>
 where
     P: Serialize + DeserializeOwned + Send + Sync + 'static + Unpin,
 {
-    pub(crate) async fn init(pool: &PgPool) -> Result<Self, sqlx::Error> {
+    pub async fn init(pool: &PgPool) -> Result<Self, sqlx::Error> {
         let buffer_size = DEFAULT_BUFFER_SIZE;
         let (sender, recv) = broadcast::channel(buffer_size);
         let repo = OutboxRepo::new(pool);
@@ -55,7 +70,7 @@ where
         })
     }
 
-    pub(crate) async fn persist_events(
+    pub async fn persist_events(
         &self,
         db: &mut Transaction<'_, Postgres>,
         events: impl IntoIterator<Item = impl Into<P>>,

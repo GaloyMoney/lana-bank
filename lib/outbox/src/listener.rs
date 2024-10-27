@@ -3,7 +3,7 @@ use serde::{de::DeserializeOwned, Serialize};
 use tokio::{sync::broadcast, task::JoinHandle};
 use tokio_stream::wrappers::{errors::BroadcastStreamRecvError, BroadcastStream};
 
-use std::{collections::BTreeMap, pin::Pin, sync::Arc, task::Poll};
+use std::{collections::BTreeMap, pin::Pin, task::Poll};
 
 use super::{event::*, repo::*};
 
