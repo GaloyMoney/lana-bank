@@ -16,7 +16,7 @@ where
 {
     fn clone(&self) -> Self {
         match self {
-            Self::Persistent(event) => Self::Persistent(Arc::clone(&event)),
+            Self::Persistent(event) => Self::Persistent(Arc::clone(event)),
         }
     }
 }
