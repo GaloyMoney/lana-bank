@@ -14,6 +14,8 @@ es-entity = { path = "../../lib/es-entity" }
 audit = { path = "../../lib/audit" }
 authz = { path = "../../lib/authz" }
 
+rbac = { path = "../rbac" }
+
 shared-primitives = { path = "../shared-primitives" }
 governance = { path = "../governance" }
 

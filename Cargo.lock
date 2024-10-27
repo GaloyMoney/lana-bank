@@ -2065,6 +2065,7 @@ dependencies = [
  "jsonwebtoken 9.3.0",
  "ory-kratos-client",
  "rand",
+ "rbac",
  "reqwest 0.12.8",
  "rust_decimal",
  "rust_decimal_macros",

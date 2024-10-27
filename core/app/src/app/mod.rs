@@ -9,7 +9,7 @@ use authz::PermissionCheck;
 use crate::{
     applicant::Applicants,
     audit::{Audit, AuditCursor, AuditEntry},
-    authorization::{init as init_authz, Action, AuditAction, Authorization, Object},
+    authorization::{init as init_authz, AppAction, AppObject, AuditAction, Authorization},
     credit_facility::CreditFacilities,
     customer::Customers,
     data_export::Export,
@@ -142,7 +142,7 @@ impl LavaApp {
         use crate::audit::AuditSvc;
 
         self.authz
-            .enforce_permission(sub, Object::Audit, Action::Audit(AuditAction::List))
+            .enforce_permission(sub, AppObject::Audit, AppAction::Audit(AuditAction::List))
             .await?;
 
         self.audit.list(query).await.map_err(ApplicationError::from)

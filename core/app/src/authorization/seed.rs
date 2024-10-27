@@ -1,6 +1,6 @@
 use authz::error::AuthorizationError;
 
-use super::{action::*, object::*, Authorization};
+use super::*;
 use crate::primitives::Role;
 
 pub(super) async fn execute(authz: &Authorization) -> Result<(), AuthorizationError> {
