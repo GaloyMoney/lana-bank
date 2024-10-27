@@ -5,6 +5,7 @@ mod event;
 mod listener;
 mod repo;
 
+use futures::{Stream, StreamExt};
 use serde::{de::DeserializeOwned, Serialize};
 use sqlx::{postgres::PgListener, PgPool, Postgres, Transaction};
 use tokio::sync::broadcast;
@@ -35,7 +36,7 @@ where
 
 impl<P> Outbox<P>
 where
-    P: Serialize + DeserializeOwned + Send + Sync + 'static,
+    P: Serialize + DeserializeOwned + Send + Sync + 'static + Unpin,
 {
     pub(crate) async fn init(pool: &PgPool) -> Result<Self, sqlx::Error> {
         let buffer_size = DEFAULT_BUFFER_SIZE;
@@ -78,7 +79,7 @@ where
         Ok(())
     }
 
-    pub async fn register_listener(
+    pub async fn listen_all(
         &self,
         start_after: Option<EventSequence>,
     ) -> Result<OutboxListener<P>, sqlx::Error> {
@@ -92,6 +93,18 @@ where
             latest_known,
             self.buffer_size,
         ))
+    }
+
+    pub async fn listen_persisted(
+        &self,
+        start_after: Option<EventSequence>,
+    ) -> Result<impl Stream<Item = Arc<PersistentOutboxEvent<P>>>, sqlx::Error> {
+        let listener = self.listen_all(start_after).await?;
+        Ok(listener.filter_map(|event| async move {
+            match event {
+                OutboxEvent::Persistent(persistent_event) => Some(persistent_event),
+            }
+        }))
     }
 
     async fn spawn_pg_listener(

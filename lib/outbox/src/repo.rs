@@ -1,6 +1,5 @@
-use chrono::{DateTime, Utc};
-use serde::{de::DeserializeOwned, Deserialize, Serialize};
-use sqlx::{PgPool, Postgres, QueryBuilder, Row, Transaction};
+use serde::{de::DeserializeOwned, Serialize};
+use sqlx::{PgPool, Postgres, Row, Transaction};
 
 use super::event::*;
 
