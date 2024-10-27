@@ -2502,10 +2502,12 @@ version = "0.1.0"
 dependencies = [
  "chrono",
  "es-entity",
+ "futures",
  "serde",
  "serde_json",
  "sqlx",
  "tokio",
+ "tokio-stream",
  "uuid",
 ]
 
@@ -4305,6 +4307,7 @@ dependencies = [
  "futures-core",
  "pin-project-lite",
  "tokio",
+ "tokio-util",
 ]
 
 [[package]]

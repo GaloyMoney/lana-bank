@@ -1,5 +1,7 @@
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
 
+use std::sync::Arc;
+
 es_entity::entity_id! { OutboxEventId }
 
 pub enum OutboxEvent<P>
@@ -7,6 +9,24 @@ where
     P: Serialize + DeserializeOwned + Send,
 {
     Persistent(PersistentOutboxEvent<P>),
+}
+
+impl<P> From<PersistentOutboxEvent<P>> for OutboxEvent<P>
+where
+    P: Serialize + DeserializeOwned + Send,
+{
+    fn from(event: PersistentOutboxEvent<P>) -> Self {
+        Self::Persistent(event)
+    }
+}
+
+impl<P> From<PersistentOutboxEvent<P>> for Arc<OutboxEvent<P>>
+where
+    P: Serialize + DeserializeOwned + Send,
+{
+    fn from(event: PersistentOutboxEvent<P>) -> Self {
+        Arc::new(OutboxEvent::Persistent(event))
+    }
 }
 
 #[derive(Debug, Serialize, Deserialize)]

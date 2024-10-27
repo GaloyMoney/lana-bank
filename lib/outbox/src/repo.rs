@@ -4,13 +4,24 @@ use sqlx::{PgPool, Postgres, QueryBuilder, Row, Transaction};
 
 use super::event::*;
 
-#[derive(Clone)]
-pub(super) struct OutboxRepo<Payload>
+pub(super) struct OutboxRepo<P>
 where
-    Payload: Serialize + DeserializeOwned,
+    P: Serialize + DeserializeOwned,
 {
     pool: PgPool,
-    _payload: std::marker::PhantomData<Payload>,
+    _payload: std::marker::PhantomData<P>,
+}
+
+impl<P> Clone for OutboxRepo<P>
+where
+    P: Serialize + DeserializeOwned,
+{
+    fn clone(&self) -> Self {
+        Self {
+            pool: self.pool.clone(),
+            _payload: std::marker::PhantomData,
+        }
+    }
 }
 
 impl<P> OutboxRepo<P>

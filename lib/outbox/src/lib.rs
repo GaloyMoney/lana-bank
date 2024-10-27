@@ -1,15 +1,9 @@
 #![cfg_attr(feature = "fail-on-warnings", deny(warnings))]
 #![cfg_attr(feature = "fail-on-warnings", deny(clippy::all))]
 
-// mod listener;
 mod event;
+mod listener;
 mod repo;
-// pub mod server;
-
-// mod event {
-//     pub use cala_types::outbox::*;
-//     pub use cala_types::primitives::OutboxEventId;
-// }
 
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
 use sqlx::{postgres::PgListener, PgPool, Postgres, Transaction};
@@ -21,7 +15,7 @@ use std::sync::{
 };
 
 pub use event::*;
-// pub use listener::*;
+pub use listener::*;
 use repo::*;
 
 const DEFAULT_BUFFER_SIZE: usize = 100;
@@ -84,21 +78,21 @@ where
         Ok(())
     }
 
-    //     pub async fn register_listener(
-    //         &self,
-    //         start_after: Option<EventSequence>,
-    //     ) -> Result<OutboxListener, sqlx::Error> {
-    //         let sub = self.event_receiver.resubscribe();
-    //         let latest_known = EventSequence::from(self.highest_known_sequence.load(Ordering::Relaxed));
-    //         let start = start_after.unwrap_or(latest_known);
-    //         Ok(OutboxListener::new(
-    //             self.repo.clone(),
-    //             sub,
-    //             start,
-    //             latest_known,
-    //             self.buffer_size,
-    //         ))
-    //     }
+    pub async fn register_listener(
+        &self,
+        start_after: Option<EventSequence>,
+    ) -> Result<OutboxListener<P>, sqlx::Error> {
+        let sub = self.event_receiver.resubscribe();
+        let latest_known = EventSequence::from(self.highest_known_sequence.load(Ordering::Relaxed));
+        let start = start_after.unwrap_or(latest_known);
+        Ok(OutboxListener::new(
+            self.repo.clone(),
+            sub,
+            start,
+            latest_known,
+            self.buffer_size,
+        ))
+    }
 
     async fn spawn_pg_listener(
         pool: &PgPool,

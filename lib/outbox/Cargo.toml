@@ -16,3 +16,5 @@ uuid = { workspace = true }
 sqlx = { workspace = true }
 chrono = { workspace = true }
 tokio = { workspace = true }
+tokio-stream = { workspace = true }
+futures = { workspace = true }
