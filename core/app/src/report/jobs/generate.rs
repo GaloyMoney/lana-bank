@@ -93,7 +93,7 @@ impl JobRunner for GenerateReportJobRunner {
                 let audit_info = self
                     .audit
                     .record_entry(
-                        &Subject::System(SystemNode::Core),
+                        &Subject::core(),
                         Object::Report,
                         ReportAction::Compile,
                         true,
@@ -118,12 +118,7 @@ impl JobRunner for GenerateReportJobRunner {
 
                 let audit_info = self
                     .audit
-                    .record_entry(
-                        &Subject::System(SystemNode::Core),
-                        Object::Report,
-                        ReportAction::Invoke,
-                        true,
-                    )
+                    .record_entry(&Subject::core(), Object::Report, ReportAction::Invoke, true)
                     .await?;
                 match client.invoke(&report.compilation_result()).await {
                     Ok(res) => {
@@ -144,12 +139,7 @@ impl JobRunner for GenerateReportJobRunner {
 
                 let audit_info = self
                     .audit
-                    .record_entry(
-                        &Subject::System(SystemNode::Core),
-                        Object::Report,
-                        ReportAction::Upload,
-                        true,
-                    )
+                    .record_entry(&Subject::core(), Object::Report, ReportAction::Upload, true)
                     .await?;
 
                 match upload::execute(&self.report_config, &self.storage).await {

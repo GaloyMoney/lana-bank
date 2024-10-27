@@ -7,7 +7,7 @@ use crate::{
     audit::*,
     authorization::{LoanAction, LoanAllOrOne, Object},
     job::*,
-    loan::{repo::*, LoanByCollateralizationRatioCursor, Subject, SystemNode},
+    loan::{repo::*, LoanByCollateralizationRatioCursor, Subject},
     price::Price,
     terms::CVLPct,
 };
@@ -86,7 +86,7 @@ impl JobRunner for LoanProcessingJobRunner {
             let audit_info = self
                 .audit
                 .record_entry(
-                    &Subject::System(SystemNode::Core),
+                    &Subject::core(),
                     Object::Loan(LoanAllOrOne::All),
                     LoanAction::UpdateCollateralizationState,
                     true,

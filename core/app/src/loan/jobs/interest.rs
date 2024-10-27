@@ -6,7 +6,7 @@ use crate::{
     authorization::{LoanAction, LoanAllOrOne, Object},
     job::*,
     ledger::*,
-    loan::{error::LoanError, repo::*, Subject, SystemNode},
+    loan::{error::LoanError, repo::*, Subject},
     primitives::LoanId,
 };
 
@@ -68,7 +68,7 @@ impl JobRunner for LoanProcessingJobRunner {
         let audit_info = self
             .audit
             .record_entry(
-                &Subject::System(SystemNode::Core),
+                &Subject::core(),
                 Object::Loan(LoanAllOrOne::ById(loan.id)),
                 LoanAction::RecordInterest,
                 true,

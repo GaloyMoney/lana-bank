@@ -9,6 +9,7 @@ use es_entity::*;
 
 use crate::{
     audit::AuditInfo,
+    authorization::Role,
     ledger::{credit_facility::*, customer::CustomerLedgerAccountIds},
     primitives::*,
     terms::{CVLData, CVLPct, CollateralizationState, InterestPeriod, TermValues},

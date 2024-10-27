@@ -117,7 +117,7 @@ impl Customers {
         let audit_info = &self
             .audit
             .record_entry(
-                &Subject::System(crate::primitives::SystemNode::Kratos),
+                &Subject::kratos(),
                 Object::Customer(CustomerAllOrOne::All),
                 Action::Customer(CustomerAction::Create),
                 true,
@@ -219,7 +219,7 @@ impl Customers {
         let audit_info = self
             .audit
             .record_entry(
-                &Subject::System(crate::primitives::SystemNode::Sumsub),
+                &Subject::sumsub(),
                 Object::Customer(CustomerAllOrOne::ById(customer_id)),
                 Action::Customer(CustomerAction::StartKyc),
                 true,
@@ -244,7 +244,7 @@ impl Customers {
         let audit_info = self
             .audit
             .record_entry(
-                &Subject::System(crate::primitives::SystemNode::Sumsub),
+                &Subject::sumsub(),
                 Object::Customer(CustomerAllOrOne::ById(customer_id)),
                 Action::Customer(CustomerAction::ApproveKyc),
                 true,
@@ -269,7 +269,7 @@ impl Customers {
         let audit_info = self
             .audit
             .record_entry(
-                &Subject::System(crate::primitives::SystemNode::Sumsub),
+                &Subject::sumsub(),
                 Object::Customer(CustomerAllOrOne::ById(customer_id)),
                 Action::Customer(CustomerAction::DeclineKyc),
                 true,

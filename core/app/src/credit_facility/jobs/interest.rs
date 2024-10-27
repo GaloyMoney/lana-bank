@@ -7,7 +7,7 @@ use crate::{
     credit_facility::{repo::*, InterestAccrualRepo, Subject},
     job::*,
     ledger::*,
-    primitives::{CreditFacilityId, SystemNode},
+    primitives::CreditFacilityId,
 };
 
 #[derive(Clone, Serialize, Deserialize)]
@@ -83,7 +83,7 @@ impl JobRunner for CreditFacilityProcessingJobRunner {
         let audit_info = self
             .audit
             .record_entry(
-                &Subject::System(SystemNode::Core),
+                &Subject::core(),
                 Object::CreditFacility,
                 CreditFacilityAction::RecordInterest,
                 true,

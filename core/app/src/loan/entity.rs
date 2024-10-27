@@ -9,6 +9,7 @@ use es_entity::*;
 
 use crate::{
     audit::AuditInfo,
+    authorization::Role,
     ledger::{
         customer::CustomerLedgerAccountIds,
         loan::{LoanAccountIds, LoanCollateralUpdate, LoanPaymentAmounts, LoanRepayment},

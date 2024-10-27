@@ -1,5 +1,5 @@
 [package]
-name = "rbac"
+name = "rbac-types"
 version = "0.1.0"
 edition = "2021"
 
@@ -12,6 +12,10 @@ governance = { path = "../governance" }
 shared-primitives = { path = "../shared-primitives" }
 
 strum = { workspace = true }
+uuid = { workspace = true }
+serde = { workspace = true }
+async-graphql = { workspace = true }
+thiserror = { workspace = true }
 
 [dev-dependencies]
 anyhow = { workspace = true }

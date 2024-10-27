@@ -2065,7 +2065,7 @@ dependencies = [
  "jsonwebtoken 9.3.0",
  "ory-kratos-client",
  "rand",
- "rbac",
+ "rbac-types",
  "reqwest 0.12.8",
  "rust_decimal",
  "rust_decimal_macros",
@@ -2939,13 +2939,17 @@ dependencies = [
 ]
 
 [[package]]
-name = "rbac"
+name = "rbac-types"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "async-graphql",
  "governance",
+ "serde",
  "shared-primitives",
  "strum",
+ "thiserror",
+ "uuid",
 ]
 
 [[package]]

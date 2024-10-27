@@ -1,13 +1,10 @@
 mod seed;
 
-use crate::{
-    audit::Audit,
-    primitives::{Role, Subject},
-};
+use crate::audit::Audit;
 
 pub use authz::error;
 use authz::error::AuthorizationError;
-pub use rbac::{AppAction as Action, AppObject as Object, *};
+pub use rbac_types::{AppAction as Action, AppObject as Object, *};
 
 pub type Authorization = authz::Authorization<Audit, Role>;
 

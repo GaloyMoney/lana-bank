@@ -11,7 +11,7 @@ use crate::{
     audit::{Audit, AuditInfo, AuditSvc},
     authorization::{error::AuthorizationError, Authorization, Object, UserAction},
     data_export::Export,
-    primitives::{Role, Subject, SystemNode, UserId},
+    primitives::{Role, Subject, UserId},
 };
 
 pub use config::*;
@@ -51,10 +51,9 @@ impl Users {
     }
 
     async fn create_and_assign_role_to_superuser(&self, email: String) -> Result<(), UserError> {
-        let subject = Subject::System(SystemNode::Init);
         let audit_info = self
             .audit
-            .record_entry(&subject, Object::User, UserAction::Create, true)
+            .record_entry(&Subject::init(), Object::User, UserAction::Create, true)
             .await?;
 
         if self.find_by_email(&email).await?.is_none() {

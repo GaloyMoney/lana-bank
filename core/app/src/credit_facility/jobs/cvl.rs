@@ -9,7 +9,6 @@ use crate::{
     credit_facility::{repo::*, CreditFacilityByCollateralizationRatioCursor, Subject},
     job::*,
     price::Price,
-    primitives::SystemNode,
     terms::CVLPct,
 };
 
@@ -90,7 +89,7 @@ impl JobRunner for CreditFacilityProcessingJobRunner {
             let audit_info = self
                 .audit
                 .record_entry(
-                    &Subject::System(SystemNode::Core),
+                    &Subject::core(),
                     Object::CreditFacility,
                     CreditFacilityAction::UpdateCollateralizationState,
                     true,
