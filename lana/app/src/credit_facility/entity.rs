@@ -353,6 +353,10 @@ impl CreditFacility {
         })
     }
 
+    pub fn structuring_fee(&self) -> UsdCents {
+        unimplemented!()
+    }
+
     fn total_disbursed(&self) -> UsdCents {
         let mut amounts = std::collections::HashMap::new();
         self.events
@@ -522,6 +526,7 @@ impl CreditFacility {
 
         Ok(CreditFacilityActivationData {
             facility: self.initial_facility(),
+            structuring_fee: self.structuring_fee(),
             tx_ref: format!("{}-activate", self.id),
             tx_id: LedgerTxId::new(),
             credit_facility_account_ids: self.account_ids,

@@ -867,13 +867,21 @@ impl CalaClient {
         &self,
         transaction_id: LedgerTxId,
         credit_facility_account_ids: CreditFacilityAccountIds,
+        user_account_ids: CustomerLedgerAccountIds,
         facility_amount: Decimal,
+        structuring_fee_amount: Decimal,
         external_id: String,
     ) -> Result<chrono::DateTime<chrono::Utc>, CalaError> {
         let variables = post_approve_credit_facility_transaction::Variables {
             transaction_id: transaction_id.into(),
             credit_facility_account: credit_facility_account_ids.facility_account_id.into(),
+            facility_disbursed_receivable_account: credit_facility_account_ids
+                .disbursed_receivable_account_id
+                .into(),
+            facility_fee_income_account: credit_facility_account_ids.fee_income_account_id.into(),
+            checking_account: user_account_ids.on_balance_sheet_deposit_account_id.into(),
             facility_amount,
+            structuring_fee_amount,
             external_id,
         };
         let response = Self::traced_gql_request::<PostApproveCreditFacilityTransaction, _>(

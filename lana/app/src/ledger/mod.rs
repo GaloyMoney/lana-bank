@@ -228,6 +228,7 @@ impl Ledger {
             credit_facility_account_ids,
             customer_account_ids,
             facility,
+            structuring_fee,
         }: CreditFacilityActivationData,
     ) -> Result<chrono::DateTime<chrono::Utc>, LedgerError> {
         Ok(self
@@ -235,7 +236,9 @@ impl Ledger {
             .execute_approve_credit_facility_tx(
                 tx_id,
                 credit_facility_account_ids,
+                customer_account_ids,
                 facility.to_usd(),
+                structuring_fee.to_usd(),
                 tx_ref,
             )
             .await?)
