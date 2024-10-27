@@ -1,5 +1,5 @@
 use serde::{de::DeserializeOwned, Serialize};
-use sqlx::{PgPool, Postgres, Row, Transaction};
+use sqlx::{PgPool, Postgres, Transaction};
 
 use super::event::*;
 
