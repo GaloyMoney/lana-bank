@@ -192,7 +192,7 @@ mod tests {
     fn dummy_audit_info() -> AuditInfo {
         AuditInfo {
             audit_entry_id: AuditEntryId::from(1),
-            sub: Subject::from(UserId::new()),
+            sub: Subject::from(UserId::new()).to_string(),
         }
     }
 
