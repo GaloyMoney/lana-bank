@@ -40,11 +40,19 @@ import { Badge } from "@/components/primitive/badge"
 import { Card, CardContent } from "@/components/primitive/card"
 
 gql`
-  query Users {
-    users {
-      userId
-      email
-      roles
+  query Users($first: Int!, $after: String) {
+    users(first: $first, after: $after) {
+      nodes {
+        userId
+        email
+        roles
+      }
+      pageInfo {
+        endCursor
+        startCursor
+        hasNextPage
+        hasPreviousPage
+      }
     }
   }
 
