@@ -714,6 +714,13 @@ export type FacilityRemaining = {
   usdBalance: Scalars['UsdCents']['output'];
 };
 
+export type GovernanceNavigationItems = {
+  __typename?: 'GovernanceNavigationItems';
+  approvalProcess: Scalars['Boolean']['output'];
+  committee: Scalars['Boolean']['output'];
+  policy: Scalars['Boolean']['output'];
+};
+
 export type IncrementalPayment = {
   __typename?: 'IncrementalPayment';
   cents: Scalars['UsdCents']['output'];
@@ -1609,6 +1616,7 @@ export type VisibleNavigationItems = {
   customer: Scalars['Boolean']['output'];
   deposit: Scalars['Boolean']['output'];
   financials: Scalars['Boolean']['output'];
+  governance: GovernanceNavigationItems;
   loan: Scalars['Boolean']['output'];
   term: Scalars['Boolean']['output'];
   user: Scalars['Boolean']['output'];
@@ -1692,6 +1700,13 @@ export type ApprovalProcessApproveMutationVariables = Exact<{
 
 
 export type ApprovalProcessApproveMutation = { __typename?: 'Mutation', approvalProcessApprove: { __typename?: 'ApprovalProcessApprovePayload', approvalProcess: { __typename?: 'ApprovalProcess', id: string, approvalProcessId: string, approvalProcessType: ApprovalProcessType, createdAt: any } } };
+
+export type ApprovalProcessDenyMutationVariables = Exact<{
+  input: ApprovalProcessDenyInput;
+}>;
+
+
+export type ApprovalProcessDenyMutation = { __typename?: 'Mutation', approvalProcessDeny: { __typename?: 'ApprovalProcessDenyPayload', approvalProcess: { __typename?: 'ApprovalProcess', id: string, approvalProcessId: string, processType: string, createdAt: any } } };
 
 export type ApprovalProcessesQueryVariables = Exact<{
   first: Scalars['Int']['input'];
@@ -2123,7 +2138,7 @@ export type GetWithdrawalDetailsQueryVariables = Exact<{
 }>;
 
 
-export type GetWithdrawalDetailsQuery = { __typename?: 'Query', withdrawal?: { __typename?: 'Withdrawal', customerId: string, withdrawalId: string, amount: any, status: WithdrawalStatus, reference: string, userCanConfirm: boolean, userCanCancel: boolean, customer?: { __typename?: 'Customer', email: string, customerId: string, applicantId?: string | null } | null } | null };
+export type GetWithdrawalDetailsQuery = { __typename?: 'Query', withdrawal?: { __typename?: 'Withdrawal', customerId: string, withdrawalId: string, amount: any, status: WithdrawalStatus, reference: string, userCanConfirm: boolean, userCanCancel: boolean, customer?: { __typename?: 'Customer', email: string, customerId: string, applicantId?: string | null } | null, approvalProcess: { __typename?: 'ApprovalProcess', approvalProcessId: string, status: ApprovalProcessStatus, policy: { __typename?: 'Policy', rules: { __typename?: 'CommitteeThreshold', threshold: number, committee: { __typename?: 'Committee', name: string, currentMembers: Array<{ __typename?: 'User', email: string, roles: Array<Role> }> } } | { __typename?: 'SystemApproval', autoApprove: boolean } }, voters: Array<{ __typename?: 'ApprovalProcessVoter', stillEligible: boolean, didVote: boolean, didApprove: boolean, didDeny: boolean, user: { __typename?: 'User', userId: string, email: string, roles: Array<Role> } }> } } | null };
 
 export type WithdrawalCancelMutationVariables = Exact<{
   input: WithdrawalCancelInput;
@@ -2169,7 +2184,7 @@ export type GetRealtimePriceUpdatesQuery = { __typename?: 'Query', realtimePrice
 export type MeQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type MeQuery = { __typename?: 'Query', me: { __typename?: 'User', userId: string, email: string, roles: Array<Role>, canCreateUser: boolean, canCreateCustomer: boolean, canAssignRoleToUser: boolean, canRevokeRoleFromUser: boolean, canCreateTermsTemplate: boolean, canUpdateTermsTemplate: boolean, visibleNavigationItems: { __typename?: 'VisibleNavigationItems', loan: boolean, term: boolean, user: boolean, customer: boolean, deposit: boolean, withdraw: boolean, audit: boolean, financials: boolean, creditFacilities: boolean } } };
+export type MeQuery = { __typename?: 'Query', me: { __typename?: 'User', userId: string, email: string, roles: Array<Role>, canCreateUser: boolean, canCreateCustomer: boolean, canAssignRoleToUser: boolean, canRevokeRoleFromUser: boolean, canCreateTermsTemplate: boolean, canUpdateTermsTemplate: boolean, visibleNavigationItems: { __typename?: 'VisibleNavigationItems', loan: boolean, term: boolean, user: boolean, customer: boolean, deposit: boolean, withdraw: boolean, audit: boolean, financials: boolean, creditFacilities: boolean, governance: { __typename?: 'GovernanceNavigationItems', committee: boolean, policy: boolean, approvalProcess: boolean } } } };
 
 export type UpdateTermsTemplateMutationVariables = Exact<{
   input: TermsTemplateUpdateInput;
@@ -2309,6 +2324,44 @@ export function useApprovalProcessApproveMutation(baseOptions?: Apollo.MutationH
 export type ApprovalProcessApproveMutationHookResult = ReturnType<typeof useApprovalProcessApproveMutation>;
 export type ApprovalProcessApproveMutationResult = Apollo.MutationResult<ApprovalProcessApproveMutation>;
 export type ApprovalProcessApproveMutationOptions = Apollo.BaseMutationOptions<ApprovalProcessApproveMutation, ApprovalProcessApproveMutationVariables>;
+export const ApprovalProcessDenyDocument = gql`
+    mutation ApprovalProcessDeny($input: ApprovalProcessDenyInput!) {
+  approvalProcessDeny(input: $input) {
+    approvalProcess {
+      id
+      approvalProcessId
+      processType
+      createdAt
+    }
+  }
+}
+    `;
+export type ApprovalProcessDenyMutationFn = Apollo.MutationFunction<ApprovalProcessDenyMutation, ApprovalProcessDenyMutationVariables>;
+
+/**
+ * __useApprovalProcessDenyMutation__
+ *
+ * To run a mutation, you first call `useApprovalProcessDenyMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useApprovalProcessDenyMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [approvalProcessDenyMutation, { data, loading, error }] = useApprovalProcessDenyMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useApprovalProcessDenyMutation(baseOptions?: Apollo.MutationHookOptions<ApprovalProcessDenyMutation, ApprovalProcessDenyMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<ApprovalProcessDenyMutation, ApprovalProcessDenyMutationVariables>(ApprovalProcessDenyDocument, options);
+      }
+export type ApprovalProcessDenyMutationHookResult = ReturnType<typeof useApprovalProcessDenyMutation>;
+export type ApprovalProcessDenyMutationResult = Apollo.MutationResult<ApprovalProcessDenyMutation>;
+export type ApprovalProcessDenyMutationOptions = Apollo.BaseMutationOptions<ApprovalProcessDenyMutation, ApprovalProcessDenyMutationVariables>;
 export const ApprovalProcessesDocument = gql`
     query ApprovalProcesses($first: Int!, $after: String) {
   approvalProcesses(first: $first, after: $after) {
@@ -5276,6 +5329,38 @@ export const GetWithdrawalDetailsDocument = gql`
       customerId
       applicantId
     }
+    approvalProcess {
+      approvalProcessId
+      status
+      policy {
+        rules {
+          ... on CommitteeThreshold {
+            threshold
+            committee {
+              name
+              currentMembers {
+                email
+                roles
+              }
+            }
+          }
+          ... on SystemApproval {
+            autoApprove
+          }
+        }
+      }
+      voters {
+        stillEligible
+        didVote
+        didApprove
+        didDeny
+        user {
+          userId
+          email
+          roles
+        }
+      }
+    }
   }
 }
     `;
@@ -5598,6 +5683,11 @@ export const MeDocument = gql`
       audit
       financials
       creditFacilities
+      governance {
+        committee
+        policy
+        approvalProcess
+      }
     }
   }
 }

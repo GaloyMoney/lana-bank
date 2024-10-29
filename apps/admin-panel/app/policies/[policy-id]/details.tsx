@@ -7,7 +7,7 @@ import { ApprovalRules, GetPolicyDetailsQuery } from "@/lib/graphql/generated"
 import { DetailItem, DetailsGroup } from "@/components/details"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/primitive/card"
 import { Button } from "@/components/primitive/button"
-import { formatRule } from "@/lib/utils"
+import { formatRule, formatProcessType } from "@/lib/utils"
 
 type PolicyDetailsProps = {
   policy: NonNullable<GetPolicyDetailsQuery["policy"]>
@@ -25,8 +25,10 @@ export const PolicyDetailsCard: React.FC<PolicyDetailsProps> = ({ policy }) => {
         </CardHeader>
         <CardContent>
           <DetailsGroup>
-            <DetailItem label="Policy ID" value={policy.policyId} />
-            <DetailItem label="Process Type" value={policy.approvalProcessType} />
+            <DetailItem
+              label="Process Type"
+              value={formatProcessType(policy.approvalProcessType)}
+            />
             <DetailItem label="Rule" value={formatRule(policy.rules as ApprovalRules)} />
             {policyRuleType === "CommitteeThreshold" && (
               <DetailItem

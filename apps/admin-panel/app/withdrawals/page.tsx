@@ -190,7 +190,13 @@ function WithdrawalsTable() {
                 <TableBody>
                   {withdrawalsToDisplay.map((withdrawal) =>
                     withdrawal && withdrawal.customer ? (
-                      <TableRow key={withdrawal.withdrawalId}>
+                      <TableRow
+                        className="cursor-pointer"
+                        onClick={() => {
+                          router.push(`/withdrawals/${withdrawal.withdrawalId}`)
+                        }}
+                        key={withdrawal.withdrawalId}
+                      >
                         <TableCell className="hover:underline">
                           <Link href={`/customers/${withdrawal.customer.customerId}`}>
                             {withdrawal.customer.email}

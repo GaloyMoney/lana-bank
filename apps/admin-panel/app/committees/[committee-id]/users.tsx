@@ -92,7 +92,7 @@ export const CommitteeUsers: React.FC<CommitteeUsersProps> = ({ committee }) => 
       ) : (
         <Card>
           <CardContent>
-            <p className="mt-6">No members found</p>
+            <p className="mt-6">No members found in this committee</p>
           </CardContent>
         </Card>
       )}

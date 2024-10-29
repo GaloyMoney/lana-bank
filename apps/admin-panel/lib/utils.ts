@@ -136,7 +136,7 @@ export const formatRule = (rule: ApprovalRules | null | undefined): string => {
   }
 
   if (rule.__typename === "CommitteeThreshold") {
-    return `${rule.threshold} Members required`
+    return `${rule.threshold} ${rule.threshold === 1 ? "member" : "members"} required`
   }
 
   if (rule.__typename === "SystemApproval") {
@@ -144,4 +144,11 @@ export const formatRule = (rule: ApprovalRules | null | undefined): string => {
   }
 
   return "Unknown rule type"
+}
+
+export const formatProcessType = (processType: string) => {
+  return processType
+    .split("-")
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .join(" ")
 }

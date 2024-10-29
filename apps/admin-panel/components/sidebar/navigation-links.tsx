@@ -17,7 +17,6 @@ import { RiAdminLine } from "react-icons/ri"
 import { PiHandDeposit, PiHandWithdraw } from "react-icons/pi"
 import { HiOutlineDocumentReport } from "react-icons/hi"
 import { MdOutlinePolicy } from "react-icons/md"
-import { FiUsers } from "react-icons/fi"
 
 import { gql } from "@apollo/client"
 
@@ -50,6 +49,11 @@ gql`
         audit
         financials
         creditFacilities
+        governance {
+          committee
+          policy
+          approvalProcess
+        }
       }
     }
   }
@@ -119,22 +123,17 @@ const NavigationLinks = () => {
       visible: true,
     },
     {
-      href: "/committees",
-      label: "Committees",
-      icon: FiUsers,
-      visible: true,
-    },
-    {
-      href: "/policies",
-      label: "Policies",
+      label: "Governance",
       icon: MdOutlinePolicy,
-      visible: true,
-    },
-    {
-      href: "/approval-process",
-      label: "Approval Process",
-      icon: MdOutlinePolicy,
-      visible: true,
+      visible:
+        visibleItems?.governance.committee ||
+        visibleItems?.governance.policy ||
+        visibleItems?.governance.approvalProcess,
+      subMenu: [
+        { href: "/committees", label: "Committees" },
+        { href: "/policies", label: "Policies" },
+        { href: "/approval-process", label: "Approval Process" },
+      ],
     },
     {
       label: "Financials",

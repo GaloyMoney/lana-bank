@@ -10,46 +10,43 @@ import {
   DialogTitle,
 } from "@/components/primitive/dialog"
 import { Button } from "@/components/primitive/button"
-import {
-  ApprovalProcess,
-  useApprovalProcessApproveMutation,
-} from "@/lib/graphql/generated"
+import { ApprovalProcess, useApprovalProcessDenyMutation } from "@/lib/graphql/generated"
 import { DetailItem, DetailsGroup } from "@/components/details"
 import { formatDate, formatProcessType } from "@/lib/utils"
 
 gql`
-  mutation ApprovalProcessApprove($input: ApprovalProcessApproveInput!) {
-    approvalProcessApprove(input: $input) {
+  mutation ApprovalProcessDeny($input: ApprovalProcessDenyInput!) {
+    approvalProcessDeny(input: $input) {
       approvalProcess {
         id
         approvalProcessId
-        approvalProcessType
+        processType
         createdAt
       }
     }
   }
 `
 
-type ApprovalDialogProps = {
-  setOpenApprovalDialog: (isOpen: boolean) => void
-  openApprovalDialog: boolean
+type DenialDialogProps = {
+  setOpenDenialDialog: (isOpen: boolean) => void
+  openDenialDialog: boolean
   approvalProcess: ApprovalProcess
   refetch?: () => void
 }
 
-export const ApprovalDialog: React.FC<ApprovalDialogProps> = ({
-  setOpenApprovalDialog,
-  openApprovalDialog,
-  approvalProcess,
+export const DenialDialog: React.FC<DenialDialogProps> = ({
+  setOpenDenialDialog,
+  openDenialDialog,
   refetch,
+  approvalProcess,
 }) => {
   const [error, setError] = React.useState<string | null>(null)
-  const [approveProcess, { loading }] = useApprovalProcessApproveMutation()
+  const [denyProcess, { loading }] = useApprovalProcessDenyMutation()
 
-  const handleApprove = async () => {
+  const handleDeny = async () => {
     setError(null)
     try {
-      await approveProcess({
+      await denyProcess({
         variables: {
           input: {
             processId: approvalProcess.approvalProcessId,
@@ -57,10 +54,10 @@ export const ApprovalDialog: React.FC<ApprovalDialogProps> = ({
         },
         onCompleted: () => {
           if (refetch) refetch()
-          toast.success("Process approved successfully")
+          toast.success("Process denied successfully")
         },
       })
-      setOpenApprovalDialog(false)
+      setOpenDenialDialog(false)
     } catch (error) {
       if (error instanceof Error) {
         setError(error.message)
@@ -71,10 +68,10 @@ export const ApprovalDialog: React.FC<ApprovalDialogProps> = ({
   }
 
   return (
-    <Dialog open={openApprovalDialog} onOpenChange={setOpenApprovalDialog}>
+    <Dialog open={openDenialDialog} onOpenChange={setOpenDenialDialog}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Approve Process</DialogTitle>
+          <DialogTitle>Deny Process</DialogTitle>
         </DialogHeader>
         <DetailsGroup>
           <DetailItem
@@ -85,11 +82,11 @@ export const ApprovalDialog: React.FC<ApprovalDialogProps> = ({
         </DetailsGroup>
         {error && <p className="text-destructive text-sm">{error}</p>}
         <DialogFooter className="flex gap-2 sm:gap-0">
-          <Button variant="ghost" onClick={() => setOpenApprovalDialog(false)}>
+          <Button variant="ghost" onClick={() => setOpenDenialDialog(false)}>
             Cancel
           </Button>
-          <Button onClick={handleApprove} loading={loading}>
-            Approve
+          <Button onClick={handleDeny} loading={loading}>
+            Deny
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -97,4 +94,4 @@ export const ApprovalDialog: React.FC<ApprovalDialogProps> = ({
   )
 }
 
-export default ApprovalDialog
+export default DenialDialog

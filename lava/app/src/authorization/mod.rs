@@ -5,6 +5,7 @@ use crate::audit::Audit;
 pub use authz::error;
 use authz::error::AuthorizationError;
 pub use core_user::{CoreUserAction, UserObject};
+use governance::{GovernanceAction, GovernanceObject};
 pub use rbac_types::{AppAction as Action, AppObject as Object, *};
 
 pub type Authorization = authz::Authorization<Audit, Role>;
@@ -85,6 +86,35 @@ pub async fn get_visible_navigation_items(
         financials: authz
             .check_all_permissions(sub, Object::Ledger, &[Action::Ledger(LedgerAction::Read)])
             .await?,
+        governance: GovernanceNavigationItems {
+            committee: authz
+                .check_all_permissions(
+                    sub,
+                    GovernanceObject::all_committees(),
+                    &[
+                        GovernanceAction::COMMITTEE_READ,
+                        GovernanceAction::COMMITTEE_LIST,
+                    ],
+                )
+                .await?,
+            policy: authz
+                .check_all_permissions(
+                    sub,
+                    GovernanceObject::all_policies(),
+                    &[GovernanceAction::POLICY_READ, GovernanceAction::POLICY_LIST],
+                )
+                .await?,
+            approval_process: authz
+                .check_all_permissions(
+                    sub,
+                    GovernanceObject::all_approval_processes(),
+                    &[
+                        GovernanceAction::APPROVAL_PROCESS_READ,
+                        GovernanceAction::APPROVAL_PROCESS_LIST,
+                    ],
+                )
+                .await?,
+        },
         credit_facilities: authz
             .check_all_permissions(
                 sub,
@@ -108,5 +138,13 @@ pub struct VisibleNavigationItems {
     pub withdraw: bool,
     pub audit: bool,
     pub financials: bool,
+    pub governance: GovernanceNavigationItems,
     pub credit_facilities: bool,
+}
+
+#[derive(async_graphql::SimpleObject)]
+pub struct GovernanceNavigationItems {
+    pub committee: bool,
+    pub policy: bool,
+    pub approval_process: bool,
 }

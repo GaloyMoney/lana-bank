@@ -3,6 +3,7 @@
 import { useState } from "react"
 import { gql } from "@apollo/client"
 import { useRouter } from "next/navigation"
+import { FaBan, FaCheckCircle, FaMinus } from "react-icons/fa"
 
 import { WithdrawalStatusBadge } from "../status-badge"
 import { WithdrawalConfirmDialog } from "../confirm"
@@ -10,10 +11,11 @@ import { WithdrawalCancelDialog } from "../cancel"
 
 import { useGetWithdrawalDetailsQuery, WithdrawalStatus } from "@/lib/graphql/generated"
 import { DetailItem } from "@/components/details"
-import { Card, CardContent, CardHeader } from "@/components/primitive/card"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/primitive/card"
 import { Separator } from "@/components/primitive/separator"
 import { Button } from "@/components/primitive/button"
 import Balance from "@/components/balance/balance"
+import { formatRole } from "@/lib/utils"
 
 gql`
   query GetWithdrawalDetails($id: UUID!) {
@@ -29,6 +31,38 @@ gql`
         email
         customerId
         applicantId
+      }
+      approvalProcess {
+        approvalProcessId
+        status
+        policy {
+          rules {
+            ... on CommitteeThreshold {
+              threshold
+              committee {
+                name
+                currentMembers {
+                  email
+                  roles
+                }
+              }
+            }
+            ... on SystemApproval {
+              autoApprove
+            }
+          }
+        }
+        voters {
+          stillEligible
+          didVote
+          didApprove
+          didDeny
+          user {
+            userId
+            email
+            roles
+          }
+        }
       }
     }
   }
@@ -149,6 +183,46 @@ const WithdrawalDetailsCard: React.FC<LoanDetailsProps> = ({ withdrawalId }) => 
           )
         )}
       </Card>
+      {withdrawalDetails?.withdrawal?.approvalProcess.policy.rules.__typename ===
+        "CommitteeThreshold" && (
+        <Card className="mt-4">
+          <CardHeader>
+            <CardTitle className="text-primary font-normal">
+              Approval process decision from the{" "}
+              {withdrawalDetails.withdrawal.approvalProcess.policy.rules.committee.name}{" "}
+              Committee
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {withdrawalDetails.withdrawal.approvalProcess.voters.map((voter) => (
+              <div key={voter.user.userId} className="flex items-center space-x-3 p-2">
+                {voter.didApprove ? (
+                  <FaCheckCircle className="h-6 w-6 text-green-500" />
+                ) : voter.didDeny ? (
+                  <FaBan className="h-6 w-6 text-red-500" />
+                ) : !voter.didVote ? (
+                  <FaMinus className="h-6 w-6 text-gray-700" />
+                ) : (
+                  <></>
+                )}
+                <div>
+                  <p className="text-sm font-medium">{voter.user.email}</p>
+                  <p className="text-sm text-textColor-secondary">
+                    {voter.user.roles.map(formatRole).join(", ")}
+                  </p>
+                  {
+                    <p className="mt-1 text-xs text-textColor-secondary">
+                      {voter.didApprove && "Approved"}
+                      {voter.didDeny && "Denied"}
+                      {!voter.didVote && "Did not vote"}
+                    </p>
+                  }
+                </div>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      )}
       {openWithdrawalConfirmDialog && (
         <WithdrawalConfirmDialog
           refetch={refetchWithdrawal}
