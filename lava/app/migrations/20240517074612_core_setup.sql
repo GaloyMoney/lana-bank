@@ -112,6 +112,7 @@ CREATE TABLE loan_events (
 CREATE TABLE credit_facilities (
   id UUID PRIMARY KEY,
   customer_id UUID NOT NULL REFERENCES customers(id),
+  approval_process_id UUID NOT NULL REFERENCES approval_processes(id),
   collateralization_ratio NUMERIC,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );

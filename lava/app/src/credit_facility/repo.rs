@@ -15,6 +15,7 @@ const BQ_TABLE_NAME: &str = "credit_facility_events";
     err = "CreditFacilityError",
     columns(
         customer_id(ty = "CustomerId", list_for),
+        approval_process_id(ty = "ApprovalProcessId", update(persist = "false")),
         collateralization_ratio(
             ty = "Option<Decimal>",
             create(persist = false),
