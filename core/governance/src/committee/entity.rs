@@ -45,23 +45,12 @@ impl Committee {
             .expect("No events for committee")
     }
 
-    fn is_user_added(&self, user_id: UserId) -> bool {
-        for event in self.events.iter_all() {
-            if let CommitteeEvent::UserAdded { user_id: id, .. } = event {
-                if *id == user_id {
-                    return true;
-                }
-            }
-        }
-        false
-    }
-
     pub(crate) fn add_user(
         &mut self,
         user_id: UserId,
         audit_info: AuditInfo,
     ) -> Result<(), CommitteeError> {
-        if self.is_user_added(user_id) {
+        if self.members().contains(&user_id) {
             return Err(CommitteeError::UserAlreadyAdded(user_id));
         }
 
@@ -84,20 +73,20 @@ impl Committee {
     }
 
     pub fn members(&self) -> HashSet<UserId> {
-        let mut users = HashSet::new();
+        let mut members = HashSet::new();
 
         for event in self.events.iter_all() {
             match event {
                 CommitteeEvent::UserAdded { user_id, .. } => {
-                    users.insert(*user_id);
+                    members.insert(*user_id);
                 }
                 CommitteeEvent::UserRemoved { user_id, .. } => {
-                    users.remove(user_id);
+                    members.remove(user_id);
                 }
                 _ => {}
             }
         }
-        users
+        members
     }
 }
 
