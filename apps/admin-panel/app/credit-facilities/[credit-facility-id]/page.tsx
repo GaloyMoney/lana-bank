@@ -9,8 +9,6 @@ import { CreditFacilityOverview } from "./overview"
 
 import { CreditFacilityTerms } from "./terms"
 
-import { CreditFacilityApprovers } from "./approvers"
-
 import { CreditFacilityDisbursements } from "./disbursements"
 
 import { CreditFacilityTransactions } from "./transactions"
@@ -23,6 +21,7 @@ gql`
   query GetCreditFacilityDetails($id: UUID!) {
     creditFacility(id: $id) {
       id
+      approvalProcessId
       creditFacilityId
       collateralizationState
       status
@@ -83,14 +82,6 @@ gql`
           units
         }
       }
-      approvals {
-        user {
-          roles
-          email
-          userId
-        }
-        approvedAt
-      }
       disbursements {
         id
         index
@@ -137,7 +128,6 @@ gql`
           txId
         }
       }
-      userCanApprove
       userCanUpdateCollateral
       userCanInitiateDisbursement
       userCanApproveDisbursement
@@ -163,8 +153,6 @@ function CreditFacilityPage({
   if (error) return <div className="text-destructive">{error.message}</div>
   if (!data?.creditFacility) return <div>Not found</div>
 
-  const hasApprovers = !!data?.creditFacility?.approvals?.length
-
   return (
     <main className="max-w-7xl m-auto">
       <PageHeading>Credit Facility Details</PageHeading>
@@ -181,7 +169,6 @@ function CreditFacilityPage({
           {data.creditFacility.disbursements.length > 0 && (
             <TabsTrigger value="disbursements">Disbursements</TabsTrigger>
           )}
-          {hasApprovers && <TabsTrigger value="approvers">Approvers</TabsTrigger>}
         </TabsList>
         <TabsContent value="all">
           <CreditFacilityOverview creditFacility={data.creditFacility} />
@@ -203,11 +190,6 @@ function CreditFacilityPage({
         {data.creditFacility.disbursements.length > 0 && (
           <TabsContent value="disbursements">
             <CreditFacilityDisbursements creditFacility={data.creditFacility} />
-          </TabsContent>
-        )}
-        {hasApprovers && (
-          <TabsContent value="approvers">
-            <CreditFacilityApprovers creditFacility={data.creditFacility} />
           </TabsContent>
         )}
       </Tabs>

@@ -1,7 +1,5 @@
 import React, { useState } from "react"
-import { gql } from "@apollo/client"
 import { toast } from "sonner"
-import { useSession } from "next-auth/react"
 
 import {
   Dialog,
@@ -15,23 +13,11 @@ import { Button } from "@/components/primitive/button"
 import {
   CreditFacility,
   GetCreditFacilityDetailsDocument,
-  useCreditFacilityApproveMutation,
+  useApprovalProcessApproveMutation,
   useGetRealtimePriceUpdatesQuery,
 } from "@/lib/graphql/generated"
 import { DetailItem, DetailsGroup } from "@/components/details"
 import Balance from "@/components/balance/balance"
-import { formatDate } from "@/lib/utils"
-
-gql`
-  mutation CreditFacilityApprove($input: CreditFacilityApproveInput!) {
-    creditFacilityApprove(input: $input) {
-      creditFacility {
-        id
-        creditFacilityId
-      }
-    }
-  }
-`
 
 type CreditFacilityApproveDialogProps = {
   setOpenDialog: (isOpen: boolean) => void
@@ -46,9 +32,7 @@ export const CreditFacilityApproveDialog: React.FC<CreditFacilityApproveDialogPr
   creditFacilityDetails,
   onSuccess,
 }) => {
-  const { data: session } = useSession()
-  const creditFacilityId = creditFacilityDetails.creditFacilityId
-  const [approveCreditFacility, { loading, reset }] = useCreditFacilityApproveMutation({
+  const [approveProcess, { loading, reset }] = useApprovalProcessApproveMutation({
     refetchQueries: [GetCreditFacilityDetailsDocument],
   })
   const [error, setError] = useState<string | null>(null)
@@ -56,24 +40,18 @@ export const CreditFacilityApproveDialog: React.FC<CreditFacilityApproveDialogPr
     fetchPolicy: "cache-only",
   })
 
-  const hasApprovals = creditFacilityDetails.approvals.length > 0
-  const userHasAlreadyApproved = creditFacilityDetails.approvals
-    .map((a) => a.user.email)
-    .includes(session?.user?.email || "")
-  const canApproveCreditFacility = !userHasAlreadyApproved
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError(null)
     try {
-      await approveCreditFacility({
+      await approveProcess({
         variables: {
           input: {
-            creditFacilityId,
+            processId: creditFacilityDetails.approvalProcessId,
           },
         },
         onCompleted: (data) => {
-          if (data.creditFacilityApprove) {
+          if (data.approvalProcessApprove) {
             toast.success("Credit facility approved successfully")
             if (onSuccess) onSuccess()
             handleCloseDialog()
@@ -153,32 +131,14 @@ export const CreditFacilityApproveDialog: React.FC<CreditFacilityApproveDialogPr
         </DetailsGroup>
         <form onSubmit={handleSubmit}>
           {error && <p className="text-destructive">{error}</p>}
-          {hasApprovals && (
-            <div className="flex flex-col gap-2 mb-2 text-sm">
-              {creditFacilityDetails.approvals.map((approval, index) => (
-                <p className="text-primary" key={index}>
-                  Approved by {approval.user.email} on {formatDate(approval.approvedAt)}
-                </p>
-              ))}
-            </div>
-          )}
-          {userHasAlreadyApproved && (
-            <p className="text-success text-sm">
-              You have already approved this credit facility
-            </p>
-          )}
-          {!userHasAlreadyApproved && (
-            <DialogFooter className="mt-4">
-              <Button type="button" variant="ghost" onClick={handleCloseDialog}>
-                Cancel
-              </Button>
-              {canApproveCreditFacility && (
-                <Button type="submit" loading={loading}>
-                  Approve
-                </Button>
-              )}
-            </DialogFooter>
-          )}
+          <DialogFooter className="mt-4">
+            <Button type="button" variant="ghost" onClick={handleCloseDialog}>
+              Cancel
+            </Button>
+            <Button type="submit" loading={loading}>
+              Approve
+            </Button>
+          </DialogFooter>
         </form>
       </DialogContent>
     </Dialog>
