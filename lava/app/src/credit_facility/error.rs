@@ -16,6 +16,8 @@ pub enum CreditFacilityError {
     PriceError(#[from] crate::price::error::PriceError),
     #[error("CreditFacilityError - AuthorizationError: {0}")]
     AuthorizationError(#[from] crate::authorization::error::AuthorizationError),
+    #[error("CreditFacilityError - AuditError: {0}")]
+    AuditError(#[from] crate::audit::error::AuditError),
     #[error("CreditFacilityError - ConversionError: {0}")]
     ConversionError(#[from] crate::primitives::ConversionError),
     #[error("CreditFacilityError - DisbursementError: {0}")]
@@ -30,10 +32,14 @@ pub enum CreditFacilityError {
     UserError(#[from] crate::user::error::UserError),
     #[error("CreditFacilityError - UserCannotApproveTwice")]
     UserCannotApproveTwice,
-    #[error("CreditFacilityError - AlreadyApproved")]
-    AlreadyApproved,
+    #[error("CreditFacilityError - AlreadyActivated")]
+    AlreadyActivated,
     #[error("CreditFacilityError - NotApprovedYet")]
     NotApprovedYet,
+    #[error("CreditFacilityError - ApprovalInProgress")]
+    ApprovalInProgress,
+    #[error("CreditFacilityError - Denied")]
+    Denied,
     #[error("CreditFacilityError - DisbursementPastExpiryDate")]
     DisbursementPastExpiryDate,
     #[error("CreditFacilityError - NoDisbursementsApprovedYet")]

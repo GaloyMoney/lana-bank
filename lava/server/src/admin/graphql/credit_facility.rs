@@ -70,12 +70,12 @@ pub struct CreditFacilityCreateInput {
 pub struct CreditFacility {
     id: ID,
     credit_facility_id: UUID,
-    approved_at: Option<Timestamp>,
+    pub approval_process_id: UUID,
+    activated_at: Option<Timestamp>,
     expires_at: Option<Timestamp>,
     created_at: Timestamp,
     credit_facility_terms: TermValues,
     status: CreditFacilityStatus,
-    approvals: Vec<CreditFacilityApproval>,
     collateralization_state: CollateralizationState,
     facility_amount: UsdCents,
     collateral: Satoshis,
@@ -137,28 +137,6 @@ pub struct CreditFacilityDisbursementExecuted {
     pub tx_id: UUID,
 }
 
-#[derive(SimpleObject)]
-#[graphql(complex)]
-pub struct CreditFacilityApproval {
-    #[graphql(skip)]
-    user_id: lava_app::primitives::UserId,
-    approved_at: Timestamp,
-}
-
-#[ComplexObject]
-impl CreditFacilityApproval {
-    async fn user(&self, ctx: &Context<'_>) -> async_graphql::Result<User> {
-        let app = ctx.data_unchecked::<LavaApp>();
-        let AdminAuthContext { sub } = ctx.data()?;
-        let user = app
-            .users()
-            .find_by_id(sub, self.user_id)
-            .await?
-            .expect("should always find user for a given UserId");
-        Ok(User::from(user))
-    }
-}
-
 #[ComplexObject]
 impl CreditFacility {
     async fn balance(&self, ctx: &Context<'_>) -> async_graphql::Result<CreditFacilityBalance> {
@@ -204,16 +182,6 @@ impl CreditFacility {
         let app = ctx.data_unchecked::<LavaApp>();
         let price = app.price().usd_cents_per_btc().await?;
         Ok(FacilityCVL::from(self.cvl_data.cvl(price)))
-    }
-
-    async fn user_can_approve(&self, ctx: &Context<'_>) -> async_graphql::Result<bool> {
-        let app = ctx.data_unchecked::<LavaApp>();
-        let AdminAuthContext { sub } = ctx.data()?;
-        Ok(app
-            .credit_facilities()
-            .user_can_approve(sub, false)
-            .await
-            .is_ok())
     }
 
     async fn user_can_update_collateral(&self, ctx: &Context<'_>) -> async_graphql::Result<bool> {
@@ -279,24 +247,6 @@ pub struct CreditFacilityCreatePayload {
 }
 
 #[derive(InputObject)]
-pub struct CreditFacilityApproveInput {
-    pub credit_facility_id: UUID,
-}
-
-#[derive(SimpleObject)]
-pub struct CreditFacilityApprovePayload {
-    credit_facility: CreditFacility,
-}
-
-impl From<lava_app::credit_facility::CreditFacility> for CreditFacilityApprovePayload {
-    fn from(credit_facility: lava_app::credit_facility::CreditFacility) -> Self {
-        Self {
-            credit_facility: credit_facility.into(),
-        }
-    }
-}
-
-#[derive(InputObject)]
 pub struct CreditFacilityCompleteInput {
     pub credit_facility_id: UUID,
 }
@@ -322,13 +272,8 @@ impl ToGlobalId for lava_app::primitives::CreditFacilityId {
 
 impl From<lava_app::credit_facility::CreditFacility> for CreditFacility {
     fn from(credit_facility: lava_app::credit_facility::CreditFacility) -> Self {
-        let approved_at: Option<Timestamp> = credit_facility.approved_at.map(|t| t.into());
+        let activated_at: Option<Timestamp> = credit_facility.activated_at.map(|t| t.into());
         let expires_at: Option<Timestamp> = credit_facility.expires_at.map(|t| t.into());
-        let approvals = credit_facility
-            .approvals()
-            .into_iter()
-            .map(CreditFacilityApproval::from)
-            .collect();
         let transactions = credit_facility
             .history()
             .into_iter()
@@ -338,14 +283,14 @@ impl From<lava_app::credit_facility::CreditFacility> for CreditFacility {
         Self {
             id: credit_facility.id.to_global_id(),
             credit_facility_id: UUID::from(credit_facility.id),
-            approved_at,
+            approval_process_id: UUID::from(credit_facility.approval_process_id),
+            activated_at,
             expires_at,
             created_at: credit_facility.created_at().into(),
             account_ids: credit_facility.account_ids,
             cvl_data: credit_facility.facility_cvl_data(),
             credit_facility_terms: TermValues::from(credit_facility.terms),
             status: credit_facility.status(),
-            approvals,
             can_be_completed: credit_facility.can_be_completed(),
             transactions,
             facility_amount: credit_facility.initial_facility(),
@@ -500,15 +445,6 @@ impl From<lava_app::credit_facility::CreditFacility> for CreditFacilityCollatera
     fn from(credit_facility: lava_app::credit_facility::CreditFacility) -> Self {
         Self {
             credit_facility: credit_facility.into(),
-        }
-    }
-}
-
-impl From<lava_app::credit_facility::CreditFacilityApproval> for CreditFacilityApproval {
-    fn from(approver: lava_app::credit_facility::CreditFacilityApproval) -> Self {
-        CreditFacilityApproval {
-            user_id: approver.user_id,
-            approved_at: approver.approved_at.into(),
         }
     }
 }

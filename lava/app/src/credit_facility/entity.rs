@@ -30,14 +30,18 @@ pub enum CreditFacilityEvent {
         customer_account_ids: CustomerLedgerAccountIds,
         audit_info: AuditInfo,
     },
-    ApprovalAdded {
-        approving_user_id: UserId,
-        recorded_at: DateTime<Utc>,
+    ApprovalProcessStarted {
+        approval_process_id: ApprovalProcessId,
         audit_info: AuditInfo,
     },
-    Approved {
-        tx_id: LedgerTxId,
-        recorded_at: DateTime<Utc>,
+    ApprovalProcessConcluded {
+        approval_process_id: ApprovalProcessId,
+        approved: bool,
+        audit_info: AuditInfo,
+    },
+    Activated {
+        ledger_tx_id: LedgerTxId,
+        activated_at: DateTime<Utc>,
         audit_info: AuditInfo,
     },
     DisbursementInitiated {
@@ -95,11 +99,6 @@ pub enum CreditFacilityEvent {
         completed_at: DateTime<Utc>,
         audit_info: AuditInfo,
     },
-}
-
-pub struct CreditFacilityApproval {
-    pub user_id: UserId,
-    pub approved_at: DateTime<Utc>,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -194,12 +193,13 @@ impl FacilityCVL {
 #[builder(pattern = "owned", build_fn(error = "EsEntityError"))]
 pub struct CreditFacility {
     pub id: CreditFacilityId,
+    pub approval_process_id: ApprovalProcessId,
     pub customer_id: CustomerId,
     pub terms: TermValues,
     pub account_ids: CreditFacilityAccountIds,
     pub customer_account_ids: CustomerLedgerAccountIds,
     #[builder(setter(strip_option), default)]
-    pub approved_at: Option<DateTime<Utc>>,
+    pub activated_at: Option<DateTime<Utc>>,
     #[builder(setter(strip_option), default)]
     pub expires_at: Option<DateTime<Utc>>,
     pub(super) events: EntityEvents<CreditFacilityEvent>,
@@ -311,10 +311,32 @@ impl CreditFacility {
         history::project(self.events.iter_all())
     }
 
-    pub(super) fn is_approved(&self) -> bool {
+    pub(super) fn is_approval_process_concluded(&self) -> bool {
         for event in self.events.iter_all() {
             match event {
-                CreditFacilityEvent::Approved { .. } => return true,
+                CreditFacilityEvent::ApprovalProcessConcluded { .. } => return true,
+                _ => continue,
+            }
+        }
+        false
+    }
+
+    pub(super) fn is_approved(&self) -> Result<bool, CreditFacilityError> {
+        for event in self.events.iter_all() {
+            match event {
+                CreditFacilityEvent::ApprovalProcessConcluded { approved, .. } => {
+                    return Ok(*approved)
+                }
+                _ => continue,
+            }
+        }
+        Err(CreditFacilityError::ApprovalInProgress)
+    }
+
+    pub(super) fn is_activated(&self) -> bool {
+        for event in self.events.iter_all() {
+            match event {
+                CreditFacilityEvent::Activated { .. } => return true,
                 _ => continue,
             }
         }
@@ -331,7 +353,7 @@ impl CreditFacility {
             CreditFacilityStatus::Closed
         } else if self.is_expired() {
             CreditFacilityStatus::Expired
-        } else if self.is_approved() {
+        } else if self.is_activated() {
             CreditFacilityStatus::Active
         } else if self.is_fully_collateralized() {
             CreditFacilityStatus::PendingApproval
@@ -340,40 +362,28 @@ impl CreditFacility {
         }
     }
 
-    fn approval_threshold_met(&self) -> bool {
+    pub(super) fn approval_process_concluded(&mut self, approved: bool, audit_info: AuditInfo) {
         self.events
-            .iter_all()
-            .any(|event| matches!(event, CreditFacilityEvent::ApprovalAdded { .. }))
+            .push(CreditFacilityEvent::ApprovalProcessConcluded {
+                approval_process_id: self.id.into(),
+                approved,
+                audit_info,
+            });
     }
 
-    fn has_user_previously_approved(&self, user_id: UserId) -> bool {
-        for event in self.events.iter_all() {
-            match event {
-                CreditFacilityEvent::ApprovalAdded {
-                    approving_user_id, ..
-                } => {
-                    if user_id == *approving_user_id {
-                        return true;
-                    }
-                }
-                _ => continue,
-            }
-        }
-        false
-    }
-
-    pub(super) fn add_approval(
-        &mut self,
-        approving_user_id: UserId,
-        audit_info: AuditInfo,
+    pub(crate) fn activation_data(
+        &self,
         price: PriceOfOneBTC,
-    ) -> Result<Option<CreditFacilityApprovalData>, CreditFacilityError> {
-        if self.has_user_previously_approved(approving_user_id) {
-            return Err(CreditFacilityError::UserCannotApproveTwice);
+    ) -> Result<CreditFacilityActivationData, CreditFacilityError> {
+        if !self.is_approval_process_concluded() {
+            return Err(CreditFacilityError::NotApprovedYet);
+        }
+        if !self.is_approved()? {
+            return Err(CreditFacilityError::Denied);
         }
 
-        if self.is_approved() {
-            return Err(CreditFacilityError::AlreadyApproved);
+        if self.is_activated() {
+            return Err(CreditFacilityError::AlreadyActivated);
         }
 
         if self.collateral() == Satoshis::ZERO {
@@ -384,59 +394,28 @@ impl CreditFacility {
             .cvl(price)
             .is_approval_allowed(self.terms)?;
 
-        self.events.push(CreditFacilityEvent::ApprovalAdded {
-            approving_user_id,
-            audit_info,
-            recorded_at: Utc::now(),
-        });
-
-        if self.approval_threshold_met() {
-            let tx_ref = format!("{}-approval", self.id);
-            Ok(Some(CreditFacilityApprovalData {
-                facility: self.initial_facility(),
-                tx_ref,
-                tx_id: LedgerTxId::new(),
-                credit_facility_account_ids: self.account_ids,
-                customer_account_ids: self.customer_account_ids,
-            }))
-        } else {
-            Ok(None)
-        }
+        Ok(CreditFacilityActivationData {
+            facility: self.initial_facility(),
+            tx_ref: format!("{}-activate", self.id),
+            tx_id: LedgerTxId::new(),
+            credit_facility_account_ids: self.account_ids,
+            customer_account_ids: self.customer_account_ids,
+        })
     }
 
-    pub(super) fn confirm_approval(
+    pub(super) fn activate(
         &mut self,
-        CreditFacilityApprovalData { tx_id, .. }: CreditFacilityApprovalData,
-        executed_at: DateTime<Utc>,
+        CreditFacilityActivationData { tx_id, .. }: CreditFacilityActivationData,
+        activated_at: DateTime<Utc>,
         audit_info: AuditInfo,
     ) {
-        self.approved_at = Some(executed_at);
-        self.expires_at = Some(self.terms.duration.expiration_date(executed_at));
-        self.events.push(CreditFacilityEvent::Approved {
-            tx_id,
+        self.activated_at = Some(activated_at);
+        self.expires_at = Some(self.terms.duration.expiration_date(activated_at));
+        self.events.push(CreditFacilityEvent::Activated {
+            ledger_tx_id: tx_id,
+            activated_at,
             audit_info,
-            recorded_at: executed_at,
         });
-    }
-
-    pub fn approvals(&self) -> Vec<CreditFacilityApproval> {
-        let mut approvals = Vec::new();
-
-        for event in self.events.iter_all().rev() {
-            if let CreditFacilityEvent::ApprovalAdded {
-                approving_user_id,
-                recorded_at,
-                ..
-            } = event
-            {
-                approvals.push(CreditFacilityApproval {
-                    user_id: *approving_user_id,
-                    approved_at: *recorded_at,
-                });
-            }
-        }
-
-        approvals
     }
 
     pub(super) fn initiate_disbursement(
@@ -961,15 +940,19 @@ impl TryFromEvents<CreditFacilityEvent> for CreditFacility {
                         .account_ids(*account_ids)
                         .customer_account_ids(*customer_account_ids)
                 }
-                CreditFacilityEvent::Approved { recorded_at, .. } => {
-                    builder = builder.approved_at(*recorded_at).expires_at(
+                CreditFacilityEvent::ApprovalProcessStarted {
+                    approval_process_id,
+                    ..
+                } => builder = builder.approval_process_id(*approval_process_id),
+                CreditFacilityEvent::Activated { activated_at, .. } => {
+                    builder = builder.activated_at(*activated_at).expires_at(
                         terms
                             .expect("terms should be set")
                             .duration
-                            .expiration_date(*recorded_at),
+                            .expiration_date(*activated_at),
                     )
                 }
-                CreditFacilityEvent::ApprovalAdded { .. } => (),
+                CreditFacilityEvent::ApprovalProcessConcluded { .. } => (),
                 CreditFacilityEvent::DisbursementInitiated { .. } => (),
                 CreditFacilityEvent::DisbursementConcluded { .. } => (),
                 CreditFacilityEvent::InterestAccrualStarted { .. } => (),
@@ -988,6 +971,8 @@ impl TryFromEvents<CreditFacilityEvent> for CreditFacility {
 pub struct NewCreditFacility {
     #[builder(setter(into))]
     pub(super) id: CreditFacilityId,
+    #[builder(setter(into))]
+    pub(super) approval_process_id: ApprovalProcessId,
     #[builder(setter(into))]
     pub(super) customer_id: CustomerId,
     terms: TermValues,
@@ -1008,15 +993,21 @@ impl IntoEvents<CreditFacilityEvent> for NewCreditFacility {
     fn into_events(self) -> EntityEvents<CreditFacilityEvent> {
         EntityEvents::init(
             self.id,
-            [CreditFacilityEvent::Initialized {
-                id: self.id,
-                audit_info: self.audit_info,
-                customer_id: self.customer_id,
-                terms: self.terms,
-                facility: self.facility,
-                account_ids: self.account_ids,
-                customer_account_ids: self.customer_account_ids,
-            }],
+            [
+                CreditFacilityEvent::Initialized {
+                    id: self.id,
+                    audit_info: self.audit_info.clone(),
+                    customer_id: self.customer_id,
+                    terms: self.terms,
+                    facility: self.facility,
+                    account_ids: self.account_ids,
+                    customer_account_ids: self.customer_account_ids,
+                },
+                CreditFacilityEvent::ApprovalProcessStarted {
+                    approval_process_id: self.approval_process_id,
+                    audit_info: self.audit_info,
+                },
+            ],
         )
     }
 }
@@ -1067,15 +1058,21 @@ mod test {
     }
 
     fn initial_events() -> Vec<CreditFacilityEvent> {
-        vec![CreditFacilityEvent::Initialized {
-            id: CreditFacilityId::new(),
-            audit_info: dummy_audit_info(),
-            customer_id: CustomerId::new(),
-            facility: UsdCents::from(100),
-            terms: default_terms(),
-            account_ids: CreditFacilityAccountIds::new(),
-            customer_account_ids: CustomerLedgerAccountIds::new(),
-        }]
+        vec![
+            CreditFacilityEvent::Initialized {
+                id: CreditFacilityId::new(),
+                audit_info: dummy_audit_info(),
+                customer_id: CustomerId::new(),
+                facility: UsdCents::from(100),
+                terms: default_terms(),
+                account_ids: CreditFacilityAccountIds::new(),
+                customer_account_ids: CustomerLedgerAccountIds::new(),
+            },
+            CreditFacilityEvent::ApprovalProcessStarted {
+                approval_process_id: ApprovalProcessId::new(),
+                audit_info: dummy_audit_info(),
+            },
+        ]
     }
 
     #[test]
@@ -1176,11 +1173,11 @@ mod test {
     #[test]
     fn outstanding_from_due_before_expiry() {
         let mut events = initial_events();
-        let approved_at = Utc::now();
+        let activated_at = Utc::now();
         events.extend([
-            CreditFacilityEvent::Approved {
-                tx_id: LedgerTxId::new(),
-                recorded_at: approved_at,
+            CreditFacilityEvent::Activated {
+                ledger_tx_id: LedgerTxId::new(),
+                activated_at,
                 audit_info: dummy_audit_info(),
             },
             CreditFacilityEvent::DisbursementInitiated {
@@ -1192,7 +1189,7 @@ mod test {
             CreditFacilityEvent::DisbursementConcluded {
                 idx: DisbursementIdx::FIRST,
                 tx_id: LedgerTxId::new(),
-                recorded_at: approved_at,
+                recorded_at: activated_at,
                 audit_info: dummy_audit_info(),
             },
         ]);
@@ -1207,11 +1204,11 @@ mod test {
     #[test]
     fn outstanding_from_due_after_expiry() {
         let mut events = initial_events();
-        let approved_at = "2023-01-01T00:00:00Z".parse::<DateTime<Utc>>().unwrap();
+        let activated_at = "2023-01-01T00:00:00Z".parse::<DateTime<Utc>>().unwrap();
         events.extend([
-            CreditFacilityEvent::Approved {
-                tx_id: LedgerTxId::new(),
-                recorded_at: approved_at,
+            CreditFacilityEvent::Activated {
+                ledger_tx_id: LedgerTxId::new(),
+                activated_at,
                 audit_info: dummy_audit_info(),
             },
             CreditFacilityEvent::DisbursementInitiated {
@@ -1223,7 +1220,7 @@ mod test {
             CreditFacilityEvent::DisbursementConcluded {
                 idx: DisbursementIdx::FIRST,
                 tx_id: LedgerTxId::new(),
-                recorded_at: approved_at,
+                recorded_at: activated_at,
                 audit_info: dummy_audit_info(),
             },
         ]);
@@ -1300,19 +1297,14 @@ mod test {
                 recorded_in_ledger_at: Utc::now(),
                 audit_info: dummy_audit_info(),
             },
-            CreditFacilityEvent::ApprovalAdded {
-                approving_user_id: UserId::new(),
-                recorded_at: Utc::now(),
+            CreditFacilityEvent::ApprovalProcessConcluded {
+                approval_process_id: ApprovalProcessId::new(),
+                approved: true,
                 audit_info: dummy_audit_info(),
             },
-            CreditFacilityEvent::ApprovalAdded {
-                approving_user_id: UserId::new(),
-                recorded_at: Utc::now(),
-                audit_info: dummy_audit_info(),
-            },
-            CreditFacilityEvent::Approved {
-                tx_id: LedgerTxId::new(),
-                recorded_at: Utc::now(),
+            CreditFacilityEvent::Activated {
+                ledger_tx_id: LedgerTxId::new(),
+                activated_at: Utc::now(),
                 audit_info: dummy_audit_info(),
             },
             CreditFacilityEvent::DisbursementInitiated {
@@ -1337,10 +1329,10 @@ mod test {
     fn next_interest_accrual_period_handles_first_and_second_periods() {
         let mut events = initial_events();
         events.extend([
-            CreditFacilityEvent::Approved {
-                tx_id: LedgerTxId::new(),
+            CreditFacilityEvent::Activated {
+                ledger_tx_id: LedgerTxId::new(),
                 audit_info: dummy_audit_info(),
-                recorded_at: Utc::now(),
+                activated_at: Utc::now(),
             },
             CreditFacilityEvent::DisbursementInitiated {
                 disbursement_id: DisbursementId::new(),
@@ -1400,10 +1392,10 @@ mod test {
     fn next_interest_accrual_period_handles_last_period() {
         let mut events = initial_events();
         events.extend([
-            CreditFacilityEvent::Approved {
-                tx_id: LedgerTxId::new(),
+            CreditFacilityEvent::Activated {
+                ledger_tx_id: LedgerTxId::new(),
                 audit_info: dummy_audit_info(),
-                recorded_at: Utc::now(),
+                activated_at: Utc::now(),
             },
             CreditFacilityEvent::DisbursementInitiated {
                 disbursement_id: DisbursementId::new(),
@@ -1482,248 +1474,128 @@ mod test {
         );
     }
 
-    mod approve {
-        use super::*;
+    #[test]
+    fn cvl_is_approval_allowed() {
+        let terms = default_terms();
 
-        fn add_approvals(credit_facility: &mut CreditFacility) -> CreditFacilityApprovalData {
-            let first_approval =
-                credit_facility.add_approval(UserId::new(), dummy_audit_info(), default_price());
-            assert!(first_approval.is_ok());
+        let facility_cvl = FacilityCVL {
+            total: terms.margin_call_cvl - CVLPct::from(dec!(1)),
+            disbursed: CVLPct::ZERO,
+        };
+        assert!(matches!(
+            facility_cvl.is_approval_allowed(terms),
+            Err(CreditFacilityError::BelowMarginLimit),
+        ));
 
-            let second_approval =
-                credit_facility.add_approval(UserId::new(), dummy_audit_info(), default_price());
-            assert!(second_approval.is_ok());
+        let facility_cvl = FacilityCVL {
+            total: terms.margin_call_cvl,
+            disbursed: CVLPct::ZERO,
+        };
+        assert!(matches!(facility_cvl.is_approval_allowed(terms), Ok(())));
+    }
 
-            second_approval
-                .unwrap()
-                .expect("should return a credit facility approval")
-        }
+    #[test]
+    fn check_activated_at() {
+        let mut credit_facility = facility_from(&initial_events());
+        assert_eq!(credit_facility.activated_at, None);
+        assert_eq!(credit_facility.expires_at, None);
 
-        #[test]
-        fn cvl_is_approval_allowed() {
-            let terms = default_terms();
+        let credit_facility_collateral_update = credit_facility
+            .initiate_collateral_update(Satoshis::from(10000))
+            .unwrap();
+        credit_facility.confirm_collateral_update(
+            credit_facility_collateral_update,
+            Utc::now(),
+            dummy_audit_info(),
+            default_price(),
+            default_upgrade_buffer_cvl_pct(),
+        );
+        let approval_time = Utc::now();
 
-            let facility_cvl = FacilityCVL {
-                total: terms.margin_call_cvl - CVLPct::from(dec!(1)),
-                disbursed: CVLPct::ZERO,
-            };
-            assert!(matches!(
-                facility_cvl.is_approval_allowed(terms),
-                Err(CreditFacilityError::BelowMarginLimit),
-            ));
+        credit_facility.approval_process_concluded(true, dummy_audit_info());
+        let credit_facility_approval = credit_facility.activation_data(default_price()).unwrap();
+        credit_facility.activate(credit_facility_approval, approval_time, dummy_audit_info());
+        assert_eq!(credit_facility.activated_at, Some(approval_time));
+        assert!(credit_facility.expires_at.is_some())
+    }
 
-            let facility_cvl = FacilityCVL {
-                total: terms.margin_call_cvl,
-                disbursed: CVLPct::ZERO,
-            };
-            assert!(matches!(facility_cvl.is_approval_allowed(terms), Ok(())));
-        }
+    #[test]
+    fn cannot_activate_if_credit_facility_has_no_collateral() {
+        let mut events = initial_events();
+        events.push({
+            CreditFacilityEvent::ApprovalProcessConcluded {
+                approval_process_id: ApprovalProcessId::new(),
+                approved: true,
+                audit_info: dummy_audit_info(),
+            }
+        });
+        let credit_facility = facility_from(&events);
 
-        #[test]
-        fn prevent_double_approve() {
-            let mut credit_facility = facility_from(&initial_events());
-            let credit_facility_collateral_update = credit_facility
-                .initiate_collateral_update(Satoshis::from(10000))
-                .unwrap();
-            credit_facility.confirm_collateral_update(
-                credit_facility_collateral_update,
-                Utc::now(),
-                dummy_audit_info(),
-                default_price(),
-                default_upgrade_buffer_cvl_pct(),
-            );
-            let credit_facility_approval = add_approvals(&mut credit_facility);
-            credit_facility.confirm_approval(
-                credit_facility_approval,
-                Utc::now(),
-                dummy_audit_info(),
-            );
+        let res = credit_facility.activation_data(default_price());
+        assert!(matches!(res, Err(CreditFacilityError::NoCollateral)));
+    }
 
-            let third_approval =
-                credit_facility.add_approval(UserId::new(), dummy_audit_info(), default_price());
-            assert!(matches!(
-                third_approval,
-                Err(CreditFacilityError::AlreadyApproved)
-            ));
-        }
+    #[test]
+    fn reject_credit_facility_activate_below_margin_limit() {
+        let mut credit_facility = facility_from(&initial_events());
 
-        #[test]
-        fn check_approved_at() {
-            let mut credit_facility = facility_from(&initial_events());
-            assert_eq!(credit_facility.approved_at, None);
-            assert_eq!(credit_facility.expires_at, None);
+        let credit_facility_collateral_update = credit_facility
+            .initiate_collateral_update(Satoshis::from(100))
+            .unwrap();
+        credit_facility.confirm_collateral_update(
+            credit_facility_collateral_update,
+            Utc::now(),
+            dummy_audit_info(),
+            default_price(),
+            default_upgrade_buffer_cvl_pct(),
+        );
 
-            let credit_facility_collateral_update = credit_facility
-                .initiate_collateral_update(Satoshis::from(10000))
-                .unwrap();
-            credit_facility.confirm_collateral_update(
-                credit_facility_collateral_update,
-                Utc::now(),
-                dummy_audit_info(),
-                default_price(),
-                default_upgrade_buffer_cvl_pct(),
-            );
-            let approval_time = Utc::now();
+        credit_facility.approval_process_concluded(true, dummy_audit_info());
+        let first_approval = credit_facility.activation_data(default_price());
+        assert!(matches!(
+            first_approval,
+            Err(CreditFacilityError::BelowMarginLimit)
+        ));
+    }
 
-            let credit_facility_approval = add_approvals(&mut credit_facility);
-            credit_facility.confirm_approval(
-                credit_facility_approval,
-                approval_time,
-                dummy_audit_info(),
-            );
-            assert_eq!(credit_facility.approved_at, Some(approval_time));
-            assert!(credit_facility.expires_at.is_some())
-        }
+    #[test]
+    fn status() {
+        let mut credit_facility = facility_from(&initial_events());
+        assert_eq!(
+            credit_facility.status(),
+            CreditFacilityStatus::PendingCollateralization
+        );
 
-        #[test]
-        fn cannot_approve_if_credit_facility_has_no_collateral() {
-            let mut credit_facility = facility_from(&initial_events());
-            let res =
-                credit_facility.add_approval(UserId::new(), dummy_audit_info(), default_price());
-            assert!(matches!(res, Err(CreditFacilityError::NoCollateral)));
-        }
-
-        #[test]
-        fn reject_credit_facility_approval_below_margin_limit() {
-            let mut credit_facility = facility_from(&initial_events());
-
-            let credit_facility_collateral_update = credit_facility
-                .initiate_collateral_update(Satoshis::from(100))
-                .unwrap();
-            credit_facility.confirm_collateral_update(
-                credit_facility_collateral_update,
-                Utc::now(),
-                dummy_audit_info(),
-                default_price(),
-                default_upgrade_buffer_cvl_pct(),
-            );
-
-            let first_approval =
-                credit_facility.add_approval(UserId::new(), dummy_audit_info(), default_price());
-            assert!(matches!(
-                first_approval,
-                Err(CreditFacilityError::BelowMarginLimit)
-            ));
-        }
-
-        #[test]
-        fn two_admins_can_approve() {
-            let mut credit_facility = facility_from(&initial_events());
-            let credit_facility_collateral_update = credit_facility
-                .initiate_collateral_update(Satoshis::from(10000))
-                .unwrap();
-            credit_facility.confirm_collateral_update(
-                credit_facility_collateral_update,
-                Utc::now(),
-                dummy_audit_info(),
-                default_price(),
-                default_upgrade_buffer_cvl_pct(),
-            );
-            let _first_admin_approval = credit_facility
-                .add_approval(UserId::new(), dummy_audit_info(), default_price())
-                .unwrap();
-
-            let _second_admin_approval = credit_facility
-                .add_approval(UserId::new(), dummy_audit_info(), default_price())
-                .unwrap();
-
-            assert!(credit_facility.approval_threshold_met());
-        }
-
-        #[test]
-        fn admin_and_bank_manager_can_approve() {
-            let mut credit_facility = facility_from(&initial_events());
-            let credit_facility_collateral_update = credit_facility
-                .initiate_collateral_update(Satoshis::from(10000))
-                .unwrap();
-            credit_facility.confirm_collateral_update(
-                credit_facility_collateral_update,
-                Utc::now(),
-                dummy_audit_info(),
-                default_price(),
-                default_upgrade_buffer_cvl_pct(),
-            );
-            let _admin_approval = credit_facility
-                .add_approval(UserId::new(), dummy_audit_info(), default_price())
-                .unwrap();
-
-            let _bank_manager_approval = credit_facility
-                .add_approval(UserId::new(), dummy_audit_info(), default_price())
-                .unwrap();
-
-            assert!(credit_facility.approval_threshold_met());
-        }
-
-        #[test]
-        fn same_user_cannot_approve_twice() {
-            let mut credit_facility = facility_from(&initial_events());
-            let credit_facility_collateral_update = credit_facility
-                .initiate_collateral_update(Satoshis::from(10000))
-                .unwrap();
-            credit_facility.confirm_collateral_update(
-                credit_facility_collateral_update,
-                Utc::now(),
-                dummy_audit_info(),
-                default_price(),
-                default_upgrade_buffer_cvl_pct(),
-            );
-
-            let user_id = UserId::new();
-
-            let first_approval =
-                credit_facility.add_approval(user_id, dummy_audit_info(), default_price());
-
-            assert!(first_approval.is_ok());
-
-            let second_approval =
-                credit_facility.add_approval(user_id, dummy_audit_info(), default_price());
-
-            assert!(matches!(
-                second_approval,
-                Err(CreditFacilityError::UserCannotApproveTwice)
-            ));
-        }
-
-        #[test]
-        fn status() {
-            let mut credit_facility = facility_from(&initial_events());
-            assert_eq!(
-                credit_facility.status(),
-                CreditFacilityStatus::PendingCollateralization
-            );
-
-            let credit_facility_collateral_update = credit_facility
-                .initiate_collateral_update(Satoshis::from(10000))
-                .unwrap();
-            credit_facility.confirm_collateral_update(
-                credit_facility_collateral_update,
-                Utc::now(),
-                dummy_audit_info(),
-                default_price(),
-                default_upgrade_buffer_cvl_pct(),
-            );
-            assert_eq!(
-                credit_facility.status(),
-                CreditFacilityStatus::PendingApproval
-            );
-            let credit_facility_approval = add_approvals(&mut credit_facility);
-            credit_facility.confirm_approval(
-                credit_facility_approval,
-                Utc::now(),
-                dummy_audit_info(),
-            );
-            assert_eq!(credit_facility.status(), CreditFacilityStatus::Active);
-        }
+        let credit_facility_collateral_update = credit_facility
+            .initiate_collateral_update(Satoshis::from(10000))
+            .unwrap();
+        credit_facility.confirm_collateral_update(
+            credit_facility_collateral_update,
+            Utc::now(),
+            dummy_audit_info(),
+            default_price(),
+            default_upgrade_buffer_cvl_pct(),
+        );
+        assert_eq!(
+            credit_facility.status(),
+            CreditFacilityStatus::PendingApproval
+        );
+        credit_facility.approval_process_concluded(true, dummy_audit_info());
+        let credit_facility_approval = credit_facility.activation_data(default_price()).unwrap();
+        credit_facility.activate(credit_facility_approval, Utc::now(), dummy_audit_info());
+        assert_eq!(credit_facility.status(), CreditFacilityStatus::Active);
     }
 
     mod repayment {
         use super::*;
 
         fn credit_facility_with_interest_accrual(
-            facility_approved_at: DateTime<Utc>,
+            facility_activated_at: DateTime<Utc>,
         ) -> CreditFacility {
+            let id = CreditFacilityId::new();
             let new_credit_facility = NewCreditFacility::builder()
-                .id(CreditFacilityId::new())
+                .id(id)
+                .approval_process_id(id)
                 .customer_id(CustomerId::new())
                 .terms(default_terms())
                 .facility(UsdCents::from(1_000_000_00))
@@ -1741,28 +1613,27 @@ mod test {
             credit_facility
                 .confirm_collateral_update(
                     credit_facility_collateral_update,
-                    facility_approved_at,
+                    facility_activated_at,
                     dummy_audit_info(),
                     default_price(),
                     default_upgrade_buffer_cvl_pct(),
                 )
                 .unwrap();
 
-            let approving_user_id = UserId::new();
-            let credit_facility_approval = credit_facility
-                .add_approval(approving_user_id, dummy_audit_info(), default_price())
-                .unwrap()
-                .unwrap();
-            credit_facility.confirm_approval(
+            credit_facility.approval_process_concluded(true, dummy_audit_info());
+            let credit_facility_approval =
+                credit_facility.activation_data(default_price()).unwrap();
+            credit_facility.activate(
                 credit_facility_approval,
-                facility_approved_at,
+                facility_activated_at,
                 dummy_audit_info(),
             );
 
+            let approving_user_id = UserId::new();
             let new_disbursement = credit_facility
                 .initiate_disbursement(
                     UsdCents::from(600_000_00),
-                    facility_approved_at,
+                    facility_activated_at,
                     dummy_audit_info(),
                 )
                 .unwrap();
@@ -1774,13 +1645,13 @@ mod test {
                 .unwrap();
             disbursement.confirm_approval(
                 &disbursement_data,
-                facility_approved_at,
+                facility_activated_at,
                 dummy_audit_info(),
             );
             credit_facility.confirm_disbursement(
                 &disbursement,
                 disbursement_data.tx_id,
-                facility_approved_at,
+                facility_activated_at,
                 dummy_audit_info(),
             );
 
@@ -1816,8 +1687,8 @@ mod test {
 
         #[test]
         fn initiate_repayment_before_expiry_errors_for_amount_above_interest() {
-            let approved_at = Utc::now();
-            let credit_facility = credit_facility_with_interest_accrual(approved_at);
+            let activated_at = Utc::now();
+            let credit_facility = credit_facility_with_interest_accrual(activated_at);
             let interest = credit_facility.outstanding().interest;
 
             assert!(credit_facility
@@ -1828,8 +1699,8 @@ mod test {
 
         #[test]
         fn initiate_repayment_after_expiry_errors_for_amount_above_total() {
-            let approved_at = "2023-01-01T00:00:00Z".parse::<DateTime<Utc>>().unwrap();
-            let credit_facility = credit_facility_with_interest_accrual(approved_at);
+            let activated_at = "2023-01-01T00:00:00Z".parse::<DateTime<Utc>>().unwrap();
+            let credit_facility = credit_facility_with_interest_accrual(activated_at);
             let outstanding = credit_facility.outstanding().total();
 
             assert!(credit_facility
@@ -1840,8 +1711,8 @@ mod test {
 
         #[test]
         fn confirm_repayment_before_expiry() {
-            let approved_at = Utc::now();
-            let mut credit_facility = credit_facility_with_interest_accrual(approved_at);
+            let activated_at = Utc::now();
+            let mut credit_facility = credit_facility_with_interest_accrual(activated_at);
 
             let repayment_amount = credit_facility.outstanding().interest;
             let repayment = credit_facility
@@ -1866,8 +1737,8 @@ mod test {
 
         #[test]
         fn confirm_partial_repayment_after_expiry() {
-            let approved_at = "2023-01-01T00:00:00Z".parse::<DateTime<Utc>>().unwrap();
-            let mut credit_facility = credit_facility_with_interest_accrual(approved_at);
+            let activated_at = "2023-01-01T00:00:00Z".parse::<DateTime<Utc>>().unwrap();
+            let mut credit_facility = credit_facility_with_interest_accrual(activated_at);
 
             let partial_repayment_amount = credit_facility.outstanding().interest
                 + credit_facility.outstanding().disbursed
@@ -1895,8 +1766,8 @@ mod test {
 
         #[test]
         fn confirm_completion() {
-            let approved_at = "2023-01-01T00:00:00Z".parse::<DateTime<Utc>>().unwrap();
-            let mut credit_facility = credit_facility_with_interest_accrual(approved_at);
+            let activated_at = "2023-01-01T00:00:00Z".parse::<DateTime<Utc>>().unwrap();
+            let mut credit_facility = credit_facility_with_interest_accrual(activated_at);
 
             let repayment = credit_facility
                 .initiate_repayment(credit_facility.outstanding().total())

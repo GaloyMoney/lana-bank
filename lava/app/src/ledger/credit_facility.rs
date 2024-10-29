@@ -101,7 +101,7 @@ pub struct CreditFacilityCollateralUpdate {
 }
 
 #[derive(Debug, Clone)]
-pub struct CreditFacilityApprovalData {
+pub struct CreditFacilityActivationData {
     pub facility: UsdCents,
     pub tx_ref: String,
     pub tx_id: LedgerTxId,

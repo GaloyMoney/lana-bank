@@ -57,12 +57,12 @@ type CollateralizationUpdated {
 type CreditFacility {
 	id: ID!
 	creditFacilityId: UUID!
-	approvedAt: Timestamp
+	approvalProcessId: UUID!
+	activatedAt: Timestamp
 	expiresAt: Timestamp
 	createdAt: Timestamp!
 	creditFacilityTerms: TermValues!
 	status: CreditFacilityStatus!
-	approvals: [CreditFacilityApproval!]!
 	collateralizationState: CollateralizationState!
 	facilityAmount: UsdCents!
 	collateral: Satoshis!
@@ -72,17 +72,11 @@ type CreditFacility {
 	customer: Customer!
 	disbursements: [CreditFacilityDisbursement!]!
 	currentCvl: FacilityCVL!
-	userCanApprove: Boolean!
 	userCanUpdateCollateral: Boolean!
 	userCanInitiateDisbursement: Boolean!
 	userCanApproveDisbursement: Boolean!
 	userCanRecordPayment: Boolean!
 	userCanComplete: Boolean!
-}
-
-type CreditFacilityApproval {
-	approvedAt: Timestamp!
-	user: User!
 }
 
 type CreditFacilityBalance {

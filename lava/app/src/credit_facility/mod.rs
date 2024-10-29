@@ -10,7 +10,7 @@ mod repo;
 use authz::PermissionCheck;
 
 use crate::{
-    audit::{Audit, AuditInfo},
+    audit::{Audit, AuditInfo, AuditSvc},
     authorization::{Authorization, CreditFacilityAction, CustomerAllOrOne, Object},
     customer::Customers,
     data_export::Export,
@@ -114,8 +114,8 @@ impl CreditFacilities {
             .await?)
     }
 
-    #[instrument(name = "lava.credit_facility.create", skip(self), err)]
-    pub async fn create(
+    #[instrument(name = "lava.credit_facility.initiate", skip(self), err)]
+    pub async fn initiate(
         &self,
         sub: &Subject,
         customer_id: impl Into<CustomerId> + std::fmt::Debug,
@@ -134,8 +134,10 @@ impl CreditFacilities {
             None => return Err(CreditFacilityError::CustomerNotFound(customer_id)),
         };
 
+        let id = CreditFacilityId::new();
         let new_credit_facility = NewCreditFacility::builder()
-            .id(CreditFacilityId::new())
+            .id(id)
+            .approval_process_id(id)
             .customer_id(customer_id)
             .terms(terms)
             .facility(facility)
@@ -176,65 +178,6 @@ impl CreditFacilities {
             Err(CreditFacilityError::EntityError(EntityError::NoEntityEventsPresent)) => Ok(None),
             Err(e) => Err(e),
         }
-    }
-
-    pub async fn user_can_approve(
-        &self,
-        sub: &Subject,
-        enforce: bool,
-    ) -> Result<Option<AuditInfo>, CreditFacilityError> {
-        Ok(self
-            .authz
-            .evaluate_permission(
-                sub,
-                Object::CreditFacility,
-                CreditFacilityAction::Approve,
-                enforce,
-            )
-            .await?)
-    }
-
-    #[instrument(name = "lava.credit_facility.add_approval", skip(self), err)]
-    pub async fn add_approval(
-        &self,
-        sub: &Subject,
-        credit_facility_id: impl Into<CreditFacilityId> + std::fmt::Debug,
-    ) -> Result<CreditFacility, CreditFacilityError> {
-        let credit_facility_id = credit_facility_id.into();
-
-        let audit_info = self
-            .user_can_approve(sub, true)
-            .await?
-            .expect("audit info missing");
-
-        let mut credit_facility = self
-            .credit_facility_repo
-            .find_by_id(credit_facility_id)
-            .await?;
-
-        let mut db_tx = self.pool.begin().await?;
-        let price = self.price.usd_cents_per_btc().await?;
-
-        let user_id = UserId::try_from(sub).map_err(|_| CreditFacilityError::SubjectIsNotUser)?;
-        if let Some(credit_facility_approval) =
-            credit_facility.add_approval(user_id, audit_info.clone(), price)?
-        {
-            self.ledger
-                .approve_credit_facility(credit_facility_approval.clone())
-                .await?;
-            credit_facility.confirm_approval(
-                credit_facility_approval,
-                chrono::Utc::now(),
-                audit_info,
-            );
-        }
-
-        self.credit_facility_repo
-            .update_in_tx(&mut db_tx, &mut credit_facility)
-            .await?;
-        db_tx.commit().await?;
-
-        Ok(credit_facility)
     }
 
     pub async fn user_can_initiate_disbursement(
@@ -439,6 +382,20 @@ impl CreditFacilities {
             price,
             self.config.upgrade_buffer_cvl_pct,
         );
+
+        let price = self.price.usd_cents_per_btc().await?;
+        let audit_info = self
+            .authz
+            .audit()
+            .record_system_entry(Object::CreditFacility, CreditFacilityAction::Activate)
+            .await?;
+        if let Ok(credit_facility_activation) = credit_facility.activation_data(price) {
+            self.ledger
+                .activate_credit_facility(credit_facility_activation.clone())
+                .await?;
+            credit_facility.activate(credit_facility_activation, chrono::Utc::now(), audit_info);
+        }
+
         self.credit_facility_repo
             .update_in_tx(&mut db_tx, &mut credit_facility)
             .await?;

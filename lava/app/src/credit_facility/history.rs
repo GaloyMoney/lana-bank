@@ -95,15 +95,17 @@ pub(super) fn project<'a>(
                 }));
             }
 
-            CreditFacilityEvent::Approved {
-                tx_id, recorded_at, ..
+            CreditFacilityEvent::Activated {
+                ledger_tx_id,
+                activated_at,
+                ..
             } => {
                 history.push(CreditFacilityHistoryEntry::Origination(
                     CreditFacilityOrigination {
                         cents: initial_facility
                             .expect("CreditFacility must have initial facility amount"),
-                        recorded_at: *recorded_at,
-                        tx_id: *tx_id,
+                        recorded_at: *activated_at,
+                        tx_id: *ledger_tx_id,
                     },
                 ));
             }

@@ -229,15 +229,15 @@ impl Ledger {
     }
 
     #[instrument(name = "lava.ledger.approve_loan", skip(self), err)]
-    pub async fn approve_credit_facility(
+    pub async fn activate_credit_facility(
         &self,
-        CreditFacilityApprovalData {
+        CreditFacilityActivationData {
             tx_id,
             tx_ref,
             credit_facility_account_ids,
             customer_account_ids,
             facility,
-        }: CreditFacilityApprovalData,
+        }: CreditFacilityActivationData,
     ) -> Result<chrono::DateTime<chrono::Utc>, LedgerError> {
         Ok(self
             .cala
