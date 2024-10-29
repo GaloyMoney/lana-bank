@@ -59,24 +59,8 @@ teardown_file() {
   exec_admin_graphql 'credit-facility-collateral-update' "$variables"
   credit_facility_id=$(graphql_output '.data.creditFacilityCollateralUpdate.creditFacility.creditFacilityId')
   [[ "$credit_facility_id" != "null" ]] || exit 1
-
-}
-
-@test "credit-facility: can approve" {
-  credit_facility_id=$(read_value 'credit_facility_id')
-
-  variables=$(
-    jq -n \
-      --arg credit_facility_id "$credit_facility_id" \
-    '{
-      input: {
-        creditFacilityId: $credit_facility_id,
-      }
-    }'
-  )
-  exec_admin_graphql 'credit-facility-approve' "$variables"
-  credit_facility_id=$(graphql_output '.data.creditFacilityApprove.creditFacility.creditFacilityId')
-  [[ "$credit_facility_id" != "null" ]] || exit 1
+  status=$(graphql_output '.data.creditFacilityCollateralUpdate.creditFacility.status')
+  [[ "$status" == "ACTIVE" ]] || exit 1
 }
 
 @test "credit-facility: can initiate disbursement" {

@@ -4,6 +4,7 @@ mutation CreditFacilityCollateralUpdate(
   creditFacilityCollateralUpdate(input: $input) {
     creditFacility {
       creditFacilityId
+      status
     }
   }
 }

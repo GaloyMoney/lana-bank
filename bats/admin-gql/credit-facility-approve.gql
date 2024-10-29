@@ -1,7 +1,0 @@
-mutation CreditFacilityApprove($input: CreditFacilityApproveInput!) {
-  creditFacilityApprove(input: $input) {
-    creditFacility {
-      creditFacilityId
-    }
-  }
-}
