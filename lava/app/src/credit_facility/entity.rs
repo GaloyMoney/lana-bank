@@ -375,15 +375,16 @@ impl CreditFacility {
         &self,
         price: PriceOfOneBTC,
     ) -> Result<CreditFacilityActivationData, CreditFacilityError> {
+        if self.is_activated() {
+            return Err(CreditFacilityError::AlreadyActivated);
+        }
+
         if !self.is_approval_process_concluded() {
             return Err(CreditFacilityError::NotApprovedYet);
         }
+
         if !self.is_approved()? {
             return Err(CreditFacilityError::Denied);
-        }
-
-        if self.is_activated() {
-            return Err(CreditFacilityError::AlreadyActivated);
         }
 
         if self.collateral() == Satoshis::ZERO {
@@ -1584,6 +1585,135 @@ mod test {
         let credit_facility_approval = credit_facility.activation_data(default_price()).unwrap();
         credit_facility.activate(credit_facility_approval, Utc::now(), dummy_audit_info());
         assert_eq!(credit_facility.status(), CreditFacilityStatus::Active);
+    }
+
+    mod activation_data {
+        use super::*;
+
+        #[test]
+        fn errors_when_not_approved_yet() {
+            let credit_facility = facility_from(&initial_events());
+            assert!(matches!(
+                credit_facility.activation_data(default_price()),
+                Err(CreditFacilityError::NotApprovedYet)
+            ));
+        }
+
+        #[test]
+        fn errors_if_denied() {
+            let mut events = initial_events();
+            events.push(CreditFacilityEvent::ApprovalProcessConcluded {
+                approval_process_id: ApprovalProcessId::new(),
+                approved: false,
+                audit_info: dummy_audit_info(),
+            });
+            let credit_facility = facility_from(&events);
+
+            assert!(matches!(
+                credit_facility.activation_data(default_price()),
+                Err(CreditFacilityError::Denied)
+            ));
+        }
+
+        #[test]
+        fn errors_if_no_collateral() {
+            let mut events = initial_events();
+            events.push(CreditFacilityEvent::ApprovalProcessConcluded {
+                approval_process_id: ApprovalProcessId::new(),
+                approved: true,
+                audit_info: dummy_audit_info(),
+            });
+            let credit_facility = facility_from(&events);
+
+            assert!(matches!(
+                credit_facility.activation_data(default_price()),
+                Err(CreditFacilityError::NoCollateral)
+            ));
+        }
+
+        #[test]
+        fn errors_if_collateral_below_margin() {
+            let mut events = initial_events();
+            events.extend([
+                CreditFacilityEvent::ApprovalProcessConcluded {
+                    approval_process_id: ApprovalProcessId::new(),
+                    approved: true,
+                    audit_info: dummy_audit_info(),
+                },
+                CreditFacilityEvent::CollateralUpdated {
+                    tx_id: LedgerTxId::new(),
+                    tx_ref: "".to_string(),
+                    total_collateral: Satoshis::ONE,
+                    abs_diff: Satoshis::ONE,
+                    action: CollateralAction::Add,
+                    recorded_in_ledger_at: Utc::now(),
+                    audit_info: dummy_audit_info(),
+                },
+            ]);
+            let credit_facility = facility_from(&events);
+
+            assert!(matches!(
+                credit_facility.activation_data(default_price()),
+                Err(CreditFacilityError::BelowMarginLimit)
+            ));
+        }
+
+        #[test]
+        fn errors_if_already_activated() {
+            let mut events = initial_events();
+            events.extend([
+                CreditFacilityEvent::ApprovalProcessConcluded {
+                    approval_process_id: ApprovalProcessId::new(),
+                    approved: true,
+                    audit_info: dummy_audit_info(),
+                },
+                CreditFacilityEvent::CollateralUpdated {
+                    tx_id: LedgerTxId::new(),
+                    tx_ref: "".to_string(),
+                    total_collateral: Satoshis::ONE,
+                    abs_diff: Satoshis::ONE,
+                    action: CollateralAction::Add,
+                    recorded_in_ledger_at: Utc::now(),
+                    audit_info: dummy_audit_info(),
+                },
+                CreditFacilityEvent::Activated {
+                    ledger_tx_id: LedgerTxId::new(),
+                    activated_at: Utc::now(),
+                    audit_info: dummy_audit_info(),
+                },
+            ]);
+            let credit_facility = facility_from(&events);
+
+            assert!(matches!(
+                credit_facility.activation_data(default_price()),
+                Err(CreditFacilityError::AlreadyActivated)
+            ));
+        }
+
+        #[test]
+        fn can_activate() {
+            let mut events = initial_events();
+            let collateral_amount = Satoshis::from(1_000_000);
+            events.extend([
+                CreditFacilityEvent::ApprovalProcessConcluded {
+                    approval_process_id: ApprovalProcessId::new(),
+                    approved: true,
+                    audit_info: dummy_audit_info(),
+                },
+                CreditFacilityEvent::CollateralUpdated {
+                    tx_id: LedgerTxId::new(),
+                    tx_ref: "".to_string(),
+                    total_collateral: collateral_amount,
+                    abs_diff: collateral_amount,
+                    action: CollateralAction::Add,
+                    recorded_in_ledger_at: Utc::now(),
+                    audit_info: dummy_audit_info(),
+                },
+            ]);
+            let credit_facility = facility_from(&events);
+
+            assert!(credit_facility.activation_data(default_price()).is_ok(),);
+        }
     }
 
     mod repayment {
