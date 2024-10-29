@@ -8,6 +8,7 @@ mod jobs;
 mod repo;
 
 use authz::PermissionCheck;
+use governance::ApprovalProcessType;
 
 use crate::{
     audit::{Audit, AuditInfo, AuditSvc},
@@ -15,8 +16,10 @@ use crate::{
     customer::Customers,
     data_export::Export,
     entity::EntityError,
+    governance::Governance,
     job::{error::JobError, *},
     ledger::{credit_facility::*, Ledger},
+    outbox::Outbox,
     price::Price,
     primitives::{
         CreditFacilityId, CustomerId, DisbursementIdx, Satoshis, Subject, UsdCents, UserId,
@@ -35,6 +38,9 @@ pub use repo::cursor::*;
 use repo::CreditFacilityRepo;
 use tracing::instrument;
 
+const APPROVE_CREDIT_FACILITY_PROCESS: ApprovalProcessType =
+    ApprovalProcessType::new("credit-facility");
+
 #[derive(Clone)]
 pub struct CreditFacilities {
     pool: sqlx::PgPool,
@@ -43,6 +49,7 @@ pub struct CreditFacilities {
     credit_facility_repo: CreditFacilityRepo,
     disbursement_repo: DisbursementRepo,
     interest_accrual_repo: InterestAccrualRepo,
+    governance: Governance,
     jobs: Jobs,
     ledger: Ledger,
     price: Price,
@@ -54,6 +61,7 @@ impl CreditFacilities {
     pub async fn init(
         pool: &sqlx::PgPool,
         config: CreditFacilityConfig,
+        governance: &Governance,
         jobs: &Jobs,
         export: &Export,
         authz: &Authorization,
@@ -61,6 +69,7 @@ impl CreditFacilities {
         customers: &Customers,
         ledger: &Ledger,
         price: &Price,
+        outbox: &Outbox,
     ) -> Result<Self, CreditFacilityError> {
         let credit_facility_repo = CreditFacilityRepo::new(pool, export);
         let disbursement_repo = DisbursementRepo::new(pool, export);
@@ -83,6 +92,21 @@ impl CreditFacilities {
             interest_accrual_repo.clone(),
             audit,
         ));
+        jobs.add_initializer_and_spawn_unique(
+            approve::CreditFacilityApprovalJobInitializer::new(
+                pool,
+                &credit_facility_repo,
+                price,
+                ledger,
+                authz.audit(),
+                outbox,
+            ),
+            approve::CreditFacilityApprovalJobConfig,
+        )
+        .await?;
+        let _ = governance
+            .init_policy(APPROVE_CREDIT_FACILITY_PROCESS)
+            .await;
 
         Ok(Self {
             pool: pool.clone(),
@@ -90,6 +114,7 @@ impl CreditFacilities {
             customers: customers.clone(),
             credit_facility_repo,
             disbursement_repo,
+            governance: governance.clone(),
             jobs: jobs.clone(),
             interest_accrual_repo,
             ledger: ledger.clone(),
@@ -148,6 +173,9 @@ impl CreditFacilities {
             .expect("could not build new credit facility");
 
         let mut db_tx = self.pool.begin().await?;
+        self.governance
+            .start_process(&mut db_tx, id, APPROVE_CREDIT_FACILITY_PROCESS)
+            .await?;
         let credit_facility = self
             .credit_facility_repo
             .create_in_tx(&mut db_tx, new_credit_facility)
@@ -383,15 +411,18 @@ impl CreditFacilities {
             self.config.upgrade_buffer_cvl_pct,
         );
 
-        let price = self.price.usd_cents_per_btc().await?;
-        let audit_info = self
-            .authz
-            .audit()
-            .record_system_entry(Object::CreditFacility, CreditFacilityAction::Activate)
-            .await?;
         if let Ok(credit_facility_activation) = credit_facility.activation_data(price) {
             self.ledger
                 .activate_credit_facility(credit_facility_activation.clone())
+                .await?;
+            let audit_info = self
+                .authz
+                .audit()
+                .record_system_entry_in_tx(
+                    &mut db_tx,
+                    Object::CreditFacility,
+                    CreditFacilityAction::Activate,
+                )
                 .await?;
             credit_facility.activate(credit_facility_activation, chrono::Utc::now(), audit_info);
         }

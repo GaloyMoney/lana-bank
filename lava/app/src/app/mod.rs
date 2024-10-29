@@ -87,6 +87,7 @@ impl LavaApp {
         let credit_facilities = CreditFacilities::init(
             &pool,
             config.credit_facility,
+            &governance,
             &jobs,
             &export,
             &authz,
@@ -94,6 +95,7 @@ impl LavaApp {
             &customers,
             &ledger,
             &price,
+            &outbox,
         )
         .await?;
         let terms_templates = TermsTemplates::new(&pool, &authz, &export);
