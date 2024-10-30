@@ -77,6 +77,8 @@ pub enum CreditFacilityStatus {
 pub enum DisbursementStatus {
     New,
     Approved,
+    Denied,
+    Confirmed,
 }
 
 impl std::fmt::Display for KycLevel {

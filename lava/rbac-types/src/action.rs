@@ -154,7 +154,7 @@ pub enum CreditFacilityAction {
     ConcludeApprovalProcess,
     Activate,
     InitiateDisbursement,
-    ApproveDisbursement,
+    ConfirmDisbursement,
     ListDisbursement,
     UpdateCollateral,
     RecordPayment,

@@ -1004,20 +1004,20 @@ impl Mutation {
         ))
     }
 
-    async fn credit_facility_disbursement_approve(
+    async fn credit_facility_disbursement_confirm(
         &self,
         ctx: &Context<'_>,
-        input: CreditFacilityDisbursementApproveInput,
-    ) -> async_graphql::Result<CreditFacilityDisbursementApprovePayload> {
+        input: CreditFacilityDisbursementConfirmInput,
+    ) -> async_graphql::Result<CreditFacilityDisbursementConfirmPayload> {
         let app = ctx.data_unchecked::<LavaApp>();
 
         let AdminAuthContext { sub } = ctx.data()?;
 
         let credit_facility = app
             .credit_facilities()
-            .add_disbursement_approval(sub, input.credit_facility_id.into(), input.disbursement_idx)
+            .confirm_disbursement(sub, input.credit_facility_id.into(), input.disbursement_idx)
             .await?;
-        Ok(CreditFacilityDisbursementApprovePayload::from(
+        Ok(CreditFacilityDisbursementConfirmPayload::from(
             credit_facility,
         ))
     }

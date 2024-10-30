@@ -6,10 +6,14 @@ pub enum DisbursementError {
     Sqlx(#[from] sqlx::Error),
     #[error("DisbursementError - JobError: {0}")]
     JobError(#[from] crate::job::error::JobError),
-    #[error("DisbursementError - UserCannotApproveTwice")]
-    UserCannotApproveTwice,
-    #[error("DisbursementError - AlreadyApproved")]
-    AlreadyApproved,
+    #[error("DisbursementError - AlreadyConfirmed")]
+    AlreadyConfirmed,
+    #[error("DisbursementError - ApprovalInProgress")]
+    ApprovalInProgress,
+    #[error("DisbursementError - Denied")]
+    Denied,
+    #[error("DisbursementError - AlreadyActivated")]
+    AlreadyActivated,
     #[error("DisbursementError - NotFound")]
     NotFound,
 }

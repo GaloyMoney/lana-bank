@@ -348,7 +348,6 @@ type CreditFacility {
 	currentCvl: FacilityCVL!
 	userCanUpdateCollateral: Boolean!
 	userCanInitiateDisbursement: Boolean!
-	userCanApproveDisbursement: Boolean!
 	userCanRecordPayment: Boolean!
 	userCanComplete: Boolean!
 }
@@ -424,16 +423,15 @@ type CreditFacilityDisbursement {
 	index: DisbursementIdx!
 	amount: UsdCents!
 	status: DisbursementStatus!
-	approvals: [DisbursementApproval!]!
 	createdAt: Timestamp!
 }
 
-input CreditFacilityDisbursementApproveInput {
+input CreditFacilityDisbursementConfirmInput {
 	creditFacilityId: UUID!
 	disbursementIdx: DisbursementIdx!
 }
 
-type CreditFacilityDisbursementApprovePayload {
+type CreditFacilityDisbursementConfirmPayload {
 	disbursement: CreditFacilityDisbursement!
 }
 
@@ -621,16 +619,13 @@ type Disbursed {
 	outstanding: Outstanding!
 }
 
-type DisbursementApproval {
-	approvedAt: Timestamp!
-	user: User!
-}
-
 scalar DisbursementIdx
 
 enum DisbursementStatus {
 	NEW
 	APPROVED
+	DENIED
+	CONFIRMED
 }
 
 type Document {
@@ -912,7 +907,7 @@ type Mutation {
 	withdrawalConfirm(input: WithdrawalConfirmInput!): WithdrawalConfirmPayload!
 	withdrawalCancel(input: WithdrawalCancelInput!): WithdrawalCancelPayload!
 	creditFacilityDisbursementInitiate(input: CreditFacilityDisbursementInitiateInput!): CreditFacilityDisbursementInitiatePayload!
-	creditFacilityDisbursementApprove(input: CreditFacilityDisbursementApproveInput!): CreditFacilityDisbursementApprovePayload!
+	creditFacilityDisbursementConfirm(input: CreditFacilityDisbursementConfirmInput!): CreditFacilityDisbursementConfirmPayload!
 	customerCreate(input: CustomerCreateInput!): CustomerCreatePayload!
 	customerUpdate(input: CustomerUpdateInput!): CustomerUpdatePayload!
 	userCreate(input: UserCreateInput!): UserCreatePayload!

@@ -32,12 +32,8 @@ pub enum CreditFacilityError {
     CustomerError(#[from] crate::customer::error::CustomerError),
     #[error("CreditFacilityError - UserError: '{0}'")]
     UserError(#[from] crate::user::error::UserError),
-    #[error("CreditFacilityError - UserCannotApproveTwice")]
-    UserCannotApproveTwice,
     #[error("CreditFacilityError - AlreadyActivated")]
     AlreadyActivated,
-    #[error("CreditFacilityError - NotApprovedYet")]
-    NotApprovedYet,
     #[error("CreditFacilityError - ApprovalInProgress")]
     ApprovalInProgress,
     #[error("CreditFacilityError - Denied")]

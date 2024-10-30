@@ -125,7 +125,6 @@ type CreditFacility {
 	currentCvl: FacilityCVL!
 	userCanUpdateCollateral: Boolean!
 	userCanInitiateDisbursement: Boolean!
-	userCanApproveDisbursement: Boolean!
 	userCanRecordPayment: Boolean!
 	userCanComplete: Boolean!
 }
@@ -159,7 +158,6 @@ type CreditFacilityDisbursement {
 	index: DisbursementIdx!
 	amount: UsdCents!
 	status: DisbursementStatus!
-	approvals: [DisbursementApproval!]!
 	createdAt: Timestamp!
 }
 
@@ -229,16 +227,13 @@ type Disbursed {
 	outstanding: Outstanding!
 }
 
-type DisbursementApproval {
-	approvedAt: Timestamp!
-	user: User!
-}
-
 scalar DisbursementIdx
 
 enum DisbursementStatus {
 	NEW
 	APPROVED
+	DENIED
+	CONFIRMED
 }
 
 type Document {

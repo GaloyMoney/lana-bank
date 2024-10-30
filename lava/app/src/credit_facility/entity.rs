@@ -382,7 +382,7 @@ impl CreditFacility {
         }
 
         if !self.is_approval_process_concluded() {
-            return Err(CreditFacilityError::NotApprovedYet);
+            return Err(CreditFacilityError::ApprovalInProgress);
         }
 
         if !self.is_approved()? {
@@ -1580,7 +1580,7 @@ mod test {
             let credit_facility = facility_from(&initial_events());
             assert!(matches!(
                 credit_facility.activation_data(default_price()),
-                Err(CreditFacilityError::NotApprovedYet)
+                Err(CreditFacilityError::ApprovalInProgress)
             ));
         }
 
@@ -1744,7 +1744,6 @@ mod test {
                 dummy_audit_info(),
             );
 
-            let approving_user_id = UserId::new();
             let new_disbursement = credit_facility
                 .initiate_disbursement(
                     UsdCents::from(600_000_00),
@@ -1754,11 +1753,8 @@ mod test {
                 .unwrap();
             let mut disbursement =
                 Disbursement::try_from_events(new_disbursement.into_events()).unwrap();
-            let disbursement_data = disbursement
-                .add_approval(approving_user_id, dummy_audit_info())
-                .unwrap()
-                .unwrap();
-            disbursement.confirm_approval(
+            let disbursement_data = disbursement.disbursement_data().unwrap();
+            disbursement.confirm(
                 &disbursement_data,
                 facility_activated_at,
                 dummy_audit_info(),
