@@ -12,8 +12,6 @@ pub enum DisbursementError {
     ApprovalInProgress,
     #[error("DisbursementError - Denied")]
     Denied,
-    #[error("DisbursementError - AlreadyActivated")]
-    AlreadyActivated,
     #[error("DisbursementError - NotFound")]
     NotFound,
 }

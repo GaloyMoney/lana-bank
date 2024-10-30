@@ -267,7 +267,7 @@ mod test {
     }
 
     #[test]
-    fn errors_if_already_activated() {
+    fn errors_if_already_confirmed() {
         let mut events = initial_events();
         events.extend([
             DisbursementEvent::ApprovalProcessConcluded {
@@ -285,7 +285,7 @@ mod test {
 
         assert!(matches!(
             disbursement.disbursement_data(),
-            Err(DisbursementError::AlreadyActivated)
+            Err(DisbursementError::AlreadyConfirmed)
         ));
     }
 
