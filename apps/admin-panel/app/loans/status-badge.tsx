@@ -26,7 +26,7 @@ export const LoanAndCreditFacilityStatusBadge = ({
 
   return (
     <Badge variant={variant} className={cn(className)} {...otherProps}>
-      {status}
+      {status.split("_").join(" ")}
     </Badge>
   )
 }

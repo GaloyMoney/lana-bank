@@ -10,6 +10,8 @@ import { CreditFacilityCompleteDialog } from "../complete"
 import { CreditFacilityPartialPaymentDialog } from "../partial-payment"
 
 import {
+  ApprovalProcess,
+  ApprovalProcessStatus,
   CreditFacility,
   CreditFacilityStatus,
   GetCreditFacilityDetailsQuery,
@@ -21,20 +23,26 @@ import { formatCollateralizationState } from "@/lib/utils"
 
 import { Button } from "@/components/primitive/button"
 import { LoanAndCreditFacilityStatusBadge } from "@/app/loans/status-badge"
+import ApprovalDialog from "@/app/approval-process/approve"
+import DenialDialog from "@/app/approval-process/deny"
 
 type CreditFacilityDetailsProps = {
   creditFacilityId: string
   creditFacilityDetails: NonNullable<GetCreditFacilityDetailsQuery["creditFacility"]>
+  refetch: () => void
 }
 
 const CreditFacilityDetailsCard: React.FC<CreditFacilityDetailsProps> = ({
   creditFacilityId,
   creditFacilityDetails,
+  refetch,
 }) => {
   const [openCollateralUpdateDialog, setOpenCollateralUpdateDialog] =
     React.useState(false)
   const [openDisbursementInitiateDialog, setOpenDisbursementInitiateDialog] =
     React.useState(false)
+  const [openApprovalDialog, setOpenApprovalDialog] = React.useState(false)
+  const [openDenialDialog, setOpenDenialDialog] = React.useState(false)
   const [openApproveDialog, setOpenApproveDialog] = React.useState(false)
   const [openCompleteDialog, setOpenCompleteDialog] = React.useState(false)
   const [openPartialPaymentDialog, setOpenPartialPaymentDialog] = React.useState(false)
@@ -130,6 +138,18 @@ const CreditFacilityDetailsCard: React.FC<CreditFacilityDetailsProps> = ({
                 Make Payment
               </Button>
             )}
+          {creditFacilityDetails.approvalProcess.status ===
+            ApprovalProcessStatus.InProgress &&
+            creditFacilityDetails.approvalProcess.canVote && (
+              <>
+                <Button onClick={() => setOpenApprovalDialog(true)} className="ml-2">
+                  Approve
+                </Button>
+                <Button onClick={() => setOpenDenialDialog(true)} className="ml-2">
+                  Deny
+                </Button>
+              </>
+            )}
         </div>
       )}
 
@@ -157,6 +177,22 @@ const CreditFacilityDetailsCard: React.FC<CreditFacilityDetailsProps> = ({
         creditFacilityId={creditFacilityId}
         openDialog={openPartialPaymentDialog}
         setOpenDialog={setOpenPartialPaymentDialog}
+      />
+      <ApprovalDialog
+        approvalProcess={creditFacilityDetails?.approvalProcess as ApprovalProcess}
+        openApprovalDialog={openApprovalDialog}
+        setOpenApprovalDialog={() => {
+          setOpenApprovalDialog(false)
+        }}
+        refetch={refetch}
+      />
+      <DenialDialog
+        approvalProcess={creditFacilityDetails?.approvalProcess as ApprovalProcess}
+        openDenialDialog={openDenialDialog}
+        setOpenDenialDialog={() => {
+          setOpenDenialDialog(false)
+        }}
+        refetch={refetch}
       />
     </div>
   )

@@ -35,6 +35,39 @@ gql`
         disbursed
       }
       collateralToMatchInitialCvl @client
+      approvalProcess {
+        approvalProcessId
+        approvalProcessType
+        createdAt
+        canVote
+        status
+        rules {
+          ... on CommitteeThreshold {
+            threshold
+            committee {
+              name
+              currentMembers {
+                email
+                roles
+              }
+            }
+          }
+          ... on SystemApproval {
+            autoApprove
+          }
+        }
+        voters {
+          stillEligible
+          didVote
+          didApprove
+          didDeny
+          user {
+            userId
+            email
+            roles
+          }
+        }
+      }
       balance {
         facilityRemaining {
           usdBalance
@@ -145,7 +178,7 @@ function CreditFacilityPage({
   }
 }) {
   const { "credit-facility-id": creditFacilityId } = params
-  const { data, loading, error } = useGetCreditFacilityDetailsQuery({
+  const { data, loading, error, refetch } = useGetCreditFacilityDetailsQuery({
     variables: { id: creditFacilityId },
   })
 
@@ -159,10 +192,10 @@ function CreditFacilityPage({
       <CreditFacilityDetailsCard
         creditFacilityId={creditFacilityId}
         creditFacilityDetails={data.creditFacility}
+        refetch={refetch}
       />
-      <Tabs defaultValue="all" className="mt-4">
+      <Tabs defaultValue="overview" className="mt-4">
         <TabsList>
-          <TabsTrigger value="all">All</TabsTrigger>
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="terms">Terms</TabsTrigger>
           <TabsTrigger value="transactions">Transactions</TabsTrigger>
@@ -170,14 +203,6 @@ function CreditFacilityPage({
             <TabsTrigger value="disbursements">Disbursements</TabsTrigger>
           )}
         </TabsList>
-        <TabsContent value="all">
-          <CreditFacilityOverview creditFacility={data.creditFacility} />
-          <CreditFacilityTerms creditFacility={data.creditFacility} />
-          {data.creditFacility.disbursements.length > 0 && (
-            <CreditFacilityDisbursements creditFacility={data.creditFacility} />
-          )}
-          <CreditFacilityTransactions creditFacility={data.creditFacility} />
-        </TabsContent>
         <TabsContent value="overview">
           <CreditFacilityOverview creditFacility={data.creditFacility} />
         </TabsContent>
