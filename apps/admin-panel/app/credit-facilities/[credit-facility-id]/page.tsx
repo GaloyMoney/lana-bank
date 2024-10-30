@@ -120,14 +120,6 @@ gql`
         index
         amount
         status
-        approvals {
-          approvedAt
-          user {
-            userId
-            email
-            roles
-          }
-        }
         createdAt
       }
       transactions {
@@ -163,7 +155,6 @@ gql`
       }
       userCanUpdateCollateral
       userCanInitiateDisbursement
-      userCanApproveDisbursement
       userCanRecordPayment
       userCanComplete
     }
