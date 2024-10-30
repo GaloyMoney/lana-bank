@@ -24,6 +24,7 @@ pub struct DisbursementApproval {
 pub enum DisbursementEvent {
     Initialized {
         id: DisbursementId,
+        approval_process_id: ApprovalProcessId,
         facility_id: CreditFacilityId,
         idx: DisbursementIdx,
         amount: UsdCents,
@@ -47,6 +48,7 @@ pub enum DisbursementEvent {
 #[builder(pattern = "owned", build_fn(error = "EsEntityError"))]
 pub struct Disbursement {
     pub id: DisbursementId,
+    pub approval_process_id: ApprovalProcessId,
     pub facility_id: CreditFacilityId,
     pub idx: DisbursementIdx,
     pub amount: UsdCents,
@@ -62,6 +64,7 @@ impl TryFromEvents<DisbursementEvent> for Disbursement {
             match event {
                 DisbursementEvent::Initialized {
                     id,
+                    approval_process_id,
                     facility_id,
                     idx,
                     amount,
@@ -71,6 +74,7 @@ impl TryFromEvents<DisbursementEvent> for Disbursement {
                 } => {
                     builder = builder
                         .id(*id)
+                        .approval_process_id(*approval_process_id)
                         .facility_id(*facility_id)
                         .idx(*idx)
                         .amount(*amount)
@@ -200,6 +204,8 @@ pub struct NewDisbursement {
     #[builder(setter(into))]
     pub(super) id: DisbursementId,
     #[builder(setter(into))]
+    pub(crate) approval_process_id: ApprovalProcessId,
+    #[builder(setter(into))]
     pub(super) credit_facility_id: CreditFacilityId,
     pub(super) idx: DisbursementIdx,
     pub(super) amount: UsdCents,
@@ -221,6 +227,7 @@ impl IntoEvents<DisbursementEvent> for NewDisbursement {
             self.id,
             [DisbursementEvent::Initialized {
                 id: self.id,
+                approval_process_id: self.approval_process_id,
                 facility_id: self.credit_facility_id,
                 idx: self.idx,
                 amount: self.amount,
@@ -246,10 +253,12 @@ mod test {
     }
 
     fn init_events() -> EntityEvents<DisbursementEvent> {
+        let id = DisbursementId::new();
         EntityEvents::init(
             DisbursementId::new(),
             [DisbursementEvent::Initialized {
-                id: DisbursementId::new(),
+                id,
+                approval_process_id: id.into(),
                 facility_id: CreditFacilityId::new(),
                 idx: DisbursementIdx::FIRST,
                 amount: UsdCents::from(100_000),

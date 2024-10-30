@@ -28,6 +28,12 @@ impl From<CreditFacilityId> for ApprovalProcessId {
     }
 }
 
+impl From<DisbursementId> for ApprovalProcessId {
+    fn from(id: DisbursementId) -> Self {
+        ApprovalProcessId::from(id.0)
+    }
+}
+
 impl From<LoanId> for JobId {
     fn from(id: LoanId) -> Self {
         JobId::from(id.0)

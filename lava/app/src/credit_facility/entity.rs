@@ -47,6 +47,7 @@ pub enum CreditFacilityEvent {
     DisbursementInitiated {
         disbursement_id: DisbursementId,
         idx: DisbursementIdx,
+        approval_process_id: ApprovalProcessId,
         amount: UsdCents,
         audit_info: AuditInfo,
     },
@@ -446,18 +447,19 @@ impl CreditFacility {
             })
             .unwrap_or(DisbursementIdx::FIRST);
 
-        let id = DisbursementId::new();
-
+        let disbursement_id = DisbursementId::new();
         self.events
             .push(CreditFacilityEvent::DisbursementInitiated {
-                disbursement_id: id,
+                disbursement_id,
+                approval_process_id: disbursement_id.into(),
                 idx,
                 amount,
                 audit_info: audit_info.clone(),
             });
 
         Ok(NewDisbursement::builder()
-            .id(id)
+            .id(disbursement_id)
+            .approval_process_id(disbursement_id)
             .credit_facility_id(self.id)
             .idx(idx)
             .amount(amount)
@@ -1092,8 +1094,10 @@ mod test {
         let mut events = initial_events();
 
         let first_idx = DisbursementIdx::FIRST;
+        let disbursement_id = DisbursementId::new();
         events.push(CreditFacilityEvent::DisbursementInitiated {
-            disbursement_id: DisbursementId::new(),
+            disbursement_id,
+            approval_process_id: disbursement_id.into(),
             idx: first_idx,
             amount: UsdCents::ONE,
             audit_info: dummy_audit_info(),
@@ -1147,9 +1151,11 @@ mod test {
     #[test]
     fn outstanding() {
         let mut events = initial_events();
+        let disbursement_id = DisbursementId::new();
         events.extend([
             CreditFacilityEvent::DisbursementInitiated {
-                disbursement_id: DisbursementId::new(),
+                disbursement_id,
+                approval_process_id: disbursement_id.into(),
                 idx: DisbursementIdx::FIRST,
                 amount: UsdCents::from(100),
                 audit_info: dummy_audit_info(),
@@ -1176,6 +1182,7 @@ mod test {
     fn outstanding_from_due_before_expiry() {
         let mut events = initial_events();
         let activated_at = Utc::now();
+        let disbursement_id = DisbursementId::new();
         events.extend([
             CreditFacilityEvent::Activated {
                 ledger_tx_id: LedgerTxId::new(),
@@ -1183,7 +1190,8 @@ mod test {
                 audit_info: dummy_audit_info(),
             },
             CreditFacilityEvent::DisbursementInitiated {
-                disbursement_id: DisbursementId::new(),
+                disbursement_id,
+                approval_process_id: disbursement_id.into(),
                 idx: DisbursementIdx::FIRST,
                 amount: UsdCents::from(100),
                 audit_info: dummy_audit_info(),
@@ -1207,6 +1215,7 @@ mod test {
     fn outstanding_from_due_after_expiry() {
         let mut events = initial_events();
         let activated_at = "2023-01-01T00:00:00Z".parse::<DateTime<Utc>>().unwrap();
+        let disbursement_id = DisbursementId::new();
         events.extend([
             CreditFacilityEvent::Activated {
                 ledger_tx_id: LedgerTxId::new(),
@@ -1214,7 +1223,8 @@ mod test {
                 audit_info: dummy_audit_info(),
             },
             CreditFacilityEvent::DisbursementInitiated {
-                disbursement_id: DisbursementId::new(),
+                disbursement_id,
+                approval_process_id: disbursement_id.into(),
                 idx: DisbursementIdx::FIRST,
                 amount: UsdCents::from(100),
                 audit_info: dummy_audit_info(),
@@ -1289,6 +1299,7 @@ mod test {
     #[test]
     fn collateralization_ratio_when_active_disbursement() {
         let mut events = initial_events();
+        let disbursement_id = DisbursementId::new();
         events.extend([
             CreditFacilityEvent::CollateralUpdated {
                 tx_id: LedgerTxId::new(),
@@ -1310,7 +1321,8 @@ mod test {
                 audit_info: dummy_audit_info(),
             },
             CreditFacilityEvent::DisbursementInitiated {
-                disbursement_id: DisbursementId::new(),
+                disbursement_id,
+                approval_process_id: disbursement_id.into(),
                 idx: DisbursementIdx::FIRST,
                 amount: UsdCents::from(10),
                 audit_info: dummy_audit_info(),
