@@ -1706,7 +1706,7 @@ export type ApprovalProcessDenyMutationVariables = Exact<{
 }>;
 
 
-export type ApprovalProcessDenyMutation = { __typename?: 'Mutation', approvalProcessDeny: { __typename?: 'ApprovalProcessDenyPayload', approvalProcess: { __typename?: 'ApprovalProcess', id: string, approvalProcessId: string, processType: string, createdAt: any } } };
+export type ApprovalProcessDenyMutation = { __typename?: 'Mutation', approvalProcessDeny: { __typename?: 'ApprovalProcessDenyPayload', approvalProcess: { __typename?: 'ApprovalProcess', id: string, approvalProcessId: string, approvalProcessType: ApprovalProcessType, createdAt: any } } };
 
 export type ApprovalProcessesQueryVariables = Exact<{
   first: Scalars['Int']['input'];
@@ -1714,7 +1714,7 @@ export type ApprovalProcessesQueryVariables = Exact<{
 }>;
 
 
-export type ApprovalProcessesQuery = { __typename?: 'Query', approvalProcesses: { __typename?: 'ApprovalProcessConnection', pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, endCursor?: string | null }, edges: Array<{ __typename?: 'ApprovalProcessEdge', cursor: string, node: { __typename?: 'ApprovalProcess', id: string, approvalProcessId: string, approvalProcessType: ApprovalProcessType, createdAt: any } }> } };
+export type ApprovalProcessesQuery = { __typename?: 'Query', approvalProcesses: { __typename?: 'ApprovalProcessConnection', pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, endCursor?: string | null }, edges: Array<{ __typename?: 'ApprovalProcessEdge', cursor: string, node: { __typename?: 'ApprovalProcess', id: string, approvalProcessId: string, approvalProcessType: ApprovalProcessType, createdAt: any, canVote: boolean, target: { __typename: 'CreditFacility', creditFacilityId: string } | { __typename: 'Withdrawal', withdrawalId: string } } }> } };
 
 export type AuditLogsQueryVariables = Exact<{
   first: Scalars['Int']['input'];
@@ -2138,7 +2138,7 @@ export type GetWithdrawalDetailsQueryVariables = Exact<{
 }>;
 
 
-export type GetWithdrawalDetailsQuery = { __typename?: 'Query', withdrawal?: { __typename?: 'Withdrawal', customerId: string, withdrawalId: string, amount: any, status: WithdrawalStatus, reference: string, userCanConfirm: boolean, userCanCancel: boolean, customer?: { __typename?: 'Customer', email: string, customerId: string, applicantId?: string | null } | null, approvalProcess: { __typename?: 'ApprovalProcess', approvalProcessId: string, status: ApprovalProcessStatus, policy: { __typename?: 'Policy', rules: { __typename?: 'CommitteeThreshold', threshold: number, committee: { __typename?: 'Committee', name: string, currentMembers: Array<{ __typename?: 'User', email: string, roles: Array<Role> }> } } | { __typename?: 'SystemApproval', autoApprove: boolean } }, voters: Array<{ __typename?: 'ApprovalProcessVoter', stillEligible: boolean, didVote: boolean, didApprove: boolean, didDeny: boolean, user: { __typename?: 'User', userId: string, email: string, roles: Array<Role> } }> } } | null };
+export type GetWithdrawalDetailsQuery = { __typename?: 'Query', withdrawal?: { __typename?: 'Withdrawal', customerId: string, withdrawalId: string, amount: any, status: WithdrawalStatus, reference: string, userCanConfirm: boolean, userCanCancel: boolean, customer?: { __typename?: 'Customer', email: string, customerId: string, applicantId?: string | null } | null, approvalProcess: { __typename?: 'ApprovalProcess', approvalProcessId: string, approvalProcessType: ApprovalProcessType, createdAt: any, canVote: boolean, status: ApprovalProcessStatus, rules: { __typename?: 'CommitteeThreshold', threshold: number, committee: { __typename?: 'Committee', name: string, currentMembers: Array<{ __typename?: 'User', email: string, roles: Array<Role> }> } } | { __typename?: 'SystemApproval', autoApprove: boolean }, voters: Array<{ __typename?: 'ApprovalProcessVoter', stillEligible: boolean, didVote: boolean, didApprove: boolean, didDeny: boolean, user: { __typename?: 'User', userId: string, email: string, roles: Array<Role> } }> } } | null };
 
 export type WithdrawalCancelMutationVariables = Exact<{
   input: WithdrawalCancelInput;
@@ -2330,7 +2330,7 @@ export const ApprovalProcessDenyDocument = gql`
     approvalProcess {
       id
       approvalProcessId
-      processType
+      approvalProcessType
       createdAt
     }
   }
@@ -2376,6 +2376,16 @@ export const ApprovalProcessesDocument = gql`
         approvalProcessId
         approvalProcessType
         createdAt
+        canVote
+        target {
+          __typename
+          ... on Withdrawal {
+            withdrawalId
+          }
+          ... on CreditFacility {
+            creditFacilityId
+          }
+        }
       }
     }
   }
@@ -5331,22 +5341,23 @@ export const GetWithdrawalDetailsDocument = gql`
     }
     approvalProcess {
       approvalProcessId
+      approvalProcessType
+      createdAt
+      canVote
       status
-      policy {
-        rules {
-          ... on CommitteeThreshold {
-            threshold
-            committee {
-              name
-              currentMembers {
-                email
-                roles
-              }
+      rules {
+        ... on CommitteeThreshold {
+          threshold
+          committee {
+            name
+            currentMembers {
+              email
+              roles
             }
           }
-          ... on SystemApproval {
-            autoApprove
-          }
+        }
+        ... on SystemApproval {
+          autoApprove
         }
       }
       voters {

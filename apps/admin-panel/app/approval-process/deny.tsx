@@ -20,7 +20,7 @@ gql`
       approvalProcess {
         id
         approvalProcessId
-        processType
+        approvalProcessType
         createdAt
       }
     }
@@ -76,7 +76,7 @@ export const DenialDialog: React.FC<DenialDialogProps> = ({
         <DetailsGroup>
           <DetailItem
             label="Process Type"
-            value={formatProcessType(approvalProcess?.processType)}
+            value={formatProcessType(approvalProcess?.approvalProcessType)}
           />
           <DetailItem label="Created At" value={formatDate(approvalProcess?.createdAt)} />
         </DetailsGroup>

@@ -105,7 +105,7 @@ function PoliciesPage() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Process Type</TableHead>
-                  <TableHead>Committee</TableHead>
+                  <TableHead>Rule</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -123,9 +123,9 @@ function PoliciesPage() {
                           : "text-textColor-secondary"
                       }
                     >
-                      {policy.rules.__typename === "CommitteeThreshold"
-                        ? policy.rules.committee.name
-                        : "No Committee Assigned"}
+                      {policy.rules.__typename === "CommitteeThreshold" &&
+                        `${policy.rules.committee.name} Committee`}
+                      {policy.rules.__typename === "SystemApproval" && "System"}
                     </TableCell>
                   </TableRow>
                 ))}

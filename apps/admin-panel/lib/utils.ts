@@ -2,6 +2,7 @@ import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
 
 import {
+  ApprovalProcessType,
   ApprovalRules,
   CollateralAction,
   CollateralizationState,
@@ -146,9 +147,11 @@ export const formatRule = (rule: ApprovalRules | null | undefined): string => {
   return "Unknown rule type"
 }
 
-export const formatProcessType = (processType: string) => {
-  return processType
-    .split("-")
-    .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-    .join(" ")
+export const formatProcessType = (processType: ApprovalProcessType) => {
+  switch (processType) {
+    case ApprovalProcessType.CreditFacilityApproval:
+      return "Credit Facility"
+    case ApprovalProcessType.WithdrawApproval:
+      return "Withdrawal"
+  }
 }

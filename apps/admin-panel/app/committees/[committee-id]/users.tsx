@@ -23,6 +23,7 @@ import { Badge } from "@/components/primitive/badge"
 
 type CommitteeUsersProps = {
   committee: NonNullable<GetCommitteeDetailsQuery["committee"]>
+  showRemove?: boolean
 }
 
 type UserToRemove = {
@@ -30,7 +31,10 @@ type UserToRemove = {
   email: string
 } | null
 
-export const CommitteeUsers: React.FC<CommitteeUsersProps> = ({ committee }) => {
+export const CommitteeUsers: React.FC<CommitteeUsersProps> = ({
+  committee,
+  showRemove = true,
+}) => {
   const [userToRemove, setUserToRemove] = useState<UserToRemove>(null)
 
   return (
@@ -47,6 +51,7 @@ export const CommitteeUsers: React.FC<CommitteeUsersProps> = ({ committee }) => 
                   <TableHead>Email</TableHead>
                   <TableHead>User ID</TableHead>
                   <TableHead></TableHead>
+                  {showRemove && <TableHead></TableHead>}
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -68,21 +73,23 @@ export const CommitteeUsers: React.FC<CommitteeUsersProps> = ({ committee }) => 
                       </div>
                     </TableCell>
 
-                    <TableCell className="text-right px-1">
-                      <Button
-                        className="gap-2 text-destructive"
-                        variant="ghost"
-                        onClick={() =>
-                          setUserToRemove({
-                            userId: user.userId,
-                            email: user.email,
-                          })
-                        }
-                      >
-                        <IoTrashOutline className="w-4 h-4" />
-                        Remove member
-                      </Button>
-                    </TableCell>
+                    {showRemove && (
+                      <TableCell className="text-right px-1">
+                        <Button
+                          className="gap-2 text-destructive"
+                          variant="ghost"
+                          onClick={() =>
+                            setUserToRemove({
+                              userId: user.userId,
+                              email: user.email,
+                            })
+                          }
+                        >
+                          <IoTrashOutline className="w-4 h-4" />
+                          Remove member
+                        </Button>
+                      </TableCell>
+                    )}
                   </TableRow>
                 ))}
               </TableBody>

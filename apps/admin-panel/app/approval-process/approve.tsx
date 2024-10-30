@@ -79,7 +79,7 @@ export const ApprovalDialog: React.FC<ApprovalDialogProps> = ({
         <DetailsGroup>
           <DetailItem
             label="Process Type"
-            value={formatProcessType(approvalProcess?.processType)}
+            value={formatProcessType(approvalProcess?.approvalProcessType)}
           />
           <DetailItem label="Created At" value={formatDate(approvalProcess?.createdAt)} />
         </DetailsGroup>

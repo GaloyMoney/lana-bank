@@ -5,6 +5,7 @@ import { useState } from "react"
 import Link from "next/link"
 import { IoEllipsisHorizontal } from "react-icons/io5"
 import { toast } from "sonner"
+import { useRouter } from "next/navigation"
 
 import { CreateUserDialog } from "./create"
 
@@ -70,6 +71,7 @@ gql`
 `
 
 function UsersPage() {
+  const router = useRouter()
   const { data: usersList, refetch } = useUsersQuery()
   const { data: me } = useMeQuery()
   const [openCreateUserDialog, setOpenCreateUserDialog] = useState<boolean>(false)
@@ -103,7 +105,11 @@ function UsersPage() {
             </TableHeader>
             <TableBody>
               {usersList?.users.map((user) => (
-                <TableRow key={user.userId}>
+                <TableRow
+                  key={user.userId}
+                  className="cursor-pointer"
+                  onClick={() => router.push(`/users/${user.userId}`)}
+                >
                   <TableCell>{user.userId}</TableCell>
                   <TableCell>{user.email}</TableCell>
                   <TableCell>

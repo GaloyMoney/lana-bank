@@ -22,6 +22,5 @@ const getVariant = (status: WithdrawalStatus) => {
 
 export const WithdrawalStatusBadge: React.FC<StatusBadgeProps> = ({ status }) => {
   const variant = getVariant(status)
-
-  return <Badge variant={variant}>{status}</Badge>
+  return <Badge variant={variant}>{status.split("_").join(" ")}</Badge>
 }

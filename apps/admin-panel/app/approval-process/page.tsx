@@ -42,6 +42,16 @@ gql`
           approvalProcessId
           approvalProcessType
           createdAt
+          canVote
+          target {
+            __typename
+            ... on Withdrawal {
+              withdrawalId
+            }
+            ... on CreditFacility {
+              creditFacilityId
+            }
+          }
         }
       }
     }
@@ -95,12 +105,7 @@ export default function ApprovalProcessesTable() {
                   key={process.approvalProcessId}
                   className="cursor-pointer"
                   onClick={() => {
-                    router.push(
-                      processTypeLink(
-                        process.approvalProcessType,
-                        process.approvalProcessId,
-                      ),
-                    )
+                    router.push(processTypeLink(process as ApprovalProcess))
                   }}
                 >
                   <TableCell>{formatProcessType(process.approvalProcessType)}</TableCell>
@@ -129,12 +134,7 @@ export default function ApprovalProcessesTable() {
                         </DropdownMenuItem>
                         <DropdownMenuItem
                           onClick={() => {
-                            router.push(
-                              processTypeLink(
-                                process.approvalProcessType,
-                                process.approvalProcessId,
-                              ),
-                            )
+                            router.push(processTypeLink(process as ApprovalProcess))
                           }}
                         >
                           View details
@@ -182,12 +182,12 @@ export default function ApprovalProcessesTable() {
   )
 }
 
-const processTypeLink = (processType: string, approvalProcessId: string) => {
-  switch (processType) {
-    case "credit-facility":
-      return `/credit-facilities/${approvalProcessId}`
-    case "withdraw":
-      return `/withdrawals/${approvalProcessId}`
+const processTypeLink = (process: ApprovalProcess) => {
+  switch (process.target.__typename) {
+    case "CreditFacility":
+      return `/credit-facilities/${process.target.creditFacilityId}`
+    case "Withdrawal":
+      return `/withdrawals/${process.target.withdrawalId}`
     default:
       return "/approval-process"
   }

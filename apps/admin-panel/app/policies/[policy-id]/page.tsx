@@ -59,7 +59,7 @@ function PolicyPage({
       <div className="flex flex-col gap-5">
         <PolicyDetailsCard policy={data.policy} />
         {data.policy.rules.__typename === "CommitteeThreshold" && (
-          <CommitteeUsers committee={data.policy.rules.committee} />
+          <CommitteeUsers showRemove={false} committee={data.policy.rules.committee} />
         )}
       </div>
     </main>
