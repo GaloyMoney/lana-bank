@@ -48,19 +48,19 @@ pub(super) enum ApprovalRules {
 
 #[derive(async_graphql::Enum, Clone, Copy, PartialEq, Eq)]
 pub enum ApprovalProcessType {
-    WithdrawApproval,
-    CreditFacilityApproval,
-    DisbursementApproval,
+    Withdraw,
+    CreditFacility,
+    Disbursement,
 }
 
 impl From<&governance::ApprovalProcessType> for ApprovalProcessType {
     fn from(process_type: &governance::ApprovalProcessType) -> Self {
         if process_type == &lava_app::governance::APPROVE_WITHDRAW_PROCESS {
-            Self::WithdrawApproval
+            Self::Withdraw
         } else if process_type == &lava_app::governance::APPROVE_CREDIT_FACILITY_PROCESS {
-            Self::CreditFacilityApproval
+            Self::CreditFacility
         } else if process_type == &lava_app::governance::APPROVE_DISBURSEMENT_PROCESS {
-            Self::DisbursementApproval
+            Self::Disbursement
         } else {
             panic!("Unknown approval process type: {:?}", process_type);
         }

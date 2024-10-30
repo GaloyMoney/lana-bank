@@ -124,7 +124,7 @@ impl ApprovalProcess {
     async fn target(&self, ctx: &Context<'_>) -> async_graphql::Result<ApprovalProcessTarget> {
         let loader = ctx.data_unchecked::<DataLoader<LavaDataLoader>>();
         match self.approval_process_type {
-            ApprovalProcessType::WithdrawApproval => {
+            ApprovalProcessType::Withdraw => {
                 let withdrawal = loader
                     .load_one(
                         self.entity
@@ -136,7 +136,7 @@ impl ApprovalProcess {
                     .expect("withdrawal not found");
                 Ok(ApprovalProcessTarget::Withdrawal(withdrawal))
             }
-            ApprovalProcessType::CreditFacilityApproval => {
+            ApprovalProcessType::CreditFacility => {
                 let credit_facility = loader
                     .load_one(
                         self.entity
@@ -148,7 +148,7 @@ impl ApprovalProcess {
                     .expect("credit facility not found");
                 Ok(ApprovalProcessTarget::CreditFacility(credit_facility))
             }
-            ApprovalProcessType::DisbursementApproval => todo!(),
+            ApprovalProcessType::Disbursement => todo!(),
         }
     }
 }

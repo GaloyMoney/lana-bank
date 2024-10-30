@@ -150,9 +150,9 @@ export enum ApprovalProcessStatus {
 export type ApprovalProcessTarget = CreditFacility | Withdrawal;
 
 export enum ApprovalProcessType {
-  CreditFacilityApproval = 'CREDIT_FACILITY_APPROVAL',
-  DisbursementApproval = 'DISBURSEMENT_APPROVAL',
-  WithdrawApproval = 'WITHDRAW_APPROVAL'
+  CreditFacility = 'CREDIT_FACILITY',
+  Disbursement = 'DISBURSEMENT',
+  Withdraw = 'WITHDRAW'
 }
 
 export type ApprovalProcessVoter = {

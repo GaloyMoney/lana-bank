@@ -27,9 +27,9 @@ enum ApprovalProcessStatus {
 union ApprovalProcessTarget = Withdrawal | CreditFacility
 
 enum ApprovalProcessType {
-	WITHDRAW_APPROVAL
-	CREDIT_FACILITY_APPROVAL
-	DISBURSEMENT_APPROVAL
+	WITHDRAW
+	CREDIT_FACILITY
+	DISBURSEMENT
 }
 
 type ApprovalProcessVoter {
