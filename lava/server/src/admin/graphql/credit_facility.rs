@@ -2,7 +2,7 @@ use async_graphql::{dataloader::DataLoader, *};
 
 use super::{approval_process::ApprovalProcess, loader::LavaDataLoader};
 use crate::{
-    admin::{graphql::user::User, AdminAuthContext},
+    admin::AdminAuthContext,
     shared_graphql::{
         convert::ToGlobalId,
         customer::Customer,
@@ -333,28 +333,6 @@ pub struct CreditFacilityDisbursement {
     created_at: Timestamp,
 }
 
-#[derive(SimpleObject)]
-#[graphql(complex)]
-pub struct DisbursementApproval {
-    #[graphql(skip)]
-    user_id: lava_app::primitives::UserId,
-    approved_at: Timestamp,
-}
-
-#[ComplexObject]
-impl DisbursementApproval {
-    async fn user(&self, ctx: &Context<'_>) -> async_graphql::Result<User> {
-        let app = ctx.data_unchecked::<LavaApp>();
-        let AdminAuthContext { sub } = ctx.data()?;
-        let user = app
-            .users()
-            .find_by_id(sub, self.user_id)
-            .await?
-            .expect("should always find user for a given UserId");
-        Ok(User::from(user))
-    }
-}
-
 impl From<lava_app::credit_facility::Disbursement> for CreditFacilityDisbursement {
     fn from(disbursement: lava_app::credit_facility::Disbursement) -> Self {
         Self {
@@ -387,15 +365,6 @@ impl From<lava_app::credit_facility::Disbursement> for CreditFacilityDisbursemen
     fn from(disbursement: lava_app::credit_facility::Disbursement) -> Self {
         Self {
             disbursement: CreditFacilityDisbursement::from(disbursement),
-        }
-    }
-}
-
-impl From<lava_app::credit_facility::DisbursementApproval> for DisbursementApproval {
-    fn from(disbursement_approval: lava_app::credit_facility::DisbursementApproval) -> Self {
-        Self {
-            user_id: disbursement_approval.user_id,
-            approved_at: disbursement_approval.approved_at.into(),
         }
     }
 }
