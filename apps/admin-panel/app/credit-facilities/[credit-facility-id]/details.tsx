@@ -5,7 +5,7 @@ import Link from "next/link"
 
 import { CreditFacilityCollateralUpdateDialog } from "../collateral-update"
 import { CreditFacilityApproveDialog } from "../approve"
-import { CreditFacilityDisbursementInitiateDialog } from "../disbursement-Initiate"
+import { CreditFacilityDisbursementInitiateDialog } from "../disbursement-initiate"
 import { CreditFacilityCompleteDialog } from "../complete"
 import { CreditFacilityPartialPaymentDialog } from "../partial-payment"
 
