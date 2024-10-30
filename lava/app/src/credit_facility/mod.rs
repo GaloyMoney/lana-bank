@@ -98,7 +98,7 @@ impl CreditFacilities {
             audit,
         ));
         jobs.add_initializer_and_spawn_unique(
-            approve::CreditFacilityApprovalJobInitializer::new(
+            approve_credit_facility::CreditFacilityApprovalJobInitializer::new(
                 pool,
                 &credit_facility_repo,
                 &interest_accrual_repo,
@@ -108,7 +108,7 @@ impl CreditFacilities {
                 authz.audit(),
                 outbox,
             ),
-            approve::CreditFacilityApprovalJobConfig,
+            approve_credit_facility::CreditFacilityApprovalJobConfig,
         )
         .await?;
         let _ = governance
