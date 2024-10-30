@@ -233,9 +233,9 @@ impl CreditFacility {
         UsdCents::ZERO
     }
 
-    pub fn initial_disbursement_recorded_at(&self) -> Option<DateTime<Utc>> {
+    pub fn activated_at(&self) -> Option<DateTime<Utc>> {
         self.events.iter_all().find_map(|event| match event {
-            CreditFacilityEvent::DisbursementConcluded { recorded_at, .. } => Some(*recorded_at),
+            CreditFacilityEvent::Activated { activated_at, .. } => Some(*activated_at),
             _ => None,
         })
     }
@@ -506,12 +506,12 @@ impl CreditFacility {
         let full_period = match last_accrual_start_date {
             Some(last_accrual_start_date) => interval.period_from(last_accrual_start_date).next(),
             None => interval.period_from(
-                self.initial_disbursement_recorded_at()
-                    .ok_or(CreditFacilityError::NoDisbursementsApprovedYet)?,
+                self.activated_at()
+                    .ok_or(CreditFacilityError::NotActivatedYet)?,
             ),
         };
 
-        Ok(full_period.truncate(self.expires_at.expect("Facility is already approved")))
+        Ok(full_period.truncate(self.expires_at.expect("Facility is already active")))
     }
 
     pub(super) fn start_interest_accrual(
@@ -1329,25 +1329,11 @@ mod test {
     #[test]
     fn next_interest_accrual_period_handles_first_and_second_periods() {
         let mut events = initial_events();
-        events.extend([
-            CreditFacilityEvent::Activated {
-                ledger_tx_id: LedgerTxId::new(),
-                audit_info: dummy_audit_info(),
-                activated_at: Utc::now(),
-            },
-            CreditFacilityEvent::DisbursementInitiated {
-                disbursement_id: DisbursementId::new(),
-                idx: DisbursementIdx::FIRST,
-                amount: UsdCents::from(100),
-                audit_info: dummy_audit_info(),
-            },
-            CreditFacilityEvent::DisbursementConcluded {
-                idx: DisbursementIdx::FIRST,
-                tx_id: LedgerTxId::new(),
-                recorded_at: Utc::now(),
-                audit_info: dummy_audit_info(),
-            },
-        ]);
+        events.extend([CreditFacilityEvent::Activated {
+            ledger_tx_id: LedgerTxId::new(),
+            audit_info: dummy_audit_info(),
+            activated_at: Utc::now(),
+        }]);
         let mut credit_facility = facility_from(&events);
 
         let first_period = credit_facility
@@ -1392,25 +1378,11 @@ mod test {
     #[test]
     fn next_interest_accrual_period_handles_last_period() {
         let mut events = initial_events();
-        events.extend([
-            CreditFacilityEvent::Activated {
-                ledger_tx_id: LedgerTxId::new(),
-                audit_info: dummy_audit_info(),
-                activated_at: Utc::now(),
-            },
-            CreditFacilityEvent::DisbursementInitiated {
-                disbursement_id: DisbursementId::new(),
-                idx: DisbursementIdx::FIRST,
-                amount: UsdCents::from(100),
-                audit_info: dummy_audit_info(),
-            },
-            CreditFacilityEvent::DisbursementConcluded {
-                idx: DisbursementIdx::FIRST,
-                tx_id: LedgerTxId::new(),
-                recorded_at: Utc::now(),
-                audit_info: dummy_audit_info(),
-            },
-        ]);
+        events.extend([CreditFacilityEvent::Activated {
+            ledger_tx_id: LedgerTxId::new(),
+            audit_info: dummy_audit_info(),
+            activated_at: Utc::now(),
+        }]);
         let mut credit_facility = facility_from(&events);
 
         let new_accrual = credit_facility
