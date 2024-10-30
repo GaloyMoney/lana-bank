@@ -1,3 +1,4 @@
+mod activate;
 mod config;
 mod disbursement;
 mod entity;
@@ -22,7 +23,8 @@ use crate::{
     outbox::Outbox,
     price::Price,
     primitives::{
-        CreditFacilityId, CustomerId, DisbursementIdx, Satoshis, Subject, UsdCents, UserId,
+        CreditFacilityId, CustomerId, DisbursementIdx, PriceOfOneBTC, Satoshis, Subject, UsdCents,
+        UserId,
     },
     terms::TermValues,
 };
@@ -96,8 +98,10 @@ impl CreditFacilities {
             approve::CreditFacilityApprovalJobInitializer::new(
                 pool,
                 &credit_facility_repo,
+                &interest_accrual_repo,
                 price,
                 ledger,
+                jobs,
                 authz.audit(),
                 outbox,
             ),
@@ -320,32 +324,6 @@ impl CreditFacilities {
                 executed_at,
                 audit_info.clone(),
             );
-
-            let new_accrual = credit_facility
-                .start_interest_accrual(audit_info.clone())?
-                .expect("Accrual start date is before facility expiry date");
-            let accrual = self
-                .interest_accrual_repo
-                .create_in_tx(&mut db_tx, new_accrual)
-                .await?;
-            match self
-                .jobs
-                .create_and_spawn_at_in_tx(
-                    &mut db_tx,
-                    credit_facility.id,
-                    interest::CreditFacilityJobConfig {
-                        credit_facility_id: credit_facility.id,
-                    },
-                    accrual
-                        .next_incurrence_period()
-                        .expect("New accrual has first incurrence period")
-                        .end,
-                )
-                .await
-            {
-                Ok(_) | Err(JobError::DuplicateId) => (),
-                Err(err) => Err(err)?,
-            };
         }
 
         self.disbursement_repo
@@ -411,22 +389,16 @@ impl CreditFacilities {
             self.config.upgrade_buffer_cvl_pct,
         );
 
-        if let Ok(credit_facility_activation) = credit_facility.activation_data(price) {
-            self.ledger
-                .activate_credit_facility(credit_facility_activation.clone())
-                .await?;
-            let audit_info = self
-                .authz
-                .audit()
-                .record_system_entry_in_tx(
-                    &mut db_tx,
-                    Object::CreditFacility,
-                    CreditFacilityAction::Activate,
-                )
-                .await?;
-            credit_facility.activate(credit_facility_activation, chrono::Utc::now(), audit_info);
-        }
-
+        activate::execute(
+            &mut credit_facility,
+            &mut db_tx,
+            &self.ledger,
+            self.authz.audit(),
+            self.interest_accrual_repo.clone(),
+            &self.jobs,
+            price,
+        )
+        .await?;
         self.credit_facility_repo
             .update_in_tx(&mut db_tx, &mut credit_facility)
             .await?;

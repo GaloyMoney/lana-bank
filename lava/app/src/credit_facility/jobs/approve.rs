@@ -8,7 +8,9 @@ use rbac_types::{AppObject, CreditFacilityAction};
 
 use crate::{
     audit::{Audit, AuditSvc},
-    credit_facility::{repo::CreditFacilityRepo, APPROVE_CREDIT_FACILITY_PROCESS},
+    credit_facility::{
+        activate, repo::CreditFacilityRepo, InterestAccrualRepo, APPROVE_CREDIT_FACILITY_PROCESS,
+    },
     ledger::Ledger,
     outbox::Outbox,
     price::Price,
@@ -22,27 +24,34 @@ impl JobConfig for CreditFacilityApprovalJobConfig {
 
 pub(crate) struct CreditFacilityApprovalJobInitializer {
     pool: sqlx::PgPool,
-    repo: CreditFacilityRepo,
+    credit_facility_repo: CreditFacilityRepo,
+    interest_accrual_repo: InterestAccrualRepo,
     price: Price,
     ledger: Ledger,
+    jobs: Jobs,
     audit: Audit,
     outbox: Outbox,
 }
 
 impl CreditFacilityApprovalJobInitializer {
+    #[allow(clippy::too_many_arguments)]
     pub fn new(
         pool: &sqlx::PgPool,
-        repo: &CreditFacilityRepo,
+        credit_facility_repo: &CreditFacilityRepo,
+        interest_accrual_repo: &InterestAccrualRepo,
         price: &Price,
         ledger: &Ledger,
+        jobs: &Jobs,
         audit: &Audit,
         outbox: &Outbox,
     ) -> Self {
         Self {
             pool: pool.clone(),
-            repo: repo.clone(),
+            credit_facility_repo: credit_facility_repo.clone(),
+            interest_accrual_repo: interest_accrual_repo.clone(),
             price: price.clone(),
             ledger: ledger.clone(),
+            jobs: jobs.clone(),
             audit: audit.clone(),
             outbox: outbox.clone(),
         }
@@ -61,9 +70,11 @@ impl JobInitializer for CreditFacilityApprovalJobInitializer {
     fn init(&self, _: &Job) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
         Ok(Box::new(CreditFacilityApprovalJobRunner {
             pool: self.pool.clone(),
-            repo: self.repo.clone(),
+            credit_facility_repo: self.credit_facility_repo.clone(),
+            interest_accrual_repo: self.interest_accrual_repo.clone(),
             price: self.price.clone(),
             ledger: self.ledger.clone(),
+            jobs: self.jobs.clone(),
             audit: self.audit.clone(),
             outbox: self.outbox.clone(),
         }))
@@ -84,9 +95,11 @@ struct CreditFacilityApprovalJobData {
 
 pub struct CreditFacilityApprovalJobRunner {
     pool: sqlx::PgPool,
-    repo: CreditFacilityRepo,
+    credit_facility_repo: CreditFacilityRepo,
+    interest_accrual_repo: InterestAccrualRepo,
     price: Price,
     ledger: Ledger,
+    jobs: Jobs,
     audit: Audit,
     outbox: Outbox,
 }
@@ -111,7 +124,10 @@ impl JobRunner for CreditFacilityApprovalJobRunner {
                 })) if process_type == &APPROVE_CREDIT_FACILITY_PROCESS => {
                     let mut db_tx = self.pool.begin().await?;
 
-                    let mut credit_facility = self.repo.find_by_approval_process_id(id).await?;
+                    let mut credit_facility = self
+                        .credit_facility_repo
+                        .find_by_approval_process_id(id)
+                        .await?;
                     let audit_info = self
                         .audit
                         .record_system_entry_in_tx(
@@ -123,26 +139,18 @@ impl JobRunner for CreditFacilityApprovalJobRunner {
                     credit_facility.approval_process_concluded(approved, audit_info);
 
                     let price = self.price.usd_cents_per_btc().await?;
-                    if let Ok(credit_facility_activation) = credit_facility.activation_data(price) {
-                        self.ledger
-                            .activate_credit_facility(credit_facility_activation.clone())
-                            .await?;
-                        let audit_info = self
-                            .audit
-                            .record_system_entry_in_tx(
-                                &mut db_tx,
-                                AppObject::CreditFacility,
-                                CreditFacilityAction::Activate,
-                            )
-                            .await?;
-                        credit_facility.activate(
-                            credit_facility_activation,
-                            chrono::Utc::now(),
-                            audit_info,
-                        );
-                    }
+                    activate::execute(
+                        &mut credit_facility,
+                        &mut db_tx,
+                        &self.ledger,
+                        &self.audit,
+                        self.interest_accrual_repo.clone(),
+                        &self.jobs,
+                        price,
+                    )
+                    .await?;
 
-                    self.repo
+                    self.credit_facility_repo
                         .update_in_tx(&mut db_tx, &mut credit_facility)
                         .await?;
                     state.sequence = message.sequence;
