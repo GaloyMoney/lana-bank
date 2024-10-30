@@ -108,6 +108,15 @@ impl Disbursement {
         }
     }
 
+    pub(crate) fn approval_process_concluded(&mut self, approved: bool, audit_info: AuditInfo) {
+        self.events
+            .push(DisbursementEvent::ApprovalProcessConcluded {
+                approval_process_id: self.id.into(),
+                approved,
+                audit_info,
+            });
+    }
+
     pub(super) fn is_approved(&self) -> Option<bool> {
         for event in self.events.iter_all() {
             if let DisbursementEvent::ApprovalProcessConcluded { approved, .. } = event {

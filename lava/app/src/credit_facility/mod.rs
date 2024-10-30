@@ -110,6 +110,16 @@ impl CreditFacilities {
             approve_credit_facility::CreditFacilityApprovalJobConfig,
         )
         .await?;
+        jobs.add_initializer_and_spawn_unique(
+            approve_disbursement::DisbursementApprovalJobInitializer::new(
+                pool,
+                &disbursement_repo,
+                authz.audit(),
+                outbox,
+            ),
+            approve_disbursement::DisbursementApprovalJobConfig,
+        )
+        .await?;
         let _ = governance
             .init_policy(APPROVE_CREDIT_FACILITY_PROCESS)
             .await;
