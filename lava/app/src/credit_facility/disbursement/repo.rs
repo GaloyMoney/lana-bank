@@ -2,10 +2,7 @@ use sqlx::PgPool;
 
 use es_entity::*;
 
-use crate::{
-    data_export::Export,
-    primitives::{CreditFacilityId, DisbursementId, DisbursementIdx},
-};
+use crate::{data_export::Export, primitives::*};
 
 use super::{entity::*, error::DisbursementError};
 
@@ -15,6 +12,7 @@ use super::{entity::*, error::DisbursementError};
     err = "DisbursementError",
     columns(
         credit_facility_id(ty = "CreditFacilityId", update(persist = false), list_for),
+        approval_process_id(ty = "ApprovalProcessId", update(persist = "false")),
         idx(ty = "DisbursementIdx", update(persist = false)),
     )
 )]

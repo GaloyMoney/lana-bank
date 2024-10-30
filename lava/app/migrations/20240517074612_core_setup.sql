@@ -129,6 +129,7 @@ CREATE TABLE credit_facility_events (
 CREATE TABLE disbursements (
   id UUID PRIMARY KEY,
   credit_facility_id UUID NOT NULL REFERENCES credit_facilities(id),
+  approval_process_id UUID NOT NULL REFERENCES approval_processes(id),
   idx INT NOT NULL,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   UNIQUE(credit_facility_id, idx)
