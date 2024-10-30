@@ -148,6 +148,7 @@ impl ApprovalProcess {
                     .expect("credit facility not found");
                 Ok(ApprovalProcessTarget::CreditFacility(credit_facility))
             }
+            ApprovalProcessType::DisbursementApproval => todo!(),
         }
     }
 }

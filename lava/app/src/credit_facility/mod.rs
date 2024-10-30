@@ -43,7 +43,7 @@ use tracing::instrument;
 
 pub const APPROVE_CREDIT_FACILITY_PROCESS: ApprovalProcessType =
     ApprovalProcessType::new("credit-facility");
-const APPROVE_DISBURSEMENT_PROCESS: ApprovalProcessType = ApprovalProcessType::new("disbursement");
+pub const APPROVE_DISBURSEMENT_PROCESS: ApprovalProcessType = ApprovalProcessType::new("disbursement");
 
 #[derive(Clone)]
 pub struct CreditFacilities {

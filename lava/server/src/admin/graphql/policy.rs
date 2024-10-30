@@ -50,6 +50,7 @@ pub(super) enum ApprovalRules {
 pub enum ApprovalProcessType {
     WithdrawApproval,
     CreditFacilityApproval,
+    DisbursementApproval,
 }
 
 impl From<&governance::ApprovalProcessType> for ApprovalProcessType {
@@ -58,6 +59,8 @@ impl From<&governance::ApprovalProcessType> for ApprovalProcessType {
             Self::WithdrawApproval
         } else if process_type == &lava_app::governance::APPROVE_CREDIT_FACILITY_PROCESS {
             Self::CreditFacilityApproval
+        } else if process_type == &lava_app::governance::APPROVE_DISBURSEMENT_PROCESS {
+            Self::DisbursementApproval
         } else {
             panic!("Unknown ApprovalProcessType")
         }
