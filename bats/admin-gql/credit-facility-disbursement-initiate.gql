@@ -5,6 +5,7 @@ mutation CreditFacilityDisbursementInitiate(
     disbursement {
       id
       index
+      status
     }
   }
 }

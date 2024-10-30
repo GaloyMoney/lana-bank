@@ -1,0 +1,10 @@
+mutation CreditFacilityDisbursementConfirm(
+  $input: CreditFacilityDisbursementConfirmInput!
+) {
+  creditFacilityDisbursementConfirm(input: $input) {
+    disbursement {
+      id
+      status
+    }
+  }
+}

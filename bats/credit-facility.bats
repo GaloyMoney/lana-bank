@@ -81,11 +81,13 @@ teardown_file() {
   exec_admin_graphql 'credit-facility-disbursement-initiate' "$variables"
   disbursement_index=$(graphql_output '.data.creditFacilityDisbursementInitiate.disbursement.index')
   [[ "$disbursement_index" != "null" ]] || exit 1
+  status=$(graphql_output '.data.creditFacilityDisbursementInitiate.disbursement.status')
+  [[ "$status" == "NEW" ]] || exit 1
 
   cache_value 'disbursement_index' "$disbursement_index"
 }
 
-@test "credit-facility: can approve disbursement" {
+@test "credit-facility: can create and confirm disbursement" {
   credit_facility_id=$(read_value 'credit_facility_id')
   disbursement_index=$(read_value 'disbursement_index')
 
@@ -100,9 +102,11 @@ teardown_file() {
       }
     }'
   )
-  exec_admin_graphql 'credit-facility-disbursement-approve' "$variables"
-  disbursement_id=$(graphql_output '.data.creditFacilityDisbursementApprove.disbursement.id')
+  exec_admin_graphql 'credit-facility-disbursement-confirm' "$variables"
+  disbursement_id=$(graphql_output '.data.creditFacilityDisbursementConfirm.disbursement.id')
   [[ "$disbursement_id" != "null" ]] || exit 1
+  status=$(graphql_output '.data.creditFacilityDisbursementConfirm.disbursement.status')
+  [[ "$status" == "CONFIRMED" ]] || exit 1
 
   assert_accounts_balanced
 }
