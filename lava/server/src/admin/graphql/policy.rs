@@ -62,7 +62,7 @@ impl From<&governance::ApprovalProcessType> for ApprovalProcessType {
         } else if process_type == &lava_app::governance::APPROVE_DISBURSEMENT_PROCESS {
             Self::DisbursementApproval
         } else {
-            panic!("Unknown ApprovalProcessType")
+            panic!("Unknown approval process type: {:?}", process_type);
         }
     }
 }
