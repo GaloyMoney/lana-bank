@@ -153,5 +153,7 @@ export const formatProcessType = (processType: ApprovalProcessType) => {
       return "Credit Facility"
     case ApprovalProcessType.WithdrawApproval:
       return "Withdrawal"
+    case ApprovalProcessType.DisbursementApproval:
+      return "Disbursement"
   }
 }
