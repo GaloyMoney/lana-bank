@@ -44,6 +44,7 @@ use tracing::instrument;
 
 pub const APPROVE_CREDIT_FACILITY_PROCESS: ApprovalProcessType =
     ApprovalProcessType::new("credit-facility");
+const APPROVE_DISBURSEMENT_PROCESS: ApprovalProcessType = ApprovalProcessType::new("disbursement");
 
 #[derive(Clone)]
 pub struct CreditFacilities {
@@ -113,6 +114,7 @@ impl CreditFacilities {
         let _ = governance
             .init_policy(APPROVE_CREDIT_FACILITY_PROCESS)
             .await;
+        let _ = governance.init_policy(APPROVE_DISBURSEMENT_PROCESS).await;
 
         Ok(Self {
             pool: pool.clone(),
@@ -260,6 +262,14 @@ impl CreditFacilities {
         let mut db_tx = self.pool.begin().await?;
         let new_disbursement =
             credit_facility.initiate_disbursement(amount, chrono::Utc::now(), audit_info)?;
+        self.governance
+            .start_process(
+                &mut db_tx,
+                new_disbursement.approval_process_id,
+                new_disbursement.approval_process_id.to_string(),
+                APPROVE_DISBURSEMENT_PROCESS,
+            )
+            .await?;
         self.credit_facility_repo
             .update_in_tx(&mut db_tx, &mut credit_facility)
             .await?;
