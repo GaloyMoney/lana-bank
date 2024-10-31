@@ -1,7 +1,6 @@
 import React, { useState } from "react"
 import { gql } from "@apollo/client"
 import { toast } from "sonner"
-import { useSession } from "next-auth/react"
 
 import {
   Dialog,
@@ -43,14 +42,6 @@ type CreditFacilityDisbursementConfirmDialogProps = {
     index: number
     amount: number
     status: string
-    approvals: {
-      approvedAt: string
-      user: {
-        userId: string
-        email: string
-        roles: string[]
-      }
-    }[]
     createdAt: string
   }
   onSuccess?: () => void
@@ -66,7 +57,6 @@ export const CreditFacilityDisbursementConfirmDialog: React.FC<
   disbursement,
   onSuccess,
 }) => {
-  const { data: session } = useSession()
   const [confirmDisbursement, { loading, reset }] =
     useCreditFacilityDisbursementConfirmMutation({
       refetchQueries: [GetCreditFacilityDetailsDocument],
@@ -108,11 +98,6 @@ export const CreditFacilityDisbursementConfirmDialog: React.FC<
     reset()
   }
 
-  const hasApprovals = disbursement.approvals.length > 0
-  const userHasAlreadyApproved = disbursement.approvals
-    .map((a) => a.user.email)
-    .includes(session?.user?.email || "")
-
   return (
     <Dialog open={openDialog} onOpenChange={handleCloseDialog}>
       <DialogContent>
@@ -139,34 +124,16 @@ export const CreditFacilityDisbursementConfirmDialog: React.FC<
             value={formatDate(disbursement.createdAt)}
           />
         </DetailsGroup>
-        <div className="text-sm">
-          {userHasAlreadyApproved && (
-            <span className="text-primary mb-2">
-              You have already confirmed this Disbursement
-            </span>
-          )}
-          {hasApprovals && !userHasAlreadyApproved && (
-            <div className="flex flex-col gap-2 mb-2">
-              {disbursement.approvals.map((approval, index) => (
-                <p className="text-primary" key={index}>
-                  Confirmed by {approval.user.email} on {formatDate(approval.approvedAt)}
-                </p>
-              ))}
-            </div>
-          )}
-        </div>
         <form onSubmit={handleSubmit}>
           {error && <p className="text-destructive mb-4">{error}</p>}
-          {!userHasAlreadyApproved && (
-            <DialogFooter>
-              <Button type="button" variant="ghost" onClick={handleCloseDialog}>
-                Cancel
-              </Button>
-              <Button type="submit" disabled={loading}>
-                {loading ? "Confirming..." : "Confirm Disbursement"}
-              </Button>
-            </DialogFooter>
-          )}
+          <DialogFooter>
+            <Button type="button" variant="ghost" onClick={handleCloseDialog}>
+              Cancel
+            </Button>
+            <Button type="submit" disabled={loading}>
+              {loading ? "Confirming..." : "Confirm Disbursement"}
+            </Button>
+          </DialogFooter>
         </form>
       </DialogContent>
     </Dialog>

@@ -1,9 +1,8 @@
 import React, { useState } from "react"
 import { IoCheckmark } from "react-icons/io5"
 
-import { CreditFacilityDisbursementConfirmDialog } from "../disbursement-confirm"
-
 import { DisbursementDetailsDialog } from "../disbursement-details"
+import { CreditFacilityDisbursementConfirmDialog } from "../disbursement-approve"
 
 import {
   Table,
