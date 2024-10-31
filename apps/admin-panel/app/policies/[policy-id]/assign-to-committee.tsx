@@ -148,7 +148,7 @@ export const CommitteeAssignmentDialog: React.FC<CommitteeAssignmentDialogProps>
               onChange={(e) =>
                 setThreshold(e.target.value ? Number(e.target.value) : null)
               }
-              placeholder="Enter threshold percentage"
+              placeholder="Enter threshold value"
               min="0"
               max="100"
             />

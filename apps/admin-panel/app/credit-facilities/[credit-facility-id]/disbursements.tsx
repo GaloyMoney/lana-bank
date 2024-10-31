@@ -2,7 +2,8 @@ import React, { useState } from "react"
 import { IoCheckmark } from "react-icons/io5"
 
 import { DisbursementDetailsDialog } from "../disbursement-details"
-import { CreditFacilityDisbursementConfirmDialog } from "../disbursement-approve"
+import { CreditFacilityDisbursementConfirmDialog } from "../disbursement-confirm"
+import { CreditFacilityDisbursementApproveDialog } from "../disbursement-approve"
 
 import {
   Table,
@@ -14,6 +15,7 @@ import {
 } from "@/components/primitive/table"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/primitive/card"
 import {
+  ApprovalProcessStatus,
   DisbursementStatus,
   GetCreditFacilityDetailsQuery,
 } from "@/lib/graphql/generated"
@@ -27,22 +29,34 @@ type Disbursement = NonNullable<
 
 type CreditFacilityDisbursementsProps = {
   creditFacility: NonNullable<GetCreditFacilityDetailsQuery["creditFacility"]>
+  refetch: () => void
 }
 
 export const CreditFacilityDisbursements: React.FC<CreditFacilityDisbursementsProps> = ({
   creditFacility,
+  refetch,
 }) => {
-  const [selectedApprovalDisbursement, setSelectedApprovalDisbursement] =
+  const [selectedConfirmDisbursement, setSelectedConfirmDisbursement] =
     useState<Disbursement | null>(null)
   const [selectedDetailsDisbursement, setSelectedDetailsDisbursement] =
     useState<Disbursement | null>(null)
+  const [selectedApprovalProcessDisbursement, setSelectedApprovalProcessDisbursement] =
+    useState<Disbursement | null>(null)
 
-  const handleOpenApproveDialog = (disbursement: Disbursement) => {
-    setSelectedApprovalDisbursement(disbursement)
+  const handleOpenConfirmDialog = (disbursement: Disbursement) => {
+    setSelectedConfirmDisbursement(disbursement)
   }
 
-  const handleCloseApproveDialog = () => {
-    setSelectedApprovalDisbursement(null)
+  const handleOpenApprovalProcessDialog = (disbursement: Disbursement) => {
+    setSelectedApprovalProcessDisbursement(disbursement)
+  }
+
+  const handleCloseConfirmDialog = () => {
+    setSelectedConfirmDisbursement(null)
+  }
+
+  const handleCloseApprovalProcessDialog = () => {
+    setSelectedApprovalProcessDisbursement(null)
   }
 
   const handleOpenDetailsDialog = (disbursement: Disbursement) => {
@@ -72,19 +86,31 @@ export const CreditFacilityDisbursements: React.FC<CreditFacilityDisbursementsPr
             <TableBody>
               {creditFacility.disbursements.map((disbursement) => (
                 <TableRow key={disbursement.id}>
-                  <TableCell>{disbursement.id.split("disbursement:")[1]}</TableCell>
+                  <TableCell>{disbursement.id.split(":")[1]}</TableCell>
                   <TableCell>
                     <Balance amount={disbursement.amount} currency="usd" />
                   </TableCell>
                   <TableCell>{formatDate(disbursement.createdAt)}</TableCell>
                   <TableCell className="text-right">
-                    {disbursement.status === DisbursementStatus.New ? (
+                    {disbursement.status === DisbursementStatus.New &&
+                    disbursement.approvalProcess.status ===
+                      ApprovalProcessStatus.InProgress ? (
                       <Button
                         className="px-2 py-1 text-primary"
                         variant="ghost"
-                        onClick={() => handleOpenApproveDialog(disbursement)}
+                        onClick={() => handleOpenApprovalProcessDialog(disbursement)}
                       >
                         Approval Required
+                      </Button>
+                    ) : [DisbursementStatus.Approved, DisbursementStatus.Denied].includes(
+                        disbursement.status,
+                      ) ? (
+                      <Button
+                        className="px-2 py-1 text-primary"
+                        variant="ghost"
+                        onClick={() => handleOpenConfirmDialog(disbursement)}
+                      >
+                        Confirmation Required
                       </Button>
                     ) : (
                       <Button
@@ -103,13 +129,24 @@ export const CreditFacilityDisbursements: React.FC<CreditFacilityDisbursementsPr
         </CardContent>
       </Card>
 
-      {selectedApprovalDisbursement && (
+      {selectedConfirmDisbursement && (
         <CreditFacilityDisbursementConfirmDialog
-          setOpenDialog={handleCloseApproveDialog}
+          setOpenDialog={handleCloseConfirmDialog}
           openDialog={true}
           creditFacilityId={creditFacility.creditFacilityId}
-          disbursementIdx={selectedApprovalDisbursement.index}
-          disbursement={selectedApprovalDisbursement}
+          disbursementIdx={selectedConfirmDisbursement.index}
+          disbursement={selectedConfirmDisbursement}
+        />
+      )}
+
+      {selectedApprovalProcessDisbursement && (
+        <CreditFacilityDisbursementApproveDialog
+          setOpenDialog={handleCloseApprovalProcessDialog}
+          openDialog={true}
+          creditFacilityId={creditFacility.creditFacilityId}
+          disbursementIdx={selectedApprovalProcessDisbursement.index}
+          disbursement={selectedApprovalProcessDisbursement}
+          refetch={refetch}
         />
       )}
 

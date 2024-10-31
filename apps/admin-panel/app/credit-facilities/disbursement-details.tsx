@@ -1,4 +1,5 @@
 import React from "react"
+import { FaCheckCircle, FaBan, FaQuestion } from "react-icons/fa"
 
 import {
   Dialog,
@@ -8,27 +9,20 @@ import {
   DialogTitle,
 } from "@/components/primitive/dialog"
 import Balance from "@/components/balance/balance"
-import { formatDate } from "@/lib/utils"
+import { formatDate, formatRole } from "@/lib/utils"
 import { DetailItem, DetailsGroup } from "@/components/details"
+import {
+  ApprovalProcessStatus,
+  GetCreditFacilityDetailsQuery,
+} from "@/lib/graphql/generated"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/primitive/card"
 
 type DisbursementDetailsDialogProps = {
   setOpenDialog: (isOpen: boolean) => void
   openDialog: boolean
-  disbursement: {
-    id: string
-    index: number
-    amount: number
-    status: string
-    approvals?: {
-      approvedAt: string
-      user: {
-        userId: string
-        email: string
-        roles: string[]
-      }
-    }[]
-    createdAt: string
-  }
+  disbursement: NonNullable<
+    GetCreditFacilityDetailsQuery["creditFacility"]
+  >["disbursements"][number]
 }
 
 export const DisbursementDetailsDialog: React.FC<DisbursementDetailsDialogProps> = ({
@@ -39,8 +33,6 @@ export const DisbursementDetailsDialog: React.FC<DisbursementDetailsDialogProps>
   const handleCloseDialog = () => {
     setOpenDialog(false)
   }
-
-  const hasApprovals = disbursement.approvals && disbursement.approvals.length > 0
 
   return (
     <Dialog open={openDialog} onOpenChange={handleCloseDialog}>
@@ -66,19 +58,66 @@ export const DisbursementDetailsDialog: React.FC<DisbursementDetailsDialogProps>
             value={formatDate(disbursement.createdAt)}
           />
         </DetailsGroup>
-        <div className="text-sm mt-4 text-primary">
-          {hasApprovals ? (
-            <div className="flex flex-col gap-2">
-              {disbursement.approvals!.map((approval, index) => (
-                <p key={index}>
-                  Approved by {approval.user.email} on {formatDate(approval.approvedAt)}
-                </p>
-              ))}
-            </div>
-          ) : (
-            <p>No approvals yet.</p>
+        <>
+          {disbursement.approvalProcess.rules.__typename === "CommitteeThreshold" && (
+            <Card className="mt-4">
+              <CardHeader>
+                <CardTitle className="text-primary font-normal">
+                  Approval process decision from the{" "}
+                  {disbursement.approvalProcess.rules.committee.name} Committee
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {disbursement.approvalProcess.voters
+                  .filter((voter) => {
+                    if (
+                      disbursement?.approvalProcess.status ===
+                        ApprovalProcessStatus.InProgress ||
+                      ([
+                        ApprovalProcessStatus.Approved,
+                        ApprovalProcessStatus.Denied,
+                      ].includes(
+                        disbursement?.approvalProcess.status as ApprovalProcessStatus,
+                      ) &&
+                        voter.didVote)
+                    ) {
+                      return true
+                    }
+                    return false
+                  })
+                  .map((voter) => (
+                    <div
+                      key={voter.user.userId}
+                      className="flex items-center space-x-3 p-2"
+                    >
+                      {voter.didApprove ? (
+                        <FaCheckCircle className="h-6 w-6 text-green-500" />
+                      ) : voter.didDeny ? (
+                        <FaBan className="h-6 w-6 text-red-500" />
+                      ) : !voter.didVote ? (
+                        <FaQuestion className="h-6 w-6 text-textColor-secondary" />
+                      ) : (
+                        <>{/* Impossible */}</>
+                      )}
+                      <div>
+                        <p className="text-sm font-medium">{voter.user.email}</p>
+                        <p className="text-sm text-textColor-secondary">
+                          {voter.user.roles.map(formatRole).join(", ")}
+                        </p>
+                        {
+                          <p className="text-xs text-textColor-secondary">
+                            {voter.didApprove && "Approved"}
+                            {voter.didDeny && "Denied"}
+                            {!voter.didVote && "Has not voted yet"}
+                          </p>
+                        }
+                      </div>
+                    </div>
+                  ))}
+              </CardContent>
+            </Card>
           )}
-        </div>
+        </>
       </DialogContent>
     </Dialog>
   )

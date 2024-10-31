@@ -121,6 +121,39 @@ gql`
         amount
         status
         createdAt
+        approvalProcess {
+          approvalProcessId
+          approvalProcessType
+          createdAt
+          subjectCanSubmitDecision
+          status
+          rules {
+            ... on CommitteeThreshold {
+              threshold
+              committee {
+                name
+                currentMembers {
+                  email
+                  roles
+                }
+              }
+            }
+            ... on SystemApproval {
+              autoApprove
+            }
+          }
+          voters {
+            stillEligible
+            didVote
+            didApprove
+            didDeny
+            user {
+              userId
+              email
+              roles
+            }
+          }
+        }
       }
       transactions {
         ... on CreditFacilityIncrementalPayment {
@@ -205,7 +238,10 @@ function CreditFacilityPage({
         </TabsContent>
         {data.creditFacility.disbursements.length > 0 && (
           <TabsContent value="disbursements">
-            <CreditFacilityDisbursements creditFacility={data.creditFacility} />
+            <CreditFacilityDisbursements
+              creditFacility={data.creditFacility}
+              refetch={refetch}
+            />
           </TabsContent>
         )}
       </Tabs>
