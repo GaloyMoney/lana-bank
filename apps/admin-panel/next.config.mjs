@@ -9,6 +9,15 @@ const nextConfig = {
   },
   experimental: {
     instrumentationHook: true,
+    turbo: {
+      enabled: true,
+      rules: {
+        "**/*.svg": {
+          loaders: ["@svgr/webpack"],
+          as: "default",
+        },
+      },
+    },
   },
   output: "standalone",
   basePath: process.env.BASE_PATH,
