@@ -3,85 +3,85 @@
 @tailwind utilities;
 
 .text-body-xs {
-  @apply font-light;
+  @apply font-light text-body;
   font-size: 10px;
   line-height: 12px;
 }
 
 .text-body-sm {
-  @apply font-light;
+  @apply font-light text-body;
   font-size: 12px;
   line-height: 14.4px;
 }
 
 .text-body-md {
-  @apply font-light;
+  @apply font-light text-body;
   font-size: 16px;
   line-height: 19.2px;
 }
 
 .text-body-lg {
-  @apply font-light;
+  @apply font-light text-body;
   font-size: 20px;
   line-height: 24px;
 }
 
 .text-heading-h6 {
-  @apply font-bold;
+  @apply font-bold text-heading;
   font-size: 20px;
   line-height: 24px;
 } 
 
 .text-heading-h5 {
-  @apply font-bold;
+  @apply font-bold text-heading;
   font-size: 26px;
   line-height: 31.2px;
 }
 
 .text-heading-h4 {
-  @apply font-bold;
+  @apply font-bold text-heading;
   font-size: 32px;
   line-height: 38.4px;
 }
 
 .text-heading-h3 {
-  @apply font-bold;
+  @apply font-bold text-heading;
   font-size: 40px;
   line-height: 48px;
 }
 
 .text-heading-h2 {
-  @apply font-bold;
+  @apply font-bold text-heading;
   font-size: 48px;
   line-height: 57.6px;
 }
 
 .text-heading-h1 {
-  @apply font-bold;
+  @apply font-bold text-heading;
   font-size: 64px;
   line-height: 76.8px;
 }
 
 .text-title-xs {
-  @apply font-medium;
+  @apply font-medium text-body;
   font-size: 12px;
   line-height: 14.4px;
 }
 
 .text-title-sm {
-  @apply font-medium;
+  @apply font-medium text-body;
   font-size: 14px;
   line-height: 16.8px;
 }
 
 .text-title-md {
-  @apply font-medium;
+  @apply font-medium text-body;
   font-size: 18px;
   line-height: 21.6px;
 }
 
 .text-title-lg {
-  @apply font-medium;
+  @apply font-medium text-body;
   font-size: 22px;
   line-height: 26.4px;
 }

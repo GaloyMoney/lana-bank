@@ -30,7 +30,7 @@ const config: Config = {
       backgroundColor: ({ theme }) => ({
         "soft": theme("colors.neutral.50"),
         "page": theme("colors.neutral.white"),
-        "primary": theme("colors.neutral.white"),
+        "primary": theme("colors.primary"),
         "success": theme("colors.success.50"),
         "warning": theme("colors.warning.50"),
         "error": theme("colors.error.50"),
