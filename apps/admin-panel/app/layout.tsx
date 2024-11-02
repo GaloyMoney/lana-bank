@@ -8,7 +8,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${helveticaNeueFont.variable} antialiased`}>{children}</body>
+      <body className={`${helveticaNeueFont.variable} antialiased p-4`}>{children}</body>
     </html>
   )
 }
