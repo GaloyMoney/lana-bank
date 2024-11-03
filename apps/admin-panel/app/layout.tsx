@@ -1,19 +1,20 @@
-import { helveticaNeueFont } from "@/lib/ui/fonts"
+import { Toast } from "@/components/toast"
+
+import { HelveticaNeueFont, RobotoMono } from "@/lib/ui/fonts"
 import "@/lib/ui/globals.css"
 
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode
-}>) {
-  return (
-    <html lang="en">
-      <body className={`${helveticaNeueFont.variable} antialiased p-4 w-screen h-screen`}>
-        {children}
-      </body>
-    </html>
-  )
-}
+const RootLayout: React.FC<React.PropsWithChildren> = ({ children }) => (
+  <html lang="en">
+    <body
+      className={`${HelveticaNeueFont.variable} ${RobotoMono.variable} antialiased w-screen h-screen`}
+    >
+      <Toast />
+      {children}
+    </body>
+  </html>
+)
+
+export default RootLayout
 
 import type { Metadata } from "next"
 

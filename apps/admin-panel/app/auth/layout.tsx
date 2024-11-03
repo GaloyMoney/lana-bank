@@ -10,7 +10,7 @@ const AuthLayout: React.FC<React.PropsWithChildren> = async ({ children }) => (
     <div className="lg:hidden bg-primary h-[20px] w-full rounded-sm"></div>
     <div className="px-[10px] lg:px-[50px] py-[10px] h-full w-full">
       <div className="flex flex-col h-full justify-center items-start space-y-[30px]">
-        <Logo />
+        <Logo width={35} />
         {children}
         <div className="text-body-xs">
           By continuing, you consent to our{" "}

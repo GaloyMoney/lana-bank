@@ -9,6 +9,7 @@ type ButtonProps = {
   type?: ButtonHTMLAttributes<HTMLButtonElement>["type"]
   onClick?: () => void
   className?: string
+  size?: React.ComponentProps<typeof MTButton>["size"]
 }
 const Button: React.FC<ButtonProps> = ({
   title,
@@ -16,12 +17,14 @@ const Button: React.FC<ButtonProps> = ({
   className = "",
   // eslint-disable-next-line no-empty-function
   onClick = () => {},
+  size,
 }) => {
   return (
     <MTButton
       className={`bg-action-secondary ${className}`}
       type={type}
       onClick={onClick}
+      size={size}
     >
       {title}
     </MTButton>

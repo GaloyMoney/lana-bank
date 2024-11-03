@@ -1,6 +1,6 @@
-import localFont from "next/font/local";
+import localFont from "next/font/local"
 
-export const helveticaNeueFont = localFont({
+export const HelveticaNeueFont = localFont({
   src: [
     {
       path: "./HelveticaNeue-Light.otf",
@@ -19,4 +19,12 @@ export const helveticaNeueFont = localFont({
     },
   ],
   variable: "--font-helvetica-neue",
-});
+})
+
+import { Roboto_Mono as GoogleFont_RobotoMono } from "next/font/google"
+
+export const RobotoMono = GoogleFont_RobotoMono({
+  weight: "300",
+  subsets: ["latin"],
+  variable: "--font-roboto-mono",
+})
