@@ -6,7 +6,7 @@ import "@/lib/ui/globals.css"
 const RootLayout: React.FC<React.PropsWithChildren> = ({ children }) => (
   <html lang="en">
     <body
-      className={`${HelveticaNeueFont.variable} ${RobotoMono.variable} antialiased w-screen h-screen`}
+      className={`${HelveticaNeueFont.variable} ${RobotoMono.variable} antialiased w-screen h-screen select-none`}
     >
       <Toast />
       {children}

@@ -1,7 +1,7 @@
 "use client"
 
 import classNames from "classnames"
-import React, { HTMLInputTypeAttribute, useState, forwardRef } from "react"
+import { HTMLInputTypeAttribute, useState, forwardRef } from "react"
 
 type InputProps = {
   label?: string
