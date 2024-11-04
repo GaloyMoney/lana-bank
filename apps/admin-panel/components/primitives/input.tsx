@@ -56,7 +56,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
     }
 
     const classes = classNames(
-      "border border-default rounded-md placeholder:text-placeholder p-2 w-full focus:outline-none focus:border-primary",
+      "border-2 border-default rounded-md placeholder:text-placeholder p-2 w-full focus:outline-none focus:border-primary box-border",
       {
         "pl-10": leftNode,
         "pl-2": !leftNode,

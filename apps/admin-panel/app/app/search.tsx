@@ -10,14 +10,18 @@ const SearchInput: React.FC = () => {
   const [isMacOS, setIsMacOS] = useState(false)
 
   useEffect(() => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const userAgent = navigator.userAgent || navigator.vendor || (window as any).opera
     const isMac = /Macintosh|Mac OS X/i.test(userAgent)
     setIsMacOS(isMac)
 
     const handleKeyDown = (event: KeyboardEvent) => {
       if ((event.key === "k" && (event.ctrlKey || event.metaKey)) || event.key === "/") {
-        event.preventDefault()
         inputRef.current?.focus()
+        event.preventDefault()
+      } else if (event.key === "Escape" || event.key === "Esc") {
+        inputRef?.current?.blur()
+        event.preventDefault()
       }
     }
 

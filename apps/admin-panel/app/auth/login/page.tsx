@@ -8,7 +8,12 @@ const Login: React.FC = () => (
       <div className="text-body-md">Enter your email address to continue</div>
     </div>
     <div className="space-y-[20px] w-full">
-      <Input label="Your email" type="email" autofocus />
+      <Input
+        label="Your email"
+        type="email"
+        autofocus
+        placeholder="Please enter your email address"
+      />
       <Button title="Submit" />
     </div>
   </>

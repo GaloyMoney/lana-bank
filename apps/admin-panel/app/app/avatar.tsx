@@ -3,8 +3,7 @@
 import { useState, useRef, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 
-import { Button, ID } from "@/components"
-import Pill from "@/components/pill"
+import { Button, ID, Pill } from "@/components"
 
 const animationProps = {
   initial: { opacity: 0, y: -10 },
@@ -50,7 +49,7 @@ const Avatar = () => {
       {...animationProps}
       ref={detailsRef}
       onClick={(e) => e.stopPropagation()}
-      className="absolute top-12 right-0 bg-page shadow-lg p-4 rounded-md w-[200px] cursor-default flex flex-col space-y-1 items-start justify-center z-50"
+      className="absolute top-12 right-0 bg-page shadow-lg p-4 rounded-md w-[200px] cursor-default flex flex-col space-y-1 items-start justify-center z-10 border"
     >
       <div className="flex flex-wrap gap-2">
         {userRoles.map((role) => (
@@ -76,7 +75,7 @@ const Avatar = () => {
       className="relative rounded-full bg-action center !h-10 !w-10 hover:bg-action-hover cursor-pointer hover:shadow"
       onClick={() => setShowingDetails((prev) => !prev)}
     >
-      <span className="text-title-md !text-on-action select-none">
+      <span className="text-title-md !text-on-action select-none [text-shadow:_0_1px_0_rgb(0_0_0_/_40%)]">
         {userNameInitials}
       </span>
       <AnimatePresence>{showingDetails && <Details />}</AnimatePresence>
