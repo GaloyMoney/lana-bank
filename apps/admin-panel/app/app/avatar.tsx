@@ -50,7 +50,7 @@ const Avatar = () => {
       {...animationProps}
       ref={detailsRef}
       onClick={(e) => e.stopPropagation()}
-      className="absolute top-12 right-0 bg-page shadow-md p-4 rounded-sm w-[200px] cursor-default flex flex-col space-y-1 items-start justify-center z-50"
+      className="absolute top-12 right-0 bg-page shadow-lg p-4 rounded-md w-[200px] cursor-default flex flex-col space-y-1 items-start justify-center z-50"
     >
       <div className="flex flex-wrap gap-2">
         {userRoles.map((role) => (
@@ -64,7 +64,7 @@ const Avatar = () => {
         <div className="text-title-sm">#{userRef}</div>
       </div>
       <div className="text-body-sm">{userEmail}</div>
-      <ID id={userId} />
+      <ID type="Your" id={userId} />
       <div className="h-2"></div>
       <Button title="Logout" size="sm" />
     </motion.div>

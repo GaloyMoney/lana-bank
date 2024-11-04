@@ -4,12 +4,13 @@ import { toast } from "sonner"
 
 type IDProps = {
   id: string
+  type?: string
 }
 
-const ID: React.FC<IDProps> = ({ id }) => {
+const ID: React.FC<IDProps> = ({ id, type }) => {
   const copyID = () => {
     navigator.clipboard.writeText(id)
-    toast.success("ID copied to clipboard")
+    toast.success((type ? type + " " : "") + "ID is copied to clipboard")
   }
 
   return (

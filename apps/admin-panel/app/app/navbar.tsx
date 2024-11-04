@@ -6,13 +6,11 @@ import Link from "next/link"
 import { motion, AnimatePresence } from "framer-motion"
 import classNames from "classnames"
 
-import { FaBars } from "react-icons/fa"
 import {
   HiCursorClick,
   HiUser,
   HiHome,
   HiViewGrid,
-  HiDocumentDuplicate,
   HiUserGroup,
   HiArrowCircleDown,
   HiArrowCircleUp,
@@ -22,6 +20,9 @@ import {
   HiCurrencyDollar,
   HiCash,
   HiLightningBolt,
+  HiTemplate,
+  HiViewBoards,
+  HiOutlineMenu,
 } from "react-icons/hi"
 import { HiMagnifyingGlassCircle } from "react-icons/hi2"
 
@@ -49,11 +50,8 @@ const NavBar = () => {
           title="Credit Facilities"
           to="/app/credit-facilities"
         />
-        <MenuItem
-          icon={HiDocumentDuplicate}
-          title="Terms Templates"
-          to="/app/terms-templates"
-        />
+        <MenuItem icon={HiViewBoards} title="Disbursals" to="/app/disbursals" />
+        <MenuItem icon={HiTemplate} title="Terms Templates" to="/app/terms-templates" />
         <MenuItem icon={HiUserGroup} title="Users" to="/app/users" />
         <MenuItem icon={HiGlobe} title="Commitees" to="/app/commitees" />
         <MenuItem icon={HiArrowCircleDown} title="Deposits" to="/app/deposits" />
@@ -82,7 +80,7 @@ const NavBar = () => {
       <div className="fixed top-0 left-0 right-0 z-50 shadow bg-soft md:hidden">
         <div className="flex items-center justify-between px-4 py-2">
           <button onClick={() => setIsOpen(true)} aria-label="Toggle navigation menu">
-            <FaBars className="w-6 h-6 text-neutral-800" />
+            <HiOutlineMenu className="w-8 h-8 text-neutral-800" />
           </button>
           <Logo width={21} />
           <Avatar />
@@ -90,12 +88,15 @@ const NavBar = () => {
       </div>
 
       {/* Desktop Sidebar */}
-      <div className="hidden md:flex md:flex-col min-h-screen">
-        <div className="flex justify-between items-center w-full p-5">
-          <Logo />
-          <Avatar />
+      <div className="hidden md:flex md:flex-col min-h-screen justify-between">
+        <div>
+          <div className="flex justify-between items-center w-full p-5">
+            <Logo />
+            <Avatar />
+          </div>
+          <NavItems />
         </div>
-        <NavItems />
+        <div className="p-5 text-body-sm">USD/BTC Market Rate: $60,000.12</div>
       </div>
 
       {/* Mobile Sidebar */}

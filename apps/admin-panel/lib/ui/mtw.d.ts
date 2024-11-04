@@ -15,8 +15,13 @@ declare module "@material-tailwind/react" {
   export interface SelectProps extends EventCapture {
     placeholder?: unknown
   }
-
   export interface CarouselProps extends EventCapture {
+    placeholder?: unknown
+  }
+  export interface MenuListProps extends EventCapture {
+    placeholder?: unknown
+  }
+  export interface MenuItemProps extends EventCapture {
     placeholder?: unknown
   }
 }

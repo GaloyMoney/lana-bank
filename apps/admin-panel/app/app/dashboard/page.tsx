@@ -1,6 +1,6 @@
 const Dashboard = () => {
   return (
-    <div>
+    <>
       Lorem ipsum dolor, sit amet consectetur adipisicing elit. Voluptas molestiae
       consequuntur at expedita animi veritatis ullam placeat iusto suscipit deleniti
       minus, voluptatem ipsum accusantium sed blanditiis aliquam. Optio, explicabo vitae.
@@ -124,7 +124,8 @@ const Dashboard = () => {
       Lorem ipsum dolor, sit amet consectetur adipisicing elit. Voluptas molestiae
       consequuntur at expedita animi veritatis ullam placeat iusto suscipit deleniti
       minus, voluptatem ipsum accusantium sed blanditiis aliquam. Optio, explicabo vitae.
-    </div>
+      TEST LAST LINE
+    </>
   )
 }
 
