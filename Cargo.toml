@@ -33,7 +33,7 @@ clap = { version = "4.5", features = ["derive", "env"] }
 derive_builder = "0.20.0"
 graphql_client = {version = "0.14.0", features = ["reqwest-rustls"]}
 sqlx = { version = "0.8.2", features = [ "runtime-tokio-rustls", "postgres", "rust_decimal", "uuid", "chrono", "json" ] }
-thiserror = "1.0.65"
+thiserror = "1.0.67"
 uuid = { version = "1.11", features = ["serde", "v4"] }
 tracing = "0.1.40"
 tracing-opentelemetry = "0.25.0"
