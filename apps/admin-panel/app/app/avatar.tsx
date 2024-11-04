@@ -50,7 +50,7 @@ const Avatar = () => {
       {...animationProps}
       ref={detailsRef}
       onClick={(e) => e.stopPropagation()}
-      className="absolute top-12 right-0 bg-page shadow p-4 rounded-sm w-[200px] cursor-default flex flex-col space-y-1 items-start justify-center"
+      className="absolute top-12 right-0 bg-page shadow-md p-4 rounded-sm w-[200px] cursor-default flex flex-col space-y-1 items-start justify-center z-50"
     >
       <div className="flex flex-wrap gap-2">
         {userRoles.map((role) => (

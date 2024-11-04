@@ -38,7 +38,7 @@ const config: Config = {
         "action": theme("colors.primary"),
         "action-hover": theme("colors.primary.600"),
         "action-secondary": theme("colors.neutral.900"),
-        "action-secondary-hover": theme("colors.neutral.800"),
+        "action-secondary-hover": theme("colors.neutral.200"),
         "disabled": theme("colors.blue-gray.50"),
       }),
       borderColor: ({ theme }) => ({

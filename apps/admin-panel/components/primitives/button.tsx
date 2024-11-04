@@ -10,9 +10,11 @@ type ButtonProps = {
   onClick?: () => void
   className?: string
   size?: React.ComponentProps<typeof MTButton>["size"]
+  icon?: React.ReactNode
 }
 const Button: React.FC<ButtonProps> = ({
   title,
+  icon,
   type = "button",
   className = "",
   // eslint-disable-next-line no-empty-function
@@ -21,11 +23,12 @@ const Button: React.FC<ButtonProps> = ({
 }) => {
   return (
     <MTButton
-      className={`bg-action-secondary ${className}`}
+      className={`bg-action-secondary flex justify-center items-center gap-2 ${className}`}
       type={type}
       onClick={onClick}
       size={size}
     >
+      {icon}
       {title}
     </MTButton>
   )

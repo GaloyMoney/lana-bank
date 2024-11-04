@@ -3,7 +3,7 @@
 import { HTMLInputTypeAttribute, useState } from "react"
 
 type InputProps = {
-  label: string
+  label?: string
   type: HTMLInputTypeAttribute
   defaultValue?: string
   onChange?: (text: string) => void
@@ -55,9 +55,11 @@ const Input: React.FC<InputProps> = ({
 
   return (
     <div className="flex flex-col space-y-1 w-full">
-      <label className="text-title-sm" htmlFor={name}>
-        {label}
-      </label>
+      {label && (
+        <label className="text-title-sm" htmlFor={name}>
+          {label}
+        </label>
+      )}
       <div className="relative">
         {leftNode && (
           <div className="absolute left-3 top-1/2 transform -translate-y-1/2">
@@ -65,8 +67,8 @@ const Input: React.FC<InputProps> = ({
           </div>
         )}
         <input
-          className={`border border-default rounded-md p-2 ${
-            leftNode ? "pl-12" : "pl-2"
+          className={`border border-default rounded-md placeholder:text-placeholder p-2 ${
+            leftNode ? "pl-10" : "pl-2"
           } ${
             rightNode ? "pr-10" : "pr-2"
           } focus:outline-none focus:border-primary w-full`}
@@ -79,7 +81,7 @@ const Input: React.FC<InputProps> = ({
           autoFocus={autofocus}
           required={required}
         />
-        {rightNode && (
+        {rightNode && !displayValue && (
           <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
             {rightNode}
           </div>

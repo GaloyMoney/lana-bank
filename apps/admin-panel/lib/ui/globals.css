@@ -95,6 +95,17 @@
   @apply flex justify-center items-center h-full w-full;
 }
 
+@layer utilities {
+  /* Hide scrollbar for Chrome, Safari and Opera */
+  .no-scrollbar::-webkit-scrollbar {
+      display: none;
+  }
+ /* Hide scrollbar for IE, Edge and Firefox */
+  .no-scrollbar {
+      -ms-overflow-style: none;  /* IE and Edge */
+      scrollbar-width: none;  /* Firefox */
+  }
+}
 /* Material Tailwind Colour Palette */
 /* Redefining the colours here makes it possible to use them in alias */
 
