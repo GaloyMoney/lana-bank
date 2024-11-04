@@ -10,6 +10,22 @@ use super::{
     sumsub::*, terms_template::*, user::*, withdrawal::*,
 };
 
+#[derive(async_graphql::Enum, Clone, Copy, PartialEq, Eq)]
+#[allow(clippy::enum_variant_names)]
+pub enum ListDirection {
+    Ascending,
+    Descending,
+}
+
+impl From<ListDirection> for es_entity::ListDirection {
+    fn from(direction: ListDirection) -> Self {
+        match direction {
+            ListDirection::Descending => es_entity::ListDirection::Descending,
+            ListDirection::Ascending => es_entity::ListDirection::Ascending,
+        }
+    }
+}
+
 pub struct Query;
 
 #[Object]
@@ -66,8 +82,10 @@ impl Query {
         ctx: &Context<'_>,
         first: i32,
         after: Option<String>,
+        direction: Option<ListDirection>,
     ) -> async_graphql::Result<Connection<CustomerByEmailCursor, Customer, EmptyFields, EmptyFields>>
     {
+        let direction = direction.unwrap_or(ListDirection::Ascending);
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         list_with_cursor!(
             CustomerByEmailCursor,
@@ -75,7 +93,7 @@ impl Query {
             ctx,
             after,
             first,
-            |query| app.customers().list(sub, query)
+            |query| app.customers().list(sub, query, direction)
         )
     }
 

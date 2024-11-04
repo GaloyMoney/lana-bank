@@ -725,6 +725,11 @@ export type LayeredUsdAccountAmounts = {
   settled: UsdAccountAmounts;
 };
 
+export enum ListDirection {
+  Ascending = 'ASCENDING',
+  Descending = 'DESCENDING'
+}
+
 export type Loan = {
   __typename?: 'Loan';
   collateralToMatchInitialCvl?: Maybe<Scalars['Satoshis']['output']>;
@@ -1090,6 +1095,7 @@ export type QueryCustomerByEmailArgs = {
 
 export type QueryCustomersArgs = {
   after?: InputMaybe<Scalars['String']['input']>;
+  direction?: InputMaybe<ListDirection>;
   first: Scalars['Int']['input'];
 };
 

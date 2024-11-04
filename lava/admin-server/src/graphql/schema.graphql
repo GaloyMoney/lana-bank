@@ -712,6 +712,11 @@ type LayeredUsdAccountAmounts {
 	encumbrance: UsdAccountAmounts!
 }
 
+enum ListDirection {
+	ASCENDING
+	DESCENDING
+}
+
 type Mutation {
 	customerDocumentAttach(input: DocumentCreateInput!): DocumentCreatePayload!
 	sumsubPermalinkCreate(input: SumsubPermalinkCreateInput!): SumsubPermalinkCreatePayload!
@@ -834,7 +839,7 @@ type Query {
 	users: [User!]!
 	customer(id: UUID!): Customer
 	customerByEmail(email: String!): Customer
-	customers(first: Int!, after: String): CustomerConnection!
+	customers(first: Int!, after: String, direction: ListDirection): CustomerConnection!
 	withdrawal(id: UUID!): Withdrawal
 	withdrawals(first: Int!, after: String): WithdrawalConnection!
 	deposit(id: UUID!): Deposit

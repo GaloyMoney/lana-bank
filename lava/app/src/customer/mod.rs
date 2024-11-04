@@ -191,6 +191,7 @@ impl Customers {
         &self,
         sub: &Subject,
         query: es_entity::PaginatedQueryArgs<CustomerByEmailCursor>,
+        direction: impl Into<es_entity::ListDirection>,
     ) -> Result<es_entity::PaginatedQueryRet<Customer, CustomerByEmailCursor>, CustomerError> {
         self.authz
             .enforce_permission(
@@ -199,9 +200,7 @@ impl Customers {
                 CustomerAction::List,
             )
             .await?;
-        self.repo
-            .list_by_email(query, es_entity::ListDirection::Ascending)
-            .await
+        self.repo.list_by_email(query, direction.into()).await
     }
 
     pub async fn start_kyc(
