@@ -12,6 +12,7 @@ type ButtonProps = {
   size?: React.ComponentProps<typeof MTButton>["size"]
   icon?: React.ReactNode
 }
+
 const Button: React.FC<ButtonProps> = ({
   title,
   icon,
@@ -27,9 +28,10 @@ const Button: React.FC<ButtonProps> = ({
       type={type}
       onClick={onClick}
       size={size}
+      suppressHydrationWarning
     >
-      {icon}
-      {title}
+      <span>{icon}</span>
+      <span>{title}</span>
     </MTButton>
   )
 }

@@ -16,7 +16,12 @@ const AppLayout: React.FC<React.PropsWithChildren> = ({ children }) => {
               leftNode={<HiSearch className="text-placeholder" />}
               rightNode={<div className="!text-placeholder text-body-sm">⌘ + K or /</div>}
             />
-            <Button title="Create" icon={<HiPlus className="text-lg" />} />
+            <Button
+              size="md"
+              title="Create"
+              icon={<HiPlus className="text-lg" />}
+              className="py-3 px-6 w-36"
+            />
           </div>
           <div className="">{children}</div>
         </div>
