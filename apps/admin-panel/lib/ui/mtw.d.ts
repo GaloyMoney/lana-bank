@@ -1,28 +1,18 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
+
+import { CarouselProps } from "@material-tailwind/react/components/Carousel"
+import { ButtonProps } from "@material-tailwind/react"
+
 type EventCapture = {
   onPointerEnterCapture?: unknown
   onPointerLeaveCapture?: unknown
 }
 
 declare module "@material-tailwind/react" {
-  export interface ButtonProps extends EventCapture {
-    placeholder?: unknown
+  interface CarouselProps extends EventCapture {
+    placeholder?: undefined
   }
-  export interface InputProps extends EventCapture {
-    crossOrigin?: unknown
-  }
-  export interface SelectProps extends EventCapture {
-    placeholder?: unknown
-  }
-  export interface CarouselProps extends EventCapture {
-    placeholder?: unknown
-  }
-  export interface MenuListProps extends EventCapture {
-    placeholder?: unknown
-  }
-  export interface MenuItemProps extends EventCapture {
-    placeholder?: unknown
-  }
-  export interface DialogProps extends EventCapture {
-    placeholder?: unknown
+  interface ButtonProps extends EventCapture {
+    placeholder?: undefined
   }
 }

@@ -1,7 +1,7 @@
 "use client"
 
 import Image from "next/image"
-import { Carousel as MTCarousel } from "@material-tailwind/react"
+import MTCarousel from "@material-tailwind/react/components/Carousel"
 
 import Generate from "./vectors/generate.svg"
 import Manage from "./vectors/manage.svg"

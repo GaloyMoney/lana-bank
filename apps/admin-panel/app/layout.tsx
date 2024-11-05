@@ -1,8 +1,3 @@
-import { Toast } from "@/components/toast"
-
-import { HelveticaNeueFont, RobotoMono } from "@/lib/ui/fonts"
-import "@/lib/ui/globals.css"
-
 import { getServerSession } from "next-auth"
 
 import { Metadata } from "next/types"
@@ -12,6 +7,12 @@ import { headers } from "next/headers"
 
 import { authOptions } from "./api/auth/[...nextauth]/options"
 import { AuthSessionProvider } from "./session-provider"
+
+import { Toast } from "@/components/toast"
+import { HelveticaNeueFont, RobotoMono } from "@/lib/ui/fonts"
+
+// eslint-disable-next-line import/no-unassigned-import
+import "@/lib/ui/globals.css"
 
 export const metadata: Metadata = {
   title: "Lana Bank | Admin Panel",

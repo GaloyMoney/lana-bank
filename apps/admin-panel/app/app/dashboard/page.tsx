@@ -55,7 +55,7 @@ const Dashboard = () => {
           <DashboardCard
             h1="$1.3k"
             title="Bank’s Profit"
-            description="Net PnL the bank is making from interest paid by customers"
+            description="Net Profit or Loss the bank is making from interest paid by customers"
             to="/app/profit-and-loss"
           />
         </div>

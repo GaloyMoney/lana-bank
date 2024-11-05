@@ -146,7 +146,7 @@ const CreateCustomer: React.FC<CreateCustomerProps> = ({ setOpen, open }) => {
           )}
           <Button
             type="submit"
-            variant={isConfirmationStep ? "primary" : "outlined"}
+            variant={isConfirmationStep ? "filled" : "outlined"}
             loading={loading}
             title={isConfirmationStep ? "Confirm and Submit" : "Review Details"}
           />
