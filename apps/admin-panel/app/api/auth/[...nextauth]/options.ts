@@ -32,6 +32,9 @@ export const authOptions: NextAuthOptions = {
     strategy: "jwt",
   },
   callbacks: {
+    async redirect() {
+      return `${process.env.NEXT_PUBLIC_BASE_PATH}/app/dashboard`
+    },
     async signIn({ account }) {
       const email = account?.providerAccountId
       if (account?.provider === "email" && email) {
