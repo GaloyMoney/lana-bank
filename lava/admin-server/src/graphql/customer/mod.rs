@@ -1,13 +1,16 @@
 mod balance;
 
-use async_graphql::*;
+use async_graphql::{connection::CursorType, *};
+use serde::{Deserialize, Serialize};
 
 use crate::primitives::*;
 
 use super::{credit_facility::*, deposit::*, document::Document, withdrawal::Withdrawal};
 
 pub use lava_app::{
-    app::LavaApp, customer::Customer as DomainCustomer, customer::CustomerByEmailCursor,
+    app::LavaApp,
+    customer::Customer as DomainCustomer,
+    customer::{CustomerByCreatedAtCursor, CustomerByEmailCursor, CustomerByTelegramIdCursor},
 };
 
 pub use balance::*;
@@ -152,3 +155,72 @@ pub struct CustomerUpdateInput {
     pub telegram_id: String,
 }
 crate::mutation_payload! { CustomerUpdatePayload, customer: Customer }
+
+#[derive(async_graphql::Enum, Clone, Copy, PartialEq, Eq)]
+pub enum CustomerSortField {
+    CreatedAt,
+    Email,
+    TelegramId,
+}
+
+impl From<CustomerSortField> for lava_app::customer::CustomerSortField {
+    fn from(field: CustomerSortField) -> Self {
+        match field {
+            CustomerSortField::CreatedAt => Self::CreatedAt,
+            CustomerSortField::Email => Self::Email,
+            CustomerSortField::TelegramId => Self::TelegramId,
+        }
+    }
+}
+
+#[derive(Serialize, Deserialize)]
+pub enum CustomerCursor {
+    ByEmail(CustomerByEmailCursor),
+    ByCreatedAt(CustomerByCreatedAtCursor),
+    ByTelegramId(CustomerByTelegramIdCursor),
+}
+
+impl From<CustomerCursor> for lava_app::customer::CustomerCursor {
+    fn from(cursor: CustomerCursor) -> Self {
+        match cursor {
+            CustomerCursor::ByEmail(c) => Self::ByEmail(c),
+            CustomerCursor::ByCreatedAt(c) => Self::ByCreatedAt(c),
+            CustomerCursor::ByTelegramId(c) => Self::ByTelegramId(c),
+        }
+    }
+}
+
+impl CursorType for CustomerCursor {
+    type Error = String;
+
+    fn decode_cursor(s: &str) -> Result<Self, Self::Error> {
+        if s.starts_with("email:") {
+            let cursor_str = &s[6..];
+            let cursor =
+                CustomerByEmailCursor::decode_cursor(cursor_str).map_err(|e| e.to_string())?;
+            Ok(CustomerCursor::ByEmail(cursor))
+        } else if s.starts_with("created_at:") {
+            let cursor_str = &s[11..];
+            let cursor =
+                CustomerByCreatedAtCursor::decode_cursor(cursor_str).map_err(|e| e.to_string())?;
+            Ok(CustomerCursor::ByCreatedAt(cursor))
+        } else if s.starts_with("telegram_id:") {
+            let cursor_str = &s[12..];
+            let cursor =
+                CustomerByTelegramIdCursor::decode_cursor(cursor_str).map_err(|e| e.to_string())?;
+            Ok(CustomerCursor::ByTelegramId(cursor))
+        } else {
+            Err("InvalidCursor".to_string())
+        }
+    }
+
+    fn encode_cursor(&self) -> String {
+        match self {
+            CustomerCursor::ByEmail(cursor) => format!("email:{}", cursor.encode_cursor()),
+            CustomerCursor::ByCreatedAt(cursor) => format!("created_at:{}", cursor.encode_cursor()),
+            CustomerCursor::ByTelegramId(cursor) => {
+                format!("telegram_id:{}", cursor.encode_cursor())
+            }
+        }
+    }
+}

@@ -40,3 +40,9 @@ impl CustomerRepo {
         Ok(())
     }
 }
+
+pub enum CustomerCursor {
+    ByEmail(cursor::CustomerByEmailCursor),
+    ByCreatedAt(cursor::CustomerByCreatedAtCursor),
+    ByTelegramId(cursor::CustomerByTelegramIdCursor),
+}

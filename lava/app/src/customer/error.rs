@@ -18,6 +18,8 @@ pub enum CustomerError {
     AuditError(#[from] crate::audit::error::AuditError),
     #[error("CustomerError - JobError: {0}")]
     JobError(#[from] crate::job::error::JobError),
+    #[error("CustomerError - InvalidCursor")]
+    InvalidCursor,
 }
 
 es_entity::from_es_entity_error!(CustomerError);

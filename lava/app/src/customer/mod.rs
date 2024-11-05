@@ -21,7 +21,7 @@ pub use config::*;
 pub use entity::*;
 use error::CustomerError;
 use kratos::*;
-pub use repo::{cursor::*, CustomerRepo};
+pub use repo::{cursor::*, CustomerCursor, CustomerRepo};
 
 #[derive(Clone)]
 pub struct Customers {
@@ -204,6 +204,45 @@ impl Customers {
             .await
     }
 
+    pub async fn list_by_created_at(
+        &self,
+        sub: &Subject,
+        query: es_entity::PaginatedQueryArgs<CustomerByCreatedAtCursor>,
+    ) -> Result<es_entity::PaginatedQueryRet<Customer, CustomerByCreatedAtCursor>, CustomerError>
+    {
+        self.authz
+            .enforce_permission(
+                sub,
+                Object::Customer(CustomerAllOrOne::All),
+                CustomerAction::List,
+            )
+            .await?;
+        self.repo
+            .list_by_created_at(query, es_entity::ListDirection::Descending)
+            .await
+    }
+
+    pub async fn list_by_telegram_id(
+        &self,
+        sub: &Subject,
+        query: es_entity::PaginatedQueryArgs<CustomerByTelegramIdCursor>,
+        direction: impl Into<es_entity::ListDirection>,
+    ) -> Result<es_entity::PaginatedQueryRet<Customer, CustomerByTelegramIdCursor>, CustomerError>
+    {
+        let direction = direction.into();
+
+        self.authz
+            .enforce_permission(
+                sub,
+                Object::Customer(CustomerAllOrOne::All),
+                CustomerAction::List,
+            )
+            .await?;
+        self.repo
+            .list_by_telegram_id(query, es_entity::ListDirection::Ascending)
+            .await
+    }
+
     pub async fn start_kyc(
         &self,
         db: &mut sqlx::Transaction<'_, sqlx::Postgres>,
@@ -309,4 +348,10 @@ impl Customers {
 
         Ok(customer)
     }
+}
+
+pub enum CustomerSortField {
+    CreatedAt,
+    Email,
+    TelegramId,
 }
