@@ -1,72 +1,88 @@
 "use client"
 
-import { useEffect, useState } from "react"
-import { useSearchParams } from "next/navigation"
+import { gql } from "@apollo/client"
 
 import PaginatedTable, { Column, PaginatedData } from "@/components/paginated-table"
-import CreateCustomer from "./create"
+import { AccountStatus, Customer, useCustomersQuery } from "@/lib/graphql/generated"
 
-interface Item {
-  id: string
-  name: string
-  age: number
-}
-
-const itemsData: PaginatedData<Item> = {
-  edges: [
-    { node: { id: "1", name: "Alice", age: 25 } },
-    { node: { id: "2", name: "Bob", age: 30 } },
-  ],
-  pageInfo: {
-    endCursor: "cursor2",
-    startCursor: "cursor1",
-    hasNextPage: true,
-    hasPreviousPage: false,
-  },
-}
-
-const fetchMoreItems = async (cursor: string): Promise<void> => {
-  // Fetch more data using the cursor
-}
-
-const columns: Column<Item>[] = [
-  { key: "id", label: "ID" },
-  { key: "name", label: "Name", sortable: true },
-  {
-    key: "age",
-    label: "Age",
-    sortable: true,
-    filterValues: [25, 30, 35],
-    render: (value) => <span>{value} years old</span>,
-  },
-]
+gql`
+  query Customers($first: Int!, $after: String) {
+    customers(first: $first, after: $after) {
+      edges {
+        node {
+          id
+          customerId
+          status
+          level
+          email
+          telegramId
+          applicantId
+          balance {
+            checking {
+              settled
+              pending
+            }
+          }
+        }
+        cursor
+      }
+      pageInfo {
+        endCursor
+        startCursor
+        hasNextPage
+        hasPreviousPage
+      }
+    }
+  }
+`
 
 const Customers = () => {
-  const searchParams = useSearchParams()
-
-  const [openCreate, setOpenCreate] = useState(false)
-
-  useEffect(() => {
-    if (searchParams.get("create")) setOpenCreate(true)
-  }, [searchParams, setOpenCreate])
+  const { data, fetchMore } = useCustomersQuery({
+    variables: {
+      first: 2,
+    },
+  })
 
   return (
-    <>
-      <div className="bg-page rounded-md p-[10px] flex flex-col gap-1 border">
-        <div className="text-title-md">Customers</div>
-        <div className="!text-body text-body-sm">
-          Individuals or entities who hold accounts, loans, or credit facilities with the
-          bank
-        </div>
-        <PaginatedTable<Item>
-          columns={columns}
-          data={itemsData}
-          fetchMore={fetchMoreItems}
-        />
+    <div className="bg-page rounded-md p-[10px] flex flex-col gap-1 border">
+      <div className="text-title-md">Customers</div>
+      <div className="!text-body text-body-sm">
+        Individuals or entities who hold accounts, loans, or credit facilities with the
+        bank
       </div>
-      <CreateCustomer open={openCreate} setOpen={setOpenCreate} />
-    </>
+      {data && (
+        <PaginatedTable<Customer>
+          columns={columns}
+          data={data?.customers as PaginatedData<Customer>}
+          fetchMore={(cursor) => fetchMore({ variables: { after: cursor } })}
+          pageSize={2}
+        />
+      )}
+    </div>
   )
 }
 
 export default Customers
+
+const columns: Column<Customer>[] = [
+  { key: "email", label: "Email" },
+  {
+    key: "status",
+    label: "KYC Status",
+    filterValues: [AccountStatus.Active, AccountStatus.Inactive],
+    render: (status) => (
+      <div
+        className={
+          (status === AccountStatus.Inactive && "text-error font-medium") || undefined
+        }
+      >
+        {status === AccountStatus.Active ? "Verified" : "Not Verified"}
+      </div>
+    ),
+  },
+  {
+    key: "balance",
+    label: "USD Balance",
+    render: (balance) => <div>${balance.checking.settled}</div>,
+  },
+]

@@ -13,6 +13,7 @@ type ButtonProps = {
   icon?: React.ReactNode
   rightIcon?: React.ReactNode
   variant?: React.ComponentProps<typeof MTButton>["variant"]
+  loading?: boolean
 }
 
 const Button: React.FC<ButtonProps> = ({
@@ -25,6 +26,7 @@ const Button: React.FC<ButtonProps> = ({
   onClick = () => {},
   size,
   variant,
+  loading,
 }) => {
   return (
     <MTButton
@@ -34,6 +36,7 @@ const Button: React.FC<ButtonProps> = ({
       size={size}
       suppressHydrationWarning
       variant={variant}
+      loading={loading}
     >
       <span>{icon}</span>
       <span>{title}</span>

@@ -23,6 +23,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
     {
       label,
       type,
+      // eslint-disable-next-line no-empty-function
       onChange = () => {},
       defaultValue = "",
       placeholder = "",
@@ -57,7 +58,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
     }
 
     const classes = classNames(
-      "border-2 border-default rounded-md placeholder:text-placeholder p-2 w-full focus:outline-none focus:border-primary box-border",
+      "border-2 border-default rounded-md text-body-md placeholder:text-placeholder p-2 w-full focus:outline-none focus:border-primary box-border",
       {
         "pl-10": leftNode,
         "pl-2": !leftNode,

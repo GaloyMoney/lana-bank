@@ -4,10 +4,9 @@ import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
 import { gql } from "@apollo/client"
-import Dialog from "@material-tailwind/react/components/Dialog"
 
-import { useCreateCustomerMutation } from "@/lib/graphql/generated"
-import { Input, Button } from "@/components"
+import { useCreateCustomerMutation, CustomersDocument } from "@/lib/graphql/generated"
+import { Input, Button, Dialog } from "@/components"
 
 gql`
   mutation CreateCustomer($input: CustomerCreateInput!) {
@@ -33,7 +32,9 @@ const CreateCustomer: React.FC<CreateCustomerProps> = ({ setOpen, open }) => {
   const [telegramId, setTelegramId] = useState<string>("")
 
   const [createCustomer, { loading, reset, error: createCustomerError }] =
-    useCreateCustomerMutation()
+    useCreateCustomerMutation({
+      refetchQueries: [CustomersDocument],
+    })
 
   const router = useRouter()
 
@@ -59,9 +60,9 @@ const CreateCustomer: React.FC<CreateCustomerProps> = ({ setOpen, open }) => {
         },
       })
       if (data?.customerCreate.customer) {
+        router.push(`/app/customers/${data.customerCreate.customer.customerId}`)
         toast.success("Customer created successfully")
         setOpen(false)
-        router.push(`/customers/${data.customerCreate.customer.customerId}`)
       } else {
         throw new Error("Failed to create customer. Please try again.")
       }
@@ -87,74 +88,69 @@ const CreateCustomer: React.FC<CreateCustomerProps> = ({ setOpen, open }) => {
   }
 
   return (
-    <Dialog
-      open={open}
-      handler={() => {
-        setOpen(false)
-        resetStates()
-      }}
-    >
-      <div className="text-title-md">
-        {isConfirmationStep ? "Confirm Customer Details" : "Add new customer"}
-      </div>
+    <Dialog open={open} setOpen={setOpen} onClose={resetStates}>
+      <div className="">
+        <div className="text-title-md">
+          {isConfirmationStep ? "Confirm Customer Details" : "Add new customer"}
+        </div>
 
-      <div className="!text-body text-body-sm">
-        {isConfirmationStep
-          ? "Please review the details before submitting"
-          : "Add a new Customer by providing their email address and Telegram ID"}
+        <div className="!text-body text-body-sm mt-2">
+          {isConfirmationStep
+            ? "Please review the details before submitting"
+            : "Add a new Customer by providing their email address and Telegram ID"}
+        </div>
       </div>
       <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
         {isConfirmationStep ? (
           <>
             <div>
-              <Label>Email</Label>
-              <p>{email}</p>
+              <label className="text-title-sm">Email</label>
+              <p className="text-body-md">{email}</p>
             </div>
             <div>
-              <Label>Telegram ID</Label>
-              <p>{telegramId}</p>
+              <label className="text-title-sm">Telegram ID</label>
+              <p className="text-body-md">{telegramId}</p>
             </div>
           </>
         ) : (
           <>
             <div>
-              <Label htmlFor="email">Email</Label>
               <Input
-                id="email"
                 type="email"
+                label="Email"
                 required
                 placeholder="Please enter the email address"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={setEmail}
               />
             </div>
             <div>
-              <Label htmlFor="telegramId">Telegram ID</Label>
               <Input
-                id="telegramId"
                 type="text"
+                label="Telegram ID"
                 required
-                placeholder="Please enter the Telegram ID"
-                value={telegramId}
-                onChange={(e) => setTelegramId(e.target.value)}
+                placeholder="Please enter the email address"
+                onChange={setTelegramId}
               />
             </div>
           </>
         )}
-        {error && <p className="text-destructive">{error}</p>}
-        {isConfirmationStep && (
+        {error && <p className="text-error">{error}</p>}
+        <div className="flex justify-between">
+          {isConfirmationStep && (
+            <Button
+              type="button"
+              variant="outlined"
+              onClick={() => setIsConfirmationStep(false)}
+              title="Back"
+            />
+          )}
           <Button
-            type="button"
-            className="text-primary"
-            variant="ghost"
-            onClick={() => setIsConfirmationStep(false)}
-          >
-            Back
-          </Button>
-        )}
-        <Button type="submit" loading={loading}>
-          {isConfirmationStep ? "Confirm and Submit" : "Review Details"}
-        </Button>
+            type="submit"
+            variant={isConfirmationStep ? "primary" : "outlined"}
+            loading={loading}
+            title={isConfirmationStep ? "Confirm and Submit" : "Review Details"}
+          />
+        </div>
       </form>
     </Dialog>
   )

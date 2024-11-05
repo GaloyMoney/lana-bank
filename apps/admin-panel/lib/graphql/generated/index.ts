@@ -1706,6 +1706,14 @@ export type CreateCustomerMutationVariables = Exact<{
 
 export type CreateCustomerMutation = { __typename?: 'Mutation', customerCreate: { __typename?: 'CustomerCreatePayload', customer: { __typename?: 'Customer', customerId: string, email: string, status: AccountStatus, level: KycLevel, applicantId?: string | null } } };
 
+export type CustomersQueryVariables = Exact<{
+  first: Scalars['Int']['input'];
+  after?: InputMaybe<Scalars['String']['input']>;
+}>;
+
+
+export type CustomersQuery = { __typename?: 'Query', customers: { __typename?: 'CustomerConnection', edges: Array<{ __typename?: 'CustomerEdge', cursor: string, node: { __typename?: 'Customer', id: string, customerId: string, status: AccountStatus, level: KycLevel, email: string, telegramId: string, applicantId?: string | null, balance: { __typename?: 'CustomerBalance', checking: { __typename?: 'Checking', settled: any, pending: any } } } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, startCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean } } };
+
 
 export const AvatarDocument = gql`
     query Avatar {
@@ -1784,3 +1792,62 @@ export function useCreateCustomerMutation(baseOptions?: Apollo.MutationHookOptio
 export type CreateCustomerMutationHookResult = ReturnType<typeof useCreateCustomerMutation>;
 export type CreateCustomerMutationResult = Apollo.MutationResult<CreateCustomerMutation>;
 export type CreateCustomerMutationOptions = Apollo.BaseMutationOptions<CreateCustomerMutation, CreateCustomerMutationVariables>;
+export const CustomersDocument = gql`
+    query Customers($first: Int!, $after: String) {
+  customers(first: $first, after: $after) {
+    edges {
+      node {
+        id
+        customerId
+        status
+        level
+        email
+        telegramId
+        applicantId
+        balance {
+          checking {
+            settled
+            pending
+          }
+        }
+      }
+      cursor
+    }
+    pageInfo {
+      endCursor
+      startCursor
+      hasNextPage
+      hasPreviousPage
+    }
+  }
+}
+    `;
+
+/**
+ * __useCustomersQuery__
+ *
+ * To run a query within a React component, call `useCustomersQuery` and pass it any options that fit your needs.
+ * When your component renders, `useCustomersQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useCustomersQuery({
+ *   variables: {
+ *      first: // value for 'first'
+ *      after: // value for 'after'
+ *   },
+ * });
+ */
+export function useCustomersQuery(baseOptions: Apollo.QueryHookOptions<CustomersQuery, CustomersQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<CustomersQuery, CustomersQueryVariables>(CustomersDocument, options);
+      }
+export function useCustomersLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<CustomersQuery, CustomersQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<CustomersQuery, CustomersQueryVariables>(CustomersDocument, options);
+        }
+export type CustomersQueryHookResult = ReturnType<typeof useCustomersQuery>;
+export type CustomersLazyQueryHookResult = ReturnType<typeof useCustomersLazyQuery>;
+export type CustomersQueryResult = Apollo.QueryResult<CustomersQuery, CustomersQueryVariables>;

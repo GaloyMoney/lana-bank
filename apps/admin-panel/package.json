@@ -38,6 +38,7 @@
     "@graphql-codegen/typescript": "^4.0.0",
     "@graphql-codegen/typescript-operations": "^4.0.0",
     "@graphql-codegen/typescript-react-apollo": "^3.3.7",
+    "@types/apollo-upload-client": "^18.0.0",
     "@types/node": "^20",
     "@types/pg": "^8.11.6",
     "@types/react": "^18",

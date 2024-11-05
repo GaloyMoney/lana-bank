@@ -1,7 +1,8 @@
 "use client"
 
-import { relayStylePagination } from "@apollo/client/utilities"
 import createUploadLink from "apollo-upload-client/createUploadLink.mjs"
+
+import { relayStylePagination } from "@apollo/client/utilities"
 
 import {
   ApolloClient,
@@ -30,6 +31,7 @@ function makeClient({ coreAdminGqlUrl }: { coreAdminGqlUrl: string }) {
       },
       Query: {
         fields: {
+          customers: relayStylePagination(),
           loans: relayStylePagination(),
           creditFacilities: relayStylePagination(),
         },

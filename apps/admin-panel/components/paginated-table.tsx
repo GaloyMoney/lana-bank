@@ -1,8 +1,6 @@
-/* eslint-disable @typescript-eslint/no-unused-expressions */
-
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import {
   HiChevronUp,
   HiChevronDown,
@@ -11,13 +9,15 @@ import {
   HiChevronRight,
 } from "react-icons/hi"
 
-export interface Column<T, K extends keyof T = keyof T> {
-  key: K
-  label: string
-  sortable?: boolean
-  filterValues?: Array<T[K]>
-  render?: (value: T[K], record: T) => React.ReactNode
-}
+export type Column<T> = {
+  [K in keyof T]: {
+    key: K
+    label: string
+    sortable?: boolean
+    filterValues?: Array<T[K]>
+    render?: (value: T[K], record: T) => React.ReactNode
+  }
+}[keyof T]
 
 interface PageInfo {
   endCursor: string
@@ -27,14 +27,15 @@ interface PageInfo {
 }
 
 export interface PaginatedData<T> {
-  edges: { node: T }[]
+  edges: { node: T; cursor: string }[]
   pageInfo: PageInfo
 }
 
 interface PaginatedTableProps<T> {
   columns: Column<T>[]
   data: PaginatedData<T>
-  fetchMore: (cursor: string) => Promise<void>
+  pageSize: number
+  fetchMore: (cursor: string) => Promise<unknown>
   onSort?: (column: keyof T, sortDirection: "ASC" | "DESC") => void
   onFilter?: (column: keyof T, value: T[keyof T]) => void
 }
@@ -42,6 +43,8 @@ interface PaginatedTableProps<T> {
 const PaginatedTable = <T,>({
   columns,
   data,
+  pageSize,
+  fetchMore,
   onSort,
   onFilter,
 }: PaginatedTableProps<T>): React.ReactElement => {
@@ -51,6 +54,16 @@ const PaginatedTable = <T,>({
   }>({ column: null, direction: null })
 
   const [filterState, setFilterState] = useState<Partial<Record<keyof T, T[keyof T]>>>({})
+
+  const [currentPage, setCurrentPage] = useState(1)
+  const [displayData, setDisplayData] = useState<{ node: T }[]>([])
+
+  useEffect(() => {
+    // Update displayData when data or currentPage changes
+    const startIdx = (currentPage - 1) * pageSize
+    const endIdx = startIdx + pageSize
+    setDisplayData(data.edges.slice(startIdx, endIdx))
+  }, [data.edges, currentPage, pageSize])
 
   const handleSort = (columnKey: keyof T) => {
     let newDirection: "ASC" | "DESC" = "ASC"
@@ -66,8 +79,22 @@ const PaginatedTable = <T,>({
     onFilter && onFilter(columnKey, value)
   }
 
-  const handlePreviousPage = () => {}
-  const handleNextPage = () => {}
+  const handleNextPage = async () => {
+    const totalDataLoaded = data.edges.length
+    const maxDataRequired = currentPage * pageSize + pageSize // Data needed for next page
+
+    if (totalDataLoaded < maxDataRequired && data.pageInfo.hasNextPage) {
+      // Need to fetch more data
+      await fetchMore(data.pageInfo.endCursor)
+    }
+    setCurrentPage((prevPage) => prevPage + 1)
+  }
+
+  const handlePreviousPage = () => {
+    if (currentPage > 1) {
+      setCurrentPage((prevPage) => prevPage - 1)
+    }
+  }
 
   return (
     <div className="overflow-auto h-full w-full">
@@ -80,7 +107,7 @@ const PaginatedTable = <T,>({
                 className="pt-4 pb-2 text-heading text-title-sm"
               >
                 <div className="flex items-center">
-                  <span>{col.label}</span>
+                  <span className="text-title-sm">{col.label}</span>
                   {col.sortable && (
                     <button
                       onClick={() => handleSort(col.key)}
@@ -122,10 +149,10 @@ const PaginatedTable = <T,>({
           </tr>
         </thead>
         <tbody>
-          {data.edges.map(({ node }, idx) => (
+          {displayData.map(({ node }, idx) => (
             <tr key={idx} className="hover:bg-gray-100">
               {columns.map((col) => (
-                <td key={col.key as string} className="text-body-md p-1">
+                <td key={col.key as string} className="text-body-md p-1 text-body-sm">
                   {col.render ? col.render(node[col.key], node) : String(node[col.key])}
                 </td>
               ))}
@@ -139,18 +166,23 @@ const PaginatedTable = <T,>({
         <nav className="inline-flex -space-x-px">
           <button
             onClick={handlePreviousPage}
-            disabled={!data.pageInfo.hasPreviousPage}
+            disabled={currentPage === 1}
             className={`px-3 py-1 border border-gray-300 rounded-l-md hover:bg-gray-100 ${
-              !data.pageInfo.hasPreviousPage ? "opacity-50 cursor-not-allowed" : ""
+              currentPage === 1 ? "opacity-50 cursor-not-allowed" : ""
             }`}
           >
             <HiChevronLeft className="w-5 h-5" />
           </button>
+          <span className="px-3 py-1 border-t border-b border-gray-300">
+            Page {currentPage}
+          </span>
           <button
             onClick={handleNextPage}
-            disabled={!data.pageInfo.hasNextPage}
+            disabled={displayData.length < pageSize && !data.pageInfo.hasNextPage}
             className={`px-3 py-1 border border-gray-300 rounded-r-md hover:bg-gray-100 ${
-              !data.pageInfo.hasNextPage ? "opacity-50 cursor-not-allowed" : ""
+              displayData.length < pageSize && !data.pageInfo.hasNextPage
+                ? "opacity-50 cursor-not-allowed"
+                : ""
             }`}
           >
             <HiChevronRight className="w-5 h-5" />
