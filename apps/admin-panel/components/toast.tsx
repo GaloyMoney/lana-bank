@@ -8,9 +8,9 @@ const Toast: React.FC<ToasterProps> = (props) => (
   <SonnerToast
     toastOptions={{
       classNames: {
-        toast: "bg-primary text-on-action shadow-lg border-primary",
+        toast: "bg-action-secondary text-on-action shadow-lg",
         description: "text-body",
-        actionButton: "bg-primary text-on-action",
+        actionButton: "bg-page text-body",
         cancelButton: "bg-action-secondary text-on-disabled",
       },
     }}

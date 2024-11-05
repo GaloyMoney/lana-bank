@@ -4,6 +4,7 @@ import { useState, useEffect } from "react"
 import { getCsrfToken } from "next-auth/react"
 
 import { Button, Input } from "@/components"
+import { env } from "@/env"
 
 const Login: React.FC = () => {
   const [csrfToken, setCsrfToken] = useState<string | null>(null)
@@ -20,7 +21,7 @@ const Login: React.FC = () => {
       </div>
       <form
         className="space-y-[20px] w-full"
-        action={`${process.env.NEXT_PUBLIC_BASE_PATH}/api/auth/signin/email`}
+        action={`${env.NEXT_PUBLIC_BASE_PATH}/api/auth/signin/email`}
         method="POST"
       >
         <input name="csrfToken" type="hidden" defaultValue={csrfToken || ""} />

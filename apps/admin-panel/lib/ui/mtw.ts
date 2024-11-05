@@ -1,7 +1,6 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
+"use client"
 
-import { CarouselProps } from "@material-tailwind/react/components/Carousel"
-import { ButtonProps } from "@material-tailwind/react"
+export * from "@material-tailwind/react"
 
 type EventCapture = {
   onPointerEnterCapture?: unknown
