@@ -2,8 +2,10 @@
 
 import { useState, useRef, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
+import { gql } from "@apollo/client"
 
 import { Button, ID, Pill } from "@/components"
+import { useAvatarQuery } from "@/lib/graphql/generated"
 
 const animationProps = {
   initial: { opacity: 0, y: -10 },
@@ -12,22 +14,24 @@ const animationProps = {
   transition: { duration: 0.2 },
 }
 
+gql`
+  query Avatar {
+    me {
+      user {
+        userId
+        email
+        roles
+      }
+    }
+  }
+`
+
 const Avatar = () => {
-  const userName = "John Doe"
-  const userEmail = "johndoe@example.net"
-  const userRoles = ["Admin", "Bank Manager"]
-  const userId = "3b6554e6-108b-494d-9791-58de1365b74a"
-  const userRef = "10"
+  const { data, loading } = useAvatarQuery()
 
   const [showingDetails, setShowingDetails] = useState(false)
   const detailsRef = useRef<HTMLDivElement>(null)
   const avatarRef = useRef<HTMLDivElement>(null)
-
-  const userNameInitials = userName
-    .split(" ")
-    .map((name) => name[0])
-    .join("")
-    .slice(0, 2)
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -44,6 +48,21 @@ const Avatar = () => {
     return () => document.removeEventListener("mousedown", handleClickOutside)
   }, [])
 
+  if (!data || loading) return <></>
+
+  // TODO since we don't have a name field in the user object yet, treating beginning of email as name
+  const userName = data.me.user.email.split("@")[0]
+  const userEmail = data.me.user.email
+  const userRoles = data.me.user.roles
+  const userId = data.me.user.userId
+  const userRef = ""
+
+  const userNameInitials = userName
+    .split(" ")
+    .map((name) => name[0])
+    .join("")
+    .slice(0, 2)
+
   const Details = () => (
     <motion.div
       {...animationProps}
@@ -59,8 +78,8 @@ const Avatar = () => {
         ))}
       </div>
       <div className="flex items-center justify-center space-x-2">
-        <div className="text-title-md">{userName}</div>
-        <div className="text-title-sm">#{userRef}</div>
+        <div className="text-title-md capitalize">{userName}</div>
+        {userRef && <div className="text-title-sm">#{userRef}</div>}
       </div>
       <div className="text-body-sm">{userEmail}</div>
       <ID type="Your" id={userId} />
@@ -75,7 +94,7 @@ const Avatar = () => {
       className="relative rounded-full bg-action center !h-10 !w-10 hover:bg-action-hover cursor-pointer hover:shadow"
       onClick={() => setShowingDetails((prev) => !prev)}
     >
-      <span className="text-title-md !text-on-action select-none [text-shadow:_0_1px_0_rgb(0_0_0_/_40%)]">
+      <span className="text-title-md !text-on-action select-none [text-shadow:_0_1px_0_rgb(0_0_0_/_40%)] uppercase">
         {userNameInitials}
       </span>
       <AnimatePresence>{showingDetails && <Details />}</AnimatePresence>

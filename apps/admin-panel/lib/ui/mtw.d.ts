@@ -1,5 +1,3 @@
-import {} from "@material-tailwind/react"
-
 type EventCapture = {
   onPointerEnterCapture?: unknown
   onPointerLeaveCapture?: unknown

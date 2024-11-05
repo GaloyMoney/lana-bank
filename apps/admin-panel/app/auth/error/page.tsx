@@ -1,5 +1,6 @@
-import { Button } from "@/components"
 import Link from "next/link"
+
+import { Button } from "@/components"
 
 type ErrorSearchParams = {
   error?: string

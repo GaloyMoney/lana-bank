@@ -2,10 +2,11 @@
 
 import { useState } from "react"
 
+import ActionsList from "../actions/list"
+
 import DashboardCard from "./card"
 import TimeRangeSelect, { TimeRange } from "./range"
 import CollateralUsdChart from "./collateral-usd-chart"
-import ActionsList from "../actions/list"
 
 const Dashboard = () => {
   const [range, setRange] = useState<TimeRange>("AllTime")

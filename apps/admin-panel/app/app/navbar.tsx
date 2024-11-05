@@ -26,8 +26,9 @@ import {
 } from "react-icons/hi"
 import { HiMagnifyingGlassCircle } from "react-icons/hi2"
 
-import { Logo } from "@/components"
 import Avatar from "./avatar"
+
+import { Logo } from "@/components"
 
 const NavBar = () => {
   const [isOpen, setIsOpen] = useState(false)

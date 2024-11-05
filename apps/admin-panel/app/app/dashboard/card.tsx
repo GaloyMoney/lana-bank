@@ -4,8 +4,9 @@ import Link from "next/link"
 import { HiArrowRight } from "react-icons/hi"
 import { motion, AnimatePresence } from "framer-motion"
 
-import { Button } from "@/components"
 import { useState } from "react"
+
+import { Button } from "@/components"
 
 type DashboardCardProps = {
   h1?: string

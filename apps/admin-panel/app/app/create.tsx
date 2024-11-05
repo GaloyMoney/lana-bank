@@ -2,8 +2,10 @@
 
 import { useState, useRef, useEffect } from "react"
 import { HiPlus } from "react-icons/hi"
-import { Button } from "@/components"
+
 import { motion, AnimatePresence } from "framer-motion"
+
+import { Button } from "@/components"
 
 const CreateButton = () => {
   const [isOpen, setIsOpen] = useState(false)

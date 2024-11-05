@@ -1,4 +1,5 @@
 import Image from "next/image"
+
 import logoNeutral from "./logo-neutral.svg"
 import logoPrimary from "./logo-primary.svg"
 
