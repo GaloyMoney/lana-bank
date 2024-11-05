@@ -36,6 +36,7 @@ const RootLayout = async ({
   const session = await getServerSession(authOptions)
   if (!session && !PUBLIC_PAGES.includes(currentPath)) redirect("/auth/login")
   if (session && PUBLIC_PAGES.includes(currentPath)) redirect("/")
+  if (session && ["/", "/app"].includes(currentPath)) redirect("/app/dashboard")
 
   return (
     <html lang="en">

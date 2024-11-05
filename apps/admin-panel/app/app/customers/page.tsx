@@ -1,6 +1,10 @@
 "use client"
 
+import { useEffect, useState } from "react"
+import { useSearchParams } from "next/navigation"
+
 import PaginatedTable, { Column, PaginatedData } from "@/components/paginated-table"
+import CreateCustomer from "./create"
 
 interface Item {
   id: string
@@ -38,28 +42,30 @@ const columns: Column<Item>[] = [
 ]
 
 const Customers = () => {
-  const handleSort = (column: keyof Item, direction: "ASC" | "DESC") => {
-    // Handle sorting
-  }
+  const searchParams = useSearchParams()
 
-  const handleFilter = (column: keyof Item, value: Item[keyof Item]) => {
-    // Handle filtering
-  }
+  const [openCreate, setOpenCreate] = useState(false)
+
+  useEffect(() => {
+    if (searchParams.get("create")) setOpenCreate(true)
+  }, [searchParams, setOpenCreate])
+
   return (
-    <div className="bg-page rounded-md p-[10px] flex flex-col gap-1 border">
-      <div className="text-title-md">Customers</div>
-      <div className="!text-body text-body-sm">
-        Individuals or entities who hold accounts, loans, or credit facilities with the
-        bank
+    <>
+      <div className="bg-page rounded-md p-[10px] flex flex-col gap-1 border">
+        <div className="text-title-md">Customers</div>
+        <div className="!text-body text-body-sm">
+          Individuals or entities who hold accounts, loans, or credit facilities with the
+          bank
+        </div>
+        <PaginatedTable<Item>
+          columns={columns}
+          data={itemsData}
+          fetchMore={fetchMoreItems}
+        />
       </div>
-      <PaginatedTable<Item>
-        columns={columns}
-        data={itemsData}
-        fetchMore={fetchMoreItems}
-        onSort={handleSort}
-        onFilter={handleFilter}
-      />
-    </div>
+      <CreateCustomer open={openCreate} setOpen={setOpenCreate} />
+    </>
   )
 }
 

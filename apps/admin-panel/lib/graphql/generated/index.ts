@@ -1699,6 +1699,13 @@ export type AvatarQueryVariables = Exact<{ [key: string]: never; }>;
 
 export type AvatarQuery = { __typename?: 'Query', me: { __typename?: 'Subject', user: { __typename?: 'User', userId: string, email: string, roles: Array<Role> } } };
 
+export type CreateCustomerMutationVariables = Exact<{
+  input: CustomerCreateInput;
+}>;
+
+
+export type CreateCustomerMutation = { __typename?: 'Mutation', customerCreate: { __typename?: 'CustomerCreatePayload', customer: { __typename?: 'Customer', customerId: string, email: string, status: AccountStatus, level: KycLevel, applicantId?: string | null } } };
+
 
 export const AvatarDocument = gql`
     query Avatar {
@@ -1738,3 +1745,42 @@ export function useAvatarLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<Ava
 export type AvatarQueryHookResult = ReturnType<typeof useAvatarQuery>;
 export type AvatarLazyQueryHookResult = ReturnType<typeof useAvatarLazyQuery>;
 export type AvatarQueryResult = Apollo.QueryResult<AvatarQuery, AvatarQueryVariables>;
+export const CreateCustomerDocument = gql`
+    mutation CreateCustomer($input: CustomerCreateInput!) {
+  customerCreate(input: $input) {
+    customer {
+      customerId
+      email
+      status
+      level
+      applicantId
+    }
+  }
+}
+    `;
+export type CreateCustomerMutationFn = Apollo.MutationFunction<CreateCustomerMutation, CreateCustomerMutationVariables>;
+
+/**
+ * __useCreateCustomerMutation__
+ *
+ * To run a mutation, you first call `useCreateCustomerMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useCreateCustomerMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [createCustomerMutation, { data, loading, error }] = useCreateCustomerMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useCreateCustomerMutation(baseOptions?: Apollo.MutationHookOptions<CreateCustomerMutation, CreateCustomerMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<CreateCustomerMutation, CreateCustomerMutationVariables>(CreateCustomerDocument, options);
+      }
+export type CreateCustomerMutationHookResult = ReturnType<typeof useCreateCustomerMutation>;
+export type CreateCustomerMutationResult = Apollo.MutationResult<CreateCustomerMutation>;
+export type CreateCustomerMutationOptions = Apollo.BaseMutationOptions<CreateCustomerMutation, CreateCustomerMutationVariables>;

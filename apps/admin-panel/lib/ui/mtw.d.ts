@@ -22,4 +22,7 @@ declare module "@material-tailwind/react" {
   export interface MenuItemProps extends EventCapture {
     placeholder?: unknown
   }
+  export interface DialogProps extends EventCapture {
+    placeholder?: unknown
+  }
 }
