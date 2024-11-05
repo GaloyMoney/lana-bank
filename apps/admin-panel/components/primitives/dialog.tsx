@@ -1,3 +1,5 @@
+"use client"
+
 import MTDialog from "@material-tailwind/react/components/Dialog"
 
 type DialogProps = {
