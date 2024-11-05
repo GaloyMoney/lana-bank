@@ -72,27 +72,17 @@ impl Query {
         ctx: &Context<'_>,
         first: i32,
         after: Option<String>,
-        by: CustomerSortField,
-    ) -> async_graphql::Result<Connection<CustomerCursor, Customer, EmptyFields, EmptyFields>> {
+    ) -> async_graphql::Result<Connection<CustomerByEmailCursor, Customer, EmptyFields, EmptyFields>>
+    {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
-
-        match by {
-            CustomerSortField::Email => {
-                list_with_cursor!(CustomerCursor, Customer, ctx, after, first, |query| app
-                    .customers()
-                    .list(sub, query))
-            }
-            CustomerSortField::CreatedAt => {
-                list_with_cursor!(CustomerCursor, Customer, ctx, after, first, |query| app
-                    .customers()
-                    .list_by_created_at(sub, query))
-            }
-            CustomerSortField::TelegramId => {
-                list_with_cursor!(CustomerCursor, Customer, ctx, after, first, |query| app
-                    .customers()
-                    .list_by_telegram_id(sub, query))
-            }
-        }
+        list_with_cursor!(
+            CustomerByEmailCursor,
+            Customer,
+            ctx,
+            after,
+            first,
+            |query| app.customers().list(sub, query)
+        )
     }
 
     async fn withdrawal(
