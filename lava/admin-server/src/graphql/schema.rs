@@ -67,7 +67,7 @@ impl Query {
         maybe_fetch_one!(Customer, ctx, app.customers().find_by_email(sub, email))
     }
 
-    async fn customers(
+    async fn customers_by_email(
         &self,
         ctx: &Context<'_>,
         first: i32,
@@ -81,7 +81,45 @@ impl Query {
             ctx,
             after,
             first,
-            |query| app.customers().list(sub, query)
+            |query| app.customers().list_by_email(sub, query)
+        )
+    }
+
+    async fn customers_by_created_at(
+        &self,
+        ctx: &Context<'_>,
+        first: i32,
+        after: Option<String>,
+    ) -> async_graphql::Result<
+        Connection<CustomerByCreatedAtCursor, Customer, EmptyFields, EmptyFields>,
+    > {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        list_with_cursor!(
+            CustomerByCreatedAtCursor,
+            Customer,
+            ctx,
+            after,
+            first,
+            |query| app.customers().list_by_created_at(sub, query)
+        )
+    }
+
+    async fn customers_by_telegram_id(
+        &self,
+        ctx: &Context<'_>,
+        first: i32,
+        after: Option<String>,
+    ) -> async_graphql::Result<
+        Connection<CustomerByTelegramIdCursor, Customer, EmptyFields, EmptyFields>,
+    > {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        list_with_cursor!(
+            CustomerByTelegramIdCursor,
+            Customer,
+            ctx,
+            after,
+            first,
+            |query| app.customers().list_by_telegram_id(sub, query)
         )
     }
 

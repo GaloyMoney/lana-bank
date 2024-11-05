@@ -187,7 +187,7 @@ impl Customers {
         }
     }
 
-    pub async fn list(
+    pub async fn list_by_email(
         &self,
         sub: &Subject,
         query: es_entity::PaginatedQueryArgs<CustomerByEmailCursor>,
@@ -201,6 +201,42 @@ impl Customers {
             .await?;
         self.repo
             .list_by_email(query, es_entity::ListDirection::Ascending)
+            .await
+    }
+
+    pub async fn list_by_created_at(
+        &self,
+        sub: &Subject,
+        query: es_entity::PaginatedQueryArgs<CustomerByCreatedAtCursor>,
+    ) -> Result<es_entity::PaginatedQueryRet<Customer, CustomerByCreatedAtCursor>, CustomerError>
+    {
+        self.authz
+            .enforce_permission(
+                sub,
+                Object::Customer(CustomerAllOrOne::All),
+                CustomerAction::List,
+            )
+            .await?;
+        self.repo
+            .list_by_created_at(query, es_entity::ListDirection::Descending)
+            .await
+    }
+
+    pub async fn list_by_telegram_id(
+        &self,
+        sub: &Subject,
+        query: es_entity::PaginatedQueryArgs<CustomerByTelegramIdCursor>,
+    ) -> Result<es_entity::PaginatedQueryRet<Customer, CustomerByTelegramIdCursor>, CustomerError>
+    {
+        self.authz
+            .enforce_permission(
+                sub,
+                Object::Customer(CustomerAllOrOne::All),
+                CustomerAction::List,
+            )
+            .await?;
+        self.repo
+            .list_by_telegram_id(query, es_entity::ListDirection::Ascending)
             .await
     }
 
