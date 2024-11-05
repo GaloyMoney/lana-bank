@@ -53,7 +53,7 @@ const NavBar = () => {
         <MenuItem icon={HiViewBoards} title="Disbursals" to="/app/disbursals" />
         <MenuItem icon={HiTemplate} title="Terms Templates" to="/app/terms-templates" />
         <MenuItem icon={HiUserGroup} title="Users" to="/app/users" />
-        <MenuItem icon={HiGlobe} title="Commitees" to="/app/commitees" />
+        <MenuItem icon={HiGlobe} title="Committees" to="/app/committees" />
         <MenuItem icon={HiArrowCircleDown} title="Deposits" to="/app/deposits" />
         <MenuItem icon={HiArrowCircleUp} title="Withdrawals" to="/app/withdrawals" />
         <MenuItem
