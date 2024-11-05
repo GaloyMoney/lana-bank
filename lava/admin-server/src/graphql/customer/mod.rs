@@ -159,13 +159,13 @@ pub struct CustomerUpdateInput {
 crate::mutation_payload! { CustomerUpdatePayload, customer: Customer }
 
 #[derive(Serialize, Deserialize)]
-pub enum CustomerCursor {
+pub enum CustomerComboCursor {
     ByEmail(CustomerByEmailCursor),
     ByCreatedAt(CustomerByCreatedAtCursor),
     ByTelegramId(CustomerByTelegramIdCursor),
 }
 
-impl CursorType for CustomerCursor {
+impl CursorType for CustomerComboCursor {
     type Error = String;
     fn encode_cursor(&self) -> String {
         use base64::{engine::general_purpose, Engine as _};
@@ -182,51 +182,51 @@ impl CursorType for CustomerCursor {
     }
 }
 
-impl TryFrom<CustomerCursor> for CustomerByEmailCursor {
+impl TryFrom<CustomerComboCursor> for CustomerByEmailCursor {
     type Error = String;
-    fn try_from(cursor: CustomerCursor) -> Result<Self, Self::Error> {
+    fn try_from(cursor: CustomerComboCursor) -> Result<Self, Self::Error> {
         match cursor {
-            CustomerCursor::ByEmail(cursor) => Ok(cursor),
+            CustomerComboCursor::ByEmail(cursor) => Ok(cursor),
             _ => Err("Invalid combo cursor variant".to_string()),
         }
     }
 }
 
-impl TryFrom<CustomerCursor> for CustomerByCreatedAtCursor {
+impl TryFrom<CustomerComboCursor> for CustomerByCreatedAtCursor {
     type Error = String;
-    fn try_from(cursor: CustomerCursor) -> Result<Self, Self::Error> {
+    fn try_from(cursor: CustomerComboCursor) -> Result<Self, Self::Error> {
         match cursor {
-            CustomerCursor::ByCreatedAt(cursor) => Ok(cursor),
+            CustomerComboCursor::ByCreatedAt(cursor) => Ok(cursor),
             _ => Err("Invalid combo cursor variant".to_string()),
         }
     }
 }
 
-impl TryFrom<CustomerCursor> for CustomerByTelegramIdCursor {
+impl TryFrom<CustomerComboCursor> for CustomerByTelegramIdCursor {
     type Error = String;
-    fn try_from(cursor: CustomerCursor) -> Result<Self, Self::Error> {
+    fn try_from(cursor: CustomerComboCursor) -> Result<Self, Self::Error> {
         match cursor {
-            CustomerCursor::ByTelegramId(cursor) => Ok(cursor),
+            CustomerComboCursor::ByTelegramId(cursor) => Ok(cursor),
             _ => Err("Invalid combo cursor variant".to_string()),
         }
     }
 }
 
-impl From<CustomerByEmailCursor> for CustomerCursor {
+impl From<CustomerByEmailCursor> for CustomerComboCursor {
     fn from(cursor: CustomerByEmailCursor) -> Self {
-        CustomerCursor::ByEmail(cursor)
+        CustomerComboCursor::ByEmail(cursor)
     }
 }
 
-impl From<CustomerByCreatedAtCursor> for CustomerCursor {
+impl From<CustomerByCreatedAtCursor> for CustomerComboCursor {
     fn from(cursor: CustomerByCreatedAtCursor) -> Self {
-        CustomerCursor::ByCreatedAt(cursor)
+        CustomerComboCursor::ByCreatedAt(cursor)
     }
 }
 
-impl From<CustomerByTelegramIdCursor> for CustomerCursor {
+impl From<CustomerByTelegramIdCursor> for CustomerComboCursor {
     fn from(cursor: CustomerByTelegramIdCursor) -> Self {
-        CustomerCursor::ByTelegramId(cursor)
+        CustomerComboCursor::ByTelegramId(cursor)
     }
 }
 
@@ -236,16 +236,20 @@ mod tests {
 
     #[test]
     fn test_encode_decode_customer_cursor() {
-        let cursor = CustomerCursor::ByEmail(CustomerByEmailCursor {
+        let cursor = CustomerComboCursor::ByEmail(CustomerByEmailCursor {
             id: CustomerId::new(),
             email: "user@example.com".to_string(),
         });
 
         let encoded = cursor.encode_cursor();
-        let decoded = CustomerCursor::decode_cursor(&encoded).expect("Failed to decode cursor");
+        let decoded =
+            CustomerComboCursor::decode_cursor(&encoded).expect("Failed to decode cursor");
 
         match (cursor, decoded) {
-            (CustomerCursor::ByEmail(original_cursor), CustomerCursor::ByEmail(decoded_cursor)) => {
+            (
+                CustomerComboCursor::ByEmail(original_cursor),
+                CustomerComboCursor::ByEmail(decoded_cursor),
+            ) => {
                 assert_eq!(original_cursor.email, decoded_cursor.email,);
             }
             _ => panic!("Decoded cursor is not of type ByEmail"),

@@ -129,6 +129,83 @@ macro_rules! list_with_cursor {
     }};
 }
 
+// helper to do a 'standard' list_by query with combo cursor
+// query(
+//     after,
+//     None,
+//     Some(first),
+//     None,
+//     |after, _, first, _| async move {
+//         let first = first.expect("First always exists");
+//         let after = after
+//             .map(CommitteeComboCursor::from)
+//             .map(CommitteeByCreatedAtCursor::try_from)
+//             .transpose()?;
+
+//         let res = app
+//             .governance()
+//             .list_committees(
+//                 sub,
+//                 es_entity::PaginatedQueryArgs {
+//                     first,
+//                     after,
+//                 },
+//             )
+//             .await?;
+
+//         let mut connection = Connection::new(false, res.has_next_page);
+//         connection
+//             .edges
+//             .extend(res.entities.into_iter().map(|committee| {
+//                 let cursor = CommitteeByCreatedAtCursor::from(&committee).into();
+//                 Edge::new(cursor, Committee::from(committee))
+//             }));
+
+//         Ok::<_, async_graphql::Error>(connection)
+//     },
+// )
+// .await
+#[macro_export]
+macro_rules! list_with_combo_cursor {
+    ($combo_cursor:ty, $cursor:ty, $entity:ty, $ctx:expr, $after:expr, $first:expr, $load:expr) => {{
+        let loader = $ctx.data_unchecked::<LavaDataLoader>();
+        async_graphql::types::connection::query(
+            $after,
+            None,
+            Some($first),
+            None,
+            |after, _, first, _| async move {
+                let first = first.expect("First always exists") as usize;
+                let after = after
+                    .map(<$combo_cursor>::from)
+                    .map(<$cursor>::try_from)
+                    .transpose()?;
+                let args = es_entity::PaginatedQueryArgs { first, after };
+                let res = $load(args).await?;
+                let mut connection =
+                    async_graphql::types::connection::Connection::new(false, res.has_next_page);
+                connection
+                    .edges
+                    .extend(res.entities.into_iter().map(|entity| {
+                        let cursor = <$cursor>::from(&entity).into();
+                        Edge::new(cursor, <$entity>::from(entity))
+                    }));
+                loader
+                    .feed_many(
+                        connection
+                            .edges
+                            .iter()
+                            .map(|e| (e.node.entity.id, e.node.clone())),
+                    )
+                    .await;
+
+                Ok::<_, async_graphql::Error>(connection)
+            },
+        )
+        .await
+    }};
+}
+
 // Helper to create a 'standard' payload of the form
 // pub struct SomeMutationPayload {
 //   entity: Entity

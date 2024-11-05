@@ -75,45 +75,18 @@ impl Query {
         ctx: &Context<'_>,
         first: i32,
         after: Option<String>,
-    ) -> async_graphql::Result<Connection<CustomerCursor, Customer, EmptyFields, EmptyFields>> {
+    ) -> async_graphql::Result<Connection<CustomerComboCursor, Customer, EmptyFields, EmptyFields>>
+    {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
-        let loader = ctx.data_unchecked::<LavaDataLoader>();
-        query(
+        list_with_combo_cursor!(
+            CustomerComboCursor,
+            CustomerByEmailCursor,
+            Customer,
+            ctx,
             after,
-            None,
-            Some(first),
-            None,
-            |after, _, first, _| async move {
-                let first = first.expect("First always exists");
-                let after = after
-                    .map(CustomerCursor::from)
-                    .map(CustomerByEmailCursor::try_from)
-                    .transpose()?;
-                let res = app
-                    .customers()
-                    .list_by_email(sub, es_entity::PaginatedQueryArgs { first, after })
-                    .await?;
-
-                let mut connection = Connection::new(false, res.has_next_page);
-                connection
-                    .edges
-                    .extend(res.entities.into_iter().map(|entry| {
-                        let cursor = CustomerByEmailCursor::from(&entry).into();
-                        Edge::new(cursor, Customer::from(entry))
-                    }));
-                loader
-                    .feed_many(
-                        connection
-                            .edges
-                            .iter()
-                            .map(|e| (e.node.entity.id, e.node.clone())),
-                    )
-                    .await;
-
-                Ok::<_, async_graphql::Error>(connection)
-            },
+            first,
+            |query| app.customers().list_by_email(sub, query)
         )
-        .await
     }
 
     async fn customers_by_created_at(
@@ -121,45 +94,18 @@ impl Query {
         ctx: &Context<'_>,
         first: i32,
         after: Option<String>,
-    ) -> async_graphql::Result<Connection<CustomerCursor, Customer, EmptyFields, EmptyFields>> {
+    ) -> async_graphql::Result<Connection<CustomerComboCursor, Customer, EmptyFields, EmptyFields>>
+    {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
-        let loader = ctx.data_unchecked::<LavaDataLoader>();
-        query(
+        list_with_combo_cursor!(
+            CustomerComboCursor,
+            CustomerByCreatedAtCursor,
+            Customer,
+            ctx,
             after,
-            None,
-            Some(first),
-            None,
-            |after, _, first, _| async move {
-                let first = first.expect("First always exists");
-                let after = after
-                    .map(CustomerCursor::from)
-                    .map(CustomerByCreatedAtCursor::try_from)
-                    .transpose()?;
-                let res = app
-                    .customers()
-                    .list_by_created_at(sub, es_entity::PaginatedQueryArgs { first, after })
-                    .await?;
-
-                let mut connection = Connection::new(false, res.has_next_page);
-                connection
-                    .edges
-                    .extend(res.entities.into_iter().map(|entry| {
-                        let cursor = CustomerByCreatedAtCursor::from(&entry).into();
-                        Edge::new(cursor, Customer::from(entry))
-                    }));
-                loader
-                    .feed_many(
-                        connection
-                            .edges
-                            .iter()
-                            .map(|e| (e.node.entity.id, e.node.clone())),
-                    )
-                    .await;
-
-                Ok::<_, async_graphql::Error>(connection)
-            },
+            first,
+            |query| app.customers().list_by_created_at(sub, query)
         )
-        .await
     }
 
     async fn customers_by_telegram_id(
@@ -167,45 +113,18 @@ impl Query {
         ctx: &Context<'_>,
         first: i32,
         after: Option<String>,
-    ) -> async_graphql::Result<Connection<CustomerCursor, Customer, EmptyFields, EmptyFields>> {
+    ) -> async_graphql::Result<Connection<CustomerComboCursor, Customer, EmptyFields, EmptyFields>>
+    {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
-        let loader = ctx.data_unchecked::<LavaDataLoader>();
-        query(
+        list_with_combo_cursor!(
+            CustomerComboCursor,
+            CustomerByTelegramIdCursor,
+            Customer,
+            ctx,
             after,
-            None,
-            Some(first),
-            None,
-            |after, _, first, _| async move {
-                let first = first.expect("First always exists");
-                let after = after
-                    .map(CustomerCursor::from)
-                    .map(CustomerByTelegramIdCursor::try_from)
-                    .transpose()?;
-                let res = app
-                    .customers()
-                    .list_by_telegram_id(sub, es_entity::PaginatedQueryArgs { first, after })
-                    .await?;
-
-                let mut connection = Connection::new(false, res.has_next_page);
-                connection
-                    .edges
-                    .extend(res.entities.into_iter().map(|entry| {
-                        let cursor = CustomerByTelegramIdCursor::from(&entry).into();
-                        Edge::new(cursor, Customer::from(entry))
-                    }));
-                loader
-                    .feed_many(
-                        connection
-                            .edges
-                            .iter()
-                            .map(|e| (e.node.entity.id, e.node.clone())),
-                    )
-                    .await;
-
-                Ok::<_, async_graphql::Error>(connection)
-            },
+            first,
+            |query| app.customers().list_by_telegram_id(sub, query)
         )
-        .await
     }
 
     async fn withdrawal(
