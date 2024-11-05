@@ -1,3 +1,5 @@
+"use client"
+
 import Carausel from "./carausel"
 
 import { Logo } from "@/components"
