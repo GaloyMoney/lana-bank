@@ -85,11 +85,10 @@ impl Query {
             None,
             |after, _, first, _| async move {
                 let first = first.expect("First always exists");
-                let after = match after.map(CustomerCursor::from) {
-                    Some(CustomerCursor::ByEmail(cursor)) => Some(cursor),
-                    None => None,
-                    _ => return Err(async_graphql::Error::new("Invalid cursor")),
-                };
+                let after = after
+                    .map(CustomerCursor::from)
+                    .map(CustomerByEmailCursor::try_from)
+                    .transpose()?;
                 let res = app
                     .customers()
                     .list_by_email(sub, es_entity::PaginatedQueryArgs { first, after })
@@ -99,7 +98,7 @@ impl Query {
                 connection
                     .edges
                     .extend(res.entities.into_iter().map(|entry| {
-                        let cursor = CustomerCursor::ByEmail(CustomerByEmailCursor::from(&entry));
+                        let cursor = CustomerByEmailCursor::from(&entry).into();
                         Edge::new(cursor, Customer::from(entry))
                     }));
                 loader
@@ -132,11 +131,10 @@ impl Query {
             None,
             |after, _, first, _| async move {
                 let first = first.expect("First always exists");
-                let after = match after.map(CustomerCursor::from) {
-                    Some(CustomerCursor::ByCreatedAt(cursor)) => Some(cursor),
-                    None => None,
-                    _ => return Err(async_graphql::Error::new("Invalid cursor")),
-                };
+                let after = after
+                    .map(CustomerCursor::from)
+                    .map(CustomerByCreatedAtCursor::try_from)
+                    .transpose()?;
                 let res = app
                     .customers()
                     .list_by_created_at(sub, es_entity::PaginatedQueryArgs { first, after })
@@ -146,8 +144,7 @@ impl Query {
                 connection
                     .edges
                     .extend(res.entities.into_iter().map(|entry| {
-                        let cursor =
-                            CustomerCursor::ByCreatedAt(CustomerByCreatedAtCursor::from(&entry));
+                        let cursor = CustomerByCreatedAtCursor::from(&entry).into();
                         Edge::new(cursor, Customer::from(entry))
                     }));
                 loader
@@ -180,11 +177,10 @@ impl Query {
             None,
             |after, _, first, _| async move {
                 let first = first.expect("First always exists");
-                let after = match after.map(CustomerCursor::from) {
-                    Some(CustomerCursor::ByTelegramId(cursor)) => Some(cursor),
-                    None => None,
-                    _ => return Err(async_graphql::Error::new("Invalid cursor")),
-                };
+                let after = after
+                    .map(CustomerCursor::from)
+                    .map(CustomerByTelegramIdCursor::try_from)
+                    .transpose()?;
                 let res = app
                     .customers()
                     .list_by_telegram_id(sub, es_entity::PaginatedQueryArgs { first, after })
@@ -194,8 +190,7 @@ impl Query {
                 connection
                     .edges
                     .extend(res.entities.into_iter().map(|entry| {
-                        let cursor =
-                            CustomerCursor::ByTelegramId(CustomerByTelegramIdCursor::from(&entry));
+                        let cursor = CustomerByTelegramIdCursor::from(&entry).into();
                         Edge::new(cursor, Customer::from(entry))
                     }));
                 loader

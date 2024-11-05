@@ -182,6 +182,54 @@ impl CursorType for CustomerCursor {
     }
 }
 
+impl TryFrom<CustomerCursor> for CustomerByEmailCursor {
+    type Error = String;
+    fn try_from(cursor: CustomerCursor) -> Result<Self, Self::Error> {
+        match cursor {
+            CustomerCursor::ByEmail(cursor) => Ok(cursor),
+            _ => Err("Invalid combo cursor variant".to_string()),
+        }
+    }
+}
+
+impl TryFrom<CustomerCursor> for CustomerByCreatedAtCursor {
+    type Error = String;
+    fn try_from(cursor: CustomerCursor) -> Result<Self, Self::Error> {
+        match cursor {
+            CustomerCursor::ByCreatedAt(cursor) => Ok(cursor),
+            _ => Err("Invalid combo cursor variant".to_string()),
+        }
+    }
+}
+
+impl TryFrom<CustomerCursor> for CustomerByTelegramIdCursor {
+    type Error = String;
+    fn try_from(cursor: CustomerCursor) -> Result<Self, Self::Error> {
+        match cursor {
+            CustomerCursor::ByTelegramId(cursor) => Ok(cursor),
+            _ => Err("Invalid combo cursor variant".to_string()),
+        }
+    }
+}
+
+impl From<CustomerByEmailCursor> for CustomerCursor {
+    fn from(cursor: CustomerByEmailCursor) -> Self {
+        CustomerCursor::ByEmail(cursor)
+    }
+}
+
+impl From<CustomerByCreatedAtCursor> for CustomerCursor {
+    fn from(cursor: CustomerByCreatedAtCursor) -> Self {
+        CustomerCursor::ByCreatedAt(cursor)
+    }
+}
+
+impl From<CustomerByTelegramIdCursor> for CustomerCursor {
+    fn from(cursor: CustomerByTelegramIdCursor) -> Self {
+        CustomerCursor::ByTelegramId(cursor)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
