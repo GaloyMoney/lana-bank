@@ -41,6 +41,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
     const isNumeric = numeric && type === "number"
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+      "use client"
       let value = e.target.value
 
       if (isNumeric) {

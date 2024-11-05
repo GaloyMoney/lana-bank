@@ -2,7 +2,7 @@ import { Logo } from "@/components"
 
 import Carausel from "./carausel"
 
-const AuthLayout: React.FC<React.PropsWithChildren> = async ({ children }) => (
+const AuthLayout: React.FC<React.PropsWithChildren> = ({ children }) => (
   <div className="flex flex-col lg:flex-row p-[40px] lg:space-x-[10px] space-y-[10px] lg:space-y-0 h-full">
     <div className="hidden lg:block bg-primary lg:max-w-[426px] py-20 rounded-md">
       <Carausel />

@@ -1,3 +1,5 @@
+"use client"
+
 const Verify: React.FC = () => (
   <>
     <h1 className="text-heading-h3">A verification email has been sent</h1>

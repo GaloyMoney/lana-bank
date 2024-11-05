@@ -33,7 +33,8 @@ local_resource(
     "admin-panel",
     labels=["apps"],
     serve_env={
-        "BASE_PATH": "/admin-panel"
+        "NEXT_PUBLIC_BASE_PATH": "/admin-panel",
+        "NEXTAUTH_URL": "http://localhost:4455/admin-panel/api/auth",
     },
     serve_cmd="cd ../apps/admin-panel && pnpm install && pnpm run dev",
     allow_parallel=True,

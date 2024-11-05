@@ -9,6 +9,7 @@ import { getServerSession } from "next-auth"
 import { Metadata } from "next/types"
 import { redirect } from "next/navigation"
 import { authOptions } from "./api/auth/[...nextauth]/options"
+import { headers } from "next/headers"
 
 export const metadata: Metadata = {
   title: "Lana Bank | Admin Panel",
@@ -20,15 +21,19 @@ export const metadata: Metadata = {
   ],
 }
 
+const PUBLIC_PAGES = ["/auth/login", "/auth/error", "/auth/verify"]
+
 const RootLayout = async ({
   children,
 }: Readonly<{
   children: React.ReactNode
 }>) => {
+  const headerList = await headers()
+  const currentPath = headerList.get("x-current-path") || "/"
+
   const session = await getServerSession(authOptions)
-  if (!session) {
-    redirect("/api/auth/signin")
-  }
+  if (!session && !PUBLIC_PAGES.includes(currentPath)) redirect("/auth/login")
+  if (session && PUBLIC_PAGES.includes(currentPath)) redirect("/")
 
   return (
     <html lang="en">
