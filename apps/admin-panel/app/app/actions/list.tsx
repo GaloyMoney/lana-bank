@@ -20,7 +20,7 @@ const List: React.FC<ListProps> = ({ dashboard = false }) => {
     : TABLE_ROWS
 
   return (
-    <div className="bg-page rounded-md p-[10px] flex flex-col gap-1 w-full">
+    <div className="bg-page rounded-md p-[10px] flex flex-col gap-1 w-full border">
       <div className="text-title-md">Pending Actions</div>
       <div className={`!text-body text-body-sm ${dashboard && "mb-2"}`}>
         Approvals / Rejections waiting your way

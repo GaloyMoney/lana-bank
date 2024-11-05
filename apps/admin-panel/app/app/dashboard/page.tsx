@@ -27,13 +27,13 @@ const Dashboard = () => {
 
   return (
     <div className="w-full h-full flex flex-col gap-2">
-      <div className="relative w-full border rounded-md flex flex-col justify-center items-start p-[10px]">
+      <div className="relative w-full border rounded-md flex flex-col justify-center items-start">
         <TimeRangeSelect range={range} setRange={setRange} />
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 w-full">
           <DashboardCard
             h1="3"
             h2="12"
-            h2PopupDescription="Inactive Facilities"
+            h2PopupDescription="Pending Facilities"
             title="Active Facilities"
             description="Credit Facilities where money has been disbursed"
             to="/app/credit-facilities?filter=active"
