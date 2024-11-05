@@ -1,6 +1,9 @@
 use async_graphql::{types::connection::*, Context, Object};
 
-use lava_app::app::LavaApp;
+use lava_app::{
+    app::LavaApp,
+    customer::{CustomerByCreatedAtCursor, CustomerByEmailCursor, CustomerByTelegramIdCursor},
+};
 
 use crate::primitives::*;
 
@@ -72,17 +75,46 @@ impl Query {
         ctx: &Context<'_>,
         first: i32,
         after: Option<String>,
-    ) -> async_graphql::Result<Connection<CustomerByEmailCursor, Customer, EmptyFields, EmptyFields>>
-    {
+    ) -> async_graphql::Result<Connection<CustomerCursor, Customer, EmptyFields, EmptyFields>> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
-        list_with_cursor!(
-            CustomerByEmailCursor,
-            Customer,
-            ctx,
+        let loader = ctx.data_unchecked::<LavaDataLoader>();
+        query(
             after,
-            first,
-            |query| app.customers().list_by_email(sub, query)
+            None,
+            Some(first),
+            None,
+            |after, _, first, _| async move {
+                let first = first.expect("First always exists");
+                let after = match after.map(CustomerCursor::from) {
+                    Some(CustomerCursor::ByEmail(cursor)) => Some(cursor),
+                    None => None,
+                    _ => return Err(async_graphql::Error::new("Invalid cursor")),
+                };
+                let res = app
+                    .customers()
+                    .list_by_email(sub, es_entity::PaginatedQueryArgs { first, after })
+                    .await?;
+
+                let mut connection = Connection::new(false, res.has_next_page);
+                connection
+                    .edges
+                    .extend(res.entities.into_iter().map(|entry| {
+                        let cursor = CustomerCursor::ByEmail(CustomerByEmailCursor::from(&entry));
+                        Edge::new(cursor, Customer::from(entry))
+                    }));
+                loader
+                    .feed_many(
+                        connection
+                            .edges
+                            .iter()
+                            .map(|e| (e.node.entity.id, e.node.clone())),
+                    )
+                    .await;
+
+                Ok::<_, async_graphql::Error>(connection)
+            },
         )
+        .await
     }
 
     async fn customers_by_created_at(
@@ -90,18 +122,47 @@ impl Query {
         ctx: &Context<'_>,
         first: i32,
         after: Option<String>,
-    ) -> async_graphql::Result<
-        Connection<CustomerByCreatedAtCursor, Customer, EmptyFields, EmptyFields>,
-    > {
+    ) -> async_graphql::Result<Connection<CustomerCursor, Customer, EmptyFields, EmptyFields>> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
-        list_with_cursor!(
-            CustomerByCreatedAtCursor,
-            Customer,
-            ctx,
+        let loader = ctx.data_unchecked::<LavaDataLoader>();
+        query(
             after,
-            first,
-            |query| app.customers().list_by_created_at(sub, query)
+            None,
+            Some(first),
+            None,
+            |after, _, first, _| async move {
+                let first = first.expect("First always exists");
+                let after = match after.map(CustomerCursor::from) {
+                    Some(CustomerCursor::ByCreatedAt(cursor)) => Some(cursor),
+                    None => None,
+                    _ => return Err(async_graphql::Error::new("Invalid cursor")),
+                };
+                let res = app
+                    .customers()
+                    .list_by_created_at(sub, es_entity::PaginatedQueryArgs { first, after })
+                    .await?;
+
+                let mut connection = Connection::new(false, res.has_next_page);
+                connection
+                    .edges
+                    .extend(res.entities.into_iter().map(|entry| {
+                        let cursor =
+                            CustomerCursor::ByCreatedAt(CustomerByCreatedAtCursor::from(&entry));
+                        Edge::new(cursor, Customer::from(entry))
+                    }));
+                loader
+                    .feed_many(
+                        connection
+                            .edges
+                            .iter()
+                            .map(|e| (e.node.entity.id, e.node.clone())),
+                    )
+                    .await;
+
+                Ok::<_, async_graphql::Error>(connection)
+            },
         )
+        .await
     }
 
     async fn customers_by_telegram_id(
@@ -109,18 +170,47 @@ impl Query {
         ctx: &Context<'_>,
         first: i32,
         after: Option<String>,
-    ) -> async_graphql::Result<
-        Connection<CustomerByTelegramIdCursor, Customer, EmptyFields, EmptyFields>,
-    > {
+    ) -> async_graphql::Result<Connection<CustomerCursor, Customer, EmptyFields, EmptyFields>> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
-        list_with_cursor!(
-            CustomerByTelegramIdCursor,
-            Customer,
-            ctx,
+        let loader = ctx.data_unchecked::<LavaDataLoader>();
+        query(
             after,
-            first,
-            |query| app.customers().list_by_telegram_id(sub, query)
+            None,
+            Some(first),
+            None,
+            |after, _, first, _| async move {
+                let first = first.expect("First always exists");
+                let after = match after.map(CustomerCursor::from) {
+                    Some(CustomerCursor::ByTelegramId(cursor)) => Some(cursor),
+                    None => None,
+                    _ => return Err(async_graphql::Error::new("Invalid cursor")),
+                };
+                let res = app
+                    .customers()
+                    .list_by_telegram_id(sub, es_entity::PaginatedQueryArgs { first, after })
+                    .await?;
+
+                let mut connection = Connection::new(false, res.has_next_page);
+                connection
+                    .edges
+                    .extend(res.entities.into_iter().map(|entry| {
+                        let cursor =
+                            CustomerCursor::ByTelegramId(CustomerByTelegramIdCursor::from(&entry));
+                        Edge::new(cursor, Customer::from(entry))
+                    }));
+                loader
+                    .feed_many(
+                        connection
+                            .edges
+                            .iter()
+                            .map(|e| (e.node.entity.id, e.node.clone())),
+                    )
+                    .await;
+
+                Ok::<_, async_graphql::Error>(connection)
+            },
         )
+        .await
     }
 
     async fn withdrawal(

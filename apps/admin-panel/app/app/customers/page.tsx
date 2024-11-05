@@ -1,57 +1,12 @@
 "use client"
 
-import { gql } from "@apollo/client"
-import { useRouter } from "next/navigation"
-
+import PaginatedTable, { Column, PaginatedData } from "@/components/paginated-table"
 import { AccountStatus, Customer, useCustomersQuery } from "@/lib/graphql/generated"
 
-import PaginatedTable, {
-  Column,
-  DEFAULT_PAGESIZE,
-  PaginatedData,
-} from "@/components/new/paginated-table"
-
-gql`
-  query Customers($first: Int!, $after: String) {
-    customersByEmail(first: $first, after: $after) {
-      edges {
-        node {
-          id
-          customerId
-          status
-          level
-          email
-          telegramId
-          applicantId
-          balance {
-            checking {
-              settled
-              pending
-            }
-          }
-
-          subjectCanRecordDeposit
-          subjectCanInitiateWithdrawal
-          subjectCanCreateCreditFacility
-        }
-        cursor
-      }
-      pageInfo {
-        endCursor
-        startCursor
-        hasNextPage
-        hasPreviousPage
-      }
-    }
-  }
-`
-
 const Customers = () => {
-  const router = useRouter()
-
   const { data, fetchMore } = useCustomersQuery({
     variables: {
-      first: DEFAULT_PAGESIZE,
+      first: 2,
     },
   })
 
@@ -66,11 +21,8 @@ const Customers = () => {
         <PaginatedTable<Customer>
           columns={columns}
           data={data?.customersByEmail as PaginatedData<Customer>}
-          fetchMore={async (cursor) => fetchMore({ variables: { after: cursor } })}
-          pageSize={DEFAULT_PAGESIZE}
-          onClick={(customer) => {
-            router.push(`/customers/${customer.customerId}`)
-          }}
+          fetchMore={(cursor) => fetchMore({ variables: { after: cursor } })}
+          pageSize={2}
         />
       )}
     </div>
@@ -99,6 +51,5 @@ const columns: Column<Customer>[] = [
     key: "balance",
     label: "USD Balance",
     render: (balance) => <div>${balance.checking.settled}</div>,
-    sortable: true,
   },
 ]

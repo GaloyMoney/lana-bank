@@ -840,7 +840,9 @@ type Query {
 	users: [User!]!
 	customer(id: UUID!): Customer
 	customerByEmail(email: String!): Customer
-	customers(first: Int!, after: String): CustomerConnection!
+	customersByEmail(first: Int!, after: String): CustomerConnection!
+	customersByCreatedAt(first: Int!, after: String): CustomerConnection!
+	customersByTelegramId(first: Int!, after: String): CustomerConnection!
 	withdrawal(id: UUID!): Withdrawal
 	withdrawals(first: Int!, after: String): WithdrawalConnection!
 	deposit(id: UUID!): Deposit
