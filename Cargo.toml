@@ -8,6 +8,7 @@ members = [
   "lava/events",
   "lava/ids",
   "lava/dashboard",
+  "lava/info",
 
   "core/user",
   "core/governance",

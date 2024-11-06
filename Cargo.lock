@@ -1989,6 +1989,30 @@ dependencies = [
 ]
 
 [[package]]
+name = "info"
+version = "0.2.15-dev"
+dependencies = [
+ "anyhow",
+ "async-graphql",
+ "async-trait",
+ "audit",
+ "authz",
+ "chrono",
+ "es-entity",
+ "futures",
+ "job",
+ "lava-events",
+ "outbox",
+ "serde",
+ "serde_json",
+ "sqlx",
+ "strum",
+ "thiserror",
+ "tokio",
+ "uuid",
+]
+
+[[package]]
 name = "instant"
 version = "0.1.13"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2155,6 +2179,7 @@ dependencies = [
  "graphql_client",
  "hex",
  "hmac",
+ "info",
  "job",
  "lava-events",
  "lava-ids",
@@ -2206,6 +2231,7 @@ dependencies = [
  "governance",
  "outbox",
  "serde",
+ "uuid",
 ]
 
 [[package]]

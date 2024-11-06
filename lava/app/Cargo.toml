@@ -12,6 +12,7 @@ rbac-types = { path = "../rbac-types" }
 lava-events = { path = "../events" }
 lava-ids = { path = "../ids" }
 dashboard = { path = "../dashboard" }
+info = { path = "../info" }
 
 governance = { path = "../../core/governance", features = ["graphql"] }
 core-user = { path = "../../core/user", features = ["graphql"] }
@@ -61,4 +62,4 @@ cloud-storage = { workspace = true }
 
 [dev-dependencies]
 rand = { workspace = true }
-serial_test = { version = "3.1.1", features = [ "file_locks" ] }
+serial_test = { version = "3.1.1", features = ["file_locks"] }

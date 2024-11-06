@@ -28,6 +28,10 @@ pub mod dashboard {
     pub use dashboard::DashboardValues;
 }
 
+pub mod info {
+    pub use info::*;
+}
+
 pub mod user {
     pub use core_user::{error, User};
     pub type Users = core_user::Users<crate::audit::Audit, lava_events::LavaEvent>;

@@ -1,0 +1,15 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            INSERT INTO customer_infos (id, customer_info_json)\n            VALUES ($1, $2)\n            ON CONFLICT (id) DO UPDATE\n            SET customer_info_json = $2, modified_at = NOW()\n            ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Jsonb"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "20ce8913f648917cbb8cd6f57d20b7a0201a258420c2131b9246439f18a4e125"
+}

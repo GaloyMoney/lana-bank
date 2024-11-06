@@ -265,6 +265,13 @@ CREATE TABLE dashboards (
   modified_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
+CREATE TABLE customer_infos (
+  id UUID PRIMARY KEY,
+  customer_info_json JSONB NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  modified_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
 CREATE TABLE sumsub_callbacks (
   id BIGSERIAL PRIMARY KEY,
   customer_id UUID NOT NULL, -- REFERENCES customers(id) -- not enforced to get all callbacks

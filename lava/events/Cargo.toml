@@ -14,3 +14,4 @@ outbox = { path = "../../lib/outbox" }
 
 chrono = { workspace = true }
 serde = { workspace = true }
+uuid = { workspace = true }

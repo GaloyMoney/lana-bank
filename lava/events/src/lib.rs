@@ -21,6 +21,7 @@ pub enum CreditEvent {
     CreditFacilityCreated,
     CreditFacilityActivated,
     CreditFacilityCompleted,
+    CreditFacilityFundsDisbursed { id: uuid::Uuid, amount: u64 },
 }
 
 macro_rules! impl_event_marker {
