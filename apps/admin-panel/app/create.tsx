@@ -48,7 +48,7 @@ const CreateButton = () => {
     { label: "Credit Facility", onClick: () => {} },
   ]
 
-  console.log({ customer })
+  const creationType = createDeposit ? "Deposit" : ""
 
   return (
     <>
@@ -90,8 +90,7 @@ const CreateButton = () => {
         setShow={setOpenCustomerSelector}
         setCustomer={setCustomer}
         onClose={() => setCustomer(null)}
-        title={"Select customer for Deposit"}
-        description={"Select customer for Deposit"}
+        title={`Select customer for ${creationType}`}
       />
       <CreateCustomerDialog
         setOpenCreateCustomerDialog={setCreateCustomer}
@@ -100,7 +99,10 @@ const CreateButton = () => {
       {customer && (
         <CreateDepositDialog
           openCreateDepositDialog={createDeposit}
-          setOpenCreateDepositDialog={setCreateDeposit}
+          setOpenCreateDepositDialog={() => {
+            setCustomer(null)
+            setCreateDeposit(false)
+          }}
           customerId={customer.customerId}
         />
       )}
