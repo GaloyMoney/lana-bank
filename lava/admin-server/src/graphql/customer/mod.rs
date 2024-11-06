@@ -159,6 +159,7 @@ pub struct CustomerUpdateInput {
 crate::mutation_payload! { CustomerUpdatePayload, customer: Customer }
 
 #[derive(Serialize, Deserialize)]
+#[allow(clippy::enum_variant_names)]
 pub enum CustomerComboCursor {
     ByEmail(CustomerByEmailCursor),
     ByCreatedAt(CustomerByCreatedAtCursor),
