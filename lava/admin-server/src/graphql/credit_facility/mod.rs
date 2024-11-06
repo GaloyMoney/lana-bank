@@ -96,7 +96,7 @@ impl CreditFacility {
 
         let disbursals = app
             .credit_facilities()
-            .list_disbursals(sub, self.entity.id)
+            .list_disbursals_for_credit_facility(sub, self.entity.id)
             .await?;
 
         Ok(disbursals

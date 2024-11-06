@@ -32,7 +32,7 @@ use crate::{
 };
 
 pub use config::*;
-pub use disbursal::*;
+pub use disbursal::{cursor::*, *};
 pub use entity::*;
 use error::*;
 pub use history::*;
@@ -609,7 +609,7 @@ impl CreditFacilities {
         Ok(credit_facility)
     }
 
-    pub async fn list_disbursals(
+    pub async fn list_disbursals_for_credit_facility(
         &self,
         sub: &Subject,
         credit_facility_id: CreditFacilityId,
@@ -631,6 +631,29 @@ impl CreditFacilities {
             )
             .await?
             .entities;
+        Ok(disbursals)
+    }
+
+    pub async fn list_disbursals_by_created_at(
+        &self,
+        sub: &Subject,
+        query: es_entity::PaginatedQueryArgs<DisbursalByCreatedAtCursor>,
+    ) -> Result<
+        es_entity::PaginatedQueryRet<Disbursal, DisbursalByCreatedAtCursor>,
+        CreditFacilityError,
+    > {
+        self.authz
+            .enforce_permission(
+                sub,
+                Object::CreditFacility,
+                CreditFacilityAction::ListDisbursals,
+            )
+            .await?;
+
+        let disbursals = self
+            .disbursal_repo
+            .list_by_created_at(query, es_entity::ListDirection::Descending)
+            .await?;
         Ok(disbursals)
     }
 

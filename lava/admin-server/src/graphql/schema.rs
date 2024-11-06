@@ -235,6 +235,28 @@ impl Query {
         )
     }
 
+    async fn disbursals(
+        &self,
+        ctx: &Context<'_>,
+        first: i32,
+        after: Option<String>,
+    ) -> async_graphql::Result<
+        Connection<DisbursalByCreatedAtCursor, CreditFacilityDisbursal, EmptyFields, EmptyFields>,
+    > {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        list_with_combo_cursor!(
+            DisbursalComboCursor,
+            DisbursalByCreatedAtCursor,
+            CreditFacilityDisbursal,
+            ctx,
+            after,
+            first,
+            |query| app
+                .credit_facilities()
+                .list_disbursals_by_created_at(sub, query)
+        )
+    }
+
     async fn committee(
         &self,
         ctx: &Context<'_>,

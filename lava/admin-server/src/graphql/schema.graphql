@@ -415,6 +415,35 @@ type CreditFacilityDisbursalConfirmPayload {
 	disbursal: CreditFacilityDisbursal!
 }
 
+type CreditFacilityDisbursalConnection {
+	"""
+	Information to aid in pagination.
+	"""
+	pageInfo: PageInfo!
+	"""
+	A list of edges.
+	"""
+	edges: [CreditFacilityDisbursalEdge!]!
+	"""
+	A list of nodes.
+	"""
+	nodes: [CreditFacilityDisbursal!]!
+}
+
+"""
+An edge in a connection.
+"""
+type CreditFacilityDisbursalEdge {
+	"""
+	The item at the end of the edge
+	"""
+	node: CreditFacilityDisbursal!
+	"""
+	A cursor for use in pagination
+	"""
+	cursor: String!
+}
+
 type CreditFacilityDisbursalExecuted {
 	cents: UsdCents!
 	recordedAt: Timestamp!
@@ -851,6 +880,7 @@ type Query {
 	termsTemplates: [TermsTemplate!]!
 	creditFacility(id: UUID!): CreditFacility
 	creditFacilities(first: Int!, after: String): CreditFacilityConnection!
+	disbursals(first: Int!, after: String): CreditFacilityDisbursalConnection!
 	committee(id: UUID!): Committee
 	committees(first: Int!, after: String): CommitteeConnection!
 	policy(id: UUID!): Policy

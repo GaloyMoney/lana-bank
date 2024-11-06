@@ -4,7 +4,9 @@ use crate::{
     graphql::{approval_process::*, loader::LavaDataLoader},
     primitives::*,
 };
-pub use lava_app::credit_facility::Disbursal as DomainDisbursal;
+pub use lava_app::credit_facility::{
+    Disbursal as DomainDisbursal, DisbursalByCreatedAtCursor, DisbursalComboCursor,
+};
 
 #[derive(SimpleObject, Clone)]
 #[graphql(complex)]
