@@ -2,7 +2,7 @@
 
 import { gql } from "@apollo/client"
 
-import React from "react"
+import React, { useEffect } from "react"
 
 import { CustomerDetailsCard } from "./details"
 import { CustomerAccountBalances } from "./balances"
@@ -14,11 +14,13 @@ import { CustomerCreditFacilitiesTable } from "./credit-facilities"
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/primitive/tab"
 import { PageHeading } from "@/components/page-heading"
-import { useGetCustomerQuery } from "@/lib/graphql/generated"
+import { Customer as CustomerType, useGetCustomerQuery } from "@/lib/graphql/generated"
+import { useCreateContext } from "@/app/create"
 
 gql`
   query GetCustomer($id: UUID!) {
     customer(id: $id) {
+      id
       customerId
       email
       telegramId
@@ -105,8 +107,14 @@ const Customer = ({
 }) => {
   const { "customer-id": customerId } = params
 
+  const { setCustomer } = useCreateContext()
+  useEffect(() => () => setCustomer(null))
+
   const { data, loading, error, refetch } = useGetCustomerQuery({
     variables: { id: customerId },
+    onCompleted: ({ customer }) => {
+      customer && setCustomer(customer as CustomerType)
+    },
   })
 
   return (

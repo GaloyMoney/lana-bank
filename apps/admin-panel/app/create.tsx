@@ -1,12 +1,14 @@
 /* eslint-disable no-empty-function */
 "use client"
 
-import { useState, useRef, useEffect } from "react"
+import { useState, useRef, useEffect, useContext, createContext } from "react"
 import { motion, AnimatePresence } from "framer-motion"
+import { HiPlus } from "react-icons/hi"
 
 import { CreateCustomerDialog } from "./customers/create"
 
 import { Button } from "@/components/primitive/button"
+import { CreditFacility, Customer } from "@/lib/graphql/generated"
 
 const CreateButton = () => {
   const [createCustomer, setCreateCustomer] = useState(false)
@@ -77,3 +79,42 @@ const CreateButton = () => {
 }
 
 export default CreateButton
+
+type ICustomer = Customer | null
+type IFacility = CreditFacility | null
+
+type CreateContext = {
+  customer: ICustomer
+  facility: IFacility
+  setCustomer: React.Dispatch<React.SetStateAction<ICustomer>>
+  setFacility: React.Dispatch<React.SetStateAction<IFacility>>
+}
+
+const CreateContext = createContext<CreateContext>({
+  customer: null,
+  facility: null,
+  setCustomer: () => {},
+  setFacility: () => {},
+})
+
+export const CreateContextProvider: React.FC<React.PropsWithChildren> = ({
+  children,
+}) => {
+  const [customer, setCustomer] = useState<ICustomer>(null)
+  const [facility, setFacility] = useState<IFacility>(null)
+
+  return (
+    <CreateContext.Provider
+      value={{
+        customer,
+        facility,
+        setCustomer,
+        setFacility,
+      }}
+    >
+      {children}
+    </CreateContext.Provider>
+  )
+}
+
+export const useCreateContext = () => useContext(CreateContext)

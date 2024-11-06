@@ -8,7 +8,7 @@ import { headers } from "next/headers"
 import { authOptions } from "./api/auth/[...nextauth]/options"
 import { AuthSessionProvider } from "./session-provider"
 
-import CreateButton from "./create"
+import CreateButton, { CreateContextProvider } from "./create"
 import { SearchInput } from "./search"
 import NavBar from "./navbar"
 
@@ -70,16 +70,18 @@ export default async function RootLayout({
 }
 
 const AppLayout = ({ children }: Readonly<{ children: React.ReactNode }>) => (
-  <div className="bg-soft h-full w-full flex flex-col md:flex-row">
-    <NavBar />
-    <div className="flex-1 pt-[72px] md:pt-2 p-2 max-h-screen overflow-hidden">
-      <div className="p-2 border rounded-md flex flex-col w-full h-full">
-        <div className="md:flex gap-2 hidden pb-2">
-          <SearchInput />
-          <CreateButton />
+  <CreateContextProvider>
+    <div className="bg-soft h-full w-full flex flex-col md:flex-row">
+      <NavBar />
+      <div className="flex-1 pt-[72px] md:pt-2 p-2 max-h-screen overflow-hidden">
+        <div className="p-2 border rounded-md flex flex-col w-full h-full">
+          <div className="md:flex gap-2 hidden pb-2">
+            <SearchInput />
+            <CreateButton />
+          </div>
+          <main className="h-full overflow-y-auto no-scrollbar">{children}</main>
         </div>
-        <main className="h-full overflow-y-auto no-scrollbar">{children}</main>
       </div>
     </div>
-  </div>
+  </CreateContextProvider>
 )
