@@ -1,7 +1,6 @@
 mod balance;
 
-use async_graphql::{connection::*, *};
-use serde::{Deserialize, Serialize};
+use async_graphql::*;
 
 use crate::primitives::*;
 
@@ -9,10 +8,7 @@ use super::{credit_facility::*, deposit::*, document::Document, withdrawal::With
 
 pub use lava_app::{
     app::LavaApp,
-    customer::{
-        Customer as DomainCustomer, CustomerByCreatedAtCursor, CustomerByEmailCursor,
-        CustomerByTelegramIdCursor,
-    },
+    customer::{Customer as DomainCustomer, CustomerComboCursor},
 };
 
 pub use balance::*;
@@ -157,103 +153,3 @@ pub struct CustomerUpdateInput {
     pub telegram_id: String,
 }
 crate::mutation_payload! { CustomerUpdatePayload, customer: Customer }
-
-#[derive(Serialize, Deserialize)]
-#[allow(clippy::enum_variant_names)]
-pub enum CustomerComboCursor {
-    ByEmail(CustomerByEmailCursor),
-    ByCreatedAt(CustomerByCreatedAtCursor),
-    ByTelegramId(CustomerByTelegramIdCursor),
-}
-
-impl CursorType for CustomerComboCursor {
-    type Error = String;
-    fn encode_cursor(&self) -> String {
-        use base64::{engine::general_purpose, Engine as _};
-        let json = serde_json::to_string(&self).expect("could not serialize token");
-        general_purpose::STANDARD_NO_PAD.encode(json.as_bytes())
-    }
-    fn decode_cursor(s: &str) -> Result<Self, Self::Error> {
-        use base64::{engine::general_purpose, Engine as _};
-        let bytes = general_purpose::STANDARD_NO_PAD
-            .decode(s.as_bytes())
-            .map_err(|e| e.to_string())?;
-        let json = String::from_utf8(bytes).map_err(|e| e.to_string())?;
-        serde_json::from_str(&json).map_err(|e| e.to_string())
-    }
-}
-
-impl TryFrom<CustomerComboCursor> for CustomerByEmailCursor {
-    type Error = String;
-    fn try_from(cursor: CustomerComboCursor) -> Result<Self, Self::Error> {
-        match cursor {
-            CustomerComboCursor::ByEmail(cursor) => Ok(cursor),
-            _ => Err("Invalid combo cursor variant".to_string()),
-        }
-    }
-}
-
-impl TryFrom<CustomerComboCursor> for CustomerByCreatedAtCursor {
-    type Error = String;
-    fn try_from(cursor: CustomerComboCursor) -> Result<Self, Self::Error> {
-        match cursor {
-            CustomerComboCursor::ByCreatedAt(cursor) => Ok(cursor),
-            _ => Err("Invalid combo cursor variant".to_string()),
-        }
-    }
-}
-
-impl TryFrom<CustomerComboCursor> for CustomerByTelegramIdCursor {
-    type Error = String;
-    fn try_from(cursor: CustomerComboCursor) -> Result<Self, Self::Error> {
-        match cursor {
-            CustomerComboCursor::ByTelegramId(cursor) => Ok(cursor),
-            _ => Err("Invalid combo cursor variant".to_string()),
-        }
-    }
-}
-
-impl From<CustomerByEmailCursor> for CustomerComboCursor {
-    fn from(cursor: CustomerByEmailCursor) -> Self {
-        CustomerComboCursor::ByEmail(cursor)
-    }
-}
-
-impl From<CustomerByCreatedAtCursor> for CustomerComboCursor {
-    fn from(cursor: CustomerByCreatedAtCursor) -> Self {
-        CustomerComboCursor::ByCreatedAt(cursor)
-    }
-}
-
-impl From<CustomerByTelegramIdCursor> for CustomerComboCursor {
-    fn from(cursor: CustomerByTelegramIdCursor) -> Self {
-        CustomerComboCursor::ByTelegramId(cursor)
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_encode_decode_customer_cursor() {
-        let cursor = CustomerComboCursor::ByEmail(CustomerByEmailCursor {
-            id: CustomerId::new(),
-            email: "user@example.com".to_string(),
-        });
-
-        let encoded = cursor.encode_cursor();
-        let decoded =
-            CustomerComboCursor::decode_cursor(&encoded).expect("Failed to decode cursor");
-
-        match (cursor, decoded) {
-            (
-                CustomerComboCursor::ByEmail(original_cursor),
-                CustomerComboCursor::ByEmail(decoded_cursor),
-            ) => {
-                assert_eq!(original_cursor.email, decoded_cursor.email,);
-            }
-            _ => panic!("Decoded cursor is not of type ByEmail"),
-        }
-    }
-}
