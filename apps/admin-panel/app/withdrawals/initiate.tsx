@@ -46,14 +46,12 @@ type WithdrawalInitiateDialogProps = {
   setOpenWithdrawalInitiateDialog: (isOpen: boolean) => void
   openWithdrawalInitiateDialog: boolean
   customerId: string
-  refetch?: () => void
 }
 
 export const WithdrawalInitiateDialog: React.FC<WithdrawalInitiateDialogProps> = ({
   setOpenWithdrawalInitiateDialog,
   openWithdrawalInitiateDialog,
   customerId,
-  refetch,
 }) => {
   const router = useRouter()
 
@@ -81,7 +79,6 @@ export const WithdrawalInitiateDialog: React.FC<WithdrawalInitiateDialogProps> =
         ],
         onCompleted: (data) => {
           toast.success("Withdrawal initiated successfully")
-          if (refetch) refetch()
           router.push(`/withdrawals/${data.withdrawalInitiate.withdrawal.withdrawalId}`)
         },
       })

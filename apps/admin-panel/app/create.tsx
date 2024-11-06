@@ -7,6 +7,7 @@ import { HiPlus } from "react-icons/hi"
 
 import { CreateCustomerDialog } from "./customers/create"
 import { CreateDepositDialog } from "./deposits/create"
+import { WithdrawalInitiateDialog } from "./withdrawals/initiate"
 
 import CustomerSelector from "./customers/selector"
 
@@ -16,6 +17,7 @@ import { CreditFacility, Customer } from "@/lib/graphql/generated"
 const CreateButton = () => {
   const [createCustomer, setCreateCustomer] = useState(false)
   const [createDeposit, setCreateDeposit] = useState(false)
+  const [createWithdrawal, setCreateWithdrawal] = useState(false)
 
   const { customer, setCustomer } = useCreateContext()
   const [openCustomerSelector, setOpenCustomerSelector] = useState(false)
@@ -43,12 +45,20 @@ const CreateButton = () => {
         setCreateDeposit(true)
       },
     },
-    { label: "Withdrawal", onClick: () => {} },
+    {
+      label: "Withdrawal",
+      onClick: () => {
+        if (!customer) setOpenCustomerSelector(true)
+        setCreateWithdrawal(true)
+      },
+    },
     { label: "Customer", onClick: () => setCreateCustomer(true) },
     { label: "Credit Facility", onClick: () => {} },
   ]
 
-  const creationType = createDeposit ? "Deposit" : ""
+  let creationType = ""
+  if (createDeposit) creationType = "Deposit"
+  if (createWithdrawal) creationType = "Withdrawal"
 
   return (
     <>
@@ -102,6 +112,16 @@ const CreateButton = () => {
           setOpenCreateDepositDialog={() => {
             setCustomer(null)
             setCreateDeposit(false)
+          }}
+          customerId={customer.customerId}
+        />
+      )}
+      {customer && (
+        <WithdrawalInitiateDialog
+          openWithdrawalInitiateDialog={createWithdrawal}
+          setOpenWithdrawalInitiateDialog={() => {
+            setCustomer(null)
+            setCreateWithdrawal(false)
           }}
           customerId={customer.customerId}
         />
