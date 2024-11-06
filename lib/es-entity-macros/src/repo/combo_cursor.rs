@@ -40,10 +40,9 @@ impl<'a> ComboCursor<'a> {
         }
     }
 
-    #[allow(clippy::wrong_self_convention)]
-    pub fn from_impls(&self) -> TokenStream {
+    pub fn trait_impls(&self) -> TokenStream {
         let self_ident = self.ident();
-        let from_impls = self
+        let trait_impls = self
             .cursors
             .iter()
             .map(|cursor| {
@@ -72,7 +71,7 @@ impl<'a> ComboCursor<'a> {
             .collect::<TokenStream>();
 
         quote! {
-            #from_impls
+            #trait_impls
         }
     }
 }
@@ -81,7 +80,7 @@ impl<'a> ToTokens for ComboCursor<'a> {
     fn to_tokens(&self, tokens: &mut TokenStream) {
         let ident = self.ident();
         let variants = self.variants();
-        let from_impls = self.from_impls();
+        let trait_impls = self.trait_impls();
 
         tokens.append_all(quote! {
             #[derive(Debug, serde::Serialize, serde::Deserialize)]
@@ -91,7 +90,7 @@ impl<'a> ToTokens for ComboCursor<'a> {
                 #variants
             }
 
-            #from_impls
+            #trait_impls
 
             impl es_entity::graphql::async_graphql::connection::CursorType for #ident {
                 type Error = String;
