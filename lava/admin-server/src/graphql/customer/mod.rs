@@ -8,7 +8,10 @@ use super::{credit_facility::*, deposit::*, document::Document, withdrawal::With
 
 pub use lava_app::{
     app::LavaApp,
-    customer::{Customer as DomainCustomer, CustomerComboCursor},
+    customer::{
+        Customer as DomainCustomer, CustomerByCreatedAtCursor, CustomerByEmailCursor,
+        CustomerByTelegramIdCursor, CustomerComboCursor,
+    },
 };
 
 pub use balance::*;

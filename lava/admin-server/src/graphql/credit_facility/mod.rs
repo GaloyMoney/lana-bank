@@ -8,7 +8,10 @@ use crate::primitives::*;
 
 use super::{approval_process::*, customer::*, loader::LavaDataLoader, terms::*};
 pub use lava_app::{
-    credit_facility::{CreditFacility as DomainCreditFacility, CreditFacilityByCreatedAtCursor},
+    credit_facility::{
+        CreditFacility as DomainCreditFacility, CreditFacilityByCollateralizationRatioCursor,
+        CreditFacilityByCreatedAtCursor, CreditFacilityComboCursor,
+    },
     primitives::CreditFacilityStatus,
 };
 

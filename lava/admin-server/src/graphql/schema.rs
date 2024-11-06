@@ -1,10 +1,6 @@
 use async_graphql::{types::connection::*, Context, Object};
 
-use lava_app::{
-    app::LavaApp,
-    credit_facility::{CreditFacilityByCollateralizationRatioCursor, CreditFacilityComboCursor},
-    customer::{CustomerByCreatedAtCursor, CustomerByEmailCursor, CustomerByTelegramIdCursor},
-};
+use lava_app::app::LavaApp;
 
 use crate::primitives::*;
 
