@@ -32,9 +32,6 @@ export const authOptions: NextAuthOptions = {
     strategy: "jwt",
   },
   callbacks: {
-    async redirect() {
-      return `${process.env.NEXT_PUBLIC_BASE_PATH}/app/dashboard`
-    },
     async signIn({ account }) {
       const email = account?.providerAccountId
       if (account?.provider === "email" && email) {
@@ -52,9 +49,4 @@ export const authOptions: NextAuthOptions = {
   },
   adapter: customPostgresAdapter(pool),
   secret: env.NEXTAUTH_SECRET,
-  pages: {
-    signIn: `${process.env.NEXT_PUBLIC_BASE_PATH}/auth/login`,
-    error: `${process.env.NEXT_PUBLIC_BASE_PATH}/auth/error`,
-    verifyRequest: `${process.env.NEXT_PUBLIC_BASE_PATH}/auth/verify`,
-  },
 }

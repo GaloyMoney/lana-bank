@@ -1,56 +1,49 @@
+import type { Metadata } from "next"
+import { Inter_Tight } from "next/font/google"
+
+// eslint-disable-next-line import/no-unassigned-import
+import "./globals.css"
 import { getServerSession } from "next-auth"
-
-import { Metadata } from "next/types"
 import { redirect } from "next/navigation"
-
-import { headers } from "next/headers"
 
 import { authOptions } from "./api/auth/[...nextauth]/options"
 import { AuthSessionProvider } from "./session-provider"
 
-import { Toast } from "@/components/toast"
-import { HelveticaNeueFont, RobotoMono } from "@/lib/ui/fonts"
-
-// eslint-disable-next-line import/no-unassigned-import
-import "@/lib/ui/globals.css"
+import { SideBar } from "@/components/sidebar"
+import { Toaster } from "@/components/primitive/toast"
+import { RealtimePriceUpdates } from "@/components/realtime-price"
+import ApolloServerWrapper from "@/lib/apollo-client/server-wrapper"
 
 export const metadata: Metadata = {
-  title: "Lana Bank | Admin Panel",
-  icons: [
-    {
-      rel: "icon",
-      url: "/favicon.ico",
-    },
-  ],
+  description: "lava Bank Admin Panel",
 }
 
-const PUBLIC_PAGES = ["/auth/login", "/auth/error", "/auth/verify"]
+const inter = Inter_Tight({ subsets: ["latin"], display: "auto" })
 
-const RootLayout = async ({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode
-}>) => {
-  const headerList = await headers()
-  const currentPath = headerList.get("x-current-path") || "/"
-
+}>) {
   const session = await getServerSession(authOptions)
-  if (!session && !PUBLIC_PAGES.includes(currentPath)) redirect("/auth/login")
-  if (session && PUBLIC_PAGES.includes(currentPath)) redirect("/")
-  if (session && ["/", "/app"].includes(currentPath)) redirect("/app/dashboard")
+  if (!session) {
+    redirect("/api/auth/signin")
+  }
 
   return (
     <html lang="en">
-      <AuthSessionProvider session={session}>
-        <body
-          className={`${HelveticaNeueFont.variable} ${RobotoMono.variable} antialiased w-screen h-screen select-none`}
-        >
-          <Toast />
-          {children}
-        </body>
-      </AuthSessionProvider>
+      <body className={inter.className}>
+        <AuthSessionProvider session={session}>
+          <ApolloServerWrapper>
+            <Toaster />
+            <RealtimePriceUpdates />
+            <main className="flex flex-col md:flex-row min-h-screen w-full">
+              <SideBar />
+              <div className="flex-1 p-6 h-screen overflow-y-auto">{children}</div>
+            </main>
+          </ApolloServerWrapper>
+        </AuthSessionProvider>
+      </body>
     </html>
   )
 }
-
-export default RootLayout

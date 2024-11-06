@@ -19,7 +19,7 @@ export type Scalars = {
   Float: { input: number; output: number; }
   AnnualRatePct: { input: any; output: any; }
   CVLPct: { input: any; output: any; }
-  DisbursementIdx: { input: any; output: any; }
+  DisbursalIdx: { input: any; output: any; }
   Satoshis: { input: any; output: any; }
   SignedSatoshis: { input: any; output: any; }
   SignedUsdCents: { input: any; output: any; }
@@ -147,11 +147,11 @@ export enum ApprovalProcessStatus {
   InProgress = 'IN_PROGRESS'
 }
 
-export type ApprovalProcessTarget = CreditFacility | CreditFacilityDisbursement | Withdrawal;
+export type ApprovalProcessTarget = CreditFacility | CreditFacilityDisbursal | Withdrawal;
 
 export enum ApprovalProcessType {
   CreditFacilityApproval = 'CREDIT_FACILITY_APPROVAL',
-  DisbursementApproval = 'DISBURSEMENT_APPROVAL',
+  DisbursalApproval = 'DISBURSAL_APPROVAL',
   WithdrawalApproval = 'WITHDRAWAL_APPROVAL'
 }
 
@@ -249,30 +249,12 @@ export enum CollateralAction {
   Remove = 'REMOVE'
 }
 
-export type CollateralUpdated = {
-  __typename?: 'CollateralUpdated';
-  action: CollateralAction;
-  recordedAt: Scalars['Timestamp']['output'];
-  satoshis: Scalars['Satoshis']['output'];
-  txId: Scalars['UUID']['output'];
-};
-
 export enum CollateralizationState {
   FullyCollateralized = 'FULLY_COLLATERALIZED',
   NoCollateral = 'NO_COLLATERAL',
   UnderLiquidationThreshold = 'UNDER_LIQUIDATION_THRESHOLD',
   UnderMarginCallThreshold = 'UNDER_MARGIN_CALL_THRESHOLD'
 }
-
-export type CollateralizationUpdated = {
-  __typename?: 'CollateralizationUpdated';
-  collateral: Scalars['Satoshis']['output'];
-  outstandingInterest: Scalars['UsdCents']['output'];
-  outstandingPrincipal: Scalars['UsdCents']['output'];
-  price: Scalars['UsdCents']['output'];
-  recordedAt: Scalars['Timestamp']['output'];
-  state: LoanCollaterizationState;
-};
 
 export type Committee = {
   __typename?: 'Committee';
@@ -345,19 +327,20 @@ export type CreditFacility = {
   balance: CreditFacilityBalance;
   canBeCompleted: Scalars['Boolean']['output'];
   collateral: Scalars['Satoshis']['output'];
+  collateralToMatchInitialCvl?: Maybe<Scalars['Satoshis']['output']>;
   collateralizationState: CollateralizationState;
   createdAt: Scalars['Timestamp']['output'];
   creditFacilityId: Scalars['UUID']['output'];
   creditFacilityTerms: TermValues;
   currentCvl: FacilityCvl;
   customer: Customer;
-  disbursements: Array<CreditFacilityDisbursement>;
+  disbursals: Array<CreditFacilityDisbursal>;
   expiresAt?: Maybe<Scalars['Timestamp']['output']>;
   facilityAmount: Scalars['UsdCents']['output'];
   id: Scalars['ID']['output'];
   status: CreditFacilityStatus;
   subjectCanComplete: Scalars['Boolean']['output'];
-  subjectCanInitiateDisbursement: Scalars['Boolean']['output'];
+  subjectCanInitiateDisbursal: Scalars['Boolean']['output'];
   subjectCanRecordPayment: Scalars['Boolean']['output'];
   subjectCanUpdateCollateral: Scalars['Boolean']['output'];
   transactions: Array<CreditFacilityHistoryEntry>;
@@ -393,7 +376,7 @@ export type CreditFacilityCollateralUpdated = {
 export type CreditFacilityCollateralizationUpdated = {
   __typename?: 'CreditFacilityCollateralizationUpdated';
   collateral: Scalars['Satoshis']['output'];
-  outstandingDisbursement: Scalars['UsdCents']['output'];
+  outstandingDisbursal: Scalars['UsdCents']['output'];
   outstandingInterest: Scalars['UsdCents']['output'];
   price: Scalars['UsdCents']['output'];
   recordedAt: Scalars['Timestamp']['output'];
@@ -430,41 +413,41 @@ export type CreditFacilityCreatePayload = {
   creditFacility: CreditFacility;
 };
 
-export type CreditFacilityDisbursement = {
-  __typename?: 'CreditFacilityDisbursement';
+export type CreditFacilityDisbursal = {
+  __typename?: 'CreditFacilityDisbursal';
   amount: Scalars['UsdCents']['output'];
   approvalProcess: ApprovalProcess;
   createdAt: Scalars['Timestamp']['output'];
   id: Scalars['ID']['output'];
-  index: Scalars['DisbursementIdx']['output'];
-  status: DisbursementStatus;
+  index: Scalars['DisbursalIdx']['output'];
+  status: DisbursalStatus;
 };
 
-export type CreditFacilityDisbursementConfirmInput = {
+export type CreditFacilityDisbursalConfirmInput = {
   creditFacilityId: Scalars['UUID']['input'];
-  disbursementIdx: Scalars['DisbursementIdx']['input'];
+  disbursalIdx: Scalars['DisbursalIdx']['input'];
 };
 
-export type CreditFacilityDisbursementConfirmPayload = {
-  __typename?: 'CreditFacilityDisbursementConfirmPayload';
-  disbursement: CreditFacilityDisbursement;
+export type CreditFacilityDisbursalConfirmPayload = {
+  __typename?: 'CreditFacilityDisbursalConfirmPayload';
+  disbursal: CreditFacilityDisbursal;
 };
 
-export type CreditFacilityDisbursementExecuted = {
-  __typename?: 'CreditFacilityDisbursementExecuted';
+export type CreditFacilityDisbursalExecuted = {
+  __typename?: 'CreditFacilityDisbursalExecuted';
   cents: Scalars['UsdCents']['output'];
   recordedAt: Scalars['Timestamp']['output'];
   txId: Scalars['UUID']['output'];
 };
 
-export type CreditFacilityDisbursementInitiateInput = {
+export type CreditFacilityDisbursalInitiateInput = {
   amount: Scalars['UsdCents']['input'];
   creditFacilityId: Scalars['UUID']['input'];
 };
 
-export type CreditFacilityDisbursementInitiatePayload = {
-  __typename?: 'CreditFacilityDisbursementInitiatePayload';
-  disbursement: CreditFacilityDisbursement;
+export type CreditFacilityDisbursalInitiatePayload = {
+  __typename?: 'CreditFacilityDisbursalInitiatePayload';
+  disbursal: CreditFacilityDisbursal;
 };
 
 /** An edge in a connection. */
@@ -476,7 +459,7 @@ export type CreditFacilityEdge = {
   node: CreditFacility;
 };
 
-export type CreditFacilityHistoryEntry = CreditFacilityCollateralUpdated | CreditFacilityCollateralizationUpdated | CreditFacilityDisbursementExecuted | CreditFacilityIncrementalPayment | CreditFacilityOrigination;
+export type CreditFacilityHistoryEntry = CreditFacilityCollateralUpdated | CreditFacilityCollateralizationUpdated | CreditFacilityDisbursalExecuted | CreditFacilityIncrementalPayment | CreditFacilityOrigination;
 
 export type CreditFacilityIncrementalPayment = {
   __typename?: 'CreditFacilityIncrementalPayment';
@@ -521,13 +504,12 @@ export type Customer = {
   email: Scalars['String']['output'];
   id: Scalars['ID']['output'];
   level: KycLevel;
-  loans: Array<Loan>;
   status: AccountStatus;
   subjectCanCreateCreditFacility: Scalars['Boolean']['output'];
-  subjectCanCreateLoan: Scalars['Boolean']['output'];
   subjectCanInitiateWithdrawal: Scalars['Boolean']['output'];
   subjectCanRecordDeposit: Scalars['Boolean']['output'];
   telegramId: Scalars['String']['output'];
+  transactions: Array<Transaction>;
   withdrawals: Array<Withdrawal>;
 };
 
@@ -616,18 +598,18 @@ export type DepositRecordPayload = {
   deposit: Deposit;
 };
 
-export type Disbursed = {
-  __typename?: 'Disbursed';
-  outstanding: Outstanding;
-  total: Total;
-};
-
-export enum DisbursementStatus {
+export enum DisbursalStatus {
   Approved = 'APPROVED',
   Confirmed = 'CONFIRMED',
   Denied = 'DENIED',
   New = 'NEW'
 }
+
+export type Disbursed = {
+  __typename?: 'Disbursed';
+  outstanding: Outstanding;
+  total: Total;
+};
 
 export type Document = {
   __typename?: 'Document';
@@ -710,29 +692,10 @@ export type GovernanceNavigationItems = {
   policy: Scalars['Boolean']['output'];
 };
 
-export type IncrementalPayment = {
-  __typename?: 'IncrementalPayment';
-  cents: Scalars['UsdCents']['output'];
-  recordedAt: Scalars['Timestamp']['output'];
-  txId: Scalars['UUID']['output'];
-};
-
 export type Interest = {
   __typename?: 'Interest';
   outstanding: Outstanding;
   total: Total;
-};
-
-export type InterestAccrued = {
-  __typename?: 'InterestAccrued';
-  cents: Scalars['UsdCents']['output'];
-  recordedAt: Scalars['Timestamp']['output'];
-  txId: Scalars['UUID']['output'];
-};
-
-export type InterestIncome = {
-  __typename?: 'InterestIncome';
-  usdBalance: Scalars['UsdCents']['output'];
 };
 
 export enum InterestInterval {
@@ -764,152 +727,8 @@ export type LayeredUsdAccountAmounts = {
 
 export type Loan = {
   __typename?: 'Loan';
-  approvals: Array<LoanApproval>;
-  approvedAt?: Maybe<Scalars['Timestamp']['output']>;
-  balance: LoanBalance;
-  collateral: Scalars['Satoshis']['output'];
-  collateralizationState: LoanCollaterizationState;
-  createdAt: Scalars['Timestamp']['output'];
-  currentCvl: Scalars['CVLPct']['output'];
-  customer: Customer;
-  expiresAt?: Maybe<Scalars['Timestamp']['output']>;
-  id: Scalars['ID']['output'];
-  loanId: Scalars['UUID']['output'];
-  loanTerms: TermValues;
-  principal: Scalars['UsdCents']['output'];
-  repaymentPlan: Array<LoanRepaymentInPlan>;
-  status: LoanStatus;
-  subjectCanApprove: Scalars['Boolean']['output'];
-  subjectCanRecordPaymentOrCompleteLoan: Scalars['Boolean']['output'];
-  subjectCanUpdateCollateral: Scalars['Boolean']['output'];
-  subjectCanUpdateCollateralizationState: Scalars['Boolean']['output'];
-  transactions: Array<LoanHistoryEntry>;
+  collateralToMatchInitialCvl?: Maybe<Scalars['Satoshis']['output']>;
 };
-
-export type LoanApproval = {
-  __typename?: 'LoanApproval';
-  approvedAt: Scalars['Timestamp']['output'];
-  user: User;
-};
-
-export type LoanApproveInput = {
-  loanId: Scalars['UUID']['input'];
-};
-
-export type LoanApprovePayload = {
-  __typename?: 'LoanApprovePayload';
-  loan: Loan;
-};
-
-export type LoanBalance = {
-  __typename?: 'LoanBalance';
-  collateral: Collateral;
-  interestIncurred: InterestIncome;
-  outstanding: Outstanding;
-};
-
-export type LoanCollateralUpdateInput = {
-  collateral: Scalars['Satoshis']['input'];
-  loanId: Scalars['UUID']['input'];
-};
-
-export type LoanCollateralUpdatePayload = {
-  __typename?: 'LoanCollateralUpdatePayload';
-  loan: Loan;
-};
-
-export type LoanCollateralizationStateTriggerRefreshInput = {
-  loanId: Scalars['UUID']['input'];
-};
-
-export type LoanCollateralizationStateTriggerRefreshPayload = {
-  __typename?: 'LoanCollateralizationStateTriggerRefreshPayload';
-  loan: Loan;
-};
-
-export enum LoanCollaterizationState {
-  FullyCollateralized = 'FULLY_COLLATERALIZED',
-  NoCollateral = 'NO_COLLATERAL',
-  UnderLiquidationThreshold = 'UNDER_LIQUIDATION_THRESHOLD',
-  UnderMarginCallThreshold = 'UNDER_MARGIN_CALL_THRESHOLD'
-}
-
-export type LoanConnection = {
-  __typename?: 'LoanConnection';
-  /** A list of edges. */
-  edges: Array<LoanEdge>;
-  /** A list of nodes. */
-  nodes: Array<Loan>;
-  /** Information to aid in pagination. */
-  pageInfo: PageInfo;
-};
-
-export type LoanCreateInput = {
-  customerId: Scalars['UUID']['input'];
-  desiredPrincipal: Scalars['UsdCents']['input'];
-  loanTerms: TermsInput;
-};
-
-export type LoanCreatePayload = {
-  __typename?: 'LoanCreatePayload';
-  loan: Loan;
-};
-
-/** An edge in a connection. */
-export type LoanEdge = {
-  __typename?: 'LoanEdge';
-  /** A cursor for use in pagination */
-  cursor: Scalars['String']['output'];
-  /** The item at the end of the edge */
-  node: Loan;
-};
-
-export type LoanHistoryEntry = CollateralUpdated | CollateralizationUpdated | IncrementalPayment | InterestAccrued | LoanOrigination;
-
-export type LoanOrigination = {
-  __typename?: 'LoanOrigination';
-  cents: Scalars['UsdCents']['output'];
-  recordedAt: Scalars['Timestamp']['output'];
-  txId: Scalars['UUID']['output'];
-};
-
-export type LoanPartialPaymentInput = {
-  amount: Scalars['UsdCents']['input'];
-  loanId: Scalars['UUID']['input'];
-};
-
-export type LoanPartialPaymentPayload = {
-  __typename?: 'LoanPartialPaymentPayload';
-  loan: Loan;
-};
-
-export type LoanRepaymentInPlan = {
-  __typename?: 'LoanRepaymentInPlan';
-  accrualAt: Scalars['Timestamp']['output'];
-  dueAt: Scalars['Timestamp']['output'];
-  initial: Scalars['UsdCents']['output'];
-  outstanding: Scalars['UsdCents']['output'];
-  repaymentType: LoanRepaymentType;
-  status: LoanRepaymentStatus;
-};
-
-export enum LoanRepaymentStatus {
-  Due = 'DUE',
-  Overdue = 'OVERDUE',
-  Paid = 'PAID',
-  Upcoming = 'UPCOMING'
-}
-
-export enum LoanRepaymentType {
-  Interest = 'INTEREST',
-  Principal = 'PRINCIPAL'
-}
-
-export enum LoanStatus {
-  Active = 'ACTIVE',
-  Closed = 'CLOSED',
-  New = 'NEW'
-}
 
 export type Mutation = {
   __typename?: 'Mutation';
@@ -921,8 +740,8 @@ export type Mutation = {
   creditFacilityCollateralUpdate: CreditFacilityCollateralUpdatePayload;
   creditFacilityComplete: CreditFacilityCompletePayload;
   creditFacilityCreate: CreditFacilityCreatePayload;
-  creditFacilityDisbursementConfirm: CreditFacilityDisbursementConfirmPayload;
-  creditFacilityDisbursementInitiate: CreditFacilityDisbursementInitiatePayload;
+  creditFacilityDisbursalConfirm: CreditFacilityDisbursalConfirmPayload;
+  creditFacilityDisbursalInitiate: CreditFacilityDisbursalInitiatePayload;
   creditFacilityPartialPayment: CreditFacilityPartialPaymentPayload;
   customerCreate: CustomerCreatePayload;
   customerDocumentAttach: DocumentCreatePayload;
@@ -931,11 +750,6 @@ export type Mutation = {
   documentArchive: DocumentArchivePayload;
   documentDelete: DocumentDeletePayload;
   documentDownloadLinkGenerate: DocumentDownloadLinksGeneratePayload;
-  loanApprove: LoanApprovePayload;
-  loanCollateralUpdate: LoanCollateralUpdatePayload;
-  loanCollateralizationStateTriggerRefresh: LoanCollateralizationStateTriggerRefreshPayload;
-  loanCreate: LoanCreatePayload;
-  loanPartialPayment: LoanPartialPaymentPayload;
   policyAssignCommittee: PolicyAssignCommitteePayload;
   reportCreate: ReportCreatePayload;
   reportDownloadLinksGenerate: ReportDownloadLinksGeneratePayload;
@@ -992,13 +806,13 @@ export type MutationCreditFacilityCreateArgs = {
 };
 
 
-export type MutationCreditFacilityDisbursementConfirmArgs = {
-  input: CreditFacilityDisbursementConfirmInput;
+export type MutationCreditFacilityDisbursalConfirmArgs = {
+  input: CreditFacilityDisbursalConfirmInput;
 };
 
 
-export type MutationCreditFacilityDisbursementInitiateArgs = {
-  input: CreditFacilityDisbursementInitiateInput;
+export type MutationCreditFacilityDisbursalInitiateArgs = {
+  input: CreditFacilityDisbursalInitiateInput;
 };
 
 
@@ -1039,31 +853,6 @@ export type MutationDocumentDeleteArgs = {
 
 export type MutationDocumentDownloadLinkGenerateArgs = {
   input: DocumentDownloadLinksGenerateInput;
-};
-
-
-export type MutationLoanApproveArgs = {
-  input: LoanApproveInput;
-};
-
-
-export type MutationLoanCollateralUpdateArgs = {
-  input: LoanCollateralUpdateInput;
-};
-
-
-export type MutationLoanCollateralizationStateTriggerRefreshArgs = {
-  input: LoanCollateralizationStateTriggerRefreshInput;
-};
-
-
-export type MutationLoanCreateArgs = {
-  input: LoanCreateInput;
-};
-
-
-export type MutationLoanPartialPaymentArgs = {
-  input: LoanPartialPaymentInput;
 };
 
 
@@ -1212,8 +1001,6 @@ export type Query = {
   deposit?: Maybe<Deposit>;
   deposits: DepositConnection;
   document?: Maybe<Document>;
-  loan?: Maybe<Loan>;
-  loans: LoanConnection;
   me: Subject;
   offBalanceSheetChartOfAccounts?: Maybe<ChartOfAccounts>;
   offBalanceSheetTrialBalance?: Maybe<TrialBalance>;
@@ -1320,17 +1107,6 @@ export type QueryDepositsArgs = {
 
 export type QueryDocumentArgs = {
   id: Scalars['UUID']['input'];
-};
-
-
-export type QueryLoanArgs = {
-  id: Scalars['UUID']['input'];
-};
-
-
-export type QueryLoansArgs = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  first: Scalars['Int']['input'];
 };
 
 
@@ -1547,6 +1323,8 @@ export type Total = {
   usdBalance: Scalars['UsdCents']['output'];
 };
 
+export type Transaction = Deposit | Withdrawal;
+
 export type TrialBalance = {
   __typename?: 'TrialBalance';
   name: Scalars['String']['output'];
@@ -1616,7 +1394,6 @@ export type VisibleNavigationItems = {
   deposit: Scalars['Boolean']['output'];
   financials: Scalars['Boolean']['output'];
   governance: GovernanceNavigationItems;
-  loan: Scalars['Boolean']['output'];
   term: Scalars['Boolean']['output'];
   user: Scalars['Boolean']['output'];
   withdraw: Scalars['Boolean']['output'];
@@ -1694,17 +1471,228 @@ export enum WithdrawalStatus {
   PendingConfirmation = 'PENDING_CONFIRMATION'
 }
 
-export type AvatarQueryVariables = Exact<{ [key: string]: never; }>;
+export type ApprovalProcessApproveMutationVariables = Exact<{
+  input: ApprovalProcessApproveInput;
+}>;
 
 
-export type AvatarQuery = { __typename?: 'Query', me: { __typename?: 'Subject', user: { __typename?: 'User', userId: string, email: string, roles: Array<Role> } } };
+export type ApprovalProcessApproveMutation = { __typename?: 'Mutation', approvalProcessApprove: { __typename?: 'ApprovalProcessApprovePayload', approvalProcess: { __typename?: 'ApprovalProcess', id: string, approvalProcessId: string, approvalProcessType: ApprovalProcessType, createdAt: any } } };
 
-export type CreateCustomerMutationVariables = Exact<{
+export type ApprovalProcessDenyMutationVariables = Exact<{
+  input: ApprovalProcessDenyInput;
+}>;
+
+
+export type ApprovalProcessDenyMutation = { __typename?: 'Mutation', approvalProcessDeny: { __typename?: 'ApprovalProcessDenyPayload', approvalProcess: { __typename?: 'ApprovalProcess', id: string, approvalProcessId: string, approvalProcessType: ApprovalProcessType, createdAt: any } } };
+
+export type ApprovalProcessesQueryVariables = Exact<{
+  first: Scalars['Int']['input'];
+  after?: InputMaybe<Scalars['String']['input']>;
+}>;
+
+
+export type ApprovalProcessesQuery = { __typename?: 'Query', approvalProcesses: { __typename?: 'ApprovalProcessConnection', pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, endCursor?: string | null }, edges: Array<{ __typename?: 'ApprovalProcessEdge', cursor: string, node: { __typename?: 'ApprovalProcess', id: string, approvalProcessId: string, approvalProcessType: ApprovalProcessType, createdAt: any, subjectCanSubmitDecision: boolean, target: { __typename: 'CreditFacility', creditFacilityId: string } | { __typename: 'CreditFacilityDisbursal' } | { __typename: 'Withdrawal', withdrawalId: string } } }> } };
+
+export type AuditLogsQueryVariables = Exact<{
+  first: Scalars['Int']['input'];
+  after?: InputMaybe<Scalars['String']['input']>;
+}>;
+
+
+export type AuditLogsQuery = { __typename?: 'Query', audit: { __typename?: 'AuditEntryConnection', edges: Array<{ __typename?: 'AuditEntryEdge', cursor: string, node: { __typename?: 'AuditEntry', id: string, object: string, action: string, authorized: boolean, recordedAt: any, subject: { __typename?: 'System', name: string } | { __typename?: 'User', userId: string, email: string, roles: Array<Role> } } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, endCursor?: string | null } } };
+
+export type BalanceSheetQueryVariables = Exact<{
+  from: Scalars['Timestamp']['input'];
+  until?: InputMaybe<Scalars['Timestamp']['input']>;
+}>;
+
+
+export type BalanceSheetQuery = { __typename?: 'Query', balanceSheet?: { __typename?: 'BalanceSheet', name: string, balance: { __typename?: 'AccountAmountsByCurrency', btc: { __typename?: 'BtcAccountAmountsInPeriod', openingBalance: { __typename?: 'LayeredBtcAccountAmounts', all: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } }, closingBalance: { __typename?: 'LayeredBtcAccountAmounts', all: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } }, amount: { __typename?: 'LayeredBtcAccountAmounts', all: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } } }, usd: { __typename?: 'UsdAccountAmountsInPeriod', openingBalance: { __typename?: 'LayeredUsdAccountAmounts', all: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } }, closingBalance: { __typename?: 'LayeredUsdAccountAmounts', all: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } }, amount: { __typename?: 'LayeredUsdAccountAmounts', all: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } } } }, categories: Array<{ __typename?: 'StatementCategory', name: string, amounts: { __typename?: 'AccountAmountsByCurrency', btc: { __typename?: 'BtcAccountAmountsInPeriod', openingBalance: { __typename?: 'LayeredBtcAccountAmounts', all: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } }, closingBalance: { __typename?: 'LayeredBtcAccountAmounts', all: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } }, amount: { __typename?: 'LayeredBtcAccountAmounts', all: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } } }, usd: { __typename?: 'UsdAccountAmountsInPeriod', openingBalance: { __typename?: 'LayeredUsdAccountAmounts', all: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } }, closingBalance: { __typename?: 'LayeredUsdAccountAmounts', all: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } }, amount: { __typename?: 'LayeredUsdAccountAmounts', all: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } } } }, accounts: Array<{ __typename: 'Account', id: string, name: string, amounts: { __typename?: 'AccountAmountsByCurrency', btc: { __typename?: 'BtcAccountAmountsInPeriod', openingBalance: { __typename?: 'LayeredBtcAccountAmounts', all: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } }, closingBalance: { __typename?: 'LayeredBtcAccountAmounts', all: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } }, amount: { __typename?: 'LayeredBtcAccountAmounts', all: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } } }, usd: { __typename?: 'UsdAccountAmountsInPeriod', openingBalance: { __typename?: 'LayeredUsdAccountAmounts', all: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } }, closingBalance: { __typename?: 'LayeredUsdAccountAmounts', all: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } }, amount: { __typename?: 'LayeredUsdAccountAmounts', all: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } } } } } | { __typename: 'AccountSet', id: string, name: string, hasSubAccounts: boolean, amounts: { __typename?: 'AccountAmountsByCurrency', btc: { __typename?: 'BtcAccountAmountsInPeriod', openingBalance: { __typename?: 'LayeredBtcAccountAmounts', all: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } }, closingBalance: { __typename?: 'LayeredBtcAccountAmounts', all: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } }, amount: { __typename?: 'LayeredBtcAccountAmounts', all: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } } }, usd: { __typename?: 'UsdAccountAmountsInPeriod', openingBalance: { __typename?: 'LayeredUsdAccountAmounts', all: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } }, closingBalance: { __typename?: 'LayeredUsdAccountAmounts', all: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } }, amount: { __typename?: 'LayeredUsdAccountAmounts', all: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } } } } }> }> } | null };
+
+export type ChartOfAccountsAccountSetQueryVariables = Exact<{
+  accountSetId: Scalars['UUID']['input'];
+  first: Scalars['Int']['input'];
+  after?: InputMaybe<Scalars['String']['input']>;
+  from: Scalars['Timestamp']['input'];
+  until?: InputMaybe<Scalars['Timestamp']['input']>;
+}>;
+
+
+export type ChartOfAccountsAccountSetQuery = { __typename?: 'Query', accountSet?: { __typename?: 'AccountSetAndSubAccounts', id: string, name: string, subAccounts: { __typename?: 'AccountSetSubAccountConnection', edges: Array<{ __typename?: 'AccountSetSubAccountEdge', cursor: string, node: { __typename: 'Account', id: string, name: string } | { __typename: 'AccountSet', id: string, name: string, hasSubAccounts: boolean } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean } } } | null };
+
+export type GetOnBalanceSheetChartOfAccountsQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type GetOnBalanceSheetChartOfAccountsQuery = { __typename?: 'Query', chartOfAccounts?: { __typename?: 'ChartOfAccounts', name: string, categories: Array<{ __typename?: 'StatementCategory', name: string, accounts: Array<{ __typename: 'Account', id: string, name: string } | { __typename: 'AccountSet', id: string, name: string, hasSubAccounts: boolean }> }> } | null };
+
+export type GetOffBalanceSheetChartOfAccountsQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type GetOffBalanceSheetChartOfAccountsQuery = { __typename?: 'Query', offBalanceSheetChartOfAccounts?: { __typename?: 'ChartOfAccounts', name: string, categories: Array<{ __typename?: 'StatementCategory', name: string, accounts: Array<{ __typename: 'Account', id: string, name: string } | { __typename: 'AccountSet', id: string, name: string, hasSubAccounts: boolean }> }> } | null };
+
+export type GetCommitteeDetailsQueryVariables = Exact<{
+  id: Scalars['UUID']['input'];
+}>;
+
+
+export type GetCommitteeDetailsQuery = { __typename?: 'Query', committee?: { __typename?: 'Committee', id: string, committeeId: string, createdAt: any, name: string, currentMembers: Array<{ __typename?: 'User', userId: string, email: string, roles: Array<Role> }> } | null };
+
+export type CommitteeAddUserMutationVariables = Exact<{
+  input: CommitteeAddUserInput;
+}>;
+
+
+export type CommitteeAddUserMutation = { __typename?: 'Mutation', committeeAddUser: { __typename?: 'CommitteeAddUserPayload', committee: { __typename?: 'Committee', id: string, committeeId: string, currentMembers: Array<{ __typename?: 'User', userId: string, email: string, roles: Array<Role> }> } } };
+
+export type CreateCommitteeMutationVariables = Exact<{
+  input: CommitteeCreateInput;
+}>;
+
+
+export type CreateCommitteeMutation = { __typename?: 'Mutation', committeeCreate: { __typename?: 'CommitteeCreatePayload', committee: { __typename?: 'Committee', id: string, committeeId: string, createdAt: any, currentMembers: Array<{ __typename?: 'User', userId: string, email: string, roles: Array<Role> }> } } };
+
+export type CommitteesQueryVariables = Exact<{
+  first: Scalars['Int']['input'];
+  after?: InputMaybe<Scalars['String']['input']>;
+}>;
+
+
+export type CommitteesQuery = { __typename?: 'Query', committees: { __typename?: 'CommitteeConnection', edges: Array<{ __typename?: 'CommitteeEdge', cursor: string, node: { __typename?: 'Committee', id: string, committeeId: string, createdAt: any, name: string, currentMembers: Array<{ __typename?: 'User', userId: string }> } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, hasNextPage: boolean } } };
+
+export type CommitteeRemoveUserMutationVariables = Exact<{
+  input: CommitteeRemoveUserInput;
+}>;
+
+
+export type CommitteeRemoveUserMutation = { __typename?: 'Mutation', committeeRemoveUser: { __typename?: 'CommitteeRemoveUserPayload', committee: { __typename?: 'Committee', id: string, committeeId: string, currentMembers: Array<{ __typename?: 'User', userId: string, email: string, roles: Array<Role> }> } } };
+
+export type GetCreditFacilityDetailsQueryVariables = Exact<{
+  id: Scalars['UUID']['input'];
+}>;
+
+
+export type GetCreditFacilityDetailsQuery = { __typename?: 'Query', creditFacility?: { __typename?: 'CreditFacility', id: string, approvalProcessId: string, creditFacilityId: string, collateralizationState: CollateralizationState, status: CreditFacilityStatus, facilityAmount: any, collateral: any, createdAt: any, expiresAt?: any | null, canBeCompleted: boolean, collateralToMatchInitialCvl?: any | null, subjectCanUpdateCollateral: boolean, subjectCanInitiateDisbursal: boolean, subjectCanRecordPayment: boolean, subjectCanComplete: boolean, currentCvl: { __typename?: 'FacilityCVL', total: any, disbursed: any }, approvalProcess: { __typename?: 'ApprovalProcess', approvalProcessId: string, approvalProcessType: ApprovalProcessType, createdAt: any, subjectCanSubmitDecision: boolean, status: ApprovalProcessStatus, rules: { __typename?: 'CommitteeThreshold', threshold: number, committee: { __typename?: 'Committee', name: string, currentMembers: Array<{ __typename?: 'User', email: string, roles: Array<Role> }> } } | { __typename?: 'SystemApproval', autoApprove: boolean }, voters: Array<{ __typename?: 'ApprovalProcessVoter', stillEligible: boolean, didVote: boolean, didApprove: boolean, didDeny: boolean, user: { __typename?: 'User', userId: string, email: string, roles: Array<Role> } }> }, balance: { __typename?: 'CreditFacilityBalance', facilityRemaining: { __typename?: 'FacilityRemaining', usdBalance: any }, disbursed: { __typename?: 'Disbursed', total: { __typename?: 'Total', usdBalance: any }, outstanding: { __typename?: 'Outstanding', usdBalance: any } }, interest: { __typename?: 'Interest', total: { __typename?: 'Total', usdBalance: any }, outstanding: { __typename?: 'Outstanding', usdBalance: any } }, outstanding: { __typename?: 'Outstanding', usdBalance: any }, collateral: { __typename?: 'Collateral', btcBalance: any } }, customer: { __typename?: 'Customer', customerId: string, email: string, telegramId: string, status: AccountStatus, level: KycLevel, applicantId?: string | null }, creditFacilityTerms: { __typename?: 'TermValues', annualRate: any, accrualInterval: InterestInterval, incurrenceInterval: InterestInterval, liquidationCvl: any, marginCallCvl: any, initialCvl: any, duration: { __typename?: 'Duration', period: Period, units: number } }, disbursals: Array<{ __typename?: 'CreditFacilityDisbursal', id: string, index: any, amount: any, status: DisbursalStatus, createdAt: any, approvalProcess: { __typename?: 'ApprovalProcess', approvalProcessId: string, approvalProcessType: ApprovalProcessType, createdAt: any, subjectCanSubmitDecision: boolean, status: ApprovalProcessStatus, rules: { __typename?: 'CommitteeThreshold', threshold: number, committee: { __typename?: 'Committee', name: string, currentMembers: Array<{ __typename?: 'User', email: string, roles: Array<Role> }> } } | { __typename?: 'SystemApproval', autoApprove: boolean }, voters: Array<{ __typename?: 'ApprovalProcessVoter', stillEligible: boolean, didVote: boolean, didApprove: boolean, didDeny: boolean, user: { __typename?: 'User', userId: string, email: string, roles: Array<Role> } }> } }>, transactions: Array<{ __typename?: 'CreditFacilityCollateralUpdated', satoshis: any, recordedAt: any, action: CollateralAction, txId: string } | { __typename?: 'CreditFacilityCollateralizationUpdated', state: CollateralizationState, collateral: any, outstandingInterest: any, outstandingDisbursal: any, recordedAt: any, price: any } | { __typename?: 'CreditFacilityDisbursalExecuted', cents: any, recordedAt: any, txId: string } | { __typename?: 'CreditFacilityIncrementalPayment', cents: any, recordedAt: any, txId: string } | { __typename?: 'CreditFacilityOrigination', cents: any, recordedAt: any, txId: string }> } | null };
+
+export type CreditFacilityCollateralUpdateMutationVariables = Exact<{
+  input: CreditFacilityCollateralUpdateInput;
+}>;
+
+
+export type CreditFacilityCollateralUpdateMutation = { __typename?: 'Mutation', creditFacilityCollateralUpdate: { __typename?: 'CreditFacilityCollateralUpdatePayload', creditFacility: { __typename?: 'CreditFacility', id: string, creditFacilityId: string, balance: { __typename?: 'CreditFacilityBalance', collateral: { __typename?: 'Collateral', btcBalance: any } } } } };
+
+export type CreditFacilityCompleteMutationVariables = Exact<{
+  input: CreditFacilityCompleteInput;
+}>;
+
+
+export type CreditFacilityCompleteMutation = { __typename?: 'Mutation', creditFacilityComplete: { __typename?: 'CreditFacilityCompletePayload', creditFacility: { __typename?: 'CreditFacility', id: string, creditFacilityId: string } } };
+
+export type CreditFacilityCreateMutationVariables = Exact<{
+  input: CreditFacilityCreateInput;
+}>;
+
+
+export type CreditFacilityCreateMutation = { __typename?: 'Mutation', creditFacilityCreate: { __typename?: 'CreditFacilityCreatePayload', creditFacility: { __typename?: 'CreditFacility', id: string, creditFacilityId: string } } };
+
+export type CreditFacilityDisbursalConfirmMutationVariables = Exact<{
+  input: CreditFacilityDisbursalConfirmInput;
+}>;
+
+
+export type CreditFacilityDisbursalConfirmMutation = { __typename?: 'Mutation', creditFacilityDisbursalConfirm: { __typename?: 'CreditFacilityDisbursalConfirmPayload', disbursal: { __typename?: 'CreditFacilityDisbursal', id: string, index: any } } };
+
+export type CreditFacilityDisbursalInitiateMutationVariables = Exact<{
+  input: CreditFacilityDisbursalInitiateInput;
+}>;
+
+
+export type CreditFacilityDisbursalInitiateMutation = { __typename?: 'Mutation', creditFacilityDisbursalInitiate: { __typename?: 'CreditFacilityDisbursalInitiatePayload', disbursal: { __typename?: 'CreditFacilityDisbursal', id: string, index: any } } };
+
+export type CreditFacilitiesQueryVariables = Exact<{
+  first: Scalars['Int']['input'];
+  after?: InputMaybe<Scalars['String']['input']>;
+}>;
+
+
+export type CreditFacilitiesQuery = { __typename?: 'Query', creditFacilities: { __typename?: 'CreditFacilityConnection', edges: Array<{ __typename?: 'CreditFacilityEdge', cursor: string, node: { __typename?: 'CreditFacility', id: string, creditFacilityId: string, collateralizationState: CollateralizationState, createdAt: any, status: CreditFacilityStatus, facilityAmount: any, collateral: any, customer: { __typename?: 'Customer', customerId: string, email: string }, balance: { __typename?: 'CreditFacilityBalance', outstanding: { __typename?: 'Outstanding', usdBalance: any } } } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, hasNextPage: boolean } } };
+
+export type CreditFacilityPartialPaymentMutationVariables = Exact<{
+  input: CreditFacilityPartialPaymentInput;
+}>;
+
+
+export type CreditFacilityPartialPaymentMutation = { __typename?: 'Mutation', creditFacilityPartialPayment: { __typename?: 'CreditFacilityPartialPaymentPayload', creditFacility: { __typename?: 'CreditFacility', id: string, creditFacilityId: string } } };
+
+export type DocumentDownloadLinkGenerateMutationVariables = Exact<{
+  input: DocumentDownloadLinksGenerateInput;
+}>;
+
+
+export type DocumentDownloadLinkGenerateMutation = { __typename?: 'Mutation', documentDownloadLinkGenerate: { __typename?: 'DocumentDownloadLinksGeneratePayload', link: string } };
+
+export type DocumentDeleteMutationVariables = Exact<{
+  input: DocumentDeleteInput;
+}>;
+
+
+export type DocumentDeleteMutation = { __typename?: 'Mutation', documentDelete: { __typename?: 'DocumentDeletePayload', deletedDocumentId: string } };
+
+export type CustomerDocumentAttachMutationVariables = Exact<{
+  file: Scalars['Upload']['input'];
+  customerId: Scalars['UUID']['input'];
+}>;
+
+
+export type CustomerDocumentAttachMutation = { __typename?: 'Mutation', customerDocumentAttach: { __typename?: 'DocumentCreatePayload', document: { __typename?: 'Document', id: string, customerId: string, filename: string } } };
+
+export type GetKycStatusForCustomerQueryVariables = Exact<{
+  id: Scalars['UUID']['input'];
+}>;
+
+
+export type GetKycStatusForCustomerQuery = { __typename?: 'Query', customer?: { __typename?: 'Customer', customerId: string, status: AccountStatus, level: KycLevel, applicantId?: string | null } | null };
+
+export type SumsubPermalinkCreateMutationVariables = Exact<{
+  input: SumsubPermalinkCreateInput;
+}>;
+
+
+export type SumsubPermalinkCreateMutation = { __typename?: 'Mutation', sumsubPermalinkCreate: { __typename?: 'SumsubPermalinkCreatePayload', url: string } };
+
+export type GetCustomerQueryVariables = Exact<{
+  id: Scalars['UUID']['input'];
+}>;
+
+
+export type GetCustomerQuery = { __typename?: 'Query', customer?: { __typename?: 'Customer', customerId: string, email: string, telegramId: string, status: AccountStatus, level: KycLevel, applicantId?: string | null, subjectCanRecordDeposit: boolean, subjectCanInitiateWithdrawal: boolean, subjectCanCreateCreditFacility: boolean, balance: { __typename?: 'CustomerBalance', checking: { __typename?: 'Checking', settled: any, pending: any } }, creditFacilities: Array<{ __typename?: 'CreditFacility', id: string, creditFacilityId: string, collateralizationState: CollateralizationState, status: CreditFacilityStatus, balance: { __typename?: 'CreditFacilityBalance', collateral: { __typename?: 'Collateral', btcBalance: any }, outstanding: { __typename?: 'Outstanding', usdBalance: any } } }>, deposits: Array<{ __typename?: 'Deposit', createdAt: any, customerId: string, depositId: string, reference: string, amount: any }>, withdrawals: Array<{ __typename?: 'Withdrawal', status: WithdrawalStatus, reference: string, customerId: string, createdAt: any, withdrawalId: string, amount: any, customer: { __typename?: 'Customer', customerId: string, email: string } }>, transactions: Array<{ __typename?: 'Deposit', createdAt: any, customerId: string, depositId: string, reference: string, amount: any } | { __typename?: 'Withdrawal', status: WithdrawalStatus, reference: string, customerId: string, withdrawalId: string, createdAt: any, amount: any, customer: { __typename?: 'Customer', customerId: string, email: string } }>, documents: Array<{ __typename?: 'Document', id: string, filename: string }> } | null };
+
+export type CustomerUpdateMutationVariables = Exact<{
+  input: CustomerUpdateInput;
+}>;
+
+
+export type CustomerUpdateMutation = { __typename?: 'Mutation', customerUpdate: { __typename?: 'CustomerUpdatePayload', customer: { __typename?: 'Customer', customerId: string, email: string, status: AccountStatus, level: KycLevel, applicantId?: string | null } } };
+
+export type CustomerCreateMutationVariables = Exact<{
   input: CustomerCreateInput;
 }>;
 
 
-export type CreateCustomerMutation = { __typename?: 'Mutation', customerCreate: { __typename?: 'CustomerCreatePayload', customer: { __typename?: 'Customer', customerId: string, email: string, status: AccountStatus, level: KycLevel, applicantId?: string | null } } };
+export type CustomerCreateMutation = { __typename?: 'Mutation', customerCreate: { __typename?: 'CustomerCreatePayload', customer: { __typename?: 'Customer', customerId: string, email: string, status: AccountStatus, level: KycLevel, applicantId?: string | null } } };
+
+export type GetCustomerByCustomerEmailQueryVariables = Exact<{
+  email: Scalars['String']['input'];
+}>;
+
+
+export type GetCustomerByCustomerEmailQuery = { __typename?: 'Query', customerByEmail?: { __typename?: 'Customer', customerId: string, email: string, telegramId: string, status: AccountStatus, level: KycLevel, applicantId?: string | null, subjectCanRecordDeposit: boolean, subjectCanInitiateWithdrawal: boolean, subjectCanCreateCreditFacility: boolean, balance: { __typename?: 'CustomerBalance', checking: { __typename?: 'Checking', settled: any, pending: any } } } | null };
+
+export type GetCustomerByCustomerIdQueryVariables = Exact<{
+  id: Scalars['UUID']['input'];
+}>;
+
+
+export type GetCustomerByCustomerIdQuery = { __typename?: 'Query', customer?: { __typename?: 'Customer', customerId: string, email: string, telegramId: string, status: AccountStatus, level: KycLevel, applicantId?: string | null, subjectCanRecordDeposit: boolean, subjectCanInitiateWithdrawal: boolean, subjectCanCreateCreditFacility: boolean, balance: { __typename?: 'CustomerBalance', checking: { __typename?: 'Checking', settled: any, pending: any } } } | null };
 
 export type CustomersQueryVariables = Exact<{
   first: Scalars['Int']['input'];
@@ -1712,13 +1700,744 @@ export type CustomersQueryVariables = Exact<{
 }>;
 
 
-export type CustomersQuery = { __typename?: 'Query', customers: { __typename?: 'CustomerConnection', edges: Array<{ __typename?: 'CustomerEdge', cursor: string, node: { __typename?: 'Customer', id: string, customerId: string, status: AccountStatus, level: KycLevel, email: string, telegramId: string, applicantId?: string | null, balance: { __typename?: 'CustomerBalance', checking: { __typename?: 'Checking', settled: any, pending: any } } } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, startCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean } } };
+export type CustomersQuery = { __typename?: 'Query', customers: { __typename?: 'CustomerConnection', nodes: Array<{ __typename?: 'Customer', customerId: string, email: string, telegramId: string, subjectCanRecordDeposit: boolean, subjectCanInitiateWithdrawal: boolean, subjectCanCreateCreditFacility: boolean, balance: { __typename?: 'CustomerBalance', checking: { __typename?: 'Checking', settled: any, pending: any } } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, startCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean } } };
+
+export type DepositsQueryVariables = Exact<{
+  first: Scalars['Int']['input'];
+  after?: InputMaybe<Scalars['String']['input']>;
+}>;
 
 
-export const AvatarDocument = gql`
-    query Avatar {
-  me {
-    user {
+export type DepositsQuery = { __typename?: 'Query', deposits: { __typename?: 'DepositConnection', pageInfo: { __typename?: 'PageInfo', hasPreviousPage: boolean, hasNextPage: boolean, startCursor?: string | null, endCursor?: string | null }, nodes: Array<{ __typename?: 'Deposit', customerId: string, depositId: string, amount: any, reference: string, customer: { __typename?: 'Customer', customerId: string, email: string } }> } };
+
+export type DepositQueryVariables = Exact<{
+  id: Scalars['UUID']['input'];
+}>;
+
+
+export type DepositQuery = { __typename?: 'Query', deposit?: { __typename?: 'Deposit', customerId: string, depositId: string, amount: any, reference: string, customer: { __typename?: 'Customer', customerId: string, email: string, applicantId?: string | null } } | null };
+
+export type RecordDepositMutationVariables = Exact<{
+  input: DepositRecordInput;
+}>;
+
+
+export type RecordDepositMutation = { __typename?: 'Mutation', depositRecord: { __typename?: 'DepositRecordPayload', deposit: { __typename?: 'Deposit', depositId: string, amount: any, customer: { __typename?: 'Customer', customerId: string, email: string, balance: { __typename?: 'CustomerBalance', checking: { __typename?: 'Checking', settled: any } } } } } };
+
+export type PolicyAssignCommitteeMutationVariables = Exact<{
+  input: PolicyAssignCommitteeInput;
+}>;
+
+
+export type PolicyAssignCommitteeMutation = { __typename?: 'Mutation', policyAssignCommittee: { __typename?: 'PolicyAssignCommitteePayload', policy: { __typename?: 'Policy', id: string, policyId: string, approvalProcessType: ApprovalProcessType } } };
+
+export type GetPolicyDetailsQueryVariables = Exact<{
+  id: Scalars['UUID']['input'];
+}>;
+
+
+export type GetPolicyDetailsQuery = { __typename?: 'Query', policy?: { __typename?: 'Policy', id: string, policyId: string, approvalProcessType: ApprovalProcessType, rules: { __typename?: 'CommitteeThreshold', threshold: number, committee: { __typename?: 'Committee', id: string, committeeId: string, createdAt: any, name: string, currentMembers: Array<{ __typename?: 'User', userId: string, email: string, roles: Array<Role> }> } } | { __typename?: 'SystemApproval', autoApprove: boolean } } | null };
+
+export type PoliciesQueryVariables = Exact<{
+  first: Scalars['Int']['input'];
+  after?: InputMaybe<Scalars['String']['input']>;
+}>;
+
+
+export type PoliciesQuery = { __typename?: 'Query', policies: { __typename?: 'PolicyConnection', edges: Array<{ __typename?: 'PolicyEdge', cursor: string, node: { __typename?: 'Policy', id: string, policyId: string, approvalProcessType: ApprovalProcessType, rules: { __typename?: 'CommitteeThreshold', threshold: number, committee: { __typename?: 'Committee', id: string, committeeId: string, createdAt: any, name: string } } | { __typename?: 'SystemApproval', autoApprove: boolean } } }>, pageInfo: { __typename?: 'PageInfo', hasPreviousPage: boolean, hasNextPage: boolean, startCursor?: string | null, endCursor?: string | null } } };
+
+export type PnlAccountSetQueryVariables = Exact<{
+  accountSetId: Scalars['UUID']['input'];
+  first: Scalars['Int']['input'];
+  after?: InputMaybe<Scalars['String']['input']>;
+  from: Scalars['Timestamp']['input'];
+  until?: InputMaybe<Scalars['Timestamp']['input']>;
+}>;
+
+
+export type PnlAccountSetQuery = { __typename?: 'Query', accountSet?: { __typename?: 'AccountSetAndSubAccounts', id: string, name: string, amounts: { __typename?: 'AccountAmountsByCurrency', btc: { __typename?: 'BtcAccountAmountsInPeriod', openingBalance: { __typename?: 'LayeredBtcAccountAmounts', all: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } }, closingBalance: { __typename?: 'LayeredBtcAccountAmounts', all: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } }, amount: { __typename?: 'LayeredBtcAccountAmounts', all: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } } }, usd: { __typename?: 'UsdAccountAmountsInPeriod', openingBalance: { __typename?: 'LayeredUsdAccountAmounts', all: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } }, closingBalance: { __typename?: 'LayeredUsdAccountAmounts', all: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } }, amount: { __typename?: 'LayeredUsdAccountAmounts', all: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } } } }, subAccounts: { __typename?: 'AccountSetSubAccountConnection', edges: Array<{ __typename?: 'AccountSetSubAccountEdge', cursor: string, node: { __typename: 'Account', id: string, name: string, amounts: { __typename?: 'AccountAmountsByCurrency', btc: { __typename?: 'BtcAccountAmountsInPeriod', openingBalance: { __typename?: 'LayeredBtcAccountAmounts', all: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } }, closingBalance: { __typename?: 'LayeredBtcAccountAmounts', all: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } }, amount: { __typename?: 'LayeredBtcAccountAmounts', all: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } } }, usd: { __typename?: 'UsdAccountAmountsInPeriod', openingBalance: { __typename?: 'LayeredUsdAccountAmounts', all: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } }, closingBalance: { __typename?: 'LayeredUsdAccountAmounts', all: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } }, amount: { __typename?: 'LayeredUsdAccountAmounts', all: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } } } } } | { __typename: 'AccountSet', id: string, name: string, hasSubAccounts: boolean, amounts: { __typename?: 'AccountAmountsByCurrency', btc: { __typename?: 'BtcAccountAmountsInPeriod', openingBalance: { __typename?: 'LayeredBtcAccountAmounts', all: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } }, closingBalance: { __typename?: 'LayeredBtcAccountAmounts', all: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } }, amount: { __typename?: 'LayeredBtcAccountAmounts', all: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } } }, usd: { __typename?: 'UsdAccountAmountsInPeriod', openingBalance: { __typename?: 'LayeredUsdAccountAmounts', all: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } }, closingBalance: { __typename?: 'LayeredUsdAccountAmounts', all: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } }, amount: { __typename?: 'LayeredUsdAccountAmounts', all: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } } } } } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean } } } | null };
+
+export type ProfitAndLossStatementQueryVariables = Exact<{
+  from: Scalars['Timestamp']['input'];
+  until?: InputMaybe<Scalars['Timestamp']['input']>;
+}>;
+
+
+export type ProfitAndLossStatementQuery = { __typename?: 'Query', profitAndLossStatement?: { __typename?: 'ProfitAndLossStatement', name: string, net: { __typename?: 'AccountAmountsByCurrency', btc: { __typename?: 'BtcAccountAmountsInPeriod', openingBalance: { __typename?: 'LayeredBtcAccountAmounts', all: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } }, closingBalance: { __typename?: 'LayeredBtcAccountAmounts', all: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } }, amount: { __typename?: 'LayeredBtcAccountAmounts', all: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } } }, usd: { __typename?: 'UsdAccountAmountsInPeriod', openingBalance: { __typename?: 'LayeredUsdAccountAmounts', all: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } }, closingBalance: { __typename?: 'LayeredUsdAccountAmounts', all: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } }, amount: { __typename?: 'LayeredUsdAccountAmounts', all: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } } } }, categories: Array<{ __typename?: 'StatementCategory', name: string, amounts: { __typename?: 'AccountAmountsByCurrency', btc: { __typename?: 'BtcAccountAmountsInPeriod', openingBalance: { __typename?: 'LayeredBtcAccountAmounts', all: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } }, closingBalance: { __typename?: 'LayeredBtcAccountAmounts', all: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } }, amount: { __typename?: 'LayeredBtcAccountAmounts', all: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } } }, usd: { __typename?: 'UsdAccountAmountsInPeriod', openingBalance: { __typename?: 'LayeredUsdAccountAmounts', all: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } }, closingBalance: { __typename?: 'LayeredUsdAccountAmounts', all: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } }, amount: { __typename?: 'LayeredUsdAccountAmounts', all: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } } } }, accounts: Array<{ __typename: 'Account', id: string, name: string, amounts: { __typename?: 'AccountAmountsByCurrency', btc: { __typename?: 'BtcAccountAmountsInPeriod', openingBalance: { __typename?: 'LayeredBtcAccountAmounts', all: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } }, closingBalance: { __typename?: 'LayeredBtcAccountAmounts', all: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } }, amount: { __typename?: 'LayeredBtcAccountAmounts', all: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } } }, usd: { __typename?: 'UsdAccountAmountsInPeriod', openingBalance: { __typename?: 'LayeredUsdAccountAmounts', all: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } }, closingBalance: { __typename?: 'LayeredUsdAccountAmounts', all: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } }, amount: { __typename?: 'LayeredUsdAccountAmounts', all: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } } } } } | { __typename: 'AccountSet', id: string, name: string, hasSubAccounts: boolean, amounts: { __typename?: 'AccountAmountsByCurrency', btc: { __typename?: 'BtcAccountAmountsInPeriod', openingBalance: { __typename?: 'LayeredBtcAccountAmounts', all: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } }, closingBalance: { __typename?: 'LayeredBtcAccountAmounts', all: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } }, amount: { __typename?: 'LayeredBtcAccountAmounts', all: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } } }, usd: { __typename?: 'UsdAccountAmountsInPeriod', openingBalance: { __typename?: 'LayeredUsdAccountAmounts', all: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } }, closingBalance: { __typename?: 'LayeredUsdAccountAmounts', all: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } }, amount: { __typename?: 'LayeredUsdAccountAmounts', all: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } } } } }> }> } | null };
+
+export type ReportCreateMutationVariables = Exact<{ [key: string]: never; }>;
+
+
+export type ReportCreateMutation = { __typename?: 'Mutation', reportCreate: { __typename?: 'ReportCreatePayload', report: { __typename?: 'Report', reportId: string, createdAt: any, lastError?: string | null, progress: ReportProgress } } };
+
+export type ReportsQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type ReportsQuery = { __typename?: 'Query', reports: Array<{ __typename?: 'Report', reportId: string, createdAt: any, lastError?: string | null, progress: ReportProgress }> };
+
+export type ReportDownloadLinksMutationVariables = Exact<{
+  input: ReportDownloadLinksGenerateInput;
+}>;
+
+
+export type ReportDownloadLinksMutation = { __typename?: 'Mutation', reportDownloadLinksGenerate: { __typename?: 'ReportDownloadLinksGeneratePayload', reportId: string, links: Array<{ __typename?: 'ReportDownloadLink', reportName: string, url: string }> } };
+
+export type TermsTemplateQueryVariables = Exact<{
+  id: Scalars['UUID']['input'];
+}>;
+
+
+export type TermsTemplateQuery = { __typename?: 'Query', termsTemplate?: { __typename?: 'TermsTemplate', id: string, name: string, termsId: string, createdAt: any, subjectCanUpdateTermsTemplate: boolean, values: { __typename?: 'TermValues', accrualInterval: InterestInterval, incurrenceInterval: InterestInterval, annualRate: any, initialCvl: any, marginCallCvl: any, liquidationCvl: any, duration: { __typename?: 'Duration', units: number, period: Period } } } | null };
+
+export type CreateTermsTemplateMutationVariables = Exact<{
+  input: TermsTemplateCreateInput;
+}>;
+
+
+export type CreateTermsTemplateMutation = { __typename?: 'Mutation', termsTemplateCreate: { __typename?: 'TermsTemplateCreatePayload', termsTemplate: { __typename?: 'TermsTemplate', id: string, termsId: string, values: { __typename?: 'TermValues', annualRate: any, accrualInterval: InterestInterval, liquidationCvl: any, marginCallCvl: any, initialCvl: any, duration: { __typename?: 'Duration', period: Period, units: number } } } } };
+
+export type TermsTemplatesQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type TermsTemplatesQuery = { __typename?: 'Query', termsTemplates: Array<{ __typename?: 'TermsTemplate', id: string, name: string, termsId: string, createdAt: any, subjectCanUpdateTermsTemplate: boolean, values: { __typename?: 'TermValues', annualRate: any, accrualInterval: InterestInterval, incurrenceInterval: InterestInterval, liquidationCvl: any, marginCallCvl: any, initialCvl: any, duration: { __typename?: 'Duration', period: Period, units: number } } }> };
+
+export type GetOnBalanceSheetTrialBalanceQueryVariables = Exact<{
+  from: Scalars['Timestamp']['input'];
+  until?: InputMaybe<Scalars['Timestamp']['input']>;
+}>;
+
+
+export type GetOnBalanceSheetTrialBalanceQuery = { __typename?: 'Query', trialBalance?: { __typename?: 'TrialBalance', name: string, total: { __typename?: 'AccountAmountsByCurrency', btc: { __typename?: 'BtcAccountAmountsInPeriod', openingBalance: { __typename?: 'LayeredBtcAccountAmounts', all: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } }, closingBalance: { __typename?: 'LayeredBtcAccountAmounts', all: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } }, amount: { __typename?: 'LayeredBtcAccountAmounts', all: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } } }, usd: { __typename?: 'UsdAccountAmountsInPeriod', openingBalance: { __typename?: 'LayeredUsdAccountAmounts', all: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } }, closingBalance: { __typename?: 'LayeredUsdAccountAmounts', all: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } }, amount: { __typename?: 'LayeredUsdAccountAmounts', all: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } } } }, subAccounts: Array<{ __typename?: 'Account', name: string, amounts: { __typename?: 'AccountAmountsByCurrency', btc: { __typename?: 'BtcAccountAmountsInPeriod', openingBalance: { __typename?: 'LayeredBtcAccountAmounts', all: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } }, closingBalance: { __typename?: 'LayeredBtcAccountAmounts', all: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } }, amount: { __typename?: 'LayeredBtcAccountAmounts', all: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } } }, usd: { __typename?: 'UsdAccountAmountsInPeriod', openingBalance: { __typename?: 'LayeredUsdAccountAmounts', all: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } }, closingBalance: { __typename?: 'LayeredUsdAccountAmounts', all: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } }, amount: { __typename?: 'LayeredUsdAccountAmounts', all: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } } } } } | { __typename?: 'AccountSet', name: string, amounts: { __typename?: 'AccountAmountsByCurrency', btc: { __typename?: 'BtcAccountAmountsInPeriod', openingBalance: { __typename?: 'LayeredBtcAccountAmounts', all: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } }, closingBalance: { __typename?: 'LayeredBtcAccountAmounts', all: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } }, amount: { __typename?: 'LayeredBtcAccountAmounts', all: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } } }, usd: { __typename?: 'UsdAccountAmountsInPeriod', openingBalance: { __typename?: 'LayeredUsdAccountAmounts', all: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } }, closingBalance: { __typename?: 'LayeredUsdAccountAmounts', all: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } }, amount: { __typename?: 'LayeredUsdAccountAmounts', all: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } } } } }> } | null };
+
+export type GetOffBalanceSheetTrialBalanceQueryVariables = Exact<{
+  from: Scalars['Timestamp']['input'];
+  until?: InputMaybe<Scalars['Timestamp']['input']>;
+}>;
+
+
+export type GetOffBalanceSheetTrialBalanceQuery = { __typename?: 'Query', offBalanceSheetTrialBalance?: { __typename?: 'TrialBalance', name: string, total: { __typename?: 'AccountAmountsByCurrency', btc: { __typename?: 'BtcAccountAmountsInPeriod', openingBalance: { __typename?: 'LayeredBtcAccountAmounts', all: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } }, closingBalance: { __typename?: 'LayeredBtcAccountAmounts', all: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } }, amount: { __typename?: 'LayeredBtcAccountAmounts', all: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } } }, usd: { __typename?: 'UsdAccountAmountsInPeriod', openingBalance: { __typename?: 'LayeredUsdAccountAmounts', all: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } }, closingBalance: { __typename?: 'LayeredUsdAccountAmounts', all: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } }, amount: { __typename?: 'LayeredUsdAccountAmounts', all: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } } } }, subAccounts: Array<{ __typename?: 'Account', name: string, amounts: { __typename?: 'AccountAmountsByCurrency', btc: { __typename?: 'BtcAccountAmountsInPeriod', openingBalance: { __typename?: 'LayeredBtcAccountAmounts', all: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } }, closingBalance: { __typename?: 'LayeredBtcAccountAmounts', all: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } }, amount: { __typename?: 'LayeredBtcAccountAmounts', all: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } } }, usd: { __typename?: 'UsdAccountAmountsInPeriod', openingBalance: { __typename?: 'LayeredUsdAccountAmounts', all: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } }, closingBalance: { __typename?: 'LayeredUsdAccountAmounts', all: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } }, amount: { __typename?: 'LayeredUsdAccountAmounts', all: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } } } } } | { __typename?: 'AccountSet', name: string, amounts: { __typename?: 'AccountAmountsByCurrency', btc: { __typename?: 'BtcAccountAmountsInPeriod', openingBalance: { __typename?: 'LayeredBtcAccountAmounts', all: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } }, closingBalance: { __typename?: 'LayeredBtcAccountAmounts', all: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } }, amount: { __typename?: 'LayeredBtcAccountAmounts', all: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } } }, usd: { __typename?: 'UsdAccountAmountsInPeriod', openingBalance: { __typename?: 'LayeredUsdAccountAmounts', all: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } }, closingBalance: { __typename?: 'LayeredUsdAccountAmounts', all: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } }, amount: { __typename?: 'LayeredUsdAccountAmounts', all: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } } } } }> } | null };
+
+export type BalancesByCurrencyFragment = { __typename?: 'AccountAmountsByCurrency', btc: { __typename?: 'BtcAccountAmountsInPeriod', openingBalance: { __typename?: 'LayeredBtcAccountAmounts', all: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } }, closingBalance: { __typename?: 'LayeredBtcAccountAmounts', all: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } }, amount: { __typename?: 'LayeredBtcAccountAmounts', all: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } } }, usd: { __typename?: 'UsdAccountAmountsInPeriod', openingBalance: { __typename?: 'LayeredUsdAccountAmounts', all: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } }, closingBalance: { __typename?: 'LayeredUsdAccountAmounts', all: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } }, amount: { __typename?: 'LayeredUsdAccountAmounts', all: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } } } };
+
+export type RangedBtcBalancesFragment = { __typename?: 'BtcAccountAmountsInPeriod', openingBalance: { __typename?: 'LayeredBtcAccountAmounts', all: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } }, closingBalance: { __typename?: 'LayeredBtcAccountAmounts', all: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } }, amount: { __typename?: 'LayeredBtcAccountAmounts', all: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } } };
+
+export type RangedUsdBalancesFragment = { __typename?: 'UsdAccountAmountsInPeriod', openingBalance: { __typename?: 'LayeredUsdAccountAmounts', all: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } }, closingBalance: { __typename?: 'LayeredUsdAccountAmounts', all: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } }, amount: { __typename?: 'LayeredUsdAccountAmounts', all: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } } };
+
+export type BtcBalancesFragment = { __typename?: 'LayeredBtcAccountAmounts', all: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'BtcAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } };
+
+export type UsdBalancesFragment = { __typename?: 'LayeredUsdAccountAmounts', all: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, settled: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, pending: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any }, encumbrance: { __typename?: 'UsdAccountAmounts', debit: any, credit: any, netDebit: any, netCredit: any } };
+
+export type GetUserDetailsQueryVariables = Exact<{
+  id: Scalars['UUID']['input'];
+}>;
+
+
+export type GetUserDetailsQuery = { __typename?: 'Query', user?: { __typename?: 'User', userId: string, email: string, roles: Array<Role> } | null };
+
+export type UserCreateMutationVariables = Exact<{
+  input: UserCreateInput;
+}>;
+
+
+export type UserCreateMutation = { __typename?: 'Mutation', userCreate: { __typename?: 'UserCreatePayload', user: { __typename?: 'User', userId: string, email: string, roles: Array<Role> } } };
+
+export type UsersQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type UsersQuery = { __typename?: 'Query', users: Array<{ __typename?: 'User', userId: string, email: string, roles: Array<Role> }> };
+
+export type UserAssignRoleMutationVariables = Exact<{
+  input: UserAssignRoleInput;
+}>;
+
+
+export type UserAssignRoleMutation = { __typename?: 'Mutation', userAssignRole: { __typename?: 'UserAssignRolePayload', user: { __typename?: 'User', userId: string, email: string, roles: Array<Role> } } };
+
+export type UserRevokeRoleMutationVariables = Exact<{
+  input: UserRevokeRoleInput;
+}>;
+
+
+export type UserRevokeRoleMutation = { __typename?: 'Mutation', userRevokeRole: { __typename?: 'UserRevokeRolePayload', user: { __typename?: 'User', userId: string, email: string, roles: Array<Role> } } };
+
+export type GetWithdrawalDetailsQueryVariables = Exact<{
+  id: Scalars['UUID']['input'];
+}>;
+
+
+export type GetWithdrawalDetailsQuery = { __typename?: 'Query', withdrawal?: { __typename?: 'Withdrawal', customerId: string, withdrawalId: string, amount: any, status: WithdrawalStatus, reference: string, subjectCanConfirm: boolean, subjectCanCancel: boolean, customer: { __typename?: 'Customer', email: string, customerId: string, applicantId?: string | null }, approvalProcess: { __typename?: 'ApprovalProcess', approvalProcessId: string, approvalProcessType: ApprovalProcessType, createdAt: any, subjectCanSubmitDecision: boolean, status: ApprovalProcessStatus, rules: { __typename?: 'CommitteeThreshold', threshold: number, committee: { __typename?: 'Committee', name: string, currentMembers: Array<{ __typename?: 'User', email: string, roles: Array<Role> }> } } | { __typename?: 'SystemApproval', autoApprove: boolean }, voters: Array<{ __typename?: 'ApprovalProcessVoter', stillEligible: boolean, didVote: boolean, didApprove: boolean, didDeny: boolean, user: { __typename?: 'User', userId: string, email: string, roles: Array<Role> } }> } } | null };
+
+export type WithdrawalCancelMutationVariables = Exact<{
+  input: WithdrawalCancelInput;
+}>;
+
+
+export type WithdrawalCancelMutation = { __typename?: 'Mutation', withdrawalCancel: { __typename?: 'WithdrawalCancelPayload', withdrawal: { __typename?: 'Withdrawal', withdrawalId: string, amount: any, customer: { __typename?: 'Customer', customerId: string, balance: { __typename?: 'CustomerBalance', checking: { __typename?: 'Checking', settled: any, pending: any } } } } } };
+
+export type WithdrawalConfirmMutationVariables = Exact<{
+  input: WithdrawalConfirmInput;
+}>;
+
+
+export type WithdrawalConfirmMutation = { __typename?: 'Mutation', withdrawalConfirm: { __typename?: 'WithdrawalConfirmPayload', withdrawal: { __typename?: 'Withdrawal', withdrawalId: string, amount: any, reference: string, customer: { __typename?: 'Customer', customerId: string, email: string, balance: { __typename?: 'CustomerBalance', checking: { __typename?: 'Checking', settled: any, pending: any } } } } } };
+
+export type WithdrawalInitiateMutationVariables = Exact<{
+  input: WithdrawalInitiateInput;
+}>;
+
+
+export type WithdrawalInitiateMutation = { __typename?: 'Mutation', withdrawalInitiate: { __typename?: 'WithdrawalInitiatePayload', withdrawal: { __typename?: 'Withdrawal', withdrawalId: string, amount: any, customer: { __typename?: 'Customer', customerId: string, balance: { __typename?: 'CustomerBalance', checking: { __typename?: 'Checking', settled: any, pending: any } } } } } };
+
+export type WithdrawalsQueryVariables = Exact<{
+  first: Scalars['Int']['input'];
+  after?: InputMaybe<Scalars['String']['input']>;
+}>;
+
+
+export type WithdrawalsQuery = { __typename?: 'Query', withdrawals: { __typename?: 'WithdrawalConnection', pageInfo: { __typename?: 'PageInfo', hasPreviousPage: boolean, hasNextPage: boolean, startCursor?: string | null, endCursor?: string | null }, nodes: Array<{ __typename?: 'Withdrawal', customerId: string, withdrawalId: string, amount: any, status: WithdrawalStatus, reference: string, subjectCanConfirm: boolean, subjectCanCancel: boolean, customer: { __typename?: 'Customer', customerId: string, email: string } }> } };
+
+export type WithdrawalQueryVariables = Exact<{
+  id: Scalars['UUID']['input'];
+}>;
+
+
+export type WithdrawalQuery = { __typename?: 'Query', withdrawal?: { __typename?: 'Withdrawal', customerId: string, withdrawalId: string, amount: any, status: WithdrawalStatus, reference: string, customer: { __typename?: 'Customer', customerId: string, email: string, applicantId?: string | null } } | null };
+
+export type GetRealtimePriceUpdatesQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type GetRealtimePriceUpdatesQuery = { __typename?: 'Query', realtimePrice: { __typename?: 'RealtimePrice', usdCentsPerBtc: any } };
+
+export type MeQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type MeQuery = { __typename?: 'Query', me: { __typename?: 'Subject', subjectCanCreateUser: boolean, subjectCanCreateCustomer: boolean, subjectCanCreateTermsTemplate: boolean, user: { __typename?: 'User', userId: string, email: string, roles: Array<Role> }, visibleNavigationItems: { __typename?: 'VisibleNavigationItems', term: boolean, user: boolean, customer: boolean, deposit: boolean, withdraw: boolean, audit: boolean, financials: boolean, creditFacilities: boolean, governance: { __typename?: 'GovernanceNavigationItems', committee: boolean, policy: boolean, approvalProcess: boolean } } } };
+
+export type UpdateTermsTemplateMutationVariables = Exact<{
+  input: TermsTemplateUpdateInput;
+}>;
+
+
+export type UpdateTermsTemplateMutation = { __typename?: 'Mutation', termsTemplateUpdate: { __typename?: 'TermsTemplateUpdatePayload', termsTemplate: { __typename?: 'TermsTemplate', id: string, termsId: string, name: string, values: { __typename?: 'TermValues', annualRate: any, accrualInterval: InterestInterval, incurrenceInterval: InterestInterval, liquidationCvl: any, marginCallCvl: any, initialCvl: any, duration: { __typename?: 'Duration', period: Period, units: number } } } } };
+
+export const BtcBalancesFragmentDoc = gql`
+    fragment btcBalances on LayeredBtcAccountAmounts {
+  all {
+    debit
+    credit
+    netDebit
+    netCredit
+  }
+  settled {
+    debit
+    credit
+    netDebit
+    netCredit
+  }
+  pending {
+    debit
+    credit
+    netDebit
+    netCredit
+  }
+  encumbrance {
+    debit
+    credit
+    netDebit
+    netCredit
+  }
+}
+    `;
+export const RangedBtcBalancesFragmentDoc = gql`
+    fragment rangedBtcBalances on BtcAccountAmountsInPeriod {
+  openingBalance {
+    ...btcBalances
+  }
+  closingBalance {
+    ...btcBalances
+  }
+  amount {
+    ...btcBalances
+  }
+}
+    ${BtcBalancesFragmentDoc}`;
+export const UsdBalancesFragmentDoc = gql`
+    fragment usdBalances on LayeredUsdAccountAmounts {
+  all {
+    debit
+    credit
+    netDebit
+    netCredit
+  }
+  settled {
+    debit
+    credit
+    netDebit
+    netCredit
+  }
+  pending {
+    debit
+    credit
+    netDebit
+    netCredit
+  }
+  encumbrance {
+    debit
+    credit
+    netDebit
+    netCredit
+  }
+}
+    `;
+export const RangedUsdBalancesFragmentDoc = gql`
+    fragment rangedUsdBalances on UsdAccountAmountsInPeriod {
+  openingBalance {
+    ...usdBalances
+  }
+  closingBalance {
+    ...usdBalances
+  }
+  amount {
+    ...usdBalances
+  }
+}
+    ${UsdBalancesFragmentDoc}`;
+export const BalancesByCurrencyFragmentDoc = gql`
+    fragment balancesByCurrency on AccountAmountsByCurrency {
+  btc: btc {
+    ...rangedBtcBalances
+  }
+  usd: usd {
+    ...rangedUsdBalances
+  }
+}
+    ${RangedBtcBalancesFragmentDoc}
+${RangedUsdBalancesFragmentDoc}`;
+export const ApprovalProcessApproveDocument = gql`
+    mutation ApprovalProcessApprove($input: ApprovalProcessApproveInput!) {
+  approvalProcessApprove(input: $input) {
+    approvalProcess {
+      id
+      approvalProcessId
+      approvalProcessType
+      createdAt
+    }
+  }
+}
+    `;
+export type ApprovalProcessApproveMutationFn = Apollo.MutationFunction<ApprovalProcessApproveMutation, ApprovalProcessApproveMutationVariables>;
+
+/**
+ * __useApprovalProcessApproveMutation__
+ *
+ * To run a mutation, you first call `useApprovalProcessApproveMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useApprovalProcessApproveMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [approvalProcessApproveMutation, { data, loading, error }] = useApprovalProcessApproveMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useApprovalProcessApproveMutation(baseOptions?: Apollo.MutationHookOptions<ApprovalProcessApproveMutation, ApprovalProcessApproveMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<ApprovalProcessApproveMutation, ApprovalProcessApproveMutationVariables>(ApprovalProcessApproveDocument, options);
+      }
+export type ApprovalProcessApproveMutationHookResult = ReturnType<typeof useApprovalProcessApproveMutation>;
+export type ApprovalProcessApproveMutationResult = Apollo.MutationResult<ApprovalProcessApproveMutation>;
+export type ApprovalProcessApproveMutationOptions = Apollo.BaseMutationOptions<ApprovalProcessApproveMutation, ApprovalProcessApproveMutationVariables>;
+export const ApprovalProcessDenyDocument = gql`
+    mutation ApprovalProcessDeny($input: ApprovalProcessDenyInput!) {
+  approvalProcessDeny(input: $input) {
+    approvalProcess {
+      id
+      approvalProcessId
+      approvalProcessType
+      createdAt
+    }
+  }
+}
+    `;
+export type ApprovalProcessDenyMutationFn = Apollo.MutationFunction<ApprovalProcessDenyMutation, ApprovalProcessDenyMutationVariables>;
+
+/**
+ * __useApprovalProcessDenyMutation__
+ *
+ * To run a mutation, you first call `useApprovalProcessDenyMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useApprovalProcessDenyMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [approvalProcessDenyMutation, { data, loading, error }] = useApprovalProcessDenyMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useApprovalProcessDenyMutation(baseOptions?: Apollo.MutationHookOptions<ApprovalProcessDenyMutation, ApprovalProcessDenyMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<ApprovalProcessDenyMutation, ApprovalProcessDenyMutationVariables>(ApprovalProcessDenyDocument, options);
+      }
+export type ApprovalProcessDenyMutationHookResult = ReturnType<typeof useApprovalProcessDenyMutation>;
+export type ApprovalProcessDenyMutationResult = Apollo.MutationResult<ApprovalProcessDenyMutation>;
+export type ApprovalProcessDenyMutationOptions = Apollo.BaseMutationOptions<ApprovalProcessDenyMutation, ApprovalProcessDenyMutationVariables>;
+export const ApprovalProcessesDocument = gql`
+    query ApprovalProcesses($first: Int!, $after: String) {
+  approvalProcesses(first: $first, after: $after) {
+    pageInfo {
+      hasNextPage
+      endCursor
+    }
+    edges {
+      cursor
+      node {
+        id
+        approvalProcessId
+        approvalProcessType
+        createdAt
+        subjectCanSubmitDecision
+        target {
+          __typename
+          ... on Withdrawal {
+            withdrawalId
+          }
+          ... on CreditFacility {
+            creditFacilityId
+          }
+        }
+      }
+    }
+  }
+}
+    `;
+
+/**
+ * __useApprovalProcessesQuery__
+ *
+ * To run a query within a React component, call `useApprovalProcessesQuery` and pass it any options that fit your needs.
+ * When your component renders, `useApprovalProcessesQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useApprovalProcessesQuery({
+ *   variables: {
+ *      first: // value for 'first'
+ *      after: // value for 'after'
+ *   },
+ * });
+ */
+export function useApprovalProcessesQuery(baseOptions: Apollo.QueryHookOptions<ApprovalProcessesQuery, ApprovalProcessesQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<ApprovalProcessesQuery, ApprovalProcessesQueryVariables>(ApprovalProcessesDocument, options);
+      }
+export function useApprovalProcessesLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<ApprovalProcessesQuery, ApprovalProcessesQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<ApprovalProcessesQuery, ApprovalProcessesQueryVariables>(ApprovalProcessesDocument, options);
+        }
+export type ApprovalProcessesQueryHookResult = ReturnType<typeof useApprovalProcessesQuery>;
+export type ApprovalProcessesLazyQueryHookResult = ReturnType<typeof useApprovalProcessesLazyQuery>;
+export type ApprovalProcessesQueryResult = Apollo.QueryResult<ApprovalProcessesQuery, ApprovalProcessesQueryVariables>;
+export const AuditLogsDocument = gql`
+    query AuditLogs($first: Int!, $after: String) {
+  audit(first: $first, after: $after) {
+    edges {
+      cursor
+      node {
+        id
+        subject {
+          ... on User {
+            userId
+            email
+            roles
+          }
+          ... on System {
+            name
+          }
+        }
+        object
+        action
+        authorized
+        recordedAt
+      }
+    }
+    pageInfo {
+      hasNextPage
+      endCursor
+    }
+  }
+}
+    `;
+
+/**
+ * __useAuditLogsQuery__
+ *
+ * To run a query within a React component, call `useAuditLogsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useAuditLogsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useAuditLogsQuery({
+ *   variables: {
+ *      first: // value for 'first'
+ *      after: // value for 'after'
+ *   },
+ * });
+ */
+export function useAuditLogsQuery(baseOptions: Apollo.QueryHookOptions<AuditLogsQuery, AuditLogsQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<AuditLogsQuery, AuditLogsQueryVariables>(AuditLogsDocument, options);
+      }
+export function useAuditLogsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<AuditLogsQuery, AuditLogsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<AuditLogsQuery, AuditLogsQueryVariables>(AuditLogsDocument, options);
+        }
+export type AuditLogsQueryHookResult = ReturnType<typeof useAuditLogsQuery>;
+export type AuditLogsLazyQueryHookResult = ReturnType<typeof useAuditLogsLazyQuery>;
+export type AuditLogsQueryResult = Apollo.QueryResult<AuditLogsQuery, AuditLogsQueryVariables>;
+export const BalanceSheetDocument = gql`
+    query BalanceSheet($from: Timestamp!, $until: Timestamp) {
+  balanceSheet(from: $from, until: $until) {
+    name
+    balance {
+      ...balancesByCurrency
+    }
+    categories {
+      name
+      amounts {
+        ...balancesByCurrency
+      }
+      accounts {
+        ... on Account {
+          __typename
+          id
+          name
+          amounts {
+            ...balancesByCurrency
+          }
+        }
+        ... on AccountSet {
+          __typename
+          id
+          name
+          hasSubAccounts
+          amounts {
+            ...balancesByCurrency
+          }
+        }
+      }
+    }
+  }
+}
+    ${BalancesByCurrencyFragmentDoc}`;
+
+/**
+ * __useBalanceSheetQuery__
+ *
+ * To run a query within a React component, call `useBalanceSheetQuery` and pass it any options that fit your needs.
+ * When your component renders, `useBalanceSheetQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useBalanceSheetQuery({
+ *   variables: {
+ *      from: // value for 'from'
+ *      until: // value for 'until'
+ *   },
+ * });
+ */
+export function useBalanceSheetQuery(baseOptions: Apollo.QueryHookOptions<BalanceSheetQuery, BalanceSheetQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<BalanceSheetQuery, BalanceSheetQueryVariables>(BalanceSheetDocument, options);
+      }
+export function useBalanceSheetLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<BalanceSheetQuery, BalanceSheetQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<BalanceSheetQuery, BalanceSheetQueryVariables>(BalanceSheetDocument, options);
+        }
+export type BalanceSheetQueryHookResult = ReturnType<typeof useBalanceSheetQuery>;
+export type BalanceSheetLazyQueryHookResult = ReturnType<typeof useBalanceSheetLazyQuery>;
+export type BalanceSheetQueryResult = Apollo.QueryResult<BalanceSheetQuery, BalanceSheetQueryVariables>;
+export const ChartOfAccountsAccountSetDocument = gql`
+    query ChartOfAccountsAccountSet($accountSetId: UUID!, $first: Int!, $after: String, $from: Timestamp!, $until: Timestamp) {
+  accountSet(accountSetId: $accountSetId, from: $from, until: $until) {
+    id
+    name
+    subAccounts(first: $first, after: $after) {
+      edges {
+        cursor
+        node {
+          __typename
+          ... on Account {
+            __typename
+            id
+            name
+          }
+          ... on AccountSet {
+            __typename
+            id
+            name
+            hasSubAccounts
+          }
+        }
+      }
+      pageInfo {
+        hasNextPage
+      }
+    }
+  }
+}
+    `;
+
+/**
+ * __useChartOfAccountsAccountSetQuery__
+ *
+ * To run a query within a React component, call `useChartOfAccountsAccountSetQuery` and pass it any options that fit your needs.
+ * When your component renders, `useChartOfAccountsAccountSetQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useChartOfAccountsAccountSetQuery({
+ *   variables: {
+ *      accountSetId: // value for 'accountSetId'
+ *      first: // value for 'first'
+ *      after: // value for 'after'
+ *      from: // value for 'from'
+ *      until: // value for 'until'
+ *   },
+ * });
+ */
+export function useChartOfAccountsAccountSetQuery(baseOptions: Apollo.QueryHookOptions<ChartOfAccountsAccountSetQuery, ChartOfAccountsAccountSetQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<ChartOfAccountsAccountSetQuery, ChartOfAccountsAccountSetQueryVariables>(ChartOfAccountsAccountSetDocument, options);
+      }
+export function useChartOfAccountsAccountSetLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<ChartOfAccountsAccountSetQuery, ChartOfAccountsAccountSetQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<ChartOfAccountsAccountSetQuery, ChartOfAccountsAccountSetQueryVariables>(ChartOfAccountsAccountSetDocument, options);
+        }
+export type ChartOfAccountsAccountSetQueryHookResult = ReturnType<typeof useChartOfAccountsAccountSetQuery>;
+export type ChartOfAccountsAccountSetLazyQueryHookResult = ReturnType<typeof useChartOfAccountsAccountSetLazyQuery>;
+export type ChartOfAccountsAccountSetQueryResult = Apollo.QueryResult<ChartOfAccountsAccountSetQuery, ChartOfAccountsAccountSetQueryVariables>;
+export const GetOnBalanceSheetChartOfAccountsDocument = gql`
+    query GetOnBalanceSheetChartOfAccounts {
+  chartOfAccounts {
+    name
+    categories {
+      name
+      accounts {
+        __typename
+        ... on Account {
+          id
+          name
+        }
+        ... on AccountSet {
+          id
+          name
+          hasSubAccounts
+        }
+      }
+    }
+  }
+}
+    `;
+
+/**
+ * __useGetOnBalanceSheetChartOfAccountsQuery__
+ *
+ * To run a query within a React component, call `useGetOnBalanceSheetChartOfAccountsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetOnBalanceSheetChartOfAccountsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetOnBalanceSheetChartOfAccountsQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useGetOnBalanceSheetChartOfAccountsQuery(baseOptions?: Apollo.QueryHookOptions<GetOnBalanceSheetChartOfAccountsQuery, GetOnBalanceSheetChartOfAccountsQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetOnBalanceSheetChartOfAccountsQuery, GetOnBalanceSheetChartOfAccountsQueryVariables>(GetOnBalanceSheetChartOfAccountsDocument, options);
+      }
+export function useGetOnBalanceSheetChartOfAccountsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetOnBalanceSheetChartOfAccountsQuery, GetOnBalanceSheetChartOfAccountsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetOnBalanceSheetChartOfAccountsQuery, GetOnBalanceSheetChartOfAccountsQueryVariables>(GetOnBalanceSheetChartOfAccountsDocument, options);
+        }
+export type GetOnBalanceSheetChartOfAccountsQueryHookResult = ReturnType<typeof useGetOnBalanceSheetChartOfAccountsQuery>;
+export type GetOnBalanceSheetChartOfAccountsLazyQueryHookResult = ReturnType<typeof useGetOnBalanceSheetChartOfAccountsLazyQuery>;
+export type GetOnBalanceSheetChartOfAccountsQueryResult = Apollo.QueryResult<GetOnBalanceSheetChartOfAccountsQuery, GetOnBalanceSheetChartOfAccountsQueryVariables>;
+export const GetOffBalanceSheetChartOfAccountsDocument = gql`
+    query GetOffBalanceSheetChartOfAccounts {
+  offBalanceSheetChartOfAccounts {
+    name
+    categories {
+      name
+      accounts {
+        __typename
+        ... on Account {
+          id
+          name
+        }
+        ... on AccountSet {
+          id
+          name
+          hasSubAccounts
+        }
+      }
+    }
+  }
+}
+    `;
+
+/**
+ * __useGetOffBalanceSheetChartOfAccountsQuery__
+ *
+ * To run a query within a React component, call `useGetOffBalanceSheetChartOfAccountsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetOffBalanceSheetChartOfAccountsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetOffBalanceSheetChartOfAccountsQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useGetOffBalanceSheetChartOfAccountsQuery(baseOptions?: Apollo.QueryHookOptions<GetOffBalanceSheetChartOfAccountsQuery, GetOffBalanceSheetChartOfAccountsQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetOffBalanceSheetChartOfAccountsQuery, GetOffBalanceSheetChartOfAccountsQueryVariables>(GetOffBalanceSheetChartOfAccountsDocument, options);
+      }
+export function useGetOffBalanceSheetChartOfAccountsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetOffBalanceSheetChartOfAccountsQuery, GetOffBalanceSheetChartOfAccountsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetOffBalanceSheetChartOfAccountsQuery, GetOffBalanceSheetChartOfAccountsQueryVariables>(GetOffBalanceSheetChartOfAccountsDocument, options);
+        }
+export type GetOffBalanceSheetChartOfAccountsQueryHookResult = ReturnType<typeof useGetOffBalanceSheetChartOfAccountsQuery>;
+export type GetOffBalanceSheetChartOfAccountsLazyQueryHookResult = ReturnType<typeof useGetOffBalanceSheetChartOfAccountsLazyQuery>;
+export type GetOffBalanceSheetChartOfAccountsQueryResult = Apollo.QueryResult<GetOffBalanceSheetChartOfAccountsQuery, GetOffBalanceSheetChartOfAccountsQueryVariables>;
+export const GetCommitteeDetailsDocument = gql`
+    query GetCommitteeDetails($id: UUID!) {
+  committee(id: $id) {
+    id
+    committeeId
+    createdAt
+    name
+    currentMembers {
       userId
       email
       roles
@@ -1728,33 +2447,1015 @@ export const AvatarDocument = gql`
     `;
 
 /**
- * __useAvatarQuery__
+ * __useGetCommitteeDetailsQuery__
  *
- * To run a query within a React component, call `useAvatarQuery` and pass it any options that fit your needs.
- * When your component renders, `useAvatarQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * To run a query within a React component, call `useGetCommitteeDetailsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetCommitteeDetailsQuery` returns an object from Apollo Client that contains loading, error, and data properties
  * you can use to render your UI.
  *
  * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
  *
  * @example
- * const { data, loading, error } = useAvatarQuery({
+ * const { data, loading, error } = useGetCommitteeDetailsQuery({
  *   variables: {
+ *      id: // value for 'id'
  *   },
  * });
  */
-export function useAvatarQuery(baseOptions?: Apollo.QueryHookOptions<AvatarQuery, AvatarQueryVariables>) {
+export function useGetCommitteeDetailsQuery(baseOptions: Apollo.QueryHookOptions<GetCommitteeDetailsQuery, GetCommitteeDetailsQueryVariables>) {
         const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<AvatarQuery, AvatarQueryVariables>(AvatarDocument, options);
+        return Apollo.useQuery<GetCommitteeDetailsQuery, GetCommitteeDetailsQueryVariables>(GetCommitteeDetailsDocument, options);
       }
-export function useAvatarLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<AvatarQuery, AvatarQueryVariables>) {
+export function useGetCommitteeDetailsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetCommitteeDetailsQuery, GetCommitteeDetailsQueryVariables>) {
           const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<AvatarQuery, AvatarQueryVariables>(AvatarDocument, options);
+          return Apollo.useLazyQuery<GetCommitteeDetailsQuery, GetCommitteeDetailsQueryVariables>(GetCommitteeDetailsDocument, options);
         }
-export type AvatarQueryHookResult = ReturnType<typeof useAvatarQuery>;
-export type AvatarLazyQueryHookResult = ReturnType<typeof useAvatarLazyQuery>;
-export type AvatarQueryResult = Apollo.QueryResult<AvatarQuery, AvatarQueryVariables>;
-export const CreateCustomerDocument = gql`
-    mutation CreateCustomer($input: CustomerCreateInput!) {
+export type GetCommitteeDetailsQueryHookResult = ReturnType<typeof useGetCommitteeDetailsQuery>;
+export type GetCommitteeDetailsLazyQueryHookResult = ReturnType<typeof useGetCommitteeDetailsLazyQuery>;
+export type GetCommitteeDetailsQueryResult = Apollo.QueryResult<GetCommitteeDetailsQuery, GetCommitteeDetailsQueryVariables>;
+export const CommitteeAddUserDocument = gql`
+    mutation CommitteeAddUser($input: CommitteeAddUserInput!) {
+  committeeAddUser(input: $input) {
+    committee {
+      id
+      committeeId
+      currentMembers {
+        userId
+        email
+        roles
+      }
+    }
+  }
+}
+    `;
+export type CommitteeAddUserMutationFn = Apollo.MutationFunction<CommitteeAddUserMutation, CommitteeAddUserMutationVariables>;
+
+/**
+ * __useCommitteeAddUserMutation__
+ *
+ * To run a mutation, you first call `useCommitteeAddUserMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useCommitteeAddUserMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [committeeAddUserMutation, { data, loading, error }] = useCommitteeAddUserMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useCommitteeAddUserMutation(baseOptions?: Apollo.MutationHookOptions<CommitteeAddUserMutation, CommitteeAddUserMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<CommitteeAddUserMutation, CommitteeAddUserMutationVariables>(CommitteeAddUserDocument, options);
+      }
+export type CommitteeAddUserMutationHookResult = ReturnType<typeof useCommitteeAddUserMutation>;
+export type CommitteeAddUserMutationResult = Apollo.MutationResult<CommitteeAddUserMutation>;
+export type CommitteeAddUserMutationOptions = Apollo.BaseMutationOptions<CommitteeAddUserMutation, CommitteeAddUserMutationVariables>;
+export const CreateCommitteeDocument = gql`
+    mutation CreateCommittee($input: CommitteeCreateInput!) {
+  committeeCreate(input: $input) {
+    committee {
+      id
+      committeeId
+      createdAt
+      currentMembers {
+        userId
+        email
+        roles
+      }
+    }
+  }
+}
+    `;
+export type CreateCommitteeMutationFn = Apollo.MutationFunction<CreateCommitteeMutation, CreateCommitteeMutationVariables>;
+
+/**
+ * __useCreateCommitteeMutation__
+ *
+ * To run a mutation, you first call `useCreateCommitteeMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useCreateCommitteeMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [createCommitteeMutation, { data, loading, error }] = useCreateCommitteeMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useCreateCommitteeMutation(baseOptions?: Apollo.MutationHookOptions<CreateCommitteeMutation, CreateCommitteeMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<CreateCommitteeMutation, CreateCommitteeMutationVariables>(CreateCommitteeDocument, options);
+      }
+export type CreateCommitteeMutationHookResult = ReturnType<typeof useCreateCommitteeMutation>;
+export type CreateCommitteeMutationResult = Apollo.MutationResult<CreateCommitteeMutation>;
+export type CreateCommitteeMutationOptions = Apollo.BaseMutationOptions<CreateCommitteeMutation, CreateCommitteeMutationVariables>;
+export const CommitteesDocument = gql`
+    query Committees($first: Int!, $after: String) {
+  committees(first: $first, after: $after) {
+    edges {
+      cursor
+      node {
+        id
+        committeeId
+        createdAt
+        name
+        currentMembers {
+          userId
+        }
+      }
+    }
+    pageInfo {
+      endCursor
+      hasNextPage
+    }
+  }
+}
+    `;
+
+/**
+ * __useCommitteesQuery__
+ *
+ * To run a query within a React component, call `useCommitteesQuery` and pass it any options that fit your needs.
+ * When your component renders, `useCommitteesQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useCommitteesQuery({
+ *   variables: {
+ *      first: // value for 'first'
+ *      after: // value for 'after'
+ *   },
+ * });
+ */
+export function useCommitteesQuery(baseOptions: Apollo.QueryHookOptions<CommitteesQuery, CommitteesQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<CommitteesQuery, CommitteesQueryVariables>(CommitteesDocument, options);
+      }
+export function useCommitteesLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<CommitteesQuery, CommitteesQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<CommitteesQuery, CommitteesQueryVariables>(CommitteesDocument, options);
+        }
+export type CommitteesQueryHookResult = ReturnType<typeof useCommitteesQuery>;
+export type CommitteesLazyQueryHookResult = ReturnType<typeof useCommitteesLazyQuery>;
+export type CommitteesQueryResult = Apollo.QueryResult<CommitteesQuery, CommitteesQueryVariables>;
+export const CommitteeRemoveUserDocument = gql`
+    mutation CommitteeRemoveUser($input: CommitteeRemoveUserInput!) {
+  committeeRemoveUser(input: $input) {
+    committee {
+      id
+      committeeId
+      currentMembers {
+        userId
+        email
+        roles
+      }
+    }
+  }
+}
+    `;
+export type CommitteeRemoveUserMutationFn = Apollo.MutationFunction<CommitteeRemoveUserMutation, CommitteeRemoveUserMutationVariables>;
+
+/**
+ * __useCommitteeRemoveUserMutation__
+ *
+ * To run a mutation, you first call `useCommitteeRemoveUserMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useCommitteeRemoveUserMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [committeeRemoveUserMutation, { data, loading, error }] = useCommitteeRemoveUserMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useCommitteeRemoveUserMutation(baseOptions?: Apollo.MutationHookOptions<CommitteeRemoveUserMutation, CommitteeRemoveUserMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<CommitteeRemoveUserMutation, CommitteeRemoveUserMutationVariables>(CommitteeRemoveUserDocument, options);
+      }
+export type CommitteeRemoveUserMutationHookResult = ReturnType<typeof useCommitteeRemoveUserMutation>;
+export type CommitteeRemoveUserMutationResult = Apollo.MutationResult<CommitteeRemoveUserMutation>;
+export type CommitteeRemoveUserMutationOptions = Apollo.BaseMutationOptions<CommitteeRemoveUserMutation, CommitteeRemoveUserMutationVariables>;
+export const GetCreditFacilityDetailsDocument = gql`
+    query GetCreditFacilityDetails($id: UUID!) {
+  creditFacility(id: $id) {
+    id
+    approvalProcessId
+    creditFacilityId
+    collateralizationState
+    status
+    facilityAmount
+    collateral
+    createdAt
+    expiresAt
+    canBeCompleted
+    currentCvl {
+      total
+      disbursed
+    }
+    collateralToMatchInitialCvl @client
+    approvalProcess {
+      approvalProcessId
+      approvalProcessType
+      createdAt
+      subjectCanSubmitDecision
+      status
+      rules {
+        ... on CommitteeThreshold {
+          threshold
+          committee {
+            name
+            currentMembers {
+              email
+              roles
+            }
+          }
+        }
+        ... on SystemApproval {
+          autoApprove
+        }
+      }
+      voters {
+        stillEligible
+        didVote
+        didApprove
+        didDeny
+        user {
+          userId
+          email
+          roles
+        }
+      }
+    }
+    balance {
+      facilityRemaining {
+        usdBalance
+      }
+      disbursed {
+        total {
+          usdBalance
+        }
+        outstanding {
+          usdBalance
+        }
+      }
+      interest {
+        total {
+          usdBalance
+        }
+        outstanding {
+          usdBalance
+        }
+      }
+      outstanding {
+        usdBalance
+      }
+      collateral {
+        btcBalance
+      }
+    }
+    customer {
+      customerId
+      email
+      telegramId
+      status
+      level
+      applicantId
+    }
+    creditFacilityTerms {
+      annualRate
+      accrualInterval
+      incurrenceInterval
+      liquidationCvl
+      marginCallCvl
+      initialCvl
+      duration {
+        period
+        units
+      }
+    }
+    disbursals {
+      id
+      index
+      amount
+      status
+      createdAt
+      approvalProcess {
+        approvalProcessId
+        approvalProcessType
+        createdAt
+        subjectCanSubmitDecision
+        status
+        rules {
+          ... on CommitteeThreshold {
+            threshold
+            committee {
+              name
+              currentMembers {
+                email
+                roles
+              }
+            }
+          }
+          ... on SystemApproval {
+            autoApprove
+          }
+        }
+        voters {
+          stillEligible
+          didVote
+          didApprove
+          didDeny
+          user {
+            userId
+            email
+            roles
+          }
+        }
+      }
+    }
+    transactions {
+      ... on CreditFacilityIncrementalPayment {
+        cents
+        recordedAt
+        txId
+      }
+      ... on CreditFacilityCollateralUpdated {
+        satoshis
+        recordedAt
+        action
+        txId
+      }
+      ... on CreditFacilityOrigination {
+        cents
+        recordedAt
+        txId
+      }
+      ... on CreditFacilityCollateralizationUpdated {
+        state
+        collateral
+        outstandingInterest
+        outstandingDisbursal
+        recordedAt
+        price
+      }
+      ... on CreditFacilityDisbursalExecuted {
+        cents
+        recordedAt
+        txId
+      }
+    }
+    subjectCanUpdateCollateral
+    subjectCanInitiateDisbursal
+    subjectCanRecordPayment
+    subjectCanComplete
+  }
+}
+    `;
+
+/**
+ * __useGetCreditFacilityDetailsQuery__
+ *
+ * To run a query within a React component, call `useGetCreditFacilityDetailsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetCreditFacilityDetailsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetCreditFacilityDetailsQuery({
+ *   variables: {
+ *      id: // value for 'id'
+ *   },
+ * });
+ */
+export function useGetCreditFacilityDetailsQuery(baseOptions: Apollo.QueryHookOptions<GetCreditFacilityDetailsQuery, GetCreditFacilityDetailsQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetCreditFacilityDetailsQuery, GetCreditFacilityDetailsQueryVariables>(GetCreditFacilityDetailsDocument, options);
+      }
+export function useGetCreditFacilityDetailsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetCreditFacilityDetailsQuery, GetCreditFacilityDetailsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetCreditFacilityDetailsQuery, GetCreditFacilityDetailsQueryVariables>(GetCreditFacilityDetailsDocument, options);
+        }
+export type GetCreditFacilityDetailsQueryHookResult = ReturnType<typeof useGetCreditFacilityDetailsQuery>;
+export type GetCreditFacilityDetailsLazyQueryHookResult = ReturnType<typeof useGetCreditFacilityDetailsLazyQuery>;
+export type GetCreditFacilityDetailsQueryResult = Apollo.QueryResult<GetCreditFacilityDetailsQuery, GetCreditFacilityDetailsQueryVariables>;
+export const CreditFacilityCollateralUpdateDocument = gql`
+    mutation CreditFacilityCollateralUpdate($input: CreditFacilityCollateralUpdateInput!) {
+  creditFacilityCollateralUpdate(input: $input) {
+    creditFacility {
+      id
+      creditFacilityId
+      balance {
+        collateral {
+          btcBalance
+        }
+      }
+    }
+  }
+}
+    `;
+export type CreditFacilityCollateralUpdateMutationFn = Apollo.MutationFunction<CreditFacilityCollateralUpdateMutation, CreditFacilityCollateralUpdateMutationVariables>;
+
+/**
+ * __useCreditFacilityCollateralUpdateMutation__
+ *
+ * To run a mutation, you first call `useCreditFacilityCollateralUpdateMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useCreditFacilityCollateralUpdateMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [creditFacilityCollateralUpdateMutation, { data, loading, error }] = useCreditFacilityCollateralUpdateMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useCreditFacilityCollateralUpdateMutation(baseOptions?: Apollo.MutationHookOptions<CreditFacilityCollateralUpdateMutation, CreditFacilityCollateralUpdateMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<CreditFacilityCollateralUpdateMutation, CreditFacilityCollateralUpdateMutationVariables>(CreditFacilityCollateralUpdateDocument, options);
+      }
+export type CreditFacilityCollateralUpdateMutationHookResult = ReturnType<typeof useCreditFacilityCollateralUpdateMutation>;
+export type CreditFacilityCollateralUpdateMutationResult = Apollo.MutationResult<CreditFacilityCollateralUpdateMutation>;
+export type CreditFacilityCollateralUpdateMutationOptions = Apollo.BaseMutationOptions<CreditFacilityCollateralUpdateMutation, CreditFacilityCollateralUpdateMutationVariables>;
+export const CreditFacilityCompleteDocument = gql`
+    mutation CreditFacilityComplete($input: CreditFacilityCompleteInput!) {
+  creditFacilityComplete(input: $input) {
+    creditFacility {
+      id
+      creditFacilityId
+    }
+  }
+}
+    `;
+export type CreditFacilityCompleteMutationFn = Apollo.MutationFunction<CreditFacilityCompleteMutation, CreditFacilityCompleteMutationVariables>;
+
+/**
+ * __useCreditFacilityCompleteMutation__
+ *
+ * To run a mutation, you first call `useCreditFacilityCompleteMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useCreditFacilityCompleteMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [creditFacilityCompleteMutation, { data, loading, error }] = useCreditFacilityCompleteMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useCreditFacilityCompleteMutation(baseOptions?: Apollo.MutationHookOptions<CreditFacilityCompleteMutation, CreditFacilityCompleteMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<CreditFacilityCompleteMutation, CreditFacilityCompleteMutationVariables>(CreditFacilityCompleteDocument, options);
+      }
+export type CreditFacilityCompleteMutationHookResult = ReturnType<typeof useCreditFacilityCompleteMutation>;
+export type CreditFacilityCompleteMutationResult = Apollo.MutationResult<CreditFacilityCompleteMutation>;
+export type CreditFacilityCompleteMutationOptions = Apollo.BaseMutationOptions<CreditFacilityCompleteMutation, CreditFacilityCompleteMutationVariables>;
+export const CreditFacilityCreateDocument = gql`
+    mutation CreditFacilityCreate($input: CreditFacilityCreateInput!) {
+  creditFacilityCreate(input: $input) {
+    creditFacility {
+      id
+      creditFacilityId
+    }
+  }
+}
+    `;
+export type CreditFacilityCreateMutationFn = Apollo.MutationFunction<CreditFacilityCreateMutation, CreditFacilityCreateMutationVariables>;
+
+/**
+ * __useCreditFacilityCreateMutation__
+ *
+ * To run a mutation, you first call `useCreditFacilityCreateMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useCreditFacilityCreateMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [creditFacilityCreateMutation, { data, loading, error }] = useCreditFacilityCreateMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useCreditFacilityCreateMutation(baseOptions?: Apollo.MutationHookOptions<CreditFacilityCreateMutation, CreditFacilityCreateMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<CreditFacilityCreateMutation, CreditFacilityCreateMutationVariables>(CreditFacilityCreateDocument, options);
+      }
+export type CreditFacilityCreateMutationHookResult = ReturnType<typeof useCreditFacilityCreateMutation>;
+export type CreditFacilityCreateMutationResult = Apollo.MutationResult<CreditFacilityCreateMutation>;
+export type CreditFacilityCreateMutationOptions = Apollo.BaseMutationOptions<CreditFacilityCreateMutation, CreditFacilityCreateMutationVariables>;
+export const CreditFacilityDisbursalConfirmDocument = gql`
+    mutation CreditFacilityDisbursalConfirm($input: CreditFacilityDisbursalConfirmInput!) {
+  creditFacilityDisbursalConfirm(input: $input) {
+    disbursal {
+      id
+      index
+    }
+  }
+}
+    `;
+export type CreditFacilityDisbursalConfirmMutationFn = Apollo.MutationFunction<CreditFacilityDisbursalConfirmMutation, CreditFacilityDisbursalConfirmMutationVariables>;
+
+/**
+ * __useCreditFacilityDisbursalConfirmMutation__
+ *
+ * To run a mutation, you first call `useCreditFacilityDisbursalConfirmMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useCreditFacilityDisbursalConfirmMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [creditFacilityDisbursalConfirmMutation, { data, loading, error }] = useCreditFacilityDisbursalConfirmMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useCreditFacilityDisbursalConfirmMutation(baseOptions?: Apollo.MutationHookOptions<CreditFacilityDisbursalConfirmMutation, CreditFacilityDisbursalConfirmMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<CreditFacilityDisbursalConfirmMutation, CreditFacilityDisbursalConfirmMutationVariables>(CreditFacilityDisbursalConfirmDocument, options);
+      }
+export type CreditFacilityDisbursalConfirmMutationHookResult = ReturnType<typeof useCreditFacilityDisbursalConfirmMutation>;
+export type CreditFacilityDisbursalConfirmMutationResult = Apollo.MutationResult<CreditFacilityDisbursalConfirmMutation>;
+export type CreditFacilityDisbursalConfirmMutationOptions = Apollo.BaseMutationOptions<CreditFacilityDisbursalConfirmMutation, CreditFacilityDisbursalConfirmMutationVariables>;
+export const CreditFacilityDisbursalInitiateDocument = gql`
+    mutation CreditFacilityDisbursalInitiate($input: CreditFacilityDisbursalInitiateInput!) {
+  creditFacilityDisbursalInitiate(input: $input) {
+    disbursal {
+      id
+      index
+    }
+  }
+}
+    `;
+export type CreditFacilityDisbursalInitiateMutationFn = Apollo.MutationFunction<CreditFacilityDisbursalInitiateMutation, CreditFacilityDisbursalInitiateMutationVariables>;
+
+/**
+ * __useCreditFacilityDisbursalInitiateMutation__
+ *
+ * To run a mutation, you first call `useCreditFacilityDisbursalInitiateMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useCreditFacilityDisbursalInitiateMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [creditFacilityDisbursalInitiateMutation, { data, loading, error }] = useCreditFacilityDisbursalInitiateMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useCreditFacilityDisbursalInitiateMutation(baseOptions?: Apollo.MutationHookOptions<CreditFacilityDisbursalInitiateMutation, CreditFacilityDisbursalInitiateMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<CreditFacilityDisbursalInitiateMutation, CreditFacilityDisbursalInitiateMutationVariables>(CreditFacilityDisbursalInitiateDocument, options);
+      }
+export type CreditFacilityDisbursalInitiateMutationHookResult = ReturnType<typeof useCreditFacilityDisbursalInitiateMutation>;
+export type CreditFacilityDisbursalInitiateMutationResult = Apollo.MutationResult<CreditFacilityDisbursalInitiateMutation>;
+export type CreditFacilityDisbursalInitiateMutationOptions = Apollo.BaseMutationOptions<CreditFacilityDisbursalInitiateMutation, CreditFacilityDisbursalInitiateMutationVariables>;
+export const CreditFacilitiesDocument = gql`
+    query CreditFacilities($first: Int!, $after: String) {
+  creditFacilities(first: $first, after: $after) {
+    edges {
+      cursor
+      node {
+        id
+        creditFacilityId
+        collateralizationState
+        createdAt
+        status
+        facilityAmount
+        collateral
+        customer {
+          customerId
+          email
+        }
+        balance {
+          outstanding {
+            usdBalance
+          }
+        }
+      }
+    }
+    pageInfo {
+      endCursor
+      hasNextPage
+    }
+  }
+}
+    `;
+
+/**
+ * __useCreditFacilitiesQuery__
+ *
+ * To run a query within a React component, call `useCreditFacilitiesQuery` and pass it any options that fit your needs.
+ * When your component renders, `useCreditFacilitiesQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useCreditFacilitiesQuery({
+ *   variables: {
+ *      first: // value for 'first'
+ *      after: // value for 'after'
+ *   },
+ * });
+ */
+export function useCreditFacilitiesQuery(baseOptions: Apollo.QueryHookOptions<CreditFacilitiesQuery, CreditFacilitiesQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<CreditFacilitiesQuery, CreditFacilitiesQueryVariables>(CreditFacilitiesDocument, options);
+      }
+export function useCreditFacilitiesLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<CreditFacilitiesQuery, CreditFacilitiesQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<CreditFacilitiesQuery, CreditFacilitiesQueryVariables>(CreditFacilitiesDocument, options);
+        }
+export type CreditFacilitiesQueryHookResult = ReturnType<typeof useCreditFacilitiesQuery>;
+export type CreditFacilitiesLazyQueryHookResult = ReturnType<typeof useCreditFacilitiesLazyQuery>;
+export type CreditFacilitiesQueryResult = Apollo.QueryResult<CreditFacilitiesQuery, CreditFacilitiesQueryVariables>;
+export const CreditFacilityPartialPaymentDocument = gql`
+    mutation CreditFacilityPartialPayment($input: CreditFacilityPartialPaymentInput!) {
+  creditFacilityPartialPayment(input: $input) {
+    creditFacility {
+      id
+      creditFacilityId
+    }
+  }
+}
+    `;
+export type CreditFacilityPartialPaymentMutationFn = Apollo.MutationFunction<CreditFacilityPartialPaymentMutation, CreditFacilityPartialPaymentMutationVariables>;
+
+/**
+ * __useCreditFacilityPartialPaymentMutation__
+ *
+ * To run a mutation, you first call `useCreditFacilityPartialPaymentMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useCreditFacilityPartialPaymentMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [creditFacilityPartialPaymentMutation, { data, loading, error }] = useCreditFacilityPartialPaymentMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useCreditFacilityPartialPaymentMutation(baseOptions?: Apollo.MutationHookOptions<CreditFacilityPartialPaymentMutation, CreditFacilityPartialPaymentMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<CreditFacilityPartialPaymentMutation, CreditFacilityPartialPaymentMutationVariables>(CreditFacilityPartialPaymentDocument, options);
+      }
+export type CreditFacilityPartialPaymentMutationHookResult = ReturnType<typeof useCreditFacilityPartialPaymentMutation>;
+export type CreditFacilityPartialPaymentMutationResult = Apollo.MutationResult<CreditFacilityPartialPaymentMutation>;
+export type CreditFacilityPartialPaymentMutationOptions = Apollo.BaseMutationOptions<CreditFacilityPartialPaymentMutation, CreditFacilityPartialPaymentMutationVariables>;
+export const DocumentDownloadLinkGenerateDocument = gql`
+    mutation DocumentDownloadLinkGenerate($input: DocumentDownloadLinksGenerateInput!) {
+  documentDownloadLinkGenerate(input: $input) {
+    link
+  }
+}
+    `;
+export type DocumentDownloadLinkGenerateMutationFn = Apollo.MutationFunction<DocumentDownloadLinkGenerateMutation, DocumentDownloadLinkGenerateMutationVariables>;
+
+/**
+ * __useDocumentDownloadLinkGenerateMutation__
+ *
+ * To run a mutation, you first call `useDocumentDownloadLinkGenerateMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useDocumentDownloadLinkGenerateMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [documentDownloadLinkGenerateMutation, { data, loading, error }] = useDocumentDownloadLinkGenerateMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useDocumentDownloadLinkGenerateMutation(baseOptions?: Apollo.MutationHookOptions<DocumentDownloadLinkGenerateMutation, DocumentDownloadLinkGenerateMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<DocumentDownloadLinkGenerateMutation, DocumentDownloadLinkGenerateMutationVariables>(DocumentDownloadLinkGenerateDocument, options);
+      }
+export type DocumentDownloadLinkGenerateMutationHookResult = ReturnType<typeof useDocumentDownloadLinkGenerateMutation>;
+export type DocumentDownloadLinkGenerateMutationResult = Apollo.MutationResult<DocumentDownloadLinkGenerateMutation>;
+export type DocumentDownloadLinkGenerateMutationOptions = Apollo.BaseMutationOptions<DocumentDownloadLinkGenerateMutation, DocumentDownloadLinkGenerateMutationVariables>;
+export const DocumentDeleteDocument = gql`
+    mutation DocumentDelete($input: DocumentDeleteInput!) {
+  documentDelete(input: $input) {
+    deletedDocumentId
+  }
+}
+    `;
+export type DocumentDeleteMutationFn = Apollo.MutationFunction<DocumentDeleteMutation, DocumentDeleteMutationVariables>;
+
+/**
+ * __useDocumentDeleteMutation__
+ *
+ * To run a mutation, you first call `useDocumentDeleteMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useDocumentDeleteMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [documentDeleteMutation, { data, loading, error }] = useDocumentDeleteMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useDocumentDeleteMutation(baseOptions?: Apollo.MutationHookOptions<DocumentDeleteMutation, DocumentDeleteMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<DocumentDeleteMutation, DocumentDeleteMutationVariables>(DocumentDeleteDocument, options);
+      }
+export type DocumentDeleteMutationHookResult = ReturnType<typeof useDocumentDeleteMutation>;
+export type DocumentDeleteMutationResult = Apollo.MutationResult<DocumentDeleteMutation>;
+export type DocumentDeleteMutationOptions = Apollo.BaseMutationOptions<DocumentDeleteMutation, DocumentDeleteMutationVariables>;
+export const CustomerDocumentAttachDocument = gql`
+    mutation CustomerDocumentAttach($file: Upload!, $customerId: UUID!) {
+  customerDocumentAttach(input: {file: $file, customerId: $customerId}) {
+    document {
+      id
+      customerId
+      filename
+    }
+  }
+}
+    `;
+export type CustomerDocumentAttachMutationFn = Apollo.MutationFunction<CustomerDocumentAttachMutation, CustomerDocumentAttachMutationVariables>;
+
+/**
+ * __useCustomerDocumentAttachMutation__
+ *
+ * To run a mutation, you first call `useCustomerDocumentAttachMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useCustomerDocumentAttachMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [customerDocumentAttachMutation, { data, loading, error }] = useCustomerDocumentAttachMutation({
+ *   variables: {
+ *      file: // value for 'file'
+ *      customerId: // value for 'customerId'
+ *   },
+ * });
+ */
+export function useCustomerDocumentAttachMutation(baseOptions?: Apollo.MutationHookOptions<CustomerDocumentAttachMutation, CustomerDocumentAttachMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<CustomerDocumentAttachMutation, CustomerDocumentAttachMutationVariables>(CustomerDocumentAttachDocument, options);
+      }
+export type CustomerDocumentAttachMutationHookResult = ReturnType<typeof useCustomerDocumentAttachMutation>;
+export type CustomerDocumentAttachMutationResult = Apollo.MutationResult<CustomerDocumentAttachMutation>;
+export type CustomerDocumentAttachMutationOptions = Apollo.BaseMutationOptions<CustomerDocumentAttachMutation, CustomerDocumentAttachMutationVariables>;
+export const GetKycStatusForCustomerDocument = gql`
+    query GetKycStatusForCustomer($id: UUID!) {
+  customer(id: $id) {
+    customerId
+    status
+    level
+    applicantId
+  }
+}
+    `;
+
+/**
+ * __useGetKycStatusForCustomerQuery__
+ *
+ * To run a query within a React component, call `useGetKycStatusForCustomerQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetKycStatusForCustomerQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetKycStatusForCustomerQuery({
+ *   variables: {
+ *      id: // value for 'id'
+ *   },
+ * });
+ */
+export function useGetKycStatusForCustomerQuery(baseOptions: Apollo.QueryHookOptions<GetKycStatusForCustomerQuery, GetKycStatusForCustomerQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetKycStatusForCustomerQuery, GetKycStatusForCustomerQueryVariables>(GetKycStatusForCustomerDocument, options);
+      }
+export function useGetKycStatusForCustomerLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetKycStatusForCustomerQuery, GetKycStatusForCustomerQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetKycStatusForCustomerQuery, GetKycStatusForCustomerQueryVariables>(GetKycStatusForCustomerDocument, options);
+        }
+export type GetKycStatusForCustomerQueryHookResult = ReturnType<typeof useGetKycStatusForCustomerQuery>;
+export type GetKycStatusForCustomerLazyQueryHookResult = ReturnType<typeof useGetKycStatusForCustomerLazyQuery>;
+export type GetKycStatusForCustomerQueryResult = Apollo.QueryResult<GetKycStatusForCustomerQuery, GetKycStatusForCustomerQueryVariables>;
+export const SumsubPermalinkCreateDocument = gql`
+    mutation sumsubPermalinkCreate($input: SumsubPermalinkCreateInput!) {
+  sumsubPermalinkCreate(input: $input) {
+    url
+  }
+}
+    `;
+export type SumsubPermalinkCreateMutationFn = Apollo.MutationFunction<SumsubPermalinkCreateMutation, SumsubPermalinkCreateMutationVariables>;
+
+/**
+ * __useSumsubPermalinkCreateMutation__
+ *
+ * To run a mutation, you first call `useSumsubPermalinkCreateMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useSumsubPermalinkCreateMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [sumsubPermalinkCreateMutation, { data, loading, error }] = useSumsubPermalinkCreateMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useSumsubPermalinkCreateMutation(baseOptions?: Apollo.MutationHookOptions<SumsubPermalinkCreateMutation, SumsubPermalinkCreateMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<SumsubPermalinkCreateMutation, SumsubPermalinkCreateMutationVariables>(SumsubPermalinkCreateDocument, options);
+      }
+export type SumsubPermalinkCreateMutationHookResult = ReturnType<typeof useSumsubPermalinkCreateMutation>;
+export type SumsubPermalinkCreateMutationResult = Apollo.MutationResult<SumsubPermalinkCreateMutation>;
+export type SumsubPermalinkCreateMutationOptions = Apollo.BaseMutationOptions<SumsubPermalinkCreateMutation, SumsubPermalinkCreateMutationVariables>;
+export const GetCustomerDocument = gql`
+    query GetCustomer($id: UUID!) {
+  customer(id: $id) {
+    customerId
+    email
+    telegramId
+    status
+    level
+    applicantId
+    subjectCanRecordDeposit
+    subjectCanInitiateWithdrawal
+    subjectCanCreateCreditFacility
+    balance {
+      checking {
+        settled
+        pending
+      }
+    }
+    creditFacilities {
+      id
+      creditFacilityId
+      collateralizationState
+      status
+      balance {
+        collateral {
+          btcBalance
+        }
+        outstanding {
+          usdBalance
+        }
+      }
+    }
+    deposits {
+      createdAt
+      customerId
+      depositId
+      reference
+      amount
+    }
+    withdrawals {
+      status
+      reference
+      customerId
+      createdAt
+      withdrawalId
+      amount
+      customer {
+        customerId
+        email
+      }
+    }
+    transactions @client {
+      ... on Deposit {
+        createdAt
+        customerId
+        depositId
+        reference
+        amount
+      }
+      ... on Withdrawal {
+        status
+        reference
+        customerId
+        withdrawalId
+        createdAt
+        amount
+        customer {
+          customerId
+          email
+        }
+      }
+    }
+    documents {
+      id
+      filename
+    }
+  }
+}
+    `;
+
+/**
+ * __useGetCustomerQuery__
+ *
+ * To run a query within a React component, call `useGetCustomerQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetCustomerQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetCustomerQuery({
+ *   variables: {
+ *      id: // value for 'id'
+ *   },
+ * });
+ */
+export function useGetCustomerQuery(baseOptions: Apollo.QueryHookOptions<GetCustomerQuery, GetCustomerQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetCustomerQuery, GetCustomerQueryVariables>(GetCustomerDocument, options);
+      }
+export function useGetCustomerLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetCustomerQuery, GetCustomerQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetCustomerQuery, GetCustomerQueryVariables>(GetCustomerDocument, options);
+        }
+export type GetCustomerQueryHookResult = ReturnType<typeof useGetCustomerQuery>;
+export type GetCustomerLazyQueryHookResult = ReturnType<typeof useGetCustomerLazyQuery>;
+export type GetCustomerQueryResult = Apollo.QueryResult<GetCustomerQuery, GetCustomerQueryVariables>;
+export const CustomerUpdateDocument = gql`
+    mutation CustomerUpdate($input: CustomerUpdateInput!) {
+  customerUpdate(input: $input) {
+    customer {
+      customerId
+      email
+      status
+      level
+      applicantId
+    }
+  }
+}
+    `;
+export type CustomerUpdateMutationFn = Apollo.MutationFunction<CustomerUpdateMutation, CustomerUpdateMutationVariables>;
+
+/**
+ * __useCustomerUpdateMutation__
+ *
+ * To run a mutation, you first call `useCustomerUpdateMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useCustomerUpdateMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [customerUpdateMutation, { data, loading, error }] = useCustomerUpdateMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useCustomerUpdateMutation(baseOptions?: Apollo.MutationHookOptions<CustomerUpdateMutation, CustomerUpdateMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<CustomerUpdateMutation, CustomerUpdateMutationVariables>(CustomerUpdateDocument, options);
+      }
+export type CustomerUpdateMutationHookResult = ReturnType<typeof useCustomerUpdateMutation>;
+export type CustomerUpdateMutationResult = Apollo.MutationResult<CustomerUpdateMutation>;
+export type CustomerUpdateMutationOptions = Apollo.BaseMutationOptions<CustomerUpdateMutation, CustomerUpdateMutationVariables>;
+export const CustomerCreateDocument = gql`
+    mutation CustomerCreate($input: CustomerCreateInput!) {
   customerCreate(input: $input) {
     customer {
       customerId
@@ -1766,52 +3467,146 @@ export const CreateCustomerDocument = gql`
   }
 }
     `;
-export type CreateCustomerMutationFn = Apollo.MutationFunction<CreateCustomerMutation, CreateCustomerMutationVariables>;
+export type CustomerCreateMutationFn = Apollo.MutationFunction<CustomerCreateMutation, CustomerCreateMutationVariables>;
 
 /**
- * __useCreateCustomerMutation__
+ * __useCustomerCreateMutation__
  *
- * To run a mutation, you first call `useCreateCustomerMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useCreateCustomerMutation` returns a tuple that includes:
+ * To run a mutation, you first call `useCustomerCreateMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useCustomerCreateMutation` returns a tuple that includes:
  * - A mutate function that you can call at any time to execute the mutation
  * - An object with fields that represent the current status of the mutation's execution
  *
  * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
  *
  * @example
- * const [createCustomerMutation, { data, loading, error }] = useCreateCustomerMutation({
+ * const [customerCreateMutation, { data, loading, error }] = useCustomerCreateMutation({
  *   variables: {
  *      input: // value for 'input'
  *   },
  * });
  */
-export function useCreateCustomerMutation(baseOptions?: Apollo.MutationHookOptions<CreateCustomerMutation, CreateCustomerMutationVariables>) {
+export function useCustomerCreateMutation(baseOptions?: Apollo.MutationHookOptions<CustomerCreateMutation, CustomerCreateMutationVariables>) {
         const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<CreateCustomerMutation, CreateCustomerMutationVariables>(CreateCustomerDocument, options);
+        return Apollo.useMutation<CustomerCreateMutation, CustomerCreateMutationVariables>(CustomerCreateDocument, options);
       }
-export type CreateCustomerMutationHookResult = ReturnType<typeof useCreateCustomerMutation>;
-export type CreateCustomerMutationResult = Apollo.MutationResult<CreateCustomerMutation>;
-export type CreateCustomerMutationOptions = Apollo.BaseMutationOptions<CreateCustomerMutation, CreateCustomerMutationVariables>;
+export type CustomerCreateMutationHookResult = ReturnType<typeof useCustomerCreateMutation>;
+export type CustomerCreateMutationResult = Apollo.MutationResult<CustomerCreateMutation>;
+export type CustomerCreateMutationOptions = Apollo.BaseMutationOptions<CustomerCreateMutation, CustomerCreateMutationVariables>;
+export const GetCustomerByCustomerEmailDocument = gql`
+    query getCustomerByCustomerEmail($email: String!) {
+  customerByEmail(email: $email) {
+    customerId
+    email
+    telegramId
+    status
+    level
+    applicantId
+    subjectCanRecordDeposit
+    subjectCanInitiateWithdrawal
+    subjectCanCreateCreditFacility
+    balance {
+      checking {
+        settled
+        pending
+      }
+    }
+  }
+}
+    `;
+
+/**
+ * __useGetCustomerByCustomerEmailQuery__
+ *
+ * To run a query within a React component, call `useGetCustomerByCustomerEmailQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetCustomerByCustomerEmailQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetCustomerByCustomerEmailQuery({
+ *   variables: {
+ *      email: // value for 'email'
+ *   },
+ * });
+ */
+export function useGetCustomerByCustomerEmailQuery(baseOptions: Apollo.QueryHookOptions<GetCustomerByCustomerEmailQuery, GetCustomerByCustomerEmailQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetCustomerByCustomerEmailQuery, GetCustomerByCustomerEmailQueryVariables>(GetCustomerByCustomerEmailDocument, options);
+      }
+export function useGetCustomerByCustomerEmailLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetCustomerByCustomerEmailQuery, GetCustomerByCustomerEmailQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetCustomerByCustomerEmailQuery, GetCustomerByCustomerEmailQueryVariables>(GetCustomerByCustomerEmailDocument, options);
+        }
+export type GetCustomerByCustomerEmailQueryHookResult = ReturnType<typeof useGetCustomerByCustomerEmailQuery>;
+export type GetCustomerByCustomerEmailLazyQueryHookResult = ReturnType<typeof useGetCustomerByCustomerEmailLazyQuery>;
+export type GetCustomerByCustomerEmailQueryResult = Apollo.QueryResult<GetCustomerByCustomerEmailQuery, GetCustomerByCustomerEmailQueryVariables>;
+export const GetCustomerByCustomerIdDocument = gql`
+    query getCustomerByCustomerId($id: UUID!) {
+  customer(id: $id) {
+    customerId
+    email
+    telegramId
+    status
+    level
+    applicantId
+    subjectCanRecordDeposit
+    subjectCanInitiateWithdrawal
+    subjectCanCreateCreditFacility
+    balance {
+      checking {
+        settled
+        pending
+      }
+    }
+  }
+}
+    `;
+
+/**
+ * __useGetCustomerByCustomerIdQuery__
+ *
+ * To run a query within a React component, call `useGetCustomerByCustomerIdQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetCustomerByCustomerIdQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetCustomerByCustomerIdQuery({
+ *   variables: {
+ *      id: // value for 'id'
+ *   },
+ * });
+ */
+export function useGetCustomerByCustomerIdQuery(baseOptions: Apollo.QueryHookOptions<GetCustomerByCustomerIdQuery, GetCustomerByCustomerIdQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetCustomerByCustomerIdQuery, GetCustomerByCustomerIdQueryVariables>(GetCustomerByCustomerIdDocument, options);
+      }
+export function useGetCustomerByCustomerIdLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetCustomerByCustomerIdQuery, GetCustomerByCustomerIdQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetCustomerByCustomerIdQuery, GetCustomerByCustomerIdQueryVariables>(GetCustomerByCustomerIdDocument, options);
+        }
+export type GetCustomerByCustomerIdQueryHookResult = ReturnType<typeof useGetCustomerByCustomerIdQuery>;
+export type GetCustomerByCustomerIdLazyQueryHookResult = ReturnType<typeof useGetCustomerByCustomerIdLazyQuery>;
+export type GetCustomerByCustomerIdQueryResult = Apollo.QueryResult<GetCustomerByCustomerIdQuery, GetCustomerByCustomerIdQueryVariables>;
 export const CustomersDocument = gql`
     query Customers($first: Int!, $after: String) {
   customers(first: $first, after: $after) {
-    edges {
-      node {
-        id
-        customerId
-        status
-        level
-        email
-        telegramId
-        applicantId
-        balance {
-          checking {
-            settled
-            pending
-          }
+    nodes {
+      customerId
+      email
+      telegramId
+      subjectCanRecordDeposit
+      subjectCanInitiateWithdrawal
+      subjectCanCreateCreditFacility
+      balance {
+        checking {
+          settled
+          pending
         }
       }
-      cursor
     }
     pageInfo {
       endCursor
@@ -1851,3 +3646,1435 @@ export function useCustomersLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<
 export type CustomersQueryHookResult = ReturnType<typeof useCustomersQuery>;
 export type CustomersLazyQueryHookResult = ReturnType<typeof useCustomersLazyQuery>;
 export type CustomersQueryResult = Apollo.QueryResult<CustomersQuery, CustomersQueryVariables>;
+export const DepositsDocument = gql`
+    query Deposits($first: Int!, $after: String) {
+  deposits(first: $first, after: $after) {
+    pageInfo {
+      hasPreviousPage
+      hasNextPage
+      startCursor
+      endCursor
+    }
+    nodes {
+      customerId
+      depositId
+      amount
+      reference
+      customer {
+        customerId
+        email
+      }
+    }
+  }
+}
+    `;
+
+/**
+ * __useDepositsQuery__
+ *
+ * To run a query within a React component, call `useDepositsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useDepositsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useDepositsQuery({
+ *   variables: {
+ *      first: // value for 'first'
+ *      after: // value for 'after'
+ *   },
+ * });
+ */
+export function useDepositsQuery(baseOptions: Apollo.QueryHookOptions<DepositsQuery, DepositsQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<DepositsQuery, DepositsQueryVariables>(DepositsDocument, options);
+      }
+export function useDepositsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<DepositsQuery, DepositsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<DepositsQuery, DepositsQueryVariables>(DepositsDocument, options);
+        }
+export type DepositsQueryHookResult = ReturnType<typeof useDepositsQuery>;
+export type DepositsLazyQueryHookResult = ReturnType<typeof useDepositsLazyQuery>;
+export type DepositsQueryResult = Apollo.QueryResult<DepositsQuery, DepositsQueryVariables>;
+export const DepositDocument = gql`
+    query Deposit($id: UUID!) {
+  deposit(id: $id) {
+    customerId
+    depositId
+    amount
+    reference
+    customer {
+      customerId
+      email
+      applicantId
+    }
+  }
+}
+    `;
+
+/**
+ * __useDepositQuery__
+ *
+ * To run a query within a React component, call `useDepositQuery` and pass it any options that fit your needs.
+ * When your component renders, `useDepositQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useDepositQuery({
+ *   variables: {
+ *      id: // value for 'id'
+ *   },
+ * });
+ */
+export function useDepositQuery(baseOptions: Apollo.QueryHookOptions<DepositQuery, DepositQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<DepositQuery, DepositQueryVariables>(DepositDocument, options);
+      }
+export function useDepositLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<DepositQuery, DepositQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<DepositQuery, DepositQueryVariables>(DepositDocument, options);
+        }
+export type DepositQueryHookResult = ReturnType<typeof useDepositQuery>;
+export type DepositLazyQueryHookResult = ReturnType<typeof useDepositLazyQuery>;
+export type DepositQueryResult = Apollo.QueryResult<DepositQuery, DepositQueryVariables>;
+export const RecordDepositDocument = gql`
+    mutation RecordDeposit($input: DepositRecordInput!) {
+  depositRecord(input: $input) {
+    deposit {
+      depositId
+      amount
+      customer {
+        customerId
+        email
+        balance {
+          checking {
+            settled
+          }
+        }
+      }
+    }
+  }
+}
+    `;
+export type RecordDepositMutationFn = Apollo.MutationFunction<RecordDepositMutation, RecordDepositMutationVariables>;
+
+/**
+ * __useRecordDepositMutation__
+ *
+ * To run a mutation, you first call `useRecordDepositMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useRecordDepositMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [recordDepositMutation, { data, loading, error }] = useRecordDepositMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useRecordDepositMutation(baseOptions?: Apollo.MutationHookOptions<RecordDepositMutation, RecordDepositMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<RecordDepositMutation, RecordDepositMutationVariables>(RecordDepositDocument, options);
+      }
+export type RecordDepositMutationHookResult = ReturnType<typeof useRecordDepositMutation>;
+export type RecordDepositMutationResult = Apollo.MutationResult<RecordDepositMutation>;
+export type RecordDepositMutationOptions = Apollo.BaseMutationOptions<RecordDepositMutation, RecordDepositMutationVariables>;
+export const PolicyAssignCommitteeDocument = gql`
+    mutation PolicyAssignCommittee($input: PolicyAssignCommitteeInput!) {
+  policyAssignCommittee(input: $input) {
+    policy {
+      id
+      policyId
+      approvalProcessType
+    }
+  }
+}
+    `;
+export type PolicyAssignCommitteeMutationFn = Apollo.MutationFunction<PolicyAssignCommitteeMutation, PolicyAssignCommitteeMutationVariables>;
+
+/**
+ * __usePolicyAssignCommitteeMutation__
+ *
+ * To run a mutation, you first call `usePolicyAssignCommitteeMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `usePolicyAssignCommitteeMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [policyAssignCommitteeMutation, { data, loading, error }] = usePolicyAssignCommitteeMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function usePolicyAssignCommitteeMutation(baseOptions?: Apollo.MutationHookOptions<PolicyAssignCommitteeMutation, PolicyAssignCommitteeMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<PolicyAssignCommitteeMutation, PolicyAssignCommitteeMutationVariables>(PolicyAssignCommitteeDocument, options);
+      }
+export type PolicyAssignCommitteeMutationHookResult = ReturnType<typeof usePolicyAssignCommitteeMutation>;
+export type PolicyAssignCommitteeMutationResult = Apollo.MutationResult<PolicyAssignCommitteeMutation>;
+export type PolicyAssignCommitteeMutationOptions = Apollo.BaseMutationOptions<PolicyAssignCommitteeMutation, PolicyAssignCommitteeMutationVariables>;
+export const GetPolicyDetailsDocument = gql`
+    query GetPolicyDetails($id: UUID!) {
+  policy(id: $id) {
+    id
+    policyId
+    approvalProcessType
+    rules {
+      ... on CommitteeThreshold {
+        threshold
+        committee {
+          id
+          committeeId
+          createdAt
+          name
+          currentMembers {
+            userId
+            email
+            roles
+          }
+        }
+      }
+      ... on SystemApproval {
+        autoApprove
+      }
+    }
+  }
+}
+    `;
+
+/**
+ * __useGetPolicyDetailsQuery__
+ *
+ * To run a query within a React component, call `useGetPolicyDetailsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetPolicyDetailsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetPolicyDetailsQuery({
+ *   variables: {
+ *      id: // value for 'id'
+ *   },
+ * });
+ */
+export function useGetPolicyDetailsQuery(baseOptions: Apollo.QueryHookOptions<GetPolicyDetailsQuery, GetPolicyDetailsQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetPolicyDetailsQuery, GetPolicyDetailsQueryVariables>(GetPolicyDetailsDocument, options);
+      }
+export function useGetPolicyDetailsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetPolicyDetailsQuery, GetPolicyDetailsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetPolicyDetailsQuery, GetPolicyDetailsQueryVariables>(GetPolicyDetailsDocument, options);
+        }
+export type GetPolicyDetailsQueryHookResult = ReturnType<typeof useGetPolicyDetailsQuery>;
+export type GetPolicyDetailsLazyQueryHookResult = ReturnType<typeof useGetPolicyDetailsLazyQuery>;
+export type GetPolicyDetailsQueryResult = Apollo.QueryResult<GetPolicyDetailsQuery, GetPolicyDetailsQueryVariables>;
+export const PoliciesDocument = gql`
+    query Policies($first: Int!, $after: String) {
+  policies(first: $first, after: $after) {
+    edges {
+      cursor
+      node {
+        id
+        policyId
+        approvalProcessType
+        rules {
+          ... on CommitteeThreshold {
+            threshold
+            committee {
+              id
+              committeeId
+              createdAt
+              name
+            }
+          }
+          ... on SystemApproval {
+            autoApprove
+          }
+        }
+      }
+    }
+    pageInfo {
+      hasPreviousPage
+      hasNextPage
+      startCursor
+      endCursor
+    }
+  }
+}
+    `;
+
+/**
+ * __usePoliciesQuery__
+ *
+ * To run a query within a React component, call `usePoliciesQuery` and pass it any options that fit your needs.
+ * When your component renders, `usePoliciesQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = usePoliciesQuery({
+ *   variables: {
+ *      first: // value for 'first'
+ *      after: // value for 'after'
+ *   },
+ * });
+ */
+export function usePoliciesQuery(baseOptions: Apollo.QueryHookOptions<PoliciesQuery, PoliciesQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<PoliciesQuery, PoliciesQueryVariables>(PoliciesDocument, options);
+      }
+export function usePoliciesLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<PoliciesQuery, PoliciesQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<PoliciesQuery, PoliciesQueryVariables>(PoliciesDocument, options);
+        }
+export type PoliciesQueryHookResult = ReturnType<typeof usePoliciesQuery>;
+export type PoliciesLazyQueryHookResult = ReturnType<typeof usePoliciesLazyQuery>;
+export type PoliciesQueryResult = Apollo.QueryResult<PoliciesQuery, PoliciesQueryVariables>;
+export const PnlAccountSetDocument = gql`
+    query PnlAccountSet($accountSetId: UUID!, $first: Int!, $after: String, $from: Timestamp!, $until: Timestamp) {
+  accountSet(accountSetId: $accountSetId, from: $from, until: $until) {
+    id
+    name
+    amounts {
+      ...balancesByCurrency
+    }
+    subAccounts(first: $first, after: $after) {
+      edges {
+        cursor
+        node {
+          __typename
+          ... on Account {
+            __typename
+            id
+            name
+            amounts {
+              ...balancesByCurrency
+            }
+          }
+          ... on AccountSet {
+            __typename
+            id
+            name
+            hasSubAccounts
+            amounts {
+              ...balancesByCurrency
+            }
+          }
+        }
+      }
+      pageInfo {
+        hasNextPage
+      }
+    }
+  }
+}
+    ${BalancesByCurrencyFragmentDoc}`;
+
+/**
+ * __usePnlAccountSetQuery__
+ *
+ * To run a query within a React component, call `usePnlAccountSetQuery` and pass it any options that fit your needs.
+ * When your component renders, `usePnlAccountSetQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = usePnlAccountSetQuery({
+ *   variables: {
+ *      accountSetId: // value for 'accountSetId'
+ *      first: // value for 'first'
+ *      after: // value for 'after'
+ *      from: // value for 'from'
+ *      until: // value for 'until'
+ *   },
+ * });
+ */
+export function usePnlAccountSetQuery(baseOptions: Apollo.QueryHookOptions<PnlAccountSetQuery, PnlAccountSetQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<PnlAccountSetQuery, PnlAccountSetQueryVariables>(PnlAccountSetDocument, options);
+      }
+export function usePnlAccountSetLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<PnlAccountSetQuery, PnlAccountSetQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<PnlAccountSetQuery, PnlAccountSetQueryVariables>(PnlAccountSetDocument, options);
+        }
+export type PnlAccountSetQueryHookResult = ReturnType<typeof usePnlAccountSetQuery>;
+export type PnlAccountSetLazyQueryHookResult = ReturnType<typeof usePnlAccountSetLazyQuery>;
+export type PnlAccountSetQueryResult = Apollo.QueryResult<PnlAccountSetQuery, PnlAccountSetQueryVariables>;
+export const ProfitAndLossStatementDocument = gql`
+    query ProfitAndLossStatement($from: Timestamp!, $until: Timestamp) {
+  profitAndLossStatement(from: $from, until: $until) {
+    name
+    net {
+      ...balancesByCurrency
+    }
+    categories {
+      name
+      amounts {
+        ...balancesByCurrency
+      }
+      accounts {
+        ... on Account {
+          __typename
+          id
+          name
+          amounts {
+            ...balancesByCurrency
+          }
+        }
+        ... on AccountSet {
+          __typename
+          id
+          name
+          hasSubAccounts
+          amounts {
+            ...balancesByCurrency
+          }
+        }
+      }
+    }
+  }
+}
+    ${BalancesByCurrencyFragmentDoc}`;
+
+/**
+ * __useProfitAndLossStatementQuery__
+ *
+ * To run a query within a React component, call `useProfitAndLossStatementQuery` and pass it any options that fit your needs.
+ * When your component renders, `useProfitAndLossStatementQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useProfitAndLossStatementQuery({
+ *   variables: {
+ *      from: // value for 'from'
+ *      until: // value for 'until'
+ *   },
+ * });
+ */
+export function useProfitAndLossStatementQuery(baseOptions: Apollo.QueryHookOptions<ProfitAndLossStatementQuery, ProfitAndLossStatementQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<ProfitAndLossStatementQuery, ProfitAndLossStatementQueryVariables>(ProfitAndLossStatementDocument, options);
+      }
+export function useProfitAndLossStatementLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<ProfitAndLossStatementQuery, ProfitAndLossStatementQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<ProfitAndLossStatementQuery, ProfitAndLossStatementQueryVariables>(ProfitAndLossStatementDocument, options);
+        }
+export type ProfitAndLossStatementQueryHookResult = ReturnType<typeof useProfitAndLossStatementQuery>;
+export type ProfitAndLossStatementLazyQueryHookResult = ReturnType<typeof useProfitAndLossStatementLazyQuery>;
+export type ProfitAndLossStatementQueryResult = Apollo.QueryResult<ProfitAndLossStatementQuery, ProfitAndLossStatementQueryVariables>;
+export const ReportCreateDocument = gql`
+    mutation ReportCreate {
+  reportCreate {
+    report {
+      reportId
+      createdAt
+      lastError
+      progress
+    }
+  }
+}
+    `;
+export type ReportCreateMutationFn = Apollo.MutationFunction<ReportCreateMutation, ReportCreateMutationVariables>;
+
+/**
+ * __useReportCreateMutation__
+ *
+ * To run a mutation, you first call `useReportCreateMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useReportCreateMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [reportCreateMutation, { data, loading, error }] = useReportCreateMutation({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useReportCreateMutation(baseOptions?: Apollo.MutationHookOptions<ReportCreateMutation, ReportCreateMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<ReportCreateMutation, ReportCreateMutationVariables>(ReportCreateDocument, options);
+      }
+export type ReportCreateMutationHookResult = ReturnType<typeof useReportCreateMutation>;
+export type ReportCreateMutationResult = Apollo.MutationResult<ReportCreateMutation>;
+export type ReportCreateMutationOptions = Apollo.BaseMutationOptions<ReportCreateMutation, ReportCreateMutationVariables>;
+export const ReportsDocument = gql`
+    query Reports {
+  reports {
+    reportId
+    createdAt
+    lastError
+    progress
+  }
+}
+    `;
+
+/**
+ * __useReportsQuery__
+ *
+ * To run a query within a React component, call `useReportsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useReportsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useReportsQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useReportsQuery(baseOptions?: Apollo.QueryHookOptions<ReportsQuery, ReportsQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<ReportsQuery, ReportsQueryVariables>(ReportsDocument, options);
+      }
+export function useReportsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<ReportsQuery, ReportsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<ReportsQuery, ReportsQueryVariables>(ReportsDocument, options);
+        }
+export type ReportsQueryHookResult = ReturnType<typeof useReportsQuery>;
+export type ReportsLazyQueryHookResult = ReturnType<typeof useReportsLazyQuery>;
+export type ReportsQueryResult = Apollo.QueryResult<ReportsQuery, ReportsQueryVariables>;
+export const ReportDownloadLinksDocument = gql`
+    mutation ReportDownloadLinks($input: ReportDownloadLinksGenerateInput!) {
+  reportDownloadLinksGenerate(input: $input) {
+    reportId
+    links {
+      reportName
+      url
+    }
+  }
+}
+    `;
+export type ReportDownloadLinksMutationFn = Apollo.MutationFunction<ReportDownloadLinksMutation, ReportDownloadLinksMutationVariables>;
+
+/**
+ * __useReportDownloadLinksMutation__
+ *
+ * To run a mutation, you first call `useReportDownloadLinksMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useReportDownloadLinksMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [reportDownloadLinksMutation, { data, loading, error }] = useReportDownloadLinksMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useReportDownloadLinksMutation(baseOptions?: Apollo.MutationHookOptions<ReportDownloadLinksMutation, ReportDownloadLinksMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<ReportDownloadLinksMutation, ReportDownloadLinksMutationVariables>(ReportDownloadLinksDocument, options);
+      }
+export type ReportDownloadLinksMutationHookResult = ReturnType<typeof useReportDownloadLinksMutation>;
+export type ReportDownloadLinksMutationResult = Apollo.MutationResult<ReportDownloadLinksMutation>;
+export type ReportDownloadLinksMutationOptions = Apollo.BaseMutationOptions<ReportDownloadLinksMutation, ReportDownloadLinksMutationVariables>;
+export const TermsTemplateDocument = gql`
+    query TermsTemplate($id: UUID!) {
+  termsTemplate(id: $id) {
+    id
+    name
+    termsId
+    createdAt
+    subjectCanUpdateTermsTemplate
+    values {
+      duration {
+        units
+        period
+      }
+      accrualInterval
+      incurrenceInterval
+      annualRate
+      initialCvl
+      marginCallCvl
+      liquidationCvl
+    }
+  }
+}
+    `;
+
+/**
+ * __useTermsTemplateQuery__
+ *
+ * To run a query within a React component, call `useTermsTemplateQuery` and pass it any options that fit your needs.
+ * When your component renders, `useTermsTemplateQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useTermsTemplateQuery({
+ *   variables: {
+ *      id: // value for 'id'
+ *   },
+ * });
+ */
+export function useTermsTemplateQuery(baseOptions: Apollo.QueryHookOptions<TermsTemplateQuery, TermsTemplateQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<TermsTemplateQuery, TermsTemplateQueryVariables>(TermsTemplateDocument, options);
+      }
+export function useTermsTemplateLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<TermsTemplateQuery, TermsTemplateQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<TermsTemplateQuery, TermsTemplateQueryVariables>(TermsTemplateDocument, options);
+        }
+export type TermsTemplateQueryHookResult = ReturnType<typeof useTermsTemplateQuery>;
+export type TermsTemplateLazyQueryHookResult = ReturnType<typeof useTermsTemplateLazyQuery>;
+export type TermsTemplateQueryResult = Apollo.QueryResult<TermsTemplateQuery, TermsTemplateQueryVariables>;
+export const CreateTermsTemplateDocument = gql`
+    mutation CreateTermsTemplate($input: TermsTemplateCreateInput!) {
+  termsTemplateCreate(input: $input) {
+    termsTemplate {
+      id
+      termsId
+      values {
+        annualRate
+        accrualInterval
+        liquidationCvl
+        marginCallCvl
+        initialCvl
+        duration {
+          period
+          units
+        }
+      }
+    }
+  }
+}
+    `;
+export type CreateTermsTemplateMutationFn = Apollo.MutationFunction<CreateTermsTemplateMutation, CreateTermsTemplateMutationVariables>;
+
+/**
+ * __useCreateTermsTemplateMutation__
+ *
+ * To run a mutation, you first call `useCreateTermsTemplateMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useCreateTermsTemplateMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [createTermsTemplateMutation, { data, loading, error }] = useCreateTermsTemplateMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useCreateTermsTemplateMutation(baseOptions?: Apollo.MutationHookOptions<CreateTermsTemplateMutation, CreateTermsTemplateMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<CreateTermsTemplateMutation, CreateTermsTemplateMutationVariables>(CreateTermsTemplateDocument, options);
+      }
+export type CreateTermsTemplateMutationHookResult = ReturnType<typeof useCreateTermsTemplateMutation>;
+export type CreateTermsTemplateMutationResult = Apollo.MutationResult<CreateTermsTemplateMutation>;
+export type CreateTermsTemplateMutationOptions = Apollo.BaseMutationOptions<CreateTermsTemplateMutation, CreateTermsTemplateMutationVariables>;
+export const TermsTemplatesDocument = gql`
+    query TermsTemplates {
+  termsTemplates {
+    id
+    name
+    termsId
+    createdAt
+    subjectCanUpdateTermsTemplate
+    values {
+      annualRate
+      accrualInterval
+      incurrenceInterval
+      liquidationCvl
+      marginCallCvl
+      initialCvl
+      duration {
+        period
+        units
+      }
+    }
+  }
+}
+    `;
+
+/**
+ * __useTermsTemplatesQuery__
+ *
+ * To run a query within a React component, call `useTermsTemplatesQuery` and pass it any options that fit your needs.
+ * When your component renders, `useTermsTemplatesQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useTermsTemplatesQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useTermsTemplatesQuery(baseOptions?: Apollo.QueryHookOptions<TermsTemplatesQuery, TermsTemplatesQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<TermsTemplatesQuery, TermsTemplatesQueryVariables>(TermsTemplatesDocument, options);
+      }
+export function useTermsTemplatesLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<TermsTemplatesQuery, TermsTemplatesQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<TermsTemplatesQuery, TermsTemplatesQueryVariables>(TermsTemplatesDocument, options);
+        }
+export type TermsTemplatesQueryHookResult = ReturnType<typeof useTermsTemplatesQuery>;
+export type TermsTemplatesLazyQueryHookResult = ReturnType<typeof useTermsTemplatesLazyQuery>;
+export type TermsTemplatesQueryResult = Apollo.QueryResult<TermsTemplatesQuery, TermsTemplatesQueryVariables>;
+export const GetOnBalanceSheetTrialBalanceDocument = gql`
+    query GetOnBalanceSheetTrialBalance($from: Timestamp!, $until: Timestamp) {
+  trialBalance(from: $from, until: $until) {
+    name
+    total {
+      ...balancesByCurrency
+    }
+    subAccounts {
+      ... on Account {
+        name
+        amounts {
+          ...balancesByCurrency
+        }
+      }
+      ... on AccountSet {
+        name
+        amounts {
+          ...balancesByCurrency
+        }
+      }
+    }
+  }
+}
+    ${BalancesByCurrencyFragmentDoc}`;
+
+/**
+ * __useGetOnBalanceSheetTrialBalanceQuery__
+ *
+ * To run a query within a React component, call `useGetOnBalanceSheetTrialBalanceQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetOnBalanceSheetTrialBalanceQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetOnBalanceSheetTrialBalanceQuery({
+ *   variables: {
+ *      from: // value for 'from'
+ *      until: // value for 'until'
+ *   },
+ * });
+ */
+export function useGetOnBalanceSheetTrialBalanceQuery(baseOptions: Apollo.QueryHookOptions<GetOnBalanceSheetTrialBalanceQuery, GetOnBalanceSheetTrialBalanceQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetOnBalanceSheetTrialBalanceQuery, GetOnBalanceSheetTrialBalanceQueryVariables>(GetOnBalanceSheetTrialBalanceDocument, options);
+      }
+export function useGetOnBalanceSheetTrialBalanceLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetOnBalanceSheetTrialBalanceQuery, GetOnBalanceSheetTrialBalanceQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetOnBalanceSheetTrialBalanceQuery, GetOnBalanceSheetTrialBalanceQueryVariables>(GetOnBalanceSheetTrialBalanceDocument, options);
+        }
+export type GetOnBalanceSheetTrialBalanceQueryHookResult = ReturnType<typeof useGetOnBalanceSheetTrialBalanceQuery>;
+export type GetOnBalanceSheetTrialBalanceLazyQueryHookResult = ReturnType<typeof useGetOnBalanceSheetTrialBalanceLazyQuery>;
+export type GetOnBalanceSheetTrialBalanceQueryResult = Apollo.QueryResult<GetOnBalanceSheetTrialBalanceQuery, GetOnBalanceSheetTrialBalanceQueryVariables>;
+export const GetOffBalanceSheetTrialBalanceDocument = gql`
+    query GetOffBalanceSheetTrialBalance($from: Timestamp!, $until: Timestamp) {
+  offBalanceSheetTrialBalance(from: $from, until: $until) {
+    name
+    total {
+      ...balancesByCurrency
+    }
+    subAccounts {
+      ... on Account {
+        name
+        amounts {
+          ...balancesByCurrency
+        }
+      }
+      ... on AccountSet {
+        name
+        amounts {
+          ...balancesByCurrency
+        }
+      }
+    }
+  }
+}
+    ${BalancesByCurrencyFragmentDoc}`;
+
+/**
+ * __useGetOffBalanceSheetTrialBalanceQuery__
+ *
+ * To run a query within a React component, call `useGetOffBalanceSheetTrialBalanceQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetOffBalanceSheetTrialBalanceQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetOffBalanceSheetTrialBalanceQuery({
+ *   variables: {
+ *      from: // value for 'from'
+ *      until: // value for 'until'
+ *   },
+ * });
+ */
+export function useGetOffBalanceSheetTrialBalanceQuery(baseOptions: Apollo.QueryHookOptions<GetOffBalanceSheetTrialBalanceQuery, GetOffBalanceSheetTrialBalanceQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetOffBalanceSheetTrialBalanceQuery, GetOffBalanceSheetTrialBalanceQueryVariables>(GetOffBalanceSheetTrialBalanceDocument, options);
+      }
+export function useGetOffBalanceSheetTrialBalanceLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetOffBalanceSheetTrialBalanceQuery, GetOffBalanceSheetTrialBalanceQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetOffBalanceSheetTrialBalanceQuery, GetOffBalanceSheetTrialBalanceQueryVariables>(GetOffBalanceSheetTrialBalanceDocument, options);
+        }
+export type GetOffBalanceSheetTrialBalanceQueryHookResult = ReturnType<typeof useGetOffBalanceSheetTrialBalanceQuery>;
+export type GetOffBalanceSheetTrialBalanceLazyQueryHookResult = ReturnType<typeof useGetOffBalanceSheetTrialBalanceLazyQuery>;
+export type GetOffBalanceSheetTrialBalanceQueryResult = Apollo.QueryResult<GetOffBalanceSheetTrialBalanceQuery, GetOffBalanceSheetTrialBalanceQueryVariables>;
+export const GetUserDetailsDocument = gql`
+    query GetUserDetails($id: UUID!) {
+  user(id: $id) {
+    userId
+    email
+    roles
+  }
+}
+    `;
+
+/**
+ * __useGetUserDetailsQuery__
+ *
+ * To run a query within a React component, call `useGetUserDetailsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetUserDetailsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetUserDetailsQuery({
+ *   variables: {
+ *      id: // value for 'id'
+ *   },
+ * });
+ */
+export function useGetUserDetailsQuery(baseOptions: Apollo.QueryHookOptions<GetUserDetailsQuery, GetUserDetailsQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetUserDetailsQuery, GetUserDetailsQueryVariables>(GetUserDetailsDocument, options);
+      }
+export function useGetUserDetailsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetUserDetailsQuery, GetUserDetailsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetUserDetailsQuery, GetUserDetailsQueryVariables>(GetUserDetailsDocument, options);
+        }
+export type GetUserDetailsQueryHookResult = ReturnType<typeof useGetUserDetailsQuery>;
+export type GetUserDetailsLazyQueryHookResult = ReturnType<typeof useGetUserDetailsLazyQuery>;
+export type GetUserDetailsQueryResult = Apollo.QueryResult<GetUserDetailsQuery, GetUserDetailsQueryVariables>;
+export const UserCreateDocument = gql`
+    mutation UserCreate($input: UserCreateInput!) {
+  userCreate(input: $input) {
+    user {
+      userId
+      email
+      roles
+    }
+  }
+}
+    `;
+export type UserCreateMutationFn = Apollo.MutationFunction<UserCreateMutation, UserCreateMutationVariables>;
+
+/**
+ * __useUserCreateMutation__
+ *
+ * To run a mutation, you first call `useUserCreateMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useUserCreateMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [userCreateMutation, { data, loading, error }] = useUserCreateMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useUserCreateMutation(baseOptions?: Apollo.MutationHookOptions<UserCreateMutation, UserCreateMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<UserCreateMutation, UserCreateMutationVariables>(UserCreateDocument, options);
+      }
+export type UserCreateMutationHookResult = ReturnType<typeof useUserCreateMutation>;
+export type UserCreateMutationResult = Apollo.MutationResult<UserCreateMutation>;
+export type UserCreateMutationOptions = Apollo.BaseMutationOptions<UserCreateMutation, UserCreateMutationVariables>;
+export const UsersDocument = gql`
+    query Users {
+  users {
+    userId
+    email
+    roles
+  }
+}
+    `;
+
+/**
+ * __useUsersQuery__
+ *
+ * To run a query within a React component, call `useUsersQuery` and pass it any options that fit your needs.
+ * When your component renders, `useUsersQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useUsersQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useUsersQuery(baseOptions?: Apollo.QueryHookOptions<UsersQuery, UsersQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<UsersQuery, UsersQueryVariables>(UsersDocument, options);
+      }
+export function useUsersLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<UsersQuery, UsersQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<UsersQuery, UsersQueryVariables>(UsersDocument, options);
+        }
+export type UsersQueryHookResult = ReturnType<typeof useUsersQuery>;
+export type UsersLazyQueryHookResult = ReturnType<typeof useUsersLazyQuery>;
+export type UsersQueryResult = Apollo.QueryResult<UsersQuery, UsersQueryVariables>;
+export const UserAssignRoleDocument = gql`
+    mutation UserAssignRole($input: UserAssignRoleInput!) {
+  userAssignRole(input: $input) {
+    user {
+      userId
+      email
+      roles
+    }
+  }
+}
+    `;
+export type UserAssignRoleMutationFn = Apollo.MutationFunction<UserAssignRoleMutation, UserAssignRoleMutationVariables>;
+
+/**
+ * __useUserAssignRoleMutation__
+ *
+ * To run a mutation, you first call `useUserAssignRoleMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useUserAssignRoleMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [userAssignRoleMutation, { data, loading, error }] = useUserAssignRoleMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useUserAssignRoleMutation(baseOptions?: Apollo.MutationHookOptions<UserAssignRoleMutation, UserAssignRoleMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<UserAssignRoleMutation, UserAssignRoleMutationVariables>(UserAssignRoleDocument, options);
+      }
+export type UserAssignRoleMutationHookResult = ReturnType<typeof useUserAssignRoleMutation>;
+export type UserAssignRoleMutationResult = Apollo.MutationResult<UserAssignRoleMutation>;
+export type UserAssignRoleMutationOptions = Apollo.BaseMutationOptions<UserAssignRoleMutation, UserAssignRoleMutationVariables>;
+export const UserRevokeRoleDocument = gql`
+    mutation UserRevokeRole($input: UserRevokeRoleInput!) {
+  userRevokeRole(input: $input) {
+    user {
+      userId
+      email
+      roles
+    }
+  }
+}
+    `;
+export type UserRevokeRoleMutationFn = Apollo.MutationFunction<UserRevokeRoleMutation, UserRevokeRoleMutationVariables>;
+
+/**
+ * __useUserRevokeRoleMutation__
+ *
+ * To run a mutation, you first call `useUserRevokeRoleMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useUserRevokeRoleMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [userRevokeRoleMutation, { data, loading, error }] = useUserRevokeRoleMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useUserRevokeRoleMutation(baseOptions?: Apollo.MutationHookOptions<UserRevokeRoleMutation, UserRevokeRoleMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<UserRevokeRoleMutation, UserRevokeRoleMutationVariables>(UserRevokeRoleDocument, options);
+      }
+export type UserRevokeRoleMutationHookResult = ReturnType<typeof useUserRevokeRoleMutation>;
+export type UserRevokeRoleMutationResult = Apollo.MutationResult<UserRevokeRoleMutation>;
+export type UserRevokeRoleMutationOptions = Apollo.BaseMutationOptions<UserRevokeRoleMutation, UserRevokeRoleMutationVariables>;
+export const GetWithdrawalDetailsDocument = gql`
+    query GetWithdrawalDetails($id: UUID!) {
+  withdrawal(id: $id) {
+    customerId
+    withdrawalId
+    amount
+    status
+    reference
+    subjectCanConfirm
+    subjectCanCancel
+    customer {
+      email
+      customerId
+      applicantId
+    }
+    approvalProcess {
+      approvalProcessId
+      approvalProcessType
+      createdAt
+      subjectCanSubmitDecision
+      status
+      rules {
+        ... on CommitteeThreshold {
+          threshold
+          committee {
+            name
+            currentMembers {
+              email
+              roles
+            }
+          }
+        }
+        ... on SystemApproval {
+          autoApprove
+        }
+      }
+      voters {
+        stillEligible
+        didVote
+        didApprove
+        didDeny
+        user {
+          userId
+          email
+          roles
+        }
+      }
+    }
+  }
+}
+    `;
+
+/**
+ * __useGetWithdrawalDetailsQuery__
+ *
+ * To run a query within a React component, call `useGetWithdrawalDetailsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetWithdrawalDetailsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetWithdrawalDetailsQuery({
+ *   variables: {
+ *      id: // value for 'id'
+ *   },
+ * });
+ */
+export function useGetWithdrawalDetailsQuery(baseOptions: Apollo.QueryHookOptions<GetWithdrawalDetailsQuery, GetWithdrawalDetailsQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetWithdrawalDetailsQuery, GetWithdrawalDetailsQueryVariables>(GetWithdrawalDetailsDocument, options);
+      }
+export function useGetWithdrawalDetailsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetWithdrawalDetailsQuery, GetWithdrawalDetailsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetWithdrawalDetailsQuery, GetWithdrawalDetailsQueryVariables>(GetWithdrawalDetailsDocument, options);
+        }
+export type GetWithdrawalDetailsQueryHookResult = ReturnType<typeof useGetWithdrawalDetailsQuery>;
+export type GetWithdrawalDetailsLazyQueryHookResult = ReturnType<typeof useGetWithdrawalDetailsLazyQuery>;
+export type GetWithdrawalDetailsQueryResult = Apollo.QueryResult<GetWithdrawalDetailsQuery, GetWithdrawalDetailsQueryVariables>;
+export const WithdrawalCancelDocument = gql`
+    mutation WithdrawalCancel($input: WithdrawalCancelInput!) {
+  withdrawalCancel(input: $input) {
+    withdrawal {
+      withdrawalId
+      amount
+      customer {
+        customerId
+        balance {
+          checking {
+            settled
+            pending
+          }
+        }
+      }
+    }
+  }
+}
+    `;
+export type WithdrawalCancelMutationFn = Apollo.MutationFunction<WithdrawalCancelMutation, WithdrawalCancelMutationVariables>;
+
+/**
+ * __useWithdrawalCancelMutation__
+ *
+ * To run a mutation, you first call `useWithdrawalCancelMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useWithdrawalCancelMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [withdrawalCancelMutation, { data, loading, error }] = useWithdrawalCancelMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useWithdrawalCancelMutation(baseOptions?: Apollo.MutationHookOptions<WithdrawalCancelMutation, WithdrawalCancelMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<WithdrawalCancelMutation, WithdrawalCancelMutationVariables>(WithdrawalCancelDocument, options);
+      }
+export type WithdrawalCancelMutationHookResult = ReturnType<typeof useWithdrawalCancelMutation>;
+export type WithdrawalCancelMutationResult = Apollo.MutationResult<WithdrawalCancelMutation>;
+export type WithdrawalCancelMutationOptions = Apollo.BaseMutationOptions<WithdrawalCancelMutation, WithdrawalCancelMutationVariables>;
+export const WithdrawalConfirmDocument = gql`
+    mutation WithdrawalConfirm($input: WithdrawalConfirmInput!) {
+  withdrawalConfirm(input: $input) {
+    withdrawal {
+      withdrawalId
+      amount
+      reference
+      customer {
+        customerId
+        email
+        balance {
+          checking {
+            settled
+            pending
+          }
+        }
+      }
+    }
+  }
+}
+    `;
+export type WithdrawalConfirmMutationFn = Apollo.MutationFunction<WithdrawalConfirmMutation, WithdrawalConfirmMutationVariables>;
+
+/**
+ * __useWithdrawalConfirmMutation__
+ *
+ * To run a mutation, you first call `useWithdrawalConfirmMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useWithdrawalConfirmMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [withdrawalConfirmMutation, { data, loading, error }] = useWithdrawalConfirmMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useWithdrawalConfirmMutation(baseOptions?: Apollo.MutationHookOptions<WithdrawalConfirmMutation, WithdrawalConfirmMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<WithdrawalConfirmMutation, WithdrawalConfirmMutationVariables>(WithdrawalConfirmDocument, options);
+      }
+export type WithdrawalConfirmMutationHookResult = ReturnType<typeof useWithdrawalConfirmMutation>;
+export type WithdrawalConfirmMutationResult = Apollo.MutationResult<WithdrawalConfirmMutation>;
+export type WithdrawalConfirmMutationOptions = Apollo.BaseMutationOptions<WithdrawalConfirmMutation, WithdrawalConfirmMutationVariables>;
+export const WithdrawalInitiateDocument = gql`
+    mutation WithdrawalInitiate($input: WithdrawalInitiateInput!) {
+  withdrawalInitiate(input: $input) {
+    withdrawal {
+      withdrawalId
+      amount
+      customer {
+        customerId
+        balance {
+          checking {
+            settled
+            pending
+          }
+        }
+      }
+    }
+  }
+}
+    `;
+export type WithdrawalInitiateMutationFn = Apollo.MutationFunction<WithdrawalInitiateMutation, WithdrawalInitiateMutationVariables>;
+
+/**
+ * __useWithdrawalInitiateMutation__
+ *
+ * To run a mutation, you first call `useWithdrawalInitiateMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useWithdrawalInitiateMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [withdrawalInitiateMutation, { data, loading, error }] = useWithdrawalInitiateMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useWithdrawalInitiateMutation(baseOptions?: Apollo.MutationHookOptions<WithdrawalInitiateMutation, WithdrawalInitiateMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<WithdrawalInitiateMutation, WithdrawalInitiateMutationVariables>(WithdrawalInitiateDocument, options);
+      }
+export type WithdrawalInitiateMutationHookResult = ReturnType<typeof useWithdrawalInitiateMutation>;
+export type WithdrawalInitiateMutationResult = Apollo.MutationResult<WithdrawalInitiateMutation>;
+export type WithdrawalInitiateMutationOptions = Apollo.BaseMutationOptions<WithdrawalInitiateMutation, WithdrawalInitiateMutationVariables>;
+export const WithdrawalsDocument = gql`
+    query Withdrawals($first: Int!, $after: String) {
+  withdrawals(first: $first, after: $after) {
+    pageInfo {
+      hasPreviousPage
+      hasNextPage
+      startCursor
+      endCursor
+    }
+    nodes {
+      customerId
+      withdrawalId
+      amount
+      status
+      reference
+      subjectCanConfirm
+      subjectCanCancel
+      customer {
+        customerId
+        email
+      }
+    }
+  }
+}
+    `;
+
+/**
+ * __useWithdrawalsQuery__
+ *
+ * To run a query within a React component, call `useWithdrawalsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useWithdrawalsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useWithdrawalsQuery({
+ *   variables: {
+ *      first: // value for 'first'
+ *      after: // value for 'after'
+ *   },
+ * });
+ */
+export function useWithdrawalsQuery(baseOptions: Apollo.QueryHookOptions<WithdrawalsQuery, WithdrawalsQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<WithdrawalsQuery, WithdrawalsQueryVariables>(WithdrawalsDocument, options);
+      }
+export function useWithdrawalsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<WithdrawalsQuery, WithdrawalsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<WithdrawalsQuery, WithdrawalsQueryVariables>(WithdrawalsDocument, options);
+        }
+export type WithdrawalsQueryHookResult = ReturnType<typeof useWithdrawalsQuery>;
+export type WithdrawalsLazyQueryHookResult = ReturnType<typeof useWithdrawalsLazyQuery>;
+export type WithdrawalsQueryResult = Apollo.QueryResult<WithdrawalsQuery, WithdrawalsQueryVariables>;
+export const WithdrawalDocument = gql`
+    query Withdrawal($id: UUID!) {
+  withdrawal(id: $id) {
+    customerId
+    withdrawalId
+    amount
+    status
+    reference
+    customer {
+      customerId
+      email
+      applicantId
+    }
+  }
+}
+    `;
+
+/**
+ * __useWithdrawalQuery__
+ *
+ * To run a query within a React component, call `useWithdrawalQuery` and pass it any options that fit your needs.
+ * When your component renders, `useWithdrawalQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useWithdrawalQuery({
+ *   variables: {
+ *      id: // value for 'id'
+ *   },
+ * });
+ */
+export function useWithdrawalQuery(baseOptions: Apollo.QueryHookOptions<WithdrawalQuery, WithdrawalQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<WithdrawalQuery, WithdrawalQueryVariables>(WithdrawalDocument, options);
+      }
+export function useWithdrawalLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<WithdrawalQuery, WithdrawalQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<WithdrawalQuery, WithdrawalQueryVariables>(WithdrawalDocument, options);
+        }
+export type WithdrawalQueryHookResult = ReturnType<typeof useWithdrawalQuery>;
+export type WithdrawalLazyQueryHookResult = ReturnType<typeof useWithdrawalLazyQuery>;
+export type WithdrawalQueryResult = Apollo.QueryResult<WithdrawalQuery, WithdrawalQueryVariables>;
+export const GetRealtimePriceUpdatesDocument = gql`
+    query GetRealtimePriceUpdates {
+  realtimePrice {
+    usdCentsPerBtc
+  }
+}
+    `;
+
+/**
+ * __useGetRealtimePriceUpdatesQuery__
+ *
+ * To run a query within a React component, call `useGetRealtimePriceUpdatesQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetRealtimePriceUpdatesQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetRealtimePriceUpdatesQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useGetRealtimePriceUpdatesQuery(baseOptions?: Apollo.QueryHookOptions<GetRealtimePriceUpdatesQuery, GetRealtimePriceUpdatesQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetRealtimePriceUpdatesQuery, GetRealtimePriceUpdatesQueryVariables>(GetRealtimePriceUpdatesDocument, options);
+      }
+export function useGetRealtimePriceUpdatesLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetRealtimePriceUpdatesQuery, GetRealtimePriceUpdatesQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetRealtimePriceUpdatesQuery, GetRealtimePriceUpdatesQueryVariables>(GetRealtimePriceUpdatesDocument, options);
+        }
+export type GetRealtimePriceUpdatesQueryHookResult = ReturnType<typeof useGetRealtimePriceUpdatesQuery>;
+export type GetRealtimePriceUpdatesLazyQueryHookResult = ReturnType<typeof useGetRealtimePriceUpdatesLazyQuery>;
+export type GetRealtimePriceUpdatesQueryResult = Apollo.QueryResult<GetRealtimePriceUpdatesQuery, GetRealtimePriceUpdatesQueryVariables>;
+export const MeDocument = gql`
+    query Me {
+  me {
+    user {
+      userId
+      email
+      roles
+    }
+    subjectCanCreateUser
+    subjectCanCreateCustomer
+    subjectCanCreateTermsTemplate
+    visibleNavigationItems {
+      term
+      user
+      customer
+      deposit
+      withdraw
+      audit
+      financials
+      creditFacilities
+      governance {
+        committee
+        policy
+        approvalProcess
+      }
+    }
+  }
+}
+    `;
+
+/**
+ * __useMeQuery__
+ *
+ * To run a query within a React component, call `useMeQuery` and pass it any options that fit your needs.
+ * When your component renders, `useMeQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useMeQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useMeQuery(baseOptions?: Apollo.QueryHookOptions<MeQuery, MeQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<MeQuery, MeQueryVariables>(MeDocument, options);
+      }
+export function useMeLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<MeQuery, MeQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<MeQuery, MeQueryVariables>(MeDocument, options);
+        }
+export type MeQueryHookResult = ReturnType<typeof useMeQuery>;
+export type MeLazyQueryHookResult = ReturnType<typeof useMeLazyQuery>;
+export type MeQueryResult = Apollo.QueryResult<MeQuery, MeQueryVariables>;
+export const UpdateTermsTemplateDocument = gql`
+    mutation UpdateTermsTemplate($input: TermsTemplateUpdateInput!) {
+  termsTemplateUpdate(input: $input) {
+    termsTemplate {
+      id
+      termsId
+      name
+      values {
+        annualRate
+        accrualInterval
+        incurrenceInterval
+        liquidationCvl
+        marginCallCvl
+        initialCvl
+        duration {
+          period
+          units
+        }
+      }
+    }
+  }
+}
+    `;
+export type UpdateTermsTemplateMutationFn = Apollo.MutationFunction<UpdateTermsTemplateMutation, UpdateTermsTemplateMutationVariables>;
+
+/**
+ * __useUpdateTermsTemplateMutation__
+ *
+ * To run a mutation, you first call `useUpdateTermsTemplateMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useUpdateTermsTemplateMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [updateTermsTemplateMutation, { data, loading, error }] = useUpdateTermsTemplateMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useUpdateTermsTemplateMutation(baseOptions?: Apollo.MutationHookOptions<UpdateTermsTemplateMutation, UpdateTermsTemplateMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<UpdateTermsTemplateMutation, UpdateTermsTemplateMutationVariables>(UpdateTermsTemplateDocument, options);
+      }
+export type UpdateTermsTemplateMutationHookResult = ReturnType<typeof useUpdateTermsTemplateMutation>;
+export type UpdateTermsTemplateMutationResult = Apollo.MutationResult<UpdateTermsTemplateMutation>;
+export type UpdateTermsTemplateMutationOptions = Apollo.BaseMutationOptions<UpdateTermsTemplateMutation, UpdateTermsTemplateMutationVariables>;

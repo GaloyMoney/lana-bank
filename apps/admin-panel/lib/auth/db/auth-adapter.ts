@@ -36,7 +36,7 @@ export function customPostgresAdapter(client: Pool): Adapter {
     },
     // need these functions to satisfy the interface, and to resolve next-auth errors.
     //  these are not used anywhere.
-    async createUser(user: { email: string; emailVerified: Date }): Promise<AdapterUser> {
+    async createUser(user): Promise<AdapterUser> {
       return { id: user.email, ...user }
     },
     async getUser() {
