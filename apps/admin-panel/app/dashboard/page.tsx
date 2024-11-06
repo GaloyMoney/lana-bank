@@ -37,26 +37,26 @@ const Dashboard = () => {
             h2PopupDescription="Pending Facilities"
             title="Active Facilities"
             description="Credit Facilities where money has been disbursed"
-            to="/app/credit-facilities?filter=active"
+            to="/credit-facilities?filter=active"
           />
           <DashboardCard
             h1="$240k"
             title="Total Disbursed"
             description="Total amount of money customers withdrew from the bank"
-            to="/app/disbursals"
+            to="/disbursals"
           />
           <DashboardCard
             h1="$283k"
             h2="5.2₿"
             title="Total Collateral"
             description="Total bitcoin collateral value at market rate that the bank holds"
-            to="/app/credit-facilities"
+            to="/credit-facilities"
           />
           <DashboardCard
             h1="$1.3k"
             title="Bank’s Profit"
             description="Net Profit or Loss the bank is making from interest paid by customers"
-            to="/app/profit-and-loss"
+            to="/profit-and-loss"
           />
         </div>
         <div className="mt-[10px] w-full grid grid-cols-1 lg:grid-cols-2 gap-2">
@@ -68,7 +68,7 @@ const Dashboard = () => {
           <DashboardCard
             title="CVL Distribution"
             description="This shows loans and facilities with risk levels: red for collateral below liquidation threshold, yellow for collateral below margin call threshold, and green for sufficient collateral."
-            to="/app/credit-facilities?sort=cvl&direction=asc"
+            to="/credit-facilities?sort=cvl&direction=asc"
             buttonToRight
             buttonText="View Risky Loans"
             content={

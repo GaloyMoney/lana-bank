@@ -69,7 +69,7 @@ const List: React.FC<ListProps> = ({ dashboard = false }) => {
 
           {dashboard && (
             <div className="mt-4 flex items-center gap-2">
-              <Link href="/app/actions" className="text-sm text-muted-foreground">
+              <Link href="/actions" className="text-sm text-muted-foreground">
                 ...{TABLE_ROWS.length - NUMBER_OF_ITEMS_IN_DASHBOARD} more
               </Link>
             </div>

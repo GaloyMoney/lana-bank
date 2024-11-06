@@ -55,7 +55,6 @@ export const CreateCreditFacilityDialog: React.FC<CreateCreditFacilityDialogProp
   setOpenCreateCreditFacilityDialog,
   openCreateCreditFacilityDialog,
   customerId,
-  refetch,
 }) => {
   const router = useRouter()
 
@@ -188,7 +187,6 @@ export const CreateCreditFacilityDialog: React.FC<CreateCreditFacilityDialogProp
         },
         onCompleted: (data) => {
           toast.success("Credit Facility created successfully")
-          if (refetch) refetch()
           router.push(
             `/credit-facilities/${data?.creditFacilityCreate.creditFacility.creditFacilityId}`,
           )

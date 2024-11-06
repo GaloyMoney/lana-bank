@@ -4,10 +4,12 @@
 import { useState, useRef, useEffect, useContext, createContext } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { HiPlus } from "react-icons/hi"
+import { usePathname } from "next/navigation"
 
 import { CreateCustomerDialog } from "./customers/create"
 import { CreateDepositDialog } from "./deposits/create"
 import { WithdrawalInitiateDialog } from "./withdrawals/initiate"
+import { CreateCreditFacilityDialog } from "./credit-facilities/create"
 
 import CustomerSelector from "./customers/selector"
 
@@ -18,12 +20,19 @@ const CreateButton = () => {
   const [createCustomer, setCreateCustomer] = useState(false)
   const [createDeposit, setCreateDeposit] = useState(false)
   const [createWithdrawal, setCreateWithdrawal] = useState(false)
+  const [createFacility, setCreateFacility] = useState(false)
 
   const { customer, setCustomer } = useCreateContext()
   const [openCustomerSelector, setOpenCustomerSelector] = useState(false)
 
   const [isOpen, setIsOpen] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
+
+  const pathName = usePathname()
+  const userIsInCustomerDetailsPage = Boolean(pathName.match(/^\/customers\/.+$/))
+  const setCustomerToNullIfNotInCustomerDetails = () => {
+    if (userIsInCustomerDetailsPage) setCustomer(null)
+  }
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -53,7 +62,13 @@ const CreateButton = () => {
       },
     },
     { label: "Customer", onClick: () => setCreateCustomer(true) },
-    { label: "Credit Facility", onClick: () => {} },
+    {
+      label: "Credit Facility",
+      onClick: () => {
+        if (!customer) setOpenCustomerSelector(true)
+        setCreateFacility(true)
+      },
+    },
   ]
 
   let creationType = ""
@@ -110,7 +125,7 @@ const CreateButton = () => {
         <CreateDepositDialog
           openCreateDepositDialog={createDeposit}
           setOpenCreateDepositDialog={() => {
-            setCustomer(null)
+            setCustomerToNullIfNotInCustomerDetails()
             setCreateDeposit(false)
           }}
           customerId={customer.customerId}
@@ -120,8 +135,18 @@ const CreateButton = () => {
         <WithdrawalInitiateDialog
           openWithdrawalInitiateDialog={createWithdrawal}
           setOpenWithdrawalInitiateDialog={() => {
-            setCustomer(null)
+            setCustomerToNullIfNotInCustomerDetails()
             setCreateWithdrawal(false)
+          }}
+          customerId={customer.customerId}
+        />
+      )}
+      {customer && (
+        <CreateCreditFacilityDialog
+          openCreateCreditFacilityDialog={createFacility}
+          setOpenCreateCreditFacilityDialog={() => {
+            setCustomerToNullIfNotInCustomerDetails()
+            setCreateFacility(false)
           }}
           customerId={customer.customerId}
         />

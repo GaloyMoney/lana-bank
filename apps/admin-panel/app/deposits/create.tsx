@@ -69,14 +69,14 @@ export const CreateDepositDialog: React.FC<CreateDepositDialgProps> = ({
         refetchQueries: [CustomersDocument],
       })
       if (result.data) {
-        toast.success("Deposit createed successfully")
+        toast.success("Deposit created successfully")
         if (refetch) refetch()
         handleCloseDialog()
       } else {
         throw new Error("No data returned from mutation")
       }
     } catch (error) {
-      console.error("Error createing deposit:", error)
+      console.error("Error creating deposit:", error)
       if (error instanceof Error) {
         setError(error.message)
       } else {
