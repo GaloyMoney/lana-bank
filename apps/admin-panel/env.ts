@@ -41,3 +41,5 @@ export const env = createEnv({
     EMAIL_FROM: process.env.EMAIL_FROM,
   },
 })
+
+export const basePath = env.NEXT_PUBLIC_BASE_PATH === "/" ? "" : env.NEXT_PUBLIC_BASE_PATH

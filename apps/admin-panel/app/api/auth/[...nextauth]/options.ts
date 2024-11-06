@@ -4,7 +4,7 @@ import axios from "axios"
 
 import { customPostgresAdapter } from "@/lib/auth/db/auth-adapter"
 import { pool } from "@/lib/auth/db"
-import { env } from "@/env"
+import { basePath, env } from "@/env"
 
 async function checkUserEmail(email: string): Promise<boolean> {
   try {
@@ -20,8 +20,6 @@ async function checkUserEmail(email: string): Promise<boolean> {
     return false
   }
 }
-
-const basePath = env.NEXT_PUBLIC_BASE_PATH === "/" ? "" : env.NEXT_PUBLIC_BASE_PATH
 
 export const authOptions: NextAuthOptions = {
   providers: [

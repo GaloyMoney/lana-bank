@@ -68,7 +68,7 @@ plan:
 #@   return app + "-src"
 #@ end
 
-#@ def app_src_resource(app):
+#@ def app_src_resource(app, branch):
 name: #@ app_src_resource_name(app)
 type: git
 source:
@@ -81,7 +81,7 @@ source:
   - pnpm-lock.yaml
   fetch_tags: true
   uri: #@ data.values.git_uri
-  branch: #@ data.values.git_branch
+  branch: #@ branch
   private_key: #@ data.values.github_private_key
 #@ end
 
