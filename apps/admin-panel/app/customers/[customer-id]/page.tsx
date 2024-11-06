@@ -108,14 +108,14 @@ const Customer = ({
   const { "customer-id": customerId } = params
 
   const { setCustomer } = useCreateContext()
-  useEffect(() => () => setCustomer(null))
-
   const { data, loading, error, refetch } = useGetCustomerQuery({
     variables: { id: customerId },
-    onCompleted: ({ customer }) => {
-      customer && setCustomer(customer as CustomerType)
-    },
   })
+
+  useEffect(() => {
+    data?.customer && setCustomer(data?.customer as CustomerType)
+    return () => setCustomer(null)
+  }, [data?.customer, setCustomer])
 
   return (
     <main className="max-w-7xl m-auto">

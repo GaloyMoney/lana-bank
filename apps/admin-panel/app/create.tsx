@@ -6,12 +6,19 @@ import { motion, AnimatePresence } from "framer-motion"
 import { HiPlus } from "react-icons/hi"
 
 import { CreateCustomerDialog } from "./customers/create"
+import { CreateDepositDialog } from "./deposits/create"
+
+import CustomerSelector from "./customers/selector"
 
 import { Button } from "@/components/primitive/button"
 import { CreditFacility, Customer } from "@/lib/graphql/generated"
 
 const CreateButton = () => {
   const [createCustomer, setCreateCustomer] = useState(false)
+  const [createDeposit, setCreateDeposit] = useState(false)
+
+  const { customer, setCustomer } = useCreateContext()
+  const [openCustomerSelector, setOpenCustomerSelector] = useState(false)
 
   const [isOpen, setIsOpen] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
@@ -29,11 +36,19 @@ const CreateButton = () => {
 
   const menuItems = [
     { label: "Disbursal", onClick: () => {} },
-    { label: "Deposit", onClick: () => {} },
+    {
+      label: "Deposit",
+      onClick: () => {
+        if (!customer) setOpenCustomerSelector(true)
+        setCreateDeposit(true)
+      },
+    },
     { label: "Withdrawal", onClick: () => {} },
     { label: "Customer", onClick: () => setCreateCustomer(true) },
     { label: "Credit Facility", onClick: () => {} },
   ]
+
+  console.log({ customer })
 
   return (
     <>
@@ -70,10 +85,25 @@ const CreateButton = () => {
           )}
         </AnimatePresence>
       </div>
+      <CustomerSelector
+        show={openCustomerSelector}
+        setShow={setOpenCustomerSelector}
+        setCustomer={setCustomer}
+        onClose={() => setCustomer(null)}
+        title={"Select customer for Deposit"}
+        description={"Select customer for Deposit"}
+      />
       <CreateCustomerDialog
         setOpenCreateCustomerDialog={setCreateCustomer}
         openCreateCustomerDialog={createCustomer}
       />
+      {customer && (
+        <CreateDepositDialog
+          openCreateDepositDialog={createDeposit}
+          setOpenCreateDepositDialog={setCreateDeposit}
+          customerId={customer.customerId}
+        />
+      )}
     </>
   )
 }

@@ -13,16 +13,11 @@ import {
 import { Input } from "@/components/primitive/input"
 import { Button } from "@/components/primitive/button"
 import { Label } from "@/components/primitive/label"
-import {
-  CustomersDocument,
-  GetCustomerByCustomerEmailDocument,
-  GetCustomerByCustomerIdDocument,
-  useRecordDepositMutation,
-} from "@/lib/graphql/generated"
+import { CustomersDocument, useCreateDepositMutation } from "@/lib/graphql/generated"
 import { currencyConverter } from "@/lib/utils"
 
 gql`
-  mutation RecordDeposit($input: DepositRecordInput!) {
+  mutation CreateDeposit($input: DepositRecordInput!) {
     depositRecord(input: $input) {
       deposit {
         depositId
@@ -41,20 +36,20 @@ gql`
   }
 `
 
-type RecordDepositDialgProps = {
-  setOpenRecordDepositDialog: (isOpen: boolean) => void
-  openRecordDepositDialog: boolean
+type CreateDepositDialgProps = {
+  setOpenCreateDepositDialog: (isOpen: boolean) => void
+  openCreateDepositDialog: boolean
   customerId: string
   refetch?: () => void
 }
 
-export const RecordDepositDialog: React.FC<RecordDepositDialgProps> = ({
-  setOpenRecordDepositDialog,
-  openRecordDepositDialog,
+export const CreateDepositDialog: React.FC<CreateDepositDialgProps> = ({
+  setOpenCreateDepositDialog,
+  openCreateDepositDialog,
   customerId,
   refetch,
 }) => {
-  const [recordDeposit, { loading, reset }] = useRecordDepositMutation()
+  const [createDeposit, { loading, reset }] = useCreateDepositMutation()
   const [amount, setAmount] = useState<string>("")
   const [reference, setReference] = useState<string>("")
   const [error, setError] = useState<string | null>(null)
@@ -63,7 +58,7 @@ export const RecordDepositDialog: React.FC<RecordDepositDialgProps> = ({
     e.preventDefault()
     setError(null)
     try {
-      const result = await recordDeposit({
+      const result = await createDeposit({
         variables: {
           input: {
             customerId,
@@ -71,21 +66,17 @@ export const RecordDepositDialog: React.FC<RecordDepositDialgProps> = ({
             reference,
           },
         },
-        refetchQueries: [
-          GetCustomerByCustomerIdDocument,
-          GetCustomerByCustomerEmailDocument,
-          CustomersDocument,
-        ],
+        refetchQueries: [CustomersDocument],
       })
       if (result.data) {
-        toast.success("Deposit recorded successfully")
+        toast.success("Deposit createed successfully")
         if (refetch) refetch()
         handleCloseDialog()
       } else {
         throw new Error("No data returned from mutation")
       }
     } catch (error) {
-      console.error("Error recording deposit:", error)
+      console.error("Error createing deposit:", error)
       if (error instanceof Error) {
         setError(error.message)
       } else {
@@ -102,17 +93,17 @@ export const RecordDepositDialog: React.FC<RecordDepositDialgProps> = ({
   }
 
   const handleCloseDialog = () => {
-    setOpenRecordDepositDialog(false)
+    setOpenCreateDepositDialog(false)
     resetStates()
   }
 
   return (
-    <Dialog open={openRecordDepositDialog} onOpenChange={handleCloseDialog}>
+    <Dialog open={openCreateDepositDialog} onOpenChange={handleCloseDialog}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Record Deposit</DialogTitle>
+          <DialogTitle>Create Deposit</DialogTitle>
           <DialogDescription>
-            Provide the required details to record a deposit.
+            Provide the required details to create a deposit.
           </DialogDescription>
         </DialogHeader>
         <form className="flex flex-col gap-4" onSubmit={handleSubmit}>

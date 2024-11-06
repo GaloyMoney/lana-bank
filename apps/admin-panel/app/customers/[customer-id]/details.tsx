@@ -6,13 +6,13 @@ import { PiPencilSimpleLineLight } from "react-icons/pi"
 import UpdateTelegramIdDialog from "./update-telegram-id"
 
 import { DetailItem, DetailsGroup } from "@/components/details"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/primitive/card"
-
 import { Button } from "@/components/primitive/button"
-import { RecordDepositDialog } from "@/app/deposits/record"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/primitive/card"
 import { WithdrawalInitiateDialog } from "@/app/withdrawals/initiate"
 
 import { GetCustomerQuery } from "@/lib/graphql/generated"
+
+import { CreateDepositDialog } from "@/app/deposits/create"
 import { CreateCreditFacilityDialog } from "@/app/credit-facilities/create"
 
 type CustomerDetailsCardProps = {
@@ -85,10 +85,10 @@ export const CustomerDetailsCard: React.FC<CustomerDetailsCardProps> = ({
         />
       )}
       {openRecordDepositDialog && (
-        <RecordDepositDialog
+        <CreateDepositDialog
           customerId={customer.customerId}
-          openRecordDepositDialog={openRecordDepositDialog}
-          setOpenRecordDepositDialog={() => setOpenRecordDepositDialog(false)}
+          openCreateDepositDialog={openRecordDepositDialog}
+          setOpenCreateDepositDialog={() => setOpenRecordDepositDialog(false)}
         />
       )}
       <UpdateTelegramIdDialog
