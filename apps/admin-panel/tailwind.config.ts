@@ -1,5 +1,3 @@
-"use client"
-
 import type { Config } from "tailwindcss"
 import withMT from "@material-tailwind/react/utils/withMT"
 

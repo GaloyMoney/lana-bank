@@ -33,7 +33,7 @@ export const authOptions: NextAuthOptions = {
   },
   callbacks: {
     async redirect() {
-      return `${env.NEXT_PUBLIC_BASE_PATH}/app/dashboard`
+      return `${process.env.NEXT_PUBLIC_BASE_PATH}/app/dashboard`
     },
     async signIn({ account }) {
       const email = account?.providerAccountId

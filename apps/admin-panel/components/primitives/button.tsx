@@ -2,7 +2,7 @@
 
 import { ButtonHTMLAttributes } from "react"
 
-import { Button as MTButton } from "@/lib/ui/mtw"
+import { Button as MTButton } from "@material-tailwind/react"
 
 type ButtonProps = {
   title: string

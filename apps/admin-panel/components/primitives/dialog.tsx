@@ -1,6 +1,6 @@
 "use client"
 
-import { Dialog as MTDialog } from "@/lib/ui/mtw"
+import MTDialog from "@material-tailwind/react/components/Dialog"
 
 type DialogProps = {
   open: boolean

@@ -128,7 +128,7 @@ const CreateCustomer: React.FC<CreateCustomerProps> = ({ setOpen, open }) => {
                 type="text"
                 label="Telegram ID"
                 required
-                placeholder="Please enter the customer's telegram ID"
+                placeholder="Please enter the email address"
                 onChange={setTelegramId}
               />
             </div>

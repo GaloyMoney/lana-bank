@@ -1,10 +1,10 @@
 "use client"
 
+import MTCarousel from "@material-tailwind/react/components/Carousel"
+
 import GenerateIcon from "./vectors/generate.svg"
 import ManageIcon from "./vectors/manage.svg"
 import OneStopIcon from "./vectors/onestop.svg"
-
-import { Carousel as MTCarousel } from "@/lib/ui/mtw"
 
 const Carousel: React.FC = () => {
   return (

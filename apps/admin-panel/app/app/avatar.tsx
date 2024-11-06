@@ -3,7 +3,6 @@
 import { useState, useRef, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { gql } from "@apollo/client"
-import { signOut } from "next-auth/react"
 
 import { Button, ID, Pill } from "@/components"
 import { useAvatarQuery } from "@/lib/graphql/generated"
@@ -85,7 +84,7 @@ const Avatar = () => {
       <div className="text-body-sm">{userEmail}</div>
       <ID type="Your" id={userId} />
       <div className="h-2"></div>
-      <Button title="Logout" size="sm" onClick={signOut} />
+      <Button title="Logout" size="sm" />
     </motion.div>
   )
 
