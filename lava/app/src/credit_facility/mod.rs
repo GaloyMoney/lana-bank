@@ -533,8 +533,8 @@ impl CreditFacilities {
             .entities)
     }
 
-    #[instrument(name = "lava.credit_facility.list", skip(self), err)]
-    pub async fn list(
+    #[instrument(name = "lava.credit_facility.list_by_created_at", skip(self), err)]
+    pub async fn list_by_created_at(
         &self,
         sub: &Subject,
         query: es_entity::PaginatedQueryArgs<CreditFacilityByCreatedAtCursor>,
@@ -547,6 +547,27 @@ impl CreditFacilities {
             .await?;
         self.credit_facility_repo
             .list_by_created_at(query, es_entity::ListDirection::Descending)
+            .await
+    }
+
+    #[instrument(
+        name = "lava.credit_facility.list_by_collateralization_ratio",
+        skip(self),
+        err
+    )]
+    pub async fn list_by_collateralization_ratio(
+        &self,
+        sub: &Subject,
+        query: es_entity::PaginatedQueryArgs<CreditFacilityByCollateralizationRatioCursor>,
+    ) -> Result<
+        es_entity::PaginatedQueryRet<CreditFacility, CreditFacilityByCollateralizationRatioCursor>,
+        CreditFacilityError,
+    > {
+        self.authz
+            .enforce_permission(sub, Object::CreditFacility, CreditFacilityAction::List)
+            .await?;
+        self.credit_facility_repo
+            .list_by_collateralization_ratio(query, es_entity::ListDirection::Descending)
             .await
     }
 

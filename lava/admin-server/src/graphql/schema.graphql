@@ -879,7 +879,8 @@ type Query {
 	termsTemplate(id: UUID!): TermsTemplate
 	termsTemplates: [TermsTemplate!]!
 	creditFacility(id: UUID!): CreditFacility
-	creditFacilities(first: Int!, after: String): CreditFacilityConnection!
+	creditFacilitiesByCreatedAt(first: Int!, after: String): CreditFacilityConnection!
+	creditFacilitiesByCvl(first: Int!, after: String): CreditFacilityConnection!
 	disbursals(first: Int!, after: String): CreditFacilityDisbursalConnection!
 	committee(id: UUID!): Committee
 	committees(first: Int!, after: String): CommitteeConnection!

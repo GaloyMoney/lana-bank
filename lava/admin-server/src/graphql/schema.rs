@@ -2,6 +2,7 @@ use async_graphql::{types::connection::*, Context, Object};
 
 use lava_app::{
     app::LavaApp,
+    credit_facility::{CreditFacilityByCollateralizationRatioCursor, CreditFacilityComboCursor},
     customer::{CustomerByCreatedAtCursor, CustomerByEmailCursor, CustomerByTelegramIdCursor},
 };
 
@@ -216,22 +217,45 @@ impl Query {
         )
     }
 
-    async fn credit_facilities(
+    async fn credit_facilities_by_created_at(
         &self,
         ctx: &Context<'_>,
         first: i32,
         after: Option<String>,
     ) -> async_graphql::Result<
-        Connection<CreditFacilityByCreatedAtCursor, CreditFacility, EmptyFields, EmptyFields>,
+        Connection<CreditFacilityComboCursor, CreditFacility, EmptyFields, EmptyFields>,
     > {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
-        list_with_cursor!(
+        list_with_combo_cursor!(
+            CreditFacilityComboCursor,
             CreditFacilityByCreatedAtCursor,
             CreditFacility,
             ctx,
             after,
             first,
-            |query| app.credit_facilities().list(sub, query)
+            |query| app.credit_facilities().list_by_created_at(sub, query)
+        )
+    }
+
+    async fn credit_facilities_by_cvl(
+        &self,
+        ctx: &Context<'_>,
+        first: i32,
+        after: Option<String>,
+    ) -> async_graphql::Result<
+        Connection<CreditFacilityComboCursor, CreditFacility, EmptyFields, EmptyFields>,
+    > {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        list_with_combo_cursor!(
+            CreditFacilityComboCursor,
+            CreditFacilityByCollateralizationRatioCursor,
+            CreditFacility,
+            ctx,
+            after,
+            first,
+            |query| app
+                .credit_facilities()
+                .list_by_collateralization_ratio(sub, query)
         )
     }
 

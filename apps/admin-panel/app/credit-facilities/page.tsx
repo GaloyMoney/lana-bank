@@ -33,7 +33,7 @@ import { formatCollateralizationState, formatDate } from "@/lib/utils"
 
 gql`
   query CreditFacilities($first: Int!, $after: String) {
-    creditFacilities(first: $first, after: $after) {
+    creditFacilitiesByCreatedAt(first: $first, after: $after) {
       edges {
         cursor
         node {
@@ -75,7 +75,7 @@ const CreditFacilitiesTable = () => {
   if (loading) return <div className="mt-5">Loading...</div>
   if (error) return <div className="text-destructive">{error.message}</div>
 
-  if (data?.creditFacilities.edges.length === 0) {
+  if (data?.creditFacilitiesByCreatedAt.edges.length === 0) {
     return (
       <Card className="mt-5">
         <CardContent className="pt-6">No credit facilities found</CardContent>
@@ -98,7 +98,7 @@ const CreditFacilitiesTable = () => {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {data?.creditFacilities.edges.map((edge) => {
+            {data?.creditFacilitiesByCreatedAt.edges.map((edge) => {
               const facility = edge?.node
               return (
                 <TableRow
@@ -141,13 +141,13 @@ const CreditFacilitiesTable = () => {
                 </TableRow>
               )
             })}
-            {data?.creditFacilities.pageInfo.hasNextPage && (
+            {data?.creditFacilitiesByCreatedAt.pageInfo.hasNextPage && (
               <TableRow
                 className="cursor-pointer"
                 onClick={() =>
                   fetchMore({
                     variables: {
-                      after: data.creditFacilities.pageInfo.endCursor,
+                      after: data.creditFacilitiesByCreatedAt.pageInfo.endCursor,
                     },
                   })
                 }
