@@ -87,7 +87,7 @@ impl<'a> ToTokens for EsRepo<'a> {
         let cursors = self.list_by_fns.iter().map(|l| l.cursor());
         #[cfg(feature = "graphql")]
         let combo_cursor = combo_cursor::ComboCursor::new(
-            &self.opts,
+            self.opts,
             self.list_by_fns.iter().map(|l| l.cursor()).collect(),
         );
         #[cfg(not(feature = "graphql"))]

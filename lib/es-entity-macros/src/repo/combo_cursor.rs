@@ -12,7 +12,7 @@ pub struct ComboCursor<'a> {
 impl<'a> ComboCursor<'a> {
     pub fn new(opts: &'a RepositoryOptions, cursors: Vec<CursorStruct<'a>>) -> Self {
         Self {
-            entity: &opts.entity(),
+            entity: opts.entity(),
             cursors,
         }
     }
@@ -40,6 +40,7 @@ impl<'a> ComboCursor<'a> {
         }
     }
 
+    #[allow(clippy::wrong_self_convention)]
     pub fn from_impls(&self) -> TokenStream {
         let self_ident = self.ident();
         let from_impls = self
