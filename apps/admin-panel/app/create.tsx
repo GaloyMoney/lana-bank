@@ -1,49 +1,45 @@
 /* eslint-disable no-empty-function */
 "use client"
 
-import { useState, useRef, useEffect, useContext, createContext } from "react"
-import { motion, AnimatePresence } from "framer-motion"
+import { useState, useContext, createContext } from "react"
 import { HiPlus } from "react-icons/hi"
 import { usePathname } from "next/navigation"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/primitive/dropdown-menu"
+import { Button } from "@/components/primitive/button"
+import { CreditFacility, Customer } from "@/lib/graphql/generated"
 
 import { CreateCustomerDialog } from "./customers/create"
 import { CreateDepositDialog } from "./deposits/create"
 import { WithdrawalInitiateDialog } from "./withdrawals/initiate"
 import { CreateCreditFacilityDialog } from "./credit-facilities/create"
-
+import { CreateUserDialog } from "./users/create"
+import { CreateTermsTemplateDialog } from "./terms-templates/create"
+import { CreateCommitteeDialog } from "./committees/create"
 import CustomerSelector from "./customers/selector"
-
-import { Button } from "@/components/primitive/button"
-import { CreditFacility, Customer } from "@/lib/graphql/generated"
 
 const CreateButton = () => {
   const [createCustomer, setCreateCustomer] = useState(false)
   const [createDeposit, setCreateDeposit] = useState(false)
   const [createWithdrawal, setCreateWithdrawal] = useState(false)
   const [createFacility, setCreateFacility] = useState(false)
+  const [openCreateUserDialog, setOpenCreateUserDialog] = useState(false)
+  const [openCreateTermsTemplateDialog, setOpenCreateTermsTemplateDialog] =
+    useState(false)
+  const [openCreateCommitteeDialog, setOpenCreateCommitteeDialog] = useState(false)
 
   const { customer, setCustomer } = useCreateContext()
   const [openCustomerSelector, setOpenCustomerSelector] = useState(false)
-
-  const [isOpen, setIsOpen] = useState(false)
-  const menuRef = useRef<HTMLDivElement>(null)
 
   const pathName = usePathname()
   const userIsInCustomerDetailsPage = Boolean(pathName.match(/^\/customers\/.+$/))
   const setCustomerToNullIfNotInCustomerDetails = () => {
     if (userIsInCustomerDetailsPage) setCustomer(null)
   }
-
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
-        setIsOpen(false)
-      }
-    }
-
-    document.addEventListener("mousedown", handleClickOutside)
-    return () => document.removeEventListener("mousedown", handleClickOutside)
-  }, [])
 
   const menuItems = [
     { label: "Disbursal", onClick: () => {} },
@@ -69,6 +65,18 @@ const CreateButton = () => {
         setCreateFacility(true)
       },
     },
+    {
+      label: "User",
+      onClick: () => setOpenCreateUserDialog(true),
+    },
+    {
+      label: "Terms Template",
+      onClick: () => setOpenCreateTermsTemplateDialog(true),
+    },
+    {
+      label: "Committee",
+      onClick: () => setOpenCreateCommitteeDialog(true),
+    },
   ]
 
   let creationType = ""
@@ -77,39 +85,26 @@ const CreateButton = () => {
 
   return (
     <>
-      <div className="relative inline-block" ref={menuRef}>
-        <Button onClick={() => setIsOpen(!isOpen)}>
-          <HiPlus />
-          Create
-        </Button>
-
-        <AnimatePresence>
-          {isOpen && (
-            <motion.div
-              className="absolute right-0 mt-2 w-36 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-50"
-              initial={{ opacity: 0, scale: 0.95, y: -10 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: -10 }}
-              transition={{ duration: 0.2 }}
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button>
+            <HiPlus className="mr-2 h-4 w-4" />
+            Create
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end" className="w-36">
+          {menuItems.map((item, index) => (
+            <DropdownMenuItem
+              key={index}
+              onClick={item.onClick}
+              className="cursor-pointer"
             >
-              <div className="py-1">
-                {menuItems.map((item, index) => (
-                  <button
-                    key={index}
-                    onClick={() => {
-                      item.onClick()
-                      setIsOpen(false)
-                    }}
-                    className="block w-full text-left px-4 py-2 text-sm text-title-sm hover:bg-action-secondary-hover"
-                  >
-                    {item.label}
-                  </button>
-                ))}
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
+              {item.label}
+            </DropdownMenuItem>
+          ))}
+        </DropdownMenuContent>
+      </DropdownMenu>
+
       <CustomerSelector
         show={openCustomerSelector}
         setShow={setOpenCustomerSelector}
@@ -117,39 +112,56 @@ const CreateButton = () => {
         onClose={() => setCustomer(null)}
         title={`Select customer for ${creationType}`}
       />
+
       <CreateCustomerDialog
         setOpenCreateCustomerDialog={setCreateCustomer}
         openCreateCustomerDialog={createCustomer}
       />
+
+      <CreateUserDialog
+        openCreateUserDialog={openCreateUserDialog}
+        setOpenCreateUserDialog={setOpenCreateUserDialog}
+      />
+
+      <CreateTermsTemplateDialog
+        openCreateTermsTemplateDialog={openCreateTermsTemplateDialog}
+        setOpenCreateTermsTemplateDialog={setOpenCreateTermsTemplateDialog}
+      />
+
+      <CreateCommitteeDialog
+        openCreateCommitteeDialog={openCreateCommitteeDialog}
+        setOpenCreateCommitteeDialog={setOpenCreateCommitteeDialog}
+      />
+
       {customer && (
-        <CreateDepositDialog
-          openCreateDepositDialog={createDeposit}
-          setOpenCreateDepositDialog={() => {
-            setCustomerToNullIfNotInCustomerDetails()
-            setCreateDeposit(false)
-          }}
-          customerId={customer.customerId}
-        />
-      )}
-      {customer && (
-        <WithdrawalInitiateDialog
-          openWithdrawalInitiateDialog={createWithdrawal}
-          setOpenWithdrawalInitiateDialog={() => {
-            setCustomerToNullIfNotInCustomerDetails()
-            setCreateWithdrawal(false)
-          }}
-          customerId={customer.customerId}
-        />
-      )}
-      {customer && (
-        <CreateCreditFacilityDialog
-          openCreateCreditFacilityDialog={createFacility}
-          setOpenCreateCreditFacilityDialog={() => {
-            setCustomerToNullIfNotInCustomerDetails()
-            setCreateFacility(false)
-          }}
-          customerId={customer.customerId}
-        />
+        <>
+          <CreateDepositDialog
+            openCreateDepositDialog={createDeposit}
+            setOpenCreateDepositDialog={() => {
+              setCustomerToNullIfNotInCustomerDetails()
+              setCreateDeposit(false)
+            }}
+            customerId={customer.customerId}
+          />
+
+          <WithdrawalInitiateDialog
+            openWithdrawalInitiateDialog={createWithdrawal}
+            setOpenWithdrawalInitiateDialog={() => {
+              setCustomerToNullIfNotInCustomerDetails()
+              setCreateWithdrawal(false)
+            }}
+            customerId={customer.customerId}
+          />
+
+          <CreateCreditFacilityDialog
+            openCreateCreditFacilityDialog={createFacility}
+            setOpenCreateCreditFacilityDialog={() => {
+              setCustomerToNullIfNotInCustomerDetails()
+              setCreateFacility(false)
+            }}
+            customerId={customer.customerId}
+          />
+        </>
       )}
     </>
   )

@@ -35,7 +35,7 @@ export const CommitteeDetailsCard: React.FC<CommitteeDetailsProps> = ({ committe
       <div className="flex flex-col space-y-2 mt-1 ml-4">
         <>
           <Button
-            variant="primary"
+            variant="outline"
             className="w-full"
             onClick={() => setOpenAddUserDialog(true)}
           >

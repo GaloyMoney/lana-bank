@@ -23,6 +23,7 @@ import {
   HiTemplate,
   HiViewBoards,
   HiOutlineMenu,
+  HiLockClosed,
 } from "react-icons/hi"
 import { HiMagnifyingGlassCircle } from "react-icons/hi2"
 
@@ -46,6 +47,7 @@ const NavBar = () => {
         <MenuItem icon={HiTemplate} title="Terms Templates" to="/terms-templates" />
         <MenuItem icon={HiUserGroup} title="Users" to="/users" />
         <MenuItem icon={HiGlobe} title="Committees" to="/committees" />
+        <MenuItem icon={HiLockClosed} title="Policies" to="/policies" />
         <MenuItem icon={HiArrowCircleDown} title="Deposits" to="/deposits" />
         <MenuItem icon={HiArrowCircleUp} title="Withdrawals" to="/withdrawals" />
         <MenuItem

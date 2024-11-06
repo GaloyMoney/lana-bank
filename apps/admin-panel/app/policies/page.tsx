@@ -4,7 +4,13 @@ import { gql } from "@apollo/client"
 import { useRouter } from "next/navigation"
 
 import { PageHeading } from "@/components/page-heading"
-import { Card, CardContent } from "@/components/primitive/card"
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/primitive/card"
 import {
   Table,
   TableBody,
@@ -91,66 +97,65 @@ function PoliciesPage() {
   }
 
   return (
-    <main>
-      <div className="flex justify-between items-center mb-8">
-        <PageHeading className="mb-0">Policies</PageHeading>
-      </div>
-
-      <Card>
-        <CardContent>
-          {!data?.policies.edges || data.policies.edges.length === 0 ? (
-            <p className="mt-6">No policies found</p>
-          ) : (
-            <Table className="mt-6">
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Process Type</TableHead>
-                  <TableHead>Rule</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {data.policies.edges.map(({ node: policy }) => (
-                  <TableRow
-                    key={policy.policyId}
-                    onClick={() => router.push(`/policies/${policy.policyId}`)}
-                    className="cursor-pointer"
-                  >
-                    <TableCell>{formatProcessType(policy.approvalProcessType)}</TableCell>
-                    <TableCell
-                      className={
-                        policy.rules.__typename === "CommitteeThreshold"
-                          ? ""
-                          : "text-textColor-secondary"
-                      }
-                    >
-                      {policy.rules.__typename === "CommitteeThreshold" &&
-                        `${policy.rules.committee.name} Committee`}
-                      {policy.rules.__typename === "SystemApproval" && "System"}
-                    </TableCell>
-                  </TableRow>
-                ))}
-                {data.policies.pageInfo.hasNextPage && (
-                  <TableRow
-                    onClick={() =>
-                      fetchMore({
-                        variables: {
-                          after:
-                            data.policies.edges[data.policies.edges.length - 1].cursor,
-                        },
-                      })
+    <Card>
+      <CardHeader>
+        <CardTitle>Policies</CardTitle>
+        <CardDescription>
+          Policies define the approval process for different types of transactions.
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        {!data?.policies.edges || data.policies.edges.length === 0 ? (
+          <p>No policies found</p>
+        ) : (
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Process Type</TableHead>
+                <TableHead>Rule</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {data.policies.edges.map(({ node: policy }) => (
+                <TableRow
+                  key={policy.policyId}
+                  onClick={() => router.push(`/policies/${policy.policyId}`)}
+                  className="cursor-pointer"
+                >
+                  <TableCell>{formatProcessType(policy.approvalProcessType)}</TableCell>
+                  <TableCell
+                    className={
+                      policy.rules.__typename === "CommitteeThreshold"
+                        ? ""
+                        : "text-textColor-secondary"
                     }
                   >
-                    <TableCell colSpan={4}>
-                      <div className="font-thin italic">show more...</div>
-                    </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
-          )}
-        </CardContent>
-      </Card>
-    </main>
+                    {policy.rules.__typename === "CommitteeThreshold" &&
+                      `${policy.rules.committee.name} Committee`}
+                    {policy.rules.__typename === "SystemApproval" && "System"}
+                  </TableCell>
+                </TableRow>
+              ))}
+              {data.policies.pageInfo.hasNextPage && (
+                <TableRow
+                  onClick={() =>
+                    fetchMore({
+                      variables: {
+                        after: data.policies.edges[data.policies.edges.length - 1].cursor,
+                      },
+                    })
+                  }
+                >
+                  <TableCell colSpan={4}>
+                    <div className="font-thin italic">show more...</div>
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        )}
+      </CardContent>
+    </Card>
   )
 }
 

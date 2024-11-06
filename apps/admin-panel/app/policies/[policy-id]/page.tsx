@@ -4,9 +4,10 @@ import { gql } from "@apollo/client"
 
 import { PolicyDetailsCard } from "./details"
 
-import { PageHeading } from "@/components/page-heading"
 import { useGetPolicyDetailsQuery } from "@/lib/graphql/generated"
 import { CommitteeUsers } from "@/app/committees/[committee-id]/users"
+import { BreadcrumbLink, BreadCrumbWrapper } from "@/components/breadcrumb-wrapper"
+import { formatProcessType } from "@/lib/utils"
 
 gql`
   query GetPolicyDetails($id: UUID!) {
@@ -37,6 +38,16 @@ gql`
   }
 `
 
+const PolicyBreadcrumb = ({ policyName }: { policyName: string }) => {
+  const links: BreadcrumbLink[] = [
+    { title: "Dashboard", href: "/dashboard" },
+    { title: "Policies", href: "/policies" },
+    { title: policyName, isCurrentPage: true },
+  ]
+
+  return <BreadCrumbWrapper links={links} />
+}
+
 function PolicyPage({
   params,
 }: {
@@ -55,9 +66,9 @@ function PolicyPage({
 
   return (
     <main className="max-w-7xl m-auto">
-      <PageHeading>Policy Details</PageHeading>
-      <div className="flex flex-col gap-5">
-        <PolicyDetailsCard policy={data.policy} />
+      <PolicyBreadcrumb policyName={formatProcessType(data.policy.approvalProcessType)} />
+      <PolicyDetailsCard policy={data.policy} />
+      <div className="flex flex-col mt-4">
         {data.policy.rules.__typename === "CommitteeThreshold" && (
           <CommitteeUsers showRemove={false} committee={data.policy.rules.committee} />
         )}

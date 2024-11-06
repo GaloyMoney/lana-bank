@@ -11,6 +11,14 @@ import PaginatedTable, {
   PaginatedData,
 } from "@/components/new/paginated-table"
 
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/primitive/card"
+
 gql`
   query Customers($first: Int!, $after: String) {
     customersByEmail(first: $first, after: $after) {
@@ -56,24 +64,28 @@ const Customers = () => {
   })
 
   return (
-    <div className="bg-page rounded-md p-[10px] flex flex-col gap-1 border">
-      <div className="text-title-md">Customers</div>
-      <div className="!text-body text-body-sm">
-        Individuals or entities who hold accounts, loans, or credit facilities with the
-        bank
-      </div>
-      {data && (
-        <PaginatedTable<Customer>
-          columns={columns}
-          data={data?.customersByEmail as PaginatedData<Customer>}
-          fetchMore={async (cursor) => fetchMore({ variables: { after: cursor } })}
-          pageSize={DEFAULT_PAGESIZE}
-          onClick={(customer) => {
-            router.push(`/customers/${customer.customerId}`)
-          }}
-        />
-      )}
-    </div>
+    <Card>
+      <CardHeader>
+        <CardTitle>Customers</CardTitle>
+        <CardDescription>
+          Individuals or entities who hold accounts, loans, or credit facilities with the
+          bank
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        {data && (
+          <PaginatedTable<Customer>
+            columns={columns}
+            data={data?.customersByEmail as PaginatedData<Customer>}
+            fetchMore={async (cursor) => fetchMore({ variables: { after: cursor } })}
+            pageSize={DEFAULT_PAGESIZE}
+            onClick={(customer) => {
+              router.push(`/customers/${customer.customerId}`)
+            }}
+          />
+        )}
+      </CardContent>
+    </Card>
   )
 }
 

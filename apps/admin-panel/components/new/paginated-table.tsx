@@ -2,12 +2,22 @@
 
 import { useState, useEffect } from "react"
 import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/primitive/table"
+import { Button } from "@/components/primitive/button"
+import {
   HiChevronUp,
   HiChevronDown,
   HiSelector,
   HiChevronLeft,
   HiChevronRight,
 } from "react-icons/hi"
+import { Select } from "../primitive/select"
 
 export type Column<T> = {
   [K in keyof T]: {
@@ -56,12 +66,10 @@ const PaginatedTable = <T,>({
   }>({ column: null, direction: null })
 
   const [filterState, setFilterState] = useState<Partial<Record<keyof T, T[keyof T]>>>({})
-
   const [currentPage, setCurrentPage] = useState(1)
   const [displayData, setDisplayData] = useState<{ node: T }[]>([])
 
   useEffect(() => {
-    // Update displayData when data or currentPage changes
     const startIdx = (currentPage - 1) * pageSize
     const endIdx = startIdx + pageSize
     setDisplayData(data.edges.slice(startIdx, endIdx))
@@ -83,10 +91,9 @@ const PaginatedTable = <T,>({
 
   const handleNextPage = async () => {
     const totalDataLoaded = data.edges.length
-    const maxDataRequired = currentPage * pageSize + pageSize // Data needed for next page
+    const maxDataRequired = currentPage * pageSize + pageSize
 
     if (totalDataLoaded < maxDataRequired && data.pageInfo.hasNextPage) {
-      // Need to fetch more data
       await fetchMore(data.pageInfo.endCursor)
     }
     setCurrentPage((prevPage) => prevPage + 1)
@@ -99,103 +106,98 @@ const PaginatedTable = <T,>({
   }
 
   return (
-    <div className="overflow-auto h-full w-full">
-      <table className="w-full min-w-max table-auto text-left">
-        <thead>
-          <tr>
-            {columns.map((col) => (
-              <th
-                key={col.key as string}
-                className="pt-4 pb-2 text-heading text-title-sm"
-              >
-                <div className="flex items-center">
-                  <span className="text-title-sm">{col.label}</span>
-                  {col.sortable && (
-                    <button
-                      onClick={() => handleSort(col.key)}
-                      className="ml-2 text-gray-500 hover:text-gray-700 focus:outline-none"
-                    >
-                      {sortState.column === col.key ? (
-                        sortState.direction === "ASC" ? (
-                          <HiChevronUp className="w-4 h-4" />
-                        ) : (
-                          <HiChevronDown className="w-4 h-4" />
-                        )
-                      ) : (
-                        <HiSelector className="w-4 h-4" />
-                      )}
-                    </button>
-                  )}
-                  {col.filterValues && (
-                    <select
-                      value={String(filterState[col.key] ?? "")}
-                      onChange={(e) => {
-                        const value = col.filterValues?.find(
-                          (val) => String(val) === e.target.value,
-                        )
-                        handleFilter(col.key, value as T[typeof col.key])
-                      }}
-                      className="ml-2 border border-gray-300 rounded text-sm"
-                    >
-                      <option value="">All</option>
-                      {col.filterValues.map((value, idx) => (
-                        <option key={idx} value={String(value)}>
-                          {String(value)}
-                        </option>
-                      ))}
-                    </select>
-                  )}
-                </div>
-              </th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {displayData.map(({ node }, idx) => (
-            <tr
-              onClick={() => (onClick ? onClick(node) : undefined)}
-              key={idx}
-              className={`hover:bg-gray-100 ${onClick && "cursor-pointer"}`}
-            >
+    <>
+      <div>
+        <Table>
+          <TableHeader>
+            <TableRow>
               {columns.map((col) => (
-                <td key={col.key as string} className="text-body-md p-1 text-body-sm">
-                  {col.render ? col.render(node[col.key], node) : String(node[col.key])}
-                </td>
+                <TableHead key={col.key as string}>
+                  <div className="flex items-center space-x-2">
+                    <span>{col.label}</span>
+                    {col.sortable && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-8 w-8 p-0"
+                        onClick={() => handleSort(col.key)}
+                      >
+                        {sortState.column === col.key ? (
+                          sortState.direction === "ASC" ? (
+                            <HiChevronUp className="h-4 w-4" />
+                          ) : (
+                            <HiChevronDown className="h-4 w-4" />
+                          )
+                        ) : (
+                          <HiSelector className="h-4 w-4" />
+                        )}
+                      </Button>
+                    )}
+                    {col.filterValues && (
+                      <div className="w-30">
+                        <Select
+                          value={String(filterState[col.key] ?? "")}
+                          onChange={(e) => {
+                            const selectedValue = col.filterValues?.find(
+                              (val) => String(val) === e.target.value,
+                            )
+                            handleFilter(col.key, selectedValue as T[typeof col.key])
+                          }}
+                        >
+                          <option value="">All</option>
+                          {col.filterValues.map((value, idx) => (
+                            <option key={idx} value={String(value)}>
+                              {String(value)}
+                            </option>
+                          ))}
+                        </Select>
+                      </div>
+                    )}
+                  </div>
+                </TableHead>
               ))}
-            </tr>
-          ))}
-        </tbody>
-      </table>
-
-      {/* Pagination controls */}
-      <div className="flex justify-center mt-4">
-        <nav className="inline-flex -space-x-px">
-          <button
-            onClick={handlePreviousPage}
-            disabled={currentPage === 1}
-            className={`px-3 py-1 border border-gray-300 rounded-l-md hover:bg-gray-100 ${
-              currentPage === 1 ? "opacity-50 cursor-not-allowed" : ""
-            }`}
-          >
-            <HiChevronLeft className="w-5 h-5" />
-          </button>
-          <span className="px-3 py-1 border-t border-b border-gray-300">
-            Page {currentPage}
-          </span>
-          <button
-            onClick={handleNextPage}
-            disabled={displayData.length < pageSize && !data.pageInfo.hasNextPage}
-            className={`px-3 py-1 border border-gray-300 rounded-r-md hover:bg-gray-100 ${
-              displayData.length < pageSize && !data.pageInfo.hasNextPage
-                ? "opacity-50 cursor-not-allowed"
-                : ""
-            }`}
-          >
-            <HiChevronRight className="w-5 h-5" />
-          </button>
-        </nav>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {displayData.map(({ node }, idx) => (
+              <TableRow
+                key={idx}
+                onClick={() => onClick?.(node)}
+                className={onClick ? "cursor-pointer" : ""}
+              >
+                {columns.map((col) => (
+                  <TableCell key={col.key as string}>
+                    {col.render ? col.render(node[col.key], node) : String(node[col.key])}
+                  </TableCell>
+                ))}
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
       </div>
-    </div>
+
+      <div className="flex items-center justify-center space-x-2 py-4">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={handlePreviousPage}
+          disabled={currentPage === 1}
+        >
+          <HiChevronLeft className="h-4 w-4" />
+        </Button>
+        <div className="flex items-center gap-1">
+          <span className="text-sm font-medium">Page {currentPage}</span>
+        </div>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={handleNextPage}
+          disabled={displayData.length < pageSize && !data.pageInfo.hasNextPage}
+        >
+          <HiChevronRight className="h-4 w-4" />
+        </Button>
+      </div>
+    </>
   )
 }
 

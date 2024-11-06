@@ -6,8 +6,9 @@ import { gql } from "@apollo/client"
 import { CommitteeDetailsCard } from "./details"
 import { CommitteeUsers } from "./users"
 
-import { PageHeading } from "@/components/page-heading"
 import { useGetCommitteeDetailsQuery } from "@/lib/graphql/generated"
+
+import { BreadcrumbLink, BreadCrumbWrapper } from "@/components/breadcrumb-wrapper"
 
 gql`
   query GetCommitteeDetails($id: UUID!) {
@@ -24,6 +25,16 @@ gql`
     }
   }
 `
+
+const CommitteeBreadcrumb = ({ committeeName }: { committeeName: string }) => {
+  const links: BreadcrumbLink[] = [
+    { title: "Dashboard", href: "/dashboard" },
+    { title: "Committees", href: "/committees" },
+    { title: committeeName, isCurrentPage: true },
+  ]
+
+  return <BreadCrumbWrapper links={links} />
+}
 
 function CommitteePage({
   params,
@@ -43,9 +54,9 @@ function CommitteePage({
 
   return (
     <main className="max-w-7xl m-auto">
-      <PageHeading>Committee Details</PageHeading>
-      <div className="flex flex-col gap-5">
-        <CommitteeDetailsCard committee={data.committee} />
+      <CommitteeBreadcrumb committeeName={data.committee.name} />
+      <CommitteeDetailsCard committee={data.committee} />
+      <div className="mt-4">
         <CommitteeUsers committee={data.committee} />
       </div>
     </main>

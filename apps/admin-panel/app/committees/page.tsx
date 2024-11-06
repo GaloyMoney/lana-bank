@@ -8,9 +8,14 @@ import { CreateCommitteeDialog } from "./create"
 import { AddUserCommitteeDialog } from "./add-user"
 
 import { PageHeading } from "@/components/page-heading"
-import { Button } from "@/components/primitive/button"
 import { Committee, useMeQuery, useCommitteesQuery } from "@/lib/graphql/generated"
-import { Card, CardContent } from "@/components/primitive/card"
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/primitive/card"
 import {
   Table,
   TableBody,
@@ -89,7 +94,7 @@ function CommitteesPage() {
   }
 
   return (
-    <main>
+    <>
       {openAddUserDialog && (
         <AddUserCommitteeDialog
           committeeId={openAddUserDialog.committeeId}
@@ -102,19 +107,16 @@ function CommitteesPage() {
         setOpenCreateCommitteeDialog={setOpenCreateCommitteeDialog}
       />
 
-      <div className="flex justify-between items-center mb-8">
-        <PageHeading className="mb-0">Committees</PageHeading>
-        {me?.me.subjectCanCreateUser && (
-          <Button onClick={() => setOpenCreateCommitteeDialog(true)}>Create New</Button>
-        )}
-      </div>
-
       <Card>
+        <CardHeader>
+          <CardTitle>Committees</CardTitle>
+          <CardDescription>Manage approval committees and their members</CardDescription>
+        </CardHeader>
         <CardContent>
           {!data?.committees.edges || data.committees.edges.length === 0 ? (
-            <p className="mt-6">No committees found</p>
+            <p>No committees found</p>
           ) : (
-            <Table className="mt-6">
+            <Table>
               <TableHeader>
                 <TableRow>
                   <TableHead>Name</TableHead>
@@ -159,7 +161,7 @@ function CommitteesPage() {
           )}
         </CardContent>
       </Card>
-    </main>
+    </>
   )
 }
 
