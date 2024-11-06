@@ -433,6 +433,25 @@ export type CreditFacilityDisbursalConfirmPayload = {
   disbursal: CreditFacilityDisbursal;
 };
 
+export type CreditFacilityDisbursalConnection = {
+  __typename?: 'CreditFacilityDisbursalConnection';
+  /** A list of edges. */
+  edges: Array<CreditFacilityDisbursalEdge>;
+  /** A list of nodes. */
+  nodes: Array<CreditFacilityDisbursal>;
+  /** Information to aid in pagination. */
+  pageInfo: PageInfo;
+};
+
+/** An edge in a connection. */
+export type CreditFacilityDisbursalEdge = {
+  __typename?: 'CreditFacilityDisbursalEdge';
+  /** A cursor for use in pagination */
+  cursor: Scalars['String']['output'];
+  /** The item at the end of the edge */
+  node: CreditFacilityDisbursal;
+};
+
 export type CreditFacilityDisbursalExecuted = {
   __typename?: 'CreditFacilityDisbursalExecuted';
   cents: Scalars['UsdCents']['output'];
@@ -1009,6 +1028,7 @@ export type Query = {
   dashboard: Dashboard;
   deposit?: Maybe<Deposit>;
   deposits: DepositConnection;
+  disbursals: CreditFacilityDisbursalConnection;
   document?: Maybe<Document>;
   me: Subject;
   offBalanceSheetChartOfAccounts?: Maybe<ChartOfAccounts>;
@@ -1121,6 +1141,12 @@ export type QueryDepositArgs = {
 
 
 export type QueryDepositsArgs = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  first: Scalars['Int']['input'];
+};
+
+
+export type QueryDisbursalsArgs = {
   after?: InputMaybe<Scalars['String']['input']>;
   first: Scalars['Int']['input'];
 };
