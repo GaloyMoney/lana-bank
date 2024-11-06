@@ -97,7 +97,6 @@ jobs:
       - check-code
       - integration-tests
       - bats-tests
-      trigger: true
     - get: pipeline-tasks
     - get: version
     - get: #@ app_edge_image_resource_name("admin-panel")
@@ -366,7 +365,7 @@ resources:
 - #@ gh_release_resource()
 - #@ charts_repo_bot_branch()
 - #@ charts_repo_resource()
-- #@ app_src_resource("admin-panel", "fix-dashboard")
+- #@ app_src_resource("admin-panel", "main")
 - #@ app_edge_image("admin-panel")
 - #@ app_latest_image("admin-panel")
 - #@ app_src_resource("customer-portal", "main")
