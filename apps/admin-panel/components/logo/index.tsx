@@ -1,7 +1,7 @@
-"use client"
+import Image from "next/image"
 
-import LogoNeutral from "./logo-neutral.svg"
-import LogoPrimary from "./logo-primary.svg"
+import logoNeutral from "./logo-neutral.svg"
+import logoPrimary from "./logo-primary.svg"
 
 type LogoProps = {
   variant?: "neutral" | "primary"
@@ -10,9 +10,17 @@ type LogoProps = {
 }
 
 const Logo: React.FC<LogoProps> = ({ variant = "neutral", className, width }) => {
-  const LogoSrc = variant === "primary" ? LogoPrimary : LogoNeutral
+  const logoSrc = variant === "primary" ? logoPrimary : logoNeutral
 
-  return <LogoSrc className={className} width={width} />
+  return (
+    <Image
+      className={className}
+      src={logoSrc}
+      alt={`${variant} logo`}
+      width={width}
+      priority
+    />
+  )
 }
 
 export default Logo

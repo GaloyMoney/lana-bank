@@ -1,15 +1,6 @@
 "use client"
 
-import dynamic from "next/dynamic"
-
-const Chart = dynamic(() => import("react-apexcharts"), {
-  ssr: false,
-  loading: () => (
-    <div className="w-full h-[250px] flex items-center justify-center">
-      Loading chart...
-    </div>
-  ),
-})
+import Chart from "react-apexcharts"
 
 type CollateralUsdChartProps = {
   data: {
