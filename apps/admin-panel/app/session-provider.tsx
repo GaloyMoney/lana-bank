@@ -8,7 +8,7 @@ export function AuthSessionProvider({
   session,
 }: Readonly<{
   children: React.ReactNode
-  session: Session
+  session: Session | null
 }>) {
   const isDevelopment = process.env.NODE_ENV === "development"
   const sessionProviderProps = {

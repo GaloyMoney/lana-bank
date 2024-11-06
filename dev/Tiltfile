@@ -33,7 +33,7 @@ local_resource(
     "admin-panel",
     labels=["apps"],
     serve_env={
-        "BASE_PATH": "/admin-panel"
+        "NEXT_PUBLIC_BASE_PATH": "/admin-panel"
     },
     serve_cmd="cd ../apps/admin-panel && pnpm install && pnpm run dev",
     allow_parallel=True,
