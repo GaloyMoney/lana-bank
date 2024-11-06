@@ -1,3 +1,4 @@
+mod combo_cursor;
 mod create_fn;
 mod delete_fn;
 mod find_all_fn;
@@ -85,6 +86,13 @@ impl<'a> ToTokens for EsRepo<'a> {
         let post_persist_hook = &self.post_persist_hook;
         let cursors = self.list_by_fns.iter().map(|l| l.cursor());
         #[cfg(feature = "graphql")]
+        let combo_cursor = combo_cursor::ComboCursor::new(
+            &self.opts,
+            self.list_by_fns.iter().map(|l| l.cursor()).collect(),
+        );
+        #[cfg(not(feature = "graphql"))]
+        let combo_cursor = TokenStream::new();
+        #[cfg(feature = "graphql")]
         let gql_cursors: Vec<_> = self
             .list_by_fns
             .iter()
@@ -106,6 +114,8 @@ impl<'a> ToTokens for EsRepo<'a> {
 
                 #(#cursors)*
                 #(#gql_cursors)*
+
+                #combo_cursor
             }
 
             mod repo_types {
