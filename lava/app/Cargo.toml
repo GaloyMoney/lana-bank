@@ -13,6 +13,7 @@ lava-events = { path = "../events" }
 lava-ids = { path = "../ids" }
 
 dashboard = { path = "../dashboard" }
+summaries = { path = "../summaries" }
 
 governance = { path = "../../core/governance", features = ["graphql"] }
 core-money = { path = "../../core/money" }
@@ -63,4 +64,4 @@ cloud-storage = { workspace = true }
 
 [dev-dependencies]
 rand = { workspace = true }
-serial_test = { version = "3.1.1", features = [ "file_locks" ] }
+serial_test = { version = "3.1.1", features = ["file_locks"] }

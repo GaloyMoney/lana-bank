@@ -2187,6 +2187,7 @@ dependencies = [
  "sha2",
  "sqlx",
  "strum",
+ "summaries",
  "thiserror",
  "tokio",
  "tracing",
@@ -2221,6 +2222,7 @@ dependencies = [
  "lava-ids",
  "outbox",
  "serde",
+ "uuid",
 ]
 
 [[package]]
@@ -4192,6 +4194,30 @@ name = "subtle"
 version = "2.6.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "13c2bddecc57b384dee18652358fb23172facb8a2c51ccc10d74c157bdea3292"
+
+[[package]]
+name = "summaries"
+version = "0.2.15-dev"
+dependencies = [
+ "anyhow",
+ "async-graphql",
+ "async-trait",
+ "audit",
+ "authz",
+ "chrono",
+ "es-entity",
+ "futures",
+ "job",
+ "lava-events",
+ "outbox",
+ "serde",
+ "serde_json",
+ "sqlx",
+ "strum",
+ "thiserror",
+ "tokio",
+ "uuid",
+]
 
 [[package]]
 name = "syn"

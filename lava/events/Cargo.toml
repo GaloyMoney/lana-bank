@@ -16,3 +16,4 @@ lava-ids = { path = "../ids" }
 
 chrono = { workspace = true }
 serde = { workspace = true }
+uuid = { workspace = true }

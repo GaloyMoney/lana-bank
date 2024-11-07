@@ -24,6 +24,7 @@ sqlx-prepare:
 	cd core/user && cargo sqlx prepare
 	cd lava/app && cargo sqlx prepare
 	cd lava/dashboard && cargo sqlx prepare
+	cd lava/summaries && cargo sqlx prepare
 
 reset-tf-state:
 	rm -rf tf/terraform.tfstate

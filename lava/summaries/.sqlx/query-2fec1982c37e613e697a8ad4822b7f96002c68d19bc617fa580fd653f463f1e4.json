@@ -1,0 +1,22 @@
+{
+  "db_name": "PostgreSQL",
+  "query": " \n            SELECT customer_info_json\n            FROM customer_infos\n            WHERE id = $1\n            ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "customer_info_json",
+        "type_info": "Jsonb"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "2fec1982c37e613e697a8ad4822b7f96002c68d19bc617fa580fd653f463f1e4"
+}
