@@ -1,12 +1,10 @@
 "use client"
-import React, { useEffect, useState } from "react"
+import React, { useState } from "react"
 import { gql } from "@apollo/client"
 
 import Link from "next/link"
 
-import { useRouter, useSearchParams } from "next/navigation"
-
-import { CreateTermsTemplateDialog } from "./create"
+import { useRouter } from "next/navigation"
 
 import { TermsTemplate, useTermsTemplatesQuery } from "@/lib/graphql/generated"
 import {
@@ -53,18 +51,11 @@ gql`
 `
 
 function TermPage() {
-  const searchParams = useSearchParams()
   const router = useRouter()
 
   const { data, refetch, loading, error } = useTermsTemplatesQuery()
-  const [openCreateTermsTemplateDialog, setOpenCreateTermsTemplateDialog] =
-    useState<boolean>(false)
   const [openUpdateTermsTemplateDialog, setOpenUpdateTermsTemplateDialog] =
     useState<TermsTemplate | null>(null)
-
-  useEffect(() => {
-    if (searchParams.get("create")) setOpenCreateTermsTemplateDialog(true)
-  }, [searchParams, setOpenCreateTermsTemplateDialog])
 
   return (
     <main>
@@ -76,11 +67,6 @@ function TermPage() {
           refetch={refetch}
         />
       )}
-      <CreateTermsTemplateDialog
-        openCreateTermsTemplateDialog={openCreateTermsTemplateDialog}
-        setOpenCreateTermsTemplateDialog={setOpenCreateTermsTemplateDialog}
-        refetch={refetch}
-      />
       <Card>
         <CardHeader>
           <CardTitle>Terms Templates</CardTitle>

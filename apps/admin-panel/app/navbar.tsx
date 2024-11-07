@@ -25,7 +25,6 @@ import {
   HiOutlineMenu,
   HiLockClosed,
 } from "react-icons/hi"
-import { HiMagnifyingGlassCircle } from "react-icons/hi2"
 
 import Avatar from "./avatar"
 
@@ -48,7 +47,6 @@ const NavBar = () => {
       <ul className="flex flex-col space-y-[1px]">
         <MenuItem icon={HiHome} title="Dashboard" to="/dashboard" />
         <MenuItem icon={HiCursorClick} title="Actions" to="/actions" />
-        <MenuItem icon={HiMagnifyingGlassCircle} title="Search" to="/search" />
         <div className="h-4"></div>
         <MenuItem icon={HiUser} title="Customers" to="/customers" />
         <MenuItem icon={HiViewGrid} title="Credit Facilities" to="/credit-facilities" />

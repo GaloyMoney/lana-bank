@@ -9,7 +9,6 @@ import { authOptions } from "./api/auth/[...nextauth]/options"
 import { AuthSessionProvider } from "./session-provider"
 
 import CreateButton, { CreateContextProvider } from "./create"
-import { SearchInput } from "./search"
 import NavBar from "./navbar"
 
 import { Toast } from "@/components/new/toast"
@@ -75,8 +74,8 @@ const AppLayout = ({ children }: Readonly<{ children: React.ReactNode }>) => (
       <NavBar />
       <div className="flex-1 pt-[72px] md:pt-2 p-2 max-h-screen overflow-hidden">
         <div className="p-2 border rounded-md flex flex-col w-full h-full">
-          <div className="md:flex gap-2 hidden pb-2">
-            <SearchInput />
+          <div className="md:flex gap-2 hidden pb-2 justify-between items-center">
+            <div className="">Welcome to Lana Bank</div>
             <CreateButton />
           </div>
           <main className="h-full overflow-y-auto no-scrollbar">{children}</main>
