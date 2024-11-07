@@ -12,6 +12,7 @@ mod document;
 mod financials;
 mod loader;
 mod price;
+mod primitives;
 mod report;
 mod sumsub;
 mod terms;

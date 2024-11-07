@@ -86,7 +86,7 @@ impl Query {
                     ctx,
                     after,
                     first,
-                    |query| app.customers().list_by_email(sub, query)
+                    |query| app.customers().list_by_email(sub, query, sort.direction)
                 )
             }
             CustomersSortBy::CreatedAt => {
@@ -97,7 +97,9 @@ impl Query {
                     ctx,
                     after,
                     first,
-                    |query| app.customers().list_by_created_at(sub, query)
+                    |query| app
+                        .customers()
+                        .list_by_created_at(sub, query, sort.direction)
                 )
             }
             CustomersSortBy::TelegramId => {
@@ -108,7 +110,9 @@ impl Query {
                     ctx,
                     after,
                     first,
-                    |query| app.customers().list_by_telegram_id(sub, query)
+                    |query| app
+                        .customers()
+                        .list_by_telegram_id(sub, query, sort.direction)
                 )
             }
         }
@@ -225,7 +229,9 @@ impl Query {
                     ctx,
                     after,
                     first,
-                    |query| app.credit_facilities().list_by_created_at(sub, query)
+                    |query| app
+                        .credit_facilities()
+                        .list_by_created_at(sub, query, sort.direction)
                 )
             }
             CreditFacilitiesSortBy::Cvl => {
@@ -236,9 +242,11 @@ impl Query {
                     ctx,
                     after,
                     first,
-                    |query| app
-                        .credit_facilities()
-                        .list_by_collateralization_ratio(sub, query)
+                    |query| app.credit_facilities().list_by_collateralization_ratio(
+                        sub,
+                        query,
+                        sort.direction
+                    )
                 )
             }
         }
@@ -267,9 +275,12 @@ impl Query {
                     ctx,
                     after,
                     first,
-                    |query| app
-                        .credit_facilities()
-                        .list_by_created_at_for_status(sub, status, query)
+                    |query| app.credit_facilities().list_by_created_at_for_status(
+                        sub,
+                        status,
+                        query,
+                        sort.direction
+                    )
                 )
             }
             CreditFacilitiesSortBy::Cvl => {
@@ -282,7 +293,12 @@ impl Query {
                     first,
                     |query| app
                         .credit_facilities()
-                        .list_by_collateralization_ratio_for_status(sub, status, query)
+                        .list_by_collateralization_ratio_for_status(
+                            sub,
+                            status,
+                            query,
+                            sort.direction
+                        )
                 )
             }
         }
@@ -316,7 +332,8 @@ impl Query {
                         .list_by_created_at_for_collateralization_state(
                             sub,
                             collateralization_state,
-                            query
+                            query,
+                            sort.direction
                         )
                 )
             }
@@ -333,7 +350,8 @@ impl Query {
                         .list_by_collateralization_ratio_for_collateralization_state(
                             sub,
                             collateralization_state,
-                            query
+                            query,
+                            sort.direction
                         )
                 )
             }

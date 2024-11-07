@@ -308,6 +308,7 @@ type CommitteeThreshold {
 
 input CreditFacilitiesSort {
 	by: CreditFacilitiesSortBy! = CREATED_AT
+	direction: SortDirection! = ASC
 }
 
 enum CreditFacilitiesSortBy {
@@ -586,6 +587,7 @@ type CustomerUpdatePayload {
 
 input CustomersSort {
 	by: CustomersSortBy! = EMAIL
+	direction: SortDirection! = ASC
 }
 
 enum CustomersSortBy {
@@ -892,7 +894,7 @@ type Query {
 	users: [User!]!
 	customer(id: UUID!): Customer
 	customerByEmail(email: String!): Customer
-	customers(first: Int!, after: String, sort: CustomersSort = {by: EMAIL}): CustomerConnection!
+	customers(first: Int!, after: String, sort: CustomersSort = {by: EMAIL, direction: ASC}): CustomerConnection!
 	withdrawal(id: UUID!): Withdrawal
 	withdrawals(first: Int!, after: String): WithdrawalConnection!
 	deposit(id: UUID!): Deposit
@@ -900,9 +902,9 @@ type Query {
 	termsTemplate(id: UUID!): TermsTemplate
 	termsTemplates: [TermsTemplate!]!
 	creditFacility(id: UUID!): CreditFacility
-	creditFacilities(first: Int!, after: String, sort: CreditFacilitiesSort = {by: CREATED_AT}): CreditFacilityConnection!
-	creditFacilitiesForStatus(status: CreditFacilityStatus!, first: Int!, after: String, sort: CreditFacilitiesSort = {by: CREATED_AT}): CreditFacilityConnection!
-	creditFacilitiesForCollateralizationState(collateralizationState: CollateralizationState!, first: Int!, after: String, sort: CreditFacilitiesSort = {by: CREATED_AT}): CreditFacilityConnection!
+	creditFacilities(first: Int!, after: String, sort: CreditFacilitiesSort = {by: CREATED_AT, direction: ASC}): CreditFacilityConnection!
+	creditFacilitiesForStatus(status: CreditFacilityStatus!, first: Int!, after: String, sort: CreditFacilitiesSort = {by: CREATED_AT, direction: ASC}): CreditFacilityConnection!
+	creditFacilitiesForCollateralizationState(collateralizationState: CollateralizationState!, first: Int!, after: String, sort: CreditFacilitiesSort = {by: CREATED_AT, direction: ASC}): CreditFacilityConnection!
 	disbursal(id: UUID!): CreditFacilityDisbursal
 	disbursals(first: Int!, after: String): CreditFacilityDisbursalConnection!
 	committee(id: UUID!): Committee
@@ -977,6 +979,11 @@ input ShareholderEquityAddInput {
 scalar SignedSatoshis
 
 scalar SignedUsdCents
+
+enum SortDirection {
+	ASC
+	DESC
+}
 
 type StatementCategory {
 	name: String!

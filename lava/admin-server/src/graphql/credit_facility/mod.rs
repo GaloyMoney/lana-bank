@@ -6,7 +6,9 @@ use async_graphql::*;
 
 use crate::primitives::*;
 
-use super::{approval_process::*, customer::*, loader::LavaDataLoader, terms::*};
+use super::{
+    approval_process::*, customer::*, loader::LavaDataLoader, primitives::SortDirection, terms::*,
+};
 pub use lava_app::{
     credit_facility::{
         CreditFacility as DomainCreditFacility, CreditFacilityByCollateralizationRatioCursor,
@@ -232,4 +234,6 @@ pub enum CreditFacilitiesSortBy {
 pub struct CreditFacilitiesSort {
     #[graphql(default)]
     pub by: CreditFacilitiesSortBy,
+    #[graphql(default)]
+    pub direction: SortDirection,
 }

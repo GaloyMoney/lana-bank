@@ -4,7 +4,10 @@ use async_graphql::*;
 
 use crate::primitives::*;
 
-use super::{credit_facility::*, deposit::*, document::Document, withdrawal::Withdrawal};
+use super::{
+    credit_facility::*, deposit::*, document::Document, primitives::SortDirection,
+    withdrawal::Withdrawal,
+};
 
 pub use lava_app::{
     app::LavaApp,
@@ -169,4 +172,6 @@ pub enum CustomersSortBy {
 pub struct CustomersSort {
     #[graphql(default)]
     pub by: CustomersSortBy,
+    #[graphql(default)]
+    pub direction: SortDirection,
 }

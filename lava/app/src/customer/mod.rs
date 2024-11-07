@@ -191,6 +191,7 @@ impl Customers {
         &self,
         sub: &Subject,
         query: es_entity::PaginatedQueryArgs<CustomerByEmailCursor>,
+        direction: impl Into<es_entity::ListDirection>,
     ) -> Result<es_entity::PaginatedQueryRet<Customer, CustomerByEmailCursor>, CustomerError> {
         self.authz
             .enforce_permission(
@@ -199,15 +200,14 @@ impl Customers {
                 CustomerAction::List,
             )
             .await?;
-        self.repo
-            .list_by_email(query, es_entity::ListDirection::Ascending)
-            .await
+        self.repo.list_by_email(query, direction.into()).await
     }
 
     pub async fn list_by_created_at(
         &self,
         sub: &Subject,
         query: es_entity::PaginatedQueryArgs<CustomerByCreatedAtCursor>,
+        direction: impl Into<es_entity::ListDirection>,
     ) -> Result<es_entity::PaginatedQueryRet<Customer, CustomerByCreatedAtCursor>, CustomerError>
     {
         self.authz
@@ -217,15 +217,14 @@ impl Customers {
                 CustomerAction::List,
             )
             .await?;
-        self.repo
-            .list_by_created_at(query, es_entity::ListDirection::Descending)
-            .await
+        self.repo.list_by_created_at(query, direction.into()).await
     }
 
     pub async fn list_by_telegram_id(
         &self,
         sub: &Subject,
         query: es_entity::PaginatedQueryArgs<CustomerByTelegramIdCursor>,
+        direction: impl Into<es_entity::ListDirection>,
     ) -> Result<es_entity::PaginatedQueryRet<Customer, CustomerByTelegramIdCursor>, CustomerError>
     {
         self.authz
@@ -235,9 +234,7 @@ impl Customers {
                 CustomerAction::List,
             )
             .await?;
-        self.repo
-            .list_by_telegram_id(query, es_entity::ListDirection::Ascending)
-            .await
+        self.repo.list_by_telegram_id(query, direction.into()).await
     }
 
     pub async fn start_kyc(

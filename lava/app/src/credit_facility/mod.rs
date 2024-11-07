@@ -154,7 +154,7 @@ impl CreditFacilities {
             .await?)
     }
 
-    #[instrument(name = "lava.credit_facility.initiate", skip(self), err)]
+    #[instrument(name = "credit_facility.initiate", skip(self), err)]
     pub async fn initiate(
         &self,
         sub: &Subject,
@@ -288,7 +288,7 @@ impl CreditFacilities {
         Ok(disbursal)
     }
 
-    #[instrument(name = "lava.credit_facility.confirm_disbursal", skip(self), err)]
+    #[instrument(name = "credit_facility.confirm_disbursal", skip(self), err)]
     pub async fn confirm_disbursal(
         &self,
         sub: &Subject,
@@ -463,7 +463,7 @@ impl CreditFacilities {
             .await?)
     }
 
-    #[instrument(name = "lava.credit_facility.record_payment", skip(self), err)]
+    #[instrument(name = "credit_facility.record_payment", skip(self), err)]
     pub async fn record_payment(
         &self,
         sub: &Subject,
@@ -550,11 +550,12 @@ impl CreditFacilities {
             .entities)
     }
 
-    #[instrument(name = "lava.credit_facility.list_by_created_at", skip(self), err)]
+    #[instrument(name = "credit_facility.list_by_created_at", skip(self), err)]
     pub async fn list_by_created_at(
         &self,
         sub: &Subject,
         query: es_entity::PaginatedQueryArgs<CreditFacilityByCreatedAtCursor>,
+        direction: impl Into<es_entity::ListDirection> + std::fmt::Debug,
     ) -> Result<
         es_entity::PaginatedQueryRet<CreditFacility, CreditFacilityByCreatedAtCursor>,
         CreditFacilityError,
@@ -563,12 +564,12 @@ impl CreditFacilities {
             .enforce_permission(sub, Object::CreditFacility, CreditFacilityAction::List)
             .await?;
         self.credit_facility_repo
-            .list_by_created_at(query, es_entity::ListDirection::Descending)
+            .list_by_created_at(query, direction.into())
             .await
     }
 
     #[instrument(
-        name = "lava.credit_facility.list_by_created_at_for_status",
+        name = "credit_facility.list_by_created_at_for_status",
         skip(self),
         err
     )]
@@ -577,6 +578,7 @@ impl CreditFacilities {
         sub: &Subject,
         status: CreditFacilityStatus,
         query: es_entity::PaginatedQueryArgs<CreditFacilityByCreatedAtCursor>,
+        direction: impl Into<es_entity::ListDirection> + std::fmt::Debug,
     ) -> Result<
         es_entity::PaginatedQueryRet<CreditFacility, CreditFacilityByCreatedAtCursor>,
         CreditFacilityError,
@@ -585,12 +587,12 @@ impl CreditFacilities {
             .enforce_permission(sub, Object::CreditFacility, CreditFacilityAction::List)
             .await?;
         self.credit_facility_repo
-            .list_for_status_by_created_at(status, query, es_entity::ListDirection::Descending)
+            .list_for_status_by_created_at(status, query, direction.into())
             .await
     }
 
     #[instrument(
-        name = "lava.credit_facility.list_by_created_at_for_collateralization_state",
+        name = "credit_facility.list_by_created_at_for_collateralization_state",
         skip(self),
         err
     )]
@@ -599,6 +601,7 @@ impl CreditFacilities {
         sub: &Subject,
         collateralization_state: CollateralizationState,
         query: es_entity::PaginatedQueryArgs<CreditFacilityByCreatedAtCursor>,
+        direction: impl Into<es_entity::ListDirection> + std::fmt::Debug,
     ) -> Result<
         es_entity::PaginatedQueryRet<CreditFacility, CreditFacilityByCreatedAtCursor>,
         CreditFacilityError,
@@ -610,13 +613,13 @@ impl CreditFacilities {
             .list_for_collateralization_state_by_created_at(
                 collateralization_state,
                 query,
-                es_entity::ListDirection::Descending,
+                direction.into(),
             )
             .await
     }
 
     #[instrument(
-        name = "lava.credit_facility.list_by_collateralization_ratio",
+        name = "credit_facility.list_by_collateralization_ratio",
         skip(self),
         err
     )]
@@ -624,6 +627,7 @@ impl CreditFacilities {
         &self,
         sub: &Subject,
         query: es_entity::PaginatedQueryArgs<CreditFacilityByCollateralizationRatioCursor>,
+        direction: impl Into<es_entity::ListDirection> + std::fmt::Debug,
     ) -> Result<
         es_entity::PaginatedQueryRet<CreditFacility, CreditFacilityByCollateralizationRatioCursor>,
         CreditFacilityError,
@@ -632,12 +636,12 @@ impl CreditFacilities {
             .enforce_permission(sub, Object::CreditFacility, CreditFacilityAction::List)
             .await?;
         self.credit_facility_repo
-            .list_by_collateralization_ratio(query, es_entity::ListDirection::Descending)
+            .list_by_collateralization_ratio(query, direction.into())
             .await
     }
 
     #[instrument(
-        name = "lava.credit_facility.list_by_collateralization_ratio_for_status",
+        name = "credit_facility.list_by_collateralization_ratio_for_status",
         skip(self),
         err
     )]
@@ -646,6 +650,7 @@ impl CreditFacilities {
         sub: &Subject,
         status: CreditFacilityStatus,
         query: es_entity::PaginatedQueryArgs<CreditFacilityByCollateralizationRatioCursor>,
+        direction: impl Into<es_entity::ListDirection> + std::fmt::Debug,
     ) -> Result<
         es_entity::PaginatedQueryRet<CreditFacility, CreditFacilityByCollateralizationRatioCursor>,
         CreditFacilityError,
@@ -654,16 +659,12 @@ impl CreditFacilities {
             .enforce_permission(sub, Object::CreditFacility, CreditFacilityAction::List)
             .await?;
         self.credit_facility_repo
-            .list_for_status_by_collateralization_ratio(
-                status,
-                query,
-                es_entity::ListDirection::Descending,
-            )
+            .list_for_status_by_collateralization_ratio(status, query, direction.into())
             .await
     }
 
     #[instrument(
-        name = "lava.credit_facility.list_by_collateralization_ratio_for_collateralization_state",
+        name = "credit_facility.list_by_collateralization_ratio_for_collateralization_state",
         skip(self),
         err
     )]
@@ -672,6 +673,7 @@ impl CreditFacilities {
         sub: &Subject,
         collateralization_state: CollateralizationState,
         query: es_entity::PaginatedQueryArgs<CreditFacilityByCollateralizationRatioCursor>,
+        direction: impl Into<es_entity::ListDirection> + std::fmt::Debug,
     ) -> Result<
         es_entity::PaginatedQueryRet<CreditFacility, CreditFacilityByCollateralizationRatioCursor>,
         CreditFacilityError,
@@ -683,7 +685,7 @@ impl CreditFacilities {
             .list_for_collateralization_state_by_collateralization_ratio(
                 collateralization_state,
                 query,
-                es_entity::ListDirection::Descending,
+                direction.into(),
             )
             .await
     }
@@ -704,7 +706,7 @@ impl CreditFacilities {
             .await?)
     }
 
-    #[instrument(name = "lava.credit_facility.complete", skip(self), err)]
+    #[instrument(name = "credit_facility.complete", skip(self), err)]
     pub async fn complete_facility(
         &self,
         sub: &Subject,

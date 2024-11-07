@@ -321,6 +321,7 @@ export type CommitteeThreshold = {
 
 export type CreditFacilitiesSort = {
   by?: CreditFacilitiesSortBy;
+  direction?: SortDirection;
 };
 
 export enum CreditFacilitiesSortBy {
@@ -589,6 +590,7 @@ export type CustomerUpdatePayload = {
 
 export type CustomersSort = {
   by?: CustomersSortBy;
+  direction?: SortDirection;
 };
 
 export enum CustomersSortBy {
@@ -1296,6 +1298,11 @@ export type ShareholderEquityAddInput = {
   amount: Scalars['UsdCents']['input'];
   reference: Scalars['String']['input'];
 };
+
+export enum SortDirection {
+  Asc = 'ASC',
+  Desc = 'DESC'
+}
 
 export type StatementCategory = {
   __typename?: 'StatementCategory';
