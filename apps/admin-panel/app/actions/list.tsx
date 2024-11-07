@@ -5,8 +5,6 @@ import { gql } from "@apollo/client"
 import { HiCheckCircle } from "react-icons/hi"
 import { useRouter } from "next/navigation"
 
-import { CardSkeleton } from "../dashboard/page"
-
 import {
   Table,
   TableBody,
@@ -28,6 +26,7 @@ import {
   useAllActionsQuery,
 } from "@/lib/graphql/generated"
 import { formatDate, formatProcessType } from "@/lib/utils"
+import { CardSkeleton } from "@/components/card-skeleton"
 
 const NUMBER_OF_ITEMS_IN_DASHBOARD = 3
 
