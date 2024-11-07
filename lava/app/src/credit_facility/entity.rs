@@ -1002,6 +1002,10 @@ pub struct NewCreditFacility {
     pub(super) customer_id: CustomerId,
     terms: TermValues,
     facility: UsdCents,
+    #[builder(setter(skip), default)]
+    pub(super) status: CreditFacilityStatus,
+    #[builder(setter(skip), default)]
+    pub(super) collateralization_state: CollateralizationState,
     account_ids: CreditFacilityAccountIds,
     customer_account_ids: CustomerLedgerAccountIds,
     #[builder(setter(into))]

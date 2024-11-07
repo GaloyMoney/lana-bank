@@ -12,6 +12,7 @@ const NUMBER_OF_DAYS_IN_YEAR: u64 = 366;
 
 #[derive(
     Debug,
+    Default,
     Clone,
     Copy,
     PartialEq,
@@ -26,6 +27,7 @@ pub enum CollateralizationState {
     FullyCollateralized,
     UnderMarginCallThreshold,
     UnderLiquidationThreshold,
+    #[default]
     NoCollateral,
 }
 

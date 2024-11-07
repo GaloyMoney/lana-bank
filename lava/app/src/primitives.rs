@@ -69,6 +69,7 @@ pub enum LoanStatus {
 #[derive(
     async_graphql::Enum,
     Debug,
+    Default,
     Clone,
     Copy,
     Serialize,
@@ -79,6 +80,7 @@ pub enum LoanStatus {
     strum::EnumString,
 )]
 pub enum CreditFacilityStatus {
+    #[default]
     PendingCollateralization,
     PendingApproval,
     Active,

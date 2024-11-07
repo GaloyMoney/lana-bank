@@ -22,15 +22,9 @@ use super::{entity::*, error::CreditFacilityError, publisher::*};
         collateralization_state(
             ty = "CollateralizationState",
             list_for,
-            create(persist = false),
             update(accessor = "last_collateralization_state()")
         ),
-        status(
-            ty = "CreditFacilityStatus",
-            list_for,
-            create(persist = false),
-            update(accessor = "status()")
-        )
+        status(ty = "CreditFacilityStatus", list_for, update(accessor = "status()"))
     ),
     post_persist_hook = "publish"
 )]
