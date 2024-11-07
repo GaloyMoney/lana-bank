@@ -99,7 +99,7 @@ export const WithdrawalInitiateDialog: React.FC<WithdrawalInitiateDialogProps> =
     <Dialog open={openWithdrawalInitiateDialog} onOpenChange={handleCloseDialog}>
       <DialogContent>
         <div
-          className="absolute -top-4 -left-[1px] bg-primary rounded-tl-md rounded-tr-md text-xs px-2 py-1 text-secondary"
+          className="absolute -top-4 -left-[1px] bg-primary rounded-tl-md rounded-tr-md text-md px-2 py-1 text-secondary"
           style={{ width: "100.35%" }}
         >
           Creating withdrawal for {customer?.email}

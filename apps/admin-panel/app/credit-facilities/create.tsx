@@ -260,7 +260,7 @@ export const CreateCreditFacilityDialog: React.FC<CreateCreditFacilityDialogProp
     <Dialog open={openCreateCreditFacilityDialog} onOpenChange={handleCloseDialog}>
       <DialogContent className="max-w-[38rem]">
         <div
-          className="absolute -top-4 -left-[1px] bg-primary rounded-tl-md rounded-tr-md text-xs px-2 py-1 text-secondary"
+          className="absolute -top-4 -left-[1px] bg-primary rounded-tl-md rounded-tr-md text-md px-2 py-1 text-secondary"
           style={{ width: "100.35%" }}
         >
           Creating credit facility for {customer?.email}

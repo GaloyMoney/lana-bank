@@ -32,6 +32,7 @@ const CreateButton = () => {
   const [openCreateTermsTemplateDialog, setOpenCreateTermsTemplateDialog] =
     useState(false)
   const [openCreateCommitteeDialog, setOpenCreateCommitteeDialog] = useState(false)
+  const [showMenu, setShowMenu] = useState(false)
 
   const { customer, setCustomer } = useCreateContext()
   const [openCustomerSelector, setOpenCustomerSelector] = useState(false)
@@ -84,9 +85,36 @@ const CreateButton = () => {
   if (createWithdrawal) creationType = "Withdrawal"
   if (createFacility) creationType = "Credit Facility"
 
+  const decideCreation = () => {
+    setShowMenu(false)
+    if (pathName === "/customers") {
+      setCreateCustomer(true)
+    } else if (pathName === "/users") {
+      setOpenCreateUserDialog(true)
+    } else if (pathName === "/terms-templates") {
+      setOpenCreateTermsTemplateDialog(true)
+    } else if (pathName === "/committees") {
+      setOpenCreateCommitteeDialog(true)
+    } else if (pathName === "/deposits") {
+      setCreateDeposit(true)
+    } else if (pathName === "/withdrawals") {
+      setCreateWithdrawal(true)
+    } else if (pathName === "/credit-facilities") {
+      setCreateFacility(true)
+    } else {
+      setShowMenu(true)
+    }
+  }
+
   return (
     <>
-      <DropdownMenu>
+      <DropdownMenu
+        open={showMenu}
+        onOpenChange={(open) => {
+          if (open) decideCreation()
+          else setShowMenu(false)
+        }}
+      >
         <DropdownMenuTrigger asChild>
           <Button>
             <HiPlus className="h-4 w-4" />
