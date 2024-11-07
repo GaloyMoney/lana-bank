@@ -220,3 +220,16 @@ pub struct CreditFacilityCompleteInput {
     pub credit_facility_id: UUID,
 }
 crate::mutation_payload! { CreditFacilityCompletePayload, credit_facility: CreditFacility }
+
+#[derive(async_graphql::Enum, Debug, Clone, Copy, PartialEq, Eq, Default)]
+pub enum CreditFacilitiesSortBy {
+    #[default]
+    CreatedAt,
+    Cvl,
+}
+
+#[derive(InputObject, Default)]
+pub struct CreditFacilitiesSort {
+    #[graphql(default)]
+    pub by: CreditFacilitiesSortBy,
+}

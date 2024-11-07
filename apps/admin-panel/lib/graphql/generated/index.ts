@@ -319,6 +319,15 @@ export type CommitteeThreshold = {
   threshold: Scalars['Int']['output'];
 };
 
+export type CreditFacilitiesSort = {
+  by?: CreditFacilitiesSortBy;
+};
+
+export enum CreditFacilitiesSortBy {
+  CreatedAt = 'CREATED_AT',
+  Cvl = 'CVL'
+}
+
 export type CreditFacility = {
   __typename?: 'CreditFacility';
   activatedAt?: Maybe<Scalars['Timestamp']['output']>;
@@ -1032,8 +1041,7 @@ export type Query = {
   chartOfAccounts?: Maybe<ChartOfAccounts>;
   committee?: Maybe<Committee>;
   committees: CommitteeConnection;
-  creditFacilitiesByCreatedAt: CreditFacilityConnection;
-  creditFacilitiesByCvl: CreditFacilityConnection;
+  creditFacilities: CreditFacilityConnection;
   creditFacility?: Maybe<CreditFacility>;
   customer?: Maybe<Customer>;
   customerByEmail?: Maybe<Customer>;
@@ -1110,15 +1118,10 @@ export type QueryCommitteesArgs = {
 };
 
 
-export type QueryCreditFacilitiesByCreatedAtArgs = {
+export type QueryCreditFacilitiesArgs = {
   after?: InputMaybe<Scalars['String']['input']>;
   first: Scalars['Int']['input'];
-};
-
-
-export type QueryCreditFacilitiesByCvlArgs = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  first: Scalars['Int']['input'];
+  sort?: InputMaybe<CreditFacilitiesSort>;
 };
 
 
@@ -1675,10 +1678,11 @@ export type CreditFacilityDisbursalInitiateMutation = { __typename?: 'Mutation',
 export type CreditFacilitiesQueryVariables = Exact<{
   first: Scalars['Int']['input'];
   after?: InputMaybe<Scalars['String']['input']>;
+  sort?: InputMaybe<CreditFacilitiesSort>;
 }>;
 
 
-export type CreditFacilitiesQuery = { __typename?: 'Query', creditFacilitiesByCreatedAt: { __typename?: 'CreditFacilityConnection', edges: Array<{ __typename?: 'CreditFacilityEdge', cursor: string, node: { __typename?: 'CreditFacility', id: string, creditFacilityId: string, collateralizationState: CollateralizationState, createdAt: any, status: CreditFacilityStatus, facilityAmount: any, collateral: any, currentCvl: { __typename?: 'FacilityCVL', disbursed: any, total: any }, customer: { __typename?: 'Customer', customerId: string, email: string }, balance: { __typename?: 'CreditFacilityBalance', outstanding: { __typename?: 'Outstanding', usdBalance: any } } } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, hasNextPage: boolean } } };
+export type CreditFacilitiesQuery = { __typename?: 'Query', creditFacilities: { __typename?: 'CreditFacilityConnection', edges: Array<{ __typename?: 'CreditFacilityEdge', cursor: string, node: { __typename?: 'CreditFacility', id: string, creditFacilityId: string, collateralizationState: CollateralizationState, createdAt: any, status: CreditFacilityStatus, facilityAmount: any, collateral: any, currentCvl: { __typename?: 'FacilityCVL', disbursed: any, total: any }, customer: { __typename?: 'Customer', customerId: string, email: string }, balance: { __typename?: 'CreditFacilityBalance', outstanding: { __typename?: 'Outstanding', usdBalance: any } } } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, hasNextPage: boolean } } };
 
 export type CreditFacilityPartialPaymentMutationVariables = Exact<{
   input: CreditFacilityPartialPaymentInput;
@@ -3158,8 +3162,8 @@ export type CreditFacilityDisbursalInitiateMutationHookResult = ReturnType<typeo
 export type CreditFacilityDisbursalInitiateMutationResult = Apollo.MutationResult<CreditFacilityDisbursalInitiateMutation>;
 export type CreditFacilityDisbursalInitiateMutationOptions = Apollo.BaseMutationOptions<CreditFacilityDisbursalInitiateMutation, CreditFacilityDisbursalInitiateMutationVariables>;
 export const CreditFacilitiesDocument = gql`
-    query CreditFacilities($first: Int!, $after: String) {
-  creditFacilitiesByCreatedAt(first: $first, after: $after) {
+    query CreditFacilities($first: Int!, $after: String, $sort: CreditFacilitiesSort) {
+  creditFacilities(first: $first, after: $after, sort: $sort) {
     edges {
       cursor
       node {
@@ -3207,6 +3211,7 @@ export const CreditFacilitiesDocument = gql`
  *   variables: {
  *      first: // value for 'first'
  *      after: // value for 'after'
+ *      sort: // value for 'sort'
  *   },
  * });
  */

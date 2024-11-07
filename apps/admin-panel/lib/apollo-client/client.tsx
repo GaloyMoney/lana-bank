@@ -45,7 +45,7 @@ function makeClient({ coreAdminGqlUrl }: { coreAdminGqlUrl: string }) {
           deposits: relayStylePagination(),
           withdrawals: relayStylePagination(),
           loans: relayStylePagination(),
-          creditFacilitiesByCreatedAt: relayStylePagination(),
+          creditFacilities: relayStylePagination(),
           committees: relayStylePagination(),
         },
       },

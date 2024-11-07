@@ -203,46 +203,45 @@ impl Query {
         )
     }
 
-    async fn credit_facilities_by_created_at(
+    async fn credit_facilities(
         &self,
         ctx: &Context<'_>,
         first: i32,
         after: Option<String>,
+        #[graphql(default_with = "Some(CreditFacilitiesSort::default())")] sort: Option<
+            CreditFacilitiesSort,
+        >,
     ) -> async_graphql::Result<
         Connection<CreditFacilityComboCursor, CreditFacility, EmptyFields, EmptyFields>,
     > {
+        let sort = sort.unwrap_or_default();
         let (app, sub) = app_and_sub_from_ctx!(ctx);
-        list_with_combo_cursor!(
-            CreditFacilityComboCursor,
-            CreditFacilityByCreatedAtCursor,
-            CreditFacility,
-            ctx,
-            after,
-            first,
-            |query| app.credit_facilities().list_by_created_at(sub, query)
-        )
-    }
-
-    async fn credit_facilities_by_cvl(
-        &self,
-        ctx: &Context<'_>,
-        first: i32,
-        after: Option<String>,
-    ) -> async_graphql::Result<
-        Connection<CreditFacilityComboCursor, CreditFacility, EmptyFields, EmptyFields>,
-    > {
-        let (app, sub) = app_and_sub_from_ctx!(ctx);
-        list_with_combo_cursor!(
-            CreditFacilityComboCursor,
-            CreditFacilityByCollateralizationRatioCursor,
-            CreditFacility,
-            ctx,
-            after,
-            first,
-            |query| app
-                .credit_facilities()
-                .list_by_collateralization_ratio(sub, query)
-        )
+        match sort.by {
+            CreditFacilitiesSortBy::CreatedAt => {
+                list_with_combo_cursor!(
+                    CreditFacilityComboCursor,
+                    CreditFacilityByCreatedAtCursor,
+                    CreditFacility,
+                    ctx,
+                    after,
+                    first,
+                    |query| app.credit_facilities().list_by_created_at(sub, query)
+                )
+            }
+            CreditFacilitiesSortBy::Cvl => {
+                list_with_combo_cursor!(
+                    CreditFacilityComboCursor,
+                    CreditFacilityByCollateralizationRatioCursor,
+                    CreditFacility,
+                    ctx,
+                    after,
+                    first,
+                    |query| app
+                        .credit_facilities()
+                        .list_by_collateralization_ratio(sub, query)
+                )
+            }
+        }
     }
 
     async fn disbursal(

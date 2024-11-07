@@ -16,8 +16,8 @@ import Balance from "@/components/balance/balance"
 import { formatCollateralizationState, formatDate } from "@/lib/utils"
 
 gql`
-  query CreditFacilities($first: Int!, $after: String) {
-    creditFacilitiesByCreatedAt(first: $first, after: $after) {
+  query CreditFacilities($first: Int!, $after: String, $sort: CreditFacilitiesSort) {
+    creditFacilities(first: $first, after: $after, sort: $sort) {
       edges {
         cursor
         node {
@@ -65,7 +65,7 @@ const CreditFacilities = () => {
       {error && <p className="text-destructive text-sm">{error?.message}</p>}
       <PaginatedTable<CreditFacility>
         columns={columns}
-        data={data?.creditFacilitiesByCreatedAt as PaginatedData<CreditFacility>}
+        data={data?.creditFacilities as PaginatedData<CreditFacility>}
         loading={loading}
         fetchMore={async (cursor) => fetchMore({ variables: { after: cursor } })}
         pageSize={DEFAULT_PAGESIZE}

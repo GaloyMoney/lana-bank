@@ -306,6 +306,15 @@ type CommitteeThreshold {
 	committee: Committee!
 }
 
+input CreditFacilitiesSort {
+	by: CreditFacilitiesSortBy! = CREATED_AT
+}
+
+enum CreditFacilitiesSortBy {
+	CREATED_AT
+	CVL
+}
+
 type CreditFacility {
 	id: ID!
 	creditFacilityId: UUID!
@@ -576,7 +585,7 @@ type CustomerUpdatePayload {
 }
 
 input CustomersSort {
-	by: CustomersSortBy! = CREATED_AT
+	by: CustomersSortBy! = EMAIL
 }
 
 enum CustomersSortBy {
@@ -883,7 +892,7 @@ type Query {
 	users: [User!]!
 	customer(id: UUID!): Customer
 	customerByEmail(email: String!): Customer
-	customers(first: Int!, after: String, sort: CustomersSort = {by: CREATED_AT}): CustomerConnection!
+	customers(first: Int!, after: String, sort: CustomersSort = {by: EMAIL}): CustomerConnection!
 	withdrawal(id: UUID!): Withdrawal
 	withdrawals(first: Int!, after: String): WithdrawalConnection!
 	deposit(id: UUID!): Deposit
@@ -891,8 +900,7 @@ type Query {
 	termsTemplate(id: UUID!): TermsTemplate
 	termsTemplates: [TermsTemplate!]!
 	creditFacility(id: UUID!): CreditFacility
-	creditFacilitiesByCreatedAt(first: Int!, after: String): CreditFacilityConnection!
-	creditFacilitiesByCvl(first: Int!, after: String): CreditFacilityConnection!
+	creditFacilities(first: Int!, after: String, sort: CreditFacilitiesSort = {by: CREATED_AT}): CreditFacilityConnection!
 	disbursal(id: UUID!): CreditFacilityDisbursal
 	disbursals(first: Int!, after: String): CreditFacilityDisbursalConnection!
 	committee(id: UUID!): Committee
