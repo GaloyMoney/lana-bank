@@ -195,8 +195,6 @@ const CreditFacilities = () => {
     fetchMore = (cursor: string) => fetchMoreAll({ variables: { after: cursor } })
   }
 
-  console.log({ filters })
-
   return (
     <div>
       {error && <p className="text-destructive text-sm">{error?.message}</p>}
@@ -218,10 +216,8 @@ const CreditFacilities = () => {
           })
         }}
         onFilter={(column, value) => {
-          setFilters((prev) => ({
-            ...prev,
-            [column]: value,
-          }))
+          // Reset all filters except the one being applied
+          setFilters({ [column]: value })
         }}
       />
     </div>
