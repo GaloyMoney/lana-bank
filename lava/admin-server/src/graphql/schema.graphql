@@ -902,6 +902,7 @@ type Query {
 	creditFacility(id: UUID!): CreditFacility
 	creditFacilities(first: Int!, after: String, sort: CreditFacilitiesSort = {by: CREATED_AT}): CreditFacilityConnection!
 	creditFacilitiesForStatus(status: CreditFacilityStatus!, first: Int!, after: String, sort: CreditFacilitiesSort = {by: CREATED_AT}): CreditFacilityConnection!
+	creditFacilitiesForCollateralizationState(collateralizationState: CollateralizationState!, first: Int!, after: String, sort: CreditFacilitiesSort = {by: CREATED_AT}): CreditFacilityConnection!
 	disbursal(id: UUID!): CreditFacilityDisbursal
 	disbursals(first: Int!, after: String): CreditFacilityDisbursalConnection!
 	committee(id: UUID!): Committee

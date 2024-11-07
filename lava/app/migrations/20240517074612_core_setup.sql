@@ -98,6 +98,7 @@ CREATE TABLE credit_facilities (
   customer_id UUID NOT NULL REFERENCES customers(id),
   approval_process_id UUID NOT NULL REFERENCES approval_processes(id),
   collateralization_ratio NUMERIC,
+  collateralization_state VARCHAR NOT NULL,
   status VARCHAR NOT NULL,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );

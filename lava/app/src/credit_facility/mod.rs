@@ -28,7 +28,7 @@ use crate::{
         CreditFacilityId, CreditFacilityStatus, CustomerId, DisbursalId, DisbursalIdx,
         PriceOfOneBTC, Satoshis, Subject, UsdCents,
     },
-    terms::TermValues,
+    terms::{CollateralizationState, TermValues},
 };
 
 pub use config::*;
@@ -590,6 +590,32 @@ impl CreditFacilities {
     }
 
     #[instrument(
+        name = "lava.credit_facility.list_by_created_at_for_collateralization_state",
+        skip(self),
+        err
+    )]
+    pub async fn list_by_created_at_for_collateralization_state(
+        &self,
+        sub: &Subject,
+        collateralization_state: CollateralizationState,
+        query: es_entity::PaginatedQueryArgs<CreditFacilityByCreatedAtCursor>,
+    ) -> Result<
+        es_entity::PaginatedQueryRet<CreditFacility, CreditFacilityByCreatedAtCursor>,
+        CreditFacilityError,
+    > {
+        self.authz
+            .enforce_permission(sub, Object::CreditFacility, CreditFacilityAction::List)
+            .await?;
+        self.credit_facility_repo
+            .list_for_collateralization_state_by_created_at(
+                collateralization_state,
+                query,
+                es_entity::ListDirection::Descending,
+            )
+            .await
+    }
+
+    #[instrument(
         name = "lava.credit_facility.list_by_collateralization_ratio",
         skip(self),
         err
@@ -630,6 +656,32 @@ impl CreditFacilities {
         self.credit_facility_repo
             .list_for_status_by_collateralization_ratio(
                 status,
+                query,
+                es_entity::ListDirection::Descending,
+            )
+            .await
+    }
+
+    #[instrument(
+        name = "lava.credit_facility.list_by_collateralization_ratio_for_collateralization_state",
+        skip(self),
+        err
+    )]
+    pub async fn list_by_collateralization_ratio_for_collateralization_state(
+        &self,
+        sub: &Subject,
+        collateralization_state: CollateralizationState,
+        query: es_entity::PaginatedQueryArgs<CreditFacilityByCollateralizationRatioCursor>,
+    ) -> Result<
+        es_entity::PaginatedQueryRet<CreditFacility, CreditFacilityByCollateralizationRatioCursor>,
+        CreditFacilityError,
+    > {
+        self.authz
+            .enforce_permission(sub, Object::CreditFacility, CreditFacilityAction::List)
+            .await?;
+        self.credit_facility_repo
+            .list_for_collateralization_state_by_collateralization_ratio(
+                collateralization_state,
                 query,
                 es_entity::ListDirection::Descending,
             )
