@@ -67,61 +67,51 @@ impl Query {
         maybe_fetch_one!(Customer, ctx, app.customers().find_by_email(sub, email))
     }
 
-    async fn customers_by_email(
+    async fn customers(
         &self,
         ctx: &Context<'_>,
         first: i32,
         after: Option<String>,
+        #[graphql(default_with = "Some(CustomersSort::default())")] sort: Option<CustomersSort>,
     ) -> async_graphql::Result<Connection<CustomerComboCursor, Customer, EmptyFields, EmptyFields>>
     {
+        let sort = sort.unwrap_or_default();
         let (app, sub) = app_and_sub_from_ctx!(ctx);
-        list_with_combo_cursor!(
-            CustomerComboCursor,
-            CustomerByEmailCursor,
-            Customer,
-            ctx,
-            after,
-            first,
-            |query| app.customers().list_by_email(sub, query)
-        )
-    }
-
-    async fn customers_by_created_at(
-        &self,
-        ctx: &Context<'_>,
-        first: i32,
-        after: Option<String>,
-    ) -> async_graphql::Result<Connection<CustomerComboCursor, Customer, EmptyFields, EmptyFields>>
-    {
-        let (app, sub) = app_and_sub_from_ctx!(ctx);
-        list_with_combo_cursor!(
-            CustomerComboCursor,
-            CustomerByCreatedAtCursor,
-            Customer,
-            ctx,
-            after,
-            first,
-            |query| app.customers().list_by_created_at(sub, query)
-        )
-    }
-
-    async fn customers_by_telegram_id(
-        &self,
-        ctx: &Context<'_>,
-        first: i32,
-        after: Option<String>,
-    ) -> async_graphql::Result<Connection<CustomerComboCursor, Customer, EmptyFields, EmptyFields>>
-    {
-        let (app, sub) = app_and_sub_from_ctx!(ctx);
-        list_with_combo_cursor!(
-            CustomerComboCursor,
-            CustomerByTelegramIdCursor,
-            Customer,
-            ctx,
-            after,
-            first,
-            |query| app.customers().list_by_telegram_id(sub, query)
-        )
+        match sort.by {
+            CustomersSortBy::Email => {
+                list_with_combo_cursor!(
+                    CustomerComboCursor,
+                    CustomerByEmailCursor,
+                    Customer,
+                    ctx,
+                    after,
+                    first,
+                    |query| app.customers().list_by_email(sub, query)
+                )
+            }
+            CustomersSortBy::CreatedAt => {
+                list_with_combo_cursor!(
+                    CustomerComboCursor,
+                    CustomerByCreatedAtCursor,
+                    Customer,
+                    ctx,
+                    after,
+                    first,
+                    |query| app.customers().list_by_created_at(sub, query)
+                )
+            }
+            CustomersSortBy::TelegramId => {
+                list_with_combo_cursor!(
+                    CustomerComboCursor,
+                    CustomerByTelegramIdCursor,
+                    Customer,
+                    ctx,
+                    after,
+                    first,
+                    |query| app.customers().list_by_telegram_id(sub, query)
+                )
+            }
+        }
     }
 
     async fn withdrawal(

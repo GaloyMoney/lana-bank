@@ -156,3 +156,17 @@ pub struct CustomerUpdateInput {
     pub telegram_id: String,
 }
 crate::mutation_payload! { CustomerUpdatePayload, customer: Customer }
+
+#[derive(async_graphql::Enum, Debug, Clone, Copy, PartialEq, Eq, Default)]
+pub enum CustomersSortBy {
+    CreatedAt,
+    #[default]
+    Email,
+    TelegramId,
+}
+
+#[derive(InputObject, Default)]
+pub struct CustomersSort {
+    #[graphql(default)]
+    pub by: CustomersSortBy,
+}

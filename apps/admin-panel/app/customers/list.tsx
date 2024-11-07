@@ -12,8 +12,8 @@ import PaginatedTable, {
 } from "@/components/new/paginated-table"
 
 gql`
-  query Customers($first: Int!, $after: String) {
-    customersByEmail(first: $first, after: $after) {
+  query Customers($first: Int!, $after: String, $sort: CustomersSort) {
+    customers(first: $first, after: $after, sort: $sort) {
       edges {
         node {
           id
@@ -60,7 +60,7 @@ const Customers = () => {
       {error && <p className="text-destructive text-sm">{error?.message}</p>}
       <PaginatedTable<Customer>
         columns={columns}
-        data={data?.customersByEmail as PaginatedData<Customer>}
+        data={data?.customers as PaginatedData<Customer>}
         loading={loading}
         fetchMore={async (cursor) => fetchMore({ variables: { after: cursor } })}
         pageSize={DEFAULT_PAGESIZE}

@@ -41,7 +41,7 @@ function makeClient({ coreAdminGqlUrl }: { coreAdminGqlUrl: string }) {
       },
       Query: {
         fields: {
-          customersByEmail: relayStylePagination(),
+          customers: relayStylePagination(),
           deposits: relayStylePagination(),
           withdrawals: relayStylePagination(),
           loans: relayStylePagination(),

@@ -575,6 +575,16 @@ type CustomerUpdatePayload {
 	customer: Customer!
 }
 
+input CustomersSort {
+	by: CustomersSortBy! = CREATED_AT
+}
+
+enum CustomersSortBy {
+	CREATED_AT
+	EMAIL
+	TELEGRAM_ID
+}
+
 type Dashboard {
 	activeFacilities: Int!
 	pendingFacilities: Int!
@@ -873,9 +883,7 @@ type Query {
 	users: [User!]!
 	customer(id: UUID!): Customer
 	customerByEmail(email: String!): Customer
-	customersByEmail(first: Int!, after: String): CustomerConnection!
-	customersByCreatedAt(first: Int!, after: String): CustomerConnection!
-	customersByTelegramId(first: Int!, after: String): CustomerConnection!
+	customers(first: Int!, after: String, sort: CustomersSort = {by: CREATED_AT}): CustomerConnection!
 	withdrawal(id: UUID!): Withdrawal
 	withdrawals(first: Int!, after: String): WithdrawalConnection!
 	deposit(id: UUID!): Deposit
