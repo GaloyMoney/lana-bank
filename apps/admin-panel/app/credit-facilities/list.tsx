@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client"
 
 import { gql } from "@apollo/client"
@@ -10,13 +11,16 @@ import {
   CreditFacilitiesSort,
   CreditFacility,
   SortDirection,
+  CreditFacilityStatus,
+  CollateralizationState,
   useCreditFacilitiesQuery,
+  useCreditFacilitiesForStatusQuery,
+  useCreditFacilitiesForCollateralizationStateQuery,
 } from "@/lib/graphql/generated"
 
 import PaginatedTable, {
   Column,
   DEFAULT_PAGESIZE,
-  PaginatedData,
 } from "@/components/new/paginated-table"
 import Balance from "@/components/balance/balance"
 import {
@@ -26,31 +30,85 @@ import {
 } from "@/lib/utils"
 
 gql`
+  fragment CreditFacilitiesFields on CreditFacility {
+    id
+    creditFacilityId
+    collateralizationState
+    createdAt
+    status
+    facilityAmount
+    collateral
+    currentCvl {
+      disbursed
+      total
+    }
+    customer {
+      customerId
+      email
+    }
+    balance {
+      outstanding {
+        usdBalance
+      }
+    }
+  }
+
   query CreditFacilities($first: Int!, $after: String, $sort: CreditFacilitiesSort) {
     creditFacilities(first: $first, after: $after, sort: $sort) {
       edges {
         cursor
         node {
-          id
-          creditFacilityId
-          collateralizationState
-          createdAt
-          status
-          facilityAmount
-          collateral
-          currentCvl {
-            disbursed
-            total
-          }
-          customer {
-            customerId
-            email
-          }
-          balance {
-            outstanding {
-              usdBalance
-            }
-          }
+          ...CreditFacilitiesFields
+        }
+      }
+      pageInfo {
+        endCursor
+        hasNextPage
+      }
+    }
+  }
+
+  query CreditFacilitiesForStatus(
+    $first: Int!
+    $after: String
+    $sort: CreditFacilitiesSort
+    $status: CreditFacilityStatus!
+  ) {
+    creditFacilitiesForStatus(
+      first: $first
+      after: $after
+      sort: $sort
+      status: $status
+    ) {
+      edges {
+        cursor
+        node {
+          ...CreditFacilitiesFields
+        }
+      }
+      pageInfo {
+        endCursor
+        hasNextPage
+      }
+    }
+  }
+
+  query CreditFacilitiesForCollateralizationState(
+    $first: Int!
+    $after: String
+    $sort: CreditFacilitiesSort
+    $collateralizationState: CollateralizationState!
+  ) {
+    creditFacilitiesForCollateralizationState(
+      first: $first
+      after: $after
+      sort: $sort
+      collateralizationState: $collateralizationState
+    ) {
+      edges {
+        cursor
+        node {
+          ...CreditFacilitiesFields
         }
       }
       pageInfo {
@@ -64,22 +122,89 @@ gql`
 const CreditFacilities = () => {
   const router = useRouter()
   const [sortBy, setSortBy] = useState<CreditFacilitiesSort>()
+  const [filters, setFilters] = useState<{
+    status?: CreditFacilityStatus
+    collateralizationState?: CollateralizationState
+  }>({})
 
-  const { data, loading, error, fetchMore } = useCreditFacilitiesQuery({
+  // Main query without filters
+  const {
+    data: dataAll,
+    loading: loadingAll,
+    error: errorAll,
+    fetchMore: fetchMoreAll,
+  } = useCreditFacilitiesQuery({
     variables: {
       first: DEFAULT_PAGESIZE,
       sort: sortBy,
     },
+    skip: filters.status != null || filters.collateralizationState != null,
   })
+
+  // Query filtered by status
+  const {
+    data: dataStatus,
+    loading: loadingStatus,
+    error: errorStatus,
+    fetchMore: fetchMoreStatus,
+  } = useCreditFacilitiesForStatusQuery({
+    variables: {
+      first: DEFAULT_PAGESIZE,
+      sort: sortBy,
+      status: filters.status!,
+    },
+    skip: filters.status == null || filters.collateralizationState != null,
+  })
+
+  // Query filtered by collateralization state
+  const {
+    data: dataCollateralization,
+    loading: loadingCollateralization,
+    error: errorCollateralization,
+    fetchMore: fetchMoreCollateralization,
+  } = useCreditFacilitiesForCollateralizationStateQuery({
+    variables: {
+      first: DEFAULT_PAGESIZE,
+      sort: sortBy,
+      collateralizationState: filters.collateralizationState!,
+    },
+    skip: filters.collateralizationState == null || filters.status != null,
+  })
+
+  // Decide which data to use based on filters
+  let data: any
+  let loading = false
+  let error: any
+  let fetchMore: any
+
+  if (filters.status) {
+    data = dataStatus?.creditFacilitiesForStatus
+    loading = loadingStatus
+    error = errorStatus
+    fetchMore = (cursor: string) => fetchMoreStatus({ variables: { after: cursor } })
+  } else if (filters.collateralizationState) {
+    data = dataCollateralization?.creditFacilitiesForCollateralizationState
+    loading = loadingCollateralization
+    error = errorCollateralization
+    fetchMore = (cursor: string) =>
+      fetchMoreCollateralization({ variables: { after: cursor } })
+  } else {
+    data = dataAll?.creditFacilities
+    loading = loadingAll
+    error = errorAll
+    fetchMore = (cursor: string) => fetchMoreAll({ variables: { after: cursor } })
+  }
+
+  console.log({ filters })
 
   return (
     <div>
       {error && <p className="text-destructive text-sm">{error?.message}</p>}
       <PaginatedTable<CreditFacility>
         columns={columns}
-        data={data?.creditFacilities as PaginatedData<CreditFacility>}
+        data={data}
         loading={loading}
-        fetchMore={async (cursor) => fetchMore({ variables: { after: cursor } })}
+        fetchMore={async (cursor) => fetchMore(cursor)}
         pageSize={DEFAULT_PAGESIZE}
         onClick={(facility) => {
           router.push(`/credit-facilities/${facility.creditFacilityId}`)
@@ -91,6 +216,12 @@ const CreditFacilities = () => {
               : camelToScreamingSnake(column)) as CreditFacilitiesSort["by"],
             direction: direction as SortDirection,
           })
+        }}
+        onFilter={(column, value) => {
+          setFilters((prev) => ({
+            ...prev,
+            [column]: value,
+          }))
         }}
       />
     </div>
@@ -105,6 +236,7 @@ const columns: Column<CreditFacility>[] = [
     key: "status",
     label: "Status",
     render: (status) => <LoanAndCreditFacilityStatusBadge status={status} />,
+    filterValues: Object.values(CreditFacilityStatus),
   },
   {
     key: "balance",
@@ -117,6 +249,7 @@ const columns: Column<CreditFacility>[] = [
     key: "collateralizationState",
     label: "Collateralization State",
     render: (state) => formatCollateralizationState(state),
+    filterValues: Object.values(CollateralizationState),
   },
   {
     key: "currentCvl",

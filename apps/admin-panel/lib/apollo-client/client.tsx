@@ -43,6 +43,14 @@ function makeClient({ coreAdminGqlUrl }: { coreAdminGqlUrl: string }) {
         fields: {
           customers: { ...relayStylePagination(), keyArgs: ["sort"] },
           creditFacilities: { ...relayStylePagination(), keyArgs: ["sort"] },
+          creditFacilitiesForStatus: {
+            ...relayStylePagination(),
+            keyArgs: ["sort", "status"],
+          },
+          creditFacilitiesForCollateralizationState: {
+            ...relayStylePagination(),
+            keyArgs: ["sort", "collateralizationState"],
+          },
           deposits: relayStylePagination(),
           withdrawals: relayStylePagination(),
           loans: relayStylePagination(),

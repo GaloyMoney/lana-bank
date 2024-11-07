@@ -116,7 +116,7 @@ const PaginatedTable = <T,>({
   if (loading)
     return <PaginatedTableLoadingSkeleton columns={columns} pageSize={pageSize} />
 
-  if (data?.edges.length === 0) {
+  if (data?.edges.length === 0 && Object.keys(filterState).length === 0) {
     return <div className="text-sm">No data to display</div>
   }
 
