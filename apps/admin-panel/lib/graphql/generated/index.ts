@@ -1042,6 +1042,7 @@ export type Query = {
   committee?: Maybe<Committee>;
   committees: CommitteeConnection;
   creditFacilities: CreditFacilityConnection;
+  creditFacilitiesForStatus: CreditFacilityConnection;
   creditFacility?: Maybe<CreditFacility>;
   customer?: Maybe<Customer>;
   customerByEmail?: Maybe<Customer>;
@@ -1122,6 +1123,14 @@ export type QueryCreditFacilitiesArgs = {
   after?: InputMaybe<Scalars['String']['input']>;
   first: Scalars['Int']['input'];
   sort?: InputMaybe<CreditFacilitiesSort>;
+};
+
+
+export type QueryCreditFacilitiesForStatusArgs = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  first: Scalars['Int']['input'];
+  sort?: InputMaybe<CreditFacilitiesSort>;
+  status: CreditFacilityStatus;
 };
 
 

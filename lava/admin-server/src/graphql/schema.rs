@@ -244,6 +244,49 @@ impl Query {
         }
     }
 
+    async fn credit_facilities_for_status(
+        &self,
+        ctx: &Context<'_>,
+        status: CreditFacilityStatus,
+        first: i32,
+        after: Option<String>,
+        #[graphql(default_with = "Some(CreditFacilitiesSort::default())")] sort: Option<
+            CreditFacilitiesSort,
+        >,
+    ) -> async_graphql::Result<
+        Connection<CreditFacilityComboCursor, CreditFacility, EmptyFields, EmptyFields>,
+    > {
+        let sort = sort.unwrap_or_default();
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        match sort.by {
+            CreditFacilitiesSortBy::CreatedAt => {
+                list_with_combo_cursor!(
+                    CreditFacilityComboCursor,
+                    CreditFacilityByCreatedAtCursor,
+                    CreditFacility,
+                    ctx,
+                    after,
+                    first,
+                    |query| app
+                        .credit_facilities()
+                        .list_by_created_at_for_status(sub, status, query)
+                )
+            }
+            CreditFacilitiesSortBy::Cvl => {
+                list_with_combo_cursor!(
+                    CreditFacilityComboCursor,
+                    CreditFacilityByCollateralizationRatioCursor,
+                    CreditFacility,
+                    ctx,
+                    after,
+                    first,
+                    |query| app
+                        .credit_facilities()
+                        .list_by_collateralization_ratio_for_status(sub, status, query)
+                )
+            }
+        }
+    }
     async fn disbursal(
         &self,
         ctx: &Context<'_>,

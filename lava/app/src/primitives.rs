@@ -66,7 +66,18 @@ pub enum LoanStatus {
     Closed,
 }
 
-#[derive(async_graphql::Enum, Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(
+    async_graphql::Enum,
+    Debug,
+    Clone,
+    Copy,
+    Serialize,
+    Deserialize,
+    PartialEq,
+    Eq,
+    strum::Display,
+    strum::EnumString,
+)]
 pub enum CreditFacilityStatus {
     PendingCollateralization,
     PendingApproval,
