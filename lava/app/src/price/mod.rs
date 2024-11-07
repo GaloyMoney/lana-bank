@@ -1,7 +1,6 @@
 mod bfx_client;
 pub mod error;
 use cached::proc_macro::cached;
-use rust_decimal::prelude::FromPrimitive;
 mod job;
 
 use crate::{
@@ -40,10 +39,7 @@ impl Price {
 }
 
 #[cached(time = 60, result = true, key = "()", convert = r#"{}"#)]
-async fn usd_cents_per_btc_cached(_bfx: &BfxClient) -> Result<PriceOfOneBTC, PriceError> {
-    Ok(PriceOfOneBTC::new(UsdCents::try_from_usd(
-        rust_decimal::Decimal::from_i32(60_000_00).expect("should always convert"),
-    )?))
-    // let last_price = bfx.btc_usd_tick().await?.last_price;
-    // Ok(PriceOfOneBTC::new(UsdCents::try_from_usd(last_price)?))
+async fn usd_cents_per_btc_cached(bfx: &BfxClient) -> Result<PriceOfOneBTC, PriceError> {
+    let last_price = bfx.btc_usd_tick().await?.last_price;
+    Ok(PriceOfOneBTC::new(UsdCents::try_from_usd(last_price)?))
 }
