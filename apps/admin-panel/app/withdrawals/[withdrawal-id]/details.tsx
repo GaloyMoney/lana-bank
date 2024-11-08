@@ -14,7 +14,13 @@ import {
   WithdrawalStatus,
 } from "@/lib/graphql/generated"
 import { DetailItem } from "@/components/details"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/primitive/card"
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/primitive/card"
 import { Button } from "@/components/primitive/button"
 import Balance from "@/components/balance/balance"
 import { formatRole } from "@/lib/utils"
@@ -107,6 +113,11 @@ const WithdrawalDetailsCard: React.FC<WithdrawalDetailsProps> = ({
             </div>
           </div>
         </CardContent>
+        {withdrawal.approvalProcess.deniedReason && (
+          <CardFooter className="text-destructive">
+            Denied Reason: {withdrawal.approvalProcess.deniedReason}
+          </CardFooter>
+        )}
       </Card>
 
       {withdrawal?.approvalProcess.rules.__typename === "CommitteeThreshold" && (

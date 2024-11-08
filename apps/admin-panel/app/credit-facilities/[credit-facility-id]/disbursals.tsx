@@ -97,13 +97,21 @@ export const CreditFacilityDisbursals: React.FC<CreditFacilityDisbursalsProps> =
                       >
                         Approval Required
                       </Button>
-                    ) : (
+                    ) : disbursal.status === DisbursalStatus.Confirmed ? (
                       <Button
                         className="px-2 py-1 text-success"
                         variant="outline"
                         onClick={() => handleOpenDetailsDialog(disbursal)}
                       >
-                        <IoCheckmark className="h-4 w-4 mr-1" /> Approved
+                        <IoCheckmark className="h-4 w-4 mr-1" /> Confirmed
+                      </Button>
+                    ) : (
+                      <Button
+                        className="px-2 py-1 text-destructive"
+                        variant="outline"
+                        onClick={() => handleOpenDetailsDialog(disbursal)}
+                      >
+                        Denied
                       </Button>
                     )}
                   </TableCell>

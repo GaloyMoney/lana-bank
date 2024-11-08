@@ -31,6 +31,7 @@ gql`
       }
       approvalProcess {
         approvalProcessId
+        deniedReason
         approvalProcessType
         createdAt
         subjectCanSubmitDecision

@@ -39,6 +39,7 @@ gql`
       approvalProcess {
         approvalProcessId
         approvalProcessType
+        deniedReason
         createdAt
         subjectCanSubmitDecision
         status
@@ -124,6 +125,7 @@ gql`
         createdAt
         approvalProcess {
           approvalProcessId
+          deniedReason
           approvalProcessType
           createdAt
           subjectCanSubmitDecision

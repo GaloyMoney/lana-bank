@@ -4,7 +4,13 @@ import Link from "next/link"
 
 import { DisbursalStatusBadge } from "../status-badge"
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/primitive/card"
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/primitive/card"
 import { DetailItem, DetailsGroup } from "@/components/details"
 import { Button } from "@/components/primitive/button"
 import Balance from "@/components/balance/balance"
@@ -61,6 +67,11 @@ export const DisbursalDetailsCard: React.FC<DisbursalDetailsProps> = ({
             />
           </DetailsGroup>
         </CardContent>
+        {disbursal.approvalProcess.deniedReason && (
+          <CardFooter className="text-destructive">
+            Denied Reason: {disbursal.approvalProcess.deniedReason}
+          </CardFooter>
+        )}
       </Card>
       <div className="flex flex-col space-y-2 mt-1 ml-4">
         {disbursal.approvalProcess?.status === ApprovalProcessStatus.InProgress &&

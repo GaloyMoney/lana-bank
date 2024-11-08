@@ -16,7 +16,13 @@ import {
   GetCreditFacilityDetailsQuery,
 } from "@/lib/graphql/generated"
 import { DetailItem, DetailsGroup } from "@/components/details"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/primitive/card"
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/primitive/card"
 import Balance from "@/components/balance/balance"
 import { formatCollateralizationState } from "@/lib/utils"
 
@@ -79,6 +85,11 @@ const CreditFacilityDetailsCard: React.FC<CreditFacilityDetailsProps> = ({
             />
           </DetailsGroup>
         </CardContent>
+        {creditFacilityDetails.approvalProcess.deniedReason && (
+          <CardFooter className="text-destructive">
+            Denied Reason: {creditFacilityDetails.approvalProcess.deniedReason}
+          </CardFooter>
+        )}
       </Card>
       {creditFacilityDetails.status !== CreditFacilityStatus.Closed && (
         <div className="flex flex-col space-y-2 mt-1 ml-4">

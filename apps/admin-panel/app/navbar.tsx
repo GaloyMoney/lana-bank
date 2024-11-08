@@ -27,6 +27,7 @@ import {
 } from "react-icons/hi"
 
 import Avatar from "./avatar"
+
 import { Logo } from "@/components/new"
 import { useGetRealtimePriceUpdatesQuery } from "@/lib/graphql/generated"
 import { currencyConverter } from "@/lib/utils"
