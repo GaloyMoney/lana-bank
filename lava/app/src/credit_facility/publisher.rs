@@ -46,7 +46,10 @@ impl CreditFacilityPublisher {
                     completed_at: *completed_at,
                 }),
                 DisbursalConcluded {
-                    idx, recorded_at, ..
+                    idx,
+                    tx_id: Some(_),
+                    recorded_at,
+                    ..
                 } => {
                     let amount = entity.disbursal_amount_from_idx(*idx);
                     Some(CreditEvent::DisbursalExecuted {

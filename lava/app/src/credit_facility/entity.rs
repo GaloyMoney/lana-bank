@@ -920,19 +920,27 @@ impl CreditFacility {
     }
 
     pub(super) fn disbursal_amount_from_idx(&self, idx: DisbursalIdx) -> UsdCents {
-        self.events
+        if let Some(amount) = self
+            .events
             .iter_all()
-            .find(|event| {
+            .filter_map(|event| match event {
+                CreditFacilityEvent::DisbursalInitiated { idx: i, amount, .. } if i == &idx => {
+                    Some(amount)
+                }
+                _ => None,
+            })
+            .next()
+        {
+            if self.events.iter_all().any(|event| {
                 matches!(
                     event,
-                    CreditFacilityEvent::DisbursalInitiated { idx: i, .. } if i == &idx
+                    CreditFacilityEvent::DisbursalConcluded { idx: i, tx_id: Some(_), .. } if i == &idx
                 )
-            })
-            .and_then(|event| match event {
-                CreditFacilityEvent::DisbursalInitiated { amount, .. } => Some(*amount),
-                _ => None, // This case should never happen due to the find() predicate
-            })
-            .expect("disbursal amount not found")
+            }) {
+                return *amount;
+            }
+        }
+        UsdCents::ZERO
     }
 }
 
