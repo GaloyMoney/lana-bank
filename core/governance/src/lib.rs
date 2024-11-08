@@ -349,13 +349,16 @@ where
                 GovernanceAction::APPROVAL_PROCESS_CONCLUDE,
             )
             .await?;
-        let res = if let Some(approved) = process.check_concluded(eligible, audit_info) {
+        let res = if let es_entity::Idempotent::Executed((approved, denied_reason)) =
+            process.check_concluded(eligible, audit_info)
+        {
             self.outbox
                 .publish_persisted(
                     &mut db,
                     GovernanceEvent::ApprovalProcessConcluded {
                         id: process.id,
                         approved,
+                        denied_reason,
                         process_type: process.process_type.clone(),
                         target_ref: process.target_ref().to_string(),
                     },

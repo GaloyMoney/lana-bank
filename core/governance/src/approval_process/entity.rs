@@ -97,20 +97,31 @@ impl ApprovalProcess {
         &mut self,
         eligible: HashSet<CommitteeMemberId>,
         audit_info: AuditInfo,
-    ) -> Option<bool> {
-        if !self.status().is_concluded() {
-            if let Some(approved) =
-                self.rules
-                    .is_approved_or_denied(&eligible, &self.approvers(), &self.deniers())
-            {
-                self.events.push(ApprovalProcessEvent::Concluded {
-                    approved,
-                    audit_info,
-                });
-                return Some(approved);
-            }
+    ) -> Idempotent<(bool, Option<String>)> {
+        idempotency_guard!(
+            self.events.iter_all(),
+            ApprovalProcessEvent::Concluded { .. },
+        );
+        if let Some(approved) =
+            self.rules
+                .is_approved_or_denied(&eligible, &self.approvers(), &self.deniers())
+        {
+            let reason = self
+                .events
+                .iter_all()
+                .filter_map(|event| match event {
+                    ApprovalProcessEvent::Denied { reason, .. } => Some(reason.clone()),
+                    _ => None,
+                })
+                .next();
+
+            self.events.push(ApprovalProcessEvent::Concluded {
+                approved,
+                audit_info,
+            });
+            return Idempotent::Executed((approved, reason));
         }
-        None
+        Idempotent::AlreadyApplied
     }
 
     pub fn status(&self) -> ApprovalProcessStatus {
@@ -350,7 +361,9 @@ mod tests {
         let mut process =
             ApprovalProcess::try_from_events(init_events(ApprovalRules::SystemAutoApprove))
                 .expect("Could not build approval process");
-        process.check_concluded(HashSet::new(), dummy_audit_info());
+        process
+            .check_concluded(HashSet::new(), dummy_audit_info())
+            .did_execute();
         let approver = CommitteeMemberId::new();
         let audit_info = dummy_audit_info();
         let eligible: HashSet<_> = [approver].iter().copied().collect();
@@ -418,7 +431,9 @@ mod tests {
         let mut process =
             ApprovalProcess::try_from_events(init_events(ApprovalRules::SystemAutoApprove))
                 .expect("Could not build approval process");
-        process.check_concluded(HashSet::new(), dummy_audit_info());
+        process
+            .check_concluded(HashSet::new(), dummy_audit_info())
+            .did_execute();
         let denier = CommitteeMemberId::new();
         let audit_info = dummy_audit_info();
         let eligible: HashSet<_> = [denier].iter().copied().collect();
