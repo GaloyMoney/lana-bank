@@ -52,6 +52,16 @@ impl ApprovalProcess {
             .expect("No events for committee")
     }
 
+    pub fn denied_reason(&self) -> Option<&str> {
+        self.events
+            .iter_all()
+            .filter_map(|event| match event {
+                ApprovalProcessEvent::Denied { reason, .. } => Some(reason.as_str()),
+                _ => None,
+            })
+            .next()
+    }
+
     pub fn member_voted_at(
         &self,
         member_id: CommitteeMemberId,

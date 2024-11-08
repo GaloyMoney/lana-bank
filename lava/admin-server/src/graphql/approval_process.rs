@@ -44,6 +44,10 @@ impl ApprovalProcess {
         ApprovalRules::from(self.entity.rules)
     }
 
+    async fn denied_reason(&self) -> Option<&str> {
+        self.entity.denied_reason()
+    }
+
     async fn policy(&self, ctx: &Context<'_>) -> async_graphql::Result<Policy> {
         let loader = ctx.data_unchecked::<LavaDataLoader>();
         let policy = loader

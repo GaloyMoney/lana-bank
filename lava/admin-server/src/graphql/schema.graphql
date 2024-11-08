@@ -68,6 +68,7 @@ type ApprovalProcess {
 	status: ApprovalProcessStatus!
 	createdAt: Timestamp!
 	rules: ApprovalRules!
+	deniedReason: String
 	policy: Policy!
 	subjectCanSubmitDecision: Boolean!
 	voters: [ApprovalProcessVoter!]!
@@ -786,7 +787,7 @@ type Mutation {
 	committeeRemoveUser(input: CommitteeRemoveUserInput!): CommitteeRemoveUserPayload!
 	policyAssignCommittee(input: PolicyAssignCommitteeInput!): PolicyAssignCommitteePayload!
 	approvalProcessApprove(input: ApprovalProcessApproveInput!): ApprovalProcessApprovePayload!
-	approvalProcessDeny(input: ApprovalProcessDenyInput!): ApprovalProcessDenyPayload!
+	approvalProcessDeny(input: ApprovalProcessDenyInput!, reason: String!): ApprovalProcessDenyPayload!
 	documentDownloadLinkGenerate(input: DocumentDownloadLinksGenerateInput!): DocumentDownloadLinksGeneratePayload!
 	documentDelete(input: DocumentDeleteInput!): DocumentDeletePayload!
 	documentArchive(input: DocumentArchiveInput!): DocumentArchivePayload!
