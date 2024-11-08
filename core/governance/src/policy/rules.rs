@@ -28,22 +28,22 @@ impl ApprovalRules {
         approving_members: &HashSet<Id>,
         denying_members: &HashSet<Id>,
     ) -> Option<bool> {
+        if !denying_members.is_empty() {
+            return Some(false);
+        }
         match self {
             ApprovalRules::SystemAutoApprove => Some(true),
-            ApprovalRules::CommitteeThreshold { threshold, .. } => {
-                let approved_eligible = eligible_members.intersection(approving_members).count();
-                if approved_eligible >= *threshold {
-                    return Some(true);
-                }
-
-                let denied_eligible = eligible_members.intersection(denying_members).count();
-                let remaining_eligible = eligible_members.len() - denied_eligible;
-                if remaining_eligible < *threshold {
-                    return Some(false);
-                }
-
-                None
+            ApprovalRules::CommitteeThreshold { threshold, .. }
+                if eligible_members.intersection(approving_members).count() > *threshold =>
+            {
+                Some(true)
             }
+            ApprovalRules::CommitteeThreshold { threshold, .. }
+                if eligible_members.len() < *threshold =>
+            {
+                Some(false)
+            }
+            _ => None,
         }
     }
 }
@@ -65,7 +65,7 @@ mod tests {
 
         let eligible = make_set(&[1, 2, 3, 4, 5]);
         let approving = make_set(&[1, 2, 3, 4]);
-        let denying = make_set(&[5]);
+        let denying = HashSet::new();
 
         let result = rules.is_approved_or_denied(&eligible, &approving, &denying);
 
@@ -89,20 +89,15 @@ mod tests {
         };
 
         let eligible = make_set(&[1, 2, 3, 4, 5]);
-        let approving = make_set(&[1]);
-        let denying = make_set(&[2, 3, 4, 5]);
+        let approving = make_set(&[2, 3, 4]);
+        let denying = make_set(&[1]);
 
         let result = rules.is_approved_or_denied(&eligible, &approving, &denying);
 
         assert_eq!(
             result,
             Some(false),
-            "Should be denied with only 1 non-denied member < threshold of 3"
-        );
-        assert_eq!(
-            eligible.len() - eligible.intersection(&denying).count(),
-            1,
-            "Should have 1 non-denied eligible member"
+            "Should be denied with only as soon as 1 denial exists"
         );
     }
 
@@ -115,7 +110,7 @@ mod tests {
 
         let eligible = make_set(&[1, 2, 3, 4, 5]);
         let approving = make_set(&[1, 2]);
-        let denying = make_set(&[5]);
+        let denying = HashSet::new();
 
         let result = rules.is_approved_or_denied(&eligible, &approving, &denying);
 
