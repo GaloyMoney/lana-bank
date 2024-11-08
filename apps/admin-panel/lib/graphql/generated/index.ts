@@ -435,16 +435,6 @@ export type CreditFacilityDisbursal = {
   status: DisbursalStatus;
 };
 
-export type CreditFacilityDisbursalConfirmInput = {
-  creditFacilityId: Scalars['UUID']['input'];
-  disbursalIdx: Scalars['DisbursalIdx']['input'];
-};
-
-export type CreditFacilityDisbursalConfirmPayload = {
-  __typename?: 'CreditFacilityDisbursalConfirmPayload';
-  disbursal: CreditFacilityDisbursal;
-};
-
 export type CreditFacilityDisbursalConnection = {
   __typename?: 'CreditFacilityDisbursalConnection';
   /** A list of edges. */
@@ -790,7 +780,6 @@ export type Mutation = {
   creditFacilityCollateralUpdate: CreditFacilityCollateralUpdatePayload;
   creditFacilityComplete: CreditFacilityCompletePayload;
   creditFacilityCreate: CreditFacilityCreatePayload;
-  creditFacilityDisbursalConfirm: CreditFacilityDisbursalConfirmPayload;
   creditFacilityDisbursalInitiate: CreditFacilityDisbursalInitiatePayload;
   creditFacilityPartialPayment: CreditFacilityPartialPaymentPayload;
   customerCreate: CustomerCreatePayload;
@@ -853,11 +842,6 @@ export type MutationCreditFacilityCompleteArgs = {
 
 export type MutationCreditFacilityCreateArgs = {
   input: CreditFacilityCreateInput;
-};
-
-
-export type MutationCreditFacilityDisbursalConfirmArgs = {
-  input: CreditFacilityDisbursalConfirmInput;
 };
 
 
@@ -1685,20 +1669,6 @@ export type CreditFacilityCreateMutationVariables = Exact<{
 
 
 export type CreditFacilityCreateMutation = { __typename?: 'Mutation', creditFacilityCreate: { __typename?: 'CreditFacilityCreatePayload', creditFacility: { __typename?: 'CreditFacility', id: string, creditFacilityId: string } } };
-
-export type CreditFacilityDisbursalConfirmMutationVariables = Exact<{
-  input: CreditFacilityDisbursalConfirmInput;
-}>;
-
-
-export type CreditFacilityDisbursalConfirmMutation = { __typename?: 'Mutation', creditFacilityDisbursalConfirm: { __typename?: 'CreditFacilityDisbursalConfirmPayload', disbursal: { __typename?: 'CreditFacilityDisbursal', id: string, index: any } } };
-
-export type CreditFacilityDisbursalInitiateMutationVariables = Exact<{
-  input: CreditFacilityDisbursalInitiateInput;
-}>;
-
-
-export type CreditFacilityDisbursalInitiateMutation = { __typename?: 'Mutation', creditFacilityDisbursalInitiate: { __typename?: 'CreditFacilityDisbursalInitiatePayload', disbursal: { __typename?: 'CreditFacilityDisbursal', id: string, disbursalId: string, index: any } } };
 
 export type CreditFacilitiesFieldsFragment = { __typename?: 'CreditFacility', id: string, creditFacilityId: string, collateralizationState: CollateralizationState, createdAt: any, status: CreditFacilityStatus, facilityAmount: any, collateral: any, currentCvl: { __typename?: 'FacilityCVL', disbursed: any, total: any }, customer: { __typename?: 'Customer', customerId: string, email: string }, balance: { __typename?: 'CreditFacilityBalance', outstanding: { __typename?: 'Outstanding', usdBalance: any } } };
 
@@ -3173,79 +3143,6 @@ export function useCreditFacilityCreateMutation(baseOptions?: Apollo.MutationHoo
 export type CreditFacilityCreateMutationHookResult = ReturnType<typeof useCreditFacilityCreateMutation>;
 export type CreditFacilityCreateMutationResult = Apollo.MutationResult<CreditFacilityCreateMutation>;
 export type CreditFacilityCreateMutationOptions = Apollo.BaseMutationOptions<CreditFacilityCreateMutation, CreditFacilityCreateMutationVariables>;
-export const CreditFacilityDisbursalConfirmDocument = gql`
-    mutation CreditFacilityDisbursalConfirm($input: CreditFacilityDisbursalConfirmInput!) {
-  creditFacilityDisbursalConfirm(input: $input) {
-    disbursal {
-      id
-      index
-    }
-  }
-}
-    `;
-export type CreditFacilityDisbursalConfirmMutationFn = Apollo.MutationFunction<CreditFacilityDisbursalConfirmMutation, CreditFacilityDisbursalConfirmMutationVariables>;
-
-/**
- * __useCreditFacilityDisbursalConfirmMutation__
- *
- * To run a mutation, you first call `useCreditFacilityDisbursalConfirmMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useCreditFacilityDisbursalConfirmMutation` returns a tuple that includes:
- * - A mutate function that you can call at any time to execute the mutation
- * - An object with fields that represent the current status of the mutation's execution
- *
- * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
- *
- * @example
- * const [creditFacilityDisbursalConfirmMutation, { data, loading, error }] = useCreditFacilityDisbursalConfirmMutation({
- *   variables: {
- *      input: // value for 'input'
- *   },
- * });
- */
-export function useCreditFacilityDisbursalConfirmMutation(baseOptions?: Apollo.MutationHookOptions<CreditFacilityDisbursalConfirmMutation, CreditFacilityDisbursalConfirmMutationVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<CreditFacilityDisbursalConfirmMutation, CreditFacilityDisbursalConfirmMutationVariables>(CreditFacilityDisbursalConfirmDocument, options);
-      }
-export type CreditFacilityDisbursalConfirmMutationHookResult = ReturnType<typeof useCreditFacilityDisbursalConfirmMutation>;
-export type CreditFacilityDisbursalConfirmMutationResult = Apollo.MutationResult<CreditFacilityDisbursalConfirmMutation>;
-export type CreditFacilityDisbursalConfirmMutationOptions = Apollo.BaseMutationOptions<CreditFacilityDisbursalConfirmMutation, CreditFacilityDisbursalConfirmMutationVariables>;
-export const CreditFacilityDisbursalInitiateDocument = gql`
-    mutation CreditFacilityDisbursalInitiate($input: CreditFacilityDisbursalInitiateInput!) {
-  creditFacilityDisbursalInitiate(input: $input) {
-    disbursal {
-      id
-      disbursalId
-      index
-    }
-  }
-}
-    `;
-export type CreditFacilityDisbursalInitiateMutationFn = Apollo.MutationFunction<CreditFacilityDisbursalInitiateMutation, CreditFacilityDisbursalInitiateMutationVariables>;
-
-/**
- * __useCreditFacilityDisbursalInitiateMutation__
- *
- * To run a mutation, you first call `useCreditFacilityDisbursalInitiateMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useCreditFacilityDisbursalInitiateMutation` returns a tuple that includes:
- * - A mutate function that you can call at any time to execute the mutation
- * - An object with fields that represent the current status of the mutation's execution
- *
- * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
- *
- * @example
- * const [creditFacilityDisbursalInitiateMutation, { data, loading, error }] = useCreditFacilityDisbursalInitiateMutation({
- *   variables: {
- *      input: // value for 'input'
- *   },
- * });
- */
-export function useCreditFacilityDisbursalInitiateMutation(baseOptions?: Apollo.MutationHookOptions<CreditFacilityDisbursalInitiateMutation, CreditFacilityDisbursalInitiateMutationVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<CreditFacilityDisbursalInitiateMutation, CreditFacilityDisbursalInitiateMutationVariables>(CreditFacilityDisbursalInitiateDocument, options);
-      }
-export type CreditFacilityDisbursalInitiateMutationHookResult = ReturnType<typeof useCreditFacilityDisbursalInitiateMutation>;
-export type CreditFacilityDisbursalInitiateMutationResult = Apollo.MutationResult<CreditFacilityDisbursalInitiateMutation>;
-export type CreditFacilityDisbursalInitiateMutationOptions = Apollo.BaseMutationOptions<CreditFacilityDisbursalInitiateMutation, CreditFacilityDisbursalInitiateMutationVariables>;
 export const CreditFacilitiesDocument = gql`
     query CreditFacilities($first: Int!, $after: String, $sort: CreditFacilitiesSort) {
   creditFacilities(first: $first, after: $after, sort: $sort) {

@@ -3,6 +3,8 @@ import { gql } from "@apollo/client"
 import { toast } from "sonner"
 import { useRouter } from "next/navigation"
 
+import { useRouter } from "next/navigation"
+
 import {
   Dialog,
   DialogContent,
@@ -30,6 +32,7 @@ gql`
         id
         disbursalId
         index
+        disbursalId
       }
     }
   }
@@ -45,6 +48,7 @@ type CreditFacilityDisbursalInitiateDialogProps = {
 export const CreditFacilityDisbursalInitiateDialog: React.FC<
   CreditFacilityDisbursalInitiateDialogProps
 > = ({ setOpenDialog, openDialog, creditFacilityId, onSuccess }) => {
+  const router = useRouter()
   const [initiateDisbursal, { loading, reset }] =
     useCreditFacilityDisbursalInitiateMutation({
       refetchQueries: [GetCreditFacilityDetailsDocument, DisbursalsDocument],
@@ -67,6 +71,9 @@ export const CreditFacilityDisbursalInitiateDialog: React.FC<
         onCompleted: (data) => {
           if (data.creditFacilityDisbursalInitiate) {
             toast.success("Disbursal initiated successfully")
+            router.push(
+              `/disbursals/${data.creditFacilityDisbursalInitiate.disbursal.disbursalId}`,
+            )
             if (onSuccess) onSuccess()
             router.push(
               `/disbursals/${data.creditFacilityDisbursalInitiate.disbursal.disbursalId}`,

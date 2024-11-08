@@ -4,7 +4,6 @@ import { IoCheckmark } from "react-icons/io5"
 import Link from "next/link"
 
 import { DisbursalDetailsDialog } from "../disbursal-details"
-import { CreditFacilityDisbursalConfirmDialog } from "../disbursal-confirm"
 import { CreditFacilityDisbursalApproveDialog } from "../disbursal-approve"
 
 import {
@@ -38,23 +37,13 @@ export const CreditFacilityDisbursals: React.FC<CreditFacilityDisbursalsProps> =
   creditFacility,
   refetch,
 }) => {
-  const [selectedConfirmDisbursal, setSelectedConfirmDisbursal] =
-    useState<Disbursal | null>(null)
   const [selectedDetailsDisbursal, setSelectedDetailsDisbursal] =
     useState<Disbursal | null>(null)
   const [selectedApprovalProcessDisbursal, setSelectedApprovalProcessDisbursal] =
     useState<Disbursal | null>(null)
 
-  const handleOpenConfirmDialog = (disbursal: Disbursal) => {
-    setSelectedConfirmDisbursal(disbursal)
-  }
-
   const handleOpenApprovalProcessDialog = (disbursal: Disbursal) => {
     setSelectedApprovalProcessDisbursal(disbursal)
-  }
-
-  const handleCloseConfirmDialog = () => {
-    setSelectedConfirmDisbursal(null)
   }
 
   const handleCloseApprovalProcessDialog = () => {
@@ -108,16 +97,6 @@ export const CreditFacilityDisbursals: React.FC<CreditFacilityDisbursalsProps> =
                       >
                         Approval Required
                       </Button>
-                    ) : [DisbursalStatus.Approved, DisbursalStatus.Denied].includes(
-                        disbursal.status,
-                      ) ? (
-                      <Button
-                        className="px-2 py-1 text-primary"
-                        variant="outline"
-                        onClick={() => handleOpenConfirmDialog(disbursal)}
-                      >
-                        Confirmation Required
-                      </Button>
                     ) : (
                       <Button
                         className="px-2 py-1 text-success"
@@ -134,16 +113,6 @@ export const CreditFacilityDisbursals: React.FC<CreditFacilityDisbursalsProps> =
           </Table>
         </CardContent>
       </Card>
-
-      {selectedConfirmDisbursal && (
-        <CreditFacilityDisbursalConfirmDialog
-          setOpenDialog={handleCloseConfirmDialog}
-          openDialog={true}
-          creditFacilityId={creditFacility.creditFacilityId}
-          disbursalIdx={selectedConfirmDisbursal.index}
-          disbursal={selectedConfirmDisbursal}
-        />
-      )}
 
       {selectedApprovalProcessDisbursal && (
         <CreditFacilityDisbursalApproveDialog
