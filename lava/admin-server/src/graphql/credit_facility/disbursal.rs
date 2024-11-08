@@ -72,10 +72,3 @@ pub struct CreditFacilityDisbursalInitiateInput {
     pub amount: UsdCents,
 }
 crate::mutation_payload! { CreditFacilityDisbursalInitiatePayload, disbursal: CreditFacilityDisbursal }
-
-#[derive(InputObject)]
-pub struct CreditFacilityDisbursalConfirmInput {
-    pub credit_facility_id: UUID,
-    pub disbursal_idx: DisbursalIdx,
-}
-crate::mutation_payload! { CreditFacilityDisbursalConfirmPayload, disbursal: CreditFacilityDisbursal }

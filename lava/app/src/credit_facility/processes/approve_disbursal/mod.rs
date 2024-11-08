@@ -4,8 +4,11 @@ use governance::{ApprovalProcess, ApprovalProcessStatus, ApprovalProcessType};
 
 use crate::{
     audit::{Audit, AuditSvc},
-    credit_facility::{error::CreditFacilityError, Disbursal, DisbursalRepo},
+    credit_facility::{
+        error::CreditFacilityError, repo::CreditFacilityRepo, Disbursal, DisbursalRepo,
+    },
     governance::Governance,
+    ledger::Ledger,
     primitives::DisbursalId,
 };
 use rbac_types::{AppObject, CreditFacilityAction};
@@ -16,21 +19,27 @@ pub const APPROVE_DISBURSAL_PROCESS: ApprovalProcessType = ApprovalProcessType::
 
 #[derive(Clone)]
 pub struct ApproveDisbursal {
-    repo: DisbursalRepo,
+    disbursal_repo: DisbursalRepo,
+    credit_facility_repo: CreditFacilityRepo,
     audit: Audit,
     governance: Governance,
+    ledger: Ledger,
 }
 
 impl ApproveDisbursal {
     pub(in crate::credit_facility) fn new(
-        repo: &DisbursalRepo,
+        disbursal_repo: &DisbursalRepo,
+        credit_facility_repo: &CreditFacilityRepo,
         audit: &Audit,
         governance: &Governance,
+        ledger: &Ledger,
     ) -> Self {
         Self {
-            repo: repo.clone(),
+            disbursal_repo: disbursal_repo.clone(),
+            credit_facility_repo: credit_facility_repo.clone(),
             audit: audit.clone(),
             governance: governance.clone(),
+            ledger: ledger.clone(),
         }
     }
 
@@ -63,11 +72,11 @@ impl ApproveDisbursal {
         id: impl es_entity::RetryableInto<DisbursalId>,
         approved: bool,
     ) -> Result<Disbursal, CreditFacilityError> {
-        let mut disbursal = self.repo.find_by_id(id.into()).await?;
+        let mut disbursal = self.disbursal_repo.find_by_id(id.into()).await?;
         if disbursal.is_approval_process_concluded() {
             return Ok(disbursal);
         }
-        let mut db = self.repo.pool().begin().await?;
+        let mut db = self.disbursal_repo.pool().begin().await?;
         let audit_info = self
             .audit
             .record_system_entry_in_tx(
@@ -78,9 +87,44 @@ impl ApproveDisbursal {
             .await?;
         if disbursal
             .approval_process_concluded(approved, audit_info)
-            .did_execute()
+            .was_already_applied()
         {
-            self.repo.update_in_tx(&mut db, &mut disbursal).await?;
+            return Ok(disbursal);
+        }
+
+        if let Ok(disbursal_data) = disbursal.disbursal_data() {
+            let audit_info = self
+                .audit
+                .record_system_entry_in_tx(
+                    &mut db,
+                    AppObject::CreditFacility,
+                    CreditFacilityAction::ConfirmDisbursal,
+                )
+                .await?;
+
+            let executed_at = self.ledger.record_disbursal(disbursal_data.clone()).await?;
+            disbursal.confirm(&disbursal_data, executed_at, audit_info.clone());
+
+            let mut credit_facility = self
+                .credit_facility_repo
+                .find_by_id(disbursal.facility_id)
+                .await?;
+            credit_facility.confirm_disbursal(
+                &disbursal,
+                disbursal_data.tx_id,
+                executed_at,
+                audit_info.clone(),
+            );
+            self.credit_facility_repo
+                .update_in_tx(&mut db, &mut credit_facility)
+                .await?;
+        }
+
+        if self
+            .disbursal_repo
+            .update_in_tx(&mut db, &mut disbursal)
+            .await?
+        {
             db.commit().await?;
         }
         Ok(disbursal)

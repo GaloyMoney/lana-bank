@@ -82,30 +82,6 @@ teardown_file() {
   echo $(graphql_output)
   disbursal_index=$(graphql_output '.data.creditFacilityDisbursalInitiate.disbursal.index')
   [[ "$disbursal_index" != "null" ]] || exit 1
-
-  cache_value 'disbursal_index' "$disbursal_index"
-}
-
-@test "credit-facility: can create and confirm disbursal" {
-  credit_facility_id=$(read_value 'credit_facility_id')
-  disbursal_index=$(read_value 'disbursal_index')
-
-  variables=$(
-    jq -n \
-      --arg creditFacilityId "$credit_facility_id" \
-      --argjson disbursalIdx "$disbursal_index" \
-    '{
-      input: {
-        creditFacilityId: $creditFacilityId,
-        disbursalIdx: $disbursalIdx,
-      }
-    }'
-  )
-  exec_admin_graphql 'credit-facility-disbursal-confirm' "$variables"
-  disbursal_id=$(graphql_output '.data.creditFacilityDisbursalConfirm.disbursal.id')
-  [[ "$disbursal_id" != "null" ]] || exit 1
-  status=$(graphql_output '.data.creditFacilityDisbursalConfirm.disbursal.status')
+  status=$(graphql_output '.data.creditFacilityDisbursalInitiate.disbursal.status')
   [[ "$status" == "CONFIRMED" ]] || exit 1
-
-  assert_accounts_balanced
 }

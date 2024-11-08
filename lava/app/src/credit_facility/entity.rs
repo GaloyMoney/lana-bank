@@ -213,17 +213,6 @@ impl CreditFacility {
             .expect("entity_first_persisted_at not found")
     }
 
-    pub(super) fn disbursal_id_from_idx(&self, idx: DisbursalIdx) -> Option<DisbursalId> {
-        self.events.iter_all().find_map(|event| match event {
-            CreditFacilityEvent::DisbursalInitiated {
-                disbursal_id: id,
-                idx: i,
-                ..
-            } if i == &idx => Some(*id),
-            _ => None,
-        })
-    }
-
     pub fn initial_facility(&self) -> UsdCents {
         for event in self.events.iter_all() {
             match event {

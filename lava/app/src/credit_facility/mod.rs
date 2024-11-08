@@ -25,8 +25,8 @@ use crate::{
     outbox::Outbox,
     price::Price,
     primitives::{
-        CreditFacilityId, CreditFacilityStatus, CustomerId, DisbursalId, DisbursalIdx,
-        PriceOfOneBTC, Satoshis, Subject, UsdCents,
+        CreditFacilityId, CreditFacilityStatus, CustomerId, DisbursalId, PriceOfOneBTC, Satoshis,
+        Subject, UsdCents,
     },
     terms::{CollateralizationState, TermValues},
 };
@@ -79,7 +79,13 @@ impl CreditFacilities {
         let credit_facility_repo = CreditFacilityRepo::new(pool, &publisher);
         let disbursal_repo = DisbursalRepo::new(pool, export);
         let interest_accrual_repo = InterestAccrualRepo::new(pool, export);
-        let approve_disbursal = ApproveDisbursal::new(&disbursal_repo, authz.audit(), governance);
+        let approve_disbursal = ApproveDisbursal::new(
+            &disbursal_repo,
+            &credit_facility_repo,
+            authz.audit(),
+            governance,
+            ledger,
+        );
         let approve_credit_facility = ApproveCreditFacility::new(
             &credit_facility_repo,
             &interest_accrual_repo,
@@ -285,62 +291,6 @@ impl CreditFacilities {
             .await?;
 
         db_tx.commit().await?;
-        Ok(disbursal)
-    }
-
-    #[instrument(name = "credit_facility.confirm_disbursal", skip(self), err)]
-    pub async fn confirm_disbursal(
-        &self,
-        sub: &Subject,
-        credit_facility_id: impl Into<CreditFacilityId> + std::fmt::Debug,
-        disbursal_idx: DisbursalIdx,
-    ) -> Result<Disbursal, CreditFacilityError> {
-        let credit_facility_id = credit_facility_id.into();
-        let mut credit_facility = self
-            .credit_facility_repo
-            .find_by_id(credit_facility_id)
-            .await?;
-
-        let disbursal_id = credit_facility
-            .disbursal_id_from_idx(disbursal_idx)
-            .ok_or_else(|| {
-                disbursal::error::DisbursalError::EsEntityError(es_entity::EsEntityError::NotFound)
-            })?;
-
-        let mut disbursal = self.disbursal_repo.find_by_id(disbursal_id).await?;
-
-        let mut db_tx = self.credit_facility_repo.begin().await?;
-
-        if let Ok(disbursal_data) = disbursal.disbursal_data() {
-            let audit_info = self
-                .authz
-                .audit()
-                .record_system_entry_in_tx(
-                    &mut db_tx,
-                    Object::CreditFacility,
-                    CreditFacilityAction::ConfirmDisbursal,
-                )
-                .await?;
-
-            let executed_at = self.ledger.record_disbursal(disbursal_data.clone()).await?;
-            disbursal.confirm(&disbursal_data, executed_at, audit_info.clone());
-
-            credit_facility.confirm_disbursal(
-                &disbursal,
-                disbursal_data.tx_id,
-                executed_at,
-                audit_info.clone(),
-            );
-        }
-
-        self.disbursal_repo
-            .update_in_tx(&mut db_tx, &mut disbursal)
-            .await?;
-        self.credit_facility_repo
-            .update_in_tx(&mut db_tx, &mut credit_facility)
-            .await?;
-        db_tx.commit().await?;
-
         Ok(disbursal)
     }
 

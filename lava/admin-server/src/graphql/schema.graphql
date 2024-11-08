@@ -418,15 +418,6 @@ type CreditFacilityDisbursal {
 	approvalProcess: ApprovalProcess!
 }
 
-input CreditFacilityDisbursalConfirmInput {
-	creditFacilityId: UUID!
-	disbursalIdx: DisbursalIdx!
-}
-
-type CreditFacilityDisbursalConfirmPayload {
-	disbursal: CreditFacilityDisbursal!
-}
-
 type CreditFacilityDisbursalConnection {
 	"""
 	Information to aid in pagination.
@@ -789,7 +780,6 @@ type Mutation {
 	creditFacilityCollateralUpdate(input: CreditFacilityCollateralUpdateInput!): CreditFacilityCollateralUpdatePayload!
 	creditFacilityPartialPayment(input: CreditFacilityPartialPaymentInput!): CreditFacilityPartialPaymentPayload!
 	creditFacilityDisbursalInitiate(input: CreditFacilityDisbursalInitiateInput!): CreditFacilityDisbursalInitiatePayload!
-	creditFacilityDisbursalConfirm(input: CreditFacilityDisbursalConfirmInput!): CreditFacilityDisbursalConfirmPayload!
 	creditFacilityComplete(input: CreditFacilityCompleteInput!): CreditFacilityCompletePayload!
 	committeeCreate(input: CommitteeCreateInput!): CommitteeCreatePayload!
 	committeeAddUser(input: CommitteeAddUserInput!): CommitteeAddUserPayload!
