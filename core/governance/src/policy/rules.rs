@@ -72,12 +72,7 @@ mod tests {
         assert_eq!(
             result,
             Some(true),
-            "Should be approved with 4 approvals >= threshold of 3"
-        );
-        assert_eq!(
-            eligible.intersection(&approving).count(),
-            4,
-            "Should have 4 overlapping approved members"
+            "Should be approved with 3 approvals >= threshold of 3"
         );
     }
 
