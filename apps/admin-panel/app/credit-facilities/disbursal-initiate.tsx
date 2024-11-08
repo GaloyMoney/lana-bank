@@ -3,8 +3,6 @@ import { gql } from "@apollo/client"
 import { toast } from "sonner"
 import { useRouter } from "next/navigation"
 
-import { useRouter } from "next/navigation"
-
 import {
   Dialog,
   DialogContent,
@@ -53,7 +51,6 @@ export const CreditFacilityDisbursalInitiateDialog: React.FC<
     useCreditFacilityDisbursalInitiateMutation({
       refetchQueries: [GetCreditFacilityDetailsDocument, DisbursalsDocument],
     })
-  const router = useRouter()
   const [amount, setAmount] = useState<string>("")
   const [error, setError] = useState<string | null>(null)
 
@@ -75,9 +72,6 @@ export const CreditFacilityDisbursalInitiateDialog: React.FC<
               `/disbursals/${data.creditFacilityDisbursalInitiate.disbursal.disbursalId}`,
             )
             if (onSuccess) onSuccess()
-            router.push(
-              `/disbursals/${data.creditFacilityDisbursalInitiate.disbursal.disbursalId}`,
-            )
             handleCloseDialog()
           }
         },
