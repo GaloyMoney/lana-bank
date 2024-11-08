@@ -74,24 +74,11 @@ impl<'a> ComboCursor<'a> {
             #trait_impls
         }
     }
-}
 
-impl<'a> ToTokens for ComboCursor<'a> {
-    fn to_tokens(&self, tokens: &mut TokenStream) {
+    #[cfg(feature = "graphql")]
+    pub fn gql_cursor(&self) -> TokenStream {
         let ident = self.ident();
-        let variants = self.variants();
-        let trait_impls = self.trait_impls();
-
-        tokens.append_all(quote! {
-            #[derive(Debug, serde::Serialize, serde::Deserialize)]
-            #[allow(clippy::enum_variant_names)]
-            #[serde(tag = "type")]
-            pub enum #ident {
-                #variants
-            }
-
-            #trait_impls
-
+        quote! {
             impl es_entity::graphql::async_graphql::connection::CursorType for #ident {
                 type Error = String;
 
@@ -110,6 +97,25 @@ impl<'a> ToTokens for ComboCursor<'a> {
                     es_entity::prelude::serde_json::from_str(&json).map_err(|e| e.to_string())
                 }
             }
+        }
+    }
+}
+
+impl<'a> ToTokens for ComboCursor<'a> {
+    fn to_tokens(&self, tokens: &mut TokenStream) {
+        let ident = self.ident();
+        let variants = self.variants();
+        let trait_impls = self.trait_impls();
+
+        tokens.append_all(quote! {
+            #[derive(Debug, serde::Serialize, serde::Deserialize)]
+            #[allow(clippy::enum_variant_names)]
+            #[serde(tag = "type")]
+            pub enum #ident {
+                #variants
+            }
+
+            #trait_impls
         });
     }
 }
