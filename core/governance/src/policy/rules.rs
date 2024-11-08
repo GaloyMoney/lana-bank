@@ -34,7 +34,7 @@ impl ApprovalRules {
         match self {
             ApprovalRules::SystemAutoApprove => Some(true),
             ApprovalRules::CommitteeThreshold { threshold, .. }
-                if eligible_members.intersection(approving_members).count() > *threshold =>
+                if eligible_members.intersection(approving_members).count() >= *threshold =>
             {
                 Some(true)
             }
@@ -64,7 +64,7 @@ mod tests {
         };
 
         let eligible = make_set(&[1, 2, 3, 4, 5]);
-        let approving = make_set(&[1, 2, 3, 4]);
+        let approving = make_set(&[1, 2, 3]);
         let denying = HashSet::new();
 
         let result = rules.is_approved_or_denied(&eligible, &approving, &denying);
