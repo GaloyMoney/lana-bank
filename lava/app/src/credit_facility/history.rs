@@ -135,7 +135,7 @@ pub(super) fn project<'a>(
             CreditFacilityEvent::DisbursalConcluded {
                 idx,
                 recorded_at,
-                tx_id,
+                tx_id: Some(tx_id),
                 ..
             } => {
                 history.push(CreditFacilityHistoryEntry::Disbursal(DisbursalExecuted {

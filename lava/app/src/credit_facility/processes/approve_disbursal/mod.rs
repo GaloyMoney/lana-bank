@@ -5,7 +5,8 @@ use governance::{ApprovalProcess, ApprovalProcessStatus, ApprovalProcessType};
 use crate::{
     audit::{Audit, AuditSvc},
     credit_facility::{
-        error::CreditFacilityError, repo::CreditFacilityRepo, Disbursal, DisbursalRepo,
+        disbursal::error::DisbursalError, error::CreditFacilityError, repo::CreditFacilityRepo,
+        Disbursal, DisbursalRepo,
     },
     governance::Governance,
     ledger::Ledger,
@@ -73,9 +74,6 @@ impl ApproveDisbursal {
         approved: bool,
     ) -> Result<Disbursal, CreditFacilityError> {
         let mut disbursal = self.disbursal_repo.find_by_id(id.into()).await?;
-        if disbursal.is_approval_process_concluded() {
-            return Ok(disbursal);
-        }
         let mut db = self.disbursal_repo.pool().begin().await?;
         let audit_info = self
             .audit
@@ -86,47 +84,59 @@ impl ApproveDisbursal {
             )
             .await?;
         if disbursal
-            .approval_process_concluded(approved, audit_info)
+            .approval_process_concluded(approved, audit_info.clone())
             .was_already_applied()
         {
             return Ok(disbursal);
         }
 
-        if let Ok(disbursal_data) = disbursal.disbursal_data() {
-            let audit_info = self
-                .audit
-                .record_system_entry_in_tx(
-                    &mut db,
-                    AppObject::CreditFacility,
-                    CreditFacilityAction::ConfirmDisbursal,
-                )
-                .await?;
+        let mut credit_facility = self
+            .credit_facility_repo
+            .find_by_id(disbursal.facility_id)
+            .await?;
 
-            let executed_at = self.ledger.record_disbursal(disbursal_data.clone()).await?;
-            disbursal.confirm(&disbursal_data, executed_at, audit_info.clone());
+        match disbursal.disbursal_data() {
+            Ok(disbursal_data) => {
+                let audit_info = self
+                    .audit
+                    .record_system_entry_in_tx(
+                        &mut db,
+                        AppObject::CreditFacility,
+                        CreditFacilityAction::ConfirmDisbursal,
+                    )
+                    .await?;
 
-            let mut credit_facility = self
-                .credit_facility_repo
-                .find_by_id(disbursal.facility_id)
-                .await?;
-            credit_facility.confirm_disbursal(
-                &disbursal,
-                disbursal_data.tx_id,
-                executed_at,
-                audit_info.clone(),
-            );
-            self.credit_facility_repo
-                .update_in_tx(&mut db, &mut credit_facility)
-                .await?;
+                let executed_at = self.ledger.record_disbursal(disbursal_data.clone()).await?;
+                disbursal.confirm(&disbursal_data, executed_at, audit_info.clone());
+
+                credit_facility.confirm_disbursal(
+                    &disbursal,
+                    Some(disbursal_data.tx_id),
+                    executed_at,
+                    audit_info.clone(),
+                );
+            }
+            Err(DisbursalError::Denied) => {
+                credit_facility.confirm_disbursal(
+                    &disbursal,
+                    None,
+                    chrono::Utc::now(),
+                    audit_info.clone(),
+                );
+            }
+            Err(e) => {
+                return Err(e.into());
+            }
         }
 
-        if self
-            .disbursal_repo
+        self.credit_facility_repo
+            .update_in_tx(&mut db, &mut credit_facility)
+            .await?;
+        self.disbursal_repo
             .update_in_tx(&mut db, &mut disbursal)
-            .await?
-        {
-            db.commit().await?;
-        }
+            .await?;
+        db.commit().await?;
+
         Ok(disbursal)
     }
 }
