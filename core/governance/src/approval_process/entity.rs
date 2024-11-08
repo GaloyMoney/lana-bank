@@ -6,7 +6,6 @@ use std::collections::HashSet;
 use audit::AuditInfo;
 use es_entity::*;
 
-use super::error::ApprovalProcessError;
 use crate::{policy::ApprovalRules, primitives::*};
 
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
@@ -27,6 +26,7 @@ pub(crate) enum ApprovalProcessEvent {
     },
     Denied {
         denier_id: CommitteeMemberId,
+        reason: String,
         audit_info: AuditInfo,
     },
     Concluded {
@@ -133,17 +133,16 @@ impl ApprovalProcess {
         eligible_members: &HashSet<CommitteeMemberId>,
         approver_id: CommitteeMemberId,
         audit_info: AuditInfo,
-    ) -> Result<(), ApprovalProcessError> {
-        if self.status().is_concluded() {
-            return Err(ApprovalProcessError::AlreadyConcluded);
-        }
+    ) -> Idempotent<()> {
+        use ApprovalProcessEvent::*;
+        idempotency_guard!(
+            self.events.iter_all(),
+            Concluded {..},
+            Approved {approver_id: id, ..} | Denied {denier_id: id,..} if id == &approver_id,
+        );
 
         if !eligible_members.contains(&approver_id) {
-            return Err(ApprovalProcessError::NotEligible);
-        }
-
-        if self.approvers().contains(&approver_id) || self.deniers().contains(&approver_id) {
-            return Err(ApprovalProcessError::AlreadyVoted);
+            return Idempotent::AlreadyApplied;
         }
 
         self.events.push(ApprovalProcessEvent::Approved {
@@ -151,33 +150,34 @@ impl ApprovalProcess {
             audit_info,
         });
 
-        Ok(())
+        Idempotent::Executed(())
     }
 
     pub(crate) fn deny(
         &mut self,
         eligible_members: &HashSet<CommitteeMemberId>,
         denier_id: CommitteeMemberId,
+        reason: String,
         audit_info: AuditInfo,
-    ) -> Result<(), ApprovalProcessError> {
-        if self.status().is_concluded() {
-            return Err(ApprovalProcessError::AlreadyConcluded);
-        }
+    ) -> Idempotent<()> {
+        use ApprovalProcessEvent::*;
+        idempotency_guard!(
+            self.events.iter_all(),
+            Concluded {..},
+            Approved {approver_id: id, ..} | Denied {denier_id: id,..} if id == &denier_id,
+        );
 
         if !eligible_members.contains(&denier_id) {
-            return Err(ApprovalProcessError::NotEligible);
-        }
-
-        if self.approvers().contains(&denier_id) || self.deniers().contains(&denier_id) {
-            return Err(ApprovalProcessError::AlreadyVoted);
+            return Idempotent::AlreadyApplied;
         }
 
         self.events.push(ApprovalProcessEvent::Denied {
             denier_id,
+            reason,
             audit_info,
         });
 
-        Ok(())
+        Idempotent::Executed(())
     }
 
     pub fn approvers(&self) -> HashSet<CommitteeMemberId> {
@@ -306,7 +306,7 @@ mod tests {
         let eligible = [approver].iter().copied().collect();
         assert!(process
             .approve(&eligible, approver, audit_info.clone())
-            .is_ok());
+            .did_execute());
         assert!(process.approvers().contains(&approver));
     }
 
@@ -320,10 +320,9 @@ mod tests {
             .expect("Could not build approval process");
         let approver = CommitteeMemberId::new();
         let audit_info = dummy_audit_info();
-        assert!(matches!(
-            process.approve(&HashSet::new(), approver, audit_info.clone()),
-            Err(ApprovalProcessError::NotEligible)
-        ));
+        assert!(process
+            .approve(&HashSet::new(), approver, audit_info.clone())
+            .was_already_applied());
         assert!(process.approvers().is_empty());
     }
 
@@ -340,11 +339,10 @@ mod tests {
         let eligible: HashSet<_> = [approver].iter().copied().collect();
         assert!(process
             .approve(&eligible, approver, audit_info.clone())
-            .is_ok());
-        assert!(matches!(
-            process.approve(&eligible, approver, audit_info.clone()),
-            Err(ApprovalProcessError::AlreadyVoted)
-        ));
+            .did_execute());
+        assert!(process
+            .approve(&eligible, approver, audit_info.clone())
+            .was_already_applied());
     }
 
     #[test]
@@ -356,10 +354,9 @@ mod tests {
         let approver = CommitteeMemberId::new();
         let audit_info = dummy_audit_info();
         let eligible: HashSet<_> = [approver].iter().copied().collect();
-        assert!(matches!(
-            process.approve(&eligible, approver, audit_info.clone()),
-            Err(ApprovalProcessError::AlreadyConcluded)
-        ));
+        assert!(process
+            .approve(&eligible, approver, audit_info.clone())
+            .was_already_applied());
     }
 
     #[test]
@@ -372,8 +369,11 @@ mod tests {
             .expect("Could not build approval process");
         let denier = CommitteeMemberId::new();
         let audit_info = dummy_audit_info();
+        let reason = String::new();
         let eligible = [denier].iter().copied().collect();
-        assert!(process.deny(&eligible, denier, audit_info.clone()).is_ok());
+        assert!(process
+            .deny(&eligible, denier, reason, audit_info.clone())
+            .did_execute());
         assert!(process.deniers().contains(&denier));
     }
 
@@ -386,11 +386,11 @@ mod tests {
             }))
             .expect("Could not build approval process");
         let denier = CommitteeMemberId::new();
+        let reason = String::new();
         let audit_info = dummy_audit_info();
-        assert!(matches!(
-            process.deny(&HashSet::new(), denier, audit_info.clone()),
-            Err(ApprovalProcessError::NotEligible)
-        ));
+        assert!(process
+            .deny(&HashSet::new(), denier, reason, audit_info.clone())
+            .was_already_applied());
         assert!(process.deniers().is_empty());
     }
 
@@ -407,11 +407,10 @@ mod tests {
         let eligible: HashSet<_> = [denier].iter().copied().collect();
         assert!(process
             .approve(&eligible, denier, audit_info.clone())
-            .is_ok());
-        assert!(matches!(
-            process.deny(&eligible, denier, audit_info.clone()),
-            Err(ApprovalProcessError::AlreadyVoted)
-        ));
+            .did_execute());
+        assert!(process
+            .deny(&eligible, denier, String::new(), audit_info.clone())
+            .was_already_applied());
     }
 
     #[test]
@@ -423,9 +422,8 @@ mod tests {
         let denier = CommitteeMemberId::new();
         let audit_info = dummy_audit_info();
         let eligible: HashSet<_> = [denier].iter().copied().collect();
-        assert!(matches!(
-            process.deny(&eligible, denier, audit_info.clone()),
-            Err(ApprovalProcessError::AlreadyConcluded)
-        ));
+        assert!(process
+            .deny(&eligible, denier, String::new(), audit_info.clone())
+            .was_already_applied());
     }
 }
