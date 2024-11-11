@@ -361,6 +361,7 @@ export type CreditFacilityBalance = {
   __typename?: 'CreditFacilityBalance';
   collateral: Collateral;
   disbursed: Disbursed;
+  dueOutstanding: Outstanding;
   facilityRemaining: FacilityRemaining;
   interest: Interest;
   outstanding: Outstanding;
@@ -648,6 +649,7 @@ export enum DisbursalStatus {
 
 export type Disbursed = {
   __typename?: 'Disbursed';
+  dueOutstanding: Outstanding;
   outstanding: Outstanding;
   total: Total;
 };
@@ -735,6 +737,7 @@ export type GovernanceNavigationItems = {
 
 export type Interest = {
   __typename?: 'Interest';
+  dueOutstanding: Outstanding;
   outstanding: Outstanding;
   total: Total;
 };

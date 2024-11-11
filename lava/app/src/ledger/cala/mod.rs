@@ -335,17 +335,17 @@ impl CalaClient {
         account_ids: CreditFacilityAccountIds,
     ) -> Result<Option<T>, E>
     where
-        T: TryFrom<credit_facility_balance::ResponseData, Error = E>,
+        T: TryFrom<credit_facility_ledger_balance::ResponseData, Error = E>,
         E: From<CalaError> + std::fmt::Display,
     {
-        let variables = credit_facility_balance::Variables {
+        let variables = credit_facility_ledger_balance::Variables {
             journal_id: super::constants::CORE_JOURNAL_ID,
             collateral_id: Uuid::from(account_ids.collateral_account_id),
             facility_id: Uuid::from(account_ids.facility_account_id),
             disbursed_receivable_id: Uuid::from(account_ids.disbursed_receivable_account_id),
             interest_receivable_id: Uuid::from(account_ids.interest_receivable_account_id),
         };
-        let response = Self::traced_gql_request::<CreditFacilityBalance, _>(
+        let response = Self::traced_gql_request::<CreditFacilityLedgerBalance, _>(
             &self.client,
             &self.url,
             variables,

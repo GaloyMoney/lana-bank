@@ -171,11 +171,8 @@ impl CreditFacility {
     }
 
     async fn balance(&self, ctx: &Context<'_>) -> async_graphql::Result<CreditFacilityBalance> {
-        let app = ctx.data_unchecked::<LavaApp>();
-        let balance = app
-            .ledger()
-            .get_credit_facility_balance(self.entity.account_ids)
-            .await?;
+        let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
+        let balance = app.credit_facilities().balance(sub, self.entity.id).await?;
         Ok(CreditFacilityBalance::from(balance))
     }
 }

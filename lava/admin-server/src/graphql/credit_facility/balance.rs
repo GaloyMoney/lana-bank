@@ -8,33 +8,43 @@ pub(super) struct CreditFacilityBalance {
     disbursed: Disbursed,
     interest: Interest,
     outstanding: Outstanding,
+    due_outstanding: Outstanding,
     collateral: Collateral,
 }
 
-impl From<lava_app::ledger::credit_facility::CreditFacilityBalance> for CreditFacilityBalance {
-    fn from(balance: lava_app::ledger::credit_facility::CreditFacilityBalance) -> Self {
+impl From<lava_app::credit_facility::CreditFacilityBalance> for CreditFacilityBalance {
+    fn from(balance: lava_app::credit_facility::CreditFacilityBalance) -> Self {
         Self {
             facility_remaining: FacilityRemaining {
-                usd_balance: balance.facility,
+                usd_balance: balance.facility_remaining,
             },
             disbursed: Disbursed {
                 total: Total {
-                    usd_balance: balance.disbursed,
+                    usd_balance: balance.total_disbursed,
                 },
                 outstanding: Outstanding {
                     usd_balance: balance.disbursed_receivable,
                 },
+                due_outstanding: Outstanding {
+                    usd_balance: balance.due_disbursed_receivable,
+                },
             },
             interest: Interest {
                 total: Total {
-                    usd_balance: balance.interest,
+                    usd_balance: balance.total_interest_accrued,
                 },
                 outstanding: Outstanding {
-                    usd_balance: balance.accrued_interest_receivable,
+                    usd_balance: balance.interest_receivable,
+                },
+                due_outstanding: Outstanding {
+                    usd_balance: balance.due_interest_receivable,
                 },
             },
             outstanding: Outstanding {
-                usd_balance: balance.disbursed_receivable + balance.accrued_interest_receivable,
+                usd_balance: balance.disbursed_receivable + balance.interest_receivable,
+            },
+            due_outstanding: Outstanding {
+                usd_balance: balance.due_disbursed_receivable + balance.due_interest_receivable,
             },
             collateral: Collateral {
                 btc_balance: balance.collateral,
@@ -67,10 +77,12 @@ pub struct FacilityRemaining {
 pub struct Disbursed {
     pub total: Total,
     pub outstanding: Outstanding,
+    pub due_outstanding: Outstanding,
 }
 
 #[derive(SimpleObject)]
 pub struct Interest {
     pub total: Total,
     pub outstanding: Outstanding,
+    pub due_outstanding: Outstanding,
 }

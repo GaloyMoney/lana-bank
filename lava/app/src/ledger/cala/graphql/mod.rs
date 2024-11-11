@@ -313,7 +313,7 @@ pub struct PostRecordCreditFacilityPaymentTransaction;
     query_path = "src/ledger/cala/graphql/credit-facility.gql",
     response_derives = "Debug, PartialEq, Eq, Clone"
 )]
-pub struct CreditFacilityBalance;
+pub struct CreditFacilityLedgerBalance;
 
 #[derive(GraphQLQuery)]
 #[graphql(

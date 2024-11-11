@@ -1,4 +1,4 @@
-query CreditFacilityBalance(
+query CreditFacilityLedgerBalance(
   $journalId: UUID!
   $collateralId: UUID!
   $facilityId: UUID!
@@ -71,12 +71,6 @@ query CreditFacilityBalance(
     currency: "USD"
   ) {
     settled {
-      normalBalance {
-        units
-        currency
-      }
-    }
-    pending {
       normalBalance {
         units
         currency

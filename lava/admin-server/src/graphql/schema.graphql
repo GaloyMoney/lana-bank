@@ -347,6 +347,7 @@ type CreditFacilityBalance {
 	disbursed: Disbursed!
 	interest: Interest!
 	outstanding: Outstanding!
+	dueOutstanding: Outstanding!
 	collateral: Collateral!
 }
 
@@ -656,6 +657,7 @@ enum DisbursalStatus {
 type Disbursed {
 	total: Total!
 	outstanding: Outstanding!
+	dueOutstanding: Outstanding!
 }
 
 type Document {
@@ -736,6 +738,7 @@ type GovernanceNavigationItems {
 type Interest {
 	total: Total!
 	outstanding: Outstanding!
+	dueOutstanding: Outstanding!
 }
 
 enum InterestInterval {

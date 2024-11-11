@@ -31,21 +31,20 @@ impl CreditFacilityAccountIds {
 }
 
 #[derive(Debug, Copy, Clone, Serialize, Deserialize)]
-pub struct CreditFacilityBalance {
+pub struct CreditFacilityLedgerBalance {
     pub facility: UsdCents,
     pub collateral: Satoshis,
     pub disbursed: UsdCents,
     pub disbursed_receivable: UsdCents,
     pub interest: UsdCents,
-    pub accrued_interest_receivable: UsdCents,
-    pub pending_interest_receivable: UsdCents,
+    pub interest_receivable: UsdCents,
 }
 
-impl TryFrom<credit_facility_balance::ResponseData> for CreditFacilityBalance {
+impl TryFrom<credit_facility_ledger_balance::ResponseData> for CreditFacilityLedgerBalance {
     type Error = LedgerError;
 
-    fn try_from(data: credit_facility_balance::ResponseData) -> Result<Self, Self::Error> {
-        Ok(CreditFacilityBalance {
+    fn try_from(data: credit_facility_ledger_balance::ResponseData) -> Result<Self, Self::Error> {
+        Ok(CreditFacilityLedgerBalance {
             facility: data
                 .facility
                 .map(|b| UsdCents::try_from_usd(b.settled.normal_balance.units))
@@ -62,14 +61,10 @@ impl TryFrom<credit_facility_balance::ResponseData> for CreditFacilityBalance {
                 .total_interest
                 .map(|b| UsdCents::try_from_usd(b.settled.dr_balance.units))
                 .unwrap_or_else(|| Ok(UsdCents::ZERO))?,
-            accrued_interest_receivable: data
+            interest_receivable: data
                 .interest_receivable
                 .clone()
                 .map(|b| UsdCents::try_from_usd(b.settled.normal_balance.units))
-                .unwrap_or_else(|| Ok(UsdCents::ZERO))?,
-            pending_interest_receivable: data
-                .interest_receivable
-                .map(|b| UsdCents::try_from_usd(b.pending.normal_balance.units))
                 .unwrap_or_else(|| Ok(UsdCents::ZERO))?,
             collateral: data
                 .collateral
@@ -79,7 +74,7 @@ impl TryFrom<credit_facility_balance::ResponseData> for CreditFacilityBalance {
     }
 }
 
-impl CreditFacilityBalance {
+impl CreditFacilityLedgerBalance {
     pub fn check_disbursal_amount(&self, amount: UsdCents) -> Result<(), LedgerError> {
         if amount > self.facility {
             return Err(LedgerError::DisbursalAmountTooLarge(amount, self.facility));

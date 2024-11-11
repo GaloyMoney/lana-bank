@@ -185,7 +185,7 @@ impl Ledger {
     pub async fn get_credit_facility_balance(
         &self,
         account_ids: CreditFacilityAccountIds,
-    ) -> Result<CreditFacilityBalance, LedgerError> {
+    ) -> Result<CreditFacilityLedgerBalance, LedgerError> {
         self.cala
             .get_credit_facility_balance(account_ids)
             .await?

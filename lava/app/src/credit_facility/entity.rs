@@ -107,11 +107,11 @@ pub struct CreditFacilityReceivable {
     pub interest: UsdCents,
 }
 
-impl From<CreditFacilityBalance> for CreditFacilityReceivable {
-    fn from(balance: CreditFacilityBalance) -> Self {
+impl From<CreditFacilityLedgerBalance> for CreditFacilityReceivable {
+    fn from(balance: CreditFacilityLedgerBalance) -> Self {
         Self {
             disbursed: balance.disbursed_receivable,
-            interest: balance.accrued_interest_receivable,
+            interest: balance.interest_receivable,
         }
     }
 }
@@ -159,6 +159,18 @@ impl CreditFacilityReceivable {
             disbursal,
         })
     }
+}
+
+#[derive(Debug, Copy, Clone, Serialize, Deserialize)]
+pub struct CreditFacilityBalance {
+    pub facility_remaining: UsdCents,
+    pub collateral: Satoshis,
+    pub total_disbursed: UsdCents,
+    pub disbursed_receivable: UsdCents,
+    pub due_disbursed_receivable: UsdCents,
+    pub total_interest_accrued: UsdCents,
+    pub interest_receivable: UsdCents,
+    pub due_interest_receivable: UsdCents,
 }
 
 #[derive(Clone)]
@@ -612,6 +624,19 @@ impl CreditFacility {
                 UsdCents::ZERO,
             ),
             interest: self.interest_accrued() - self.interest_payments(),
+        }
+    }
+
+    pub fn balances(&self) -> CreditFacilityBalance {
+        CreditFacilityBalance {
+            facility_remaining: self.facility_remaining(),
+            collateral: self.collateral(),
+            total_disbursed: self.total_disbursed(),
+            disbursed_receivable: self.outstanding().disbursed,
+            due_disbursed_receivable: self.outstanding_from_due().disbursed,
+            total_interest_accrued: self.interest_accrued(),
+            interest_receivable: self.outstanding().interest,
+            due_interest_receivable: self.outstanding_from_due().interest,
         }
     }
 

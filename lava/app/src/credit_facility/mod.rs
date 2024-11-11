@@ -226,10 +226,25 @@ impl CreditFacilities {
             .await?;
 
         match self.credit_facility_repo.find_by_id(id.into()).await {
-            Ok(loan) => Ok(Some(loan)),
+            Ok(credit_facility) => Ok(Some(credit_facility)),
             Err(e) if e.was_not_found() => Ok(None),
             Err(e) => Err(e),
         }
+    }
+
+    #[instrument(name = "credit_facility.balance", skip(self), err)]
+    pub async fn balance(
+        &self,
+        sub: &Subject,
+        id: impl Into<CreditFacilityId> + std::fmt::Debug,
+    ) -> Result<CreditFacilityBalance, CreditFacilityError> {
+        self.authz
+            .enforce_permission(sub, Object::CreditFacility, CreditFacilityAction::Read)
+            .await?;
+
+        let credit_facility = self.credit_facility_repo.find_by_id(id.into()).await?;
+
+        Ok(credit_facility.balances())
     }
 
     pub async fn subject_can_initiate_disbursal(
