@@ -237,3 +237,15 @@ pub struct CreditFacilitiesSort {
     #[graphql(default)]
     pub direction: SortDirection,
 }
+
+#[derive(async_graphql::Enum, Debug, Clone, Copy, PartialEq, Eq)]
+pub enum CreditFacilitiesFilterBy {
+    Status,
+    CollateralizationState,
+}
+
+#[derive(InputObject)]
+pub struct CreditFacilitiesFilter {
+    pub field: CreditFacilitiesFilterBy,
+    pub value: String,
+}

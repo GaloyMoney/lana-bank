@@ -307,6 +307,16 @@ type CommitteeThreshold {
 	committee: Committee!
 }
 
+input CreditFacilitiesFilter {
+	field: CreditFacilitiesFilterBy!
+	value: String!
+}
+
+enum CreditFacilitiesFilterBy {
+	STATUS
+	COLLATERALIZATION_STATE
+}
+
 input CreditFacilitiesSort {
 	by: CreditFacilitiesSortBy! = CREATED_AT
 	direction: SortDirection! = ASC
@@ -893,9 +903,7 @@ type Query {
 	termsTemplate(id: UUID!): TermsTemplate
 	termsTemplates: [TermsTemplate!]!
 	creditFacility(id: UUID!): CreditFacility
-	creditFacilities(first: Int!, after: String, sort: CreditFacilitiesSort = {by: CREATED_AT, direction: ASC}): CreditFacilityConnection!
-	creditFacilitiesForStatus(status: CreditFacilityStatus!, first: Int!, after: String, sort: CreditFacilitiesSort = {by: CREATED_AT, direction: ASC}): CreditFacilityConnection!
-	creditFacilitiesForCollateralizationState(collateralizationState: CollateralizationState!, first: Int!, after: String, sort: CreditFacilitiesSort = {by: CREATED_AT, direction: ASC}): CreditFacilityConnection!
+	creditFacilities(first: Int!, after: String, sort: CreditFacilitiesSort = {by: CREATED_AT, direction: ASC}, filter: CreditFacilitiesFilter): CreditFacilityConnection!
 	disbursal(id: UUID!): CreditFacilityDisbursal
 	disbursals(first: Int!, after: String): CreditFacilityDisbursalConnection!
 	committee(id: UUID!): Committee

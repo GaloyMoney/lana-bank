@@ -1,7 +1,7 @@
 use rust_decimal::RoundingStrategy;
 use serde::{Deserialize, Serialize};
 
-use std::fmt;
+use std::{fmt, str::FromStr};
 
 pub use core_money::*;
 pub use core_user::UserId;
@@ -86,6 +86,14 @@ pub enum CreditFacilityStatus {
     Active,
     Expired,
     Closed,
+}
+
+impl TryFrom<String> for CreditFacilityStatus {
+    type Error = strum::ParseError;
+
+    fn try_from(value: String) -> Result<Self, Self::Error> {
+        Self::from_str(&value)
+    }
 }
 
 #[derive(async_graphql::Enum, Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
