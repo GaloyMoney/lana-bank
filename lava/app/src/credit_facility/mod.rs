@@ -51,7 +51,6 @@ pub struct CreditFacilities {
     customers: Customers,
     credit_facility_repo: CreditFacilityRepo,
     disbursal_repo: DisbursalRepo,
-    interest_accrual_repo: InterestAccrualRepo,
     governance: Governance,
     jobs: Jobs,
     ledger: Ledger,
@@ -76,9 +75,7 @@ impl CreditFacilities {
         outbox: &Outbox,
     ) -> Result<Self, CreditFacilityError> {
         let publisher = CreditFacilityPublisher::new(export, outbox);
-        let interest_accrual_repo = InterestAccrualRepo::new(pool, export);
-        let credit_facility_repo =
-            CreditFacilityRepo::new(pool, &publisher, &interest_accrual_repo);
+        let credit_facility_repo = CreditFacilityRepo::new(pool, &publisher);
         let disbursal_repo = DisbursalRepo::new(pool, export);
         let approve_disbursal = ApproveDisbursal::new(
             &disbursal_repo,
@@ -89,7 +86,6 @@ impl CreditFacilities {
         );
         let approve_credit_facility = ApproveCreditFacility::new(
             &credit_facility_repo,
-            &interest_accrual_repo,
             ledger,
             price,
             jobs,
@@ -111,7 +107,6 @@ impl CreditFacilities {
         jobs.add_initializer(interest::CreditFacilityProcessingJobInitializer::new(
             ledger,
             credit_facility_repo.clone(),
-            interest_accrual_repo.clone(),
             authz.audit(),
         ));
         jobs.add_initializer_and_spawn_unique(
@@ -136,7 +131,6 @@ impl CreditFacilities {
             disbursal_repo,
             governance: governance.clone(),
             jobs: jobs.clone(),
-            interest_accrual_repo,
             ledger: ledger.clone(),
             price: price.clone(),
             config,
@@ -381,7 +375,7 @@ impl CreditFacilities {
             &mut db,
             &self.ledger,
             self.authz.audit(),
-            self.interest_accrual_repo.clone(),
+            &self.credit_facility_repo,
             &self.jobs,
             price,
         )

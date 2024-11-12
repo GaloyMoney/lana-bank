@@ -8,7 +8,7 @@ use super::{entity::*, error::*};
 
 #[derive(Clone)]
 pub struct CreditFacilityPublisher {
-    export: Export,
+    pub(super) export: Export,
     outbox: Outbox,
 }
 

@@ -224,15 +224,15 @@ impl InterestAccrual {
 #[derive(Debug, Builder)]
 pub struct NewInterestAccrual {
     #[builder(setter(into))]
-    pub(super) id: InterestAccrualId,
+    pub(in crate::credit_facility) id: InterestAccrualId,
     #[builder(setter(into))]
-    pub(super) credit_facility_id: CreditFacilityId,
-    pub(super) idx: InterestAccrualIdx,
-    pub(super) started_at: DateTime<Utc>,
-    pub(super) facility_expires_at: DateTime<Utc>,
-    pub(super) terms: TermValues,
+    pub(in crate::credit_facility) credit_facility_id: CreditFacilityId,
+    pub(in crate::credit_facility) idx: InterestAccrualIdx,
+    pub(in crate::credit_facility) started_at: DateTime<Utc>,
+    pub(in crate::credit_facility) facility_expires_at: DateTime<Utc>,
+    terms: TermValues,
     #[builder(setter(into))]
-    pub(super) audit_info: AuditInfo,
+    audit_info: AuditInfo,
 }
 
 impl NewInterestAccrual {

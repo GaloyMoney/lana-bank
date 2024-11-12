@@ -7,7 +7,7 @@ pub(super) async fn execute(
     db: &mut es_entity::DbOp<'_>,
     ledger: &Ledger,
     audit: &Audit,
-    interest_accrual_repo: InterestAccrualRepo,
+    repo: &CreditFacilityRepo,
     jobs: &Jobs,
     price: PriceOfOneBTC,
 ) -> Result<(), CreditFacilityError> {

@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 use crate::{
     audit::*,
     authorization::{CreditFacilityAction, Object},
-    credit_facility::{repo::*, InterestAccrualRepo},
+    credit_facility::repo::*,
     job::*,
     ledger::*,
     primitives::CreditFacilityId,
@@ -21,21 +21,14 @@ impl JobConfig for CreditFacilityJobConfig {
 pub struct CreditFacilityProcessingJobInitializer {
     ledger: Ledger,
     credit_facility_repo: CreditFacilityRepo,
-    interest_accrual_repo: InterestAccrualRepo,
     audit: Audit,
 }
 
 impl CreditFacilityProcessingJobInitializer {
-    pub fn new(
-        ledger: &Ledger,
-        credit_facility_repo: CreditFacilityRepo,
-        interest_accrual_repo: InterestAccrualRepo,
-        audit: &Audit,
-    ) -> Self {
+    pub fn new(ledger: &Ledger, credit_facility_repo: CreditFacilityRepo, audit: &Audit) -> Self {
         Self {
             ledger: ledger.clone(),
             credit_facility_repo,
-            interest_accrual_repo,
             audit: audit.clone(),
         }
     }
@@ -55,7 +48,6 @@ impl JobInitializer for CreditFacilityProcessingJobInitializer {
         Ok(Box::new(CreditFacilityProcessingJobRunner {
             config: job.config()?,
             credit_facility_repo: self.credit_facility_repo.clone(),
-            interest_accrual_repo: self.interest_accrual_repo.clone(),
             ledger: self.ledger.clone(),
             audit: self.audit.clone(),
         }))
@@ -65,7 +57,6 @@ impl JobInitializer for CreditFacilityProcessingJobInitializer {
 pub struct CreditFacilityProcessingJobRunner {
     config: CreditFacilityJobConfig,
     credit_facility_repo: CreditFacilityRepo,
-    interest_accrual_repo: InterestAccrualRepo,
     ledger: Ledger,
     audit: Audit,
 }

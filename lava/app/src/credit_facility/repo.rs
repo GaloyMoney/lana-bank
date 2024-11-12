@@ -3,9 +3,14 @@ use sqlx::PgPool;
 
 use es_entity::*;
 
-use crate::{primitives::*, terms::CollateralizationState};
+use crate::{data_export::Export, primitives::*, terms::CollateralizationState};
 
-use super::{entity::*, error::CreditFacilityError, publisher::*, InterestAccrualRepo};
+use super::{
+    entity::*,
+    error::CreditFacilityError,
+    interest_accrual::{error::InterestAccrualError, *},
+    publisher::*,
+};
 
 #[derive(EsRepo, Clone)]
 #[es_repo(
@@ -37,15 +42,12 @@ pub struct CreditFacilityRepo {
 }
 
 impl CreditFacilityRepo {
-    pub(super) fn new(
-        pool: &PgPool,
-        publisher: &CreditFacilityPublisher,
-        interest_accruals: &InterestAccrualRepo,
-    ) -> Self {
+    pub(super) fn new(pool: &PgPool, publisher: &CreditFacilityPublisher) -> Self {
+        let interest_accruals = InterestAccrualRepo::new(pool, &publisher.export);
         Self {
             pool: pool.clone(),
             publisher: publisher.clone(),
-            interest_accruals: interest_accruals.clone(),
+            interest_accruals,
         }
     }
 
@@ -56,6 +58,44 @@ impl CreditFacilityRepo {
         new_events: es_entity::LastPersisted<'_, CreditFacilityEvent>,
     ) -> Result<(), CreditFacilityError> {
         self.publisher.publish(db, entity, new_events).await
+    }
+}
+
+const INTEREST_ACCRUAL_BQ_TABLE_NAME: &str = "interest_accrual_events";
+
+#[derive(EsRepo, Clone)]
+#[es_repo(
+    entity = "InterestAccrual",
+    err = "InterestAccrualError",
+    columns(
+        credit_facility_id(ty = "CreditFacilityId", update(persist = false), list_for, parent),
+        idx(ty = "InterestAccrualIdx", update(persist = false)),
+    ),
+    post_persist_hook = "export"
+)]
+pub(super) struct InterestAccrualRepo {
+    pool: PgPool,
+    export: Export,
+}
+
+impl InterestAccrualRepo {
+    pub fn new(pool: &PgPool, export: &Export) -> Self {
+        Self {
+            pool: pool.clone(),
+            export: export.clone(),
+        }
+    }
+
+    async fn export(
+        &self,
+        db: &mut es_entity::DbOp<'_>,
+        _: &InterestAccrual,
+        events: impl Iterator<Item = &PersistedEvent<InterestAccrualEvent>>,
+    ) -> Result<(), InterestAccrualError> {
+        self.export
+            .es_entity_export(db, INTEREST_ACCRUAL_BQ_TABLE_NAME, events)
+            .await?;
+        Ok(())
     }
 }
 

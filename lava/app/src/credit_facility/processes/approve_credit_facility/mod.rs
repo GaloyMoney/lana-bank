@@ -4,10 +4,7 @@ use governance::{ApprovalProcess, ApprovalProcessStatus, ApprovalProcessType};
 
 use crate::{
     audit::{Audit, AuditSvc},
-    credit_facility::{
-        activate, error::CreditFacilityError, CreditFacility, CreditFacilityRepo,
-        InterestAccrualRepo,
-    },
+    credit_facility::{activate, error::CreditFacilityError, CreditFacility, CreditFacilityRepo},
     governance::Governance,
     job::Jobs,
     ledger::Ledger,
@@ -24,7 +21,6 @@ pub const APPROVE_CREDIT_FACILITY_PROCESS: ApprovalProcessType =
 #[derive(Clone)]
 pub struct ApproveCreditFacility {
     repo: CreditFacilityRepo,
-    interest_accrual_repo: InterestAccrualRepo,
     ledger: Ledger,
     jobs: Jobs,
     governance: Governance,
@@ -35,7 +31,6 @@ pub struct ApproveCreditFacility {
 impl ApproveCreditFacility {
     pub(in crate::credit_facility) fn new(
         repo: &CreditFacilityRepo,
-        interest_accrual_repo: &InterestAccrualRepo,
         ledger: &Ledger,
         price: &Price,
         jobs: &Jobs,
@@ -44,7 +39,6 @@ impl ApproveCreditFacility {
     ) -> Self {
         Self {
             repo: repo.clone(),
-            interest_accrual_repo: interest_accrual_repo.clone(),
             ledger: ledger.clone(),
             price: price.clone(),
             jobs: jobs.clone(),
@@ -108,7 +102,7 @@ impl ApproveCreditFacility {
             &mut db,
             &self.ledger,
             &self.audit,
-            self.interest_accrual_repo.clone(),
+            &self.repo,
             &self.jobs,
             price,
         )
