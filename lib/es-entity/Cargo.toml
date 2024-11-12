@@ -13,6 +13,7 @@ sim-time = [ "dep:sim-time" ]
 es-entity-macros = { path = "../es-entity-macros" }
 sim-time = { path = "../sim-time", optional = true }
 
+async-trait = { workspace = true }
 sqlx = { workspace = true }
 thiserror = { workspace = true }
 chrono =  { workspace = true }

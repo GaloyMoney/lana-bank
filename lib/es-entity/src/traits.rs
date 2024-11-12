@@ -1,3 +1,4 @@
+use async_trait::async_trait;
 use serde::{de::DeserializeOwned, Serialize};
 
 use super::{error::EsEntityError, events::EntityEvents, nested::*};
@@ -26,8 +27,8 @@ pub trait EsEntity: TryFromEvents<Self::Event> {
     type Event: EsEvent;
     type New: IntoEvents<Self::Event>;
 
-    fn events_mut(&mut self) -> &mut EntityEvents<Self::Event>;
     fn events(&self) -> &EntityEvents<Self::Event>;
+    fn events_mut(&mut self) -> &mut EntityEvents<Self::Event>;
 }
 
 pub trait Parent<T: EsEntity> {
@@ -37,6 +38,16 @@ pub trait Parent<T: EsEntity> {
 
 pub trait EsRepo {
     type Entity: EsEntity;
+}
+
+#[async_trait]
+pub trait PopluateNested<C>: EsRepo {
+    type Err;
+
+    async fn popluate(
+        &self,
+        lookup: std::collections::HashMap<C, &mut Nested<<Self as EsRepo>::Entity>>,
+    ) -> Result<(), Self::Err>;
 }
 
 pub trait RetryableInto<T>: Into<T> + Copy + std::fmt::Debug {}

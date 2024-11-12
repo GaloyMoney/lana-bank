@@ -49,7 +49,7 @@ impl<'a> ToTokens for FindByFn<'a> {
             quote! {
                 let mut entities = vec![entity];
                 #(#nested)*
-                let entity = entiies.pop().unwrap();
+                let entity = entities.pop().unwrap();
             }
         };
 

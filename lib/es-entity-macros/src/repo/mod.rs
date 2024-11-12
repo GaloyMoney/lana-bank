@@ -9,6 +9,7 @@ mod list_for_fn;
 mod nested;
 mod options;
 mod persist_events_fn;
+mod populate_nested;
 mod post_persist_hook;
 mod update_fn;
 
@@ -36,6 +37,7 @@ pub struct EsRepo<'a> {
     list_by_fns: Vec<list_by_fn::ListByFn<'a>>,
     list_for_fns: Vec<list_for_fn::ListForFn<'a>>,
     nested: Vec<nested::Nested<'a>>,
+    populate_nested: Option<populate_nested::PopulateNested<'a>>,
     opts: &'a RepositoryOptions,
 }
 
@@ -61,6 +63,10 @@ impl<'a> From<&'a RepositoryOptions> for EsRepo<'a> {
                     .map(|b| list_for_fn::ListForFn::new(list_for_column, b, opts))
             })
             .collect();
+        let populate_nested = opts
+            .columns
+            .parent()
+            .map(|c| populate_nested::PopulateNested::new(c, opts));
         let nested = opts
             .all_nested()
             .map(|n| nested::Nested::new(n, opts))
@@ -79,6 +85,7 @@ impl<'a> From<&'a RepositoryOptions> for EsRepo<'a> {
             list_by_fns,
             list_for_fns,
             nested,
+            populate_nested,
             opts,
         }
     }
@@ -124,6 +131,7 @@ impl<'a> ToTokens for EsRepo<'a> {
         let types_mod = self.opts.repo_types_mod();
 
         let nested = &self.nested;
+        let populate_nested = &self.populate_nested;
         let pool_field = self.opts.pool_field();
 
         tokens.append_all(quote! {
@@ -193,6 +201,8 @@ impl<'a> ToTokens for EsRepo<'a> {
 
                 #(#nested)*
             }
+
+            #populate_nested
 
             impl es_entity::EsRepo for #repo {
                 type Entity = #entity;

@@ -36,6 +36,10 @@ impl Columns {
         self.all.iter().filter(|c| c.opts.list_for())
     }
 
+    pub fn parent(&self) -> Option<&Column> {
+        self.all.iter().find(|c| c.opts.parent)
+    }
+
     pub fn updates_needed(&self) -> bool {
         self.all.iter().any(|c| c.opts.persist_on_update())
     }
@@ -200,6 +204,7 @@ impl Column {
                 list_by: Some(true),
                 find_by: Some(true),
                 list_for: Some(false),
+                parent: false,
                 create_opts: Some(CreateOpts {
                     persist: Some(true),
                     accessor: None,
@@ -223,6 +228,7 @@ impl Column {
                 list_by: Some(true),
                 find_by: Some(false),
                 list_for: Some(false),
+                parent: false,
                 create_opts: Some(CreateOpts {
                     persist: Some(false),
                     accessor: None,
@@ -293,6 +299,8 @@ struct ColumnOpts {
     list_by: Option<bool>,
     #[darling(default)]
     list_for: Option<bool>,
+    #[darling(default)]
+    parent: bool,
     #[darling(default, rename = "create")]
     create_opts: Option<CreateOpts>,
     #[darling(default, rename = "update")]
@@ -307,6 +315,7 @@ impl ColumnOpts {
             find_by: None,
             list_by: None,
             list_for: None,
+            parent: false,
             create_opts: None,
             update_opts: None,
         }
