@@ -1,0 +1,43 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "WITH entities AS (SELECT committee_id, process_type, id FROM approval_processes WHERE ((committee_id = $1) AND (COALESCE((process_type, id) > ($4, $3), $3 IS NULL))) ORDER BY process_type ASC, id ASC LIMIT $2) SELECT i.id AS \"entity_id: ApprovalProcessId\", e.sequence, e.event, e.recorded_at FROM entities i JOIN approval_process_events e ON i.id = e.id ORDER BY i.process_type asc, i.id asc, i.id, e.sequence",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "entity_id: ApprovalProcessId",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "sequence",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 2,
+        "name": "event",
+        "type_info": "Jsonb"
+      },
+      {
+        "ordinal": 3,
+        "name": "recorded_at",
+        "type_info": "Timestamptz"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Int8",
+        "Uuid",
+        "Text"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "279576b72a2fbb775ebfc298b04bb2cb02182d56cec87ad2c50d14077108157b"
+}

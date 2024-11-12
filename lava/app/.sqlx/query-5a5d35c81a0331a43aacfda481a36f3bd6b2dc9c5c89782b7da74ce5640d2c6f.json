@@ -1,0 +1,43 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "WITH entities AS (SELECT customer_id, approval_process_id, id FROM withdrawals WHERE ((customer_id = $1) AND (COALESCE((approval_process_id, id) < ($4, $3), $3 IS NULL))) ORDER BY approval_process_id DESC, id DESC LIMIT $2) SELECT i.id AS \"entity_id: WithdrawalId\", e.sequence, e.event, e.recorded_at FROM entities i JOIN withdrawal_events e ON i.id = e.id ORDER BY i.approval_process_id desc, i.id desc, i.id, e.sequence",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "entity_id: WithdrawalId",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "sequence",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 2,
+        "name": "event",
+        "type_info": "Jsonb"
+      },
+      {
+        "ordinal": 3,
+        "name": "recorded_at",
+        "type_info": "Timestamptz"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Int8",
+        "Uuid",
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "5a5d35c81a0331a43aacfda481a36f3bd6b2dc9c5c89782b7da74ce5640d2c6f"
+}
