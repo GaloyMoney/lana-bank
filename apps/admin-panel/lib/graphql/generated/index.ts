@@ -591,6 +591,15 @@ export type CustomerUpdatePayload = {
   customer: Customer;
 };
 
+export type CustomersFilter = {
+  field: CustomersFilterBy;
+  status?: InputMaybe<AccountStatus>;
+};
+
+export enum CustomersFilterBy {
+  AccountStatus = 'ACCOUNT_STATUS'
+}
+
 export type CustomersSort = {
   by?: CustomersSortBy;
   direction?: SortDirection;
@@ -1145,6 +1154,7 @@ export type QueryCustomerByEmailArgs = {
 
 export type QueryCustomersArgs = {
   after?: InputMaybe<Scalars['String']['input']>;
+  filter?: InputMaybe<CustomersFilter>;
   first: Scalars['Int']['input'];
   sort?: InputMaybe<CustomersSort>;
 };

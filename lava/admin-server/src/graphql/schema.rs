@@ -73,12 +73,18 @@ impl Query {
         first: i32,
         after: Option<String>,
         #[graphql(default_with = "Some(CustomersSort::default())")] sort: Option<CustomersSort>,
+        filter: Option<CustomersFilter>,
     ) -> async_graphql::Result<Connection<CustomerComboCursor, Customer, EmptyFields, EmptyFields>>
     {
         let sort = sort.unwrap_or_default();
+        let (filter_field, status) = match filter {
+            Some(filter) => (Some(filter.field), filter.status),
+            None => (None, None),
+        };
+
         let (app, sub) = app_and_sub_from_ctx!(ctx);
-        match sort.by {
-            CustomersSortBy::Email => {
+        match (sort.by, filter_field) {
+            (CustomersSortBy::Email, None) => {
                 list_with_combo_cursor!(
                     CustomerComboCursor,
                     CustomerByEmailCursor,
@@ -89,7 +95,26 @@ impl Query {
                     |query| app.customers().list_by_email(sub, query, sort.direction)
                 )
             }
-            CustomersSortBy::CreatedAt => {
+            (CustomersSortBy::Email, Some(CustomersFilterBy::AccountStatus)) => {
+                let status = status.ok_or(CustomerError::MissingValueForFilterField(
+                    "status".to_string(),
+                ))?;
+                list_with_combo_cursor!(
+                    CustomerComboCursor,
+                    CustomerByEmailCursor,
+                    Customer,
+                    ctx,
+                    after,
+                    first,
+                    |query| app.customers().list_by_email_for_status(
+                        sub,
+                        status,
+                        query,
+                        sort.direction
+                    )
+                )
+            }
+            (CustomersSortBy::CreatedAt, None) => {
                 list_with_combo_cursor!(
                     CustomerComboCursor,
                     CustomerByCreatedAtCursor,
@@ -102,7 +127,26 @@ impl Query {
                         .list_by_created_at(sub, query, sort.direction)
                 )
             }
-            CustomersSortBy::TelegramId => {
+            (CustomersSortBy::CreatedAt, Some(CustomersFilterBy::AccountStatus)) => {
+                let status = status.ok_or(CustomerError::MissingValueForFilterField(
+                    "status".to_string(),
+                ))?;
+                list_with_combo_cursor!(
+                    CustomerComboCursor,
+                    CustomerByCreatedAtCursor,
+                    Customer,
+                    ctx,
+                    after,
+                    first,
+                    |query| app.customers().list_by_created_at_for_status(
+                        sub,
+                        status,
+                        query,
+                        sort.direction
+                    )
+                )
+            }
+            (CustomersSortBy::TelegramId, None) => {
                 list_with_combo_cursor!(
                     CustomerComboCursor,
                     CustomerByTelegramIdCursor,
@@ -113,6 +157,25 @@ impl Query {
                     |query| app
                         .customers()
                         .list_by_telegram_id(sub, query, sort.direction)
+                )
+            }
+            (CustomersSortBy::TelegramId, Some(CustomersFilterBy::AccountStatus)) => {
+                let status = status.ok_or(CustomerError::MissingValueForFilterField(
+                    "status".to_string(),
+                ))?;
+                list_with_combo_cursor!(
+                    CustomerComboCursor,
+                    CustomerByTelegramIdCursor,
+                    Customer,
+                    ctx,
+                    after,
+                    first,
+                    |query| app.customers().list_by_telegram_id_for_status(
+                        sub,
+                        status,
+                        query,
+                        sort.direction
+                    )
                 )
             }
         }

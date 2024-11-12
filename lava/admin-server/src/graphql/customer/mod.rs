@@ -1,4 +1,5 @@
 mod balance;
+mod error;
 
 use async_graphql::*;
 
@@ -18,6 +19,7 @@ pub use lava_app::{
 };
 
 pub use balance::*;
+pub use error::*;
 
 #[derive(SimpleObject, Clone)]
 #[graphql(complex)]
@@ -174,4 +176,15 @@ pub struct CustomersSort {
     pub by: CustomersSortBy,
     #[graphql(default)]
     pub direction: SortDirection,
+}
+
+#[derive(async_graphql::Enum, Debug, Clone, Copy, PartialEq, Eq)]
+pub enum CustomersFilterBy {
+    AccountStatus,
+}
+
+#[derive(InputObject)]
+pub struct CustomersFilter {
+    pub field: CustomersFilterBy,
+    pub status: Option<AccountStatus>,
 }

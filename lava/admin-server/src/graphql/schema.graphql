@@ -589,6 +589,15 @@ type CustomerUpdatePayload {
 	customer: Customer!
 }
 
+input CustomersFilter {
+	field: CustomersFilterBy!
+	status: AccountStatus
+}
+
+enum CustomersFilterBy {
+	ACCOUNT_STATUS
+}
+
 input CustomersSort {
 	by: CustomersSortBy! = EMAIL
 	direction: SortDirection! = ASC
@@ -899,7 +908,7 @@ type Query {
 	users: [User!]!
 	customer(id: UUID!): Customer
 	customerByEmail(email: String!): Customer
-	customers(first: Int!, after: String, sort: CustomersSort = {by: EMAIL, direction: ASC}): CustomerConnection!
+	customers(first: Int!, after: String, sort: CustomersSort = {by: EMAIL, direction: ASC}, filter: CustomersFilter): CustomerConnection!
 	withdrawal(id: UUID!): Withdrawal
 	withdrawals(first: Int!, after: String): WithdrawalConnection!
 	deposit(id: UUID!): Deposit
