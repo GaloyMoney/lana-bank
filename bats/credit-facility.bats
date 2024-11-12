@@ -45,6 +45,7 @@ teardown_file() {
 
 @test "credit-facility: can update collateral" {
   credit_facility_id=$(read_value 'credit_facility_id')
+  echo "credit_facility_id: $credit_facility_id"
 
   variables=$(
     jq -n \
