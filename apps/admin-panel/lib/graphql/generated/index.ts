@@ -320,6 +320,17 @@ export type CommitteeThreshold = {
   threshold: Scalars['Int']['output'];
 };
 
+export type CreditFacilitiesFilter = {
+  collateralizationState?: InputMaybe<CollateralizationState>;
+  field: CreditFacilitiesFilterBy;
+  status?: InputMaybe<CreditFacilityStatus>;
+};
+
+export enum CreditFacilitiesFilterBy {
+  CollateralizationState = 'COLLATERALIZATION_STATE',
+  Status = 'STATUS'
+}
+
 export type CreditFacilitiesSort = {
   by?: CreditFacilitiesSortBy;
   direction?: SortDirection;
@@ -1030,8 +1041,6 @@ export type Query = {
   committee?: Maybe<Committee>;
   committees: CommitteeConnection;
   creditFacilities: CreditFacilityConnection;
-  creditFacilitiesForCollateralizationState: CreditFacilityConnection;
-  creditFacilitiesForStatus: CreditFacilityConnection;
   creditFacility?: Maybe<CreditFacility>;
   customer?: Maybe<Customer>;
   customerByEmail?: Maybe<Customer>;
@@ -1110,24 +1119,9 @@ export type QueryCommitteesArgs = {
 
 export type QueryCreditFacilitiesArgs = {
   after?: InputMaybe<Scalars['String']['input']>;
+  filter?: InputMaybe<CreditFacilitiesFilter>;
   first: Scalars['Int']['input'];
   sort?: InputMaybe<CreditFacilitiesSort>;
-};
-
-
-export type QueryCreditFacilitiesForCollateralizationStateArgs = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  collateralizationState: CollateralizationState;
-  first: Scalars['Int']['input'];
-  sort?: InputMaybe<CreditFacilitiesSort>;
-};
-
-
-export type QueryCreditFacilitiesForStatusArgs = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  first: Scalars['Int']['input'];
-  sort?: InputMaybe<CreditFacilitiesSort>;
-  status: CreditFacilityStatus;
 };
 
 
@@ -1680,36 +1674,15 @@ export type CreditFacilityDisbursalInitiateMutationVariables = Exact<{
 
 export type CreditFacilityDisbursalInitiateMutation = { __typename?: 'Mutation', creditFacilityDisbursalInitiate: { __typename?: 'CreditFacilityDisbursalInitiatePayload', disbursal: { __typename?: 'CreditFacilityDisbursal', id: string, disbursalId: string, index: any } } };
 
-export type CreditFacilitiesFieldsFragment = { __typename?: 'CreditFacility', id: string, creditFacilityId: string, collateralizationState: CollateralizationState, createdAt: any, status: CreditFacilityStatus, facilityAmount: any, collateral: any, currentCvl: { __typename?: 'FacilityCVL', disbursed: any, total: any }, customer: { __typename?: 'Customer', customerId: string, email: string }, balance: { __typename?: 'CreditFacilityBalance', outstanding: { __typename?: 'Outstanding', usdBalance: any } } };
-
 export type CreditFacilitiesQueryVariables = Exact<{
   first: Scalars['Int']['input'];
   after?: InputMaybe<Scalars['String']['input']>;
   sort?: InputMaybe<CreditFacilitiesSort>;
+  filter?: InputMaybe<CreditFacilitiesFilter>;
 }>;
 
 
 export type CreditFacilitiesQuery = { __typename?: 'Query', creditFacilities: { __typename?: 'CreditFacilityConnection', edges: Array<{ __typename?: 'CreditFacilityEdge', cursor: string, node: { __typename?: 'CreditFacility', id: string, creditFacilityId: string, collateralizationState: CollateralizationState, createdAt: any, status: CreditFacilityStatus, facilityAmount: any, collateral: any, currentCvl: { __typename?: 'FacilityCVL', disbursed: any, total: any }, customer: { __typename?: 'Customer', customerId: string, email: string }, balance: { __typename?: 'CreditFacilityBalance', outstanding: { __typename?: 'Outstanding', usdBalance: any } } } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, hasNextPage: boolean } } };
-
-export type CreditFacilitiesForStatusQueryVariables = Exact<{
-  first: Scalars['Int']['input'];
-  after?: InputMaybe<Scalars['String']['input']>;
-  sort?: InputMaybe<CreditFacilitiesSort>;
-  status: CreditFacilityStatus;
-}>;
-
-
-export type CreditFacilitiesForStatusQuery = { __typename?: 'Query', creditFacilitiesForStatus: { __typename?: 'CreditFacilityConnection', edges: Array<{ __typename?: 'CreditFacilityEdge', cursor: string, node: { __typename?: 'CreditFacility', id: string, creditFacilityId: string, collateralizationState: CollateralizationState, createdAt: any, status: CreditFacilityStatus, facilityAmount: any, collateral: any, currentCvl: { __typename?: 'FacilityCVL', disbursed: any, total: any }, customer: { __typename?: 'Customer', customerId: string, email: string }, balance: { __typename?: 'CreditFacilityBalance', outstanding: { __typename?: 'Outstanding', usdBalance: any } } } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, hasNextPage: boolean } } };
-
-export type CreditFacilitiesForCollateralizationStateQueryVariables = Exact<{
-  first: Scalars['Int']['input'];
-  after?: InputMaybe<Scalars['String']['input']>;
-  sort?: InputMaybe<CreditFacilitiesSort>;
-  collateralizationState: CollateralizationState;
-}>;
-
-
-export type CreditFacilitiesForCollateralizationStateQuery = { __typename?: 'Query', creditFacilitiesForCollateralizationState: { __typename?: 'CreditFacilityConnection', edges: Array<{ __typename?: 'CreditFacilityEdge', cursor: string, node: { __typename?: 'CreditFacility', id: string, creditFacilityId: string, collateralizationState: CollateralizationState, createdAt: any, status: CreditFacilityStatus, facilityAmount: any, collateral: any, currentCvl: { __typename?: 'FacilityCVL', disbursed: any, total: any }, customer: { __typename?: 'Customer', customerId: string, email: string }, balance: { __typename?: 'CreditFacilityBalance', outstanding: { __typename?: 'Outstanding', usdBalance: any } } } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, hasNextPage: boolean } } };
 
 export type CreditFacilityPartialPaymentMutationVariables = Exact<{
   input: CreditFacilityPartialPaymentInput;
@@ -2008,30 +1981,6 @@ export type UpdateTermsTemplateMutationVariables = Exact<{
 
 export type UpdateTermsTemplateMutation = { __typename?: 'Mutation', termsTemplateUpdate: { __typename?: 'TermsTemplateUpdatePayload', termsTemplate: { __typename?: 'TermsTemplate', id: string, termsId: string, name: string, values: { __typename?: 'TermValues', annualRate: any, accrualInterval: InterestInterval, incurrenceInterval: InterestInterval, liquidationCvl: any, marginCallCvl: any, initialCvl: any, duration: { __typename?: 'Duration', period: Period, units: number } } } } };
 
-export const CreditFacilitiesFieldsFragmentDoc = gql`
-    fragment CreditFacilitiesFields on CreditFacility {
-  id
-  creditFacilityId
-  collateralizationState
-  createdAt
-  status
-  facilityAmount
-  collateral
-  currentCvl {
-    disbursed
-    total
-  }
-  customer {
-    customerId
-    email
-  }
-  balance {
-    outstanding {
-      usdBalance
-    }
-  }
-}
-    `;
 export const BtcBalancesFragmentDoc = gql`
     fragment btcBalances on LayeredBtcAccountAmounts {
   all {
@@ -3196,12 +3145,31 @@ export type CreditFacilityDisbursalInitiateMutationHookResult = ReturnType<typeo
 export type CreditFacilityDisbursalInitiateMutationResult = Apollo.MutationResult<CreditFacilityDisbursalInitiateMutation>;
 export type CreditFacilityDisbursalInitiateMutationOptions = Apollo.BaseMutationOptions<CreditFacilityDisbursalInitiateMutation, CreditFacilityDisbursalInitiateMutationVariables>;
 export const CreditFacilitiesDocument = gql`
-    query CreditFacilities($first: Int!, $after: String, $sort: CreditFacilitiesSort) {
-  creditFacilities(first: $first, after: $after, sort: $sort) {
+    query CreditFacilities($first: Int!, $after: String, $sort: CreditFacilitiesSort, $filter: CreditFacilitiesFilter) {
+  creditFacilities(first: $first, after: $after, sort: $sort, filter: $filter) {
     edges {
       cursor
       node {
-        ...CreditFacilitiesFields
+        id
+        creditFacilityId
+        collateralizationState
+        createdAt
+        status
+        facilityAmount
+        collateral
+        currentCvl {
+          disbursed
+          total
+        }
+        customer {
+          customerId
+          email
+        }
+        balance {
+          outstanding {
+            usdBalance
+          }
+        }
       }
     }
     pageInfo {
@@ -3210,7 +3178,7 @@ export const CreditFacilitiesDocument = gql`
     }
   }
 }
-    ${CreditFacilitiesFieldsFragmentDoc}`;
+    `;
 
 /**
  * __useCreditFacilitiesQuery__
@@ -3227,6 +3195,7 @@ export const CreditFacilitiesDocument = gql`
  *      first: // value for 'first'
  *      after: // value for 'after'
  *      sort: // value for 'sort'
+ *      filter: // value for 'filter'
  *   },
  * });
  */
@@ -3241,110 +3210,6 @@ export function useCreditFacilitiesLazyQuery(baseOptions?: Apollo.LazyQueryHookO
 export type CreditFacilitiesQueryHookResult = ReturnType<typeof useCreditFacilitiesQuery>;
 export type CreditFacilitiesLazyQueryHookResult = ReturnType<typeof useCreditFacilitiesLazyQuery>;
 export type CreditFacilitiesQueryResult = Apollo.QueryResult<CreditFacilitiesQuery, CreditFacilitiesQueryVariables>;
-export const CreditFacilitiesForStatusDocument = gql`
-    query CreditFacilitiesForStatus($first: Int!, $after: String, $sort: CreditFacilitiesSort, $status: CreditFacilityStatus!) {
-  creditFacilitiesForStatus(
-    first: $first
-    after: $after
-    sort: $sort
-    status: $status
-  ) {
-    edges {
-      cursor
-      node {
-        ...CreditFacilitiesFields
-      }
-    }
-    pageInfo {
-      endCursor
-      hasNextPage
-    }
-  }
-}
-    ${CreditFacilitiesFieldsFragmentDoc}`;
-
-/**
- * __useCreditFacilitiesForStatusQuery__
- *
- * To run a query within a React component, call `useCreditFacilitiesForStatusQuery` and pass it any options that fit your needs.
- * When your component renders, `useCreditFacilitiesForStatusQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useCreditFacilitiesForStatusQuery({
- *   variables: {
- *      first: // value for 'first'
- *      after: // value for 'after'
- *      sort: // value for 'sort'
- *      status: // value for 'status'
- *   },
- * });
- */
-export function useCreditFacilitiesForStatusQuery(baseOptions: Apollo.QueryHookOptions<CreditFacilitiesForStatusQuery, CreditFacilitiesForStatusQueryVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<CreditFacilitiesForStatusQuery, CreditFacilitiesForStatusQueryVariables>(CreditFacilitiesForStatusDocument, options);
-      }
-export function useCreditFacilitiesForStatusLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<CreditFacilitiesForStatusQuery, CreditFacilitiesForStatusQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<CreditFacilitiesForStatusQuery, CreditFacilitiesForStatusQueryVariables>(CreditFacilitiesForStatusDocument, options);
-        }
-export type CreditFacilitiesForStatusQueryHookResult = ReturnType<typeof useCreditFacilitiesForStatusQuery>;
-export type CreditFacilitiesForStatusLazyQueryHookResult = ReturnType<typeof useCreditFacilitiesForStatusLazyQuery>;
-export type CreditFacilitiesForStatusQueryResult = Apollo.QueryResult<CreditFacilitiesForStatusQuery, CreditFacilitiesForStatusQueryVariables>;
-export const CreditFacilitiesForCollateralizationStateDocument = gql`
-    query CreditFacilitiesForCollateralizationState($first: Int!, $after: String, $sort: CreditFacilitiesSort, $collateralizationState: CollateralizationState!) {
-  creditFacilitiesForCollateralizationState(
-    first: $first
-    after: $after
-    sort: $sort
-    collateralizationState: $collateralizationState
-  ) {
-    edges {
-      cursor
-      node {
-        ...CreditFacilitiesFields
-      }
-    }
-    pageInfo {
-      endCursor
-      hasNextPage
-    }
-  }
-}
-    ${CreditFacilitiesFieldsFragmentDoc}`;
-
-/**
- * __useCreditFacilitiesForCollateralizationStateQuery__
- *
- * To run a query within a React component, call `useCreditFacilitiesForCollateralizationStateQuery` and pass it any options that fit your needs.
- * When your component renders, `useCreditFacilitiesForCollateralizationStateQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useCreditFacilitiesForCollateralizationStateQuery({
- *   variables: {
- *      first: // value for 'first'
- *      after: // value for 'after'
- *      sort: // value for 'sort'
- *      collateralizationState: // value for 'collateralizationState'
- *   },
- * });
- */
-export function useCreditFacilitiesForCollateralizationStateQuery(baseOptions: Apollo.QueryHookOptions<CreditFacilitiesForCollateralizationStateQuery, CreditFacilitiesForCollateralizationStateQueryVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<CreditFacilitiesForCollateralizationStateQuery, CreditFacilitiesForCollateralizationStateQueryVariables>(CreditFacilitiesForCollateralizationStateDocument, options);
-      }
-export function useCreditFacilitiesForCollateralizationStateLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<CreditFacilitiesForCollateralizationStateQuery, CreditFacilitiesForCollateralizationStateQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<CreditFacilitiesForCollateralizationStateQuery, CreditFacilitiesForCollateralizationStateQueryVariables>(CreditFacilitiesForCollateralizationStateDocument, options);
-        }
-export type CreditFacilitiesForCollateralizationStateQueryHookResult = ReturnType<typeof useCreditFacilitiesForCollateralizationStateQuery>;
-export type CreditFacilitiesForCollateralizationStateLazyQueryHookResult = ReturnType<typeof useCreditFacilitiesForCollateralizationStateLazyQuery>;
-export type CreditFacilitiesForCollateralizationStateQueryResult = Apollo.QueryResult<CreditFacilitiesForCollateralizationStateQuery, CreditFacilitiesForCollateralizationStateQueryVariables>;
 export const CreditFacilityPartialPaymentDocument = gql`
     mutation CreditFacilityPartialPayment($input: CreditFacilityPartialPaymentInput!) {
   creditFacilityPartialPayment(input: $input) {

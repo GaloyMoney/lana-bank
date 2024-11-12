@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client"
 
 import { gql } from "@apollo/client"
@@ -13,14 +12,14 @@ import {
   SortDirection,
   CreditFacilityStatus,
   CollateralizationState,
+  CreditFacilitiesFilter,
   useCreditFacilitiesQuery,
-  useCreditFacilitiesForStatusQuery,
-  useCreditFacilitiesForCollateralizationStateQuery,
 } from "@/lib/graphql/generated"
 
 import PaginatedTable, {
   Column,
   DEFAULT_PAGESIZE,
+  PaginatedData,
 } from "@/components/new/paginated-table"
 import Balance from "@/components/balance/balance"
 import {
@@ -30,85 +29,36 @@ import {
 } from "@/lib/utils"
 
 gql`
-  fragment CreditFacilitiesFields on CreditFacility {
-    id
-    creditFacilityId
-    collateralizationState
-    createdAt
-    status
-    facilityAmount
-    collateral
-    currentCvl {
-      disbursed
-      total
-    }
-    customer {
-      customerId
-      email
-    }
-    balance {
-      outstanding {
-        usdBalance
-      }
-    }
-  }
-
-  query CreditFacilities($first: Int!, $after: String, $sort: CreditFacilitiesSort) {
-    creditFacilities(first: $first, after: $after, sort: $sort) {
-      edges {
-        cursor
-        node {
-          ...CreditFacilitiesFields
-        }
-      }
-      pageInfo {
-        endCursor
-        hasNextPage
-      }
-    }
-  }
-
-  query CreditFacilitiesForStatus(
+  query CreditFacilities(
     $first: Int!
     $after: String
     $sort: CreditFacilitiesSort
-    $status: CreditFacilityStatus!
+    $filter: CreditFacilitiesFilter
   ) {
-    creditFacilitiesForStatus(
-      first: $first
-      after: $after
-      sort: $sort
-      status: $status
-    ) {
+    creditFacilities(first: $first, after: $after, sort: $sort, filter: $filter) {
       edges {
         cursor
         node {
-          ...CreditFacilitiesFields
-        }
-      }
-      pageInfo {
-        endCursor
-        hasNextPage
-      }
-    }
-  }
-
-  query CreditFacilitiesForCollateralizationState(
-    $first: Int!
-    $after: String
-    $sort: CreditFacilitiesSort
-    $collateralizationState: CollateralizationState!
-  ) {
-    creditFacilitiesForCollateralizationState(
-      first: $first
-      after: $after
-      sort: $sort
-      collateralizationState: $collateralizationState
-    ) {
-      edges {
-        cursor
-        node {
-          ...CreditFacilitiesFields
+          id
+          creditFacilityId
+          collateralizationState
+          createdAt
+          status
+          facilityAmount
+          collateral
+          currentCvl {
+            disbursed
+            total
+          }
+          customer {
+            customerId
+            email
+          }
+          balance {
+            outstanding {
+              usdBalance
+            }
+          }
         }
       }
       pageInfo {
@@ -121,88 +71,27 @@ gql`
 
 const CreditFacilities = () => {
   const router = useRouter()
-  const [sortBy, setSortBy] = useState<CreditFacilitiesSort>()
-  const [filters, setFilters] = useState<{
-    status?: CreditFacilityStatus
-    collateralizationState?: CollateralizationState
-  }>({})
+  const [sortBy, setSortBy] = useState<CreditFacilitiesSort | null>(null)
+  const [filter, setFilter] = useState<CreditFacilitiesFilter | null>(null)
 
-  // Main query without filters
-  const {
-    data: dataAll,
-    loading: loadingAll,
-    error: errorAll,
-    fetchMore: fetchMoreAll,
-  } = useCreditFacilitiesQuery({
+  const { data, loading, error, fetchMore } = useCreditFacilitiesQuery({
     variables: {
       first: DEFAULT_PAGESIZE,
       sort: sortBy,
+      filter: filter,
     },
-    skip: filters.status != null || filters.collateralizationState != null,
   })
 
-  // Query filtered by status
-  const {
-    data: dataStatus,
-    loading: loadingStatus,
-    error: errorStatus,
-    fetchMore: fetchMoreStatus,
-  } = useCreditFacilitiesForStatusQuery({
-    variables: {
-      first: DEFAULT_PAGESIZE,
-      sort: sortBy,
-      status: filters.status!,
-    },
-    skip: filters.status == null || filters.collateralizationState != null,
-  })
-
-  // Query filtered by collateralization state
-  const {
-    data: dataCollateralization,
-    loading: loadingCollateralization,
-    error: errorCollateralization,
-    fetchMore: fetchMoreCollateralization,
-  } = useCreditFacilitiesForCollateralizationStateQuery({
-    variables: {
-      first: DEFAULT_PAGESIZE,
-      sort: sortBy,
-      collateralizationState: filters.collateralizationState!,
-    },
-    skip: filters.collateralizationState == null || filters.status != null,
-  })
-
-  // Decide which data to use based on filters
-  let data: any
-  let loading = false
-  let error: any
-  let fetchMore: any
-
-  if (filters.status) {
-    data = dataStatus?.creditFacilitiesForStatus
-    loading = loadingStatus
-    error = errorStatus
-    fetchMore = (cursor: string) => fetchMoreStatus({ variables: { after: cursor } })
-  } else if (filters.collateralizationState) {
-    data = dataCollateralization?.creditFacilitiesForCollateralizationState
-    loading = loadingCollateralization
-    error = errorCollateralization
-    fetchMore = (cursor: string) =>
-      fetchMoreCollateralization({ variables: { after: cursor } })
-  } else {
-    data = dataAll?.creditFacilities
-    loading = loadingAll
-    error = errorAll
-    fetchMore = (cursor: string) => fetchMoreAll({ variables: { after: cursor } })
-  }
+  console.log({ sortBy, filter })
 
   return (
     <div>
       {error && <p className="text-destructive text-sm">{error?.message}</p>}
       <PaginatedTable<CreditFacility>
         columns={columns}
-        data={data}
+        data={data?.creditFacilities as PaginatedData<CreditFacility>}
         loading={loading}
-        fetchMore={async (cursor) => fetchMore(cursor)}
+        fetchMore={async (cursor) => fetchMore({ variables: { after: cursor } })}
         pageSize={DEFAULT_PAGESIZE}
         onClick={(facility) => {
           router.push(`/credit-facilities/${facility.creditFacilityId}`)
@@ -216,8 +105,11 @@ const CreditFacilities = () => {
           })
         }}
         onFilter={(column, value) => {
-          // Reset all filters except the one being applied
-          setFilters({ [column]: value })
+          if (value)
+            setFilter({
+              field: camelToScreamingSnake(column) as CreditFacilitiesFilter["field"],
+              [column]: value,
+            })
         }}
       />
     </div>
