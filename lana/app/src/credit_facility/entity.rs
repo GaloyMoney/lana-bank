@@ -133,6 +133,13 @@ impl CreditFacilityReceivable {
         self.total().is_zero()
     }
 
+    pub fn add_to_disbursed(&self, amount: UsdCents) -> Self {
+        Self {
+            disbursed: self.disbursed + amount,
+            interest: self.interest,
+        }
+    }
+
     fn allocate_payment(
         &self,
         amount: UsdCents,
@@ -196,6 +203,13 @@ pub struct FacilityCVL {
 impl FacilityCVL {
     fn is_approval_allowed(&self, terms: TermValues) -> Result<(), CreditFacilityError> {
         if self.total < terms.margin_call_cvl {
+            return Err(CreditFacilityError::BelowMarginLimit);
+        }
+        Ok(())
+    }
+
+    fn is_disbursal_allowed(&self, terms: TermValues) -> Result<(), CreditFacilityError> {
+        if self.disbursed < terms.margin_call_cvl {
             return Err(CreditFacilityError::BelowMarginLimit);
         }
         Ok(())
@@ -453,6 +467,7 @@ impl CreditFacility {
         &mut self,
         amount: UsdCents,
         initiated_at: DateTime<Utc>,
+        price: PriceOfOneBTC,
         audit_info: AuditInfo,
     ) -> Result<NewDisbursal, CreditFacilityError> {
         if let Some(expires_at) = self.expires_at {
@@ -464,6 +479,10 @@ impl CreditFacility {
         if self.is_disbursal_in_progress() {
             return Err(CreditFacilityError::DisbursalInProgress);
         }
+
+        self.projected_cvl_data_for_disbursal(amount)
+            .cvl(price)
+            .is_disbursal_allowed(self.terms)?;
 
         let idx = self
             .events
@@ -647,6 +666,13 @@ impl CreditFacility {
         }
     }
 
+    pub fn outstanding_after_disbursal(
+        &self,
+        disbursal_amount: UsdCents,
+    ) -> CreditFacilityReceivable {
+        self.outstanding().add_to_disbursed(disbursal_amount)
+    }
+
     pub fn outstanding_from_due(&self) -> CreditFacilityReceivable {
         CreditFacilityReceivable {
             disbursed: std::cmp::max(
@@ -692,6 +718,17 @@ impl CreditFacility {
             .outstanding()
             .total_cvl(self.collateral(), self.facility_remaining());
         let disbursed = self.outstanding().disbursed_cvl(self.collateral());
+
+        FacilityCVLData { total, disbursed }
+    }
+
+    pub fn projected_cvl_data_for_disbursal(&self, disbursal_amount: UsdCents) -> FacilityCVLData {
+        let total = self
+            .outstanding_after_disbursal(disbursal_amount)
+            .total_cvl(self.collateral(), self.facility_remaining());
+        let disbursed = self
+            .outstanding_after_disbursal(disbursal_amount)
+            .disbursed_cvl(self.collateral());
 
         FacilityCVLData { total, disbursed }
     }
@@ -1199,17 +1236,29 @@ mod test {
 
         let first_idx = DisbursalIdx::FIRST;
         let disbursal_id = DisbursalId::new();
-        events.push(CreditFacilityEvent::DisbursalInitiated {
-            disbursal_id,
-            approval_process_id: disbursal_id.into(),
-            idx: first_idx,
-            amount: UsdCents::ONE,
-            audit_info: dummy_audit_info(),
-        });
+        events.extend([
+            CreditFacilityEvent::CollateralUpdated {
+                tx_id: LedgerTxId::new(),
+                tx_ref: "tx-ref".to_string(),
+                total_collateral: Satoshis::from(500),
+                abs_diff: Satoshis::from(500),
+                action: CollateralAction::Add,
+                recorded_in_ledger_at: Utc::now(),
+                audit_info: dummy_audit_info(),
+            },
+            CreditFacilityEvent::DisbursalInitiated {
+                disbursal_id,
+                approval_process_id: disbursal_id.into(),
+                idx: first_idx,
+                amount: UsdCents::ONE,
+                audit_info: dummy_audit_info(),
+            },
+        ]);
         assert!(matches!(
             facility_from(events.clone()).initiate_disbursal(
                 UsdCents::ONE,
                 Utc::now(),
+                default_price(),
                 dummy_audit_info()
             ),
             Err(CreditFacilityError::DisbursalInProgress)
@@ -1222,7 +1271,12 @@ mod test {
             audit_info: dummy_audit_info(),
         });
         assert!(facility_from(events)
-            .initiate_disbursal(UsdCents::ONE, Utc::now(), dummy_audit_info())
+            .initiate_disbursal(
+                UsdCents::ONE,
+                Utc::now(),
+                default_price(),
+                dummy_audit_info()
+            )
             .is_ok());
     }
 
@@ -1568,6 +1622,26 @@ mod test {
     }
 
     #[test]
+    fn cvl_is_disbursal_allowed() {
+        let terms = default_terms();
+
+        let facility_cvl = FacilityCVL {
+            total: terms.liquidation_cvl,
+            disbursed: terms.margin_call_cvl - CVLPct::from(dec!(1)),
+        };
+        assert!(matches!(
+            facility_cvl.is_disbursal_allowed(terms),
+            Err(CreditFacilityError::BelowMarginLimit),
+        ));
+
+        let facility_cvl = FacilityCVL {
+            total: terms.liquidation_cvl,
+            disbursed: terms.margin_call_cvl,
+        };
+        assert!(matches!(facility_cvl.is_disbursal_allowed(terms), Ok(())));
+    }
+
+    #[test]
     fn check_activated_at() {
         let mut credit_facility = facility_from(initial_events());
         assert_eq!(credit_facility.activated_at, None);
@@ -1841,6 +1915,7 @@ mod test {
                 .initiate_disbursal(
                     UsdCents::from(600_000_00),
                     facility_activated_at,
+                    default_price(),
                     dummy_audit_info(),
                 )
                 .unwrap();

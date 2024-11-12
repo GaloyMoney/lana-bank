@@ -279,9 +279,11 @@ impl CreditFacilities {
             .await?;
         balances.check_disbursal_amount(amount)?;
 
+        let price = self.price.usd_cents_per_btc().await?;
+
         let mut db = self.credit_facility_repo.begin_op().await?;
         let now = crate::time::now();
-        let new_disbursal = credit_facility.initiate_disbursal(amount, now, audit_info)?;
+        let new_disbursal = credit_facility.initiate_disbursal(amount, now, price, audit_info)?;
         self.governance
             .start_process(
                 &mut db,
