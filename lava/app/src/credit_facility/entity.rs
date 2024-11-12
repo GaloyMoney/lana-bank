@@ -13,7 +13,7 @@ use crate::{
 };
 
 use super::{
-    disbursal::*, history, CreditFacilityCollateralUpdate, CreditFacilityError, NewInterestAccrual,
+    disbursal::*, history, interest_accrual::*, CreditFacilityCollateralUpdate, CreditFacilityError,
 };
 
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
@@ -203,7 +203,11 @@ pub struct CreditFacility {
     pub activated_at: Option<DateTime<Utc>>,
     #[builder(setter(strip_option), default)]
     pub expires_at: Option<DateTime<Utc>>,
-    pub(super) events: EntityEvents<CreditFacilityEvent>,
+
+    #[es_entity(nested)]
+    #[builder(default)]
+    interest_accruals: Nested<InterestAccrual>,
+    events: EntityEvents<CreditFacilityEvent>,
 }
 
 impl CreditFacility {

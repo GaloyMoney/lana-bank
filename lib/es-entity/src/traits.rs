@@ -38,16 +38,15 @@ pub trait Parent<T: EsEntity> {
 
 pub trait EsRepo {
     type Entity: EsEntity;
+    type Err: From<EsEntityError>;
 }
 
 #[async_trait]
-pub trait PopluateNested<C>: EsRepo {
-    type Err;
-
-    async fn popluate(
+pub trait PopulateNested<C>: EsRepo {
+    async fn populate(
         &self,
         lookup: std::collections::HashMap<C, &mut Nested<<Self as EsRepo>::Entity>>,
-    ) -> Result<(), Self::Err>;
+    ) -> Result<(), <Self as EsRepo>::Err>;
 }
 
 pub trait RetryableInto<T>: Into<T> + Copy + std::fmt::Debug {}

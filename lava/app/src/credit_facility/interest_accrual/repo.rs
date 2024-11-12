@@ -16,7 +16,7 @@ const BQ_TABLE_NAME: &str = "interest_accrual_events";
     entity = "InterestAccrual",
     err = "InterestAccrualError",
     columns(
-        credit_facility_id(ty = "CreditFacilityId", update(persist = false), list_for),
+        credit_facility_id(ty = "CreditFacilityId", update(persist = false), list_for, parent),
         idx(ty = "InterestAccrualIdx", update(persist = false)),
     ),
     post_persist_hook = "export"

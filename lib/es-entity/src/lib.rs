@@ -11,6 +11,7 @@ mod query;
 mod traits;
 
 pub mod prelude {
+    pub use async_trait;
     pub use chrono;
     pub use serde_json;
     pub use sqlx;

@@ -61,10 +61,11 @@ impl<'a> ToTokens for Nested<'a> {
 
             async fn #find_fn_name<P>(&self, entities: &mut [P]) -> Result<(), #error>
                 where
-                    P: es_entity::Parent<<#nested_repo_ty as EsRepo>::Entity> + EsEntity
-                    #nested_repo_ty: es_entity::PopulateNested<<<<P as EsEntity>::Event> as EsEvent>::EntityId>
+                    P: es_entity::Parent<<#nested_repo_ty as es_entity::EsRepo>::Entity> + es_entity::EsEntity,
+                    #nested_repo_ty: es_entity::PopulateNested<<<P as es_entity::EsEntity>::Event as es_entity::EsEvent>::EntityId>,
+                    #error: From<<#nested_repo_ty as es_entity::EsRepo>::Err>
             {
-                let lookup = entities.iter().map(|e| (e.events().entity_id, e.nested_mut())).collect();
+                let lookup = entities.iter_mut().map(|e| (e.events().entity_id.clone(), e.nested_mut())).collect();
                 self.#repo_field.populate(lookup).await?;
                 Ok(())
             }
@@ -129,10 +130,11 @@ mod tests {
 
             async fn find_nested_users<P>(&self, entities: &mut [P]) -> Result<(), es_entity::EsRepoError>
                 where
-                    P: es_entity::Parent<<UserRepo as EsRepo>::Entity> + EsEntity
-                    UserRepo: es_entity::PopulateNested<<<<P as EsEntity>::Event> as EsEvent>::EntityId>
+                    P: es_entity::Parent<<UserRepo as es_entity::EsRepo>::Entity> + es_entity::EsEntity,
+                    UserRepo: es_entity::PopulateNested<<<P as es_entity::EsEntity>::Event as es_entity::EsEvent>::EntityId>,
+                    es_entity::EsRepoError: From<<UserRepo as es_entity::EsRepo>::Err>
             {
-                let lookup = entities.iter().map(|e| (e.events().entity_id, e.nested_mut())).collect();
+                let lookup = entities.iter_mut().map(|e| (e.events().entity_id.clone(), e.nested_mut())).collect();
                 self.users.populate(lookup).await?;
                 Ok(())
             }

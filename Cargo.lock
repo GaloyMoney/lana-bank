@@ -1220,6 +1220,7 @@ version = "0.2.31-dev"
 dependencies = [
  "anyhow",
  "async-graphql",
+ "async-trait",
  "base64 0.22.1",
  "chrono",
  "derive_builder",

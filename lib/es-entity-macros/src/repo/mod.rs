@@ -206,6 +206,7 @@ impl<'a> ToTokens for EsRepo<'a> {
 
             impl es_entity::EsRepo for #repo {
                 type Entity = #entity;
+                type Err = #error;
             }
         });
     }

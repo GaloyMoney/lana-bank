@@ -5,7 +5,7 @@ use es_entity::*;
 
 use crate::{primitives::*, terms::CollateralizationState};
 
-use super::{entity::*, error::CreditFacilityError, publisher::*};
+use super::{entity::*, error::CreditFacilityError, publisher::*, InterestAccrualRepo};
 
 #[derive(EsRepo, Clone)]
 #[es_repo(
@@ -31,13 +31,21 @@ use super::{entity::*, error::CreditFacilityError, publisher::*};
 pub struct CreditFacilityRepo {
     pool: PgPool,
     publisher: CreditFacilityPublisher,
+
+    #[es_repo(nested)]
+    interest_accruals: InterestAccrualRepo,
 }
 
 impl CreditFacilityRepo {
-    pub(super) fn new(pool: &PgPool, publisher: &CreditFacilityPublisher) -> Self {
+    pub(super) fn new(
+        pool: &PgPool,
+        publisher: &CreditFacilityPublisher,
+        interest_accruals: &InterestAccrualRepo,
+    ) -> Self {
         Self {
             pool: pool.clone(),
             publisher: publisher.clone(),
+            interest_accruals: interest_accruals.clone(),
         }
     }
 

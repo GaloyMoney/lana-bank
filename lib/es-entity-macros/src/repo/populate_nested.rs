@@ -45,28 +45,27 @@ impl<'a> ToTokens for PopulateNested<'a> {
         );
 
         tokens.append_all(quote! {
-            #[async_trait::async_trait]
-            pub trait es_entity::PopluateNested<#ty> for #ident {
-                type Err = #error;
-
-                async fn popluate(
+            #[es_entity::prelude::async_trait::async_trait]
+            impl es_entity::PopulateNested<#ty> for #ident {
+                async fn populate(
                     &self,
-                    lookup: std::collections::HashMap<C, &mut Nested<<Self as EsRepo>::Entity>>,
-                ) -> Result<(), Self::Err> {
-                    let parent_ids: Vec<_> = lookup.keys().cloned().collect();
+                    mut lookup: std::collections::HashMap<#ty, &mut Nested<<Self as EsRepo>::Entity>>,
+                ) -> Result<(), #error> {
+                    let parent_ids: Vec<_> = lookup.keys().collect();
                     let rows = sqlx::query_as!(
                         #repo_types_mod::Repo__DbEvent,
                         #query,
-                        parent_ids as &[#ty],
+                        parent_ids.as_slice() as &[&#ty],
                     )
                         .fetch_all(self.pool())
                         .await?;
                     let n = rows.len();
-                    let (res, _) = es_entity::EntityEvents::load_n::<Entity>(rows.into_iter(), n)?;
+                    let (res, _) = es_entity::EntityEvents::load_n::<<Self as EsRepo>::Entity>(rows.into_iter(), n)?;
                     for entity in res.into_iter() {
-                        let parent = lookup.get(&entity.#column_name).expect("parent not present");
+                        let parent = lookup.get_mut(&entity.#column_name).expect("parent not present");
                         parent.extend_entities(std::iter::once(entity));
                     }
+                    Ok(())
                 }
             }
         });
