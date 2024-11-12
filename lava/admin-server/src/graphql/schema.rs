@@ -220,9 +220,13 @@ impl Query {
         Connection<CreditFacilityComboCursor, CreditFacility, EmptyFields, EmptyFields>,
     > {
         let sort = sort.unwrap_or_default();
-        let (filter_field, filter_value) = match filter {
-            Some(filter) => (Some(filter.field), Some(filter.value)),
-            None => (None, None),
+        let (filter_field, status, collateralization_state) = match filter {
+            Some(filter) => (
+                Some(filter.field),
+                filter.status,
+                filter.collateralization_state,
+            ),
+            None => (None, None, None),
         };
 
         let (app, sub) = app_and_sub_from_ctx!(ctx);
@@ -242,8 +246,9 @@ impl Query {
                 )
             }
             (CreditFacilitiesSortBy::CreatedAt, Some(CreditFacilitiesFilterBy::Status)) => {
-                let status: CreditFacilityStatus =
-                    filter_value.expect("Value exists").try_into()?;
+                let status = status.ok_or(CreditFacilityError::MissingValueForFilterField(
+                    "status".to_string(),
+                ))?;
                 list_with_combo_cursor!(
                     CreditFacilityComboCursor,
                     CreditFacilityByCreatedAtCursor,
@@ -263,8 +268,12 @@ impl Query {
                 CreditFacilitiesSortBy::CreatedAt,
                 Some(CreditFacilitiesFilterBy::CollateralizationState),
             ) => {
-                let collateralization_state: CollateralizationState =
-                    filter_value.expect("Value exists").try_into()?;
+                let collateralization_state = collateralization_state.ok_or(
+                    CreditFacilityError::MissingValueForFilterField(
+                        "collateralization_state".to_string(),
+                    ),
+                )?;
+
                 list_with_combo_cursor!(
                     CreditFacilityComboCursor,
                     CreditFacilityByCreatedAtCursor,
@@ -298,8 +307,9 @@ impl Query {
                 )
             }
             (CreditFacilitiesSortBy::Cvl, Some(CreditFacilitiesFilterBy::Status)) => {
-                let status: CreditFacilityStatus =
-                    filter_value.expect("Value exists").try_into()?;
+                let status = status.ok_or(CreditFacilityError::MissingValueForFilterField(
+                    "status".to_string(),
+                ))?;
                 list_with_combo_cursor!(
                     CreditFacilityComboCursor,
                     CreditFacilityByCollateralizationRatioCursor,
@@ -321,8 +331,11 @@ impl Query {
                 CreditFacilitiesSortBy::Cvl,
                 Some(CreditFacilitiesFilterBy::CollateralizationState),
             ) => {
-                let collateralization_state: CollateralizationState =
-                    filter_value.expect("Value exists").try_into()?;
+                let collateralization_state = collateralization_state.ok_or(
+                    CreditFacilityError::MissingValueForFilterField(
+                        "collateralization_state".to_string(),
+                    ),
+                )?;
                 list_with_combo_cursor!(
                     CreditFacilityComboCursor,
                     CreditFacilityByCollateralizationRatioCursor,

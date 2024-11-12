@@ -309,7 +309,8 @@ type CommitteeThreshold {
 
 input CreditFacilitiesFilter {
 	field: CreditFacilitiesFilterBy!
-	value: String!
+	status: CreditFacilityStatus
+	collateralizationState: CollateralizationState
 }
 
 enum CreditFacilitiesFilterBy {

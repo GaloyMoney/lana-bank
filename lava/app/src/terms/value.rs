@@ -3,7 +3,7 @@ use derive_builder::{Builder, UninitializedFieldError};
 use rust_decimal::{prelude::*, Decimal};
 use rust_decimal_macros::dec;
 use serde::{Deserialize, Serialize};
-use std::{fmt, str::FromStr};
+use std::fmt;
 
 use super::error::TermsError;
 use crate::primitives::{PriceOfOneBTC, Satoshis, UsdCents};
@@ -29,14 +29,6 @@ pub enum CollateralizationState {
     UnderLiquidationThreshold,
     #[default]
     NoCollateral,
-}
-
-impl TryFrom<String> for CollateralizationState {
-    type Error = strum::ParseError;
-
-    fn try_from(value: String) -> Result<Self, Self::Error> {
-        Self::from_str(&value)
-    }
 }
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
