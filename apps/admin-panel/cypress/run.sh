@@ -56,7 +56,7 @@ get_magiclink_local() {
 
 if [[ $BACKEND_ENV == "development" ]]; then
     echo "==================== Fetching authentication link locally from mailhog ===================="
-    LINK=$(get_magiclink)
+    LINK=$(get_magiclink_local)
     if [[ -z "$LINK" ]]; then
         echo "Error: Could not retrieve magic link"
         exit 1
