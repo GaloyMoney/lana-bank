@@ -47,14 +47,4 @@ impl<T: EsEntity> Nested<T> {
                 .map(|entity| (entity.events().entity_id.clone(), entity)),
         );
     }
-
-    #[cfg(test)]
-    pub fn hydrate_for_test(&mut self) {
-        let new_entities = self
-            .new_entities_mut()
-            .drain(..)
-            .map(|new| T::try_from_events(new.into_events()).expect("hydrate failed"))
-            .collect::<Vec<_>>();
-        self.extend_entities(new_entities);
-    }
 }

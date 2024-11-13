@@ -1134,6 +1134,18 @@ mod test {
         ]
     }
 
+    fn hydrate_accruals_in_facility(credit_facility: &mut CreditFacility) {
+        let new_entities = credit_facility
+            .interest_accruals
+            .new_entities_mut()
+            .drain(..)
+            .map(|new| InterestAccrual::try_from_events(new.into_events()).expect("hydrate failed"))
+            .collect::<Vec<_>>();
+        credit_facility
+            .interest_accruals
+            .extend_entities(new_entities);
+    }
+
     #[test]
     fn allocate_payment() {
         let outstanding = CreditFacilityReceivable {
@@ -1440,7 +1452,7 @@ mod test {
             .start_interest_accrual(dummy_audit_info())
             .unwrap()
             .unwrap();
-        credit_facility.interest_accruals.hydrate_for_test();
+        hydrate_accruals_in_facility(&mut credit_facility);
 
         let mut accrual_period = credit_facility
             .terms
@@ -1489,7 +1501,7 @@ mod test {
                 .build()
                 .unwrap();
             credit_facility.interest_accruals.add_new(new_accrual);
-            credit_facility.interest_accruals.hydrate_for_test();
+            hydrate_accruals_in_facility(&mut credit_facility);
 
             accrual_period = next_accrual_period.expect("Accrual period not found");
             next_accrual_period = credit_facility.next_interest_accrual_period().unwrap();
@@ -1806,7 +1818,7 @@ mod test {
                     dummy_audit_info(),
                 )
                 .did_execute());
-            credit_facility.interest_accruals.hydrate_for_test();
+            hydrate_accruals_in_facility(&mut credit_facility);
 
             let new_disbursal = credit_facility
                 .initiate_disbursal(
