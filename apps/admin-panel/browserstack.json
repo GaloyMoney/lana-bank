@@ -27,7 +27,11 @@
             ".git/**/*",
             ".next/**/*"
         ],
-        "headless": true
+        "headless": true,
+        "downloads": [
+            "./results",
+            "./cypress/screenshots"
+        ]
     },
     "connection_settings": {
         "local": false

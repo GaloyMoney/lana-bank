@@ -55,6 +55,8 @@
           ytt
           pnpm
           tilt
+          pandoc
+          wkhtmltopdf
         ]
         ++ lib.optionals pkgs.stdenv.isLinux [
           xvfb-run

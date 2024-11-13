@@ -40,3 +40,5 @@ log
 *.log
 tmpBstackPackages
 results
+build_artifacts
+screenshots

@@ -17,7 +17,8 @@
     "lint:fix": "eslint --max-warnings 0 --fix --ext .ts,.tsx .",
     "cypress:run": "./cypress/run.sh",
     "cypress:open-local": "MAGIC_LINK=$MAGIC_LINK cypress open --env MAGIC_LINK=$MAGIC_LINK",
-    "cypress:open-browserstack": "MAGIC_LINK=$MAGIC_LINK browserstack-cypress run --env MAGIC_LINK=$MAGIC_LINK"
+    "cypress:open-browserstack": "MAGIC_LINK=$MAGIC_LINK browserstack-cypress run --env MAGIC_LINK=$MAGIC_LINK",
+    "browserstack:pdf": "cd cypress && ./pdf.sh"
   },
   "dependencies": {
     "@apollo/client": "^3.10.4",

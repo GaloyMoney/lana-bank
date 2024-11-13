@@ -84,6 +84,8 @@ describe("credit facility", () => {
       /\/customers\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/,
     )
 
+    cy.contains(testEmail).should("be.visible")
+
     cy.get('[data-testid="global-create-button"]').click()
     cy.get('[data-testid="create-credit-facility-button"]').should("be.visible").click()
 

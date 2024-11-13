@@ -76,7 +76,6 @@ if [[ $MAGIC_LINK == "" ]]; then
   exit 1
 fi
 
-
 cp tsconfig.json tsconfig.json.bak
 trap '[ -f tsconfig.json.bak ] && mv tsconfig.json.bak tsconfig.json' EXIT
 
@@ -87,5 +86,11 @@ echo "==================== Running cypress ===================="
 if [[ $BACKEND_ENV == "development" ]]; then
   nix develop -c pnpm run cypress:open-local
 else
+  rm -rf build_artifacts || true
   nix develop -c pnpm run cypress:open-browserstack
+  mv $(find build_artifacts -type d -name "screenshots") cypress/manuals
+  cd cypress/manuals
+  mkdir -p results
+
+  pandoc customers.md -o results/customers.pdf --pdf-engine=wkhtmltopdf
 fi
