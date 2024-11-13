@@ -93,4 +93,5 @@ else
   mkdir -p results
 
   pandoc customers.md -o results/customers.pdf --pdf-engine=wkhtmltopdf
+  pandoc terms-templates.md -o results/terms-templates.pdf --pdf-engine=wkhtmltopdf
 fi
