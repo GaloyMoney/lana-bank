@@ -87,6 +87,11 @@ if [[ $BACKEND_ENV == "development" ]]; then
   nix develop -c pnpm run cypress:open-local
 else
   rm -rf build_artifacts || true
+  pushd cypress/manuals
+    rm -rf screenshots || true
+    rm -rf results || true
+  popd
+
   nix develop -c pnpm run cypress:open-browserstack
   mv $(find build_artifacts -type d -name "screenshots") cypress/manuals
   cd cypress/manuals
