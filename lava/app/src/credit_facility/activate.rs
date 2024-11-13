@@ -22,44 +22,31 @@ pub(super) async fn execute(
             CreditFacilityAction::Activate,
         )
         .await?;
-    credit_facility.activate(
+    if let es_entity::Idempotent::Executed(next_incurrance_period) = credit_facility.activate(
         credit_facility_activation.clone(),
         chrono::Utc::now(),
         audit_info,
-    );
+    ) {
+        repo.update_in_op(db, credit_facility).await?;
+        match jobs
+            .create_and_spawn_at_in_op(
+                db,
+                credit_facility.id,
+                interest::CreditFacilityJobConfig {
+                    credit_facility_id: credit_facility.id,
+                },
+                next_incurrance_period.end,
+            )
+            .await
+        {
+            Ok(_) | Err(JobError::DuplicateId) => (),
+            Err(err) => Err(err)?,
+        };
 
-    let audit_info = audit
-        .record_system_entry_in_tx(
-            db.tx(),
-            Object::CreditFacility,
-            CreditFacilityAction::RecordInterest,
-        )
-        .await?;
-    let new_accrual = credit_facility
-        .start_interest_accrual(audit_info.clone())?
-        .expect("Accrual start date is before facility expiry date");
-    let accrual = interest_accrual_repo.create_in_op(db, new_accrual).await?;
-    match jobs
-        .create_and_spawn_at_in_op(
-            db,
-            credit_facility.id,
-            interest::CreditFacilityJobConfig {
-                credit_facility_id: credit_facility.id,
-            },
-            accrual
-                .next_incurrence_period()
-                .expect("New accrual has first incurrence period")
-                .end,
-        )
-        .await
-    {
-        Ok(_) | Err(JobError::DuplicateId) => (),
-        Err(err) => Err(err)?,
-    };
-
-    ledger
-        .activate_credit_facility(credit_facility_activation)
-        .await?;
+        ledger
+            .activate_credit_facility(credit_facility_activation)
+            .await?;
+    }
 
     Ok(())
 }

@@ -415,14 +415,26 @@ impl CreditFacility {
         CreditFacilityActivationData { tx_id, .. }: CreditFacilityActivationData,
         activated_at: DateTime<Utc>,
         audit_info: AuditInfo,
-    ) {
+    ) -> Idempotent<InterestPeriod> {
+        idempotency_guard!(
+            self.events.iter_all(),
+            CreditFacilityEvent::Activated { .. }
+        );
+
         self.activated_at = Some(activated_at);
         self.expires_at = Some(self.terms.duration.expiration_date(activated_at));
         self.events.push(CreditFacilityEvent::Activated {
             ledger_tx_id: tx_id,
             activated_at,
-            audit_info,
+            audit_info: audit_info.clone(),
         });
+
+        let new_accrual = self
+            .start_interest_accrual(audit_info)
+            .expect("first accrual")
+            .expect("first accrual");
+
+        Idempotent::Executed(new_accrual.first_incurrence_period())
     }
 
     pub(super) fn initiate_disbursal(
@@ -522,7 +534,7 @@ impl CreditFacility {
     pub(super) fn start_interest_accrual(
         &mut self,
         audit_info: AuditInfo,
-    ) -> Result<Option<NewInterestAccrual>, CreditFacilityError> {
+    ) -> Result<Option<&NewInterestAccrual>, CreditFacilityError> {
         let accrual_starts_at = match self.next_interest_accrual_period()? {
             Some(period) => period,
             None => return Ok(None),
@@ -550,18 +562,17 @@ impl CreditFacility {
                 audit_info: audit_info.clone(),
             });
 
-        Ok(Some(
-            NewInterestAccrual::builder()
-                .id(id)
-                .credit_facility_id(self.id)
-                .idx(idx)
-                .started_at(accrual_starts_at)
-                .facility_expires_at(self.expires_at.expect("Facility is already approved"))
-                .terms(self.terms)
-                .audit_info(audit_info)
-                .build()
-                .expect("could not build new interest accrual"),
-        ))
+        let new_accrual = NewInterestAccrual::builder()
+            .id(id)
+            .credit_facility_id(self.id)
+            .idx(idx)
+            .started_at(accrual_starts_at)
+            .facility_expires_at(self.expires_at.expect("Facility is already approved"))
+            .terms(self.terms)
+            .audit_info(audit_info)
+            .build()
+            .expect("could not build new interest accrual");
+        Ok(Some(self.interest_accruals.add_new(new_accrual)))
     }
 
     pub fn confirm_interest_accrual(

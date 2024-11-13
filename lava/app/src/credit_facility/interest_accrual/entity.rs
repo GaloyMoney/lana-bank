@@ -239,6 +239,10 @@ impl NewInterestAccrual {
     pub fn builder() -> NewInterestAccrualBuilder {
         NewInterestAccrualBuilder::default()
     }
+
+    pub fn first_incurrence_period(&self) -> InterestPeriod {
+        self.terms.incurrence_interval.period_from(self.started_at)
+    }
 }
 
 impl IntoEvents<InterestAccrualEvent> for NewInterestAccrual {
