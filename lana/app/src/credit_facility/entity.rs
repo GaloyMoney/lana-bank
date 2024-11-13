@@ -129,6 +129,17 @@ impl CreditFacilityReceivable {
         CVLData::new(collateral, self.total() + facility_remaining)
     }
 
+    pub fn facility_cvl_data(
+        &self,
+        collateral: Satoshis,
+        facility_remaining: UsdCents,
+    ) -> FacilityCVLData {
+        FacilityCVLData {
+            total: self.total_cvl(collateral, facility_remaining),
+            disbursed: self.disbursed_cvl(collateral),
+        }
+    }
+
     pub fn is_zero(&self) -> bool {
         self.total().is_zero()
     }
@@ -714,23 +725,13 @@ impl CreditFacility {
     }
 
     pub fn facility_cvl_data(&self) -> FacilityCVLData {
-        let total = self
-            .outstanding()
-            .total_cvl(self.collateral(), self.facility_remaining());
-        let disbursed = self.outstanding().disbursed_cvl(self.collateral());
-
-        FacilityCVLData { total, disbursed }
+        self.outstanding()
+            .facility_cvl_data(self.collateral(), self.facility_remaining())
     }
 
     pub fn projected_cvl_data_for_disbursal(&self, disbursal_amount: UsdCents) -> FacilityCVLData {
-        let total = self
-            .outstanding_after_disbursal(disbursal_amount)
-            .total_cvl(self.collateral(), self.facility_remaining());
-        let disbursed = self
-            .outstanding_after_disbursal(disbursal_amount)
-            .disbursed_cvl(self.collateral());
-
-        FacilityCVLData { total, disbursed }
+        self.outstanding_after_disbursal(disbursal_amount)
+            .facility_cvl_data(self.collateral(), self.facility_remaining())
     }
 
     pub(super) fn initiate_repayment(
