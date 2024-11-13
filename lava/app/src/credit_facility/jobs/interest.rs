@@ -83,57 +83,46 @@ impl JobRunner for CreditFacilityProcessingJobRunner {
             )
             .await?;
 
-        let id = credit_facility
-            .interest_accrual_in_progress()
-            .expect("Accrual in progress should exist for scheduled job");
-        let mut accrual = self.interest_accrual_repo.find_by_id(id).await?;
+        let (interest_accrual, next_incurrence_period) = {
+            let outstanding = credit_facility.outstanding();
+            let account_ids = credit_facility.account_ids;
 
-        let interest_incurrence =
-            accrual.initiate_incurrence(credit_facility.outstanding(), credit_facility.account_ids);
+            let accrual = credit_facility
+                .interest_accrual_in_progress()
+                .expect("Accrual in progress should exist for scheduled job");
 
-        self.ledger
-            .record_credit_facility_interest_incurrence(interest_incurrence.clone())
-            .await?;
-        let interest_accrual = accrual.confirm_incurrence(interest_incurrence, audit_info.clone());
-
+            let interest_incurrence = accrual.initiate_incurrence(outstanding, account_ids);
+            self.ledger
+                .record_credit_facility_interest_incurrence(interest_incurrence.clone())
+                .await?;
+            (
+                accrual.confirm_incurrence(interest_incurrence, audit_info.clone()),
+                accrual.next_incurrence_period(),
+            )
+        };
         if let Some(interest_accrual) = interest_accrual {
             self.ledger
                 .record_credit_facility_interest_accrual(interest_accrual.clone())
                 .await?;
-            accrual.confirm_accrual(interest_accrual.clone(), audit_info.clone());
-
-            credit_facility.confirm_interest_accrual(
-                interest_accrual,
-                accrual.idx,
-                audit_info.clone(),
-            );
-            self.credit_facility_repo
-                .update_in_op(&mut db, &mut credit_facility)
-                .await?;
+            credit_facility.confirm_interest_accrual(interest_accrual, audit_info.clone());
         }
 
-        self.interest_accrual_repo
-            .update_in_op(&mut db, &mut accrual)
-            .await?;
-
-        if let Some(period) = accrual.next_incurrence_period() {
-            Ok(JobCompletion::RescheduleAtWithOp(db, period.end))
-        } else if let Some(new_accrual) = credit_facility.start_interest_accrual(audit_info)? {
+        if let Some(period) = next_incurrence_period {
             self.credit_facility_repo
                 .update_in_op(&mut db, &mut credit_facility)
                 .await?;
-            let new_incurrence_period = self
-                .interest_accrual_repo
-                .create_in_op(&mut db, new_accrual)
-                .await?
-                .next_incurrence_period()
-                .expect("New accrual should have first incurrence period");
 
-            Ok(JobCompletion::RescheduleAtWithOp(
-                db,
-                new_incurrence_period.end,
-            ))
+            Ok(JobCompletion::RescheduleAtWithOp(db, period.end))
+        } else if let Some(period) = credit_facility.start_interest_accrual(audit_info)? {
+            self.credit_facility_repo
+                .update_in_op(&mut db, &mut credit_facility)
+                .await?;
+
+            Ok(JobCompletion::RescheduleAtWithOp(db, period.end))
         } else {
+            self.credit_facility_repo
+                .update_in_op(&mut db, &mut credit_facility)
+                .await?;
             println!(
                 "Credit Facility interest job completed for credit_facility: {:?}",
                 credit_facility.id

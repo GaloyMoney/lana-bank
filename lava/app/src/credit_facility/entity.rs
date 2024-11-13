@@ -429,12 +429,12 @@ impl CreditFacility {
             audit_info: audit_info.clone(),
         });
 
-        let new_accrual = self
+        let period = self
             .start_interest_accrual(audit_info)
             .expect("first accrual")
             .expect("first accrual");
 
-        Idempotent::Executed(new_accrual.first_incurrence_period())
+        Idempotent::Executed(period)
     }
 
     pub(super) fn initiate_disbursal(
@@ -534,7 +534,7 @@ impl CreditFacility {
     pub(super) fn start_interest_accrual(
         &mut self,
         audit_info: AuditInfo,
-    ) -> Result<Option<&NewInterestAccrual>, CreditFacilityError> {
+    ) -> Result<Option<InterestPeriod>, CreditFacilityError> {
         let accrual_starts_at = match self.next_interest_accrual_period()? {
             Some(period) => period,
             None => return Ok(None),
@@ -572,34 +572,39 @@ impl CreditFacility {
             .audit_info(audit_info)
             .build()
             .expect("could not build new interest accrual");
-        Ok(Some(self.interest_accruals.add_new(new_accrual)))
+        Ok(Some(
+            self.interest_accruals
+                .add_new(new_accrual)
+                .first_incurrence_period(),
+        ))
     }
 
     pub fn confirm_interest_accrual(
         &mut self,
-        CreditFacilityInterestAccrual {
-            interest,
-            tx_ref,
-            tx_id,
-            accrued_at,
-            ..
-        }: CreditFacilityInterestAccrual,
-        idx: InterestAccrualIdx,
+        interest_accrual: CreditFacilityInterestAccrual,
         audit_info: AuditInfo,
     ) {
+        let idx = {
+            let accrual = self
+                .interest_accrual_in_progress()
+                .expect("accurual not found");
+            accrual.confirm_accrual(interest_accrual.clone(), audit_info.clone());
+            accrual.idx
+        };
         self.events
             .push(CreditFacilityEvent::InterestAccrualConcluded {
                 idx,
-                tx_id,
-                tx_ref,
-                amount: interest,
-                accrued_at,
+                tx_id: interest_accrual.tx_id,
+                tx_ref: interest_accrual.tx_ref,
+                amount: interest_accrual.interest,
+                accrued_at: interest_accrual.accrued_at,
                 audit_info,
             });
     }
 
-    pub fn interest_accrual_in_progress(&self) -> Option<InterestAccrualId> {
-        self.events
+    pub fn interest_accrual_in_progress(&mut self) -> Option<&mut InterestAccrual> {
+        if let Some(id) = self
+            .events
             .iter_all()
             .rev()
             .find_map(|event| match event {
@@ -607,10 +612,19 @@ impl CreditFacility {
                 CreditFacilityEvent::InterestAccrualStarted {
                     interest_accrual_id: id,
                     ..
-                } => Some(Some(*id)),
+                } => Some(Some(id)),
                 _ => None,
             })
-            .and_then(|id| id)
+            .flatten()
+        {
+            Some(
+                self.interest_accruals
+                    .get_persisted_mut(id)
+                    .expect("Interest accrual not found"),
+            )
+        } else {
+            None
+        }
     }
 
     pub fn outstanding(&self) -> CreditFacilityReceivable {
