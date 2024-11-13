@@ -7,6 +7,7 @@ import { useState } from "react"
 import {
   AccountStatus,
   Customer,
+  CustomersFilter,
   CustomersSort,
   SortDirection,
   useCustomersQuery,
@@ -21,8 +22,13 @@ import { camelToScreamingSnake } from "@/lib/utils"
 import Balance from "@/components/balance/balance"
 
 gql`
-  query Customers($first: Int!, $after: String, $sort: CustomersSort) {
-    customers(first: $first, after: $after, sort: $sort) {
+  query Customers(
+    $first: Int!
+    $after: String
+    $sort: CustomersSort
+    $filter: CustomersFilter
+  ) {
+    customers(first: $first, after: $after, sort: $sort, filter: $filter) {
       edges {
         node {
           id
@@ -57,12 +63,14 @@ gql`
 
 const Customers = () => {
   const router = useRouter()
-  const [sortBy, setSortBy] = useState<CustomersSort>()
+  const [sortBy, setSortBy] = useState<CustomersSort | null>(null)
+  const [filter, setFilter] = useState<CustomersFilter | null>(null)
 
   const { data, loading, error, fetchMore } = useCustomersQuery({
     variables: {
       first: DEFAULT_PAGESIZE,
       sort: sortBy,
+      filter: filter,
     },
   })
 
@@ -84,6 +92,15 @@ const Customers = () => {
             direction: direction as SortDirection,
           })
         }}
+        onFilter={(column, value) => {
+          if (value)
+            setFilter({
+              field: (column === "status"
+                ? "ACCOUNT_STATUS"
+                : null) as CustomersFilter["field"],
+              [column]: value,
+            })
+        }}
       />
     </div>
   )
@@ -97,6 +114,7 @@ const columns: Column<Customer>[] = [
   {
     key: "status",
     label: "KYC Status",
+    filterValues: Object.values(AccountStatus),
     render: (status) => (
       <div
         className={

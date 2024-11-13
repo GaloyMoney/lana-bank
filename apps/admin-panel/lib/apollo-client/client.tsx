@@ -41,7 +41,7 @@ function makeClient({ coreAdminGqlUrl }: { coreAdminGqlUrl: string }) {
       },
       Query: {
         fields: {
-          customers: { ...relayStylePagination(), keyArgs: ["sort"] },
+          customers: { ...relayStylePagination(), keyArgs: ["sort", "filter"] },
           creditFacilities: { ...relayStylePagination(), keyArgs: ["sort", "filter"] },
           creditFacilitiesForStatus: {
             ...relayStylePagination(),

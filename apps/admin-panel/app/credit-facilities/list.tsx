@@ -82,8 +82,6 @@ const CreditFacilities = () => {
     },
   })
 
-  console.log({ sortBy, filter })
-
   return (
     <div>
       {error && <p className="text-destructive text-sm">{error?.message}</p>}

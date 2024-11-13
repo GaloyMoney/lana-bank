@@ -1765,6 +1765,7 @@ export type CustomersQueryVariables = Exact<{
   first: Scalars['Int']['input'];
   after?: InputMaybe<Scalars['String']['input']>;
   sort?: InputMaybe<CustomersSort>;
+  filter?: InputMaybe<CustomersFilter>;
 }>;
 
 
@@ -3622,8 +3623,8 @@ export type CustomerCreateMutationHookResult = ReturnType<typeof useCustomerCrea
 export type CustomerCreateMutationResult = Apollo.MutationResult<CustomerCreateMutation>;
 export type CustomerCreateMutationOptions = Apollo.BaseMutationOptions<CustomerCreateMutation, CustomerCreateMutationVariables>;
 export const CustomersDocument = gql`
-    query Customers($first: Int!, $after: String, $sort: CustomersSort) {
-  customers(first: $first, after: $after, sort: $sort) {
+    query Customers($first: Int!, $after: String, $sort: CustomersSort, $filter: CustomersFilter) {
+  customers(first: $first, after: $after, sort: $sort, filter: $filter) {
     edges {
       node {
         id
@@ -3670,6 +3671,7 @@ export const CustomersDocument = gql`
  *      first: // value for 'first'
  *      after: // value for 'after'
  *      sort: // value for 'sort'
+ *      filter: // value for 'filter'
  *   },
  * });
  */
