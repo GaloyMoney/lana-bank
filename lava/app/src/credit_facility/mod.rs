@@ -8,6 +8,7 @@ mod interest_accrual;
 mod jobs;
 mod processes;
 mod publisher;
+mod repayment_plan;
 mod repo;
 
 use std::collections::HashMap;
@@ -41,6 +42,7 @@ use jobs::*;
 pub use processes::approve_credit_facility::*;
 pub use processes::approve_disbursal::*;
 use publisher::CreditFacilityPublisher;
+pub use repayment_plan::*;
 pub use repo::cursor::*;
 use repo::CreditFacilityRepo;
 use tracing::instrument;
