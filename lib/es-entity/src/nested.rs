@@ -20,7 +20,7 @@ impl<T: EsEntity> Nested<T> {
     pub fn add_new(&mut self, new: <T as EsEntity>::New) -> &<T as EsEntity>::New {
         let len = self.new_entities.len();
         self.new_entities.push(new);
-        &self.new_entities[len + 1]
+        &self.new_entities[len]
     }
 
     pub fn get_persisted_mut(
