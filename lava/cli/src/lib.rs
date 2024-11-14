@@ -63,6 +63,12 @@ async fn run_cmd(lava_home: &str, config: Config) -> anyhow::Result<()> {
     tracing_utils::init_tracer(config.tracing)?;
     store_server_pid(lava_home, std::process::id())?;
 
+    #[cfg(feature = "sim-time")]
+    {
+        dbg!(&config.time);
+        sim_time::init(config.time);
+    }
+
     let (send, mut receive) = tokio::sync::mpsc::channel(1);
     let mut handles = Vec::new();
     let pool = db::init_pool(&config.db).await?;

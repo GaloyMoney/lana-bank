@@ -10,7 +10,7 @@ GQL_ADMIN_ENDPOINT="http://localhost:4455/admin/graphql"
 GQL_CALA_ENDPOINT="http://localhost:2252/graphql"
 
 LAVA_HOME="${LAVA_HOME:-.lava}"
-export LAVA_CONFIG="${REPO_ROOT}/bats/lava.yml"
+export LAVA_CONFIG="${REPO_ROOT}/bats/lava-sim-time.yml"
 SERVER_PID_FILE="${LAVA_HOME}/server-pid"
 
 reset_pg() {
@@ -249,16 +249,16 @@ create_customer() {
 
   variables=$(
     jq -n \
-    --arg email "$customer_email" \
-    --arg telegramId "$telegramId" \
-    '{
+      --arg email "$customer_email" \
+      --arg telegramId "$telegramId" \
+      '{
       input: {
         email: $email,
         telegramId: $telegramId
       }
     }'
   )
-  
+
   exec_admin_graphql 'customer-create' "$variables"
   customer_id=$(graphql_output .data.customerCreate.customer.customerId)
   [[ "$customer_id" != "null" ]] || exit 1

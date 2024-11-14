@@ -4,7 +4,7 @@
 mod config;
 
 use chrono::{DateTime, Utc};
-use config::*;
+pub use config::*;
 use std::{
     sync::{
         atomic::{AtomicU64, Ordering},
