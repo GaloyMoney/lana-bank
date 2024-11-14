@@ -132,7 +132,7 @@ impl ApproveDisbursal {
                 credit_facility.confirm_disbursal(
                     &disbursal,
                     None,
-                    chrono::Utc::now(),
+                    crate::time::now(),
                     audit_info.clone(),
                 );
             }

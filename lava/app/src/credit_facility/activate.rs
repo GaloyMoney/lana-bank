@@ -22,11 +22,12 @@ pub(super) async fn execute(
             CreditFacilityAction::Activate,
         )
         .await?;
-    if let es_entity::Idempotent::Executed(next_incurrance_period) = credit_facility.activate(
-        credit_facility_activation.clone(),
-        chrono::Utc::now(),
-        audit_info,
-    ) {
+
+    let now = crate::time::now();
+
+    if let es_entity::Idempotent::Executed(next_incurrance_period) =
+        credit_facility.activate(credit_facility_activation.clone(), now, audit_info)
+    {
         repo.update_in_op(db, credit_facility).await?;
         match jobs
             .create_and_spawn_at_in_op(

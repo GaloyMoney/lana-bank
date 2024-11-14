@@ -353,8 +353,8 @@ impl CreditFacility {
     }
 
     pub(super) fn is_expired(&self) -> bool {
-        self.expires_at
-            .map_or(false, |expires_at| Utc::now() > expires_at)
+        let now = crate::time::now();
+        self.expires_at.map_or(false, |expires_at| now > expires_at)
     }
 
     pub fn status(&self) -> CreditFacilityStatus {
@@ -552,7 +552,8 @@ impl CreditFacility {
             None => return Ok(None),
         }
         .start;
-        if accrual_starts_at > Utc::now() {
+        let now = crate::time::now();
+        if accrual_starts_at > now {
             return Err(CreditFacilityError::InterestAccrualWithInvalidFutureStartDate);
         }
 
@@ -801,6 +802,7 @@ impl CreditFacility {
                 CreditFacilityStatus::Closed => Some(CollateralizationState::NoCollateral),
             };
 
+        let now = crate::time::now();
         if let Some(calculated_collateralization) = collateralization_update {
             self.events
                 .push(CreditFacilityEvent::CollateralizationChanged {
@@ -808,7 +810,7 @@ impl CreditFacility {
                     collateral: self.collateral(),
                     outstanding: self.outstanding(),
                     price,
-                    recorded_at: Utc::now(),
+                    recorded_at: now,
                     audit_info: audit_info.clone(),
                 });
 

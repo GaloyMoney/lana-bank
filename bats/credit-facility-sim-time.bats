@@ -45,7 +45,6 @@ teardown_file() {
 
 @test "credit-facility: can update collateral" {
   credit_facility_id=$(read_value 'credit_facility_id')
-  echo "credit_facility_id: $credit_facility_id"
 
   variables=$(
     jq -n \
@@ -65,6 +64,8 @@ teardown_file() {
 }
 
 @test "credit-facility: can initiate disbursal" {
+  sleep 10
+
   credit_facility_id=$(read_value 'credit_facility_id')
 
   amount=50000
@@ -84,8 +85,6 @@ teardown_file() {
   [[ "$disbursal_index" != "null" ]] || exit 1
   status=$(graphql_output '.data.creditFacilityDisbursalInitiate.disbursal.status')
   [[ "$status" == "CONFIRMED" ]] || exit 1
-
-  sleep 3
 
   variables=$(
     jq -n \

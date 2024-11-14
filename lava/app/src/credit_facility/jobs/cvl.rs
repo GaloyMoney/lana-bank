@@ -124,8 +124,7 @@ impl JobRunner for CreditFacilityProcessingJobRunner {
             }
         }
 
-        Ok(JobCompletion::RescheduleAt(
-            chrono::Utc::now() + self.config.job_interval,
-        ))
+        let now = crate::time::now();
+        Ok(JobCompletion::RescheduleAt(now + self.config.job_interval))
     }
 }
