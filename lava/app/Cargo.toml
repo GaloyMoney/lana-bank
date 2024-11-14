@@ -4,6 +4,7 @@ version = "0.2.43-dev"
 edition = "2021"
 
 [features]
+sim-time = ["dep:sim-time", "es-entity/sim-time" ]
 
 fail-on-warnings = []
 
@@ -11,6 +12,7 @@ fail-on-warnings = []
 rbac-types = { path = "../rbac-types" }
 lava-events = { path = "../events" }
 lava-ids = { path = "../ids" }
+sim-time = { path = "../../lib/sim-time", optional = true }
 
 dashboard = { path = "../dashboard" }
 
