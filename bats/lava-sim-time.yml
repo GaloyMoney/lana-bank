@@ -1,0 +1,19 @@
+app:
+  job_execution:
+    poll_interval: 1
+  user:
+    superuser_email: "admin@galoy.io"
+  service_account:
+    gcp_location: europe-west6
+  storage:
+    bucket_name: "gha-volcano-documents"
+    root_folder: "gha"
+  report:
+    dataform_repo: "gha-repo"
+    dataform_output_dataset: "dataform_gha"
+    dataform_release_config: "gha-release"
+time:
+  realtime: false
+  sim_time:
+    tick_interval_ms: 10
+    tick_duration_secs: 864000

@@ -3,6 +3,9 @@ use anyhow::Context;
 use serde::{Deserialize, Serialize};
 use tracing_utils::TracingConfig;
 
+#[cfg(feature = "sim-time")]
+use sim_time::TimeConfig;
+
 use std::path::Path;
 
 use super::db::*;
@@ -19,6 +22,10 @@ pub struct Config {
     pub app: AppConfig,
     #[serde(default)]
     pub tracing: TracingConfig,
+
+    #[cfg(feature = "sim-time")]
+    #[serde(default)]
+    pub time: TimeConfig,
 }
 
 pub struct EnvSecrets {

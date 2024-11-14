@@ -4,6 +4,7 @@ version = "0.2.43-dev"
 edition = "2021"
 
 [features]
+sim-time = ["dep:sim-time"]
 
 fail-on-warnings = []
 
@@ -12,6 +13,7 @@ lava-app = { path = "../app" }
 admin-server = { path = "../admin-server" }
 
 tracing-utils = { path = "../../lib/tracing-utils", features = ["http"] }
+sim-time = { path = "../../lib/sim-time", optional = true }
 
 
 anyhow = { workspace = true }
