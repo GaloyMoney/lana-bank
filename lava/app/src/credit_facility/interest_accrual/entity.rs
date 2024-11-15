@@ -101,7 +101,7 @@ impl InterestAccrual {
             .any(|event| matches!(event, InterestAccrualEvent::InterestAccrued { .. }))
     }
 
-    fn total_incurred(&self) -> UsdCents {
+    pub fn total_incurred(&self) -> UsdCents {
         self.events
             .iter_all()
             .filter_map(|event| match event {
@@ -111,7 +111,7 @@ impl InterestAccrual {
             .fold(UsdCents::ZERO, |acc, amount| acc + amount)
     }
 
-    fn count_incurred(&self) -> usize {
+    pub fn count_incurred(&self) -> usize {
         self.events
             .iter_all()
             .filter(|event| matches!(event, InterestAccrualEvent::InterestIncurred { .. }))

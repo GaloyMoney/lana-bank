@@ -775,3 +775,223 @@ impl CreditFacilities {
         Ok(self.disbursal_repo.find_all(ids).await?)
     }
 }
+
+#[cfg(test)]
+mod test {
+    use audit::{Audit, AuditEntryId};
+    use authz::Authorization;
+    use chrono::Utc;
+    use core_user::{Role, Users};
+    use lava_events::LavaEvent;
+    use rbac_types::{CustomerAction, CustomerAllOrOne, LavaAction, LavaObject, LavaRole};
+    use rust_decimal_macros::dec;
+
+    use rand::distributions::{Alphanumeric, DistString};
+
+    use crate::{
+        customer::CustomerConfig,
+        ledger::{customer::CustomerLedgerAccountIds, LedgerConfig},
+        terms::{Duration, InterestInterval},
+    };
+
+    use super::*;
+
+    #[tokio::test]
+    async fn interest_accrual_lifecycle_2() -> anyhow::Result<()> {
+        pub async fn init_pool() -> anyhow::Result<sqlx::PgPool> {
+            let pg_host = std::env::var("PG_HOST").unwrap_or("localhost".to_string());
+            let pg_con = format!("postgres://user:password@{pg_host}:5433/pg");
+            let pool = sqlx::PgPool::connect(&pg_con).await?;
+            Ok(pool)
+        }
+
+        pub async fn init_users(
+            pool: &sqlx::PgPool,
+            authz: &Authorization<Audit<Subject, LavaObject, LavaAction>, Role>,
+        ) -> anyhow::Result<(
+            Users<Audit<Subject, LavaObject, LavaAction>, LavaEvent>,
+            Subject,
+        )> {
+            let superuser_email = "superuser@test.io".to_string();
+            let outbox = Outbox::init(pool).await?;
+            let users = Users::init(pool, authz, &outbox, Some(superuser_email.clone())).await?;
+            let superuser = users
+                .find_by_email(None, &superuser_email)
+                .await?
+                .expect("Superuser not found");
+            Ok((users, Subject::from(superuser.id)))
+        }
+
+        fn generate_random_username() -> String {
+            let random_string: String = Alphanumeric.sample_string(&mut rand::thread_rng(), 32);
+            random_string.to_lowercase()
+        }
+
+        fn generate_email(username: &String) -> String {
+            format!("{}@example.com", username)
+        }
+
+        fn default_terms() -> TermValues {
+            TermValues::builder()
+                .annual_rate(dec!(12))
+                .duration(Duration::Months(3))
+                .accrual_interval(InterestInterval::EndOfMonth)
+                .incurrence_interval(InterestInterval::EndOfDay)
+                .liquidation_cvl(dec!(105))
+                .margin_call_cvl(dec!(125))
+                .initial_cvl(dec!(140))
+                .build()
+                .expect("should build a valid term")
+        }
+
+        fn dummy_audit_info() -> AuditInfo {
+            AuditInfo {
+                audit_entry_id: AuditEntryId::from(1),
+                sub: "sub".to_string(),
+            }
+        }
+
+        let pool = init_pool().await?;
+        let jobs = Jobs::new(&pool, JobExecutorConfig::default());
+        let export = Export::new(LedgerConfig::default().cala_url.clone(), &jobs);
+        let outbox = Outbox::init(&pool).await?;
+        let publisher = CreditFacilityPublisher::new(&export, &outbox);
+        let credit_facility_repo = CreditFacilityRepo::new(&pool, &publisher);
+        let disbursal_repo = DisbursalRepo::new(&pool, &export);
+
+        let audit = Audit::new(&pool);
+        let authz = Authorization::init(&pool, &audit).await?;
+        authz
+            .add_permission_to_role(
+                &LavaRole::SUPERUSER,
+                Object::Customer(CustomerAllOrOne::All),
+                CustomerAction::Create,
+            )
+            .await?;
+
+        let governance = Governance::new(&pool, &authz, &outbox);
+        let _ = governance
+            .init_policy(APPROVE_CREDIT_FACILITY_PROCESS)
+            .await;
+        let _ = governance.init_policy(APPROVE_DISBURSAL_PROCESS).await;
+
+        let ledger = Ledger::init(LedgerConfig::default(), &authz).await?;
+        let customers =
+            Customers::new(&pool, &&CustomerConfig::default(), &ledger, &authz, &export);
+
+        let price = Price::init(&jobs, &export).await?;
+
+        let (_, superuser_subject) = init_users(&pool, &authz).await?;
+
+        let username = &generate_random_username();
+        let customer = customers
+            .create(
+                &superuser_subject,
+                generate_email(username),
+                username.to_string(),
+            )
+            .await?;
+
+        let id = CreditFacilityId::new();
+
+        let new_credit_facility = NewCreditFacility::builder()
+            .id(id)
+            .approval_process_id(id)
+            .customer_id(customer.id)
+            .terms(default_terms())
+            .facility(UsdCents::from(1_000_000_00))
+            .account_ids(CreditFacilityAccountIds::new())
+            .customer_account_ids(CustomerLedgerAccountIds::new())
+            .audit_info(dummy_audit_info())
+            .build()
+            .expect("could not build new credit facility");
+        let mut db = credit_facility_repo.begin_op().await?;
+        governance
+            .start_process(&mut db, id, id.to_string(), APPROVE_CREDIT_FACILITY_PROCESS)
+            .await?;
+        let mut credit_facility = credit_facility_repo
+            .create_in_op(&mut db, new_credit_facility)
+            .await?;
+
+        credit_facility
+            .approval_process_concluded(true, dummy_audit_info())
+            .did_execute();
+
+        let credit_facility_collateral_update =
+            credit_facility.initiate_collateral_update(Satoshis::from(100_00_000_000))?;
+
+        let price = price.usd_cents_per_btc().await?;
+        credit_facility.confirm_collateral_update(
+            credit_facility_collateral_update,
+            Utc::now(),
+            dummy_audit_info(),
+            price,
+            CreditFacilityConfig::default().upgrade_buffer_cvl_pct,
+        );
+        credit_facility_repo
+            .update_in_op(&mut db, &mut credit_facility)
+            .await?;
+
+        let credit_facility_activation = credit_facility.activation_data(price)?;
+        credit_facility
+            .activate(credit_facility_activation, Utc::now(), dummy_audit_info())
+            .did_execute();
+        credit_facility_repo
+            .update_in_op(&mut db, &mut credit_facility)
+            .await?;
+        assert_eq!(credit_facility.status(), CreditFacilityStatus::Active);
+
+        let new_disbursal = credit_facility.initiate_disbursal(
+            UsdCents::from(100_000_00),
+            Utc::now(),
+            dummy_audit_info(),
+        )?;
+        governance
+            .start_process(
+                &mut db,
+                new_disbursal.approval_process_id,
+                new_disbursal.approval_process_id.to_string(),
+                APPROVE_DISBURSAL_PROCESS,
+            )
+            .await?;
+        credit_facility_repo
+            .update_in_op(&mut db, &mut credit_facility)
+            .await?;
+        let mut disbursal = disbursal_repo.create_in_op(&mut db, new_disbursal).await?;
+        disbursal
+            .approval_process_concluded(true, dummy_audit_info())
+            .did_execute();
+        let disbursal_data = disbursal.disbursal_data()?;
+        disbursal.confirm(&disbursal_data, Utc::now(), dummy_audit_info());
+        credit_facility.confirm_disbursal(
+            &disbursal,
+            Some(disbursal_data.tx_id),
+            Utc::now(),
+            dummy_audit_info(),
+        );
+
+        let account_ids = credit_facility.account_ids;
+        {
+            let outstanding = credit_facility.outstanding();
+            let accrual = credit_facility
+                .interest_accrual_in_progress()
+                .expect("Accrual in progress should exist for scheduled job");
+            assert_eq!(accrual.count_incurred(), 0);
+
+            let interest_incurrence = accrual.initiate_incurrence(outstanding, account_ids);
+            accrual.confirm_incurrence(interest_incurrence, dummy_audit_info());
+        }
+        credit_facility_repo
+            .update_in_op(&mut db, &mut credit_facility)
+            .await?;
+
+        db.commit().await?;
+
+        credit_facility = credit_facility_repo.find_by_id(credit_facility.id).await?;
+        let accrual = credit_facility
+            .interest_accrual_in_progress()
+            .expect("Accrual in progress should exist for scheduled job");
+        assert_eq!(accrual.count_incurred(), 1);
+        Ok(())
+    }
+}
