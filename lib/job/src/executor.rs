@@ -247,7 +247,7 @@ impl JobExecutor {
     }
 
     #[instrument(name = "job.execute", skip_all,
-        fields(job_id, job_type, attempt, error, error.level, error.message),
+        fields(job_id, job_type, attempt, error, error.level, error.message, conclusion),
     err)]
     async fn execute_job(
         job: Job,
@@ -286,35 +286,43 @@ impl JobExecutor {
             JobError::JobExecutionError(error)
         })? {
             JobCompletion::Complete => {
+                span.record("conclusion", "Complete");
                 let op = repo.begin_op().await?;
                 Self::complete_job(op, id, repo).await?;
             }
             JobCompletion::CompleteWithOp(op) => {
+                span.record("conclusion", "CompleteWithOp");
                 Self::complete_job(op, id, repo).await?;
             }
             JobCompletion::RescheduleNow => {
+                span.record("conclusion", "RescheduleNow");
                 let op = repo.begin_op().await?;
                 let t = op.now();
                 Self::reschedule_job(op, id, t).await?;
             }
             JobCompletion::RescheduleNowWithOp(op) => {
+                span.record("conclusion", "RescheduleNowWithOp");
                 let t = op.now();
                 Self::reschedule_job(op, id, t).await?;
             }
             JobCompletion::RescheduleIn(d) => {
+                span.record("conclusion", "RescheduleIn");
                 let op = repo.begin_op().await?;
                 let t = op.now() + d;
                 Self::reschedule_job(op, id, t).await?;
             }
             JobCompletion::RescheduleInWithOp(d, op) => {
+                span.record("conclusion", "RescheduleInWithOp");
                 let t = op.now() + d;
                 Self::reschedule_job(op, id, t).await?;
             }
             JobCompletion::RescheduleAt(t) => {
+                span.record("conclusion", "RescheduleAtAt");
                 let op = repo.begin_op().await?;
                 Self::reschedule_job(op, id, t).await?;
             }
             JobCompletion::RescheduleAtWithOp(op, t) => {
+                span.record("conclusion", "RescheduleAtWithOp");
                 Self::reschedule_job(op, id, t).await?;
             }
         }
