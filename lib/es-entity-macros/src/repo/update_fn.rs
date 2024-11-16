@@ -86,6 +86,8 @@ impl<'a> ToTokens for UpdateFn<'a> {
                 op: &mut es_entity::DbOp<'_>,
                 entity: &mut #entity
             ) -> Result<bool, #error> {
+                #(#nested)*
+
                 if !Self::extract_events(entity).any_new() {
                     return Ok(false);
                 }
@@ -95,8 +97,6 @@ impl<'a> ToTokens for UpdateFn<'a> {
                     let events = Self::extract_events(entity);
                     self.persist_events(op, events).await?
                 };
-
-                #(#nested)*
 
                 self.execute_post_persist_hook(op, &entity, entity.events().last_persisted(n_events)).await?;
 
