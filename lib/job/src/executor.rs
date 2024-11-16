@@ -117,6 +117,7 @@ impl JobExecutor {
             span.record("n_jobs_running", running_jobs.len());
             if *keep_alive {
                 let ids = running_jobs.keys().cloned().collect::<Vec<_>>();
+                let now = crate::time::now();
                 sqlx::query!(
                     r#"
                     UPDATE job_executions
@@ -124,7 +125,7 @@ impl JobExecutor {
                     WHERE id = ANY($1)
                     "#,
                     &ids as &[JobId],
-                    crate::time::now(),
+                    now,
                     pg_interval
                 )
                 .fetch_all(jobs.pool())
@@ -136,7 +137,7 @@ impl JobExecutor {
                     SET state = 'pending', attempt_index = attempt_index + 1
                     WHERE state = 'running' AND reschedule_after < $1::timestamptz + $2::interval
                     "#,
-                    crate::time::now(),
+                    now,
                     pg_interval
                 )
                 .fetch_all(jobs.pool())
