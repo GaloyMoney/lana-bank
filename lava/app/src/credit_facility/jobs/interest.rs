@@ -1,5 +1,6 @@
 use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
+use tracing::instrument;
 
 use crate::{
     audit::*,
@@ -63,10 +64,19 @@ pub struct CreditFacilityProcessingJobRunner {
 
 #[async_trait]
 impl JobRunner for CreditFacilityProcessingJobRunner {
+    #[instrument(
+        name = "credit-facility.interest.job",
+        skip(self, current_job),
+        fields(attempt)
+    )]
     async fn run(
         &self,
-        _current_job: CurrentJob,
+        current_job: CurrentJob,
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
+        let attempt = current_job.attempt();
+        let span = tracing::Span::current();
+        span.record("attempt", current_job.attempt());
+
         let mut credit_facility = self
             .credit_facility_repo
             .find_by_id(self.config.credit_facility_id)
