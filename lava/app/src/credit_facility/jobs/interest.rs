@@ -73,7 +73,6 @@ impl JobRunner for CreditFacilityProcessingJobRunner {
         &self,
         current_job: CurrentJob,
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
-        let attempt = current_job.attempt();
         let span = tracing::Span::current();
         span.record("attempt", current_job.attempt());
 
