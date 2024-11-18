@@ -489,12 +489,19 @@ type CreditFacilityEdge {
 	cursor: String!
 }
 
-union CreditFacilityHistoryEntry = CreditFacilityIncrementalPayment | CreditFacilityCollateralUpdated | CreditFacilityOrigination | CreditFacilityCollateralizationUpdated | CreditFacilityDisbursalExecuted
+union CreditFacilityHistoryEntry = CreditFacilityIncrementalPayment | CreditFacilityCollateralUpdated | CreditFacilityOrigination | CreditFacilityCollateralizationUpdated | CreditFacilityDisbursalExecuted | CreditFacilityInterestAccrued
 
 type CreditFacilityIncrementalPayment {
 	cents: UsdCents!
 	recordedAt: Timestamp!
 	txId: UUID!
+}
+
+type CreditFacilityInterestAccrued {
+	cents: UsdCents!
+	recordedAt: Timestamp!
+	txId: UUID!
+	days: Int!
 }
 
 type CreditFacilityOrigination {

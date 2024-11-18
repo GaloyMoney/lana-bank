@@ -9,7 +9,8 @@ pub enum CreditFacilityHistoryEntry {
     Collateral(CreditFacilityCollateralUpdated),
     Origination(CreditFacilityOrigination),
     Collateralization(CreditFacilityCollateralizationUpdated),
-    Disburssal(CreditFacilityDisbursalExecuted),
+    Disbursal(CreditFacilityDisbursalExecuted),
+    Interest(CreditFacilityInterestAccrued),
 }
 
 #[derive(SimpleObject)]
@@ -51,6 +52,14 @@ pub struct CreditFacilityDisbursalExecuted {
     pub tx_id: UUID,
 }
 
+#[derive(SimpleObject)]
+pub struct CreditFacilityInterestAccrued {
+    pub cents: UsdCents,
+    pub recorded_at: Timestamp,
+    pub tx_id: UUID,
+    pub days: i64,
+}
+
 impl From<lava_app::credit_facility::CreditFacilityHistoryEntry> for CreditFacilityHistoryEntry {
     fn from(transaction: lava_app::credit_facility::CreditFacilityHistoryEntry) -> Self {
         match transaction {
@@ -67,7 +76,10 @@ impl From<lava_app::credit_facility::CreditFacilityHistoryEntry> for CreditFacil
                 collateralization,
             ) => CreditFacilityHistoryEntry::Collateralization(collateralization.into()),
             lava_app::credit_facility::CreditFacilityHistoryEntry::Disbursal(disbursal) => {
-                CreditFacilityHistoryEntry::Disburssal(disbursal.into())
+                CreditFacilityHistoryEntry::Disbursal(disbursal.into())
+            }
+            lava_app::credit_facility::CreditFacilityHistoryEntry::Interest(interest) => {
+                CreditFacilityHistoryEntry::Interest(interest.into())
             }
         }
     }
@@ -125,6 +137,17 @@ impl From<lava_app::credit_facility::DisbursalExecuted> for CreditFacilityDisbur
             cents: disbursal.cents,
             recorded_at: disbursal.recorded_at.into(),
             tx_id: UUID::from(disbursal.tx_id),
+        }
+    }
+}
+
+impl From<lava_app::credit_facility::InterestAccrued> for CreditFacilityInterestAccrued {
+    fn from(interest: lava_app::credit_facility::InterestAccrued) -> Self {
+        Self {
+            cents: interest.cents,
+            recorded_at: interest.recorded_at.into(),
+            tx_id: UUID::from(interest.tx_id),
+            days: interest.days,
         }
     }
 }

@@ -38,12 +38,20 @@ pub struct DisbursalExecuted {
     pub tx_id: LedgerTxId,
 }
 
+pub struct InterestAccrued {
+    pub cents: UsdCents,
+    pub recorded_at: DateTime<Utc>,
+    pub days: i64,
+    pub tx_id: LedgerTxId,
+}
+
 pub enum CreditFacilityHistoryEntry {
     Payment(IncrementalPayment),
     Collateral(CollateralUpdated),
     Origination(CreditFacilityOrigination),
     Collateralization(CollateralizationUpdated),
     Disbursal(DisbursalExecuted),
+    Interest(InterestAccrued),
 }
 
 pub(super) fn project<'a>(
@@ -51,6 +59,7 @@ pub(super) fn project<'a>(
 ) -> Vec<CreditFacilityHistoryEntry> {
     let mut history = vec![];
     let mut disbursals = std::collections::HashMap::new();
+    let mut interest_accruals = std::collections::HashMap::new();
 
     let mut initial_facility = None;
     for event in events {
@@ -146,6 +155,30 @@ pub(super) fn project<'a>(
                     tx_id: *tx_id,
                 }));
             }
+            CreditFacilityEvent::InterestAccrualStarted {
+                idx, started_at, ..
+            } => {
+                interest_accruals.insert(*idx, *started_at);
+            }
+            CreditFacilityEvent::InterestAccrualConcluded {
+                idx,
+                tx_id,
+                amount,
+                accrued_at,
+                ..
+            } => {
+                let started_at = interest_accruals
+                    .remove(idx)
+                    .expect("Accrual must have been initiated");
+                let days = (*accrued_at - started_at).num_days();
+                history.push(CreditFacilityHistoryEntry::Interest(InterestAccrued {
+                    cents: *amount,
+                    tx_id: *tx_id,
+                    days,
+                    recorded_at: *accrued_at,
+                }));
+            }
+
             _ => {}
         }
     }
