@@ -10,6 +10,17 @@ teardown_file() {
   stop_server
 }
 
+wait_for_interest() {
+  variables=$(
+    jq -n \
+      --arg creditFacilityId "$1" \
+    '{ id: $creditFacilityId }'
+  )
+  exec_admin_graphql 'find-credit-facility' "$variables"
+  interest=$(graphql_output '.data.creditFacility.balance.interest.total.usdBalance')
+  [[ "$interest" -gt 0 ]] || exit 1
+}
+
 @test "credit-facility: can create" {
   # Setup prerequisites
   customer_id=$(create_customer)
@@ -64,8 +75,6 @@ teardown_file() {
 }
 
 @test "credit-facility: can initiate disbursal" {
-  sleep 10
-
   credit_facility_id=$(read_value 'credit_facility_id')
 
   amount=50000
@@ -86,12 +95,5 @@ teardown_file() {
   status=$(graphql_output '.data.creditFacilityDisbursalInitiate.disbursal.status')
   [[ "$status" == "CONFIRMED" ]] || exit 1
 
-  variables=$(
-    jq -n \
-      --arg creditFacilityId "$credit_facility_id" \
-    '{ id: $creditFacilityId }'
-  )
-  exec_admin_graphql 'find-credit-facility' "$variables"
-  echo $(graphql_output) | jq .
-  exit 1
+  retry 60 1 wait_for_interest "$credit_facility_id"
 }
