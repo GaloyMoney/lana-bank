@@ -16,5 +16,5 @@ time:
   realtime: false
   sim_time:
     start_at: "2021-01-01T00:00:00Z"
-    tick_interval_ms: 10
-    tick_duration_secs: 600
+    tick_interval_ms: 1
+    tick_duration_secs: 1000
