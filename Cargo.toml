@@ -29,7 +29,7 @@ anyhow = "1.0.92"
 async-graphql = { version = "7.0.11", default-features = false, features = ["dataloader", "tracing", "chrono", "playground"] }
 async-graphql-axum = "7.0.9"
 async-trait = "0.1.80"
-axum = { version = "0.7.7", features = ["macros"] }
+axum = { version = "0.7.9", features = ["macros"] }
 axum-extra = { version = "0.9.4", default-features = false, features = ["tracing", "typed-header"] }
 chrono = { version = "0.4.31", features = ["clock", "serde"], default-features = false }
 clap = { version = "4.5", features = ["derive", "env"] }
