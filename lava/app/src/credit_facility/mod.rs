@@ -393,7 +393,6 @@ impl CreditFacilities {
             &mut db,
             &self.ledger,
             self.authz.audit(),
-            &self.credit_facility_repo,
             &self.jobs,
             price,
         )

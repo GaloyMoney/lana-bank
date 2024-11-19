@@ -105,7 +105,6 @@ impl ApproveCreditFacility {
             &mut db,
             &self.ledger,
             &self.audit,
-            &self.repo,
             &self.jobs,
             price,
         )
