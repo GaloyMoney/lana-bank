@@ -14,7 +14,8 @@ pub use lava_app::{
     app::LavaApp,
     customer::{
         Customer as DomainCustomer, CustomersByCreatedAtCursor, CustomersByEmailCursor,
-        CustomersByTelegramIdCursor, CustomersCursor,
+        CustomersByTelegramIdCursor, CustomersCursor, CustomersSortBy as DomainCustomersSortBy,
+        FindManyCustomers, Sort,
     },
 };
 
@@ -172,12 +173,31 @@ pub enum CustomersSortBy {
     TelegramId,
 }
 
+impl From<CustomersSortBy> for DomainCustomersSortBy {
+    fn from(by: CustomersSortBy) -> Self {
+        match by {
+            CustomersSortBy::CreatedAt => DomainCustomersSortBy::CreatedAt,
+            CustomersSortBy::Email => DomainCustomersSortBy::Email,
+            CustomersSortBy::TelegramId => DomainCustomersSortBy::TelegramId,
+        }
+    }
+}
+
 #[derive(InputObject, Default)]
 pub struct CustomersSort {
     #[graphql(default)]
     pub by: CustomersSortBy,
     #[graphql(default)]
     pub direction: SortDirection,
+}
+
+impl From<CustomersSort> for Sort<DomainCustomersSortBy> {
+    fn from(sort: CustomersSort) -> Self {
+        Self {
+            by: sort.by.into(),
+            direction: sort.direction.into(),
+        }
+    }
 }
 
 #[derive(async_graphql::Enum, Debug, Clone, Copy, PartialEq, Eq)]

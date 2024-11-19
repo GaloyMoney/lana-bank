@@ -76,106 +76,54 @@ impl Query {
         filter: Option<CustomersFilter>,
     ) -> async_graphql::Result<Connection<CustomersCursor, Customer, EmptyFields, EmptyFields>>
     {
-        let sort = sort.unwrap_or_default();
         let (filter_field, status) = match filter {
             Some(filter) => (Some(filter.field), filter.status),
             None => (None, None),
         };
+        let filter = match filter_field {
+            None => FindManyCustomers::NoFilter,
+            Some(CustomersFilterBy::AccountStatus) => {
+                let status = status.ok_or(CustomerError::MissingValueForFilterField(
+                    "status".to_string(),
+                ))?;
+                FindManyCustomers::WithStatus(status)
+            }
+        };
 
+        let sort = sort.unwrap_or_default();
         let (app, sub) = app_and_sub_from_ctx!(ctx);
-        match (sort.by, filter_field) {
-            (CustomersSortBy::Email, None) => {
-                list_with_combo_cursor!(
+        match sort.by {
+            CustomersSortBy::Email => {
+                alt_list_with_combo_cursor!(
                     CustomersCursor,
                     CustomersByEmailCursor,
                     Customer,
                     ctx,
                     after,
                     first,
-                    |query| app.customers().list_by_email(sub, query, sort.direction)
+                    |query| app.customers().list(sub, query, filter, sort)
                 )
             }
-            (CustomersSortBy::Email, Some(CustomersFilterBy::AccountStatus)) => {
-                let status = status.ok_or(CustomerError::MissingValueForFilterField(
-                    "status".to_string(),
-                ))?;
-                list_with_combo_cursor!(
-                    CustomersCursor,
-                    CustomersByEmailCursor,
-                    Customer,
-                    ctx,
-                    after,
-                    first,
-                    |query| app.customers().list_by_email_for_status(
-                        sub,
-                        status,
-                        query,
-                        sort.direction
-                    )
-                )
-            }
-            (CustomersSortBy::CreatedAt, None) => {
-                list_with_combo_cursor!(
+            CustomersSortBy::CreatedAt => {
+                alt_list_with_combo_cursor!(
                     CustomersCursor,
                     CustomersByCreatedAtCursor,
                     Customer,
                     ctx,
                     after,
                     first,
-                    |query| app
-                        .customers()
-                        .list_by_created_at(sub, query, sort.direction)
+                    |query| app.customers().list(sub, query, filter, sort)
                 )
             }
-            (CustomersSortBy::CreatedAt, Some(CustomersFilterBy::AccountStatus)) => {
-                let status = status.ok_or(CustomerError::MissingValueForFilterField(
-                    "status".to_string(),
-                ))?;
-                list_with_combo_cursor!(
-                    CustomersCursor,
-                    CustomersByCreatedAtCursor,
-                    Customer,
-                    ctx,
-                    after,
-                    first,
-                    |query| app.customers().list_by_created_at_for_status(
-                        sub,
-                        status,
-                        query,
-                        sort.direction
-                    )
-                )
-            }
-            (CustomersSortBy::TelegramId, None) => {
-                list_with_combo_cursor!(
+            CustomersSortBy::TelegramId => {
+                alt_list_with_combo_cursor!(
                     CustomersCursor,
                     CustomersByTelegramIdCursor,
                     Customer,
                     ctx,
                     after,
                     first,
-                    |query| app
-                        .customers()
-                        .list_by_telegram_id(sub, query, sort.direction)
-                )
-            }
-            (CustomersSortBy::TelegramId, Some(CustomersFilterBy::AccountStatus)) => {
-                let status = status.ok_or(CustomerError::MissingValueForFilterField(
-                    "status".to_string(),
-                ))?;
-                list_with_combo_cursor!(
-                    CustomersCursor,
-                    CustomersByTelegramIdCursor,
-                    Customer,
-                    ctx,
-                    after,
-                    first,
-                    |query| app.customers().list_by_telegram_id_for_status(
-                        sub,
-                        status,
-                        query,
-                        sort.direction
-                    )
+                    |query| app.customers().list(sub, query, filter, sort)
                 )
             }
         }

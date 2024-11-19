@@ -1,5 +1,6 @@
 use sqlx::PgPool;
 
+pub use es_entity::Sort;
 use es_entity::*;
 
 use crate::{data_export::Export, primitives::*};

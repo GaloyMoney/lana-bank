@@ -14,14 +14,14 @@ use crate::{
     authorization::{Action, Authorization, CustomerAction, CustomerAllOrOne, Object},
     data_export::Export,
     ledger::*,
-    primitives::{AccountStatus, CustomerId, KycLevel, Subject},
+    primitives::{CustomerId, KycLevel, Subject},
 };
 
 pub use config::*;
 pub use entity::*;
 use error::CustomerError;
 use kratos::*;
-pub use repo::{customer_cursor::*, CustomerRepo};
+pub use repo::{customer_cursor::*, CustomerRepo, CustomersSortBy, FindManyCustomers, Sort};
 
 #[derive(Clone)]
 pub struct Customers {
@@ -187,12 +187,13 @@ impl Customers {
         }
     }
 
-    pub async fn list_by_email(
+    pub async fn list(
         &self,
         sub: &Subject,
-        query: es_entity::PaginatedQueryArgs<CustomersByEmailCursor>,
-        direction: impl Into<es_entity::ListDirection>,
-    ) -> Result<es_entity::PaginatedQueryRet<Customer, CustomersByEmailCursor>, CustomerError> {
+        query: es_entity::PaginatedQueryArgs<CustomersCursor>,
+        filter: FindManyCustomers,
+        sort: impl Into<Sort<CustomersSortBy>>,
+    ) -> Result<es_entity::PaginatedQueryRet<Customer, CustomersCursor>, CustomerError> {
         self.authz
             .enforce_permission(
                 sub,
@@ -200,100 +201,7 @@ impl Customers {
                 CustomerAction::List,
             )
             .await?;
-        self.repo.list_by_email(query, direction.into()).await
-    }
-
-    pub async fn list_by_email_for_status(
-        &self,
-        sub: &Subject,
-        status: AccountStatus,
-        query: es_entity::PaginatedQueryArgs<CustomersByEmailCursor>,
-        direction: impl Into<es_entity::ListDirection>,
-    ) -> Result<es_entity::PaginatedQueryRet<Customer, CustomersByEmailCursor>, CustomerError> {
-        self.authz
-            .enforce_permission(
-                sub,
-                Object::Customer(CustomerAllOrOne::All),
-                CustomerAction::List,
-            )
-            .await?;
-        self.repo
-            .list_for_status_by_email(status, query, direction.into())
-            .await
-    }
-
-    pub async fn list_by_created_at(
-        &self,
-        sub: &Subject,
-        query: es_entity::PaginatedQueryArgs<CustomersByCreatedAtCursor>,
-        direction: impl Into<es_entity::ListDirection>,
-    ) -> Result<es_entity::PaginatedQueryRet<Customer, CustomersByCreatedAtCursor>, CustomerError>
-    {
-        self.authz
-            .enforce_permission(
-                sub,
-                Object::Customer(CustomerAllOrOne::All),
-                CustomerAction::List,
-            )
-            .await?;
-        self.repo.list_by_created_at(query, direction.into()).await
-    }
-
-    pub async fn list_by_created_at_for_status(
-        &self,
-        sub: &Subject,
-        status: AccountStatus,
-        query: es_entity::PaginatedQueryArgs<CustomersByCreatedAtCursor>,
-        direction: impl Into<es_entity::ListDirection>,
-    ) -> Result<es_entity::PaginatedQueryRet<Customer, CustomersByCreatedAtCursor>, CustomerError>
-    {
-        self.authz
-            .enforce_permission(
-                sub,
-                Object::Customer(CustomerAllOrOne::All),
-                CustomerAction::List,
-            )
-            .await?;
-        self.repo
-            .list_for_status_by_created_at(status, query, direction.into())
-            .await
-    }
-
-    pub async fn list_by_telegram_id(
-        &self,
-        sub: &Subject,
-        query: es_entity::PaginatedQueryArgs<CustomersByTelegramIdCursor>,
-        direction: impl Into<es_entity::ListDirection>,
-    ) -> Result<es_entity::PaginatedQueryRet<Customer, CustomersByTelegramIdCursor>, CustomerError>
-    {
-        self.authz
-            .enforce_permission(
-                sub,
-                Object::Customer(CustomerAllOrOne::All),
-                CustomerAction::List,
-            )
-            .await?;
-        self.repo.list_by_telegram_id(query, direction.into()).await
-    }
-
-    pub async fn list_by_telegram_id_for_status(
-        &self,
-        sub: &Subject,
-        status: AccountStatus,
-        query: es_entity::PaginatedQueryArgs<CustomersByTelegramIdCursor>,
-        direction: impl Into<es_entity::ListDirection>,
-    ) -> Result<es_entity::PaginatedQueryRet<Customer, CustomersByTelegramIdCursor>, CustomerError>
-    {
-        self.authz
-            .enforce_permission(
-                sub,
-                Object::Customer(CustomerAllOrOne::All),
-                CustomerAction::List,
-            )
-            .await?;
-        self.repo
-            .list_for_status_by_telegram_id(status, query, direction.into())
-            .await
+        self.repo.find_many(filter, sort.into(), query).await
     }
 
     pub async fn start_kyc(
