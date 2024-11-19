@@ -1,7 +1,10 @@
+use tracing::instrument;
+
 use crate::audit::Audit;
 
 use super::*;
 
+#[instrument(name = "credit_facility.activate.execute", skip_all)]
 pub(super) async fn execute(
     credit_facility: &mut CreditFacility,
     db: &mut es_entity::DbOp<'_>,
