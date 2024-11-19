@@ -1,5 +1,4 @@
 use async_trait::async_trait;
-use chrono::Utc;
 use futures::StreamExt;
 
 use job::*;
@@ -86,6 +85,7 @@ impl JobRunner for DashboardProjectionJobRunner {
             }
         }
 
-        Ok(JobCompletion::RescheduleAt(Utc::now()))
+        let now = crate::time::now();
+        Ok(JobCompletion::RescheduleAt(now))
     }
 }

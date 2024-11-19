@@ -10,6 +10,7 @@ fail-on-warnings = []
 [dependencies]
 lava-events = { path = "../events" }
 core-money = { path = "../../core/money" }
+sim-time = { path = "../../lib/sim-time", optional = true }
 
 es-entity = { path = "../../lib/es-entity", features = ["graphql"] }
 authz = { path = "../../lib/authz" }
