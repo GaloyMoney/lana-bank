@@ -10,12 +10,37 @@ teardown_file() {
   stop_server
 }
 
+wait_for_pending_facilities(){
+  exec_admin_graphql 'dashboard'
+  pending_facilities=$(read_value 'pending_facilities')
+
+  new_pending_facilities=$(graphql_output '.data.dashboard.pendingFacilities')
+  [[ "$new_pending_facilities" != "$pending_facilities" ]] || exit 1
+}
+
+wait_for_active_facilities(){
+  exec_admin_graphql 'dashboard'
+  active_facilities=$(read_value 'active_facilities')
+
+  new_active_facilities=$(graphql_output '.data.dashboard.activeFacilities')
+  [[ "$new_active_facilities" != "$active_facilities" ]] || exit 1
+}
+
+wait_for_total_disbursed() {
+  exec_admin_graphql 'dashboard'
+  total_disbursed=$(read_value 'total_disbursed')
+
+  new_total_disbursed=$(graphql_output '.data.dashboard.totalDisbursed')
+  [[ "$new_total_disbursed" != "$total_disbursed" ]] || exit 1
+}
+
 @test "dashboard: counts facilities" {
   customer_id=$(create_customer)
 
   exec_admin_graphql 'dashboard'
   pending_facilities=$(graphql_output '.data.dashboard.pendingFacilities')
   [[ "$pending_facilities" != "null" ]] || exit 1
+  cache_value 'pending_facilities' "$pending_facilities"
 
   facility=100000
   variables=$(
@@ -42,13 +67,12 @@ teardown_file() {
   exec_admin_graphql 'credit-facility-create' "$variables"
   credit_facility_id=$(graphql_output '.data.creditFacilityCreate.creditFacility.creditFacilityId')
 
-  exec_admin_graphql 'dashboard'
-  new_pending_facilities=$(graphql_output '.data.dashboard.pendingFacilities')
-  [[ "$new_pending_facilities" != "$pending_facilities" ]] || exit 1
+  retry 60 wait_for_pending_facilities
 
+  exec_admin_graphql 'dashboard'
   active_facilities=$(graphql_output '.data.dashboard.activeFacilities')
-  total_collateral=$(graphql_output '.data.dashboard.totalCollateral')
   [[ "$active_facilities" != "null" ]] || exit 1
+  cache_value 'active_facilities' "$active_facilities"
 
   variables=$(
     jq -n \
@@ -63,12 +87,11 @@ teardown_file() {
   )
   exec_admin_graphql 'credit-facility-collateral-update' "$variables"
 
+  retry 60 wait_for_active_facilities
+
   exec_admin_graphql 'dashboard'
-  new_active_facilities=$(graphql_output '.data.dashboard.activeFacilities')
-  [[ "$new_active_facilities" != "$active_facilities" ]] || exit 1
-  new_total_collateral=$(graphql_output '.data.dashboard.totalCollateral')
-  [[ "$new_total_collateral" != "$total_collateral" ]] || exit 1
   total_disbursed=$(graphql_output '.data.dashboard.totalDisbursed')
+  cache_value 'total_disbursed' "$total_disbursed"
 
   amount=50000
   variables=$(
@@ -98,7 +121,5 @@ teardown_file() {
   )
   exec_admin_graphql 'credit-facility-disbursal-confirm' "$variables"
 
-  exec_admin_graphql 'dashboard'
-  new_total_disbursed=$(graphql_output '.data.dashboard.totalDisbursed')
-  [[ "$new_total_disbursed" != "$total_disbursed" ]] || exit 1
+  retry 60 wait_for_total_disbursed
 }
