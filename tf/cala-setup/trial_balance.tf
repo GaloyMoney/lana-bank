@@ -57,6 +57,10 @@ resource "cala_account_set_member_account_set" "interest_revenue_in_trial_balanc
   member_account_set_id = cala_account_set.interest_revenue_control.id
 }
 
+resource "cala_account_set_member_account_set" "credit_facilities_interest_revenue_in_trial_balance" {
+  account_set_id        = cala_account_set.trial_balance.id
+  member_account_set_id = cala_account_set.credit_facilities_interest_revenue_control.id
+}
 
 # EXPENSES: Members
 # <None>

@@ -72,8 +72,8 @@ wait_for_approval() {
   )
   exec_admin_graphql 'record-deposit' "$variables"
   deposit_id=$(graphql_output '.data.depositRecord.deposit.depositId')
+  echo $(graphql_output)
   [[ "$deposit_id" != "null" ]] || exit 1
-  echo $(graphql_output) | jq .
 
   usd_balance=$(graphql_output '.data.depositRecord.deposit.customer.balance.checking.settled')
   [[ "$usd_balance" == "150000" ]] || exit 1

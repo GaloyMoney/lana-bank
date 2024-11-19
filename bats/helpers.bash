@@ -293,14 +293,17 @@ assert_balance_sheet_balanced() {
 
   balance_usd=$(graphql_output '.data.balanceSheet.balance.usd.balancesByLayer.settled.netDebit')
   balance=${balance_usd}
+  echo "Balance Sheet USD Balance (should be 0): $balance"
   [[ "$balance" == "0" ]] || exit 1
 
   debit_usd=$(graphql_output '.data.balanceSheet.balance.usd.balancesByLayer.settled.debit')
   debit=${debit_usd}
+  echo "Balance Sheet USD Debit (should be >0): $debit"
   [[ "$debit" -gt "0" ]] || exit 1
 
   credit_usd=$(graphql_output '.data.balanceSheet.balance.usd.balancesByLayer.settled.credit')
   credit=${credit_usd}
+  echo "Balance Sheet USD Credit (should be == debit): $credit"
   [[ "$credit" == "$debit" ]] || exit 1
 }
 
@@ -314,9 +317,11 @@ assert_trial_balance() {
   echo $(graphql_output)
 
   all_btc=$(graphql_output '.data.trialBalance.total.btc.balancesByLayer.all.netDebit')
+  echo "Trial Balance BTC (should be zero): $all_btc"
   [[ "$all_btc" == "0" ]] || exit 1
 
   all_usd=$(graphql_output '.data.trialBalance.total.usd.balancesByLayer.all.netDebit')
+  echo "Trial Balance USD (should be zero): $all_usd"
   [[ "$all_usd" == "0" ]] || exit 1
 }
 
