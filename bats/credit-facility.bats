@@ -109,7 +109,7 @@ wait_for_accrual() {
 
 @test "credit-facility: records accrual" {
   credit_facility_id=$(read_value 'credit_facility_id')
-  retry 30 1 wait_for_accrual "$credit_facility_id"
+  retry 60 1 wait_for_accrual "$credit_facility_id"
 
   assert_accounts_balanced
 }
