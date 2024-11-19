@@ -10,6 +10,25 @@ teardown_file() {
   stop_server
 }
 
+wait_for_accrual() {
+  credit_facility_id=$1
+
+  variables=$(
+    jq -n \
+      --arg creditFacilityId "$credit_facility_id" \
+    '{ id: $creditFacilityId }'
+  )
+  exec_admin_graphql 'find-credit-facility' "$variables"
+  num_accruals=$(
+    graphql_output '[
+      .data.creditFacility.transactions[]
+      | select(.__typename == "CreditFacilityInterestAccrued")
+      ] | length'
+  )
+  [[ "$num_accruals" -gt "0" ]] || exit 1
+
+}
+
 @test "credit-facility: can create" {
   # Setup prerequisites
   customer_id=$(create_customer)
@@ -86,4 +105,9 @@ teardown_file() {
   [[ "$disbursal_index" != "null" ]] || exit 1
   status=$(graphql_output '.data.creditFacilityDisbursalInitiate.disbursal.status')
   [[ "$status" == "CONFIRMED" ]] || exit 1
+}
+
+@test "credit-facility: records accrual" {
+  credit_facility_id=$(read_value 'credit_facility_id')
+  retry 30 1 wait_for_accrual "$credit_facility_id"
 }
