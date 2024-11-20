@@ -66,7 +66,7 @@ build:
 build-for-tests:
 	SQLX_OFFLINE=true cargo build --locked --features sim-time
 
-e2e: clean-deps start-deps build-for-tests run-tf
+e2e: reset-tf-state clean-deps start-deps build-for-tests run-tf
 	bats -t bats
 
 e2e-in-ci: bump-cala-docker-image clean-deps start-deps build-for-tests run-tf
