@@ -1,10 +1,11 @@
-#[derive(Default)]
+#[derive(Default, std::fmt::Debug)]
 pub enum ListDirection {
     #[default]
     Ascending,
     Descending,
 }
 
+#[derive(std::fmt::Debug)]
 pub struct Sort<T> {
     pub by: T,
     pub direction: ListDirection,

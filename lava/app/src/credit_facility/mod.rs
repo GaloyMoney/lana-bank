@@ -41,8 +41,11 @@ use jobs::*;
 pub use processes::approve_credit_facility::*;
 pub use processes::approve_disbursal::*;
 use publisher::CreditFacilityPublisher;
-pub use repo::credit_facility_cursor::*;
 use repo::CreditFacilityRepo;
+pub use repo::{
+    credit_facility_cursor::*, CreditFacilitiesSortBy, FindManyCreditFacilities, ListDirection,
+    Sort,
+};
 use tracing::instrument;
 
 #[derive(Clone)]
@@ -484,42 +487,22 @@ impl CreditFacilities {
         Ok(credit_facility)
     }
 
-    #[instrument(name = "credit_facility.list_for_customer", skip(self), err)]
-    pub async fn list_for_customer(
+    #[instrument(name = "credit_facility.list", skip(self), err)]
+    pub async fn list(
         &self,
         sub: &Subject,
-        customer_id: CustomerId,
-    ) -> Result<Vec<CreditFacility>, CreditFacilityError> {
-        self.authz
-            .enforce_permission(sub, Object::CreditFacility, CreditFacilityAction::List)
-            .await?;
-
-        Ok(self
-            .credit_facility_repo
-            .list_for_customer_id_by_created_at(
-                customer_id,
-                Default::default(),
-                es_entity::ListDirection::Descending,
-            )
-            .await?
-            .entities)
-    }
-
-    #[instrument(name = "credit_facility.list_by_created_at", skip(self), err)]
-    pub async fn list_by_created_at(
-        &self,
-        sub: &Subject,
-        query: es_entity::PaginatedQueryArgs<CreditFacilitiesByCreatedAtCursor>,
-        direction: impl Into<es_entity::ListDirection> + std::fmt::Debug,
+        query: es_entity::PaginatedQueryArgs<CreditFacilitiesCursor>,
+        filter: FindManyCreditFacilities,
+        sort: impl Into<Sort<CreditFacilitiesSortBy>> + std::fmt::Debug,
     ) -> Result<
-        es_entity::PaginatedQueryRet<CreditFacility, CreditFacilitiesByCreatedAtCursor>,
+        es_entity::PaginatedQueryRet<CreditFacility, CreditFacilitiesCursor>,
         CreditFacilityError,
     > {
         self.authz
             .enforce_permission(sub, Object::CreditFacility, CreditFacilityAction::List)
             .await?;
         self.credit_facility_repo
-            .list_by_created_at(query, direction.into())
+            .find_many(filter, sort.into(), query)
             .await
     }
 
@@ -713,11 +696,14 @@ impl CreditFacilities {
         Ok(credit_facility)
     }
 
-    pub async fn list_disbursals_for_credit_facility(
+    pub async fn list_disbursals(
         &self,
         sub: &Subject,
-        credit_facility_id: CreditFacilityId,
-    ) -> Result<Vec<Disbursal>, CreditFacilityError> {
+        query: es_entity::PaginatedQueryArgs<DisbursalsCursor>,
+        filter: FindManyDisbursals,
+        sort: impl Into<Sort<DisbursalsSortBy>>,
+    ) -> Result<es_entity::PaginatedQueryRet<Disbursal, DisbursalsCursor>, CreditFacilityError>
+    {
         self.authz
             .enforce_permission(
                 sub,
@@ -728,35 +714,7 @@ impl CreditFacilities {
 
         let disbursals = self
             .disbursal_repo
-            .list_for_credit_facility_id_by_created_at(
-                credit_facility_id,
-                Default::default(),
-                es_entity::ListDirection::Descending,
-            )
-            .await?
-            .entities;
-        Ok(disbursals)
-    }
-
-    pub async fn list_disbursals_by_created_at(
-        &self,
-        sub: &Subject,
-        query: es_entity::PaginatedQueryArgs<DisbursalsByCreatedAtCursor>,
-    ) -> Result<
-        es_entity::PaginatedQueryRet<Disbursal, DisbursalsByCreatedAtCursor>,
-        CreditFacilityError,
-    > {
-        self.authz
-            .enforce_permission(
-                sub,
-                Object::CreditFacility,
-                CreditFacilityAction::ListDisbursals,
-            )
-            .await?;
-
-        let disbursals = self
-            .disbursal_repo
-            .list_by_created_at(query, es_entity::ListDirection::Descending)
+            .find_many(filter, sort.into(), query)
             .await?;
         Ok(disbursals)
     }

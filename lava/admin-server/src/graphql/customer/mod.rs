@@ -103,8 +103,17 @@ impl Customer {
 
         let credit_facilities: Vec<CreditFacility> = app
             .credit_facilities()
-            .list_for_customer(sub, self.entity.id)
+            .list(
+                sub,
+                Default::default(),
+                FindManyCreditFacilities::WithCustomerId(self.entity.id),
+                Sort {
+                    by: DomainCreditFacilitiesSortBy::CreatedAt,
+                    direction: ListDirection::Descending,
+                },
+            )
             .await?
+            .entities
             .into_iter()
             .map(CreditFacility::from)
             .collect();

@@ -93,39 +93,33 @@ impl Query {
         let sort = sort.unwrap_or_default();
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         match sort.by {
-            CustomersSortBy::Email => {
-                alt_list_with_combo_cursor!(
-                    CustomersCursor,
-                    CustomersByEmailCursor,
-                    Customer,
-                    ctx,
-                    after,
-                    first,
-                    |query| app.customers().list(sub, query, filter, sort)
-                )
-            }
-            CustomersSortBy::CreatedAt => {
-                alt_list_with_combo_cursor!(
-                    CustomersCursor,
-                    CustomersByCreatedAtCursor,
-                    Customer,
-                    ctx,
-                    after,
-                    first,
-                    |query| app.customers().list(sub, query, filter, sort)
-                )
-            }
-            CustomersSortBy::TelegramId => {
-                alt_list_with_combo_cursor!(
-                    CustomersCursor,
-                    CustomersByTelegramIdCursor,
-                    Customer,
-                    ctx,
-                    after,
-                    first,
-                    |query| app.customers().list(sub, query, filter, sort)
-                )
-            }
+            CustomersSortBy::Email => list_with_combo_cursor!(
+                CustomersCursor,
+                CustomersByEmailCursor,
+                Customer,
+                ctx,
+                after,
+                first,
+                |query| app.customers().list(sub, query, filter, sort)
+            ),
+            CustomersSortBy::CreatedAt => list_with_combo_cursor!(
+                CustomersCursor,
+                CustomersByCreatedAtCursor,
+                Customer,
+                ctx,
+                after,
+                first,
+                |query| app.customers().list(sub, query, filter, sort)
+            ),
+            CustomersSortBy::TelegramId => list_with_combo_cursor!(
+                CustomersCursor,
+                CustomersByTelegramIdCursor,
+                Customer,
+                ctx,
+                after,
+                first,
+                |query| app.customers().list(sub, query, filter, sort)
+            ),
         }
     }
 
@@ -230,7 +224,6 @@ impl Query {
     ) -> async_graphql::Result<
         Connection<CreditFacilitiesCursor, CreditFacility, EmptyFields, EmptyFields>,
     > {
-        let sort = sort.unwrap_or_default();
         let (filter_field, status, collateralization_state) = match filter {
             Some(filter) => (
                 Some(filter.field),
@@ -239,131 +232,45 @@ impl Query {
             ),
             None => (None, None, None),
         };
+        let filter = match filter_field {
+            None => FindManyCreditFacilities::NoFilter,
+            Some(CreditFacilitiesFilterBy::Status) => {
+                let status = status.ok_or(CreditFacilityError::MissingValueForFilterField(
+                    "status".to_string(),
+                ))?;
+                FindManyCreditFacilities::WithStatus(status)
+            }
+            Some(CreditFacilitiesFilterBy::CollateralizationState) => {
+                let collateralization_state = collateralization_state.ok_or(
+                    CreditFacilityError::MissingValueForFilterField(
+                        "collateralization_state".to_string(),
+                    ),
+                )?;
+                FindManyCreditFacilities::WithCollateralizationState(collateralization_state)
+            }
+        };
 
+        let sort = sort.unwrap_or_default();
         let (app, sub) = app_and_sub_from_ctx!(ctx);
-
-        match (sort.by, filter_field) {
-            (CreditFacilitiesSortBy::CreatedAt, None) => {
-                list_with_combo_cursor!(
-                    CreditFacilitiesCursor,
-                    CreditFacilitiesByCreatedAtCursor,
-                    CreditFacility,
-                    ctx,
-                    after,
-                    first,
-                    |query| app
-                        .credit_facilities()
-                        .list_by_created_at(sub, query, sort.direction)
-                )
-            }
-            (CreditFacilitiesSortBy::CreatedAt, Some(CreditFacilitiesFilterBy::Status)) => {
-                let status = status.ok_or(CreditFacilityError::MissingValueForFilterField(
-                    "status".to_string(),
-                ))?;
-                list_with_combo_cursor!(
-                    CreditFacilitiesCursor,
-                    CreditFacilitiesByCreatedAtCursor,
-                    CreditFacility,
-                    ctx,
-                    after,
-                    first,
-                    |query| app.credit_facilities().list_by_created_at_for_status(
-                        sub,
-                        status,
-                        query,
-                        sort.direction
-                    )
-                )
-            }
-            (
-                CreditFacilitiesSortBy::CreatedAt,
-                Some(CreditFacilitiesFilterBy::CollateralizationState),
-            ) => {
-                let collateralization_state = collateralization_state.ok_or(
-                    CreditFacilityError::MissingValueForFilterField(
-                        "collateralization_state".to_string(),
-                    ),
-                )?;
-
-                list_with_combo_cursor!(
-                    CreditFacilitiesCursor,
-                    CreditFacilitiesByCreatedAtCursor,
-                    CreditFacility,
-                    ctx,
-                    after,
-                    first,
-                    |query| app
-                        .credit_facilities()
-                        .list_by_created_at_for_collateralization_state(
-                            sub,
-                            collateralization_state,
-                            query,
-                            sort.direction
-                        )
-                )
-            }
-            (CreditFacilitiesSortBy::Cvl, None) => {
-                list_with_combo_cursor!(
-                    CreditFacilitiesCursor,
-                    CreditFacilitiesByCollateralizationRatioCursor,
-                    CreditFacility,
-                    ctx,
-                    after,
-                    first,
-                    |query| app.credit_facilities().list_by_collateralization_ratio(
-                        sub,
-                        query,
-                        sort.direction
-                    )
-                )
-            }
-            (CreditFacilitiesSortBy::Cvl, Some(CreditFacilitiesFilterBy::Status)) => {
-                let status = status.ok_or(CreditFacilityError::MissingValueForFilterField(
-                    "status".to_string(),
-                ))?;
-                list_with_combo_cursor!(
-                    CreditFacilitiesCursor,
-                    CreditFacilitiesByCollateralizationRatioCursor,
-                    CreditFacility,
-                    ctx,
-                    after,
-                    first,
-                    |query| app
-                        .credit_facilities()
-                        .list_by_collateralization_ratio_for_status(
-                            sub,
-                            status,
-                            query,
-                            sort.direction
-                        )
-                )
-            }
-            (
-                CreditFacilitiesSortBy::Cvl,
-                Some(CreditFacilitiesFilterBy::CollateralizationState),
-            ) => {
-                let collateralization_state = collateralization_state.ok_or(
-                    CreditFacilityError::MissingValueForFilterField(
-                        "collateralization_state".to_string(),
-                    ),
-                )?;
-                list_with_combo_cursor!(
-                    CreditFacilitiesCursor,
-                    CreditFacilitiesByCollateralizationRatioCursor,
-                    CreditFacility,
-                    ctx,
-                    after,
-                    first,
-                    |query| app
-                        .credit_facilities()
-                        .list_by_collateralization_ratio_for_collateralization_state(
-                            sub,
-                            collateralization_state,
-                            query,
-                            sort.direction
-                        )
-                )
-            }
+        match sort.by {
+            CreditFacilitiesSortBy::CreatedAt => list_with_combo_cursor!(
+                CreditFacilitiesCursor,
+                CreditFacilitiesByCreatedAtCursor,
+                CreditFacility,
+                ctx,
+                after,
+                first,
+                |query| app.credit_facilities().list(sub, query, filter, sort)
+            ),
+            CreditFacilitiesSortBy::Cvl => list_with_combo_cursor!(
+                CreditFacilitiesCursor,
+                CreditFacilitiesByCollateralizationRatioCursor,
+                CreditFacility,
+                ctx,
+                after,
+                first,
+                |query| app.credit_facilities().list(sub, query, filter, sort)
+            ),
         }
     }
 
@@ -386,8 +293,14 @@ impl Query {
         first: i32,
         after: Option<String>,
     ) -> async_graphql::Result<
-        Connection<DisbursalsByCreatedAtCursor, CreditFacilityDisbursal, EmptyFields, EmptyFields>,
+        Connection<DisbursalsCursor, CreditFacilityDisbursal, EmptyFields, EmptyFields>,
     > {
+        let filter = FindManyDisbursals::NoFilter;
+
+        let sort = Sort {
+            by: DomainDisbursalsSortBy::CreatedAt,
+            direction: ListDirection::Descending,
+        };
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         list_with_combo_cursor!(
             DisbursalsCursor,
@@ -396,9 +309,10 @@ impl Query {
             ctx,
             after,
             first,
-            |query| app
-                .credit_facilities()
-                .list_disbursals_by_created_at(sub, query)
+            |query| {
+                app.credit_facilities()
+                    .list_disbursals(sub, query, filter, sort)
+            }
         )
     }
 
