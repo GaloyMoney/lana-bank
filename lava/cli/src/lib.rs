@@ -65,7 +65,6 @@ async fn run_cmd(lava_home: &str, config: Config) -> anyhow::Result<()> {
 
     #[cfg(feature = "sim-time")]
     {
-        dbg!(&config.time);
         sim_time::init(config.time);
     }
 
