@@ -13,6 +13,8 @@ LAVA_HOME="${LAVA_HOME:-.lava}"
 export LAVA_CONFIG="${REPO_ROOT}/bats/lava-sim-time.yml"
 SERVER_PID_FILE="${LAVA_HOME}/server-pid"
 
+LOG_FILE=".e2e-logs"
+
 reset_pg() {
   docker exec "${COMPOSE_PROJECT_NAME}-core-pg-1" psql $PG_CON -c "DROP SCHEMA public CASCADE"
   docker exec "${COMPOSE_PROJECT_NAME}-core-pg-1" psql $PG_CON -c "CREATE SCHEMA public"
@@ -52,14 +54,14 @@ start_server() {
   fi
 
   # Start server if not already running
-  background server_cmd > .e2e-logs 2>&1
+  background server_cmd > "$LOG_FILE" 2>&1
   for i in {1..20}; do
-    if head .e2e-logs | grep -q 'Starting graphql server on port'; then
+    if head "$LOG_FILE" | grep -q 'Starting graphql server on port'; then
       break
-    elif head .e2e-logs | grep -q 'Connection reset by peer'; then
+    elif head "$LOG_FILE" | grep -q 'Connection reset by peer'; then
       stop_server
       sleep 1
-      background server_cmd > .e2e-logs 2>&1
+      background server_cmd > "$LOG_FILE" 2>&1
     else
       sleep 1
     fi
@@ -219,6 +221,10 @@ cache_value() {
 
 read_value() {
   cat ${CACHE_DIR}/$1
+}
+
+cat_logs() {
+  cat "$LOG_FILE"
 }
 
 KRATOS_PG_CON="postgres://dbuser:secret@localhost:5434/default?sslmode=disable"

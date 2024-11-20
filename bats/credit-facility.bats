@@ -10,8 +10,9 @@ teardown_file() {
   stop_server
 }
 
-wait_for_accrual() {
-  credit_facility_id=$1
+wait_for_accruals() {
+  expected_num_accruals=$1
+  credit_facility_id=$2
 
   variables=$(
     jq -n \
@@ -25,8 +26,14 @@ wait_for_accrual() {
       | select(.__typename == "CreditFacilityInterestAccrued")
       ] | length'
   )
-  [[ "$num_accruals" -gt "0" ]] || exit 1
 
+  [[ "$num_accruals" == "$expected_num_accruals" ]] || exit 1
+}
+
+ymd() {
+  local date_value
+  read -r date_value
+  echo $date_value | cut -d 'T' -f1 | tr -d '-'
 }
 
 @test "credit-facility: can create" {
@@ -109,7 +116,26 @@ wait_for_accrual() {
 
 @test "credit-facility: records accrual" {
   credit_facility_id=$(read_value 'credit_facility_id')
-  retry 120 1 wait_for_accrual "$credit_facility_id"
+  retry 120 1 wait_for_accruals 4 "$credit_facility_id"
+
+  cat_logs | grep "interest job completed.*$credit_facility_id" || exit 1
+
+  variables=$(
+    jq -n \
+      --arg creditFacilityId "$credit_facility_id" \
+    '{ id: $creditFacilityId }'
+  )
+  exec_admin_graphql 'find-credit-facility' "$variables"
+  last_accrual_at=$(
+    graphql_output '[
+      .data.creditFacility.transactions[]
+      | select(.__typename == "CreditFacilityInterestAccrued")
+      ][0].recordedAt' \
+    | ymd
+  )
+  expires_at=$(graphql_output '.data.creditFacility.expiresAt' | ymd)
+
+  [[ "$last_accrual_at" == "$expires_at" ]] || exit 1
 
   assert_accounts_balanced
 }
