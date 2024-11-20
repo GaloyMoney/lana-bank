@@ -115,6 +115,7 @@ export const CreditFacilityTransactions: React.FC<CreditFacilityTransactionsProp
           case "CreditFacilityOrigination":
           case "CreditFacilityIncrementalPayment":
           case "CreditFacilityDisbursalExecuted":
+          case "CreditFacilityInterestAccrued":
             return <Balance amount={transaction.cents} currency="usd" align="end" />
           default:
             return <span>-</span>

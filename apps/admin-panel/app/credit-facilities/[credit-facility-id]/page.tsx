@@ -189,6 +189,12 @@ gql`
           recordedAt
           txId
         }
+        ... on CreditFacilityInterestAccrued {
+          cents
+          recordedAt
+          txId
+          days
+        }
       }
       subjectCanUpdateCollateral
       subjectCanInitiateDisbursal
