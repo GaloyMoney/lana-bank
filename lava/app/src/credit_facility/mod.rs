@@ -487,13 +487,13 @@ impl CreditFacilities {
         Ok(credit_facility)
     }
 
-    #[instrument(name = "credit_facility.list", skip(self), err)]
+    // #[instrument(name = "credit_facility.list", skip(self), err)]
     pub async fn list(
         &self,
         sub: &Subject,
         query: es_entity::PaginatedQueryArgs<CreditFacilitiesCursor>,
         filter: FindManyCreditFacilities,
-        sort: impl Into<Sort<CreditFacilitiesSortBy>> + std::fmt::Debug,
+        sort: impl Into<Sort<CreditFacilitiesSortBy>>,
     ) -> Result<
         es_entity::PaginatedQueryRet<CreditFacility, CreditFacilitiesCursor>,
         CreditFacilityError,
