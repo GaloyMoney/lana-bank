@@ -212,14 +212,14 @@ pub struct FacilityCVL {
 }
 
 impl FacilityCVL {
-    fn is_approval_allowed(&self, terms: TermValues) -> Result<(), CreditFacilityError> {
+    fn check_approval_allowed(&self, terms: TermValues) -> Result<(), CreditFacilityError> {
         if self.total < terms.margin_call_cvl {
             return Err(CreditFacilityError::BelowMarginLimit);
         }
         Ok(())
     }
 
-    fn is_disbursal_allowed(&self, terms: TermValues) -> Result<(), CreditFacilityError> {
+    fn check_disbursal_allowed(&self, terms: TermValues) -> Result<(), CreditFacilityError> {
         if self.disbursed < terms.margin_call_cvl {
             return Err(CreditFacilityError::BelowMarginLimit);
         }
@@ -436,7 +436,7 @@ impl CreditFacility {
 
         self.facility_cvl_data()
             .cvl(price)
-            .is_approval_allowed(self.terms)?;
+            .check_approval_allowed(self.terms)?;
 
         Ok(CreditFacilityActivationData {
             facility: self.initial_facility(),
@@ -493,7 +493,7 @@ impl CreditFacility {
 
         self.projected_cvl_data_for_disbursal(amount)
             .cvl(price)
-            .is_disbursal_allowed(self.terms)?;
+            .check_disbursal_allowed(self.terms)?;
 
         let idx = self
             .events
@@ -1603,7 +1603,7 @@ mod test {
     }
 
     #[test]
-    fn cvl_is_approval_allowed() {
+    fn cvl_check_approval_allowed() {
         let terms = default_terms();
 
         let facility_cvl = FacilityCVL {
@@ -1611,7 +1611,7 @@ mod test {
             disbursed: CVLPct::ZERO,
         };
         assert!(matches!(
-            facility_cvl.is_approval_allowed(terms),
+            facility_cvl.check_approval_allowed(terms),
             Err(CreditFacilityError::BelowMarginLimit),
         ));
 
@@ -1619,11 +1619,11 @@ mod test {
             total: terms.margin_call_cvl,
             disbursed: CVLPct::ZERO,
         };
-        assert!(matches!(facility_cvl.is_approval_allowed(terms), Ok(())));
+        assert!(matches!(facility_cvl.check_approval_allowed(terms), Ok(())));
     }
 
     #[test]
-    fn cvl_is_disbursal_allowed() {
+    fn cvl_check_disbursal_allowed() {
         let terms = default_terms();
 
         let facility_cvl = FacilityCVL {
@@ -1631,7 +1631,7 @@ mod test {
             disbursed: terms.margin_call_cvl - CVLPct::from(dec!(1)),
         };
         assert!(matches!(
-            facility_cvl.is_disbursal_allowed(terms),
+            facility_cvl.check_disbursal_allowed(terms),
             Err(CreditFacilityError::BelowMarginLimit),
         ));
 
@@ -1639,7 +1639,10 @@ mod test {
             total: terms.liquidation_cvl,
             disbursed: terms.margin_call_cvl,
         };
-        assert!(matches!(facility_cvl.is_disbursal_allowed(terms), Ok(())));
+        assert!(matches!(
+            facility_cvl.check_disbursal_allowed(terms),
+            Ok(())
+        ));
     }
 
     #[test]
