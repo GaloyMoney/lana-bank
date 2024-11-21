@@ -148,6 +148,8 @@ macro_rules! list_with_cursor {
 //                     first,
 //                     after,
 //                 },
+//                 filter,
+//                 sort,
 //             )
 //             .await?;
 
@@ -155,7 +157,10 @@ macro_rules! list_with_cursor {
 //         connection
 //             .edges
 //             .extend(res.entities.into_iter().map(|committee| {
-//                 let cursor = CommitteeCursor::from(CommitteeByCreatedAtCursor::from(&committee));
+//                 let cursor = CommitteeCursor::from((
+//                     DomainCommitteesCursorSortBy::from(sort),
+//                     &committee,
+//                 ));
 //                 Edge::new(cursor, Committee::from(committee))
 //             }));
 
@@ -165,7 +170,7 @@ macro_rules! list_with_cursor {
 // .await
 #[macro_export]
 macro_rules! list_with_combo_cursor {
-    ($combo_cursor:ty, $cursor:ty, $entity:ty, $ctx:expr, $after:expr, $first:expr, $load:expr) => {{
+    ($combo_cursor:ty, $entity:ty, $sort_by:expr, $ctx:expr, $after:expr, $first:expr, $load:expr) => {{
         let loader = $ctx.data_unchecked::<LavaDataLoader>();
         async_graphql::types::connection::query(
             $after,
@@ -182,7 +187,7 @@ macro_rules! list_with_combo_cursor {
                 connection
                     .edges
                     .extend(res.entities.into_iter().map(|entity| {
-                        let cursor = <$combo_cursor>::from(<$cursor>::from(&entity));
+                        let cursor = <$combo_cursor>::from(($sort_by, &entity));
                         Edge::new(cursor, <$entity>::from(entity))
                     }));
                 loader

@@ -13,8 +13,7 @@ use super::{
 pub use lava_app::{
     app::LavaApp,
     customer::{
-        Customer as DomainCustomer, CustomersByCreatedAtCursor, CustomersByEmailCursor,
-        CustomersByTelegramIdCursor, CustomersCursor, CustomersSortBy as DomainCustomersSortBy,
+        Customer as DomainCustomer, CustomersCursor, CustomersSortBy as DomainCustomersSortBy,
         FindManyCustomers, Sort,
     },
 };
@@ -192,12 +191,18 @@ impl From<CustomersSortBy> for DomainCustomersSortBy {
     }
 }
 
-#[derive(InputObject, Default)]
+#[derive(InputObject, Default, Clone, Copy)]
 pub struct CustomersSort {
     #[graphql(default)]
     pub by: CustomersSortBy,
     #[graphql(default)]
     pub direction: SortDirection,
+}
+
+impl From<CustomersSort> for DomainCustomersSortBy {
+    fn from(sort: CustomersSort) -> Self {
+        sort.by.into()
+    }
 }
 
 impl From<CustomersSort> for Sort<DomainCustomersSortBy> {

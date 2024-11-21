@@ -175,3 +175,32 @@ mod facility_collateralization_state_sqlx {
         }
     }
 }
+
+impl From<(CreditFacilitiesSortBy, &CreditFacility)>
+    for credit_facility_cursor::CreditFacilitiesCursor
+{
+    fn from(credit_facility_with_sort: (CreditFacilitiesSortBy, &CreditFacility)) -> Self {
+        let (sort, credit_facility) = credit_facility_with_sort;
+        match sort {
+            CreditFacilitiesSortBy::CreatedAt => {
+                credit_facility_cursor::CreditFacilitiesByCreatedAtCursor::from(credit_facility)
+                    .into()
+            }
+            CreditFacilitiesSortBy::ApprovalProcessId => {
+                credit_facility_cursor::CreditFacilitiesByApprovalProcessIdCursor::from(
+                    credit_facility,
+                )
+                .into()
+            }
+            CreditFacilitiesSortBy::CollateralizationRatio => {
+                credit_facility_cursor::CreditFacilitiesByCollateralizationRatioCursor::from(
+                    credit_facility,
+                )
+                .into()
+            }
+            CreditFacilitiesSortBy::Id => {
+                credit_facility_cursor::CreditFacilitiesByIdCursor::from(credit_facility).into()
+            }
+        }
+    }
+}

@@ -29,3 +29,21 @@ impl DisbursalRepo {
         }
     }
 }
+
+impl From<(DisbursalsSortBy, &Disbursal)> for disbursal_cursor::DisbursalsCursor {
+    fn from(disbursal_with_sort: (DisbursalsSortBy, &Disbursal)) -> Self {
+        let (sort, disbursal) = disbursal_with_sort;
+        match sort {
+            DisbursalsSortBy::CreatedAt => {
+                disbursal_cursor::DisbursalsByCreatedAtCursor::from(disbursal).into()
+            }
+            DisbursalsSortBy::Idx => {
+                disbursal_cursor::DisbursalsByIdxCursor::from(disbursal).into()
+            }
+            DisbursalsSortBy::ApprovalProcessId => {
+                disbursal_cursor::DisbursalsByApprovalProcessIdCursor::from(disbursal).into()
+            }
+            DisbursalsSortBy::Id => disbursal_cursor::DisbursalsByIdCursor::from(disbursal).into(),
+        }
+    }
+}

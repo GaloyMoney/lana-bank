@@ -90,37 +90,17 @@ impl Query {
             }
         };
 
-        let sort = sort.unwrap_or_default();
         let (app, sub) = app_and_sub_from_ctx!(ctx);
-        match sort.by {
-            CustomersSortBy::Email => list_with_combo_cursor!(
-                CustomersCursor,
-                CustomersByEmailCursor,
-                Customer,
-                ctx,
-                after,
-                first,
-                |query| app.customers().list(sub, query, filter, sort)
-            ),
-            CustomersSortBy::CreatedAt => list_with_combo_cursor!(
-                CustomersCursor,
-                CustomersByCreatedAtCursor,
-                Customer,
-                ctx,
-                after,
-                first,
-                |query| app.customers().list(sub, query, filter, sort)
-            ),
-            CustomersSortBy::TelegramId => list_with_combo_cursor!(
-                CustomersCursor,
-                CustomersByTelegramIdCursor,
-                Customer,
-                ctx,
-                after,
-                first,
-                |query| app.customers().list(sub, query, filter, sort)
-            ),
-        }
+        let sort = sort.unwrap_or_default();
+        list_with_combo_cursor!(
+            CustomersCursor,
+            Customer,
+            DomainCustomersSortBy::from(sort),
+            ctx,
+            after,
+            first,
+            |query| app.customers().list(sub, query, filter, sort)
+        )
     }
 
     async fn withdrawal(
@@ -252,26 +232,15 @@ impl Query {
 
         let sort = sort.unwrap_or_default();
         let (app, sub) = app_and_sub_from_ctx!(ctx);
-        match sort.by {
-            CreditFacilitiesSortBy::CreatedAt => list_with_combo_cursor!(
-                CreditFacilitiesCursor,
-                CreditFacilitiesByCreatedAtCursor,
-                CreditFacility,
-                ctx,
-                after,
-                first,
-                |query| app.credit_facilities().list(sub, query, filter, sort)
-            ),
-            CreditFacilitiesSortBy::Cvl => list_with_combo_cursor!(
-                CreditFacilitiesCursor,
-                CreditFacilitiesByCollateralizationRatioCursor,
-                CreditFacility,
-                ctx,
-                after,
-                first,
-                |query| app.credit_facilities().list(sub, query, filter, sort)
-            ),
-        }
+        list_with_combo_cursor!(
+            CreditFacilitiesCursor,
+            CreditFacility,
+            DomainCreditFacilitiesSortBy::from(sort),
+            ctx,
+            after,
+            first,
+            |query| app.credit_facilities().list(sub, query, filter, sort)
+        )
     }
 
     async fn disbursal(
@@ -304,8 +273,8 @@ impl Query {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         list_with_combo_cursor!(
             DisbursalsCursor,
-            DisbursalsByCreatedAtCursor,
             CreditFacilityDisbursal,
+            sort.by,
             ctx,
             after,
             first,

@@ -83,3 +83,21 @@ mod account_status_sqlx {
         }
     }
 }
+
+impl From<(CustomersSortBy, &Customer)> for customer_cursor::CustomersCursor {
+    fn from(customer_with_sort: (CustomersSortBy, &Customer)) -> Self {
+        let (sort, customer) = customer_with_sort;
+        match sort {
+            CustomersSortBy::CreatedAt => {
+                customer_cursor::CustomersByCreatedAtCursor::from(customer).into()
+            }
+            CustomersSortBy::Email => {
+                customer_cursor::CustomersByEmailCursor::from(customer).into()
+            }
+            CustomersSortBy::TelegramId => {
+                customer_cursor::CustomersByTelegramIdCursor::from(customer).into()
+            }
+            CustomersSortBy::Id => customer_cursor::CustomersByIdCursor::from(customer).into(),
+        }
+    }
+}

@@ -12,7 +12,6 @@ use super::{
 };
 pub use lava_app::{
     credit_facility::{
-        CreditFacilitiesByCollateralizationRatioCursor, CreditFacilitiesByCreatedAtCursor,
         CreditFacilitiesCursor, CreditFacilitiesSortBy as DomainCreditFacilitiesSortBy,
         CreditFacility as DomainCreditFacility, DisbursalsSortBy as DomainDisbursalsSortBy,
         FindManyCreditFacilities, FindManyDisbursals, ListDirection, Sort,
@@ -249,7 +248,7 @@ impl From<CreditFacilitiesSortBy> for DomainCreditFacilitiesSortBy {
     }
 }
 
-#[derive(InputObject, Default, Debug)]
+#[derive(InputObject, Default, Debug, Clone, Copy)]
 pub struct CreditFacilitiesSort {
     #[graphql(default)]
     pub by: CreditFacilitiesSortBy,
@@ -263,6 +262,12 @@ impl From<CreditFacilitiesSort> for Sort<DomainCreditFacilitiesSortBy> {
             by: sort.by.into(),
             direction: sort.direction.into(),
         }
+    }
+}
+
+impl From<CreditFacilitiesSort> for DomainCreditFacilitiesSortBy {
+    fn from(sort: CreditFacilitiesSort) -> Self {
+        sort.by.into()
     }
 }
 
