@@ -113,7 +113,19 @@ ymd() {
   echo $(graphql_output)
   disbursal_index=$(graphql_output '.data.creditFacilityDisbursalInitiate.disbursal.index')
   [[ "$disbursal_index" != "null" ]] || exit 1
-  status=$(graphql_output '.data.creditFacilityDisbursalInitiate.disbursal.status')
+
+  variables=$(
+    jq -n \
+      --arg creditFacilityId "$credit_facility_id" \
+    '{ id: $creditFacilityId }'
+  )
+  exec_admin_graphql 'find-credit-facility' "$variables"
+  disbursals=$(graphql_output '.data.creditFacility.disbursals')
+
+  num_disbursals=$(echo $disbursals | jq -r '. | length')
+  [[ "$num_disbursals" -gt "0" ]]
+
+  status=$(echo $disbursals | jq -r '.[0].status')
   [[ "$status" == "CONFIRMED" ]] || exit 1
 }
 
@@ -129,15 +141,18 @@ ymd() {
     '{ id: $creditFacilityId }'
   )
   exec_admin_graphql 'find-credit-facility' "$variables"
-  last_accrual_at=$(
+  last_accrual=$(
     graphql_output '[
       .data.creditFacility.transactions[]
       | select(.__typename == "CreditFacilityInterestAccrued")
-      ][0].recordedAt' \
-    | ymd
+      ][0]'
   )
-  expires_at=$(graphql_output '.data.creditFacility.expiresAt' | ymd)
 
+  amount=$(echo $last_accrual | jq -r '.cents')
+  [[ "$amount" -gt "0" ]] || exit 1
+
+  last_accrual_at=$(echo $last_accrual | jq -r '.recordedAt' | ymd)
+  expires_at=$(graphql_output '.data.creditFacility.expiresAt' | ymd)
   [[ "$last_accrual_at" == "$expires_at" ]] || exit 1
 
   assert_accounts_balanced

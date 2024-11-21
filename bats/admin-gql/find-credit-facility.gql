@@ -5,6 +5,11 @@ query creditFacility($id: UUID!) {
     expiresAt
     collateralizationState
     facilityAmount
+    disbursals {
+      id
+      index
+      status
+    }
     transactions {
       ... on CreditFacilityInterestAccrued {
         __typename
