@@ -2,12 +2,15 @@
 
 load "helpers"
 
+PERSISTED_LOG_FILE="credit-facility.e2e-logs"
+
 setup_file() {
   start_server
 }
 
 teardown_file() {
   stop_server
+  cp "$LOG_FILE" "$PERSISTED_LOG_FILE"
 }
 
 wait_for_accruals() {

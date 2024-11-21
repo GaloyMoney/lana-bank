@@ -48,7 +48,7 @@ init-bq: delete-bq-tables reset-tf-state clean-deps start-deps setup-db
 reset-deps: reset-tf-state clean-deps start-deps setup-db run-tf
 
 run-server:
-	cargo run --bin lava-cli --features sim-time -- --config ./bats/lava-sim-time.yml
+	cargo run --bin lava-cli --features sim-time -- --config ./bats/lava-sim-time.yml | tee .e2e-logs
 
 check-code: sdl
 	git diff --exit-code lava/admin-server/src/graphql/schema.graphql

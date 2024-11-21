@@ -45,4 +45,6 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: Tilt log
-          path: e2e-logs
+          path: |
+            e2e-logs
+            *.e2e-logs
