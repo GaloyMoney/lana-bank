@@ -113,6 +113,7 @@ impl CreditFacilities {
             interest_accruals::CreditFacilityProcessingJobInitializer::new(
                 ledger,
                 credit_facility_repo.clone(),
+                jobs,
                 authz.audit(),
             ),
         );

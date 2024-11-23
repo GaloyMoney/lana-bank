@@ -6,8 +6,8 @@ use tracing::instrument;
 use crate::{
     audit::*,
     authorization::{CreditFacilityAction, Object},
-    credit_facility::{repo::*, CreditFacilityError},
-    job::*,
+    credit_facility::{interest_incurrences, repo::*, CreditFacilityError},
+    job::{error::*, *},
     ledger::*,
     primitives::CreditFacilityId,
 };
@@ -23,14 +23,21 @@ impl JobConfig for CreditFacilityJobConfig {
 pub struct CreditFacilityProcessingJobInitializer {
     ledger: Ledger,
     credit_facility_repo: CreditFacilityRepo,
+    jobs: Jobs,
     audit: Audit,
 }
 
 impl CreditFacilityProcessingJobInitializer {
-    pub fn new(ledger: &Ledger, credit_facility_repo: CreditFacilityRepo, audit: &Audit) -> Self {
+    pub fn new(
+        ledger: &Ledger,
+        credit_facility_repo: CreditFacilityRepo,
+        jobs: &Jobs,
+        audit: &Audit,
+    ) -> Self {
         Self {
             ledger: ledger.clone(),
             credit_facility_repo,
+            jobs: jobs.clone(),
             audit: audit.clone(),
         }
     }
@@ -51,6 +58,7 @@ impl JobInitializer for CreditFacilityProcessingJobInitializer {
             config: job.config()?,
             credit_facility_repo: self.credit_facility_repo.clone(),
             ledger: self.ledger.clone(),
+            jobs: self.jobs.clone(),
             audit: self.audit.clone(),
         }))
     }
@@ -60,6 +68,7 @@ pub struct CreditFacilityProcessingJobRunner {
     config: CreditFacilityJobConfig,
     credit_facility_repo: CreditFacilityRepo,
     ledger: Ledger,
+    jobs: Jobs,
     audit: Audit,
 }
 
@@ -118,18 +127,41 @@ impl JobRunner for CreditFacilityProcessingJobRunner {
             .credit_facility_repo
             .find_by_id_in_tx(db.tx(), self.config.credit_facility_id)
             .await?;
-        if let Some(periods) = credit_facility.start_interest_accrual(audit_info)? {
-            self.credit_facility_repo
-                .update_in_op(&mut db, &mut credit_facility)
-                .await?;
+        let periods = match credit_facility.start_interest_accrual(audit_info)? {
+            Some(periods) => periods,
+            None => {
+                println!(
+                    "Credit Facility interest accrual job completed for credit_facility: {:?}",
+                    self.config.credit_facility_id
+                );
 
-            Ok(JobCompletion::RescheduleAtWithOp(db, periods.accrual.end))
-        } else {
-            println!(
-                "Credit Facility interest accrual job completed for credit_facility: {:?}",
-                self.config.credit_facility_id
-            );
-            Ok(JobCompletion::CompleteWithOp(db))
-        }
+                return Ok(JobCompletion::CompleteWithOp(db));
+            }
+        };
+
+        match self
+            .jobs
+            .create_and_spawn_at_in_op(
+                &mut db,
+                credit_facility
+                    .interest_accrual_in_progress()
+                    .expect("Expected accrual missing")
+                    .id,
+                interest_incurrences::CreditFacilityJobConfig {
+                    credit_facility_id: credit_facility.id,
+                },
+                periods.incurrence.end,
+            )
+            .await
+        {
+            Ok(_) | Err(JobError::DuplicateId) => (),
+            Err(err) => Err(err)?,
+        };
+
+        self.credit_facility_repo
+            .update_in_op(&mut db, &mut credit_facility)
+            .await?;
+
+        return Ok(JobCompletion::RescheduleAtWithOp(db, periods.accrual.end));
     }
 }
