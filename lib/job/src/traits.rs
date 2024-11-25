@@ -76,11 +76,12 @@ impl RetrySettings {
 
 impl Default for RetrySettings {
     fn default() -> Self {
+        const SECS_IN_ONE_MONTH: u64 = 60 * 60 * 24 * 30;
         Self {
-            n_attempts: Some(5),
+            n_attempts: Some(30),
             n_warn_attempts: Some(3),
             min_backoff: std::time::Duration::from_secs(1),
-            max_backoff: std::time::Duration::from_secs(60),
+            max_backoff: std::time::Duration::from_secs(SECS_IN_ONE_MONTH),
             backoff_jitter_pct: 20,
         }
     }
