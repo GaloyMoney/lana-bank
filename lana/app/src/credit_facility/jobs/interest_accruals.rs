@@ -139,6 +139,10 @@ impl JobRunner for CreditFacilityProcessingJobRunner {
             }
         };
 
+        self.credit_facility_repo
+            .update_in_op(&mut db, &mut credit_facility)
+            .await?;
+
         match self
             .jobs
             .create_and_spawn_at_in_op(

@@ -227,6 +227,7 @@ impl FacilityCVL {
     }
 }
 
+#[derive(Debug)]
 pub(super) struct NewAccrualPeriods {
     pub(super) incurrence: InterestPeriod,
     pub(super) accrual: InterestPeriod,
