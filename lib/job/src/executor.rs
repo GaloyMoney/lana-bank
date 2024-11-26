@@ -69,19 +69,21 @@ impl JobExecutor {
 
     pub async fn start_poll(&mut self) -> Result<(), JobError> {
         let poll_interval = self.config.poll_interval;
+        let max_concurrency = self.config.max_jobs_per_process;
+        let min_concurrency = self.config.min_jobs_per_process;
         let pg_interval = PgInterval::try_from(poll_interval * 4)
             .map_err(|e| JobError::InvalidPollInterval(e.to_string()))?;
         let running_jobs = Arc::clone(&self.running_jobs);
         let registry = Arc::clone(&self.registry);
         let jobs = self.jobs.clone();
         let handle = tokio::spawn(async move {
-            let poll_limit = 2;
             let mut keep_alive = false;
             loop {
                 let _ = Self::poll_jobs(
                     &registry,
                     &mut keep_alive,
-                    poll_limit,
+                    max_concurrency,
+                    min_concurrency,
                     pg_interval.clone(),
                     &running_jobs,
                     &jobs,
@@ -99,25 +101,27 @@ impl JobExecutor {
         level = "trace",
         name = "job_executor.poll_jobs",
         skip(registry, running_jobs, jobs),
-        fields(n_jobs_to_spawn, n_jobs_running),
+        fields(n_jobs_to_spawn, n_jobs_running, n_jobs_to_poll),
         err
     )]
     async fn poll_jobs(
         registry: &Arc<RwLock<JobRegistry>>,
         keep_alive: &mut bool,
-        poll_limit: u32,
+        max_concurrency: usize,
+        min_concurrency: usize,
         pg_interval: PgInterval,
         running_jobs: &Arc<RwLock<HashMap<JobId, JobHandle>>>,
         jobs: &JobRepo,
     ) -> Result<(), JobError> {
         let span = Span::current();
         span.record("keep_alive", *keep_alive);
-        {
+        let now = crate::time::now();
+        let n_jobs_running = {
             let running_jobs = running_jobs.read().await;
-            span.record("n_jobs_running", running_jobs.len());
+            let n_jobs_running = running_jobs.len();
+            span.record("n_jobs_running", n_jobs_running);
             if *keep_alive {
                 let ids = running_jobs.keys().cloned().collect::<Vec<_>>();
-                let now = crate::time::now();
                 sqlx::query!(
                     r#"
                     UPDATE job_executions
@@ -143,8 +147,16 @@ impl JobExecutor {
                 .fetch_all(jobs.pool())
                 .await?;
             }
-        }
+            n_jobs_running
+        };
         *keep_alive = !*keep_alive;
+
+        if n_jobs_running > min_concurrency {
+            return Ok(());
+        }
+        let n_jobs_to_poll = max_concurrency - n_jobs_running;
+        span.record("n_jobs_to_poll", n_jobs_to_poll);
+
         let rows = sqlx::query!(
             r#"
               WITH selected_jobs AS (
@@ -153,6 +165,7 @@ impl JobExecutor {
                   JOIN jobs ON je.id = jobs.id
                   WHERE reschedule_after < $2::timestamptz
                   AND je.state = 'pending'
+                  ORDER BY reschedule_after ASC
                   LIMIT $1
                   FOR UPDATE
               )
@@ -162,8 +175,8 @@ impl JobExecutor {
               WHERE je.id = selected_jobs.id
               RETURNING je.id AS "id!: JobId", selected_jobs.data_json, je.attempt_index
               "#,
-            poll_limit as i32,
-            crate::time::now(),
+            n_jobs_to_poll as i32,
+            now,
             pg_interval
         )
         .fetch_all(jobs.pool())
