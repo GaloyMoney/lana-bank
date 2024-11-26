@@ -5,12 +5,14 @@ edition = "2021"
 
 [features]
 sim-time = ["dep:sim-time"]
+sim-bootstrap = ["dep:sim-bootstrap"]
 
 fail-on-warnings = []
 
 [dependencies]
 lana-app = { path = "../app" }
 admin-server = { path = "../admin-server" }
+sim-bootstrap = { path = "../sim-bootstrap", optional = true }
 
 tracing-utils = { path = "../../lib/tracing-utils", features = ["http"] }
 sim-time = { path = "../../lib/sim-time", optional = true }

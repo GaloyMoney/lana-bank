@@ -49,7 +49,7 @@ pub struct LanaApp {
     report: Reports,
     terms_templates: TermsTemplates,
     documents: Documents,
-    _outbox: Outbox,
+    outbox: Outbox,
     governance: Governance,
     dashboard: Dashboard,
 }
@@ -117,10 +117,14 @@ impl LanaApp {
             credit_facilities,
             terms_templates,
             documents,
-            _outbox: outbox,
+            outbox,
             governance,
             dashboard,
         })
+    }
+
+    pub fn outbox(&self) -> &Outbox {
+        &self.outbox
     }
 
     pub fn dashboard(&self) -> &Dashboard {

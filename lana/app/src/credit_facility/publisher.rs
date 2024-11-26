@@ -86,12 +86,20 @@ impl CreditFacilityPublisher {
                     };
 
                     Some(CreditEvent::FacilityCollateralUpdated {
+                        id: entity.id,
                         new_amount: *total_collateral,
                         abs_diff: *abs_diff,
                         action,
                         recorded_at: *recorded_in_ledger_at,
                     })
                 }
+                InterestAccrualConcluded {
+                    amount, accrued_at, ..
+                } => Some(CreditEvent::AccrualExecuted {
+                    id: entity.id,
+                    amount: *amount,
+                    accrued_at: *accrued_at,
+                }),
 
                 _ => None,
             })

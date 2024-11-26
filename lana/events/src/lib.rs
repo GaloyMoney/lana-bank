@@ -51,10 +51,16 @@ pub enum CreditEvent {
         recorded_at: DateTime<Utc>,
     },
     FacilityCollateralUpdated {
+        id: CreditFacilityId,
         new_amount: Satoshis,
         abs_diff: Satoshis,
         action: FacilityCollateralUpdateAction,
         recorded_at: DateTime<Utc>,
+    },
+    AccrualExecuted {
+        id: CreditFacilityId,
+        amount: UsdCents,
+        accrued_at: DateTime<Utc>,
     },
 }
 

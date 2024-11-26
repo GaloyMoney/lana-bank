@@ -9,6 +9,7 @@ use crate::{
     credit_facility::{repo::*, CreditFacilitiesByCollateralizationRatioCursor},
     job::*,
     price::Price,
+    primitives::CreditFacilityStatus,
     terms::CVLPct,
 };
 
@@ -104,6 +105,9 @@ impl JobRunner for CreditFacilityProcessingJobRunner {
             let mut at_least_one = false;
 
             for facility in credit_facilities.entities.iter_mut() {
+                if facility.status() == CreditFacilityStatus::Closed {
+                    continue;
+                }
                 if facility
                     .maybe_update_collateralization(
                         price,
