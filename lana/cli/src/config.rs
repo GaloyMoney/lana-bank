@@ -6,6 +6,9 @@ use tracing_utils::TracingConfig;
 #[cfg(feature = "sim-time")]
 use sim_time::TimeConfig;
 
+#[cfg(feature = "sim-bootstrap")]
+use sim_bootstrap::BootstrapConfig;
+
 use std::path::Path;
 
 use super::db::*;
@@ -26,6 +29,9 @@ pub struct Config {
     #[cfg(feature = "sim-time")]
     #[serde(default)]
     pub time: TimeConfig,
+    #[cfg(feature = "sim-bootstrap")]
+    #[serde(default)]
+    pub bootstrap: BootstrapConfig,
 }
 
 pub struct EnvSecrets {

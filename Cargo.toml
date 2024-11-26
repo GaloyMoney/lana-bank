@@ -9,6 +9,8 @@ members = [
   "lana/ids",
   "lana/dashboard",
 
+  "lana/sim-bootstrap",
+
   "core/user",
   "core/governance",
   "core/money",
