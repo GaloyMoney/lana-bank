@@ -3,6 +3,7 @@
 load "helpers"
 
 PERSISTED_LOG_FILE="credit-facility.e2e-logs"
+RUN_LOG_FILE="credit-facility.run.e2e-logs"
 
 setup_file() {
   start_server
@@ -23,6 +24,7 @@ wait_for_accruals() {
     '{ id: $creditFacilityId }'
   )
   exec_admin_graphql 'find-credit-facility' "$variables"
+  echo "$i. $(graphql_output)" >> $RUN_LOG_FILE
   num_accruals=$(
     graphql_output '[
       .data.creditFacility.transactions[]
@@ -131,7 +133,7 @@ ymd() {
 
 @test "credit-facility: records accrual" {
   credit_facility_id=$(read_value 'credit_facility_id')
-  retry 60 1 wait_for_accruals 4 "$credit_facility_id"
+  retry 30 2 wait_for_accruals 4 "$credit_facility_id"
 
   cat_logs | grep "interest job completed.*$credit_facility_id" || exit 1
 
