@@ -105,6 +105,7 @@ impl ApproveDisbursal {
             .find_by_id(disbursal.facility_id)
             .await?;
 
+        let executed_at = crate::time::now();
         match disbursal.disbursal_data() {
             Ok(disbursal_data) => {
                 span.record("disbursal_executed", true);
@@ -117,38 +118,40 @@ impl ApproveDisbursal {
                     )
                     .await?;
 
-                let executed_at = self.ledger.record_disbursal(disbursal_data.clone()).await?;
                 disbursal.confirm(&disbursal_data, executed_at, audit_info.clone());
-
                 credit_facility.confirm_disbursal(
                     &disbursal,
                     Some(disbursal_data.tx_id),
                     executed_at,
                     audit_info.clone(),
                 );
+                self.disbursal_repo
+                    .update_in_op(&mut db, &mut disbursal)
+                    .await?;
+                self.credit_facility_repo
+                    .update_in_op(&mut db, &mut credit_facility)
+                    .await?;
+
+                self.ledger.record_disbursal(disbursal_data.clone()).await?;
             }
             Err(DisbursalError::Denied) => {
                 span.record("disbursal_executed", false);
                 credit_facility.confirm_disbursal(
                     &disbursal,
                     None,
-                    crate::time::now(),
+                    executed_at,
                     audit_info.clone(),
                 );
+                self.credit_facility_repo
+                    .update_in_op(&mut db, &mut credit_facility)
+                    .await?;
             }
             Err(e) => {
                 return Err(e.into());
             }
         }
 
-        self.disbursal_repo
-            .update_in_op(&mut db, &mut disbursal)
-            .await?;
-        self.credit_facility_repo
-            .update_in_op(&mut db, &mut credit_facility)
-            .await?;
         db.commit().await?;
-
         Ok(disbursal)
     }
 }
