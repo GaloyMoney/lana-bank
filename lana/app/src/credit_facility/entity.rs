@@ -827,9 +827,12 @@ impl CreditFacility {
             .count()
     }
 
-    pub(super) fn initiate_collateral_update(
-        &self,
+    pub(super) fn record_collateral_update(
+        &mut self,
         updated_collateral: Satoshis,
+        audit_info: AuditInfo,
+        price: PriceOfOneBTC,
+        upgrade_buffer_cvl_pct: CVLPct,
     ) -> Result<CreditFacilityCollateralUpdate, CreditFacilityError> {
         let current_collateral = self.collateral();
         let diff =
@@ -854,15 +857,22 @@ impl CreditFacility {
             self.count_collateral_adjustments() + 1
         );
 
-        let tx_id = LedgerTxId::new();
-
-        Ok(CreditFacilityCollateralUpdate {
+        let collateral_update = CreditFacilityCollateralUpdate {
             abs_diff: collateral,
             credit_facility_account_ids: self.account_ids,
             tx_ref,
-            tx_id,
+            tx_id: LedgerTxId::new(),
             action,
-        })
+        };
+        self.confirm_collateral_update(
+            collateral_update.clone(),
+            crate::time::now(),
+            audit_info,
+            price,
+            upgrade_buffer_cvl_pct,
+        );
+
+        Ok(collateral_update)
     }
 
     pub(super) fn confirm_collateral_update(
@@ -878,7 +888,7 @@ impl CreditFacility {
         audit_info: AuditInfo,
         price: PriceOfOneBTC,
         upgrade_buffer_cvl_pct: CVLPct,
-    ) -> Option<CollateralizationState> {
+    ) {
         let mut total_collateral = self.collateral();
         total_collateral = match action {
             CollateralAction::Add => total_collateral + abs_diff,
@@ -894,7 +904,7 @@ impl CreditFacility {
             audit_info: audit_info.clone(),
         });
 
-        self.maybe_update_collateralization(price, upgrade_buffer_cvl_pct, &audit_info)
+        self.maybe_update_collateralization(price, upgrade_buffer_cvl_pct, &audit_info);
     }
 
     fn is_completed(&self) -> bool {
@@ -1343,28 +1353,24 @@ mod test {
         let mut credit_facility = facility_from(initial_events());
         assert_eq!(credit_facility.collateral(), Satoshis::ZERO);
 
-        let credit_facility_collateral_update = credit_facility
-            .initiate_collateral_update(Satoshis::from(10000))
+        credit_facility
+            .record_collateral_update(
+                Satoshis::from(10000),
+                dummy_audit_info(),
+                default_price(),
+                default_upgrade_buffer_cvl_pct(),
+            )
             .unwrap();
-        credit_facility.confirm_collateral_update(
-            credit_facility_collateral_update,
-            Utc::now(),
-            dummy_audit_info(),
-            default_price(),
-            default_upgrade_buffer_cvl_pct(),
-        );
         assert_eq!(credit_facility.collateral(), Satoshis::from(10000));
 
-        let credit_facility_collateral_update = credit_facility
-            .initiate_collateral_update(Satoshis::from(5000))
+        credit_facility
+            .record_collateral_update(
+                Satoshis::from(5000),
+                dummy_audit_info(),
+                default_price(),
+                default_upgrade_buffer_cvl_pct(),
+            )
             .unwrap();
-        credit_facility.confirm_collateral_update(
-            credit_facility_collateral_update,
-            Utc::now(),
-            dummy_audit_info(),
-            default_price(),
-            default_upgrade_buffer_cvl_pct(),
-        );
         assert_eq!(credit_facility.collateral(), Satoshis::from(5000));
     }
 
@@ -1377,16 +1383,14 @@ mod test {
             Some(Decimal::ZERO)
         );
 
-        let credit_facility_collateral_update = credit_facility
-            .initiate_collateral_update(Satoshis::from(500))
+        credit_facility
+            .record_collateral_update(
+                Satoshis::from(500),
+                dummy_audit_info(),
+                default_price(),
+                default_upgrade_buffer_cvl_pct(),
+            )
             .unwrap();
-        credit_facility.confirm_collateral_update(
-            credit_facility_collateral_update,
-            Utc::now(),
-            dummy_audit_info(),
-            default_price(),
-            default_upgrade_buffer_cvl_pct(),
-        );
         assert_eq!(credit_facility.collateralization_ratio(), Some(dec!(5)));
     }
 
@@ -1569,16 +1573,14 @@ mod test {
         assert_eq!(credit_facility.activated_at, None);
         assert_eq!(credit_facility.expires_at, None);
 
-        let credit_facility_collateral_update = credit_facility
-            .initiate_collateral_update(Satoshis::from(10000))
+        credit_facility
+            .record_collateral_update(
+                Satoshis::from(10000),
+                dummy_audit_info(),
+                default_price(),
+                default_upgrade_buffer_cvl_pct(),
+            )
             .unwrap();
-        credit_facility.confirm_collateral_update(
-            credit_facility_collateral_update,
-            Utc::now(),
-            dummy_audit_info(),
-            default_price(),
-            default_upgrade_buffer_cvl_pct(),
-        );
         let approval_time = Utc::now();
 
         credit_facility
@@ -1613,13 +1615,9 @@ mod test {
     fn reject_credit_facility_activate_below_margin_limit() {
         let mut credit_facility = facility_from(initial_events());
 
-        let credit_facility_collateral_update = credit_facility
-            .initiate_collateral_update(Satoshis::from(100))
-            .unwrap();
         credit_facility
-            .confirm_collateral_update(
-                credit_facility_collateral_update,
-                Utc::now(),
+            .record_collateral_update(
+                Satoshis::from(100),
                 dummy_audit_info(),
                 default_price(),
                 default_upgrade_buffer_cvl_pct(),
@@ -1644,13 +1642,9 @@ mod test {
             CreditFacilityStatus::PendingCollateralization
         );
 
-        let credit_facility_collateral_update = credit_facility
-            .initiate_collateral_update(Satoshis::from(10000))
-            .unwrap();
         credit_facility
-            .confirm_collateral_update(
-                credit_facility_collateral_update,
-                Utc::now(),
+            .record_collateral_update(
+                Satoshis::from(10000),
                 dummy_audit_info(),
                 default_price(),
                 default_upgrade_buffer_cvl_pct(),
@@ -1820,13 +1814,9 @@ mod test {
             let mut credit_facility =
                 CreditFacility::try_from_events(new_credit_facility.into_events()).unwrap();
 
-            let credit_facility_collateral_update = credit_facility
-                .initiate_collateral_update(Satoshis::from(50_00_000_000))
-                .unwrap();
             credit_facility
-                .confirm_collateral_update(
-                    credit_facility_collateral_update,
-                    facility_activated_at,
+                .record_collateral_update(
+                    Satoshis::from(50_00_000_000),
                     dummy_audit_info(),
                     default_price(),
                     default_upgrade_buffer_cvl_pct(),

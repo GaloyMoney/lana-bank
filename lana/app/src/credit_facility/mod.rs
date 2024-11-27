@@ -371,22 +371,17 @@ impl CreditFacilities {
             .find_by_id(credit_facility_id)
             .await?;
 
-        let credit_facility_collateral_update =
-            credit_facility.initiate_collateral_update(updated_collateral)?;
-
-        let mut db = self.credit_facility_repo.begin_op().await?;
-        let executed_at = self
-            .ledger
-            .update_credit_facility_collateral(credit_facility_collateral_update.clone())
-            .await?;
-
-        credit_facility.confirm_collateral_update(
-            credit_facility_collateral_update,
-            executed_at,
+        let credit_facility_collateral_update = credit_facility.record_collateral_update(
+            updated_collateral,
             audit_info,
             price,
             self.config.upgrade_buffer_cvl_pct,
-        );
+        )?;
+
+        let mut db = self.credit_facility_repo.begin_op().await?;
+        self.ledger
+            .update_credit_facility_collateral(credit_facility_collateral_update)
+            .await?;
 
         activate::execute(
             &mut credit_facility,
