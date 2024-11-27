@@ -3,6 +3,12 @@ name: Storybook
 on:
   pull_request:
     branches: [main]
+    paths:
+      - "apps/admin-panel/**"
+  push:
+    branches: [main]
+    paths:
+      - "apps/admin-panel/**"
 
 jobs:
   storybook-preview:
@@ -24,8 +30,9 @@ jobs:
       - name: Install Netlify CLI
         run: npm install -g netlify-cli
 
-      - name: Deploy to Netlify
+      - name: Deploy to Netlify (Pull Request)
         id: netlify_deploy
+        if: github.event_name == 'pull_request'
         env:
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
           NETLIFY_SITE_ID: 8f3d8282-da53-4b6d-8d3c-708c7d7030c9
@@ -38,12 +45,29 @@ jobs:
             --site=$NETLIFY_SITE_ID \
             --auth=$NETLIFY_AUTH_TOKEN \
             --alias="$ALIAS" \
-            --message="Storybook Preview for PR #${{ github.event.pull_request.number }} Commit ${{ github.sha }}" \
+            --message="Storybook Preview for PR #${{ github.event.pull_request.number }} Commit $GITHUB_SHA" \
+            --json > deploy-info.json
+          DEPLOY_URL=$(jq -r '.deploy_url' deploy-info.json)
+          echo "deploy_url=$DEPLOY_URL" >> $GITHUB_OUTPUT
+
+      - name: Deploy to Netlify (Push to Main)
+        if: github.event_name == 'push'
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          NETLIFY_SITE_ID: 8f3d8282-da53-4b6d-8d3c-708c7d7030c9
+        run: |
+          netlify deploy \
+            --prod \
+            --dir=apps/admin-panel/storybook-static \
+            --site=$NETLIFY_SITE_ID \
+            --auth=$NETLIFY_AUTH_TOKEN \
+            --message="Storybook Build for Commit ${{ github.sha }}" \
             --json > deploy-info.json
           DEPLOY_URL=$(jq -r '.deploy_url' deploy-info.json)
           echo "deploy_url=$DEPLOY_URL" >> $GITHUB_OUTPUT
 
       - name: Update PR Description
+        if: github.event_name == 'pull_request'
         uses: actions/github-script@v6
         with:
           script: |
