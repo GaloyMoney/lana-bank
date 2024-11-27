@@ -371,14 +371,17 @@ impl CreditFacilities {
             .find_by_id(credit_facility_id)
             .await?;
 
+        let mut db = self.credit_facility_repo.begin_op().await?;
         let credit_facility_collateral_update = credit_facility.record_collateral_update(
             updated_collateral,
             audit_info,
             price,
             self.config.upgrade_buffer_cvl_pct,
         )?;
+        self.credit_facility_repo
+            .update_in_op(&mut db, &mut credit_facility)
+            .await?;
 
-        let mut db = self.credit_facility_repo.begin_op().await?;
         self.ledger
             .update_credit_facility_collateral(credit_facility_collateral_update)
             .await?;
