@@ -37,6 +37,9 @@ impl CreditFacilityPublisher {
                     id: entity.id,
                     created_at: entity.created_at(),
                 }),
+                ApprovalProcessConcluded { approved, .. } if *approved => {
+                    Some(CreditEvent::FacilityApproved { id: entity.id })
+                }
                 Activated { activated_at, .. } => Some(CreditEvent::FacilityActivated {
                     id: entity.id,
                     activated_at: *activated_at,
@@ -86,6 +89,7 @@ impl CreditFacilityPublisher {
                     };
 
                     Some(CreditEvent::FacilityCollateralUpdated {
+                        id: entity.id,
                         new_amount: *total_collateral,
                         abs_diff: *abs_diff,
                         action,

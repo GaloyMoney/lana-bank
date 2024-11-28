@@ -31,6 +31,9 @@ pub enum CreditEvent {
         id: CreditFacilityId,
         created_at: DateTime<Utc>,
     },
+    FacilityApproved {
+        id: CreditFacilityId,
+    },
     FacilityActivated {
         id: CreditFacilityId,
         activated_at: DateTime<Utc>,
@@ -51,6 +54,7 @@ pub enum CreditEvent {
         recorded_at: DateTime<Utc>,
     },
     FacilityCollateralUpdated {
+        id: CreditFacilityId,
         new_amount: Satoshis,
         abs_diff: Satoshis,
         action: FacilityCollateralUpdateAction,
