@@ -14,6 +14,19 @@ teardown_file() {
   cp "$LOG_FILE" "$PERSISTED_LOG_FILE"
 }
 
+wait_for_active() {
+  credit_facility_id=$1
+
+  variables=$(
+    jq -n \
+      --arg creditFacilityId "$credit_facility_id" \
+    '{ id: $creditFacilityId }'
+  )
+  exec_admin_graphql 'find-credit-facility' "$variables"
+  status=$(graphql_output '.data.creditFacility.status')
+  [[ "$status" == "ACTIVE" ]] || exit 1
+}
+
 wait_for_accruals() {
   expected_num_accruals=$1
   credit_facility_id=$2
@@ -92,8 +105,8 @@ ymd() {
   echo $(graphql_output)
   credit_facility_id=$(graphql_output '.data.creditFacilityCollateralUpdate.creditFacility.creditFacilityId')
   [[ "$credit_facility_id" != "null" ]] || exit 1
-  status=$(graphql_output '.data.creditFacilityCollateralUpdate.creditFacility.status')
-  [[ "$status" == "ACTIVE" ]] || exit 1
+
+  retry 10 1 wait_for_active "$credit_facility_id"
 }
 
 @test "credit-facility: can initiate disbursal" {
