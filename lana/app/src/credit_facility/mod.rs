@@ -1,4 +1,3 @@
-mod activate;
 mod config;
 mod disbursal;
 mod entity;
@@ -15,18 +14,18 @@ use std::collections::HashMap;
 use authz::PermissionCheck;
 
 use crate::{
-    audit::{AuditInfo, AuditSvc},
+    audit::AuditInfo,
     authorization::{Authorization, CreditFacilityAction, Object},
     customer::Customers,
     data_export::Export,
     governance::Governance,
-    job::{error::JobError, *},
+    job::*,
     ledger::{credit_facility::*, Ledger},
     outbox::Outbox,
     price::Price,
     primitives::{
-        CreditFacilityId, CreditFacilityStatus, CustomerId, DisbursalId, PriceOfOneBTC, Satoshis,
-        Subject, UsdCents,
+        CreditFacilityId, CreditFacilityStatus, CustomerId, DisbursalId, Satoshis, Subject,
+        UsdCents,
     },
     terms::{CollateralizationState, TermValues},
 };
@@ -56,7 +55,6 @@ pub struct CreditFacilities {
     credit_facility_repo: CreditFacilityRepo,
     disbursal_repo: DisbursalRepo,
     governance: Governance,
-    jobs: Jobs,
     ledger: Ledger,
     price: Price,
     config: CreditFacilityConfig,
@@ -88,14 +86,8 @@ impl CreditFacilities {
             governance,
             ledger,
         );
-        let approve_credit_facility = ApproveCreditFacility::new(
-            &credit_facility_repo,
-            ledger,
-            price,
-            jobs,
-            authz.audit(),
-            governance,
-        );
+        let approve_credit_facility =
+            ApproveCreditFacility::new(&credit_facility_repo, authz.audit(), governance);
         let activate_credit_facility =
             ActivateCreditFacility::new(&credit_facility_repo, ledger, price, jobs, authz.audit());
         jobs.add_initializer_and_spawn_unique(
@@ -141,7 +133,6 @@ impl CreditFacilities {
             credit_facility_repo,
             disbursal_repo,
             governance: governance.clone(),
-            jobs: jobs.clone(),
             ledger: ledger.clone(),
             price: price.clone(),
             config,
@@ -394,15 +385,6 @@ impl CreditFacilities {
             .update_credit_facility_collateral(credit_facility_collateral_update)
             .await?;
 
-        activate::execute(
-            &mut credit_facility,
-            &mut db,
-            &self.ledger,
-            self.authz.audit(),
-            &self.jobs,
-            price,
-        )
-        .await?;
         self.credit_facility_repo
             .update_in_op(&mut db, &mut credit_facility)
             .await?;
