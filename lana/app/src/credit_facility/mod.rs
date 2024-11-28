@@ -38,6 +38,7 @@ use error::*;
 pub use history::*;
 pub use interest_accrual::*;
 use jobs::*;
+use processes::activate_credit_facility::*;
 pub use processes::approve_credit_facility::*;
 pub use processes::approve_disbursal::*;
 use publisher::CreditFacilityPublisher;
@@ -95,6 +96,8 @@ impl CreditFacilities {
             authz.audit(),
             governance,
         );
+        let activate_credit_facility =
+            ActivateCreditFacility::new(&credit_facility_repo, ledger, price, jobs, authz.audit());
         jobs.add_initializer_and_spawn_unique(
             cvl::CreditFacilityProcessingJobInitializer::new(
                 credit_facility_repo.clone(),
@@ -120,6 +123,11 @@ impl CreditFacilities {
         jobs.add_initializer_and_spawn_unique(
             DisbursalApprovalJobInitializer::new(outbox, &approve_disbursal),
             DisbursalApprovalJobConfig,
+        )
+        .await?;
+        jobs.add_initializer_and_spawn_unique(
+            CreditFacilityActivationJobInitializer::new(outbox, &activate_credit_facility),
+            CreditFacilityActivationJobConfig,
         )
         .await?;
         let _ = governance
