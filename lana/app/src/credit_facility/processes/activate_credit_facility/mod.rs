@@ -46,7 +46,10 @@ impl ActivateCreditFacility {
         &self,
         id: impl es_entity::RetryableInto<CreditFacilityId>,
     ) -> Result<CreditFacility, CreditFacilityError> {
-        let mut credit_facility = self.credit_facility_repo.find_by_id(id.into()).await?;
+        let mut credit_facility @ CreditFacility {
+            id: credit_facility_id,
+            ..
+        } = self.credit_facility_repo.find_by_id(id.into()).await?;
 
         let price = self.price.usd_cents_per_btc().await?;
         let Ok(credit_facility_activation) = credit_facility.activation_data(price) else {
@@ -73,15 +76,16 @@ impl ActivateCreditFacility {
                     return Ok(credit_facility);
                 }
             };
+        self.credit_facility_repo
+            .update_in_op(&mut db, &mut credit_facility)
+            .await?;
 
         match self
             .jobs
             .create_and_spawn_at_in_op(
                 &mut db,
-                credit_facility.id,
-                interest::CreditFacilityJobConfig {
-                    credit_facility_id: credit_facility.id,
-                },
+                credit_facility_id,
+                interest::CreditFacilityJobConfig { credit_facility_id },
                 next_incurrence_period.end,
             )
             .await
@@ -94,9 +98,6 @@ impl ActivateCreditFacility {
             .activate_credit_facility(credit_facility_activation)
             .await?;
 
-        self.credit_facility_repo
-            .update_in_op(&mut db, &mut credit_facility)
-            .await?;
         db.commit().await?;
         Ok(credit_facility)
     }
