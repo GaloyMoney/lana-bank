@@ -83,7 +83,7 @@ jobs:
             });
 
             // Identify if the bot has already made a comment
-            const botLogin = (await github.rest.users.getAuthenticated()).data.login;
+            const botLogin = 'github-actions[bot]'
             const existingComment = comments.find(
               comment => comment.user.login === botLogin && comment.body.includes('<!-- Storybook Preview Comment -->')
             );
