@@ -5,6 +5,7 @@ edition = "2021"
 
 [features]
 sim-time = ["dep:sim-time"]
+sim-bootstrap = ["dep:sim-bootstrap"]
 
 fail-on-warnings = []
 
@@ -14,6 +15,7 @@ admin-server = { path = "../admin-server" }
 
 tracing-utils = { path = "../../lib/tracing-utils", features = ["http"] }
 sim-time = { path = "../../lib/sim-time", optional = true }
+sim-bootstrap = { path = "../sim-bootstrap", optional = true }
 
 
 anyhow = { workspace = true }

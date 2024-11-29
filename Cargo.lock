@@ -2352,6 +2352,7 @@ dependencies = [
  "serde",
  "serde_json",
  "serde_yaml",
+ "sim-bootstrap",
  "sim-time",
  "sqlx",
  "tokio",
@@ -3932,6 +3933,21 @@ checksum = "77549399552de45a898a580c1b41d445bf730df867cc44e6c0233bbc4b8329de"
 dependencies = [
  "digest",
  "rand_core",
+]
+
+[[package]]
+name = "sim-bootstrap"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "async-trait",
+ "futures",
+ "lana-app",
+ "lana-events",
+ "rust_decimal",
+ "rust_decimal_macros",
+ "sim-time",
+ "tokio",
 ]
 
 [[package]]

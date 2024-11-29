@@ -30,7 +30,7 @@ impl CreateReportInterval {
     fn timestamp(&self) -> DateTime<Utc> {
         match self {
             CreateReportInterval::EndOfDay => {
-                let d = Utc::now();
+                let d = crate::time::now();
                 Utc.with_ymd_and_hms(d.year(), d.month(), d.day(), 23, 59, 59)
                     .single()
                     .expect("should return a valid date time")
