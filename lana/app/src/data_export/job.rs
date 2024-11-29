@@ -9,13 +9,13 @@ use crate::job::*;
 use super::{cala::CalaClient, ExportEntityEventData};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DataExportConfig {
+pub struct DataExportJobConfig {
     pub(super) cala_url: String,
     pub(super) table_name: Cow<'static, str>,
     pub(super) data: ExportEntityEventData,
 }
 
-impl JobConfig for DataExportConfig {
+impl JobConfig for DataExportJobConfig {
     type Initializer = DataExportInitializer;
 }
 
@@ -38,7 +38,7 @@ impl JobInitializer for DataExportInitializer {
 }
 
 pub struct DataExportJobRunner {
-    config: DataExportConfig,
+    config: DataExportJobConfig,
 }
 
 #[async_trait]
