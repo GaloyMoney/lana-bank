@@ -47,13 +47,15 @@ impl Reports {
             authz.audit(),
             storage,
         ));
-        jobs.add_initializer_and_spawn_unique(
-            report_jobs::create::CreateReportInitializer::new(&repo, jobs, authz.audit()),
-            report_jobs::create::CreateReportJobConfig {
-                job_interval: report_jobs::create::CreateReportInterval::EndOfDay,
-            },
-        )
-        .await?;
+        if !config.dev_disable_auto_create {
+            jobs.add_initializer_and_spawn_unique(
+                report_jobs::create::CreateReportInitializer::new(&repo, jobs, authz.audit()),
+                report_jobs::create::CreateReportJobConfig {
+                    job_interval: report_jobs::create::CreateReportInterval::EndOfDay,
+                },
+            )
+            .await?;
+        }
 
         Ok(Self {
             repo,

@@ -10,6 +10,8 @@ pub struct ReportConfig {
     pub dataform_output_dataset: String,
     #[serde(default)]
     pub dataform_release_config: String,
+    #[serde(default)]
+    pub dev_disable_auto_create: bool,
 
     #[serde(skip)]
     pub service_account: Option<ServiceAccountConfig>,
@@ -19,11 +21,13 @@ impl ReportConfig {
     pub fn new_dev_mode(
         name_prefix: String,
         service_account: ServiceAccountConfig,
+        dev_disable_auto_create: bool,
     ) -> ReportConfig {
         Self {
             dataform_repo: format!("{}-repo", name_prefix),
             dataform_output_dataset: format!("dataform_{}", name_prefix),
             dataform_release_config: format!("{}-release", name_prefix),
+            dev_disable_auto_create,
             service_account: Some(service_account),
         }
     }

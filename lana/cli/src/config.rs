@@ -67,6 +67,7 @@ impl Config {
             config.app.report = ReportConfig::new_dev_mode(
                 dev_env_name_prefix.clone(),
                 config.app.service_account.clone(),
+                config.app.report.dev_disable_auto_create,
             );
             config.app.storage = StorageConfig::new_dev_mode(
                 dev_env_name_prefix,

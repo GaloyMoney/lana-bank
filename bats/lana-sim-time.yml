@@ -12,6 +12,7 @@ app:
     dataform_repo: "gha-repo"
     dataform_output_dataset: "dataform_gha"
     dataform_release_config: "gha-release"
+    dev_disable_auto_create: true
 time:
   realtime: false
   sim_time:
