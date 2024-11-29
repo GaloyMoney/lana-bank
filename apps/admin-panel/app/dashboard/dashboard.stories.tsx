@@ -1,13 +1,8 @@
 import type { Meta, StoryObj } from "@storybook/react"
+import { ApolloError } from "@apollo/client"
 import { MockedProvider } from "@apollo/client/testing"
 
-import CreateButton, { CreateContextProvider } from "../create"
-
 import Dashboard from "./page"
-
-import { AppSidebar } from "@/components/app-sidebar"
-
-import { SidebarInset, SidebarProvider } from "@/ui/sidebar"
 
 import faker from "@/.storybook/faker"
 
@@ -16,8 +11,6 @@ import {
   GetRealtimePriceUpdatesDocument,
   AllActionsDocument,
   ApprovalProcessStatus,
-  Role,
-  AvatarDocument,
 } from "@/lib/graphql/generated"
 
 import {
@@ -27,7 +20,6 @@ import {
   mockPageInfo,
 } from "@/lib/graphql/generated/mocks"
 import { Satoshis, UsdCents } from "@/types"
-import { RealtimePriceUpdates } from "@/components/realtime-price"
 
 interface DashboardStoryArgs {
   activeFacilities: number
@@ -99,66 +91,25 @@ const createMocks = (args: DashboardStoryArgs) => {
         },
       },
     },
-    {
-      request: { query: AvatarDocument },
-      result: {
-        data: {
-          me: {
-            user: {
-              userId: "usr_123",
-              email: "demo@example.com",
-              roles: [Role.Admin],
-            },
-          },
-        },
-      },
-    },
   ]
 }
 
-const DashboardWithSidebar = (args: DashboardStoryArgs) => {
+const DashboardStory = (args: DashboardStoryArgs) => {
   const mocks = createMocks(args)
 
   return (
-    <MockedProvider mocks={mocks} addTypename={false} key={JSON.stringify(args)}>
-      <div className={` antialiased select-none bg-background`}>
-        <SidebarProvider>
-          <AppSidebar />
-          <SidebarInset className="min-h-screen md:peer-data-[variant=inset]:shadow-none border">
-            <CreateContextProvider>
-              <div className="container mx-auto p-2">
-                <div className="max-w-7xl w-full mx-auto">
-                  <header className="flex justify-between items-center mb-2">
-                    <div className="font-semibold text-sm p-2 bg-secondary rounded-md">
-                      Welcome to Lana Bank
-                    </div>
-                    <CreateButton />
-                  </header>
-
-                  <RealtimePriceUpdates />
-                  <main>
-                    <Dashboard />
-                  </main>
-                </div>
-              </div>
-            </CreateContextProvider>
-          </SidebarInset>
-        </SidebarProvider>
-      </div>
-    </MockedProvider>
+    <div className="max-w-7xl m-auto p-4">
+      <MockedProvider mocks={mocks} addTypename={false} key={JSON.stringify(args)}>
+        <Dashboard />
+      </MockedProvider>
+    </div>
   )
 }
 
-const meta: Meta<typeof DashboardWithSidebar> = {
+const meta: Meta<typeof DashboardStory> = {
   title: "Pages/Dashboard",
-  component: DashboardWithSidebar,
-  parameters: {
-    layout: "fullscreen",
-    nextjs: { appDirectory: true },
-    backgrounds: {
-      default: "light",
-    },
-  },
+  component: DashboardStory,
+  parameters: { layout: "fullscreen", nextjs: { appDirectory: true } },
   argTypes: {
     activeFacilities: {
       control: { type: "number", min: 0, max: 10000 },
@@ -192,6 +143,33 @@ const meta: Meta<typeof DashboardWithSidebar> = {
 }
 
 export default meta
+
 type Story = StoryObj<typeof meta>
 
 export const Default: Story = { args: DEFAULT_ARGS }
+
+export const Error: Story = {
+  args: DEFAULT_ARGS,
+  render: () => {
+    const errorMocks = [
+      {
+        request: { query: DashboardDocument },
+        error: new ApolloError({ errorMessage: faker.lorem.sentence() }),
+      },
+      {
+        request: { query: GetRealtimePriceUpdatesDocument },
+        error: new ApolloError({ errorMessage: faker.lorem.sentence() }),
+      },
+      {
+        request: { query: AllActionsDocument },
+        error: new ApolloError({ errorMessage: faker.lorem.sentence() }),
+      },
+    ]
+
+    return (
+      <MockedProvider mocks={errorMocks} addTypename={false}>
+        <Dashboard />
+      </MockedProvider>
+    )
+  },
+}

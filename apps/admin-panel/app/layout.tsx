@@ -7,9 +7,8 @@ import { headers } from "next/headers"
 import { authOptions } from "./api/auth/[...nextauth]/options"
 import { AuthSessionProvider } from "./session-provider"
 
-import CreateButton, { CreateContextProvider } from "./create"
+import { AppLayout } from "./app-layout"
 
-import { RealtimePriceUpdates } from "@/components/realtime-price"
 import ApolloServerWrapper from "@/lib/apollo-client/server-wrapper"
 import { Toast } from "@/components/toast"
 import { SidebarProvider, SidebarInset } from "@/ui/sidebar"
@@ -62,25 +61,5 @@ export default async function RootLayout({
         </AuthSessionProvider>
       </body>
     </html>
-  )
-}
-
-const AppLayout = ({ children }: Readonly<{ children: React.ReactNode }>) => {
-  return (
-    <CreateContextProvider>
-      <div className="container mx-auto p-2">
-        <div className="max-w-7xl w-full mx-auto">
-          <header className="flex justify-between items-center mb-2">
-            <div className="font-semibold text-sm p-2 bg-secondary rounded-md">
-              Welcome to Lana Bank
-            </div>
-            <CreateButton />
-          </header>
-
-          <RealtimePriceUpdates />
-          <main>{children}</main>
-        </div>
-      </div>
-    </CreateContextProvider>
   )
 }
