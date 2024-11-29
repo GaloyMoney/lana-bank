@@ -15,6 +15,7 @@ pub struct CreditFacilityAccountIds {
     pub collateral_account_id: LedgerAccountId,
     pub interest_receivable_account_id: LedgerAccountId,
     pub interest_account_id: LedgerAccountId,
+    pub fee_income_account_id: LedgerAccountId,
 }
 
 impl CreditFacilityAccountIds {
@@ -26,6 +27,7 @@ impl CreditFacilityAccountIds {
             collateral_account_id: LedgerAccountId::new(),
             interest_receivable_account_id: LedgerAccountId::new(),
             interest_account_id: LedgerAccountId::new(),
+            fee_income_account_id: LedgerAccountId::new(),
         }
     }
 }
