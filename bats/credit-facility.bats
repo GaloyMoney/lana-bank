@@ -7,6 +7,7 @@ RUN_LOG_FILE="credit-facility.run.e2e-logs"
 
 setup_file() {
   start_server
+  reset_log_files "$PERSISTED_LOG_FILE" "$RUN_LOG_FILE"
 }
 
 teardown_file() {

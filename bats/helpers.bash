@@ -227,6 +227,12 @@ cat_logs() {
   cat "$LOG_FILE"
 }
 
+reset_log_files() {
+    for file in "$@"; do
+        rm "$file" &> /dev/null || true && touch "$file"
+    done
+}
+
 KRATOS_PG_CON="postgres://dbuser:secret@localhost:5434/default?sslmode=disable"
 
 getEmailCode() {
