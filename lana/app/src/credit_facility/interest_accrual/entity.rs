@@ -135,18 +135,12 @@ impl InterestAccrual {
         let mut last_incurred_at = None;
         let mut second_to_last_incurred_at = None;
         for event in self.events.iter_all() {
-            match event {
-                InterestAccrualEvent::InterestIncurred { incurred_at, .. } => {
-                    second_to_last_incurred_at = last_incurred_at;
-                    last_incurred_at = Some(*incurred_at);
-                }
-                _ => (),
+            if let InterestAccrualEvent::InterestIncurred { incurred_at, .. } = event {
+                second_to_last_incurred_at = last_incurred_at;
+                last_incurred_at = Some(*incurred_at);
             }
         }
-
-        if last_incurred_at.is_none() {
-            return None;
-        }
+        last_incurred_at?;
 
         let interval = self.terms.incurrence_interval;
         match second_to_last_incurred_at {
