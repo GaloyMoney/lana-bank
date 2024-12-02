@@ -6,10 +6,7 @@ use es_entity::*;
 
 use crate::{
     audit::AuditInfo,
-    credit_facility::{
-        CreditFacilityAccountIds, CreditFacilityInterestAccrual, CreditFacilityInterestIncurrence,
-        CreditFacilityReceivable,
-    },
+    credit_facility::{CreditFacilityInterestAccrual, CreditFacilityReceivable},
     primitives::*,
     terms::{InterestPeriod, TermValues},
 };
@@ -53,6 +50,22 @@ pub struct InterestAccrual {
     pub facility_expires_at: DateTime<Utc>,
     pub terms: TermValues,
     pub(super) events: EntityEvents<InterestAccrualEvent>,
+}
+
+#[derive(Debug, Clone)]
+pub(crate) struct InterestAccrualData {
+    pub(crate) interest: UsdCents,
+    pub(crate) tx_ref: String,
+    pub(crate) tx_id: LedgerTxId,
+    pub(crate) accrued_at: DateTime<Utc>,
+}
+
+#[derive(Debug, Clone)]
+pub(crate) struct InterestIncurrenceData {
+    pub(crate) interest: UsdCents,
+    pub(crate) period: InterestPeriod,
+    pub(crate) tx_ref: String,
+    pub(crate) tx_id: LedgerTxId,
 }
 
 impl TryFromEvents<InterestAccrualEvent> for InterestAccrual {
@@ -118,7 +131,32 @@ impl InterestAccrual {
             .count()
     }
 
-    pub fn next_incurrence_period(&self) -> Option<InterestPeriod> {
+    fn last_incurrence_period(&self) -> Option<InterestPeriod> {
+        let mut last_incurred_at = None;
+        let mut second_to_last_incurred_at = None;
+        for event in self.events.iter_all() {
+            match event {
+                InterestAccrualEvent::InterestIncurred { incurred_at, .. } => {
+                    second_to_last_incurred_at = last_incurred_at;
+                    last_incurred_at = Some(*incurred_at);
+                }
+                _ => (),
+            }
+        }
+
+        if last_incurred_at.is_none() {
+            return None;
+        }
+
+        let interval = self.terms.incurrence_interval;
+        match second_to_last_incurred_at {
+            Some(incurred_at) => interval.period_from(incurred_at).next(),
+            None => interval.period_from(self.started_at),
+        }
+        .truncate(self.accrues_at())
+    }
+
+    pub(crate) fn next_incurrence_period(&self) -> Option<InterestPeriod> {
         let last_incurrence = self.events.iter_all().rev().find_map(|event| match event {
             InterestAccrualEvent::InterestIncurred { incurred_at, .. } => Some(*incurred_at),
             _ => None,
@@ -134,11 +172,11 @@ impl InterestAccrual {
         untruncated_period.truncate(self.accrues_at())
     }
 
-    pub fn initiate_incurrence(
-        &self,
+    pub(crate) fn record_incurrence(
+        &mut self,
         outstanding: CreditFacilityReceivable,
-        credit_facility_account_ids: CreditFacilityAccountIds,
-    ) -> CreditFacilityInterestIncurrence {
+        audit_info: AuditInfo,
+    ) -> InterestIncurrenceData {
         let incurrence_period = self
             .next_incurrence_period()
             .expect("Incurrence period should exist inside this function");
@@ -154,45 +192,40 @@ impl InterestAccrual {
             self.id,
             self.count_incurred() + 1
         );
-        CreditFacilityInterestIncurrence {
+        let interest_incurrence = InterestIncurrenceData {
             interest: interest_for_period,
             period: incurrence_period,
             tx_ref: incurrence_tx_ref,
             tx_id: LedgerTxId::new(),
-            credit_facility_account_ids,
-        }
-    }
+        };
 
-    pub fn confirm_incurrence(
-        &mut self,
-        CreditFacilityInterestIncurrence {
-            interest,
-            tx_ref,
-            tx_id,
-            period,
-            credit_facility_account_ids,
-        }: CreditFacilityInterestIncurrence,
-        audit_info: AuditInfo,
-    ) -> Option<CreditFacilityInterestAccrual> {
         self.events.push(InterestAccrualEvent::InterestIncurred {
-            tx_id,
-            tx_ref,
-            amount: interest,
-            incurred_at: period.end,
+            tx_id: interest_incurrence.tx_id,
+            tx_ref: interest_incurrence.tx_ref.to_string(),
+            amount: interest_incurrence.interest,
+            incurred_at: interest_incurrence.period.end,
             audit_info,
         });
 
-        match period.next().truncate(self.accrues_at()) {
+        interest_incurrence
+    }
+
+    pub(crate) fn accrual_data(&self) -> Option<InterestAccrualData> {
+        let last_incurrence_period = match self.last_incurrence_period() {
+            Some(period) => period,
+            None => return None,
+        };
+
+        match last_incurrence_period.next().truncate(self.accrues_at()) {
             Some(_) => None,
             None => {
                 let accrual_tx_ref =
                     format!("{}-interest-accrual-{}", self.credit_facility_id, self.idx);
-                let interest_accrual = CreditFacilityInterestAccrual {
+                let interest_accrual = InterestAccrualData {
                     interest: self.total_incurred(),
                     tx_ref: accrual_tx_ref,
                     tx_id: LedgerTxId::new(),
-                    accrued_at: period.end,
-                    credit_facility_account_ids,
+                    accrued_at: last_incurrence_period.end,
                 };
 
                 Some(interest_accrual)
@@ -200,7 +233,7 @@ impl InterestAccrual {
         }
     }
 
-    pub fn confirm_accrual(
+    pub(crate) fn record_accrual(
         &mut self,
         CreditFacilityInterestAccrual {
             interest,
@@ -318,6 +351,49 @@ mod test {
     }
 
     #[test]
+    fn last_incurrence_period_at_start() {
+        let accrual = accrual_from(initial_events());
+        assert_eq!(accrual.last_incurrence_period(), None,);
+    }
+
+    #[test]
+    fn last_incurrence_period_in_middle() {
+        let mut events = initial_events();
+
+        let first_incurrence_period = default_terms()
+            .incurrence_interval
+            .period_from(default_started_at());
+        let first_incurrence_at = first_incurrence_period.end;
+        events.push(InterestAccrualEvent::InterestIncurred {
+            tx_id: LedgerTxId::new(),
+            tx_ref: "".to_string(),
+            amount: UsdCents::ONE,
+            incurred_at: first_incurrence_at,
+            audit_info: dummy_audit_info(),
+        });
+        let accrual = accrual_from(events.clone());
+        assert_eq!(
+            accrual.last_incurrence_period().unwrap().start,
+            accrual.started_at
+        );
+
+        let second_incurrence_period = first_incurrence_period.next();
+        let second_incurrence_at = second_incurrence_period.end;
+        events.push(InterestAccrualEvent::InterestIncurred {
+            tx_id: LedgerTxId::new(),
+            tx_ref: "".to_string(),
+            amount: UsdCents::ONE,
+            incurred_at: second_incurrence_at,
+            audit_info: dummy_audit_info(),
+        });
+        let accrual = accrual_from(events);
+        assert_eq!(
+            accrual.last_incurrence_period().unwrap().start,
+            second_incurrence_period.start
+        );
+    }
+
+    #[test]
     fn next_incurrence_period_at_start() {
         let accrual = accrual_from(initial_events());
         assert_eq!(
@@ -377,16 +453,15 @@ mod test {
 
     #[test]
     fn zero_amount_incurrence() {
-        let account_ids = CreditFacilityAccountIds::new();
         let mut accrual = accrual_from(initial_events());
-        let incurrence @ CreditFacilityInterestIncurrence {
+        let InterestIncurrenceData {
             interest, period, ..
-        } = accrual.initiate_incurrence(
+        } = accrual.record_incurrence(
             CreditFacilityReceivable {
                 disbursed: UsdCents::ZERO,
                 interest: UsdCents::ZERO,
             },
-            account_ids,
+            dummy_audit_info(),
         );
         assert_eq!(interest, UsdCents::ZERO);
         let start = default_started_at();
@@ -397,9 +472,7 @@ mod test {
             .unwrap();
         assert_eq!(period.end, end_of_day);
 
-        assert!(accrual
-            .confirm_incurrence(incurrence, dummy_audit_info())
-            .is_none());
+        assert!(accrual.accrual_data().is_none());
     }
 
     fn end_of_month(start_date: DateTime<Utc>) -> DateTime<Utc> {
@@ -420,7 +493,6 @@ mod test {
 
     #[test]
     fn accrual_is_zero_for_zero_outstanding() {
-        let account_ids = CreditFacilityAccountIds::new();
         let mut accrual = accrual_from(initial_events());
 
         let start = default_started_at();
@@ -430,29 +502,29 @@ mod test {
         let mut expected_end_of_day = Utc
             .with_ymd_and_hms(start.year(), start.month(), start.day(), 23, 59, 59)
             .unwrap();
-        let mut confirmed_incurrence: Option<CreditFacilityInterestAccrual> = None;
+        let mut confirmed_incurrence: Option<InterestAccrualData> = None;
         for _ in start_day..(end_day + 1) {
             assert!(confirmed_incurrence.is_none());
 
-            let incurrence @ CreditFacilityInterestIncurrence {
+            let InterestIncurrenceData {
                 interest, period, ..
-            } = accrual.initiate_incurrence(
+            } = accrual.record_incurrence(
                 CreditFacilityReceivable {
                     disbursed: UsdCents::ZERO,
                     interest: UsdCents::ZERO,
                 },
-                account_ids,
+                dummy_audit_info(),
             );
             assert_eq!(interest, UsdCents::ZERO);
             assert_eq!(period.end, expected_end_of_day);
 
-            confirmed_incurrence = accrual.confirm_incurrence(incurrence, dummy_audit_info());
+            confirmed_incurrence = accrual.accrual_data();
             expected_end_of_day += chrono::Duration::days(1);
         }
 
         let expected_accrual_sum = UsdCents::ZERO;
         match confirmed_incurrence {
-            Some(CreditFacilityInterestAccrual { interest, .. }) => {
+            Some(InterestAccrualData { interest, .. }) => {
                 assert_eq!(interest, expected_accrual_sum);
             }
             _ => panic!("Expected accrual to be returned"),
@@ -466,7 +538,6 @@ mod test {
             .annual_rate
             .interest_for_time_period(disbursed_outstanding, 1);
 
-        let account_ids = CreditFacilityAccountIds::new();
         let mut accrual = accrual_from(initial_events());
 
         let start = default_started_at();
@@ -476,29 +547,29 @@ mod test {
         let mut expected_end_of_day = Utc
             .with_ymd_and_hms(start.year(), start.month(), start.day(), 23, 59, 59)
             .unwrap();
-        let mut confirmed_incurrence: Option<CreditFacilityInterestAccrual> = None;
+        let mut confirmed_incurrence: Option<InterestAccrualData> = None;
         for _ in start_day..(end_day + 1) {
             assert!(confirmed_incurrence.is_none());
 
-            let incurrence @ CreditFacilityInterestIncurrence {
+            let InterestIncurrenceData {
                 interest, period, ..
-            } = accrual.initiate_incurrence(
+            } = accrual.record_incurrence(
                 CreditFacilityReceivable {
                     disbursed: disbursed_outstanding,
                     interest: UsdCents::ZERO,
                 },
-                account_ids,
+                dummy_audit_info(),
             );
             assert_eq!(interest, expected_daily_interest);
             assert_eq!(period.end, expected_end_of_day);
 
-            confirmed_incurrence = accrual.confirm_incurrence(incurrence, dummy_audit_info());
+            confirmed_incurrence = accrual.accrual_data();
             expected_end_of_day += chrono::Duration::days(1);
         }
 
         let expected_accrual_sum = expected_daily_interest * (end_day + 1 - start_day).into();
         match confirmed_incurrence {
-            Some(CreditFacilityInterestAccrual { interest, .. }) => {
+            Some(InterestAccrualData { interest, .. }) => {
                 assert_eq!(interest, expected_accrual_sum);
             }
             _ => panic!("Expected accrual to be returned"),

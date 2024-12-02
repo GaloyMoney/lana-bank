@@ -152,7 +152,7 @@ ymd() {
   credit_facility_id=$(read_value 'credit_facility_id')
   retry 30 2 wait_for_accruals 2 "$credit_facility_id"
 
-  cat_logs | grep "interest job completed.*$credit_facility_id" || exit 1
+  cat_logs | grep "interest accrual job completed.*$credit_facility_id" || exit 1
 
   variables=$(
     jq -n \

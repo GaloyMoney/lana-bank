@@ -12,6 +12,8 @@ es_entity::entity_id! {
     WithdrawalId => governance::ApprovalProcessId,
     CreditFacilityId => governance::ApprovalProcessId,
     DisbursalId => governance::ApprovalProcessId,
+
     ReportId => job::JobId,
     CreditFacilityId => job::JobId,
+    InterestAccrualId => job::JobId,
 }

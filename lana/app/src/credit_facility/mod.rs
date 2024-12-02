@@ -102,11 +102,20 @@ impl CreditFacilities {
             },
         )
         .await?;
-        jobs.add_initializer(interest::CreditFacilityProcessingJobInitializer::new(
-            ledger,
-            credit_facility_repo.clone(),
-            authz.audit(),
-        ));
+        jobs.add_initializer(
+            interest_incurrences::CreditFacilityProcessingJobInitializer::new(
+                ledger,
+                credit_facility_repo.clone(),
+                authz.audit(),
+            ),
+        );
+        jobs.add_initializer(
+            interest_accruals::CreditFacilityProcessingJobInitializer::new(
+                ledger,
+                credit_facility_repo.clone(),
+                authz.audit(),
+            ),
+        );
         jobs.add_initializer_and_spawn_unique(
             CreditFacilityApprovalJobInitializer::new(outbox, &approve_credit_facility),
             CreditFacilityApprovalJobConfig,
