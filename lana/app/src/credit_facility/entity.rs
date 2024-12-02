@@ -191,6 +191,40 @@ pub struct CreditFacilityBalance {
     pub due_interest_receivable: UsdCents,
 }
 
+impl PartialEq<CreditFacilityLedgerBalance> for CreditFacilityBalance {
+    fn eq(&self, other: &CreditFacilityLedgerBalance) -> bool {
+        self.facility_remaining == other.facility
+            && self.collateral == other.collateral
+            && self.total_disbursed == other.disbursed
+            && self.disbursed_receivable == other.disbursed_receivable
+            && self.total_interest_accrued == other.interest
+            && self.interest_receivable == other.interest_receivable
+    }
+}
+
+impl CreditFacilityBalance {
+    pub fn check_disbursal_amount(&self, amount: UsdCents) -> Result<(), CreditFacilityError> {
+        if amount > self.facility_remaining {
+            return Err(CreditFacilityError::DisbursalAmountTooLarge(
+                amount,
+                self.facility_remaining,
+            ));
+        }
+        Ok(())
+    }
+
+    pub fn check_against_ledger(
+        &self,
+        ledger_balances: CreditFacilityLedgerBalance,
+    ) -> Result<(), CreditFacilityError> {
+        if *self != ledger_balances {
+            return Err(CreditFacilityError::FacilityLedgerBalanceMismatch);
+        }
+
+        Ok(())
+    }
+}
+
 #[derive(Clone)]
 pub struct FacilityCVLData {
     pub total: CVLData,

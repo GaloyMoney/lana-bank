@@ -74,15 +74,6 @@ impl TryFrom<credit_facility_ledger_balance::ResponseData> for CreditFacilityLed
     }
 }
 
-impl CreditFacilityLedgerBalance {
-    pub fn check_disbursal_amount(&self, amount: UsdCents) -> Result<(), LedgerError> {
-        if amount > self.facility {
-            return Err(LedgerError::DisbursalAmountTooLarge(amount, self.facility));
-        }
-        Ok(())
-    }
-}
-
 #[derive(Debug, Clone)]
 pub struct CreditFacilityCollateralUpdate {
     pub tx_ref: String,

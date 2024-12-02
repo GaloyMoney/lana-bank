@@ -58,8 +58,8 @@ pub enum CreditFacilityError {
     BelowMarginLimit,
     #[error("CreditFacilityError - PaymentExceedsOutstandingCreditFacilityAmount: {0} > {1}")]
     PaymentExceedsOutstandingCreditFacilityAmount(UsdCents, UsdCents),
-    #[error("CreditFacilityError - ReceivableBalanceMismatch")]
-    ReceivableBalanceMismatch,
+    #[error("CreditFacilityError - FacilityLedgerBalanceMismatch")]
+    FacilityLedgerBalanceMismatch,
     #[error("CreditFacilityError - OutstandingAmount")]
     OutstandingAmount,
     #[error("CreditFacilityError - AlreadyCompleted")]
@@ -70,6 +70,10 @@ pub enum CreditFacilityError {
     InterestAccrualWithInvalidFutureStartDate,
     #[error("CreditFacilityError - SubjectIsNotUser")]
     SubjectIsNotUser,
+    #[error(
+        "CreditFacilityError - DisbursalAmountTooLarge: amount '{0}' is larger than facility balance '{1}'"
+    )]
+    DisbursalAmountTooLarge(UsdCents, UsdCents),
 }
 
 es_entity::from_es_entity_error!(CreditFacilityError);

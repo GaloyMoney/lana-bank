@@ -25,13 +25,9 @@ pub enum LedgerError {
     #[error("LedgerError - AccountNotFound")]
     AccountNotFound,
     #[error(
-        "LoanError - WithdrawalAmountTooLarge: amount '{0}' is larger than bank balance '{1}'"
+        "LedgerError - WithdrawalAmountTooLarge: amount '{0}' is larger than bank balance '{1}'"
     )]
     WithdrawalAmountTooLarge(UsdCents, UsdCents),
-    #[error(
-        "CreditFacilityError - DisbursalAmountTooLarge: amount '{0}' is larger than facility balance '{1}'"
-    )]
-    DisbursalAmountTooLarge(UsdCents, UsdCents),
     #[error("LedgerError - AuthorizationError: {0}")]
     AuthorizationError(#[from] crate::authorization::error::AuthorizationError),
     #[error("LedgerError - InsufficientBalance: {0} < {1}")]
