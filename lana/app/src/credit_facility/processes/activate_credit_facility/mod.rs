@@ -112,11 +112,12 @@ impl ActivateCreditFacility {
             Ok(_) | Err(JobError::DuplicateId) => (),
             Err(err) => Err(err)?,
         };
-        db.commit().await?;
 
         self.ledger
             .activate_credit_facility(credit_facility_activation)
             .await?;
+
+        db.commit().await?;
 
         Ok(credit_facility)
     }
