@@ -61,7 +61,7 @@ mod account_status_sqlx {
         }
     }
 
-    impl<'q> sqlx::Encode<'q, Postgres> for AccountStatus {
+    impl sqlx::Encode<'_, Postgres> for AccountStatus {
         fn encode_by_ref(
             &self,
             buf: &mut PgArgumentBuffer,

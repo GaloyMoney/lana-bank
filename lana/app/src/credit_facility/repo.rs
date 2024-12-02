@@ -115,7 +115,7 @@ mod facility_status_sqlx {
         }
     }
 
-    impl<'q> sqlx::Encode<'q, Postgres> for CreditFacilityStatus {
+    impl sqlx::Encode<'_, Postgres> for CreditFacilityStatus {
         fn encode_by_ref(
             &self,
             buf: &mut PgArgumentBuffer,
@@ -153,7 +153,7 @@ mod facility_collateralization_state_sqlx {
         }
     }
 
-    impl<'q> sqlx::Encode<'q, Postgres> for CollateralizationState {
+    impl sqlx::Encode<'_, Postgres> for CollateralizationState {
         fn encode_by_ref(
             &self,
             buf: &mut PgArgumentBuffer,
