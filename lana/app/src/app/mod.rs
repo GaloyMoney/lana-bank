@@ -59,7 +59,7 @@ impl LanaApp {
         sqlx::migrate!().run(&pool).await?;
 
         let mut jobs = Jobs::new(&pool, config.job_execution);
-        let export = Export::new(config.ledger.cala_url.clone(), &config.data_export, &jobs);
+        let export = Export::new(config.ledger.cala_url.clone(), &jobs);
         let audit = Audit::new(&pool);
         let authz = init_authz(&pool, &audit).await?;
         let outbox = Outbox::init(&pool).await?;

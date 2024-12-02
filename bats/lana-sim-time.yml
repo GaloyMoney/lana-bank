@@ -13,8 +13,6 @@ app:
     dataform_output_dataset: "dataform_gha"
     dataform_release_config: "gha-release"
     dev_disable_auto_create: true
-  data_export:
-    dev_disable_entity_events: true
 time:
   realtime: false
   sim_time:

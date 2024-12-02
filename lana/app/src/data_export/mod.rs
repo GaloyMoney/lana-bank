@@ -1,5 +1,4 @@
 mod cala;
-mod config;
 pub mod error;
 mod job;
 
@@ -13,9 +12,8 @@ use crate::{
 };
 
 use cala::*;
-pub use config::*;
 use error::ExportError;
-use job::{DataExportInitializer, DataExportJobConfig};
+use job::{DataExportConfig, DataExportInitializer};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ExportEntityEventData {
@@ -52,16 +50,14 @@ const PRICE_EXPORT_TABLE_NAME: &str = "price_cents_btc";
 #[derive(Clone)]
 pub struct Export {
     cala_url: String,
-    config: DataExportConfig,
     jobs: Jobs,
 }
 
 impl Export {
-    pub fn new(cala_url: String, config: &DataExportConfig, jobs: &Jobs) -> Self {
+    pub fn new(cala_url: String, jobs: &Jobs) -> Self {
         jobs.add_initializer(DataExportInitializer);
         Self {
             cala_url,
-            config: config.clone(),
             jobs: jobs.clone(),
         }
     }
@@ -94,10 +90,6 @@ impl Export {
         T: es_entity::EsEvent + 'static,
         <T as es_entity::EsEvent>::EntityId: Into<uuid::Uuid> + std::fmt::Display + Copy,
     {
-        if self.config.dev_disable_entity_events {
-            return Ok(());
-        }
-
         for persisted_event in events {
             let id = persisted_event.entity_id.into();
             let event =
@@ -122,7 +114,7 @@ impl Export {
                 .create_and_spawn_in_op(
                     db,
                     JobId::new(),
-                    DataExportJobConfig {
+                    DataExportConfig {
                         table_name: std::borrow::Cow::Borrowed(table_name),
                         cala_url: self.cala_url.clone(),
                         data,
