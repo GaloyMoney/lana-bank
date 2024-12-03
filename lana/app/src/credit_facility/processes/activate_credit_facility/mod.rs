@@ -78,8 +78,9 @@ impl ActivateCreditFacility {
             return Ok(credit_facility);
         };
         let accrual_id = credit_facility
-            .in_progress_interest_accrual_id()
-            .expect("First accrual not found");
+            .interest_accrual_in_progress()
+            .expect("First accrual not found")
+            .id;
 
         self.credit_facility_repo
             .update_in_op(&mut db, &mut credit_facility)

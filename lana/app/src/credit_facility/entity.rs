@@ -729,32 +729,6 @@ impl CreditFacility {
         }
     }
 
-    pub fn in_progress_interest_accrual_id(&self) -> Option<InterestAccrualId> {
-        if let Some(id) = self
-            .events
-            .iter_all()
-            .rev()
-            .find_map(|event| match event {
-                CreditFacilityEvent::InterestAccrualConcluded { .. } => Some(None),
-                CreditFacilityEvent::InterestAccrualStarted {
-                    interest_accrual_id: id,
-                    ..
-                } => Some(Some(id)),
-                _ => None,
-            })
-            .flatten()
-        {
-            Some(
-                self.interest_accruals
-                    .get_persisted(id)
-                    .expect("Interest accrual not found")
-                    .id,
-            )
-        } else {
-            None
-        }
-    }
-
     pub fn outstanding(&self) -> CreditFacilityReceivable {
         CreditFacilityReceivable {
             disbursed: self.total_disbursed() - self.disbursed_payments(),
