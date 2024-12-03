@@ -63,6 +63,17 @@ async_graphql::scalar!(OneTimeFeeRatePct);
 
 impl OneTimeFeeRatePct {
     pub const ZERO: Self = Self(dec!(0));
+
+    pub fn new(pct: u64) -> Self {
+        OneTimeFeeRatePct(Decimal::from(pct))
+    }
+
+    pub fn apply(&self, amount: UsdCents) -> UsdCents {
+        let fee_as_decimal = (amount.to_usd() * (self.0 / dec!(100)))
+            .round_dp_with_strategy(2, RoundingStrategy::AwayFromZero);
+
+        UsdCents::try_from_usd(fee_as_decimal).expect("Unexpected negative number")
+    }
 }
 
 #[derive(Clone)]
@@ -686,6 +697,18 @@ mod test {
             InterestInterval::EndOfDay.end_date_starting_at(end_of_day),
             expected_end_date
         );
+    }
+
+    #[test]
+    fn can_apply_one_time_fee() {
+        let fee = OneTimeFeeRatePct(dec!(5)).apply(UsdCents::from(1000));
+        assert_eq!(fee, UsdCents::from(50));
+    }
+
+    #[test]
+    fn one_time_fee_rounds_up() {
+        let fee = OneTimeFeeRatePct(dec!(5.01)).apply(UsdCents::from(1000));
+        assert_eq!(fee, UsdCents::from(51));
     }
 
     mod collateralization_update {

@@ -353,8 +353,8 @@ impl CreditFacility {
         })
     }
 
-    pub fn structuring_fee(&self) -> UsdCents {
-        unimplemented!()
+    fn structuring_fee(&self) -> UsdCents {
+        self.terms.one_time_fee_rate.apply(self.initial_facility())
     }
 
     fn total_disbursed(&self) -> UsdCents {
@@ -1260,7 +1260,7 @@ mod test {
             .duration(Duration::Months(3))
             .accrual_interval(InterestInterval::EndOfMonth)
             .incurrence_interval(InterestInterval::EndOfDay)
-            .one_time_fee_rate(OneTimeFeeRatePct::ZERO)
+            .one_time_fee_rate(OneTimeFeeRatePct::new(5))
             .liquidation_cvl(dec!(105))
             .margin_call_cvl(dec!(125))
             .initial_cvl(dec!(140))
@@ -1273,6 +1273,14 @@ mod test {
             audit_entry_id: AuditEntryId::from(1),
             sub: "sub".to_string(),
         }
+    }
+
+    fn default_facility() -> UsdCents {
+        UsdCents::from(10_00)
+    }
+
+    fn default_full_collateral() -> Satoshis {
+        Satoshis::from(100_000)
     }
 
     fn default_price() -> PriceOfOneBTC {
@@ -1294,7 +1302,7 @@ mod test {
                 id: CreditFacilityId::new(),
                 audit_info: dummy_audit_info(),
                 customer_id: CustomerId::new(),
-                facility: UsdCents::from(100),
+                facility: default_facility(),
                 terms: default_terms(),
                 account_ids: CreditFacilityAccountIds::new(),
                 customer_account_ids: CustomerLedgerAccountIds::new(),
@@ -1537,7 +1545,7 @@ mod test {
 
         credit_facility
             .record_collateral_update(
-                Satoshis::from(500),
+                Satoshis::from(5000),
                 dummy_audit_info(),
                 default_price(),
                 default_upgrade_buffer_cvl_pct(),
@@ -1741,7 +1749,7 @@ mod test {
 
         credit_facility
             .record_collateral_update(
-                Satoshis::from(10000),
+                default_full_collateral(),
                 dummy_audit_info(),
                 default_price(),
                 default_upgrade_buffer_cvl_pct(),
@@ -1810,7 +1818,7 @@ mod test {
 
         credit_facility
             .record_collateral_update(
-                Satoshis::from(10000),
+                default_full_collateral(),
                 dummy_audit_info(),
                 default_price(),
                 default_upgrade_buffer_cvl_pct(),
@@ -1828,6 +1836,13 @@ mod test {
             .activate(credit_facility_approval, Utc::now(), dummy_audit_info())
             .did_execute());
         assert_eq!(credit_facility.status(), CreditFacilityStatus::Active);
+    }
+
+    #[test]
+    fn structuring_fee() {
+        let credit_facility = facility_from(initial_events());
+        let expected_fee = default_terms().one_time_fee_rate.apply(default_facility());
+        assert_eq!(credit_facility.structuring_fee(), expected_fee);
     }
 
     mod activation_data {
