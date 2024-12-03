@@ -705,22 +705,17 @@ impl CreditFacility {
         }))
     }
 
-    pub(super) fn accrual_data(
-        &mut self,
-    ) -> Result<CreditFacilityInterestAccrual, CreditFacilityError> {
-        let account_ids = self.account_ids;
-        self.interest_accrual_in_progress()
-            .expect("accrual not found")
-            .accrual_data()
-            .map(|data| CreditFacilityInterestAccrual::from((data, account_ids)))
-            .ok_or(CreditFacilityError::InterestAccrualNotCompletedYet)
-    }
-
     pub fn record_interest_accrual(
         &mut self,
-        interest_accrual: CreditFacilityInterestAccrual,
         audit_info: AuditInfo,
-    ) {
+    ) -> Result<CreditFacilityInterestAccrual, CreditFacilityError> {
+        let interest_accrual = self
+            .interest_accrual_in_progress()
+            .expect("accrual not found")
+            .accrual_data()
+            .map(|data| CreditFacilityInterestAccrual::from((data, self.account_ids)))
+            .ok_or(CreditFacilityError::InterestAccrualNotCompletedYet)?;
+
         let idx = {
             let accrual = self
                 .interest_accrual_in_progress()
@@ -732,11 +727,13 @@ impl CreditFacility {
             .push(CreditFacilityEvent::InterestAccrualConcluded {
                 idx,
                 tx_id: interest_accrual.tx_id,
-                tx_ref: interest_accrual.tx_ref,
+                tx_ref: interest_accrual.tx_ref.to_string(),
                 amount: interest_accrual.interest,
                 accrued_at: interest_accrual.accrued_at,
                 audit_info,
             });
+
+        Ok(interest_accrual)
     }
 
     pub fn interest_accrual_in_progress(&mut self) -> Option<&mut InterestAccrual> {
@@ -1645,16 +1642,7 @@ mod test {
                 .expect("Interest accrual not found")
                 .idx
                 .next();
-            credit_facility.record_interest_accrual(
-                CreditFacilityInterestAccrual {
-                    interest: UsdCents::ONE,
-                    tx_ref: "tx_ref".to_string(),
-                    tx_id: LedgerTxId::new(),
-                    accrued_at: accrual_period.end,
-                    credit_facility_account_ids: credit_facility.account_ids,
-                },
-                dummy_audit_info(),
-            );
+            credit_facility.record_interest_accrual(dummy_audit_info());
 
             let accrual_starts_at = next_accrual_period.unwrap().start;
             let id = InterestAccrualId::new();
@@ -2037,8 +2025,9 @@ mod test {
                 accrual.record_incurrence(outstanding, dummy_audit_info());
                 accrual_data = accrual.accrual_data();
             }
-            let interest_accrual = (accrual_data.unwrap(), credit_facility.account_ids).into();
-            credit_facility.record_interest_accrual(interest_accrual, dummy_audit_info());
+            credit_facility
+                .record_interest_accrual(dummy_audit_info())
+                .unwrap();
 
             credit_facility
         }

@@ -84,8 +84,7 @@ impl CreditFacilityProcessingJobRunner {
             .find_by_id(self.config.credit_facility_id)
             .await?;
 
-        let interest_accrual = credit_facility.accrual_data()?;
-        credit_facility.record_interest_accrual(interest_accrual.clone(), audit_info.clone());
+        let interest_accrual = credit_facility.record_interest_accrual(audit_info.clone())?;
         self.credit_facility_repo
             .update_in_op(db, &mut credit_facility)
             .await?;
