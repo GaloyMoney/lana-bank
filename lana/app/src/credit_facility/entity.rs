@@ -1927,8 +1927,9 @@ mod test {
             disbursal
                 .approval_process_concluded(true, dummy_audit_info())
                 .unwrap();
-            let disbursal_data = disbursal.disbursal_data().unwrap();
-            disbursal.confirm(&disbursal_data, facility_activated_at, dummy_audit_info());
+            let disbursal_data = disbursal
+                .record(facility_activated_at, dummy_audit_info())
+                .unwrap();
             credit_facility.confirm_disbursal(
                 &disbursal,
                 Some(disbursal_data.tx_id),

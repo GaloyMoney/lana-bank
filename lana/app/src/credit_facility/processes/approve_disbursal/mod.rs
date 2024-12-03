@@ -106,24 +106,22 @@ impl ApproveDisbursal {
             .await?;
 
         let executed_at = crate::time::now();
-        match disbursal.disbursal_data() {
+        let disbursal_audit_info = self
+            .audit
+            .record_system_entry_in_tx(
+                db.tx(),
+                AppObject::CreditFacility,
+                CreditFacilityAction::ConfirmDisbursal,
+            )
+            .await?;
+        match disbursal.record(executed_at, disbursal_audit_info.clone()) {
             Ok(disbursal_data) => {
                 span.record("disbursal_executed", true);
-                let audit_info = self
-                    .audit
-                    .record_system_entry_in_tx(
-                        db.tx(),
-                        AppObject::CreditFacility,
-                        CreditFacilityAction::ConfirmDisbursal,
-                    )
-                    .await?;
-
-                disbursal.confirm(&disbursal_data, executed_at, audit_info.clone());
                 credit_facility.confirm_disbursal(
                     &disbursal,
                     Some(disbursal_data.tx_id),
                     executed_at,
-                    audit_info.clone(),
+                    disbursal_audit_info,
                 );
                 self.disbursal_repo
                     .update_in_op(&mut db, &mut disbursal)
