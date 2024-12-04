@@ -191,6 +191,13 @@ async fn add_permissions_for_admin(authz: &Authorization) -> Result<(), Authoriz
         .add_permission_to_role(
             &role,
             GovernanceObject::all_approval_processes(),
+            GovernanceAction::APPROVAL_PROCESS_CREATE_AND_APPROVE,
+        )
+        .await?;
+    authz
+        .add_permission_to_role(
+            &role,
+            GovernanceObject::all_approval_processes(),
             GovernanceAction::APPROVAL_PROCESS_LIST,
         )
         .await?;

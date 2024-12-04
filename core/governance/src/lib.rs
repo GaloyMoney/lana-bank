@@ -216,6 +216,34 @@ where
         Ok(process)
     }
 
+    #[instrument(name = "governance.start_process_and_approve", skip(self, db), err)]
+    pub async fn start_process_and_approve(
+        &self,
+        db: &mut es_entity::DbOp<'_>,
+        id: impl Into<ApprovalProcessId> + std::fmt::Debug,
+        target_ref: String,
+        process_type: ApprovalProcessType,
+    ) -> Result<ApprovalProcess, GovernanceError> {
+        let policy = self.policy_repo.find_by_process_type(process_type).await?;
+        let audit_info = self
+            .authz
+            .audit()
+            .record_system_entry(
+                GovernanceObject::all_approval_processes(),
+                GovernanceAction::APPROVAL_PROCESS_CREATE_AND_APPROVE,
+            )
+            .await?;
+        let process = policy.spawn_process(id.into(), target_ref, audit_info);
+        let mut process = self.process_repo.create_in_op(db, process).await?;
+        if self
+            .fire_bypassed_concluded_event(db.tx().begin().await?, &mut process)
+            .await?
+        {
+            self.process_repo.update_in_op(db, &mut process).await?;
+        }
+        Ok(process)
+    }
+
     #[instrument(name = "governance.approve_process", skip(self), err)]
     pub async fn approve_process(
         &self,
@@ -351,6 +379,43 @@ where
             .await?;
         let res = if let es_entity::Idempotent::Executed((approved, denied_reason)) =
             process.check_concluded(eligible, audit_info)
+        {
+            self.outbox
+                .publish_persisted(
+                    &mut db,
+                    GovernanceEvent::ApprovalProcessConcluded {
+                        id: process.id,
+                        approved,
+                        denied_reason,
+                        process_type: process.process_type.clone(),
+                        target_ref: process.target_ref().to_string(),
+                    },
+                )
+                .await?;
+            db.commit().await?;
+            true
+        } else {
+            false
+        };
+        Ok(res)
+    }
+
+    async fn fire_bypassed_concluded_event(
+        &self,
+        mut db: sqlx::Transaction<'_, sqlx::Postgres>,
+        process: &mut ApprovalProcess,
+    ) -> Result<bool, GovernanceError> {
+        let audit_info = self
+            .authz
+            .audit()
+            .record_system_entry_in_tx(
+                &mut db,
+                GovernanceObject::approval_process(process.id),
+                GovernanceAction::APPROVAL_PROCESS_CONCLUDE,
+            )
+            .await?;
+        let res = if let es_entity::Idempotent::Executed((approved, denied_reason)) =
+            process.conclude_without_check(audit_info)
         {
             self.outbox
                 .publish_persisted(

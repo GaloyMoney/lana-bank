@@ -66,6 +66,8 @@ impl GovernanceAction {
 
     pub const APPROVAL_PROCESS_CREATE: Self =
         GovernanceAction::ApprovalProcess(ApprovalProcessAction::Create);
+    pub const APPROVAL_PROCESS_CREATE_AND_APPROVE: Self =
+        GovernanceAction::ApprovalProcess(ApprovalProcessAction::CreateAndApprove);
     pub const APPROVAL_PROCESS_READ: Self =
         GovernanceAction::ApprovalProcess(ApprovalProcessAction::Read);
     pub const APPROVAL_PROCESS_LIST: Self =
@@ -128,6 +130,7 @@ pub enum PolicyAction {
 #[strum(serialize_all = "kebab-case")]
 pub enum ApprovalProcessAction {
     Create,
+    CreateAndApprove,
     Read,
     List,
     Approve,

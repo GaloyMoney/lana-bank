@@ -134,6 +134,23 @@ impl ApprovalProcess {
         Idempotent::AlreadyApplied
     }
 
+    pub(crate) fn conclude_without_check(
+        &mut self,
+        audit_info: AuditInfo,
+    ) -> Idempotent<(bool, Option<String>)> {
+        idempotency_guard!(
+            self.events.iter_all(),
+            ApprovalProcessEvent::Concluded { .. },
+        );
+
+        let approved = true;
+        self.events.push(ApprovalProcessEvent::Concluded {
+            approved,
+            audit_info,
+        });
+        Idempotent::Executed((approved, None))
+    }
+
     pub fn status(&self) -> ApprovalProcessStatus {
         for event in self.events.iter_all().rev() {
             match event {
