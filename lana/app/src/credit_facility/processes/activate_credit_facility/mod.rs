@@ -6,8 +6,9 @@ use crate::{
     audit::{Audit, AuditSvc},
     credit_facility::{
         error::CreditFacilityError, interest_accruals, interest_incurrences, CreditFacility,
-        CreditFacilityRepo,
+        CreditFacilityRepo, DisbursalRepo,
     },
+    governance::{Governance, APPROVE_DISBURSAL_PROCESS},
     job::{error::JobError, Jobs},
     ledger::Ledger,
     price::Price,
@@ -20,6 +21,8 @@ pub use job::*;
 #[derive(Clone)]
 pub struct ActivateCreditFacility {
     credit_facility_repo: CreditFacilityRepo,
+    disbursal_repo: DisbursalRepo,
+    governance: Governance,
     ledger: Ledger,
     price: Price,
     jobs: Jobs,
@@ -29,6 +32,8 @@ pub struct ActivateCreditFacility {
 impl ActivateCreditFacility {
     pub(in crate::credit_facility) fn new(
         credit_facility_repo: &CreditFacilityRepo,
+        disbursal_repo: &DisbursalRepo,
+        governance: &Governance,
         ledger: &Ledger,
         price: &Price,
         jobs: &Jobs,
@@ -36,6 +41,8 @@ impl ActivateCreditFacility {
     ) -> Self {
         Self {
             credit_facility_repo: credit_facility_repo.clone(),
+            disbursal_repo: disbursal_repo.clone(),
+            governance: governance.clone(),
             ledger: ledger.clone(),
             price: price.clone(),
             jobs: jobs.clone(),
@@ -77,6 +84,39 @@ impl ActivateCreditFacility {
         else {
             return Ok(credit_facility);
         };
+
+        let new_disbursal = credit_facility.initiate_disbursal(
+            credit_facility.structuring_fee(),
+            now,
+            price,
+            audit_info.clone(),
+        )?;
+        self.governance
+            .start_process_and_approve(
+                &mut db,
+                new_disbursal.approval_process_id,
+                new_disbursal.approval_process_id.to_string(),
+                APPROVE_DISBURSAL_PROCESS,
+            )
+            .await?;
+        let mut disbursal = self
+            .disbursal_repo
+            .create_in_op(&mut db, new_disbursal)
+            .await?;
+        disbursal
+            .approval_process_concluded(true, audit_info.clone())
+            .did_execute();
+        let disbursal_data = disbursal.record(now, audit_info.clone())?;
+        credit_facility.confirm_disbursal(
+            &disbursal,
+            Some(disbursal_data.tx_id),
+            now,
+            audit_info.clone(),
+        );
+
+        self.disbursal_repo
+            .update_in_op(&mut db, &mut disbursal)
+            .await?;
         self.credit_facility_repo
             .update_in_op(&mut db, &mut credit_facility)
             .await?;

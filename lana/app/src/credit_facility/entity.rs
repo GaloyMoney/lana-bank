@@ -353,7 +353,7 @@ impl CreditFacility {
         })
     }
 
-    fn structuring_fee(&self) -> UsdCents {
+    pub fn structuring_fee(&self) -> UsdCents {
         self.terms.one_time_fee_rate.apply(self.initial_facility())
     }
 
