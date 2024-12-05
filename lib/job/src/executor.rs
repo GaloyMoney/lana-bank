@@ -159,14 +159,18 @@ impl JobExecutor {
 
         let rows = sqlx::query!(
             r#"
-              WITH selected_jobs AS (
-                  SELECT je.id, je.execution_state_json AS data_json
+              WITH ranked_job_executions AS (
+                  SELECT je.id, je.execution_state_json AS data_json,
+                         ROW_NUMBER() OVER (PARTITION BY jobs.job_type ORDER BY je.reschedule_after ASC) as rn
                   FROM job_executions je
                   JOIN jobs ON je.id = jobs.id
-                  WHERE reschedule_after < $2::timestamptz
+                  WHERE je.reschedule_after < $2::timestamptz
                   AND je.state = 'pending'
-                  ORDER BY reschedule_after ASC
-                  LIMIT $1
+              ),
+              selected_jobs AS (
+                  SELECT rje.id, rje.data_json
+                  FROM ranked_job_executions rje
+                  WHERE rje.rn <= $1
                   FOR UPDATE
               )
               UPDATE job_executions AS je
