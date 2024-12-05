@@ -46,6 +46,21 @@ CREATE TABLE approval_process_events (
   UNIQUE(id, sequence)
 );
 
+CREATE TABLE deposit_accounts (
+  id UUID PRIMARY KEY,
+  account_holder_id VARCHAR NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL
+);
+
+CREATE TABLE deposit_account_events (
+  id UUID NOT NULL REFERENCES deposit_accounts(id),
+  sequence INT NOT NULL,
+  event_type VARCHAR NOT NULL,
+  event JSONB NOT NULL,
+  recorded_at TIMESTAMPTZ NOT NULL,
+  UNIQUE(id, sequence)
+);
+
 CREATE TABLE customers (
   id UUID PRIMARY KEY,
   email VARCHAR NOT NULL UNIQUE,
