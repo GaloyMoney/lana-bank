@@ -195,6 +195,8 @@ where
         target_ref: String,
         process_type: ApprovalProcessType,
     ) -> Result<ApprovalProcess, GovernanceError> {
+        let auto_approved = false;
+
         let policy = self.policy_repo.find_by_process_type(process_type).await?;
         let audit_info = self
             .authz
@@ -204,8 +206,8 @@ where
                 GovernanceAction::APPROVAL_PROCESS_CREATE,
             )
             .await?;
-        let process = policy.spawn_process(id.into(), target_ref, audit_info);
-        let mut process = self.process_repo.create_in_op(db, process).await?;
+        let new_process = policy.spawn_process(id.into(), target_ref, audit_info, auto_approved);
+        let mut process = self.process_repo.create_in_op(db, new_process).await?;
         let eligible = self.eligible_voters_for_process(&process).await?;
         if self
             .maybe_fire_concluded_event(db.tx().begin().await?, eligible, &mut process)
@@ -224,6 +226,8 @@ where
         target_ref: String,
         process_type: ApprovalProcessType,
     ) -> Result<ApprovalProcess, GovernanceError> {
+        let auto_approved = true;
+
         let policy = self.policy_repo.find_by_process_type(process_type).await?;
         let audit_info = self
             .authz
@@ -233,14 +237,14 @@ where
                 GovernanceAction::APPROVAL_PROCESS_CREATE_AND_APPROVE,
             )
             .await?;
-        let process = policy.spawn_process(id.into(), target_ref, audit_info);
-        let mut process = self.process_repo.create_in_op(db, process).await?;
-        if self
-            .fire_bypassed_concluded_event(db.tx().begin().await?, &mut process)
-            .await?
-        {
-            self.process_repo.update_in_op(db, &mut process).await?;
-        }
+
+        let new_process = policy.spawn_process(id.into(), target_ref, audit_info, auto_approved);
+        let mut process = self.process_repo.create_in_op(db, new_process).await?;
+        self.fire_concluded_event(db.tx().begin().await?, &mut process, auto_approved, None)
+            .await?;
+
+        self.process_repo.update_in_op(db, &mut process).await?;
+
         Ok(process)
     }
 
@@ -377,64 +381,40 @@ where
                 GovernanceAction::APPROVAL_PROCESS_CONCLUDE,
             )
             .await?;
-        let res = if let es_entity::Idempotent::Executed((approved, denied_reason)) =
+
+        if let es_entity::Idempotent::Executed((approved, denied_reason)) =
             process.check_concluded(eligible, audit_info)
         {
-            self.outbox
-                .publish_persisted(
-                    &mut db,
-                    GovernanceEvent::ApprovalProcessConcluded {
-                        id: process.id,
-                        approved,
-                        denied_reason,
-                        process_type: process.process_type.clone(),
-                        target_ref: process.target_ref().to_string(),
-                    },
-                )
+            self.fire_concluded_event(db, process, approved, denied_reason)
                 .await?;
-            db.commit().await?;
-            true
+            Ok(true)
         } else {
-            false
-        };
-        Ok(res)
+            Ok(false)
+        }
     }
 
-    async fn fire_bypassed_concluded_event(
+    async fn fire_concluded_event(
         &self,
         mut db: sqlx::Transaction<'_, sqlx::Postgres>,
         process: &mut ApprovalProcess,
-    ) -> Result<bool, GovernanceError> {
-        let audit_info = self
-            .authz
-            .audit()
-            .record_system_entry_in_tx(
+        approved: bool,
+        denied_reason: Option<String>,
+    ) -> Result<(), GovernanceError> {
+        self.outbox
+            .publish_persisted(
                 &mut db,
-                GovernanceObject::approval_process(process.id),
-                GovernanceAction::APPROVAL_PROCESS_CONCLUDE,
+                GovernanceEvent::ApprovalProcessConcluded {
+                    id: process.id,
+                    approved,
+                    denied_reason,
+                    process_type: process.process_type.clone(),
+                    target_ref: process.target_ref().to_string(),
+                },
             )
             .await?;
-        let res = if let es_entity::Idempotent::Executed((approved, denied_reason)) =
-            process.conclude_without_check(audit_info)
-        {
-            self.outbox
-                .publish_persisted(
-                    &mut db,
-                    GovernanceEvent::ApprovalProcessConcluded {
-                        id: process.id,
-                        approved,
-                        denied_reason,
-                        process_type: process.process_type.clone(),
-                        target_ref: process.target_ref().to_string(),
-                    },
-                )
-                .await?;
-            db.commit().await?;
-            true
-        } else {
-            false
-        };
-        Ok(res)
+        db.commit().await?;
+
+        Ok(())
     }
 
     #[instrument(name = "governance.add_member_to_committee", skip(self), err)]

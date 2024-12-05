@@ -134,23 +134,6 @@ impl ApprovalProcess {
         Idempotent::AlreadyApplied
     }
 
-    pub(crate) fn conclude_without_check(
-        &mut self,
-        audit_info: AuditInfo,
-    ) -> Idempotent<(bool, Option<String>)> {
-        idempotency_guard!(
-            self.events.iter_all(),
-            ApprovalProcessEvent::Concluded { .. },
-        );
-
-        let approved = true;
-        self.events.push(ApprovalProcessEvent::Concluded {
-            approved,
-            audit_info,
-        });
-        Idempotent::Executed((approved, None))
-    }
-
     pub fn status(&self) -> ApprovalProcessStatus {
         for event in self.events.iter_all().rev() {
             match event {
@@ -277,6 +260,7 @@ pub struct NewApprovalProcess {
     pub(super) target_ref: String,
     #[builder(setter(into))]
     pub audit_info: AuditInfo,
+    pub(super) auto_approve: bool,
 }
 
 impl NewApprovalProcess {
@@ -291,17 +275,23 @@ impl NewApprovalProcess {
 
 impl IntoEvents<ApprovalProcessEvent> for NewApprovalProcess {
     fn into_events(self) -> EntityEvents<ApprovalProcessEvent> {
-        EntityEvents::init(
-            self.id,
-            [ApprovalProcessEvent::Initialized {
-                id: self.id,
-                policy_id: self.policy_id,
-                process_type: self.process_type,
-                rules: self.rules,
-                target_ref: self.target_ref,
+        let mut events = vec![ApprovalProcessEvent::Initialized {
+            id: self.id,
+            policy_id: self.policy_id,
+            process_type: self.process_type,
+            rules: self.rules,
+            target_ref: self.target_ref,
+            audit_info: self.audit_info.clone(),
+        }];
+
+        if self.auto_approve {
+            events.push(ApprovalProcessEvent::Concluded {
+                approved: true,
                 audit_info: self.audit_info,
-            }],
-        )
+            })
+        }
+
+        EntityEvents::init(self.id, events)
     }
 }
 
