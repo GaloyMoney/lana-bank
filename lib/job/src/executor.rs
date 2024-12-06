@@ -162,16 +162,19 @@ impl JobExecutor {
                   GROUP BY jobs.job_type
                   HAVING COUNT(*) <= $2
               ),
-              pending_job_counts AS (
-                  SELECT
-                      jobs.job_type,
-                      $1 - rjc.running_count as remaining_slots
+              job_types AS (
+                  SELECT DISTINCT job_type
                   FROM job_executions je
                   JOIN jobs ON je.id = jobs.id
-                  JOIN running_job_counts rjc ON jobs.job_type = rjc.job_type
                   WHERE je.reschedule_after < $3::timestamptz
                   AND je.state = 'pending'
-                  GROUP BY jobs.job_type, rjc.running_count
+              ),
+              pending_job_counts AS (
+                  SELECT
+                      jt.job_type,
+                      $1 - COALESCE(rjc.running_count, 0) as remaining_slots
+                  FROM job_types jt
+                  LEFT JOIN running_job_counts rjc ON jt.job_type = rjc.job_type
                 ),
               ranked_job_executions AS (
                   SELECT
@@ -183,7 +186,6 @@ impl JobExecutor {
                       pjc.remaining_slots
                   FROM job_executions je
                   JOIN jobs ON je.id = jobs.id
-                  JOIN running_job_counts rjc ON jobs.job_type = rjc.job_type
                   JOIN pending_job_counts pjc ON jobs.job_type = pjc.job_type
                   WHERE je.reschedule_after < $3::timestamptz
                   AND je.state = 'pending'
