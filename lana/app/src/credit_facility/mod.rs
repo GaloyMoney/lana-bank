@@ -91,7 +91,6 @@ impl CreditFacilities {
         let activate_credit_facility = ActivateCreditFacility::new(
             &credit_facility_repo,
             &disbursal_repo,
-            governance,
             ledger,
             price,
             jobs,
@@ -304,7 +303,8 @@ impl CreditFacilities {
 
         let mut db = self.credit_facility_repo.begin_op().await?;
         let now = crate::time::now();
-        let new_disbursal = credit_facility.initiate_disbursal(amount, now, price, audit_info)?;
+        let new_disbursal =
+            credit_facility.initiate_disbursal(amount, now, price, None, audit_info)?;
         self.governance
             .start_process(
                 &mut db,

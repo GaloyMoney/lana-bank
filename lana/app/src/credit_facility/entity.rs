@@ -566,6 +566,7 @@ impl CreditFacility {
         amount: UsdCents,
         initiated_at: DateTime<Utc>,
         price: PriceOfOneBTC,
+        approval_process_id: Option<ApprovalProcessId>,
         audit_info: AuditInfo,
     ) -> Result<NewDisbursal, CreditFacilityError> {
         if let Some(expires_at) = self.expires_at {
@@ -593,9 +594,10 @@ impl CreditFacility {
             .unwrap_or(DisbursalIdx::FIRST);
 
         let disbursal_id = DisbursalId::new();
+        let approval_process_id = approval_process_id.unwrap_or(disbursal_id.into());
         self.events.push(CreditFacilityEvent::DisbursalInitiated {
             disbursal_id,
-            approval_process_id: disbursal_id.into(),
+            approval_process_id,
             idx,
             amount,
             audit_info: audit_info.clone(),
@@ -603,7 +605,7 @@ impl CreditFacility {
 
         Ok(NewDisbursal::builder()
             .id(disbursal_id)
-            .approval_process_id(disbursal_id)
+            .approval_process_id(approval_process_id)
             .credit_facility_id(self.id)
             .idx(idx)
             .amount(amount)
@@ -1365,6 +1367,7 @@ mod test {
                 UsdCents::ONE,
                 Utc::now(),
                 default_price(),
+                None,
                 dummy_audit_info()
             ),
             Err(CreditFacilityError::DisbursalInProgress)
@@ -1381,6 +1384,7 @@ mod test {
                 UsdCents::ONE,
                 Utc::now(),
                 default_price(),
+                None,
                 dummy_audit_info()
             )
             .is_ok());
@@ -2023,6 +2027,7 @@ mod test {
                     UsdCents::from(600_000_00),
                     facility_activated_at,
                     default_price(),
+                    None,
                     dummy_audit_info(),
                 )
                 .unwrap();

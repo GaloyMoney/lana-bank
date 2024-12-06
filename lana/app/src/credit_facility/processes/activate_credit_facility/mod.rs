@@ -5,10 +5,9 @@ use tracing::instrument;
 use crate::{
     audit::{Audit, AuditSvc},
     credit_facility::{
-        error::CreditFacilityError, interest_accruals, interest_incurrences, CreditFacility,
+        self, error::CreditFacilityError, interest_accruals, interest_incurrences, CreditFacility,
         CreditFacilityRepo, DisbursalRepo,
     },
-    governance::{Governance, APPROVE_DISBURSAL_PROCESS},
     job::{error::JobError, Jobs},
     ledger::Ledger,
     price::Price,
@@ -22,7 +21,6 @@ pub use job::*;
 pub struct ActivateCreditFacility {
     credit_facility_repo: CreditFacilityRepo,
     disbursal_repo: DisbursalRepo,
-    governance: Governance,
     ledger: Ledger,
     price: Price,
     jobs: Jobs,
@@ -33,7 +31,6 @@ impl ActivateCreditFacility {
     pub(in crate::credit_facility) fn new(
         credit_facility_repo: &CreditFacilityRepo,
         disbursal_repo: &DisbursalRepo,
-        governance: &Governance,
         ledger: &Ledger,
         price: &Price,
         jobs: &Jobs,
@@ -42,7 +39,6 @@ impl ActivateCreditFacility {
         Self {
             credit_facility_repo: credit_facility_repo.clone(),
             disbursal_repo: disbursal_repo.clone(),
-            governance: governance.clone(),
             ledger: ledger.clone(),
             price: price.clone(),
             jobs: jobs.clone(),
@@ -89,16 +85,9 @@ impl ActivateCreditFacility {
             credit_facility.structuring_fee(),
             now,
             price,
+            Some(credit_facility.approval_process_id),
             audit_info.clone(),
         )?;
-        self.governance
-            .start_process_and_approve(
-                &mut db,
-                new_disbursal.approval_process_id,
-                new_disbursal.approval_process_id.to_string(),
-                APPROVE_DISBURSAL_PROCESS,
-            )
-            .await?;
         let mut disbursal = self
             .disbursal_repo
             .create_in_op(&mut db, new_disbursal)
