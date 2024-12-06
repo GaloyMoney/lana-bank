@@ -87,7 +87,7 @@ ymd() {
           annualRate: "12",
           accrualInterval: "END_OF_MONTH",
           incurrenceInterval: "END_OF_DAY",
-          duration: { period: "MONTHS", units: 1 },
+          duration: { period: "MONTHS", units: 3 },
           liquidationCvl: "105",
           marginCallCvl: "125",
           initialCvl: "140"
@@ -150,7 +150,7 @@ ymd() {
 
 @test "credit-facility: records accrual" {
   credit_facility_id=$(read_value 'credit_facility_id')
-  retry 30 2 wait_for_accruals 2 "$credit_facility_id"
+  retry 30 2 wait_for_accruals 4 "$credit_facility_id"
 
   cat_logs | grep "interest accrual job completed.*$credit_facility_id" || exit 1
 
