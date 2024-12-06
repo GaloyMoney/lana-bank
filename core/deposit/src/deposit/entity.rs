@@ -41,8 +41,16 @@ impl TryFromEvents<DepositEvent> for Deposit {
         let mut builder = DepositBuilder::default();
         for event in events.iter_all() {
             match event {
-                DepositEvent::Initialized { id, reference, .. } => {
-                    builder = builder.id(*id).reference(reference.clone());
+                DepositEvent::Initialized {
+                    id,
+                    reference,
+                    deposit_account_id,
+                    ..
+                } => {
+                    builder = builder
+                        .id(*id)
+                        .deposit_account_id(*deposit_account_id)
+                        .reference(reference.clone());
                 }
             }
         }

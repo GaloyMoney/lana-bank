@@ -94,6 +94,7 @@ where
         Ok(account)
     }
 
+    #[instrument(name = "deposit.record_deposit", skip(self))]
     pub async fn record_deposit(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
@@ -120,5 +121,24 @@ where
 
         let deposit = self.deposits.create(new_deposit).await?;
         Ok(deposit)
+    }
+
+    pub async fn balance(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        account_id: DepositAccountId,
+    ) -> Result<(), CoreDepositError> {
+        let _ = self
+            .authz
+            .enforce_permission(
+                sub,
+                CoreDepositObject::deposit_account(account_id),
+                CoreDepositAction::DEPOSIT_ACCOUNT_READ_BALANCE,
+            )
+            .await?;
+
+        // let balance = self.accounts.balance(account_id).await?;
+        // Ok(balance)
+        Ok(())
     }
 }

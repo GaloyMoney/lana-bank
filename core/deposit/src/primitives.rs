@@ -19,12 +19,12 @@ impl CoreDepositObject {
         CoreDepositObject::DepositAccount(AllOrOne::All)
     }
 
-    pub fn all_deposits() -> Self {
-        CoreDepositObject::Deposit(AllOrOne::All)
-    }
-
     pub fn deposit_account(id: DepositAccountId) -> Self {
         CoreDepositObject::DepositAccount(AllOrOne::ById(id))
+    }
+
+    pub fn all_deposits() -> Self {
+        CoreDepositObject::Deposit(AllOrOne::All)
     }
 }
 
@@ -75,6 +75,9 @@ impl CoreDepositAction {
     pub const DEPOSIT_ACCOUNT_CREATE: Self =
         CoreDepositAction::DepositAccount(DepositAccountAction::Create);
 
+    pub const DEPOSIT_ACCOUNT_READ_BALANCE: Self =
+        CoreDepositAction::DepositAccount(DepositAccountAction::ReadBalance);
+
     pub const DEPOSIT_CREATE: Self = CoreDepositAction::Deposit(DepositAction::Create);
 }
 
@@ -107,6 +110,7 @@ impl FromStr for CoreDepositAction {
 #[strum(serialize_all = "kebab-case")]
 pub enum DepositAccountAction {
     Create,
+    ReadBalance,
 }
 
 impl From<DepositAccountAction> for CoreDepositAction {
