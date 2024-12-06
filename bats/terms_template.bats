@@ -20,6 +20,7 @@ teardown_file() {
         annualRate: 5.5,
         accrualInterval: "END_OF_MONTH",
         incurrenceInterval: "END_OF_DAY",
+        oneTimeFeeRate: "5",
         duration: {
           period: "MONTHS",
           units: 12
@@ -51,6 +52,7 @@ teardown_file() {
         annualRate: 6.5,
         accrualInterval: "END_OF_MONTH",
         incurrenceInterval: "END_OF_DAY",
+        oneTimeFeeRate: "5",
         duration: {
           period: "MONTHS",
           units: 24
