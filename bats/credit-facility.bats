@@ -24,8 +24,13 @@ wait_for_active() {
     '{ id: $creditFacilityId }'
   )
   exec_admin_graphql 'find-credit-facility' "$variables"
+
   status=$(graphql_output '.data.creditFacility.status')
   [[ "$status" == "ACTIVE" ]] || exit 1
+
+  disbursals=$(graphql_output '.data.creditFacility.disbursals')
+  num_disbursals=$(echo $disbursals | jq -r '. | length')
+  [[ "$num_disbursals" -gt "0" ]]
 }
 
 wait_for_disbursal() {
@@ -40,7 +45,7 @@ wait_for_disbursal() {
   echo "disbursal | $i. $(graphql_output)" >> $RUN_LOG_FILE
   disbursals=$(graphql_output '.data.creditFacility.disbursals')
   num_disbursals=$(echo $disbursals | jq -r '. | length')
-  [[ "$num_disbursals" -gt "0" ]]
+  [[ "$num_disbursals" -gt "1" ]]
 }
 
 wait_for_accruals() {
