@@ -6,6 +6,8 @@ pub enum CoreDepositError {
     Sqlx(#[from] sqlx::Error),
     #[error("CoreDepositError - AuthorizationError: {0}")]
     AuthorizationError(#[from] authz::error::AuthorizationError),
-    #[error("CoreDepositError - CommitteeError: {0}")]
+    #[error("CoreDepositError - DepositAccountError: {0}")]
     DepositAccountError(#[from] crate::account::error::DepositAccountError),
+    #[error("CoreDepositError - DepositError: {0}")]
+    DepositError(#[from] crate::deposit::error::DepositError),
 }

@@ -2,6 +2,7 @@
 #![cfg_attr(feature = "fail-on-warnings", deny(clippy::all))]
 
 mod account;
+mod deposit;
 pub mod error;
 mod event;
 mod primitives;
@@ -13,14 +14,10 @@ use authz::PermissionCheck;
 use outbox::{Outbox, OutboxEventMarker};
 
 use account::*;
+use deposit::*;
 use error::*;
 pub use event::*;
 pub use primitives::*;
-
-// account
-// deposit
-//
-// customer
 
 pub struct CoreDeposit<Perms, E>
 where
@@ -28,6 +25,7 @@ where
     E: OutboxEventMarker<CoreDepositEvent>,
 {
     accounts: DepositAccountRepo,
+    deposits: DepositRepo,
     authz: Perms,
     outbox: Outbox<E>,
 }
@@ -40,6 +38,7 @@ where
     fn clone(&self) -> Self {
         Self {
             accounts: self.accounts.clone(),
+            deposits: self.deposits.clone(),
             authz: self.authz.clone(),
             outbox: self.outbox.clone(),
         }
@@ -59,8 +58,10 @@ where
         outbox: &Outbox<E>,
     ) -> Result<Self, CoreDepositError> {
         let accounts = DepositAccountRepo::new(pool);
+        let deposits = DepositRepo::new(pool);
         let res = Self {
             accounts,
+            deposits,
             authz: authz.clone(),
             outbox: outbox.clone(),
         };
@@ -91,5 +92,33 @@ where
 
         let account = self.accounts.create(new_account).await?;
         Ok(account)
+    }
+
+    pub async fn record_deposit(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        deposit_account_id: DepositAccountId,
+        // amount: UsdCents,
+        reference: Option<String>,
+    ) -> Result<Deposit, CoreDepositError> {
+        let audit_info = self
+            .authz
+            .enforce_permission(
+                sub,
+                CoreDepositObject::all_deposits(),
+                CoreDepositAction::DEPOSIT_CREATE,
+            )
+            .await?;
+
+        let new_deposit = NewDeposit::builder()
+            .id(DepositId::new())
+            .deposit_account_id(deposit_account_id)
+            .reference(reference)
+            .audit_info(audit_info)
+            .build()
+            .expect("Could not build new committee");
+
+        let deposit = self.deposits.create(new_deposit).await?;
+        Ok(deposit)
     }
 }

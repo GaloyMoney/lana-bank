@@ -61,6 +61,22 @@ CREATE TABLE deposit_account_events (
   UNIQUE(id, sequence)
 );
 
+CREATE TABLE core_deposits (
+  id UUID PRIMARY KEY,
+  deposit_account_id UUID NOT NULL REFERENCES deposit_accounts(id),
+  reference VARCHAR NOT NULL UNIQUE,
+  created_at TIMESTAMPTZ NOT NULL
+);
+
+CREATE TABLE core_deposit_events (
+  id UUID NOT NULL REFERENCES core_deposits(id),
+  sequence INT NOT NULL,
+  event_type VARCHAR NOT NULL,
+  event JSONB NOT NULL,
+  recorded_at TIMESTAMPTZ NOT NULL,
+  UNIQUE(id, sequence)
+);
+
 CREATE TABLE customers (
   id UUID PRIMARY KEY,
   email VARCHAR NOT NULL UNIQUE,
