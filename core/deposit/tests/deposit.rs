@@ -1,4 +1,5 @@
 use authz::dummy::DummySubject;
+use cala_ledger::{CalaLedger, CalaLedgerConfig};
 use deposit::*;
 
 pub async fn init_pool() -> anyhow::Result<sqlx::PgPool> {
@@ -13,7 +14,12 @@ async fn deposit() -> anyhow::Result<()> {
     let pool = init_pool().await?;
     let outbox = outbox::Outbox::<CoreDepositEvent>::init(&pool).await?;
     let authz = authz::dummy::DummyPerms::<CoreDepositAction, CoreDepositObject>::new();
-    let deposit = CoreDeposit::init(&pool, &authz, &outbox).await?;
+    let cala_config = CalaLedgerConfig::builder()
+        .pool(pool.clone())
+        .exec_migrations(false)
+        .build()?;
+    let cala = CalaLedger::init(cala_config).await?;
+    let deposit = CoreDeposit::init(&pool, &authz, &outbox, &cala).await?;
     let account_holder_id = AccountHolderId::new();
     let account = deposit
         .create_account(&DummySubject, account_holder_id)

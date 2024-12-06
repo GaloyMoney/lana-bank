@@ -5,18 +5,21 @@ mod account;
 mod deposit;
 pub mod error;
 mod event;
+mod ledger;
 mod primitives;
 
 use tracing::instrument;
 
 use audit::AuditSvc;
 use authz::PermissionCheck;
+use cala_ledger::CalaLedger;
 use outbox::{Outbox, OutboxEventMarker};
 
 use account::*;
 use deposit::*;
 use error::*;
 pub use event::*;
+use ledger::*;
 pub use primitives::*;
 
 pub struct CoreDeposit<Perms, E>
@@ -26,6 +29,7 @@ where
 {
     accounts: DepositAccountRepo,
     deposits: DepositRepo,
+    ledger: DepositLedger,
     authz: Perms,
     outbox: Outbox<E>,
 }
@@ -39,6 +43,7 @@ where
         Self {
             accounts: self.accounts.clone(),
             deposits: self.deposits.clone(),
+            ledger: self.ledger.clone(),
             authz: self.authz.clone(),
             outbox: self.outbox.clone(),
         }
@@ -56,14 +61,17 @@ where
         pool: &sqlx::PgPool,
         authz: &Perms,
         outbox: &Outbox<E>,
+        cala: &CalaLedger,
     ) -> Result<Self, CoreDepositError> {
         let accounts = DepositAccountRepo::new(pool);
         let deposits = DepositRepo::new(pool);
+        let ledger = DepositLedger::init(cala).await?;
         let res = Self {
             accounts,
             deposits,
             authz: authz.clone(),
             outbox: outbox.clone(),
+            ledger,
         };
         Ok(res)
     }
@@ -83,14 +91,19 @@ where
             )
             .await?;
 
+        let account_id = DepositAccountId::new();
         let new_account = NewDepositAccount::builder()
-            .id(DepositAccountId::new())
+            .id(account_id)
             .account_holder_id(holder_id)
             .audit_info(audit_info)
             .build()
             .expect("Could not build new committee");
 
-        let account = self.accounts.create(new_account).await?;
+        let mut op = self.accounts.begin_op().await?;
+        let account = self.accounts.create_in_op(&mut op, new_account).await?;
+        self.ledger
+            .create_account_for_deposit_account(op, account_id, account_id.to_string())
+            .await?;
         Ok(account)
     }
 

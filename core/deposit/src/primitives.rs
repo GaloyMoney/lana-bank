@@ -1,7 +1,16 @@
 use std::{fmt::Display, str::FromStr};
 
 use authz::AllOrOne;
-es_entity::entity_id! { AccountHolderId, DepositAccountId, DepositId }
+
+pub use cala_ledger::primitives::AccountId as LedgerAccountId;
+
+es_entity::entity_id! {
+    AccountHolderId,
+    DepositAccountId,
+    DepositId;
+
+    DepositAccountId => LedgerAccountId
+}
 
 pub type DepositAccountAllOrOne = AllOrOne<DepositAccountId>;
 pub type DepositAllOrOne = AllOrOne<DepositId>;

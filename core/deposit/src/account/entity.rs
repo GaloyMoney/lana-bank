@@ -14,6 +14,7 @@ pub enum DepositAccountEvent {
     Initialized {
         id: DepositAccountId,
         account_holder_id: AccountHolderId,
+        ledger_account_id: LedgerAccountId,
         audit_info: AuditInfo,
     },
 }
@@ -60,6 +61,7 @@ impl IntoEvents<DepositAccountEvent> for NewDepositAccount {
             [DepositAccountEvent::Initialized {
                 id: self.id,
                 account_holder_id: self.account_holder_id,
+                ledger_account_id: self.id.into(),
                 audit_info: self.audit_info,
             }],
         )
