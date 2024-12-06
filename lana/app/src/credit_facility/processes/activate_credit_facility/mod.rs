@@ -5,7 +5,7 @@ use tracing::instrument;
 use crate::{
     audit::{Audit, AuditSvc},
     credit_facility::{
-        self, error::CreditFacilityError, interest_accruals, interest_incurrences, CreditFacility,
+        error::CreditFacilityError, interest_accruals, interest_incurrences, CreditFacility,
         CreditFacilityRepo, DisbursalRepo,
     },
     job::{error::JobError, Jobs},
@@ -76,7 +76,7 @@ impl ActivateCreditFacility {
         let now = crate::time::now();
 
         let es_entity::Idempotent::Executed(next_incurrence_period) =
-            credit_facility.activate(credit_facility_activation.clone(), now, audit_info)
+            credit_facility.activate(credit_facility_activation.clone(), now, audit_info.clone())
         else {
             return Ok(credit_facility);
         };

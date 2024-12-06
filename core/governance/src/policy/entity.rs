@@ -48,7 +48,6 @@ impl Policy {
         id: ApprovalProcessId,
         target_ref: String,
         audit_info: AuditInfo,
-        auto_approve: bool,
     ) -> NewApprovalProcess {
         NewApprovalProcess::builder()
             .id(id)
@@ -57,7 +56,6 @@ impl Policy {
             .process_type(self.process_type.clone())
             .rules(self.rules)
             .audit_info(audit_info)
-            .auto_approve(auto_approve)
             .build()
             .expect("failed to build new approval process")
     }
