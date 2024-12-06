@@ -1,0 +1,37 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n              WITH all_running_counts AS (\n                  SELECT\n                      jobs.job_type,\n                      COUNT(*) as running_count\n                  FROM job_executions je\n                  JOIN jobs ON je.id = jobs.id\n                  WHERE je.state = 'running'\n                  GROUP BY jobs.job_type\n              ),\n              running_job_counts AS (\n                  SELECT * FROM all_running_counts\n                  WHERE running_count <= $2\n              ),\n              job_types AS (\n                  SELECT DISTINCT job_type\n                  FROM job_executions je\n                  JOIN jobs ON je.id = jobs.id\n                  WHERE je.reschedule_after < $3::timestamptz\n                  AND je.state = 'pending'\n                  AND NOT EXISTS (\n                      SELECT 1\n                      FROM all_running_counts arc\n                      WHERE arc.job_type = jobs.job_type\n                      AND arc.running_count > $2\n                  )\n              ),\n              pending_job_counts AS (\n                  SELECT\n                      jt.job_type,\n                      $1 - COALESCE(rjc.running_count, 0) as remaining_slots\n                  FROM job_types jt\n                  LEFT JOIN running_job_counts rjc ON jt.job_type = rjc.job_type\n                ),\n              ranked_job_executions AS (\n                  SELECT\n                      je.id,\n                      je.execution_state_json AS data_json,\n                      ROW_NUMBER() OVER (\n                          PARTITION BY jobs.job_type\n                          ORDER BY je.reschedule_after ASC) as rn,\n                      pjc.remaining_slots\n                  FROM job_executions je\n                  JOIN jobs ON je.id = jobs.id\n                  JOIN pending_job_counts pjc ON jobs.job_type = pjc.job_type\n                  WHERE je.reschedule_after < $3::timestamptz\n                  AND je.state = 'pending'\n              ),\n              selected_jobs AS (\n                  SELECT rje.id, rje.data_json\n                  FROM ranked_job_executions rje\n                  WHERE rje.rn <= GREATEST(rje.remaining_slots, 0)\n                  FOR UPDATE\n              )\n              UPDATE job_executions AS je\n              SET state = 'running', reschedule_after = $3::timestamptz + $4::interval\n              FROM selected_jobs\n              WHERE je.id = selected_jobs.id\n              RETURNING je.id AS \"id!: JobId\", selected_jobs.data_json, je.attempt_index\n              ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id!: JobId",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "data_json",
+        "type_info": "Jsonb"
+      },
+      {
+        "ordinal": 2,
+        "name": "attempt_index",
+        "type_info": "Int4"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Int8",
+        "Int8",
+        "Timestamptz",
+        "Interval"
+      ]
+    },
+    "nullable": [
+      false,
+      true,
+      false
+    ]
+  },
+  "hash": "f872731d44774aa78828f384096aff0843be5fe29b5dff3ad1930897ad9cbc29"
+}
