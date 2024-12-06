@@ -152,7 +152,7 @@ impl JobExecutor {
 
         let rows = sqlx::query!(
             r#"
-              WITH running_job_counts AS (
+              WITH all_running_counts AS (
                   SELECT
                       jobs.job_type,
                       COUNT(*) as running_count
@@ -160,7 +160,10 @@ impl JobExecutor {
                   JOIN jobs ON je.id = jobs.id
                   WHERE je.state = 'running'
                   GROUP BY jobs.job_type
-                  HAVING COUNT(*) <= $2
+              ),
+              running_job_counts AS (
+                  SELECT * FROM all_running_counts
+                  WHERE running_count <= $2
               ),
               job_types AS (
                   SELECT DISTINCT job_type
@@ -168,6 +171,12 @@ impl JobExecutor {
                   JOIN jobs ON je.id = jobs.id
                   WHERE je.reschedule_after < $3::timestamptz
                   AND je.state = 'pending'
+                  AND NOT EXISTS (
+                      SELECT 1
+                      FROM all_running_counts arc
+                      WHERE arc.job_type = jobs.job_type
+                      AND arc.running_count > $2
+                  )
               ),
               pending_job_counts AS (
                   SELECT
