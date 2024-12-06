@@ -151,19 +151,26 @@ impl JobExecutor {
         };
         *keep_alive = !*keep_alive;
 
-        if n_jobs_running > min_concurrency {
-            return Ok(());
-        }
         let n_jobs_to_poll = max_concurrency - n_jobs_running;
         span.record("n_jobs_to_poll", n_jobs_to_poll);
 
         let rows = sqlx::query!(
             r#"
-              WITH ranked_job_executions AS (
+              WITH job_type_counts AS (
+                  SELECT jobs.job_type, COUNT(*) as job_count
+                  FROM job_executions je
+                  JOIN jobs ON je.id = jobs.id
+                  WHERE je.reschedule_after < $2::timestamptz
+                  AND je.state = 'pending'
+                  GROUP BY jobs.job_type
+                  HAVING COUNT(*) <= $4
+                ),
+              ranked_job_executions AS (
                   SELECT je.id, je.execution_state_json AS data_json,
                          ROW_NUMBER() OVER (PARTITION BY jobs.job_type ORDER BY je.reschedule_after ASC) as rn
                   FROM job_executions je
                   JOIN jobs ON je.id = jobs.id
+                  JOIN job_type_counts jtc ON jobs.job_type = jtc.job_type
                   WHERE je.reschedule_after < $2::timestamptz
                   AND je.state = 'pending'
               ),
@@ -181,7 +188,8 @@ impl JobExecutor {
               "#,
             n_jobs_to_poll as i32,
             now,
-            pg_interval
+            pg_interval,
+            min_concurrency as i32,
         )
         .fetch_all(jobs.pool())
         .await?;
