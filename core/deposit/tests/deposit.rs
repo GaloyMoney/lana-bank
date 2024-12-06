@@ -10,6 +10,8 @@ pub async fn init_pool() -> anyhow::Result<sqlx::PgPool> {
 #[tokio::test]
 async fn deposit() -> anyhow::Result<()> {
     let pool = init_pool().await?;
-    // let deposit = CoreDeposit::init(&pool).await?;
+    let outbox = outbox::Outbox::<CoreDepositEvent>::init(&pool).await?;
+    let authz = authz::dummy::DummyPerms::<CoreDepositAction, CoreDepositObject>::new();
+    let _deposit = CoreDeposit::init(&pool, &authz, &outbox).await?;
     Ok(())
 }

@@ -2,46 +2,70 @@ use async_trait::async_trait;
 
 use std::fmt;
 
-use audit::{AuditInfo, AuditSvc};
+use audit::{error::AuditError, AuditCursor, AuditEntry, AuditInfo, AuditSvc};
 
 use crate::{error::AuthorizationError, PermissionCheck};
 
 #[derive(Clone)]
-pub struct DummyAudit;
-#[derive(Clone)]
-pub struct DummyPerms {
-    audit: DummyAudit,
+pub struct DummyAudit<A, O> {
+    _phantom: std::marker::PhantomData<(A, O)>,
 }
-#[derive(Debug, Clone, Copy)]
-pub struct DummyItem;
-impl audit::SystemSubject for DummyItem {
-    fn system() -> Self {
-        DummyItem
+#[derive(Clone)]
+pub struct DummyPerms<A, O> {
+    audit: DummyAudit<A, O>,
+}
+impl<A, O> DummyPerms<A, O> {
+    pub fn new() -> Self {
+        Self {
+            audit: DummyAudit {
+                _phantom: std::marker::PhantomData,
+            },
+        }
     }
 }
 
-impl fmt::Display for DummyItem {
+#[derive(Debug, Clone, Copy)]
+pub struct DummySubject;
+impl audit::SystemSubject for DummySubject {
+    fn system() -> Self {
+        DummySubject
+    }
+}
+
+impl fmt::Display for DummySubject {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "item")
     }
 }
 
-impl std::str::FromStr for DummyItem {
+impl std::str::FromStr for DummySubject {
     type Err = std::convert::Infallible;
 
     fn from_str(_: &str) -> Result<Self, Self::Err> {
-        Ok(DummyItem)
+        Ok(DummySubject)
     }
 }
 
 #[async_trait]
-impl AuditSvc for DummyAudit {
-    type Subject = DummyItem;
-    type Object = DummyItem;
-    type Action = DummyItem;
+impl<A, O> AuditSvc for DummyAudit<A, O>
+where
+    A: std::str::FromStr + std::fmt::Display + std::fmt::Debug + Copy + Send + Sync,
+    O: std::str::FromStr + std::fmt::Display + std::fmt::Debug + Copy + Send + Sync,
+{
+    type Subject = DummySubject;
+    type Object = O;
+    type Action = A;
 
     fn pool(&self) -> &sqlx::PgPool {
         unimplemented!()
+    }
+
+    async fn record_system_entry(
+        &self,
+        _object: impl Into<Self::Object> + Send,
+        _action: impl Into<Self::Action> + Send,
+    ) -> Result<AuditInfo, AuditError> {
+        Ok(dummy_audit_info())
     }
 
     async fn record_entry(
@@ -50,8 +74,45 @@ impl AuditSvc for DummyAudit {
         _object: impl Into<Self::Object> + Send,
         _action: impl Into<Self::Action> + Send,
         _authorized: bool,
-    ) -> Result<AuditInfo, audit::error::AuditError> {
+    ) -> Result<AuditInfo, AuditError> {
         Ok(dummy_audit_info())
+    }
+
+    async fn record_system_entry_in_tx(
+        &self,
+        _tx: &mut sqlx::Transaction<'_, sqlx::Postgres>,
+        _object: impl Into<Self::Object> + Send,
+        _action: impl Into<Self::Action> + Send,
+    ) -> Result<AuditInfo, AuditError> {
+        Ok(dummy_audit_info())
+    }
+
+    async fn record_entry_in_tx(
+        &self,
+        _tx: &mut sqlx::Transaction<'_, sqlx::Postgres>,
+        _subject: &Self::Subject,
+        _object: impl Into<Self::Object> + Send,
+        _action: impl Into<Self::Action> + Send,
+        _authorized: bool,
+    ) -> Result<AuditInfo, AuditError> {
+        Ok(dummy_audit_info())
+    }
+
+    async fn list(
+        &self,
+        _query: es_entity::PaginatedQueryArgs<AuditCursor>,
+    ) -> Result<
+        es_entity::PaginatedQueryRet<
+            AuditEntry<Self::Subject, Self::Object, Self::Action>,
+            AuditCursor,
+        >,
+        AuditError,
+    > {
+        Ok(es_entity::PaginatedQueryRet {
+            entities: vec![],
+            has_next_page: false,
+            end_cursor: None,
+        })
     }
 }
 
@@ -63,8 +124,12 @@ fn dummy_audit_info() -> audit::AuditInfo {
 }
 
 #[async_trait]
-impl PermissionCheck for DummyPerms {
-    type Audit = DummyAudit;
+impl<A, O> PermissionCheck for DummyPerms<A, O>
+where
+    A: std::str::FromStr + std::fmt::Display + std::fmt::Debug + Copy + Clone + Send + Sync,
+    O: std::str::FromStr + std::fmt::Display + std::fmt::Debug + Copy + Clone + Send + Sync,
+{
+    type Audit = DummyAudit<A, O>;
 
     fn audit(&self) -> &Self::Audit {
         &self.audit
