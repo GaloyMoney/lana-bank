@@ -101,7 +101,7 @@ impl JobExecutor {
         level = "trace",
         name = "job_executor.poll_jobs",
         skip(registry, running_jobs, jobs),
-        fields(n_jobs_to_spawn, n_jobs_running, n_jobs_to_poll),
+        fields(n_jobs_to_spawn, n_jobs_running),
         err
     )]
     async fn poll_jobs(
@@ -116,7 +116,7 @@ impl JobExecutor {
         let span = Span::current();
         span.record("keep_alive", *keep_alive);
         let now = crate::time::now();
-        let n_jobs_running = {
+        {
             let running_jobs = running_jobs.read().await;
             let n_jobs_running = running_jobs.len();
             span.record("n_jobs_running", n_jobs_running);
@@ -147,49 +147,63 @@ impl JobExecutor {
                 .fetch_all(jobs.pool())
                 .await?;
             }
-            n_jobs_running
         };
         *keep_alive = !*keep_alive;
 
-        let n_jobs_to_poll = max_concurrency - n_jobs_running;
-        span.record("n_jobs_to_poll", n_jobs_to_poll);
-
         let rows = sqlx::query!(
             r#"
-              WITH job_type_counts AS (
-                  SELECT jobs.job_type, COUNT(*) as job_count
+              WITH running_job_counts AS (
+                  SELECT
+                      jobs.job_type,
+                      COUNT(*) as running_count
                   FROM job_executions je
                   JOIN jobs ON je.id = jobs.id
-                  WHERE je.reschedule_after < $2::timestamptz
-                  AND je.state = 'pending'
+                  WHERE je.state = 'running'
                   GROUP BY jobs.job_type
-                  HAVING COUNT(*) <= $4
+                  HAVING COUNT(*) <= $2
+              ),
+              pending_job_counts AS (
+                  SELECT
+                      jobs.job_type,
+                      $1 - rjc.running_count as remaining_slots
+                  FROM job_executions je
+                  JOIN jobs ON je.id = jobs.id
+                  JOIN running_job_counts rjc ON jobs.job_type = rjc.job_type
+                  WHERE je.reschedule_after < $3::timestamptz
+                  AND je.state = 'pending'
+                  GROUP BY jobs.job_type, rjc.running_count
                 ),
               ranked_job_executions AS (
-                  SELECT je.id, je.execution_state_json AS data_json,
-                         ROW_NUMBER() OVER (PARTITION BY jobs.job_type ORDER BY je.reschedule_after ASC) as rn
+                  SELECT
+                      je.id,
+                      je.execution_state_json AS data_json,
+                      ROW_NUMBER() OVER (
+                          PARTITION BY jobs.job_type
+                          ORDER BY je.reschedule_after ASC) as rn,
+                      pjc.remaining_slots
                   FROM job_executions je
                   JOIN jobs ON je.id = jobs.id
-                  JOIN job_type_counts jtc ON jobs.job_type = jtc.job_type
-                  WHERE je.reschedule_after < $2::timestamptz
+                  JOIN running_job_counts rjc ON jobs.job_type = rjc.job_type
+                  JOIN pending_job_counts pjc ON jobs.job_type = pjc.job_type
+                  WHERE je.reschedule_after < $3::timestamptz
                   AND je.state = 'pending'
               ),
               selected_jobs AS (
                   SELECT rje.id, rje.data_json
                   FROM ranked_job_executions rje
-                  WHERE rje.rn <= $1
+                  WHERE rje.rn <= GREATEST(rje.remaining_slots, 0)
                   FOR UPDATE
               )
               UPDATE job_executions AS je
-              SET state = 'running', reschedule_after = $2::timestamptz + $3::interval
+              SET state = 'running', reschedule_after = $3::timestamptz + $4::interval
               FROM selected_jobs
               WHERE je.id = selected_jobs.id
               RETURNING je.id AS "id!: JobId", selected_jobs.data_json, je.attempt_index
               "#,
-            n_jobs_to_poll as i32,
+            max_concurrency as i32,
+            min_concurrency as i32,
             now,
             pg_interval,
-            min_concurrency as i32,
         )
         .fetch_all(jobs.pool())
         .await?;
