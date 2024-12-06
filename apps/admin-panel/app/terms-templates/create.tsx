@@ -82,6 +82,7 @@ export const CreateTermsTemplateDialog: React.FC<CreateTermsTemplateDialogProps>
     initialCvl: "",
     durationUnits: "",
     durationPeriod: "",
+    oneTimeFeeRate: "",
   })
 
   const [error, setError] = useState<string | null>(null)
@@ -113,6 +114,7 @@ export const CreateTermsTemplateDialog: React.FC<CreateTermsTemplateDialogProps>
             liquidationCvl: formValues.liquidationCvl,
             marginCallCvl: formValues.marginCallCvl,
             initialCvl: formValues.initialCvl,
+            oneTimeFeeRate: formValues.oneTimeFeeRate,
           },
         },
         onCompleted: (data) => {
@@ -144,6 +146,7 @@ export const CreateTermsTemplateDialog: React.FC<CreateTermsTemplateDialogProps>
       initialCvl: "",
       durationUnits: "",
       durationPeriod: "",
+      oneTimeFeeRate: "",
     })
     setError(null)
     reset()
@@ -319,6 +322,20 @@ export const CreateTermsTemplateDialog: React.FC<CreateTermsTemplateDialogProps>
                   onChange={handleChange}
                   disabled={isLoading}
                   data-testid="terms-template-liquidation-cvl-input"
+                />
+              </div>
+              <div>
+                <Label htmlFor="oneTimeFeeRate">One-Time Fee Rate (%)</Label>
+                <Input
+                  id="oneTimeFeeRate"
+                  name="oneTimeFeeRate"
+                  type="number"
+                  required
+                  placeholder="Enter the one-time fee rate"
+                  value={formValues.oneTimeFeeRate}
+                  onChange={handleChange}
+                  disabled={isLoading}
+                  data-testid="terms-template-one-time-fee-rate-input"
                 />
               </div>
             </div>

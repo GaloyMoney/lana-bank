@@ -51,6 +51,10 @@ const CreditFacilityTerms: React.FC<CreditFacilityTermsProps> = ({ creditFacilit
       label: "Incurrence Interval",
       value: formatInterval(creditFacility.creditFacilityTerms.incurrenceInterval),
     },
+    {
+      label: "One Time Fee Rate",
+      value: `${creditFacility.creditFacilityTerms.oneTimeFeeRate}%`,
+    },
   ]
 
   return (

@@ -43,6 +43,7 @@ gql`
           liquidationCvl
           marginCallCvl
           initialCvl
+          oneTimeFeeRate
           duration {
             period
             units
@@ -81,6 +82,7 @@ export const UpdateTermsTemplateDialog: React.FC<UpdateTermsTemplateDialogProps>
     liquidationCvl: termsTemplate.values.liquidationCvl.toString(),
     marginCallCvl: termsTemplate.values.marginCallCvl.toString(),
     initialCvl: termsTemplate.values.initialCvl.toString(),
+    oneTimeFeeRate: termsTemplate.values.oneTimeFeeRate.toString(),
   })
 
   const [error, setError] = useState<string | null>(null)
@@ -97,6 +99,7 @@ export const UpdateTermsTemplateDialog: React.FC<UpdateTermsTemplateDialogProps>
         liquidationCvl: termsTemplate.values.liquidationCvl.toString(),
         marginCallCvl: termsTemplate.values.marginCallCvl.toString(),
         initialCvl: termsTemplate.values.initialCvl.toString(),
+        oneTimeFeeRate: termsTemplate.values.oneTimeFeeRate.toString(),
       })
     }
   }, [openUpdateTermsTemplateDialog, termsTemplate])
@@ -128,6 +131,7 @@ export const UpdateTermsTemplateDialog: React.FC<UpdateTermsTemplateDialogProps>
             liquidationCvl: formValues.liquidationCvl,
             marginCallCvl: formValues.marginCallCvl,
             initialCvl: formValues.initialCvl,
+            oneTimeFeeRate: formValues.oneTimeFeeRate,
           },
         },
       })
@@ -162,6 +166,7 @@ export const UpdateTermsTemplateDialog: React.FC<UpdateTermsTemplateDialogProps>
       liquidationCvl: termsTemplate.values.liquidationCvl.toString(),
       marginCallCvl: termsTemplate.values.marginCallCvl.toString(),
       initialCvl: termsTemplate.values.initialCvl.toString(),
+      oneTimeFeeRate: termsTemplate.values.oneTimeFeeRate.toString(),
     })
     setError(null)
     reset()
@@ -312,6 +317,18 @@ export const UpdateTermsTemplateDialog: React.FC<UpdateTermsTemplateDialogProps>
                   required
                   placeholder="Enter the liquidation CVL"
                   value={formValues.liquidationCvl}
+                  onChange={handleChange}
+                />
+              </div>
+              <div>
+                <Label htmlFor="oneTimeFeeRate">One-Time Fee Rate (%)</Label>
+                <Input
+                  id="oneTimeFeeRate"
+                  name="oneTimeFeeRate"
+                  type="number"
+                  required
+                  placeholder="Enter the one-time fee rate"
+                  value={formValues.oneTimeFeeRate}
                   onChange={handleChange}
                 />
               </div>

@@ -27,6 +27,7 @@ gql`
         initialCvl
         marginCallCvl
         liquidationCvl
+        oneTimeFeeRate
       }
     }
   }

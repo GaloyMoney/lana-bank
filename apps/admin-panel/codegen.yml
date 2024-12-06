@@ -64,7 +64,8 @@ generates:
               int: () => faker.number.int({ min: 0, max: 1000 }),
               cursor: () => faker.string.alphanumeric(20),
               deniedReason: () => null,
-              applicantId: () => faker.datatype.boolean() ? faker.string.uuid() : null
+              applicantId: () => faker.datatype.boolean() ? faker.string.uuid() : null,
+              oneTimeFeeRate: () => faker.number.int({ min: 0, max: 5 })
             };
 
             const mockEnums = {
@@ -196,6 +197,8 @@ generates:
               liquidationCvl: "faker.number.int({ min: 85, max: 88 })"
               marginCallCvl: "faker.number.int({ min: 90, max: 92 })"
               initialCvl: "faker.number.int({ min: 95, max: 98 })"
+              oneTimeFeeRate: "generateMockValue.oneTimeFeeRate()"
+
             Report:
               status: "mockEnums.reportProgress()"
 

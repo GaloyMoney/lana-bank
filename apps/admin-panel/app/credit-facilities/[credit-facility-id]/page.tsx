@@ -111,6 +111,7 @@ gql`
         liquidationCvl
         marginCallCvl
         initialCvl
+        oneTimeFeeRate
         duration {
           period
           units

@@ -33,7 +33,8 @@ const generateMockValue = {
   int: () => faker.number.int({ min: 0, max: 1000 }),
   cursor: () => faker.string.alphanumeric(20),
   deniedReason: () => null,
-  applicantId: () => faker.datatype.boolean() ? faker.string.uuid() : null
+  applicantId: () => faker.datatype.boolean() ? faker.string.uuid() : null,
+  oneTimeFeeRate: () => faker.number.int({ min: 0, max: 5 })
 };
 
 const mockEnums = {
@@ -1285,7 +1286,7 @@ export const mockTermValues = (overrides?: Partial<TermValues>, _relationshipsTo
         initialCvl: overrides && overrides.hasOwnProperty('initialCvl') ? overrides.initialCvl! : faker.number.int({ min: 95, max: 98 }),
         liquidationCvl: overrides && overrides.hasOwnProperty('liquidationCvl') ? overrides.liquidationCvl! : faker.number.int({ min: 85, max: 88 }),
         marginCallCvl: overrides && overrides.hasOwnProperty('marginCallCvl') ? overrides.marginCallCvl! : faker.number.int({ min: 90, max: 92 }),
-        oneTimeFeeRate: overrides && overrides.hasOwnProperty('oneTimeFeeRate') ? overrides.oneTimeFeeRate! : faker.lorem.word(),
+        oneTimeFeeRate: overrides && overrides.hasOwnProperty('oneTimeFeeRate') ? overrides.oneTimeFeeRate! : generateMockValue.oneTimeFeeRate(),
     };
 };
 

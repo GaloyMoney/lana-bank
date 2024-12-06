@@ -52,6 +52,10 @@ const TermsTemplateDetailsCard: React.FC<TermsTemplateDetailsProps> = ({
       label: "Liquidation CVL",
       value: `${termsTemplate.values.liquidationCvl}%`,
     },
+    {
+      label: "One Time Fee Rate",
+      value: `${termsTemplate.values.oneTimeFeeRate}%`,
+    },
   ]
 
   const footerContent = (

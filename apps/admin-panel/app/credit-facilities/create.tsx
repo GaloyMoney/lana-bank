@@ -97,6 +97,7 @@ export const CreateCreditFacilityDialog: React.FC<CreateCreditFacilityDialogProp
     initialCvl: "",
     durationUnits: "",
     durationPeriod: "",
+    oneTimeFeeRate: "",
   })
 
   useEffect(() => {
@@ -116,6 +117,7 @@ export const CreateCreditFacilityDialog: React.FC<CreateCreditFacilityDialogProp
         initialCvl: latestTemplate.values.initialCvl.toString(),
         durationUnits: latestTemplate.values.duration.units.toString(),
         durationPeriod: latestTemplate.values.duration.period,
+        oneTimeFeeRate: latestTemplate.values.oneTimeFeeRate.toString(),
       }))
     }
   }, [termsTemplatesData])
@@ -146,6 +148,7 @@ export const CreateCreditFacilityDialog: React.FC<CreateCreditFacilityDialogProp
         initialCvl: selectedTemplate.values.initialCvl.toString(),
         durationUnits: selectedTemplate.values.duration.units.toString(),
         durationPeriod: selectedTemplate.values.duration.period,
+        oneTimeFeeRate: selectedTemplate.values.oneTimeFeeRate.toString(),
       }))
     }
   }
@@ -162,6 +165,7 @@ export const CreateCreditFacilityDialog: React.FC<CreateCreditFacilityDialogProp
       initialCvl,
       durationUnits,
       durationPeriod,
+      oneTimeFeeRate,
     } = formValues
 
     if (
@@ -173,7 +177,8 @@ export const CreateCreditFacilityDialog: React.FC<CreateCreditFacilityDialogProp
       !marginCallCvl ||
       !initialCvl ||
       !durationUnits ||
-      !durationPeriod
+      !durationPeriod ||
+      !oneTimeFeeRate
     ) {
       toast.error("Please fill in all the fields.")
       return
@@ -192,6 +197,7 @@ export const CreateCreditFacilityDialog: React.FC<CreateCreditFacilityDialogProp
               liquidationCvl: parseFloat(liquidationCvl),
               marginCallCvl: parseFloat(marginCallCvl),
               initialCvl: parseFloat(initialCvl),
+              oneTimeFeeRate: parseFloat(oneTimeFeeRate),
               duration: {
                 units: parseInt(durationUnits),
                 period: durationPeriod as Period,
@@ -231,6 +237,7 @@ export const CreateCreditFacilityDialog: React.FC<CreateCreditFacilityDialogProp
         initialCvl: latestTemplate.values.initialCvl.toString(),
         durationUnits: latestTemplate.values.duration.units.toString(),
         durationPeriod: latestTemplate.values.duration.period,
+        oneTimeFeeRate: latestTemplate.values.oneTimeFeeRate?.toString(),
       })
     } else {
       setFormValues({
@@ -243,6 +250,7 @@ export const CreateCreditFacilityDialog: React.FC<CreateCreditFacilityDialogProp
         initialCvl: "",
         durationUnits: "",
         durationPeriod: "",
+        oneTimeFeeRate: "",
       })
     }
   }
@@ -376,6 +384,10 @@ export const CreateCreditFacilityDialog: React.FC<CreateCreditFacilityDialogProp
                     formValues.incurrenceInterval as InterestInterval,
                   )}
                 />
+                <DetailItem
+                  label="One-Time Fee Rate (%)"
+                  value={formValues.oneTimeFeeRate}
+                />
               </DetailsGroup>
             </>
           ) : (
@@ -503,6 +515,18 @@ export const CreateCreditFacilityDialog: React.FC<CreateCreditFacilityDialogProp
                       ))}
                     </SelectContent>
                   </Select>
+                </div>
+                <div>
+                  <Label>One-Time Fee Rate (%)</Label>
+                  <Input
+                    type="number"
+                    name="oneTimeFeeRate"
+                    value={formValues.oneTimeFeeRate}
+                    onChange={handleChange}
+                    placeholder="Enter the one-time fee rate"
+                    min={0}
+                    required
+                  />
                 </div>
               </div>
             </>
