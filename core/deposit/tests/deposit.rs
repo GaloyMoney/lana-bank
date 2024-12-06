@@ -1,0 +1,15 @@
+use deposit::*;
+
+pub async fn init_pool() -> anyhow::Result<sqlx::PgPool> {
+    let pg_host = std::env::var("PG_HOST").unwrap_or("localhost".to_string());
+    let pg_con = format!("postgres://user:password@{pg_host}:5433/pg");
+    let pool = sqlx::PgPool::connect(&pg_con).await?;
+    Ok(pool)
+}
+
+#[tokio::test]
+async fn deposit() -> anyhow::Result<()> {
+    let pool = init_pool().await?;
+    // let deposit = CoreDeposit::init(&pool).await?;
+    Ok(())
+}

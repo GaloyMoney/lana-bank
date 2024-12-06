@@ -23,3 +23,8 @@ serde = { workspace = true }
 thiserror = { workspace = true }
 tracing = { workspace = true }
 derive_builder = { workspace = true }
+
+[dev-dependencies]
+tokio = { workspace = true }
+anyhow = { workspace = true }
+authz = { path = "../../lib/authz", features = ["test-dummy"] }
