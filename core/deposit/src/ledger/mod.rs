@@ -1,4 +1,5 @@
 pub mod error;
+mod templates;
 
 use cala_ledger::{account::*, CalaLedger};
 
@@ -11,6 +12,7 @@ pub struct DepositLedger {
 
 impl DepositLedger {
     pub async fn init(cala: &CalaLedger) -> Result<Self, DepositLedgerError> {
+        templates::RecordDeposit::init(&cala).await?;
         Ok(Self { cala: cala.clone() })
     }
 

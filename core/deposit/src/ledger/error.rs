@@ -6,6 +6,8 @@ pub enum DepositLedgerError {
     Sqlx(#[from] sqlx::Error),
     #[error("DepositLedgerError - CalaLedger: {0}")]
     CalaLedger(#[from] cala_ledger::error::LedgerError),
-    #[error("DepositLedgerError - CalaLedger: {0}")]
+    #[error("DepositLedgerError - CalaAccountError: {0}")]
     CalaAccount(#[from] cala_ledger::account::error::AccountError),
+    #[error("DepositLedgerError - CalaTxTemplateError: {0}")]
+    CalaTxTemplate(#[from] cala_ledger::tx_template::error::TxTemplateError),
 }
