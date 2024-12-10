@@ -72,6 +72,8 @@ impl From<RecordDepositParams> for Params {
         params.insert("amount", amount);
         params.insert("deposit_omnibus_account_id", deposit_omnibus_account_id);
         params.insert("credit_account_id", credit_account_id);
+        params.insert("effective", chrono::Utc::now().date_naive());
+
         params
     }
 }
@@ -89,7 +91,7 @@ impl RecordDeposit {
             .expect("Couldn't build TxInput");
         let entries = vec![
             NewTxTemplateEntry::builder()
-                .entry_type("RECORD_DEPOSIT_DR")
+                .entry_type("'RECORD_DEPOSIT_DR'")
                 .currency("params.currency")
                 .account_id("params.deposit_omnibus_account_id")
                 .direction("DEBIT")
@@ -98,7 +100,7 @@ impl RecordDeposit {
                 .build()
                 .expect("Couldn't build entry"),
             NewTxTemplateEntry::builder()
-                .entry_type("RECORD_DEPOSIT_CR")
+                .entry_type("'RECORD_DEPOSIT_CR'")
                 .currency("params.currency")
                 .account_id("params.credit_account_id")
                 .direction("CREDIT")

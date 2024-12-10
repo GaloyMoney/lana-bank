@@ -55,6 +55,9 @@ async fn deposit() -> anyhow::Result<()> {
             None,
         )
         .await?;
-    let _ = deposit.balance(&DummySubject, account.id).await?;
+    let balance = deposit.balance(&DummySubject, account.id).await?;
+
+    // return zero when no deposit
+    assert_eq!(balance, UsdCents::try_from_usd(dec!(1000000)).unwrap());
     Ok(())
 }

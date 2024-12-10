@@ -108,4 +108,17 @@ impl DepositLedger {
             Ok(account) => Ok(account.id),
         }
     }
+
+    pub async fn balance(
+        &self,
+        account_id: impl Into<AccountId>,
+    ) -> Result<UsdCents, DepositLedgerError> {
+        let balances = self
+            .cala
+            .balances()
+            .find(self.journal_id, account_id.into(), self.usd)
+            .await?;
+
+        Ok(UsdCents::try_from_usd(balances.settled())?)
+    }
 }

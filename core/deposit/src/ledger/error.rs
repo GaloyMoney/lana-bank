@@ -10,4 +10,8 @@ pub enum DepositLedgerError {
     CalaAccount(#[from] cala_ledger::account::error::AccountError),
     #[error("DepositLedgerError - CalaTxTemplateError: {0}")]
     CalaTxTemplate(#[from] cala_ledger::tx_template::error::TxTemplateError),
+    #[error("DepositLedgerError - CalaBalanceError: {0}")]
+    CalaBalance(#[from] cala_ledger::balance::error::BalanceError),
+    #[error("DepositLedgerError - ConversionError: {0}")]
+    ConversionError(#[from] core_money::ConversionError),
 }

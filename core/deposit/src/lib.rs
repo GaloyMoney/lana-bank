@@ -147,7 +147,7 @@ where
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         account_id: DepositAccountId,
-    ) -> Result<(), CoreDepositError> {
+    ) -> Result<UsdCents, CoreDepositError> {
         let _ = self
             .authz
             .enforce_permission(
@@ -157,8 +157,7 @@ where
             )
             .await?;
 
-        // let balance = self.accounts.balance(account_id).await?;
-        // Ok(balance)
-        Ok(())
+        let balance = self.ledger.balance(account_id).await?;
+        Ok(balance)
     }
 }
