@@ -2,7 +2,7 @@ use sqlx::PgPool;
 
 use es_entity::*;
 
-use crate::primitives::{AccountHolderId, DepositAccountId};
+use crate::primitives::{DepositAccountHolderId, DepositAccountId};
 
 use super::{entity::*, error::*};
 
@@ -10,7 +10,7 @@ use super::{entity::*, error::*};
 #[es_repo(
     entity = "DepositAccount",
     err = "DepositAccountError",
-    columns(account_holder_id(ty = "AccountHolderId", list_for, update(persist = false)))
+    columns(account_holder_id(ty = "DepositAccountHolderId", list_for, update(persist = false)))
 )]
 pub struct DepositAccountRepo {
     #[allow(dead_code)]

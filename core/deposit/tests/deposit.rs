@@ -43,7 +43,7 @@ async fn deposit() -> anyhow::Result<()> {
     let deposit =
         CoreDeposit::init(&pool, &authz, &outbox, &cala, journal_id, omnibus_code).await?;
 
-    let account_holder_id = AccountHolderId::new();
+    let account_holder_id = DepositAccountHolderId::new();
     let account = deposit
         .create_account(&DummySubject, account_holder_id)
         .await?;

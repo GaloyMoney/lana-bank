@@ -13,7 +13,7 @@ use crate::primitives::*;
 pub enum DepositAccountEvent {
     Initialized {
         id: DepositAccountId,
-        account_holder_id: AccountHolderId,
+        account_holder_id: DepositAccountHolderId,
         ledger_account_id: LedgerAccountId,
         audit_info: AuditInfo,
     },
@@ -43,7 +43,7 @@ pub struct NewDepositAccount {
     #[builder(setter(into))]
     pub(super) id: DepositAccountId,
     #[builder(setter(into))]
-    pub(super) account_holder_id: AccountHolderId,
+    pub(super) account_holder_id: DepositAccountHolderId,
     #[builder(setter(into))]
     pub audit_info: AuditInfo,
 }

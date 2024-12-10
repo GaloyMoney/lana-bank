@@ -82,7 +82,7 @@ where
     pub async fn create_account(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        holder_id: impl Into<AccountHolderId> + std::fmt::Debug,
+        holder_id: impl Into<DepositAccountHolderId> + std::fmt::Debug,
     ) -> Result<DepositAccount, CoreDepositError> {
         let audit_info = self
             .authz

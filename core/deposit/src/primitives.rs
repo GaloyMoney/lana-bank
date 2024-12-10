@@ -8,7 +8,7 @@ pub use cala_ledger::primitives::{
 };
 
 es_entity::entity_id! {
-    AccountHolderId,
+    DepositAccountHolderId,
     DepositAccountId,
     DepositId;
 
