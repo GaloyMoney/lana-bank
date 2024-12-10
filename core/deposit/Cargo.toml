@@ -9,6 +9,8 @@ fail-on-warnings = []
 graphql = ["es-entity/graphql"]
 
 [dependencies]
+core-money = { path = "../money" }
+
 audit = { path = "../../lib/audit" }
 authz = { path = "../../lib/authz" }
 outbox = { path = "../../lib/outbox" }
@@ -26,6 +28,8 @@ derive_builder = { workspace = true }
 rust_decimal = { workspace = true }
 
 [dev-dependencies]
+authz = { path = "../../lib/authz", features = ["test-dummy"] }
+
 tokio = { workspace = true }
 anyhow = { workspace = true }
-authz = { path = "../../lib/authz", features = ["test-dummy"] }
+rust_decimal_macros = { workspace = true }

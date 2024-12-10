@@ -2,13 +2,13 @@ use rust_decimal::Decimal;
 use tracing::instrument;
 
 use cala_ledger::{
-    tx_template::{error::TxTemplateError, *},
+    tx_template::{error::TxTemplateError, Params, *},
     *,
 };
 
 use crate::ledger::error::*;
 
-const RECORD_DEPOSIT_CODE: &str = "RECORD_DEPOSIT";
+pub const RECORD_DEPOSIT_CODE: &str = "RECORD_DEPOSIT";
 
 #[derive(Debug)]
 pub struct RecordDepositParams {
@@ -38,7 +38,7 @@ impl RecordDepositParams {
                 .build()
                 .unwrap(),
             NewParamDefinition::builder()
-                .name("deposit_amnibus_account_id")
+                .name("deposit_omnibus_account_id")
                 .r#type(ParamDataType::Uuid)
                 .build()
                 .unwrap(),
@@ -53,6 +53,26 @@ impl RecordDepositParams {
                 .build()
                 .unwrap(),
         ]
+    }
+}
+
+impl From<RecordDepositParams> for Params {
+    fn from(
+        RecordDepositParams {
+            journal_id,
+            currency,
+            amount,
+            deposit_omnibus_account_id,
+            credit_account_id,
+        }: RecordDepositParams,
+    ) -> Self {
+        let mut params = Self::default();
+        params.insert("journal_id", journal_id);
+        params.insert("currency", currency);
+        params.insert("amount", amount);
+        params.insert("deposit_omnibus_account_id", deposit_omnibus_account_id);
+        params.insert("credit_account_id", credit_account_id);
+        params
     }
 }
 

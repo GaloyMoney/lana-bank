@@ -62,10 +62,12 @@ where
         authz: &Perms,
         outbox: &Outbox<E>,
         cala: &CalaLedger,
+        journal_id: LedgerJournalId,
+        omnibus_account_code: String,
     ) -> Result<Self, CoreDepositError> {
         let accounts = DepositAccountRepo::new(pool);
         let deposits = DepositRepo::new(pool);
-        let ledger = DepositLedger::init(cala).await?;
+        let ledger = DepositLedger::init(cala, journal_id, omnibus_account_code).await?;
         let res = Self {
             accounts,
             deposits,
@@ -112,7 +114,7 @@ where
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         deposit_account_id: DepositAccountId,
-        // amount: UsdCents,
+        amount: UsdCents,
         reference: Option<String>,
     ) -> Result<Deposit, CoreDepositError> {
         let audit_info = self
@@ -124,15 +126,20 @@ where
             )
             .await?;
 
+        let deposit_id = DepositId::new();
         let new_deposit = NewDeposit::builder()
-            .id(DepositId::new())
+            .id(deposit_id)
             .deposit_account_id(deposit_account_id)
             .reference(reference)
             .audit_info(audit_info)
             .build()
             .expect("Could not build new committee");
 
-        let deposit = self.deposits.create(new_deposit).await?;
+        let mut op = self.deposits.begin_op().await?;
+        let deposit = self.deposits.create_in_op(&mut op, new_deposit).await?;
+        self.ledger
+            .record_deposit(op, deposit_id, amount, deposit_account_id)
+            .await?;
         Ok(deposit)
     }
 

@@ -2,15 +2,21 @@ use std::{fmt::Display, str::FromStr};
 
 use authz::AllOrOne;
 
-pub use cala_ledger::primitives::AccountId as LedgerAccountId;
+pub use cala_ledger::primitives::{
+    AccountId as LedgerAccountId, JournalId as LedgerJournalId,
+    TransactionId as LedgerTransactionId,
+};
 
 es_entity::entity_id! {
     AccountHolderId,
     DepositAccountId,
     DepositId;
 
-    DepositAccountId => LedgerAccountId
+    DepositAccountId => LedgerAccountId,
+    DepositId => LedgerTransactionId,
 }
+
+pub use core_money::UsdCents;
 
 pub type DepositAccountAllOrOne = AllOrOne<DepositAccountId>;
 pub type DepositAllOrOne = AllOrOne<DepositId>;

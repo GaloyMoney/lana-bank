@@ -1,19 +1,40 @@
 pub mod error;
 mod templates;
 
-use cala_ledger::{account::*, CalaLedger};
+use cala_ledger::{
+    account::{error::AccountError, *},
+    CalaLedger, Currency, DebitOrCredit, JournalId, TransactionId,
+};
+
+use crate::primitives::UsdCents;
 
 use error::*;
 
 #[derive(Clone)]
 pub struct DepositLedger {
     cala: CalaLedger,
+    journal_id: JournalId,
+    deposit_omnibus_account_id: AccountId,
+    usd: Currency,
 }
 
 impl DepositLedger {
-    pub async fn init(cala: &CalaLedger) -> Result<Self, DepositLedgerError> {
+    pub async fn init(
+        cala: &CalaLedger,
+        journal_id: JournalId,
+        omnibus_account_code: String,
+    ) -> Result<Self, DepositLedgerError> {
+        let deposit_omnibus_account_id =
+            Self::create_deposit_omnibus_account(cala, omnibus_account_code.clone()).await?;
+
         templates::RecordDeposit::init(&cala).await?;
-        Ok(Self { cala: cala.clone() })
+
+        Ok(Self {
+            cala: cala.clone(),
+            journal_id,
+            deposit_omnibus_account_id,
+            usd: "USD".parse().expect("Could not parse 'USD'"),
+        })
     }
 
     pub async fn create_account_for_deposit_account(
@@ -39,5 +60,52 @@ impl DepositLedger {
         op.commit().await?;
 
         Ok(())
+    }
+
+    pub async fn record_deposit(
+        &self,
+        op: es_entity::DbOp<'_>,
+        tx_id: impl Into<TransactionId>,
+        amount: UsdCents,
+        credit_account_id: impl Into<AccountId>,
+    ) -> Result<(), DepositLedgerError> {
+        let tx_id = tx_id.into();
+        let mut op = self.cala.ledger_operation_from_db_op(op);
+
+        let params = templates::RecordDepositParams {
+            journal_id: self.journal_id,
+            currency: self.usd,
+            amount: amount.to_usd(),
+            deposit_omnibus_account_id: self.deposit_omnibus_account_id,
+            credit_account_id: credit_account_id.into(),
+        };
+        self.cala
+            .post_transaction_in_op(&mut op, tx_id, templates::RECORD_DEPOSIT_CODE, params)
+            .await?;
+
+        op.commit().await?;
+        Ok(())
+    }
+
+    async fn create_deposit_omnibus_account(
+        cala: &CalaLedger,
+        code: String,
+    ) -> Result<AccountId, DepositLedgerError> {
+        let new_account = NewAccount::builder()
+            .code(&code)
+            .id(AccountId::new())
+            .name("Deposit Omnibus Account")
+            .description("Omnibus Account for Deposit module")
+            .normal_balance_type(DebitOrCredit::Debit)
+            .build()
+            .expect("Couldn't create onchain incoming account");
+        match cala.accounts().create(new_account).await {
+            Err(AccountError::CodeAlreadyExists) => {
+                let account = cala.accounts().find_by_code(code).await?;
+                Ok(account.id)
+            }
+            Err(e) => Err(e.into()),
+            Ok(account) => Ok(account.id),
+        }
     }
 }
