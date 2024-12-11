@@ -5,6 +5,7 @@ use cala_ledger::{
     account::{error::AccountError, *},
     CalaLedger, Currency, DebitOrCredit, JournalId, TransactionId,
 };
+use templates::CONFIRM_WITHDRAW_CODE;
 
 use crate::primitives::UsdCents;
 
@@ -86,6 +87,59 @@ impl DepositLedger {
             .post_transaction_in_op(&mut op, tx_id, templates::RECORD_DEPOSIT_CODE, params)
             .await?;
 
+        op.commit().await?;
+        Ok(())
+    }
+
+    pub async fn initiate_withdrawal(
+        &self,
+        op: es_entity::DbOp<'_>,
+        tx_id: impl Into<TransactionId>,
+        amount: UsdCents,
+        credit_account_id: impl Into<AccountId>,
+    ) -> Result<(), DepositLedgerError> {
+        let tx_id = tx_id.into();
+        let mut op = self.cala.ledger_operation_from_db_op(op);
+        let params = templates::InitiateWithdrawParams {
+            journal_id: self.journal_id,
+            currency: self.usd,
+            amount: amount.to_usd(),
+            deposit_omnibus_account_id: self.deposit_omnibus_account_id,
+            credit_account_id: credit_account_id.into(),
+        };
+
+        self.cala
+            .post_transaction_in_op(&mut op, tx_id, templates::INITIATE_WITHDRAW_CODE, params)
+            .await?;
+
+        op.commit().await?;
+        Ok(())
+    }
+
+    pub async fn confirm_withdrawal(
+        &self,
+        op: es_entity::DbOp<'_>,
+        tx_id: impl Into<TransactionId>,
+        correlation_id: impl Into<String>,
+        credit_account_id: impl Into<AccountId>,
+        amount: UsdCents,
+        external_id: String,
+    ) -> Result<(), DepositLedgerError> {
+        let tx_id = tx_id.into();
+        let mut op = self.cala.ledger_operation_from_db_op(op);
+        let params = templates::ConfirmWithdrawParams {
+            journal_id: self.journal_id,
+            currency: self.usd,
+            amount: amount.to_usd(),
+            deposit_omnibus_account_id: self.deposit_omnibus_account_id,
+            credit_account_id: credit_account_id.into(),
+            correlation_id: correlation_id.into(),
+            external_id,
+        };
+
+        self.cala
+            .post_transaction_in_op(&mut op, tx_id, CONFIRM_WITHDRAW_CODE, params)
+            .await?;
         op.commit().await?;
         Ok(())
     }

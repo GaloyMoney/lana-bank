@@ -18,6 +18,8 @@ pub struct ConfirmWithdrawParams {
     pub amount: Decimal,
     pub deposit_omnibus_account_id: AccountId,
     pub credit_account_id: AccountId,
+    pub correlation_id: String,
+    pub external_id: String,
 }
 
 impl ConfirmWithdrawParams {
@@ -53,6 +55,16 @@ impl ConfirmWithdrawParams {
                 .r#type(ParamDataType::Date)
                 .build()
                 .unwrap(),
+            NewParamDefinition::builder()
+                .name("correlation_id")
+                .r#type(ParamDataType::String)
+                .build()
+                .unwrap(),
+            NewParamDefinition::builder()
+                .name("external_id")
+                .r#type(ParamDataType::String)
+                .build()
+                .unwrap(),
         ]
     }
 }
@@ -64,6 +76,8 @@ impl From<ConfirmWithdrawParams> for Params {
             currency,
             amount,
             deposit_omnibus_account_id,
+            correlation_id,
+            external_id,
             credit_account_id,
         }: ConfirmWithdrawParams,
     ) -> Self {
@@ -73,6 +87,8 @@ impl From<ConfirmWithdrawParams> for Params {
         params.insert("amount", amount);
         params.insert("deposit_omnibus_account_id", deposit_omnibus_account_id);
         params.insert("credit_account_id", credit_account_id);
+        params.insert("correlation_id", correlation_id);
+        params.insert("external_id", external_id);
         params.insert("effective", chrono::Utc::now().date_naive());
 
         params

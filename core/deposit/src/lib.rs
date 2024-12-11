@@ -149,6 +149,77 @@ where
         Ok(deposit)
     }
 
+    pub async fn initiate_withdrawal(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        deposit_account_id: DepositAccountId,
+        amount: UsdCents,
+        reference: Option<String>,
+    ) -> Result<Withdrawal, CoreDepositError> {
+        let audit_info = self
+            .authz
+            .enforce_permission(
+                sub,
+                CoreDepositObject::all_withdrawals(),
+                CoreDepositAction::WITHDRAWAL_INITIATE,
+            )
+            .await?;
+        let withdrawal_id = WithdrawalId::new();
+        let new_withdrawal = NewWithdrawal::builder()
+            .id(withdrawal_id)
+            .deposit_account_id(deposit_account_id)
+            .reference(reference)
+            .audit_info(audit_info)
+            .build()
+            .expect("Could not build new withdrawal");
+        let mut op = self.withdrawals.begin_op().await?;
+        let withdrawal = self
+            .withdrawals
+            .create_in_op(&mut op, new_withdrawal)
+            .await?;
+
+        // TODO: add approval process and check for balance
+        self.ledger
+            .initiate_withdrawal(op, withdrawal_id, amount, deposit_account_id)
+            .await?;
+        Ok(withdrawal)
+    }
+
+    pub async fn confirm_withdrawal(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        withdrawal_id: impl Into<WithdrawalId>,
+    ) -> Result<Withdrawal, CoreDepositError> {
+        let audit_info = self
+            .authz
+            .enforce_permission(
+                sub,
+                CoreDepositObject::all_withdrawals(),
+                CoreDepositAction::WITHDRAWAL_INITIATE,
+            )
+            .await?;
+        let id = withdrawal_id.into();
+        let mut withdrawal = self.withdrawals.find_by_id(id).await?;
+        let mut op = self.withdrawals.begin_op().await?;
+        let tx_id = withdrawal.confirm(audit_info)?;
+        self.withdrawals
+            .update_in_op(&mut op, &mut withdrawal)
+            .await?;
+
+        self.ledger
+            .confirm_withdrawal(
+                op,
+                tx_id,
+                withdrawal.id.to_string(),
+                withdrawal.deposit_account_id,
+                UsdCents::ZERO, // TODO: use entries from initiate_withdraw to get this
+                format!("lana:withdraw:{}:confirm", withdrawal.id),
+            )
+            .await?;
+
+        Ok(withdrawal)
+    }
+
     pub async fn balance(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,

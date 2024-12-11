@@ -80,7 +80,7 @@ CREATE TABLE core_deposit_events (
 CREATE TABLE core_withdrawals (
   id UUID PRIMARY KEY,
   deposit_account_id UUID NOT NULL REFERENCES deposit_accounts(id),
-  approval_process_id UUID NOT NULL REFERENCES approval_processes(id),
+  approval_process_id UUID REFERENCES approval_processes(id),
   reference VARCHAR NOT NULL UNIQUE,
   created_at TIMESTAMPTZ NOT NULL
 );

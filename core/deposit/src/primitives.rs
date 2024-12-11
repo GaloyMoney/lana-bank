@@ -2,12 +2,13 @@ use std::{fmt::Display, str::FromStr};
 
 use authz::AllOrOne;
 
+#[cfg(feature = "governance")]
+pub use governance::ApprovalProcessId;
+
 pub use cala_ledger::primitives::{
     AccountId as LedgerAccountId, JournalId as LedgerJournalId,
     TransactionId as LedgerTransactionId,
 };
-
-pub use governance::ApprovalProcessId;
 
 es_entity::entity_id! {
     DepositAccountHolderId,
@@ -25,6 +26,7 @@ pub use core_money::UsdCents;
 
 pub type DepositAccountAllOrOne = AllOrOne<DepositAccountId>;
 pub type DepositAllOrOne = AllOrOne<DepositId>;
+pub type WithdrawalAllOrOne = AllOrOne<WithdrawalId>;
 
 #[derive(Clone, Copy, Debug, PartialEq, strum::EnumDiscriminants)]
 #[strum_discriminants(derive(strum::Display, strum::EnumString))]
@@ -32,6 +34,7 @@ pub type DepositAllOrOne = AllOrOne<DepositId>;
 pub enum CoreDepositObject {
     DepositAccount(DepositAccountAllOrOne),
     Deposit(DepositAllOrOne),
+    Withdrawal(WithdrawalAllOrOne),
 }
 
 impl CoreDepositObject {
@@ -46,6 +49,10 @@ impl CoreDepositObject {
     pub fn all_deposits() -> Self {
         CoreDepositObject::Deposit(AllOrOne::All)
     }
+
+    pub fn all_withdrawals() -> Self {
+        CoreDepositObject::Withdrawal(AllOrOne::All)
+    }
 }
 
 impl Display for CoreDepositObject {
@@ -55,6 +62,7 @@ impl Display for CoreDepositObject {
         match self {
             DepositAccount(obj_ref) => write!(f, "{}/{}", discriminant, obj_ref),
             Deposit(obj_ref) => write!(f, "{}/{}", discriminant, obj_ref),
+            Withdrawal(obj_ref) => write!(f, "{}/{}", discriminant, obj_ref),
         }
     }
 }
@@ -78,6 +86,12 @@ impl FromStr for CoreDepositObject {
                     .map_err(|_| "could not parse CoreDepositObject")?;
                 CoreDepositObject::Deposit(obj_ref)
             }
+            Withdrawal => {
+                let obj_ref = id
+                    .parse()
+                    .map_err(|_| "could not parse CoreDepositObject")?;
+                CoreDepositObject::Withdrawal(obj_ref)
+            }
         };
         Ok(res)
     }
@@ -89,6 +103,7 @@ impl FromStr for CoreDepositObject {
 pub enum CoreDepositAction {
     DepositAccount(DepositAccountAction),
     Deposit(DepositAction),
+    Withdrawal(WithdrawalAction),
 }
 
 impl CoreDepositAction {
@@ -99,6 +114,7 @@ impl CoreDepositAction {
         CoreDepositAction::DepositAccount(DepositAccountAction::ReadBalance);
 
     pub const DEPOSIT_CREATE: Self = CoreDepositAction::Deposit(DepositAction::Create);
+    pub const WITHDRAWAL_INITIATE: Self = CoreDepositAction::Withdrawal(WithdrawalAction::Initiate);
 }
 
 impl Display for CoreDepositAction {
@@ -108,6 +124,7 @@ impl Display for CoreDepositAction {
         match self {
             DepositAccount(action) => action.fmt(f),
             Deposit(action) => action.fmt(f),
+            Withdrawal(action) => action.fmt(f),
         }
     }
 }
@@ -121,6 +138,7 @@ impl FromStr for CoreDepositAction {
         let res = match entity.parse()? {
             DepositAccount => CoreDepositAction::from(action.parse::<DepositAccountAction>()?),
             Deposit => CoreDepositAction::from(action.parse::<DepositAction>()?),
+            Withdrawal => CoreDepositAction::from(action.parse::<WithdrawalAction>()?),
         };
         Ok(res)
     }
@@ -148,5 +166,17 @@ pub enum DepositAction {
 impl From<DepositAction> for CoreDepositAction {
     fn from(action: DepositAction) -> Self {
         CoreDepositAction::Deposit(action)
+    }
+}
+
+#[derive(PartialEq, Clone, Copy, Debug, strum::Display, strum::EnumString)]
+#[strum(serialize_all = "kebab-case")]
+pub enum WithdrawalAction {
+    Initiate,
+}
+
+impl From<WithdrawalAction> for CoreDepositAction {
+    fn from(action: WithdrawalAction) -> Self {
+        CoreDepositAction::Withdrawal(action)
     }
 }
