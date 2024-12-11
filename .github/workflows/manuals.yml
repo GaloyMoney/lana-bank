@@ -10,9 +10,9 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 25
     steps:
-      - name: Maximize build space
-        uses: easimon/maximize-build-space@master
-
+      # - name: Maximize build space
+      #   uses: easimon/maximize-build-space@master
+      #
       - name: Install Nix
         uses: DeterminateSystems/nix-installer-action@v4
 
