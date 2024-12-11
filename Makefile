@@ -115,7 +115,7 @@ build-storybook-admin-panel:
 ngrok:
 	ngrok http 5253
 
-tilt-ci: reset-tf-state clean-deps start-deps build-for-tests
+tilt-ci:
 	cd dev && tilt ci
 
 tilt-in-ci:

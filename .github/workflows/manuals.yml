@@ -26,5 +26,8 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Run Tilt CI
-        run: nix develop -c make tilt-ci
+      - name: Build Backend
+        run: nix develop -c make build-for-tests
+
+      - name: Run Tilt
+        run: nix develop -c make start-deps tilt-ci
