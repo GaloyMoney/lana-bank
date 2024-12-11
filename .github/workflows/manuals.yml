@@ -10,9 +10,20 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 25
     steps:
-      # - name: Maximize build space
-      #   uses: easimon/maximize-build-space@master
-      #
+      - name: Maximize build space
+        uses: easimon/maximize-build-space@master
+        with:
+          root-reserve-mb: 15360
+          temp-reserve-mb: 12288
+          remove-dotnet: "true"
+
+      - name: Login to GCR
+        uses: docker/login-action@v3
+        with:
+          registry: gcr.io
+          username: _json_key
+          password: ${{ secrets.GCR_JSON_KEY }}
+
       - name: Install Nix
         uses: DeterminateSystems/nix-installer-action@v4
 
@@ -21,9 +32,6 @@ jobs:
 
       - name: Checkout code
         uses: actions/checkout@v4
-
-      - name: Build Backend
-        run: nix develop -c make build
 
       - name: Run Tilt CI
         run: nix develop -c make tilt-ci
