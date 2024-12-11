@@ -12,6 +12,7 @@ members = [
   "core/user",
   "core/governance",
   "core/money",
+  "core/chart_of_accounts",
 
   "lib/authz",
   "lib/audit",
@@ -22,8 +23,9 @@ members = [
 ]
 
 [workspace.dependencies]
-es-entity = "0.3.1"
-sim-time = "0.3.1"
+es-entity = { git = "https://github.com/galoymoney/cala.git", branch = "main" }
+sim-time = { git = "https://github.com/galoymoney/cala.git", branch = "main" }
+cala-ledger = { git = "https://github.com/galoymoney/cala.git", branch = "main" }
 
 anyhow = "1.0.92"
 async-graphql = { version = "7.0.11", default-features = false, features = ["dataloader", "tracing", "chrono", "playground"] }
@@ -46,7 +48,7 @@ opentelemetry_sdk = { version = "0.24.1", features = ["rt-tokio"] }
 opentelemetry-otlp = { version = "0.17.0", features = ["http-proto", "reqwest-client"] }
 opentelemetry-http = "0.13"
 opentelemetry-semantic-conventions = "0.16.0"
-tokio = { version = "1.41", features = ["rt-multi-thread", "macros", "time", "sync"] }
+tokio = { version = "1.42", features = ["rt-multi-thread", "macros", "time", "sync"] }
 tokio-stream = { version = "0.1.16", features = ["sync"] }
 strum = { version = "0.26", features = ["derive"] }
 serde = { version = "1.0.214", features = ["derive"] }
