@@ -9,16 +9,22 @@ pub enum ChartOfAccountsEvent {
         audit_info: AuditInfo,
     },
 }
-
 #[derive(EsEntity, Builder)]
 #[builder(pattern = "owned", build_fn(error = "EsEntityError"))]
 pub struct ChartOfAccounts {
-    assets_account_set_id: LedgerAccountSetId,
     pub(super) events: EntityEvents<ChartOfAccountsEvent>,
 }
 
 impl ChartOfAccounts {
-    pub fn add_assets_category(&self) {
+    pub fn add_control_account(
+        &self,
+        category: ChartOfAccountsCategory,
+        account_set_id: LedgerAccountSetId,
+    ) {
+        unimplemented!()
+    }
+
+    pub fn add_control_sub_account(&self, control_account_code: ChartOfAccountsCategory) {
         unimplemented!()
     }
 }
