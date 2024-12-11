@@ -1,0 +1,32 @@
+name: Cypress Tests
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  tilt-ci:
+    name: Tilt CI
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Maximize build space
+        uses: easimon/maximize-build-space@master
+        with:
+          root-reserve-mb: 15360
+          temp-reserve-mb: 12288
+
+      - name: Install Nix
+        uses: DeterminateSystems/nix-installer-action@v4
+
+      - name: Run the Magic Nix Cache
+        uses: DeterminateSystems/magic-nix-cache-action@v8
+
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Build Backend
+        run: nix develop -c make build
+
+      - name: Run Tilt CI
+        run: nix develop -c make tilt-ci

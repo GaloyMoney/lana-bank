@@ -115,6 +115,9 @@ build-storybook-admin-panel:
 ngrok:
 	ngrok http 5253
 
+tilt-ci:
+	cd dev && tilt ci
+
 tilt-in-ci:
 	./dev/bin/tilt-ci.sh
 
