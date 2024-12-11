@@ -7,6 +7,7 @@ pub mod error;
 mod event;
 mod ledger;
 mod primitives;
+mod withdrawal;
 
 use tracing::instrument;
 
@@ -21,6 +22,7 @@ use error::*;
 pub use event::*;
 use ledger::*;
 pub use primitives::*;
+use withdrawal::*;
 
 pub struct CoreDeposit<Perms, E>
 where
@@ -29,6 +31,7 @@ where
 {
     accounts: DepositAccountRepo,
     deposits: DepositRepo,
+    withdrawals: WithdrawalRepo,
     ledger: DepositLedger,
     authz: Perms,
     outbox: Outbox<E>,
@@ -43,6 +46,7 @@ where
         Self {
             accounts: self.accounts.clone(),
             deposits: self.deposits.clone(),
+            withdrawals: self.withdrawals.clone(),
             ledger: self.ledger.clone(),
             authz: self.authz.clone(),
             outbox: self.outbox.clone(),
@@ -67,10 +71,12 @@ where
     ) -> Result<Self, CoreDepositError> {
         let accounts = DepositAccountRepo::new(pool);
         let deposits = DepositRepo::new(pool);
+        let withdrawals = WithdrawalRepo::new(pool);
         let ledger = DepositLedger::init(cala, journal_id, omnibus_account_code).await?;
         let res = Self {
             accounts,
             deposits,
+            withdrawals,
             authz: authz.clone(),
             outbox: outbox.clone(),
             ledger,

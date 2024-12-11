@@ -1202,6 +1202,7 @@ dependencies = [
  "core-money",
  "derive_builder",
  "es-entity",
+ "governance",
  "outbox",
  "rust_decimal",
  "rust_decimal_macros",

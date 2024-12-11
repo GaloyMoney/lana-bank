@@ -7,13 +7,18 @@ pub use cala_ledger::primitives::{
     TransactionId as LedgerTransactionId,
 };
 
+pub use governance::ApprovalProcessId;
+
 es_entity::entity_id! {
     DepositAccountHolderId,
     DepositAccountId,
+    WithdrawalId,
     DepositId;
 
     DepositAccountId => LedgerAccountId,
     DepositId => LedgerTransactionId,
+    WithdrawalId => LedgerTransactionId
+
 }
 
 pub use core_money::UsdCents;
