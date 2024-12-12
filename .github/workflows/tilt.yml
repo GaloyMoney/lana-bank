@@ -1,0 +1,98 @@
+name: "Tilt CI"
+on:
+  pull_request:
+    branches: [ main ]
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Login to GCR
+      uses: docker/login-action@v3
+      with:
+        registry: gcr.io
+        username: _json_key
+        password: ${{ secrets.GCR_JSON_KEY }}
+    - uses: actions/checkout@v3
+    - uses: cachix/install-nix-action@v22
+      with:
+        github_access_token: ${{ secrets.GITHUB_TOKEN }}
+    - id: "gcp-auth"
+      uses: "google-github-actions/auth@v2"
+      with:
+        credentials_json: "${{ secrets.GOOGLE_CREDENTIALS }}"
+    - name: Setup container monitoring
+      run: |
+          mkdir -p ./logs
+          # Start monitoring in the background and log the process ID
+          (while true; do 
+            echo "$(date '+%Y-%m-%d %H:%M:%S')" >> ./logs/container_memory.log
+            docker stats --no-stream --format "table {{.Name}}\t{{.CPUPerc}}\t{{.MemUsage}}\t{{.MemPerc}}\t{{.NetIO}}\t{{.BlockIO}}\t{{.PIDs}}" >> ./logs/container_memory.log
+            echo "---" >> ./logs/container_memory.log
+            sleep 1
+          done) &
+          MONITOR_PID=$!
+          echo $MONITOR_PID > monitor.pid
+          
+          # Add container status monitoring
+          (while true; do 
+            echo "=== Container Status at $(date '+%Y-%m-%d %H:%M:%S.%N') ===" >> ./logs/container_status.log
+            docker ps -a --format "{{.Names}}\t{{.Status}}\t{{.State}}" >> ./logs/container_status.log
+            sleep 0.1
+          done) &
+          STATUS_PID=$!
+          echo $STATUS_PID > status.pid
+          
+          # Wait for monitoring to start and verify it's running
+          sleep 5
+          if ! kill -0 $MONITOR_PID 2>/dev/null || ! kill -0 $STATUS_PID 2>/dev/null; then
+            echo "Monitoring failed to start"
+            exit 1
+          fi
+
+    - name: Reset Deps
+      run: |
+        # Verify monitoring is still running
+        if ! kill -0 $(cat monitor.pid) 2>/dev/null; then
+          echo "Monitoring stopped unexpectedly"
+          exit 1
+        fi
+        nix develop -c make reset-deps
+    - name: Tilt CI
+      run: nix develop -c make tilt-in-ci
+      env:
+        TF_VAR_sa_creds: ${{ secrets.GOOGLE_SA_BASE64 }}
+        # Add these two steps:
+    - name: Collect failure information
+      if: failure()
+      run: |
+        echo "=== Docker Container Status ===" > ./logs/failure_info.log
+        docker ps -a >> ./logs/failure_info.log
+        echo "\n=== Failed Container Logs ===" >> ./logs/failure_info.log
+        # Add specific logging for cala container
+        echo "\n=== Cala Container Logs ===" >> ./logs/failure_info.log
+        docker logs lana-bank-cala-1 &>> ./logs/failure_info.log
+        # Add container inspection
+        echo "\n=== Cala Container Inspect ===" >> ./logs/failure_info.log
+        docker inspect lana-bank-cala-1 >> ./logs/failure_info.log
+        docker logs lana-bank-cala-1 >> ./logs/failure_info.log 
+        docker logs lana-bank-cala-1 2>&1 || true
+    # Then update the stop monitoring step to kill both processes:
+    - name: Stop monitoring
+      if: always()
+      run: |
+        if [ -f monitor.pid ]; then
+          kill $(cat monitor.pid) || echo "Monitoring process already stopped."
+          rm -f monitor.pid
+        fi
+        if [ -f status.pid ]; then
+          kill $(cat status.pid) || echo "Status monitoring process already stopped."
+          rm -f status.pid
+        fi
+        sleep 5  # Allow log flush
+
+    - name: Upload memory logs
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: debug-logs
+        path: ./logs/*.log

@@ -12,8 +12,10 @@ services:
       interval: 1s
       timeout: 1s
       retries: 20
+    mem_limit: 1g
   cala-pg:
     image: postgres:16.4
+    mem_limit: 512m
     command: -c 'max_connections=200'
     ports:
       - "5432:5432"
@@ -32,6 +34,7 @@ services:
       - "2252:2252"
     volumes:
       - ./dev/cala.yml:/cala.yml
+    mem_limit: 512m
     environment:
       - PG_CON=postgresql://user:password@cala-pg:5432/pg
       - CALA_CONFIG=/cala.yml
@@ -41,6 +44,7 @@ services:
       - cala-pg
       - otel-agent
   otel-agent:
+    mem_limit: 256m
     ports:
       - "4317:4317" # OpenTelemetry receiver
     image: otel/opentelemetry-collector-contrib:0.57.2
@@ -52,6 +56,7 @@ services:
       - ./dev/otel-agent-config.yaml:/etc/otel-agent-config.yaml
   kratos:
     image: oryd/kratos:v1.2.0
+    mem_limit: 512m
     extra_hosts:
       - "dockerhost-alias:host-gateway"
     ports:
@@ -68,6 +73,7 @@ services:
       - ./dev/ory:/home/ory
   kratos-pg:
     image: postgres:16.4
+    mem_limit: 512m
     ports:
       - "5434:5432"
     environment:
@@ -76,6 +82,7 @@ services:
       - POSTGRES_DB=default
   next-auth-pg:
     image: postgres:16.4
+    mem_limit: 512m
     ports:
       - "5435:5432"
     environment:
@@ -84,6 +91,7 @@ services:
       - POSTGRES_DB=default
   oathkeeper:
     image: oryd/oathkeeper:v0.40.7-distroless
+    mem_limit: 512m
     extra_hosts:
       - "dockerhost-alias:host-gateway"
     ports:
@@ -96,6 +104,7 @@ services:
       - kratos
       - otel-agent
   mailhog:
+    mem_limit: 512m
     image: mailhog/mailhog:latest
     ports:
       - "1025:1025"

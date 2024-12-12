@@ -48,7 +48,7 @@ init-bq: delete-bq-tables reset-tf-state clean-deps start-deps setup-db
 reset-deps: reset-tf-state clean-deps start-deps setup-db run-tf
 
 run-server:
-	cargo run --bin lana-cli --features sim-time -- --config ./bats/lana-sim-time.yml | tee .e2e-logs
+	cargo run -j 4 --bin lana-cli --features sim-time -- --config ./bats/lana-sim-time.yml | tee .e2e-logs
 
 check-code: sdl
 	git diff --exit-code lana/admin-server/src/graphql/schema.graphql
