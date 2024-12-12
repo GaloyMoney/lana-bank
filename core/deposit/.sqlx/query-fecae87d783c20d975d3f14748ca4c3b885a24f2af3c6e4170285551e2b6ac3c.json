@@ -1,0 +1,17 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "UPDATE approval_processes SET process_type = $2, committee_id = $3, policy_id = $4 WHERE id = $1",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Varchar",
+        "Uuid",
+        "Uuid"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "fecae87d783c20d975d3f14748ca4c3b885a24f2af3c6e4170285551e2b6ac3c"
+}

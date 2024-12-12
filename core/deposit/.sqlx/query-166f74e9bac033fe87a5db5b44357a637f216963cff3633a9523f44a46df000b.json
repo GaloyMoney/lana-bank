@@ -1,0 +1,41 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "WITH entities AS (SELECT id FROM policies WHERE (COALESCE(id > $2, true)) ORDER BY id ASC LIMIT $1) SELECT i.id AS \"entity_id: PolicyId\", e.sequence, e.event, e.recorded_at FROM entities i JOIN policy_events e ON i.id = e.id ORDER BY i.id asc, i.id, e.sequence",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "entity_id: PolicyId",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "sequence",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 2,
+        "name": "event",
+        "type_info": "Jsonb"
+      },
+      {
+        "ordinal": 3,
+        "name": "recorded_at",
+        "type_info": "Timestamptz"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Int8",
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "166f74e9bac033fe87a5db5b44357a637f216963cff3633a9523f44a46df000b"
+}
