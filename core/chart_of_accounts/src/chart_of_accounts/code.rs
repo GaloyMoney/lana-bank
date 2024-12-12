@@ -1,6 +1,8 @@
+use serde::{Deserialize, Serialize};
+
 use super::error::*;
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub(super) struct ChartOfAccountCodeStr([u8; 8]);
 
 impl ChartOfAccountCodeStr {
@@ -24,7 +26,7 @@ impl std::fmt::Display for ChartOfAccountCodeStr {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub(super) enum ChartOfAccountCategoryCode {
     Assets = 1,
     Liabilities = 2,
@@ -44,7 +46,7 @@ impl ChartOfAccountCategoryCode {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub(super) struct ChartOfAccountControlAccountCode {
     category: ChartOfAccountCategoryCode,
     index: u8,
@@ -61,7 +63,7 @@ impl ChartOfAccountControlAccountCode {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub(super) struct ChartOfAccountControlSubAccountCode {
     control_account: ChartOfAccountControlAccountCode,
     index: u8,
@@ -86,7 +88,7 @@ impl ChartOfAccountControlSubAccountCode {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub(super) struct ChartOfAccountTransactionAccountCode {
     control_sub_account: ChartOfAccountControlSubAccountCode,
     index: u8,

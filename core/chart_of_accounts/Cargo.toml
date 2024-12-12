@@ -7,4 +7,11 @@ edition = "2021"
 fail-on-warnings = []
 
 [dependencies]
+audit = { path = "../../lib/audit" }
+
+es-entity = { workspace = true }
+sqlx = { workspace = true }
+
+derive_builder = { workspace = true }
+serde = { workspace = true }
 thiserror = { workspace = true }
