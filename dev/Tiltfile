@@ -12,3 +12,29 @@ docker_groups = {
 for service, deps in docker_groups.items():
     for dep in deps:
         dc_resource(dep, labels=[service])
+
+local_resource(
+    "core",
+    labels=["core"],
+    serve_cmd="cd .. && make setup-db run-server",
+    serve_env={
+        "PG_CON": "postgres://user:password@localhost:5433/pg",
+        "OTEL_EXPORTER_OTLP_ENDPOINT": "http://localhost:4317",
+    },
+    readiness_probe=probe(
+        period_secs=5,
+        http_get=http_get_action(
+            path="/admin/graphql",
+            port=4455,
+        ),
+    ),
+    allow_parallel=True,
+    resource_deps=[
+        "cala",
+        "core-pg",
+        "cala-pg",
+    ],
+    links = [
+        link("http://localhost:4455/admin/graphql", "playground"),
+    ]
+)
