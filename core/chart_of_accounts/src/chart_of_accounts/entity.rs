@@ -1,5 +1,7 @@
 use crate::primitives::*;
 
+use super::code::*;
+
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
 #[es_event(id = "ChartOfAccountsId")]
@@ -7,6 +9,11 @@ pub enum ChartOfAccountsEvent {
     Initialized {
         id: ChartOfAccountsId,
         audit_info: AuditInfo,
+    },
+    ControlAccountAdded {
+        name: String,
+        description: String,
+        code: ChartOfAccountsCode,
     },
 }
 #[derive(EsEntity, Builder)]
