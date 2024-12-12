@@ -28,10 +28,10 @@ impl DepositLedger {
         let deposit_omnibus_account_id =
             Self::create_deposit_omnibus_account(cala, omnibus_account_code.clone()).await?;
 
-        templates::RecordDeposit::init(&cala).await?;
-        templates::InitiateWithdraw::init(&cala).await?;
-        templates::CancelWithdraw::init(&cala).await?;
-        templates::ConfirmWithdraw::init(&cala).await?;
+        templates::RecordDeposit::init(cala).await?;
+        templates::InitiateWithdraw::init(cala).await?;
+        templates::CancelWithdraw::init(cala).await?;
+        templates::ConfirmWithdraw::init(cala).await?;
 
         Ok(Self {
             cala: cala.clone(),

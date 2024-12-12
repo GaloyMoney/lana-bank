@@ -24,6 +24,12 @@ impl<A, O> DummyPerms<A, O> {
     }
 }
 
+impl<A, O> Default for DummyPerms<A, O> {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 #[derive(Debug, Clone, Copy)]
 pub struct DummySubject;
 impl audit::SystemSubject for DummySubject {
