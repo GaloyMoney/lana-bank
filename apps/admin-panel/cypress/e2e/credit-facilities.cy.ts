@@ -10,6 +10,7 @@ describe("credit facility", () => {
       annualRate: "5.5",
       accrualInterval: InterestInterval.EndOfMonth,
       incurrenceInterval: InterestInterval.EndOfMonth,
+      oneTimeFeeRate: "5",
       liquidationCvl: "110",
       marginCallCvl: "120",
       initialCvl: "140",
