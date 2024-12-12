@@ -1,0 +1,7 @@
+[package]
+name = "chart_of_accounts"
+version = "0.1.0"
+edition = "2021"
+
+[features]
+fail-on-warnings = []
