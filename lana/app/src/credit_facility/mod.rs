@@ -5,6 +5,7 @@ pub mod error;
 mod history;
 mod interest_accrual;
 mod jobs;
+mod ledger;
 mod processes;
 mod publisher;
 mod repo;
@@ -12,6 +13,8 @@ mod repo;
 use std::collections::HashMap;
 
 use authz::PermissionCheck;
+use cala_ledger::CalaLedger;
+use tracing::instrument;
 
 use crate::{
     audit::AuditInfo,
@@ -37,6 +40,7 @@ use error::*;
 pub use history::*;
 pub use interest_accrual::*;
 use jobs::*;
+use ledger::CreditLedger;
 use processes::activate_credit_facility::*;
 pub use processes::approve_credit_facility::*;
 pub use processes::approve_disbursal::*;
@@ -46,7 +50,6 @@ pub use repo::{
     credit_facility_cursor::*, CreditFacilitiesSortBy, FindManyCreditFacilities, ListDirection,
     Sort,
 };
-use tracing::instrument;
 
 #[derive(Clone)]
 pub struct CreditFacilities {
@@ -55,7 +58,8 @@ pub struct CreditFacilities {
     credit_facility_repo: CreditFacilityRepo,
     disbursal_repo: DisbursalRepo,
     governance: Governance,
-    ledger: Ledger,
+    gql_ledger: Ledger,
+    _ledger: CreditLedger,
     price: Price,
     config: CreditFacilityConfig,
     approve_disbursal: ApproveDisbursal,
@@ -72,9 +76,11 @@ impl CreditFacilities {
         export: &Export,
         authz: &Authorization,
         customers: &Customers,
-        ledger: &Ledger,
+        gql_ledger: &Ledger,
         price: &Price,
         outbox: &Outbox,
+        cala: &CalaLedger,
+        journal_id: cala_ledger::JournalId,
     ) -> Result<Self, CreditFacilityError> {
         let publisher = CreditFacilityPublisher::new(export, outbox);
         let credit_facility_repo = CreditFacilityRepo::new(pool, &publisher);
@@ -84,14 +90,14 @@ impl CreditFacilities {
             &credit_facility_repo,
             authz.audit(),
             governance,
-            ledger,
+            gql_ledger,
         );
         let approve_credit_facility =
             ApproveCreditFacility::new(&credit_facility_repo, authz.audit(), governance);
         let activate_credit_facility = ActivateCreditFacility::new(
             &credit_facility_repo,
             &disbursal_repo,
-            ledger,
+            gql_ledger,
             price,
             jobs,
             authz.audit(),
@@ -110,14 +116,14 @@ impl CreditFacilities {
         .await?;
         jobs.add_initializer(
             interest_incurrences::CreditFacilityProcessingJobInitializer::new(
-                ledger,
+                gql_ledger,
                 credit_facility_repo.clone(),
                 authz.audit(),
             ),
         );
         jobs.add_initializer(
             interest_accruals::CreditFacilityProcessingJobInitializer::new(
-                ledger,
+                gql_ledger,
                 credit_facility_repo.clone(),
                 jobs,
                 authz.audit(),
@@ -143,13 +149,16 @@ impl CreditFacilities {
             .await;
         let _ = governance.init_policy(APPROVE_DISBURSAL_PROCESS).await;
 
+        let ledger = CreditLedger::init(cala, journal_id).await?;
+
         Ok(Self {
             authz: authz.clone(),
             customers: customers.clone(),
             credit_facility_repo,
             disbursal_repo,
             governance: governance.clone(),
-            ledger: ledger.clone(),
+            gql_ledger: gql_ledger.clone(),
+            _ledger: ledger,
             price: price.clone(),
             config,
             approve_disbursal,
@@ -214,7 +223,7 @@ impl CreditFacilities {
             .credit_facility_repo
             .create_in_op(&mut db, new_credit_facility)
             .await?;
-        self.ledger
+        self.gql_ledger
             .create_accounts_for_credit_facility(credit_facility.id, credit_facility.account_ids)
             .await?;
 
@@ -290,7 +299,7 @@ impl CreditFacilities {
             .await?;
 
         let ledger_balances = self
-            .ledger
+            .gql_ledger
             .get_credit_facility_balance(credit_facility.account_ids)
             .await?;
         credit_facility
@@ -405,7 +414,7 @@ impl CreditFacilities {
             .update_in_op(&mut db, &mut credit_facility)
             .await?;
 
-        self.ledger
+        self.gql_ledger
             .update_credit_facility_collateral(credit_facility_collateral_update)
             .await?;
 
@@ -454,7 +463,7 @@ impl CreditFacilities {
             .await?;
 
         let ledger_balances = self
-            .ledger
+            .gql_ledger
             .get_credit_facility_balance(credit_facility.account_ids)
             .await?;
         credit_facility
@@ -466,14 +475,14 @@ impl CreditFacilities {
             .repo()
             .find_by_id(credit_facility.customer_id)
             .await?;
-        self.ledger
+        self.gql_ledger
             .get_customer_balance(customer.account_ids)
             .await?
             .check_withdraw_amount(amount)?;
 
         let repayment = credit_facility.initiate_repayment(amount)?;
         let executed_at = self
-            .ledger
+            .gql_ledger
             .record_credit_facility_repayment(repayment.clone())
             .await?;
         credit_facility.confirm_repayment(
@@ -681,7 +690,7 @@ impl CreditFacilities {
         let completion = credit_facility.initiate_completion()?;
 
         let executed_at = self
-            .ledger
+            .gql_ledger
             .complete_credit_facility(completion.clone())
             .await?;
         credit_facility.confirm_completion(

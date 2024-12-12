@@ -2470,6 +2470,7 @@ dependencies = [
  "axum-extra",
  "base64 0.22.1",
  "cached 0.53.1",
+ "cala-ledger",
  "cala-ledger-core-types 0.2.44",
  "chrono",
  "clap",

@@ -25,6 +25,7 @@ outbox = { path = "../../lib/outbox" }
 audit = { path = "../../lib/audit" }
 authz = { path = "../../lib/authz" }
 
+cala-ledger = { workspace = true }
 es-entity = { workspace = true, features = ["graphql"] }
 sim-time = { workspace = true, optional = true }
 
