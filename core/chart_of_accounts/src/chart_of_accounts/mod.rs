@@ -1,4 +1,6 @@
 mod code;
 mod entity;
-mod error;
+pub mod error;
 mod repo;
+
+pub(super) use repo::*;

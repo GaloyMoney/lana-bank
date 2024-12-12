@@ -9,6 +9,7 @@ fail-on-warnings = []
 [dependencies]
 audit = { path = "../../lib/audit" }
 authz = { path = "../../lib/authz" }
+outbox = { path = "../../lib/outbox" }
 
 es-entity = { workspace = true }
 sqlx = { workspace = true }

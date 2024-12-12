@@ -879,6 +879,7 @@ dependencies = [
  "authz",
  "derive_builder",
  "es-entity",
+ "outbox",
  "serde",
  "sqlx",
  "strum",
