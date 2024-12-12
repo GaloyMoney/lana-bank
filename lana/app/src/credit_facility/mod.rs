@@ -5,7 +5,7 @@ pub mod error;
 mod history;
 mod interest_accrual;
 mod jobs;
-mod ledger;
+pub mod ledger;
 mod processes;
 mod publisher;
 mod repo;
@@ -59,7 +59,7 @@ pub struct CreditFacilities {
     disbursal_repo: DisbursalRepo,
     governance: Governance,
     gql_ledger: Ledger,
-    _ledger: CreditLedger,
+    ledger: CreditLedger,
     price: Price,
     config: CreditFacilityConfig,
     approve_disbursal: ApproveDisbursal,
@@ -158,7 +158,7 @@ impl CreditFacilities {
             disbursal_repo,
             governance: governance.clone(),
             gql_ledger: gql_ledger.clone(),
-            _ledger: ledger,
+            ledger,
             price: price.clone(),
             config,
             approve_disbursal,
@@ -223,11 +223,13 @@ impl CreditFacilities {
             .credit_facility_repo
             .create_in_op(&mut db, new_credit_facility)
             .await?;
-        self.gql_ledger
-            .create_accounts_for_credit_facility(credit_facility.id, credit_facility.account_ids)
+        self.ledger
+            .create_accounts_for_credit_facility(
+                db,
+                credit_facility.id,
+                credit_facility.account_ids,
+            )
             .await?;
-
-        db.commit().await?;
 
         Ok(credit_facility)
     }
