@@ -876,10 +876,12 @@ name = "chart_of_accounts"
 version = "0.1.0"
 dependencies = [
  "audit",
+ "authz",
  "derive_builder",
  "es-entity",
  "serde",
  "sqlx",
+ "strum",
  "thiserror",
 ]
 
