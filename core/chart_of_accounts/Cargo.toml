@@ -5,3 +5,6 @@ edition = "2021"
 
 [features]
 fail-on-warnings = []
+
+[dependencies]
+thiserror = { workspace = true }
