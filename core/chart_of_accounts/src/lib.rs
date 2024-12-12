@@ -6,6 +6,8 @@ pub mod error;
 mod event;
 mod primitives;
 
+use tracing::instrument;
+
 use audit::AuditSvc;
 use authz::PermissionCheck;
 use outbox::{Outbox, OutboxEventMarker};
@@ -58,5 +60,38 @@ where
             outbox: outbox.clone(),
         };
         Ok(res)
+    }
+
+    #[instrument(name = "chart_of_accounts.find_or_create", skip(self))]
+    async fn find_or_create(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+    ) -> Result<ChartOfAccount, CoreChartOfAccountError> {
+        let id = ChartOfAccountId::default();
+        let audit_info = self
+            .authz
+            .enforce_permission(
+                sub,
+                CoreChartOfAccountObject::chart_of_account(),
+                CoreChartOfAccountAction::CHART_OF_ACCOUNT_FIND_OR_CREATE,
+            )
+            .await?;
+
+        if let Ok(chart_of_account) = self.chart_of_account.find_by_id(id).await {
+            return Ok(chart_of_account);
+        };
+
+        let new_chart_of_account = NewChartOfAccount::builder()
+            .id(id)
+            .audit_info(audit_info)
+            .build()
+            .expect("Could not build new chart of accounts");
+
+        let mut op = self.chart_of_account.begin_op().await?;
+        let chart_of_account = self
+            .chart_of_account
+            .create_in_op(&mut op, new_chart_of_account)
+            .await?;
+        Ok(chart_of_account)
     }
 }

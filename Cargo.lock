@@ -884,6 +884,7 @@ dependencies = [
  "sqlx",
  "strum",
  "thiserror",
+ "tracing",
 ]
 
 [[package]]

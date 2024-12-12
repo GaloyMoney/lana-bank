@@ -1,9 +1,16 @@
 use std::{fmt::Display, str::FromStr};
 
 use authz::AllOrOne;
+use sqlx::types::uuid::uuid;
 
 es_entity::entity_id! {
     ChartOfAccountId,
+}
+
+impl Default for ChartOfAccountId {
+    fn default() -> Self {
+        Self(uuid!("00000000-0000-0000-0000-000000000001"))
+    }
 }
 
 pub type ChartOfAccountAllOrOne = AllOrOne<ChartOfAccountId>;
