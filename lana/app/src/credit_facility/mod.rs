@@ -304,9 +304,7 @@ impl CreditFacilities {
             .ledger
             .get_credit_facility_balance(credit_facility.account_ids)
             .await?;
-        credit_facility
-            .balances()
-            .check_against_ledger(ledger_balances)?;
+        credit_facility.balances().check_against_ledger(balances)?;
 
         credit_facility.balances().check_disbursal_amount(amount)?;
 
@@ -412,7 +410,6 @@ impl CreditFacilities {
             price,
             self.config.upgrade_buffer_cvl_pct,
         )?;
-
         self.credit_facility_repo
             .update_in_op(&mut db, &mut credit_facility)
             .await?;
