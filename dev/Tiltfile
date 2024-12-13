@@ -16,7 +16,7 @@ for service, deps in docker_groups.items():
 local_resource(
     "core",
     labels=["core"],
-    serve_cmd="cd .. && make setup-db run-server",
+    serve_cmd="cd .. && make setup-db run-tf run-server",
     serve_env={
         "PG_CON": "postgres://user:password@localhost:5433/pg",
         "OTEL_EXPORTER_OTLP_ENDPOINT": "http://localhost:4317",
