@@ -412,6 +412,7 @@ impl CreditFacilities {
             price,
             self.config.upgrade_buffer_cvl_pct,
         )?;
+
         self.credit_facility_repo
             .update_in_op(&mut db, &mut credit_facility)
             .await?;
@@ -420,9 +421,6 @@ impl CreditFacilities {
             .update_credit_facility_collateral(credit_facility_collateral_update)
             .await?;
 
-        self.credit_facility_repo
-            .update_in_op(&mut db, &mut credit_facility)
-            .await?;
         db.commit().await?;
         Ok(credit_facility)
     }

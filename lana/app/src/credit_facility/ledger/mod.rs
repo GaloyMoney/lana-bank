@@ -1,6 +1,6 @@
 mod credit_facility_accounts;
 pub mod error;
-// mod templates;
+mod templates;
 
 use cala_ledger::{account::NewAccount, CalaLedger, Currency, JournalId};
 
@@ -19,6 +19,9 @@ pub struct CreditLedger {
 
 impl CreditLedger {
     pub async fn init(cala: &CalaLedger, journal_id: JournalId) -> Result<Self, CreditLedgerError> {
+        templates::AddCollateral::init(cala).await?;
+        templates::RemoveCollateral::init(cala).await?;
+
         Ok(Self {
             cala: cala.clone(),
             journal_id,
@@ -164,5 +167,18 @@ impl CreditLedger {
             interest,
             interest_receivable,
         })
+    }
+
+    pub async fn update_credit_facility_collateral(
+        &self,
+        // CreditFacilityCollateralUpdate {
+        //     tx_id,
+        //     credit_facility_account_ids,
+        //     abs_diff,
+        //     tx_ref,
+        //     action,
+        // }: CreditFacilityCollateralUpdate,
+    ) -> Result<(), CreditLedgerError> {
+        unimplemented!()
     }
 }
