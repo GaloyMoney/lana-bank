@@ -7,6 +7,8 @@ use es_entity::*;
 
 use crate::primitives::ChartOfAccountId;
 
+pub use super::code::*;
+
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
 #[es_event(id = "ChartOfAccountId")]
@@ -15,12 +17,119 @@ pub enum ChartOfAccountEvent {
         id: ChartOfAccountId,
         audit_info: AuditInfo,
     },
+    ControlAccountAdded {
+        code: ChartOfAccountControlAccountCode,
+        audit_info: AuditInfo,
+    },
+    ControlSubAccountAdded {
+        code: ChartOfAccountControlSubAccountCode,
+        audit_info: AuditInfo,
+    },
+    TransactionAccountAdded {
+        code: ChartOfAccountTransactionAccountCode,
+        audit_info: AuditInfo,
+    },
 }
+
 #[derive(EsEntity, Builder)]
 #[builder(pattern = "owned", build_fn(error = "EsEntityError"))]
 pub struct ChartOfAccount {
     pub id: ChartOfAccountId,
     pub(super) events: EntityEvents<ChartOfAccountEvent>,
+}
+
+impl ChartOfAccount {
+    fn next_control_account(
+        &self,
+        category: ChartOfAccountCategoryCode,
+    ) -> ChartOfAccountControlAccountCode {
+        self.events
+            .iter_all()
+            .rev()
+            .find_map(|event| match event {
+                ChartOfAccountEvent::ControlAccountAdded { code, .. }
+                    if code.category == category =>
+                {
+                    Some(code.next())
+                }
+                _ => None,
+            })
+            .unwrap_or(ChartOfAccountControlAccountCode::first(category))
+    }
+
+    pub fn create_control_account(
+        &mut self,
+        category: ChartOfAccountCategoryCode,
+        audit_info: AuditInfo,
+    ) -> ChartOfAccountControlAccountCode {
+        let code = self.next_control_account(category);
+        self.events
+            .push(ChartOfAccountEvent::ControlAccountAdded { code, audit_info });
+
+        code
+    }
+
+    fn next_control_sub_account(
+        &self,
+        control_account: ChartOfAccountControlAccountCode,
+    ) -> ChartOfAccountControlSubAccountCode {
+        self.events
+            .iter_all()
+            .rev()
+            .find_map(|event| match event {
+                ChartOfAccountEvent::ControlSubAccountAdded { code, .. }
+                    if code.control_account == control_account =>
+                {
+                    Some(code.next())
+                }
+                _ => None,
+            })
+            .unwrap_or(ChartOfAccountControlSubAccountCode::first(control_account))
+    }
+
+    pub fn create_control_sub_account(
+        &mut self,
+        control_account: ChartOfAccountControlAccountCode,
+        audit_info: AuditInfo,
+    ) -> ChartOfAccountControlSubAccountCode {
+        let code = self.next_control_sub_account(control_account);
+        self.events
+            .push(ChartOfAccountEvent::ControlSubAccountAdded { code, audit_info });
+
+        code
+    }
+
+    fn next_transaction_account(
+        &self,
+        control_sub_account: ChartOfAccountControlSubAccountCode,
+    ) -> ChartOfAccountTransactionAccountCode {
+        self.events
+            .iter_all()
+            .rev()
+            .find_map(|event| match event {
+                ChartOfAccountEvent::TransactionAccountAdded { code, .. }
+                    if code.control_sub_account == control_sub_account =>
+                {
+                    Some(code.next())
+                }
+                _ => None,
+            })
+            .unwrap_or(ChartOfAccountTransactionAccountCode::first(
+                control_sub_account,
+            ))
+    }
+
+    pub fn create_transaction_account(
+        &mut self,
+        control_sub_account: ChartOfAccountControlSubAccountCode,
+        audit_info: AuditInfo,
+    ) -> ChartOfAccountTransactionAccountCode {
+        let code = self.next_transaction_account(control_sub_account);
+        self.events
+            .push(ChartOfAccountEvent::TransactionAccountAdded { code, audit_info });
+
+        code
+    }
 }
 
 impl TryFromEvents<ChartOfAccountEvent> for ChartOfAccount {
@@ -29,6 +138,9 @@ impl TryFromEvents<ChartOfAccountEvent> for ChartOfAccount {
         for event in events.iter_all() {
             match event {
                 ChartOfAccountEvent::Initialized { id, .. } => builder = builder.id(*id),
+                ChartOfAccountEvent::ControlAccountAdded { .. } => (),
+                ChartOfAccountEvent::ControlSubAccountAdded { .. } => (),
+                ChartOfAccountEvent::TransactionAccountAdded { .. } => (),
             }
         }
         builder.events(events).build()

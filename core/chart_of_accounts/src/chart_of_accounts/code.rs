@@ -1,6 +1,23 @@
 use serde::{Deserialize, Serialize};
 
+use std::fmt;
+
 use super::error::*;
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Hash, Deserialize)]
+pub struct AccountIdx(u64);
+impl fmt::Display for AccountIdx {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> fmt::Result {
+        write!(f, "{}", self.0)
+    }
+}
+impl AccountIdx {
+    pub const FIRST: Self = Self(1);
+
+    pub const fn next(&self) -> Self {
+        Self(self.0 + 1)
+    }
+}
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub(super) struct ChartOfAccountCodeStr([u8; 8]);
@@ -27,7 +44,7 @@ impl std::fmt::Display for ChartOfAccountCodeStr {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
-pub(super) enum ChartOfAccountCategoryCode {
+pub enum ChartOfAccountCategoryCode {
     Assets = 1,
     Liabilities = 2,
     Equity = 3,
@@ -36,25 +53,35 @@ pub(super) enum ChartOfAccountCategoryCode {
 }
 
 impl ChartOfAccountCategoryCode {
-    fn index(&self) -> u8 {
-        *self as u8
+    fn index(&self) -> AccountIdx {
+        AccountIdx(*self as u64)
     }
 
     fn code(&self) -> ChartOfAccountCodeStr {
-        ChartOfAccountCodeStr::new(&format!("{:01}0000000", *self as u8))
+        ChartOfAccountCodeStr::new(&format!("{:01}0000000", *self as u64))
             .expect("Invalid category code string")
     }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
-pub(super) struct ChartOfAccountControlAccountCode {
-    category: ChartOfAccountCategoryCode,
-    index: u8,
+pub struct ChartOfAccountControlAccountCode {
+    pub category: ChartOfAccountCategoryCode,
+    index: AccountIdx,
 }
 
 impl ChartOfAccountControlAccountCode {
-    fn new(category: ChartOfAccountCategoryCode, index: u8) -> Self {
-        Self { category, index }
+    pub const fn first(category: ChartOfAccountCategoryCode) -> Self {
+        Self {
+            category,
+            index: AccountIdx::FIRST,
+        }
+    }
+
+    pub const fn next(&self) -> Self {
+        Self {
+            category: self.category,
+            index: self.index.next(),
+        }
     }
 
     fn code(&self) -> ChartOfAccountCodeStr {
@@ -64,16 +91,23 @@ impl ChartOfAccountControlAccountCode {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
-pub(super) struct ChartOfAccountControlSubAccountCode {
-    control_account: ChartOfAccountControlAccountCode,
-    index: u8,
+pub struct ChartOfAccountControlSubAccountCode {
+    pub control_account: ChartOfAccountControlAccountCode,
+    index: AccountIdx,
 }
 
 impl ChartOfAccountControlSubAccountCode {
-    fn new(control_account: ChartOfAccountControlAccountCode, index: u8) -> Self {
+    pub const fn first(control_account: ChartOfAccountControlAccountCode) -> Self {
         Self {
             control_account,
-            index,
+            index: AccountIdx::FIRST,
+        }
+    }
+
+    pub const fn next(&self) -> Self {
+        Self {
+            control_account: self.control_account,
+            index: self.index.next(),
         }
     }
 
@@ -89,16 +123,23 @@ impl ChartOfAccountControlSubAccountCode {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
-pub(super) struct ChartOfAccountTransactionAccountCode {
-    control_sub_account: ChartOfAccountControlSubAccountCode,
-    index: u8,
+pub struct ChartOfAccountTransactionAccountCode {
+    pub control_sub_account: ChartOfAccountControlSubAccountCode,
+    index: AccountIdx,
 }
 
 impl ChartOfAccountTransactionAccountCode {
-    fn new(control_sub_account: ChartOfAccountControlSubAccountCode, index: u8) -> Self {
+    pub const fn first(control_sub_account: ChartOfAccountControlSubAccountCode) -> Self {
         Self {
             control_sub_account,
-            index,
+            index: AccountIdx::FIRST,
+        }
+    }
+
+    pub const fn next(&self) -> Self {
+        Self {
+            control_sub_account: self.control_sub_account,
+            index: self.index.next(),
         }
     }
 
