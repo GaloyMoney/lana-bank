@@ -2,7 +2,9 @@ name: Storybook
 
 on:
   pull_request:
-    branches: [main]
+    branches:
+      - main
+      - 'feature/**'
     paths:
       - "apps/admin-panel/**"
   push:
