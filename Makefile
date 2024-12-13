@@ -1,4 +1,4 @@
-dev-up:
+dev-up: reset-tf-state
 	cd dev && tilt up
 
 dev-down:

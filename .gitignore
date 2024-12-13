@@ -19,5 +19,5 @@ target/
 tilt.log
 
 node_modules/
-
+videos/
 .bacon-locations
