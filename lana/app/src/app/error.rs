@@ -30,4 +30,6 @@ pub enum ApplicationError {
     WithdrawalError(#[from] crate::withdrawal::error::WithdrawalError),
     #[error("ApplicationError - DashboardError: {0}")]
     DashboardError(#[from] dashboard::error::DashboardError),
+    #[error("ApplicationError - CalaInit: {0}")]
+    CalaError(#[from] cala_ledger::error::LedgerError),
 }

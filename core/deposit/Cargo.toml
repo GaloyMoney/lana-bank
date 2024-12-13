@@ -1,0 +1,38 @@
+[package]
+name = "deposit"
+version = "0.1.0"
+edition = "2021"
+
+[features]
+
+default = ["governance"]
+fail-on-warnings = []
+graphql = ["es-entity/graphql"]
+governance = ["dep:governance"]
+
+[dependencies]
+core-money = { path = "../money" }
+governance = { path = "../governance", optional = true }
+
+audit = { path = "../../lib/audit" }
+authz = { path = "../../lib/authz" }
+outbox = { path = "../../lib/outbox" }
+
+cala-ledger = { workspace = true }
+es-entity = { workspace = true }
+sqlx = { workspace = true }
+
+strum = { workspace = true }
+chrono = { workspace = true }
+serde = { workspace = true }
+thiserror = { workspace = true }
+tracing = { workspace = true }
+derive_builder = { workspace = true }
+rust_decimal = { workspace = true }
+
+[dev-dependencies]
+authz = { path = "../../lib/authz", features = ["test-dummy"] }
+
+tokio = { workspace = true }
+anyhow = { workspace = true }
+rust_decimal_macros = { workspace = true }

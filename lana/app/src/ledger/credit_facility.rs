@@ -1,46 +1,13 @@
 use chrono::{DateTime, Utc};
-use serde::{Deserialize, Serialize};
 
 use crate::{
-    primitives::{CollateralAction, LedgerAccountId, LedgerTxId, Satoshis, UsdCents},
+    primitives::{CollateralAction, LedgerTxId, Satoshis, UsdCents},
     terms::InterestPeriod,
 };
 
 use super::{cala::graphql::*, error::*, CustomerLedgerAccountIds};
 
-#[derive(Debug, Copy, Clone, Serialize, Deserialize)]
-pub struct CreditFacilityAccountIds {
-    pub facility_account_id: LedgerAccountId,
-    pub disbursed_receivable_account_id: LedgerAccountId,
-    pub collateral_account_id: LedgerAccountId,
-    pub interest_receivable_account_id: LedgerAccountId,
-    pub interest_account_id: LedgerAccountId,
-    pub fee_income_account_id: LedgerAccountId,
-}
-
-impl CreditFacilityAccountIds {
-    #[allow(clippy::new_without_default)]
-    pub fn new() -> Self {
-        Self {
-            facility_account_id: LedgerAccountId::new(),
-            disbursed_receivable_account_id: LedgerAccountId::new(),
-            collateral_account_id: LedgerAccountId::new(),
-            interest_receivable_account_id: LedgerAccountId::new(),
-            interest_account_id: LedgerAccountId::new(),
-            fee_income_account_id: LedgerAccountId::new(),
-        }
-    }
-}
-
-#[derive(Debug, Copy, Clone, Serialize, Deserialize)]
-pub struct CreditFacilityLedgerBalance {
-    pub facility: UsdCents,
-    pub collateral: Satoshis,
-    pub disbursed: UsdCents,
-    pub disbursed_receivable: UsdCents,
-    pub interest: UsdCents,
-    pub interest_receivable: UsdCents,
-}
+pub use crate::credit_facility::ledger::{CreditFacilityAccountIds, CreditFacilityLedgerBalance};
 
 impl TryFrom<credit_facility_ledger_balance::ResponseData> for CreditFacilityLedgerBalance {
     type Error = LedgerError;
