@@ -38,3 +38,28 @@ local_resource(
         link("http://localhost:4455/admin/graphql", "playground"),
     ]
 )
+
+local_resource(
+    "admin-panel",
+    labels=["apps"],
+    serve_env={
+        "NEXT_PUBLIC_BASE_PATH": "/admin-panel"
+    },
+    serve_cmd="cd ../apps/admin-panel && pnpm install && pnpm run dev",
+    readiness_probe = probe(
+        period_secs  = 5,
+        http_get = http_get_action(
+            path = "/admin-panel",
+            port = 4455,
+        ),
+    ),
+    allow_parallel=True,
+    resource_deps=[
+        "next-auth-pg",
+        "mailhog",
+        "core",
+    ],
+    links = [
+        link("http://localhost:4455/admin-panel", "admin-panel"),
+    ]
+)
