@@ -9,6 +9,14 @@ pub trait OutboxEventMarker<E>:
 {
     fn as_event(&self) -> Option<&E>;
 }
+impl<T> OutboxEventMarker<T> for T
+where
+    T: serde::de::DeserializeOwned + serde::Serialize + Send + Sync + 'static + Unpin + From<T>,
+{
+    fn as_event(&self) -> Option<&T> {
+        Some(self)
+    }
+}
 
 pub enum OutboxEvent<P>
 where

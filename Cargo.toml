@@ -12,6 +12,7 @@ members = [
   "core/user",
   "core/governance",
   "core/money",
+  "core/deposit",
 
   "lib/authz",
   "lib/audit",
@@ -22,8 +23,12 @@ members = [
 ]
 
 [workspace.dependencies]
-es-entity = "0.3.1"
-sim-time = "0.3.1"
+es-entity = { git = "https://github.com/galoymoney/cala.git", branch = "main" }
+sim-time = { git = "https://github.com/galoymoney/cala.git", branch = "main" }
+cala-ledger = { git = "https://github.com/galoymoney/cala.git", branch = "main" }
+# es-entity = "0.3.1"
+# sim-time = "0.3.1"
+# cala-ledger = "0.3.1"
 
 anyhow = "1.0.92"
 async-graphql = { version = "7.0.11", default-features = false, features = ["dataloader", "tracing", "chrono", "playground"] }
