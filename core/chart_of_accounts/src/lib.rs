@@ -12,6 +12,9 @@ use audit::AuditSvc;
 use authz::PermissionCheck;
 use outbox::{Outbox, OutboxEventMarker};
 
+use es_entity::DbOp;
+
+pub use chart_of_accounts::ChartOfAccountCategoryCode;
 use chart_of_accounts::*;
 use error::*;
 pub use event::*;
@@ -62,10 +65,10 @@ where
         Ok(res)
     }
 
-    #[instrument(name = "chart_of_accounts.find_or_create", skip(self))]
     async fn find_or_create(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        op: &mut DbOp<'static>,
     ) -> Result<ChartOfAccount, CoreChartOfAccountError> {
         let id = ChartOfAccountId::default();
         let audit_info = self
@@ -87,11 +90,101 @@ where
             .build()
             .expect("Could not build new chart of accounts");
 
-        let mut op = self.chart_of_account.begin_op().await?;
         let chart_of_account = self
             .chart_of_account
-            .create_in_op(&mut op, new_chart_of_account)
+            .create_in_op(op, new_chart_of_account)
             .await?;
+
         Ok(chart_of_account)
+    }
+
+    #[instrument(name = "chart_of_accounts.create_control_account", skip(self))]
+    pub async fn create_control_account(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        category: ChartOfAccountCategoryCode,
+    ) -> Result<ChartOfAccountControlAccountCode, CoreChartOfAccountError> {
+        let audit_info = self
+            .authz
+            .enforce_permission(
+                sub,
+                CoreChartOfAccountObject::chart_of_account(),
+                CoreChartOfAccountAction::CHART_OF_ACCOUNT_CREATE_CONTROL_ACCOUNT,
+            )
+            .await?;
+
+        let mut op = self.chart_of_account.begin_op().await?;
+
+        let mut chart_of_accounts = self.find_or_create(sub, &mut op).await?;
+
+        let code = chart_of_accounts.create_control_account(category, audit_info);
+
+        self.chart_of_account
+            .update_in_op(&mut op, &mut chart_of_accounts)
+            .await?;
+
+        op.commit().await?;
+
+        Ok(code)
+    }
+
+    #[instrument(name = "chart_of_accounts.create_control_sub_account", skip(self))]
+    pub async fn create_control_sub_account(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        control_account: ChartOfAccountControlAccountCode,
+    ) -> Result<ChartOfAccountControlSubAccountCode, CoreChartOfAccountError> {
+        let audit_info = self
+            .authz
+            .enforce_permission(
+                sub,
+                CoreChartOfAccountObject::chart_of_account(),
+                CoreChartOfAccountAction::CHART_OF_ACCOUNT_CREATE_CONTROL_SUB_ACCOUNT,
+            )
+            .await?;
+
+        let mut op = self.chart_of_account.begin_op().await?;
+
+        let mut chart_of_accounts = self.find_or_create(sub, &mut op).await?;
+
+        let code = chart_of_accounts.create_control_sub_account(control_account, audit_info);
+
+        self.chart_of_account
+            .update_in_op(&mut op, &mut chart_of_accounts)
+            .await?;
+
+        op.commit().await?;
+
+        Ok(code)
+    }
+
+    #[instrument(name = "chart_of_accounts.create_account", skip(self))]
+    pub async fn create_transaction_account(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        control_sub_account: ChartOfAccountControlSubAccountCode,
+    ) -> Result<ChartOfAccountTransactionAccountCode, CoreChartOfAccountError> {
+        let audit_info = self
+            .authz
+            .enforce_permission(
+                sub,
+                CoreChartOfAccountObject::chart_of_account(),
+                CoreChartOfAccountAction::CHART_OF_ACCOUNT_CREATE_TRANSACTION_ACCOUNT,
+            )
+            .await?;
+
+        let mut op = self.chart_of_account.begin_op().await?;
+
+        let mut chart_of_accounts = self.find_or_create(sub, &mut op).await?;
+
+        let code = chart_of_accounts.create_transaction_account(control_sub_account, audit_info);
+
+        self.chart_of_account
+            .update_in_op(&mut op, &mut chart_of_accounts)
+            .await?;
+
+        op.commit().await?;
+
+        Ok(code)
     }
 }

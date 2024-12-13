@@ -66,6 +66,12 @@ impl FromStr for CoreChartOfAccountObject {
 impl CoreChartOfAccountAction {
     pub const CHART_OF_ACCOUNT_FIND_OR_CREATE: Self =
         CoreChartOfAccountAction::ChartOfAccount(ChartOfAccountAction::FindOrCreate);
+    pub const CHART_OF_ACCOUNT_CREATE_CONTROL_ACCOUNT: Self =
+        CoreChartOfAccountAction::ChartOfAccount(ChartOfAccountAction::CreateControlAccount);
+    pub const CHART_OF_ACCOUNT_CREATE_CONTROL_SUB_ACCOUNT: Self =
+        CoreChartOfAccountAction::ChartOfAccount(ChartOfAccountAction::CreateControlSubAccount);
+    pub const CHART_OF_ACCOUNT_CREATE_TRANSACTION_ACCOUNT: Self =
+        CoreChartOfAccountAction::ChartOfAccount(ChartOfAccountAction::CreateTransactionAccount);
 }
 
 impl Display for CoreChartOfAccountAction {
@@ -97,6 +103,9 @@ impl FromStr for CoreChartOfAccountAction {
 #[strum(serialize_all = "kebab-case")]
 pub enum ChartOfAccountAction {
     FindOrCreate,
+    CreateControlAccount,
+    CreateControlSubAccount,
+    CreateTransactionAccount,
 }
 
 impl From<ChartOfAccountAction> for CoreChartOfAccountAction {
