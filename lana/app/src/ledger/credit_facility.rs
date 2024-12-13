@@ -1,5 +1,4 @@
 use chrono::{DateTime, Utc};
-use serde::{Deserialize, Serialize};
 
 use crate::{
     primitives::{CollateralAction, LedgerTxId, Satoshis, UsdCents},
@@ -8,17 +7,7 @@ use crate::{
 
 use super::{cala::graphql::*, error::*, CustomerLedgerAccountIds};
 
-pub use crate::credit_facility::ledger::CreditFacilityAccountIds;
-
-#[derive(Debug, Copy, Clone, Serialize, Deserialize)]
-pub struct CreditFacilityLedgerBalance {
-    pub facility: UsdCents,
-    pub collateral: Satoshis,
-    pub disbursed: UsdCents,
-    pub disbursed_receivable: UsdCents,
-    pub interest: UsdCents,
-    pub interest_receivable: UsdCents,
-}
+pub use crate::credit_facility::ledger::{CreditFacilityAccountIds, CreditFacilityLedgerBalance};
 
 impl TryFrom<credit_facility_ledger_balance::ResponseData> for CreditFacilityLedgerBalance {
     type Error = LedgerError;

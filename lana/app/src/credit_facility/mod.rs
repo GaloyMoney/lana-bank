@@ -300,8 +300,8 @@ impl CreditFacilities {
             .find_by_id(credit_facility_id)
             .await?;
 
-        let ledger_balances = self
-            .gql_ledger
+        let balances = self
+            .ledger
             .get_credit_facility_balance(credit_facility.account_ids)
             .await?;
         credit_facility
