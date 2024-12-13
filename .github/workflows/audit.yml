@@ -5,7 +5,9 @@ name: Audit
 
 on:
   pull_request:
-    branches: [ main ]
+    branches:
+      - main
+      - 'feature/**'
 
 jobs:
   security_audit:

@@ -5,7 +5,9 @@ name: Spelling
 
 on:
   pull_request:
-    branches: [ main ]
+    branches:
+      - main
+      - 'feature/**'
 
 jobs:
   spelling:
