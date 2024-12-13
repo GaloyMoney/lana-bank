@@ -85,6 +85,12 @@ impl LanaApp {
         let documents = Documents::new(&pool, &storage, &authz);
         let report = Reports::init(&pool, &config.report, &authz, &jobs, &storage, &export).await?;
         let users = Users::init(&pool, &authz, &outbox, config.user.superuser_email).await?;
+        let cala_config = cala_ledger::CalaLedgerConfig::builder()
+            .pool(pool.clone())
+            .exec_migrations(false)
+            .build()
+            .expect("cala config");
+        let cala = cala_ledger::CalaLedger::init(cala_config).await?;
         let credit_facilities = CreditFacilities::init(
             &pool,
             config.credit_facility,
@@ -96,6 +102,8 @@ impl LanaApp {
             &ledger,
             &price,
             &outbox,
+            &cala,
+            cala_ledger::JournalId::new(),
         )
         .await?;
         let terms_templates = TermsTemplates::new(&pool, &authz, &export);

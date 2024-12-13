@@ -22,6 +22,7 @@ sqlx-prepare:
 	cd lib/outbox && cargo sqlx prepare
 	cd core/governance && cargo sqlx prepare
 	cd core/user && cargo sqlx prepare
+	cd core/deposit && cargo sqlx prepare
 	cd lana/app && cargo sqlx prepare
 	cd lana/dashboard && cargo sqlx prepare
 

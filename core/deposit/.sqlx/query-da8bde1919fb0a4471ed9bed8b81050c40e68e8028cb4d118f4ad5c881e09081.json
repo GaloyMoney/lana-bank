@@ -1,0 +1,34 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "WITH new_events AS (\n                 INSERT INTO persistent_outbox_events (payload)\n                 SELECT unnest($1::jsonb[]) AS payload\n                 RETURNING id AS \"id: OutboxEventId\", sequence AS \"sequence: EventSequence\", recorded_at\n                )\n                SELECT * FROM new_events\n            ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id: OutboxEventId",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "sequence: EventSequence",
+        "type_info": "Int8"
+      },
+      {
+        "ordinal": 2,
+        "name": "recorded_at",
+        "type_info": "Timestamptz"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "JsonbArray"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "da8bde1919fb0a4471ed9bed8b81050c40e68e8028cb4d118f4ad5c881e09081"
+}

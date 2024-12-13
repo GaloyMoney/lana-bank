@@ -6,9 +6,12 @@ edition = "2021"
 [features]
 
 fail-on-warnings = []
+test-dummy = [ "dep:es-entity" ]
 
 [dependencies]
 audit = { path = "../audit" }
+
+es-entity = { workspace = true, optional = true }
 
 sqlx-adapter = { version = "1.6.0", default-features = false, features = ["postgres", "runtime-tokio-rustls"]}
 

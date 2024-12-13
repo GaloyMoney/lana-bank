@@ -1,5 +1,7 @@
 mod all_or_one;
 mod check_trait;
+#[cfg(feature = "test-dummy")]
+pub mod dummy;
 pub mod error;
 
 use async_trait::async_trait;

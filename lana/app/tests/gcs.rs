@@ -32,7 +32,7 @@ async fn upload_doc() -> anyhow::Result<()> {
     let _ = storage.upload(content, filename, "application/txt").await;
     let res = storage._list("".to_string()).await?;
 
-    assert!(res.first().is_some());
+    assert!(!res.is_empty());
     let count = res.len();
 
     // generate link

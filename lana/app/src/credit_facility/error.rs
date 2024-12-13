@@ -6,6 +6,8 @@ use crate::primitives::{CustomerId, Satoshis, UsdCents};
 pub enum CreditFacilityError {
     #[error("CreditFacilityError - Sqlx: {0}")]
     Sqlx(#[from] sqlx::Error),
+    #[error("CreditFacilityError - CreditError: {0}")]
+    CreditLedgerError(#[from] super::ledger::error::CreditLedgerError),
     #[error("CreditFacilityError - EsEntityError: {0}")]
     EsEntityError(es_entity::EsEntityError),
     #[error("FacilityError - CursorDestructureError: {0}")]
