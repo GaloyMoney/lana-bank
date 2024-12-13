@@ -42,8 +42,8 @@ pub struct ChartOfAccount {
 }
 
 pub struct ChartOfAccountAccountDetails {
-    code: ChartOfAccountCode,
-    name: String,
+    pub code: ChartOfAccountCode,
+    pub name: String,
 }
 
 impl ChartOfAccount {
