@@ -69,9 +69,6 @@ if is_ci:
         name="cypress",
         labels=["apps-ci-test"],
         cmd="cd ../apps/admin-panel && pnpm install && pnpm cypress:run headless",
-	serve_env={
-	    "BACKEND_ENV": "development"
-	},
         allow_parallel=True,
         resource_deps=[
             "admin-panel"

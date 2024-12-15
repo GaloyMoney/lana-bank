@@ -17,11 +17,7 @@ export async function sendMagicLinkToEmail(email: string) {
       {
         email,
         csrfToken,
-        callbackUrl:
-          process.env.NODE_ENV === "development" ||
-          process.env.BACKEND_ENV === "development"
-            ? "/admin-panel/"
-            : "/",
+        callbackUrl: process.env.NODE_ENV === "development" ? "/admin-panel/" : "/",
         json: true,
       },
       {

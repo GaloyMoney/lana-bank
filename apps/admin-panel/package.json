@@ -16,10 +16,9 @@
     "build-storybook": "storybook build",
     "lint:fix": "eslint --max-warnings 0 --fix --ext .ts,.tsx .",
     "cypress:run": "./cypress/run.sh",
-    "cypress:open-local": "MAGIC_LINK=$MAGIC_LINK cypress open --env MAGIC_LINK=$MAGIC_LINK",
-    "cypress:run-local": "MAGIC_LINK=$MAGIC_LINK cypress run --env MAGIC_LINK=$MAGIC_LINK",
-    "cypress:open-browserstack": "MAGIC_LINK=$MAGIC_LINK browserstack-cypress run --env MAGIC_LINK=$MAGIC_LINK",
-    "browserstack:pdf": "cd cypress && ./pdf.sh"
+    "cypress:run-local": "MAGIC_LINK=$MAGIC_LINK cypress open --env MAGIC_LINK=$MAGIC_LINK",
+    "cypress:run-headless": "MAGIC_LINK=$MAGIC_LINK cypress run --env MAGIC_LINK=$MAGIC_LINK",
+    "cypress:run-browserstack": "MAGIC_LINK=$MAGIC_LINK browserstack-cypress run --env MAGIC_LINK=$MAGIC_LINK",
   },
   "dependencies": {
     "@apollo/client": "^3.10.4",
