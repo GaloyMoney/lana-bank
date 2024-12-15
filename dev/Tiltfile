@@ -71,8 +71,8 @@ if is_ci:
         cmd="cd ../apps/admin-panel && pnpm install && pnpm cypress:run browserstack",
         allow_parallel=True,
 	serve_env={
-	    BROWSERSTACK_USERNAME: os.environ.get("BROWSERSTACK_USERNAME", ""),
-	    BROWSERSTACK_ACCESS_KEY: os.environ.get("BROWSERSTACK_ACCESS_KEY", ""),
+	    "BROWSERSTACK_USERNAME": os.getenv("BROWSERSTACK_USERNAME", ""),
+	    "BROWSERSTACK_ACCESS_KEY": os.getenv("BROWSERSTACK_ACCESS_KEY", ""),
 	},
         resource_deps=[
             "admin-panel",
