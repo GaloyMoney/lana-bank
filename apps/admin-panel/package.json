@@ -18,7 +18,7 @@
     "cypress:run": "./cypress/run.sh",
     "cypress:run-local": "MAGIC_LINK=$MAGIC_LINK cypress open --env MAGIC_LINK=$MAGIC_LINK",
     "cypress:run-headless": "MAGIC_LINK=$MAGIC_LINK cypress run --env MAGIC_LINK=$MAGIC_LINK",
-    "cypress:run-browserstack": "MAGIC_LINK=$MAGIC_LINK browserstack-cypress run --env MAGIC_LINK=$MAGIC_LINK",
+    "cypress:run-browserstack": "MAGIC_LINK=$MAGIC_LINK browserstack-cypress run --env MAGIC_LINK=$MAGIC_LINK"
   },
   "dependencies": {
     "@apollo/client": "^3.10.4",

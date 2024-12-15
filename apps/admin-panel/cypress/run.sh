@@ -16,10 +16,6 @@ cookie_jar() {
   echo "$CACHE_DIR/$1.jar"
 }
 
-pushd cypress/mailinator-fetch-inbox
-nix develop -c pnpm i
-popd
-
 common_headers=(
   -b "$(cookie_jar 'admin')"
   -c "$(cookie_jar 'admin')"

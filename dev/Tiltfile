@@ -68,9 +68,14 @@ if is_ci:
     local_resource(
         name="cypress",
         labels=["apps-ci-test"],
-        cmd="cd ../apps/admin-panel && pnpm install && pnpm cypress:run headless",
+        cmd="cd ../apps/admin-panel && pnpm install && pnpm cypress:run browserstack",
         allow_parallel=True,
+	serve_env={
+	    BROWSERSTACK_USERNAME: os.environ.get("BROWSERSTACK_USERNAME", ""),
+	    BROWSERSTACK_ACCESS_KEY: os.environ.get("BROWSERSTACK_ACCESS_KEY", ""),
+	},
         resource_deps=[
-            "admin-panel"
+            "admin-panel",
+	    "core"
         ],
     )

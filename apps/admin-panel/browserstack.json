@@ -35,7 +35,7 @@
         ]
     },
     "connection_settings": {
-        "local": false
+        "local": true
     },
     "disable_usage_reporting": false
 }
