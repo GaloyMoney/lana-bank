@@ -12,7 +12,6 @@ import {
 } from "@/ui/dialog"
 import {
   Role,
-  UsersDocument,
   useUserAssignRoleMutation,
   useUserCreateMutation,
 } from "@/lib/graphql/generated"
