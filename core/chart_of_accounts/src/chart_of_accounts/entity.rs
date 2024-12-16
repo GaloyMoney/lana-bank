@@ -213,3 +213,250 @@ impl IntoEvents<ChartOfAccountEvent> for NewChartOfAccount {
         )
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::{AccountIdx, ChartOfAccountCategoryCode};
+
+    use super::*;
+
+    use audit::{AuditEntryId, AuditInfo};
+
+    fn dummy_audit_info() -> AuditInfo {
+        AuditInfo {
+            audit_entry_id: AuditEntryId::from(1),
+            sub: "sub".to_string(),
+        }
+    }
+
+    fn init_chart_of_events() -> ChartOfAccount {
+        let id = ChartOfAccountId::new();
+        let audit_info = dummy_audit_info();
+
+        let new_chart = NewChartOfAccount::builder()
+            .id(id)
+            .audit_info(audit_info)
+            .build()
+            .unwrap();
+
+        let events = new_chart.into_events();
+        ChartOfAccount::try_from_events(events).unwrap()
+    }
+
+    #[test]
+    fn test_create_new_chart_of_account() {
+        let id = ChartOfAccountId::new();
+        let audit_info = dummy_audit_info();
+
+        let new_chart = NewChartOfAccount::builder()
+            .id(id)
+            .audit_info(audit_info.clone())
+            .build()
+            .unwrap();
+
+        let events = new_chart.into_events();
+        let chart = ChartOfAccount::try_from_events(events).unwrap();
+
+        assert_eq!(chart.id, id);
+    }
+
+    #[test]
+    fn test_create_control_account() {
+        let mut chart = init_chart_of_events();
+        match chart
+            .create_control_account(
+                ChartOfAccountCode::Category(ChartOfAccountCategoryCode::Assets),
+                "Assets",
+                dummy_audit_info(),
+            )
+            .unwrap()
+        {
+            ChartOfAccountCode::ControlAccount { category, index } => {
+                assert_eq!(category, ChartOfAccountCategoryCode::Assets);
+                assert_eq!(index, AccountIdx::FIRST);
+            }
+            other => panic!("Expected FIRST control account, got {:?}", other),
+        }
+    }
+
+    #[test]
+    fn test_create_control_sub_account() {
+        let mut chart = init_chart_of_events();
+        let control_account = chart
+            .create_control_account(
+                ChartOfAccountCode::Category(ChartOfAccountCategoryCode::Assets),
+                "Assets",
+                dummy_audit_info(),
+            )
+            .unwrap();
+
+        match chart
+            .create_control_sub_account(control_account, "Current Assets", dummy_audit_info())
+            .unwrap()
+        {
+            ChartOfAccountCode::ControlSubAccount {
+                category,
+                control_index,
+                index,
+            } => {
+                assert_eq!(category, ChartOfAccountCategoryCode::Assets);
+                assert_eq!(control_index, AccountIdx::FIRST);
+                assert_eq!(index, AccountIdx::FIRST);
+            }
+            other => panic!("Expected FIRST control sub account, got {:?}", other),
+        }
+    }
+
+    #[test]
+    fn test_create_transaction_account() {
+        let mut chart = init_chart_of_events();
+        let control_account = chart
+            .create_control_account(
+                ChartOfAccountCode::Category(ChartOfAccountCategoryCode::Assets),
+                "Assets",
+                dummy_audit_info(),
+            )
+            .unwrap();
+        let control_sub_account = chart
+            .create_control_sub_account(control_account, "Current Assets", dummy_audit_info())
+            .unwrap();
+
+        match chart
+            .create_transaction_account(control_sub_account, "Cash", dummy_audit_info())
+            .unwrap()
+        {
+            ChartOfAccountCode::TransactionAccount {
+                category,
+                control_index,
+                control_sub_index,
+                index,
+            } => {
+                assert_eq!(category, ChartOfAccountCategoryCode::Assets);
+                assert_eq!(control_index, AccountIdx::FIRST);
+                assert_eq!(control_sub_index, AccountIdx::FIRST);
+                assert_eq!(index, AccountIdx::FIRST);
+            }
+            other => panic!("Expected FIRST transaction account, got {:?}", other),
+        }
+    }
+
+    #[test]
+    fn test_create_sequential_control_accounts() {
+        let mut chart = init_chart_of_events();
+
+        chart
+            .create_control_account(
+                ChartOfAccountCode::Category(ChartOfAccountCategoryCode::Assets),
+                "First",
+                dummy_audit_info(),
+            )
+            .unwrap();
+
+        match chart
+            .create_control_account(
+                ChartOfAccountCode::Category(ChartOfAccountCategoryCode::Assets),
+                "Second",
+                dummy_audit_info(),
+            )
+            .unwrap()
+        {
+            ChartOfAccountCode::ControlAccount { category, index } => {
+                assert_eq!(category, ChartOfAccountCategoryCode::Assets);
+                assert_eq!(index, AccountIdx::FIRST.next());
+            }
+            other => panic!("Expected SECOND control account, got {:?}", other),
+        }
+    }
+
+    #[test]
+    fn test_create_sequential_control_sub_accounts() {
+        let mut chart = init_chart_of_events();
+        let control_account = chart
+            .create_control_account(
+                ChartOfAccountCode::Category(ChartOfAccountCategoryCode::Assets),
+                "Assets",
+                dummy_audit_info(),
+            )
+            .unwrap();
+
+        chart
+            .create_control_sub_account(control_account, "First", dummy_audit_info())
+            .unwrap();
+
+        match chart
+            .create_control_sub_account(control_account, "Second", dummy_audit_info())
+            .unwrap()
+        {
+            ChartOfAccountCode::ControlSubAccount {
+                category,
+                control_index,
+                index,
+            } => {
+                assert_eq!(category, ChartOfAccountCategoryCode::Assets);
+                assert_eq!(control_index, AccountIdx::FIRST);
+                assert_eq!(index, AccountIdx::FIRST.next());
+            }
+            other => panic!("Expected SECOND control sub account, got {:?}", other),
+        }
+    }
+
+    #[test]
+    fn test_create_sequential_transaction_accounts() {
+        let mut chart = init_chart_of_events();
+        let control_account = chart
+            .create_control_account(
+                ChartOfAccountCode::Category(ChartOfAccountCategoryCode::Assets),
+                "Assets",
+                dummy_audit_info(),
+            )
+            .unwrap();
+        let sub_account = chart
+            .create_control_sub_account(control_account, "Current Assets", dummy_audit_info())
+            .unwrap();
+
+        chart
+            .create_transaction_account(sub_account, "First", dummy_audit_info())
+            .unwrap();
+
+        match chart
+            .create_transaction_account(sub_account, "Second", dummy_audit_info())
+            .unwrap()
+        {
+            ChartOfAccountCode::TransactionAccount {
+                category,
+                control_index,
+                control_sub_index,
+                index,
+            } => {
+                assert_eq!(category, ChartOfAccountCategoryCode::Assets);
+                assert_eq!(control_index, AccountIdx::FIRST);
+                assert_eq!(control_sub_index, AccountIdx::FIRST);
+                assert_eq!(index, AccountIdx::FIRST.next());
+            }
+            other => panic!("Expected SECOND transaction account, got {:?}", other),
+        }
+    }
+
+    #[test]
+    fn test_find_account() {
+        let mut chart = init_chart_of_events();
+        let audit_info = dummy_audit_info();
+
+        let category = ChartOfAccountCode::Category(ChartOfAccountCategoryCode::Assets);
+        let control_account = chart
+            .create_control_account(category, "Assets", audit_info.clone())
+            .unwrap();
+        let sub_account = chart
+            .create_control_sub_account(control_account, "Current Assets", audit_info.clone())
+            .unwrap();
+        let transaction_account = chart
+            .create_transaction_account(sub_account, "Cash", audit_info)
+            .unwrap();
+
+        let found = chart.find_account(transaction_account).unwrap();
+        assert_eq!(found.code, transaction_account);
+        assert_eq!(found.name, "Cash");
+
+        assert!(chart.find_account("20101001".parse().unwrap()).is_none());
+    }
+}
