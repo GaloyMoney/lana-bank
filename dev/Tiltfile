@@ -68,7 +68,7 @@ if is_ci:
     local_resource(
         name="cypress",
         labels=["apps-ci-test"],
-        cmd="cd ../apps/admin-panel && pnpm install && pnpm cypress:run headless",
+        cmd="free -h && df -h && cd ../apps/admin-panel && pnpm install && pnpm cypress:run headless",
         allow_parallel=True,
 	serve_env={
 	    "BROWSERSTACK_USERNAME": os.getenv("BROWSERSTACK_USERNAME", ""),
