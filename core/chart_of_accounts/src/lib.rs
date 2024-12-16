@@ -80,6 +80,12 @@ where
             )
             .await?;
 
+        match self.chart_of_account.find_by_id(id).await {
+            Ok(chart_of_account) => return Ok(chart_of_account),
+            Err(ChartOfAccountError::EsEntityError(es_entity::EsEntityError::NotFound)) => (),
+            Err(e) => return Err(e.into()),
+        };
+
         if let Ok(chart_of_account) = self.chart_of_account.find_by_id(id).await {
             return Ok(chart_of_account);
         };
