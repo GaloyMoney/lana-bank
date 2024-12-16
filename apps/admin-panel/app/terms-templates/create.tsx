@@ -68,6 +68,7 @@ export const CreateTermsTemplateDialog: React.FC<CreateTermsTemplateDialogProps>
   const [createTermsTemplate, { loading, reset, error: createTermsTemplateError }] =
     useCreateTermsTemplateMutation({
       refetchQueries: [TermsTemplatesDocument],
+      awaitRefetchQueries: true,
     })
 
   const isLoading = loading || isNavigating

@@ -54,6 +54,7 @@ export const CreateUserDialog: React.FC<CreateUserDialogProps> = ({
   const [createUser, { loading: creatingUser, reset: resetCreateUser }] =
     useUserCreateMutation({
       refetchQueries: [UsersDocument],
+      awaitRefetchQueries: true,
     })
   const [assignRole, { loading: assigningRole, reset: resetAssignRole }] =
     useUserAssignRoleMutation({

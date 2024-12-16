@@ -48,6 +48,7 @@ export const CreateCustomerDialog: React.FC<CreateCustomerDialogProps> = ({
   const [createCustomer, { loading, reset, error: createCustomerError }] =
     useCustomerCreateMutation({
       refetchQueries: [CustomersDocument],
+      awaitRefetchQueries: true,
     })
 
   const isLoading = loading || isNavigating

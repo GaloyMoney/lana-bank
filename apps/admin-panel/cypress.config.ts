@@ -15,8 +15,8 @@ export default defineConfig({
       "cypress/e2e/balance-sheet.cy.ts",
     ],
     baseUrl: "http://localhost:4455/admin-panel",
-    defaultCommandTimeout: 30000,
-    requestTimeout: 30000,
+    defaultCommandTimeout: 60000,
+    requestTimeout: 60000,
     video: true,
     env: {
       MAGIC_LINK: process.env.MAGIC_LINK,

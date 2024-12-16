@@ -79,6 +79,7 @@ export const CreateCreditFacilityDialog: React.FC<CreateCreditFacilityDialogProp
   const [createCreditFacility, { loading, error, reset }] =
     useCreditFacilityCreateMutation({
       refetchQueries: [CreditFacilitiesDocument, AllActionsDocument],
+      awaitRefetchQueries: true,
     })
 
   const isLoading = loading || isNavigating
