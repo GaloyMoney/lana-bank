@@ -63,19 +63,3 @@ local_resource(
         link("http://localhost:4455/admin-panel", "admin-panel"),
     ]
 )
-
-if is_ci:
-    local_resource(
-        name="cypress",
-        labels=["apps-ci-test"],
-        cmd="free -h && df -h && cd ../apps/admin-panel && pnpm install && pnpm cypress:run headless",
-        allow_parallel=True,
-	serve_env={
-	    "BROWSERSTACK_USERNAME": os.getenv("BROWSERSTACK_USERNAME", ""),
-	    "BROWSERSTACK_ACCESS_KEY": os.getenv("BROWSERSTACK_ACCESS_KEY", ""),
-	},
-        resource_deps=[
-            "admin-panel",
-	    "core"
-        ],
-    )

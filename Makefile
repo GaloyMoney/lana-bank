@@ -118,6 +118,9 @@ ngrok:
 tilt-ci:
 	cd dev && tilt ci
 
+test-cypress-in-headless:
+	cd apps/admin-panel && pnpm run cypress:run headless
+
 test-cypress-in-browserstack:
 	cd apps/admin-panel && pnpm run cypress:run browserstack
 
