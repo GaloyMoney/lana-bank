@@ -19,14 +19,17 @@ pub enum ChartOfAccountEvent {
     },
     ControlAccountAdded {
         code: ChartOfAccountControlAccountCode,
+        name: String,
         audit_info: AuditInfo,
     },
     ControlSubAccountAdded {
         code: ChartOfAccountControlSubAccountCode,
+        name: String,
         audit_info: AuditInfo,
     },
     TransactionAccountAdded {
         code: ChartOfAccountTransactionAccountCode,
+        name: String,
         audit_info: AuditInfo,
     },
 }
@@ -60,11 +63,15 @@ impl ChartOfAccount {
     pub fn create_control_account(
         &mut self,
         category: ChartOfAccountCategoryCode,
+        name: &str,
         audit_info: AuditInfo,
     ) -> ChartOfAccountControlAccountCode {
         let code = self.next_control_account(category);
-        self.events
-            .push(ChartOfAccountEvent::ControlAccountAdded { code, audit_info });
+        self.events.push(ChartOfAccountEvent::ControlAccountAdded {
+            code,
+            name: name.to_string(),
+            audit_info,
+        });
 
         code
     }
@@ -90,11 +97,16 @@ impl ChartOfAccount {
     pub fn create_control_sub_account(
         &mut self,
         control_account: ChartOfAccountControlAccountCode,
+        name: &str,
         audit_info: AuditInfo,
     ) -> ChartOfAccountControlSubAccountCode {
         let code = self.next_control_sub_account(control_account);
         self.events
-            .push(ChartOfAccountEvent::ControlSubAccountAdded { code, audit_info });
+            .push(ChartOfAccountEvent::ControlSubAccountAdded {
+                code,
+                name: name.to_string(),
+                audit_info,
+            });
 
         code
     }
@@ -122,11 +134,16 @@ impl ChartOfAccount {
     pub fn create_transaction_account(
         &mut self,
         control_sub_account: ChartOfAccountControlSubAccountCode,
+        name: &str,
         audit_info: AuditInfo,
     ) -> ChartOfAccountTransactionAccountCode {
         let code = self.next_transaction_account(control_sub_account);
         self.events
-            .push(ChartOfAccountEvent::TransactionAccountAdded { code, audit_info });
+            .push(ChartOfAccountEvent::TransactionAccountAdded {
+                code,
+                name: name.to_string(),
+                audit_info,
+            });
 
         code
     }

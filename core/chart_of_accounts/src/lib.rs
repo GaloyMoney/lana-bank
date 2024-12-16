@@ -103,6 +103,7 @@ where
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         category: ChartOfAccountCategoryCode,
+        name: &str,
     ) -> Result<ChartOfAccountControlAccountCode, CoreChartOfAccountError> {
         let audit_info = self
             .authz
@@ -117,7 +118,7 @@ where
 
         let mut chart_of_accounts = self.find_or_create(sub, &mut op).await?;
 
-        let code = chart_of_accounts.create_control_account(category, audit_info);
+        let code = chart_of_accounts.create_control_account(category, name, audit_info);
 
         self.chart_of_account
             .update_in_op(&mut op, &mut chart_of_accounts)
@@ -133,6 +134,7 @@ where
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         control_account: ChartOfAccountControlAccountCode,
+        name: &str,
     ) -> Result<ChartOfAccountControlSubAccountCode, CoreChartOfAccountError> {
         let audit_info = self
             .authz
@@ -147,7 +149,7 @@ where
 
         let mut chart_of_accounts = self.find_or_create(sub, &mut op).await?;
 
-        let code = chart_of_accounts.create_control_sub_account(control_account, audit_info);
+        let code = chart_of_accounts.create_control_sub_account(control_account, name, audit_info);
 
         self.chart_of_account
             .update_in_op(&mut op, &mut chart_of_accounts)
@@ -163,6 +165,7 @@ where
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         control_sub_account: ChartOfAccountControlSubAccountCode,
+        name: &str,
     ) -> Result<ChartOfAccountTransactionAccountCode, CoreChartOfAccountError> {
         let audit_info = self
             .authz
@@ -177,7 +180,8 @@ where
 
         let mut chart_of_accounts = self.find_or_create(sub, &mut op).await?;
 
-        let code = chart_of_accounts.create_transaction_account(control_sub_account, audit_info);
+        let code =
+            chart_of_accounts.create_transaction_account(control_sub_account, name, audit_info);
 
         self.chart_of_account
             .update_in_op(&mut op, &mut chart_of_accounts)
