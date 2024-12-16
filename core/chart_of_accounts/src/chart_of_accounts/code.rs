@@ -8,7 +8,7 @@ use super::error::*;
 pub struct AccountIdx(u64);
 impl fmt::Display for AccountIdx {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> fmt::Result {
-        write!(f, "{}", self.0)
+        std::fmt::Display::fmt(&self.0, f)
     }
 }
 impl AccountIdx {
@@ -20,7 +20,7 @@ impl AccountIdx {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
-pub(super) struct ChartOfAccountCodeStr([u8; 8]);
+pub struct ChartOfAccountCodeStr([u8; 8]);
 
 impl ChartOfAccountCodeStr {
     fn new(s: &str) -> Result<Self, ChartOfAccountError> {
