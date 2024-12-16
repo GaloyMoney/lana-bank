@@ -52,14 +52,9 @@ export const CreateUserDialog: React.FC<CreateUserDialogProps> = ({
   })
 
   const [createUser, { loading: creatingUser, reset: resetCreateUser }] =
-    useUserCreateMutation({
-      refetchQueries: [UsersDocument],
-      awaitRefetchQueries: true,
-    })
+    useUserCreateMutation()
   const [assignRole, { loading: assigningRole, reset: resetAssignRole }] =
-    useUserAssignRoleMutation({
-      refetchQueries: [UsersDocument],
-    })
+    useUserAssignRoleMutation()
 
   const [email, setEmail] = useState("")
   const [selectedRoles, setSelectedRoles] = useState<Role[]>([])

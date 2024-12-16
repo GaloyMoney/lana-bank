@@ -58,7 +58,6 @@ export const CreateDepositDialog: React.FC<CreateDepositDialgProps> = ({
 }) => {
   const [createDeposit, { loading, reset }] = useCreateDepositMutation({
     refetchQueries: [DepositsDocument, AllActionsDocument],
-    awaitRefetchQueries: true,
   })
   const [amount, setAmount] = useState<string>("")
   const [reference, setReference] = useState<string>("")
