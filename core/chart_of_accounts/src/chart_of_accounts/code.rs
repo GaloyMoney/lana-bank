@@ -143,7 +143,7 @@ impl ChartOfAccountTransactionAccountCode {
         }
     }
 
-    fn code(&self) -> ChartOfAccountCodeStr {
+    pub fn code(&self) -> ChartOfAccountCodeStr {
         ChartOfAccountCodeStr::new(&format!(
             "{}{:02}{:02}{:03}",
             self.control_sub_account.control_account.category.index(),

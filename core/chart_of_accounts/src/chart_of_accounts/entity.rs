@@ -41,6 +41,11 @@ pub struct ChartOfAccount {
     pub(super) events: EntityEvents<ChartOfAccountEvent>,
 }
 
+pub struct ChartOfAccountAccountDetails {
+    code: ChartOfAccountCodeStr,
+    name: String,
+}
+
 impl ChartOfAccount {
     fn next_control_account(
         &self,
@@ -146,6 +151,23 @@ impl ChartOfAccount {
             });
 
         code
+    }
+
+    pub fn find_transaction_account(
+        &self,
+        transaction_account: ChartOfAccountTransactionAccountCode,
+    ) -> Option<ChartOfAccountAccountDetails> {
+        self.events.iter_all().rev().find_map(|event| match event {
+            ChartOfAccountEvent::TransactionAccountAdded { code, name, .. }
+                if *code == transaction_account =>
+            {
+                Some(ChartOfAccountAccountDetails {
+                    code: code.code(),
+                    name: name.to_string(),
+                })
+            }
+            _ => None,
+        })
     }
 }
 

@@ -191,4 +191,27 @@ where
 
         Ok(code)
     }
+
+    #[instrument(name = "chart_of_accounts.find_transaction_account", skip(self))]
+    pub async fn find_transaction_account(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        code: impl Into<ChartOfAccountTransactionAccountCode> + std::fmt::Debug,
+    ) -> Result<Option<ChartOfAccountAccountDetails>, CoreChartOfAccountError> {
+        self.authz
+            .enforce_permission(
+                sub,
+                CoreChartOfAccountObject::chart_of_account(),
+                CoreChartOfAccountAction::CHART_OF_ACCOUNT_FIND_TRANSACTION_ACCOUNT,
+            )
+            .await?;
+
+        let mut op = self.chart_of_account.begin_op().await?;
+        let chart_of_accounts = self.find_or_create(sub, &mut op).await?;
+        op.commit().await?;
+
+        let account_details = chart_of_accounts.find_transaction_account(code.into());
+
+        Ok(account_details)
+    }
 }
