@@ -7,7 +7,7 @@ use es_entity::*;
 
 use crate::primitives::ChartOfAccountId;
 
-pub use super::code::*;
+pub use super::{code::*, error::*};
 
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
@@ -18,17 +18,17 @@ pub enum ChartOfAccountEvent {
         audit_info: AuditInfo,
     },
     ControlAccountAdded {
-        code: ChartOfAccountControlAccountCode,
+        code: ChartOfAccountCode,
         name: String,
         audit_info: AuditInfo,
     },
     ControlSubAccountAdded {
-        code: ChartOfAccountControlSubAccountCode,
+        code: ChartOfAccountCode,
         name: String,
         audit_info: AuditInfo,
     },
     TransactionAccountAdded {
-        code: ChartOfAccountTransactionAccountCode,
+        code: ChartOfAccountCode,
         name: String,
         audit_info: AuditInfo,
     },
@@ -42,70 +42,71 @@ pub struct ChartOfAccount {
 }
 
 pub struct ChartOfAccountAccountDetails {
-    code: ChartOfAccountCodeStr,
+    code: ChartOfAccountCode,
     name: String,
 }
 
 impl ChartOfAccount {
     fn next_control_account(
         &self,
-        category: ChartOfAccountCategoryCode,
-    ) -> ChartOfAccountControlAccountCode {
+        category: ChartOfAccountCode,
+    ) -> Result<ChartOfAccountCode, ChartOfAccountError> {
         self.events
             .iter_all()
             .rev()
             .find_map(|event| match event {
                 ChartOfAccountEvent::ControlAccountAdded { code, .. }
-                    if code.category == category =>
+                    if code.category() == category.category() =>
                 {
                     Some(code.next())
                 }
                 _ => None,
             })
-            .unwrap_or(ChartOfAccountControlAccountCode::first(category))
+            .unwrap_or_else(|| ChartOfAccountCode::first_control_account(category))
     }
 
     pub fn create_control_account(
         &mut self,
-        category: ChartOfAccountCategoryCode,
+        category: ChartOfAccountCode,
         name: &str,
         audit_info: AuditInfo,
-    ) -> ChartOfAccountControlAccountCode {
-        let code = self.next_control_account(category);
+    ) -> Result<ChartOfAccountCode, ChartOfAccountError> {
+        let code = self.next_control_account(category)?;
         self.events.push(ChartOfAccountEvent::ControlAccountAdded {
             code,
             name: name.to_string(),
             audit_info,
         });
 
-        code
+        Ok(code)
     }
 
     fn next_control_sub_account(
         &self,
-        control_account: ChartOfAccountControlAccountCode,
-    ) -> ChartOfAccountControlSubAccountCode {
+        control_account: ChartOfAccountCode,
+    ) -> Result<ChartOfAccountCode, ChartOfAccountError> {
         self.events
             .iter_all()
             .rev()
             .find_map(|event| match event {
                 ChartOfAccountEvent::ControlSubAccountAdded { code, .. }
-                    if code.control_account == control_account =>
+                    if code.category() == control_account.category()
+                        && code.control_account() == control_account.control_account() =>
                 {
                     Some(code.next())
                 }
                 _ => None,
             })
-            .unwrap_or(ChartOfAccountControlSubAccountCode::first(control_account))
+            .unwrap_or_else(|| ChartOfAccountCode::first_control_sub_account(&control_account))
     }
 
     pub fn create_control_sub_account(
         &mut self,
-        control_account: ChartOfAccountControlAccountCode,
+        control_account: ChartOfAccountCode,
         name: &str,
         audit_info: AuditInfo,
-    ) -> ChartOfAccountControlSubAccountCode {
-        let code = self.next_control_sub_account(control_account);
+    ) -> Result<ChartOfAccountCode, ChartOfAccountError> {
+        let code = self.next_control_sub_account(control_account)?;
         self.events
             .push(ChartOfAccountEvent::ControlSubAccountAdded {
                 code,
@@ -113,36 +114,37 @@ impl ChartOfAccount {
                 audit_info,
             });
 
-        code
+        Ok(code)
     }
 
     fn next_transaction_account(
         &self,
-        control_sub_account: ChartOfAccountControlSubAccountCode,
-    ) -> ChartOfAccountTransactionAccountCode {
+        control_sub_account: ChartOfAccountCode,
+    ) -> Result<ChartOfAccountCode, ChartOfAccountError> {
         self.events
             .iter_all()
             .rev()
             .find_map(|event| match event {
                 ChartOfAccountEvent::TransactionAccountAdded { code, .. }
-                    if code.control_sub_account == control_sub_account =>
+                    if code.category() == control_sub_account.category()
+                        && code.control_account() == control_sub_account.control_account()
+                        && code.control_sub_account()
+                            == control_sub_account.control_sub_account() =>
                 {
                     Some(code.next())
                 }
                 _ => None,
             })
-            .unwrap_or(ChartOfAccountTransactionAccountCode::first(
-                control_sub_account,
-            ))
+            .unwrap_or_else(|| ChartOfAccountCode::first_transaction_account(&control_sub_account))
     }
 
     pub fn create_transaction_account(
         &mut self,
-        control_sub_account: ChartOfAccountControlSubAccountCode,
+        control_sub_account: ChartOfAccountCode,
         name: &str,
         audit_info: AuditInfo,
-    ) -> ChartOfAccountTransactionAccountCode {
-        let code = self.next_transaction_account(control_sub_account);
+    ) -> Result<ChartOfAccountCode, ChartOfAccountError> {
+        let code = self.next_transaction_account(control_sub_account)?;
         self.events
             .push(ChartOfAccountEvent::TransactionAccountAdded {
                 code,
@@ -150,19 +152,19 @@ impl ChartOfAccount {
                 audit_info,
             });
 
-        code
+        Ok(code)
     }
 
-    pub fn find_transaction_account(
+    pub fn find_account(
         &self,
-        transaction_account: ChartOfAccountTransactionAccountCode,
+        account_code: ChartOfAccountCode,
     ) -> Option<ChartOfAccountAccountDetails> {
         self.events.iter_all().rev().find_map(|event| match event {
             ChartOfAccountEvent::TransactionAccountAdded { code, name, .. }
-                if *code == transaction_account =>
+                if *code == account_code =>
             {
                 Some(ChartOfAccountAccountDetails {
-                    code: code.code(),
+                    code: *code,
                     name: name.to_string(),
                 })
             }

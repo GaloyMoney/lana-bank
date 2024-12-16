@@ -14,7 +14,6 @@ use outbox::{Outbox, OutboxEventMarker};
 
 use es_entity::DbOp;
 
-pub use chart_of_accounts::ChartOfAccountCategoryCode;
 use chart_of_accounts::*;
 use error::*;
 pub use event::*;
@@ -108,9 +107,9 @@ where
     pub async fn create_control_account(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        category: ChartOfAccountCategoryCode,
+        category: ChartOfAccountCode,
         name: &str,
-    ) -> Result<ChartOfAccountControlAccountCode, CoreChartOfAccountError> {
+    ) -> Result<ChartOfAccountCode, CoreChartOfAccountError> {
         let audit_info = self
             .authz
             .enforce_permission(
@@ -124,7 +123,7 @@ where
 
         let mut chart_of_accounts = self.find_or_create(sub, &mut op).await?;
 
-        let code = chart_of_accounts.create_control_account(category, name, audit_info);
+        let code = chart_of_accounts.create_control_account(category, name, audit_info)?;
 
         self.chart_of_account
             .update_in_op(&mut op, &mut chart_of_accounts)
@@ -139,9 +138,9 @@ where
     pub async fn create_control_sub_account(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        control_account: ChartOfAccountControlAccountCode,
+        control_account: ChartOfAccountCode,
         name: &str,
-    ) -> Result<ChartOfAccountControlSubAccountCode, CoreChartOfAccountError> {
+    ) -> Result<ChartOfAccountCode, CoreChartOfAccountError> {
         let audit_info = self
             .authz
             .enforce_permission(
@@ -155,7 +154,8 @@ where
 
         let mut chart_of_accounts = self.find_or_create(sub, &mut op).await?;
 
-        let code = chart_of_accounts.create_control_sub_account(control_account, name, audit_info);
+        let code =
+            chart_of_accounts.create_control_sub_account(control_account, name, audit_info)?;
 
         self.chart_of_account
             .update_in_op(&mut op, &mut chart_of_accounts)
@@ -170,9 +170,9 @@ where
     pub async fn create_transaction_account(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        control_sub_account: ChartOfAccountControlSubAccountCode,
+        control_sub_account: ChartOfAccountCode,
         name: &str,
-    ) -> Result<ChartOfAccountTransactionAccountCode, CoreChartOfAccountError> {
+    ) -> Result<ChartOfAccountCode, CoreChartOfAccountError> {
         let audit_info = self
             .authz
             .enforce_permission(
@@ -187,7 +187,7 @@ where
         let mut chart_of_accounts = self.find_or_create(sub, &mut op).await?;
 
         let code =
-            chart_of_accounts.create_transaction_account(control_sub_account, name, audit_info);
+            chart_of_accounts.create_transaction_account(control_sub_account, name, audit_info)?;
 
         self.chart_of_account
             .update_in_op(&mut op, &mut chart_of_accounts)
@@ -198,11 +198,11 @@ where
         Ok(code)
     }
 
-    #[instrument(name = "chart_of_accounts.find_transaction_account", skip(self))]
-    pub async fn find_transaction_account(
+    #[instrument(name = "chart_of_accounts.find_account", skip(self))]
+    pub async fn find_account(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        code: impl Into<ChartOfAccountTransactionAccountCode> + std::fmt::Debug,
+        code: impl Into<ChartOfAccountCode> + std::fmt::Debug,
     ) -> Result<Option<ChartOfAccountAccountDetails>, CoreChartOfAccountError> {
         self.authz
             .enforce_permission(
@@ -216,7 +216,7 @@ where
         let chart_of_accounts = self.find_or_create(sub, &mut op).await?;
         op.commit().await?;
 
-        let account_details = chart_of_accounts.find_transaction_account(code.into());
+        let account_details = chart_of_accounts.find_account(code.into());
 
         Ok(account_details)
     }

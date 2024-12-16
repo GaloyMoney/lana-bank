@@ -4,7 +4,7 @@ use es_entity::*;
 
 use crate::primitives::ChartOfAccountId;
 
-use super::{entity::*, error::*};
+use super::entity::*;
 
 #[derive(EsRepo, Clone)]
 #[es_repo(

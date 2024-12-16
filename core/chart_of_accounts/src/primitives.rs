@@ -1,6 +1,7 @@
 use std::{fmt::Display, str::FromStr};
 
 use authz::AllOrOne;
+use serde::{Deserialize, Serialize};
 use sqlx::types::uuid::uuid;
 
 es_entity::entity_id! {
@@ -114,5 +115,49 @@ pub enum ChartOfAccountAction {
 impl From<ChartOfAccountAction> for CoreChartOfAccountAction {
     fn from(action: ChartOfAccountAction) -> Self {
         CoreChartOfAccountAction::ChartOfAccount(action)
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Serialize, Hash, Deserialize)]
+pub struct AccountIdx(u64);
+impl Display for AccountIdx {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        Display::fmt(&self.0, f)
+    }
+}
+impl From<u32> for AccountIdx {
+    fn from(num: u32) -> Self {
+        Self(num.into())
+    }
+}
+
+impl AccountIdx {
+    pub const FIRST: Self = Self(1);
+    pub const MAX_TWO_DIGIT: Self = Self(99);
+    pub const MAX_THREE_DIGIT: Self = Self(999);
+
+    pub const fn next(&self) -> Self {
+        Self(self.0 + 1)
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+pub enum ChartOfAccountCategoryCode {
+    Assets = 1,
+    Liabilities = 2,
+    Equity = 3,
+    Revenues = 4,
+    Expenses = 5,
+}
+
+impl Display for ChartOfAccountCategoryCode {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Assets => write!(f, "Assets"),
+            Self::Liabilities => write!(f, "Liabilities"),
+            Self::Equity => write!(f, "Equity"),
+            Self::Revenues => write!(f, "Revenues"),
+            Self::Expenses => write!(f, "Expenses"),
+        }
     }
 }
