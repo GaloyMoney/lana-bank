@@ -46,6 +46,7 @@ async fn chart_of_accounts() -> anyhow::Result<()> {
             &DummySubject,
             control_sub_account_code,
             transaction_account_name,
+            "",
         )
         .await?;
 

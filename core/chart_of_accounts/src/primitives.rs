@@ -127,4 +127,5 @@ pub struct ChartOfAccountAccountDetails {
     pub account_id: LedgerAccountId,
     pub code: ChartOfAccountCode,
     pub name: String,
+    pub description: String,
 }

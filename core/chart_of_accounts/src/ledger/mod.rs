@@ -38,7 +38,7 @@ impl ChartOfAccountLedger {
         let new_account = NewAccount::builder()
             .id(account_details.account_id)
             .name(account_details.name.to_string())
-            .description("todo")
+            .description(account_details.description.to_string())
             .code(account_details.code.to_string())
             .normal_balance_type(Self::normal_balance_type_for_code(account_details.code))
             .build()

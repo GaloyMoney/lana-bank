@@ -182,6 +182,7 @@ where
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         control_sub_account: ChartOfAccountCode,
         name: &str,
+        description: &str,
     ) -> Result<ChartOfAccountAccountDetails, CoreChartOfAccountError> {
         let audit_info = self
             .authz
@@ -196,8 +197,12 @@ where
 
         let mut chart_of_accounts = self.find_or_create(sub, &mut op).await?;
 
-        let account_details =
-            chart_of_accounts.create_transaction_account(control_sub_account, name, audit_info)?;
+        let account_details = chart_of_accounts.create_transaction_account(
+            control_sub_account,
+            name,
+            description,
+            audit_info,
+        )?;
 
         self.chart_of_account
             .update_in_op(&mut op, &mut chart_of_accounts)

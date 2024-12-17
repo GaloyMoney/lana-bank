@@ -34,6 +34,7 @@ pub enum ChartOfAccountEvent {
         id: LedgerAccountId,
         code: ChartOfAccountCode,
         name: String,
+        description: String,
         audit_info: AuditInfo,
     },
 }
@@ -146,6 +147,7 @@ impl ChartOfAccount {
         &mut self,
         control_sub_account: ChartOfAccountCode,
         name: &str,
+        description: &str,
         audit_info: AuditInfo,
     ) -> Result<ChartOfAccountAccountDetails, ChartOfAccountError> {
         let code = self.next_transaction_account(control_sub_account)?;
@@ -155,6 +157,7 @@ impl ChartOfAccount {
                 id: account_id,
                 code,
                 name: name.to_string(),
+                description: description.to_string(),
                 audit_info,
             });
 
@@ -162,6 +165,7 @@ impl ChartOfAccount {
             account_id,
             code,
             name: name.to_string(),
+            description: description.to_string(),
         })
     }
 
@@ -170,15 +174,18 @@ impl ChartOfAccount {
         account_code: ChartOfAccountCode,
     ) -> Option<ChartOfAccountAccountDetails> {
         self.events.iter_all().rev().find_map(|event| match event {
-            ChartOfAccountEvent::TransactionAccountAdded { id, code, name, .. }
-                if *code == account_code =>
-            {
-                Some(ChartOfAccountAccountDetails {
-                    account_id: *id,
-                    code: *code,
-                    name: name.to_string(),
-                })
-            }
+            ChartOfAccountEvent::TransactionAccountAdded {
+                id,
+                code,
+                name,
+                description,
+                ..
+            } if *code == account_code => Some(ChartOfAccountAccountDetails {
+                account_id: *id,
+                code: *code,
+                name: name.to_string(),
+                description: description.to_string(),
+            }),
             _ => None,
         })
     }
@@ -333,7 +340,12 @@ mod tests {
             .unwrap();
 
         match chart
-            .create_transaction_account(control_sub_account, "Cash", dummy_audit_info())
+            .create_transaction_account(
+                control_sub_account,
+                "Cash",
+                "Cash account",
+                dummy_audit_info(),
+            )
             .unwrap()
         {
             ChartOfAccountAccountDetails {
@@ -430,11 +442,21 @@ mod tests {
             .unwrap();
 
         chart
-            .create_transaction_account(sub_account, "First", dummy_audit_info())
+            .create_transaction_account(
+                sub_account,
+                "First",
+                "First transaction account",
+                dummy_audit_info(),
+            )
             .unwrap();
 
         match chart
-            .create_transaction_account(sub_account, "Second", dummy_audit_info())
+            .create_transaction_account(
+                sub_account,
+                "Second",
+                "Second transaction account",
+                dummy_audit_info(),
+            )
             .unwrap()
         {
             ChartOfAccountAccountDetails {
@@ -469,7 +491,7 @@ mod tests {
             .create_control_sub_account(control_account, "Current Assets", audit_info.clone())
             .unwrap();
         let transaction_account = chart
-            .create_transaction_account(sub_account, "Cash", audit_info)
+            .create_transaction_account(sub_account, "Cash", "Cash account", audit_info)
             .unwrap();
 
         let found = chart.find_account(transaction_account.code).unwrap();
