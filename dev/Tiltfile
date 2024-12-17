@@ -11,14 +11,18 @@ for service, deps in docker_groups.items():
     for dep in deps:
         dc_resource(dep, labels=[service])
 
+bfx_local_price = os.getenv("BFX_LOCAL_PRICE")
+serve_env_core = {
+    "PG_CON": "postgres://user:password@localhost:5433/pg",
+    "OTEL_EXPORTER_OTLP_ENDPOINT": "http://localhost:4317",
+}
+if bfx_local_price != None:
+    serve_env_core["BFX_LOCAL_PRICE"] = bfx_local_price
 local_resource(
     "core",
     labels=["core"],
     serve_cmd="cd .. && make setup-db run-tf run-server",
-    serve_env={
-        "PG_CON": "postgres://user:password@localhost:5433/pg",
-        "OTEL_EXPORTER_OTLP_ENDPOINT": "http://localhost:4317",
-    },
+    serve_env=serve_env_core,
     readiness_probe=probe(
         period_secs=5,
         http_get=http_get_action(

@@ -40,6 +40,12 @@ impl Price {
 
 #[cached(time = 60, result = true, key = "()", convert = r#"{}"#)]
 async fn usd_cents_per_btc_cached(bfx: &BfxClient) -> Result<PriceOfOneBTC, PriceError> {
+    if std::env::var("BFX_LOCAL_PRICE").is_ok() {
+        return Ok(PriceOfOneBTC::new(UsdCents::try_from_usd(
+            rust_decimal_macros::dec!(100_000),
+        )?));
+    }
+
     let last_price = bfx.btc_usd_tick().await?.last_price;
     Ok(PriceOfOneBTC::new(UsdCents::try_from_usd(last_price)?))
 }
