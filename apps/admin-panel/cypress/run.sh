@@ -67,19 +67,17 @@ elif [[ $EXECUTION_MODE == "headless" ]]; then
   nix develop -c pnpm run cypress:run-headless
 elif [[ $EXECUTION_MODE == "browserstack" ]]; then
   nix develop -c pnpm run cypress:run-browserstack
-else
-  rm -rf build_artifacts || true
-  pushd cypress/manuals
-    rm -rf screenshots || true
-    rm -rf results || true
-  popd
+fi
 
-  nix develop -c pnpm run cypress:open-browserstack
-  mv $(find build_artifacts -type d -name "screenshots") cypress/manuals
+if uname -a | grep -q Linux; then
+  if [[ $EXECUTION_MODE == "browserstack" ]]; then
+    mv $(find build_artifacts -type d -name "screenshots") cypress/manuals
+  else
+    mv cypress/screenshots cypress/manuals
+  fi
+
   cd cypress/manuals
   mkdir -p results
 
   pandoc customers.md -o results/customers.pdf --pdf-engine=wkhtmltopdf -V margin-top=3 -V margin-left=0 -V margin-right=0 -V margin-bottom=3 -V papersize=a4
-  pandoc terms-templates.md -o results/terms-templates.pdf --pdf-engine=wkhtmltopdf -V margin-top=3 -V margin-left=0 -V margin-right=0 -V margin-bottom=3 -V papersize=a4
-  pandoc credit-facilities.md -o results/credit-facilities.pdf --pdf-engine=wkhtmltopdf -V margin-top=3 -V margin-left=0 -V margin-right=0 -V margin-bottom=3 -V papersize=a4
 fi
