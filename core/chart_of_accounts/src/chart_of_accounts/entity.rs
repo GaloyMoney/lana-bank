@@ -5,7 +5,10 @@ use audit::AuditInfo;
 
 use es_entity::*;
 
-use crate::{code::*, primitives::ChartOfAccountId};
+use crate::{
+    code::*,
+    primitives::{ChartOfAccountAccountDetails, ChartOfAccountId},
+};
 
 pub use super::error::*;
 
@@ -39,11 +42,6 @@ pub enum ChartOfAccountEvent {
 pub struct ChartOfAccount {
     pub id: ChartOfAccountId,
     pub(super) events: EntityEvents<ChartOfAccountEvent>,
-}
-
-pub struct ChartOfAccountAccountDetails {
-    pub code: ChartOfAccountCode,
-    pub name: String,
 }
 
 impl ChartOfAccount {

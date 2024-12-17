@@ -1,7 +1,10 @@
 use std::{fmt::Display, str::FromStr};
 
 use authz::AllOrOne;
+use serde::{Deserialize, Serialize};
 use sqlx::types::uuid::uuid;
+
+use crate::code::ChartOfAccountCode;
 
 es_entity::entity_id! {
     ChartOfAccountId,
@@ -115,4 +118,10 @@ impl From<ChartOfAccountAction> for CoreChartOfAccountAction {
     fn from(action: ChartOfAccountAction) -> Self {
         CoreChartOfAccountAction::ChartOfAccount(action)
     }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ChartOfAccountAccountDetails {
+    pub code: ChartOfAccountCode,
+    pub name: String,
 }
