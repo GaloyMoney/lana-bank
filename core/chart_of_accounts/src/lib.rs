@@ -8,6 +8,8 @@ mod event;
 mod ledger;
 mod primitives;
 
+use cala_ledger::CalaLedger;
+use ledger::*;
 use tracing::instrument;
 
 use audit::AuditSvc;
@@ -28,6 +30,7 @@ where
     E: OutboxEventMarker<CoreChartOfAccountEvent>,
 {
     chart_of_account: ChartOfAccountRepo,
+    ledger: ChartOfAccountLedger,
     authz: Perms,
     outbox: Outbox<E>,
 }
@@ -40,6 +43,7 @@ where
     fn clone(&self) -> Self {
         Self {
             chart_of_account: self.chart_of_account.clone(),
+            ledger: self.ledger.clone(),
             authz: self.authz.clone(),
             outbox: self.outbox.clone(),
         }
@@ -57,10 +61,13 @@ where
         pool: &sqlx::PgPool,
         authz: &Perms,
         outbox: &Outbox<E>,
+        cala: &CalaLedger,
     ) -> Result<Self, CoreChartOfAccountError> {
         let chart_of_account = ChartOfAccountRepo::new(pool);
+        let ledger = ChartOfAccountLedger::init(cala).await?;
         let res = Self {
             chart_of_account,
+            ledger,
             authz: authz.clone(),
             outbox: outbox.clone(),
         };
@@ -196,7 +203,9 @@ where
             .update_in_op(&mut op, &mut chart_of_accounts)
             .await?;
 
-        op.commit().await?;
+        self.ledger
+            .create_transaction_account(op, &account_details)
+            .await?;
 
         Ok(account_details)
     }

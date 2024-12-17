@@ -1,5 +1,6 @@
 use authz::dummy::DummySubject;
 
+use cala_ledger::{CalaLedger, CalaLedgerConfig};
 use chart_of_accounts::*;
 
 pub async fn init_pool() -> anyhow::Result<sqlx::PgPool> {
@@ -17,7 +18,13 @@ async fn chart_of_accounts() -> anyhow::Result<()> {
     let authz =
         authz::dummy::DummyPerms::<CoreChartOfAccountAction, CoreChartOfAccountObject>::new();
 
-    let chart_of_accounts = CoreChartOfAccount::init(&pool, &authz, &outbox).await?;
+    let cala_config = CalaLedgerConfig::builder()
+        .pool(pool.clone())
+        .exec_migrations(false)
+        .build()?;
+    let cala = CalaLedger::init(cala_config).await?;
+
+    let chart_of_accounts = CoreChartOfAccount::init(&pool, &authz, &outbox, &cala).await?;
     let control_account_code = chart_of_accounts
         .create_control_account(
             &DummySubject,

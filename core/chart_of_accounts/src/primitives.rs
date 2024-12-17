@@ -4,6 +4,8 @@ use authz::AllOrOne;
 use serde::{Deserialize, Serialize};
 use sqlx::types::uuid::uuid;
 
+pub use cala_ledger::primitives::AccountId as LedgerAccountId;
+
 use crate::code::ChartOfAccountCode;
 
 es_entity::entity_id! {
@@ -122,6 +124,7 @@ impl From<ChartOfAccountAction> for CoreChartOfAccountAction {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ChartOfAccountAccountDetails {
+    pub account_id: LedgerAccountId,
     pub code: ChartOfAccountCode,
     pub name: String,
 }

@@ -7,7 +7,7 @@ use es_entity::*;
 
 use crate::{
     code::*,
-    primitives::{ChartOfAccountAccountDetails, ChartOfAccountId},
+    primitives::{ChartOfAccountAccountDetails, ChartOfAccountId, LedgerAccountId},
 };
 
 pub use super::error::*;
@@ -31,6 +31,7 @@ pub enum ChartOfAccountEvent {
         audit_info: AuditInfo,
     },
     TransactionAccountAdded {
+        id: LedgerAccountId,
         code: ChartOfAccountCode,
         name: String,
         audit_info: AuditInfo,
@@ -148,14 +149,17 @@ impl ChartOfAccount {
         audit_info: AuditInfo,
     ) -> Result<ChartOfAccountAccountDetails, ChartOfAccountError> {
         let code = self.next_transaction_account(control_sub_account)?;
+        let account_id = LedgerAccountId::new();
         self.events
             .push(ChartOfAccountEvent::TransactionAccountAdded {
+                id: account_id,
                 code,
                 name: name.to_string(),
                 audit_info,
             });
 
         Ok(ChartOfAccountAccountDetails {
+            account_id,
             code,
             name: name.to_string(),
         })
@@ -166,10 +170,11 @@ impl ChartOfAccount {
         account_code: ChartOfAccountCode,
     ) -> Option<ChartOfAccountAccountDetails> {
         self.events.iter_all().rev().find_map(|event| match event {
-            ChartOfAccountEvent::TransactionAccountAdded { code, name, .. }
+            ChartOfAccountEvent::TransactionAccountAdded { id, code, name, .. }
                 if *code == account_code =>
             {
                 Some(ChartOfAccountAccountDetails {
+                    account_id: *id,
                     code: *code,
                     name: name.to_string(),
                 })

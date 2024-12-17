@@ -2,9 +2,12 @@ pub mod error;
 
 use cala_ledger::{account::*, CalaLedger, DebitOrCredit};
 
-use error::*;
+use crate::{
+    code::{ChartOfAccountCategoryCode, ChartOfAccountCode},
+    primitives::ChartOfAccountAccountDetails,
+};
 
-use crate::{ChartOfAccountAccountDetails, ChartOfAccountCategoryCode, ChartOfAccountCode};
+use error::*;
 
 #[derive(Clone)]
 pub struct ChartOfAccountLedger {
@@ -28,13 +31,12 @@ impl ChartOfAccountLedger {
     pub async fn create_transaction_account(
         &self,
         op: es_entity::DbOp<'_>,
-        id: impl Into<AccountId>,
         account_details: &ChartOfAccountAccountDetails,
     ) -> Result<(), ChartOfAccountLedgerError> {
         let mut op = self.cala.ledger_operation_from_db_op(op);
 
         let new_account = NewAccount::builder()
-            .id(id)
+            .id(account_details.account_id)
             .name(account_details.name.to_string())
             .description("todo")
             .code(account_details.code.to_string())
