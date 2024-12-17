@@ -5,9 +5,9 @@ use audit::AuditInfo;
 
 use es_entity::*;
 
-use crate::primitives::ChartOfAccountId;
+use crate::{code::*, primitives::ChartOfAccountId};
 
-pub use super::{code::*, error::*};
+pub use super::error::*;
 
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
@@ -51,7 +51,8 @@ impl ChartOfAccount {
         &self,
         category: ChartOfAccountCode,
     ) -> Result<ChartOfAccountCode, ChartOfAccountError> {
-        self.events
+        Ok(self
+            .events
             .iter_all()
             .rev()
             .find_map(|event| match event {
@@ -62,7 +63,7 @@ impl ChartOfAccount {
                 }
                 _ => None,
             })
-            .unwrap_or_else(|| ChartOfAccountCode::first_control_account(category))
+            .unwrap_or_else(|| ChartOfAccountCode::first_control_account(category))?)
     }
 
     pub fn create_control_account(
@@ -85,7 +86,8 @@ impl ChartOfAccount {
         &self,
         control_account: ChartOfAccountCode,
     ) -> Result<ChartOfAccountCode, ChartOfAccountError> {
-        self.events
+        Ok(self
+            .events
             .iter_all()
             .rev()
             .find_map(|event| match event {
@@ -97,7 +99,7 @@ impl ChartOfAccount {
                 }
                 _ => None,
             })
-            .unwrap_or_else(|| ChartOfAccountCode::first_control_sub_account(&control_account))
+            .unwrap_or_else(|| ChartOfAccountCode::first_control_sub_account(&control_account))?)
     }
 
     pub fn create_control_sub_account(
@@ -121,7 +123,8 @@ impl ChartOfAccount {
         &self,
         control_sub_account: ChartOfAccountCode,
     ) -> Result<ChartOfAccountCode, ChartOfAccountError> {
-        self.events
+        Ok(self
+            .events
             .iter_all()
             .rev()
             .find_map(|event| match event {
@@ -135,7 +138,9 @@ impl ChartOfAccount {
                 }
                 _ => None,
             })
-            .unwrap_or_else(|| ChartOfAccountCode::first_transaction_account(&control_sub_account))
+            .unwrap_or_else(|| {
+                ChartOfAccountCode::first_transaction_account(&control_sub_account)
+            })?)
     }
 
     pub fn create_transaction_account(

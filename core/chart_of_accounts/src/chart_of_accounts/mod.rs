@@ -1,4 +1,3 @@
-mod code;
 mod entity;
 pub mod error;
 mod repo;

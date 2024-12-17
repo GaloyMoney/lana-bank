@@ -1,8 +1,54 @@
+pub mod error;
+
+use std::fmt::Display;
+
 use serde::{Deserialize, Serialize};
 
-use crate::primitives::{AccountIdx, ChartOfAccountCategoryCode};
+use error::*;
 
-use super::error::*;
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Serialize, Hash, Deserialize)]
+pub struct AccountIdx(u64);
+impl Display for AccountIdx {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        Display::fmt(&self.0, f)
+    }
+}
+impl From<u32> for AccountIdx {
+    fn from(num: u32) -> Self {
+        Self(num.into())
+    }
+}
+
+impl AccountIdx {
+    pub const FIRST: Self = Self(1);
+    pub const MAX_TWO_DIGIT: Self = Self(99);
+    pub const MAX_THREE_DIGIT: Self = Self(999);
+
+    pub const fn next(&self) -> Self {
+        Self(self.0 + 1)
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+pub enum ChartOfAccountCategoryCode {
+    Assets = 1,
+    Liabilities = 2,
+    Equity = 3,
+    Revenues = 4,
+    Expenses = 5,
+}
+
+impl Display for ChartOfAccountCategoryCode {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Assets => write!(f, "Assets"),
+            Self::Liabilities => write!(f, "Liabilities"),
+            Self::Equity => write!(f, "Equity"),
+            Self::Revenues => write!(f, "Revenues"),
+            Self::Expenses => write!(f, "Expenses"),
+        }
+    }
+}
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub enum ChartOfAccountCode {
@@ -61,20 +107,21 @@ impl std::fmt::Display for ChartOfAccountCode {
 }
 
 impl std::str::FromStr for ChartOfAccountCode {
-    type Err = ChartOfAccountError;
+    type Err = ChartOfAccountCodeError;
 
-    fn from_str(s: &str) -> Result<Self, ChartOfAccountError> {
+    fn from_str(s: &str) -> Result<Self, ChartOfAccountCodeError> {
         if s.len() != 8 {
-            return Err(ChartOfAccountError::InvalidCodeLength(s.to_string()));
+            return Err(ChartOfAccountCodeError::InvalidCodeLength(s.to_string()));
         }
 
-        fn parse_segment(s: &str) -> Result<u32, ChartOfAccountError> {
+        fn parse_segment(s: &str) -> Result<u32, ChartOfAccountCodeError> {
             Ok(s.parse::<u32>()?)
         }
 
         let category_segment = parse_segment(&s[0..1])?;
-        let category = Self::category_from_number(category_segment)
-            .ok_or(ChartOfAccountError::InvalidCategoryNumber(category_segment))?;
+        let category = Self::category_from_number(category_segment).ok_or(
+            ChartOfAccountCodeError::InvalidCategoryNumber(category_segment),
+        )?;
 
         let control = parse_segment(&s[1..3])?;
         let sub = parse_segment(&s[3..5])?;
@@ -97,7 +144,7 @@ impl std::str::FromStr for ChartOfAccountCode {
                 control_sub_index: s.into(),
                 index: t.into(),
             }),
-            _ => Err(ChartOfAccountError::InvalidCodeString(s.to_string())),
+            _ => Err(ChartOfAccountCodeError::InvalidCodeString(s.to_string())),
         }
     }
 }
@@ -175,30 +222,32 @@ impl ChartOfAccountCode {
 
     pub const fn first_control_account(
         category: ChartOfAccountCode,
-    ) -> Result<Self, ChartOfAccountError> {
+    ) -> Result<Self, ChartOfAccountCodeError> {
         match category {
             Self::Category(category) => Ok(Self::ControlAccount {
                 category,
                 index: AccountIdx::FIRST,
             }),
-            _ => Err(ChartOfAccountError::InvalidCategoryCodeForNewControlAccount),
+            _ => Err(ChartOfAccountCodeError::InvalidCategoryCodeForNewControlAccount),
         }
     }
 
-    pub fn first_control_sub_account(control_account: &Self) -> Result<Self, ChartOfAccountError> {
+    pub fn first_control_sub_account(
+        control_account: &Self,
+    ) -> Result<Self, ChartOfAccountCodeError> {
         match control_account {
             Self::ControlAccount { category, index } => Ok(Self::ControlSubAccount {
                 category: *category,
                 control_index: *index,
                 index: AccountIdx::FIRST,
             }),
-            _ => Err(ChartOfAccountError::InvalidControlAccountCodeForNewControlSubAccount),
+            _ => Err(ChartOfAccountCodeError::InvalidControlAccountCodeForNewControlSubAccount),
         }
     }
 
     pub fn first_transaction_account(
         control_sub_account: &Self,
-    ) -> Result<Self, ChartOfAccountError> {
+    ) -> Result<Self, ChartOfAccountCodeError> {
         match control_sub_account {
             Self::ControlSubAccount {
                 category,
@@ -210,17 +259,17 @@ impl ChartOfAccountCode {
                 control_sub_index: *index,
                 index: AccountIdx::FIRST,
             }),
-            _ => Err(ChartOfAccountError::InvalidSubControlAccountCodeForNewTransactionAccount),
+            _ => Err(ChartOfAccountCodeError::InvalidSubControlAccountCodeForNewTransactionAccount),
         }
     }
 
-    pub fn next(&self) -> Result<Self, ChartOfAccountError> {
+    pub fn next(&self) -> Result<Self, ChartOfAccountCodeError> {
         match *self {
             Self::Category(_) => Ok(*self), // Categories don't have next
             Self::ControlAccount { category, index } => {
                 let next_index = index.next();
                 if next_index > AccountIdx::MAX_TWO_DIGIT {
-                    Err(ChartOfAccountError::ControlIndexOverflowForCategory(
+                    Err(ChartOfAccountCodeError::ControlIndexOverflowForCategory(
                         category,
                     ))
                 } else {
@@ -238,7 +287,7 @@ impl ChartOfAccountCode {
                 let next_index = index.next();
                 if next_index > AccountIdx::MAX_TWO_DIGIT {
                     Err(
-                        ChartOfAccountError::ControlSubIndexOverflowForControlAccount(
+                        ChartOfAccountCodeError::ControlSubIndexOverflowForControlAccount(
                             category,
                             control_index,
                         ),
@@ -260,7 +309,7 @@ impl ChartOfAccountCode {
                 let next_index = index.next();
                 if next_index > AccountIdx::MAX_THREE_DIGIT {
                     Err(
-                        ChartOfAccountError::TransactionIndexOverflowForControlSubAccount(
+                        ChartOfAccountCodeError::TransactionIndexOverflowForControlSubAccount(
                             category,
                             control_index,
                             control_sub_index,
@@ -365,7 +414,7 @@ mod tests {
         #[test]
         fn test_invalid_code_length() {
             match ChartOfAccountCode::from_str("100") {
-                Err(ChartOfAccountError::InvalidCodeLength(code)) => {
+                Err(ChartOfAccountCodeError::InvalidCodeLength(code)) => {
                     assert_eq!(code, "100");
                 }
                 other => panic!("Expected InvalidCodeLength error, got {:?}", other),
@@ -375,7 +424,7 @@ mod tests {
         #[test]
         fn test_invalid_category() {
             match ChartOfAccountCode::from_str("90000000") {
-                Err(ChartOfAccountError::InvalidCategoryNumber(num)) => {
+                Err(ChartOfAccountCodeError::InvalidCategoryNumber(num)) => {
                     assert_eq!(num, 9);
                 }
                 other => panic!("Expected InvalidCategoryNumber error, got {:?}", other),
@@ -385,7 +434,7 @@ mod tests {
         #[test]
         fn test_invalid_code_format() {
             match ChartOfAccountCode::from_str("10002030") {
-                Err(ChartOfAccountError::InvalidCodeString(code)) => {
+                Err(ChartOfAccountCodeError::InvalidCodeString(code)) => {
                     assert_eq!(code, "10002030");
                 }
                 other => panic!("Expected InvalidCodeString error, got {:?}", other),
@@ -395,7 +444,7 @@ mod tests {
         #[test]
         fn test_non_numeric_input() {
             match ChartOfAccountCode::from_str("A0000000") {
-                Err(ChartOfAccountError::ParseIntError(_)) => {
+                Err(ChartOfAccountCodeError::ParseIntError(_)) => {
                     // ParseIntError doesn't implement PartialEq, so we just check the variant
                 }
                 other => panic!("Expected ParseIntError, got {:?}", other),

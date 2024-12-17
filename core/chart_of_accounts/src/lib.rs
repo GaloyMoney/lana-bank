@@ -2,6 +2,7 @@
 #![cfg_attr(feature = "fail-on-warnings", deny(clippy::all))]
 
 mod chart_of_accounts;
+mod code;
 pub mod error;
 mod event;
 mod primitives;
@@ -15,6 +16,7 @@ use outbox::{Outbox, OutboxEventMarker};
 use es_entity::DbOp;
 
 use chart_of_accounts::*;
+use code::*;
 use error::*;
 pub use event::*;
 pub use primitives::*;
