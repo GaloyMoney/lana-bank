@@ -146,7 +146,7 @@ impl ChartOfAccount {
         control_sub_account: ChartOfAccountCode,
         name: &str,
         audit_info: AuditInfo,
-    ) -> Result<ChartOfAccountCode, ChartOfAccountError> {
+    ) -> Result<ChartOfAccountAccountDetails, ChartOfAccountError> {
         let code = self.next_transaction_account(control_sub_account)?;
         self.events
             .push(ChartOfAccountEvent::TransactionAccountAdded {
@@ -155,7 +155,10 @@ impl ChartOfAccount {
                 audit_info,
             });
 
-        Ok(code)
+        Ok(ChartOfAccountAccountDetails {
+            code,
+            name: name.to_string(),
+        })
     }
 
     pub fn find_account(
@@ -328,11 +331,15 @@ mod tests {
             .create_transaction_account(control_sub_account, "Cash", dummy_audit_info())
             .unwrap()
         {
-            ChartOfAccountCode::TransactionAccount {
-                category,
-                control_index,
-                control_sub_index,
-                index,
+            ChartOfAccountAccountDetails {
+                code:
+                    ChartOfAccountCode::TransactionAccount {
+                        category,
+                        control_index,
+                        control_sub_index,
+                        index,
+                    },
+                ..
             } => {
                 assert_eq!(category, ChartOfAccountCategoryCode::Assets);
                 assert_eq!(control_index, AccountIdx::FIRST);
@@ -425,11 +432,15 @@ mod tests {
             .create_transaction_account(sub_account, "Second", dummy_audit_info())
             .unwrap()
         {
-            ChartOfAccountCode::TransactionAccount {
-                category,
-                control_index,
-                control_sub_index,
-                index,
+            ChartOfAccountAccountDetails {
+                code:
+                    ChartOfAccountCode::TransactionAccount {
+                        category,
+                        control_index,
+                        control_sub_index,
+                        index,
+                    },
+                ..
             } => {
                 assert_eq!(category, ChartOfAccountCategoryCode::Assets);
                 assert_eq!(control_index, AccountIdx::FIRST);
@@ -456,8 +467,8 @@ mod tests {
             .create_transaction_account(sub_account, "Cash", audit_info)
             .unwrap();
 
-        let found = chart.find_account(transaction_account).unwrap();
-        assert_eq!(found.code, transaction_account);
+        let found = chart.find_account(transaction_account.code).unwrap();
+        assert_eq!(found.code, transaction_account.code);
         assert_eq!(found.name, "Cash");
 
         assert!(chart.find_account("20101001".parse().unwrap()).is_none());

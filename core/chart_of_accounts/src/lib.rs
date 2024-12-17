@@ -174,7 +174,7 @@ where
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         control_sub_account: ChartOfAccountCode,
         name: &str,
-    ) -> Result<ChartOfAccountCode, CoreChartOfAccountError> {
+    ) -> Result<ChartOfAccountAccountDetails, CoreChartOfAccountError> {
         let audit_info = self
             .authz
             .enforce_permission(
@@ -188,7 +188,7 @@ where
 
         let mut chart_of_accounts = self.find_or_create(sub, &mut op).await?;
 
-        let code =
+        let account_details =
             chart_of_accounts.create_transaction_account(control_sub_account, name, audit_info)?;
 
         self.chart_of_account
@@ -197,7 +197,7 @@ where
 
         op.commit().await?;
 
-        Ok(code)
+        Ok(account_details)
     }
 
     #[instrument(name = "chart_of_accounts.find_account", skip(self))]
