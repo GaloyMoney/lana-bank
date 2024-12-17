@@ -1,17 +1,21 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
-REPO_ROOT=$(git rev-parse --show-toplevel)
+make reset-tf-state || true
 
-[ -f tmp.env.ci ] && source tmp.env.ci || true
+cd dev
+nohup tilt up > tilt-up.log 2>&1 < /dev/null &
+sleep 5
 
-cd "${REPO_ROOT}"
-tilt ci --file dev/Tiltfile | tee tilt.log | grep cypress
-status=${PIPESTATUS[0]}
+echo "sending requests to tilt-apiserver now..."
 
-if [[ $status -eq 0 ]]; then
-  echo "Tilt CI passed"
-else
-  cat tilt.log
-fi
+for i in {1..30}; do
+    if tilt get uiresource core -o json | jq -e '.status.runtimeStatus == "error"' > /dev/null; then
+        echo "uiresource/core is in error state. retrying..."
+        tilt trigger core
+        break
+    fi
+    sleep 1
+done
 
-exit "$status"
+tilt wait --for=condition=Ready --timeout=300s uiresource/core
+tilt wait --for=condition=Ready --timeout=300s uiresource/admin-panel

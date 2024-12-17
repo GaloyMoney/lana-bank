@@ -1,5 +1,3 @@
-is_ci = sys.argv[1] == "ci"
-
 docker_compose("../docker-compose.yml", project_name="lana-bank")
 docker_groups = {
     "auth": ["kratos", "kratos-pg", "oathkeeper"],
@@ -16,7 +14,7 @@ for service, deps in docker_groups.items():
 local_resource(
     "core",
     labels=["core"],
-    serve_cmd="cd .. && make run-server",
+    serve_cmd="cd .. && make setup-db run-tf run-server",
     serve_env={
         "PG_CON": "postgres://user:password@localhost:5433/pg",
         "OTEL_EXPORTER_OTLP_ENDPOINT": "http://localhost:4317",
@@ -63,15 +61,3 @@ local_resource(
         link("http://localhost:4455/admin-panel", "admin-panel"),
     ]
 )
-
-
-if is_ci:
-    local_resource(
-        name="cypress",
-        labels=["apps-ci-test"],
-        cmd="cd ../apps/admin-panel && pnpm cypress:run headless",
-        allow_parallel=True,
-        resource_deps=[
-            "admin-panel"
-        ],
-    )

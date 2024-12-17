@@ -1,0 +1,53 @@
+name: frontend e2e tests
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  tilt-ci:
+    name: manual generation / execute via tilt and cypress
+    runs-on: ubuntu-latest
+    steps:
+      - uses: docker/login-action@v3
+        with:
+          registry: gcr.io
+          username: _json_key
+          password: ${{ secrets.GCR_JSON_KEY }}
+
+      - uses: DeterminateSystems/nix-installer-action@v4
+      - uses: DeterminateSystems/magic-nix-cache-action@v8
+      - uses: actions/checkout@v4
+
+      - uses: "google-github-actions/auth@v2"
+        with:
+          credentials_json: "${{ secrets.GOOGLE_CREDENTIALS }}"
+
+      - name: build backend
+        run: nix develop -c make build-for-tests
+
+      - name: sync dataform-branch
+        run: nix develop -c make push-dataform-branch
+        env:
+          DATAFORM_BRANCH: "gha-dataform"
+
+      - name: keep tilt running
+        run: nix develop -c make tilt-in-ci
+        env:
+          GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
+          TF_VAR_sa_creds: ${{ secrets.GOOGLE_SA_BASE64 }}
+          SA_CREDS_BASE64: ${{ secrets.GOOGLE_SA_BASE64 }}
+          SUMSUB_KEY: ${{ secrets.SUMSUB_KEY }}
+          SUMSUB_SECRET: ${{ secrets.SUMSUB_SECRET }}
+          TF_VAR_name_prefix: "gha"
+
+      - name: system info
+        run: |
+          free -h
+          df -h
+
+      # - name: run cypress tests
+      #   run: nix develop -c make cypress-in-ci-through-browserstack
+      #   env:
+      #     BROWSERSTACK_USERNAME: ${{ secrets.BROWSERSTACK_USERNAME }}
+      #     BROWSERSTACK_ACCESS_KEY: ${{ secrets.BROWSERSTACK_ACCESS_KEY }}
