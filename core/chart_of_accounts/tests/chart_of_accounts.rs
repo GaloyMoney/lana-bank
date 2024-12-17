@@ -34,7 +34,7 @@ async fn chart_of_accounts() -> anyhow::Result<()> {
         .await?;
 
     let transaction_account_name = "Fixed-Term Credit Facilities Receivable #1 for Customer 00-01";
-    let transaction_account_code = chart_of_accounts
+    let transaction_account = chart_of_accounts
         .create_transaction_account(
             &DummySubject,
             control_sub_account_code,
@@ -43,7 +43,7 @@ async fn chart_of_accounts() -> anyhow::Result<()> {
         .await?;
 
     let transaction_account = chart_of_accounts
-        .find_account(&DummySubject, transaction_account_code)
+        .find_account(&DummySubject, transaction_account.code)
         .await?
         .expect("Transaction account not found");
     assert_eq!(transaction_account.name, transaction_account_name);

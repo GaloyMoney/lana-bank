@@ -11,6 +11,7 @@ audit = { path = "../../lib/audit" }
 authz = { path = "../../lib/authz" }
 outbox = { path = "../../lib/outbox" }
 
+cala-ledger = { workspace = true }
 es-entity = { workspace = true }
 sqlx = { workspace = true }
 

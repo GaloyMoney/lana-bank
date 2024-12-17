@@ -878,6 +878,7 @@ dependencies = [
  "anyhow",
  "audit",
  "authz",
+ "cala-ledger",
  "derive_builder",
  "es-entity",
  "outbox",

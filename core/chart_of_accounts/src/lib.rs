@@ -5,6 +5,7 @@ mod chart_of_accounts;
 mod code;
 pub mod error;
 mod event;
+mod ledger;
 mod primitives;
 
 use tracing::instrument;
