@@ -10,8 +10,7 @@ export function AuthSessionProvider({
   children: React.ReactNode
   session: Session | null
 }>) {
-  const isDevelopment =
-    process.env.NODE_ENV === "development" || process.env.BACKEND_ENV === "development"
+  const isDevelopment = process.env.NODE_ENV === "development"
   const sessionProviderProps = {
     session,
     ...(isDevelopment && { basePath: "/admin-panel/api/auth" }),

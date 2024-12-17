@@ -46,8 +46,8 @@ jobs:
           free -h
           df -h
 
-      # - name: run cypress tests
-      #   run: nix develop -c make cypress-in-ci-through-browserstack
-      #   env:
-      #     BROWSERSTACK_USERNAME: ${{ secrets.BROWSERSTACK_USERNAME }}
-      #     BROWSERSTACK_ACCESS_KEY: ${{ secrets.BROWSERSTACK_ACCESS_KEY }}
+      - name: run cypress tests
+        run: nix develop -c make test-cypress-in-ci-through-browserstack
+        env:
+          BROWSERSTACK_USERNAME: ${{ secrets.BROWSERSTACK_USERNAME }}
+          BROWSERSTACK_ACCESS_KEY: ${{ secrets.BROWSERSTACK_ACCESS_KEY }}

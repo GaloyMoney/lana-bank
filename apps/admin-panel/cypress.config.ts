@@ -16,10 +16,7 @@ export default defineConfig({
       "cypress/e2e/dashboard.cy.ts",
       "cypress/e2e/profit-and-loss.cy.ts",
     ],
-    baseUrl:
-      process.env.BACKEND_ENV === "development"
-        ? "http://localhost:4455/admin-panel"
-        : "https://admin.staging.lava.galoy.io",
+    baseUrl: "http://localhost:4455/admin-panel",
     defaultCommandTimeout: 10000,
     requestTimeout: 10000,
     video: false,
