@@ -23,7 +23,7 @@ sqlx-prepare:
 	cd core/governance && cargo sqlx prepare
 	cd core/user && cargo sqlx prepare
 	cd core/deposit && cargo sqlx prepare
-	cd core/chart_of_accounts && cargo sqlx prepare
+	cd core/chart-of-accounts && cargo sqlx prepare
 	cd lana/app && cargo sqlx prepare
 	cd lana/dashboard && cargo sqlx prepare
 
