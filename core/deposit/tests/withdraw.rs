@@ -4,6 +4,7 @@ use rust_decimal_macros::dec;
 
 use authz::dummy::DummySubject;
 use cala_ledger::{CalaLedger, CalaLedgerConfig};
+use chart_of_accounts::CoreChartOfAccounts;
 use deposit::*;
 
 use helpers::{action, event, object};
@@ -27,12 +28,14 @@ async fn cancel_withdrawal() -> anyhow::Result<()> {
     let journal_id = helpers::init_journal(&cala).await?;
     let omnibus_code = journal_id.to_string();
 
+    let chart_of_accounts = CoreChartOfAccounts::init(&pool, &authz, &cala).await?;
     let deposit = CoreDeposit::init(
         &pool,
         &authz,
         &outbox,
         &governance,
         &jobs,
+        &chart_of_accounts,
         &cala,
         journal_id,
         omnibus_code,
