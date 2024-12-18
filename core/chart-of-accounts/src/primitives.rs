@@ -8,97 +8,94 @@ pub use cala_ledger::primitives::AccountId as LedgerAccountId;
 use crate::code::ChartOfAccountCode;
 
 es_entity::entity_id! {
-    ChartOfAccountId,
+    ChartId,
 }
 
-pub type ChartOfAccountAllOrOne = AllOrOne<ChartOfAccountId>;
+pub type ChartAllOrOne = AllOrOne<ChartId>;
 
 #[derive(Clone, Copy, Debug, PartialEq, strum::EnumDiscriminants)]
 #[strum_discriminants(derive(strum::Display, strum::EnumString))]
 #[strum_discriminants(strum(serialize_all = "kebab-case"))]
-pub enum CoreChartOfAccountAction {
-    ChartOfAccount(ChartOfAccountAction),
+pub enum CoreChartOfAccountsAction {
+    ChartAction(ChartAction),
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, strum::EnumDiscriminants)]
 #[strum_discriminants(derive(strum::Display, strum::EnumString))]
 #[strum_discriminants(strum(serialize_all = "kebab-case"))]
-pub enum CoreChartOfAccountObject {
-    ChartOfAccount(ChartOfAccountAllOrOne),
+pub enum CoreChartOfAccountsObject {
+    Chart(ChartAllOrOne),
 }
 
-impl CoreChartOfAccountObject {
-    pub fn chart(id: ChartOfAccountId) -> Self {
-        CoreChartOfAccountObject::ChartOfAccount(AllOrOne::ById(id))
+impl CoreChartOfAccountsObject {
+    pub fn chart(id: ChartId) -> Self {
+        CoreChartOfAccountsObject::Chart(AllOrOne::ById(id))
     }
 
     pub fn all_charts() -> Self {
-        CoreChartOfAccountObject::ChartOfAccount(AllOrOne::All)
+        CoreChartOfAccountsObject::Chart(AllOrOne::All)
     }
 }
 
-impl Display for CoreChartOfAccountObject {
+impl Display for CoreChartOfAccountsObject {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let discriminant = CoreChartOfAccountObjectDiscriminants::from(self);
-        use CoreChartOfAccountObject::*;
+        let discriminant = CoreChartOfAccountsObjectDiscriminants::from(self);
+        use CoreChartOfAccountsObject::*;
         match self {
-            ChartOfAccount(obj_ref) => write!(f, "{}/{}", discriminant, obj_ref),
+            Chart(obj_ref) => write!(f, "{}/{}", discriminant, obj_ref),
         }
     }
 }
 
-impl FromStr for CoreChartOfAccountObject {
+impl FromStr for CoreChartOfAccountsObject {
     type Err = &'static str;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let (entity, id) = s.split_once('/').expect("missing slash");
-        use CoreChartOfAccountObjectDiscriminants::*;
+        use CoreChartOfAccountsObjectDiscriminants::*;
         let res = match entity.parse().expect("invalid entity") {
-            ChartOfAccount => {
+            Chart => {
                 let obj_ref = id
                     .parse()
                     .map_err(|_| "could not parse CoreChartOfAccountObject")?;
-                CoreChartOfAccountObject::ChartOfAccount(obj_ref)
+                CoreChartOfAccountsObject::Chart(obj_ref)
             }
         };
         Ok(res)
     }
 }
 
-impl CoreChartOfAccountAction {
-    pub const CHART_OF_ACCOUNT_CREATE: Self =
-        CoreChartOfAccountAction::ChartOfAccount(ChartOfAccountAction::Create);
-    pub const CHART_OF_ACCOUNT_LIST: Self =
-        CoreChartOfAccountAction::ChartOfAccount(ChartOfAccountAction::List);
-    pub const CHART_OF_ACCOUNT_CREATE_CONTROL_ACCOUNT: Self =
-        CoreChartOfAccountAction::ChartOfAccount(ChartOfAccountAction::CreateControlAccount);
-    pub const CHART_OF_ACCOUNT_CREATE_CONTROL_SUB_ACCOUNT: Self =
-        CoreChartOfAccountAction::ChartOfAccount(ChartOfAccountAction::CreateControlSubAccount);
-    pub const CHART_OF_ACCOUNT_CREATE_TRANSACTION_ACCOUNT: Self =
-        CoreChartOfAccountAction::ChartOfAccount(ChartOfAccountAction::CreateTransactionAccount);
-    pub const CHART_OF_ACCOUNT_FIND_TRANSACTION_ACCOUNT: Self =
-        CoreChartOfAccountAction::ChartOfAccount(ChartOfAccountAction::FindTransactionAccount);
+impl CoreChartOfAccountsAction {
+    pub const CHART_CREATE: Self = CoreChartOfAccountsAction::ChartAction(ChartAction::Create);
+    pub const CHART_LIST: Self = CoreChartOfAccountsAction::ChartAction(ChartAction::List);
+    pub const CHART_CREATE_CONTROL_ACCOUNT: Self =
+        CoreChartOfAccountsAction::ChartAction(ChartAction::CreateControlAccount);
+    pub const CHART_CREATE_CONTROL_SUB_ACCOUNT: Self =
+        CoreChartOfAccountsAction::ChartAction(ChartAction::CreateControlSubAccount);
+    pub const CHART_CREATE_TRANSACTION_ACCOUNT: Self =
+        CoreChartOfAccountsAction::ChartAction(ChartAction::CreateTransactionAccount);
+    pub const CHART_FIND_TRANSACTION_ACCOUNT: Self =
+        CoreChartOfAccountsAction::ChartAction(ChartAction::FindTransactionAccount);
 }
 
-impl Display for CoreChartOfAccountAction {
+impl Display for CoreChartOfAccountsAction {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}:", CoreChartOfAccountActionDiscriminants::from(self))?;
-        use CoreChartOfAccountAction::*;
+        write!(f, "{}:", CoreChartOfAccountsActionDiscriminants::from(self))?;
+        use CoreChartOfAccountsAction::*;
         match self {
-            ChartOfAccount(action) => action.fmt(f),
+            ChartAction(action) => action.fmt(f),
         }
     }
 }
 
-impl FromStr for CoreChartOfAccountAction {
+impl FromStr for CoreChartOfAccountsAction {
     type Err = strum::ParseError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let (entity, action) = s.split_once(':').expect("missing colon");
-        use CoreChartOfAccountActionDiscriminants::*;
         let res = match entity.parse()? {
-            ChartOfAccount => {
-                CoreChartOfAccountAction::from(action.parse::<ChartOfAccountAction>()?)
+            CoreChartOfAccountsActionDiscriminants::ChartAction => {
+                CoreChartOfAccountsAction::from(action.parse::<ChartAction>()?)
             }
         };
         Ok(res)
@@ -107,7 +104,7 @@ impl FromStr for CoreChartOfAccountAction {
 
 #[derive(PartialEq, Clone, Copy, Debug, strum::Display, strum::EnumString)]
 #[strum(serialize_all = "kebab-case")]
-pub enum ChartOfAccountAction {
+pub enum ChartAction {
     Create,
     List,
     CreateControlAccount,
@@ -116,9 +113,9 @@ pub enum ChartOfAccountAction {
     FindTransactionAccount,
 }
 
-impl From<ChartOfAccountAction> for CoreChartOfAccountAction {
-    fn from(action: ChartOfAccountAction) -> Self {
-        CoreChartOfAccountAction::ChartOfAccount(action)
+impl From<ChartAction> for CoreChartOfAccountsAction {
+    fn from(action: ChartAction) -> Self {
+        CoreChartOfAccountsAction::ChartAction(action)
     }
 }
 

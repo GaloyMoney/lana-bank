@@ -14,9 +14,8 @@ pub async fn init_pool() -> anyhow::Result<sqlx::PgPool> {
 async fn chart_of_accounts() -> anyhow::Result<()> {
     let pool = init_pool().await?;
 
-    let outbox = outbox::Outbox::<CoreChartOfAccountEvent>::init(&pool).await?;
     let authz =
-        authz::dummy::DummyPerms::<CoreChartOfAccountAction, CoreChartOfAccountObject>::new();
+        authz::dummy::DummyPerms::<CoreChartOfAccountsAction, CoreChartOfAccountsObject>::new();
 
     let cala_config = CalaLedgerConfig::builder()
         .pool(pool.clone())
@@ -24,8 +23,8 @@ async fn chart_of_accounts() -> anyhow::Result<()> {
         .build()?;
     let cala = CalaLedger::init(cala_config).await?;
 
-    let chart_of_accounts = CoreChartOfAccounts::init(&pool, &authz, &outbox, &cala).await?;
-    let chart_id = ChartOfAccountId::new();
+    let chart_of_accounts = CoreChartOfAccounts::init(&pool, &authz, &cala).await?;
+    let chart_id = ChartId::new();
     chart_of_accounts
         .create_chart(&DummySubject, chart_id)
         .await?;

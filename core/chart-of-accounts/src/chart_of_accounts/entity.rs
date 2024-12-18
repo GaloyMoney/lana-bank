@@ -7,17 +7,17 @@ use es_entity::*;
 
 use crate::{
     code::*,
-    primitives::{ChartOfAccountAccountDetails, ChartOfAccountId, LedgerAccountId},
+    primitives::{ChartId, ChartOfAccountAccountDetails, LedgerAccountId},
 };
 
 pub use super::error::*;
 
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
-#[es_event(id = "ChartOfAccountId")]
+#[es_event(id = "ChartId")]
 pub enum ChartOfAccountEvent {
     Initialized {
-        id: ChartOfAccountId,
+        id: ChartId,
         audit_info: AuditInfo,
     },
     ControlAccountAdded {
@@ -42,7 +42,7 @@ pub enum ChartOfAccountEvent {
 #[derive(EsEntity, Builder)]
 #[builder(pattern = "owned", build_fn(error = "EsEntityError"))]
 pub struct ChartOfAccount {
-    pub id: ChartOfAccountId,
+    pub id: ChartId,
     pub(super) events: EntityEvents<ChartOfAccountEvent>,
 }
 
@@ -209,7 +209,7 @@ impl TryFromEvents<ChartOfAccountEvent> for ChartOfAccount {
 #[derive(Debug, Builder)]
 pub struct NewChartOfAccount {
     #[builder(setter(into))]
-    pub(super) id: ChartOfAccountId,
+    pub(super) id: ChartId,
     #[builder(setter(into))]
     pub audit_info: AuditInfo,
 }
@@ -248,7 +248,7 @@ mod tests {
     }
 
     fn init_chart_of_events() -> ChartOfAccount {
-        let id = ChartOfAccountId::new();
+        let id = ChartId::new();
         let audit_info = dummy_audit_info();
 
         let new_chart = NewChartOfAccount::builder()
@@ -263,7 +263,7 @@ mod tests {
 
     #[test]
     fn test_create_new_chart_of_account() {
-        let id = ChartOfAccountId::new();
+        let id = ChartId::new();
         let audit_info = dummy_audit_info();
 
         let new_chart = NewChartOfAccount::builder()
