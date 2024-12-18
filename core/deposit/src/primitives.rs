@@ -49,8 +49,16 @@ impl CoreDepositObject {
         CoreDepositObject::Deposit(AllOrOne::All)
     }
 
+    pub fn deposit(id: DepositId) -> Self {
+        CoreDepositObject::Deposit(AllOrOne::ById(id))
+    }
+
     pub fn all_withdrawals() -> Self {
         CoreDepositObject::Withdrawal(AllOrOne::All)
+    }
+
+    pub fn withdrawal(id: WithdrawalId) -> Self {
+        CoreDepositObject::Withdrawal(AllOrOne::ById(id))
     }
 }
 
