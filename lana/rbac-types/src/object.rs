@@ -1,6 +1,7 @@
 use std::{fmt::Display, str::FromStr};
 
 use authz::AllOrOne;
+use chart_of_accounts::CoreChartOfAccountsObject;
 use core_user::UserObject;
 use dashboard::DashboardModuleObject;
 use deposit::CoreDepositObject;
@@ -14,6 +15,7 @@ pub enum LanaObject {
     App(AppObject),
     Governance(GovernanceObject),
     User(UserObject),
+    ChartOfAccounts(CoreChartOfAccountsObject),
     Deposit(CoreDepositObject),
     Dashboard(DashboardModuleObject),
 }
@@ -38,6 +40,11 @@ impl From<UserObject> for LanaObject {
         LanaObject::User(action)
     }
 }
+impl From<CoreChartOfAccountsObject> for LanaObject {
+    fn from(object: CoreChartOfAccountsObject) -> Self {
+        LanaObject::ChartOfAccounts(object)
+    }
+}
 impl From<CoreDepositObject> for LanaObject {
     fn from(object: CoreDepositObject) -> Self {
         LanaObject::Deposit(object)
@@ -52,6 +59,7 @@ impl Display for LanaObject {
             App(action) => action.fmt(f),
             Governance(action) => action.fmt(f),
             User(action) => action.fmt(f),
+            ChartOfAccounts(action) => action.fmt(f),
             Deposit(action) => action.fmt(f),
             Dashboard(action) => action.fmt(f),
         }
@@ -68,6 +76,7 @@ impl FromStr for LanaObject {
             App => LanaObject::from(object.parse::<AppObject>()?),
             Governance => LanaObject::from(object.parse::<GovernanceObject>()?),
             User => LanaObject::from(object.parse::<UserObject>()?),
+            ChartOfAccounts => LanaObject::from(object.parse::<CoreChartOfAccountsObject>()?),
             Deposit => LanaObject::from(object.parse::<CoreDepositObject>()?),
             Dashboard => LanaObject::from(
                 object

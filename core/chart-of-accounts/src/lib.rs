@@ -14,7 +14,6 @@ use tracing::instrument;
 
 use audit::AuditSvc;
 use authz::PermissionCheck;
-use outbox::{Outbox, OutboxEventMarker};
 
 use chart_of_accounts::*;
 use code::*;
@@ -22,43 +21,37 @@ use error::*;
 pub use event::*;
 pub use primitives::*;
 
-pub struct CoreChartOfAccounts<Perms, E>
+pub struct CoreChartOfAccounts<Perms>
 where
     Perms: PermissionCheck,
-    E: OutboxEventMarker<CoreChartOfAccountEvent>,
 {
     chart_of_account: ChartOfAccountRepo,
     ledger: ChartOfAccountLedger,
     authz: Perms,
-    outbox: Outbox<E>,
 }
 
-impl<Perms, E> Clone for CoreChartOfAccounts<Perms, E>
+impl<Perms> Clone for CoreChartOfAccounts<Perms>
 where
     Perms: PermissionCheck,
-    E: OutboxEventMarker<CoreChartOfAccountEvent>,
 {
     fn clone(&self) -> Self {
         Self {
             chart_of_account: self.chart_of_account.clone(),
             ledger: self.ledger.clone(),
             authz: self.authz.clone(),
-            outbox: self.outbox.clone(),
         }
     }
 }
 
-impl<Perms, E> CoreChartOfAccounts<Perms, E>
+impl<Perms> CoreChartOfAccounts<Perms>
 where
     Perms: PermissionCheck,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreChartOfAccountAction>,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreChartOfAccountObject>,
-    E: OutboxEventMarker<CoreChartOfAccountEvent>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreChartOfAccountsAction>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreChartOfAccountsObject>,
 {
     pub async fn init(
         pool: &sqlx::PgPool,
         authz: &Perms,
-        outbox: &Outbox<E>,
         cala: &CalaLedger,
     ) -> Result<Self, CoreChartOfAccountError> {
         let chart_of_account = ChartOfAccountRepo::new(pool);
@@ -67,7 +60,6 @@ where
             chart_of_account,
             ledger,
             authz: authz.clone(),
-            outbox: outbox.clone(),
         };
         Ok(res)
     }
@@ -76,15 +68,15 @@ where
     pub async fn create_chart(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        id: impl Into<ChartOfAccountId> + std::fmt::Debug,
+        id: impl Into<ChartId> + std::fmt::Debug,
     ) -> Result<ChartOfAccount, CoreChartOfAccountError> {
         let id = id.into();
         let audit_info = self
             .authz
             .enforce_permission(
                 sub,
-                CoreChartOfAccountObject::chart(id),
-                CoreChartOfAccountAction::CHART_OF_ACCOUNT_CREATE,
+                CoreChartOfAccountsObject::chart(id),
+                CoreChartOfAccountsAction::CHART_CREATE,
             )
             .await?;
 
@@ -112,8 +104,8 @@ where
         self.authz
             .enforce_permission(
                 sub,
-                CoreChartOfAccountObject::all_charts(),
-                CoreChartOfAccountAction::CHART_OF_ACCOUNT_LIST,
+                CoreChartOfAccountsObject::all_charts(),
+                CoreChartOfAccountsAction::CHART_LIST,
             )
             .await?;
 
@@ -128,7 +120,7 @@ where
     pub async fn create_control_account(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        chart_id: impl Into<ChartOfAccountId> + std::fmt::Debug,
+        chart_id: impl Into<ChartId> + std::fmt::Debug,
         category: ChartOfAccountCode,
         name: &str,
     ) -> Result<ChartOfAccountCode, CoreChartOfAccountError> {
@@ -137,8 +129,8 @@ where
             .authz
             .enforce_permission(
                 sub,
-                CoreChartOfAccountObject::chart(chart_id),
-                CoreChartOfAccountAction::CHART_OF_ACCOUNT_CREATE_CONTROL_ACCOUNT,
+                CoreChartOfAccountsObject::chart(chart_id),
+                CoreChartOfAccountsAction::CHART_CREATE_CONTROL_ACCOUNT,
             )
             .await?;
 
@@ -160,7 +152,7 @@ where
     pub async fn create_control_sub_account(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        chart_id: impl Into<ChartOfAccountId> + std::fmt::Debug,
+        chart_id: impl Into<ChartId> + std::fmt::Debug,
         control_account: ChartOfAccountCode,
         name: &str,
     ) -> Result<ChartOfAccountCode, CoreChartOfAccountError> {
@@ -169,8 +161,8 @@ where
             .authz
             .enforce_permission(
                 sub,
-                CoreChartOfAccountObject::chart(chart_id),
-                CoreChartOfAccountAction::CHART_OF_ACCOUNT_CREATE_CONTROL_SUB_ACCOUNT,
+                CoreChartOfAccountsObject::chart(chart_id),
+                CoreChartOfAccountsAction::CHART_CREATE_CONTROL_SUB_ACCOUNT,
             )
             .await?;
 
@@ -192,7 +184,7 @@ where
     pub async fn create_transaction_account(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        chart_id: impl Into<ChartOfAccountId> + std::fmt::Debug,
+        chart_id: impl Into<ChartId> + std::fmt::Debug,
         control_sub_account: ChartOfAccountCode,
         name: &str,
         description: &str,
@@ -202,8 +194,8 @@ where
             .authz
             .enforce_permission(
                 sub,
-                CoreChartOfAccountObject::chart(chart_id),
-                CoreChartOfAccountAction::CHART_OF_ACCOUNT_CREATE_TRANSACTION_ACCOUNT,
+                CoreChartOfAccountsObject::chart(chart_id),
+                CoreChartOfAccountsAction::CHART_CREATE_TRANSACTION_ACCOUNT,
             )
             .await?;
 
@@ -228,15 +220,15 @@ where
     pub async fn find_account_in_chart(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        chart_id: impl Into<ChartOfAccountId> + std::fmt::Debug,
+        chart_id: impl Into<ChartId> + std::fmt::Debug,
         code: impl Into<ChartOfAccountCode> + std::fmt::Debug,
     ) -> Result<Option<ChartOfAccountAccountDetails>, CoreChartOfAccountError> {
         let chart_id = chart_id.into();
         self.authz
             .enforce_permission(
                 sub,
-                CoreChartOfAccountObject::chart(chart_id),
-                CoreChartOfAccountAction::CHART_OF_ACCOUNT_FIND_TRANSACTION_ACCOUNT,
+                CoreChartOfAccountsObject::chart(chart_id),
+                CoreChartOfAccountsAction::CHART_FIND_TRANSACTION_ACCOUNT,
             )
             .await?;
 
