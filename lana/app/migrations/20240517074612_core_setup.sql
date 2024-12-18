@@ -46,6 +46,21 @@ CREATE TABLE approval_process_events (
   UNIQUE(id, sequence)
 );
 
+CREATE TABLE core_chart_of_accounts (
+  id UUID PRIMARY KEY,
+  created_at TIMESTAMPTZ NOT NULL
+);
+
+CREATE TABLE core_chart_of_account_events (
+  id UUID NOT NULL REFERENCES core_chart_of_accounts(id),
+  sequence INT NOT NULL,
+  event_type VARCHAR NOT NULL,
+  event JSONB NOT NULL,
+  recorded_at TIMESTAMPTZ NOT NULL,
+  UNIQUE(id, sequence)
+);
+
+
 CREATE TABLE deposit_accounts (
   id UUID PRIMARY KEY,
   account_holder_id UUID NOT NULL,
