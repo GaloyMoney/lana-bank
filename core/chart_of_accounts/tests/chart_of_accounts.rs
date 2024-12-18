@@ -24,7 +24,7 @@ async fn chart_of_accounts() -> anyhow::Result<()> {
         .build()?;
     let cala = CalaLedger::init(cala_config).await?;
 
-    let chart_of_accounts = CoreChartOfAccount::init(&pool, &authz, &outbox, &cala).await?;
+    let chart_of_accounts = CoreChartOfAccounts::init(&pool, &authz, &outbox, &cala).await?;
     let chart_id = ChartOfAccountId::new();
     chart_of_accounts
         .create_chart(&DummySubject, chart_id)
