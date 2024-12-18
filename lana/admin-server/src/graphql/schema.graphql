@@ -218,11 +218,6 @@ type ChartOfAccounts {
 	categories: [StatementCategory!]!
 }
 
-type Checking {
-	settled: UsdCents!
-	pending: UsdCents!
-}
-
 type Collateral {
 	btcBalance: Satoshis!
 }
@@ -637,7 +632,8 @@ type DepositAccount {
 }
 
 type DepositAccountBalance {
-	checking: Checking!
+	settled: UsdCents!
+	pending: UsdCents!
 }
 
 type DepositConnection {
