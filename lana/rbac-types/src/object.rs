@@ -3,6 +3,7 @@ use std::{fmt::Display, str::FromStr};
 use authz::AllOrOne;
 use core_user::UserObject;
 use dashboard::DashboardModuleObject;
+use deposit::CoreDepositObject;
 use governance::GovernanceObject;
 use lana_ids::CustomerId;
 
@@ -13,6 +14,7 @@ pub enum LanaObject {
     App(AppObject),
     Governance(GovernanceObject),
     User(UserObject),
+    Deposit(CoreDepositObject),
     Dashboard(DashboardModuleObject),
 }
 
@@ -36,6 +38,11 @@ impl From<UserObject> for LanaObject {
         LanaObject::User(action)
     }
 }
+impl From<CoreDepositObject> for LanaObject {
+    fn from(object: CoreDepositObject) -> Self {
+        LanaObject::Deposit(object)
+    }
+}
 
 impl Display for LanaObject {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -45,6 +52,7 @@ impl Display for LanaObject {
             App(action) => action.fmt(f),
             Governance(action) => action.fmt(f),
             User(action) => action.fmt(f),
+            Deposit(action) => action.fmt(f),
             Dashboard(action) => action.fmt(f),
         }
     }
@@ -60,6 +68,7 @@ impl FromStr for LanaObject {
             App => LanaObject::from(object.parse::<AppObject>()?),
             Governance => LanaObject::from(object.parse::<GovernanceObject>()?),
             User => LanaObject::from(object.parse::<UserObject>()?),
+            Deposit => LanaObject::from(object.parse::<CoreDepositObject>()?),
             Dashboard => LanaObject::from(
                 object
                     .parse::<DashboardModuleObject>()

@@ -1,4 +1,3 @@
-mod balance;
 mod error;
 
 use async_graphql::*;
@@ -6,8 +5,7 @@ use async_graphql::*;
 use crate::primitives::*;
 
 use super::{
-    credit_facility::*, deposit::*, document::Document, primitives::SortDirection,
-    withdrawal::Withdrawal,
+    credit_facility::*, deposit_account::*, document::Document, primitives::SortDirection,
 };
 
 pub use lana_app::{
@@ -18,7 +16,6 @@ pub use lana_app::{
     },
 };
 
-pub use balance::*;
 pub use error::*;
 
 #[derive(SimpleObject, Clone)]
@@ -61,37 +58,14 @@ impl Customer {
         self.entity.applicant_id.as_deref()
     }
 
-    async fn balance(&self, ctx: &Context<'_>) -> async_graphql::Result<CustomerBalance> {
-        let app = ctx.data_unchecked::<LanaApp>();
-        let balance = app
-            .ledger()
-            .get_customer_balance(self.entity.account_ids)
-            .await?;
-        Ok(CustomerBalance::from(balance))
-    }
-
-    async fn deposits(&self, ctx: &Context<'_>) -> async_graphql::Result<Vec<Deposit>> {
+    async fn deposit_account(&self, ctx: &Context<'_>) -> async_graphql::Result<DepositAccount> {
         let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
-        let deposits = app
+        let account = app
             .deposits()
-            .list_for_customer(sub, self.entity.id)
+            .find_account_for_account_holder(sub, self.customer_id)
             .await?
-            .into_iter()
-            .map(Deposit::from)
-            .collect();
-        Ok(deposits)
-    }
-
-    async fn withdrawals(&self, ctx: &Context<'_>) -> async_graphql::Result<Vec<Withdrawal>> {
-        let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
-        let withdraws = app
-            .withdrawals()
-            .list_for_customer(sub, self.entity.id)
-            .await?
-            .into_iter()
-            .map(Withdrawal::from)
-            .collect();
-        Ok(withdraws)
+            .expect("deposit account should exist for a customer");
+        Ok(DepositAccount::from(account))
     }
 
     async fn credit_facilities(
@@ -141,22 +115,22 @@ impl Customer {
             .is_ok())
     }
 
-    async fn subject_can_record_deposit(&self, ctx: &Context<'_>) -> async_graphql::Result<bool> {
-        let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
-        Ok(app.deposits().subject_can_record(sub, false).await.is_ok())
-    }
+    // async fn subject_can_record_deposit(&self, ctx: &Context<'_>) -> async_graphql::Result<bool> {
+    //     let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
+    //     Ok(app.deposits().subject_can_record(sub, false).await.is_ok())
+    // }
 
-    async fn subject_can_initiate_withdrawal(
-        &self,
-        ctx: &Context<'_>,
-    ) -> async_graphql::Result<bool> {
-        let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
-        Ok(app
-            .withdrawals()
-            .subject_can_initiate(sub, false)
-            .await
-            .is_ok())
-    }
+    // async fn subject_can_initiate_withdrawal(
+    //     &self,
+    //     ctx: &Context<'_>,
+    // ) -> async_graphql::Result<bool> {
+    //     let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
+    //     Ok(app
+    //         .withdrawals()
+    //         .subject_can_initiate(sub, false)
+    //         .await
+    //         .is_ok())
+    // }
 }
 
 #[derive(InputObject)]

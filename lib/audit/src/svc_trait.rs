@@ -9,10 +9,17 @@ pub trait SystemSubject {
 }
 
 #[async_trait]
-pub trait AuditSvc: Clone + Sync {
-    type Subject: FromStr + fmt::Display + fmt::Debug + Clone + Send + Sync + SystemSubject;
-    type Object: FromStr + fmt::Display + fmt::Debug + Copy + Send + Sync;
-    type Action: FromStr + fmt::Display + fmt::Debug + Copy + Send + Sync;
+pub trait AuditSvc: Clone + Sync + Send + 'static {
+    type Subject: FromStr
+        + fmt::Display
+        + fmt::Debug
+        + Clone
+        + Send
+        + Sync
+        + SystemSubject
+        + 'static;
+    type Object: FromStr + fmt::Display + fmt::Debug + Copy + Send + Sync + 'static;
+    type Action: FromStr + fmt::Display + fmt::Debug + Copy + Send + Sync + 'static;
 
     fn pool(&self) -> &sqlx::PgPool;
 

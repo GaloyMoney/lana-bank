@@ -3,12 +3,21 @@ use serde::{Deserialize, Serialize};
 
 use es_entity::*;
 
-#[cfg(feature = "governance")]
-use crate::primitives::ApprovalProcessId;
-use crate::primitives::{DepositAccountId, LedgerTransactionId, WithdrawalId};
+use crate::primitives::{
+    ApprovalProcessId, DepositAccountId, LedgerTransactionId, UsdCents, WithdrawalId,
+};
 use audit::AuditInfo;
 
 use super::error::WithdrawalError;
+
+#[derive(async_graphql::Enum, Debug, Copy, Clone, Serialize, Deserialize, Eq, PartialEq)]
+pub enum WithdrawalStatus {
+    PendingApproval,
+    PendingConfirmation,
+    Confirmed,
+    Denied,
+    Cancelled,
+}
 
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
@@ -17,15 +26,14 @@ pub enum WithdrawalEvent {
     Initialized {
         id: WithdrawalId,
         deposit_account_id: DepositAccountId,
+        amount: UsdCents,
         reference: String,
         audit_info: AuditInfo,
     },
-    #[cfg(feature = "governance")]
     ApprovalProcessStarted {
         approval_process_id: ApprovalProcessId,
         audit_info: AuditInfo,
     },
-    #[cfg(feature = "governance")]
     ApprovalProcessConcluded {
         approval_process_id: ApprovalProcessId,
         approved: bool,
@@ -47,8 +55,9 @@ pub struct Withdrawal {
     pub id: WithdrawalId,
     pub deposit_account_id: DepositAccountId,
     pub reference: String,
-    #[cfg(feature = "governance")]
+    pub amount: UsdCents,
     pub approval_process_id: ApprovalProcessId,
+
     pub(super) events: EntityEvents<WithdrawalEvent>,
 }
 
@@ -86,13 +95,33 @@ impl Withdrawal {
         Ok(ledger_tx_id)
     }
 
+    pub fn cancel(
+        &mut self,
+        audit_info: AuditInfo,
+    ) -> Result<LedgerTransactionId, WithdrawalError> {
+        if self.is_confirmed() {
+            return Err(WithdrawalError::AlreadyConfirmed(self.id));
+        }
+
+        if self.is_cancelled() {
+            return Err(WithdrawalError::AlreadyCancelled(self.id));
+        }
+
+        let ledger_tx_id = LedgerTransactionId::new();
+        self.events.push(WithdrawalEvent::Cancelled {
+            ledger_tx_id,
+            audit_info,
+        });
+        Ok(ledger_tx_id)
+    }
+
     fn is_confirmed(&self) -> bool {
         self.events
             .iter_all()
             .any(|e| matches!(e, WithdrawalEvent::Confirmed { .. }))
     }
 
-    pub(super) fn is_approved_or_denied(&self) -> Option<bool> {
+    pub fn is_approved_or_denied(&self) -> Option<bool> {
         self.events.iter_all().find_map(|e| {
             if let WithdrawalEvent::ApprovalProcessConcluded { approved, .. } = e {
                 Some(*approved)
@@ -107,6 +136,37 @@ impl Withdrawal {
             .iter_all()
             .any(|e| matches!(e, WithdrawalEvent::Cancelled { .. }))
     }
+
+    pub fn status(&self) -> WithdrawalStatus {
+        if self.is_confirmed() {
+            WithdrawalStatus::Confirmed
+        } else if self.is_cancelled() {
+            WithdrawalStatus::Cancelled
+        } else {
+            match self.is_approved_or_denied() {
+                Some(true) => WithdrawalStatus::PendingConfirmation,
+                Some(false) => WithdrawalStatus::Denied,
+                None => WithdrawalStatus::PendingApproval,
+            }
+        }
+    }
+
+    pub fn approval_process_concluded(
+        &mut self,
+        approved: bool,
+        audit_info: AuditInfo,
+    ) -> Idempotent<()> {
+        idempotency_guard!(
+            self.events.iter_all(),
+            WithdrawalEvent::ApprovalProcessConcluded { .. }
+        );
+        self.events.push(WithdrawalEvent::ApprovalProcessConcluded {
+            approval_process_id: self.id.into(),
+            approved,
+            audit_info,
+        });
+        Idempotent::Executed(())
+    }
 }
 
 impl TryFromEvents<WithdrawalEvent> for Withdrawal {
@@ -118,14 +178,15 @@ impl TryFromEvents<WithdrawalEvent> for Withdrawal {
                     id,
                     reference,
                     deposit_account_id,
+                    amount,
                     ..
                 } => {
                     builder = builder
                         .id(*id)
                         .deposit_account_id(*deposit_account_id)
+                        .amount(*amount)
                         .reference(reference.clone());
                 }
-                #[cfg(feature = "governance")]
                 WithdrawalEvent::ApprovalProcessStarted {
                     approval_process_id,
                     ..
@@ -143,7 +204,8 @@ pub struct NewWithdrawal {
     pub(super) id: WithdrawalId,
     #[builder(setter(into))]
     pub(super) deposit_account_id: DepositAccountId,
-    #[cfg(feature = "governance")]
+    #[builder(setter(into))]
+    pub(super) amount: UsdCents,
     #[builder(setter(into))]
     pub(super) approval_process_id: ApprovalProcessId,
     reference: Option<String>,
@@ -174,9 +236,9 @@ impl IntoEvents<WithdrawalEvent> for NewWithdrawal {
                     reference: self.reference(),
                     id: self.id,
                     deposit_account_id: self.deposit_account_id,
+                    amount: self.amount,
                     audit_info: self.audit_info.clone(),
                 },
-                #[cfg(feature = "governance")]
                 WithdrawalEvent::ApprovalProcessStarted {
                     approval_process_id: self.approval_process_id,
                     audit_info: self.audit_info,

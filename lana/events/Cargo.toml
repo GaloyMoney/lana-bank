@@ -11,6 +11,7 @@ fail-on-warnings = []
 governance = { path = "../../core/governance" }
 core-user = { path = "../../core/user" }
 core-money = { path = "../../core/money" }
+deposit = { path = "../../core/deposit" }
 outbox = { path = "../../lib/outbox" }
 lana-ids = { path = "../ids" }
 

@@ -13,6 +13,7 @@ dashboard = { path = "../dashboard" }
 
 governance = { path = "../../core/governance" }
 core-user = { path = "../../core/user" }
+deposit = { path = "../../core/deposit" }
 audit = { path = "../../lib/audit" }
 authz = { path = "../../lib/authz" }
 

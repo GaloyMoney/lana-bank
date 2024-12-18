@@ -4,15 +4,6 @@ mutation WithdrawalInitiate($input: WithdrawalInitiateInput!) {
       withdrawalId
       approvalProcessId
       status
-      customer {
-        customerId
-        balance {
-          checking {
-            settled
-            pending
-          }
-        }
-      }
     }
   }
 }

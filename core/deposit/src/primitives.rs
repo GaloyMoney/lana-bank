@@ -2,8 +2,7 @@ use std::{fmt::Display, str::FromStr};
 
 use authz::AllOrOne;
 
-#[cfg(feature = "governance")]
-pub use governance::ApprovalProcessId;
+pub use governance::{ApprovalProcessId, GovernanceAction, GovernanceObject};
 
 pub use cala_ledger::primitives::{
     AccountId as LedgerAccountId, JournalId as LedgerJournalId,
@@ -18,8 +17,8 @@ es_entity::entity_id! {
 
     DepositAccountId => LedgerAccountId,
     DepositId => LedgerTransactionId,
-    WithdrawalId => LedgerTransactionId
-
+    WithdrawalId => LedgerTransactionId,
+    WithdrawalId => ApprovalProcessId
 }
 
 pub use core_money::UsdCents;
@@ -109,12 +108,22 @@ pub enum CoreDepositAction {
 impl CoreDepositAction {
     pub const DEPOSIT_ACCOUNT_CREATE: Self =
         CoreDepositAction::DepositAccount(DepositAccountAction::Create);
-
     pub const DEPOSIT_ACCOUNT_READ_BALANCE: Self =
         CoreDepositAction::DepositAccount(DepositAccountAction::ReadBalance);
+    pub const DEPOSIT_ACCOUNT_READ: Self =
+        CoreDepositAction::DepositAccount(DepositAccountAction::Read);
 
     pub const DEPOSIT_CREATE: Self = CoreDepositAction::Deposit(DepositAction::Create);
+    pub const DEPOSIT_READ: Self = CoreDepositAction::Deposit(DepositAction::Read);
+    pub const DEPOSIT_LIST: Self = CoreDepositAction::Deposit(DepositAction::List);
+
     pub const WITHDRAWAL_INITIATE: Self = CoreDepositAction::Withdrawal(WithdrawalAction::Initiate);
+    pub const WITHDRAWAL_CONCLUDE_APPROVAL_PROCESS: Self =
+        CoreDepositAction::Withdrawal(WithdrawalAction::ConcludeApprovalProcess);
+    pub const WITHDRAWAL_CANCEL: Self = CoreDepositAction::Withdrawal(WithdrawalAction::Cancel);
+    pub const WITHDRAWAL_CONFIRM: Self = CoreDepositAction::Withdrawal(WithdrawalAction::Confirm);
+    pub const WITHDRAWAL_READ: Self = CoreDepositAction::Withdrawal(WithdrawalAction::Read);
+    pub const WITHDRAWAL_LIST: Self = CoreDepositAction::Withdrawal(WithdrawalAction::List);
 }
 
 impl Display for CoreDepositAction {
@@ -140,6 +149,7 @@ impl FromStr for CoreDepositAction {
             Deposit => CoreDepositAction::from(action.parse::<DepositAction>()?),
             Withdrawal => CoreDepositAction::from(action.parse::<WithdrawalAction>()?),
         };
+
         Ok(res)
     }
 }
@@ -149,6 +159,7 @@ impl FromStr for CoreDepositAction {
 pub enum DepositAccountAction {
     Create,
     ReadBalance,
+    Read,
 }
 
 impl From<DepositAccountAction> for CoreDepositAction {
@@ -161,6 +172,8 @@ impl From<DepositAccountAction> for CoreDepositAction {
 #[strum(serialize_all = "kebab-case")]
 pub enum DepositAction {
     Create,
+    Read,
+    List,
 }
 
 impl From<DepositAction> for CoreDepositAction {
@@ -173,6 +186,11 @@ impl From<DepositAction> for CoreDepositAction {
 #[strum(serialize_all = "kebab-case")]
 pub enum WithdrawalAction {
     Initiate,
+    Cancel,
+    Confirm,
+    ConcludeApprovalProcess,
+    Read,
+    List,
 }
 
 impl From<WithdrawalAction> for CoreDepositAction {

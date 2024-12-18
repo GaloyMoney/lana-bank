@@ -2,7 +2,7 @@ use async_graphql::dataloader::{DataLoader, Loader};
 
 use std::collections::HashMap;
 
-use lana_app::{app::LanaApp, user::error::UserError};
+use lana_app::{app::LanaApp, deposit::error::CoreDepositError, user::error::UserError};
 
 use crate::primitives::*;
 
@@ -104,15 +104,15 @@ impl Loader<CustomerId> for LanaLoader {
 
 impl Loader<WithdrawalId> for LanaLoader {
     type Value = Withdrawal;
-    type Error = Arc<lana_app::withdrawal::error::WithdrawalError>;
+    type Error = Arc<CoreDepositError>;
 
     async fn load(
         &self,
         keys: &[WithdrawalId],
     ) -> Result<HashMap<WithdrawalId, Withdrawal>, Self::Error> {
         self.app
-            .withdrawals()
-            .find_all(keys)
+            .deposits()
+            .find_all_withdrawals(keys)
             .await
             .map_err(Arc::new)
     }
@@ -120,10 +120,14 @@ impl Loader<WithdrawalId> for LanaLoader {
 
 impl Loader<DepositId> for LanaLoader {
     type Value = Deposit;
-    type Error = Arc<lana_app::deposit::error::DepositError>;
+    type Error = Arc<CoreDepositError>;
 
     async fn load(&self, keys: &[DepositId]) -> Result<HashMap<DepositId, Deposit>, Self::Error> {
-        self.app.deposits().find_all(keys).await.map_err(Arc::new)
+        self.app
+            .deposits()
+            .find_all_deposits(keys)
+            .await
+            .map_err(Arc::new)
     }
 }
 

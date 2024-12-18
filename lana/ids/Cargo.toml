@@ -10,6 +10,7 @@ graphql = []
 
 [dependencies]
 governance = { path = "../../core/governance", features = ["graphql"] }
+deposit = { path = "../../core/deposit", features = ["graphql"] }
 
 job = { path = "../../lib/job" }
 
