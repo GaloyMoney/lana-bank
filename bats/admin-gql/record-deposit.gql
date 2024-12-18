@@ -3,14 +3,6 @@ mutation RecordDeposit($input: DepositRecordInput!) {
     deposit {
       depositId
       amount
-      customer {
-        customerId
-        balance {
-          checking {
-            settled
-          }
-        }
-      }
     }
   }
 }

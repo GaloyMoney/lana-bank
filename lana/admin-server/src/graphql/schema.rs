@@ -109,7 +109,11 @@ impl Query {
         id: UUID,
     ) -> async_graphql::Result<Option<Withdrawal>> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
-        maybe_fetch_one!(Withdrawal, ctx, app.withdrawals().find_by_id(sub, id))
+        maybe_fetch_one!(
+            Withdrawal,
+            ctx,
+            app.deposits().find_withdrawal_by_id(sub, id)
+        )
     }
 
     async fn withdrawals(
@@ -127,13 +131,13 @@ impl Query {
             ctx,
             after,
             first,
-            |query| app.withdrawals().list(sub, query)
+            |query| app.deposits().list_withdrawals(sub, query)
         )
     }
 
     async fn deposit(&self, ctx: &Context<'_>, id: UUID) -> async_graphql::Result<Option<Deposit>> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
-        maybe_fetch_one!(Deposit, ctx, app.deposits().find_by_id(sub, id))
+        maybe_fetch_one!(Deposit, ctx, app.deposits().find_deposit_by_id(sub, id))
     }
     async fn deposits(
         &self,
@@ -150,7 +154,7 @@ impl Query {
             ctx,
             after,
             first,
-            |query| app.deposits().list(sub, query)
+            |query| app.deposits().list_deposits(sub, query)
         )
     }
 
@@ -666,8 +670,12 @@ impl Mutation {
             DepositRecordPayload,
             Deposit,
             ctx,
-            app.deposits()
-                .record(sub, input.customer_id, input.amount, input.reference)
+            app.deposits().record_deposit(
+                sub,
+                input.deposit_account_id,
+                input.amount,
+                input.reference
+            )
         )
     }
 
@@ -681,8 +689,12 @@ impl Mutation {
             WithdrawalInitiatePayload,
             Withdrawal,
             ctx,
-            app.withdrawals()
-                .initiate(sub, input.customer_id, input.amount, input.reference)
+            app.deposits().initiate_withdrawal(
+                sub,
+                input.deposit_account_id,
+                input.amount,
+                input.reference
+            )
         )
     }
 
@@ -696,7 +708,7 @@ impl Mutation {
             WithdrawalConfirmPayload,
             Withdrawal,
             ctx,
-            app.withdrawals().confirm(sub, input.withdrawal_id)
+            app.deposits().confirm_withdrawal(sub, input.withdrawal_id)
         )
     }
 
@@ -710,7 +722,7 @@ impl Mutation {
             WithdrawalCancelPayload,
             Withdrawal,
             ctx,
-            app.withdrawals().cancel(sub, input.withdrawal_id)
+            app.deposits().cancel_withdrawal(sub, input.withdrawal_id)
         )
     }
 

@@ -31,9 +31,9 @@ impl<S, O, A> Audit<S, O, A> {
 
 impl<S, O, A> AuditSvc for Audit<S, O, A>
 where
-    S: FromStr + fmt::Display + fmt::Debug + Clone + Sync + Send + SystemSubject,
-    O: FromStr + fmt::Display + fmt::Debug + Copy + Send + Sync,
-    A: FromStr + fmt::Display + fmt::Debug + Copy + Send + Sync,
+    S: FromStr + fmt::Display + fmt::Debug + Clone + Sync + Send + SystemSubject + 'static,
+    O: FromStr + fmt::Display + fmt::Debug + Copy + Send + Sync + 'static,
+    A: FromStr + fmt::Display + fmt::Debug + Copy + Send + Sync + 'static,
 {
     type Subject = S;
     type Object = O;

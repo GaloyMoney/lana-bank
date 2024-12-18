@@ -1,7 +1,5 @@
 es_entity::entity_id! {
     CustomerId,
-    WithdrawalId,
-    DepositId,
     DocumentId,
     CreditFacilityId,
     DisbursalId,
@@ -9,11 +7,11 @@ es_entity::entity_id! {
     TermsTemplateId,
     ReportId;
 
-    WithdrawalId => governance::ApprovalProcessId,
     CreditFacilityId => governance::ApprovalProcessId,
     DisbursalId => governance::ApprovalProcessId,
 
     ReportId => job::JobId,
     CreditFacilityId => job::JobId,
     InterestAccrualId => job::JobId,
+    CustomerId => deposit::DepositAccountHolderId,
 }

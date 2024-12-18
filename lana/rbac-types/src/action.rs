@@ -2,6 +2,7 @@ use std::{fmt::Display, str::FromStr};
 
 use core_user::CoreUserAction;
 use dashboard::DashboardModuleAction;
+use deposit::CoreDepositAction;
 use governance::GovernanceAction;
 
 #[derive(Clone, Copy, Debug, PartialEq, strum::EnumDiscriminants)]
@@ -12,6 +13,7 @@ pub enum LanaAction {
     Governance(GovernanceAction),
     User(CoreUserAction),
     Dashboard(DashboardModuleAction),
+    Deposit(CoreDepositAction),
 }
 
 impl From<AppAction> for LanaAction {
@@ -34,6 +36,11 @@ impl From<CoreUserAction> for LanaAction {
         LanaAction::User(action)
     }
 }
+impl From<CoreDepositAction> for LanaAction {
+    fn from(action: CoreDepositAction) -> Self {
+        LanaAction::Deposit(action)
+    }
+}
 
 impl Display for LanaAction {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -44,6 +51,7 @@ impl Display for LanaAction {
             Governance(action) => action.fmt(f),
             User(action) => action.fmt(f),
             Dashboard(action) => action.fmt(f),
+            Deposit(action) => action.fmt(f),
         }
     }
 }
@@ -59,6 +67,7 @@ impl FromStr for LanaAction {
             Governance => LanaAction::from(action.parse::<GovernanceAction>()?),
             User => LanaAction::from(action.parse::<CoreUserAction>()?),
             Dashboard => LanaAction::from(action.parse::<DashboardModuleAction>()?),
+            Deposit => LanaAction::from(action.parse::<CoreDepositAction>()?),
         };
         Ok(res)
     }

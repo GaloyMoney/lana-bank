@@ -27,6 +27,7 @@ CREATE TABLE cala_account_events (
 CREATE TABLE cala_journals (
   id UUID PRIMARY KEY,
   name VARCHAR NOT NULL,
+  code VARCHAR UNIQUE DEFAULT NULL,
   data_source_id UUID NOT NULL,
   created_at TIMESTAMPTZ NOT NULL
 );
@@ -78,7 +79,7 @@ CREATE TABLE cala_account_set_member_account_sets (
 CREATE TABLE cala_tx_templates (
   id UUID PRIMARY KEY,
   data_source_id UUID NOT NULL,
-  code VARCHAR NOT NULL, 
+  code VARCHAR UNIQUE NOT NULL,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
@@ -95,14 +96,13 @@ CREATE TABLE cala_tx_template_events (
 CREATE TABLE cala_transactions (
   id UUID PRIMARY KEY,
   data_source_id UUID NOT NULL,
-  journal_id UUID NOT NULL,
-  tx_template_id UUID NOT NULL,
-  external_id VARCHAR DEFAULT NULL,
+  journal_id UUID NOT NULL REFERENCES cala_journals(id),
+  tx_template_id UUID NOT NULL REFERENCES cala_tx_templates(id),
+  external_id VARCHAR DEFAULT NULL UNIQUE,
   correlation_id VARCHAR NOT NULL,
-  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  FOREIGN KEY (journal_id) REFERENCES cala_journals(id),
-  FOREIGN KEY (tx_template_id) REFERENCES cala_tx_templates(id)
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
+CREATE INDEX idx_cala_transactions_correlation_id ON cala_transactions (correlation_id);
 
 CREATE TABLE cala_transaction_events (
   id UUID NOT NULL REFERENCES cala_transactions(id),
