@@ -65,3 +65,8 @@ pub mod deposit {
     pub type Deposits =
         deposit::CoreDeposit<crate::authorization::Authorization, lana_events::LanaEvent>;
 }
+
+pub mod chart_of_accounts {
+    pub type ChartOfAccounts =
+        chart_of_accounts::CoreChartOfAccounts<crate::authorization::Authorization>;
+}

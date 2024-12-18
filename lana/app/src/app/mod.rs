@@ -10,6 +10,7 @@ use crate::{
     applicant::Applicants,
     audit::{Audit, AuditCursor, AuditEntry},
     authorization::{init as init_authz, AppAction, AppObject, AuditAction, Authorization},
+    chart_of_accounts::ChartOfAccounts,
     credit_facility::CreditFacilities,
     customer::Customers,
     dashboard::Dashboard,
@@ -52,6 +53,7 @@ pub struct LanaApp {
     _outbox: Outbox,
     governance: Governance,
     dashboard: Dashboard,
+    _chart_of_accounts: ChartOfAccounts,
 }
 
 impl LanaApp {
@@ -66,17 +68,6 @@ impl LanaApp {
         let dashboard = Dashboard::init(&pool, &authz, &jobs, &outbox).await?;
         let governance = Governance::new(&pool, &authz, &outbox);
         let ledger = Ledger::init(config.ledger, &authz).await?;
-        // let withdrawals = Withdrawals::init(
-        //     &pool,
-        //     &customers,
-        //     &ledger,
-        //     &authz,
-        //     &export,
-        //     &governance,
-        //     &jobs,
-        //     &outbox,
-        // )
-        // .await?;
         let price = Price::init(&jobs, &export).await?;
         let storage = Storage::new(&config.storage);
         let documents = Documents::new(&pool, &storage, &authz);
@@ -89,6 +80,7 @@ impl LanaApp {
             .expect("cala config");
         let cala = cala_ledger::CalaLedger::init(cala_config).await?;
         let journal_id = Self::create_journal(&cala).await?;
+        let chart_of_accounts = ChartOfAccounts::init(&pool, &authz, &cala).await?;
         let deposits = Deposits::init(
             &pool,
             &authz,
@@ -139,6 +131,7 @@ impl LanaApp {
             _outbox: outbox,
             governance,
             dashboard,
+            _chart_of_accounts: chart_of_accounts,
         })
     }
 

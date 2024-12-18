@@ -2,7 +2,7 @@ use sqlx::PgPool;
 
 use es_entity::*;
 
-use crate::primitives::ChartOfAccountId;
+use crate::primitives::ChartId as ChartOfAccountId;
 
 use super::entity::*;
 
