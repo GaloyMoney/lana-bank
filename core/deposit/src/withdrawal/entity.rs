@@ -10,7 +10,7 @@ use audit::AuditInfo;
 
 use super::error::WithdrawalError;
 
-#[derive(Debug, Copy, Clone, Serialize, Deserialize, Eq, PartialEq)]
+#[derive(async_graphql::Enum, Debug, Copy, Clone, Serialize, Deserialize, Eq, PartialEq)]
 pub enum WithdrawalStatus {
     PendingApproval,
     PendingConfirmation,
@@ -30,12 +30,10 @@ pub enum WithdrawalEvent {
         reference: String,
         audit_info: AuditInfo,
     },
-    #[cfg(feature = "governance")]
     ApprovalProcessStarted {
         approval_process_id: ApprovalProcessId,
         audit_info: AuditInfo,
     },
-    #[cfg(feature = "governance")]
     ApprovalProcessConcluded {
         approval_process_id: ApprovalProcessId,
         approved: bool,
@@ -241,7 +239,6 @@ impl IntoEvents<WithdrawalEvent> for NewWithdrawal {
                     amount: self.amount,
                     audit_info: self.audit_info.clone(),
                 },
-                #[cfg(feature = "governance")]
                 WithdrawalEvent::ApprovalProcessStarted {
                     approval_process_id: self.approval_process_id,
                     audit_info: self.audit_info,

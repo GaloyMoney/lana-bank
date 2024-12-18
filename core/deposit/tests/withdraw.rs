@@ -56,14 +56,14 @@ async fn cancel_withdrawal() -> anyhow::Result<()> {
         .initiate_withdrawal(&DummySubject, account.id, withdrawal_amount, None)
         .await?;
 
-    let balance = deposit.balance(&DummySubject, account.id).await?;
+    let balance = deposit.account_balance(&DummySubject, account.id).await?;
     assert_eq!(balance.settled, deposit_amount - withdrawal_amount);
     assert_eq!(balance.pending, withdrawal_amount);
 
     deposit
         .cancel_withdrawal(&DummySubject, withdrawal.id)
         .await?;
-    let balance = deposit.balance(&DummySubject, account.id).await?;
+    let balance = deposit.account_balance(&DummySubject, account.id).await?;
     assert_eq!(balance.settled, deposit_amount);
 
     Ok(())

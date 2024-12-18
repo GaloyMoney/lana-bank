@@ -19,8 +19,8 @@ use tracing::instrument;
 use crate::{
     authorization::{Authorization, LedgerAction, Object},
     primitives::{
-        CollateralAction, CreditFacilityId, CustomerId, DepositId, LedgerAccountId,
-        LedgerAccountSetId, LedgerTxId, LedgerTxTemplateId, Subject, UsdCents, WithdrawalId,
+        CollateralAction, CreditFacilityId, CustomerId, LedgerAccountSetId, LedgerTxTemplateId,
+        Subject, UsdCents,
     },
 };
 
@@ -95,90 +95,6 @@ impl Ledger {
             .cala
             .execute_add_equity_tx(amount.to_usd(), reference)
             .await?)
-    }
-
-    #[instrument(name = "lana.ledger.record_deposit_for_customer", skip(self), err)]
-    pub async fn record_deposit_for_customer(
-        &self,
-        deposit_id: DepositId,
-        customer_account_ids: CustomerLedgerAccountIds,
-        amount: UsdCents,
-        external_id: String,
-    ) -> Result<DepositId, LedgerError> {
-        self.cala
-            .execute_deposit_checking_tx(
-                LedgerTxId::from(uuid::Uuid::from(deposit_id)),
-                customer_account_ids,
-                amount.to_usd(),
-                external_id,
-            )
-            .await?;
-        Ok(deposit_id)
-    }
-
-    #[instrument(name = "lana.ledger.initiate_withdrawal_for_customer", skip(self), err)]
-    pub async fn initiate_withdrawal_for_customer(
-        &self,
-        withdrawal_id: WithdrawalId,
-        customer_account_ids: CustomerLedgerAccountIds,
-        amount: UsdCents,
-        external_id: String,
-    ) -> Result<WithdrawalId, LedgerError> {
-        self.get_bank_deposits_balance()
-            .await?
-            .check_withdrawal_amount(amount)?;
-
-        self.cala
-            .execute_initiate_withdraw_tx(
-                LedgerTxId::from(uuid::Uuid::from(withdrawal_id)),
-                customer_account_ids,
-                amount.to_usd(),
-                external_id,
-            )
-            .await?;
-        Ok(withdrawal_id)
-    }
-
-    #[instrument(name = "lana.ledger.confirm_withdrawal_for_customer", skip(self), err)]
-    pub async fn confirm_withdrawal_for_customer(
-        &self,
-        ledger_tx_id: LedgerTxId,
-        withdrawal_id: WithdrawalId,
-        debit_account_id: LedgerAccountId,
-        amount: UsdCents,
-        external_id: String,
-    ) -> Result<WithdrawalId, LedgerError> {
-        self.cala
-            .execute_confirm_withdraw_tx(
-                ledger_tx_id,
-                uuid::Uuid::from(withdrawal_id),
-                debit_account_id,
-                amount.to_usd(),
-                external_id,
-            )
-            .await?;
-        Ok(withdrawal_id)
-    }
-
-    #[instrument(name = "lana.ledger.cancel_withdrawal_for_customer", skip(self), err)]
-    pub async fn cancel_withdrawal_for_customer(
-        &self,
-        ledger_tx_id: LedgerTxId,
-        withdrawal_id: WithdrawalId,
-        debit_account_id: LedgerAccountId,
-        amount: UsdCents,
-        external_id: String,
-    ) -> Result<WithdrawalId, LedgerError> {
-        self.cala
-            .execute_cancel_withdraw_tx(
-                ledger_tx_id,
-                uuid::Uuid::from(withdrawal_id),
-                debit_account_id,
-                amount.to_usd(),
-                external_id,
-            )
-            .await?;
-        Ok(withdrawal_id)
     }
 
     #[instrument(name = "lana.ledger.credit_facility_balance", skip(self), err)]

@@ -26,11 +26,12 @@ use crate::{
     storage::Storage,
     terms_template::TermsTemplates,
     user::Users,
-    withdrawal::Withdrawals,
 };
 
 pub use config::*;
 use error::ApplicationError;
+
+const LANA_JOURNAL_CODE: &str = "LANA_BANK_JOURNAL";
 
 #[derive(Clone)]
 pub struct LanaApp {
@@ -39,7 +40,6 @@ pub struct LanaApp {
     audit: Audit,
     authz: Authorization,
     customers: Customers,
-    withdrawals: Withdrawals,
     deposits: Deposits,
     ledger: Ledger,
     applicants: Applicants,
@@ -66,20 +66,17 @@ impl LanaApp {
         let dashboard = Dashboard::init(&pool, &authz, &jobs, &outbox).await?;
         let governance = Governance::new(&pool, &authz, &outbox);
         let ledger = Ledger::init(config.ledger, &authz).await?;
-        let customers = Customers::new(&pool, &config.customer, &ledger, &authz, &export);
-        let applicants = Applicants::new(&pool, &config.sumsub, &customers, &jobs, &export);
-        let withdrawals = Withdrawals::init(
-            &pool,
-            &customers,
-            &ledger,
-            &authz,
-            &export,
-            &governance,
-            &jobs,
-            &outbox,
-        )
-        .await?;
-        let deposits = Deposits::new(&pool, &customers, &ledger, &authz, &export);
+        // let withdrawals = Withdrawals::init(
+        //     &pool,
+        //     &customers,
+        //     &ledger,
+        //     &authz,
+        //     &export,
+        //     &governance,
+        //     &jobs,
+        //     &outbox,
+        // )
+        // .await?;
         let price = Price::init(&jobs, &export).await?;
         let storage = Storage::new(&config.storage);
         let documents = Documents::new(&pool, &storage, &authz);
@@ -91,6 +88,21 @@ impl LanaApp {
             .build()
             .expect("cala config");
         let cala = cala_ledger::CalaLedger::init(cala_config).await?;
+        let journal_id = Self::create_journal(&cala).await?;
+        let deposits = Deposits::init(
+            &pool,
+            &authz,
+            &outbox,
+            &governance,
+            &jobs,
+            &cala,
+            journal_id,
+            String::from("OMNIBUS_ACCOUNT_ID"),
+        )
+        .await?;
+        let customers =
+            Customers::new(&pool, &config.customer, &ledger, &deposits, &authz, &export);
+        let applicants = Applicants::new(&pool, &config.sumsub, &customers, &jobs, &export);
         let credit_facilities = CreditFacilities::init(
             &pool,
             config.credit_facility,
@@ -115,7 +127,6 @@ impl LanaApp {
             audit,
             authz,
             customers,
-            withdrawals,
             deposits,
             ledger,
             applicants,
@@ -170,10 +181,6 @@ impl LanaApp {
         self.audit.list(query).await.map_err(ApplicationError::from)
     }
 
-    pub fn withdrawals(&self) -> &Withdrawals {
-        &self.withdrawals
-    }
-
     pub fn deposits(&self) -> &Deposits {
         &self.deposits
     }
@@ -210,5 +217,31 @@ impl LanaApp {
         crate::authorization::error::AuthorizationError,
     > {
         crate::authorization::get_visible_navigation_items(&self.authz, sub).await
+    }
+
+    async fn create_journal(
+        cala: &cala_ledger::CalaLedger,
+    ) -> Result<cala_ledger::JournalId, ApplicationError> {
+        use cala_ledger::journal::*;
+
+        let new_journal = NewJournal::builder()
+            .id(JournalId::new())
+            .name("General Ledger")
+            .description("General ledger for Lana")
+            .code(LANA_JOURNAL_CODE)
+            .build()
+            .expect("new journal");
+
+        match cala.journals().create(new_journal).await {
+            Err(cala_ledger::journal::error::JournalError::CodeAlreadyExists) => {
+                let journal = cala
+                    .journals()
+                    .find_by_code(LANA_JOURNAL_CODE.to_string())
+                    .await?;
+                Ok(journal.id)
+            }
+            Err(e) => Err(e.into()),
+            Ok(journal) => Ok(journal.id),
+        }
     }
 }

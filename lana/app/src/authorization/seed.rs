@@ -1,6 +1,7 @@
 use authz::error::AuthorizationError;
 use core_user::{CoreUserAction, UserEntityAction, UserObject};
 use dashboard::{DashboardModuleAction, DashboardModuleObject};
+use deposit::{CoreDepositAction, CoreDepositObject};
 use governance::{GovernanceAction, GovernanceObject};
 
 use super::*;
@@ -370,6 +371,84 @@ async fn add_permissions_for_bank_manager(authz: &Authorization) -> Result<(), A
             &role,
             DashboardModuleObject::Dashboard,
             DashboardModuleAction::DASHBOARD_READ,
+        )
+        .await?;
+
+    authz
+        .add_permission_to_role(
+            &role,
+            CoreDepositObject::all_deposits(),
+            CoreDepositAction::DEPOSIT_CREATE,
+        )
+        .await?;
+    authz
+        .add_permission_to_role(
+            &role,
+            CoreDepositObject::all_deposits(),
+            CoreDepositAction::DEPOSIT_READ,
+        )
+        .await?;
+    authz
+        .add_permission_to_role(
+            &role,
+            CoreDepositObject::all_deposit_accounts(),
+            CoreDepositAction::DEPOSIT_LIST,
+        )
+        .await?;
+    authz
+        .add_permission_to_role(
+            &role,
+            CoreDepositObject::all_deposit_accounts(),
+            CoreDepositAction::DEPOSIT_ACCOUNT_CREATE,
+        )
+        .await?;
+    authz
+        .add_permission_to_role(
+            &role,
+            CoreDepositObject::all_deposit_accounts(),
+            CoreDepositAction::DEPOSIT_ACCOUNT_READ,
+        )
+        .await?;
+    authz
+        .add_permission_to_role(
+            &role,
+            CoreDepositObject::all_deposit_accounts(),
+            CoreDepositAction::DEPOSIT_ACCOUNT_READ_BALANCE,
+        )
+        .await?;
+    authz
+        .add_permission_to_role(
+            &role,
+            CoreDepositObject::all_withdrawals(),
+            CoreDepositAction::WITHDRAWAL_INITIATE,
+        )
+        .await?;
+    authz
+        .add_permission_to_role(
+            &role,
+            CoreDepositObject::all_withdrawals(),
+            CoreDepositAction::WITHDRAWAL_CANCEL,
+        )
+        .await?;
+    authz
+        .add_permission_to_role(
+            &role,
+            CoreDepositObject::all_withdrawals(),
+            CoreDepositAction::WITHDRAWAL_CONFIRM,
+        )
+        .await?;
+    authz
+        .add_permission_to_role(
+            &role,
+            CoreDepositObject::all_withdrawals(),
+            CoreDepositAction::WITHDRAWAL_READ,
+        )
+        .await?;
+    authz
+        .add_permission_to_role(
+            &role,
+            CoreDepositObject::all_withdrawals(),
+            CoreDepositAction::WITHDRAWAL_LIST,
         )
         .await?;
 

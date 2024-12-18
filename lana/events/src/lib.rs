@@ -6,6 +6,7 @@ use serde::{Deserialize, Serialize};
 
 use core_money::{Satoshis, UsdCents};
 use core_user::CoreUserEvent;
+use deposit::CoreDepositEvent;
 use governance::GovernanceEvent;
 use lana_ids::CreditFacilityId;
 use outbox::OutboxEventMarker;
@@ -16,6 +17,7 @@ pub enum LanaEvent {
     Governance(GovernanceEvent),
     User(CoreUserEvent),
     Credit(CreditEvent),
+    Deposit(CoreDepositEvent),
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -83,3 +85,4 @@ macro_rules! impl_event_marker {
 impl_event_marker!(GovernanceEvent, Governance);
 impl_event_marker!(CoreUserEvent, User);
 impl_event_marker!(CreditEvent, Credit);
+impl_event_marker!(CoreDepositEvent, Deposit);

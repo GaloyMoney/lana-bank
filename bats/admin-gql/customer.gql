@@ -5,10 +5,8 @@ query Customer($id: UUID!) {
     level
     status
     email
-    balance {
-      checking {
-        settled
-      }
+    depositAccount {
+      depositAccountId
     }
   }
 }

@@ -3,15 +3,6 @@ mutation WithdrawalCancel($input: WithdrawalCancelInput!) {
     withdrawal {
       withdrawalId
       status
-      customer {
-        customerId
-        balance {
-          checking {
-            settled
-            pending
-          }
-        }
-      }
     }
   }
 }

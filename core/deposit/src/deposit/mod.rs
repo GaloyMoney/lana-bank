@@ -2,7 +2,9 @@ mod entity;
 pub mod error;
 mod repo;
 
+pub use entity::Deposit;
 pub(super) use entity::*;
+pub use repo::deposit_cursor::DepositsByCreatedAtCursor;
 pub(super) use repo::*;
 // use authz::PermissionCheck;
 

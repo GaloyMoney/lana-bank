@@ -20,27 +20,31 @@ use governance::{Governance, GovernanceEvent};
 use job::Jobs;
 use outbox::{Outbox, OutboxEventMarker};
 
+pub use account::DepositAccount;
 use account::*;
 use deposit::*;
-use deposit_account_balance::*;
+pub use deposit::{Deposit, DepositsByCreatedAtCursor};
+pub use deposit_account_balance::DepositAccountBalance;
 use error::*;
 pub use event::*;
 use ledger::*;
 pub use primitives::*;
+pub use processes::approval::APPROVE_WITHDRAWAL_PROCESS;
 use processes::approval::{
     ApproveWithdrawal, WithdrawApprovalJobConfig, WithdrawApprovalJobInitializer,
-    APPROVE_WITHDRAWAL_PROCESS,
 };
 use withdrawal::*;
+pub use withdrawal::{Withdrawal, WithdrawalStatus, WithdrawalsByCreatedAtCursor};
 
 pub struct CoreDeposit<Perms, E>
 where
     Perms: PermissionCheck,
-    E: OutboxEventMarker<CoreDepositEvent>,
+    E: OutboxEventMarker<CoreDepositEvent> + OutboxEventMarker<GovernanceEvent>,
 {
     accounts: DepositAccountRepo,
     deposits: DepositRepo,
     withdrawals: WithdrawalRepo,
+    approve_withdrawal: ApproveWithdrawal<Perms, E>,
     ledger: DepositLedger,
     authz: Perms,
     governance: Governance<Perms, E>,
@@ -50,7 +54,7 @@ where
 impl<Perms, E> Clone for CoreDeposit<Perms, E>
 where
     Perms: PermissionCheck,
-    E: OutboxEventMarker<CoreDepositEvent>,
+    E: OutboxEventMarker<CoreDepositEvent> + OutboxEventMarker<GovernanceEvent>,
 {
     fn clone(&self) -> Self {
         Self {
@@ -60,6 +64,7 @@ where
             ledger: self.ledger.clone(),
             authz: self.authz.clone(),
             governance: self.governance.clone(),
+            approve_withdrawal: self.approve_withdrawal.clone(),
             outbox: self.outbox.clone(),
         }
     }
@@ -113,6 +118,7 @@ where
             authz: authz.clone(),
             outbox: outbox.clone(),
             governance: governance.clone(),
+            approve_withdrawal,
             ledger,
         };
         Ok(res)
@@ -153,10 +159,11 @@ where
     pub async fn record_deposit(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        deposit_account_id: DepositAccountId,
+        deposit_account_id: impl Into<DepositAccountId> + std::fmt::Debug,
         amount: UsdCents,
         reference: Option<String>,
     ) -> Result<Deposit, CoreDepositError> {
+        let deposit_account_id = deposit_account_id.into();
         let audit_info = self
             .authz
             .enforce_permission(
@@ -170,6 +177,7 @@ where
         let new_deposit = NewDeposit::builder()
             .id(deposit_id)
             .deposit_account_id(deposit_account_id)
+            .amount(amount)
             .reference(reference)
             .audit_info(audit_info)
             .build()
@@ -186,10 +194,11 @@ where
     pub async fn initiate_withdrawal(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        deposit_account_id: DepositAccountId,
+        deposit_account_id: impl Into<DepositAccountId> + std::fmt::Debug,
         amount: UsdCents,
         reference: Option<String>,
     ) -> Result<Withdrawal, CoreDepositError> {
+        let deposit_account_id = deposit_account_id.into();
         let audit_info = self
             .authz
             .enforce_permission(
@@ -235,15 +244,15 @@ where
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         withdrawal_id: impl Into<WithdrawalId>,
     ) -> Result<Withdrawal, CoreDepositError> {
+        let id = withdrawal_id.into();
         let audit_info = self
             .authz
             .enforce_permission(
                 sub,
-                CoreDepositObject::all_withdrawals(),
+                CoreDepositObject::withdrawal(id),
                 CoreDepositAction::WITHDRAWAL_CONFIRM,
             )
             .await?;
-        let id = withdrawal_id.into();
         let mut withdrawal = self.withdrawals.find_by_id(id).await?;
         let mut op = self.withdrawals.begin_op().await?;
         let tx_id = withdrawal.confirm(audit_info)?;
@@ -270,15 +279,15 @@ where
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         withdrawal_id: impl Into<WithdrawalId>,
     ) -> Result<Withdrawal, CoreDepositError> {
+        let id = withdrawal_id.into();
         let audit_info = self
             .authz
             .enforce_permission(
                 sub,
-                CoreDepositObject::all_withdrawals(),
+                CoreDepositObject::withdrawal(id),
                 CoreDepositAction::WITHDRAWAL_CANCEL,
             )
             .await?;
-        let id = withdrawal_id.into();
         let mut withdrawal = self.withdrawals.find_by_id(id).await?;
         let mut op = self.withdrawals.begin_op().await?;
         let tx_id = withdrawal.cancel(audit_info)?;
@@ -291,11 +300,12 @@ where
         Ok(withdrawal)
     }
 
-    pub async fn balance(
+    pub async fn account_balance(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        account_id: DepositAccountId,
+        account_id: impl Into<DepositAccountId> + std::fmt::Debug,
     ) -> Result<DepositAccountBalance, CoreDepositError> {
+        let account_id = account_id.into();
         let _ = self
             .authz
             .enforce_permission(
@@ -307,5 +317,176 @@ where
 
         let balance = self.ledger.balance(account_id).await?;
         Ok(balance)
+    }
+
+    pub async fn find_deposit_by_id(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        id: impl Into<DepositId> + std::fmt::Debug,
+    ) -> Result<Option<Deposit>, CoreDepositError> {
+        let id = id.into();
+        self.authz
+            .enforce_permission(
+                sub,
+                CoreDepositObject::deposit(id),
+                CoreDepositAction::DEPOSIT_READ,
+            )
+            .await?;
+
+        match self.deposits.find_by_id(id).await {
+            Ok(deposit) => Ok(Some(deposit)),
+            Err(e) if e.was_not_found() => Ok(None),
+            Err(e) => Err(e.into()),
+        }
+    }
+
+    pub async fn find_withdrawal_by_id(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        id: impl Into<WithdrawalId> + std::fmt::Debug,
+    ) -> Result<Option<Withdrawal>, CoreDepositError> {
+        let id = id.into();
+        self.authz
+            .enforce_permission(
+                sub,
+                CoreDepositObject::withdrawal(id),
+                CoreDepositAction::WITHDRAWAL_READ,
+            )
+            .await?;
+
+        match self.withdrawals.find_by_id(id).await {
+            Ok(withdrawal) => Ok(Some(withdrawal)),
+            Err(e) if e.was_not_found() => Ok(None),
+            Err(e) => Err(e.into()),
+        }
+    }
+
+    pub async fn find_all_withdrawals<T: From<Withdrawal>>(
+        &self,
+        ids: &[WithdrawalId],
+    ) -> Result<std::collections::HashMap<WithdrawalId, T>, CoreDepositError> {
+        Ok(self.withdrawals.find_all(ids).await?)
+    }
+
+    pub async fn find_all_deposits<T: From<Deposit>>(
+        &self,
+        ids: &[DepositId],
+    ) -> Result<std::collections::HashMap<DepositId, T>, CoreDepositError> {
+        Ok(self.deposits.find_all(ids).await?)
+    }
+
+    pub async fn list_withdrawals(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        query: es_entity::PaginatedQueryArgs<WithdrawalsByCreatedAtCursor>,
+    ) -> Result<
+        es_entity::PaginatedQueryRet<Withdrawal, WithdrawalsByCreatedAtCursor>,
+        CoreDepositError,
+    > {
+        self.authz
+            .enforce_permission(
+                sub,
+                CoreDepositObject::all_withdrawals(),
+                CoreDepositAction::WITHDRAWAL_LIST,
+            )
+            .await?;
+        Ok(self
+            .withdrawals
+            .list_by_created_at(query, es_entity::ListDirection::Descending)
+            .await?)
+    }
+
+    pub async fn list_deposits(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        query: es_entity::PaginatedQueryArgs<DepositsByCreatedAtCursor>,
+    ) -> Result<es_entity::PaginatedQueryRet<Deposit, DepositsByCreatedAtCursor>, CoreDepositError>
+    {
+        self.authz
+            .enforce_permission(
+                sub,
+                CoreDepositObject::all_deposits(),
+                CoreDepositAction::DEPOSIT_LIST,
+            )
+            .await?;
+        Ok(self
+            .deposits
+            .list_by_created_at(query, es_entity::ListDirection::Descending)
+            .await?)
+    }
+
+    pub async fn ensure_up_to_date_status(
+        &self,
+        withdraw: &Withdrawal,
+    ) -> Result<Option<Withdrawal>, CoreDepositError> {
+        Ok(self.approve_withdrawal.execute_from_svc(withdraw).await?)
+    }
+
+    pub async fn list_deposits_for_account(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        account_id: impl Into<DepositAccountId> + std::fmt::Debug,
+    ) -> Result<Vec<Deposit>, CoreDepositError> {
+        let account_id = account_id.into();
+        self.authz
+            .enforce_permission(
+                sub,
+                CoreDepositObject::all_deposits(),
+                CoreDepositAction::DEPOSIT_LIST,
+            )
+            .await?;
+        Ok(self
+            .deposits
+            .list_for_deposit_account_id_by_created_at(
+                account_id,
+                Default::default(),
+                es_entity::ListDirection::Descending,
+            )
+            .await?
+            .entities)
+    }
+
+    pub async fn list_withdrawals_for_account(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        account_id: impl Into<DepositAccountId> + std::fmt::Debug,
+    ) -> Result<Vec<Withdrawal>, CoreDepositError> {
+        let account_id = account_id.into();
+        self.authz
+            .enforce_permission(
+                sub,
+                CoreDepositObject::all_withdrawals(),
+                CoreDepositAction::WITHDRAWAL_LIST,
+            )
+            .await?;
+        Ok(self
+            .withdrawals
+            .list_for_deposit_account_id_by_created_at(
+                account_id,
+                Default::default(),
+                es_entity::ListDirection::Descending,
+            )
+            .await?
+            .entities)
+    }
+
+    pub async fn find_account_for_account_holder(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        account_id: impl Into<DepositAccountHolderId> + std::fmt::Debug,
+    ) -> Result<Option<DepositAccount>, CoreDepositError> {
+        let account_id = account_id.into();
+        self.authz
+            .enforce_permission(
+                sub,
+                CoreDepositObject::all_deposit_accounts(),
+                CoreDepositAction::DEPOSIT_ACCOUNT_READ,
+            )
+            .await?;
+        match self.accounts.find_by_account_holder_id(account_id).await {
+            Ok(account) => Ok(Some(account)),
+            Err(e) if e.was_not_found() => Ok(None),
+            Err(e) => Err(e.into()),
+        }
     }
 }

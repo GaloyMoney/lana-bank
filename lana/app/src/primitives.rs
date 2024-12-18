@@ -5,6 +5,7 @@ use std::fmt;
 
 pub use core_money::*;
 pub use core_user::UserId;
+pub use deposit::{DepositAccountId, DepositId, WithdrawalId};
 pub use governance::{ApprovalProcessId, CommitteeId, CommitteeMemberId, PolicyId};
 pub use job::JobId;
 pub use lana_ids::*;
