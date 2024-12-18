@@ -25,9 +25,15 @@ async fn chart_of_accounts() -> anyhow::Result<()> {
     let cala = CalaLedger::init(cala_config).await?;
 
     let chart_of_accounts = CoreChartOfAccount::init(&pool, &authz, &outbox, &cala).await?;
+    let chart_id = ChartOfAccountId::new();
+    chart_of_accounts
+        .create_chart(&DummySubject, chart_id)
+        .await?;
+
     let control_account_code = chart_of_accounts
         .create_control_account(
             &DummySubject,
+            chart_id,
             "10000000".parse()?,
             "Credit Facilities Receivable",
         )
@@ -35,6 +41,7 @@ async fn chart_of_accounts() -> anyhow::Result<()> {
     let control_sub_account_code = chart_of_accounts
         .create_control_sub_account(
             &DummySubject,
+            chart_id,
             control_account_code,
             "Fixed-Term Credit Facilities Receivable",
         )
@@ -44,6 +51,7 @@ async fn chart_of_accounts() -> anyhow::Result<()> {
     let transaction_account = chart_of_accounts
         .create_transaction_account(
             &DummySubject,
+            chart_id,
             control_sub_account_code,
             transaction_account_name,
             "",
@@ -51,7 +59,7 @@ async fn chart_of_accounts() -> anyhow::Result<()> {
         .await?;
 
     let transaction_account = chart_of_accounts
-        .find_account(&DummySubject, transaction_account.code)
+        .find_account_in_chart(&DummySubject, chart_id, transaction_account.code)
         .await?
         .expect("Transaction account not found");
     assert_eq!(transaction_account.name, transaction_account_name);

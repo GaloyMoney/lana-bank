@@ -2,7 +2,6 @@ use std::{fmt::Display, str::FromStr};
 
 use authz::AllOrOne;
 use serde::{Deserialize, Serialize};
-use sqlx::types::uuid::uuid;
 
 pub use cala_ledger::primitives::AccountId as LedgerAccountId;
 
@@ -10,12 +9,6 @@ use crate::code::ChartOfAccountCode;
 
 es_entity::entity_id! {
     ChartOfAccountId,
-}
-
-impl Default for ChartOfAccountId {
-    fn default() -> Self {
-        Self(uuid!("00000000-0000-0000-0000-000000000001"))
-    }
 }
 
 pub type ChartOfAccountAllOrOne = AllOrOne<ChartOfAccountId>;
@@ -69,8 +62,10 @@ impl FromStr for CoreChartOfAccountObject {
 }
 
 impl CoreChartOfAccountAction {
-    pub const CHART_OF_ACCOUNT_FIND_OR_CREATE: Self =
-        CoreChartOfAccountAction::ChartOfAccount(ChartOfAccountAction::FindOrCreate);
+    pub const CHART_OF_ACCOUNT_CREATE: Self =
+        CoreChartOfAccountAction::ChartOfAccount(ChartOfAccountAction::Create);
+    pub const CHART_OF_ACCOUNT_FIND: Self =
+        CoreChartOfAccountAction::ChartOfAccount(ChartOfAccountAction::Find);
     pub const CHART_OF_ACCOUNT_CREATE_CONTROL_ACCOUNT: Self =
         CoreChartOfAccountAction::ChartOfAccount(ChartOfAccountAction::CreateControlAccount);
     pub const CHART_OF_ACCOUNT_CREATE_CONTROL_SUB_ACCOUNT: Self =
@@ -109,7 +104,8 @@ impl FromStr for CoreChartOfAccountAction {
 #[derive(PartialEq, Clone, Copy, Debug, strum::Display, strum::EnumString)]
 #[strum(serialize_all = "kebab-case")]
 pub enum ChartOfAccountAction {
-    FindOrCreate,
+    Create,
+    Find,
     CreateControlAccount,
     CreateControlSubAccount,
     CreateTransactionAccount,

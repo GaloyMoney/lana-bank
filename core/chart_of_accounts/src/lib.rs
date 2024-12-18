@@ -16,8 +16,6 @@ use audit::AuditSvc;
 use authz::PermissionCheck;
 use outbox::{Outbox, OutboxEventMarker};
 
-use es_entity::DbOp;
-
 use chart_of_accounts::*;
 use code::*;
 use error::*;
@@ -74,30 +72,20 @@ where
         Ok(res)
     }
 
-    async fn find_or_create(
+    #[instrument(name = "chart_of_accounts.create_chart", skip(self))]
+    pub async fn create_chart(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        op: &mut DbOp<'static>,
+        id: impl Into<ChartOfAccountId> + std::fmt::Debug,
     ) -> Result<ChartOfAccount, CoreChartOfAccountError> {
-        let id = ChartOfAccountId::default();
         let audit_info = self
             .authz
             .enforce_permission(
                 sub,
                 CoreChartOfAccountObject::chart_of_account(),
-                CoreChartOfAccountAction::CHART_OF_ACCOUNT_FIND_OR_CREATE,
+                CoreChartOfAccountAction::CHART_OF_ACCOUNT_CREATE,
             )
             .await?;
-
-        match self.chart_of_account.find_by_id(id).await {
-            Ok(chart_of_account) => return Ok(chart_of_account),
-            Err(ChartOfAccountError::EsEntityError(es_entity::EsEntityError::NotFound)) => (),
-            Err(e) => return Err(e.into()),
-        };
-
-        if let Ok(chart_of_account) = self.chart_of_account.find_by_id(id).await {
-            return Ok(chart_of_account);
-        };
 
         let new_chart_of_account = NewChartOfAccount::builder()
             .id(id)
@@ -105,21 +93,25 @@ where
             .build()
             .expect("Could not build new chart of accounts");
 
-        let chart_of_account = self
+        let mut op = self.chart_of_account.begin_op().await?;
+        let chart = self
             .chart_of_account
-            .create_in_op(op, new_chart_of_account)
+            .create_in_op(&mut op, new_chart_of_account)
             .await?;
+        op.commit().await?;
 
-        Ok(chart_of_account)
+        Ok(chart)
     }
 
     #[instrument(name = "chart_of_accounts.create_control_account", skip(self))]
     pub async fn create_control_account(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        chart_id: impl Into<ChartOfAccountId> + std::fmt::Debug,
         category: ChartOfAccountCode,
         name: &str,
     ) -> Result<ChartOfAccountCode, CoreChartOfAccountError> {
+        let chart_id = chart_id.into();
         let audit_info = self
             .authz
             .enforce_permission(
@@ -129,14 +121,13 @@ where
             )
             .await?;
 
+        let mut chart = self.chart_of_account.find_by_id(chart_id).await?;
+
+        let code = chart.create_control_account(category, name, audit_info)?;
+
         let mut op = self.chart_of_account.begin_op().await?;
-
-        let mut chart_of_accounts = self.find_or_create(sub, &mut op).await?;
-
-        let code = chart_of_accounts.create_control_account(category, name, audit_info)?;
-
         self.chart_of_account
-            .update_in_op(&mut op, &mut chart_of_accounts)
+            .update_in_op(&mut op, &mut chart)
             .await?;
 
         op.commit().await?;
@@ -148,9 +139,11 @@ where
     pub async fn create_control_sub_account(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        chart_id: impl Into<ChartOfAccountId> + std::fmt::Debug,
         control_account: ChartOfAccountCode,
         name: &str,
     ) -> Result<ChartOfAccountCode, CoreChartOfAccountError> {
+        let chart_id = chart_id.into();
         let audit_info = self
             .authz
             .enforce_permission(
@@ -160,15 +153,13 @@ where
             )
             .await?;
 
+        let mut chart = self.chart_of_account.find_by_id(chart_id).await?;
+
+        let code = chart.create_control_sub_account(control_account, name, audit_info)?;
+
         let mut op = self.chart_of_account.begin_op().await?;
-
-        let mut chart_of_accounts = self.find_or_create(sub, &mut op).await?;
-
-        let code =
-            chart_of_accounts.create_control_sub_account(control_account, name, audit_info)?;
-
         self.chart_of_account
-            .update_in_op(&mut op, &mut chart_of_accounts)
+            .update_in_op(&mut op, &mut chart)
             .await?;
 
         op.commit().await?;
@@ -176,14 +167,16 @@ where
         Ok(code)
     }
 
-    #[instrument(name = "chart_of_accounts.create_account", skip(self))]
+    #[instrument(name = "chart_of_accounts.create_transaction_account", skip(self))]
     pub async fn create_transaction_account(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        chart_id: impl Into<ChartOfAccountId> + std::fmt::Debug,
         control_sub_account: ChartOfAccountCode,
         name: &str,
         description: &str,
     ) -> Result<ChartOfAccountAccountDetails, CoreChartOfAccountError> {
+        let chart_id = chart_id.into();
         let audit_info = self
             .authz
             .enforce_permission(
@@ -193,19 +186,14 @@ where
             )
             .await?;
 
+        let mut chart = self.chart_of_account.find_by_id(chart_id).await?;
+
+        let account_details =
+            chart.create_transaction_account(control_sub_account, name, description, audit_info)?;
+
         let mut op = self.chart_of_account.begin_op().await?;
-
-        let mut chart_of_accounts = self.find_or_create(sub, &mut op).await?;
-
-        let account_details = chart_of_accounts.create_transaction_account(
-            control_sub_account,
-            name,
-            description,
-            audit_info,
-        )?;
-
         self.chart_of_account
-            .update_in_op(&mut op, &mut chart_of_accounts)
+            .update_in_op(&mut op, &mut chart)
             .await?;
 
         self.ledger
@@ -215,12 +203,14 @@ where
         Ok(account_details)
     }
 
-    #[instrument(name = "chart_of_accounts.find_account", skip(self))]
-    pub async fn find_account(
+    #[instrument(name = "chart_of_accounts.find_account_in_chart", skip(self))]
+    pub async fn find_account_in_chart(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        chart_id: impl Into<ChartOfAccountId> + std::fmt::Debug,
         code: impl Into<ChartOfAccountCode> + std::fmt::Debug,
     ) -> Result<Option<ChartOfAccountAccountDetails>, CoreChartOfAccountError> {
+        let chart_id = chart_id.into();
         self.authz
             .enforce_permission(
                 sub,
@@ -229,11 +219,9 @@ where
             )
             .await?;
 
-        let mut op = self.chart_of_account.begin_op().await?;
-        let chart_of_accounts = self.find_or_create(sub, &mut op).await?;
-        op.commit().await?;
+        let chart = self.chart_of_account.find_by_id(chart_id).await?;
 
-        let account_details = chart_of_accounts.find_account(code.into());
+        let account_details = chart.find_account(code.into());
 
         Ok(account_details)
     }
