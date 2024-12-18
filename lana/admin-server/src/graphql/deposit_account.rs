@@ -33,24 +33,17 @@ impl From<DomainDepositAccount> for DepositAccount {
 
 #[derive(SimpleObject)]
 pub struct DepositAccountBalance {
-    checking: Checking,
+    settled: UsdCents,
+    pending: UsdCents,
 }
 
 impl From<lana_app::deposit::DepositAccountBalance> for DepositAccountBalance {
     fn from(balance: lana_app::deposit::DepositAccountBalance) -> Self {
         Self {
-            checking: Checking {
-                settled: balance.settled,
-                pending: balance.pending,
-            },
+            settled: balance.settled,
+            pending: balance.pending,
         }
     }
-}
-
-#[derive(SimpleObject)]
-struct Checking {
-    settled: UsdCents,
-    pending: UsdCents,
 }
 
 #[ComplexObject]
