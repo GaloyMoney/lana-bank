@@ -3,11 +3,6 @@ mutation CustomerCreate($input: CustomerCreateInput!) {
     customer {
       customerId
       email
-      balance {
-        checking {
-          settled
-        }
-      }
     }
   }
 }

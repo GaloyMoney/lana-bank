@@ -48,7 +48,7 @@ CREATE TABLE approval_process_events (
 
 CREATE TABLE deposit_accounts (
   id UUID PRIMARY KEY,
-  account_holder_id VARCHAR NOT NULL,
+  account_holder_id UUID NOT NULL,
   created_at TIMESTAMPTZ NOT NULL
 );
 

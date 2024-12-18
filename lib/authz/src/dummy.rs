@@ -55,8 +55,8 @@ impl std::str::FromStr for DummySubject {
 #[async_trait]
 impl<A, O> AuditSvc for DummyAudit<A, O>
 where
-    A: std::str::FromStr + std::fmt::Display + std::fmt::Debug + Copy + Send + Sync,
-    O: std::str::FromStr + std::fmt::Display + std::fmt::Debug + Copy + Send + Sync,
+    A: std::str::FromStr + std::fmt::Display + std::fmt::Debug + Copy + Send + Sync + 'static,
+    O: std::str::FromStr + std::fmt::Display + std::fmt::Debug + Copy + Send + Sync + 'static,
 {
     type Subject = DummySubject;
     type Object = O;
@@ -132,8 +132,22 @@ fn dummy_audit_info() -> audit::AuditInfo {
 #[async_trait]
 impl<A, O> PermissionCheck for DummyPerms<A, O>
 where
-    A: std::str::FromStr + std::fmt::Display + std::fmt::Debug + Copy + Clone + Send + Sync,
-    O: std::str::FromStr + std::fmt::Display + std::fmt::Debug + Copy + Clone + Send + Sync,
+    A: std::str::FromStr
+        + std::fmt::Display
+        + std::fmt::Debug
+        + Copy
+        + Clone
+        + Send
+        + Sync
+        + 'static,
+    O: std::str::FromStr
+        + std::fmt::Display
+        + std::fmt::Debug
+        + Copy
+        + Clone
+        + Send
+        + Sync
+        + 'static,
 {
     type Audit = DummyAudit<A, O>;
 

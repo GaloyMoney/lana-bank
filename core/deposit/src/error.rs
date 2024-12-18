@@ -14,4 +14,10 @@ pub enum CoreDepositError {
     WithdrawalError(#[from] crate::withdrawal::error::WithdrawalError),
     #[error("CoreDepositError - DepositLedgerError: {0}")]
     DepositLedgerError(#[from] crate::ledger::error::DepositLedgerError),
+    #[error("CoreDepositError - GovernanceError: {0}")]
+    GovernanceError(#[from] governance::error::GovernanceError),
+    #[error("CoreDepositError - JobError: {0}")]
+    JobError(#[from] job::error::JobError),
+    #[error("CoreDepositError - ProcessError: {0}")]
+    ProcessError(#[from] crate::processes::error::ProcessError),
 }

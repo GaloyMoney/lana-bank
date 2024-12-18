@@ -5,7 +5,7 @@ use audit::{AuditInfo, AuditSvc};
 use super::error::AuthorizationError;
 
 #[async_trait]
-pub trait PermissionCheck: Clone + Sync {
+pub trait PermissionCheck: Clone + Sync + Send + 'static {
     type Audit: AuditSvc;
 
     fn audit(&self) -> &Self::Audit;

@@ -1,9 +1,9 @@
 use derive_builder::Builder;
 use serde::{Deserialize, Serialize};
 
-use es_entity::*;
-
 use audit::AuditInfo;
+use core_money::UsdCents;
+use es_entity::*;
 
 use crate::primitives::{DepositAccountId, DepositId};
 
@@ -14,6 +14,7 @@ pub enum DepositEvent {
     Initialized {
         id: DepositId,
         deposit_account_id: DepositAccountId,
+        amount: UsdCents,
         reference: String,
         audit_info: AuditInfo,
     },
@@ -24,6 +25,7 @@ pub enum DepositEvent {
 pub struct Deposit {
     pub id: DepositId,
     pub deposit_account_id: DepositAccountId,
+    pub amount: UsdCents,
     pub reference: String,
     pub(super) events: EntityEvents<DepositEvent>,
 }
@@ -45,11 +47,13 @@ impl TryFromEvents<DepositEvent> for Deposit {
                     id,
                     reference,
                     deposit_account_id,
+                    amount,
                     ..
                 } => {
                     builder = builder
                         .id(*id)
                         .deposit_account_id(*deposit_account_id)
+                        .amount(*amount)
                         .reference(reference.clone());
                 }
             }
@@ -64,6 +68,8 @@ pub struct NewDeposit {
     pub(super) id: DepositId,
     #[builder(setter(into))]
     pub(super) deposit_account_id: DepositAccountId,
+    #[builder(setter(into))]
+    pub(super) amount: UsdCents,
     reference: Option<String>,
     #[builder(setter(into))]
     pub audit_info: AuditInfo,
@@ -91,6 +97,7 @@ impl IntoEvents<DepositEvent> for NewDeposit {
                 reference: self.reference(),
                 id: self.id,
                 deposit_account_id: self.deposit_account_id,
+                amount: self.amount,
                 audit_info: self.audit_info,
             }],
         )

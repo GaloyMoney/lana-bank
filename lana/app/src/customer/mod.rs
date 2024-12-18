@@ -13,6 +13,7 @@ use crate::{
     audit::{AuditInfo, AuditSvc},
     authorization::{Action, Authorization, CustomerAction, CustomerAllOrOne, Object},
     data_export::Export,
+    deposit::Deposits,
     ledger::*,
     primitives::{CustomerId, KycLevel, Subject},
 };
@@ -27,6 +28,7 @@ pub use repo::{customer_cursor::*, CustomerRepo, CustomersSortBy, FindManyCustom
 pub struct Customers {
     repo: CustomerRepo,
     ledger: Ledger,
+    deposit: Deposits,
     kratos: KratosClient,
     authz: Authorization,
 }
@@ -36,6 +38,7 @@ impl Customers {
         pool: &sqlx::PgPool,
         config: &CustomerConfig,
         ledger: &Ledger,
+        deposits: &Deposits,
         authz: &Authorization,
         export: &Export,
     ) -> Self {
@@ -46,6 +49,7 @@ impl Customers {
             ledger: ledger.clone(),
             kratos,
             authz: authz.clone(),
+            deposit: deposits.clone(),
         }
     }
 
@@ -80,11 +84,12 @@ impl Customers {
             .subject_can_create_customer(sub, true)
             .await?
             .expect("audit info missing");
-        let customer_id = self.kratos.create_identity(&email).await?.into();
+        let customer_id: uuid::Uuid = self.kratos.create_identity(&email).await?;
+        self.deposit.create_account(sub, customer_id).await?;
 
         let ledger_account_ids = self
             .ledger
-            .create_accounts_for_customer(customer_id)
+            .create_accounts_for_customer(customer_id.into())
             .await?;
         let new_customer = NewCustomer::builder()
             .id(customer_id)

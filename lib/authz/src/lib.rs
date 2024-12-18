@@ -29,7 +29,7 @@ const MODEL: &str = include_str!("./rbac.conf");
 pub struct Authorization<Audit, R>
 where
     Audit: AuditSvc,
-    R: Send + Sync,
+    R: Send + Sync + 'static,
 {
     enforcer: Arc<RwLock<Enforcer>>,
     audit: Audit,
@@ -203,7 +203,7 @@ where
 impl<Audit, R> PermissionCheck for Authorization<Audit, R>
 where
     Audit: AuditSvc,
-    R: fmt::Display + fmt::Debug + Clone + Send + Sync,
+    R: fmt::Display + fmt::Debug + Clone + Send + Sync + 'static,
 {
     type Audit = Audit;
 

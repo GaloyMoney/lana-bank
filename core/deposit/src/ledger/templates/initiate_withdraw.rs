@@ -13,10 +13,10 @@ pub const INITIATE_WITHDRAW_CODE: &str = "INITIATE_WITHDRAW_CODE";
 #[derive(Debug)]
 pub struct InitiateWithdrawParams {
     pub journal_id: JournalId,
-    pub currency: Currency,
-    pub amount: Decimal,
     pub deposit_omnibus_account_id: AccountId,
     pub credit_account_id: AccountId,
+    pub amount: Decimal,
+    pub currency: Currency,
 }
 
 impl InitiateWithdrawParams {
@@ -60,13 +60,14 @@ impl From<InitiateWithdrawParams> for Params {
     fn from(
         InitiateWithdrawParams {
             journal_id,
-            currency,
-            amount,
             deposit_omnibus_account_id,
             credit_account_id,
+            amount,
+            currency,
         }: InitiateWithdrawParams,
     ) -> Self {
         let mut params = Self::default();
+
         params.insert("journal_id", journal_id);
         params.insert("currency", currency);
         params.insert("amount", amount);
