@@ -21,99 +21,82 @@ pub async fn init_journal(cala: &CalaLedger) -> anyhow::Result<cala_ledger::Jour
 }
 
 pub mod action {
+    use chart_of_accounts::CoreChartOfAccountsAction;
     use deposit::{CoreDepositAction, GovernanceAction};
 
-    #[derive(Clone, Copy, Debug, PartialEq, strum::EnumDiscriminants)]
-    #[strum_discriminants(derive(strum::Display, strum::EnumString))]
-    #[strum_discriminants(strum(serialize_all = "kebab-case"))]
-    pub enum DummyAction {
-        CoreDeposit(CoreDepositAction),
-        Governance(GovernanceAction),
-    }
+    #[derive(Clone, Copy, Debug, PartialEq)]
+    pub struct DummyAction;
 
     impl From<CoreDepositAction> for DummyAction {
-        fn from(action: CoreDepositAction) -> Self {
-            DummyAction::CoreDeposit(action)
+        fn from(_: CoreDepositAction) -> Self {
+            Self
         }
     }
 
     impl From<GovernanceAction> for DummyAction {
-        fn from(action: GovernanceAction) -> Self {
-            DummyAction::Governance(action)
+        fn from(_: GovernanceAction) -> Self {
+            Self
+        }
+    }
+
+    impl From<CoreChartOfAccountsAction> for DummyAction {
+        fn from(_: CoreChartOfAccountsAction) -> Self {
+            Self
         }
     }
 
     impl std::fmt::Display for DummyAction {
         fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-            write!(f, "{}:", DummyActionDiscriminants::from(self))?;
-            use DummyAction::*;
-            match self {
-                CoreDeposit(action) => action.fmt(f),
-                Governance(action) => action.fmt(f),
-            }
+            write!(f, "dummy")?;
+            Ok(())
         }
     }
 
     impl std::str::FromStr for DummyAction {
         type Err = strum::ParseError;
 
-        fn from_str(s: &str) -> Result<Self, Self::Err> {
-            let (module, action) = s.split_once(':').expect("missing colon");
-            use DummyActionDiscriminants::*;
-            let res = match module.parse()? {
-                CoreDeposit => DummyAction::from(action.parse::<CoreDepositAction>()?),
-                Governance => DummyAction::from(action.parse::<GovernanceAction>()?),
-            };
-            Ok(res)
+        fn from_str(_: &str) -> Result<Self, Self::Err> {
+            Ok(Self)
         }
     }
 }
 
 pub mod object {
+    use chart_of_accounts::CoreChartOfAccountsObject;
     use deposit::{CoreDepositObject, GovernanceObject};
 
-    #[derive(Clone, Copy, Debug, PartialEq, strum::EnumDiscriminants)]
-    #[strum_discriminants(derive(strum::Display, strum::EnumString))]
-    #[strum_discriminants(strum(serialize_all = "kebab-case"))]
-    pub enum DummyObject {
-        CoreDeposit(CoreDepositObject),
-        Governance(GovernanceObject),
-    }
+    #[derive(Clone, Copy, Debug, PartialEq)]
+    pub struct DummyObject;
 
     impl From<CoreDepositObject> for DummyObject {
-        fn from(action: CoreDepositObject) -> Self {
-            DummyObject::CoreDeposit(action)
+        fn from(_: CoreDepositObject) -> Self {
+            Self
+        }
+    }
+    impl From<CoreChartOfAccountsObject> for DummyObject {
+        fn from(_: CoreChartOfAccountsObject) -> Self {
+            Self
         }
     }
 
     impl From<GovernanceObject> for DummyObject {
-        fn from(action: GovernanceObject) -> Self {
-            DummyObject::Governance(action)
+        fn from(_: GovernanceObject) -> Self {
+            Self
         }
     }
 
     impl std::fmt::Display for DummyObject {
         fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-            write!(f, "{}/", DummyObjectDiscriminants::from(self))?;
-            use DummyObject::*;
-            match self {
-                CoreDeposit(action) => action.fmt(f),
-                Governance(action) => action.fmt(f),
-            }
+            write!(f, "Dummy")?;
+            Ok(())
         }
     }
 
     impl std::str::FromStr for DummyObject {
         type Err = &'static str;
 
-        fn from_str(s: &str) -> Result<Self, Self::Err> {
-            let (module, object) = s.split_once('/').expect("missing colon");
-            use DummyObjectDiscriminants::*;
-            let res = match module.parse().expect("invalid module") {
-                CoreDeposit => DummyObject::from(object.parse::<CoreDepositObject>()?),
-                Governance => DummyObject::from(object.parse::<GovernanceObject>()?),
-            };
-            Ok(res)
+        fn from_str(_: &str) -> Result<Self, Self::Err> {
+            Ok(DummyObject)
         }
     }
 }

@@ -16,6 +16,7 @@ use tracing::instrument;
 use audit::AuditSvc;
 use authz::PermissionCheck;
 use cala_ledger::CalaLedger;
+use chart_of_accounts::CoreChartOfAccounts;
 use governance::{Governance, GovernanceEvent};
 use job::Jobs;
 use outbox::{Outbox, OutboxEventMarker};
@@ -86,6 +87,7 @@ where
         outbox: &Outbox<E>,
         governance: &Governance<Perms, E>,
         jobs: &Jobs,
+        _chart_of_accounts: &CoreChartOfAccounts<Perms>,
         cala: &CalaLedger,
         journal_id: LedgerJournalId,
         omnibus_account_code: String,
