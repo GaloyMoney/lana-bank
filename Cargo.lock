@@ -875,7 +875,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "613afe47fcd5fac7ccf1db93babcb082c5994d996f20b8b159f2ad1658eb5724"
 
 [[package]]
-name = "chart_of_accounts"
+name = "chart-of-accounts"
 version = "0.1.0"
 dependencies = [
  "anyhow",
@@ -2499,6 +2499,7 @@ dependencies = [
  "cached 0.53.1",
  "cala-ledger",
  "cala-ledger-core-types 0.2.44",
+ "chart-of-accounts",
  "chrono",
  "clap",
  "cloud-storage",
