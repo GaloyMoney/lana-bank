@@ -78,11 +78,12 @@ where
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         id: impl Into<ChartOfAccountId> + std::fmt::Debug,
     ) -> Result<ChartOfAccount, CoreChartOfAccountError> {
+        let id = id.into();
         let audit_info = self
             .authz
             .enforce_permission(
                 sub,
-                CoreChartOfAccountObject::chart_of_account(),
+                CoreChartOfAccountObject::chart(id),
                 CoreChartOfAccountAction::CHART_OF_ACCOUNT_CREATE,
             )
             .await?;
@@ -103,6 +104,26 @@ where
         Ok(chart)
     }
 
+    #[instrument(name = "core_user.list_charts", skip(self))]
+    pub async fn list_charts(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+    ) -> Result<Vec<ChartOfAccount>, CoreChartOfAccountError> {
+        self.authz
+            .enforce_permission(
+                sub,
+                CoreChartOfAccountObject::all_charts(),
+                CoreChartOfAccountAction::CHART_OF_ACCOUNT_LIST,
+            )
+            .await?;
+
+        Ok(self
+            .chart_of_account
+            .list_by_id(Default::default(), es_entity::ListDirection::Ascending)
+            .await?
+            .entities)
+    }
+
     #[instrument(name = "chart_of_accounts.create_control_account", skip(self))]
     pub async fn create_control_account(
         &self,
@@ -116,7 +137,7 @@ where
             .authz
             .enforce_permission(
                 sub,
-                CoreChartOfAccountObject::chart_of_account(),
+                CoreChartOfAccountObject::chart(chart_id),
                 CoreChartOfAccountAction::CHART_OF_ACCOUNT_CREATE_CONTROL_ACCOUNT,
             )
             .await?;
@@ -148,7 +169,7 @@ where
             .authz
             .enforce_permission(
                 sub,
-                CoreChartOfAccountObject::chart_of_account(),
+                CoreChartOfAccountObject::chart(chart_id),
                 CoreChartOfAccountAction::CHART_OF_ACCOUNT_CREATE_CONTROL_SUB_ACCOUNT,
             )
             .await?;
@@ -181,7 +202,7 @@ where
             .authz
             .enforce_permission(
                 sub,
-                CoreChartOfAccountObject::chart_of_account(),
+                CoreChartOfAccountObject::chart(chart_id),
                 CoreChartOfAccountAction::CHART_OF_ACCOUNT_CREATE_TRANSACTION_ACCOUNT,
             )
             .await?;
@@ -214,7 +235,7 @@ where
         self.authz
             .enforce_permission(
                 sub,
-                CoreChartOfAccountObject::chart_of_account(),
+                CoreChartOfAccountObject::chart(chart_id),
                 CoreChartOfAccountAction::CHART_OF_ACCOUNT_FIND_TRANSACTION_ACCOUNT,
             )
             .await?;

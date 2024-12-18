@@ -28,7 +28,11 @@ pub enum CoreChartOfAccountObject {
 }
 
 impl CoreChartOfAccountObject {
-    pub fn chart_of_account() -> Self {
+    pub fn chart(id: ChartOfAccountId) -> Self {
+        CoreChartOfAccountObject::ChartOfAccount(AllOrOne::ById(id))
+    }
+
+    pub fn all_charts() -> Self {
         CoreChartOfAccountObject::ChartOfAccount(AllOrOne::All)
     }
 }
@@ -64,8 +68,8 @@ impl FromStr for CoreChartOfAccountObject {
 impl CoreChartOfAccountAction {
     pub const CHART_OF_ACCOUNT_CREATE: Self =
         CoreChartOfAccountAction::ChartOfAccount(ChartOfAccountAction::Create);
-    pub const CHART_OF_ACCOUNT_FIND: Self =
-        CoreChartOfAccountAction::ChartOfAccount(ChartOfAccountAction::Find);
+    pub const CHART_OF_ACCOUNT_LIST: Self =
+        CoreChartOfAccountAction::ChartOfAccount(ChartOfAccountAction::List);
     pub const CHART_OF_ACCOUNT_CREATE_CONTROL_ACCOUNT: Self =
         CoreChartOfAccountAction::ChartOfAccount(ChartOfAccountAction::CreateControlAccount);
     pub const CHART_OF_ACCOUNT_CREATE_CONTROL_SUB_ACCOUNT: Self =
@@ -105,7 +109,7 @@ impl FromStr for CoreChartOfAccountAction {
 #[strum(serialize_all = "kebab-case")]
 pub enum ChartOfAccountAction {
     Create,
-    Find,
+    List,
     CreateControlAccount,
     CreateControlSubAccount,
     CreateTransactionAccount,

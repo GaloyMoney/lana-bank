@@ -30,6 +30,9 @@ async fn chart_of_accounts() -> anyhow::Result<()> {
         .create_chart(&DummySubject, chart_id)
         .await?;
 
+    let charts = chart_of_accounts.list_charts(&DummySubject).await?;
+    assert!(charts.iter().any(|chart| chart.id == chart_id));
+
     let control_account_code = chart_of_accounts
         .create_control_account(
             &DummySubject,
@@ -48,6 +51,7 @@ async fn chart_of_accounts() -> anyhow::Result<()> {
         .await?;
 
     let transaction_account_name = "Fixed-Term Credit Facilities Receivable #1 for Customer 00-01";
+    // FIXME: This will fail if we run it twice on different charts with same `code` value
     let transaction_account = chart_of_accounts
         .create_transaction_account(
             &DummySubject,
