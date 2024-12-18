@@ -11,6 +11,7 @@ graphql = ["es-entity/graphql", "governance/graphql", "cala-ledger/graphql"]
 [dependencies]
 core-money = { path = "../money" }
 governance = { path = "../governance", features = ["graphql"] }
+chart-of-accounts = { path = "../chart-of-accounts" }
 
 audit = { path = "../../lib/audit" }
 authz = { path = "../../lib/authz" }

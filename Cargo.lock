@@ -1222,6 +1222,7 @@ dependencies = [
  "audit",
  "authz",
  "cala-ledger",
+ "chart-of-accounts",
  "chrono",
  "core-money",
  "derive_builder",
