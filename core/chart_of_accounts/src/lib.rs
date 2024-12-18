@@ -22,7 +22,7 @@ use error::*;
 pub use event::*;
 pub use primitives::*;
 
-pub struct CoreChartOfAccount<Perms, E>
+pub struct CoreChartOfAccounts<Perms, E>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreChartOfAccountEvent>,
@@ -33,7 +33,7 @@ where
     outbox: Outbox<E>,
 }
 
-impl<Perms, E> Clone for CoreChartOfAccount<Perms, E>
+impl<Perms, E> Clone for CoreChartOfAccounts<Perms, E>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreChartOfAccountEvent>,
@@ -48,7 +48,7 @@ where
     }
 }
 
-impl<Perms, E> CoreChartOfAccount<Perms, E>
+impl<Perms, E> CoreChartOfAccounts<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreChartOfAccountAction>,
