@@ -15,8 +15,8 @@ pub struct AddCollateralParams {
     pub journal_id: JournalId,
     pub currency: Currency,
     pub amount: Decimal,
-    pub deposit_omnibus_account_id: AccountId,
-    pub credit_account_id: AccountId,
+    pub collateral_account_id: AccountId,
+    pub bank_collateral_account_id: AccountId,
 }
 
 impl AddCollateralParams {
@@ -62,16 +62,16 @@ impl From<AddCollateralParams> for Params {
             journal_id,
             currency,
             amount,
-            deposit_omnibus_account_id,
-            credit_account_id,
+            collateral_account_id,
+            bank_collateral_account_id,
         }: AddCollateralParams,
     ) -> Self {
         let mut params = Self::default();
         params.insert("journal_id", journal_id);
         params.insert("currency", currency);
         params.insert("amount", amount);
-        params.insert("deposit_omnibus_account_id", deposit_omnibus_account_id);
-        params.insert("credit_account_id", credit_account_id);
+        params.insert("collateral_account_id", collateral_account_id);
+        params.insert("bank_collateral_account_id", bank_collateral_account_id);
         params.insert("effective", chrono::Utc::now().date_naive());
 
         params

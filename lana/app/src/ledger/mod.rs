@@ -19,8 +19,7 @@ use tracing::instrument;
 use crate::{
     authorization::{Authorization, LedgerAction, Object},
     primitives::{
-        CollateralAction, CreditFacilityId, CustomerId, LedgerAccountSetId, LedgerTxTemplateId,
-        Subject, UsdCents,
+        CreditFacilityId, CustomerId, LedgerAccountSetId, LedgerTxTemplateId, Subject, UsdCents,
     },
 };
 
@@ -135,31 +134,6 @@ impl Ledger {
             .await?)
     }
 
-    #[instrument(name = "lana.ledger.activate_credit_facility", skip(self), err)]
-    pub async fn activate_credit_facility(
-        &self,
-        CreditFacilityActivationData {
-            tx_id,
-            tx_ref,
-            credit_facility_account_ids,
-            customer_account_ids,
-            facility,
-            structuring_fee,
-        }: CreditFacilityActivationData,
-    ) -> Result<chrono::DateTime<chrono::Utc>, LedgerError> {
-        Ok(self
-            .cala
-            .execute_approve_credit_facility_tx(
-                tx_id,
-                credit_facility_account_ids,
-                customer_account_ids,
-                facility.to_usd(),
-                structuring_fee.to_usd(),
-                tx_ref,
-            )
-            .await?)
-    }
-
     #[instrument(
         name = "lana.ledger.record_credit_facility_interest_accrual",
         skip(self),
@@ -208,97 +182,6 @@ impl Ledger {
                 tx_ref,
             )
             .await?)
-    }
-
-    #[instrument(
-        name = "lana.ledger.manage_credit_facility_collateral",
-        skip(self),
-        err
-    )]
-    pub async fn update_credit_facility_collateral(
-        &self,
-        CreditFacilityCollateralUpdate {
-            tx_id,
-            credit_facility_account_ids,
-            abs_diff,
-            tx_ref,
-            action,
-        }: CreditFacilityCollateralUpdate,
-    ) -> Result<chrono::DateTime<chrono::Utc>, LedgerError> {
-        let created_at = match action {
-            CollateralAction::Add => {
-                self.cala
-                    .add_credit_facility_collateral(
-                        tx_id,
-                        credit_facility_account_ids,
-                        abs_diff.to_btc(),
-                        tx_ref,
-                    )
-                    .await
-            }
-            CollateralAction::Remove => {
-                self.cala
-                    .remove_credit_facility_collateral(
-                        tx_id,
-                        credit_facility_account_ids,
-                        abs_diff.to_btc(),
-                        tx_ref,
-                    )
-                    .await
-            }
-        }?;
-        Ok(created_at)
-    }
-
-    #[instrument(name = "lana.ledger.record_credit_facility_repayment", skip(self), err)]
-    pub async fn record_credit_facility_repayment(
-        &self,
-        CreditFacilityRepayment {
-            tx_id,
-            tx_ref,
-            credit_facility_account_ids,
-            customer_account_ids,
-            amounts:
-                CreditFacilityPaymentAmounts {
-                    interest,
-                    disbursal,
-                },
-        }: CreditFacilityRepayment,
-    ) -> Result<chrono::DateTime<chrono::Utc>, LedgerError> {
-        Ok(self
-            .cala
-            .execute_repay_credit_facility_tx(
-                tx_id,
-                credit_facility_account_ids,
-                customer_account_ids,
-                interest.to_usd(),
-                disbursal.to_usd(),
-                tx_ref,
-            )
-            .await?)
-    }
-
-    #[instrument(name = "lana.ledger.complete_credit_facility", skip(self), err)]
-    pub async fn complete_credit_facility(
-        &self,
-        CreditFacilityCompletion {
-            tx_id,
-            tx_ref,
-            collateral,
-            credit_facility_account_ids,
-            customer_account_ids,
-        }: CreditFacilityCompletion,
-    ) -> Result<chrono::DateTime<chrono::Utc>, LedgerError> {
-        let created_at = self
-            .cala
-            .remove_credit_facility_collateral(
-                tx_id,
-                credit_facility_account_ids,
-                collateral.to_btc(),
-                tx_ref,
-            )
-            .await?;
-        Ok(created_at)
     }
 
     #[instrument(

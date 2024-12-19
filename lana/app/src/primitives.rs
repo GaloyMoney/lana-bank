@@ -124,7 +124,7 @@ pub enum AccountStatus {
     Active,
 }
 
-pub use cala_types::primitives::{
+pub use cala_ledger::primitives::{
     AccountId as LedgerAccountId, AccountSetId as LedgerAccountSetId, Currency,
     DebitOrCredit as LedgerDebitOrCredit, JournalId as LedgerJournalId,
     TransactionId as LedgerTxId, TxTemplateId as LedgerTxTemplateId,
