@@ -100,6 +100,31 @@ where
         Ok(chart)
     }
 
+    #[instrument(name = "chart_of_accounts.find_by_reference", skip(self))]
+    pub async fn find_by_reference(
+        &self,
+        reference: String,
+    ) -> Result<Option<ChartOfAccount>, CoreChartOfAccountError> {
+        let mut op = self.repo.begin_op().await?;
+        self.authz
+            .audit()
+            .record_system_entry_in_tx(
+                op.tx(),
+                CoreChartOfAccountsObject::all_charts(),
+                CoreChartOfAccountsAction::CHART_LIST,
+            )
+            .await?;
+
+        let chart = match self.repo.find_by_reference(reference).await {
+            Ok(chart) => Some(chart),
+            Err(e) if e.was_not_found() => None,
+            Err(e) => return Err(e.into()),
+        };
+        op.commit().await?;
+
+        Ok(chart)
+    }
+
     #[instrument(name = "core_user.list_charts", skip(self))]
     pub async fn list_charts(
         &self,
