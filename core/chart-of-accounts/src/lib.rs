@@ -13,7 +13,7 @@ use cala_ledger::CalaLedger;
 use ledger::*;
 use tracing::instrument;
 
-use audit::AuditSvc;
+use audit::{AuditInfo, AuditSvc};
 use authz::PermissionCheck;
 
 use chart_of_accounts::*;
@@ -191,18 +191,9 @@ where
         control_sub_account: ChartOfAccountCode,
         name: &str,
         description: &str,
+        audit_info: AuditInfo,
     ) -> Result<ChartOfAccountAccountDetails, CoreChartOfAccountError> {
         let chart_id = chart_id.into();
-
-        let audit_info = self
-            .authz
-            .audit()
-            .record_system_entry_in_tx(
-                op.tx(),
-                CoreChartOfAccountsObject::chart(chart_id),
-                CoreChartOfAccountsAction::CHART_CREATE_TRANSACTION_ACCOUNT,
-            )
-            .await?;
 
         let mut chart = self.chart_of_account.find_by_id(chart_id).await?;
 

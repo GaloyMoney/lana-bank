@@ -72,8 +72,6 @@ impl CoreChartOfAccountsAction {
         CoreChartOfAccountsAction::ChartAction(ChartAction::CreateControlAccount);
     pub const CHART_CREATE_CONTROL_SUB_ACCOUNT: Self =
         CoreChartOfAccountsAction::ChartAction(ChartAction::CreateControlSubAccount);
-    pub const CHART_CREATE_TRANSACTION_ACCOUNT: Self =
-        CoreChartOfAccountsAction::ChartAction(ChartAction::CreateTransactionAccount);
     pub const CHART_FIND_TRANSACTION_ACCOUNT: Self =
         CoreChartOfAccountsAction::ChartAction(ChartAction::FindTransactionAccount);
 }
@@ -109,7 +107,6 @@ pub enum ChartAction {
     List,
     CreateControlAccount,
     CreateControlSubAccount,
-    CreateTransactionAccount,
     FindTransactionAccount,
 }
 

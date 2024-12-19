@@ -174,7 +174,7 @@ where
             .account_holder_id(holder_id)
             .name(name.to_string())
             .description(description.to_string())
-            .audit_info(audit_info)
+            .audit_info(audit_info.clone())
             .build()
             .expect("Could not build new committee");
 
@@ -189,6 +189,7 @@ where
                 self.control_sub_account_path,
                 &account.name,
                 &account.description,
+                audit_info,
             )
             .await?;
         Ok(account)
