@@ -4,7 +4,7 @@ use rust_decimal_macros::dec;
 
 use authz::dummy::DummySubject;
 use cala_ledger::{CalaLedger, CalaLedgerConfig};
-use chart_of_accounts::CoreChartOfAccounts;
+use chart_of_accounts::{CategoryPath, ChartOfAccountCode, CoreChartOfAccounts};
 use deposit::*;
 use helpers::{action, event, object};
 
@@ -38,14 +38,25 @@ async fn deposit() -> anyhow::Result<()> {
         )
         .await?;
 
+    let control_account_path = chart_of_accounts
+        .create_control_account(
+            chart_id,
+            ChartOfAccountCode::Category(CategoryPath::Liabilities),
+            "Deposits",
+        )
+        .await?;
+    let control_sub_account_path = chart_of_accounts
+        .create_control_sub_account(chart_id, control_account_path, "User Deposits")
+        .await?;
+    let factory = chart_of_accounts.transaction_account_factory(chart_id, control_sub_account_path);
+
     let deposit = CoreDeposit::init(
         &pool,
         &authz,
         &outbox,
         &governance,
         &jobs,
-        &chart_of_accounts,
-        chart_id,
+        factory,
         &cala,
         journal_id,
         omnibus_code,

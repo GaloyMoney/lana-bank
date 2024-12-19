@@ -145,7 +145,7 @@ impl ChartOfAccount {
             })?)
     }
 
-    pub fn create_transaction_account(
+    pub fn add_transaction_account(
         &mut self,
         account_id: impl Into<LedgerAccountId>,
         control_sub_account: ChartOfAccountCode,
@@ -351,7 +351,7 @@ mod tests {
             .unwrap();
 
         match chart
-            .create_transaction_account(
+            .add_transaction_account(
                 LedgerAccountId::new(),
                 control_sub_account,
                 "Cash",
@@ -454,7 +454,7 @@ mod tests {
             .unwrap();
 
         chart
-            .create_transaction_account(
+            .add_transaction_account(
                 LedgerAccountId::new(),
                 sub_account,
                 "First",
@@ -464,7 +464,7 @@ mod tests {
             .unwrap();
 
         match chart
-            .create_transaction_account(
+            .add_transaction_account(
                 LedgerAccountId::new(),
                 sub_account,
                 "Second",
@@ -505,7 +505,7 @@ mod tests {
             .create_control_sub_account(control_account, "Current Assets", audit_info.clone())
             .unwrap();
         let transaction_account = chart
-            .create_transaction_account(
+            .add_transaction_account(
                 LedgerAccountId::new(),
                 sub_account,
                 "Cash",

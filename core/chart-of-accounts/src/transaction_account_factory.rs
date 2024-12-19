@@ -8,30 +8,42 @@ use crate::{
     primitives::{ChartId, ChartOfAccountAccountDetails, LedgerAccountId},
 };
 
-pub struct TransactionAccountFactor {
-    chart_id: ChartId,
+#[derive(Clone)]
+pub struct TransactionAccountFactory {
     repo: ChartOfAccountRepo,
     cala: CalaLedger,
+    chart_id: ChartId,
+    control_sub_account: ChartOfAccountCode,
 }
 
-impl TransactionAccountFactor {
+impl TransactionAccountFactory {
+    pub(super) fn new(
+        repo: &ChartOfAccountRepo,
+        cala: &CalaLedger,
+        chart_id: ChartId,
+        control_sub_account: ChartOfAccountCode,
+    ) -> Self {
+        Self {
+            repo: repo.clone(),
+            cala: cala.clone(),
+            chart_id,
+            control_sub_account,
+        }
+    }
+
     pub async fn create_transaction_account_in_op(
         &self,
         mut op: es_entity::DbOp<'_>,
-        chart_id: impl Into<ChartId> + std::fmt::Debug,
         account_id: impl Into<LedgerAccountId>,
-        control_sub_account: ChartOfAccountCode,
         name: &str,
         description: &str,
         audit_info: AuditInfo,
     ) -> Result<ChartOfAccountAccountDetails, CoreChartOfAccountError> {
-        let chart_id = chart_id.into();
+        let mut chart = self.repo.find_by_id(self.chart_id).await?;
 
-        let mut chart = self.repo.find_by_id(chart_id).await?;
-
-        let account_details = chart.create_transaction_account(
+        let account_details = chart.add_transaction_account(
             account_id,
-            control_sub_account,
+            self.control_sub_account,
             name,
             description,
             audit_info,

@@ -16,10 +16,7 @@ use tracing::instrument;
 use audit::AuditSvc;
 use authz::PermissionCheck;
 use cala_ledger::CalaLedger;
-use chart_of_accounts::{
-    CategoryPath, ChartOfAccountCode, CoreChartOfAccounts, CoreChartOfAccountsAction,
-    CoreChartOfAccountsObject,
-};
+use chart_of_accounts::TransactionAccountFactory;
 use governance::{Governance, GovernanceEvent};
 use job::Jobs;
 use outbox::{Outbox, OutboxEventMarker};
@@ -50,9 +47,7 @@ where
     withdrawals: WithdrawalRepo,
     approve_withdrawal: ApproveWithdrawal<Perms, E>,
     ledger: DepositLedger,
-    chart_of_accounts: CoreChartOfAccounts<Perms>,
-    chart_id: ChartId,
-    control_sub_account_path: ChartOfAccountCode,
+    account_factory: TransactionAccountFactory,
     authz: Perms,
     governance: Governance<Perms, E>,
     outbox: Outbox<E>,
@@ -69,9 +64,7 @@ where
             deposits: self.deposits.clone(),
             withdrawals: self.withdrawals.clone(),
             ledger: self.ledger.clone(),
-            chart_of_accounts: self.chart_of_accounts.clone(),
-            chart_id: self.chart_id,
-            control_sub_account_path: self.control_sub_account_path,
+            account_factory: self.account_factory.clone(),
             authz: self.authz.clone(),
             governance: self.governance.clone(),
             approve_withdrawal: self.approve_withdrawal.clone(),
@@ -84,9 +77,9 @@ impl<Perms, E> CoreDeposit<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
-        From<CoreDepositAction> + From<GovernanceAction> + From<CoreChartOfAccountsAction>,
+        From<CoreDepositAction> + From<GovernanceAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object:
-        From<CoreDepositObject> + From<GovernanceObject> + From<CoreChartOfAccountsObject>,
+        From<CoreDepositObject> + From<GovernanceObject>,
     E: OutboxEventMarker<CoreDepositEvent> + OutboxEventMarker<GovernanceEvent>,
 {
     #[allow(clippy::too_many_arguments)]
@@ -96,8 +89,7 @@ where
         outbox: &Outbox<E>,
         governance: &Governance<Perms, E>,
         jobs: &Jobs,
-        chart_of_accounts: &CoreChartOfAccounts<Perms>,
-        chart_id: ChartId,
+        account_factory: TransactionAccountFactory,
         cala: &CalaLedger,
         journal_id: LedgerJournalId,
         omnibus_account_code: String,
@@ -108,18 +100,6 @@ where
         let ledger = DepositLedger::init(cala, journal_id, omnibus_account_code).await?;
 
         let approve_withdrawal = ApproveWithdrawal::new(&withdrawals, authz.audit(), governance);
-
-        // FIXME: Add some entity-enforced unique reference
-        let control_account_path = chart_of_accounts
-            .create_control_account(
-                chart_id,
-                ChartOfAccountCode::Category(CategoryPath::Liabilities),
-                "Deposits",
-            )
-            .await?;
-        let control_sub_account_path = chart_of_accounts
-            .create_control_sub_account(chart_id, control_account_path, "User Deposits")
-            .await?;
 
         jobs.add_initializer_and_spawn_unique(
             WithdrawApprovalJobInitializer::new(outbox, &approve_withdrawal),
@@ -144,9 +124,7 @@ where
             governance: governance.clone(),
             approve_withdrawal,
             ledger,
-            chart_of_accounts: chart_of_accounts.clone(),
-            chart_id,
-            control_sub_account_path,
+            account_factory,
         };
         Ok(res)
     }
@@ -181,12 +159,10 @@ where
         let mut op = self.accounts.begin_op().await?;
         let account = self.accounts.create_in_op(&mut op, new_account).await?;
 
-        self.chart_of_accounts
+        self.account_factory
             .create_transaction_account_in_op(
                 op,
-                self.chart_id,
                 account_id,
-                self.control_sub_account_path,
                 &account.name,
                 &account.description,
                 audit_info,

@@ -81,14 +81,18 @@ impl LanaApp {
         let cala = cala_ledger::CalaLedger::init(cala_config).await?;
         let journal_id = Self::create_journal(&cala).await?;
         let chart_of_accounts = ChartOfAccounts::init(&pool, &authz, &cala).await?;
+
+        let deposits_factory = chart_of_accounts.transaction_account_factory(
+            config.chart_of_accounts.primary_chart_id.into(),
+            control_sub_account_path,
+        );
         let deposits = Deposits::init(
             &pool,
             &authz,
             &outbox,
             &governance,
             &jobs,
-            &chart_of_accounts,
-            config.chart_of_accounts.primary_chart_id.into(),
+            deposits_factory,
             &cala,
             journal_id,
             String::from("OMNIBUS_ACCOUNT_ID"),

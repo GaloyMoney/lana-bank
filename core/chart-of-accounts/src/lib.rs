@@ -6,28 +6,27 @@ mod code;
 pub mod config;
 pub mod error;
 mod event;
-mod ledger;
 mod primitives;
 mod transaction_account_factory;
 
 use cala_ledger::CalaLedger;
-use ledger::*;
 use tracing::instrument;
 
-use audit::{AuditInfo, AuditSvc};
+use audit::AuditSvc;
 use authz::PermissionCheck;
 
 use chart_of_accounts::*;
 use error::*;
 pub use event::*;
 pub use primitives::*;
+pub use transaction_account_factory::*;
 
 pub struct CoreChartOfAccounts<Perms>
 where
     Perms: PermissionCheck,
 {
     repo: ChartOfAccountRepo,
-    ledger: ChartOfAccountLedger,
+    cala: CalaLedger,
     authz: Perms,
 }
 
@@ -38,7 +37,7 @@ where
     fn clone(&self) -> Self {
         Self {
             repo: self.repo.clone(),
-            ledger: self.ledger.clone(),
+            cala: self.cala.clone(),
             authz: self.authz.clone(),
         }
     }
@@ -56,13 +55,20 @@ where
         cala: &CalaLedger,
     ) -> Result<Self, CoreChartOfAccountError> {
         let chart_of_account = ChartOfAccountRepo::new(pool);
-        let ledger = ChartOfAccountLedger::init(cala).await?;
         let res = Self {
             repo: chart_of_account,
-            ledger,
+            cala: cala.clone(),
             authz: authz.clone(),
         };
         Ok(res)
+    }
+
+    pub fn transaction_account_factory(
+        &self,
+        chart_id: ChartId,
+        control_sub_account: ChartOfAccountCode,
+    ) -> TransactionAccountFactory {
+        TransactionAccountFactory::new(&self.repo, &self.cala, chart_id, control_sub_account)
     }
 
     #[instrument(name = "chart_of_accounts.create_chart", skip(self))]
@@ -206,37 +212,6 @@ where
         op.commit().await?;
 
         Ok(code)
-    }
-
-    pub async fn create_transaction_account_in_op(
-        &self,
-        mut op: es_entity::DbOp<'_>,
-        chart_id: impl Into<ChartId> + std::fmt::Debug,
-        account_id: impl Into<LedgerAccountId>,
-        control_sub_account: ChartOfAccountCode,
-        name: &str,
-        description: &str,
-        audit_info: AuditInfo,
-    ) -> Result<ChartOfAccountAccountDetails, CoreChartOfAccountError> {
-        let chart_id = chart_id.into();
-
-        let mut chart = self.repo.find_by_id(chart_id).await?;
-
-        let account_details = chart.create_transaction_account(
-            account_id,
-            control_sub_account,
-            name,
-            description,
-            audit_info,
-        )?;
-
-        self.repo.update_in_op(&mut op, &mut chart).await?;
-
-        self.ledger
-            .create_transaction_account(op, &account_details)
-            .await?;
-
-        Ok(account_details)
     }
 
     #[instrument(name = "chart_of_accounts.find_account_in_chart", skip(self))]
