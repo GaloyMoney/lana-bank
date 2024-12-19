@@ -6,7 +6,7 @@ use tracing::instrument;
 use crate::{
     audit::*,
     authorization::{CreditFacilityAction, Object},
-    credit_facility::{repo::*, CreditFacilityError},
+    credit_facility::{ledger::CreditLedger, repo::*, CreditFacilityError},
     job::*,
     ledger::*,
     primitives::{CreditFacilityId, InterestAccrualIdx},
@@ -22,13 +22,17 @@ impl JobConfig for CreditFacilityJobConfig {
 }
 
 pub struct CreditFacilityProcessingJobInitializer {
-    ledger: Ledger,
+    ledger: CreditLedger,
     credit_facility_repo: CreditFacilityRepo,
     audit: Audit,
 }
 
 impl CreditFacilityProcessingJobInitializer {
-    pub fn new(ledger: &Ledger, credit_facility_repo: CreditFacilityRepo, audit: &Audit) -> Self {
+    pub fn new(
+        ledger: &CreditLedger,
+        credit_facility_repo: CreditFacilityRepo,
+        audit: &Audit,
+    ) -> Self {
         Self {
             ledger: ledger.clone(),
             credit_facility_repo,
@@ -67,7 +71,7 @@ struct ConfirmedIncurrence {
 pub struct CreditFacilityProcessingJobRunner {
     config: CreditFacilityJobConfig,
     credit_facility_repo: CreditFacilityRepo,
-    ledger: Ledger,
+    ledger: CreditLedger,
     audit: Audit,
 }
 
@@ -140,9 +144,11 @@ impl JobRunner for CreditFacilityProcessingJobRunner {
             .confirm_interest_incurrence(&mut db, &audit_info)
             .await?;
         self.ledger
-            .record_credit_facility_interest_incurrence(interest_incurrence)
+            .record_interest_incurrence(db, interest_incurrence)
             .await?;
 
+        // handle move of db
+        unimplemented!();
         if let Some(period) = next_incurrence_period {
             Ok(JobCompletion::RescheduleAtWithOp(db, period.end))
         } else {

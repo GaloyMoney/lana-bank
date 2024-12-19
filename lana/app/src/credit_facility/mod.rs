@@ -58,7 +58,6 @@ pub struct CreditFacilities {
     credit_facility_repo: CreditFacilityRepo,
     disbursal_repo: DisbursalRepo,
     governance: Governance,
-    gql_ledger: Ledger,
     ledger: CreditLedger,
     price: Price,
     config: CreditFacilityConfig,
@@ -92,12 +91,14 @@ impl CreditFacilities {
             governance,
             gql_ledger,
         );
+        let ledger = CreditLedger::init(cala, journal_id).await?;
+
         let approve_credit_facility =
             ApproveCreditFacility::new(&credit_facility_repo, authz.audit(), governance);
         let activate_credit_facility = ActivateCreditFacility::new(
             &credit_facility_repo,
             &disbursal_repo,
-            gql_ledger,
+            &ledger,
             price,
             jobs,
             authz.audit(),
@@ -116,14 +117,14 @@ impl CreditFacilities {
         .await?;
         jobs.add_initializer(
             interest_incurrences::CreditFacilityProcessingJobInitializer::new(
-                gql_ledger,
+                &ledger,
                 credit_facility_repo.clone(),
                 authz.audit(),
             ),
         );
         jobs.add_initializer(
             interest_accruals::CreditFacilityProcessingJobInitializer::new(
-                gql_ledger,
+                &ledger,
                 credit_facility_repo.clone(),
                 jobs,
                 authz.audit(),
@@ -149,15 +150,12 @@ impl CreditFacilities {
             .await;
         let _ = governance.init_policy(APPROVE_DISBURSAL_PROCESS).await;
 
-        let ledger = CreditLedger::init(cala, journal_id).await?;
-
         Ok(Self {
             authz: authz.clone(),
             customers: customers.clone(),
             credit_facility_repo,
             disbursal_repo,
             governance: governance.clone(),
-            gql_ledger: gql_ledger.clone(),
             ledger,
             price: price.clone(),
             config,
@@ -414,11 +412,10 @@ impl CreditFacilities {
             .update_in_op(&mut db, &mut credit_facility)
             .await?;
 
-        self.gql_ledger
-            .update_credit_facility_collateral(credit_facility_collateral_update)
+        self.ledger
+            .update_credit_facility_collateral(db, credit_facility_collateral_update)
             .await?;
 
-        db.commit().await?;
         Ok(credit_facility)
     }
 
@@ -460,40 +457,27 @@ impl CreditFacilities {
             .await?;
 
         let ledger_balances = self
-            .gql_ledger
+            .ledger
             .get_credit_facility_balance(credit_facility.account_ids)
             .await?;
         credit_facility
             .balances()
             .check_against_ledger(ledger_balances)?;
 
-        let customer = self
-            .customers
-            .repo()
-            .find_by_id(credit_facility.customer_id)
-            .await?;
-        self.gql_ledger
-            .get_customer_balance(customer.account_ids)
-            .await?
-            .check_withdraw_amount(amount)?;
-
-        let repayment = credit_facility.initiate_repayment(amount)?;
-        let executed_at = self
-            .gql_ledger
-            .record_credit_facility_repayment(repayment.clone())
-            .await?;
-        credit_facility.confirm_repayment(
-            repayment,
-            executed_at,
-            audit_info,
+        let repayment = credit_facility.initiate_repayment(
+            amount,
             price,
             self.config.upgrade_buffer_cvl_pct,
-        );
+            db.now(),
+            audit_info,
+        )?;
         self.credit_facility_repo
             .update_in_op(&mut db, &mut credit_facility)
             .await?;
 
-        db.commit().await?;
+        self.ledger
+            .record_credit_facility_repayment(db, repayment)
+            .await?;
 
         Ok(credit_facility)
     }
@@ -684,25 +668,15 @@ impl CreditFacilities {
             .find_by_id(credit_facility_id)
             .await?;
 
-        let completion = credit_facility.initiate_completion()?;
-
-        let executed_at = self
-            .gql_ledger
-            .complete_credit_facility(completion.clone())
-            .await?;
-        credit_facility.confirm_completion(
-            completion,
-            executed_at,
-            audit_info,
-            price,
-            self.config.upgrade_buffer_cvl_pct,
-        );
+        let completion =
+            credit_facility.complete(audit_info, price, self.config.upgrade_buffer_cvl_pct)?;
 
         let mut db = self.credit_facility_repo.begin_op().await?;
         self.credit_facility_repo
             .update_in_op(&mut db, &mut credit_facility)
             .await?;
-        db.commit().await?;
+
+        self.ledger.complete_credit_facility(db, completion).await?;
 
         Ok(credit_facility)
     }
