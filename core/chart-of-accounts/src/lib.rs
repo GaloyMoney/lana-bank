@@ -3,6 +3,7 @@
 
 mod chart_of_accounts;
 mod code;
+pub mod config;
 pub mod error;
 mod event;
 mod ledger;
