@@ -6,11 +6,11 @@ edition = "2021"
 [features]
 
 fail-on-warnings = []
-graphql = ["es-entity/graphql", "governance/graphql", "cala-ledger/graphql"]
+graphql = [ "dep:async-graphql", "es-entity/graphql", "governance/graphql" ]
 
 [dependencies]
 core-money = { path = "../money" }
-governance = { path = "../governance", features = ["graphql"] }
+governance = { path = "../governance" }
 chart-of-accounts = { path = "../chart-of-accounts" }
 
 audit = { path = "../../lib/audit" }
@@ -18,8 +18,8 @@ authz = { path = "../../lib/authz" }
 outbox = { path = "../../lib/outbox" }
 job = { path = "../../lib/job" }
 
-cala-ledger = { workspace = true , features = [ "graphql" ] }
-es-entity = { workspace = true, features = ["graphql"] }
+cala-ledger = { workspace = true }
+es-entity = { workspace = true }
 sqlx = { workspace = true }
 
 strum = { workspace = true }
@@ -32,7 +32,7 @@ derive_builder = { workspace = true }
 rust_decimal = { workspace = true }
 async-trait = { workspace = true }
 futures = { workspace = true }
-async-graphql = { workspace = true }
+async-graphql = { workspace = true, optional = true }
 
 [dev-dependencies]
 authz = { path = "../../lib/authz", features = ["test-dummy"] }
