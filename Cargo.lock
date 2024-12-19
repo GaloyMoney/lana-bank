@@ -749,8 +749,6 @@ name = "cala-ledger"
 version = "0.3.3-dev"
 source = "git+https://github.com/galoymoney/cala.git?branch=main#51a47e725443f7dcb1479eb1d5770fd2857c9a20"
 dependencies = [
- "async-graphql",
- "base64 0.22.1",
  "cached 0.51.4",
  "cala-cel-interpreter 0.3.3-dev",
  "cala-ledger-core-types 0.3.3-dev",

@@ -18,7 +18,7 @@ dashboard = { path = "../dashboard" }
 governance = { path = "../../core/governance", features = ["graphql"] }
 core-money = { path = "../../core/money" }
 core-user = { path = "../../core/user", features = ["graphql"] }
-deposit = { path = "../../core/deposit", features = ["graphql"] }
+deposit = { path = "../../core/deposit" }
 chart-of-accounts = { path = "../../core/chart-of-accounts" }
 
 tracing-utils = { path = "../../lib/tracing-utils", features = ["http"] }

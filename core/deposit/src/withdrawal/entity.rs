@@ -10,7 +10,8 @@ use audit::AuditInfo;
 
 use super::error::WithdrawalError;
 
-#[derive(async_graphql::Enum, Debug, Copy, Clone, Serialize, Deserialize, Eq, PartialEq)]
+#[derive(Debug, Copy, Clone, Serialize, Deserialize, Eq, PartialEq)]
+#[cfg_attr(feature = "graphql", derive(async_graphql::Enum))]
 pub enum WithdrawalStatus {
     PendingApproval,
     PendingConfirmation,
