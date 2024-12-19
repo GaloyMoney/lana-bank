@@ -24,3 +24,6 @@ uuid = { workspace = true }
 
 tokio = { workspace = true }
 anyhow = { workspace = true }
+
+[dev-dependencies]
+authz = { path = "../../lib/authz", features = ["test-dummy"] }

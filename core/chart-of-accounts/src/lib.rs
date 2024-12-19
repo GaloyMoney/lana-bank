@@ -8,6 +8,7 @@ pub mod error;
 mod event;
 mod ledger;
 mod primitives;
+mod transaction_account_factory;
 
 use cala_ledger::CalaLedger;
 use ledger::*;
@@ -25,7 +26,7 @@ pub struct CoreChartOfAccounts<Perms>
 where
     Perms: PermissionCheck,
 {
-    chart_of_account: ChartOfAccountRepo,
+    repo: ChartOfAccountRepo,
     ledger: ChartOfAccountLedger,
     authz: Perms,
 }
@@ -36,7 +37,7 @@ where
 {
     fn clone(&self) -> Self {
         Self {
-            chart_of_account: self.chart_of_account.clone(),
+            repo: self.repo.clone(),
             ledger: self.ledger.clone(),
             authz: self.authz.clone(),
         }
@@ -57,7 +58,7 @@ where
         let chart_of_account = ChartOfAccountRepo::new(pool);
         let ledger = ChartOfAccountLedger::init(cala).await?;
         let res = Self {
-            chart_of_account,
+            repo: chart_of_account,
             ledger,
             authz: authz.clone(),
         };
@@ -86,9 +87,9 @@ where
             .build()
             .expect("Could not build new chart of accounts");
 
-        let mut op = self.chart_of_account.begin_op().await?;
+        let mut op = self.repo.begin_op().await?;
         let chart = self
-            .chart_of_account
+            .repo
             .create_in_op(&mut op, new_chart_of_account)
             .await?;
         op.commit().await?;
@@ -110,7 +111,7 @@ where
             .await?;
 
         Ok(self
-            .chart_of_account
+            .repo
             .list_by_id(Default::default(), es_entity::ListDirection::Ascending)
             .await?
             .entities)
@@ -124,7 +125,7 @@ where
     ) -> Result<ChartOfAccountCode, CoreChartOfAccountError> {
         let chart_id = chart_id.into();
 
-        let mut op = self.chart_of_account.begin_op().await?;
+        let mut op = self.repo.begin_op().await?;
 
         let audit_info = self
             .authz
@@ -136,13 +137,11 @@ where
             )
             .await?;
 
-        let mut chart = self.chart_of_account.find_by_id(chart_id).await?;
+        let mut chart = self.repo.find_by_id(chart_id).await?;
 
         let code = chart.create_control_account(category, name, audit_info)?;
 
-        self.chart_of_account
-            .update_in_op(&mut op, &mut chart)
-            .await?;
+        self.repo.update_in_op(&mut op, &mut chart).await?;
 
         op.commit().await?;
 
@@ -157,7 +156,7 @@ where
     ) -> Result<ChartOfAccountCode, CoreChartOfAccountError> {
         let chart_id = chart_id.into();
 
-        let mut op = self.chart_of_account.begin_op().await?;
+        let mut op = self.repo.begin_op().await?;
 
         let audit_info = self
             .authz
@@ -169,14 +168,12 @@ where
             )
             .await?;
 
-        let mut chart = self.chart_of_account.find_by_id(chart_id).await?;
+        let mut chart = self.repo.find_by_id(chart_id).await?;
 
         let code = chart.create_control_sub_account(control_account, name, audit_info)?;
 
-        let mut op = self.chart_of_account.begin_op().await?;
-        self.chart_of_account
-            .update_in_op(&mut op, &mut chart)
-            .await?;
+        let mut op = self.repo.begin_op().await?;
+        self.repo.update_in_op(&mut op, &mut chart).await?;
 
         op.commit().await?;
 
@@ -195,7 +192,7 @@ where
     ) -> Result<ChartOfAccountAccountDetails, CoreChartOfAccountError> {
         let chart_id = chart_id.into();
 
-        let mut chart = self.chart_of_account.find_by_id(chart_id).await?;
+        let mut chart = self.repo.find_by_id(chart_id).await?;
 
         let account_details = chart.create_transaction_account(
             account_id,
@@ -205,9 +202,7 @@ where
             audit_info,
         )?;
 
-        self.chart_of_account
-            .update_in_op(&mut op, &mut chart)
-            .await?;
+        self.repo.update_in_op(&mut op, &mut chart).await?;
 
         self.ledger
             .create_transaction_account(op, &account_details)
@@ -232,7 +227,7 @@ where
             )
             .await?;
 
-        let chart = self.chart_of_account.find_by_id(chart_id).await?;
+        let chart = self.repo.find_by_id(chart_id).await?;
 
         let account_details = chart.find_account(code.into());
 
