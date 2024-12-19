@@ -4,7 +4,7 @@ use std::fmt::Display;
 
 use serde::{Deserialize, Serialize};
 
-use super::primitives::DebitOrCredit;
+use super::primitives::{ChartId, DebitOrCredit};
 use error::*;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Serialize, Hash, Deserialize)]
@@ -169,6 +169,10 @@ impl ChartOfAccountCode {
             }
             _ => DebitOrCredit::Credit,
         }
+    }
+
+    pub fn to_code(&self, chart_id: ChartId) -> String {
+        format!("{}::{}", chart_id, self)
     }
 
     pub fn category(&self) -> ChartOfAccountCategoryCode {

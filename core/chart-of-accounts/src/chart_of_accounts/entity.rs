@@ -164,7 +164,7 @@ impl ChartOfAccount {
 
         Ok(ChartOfAccountAccountDetails {
             account_id,
-            code: path.to_string(),
+            code: path.to_code(self.id),
             path,
             name: name.to_string(),
             description: description.to_string(),
@@ -173,19 +173,19 @@ impl ChartOfAccount {
 
     pub fn find_account(
         &self,
-        account_code: ChartOfAccountCode,
+        account_path: ChartOfAccountCode,
     ) -> Option<ChartOfAccountAccountDetails> {
         self.events.iter_all().rev().find_map(|event| match event {
             ChartOfAccountEvent::TransactionAccountAdded {
                 id,
-                code,
+                code: path,
                 name,
                 description,
                 ..
-            } if *code == account_code => Some(ChartOfAccountAccountDetails {
+            } if *path == account_path => Some(ChartOfAccountAccountDetails {
                 account_id: *id,
-                path: *code,
-                code: code.to_string(),
+                path: *path,
+                code: path.to_code(self.id),
                 name: name.to_string(),
                 description: description.to_string(),
             }),
