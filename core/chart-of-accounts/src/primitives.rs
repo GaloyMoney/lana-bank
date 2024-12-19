@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 
 pub use cala_ledger::primitives::AccountId as LedgerAccountId;
 
-use crate::code::ChartOfAccountCode;
+pub use crate::code::{ChartOfAccountCategoryCode as CategoryPath, ChartOfAccountCode};
 
 es_entity::entity_id! {
     ChartId,

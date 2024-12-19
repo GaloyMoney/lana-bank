@@ -28,7 +28,12 @@ async fn cancel_withdrawal() -> anyhow::Result<()> {
     let journal_id = helpers::init_journal(&cala).await?;
     let omnibus_code = journal_id.to_string();
 
+    let chart_id = ChartId::new();
     let chart_of_accounts = CoreChartOfAccounts::init(&pool, &authz, &cala).await?;
+    chart_of_accounts
+        .create_chart(&DummySubject, chart_id)
+        .await?;
+
     let deposit = CoreDeposit::init(
         &pool,
         &authz,
@@ -36,6 +41,7 @@ async fn cancel_withdrawal() -> anyhow::Result<()> {
         &governance,
         &jobs,
         &chart_of_accounts,
+        chart_id,
         &cala,
         journal_id,
         omnibus_code,
@@ -44,7 +50,12 @@ async fn cancel_withdrawal() -> anyhow::Result<()> {
 
     let account_holder_id = DepositAccountHolderId::new();
     let account = deposit
-        .create_account(&DummySubject, account_holder_id)
+        .create_account(
+            &DummySubject,
+            account_holder_id,
+            "Deposit for User #1",
+            "Deposit checking account for user.",
+        )
         .await?;
 
     let deposit_amount = UsdCents::try_from_usd(dec!(1000000)).unwrap();

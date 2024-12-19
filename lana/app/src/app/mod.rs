@@ -88,6 +88,7 @@ impl LanaApp {
             &governance,
             &jobs,
             &chart_of_accounts,
+            chart_of_accounts_id,
             &cala,
             journal_id,
             String::from("OMNIBUS_ACCOUNT_ID"),
