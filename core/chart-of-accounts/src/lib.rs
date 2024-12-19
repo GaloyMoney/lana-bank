@@ -201,8 +201,13 @@ where
 
         let mut chart = self.chart_of_account.find_by_id(chart_id).await?;
 
-        let account_details =
-            chart.create_transaction_account(control_sub_account, name, description, audit_info)?;
+        let account_details = chart.create_transaction_account(
+            account_id,
+            control_sub_account,
+            name,
+            description,
+            audit_info,
+        )?;
 
         let mut op = self.chart_of_account.begin_op().await?;
         self.chart_of_account

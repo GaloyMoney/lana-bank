@@ -145,13 +145,14 @@ impl ChartOfAccount {
 
     pub fn create_transaction_account(
         &mut self,
+        account_id: impl Into<LedgerAccountId>,
         control_sub_account: ChartOfAccountCode,
         name: &str,
         description: &str,
         audit_info: AuditInfo,
     ) -> Result<ChartOfAccountAccountDetails, ChartOfAccountError> {
+        let account_id = account_id.into();
         let code = self.next_transaction_account(control_sub_account)?;
-        let account_id = LedgerAccountId::new();
         self.events
             .push(ChartOfAccountEvent::TransactionAccountAdded {
                 id: account_id,
@@ -234,7 +235,7 @@ impl IntoEvents<ChartOfAccountEvent> for NewChartOfAccount {
 
 #[cfg(test)]
 mod tests {
-    use crate::{AccountIdx, ChartOfAccountCategoryCode};
+    use crate::code::{AccountIdx, ChartOfAccountCategoryCode};
 
     use super::*;
 
@@ -341,6 +342,7 @@ mod tests {
 
         match chart
             .create_transaction_account(
+                LedgerAccountId::new(),
                 control_sub_account,
                 "Cash",
                 "Cash account",
@@ -443,6 +445,7 @@ mod tests {
 
         chart
             .create_transaction_account(
+                LedgerAccountId::new(),
                 sub_account,
                 "First",
                 "First transaction account",
@@ -452,6 +455,7 @@ mod tests {
 
         match chart
             .create_transaction_account(
+                LedgerAccountId::new(),
                 sub_account,
                 "Second",
                 "Second transaction account",
@@ -491,7 +495,13 @@ mod tests {
             .create_control_sub_account(control_account, "Current Assets", audit_info.clone())
             .unwrap();
         let transaction_account = chart
-            .create_transaction_account(sub_account, "Cash", "Cash account", audit_info)
+            .create_transaction_account(
+                LedgerAccountId::new(),
+                sub_account,
+                "Cash",
+                "Cash account",
+                audit_info,
+            )
             .unwrap();
 
         let found = chart.find_account(transaction_account.code).unwrap();
