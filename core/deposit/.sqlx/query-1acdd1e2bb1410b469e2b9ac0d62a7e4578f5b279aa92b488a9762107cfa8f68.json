@@ -1,0 +1,18 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO job_events (id, recorded_at, sequence, event_type, event) SELECT $1, $2, ROW_NUMBER() OVER () + $3, unnested.event_type, unnested.event FROM UNNEST($4::text[], $5::jsonb[]) AS unnested(event_type, event)",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Timestamptz",
+        "Int8",
+        "TextArray",
+        "JsonbArray"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "1acdd1e2bb1410b469e2b9ac0d62a7e4578f5b279aa92b488a9762107cfa8f68"
+}
