@@ -67,12 +67,12 @@ impl LanaApp {
         let outbox = Outbox::init(&pool).await?;
         let dashboard = Dashboard::init(&pool, &authz, &jobs, &outbox).await?;
         let governance = Governance::new(&pool, &authz, &outbox);
-        let ledger = Ledger::init(config.ledger, &authz).await?;
         let price = Price::init(&jobs, &export).await?;
         let storage = Storage::new(&config.storage);
         let documents = Documents::new(&pool, &storage, &authz);
         let report = Reports::init(&pool, &config.report, &authz, &jobs, &storage, &export).await?;
         let users = Users::init(&pool, &authz, &outbox, config.user.superuser_email).await?;
+
         let cala_config = cala_ledger::CalaLedgerConfig::builder()
             .pool(pool.clone())
             .exec_migrations(false)
@@ -81,10 +81,11 @@ impl LanaApp {
         let cala = cala_ledger::CalaLedger::init(cala_config).await?;
         let journal_id = Self::create_journal(&cala).await?;
         let chart_of_accounts = ChartOfAccounts::init(&pool, &authz, &cala).await?;
+        let ledger = Ledger::init(config.ledger, &authz, &chart_of_accounts).await?;
 
         let deposits_factory = chart_of_accounts.transaction_account_factory(
-            config.chart_of_accounts.primary_chart_id.into(),
-            control_sub_account_path,
+            ledger.chart_and_account_paths.id,
+            ledger.chart_and_account_paths.deposits_control_sub_path,
         );
         let deposits = Deposits::init(
             &pool,

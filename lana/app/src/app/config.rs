@@ -1,7 +1,5 @@
 use serde::{Deserialize, Serialize};
 
-use chart_of_accounts::config::ChartOfAccountsConfig;
-
 use crate::{
     applicant::SumsubConfig, credit_facility::CreditFacilityConfig, customer::CustomerConfig,
     job::JobExecutorConfig, ledger::LedgerConfig, report::ReportConfig,
@@ -28,8 +26,6 @@ pub struct AppConfig {
     pub report: ReportConfig,
     #[serde(default)]
     pub storage: StorageConfig,
-    #[serde(default)]
-    pub chart_of_accounts: ChartOfAccountsConfig,
 }
 
 #[derive(Clone, Default, Debug, Deserialize, Serialize)]

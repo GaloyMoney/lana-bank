@@ -1,3 +1,5 @@
+mod seed;
+
 pub mod account;
 pub mod account_set;
 pub mod bank;
@@ -11,6 +13,7 @@ pub mod error;
 pub mod primitives;
 
 use authz::PermissionCheck;
+use chart_of_accounts::{ChartId, ChartOfAccountCode};
 
 use chrono::{DateTime, Utc};
 use disbursal::DisbursalData;
@@ -18,6 +21,7 @@ use tracing::instrument;
 
 use crate::{
     authorization::{Authorization, LedgerAction, Object},
+    chart_of_accounts::ChartOfAccounts,
     primitives::{
         CreditFacilityId, CustomerId, LedgerAccountSetId, LedgerTxTemplateId, Subject, UsdCents,
     },
@@ -36,18 +40,32 @@ use customer::*;
 use error::*;
 
 #[derive(Clone)]
+pub struct ChartAndAccountPaths {
+    pub id: ChartId,
+    pub deposits_control_sub_path: ChartOfAccountCode,
+}
+
+#[derive(Clone)]
 pub struct Ledger {
     cala: CalaClient,
     authz: Authorization,
+    pub chart_and_account_paths: ChartAndAccountPaths,
 }
 
 impl Ledger {
-    pub async fn init(config: LedgerConfig, authz: &Authorization) -> Result<Self, LedgerError> {
+    pub async fn init(
+        config: LedgerConfig,
+        authz: &Authorization,
+        chart_of_accounts: &ChartOfAccounts,
+    ) -> Result<Self, LedgerError> {
         let cala = CalaClient::new(config.cala_url);
         Self::initialize_tx_templates(&cala).await?;
+
+        let chart_and_account_paths = seed::execute(chart_of_accounts).await?;
         Ok(Ledger {
             cala,
             authz: authz.clone(),
+            chart_and_account_paths,
         })
     }
 
