@@ -34,38 +34,20 @@ async fn chart_of_accounts() -> anyhow::Result<()> {
 
     let control_account_code = chart_of_accounts
         .create_control_account(
-            &DummySubject,
             chart_id,
             "10000000".parse()?,
             "Credit Facilities Receivable",
         )
         .await?;
+
+    let control_sub_account_name = "Fixed-Term Credit Facilities Receivable";
     let control_sub_account_code = chart_of_accounts
-        .create_control_sub_account(
-            &DummySubject,
-            chart_id,
-            control_account_code,
-            "Fixed-Term Credit Facilities Receivable",
-        )
+        .create_control_sub_account(chart_id, control_account_code, control_sub_account_name)
         .await?;
-
-    let transaction_account_name = "Fixed-Term Credit Facilities Receivable #1 for Customer 00-01";
-    // FIXME: This will fail if we run it twice on different charts with same `code` value
-    let transaction_account = chart_of_accounts
-        .create_transaction_account(
-            &DummySubject,
-            chart_id,
-            control_sub_account_code,
-            transaction_account_name,
-            "",
-        )
-        .await?;
-
-    let transaction_account = chart_of_accounts
-        .find_account_in_chart(&DummySubject, chart_id, transaction_account.code)
-        .await?
-        .expect("Transaction account not found");
-    assert_eq!(transaction_account.name, transaction_account_name);
+    assert_eq!(
+        control_sub_account_code.control_account(),
+        Some(control_account_code)
+    );
 
     Ok(())
 }

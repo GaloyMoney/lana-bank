@@ -16,7 +16,6 @@ use audit::AuditSvc;
 use authz::PermissionCheck;
 
 use chart_of_accounts::*;
-use code::*;
 use error::*;
 pub use event::*;
 pub use primitives::*;
@@ -116,19 +115,21 @@ where
             .entities)
     }
 
-    #[instrument(name = "chart_of_accounts.create_control_account", skip(self))]
     pub async fn create_control_account(
         &self,
-        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        chart_id: impl Into<ChartId> + std::fmt::Debug,
+        chart_id: impl Into<ChartId>,
         category: ChartOfAccountCode,
         name: &str,
     ) -> Result<ChartOfAccountCode, CoreChartOfAccountError> {
         let chart_id = chart_id.into();
+
+        let mut op = self.chart_of_account.begin_op().await?;
+
         let audit_info = self
             .authz
-            .enforce_permission(
-                sub,
+            .audit()
+            .record_system_entry_in_tx(
+                op.tx(),
                 CoreChartOfAccountsObject::chart(chart_id),
                 CoreChartOfAccountsAction::CHART_CREATE_CONTROL_ACCOUNT,
             )
@@ -138,7 +139,6 @@ where
 
         let code = chart.create_control_account(category, name, audit_info)?;
 
-        let mut op = self.chart_of_account.begin_op().await?;
         self.chart_of_account
             .update_in_op(&mut op, &mut chart)
             .await?;
@@ -148,19 +148,21 @@ where
         Ok(code)
     }
 
-    #[instrument(name = "chart_of_accounts.create_control_sub_account", skip(self))]
     pub async fn create_control_sub_account(
         &self,
-        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         chart_id: impl Into<ChartId> + std::fmt::Debug,
         control_account: ChartOfAccountCode,
         name: &str,
     ) -> Result<ChartOfAccountCode, CoreChartOfAccountError> {
         let chart_id = chart_id.into();
+
+        let mut op = self.chart_of_account.begin_op().await?;
+
         let audit_info = self
             .authz
-            .enforce_permission(
-                sub,
+            .audit()
+            .record_system_entry_in_tx(
+                op.tx(),
                 CoreChartOfAccountsObject::chart(chart_id),
                 CoreChartOfAccountsAction::CHART_CREATE_CONTROL_SUB_ACCOUNT,
             )
@@ -180,20 +182,22 @@ where
         Ok(code)
     }
 
-    #[instrument(name = "chart_of_accounts.create_transaction_account", skip(self))]
-    pub async fn create_transaction_account(
+    pub async fn create_transaction_account_in_op(
         &self,
-        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        mut op: es_entity::DbOp<'_>,
         chart_id: impl Into<ChartId> + std::fmt::Debug,
+        account_id: impl Into<LedgerAccountId>,
         control_sub_account: ChartOfAccountCode,
         name: &str,
         description: &str,
     ) -> Result<ChartOfAccountAccountDetails, CoreChartOfAccountError> {
         let chart_id = chart_id.into();
+
         let audit_info = self
             .authz
-            .enforce_permission(
-                sub,
+            .audit()
+            .record_system_entry_in_tx(
+                op.tx(),
                 CoreChartOfAccountsObject::chart(chart_id),
                 CoreChartOfAccountsAction::CHART_CREATE_TRANSACTION_ACCOUNT,
             )
@@ -209,7 +213,6 @@ where
             audit_info,
         )?;
 
-        let mut op = self.chart_of_account.begin_op().await?;
         self.chart_of_account
             .update_in_op(&mut op, &mut chart)
             .await?;
