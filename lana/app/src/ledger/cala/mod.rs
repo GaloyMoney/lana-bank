@@ -2,7 +2,7 @@ mod convert;
 pub mod error;
 pub(super) mod graphql;
 
-use cala_types::primitives::TxTemplateId;
+use cala_ledger::primitives::TxTemplateId;
 use chrono::{DateTime, Utc};
 use graphql_client::{GraphQLQuery, Response};
 use reqwest::Client as ReqwestClient;

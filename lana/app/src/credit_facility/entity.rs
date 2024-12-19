@@ -72,7 +72,6 @@ pub enum CreditFacilityEvent {
     },
     CollateralUpdated {
         tx_id: LedgerTxId,
-        tx_ref: String,
         total_collateral: Satoshis,
         abs_diff: Satoshis,
         action: CollateralAction,
@@ -92,8 +91,8 @@ pub enum CreditFacilityEvent {
         tx_ref: String,
         disbursal_amount: UsdCents,
         interest_amount: UsdCents,
-        audit_info: AuditInfo,
         recorded_in_ledger_at: DateTime<Utc>,
+        audit_info: AuditInfo,
     },
     Completed {
         completed_at: DateTime<Utc>,
@@ -509,7 +508,7 @@ impl CreditFacility {
     pub(crate) fn activation_data(
         &self,
         price: PriceOfOneBTC,
-    ) -> Result<CreditFacilityActivationData, CreditFacilityError> {
+    ) -> Result<CreditFacilityActivation, CreditFacilityError> {
         if self.is_activated() {
             return Err(CreditFacilityError::AlreadyActivated);
         }
@@ -530,19 +529,21 @@ impl CreditFacility {
             .cvl(price)
             .check_approval_allowed(self.terms)?;
 
-        Ok(CreditFacilityActivationData {
-            facility: self.initial_facility(),
-            structuring_fee: self.structuring_fee(),
-            tx_ref: format!("{}-activate", self.id),
+        Ok(CreditFacilityActivation {
             tx_id: LedgerTxId::new(),
+            tx_ref: format!("{}-activate", self.id),
             credit_facility_account_ids: self.account_ids,
-            customer_account_ids: self.customer_account_ids,
+            debit_account_id: self
+                .customer_account_ids
+                .on_balance_sheet_deposit_account_id,
+            facility_amount: self.initial_facility(),
+            structuring_fee_amount: self.structuring_fee(),
         })
     }
 
     pub(super) fn activate(
         &mut self,
-        CreditFacilityActivationData { tx_id, .. }: CreditFacilityActivationData,
+        CreditFacilityActivation { tx_id, .. }: CreditFacilityActivation,
         activated_at: DateTime<Utc>,
         audit_info: AuditInfo,
     ) -> Idempotent<NewAccrualPeriods> {
@@ -834,8 +835,12 @@ impl CreditFacility {
     }
 
     pub(super) fn initiate_repayment(
-        &self,
+        &mut self,
         amount: UsdCents,
+        price: PriceOfOneBTC,
+        upgrade_buffer_cvl_pct: CVLPct,
+        now: DateTime<Utc>,
+        audit_info: AuditInfo,
     ) -> Result<CreditFacilityRepayment, CreditFacilityError> {
         if self.outstanding().is_zero() {
             return Err(
@@ -854,31 +859,24 @@ impl CreditFacility {
             tx_id: LedgerTxId::new(),
             tx_ref,
             credit_facility_account_ids: self.account_ids,
-            customer_account_ids: self.customer_account_ids,
+            debit_account_id: self
+                .customer_account_ids
+                .on_balance_sheet_deposit_account_id,
             amounts,
         };
 
-        Ok(res)
-    }
-
-    pub fn confirm_repayment(
-        &mut self,
-        repayment: CreditFacilityRepayment,
-        recorded_at: DateTime<Utc>,
-        audit_info: AuditInfo,
-        price: PriceOfOneBTC,
-        upgrade_buffer_cvl_pct: CVLPct,
-    ) {
         self.events.push(CreditFacilityEvent::PaymentRecorded {
-            tx_id: repayment.tx_id,
-            tx_ref: repayment.tx_ref,
-            disbursal_amount: repayment.amounts.disbursal,
-            interest_amount: repayment.amounts.interest,
+            tx_id: res.tx_id,
+            tx_ref: res.tx_ref.clone(),
+            disbursal_amount: res.amounts.disbursal,
+            interest_amount: res.amounts.interest,
+            recorded_in_ledger_at: now,
             audit_info: audit_info.clone(),
-            recorded_in_ledger_at: recorded_at,
         });
 
         self.maybe_update_collateralization(price, upgrade_buffer_cvl_pct, &audit_info);
+
+        Ok(res)
     }
 
     fn count_recorded_payments(&self) -> usize {
@@ -962,13 +960,6 @@ impl CreditFacility {
             .facility_cvl_data(self.collateral(), self.facility_remaining())
     }
 
-    fn count_collateral_adjustments(&self) -> usize {
-        self.events
-            .iter_all()
-            .filter(|event| matches!(event, CreditFacilityEvent::CollateralUpdated { .. }))
-            .count()
-    }
-
     pub(super) fn record_collateral_update(
         &mut self,
         updated_collateral: Satoshis,
@@ -993,16 +984,9 @@ impl CreditFacility {
             (Satoshis::try_from(diff.abs())?, CollateralAction::Remove)
         };
 
-        let tx_ref = format!(
-            "{}-collateral-{}",
-            self.id,
-            self.count_collateral_adjustments() + 1
-        );
-
         let collateral_update = CreditFacilityCollateralUpdate {
             abs_diff: collateral,
             credit_facility_account_ids: self.account_ids,
-            tx_ref,
             tx_id: LedgerTxId::new(),
             action,
         };
@@ -1017,11 +1001,10 @@ impl CreditFacility {
         Ok(collateral_update)
     }
 
-    pub(super) fn confirm_collateral_update(
+    fn confirm_collateral_update(
         &mut self,
         CreditFacilityCollateralUpdate {
             tx_id,
-            tx_ref,
             abs_diff,
             action,
             ..
@@ -1038,7 +1021,6 @@ impl CreditFacility {
         };
         self.events.push(CreditFacilityEvent::CollateralUpdated {
             tx_id,
-            tx_ref,
             total_collateral,
             abs_diff,
             action,
@@ -1055,8 +1037,11 @@ impl CreditFacility {
             .any(|event| matches!(event, CreditFacilityEvent::Completed { .. }))
     }
 
-    pub(super) fn initiate_completion(
-        &self,
+    pub(super) fn complete(
+        &mut self,
+        audit_info: AuditInfo,
+        price: PriceOfOneBTC,
+        upgrade_buffer_cvl_pct: CVLPct,
     ) -> Result<CreditFacilityCompletion, CreditFacilityError> {
         if self.is_completed() {
             return Err(CreditFacilityError::AlreadyCompleted);
@@ -1065,13 +1050,32 @@ impl CreditFacility {
             return Err(CreditFacilityError::OutstandingAmount);
         }
 
-        Ok(CreditFacilityCompletion {
+        let res = CreditFacilityCompletion {
             tx_id: LedgerTxId::new(),
-            tx_ref: format!("{}-completion", self.id),
             collateral: self.collateral(),
             credit_facility_account_ids: self.account_ids,
-            customer_account_ids: self.customer_account_ids,
-        })
+        };
+
+        let completed_at = crate::time::now();
+        self.confirm_collateral_update(
+            CreditFacilityCollateralUpdate {
+                credit_facility_account_ids: self.account_ids,
+                tx_id: res.tx_id,
+                abs_diff: res.collateral,
+                action: CollateralAction::Remove,
+            },
+            completed_at,
+            audit_info.clone(),
+            price,
+            upgrade_buffer_cvl_pct,
+        );
+
+        self.events.push(CreditFacilityEvent::Completed {
+            completed_at,
+            audit_info,
+        });
+
+        Ok(res)
     }
 
     pub(super) fn collateralization_ratio(&self) -> Option<Decimal> {
@@ -1092,39 +1096,6 @@ impl CreditFacility {
         } else {
             None
         }
-    }
-
-    pub(super) fn confirm_completion(
-        &mut self,
-        CreditFacilityCompletion {
-            tx_id,
-            tx_ref,
-            collateral,
-            ..
-        }: CreditFacilityCompletion,
-        executed_at: DateTime<Utc>,
-        audit_info: AuditInfo,
-        price: PriceOfOneBTC,
-        upgrade_buffer_cvl_pct: CVLPct,
-    ) {
-        self.confirm_collateral_update(
-            CreditFacilityCollateralUpdate {
-                credit_facility_account_ids: self.account_ids,
-                tx_id,
-                tx_ref,
-                abs_diff: collateral,
-                action: CollateralAction::Remove,
-            },
-            executed_at,
-            audit_info.clone(),
-            price,
-            upgrade_buffer_cvl_pct,
-        );
-
-        self.events.push(CreditFacilityEvent::Completed {
-            completed_at: executed_at,
-            audit_info,
-        });
     }
 
     pub(super) fn disbursal_amount_from_idx(&self, idx: DisbursalIdx) -> UsdCents {
@@ -1353,7 +1324,6 @@ mod test {
         events.extend([
             CreditFacilityEvent::CollateralUpdated {
                 tx_id: LedgerTxId::new(),
-                tx_ref: "tx-ref".to_string(),
                 total_collateral: Satoshis::from(500),
                 abs_diff: Satoshis::from(500),
                 action: CollateralAction::Add,
@@ -1571,7 +1541,6 @@ mod test {
         events.extend([
             CreditFacilityEvent::CollateralUpdated {
                 tx_id: LedgerTxId::new(),
-                tx_ref: "tx-ref".to_string(),
                 total_collateral: Satoshis::from(500),
                 abs_diff: Satoshis::from(500),
                 action: CollateralAction::Add,
@@ -1924,7 +1893,6 @@ mod test {
                 },
                 CreditFacilityEvent::CollateralUpdated {
                     tx_id: LedgerTxId::new(),
-                    tx_ref: "".to_string(),
                     total_collateral: Satoshis::ONE,
                     abs_diff: Satoshis::ONE,
                     action: CollateralAction::Add,
@@ -1951,7 +1919,6 @@ mod test {
                 },
                 CreditFacilityEvent::CollateralUpdated {
                     tx_id: LedgerTxId::new(),
-                    tx_ref: "".to_string(),
                     total_collateral: Satoshis::ONE,
                     abs_diff: Satoshis::ONE,
                     action: CollateralAction::Add,
@@ -1984,7 +1951,6 @@ mod test {
                 },
                 CreditFacilityEvent::CollateralUpdated {
                     tx_id: LedgerTxId::new(),
-                    tx_ref: "".to_string(),
                     total_collateral: collateral_amount,
                     abs_diff: collateral_amount,
                     action: CollateralAction::Add,
@@ -2081,36 +2047,70 @@ mod test {
 
         #[test]
         fn initiate_repayment_errors_when_no_disbursals() {
-            let credit_facility = facility_from(initial_events());
+            let mut credit_facility = facility_from(initial_events());
 
             let repayment_amount = UsdCents::from(5);
             assert!(credit_facility
-                .initiate_repayment(repayment_amount)
+                .initiate_repayment(
+                    repayment_amount,
+                    default_price(),
+                    default_upgrade_buffer_cvl_pct(),
+                    Utc::now(),
+                    dummy_audit_info(),
+                )
                 .is_err());
         }
 
         #[test]
         fn initiate_repayment_before_expiry_errors_for_amount_above_interest() {
             let activated_at = Utc::now();
-            let credit_facility = credit_facility_with_interest_accrual(activated_at);
+            let mut credit_facility = credit_facility_with_interest_accrual(activated_at);
             let interest = credit_facility.outstanding().interest;
 
             assert!(credit_facility
-                .initiate_repayment(interest + UsdCents::ONE)
+                .initiate_repayment(
+                    interest + UsdCents::ONE,
+                    default_price(),
+                    default_upgrade_buffer_cvl_pct(),
+                    Utc::now(),
+                    dummy_audit_info(),
+                )
                 .is_err());
-            assert!(credit_facility.initiate_repayment(interest).is_ok());
+            assert!(credit_facility
+                .initiate_repayment(
+                    interest,
+                    default_price(),
+                    default_upgrade_buffer_cvl_pct(),
+                    Utc::now(),
+                    dummy_audit_info(),
+                )
+                .is_ok());
         }
 
         #[test]
         fn initiate_repayment_after_expiry_errors_for_amount_above_total() {
             let activated_at = "2023-01-01T00:00:00Z".parse::<DateTime<Utc>>().unwrap();
-            let credit_facility = credit_facility_with_interest_accrual(activated_at);
+            let mut credit_facility = credit_facility_with_interest_accrual(activated_at);
             let outstanding = credit_facility.outstanding().total();
 
             assert!(credit_facility
-                .initiate_repayment(outstanding + UsdCents::ONE)
+                .initiate_repayment(
+                    outstanding + UsdCents::ONE,
+                    default_price(),
+                    default_upgrade_buffer_cvl_pct(),
+                    Utc::now(),
+                    dummy_audit_info(),
+                )
                 .is_err());
-            assert!(credit_facility.initiate_repayment(outstanding).is_ok());
+            assert!(credit_facility
+                .initiate_repayment(
+                    outstanding,
+                    default_price(),
+                    default_upgrade_buffer_cvl_pct(),
+                    Utc::now(),
+                    dummy_audit_info(),
+                )
+                .is_ok());
         }
 
         #[test]
@@ -2119,18 +2119,17 @@ mod test {
             let mut credit_facility = credit_facility_with_interest_accrual(activated_at);
 
             let repayment_amount = credit_facility.outstanding().interest;
-            let repayment = credit_facility
-                .initiate_repayment(repayment_amount)
-                .unwrap();
             let outstanding_before = credit_facility.outstanding();
+            credit_facility
+                .initiate_repayment(
+                    repayment_amount,
+                    default_price(),
+                    default_upgrade_buffer_cvl_pct(),
+                    Utc::now(),
+                    dummy_audit_info(),
+                )
+                .unwrap();
 
-            credit_facility.confirm_repayment(
-                repayment,
-                Utc::now(),
-                dummy_audit_info(),
-                default_price(),
-                default_upgrade_buffer_cvl_pct(),
-            );
             let outstanding_after = credit_facility.outstanding();
 
             assert_eq!(
@@ -2147,18 +2146,16 @@ mod test {
             let partial_repayment_amount = credit_facility.outstanding().interest
                 + credit_facility.outstanding().disbursed
                 - UsdCents::from(100);
-            let repayment = credit_facility
-                .initiate_repayment(partial_repayment_amount)
-                .unwrap();
             let outstanding_before = credit_facility.outstanding();
-
-            credit_facility.confirm_repayment(
-                repayment,
-                Utc::now(),
-                dummy_audit_info(),
-                default_price(),
-                default_upgrade_buffer_cvl_pct(),
-            );
+            credit_facility
+                .initiate_repayment(
+                    partial_repayment_amount,
+                    default_price(),
+                    default_upgrade_buffer_cvl_pct(),
+                    Utc::now(),
+                    dummy_audit_info(),
+                )
+                .unwrap();
             let outstanding_after = credit_facility.outstanding();
 
             assert!(!outstanding_after.is_zero());
@@ -2173,26 +2170,24 @@ mod test {
             let activated_at = "2023-01-01T00:00:00Z".parse::<DateTime<Utc>>().unwrap();
             let mut credit_facility = credit_facility_with_interest_accrual(activated_at);
 
-            let repayment = credit_facility
-                .initiate_repayment(credit_facility.outstanding().total())
+            credit_facility
+                .initiate_repayment(
+                    credit_facility.outstanding().total(),
+                    default_price(),
+                    default_upgrade_buffer_cvl_pct(),
+                    Utc::now(),
+                    dummy_audit_info(),
+                )
                 .unwrap();
-            credit_facility.confirm_repayment(
-                repayment,
-                Utc::now(),
-                dummy_audit_info(),
-                default_price(),
-                default_upgrade_buffer_cvl_pct(),
-            );
             assert!(credit_facility.outstanding().is_zero());
 
-            let completion = credit_facility.initiate_completion().unwrap();
-            credit_facility.confirm_completion(
-                completion,
-                Utc::now(),
-                dummy_audit_info(),
-                default_price(),
-                default_upgrade_buffer_cvl_pct(),
-            );
+            credit_facility
+                .complete(
+                    dummy_audit_info(),
+                    default_price(),
+                    default_upgrade_buffer_cvl_pct(),
+                )
+                .unwrap();
             assert!(credit_facility.is_completed());
             assert!(credit_facility.status() == CreditFacilityStatus::Closed);
         }

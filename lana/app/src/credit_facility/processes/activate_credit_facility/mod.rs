@@ -5,11 +5,10 @@ use tracing::instrument;
 use crate::{
     audit::{Audit, AuditSvc},
     credit_facility::{
-        error::CreditFacilityError, interest_accruals, interest_incurrences, CreditFacility,
-        CreditFacilityRepo, DisbursalRepo,
+        error::CreditFacilityError, interest_accruals, interest_incurrences, ledger::CreditLedger,
+        CreditFacility, CreditFacilityRepo, DisbursalRepo,
     },
     job::{error::JobError, Jobs},
-    ledger::Ledger,
     price::Price,
     primitives::CreditFacilityId,
 };
@@ -21,7 +20,7 @@ pub use job::*;
 pub struct ActivateCreditFacility {
     credit_facility_repo: CreditFacilityRepo,
     disbursal_repo: DisbursalRepo,
-    ledger: Ledger,
+    ledger: CreditLedger,
     price: Price,
     jobs: Jobs,
     audit: Audit,
@@ -31,7 +30,7 @@ impl ActivateCreditFacility {
     pub(in crate::credit_facility) fn new(
         credit_facility_repo: &CreditFacilityRepo,
         disbursal_repo: &DisbursalRepo,
-        ledger: &Ledger,
+        ledger: &CreditLedger,
         price: &Price,
         jobs: &Jobs,
         audit: &Audit,
@@ -142,10 +141,8 @@ impl ActivateCreditFacility {
         };
 
         self.ledger
-            .activate_credit_facility(credit_facility_activation)
+            .activate_credit_facility(db, credit_facility_activation)
             .await?;
-
-        db.commit().await?;
 
         Ok(credit_facility)
     }
