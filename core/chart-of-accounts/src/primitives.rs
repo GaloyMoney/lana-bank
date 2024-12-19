@@ -122,7 +122,8 @@ impl From<ChartAction> for CoreChartOfAccountsAction {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ChartOfAccountAccountDetails {
     pub account_id: LedgerAccountId,
-    pub code: ChartOfAccountCode,
+    pub path: ChartOfAccountCode,
+    pub code: String,
     pub name: String,
     pub description: String,
 }

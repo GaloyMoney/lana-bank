@@ -152,11 +152,11 @@ impl ChartOfAccount {
         audit_info: AuditInfo,
     ) -> Result<ChartOfAccountAccountDetails, ChartOfAccountError> {
         let account_id = account_id.into();
-        let code = self.next_transaction_account(control_sub_account)?;
+        let path = self.next_transaction_account(control_sub_account)?;
         self.events
             .push(ChartOfAccountEvent::TransactionAccountAdded {
                 id: account_id,
-                code,
+                code: path,
                 name: name.to_string(),
                 description: description.to_string(),
                 audit_info,
@@ -164,7 +164,8 @@ impl ChartOfAccount {
 
         Ok(ChartOfAccountAccountDetails {
             account_id,
-            code,
+            code: path.to_string(),
+            path,
             name: name.to_string(),
             description: description.to_string(),
         })
@@ -183,7 +184,8 @@ impl ChartOfAccount {
                 ..
             } if *code == account_code => Some(ChartOfAccountAccountDetails {
                 account_id: *id,
-                code: *code,
+                path: *code,
+                code: code.to_string(),
                 name: name.to_string(),
                 description: description.to_string(),
             }),
@@ -351,7 +353,7 @@ mod tests {
             .unwrap()
         {
             ChartOfAccountAccountDetails {
-                code:
+                path:
                     ChartOfAccountCode::TransactionAccount {
                         category,
                         control_index,
@@ -464,7 +466,7 @@ mod tests {
             .unwrap()
         {
             ChartOfAccountAccountDetails {
-                code:
+                path:
                     ChartOfAccountCode::TransactionAccount {
                         category,
                         control_index,
@@ -504,7 +506,7 @@ mod tests {
             )
             .unwrap();
 
-        let found = chart.find_account(transaction_account.code).unwrap();
+        let found = chart.find_account(transaction_account.path).unwrap();
         assert_eq!(found.code, transaction_account.code);
         assert_eq!(found.name, "Cash");
 

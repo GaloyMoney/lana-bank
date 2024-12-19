@@ -28,7 +28,7 @@ impl ChartOfAccountLedger {
             .name(account_details.name.to_string())
             .description(account_details.description.to_string())
             .code(account_details.code.to_string())
-            .normal_balance_type(account_details.code.normal_balance_type())
+            .normal_balance_type(account_details.path.normal_balance_type())
             .build()
             .expect("Could not build new account");
 
