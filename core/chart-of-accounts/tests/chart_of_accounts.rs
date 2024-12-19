@@ -12,6 +12,8 @@ pub async fn init_pool() -> anyhow::Result<sqlx::PgPool> {
 
 #[tokio::test]
 async fn chart_of_accounts() -> anyhow::Result<()> {
+    use rand::Rng;
+
     let pool = init_pool().await?;
 
     let authz =
@@ -26,7 +28,10 @@ async fn chart_of_accounts() -> anyhow::Result<()> {
     let chart_of_accounts = CoreChartOfAccounts::init(&pool, &authz, &cala).await?;
     let chart_id = ChartId::new();
     chart_of_accounts
-        .create_chart(&DummySubject, chart_id)
+        .create_chart(
+            chart_id,
+            format!("{:02}", rand::thread_rng().gen_range(0..100)),
+        )
         .await?;
 
     let charts = chart_of_accounts.list_charts(&DummySubject).await?;

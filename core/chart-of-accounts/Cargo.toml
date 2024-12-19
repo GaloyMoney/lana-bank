@@ -27,3 +27,4 @@ anyhow = { workspace = true }
 
 [dev-dependencies]
 authz = { path = "../../lib/authz", features = ["test-dummy"] }
+rand = { workspace = true }

@@ -68,14 +68,17 @@ where
     #[instrument(name = "chart_of_accounts.create_chart", skip(self))]
     pub async fn create_chart(
         &self,
-        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         id: impl Into<ChartId> + std::fmt::Debug,
+        reference: String,
     ) -> Result<ChartOfAccount, CoreChartOfAccountError> {
         let id = id.into();
+
+        let mut op = self.repo.begin_op().await?;
         let audit_info = self
             .authz
-            .enforce_permission(
-                sub,
+            .audit()
+            .record_system_entry_in_tx(
+                op.tx(),
                 CoreChartOfAccountsObject::chart(id),
                 CoreChartOfAccountsAction::CHART_CREATE,
             )
@@ -83,11 +86,11 @@ where
 
         let new_chart_of_account = NewChartOfAccount::builder()
             .id(id)
+            .reference(reference)
             .audit_info(audit_info)
             .build()
             .expect("Could not build new chart of accounts");
 
-        let mut op = self.repo.begin_op().await?;
         let chart = self
             .repo
             .create_in_op(&mut op, new_chart_of_account)

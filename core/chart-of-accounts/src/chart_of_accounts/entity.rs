@@ -18,6 +18,7 @@ pub use super::error::*;
 pub enum ChartOfAccountEvent {
     Initialized {
         id: ChartId,
+        reference: String,
         audit_info: AuditInfo,
     },
     ControlAccountAdded {
@@ -43,6 +44,7 @@ pub enum ChartOfAccountEvent {
 #[builder(pattern = "owned", build_fn(error = "EsEntityError"))]
 pub struct ChartOfAccount {
     pub id: ChartId,
+    pub reference: String,
     pub(super) events: EntityEvents<ChartOfAccountEvent>,
 }
 
@@ -199,7 +201,9 @@ impl TryFromEvents<ChartOfAccountEvent> for ChartOfAccount {
         let mut builder = ChartOfAccountBuilder::default();
         for event in events.iter_all() {
             match event {
-                ChartOfAccountEvent::Initialized { id, .. } => builder = builder.id(*id),
+                ChartOfAccountEvent::Initialized { id, reference, .. } => {
+                    builder = builder.id(*id).reference(reference.to_string())
+                }
                 ChartOfAccountEvent::ControlAccountAdded { .. } => (),
                 ChartOfAccountEvent::ControlSubAccountAdded { .. } => (),
                 ChartOfAccountEvent::TransactionAccountAdded { .. } => (),
@@ -213,6 +217,7 @@ impl TryFromEvents<ChartOfAccountEvent> for ChartOfAccount {
 pub struct NewChartOfAccount {
     #[builder(setter(into))]
     pub(super) id: ChartId,
+    pub(super) reference: String,
     #[builder(setter(into))]
     pub audit_info: AuditInfo,
 }
@@ -229,6 +234,7 @@ impl IntoEvents<ChartOfAccountEvent> for NewChartOfAccount {
             self.id,
             [ChartOfAccountEvent::Initialized {
                 id: self.id,
+                reference: self.reference,
                 audit_info: self.audit_info,
             }],
         )
@@ -256,6 +262,7 @@ mod tests {
 
         let new_chart = NewChartOfAccount::builder()
             .id(id)
+            .reference("ref-01".to_string())
             .audit_info(audit_info)
             .build()
             .unwrap();
@@ -271,6 +278,7 @@ mod tests {
 
         let new_chart = NewChartOfAccount::builder()
             .id(id)
+            .reference("ref-01".to_string())
             .audit_info(audit_info.clone())
             .build()
             .unwrap();
