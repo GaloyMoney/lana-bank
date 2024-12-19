@@ -3,7 +3,7 @@ use std::{fmt::Display, str::FromStr};
 use authz::AllOrOne;
 use serde::{Deserialize, Serialize};
 
-pub use cala_ledger::primitives::AccountId as LedgerAccountId;
+pub use cala_ledger::{primitives::AccountId as LedgerAccountId, DebitOrCredit};
 
 pub use crate::code::{ChartOfAccountCategoryCode as CategoryPath, ChartOfAccountCode};
 

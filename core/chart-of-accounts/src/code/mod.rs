@@ -4,6 +4,7 @@ use std::fmt::Display;
 
 use serde::{Deserialize, Serialize};
 
+use super::primitives::DebitOrCredit;
 use error::*;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Serialize, Hash, Deserialize)]
@@ -158,6 +159,15 @@ impl ChartOfAccountCode {
             4 => Some(ChartOfAccountCategoryCode::Revenues),
             5 => Some(ChartOfAccountCategoryCode::Expenses),
             _ => None,
+        }
+    }
+
+    pub fn normal_balance_type(&self) -> DebitOrCredit {
+        match self.category() {
+            ChartOfAccountCategoryCode::Assets | ChartOfAccountCategoryCode::Expenses => {
+                DebitOrCredit::Debit
+            }
+            _ => DebitOrCredit::Credit,
         }
     }
 

@@ -1,11 +1,8 @@
 pub mod error;
 
-use cala_ledger::{account::*, CalaLedger, DebitOrCredit};
+use cala_ledger::{account::*, CalaLedger};
 
-use crate::{
-    code::{ChartOfAccountCategoryCode, ChartOfAccountCode},
-    primitives::ChartOfAccountAccountDetails,
-};
+use crate::primitives::ChartOfAccountAccountDetails;
 
 use error::*;
 
@@ -17,15 +14,6 @@ pub struct ChartOfAccountLedger {
 impl ChartOfAccountLedger {
     pub async fn init(cala: &CalaLedger) -> Result<Self, ChartOfAccountLedgerError> {
         Ok(Self { cala: cala.clone() })
-    }
-
-    fn normal_balance_type_for_code(code: ChartOfAccountCode) -> DebitOrCredit {
-        match code.category() {
-            ChartOfAccountCategoryCode::Assets | ChartOfAccountCategoryCode::Expenses => {
-                DebitOrCredit::Debit
-            }
-            _ => DebitOrCredit::Credit,
-        }
     }
 
     pub async fn create_transaction_account(
@@ -40,7 +28,7 @@ impl ChartOfAccountLedger {
             .name(account_details.name.to_string())
             .description(account_details.description.to_string())
             .code(account_details.code.to_string())
-            .normal_balance_type(Self::normal_balance_type_for_code(account_details.code))
+            .normal_balance_type(account_details.code.normal_balance_type())
             .build()
             .expect("Could not build new account");
 
