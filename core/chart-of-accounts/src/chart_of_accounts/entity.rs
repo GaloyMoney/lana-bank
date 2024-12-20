@@ -70,7 +70,7 @@ impl ChartOfAccount {
             .unwrap_or_else(|| ChartOfAccountCode::first_control_account(category))?)
     }
 
-    fn find_control_account_by_reference(
+    pub fn find_control_account_by_reference(
         &self,
         reference_to_check: String,
     ) -> Option<ChartOfAccountCode> {
@@ -126,7 +126,7 @@ impl ChartOfAccount {
             .unwrap_or_else(|| ChartOfAccountCode::first_control_sub_account(&control_account))?)
     }
 
-    fn find_control_sub_account_by_reference(
+    pub fn find_control_sub_account_by_reference(
         &self,
         reference_to_check: String,
     ) -> Option<ChartOfAccountCode> {

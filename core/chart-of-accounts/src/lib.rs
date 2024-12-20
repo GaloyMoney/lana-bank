@@ -150,6 +150,29 @@ where
             .entities)
     }
 
+    pub async fn find_control_account_by_reference(
+        &self,
+        chart_id: impl Into<ChartId>,
+        reference: String,
+    ) -> Result<Option<ChartOfAccountCode>, CoreChartOfAccountError> {
+        let chart_id = chart_id.into();
+
+        let mut op = self.repo.begin_op().await?;
+        self.authz
+            .audit()
+            .record_system_entry_in_tx(
+                op.tx(),
+                CoreChartOfAccountsObject::chart(chart_id),
+                CoreChartOfAccountsAction::CHART_FIND_CONTROL_ACCOUNT,
+            )
+            .await?;
+        op.commit().await?;
+
+        let chart = self.repo.find_by_id(chart_id).await?;
+
+        Ok(chart.find_control_account_by_reference(reference))
+    }
+
     pub async fn create_control_account(
         &self,
         chart_id: impl Into<ChartId>,
@@ -180,6 +203,29 @@ where
         op.commit().await?;
 
         Ok(code)
+    }
+
+    pub async fn find_control_sub_account_by_reference(
+        &self,
+        chart_id: impl Into<ChartId>,
+        reference: String,
+    ) -> Result<Option<ChartOfAccountCode>, CoreChartOfAccountError> {
+        let chart_id = chart_id.into();
+
+        let mut op = self.repo.begin_op().await?;
+        self.authz
+            .audit()
+            .record_system_entry_in_tx(
+                op.tx(),
+                CoreChartOfAccountsObject::chart(chart_id),
+                CoreChartOfAccountsAction::CHART_FIND_CONTROL_SUB_ACCOUNT,
+            )
+            .await?;
+        op.commit().await?;
+
+        let chart = self.repo.find_by_id(chart_id).await?;
+
+        Ok(chart.find_control_sub_account_by_reference(reference))
     }
 
     pub async fn create_control_sub_account(
