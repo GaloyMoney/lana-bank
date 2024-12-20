@@ -1,5 +1,7 @@
 use thiserror::Error;
 
+use crate::accounting;
+
 #[derive(Error, Debug)]
 pub enum ApplicationError {
     #[error("ApplicationError - Sqlx: {0}")]
@@ -28,6 +30,8 @@ pub enum ApplicationError {
     GovernanceError(#[from] governance::error::GovernanceError),
     #[error("ApplicationError - DashboardError: {0}")]
     DashboardError(#[from] dashboard::error::DashboardError),
+    #[error("ApplicationError - AccountingError: {0}")]
+    AccountingError(#[from] accounting::error::AccountingError),
     #[error("ApplicationError - CalaInit: {0}")]
     CalaError(#[from] cala_ledger::error::LedgerError),
     #[error("ApplicationError - ChartOfAccountsError: {0}")]

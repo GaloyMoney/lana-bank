@@ -11,7 +11,9 @@ pub async fn init_pool() -> anyhow::Result<sqlx::PgPool> {
 }
 
 #[tokio::test]
-async fn chart_of_accounts() -> anyhow::Result<()> {
+async fn create_and_populate() -> anyhow::Result<()> {
+    use rand::Rng;
+
     let pool = init_pool().await?;
 
     let authz =
@@ -26,7 +28,10 @@ async fn chart_of_accounts() -> anyhow::Result<()> {
     let chart_of_accounts = CoreChartOfAccounts::init(&pool, &authz, &cala).await?;
     let chart_id = ChartId::new();
     chart_of_accounts
-        .create_chart(&DummySubject, chart_id)
+        .create_chart(
+            chart_id,
+            format!("{:02}", rand::thread_rng().gen_range(0..100)),
+        )
         .await?;
 
     let charts = chart_of_accounts.list_charts(&DummySubject).await?;
@@ -34,38 +39,60 @@ async fn chart_of_accounts() -> anyhow::Result<()> {
 
     let control_account_code = chart_of_accounts
         .create_control_account(
-            &DummySubject,
             chart_id,
             "10000000".parse()?,
-            "Credit Facilities Receivable",
+            "Credit Facilities Receivable".to_string(),
+            "credit-facilities-receivable".to_string(),
         )
         .await?;
+
+    let control_sub_account_name = "Fixed-Term Credit Facilities Receivable";
     let control_sub_account_code = chart_of_accounts
         .create_control_sub_account(
-            &DummySubject,
             chart_id,
             control_account_code,
-            "Fixed-Term Credit Facilities Receivable",
+            control_sub_account_name.to_string(),
+            "fixed-term-credit-facilities-receivable".to_string(),
         )
         .await?;
+    assert_eq!(
+        control_sub_account_code.control_account(),
+        Some(control_account_code)
+    );
 
-    let transaction_account_name = "Fixed-Term Credit Facilities Receivable #1 for Customer 00-01";
-    // FIXME: This will fail if we run it twice on different charts with same `code` value
-    let transaction_account = chart_of_accounts
-        .create_transaction_account(
-            &DummySubject,
-            chart_id,
-            control_sub_account_code,
-            transaction_account_name,
-            "",
-        )
+    Ok(())
+}
+
+#[tokio::test]
+async fn create_with_duplicate_reference() -> anyhow::Result<()> {
+    use rand::Rng;
+
+    let pool = init_pool().await?;
+
+    let authz =
+        authz::dummy::DummyPerms::<CoreChartOfAccountsAction, CoreChartOfAccountsObject>::new();
+
+    let cala_config = CalaLedgerConfig::builder()
+        .pool(pool.clone())
+        .exec_migrations(false)
+        .build()?;
+    let cala = CalaLedger::init(cala_config).await?;
+
+    let chart_of_accounts = CoreChartOfAccounts::init(&pool, &authz, &cala).await?;
+
+    let reference = format!("{:02}", rand::thread_rng().gen_range(0..100));
+
+    let chart_id = ChartId::new();
+    chart_of_accounts
+        .create_chart(chart_id, reference.clone())
         .await?;
+    let res = chart_of_accounts
+        .create_chart(chart_id, reference.clone())
+        .await;
+    assert!(res.is_err());
 
-    let transaction_account = chart_of_accounts
-        .find_account_in_chart(&DummySubject, chart_id, transaction_account.code)
-        .await?
-        .expect("Transaction account not found");
-    assert_eq!(transaction_account.name, transaction_account_name);
+    let chart = chart_of_accounts.find_by_reference(reference).await?;
+    assert!(chart.is_some());
 
     Ok(())
 }

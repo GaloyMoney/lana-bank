@@ -16,6 +16,8 @@ pub enum CoreDepositError {
     DepositLedgerError(#[from] crate::ledger::error::DepositLedgerError),
     #[error("CoreDepositError - GovernanceError: {0}")]
     GovernanceError(#[from] governance::error::GovernanceError),
+    #[error("CoreDepositError - CoreChartOfAccountError: {0}")]
+    CoreChartOfAccountError(#[from] chart_of_accounts::error::CoreChartOfAccountError),
     #[error("CoreDepositError - JobError: {0}")]
     JobError(#[from] job::error::JobError),
     #[error("CoreDepositError - ProcessError: {0}")]

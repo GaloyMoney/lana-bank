@@ -2,6 +2,7 @@ use std::{fmt::Display, str::FromStr};
 
 use authz::AllOrOne;
 
+pub use chart_of_accounts::ChartId;
 pub use governance::{ApprovalProcessId, GovernanceAction, GovernanceObject};
 
 pub use cala_ledger::primitives::{

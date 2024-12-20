@@ -15,6 +15,8 @@ pub enum DepositAccountEvent {
         id: DepositAccountId,
         account_holder_id: DepositAccountHolderId,
         ledger_account_id: LedgerAccountId,
+        name: String,
+        description: String,
         audit_info: AuditInfo,
     },
 }
@@ -24,6 +26,8 @@ pub enum DepositAccountEvent {
 pub struct DepositAccount {
     pub id: DepositAccountId,
     pub account_holder_id: DepositAccountHolderId,
+    pub name: String,
+    pub description: String,
     pub(super) events: EntityEvents<DepositAccountEvent>,
 }
 
@@ -43,8 +47,16 @@ impl TryFromEvents<DepositAccountEvent> for DepositAccount {
                 DepositAccountEvent::Initialized {
                     id,
                     account_holder_id,
+                    name,
+                    description,
                     ..
-                } => builder = builder.id(*id).account_holder_id(*account_holder_id),
+                } => {
+                    builder = builder
+                        .id(*id)
+                        .account_holder_id(*account_holder_id)
+                        .name(name.to_string())
+                        .description(description.to_string())
+                }
             }
         }
         builder.events(events).build()
@@ -57,6 +69,8 @@ pub struct NewDepositAccount {
     pub(super) id: DepositAccountId,
     #[builder(setter(into))]
     pub(super) account_holder_id: DepositAccountHolderId,
+    pub(super) name: String,
+    pub(super) description: String,
     #[builder(setter(into))]
     pub audit_info: AuditInfo,
 }
@@ -75,6 +89,8 @@ impl IntoEvents<DepositAccountEvent> for NewDepositAccount {
                 id: self.id,
                 account_holder_id: self.account_holder_id,
                 ledger_account_id: self.id.into(),
+                name: self.name,
+                description: self.description,
                 audit_info: self.audit_info,
             }],
         )

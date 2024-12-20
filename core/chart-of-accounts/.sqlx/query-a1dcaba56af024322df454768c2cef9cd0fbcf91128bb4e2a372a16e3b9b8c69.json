@@ -1,0 +1,40 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n                INSERT INTO persistent_outbox_events (sequence)\n                SELECT unnest($1::bigint[]) AS sequence\n                ON CONFLICT (sequence) DO UPDATE\n                SET sequence = EXCLUDED.sequence\n                RETURNING id, sequence AS \"sequence!: EventSequence\", payload, recorded_at\n            ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "sequence!: EventSequence",
+        "type_info": "Int8"
+      },
+      {
+        "ordinal": 2,
+        "name": "payload",
+        "type_info": "Jsonb"
+      },
+      {
+        "ordinal": 3,
+        "name": "recorded_at",
+        "type_info": "Timestamptz"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Int8Array"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      true,
+      false
+    ]
+  },
+  "hash": "a1dcaba56af024322df454768c2cef9cd0fbcf91128bb4e2a372a16e3b9b8c69"
+}

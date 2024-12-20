@@ -7,6 +7,7 @@ use tracing::instrument;
 use authz::PermissionCheck;
 
 use crate::{
+    accounting::Accounting,
     applicant::Applicants,
     audit::{Audit, AuditCursor, AuditEntry},
     authorization::{init as init_authz, AppAction, AppObject, AuditAction, Authorization},
@@ -73,6 +74,7 @@ impl LanaApp {
         let documents = Documents::new(&pool, &storage, &authz);
         let report = Reports::init(&pool, &config.report, &authz, &jobs, &storage, &export).await?;
         let users = Users::init(&pool, &authz, &outbox, config.user.superuser_email).await?;
+
         let cala_config = cala_ledger::CalaLedgerConfig::builder()
             .pool(pool.clone())
             .exec_migrations(false)
@@ -81,13 +83,19 @@ impl LanaApp {
         let cala = cala_ledger::CalaLedger::init(cala_config).await?;
         let journal_id = Self::create_journal(&cala).await?;
         let chart_of_accounts = ChartOfAccounts::init(&pool, &authz, &cala).await?;
+        let accounting = Accounting::init(&chart_of_accounts).await?;
+
+        let deposits_factory = chart_of_accounts.transaction_account_factory(
+            accounting.values.id,
+            accounting.values.deposits_control_sub_path,
+        );
         let deposits = Deposits::init(
             &pool,
             &authz,
             &outbox,
             &governance,
             &jobs,
-            &chart_of_accounts,
+            deposits_factory,
             &cala,
             journal_id,
             String::from("OMNIBUS_ACCOUNT_ID"),

@@ -16,7 +16,7 @@ use tracing::instrument;
 use audit::AuditSvc;
 use authz::PermissionCheck;
 use cala_ledger::CalaLedger;
-use chart_of_accounts::CoreChartOfAccounts;
+use chart_of_accounts::TransactionAccountFactory;
 use governance::{Governance, GovernanceEvent};
 use job::Jobs;
 use outbox::{Outbox, OutboxEventMarker};
@@ -47,6 +47,7 @@ where
     withdrawals: WithdrawalRepo,
     approve_withdrawal: ApproveWithdrawal<Perms, E>,
     ledger: DepositLedger,
+    account_factory: TransactionAccountFactory,
     authz: Perms,
     governance: Governance<Perms, E>,
     outbox: Outbox<E>,
@@ -63,6 +64,7 @@ where
             deposits: self.deposits.clone(),
             withdrawals: self.withdrawals.clone(),
             ledger: self.ledger.clone(),
+            account_factory: self.account_factory.clone(),
             authz: self.authz.clone(),
             governance: self.governance.clone(),
             approve_withdrawal: self.approve_withdrawal.clone(),
@@ -87,8 +89,7 @@ where
         outbox: &Outbox<E>,
         governance: &Governance<Perms, E>,
         jobs: &Jobs,
-        _chart_of_accounts: &CoreChartOfAccounts<Perms>,
-        // chart_id: ChartId
+        account_factory: TransactionAccountFactory,
         cala: &CalaLedger,
         journal_id: LedgerJournalId,
         omnibus_account_code: String,
@@ -99,8 +100,6 @@ where
         let ledger = DepositLedger::init(cala, journal_id, omnibus_account_code).await?;
 
         let approve_withdrawal = ApproveWithdrawal::new(&withdrawals, authz.audit(), governance);
-        // chart_of_accounts.create_control_account()
-        // chart_of_accounts.create_sub_account()
 
         jobs.add_initializer_and_spawn_unique(
             WithdrawApprovalJobInitializer::new(outbox, &approve_withdrawal),
@@ -125,6 +124,7 @@ where
             governance: governance.clone(),
             approve_withdrawal,
             ledger,
+            account_factory,
         };
         Ok(res)
     }
@@ -134,6 +134,8 @@ where
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         holder_id: impl Into<DepositAccountHolderId> + std::fmt::Debug,
+        name: &str,
+        description: &str,
     ) -> Result<DepositAccount, CoreDepositError> {
         let audit_info = self
             .authz
@@ -148,14 +150,23 @@ where
         let new_account = NewDepositAccount::builder()
             .id(account_id)
             .account_holder_id(holder_id)
-            .audit_info(audit_info)
+            .name(name.to_string())
+            .description(description.to_string())
+            .audit_info(audit_info.clone())
             .build()
             .expect("Could not build new committee");
 
         let mut op = self.accounts.begin_op().await?;
         let account = self.accounts.create_in_op(&mut op, new_account).await?;
-        self.ledger
-            .create_account_for_deposit_account(op, account_id, account_id.to_string())
+
+        self.account_factory
+            .create_transaction_account_in_op(
+                op,
+                account_id,
+                &account.name,
+                &account.description,
+                audit_info,
+            )
             .await?;
         Ok(account)
     }

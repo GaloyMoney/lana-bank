@@ -10,6 +10,7 @@ use super::entity::*;
 #[es_repo(
     entity = "ChartOfAccount",
     err = "ChartOfAccountError",
+    columns(reference(ty = "String")),
     tbl_prefix = "core"
 )]
 pub struct ChartOfAccountRepo {

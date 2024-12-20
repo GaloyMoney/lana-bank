@@ -3,9 +3,9 @@ use std::{fmt::Display, str::FromStr};
 use authz::AllOrOne;
 use serde::{Deserialize, Serialize};
 
-pub use cala_ledger::primitives::AccountId as LedgerAccountId;
+pub use cala_ledger::{primitives::AccountId as LedgerAccountId, DebitOrCredit};
 
-use crate::code::ChartOfAccountCode;
+pub use crate::code::{ChartOfAccountCategoryCode as CategoryPath, ChartOfAccountCode};
 
 es_entity::entity_id! {
     ChartId,
@@ -70,10 +70,12 @@ impl CoreChartOfAccountsAction {
     pub const CHART_LIST: Self = CoreChartOfAccountsAction::ChartAction(ChartAction::List);
     pub const CHART_CREATE_CONTROL_ACCOUNT: Self =
         CoreChartOfAccountsAction::ChartAction(ChartAction::CreateControlAccount);
+    pub const CHART_FIND_CONTROL_ACCOUNT: Self =
+        CoreChartOfAccountsAction::ChartAction(ChartAction::FindControlAccount);
     pub const CHART_CREATE_CONTROL_SUB_ACCOUNT: Self =
         CoreChartOfAccountsAction::ChartAction(ChartAction::CreateControlSubAccount);
-    pub const CHART_CREATE_TRANSACTION_ACCOUNT: Self =
-        CoreChartOfAccountsAction::ChartAction(ChartAction::CreateTransactionAccount);
+    pub const CHART_FIND_CONTROL_SUB_ACCOUNT: Self =
+        CoreChartOfAccountsAction::ChartAction(ChartAction::FindControlSubAccount);
     pub const CHART_FIND_TRANSACTION_ACCOUNT: Self =
         CoreChartOfAccountsAction::ChartAction(ChartAction::FindTransactionAccount);
 }
@@ -108,8 +110,9 @@ pub enum ChartAction {
     Create,
     List,
     CreateControlAccount,
+    FindControlAccount,
     CreateControlSubAccount,
-    CreateTransactionAccount,
+    FindControlSubAccount,
     FindTransactionAccount,
 }
 
@@ -122,7 +125,8 @@ impl From<ChartAction> for CoreChartOfAccountsAction {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ChartOfAccountAccountDetails {
     pub account_id: LedgerAccountId,
-    pub code: ChartOfAccountCode,
+    pub path: ChartOfAccountCode,
+    pub code: String,
     pub name: String,
     pub description: String,
 }

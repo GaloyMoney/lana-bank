@@ -85,7 +85,10 @@ impl Customers {
             .await?
             .expect("audit info missing");
         let customer_id: uuid::Uuid = self.kratos.create_identity(&email).await?;
-        self.deposit.create_account(sub, customer_id).await?;
+        let account_name = &format!("Deposit Account for Customer {}", customer_id);
+        self.deposit
+            .create_account(sub, customer_id, account_name, account_name)
+            .await?;
 
         let ledger_account_ids = self
             .ledger
