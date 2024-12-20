@@ -7,6 +7,7 @@ use tracing::instrument;
 use authz::PermissionCheck;
 
 use crate::{
+    accounting::Accounting,
     applicant::Applicants,
     audit::{Audit, AuditCursor, AuditEntry},
     authorization::{init as init_authz, AppAction, AppObject, AuditAction, Authorization},
@@ -67,6 +68,7 @@ impl LanaApp {
         let outbox = Outbox::init(&pool).await?;
         let dashboard = Dashboard::init(&pool, &authz, &jobs, &outbox).await?;
         let governance = Governance::new(&pool, &authz, &outbox);
+        let ledger = Ledger::init(config.ledger, &authz).await?;
         let price = Price::init(&jobs, &export).await?;
         let storage = Storage::new(&config.storage);
         let documents = Documents::new(&pool, &storage, &authz);
@@ -81,11 +83,11 @@ impl LanaApp {
         let cala = cala_ledger::CalaLedger::init(cala_config).await?;
         let journal_id = Self::create_journal(&cala).await?;
         let chart_of_accounts = ChartOfAccounts::init(&pool, &authz, &cala).await?;
-        let ledger = Ledger::init(config.ledger, &authz, &chart_of_accounts).await?;
+        let accounting = Accounting::init(&chart_of_accounts).await?;
 
         let deposits_factory = chart_of_accounts.transaction_account_factory(
-            ledger.chart_and_account_paths.id,
-            ledger.chart_and_account_paths.deposits_control_sub_path,
+            accounting.values.id,
+            accounting.values.deposits_control_sub_path,
         );
         let deposits = Deposits::init(
             &pool,

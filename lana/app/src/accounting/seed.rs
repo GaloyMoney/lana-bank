@@ -4,7 +4,7 @@ use chart_of_accounts::{
 
 use crate::chart_of_accounts::ChartOfAccounts;
 
-use super::ChartAndAccountPaths;
+use super::AccountingValues;
 
 const CHART_REF: &str = "primary-chart";
 
@@ -16,7 +16,7 @@ const DEPOSITS_CONTROL_SUB_ACCOUNT_NAME: &str = "User Deposits";
 
 pub(super) async fn execute(
     chart_of_accounts: &ChartOfAccounts,
-) -> Result<ChartAndAccountPaths, CoreChartOfAccountError> {
+) -> Result<AccountingValues, CoreChartOfAccountError> {
     let chart = match chart_of_accounts
         .find_by_reference(CHART_REF.to_string())
         .await?
@@ -63,7 +63,7 @@ pub(super) async fn execute(
         }
     };
 
-    Ok(ChartAndAccountPaths {
+    Ok(AccountingValues {
         id: chart.id,
         deposits_control_sub_path,
     })
