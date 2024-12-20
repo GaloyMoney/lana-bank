@@ -39,7 +39,7 @@ pub(super) async fn execute(
                 .create_control_account(
                     chart.id,
                     ChartOfAccountCode::Category(CategoryPath::Liabilities),
-                    DEPOSITS_CONTROL_ACCOUNT_REF,
+                    DEPOSITS_CONTROL_ACCOUNT_REF.to_string(),
                     DEPOSITS_CONTROL_ACCOUNT_NAME.to_string(),
                 )
                 .await?
@@ -56,7 +56,7 @@ pub(super) async fn execute(
                 .create_control_sub_account(
                     chart.id,
                     deposits_control_path,
-                    DEPOSITS_CONTROL_SUB_ACCOUNT_NAME,
+                    DEPOSITS_CONTROL_SUB_ACCOUNT_NAME.to_string(),
                     DEPOSITS_CONTROL_SUB_ACCOUNT_REF.to_string(),
                 )
                 .await?

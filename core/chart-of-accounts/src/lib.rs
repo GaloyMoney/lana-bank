@@ -177,7 +177,7 @@ where
         &self,
         chart_id: impl Into<ChartId>,
         category: ChartOfAccountCode,
-        name: &str,
+        name: String,
         reference: String,
     ) -> Result<ChartOfAccountCode, CoreChartOfAccountError> {
         let chart_id = chart_id.into();
@@ -232,7 +232,7 @@ where
         &self,
         chart_id: impl Into<ChartId> + std::fmt::Debug,
         control_account: ChartOfAccountCode,
-        name: &str,
+        name: String,
         reference: String,
     ) -> Result<ChartOfAccountCode, CoreChartOfAccountError> {
         let chart_id = chart_id.into();

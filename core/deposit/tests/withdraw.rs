@@ -43,7 +43,7 @@ async fn cancel_withdrawal() -> anyhow::Result<()> {
         .create_control_account(
             chart_id,
             ChartOfAccountCode::Category(CategoryPath::Liabilities),
-            "Deposits",
+            "Deposits".to_string(),
             "deposits".to_string(),
         )
         .await?;
@@ -51,7 +51,7 @@ async fn cancel_withdrawal() -> anyhow::Result<()> {
         .create_control_sub_account(
             chart_id,
             control_account_path,
-            "User Deposits",
+            "User Deposits".to_string(),
             "user-deposits".to_string(),
         )
         .await?;

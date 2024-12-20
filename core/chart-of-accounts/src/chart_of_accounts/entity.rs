@@ -85,7 +85,7 @@ impl ChartOfAccount {
     pub fn create_control_account(
         &mut self,
         category: ChartOfAccountCode,
-        name: &str,
+        name: String,
         reference: String,
         audit_info: AuditInfo,
     ) -> Result<ChartOfAccountCode, ChartOfAccountError> {
@@ -98,7 +98,7 @@ impl ChartOfAccount {
         let code = self.next_control_account(category)?;
         self.events.push(ChartOfAccountEvent::ControlAccountAdded {
             code,
-            name: name.to_string(),
+            name,
             reference,
             audit_info,
         });
@@ -141,7 +141,7 @@ impl ChartOfAccount {
     pub fn create_control_sub_account(
         &mut self,
         control_account: ChartOfAccountCode,
-        name: &str,
+        name: String,
         reference: String,
         audit_info: AuditInfo,
     ) -> Result<ChartOfAccountCode, ChartOfAccountError> {
@@ -155,7 +155,7 @@ impl ChartOfAccount {
         self.events
             .push(ChartOfAccountEvent::ControlSubAccountAdded {
                 code,
-                name: name.to_string(),
+                name,
                 reference,
                 audit_info,
             });
@@ -337,7 +337,7 @@ mod tests {
         match chart
             .create_control_account(
                 ChartOfAccountCode::Category(ChartOfAccountCategoryCode::Assets),
-                "Assets",
+                "Assets".to_string(),
                 "assets".to_string(),
                 dummy_audit_info(),
             )
@@ -357,7 +357,7 @@ mod tests {
         chart
             .create_control_account(
                 ChartOfAccountCode::Category(ChartOfAccountCategoryCode::Assets),
-                "Assets #1",
+                "Assets #1".to_string(),
                 "assets".to_string(),
                 dummy_audit_info(),
             )
@@ -365,7 +365,7 @@ mod tests {
 
         match chart.create_control_account(
             ChartOfAccountCode::Category(ChartOfAccountCategoryCode::Assets),
-            "Assets #2",
+            "Assets #2".to_string(),
             "assets".to_string(),
             dummy_audit_info(),
         ) {
@@ -387,7 +387,7 @@ mod tests {
         let control_account = chart
             .create_control_account(
                 ChartOfAccountCode::Category(ChartOfAccountCategoryCode::Assets),
-                "Assets",
+                "Assets".to_string(),
                 "assets".to_string(),
                 dummy_audit_info(),
             )
@@ -396,7 +396,7 @@ mod tests {
         match chart
             .create_control_sub_account(
                 control_account,
-                "Current Assets",
+                "Current Assets".to_string(),
                 "current-assets".to_string(),
                 dummy_audit_info(),
             )
@@ -421,7 +421,7 @@ mod tests {
         let control_account = chart
             .create_control_account(
                 ChartOfAccountCode::Category(ChartOfAccountCategoryCode::Assets),
-                "Assets",
+                "Assets".to_string(),
                 "assets".to_string(),
                 dummy_audit_info(),
             )
@@ -429,7 +429,7 @@ mod tests {
         chart
             .create_control_sub_account(
                 control_account,
-                "Current Assets #1",
+                "Current Assets #1".to_string(),
                 "current-assets".to_string(),
                 dummy_audit_info(),
             )
@@ -437,7 +437,7 @@ mod tests {
 
         match chart.create_control_sub_account(
             control_account,
-            "Current Assets #2",
+            "Current Assets #2".to_string(),
             "current-assets".to_string(),
             dummy_audit_info(),
         ) {
@@ -459,7 +459,7 @@ mod tests {
         let control_account = chart
             .create_control_account(
                 ChartOfAccountCode::Category(ChartOfAccountCategoryCode::Assets),
-                "Assets",
+                "Assets".to_string(),
                 "assets".to_string(),
                 dummy_audit_info(),
             )
@@ -467,7 +467,7 @@ mod tests {
         let control_sub_account = chart
             .create_control_sub_account(
                 control_account,
-                "Current Assets",
+                "Current Assets".to_string(),
                 "current-assets".to_string(),
                 dummy_audit_info(),
             )
@@ -509,7 +509,7 @@ mod tests {
         chart
             .create_control_account(
                 ChartOfAccountCode::Category(ChartOfAccountCategoryCode::Assets),
-                "First",
+                "First".to_string(),
                 "assets-01".to_string(),
                 dummy_audit_info(),
             )
@@ -518,7 +518,7 @@ mod tests {
         match chart
             .create_control_account(
                 ChartOfAccountCode::Category(ChartOfAccountCategoryCode::Assets),
-                "Second",
+                "Second".to_string(),
                 "assets-02".to_string(),
                 dummy_audit_info(),
             )
@@ -538,7 +538,7 @@ mod tests {
         let control_account = chart
             .create_control_account(
                 ChartOfAccountCode::Category(ChartOfAccountCategoryCode::Assets),
-                "Assets",
+                "Assets".to_string(),
                 "assets".to_string(),
                 dummy_audit_info(),
             )
@@ -547,7 +547,7 @@ mod tests {
         chart
             .create_control_sub_account(
                 control_account,
-                "First",
+                "First".to_string(),
                 "first-asset".to_string(),
                 dummy_audit_info(),
             )
@@ -556,7 +556,7 @@ mod tests {
         match chart
             .create_control_sub_account(
                 control_account,
-                "Second",
+                "Second".to_string(),
                 "second-asset".to_string(),
                 dummy_audit_info(),
             )
@@ -581,7 +581,7 @@ mod tests {
         let control_account = chart
             .create_control_account(
                 ChartOfAccountCode::Category(ChartOfAccountCategoryCode::Assets),
-                "Assets",
+                "Assets".to_string(),
                 "assets".to_string(),
                 dummy_audit_info(),
             )
@@ -589,7 +589,7 @@ mod tests {
         let sub_account = chart
             .create_control_sub_account(
                 control_account,
-                "Current Assets",
+                "Current Assets".to_string(),
                 "current-assets".to_string(),
                 dummy_audit_info(),
             )
@@ -641,12 +641,17 @@ mod tests {
 
         let category = ChartOfAccountCode::Category(ChartOfAccountCategoryCode::Assets);
         let control_account = chart
-            .create_control_account(category, "Assets", "assets".to_string(), audit_info.clone())
+            .create_control_account(
+                category,
+                "Assets".to_string(),
+                "assets".to_string(),
+                audit_info.clone(),
+            )
             .unwrap();
         let sub_account = chart
             .create_control_sub_account(
                 control_account,
-                "Current Assets",
+                "Current Assets".to_string(),
                 "current-assets".to_string(),
                 audit_info.clone(),
             )
