@@ -1,6 +1,7 @@
 #![cfg_attr(feature = "fail-on-warnings", deny(warnings))]
 #![cfg_attr(feature = "fail-on-warnings", deny(clippy::all))]
 
+pub mod accounting;
 pub mod app;
 pub mod applicant;
 pub mod authorization;

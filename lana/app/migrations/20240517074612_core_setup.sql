@@ -48,6 +48,7 @@ CREATE TABLE approval_process_events (
 
 CREATE TABLE core_chart_of_accounts (
   id UUID PRIMARY KEY,
+  reference VARCHAR NOT NULL UNIQUE,
   created_at TIMESTAMPTZ NOT NULL
 );
 

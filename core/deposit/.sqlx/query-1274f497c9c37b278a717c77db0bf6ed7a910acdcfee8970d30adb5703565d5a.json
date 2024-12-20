@@ -1,0 +1,42 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "WITH entities AS (SELECT created_at, id FROM core_chart_of_accounts WHERE (COALESCE((created_at, id) > ($3, $2), $2 IS NULL)) ORDER BY created_at ASC, id ASC LIMIT $1) SELECT i.id AS \"entity_id: ChartOfAccountId\", e.sequence, e.event, e.recorded_at FROM entities i JOIN core_chart_of_account_events e ON i.id = e.id ORDER BY i.created_at asc, i.id asc, i.id, e.sequence",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "entity_id: ChartOfAccountId",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "sequence",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 2,
+        "name": "event",
+        "type_info": "Jsonb"
+      },
+      {
+        "ordinal": 3,
+        "name": "recorded_at",
+        "type_info": "Timestamptz"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Int8",
+        "Uuid",
+        "Timestamptz"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "1274f497c9c37b278a717c77db0bf6ed7a910acdcfee8970d30adb5703565d5a"
+}
