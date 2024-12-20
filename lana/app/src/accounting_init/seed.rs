@@ -1,10 +1,10 @@
-use chart_of_accounts::{
-    error::CoreChartOfAccountError, CategoryPath, ChartId, ChartOfAccountCode,
-};
+use chart_of_accounts::{CategoryPath, ChartId, ChartOfAccountCode};
 
 use crate::chart_of_accounts::ChartOfAccounts;
 
-use super::AccountingValues;
+use super::*;
+
+const LANA_JOURNAL_CODE: &str = "LANA_BANK_JOURNAL";
 
 const CHART_REF: &str = "primary-chart";
 
@@ -16,7 +16,7 @@ const DEPOSITS_CONTROL_SUB_ACCOUNT_NAME: &str = "User Deposits";
 
 pub(super) async fn execute(
     chart_of_accounts: &ChartOfAccounts,
-) -> Result<AccountingValues, CoreChartOfAccountError> {
+) -> Result<AccountingInit, AccountingInitError> {
     let chart = match chart_of_accounts
         .find_by_reference(CHART_REF.to_string())
         .await?
@@ -63,8 +63,8 @@ pub(super) async fn execute(
         }
     };
 
-    Ok(AccountingValues {
-        id: chart.id,
+    Ok(AccountingInit {
+        chart_id: chart.id,
         deposits_control_sub_path,
     })
 }

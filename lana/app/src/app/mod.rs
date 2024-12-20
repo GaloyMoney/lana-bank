@@ -7,7 +7,7 @@ use tracing::instrument;
 use authz::PermissionCheck;
 
 use crate::{
-    accounting::Accounting,
+    accounting_init::AccountingInit,
     applicant::Applicants,
     audit::{Audit, AuditCursor, AuditEntry},
     authorization::{init as init_authz, AppAction, AppObject, AuditAction, Authorization},
@@ -83,11 +83,11 @@ impl LanaApp {
         let cala = cala_ledger::CalaLedger::init(cala_config).await?;
         let journal_id = Self::create_journal(&cala).await?;
         let chart_of_accounts = ChartOfAccounts::init(&pool, &authz, &cala).await?;
-        let accounting = Accounting::init(&chart_of_accounts).await?;
+        let accounting_init = AccountingInit::execute(&chart_of_accounts).await?;
 
         let deposits_factory = chart_of_accounts.transaction_account_factory(
-            accounting.values.id,
-            accounting.values.deposits_control_sub_path,
+            accounting_init.chart_id,
+            accounting_init.deposits_control_sub_path,
         );
         let deposits = Deposits::init(
             &pool,
