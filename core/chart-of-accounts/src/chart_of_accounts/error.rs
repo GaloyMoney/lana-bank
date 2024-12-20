@@ -10,6 +10,10 @@ pub enum ChartOfAccountError {
     CursorDestructureError(#[from] es_entity::CursorDestructureError),
     #[error("ChartOfAccountError - ChartOfAccountCodeError: '{0}'")]
     ChartOfAccountCodeError(#[from] crate::code::error::ChartOfAccountCodeError),
+    #[error("ChartOfAccountError - ControlAccountAlreadyRegistered: '{0}'")]
+    ControlAccountAlreadyRegistered(String),
+    #[error("ChartOfAccountError - ControlSubAccountAlreadyRegistered: '{0}'")]
+    ControlSubAccountAlreadyRegistered(String),
 }
 
 es_entity::from_es_entity_error!(ChartOfAccountError);

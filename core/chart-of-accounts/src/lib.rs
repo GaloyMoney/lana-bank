@@ -155,6 +155,7 @@ where
         chart_id: impl Into<ChartId>,
         category: ChartOfAccountCode,
         name: &str,
+        reference: String,
     ) -> Result<ChartOfAccountCode, CoreChartOfAccountError> {
         let chart_id = chart_id.into();
 
@@ -172,7 +173,7 @@ where
 
         let mut chart = self.repo.find_by_id(chart_id).await?;
 
-        let code = chart.create_control_account(category, name, audit_info)?;
+        let code = chart.create_control_account(category, name, reference, audit_info)?;
 
         self.repo.update_in_op(&mut op, &mut chart).await?;
 
@@ -186,6 +187,7 @@ where
         chart_id: impl Into<ChartId> + std::fmt::Debug,
         control_account: ChartOfAccountCode,
         name: &str,
+        reference: String,
     ) -> Result<ChartOfAccountCode, CoreChartOfAccountError> {
         let chart_id = chart_id.into();
 
@@ -203,7 +205,8 @@ where
 
         let mut chart = self.repo.find_by_id(chart_id).await?;
 
-        let code = chart.create_control_sub_account(control_account, name, audit_info)?;
+        let code =
+            chart.create_control_sub_account(control_account, name, reference, audit_info)?;
 
         let mut op = self.repo.begin_op().await?;
         self.repo.update_in_op(&mut op, &mut chart).await?;

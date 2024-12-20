@@ -42,12 +42,18 @@ async fn create_and_populate() -> anyhow::Result<()> {
             chart_id,
             "10000000".parse()?,
             "Credit Facilities Receivable",
+            "credit-facilities-receivable".to_string(),
         )
         .await?;
 
     let control_sub_account_name = "Fixed-Term Credit Facilities Receivable";
     let control_sub_account_code = chart_of_accounts
-        .create_control_sub_account(chart_id, control_account_code, control_sub_account_name)
+        .create_control_sub_account(
+            chart_id,
+            control_account_code,
+            control_sub_account_name,
+            "fixed-term-credit-facilities-receivable".to_string(),
+        )
         .await?;
     assert_eq!(
         control_sub_account_code.control_account(),

@@ -43,10 +43,16 @@ async fn deposit() -> anyhow::Result<()> {
             chart_id,
             ChartOfAccountCode::Category(CategoryPath::Liabilities),
             "Deposits",
+            "deposits".to_string(),
         )
         .await?;
     let control_sub_account_path = chart_of_accounts
-        .create_control_sub_account(chart_id, control_account_path, "User Deposits")
+        .create_control_sub_account(
+            chart_id,
+            control_account_path,
+            "User Deposits",
+            "user-deposits".to_string(),
+        )
         .await?;
     let factory = chart_of_accounts.transaction_account_factory(chart_id, control_sub_account_path);
 
