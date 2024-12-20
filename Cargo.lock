@@ -832,12 +832,14 @@ dependencies = [
  "derive_builder",
  "es-entity",
  "outbox",
+ "rand",
  "serde",
  "sqlx",
  "strum",
  "thiserror 1.0.69",
  "tokio",
  "tracing",
+ "uuid",
 ]
 
 [[package]]
@@ -1185,6 +1187,7 @@ dependencies = [
  "governance",
  "job",
  "outbox",
+ "rand",
  "rust_decimal",
  "rust_decimal_macros",
  "serde",

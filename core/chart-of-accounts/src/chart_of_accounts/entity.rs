@@ -18,16 +18,19 @@ pub use super::error::*;
 pub enum ChartOfAccountEvent {
     Initialized {
         id: ChartId,
+        reference: String,
         audit_info: AuditInfo,
     },
     ControlAccountAdded {
         code: ChartOfAccountCode,
         name: String,
+        reference: String,
         audit_info: AuditInfo,
     },
     ControlSubAccountAdded {
         code: ChartOfAccountCode,
         name: String,
+        reference: String,
         audit_info: AuditInfo,
     },
     TransactionAccountAdded {
@@ -43,6 +46,7 @@ pub enum ChartOfAccountEvent {
 #[builder(pattern = "owned", build_fn(error = "EsEntityError"))]
 pub struct ChartOfAccount {
     pub id: ChartId,
+    pub reference: String,
     pub(super) events: EntityEvents<ChartOfAccountEvent>,
 }
 
@@ -66,16 +70,36 @@ impl ChartOfAccount {
             .unwrap_or_else(|| ChartOfAccountCode::first_control_account(category))?)
     }
 
+    pub fn find_control_account_by_reference(
+        &self,
+        reference_to_check: String,
+    ) -> Option<ChartOfAccountCode> {
+        self.events.iter_all().rev().find_map(|event| match event {
+            ChartOfAccountEvent::ControlAccountAdded {
+                code, reference, ..
+            } if reference_to_check == *reference => Some(*code),
+            _ => None,
+        })
+    }
+
     pub fn create_control_account(
         &mut self,
         category: ChartOfAccountCode,
-        name: &str,
+        name: String,
+        reference: String,
         audit_info: AuditInfo,
     ) -> Result<ChartOfAccountCode, ChartOfAccountError> {
+        if let Some(_) = self.find_control_account_by_reference(reference.to_string()) {
+            return Err(ChartOfAccountError::ControlAccountAlreadyRegistered(
+                reference,
+            ));
+        };
+
         let code = self.next_control_account(category)?;
         self.events.push(ChartOfAccountEvent::ControlAccountAdded {
             code,
-            name: name.to_string(),
+            name,
+            reference,
             audit_info,
         });
 
@@ -102,17 +126,37 @@ impl ChartOfAccount {
             .unwrap_or_else(|| ChartOfAccountCode::first_control_sub_account(&control_account))?)
     }
 
+    pub fn find_control_sub_account_by_reference(
+        &self,
+        reference_to_check: String,
+    ) -> Option<ChartOfAccountCode> {
+        self.events.iter_all().rev().find_map(|event| match event {
+            ChartOfAccountEvent::ControlSubAccountAdded {
+                code, reference, ..
+            } if reference_to_check == *reference => Some(*code),
+            _ => None,
+        })
+    }
+
     pub fn create_control_sub_account(
         &mut self,
         control_account: ChartOfAccountCode,
-        name: &str,
+        name: String,
+        reference: String,
         audit_info: AuditInfo,
     ) -> Result<ChartOfAccountCode, ChartOfAccountError> {
+        if let Some(_) = self.find_control_sub_account_by_reference(reference.to_string()) {
+            return Err(ChartOfAccountError::ControlSubAccountAlreadyRegistered(
+                reference,
+            ));
+        };
+
         let code = self.next_control_sub_account(control_account)?;
         self.events
             .push(ChartOfAccountEvent::ControlSubAccountAdded {
                 code,
-                name: name.to_string(),
+                name,
+                reference,
                 audit_info,
             });
 
@@ -143,19 +187,20 @@ impl ChartOfAccount {
             })?)
     }
 
-    pub fn create_transaction_account(
+    pub fn add_transaction_account(
         &mut self,
+        account_id: impl Into<LedgerAccountId>,
         control_sub_account: ChartOfAccountCode,
         name: &str,
         description: &str,
         audit_info: AuditInfo,
     ) -> Result<ChartOfAccountAccountDetails, ChartOfAccountError> {
-        let code = self.next_transaction_account(control_sub_account)?;
-        let account_id = LedgerAccountId::new();
+        let account_id = account_id.into();
+        let path = self.next_transaction_account(control_sub_account)?;
         self.events
             .push(ChartOfAccountEvent::TransactionAccountAdded {
                 id: account_id,
-                code,
+                code: path,
                 name: name.to_string(),
                 description: description.to_string(),
                 audit_info,
@@ -163,7 +208,8 @@ impl ChartOfAccount {
 
         Ok(ChartOfAccountAccountDetails {
             account_id,
-            code,
+            code: path.to_code(self.id),
+            path,
             name: name.to_string(),
             description: description.to_string(),
         })
@@ -171,18 +217,19 @@ impl ChartOfAccount {
 
     pub fn find_account(
         &self,
-        account_code: ChartOfAccountCode,
+        account_path: ChartOfAccountCode,
     ) -> Option<ChartOfAccountAccountDetails> {
         self.events.iter_all().rev().find_map(|event| match event {
             ChartOfAccountEvent::TransactionAccountAdded {
                 id,
-                code,
+                code: path,
                 name,
                 description,
                 ..
-            } if *code == account_code => Some(ChartOfAccountAccountDetails {
+            } if *path == account_path => Some(ChartOfAccountAccountDetails {
                 account_id: *id,
-                code: *code,
+                path: *path,
+                code: path.to_code(self.id),
                 name: name.to_string(),
                 description: description.to_string(),
             }),
@@ -196,7 +243,9 @@ impl TryFromEvents<ChartOfAccountEvent> for ChartOfAccount {
         let mut builder = ChartOfAccountBuilder::default();
         for event in events.iter_all() {
             match event {
-                ChartOfAccountEvent::Initialized { id, .. } => builder = builder.id(*id),
+                ChartOfAccountEvent::Initialized { id, reference, .. } => {
+                    builder = builder.id(*id).reference(reference.to_string())
+                }
                 ChartOfAccountEvent::ControlAccountAdded { .. } => (),
                 ChartOfAccountEvent::ControlSubAccountAdded { .. } => (),
                 ChartOfAccountEvent::TransactionAccountAdded { .. } => (),
@@ -210,6 +259,7 @@ impl TryFromEvents<ChartOfAccountEvent> for ChartOfAccount {
 pub struct NewChartOfAccount {
     #[builder(setter(into))]
     pub(super) id: ChartId,
+    pub(super) reference: String,
     #[builder(setter(into))]
     pub audit_info: AuditInfo,
 }
@@ -226,6 +276,7 @@ impl IntoEvents<ChartOfAccountEvent> for NewChartOfAccount {
             self.id,
             [ChartOfAccountEvent::Initialized {
                 id: self.id,
+                reference: self.reference,
                 audit_info: self.audit_info,
             }],
         )
@@ -234,7 +285,7 @@ impl IntoEvents<ChartOfAccountEvent> for NewChartOfAccount {
 
 #[cfg(test)]
 mod tests {
-    use crate::{AccountIdx, ChartOfAccountCategoryCode};
+    use crate::code::{AccountIdx, ChartOfAccountCategoryCode};
 
     use super::*;
 
@@ -253,6 +304,7 @@ mod tests {
 
         let new_chart = NewChartOfAccount::builder()
             .id(id)
+            .reference("ref-01".to_string())
             .audit_info(audit_info)
             .build()
             .unwrap();
@@ -268,6 +320,7 @@ mod tests {
 
         let new_chart = NewChartOfAccount::builder()
             .id(id)
+            .reference("ref-01".to_string())
             .audit_info(audit_info.clone())
             .build()
             .unwrap();
@@ -284,7 +337,8 @@ mod tests {
         match chart
             .create_control_account(
                 ChartOfAccountCode::Category(ChartOfAccountCategoryCode::Assets),
-                "Assets",
+                "Assets".to_string(),
+                "assets".to_string(),
                 dummy_audit_info(),
             )
             .unwrap()
@@ -298,18 +352,54 @@ mod tests {
     }
 
     #[test]
+    fn test_control_account_duplicate_reference() {
+        let mut chart = init_chart_of_events();
+        chart
+            .create_control_account(
+                ChartOfAccountCode::Category(ChartOfAccountCategoryCode::Assets),
+                "Assets #1".to_string(),
+                "assets".to_string(),
+                dummy_audit_info(),
+            )
+            .unwrap();
+
+        match chart.create_control_account(
+            ChartOfAccountCode::Category(ChartOfAccountCategoryCode::Assets),
+            "Assets #2".to_string(),
+            "assets".to_string(),
+            dummy_audit_info(),
+        ) {
+            Err(e) => {
+                assert!(matches!(
+                    e,
+                    ChartOfAccountError::ControlAccountAlreadyRegistered(_)
+                ));
+            }
+            _ => {
+                panic!("Expected duplicate reference to error")
+            }
+        }
+    }
+
+    #[test]
     fn test_create_control_sub_account() {
         let mut chart = init_chart_of_events();
         let control_account = chart
             .create_control_account(
                 ChartOfAccountCode::Category(ChartOfAccountCategoryCode::Assets),
-                "Assets",
+                "Assets".to_string(),
+                "assets".to_string(),
                 dummy_audit_info(),
             )
             .unwrap();
 
         match chart
-            .create_control_sub_account(control_account, "Current Assets", dummy_audit_info())
+            .create_control_sub_account(
+                control_account,
+                "Current Assets".to_string(),
+                "current-assets".to_string(),
+                dummy_audit_info(),
+            )
             .unwrap()
         {
             ChartOfAccountCode::ControlSubAccount {
@@ -326,21 +416,66 @@ mod tests {
     }
 
     #[test]
+    fn test_control_sub_account_duplicate_reference() {
+        let mut chart = init_chart_of_events();
+        let control_account = chart
+            .create_control_account(
+                ChartOfAccountCode::Category(ChartOfAccountCategoryCode::Assets),
+                "Assets".to_string(),
+                "assets".to_string(),
+                dummy_audit_info(),
+            )
+            .unwrap();
+        chart
+            .create_control_sub_account(
+                control_account,
+                "Current Assets #1".to_string(),
+                "current-assets".to_string(),
+                dummy_audit_info(),
+            )
+            .unwrap();
+
+        match chart.create_control_sub_account(
+            control_account,
+            "Current Assets #2".to_string(),
+            "current-assets".to_string(),
+            dummy_audit_info(),
+        ) {
+            Err(e) => {
+                assert!(matches!(
+                    e,
+                    ChartOfAccountError::ControlSubAccountAlreadyRegistered(_)
+                ));
+            }
+            _ => {
+                panic!("Expected duplicate reference to error")
+            }
+        }
+    }
+
+    #[test]
     fn test_create_transaction_account() {
         let mut chart = init_chart_of_events();
         let control_account = chart
             .create_control_account(
                 ChartOfAccountCode::Category(ChartOfAccountCategoryCode::Assets),
-                "Assets",
+                "Assets".to_string(),
+                "assets".to_string(),
                 dummy_audit_info(),
             )
             .unwrap();
         let control_sub_account = chart
-            .create_control_sub_account(control_account, "Current Assets", dummy_audit_info())
+            .create_control_sub_account(
+                control_account,
+                "Current Assets".to_string(),
+                "current-assets".to_string(),
+                dummy_audit_info(),
+            )
             .unwrap();
 
         match chart
-            .create_transaction_account(
+            .add_transaction_account(
+                LedgerAccountId::new(),
                 control_sub_account,
                 "Cash",
                 "Cash account",
@@ -349,7 +484,7 @@ mod tests {
             .unwrap()
         {
             ChartOfAccountAccountDetails {
-                code:
+                path:
                     ChartOfAccountCode::TransactionAccount {
                         category,
                         control_index,
@@ -374,7 +509,8 @@ mod tests {
         chart
             .create_control_account(
                 ChartOfAccountCode::Category(ChartOfAccountCategoryCode::Assets),
-                "First",
+                "First".to_string(),
+                "assets-01".to_string(),
                 dummy_audit_info(),
             )
             .unwrap();
@@ -382,7 +518,8 @@ mod tests {
         match chart
             .create_control_account(
                 ChartOfAccountCode::Category(ChartOfAccountCategoryCode::Assets),
-                "Second",
+                "Second".to_string(),
+                "assets-02".to_string(),
                 dummy_audit_info(),
             )
             .unwrap()
@@ -401,17 +538,28 @@ mod tests {
         let control_account = chart
             .create_control_account(
                 ChartOfAccountCode::Category(ChartOfAccountCategoryCode::Assets),
-                "Assets",
+                "Assets".to_string(),
+                "assets".to_string(),
                 dummy_audit_info(),
             )
             .unwrap();
 
         chart
-            .create_control_sub_account(control_account, "First", dummy_audit_info())
+            .create_control_sub_account(
+                control_account,
+                "First".to_string(),
+                "first-asset".to_string(),
+                dummy_audit_info(),
+            )
             .unwrap();
 
         match chart
-            .create_control_sub_account(control_account, "Second", dummy_audit_info())
+            .create_control_sub_account(
+                control_account,
+                "Second".to_string(),
+                "second-asset".to_string(),
+                dummy_audit_info(),
+            )
             .unwrap()
         {
             ChartOfAccountCode::ControlSubAccount {
@@ -433,16 +581,23 @@ mod tests {
         let control_account = chart
             .create_control_account(
                 ChartOfAccountCode::Category(ChartOfAccountCategoryCode::Assets),
-                "Assets",
+                "Assets".to_string(),
+                "assets".to_string(),
                 dummy_audit_info(),
             )
             .unwrap();
         let sub_account = chart
-            .create_control_sub_account(control_account, "Current Assets", dummy_audit_info())
+            .create_control_sub_account(
+                control_account,
+                "Current Assets".to_string(),
+                "current-assets".to_string(),
+                dummy_audit_info(),
+            )
             .unwrap();
 
         chart
-            .create_transaction_account(
+            .add_transaction_account(
+                LedgerAccountId::new(),
                 sub_account,
                 "First",
                 "First transaction account",
@@ -451,7 +606,8 @@ mod tests {
             .unwrap();
 
         match chart
-            .create_transaction_account(
+            .add_transaction_account(
+                LedgerAccountId::new(),
                 sub_account,
                 "Second",
                 "Second transaction account",
@@ -460,7 +616,7 @@ mod tests {
             .unwrap()
         {
             ChartOfAccountAccountDetails {
-                code:
+                path:
                     ChartOfAccountCode::TransactionAccount {
                         category,
                         control_index,
@@ -485,16 +641,32 @@ mod tests {
 
         let category = ChartOfAccountCode::Category(ChartOfAccountCategoryCode::Assets);
         let control_account = chart
-            .create_control_account(category, "Assets", audit_info.clone())
+            .create_control_account(
+                category,
+                "Assets".to_string(),
+                "assets".to_string(),
+                audit_info.clone(),
+            )
             .unwrap();
         let sub_account = chart
-            .create_control_sub_account(control_account, "Current Assets", audit_info.clone())
+            .create_control_sub_account(
+                control_account,
+                "Current Assets".to_string(),
+                "current-assets".to_string(),
+                audit_info.clone(),
+            )
             .unwrap();
         let transaction_account = chart
-            .create_transaction_account(sub_account, "Cash", "Cash account", audit_info)
+            .add_transaction_account(
+                LedgerAccountId::new(),
+                sub_account,
+                "Cash",
+                "Cash account",
+                audit_info,
+            )
             .unwrap();
 
-        let found = chart.find_account(transaction_account.code).unwrap();
+        let found = chart.find_account(transaction_account.path).unwrap();
         assert_eq!(found.code, transaction_account.code);
         assert_eq!(found.name, "Cash");
 

@@ -45,6 +45,7 @@ impl Ledger {
     pub async fn init(config: LedgerConfig, authz: &Authorization) -> Result<Self, LedgerError> {
         let cala = CalaClient::new(config.cala_url);
         Self::initialize_tx_templates(&cala).await?;
+
         Ok(Ledger {
             cala,
             authz: authz.clone(),
