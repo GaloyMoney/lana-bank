@@ -5,7 +5,9 @@ use crate::{
     chart_of_accounts::ChartOfAccountRepo,
     code::ChartOfAccountCode,
     error::CoreChartOfAccountError,
-    primitives::{ChartId, ChartOfAccountAccountDetails, LedgerAccountId},
+    primitives::{
+        ChartId, ChartOfAccountAccountDetails, ChartOfAccountCreationDetails, LedgerAccountId,
+    },
 };
 
 #[derive(Clone)]
@@ -42,10 +44,12 @@ impl TransactionAccountFactory {
         let mut chart = self.repo.find_by_id(self.chart_id).await?;
 
         let account_details = chart.add_transaction_account(
-            account_id,
-            self.control_sub_account,
-            name,
-            description,
+            ChartOfAccountCreationDetails {
+                account_id: account_id.into(),
+                parent_path: self.control_sub_account,
+                name: name.to_string(),
+                description: description.to_string(),
+            },
             audit_info,
         )?;
 

@@ -130,3 +130,11 @@ pub struct ChartOfAccountAccountDetails {
     pub name: String,
     pub description: String,
 }
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ChartOfAccountCreationDetails {
+    pub parent_path: ChartOfAccountCode,
+    pub account_id: LedgerAccountId,
+    pub name: String,
+    pub description: String,
+}
