@@ -1,3 +1,4 @@
+mod constants;
 mod seed;
 
 pub mod error;
@@ -10,11 +11,33 @@ use cala_ledger::{CalaLedger, JournalId};
 
 use error::*;
 
+#[derive(Clone, Copy)]
+pub struct ChartIds {
+    pub primary: ChartId,
+    pub off_balance_sheet: ChartId,
+}
+
+#[derive(Clone)]
+pub struct DepositsAccountPaths {
+    pub deposits: ChartOfAccountCode,
+}
+
+#[derive(Clone)]
+pub struct CreditFacilitiesAccountPaths {
+    pub collateral: ChartOfAccountCode,
+    pub facility: ChartOfAccountCode,
+    pub disbursed_receivable: ChartOfAccountCode,
+    pub interest_receivable: ChartOfAccountCode,
+    pub interest_income: ChartOfAccountCode,
+    pub fee_income: ChartOfAccountCode,
+}
+
 #[derive(Clone)]
 pub struct AccountingInit {
     pub journal_id: JournalId,
-    pub chart_id: ChartId,
-    pub deposits_control_sub_path: ChartOfAccountCode,
+    pub chart_ids: ChartIds,
+    pub deposits: DepositsAccountPaths,
+    pub credit_facilities: CreditFacilitiesAccountPaths,
 }
 
 impl AccountingInit {

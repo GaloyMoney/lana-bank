@@ -83,8 +83,8 @@ impl LanaApp {
         let accounting_init = AccountingInit::execute(&cala, &chart_of_accounts).await?;
 
         let deposits_factory = chart_of_accounts.transaction_account_factory(
-            accounting_init.chart_id,
-            accounting_init.deposits_control_sub_path,
+            accounting_init.chart_ids.primary,
+            accounting_init.deposits.deposits,
         );
         let deposits = Deposits::init(
             &pool,

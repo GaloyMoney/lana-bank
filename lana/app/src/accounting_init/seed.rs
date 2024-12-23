@@ -1,14 +1,4 @@
-use super::*;
-
-const LANA_JOURNAL_CODE: &str = "LANA_BANK_JOURNAL";
-
-const CHART_REF: &str = "primary-chart";
-
-const DEPOSITS_CONTROL_ACCOUNT_REF: &str = "deposits";
-const DEPOSITS_CONTROL_ACCOUNT_NAME: &str = "Deposits";
-
-const DEPOSITS_CONTROL_SUB_ACCOUNT_REF: &str = "deposits-user";
-const DEPOSITS_CONTROL_SUB_ACCOUNT_NAME: &str = "User Deposits";
+use super::{constants::*, *};
 
 pub(super) async fn execute(
     cala: &CalaLedger,
@@ -16,22 +6,18 @@ pub(super) async fn execute(
 ) -> Result<AccountingInit, AccountingInitError> {
     let journal_id = create_journal(cala).await?;
 
-    let chart_id = create_chart_of_accounts(chart_of_accounts).await?;
-    let deposits_control_sub_path = create_control_sub_account(
-        chart_of_accounts,
-        chart_id,
-        ChartOfAccountCode::Category(chart_of_accounts::CategoryPath::Liabilities),
-        DEPOSITS_CONTROL_ACCOUNT_NAME.to_string(),
-        DEPOSITS_CONTROL_ACCOUNT_REF.to_string(),
-        DEPOSITS_CONTROL_SUB_ACCOUNT_NAME.to_string(),
-        DEPOSITS_CONTROL_SUB_ACCOUNT_REF.to_string(),
-    )
-    .await?;
+    let chart_ids = &create_charts_of_accounts(chart_of_accounts).await?;
+
+    let deposits = create_deposits_account_paths(chart_of_accounts, chart_ids).await?;
+
+    let credit_facilities =
+        create_credit_facilities_account_paths(chart_of_accounts, chart_ids).await?;
 
     Ok(AccountingInit {
         journal_id,
-        chart_id,
-        deposits_control_sub_path,
+        chart_ids: *chart_ids,
+        deposits,
+        credit_facilities,
     })
 }
 
@@ -59,10 +45,10 @@ async fn create_journal(cala: &CalaLedger) -> Result<JournalId, AccountingInitEr
     }
 }
 
-async fn create_chart_of_accounts(
+async fn create_charts_of_accounts(
     chart_of_accounts: &ChartOfAccounts,
-) -> Result<ChartId, AccountingInitError> {
-    let chart = match chart_of_accounts
+) -> Result<ChartIds, AccountingInitError> {
+    let primary = match chart_of_accounts
         .find_by_reference(CHART_REF.to_string())
         .await?
     {
@@ -74,7 +60,21 @@ async fn create_chart_of_accounts(
         }
     };
 
-    Ok(chart.id)
+    let off_balance_sheet = match chart_of_accounts
+        .find_by_reference(OBS_CHART_REF.to_string())
+        .await?
+    {
+        Some(chart) => chart,
+        None => {
+            chart_of_accounts
+                .create_chart(ChartId::new(), OBS_CHART_REF.to_string())
+                .await?
+        }
+    };
+    Ok(ChartIds {
+        primary: primary.id,
+        off_balance_sheet: off_balance_sheet.id,
+    })
 }
 
 async fn create_control_sub_account(
@@ -111,4 +111,102 @@ async fn create_control_sub_account(
     };
 
     Ok(control_sub_path)
+}
+
+async fn create_deposits_account_paths(
+    chart_of_accounts: &ChartOfAccounts,
+    chart_ids: &ChartIds,
+) -> Result<DepositsAccountPaths, AccountingInitError> {
+    let deposits = create_control_sub_account(
+        chart_of_accounts,
+        chart_ids.primary,
+        ChartOfAccountCode::Category(chart_of_accounts::CategoryPath::Liabilities),
+        DEPOSITS_CONTROL_ACCOUNT_NAME.to_string(),
+        DEPOSITS_CONTROL_ACCOUNT_REF.to_string(),
+        DEPOSITS_CONTROL_SUB_ACCOUNT_NAME.to_string(),
+        DEPOSITS_CONTROL_SUB_ACCOUNT_REF.to_string(),
+    )
+    .await?;
+
+    Ok(DepositsAccountPaths { deposits })
+}
+
+async fn create_credit_facilities_account_paths(
+    chart_of_accounts: &ChartOfAccounts,
+    chart_ids: &ChartIds,
+) -> Result<CreditFacilitiesAccountPaths, AccountingInitError> {
+    let collateral = create_control_sub_account(
+        chart_of_accounts,
+        chart_ids.off_balance_sheet,
+        ChartOfAccountCode::Category(chart_of_accounts::CategoryPath::Liabilities),
+        CREDIT_FACILITIES_COLLATERAL_CONTROL_ACCOUNT_NAME.to_string(),
+        CREDIT_FACILITIES_COLLATERAL_CONTROL_ACCOUNT_REF.to_string(),
+        CREDIT_FACILITIES_COLLATERAL_CONTROL_SUB_ACCOUNT_NAME.to_string(),
+        CREDIT_FACILITIES_COLLATERAL_CONTROL_SUB_ACCOUNT_REF.to_string(),
+    )
+    .await?;
+
+    let facility = create_control_sub_account(
+        chart_of_accounts,
+        chart_ids.off_balance_sheet,
+        ChartOfAccountCode::Category(chart_of_accounts::CategoryPath::Assets),
+        CREDIT_FACILITIES_FACILITY_CONTROL_ACCOUNT_NAME.to_string(),
+        CREDIT_FACILITIES_FACILITY_CONTROL_ACCOUNT_REF.to_string(),
+        CREDIT_FACILITIES_FACILITY_CONTROL_SUB_ACCOUNT_NAME.to_string(),
+        CREDIT_FACILITIES_FACILITY_CONTROL_SUB_ACCOUNT_REF.to_string(),
+    )
+    .await?;
+
+    let disbursed_receivable = create_control_sub_account(
+        chart_of_accounts,
+        chart_ids.primary,
+        ChartOfAccountCode::Category(chart_of_accounts::CategoryPath::Assets),
+        CREDIT_FACILITIES_DISBURSED_RECEIVABLE_CONTROL_ACCOUNT_NAME.to_string(),
+        CREDIT_FACILITIES_DISBURSED_RECEIVABLE_CONTROL_ACCOUNT_REF.to_string(),
+        CREDIT_FACILITIES_DISBURSED_RECEIVABLE_CONTROL_SUB_ACCOUNT_NAME.to_string(),
+        CREDIT_FACILITIES_DISBURSED_RECEIVABLE_CONTROL_SUB_ACCOUNT_REF.to_string(),
+    )
+    .await?;
+
+    let interest_receivable = create_control_sub_account(
+        chart_of_accounts,
+        chart_ids.primary,
+        ChartOfAccountCode::Category(chart_of_accounts::CategoryPath::Assets),
+        CREDIT_FACILITIES_INTEREST_RECEIVABLE_CONTROL_ACCOUNT_NAME.to_string(),
+        CREDIT_FACILITIES_INTEREST_RECEIVABLE_CONTROL_ACCOUNT_REF.to_string(),
+        CREDIT_FACILITIES_INTEREST_RECEIVABLE_CONTROL_SUB_ACCOUNT_NAME.to_string(),
+        CREDIT_FACILITIES_INTEREST_RECEIVABLE_CONTROL_SUB_ACCOUNT_REF.to_string(),
+    )
+    .await?;
+
+    let interest_income = create_control_sub_account(
+        chart_of_accounts,
+        chart_ids.primary,
+        ChartOfAccountCode::Category(chart_of_accounts::CategoryPath::Revenues),
+        CREDIT_FACILITIES_INTEREST_INCOME_CONTROL_ACCOUNT_NAME.to_string(),
+        CREDIT_FACILITIES_INTEREST_INCOME_CONTROL_ACCOUNT_REF.to_string(),
+        CREDIT_FACILITIES_INTEREST_INCOME_CONTROL_SUB_ACCOUNT_NAME.to_string(),
+        CREDIT_FACILITIES_INTEREST_INCOME_CONTROL_SUB_ACCOUNT_REF.to_string(),
+    )
+    .await?;
+
+    let fee_income = create_control_sub_account(
+        chart_of_accounts,
+        chart_ids.primary,
+        ChartOfAccountCode::Category(chart_of_accounts::CategoryPath::Revenues),
+        CREDIT_FACILITIES_FEE_INCOME_CONTROL_ACCOUNT_NAME.to_string(),
+        CREDIT_FACILITIES_FEE_INCOME_CONTROL_ACCOUNT_REF.to_string(),
+        CREDIT_FACILITIES_FEE_INCOME_CONTROL_SUB_ACCOUNT_NAME.to_string(),
+        CREDIT_FACILITIES_FEE_INCOME_CONTROL_SUB_ACCOUNT_REF.to_string(),
+    )
+    .await?;
+
+    Ok(CreditFacilitiesAccountPaths {
+        collateral,
+        facility,
+        disbursed_receivable,
+        interest_receivable,
+        interest_income,
+        fee_income,
+    })
 }
