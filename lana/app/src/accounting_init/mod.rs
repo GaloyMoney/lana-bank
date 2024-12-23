@@ -22,6 +22,6 @@ impl AccountingInit {
         cala: &CalaLedger,
         chart_of_accounts: &ChartOfAccounts,
     ) -> Result<Self, AccountingInitError> {
-        Ok(seed::execute(cala, chart_of_accounts).await?)
+        seed::execute(cala, chart_of_accounts).await
     }
 }

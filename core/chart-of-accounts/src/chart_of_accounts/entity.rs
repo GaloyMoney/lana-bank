@@ -89,7 +89,10 @@ impl ChartOfAccount {
         reference: String,
         audit_info: AuditInfo,
     ) -> Result<ChartOfAccountCode, ChartOfAccountError> {
-        if let Some(_) = self.find_control_account_by_reference(reference.to_string()) {
+        if self
+            .find_control_account_by_reference(reference.to_string())
+            .is_some()
+        {
             return Err(ChartOfAccountError::ControlAccountAlreadyRegistered(
                 reference,
             ));
@@ -145,7 +148,10 @@ impl ChartOfAccount {
         reference: String,
         audit_info: AuditInfo,
     ) -> Result<ChartOfAccountCode, ChartOfAccountError> {
-        if let Some(_) = self.find_control_sub_account_by_reference(reference.to_string()) {
+        if self
+            .find_control_sub_account_by_reference(reference.to_string())
+            .is_some()
+        {
             return Err(ChartOfAccountError::ControlSubAccountAlreadyRegistered(
                 reference,
             ));
