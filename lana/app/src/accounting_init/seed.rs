@@ -74,7 +74,7 @@ async fn create_deposits_control_sub_account(
     chart_id: ChartId,
 ) -> Result<ChartOfAccountCode, AccountingInitError> {
     let deposits_control_path = match chart_of_accounts
-        .find_control_account_by_reference(chart_id, CHART_REF.to_string())
+        .find_control_account_by_reference(chart_id, DEPOSITS_CONTROL_ACCOUNT_REF.to_string())
         .await?
     {
         Some(path) => path,
@@ -83,15 +83,18 @@ async fn create_deposits_control_sub_account(
                 .create_control_account(
                     chart_id,
                     ChartOfAccountCode::Category(chart_of_accounts::CategoryPath::Liabilities),
-                    DEPOSITS_CONTROL_ACCOUNT_REF.to_string(),
                     DEPOSITS_CONTROL_ACCOUNT_NAME.to_string(),
+                    DEPOSITS_CONTROL_ACCOUNT_REF.to_string(),
                 )
                 .await?
         }
     };
 
     let deposits_control_sub_path = match chart_of_accounts
-        .find_control_sub_account_by_reference(chart_id, CHART_REF.to_string())
+        .find_control_sub_account_by_reference(
+            chart_id,
+            DEPOSITS_CONTROL_SUB_ACCOUNT_REF.to_string(),
+        )
         .await?
     {
         Some(path) => path,
