@@ -6,10 +6,7 @@ use tracing::instrument;
 use crate::{
     audit::*,
     authorization::{CreditFacilityAction, Object},
-    credit_facility::{
-        interest_incurrences, ledger::CreditLedger, repo::*, CreditFacilityError,
-        CreditFacilityLedgerBalance,
-    },
+    credit_facility::{interest_incurrences, ledger::CreditLedger, repo::*, CreditFacilityError},
     job::{error::*, *},
     ledger::*,
     primitives::CreditFacilityId,
@@ -121,12 +118,17 @@ impl JobRunner for CreditFacilityProcessingJobRunner {
             .await?;
 
         let interest_accrual = self.record_interest_accrual(&mut db, &audit_info).await?;
+
+        let (now, mut tx) = (db.now(), db.into_tx());
+        let sub_op = {
+            use sqlx::Acquire;
+            es_entity::DbOp::new(tx.begin().await?, now)
+        };
         self.ledger
-            .record_interest_accrual(db, interest_accrual)
+            .record_interest_accrual(sub_op, interest_accrual)
             .await?;
 
-        // handle move of db
-        unimplemented!();
+        let mut db = es_entity::DbOp::new(tx, now);
         let mut credit_facility = self
             .credit_facility_repo
             .find_by_id_in_tx(db.tx(), self.config.credit_facility_id)

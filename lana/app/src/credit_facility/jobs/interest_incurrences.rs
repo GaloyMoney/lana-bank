@@ -143,12 +143,17 @@ impl JobRunner for CreditFacilityProcessingJobRunner {
         } = self
             .confirm_interest_incurrence(&mut db, &audit_info)
             .await?;
+
+        let (now, mut tx) = (db.now(), db.into_tx());
+        let sub_op = {
+            use sqlx::Acquire;
+            es_entity::DbOp::new(tx.begin().await?, now)
+        };
         self.ledger
-            .record_interest_incurrence(db, interest_incurrence)
+            .record_interest_incurrence(sub_op, interest_incurrence)
             .await?;
 
-        // handle move of db
-        unimplemented!();
+        let db = es_entity::DbOp::new(tx, now);
         if let Some(period) = next_incurrence_period {
             Ok(JobCompletion::RescheduleAtWithOp(db, period.end))
         } else {
