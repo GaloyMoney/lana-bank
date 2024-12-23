@@ -7,7 +7,7 @@ use tracing::instrument;
 use authz::PermissionCheck;
 
 use crate::{
-    accounting::Accounting,
+    accounting_init::AccountingInit,
     applicant::Applicants,
     audit::{Audit, AuditCursor, AuditEntry},
     authorization::{init as init_authz, AppAction, AppObject, AuditAction, Authorization},
@@ -32,8 +32,6 @@ use crate::{
 
 pub use config::*;
 use error::ApplicationError;
-
-const LANA_JOURNAL_CODE: &str = "LANA_BANK_JOURNAL";
 
 #[derive(Clone)]
 pub struct LanaApp {
@@ -81,13 +79,12 @@ impl LanaApp {
             .build()
             .expect("cala config");
         let cala = cala_ledger::CalaLedger::init(cala_config).await?;
-        let journal_id = Self::create_journal(&cala).await?;
         let chart_of_accounts = ChartOfAccounts::init(&pool, &authz, &cala).await?;
-        let accounting = Accounting::init(&chart_of_accounts).await?;
+        let accounting_init = AccountingInit::execute(&cala, &chart_of_accounts).await?;
 
         let deposits_factory = chart_of_accounts.transaction_account_factory(
-            accounting.values.id,
-            accounting.values.deposits_control_sub_path,
+            accounting_init.chart_id,
+            accounting_init.deposits_control_sub_path,
         );
         let deposits = Deposits::init(
             &pool,
@@ -97,7 +94,7 @@ impl LanaApp {
             &jobs,
             deposits_factory,
             &cala,
-            journal_id,
+            accounting_init.journal_id,
             String::from("OMNIBUS_ACCOUNT_ID"),
         )
         .await?;
@@ -219,31 +216,5 @@ impl LanaApp {
         crate::authorization::error::AuthorizationError,
     > {
         crate::authorization::get_visible_navigation_items(&self.authz, sub).await
-    }
-
-    async fn create_journal(
-        cala: &cala_ledger::CalaLedger,
-    ) -> Result<cala_ledger::JournalId, ApplicationError> {
-        use cala_ledger::journal::*;
-
-        let new_journal = NewJournal::builder()
-            .id(JournalId::new())
-            .name("General Ledger")
-            .description("General ledger for Lana")
-            .code(LANA_JOURNAL_CODE)
-            .build()
-            .expect("new journal");
-
-        match cala.journals().create(new_journal).await {
-            Err(cala_ledger::journal::error::JournalError::CodeAlreadyExists) => {
-                let journal = cala
-                    .journals()
-                    .find_by_code(LANA_JOURNAL_CODE.to_string())
-                    .await?;
-                Ok(journal.id)
-            }
-            Err(e) => Err(e.into()),
-            Ok(journal) => Ok(journal.id),
-        }
     }
 }
