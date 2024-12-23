@@ -1,6 +1,4 @@
-use chrono::{DateTime, Utc};
-
-use crate::primitives::{LedgerTxId, Satoshis, UsdCents};
+use crate::primitives::{Satoshis, UsdCents};
 
 use super::{cala::graphql::*, error::*};
 
