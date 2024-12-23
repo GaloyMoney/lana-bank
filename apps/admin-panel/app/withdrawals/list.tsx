@@ -26,17 +26,10 @@ gql`
       edges {
         cursor
         node {
-          customerId
           withdrawalId
           amount
           status
           reference
-          subjectCanConfirm
-          subjectCanCancel
-          customer {
-            customerId
-            email
-          }
         }
       }
     }

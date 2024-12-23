@@ -9,18 +9,11 @@ import { DetailsPageSkeleton } from "@/components/details-page-skeleton"
 gql`
   query GetWithdrawalDetails($id: UUID!) {
     withdrawal(id: $id) {
-      customerId
       withdrawalId
       amount
       status
       reference
-      subjectCanConfirm
-      subjectCanCancel
-      customer {
-        email
-        customerId
-        applicantId
-      }
+
       approvalProcess {
         approvalProcessId
         deniedReason

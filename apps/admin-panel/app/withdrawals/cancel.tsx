@@ -26,15 +26,6 @@ gql`
       withdrawal {
         withdrawalId
         amount
-        customer {
-          customerId
-          balance {
-            checking {
-              settled
-              pending
-            }
-          }
-        }
       }
     }
   }

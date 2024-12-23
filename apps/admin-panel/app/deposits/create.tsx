@@ -29,15 +29,6 @@ gql`
       deposit {
         depositId
         amount
-        customer {
-          customerId
-          email
-          balance {
-            checking {
-              settled
-            }
-          }
-        }
       }
     }
   }

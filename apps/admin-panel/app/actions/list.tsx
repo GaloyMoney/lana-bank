@@ -34,9 +34,6 @@ gql`
             __typename
             ... on Withdrawal {
               withdrawalId
-              customer {
-                email
-              }
             }
             ... on CreditFacility {
               creditFacilityId

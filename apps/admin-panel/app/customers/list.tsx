@@ -37,15 +37,12 @@ gql`
           email
           telegramId
           applicantId
-          balance {
-            checking {
+          depositAccount {
+            balance {
               settled
               pending
             }
           }
-
-          subjectCanRecordDeposit
-          subjectCanInitiateWithdrawal
           subjectCanCreateCreditFacility
         }
         cursor

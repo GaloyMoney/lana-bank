@@ -10,29 +10,24 @@ gql`
   query GetCustomerTransactions($id: UUID!) {
     customer(id: $id) {
       id
-      deposits {
-        createdAt
-        customerId
-        depositId
-        reference
-        amount
-      }
-      withdrawals {
-        status
-        reference
-        customerId
-        withdrawalId
-        createdAt
-        amount
-        customer {
-          customerId
-          email
+      depositAccount {
+        deposits {
+          createdAt
+          depositId
+          reference
+          amount
+        }
+        withdrawals {
+          status
+          reference
+          withdrawalId
+          createdAt
+          amount
         }
       }
       transactions @client {
         ... on Deposit {
           createdAt
-          customerId
           depositId
           reference
           amount
@@ -40,14 +35,9 @@ gql`
         ... on Withdrawal {
           status
           reference
-          customerId
           withdrawalId
           createdAt
           amount
-          customer {
-            customerId
-            email
-          }
         }
       }
     }
