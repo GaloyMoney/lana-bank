@@ -28,16 +28,6 @@ gql`
         withdrawalId
         amount
         reference
-        customer {
-          customerId
-          email
-          balance {
-            checking {
-              settled
-              pending
-            }
-          }
-        }
       }
     }
   }

@@ -27,9 +27,6 @@ gql`
           depositId
           amount
           reference
-          customer {
-            email
-          }
         }
       }
     }
