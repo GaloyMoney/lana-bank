@@ -17,8 +17,16 @@ pub(super) async fn execute(
     let journal_id = create_journal(cala).await?;
 
     let chart_id = create_chart_of_accounts(chart_of_accounts).await?;
-    let deposits_control_sub_path =
-        create_deposits_control_sub_account(chart_of_accounts, chart_id).await?;
+    let deposits_control_sub_path = create_control_sub_account(
+        chart_of_accounts,
+        chart_id,
+        ChartOfAccountCode::Category(chart_of_accounts::CategoryPath::Liabilities),
+        DEPOSITS_CONTROL_ACCOUNT_NAME.to_string(),
+        DEPOSITS_CONTROL_ACCOUNT_REF.to_string(),
+        DEPOSITS_CONTROL_SUB_ACCOUNT_NAME.to_string(),
+        DEPOSITS_CONTROL_SUB_ACCOUNT_REF.to_string(),
+    )
+    .await?;
 
     Ok(AccountingInit {
         journal_id,
@@ -69,46 +77,38 @@ async fn create_chart_of_accounts(
     Ok(chart.id)
 }
 
-async fn create_deposits_control_sub_account(
+async fn create_control_sub_account(
     chart_of_accounts: &ChartOfAccounts,
     chart_id: ChartId,
+    category: ChartOfAccountCode,
+    control_name: String,
+    control_reference: String,
+    sub_name: String,
+    sub_reference: String,
 ) -> Result<ChartOfAccountCode, AccountingInitError> {
-    let deposits_control_path = match chart_of_accounts
-        .find_control_account_by_reference(chart_id, DEPOSITS_CONTROL_ACCOUNT_REF.to_string())
+    let control_path = match chart_of_accounts
+        .find_control_account_by_reference(chart_id, control_reference.clone())
         .await?
     {
         Some(path) => path,
         None => {
             chart_of_accounts
-                .create_control_account(
-                    chart_id,
-                    ChartOfAccountCode::Category(chart_of_accounts::CategoryPath::Liabilities),
-                    DEPOSITS_CONTROL_ACCOUNT_NAME.to_string(),
-                    DEPOSITS_CONTROL_ACCOUNT_REF.to_string(),
-                )
+                .create_control_account(chart_id, category, control_name, control_reference)
                 .await?
         }
     };
 
-    let deposits_control_sub_path = match chart_of_accounts
-        .find_control_sub_account_by_reference(
-            chart_id,
-            DEPOSITS_CONTROL_SUB_ACCOUNT_REF.to_string(),
-        )
+    let control_sub_path = match chart_of_accounts
+        .find_control_sub_account_by_reference(chart_id, sub_reference.clone())
         .await?
     {
         Some(path) => path,
         None => {
             chart_of_accounts
-                .create_control_sub_account(
-                    chart_id,
-                    deposits_control_path,
-                    DEPOSITS_CONTROL_SUB_ACCOUNT_NAME.to_string(),
-                    DEPOSITS_CONTROL_SUB_ACCOUNT_REF.to_string(),
-                )
+                .create_control_sub_account(chart_id, control_path, sub_name, sub_reference)
                 .await?
         }
     };
 
-    Ok(deposits_control_sub_path)
+    Ok(control_sub_path)
 }
