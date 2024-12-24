@@ -29,7 +29,7 @@ checksum = "512761e0bb2578dd7380c6baaa0f4ce03e84f95e960231d1dec8bf4d7d6e2627"
 
 [[package]]
 name = "admin-server"
-version = "0.2.58-dev"
+version = "0.2.59-dev"
 dependencies = [
  "anyhow",
  "async-graphql",
@@ -332,7 +332,7 @@ checksum = "1505bd5d3d116872e7271a6d4e16d81d0c8570876c8de68093a09ac269d8aac0"
 
 [[package]]
 name = "audit"
-version = "0.2.58-dev"
+version = "0.2.59-dev"
 dependencies = [
  "async-trait",
  "chrono",
@@ -344,7 +344,7 @@ dependencies = [
 
 [[package]]
 name = "authz"
-version = "0.2.58-dev"
+version = "0.2.59-dev"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -899,7 +899,7 @@ checksum = "773648b94d0e5d620f64f280777445740e61fe701025087ec8b57f45c791888b"
 
 [[package]]
 name = "core-money"
-version = "0.2.58-dev"
+version = "0.2.59-dev"
 dependencies = [
  "async-graphql",
  "rust_decimal",
@@ -910,7 +910,7 @@ dependencies = [
 
 [[package]]
 name = "core-user"
-version = "0.2.58-dev"
+version = "0.2.59-dev"
 dependencies = [
  "anyhow",
  "audit",
@@ -1028,7 +1028,7 @@ dependencies = [
 
 [[package]]
 name = "dashboard"
-version = "0.2.58-dev"
+version = "0.2.59-dev"
 dependencies = [
  "anyhow",
  "async-graphql",
@@ -1539,7 +1539,7 @@ checksum = "d2fabcfbdc87f4758337ca535fb41a6d701b65693ce38287d856d1674551ec9b"
 
 [[package]]
 name = "governance"
-version = "0.2.58-dev"
+version = "0.2.59-dev"
 dependencies = [
  "anyhow",
  "async-graphql",
@@ -2185,7 +2185,7 @@ checksum = "49f1f14873335454500d59611f1cf4a4b0f786f9ac11f4312a78e4cf2566695b"
 
 [[package]]
 name = "job"
-version = "0.2.58-dev"
+version = "0.2.59-dev"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -2244,7 +2244,7 @@ dependencies = [
 
 [[package]]
 name = "jwks-utils"
-version = "0.2.58-dev"
+version = "0.2.59-dev"
 dependencies = [
  "axum",
  "axum-extra",
@@ -2288,7 +2288,7 @@ dependencies = [
 
 [[package]]
 name = "lana-app"
-version = "0.2.58-dev"
+version = "0.2.59-dev"
 dependencies = [
  "anyhow",
  "async-graphql",
@@ -2345,7 +2345,7 @@ dependencies = [
 
 [[package]]
 name = "lana-cli"
-version = "0.2.58-dev"
+version = "0.2.59-dev"
 dependencies = [
  "admin-server",
  "anyhow",
@@ -2362,7 +2362,7 @@ dependencies = [
 
 [[package]]
 name = "lana-events"
-version = "0.2.58-dev"
+version = "0.2.59-dev"
 dependencies = [
  "chrono",
  "core-money",
@@ -2375,7 +2375,7 @@ dependencies = [
 
 [[package]]
 name = "lana-ids"
-version = "0.2.58-dev"
+version = "0.2.59-dev"
 dependencies = [
  "es-entity",
  "governance",
@@ -2804,7 +2804,7 @@ dependencies = [
 
 [[package]]
 name = "outbox"
-version = "0.2.58-dev"
+version = "0.2.59-dev"
 dependencies = [
  "chrono",
  "es-entity",
@@ -3245,7 +3245,7 @@ dependencies = [
 
 [[package]]
 name = "rbac-types"
-version = "0.2.58-dev"
+version = "0.2.59-dev"
 dependencies = [
  "anyhow",
  "async-graphql",
@@ -4881,7 +4881,7 @@ dependencies = [
 
 [[package]]
 name = "tracing-utils"
-version = "0.2.58-dev"
+version = "0.2.59-dev"
 dependencies = [
  "anyhow",
  "axum-extra",
