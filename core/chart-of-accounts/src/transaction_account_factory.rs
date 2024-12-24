@@ -41,7 +41,10 @@ impl TransactionAccountFactory {
         description: &str,
         audit_info: AuditInfo,
     ) -> Result<ChartOfAccountAccountDetails, CoreChartOfAccountError> {
-        let mut chart = self.repo.find_by_id(self.chart_id).await?;
+        let mut chart = self
+            .repo
+            .find_by_id_in_tx(op.op().tx(), self.chart_id)
+            .await?;
 
         let account_details = chart.add_transaction_account(
             ChartOfAccountCreationDetails {
