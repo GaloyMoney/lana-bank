@@ -1,0 +1,18 @@
+lanaBank:
+  app:
+    ledger:
+      calaUrl: http://cala.${cala_namespace}.svc.cluster.local:2252/graphql
+  secrets:
+    create: false
+
+postgresql:
+  auth:
+    existingSecret: lana-bank
+    secretKeys:
+      userPasswordKey: "pg-user-pw"
+
+kratos:
+  replicaCount: 1
+  kratos:
+    config:
+      dsn: postgresql://kratos-pg:kratos-pg@postgresql/kratos-pg

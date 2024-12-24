@@ -17,11 +17,18 @@ osxcross_docker_username: ((osxcross-image.username))
 osxcross_docker_password: ((osxcross-image.password))
 osxcross_repository: ((osxcross-image.repository))
 
+deployments_git_uri: git@github.com:GaloyMoney/galoy-deployments.git
+deployments_git_branch: main
+
 docker_host_ip: ((staging-ssh.docker_host_ip))
 artifacts_bucket_name: ((staging-gcp-creds.bucket_name))
 staging_inception_creds: ((staging-gcp-creds.creds_json))
 staging_ssh_private_key: ((staging-ssh.ssh_private_key))
 staging_ssh_pub_key: ((staging-ssh.ssh_public_key))
+staging_worker_tag: galoy-staging
+staging_smoketest_kubeconfig: ((staging-smoketest.kubeconfig))
+staging_state_bucket: "galoystaging-tf-state"
+staging_creds: ((staging-gcp-creds.creds_json))
 git_version_branch: version
 gh_org: GaloyMoney
 gh_repository: lana-bank
