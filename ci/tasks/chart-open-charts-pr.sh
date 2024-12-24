@@ -9,8 +9,8 @@ pushd charts-repo
 
 git checkout ${BRANCH}
 
-old_digest=$(yq e '.lanaBank.image.digest' "./charts/${CHARTS_SUBDIR}/values.yaml")
-old_ref=$(grep "digest: \"${old_digest}\"" "./charts/${CHARTS_SUBDIR}/values.yaml" \
+old_digest=$(yq e '.lanaBank.image.digest' "./chart/${CHARTS_SUBDIR}/values.yaml")
+old_ref=$(grep "digest: \"${old_digest}\"" "./chart/${CHARTS_SUBDIR}/values.yaml" \
   | sed -n 's/.*commit_ref=\([^;]*\);.*/\1/p' | tr -d ' \n')
 
 cat <<EOF >> ../body.md
