@@ -129,7 +129,7 @@ resource "kubernetes_secret" "cala" {
 
 resource "helm_release" "cala" {
   name      = "cala"
-  chart     = "${path.module}/cala/vendor"
+  chart     = "${path.module}/cala"
   namespace = kubernetes_namespace.testflight.metadata[0].name
 
   values = [
