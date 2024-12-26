@@ -16,5 +16,5 @@ ${CHART}-testflight-$(cat repo/.git/short_ref)
 EOF
 
 if [[ ${ADDITIONAL_CHART} != "" ]]; then
-  cp -r repo/chart/${ADDITIONAL_CHART} testflight/tf/${ADDITIONAL_CHART}
+  cp -r cala-chart-repo/charts/${ADDITIONAL_CHART} testflight/tf/${ADDITIONAL_CHART}
 fi

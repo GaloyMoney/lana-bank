@@ -39,6 +39,7 @@ plan:
     - name: pipeline-tasks
     - name: #@ chart_resource_name(chart)
       path: repo
+    - name: cala-chart-repo
     outputs:
     - name: testflight
     params:
