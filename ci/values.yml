@@ -9,6 +9,8 @@ github_app_private_key: ((github.github_app_private_key))
 
 git_charts_uri: git@github.com:GaloyMoney/lana-bank.git
 git_charts_branch: ci--switch-concourse
+git_galoy_charts_uri: git@github.com:GaloyMoney/galoy-charts.git
+git_galoy_charts_branch: main
 git_charts_bot_branch: bot-bump-lana-bank-image
 docker_registry: us.gcr.io/galoyorg
 docker_registry_user: ((docker-creds.username))

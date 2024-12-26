@@ -31,6 +31,7 @@ plan:
   - get: #@ chart_resource_name(chart)
     trigger: true
   - { get: pipeline-tasks }
+  - { get: cala-chart-repo }
 - task: prepare-testflight
   config:
     platform: linux
