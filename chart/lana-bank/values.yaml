@@ -42,7 +42,7 @@ lanaBank:
   imagePullSecrets: []
   image:
     repository: us.gcr.io/galoyorg/lana-bank
-    digest: "sha256:93a0c30cd3a7b46a39ef3f097f31709c09f73b870f133eda5dec06bef355bf42" # METADATA:: repository=https://github.com/GaloyMoney/lana-bank;commit_ref=1996227;app=lana-bank;
+    digest: "sha256:d7f3d685533013c7d23f72b862352d59260f42d7b4fbc96c0efe515035c8001b" # METADATA:: repository=https://github.com/GaloyMoney/lana-bank;commit_ref=f6dbb19;app=lana-bank;
   replicas: 2
   annotations:
   secrets:
@@ -62,7 +62,7 @@ lanaBank:
   adminPanel:
     image:
       repository: us.gcr.io/galoyorg/lana-bank-admin-panel
-      digest: "sha256:f05ff82fef5c079b8272543bf8ec2307caf9de063087b7980d031574185d64cc" # METADATA:: repository=https://github.com/GaloyMoney/lana-bank;commit_ref=92f8991;app=admin-panel;
+      digest: "sha256:3841c37455e563c9b7d75c7dd309ed4b3caafce64761e403de934f6b7796c9a2" # METADATA:: repository=https://github.com/GaloyMoney/lana-bank;commit_ref=92f8991;app=admin-panel;
     service:
       type: ClusterIP
       port: 3000
@@ -77,7 +77,7 @@ lanaBank:
     corePublicUrl: http://lana-bank-public:5252
     image:
       repository: us.gcr.io/galoyorg/lana-bank-customer-portal
-      digest: "sha256:dd7a0997a346e776ec95c97273b1e71677a6d0217fa7aad991227c335bd844c3" # METADATA:: repository=https://github.com/GaloyMoney/lana-bank;commit_ref=92f8991;app=customer-portal;
+      digest: "sha256:589f40c223bc096fcaba2965c6bf10486ac99c02fa243d8cd12a192fc4bfaea7" # METADATA:: repository=https://github.com/GaloyMoney/lana-bank;commit_ref=92f8991;app=customer-portal;
     service:
       type: ClusterIP
       port: 3000
