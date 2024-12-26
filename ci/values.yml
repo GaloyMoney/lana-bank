@@ -1,7 +1,7 @@
 #@data/values
 ---
 git_uri: git@github.com:GaloyMoney/lana-bank.git
-git_branch: ci--switch-concourse
+git_branch: main
 github_private_key: ((github.private_key))
 github_token: ((github.api_token))
 github_app_id: ((github.github_app_id))
