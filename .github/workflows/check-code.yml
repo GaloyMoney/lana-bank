@@ -8,8 +8,8 @@ on:
     branches: [main]
 
 jobs:
-  check-code-backend:
-    name: Check Code Backend
+  check-code:
+    name: Check Code
     runs-on: ubuntu-latest
     steps:
       - name: Install Nix
@@ -19,15 +19,3 @@ jobs:
       - uses: actions/checkout@v4
       - name: Run check code
         run: nix develop -c make check-code
-
-  check-code-apps:
-    name: Check Code Apps
-    runs-on: ubuntu-latest
-    steps:
-      - name: Install Nix
-        uses: DeterminateSystems/nix-installer-action@v4
-      - name: Run the Magic Nix Cache
-        uses: DeterminateSystems/magic-nix-cache-action@v8
-      - uses: actions/checkout@v4
-      - name: Run check code
-        run: nix develop -c make check-code-apps
