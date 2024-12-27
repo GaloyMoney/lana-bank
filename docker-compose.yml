@@ -27,7 +27,7 @@ services:
       timeout: 1s
       retries: 20
   cala:
-    image: us.gcr.io/galoyorg/cala-enterprise:edge
+    image: gcr.io/galoy-org/cala-enterprise:edge
     ports:
       - "2252:2252"
     volumes:
