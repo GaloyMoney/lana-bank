@@ -1,8 +1,0 @@
-auth:
-  username: kratos-pg
-  password: kratos-pg
-  database: kratos-pg
-
-primary:
-  persistence:
-    enabled: false

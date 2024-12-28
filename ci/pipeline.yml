@@ -31,14 +31,6 @@
 #@   "app_edge_image"
 #@ )
 
-#@ load("testflight-fragments.lib.yml",
-#@   "testflight_job",
-#@   "bump_in_deployments_job",
-#@   "chart_resource",
-#@   "testflight_tf_resource",
-#@   "pipeline_tasks_resource",
-#@ )
-
 #@ def on_nix_host(name, cmd):
 #@ params = {}
 #@ params["REPO_PATH"] = data.values.gh_repository
@@ -88,10 +80,6 @@ groups:
       - bump-image-in-chart
       -  #@ build_app_edge_image_name("admin-panel")
       -  #@ build_app_edge_image_name("customer-portal")
-  - name: helm-chart
-    jobs:
-      - lana-bank-testflight
-      - bump-lana-bank-in-deployments
 
 jobs:
   -  #@ check_code()
@@ -340,9 +328,6 @@ jobs:
   -  #@ build_app_edge_image("admin-panel")
   -  #@ build_app_edge_image("customer-portal")
 
-  - #@ testflight_job("lana-bank", "lana-bank", additional_chart="cala")
-  - #@ bump_in_deployments_job("lana-bank")
-
 resources:
   - name: repo
     type: git
@@ -399,9 +384,6 @@ resources:
   -  #@ app_src_resource("customer-portal", "main")
   -  #@ app_edge_image("customer-portal")
   -  #@ app_latest_image("customer-portal")
-
-  - #@ chart_resource("lana-bank")
-  - #@ testflight_tf_resource("lana-bank")
 
 resource_types:
   -  #@ slack_resource_type()
