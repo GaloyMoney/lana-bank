@@ -11,7 +11,6 @@
 #@   "edge_image_resource",
 #@   "version_resource",
 #@   "gh_release_resource",
-#@   "pipeline_tasks_resource",
 #@   "release_task_image_config",
 #@   "rust_task_image_config",
 #@   "charts_repo_resource",
@@ -36,7 +35,8 @@
 #@   "testflight_job",
 #@   "bump_in_deployments_job",
 #@   "chart_resource",
-#@   "testflight_tf_resource"
+#@   "testflight_tf_resource",
+#@   "pipeline_tasks_resource",
 #@ )
 
 #@ def on_nix_host(name, cmd):

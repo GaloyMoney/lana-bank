@@ -134,6 +134,16 @@ plan:
     rebase: true
 #@ end
 
+#@ def pipeline_tasks_resource():
+name: pipeline-tasks
+type: git
+source:
+  paths: [ci/vendor/*, ci/tasks/*, ci/config/*, ci/testflight/*, Makefile]
+  uri: #@ data.values.git_uri
+  branch: #@ data.values.git_branch
+  private_key: #@ data.values.github_private_key
+#@ end
+
 #@ def cepler_resource_name(deployment):
 #@   return deployment + "-in"
 #@ end
