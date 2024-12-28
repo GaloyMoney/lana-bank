@@ -11,6 +11,7 @@
 #@   "edge_image_resource",
 #@   "version_resource",
 #@   "gh_release_resource",
+#@   "pipeline_tasks_resource",
 #@   "release_task_image_config",
 #@   "rust_task_image_config",
 #@   "charts_repo_resource",
@@ -341,13 +342,6 @@ resources:
       private_key: #@ data.values.github_private_key
     webhook_token: ((webhook.secret))
 
-  - name: cala-chart-repo
-    type: git
-    source:
-      uri: #@ data.values.git_galoy_charts_uri
-      branch: #@ data.values.git_galoy_charts_branch
-      private_key: #@ data.values.github_private_key
-
   - name: latest-image
     type: registry-image
     source:
@@ -362,13 +356,6 @@ resources:
       uri: git@github.com:GaloyMoney/galoy-concourse-locks.git
       branch: main
       pool: docker-hosts
-      private_key: #@ data.values.github_private_key
-
-  - name: galoy-deployments
-    type: git
-    source:
-      uri: #@ data.values.deployments_git_uri
-      branch: #@ data.values.deployments_git_branch
       private_key: #@ data.values.github_private_key
 
   -  #@ pipeline_tasks_resource()
@@ -388,8 +375,3 @@ resources:
 resource_types:
   -  #@ slack_resource_type()
 
-  - name: terraform
-    type: docker-image
-    source:
-      repository: ljfranklin/terraform-resource
-      tag: latest
