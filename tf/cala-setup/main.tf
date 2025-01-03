@@ -37,6 +37,7 @@ locals {
     "credit_facility_events",
     "terms_template_events",
     "interest_accrual_events",
+    "report_events"
   ] : []
   deletion_protection = var.deletion_protection
   bq_applicant_table  = local.setup_bq ? "sumsub_applicants" : ""
