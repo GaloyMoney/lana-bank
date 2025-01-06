@@ -13,7 +13,7 @@ pub const APPROVE_CREDIT_FACILITY_CODE: &str = "APPROVE_CREDIT_FACILITY";
 #[derive(Debug)]
 pub struct ApproveCreditFacilityParams {
     pub journal_id: JournalId,
-    pub credit_omnibus_account_id: AccountId,
+    pub credit_omnibus_account: AccountId,
     pub credit_facility_account: AccountId,
     pub facility_disbursed_receivable_account: AccountId,
     pub facility_fee_income_account: AccountId,
@@ -90,7 +90,7 @@ impl From<ApproveCreditFacilityParams> for Params {
     fn from(
         ApproveCreditFacilityParams {
             journal_id,
-            credit_omnibus_account_id,
+            credit_omnibus_account,
             credit_facility_account,
             facility_disbursed_receivable_account,
             facility_fee_income_account,
@@ -104,7 +104,7 @@ impl From<ApproveCreditFacilityParams> for Params {
         let mut params = Self::default();
         params.insert("journal_id", journal_id);
         params.insert("credit_facility_account", credit_facility_account);
-        params.insert("credit_omnibus_account_id", credit_omnibus_account_id);
+        params.insert("credit_omnibus_account", credit_omnibus_account);
         params.insert(
             "facility_disbursed_receivable_account",
             facility_disbursed_receivable_account,
@@ -144,7 +144,7 @@ impl ApproveCreditFacility {
                 .build()
                 .expect("Couldn't build entry"),
             NewTxTemplateEntry::builder()
-                .account_id("params.credit_omnibus_account_id")
+                .account_id("params.credit_omnibus_account")
                 .units("params.facility_amount")
                 .currency("params.currency")
                 .entry_type("'APPROVE_CREDIT_FACILITY_CR'")
@@ -153,7 +153,7 @@ impl ApproveCreditFacility {
                 .build()
                 .expect("Couldn't build entry"),
             NewTxTemplateEntry::builder()
-                .account_id("params.credit_omnibus_account_id")
+                .account_id("params.credit_omnibus_account")
                 .units("params.structuring_fee_amount")
                 .currency("params.currency")
                 .entry_type("'APPROVE_CREDIT_FACILITY_DISBURSEMENT_DRAWDOWN_DR'")

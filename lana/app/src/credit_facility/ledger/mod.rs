@@ -332,7 +332,7 @@ impl CreditLedger {
                 templates::APPROVE_CREDIT_FACILITY_CODE,
                 templates::ApproveCreditFacilityParams {
                     journal_id: self.journal_id,
-                    credit_omnibus_account_id: self.credit_omnibus_account,
+                    credit_omnibus_account: self.credit_omnibus_account,
                     credit_facility_account: credit_facility_account_ids.facility_account_id,
                     facility_disbursed_receivable_account: credit_facility_account_ids
                         .disbursed_receivable_account_id,
@@ -436,7 +436,7 @@ impl CreditLedger {
                 templates::CREDIT_FACILITY_DISBURSAL_CODE,
                 templates::CreditFacilityDisbursalParams {
                     journal_id: self.journal_id,
-                    credit_omnibus_account_id: self.credit_omnibus_account,
+                    credit_omnibus_account: self.credit_omnibus_account,
                     credit_facility_account: credit_facility_account_ids.facility_account_id,
                     facility_disbursed_receivable_account: credit_facility_account_ids
                         .disbursed_receivable_account_id,
