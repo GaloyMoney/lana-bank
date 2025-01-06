@@ -2,7 +2,9 @@ use async_graphql::*;
 
 use crate::primitives::*;
 
-pub use super::{deposit_account::DepositAccount, loader::LanaDataLoader};
+use super::loader::LanaDataLoader;
+
+pub use super::deposit_account::DepositAccount;
 
 pub use lana_app::deposit::{Deposit as DomainDeposit, DepositsByCreatedAtCursor};
 
