@@ -13,7 +13,7 @@ pub const CREDIT_FACILITY_DISBURSAL_CODE: &str = "CREDIT_FACILITY_DISBURSAL";
 #[derive(Debug)]
 pub struct CreditFacilityDisbursalParams {
     pub journal_id: JournalId,
-    pub credit_omnibus_account_id: AccountId,
+    pub credit_omnibus_account: AccountId,
     pub credit_facility_account: AccountId,
     pub facility_disbursed_receivable_account: AccountId,
     pub checking_account: AccountId,
@@ -78,12 +78,12 @@ impl From<CreditFacilityDisbursalParams> for Params {
             checking_account,
             disbursed_amount,
             external_id,
-            credit_omnibus_account_id,
+            credit_omnibus_account,
         }: CreditFacilityDisbursalParams,
     ) -> Self {
         let mut params = Self::default();
         params.insert("journal_id", journal_id);
-        params.insert("credit_omnibus_account_id", credit_omnibus_account_id);
+        params.insert("credit_omnibus_account", credit_omnibus_account);
         params.insert("facility_account", credit_facility_account);
         params.insert(
             "facility_disbursed_receivable_account",
@@ -112,7 +112,7 @@ impl CreditFacilityDisbursal {
 
         let entries = vec![
             NewTxTemplateEntry::builder()
-                .account_id("params.credit_omnibus_account_id")
+                .account_id("params.credit_omnibus_account")
                 .units("params.disbursed_amount")
                 .currency("'USD'")
                 .entry_type("'CREDIT_FACILITY_DISBURSAL_DRAWDOWN_DR'")
