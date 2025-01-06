@@ -7,7 +7,8 @@ use es_entity::*;
 
 use crate::{
     audit::AuditInfo,
-    ledger::{credit_facility::*, customer::CustomerLedgerAccountIds},
+    customer::CustomerAccountIds,
+    ledger::credit_facility::*,
     primitives::*,
     terms::{CVLData, CVLPct, CollateralizationState, InterestPeriod, TermValues},
 };
@@ -26,7 +27,7 @@ pub enum CreditFacilityEvent {
         terms: TermValues,
         facility: UsdCents,
         account_ids: CreditFacilityAccountIds,
-        customer_account_ids: CustomerLedgerAccountIds,
+        customer_account_ids: CustomerAccountIds,
         audit_info: AuditInfo,
     },
     ApprovalProcessStarted {
@@ -322,7 +323,7 @@ pub struct CreditFacility {
     pub customer_id: CustomerId,
     pub terms: TermValues,
     pub account_ids: CreditFacilityAccountIds,
-    pub customer_account_ids: CustomerLedgerAccountIds,
+    pub customer_account_ids: CustomerAccountIds,
     #[builder(setter(strip_option), default)]
     pub activated_at: Option<DateTime<Utc>>,
     #[builder(setter(strip_option), default)]
@@ -533,9 +534,7 @@ impl CreditFacility {
             tx_id: LedgerTxId::new(),
             tx_ref: format!("{}-activate", self.id),
             credit_facility_account_ids: self.account_ids,
-            debit_account_id: self
-                .customer_account_ids
-                .on_balance_sheet_deposit_account_id,
+            debit_account_id: self.customer_account_ids.deposit_account_id,
             facility_amount: self.initial_facility(),
             structuring_fee_amount: self.structuring_fee(),
         })
@@ -859,9 +858,7 @@ impl CreditFacility {
             tx_id: LedgerTxId::new(),
             tx_ref,
             credit_facility_account_ids: self.account_ids,
-            debit_account_id: self
-                .customer_account_ids
-                .on_balance_sheet_deposit_account_id,
+            debit_account_id: self.customer_account_ids.deposit_account_id,
             amounts,
         };
 
@@ -1187,7 +1184,7 @@ pub struct NewCreditFacility {
     #[builder(setter(skip), default)]
     pub(super) collateralization_state: CollateralizationState,
     account_ids: CreditFacilityAccountIds,
-    customer_account_ids: CustomerLedgerAccountIds,
+    customer_account_ids: CustomerAccountIds,
     #[builder(setter(into))]
     pub(super) audit_info: AuditInfo,
 }
@@ -1284,7 +1281,7 @@ mod test {
                 facility: default_facility(),
                 terms: default_terms(),
                 account_ids: CreditFacilityAccountIds::new(),
-                customer_account_ids: CustomerLedgerAccountIds::new(),
+                customer_account_ids: CustomerAccountIds::new(),
             },
             CreditFacilityEvent::ApprovalProcessStarted {
                 approval_process_id: ApprovalProcessId::new(),
@@ -1978,7 +1975,7 @@ mod test {
                 .terms(default_terms())
                 .facility(UsdCents::from(1_000_000_00))
                 .account_ids(CreditFacilityAccountIds::new())
-                .customer_account_ids(CustomerLedgerAccountIds::new())
+                .customer_account_ids(CustomerAccountIds::new())
                 .audit_info(dummy_audit_info())
                 .build()
                 .expect("could not build new credit facility");

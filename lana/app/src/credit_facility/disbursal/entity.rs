@@ -5,8 +5,8 @@ use serde::{Deserialize, Serialize};
 use es_entity::*;
 
 use crate::{
-    audit::AuditInfo, credit_facility::CreditFacilityAccountIds, ledger::credit_facility::*,
-    ledger::customer::CustomerLedgerAccountIds, primitives::*,
+    audit::AuditInfo, credit_facility::CreditFacilityAccountIds, customer::CustomerAccountIds,
+    ledger::credit_facility::*, primitives::*,
 };
 
 use super::DisbursalError;
@@ -22,7 +22,7 @@ pub enum DisbursalEvent {
         idx: DisbursalIdx,
         amount: UsdCents,
         account_ids: CreditFacilityAccountIds,
-        customer_account_ids: CustomerLedgerAccountIds,
+        customer_account_ids: CustomerAccountIds,
         audit_info: AuditInfo,
     },
     ApprovalProcessConcluded {
@@ -46,7 +46,7 @@ pub struct Disbursal {
     pub idx: DisbursalIdx,
     pub amount: UsdCents,
     pub account_ids: CreditFacilityAccountIds,
-    pub customer_account_ids: CustomerLedgerAccountIds,
+    pub customer_account_ids: CustomerAccountIds,
     pub(super) events: EntityEvents<DisbursalEvent>,
 }
 
@@ -169,9 +169,7 @@ impl Disbursal {
             tx_id,
             amount: self.amount,
             credit_facility_account_ids: self.account_ids,
-            debit_account_id: self
-                .customer_account_ids
-                .on_balance_sheet_deposit_account_id,
+            debit_account_id: self.customer_account_ids.deposit_account_id,
         })
     }
 }
@@ -187,7 +185,7 @@ pub struct NewDisbursal {
     pub(super) idx: DisbursalIdx,
     pub(super) amount: UsdCents,
     pub(super) account_ids: CreditFacilityAccountIds,
-    pub(super) customer_account_ids: CustomerLedgerAccountIds,
+    pub(super) customer_account_ids: CustomerAccountIds,
     #[builder(setter(into))]
     pub(super) audit_info: AuditInfo,
 }
@@ -242,7 +240,7 @@ mod test {
             idx: DisbursalIdx::FIRST,
             amount: UsdCents::from(100_000),
             account_ids: CreditFacilityAccountIds::new(),
-            customer_account_ids: CustomerLedgerAccountIds::new(),
+            customer_account_ids: CustomerAccountIds::new(),
             audit_info: dummy_audit_info(),
         }]
     }

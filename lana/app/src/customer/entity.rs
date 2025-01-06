@@ -4,7 +4,9 @@ use serde::{Deserialize, Serialize};
 
 use es_entity::*;
 
-use crate::{audit::AuditInfo, ledger::customer::CustomerLedgerAccountIds, primitives::*};
+use crate::{audit::AuditInfo, primitives::*};
+
+use super::ledger::CustomerAccountIds;
 
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
@@ -14,7 +16,7 @@ pub enum CustomerEvent {
         id: CustomerId,
         email: String,
         telegram_id: String,
-        account_ids: CustomerLedgerAccountIds,
+        account_ids: CustomerAccountIds,
         audit_info: AuditInfo,
     },
     KycStarted {
@@ -42,7 +44,7 @@ pub struct Customer {
     pub id: CustomerId,
     pub email: String,
     pub telegram_id: String,
-    pub account_ids: CustomerLedgerAccountIds,
+    pub account_ids: CustomerAccountIds,
     #[builder(default)]
     pub status: AccountStatus,
     pub level: KycLevel,
@@ -163,7 +165,7 @@ pub struct NewCustomer {
     pub(super) email: String,
     #[builder(setter(into))]
     pub(super) telegram_id: String,
-    pub(super) account_ids: CustomerLedgerAccountIds,
+    pub(super) account_ids: CustomerAccountIds,
     #[builder(setter(skip), default)]
     pub(super) status: AccountStatus,
     pub(super) audit_info: AuditInfo,
