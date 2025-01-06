@@ -10,10 +10,12 @@ import { formatDate } from "@/lib/utils"
 import { WithdrawalStatusBadge } from "@/app/withdrawals/status-badge"
 import { UsdCents } from "@/types"
 
-type Deposit = NonNullable<GetCustomerTransactionsQuery["customer"]>["deposits"][number]
+type Deposit = NonNullable<
+  GetCustomerTransactionsQuery["customer"]
+>["depositAccount"]["deposits"][number]
 type Withdrawal = NonNullable<
   GetCustomerTransactionsQuery["customer"]
->["withdrawals"][number]
+>["depositAccount"]["withdrawals"][number]
 type Transaction = Deposit | Withdrawal
 
 const isWithdrawal = (transaction: Transaction): transaction is Withdrawal => {

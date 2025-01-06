@@ -27,8 +27,8 @@ gql`
           id
           email
           customerId
-          balance {
-            checking {
+          depositAccount {
+            balance {
               settled
               pending
             }
