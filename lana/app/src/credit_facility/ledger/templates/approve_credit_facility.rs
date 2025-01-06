@@ -33,7 +33,7 @@ impl ApproveCreditFacilityParams {
                 .build()
                 .unwrap(),
             NewParamDefinition::builder()
-                .name("credit_omnibus_account")
+                .name("credit_omnibus_account_id")
                 .r#type(ParamDataType::Uuid)
                 .build()
                 .unwrap(),
