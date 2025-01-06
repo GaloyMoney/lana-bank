@@ -5,10 +5,8 @@ use serde::{Deserialize, Serialize};
 use es_entity::*;
 
 use crate::{
-    audit::AuditInfo,
-    credit_facility::CreditFacilityAccountIds,
-    ledger::{customer::CustomerLedgerAccountIds, disbursal::DisbursalData},
-    primitives::*,
+    audit::AuditInfo, credit_facility::CreditFacilityAccountIds, ledger::credit_facility::*,
+    ledger::customer::CustomerLedgerAccountIds, primitives::*,
 };
 
 use super::DisbursalError;
@@ -170,8 +168,10 @@ impl Disbursal {
             tx_ref: format!("disbursal-{}", self.id),
             tx_id,
             amount: self.amount,
-            account_ids: self.account_ids,
-            customer_account_ids: self.customer_account_ids,
+            credit_facility_account_ids: self.account_ids,
+            debit_account_id: self
+                .customer_account_ids
+                .on_balance_sheet_deposit_account_id,
         })
     }
 }

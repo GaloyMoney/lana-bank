@@ -97,3 +97,12 @@ pub struct CreditFacilityInterestAccrual {
     pub credit_facility_account_ids: CreditFacilityAccountIds,
     pub accrued_at: DateTime<Utc>,
 }
+
+#[derive(Debug, Clone)]
+pub struct DisbursalData {
+    pub amount: UsdCents,
+    pub tx_ref: String,
+    pub tx_id: LedgerTxId,
+    pub credit_facility_account_ids: CreditFacilityAccountIds,
+    pub debit_account_id: LedgerAccountId,
+}
