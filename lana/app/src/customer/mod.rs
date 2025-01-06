@@ -2,19 +2,20 @@ mod config;
 mod entity;
 pub mod error;
 mod kratos;
+pub mod ledger;
 mod repo;
 
 use std::collections::HashMap;
 use tracing::instrument;
 
 use authz::PermissionCheck;
+use cala_ledger::CalaLedger;
 
 use crate::{
     audit::{AuditInfo, AuditSvc},
     authorization::{Action, Authorization, CustomerAction, CustomerAllOrOne, Object},
     data_export::Export,
     deposit::Deposits,
-    ledger::*,
     primitives::{CustomerId, KycLevel, Subject},
 };
 
@@ -22,35 +23,38 @@ pub use config::*;
 pub use entity::*;
 use error::CustomerError;
 use kratos::*;
+pub use ledger::CustomerAccountIds;
+use ledger::CustomerLedger;
 pub use repo::{customer_cursor::*, CustomerRepo, CustomersSortBy, FindManyCustomers, Sort};
 
 #[derive(Clone)]
 pub struct Customers {
     repo: CustomerRepo,
-    ledger: Ledger,
+    ledger: CustomerLedger,
     deposit: Deposits,
     kratos: KratosClient,
     authz: Authorization,
 }
 
 impl Customers {
-    pub fn new(
+    pub async fn init(
         pool: &sqlx::PgPool,
         config: &CustomerConfig,
-        ledger: &Ledger,
+        cala: &CalaLedger,
         deposits: &Deposits,
         authz: &Authorization,
         export: &Export,
-    ) -> Self {
+    ) -> Result<Self, CustomerError> {
         let repo = CustomerRepo::new(pool, export);
         let kratos = KratosClient::new(&config.kratos);
-        Self {
+        let ledger = CustomerLedger::init(cala).await?;
+        Ok(Self {
             repo,
-            ledger: ledger.clone(),
+            ledger,
             kratos,
             authz: authz.clone(),
             deposit: deposits.clone(),
-        }
+        })
     }
 
     pub fn repo(&self) -> &CustomerRepo {
@@ -90,24 +94,23 @@ impl Customers {
             .create_account(sub, customer_id, account_name, account_name)
             .await?;
 
-        let ledger_account_ids = self
-            .ledger
-            .create_accounts_for_customer(customer_id.into())
-            .await?;
+        let mut db = self.repo.begin_op().await?;
         let new_customer = NewCustomer::builder()
             .id(customer_id)
             .email(email)
             .telegram_id(telegram_id)
-            .account_ids(ledger_account_ids)
+            .account_ids(CustomerAccountIds::new())
             .audit_info(audit_info)
             .build()
             .expect("Could not build customer");
 
-        let mut db = self.repo.begin_op().await?;
-        let customer = self.repo.create_in_op(&mut db, new_customer).await;
-        db.commit().await?;
+        let customer = self.repo.create_in_op(&mut db, new_customer).await?;
 
-        customer
+        self.ledger
+            .create_accounts_for_customer(db, customer_id.into(), customer.account_ids)
+            .await?;
+
+        Ok(customer)
     }
 
     pub async fn create_customer_through_kratos(
@@ -127,19 +130,21 @@ impl Customers {
             )
             .await?;
 
-        let ledger_account_ids = self.ledger.create_accounts_for_customer(id).await?;
         let new_customer = NewCustomer::builder()
             .id(id)
             .email(email)
-            .account_ids(ledger_account_ids)
+            .account_ids(CustomerAccountIds::new())
             .audit_info(audit_info.clone())
             .build()
             .expect("Could not build customer");
 
-        let customer = self.repo.create_in_op(&mut db, new_customer).await;
-        db.commit().await?;
+        let customer = self.repo.create_in_op(&mut db, new_customer).await?;
 
-        customer
+        self.ledger
+            .create_accounts_for_customer(db, id, customer.account_ids)
+            .await?;
+
+        Ok(customer)
     }
 
     #[instrument(name = "customer.create_customer", skip(self), err)]

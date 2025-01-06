@@ -99,7 +99,7 @@ impl LanaApp {
         )
         .await?;
         let customers =
-            Customers::new(&pool, &config.customer, &ledger, &deposits, &authz, &export);
+            Customers::init(&pool, &config.customer, &cala, &deposits, &authz, &export).await?;
         let applicants = Applicants::new(&pool, &config.sumsub, &customers, &jobs, &export);
         let credit_facilities = CreditFacilities::init(
             &pool,

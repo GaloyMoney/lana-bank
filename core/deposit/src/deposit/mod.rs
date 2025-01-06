@@ -80,7 +80,7 @@ pub(super) use repo::*;
 //             .customer_id(customer_id)
 //             .amount(amount)
 //             .reference(reference.clone())
-//             .credit_account_id(customer.account_ids.on_balance_sheet_deposit_account_id)
+//             .credit_account_id(customer.account_ids.deposit_account_id)
 //             .audit_info(audit_info)
 //             .build()
 //             .expect("Could not build Deposit");
