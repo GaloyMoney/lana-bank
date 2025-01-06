@@ -2,6 +2,8 @@ use async_graphql::*;
 
 use crate::primitives::*;
 
+pub use super::{deposit_account::DepositAccount, loader::LanaDataLoader};
+
 pub use lana_app::deposit::{Deposit as DomainDeposit, DepositsByCreatedAtCursor};
 
 #[derive(SimpleObject, Clone)]
@@ -9,7 +11,7 @@ pub use lana_app::deposit::{Deposit as DomainDeposit, DepositsByCreatedAtCursor}
 pub struct Deposit {
     id: ID,
     deposit_id: UUID,
-    deposit_account_id: UUID,
+    account_id: UUID,
     amount: UsdCents,
     created_at: Timestamp,
 
@@ -22,7 +24,7 @@ impl From<DomainDeposit> for Deposit {
         Deposit {
             id: deposit.id.to_global_id(),
             deposit_id: UUID::from(deposit.id),
-            deposit_account_id: UUID::from(deposit.deposit_account_id),
+            account_id: UUID::from(deposit.deposit_account_id),
             amount: deposit.amount,
             created_at: deposit.created_at().into(),
 
@@ -35,6 +37,15 @@ impl From<DomainDeposit> for Deposit {
 impl Deposit {
     async fn reference(&self) -> &str {
         &self.entity.reference
+    }
+
+    async fn account(&self, ctx: &Context<'_>) -> async_graphql::Result<DepositAccount> {
+        let loader = ctx.data_unchecked::<LanaDataLoader>();
+        let account = loader
+            .load_one(self.entity.deposit_account_id)
+            .await?
+            .expect("process not found");
+        Ok(account)
     }
 }
 

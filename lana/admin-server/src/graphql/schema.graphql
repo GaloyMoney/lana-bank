@@ -614,10 +614,11 @@ type Dashboard {
 type Deposit {
 	id: ID!
 	depositId: UUID!
-	depositAccountId: UUID!
+	accountId: UUID!
 	amount: UsdCents!
 	createdAt: Timestamp!
 	reference: String!
+	account: DepositAccount!
 }
 
 type DepositAccount {
@@ -1189,12 +1190,14 @@ type VisibleNavigationItems {
 type Withdrawal {
 	id: ID!
 	withdrawalId: UUID!
+	accountId: UUID!
 	approvalProcessId: UUID!
 	amount: UsdCents!
 	createdAt: Timestamp!
 	reference: String!
 	status: WithdrawalStatus!
 	approvalProcess: ApprovalProcess!
+	account: DepositAccount!
 }
 
 input WithdrawalCancelInput {

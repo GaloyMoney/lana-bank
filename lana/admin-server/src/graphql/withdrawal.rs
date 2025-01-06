@@ -2,7 +2,9 @@ use async_graphql::*;
 
 use crate::primitives::*;
 
-use super::{approval_process::ApprovalProcess, loader::LanaDataLoader};
+use super::{
+    approval_process::ApprovalProcess, deposit_account::DepositAccount, loader::LanaDataLoader,
+};
 
 pub use lana_app::deposit::{
     Withdrawal as DomainWithdrawal, WithdrawalStatus, WithdrawalsByCreatedAtCursor,
@@ -13,6 +15,7 @@ pub use lana_app::deposit::{
 pub struct Withdrawal {
     id: ID,
     withdrawal_id: UUID,
+    account_id: UUID,
     approval_process_id: UUID,
     amount: UsdCents,
     created_at: Timestamp,
@@ -26,6 +29,7 @@ impl From<lana_app::deposit::Withdrawal> for Withdrawal {
         Withdrawal {
             id: withdraw.id.to_global_id(),
             created_at: withdraw.created_at().into(),
+            account_id: withdraw.deposit_account_id.into(),
             withdrawal_id: UUID::from(withdraw.id),
             approval_process_id: UUID::from(withdraw.approval_process_id),
             amount: withdraw.amount,
@@ -57,6 +61,15 @@ impl Withdrawal {
             .await?
             .expect("process not found");
         Ok(process)
+    }
+
+    async fn account(&self, ctx: &Context<'_>) -> async_graphql::Result<DepositAccount> {
+        let loader = ctx.data_unchecked::<LanaDataLoader>();
+        let account = loader
+            .load_one(self.entity.deposit_account_id)
+            .await?
+            .expect("account not found");
+        Ok(account)
     }
 
     // async fn subject_can_confirm(&self, ctx: &Context<'_>) -> async_graphql::Result<bool> {
