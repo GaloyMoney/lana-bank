@@ -22,6 +22,8 @@ pub enum CustomerError {
     JobError(#[from] crate::job::error::JobError),
     #[error("CustomerError - DepositError: {0}")]
     DepositError(#[from] crate::deposit::error::CoreDepositError),
+    #[error("CustomerError - CustomerLedgerError: {0}")]
+    CustomerLedgerError(#[from] super::ledger::error::CustomerLedgerError),
 }
 
 es_entity::from_es_entity_error!(CustomerError);
