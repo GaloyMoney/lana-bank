@@ -109,7 +109,6 @@ impl LanaApp {
             &export,
             &authz,
             &customers,
-            &ledger,
             &price,
             &outbox,
             &cala,

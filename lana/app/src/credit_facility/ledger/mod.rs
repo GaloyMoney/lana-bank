@@ -49,6 +49,7 @@ impl CreditLedger {
         templates::RecordPayment::init(cala).await?;
         templates::CreditFacilityIncurInterest::init(cala).await?;
         templates::CreditFacilityAccrueInterest::init(cala).await?;
+        templates::CreditFacilityDisbursal::init(cala).await?;
 
         Ok(Self {
             cala: cala.clone(),
@@ -409,6 +410,39 @@ impl CreditLedger {
                     interest_amount: interest.to_usd(),
                     external_id: tx_ref,
                     effective: accrued_at.date_naive(),
+                },
+            )
+            .await?;
+        op.commit().await?;
+        Ok(())
+    }
+
+    pub async fn record_disbursal(
+        &self,
+        op: es_entity::DbOp<'_>,
+        DisbursalData {
+            tx_id,
+            tx_ref,
+            amount,
+            credit_facility_account_ids,
+            debit_account_id,
+        }: DisbursalData,
+    ) -> Result<(), CreditLedgerError> {
+        let mut op = self.cala.ledger_operation_from_db_op(op);
+        self.cala
+            .post_transaction_in_op(
+                &mut op,
+                tx_id,
+                templates::CREDIT_FACILITY_DISBURSAL_CODE,
+                templates::CreditFacilityDisbursalParams {
+                    journal_id: self.journal_id,
+                    credit_omnibus_account_id: self.credit_omnibus_account,
+                    credit_facility_account: credit_facility_account_ids.facility_account_id,
+                    facility_disbursed_receivable_account: credit_facility_account_ids
+                        .disbursed_receivable_account_id,
+                    checking_account: debit_account_id,
+                    disbursed_amount: amount.to_usd(),
+                    external_id: tx_ref,
                 },
             )
             .await?;

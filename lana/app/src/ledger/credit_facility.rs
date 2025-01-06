@@ -6,6 +6,7 @@ pub use crate::credit_facility::ledger::{
     CreditFacilityAccountIds, CreditFacilityActivation, CreditFacilityCollateralUpdate,
     CreditFacilityCompletion, CreditFacilityInterestAccrual, CreditFacilityInterestIncurrence,
     CreditFacilityLedgerBalance, CreditFacilityPaymentAmounts, CreditFacilityRepayment,
+    DisbursalData,
 };
 
 impl TryFrom<credit_facility_ledger_balance::ResponseData> for CreditFacilityLedgerBalance {

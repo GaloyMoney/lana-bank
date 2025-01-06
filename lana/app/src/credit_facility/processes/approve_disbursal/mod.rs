@@ -7,11 +7,10 @@ use governance::{ApprovalProcess, ApprovalProcessStatus, ApprovalProcessType};
 use crate::{
     audit::{Audit, AuditSvc},
     credit_facility::{
-        disbursal::error::DisbursalError, error::CreditFacilityError, repo::CreditFacilityRepo,
-        Disbursal, DisbursalRepo,
+        disbursal::error::DisbursalError, error::CreditFacilityError, ledger::CreditLedger,
+        repo::CreditFacilityRepo, Disbursal, DisbursalRepo,
     },
     governance::Governance,
-    ledger::Ledger,
     primitives::DisbursalId,
 };
 use rbac_types::{AppObject, CreditFacilityAction};
@@ -26,7 +25,7 @@ pub struct ApproveDisbursal {
     credit_facility_repo: CreditFacilityRepo,
     audit: Audit,
     governance: Governance,
-    ledger: Ledger,
+    ledger: CreditLedger,
 }
 
 impl ApproveDisbursal {
@@ -35,7 +34,7 @@ impl ApproveDisbursal {
         credit_facility_repo: &CreditFacilityRepo,
         audit: &Audit,
         governance: &Governance,
-        ledger: &Ledger,
+        ledger: &CreditLedger,
     ) -> Self {
         Self {
             disbursal_repo: disbursal_repo.clone(),
@@ -114,6 +113,7 @@ impl ApproveDisbursal {
                 CreditFacilityAction::ConfirmDisbursal,
             )
             .await?;
+
         match disbursal.record(executed_at, disbursal_audit_info.clone()) {
             Ok(disbursal_data) => {
                 span.record("disbursal_executed", true);
@@ -123,14 +123,25 @@ impl ApproveDisbursal {
                     executed_at,
                     disbursal_audit_info,
                 );
+
+                let (now, mut tx) = (db.now(), db.into_tx());
+                let sub_op = {
+                    use sqlx::Acquire;
+                    es_entity::DbOp::new(tx.begin().await?, now)
+                };
+
+                self.ledger
+                    .record_disbursal(sub_op, disbursal_data.clone())
+                    .await?;
+
+                let mut db = es_entity::DbOp::new(tx, now);
                 self.disbursal_repo
                     .update_in_op(&mut db, &mut disbursal)
                     .await?;
                 self.credit_facility_repo
                     .update_in_op(&mut db, &mut credit_facility)
                     .await?;
-
-                self.ledger.record_disbursal(disbursal_data.clone()).await?;
+                db.commit().await?;
             }
             Err(DisbursalError::Denied) => {
                 span.record("disbursal_executed", false);
@@ -143,13 +154,13 @@ impl ApproveDisbursal {
                 self.credit_facility_repo
                     .update_in_op(&mut db, &mut credit_facility)
                     .await?;
+                db.commit().await?;
             }
             Err(e) => {
                 return Err(e.into());
             }
         }
 
-        db.commit().await?;
         Ok(disbursal)
     }
 }
