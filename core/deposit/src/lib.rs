@@ -391,6 +391,13 @@ where
         Ok(self.deposits.find_all(ids).await?)
     }
 
+    pub async fn find_all_deposit_accounts<T: From<DepositAccount>>(
+        &self,
+        ids: &[DepositAccountId],
+    ) -> Result<std::collections::HashMap<DepositAccountId, T>, CoreDepositError> {
+        Ok(self.accounts.find_all(ids).await?)
+    }
+
     pub async fn list_withdrawals(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,

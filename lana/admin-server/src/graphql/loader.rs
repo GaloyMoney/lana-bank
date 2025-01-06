@@ -7,8 +7,8 @@ use lana_app::{app::LanaApp, deposit::error::CoreDepositError, user::error::User
 use crate::primitives::*;
 
 use super::{
-    approval_process::*, committee::*, credit_facility::*, customer::*, deposit::*, document::*,
-    policy::*, terms_template::*, user::*, withdrawal::*,
+    approval_process::*, committee::*, credit_facility::*, customer::*, deposit::*,
+    deposit_account::*, document::*, policy::*, terms_template::*, user::*, withdrawal::*,
 };
 
 pub type LanaDataLoader = DataLoader<LanaLoader>;
@@ -126,6 +126,22 @@ impl Loader<DepositId> for LanaLoader {
         self.app
             .deposits()
             .find_all_deposits(keys)
+            .await
+            .map_err(Arc::new)
+    }
+}
+
+impl Loader<DepositAccountId> for LanaLoader {
+    type Value = DepositAccount;
+    type Error = Arc<CoreDepositError>;
+
+    async fn load(
+        &self,
+        keys: &[DepositAccountId],
+    ) -> Result<HashMap<DepositAccountId, DepositAccount>, Self::Error> {
+        self.app
+            .deposits()
+            .find_all_deposit_accounts(keys)
             .await
             .map_err(Arc::new)
     }
