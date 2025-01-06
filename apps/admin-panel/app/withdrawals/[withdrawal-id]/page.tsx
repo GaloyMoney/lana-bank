@@ -9,22 +9,21 @@ import { DetailsPageSkeleton } from "@/components/details-page-skeleton"
 gql`
   fragment WithdrawDetailsPageFragment on Withdrawal {
     id
-    customerId
     withdrawalId
     amount
     status
     reference
-    subjectCanConfirm
-    subjectCanCancel
-    customer {
-      id
-      customerId
-      applicantId
-      email
-      balance {
-        checking {
-          settled
-          pending
+    account {
+      customer {
+        id
+        customerId
+        applicantId
+        email
+        depositAccount {
+          balance {
+            settled
+            pending
+          }
         }
       }
     }

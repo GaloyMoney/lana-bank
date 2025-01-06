@@ -16,7 +16,6 @@ gql`
   fragment DepositFields on Deposit {
     id
     createdAt
-    customerId
     depositId
     reference
     amount
@@ -34,8 +33,10 @@ gql`
         cursor
         node {
           ...DepositFields
-          customer {
-            email
+          account {
+            customer {
+              email
+            }
           }
         }
       }
@@ -67,7 +68,7 @@ const Deposits = () => {
 export default Deposits
 
 const columns: Column<Deposit>[] = [
-  { key: "customer", label: "Customer", render: (customer) => customer.email },
+  { key: "account", label: "Customer", render: (account) => account.customer.email },
   {
     key: "reference",
     label: "Reference",

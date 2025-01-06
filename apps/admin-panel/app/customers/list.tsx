@@ -37,16 +37,12 @@ gql`
           email
           telegramId
           applicantId
-          balance {
-            checking {
+          depositAccount {
+            balance {
               settled
               pending
             }
           }
-
-          subjectCanRecordDeposit
-          subjectCanInitiateWithdrawal
-          subjectCanCreateCreditFacility
         }
         cursor
       }
@@ -103,8 +99,6 @@ const Customers = () => {
   )
 }
 
-export default Customers
-
 const columns: Column<Customer>[] = [
   { key: "email", label: "Email", sortable: true },
   { key: "telegramId", label: "Telegram", sortable: true },
@@ -115,7 +109,7 @@ const columns: Column<Customer>[] = [
     render: (status) => (
       <div
         className={
-          (status === AccountStatus.Inactive && "text-error font-medium") || undefined
+          status === AccountStatus.Inactive ? "text-error font-medium" : undefined
         }
       >
         {status === AccountStatus.Active ? "Verified" : "Not Verified"}
@@ -123,8 +117,11 @@ const columns: Column<Customer>[] = [
     ),
   },
   {
-    key: "balance",
+    key: "depositAccount",
     label: "USD Balance",
-    render: (balance) => <Balance amount={balance.checking.settled} currency="usd" />,
+    render: (depositAccount) => (
+      <Balance amount={depositAccount?.balance?.settled ?? 0} currency="usd" />
+    ),
   },
 ]
+export default Customers

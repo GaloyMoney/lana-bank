@@ -34,8 +34,10 @@ gql`
             __typename
             ... on Withdrawal {
               withdrawalId
-              customer {
-                email
+              account {
+                customer {
+                  email
+                }
               }
             }
             ... on CreditFacility {
@@ -117,10 +119,18 @@ const List: React.FC<ListProps> = ({ dashboard = false }) => {
     {
       key: "target",
       header: "Customer",
-      render: (target) =>
-        target.__typename === "CreditFacilityDisbursal"
-          ? target.creditFacility.customer.email
-          : target.customer.email,
+      render: (target) => {
+        switch (target.__typename) {
+          case "CreditFacilityDisbursal":
+            return target.creditFacility.customer.email
+          case "CreditFacility":
+            return target.customer.email
+          case "Withdrawal":
+            return target.account.customer.email
+          default:
+            return "Unknown"
+        }
+      },
     },
     {
       key: "approvalProcessType",

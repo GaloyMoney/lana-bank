@@ -8,7 +8,7 @@ import { DetailsCard, DetailItemProps } from "@/components/details"
 import { GetCustomerOverviewQuery } from "@/lib/graphql/generated"
 
 type CustomerAccountBalancesProps = {
-  balance: NonNullable<GetCustomerOverviewQuery["customer"]>["balance"]
+  balance: NonNullable<GetCustomerOverviewQuery["customer"]>["depositAccount"]["balance"]
 }
 
 export const CustomerAccountBalances: React.FC<CustomerAccountBalancesProps> = ({
@@ -17,11 +17,11 @@ export const CustomerAccountBalances: React.FC<CustomerAccountBalancesProps> = (
   const details: DetailItemProps[] = [
     {
       label: "Checking Settled Balance (USD)",
-      value: <Balance amount={balance.checking.settled} currency="usd" />,
+      value: <Balance amount={balance.settled} currency="usd" />,
     },
     {
       label: "Pending Withdrawals (USD)",
-      value: <Balance amount={balance.checking.pending} currency="usd" />,
+      value: <Balance amount={balance.pending} currency="usd" />,
     },
   ]
 

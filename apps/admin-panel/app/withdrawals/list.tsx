@@ -19,15 +19,16 @@ gql`
     id
     status
     reference
-    customerId
     withdrawalId
     createdAt
     amount
-    subjectCanConfirm
-    subjectCanCancel
-    customer {
-      customerId
-      email
+    # subjectCanConfirm
+    # subjectCanCancel
+    account {
+      customer {
+        customerId
+        email
+      }
     }
   }
 
@@ -74,7 +75,7 @@ const Withdrawals = () => {
 export default Withdrawals
 
 const columns: Column<Withdrawal>[] = [
-  { key: "customer", label: "Customer", render: (customer) => customer.email },
+  { key: "account", label: "Customer", render: (account) => account.customer.email },
   {
     key: "reference",
     label: "Reference",
