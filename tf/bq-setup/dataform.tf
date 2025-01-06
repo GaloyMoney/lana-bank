@@ -93,6 +93,6 @@ resource "google_dataform_repository_workflow_config" "workflow" {
     service_account                          = google_service_account.bq_access_sa.email
   }
 
-  cron_schedule   = "0 0 * * *"
-  time_zone       = "Etc/UTC"
+  cron_schedule = "0 0 * * *"
+  time_zone     = "Etc/UTC"
 }
