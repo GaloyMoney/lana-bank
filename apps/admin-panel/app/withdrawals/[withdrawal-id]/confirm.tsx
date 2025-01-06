@@ -11,7 +11,10 @@ import {
   DialogTitle,
 } from "@/ui/dialog"
 import { Button } from "@/ui/button"
-import { useWithdrawalConfirmMutation } from "@/lib/graphql/generated"
+import {
+  GetWithdrawalDetailsQuery,
+  useWithdrawalConfirmMutation,
+} from "@/lib/graphql/generated"
 import { DetailItem, DetailsGroup } from "@/components/details"
 import Balance from "@/components/balance/balance"
 import { UsdCents } from "@/types"
@@ -29,7 +32,7 @@ gql`
 type WithdrawalConfirmDialogProps = {
   setOpenWithdrawalConfirmDialog: (isOpen: boolean) => void
   openWithdrawalConfirmDialog: boolean
-  withdrawalData: WithdrawalWithCustomer
+  withdrawalData: NonNullable<GetWithdrawalDetailsQuery["withdrawal"]>
 }
 
 export const WithdrawalConfirmDialog: React.FC<WithdrawalConfirmDialogProps> = ({
@@ -47,7 +50,7 @@ export const WithdrawalConfirmDialog: React.FC<WithdrawalConfirmDialogProps> = (
       const result = await confirmWithdrawal({
         variables: {
           input: {
-            withdrawalId: withdrawalData.withdrawalId,
+            withdrawalId: withdrawalData?.withdrawalId,
           },
         },
       })
@@ -86,7 +89,7 @@ export const WithdrawalConfirmDialog: React.FC<WithdrawalConfirmDialogProps> = (
           <DetailsGroup layout="horizontal">
             <DetailItem
               label="Customer Email"
-              value={withdrawalData.customer?.email || "N/A"}
+              value={withdrawalData.account.customer?.email || "N/A"}
             />
             <DetailItem
               label="Amount"

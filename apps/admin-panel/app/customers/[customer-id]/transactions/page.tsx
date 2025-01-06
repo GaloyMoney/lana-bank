@@ -10,11 +10,13 @@ gql`
   query GetCustomerTransactions($id: UUID!) {
     customer(id: $id) {
       id
-      deposits {
-        ...DepositFields
-      }
-      withdrawals {
-        ...WithdrawalFields
+      depositAccount {
+        deposits {
+          ...DepositFields
+        }
+        withdrawals {
+          ...WithdrawalFields
+        }
       }
     }
   }
@@ -29,8 +31,8 @@ export default function CustomerTransactionsPage({
     variables: { id: params["customer-id"] },
   })
   const transactions = [
-    ...(data?.customer?.deposits || []),
-    ...(data?.customer?.withdrawals || []),
+    ...(data?.customer?.depositAccount.deposits || []),
+    ...(data?.customer?.depositAccount.withdrawals || []),
   ].sort((a, b) => {
     return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
   })

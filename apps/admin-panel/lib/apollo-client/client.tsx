@@ -13,7 +13,6 @@ import {
 
 import {
   CreditFacility,
-  Customer,
   GetRealtimePriceUpdatesDocument,
   GetRealtimePriceUpdatesQuery,
 } from "@/lib/graphql/generated"
@@ -85,16 +84,6 @@ function makeClient({ coreAdminGqlUrl }: { coreAdminGqlUrl: string }) {
           (priceInfo.realtimePrice.usdCentsPerBtc / CENTS_PER_USD)
 
         return Math.floor(requiredCollateralInSats)
-      },
-    },
-    Customer: {
-      transactions: async (customer: Customer) => {
-        const deposits = customer.deposits
-        const withdrawals = customer.withdrawals
-
-        return [...deposits, ...withdrawals].sort((a, b) => {
-          return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-        })
       },
     },
   }

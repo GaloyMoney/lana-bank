@@ -23,15 +23,19 @@ gql`
     depositRecord(input: $input) {
       deposit {
         ...DepositFields
-        customer {
-          id
-          deposits {
-            ...DepositFields
-          }
-          balance {
-            checking {
-              settled
-              pending
+        account {
+          customer {
+            id
+            depositAccount {
+              deposits {
+                ...DepositFields
+              }
+            }
+            depositAccount {
+              balance {
+                settled
+                pending
+              }
             }
           }
         }
@@ -43,13 +47,13 @@ gql`
 type CreateDepositDialgProps = {
   setOpenCreateDepositDialog: (isOpen: boolean) => void
   openCreateDepositDialog: boolean
-  customerId: string
+  depositAccountId: string
 }
 
 export const CreateDepositDialog: React.FC<CreateDepositDialgProps> = ({
   setOpenCreateDepositDialog,
   openCreateDepositDialog,
-  customerId,
+  depositAccountId,
 }) => {
   const [createDeposit, { loading, reset }] = useCreateDepositMutation({
     update: (cache) => {
@@ -74,7 +78,7 @@ export const CreateDepositDialog: React.FC<CreateDepositDialgProps> = ({
       const result = await createDeposit({
         variables: {
           input: {
-            customerId,
+            depositAccountId,
             amount: currencyConverter.usdToCents(parseFloat(amount)),
             reference,
           },

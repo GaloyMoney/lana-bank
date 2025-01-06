@@ -29,18 +29,20 @@ const WithdrawalDetailsCard: React.FC<WithdrawalDetailsProps> = ({
   withdrawal,
   refetch,
 }) => {
-  const [openWithdrawalCancelDialog, setOpenWithdrawalCancelDialog] =
-    useState<WithdrawalWithCustomer | null>(null)
-  const [openWithdrawalConfirmDialog, setOpenWithdrawalConfirmDialog] =
-    useState<WithdrawalWithCustomer | null>(null)
+  const [openWithdrawalCancelDialog, setOpenWithdrawalCancelDialog] = useState<
+    GetWithdrawalDetailsQuery["withdrawal"] | null
+  >(null)
+  const [openWithdrawalConfirmDialog, setOpenWithdrawalConfirmDialog] = useState<
+    GetWithdrawalDetailsQuery["withdrawal"] | null
+  >(null)
   const [openApprovalDialog, setOpenApprovalDialog] = useState(false)
   const [openDenialDialog, setOpenDenialDialog] = useState(false)
 
   const details: DetailItemProps[] = [
     {
       label: "Customer Email",
-      value: withdrawal.customer.email,
-      href: `/customers/${withdrawal.customer.customerId}`,
+      value: withdrawal.account.customer.email,
+      href: `/customers/${withdrawal.account.customer.customerId}`,
     },
     {
       label: "Withdrawal Amount",

@@ -24,15 +24,17 @@ gql`
     withdrawalInitiate(input: $input) {
       withdrawal {
         ...WithdrawalFields
-        customer {
-          id
-          withdrawals {
-            ...WithdrawalFields
-          }
-          balance {
-            checking {
-              settled
-              pending
+        account {
+          customer {
+            id
+            depositAccount {
+              withdrawals {
+                ...WithdrawalFields
+              }
+              balance {
+                settled
+                pending
+              }
             }
           }
         }
@@ -44,13 +46,13 @@ gql`
 type WithdrawalInitiateDialogProps = {
   setOpenWithdrawalInitiateDialog: (isOpen: boolean) => void
   openWithdrawalInitiateDialog: boolean
-  customerId: string
+  depositAccountId: string
 }
 
 export const WithdrawalInitiateDialog: React.FC<WithdrawalInitiateDialogProps> = ({
   setOpenWithdrawalInitiateDialog,
   openWithdrawalInitiateDialog,
-  customerId,
+  depositAccountId,
 }) => {
   const { navigate, isNavigating } = useModalNavigation({
     closeModal: () => setOpenWithdrawalInitiateDialog(false),
@@ -81,7 +83,7 @@ export const WithdrawalInitiateDialog: React.FC<WithdrawalInitiateDialogProps> =
       await initiateWithdrawal({
         variables: {
           input: {
-            customerId,
+            depositAccountId,
             amount: currencyConverter.usdToCents(parseFloat(amount)),
             reference,
           },
