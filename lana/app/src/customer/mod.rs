@@ -2,6 +2,7 @@ mod config;
 mod entity;
 pub mod error;
 mod kratos;
+pub mod ledger;
 mod repo;
 
 use std::collections::HashMap;
