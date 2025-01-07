@@ -102,6 +102,31 @@ impl LanaApp {
         let customers =
             Customers::init(&pool, &config.customer, &cala, &deposits, &authz, &export).await?;
         let applicants = Applicants::new(&pool, &config.sumsub, &customers, &jobs, &export);
+
+        let collateral_factory = chart_of_accounts.transaction_account_factory(
+            accounting_init.chart_ids.off_balance_sheet,
+            accounting_init.credit_facilities.collateral,
+        );
+        let facility_factory = chart_of_accounts.transaction_account_factory(
+            accounting_init.chart_ids.off_balance_sheet,
+            accounting_init.credit_facilities.facility,
+        );
+        let disbursed_receivable_factory = chart_of_accounts.transaction_account_factory(
+            accounting_init.chart_ids.primary,
+            accounting_init.credit_facilities.disbursed_receivable,
+        );
+        let interest_receivable_factory = chart_of_accounts.transaction_account_factory(
+            accounting_init.chart_ids.primary,
+            accounting_init.credit_facilities.interest_receivable,
+        );
+        let interest_income_factory = chart_of_accounts.transaction_account_factory(
+            accounting_init.chart_ids.primary,
+            accounting_init.credit_facilities.interest_income,
+        );
+        let fee_income_factory = chart_of_accounts.transaction_account_factory(
+            accounting_init.chart_ids.primary,
+            accounting_init.credit_facilities.fee_income,
+        );
         let credit_facilities = CreditFacilities::init(
             &pool,
             config.credit_facility,
@@ -112,6 +137,12 @@ impl LanaApp {
             &customers,
             &price,
             &outbox,
+            collateral_factory,
+            facility_factory,
+            disbursed_receivable_factory,
+            interest_receivable_factory,
+            interest_income_factory,
+            fee_income_factory,
             &cala,
             accounting_init.journal_id,
         )

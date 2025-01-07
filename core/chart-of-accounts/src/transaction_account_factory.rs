@@ -1,5 +1,5 @@
 use audit::AuditInfo;
-use cala_ledger::{account::*, CalaLedger};
+use cala_ledger::{account::*, CalaLedger, LedgerOperation};
 
 use crate::{
     chart_of_accounts::ChartOfAccountRepo,
@@ -35,7 +35,7 @@ impl TransactionAccountFactory {
 
     pub async fn create_transaction_account_in_op(
         &self,
-        mut op: es_entity::DbOp<'_>,
+        op: &mut LedgerOperation<'_>,
         account_id: impl Into<LedgerAccountId>,
         name: &str,
         description: &str,
@@ -53,9 +53,7 @@ impl TransactionAccountFactory {
             audit_info,
         )?;
 
-        self.repo.update_in_op(&mut op, &mut chart).await?;
-
-        let mut op = self.cala.ledger_operation_from_db_op(op);
+        self.repo.update_in_op(op.op(), &mut chart).await?;
 
         let new_account = NewAccount::builder()
             .id(account_details.account_id)
@@ -66,12 +64,7 @@ impl TransactionAccountFactory {
             .build()
             .expect("Could not build new account");
 
-        self.cala
-            .accounts()
-            .create_in_op(&mut op, new_account)
-            .await?;
-
-        op.commit().await?;
+        self.cala.accounts().create_in_op(op, new_account).await?;
 
         Ok(account_details)
     }

@@ -1,4 +1,5 @@
 mod config;
+pub mod credit_chart_of_accounts;
 mod disbursal;
 mod entity;
 pub mod error;
@@ -12,8 +13,11 @@ mod repo;
 
 use std::collections::HashMap;
 
+use chart_of_accounts::TransactionAccountFactory;
+
 use authz::PermissionCheck;
 use cala_ledger::CalaLedger;
+use credit_chart_of_accounts::CreditChartOfAccounts;
 use tracing::instrument;
 
 use crate::{
@@ -59,6 +63,7 @@ pub struct CreditFacilities {
     disbursal_repo: DisbursalRepo,
     governance: Governance,
     ledger: CreditLedger,
+    chart_of_accounts: CreditChartOfAccounts,
     price: Price,
     config: CreditFacilityConfig,
     approve_disbursal: ApproveDisbursal,
@@ -77,6 +82,12 @@ impl CreditFacilities {
         customers: &Customers,
         price: &Price,
         outbox: &Outbox,
+        collateral_factory: TransactionAccountFactory,
+        facility_factory: TransactionAccountFactory,
+        disbursed_receivable_factory: TransactionAccountFactory,
+        interest_receivable_factory: TransactionAccountFactory,
+        interest_income_factory: TransactionAccountFactory,
+        fee_income_factory: TransactionAccountFactory,
         cala: &CalaLedger,
         journal_id: cala_ledger::JournalId,
     ) -> Result<Self, CreditFacilityError> {
@@ -91,6 +102,16 @@ impl CreditFacilities {
             governance,
             &ledger,
         );
+        let chart_of_accounts = CreditChartOfAccounts::init(
+            cala,
+            collateral_factory,
+            facility_factory,
+            disbursed_receivable_factory,
+            interest_receivable_factory,
+            interest_income_factory,
+            fee_income_factory,
+        )
+        .await?;
 
         let approve_credit_facility =
             ApproveCreditFacility::new(&credit_facility_repo, authz.audit(), governance);
@@ -156,6 +177,7 @@ impl CreditFacilities {
             disbursal_repo,
             governance: governance.clone(),
             ledger,
+            chart_of_accounts,
             price: price.clone(),
             config,
             approve_disbursal,
@@ -208,7 +230,7 @@ impl CreditFacilities {
             .facility(facility)
             .account_ids(CreditFacilityAccountIds::new())
             .customer_account_ids(customer.account_ids)
-            .audit_info(audit_info)
+            .audit_info(audit_info.clone())
             .build()
             .expect("could not build new credit facility");
 
@@ -220,11 +242,12 @@ impl CreditFacilities {
             .credit_facility_repo
             .create_in_op(&mut db, new_credit_facility)
             .await?;
-        self.ledger
+        self.chart_of_accounts
             .create_accounts_for_credit_facility(
                 db,
                 credit_facility.id,
                 credit_facility.account_ids,
+                audit_info,
             )
             .await?;
 
