@@ -84,7 +84,7 @@ impl From<CreditFacilityDisbursalParams> for Params {
         let mut params = Self::default();
         params.insert("journal_id", journal_id);
         params.insert("credit_omnibus_account", credit_omnibus_account);
-        params.insert("facility_account", credit_facility_account);
+        params.insert("credit_facility_account", credit_facility_account);
         params.insert(
             "facility_disbursed_receivable_account",
             facility_disbursed_receivable_account,
@@ -121,7 +121,7 @@ impl CreditFacilityDisbursal {
                 .build()
                 .expect("Couldn't build entry"),
             NewTxTemplateEntry::builder()
-                .account_id("params.facility_account")
+                .account_id("params.credit_facility_account")
                 .units("params.disbursed_amount")
                 .currency("'USD'")
                 .entry_type("'CREDIT_FACILITY_DISBURSAL_DRAWDOWN_CR'")
