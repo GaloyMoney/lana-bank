@@ -13,10 +13,10 @@ teardown_file() {
 trigger_withdraw_approval_process() {
   variables=$(
     jq -n \
-      --arg customerId "$1" \
+      --arg deposit_account_id "$1" \
     '{
       input: {
-        customerId: $customerId,
+        depositAccountId: $deposit_account_id,
         amount: 1000000,
       }
     }'
@@ -25,11 +25,11 @@ trigger_withdraw_approval_process() {
 
   variables=$(
     jq -n \
-      --arg customerId "$1" \
+      --arg deposit_account_id "$1" \
     --arg date "$(date +%s%N)" \
     '{
       input: {
-        customerId: $customerId,
+        depositAccountId: $deposit_account_id,
         amount: 150000,
         reference: ("withdrawal-ref-" + $date)
       }
@@ -45,7 +45,16 @@ trigger_withdraw_approval_process() {
   customer_id=$(create_customer)
   cache_value "customer_id" $customer_id
 
-  process_id=$(trigger_withdraw_approval_process $customer_id)
+  variables=$(
+    jq -n \
+      --arg id "$customer_id" \
+    '{ id: $id }'
+  )
+  exec_admin_graphql 'customer' "$variables"
+  deposit_account_id=$(graphql_output .data.customer.depositAccount.depositAccountId)
+  cache_value "deposit_account_id" $deposit_account_id
+
+  process_id=$(trigger_withdraw_approval_process $deposit_account_id)
   variables=$(
     jq -n \
       --arg id "$process_id" \
