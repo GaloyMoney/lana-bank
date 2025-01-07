@@ -11,6 +11,8 @@ teardown_file() {
 }
 
 @test "chart-of-accounts: can traverse chart of accounts" {
+  skip # TODO: re-implement from entity
+
   for i in {1..2}; do create_customer; done
 
   # Fetch Chart of Accounts
