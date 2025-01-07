@@ -89,6 +89,7 @@ impl CreditLedger {
                     "CREDIT_FACILITY.OBS_FACILITY.{}",
                     credit_facility_id
                 ))
+                .normal_balance_type(DebitOrCredit::Debit)
                 .build()
                 .expect("new account"),
             NewAccount::builder()
@@ -98,6 +99,7 @@ impl CreditLedger {
                     "CREDIT_FACILITY.DISBURSED_RECEIVABLE.{}",
                     credit_facility_id
                 ))
+                .normal_balance_type(DebitOrCredit::Debit)
                 .build()
                 .expect("new account"),
             NewAccount::builder()
@@ -107,6 +109,7 @@ impl CreditLedger {
                     "CREDIT_FACILITY.INTEREST_RECEIVABLE.{}",
                     credit_facility_id
                 ))
+                .normal_balance_type(DebitOrCredit::Debit)
                 .build()
                 .expect("new account"),
             NewAccount::builder()
