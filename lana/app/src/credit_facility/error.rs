@@ -30,6 +30,10 @@ pub enum CreditFacilityError {
     DisbursalError(#[from] super::disbursal::error::DisbursalError),
     #[error("CreditFacilityError - InterestAccrualError: {0}")]
     InterestAccrualError(#[from] super::interest_accrual::error::InterestAccrualError),
+    #[error("CreditFacilityError - CreditChartOfAccountsError: {0}")]
+    CreditChartOfAccountsError(
+        #[from] super::credit_chart_of_accounts::error::CreditChartOfAccountsError,
+    ),
     #[error("CreditFacilityError - CustomerNotFound: {0}")]
     CustomerNotFound(CustomerId),
     #[error("CreditFacilityError - CustomerError: '{0}'")]

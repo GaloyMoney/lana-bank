@@ -7,7 +7,9 @@ use es_entity::*;
 
 use crate::{
     code::*,
-    primitives::{ChartId, ChartOfAccountAccountDetails, LedgerAccountId},
+    primitives::{
+        ChartId, ChartOfAccountAccountDetails, ChartOfAccountCreationDetails, LedgerAccountId,
+    },
 };
 
 pub use super::error::*;
@@ -195,29 +197,25 @@ impl ChartOfAccount {
 
     pub fn add_transaction_account(
         &mut self,
-        account_id: impl Into<LedgerAccountId>,
-        control_sub_account: ChartOfAccountCode,
-        name: &str,
-        description: &str,
+        creation_details: ChartOfAccountCreationDetails,
         audit_info: AuditInfo,
     ) -> Result<ChartOfAccountAccountDetails, ChartOfAccountError> {
-        let account_id = account_id.into();
-        let path = self.next_transaction_account(control_sub_account)?;
+        let path = self.next_transaction_account(creation_details.parent_path)?;
         self.events
             .push(ChartOfAccountEvent::TransactionAccountAdded {
-                id: account_id,
+                id: creation_details.account_id,
                 code: path,
-                name: name.to_string(),
-                description: description.to_string(),
+                name: creation_details.name.clone(),
+                description: creation_details.description.clone(),
                 audit_info,
             });
 
         Ok(ChartOfAccountAccountDetails {
-            account_id,
+            account_id: creation_details.account_id,
             code: path.to_code(self.id),
             path,
-            name: name.to_string(),
-            description: description.to_string(),
+            name: creation_details.name,
+            description: creation_details.description,
         })
     }
 
@@ -481,10 +479,12 @@ mod tests {
 
         match chart
             .add_transaction_account(
-                LedgerAccountId::new(),
-                control_sub_account,
-                "Cash",
-                "Cash account",
+                ChartOfAccountCreationDetails {
+                    account_id: LedgerAccountId::new(),
+                    parent_path: control_sub_account,
+                    name: "Cash".to_string(),
+                    description: "Cash account".to_string(),
+                },
                 dummy_audit_info(),
             )
             .unwrap()
@@ -603,20 +603,24 @@ mod tests {
 
         chart
             .add_transaction_account(
-                LedgerAccountId::new(),
-                sub_account,
-                "First",
-                "First transaction account",
+                ChartOfAccountCreationDetails {
+                    account_id: LedgerAccountId::new(),
+                    parent_path: sub_account,
+                    name: "First".to_string(),
+                    description: "First transaction account".to_string(),
+                },
                 dummy_audit_info(),
             )
             .unwrap();
 
         match chart
             .add_transaction_account(
-                LedgerAccountId::new(),
-                sub_account,
-                "Second",
-                "Second transaction account",
+                ChartOfAccountCreationDetails {
+                    account_id: LedgerAccountId::new(),
+                    parent_path: sub_account,
+                    name: "Second".to_string(),
+                    description: "Second transaction account".to_string(),
+                },
                 dummy_audit_info(),
             )
             .unwrap()
@@ -664,10 +668,12 @@ mod tests {
             .unwrap();
         let transaction_account = chart
             .add_transaction_account(
-                LedgerAccountId::new(),
-                sub_account,
-                "Cash",
-                "Cash account",
+                ChartOfAccountCreationDetails {
+                    account_id: LedgerAccountId::new(),
+                    parent_path: sub_account,
+                    name: "Cash".to_string(),
+                    description: "Cash account".to_string(),
+                },
                 audit_info,
             )
             .unwrap();

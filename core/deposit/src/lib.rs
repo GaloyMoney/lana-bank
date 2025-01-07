@@ -47,6 +47,7 @@ where
     withdrawals: WithdrawalRepo,
     approve_withdrawal: ApproveWithdrawal<Perms, E>,
     ledger: DepositLedger,
+    cala: CalaLedger,
     account_factory: TransactionAccountFactory,
     authz: Perms,
     governance: Governance<Perms, E>,
@@ -64,6 +65,7 @@ where
             deposits: self.deposits.clone(),
             withdrawals: self.withdrawals.clone(),
             ledger: self.ledger.clone(),
+            cala: self.cala.clone(),
             account_factory: self.account_factory.clone(),
             authz: self.authz.clone(),
             governance: self.governance.clone(),
@@ -122,6 +124,7 @@ where
             authz: authz.clone(),
             outbox: outbox.clone(),
             governance: governance.clone(),
+            cala: cala.clone(),
             approve_withdrawal,
             ledger,
             account_factory,
@@ -159,15 +162,19 @@ where
         let mut op = self.accounts.begin_op().await?;
         let account = self.accounts.create_in_op(&mut op, new_account).await?;
 
+        let mut op = self.cala.ledger_operation_from_db_op(op);
         self.account_factory
             .create_transaction_account_in_op(
-                op,
+                &mut op,
                 account_id,
                 &account.name,
                 &account.description,
                 audit_info,
             )
             .await?;
+
+        op.commit().await?;
+
         Ok(account)
     }
 
