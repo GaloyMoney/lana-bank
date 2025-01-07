@@ -112,7 +112,7 @@ impl LanaApp {
             &price,
             &outbox,
             &cala,
-            cala_ledger::JournalId::new(),
+            accounting_init.journal_id,
         )
         .await?;
         let terms_templates = TermsTemplates::new(&pool, &authz, &export);
