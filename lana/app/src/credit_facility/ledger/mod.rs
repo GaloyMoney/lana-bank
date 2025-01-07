@@ -151,8 +151,8 @@ impl CreditLedger {
     ) -> Result<CreditFacilityLedgerBalance, CreditLedgerError> {
         let facility_id = (self.journal_id, facility_account_id, self.usd);
         let collateral_id = (self.journal_id, collateral_account_id, self.btc);
-        let disbursed_receivable_id = (self.journal_id, disbursed_receivable_account_id, self.btc);
-        let interest_receivable_id = (self.journal_id, interest_receivable_account_id, self.btc);
+        let disbursed_receivable_id = (self.journal_id, disbursed_receivable_account_id, self.usd);
+        let interest_receivable_id = (self.journal_id, interest_receivable_account_id, self.usd);
         let balances = self
             .cala
             .balances()
