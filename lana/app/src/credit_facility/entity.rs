@@ -254,7 +254,13 @@ impl FacilityCVL {
     }
 
     fn check_disbursal_allowed(&self, terms: TermValues) -> Result<(), CreditFacilityError> {
-        if self.disbursed < terms.margin_call_cvl {
+        let cvl = if self.disbursed.is_zero() {
+            self.total
+        } else {
+            self.disbursed
+        };
+
+        if cvl < terms.margin_call_cvl {
             return Err(CreditFacilityError::BelowMarginLimit);
         }
         Ok(())
@@ -1738,6 +1744,20 @@ mod test {
         let facility_cvl = FacilityCVL {
             total: terms.liquidation_cvl,
             disbursed: terms.margin_call_cvl,
+        };
+        assert!(matches!(
+            facility_cvl.check_disbursal_allowed(terms),
+            Ok(())
+        ));
+    }
+
+    #[test]
+    fn cvl_check_disbursal_allowed_for_zero_amount() {
+        let terms = default_terms();
+
+        let facility_cvl = FacilityCVL {
+            total: terms.margin_call_cvl,
+            disbursed: CVLPct::ZERO,
         };
         assert!(matches!(
             facility_cvl.check_disbursal_allowed(terms),

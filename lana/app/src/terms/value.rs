@@ -131,6 +131,10 @@ impl CVLPct {
         Self(Decimal::from(value))
     }
 
+    pub fn is_zero(&self) -> bool {
+        *self == Self::ZERO
+    }
+
     pub fn scale(&self, value: UsdCents) -> UsdCents {
         let cents = value.to_usd() * dec!(100) * (self.0 / dec!(100));
         UsdCents::from(
