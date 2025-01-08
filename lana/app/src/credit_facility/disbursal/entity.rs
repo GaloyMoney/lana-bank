@@ -240,7 +240,7 @@ mod test {
             idx: DisbursalIdx::FIRST,
             amount: UsdCents::from(100_000),
             account_ids: CreditFacilityAccountIds::new(),
-            customer_account_ids: CustomerAccountIds::new(),
+            customer_account_ids: CustomerAccountIds::new(DepositAccountId::new()),
             audit_info: dummy_audit_info(),
         }]
     }

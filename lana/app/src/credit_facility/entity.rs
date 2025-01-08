@@ -1281,7 +1281,7 @@ mod test {
                 facility: default_facility(),
                 terms: default_terms(),
                 account_ids: CreditFacilityAccountIds::new(),
-                customer_account_ids: CustomerAccountIds::new(),
+                customer_account_ids: CustomerAccountIds::new(DepositAccountId::new()),
             },
             CreditFacilityEvent::ApprovalProcessStarted {
                 approval_process_id: ApprovalProcessId::new(),
@@ -1975,7 +1975,7 @@ mod test {
                 .terms(default_terms())
                 .facility(UsdCents::from(1_000_000_00))
                 .account_ids(CreditFacilityAccountIds::new())
-                .customer_account_ids(CustomerAccountIds::new())
+                .customer_account_ids(CustomerAccountIds::new(DepositAccountId::new()))
                 .audit_info(dummy_audit_info())
                 .build()
                 .expect("could not build new credit facility");

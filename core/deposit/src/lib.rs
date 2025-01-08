@@ -178,6 +178,53 @@ where
         Ok(account)
     }
 
+    #[instrument(name = "deposit.create_account_from_system", skip(self))]
+    pub async fn create_account_from_system(
+        &self,
+        holder_id: impl Into<DepositAccountHolderId> + std::fmt::Debug,
+        name: &str,
+        description: &str,
+    ) -> Result<DepositAccount, CoreDepositError> {
+        let mut op = self.accounts.begin_op().await?;
+
+        let audit_info = self
+            .authz
+            .audit()
+            .record_system_entry_in_tx(
+                op.tx(),
+                CoreDepositObject::all_deposit_accounts(),
+                CoreDepositAction::DEPOSIT_ACCOUNT_CREATE,
+            )
+            .await?;
+
+        let account_id = DepositAccountId::new();
+        let new_account = NewDepositAccount::builder()
+            .id(account_id)
+            .account_holder_id(holder_id)
+            .name(name.to_string())
+            .description(description.to_string())
+            .audit_info(audit_info.clone())
+            .build()
+            .expect("Could not build new committee");
+
+        let account = self.accounts.create_in_op(&mut op, new_account).await?;
+
+        let mut op = self.cala.ledger_operation_from_db_op(op);
+        self.account_factory
+            .create_transaction_account_in_op(
+                &mut op,
+                account_id,
+                &account.name,
+                &account.description,
+                audit_info,
+            )
+            .await?;
+
+        op.commit().await?;
+
+        Ok(account)
+    }
+
     #[instrument(name = "deposit.record_deposit", skip(self))]
     pub async fn record_deposit(
         &self,
