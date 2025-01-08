@@ -1,6 +1,5 @@
 mod config;
 mod error;
-pub mod primitives;
 
 use sqlx::PgPool;
 use tracing::instrument;
