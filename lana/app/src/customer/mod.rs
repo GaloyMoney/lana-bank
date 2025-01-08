@@ -1,8 +1,8 @@
+pub mod accounts;
 mod config;
 mod entity;
 pub mod error;
 mod kratos;
-pub mod ledger;
 mod repo;
 
 use deposit::DepositAccount;
@@ -10,7 +10,6 @@ use std::collections::HashMap;
 use tracing::instrument;
 
 use authz::PermissionCheck;
-use cala_ledger::CalaLedger;
 
 use crate::{
     audit::{AuditInfo, AuditSvc},
@@ -20,42 +19,37 @@ use crate::{
     primitives::{CustomerId, KycLevel, Subject},
 };
 
+pub use accounts::CustomerAccountIds;
 pub use config::*;
 pub use entity::*;
 use error::CustomerError;
 use kratos::*;
-pub use ledger::CustomerAccountIds;
-use ledger::CustomerLedger;
 pub use repo::{customer_cursor::*, CustomerRepo, CustomersSortBy, FindManyCustomers, Sort};
 
 #[derive(Clone)]
 pub struct Customers {
     repo: CustomerRepo,
-    ledger: CustomerLedger,
     deposit: Deposits,
     kratos: KratosClient,
     authz: Authorization,
 }
 
 impl Customers {
-    pub async fn init(
+    pub fn new(
         pool: &sqlx::PgPool,
         config: &CustomerConfig,
-        cala: &CalaLedger,
         deposits: &Deposits,
         authz: &Authorization,
         export: &Export,
-    ) -> Result<Self, CustomerError> {
+    ) -> Self {
         let repo = CustomerRepo::new(pool, export);
         let kratos = KratosClient::new(&config.kratos);
-        let ledger = CustomerLedger::init(cala).await?;
-        Ok(Self {
+        Self {
             repo,
-            ledger,
             kratos,
             authz: authz.clone(),
             deposit: deposits.clone(),
-        })
+        }
     }
 
     pub fn repo(&self) -> &CustomerRepo {
