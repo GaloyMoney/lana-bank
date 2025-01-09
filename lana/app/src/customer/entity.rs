@@ -6,8 +6,6 @@ use es_entity::*;
 
 use crate::{audit::AuditInfo, primitives::*};
 
-use super::accounts::CustomerAccountIds;
-
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
 #[es_event(id = "CustomerId")]
@@ -16,7 +14,6 @@ pub enum CustomerEvent {
         id: CustomerId,
         email: String,
         telegram_id: String,
-        account_ids: CustomerAccountIds,
         audit_info: AuditInfo,
     },
     KycStarted {
@@ -44,7 +41,6 @@ pub struct Customer {
     pub id: CustomerId,
     pub email: String,
     pub telegram_id: String,
-    pub account_ids: CustomerAccountIds,
     #[builder(default)]
     pub status: AccountStatus,
     pub level: KycLevel,
@@ -118,15 +114,12 @@ impl TryFromEvents<CustomerEvent> for Customer {
                     id,
                     email,
                     telegram_id,
-                    account_ids,
                     ..
                 } => {
                     builder = builder
                         .id(*id)
-                        .account_ids(*account_ids)
                         .email(email.clone())
                         .telegram_id(telegram_id.clone())
-                        .account_ids(*account_ids)
                         .level(KycLevel::NotKyced);
                 }
                 CustomerEvent::KycStarted { applicant_id, .. } => {
@@ -165,7 +158,6 @@ pub struct NewCustomer {
     pub(super) email: String,
     #[builder(setter(into))]
     pub(super) telegram_id: String,
-    pub(super) account_ids: CustomerAccountIds,
     #[builder(setter(skip), default)]
     pub(super) status: AccountStatus,
     pub(super) audit_info: AuditInfo,
@@ -185,7 +177,6 @@ impl IntoEvents<CustomerEvent> for NewCustomer {
                 id: self.id,
                 email: self.email,
                 telegram_id: self.telegram_id,
-                account_ids: self.account_ids,
                 audit_info: self.audit_info,
             }],
         )

@@ -1,11 +1,9 @@
-pub mod accounts;
 mod config;
 mod entity;
 pub mod error;
 mod kratos;
 mod repo;
 
-use deposit::DepositAccount;
 use std::collections::HashMap;
 use tracing::instrument;
 
@@ -19,7 +17,6 @@ use crate::{
     primitives::{CustomerId, KycLevel, Subject},
 };
 
-pub use accounts::CustomerAccountIds;
 pub use config::*;
 pub use entity::*;
 use error::CustomerError;
@@ -85,11 +82,7 @@ impl Customers {
             .expect("audit info missing");
         let customer_id: uuid::Uuid = self.kratos.create_identity(&email).await?;
         let account_name = &format!("Deposit Account for Customer {}", customer_id);
-        let DepositAccount {
-            id: deposit_account_id,
-            ..
-        } = self
-            .deposit
+        self.deposit
             .create_account(sub, customer_id, account_name, account_name)
             .await?;
 
@@ -97,7 +90,6 @@ impl Customers {
             .id(customer_id)
             .email(email)
             .telegram_id(telegram_id)
-            .account_ids(CustomerAccountIds::new(deposit_account_id))
             .audit_info(audit_info)
             .build()
             .expect("Could not build customer");
