@@ -2,14 +2,14 @@ apiVersion: vendir.k14s.io/v1alpha1
 directories:
 - contents:
   - git:
-      commitTitle: 'chore: upgrade shared rust github actions (#57)'
-      sha: 47fcb3b3e18d67f28b551b8aa9a36e01ef635eda
+      commitTitle: 'Merge pull request #2 from GaloyMoney/ci--remove-slack-notification-resource...'
+      sha: b394897fcbaab826eb410c673325dc46aa0a720b
     path: .
   path: ../.github/workflows/vendor
 - contents:
   - git:
-      commitTitle: 'chore: upgrade shared rust github actions (#57)'
-      sha: 47fcb3b3e18d67f28b551b8aa9a36e01ef635eda
+      commitTitle: 'Merge pull request #2 from GaloyMoney/ci--remove-slack-notification-resource...'
+      sha: b394897fcbaab826eb410c673325dc46aa0a720b
     path: .
   path: vendor
 kind: LockConfig
