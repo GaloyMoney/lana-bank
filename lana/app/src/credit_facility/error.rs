@@ -1,6 +1,6 @@
 use thiserror::Error;
 
-use crate::primitives::{CustomerId, Satoshis, UsdCents};
+use crate::primitives::{DepositAccountHolderId, Satoshis, UsdCents};
 
 #[derive(Error, Debug)]
 pub enum CreditFacilityError {
@@ -34,10 +34,10 @@ pub enum CreditFacilityError {
     CreditChartOfAccountsError(
         #[from] super::credit_chart_of_accounts::error::CreditChartOfAccountsError,
     ),
-    #[error("CreditFacilityError - CustomerNotFound: {0}")]
-    CustomerNotFound(CustomerId),
-    #[error("CreditFacilityError - CustomerError: '{0}'")]
-    CustomerError(#[from] crate::customer::error::CustomerError),
+    #[error("CreditFacilityError - DepositAccountForHolderNotFound: {0}")]
+    DepositAccountForHolderNotFound(DepositAccountHolderId),
+    #[error("CreditFacilityError - CoreDepositError: '{0}'")]
+    CoreDepositError(#[from] crate::deposit::error::CoreDepositError),
     #[error("CreditFacilityError - UserError: '{0}'")]
     UserError(#[from] crate::user::error::UserError),
     #[error("CreditFacilityError - AlreadyActivated")]

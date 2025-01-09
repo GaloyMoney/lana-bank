@@ -363,6 +363,31 @@ where
         }
     }
 
+    pub async fn find_deposit_account_by_holder_id(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        account_holder_id: impl Into<DepositAccountHolderId> + std::fmt::Debug,
+    ) -> Result<Option<DepositAccount>, CoreDepositError> {
+        let account_holder_id = account_holder_id.into();
+        self.authz
+            .enforce_permission(
+                sub,
+                CoreDepositObject::all_deposit_accounts(), // TODO: double-check this scope
+                CoreDepositAction::DEPOSIT_ACCOUNT_READ,
+            )
+            .await?;
+
+        match self
+            .accounts
+            .find_by_account_holder_id(account_holder_id)
+            .await
+        {
+            Ok(deposit_account) => Ok(Some(deposit_account)),
+            Err(e) if e.was_not_found() => Ok(None),
+            Err(e) => Err(e.into()),
+        }
+    }
+
     pub async fn find_withdrawal_by_id(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,

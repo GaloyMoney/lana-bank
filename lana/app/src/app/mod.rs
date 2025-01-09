@@ -132,7 +132,7 @@ impl LanaApp {
             &jobs,
             &export,
             &authz,
-            &customers,
+            &deposits,
             &price,
             &outbox,
             collateral_factory,

@@ -5,8 +5,8 @@ use serde::{Deserialize, Serialize};
 use es_entity::*;
 
 use crate::{
-    audit::AuditInfo, credit_facility::CreditFacilityAccountIds, customer::CustomerAccountIds,
-    ledger::credit_facility::*, primitives::*,
+    audit::AuditInfo, credit_facility::CreditFacilityAccountIds, ledger::credit_facility::*,
+    primitives::*,
 };
 
 use super::DisbursalError;
@@ -22,7 +22,7 @@ pub enum DisbursalEvent {
         idx: DisbursalIdx,
         amount: UsdCents,
         account_ids: CreditFacilityAccountIds,
-        customer_account_ids: CustomerAccountIds,
+        deposit_account_id: DepositAccountId,
         audit_info: AuditInfo,
     },
     ApprovalProcessConcluded {
@@ -46,7 +46,7 @@ pub struct Disbursal {
     pub idx: DisbursalIdx,
     pub amount: UsdCents,
     pub account_ids: CreditFacilityAccountIds,
-    pub customer_account_ids: CustomerAccountIds,
+    pub deposit_account_id: DepositAccountId,
     pub(super) events: EntityEvents<DisbursalEvent>,
 }
 
@@ -62,7 +62,7 @@ impl TryFromEvents<DisbursalEvent> for Disbursal {
                     idx,
                     amount,
                     account_ids,
-                    customer_account_ids,
+                    deposit_account_id,
                     ..
                 } => {
                     builder = builder
@@ -72,7 +72,7 @@ impl TryFromEvents<DisbursalEvent> for Disbursal {
                         .idx(*idx)
                         .amount(*amount)
                         .account_ids(*account_ids)
-                        .customer_account_ids(*customer_account_ids)
+                        .deposit_account_id(*deposit_account_id)
                 }
                 DisbursalEvent::ApprovalProcessConcluded { .. } => (),
                 DisbursalEvent::Confirmed { .. } => (),
@@ -169,7 +169,7 @@ impl Disbursal {
             tx_id,
             amount: self.amount,
             credit_facility_account_ids: self.account_ids,
-            debit_account_id: self.customer_account_ids.deposit_account_id,
+            debit_account_id: self.deposit_account_id.into(),
         })
     }
 }
@@ -185,7 +185,7 @@ pub struct NewDisbursal {
     pub(super) idx: DisbursalIdx,
     pub(super) amount: UsdCents,
     pub(super) account_ids: CreditFacilityAccountIds,
-    pub(super) customer_account_ids: CustomerAccountIds,
+    pub(super) deposit_account_id: DepositAccountId,
     #[builder(setter(into))]
     pub(super) audit_info: AuditInfo,
 }
@@ -207,7 +207,7 @@ impl IntoEvents<DisbursalEvent> for NewDisbursal {
                 idx: self.idx,
                 amount: self.amount,
                 account_ids: self.account_ids,
-                customer_account_ids: self.customer_account_ids,
+                deposit_account_id: self.deposit_account_id,
                 audit_info: self.audit_info,
             }],
         )
@@ -240,7 +240,7 @@ mod test {
             idx: DisbursalIdx::FIRST,
             amount: UsdCents::from(100_000),
             account_ids: CreditFacilityAccountIds::new(),
-            customer_account_ids: CustomerAccountIds::new(DepositAccountId::new()),
+            deposit_account_id: DepositAccountId::new(),
             audit_info: dummy_audit_info(),
         }]
     }

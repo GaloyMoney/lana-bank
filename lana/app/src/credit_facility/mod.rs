@@ -18,13 +18,14 @@ use chart_of_accounts::TransactionAccountFactory;
 use authz::PermissionCheck;
 use cala_ledger::CalaLedger;
 use credit_chart_of_accounts::CreditChartOfAccounts;
+use deposit::DepositAccountHolderId;
 use tracing::instrument;
 
 use crate::{
     audit::AuditInfo,
     authorization::{Authorization, CreditFacilityAction, Object},
-    customer::Customers,
     data_export::Export,
+    deposit::Deposits,
     governance::Governance,
     job::*,
     ledger::credit_facility::*,
@@ -58,7 +59,7 @@ pub use repo::{
 #[derive(Clone)]
 pub struct CreditFacilities {
     authz: Authorization,
-    customers: Customers,
+    deposits: Deposits,
     credit_facility_repo: CreditFacilityRepo,
     disbursal_repo: DisbursalRepo,
     governance: Governance,
@@ -79,7 +80,7 @@ impl CreditFacilities {
         jobs: &Jobs,
         export: &Export,
         authz: &Authorization,
-        customers: &Customers,
+        deposits: &Deposits,
         price: &Price,
         outbox: &Outbox,
         collateral_factory: TransactionAccountFactory,
@@ -172,7 +173,7 @@ impl CreditFacilities {
 
         Ok(Self {
             authz: authz.clone(),
-            customers: customers.clone(),
+            deposits: deposits.clone(),
             credit_facility_repo,
             disbursal_repo,
             governance: governance.clone(),
@@ -205,20 +206,26 @@ impl CreditFacilities {
     pub async fn initiate(
         &self,
         sub: &Subject,
-        customer_id: impl Into<CustomerId> + std::fmt::Debug,
+        customer_id: impl Into<CustomerId> + Into<DepositAccountHolderId> + std::fmt::Debug + Copy,
         facility: UsdCents,
         terms: TermValues,
     ) -> Result<CreditFacility, CreditFacilityError> {
-        let customer_id = customer_id.into();
-
         let audit_info = self
             .subject_can_create(sub, true)
             .await?
             .expect("audit info missing");
 
-        let customer = match self.customers.find_by_id(sub, customer_id).await? {
-            Some(customer) => customer,
-            None => return Err(CreditFacilityError::CustomerNotFound(customer_id)),
+        let deposit_account = match self
+            .deposits
+            .find_deposit_account_by_holder_id(sub, customer_id)
+            .await?
+        {
+            Some(deposit_account) => deposit_account,
+            None => {
+                return Err(CreditFacilityError::DepositAccountForHolderNotFound(
+                    customer_id.into(),
+                ))
+            }
         };
 
         let id = CreditFacilityId::new();
@@ -229,7 +236,7 @@ impl CreditFacilities {
             .terms(terms)
             .facility(facility)
             .account_ids(CreditFacilityAccountIds::new())
-            .customer_account_ids(customer.account_ids)
+            .deposit_account_id(deposit_account.id)
             .audit_info(audit_info.clone())
             .build()
             .expect("could not build new credit facility");
