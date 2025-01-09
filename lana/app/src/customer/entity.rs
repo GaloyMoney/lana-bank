@@ -6,7 +6,7 @@ use es_entity::*;
 
 use crate::{audit::AuditInfo, primitives::*};
 
-use super::ledger::CustomerAccountIds;
+use super::accounts::CustomerAccountIds;
 
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]

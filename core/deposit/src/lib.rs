@@ -157,7 +157,7 @@ where
             .description(description.to_string())
             .audit_info(audit_info.clone())
             .build()
-            .expect("Could not build new committee");
+            .expect("Could not build new account");
 
         let mut op = self.accounts.begin_op().await?;
         let account = self.accounts.create_in_op(&mut op, new_account).await?;
@@ -204,7 +204,7 @@ where
             .reference(reference)
             .audit_info(audit_info)
             .build()
-            .expect("Could not build new committee");
+            .expect("Could not build new account");
 
         let mut op = self.deposits.begin_op().await?;
         let deposit = self.deposits.create_in_op(&mut op, new_deposit).await?;

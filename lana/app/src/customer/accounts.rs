@@ -9,9 +9,9 @@ pub struct CustomerAccountIds {
 
 impl CustomerAccountIds {
     #[allow(clippy::new_without_default)]
-    pub fn new() -> Self {
+    pub fn new(deposit_account_id: impl Into<LedgerAccountId>) -> Self {
         Self {
-            deposit_account_id: LedgerAccountId::new(),
+            deposit_account_id: deposit_account_id.into(),
         }
     }
 }

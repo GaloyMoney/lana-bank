@@ -1,15 +1,17 @@
 mod constants;
+mod primitives;
 mod seed;
 
 pub mod error;
 
 use chart_of_accounts::{ChartId, ChartOfAccountCode};
 
-use crate::{app::primitives::*, chart_of_accounts::ChartOfAccounts};
+use crate::chart_of_accounts::ChartOfAccounts;
 
 use cala_ledger::{CalaLedger, JournalId};
 
 use error::*;
+use primitives::*;
 
 #[derive(Clone)]
 pub struct AccountingInit {

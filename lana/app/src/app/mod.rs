@@ -1,6 +1,5 @@
 mod config;
 mod error;
-pub mod primitives;
 
 use sqlx::PgPool;
 use tracing::instrument;
@@ -99,8 +98,7 @@ impl LanaApp {
             String::from("OMNIBUS_ACCOUNT_ID"),
         )
         .await?;
-        let customers =
-            Customers::init(&pool, &config.customer, &cala, &deposits, &authz, &export).await?;
+        let customers = Customers::new(&pool, &config.customer, &deposits, &authz, &export);
         let applicants = Applicants::new(&pool, &config.sumsub, &customers, &jobs, &export);
 
         let collateral_factory = chart_of_accounts.transaction_account_factory(

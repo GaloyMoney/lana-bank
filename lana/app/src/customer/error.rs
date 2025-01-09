@@ -8,8 +8,6 @@ pub enum CustomerError {
     EsEntityError(es_entity::EsEntityError),
     #[error("CustomerError - CursorDestructureError: {0}")]
     CursorDestructureError(#[from] es_entity::CursorDestructureError),
-    #[error("CustomerError - LedgerError: {0}")]
-    LedgerError(#[from] crate::ledger::error::LedgerError),
     #[error("CustomerError - UnexpectedCurrency")]
     UnexpectedCurrency,
     #[error("CustomerError - KratosClientError: {0}")]
@@ -22,8 +20,6 @@ pub enum CustomerError {
     JobError(#[from] crate::job::error::JobError),
     #[error("CustomerError - DepositError: {0}")]
     DepositError(#[from] crate::deposit::error::CoreDepositError),
-    #[error("CustomerError - CustomerLedgerError: {0}")]
-    CustomerLedgerError(#[from] super::ledger::error::CustomerLedgerError),
 }
 
 es_entity::from_es_entity_error!(CustomerError);
