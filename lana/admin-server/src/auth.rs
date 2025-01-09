@@ -12,46 +12,6 @@ use jwks_utils::JwtDecoderState;
 use lana_app::app::LanaApp;
 
 #[derive(Deserialize, std::fmt::Debug, Serialize)]
-pub struct CustomerCallbackPayload {
-    email: String,
-    flow_id: String,
-    flow_type: String,
-    identity_id: String,
-    schema_id: String,
-    transient_payload: serde_json::Value,
-}
-
-#[instrument(name = "admin_server.auth.customer_callback", skip(app))]
-pub async fn customer_callback(
-    Extension(app): Extension<LanaApp>,
-    Json(payload): Json<CustomerCallbackPayload>,
-) -> impl IntoResponse {
-    let email = payload.email;
-    let id = match payload.identity_id.parse() {
-        Ok(id) => id,
-        Err(error) => {
-            println!("Error parsing identity_id: {:?}", error);
-            return (StatusCode::BAD_REQUEST, "Invalid identity_id format").into_response();
-        }
-    };
-
-    match app
-        .customers()
-        .create_customer_through_kratos(id, email)
-        .await
-    {
-        Ok(user) => axum::Json(serde_json::json!( {
-            "identity": { "id": user.id }
-        }))
-        .into_response(),
-        Err(error) => {
-            println!("Error creating user: {:?}", error);
-            (StatusCode::INTERNAL_SERVER_ERROR, "Internal Server Error").into_response()
-        }
-    }
-}
-
-#[derive(Deserialize, std::fmt::Debug, Serialize)]
 pub struct UserCallbackPayload {
     email: String,
     transient_payload: serde_json::Value,
@@ -123,7 +83,6 @@ pub async fn user_id_from_email(
 
 pub fn auth_routes() -> Router<JwtDecoderState> {
     Router::new()
-        .route("/customer/callback", post(customer_callback))
         .route("/user/callback", post(user_callback))
         .route("/user/id-from-email", post(user_id_from_email))
 }

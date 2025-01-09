@@ -102,38 +102,6 @@ impl Customers {
         customer
     }
 
-    pub async fn create_customer_through_kratos(
-        &self,
-        id: CustomerId,
-        email: String,
-    ) -> Result<Customer, CustomerError> {
-        let mut db = self.repo.begin_op().await?;
-
-        let audit_info = &self
-            .authz
-            .audit()
-            .record_system_entry_in_tx(
-                db.tx(),
-                Object::Customer(CustomerAllOrOne::All),
-                Action::Customer(CustomerAction::Create),
-            )
-            .await?;
-
-        let ledger_account_ids = self.ledger.create_accounts_for_customer(id).await?;
-        let new_customer = NewCustomer::builder()
-            .id(id)
-            .email(email)
-            .account_ids(ledger_account_ids)
-            .audit_info(audit_info.clone())
-            .build()
-            .expect("Could not build customer");
-
-        let customer = self.repo.create_in_op(&mut db, new_customer).await;
-        db.commit().await?;
-
-        customer
-    }
-
     #[instrument(name = "customer.create_customer", skip(self), err)]
     pub async fn find_by_id(
         &self,
