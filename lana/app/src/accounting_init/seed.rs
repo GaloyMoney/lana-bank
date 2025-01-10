@@ -80,12 +80,12 @@ async fn create_charts_of_accounts(
 async fn create_control_sub_account(
     chart_of_accounts: &ChartOfAccounts,
     chart_id: ChartId,
-    category: ChartOfAccountCode,
+    category: ChartPath,
     control_name: String,
     control_reference: String,
     sub_name: String,
     sub_reference: String,
-) -> Result<ChartOfAccountCode, AccountingInitError> {
+) -> Result<ChartPath, AccountingInitError> {
     let control_path = match chart_of_accounts
         .find_control_account_by_reference(chart_id, control_reference.clone())
         .await?
@@ -120,7 +120,7 @@ async fn create_deposits_account_paths(
     let deposits = create_control_sub_account(
         chart_of_accounts,
         chart_ids.primary,
-        ChartOfAccountCode::Category(chart_of_accounts::CategoryPath::Liabilities),
+        ChartPath::Category(chart_of_accounts::CategoryPath::Liabilities),
         DEPOSITS_CONTROL_ACCOUNT_NAME.to_string(),
         DEPOSITS_CONTROL_ACCOUNT_REF.to_string(),
         DEPOSITS_CONTROL_SUB_ACCOUNT_NAME.to_string(),
@@ -138,7 +138,7 @@ async fn create_credit_facilities_account_paths(
     let collateral = create_control_sub_account(
         chart_of_accounts,
         chart_ids.off_balance_sheet,
-        ChartOfAccountCode::Category(chart_of_accounts::CategoryPath::Liabilities),
+        ChartPath::Category(chart_of_accounts::CategoryPath::Liabilities),
         CREDIT_FACILITIES_COLLATERAL_CONTROL_ACCOUNT_NAME.to_string(),
         CREDIT_FACILITIES_COLLATERAL_CONTROL_ACCOUNT_REF.to_string(),
         CREDIT_FACILITIES_COLLATERAL_CONTROL_SUB_ACCOUNT_NAME.to_string(),
@@ -149,7 +149,7 @@ async fn create_credit_facilities_account_paths(
     let facility = create_control_sub_account(
         chart_of_accounts,
         chart_ids.off_balance_sheet,
-        ChartOfAccountCode::Category(chart_of_accounts::CategoryPath::Assets),
+        ChartPath::Category(chart_of_accounts::CategoryPath::Assets),
         CREDIT_FACILITIES_FACILITY_CONTROL_ACCOUNT_NAME.to_string(),
         CREDIT_FACILITIES_FACILITY_CONTROL_ACCOUNT_REF.to_string(),
         CREDIT_FACILITIES_FACILITY_CONTROL_SUB_ACCOUNT_NAME.to_string(),
@@ -160,7 +160,7 @@ async fn create_credit_facilities_account_paths(
     let disbursed_receivable = create_control_sub_account(
         chart_of_accounts,
         chart_ids.primary,
-        ChartOfAccountCode::Category(chart_of_accounts::CategoryPath::Assets),
+        ChartPath::Category(chart_of_accounts::CategoryPath::Assets),
         CREDIT_FACILITIES_DISBURSED_RECEIVABLE_CONTROL_ACCOUNT_NAME.to_string(),
         CREDIT_FACILITIES_DISBURSED_RECEIVABLE_CONTROL_ACCOUNT_REF.to_string(),
         CREDIT_FACILITIES_DISBURSED_RECEIVABLE_CONTROL_SUB_ACCOUNT_NAME.to_string(),
@@ -171,7 +171,7 @@ async fn create_credit_facilities_account_paths(
     let interest_receivable = create_control_sub_account(
         chart_of_accounts,
         chart_ids.primary,
-        ChartOfAccountCode::Category(chart_of_accounts::CategoryPath::Assets),
+        ChartPath::Category(chart_of_accounts::CategoryPath::Assets),
         CREDIT_FACILITIES_INTEREST_RECEIVABLE_CONTROL_ACCOUNT_NAME.to_string(),
         CREDIT_FACILITIES_INTEREST_RECEIVABLE_CONTROL_ACCOUNT_REF.to_string(),
         CREDIT_FACILITIES_INTEREST_RECEIVABLE_CONTROL_SUB_ACCOUNT_NAME.to_string(),
@@ -182,7 +182,7 @@ async fn create_credit_facilities_account_paths(
     let interest_income = create_control_sub_account(
         chart_of_accounts,
         chart_ids.primary,
-        ChartOfAccountCode::Category(chart_of_accounts::CategoryPath::Revenues),
+        ChartPath::Category(chart_of_accounts::CategoryPath::Revenues),
         CREDIT_FACILITIES_INTEREST_INCOME_CONTROL_ACCOUNT_NAME.to_string(),
         CREDIT_FACILITIES_INTEREST_INCOME_CONTROL_ACCOUNT_REF.to_string(),
         CREDIT_FACILITIES_INTEREST_INCOME_CONTROL_SUB_ACCOUNT_NAME.to_string(),
@@ -193,7 +193,7 @@ async fn create_credit_facilities_account_paths(
     let fee_income = create_control_sub_account(
         chart_of_accounts,
         chart_ids.primary,
-        ChartOfAccountCode::Category(chart_of_accounts::CategoryPath::Revenues),
+        ChartPath::Category(chart_of_accounts::CategoryPath::Revenues),
         CREDIT_FACILITIES_FEE_INCOME_CONTROL_ACCOUNT_NAME.to_string(),
         CREDIT_FACILITIES_FEE_INCOME_CONTROL_ACCOUNT_REF.to_string(),
         CREDIT_FACILITIES_FEE_INCOME_CONTROL_SUB_ACCOUNT_NAME.to_string(),

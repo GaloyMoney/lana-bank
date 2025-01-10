@@ -4,7 +4,7 @@ use rust_decimal_macros::dec;
 
 use authz::dummy::DummySubject;
 use cala_ledger::{CalaLedger, CalaLedgerConfig};
-use chart_of_accounts::{CategoryPath, ChartOfAccountCode, CoreChartOfAccounts};
+use chart_of_accounts::{CategoryPath, ChartPath, CoreChartOfAccounts};
 use deposit::*;
 
 use helpers::{action, event, object};
@@ -42,7 +42,7 @@ async fn cancel_withdrawal() -> anyhow::Result<()> {
     let control_account_path = chart_of_accounts
         .create_control_account(
             chart_id,
-            ChartOfAccountCode::Category(CategoryPath::Liabilities),
+            ChartPath::Category(CategoryPath::Liabilities),
             "Deposits".to_string(),
             "deposits".to_string(),
         )

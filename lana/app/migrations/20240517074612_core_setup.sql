@@ -46,14 +46,14 @@ CREATE TABLE approval_process_events (
   UNIQUE(id, sequence)
 );
 
-CREATE TABLE core_chart_of_accounts (
+CREATE TABLE core_charts (
   id UUID PRIMARY KEY,
   reference VARCHAR NOT NULL UNIQUE,
   created_at TIMESTAMPTZ NOT NULL
 );
 
-CREATE TABLE core_chart_of_account_events (
-  id UUID NOT NULL REFERENCES core_chart_of_accounts(id),
+CREATE TABLE core_chart_events (
+  id UUID NOT NULL REFERENCES core_charts(id),
   sequence INT NOT NULL,
   event_type VARCHAR NOT NULL,
   event JSONB NOT NULL,

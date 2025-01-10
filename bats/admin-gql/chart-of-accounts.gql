@@ -1,4 +1,4 @@
-query ChartOfAccount {
+query ChartOfAccounts {
   chartOfAccounts {
     name
     categories {
