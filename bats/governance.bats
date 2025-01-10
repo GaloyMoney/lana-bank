@@ -51,7 +51,7 @@ trigger_withdraw_approval_process() {
     '{ id: $id }'
   )
   exec_admin_graphql 'customer' "$variables"
-  deposit_account_id=$(graphql_output .data.customer.depositAccount.depositAccountId)
+  deposit_account_id=$(graphql_output .data.customer.depositAccounts[0].depositAccountId)
   cache_value "deposit_account_id" $deposit_account_id
 
   process_id=$(trigger_withdraw_approval_process $deposit_account_id)
