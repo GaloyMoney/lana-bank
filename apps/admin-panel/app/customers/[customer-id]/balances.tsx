@@ -8,7 +8,9 @@ import { DetailsCard, DetailItemProps } from "@/components/details"
 import { GetCustomerOverviewQuery } from "@/lib/graphql/generated"
 
 type CustomerAccountBalancesProps = {
-  balance: NonNullable<GetCustomerOverviewQuery["customer"]>["depositAccount"]["balance"]
+  balance: NonNullable<
+    GetCustomerOverviewQuery["customer"]
+  >["depositAccounts"][number]["balance"]
 }
 
 export const CustomerAccountBalances: React.FC<CustomerAccountBalancesProps> = ({

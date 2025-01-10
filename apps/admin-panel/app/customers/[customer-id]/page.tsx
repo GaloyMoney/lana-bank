@@ -31,7 +31,9 @@ export default function CustomerPage({ params }: { params: { "customer-id": stri
 
   return (
     <div className="flex flex-col md:flex-row w-full gap-2">
-      <CustomerAccountBalances balance={data.customer.depositAccount.balance} />
+      <CustomerAccountBalances
+        balance={data.customer.depositAccounts?.[0].balance || 0}
+      />
       <KycStatus customerId={params["customer-id"]} />
     </div>
   )

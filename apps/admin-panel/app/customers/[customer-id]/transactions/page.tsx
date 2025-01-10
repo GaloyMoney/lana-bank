@@ -31,8 +31,8 @@ export default function CustomerTransactionsPage({
     variables: { id: params["customer-id"] },
   })
   const transactions = [
-    ...(data?.customer?.depositAccount.deposits || []),
-    ...(data?.customer?.depositAccount.withdrawals || []),
+    ...(data?.customer?.depositAccounts?.[0]?.deposits || []),
+    ...(data?.customer?.depositAccounts?.[0]?.withdrawals || []),
   ].sort((a, b) => {
     return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
   })
