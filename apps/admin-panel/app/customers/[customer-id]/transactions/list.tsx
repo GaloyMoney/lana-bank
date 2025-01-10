@@ -12,10 +12,10 @@ import { UsdCents } from "@/types"
 
 type Deposit = NonNullable<
   GetCustomerTransactionsQuery["customer"]
->["depositAccounts"][number]["deposits"][number]
+>["depositAccount"]["deposits"][number]
 type Withdrawal = NonNullable<
   GetCustomerTransactionsQuery["customer"]
->["depositAccounts"][number]["withdrawals"][number]
+>["depositAccount"]["withdrawals"][number]
 type Transaction = Deposit | Withdrawal
 
 const isWithdrawal = (transaction: Transaction): transaction is Withdrawal => {

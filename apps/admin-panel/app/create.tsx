@@ -258,7 +258,7 @@ const CreateButton = () => {
               setCustomerToNullIfNotInCustomerDetails()
               setCreateDeposit(false)
             }}
-            depositAccountId={customer.depositAccounts?.[0].depositAccountId}
+            depositAccountId={customer.depositAccount.depositAccountId}
           />
 
           <WithdrawalInitiateDialog
@@ -267,7 +267,7 @@ const CreateButton = () => {
               setCustomerToNullIfNotInCustomerDetails()
               setCreateWithdrawal(false)
             }}
-            depositAccountId={customer.depositAccounts?.[0].depositAccountId}
+            depositAccountId={customer.depositAccount.depositAccountId}
           />
 
           <CreateCreditFacilityDialog

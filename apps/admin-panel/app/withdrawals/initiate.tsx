@@ -27,7 +27,7 @@ gql`
         account {
           customer {
             id
-            depositAccounts {
+            depositAccount {
               withdrawals {
                 ...WithdrawalFields
               }

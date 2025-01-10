@@ -37,7 +37,7 @@ gql`
           email
           telegramId
           applicantId
-          depositAccounts {
+          depositAccount {
             balance {
               settled
               pending
@@ -117,10 +117,10 @@ const columns: Column<Customer>[] = [
     ),
   },
   {
-    key: "depositAccounts",
+    key: "depositAccount",
     label: "USD Balance",
-    render: (depositAccounts) => (
-      <Balance amount={depositAccounts?.[0].balance?.settled ?? 0} currency="usd" />
+    render: (depositAccount) => (
+      <Balance amount={depositAccount?.balance?.settled ?? 0} currency="usd" />
     ),
   },
 ]
