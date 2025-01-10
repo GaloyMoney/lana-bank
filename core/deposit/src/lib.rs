@@ -510,18 +510,24 @@ where
             .enforce_permission(
                 sub,
                 CoreDepositObject::all_deposit_accounts(),
-                CoreDepositAction::DEPOSIT_ACCOUNT_READ,
+                CoreDepositAction::DEPOSIT_ACCOUNT_LIST,
             )
             .await?;
 
-        match self
+        let deposit_accounts = self
             .accounts
-            .find_by_account_holder_id(account_holder_id)
-            .await
-        {
-            Ok(deposit_account) => Ok(Some(deposit_account)),
-            Err(e) if e.was_not_found() => Ok(None),
-            Err(e) => Err(e.into()),
+            .list_for_account_holder_id_by_created_at(
+                account_holder_id,
+                Default::default(),
+                es_entity::ListDirection::Descending,
+            )
+            .await?;
+        if deposit_accounts.entities.len() > 1 {
+            return Err(CoreDepositError::MultipleFoundForAccountHolder(
+                account_holder_id,
+            ));
         }
+
+        Ok(deposit_accounts.entities.first().cloned())
     }
 }

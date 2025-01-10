@@ -21,7 +21,7 @@ pub enum DepositAccountEvent {
     },
 }
 
-#[derive(EsEntity, Builder)]
+#[derive(EsEntity, Builder, Clone)]
 #[builder(pattern = "owned", build_fn(error = "EsEntityError"))]
 pub struct DepositAccount {
     pub id: DepositAccountId,
