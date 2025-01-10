@@ -107,60 +107,7 @@ impl std::fmt::Display for ChartPath {
     }
 }
 
-impl std::str::FromStr for ChartPath {
-    type Err = ChartPathError;
-
-    fn from_str(s: &str) -> Result<Self, ChartPathError> {
-        if s.len() != 8 {
-            return Err(ChartPathError::InvalidCodeLength(s.to_string()));
-        }
-
-        fn parse_segment(s: &str) -> Result<u32, ChartPathError> {
-            Ok(s.parse::<u32>()?)
-        }
-
-        let category_segment = parse_segment(&s[0..1])?;
-        let category = Self::category_from_number(category_segment)
-            .ok_or(ChartPathError::InvalidCategoryNumber(category_segment))?;
-
-        let control = parse_segment(&s[1..3])?;
-        let sub = parse_segment(&s[3..5])?;
-        let trans = parse_segment(&s[5..8])?;
-
-        match (control, sub, trans) {
-            (0, 0, 0) => Ok(Self::Category(category)),
-            (c, 0, 0) if c > 0 => Ok(Self::ControlAccount {
-                category,
-                index: c.into(),
-            }),
-            (c, s, 0) if c > 0 && s > 0 => Ok(Self::ControlSubAccount {
-                category,
-                control_index: c.into(),
-                index: s.into(),
-            }),
-            (c, s, t) if c > 0 && s > 0 && t > 0 => Ok(Self::TransactionAccount {
-                category,
-                control_index: c.into(),
-                control_sub_index: s.into(),
-                index: t.into(),
-            }),
-            _ => Err(ChartPathError::InvalidCodeString(s.to_string())),
-        }
-    }
-}
-
 impl ChartPath {
-    fn category_from_number(num: u32) -> Option<ChartCategoryPath> {
-        match num {
-            1 => Some(ChartCategoryPath::Assets),
-            2 => Some(ChartCategoryPath::Liabilities),
-            3 => Some(ChartCategoryPath::Equity),
-            4 => Some(ChartCategoryPath::Revenues),
-            5 => Some(ChartCategoryPath::Expenses),
-            _ => None,
-        }
-    }
-
     pub fn normal_balance_type(&self) -> DebitOrCredit {
         match self.category() {
             ChartCategoryPath::Assets | ChartCategoryPath::Expenses => DebitOrCredit::Debit,
@@ -168,7 +115,7 @@ impl ChartPath {
         }
     }
 
-    pub fn to_code(&self, chart_id: ChartId) -> String {
+    pub fn path_encode(&self, chart_id: ChartId) -> String {
         format!("{}::{}", chart_id, self)
     }
 
@@ -332,7 +279,6 @@ impl ChartPath {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::str::FromStr;
 
     mod convert_to_string {
         use super::*;
@@ -371,85 +317,6 @@ mod tests {
                 index: 3.into(),
             };
             assert_eq!(code.to_string(), "40102003");
-        }
-    }
-
-    mod parse_code_from_string {
-        use super::*;
-
-        #[test]
-        fn test_parsing_valid_codes() {
-            assert_eq!(
-                ChartPath::from_str("10000000").unwrap(),
-                ChartPath::Category(ChartCategoryPath::Assets)
-            );
-
-            assert_eq!(
-                ChartPath::from_str("20100000").unwrap(),
-                ChartPath::ControlAccount {
-                    category: ChartCategoryPath::Liabilities,
-                    index: 1.into(),
-                }
-            );
-
-            assert_eq!(
-                ChartPath::from_str("30102000").unwrap(),
-                ChartPath::ControlSubAccount {
-                    category: ChartCategoryPath::Equity,
-                    control_index: 1.into(),
-                    index: 2.into(),
-                }
-            );
-
-            assert_eq!(
-                ChartPath::from_str("40102003").unwrap(),
-                ChartPath::TransactionAccount {
-                    category: ChartCategoryPath::Revenues,
-                    control_index: 1.into(),
-                    control_sub_index: 2.into(),
-                    index: 3.into(),
-                }
-            );
-        }
-
-        #[test]
-        fn test_invalid_code_length() {
-            match ChartPath::from_str("100") {
-                Err(ChartPathError::InvalidCodeLength(code)) => {
-                    assert_eq!(code, "100");
-                }
-                other => panic!("Expected InvalidCodeLength error, got {:?}", other),
-            }
-        }
-
-        #[test]
-        fn test_invalid_category() {
-            match ChartPath::from_str("90000000") {
-                Err(ChartPathError::InvalidCategoryNumber(num)) => {
-                    assert_eq!(num, 9);
-                }
-                other => panic!("Expected InvalidCategoryNumber error, got {:?}", other),
-            }
-        }
-
-        #[test]
-        fn test_invalid_code_format() {
-            match ChartPath::from_str("10002030") {
-                Err(ChartPathError::InvalidCodeString(code)) => {
-                    assert_eq!(code, "10002030");
-                }
-                other => panic!("Expected InvalidCodeString error, got {:?}", other),
-            }
-        }
-
-        #[test]
-        fn test_non_numeric_input() {
-            match ChartPath::from_str("A0000000") {
-                Err(ChartPathError::ParseIntError(_)) => {
-                    // ParseIntError doesn't implement PartialEq, so we just check the variant
-                }
-                other => panic!("Expected ParseIntError, got {:?}", other),
-            }
         }
     }
 

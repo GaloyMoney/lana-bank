@@ -199,7 +199,7 @@ impl Chart {
 
         Ok(ChartAccountDetails {
             account_id: creation_details.account_id,
-            code: path.to_code(self.id),
+            code: path.path_encode(self.id),
             path,
             name: creation_details.name,
             description: creation_details.description,
@@ -217,7 +217,7 @@ impl Chart {
             } if *path == account_path => Some(ChartAccountDetails {
                 account_id: *id,
                 path: *path,
-                code: path.to_code(self.id),
+                code: path.path_encode(self.id),
                 name: name.to_string(),
                 description: description.to_string(),
             }),

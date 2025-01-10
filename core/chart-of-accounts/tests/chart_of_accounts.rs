@@ -40,7 +40,7 @@ async fn create_and_populate() -> anyhow::Result<()> {
     let control_account_code = chart_of_accounts
         .create_control_account(
             chart_id,
-            "10000000".parse()?,
+            ChartPath::Category(CategoryPath::Assets),
             "Credit Facilities Receivable".to_string(),
             "credit-facilities-receivable".to_string(),
         )
