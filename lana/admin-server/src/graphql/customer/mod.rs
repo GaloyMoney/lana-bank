@@ -58,14 +58,26 @@ impl Customer {
         self.entity.applicant_id.as_deref()
     }
 
-    async fn deposit_account(&self, ctx: &Context<'_>) -> async_graphql::Result<DepositAccount> {
+    async fn deposit_accounts(
+        &self,
+        ctx: &Context<'_>,
+    ) -> async_graphql::Result<Vec<DepositAccount>> {
         let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
-        let account = app
+        let accounts = app
             .deposits()
-            .find_account_for_account_holder(sub, self.customer_id)
+            .list_account_by_created_at_for_account_holder(
+                sub,
+                self.customer_id,
+                Default::default(),
+                ListDirection::Descending,
+            )
             .await?
-            .expect("deposit account should exist for a customer");
-        Ok(DepositAccount::from(account))
+            .entities
+            .into_iter()
+            .map(DepositAccount::from)
+            .collect();
+
+        Ok(accounts)
     }
 
     async fn credit_facilities(

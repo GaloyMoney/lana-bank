@@ -18,7 +18,7 @@ use chart_of_accounts::TransactionAccountFactory;
 use authz::PermissionCheck;
 use cala_ledger::CalaLedger;
 use credit_chart_of_accounts::CreditChartOfAccounts;
-use deposit::DepositAccountHolderId;
+use deposit::{DepositAccount, DepositAccountHolderId};
 use tracing::instrument;
 
 use crate::{
@@ -215,18 +215,23 @@ impl CreditFacilities {
             .await?
             .expect("audit info missing");
 
-        let deposit_account = match self
+        let deposit_accounts: Vec<DepositAccount> = self
             .deposits
-            .find_account_for_account_holder(sub, customer_id)
+            .list_account_by_created_at_for_account_holder(
+                sub,
+                customer_id,
+                Default::default(),
+                ListDirection::Descending,
+            )
             .await?
-        {
-            Some(deposit_account) => deposit_account,
-            None => {
-                return Err(CreditFacilityError::DepositAccountForHolderNotFound(
-                    customer_id.into(),
-                ))
-            }
-        };
+            .entities
+            .into_iter()
+            .map(DepositAccount::from)
+            .collect();
+
+        let deposit_account = deposit_accounts.first().ok_or(
+            CreditFacilityError::DepositAccountForHolderNotFound(customer_id.into()),
+        )?;
 
         let id = CreditFacilityId::new();
         let new_credit_facility = NewCreditFacility::builder()

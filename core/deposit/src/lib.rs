@@ -11,6 +11,7 @@ mod primitives;
 mod processes;
 mod withdrawal;
 
+use deposit_account_cursor::DepositAccountsByCreatedAtCursor;
 use tracing::instrument;
 
 use audit::AuditSvc;
@@ -500,11 +501,16 @@ where
             .entities)
     }
 
-    pub async fn find_account_for_account_holder(
+    pub async fn list_account_by_created_at_for_account_holder(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         account_holder_id: impl Into<DepositAccountHolderId> + std::fmt::Debug,
-    ) -> Result<Option<DepositAccount>, CoreDepositError> {
+        query: es_entity::PaginatedQueryArgs<DepositAccountsByCreatedAtCursor>,
+        direction: impl Into<es_entity::ListDirection> + std::fmt::Debug,
+    ) -> Result<
+        es_entity::PaginatedQueryRet<DepositAccount, DepositAccountsByCreatedAtCursor>,
+        CoreDepositError,
+    > {
         let account_holder_id = account_holder_id.into();
         self.authz
             .enforce_permission(
@@ -514,20 +520,9 @@ where
             )
             .await?;
 
-        let deposit_accounts = self
+        Ok(self
             .accounts
-            .list_for_account_holder_id_by_created_at(
-                account_holder_id,
-                Default::default(),
-                es_entity::ListDirection::Descending,
-            )
-            .await?;
-        if deposit_accounts.entities.len() > 1 {
-            return Err(CoreDepositError::MultipleFoundForAccountHolder(
-                account_holder_id,
-            ));
-        }
-
-        Ok(deposit_accounts.entities.first().cloned())
+            .list_for_account_holder_id_by_created_at(account_holder_id, query, direction.into())
+            .await?)
     }
 }

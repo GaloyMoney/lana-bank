@@ -1,7 +1,5 @@
 use thiserror::Error;
 
-use crate::primitives::DepositAccountHolderId;
-
 #[derive(Error, Debug)]
 pub enum CoreDepositError {
     #[error("CoreDepositError - Sqlx: {0}")]
@@ -26,6 +24,4 @@ pub enum CoreDepositError {
     JobError(#[from] job::error::JobError),
     #[error("CoreDepositError - ProcessError: {0}")]
     ProcessError(#[from] crate::processes::error::ProcessError),
-    #[error("CoreDepositError - MultipleFoundForAccountHolder: {0}")]
-    MultipleFoundForAccountHolder(DepositAccountHolderId),
 }
