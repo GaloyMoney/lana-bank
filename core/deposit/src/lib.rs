@@ -372,7 +372,7 @@ where
         self.authz
             .enforce_permission(
                 sub,
-                CoreDepositObject::all_deposit_accounts(), // TODO: double-check this scope
+                CoreDepositObject::deposit_account_by_holder(account_holder_id),
                 CoreDepositAction::DEPOSIT_ACCOUNT_READ,
             )
             .await?;

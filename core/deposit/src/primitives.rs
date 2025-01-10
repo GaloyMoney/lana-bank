@@ -25,6 +25,7 @@ es_entity::entity_id! {
 pub use core_money::UsdCents;
 
 pub type DepositAccountAllOrOne = AllOrOne<DepositAccountId>;
+pub type DepositAccountByHolderAllOrOne = AllOrOne<DepositAccountHolderId>;
 pub type DepositAllOrOne = AllOrOne<DepositId>;
 pub type WithdrawalAllOrOne = AllOrOne<WithdrawalId>;
 
@@ -33,6 +34,7 @@ pub type WithdrawalAllOrOne = AllOrOne<WithdrawalId>;
 #[strum_discriminants(strum(serialize_all = "kebab-case"))]
 pub enum CoreDepositObject {
     DepositAccount(DepositAccountAllOrOne),
+    DepositAccountByHolder(DepositAccountByHolderAllOrOne),
     Deposit(DepositAllOrOne),
     Withdrawal(WithdrawalAllOrOne),
 }
@@ -44,6 +46,10 @@ impl CoreDepositObject {
 
     pub fn deposit_account(id: DepositAccountId) -> Self {
         CoreDepositObject::DepositAccount(AllOrOne::ById(id))
+    }
+
+    pub fn deposit_account_by_holder(id: DepositAccountHolderId) -> Self {
+        CoreDepositObject::DepositAccountByHolder(AllOrOne::ById(id))
     }
 
     pub fn all_deposits() -> Self {
@@ -69,6 +75,7 @@ impl Display for CoreDepositObject {
         use CoreDepositObject::*;
         match self {
             DepositAccount(obj_ref) => write!(f, "{}/{}", discriminant, obj_ref),
+            DepositAccountByHolder(obj_ref) => write!(f, "{}/{}", discriminant, obj_ref),
             Deposit(obj_ref) => write!(f, "{}/{}", discriminant, obj_ref),
             Withdrawal(obj_ref) => write!(f, "{}/{}", discriminant, obj_ref),
         }
@@ -87,6 +94,12 @@ impl FromStr for CoreDepositObject {
                     .parse()
                     .map_err(|_| "could not parse CoreDepositObject")?;
                 CoreDepositObject::DepositAccount(obj_ref)
+            }
+            DepositAccountByHolder => {
+                let obj_ref = id
+                    .parse()
+                    .map_err(|_| "could not parse CoreDepositObject")?;
+                CoreDepositObject::DepositAccountByHolder(obj_ref)
             }
             Deposit => {
                 let obj_ref = id
