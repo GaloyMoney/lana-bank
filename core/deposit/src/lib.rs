@@ -509,7 +509,7 @@ where
         self.authz
             .enforce_permission(
                 sub,
-                CoreDepositObject::deposit_account_by_holder(account_holder_id),
+                CoreDepositObject::all_deposit_accounts(),
                 CoreDepositAction::DEPOSIT_ACCOUNT_READ,
             )
             .await?;
