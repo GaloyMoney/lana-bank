@@ -217,7 +217,7 @@ impl CreditFacilities {
 
         let deposit_account = match self
             .deposits
-            .find_deposit_account_by_holder_id(sub, customer_id)
+            .find_account_for_account_holder(sub, customer_id)
             .await?
         {
             Some(deposit_account) => deposit_account,
