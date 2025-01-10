@@ -33,7 +33,7 @@ gql`
       status
       level
       createdAt
-      depositAccount {
+      depositAccounts {
         id
         depositAccountId
       }

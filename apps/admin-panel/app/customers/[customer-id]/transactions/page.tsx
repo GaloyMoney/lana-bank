@@ -10,7 +10,7 @@ gql`
   query GetCustomerTransactions($id: UUID!) {
     customer(id: $id) {
       id
-      depositAccount {
+      depositAccounts {
         deposits {
           ...DepositFields
         }

@@ -19,7 +19,7 @@ gql`
         customerId
         applicantId
         email
-        depositAccount {
+        depositAccounts {
           balance {
             settled
             pending

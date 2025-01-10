@@ -26,12 +26,12 @@ gql`
         account {
           customer {
             id
-            depositAccount {
+            depositAccounts {
               deposits {
                 ...DepositFields
               }
             }
-            depositAccount {
+            depositAccounts {
               balance {
                 settled
                 pending

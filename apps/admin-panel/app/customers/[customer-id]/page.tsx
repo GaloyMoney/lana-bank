@@ -12,7 +12,7 @@ gql`
     customer(id: $id) {
       id
       customerId
-      depositAccount {
+      depositAccounts {
         balance {
           settled
           pending

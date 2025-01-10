@@ -37,7 +37,7 @@ gql`
           email
           telegramId
           applicantId
-          depositAccount {
+          depositAccounts {
             balance {
               settled
               pending
