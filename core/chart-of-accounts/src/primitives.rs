@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 
 pub use cala_ledger::{primitives::AccountId as LedgerAccountId, DebitOrCredit};
 
-pub use crate::code::{ChartOfAccountCategoryCode as CategoryPath, ChartOfAccountCode};
+pub use crate::path::{ChartCategoryPath as CategoryPath, ChartPath};
 
 es_entity::entity_id! {
     ChartId,
@@ -55,9 +55,7 @@ impl FromStr for CoreChartOfAccountsObject {
         use CoreChartOfAccountsObjectDiscriminants::*;
         let res = match entity.parse().expect("invalid entity") {
             Chart => {
-                let obj_ref = id
-                    .parse()
-                    .map_err(|_| "could not parse CoreChartOfAccountObject")?;
+                let obj_ref = id.parse().map_err(|_| "could not parse CoreChartObject")?;
                 CoreChartOfAccountsObject::Chart(obj_ref)
             }
         };
@@ -123,17 +121,17 @@ impl From<ChartAction> for CoreChartOfAccountsAction {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ChartOfAccountAccountDetails {
+pub struct ChartAccountDetails {
     pub account_id: LedgerAccountId,
-    pub path: ChartOfAccountCode,
+    pub path: ChartPath,
     pub code: String,
     pub name: String,
     pub description: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ChartOfAccountCreationDetails {
-    pub parent_path: ChartOfAccountCode,
+pub struct ChartCreationDetails {
+    pub parent_path: ChartPath,
     pub account_id: LedgerAccountId,
     pub name: String,
     pub description: String,

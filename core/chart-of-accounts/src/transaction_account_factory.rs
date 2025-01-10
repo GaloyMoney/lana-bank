@@ -2,28 +2,26 @@ use audit::AuditInfo;
 use cala_ledger::{account::*, CalaLedger, LedgerOperation};
 
 use crate::{
-    chart_of_accounts::ChartOfAccountRepo,
-    code::ChartOfAccountCode,
-    error::CoreChartOfAccountError,
-    primitives::{
-        ChartId, ChartOfAccountAccountDetails, ChartOfAccountCreationDetails, LedgerAccountId,
-    },
+    chart_of_accounts::ChartRepo,
+    error::CoreChartOfAccountsError,
+    path::ChartPath,
+    primitives::{ChartAccountDetails, ChartCreationDetails, ChartId, LedgerAccountId},
 };
 
 #[derive(Clone)]
 pub struct TransactionAccountFactory {
-    repo: ChartOfAccountRepo,
+    repo: ChartRepo,
     cala: CalaLedger,
     chart_id: ChartId,
-    control_sub_account: ChartOfAccountCode,
+    control_sub_account: ChartPath,
 }
 
 impl TransactionAccountFactory {
     pub(super) fn new(
-        repo: &ChartOfAccountRepo,
+        repo: &ChartRepo,
         cala: &CalaLedger,
         chart_id: ChartId,
-        control_sub_account: ChartOfAccountCode,
+        control_sub_account: ChartPath,
     ) -> Self {
         Self {
             repo: repo.clone(),
@@ -40,14 +38,14 @@ impl TransactionAccountFactory {
         name: &str,
         description: &str,
         audit_info: AuditInfo,
-    ) -> Result<ChartOfAccountAccountDetails, CoreChartOfAccountError> {
+    ) -> Result<ChartAccountDetails, CoreChartOfAccountsError> {
         let mut chart = self
             .repo
             .find_by_id_in_tx(op.op().tx(), self.chart_id)
             .await?;
 
         let account_details = chart.add_transaction_account(
-            ChartOfAccountCreationDetails {
+            ChartCreationDetails {
                 account_id: account_id.into(),
                 parent_path: self.control_sub_account,
                 name: name.to_string(),

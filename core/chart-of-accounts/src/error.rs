@@ -1,15 +1,15 @@
 use thiserror::Error;
 
 #[derive(Error, Debug)]
-pub enum CoreChartOfAccountError {
-    #[error("CoreChartOfAccountError - Sqlx: {0}")]
+pub enum CoreChartOfAccountsError {
+    #[error("CoreChartOfAccountsError - Sqlx: {0}")]
     Sqlx(#[from] sqlx::Error),
-    #[error("CoreChartOfAccountError - AuthorizationError: {0}")]
+    #[error("CoreChartOfAccountsError - AuthorizationError: {0}")]
     AuthorizationError(#[from] authz::error::AuthorizationError),
-    #[error("CoreChartOfAccountError - ChartOfAccountError: {0}")]
-    ChartOfAccountError(#[from] crate::chart_of_accounts::error::ChartOfAccountError),
-    #[error("CoreChartOfAccountError - AuditError: {0}")]
+    #[error("CoreChartOfAccountsError - ChartError: {0}")]
+    ChartError(#[from] crate::chart_of_accounts::error::ChartError),
+    #[error("CoreChartOfAccountsError - AuditError: {0}")]
     AuditError(#[from] audit::error::AuditError),
-    #[error("ChartOfAccountLedgerError - CalaAccountError: {0}")]
+    #[error("CoreChartOfAccountsError - CalaAccountError: {0}")]
     CalaAccount(#[from] cala_ledger::account::error::AccountError),
 }

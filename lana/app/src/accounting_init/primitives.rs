@@ -1,4 +1,4 @@
-use chart_of_accounts::{ChartId, ChartOfAccountCode};
+use chart_of_accounts::{ChartId, ChartPath};
 
 #[derive(Clone, Copy)]
 pub struct ChartIds {
@@ -8,15 +8,15 @@ pub struct ChartIds {
 
 #[derive(Clone)]
 pub struct DepositsAccountPaths {
-    pub deposits: ChartOfAccountCode,
+    pub deposits: ChartPath,
 }
 
 #[derive(Clone)]
 pub struct CreditFacilitiesAccountPaths {
-    pub collateral: ChartOfAccountCode,
-    pub facility: ChartOfAccountCode,
-    pub disbursed_receivable: ChartOfAccountCode,
-    pub interest_receivable: ChartOfAccountCode,
-    pub interest_income: ChartOfAccountCode,
-    pub fee_income: ChartOfAccountCode,
+    pub collateral: ChartPath,
+    pub facility: ChartPath,
+    pub disbursed_receivable: ChartPath,
+    pub interest_receivable: ChartPath,
+    pub interest_income: ChartPath,
+    pub fee_income: ChartPath,
 }

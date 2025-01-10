@@ -4,7 +4,7 @@ use thiserror::Error;
 pub enum CoreDepositError {
     #[error("CoreDepositError - Sqlx: {0}")]
     Sqlx(#[from] sqlx::Error),
-    #[error("CoreChartOfAccountError - AuditError: {0}")]
+    #[error("CoreChartOfAccountsError - AuditError: {0}")]
     AuditError(#[from] audit::error::AuditError),
     #[error("CoreDepositError - AuthorizationError: {0}")]
     AuthorizationError(#[from] authz::error::AuthorizationError),
@@ -18,8 +18,8 @@ pub enum CoreDepositError {
     DepositLedgerError(#[from] crate::ledger::error::DepositLedgerError),
     #[error("CoreDepositError - GovernanceError: {0}")]
     GovernanceError(#[from] governance::error::GovernanceError),
-    #[error("CoreDepositError - CoreChartOfAccountError: {0}")]
-    CoreChartOfAccountError(#[from] chart_of_accounts::error::CoreChartOfAccountError),
+    #[error("CoreDepositError - CoreChartOfAccountsError: {0}")]
+    CoreChartOfAccountsError(#[from] chart_of_accounts::error::CoreChartOfAccountsError),
     #[error("CoreDepositError - JobError: {0}")]
     JobError(#[from] job::error::JobError),
     #[error("CoreDepositError - ProcessError: {0}")]
