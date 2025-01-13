@@ -298,7 +298,7 @@ mod tests {
         #[test]
         fn test_category_formatting() {
             let code = ChartPath::Category(ChartCategoryPath::Assets);
-            assert_eq!(code.to_string(), "1000000");
+            assert_eq!(code.to_string(), "10000000");
         }
 
         #[test]
@@ -307,7 +307,7 @@ mod tests {
                 category: ChartCategoryPath::Liabilities,
                 index: 1.into(),
             };
-            assert_eq!(code.to_string(), "2010000");
+            assert_eq!(code.to_string(), "20100000");
         }
 
         #[test]
