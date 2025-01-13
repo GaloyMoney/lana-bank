@@ -41,6 +41,12 @@ pub enum ChartCategoryPath {
     Expenses,
 }
 
+impl std::fmt::Display for ChartCategoryPath {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{:0<ENCODED_PATH_WIDTH$}", self.index())
+    }
+}
+
 impl ChartCategoryPath {
     fn index(&self) -> AccountIdx {
         match self {
@@ -55,7 +61,6 @@ impl ChartCategoryPath {
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub enum ChartPath {
-    Category(ChartCategoryPath),
     ControlAccount {
         category: ChartCategoryPath,
         index: AccountIdx,
@@ -76,9 +81,6 @@ pub enum ChartPath {
 impl std::fmt::Display for ChartPath {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Self::Category(category) => {
-                write!(f, "{:0<ENCODED_PATH_WIDTH$}", category.index())
-            }
             Self::ControlAccount { category, index } => {
                 write!(
                     f,
@@ -133,35 +135,31 @@ impl ChartPath {
 
     pub fn category(&self) -> ChartCategoryPath {
         match *self {
-            Self::Category(category) => category,
             Self::ControlAccount { category, .. } => category,
             Self::ControlSubAccount { category, .. } => category,
             Self::TransactionAccount { category, .. } => category,
         }
     }
 
-    pub fn control_account(&self) -> Option<ChartPath> {
+    pub fn control_account(&self) -> ChartPath {
         match *self {
-            Self::ControlAccount { category, index } => {
-                Some(Self::ControlAccount { category, index })
-            }
+            Self::ControlAccount { category, index } => Self::ControlAccount { category, index },
             Self::ControlSubAccount {
                 category,
                 control_index,
                 ..
-            } => Some(Self::ControlAccount {
+            } => Self::ControlAccount {
                 category,
                 index: control_index,
-            }),
+            },
             Self::TransactionAccount {
                 category,
                 control_index,
                 ..
-            } => Some(Self::ControlAccount {
+            } => Self::ControlAccount {
                 category,
                 index: control_index,
-            }),
-            Self::Category(_) => None,
+            },
         }
     }
 
@@ -190,13 +188,10 @@ impl ChartPath {
         }
     }
 
-    pub const fn first_control_account(category: ChartPath) -> Result<Self, ChartPathError> {
-        match category {
-            Self::Category(category) => Ok(Self::ControlAccount {
-                category,
-                index: AccountIdx::FIRST,
-            }),
-            _ => Err(ChartPathError::InvalidCategoryPathForNewControlAccount),
+    pub const fn first_control_account(category: ChartCategoryPath) -> Self {
+        Self::ControlAccount {
+            category,
+            index: AccountIdx::FIRST,
         }
     }
 
@@ -229,7 +224,6 @@ impl ChartPath {
 
     pub fn next(&self) -> Result<Self, ChartPathError> {
         match *self {
-            Self::Category(_) => Ok(*self), // Categories don't have next
             Self::ControlAccount { category, index } => {
                 let next_index = index.next();
                 if next_index > AccountIdx::MAX_TWO_DIGIT {
@@ -297,7 +291,7 @@ mod tests {
 
         #[test]
         fn test_category_formatting() {
-            let code = ChartPath::Category(ChartCategoryPath::Assets);
+            let code = ChartCategoryPath::Assets;
             assert_eq!(code.to_string(), "10000000");
         }
 
@@ -334,20 +328,6 @@ mod tests {
 
     mod category_extraction_tests {
         use super::*;
-
-        #[test]
-        fn test_category_from_category_code() {
-            for category in [
-                ChartCategoryPath::Assets,
-                ChartCategoryPath::Liabilities,
-                ChartCategoryPath::Equity,
-                ChartCategoryPath::Revenues,
-                ChartCategoryPath::Expenses,
-            ] {
-                let code = ChartPath::Category(category);
-                assert_eq!(code.category(), category);
-            }
-        }
 
         #[test]
         fn test_category_from_control_account() {
@@ -423,7 +403,7 @@ mod tests {
                 index: 3.into(),
             };
 
-            assert_eq!(transaction.control_account(), Some(EXPECTED));
+            assert_eq!(transaction.control_account(), EXPECTED);
         }
 
         #[test]
@@ -434,7 +414,7 @@ mod tests {
                 index: 2.into(),
             };
 
-            assert_eq!(sub_account.control_account(), Some(EXPECTED));
+            assert_eq!(sub_account.control_account(), EXPECTED);
         }
 
         #[test]
@@ -444,13 +424,7 @@ mod tests {
                 index: CONTROL_INDEX,
             };
 
-            assert_eq!(control_account.control_account(), Some(EXPECTED));
-        }
-
-        #[test]
-        fn test_control_account_from_category_returns_none() {
-            let category_code = ChartPath::Category(CATEGORY);
-            assert_eq!(category_code.control_account(), None);
+            assert_eq!(control_account.control_account(), EXPECTED);
         }
     }
 
@@ -498,12 +472,6 @@ mod tests {
 
             assert_eq!(control_account.control_sub_account(), None);
         }
-
-        #[test]
-        fn test_control_sub_account_from_category_returns_none() {
-            let category_code = ChartPath::Category(CATEGORY);
-            assert_eq!(category_code.control_sub_account(), None);
-        }
     }
 
     mod first_account_create {
@@ -511,8 +479,8 @@ mod tests {
 
         #[test]
         fn test_first_control_account_creation() {
-            let category = ChartPath::Category(ChartCategoryPath::Assets);
-            let control = ChartPath::first_control_account(category).unwrap();
+            let category = ChartCategoryPath::Assets;
+            let control = ChartPath::first_control_account(category);
 
             assert_eq!(
                 control,
@@ -521,16 +489,6 @@ mod tests {
                     index: AccountIdx::FIRST,
                 }
             );
-        }
-
-        #[test]
-        fn test_first_control_account_invalid_input() {
-            let invalid_input = ChartPath::ControlAccount {
-                category: ChartCategoryPath::Assets,
-                index: 1.into(),
-            };
-
-            assert!(ChartPath::first_control_account(invalid_input).is_err());
         }
 
         #[test]
@@ -553,7 +511,11 @@ mod tests {
 
         #[test]
         fn test_first_control_sub_account_invalid_input() {
-            let invalid_input = ChartPath::Category(ChartCategoryPath::Assets);
+            let invalid_input = ChartPath::ControlSubAccount {
+                category: ChartCategoryPath::Assets,
+                control_index: 1.into(),
+                index: 1.into(),
+            };
             assert!(ChartPath::first_control_sub_account(&invalid_input).is_err());
         }
 
@@ -579,7 +541,10 @@ mod tests {
 
         #[test]
         fn test_first_transaction_account_invalid_input() {
-            let invalid_input = ChartPath::Category(ChartCategoryPath::Assets);
+            let invalid_input = ChartPath::ControlAccount {
+                category: ChartCategoryPath::Assets,
+                index: 1.into(),
+            };
             assert!(ChartPath::first_transaction_account(&invalid_input).is_err());
         }
     }
@@ -672,13 +637,6 @@ mod tests {
                 index: AccountIdx::MAX_THREE_DIGIT,
             };
             assert!(max_transaction.next().is_err());
-        }
-
-        #[test]
-        fn test_next_category_returns_same() {
-            let category = ChartPath::Category(ChartCategoryPath::Assets);
-            let next_category = category.next().unwrap();
-            assert_eq!(category, next_category);
         }
     }
 }

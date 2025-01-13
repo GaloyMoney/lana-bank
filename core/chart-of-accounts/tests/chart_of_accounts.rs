@@ -40,7 +40,7 @@ async fn create_and_populate() -> anyhow::Result<()> {
     let control_account_code = chart_of_accounts
         .create_control_account(
             chart_id,
-            ChartPath::Category(CategoryPath::Assets),
+            CategoryPath::Assets,
             "Credit Facilities Receivable".to_string(),
             "credit-facilities-receivable".to_string(),
         )
@@ -57,7 +57,7 @@ async fn create_and_populate() -> anyhow::Result<()> {
         .await?;
     assert_eq!(
         control_sub_account_code.control_account(),
-        Some(control_account_code)
+        control_account_code
     );
 
     Ok(())

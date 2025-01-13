@@ -54,20 +54,18 @@ pub struct Chart {
 }
 
 impl Chart {
-    fn next_control_account(&self, category: ChartPath) -> Result<ChartPath, ChartError> {
+    fn next_control_account(&self, category: ChartCategoryPath) -> Result<ChartPath, ChartError> {
         Ok(self
             .events
             .iter_all()
             .rev()
             .find_map(|event| match event {
-                ChartEvent::ControlAccountAdded { path, .. }
-                    if path.category() == category.category() =>
-                {
+                ChartEvent::ControlAccountAdded { path, .. } if path.category() == category => {
                     Some(path.next())
                 }
                 _ => None,
             })
-            .unwrap_or_else(|| ChartPath::first_control_account(category))?)
+            .unwrap_or_else(|| Ok(ChartPath::first_control_account(category)))?)
     }
 
     pub fn find_control_account_by_reference(
@@ -84,7 +82,7 @@ impl Chart {
 
     pub fn create_control_account(
         &mut self,
-        category: ChartPath,
+        category: ChartCategoryPath,
         name: String,
         reference: String,
         audit_info: AuditInfo,
@@ -334,7 +332,7 @@ mod tests {
         let mut chart = init_chart_of_events();
         match chart
             .create_control_account(
-                ChartPath::Category(ChartCategoryPath::Assets),
+                ChartCategoryPath::Assets,
                 "Assets".to_string(),
                 "assets".to_string(),
                 dummy_audit_info(),
@@ -354,7 +352,7 @@ mod tests {
         let mut chart = init_chart_of_events();
         chart
             .create_control_account(
-                ChartPath::Category(ChartCategoryPath::Assets),
+                ChartCategoryPath::Assets,
                 "Assets #1".to_string(),
                 "assets".to_string(),
                 dummy_audit_info(),
@@ -362,7 +360,7 @@ mod tests {
             .unwrap();
 
         match chart.create_control_account(
-            ChartPath::Category(ChartCategoryPath::Assets),
+            ChartCategoryPath::Assets,
             "Assets #2".to_string(),
             "assets".to_string(),
             dummy_audit_info(),
@@ -381,7 +379,7 @@ mod tests {
         let mut chart = init_chart_of_events();
         let control_account = chart
             .create_control_account(
-                ChartPath::Category(ChartCategoryPath::Assets),
+                ChartCategoryPath::Assets,
                 "Assets".to_string(),
                 "assets".to_string(),
                 dummy_audit_info(),
@@ -415,7 +413,7 @@ mod tests {
         let mut chart = init_chart_of_events();
         let control_account = chart
             .create_control_account(
-                ChartPath::Category(ChartCategoryPath::Assets),
+                ChartCategoryPath::Assets,
                 "Assets".to_string(),
                 "assets".to_string(),
                 dummy_audit_info(),
@@ -453,7 +451,7 @@ mod tests {
         let mut chart = init_chart_of_events();
         let control_account = chart
             .create_control_account(
-                ChartPath::Category(ChartCategoryPath::Assets),
+                ChartCategoryPath::Assets,
                 "Assets".to_string(),
                 "assets".to_string(),
                 dummy_audit_info(),
@@ -505,7 +503,7 @@ mod tests {
 
         chart
             .create_control_account(
-                ChartPath::Category(ChartCategoryPath::Assets),
+                ChartCategoryPath::Assets,
                 "First".to_string(),
                 "assets-01".to_string(),
                 dummy_audit_info(),
@@ -514,7 +512,7 @@ mod tests {
 
         match chart
             .create_control_account(
-                ChartPath::Category(ChartCategoryPath::Assets),
+                ChartCategoryPath::Assets,
                 "Second".to_string(),
                 "assets-02".to_string(),
                 dummy_audit_info(),
@@ -534,7 +532,7 @@ mod tests {
         let mut chart = init_chart_of_events();
         let control_account = chart
             .create_control_account(
-                ChartPath::Category(ChartCategoryPath::Assets),
+                ChartCategoryPath::Assets,
                 "Assets".to_string(),
                 "assets".to_string(),
                 dummy_audit_info(),
@@ -577,7 +575,7 @@ mod tests {
         let mut chart = init_chart_of_events();
         let control_account = chart
             .create_control_account(
-                ChartPath::Category(ChartCategoryPath::Assets),
+                ChartCategoryPath::Assets,
                 "Assets".to_string(),
                 "assets".to_string(),
                 dummy_audit_info(),
@@ -640,7 +638,7 @@ mod tests {
         let mut chart = init_chart_of_events();
         let audit_info = dummy_audit_info();
 
-        let category = ChartPath::Category(ChartCategoryPath::Assets);
+        let category = ChartCategoryPath::Assets;
         let control_account = chart
             .create_control_account(
                 category,
