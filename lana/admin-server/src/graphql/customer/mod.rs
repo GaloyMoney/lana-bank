@@ -60,7 +60,8 @@ impl Customer {
 
     async fn deposit_account(&self, ctx: &Context<'_>) -> async_graphql::Result<DepositAccount> {
         let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
-        let account = app
+
+        Ok(app
             .deposits()
             .list_account_by_created_at_for_account_holder(
                 sub,
@@ -73,9 +74,7 @@ impl Customer {
             .into_iter()
             .map(DepositAccount::from)
             .next()
-            .expect("deposit account should exist for a customer");
-
-        Ok(account)
+            .ok_or(CustomerError::DepositAccountNotFound)?)
     }
 
     async fn credit_facilities(

@@ -4,4 +4,6 @@ use thiserror::Error;
 pub enum CustomerError {
     #[error("CustomerError - MissingValueForFilterField: {0}")]
     MissingValueForFilterField(String),
+    #[error("CustomerError - DepositAccountNotFound")]
+    DepositAccountNotFound,
 }
