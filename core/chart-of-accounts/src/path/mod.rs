@@ -7,6 +7,8 @@ use serde::{Deserialize, Serialize};
 use super::primitives::{ChartId, DebitOrCredit};
 use error::*;
 
+const ENCODED_PATH_WIDTH: usize = 8;
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Serialize, Hash, Deserialize)]
 pub struct AccountIdx(u64);
 impl Display for AccountIdx {
@@ -32,21 +34,21 @@ impl AccountIdx {
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub enum ChartCategoryPath {
-    Assets = 1,
-    Liabilities = 2,
-    Equity = 3,
-    Revenues = 4,
-    Expenses = 5,
+    Assets,
+    Liabilities,
+    Equity,
+    Revenues,
+    Expenses,
 }
 
-impl Display for ChartCategoryPath {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl ChartCategoryPath {
+    fn index(&self) -> AccountIdx {
         match self {
-            Self::Assets => write!(f, "Assets"),
-            Self::Liabilities => write!(f, "Liabilities"),
-            Self::Equity => write!(f, "Equity"),
-            Self::Revenues => write!(f, "Revenues"),
-            Self::Expenses => write!(f, "Expenses"),
+            Self::Assets => AccountIdx::from(1),
+            Self::Liabilities => AccountIdx::from(2),
+            Self::Equity => AccountIdx::from(3),
+            Self::Revenues => AccountIdx::from(4),
+            Self::Expenses => AccountIdx::from(5),
         }
     }
 }
@@ -75,10 +77,14 @@ impl std::fmt::Display for ChartPath {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::Category(category) => {
-                write!(f, "{:01}000000", *category as u32)
+                write!(f, "{:0<ENCODED_PATH_WIDTH$}", category.index())
             }
             Self::ControlAccount { category, index } => {
-                write!(f, "{:01}{:02}0000", *category as u32, index)
+                write!(
+                    f,
+                    "{:0<ENCODED_PATH_WIDTH$}",
+                    format!("{:01}{:02}", category.index(), index)
+                )
             }
             Self::ControlSubAccount {
                 category,
@@ -87,8 +93,8 @@ impl std::fmt::Display for ChartPath {
             } => {
                 write!(
                     f,
-                    "{:01}{:02}{:02}000",
-                    *category as u32, control_index, index
+                    "{:0<ENCODED_PATH_WIDTH$}",
+                    format!("{:01}{:02}{:02}", category.index(), control_index, index)
                 )
             }
             Self::TransactionAccount {
@@ -99,8 +105,14 @@ impl std::fmt::Display for ChartPath {
             } => {
                 write!(
                     f,
-                    "{:01}{:02}{:02}{:03}",
-                    *category as u32, control_index, control_sub_index, index
+                    "{:0<ENCODED_PATH_WIDTH$}",
+                    format!(
+                        "{:01}{:02}{:02}{:03}",
+                        category.index(),
+                        control_index,
+                        control_sub_index,
+                        index
+                    )
                 )
             }
         }
