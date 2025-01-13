@@ -265,7 +265,7 @@ where
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         chart_id: impl Into<ChartId> + std::fmt::Debug,
-        code: impl Into<ChartPath> + std::fmt::Debug,
+        encoded_path: String,
     ) -> Result<Option<ChartAccountDetails>, CoreChartOfAccountsError> {
         let chart_id = chart_id.into();
         self.authz
@@ -278,7 +278,7 @@ where
 
         let chart = self.repo.find_by_id(chart_id).await?;
 
-        let account_details = chart.find_account(code.into());
+        let account_details = chart.find_account_by_encoded_path(encoded_path);
 
         Ok(account_details)
     }

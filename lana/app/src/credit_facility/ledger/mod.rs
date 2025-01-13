@@ -377,10 +377,10 @@ impl CreditLedger {
 
     async fn create_bank_collateral_account(
         cala: &CalaLedger,
-        code: String,
+        encoded_path: String,
     ) -> Result<AccountId, CreditLedgerError> {
         let new_account = NewAccount::builder()
-            .code(&code)
+            .code(&encoded_path)
             .id(AccountId::new())
             .name("Bank collateral account")
             .description("Bank collateral account")
@@ -389,7 +389,7 @@ impl CreditLedger {
             .expect("Couldn't create onchain incoming account");
         match cala.accounts().create(new_account).await {
             Err(AccountError::CodeAlreadyExists) => {
-                let account = cala.accounts().find_by_code(code).await?;
+                let account = cala.accounts().find_by_code(encoded_path).await?;
                 Ok(account.id)
             }
             Err(e) => Err(e.into()),
@@ -399,10 +399,10 @@ impl CreditLedger {
 
     async fn create_credit_omnibus_account(
         cala: &CalaLedger,
-        code: String,
+        encoded_path: String,
     ) -> Result<AccountId, CreditLedgerError> {
         let new_account = NewAccount::builder()
-            .code(&code)
+            .code(&encoded_path)
             .id(AccountId::new())
             .name("Credit Omnibus Account")
             .description("Omnibus Account for Credit module")
@@ -411,7 +411,7 @@ impl CreditLedger {
             .expect("Couldn't create credit omnibus account");
         match cala.accounts().create(new_account).await {
             Err(AccountError::CodeAlreadyExists) => {
-                let account = cala.accounts().find_by_code(code).await?;
+                let account = cala.accounts().find_by_code(encoded_path).await?;
                 Ok(account.id)
             }
             Err(e) => Err(e.into()),

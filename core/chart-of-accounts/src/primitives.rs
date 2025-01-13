@@ -124,7 +124,7 @@ impl From<ChartAction> for CoreChartOfAccountsAction {
 pub struct ChartAccountDetails {
     pub account_id: LedgerAccountId,
     pub path: ChartPath,
-    pub code: String,
+    pub encoded_path: String,
     pub name: String,
     pub description: String,
 }

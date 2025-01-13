@@ -60,7 +60,7 @@ impl TransactionAccountFactory {
             .id(account_details.account_id)
             .name(account_details.name.to_string())
             .description(account_details.description.to_string())
-            .code(account_details.code.to_string())
+            .code(account_details.encoded_path.to_string())
             .normal_balance_type(account_details.path.normal_balance_type())
             .build()
             .expect("Could not build new account");

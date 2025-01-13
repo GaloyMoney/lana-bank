@@ -22,20 +22,23 @@ pub enum ChartEvent {
         audit_info: AuditInfo,
     },
     ControlAccountAdded {
-        code: ChartPath,
+        encoded_path: String,
+        path: ChartPath,
         name: String,
         reference: String,
         audit_info: AuditInfo,
     },
     ControlSubAccountAdded {
-        code: ChartPath,
+        encoded_path: String,
+        path: ChartPath,
         name: String,
         reference: String,
         audit_info: AuditInfo,
     },
     TransactionAccountAdded {
         id: LedgerAccountId,
-        code: ChartPath,
+        encoded_path: String,
+        path: ChartPath,
         name: String,
         description: String,
         audit_info: AuditInfo,
@@ -57,10 +60,10 @@ impl Chart {
             .iter_all()
             .rev()
             .find_map(|event| match event {
-                ChartEvent::ControlAccountAdded { code, .. }
-                    if code.category() == category.category() =>
+                ChartEvent::ControlAccountAdded { path, .. }
+                    if path.category() == category.category() =>
                 {
-                    Some(code.next())
+                    Some(path.next())
                 }
                 _ => None,
             })
@@ -73,8 +76,8 @@ impl Chart {
     ) -> Option<ChartPath> {
         self.events.iter_all().rev().find_map(|event| match event {
             ChartEvent::ControlAccountAdded {
-                code, reference, ..
-            } if reference_to_check == *reference => Some(*code),
+                path, reference, ..
+            } if reference_to_check == *reference => Some(*path),
             _ => None,
         })
     }
@@ -93,15 +96,16 @@ impl Chart {
             return Err(ChartError::ControlAccountAlreadyRegistered(reference));
         };
 
-        let code = self.next_control_account(category)?;
+        let path = self.next_control_account(category)?;
         self.events.push(ChartEvent::ControlAccountAdded {
-            code,
+            encoded_path: path.path_encode(self.id),
+            path,
             name,
             reference,
             audit_info,
         });
 
-        Ok(code)
+        Ok(path)
     }
 
     fn next_control_sub_account(
@@ -113,11 +117,11 @@ impl Chart {
             .iter_all()
             .rev()
             .find_map(|event| match event {
-                ChartEvent::ControlSubAccountAdded { code, .. }
-                    if code.category() == control_account.category()
-                        && code.control_account() == control_account.control_account() =>
+                ChartEvent::ControlSubAccountAdded { path, .. }
+                    if path.category() == control_account.category()
+                        && path.control_account() == control_account.control_account() =>
                 {
-                    Some(code.next())
+                    Some(path.next())
                 }
                 _ => None,
             })
@@ -130,8 +134,8 @@ impl Chart {
     ) -> Option<ChartPath> {
         self.events.iter_all().rev().find_map(|event| match event {
             ChartEvent::ControlSubAccountAdded {
-                code, reference, ..
-            } if reference_to_check == *reference => Some(*code),
+                path, reference, ..
+            } if reference_to_check == *reference => Some(*path),
             _ => None,
         })
     }
@@ -150,15 +154,16 @@ impl Chart {
             return Err(ChartError::ControlSubAccountAlreadyRegistered(reference));
         };
 
-        let code = self.next_control_sub_account(control_account)?;
+        let path = self.next_control_sub_account(control_account)?;
         self.events.push(ChartEvent::ControlSubAccountAdded {
-            code,
+            encoded_path: path.path_encode(self.id),
+            path,
             name,
             reference,
             audit_info,
         });
 
-        Ok(code)
+        Ok(path)
     }
 
     fn next_transaction_account(
@@ -170,13 +175,13 @@ impl Chart {
             .iter_all()
             .rev()
             .find_map(|event| match event {
-                ChartEvent::TransactionAccountAdded { code, .. }
-                    if code.category() == control_sub_account.category()
-                        && code.control_account() == control_sub_account.control_account()
-                        && code.control_sub_account()
+                ChartEvent::TransactionAccountAdded { path, .. }
+                    if path.category() == control_sub_account.category()
+                        && path.control_account() == control_sub_account.control_account()
+                        && path.control_sub_account()
                             == control_sub_account.control_sub_account() =>
                 {
-                    Some(code.next())
+                    Some(path.next())
                 }
                 _ => None,
             })
@@ -191,7 +196,8 @@ impl Chart {
         let path = self.next_transaction_account(creation_details.parent_path)?;
         self.events.push(ChartEvent::TransactionAccountAdded {
             id: creation_details.account_id,
-            code: path,
+            encoded_path: path.path_encode(self.id),
+            path,
             name: creation_details.name.clone(),
             description: creation_details.description.clone(),
             audit_info,
@@ -199,25 +205,29 @@ impl Chart {
 
         Ok(ChartAccountDetails {
             account_id: creation_details.account_id,
-            code: path.path_encode(self.id),
+            encoded_path: path.path_encode(self.id),
             path,
             name: creation_details.name,
             description: creation_details.description,
         })
     }
 
-    pub fn find_account(&self, account_path: ChartPath) -> Option<ChartAccountDetails> {
+    pub fn find_account_by_encoded_path(
+        &self,
+        encoded_path: String,
+    ) -> Option<ChartAccountDetails> {
         self.events.iter_all().rev().find_map(|event| match event {
             ChartEvent::TransactionAccountAdded {
                 id,
-                code: path,
+                encoded_path: encoded_path_from_event,
+                path,
                 name,
                 description,
                 ..
-            } if *path == account_path => Some(ChartAccountDetails {
+            } if *encoded_path_from_event == encoded_path => Some(ChartAccountDetails {
                 account_id: *id,
                 path: *path,
-                code: path.path_encode(self.id),
+                encoded_path: encoded_path_from_event.to_string(),
                 name: name.to_string(),
                 description: description.to_string(),
             }),
@@ -659,10 +669,14 @@ mod tests {
             )
             .unwrap();
 
-        let found = chart.find_account(transaction_account.path).unwrap();
-        assert_eq!(found.code, transaction_account.code);
+        let found = chart
+            .find_account_by_encoded_path(transaction_account.encoded_path)
+            .unwrap();
+        assert_eq!(found.path, transaction_account.path);
         assert_eq!(found.name, "Cash");
 
-        assert!(chart.find_account("20101001".parse().unwrap()).is_none());
+        assert!(chart
+            .find_account_by_encoded_path("20101001".to_string())
+            .is_none());
     }
 }
