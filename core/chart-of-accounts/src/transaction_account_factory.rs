@@ -4,7 +4,7 @@ use cala_ledger::{account::*, CalaLedger, LedgerOperation};
 use crate::{
     chart_of_accounts::ChartRepo,
     error::CoreChartOfAccountsError,
-    path::ChartPath,
+    path::ControlSubAccountPath,
     primitives::{ChartAccountDetails, ChartCreationDetails, ChartId, LedgerAccountId},
 };
 
@@ -13,7 +13,7 @@ pub struct TransactionAccountFactory {
     repo: ChartRepo,
     cala: CalaLedger,
     chart_id: ChartId,
-    control_sub_account: ChartPath,
+    control_sub_account: ControlSubAccountPath,
 }
 
 impl TransactionAccountFactory {
@@ -21,7 +21,7 @@ impl TransactionAccountFactory {
         repo: &ChartRepo,
         cala: &CalaLedger,
         chart_id: ChartId,
-        control_sub_account: ChartPath,
+        control_sub_account: ControlSubAccountPath,
     ) -> Self {
         Self {
             repo: repo.clone(),
@@ -47,7 +47,7 @@ impl TransactionAccountFactory {
         let account_details = chart.add_transaction_account(
             ChartCreationDetails {
                 account_id: account_id.into(),
-                parent_path: self.control_sub_account,
+                control_sub_account: self.control_sub_account,
                 name: name.to_string(),
                 description: description.to_string(),
             },

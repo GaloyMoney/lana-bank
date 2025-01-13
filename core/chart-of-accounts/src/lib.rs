@@ -15,6 +15,8 @@ use authz::PermissionCheck;
 
 use chart_of_accounts::*;
 use error::*;
+use path::ControlAccountPath;
+pub use path::ControlSubAccountPath;
 pub use primitives::*;
 pub use transaction_account_factory::*;
 
@@ -63,7 +65,7 @@ where
     pub fn transaction_account_factory(
         &self,
         chart_id: ChartId,
-        control_sub_account: ChartPath,
+        control_sub_account: ControlSubAccountPath,
     ) -> TransactionAccountFactory {
         TransactionAccountFactory::new(&self.repo, &self.cala, chart_id, control_sub_account)
     }
@@ -152,7 +154,7 @@ where
         &self,
         chart_id: impl Into<ChartId>,
         reference: String,
-    ) -> Result<Option<ChartPath>, CoreChartOfAccountsError> {
+    ) -> Result<Option<ControlAccountPath>, CoreChartOfAccountsError> {
         let chart_id = chart_id.into();
 
         let mut op = self.repo.begin_op().await?;
@@ -177,7 +179,7 @@ where
         category: ChartCategory,
         name: String,
         reference: String,
-    ) -> Result<ChartPath, CoreChartOfAccountsError> {
+    ) -> Result<ControlAccountPath, CoreChartOfAccountsError> {
         let chart_id = chart_id.into();
 
         let mut op = self.repo.begin_op().await?;
@@ -194,20 +196,20 @@ where
 
         let mut chart = self.repo.find_by_id(chart_id).await?;
 
-        let code = chart.create_control_account(category, name, reference, audit_info)?;
+        let path = chart.create_control_account(category, name, reference, audit_info)?;
 
         self.repo.update_in_op(&mut op, &mut chart).await?;
 
         op.commit().await?;
 
-        Ok(code)
+        Ok(path)
     }
 
     pub async fn find_control_sub_account_by_reference(
         &self,
         chart_id: impl Into<ChartId>,
         reference: String,
-    ) -> Result<Option<ChartPath>, CoreChartOfAccountsError> {
+    ) -> Result<Option<ControlSubAccountPath>, CoreChartOfAccountsError> {
         let chart_id = chart_id.into();
 
         let mut op = self.repo.begin_op().await?;
@@ -229,10 +231,10 @@ where
     pub async fn create_control_sub_account(
         &self,
         chart_id: impl Into<ChartId> + std::fmt::Debug,
-        control_account: ChartPath,
+        control_account: ControlAccountPath,
         name: String,
         reference: String,
-    ) -> Result<ChartPath, CoreChartOfAccountsError> {
+    ) -> Result<ControlSubAccountPath, CoreChartOfAccountsError> {
         let chart_id = chart_id.into();
 
         let mut op = self.repo.begin_op().await?;
@@ -249,7 +251,7 @@ where
 
         let mut chart = self.repo.find_by_id(chart_id).await?;
 
-        let code =
+        let path =
             chart.create_control_sub_account(control_account, name, reference, audit_info)?;
 
         let mut op = self.repo.begin_op().await?;
@@ -257,7 +259,7 @@ where
 
         op.commit().await?;
 
-        Ok(code)
+        Ok(path)
     }
 
     #[instrument(name = "chart_of_accounts.find_account_in_chart", skip(self))]

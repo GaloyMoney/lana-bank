@@ -23,14 +23,14 @@ pub enum ChartEvent {
     },
     ControlAccountAdded {
         encoded_path: String,
-        path: ChartPath,
+        path: ControlAccountPath,
         name: String,
         reference: String,
         audit_info: AuditInfo,
     },
     ControlSubAccountAdded {
         encoded_path: String,
-        path: ChartPath,
+        path: ControlSubAccountPath,
         name: String,
         reference: String,
         audit_info: AuditInfo,
@@ -38,7 +38,7 @@ pub enum ChartEvent {
     TransactionAccountAdded {
         id: LedgerAccountId,
         encoded_path: String,
-        path: ChartPath,
+        path: TransactionAccountPath,
         name: String,
         description: String,
         audit_info: AuditInfo,
@@ -54,24 +54,27 @@ pub struct Chart {
 }
 
 impl Chart {
-    fn next_control_account(&self, category: ChartCategory) -> Result<ChartPath, ChartError> {
+    fn next_control_account(
+        &self,
+        category: ChartCategory,
+    ) -> Result<ControlAccountPath, ChartError> {
         Ok(self
             .events
             .iter_all()
             .rev()
             .find_map(|event| match event {
-                ChartEvent::ControlAccountAdded { path, .. } if path.category() == category => {
+                ChartEvent::ControlAccountAdded { path, .. } if path.category == category => {
                     Some(path.next())
                 }
                 _ => None,
             })
-            .unwrap_or_else(|| Ok(ChartPath::first_control_account(category)))?)
+            .unwrap_or_else(|| Ok(category.first_control_account()))?)
     }
 
     pub fn find_control_account_by_reference(
         &self,
         reference_to_check: String,
-    ) -> Option<ChartPath> {
+    ) -> Option<ControlAccountPath> {
         self.events.iter_all().rev().find_map(|event| match event {
             ChartEvent::ControlAccountAdded {
                 path, reference, ..
@@ -86,7 +89,7 @@ impl Chart {
         name: String,
         reference: String,
         audit_info: AuditInfo,
-    ) -> Result<ChartPath, ChartError> {
+    ) -> Result<ControlAccountPath, ChartError> {
         if self
             .find_control_account_by_reference(reference.to_string())
             .is_some()
@@ -108,28 +111,28 @@ impl Chart {
 
     fn next_control_sub_account(
         &self,
-        control_account: ChartPath,
-    ) -> Result<ChartPath, ChartError> {
+        control_account: ControlAccountPath,
+    ) -> Result<ControlSubAccountPath, ChartError> {
         Ok(self
             .events
             .iter_all()
             .rev()
             .find_map(|event| match event {
                 ChartEvent::ControlSubAccountAdded { path, .. }
-                    if path.category() == control_account.category()
-                        && path.control_account() == control_account.control_account() =>
+                    if path.category == control_account.category
+                        && path.control_account() == control_account =>
                 {
                     Some(path.next())
                 }
                 _ => None,
             })
-            .unwrap_or_else(|| ChartPath::first_control_sub_account(&control_account))?)
+            .unwrap_or(Ok(control_account.first_control_sub_account()))?)
     }
 
     pub fn find_control_sub_account_by_reference(
         &self,
         reference_to_check: String,
-    ) -> Option<ChartPath> {
+    ) -> Option<ControlSubAccountPath> {
         self.events.iter_all().rev().find_map(|event| match event {
             ChartEvent::ControlSubAccountAdded {
                 path, reference, ..
@@ -140,11 +143,11 @@ impl Chart {
 
     pub fn create_control_sub_account(
         &mut self,
-        control_account: ChartPath,
+        control_account: ControlAccountPath,
         name: String,
         reference: String,
         audit_info: AuditInfo,
-    ) -> Result<ChartPath, ChartError> {
+    ) -> Result<ControlSubAccountPath, ChartError> {
         if self
             .find_control_sub_account_by_reference(reference.to_string())
             .is_some()
@@ -166,24 +169,23 @@ impl Chart {
 
     fn next_transaction_account(
         &self,
-        control_sub_account: ChartPath,
-    ) -> Result<ChartPath, ChartError> {
+        control_sub_account: ControlSubAccountPath,
+    ) -> Result<TransactionAccountPath, ChartError> {
         Ok(self
             .events
             .iter_all()
             .rev()
             .find_map(|event| match event {
                 ChartEvent::TransactionAccountAdded { path, .. }
-                    if path.category() == control_sub_account.category()
+                    if path.category == control_sub_account.category
                         && path.control_account() == control_sub_account.control_account()
-                        && path.control_sub_account()
-                            == control_sub_account.control_sub_account() =>
+                        && path.control_sub_account() == control_sub_account =>
                 {
                     Some(path.next())
                 }
                 _ => None,
             })
-            .unwrap_or_else(|| ChartPath::first_transaction_account(&control_sub_account))?)
+            .unwrap_or(Ok(control_sub_account.first_transaction_account()))?)
     }
 
     pub fn add_transaction_account(
@@ -191,7 +193,7 @@ impl Chart {
         creation_details: ChartCreationDetails,
         audit_info: AuditInfo,
     ) -> Result<ChartAccountDetails, ChartError> {
-        let path = self.next_transaction_account(creation_details.parent_path)?;
+        let path = self.next_transaction_account(creation_details.control_sub_account)?;
         self.events.push(ChartEvent::TransactionAccountAdded {
             id: creation_details.account_id,
             encoded_path: path.path_encode(self.id),
@@ -330,21 +332,16 @@ mod tests {
     #[test]
     fn test_create_control_account() {
         let mut chart = init_chart_of_events();
-        match chart
+        let ControlAccountPath { category, index } = chart
             .create_control_account(
                 ChartCategory::Assets,
                 "Assets".to_string(),
                 "assets".to_string(),
                 dummy_audit_info(),
             )
-            .unwrap()
-        {
-            ChartPath::ControlAccount { category, index } => {
-                assert_eq!(category, ChartCategory::Assets);
-                assert_eq!(index, AccountIdx::FIRST);
-            }
-            other => panic!("Expected FIRST control account, got {:?}", other),
-        }
+            .unwrap();
+        assert_eq!(category, ChartCategory::Assets);
+        assert_eq!(index, AccountIdx::FIRST);
     }
 
     #[test]
@@ -386,26 +383,21 @@ mod tests {
             )
             .unwrap();
 
-        match chart
+        let ControlSubAccountPath {
+            category,
+            control_index,
+            index,
+        } = chart
             .create_control_sub_account(
                 control_account,
                 "Current Assets".to_string(),
                 "current-assets".to_string(),
                 dummy_audit_info(),
             )
-            .unwrap()
-        {
-            ChartPath::ControlSubAccount {
-                category,
-                control_index,
-                index,
-            } => {
-                assert_eq!(category, ChartCategory::Assets);
-                assert_eq!(control_index, AccountIdx::FIRST);
-                assert_eq!(index, AccountIdx::FIRST);
-            }
-            other => panic!("Expected FIRST control sub account, got {:?}", other),
-        }
+            .unwrap();
+        assert_eq!(category, ChartCategory::Assets);
+        assert_eq!(control_index, AccountIdx::FIRST);
+        assert_eq!(index, AccountIdx::FIRST);
     }
 
     #[test]
@@ -466,35 +458,30 @@ mod tests {
             )
             .unwrap();
 
-        match chart
+        let ChartAccountDetails {
+            path:
+                TransactionAccountPath {
+                    category,
+                    control_index,
+                    control_sub_index,
+                    index,
+                },
+            ..
+        } = chart
             .add_transaction_account(
                 ChartCreationDetails {
                     account_id: LedgerAccountId::new(),
-                    parent_path: control_sub_account,
+                    control_sub_account,
                     name: "Cash".to_string(),
                     description: "Cash account".to_string(),
                 },
                 dummy_audit_info(),
             )
-            .unwrap()
-        {
-            ChartAccountDetails {
-                path:
-                    ChartPath::TransactionAccount {
-                        category,
-                        control_index,
-                        control_sub_index,
-                        index,
-                    },
-                ..
-            } => {
-                assert_eq!(category, ChartCategory::Assets);
-                assert_eq!(control_index, AccountIdx::FIRST);
-                assert_eq!(control_sub_index, AccountIdx::FIRST);
-                assert_eq!(index, AccountIdx::FIRST);
-            }
-            other => panic!("Expected FIRST transaction account, got {:?}", other),
-        }
+            .unwrap();
+        assert_eq!(category, ChartCategory::Assets);
+        assert_eq!(control_index, AccountIdx::FIRST);
+        assert_eq!(control_sub_index, AccountIdx::FIRST);
+        assert_eq!(index, AccountIdx::FIRST);
     }
 
     #[test]
@@ -510,21 +497,16 @@ mod tests {
             )
             .unwrap();
 
-        match chart
+        let ControlAccountPath { category, index } = chart
             .create_control_account(
                 ChartCategory::Assets,
                 "Second".to_string(),
                 "assets-02".to_string(),
                 dummy_audit_info(),
             )
-            .unwrap()
-        {
-            ChartPath::ControlAccount { category, index } => {
-                assert_eq!(category, ChartCategory::Assets);
-                assert_eq!(index, AccountIdx::FIRST.next());
-            }
-            other => panic!("Expected SECOND control account, got {:?}", other),
-        }
+            .unwrap();
+        assert_eq!(category, ChartCategory::Assets);
+        assert_eq!(index, AccountIdx::FIRST.next());
     }
 
     #[test]
@@ -548,26 +530,21 @@ mod tests {
             )
             .unwrap();
 
-        match chart
+        let ControlSubAccountPath {
+            category,
+            control_index,
+            index,
+        } = chart
             .create_control_sub_account(
                 control_account,
                 "Second".to_string(),
                 "second-asset".to_string(),
                 dummy_audit_info(),
             )
-            .unwrap()
-        {
-            ChartPath::ControlSubAccount {
-                category,
-                control_index,
-                index,
-            } => {
-                assert_eq!(category, ChartCategory::Assets);
-                assert_eq!(control_index, AccountIdx::FIRST);
-                assert_eq!(index, AccountIdx::FIRST.next());
-            }
-            other => panic!("Expected SECOND control sub account, got {:?}", other),
-        }
+            .unwrap();
+        assert_eq!(category, ChartCategory::Assets);
+        assert_eq!(control_index, AccountIdx::FIRST);
+        assert_eq!(index, AccountIdx::FIRST.next());
     }
 
     #[test]
@@ -581,7 +558,7 @@ mod tests {
                 dummy_audit_info(),
             )
             .unwrap();
-        let sub_account = chart
+        let control_sub_account = chart
             .create_control_sub_account(
                 control_account,
                 "Current Assets".to_string(),
@@ -594,7 +571,7 @@ mod tests {
             .add_transaction_account(
                 ChartCreationDetails {
                     account_id: LedgerAccountId::new(),
-                    parent_path: sub_account,
+                    control_sub_account,
                     name: "First".to_string(),
                     description: "First transaction account".to_string(),
                 },
@@ -602,35 +579,30 @@ mod tests {
             )
             .unwrap();
 
-        match chart
+        let ChartAccountDetails {
+            path:
+                TransactionAccountPath {
+                    category,
+                    control_index,
+                    control_sub_index,
+                    index,
+                },
+            ..
+        } = chart
             .add_transaction_account(
                 ChartCreationDetails {
                     account_id: LedgerAccountId::new(),
-                    parent_path: sub_account,
+                    control_sub_account,
                     name: "Second".to_string(),
                     description: "Second transaction account".to_string(),
                 },
                 dummy_audit_info(),
             )
-            .unwrap()
-        {
-            ChartAccountDetails {
-                path:
-                    ChartPath::TransactionAccount {
-                        category,
-                        control_index,
-                        control_sub_index,
-                        index,
-                    },
-                ..
-            } => {
-                assert_eq!(category, ChartCategory::Assets);
-                assert_eq!(control_index, AccountIdx::FIRST);
-                assert_eq!(control_sub_index, AccountIdx::FIRST);
-                assert_eq!(index, AccountIdx::FIRST.next());
-            }
-            other => panic!("Expected SECOND transaction account, got {:?}", other),
-        }
+            .unwrap();
+        assert_eq!(category, ChartCategory::Assets);
+        assert_eq!(control_index, AccountIdx::FIRST);
+        assert_eq!(control_sub_index, AccountIdx::FIRST);
+        assert_eq!(index, AccountIdx::FIRST.next());
     }
 
     #[test]
@@ -647,7 +619,7 @@ mod tests {
                 audit_info.clone(),
             )
             .unwrap();
-        let sub_account = chart
+        let control_sub_account = chart
             .create_control_sub_account(
                 control_account,
                 "Current Assets".to_string(),
@@ -659,7 +631,7 @@ mod tests {
             .add_transaction_account(
                 ChartCreationDetails {
                     account_id: LedgerAccountId::new(),
-                    parent_path: sub_account,
+                    control_sub_account,
                     name: "Cash".to_string(),
                     description: "Cash account".to_string(),
                 },

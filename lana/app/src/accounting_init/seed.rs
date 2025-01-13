@@ -87,7 +87,7 @@ async fn create_control_sub_account(
     control_reference: String,
     sub_name: String,
     sub_reference: String,
-) -> Result<ChartPath, AccountingInitError> {
+) -> Result<ControlSubAccountPath, AccountingInitError> {
     let control_path = match chart_of_accounts
         .find_control_account_by_reference(chart_id, control_reference.clone())
         .await?

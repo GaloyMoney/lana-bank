@@ -5,7 +5,8 @@ use serde::{Deserialize, Serialize};
 
 pub use cala_ledger::{primitives::AccountId as LedgerAccountId, DebitOrCredit};
 
-pub use crate::path::{ChartCategory, ChartPath};
+pub use crate::path::ChartCategory;
+use crate::path::{ControlSubAccountPath, TransactionAccountPath};
 
 es_entity::entity_id! {
     ChartId,
@@ -123,7 +124,7 @@ impl From<ChartAction> for CoreChartOfAccountsAction {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ChartAccountDetails {
     pub account_id: LedgerAccountId,
-    pub path: ChartPath,
+    pub path: TransactionAccountPath,
     pub encoded_path: String,
     pub name: String,
     pub description: String,
@@ -131,7 +132,7 @@ pub struct ChartAccountDetails {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ChartCreationDetails {
-    pub parent_path: ChartPath,
+    pub control_sub_account: ControlSubAccountPath,
     pub account_id: LedgerAccountId,
     pub name: String,
     pub description: String,
