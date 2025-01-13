@@ -54,7 +54,7 @@ pub struct Chart {
 }
 
 impl Chart {
-    fn next_control_account(&self, category: ChartCategoryPath) -> Result<ChartPath, ChartError> {
+    fn next_control_account(&self, category: ChartCategory) -> Result<ChartPath, ChartError> {
         Ok(self
             .events
             .iter_all()
@@ -82,7 +82,7 @@ impl Chart {
 
     pub fn create_control_account(
         &mut self,
-        category: ChartCategoryPath,
+        category: ChartCategory,
         name: String,
         reference: String,
         audit_info: AuditInfo,
@@ -281,7 +281,7 @@ impl IntoEvents<ChartEvent> for NewChart {
 
 #[cfg(test)]
 mod tests {
-    use crate::path::{AccountIdx, ChartCategoryPath};
+    use crate::path::{AccountIdx, ChartCategory};
 
     use super::*;
 
@@ -332,7 +332,7 @@ mod tests {
         let mut chart = init_chart_of_events();
         match chart
             .create_control_account(
-                ChartCategoryPath::Assets,
+                ChartCategory::Assets,
                 "Assets".to_string(),
                 "assets".to_string(),
                 dummy_audit_info(),
@@ -340,7 +340,7 @@ mod tests {
             .unwrap()
         {
             ChartPath::ControlAccount { category, index } => {
-                assert_eq!(category, ChartCategoryPath::Assets);
+                assert_eq!(category, ChartCategory::Assets);
                 assert_eq!(index, AccountIdx::FIRST);
             }
             other => panic!("Expected FIRST control account, got {:?}", other),
@@ -352,7 +352,7 @@ mod tests {
         let mut chart = init_chart_of_events();
         chart
             .create_control_account(
-                ChartCategoryPath::Assets,
+                ChartCategory::Assets,
                 "Assets #1".to_string(),
                 "assets".to_string(),
                 dummy_audit_info(),
@@ -360,7 +360,7 @@ mod tests {
             .unwrap();
 
         match chart.create_control_account(
-            ChartCategoryPath::Assets,
+            ChartCategory::Assets,
             "Assets #2".to_string(),
             "assets".to_string(),
             dummy_audit_info(),
@@ -379,7 +379,7 @@ mod tests {
         let mut chart = init_chart_of_events();
         let control_account = chart
             .create_control_account(
-                ChartCategoryPath::Assets,
+                ChartCategory::Assets,
                 "Assets".to_string(),
                 "assets".to_string(),
                 dummy_audit_info(),
@@ -400,7 +400,7 @@ mod tests {
                 control_index,
                 index,
             } => {
-                assert_eq!(category, ChartCategoryPath::Assets);
+                assert_eq!(category, ChartCategory::Assets);
                 assert_eq!(control_index, AccountIdx::FIRST);
                 assert_eq!(index, AccountIdx::FIRST);
             }
@@ -413,7 +413,7 @@ mod tests {
         let mut chart = init_chart_of_events();
         let control_account = chart
             .create_control_account(
-                ChartCategoryPath::Assets,
+                ChartCategory::Assets,
                 "Assets".to_string(),
                 "assets".to_string(),
                 dummy_audit_info(),
@@ -451,7 +451,7 @@ mod tests {
         let mut chart = init_chart_of_events();
         let control_account = chart
             .create_control_account(
-                ChartCategoryPath::Assets,
+                ChartCategory::Assets,
                 "Assets".to_string(),
                 "assets".to_string(),
                 dummy_audit_info(),
@@ -488,7 +488,7 @@ mod tests {
                     },
                 ..
             } => {
-                assert_eq!(category, ChartCategoryPath::Assets);
+                assert_eq!(category, ChartCategory::Assets);
                 assert_eq!(control_index, AccountIdx::FIRST);
                 assert_eq!(control_sub_index, AccountIdx::FIRST);
                 assert_eq!(index, AccountIdx::FIRST);
@@ -503,7 +503,7 @@ mod tests {
 
         chart
             .create_control_account(
-                ChartCategoryPath::Assets,
+                ChartCategory::Assets,
                 "First".to_string(),
                 "assets-01".to_string(),
                 dummy_audit_info(),
@@ -512,7 +512,7 @@ mod tests {
 
         match chart
             .create_control_account(
-                ChartCategoryPath::Assets,
+                ChartCategory::Assets,
                 "Second".to_string(),
                 "assets-02".to_string(),
                 dummy_audit_info(),
@@ -520,7 +520,7 @@ mod tests {
             .unwrap()
         {
             ChartPath::ControlAccount { category, index } => {
-                assert_eq!(category, ChartCategoryPath::Assets);
+                assert_eq!(category, ChartCategory::Assets);
                 assert_eq!(index, AccountIdx::FIRST.next());
             }
             other => panic!("Expected SECOND control account, got {:?}", other),
@@ -532,7 +532,7 @@ mod tests {
         let mut chart = init_chart_of_events();
         let control_account = chart
             .create_control_account(
-                ChartCategoryPath::Assets,
+                ChartCategory::Assets,
                 "Assets".to_string(),
                 "assets".to_string(),
                 dummy_audit_info(),
@@ -562,7 +562,7 @@ mod tests {
                 control_index,
                 index,
             } => {
-                assert_eq!(category, ChartCategoryPath::Assets);
+                assert_eq!(category, ChartCategory::Assets);
                 assert_eq!(control_index, AccountIdx::FIRST);
                 assert_eq!(index, AccountIdx::FIRST.next());
             }
@@ -575,7 +575,7 @@ mod tests {
         let mut chart = init_chart_of_events();
         let control_account = chart
             .create_control_account(
-                ChartCategoryPath::Assets,
+                ChartCategory::Assets,
                 "Assets".to_string(),
                 "assets".to_string(),
                 dummy_audit_info(),
@@ -624,7 +624,7 @@ mod tests {
                     },
                 ..
             } => {
-                assert_eq!(category, ChartCategoryPath::Assets);
+                assert_eq!(category, ChartCategory::Assets);
                 assert_eq!(control_index, AccountIdx::FIRST);
                 assert_eq!(control_sub_index, AccountIdx::FIRST);
                 assert_eq!(index, AccountIdx::FIRST.next());
@@ -638,7 +638,7 @@ mod tests {
         let mut chart = init_chart_of_events();
         let audit_info = dummy_audit_info();
 
-        let category = ChartCategoryPath::Assets;
+        let category = ChartCategory::Assets;
         let control_account = chart
             .create_control_account(
                 category,

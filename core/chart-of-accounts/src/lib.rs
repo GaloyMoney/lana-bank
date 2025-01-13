@@ -174,7 +174,7 @@ where
     pub async fn create_control_account(
         &self,
         chart_id: impl Into<ChartId>,
-        category: CategoryPath,
+        category: ChartCategory,
         name: String,
         reference: String,
     ) -> Result<ChartPath, CoreChartOfAccountsError> {

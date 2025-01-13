@@ -33,7 +33,7 @@ impl AccountIdx {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
-pub enum ChartCategoryPath {
+pub enum ChartCategory {
     Assets,
     Liabilities,
     Equity,
@@ -41,13 +41,13 @@ pub enum ChartCategoryPath {
     Expenses,
 }
 
-impl std::fmt::Display for ChartCategoryPath {
+impl std::fmt::Display for ChartCategory {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{:0<ENCODED_PATH_WIDTH$}", self.index())
     }
 }
 
-impl ChartCategoryPath {
+impl ChartCategory {
     fn index(&self) -> AccountIdx {
         match self {
             Self::Assets => AccountIdx::from(1),
@@ -62,16 +62,16 @@ impl ChartCategoryPath {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub enum ChartPath {
     ControlAccount {
-        category: ChartCategoryPath,
+        category: ChartCategory,
         index: AccountIdx,
     },
     ControlSubAccount {
-        category: ChartCategoryPath,
+        category: ChartCategory,
         control_index: AccountIdx,
         index: AccountIdx,
     },
     TransactionAccount {
-        category: ChartCategoryPath,
+        category: ChartCategory,
         control_index: AccountIdx,
         control_sub_index: AccountIdx,
         index: AccountIdx,
@@ -124,7 +124,7 @@ impl std::fmt::Display for ChartPath {
 impl ChartPath {
     pub fn normal_balance_type(&self) -> DebitOrCredit {
         match self.category() {
-            ChartCategoryPath::Assets | ChartCategoryPath::Expenses => DebitOrCredit::Debit,
+            ChartCategory::Assets | ChartCategory::Expenses => DebitOrCredit::Debit,
             _ => DebitOrCredit::Credit,
         }
     }
@@ -133,7 +133,7 @@ impl ChartPath {
         format!("{}::{}", chart_id, self)
     }
 
-    pub fn category(&self) -> ChartCategoryPath {
+    pub fn category(&self) -> ChartCategory {
         match *self {
             Self::ControlAccount { category, .. } => category,
             Self::ControlSubAccount { category, .. } => category,
@@ -188,7 +188,7 @@ impl ChartPath {
         }
     }
 
-    pub const fn first_control_account(category: ChartCategoryPath) -> Self {
+    pub const fn first_control_account(category: ChartCategory) -> Self {
         Self::ControlAccount {
             category,
             index: AccountIdx::FIRST,
@@ -291,14 +291,14 @@ mod tests {
 
         #[test]
         fn test_category_formatting() {
-            let code = ChartCategoryPath::Assets;
+            let code = ChartCategory::Assets;
             assert_eq!(code.to_string(), "10000000");
         }
 
         #[test]
         fn test_control_account_formatting() {
             let code = ChartPath::ControlAccount {
-                category: ChartCategoryPath::Liabilities,
+                category: ChartCategory::Liabilities,
                 index: 1.into(),
             };
             assert_eq!(code.to_string(), "20100000");
@@ -307,7 +307,7 @@ mod tests {
         #[test]
         fn test_control_sub_account_formatting() {
             let code = ChartPath::ControlSubAccount {
-                category: ChartCategoryPath::Equity,
+                category: ChartCategory::Equity,
                 control_index: 1.into(),
                 index: 2.into(),
             };
@@ -317,7 +317,7 @@ mod tests {
         #[test]
         fn test_transaction_account_formatting() {
             let code = ChartPath::TransactionAccount {
-                category: ChartCategoryPath::Revenues,
+                category: ChartCategory::Revenues,
                 control_index: 1.into(),
                 control_sub_index: 2.into(),
                 index: 3.into(),
@@ -332,11 +332,11 @@ mod tests {
         #[test]
         fn test_category_from_control_account() {
             for category in [
-                ChartCategoryPath::Assets,
-                ChartCategoryPath::Liabilities,
-                ChartCategoryPath::Equity,
-                ChartCategoryPath::Revenues,
-                ChartCategoryPath::Expenses,
+                ChartCategory::Assets,
+                ChartCategory::Liabilities,
+                ChartCategory::Equity,
+                ChartCategory::Revenues,
+                ChartCategory::Expenses,
             ] {
                 let code = ChartPath::ControlAccount {
                     category,
@@ -349,11 +349,11 @@ mod tests {
         #[test]
         fn test_category_from_control_sub_account() {
             for category in [
-                ChartCategoryPath::Assets,
-                ChartCategoryPath::Liabilities,
-                ChartCategoryPath::Equity,
-                ChartCategoryPath::Revenues,
-                ChartCategoryPath::Expenses,
+                ChartCategory::Assets,
+                ChartCategory::Liabilities,
+                ChartCategory::Equity,
+                ChartCategory::Revenues,
+                ChartCategory::Expenses,
             ] {
                 let code = ChartPath::ControlSubAccount {
                     category,
@@ -367,11 +367,11 @@ mod tests {
         #[test]
         fn test_category_from_transaction_account() {
             for category in [
-                ChartCategoryPath::Assets,
-                ChartCategoryPath::Liabilities,
-                ChartCategoryPath::Equity,
-                ChartCategoryPath::Revenues,
-                ChartCategoryPath::Expenses,
+                ChartCategory::Assets,
+                ChartCategory::Liabilities,
+                ChartCategory::Equity,
+                ChartCategory::Revenues,
+                ChartCategory::Expenses,
             ] {
                 let code = ChartPath::TransactionAccount {
                     category,
@@ -387,7 +387,7 @@ mod tests {
     mod control_account_extraction_tests {
         use super::*;
 
-        const CATEGORY: ChartCategoryPath = ChartCategoryPath::Assets;
+        const CATEGORY: ChartCategory = ChartCategory::Assets;
         const CONTROL_INDEX: AccountIdx = AccountIdx::FIRST;
         const EXPECTED: ChartPath = ChartPath::ControlAccount {
             category: CATEGORY,
@@ -431,7 +431,7 @@ mod tests {
     mod control_sub_account_extraction_tests {
         use super::*;
 
-        const CATEGORY: ChartCategoryPath = ChartCategoryPath::Assets;
+        const CATEGORY: ChartCategory = ChartCategory::Assets;
         const CONTROL_INDEX: AccountIdx = AccountIdx::FIRST;
         const SUB_INDEX: AccountIdx = AccountIdx::FIRST;
         const EXPECTED: ChartPath = ChartPath::ControlSubAccount {
@@ -479,13 +479,13 @@ mod tests {
 
         #[test]
         fn test_first_control_account_creation() {
-            let category = ChartCategoryPath::Assets;
+            let category = ChartCategory::Assets;
             let control = ChartPath::first_control_account(category);
 
             assert_eq!(
                 control,
                 ChartPath::ControlAccount {
-                    category: ChartCategoryPath::Assets,
+                    category: ChartCategory::Assets,
                     index: AccountIdx::FIRST,
                 }
             );
@@ -494,7 +494,7 @@ mod tests {
         #[test]
         fn test_first_control_sub_account_creation() {
             let control = ChartPath::ControlAccount {
-                category: ChartCategoryPath::Assets,
+                category: ChartCategory::Assets,
                 index: AccountIdx::FIRST,
             };
 
@@ -502,7 +502,7 @@ mod tests {
             assert_eq!(
                 sub,
                 ChartPath::ControlSubAccount {
-                    category: ChartCategoryPath::Assets,
+                    category: ChartCategory::Assets,
                     control_index: AccountIdx::FIRST,
                     index: AccountIdx::FIRST,
                 }
@@ -512,7 +512,7 @@ mod tests {
         #[test]
         fn test_first_control_sub_account_invalid_input() {
             let invalid_input = ChartPath::ControlSubAccount {
-                category: ChartCategoryPath::Assets,
+                category: ChartCategory::Assets,
                 control_index: 1.into(),
                 index: 1.into(),
             };
@@ -522,7 +522,7 @@ mod tests {
         #[test]
         fn test_first_transaction_account_creation() {
             let sub = ChartPath::ControlSubAccount {
-                category: ChartCategoryPath::Assets,
+                category: ChartCategory::Assets,
                 control_index: AccountIdx::FIRST,
                 index: AccountIdx::FIRST,
             };
@@ -531,7 +531,7 @@ mod tests {
             assert_eq!(
                 transaction,
                 ChartPath::TransactionAccount {
-                    category: ChartCategoryPath::Assets,
+                    category: ChartCategory::Assets,
                     control_index: AccountIdx::FIRST,
                     control_sub_index: AccountIdx::FIRST,
                     index: AccountIdx::FIRST,
@@ -542,7 +542,7 @@ mod tests {
         #[test]
         fn test_first_transaction_account_invalid_input() {
             let invalid_input = ChartPath::ControlAccount {
-                category: ChartCategoryPath::Assets,
+                category: ChartCategory::Assets,
                 index: 1.into(),
             };
             assert!(ChartPath::first_transaction_account(&invalid_input).is_err());
@@ -555,7 +555,7 @@ mod tests {
         #[test]
         fn test_next_control_account_success() {
             let control = ChartPath::ControlAccount {
-                category: ChartCategoryPath::Assets,
+                category: ChartCategory::Assets,
                 index: 1.into(),
             };
 
@@ -563,7 +563,7 @@ mod tests {
             assert_eq!(
                 next_control,
                 ChartPath::ControlAccount {
-                    category: ChartCategoryPath::Assets,
+                    category: ChartCategory::Assets,
                     index: 2.into(),
                 }
             );
@@ -572,7 +572,7 @@ mod tests {
         #[test]
         fn test_next_control_account_overflow() {
             let max_control = ChartPath::ControlAccount {
-                category: ChartCategoryPath::Assets,
+                category: ChartCategory::Assets,
                 index: AccountIdx::MAX_TWO_DIGIT,
             };
             assert!(max_control.next().is_err());
@@ -581,7 +581,7 @@ mod tests {
         #[test]
         fn test_next_control_sub_account_success() {
             let sub = ChartPath::ControlSubAccount {
-                category: ChartCategoryPath::Assets,
+                category: ChartCategory::Assets,
                 control_index: 1.into(),
                 index: 1.into(),
             };
@@ -590,7 +590,7 @@ mod tests {
             assert_eq!(
                 next_sub,
                 ChartPath::ControlSubAccount {
-                    category: ChartCategoryPath::Assets,
+                    category: ChartCategory::Assets,
                     control_index: 1.into(),
                     index: 2.into(),
                 }
@@ -600,7 +600,7 @@ mod tests {
         #[test]
         fn test_next_control_sub_account_overflow() {
             let max_sub = ChartPath::ControlSubAccount {
-                category: ChartCategoryPath::Assets,
+                category: ChartCategory::Assets,
                 control_index: 1.into(),
                 index: AccountIdx::MAX_TWO_DIGIT,
             };
@@ -610,7 +610,7 @@ mod tests {
         #[test]
         fn test_next_transaction_account_success() {
             let transaction = ChartPath::TransactionAccount {
-                category: ChartCategoryPath::Assets,
+                category: ChartCategory::Assets,
                 control_index: 1.into(),
                 control_sub_index: 1.into(),
                 index: 1.into(),
@@ -620,7 +620,7 @@ mod tests {
             assert_eq!(
                 next_transaction,
                 ChartPath::TransactionAccount {
-                    category: ChartCategoryPath::Assets,
+                    category: ChartCategory::Assets,
                     control_index: 1.into(),
                     control_sub_index: 1.into(),
                     index: 2.into(),
@@ -631,7 +631,7 @@ mod tests {
         #[test]
         fn test_next_transaction_account_overflow() {
             let max_transaction = ChartPath::TransactionAccount {
-                category: ChartCategoryPath::Assets,
+                category: ChartCategory::Assets,
                 control_index: 1.into(),
                 control_sub_index: 1.into(),
                 index: AccountIdx::MAX_THREE_DIGIT,
