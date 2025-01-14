@@ -36,6 +36,7 @@ async fn deposit() -> anyhow::Result<()> {
     chart_of_accounts
         .create_chart(
             chart_id,
+            "Test Chart".to_string(),
             format!("{:02}", rand::thread_rng().gen_range(0..100)),
         )
         .await?;

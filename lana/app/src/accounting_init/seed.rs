@@ -59,7 +59,11 @@ async fn create_charts_of_accounts(
         Some(chart) => chart,
         None => {
             chart_of_accounts
-                .create_chart(ChartId::new(), CHART_REF.to_string())
+                .create_chart(
+                    ChartId::new(),
+                    CHART_NAME.to_string(),
+                    CHART_REF.to_string(),
+                )
                 .await?
         }
     };
@@ -71,7 +75,11 @@ async fn create_charts_of_accounts(
         Some(chart) => chart,
         None => {
             chart_of_accounts
-                .create_chart(ChartId::new(), OBS_CHART_REF.to_string())
+                .create_chart(
+                    ChartId::new(),
+                    OBS_CHART_NAME.to_string(),
+                    OBS_CHART_REF.to_string(),
+                )
                 .await?
         }
     };

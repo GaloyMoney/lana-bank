@@ -78,6 +78,7 @@ where
     pub async fn create_chart(
         &self,
         id: impl Into<ChartId> + std::fmt::Debug,
+        name: String,
         reference: String,
     ) -> Result<Chart, CoreChartOfAccountsError> {
         let id = id.into();
@@ -95,6 +96,7 @@ where
 
         let new_chart_of_account = NewChart::builder()
             .id(id)
+            .name(name)
             .reference(reference)
             .audit_info(audit_info)
             .build()

@@ -45,6 +45,7 @@ async fn create_and_populate() -> anyhow::Result<()> {
     chart_of_accounts
         .create_chart(
             chart_id,
+            "Test Chart".to_string(),
             format!("{:02}", rand::thread_rng().gen_range(0..100)),
         )
         .await?;
@@ -103,10 +104,10 @@ async fn create_with_duplicate_reference() -> anyhow::Result<()> {
 
     let chart_id = ChartId::new();
     chart_of_accounts
-        .create_chart(chart_id, reference.clone())
+        .create_chart(chart_id, "Test Chart".to_string(), reference.clone())
         .await?;
     let res = chart_of_accounts
-        .create_chart(chart_id, reference.clone())
+        .create_chart(chart_id, "Test Chart".to_string(), reference.clone())
         .await;
     assert!(res.is_err());
 

@@ -20,6 +20,7 @@ pub use super::error::*;
 pub enum ChartEvent {
     Initialized {
         id: ChartId,
+        name: String,
         reference: String,
         audit_info: AuditInfo,
     },
@@ -221,6 +222,7 @@ impl TryFromEvents<ChartEvent> for Chart {
 pub struct NewChart {
     #[builder(setter(into))]
     pub(super) id: ChartId,
+    pub(super) name: String,
     pub(super) reference: String,
     #[builder(setter(into))]
     pub audit_info: AuditInfo,
@@ -238,6 +240,7 @@ impl IntoEvents<ChartEvent> for NewChart {
             self.id,
             [ChartEvent::Initialized {
                 id: self.id,
+                name: self.name,
                 reference: self.reference,
                 audit_info: self.audit_info,
             }],
@@ -266,6 +269,7 @@ mod tests {
 
         let new_chart = NewChart::builder()
             .id(id)
+            .name("Test Chart".to_string())
             .reference("ref-01".to_string())
             .audit_info(audit_info)
             .build()
@@ -282,6 +286,7 @@ mod tests {
 
         let new_chart = NewChart::builder()
             .id(id)
+            .name("Test Chart".to_string())
             .reference("ref-01".to_string())
             .audit_info(audit_info.clone())
             .build()
