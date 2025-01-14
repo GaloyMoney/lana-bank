@@ -690,7 +690,7 @@ checksum = "ade8366b8bd5ba243f0a58f036cc0ca8a2f069cff1a2351ef1cac6b083e16fc0"
 [[package]]
 name = "cala-cel-interpreter"
 version = "0.3.3-dev"
-source = "git+https://github.com/galoymoney/cala.git?branch=main#d5783528fa1711883111af334c3ad199ed0d6107"
+source = "git+https://github.com/galoymoney/cala.git?branch=main#6793442f246001be55ac0b4c1a0f360e58c0c1f6"
 dependencies = [
  "cala-cel-parser",
  "chrono",
@@ -705,7 +705,7 @@ dependencies = [
 [[package]]
 name = "cala-cel-parser"
 version = "0.3.3-dev"
-source = "git+https://github.com/galoymoney/cala.git?branch=main#d5783528fa1711883111af334c3ad199ed0d6107"
+source = "git+https://github.com/galoymoney/cala.git?branch=main#6793442f246001be55ac0b4c1a0f360e58c0c1f6"
 dependencies = [
  "lalrpop",
  "lalrpop-util",
@@ -714,7 +714,7 @@ dependencies = [
 [[package]]
 name = "cala-ledger"
 version = "0.3.3-dev"
-source = "git+https://github.com/galoymoney/cala.git?branch=main#d5783528fa1711883111af334c3ad199ed0d6107"
+source = "git+https://github.com/galoymoney/cala.git?branch=main#6793442f246001be55ac0b4c1a0f360e58c0c1f6"
 dependencies = [
  "cached 0.51.4",
  "cala-cel-interpreter",
@@ -746,7 +746,7 @@ dependencies = [
 [[package]]
 name = "cala-ledger-core-types"
 version = "0.3.3-dev"
-source = "git+https://github.com/galoymoney/cala.git?branch=main#d5783528fa1711883111af334c3ad199ed0d6107"
+source = "git+https://github.com/galoymoney/cala.git?branch=main#6793442f246001be55ac0b4c1a0f360e58c0c1f6"
 dependencies = [
  "cala-cel-interpreter",
  "chrono",
@@ -763,7 +763,7 @@ dependencies = [
 [[package]]
 name = "cala-tracing"
 version = "0.3.3-dev"
-source = "git+https://github.com/galoymoney/cala.git?branch=main#d5783528fa1711883111af334c3ad199ed0d6107"
+source = "git+https://github.com/galoymoney/cala.git?branch=main#6793442f246001be55ac0b4c1a0f360e58c0c1f6"
 dependencies = [
  "anyhow",
  "axum-extra",
@@ -1369,7 +1369,7 @@ dependencies = [
 [[package]]
 name = "es-entity"
 version = "0.3.3-dev"
-source = "git+https://github.com/galoymoney/cala.git?branch=main#d5783528fa1711883111af334c3ad199ed0d6107"
+source = "git+https://github.com/galoymoney/cala.git?branch=main#6793442f246001be55ac0b4c1a0f360e58c0c1f6"
 dependencies = [
  "async-graphql",
  "async-trait",
@@ -1388,7 +1388,7 @@ dependencies = [
 [[package]]
 name = "es-entity-macros"
 version = "0.3.3-dev"
-source = "git+https://github.com/galoymoney/cala.git?branch=main#d5783528fa1711883111af334c3ad199ed0d6107"
+source = "git+https://github.com/galoymoney/cala.git?branch=main#6793442f246001be55ac0b4c1a0f360e58c0c1f6"
 dependencies = [
  "convert_case",
  "darling",
@@ -3223,7 +3223,7 @@ version = "0.13.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d0f3e5beed80eb580c68e2c600937ac2c4eedabdfd5ef1e5b7ea4f3fba84497b"
 dependencies = [
- "heck 0.4.1",
+ "heck 0.5.0",
  "itertools 0.13.0",
  "log",
  "multimap",
@@ -3282,7 +3282,7 @@ version = "0.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8a669d5acbe719010c6f62a64e6d7d88fdedc1fe46e419747949ecb6312e9b14"
 dependencies = [
- "heck 0.4.1",
+ "heck 0.5.0",
  "prost",
  "prost-build",
  "prost-types",
@@ -3406,7 +3406,7 @@ dependencies = [
  "once_cell",
  "socket2",
  "tracing",
- "windows-sys 0.52.0",
+ "windows-sys 0.59.0",
 ]
 
 [[package]]
@@ -4154,7 +4154,7 @@ dependencies = [
 [[package]]
 name = "sim-time"
 version = "0.3.3-dev"
-source = "git+https://github.com/galoymoney/cala.git?branch=main#d5783528fa1711883111af334c3ad199ed0d6107"
+source = "git+https://github.com/galoymoney/cala.git?branch=main#6793442f246001be55ac0b4c1a0f360e58c0c1f6"
 dependencies = [
  "chrono",
  "serde",
@@ -4653,7 +4653,7 @@ dependencies = [
  "fastrand",
  "once_cell",
  "rustix",
- "windows-sys 0.52.0",
+ "windows-sys 0.59.0",
 ]
 
 [[package]]
@@ -5520,7 +5520,7 @@ version = "0.1.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "cf221c93e13a30d793f7645a0e7762c55d169dbb0a49671918a2319d289b10bb"
 dependencies = [
- "windows-sys 0.48.0",
+ "windows-sys 0.59.0",
 ]
 
 [[package]]
