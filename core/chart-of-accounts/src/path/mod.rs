@@ -31,7 +31,7 @@ impl AccountIdx {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum ChartCategory {
     Assets,
     Liabilities,
@@ -65,7 +65,7 @@ impl ChartCategory {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct ControlAccountPath {
     pub category: ChartCategory,
     pub index: AccountIdx,
@@ -109,7 +109,7 @@ impl ControlAccountPath {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct ControlSubAccountPath {
     pub category: ChartCategory,
     pub control_index: AccountIdx,

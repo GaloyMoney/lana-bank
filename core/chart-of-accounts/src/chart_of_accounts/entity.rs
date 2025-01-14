@@ -11,6 +11,7 @@ use crate::{
     ControlSubAccountDetails,
 };
 
+use super::chart;
 pub use super::error::*;
 
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
@@ -63,6 +64,10 @@ impl Chart {
                 _ => None,
             })
             .unwrap_or_else(|| Ok(category.first_control_account()))?)
+    }
+
+    pub fn chart(&self) -> chart::ChartOfAccounts {
+        chart::project(self.events.iter_all())
     }
 
     pub fn find_control_account_by_reference(
