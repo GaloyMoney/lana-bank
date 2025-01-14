@@ -4,30 +4,30 @@ use crate::{path::*, ChartId};
 
 use super::ChartEvent;
 
-pub struct ControlAccountAdded {
+struct ControlAccountAdded {
     name: String,
     path: ControlAccountPath,
 }
 
 pub struct ControlAccountProjection {
-    name: String,
-    encoded_path: String,
-    children: Vec<ControlSubAccountProjection>,
+    pub name: String,
+    pub encoded_path: String,
+    pub children: Vec<ControlSubAccountProjection>,
 }
 
 pub struct ControlSubAccountProjection {
-    name: String,
-    encoded_path: String,
+    pub name: String,
+    pub encoded_path: String,
 }
 
 pub struct ChartOfAccountsProjection {
-    id: ChartId,
-    name: String,
-    assets: Vec<ControlAccountProjection>,
-    liabilities: Vec<ControlAccountProjection>,
-    equity: Vec<ControlAccountProjection>,
-    revenues: Vec<ControlAccountProjection>,
-    expenses: Vec<ControlAccountProjection>,
+    pub id: ChartId,
+    pub name: String,
+    pub assets: Vec<ControlAccountProjection>,
+    pub liabilities: Vec<ControlAccountProjection>,
+    pub equity: Vec<ControlAccountProjection>,
+    pub revenues: Vec<ControlAccountProjection>,
+    pub expenses: Vec<ControlAccountProjection>,
 }
 
 pub(super) fn project<'a>(
