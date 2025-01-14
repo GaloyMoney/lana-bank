@@ -9,21 +9,18 @@ pub struct ControlAccountAdded {
     path: ControlAccountPath,
 }
 
-#[derive(Debug)]
 pub struct ControlAccountProjection {
     name: String,
     encoded_path: String,
     children: Vec<ControlSubAccountProjection>,
 }
 
-#[derive(Debug)]
 pub struct ControlSubAccountProjection {
     name: String,
     encoded_path: String,
 }
 
-#[derive(Debug)]
-pub struct ChartOfAccounts {
+pub struct ChartOfAccountsProjection {
     id: ChartId,
     name: String,
     assets: Vec<ControlAccountProjection>,
@@ -35,7 +32,7 @@ pub struct ChartOfAccounts {
 
 pub(super) fn project<'a>(
     events: impl DoubleEndedIterator<Item = &'a ChartEvent>,
-) -> ChartOfAccounts {
+) -> ChartOfAccountsProjection {
     let mut id: Option<ChartId> = None;
     let mut name: Option<String> = None;
     let mut control_accounts_added: Vec<ControlAccountAdded> = vec![];
@@ -83,7 +80,7 @@ pub(super) fn project<'a>(
             });
     }
 
-    ChartOfAccounts {
+    ChartOfAccountsProjection {
         id: id.expect("Chart must be initialized"),
         name: name.expect("Chart must be initialized"),
         assets: control_accounts_by_category

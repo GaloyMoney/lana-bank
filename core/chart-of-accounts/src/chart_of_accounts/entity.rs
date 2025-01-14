@@ -67,7 +67,7 @@ impl Chart {
             .unwrap_or_else(|| Ok(category.first_control_account()))?)
     }
 
-    pub fn chart(&self) -> chart::ChartOfAccounts {
+    pub fn chart(&self) -> chart::ChartOfAccountsProjection {
         chart::project(self.events.iter_all())
     }
 
