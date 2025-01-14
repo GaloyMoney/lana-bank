@@ -25,6 +25,7 @@ pub struct ControlSubAccountProjection {
 #[derive(Debug)]
 pub struct ChartOfAccounts {
     id: ChartId,
+    name: String,
     assets: Vec<ControlAccountProjection>,
     liabilities: Vec<ControlAccountProjection>,
     equity: Vec<ControlAccountProjection>,
@@ -36,13 +37,21 @@ pub(super) fn project<'a>(
     events: impl DoubleEndedIterator<Item = &'a ChartEvent>,
 ) -> ChartOfAccounts {
     let mut id: Option<ChartId> = None;
+    let mut name: Option<String> = None;
     let mut control_accounts_added: Vec<ControlAccountAdded> = vec![];
     let mut control_sub_accounts_by_parent: HashMap<String, Vec<ControlSubAccountProjection>> =
         HashMap::new();
 
     for event in events {
         match event {
-            ChartEvent::Initialized { id: chart_id, .. } => id = Some(*chart_id),
+            ChartEvent::Initialized {
+                id: chart_id,
+                name: chart_name,
+                ..
+            } => {
+                id = Some(*chart_id);
+                name = Some(chart_name.to_string());
+            }
             ChartEvent::ControlAccountAdded { path, name, .. } => {
                 control_accounts_added.push(ControlAccountAdded {
                     name: name.to_string(),
@@ -76,6 +85,7 @@ pub(super) fn project<'a>(
 
     ChartOfAccounts {
         id: id.expect("Chart must be initialized"),
+        name: name.expect("Chart must be initialized"),
         assets: control_accounts_by_category
             .remove(&ChartCategory::Assets)
             .unwrap_or_default(),
