@@ -213,9 +213,34 @@ type CashFlowStatement {
 	categories: [StatementCategory!]!
 }
 
+type ChartCategories {
+	assets: ChartCategory!
+	liabilities: ChartCategory!
+	equity: ChartCategory!
+	revenues: ChartCategory!
+	expenses: ChartCategory!
+}
+
+type ChartCategory {
+	name: String!
+	accountCode: String!
+	controlAccounts: [ChartControlAccount!]!
+}
+
+type ChartControlAccount {
+	name: String!
+	accountCode: String!
+	controlSubAccounts: [ChartControlSubAccount!]!
+}
+
+type ChartControlSubAccount {
+	name: String!
+	accountCode: String!
+}
+
 type ChartOfAccounts {
 	name: String!
-	categories: [StatementCategory!]!
+	categories: ChartCategories!
 }
 
 type Collateral {
@@ -941,8 +966,8 @@ type Query {
 	document(id: UUID!): Document
 	trialBalance(from: Timestamp!, until: Timestamp): TrialBalance
 	offBalanceSheetTrialBalance(from: Timestamp!, until: Timestamp): TrialBalance
-	chartOfAccounts: ChartOfAccounts
-	offBalanceSheetChartOfAccounts: ChartOfAccounts
+	chartOfAccounts: ChartOfAccounts!
+	offBalanceSheetChartOfAccounts: ChartOfAccounts!
 	balanceSheet(from: Timestamp!, until: Timestamp): BalanceSheet
 	profitAndLossStatement(from: Timestamp!, until: Timestamp): ProfitAndLossStatement
 	cashFlowStatement(from: Timestamp!, until: Timestamp): CashFlowStatement

@@ -68,6 +68,8 @@ pub mod deposit {
 }
 
 pub mod chart_of_accounts {
+    pub use chart_of_accounts::chart;
+
     pub type ChartOfAccounts =
         chart_of_accounts::CoreChartOfAccounts<crate::authorization::Authorization>;
 }

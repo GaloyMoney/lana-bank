@@ -1,4 +1,4 @@
-mod constants;
+pub mod constants;
 mod primitives;
 mod seed;
 

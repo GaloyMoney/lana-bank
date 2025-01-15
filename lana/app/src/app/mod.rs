@@ -39,6 +39,7 @@ pub struct LanaApp {
     _jobs: Jobs,
     audit: Audit,
     authz: Authorization,
+    chart_of_accounts: ChartOfAccounts,
     customers: Customers,
     deposits: Deposits,
     ledger: Ledger,
@@ -52,7 +53,6 @@ pub struct LanaApp {
     _outbox: Outbox,
     governance: Governance,
     dashboard: Dashboard,
-    _chart_of_accounts: ChartOfAccounts,
 }
 
 impl LanaApp {
@@ -155,6 +155,7 @@ impl LanaApp {
             _jobs: jobs,
             audit,
             authz,
+            chart_of_accounts,
             customers,
             deposits,
             ledger,
@@ -168,7 +169,6 @@ impl LanaApp {
             _outbox: outbox,
             governance,
             dashboard,
-            _chart_of_accounts: chart_of_accounts,
         })
     }
 
@@ -209,6 +209,10 @@ impl LanaApp {
             .await?;
 
         self.audit.list(query).await.map_err(ApplicationError::from)
+    }
+
+    pub fn chart_of_accounts(&self) -> &ChartOfAccounts {
+        &self.chart_of_accounts
     }
 
     pub fn deposits(&self) -> &Deposits {

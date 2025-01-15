@@ -3,6 +3,7 @@ mod approval_process;
 mod approval_rules;
 mod audit;
 mod authenticated_subject;
+mod chart_of_accounts;
 mod committee;
 mod credit_facility;
 mod customer;

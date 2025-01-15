@@ -1,13 +1,17 @@
 use async_graphql::{types::connection::*, Context, Object};
 
-use lana_app::app::LanaApp;
+use lana_app::{
+    accounting_init::constants::{CHART_REF, OBS_CHART_REF},
+    app::LanaApp,
+};
 
 use crate::primitives::*;
 
 use super::{
-    approval_process::*, audit::*, authenticated_subject::*, committee::*, credit_facility::*,
-    customer::*, dashboard::*, deposit::*, document::*, financials::*, loader::*, policy::*,
-    price::*, report::*, sumsub::*, terms_template::*, user::*, withdrawal::*,
+    approval_process::*, audit::*, authenticated_subject::*, chart_of_accounts::*, committee::*,
+    credit_facility::*, customer::*, dashboard::*, deposit::*, document::*, financials::*,
+    loader::*, policy::*, price::*, report::*, sumsub::*, terms_template::*, user::*,
+    withdrawal::*,
 };
 
 pub struct Query;
@@ -414,22 +418,43 @@ impl Query {
         Ok(account_summary.map(TrialBalance::from))
     }
 
-    async fn chart_of_accounts(
-        &self,
-        ctx: &Context<'_>,
-    ) -> async_graphql::Result<Option<ChartOfAccounts>> {
+    async fn chart_of_accounts(&self, ctx: &Context<'_>) -> async_graphql::Result<ChartOfAccounts> {
+        let reference = CHART_REF.to_string();
+
         let (app, sub) = app_and_sub_from_ctx!(ctx);
-        let chart_of_accounts = app.ledger().chart_of_accounts(sub).await?;
-        Ok(chart_of_accounts.map(ChartOfAccounts::from))
+        let chart_projection = app
+            .chart_of_accounts()
+            .list_charts(sub)
+            .await?
+            .into_iter()
+            .find(|p| p.reference == reference)
+            .expect(&format!(
+                "Chart of accounts not found for ref {}",
+                reference
+            ))
+            .chart();
+        Ok(ChartOfAccounts::from(chart_projection))
     }
 
     async fn off_balance_sheet_chart_of_accounts(
         &self,
         ctx: &Context<'_>,
-    ) -> async_graphql::Result<Option<ChartOfAccounts>> {
+    ) -> async_graphql::Result<ChartOfAccounts> {
+        let reference = OBS_CHART_REF.to_string();
+
         let (app, sub) = app_and_sub_from_ctx!(ctx);
-        let chart_of_accounts = app.ledger().obs_chart_of_accounts(sub).await?;
-        Ok(chart_of_accounts.map(ChartOfAccounts::from))
+        let chart_projection = app
+            .chart_of_accounts()
+            .list_charts(sub)
+            .await?
+            .into_iter()
+            .find(|p| p.reference == reference)
+            .expect(&format!(
+                "Chart of accounts not found for ref {}",
+                reference
+            ))
+            .chart();
+        Ok(ChartOfAccounts::from(chart_projection))
     }
 
     async fn balance_sheet(

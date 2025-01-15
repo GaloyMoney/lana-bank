@@ -1,4 +1,5 @@
 use authz::error::AuthorizationError;
+use chart_of_accounts::{CoreChartOfAccountsAction, CoreChartOfAccountsObject};
 use core_user::{CoreUserAction, UserEntityAction, UserObject};
 use dashboard::{DashboardModuleAction, DashboardModuleObject};
 use deposit::{CoreDepositAction, CoreDepositObject};
@@ -347,6 +348,14 @@ async fn add_permissions_for_bank_manager(authz: &Authorization) -> Result<(), A
             &role,
             DashboardModuleObject::Dashboard,
             DashboardModuleAction::DASHBOARD_READ,
+        )
+        .await?;
+
+    authz
+        .add_permission_to_role(
+            &role,
+            CoreChartOfAccountsObject::all_charts(),
+            CoreChartOfAccountsAction::CHART_LIST,
         )
         .await?;
 

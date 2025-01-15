@@ -1,6 +1,6 @@
 pub(super) const LANA_JOURNAL_CODE: &str = "LANA_BANK_JOURNAL";
 
-pub(super) const CHART_REF: &str = "primary-chart";
+pub const CHART_REF: &str = "primary-chart";
 pub(super) const CHART_NAME: &str = "Chart of Accounts";
 
 pub(super) const DEPOSITS_CONTROL_ACCOUNT_REF: &str = "deposits";
@@ -44,7 +44,7 @@ pub(super) const CREDIT_FACILITIES_FEE_INCOME_CONTROL_SUB_ACCOUNT_REF: &str =
 pub(super) const CREDIT_FACILITIES_FEE_INCOME_CONTROL_SUB_ACCOUNT_NAME: &str =
     "Fixed Term Credit Facilities Fee Income"; // Revenue
 
-pub(super) const OBS_CHART_REF: &str = "off-balance-sheet-chart";
+pub const OBS_CHART_REF: &str = "off-balance-sheet-chart";
 pub(super) const OBS_CHART_NAME: &str = "Off-Balance-Sheet Chart of Accounts";
 
 pub(super) const CREDIT_FACILITIES_COLLATERAL_CONTROL_ACCOUNT_REF: &str =

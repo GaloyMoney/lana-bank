@@ -1,6 +1,6 @@
 use async_graphql::*;
 
-use super::chart_of_accounts::*;
+use super::category::*;
 use crate::graphql::account::*;
 
 #[derive(SimpleObject)]
