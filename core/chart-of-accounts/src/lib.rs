@@ -13,6 +13,7 @@ use tracing::instrument;
 use audit::AuditSvc;
 use authz::PermissionCheck;
 
+pub use chart_of_accounts::chart;
 use chart_of_accounts::*;
 use error::*;
 use path::ControlAccountPath;

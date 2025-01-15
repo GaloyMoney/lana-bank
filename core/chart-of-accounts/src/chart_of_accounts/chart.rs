@@ -4,6 +4,12 @@ use crate::{path::*, ChartId};
 
 use super::ChartEvent;
 
+pub struct CategoryProjection {
+    pub name: String,
+    pub encoded_path: String,
+    pub children: Vec<ControlAccountProjection>,
+}
+
 struct ControlAccountAdded {
     name: String,
     path: ControlAccountPath,
@@ -23,11 +29,11 @@ pub struct ControlSubAccountProjection {
 pub struct ChartOfAccountsProjection {
     pub id: ChartId,
     pub name: String,
-    pub assets: Vec<ControlAccountProjection>,
-    pub liabilities: Vec<ControlAccountProjection>,
-    pub equity: Vec<ControlAccountProjection>,
-    pub revenues: Vec<ControlAccountProjection>,
-    pub expenses: Vec<ControlAccountProjection>,
+    pub assets: CategoryProjection,
+    pub liabilities: CategoryProjection,
+    pub equity: CategoryProjection,
+    pub revenues: CategoryProjection,
+    pub expenses: CategoryProjection,
 }
 
 pub(super) fn project<'a>(
@@ -83,21 +89,41 @@ pub(super) fn project<'a>(
     ChartOfAccountsProjection {
         id: id.expect("Chart must be initialized"),
         name: name.expect("Chart must be initialized"),
-        assets: control_accounts_by_category
-            .remove(&ChartCategory::Assets)
-            .unwrap_or_default(),
-        liabilities: control_accounts_by_category
-            .remove(&ChartCategory::Liabilities)
-            .unwrap_or_default(),
-        equity: control_accounts_by_category
-            .remove(&ChartCategory::Equity)
-            .unwrap_or_default(),
-        revenues: control_accounts_by_category
-            .remove(&ChartCategory::Revenues)
-            .unwrap_or_default(),
-        expenses: control_accounts_by_category
-            .remove(&ChartCategory::Expenses)
-            .unwrap_or_default(),
+        assets: CategoryProjection {
+            name: "Assets".to_string(),
+            encoded_path: ChartCategory::Assets.to_string(),
+            children: control_accounts_by_category
+                .remove(&ChartCategory::Assets)
+                .unwrap_or_default(),
+        },
+        liabilities: CategoryProjection {
+            name: "Liabilities".to_string(),
+            encoded_path: ChartCategory::Liabilities.to_string(),
+            children: control_accounts_by_category
+                .remove(&ChartCategory::Liabilities)
+                .unwrap_or_default(),
+        },
+        equity: CategoryProjection {
+            name: "Equity".to_string(),
+            encoded_path: ChartCategory::Equity.to_string(),
+            children: control_accounts_by_category
+                .remove(&ChartCategory::Equity)
+                .unwrap_or_default(),
+        },
+        revenues: CategoryProjection {
+            name: "Revenues".to_string(),
+            encoded_path: ChartCategory::Revenues.to_string(),
+            children: control_accounts_by_category
+                .remove(&ChartCategory::Revenues)
+                .unwrap_or_default(),
+        },
+        expenses: CategoryProjection {
+            name: "Expenses".to_string(),
+            encoded_path: ChartCategory::Expenses.to_string(),
+            children: control_accounts_by_category
+                .remove(&ChartCategory::Expenses)
+                .unwrap_or_default(),
+        },
     }
 }
 
@@ -158,7 +184,7 @@ mod tests {
                 .unwrap();
         }
         assert_eq!(
-            chart.chart().assets[0].children[0].encoded_path,
+            chart.chart().assets.children[0].children[0].encoded_path,
             "10101".to_string()
         );
 
@@ -182,7 +208,7 @@ mod tests {
                 .unwrap();
         }
         assert_eq!(
-            chart.chart().liabilities[0].children[0].encoded_path,
+            chart.chart().liabilities.children[0].children[0].encoded_path,
             "20101".to_string()
         );
 
@@ -205,7 +231,10 @@ mod tests {
                 )
                 .unwrap();
         }
-        assert_eq!(chart.chart().equity[0].children[0].encoded_path, "30101");
+        assert_eq!(
+            chart.chart().equity.children[0].children[0].encoded_path,
+            "30101"
+        );
 
         {
             chart
@@ -217,9 +246,9 @@ mod tests {
                 )
                 .unwrap();
         }
-        assert_eq!(chart.chart().revenues[0].encoded_path, "40100");
-        assert_eq!(chart.chart().revenues[0].children.len(), 0);
+        assert_eq!(chart.chart().revenues.children[0].encoded_path, "40100");
+        assert_eq!(chart.chart().revenues.children[0].children.len(), 0);
 
-        assert_eq!(chart.chart().expenses.len(), 0);
+        assert_eq!(chart.chart().expenses.children.len(), 0);
     }
 }

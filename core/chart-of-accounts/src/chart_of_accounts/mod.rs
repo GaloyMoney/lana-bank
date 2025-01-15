@@ -1,4 +1,4 @@
-mod chart;
+pub mod chart;
 mod entity;
 pub mod error;
 mod repo;
