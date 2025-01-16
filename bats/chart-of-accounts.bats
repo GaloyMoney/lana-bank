@@ -11,60 +11,39 @@ teardown_file() {
 }
 
 @test "chart-of-accounts: can traverse chart of accounts" {
-  skip # TODO: re-implement from entity
-
-  for i in {1..2}; do create_customer; done
-
-  # Fetch Chart of Accounts
   exec_admin_graphql 'chart-of-accounts'
 
-  liabilities_name="Liabilities"
-  user_checking_control_name="Customer Checking Control Account"
-  user_checking_control_account_set_id=$(echo "$output" | jq -r \
-    --arg category_name "$liabilities_name" \
-    --arg account_name "$user_checking_control_name" \
+  category_account_code=$(echo "$output" | jq -r \
+    '.data.chartOfAccounts.categories.assets.accountCode'
+  )
+  [[ "$category_account_code" == "10000" ]] || exit 1
+
+
+  control_name="Deposits"
+  control_account_code=$(echo "$output" | jq -r \
+    --arg account_name "$control_name" \
     '
-      .data.chartOfAccounts.categories[] |
-      select(.name == $category_name) |
-      .accounts[] |
+      .data.chartOfAccounts.categories.liabilities |
+      .controlAccounts[] |
       select(.name == $account_name)
-      .queryableId
+      .accountCode
     '
   )
+  [[ "$control_account_code" == "20100" ]] || exit 1
 
-  # Fetch 1st page
-  variables=$(
-    jq -n \
-      --arg account_set_id "$user_checking_control_account_set_id" \
-      --arg from "$(from_utc)" \
-    '{
-      accountSetId: $account_set_id,
-      first: 100,
-      from: $from,
-    }'
+  control_name="Credit Facilities Interest Income"
+  control_sub_name="Fixed Term Credit Facilities Interest Income"
+  control_account_code=$(echo "$output" | jq -r \
+    --arg account_name "$control_name" \
+    --arg account_sub_name "$control_sub_name" \
+    '
+      .data.chartOfAccounts.categories.revenues |
+      .controlAccounts[] |
+      select(.name == $account_name)
+      .controlSubAccounts[] |
+      select(.name == $account_sub_name)
+      .accountCode
+    '
   )
-  exec_admin_graphql 'account-set' "$variables"
-  num_accounts_with_balance=$(graphql_output '.data.accountSet.subAccounts.edges | length')
-  first_cursor=$(graphql_output '.data.accountSet.subAccounts.edges[0].cursor')
-  btc_balance=$(graphql_output '.data.accountSet.subAccounts.edges[0].node.amounts.btc.balancesByLayer.all.netDebit')
-  [[ "$num_accounts_with_balance" -gt "0" ]] || exit 1
-  [[ "$btc_balance" == "0" ]] || exit 1
-
-  # Fetch paginated page
-  variables=$(
-    jq -n \
-      --arg account_set_id "$user_checking_control_account_set_id" \
-      --arg after "$first_cursor" \
-      --arg from "$(from_utc)" \
-      '{
-      accountSetId: $account_set_id,
-      first: 100,
-      after: $after,
-      from: $from,
-    }'
-  )
-  exec_admin_graphql 'account-set' "$variables"
-  num_accounts_paginated_with_balance=$(graphql_output '.data.accountSet.subAccounts.edges | length')
-  [[ "$num_accounts_paginated_with_balance" -gt "0" ]] || exit 1
-  [[ "$num_accounts_paginated_with_balance" -lt "$num_accounts_with_balance" ]] || exit 1
+  [[ "$control_account_code" == "40101" ]] || exit 1
 }

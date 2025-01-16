@@ -2,19 +2,34 @@ query ChartOfAccounts {
   chartOfAccounts {
     name
     categories {
-      name
-      accounts {
-        __typename
-        ... on AccountSet {
-          queryableId: id
-          name
-          hasSubAccounts
-        }
-        ... on Account {
-          id
-          name
-        }
+      assets {
+        ...category
       }
+      liabilities {
+        ...category
+      }
+      equity {
+        ...category
+      }
+      revenues {
+        ...category
+      }
+      expenses {
+        ...category
+      }
+    }
+  }
+}
+
+fragment category on ChartCategory {
+  name
+  accountCode
+  controlAccounts {
+    name
+    accountCode
+    controlSubAccounts {
+      name
+      accountCode
     }
   }
 }
