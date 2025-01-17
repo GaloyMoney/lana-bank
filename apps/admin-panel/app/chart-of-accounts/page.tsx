@@ -1,70 +1,107 @@
 "use client"
 
-import React, { useMemo, useState } from "react"
+import React, { useState } from "react"
 import { ApolloError, gql } from "@apollo/client"
 
-import { Account } from "./accounts"
+import { IoCaretDownSharp, IoCaretForwardSharp } from "react-icons/io5"
 
 import { Skeleton } from "@/ui/skeleton"
-import { Table, TableBody, TableCell, TableRow } from "@/ui/table"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/ui/table"
 import { Tabs, TabsList, TabsContent, TabsTrigger } from "@/ui/tab"
 import {
-  AccountAmountsByCurrency,
-  GetOffBalanceSheetChartOfAccountsQuery,
-  GetOnBalanceSheetChartOfAccountsQuery,
-  useGetOffBalanceSheetChartOfAccountsQuery,
-  useGetOnBalanceSheetChartOfAccountsQuery,
+  ChartCategory,
+  ChartOfAccountsQuery,
+  OffBalanceSheetChartOfAccountsQuery,
+  useChartOfAccountsQuery,
+  useOffBalanceSheetChartOfAccountsQuery,
 } from "@/lib/graphql/generated"
-import { DateRange, getInitialDateRange } from "@/components/date-range-picker"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/ui/card"
 
+import { Badge } from "@/ui/badge"
+
 gql`
-  query GetOnBalanceSheetChartOfAccounts {
+  fragment ControlSubAccountFields on ChartControlSubAccount {
+    name
+    accountCode
+  }
+`
+
+gql`
+  fragment ControlAccountFields on ChartControlAccount {
+    name
+    accountCode
+    controlSubAccounts {
+      ...ControlSubAccountFields
+    }
+  }
+`
+
+gql`
+  fragment CategoryFields on ChartCategory {
+    name
+    accountCode
+    controlAccounts {
+      ...ControlAccountFields
+    }
+  }
+`
+
+gql`
+  fragment ChartCategories on ChartCategories {
+    assets {
+      ...CategoryFields
+    }
+    liabilities {
+      ...CategoryFields
+    }
+    equity {
+      ...CategoryFields
+    }
+    revenues {
+      ...CategoryFields
+    }
+    expenses {
+      ...CategoryFields
+    }
+  }
+`
+
+gql`
+  query ChartOfAccounts {
     chartOfAccounts {
       name
       categories {
-        name
-        accounts {
-          __typename
-          ... on Account {
-            id
-            name
-          }
-          ... on AccountSet {
-            id
-            name
-            hasSubAccounts
-          }
-        }
-      }
-    }
-  }
-
-  query GetOffBalanceSheetChartOfAccounts {
-    offBalanceSheetChartOfAccounts {
-      name
-      categories {
-        name
-        accounts {
-          __typename
-          ... on Account {
-            id
-            name
-          }
-          ... on AccountSet {
-            id
-            name
-            hasSubAccounts
-          }
-        }
+        ...ChartCategories
       }
     }
   }
 `
 
+gql`
+  query OffBalanceSheetChartOfAccounts {
+    offBalanceSheetChartOfAccounts {
+      name
+      categories {
+        ...ChartCategories
+      }
+    }
+  }
+`
+const AccountCode = ({ code }: { code: string }) => (
+  <Badge className="font-mono" variant="secondary">
+    {code}
+  </Badge>
+)
+
 const LoadingSkeleton = () => {
   return (
     <Table data-testid="loading-skeleton">
+      <TableHeader>
+        <TableRow>
+          <TableHead>Account Name</TableHead>
+          <TableHead className="text-right">Account Code</TableHead>
+        </TableRow>
+      </TableHeader>
       <TableBody>
         {[1, 2, 3].map((categoryIndex) => (
           <React.Fragment key={`category-${categoryIndex}`}>
@@ -72,18 +109,17 @@ const LoadingSkeleton = () => {
               <TableCell className="text-primary">
                 <Skeleton className="h-6 w-48" />
               </TableCell>
+              <TableCell className="text-right">
+                <Skeleton className="h-5 w-24 ml-auto" />
+              </TableCell>
             </TableRow>
             {[1, 2, 3].map((accountIndex) => (
               <TableRow key={`account-${categoryIndex}-${accountIndex}`}>
                 <TableCell className="pl-8">
-                  <div className="flex items-center justify-between">
-                    <Skeleton className="h-5 w-64" />
-                    <div className="flex gap-4">
-                      <Skeleton className="h-5 w-24" />
-                      <Skeleton className="h-5 w-24" />
-                      <Skeleton className="h-5 w-24" />
-                    </div>
-                  </div>
+                  <Skeleton className="h-5 w-64" />
+                </TableCell>
+                <TableCell className="text-right">
+                  <Skeleton className="h-5 w-24 ml-auto" />
                 </TableCell>
               </TableRow>
             ))}
@@ -96,76 +132,128 @@ const LoadingSkeleton = () => {
 
 type ChartOfAccountsValuesProps = {
   data:
-    | GetOnBalanceSheetChartOfAccountsQuery["chartOfAccounts"]
-    | GetOffBalanceSheetChartOfAccountsQuery["offBalanceSheetChartOfAccounts"]
+    | ChartOfAccountsQuery["chartOfAccounts"]
+    | OffBalanceSheetChartOfAccountsQuery["offBalanceSheetChartOfAccounts"]
     | undefined
   loading: boolean
   error: ApolloError | undefined
-  dateRange: DateRange
 }
 
-const ChartOfAccountsValues: React.FC<ChartOfAccountsValuesProps> = ({
-  data,
-  loading,
-  error,
-  dateRange,
-}) => {
+const ChartOfAccountsValues = ({ data, loading, error }: ChartOfAccountsValuesProps) => {
+  const [expandedAccounts, setExpandedAccounts] = useState<Record<string, boolean>>({})
+
   if (loading && !data) return <LoadingSkeleton />
   if (error) return <p className="text-destructive">{error.message}</p>
+  if (!data?.categories) return null
+
+  const toggleAccount = (accountCode: string) => {
+    setExpandedAccounts((prev) => ({
+      ...prev,
+      [accountCode]: !prev[accountCode],
+    }))
+  }
+
+  const renderCategory = (category: ChartCategory | null | undefined) => {
+    if (!category) return null
+
+    return (
+      <React.Fragment key={category.name}>
+        <TableRow className="bg-muted/5">
+          <TableCell
+            data-testid={`category-${category.name.toLowerCase()}`}
+            className="text-primary font-bold uppercase tracking-widest leading-8"
+          >
+            {category.name}
+          </TableCell>
+          <TableCell className="text-right">
+            <AccountCode code={category.accountCode} />
+          </TableCell>
+        </TableRow>
+
+        {category.controlAccounts.map((control) => (
+          <React.Fragment key={control.accountCode}>
+            <TableRow
+              className={
+                control.controlSubAccounts.length > 0
+                  ? "cursor-pointer hover:bg-muted/5"
+                  : ""
+              }
+              onClick={() =>
+                control.controlSubAccounts.length > 0 &&
+                toggleAccount(control.accountCode)
+              }
+            >
+              <TableCell className="pl-8 py-3">
+                <div className="flex items-center gap-2">
+                  {control.controlSubAccounts.length > 0 && (
+                    <span className="text-muted-foreground">
+                      {expandedAccounts[control.accountCode] ? (
+                        <IoCaretDownSharp className="h-4 w-4" />
+                      ) : (
+                        <IoCaretForwardSharp className="h-4 w-4" />
+                      )}
+                    </span>
+                  )}
+                  <span>{control.name}</span>
+                </div>
+              </TableCell>
+              <TableCell className="text-right">
+                <AccountCode code={control.accountCode} />
+              </TableCell>
+            </TableRow>
+
+            {expandedAccounts[control.accountCode] &&
+              control.controlSubAccounts.map((sub) => (
+                <TableRow key={sub.accountCode} className="bg-muted/5">
+                  <TableCell className="pl-16 py-2">
+                    <span className="text-sm">{sub.name}</span>
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <AccountCode code={sub.accountCode} />
+                  </TableCell>
+                </TableRow>
+              ))}
+          </React.Fragment>
+        ))}
+      </React.Fragment>
+    )
+  }
 
   return (
     <Table>
+      <TableHeader>
+        <TableRow className="hover:bg-transparent">
+          <TableHead>Account Name</TableHead>
+          <TableHead className="text-right">Account Code</TableHead>
+        </TableRow>
+      </TableHeader>
       <TableBody>
-        {data?.categories
-          .toSorted(({ name: str1 }, { name: str2 }) =>
-            str1 < str2 ? -1 : +(str1 > str2),
-          )
-          .map((category) => (
-            <React.Fragment key={category.name}>
-              <TableRow>
-                <TableCell
-                  data-testid={`category-${category.name.toLowerCase()}`}
-                  className="text-primary font-bold uppercase tracking-widest leading-8"
-                >
-                  {category.name}
-                </TableCell>
-              </TableRow>
-              {category.accounts.map((account) => (
-                <Account
-                  key={account.id}
-                  dateRange={dateRange}
-                  account={{
-                    ...account,
-                    amounts: undefined as unknown as AccountAmountsByCurrency,
-                  }}
-                />
-              ))}
-            </React.Fragment>
-          ))}
+        {renderCategory(data.categories.assets)}
+        {renderCategory(data.categories.liabilities)}
+        {renderCategory(data.categories.equity)}
+        {renderCategory(data.categories.revenues)}
+        {renderCategory(data.categories.expenses)}
       </TableBody>
     </Table>
   )
 }
 
-function ChartOfAccountsPage() {
-  const date = useMemo(() => getInitialDateRange(), [])
-
+const ChartOfAccountsPage = () => {
   const {
     data: onBalanceSheetData,
     loading: onBalanceSheetLoading,
     error: onBalanceSheetError,
-  } = useGetOnBalanceSheetChartOfAccountsQuery({
+  } = useChartOfAccountsQuery({
     fetchPolicy: "cache-and-network",
   })
+
   const {
     data: offBalanceSheetData,
     loading: offBalanceSheetLoading,
     error: offBalanceSheetError,
-  } = useGetOffBalanceSheetChartOfAccountsQuery({
+  } = useOffBalanceSheetChartOfAccountsQuery({
     fetchPolicy: "cache-and-network",
   })
-
-  const [dateRange] = useState<DateRange>(date)
 
   return (
     <Card>
@@ -185,17 +273,15 @@ function ChartOfAccountsPage() {
           <TabsContent value="onBalanceSheet">
             <ChartOfAccountsValues
               data={onBalanceSheetData?.chartOfAccounts}
-              loading={onBalanceSheetLoading && !onBalanceSheetData}
+              loading={onBalanceSheetLoading}
               error={onBalanceSheetError}
-              dateRange={dateRange}
             />
           </TabsContent>
           <TabsContent value="offBalanceSheet">
             <ChartOfAccountsValues
               data={offBalanceSheetData?.offBalanceSheetChartOfAccounts}
-              loading={offBalanceSheetLoading && !offBalanceSheetData}
+              loading={offBalanceSheetLoading}
               error={offBalanceSheetError}
-              dateRange={dateRange}
             />
           </TabsContent>
         </Tabs>

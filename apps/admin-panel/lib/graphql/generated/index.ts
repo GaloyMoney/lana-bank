@@ -233,9 +233,38 @@ export type CashFlowStatement = {
   total: AccountAmountsByCurrency;
 };
 
+export type ChartCategories = {
+  __typename?: 'ChartCategories';
+  assets: ChartCategory;
+  equity: ChartCategory;
+  expenses: ChartCategory;
+  liabilities: ChartCategory;
+  revenues: ChartCategory;
+};
+
+export type ChartCategory = {
+  __typename?: 'ChartCategory';
+  accountCode: Scalars['String']['output'];
+  controlAccounts: Array<ChartControlAccount>;
+  name: Scalars['String']['output'];
+};
+
+export type ChartControlAccount = {
+  __typename?: 'ChartControlAccount';
+  accountCode: Scalars['String']['output'];
+  controlSubAccounts: Array<ChartControlSubAccount>;
+  name: Scalars['String']['output'];
+};
+
+export type ChartControlSubAccount = {
+  __typename?: 'ChartControlSubAccount';
+  accountCode: Scalars['String']['output'];
+  name: Scalars['String']['output'];
+};
+
 export type ChartOfAccounts = {
   __typename?: 'ChartOfAccounts';
-  categories: Array<StatementCategory>;
+  categories: ChartCategories;
   name: Scalars['String']['output'];
 };
 
@@ -1066,7 +1095,7 @@ export type Query = {
   audit: AuditEntryConnection;
   balanceSheet?: Maybe<BalanceSheet>;
   cashFlowStatement?: Maybe<CashFlowStatement>;
-  chartOfAccounts?: Maybe<ChartOfAccounts>;
+  chartOfAccounts: ChartOfAccounts;
   committee?: Maybe<Committee>;
   committees: CommitteeConnection;
   creditFacilities: CreditFacilityConnection;
@@ -1081,7 +1110,7 @@ export type Query = {
   disbursals: CreditFacilityDisbursalConnection;
   document?: Maybe<Document>;
   me: Subject;
-  offBalanceSheetChartOfAccounts?: Maybe<ChartOfAccounts>;
+  offBalanceSheetChartOfAccounts: ChartOfAccounts;
   offBalanceSheetTrialBalance?: Maybe<TrialBalance>;
   policies: PolicyConnection;
   policy?: Maybe<Policy>;
@@ -1622,15 +1651,23 @@ export type ChartOfAccountsAccountSetQueryVariables = Exact<{
 
 export type ChartOfAccountsAccountSetQuery = { __typename?: 'Query', accountSet?: { __typename?: 'AccountSetAndSubAccounts', id: string, name: string, subAccounts: { __typename?: 'AccountSetSubAccountConnection', edges: Array<{ __typename?: 'AccountSetSubAccountEdge', cursor: string, node: { __typename: 'Account', id: string, name: string } | { __typename: 'AccountSet', id: string, name: string, hasSubAccounts: boolean } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean } } } | null };
 
-export type GetOnBalanceSheetChartOfAccountsQueryVariables = Exact<{ [key: string]: never; }>;
+export type ControlSubAccountFieldsFragment = { __typename?: 'ChartControlSubAccount', name: string, accountCode: string };
+
+export type ControlAccountFieldsFragment = { __typename?: 'ChartControlAccount', name: string, accountCode: string, controlSubAccounts: Array<{ __typename?: 'ChartControlSubAccount', name: string, accountCode: string }> };
+
+export type CategoryFieldsFragment = { __typename?: 'ChartCategory', name: string, accountCode: string, controlAccounts: Array<{ __typename?: 'ChartControlAccount', name: string, accountCode: string, controlSubAccounts: Array<{ __typename?: 'ChartControlSubAccount', name: string, accountCode: string }> }> };
+
+export type ChartCategoriesFragment = { __typename?: 'ChartCategories', assets: { __typename?: 'ChartCategory', name: string, accountCode: string, controlAccounts: Array<{ __typename?: 'ChartControlAccount', name: string, accountCode: string, controlSubAccounts: Array<{ __typename?: 'ChartControlSubAccount', name: string, accountCode: string }> }> }, liabilities: { __typename?: 'ChartCategory', name: string, accountCode: string, controlAccounts: Array<{ __typename?: 'ChartControlAccount', name: string, accountCode: string, controlSubAccounts: Array<{ __typename?: 'ChartControlSubAccount', name: string, accountCode: string }> }> }, equity: { __typename?: 'ChartCategory', name: string, accountCode: string, controlAccounts: Array<{ __typename?: 'ChartControlAccount', name: string, accountCode: string, controlSubAccounts: Array<{ __typename?: 'ChartControlSubAccount', name: string, accountCode: string }> }> }, revenues: { __typename?: 'ChartCategory', name: string, accountCode: string, controlAccounts: Array<{ __typename?: 'ChartControlAccount', name: string, accountCode: string, controlSubAccounts: Array<{ __typename?: 'ChartControlSubAccount', name: string, accountCode: string }> }> }, expenses: { __typename?: 'ChartCategory', name: string, accountCode: string, controlAccounts: Array<{ __typename?: 'ChartControlAccount', name: string, accountCode: string, controlSubAccounts: Array<{ __typename?: 'ChartControlSubAccount', name: string, accountCode: string }> }> } };
+
+export type ChartOfAccountsQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type GetOnBalanceSheetChartOfAccountsQuery = { __typename?: 'Query', chartOfAccounts?: { __typename?: 'ChartOfAccounts', name: string, categories: Array<{ __typename?: 'StatementCategory', name: string, accounts: Array<{ __typename: 'Account', id: string, name: string } | { __typename: 'AccountSet', id: string, name: string, hasSubAccounts: boolean }> }> } | null };
+export type ChartOfAccountsQuery = { __typename?: 'Query', chartOfAccounts: { __typename?: 'ChartOfAccounts', name: string, categories: { __typename?: 'ChartCategories', assets: { __typename?: 'ChartCategory', name: string, accountCode: string, controlAccounts: Array<{ __typename?: 'ChartControlAccount', name: string, accountCode: string, controlSubAccounts: Array<{ __typename?: 'ChartControlSubAccount', name: string, accountCode: string }> }> }, liabilities: { __typename?: 'ChartCategory', name: string, accountCode: string, controlAccounts: Array<{ __typename?: 'ChartControlAccount', name: string, accountCode: string, controlSubAccounts: Array<{ __typename?: 'ChartControlSubAccount', name: string, accountCode: string }> }> }, equity: { __typename?: 'ChartCategory', name: string, accountCode: string, controlAccounts: Array<{ __typename?: 'ChartControlAccount', name: string, accountCode: string, controlSubAccounts: Array<{ __typename?: 'ChartControlSubAccount', name: string, accountCode: string }> }> }, revenues: { __typename?: 'ChartCategory', name: string, accountCode: string, controlAccounts: Array<{ __typename?: 'ChartControlAccount', name: string, accountCode: string, controlSubAccounts: Array<{ __typename?: 'ChartControlSubAccount', name: string, accountCode: string }> }> }, expenses: { __typename?: 'ChartCategory', name: string, accountCode: string, controlAccounts: Array<{ __typename?: 'ChartControlAccount', name: string, accountCode: string, controlSubAccounts: Array<{ __typename?: 'ChartControlSubAccount', name: string, accountCode: string }> }> } } } };
 
-export type GetOffBalanceSheetChartOfAccountsQueryVariables = Exact<{ [key: string]: never; }>;
+export type OffBalanceSheetChartOfAccountsQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type GetOffBalanceSheetChartOfAccountsQuery = { __typename?: 'Query', offBalanceSheetChartOfAccounts?: { __typename?: 'ChartOfAccounts', name: string, categories: Array<{ __typename?: 'StatementCategory', name: string, accounts: Array<{ __typename: 'Account', id: string, name: string } | { __typename: 'AccountSet', id: string, name: string, hasSubAccounts: boolean }> }> } | null };
+export type OffBalanceSheetChartOfAccountsQuery = { __typename?: 'Query', offBalanceSheetChartOfAccounts: { __typename?: 'ChartOfAccounts', name: string, categories: { __typename?: 'ChartCategories', assets: { __typename?: 'ChartCategory', name: string, accountCode: string, controlAccounts: Array<{ __typename?: 'ChartControlAccount', name: string, accountCode: string, controlSubAccounts: Array<{ __typename?: 'ChartControlSubAccount', name: string, accountCode: string }> }> }, liabilities: { __typename?: 'ChartCategory', name: string, accountCode: string, controlAccounts: Array<{ __typename?: 'ChartControlAccount', name: string, accountCode: string, controlSubAccounts: Array<{ __typename?: 'ChartControlSubAccount', name: string, accountCode: string }> }> }, equity: { __typename?: 'ChartCategory', name: string, accountCode: string, controlAccounts: Array<{ __typename?: 'ChartControlAccount', name: string, accountCode: string, controlSubAccounts: Array<{ __typename?: 'ChartControlSubAccount', name: string, accountCode: string }> }> }, revenues: { __typename?: 'ChartCategory', name: string, accountCode: string, controlAccounts: Array<{ __typename?: 'ChartControlAccount', name: string, accountCode: string, controlSubAccounts: Array<{ __typename?: 'ChartControlSubAccount', name: string, accountCode: string }> }> }, expenses: { __typename?: 'ChartCategory', name: string, accountCode: string, controlAccounts: Array<{ __typename?: 'ChartControlAccount', name: string, accountCode: string, controlSubAccounts: Array<{ __typename?: 'ChartControlSubAccount', name: string, accountCode: string }> }> } } } };
 
 export type GetCommitteeDetailsQueryVariables = Exact<{
   id: Scalars['UUID']['input'];
@@ -2080,6 +2117,49 @@ export type GetRealtimePriceUpdatesQueryVariables = Exact<{ [key: string]: never
 
 export type GetRealtimePriceUpdatesQuery = { __typename?: 'Query', realtimePrice: { __typename?: 'RealtimePrice', usdCentsPerBtc: UsdCents } };
 
+export const ControlSubAccountFieldsFragmentDoc = gql`
+    fragment ControlSubAccountFields on ChartControlSubAccount {
+  name
+  accountCode
+}
+    `;
+export const ControlAccountFieldsFragmentDoc = gql`
+    fragment ControlAccountFields on ChartControlAccount {
+  name
+  accountCode
+  controlSubAccounts {
+    ...ControlSubAccountFields
+  }
+}
+    ${ControlSubAccountFieldsFragmentDoc}`;
+export const CategoryFieldsFragmentDoc = gql`
+    fragment CategoryFields on ChartCategory {
+  name
+  accountCode
+  controlAccounts {
+    ...ControlAccountFields
+  }
+}
+    ${ControlAccountFieldsFragmentDoc}`;
+export const ChartCategoriesFragmentDoc = gql`
+    fragment ChartCategories on ChartCategories {
+  assets {
+    ...CategoryFields
+  }
+  liabilities {
+    ...CategoryFields
+  }
+  equity {
+    ...CategoryFields
+  }
+  revenues {
+    ...CategoryFields
+  }
+  expenses {
+    ...CategoryFields
+  }
+}
+    ${CategoryFieldsFragmentDoc}`;
 export const CommitteeFieldsFragmentDoc = gql`
     fragment CommitteeFields on Committee {
   id
@@ -2772,104 +2852,80 @@ export function useChartOfAccountsAccountSetLazyQuery(baseOptions?: Apollo.LazyQ
 export type ChartOfAccountsAccountSetQueryHookResult = ReturnType<typeof useChartOfAccountsAccountSetQuery>;
 export type ChartOfAccountsAccountSetLazyQueryHookResult = ReturnType<typeof useChartOfAccountsAccountSetLazyQuery>;
 export type ChartOfAccountsAccountSetQueryResult = Apollo.QueryResult<ChartOfAccountsAccountSetQuery, ChartOfAccountsAccountSetQueryVariables>;
-export const GetOnBalanceSheetChartOfAccountsDocument = gql`
-    query GetOnBalanceSheetChartOfAccounts {
+export const ChartOfAccountsDocument = gql`
+    query ChartOfAccounts {
   chartOfAccounts {
     name
     categories {
-      name
-      accounts {
-        __typename
-        ... on Account {
-          id
-          name
-        }
-        ... on AccountSet {
-          id
-          name
-          hasSubAccounts
-        }
-      }
+      ...ChartCategories
     }
   }
 }
-    `;
+    ${ChartCategoriesFragmentDoc}`;
 
 /**
- * __useGetOnBalanceSheetChartOfAccountsQuery__
+ * __useChartOfAccountsQuery__
  *
- * To run a query within a React component, call `useGetOnBalanceSheetChartOfAccountsQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetOnBalanceSheetChartOfAccountsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * To run a query within a React component, call `useChartOfAccountsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useChartOfAccountsQuery` returns an object from Apollo Client that contains loading, error, and data properties
  * you can use to render your UI.
  *
  * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
  *
  * @example
- * const { data, loading, error } = useGetOnBalanceSheetChartOfAccountsQuery({
+ * const { data, loading, error } = useChartOfAccountsQuery({
  *   variables: {
  *   },
  * });
  */
-export function useGetOnBalanceSheetChartOfAccountsQuery(baseOptions?: Apollo.QueryHookOptions<GetOnBalanceSheetChartOfAccountsQuery, GetOnBalanceSheetChartOfAccountsQueryVariables>) {
+export function useChartOfAccountsQuery(baseOptions?: Apollo.QueryHookOptions<ChartOfAccountsQuery, ChartOfAccountsQueryVariables>) {
         const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<GetOnBalanceSheetChartOfAccountsQuery, GetOnBalanceSheetChartOfAccountsQueryVariables>(GetOnBalanceSheetChartOfAccountsDocument, options);
+        return Apollo.useQuery<ChartOfAccountsQuery, ChartOfAccountsQueryVariables>(ChartOfAccountsDocument, options);
       }
-export function useGetOnBalanceSheetChartOfAccountsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetOnBalanceSheetChartOfAccountsQuery, GetOnBalanceSheetChartOfAccountsQueryVariables>) {
+export function useChartOfAccountsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<ChartOfAccountsQuery, ChartOfAccountsQueryVariables>) {
           const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<GetOnBalanceSheetChartOfAccountsQuery, GetOnBalanceSheetChartOfAccountsQueryVariables>(GetOnBalanceSheetChartOfAccountsDocument, options);
+          return Apollo.useLazyQuery<ChartOfAccountsQuery, ChartOfAccountsQueryVariables>(ChartOfAccountsDocument, options);
         }
-export type GetOnBalanceSheetChartOfAccountsQueryHookResult = ReturnType<typeof useGetOnBalanceSheetChartOfAccountsQuery>;
-export type GetOnBalanceSheetChartOfAccountsLazyQueryHookResult = ReturnType<typeof useGetOnBalanceSheetChartOfAccountsLazyQuery>;
-export type GetOnBalanceSheetChartOfAccountsQueryResult = Apollo.QueryResult<GetOnBalanceSheetChartOfAccountsQuery, GetOnBalanceSheetChartOfAccountsQueryVariables>;
-export const GetOffBalanceSheetChartOfAccountsDocument = gql`
-    query GetOffBalanceSheetChartOfAccounts {
+export type ChartOfAccountsQueryHookResult = ReturnType<typeof useChartOfAccountsQuery>;
+export type ChartOfAccountsLazyQueryHookResult = ReturnType<typeof useChartOfAccountsLazyQuery>;
+export type ChartOfAccountsQueryResult = Apollo.QueryResult<ChartOfAccountsQuery, ChartOfAccountsQueryVariables>;
+export const OffBalanceSheetChartOfAccountsDocument = gql`
+    query OffBalanceSheetChartOfAccounts {
   offBalanceSheetChartOfAccounts {
     name
     categories {
-      name
-      accounts {
-        __typename
-        ... on Account {
-          id
-          name
-        }
-        ... on AccountSet {
-          id
-          name
-          hasSubAccounts
-        }
-      }
+      ...ChartCategories
     }
   }
 }
-    `;
+    ${ChartCategoriesFragmentDoc}`;
 
 /**
- * __useGetOffBalanceSheetChartOfAccountsQuery__
+ * __useOffBalanceSheetChartOfAccountsQuery__
  *
- * To run a query within a React component, call `useGetOffBalanceSheetChartOfAccountsQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetOffBalanceSheetChartOfAccountsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * To run a query within a React component, call `useOffBalanceSheetChartOfAccountsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useOffBalanceSheetChartOfAccountsQuery` returns an object from Apollo Client that contains loading, error, and data properties
  * you can use to render your UI.
  *
  * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
  *
  * @example
- * const { data, loading, error } = useGetOffBalanceSheetChartOfAccountsQuery({
+ * const { data, loading, error } = useOffBalanceSheetChartOfAccountsQuery({
  *   variables: {
  *   },
  * });
  */
-export function useGetOffBalanceSheetChartOfAccountsQuery(baseOptions?: Apollo.QueryHookOptions<GetOffBalanceSheetChartOfAccountsQuery, GetOffBalanceSheetChartOfAccountsQueryVariables>) {
+export function useOffBalanceSheetChartOfAccountsQuery(baseOptions?: Apollo.QueryHookOptions<OffBalanceSheetChartOfAccountsQuery, OffBalanceSheetChartOfAccountsQueryVariables>) {
         const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<GetOffBalanceSheetChartOfAccountsQuery, GetOffBalanceSheetChartOfAccountsQueryVariables>(GetOffBalanceSheetChartOfAccountsDocument, options);
+        return Apollo.useQuery<OffBalanceSheetChartOfAccountsQuery, OffBalanceSheetChartOfAccountsQueryVariables>(OffBalanceSheetChartOfAccountsDocument, options);
       }
-export function useGetOffBalanceSheetChartOfAccountsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetOffBalanceSheetChartOfAccountsQuery, GetOffBalanceSheetChartOfAccountsQueryVariables>) {
+export function useOffBalanceSheetChartOfAccountsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<OffBalanceSheetChartOfAccountsQuery, OffBalanceSheetChartOfAccountsQueryVariables>) {
           const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<GetOffBalanceSheetChartOfAccountsQuery, GetOffBalanceSheetChartOfAccountsQueryVariables>(GetOffBalanceSheetChartOfAccountsDocument, options);
+          return Apollo.useLazyQuery<OffBalanceSheetChartOfAccountsQuery, OffBalanceSheetChartOfAccountsQueryVariables>(OffBalanceSheetChartOfAccountsDocument, options);
         }
-export type GetOffBalanceSheetChartOfAccountsQueryHookResult = ReturnType<typeof useGetOffBalanceSheetChartOfAccountsQuery>;
-export type GetOffBalanceSheetChartOfAccountsLazyQueryHookResult = ReturnType<typeof useGetOffBalanceSheetChartOfAccountsLazyQuery>;
-export type GetOffBalanceSheetChartOfAccountsQueryResult = Apollo.QueryResult<GetOffBalanceSheetChartOfAccountsQuery, GetOffBalanceSheetChartOfAccountsQueryVariables>;
+export type OffBalanceSheetChartOfAccountsQueryHookResult = ReturnType<typeof useOffBalanceSheetChartOfAccountsQuery>;
+export type OffBalanceSheetChartOfAccountsLazyQueryHookResult = ReturnType<typeof useOffBalanceSheetChartOfAccountsLazyQuery>;
+export type OffBalanceSheetChartOfAccountsQueryResult = Apollo.QueryResult<OffBalanceSheetChartOfAccountsQuery, OffBalanceSheetChartOfAccountsQueryVariables>;
 export const GetCommitteeDetailsDocument = gql`
     query GetCommitteeDetails($id: UUID!) {
   committee(id: $id) {

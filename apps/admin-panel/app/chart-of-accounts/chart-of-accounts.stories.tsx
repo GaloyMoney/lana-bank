@@ -4,8 +4,8 @@ import { MockedProvider } from "@apollo/client/testing"
 import ChartOfAccounts from "./page"
 
 import {
-  GetOnBalanceSheetChartOfAccountsDocument,
-  GetOffBalanceSheetChartOfAccountsDocument,
+  ChartOfAccountsDocument,
+  OffBalanceSheetChartOfAccountsDocument,
 } from "@/lib/graphql/generated"
 
 import {
@@ -16,13 +16,13 @@ import {
 const createMocks = () => [
   {
     request: {
-      query: GetOnBalanceSheetChartOfAccountsDocument,
+      query: ChartOfAccountsDocument,
     },
     result: regularChartOfAccountsMockData,
   },
   {
     request: {
-      query: GetOffBalanceSheetChartOfAccountsDocument,
+      query: OffBalanceSheetChartOfAccountsDocument,
     },
     result: offBalanceSheetChartOfAccountsMockData,
   },
@@ -42,13 +42,13 @@ const LoadingStory = () => {
   const mocks = [
     {
       request: {
-        query: GetOnBalanceSheetChartOfAccountsDocument,
+        query: ChartOfAccountsDocument,
       },
       delay: Infinity,
     },
     {
       request: {
-        query: GetOffBalanceSheetChartOfAccountsDocument,
+        query: OffBalanceSheetChartOfAccountsDocument,
       },
       delay: Infinity,
     },
