@@ -2,7 +2,7 @@ use sqlx::PgPool;
 
 use es_entity::*;
 
-use crate::{data_export::Export, primitives::*};
+use crate::primitives::*;
 
 use super::{entity::*, error::DisbursalError};
 
@@ -18,15 +18,11 @@ use super::{entity::*, error::DisbursalError};
 )]
 pub(in crate::credit_facility) struct DisbursalRepo {
     pool: PgPool,
-    _export: Export,
 }
 
 impl DisbursalRepo {
-    pub fn new(pool: &PgPool, export: &Export) -> Self {
-        Self {
-            pool: pool.clone(),
-            _export: export.clone(),
-        }
+    pub fn new(pool: &PgPool) -> Self {
+        Self { pool: pool.clone() }
     }
 }
 

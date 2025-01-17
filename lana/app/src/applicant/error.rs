@@ -24,6 +24,4 @@ pub enum ApplicantError {
     UuidError(#[from] uuid::Error),
     #[error("ApplicantError - JobError: {0}")]
     JobError(#[from] crate::job::error::JobError),
-    #[error("ApplicantError - CalaError: {0}")]
-    ExportError(#[from] crate::data_export::error::ExportError),
 }

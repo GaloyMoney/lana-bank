@@ -4,8 +4,6 @@ services:
     command: sh -c "while :; do sleep 10; done"
     depends_on:
       - core-pg
-      - cala-pg
-      - cala
       - otel-agent
       - kratos
       - kratos-pg
@@ -24,34 +22,6 @@ services:
       interval: 1s
       timeout: 1s
       retries: 20
-  cala-pg:
-    image: postgres:16.4
-    command: -c 'max_connections=200'
-    ports:
-      - "5432:5432"
-    environment:
-      - POSTGRES_USER=user
-      - POSTGRES_PASSWORD=password
-      - POSTGRES_DB=pg
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready"]
-      interval: 1s
-      timeout: 1s
-      retries: 20
-  cala:
-    image: us.gcr.io/galoyorg/cala-enterprise:edge
-    ports:
-      - "2252:2252"
-    volumes:
-      - ./dev/cala.yml:/cala.yml
-    environment:
-      - PG_CON=postgresql://user:password@cala-pg:5432/pg
-      - CALA_CONFIG=/cala.yml
-      - BFX_LOCAL_TESTING=true
-      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-agent:4317
-    depends_on:
-      - cala-pg
-      - otel-agent
   otel-agent:
     ports:
       - "4317:4317" # OpenTelemetry receiver

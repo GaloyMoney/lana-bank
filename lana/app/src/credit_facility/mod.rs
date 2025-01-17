@@ -24,7 +24,6 @@ use tracing::instrument;
 use crate::{
     audit::AuditInfo,
     authorization::{Authorization, CreditFacilityAction, Object},
-    data_export::Export,
     deposit::Deposits,
     governance::Governance,
     job::*,
@@ -78,7 +77,6 @@ impl CreditFacilities {
         config: CreditFacilityConfig,
         governance: &Governance,
         jobs: &Jobs,
-        export: &Export,
         authz: &Authorization,
         deposits: &Deposits,
         price: &Price,
@@ -92,9 +90,9 @@ impl CreditFacilities {
         cala: &CalaLedger,
         journal_id: cala_ledger::JournalId,
     ) -> Result<Self, CreditFacilityError> {
-        let publisher = CreditFacilityPublisher::new(export, outbox);
+        let publisher = CreditFacilityPublisher::new(outbox);
         let credit_facility_repo = CreditFacilityRepo::new(pool, &publisher);
-        let disbursal_repo = DisbursalRepo::new(pool, export);
+        let disbursal_repo = DisbursalRepo::new(pool);
         let ledger = CreditLedger::init(cala, journal_id).await?;
         let approve_disbursal = ApproveDisbursal::new(
             &disbursal_repo,

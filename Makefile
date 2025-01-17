@@ -37,9 +37,6 @@ reset-tf-provider:
 delete-bq-tables:
 	cd tf && tofu state list | grep 'module\.setup\.google_bigquery_table\.' | awk '{print "-target='\''" $$1 "'\''"}' | xargs tofu destroy -auto-approve
 
-run-tf:
-	cd tf && tofu init && tofu apply -auto-approve
-
 init-bq: delete-bq-tables reset-tf-state clean-deps start-deps setup-db
 	rm tf/import.tf || true
 	cd tf && tofu init && tofu apply -auto-approve || true
@@ -47,7 +44,7 @@ init-bq: delete-bq-tables reset-tf-state clean-deps start-deps setup-db
 	cd tf && tofu apply -auto-approve
 	git checkout tf/import.tf
 
-reset-deps: reset-tf-state clean-deps start-deps setup-db run-tf
+reset-deps: reset-tf-state clean-deps start-deps setup-db
 
 run-server:
 	cargo run --bin lana-cli --features sim-time -- --config ./bats/lana-sim-time.yml | tee .e2e-logs
@@ -68,10 +65,10 @@ build:
 build-for-tests:
 	SQLX_OFFLINE=true cargo build --locked --features sim-time
 
-e2e: reset-tf-state clean-deps start-deps build-for-tests run-tf
+e2e: reset-tf-state clean-deps start-deps build-for-tests
 	bats -t bats
 
-e2e-in-ci: bump-cala-docker-image clean-deps start-deps build-for-tests run-tf
+e2e-in-ci: clean-deps start-deps build-for-tests
 	SA_CREDS_BASE64=$$(cat ./dev/fake-service-account.json | tr -d '\n' | base64 -w 0) bats -t bats
 
 
@@ -79,15 +76,7 @@ sdl:
 	SQLX_OFFLINE=true cargo run --bin write_sdl > lana/admin-server/src/graphql/schema.graphql
 	cd apps/admin-panel && pnpm install && pnpm codegen
 
-bump-cala-schema:
-	curl -H "Authorization: token ${GITHUB_TOKEN}" https://raw.githubusercontent.com/GaloyMoney/cala-enterprise/main/schema.graphql > lana/app/src/ledger/cala/graphql/schema.graphql
-
-bump-cala-docker-image:
-	docker compose pull cala
-
-bump-cala: bump-cala-docker-image bump-cala-schema
-
-test-in-ci: start-deps setup-db run-tf
+test-in-ci: start-deps setup-db
 	cargo nextest run --verbose --locked
 
 build-x86_64-unknown-linux-musl-release:

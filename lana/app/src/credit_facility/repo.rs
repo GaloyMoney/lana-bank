@@ -4,7 +4,7 @@ use sqlx::PgPool;
 use es_entity::*;
 pub use es_entity::{ListDirection, Sort};
 
-use crate::{data_export::Export, primitives::*, terms::CollateralizationState};
+use crate::{primitives::*, terms::CollateralizationState};
 
 use super::{
     entity::*,
@@ -45,7 +45,7 @@ pub struct CreditFacilityRepo {
 
 impl CreditFacilityRepo {
     pub(super) fn new(pool: &PgPool, publisher: &CreditFacilityPublisher) -> Self {
-        let interest_accruals = InterestAccrualRepo::new(pool, &publisher.export);
+        let interest_accruals = InterestAccrualRepo::new(pool);
         Self {
             pool: pool.clone(),
             publisher: publisher.clone(),
@@ -63,8 +63,6 @@ impl CreditFacilityRepo {
     }
 }
 
-const INTEREST_ACCRUAL_BQ_TABLE_NAME: &str = "interest_accrual_events";
-
 #[derive(EsRepo, Clone)]
 #[es_repo(
     entity = "InterestAccrual",
@@ -72,32 +70,15 @@ const INTEREST_ACCRUAL_BQ_TABLE_NAME: &str = "interest_accrual_events";
     columns(
         credit_facility_id(ty = "CreditFacilityId", update(persist = false), list_for, parent),
         idx(ty = "InterestAccrualIdx", update(persist = false), list_by),
-    ),
-    post_persist_hook = "export"
+    )
 )]
 pub(super) struct InterestAccrualRepo {
     pool: PgPool,
-    export: Export,
 }
 
 impl InterestAccrualRepo {
-    pub fn new(pool: &PgPool, export: &Export) -> Self {
-        Self {
-            pool: pool.clone(),
-            export: export.clone(),
-        }
-    }
-
-    async fn export(
-        &self,
-        db: &mut es_entity::DbOp<'_>,
-        _: &InterestAccrual,
-        events: impl Iterator<Item = &PersistedEvent<InterestAccrualEvent>>,
-    ) -> Result<(), InterestAccrualError> {
-        self.export
-            .es_entity_export(db, INTEREST_ACCRUAL_BQ_TABLE_NAME, events)
-            .await?;
-        Ok(())
+    pub fn new(pool: &PgPool) -> Self {
+        Self { pool: pool.clone() }
     }
 }
 

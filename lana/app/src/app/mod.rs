@@ -15,7 +15,6 @@ use crate::{
     credit_facility::CreditFacilities,
     customer::Customers,
     dashboard::Dashboard,
-    data_export::Export,
     deposit::Deposits,
     document::Documents,
     governance::Governance,
@@ -60,17 +59,16 @@ impl LanaApp {
         sqlx::migrate!().run(&pool).await?;
 
         let mut jobs = Jobs::new(&pool, config.job_execution);
-        let export = Export::new(config.ledger.cala_url.clone(), &jobs);
         let audit = Audit::new(&pool);
         let authz = init_authz(&pool, &audit).await?;
         let outbox = Outbox::init(&pool).await?;
         let dashboard = Dashboard::init(&pool, &authz, &jobs, &outbox).await?;
         let governance = Governance::new(&pool, &authz, &outbox);
         let ledger = Ledger::init(config.ledger, &authz).await?;
-        let price = Price::init(&jobs, &export).await?;
+        let price = Price::init(&jobs).await?;
         let storage = Storage::new(&config.storage);
         let documents = Documents::new(&pool, &storage, &authz);
-        let report = Reports::init(&pool, &config.report, &authz, &jobs, &storage, &export).await?;
+        let report = Reports::init(&pool, &config.report, &authz, &jobs, &storage).await?;
         let users = Users::init(&pool, &authz, &outbox, config.user.superuser_email).await?;
 
         let cala_config = cala_ledger::CalaLedgerConfig::builder()
@@ -100,8 +98,8 @@ impl LanaApp {
             String::from("OMNIBUS_ACCOUNT_ID"),
         )
         .await?;
-        let customers = Customers::new(&pool, &config.customer, &deposits, &authz, &export);
-        let applicants = Applicants::new(&pool, &config.sumsub, &customers, &jobs, &export);
+        let customers = Customers::new(&pool, &config.customer, &deposits, &authz);
+        let applicants = Applicants::new(&pool, &config.sumsub, &customers, &jobs);
 
         let collateral_factory = chart_of_accounts.transaction_account_factory(
             charts_init.chart_ids.off_balance_sheet,
@@ -132,7 +130,6 @@ impl LanaApp {
             config.credit_facility,
             &governance,
             &jobs,
-            &export,
             &authz,
             &deposits,
             &price,
@@ -147,7 +144,7 @@ impl LanaApp {
             journal_init.journal_id,
         )
         .await?;
-        let terms_templates = TermsTemplates::new(&pool, &authz, &export);
+        let terms_templates = TermsTemplates::new(&pool, &authz);
         jobs.start_poll().await?;
 
         Ok(Self {

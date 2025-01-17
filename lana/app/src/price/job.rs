@@ -1,14 +1,9 @@
 use async_trait::async_trait;
-use chrono::Utc;
 use serde::{Deserialize, Serialize};
 use serde_with::serde_as;
 use std::time::Duration;
 
-use crate::{
-    data_export::{Export, ExportPriceData},
-    job::*,
-    price::Price,
-};
+use crate::{job::*, price::Price};
 
 #[serde_as]
 #[derive(Clone, Serialize, Deserialize)]
@@ -35,14 +30,12 @@ impl Default for ExportPriceJobConfig {
 
 pub struct ExportPriceInitializer {
     price: Price,
-    export: Export,
 }
 
 impl ExportPriceInitializer {
-    pub fn new(price: &Price, export: &Export) -> Self {
+    pub fn new(price: &Price) -> Self {
         Self {
             price: price.clone(),
-            export: export.clone(),
         }
     }
 }
@@ -60,7 +53,6 @@ impl JobInitializer for ExportPriceInitializer {
         Ok(Box::new(ExportPriceJobRunner {
             config: job.config()?,
             price: self.price.clone(),
-            export: self.export.clone(),
         }))
     }
 }
@@ -68,19 +60,18 @@ impl JobInitializer for ExportPriceInitializer {
 pub struct ExportPriceJobRunner {
     config: ExportPriceJobConfig,
     price: Price,
-    export: Export,
 }
 
 #[async_trait]
 impl JobRunner for ExportPriceJobRunner {
     async fn run(&self, _: CurrentJob) -> Result<JobCompletion, Box<dyn std::error::Error>> {
-        let price = self.price.usd_cents_per_btc().await?;
-        self.export
-            .export_price_data(ExportPriceData {
-                usd_cents_per_btc: price,
-                uploaded_at: Utc::now(),
-            })
-            .await?;
+        let _price = self.price.usd_cents_per_btc().await?;
+        // self.export
+        //     .export_price_data(ExportPriceData {
+        //         usd_cents_per_btc: price,
+        //         uploaded_at: Utc::now(),
+        //     })
+        //     .await?;
 
         Ok(JobCompletion::RescheduleIn(self.config.job_interval_secs))
     }

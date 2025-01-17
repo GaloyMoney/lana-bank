@@ -3,11 +3,9 @@ use sqlx::PgPool;
 pub use es_entity::Sort;
 use es_entity::*;
 
-use crate::{data_export::Export, primitives::*};
+use crate::primitives::*;
 
 use super::{entity::*, error::*};
-
-const BQ_TABLE_NAME: &str = "customer_events";
 
 #[derive(EsRepo, Clone)]
 #[es_repo(
@@ -17,32 +15,15 @@ const BQ_TABLE_NAME: &str = "customer_events";
         email(ty = "String", list_by),
         telegram_id(ty = "String", list_by),
         status(ty = "AccountStatus", list_for)
-    ),
-    post_persist_hook = "export"
+    )
 )]
 pub struct CustomerRepo {
     pool: PgPool,
-    export: Export,
 }
 
 impl CustomerRepo {
-    pub(super) fn new(pool: &PgPool, export: &Export) -> Self {
-        Self {
-            pool: pool.clone(),
-            export: export.clone(),
-        }
-    }
-
-    async fn export(
-        &self,
-        db: &mut es_entity::DbOp<'_>,
-        _: &Customer,
-        events: impl Iterator<Item = &PersistedEvent<CustomerEvent>>,
-    ) -> Result<(), CustomerError> {
-        self.export
-            .es_entity_export(db, BQ_TABLE_NAME, events)
-            .await?;
-        Ok(())
+    pub(super) fn new(pool: &PgPool) -> Self {
+        Self { pool: pool.clone() }
     }
 }
 

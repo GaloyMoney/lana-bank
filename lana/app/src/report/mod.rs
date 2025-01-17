@@ -11,7 +11,6 @@ use tracing::instrument;
 
 use crate::{
     authorization::{Authorization, Object, ReportAction},
-    data_export::Export,
     job::Jobs,
     primitives::{ReportId, Subject},
     storage::Storage,
@@ -38,9 +37,8 @@ impl Reports {
         authz: &Authorization,
         jobs: &Jobs,
         storage: &Storage,
-        export: &Export,
     ) -> Result<Self, ReportError> {
-        let repo = ReportRepo::new(pool, export);
+        let repo = ReportRepo::new(pool);
         jobs.add_initializer(report_jobs::generate::GenerateReportInitializer::new(
             &repo,
             config,

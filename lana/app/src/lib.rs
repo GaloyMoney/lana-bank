@@ -7,7 +7,6 @@ pub mod applicant;
 pub mod authorization;
 pub mod credit_facility;
 pub mod customer;
-pub mod data_export;
 pub mod document;
 pub mod ledger;
 pub mod price;

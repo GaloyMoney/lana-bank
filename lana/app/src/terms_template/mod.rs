@@ -10,7 +10,6 @@ use tracing::instrument;
 use crate::{
     audit::AuditInfo,
     authorization::{Authorization, Object, TermsTemplateAction},
-    data_export::Export,
     primitives::{Subject, TermsTemplateId},
     terms::TermValues,
 };
@@ -26,8 +25,8 @@ pub struct TermsTemplates {
 }
 
 impl TermsTemplates {
-    pub fn new(pool: &sqlx::PgPool, authz: &Authorization, export: &Export) -> Self {
-        let repo = TermsTemplateRepo::new(pool, export);
+    pub fn new(pool: &sqlx::PgPool, authz: &Authorization) -> Self {
+        let repo = TermsTemplateRepo::new(pool);
         Self {
             authz: authz.clone(),
             repo,

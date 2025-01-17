@@ -4,7 +4,6 @@ use cached::proc_macro::cached;
 mod job;
 
 use crate::{
-    data_export::Export,
     job::Jobs,
     primitives::{PriceOfOneBTC, UsdCents},
 };
@@ -19,14 +18,14 @@ pub struct Price {
 }
 
 impl Price {
-    pub async fn init(jobs: &Jobs, export: &Export) -> Result<Self, PriceError> {
+    pub async fn init(jobs: &Jobs) -> Result<Self, PriceError> {
         let price = Self {
             bfx: BfxClient::new(),
             _jobs: jobs.clone(),
         };
 
         jobs.add_initializer_and_spawn_unique(
-            job::ExportPriceInitializer::new(&price, export),
+            job::ExportPriceInitializer::new(&price),
             job::ExportPriceJobConfig::default(),
         )
         .await?;

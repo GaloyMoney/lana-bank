@@ -2,41 +2,22 @@ use sqlx::PgPool;
 
 use es_entity::*;
 
-use crate::{data_export::Export, primitives::*};
+use crate::primitives::*;
 
 use super::{entity::*, error::*};
-
-const BQ_TABLE_NAME: &str = "terms_template_events";
 
 #[derive(EsRepo, Clone)]
 #[es_repo(
     entity = "TermsTemplate",
     err = "TermsTemplateError",
-    columns(name(ty = "String", list_by)),
-    post_persist_hook = "export"
+    columns(name(ty = "String", list_by))
 )]
 pub struct TermsTemplateRepo {
     pool: PgPool,
-    export: Export,
 }
 
 impl TermsTemplateRepo {
-    pub fn new(pool: &PgPool, export: &Export) -> Self {
-        Self {
-            pool: pool.clone(),
-            export: export.clone(),
-        }
-    }
-
-    async fn export(
-        &self,
-        db: &mut es_entity::DbOp<'_>,
-        _: &TermsTemplate,
-        events: impl Iterator<Item = &PersistedEvent<TermsTemplateEvent>>,
-    ) -> Result<(), TermsTemplateError> {
-        self.export
-            .es_entity_export(db, BQ_TABLE_NAME, events)
-            .await?;
-        Ok(())
+    pub fn new(pool: &PgPool) -> Self {
+        Self { pool: pool.clone() }
     }
 }

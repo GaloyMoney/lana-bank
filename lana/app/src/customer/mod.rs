@@ -12,7 +12,6 @@ use authz::PermissionCheck;
 use crate::{
     audit::{AuditInfo, AuditSvc},
     authorization::{Action, Authorization, CustomerAction, CustomerAllOrOne, Object},
-    data_export::Export,
     deposit::Deposits,
     primitives::{CustomerId, KycLevel, Subject},
 };
@@ -37,9 +36,8 @@ impl Customers {
         config: &CustomerConfig,
         deposits: &Deposits,
         authz: &Authorization,
-        export: &Export,
     ) -> Self {
-        let repo = CustomerRepo::new(pool, export);
+        let repo = CustomerRepo::new(pool);
         let kratos = KratosClient::new(&config.kratos);
         Self {
             repo,

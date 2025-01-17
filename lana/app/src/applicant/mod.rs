@@ -10,7 +10,6 @@ use tracing::instrument;
 
 use crate::{
     customer::Customers,
-    data_export::Export,
     job::Jobs,
     primitives::{CustomerId, JobId},
 };
@@ -102,11 +101,11 @@ impl Applicants {
         config: &SumsubConfig,
         users: &Customers,
         jobs: &Jobs,
-        export: &Export,
+        // export: &Export,
     ) -> Self {
         let sumsub_client = SumsubClient::new(config);
         jobs.add_initializer(SumsubExportInitializer::new(
-            export.clone(),
+            // export.clone(),
             sumsub_client.clone(),
             pool,
         ));
