@@ -11,8 +11,8 @@ use crate::{
     ControlSubAccountDetails,
 };
 
-use super::chart;
 pub use super::error::*;
+use super::tree;
 
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
@@ -67,8 +67,8 @@ impl Chart {
             .unwrap_or_else(|| Ok(category.first_control_account()))?)
     }
 
-    pub fn chart(&self) -> chart::ChartOfAccountsProjection {
-        chart::project(self.events.iter_all())
+    pub fn chart(&self) -> tree::ChartTree {
+        tree::project(self.events.iter_all())
     }
 
     pub fn find_control_account_by_reference(

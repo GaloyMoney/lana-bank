@@ -1,6 +1,6 @@
 use async_graphql::*;
 
-use lana_app::chart_of_accounts::chart::*;
+use lana_app::chart_of_accounts::tree::*;
 
 #[derive(SimpleObject)]
 pub struct ChartOfAccounts {
@@ -8,15 +8,15 @@ pub struct ChartOfAccounts {
     categories: ChartCategories,
 }
 
-impl From<ChartOfAccountsProjection> for ChartOfAccounts {
-    fn from(projection: ChartOfAccountsProjection) -> Self {
+impl From<ChartTree> for ChartOfAccounts {
+    fn from(tree: ChartTree) -> Self {
         ChartOfAccounts {
-            name: projection.name,
+            name: tree.name,
             categories: ChartCategories {
                 assets: ChartCategory {
-                    name: projection.assets.name,
-                    account_code: projection.assets.encoded_path,
-                    control_accounts: projection
+                    name: tree.assets.name,
+                    account_code: tree.assets.encoded_path,
+                    control_accounts: tree
                         .assets
                         .children
                         .into_iter()
@@ -24,9 +24,9 @@ impl From<ChartOfAccountsProjection> for ChartOfAccounts {
                         .collect(),
                 },
                 liabilities: ChartCategory {
-                    name: projection.liabilities.name,
-                    account_code: projection.liabilities.encoded_path,
-                    control_accounts: projection
+                    name: tree.liabilities.name,
+                    account_code: tree.liabilities.encoded_path,
+                    control_accounts: tree
                         .liabilities
                         .children
                         .into_iter()
@@ -34,9 +34,9 @@ impl From<ChartOfAccountsProjection> for ChartOfAccounts {
                         .collect(),
                 },
                 equity: ChartCategory {
-                    name: projection.equity.name,
-                    account_code: projection.equity.encoded_path,
-                    control_accounts: projection
+                    name: tree.equity.name,
+                    account_code: tree.equity.encoded_path,
+                    control_accounts: tree
                         .equity
                         .children
                         .into_iter()
@@ -44,9 +44,9 @@ impl From<ChartOfAccountsProjection> for ChartOfAccounts {
                         .collect(),
                 },
                 revenues: ChartCategory {
-                    name: projection.revenues.name,
-                    account_code: projection.revenues.encoded_path,
-                    control_accounts: projection
+                    name: tree.revenues.name,
+                    account_code: tree.revenues.encoded_path,
+                    control_accounts: tree
                         .revenues
                         .children
                         .into_iter()
@@ -54,9 +54,9 @@ impl From<ChartOfAccountsProjection> for ChartOfAccounts {
                         .collect(),
                 },
                 expenses: ChartCategory {
-                    name: projection.expenses.name,
-                    account_code: projection.expenses.encoded_path,
-                    control_accounts: projection
+                    name: tree.expenses.name,
+                    account_code: tree.expenses.encoded_path,
+                    control_accounts: tree
                         .expenses
                         .children
                         .into_iter()
@@ -91,12 +91,12 @@ pub struct ChartControlAccount {
     control_sub_accounts: Vec<ChartControlSubAccount>,
 }
 
-impl From<ControlAccountProjection> for ChartControlAccount {
-    fn from(projection: ControlAccountProjection) -> Self {
+impl From<ChartTreeControlAccount> for ChartControlAccount {
+    fn from(tree: ChartTreeControlAccount) -> Self {
         ChartControlAccount {
-            name: projection.name,
-            account_code: projection.encoded_path,
-            control_sub_accounts: projection
+            name: tree.name,
+            account_code: tree.encoded_path,
+            control_sub_accounts: tree
                 .children
                 .into_iter()
                 .map(ChartControlSubAccount::from)
@@ -111,11 +111,11 @@ pub struct ChartControlSubAccount {
     account_code: String,
 }
 
-impl From<ControlSubAccountProjection> for ChartControlSubAccount {
-    fn from(projection: ControlSubAccountProjection) -> Self {
+impl From<ChartTreeControlSubAccount> for ChartControlSubAccount {
+    fn from(tree: ChartTreeControlSubAccount) -> Self {
         ChartControlSubAccount {
-            name: projection.name,
-            account_code: projection.encoded_path,
+            name: tree.name,
+            account_code: tree.encoded_path,
         }
     }
 }

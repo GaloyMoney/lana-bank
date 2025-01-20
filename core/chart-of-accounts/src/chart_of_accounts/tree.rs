@@ -4,10 +4,10 @@ use crate::{path::*, ChartId};
 
 use super::ChartEvent;
 
-pub struct CategoryProjection {
+pub struct ChartTreeCategory {
     pub name: String,
     pub encoded_path: String,
-    pub children: Vec<ControlAccountProjection>,
+    pub children: Vec<ChartTreeControlAccount>,
 }
 
 struct ControlAccountAdded {
@@ -15,34 +15,32 @@ struct ControlAccountAdded {
     path: ControlAccountPath,
 }
 
-pub struct ControlAccountProjection {
+pub struct ChartTreeControlAccount {
     pub name: String,
     pub encoded_path: String,
-    pub children: Vec<ControlSubAccountProjection>,
+    pub children: Vec<ChartTreeControlSubAccount>,
 }
 
-pub struct ControlSubAccountProjection {
+pub struct ChartTreeControlSubAccount {
     pub name: String,
     pub encoded_path: String,
 }
 
-pub struct ChartOfAccountsProjection {
+pub struct ChartTree {
     pub id: ChartId,
     pub name: String,
-    pub assets: CategoryProjection,
-    pub liabilities: CategoryProjection,
-    pub equity: CategoryProjection,
-    pub revenues: CategoryProjection,
-    pub expenses: CategoryProjection,
+    pub assets: ChartTreeCategory,
+    pub liabilities: ChartTreeCategory,
+    pub equity: ChartTreeCategory,
+    pub revenues: ChartTreeCategory,
+    pub expenses: ChartTreeCategory,
 }
 
-pub(super) fn project<'a>(
-    events: impl DoubleEndedIterator<Item = &'a ChartEvent>,
-) -> ChartOfAccountsProjection {
+pub(super) fn project<'a>(events: impl DoubleEndedIterator<Item = &'a ChartEvent>) -> ChartTree {
     let mut id: Option<ChartId> = None;
     let mut name: Option<String> = None;
     let mut control_accounts_added: Vec<ControlAccountAdded> = vec![];
-    let mut control_sub_accounts_by_parent: HashMap<String, Vec<ControlSubAccountProjection>> =
+    let mut control_sub_accounts_by_parent: HashMap<String, Vec<ChartTreeControlSubAccount>> =
         HashMap::new();
 
     for event in events {
@@ -64,20 +62,20 @@ pub(super) fn project<'a>(
             ChartEvent::ControlSubAccountAdded { path, name, .. } => control_sub_accounts_by_parent
                 .entry(path.control_account().to_string())
                 .or_default()
-                .push(ControlSubAccountProjection {
+                .push(ChartTreeControlSubAccount {
                     name: name.to_string(),
                     encoded_path: path.to_string(),
                 }),
         }
     }
 
-    let mut control_accounts_by_category: HashMap<ChartCategory, Vec<ControlAccountProjection>> =
+    let mut control_accounts_by_category: HashMap<ChartCategory, Vec<ChartTreeControlAccount>> =
         HashMap::new();
     for account in control_accounts_added {
         control_accounts_by_category
             .entry(account.path.category)
             .or_default()
-            .push(ControlAccountProjection {
+            .push(ChartTreeControlAccount {
                 name: account.name,
                 encoded_path: account.path.to_string(),
                 children: control_sub_accounts_by_parent
@@ -86,38 +84,38 @@ pub(super) fn project<'a>(
             });
     }
 
-    ChartOfAccountsProjection {
+    ChartTree {
         id: id.expect("Chart must be initialized"),
         name: name.expect("Chart must be initialized"),
-        assets: CategoryProjection {
+        assets: ChartTreeCategory {
             name: "Assets".to_string(),
             encoded_path: ChartCategory::Assets.to_string(),
             children: control_accounts_by_category
                 .remove(&ChartCategory::Assets)
                 .unwrap_or_default(),
         },
-        liabilities: CategoryProjection {
+        liabilities: ChartTreeCategory {
             name: "Liabilities".to_string(),
             encoded_path: ChartCategory::Liabilities.to_string(),
             children: control_accounts_by_category
                 .remove(&ChartCategory::Liabilities)
                 .unwrap_or_default(),
         },
-        equity: CategoryProjection {
+        equity: ChartTreeCategory {
             name: "Equity".to_string(),
             encoded_path: ChartCategory::Equity.to_string(),
             children: control_accounts_by_category
                 .remove(&ChartCategory::Equity)
                 .unwrap_or_default(),
         },
-        revenues: CategoryProjection {
+        revenues: ChartTreeCategory {
             name: "Revenues".to_string(),
             encoded_path: ChartCategory::Revenues.to_string(),
             children: control_accounts_by_category
                 .remove(&ChartCategory::Revenues)
                 .unwrap_or_default(),
         },
-        expenses: CategoryProjection {
+        expenses: ChartTreeCategory {
             name: "Expenses".to_string(),
             encoded_path: ChartCategory::Expenses.to_string(),
             children: control_accounts_by_category
