@@ -1,5 +1,4 @@
 mod config;
-pub mod credit_chart_of_accounts;
 mod disbursal;
 mod entity;
 pub mod error;
@@ -17,7 +16,6 @@ use chart_of_accounts::TransactionAccountFactory;
 
 use authz::PermissionCheck;
 use cala_ledger::CalaLedger;
-use credit_chart_of_accounts::CreditChartOfAccounts;
 use deposit::{DepositAccount, DepositAccountHolderId};
 use tracing::instrument;
 
@@ -62,7 +60,6 @@ pub struct CreditFacilities {
     disbursal_repo: DisbursalRepo,
     governance: Governance,
     ledger: CreditLedger,
-    chart_of_accounts: CreditChartOfAccounts,
     price: Price,
     config: CreditFacilityConfig,
     approve_disbursal: ApproveDisbursal,
@@ -93,21 +90,25 @@ impl CreditFacilities {
         let publisher = CreditFacilityPublisher::new(outbox);
         let credit_facility_repo = CreditFacilityRepo::new(pool, &publisher);
         let disbursal_repo = DisbursalRepo::new(pool);
-        let ledger = CreditLedger::init(cala, journal_id).await?;
+        let ledger = CreditLedger::init(
+            cala,
+            journal_id,
+            CreditFacilityAccountFactories::new(
+                facility_factory,
+                disbursed_receivable_factory,
+                collateral_factory,
+                interest_receivable_factory,
+                interest_income_factory,
+                fee_income_factory,
+            ),
+        )
+        .await?;
         let approve_disbursal = ApproveDisbursal::new(
             &disbursal_repo,
             &credit_facility_repo,
             authz.audit(),
             governance,
             &ledger,
-        );
-        let chart_of_accounts = CreditChartOfAccounts::new(
-            collateral_factory,
-            facility_factory,
-            disbursed_receivable_factory,
-            interest_receivable_factory,
-            interest_income_factory,
-            fee_income_factory,
         );
 
         let approve_credit_facility =
@@ -174,7 +175,6 @@ impl CreditFacilities {
             disbursal_repo,
             governance: governance.clone(),
             ledger,
-            chart_of_accounts,
             price: price.clone(),
             config,
             cala: cala.clone(),
@@ -253,7 +253,7 @@ impl CreditFacilities {
             .await?;
 
         let mut op = self.cala.ledger_operation_from_db_op(db);
-        self.chart_of_accounts
+        self.ledger
             .create_accounts_for_credit_facility(
                 &mut op,
                 credit_facility.id,

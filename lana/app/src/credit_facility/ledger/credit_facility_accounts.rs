@@ -2,6 +2,7 @@ use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
 use cala_ledger::AccountId as LedgerAccountId;
+use chart_of_accounts::TransactionAccountFactory;
 
 use crate::{
     primitives::{LedgerTxId, Satoshis, UsdCents},
@@ -28,6 +29,36 @@ impl CreditFacilityAccountIds {
             interest_receivable_account_id: LedgerAccountId::new(),
             interest_account_id: LedgerAccountId::new(),
             fee_income_account_id: LedgerAccountId::new(),
+        }
+    }
+}
+
+#[derive(Clone)]
+pub struct CreditFacilityAccountFactories {
+    pub facility_factory: TransactionAccountFactory,
+    pub disbursed_receivable_factory: TransactionAccountFactory,
+    pub collateral_factory: TransactionAccountFactory,
+    pub interest_receivable_factory: TransactionAccountFactory,
+    pub interest_income_factory: TransactionAccountFactory,
+    pub fee_income_factory: TransactionAccountFactory,
+}
+
+impl CreditFacilityAccountFactories {
+    pub fn new(
+        facility_factory: TransactionAccountFactory,
+        disbursed_receivable_factory: TransactionAccountFactory,
+        collateral_factory: TransactionAccountFactory,
+        interest_receivable_factory: TransactionAccountFactory,
+        interest_income_factory: TransactionAccountFactory,
+        fee_income_factory: TransactionAccountFactory,
+    ) -> Self {
+        Self {
+            facility_factory,
+            disbursed_receivable_factory,
+            collateral_factory,
+            interest_receivable_factory,
+            interest_income_factory,
+            fee_income_factory,
         }
     }
 }

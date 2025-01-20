@@ -9,7 +9,7 @@ use cala_ledger::{
     AccountId, CalaLedger, Currency, DebitOrCredit, JournalId, TransactionId,
 };
 
-use crate::primitives::{CollateralAction, Satoshis, UsdCents};
+use crate::primitives::{CollateralAction, CreditFacilityId, Satoshis, UsdCents};
 
 pub use credit_facility_accounts::*;
 use error::*;
@@ -34,12 +34,17 @@ pub struct CreditLedger {
     credit_omnibus_account: AccountId,
     bank_collateral_account_id: AccountId,
     credit_facility_control_id: VelocityControlId,
+    account_factories: CreditFacilityAccountFactories,
     usd: Currency,
     btc: Currency,
 }
 
 impl CreditLedger {
-    pub async fn init(cala: &CalaLedger, journal_id: JournalId) -> Result<Self, CreditLedgerError> {
+    pub async fn init(
+        cala: &CalaLedger,
+        journal_id: JournalId,
+        account_factories: CreditFacilityAccountFactories,
+    ) -> Result<Self, CreditLedgerError> {
         let bank_collateral_account_id =
             Self::create_bank_collateral_account(cala, BANK_COLLATERAL_ACCOUNT_CODE.to_string())
                 .await?;
@@ -78,6 +83,7 @@ impl CreditLedger {
             bank_collateral_account_id,
             credit_omnibus_account,
             credit_facility_control_id,
+            account_factories,
             usd: "USD".parse().expect("Could not parse 'USD'"),
             btc: "BTC".parse().expect("Could not parse 'BTC'"),
         })
@@ -514,6 +520,98 @@ impl CreditLedger {
                 self.credit_facility_control_id,
                 account_id.into(),
                 cala_ledger::tx_template::Params::default(),
+            )
+            .await?;
+        Ok(())
+    }
+
+    pub async fn create_accounts_for_credit_facility(
+        &self,
+        op: &mut cala_ledger::LedgerOperation<'_>,
+        credit_facility_id: CreditFacilityId,
+        account_ids: CreditFacilityAccountIds,
+    ) -> Result<(), CreditLedgerError> {
+        let collateral_name = &format!(
+            "Credit Facility Collateral Account for {}",
+            credit_facility_id
+        );
+        self.account_factories
+            .collateral_factory
+            .create_transaction_account_in_op(
+                op,
+                account_ids.collateral_account_id,
+                collateral_name,
+                collateral_name,
+            )
+            .await?;
+
+        let facility_name = &format!(
+            "Off-Balance-Sheet Facility Account for Credit Facility {}",
+            credit_facility_id
+        );
+        self.account_factories
+            .facility_factory
+            .create_transaction_account_in_op(
+                op,
+                account_ids.facility_account_id,
+                facility_name,
+                facility_name,
+            )
+            .await?;
+
+        let disbursed_receivable_name = &format!(
+            "Disbursed Receivable Account for Credit Facility {}",
+            credit_facility_id
+        );
+        self.account_factories
+            .disbursed_receivable_factory
+            .create_transaction_account_in_op(
+                op,
+                account_ids.disbursed_receivable_account_id,
+                disbursed_receivable_name,
+                disbursed_receivable_name,
+            )
+            .await?;
+
+        let interest_receivable_name = &format!(
+            "Interest Receivable Account for Credit Facility {}",
+            credit_facility_id
+        );
+        self.account_factories
+            .interest_receivable_factory
+            .create_transaction_account_in_op(
+                op,
+                account_ids.interest_receivable_account_id,
+                interest_receivable_name,
+                interest_receivable_name,
+            )
+            .await?;
+
+        let interest_income_name = &format!(
+            "Interest Income Account for Credit Facility {}",
+            credit_facility_id
+        );
+        self.account_factories
+            .interest_income_factory
+            .create_transaction_account_in_op(
+                op,
+                account_ids.interest_account_id,
+                interest_income_name,
+                interest_income_name,
+            )
+            .await?;
+
+        let fee_income_name = &format!(
+            "Fee Income Account for Credit Facility {}",
+            credit_facility_id
+        );
+        self.account_factories
+            .fee_income_factory
+            .create_transaction_account_in_op(
+                op,
+                account_ids.fee_income_account_id,
+                fee_income_name,
+                fee_income_name,
             )
             .await?;
 

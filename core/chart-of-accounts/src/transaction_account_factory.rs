@@ -4,7 +4,6 @@ use crate::{error::CoreChartOfAccountsError, primitives::LedgerAccountId};
 
 use super::ControlSubAccountDetails;
 
-// TODO: move out of chart-of-accounts
 #[derive(Clone)]
 pub struct TransactionAccountFactory {
     cala: CalaLedger,
