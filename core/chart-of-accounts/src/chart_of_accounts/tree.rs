@@ -165,6 +165,7 @@ mod tests {
         {
             let control_account = chart
                 .create_control_account(
+                    LedgerAccountSetId::new(),
                     ChartCategory::Assets,
                     "Loans Receivable".to_string(),
                     "loans-receivable".to_string(),
@@ -174,7 +175,7 @@ mod tests {
             chart
                 .create_control_sub_account(
                     LedgerAccountSetId::new(),
-                    control_account,
+                    control_account.path,
                     "Fixed Loans Receivable".to_string(),
                     "fixed-loans-receivable".to_string(),
                     dummy_audit_info(),
@@ -189,6 +190,7 @@ mod tests {
         {
             let control_account = chart
                 .create_control_account(
+                    LedgerAccountSetId::new(),
                     ChartCategory::Liabilities,
                     "User Checking".to_string(),
                     "user-checking".to_string(),
@@ -198,7 +200,7 @@ mod tests {
             chart
                 .create_control_sub_account(
                     LedgerAccountSetId::new(),
-                    control_account,
+                    control_account.path,
                     "User Checking".to_string(),
                     "sub-user-checking".to_string(),
                     dummy_audit_info(),
@@ -213,6 +215,7 @@ mod tests {
         {
             let control_account = chart
                 .create_control_account(
+                    LedgerAccountSetId::new(),
                     ChartCategory::Equity,
                     "Shareholder Equity".to_string(),
                     "shareholder-equity".to_string(),
@@ -222,7 +225,7 @@ mod tests {
             chart
                 .create_control_sub_account(
                     LedgerAccountSetId::new(),
-                    control_account,
+                    control_account.path,
                     "Shareholder Equity".to_string(),
                     "sub-shareholder-equity".to_string(),
                     dummy_audit_info(),
@@ -237,6 +240,7 @@ mod tests {
         {
             chart
                 .create_control_account(
+                    LedgerAccountSetId::new(),
                     ChartCategory::Revenues,
                     "Interest Revenue".to_string(),
                     "interest-revenue".to_string(),

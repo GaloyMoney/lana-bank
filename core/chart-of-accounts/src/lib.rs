@@ -181,11 +181,13 @@ where
 
     pub async fn create_control_account(
         &self,
+        id: impl Into<LedgerAccountSetId> + std::fmt::Debug,
         chart_id: impl Into<ChartId>,
         category: ChartCategory,
         name: String,
         reference: String,
-    ) -> Result<ControlAccountPath, CoreChartOfAccountsError> {
+    ) -> Result<ControlAccountDetails, CoreChartOfAccountsError> {
+        let id = id.into();
         let chart_id = chart_id.into();
 
         let mut op = self.repo.begin_op().await?;
@@ -202,13 +204,28 @@ where
 
         let mut chart = self.repo.find_by_id(chart_id).await?;
 
-        let path = chart.create_control_account(category, name, reference, audit_info)?;
+        let control_account =
+            chart.create_control_account(id, category, name, reference, audit_info)?;
 
         self.repo.update_in_op(&mut op, &mut chart).await?;
 
+        let mut op = self.cala.ledger_operation_from_db_op(op);
+        let new_account_set = NewAccountSet::builder()
+            .id(control_account.account_set_id)
+            .journal_id(self.journal_id)
+            .name(control_account.name.to_string())
+            .description(control_account.name.to_string())
+            .normal_balance_type(control_account.path.normal_balance_type())
+            .build()
+            .expect("Could not build new account set");
+        self.cala
+            .account_sets()
+            .create_in_op(&mut op, new_account_set)
+            .await?;
+
         op.commit().await?;
 
-        Ok(path)
+        Ok(control_account)
     }
 
     pub async fn find_control_sub_account_by_reference(
@@ -259,19 +276,18 @@ where
 
         let mut chart = self.repo.find_by_id(chart_id).await?;
 
-        let account_set_details =
+        let control_sub_account =
             chart.create_control_sub_account(id, control_account, name, reference, audit_info)?;
 
-        let mut op = self.repo.begin_op().await?;
         self.repo.update_in_op(&mut op, &mut chart).await?;
 
         let mut op = self.cala.ledger_operation_from_db_op(op);
         let new_account_set = NewAccountSet::builder()
-            .id(account_set_details.account_set_id)
+            .id(control_sub_account.account_set_id)
             .journal_id(self.journal_id)
-            .name(account_set_details.name.to_string())
-            .description(account_set_details.name.to_string())
-            .normal_balance_type(account_set_details.path.normal_balance_type())
+            .name(control_sub_account.name.to_string())
+            .description(control_sub_account.name.to_string())
+            .normal_balance_type(control_sub_account.path.normal_balance_type())
             .build()
             .expect("Could not build new account set");
         self.cala
@@ -281,6 +297,6 @@ where
 
         op.commit().await?;
 
-        Ok(account_set_details)
+        Ok(control_sub_account)
     }
 }

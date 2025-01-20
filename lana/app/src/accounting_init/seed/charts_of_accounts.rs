@@ -1,4 +1,6 @@
-use chart_of_accounts::{ChartCategory, ControlSubAccountDetails};
+use chart_of_accounts::{
+    ControlAccountCreationDetails, ControlAccountDetails, ControlSubAccountDetails,
+};
 
 use crate::{
     accounting_init::{constants::*, *},
@@ -62,37 +64,51 @@ async fn create_charts_of_accounts(
     })
 }
 
-#[allow(clippy::too_many_arguments)]
 async fn create_control_sub_account(
     chart_of_accounts: &ChartOfAccounts,
     id: LedgerAccountSetId,
     chart_id: ChartId,
-    category: ChartCategory,
-    control_name: String,
-    control_reference: String,
+    control_account: ControlAccountCreationDetails,
     sub_name: String,
     sub_reference: String,
 ) -> Result<ControlSubAccountDetails, AccountingInitError> {
-    let control_path = match chart_of_accounts
-        .find_control_account_by_reference(chart_id, control_reference.clone())
+    let control_account = match chart_of_accounts
+        .find_control_account_by_reference(chart_id, control_account.reference.to_string())
         .await?
     {
-        Some(path) => path,
+        Some(path) => ControlAccountDetails {
+            path,
+            account_set_id: control_account.account_set_id,
+            name: control_account.name.to_string(),
+            reference: control_account.reference.to_string(),
+        },
         None => {
             chart_of_accounts
-                .create_control_account(chart_id, category, control_name, control_reference)
+                .create_control_account(
+                    control_account.account_set_id,
+                    chart_id,
+                    control_account.category,
+                    control_account.name,
+                    control_account.reference,
+                )
                 .await?
         }
     };
 
     let control_sub_account = match chart_of_accounts
-        .find_control_sub_account_by_reference(chart_id, sub_reference.clone())
+        .find_control_sub_account_by_reference(chart_id, sub_reference.to_string())
         .await?
     {
         Some(account_details) => account_details,
         None => {
             chart_of_accounts
-                .create_control_sub_account(id, chart_id, control_path, sub_name, sub_reference)
+                .create_control_sub_account(
+                    id,
+                    chart_id,
+                    control_account.path,
+                    sub_name,
+                    sub_reference,
+                )
                 .await?
         }
     };
@@ -108,9 +124,12 @@ async fn create_deposits_account_paths(
         chart_of_accounts,
         LedgerAccountSetId::new(),
         chart_ids.primary,
-        chart_of_accounts::ChartCategory::Liabilities,
-        DEPOSITS_CONTROL_ACCOUNT_NAME.to_string(),
-        DEPOSITS_CONTROL_ACCOUNT_REF.to_string(),
+        ControlAccountCreationDetails {
+            account_set_id: LedgerAccountSetId::new(),
+            category: chart_of_accounts::ChartCategory::Liabilities,
+            name: DEPOSITS_CONTROL_ACCOUNT_NAME.to_string(),
+            reference: DEPOSITS_CONTROL_ACCOUNT_REF.to_string(),
+        },
         DEPOSITS_CONTROL_SUB_ACCOUNT_NAME.to_string(),
         DEPOSITS_CONTROL_SUB_ACCOUNT_REF.to_string(),
     )
@@ -127,9 +146,12 @@ async fn create_credit_facilities_account_paths(
         chart_of_accounts,
         LedgerAccountSetId::new(),
         chart_ids.off_balance_sheet,
-        chart_of_accounts::ChartCategory::Liabilities,
-        CREDIT_FACILITIES_COLLATERAL_CONTROL_ACCOUNT_NAME.to_string(),
-        CREDIT_FACILITIES_COLLATERAL_CONTROL_ACCOUNT_REF.to_string(),
+        ControlAccountCreationDetails {
+            account_set_id: LedgerAccountSetId::new(),
+            category: chart_of_accounts::ChartCategory::Liabilities,
+            name: CREDIT_FACILITIES_COLLATERAL_CONTROL_ACCOUNT_NAME.to_string(),
+            reference: CREDIT_FACILITIES_COLLATERAL_CONTROL_ACCOUNT_REF.to_string(),
+        },
         CREDIT_FACILITIES_COLLATERAL_CONTROL_SUB_ACCOUNT_NAME.to_string(),
         CREDIT_FACILITIES_COLLATERAL_CONTROL_SUB_ACCOUNT_REF.to_string(),
     )
@@ -139,9 +161,12 @@ async fn create_credit_facilities_account_paths(
         chart_of_accounts,
         LedgerAccountSetId::new(),
         chart_ids.off_balance_sheet,
-        chart_of_accounts::ChartCategory::Assets,
-        CREDIT_FACILITIES_FACILITY_CONTROL_ACCOUNT_NAME.to_string(),
-        CREDIT_FACILITIES_FACILITY_CONTROL_ACCOUNT_REF.to_string(),
+        ControlAccountCreationDetails {
+            account_set_id: LedgerAccountSetId::new(),
+            category: chart_of_accounts::ChartCategory::Assets,
+            name: CREDIT_FACILITIES_FACILITY_CONTROL_ACCOUNT_NAME.to_string(),
+            reference: CREDIT_FACILITIES_FACILITY_CONTROL_ACCOUNT_REF.to_string(),
+        },
         CREDIT_FACILITIES_FACILITY_CONTROL_SUB_ACCOUNT_NAME.to_string(),
         CREDIT_FACILITIES_FACILITY_CONTROL_SUB_ACCOUNT_REF.to_string(),
     )
@@ -151,9 +176,12 @@ async fn create_credit_facilities_account_paths(
         chart_of_accounts,
         LedgerAccountSetId::new(),
         chart_ids.primary,
-        chart_of_accounts::ChartCategory::Assets,
-        CREDIT_FACILITIES_DISBURSED_RECEIVABLE_CONTROL_ACCOUNT_NAME.to_string(),
-        CREDIT_FACILITIES_DISBURSED_RECEIVABLE_CONTROL_ACCOUNT_REF.to_string(),
+        ControlAccountCreationDetails {
+            account_set_id: LedgerAccountSetId::new(),
+            category: chart_of_accounts::ChartCategory::Assets,
+            name: CREDIT_FACILITIES_DISBURSED_RECEIVABLE_CONTROL_ACCOUNT_NAME.to_string(),
+            reference: CREDIT_FACILITIES_DISBURSED_RECEIVABLE_CONTROL_ACCOUNT_REF.to_string(),
+        },
         CREDIT_FACILITIES_DISBURSED_RECEIVABLE_CONTROL_SUB_ACCOUNT_NAME.to_string(),
         CREDIT_FACILITIES_DISBURSED_RECEIVABLE_CONTROL_SUB_ACCOUNT_REF.to_string(),
     )
@@ -163,9 +191,12 @@ async fn create_credit_facilities_account_paths(
         chart_of_accounts,
         LedgerAccountSetId::new(),
         chart_ids.primary,
-        chart_of_accounts::ChartCategory::Assets,
-        CREDIT_FACILITIES_INTEREST_RECEIVABLE_CONTROL_ACCOUNT_NAME.to_string(),
-        CREDIT_FACILITIES_INTEREST_RECEIVABLE_CONTROL_ACCOUNT_REF.to_string(),
+        ControlAccountCreationDetails {
+            account_set_id: LedgerAccountSetId::new(),
+            category: chart_of_accounts::ChartCategory::Assets,
+            name: CREDIT_FACILITIES_INTEREST_RECEIVABLE_CONTROL_ACCOUNT_NAME.to_string(),
+            reference: CREDIT_FACILITIES_INTEREST_RECEIVABLE_CONTROL_ACCOUNT_REF.to_string(),
+        },
         CREDIT_FACILITIES_INTEREST_RECEIVABLE_CONTROL_SUB_ACCOUNT_NAME.to_string(),
         CREDIT_FACILITIES_INTEREST_RECEIVABLE_CONTROL_SUB_ACCOUNT_REF.to_string(),
     )
@@ -175,9 +206,12 @@ async fn create_credit_facilities_account_paths(
         chart_of_accounts,
         LedgerAccountSetId::new(),
         chart_ids.primary,
-        chart_of_accounts::ChartCategory::Revenues,
-        CREDIT_FACILITIES_INTEREST_INCOME_CONTROL_ACCOUNT_NAME.to_string(),
-        CREDIT_FACILITIES_INTEREST_INCOME_CONTROL_ACCOUNT_REF.to_string(),
+        ControlAccountCreationDetails {
+            account_set_id: LedgerAccountSetId::new(),
+            category: chart_of_accounts::ChartCategory::Revenues,
+            name: CREDIT_FACILITIES_INTEREST_INCOME_CONTROL_ACCOUNT_NAME.to_string(),
+            reference: CREDIT_FACILITIES_INTEREST_INCOME_CONTROL_ACCOUNT_REF.to_string(),
+        },
         CREDIT_FACILITIES_INTEREST_INCOME_CONTROL_SUB_ACCOUNT_NAME.to_string(),
         CREDIT_FACILITIES_INTEREST_INCOME_CONTROL_SUB_ACCOUNT_REF.to_string(),
     )
@@ -187,9 +221,12 @@ async fn create_credit_facilities_account_paths(
         chart_of_accounts,
         LedgerAccountSetId::new(),
         chart_ids.primary,
-        chart_of_accounts::ChartCategory::Revenues,
-        CREDIT_FACILITIES_FEE_INCOME_CONTROL_ACCOUNT_NAME.to_string(),
-        CREDIT_FACILITIES_FEE_INCOME_CONTROL_ACCOUNT_REF.to_string(),
+        ControlAccountCreationDetails {
+            account_set_id: LedgerAccountSetId::new(),
+            category: chart_of_accounts::ChartCategory::Revenues,
+            name: CREDIT_FACILITIES_FEE_INCOME_CONTROL_ACCOUNT_NAME.to_string(),
+            reference: CREDIT_FACILITIES_FEE_INCOME_CONTROL_ACCOUNT_REF.to_string(),
+        },
         CREDIT_FACILITIES_FEE_INCOME_CONTROL_SUB_ACCOUNT_NAME.to_string(),
         CREDIT_FACILITIES_FEE_INCOME_CONTROL_SUB_ACCOUNT_REF.to_string(),
     )

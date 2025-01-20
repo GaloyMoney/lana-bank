@@ -9,7 +9,7 @@ pub use cala_ledger::{
 };
 
 pub use crate::path::ChartCategory;
-use crate::path::ControlSubAccountPath;
+use crate::path::{ControlAccountPath, ControlSubAccountPath};
 
 es_entity::entity_id! {
     ChartId,
@@ -122,19 +122,19 @@ impl From<ChartAction> for CoreChartOfAccountsAction {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ChartAccountDetails {
-    pub account_id: LedgerAccountId,
-    pub encoded_path: String,
+pub struct ControlAccountCreationDetails {
+    pub category: ChartCategory,
+    pub account_set_id: LedgerAccountSetId,
     pub name: String,
-    pub description: String,
+    pub reference: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ChartCreationDetails {
-    pub control_sub_account: ControlSubAccountPath,
-    pub account_id: LedgerAccountId,
+pub struct ControlAccountDetails {
+    pub path: ControlAccountPath,
+    pub account_set_id: LedgerAccountSetId,
     pub name: String,
-    pub description: String,
+    pub reference: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

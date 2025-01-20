@@ -8,7 +8,7 @@ use es_entity::*;
 use crate::{
     path::*,
     primitives::{ChartId, LedgerAccountSetId},
-    ControlSubAccountDetails,
+    ControlAccountDetails, ControlSubAccountDetails,
 };
 
 pub use super::error::*;
@@ -25,6 +25,7 @@ pub enum ChartEvent {
         audit_info: AuditInfo,
     },
     ControlAccountAdded {
+        id: LedgerAccountSetId,
         encoded_path: String,
         path: ControlAccountPath,
         name: String,
@@ -85,11 +86,12 @@ impl Chart {
 
     pub fn create_control_account(
         &mut self,
+        id: LedgerAccountSetId,
         category: ChartCategory,
         name: String,
         reference: String,
         audit_info: AuditInfo,
-    ) -> Result<ControlAccountPath, ChartError> {
+    ) -> Result<ControlAccountDetails, ChartError> {
         if self
             .find_control_account_by_reference(reference.to_string())
             .is_some()
@@ -99,14 +101,20 @@ impl Chart {
 
         let path = self.next_control_account(category)?;
         self.events.push(ChartEvent::ControlAccountAdded {
+            id,
             encoded_path: path.path_encode(self.id),
             path,
-            name,
-            reference,
+            name: name.to_string(),
+            reference: reference.to_string(),
             audit_info,
         });
 
-        Ok(path)
+        Ok(ControlAccountDetails {
+            path,
+            account_set_id: id,
+            name,
+            reference,
+        })
     }
 
     fn next_control_sub_account(
@@ -283,8 +291,12 @@ mod tests {
     #[test]
     fn test_create_control_account() {
         let mut chart = init_chart_of_events();
-        let ControlAccountPath { category, index } = chart
+        let ControlAccountDetails {
+            path: ControlAccountPath { category, index },
+            ..
+        } = chart
             .create_control_account(
+                LedgerAccountSetId::new(),
                 ChartCategory::Assets,
                 "Assets".to_string(),
                 "assets".to_string(),
@@ -300,6 +312,7 @@ mod tests {
         let mut chart = init_chart_of_events();
         chart
             .create_control_account(
+                LedgerAccountSetId::new(),
                 ChartCategory::Assets,
                 "Assets #1".to_string(),
                 "assets".to_string(),
@@ -308,6 +321,7 @@ mod tests {
             .unwrap();
 
         match chart.create_control_account(
+            LedgerAccountSetId::new(),
             ChartCategory::Assets,
             "Assets #2".to_string(),
             "assets".to_string(),
@@ -327,6 +341,7 @@ mod tests {
         let mut chart = init_chart_of_events();
         let control_account = chart
             .create_control_account(
+                LedgerAccountSetId::new(),
                 ChartCategory::Assets,
                 "Assets".to_string(),
                 "assets".to_string(),
@@ -345,7 +360,7 @@ mod tests {
         } = chart
             .create_control_sub_account(
                 LedgerAccountSetId::new(),
-                control_account,
+                control_account.path,
                 "Current Assets".to_string(),
                 "current-assets".to_string(),
                 dummy_audit_info(),
@@ -361,6 +376,7 @@ mod tests {
         let mut chart = init_chart_of_events();
         let control_account = chart
             .create_control_account(
+                LedgerAccountSetId::new(),
                 ChartCategory::Assets,
                 "Assets".to_string(),
                 "assets".to_string(),
@@ -370,7 +386,7 @@ mod tests {
         chart
             .create_control_sub_account(
                 LedgerAccountSetId::new(),
-                control_account,
+                control_account.path,
                 "Current Assets #1".to_string(),
                 "current-assets".to_string(),
                 dummy_audit_info(),
@@ -379,7 +395,7 @@ mod tests {
 
         match chart.create_control_sub_account(
             LedgerAccountSetId::new(),
-            control_account,
+            control_account.path,
             "Current Assets #2".to_string(),
             "current-assets".to_string(),
             dummy_audit_info(),
@@ -402,6 +418,7 @@ mod tests {
 
         chart
             .create_control_account(
+                LedgerAccountSetId::new(),
                 ChartCategory::Assets,
                 "First".to_string(),
                 "assets-01".to_string(),
@@ -409,8 +426,12 @@ mod tests {
             )
             .unwrap();
 
-        let ControlAccountPath { category, index } = chart
+        let ControlAccountDetails {
+            path: ControlAccountPath { category, index },
+            ..
+        } = chart
             .create_control_account(
+                LedgerAccountSetId::new(),
                 ChartCategory::Assets,
                 "Second".to_string(),
                 "assets-02".to_string(),
@@ -426,6 +447,7 @@ mod tests {
         let mut chart = init_chart_of_events();
         let control_account = chart
             .create_control_account(
+                LedgerAccountSetId::new(),
                 ChartCategory::Assets,
                 "Assets".to_string(),
                 "assets".to_string(),
@@ -436,7 +458,7 @@ mod tests {
         chart
             .create_control_sub_account(
                 LedgerAccountSetId::new(),
-                control_account,
+                control_account.path,
                 "First".to_string(),
                 "first-asset".to_string(),
                 dummy_audit_info(),
@@ -454,7 +476,7 @@ mod tests {
         } = chart
             .create_control_sub_account(
                 LedgerAccountSetId::new(),
-                control_account,
+                control_account.path,
                 "Second".to_string(),
                 "second-asset".to_string(),
                 dummy_audit_info(),
