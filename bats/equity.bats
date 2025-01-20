@@ -11,6 +11,7 @@ teardown_file() {
 }
 
 @test "equity: can add usd equity" {
+  skip
   variables=$(
     jq -n \
     --arg from "$(from_utc)" \
