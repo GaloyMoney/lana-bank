@@ -113,7 +113,7 @@ services:
       - "1025:1025"
       - "8025:8025"
   meltano:
-    image: meltano/meltano:latest
+    image: us.gcr.io/galoyorg/meltano
     volumes:
       - ./meltano:/lana
     working_dir: /lana

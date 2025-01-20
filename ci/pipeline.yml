@@ -81,6 +81,7 @@ groups:
       - bump-image-in-chart
       -  #@ build_app_edge_image_name("admin-panel")
       -  #@ build_app_edge_image_name("customer-portal")
+      - build-meltano-image
 
 jobs:
   -  #@ check_code()
@@ -329,6 +330,38 @@ jobs:
   -  #@ build_app_edge_image("admin-panel")
   -  #@ build_app_edge_image("customer-portal")
 
+  - name: build-meltano-image
+    plan:
+      - in_parallel:
+          - get: repo
+            trigger: true
+          - get: pipeline-tasks
+      - task: build
+        config:
+          platform: linux
+          image_resource:
+            type: registry-image
+            source:
+              repository: gcr.io/kaniko-project/executor
+              tag: debug
+          inputs:
+          - name: repo
+          outputs:
+          - name: image
+          run:
+            path: /kaniko/executor
+            args:
+              - --dockerfile=Dockerfile
+              - --context=repo/meltano
+              - --use-new-run
+              - --single-snapshot
+              - --cache=false
+              - --no-push
+              - --tar-path=image/image.tar
+      - put: meltano-image
+        params:
+          image: image/image.tar
+
 resources:
   - name: repo
     type: git
@@ -357,6 +390,14 @@ resources:
       branch: main
       pool: docker-hosts
       private_key: #@ data.values.github_private_key
+
+  - name: meltano-image
+    type: registry-image
+    source:
+      tag: latest
+      username: #@ data.values.docker_registry_user
+      password: #@ data.values.docker_registry_password
+      repository: #@ public_docker_registry() + "/meltano"
 
   -  #@ pipeline_tasks_resource()
   -  #@ slack_resource()
