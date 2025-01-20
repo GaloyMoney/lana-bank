@@ -1,0 +1,11 @@
+{
+  "plugin_type": "files",
+  "name": "files-docker",
+  "namespace": "files_docker",
+  "variant": "meltano",
+  "label": "Docker",
+  "docs": "https://hub.meltano.com/files/files-docker--meltano",
+  "repo": "https://github.com/meltano/files-docker",
+  "pip_url": "git+https://github.com/meltano/files-docker.git",
+  "logo_url": "https://hub.meltano.com/assets/logos/files/docker.png"
+}
