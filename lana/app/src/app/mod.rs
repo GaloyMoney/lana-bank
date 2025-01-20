@@ -12,7 +12,7 @@ use crate::{
     audit::{Audit, AuditCursor, AuditEntry},
     authorization::{init as init_authz, AppAction, AppObject, AuditAction, Authorization},
     chart_of_accounts::ChartOfAccounts,
-    credit_facility::CreditFacilities,
+    credit_facility::{CreditFacilities, CreditFacilityAccountFactories},
     customer::Customers,
     dashboard::Dashboard,
     deposit::Deposits,
@@ -96,18 +96,8 @@ impl LanaApp {
         let customers = Customers::new(&pool, &config.customer, &deposits, &authz);
         let applicants = Applicants::new(&pool, &config.sumsub, &customers, &jobs);
 
-        let collateral_factory =
-            chart_of_accounts.transaction_account_factory(charts_init.credit_facilities.collateral);
-        let facility_factory =
-            chart_of_accounts.transaction_account_factory(charts_init.credit_facilities.facility);
-        let disbursed_receivable_factory = chart_of_accounts
-            .transaction_account_factory(charts_init.credit_facilities.disbursed_receivable);
-        let interest_receivable_factory = chart_of_accounts
-            .transaction_account_factory(charts_init.credit_facilities.interest_receivable);
-        let interest_income_factory = chart_of_accounts
-            .transaction_account_factory(charts_init.credit_facilities.interest_income);
-        let fee_income_factory =
-            chart_of_accounts.transaction_account_factory(charts_init.credit_facilities.fee_income);
+        let credit_account_factories =
+            CreditFacilityAccountFactories::new(&chart_of_accounts, charts_init.credit_facilities);
         let credit_facilities = CreditFacilities::init(
             &pool,
             config.credit_facility,
@@ -117,12 +107,7 @@ impl LanaApp {
             &deposits,
             &price,
             &outbox,
-            collateral_factory,
-            facility_factory,
-            disbursed_receivable_factory,
-            interest_receivable_factory,
-            interest_income_factory,
-            fee_income_factory,
+            credit_account_factories,
             &cala,
             journal_init.journal_id,
         )

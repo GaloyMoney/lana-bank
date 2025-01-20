@@ -12,8 +12,6 @@ mod repo;
 
 use std::collections::HashMap;
 
-use chart_of_accounts::TransactionAccountFactory;
-
 use authz::PermissionCheck;
 use cala_ledger::CalaLedger;
 use deposit::{DepositAccount, DepositAccountHolderId};
@@ -41,7 +39,7 @@ use error::*;
 pub use history::*;
 pub use interest_accrual::*;
 use jobs::*;
-use ledger::*;
+pub use ledger::*;
 use processes::activate_credit_facility::*;
 pub use processes::approve_credit_facility::*;
 pub use processes::approve_disbursal::*;
@@ -78,31 +76,14 @@ impl CreditFacilities {
         deposits: &Deposits,
         price: &Price,
         outbox: &Outbox,
-        collateral_factory: TransactionAccountFactory,
-        facility_factory: TransactionAccountFactory,
-        disbursed_receivable_factory: TransactionAccountFactory,
-        interest_receivable_factory: TransactionAccountFactory,
-        interest_income_factory: TransactionAccountFactory,
-        fee_income_factory: TransactionAccountFactory,
+        account_factories: CreditFacilityAccountFactories,
         cala: &CalaLedger,
         journal_id: cala_ledger::JournalId,
     ) -> Result<Self, CreditFacilityError> {
         let publisher = CreditFacilityPublisher::new(outbox);
         let credit_facility_repo = CreditFacilityRepo::new(pool, &publisher);
         let disbursal_repo = DisbursalRepo::new(pool);
-        let ledger = CreditLedger::init(
-            cala,
-            journal_id,
-            CreditFacilityAccountFactories::new(
-                facility_factory,
-                disbursed_receivable_factory,
-                collateral_factory,
-                interest_receivable_factory,
-                interest_income_factory,
-                fee_income_factory,
-            ),
-        )
-        .await?;
+        let ledger = CreditLedger::init(cala, journal_id, account_factories).await?;
         let approve_disbursal = ApproveDisbursal::new(
             &disbursal_repo,
             &credit_facility_repo,

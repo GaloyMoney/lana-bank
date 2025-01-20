@@ -5,6 +5,8 @@ use cala_ledger::AccountId as LedgerAccountId;
 use chart_of_accounts::TransactionAccountFactory;
 
 use crate::{
+    accounting_init::CreditFacilitiesAccountPaths,
+    chart_of_accounts::ChartOfAccounts,
     primitives::{LedgerTxId, Satoshis, UsdCents},
     terms::InterestPeriod,
 };
@@ -35,34 +37,32 @@ impl CreditFacilityAccountIds {
 
 #[derive(Clone)]
 pub struct CreditFacilityAccountFactories {
-    pub facility_factory: TransactionAccountFactory,
-    pub disbursed_receivable_factory: TransactionAccountFactory,
-    pub collateral_factory: TransactionAccountFactory,
-    pub interest_receivable_factory: TransactionAccountFactory,
-    pub interest_income_factory: TransactionAccountFactory,
-    pub fee_income_factory: TransactionAccountFactory,
+    pub facility: TransactionAccountFactory,
+    pub disbursed_receivable: TransactionAccountFactory,
+    pub collateral: TransactionAccountFactory,
+    pub interest_receivable: TransactionAccountFactory,
+    pub interest_income: TransactionAccountFactory,
+    pub fee_income: TransactionAccountFactory,
 }
 
 impl CreditFacilityAccountFactories {
     pub fn new(
-        facility_factory: TransactionAccountFactory,
-        disbursed_receivable_factory: TransactionAccountFactory,
-        collateral_factory: TransactionAccountFactory,
-        interest_receivable_factory: TransactionAccountFactory,
-        interest_income_factory: TransactionAccountFactory,
-        fee_income_factory: TransactionAccountFactory,
+        chart_of_accounts: &ChartOfAccounts,
+        credit_facilities: CreditFacilitiesAccountPaths,
     ) -> Self {
         Self {
-            facility_factory,
-            disbursed_receivable_factory,
-            collateral_factory,
-            interest_receivable_factory,
-            interest_income_factory,
-            fee_income_factory,
+            facility: chart_of_accounts.transaction_account_factory(credit_facilities.facility),
+            disbursed_receivable: chart_of_accounts
+                .transaction_account_factory(credit_facilities.disbursed_receivable),
+            collateral: chart_of_accounts.transaction_account_factory(credit_facilities.collateral),
+            interest_receivable: chart_of_accounts
+                .transaction_account_factory(credit_facilities.interest_receivable),
+            interest_income: chart_of_accounts
+                .transaction_account_factory(credit_facilities.interest_income),
+            fee_income: chart_of_accounts.transaction_account_factory(credit_facilities.fee_income),
         }
     }
 }
-
 #[derive(Debug, Copy, Clone, Serialize, Deserialize)]
 pub struct CreditFacilityLedgerBalance {
     pub facility: UsdCents,

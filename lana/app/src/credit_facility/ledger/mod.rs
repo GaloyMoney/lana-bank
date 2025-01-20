@@ -536,7 +536,7 @@ impl CreditLedger {
             credit_facility_id
         );
         self.account_factories
-            .collateral_factory
+            .collateral
             .create_transaction_account_in_op(
                 op,
                 account_ids.collateral_account_id,
@@ -550,7 +550,7 @@ impl CreditLedger {
             credit_facility_id
         );
         self.account_factories
-            .facility_factory
+            .facility
             .create_transaction_account_in_op(
                 op,
                 account_ids.facility_account_id,
@@ -564,7 +564,7 @@ impl CreditLedger {
             credit_facility_id
         );
         self.account_factories
-            .disbursed_receivable_factory
+            .disbursed_receivable
             .create_transaction_account_in_op(
                 op,
                 account_ids.disbursed_receivable_account_id,
@@ -578,7 +578,7 @@ impl CreditLedger {
             credit_facility_id
         );
         self.account_factories
-            .interest_receivable_factory
+            .interest_receivable
             .create_transaction_account_in_op(
                 op,
                 account_ids.interest_receivable_account_id,
@@ -592,7 +592,7 @@ impl CreditLedger {
             credit_facility_id
         );
         self.account_factories
-            .interest_income_factory
+            .interest_income
             .create_transaction_account_in_op(
                 op,
                 account_ids.interest_account_id,
@@ -606,7 +606,7 @@ impl CreditLedger {
             credit_facility_id
         );
         self.account_factories
-            .fee_income_factory
+            .fee_income
             .create_transaction_account_in_op(
                 op,
                 account_ids.fee_income_account_id,

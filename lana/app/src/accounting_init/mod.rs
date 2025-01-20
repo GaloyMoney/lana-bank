@@ -11,7 +11,8 @@ use crate::chart_of_accounts::ChartOfAccounts;
 use cala_ledger::CalaLedger;
 
 use error::*;
-use primitives::*;
+pub use primitives::CreditFacilitiesAccountPaths;
+use primitives::{ChartIds, DepositsAccountPaths, LedgerJournalId};
 
 #[derive(Clone)]
 pub struct JournalInit {
