@@ -21,7 +21,7 @@ pub struct JournalInit {
 
 impl JournalInit {
     pub async fn journal(cala: &CalaLedger) -> Result<Self, AccountingInitError> {
-        seed::journal(cala).await
+        seed::journal::init(cala).await
     }
 }
 
@@ -36,6 +36,6 @@ impl ChartsInit {
     pub async fn charts_of_accounts(
         chart_of_accounts: &ChartOfAccounts,
     ) -> Result<Self, AccountingInitError> {
-        seed::charts_of_accounts(chart_of_accounts).await
+        seed::charts_of_accounts::init(chart_of_accounts).await
     }
 }
