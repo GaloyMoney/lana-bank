@@ -2,120 +2,97 @@ use async_graphql::*;
 
 use lana_app::chart_of_accounts::tree::*;
 
-#[derive(SimpleObject)]
-pub struct ChartOfAccounts {
-    name: String,
-    categories: ChartCategories,
-}
+pub struct ChartOfAccounts(ChartTree);
+pub struct ChartCategories(ChartTree);
+pub struct ChartCategory(ChartTreeCategory);
+pub struct ChartControlAccount(ChartTreeControlAccount);
+pub struct ChartControlSubAccount(ChartTreeControlSubAccount);
 
 impl From<ChartTree> for ChartOfAccounts {
     fn from(tree: ChartTree) -> Self {
-        ChartOfAccounts {
-            name: tree.name,
-            categories: ChartCategories {
-                assets: ChartCategory {
-                    name: tree.assets.name,
-                    account_code: tree.assets.encoded_path,
-                    control_accounts: tree
-                        .assets
-                        .children
-                        .into_iter()
-                        .map(ChartControlAccount::from)
-                        .collect(),
-                },
-                liabilities: ChartCategory {
-                    name: tree.liabilities.name,
-                    account_code: tree.liabilities.encoded_path,
-                    control_accounts: tree
-                        .liabilities
-                        .children
-                        .into_iter()
-                        .map(ChartControlAccount::from)
-                        .collect(),
-                },
-                equity: ChartCategory {
-                    name: tree.equity.name,
-                    account_code: tree.equity.encoded_path,
-                    control_accounts: tree
-                        .equity
-                        .children
-                        .into_iter()
-                        .map(ChartControlAccount::from)
-                        .collect(),
-                },
-                revenues: ChartCategory {
-                    name: tree.revenues.name,
-                    account_code: tree.revenues.encoded_path,
-                    control_accounts: tree
-                        .revenues
-                        .children
-                        .into_iter()
-                        .map(ChartControlAccount::from)
-                        .collect(),
-                },
-                expenses: ChartCategory {
-                    name: tree.expenses.name,
-                    account_code: tree.expenses.encoded_path,
-                    control_accounts: tree
-                        .expenses
-                        .children
-                        .into_iter()
-                        .map(ChartControlAccount::from)
-                        .collect(),
-                },
-            },
-        }
+        ChartOfAccounts(tree)
     }
 }
 
-#[derive(SimpleObject)]
-pub struct ChartCategories {
-    assets: ChartCategory,
-    liabilities: ChartCategory,
-    equity: ChartCategory,
-    revenues: ChartCategory,
-    expenses: ChartCategory,
-}
+#[Object]
+impl ChartOfAccounts {
+    async fn name(&self) -> &String {
+        &self.0.name
+    }
 
-#[derive(SimpleObject)]
-pub struct ChartCategory {
-    name: String,
-    account_code: String,
-    control_accounts: Vec<ChartControlAccount>,
-}
-
-#[derive(SimpleObject)]
-pub struct ChartControlAccount {
-    name: String,
-    account_code: String,
-    control_sub_accounts: Vec<ChartControlSubAccount>,
-}
-
-impl From<ChartTreeControlAccount> for ChartControlAccount {
-    fn from(tree: ChartTreeControlAccount) -> Self {
-        ChartControlAccount {
-            name: tree.name,
-            account_code: tree.encoded_path,
-            control_sub_accounts: tree
-                .children
-                .into_iter()
-                .map(ChartControlSubAccount::from)
-                .collect(),
-        }
+    async fn categories(&self) -> ChartCategories {
+        ChartCategories(self.0.clone())
     }
 }
 
-#[derive(SimpleObject)]
-pub struct ChartControlSubAccount {
-    name: String,
-    account_code: String,
+#[Object]
+impl ChartCategories {
+    async fn assets(&self) -> ChartCategory {
+        ChartCategory(self.0.assets.clone())
+    }
+
+    async fn liabilities(&self) -> ChartCategory {
+        ChartCategory(self.0.liabilities.clone())
+    }
+
+    async fn equity(&self) -> ChartCategory {
+        ChartCategory(self.0.equity.clone())
+    }
+
+    async fn revenues(&self) -> ChartCategory {
+        ChartCategory(self.0.revenues.clone())
+    }
+
+    async fn expenses(&self) -> ChartCategory {
+        ChartCategory(self.0.expenses.clone())
+    }
 }
 
-impl From<ChartTreeControlSubAccount> for ChartControlSubAccount {
-    fn from(tree: ChartTreeControlSubAccount) -> Self {
-        ChartControlSubAccount {
-            name: tree.name,
-            account_code: tree.encoded_path,
-        }
+#[Object]
+impl ChartCategory {
+    async fn name(&self) -> &String {
+        &self.0.name
+    }
+
+    async fn account_code(&self) -> &String {
+        &self.0.account_code
+    }
+
+    async fn control_accounts(&self) -> Vec<ChartControlAccount> {
+        self.0
+            .control_accounts
+            .iter()
+            .map(|a| ChartControlAccount(a.clone()))
+            .collect()
+    }
+}
+
+#[Object]
+impl ChartControlAccount {
+    async fn name(&self) -> &String {
+        &self.0.name
+    }
+
+    async fn account_code(&self) -> &String {
+        &self.0.account_code
+    }
+
+    async fn control_sub_accounts(&self) -> Vec<ChartControlSubAccount> {
+        self.0
+            .control_sub_accounts
+            .iter()
+            .map(|a| ChartControlSubAccount(a.clone()))
+            .collect()
+    }
+}
+
+#[Object]
+impl ChartControlSubAccount {
+    async fn name(&self) -> &String {
+        &self.0.name
+    }
+
+    async fn account_code(&self) -> &String {
+        &self.0.account_code
     }
 }

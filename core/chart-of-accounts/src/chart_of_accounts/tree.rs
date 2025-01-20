@@ -4,28 +4,7 @@ use crate::{path::*, ChartId};
 
 use super::ChartEvent;
 
-pub struct ChartTreeCategory {
-    pub name: String,
-    pub encoded_path: String,
-    pub children: Vec<ChartTreeControlAccount>,
-}
-
-struct ControlAccountAdded {
-    name: String,
-    path: ControlAccountPath,
-}
-
-pub struct ChartTreeControlAccount {
-    pub name: String,
-    pub encoded_path: String,
-    pub children: Vec<ChartTreeControlSubAccount>,
-}
-
-pub struct ChartTreeControlSubAccount {
-    pub name: String,
-    pub encoded_path: String,
-}
-
+#[derive(Clone)]
 pub struct ChartTree {
     pub id: ChartId,
     pub name: String,
@@ -34,6 +13,31 @@ pub struct ChartTree {
     pub equity: ChartTreeCategory,
     pub revenues: ChartTreeCategory,
     pub expenses: ChartTreeCategory,
+}
+
+#[derive(Clone)]
+pub struct ChartTreeCategory {
+    pub name: String,
+    pub account_code: String,
+    pub control_accounts: Vec<ChartTreeControlAccount>,
+}
+
+struct ControlAccountAdded {
+    name: String,
+    path: ControlAccountPath,
+}
+
+#[derive(Clone)]
+pub struct ChartTreeControlAccount {
+    pub name: String,
+    pub account_code: String,
+    pub control_sub_accounts: Vec<ChartTreeControlSubAccount>,
+}
+
+#[derive(Clone)]
+pub struct ChartTreeControlSubAccount {
+    pub name: String,
+    pub account_code: String,
 }
 
 pub(super) fn project<'a>(events: impl DoubleEndedIterator<Item = &'a ChartEvent>) -> ChartTree {
@@ -64,7 +68,7 @@ pub(super) fn project<'a>(events: impl DoubleEndedIterator<Item = &'a ChartEvent
                 .or_default()
                 .push(ChartTreeControlSubAccount {
                     name: name.to_string(),
-                    encoded_path: path.to_string(),
+                    account_code: path.to_string(),
                 }),
         }
     }
@@ -77,8 +81,8 @@ pub(super) fn project<'a>(events: impl DoubleEndedIterator<Item = &'a ChartEvent
             .or_default()
             .push(ChartTreeControlAccount {
                 name: account.name,
-                encoded_path: account.path.to_string(),
-                children: control_sub_accounts_by_parent
+                account_code: account.path.to_string(),
+                control_sub_accounts: control_sub_accounts_by_parent
                     .remove(&account.path.to_string())
                     .unwrap_or_default(),
             });
@@ -89,36 +93,36 @@ pub(super) fn project<'a>(events: impl DoubleEndedIterator<Item = &'a ChartEvent
         name: name.expect("Chart must be initialized"),
         assets: ChartTreeCategory {
             name: "Assets".to_string(),
-            encoded_path: ChartCategory::Assets.to_string(),
-            children: control_accounts_by_category
+            account_code: ChartCategory::Assets.to_string(),
+            control_accounts: control_accounts_by_category
                 .remove(&ChartCategory::Assets)
                 .unwrap_or_default(),
         },
         liabilities: ChartTreeCategory {
             name: "Liabilities".to_string(),
-            encoded_path: ChartCategory::Liabilities.to_string(),
-            children: control_accounts_by_category
+            account_code: ChartCategory::Liabilities.to_string(),
+            control_accounts: control_accounts_by_category
                 .remove(&ChartCategory::Liabilities)
                 .unwrap_or_default(),
         },
         equity: ChartTreeCategory {
             name: "Equity".to_string(),
-            encoded_path: ChartCategory::Equity.to_string(),
-            children: control_accounts_by_category
+            account_code: ChartCategory::Equity.to_string(),
+            control_accounts: control_accounts_by_category
                 .remove(&ChartCategory::Equity)
                 .unwrap_or_default(),
         },
         revenues: ChartTreeCategory {
             name: "Revenues".to_string(),
-            encoded_path: ChartCategory::Revenues.to_string(),
-            children: control_accounts_by_category
+            account_code: ChartCategory::Revenues.to_string(),
+            control_accounts: control_accounts_by_category
                 .remove(&ChartCategory::Revenues)
                 .unwrap_or_default(),
         },
         expenses: ChartTreeCategory {
             name: "Expenses".to_string(),
-            encoded_path: ChartCategory::Expenses.to_string(),
-            children: control_accounts_by_category
+            account_code: ChartCategory::Expenses.to_string(),
+            control_accounts: control_accounts_by_category
                 .remove(&ChartCategory::Expenses)
                 .unwrap_or_default(),
         },
@@ -182,7 +186,7 @@ mod tests {
                 .unwrap();
         }
         assert_eq!(
-            chart.chart().assets.children[0].children[0].encoded_path,
+            chart.chart().assets.control_accounts[0].control_sub_accounts[0].account_code,
             "10101".to_string()
         );
 
@@ -206,7 +210,7 @@ mod tests {
                 .unwrap();
         }
         assert_eq!(
-            chart.chart().liabilities.children[0].children[0].encoded_path,
+            chart.chart().liabilities.control_accounts[0].control_sub_accounts[0].account_code,
             "20101".to_string()
         );
 
@@ -230,7 +234,7 @@ mod tests {
                 .unwrap();
         }
         assert_eq!(
-            chart.chart().equity.children[0].children[0].encoded_path,
+            chart.chart().equity.control_accounts[0].control_sub_accounts[0].account_code,
             "30101"
         );
 
@@ -244,9 +248,17 @@ mod tests {
                 )
                 .unwrap();
         }
-        assert_eq!(chart.chart().revenues.children[0].encoded_path, "40100");
-        assert_eq!(chart.chart().revenues.children[0].children.len(), 0);
+        assert_eq!(
+            chart.chart().revenues.control_accounts[0].account_code,
+            "40100"
+        );
+        assert_eq!(
+            chart.chart().revenues.control_accounts[0]
+                .control_sub_accounts
+                .len(),
+            0
+        );
 
-        assert_eq!(chart.chart().expenses.children.len(), 0);
+        assert_eq!(chart.chart().expenses.control_accounts.len(), 0);
     }
 }
