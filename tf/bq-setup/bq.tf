@@ -3,7 +3,7 @@ resource "google_bigquery_dataset" "dataset" {
   dataset_id                 = local.dataset_id
   friendly_name              = "Dataset for lana-bank ${local.name_prefix}"
   description                = "Dataset for lana-bank ${local.name_prefix}"
-  location                   = "EU"
+  location                   = local.location
   delete_contents_on_destroy = true
 }
 
@@ -73,7 +73,7 @@ resource "google_bigquery_dataset" "dbt" {
   dataset_id    = local.dbt_dataset_name
   friendly_name = "${local.name_prefix} dbt"
   description   = "dbt for ${local.name_prefix}"
-  location      = local.dbt_location
+  location      = local.location
 }
 
 resource "google_bigquery_dataset_iam_member" "dbt_owner" {
