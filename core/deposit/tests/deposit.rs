@@ -12,8 +12,6 @@ use helpers::{action, event, object};
 async fn deposit() -> anyhow::Result<()> {
     use rand::Rng;
 
-    use crate::LedgerJournalId;
-
     let pool = helpers::init_pool().await?;
 
     let outbox = outbox::Outbox::<event::DummyEvent>::init(&pool).await?;

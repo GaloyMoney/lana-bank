@@ -13,8 +13,6 @@ use helpers::{action, event, object};
 async fn overdraw_and_cancel_withdrawal() -> anyhow::Result<()> {
     use rand::Rng;
 
-    use crate::LedgerJournalId;
-
     let pool = helpers::init_pool().await?;
 
     let outbox = outbox::Outbox::<event::DummyEvent>::init(&pool).await?;
