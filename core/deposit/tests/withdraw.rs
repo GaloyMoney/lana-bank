@@ -36,7 +36,7 @@ async fn overdraw_and_cancel_withdrawal() -> anyhow::Result<()> {
         .create_chart(
             chart_id,
             "Test Chart".to_string(),
-            format!("{:02}", rand::thread_rng().gen_range(0..100)),
+            format!("{:05}", rand::thread_rng().gen_range(0..100000)),
         )
         .await?;
 
