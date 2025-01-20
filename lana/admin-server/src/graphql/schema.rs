@@ -390,32 +390,36 @@ impl Query {
         maybe_fetch_one!(Document, ctx, app.documents().find_by_id(sub, id))
     }
 
+    #[allow(unused_variables)]
     async fn trial_balance(
         &self,
         ctx: &Context<'_>,
         from: Timestamp,
         until: Option<Timestamp>,
     ) -> async_graphql::Result<Option<TrialBalance>> {
-        let (app, sub) = app_and_sub_from_ctx!(ctx);
-        let account_summary = app
-            .ledger()
-            .trial_balance(sub, from.into_inner(), until.map(|t| t.into_inner()))
-            .await?;
-        Ok(account_summary.map(TrialBalance::from))
+        unimplemented!()
+        // let (app, sub) = app_and_sub_from_ctx!(ctx);
+        // let account_summary = app
+        //     .ledger()
+        //     .trial_balance(sub, from.into_inner(), until.map(|t| t.into_inner()))
+        //     .await?;
+        // Ok(account_summary.map(TrialBalance::from))
     }
 
+    #[allow(unused_variables)]
     async fn off_balance_sheet_trial_balance(
         &self,
         ctx: &Context<'_>,
         from: Timestamp,
         until: Option<Timestamp>,
     ) -> async_graphql::Result<Option<TrialBalance>> {
-        let (app, sub) = app_and_sub_from_ctx!(ctx);
-        let account_summary = app
-            .ledger()
-            .obs_trial_balance(sub, from.into_inner(), until.map(|t| t.into_inner()))
-            .await?;
-        Ok(account_summary.map(TrialBalance::from))
+        unimplemented!()
+        // let (app, sub) = app_and_sub_from_ctx!(ctx);
+        // let account_summary = app
+        //     .ledger()
+        //     .obs_trial_balance(sub, from.into_inner(), until.map(|t| t.into_inner()))
+        //     .await?;
+        // Ok(account_summary.map(TrialBalance::from))
     }
 
     async fn chart_of_accounts(&self, ctx: &Context<'_>) -> async_graphql::Result<ChartOfAccounts> {
@@ -451,48 +455,55 @@ impl Query {
         Ok(ChartOfAccounts::from(chart_projection))
     }
 
+    #[allow(unused_variables)]
     async fn balance_sheet(
         &self,
         ctx: &Context<'_>,
         from: Timestamp,
         until: Option<Timestamp>,
     ) -> async_graphql::Result<Option<BalanceSheet>> {
-        let (app, sub) = app_and_sub_from_ctx!(ctx);
-        let balance_sheet = app
-            .ledger()
-            .balance_sheet(sub, from.into_inner(), until.map(|t| t.into_inner()))
-            .await?;
-        Ok(balance_sheet.map(BalanceSheet::from))
+        unimplemented!()
+        // let (app, sub) = app_and_sub_from_ctx!(ctx);
+        // let balance_sheet = app
+        //     .ledger()
+        //     .balance_sheet(sub, from.into_inner(), until.map(|t| t.into_inner()))
+        //     .await?;
+        // Ok(balance_sheet.map(BalanceSheet::from))
     }
 
+    #[allow(unused_variables)]
     async fn profit_and_loss_statement(
         &self,
         ctx: &Context<'_>,
         from: Timestamp,
         until: Option<Timestamp>,
     ) -> async_graphql::Result<Option<ProfitAndLossStatement>> {
-        let (app, sub) = app_and_sub_from_ctx!(ctx);
-        let profit_and_loss = app
-            .ledger()
-            .profit_and_loss(sub, from.into_inner(), until.map(|t| t.into_inner()))
-            .await?;
-        Ok(profit_and_loss.map(ProfitAndLossStatement::from))
+        unimplemented!()
+        // let (app, sub) = app_and_sub_from_ctx!(ctx);
+        // let profit_and_loss = app
+        //     .ledger()
+        //     .profit_and_loss(sub, from.into_inner(), until.map(|t| t.into_inner()))
+        //     .await?;
+        // Ok(profit_and_loss.map(ProfitAndLossStatement::from))
     }
 
+    #[allow(unused_variables)]
     async fn cash_flow_statement(
         &self,
         ctx: &Context<'_>,
         from: Timestamp,
         until: Option<Timestamp>,
     ) -> async_graphql::Result<Option<CashFlowStatement>> {
-        let (app, sub) = app_and_sub_from_ctx!(ctx);
-        let cash_flow = app
-            .ledger()
-            .cash_flow(sub, from.into_inner(), until.map(|t| t.into_inner()))
-            .await?;
-        Ok(cash_flow.map(CashFlowStatement::from))
+        unimplemented!()
+        // let (app, sub) = app_and_sub_from_ctx!(ctx);
+        // let cash_flow = app
+        //     .ledger()
+        //     .cash_flow(sub, from.into_inner(), until.map(|t| t.into_inner()))
+        //     .await?;
+        // Ok(cash_flow.map(CashFlowStatement::from))
     }
 
+    #[allow(unused_variables)]
     async fn account_set(
         &self,
         ctx: &Context<'_>,
@@ -500,21 +511,22 @@ impl Query {
         from: Timestamp,
         until: Option<Timestamp>,
     ) -> async_graphql::Result<Option<AccountSetAndSubAccounts>> {
-        let (app, sub) = app_and_sub_from_ctx!(ctx);
-        let account_set = app
-            .ledger()
-            .account_set_and_sub_accounts_with_balance(
-                sub,
-                uuid::Uuid::from(&account_set_id).into(),
-                0,
-                None,
-                from.into_inner(),
-                until.map(|t| t.into_inner()),
-            )
-            .await?;
-        Ok(account_set.map(|a| {
-            AccountSetAndSubAccounts::from((from.into_inner(), until.map(|t| t.into_inner()), a))
-        }))
+        unimplemented!()
+        // let (app, sub) = app_and_sub_from_ctx!(ctx);
+        // let account_set = app
+        //     .ledger()
+        //     .account_set_and_sub_accounts_with_balance(
+        //         sub,
+        //         uuid::Uuid::from(&account_set_id).into(),
+        //         0,
+        //         None,
+        //         from.into_inner(),
+        //         until.map(|t| t.into_inner()),
+        //     )
+        //     .await?;
+        // Ok(account_set.map(|a| {
+        // AccountSetAndSubAccounts::from((from.into_inner(), until.map(|t| t.into_inner()), a))
+        // }))
     }
 
     async fn realtime_price(&self, ctx: &Context<'_>) -> async_graphql::Result<RealtimePrice> {
@@ -1058,16 +1070,18 @@ impl Mutation {
         Ok(ReportDownloadLinksGeneratePayload::from(links))
     }
 
+    #[allow(unused_variables)]
     pub async fn shareholder_equity_add(
         &self,
         ctx: &Context<'_>,
         input: ShareholderEquityAddInput,
     ) -> async_graphql::Result<SuccessPayload> {
-        let app = ctx.data_unchecked::<LanaApp>();
-        Ok(SuccessPayload::from(
-            app.ledger()
-                .add_equity(input.amount, input.reference)
-                .await?,
-        ))
+        unimplemented!()
+        // let app = ctx.data_unchecked::<LanaApp>();
+        // Ok(SuccessPayload::from(
+        //     app.ledger()
+        //         .add_equity(input.amount, input.reference)
+        //         .await?,
+        // ))
     }
 }

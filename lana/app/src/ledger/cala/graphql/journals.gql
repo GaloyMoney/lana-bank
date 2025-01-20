@@ -1,5 +1,0 @@
-query JournalById($id: UUID!) {
-  journal(id: $id) {
-    journalId
-  }
-}

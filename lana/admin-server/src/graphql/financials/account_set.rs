@@ -5,7 +5,7 @@ use chrono::{DateTime, Utc};
 
 use crate::{graphql::account::*, primitives::*};
 
-use lana_app::app::LanaApp;
+// use lana_app::app::LanaApp;
 
 #[derive(SimpleObject)]
 pub struct AccountSet {
@@ -15,16 +15,16 @@ pub struct AccountSet {
     has_sub_accounts: bool,
 }
 
-impl From<lana_app::ledger::account_set::LedgerAccountSetWithBalance> for AccountSet {
-    fn from(line_item: lana_app::ledger::account_set::LedgerAccountSetWithBalance) -> Self {
-        AccountSet {
-            id: line_item.id.into(),
-            name: line_item.name,
-            amounts: line_item.balance.into(),
-            has_sub_accounts: line_item.page_info.start_cursor.is_some(),
-        }
-    }
-}
+// impl From<lana_app::ledger::account_set::LedgerAccountSetWithBalance> for AccountSet {
+//     fn from(line_item: lana_app::ledger::account_set::LedgerAccountSetWithBalance) -> Self {
+//         AccountSet {
+//             id: line_item.id.into(),
+//             name: line_item.name,
+//             amounts: line_item.balance.into(),
+//             has_sub_accounts: line_item.page_info.start_cursor.is_some(),
+//         }
+//     }
+// }
 
 #[derive(Union)]
 pub enum AccountSetSubAccount {
@@ -32,38 +32,39 @@ pub enum AccountSetSubAccount {
     AccountSet(AccountSet),
 }
 
-impl From<lana_app::ledger::account_set::PaginatedLedgerAccountSetSubAccountWithBalance>
-    for AccountSetSubAccount
-{
-    fn from(
-        member: lana_app::ledger::account_set::PaginatedLedgerAccountSetSubAccountWithBalance,
-    ) -> Self {
-        match member.value {
-            lana_app::ledger::account_set::LedgerAccountSetSubAccountWithBalance::Account(val) => {
-                AccountSetSubAccount::Account(Account::from(val))
-            }
-            lana_app::ledger::account_set::LedgerAccountSetSubAccountWithBalance::AccountSet(
-                val,
-            ) => AccountSetSubAccount::AccountSet(AccountSet::from(val)),
-        }
-    }
-}
+// impl From<lana_app::ledger::account_set::PaginatedLedgerAccountSetSubAccountWithBalance>
+//     for AccountSetSubAccount
+// {
+//     fn from(
+//         member: lana_app::ledger::account_set::PaginatedLedgerAccountSetSubAccountWithBalance,
+//     ) -> Self {
+//         match member.value {
+//             lana_app::ledger::account_set::LedgerAccountSetSubAccountWithBalance::Account(val) => {
+//                 AccountSetSubAccount::Account(Account::from(val))
+//             }
+//             lana_app::ledger::account_set::LedgerAccountSetSubAccountWithBalance::AccountSet(
+//                 val,
+//             ) => AccountSetSubAccount::AccountSet(AccountSet::from(val)),
+//         }
+//     }
+// }
 
-impl From<lana_app::ledger::account_set::LedgerAccountSetSubAccountWithBalance>
-    for AccountSetSubAccount
-{
-    fn from(member: lana_app::ledger::account_set::LedgerAccountSetSubAccountWithBalance) -> Self {
-        match member {
-            lana_app::ledger::account_set::LedgerAccountSetSubAccountWithBalance::Account(val) => {
-                AccountSetSubAccount::Account(Account::from(val))
-            }
-            lana_app::ledger::account_set::LedgerAccountSetSubAccountWithBalance::AccountSet(
-                val,
-            ) => AccountSetSubAccount::AccountSet(AccountSet::from(val)),
-        }
-    }
-}
+// impl From<lana_app::ledger::account_set::LedgerAccountSetSubAccountWithBalance>
+//     for AccountSetSubAccount
+// {
+//     fn from(member: lana_app::ledger::account_set::LedgerAccountSetSubAccountWithBalance) -> Self {
+//         match member {
+//             lana_app::ledger::account_set::LedgerAccountSetSubAccountWithBalance::Account(val) => {
+//                 AccountSetSubAccount::Account(Account::from(val))
+//             }
+//             lana_app::ledger::account_set::LedgerAccountSetSubAccountWithBalance::AccountSet(
+//                 val,
+//             ) => AccountSetSubAccount::AccountSet(AccountSet::from(val)),
+//         }
+//     }
+// }
 
+#[allow(dead_code)]
 #[derive(SimpleObject)]
 #[graphql(complex)]
 pub struct AccountSetAndSubAccounts {
@@ -76,70 +77,72 @@ pub struct AccountSetAndSubAccounts {
     until: Option<DateTime<Utc>>,
 }
 
-impl
-    From<(
-        DateTime<Utc>,
-        Option<DateTime<Utc>>,
-        lana_app::ledger::account_set::LedgerAccountSetAndSubAccountsWithBalance,
-    )> for AccountSetAndSubAccounts
-{
-    fn from(
-        (from, until, account_set): (
-            DateTime<Utc>,
-            Option<DateTime<Utc>>,
-            lana_app::ledger::account_set::LedgerAccountSetAndSubAccountsWithBalance,
-        ),
-    ) -> Self {
-        AccountSetAndSubAccounts {
-            id: account_set.id.into(),
-            name: account_set.name,
-            amounts: account_set.balance.into(),
-            from,
-            until,
-        }
-    }
-}
+// impl
+//     From<(
+//         DateTime<Utc>,
+//         Option<DateTime<Utc>>,
+//         lana_app::ledger::account_set::LedgerAccountSetAndSubAccountsWithBalance,
+//     )> for AccountSetAndSubAccounts
+// {
+//     fn from(
+//         (from, until, account_set): (
+//             DateTime<Utc>,
+//             Option<DateTime<Utc>>,
+//             lana_app::ledger::account_set::LedgerAccountSetAndSubAccountsWithBalance,
+//         ),
+//     ) -> Self {
+//         AccountSetAndSubAccounts {
+//             id: account_set.id.into(),
+//             name: account_set.name,
+//             amounts: account_set.balance.into(),
+//             from,
+//             until,
+//         }
+//     }
+// }
 
 #[ComplexObject]
 impl AccountSetAndSubAccounts {
+    #[allow(unused_variables)]
     async fn sub_accounts(
         &self,
         ctx: &Context<'_>,
         first: i32,
         after: Option<String>,
     ) -> Result<Connection<SubAccountCursor, AccountSetSubAccount, EmptyFields, EmptyFields>> {
-        let app = ctx.data_unchecked::<LanaApp>();
-        query(
-            after,
-            None,
-            Some(first),
-            None,
-            |after, _, first, _| async move {
-                let first = first.expect("First always exists");
-                let res = app
-                    .ledger()
-                    .paginated_account_set_and_sub_accounts_with_balance(
-                        uuid::Uuid::from(&self.id).into(),
-                        self.from,
-                        self.until,
-                        es_entity::PaginatedQueryArgs {
-                            first,
-                            after: after
-                                .map(lana_app::ledger::account_set::LedgerSubAccountCursor::from),
-                        },
-                    )
-                    .await?;
-                let mut connection = Connection::new(false, res.has_next_page);
-                connection
-                    .edges
-                    .extend(res.entities.into_iter().map(|sub_account| {
-                        let cursor = SubAccountCursor::from(sub_account.cursor.clone());
-                        Edge::new(cursor, AccountSetSubAccount::from(sub_account))
-                    }));
-                Ok::<_, async_graphql::Error>(connection)
-            },
-        )
-        .await
+        unimplemented!()
+        // let app = ctx.data_unchecked::<LanaApp>();
+        // query(
+        //     after,
+        //     None,
+        //     Some(first),
+        //     None,
+        //     |after, _, first, _| async move {
+        //         let first = first.expect("First always exists");
+        //         let res = app
+        //             .ledger()
+        //             .paginated_account_set_and_sub_accounts_with_balance(
+        //                 uuid::Uuid::from(&self.id).into(),
+        //                 self.from,
+        //                 self.until,
+        //                 es_entity::PaginatedQueryArgs {
+        //                     first,
+        //                     after: after
+        //                         .map(lana_app::ledger::account_set::LedgerSubAccountCursor::from),
+        //                 },
+        //             )
+        //             .await?;
+        //         let mut connection = Connection::new(false, res.has_next_page);
+        //         connection
+        //             .edges
+        //             .extend(res.entities.into_iter().map(|sub_account| {
+        //                 let cursor = SubAccountCursor::from(sub_account.cursor.clone());
+        //                 Edge::new(cursor, AccountSetSubAccount::from(sub_account))
+        //             }));
+        //         Ok::<_, async_graphql::Error>(connection)
+        //     },
+        // )
+        // .await
     }
 }
 
@@ -168,10 +171,10 @@ impl From<String> for SubAccountCursor {
     }
 }
 
-impl From<SubAccountCursor> for lana_app::ledger::account_set::LedgerSubAccountCursor {
-    fn from(cursor: SubAccountCursor) -> Self {
-        Self {
-            value: cursor.value,
-        }
-    }
-}
+// impl From<SubAccountCursor> for lana_app::ledger::account_set::LedgerSubAccountCursor {
+//     fn from(cursor: SubAccountCursor) -> Self {
+//         Self {
+//             value: cursor.value,
+//         }
+//     }
+// }

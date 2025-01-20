@@ -14,8 +14,6 @@ pub enum CreditFacilityError {
     CursorDestructureError(#[from] es_entity::CursorDestructureError),
     #[error("CreditFacilityError - JobError: {0}")]
     JobError(#[from] crate::job::error::JobError),
-    #[error("CreditFacilityError - LedgerError: {0}")]
-    LedgerError(#[from] crate::ledger::error::LedgerError),
     #[error("CreditFacilityError - GovernanceError: {0}")]
     GovernanceError(#[from] governance::error::GovernanceError),
     #[error("LoanError - PriceError: {0}")]

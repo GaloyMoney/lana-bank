@@ -8,7 +8,6 @@ pub mod authorization;
 pub mod credit_facility;
 pub mod customer;
 pub mod document;
-pub mod ledger;
 pub mod price;
 pub mod primitives;
 pub mod report;

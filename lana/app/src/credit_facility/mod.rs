@@ -27,7 +27,6 @@ use crate::{
     deposit::Deposits,
     governance::Governance,
     job::*,
-    ledger::credit_facility::*,
     outbox::Outbox,
     price::Price,
     primitives::{
@@ -44,7 +43,7 @@ use error::*;
 pub use history::*;
 pub use interest_accrual::*;
 use jobs::*;
-use ledger::CreditLedger;
+use ledger::*;
 use processes::activate_credit_facility::*;
 pub use processes::approve_credit_facility::*;
 pub use processes::approve_disbursal::*;

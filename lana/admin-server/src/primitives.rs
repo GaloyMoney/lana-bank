@@ -40,6 +40,7 @@ impl From<chrono::DateTime<chrono::Utc>> for Timestamp {
     }
 }
 impl Timestamp {
+    #[allow(dead_code)]
     pub fn into_inner(self) -> chrono::DateTime<chrono::Utc> {
         self.0
     }

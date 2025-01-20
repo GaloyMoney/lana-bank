@@ -5,7 +5,8 @@ use serde::{Deserialize, Serialize};
 use es_entity::*;
 
 use crate::{
-    audit::AuditInfo, credit_facility::CreditFacilityAccountIds, ledger::credit_facility::*,
+    audit::AuditInfo,
+    credit_facility::{ledger::*, CreditFacilityAccountIds},
     primitives::*,
 };
 

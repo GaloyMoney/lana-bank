@@ -19,7 +19,6 @@ use crate::{
     document::Documents,
     governance::Governance,
     job::Jobs,
-    ledger::Ledger,
     outbox::Outbox,
     price::Price,
     primitives::Subject,
@@ -41,7 +40,6 @@ pub struct LanaApp {
     chart_of_accounts: ChartOfAccounts,
     customers: Customers,
     deposits: Deposits,
-    ledger: Ledger,
     applicants: Applicants,
     users: Users,
     credit_facilities: CreditFacilities,
@@ -64,7 +62,6 @@ impl LanaApp {
         let outbox = Outbox::init(&pool).await?;
         let dashboard = Dashboard::init(&pool, &authz, &jobs, &outbox).await?;
         let governance = Governance::new(&pool, &authz, &outbox);
-        let ledger = Ledger::init(config.ledger, &authz).await?;
         let price = Price::init(&jobs).await?;
         let storage = Storage::new(&config.storage);
         let documents = Documents::new(&pool, &storage, &authz);
@@ -155,7 +152,6 @@ impl LanaApp {
             chart_of_accounts,
             customers,
             deposits,
-            ledger,
             applicants,
             users,
             price,
@@ -214,10 +210,6 @@ impl LanaApp {
 
     pub fn deposits(&self) -> &Deposits {
         &self.deposits
-    }
-
-    pub fn ledger(&self) -> &Ledger {
-        &self.ledger
     }
 
     pub fn applicants(&self) -> &Applicants {

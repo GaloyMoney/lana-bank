@@ -10,16 +10,16 @@ pub struct BalanceSheet {
     categories: Vec<StatementCategory>,
 }
 
-impl From<lana_app::ledger::account_set::LedgerBalanceSheet> for BalanceSheet {
-    fn from(balance_sheet: lana_app::ledger::account_set::LedgerBalanceSheet) -> Self {
-        BalanceSheet {
-            name: balance_sheet.name,
-            balance: balance_sheet.balance.into(),
-            categories: balance_sheet
-                .categories
-                .into_iter()
-                .map(StatementCategory::from)
-                .collect(),
-        }
-    }
-}
+// impl From<lana_app::ledger::account_set::LedgerBalanceSheet> for BalanceSheet {
+//     fn from(balance_sheet: lana_app::ledger::account_set::LedgerBalanceSheet) -> Self {
+//         BalanceSheet {
+//             name: balance_sheet.name,
+//             balance: balance_sheet.balance.into(),
+//             categories: balance_sheet
+//                 .categories
+//                 .into_iter()
+//                 .map(StatementCategory::from)
+//                 .collect(),
+//         }
+//     }
+// }

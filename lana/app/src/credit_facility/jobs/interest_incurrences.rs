@@ -1,14 +1,12 @@
 use async_trait::async_trait;
-use credit_facility::CreditFacilityInterestIncurrence;
 use serde::{Deserialize, Serialize};
 use tracing::instrument;
 
 use crate::{
     audit::*,
     authorization::{CreditFacilityAction, Object},
-    credit_facility::{ledger::CreditLedger, repo::*, CreditFacilityError},
+    credit_facility::{ledger::*, repo::*, CreditFacilityError, CreditFacilityInterestIncurrence},
     job::*,
-    ledger::*,
     primitives::{CreditFacilityId, InterestAccrualIdx},
     terms::InterestPeriod,
 };
