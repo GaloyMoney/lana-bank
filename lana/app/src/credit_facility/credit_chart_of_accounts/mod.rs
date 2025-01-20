@@ -1,4 +1,3 @@
-use audit::AuditInfo;
 use cala_ledger::LedgerOperation;
 use chart_of_accounts::TransactionAccountFactory;
 use lana_ids::CreditFacilityId;
@@ -38,25 +37,23 @@ impl CreditChartOfAccounts {
         }
     }
 
+    // TODO: move to CreditLedger
     pub async fn create_accounts_for_credit_facility(
         &self,
         op: &mut LedgerOperation<'_>,
         credit_facility_id: CreditFacilityId,
         account_ids: CreditFacilityAccountIds,
-        audit_info: AuditInfo,
     ) -> Result<(), CreditChartOfAccountsError> {
         let collateral_name = &format!(
             "Credit Facility Collateral Account for {}",
             credit_facility_id
         );
-        let _collateral_details = self
-            .collateral_factory
+        self.collateral_factory
             .create_transaction_account_in_op(
                 op,
                 account_ids.collateral_account_id,
                 collateral_name,
                 collateral_name,
-                audit_info.clone(),
             )
             .await?;
 
@@ -64,14 +61,12 @@ impl CreditChartOfAccounts {
             "Off-Balance-Sheet Facility Account for Credit Facility {}",
             credit_facility_id
         );
-        let _facility_details = self
-            .facility_factory
+        self.facility_factory
             .create_transaction_account_in_op(
                 op,
                 account_ids.facility_account_id,
                 facility_name,
                 facility_name,
-                audit_info.clone(),
             )
             .await?;
 
@@ -79,14 +74,12 @@ impl CreditChartOfAccounts {
             "Disbursed Receivable Account for Credit Facility {}",
             credit_facility_id
         );
-        let _disbursed_receivable_details = self
-            .disbursed_receivable_factory
+        self.disbursed_receivable_factory
             .create_transaction_account_in_op(
                 op,
                 account_ids.disbursed_receivable_account_id,
                 disbursed_receivable_name,
                 disbursed_receivable_name,
-                audit_info.clone(),
             )
             .await?;
 
@@ -94,14 +87,12 @@ impl CreditChartOfAccounts {
             "Interest Receivable Account for Credit Facility {}",
             credit_facility_id
         );
-        let _interest_receivable_details = self
-            .interest_receivable_factory
+        self.interest_receivable_factory
             .create_transaction_account_in_op(
                 op,
                 account_ids.interest_receivable_account_id,
                 interest_receivable_name,
                 interest_receivable_name,
-                audit_info.clone(),
             )
             .await?;
 
@@ -109,14 +100,12 @@ impl CreditChartOfAccounts {
             "Interest Income Account for Credit Facility {}",
             credit_facility_id
         );
-        let _interest_income_details = self
-            .interest_income_factory
+        self.interest_income_factory
             .create_transaction_account_in_op(
                 op,
                 account_ids.interest_account_id,
                 interest_income_name,
                 interest_income_name,
-                audit_info.clone(),
             )
             .await?;
 
@@ -124,14 +113,12 @@ impl CreditChartOfAccounts {
             "Fee Income Account for Credit Facility {}",
             credit_facility_id
         );
-        let _fee_income_details = self
-            .fee_income_factory
+        self.fee_income_factory
             .create_transaction_account_in_op(
                 op,
                 account_ids.fee_income_account_id,
                 fee_income_name,
                 fee_income_name,
-                audit_info.clone(),
             )
             .await?;
 

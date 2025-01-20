@@ -170,7 +170,6 @@ where
                 account_id,
                 &account.name,
                 &account.description,
-                audit_info,
             )
             .await?;
 

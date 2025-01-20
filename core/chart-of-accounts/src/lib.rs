@@ -69,10 +69,9 @@ where
 
     pub fn transaction_account_factory(
         &self,
-        chart_id: ChartId,
         control_sub_account: ControlSubAccountDetails,
     ) -> TransactionAccountFactory {
-        TransactionAccountFactory::new(&self.repo, &self.cala, chart_id, control_sub_account)
+        TransactionAccountFactory::new(&self.cala, control_sub_account)
     }
 
     #[instrument(name = "chart_of_accounts.create_chart", skip(self))]

@@ -7,7 +7,7 @@ use es_entity::*;
 
 use crate::{
     path::*,
-    primitives::{ChartAccountDetails, ChartCreationDetails, ChartId, LedgerAccountSetId},
+    primitives::{ChartId, LedgerAccountSetId},
     ControlSubAccountDetails,
 };
 
@@ -180,24 +180,6 @@ impl Chart {
             account_set_id: id,
             name,
             reference,
-        })
-    }
-
-    pub fn add_transaction_account(
-        &mut self,
-        creation_details: ChartCreationDetails,
-        _audit_info: AuditInfo,
-    ) -> Result<ChartAccountDetails, ChartError> {
-        // TODO: implement by potentially adding account to ControlSubAccount nested entity
-
-        Ok(ChartAccountDetails {
-            account_id: creation_details.account_id,
-            encoded_path: format!(
-                "{}.{}",
-                creation_details.control_sub_account, creation_details.account_id
-            ),
-            name: creation_details.name,
-            description: creation_details.description,
         })
     }
 }

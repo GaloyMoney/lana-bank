@@ -258,7 +258,6 @@ impl CreditFacilities {
                 &mut op,
                 credit_facility.id,
                 credit_facility.account_ids,
-                audit_info,
             )
             .await?;
 

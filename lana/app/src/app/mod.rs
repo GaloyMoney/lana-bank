@@ -79,10 +79,8 @@ impl LanaApp {
             ChartOfAccounts::init(&pool, &authz, &cala, journal_init.journal_id).await?;
         let charts_init = ChartsInit::charts_of_accounts(&chart_of_accounts).await?;
 
-        let deposits_factory = chart_of_accounts.transaction_account_factory(
-            charts_init.chart_ids.primary,
-            charts_init.deposits.deposits,
-        );
+        let deposits_factory =
+            chart_of_accounts.transaction_account_factory(charts_init.deposits.deposits);
         let deposits = Deposits::init(
             &pool,
             &authz,
@@ -98,30 +96,18 @@ impl LanaApp {
         let customers = Customers::new(&pool, &config.customer, &deposits, &authz);
         let applicants = Applicants::new(&pool, &config.sumsub, &customers, &jobs);
 
-        let collateral_factory = chart_of_accounts.transaction_account_factory(
-            charts_init.chart_ids.off_balance_sheet,
-            charts_init.credit_facilities.collateral,
-        );
-        let facility_factory = chart_of_accounts.transaction_account_factory(
-            charts_init.chart_ids.off_balance_sheet,
-            charts_init.credit_facilities.facility,
-        );
-        let disbursed_receivable_factory = chart_of_accounts.transaction_account_factory(
-            charts_init.chart_ids.primary,
-            charts_init.credit_facilities.disbursed_receivable,
-        );
-        let interest_receivable_factory = chart_of_accounts.transaction_account_factory(
-            charts_init.chart_ids.primary,
-            charts_init.credit_facilities.interest_receivable,
-        );
-        let interest_income_factory = chart_of_accounts.transaction_account_factory(
-            charts_init.chart_ids.primary,
-            charts_init.credit_facilities.interest_income,
-        );
-        let fee_income_factory = chart_of_accounts.transaction_account_factory(
-            charts_init.chart_ids.primary,
-            charts_init.credit_facilities.fee_income,
-        );
+        let collateral_factory =
+            chart_of_accounts.transaction_account_factory(charts_init.credit_facilities.collateral);
+        let facility_factory =
+            chart_of_accounts.transaction_account_factory(charts_init.credit_facilities.facility);
+        let disbursed_receivable_factory = chart_of_accounts
+            .transaction_account_factory(charts_init.credit_facilities.disbursed_receivable);
+        let interest_receivable_factory = chart_of_accounts
+            .transaction_account_factory(charts_init.credit_facilities.interest_receivable);
+        let interest_income_factory = chart_of_accounts
+            .transaction_account_factory(charts_init.credit_facilities.interest_income);
+        let fee_income_factory =
+            chart_of_accounts.transaction_account_factory(charts_init.credit_facilities.fee_income);
         let credit_facilities = CreditFacilities::init(
             &pool,
             config.credit_facility,

@@ -56,7 +56,7 @@ async fn deposit() -> anyhow::Result<()> {
             "user-deposits".to_string(),
         )
         .await?;
-    let factory = chart_of_accounts.transaction_account_factory(chart_id, control_sub_account_path);
+    let factory = chart_of_accounts.transaction_account_factory(control_sub_account_path);
 
     let deposit = CoreDeposit::init(
         &pool,
