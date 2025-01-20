@@ -428,10 +428,7 @@ impl Query {
             .await?
             .into_iter()
             .find(|p| p.reference == reference)
-            .expect(&format!(
-                "Chart of accounts not found for ref {}",
-                reference
-            ))
+            .unwrap_or_else(|| panic!("Chart of accounts not found for ref {}", reference))
             .chart();
         Ok(ChartOfAccounts::from(chart_projection))
     }
@@ -449,10 +446,7 @@ impl Query {
             .await?
             .into_iter()
             .find(|p| p.reference == reference)
-            .expect(&format!(
-                "Chart of accounts not found for ref {}",
-                reference
-            ))
+            .unwrap_or_else(|| panic!("Chart of accounts not found for ref {}", reference))
             .chart();
         Ok(ChartOfAccounts::from(chart_projection))
     }
