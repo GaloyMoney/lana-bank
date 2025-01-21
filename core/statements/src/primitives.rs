@@ -7,4 +7,5 @@ es_entity::entity_id! {
     TrialBalanceStatementId;
 
     TrialBalanceStatementId => StatementId,
+    TrialBalanceStatementId => LedgerAccountSetId,
 }

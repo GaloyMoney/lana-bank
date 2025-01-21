@@ -5,7 +5,7 @@ use audit::AuditInfo;
 
 use es_entity::*;
 
-use crate::primitives::{LedgerAccountSetId, TrialBalanceStatementId};
+use crate::primitives::TrialBalanceStatementId;
 
 pub use super::error::*;
 
@@ -27,7 +27,6 @@ pub struct TrialBalanceStatement {
     pub id: TrialBalanceStatementId,
     pub name: String,
     pub reference: String,
-    pub account_set_id: LedgerAccountSetId,
     pub(super) events: EntityEvents<TrialBalanceStatementEvent>,
 }
 
