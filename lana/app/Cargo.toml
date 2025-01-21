@@ -4,7 +4,7 @@ version = "0.3.17-dev"
 edition = "2021"
 
 [features]
-sim-time = ["dep:sim-time", "es-entity/sim-time" ]
+sim-time = ["dep:sim-time", "es-entity/sim-time"]
 
 fail-on-warnings = []
 
@@ -20,6 +20,7 @@ core-money = { path = "../../core/money" }
 core-user = { path = "../../core/user", features = ["graphql"] }
 deposit = { path = "../../core/deposit", features = ["graphql"] }
 chart-of-accounts = { path = "../../core/chart-of-accounts" }
+statements = { path = "../../core/statements" }
 
 tracing-utils = { path = "../../lib/tracing-utils", features = ["http"] }
 job = { path = "../../lib/job" }
@@ -68,4 +69,4 @@ cloud-storage = { workspace = true }
 
 [dev-dependencies]
 rand = { workspace = true }
-serial_test = { version = "3.1.1", features = [ "file_locks" ] }
+serial_test = { version = "3.1.1", features = ["file_locks"] }

@@ -6,7 +6,7 @@ pub mod error;
 
 use chart_of_accounts::ChartId;
 
-use crate::chart_of_accounts::ChartOfAccounts;
+use crate::{chart_of_accounts::ChartOfAccounts, statements::Statements};
 
 use cala_ledger::CalaLedger;
 
@@ -22,6 +22,15 @@ pub struct JournalInit {
 impl JournalInit {
     pub async fn journal(cala: &CalaLedger) -> Result<Self, AccountingInitError> {
         seed::journal::init(cala).await
+    }
+}
+
+#[derive(Clone)]
+pub struct StatementsInit;
+
+impl StatementsInit {
+    pub async fn statements(statements: &Statements) -> Result<Self, AccountingInitError> {
+        seed::statements::init(statements).await
     }
 }
 

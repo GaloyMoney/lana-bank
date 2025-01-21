@@ -2488,6 +2488,7 @@ dependencies = [
  "sha2",
  "sim-time",
  "sqlx",
+ "statements",
  "strum",
  "thiserror 1.0.69",
  "tokio",
