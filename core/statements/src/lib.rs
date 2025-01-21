@@ -4,7 +4,7 @@
 mod auth;
 pub mod error;
 mod primitives;
-mod statement;
+mod trial_balance;
 
 use cala_ledger::CalaLedger;
 

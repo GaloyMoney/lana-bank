@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "UPDATE core_statements SET reference = $2 WHERE id = $1",
+  "query": "UPDATE core_trial_balance_statements SET reference = $2 WHERE id = $1",
   "describe": {
     "columns": [],
     "parameters": {
@@ -11,5 +11,5 @@
     },
     "nullable": []
   },
-  "hash": "7fb814b87f4683d52d8ab0a3b97d862f2836dd011f6d279480f3bb1663c78d64"
+  "hash": "36e1c82fe21d6bc7d831339439de006962f303879b0c0ec7e39fa138feeb490d"
 }

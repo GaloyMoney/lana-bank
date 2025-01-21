@@ -1,11 +1,11 @@
 {
   "db_name": "PostgreSQL",
-  "query": "WITH entities AS (SELECT id FROM core_statements WHERE id = $1) SELECT i.id AS \"entity_id: StatementId\", e.sequence, e.event, e.recorded_at FROM entities i JOIN core_statement_events e ON i.id = e.id ORDER BY i.id, e.sequence",
+  "query": "WITH entities AS (SELECT id FROM core_trial_balance_statements WHERE id = $1) SELECT i.id AS \"entity_id: TrialBalanceStatementId\", e.sequence, e.event, e.recorded_at FROM entities i JOIN core_trial_balance_statement_events e ON i.id = e.id ORDER BY i.id, e.sequence",
   "describe": {
     "columns": [
       {
         "ordinal": 0,
-        "name": "entity_id: StatementId",
+        "name": "entity_id: TrialBalanceStatementId",
         "type_info": "Uuid"
       },
       {
@@ -36,5 +36,5 @@
       false
     ]
   },
-  "hash": "59f608a74f17dba3c42584fdeff0b35b9895c686fc994fd93f3b9d61bc328377"
+  "hash": "1954a364cfb3c353baff51d874836e6eebb285fddd322a0b56c117364db5b9db"
 }

@@ -62,14 +62,14 @@ CREATE TABLE core_chart_events (
 );
 
 
-CREATE TABLE core_statements (
+CREATE TABLE core_trial_balance_statements (
   id UUID PRIMARY KEY,
   reference VARCHAR NOT NULL UNIQUE,
   created_at TIMESTAMPTZ NOT NULL
 );
 
-CREATE TABLE core_statement_events (
-  id UUID NOT NULL REFERENCES core_statements(id),
+CREATE TABLE core_trial_balance_statement_events (
+  id UUID NOT NULL REFERENCES core_trial_balance_statements(id),
   sequence INT NOT NULL,
   event_type VARCHAR NOT NULL,
   event JSONB NOT NULL,

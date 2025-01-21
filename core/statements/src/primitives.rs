@@ -4,4 +4,7 @@ pub use cala_ledger::{
 
 es_entity::entity_id! {
     StatementId,
+    TrialBalanceStatementId;
+
+    TrialBalanceStatementId => StatementId,
 }
