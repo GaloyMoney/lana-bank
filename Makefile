@@ -24,6 +24,7 @@ sqlx-prepare:
 	cd core/user && cargo sqlx prepare
 	cd core/deposit && cargo sqlx prepare
 	cd core/chart-of-accounts && cargo sqlx prepare
+	cd core/statements && cargo sqlx prepare
 	cd lana/app && cargo sqlx prepare
 	cd lana/dashboard && cargo sqlx prepare
 
