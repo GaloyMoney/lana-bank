@@ -2,7 +2,6 @@ docker_compose("../docker-compose.yml", project_name="lana-bank")
 docker_groups = {
     "auth": ["kratos", "kratos-pg", "oathkeeper"],
     "otel": ["otel-agent"],
-    "cala": ["cala", "cala-pg"],
     "core": ["core-pg"],
     "dev": ["mailhog", "next-auth-pg"],
 }
@@ -21,7 +20,7 @@ if bfx_local_price != None:
 local_resource(
     "core",
     labels=["core"],
-    serve_cmd="cd .. && make setup-db run-tf run-server",
+    serve_cmd="cd .. && make setup-db run-server",
     serve_env=serve_env_core,
     readiness_probe=probe(
         period_secs=5,
@@ -32,9 +31,7 @@ local_resource(
     ),
     allow_parallel=True,
     resource_deps=[
-        "cala",
         "core-pg",
-        "cala-pg",
     ],
     links = [
         link("http://localhost:4455/admin/graphql", "playground"),
