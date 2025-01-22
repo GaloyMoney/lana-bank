@@ -1,5 +1,6 @@
 pub mod error;
 pub mod ledger;
+mod statement;
 
 use audit::AuditSvc;
 use authz::PermissionCheck;
@@ -8,16 +9,18 @@ use rbac_types::TrialBalanceAction;
 
 use crate::{
     authorization::{Authorization, Object},
-    primitives::{LedgerAccountSetId, TrialBalanceId},
+    primitives::{Currency, LedgerAccountSetId, TrialBalanceId},
 };
 
 use error::*;
 use ledger::*;
+use statement::*;
 
 #[derive(Clone)]
 pub struct TrialBalances {
     pool: sqlx::PgPool,
     authz: Authorization,
+    cala: CalaLedger,
     trial_balance_ledger: TrialBalanceLedger,
 }
 
@@ -34,6 +37,7 @@ impl TrialBalances {
             pool: pool.clone(),
             trial_balance_ledger,
             authz: authz.clone(),
+            cala: cala.clone(),
         })
     }
 
@@ -64,7 +68,7 @@ impl TrialBalances {
     ) -> Result<Option<LedgerAccountSetId>, TrialBalanceError> {
         self.authz
             .audit()
-            .record_system_entry(Object::TrialBalance, TrialBalanceAction::List)
+            .record_system_entry(Object::TrialBalance, TrialBalanceAction::Read)
             .await?;
 
         let trial_balances = self
@@ -100,5 +104,51 @@ impl TrialBalances {
             .await?;
 
         Ok(())
+    }
+
+    pub async fn trial_balance(
+        &self,
+        trial_balance_id: impl Into<TrialBalanceId>,
+        currency: Currency,
+    ) -> Result<TrialBalance, TrialBalanceError> {
+        let trial_balance_id = trial_balance_id.into();
+
+        let mut op = es_entity::DbOp::init(&self.pool).await?;
+
+        self.authz
+            .audit()
+            .record_system_entry_in_tx(op.tx(), Object::TrialBalance, TrialBalanceAction::Read)
+            .await?;
+
+        let trial_balance_details = self
+            .trial_balance_ledger
+            .get_trial_balance(trial_balance_id, currency)
+            .await?;
+
+        Ok(TrialBalance::from(trial_balance_details))
+    }
+}
+
+pub struct TrialBalance {
+    id: TrialBalanceId,
+    name: String,
+    description: Option<String>,
+    balance: StatementAccountSetBalance,
+    accounts: Vec<StatementAccountSet>,
+}
+
+impl From<LedgerAccountSetDetailsWithAccounts> for TrialBalance {
+    fn from(details: LedgerAccountSetDetailsWithAccounts) -> Self {
+        Self {
+            id: details.values.id.into(),
+            name: details.values.name,
+            description: details.values.description,
+            balance: details.balance.into(),
+            accounts: details
+                .accounts
+                .into_iter()
+                .map(StatementAccountSet::from)
+                .collect(),
+        }
     }
 }

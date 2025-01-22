@@ -1,11 +1,13 @@
 pub mod error;
 
+pub(super) use cala_ledger::balance::AccountBalance;
 use cala_ledger::{
-    account_set::{AccountSet, AccountSetsByCreatedAtCursor, NewAccountSet},
-    CalaLedger, DebitOrCredit, JournalId,
+    account_set::{
+        AccountSet, AccountSetMemberId, AccountSetValues, AccountSetsByCreatedAtCursor,
+        NewAccountSet,
+    },
+    AccountSetId, CalaLedger, Currency, DebitOrCredit, JournalId, LedgerOperation,
 };
-
-use crate::primitives::LedgerAccountSetId;
 
 use error::*;
 
@@ -13,6 +15,17 @@ use error::*;
 pub struct TrialBalanceLedger {
     cala: CalaLedger,
     journal_id: JournalId,
+}
+
+pub struct LedgerAccountSetDetails {
+    pub values: AccountSetValues,
+    pub balance: AccountBalance,
+}
+
+pub struct LedgerAccountSetDetailsWithAccounts {
+    pub values: AccountSetValues,
+    pub balance: AccountBalance,
+    pub accounts: Vec<LedgerAccountSetDetails>,
 }
 
 impl TrialBalanceLedger {
@@ -26,7 +39,7 @@ impl TrialBalanceLedger {
     pub async fn create(
         &self,
         op: es_entity::DbOp<'_>,
-        statement_id: impl Into<LedgerAccountSetId>,
+        statement_id: impl Into<AccountSetId>,
         name: &str,
     ) -> Result<(), TrialBalanceLedgerError> {
         let mut op = self.cala.ledger_operation_from_db_op(op);
@@ -62,8 +75,8 @@ impl TrialBalanceLedger {
     pub async fn add_member(
         &self,
         op: es_entity::DbOp<'_>,
-        statement_id: impl Into<LedgerAccountSetId>,
-        member: LedgerAccountSetId,
+        statement_id: impl Into<AccountSetId>,
+        member: AccountSetId,
     ) -> Result<(), TrialBalanceLedgerError> {
         let statement_id = statement_id.into();
 
@@ -75,5 +88,72 @@ impl TrialBalanceLedger {
 
         op.commit().await?;
         Ok(())
+    }
+
+    async fn get_account_set(
+        &self,
+        op: &mut LedgerOperation<'_>,
+        id: impl Into<AccountSetId> + Copy,
+        currency: Currency,
+    ) -> Result<LedgerAccountSetDetails, TrialBalanceLedgerError> {
+        let id = id.into();
+
+        let values = self.cala.account_sets().find(id).await?.into_values();
+        let balance = self
+            .cala
+            .balances()
+            .find_in_op(op, self.journal_id, id, currency)
+            .await?;
+
+        Ok(LedgerAccountSetDetails { values, balance })
+    }
+
+    async fn get_member_account_sets(
+        &self,
+        op: &mut LedgerOperation<'_>,
+        id: impl Into<AccountSetId> + Copy,
+        currency: Currency,
+    ) -> Result<Vec<LedgerAccountSetDetails>, TrialBalanceLedgerError> {
+        let id = id.into();
+
+        let member_ids = self
+            .cala
+            .account_sets()
+            .list_members_in_op(op, id, Default::default())
+            .await?
+            .entities
+            .into_iter()
+            .map(|m| match m.id {
+                AccountSetMemberId::AccountSet(id) => Ok(id),
+                _ => Err(TrialBalanceLedgerError::NonAccountSetMemberTypeFound),
+            })
+            .collect::<Result<Vec<AccountSetId>, TrialBalanceLedgerError>>()?;
+
+        let mut accounts: Vec<LedgerAccountSetDetails> = vec![];
+        for id in member_ids {
+            accounts.push(self.get_account_set(op, id, currency).await?);
+        }
+
+        Ok(accounts)
+    }
+
+    pub async fn get_trial_balance(
+        &self,
+        id: impl Into<AccountSetId> + Copy,
+        currency: Currency,
+    ) -> Result<LedgerAccountSetDetailsWithAccounts, TrialBalanceLedgerError> {
+        let mut op = self.cala.begin_operation().await?;
+
+        let trial_balance_set = self.get_account_set(&mut op, id, currency).await?;
+
+        let accounts = self.get_member_account_sets(&mut op, id, currency).await?;
+
+        op.commit().await?;
+
+        Ok(LedgerAccountSetDetailsWithAccounts {
+            values: trial_balance_set.values,
+            balance: trial_balance_set.balance,
+            accounts,
+        })
     }
 }

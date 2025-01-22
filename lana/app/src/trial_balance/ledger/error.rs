@@ -6,6 +6,10 @@ pub enum TrialBalanceLedgerError {
     Sqlx(#[from] sqlx::Error),
     #[error("TrialBalanceLedgerError - CalaLedger: {0}")]
     CalaLedger(#[from] cala_ledger::error::LedgerError),
-    #[error("TrialBalanceLedgerError - CalaAccountSetError: {0}")]
+    #[error("TrialBalanceLedgerError - CalaAccountSet: {0}")]
     CalaAccountSet(#[from] cala_ledger::account_set::error::AccountSetError),
+    #[error("TrialBalanceLedgerError - CalaBalance: {0}")]
+    CalaBalance(#[from] cala_ledger::balance::error::BalanceError),
+    #[error("TrialBalanceLedgerError - NonAccountSetMemberTypeFound")]
+    NonAccountSetMemberTypeFound,
 }

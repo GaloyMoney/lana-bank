@@ -178,7 +178,6 @@ pub enum TrialBalanceAction {
     Create,
     Update,
     Read,
-    List,
 }
 
 impl_trivial_action!(TrialBalanceAction, TrialBalance);
