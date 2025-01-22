@@ -16,6 +16,7 @@ pub mod storage;
 pub mod terms;
 pub mod terms_template;
 mod time;
+pub mod trial_balance;
 
 pub mod outbox {
     pub type Outbox = outbox::Outbox<lana_events::LanaEvent>;
