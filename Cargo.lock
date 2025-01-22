@@ -3472,6 +3472,7 @@ dependencies = [
  "governance",
  "lana-ids",
  "serde",
+ "statements",
  "strum",
  "thiserror 1.0.69",
  "uuid",
