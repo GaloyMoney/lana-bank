@@ -1,11 +1,18 @@
 pub use cala_ledger::primitives::JournalId as LedgerJournalId;
 
 use chart_of_accounts::{ChartId, ControlSubAccountDetails};
+use statements::TrialBalanceStatementId;
 
 #[derive(Clone, Copy)]
 pub struct ChartIds {
     pub primary: ChartId,
     pub off_balance_sheet: ChartId,
+}
+
+#[derive(Clone, Copy)]
+pub struct TrialBalanceStatementIds {
+    pub primary: TrialBalanceStatementId,
+    pub off_balance_sheet: TrialBalanceStatementId,
 }
 
 #[derive(Clone)]

@@ -7,7 +7,7 @@ use tracing::instrument;
 use authz::PermissionCheck;
 
 use crate::{
-    accounting_init::{ChartsInit, JournalInit},
+    accounting_init::{ChartsInit, JournalInit, StatementsInit},
     applicant::Applicants,
     audit::{Audit, AuditCursor, AuditEntry},
     authorization::{init as init_authz, AppAction, AppObject, AuditAction, Authorization},
@@ -23,6 +23,7 @@ use crate::{
     price::Price,
     primitives::Subject,
     report::Reports,
+    statements::Statements,
     storage::Storage,
     terms_template::TermsTemplates,
     user::Users,
@@ -75,6 +76,8 @@ impl LanaApp {
             .expect("cala config");
         let cala = cala_ledger::CalaLedger::init(cala_config).await?;
         let journal_init = JournalInit::journal(&cala).await?;
+        let statements = Statements::init(&pool, &authz, &cala, journal_init.journal_id).await?;
+        let statements_init = StatementsInit::statements(&statements).await?;
         let chart_of_accounts =
             ChartOfAccounts::init(&pool, &authz, &cala, journal_init.journal_id).await?;
         let charts_init = ChartsInit::charts_of_accounts(&chart_of_accounts).await?;

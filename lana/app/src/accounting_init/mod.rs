@@ -12,7 +12,7 @@ use cala_ledger::CalaLedger;
 
 use error::*;
 pub use primitives::CreditFacilitiesAccountPaths;
-use primitives::{ChartIds, DepositsAccountPaths, LedgerJournalId};
+use primitives::{ChartIds, DepositsAccountPaths, LedgerJournalId, TrialBalanceStatementIds};
 
 #[derive(Clone)]
 pub struct JournalInit {
@@ -26,7 +26,9 @@ impl JournalInit {
 }
 
 #[derive(Clone)]
-pub struct StatementsInit;
+pub struct StatementsInit {
+    trial_balance_ids: TrialBalanceStatementIds,
+}
 
 impl StatementsInit {
     pub async fn statements(statements: &Statements) -> Result<Self, AccountingInitError> {
