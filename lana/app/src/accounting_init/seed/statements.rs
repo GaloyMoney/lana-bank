@@ -1,55 +1,50 @@
-use constants::{
-    OBS_TRIAL_BALANCE_STATEMENT_NAME, OBS_TRIAL_BALANCE_STATEMENT_REF,
-    TRIAL_BALANCE_STATEMENT_NAME, TRIAL_BALANCE_STATEMENT_REF,
-};
-use primitives::TrialBalanceStatementIds;
-use statements::TrialBalanceStatementId;
+use constants::{OBS_TRIAL_BALANCE_STATEMENT_NAME, TRIAL_BALANCE_STATEMENT_NAME};
 
 use crate::accounting_init::*;
 
-pub(crate) async fn init(statements: &Statements) -> Result<StatementsInit, AccountingInitError> {
-    let trial_balance_ids = create_trial_balances(statements).await?;
+pub(crate) async fn init(
+    trial_balances: &TrialBalances,
+) -> Result<StatementsInit, AccountingInitError> {
+    let trial_balance_ids = create_trial_balances(trial_balances).await?;
 
     Ok(StatementsInit { trial_balance_ids })
 }
 
 async fn create_trial_balances(
-    statements: &Statements,
-) -> Result<TrialBalanceStatementIds, AccountingInitError> {
-    let primary = match statements
-        .find_by_reference(TRIAL_BALANCE_STATEMENT_REF.to_string())
+    trial_balances: &TrialBalances,
+) -> Result<TrialBalanceIds, AccountingInitError> {
+    let primary_id = match trial_balances
+        .find_by_name(TRIAL_BALANCE_STATEMENT_NAME.to_string())
         .await?
     {
-        Some(statement) => statement,
+        Some(trial_balance_id) => trial_balance_id,
         None => {
-            statements
+            trial_balances
                 .create_trial_balance_statement(
-                    TrialBalanceStatementId::new(),
+                    TrialBalanceId::new(),
                     TRIAL_BALANCE_STATEMENT_NAME.to_string(),
-                    TRIAL_BALANCE_STATEMENT_REF.to_string(),
                 )
                 .await?
         }
     };
 
-    let off_balance_sheet = match statements
-        .find_by_reference(OBS_TRIAL_BALANCE_STATEMENT_REF.to_string())
+    let off_balance_sheet_id = match trial_balances
+        .find_by_name(OBS_TRIAL_BALANCE_STATEMENT_NAME.to_string())
         .await?
     {
         Some(chart) => chart,
         None => {
-            statements
+            trial_balances
                 .create_trial_balance_statement(
-                    TrialBalanceStatementId::new(),
+                    TrialBalanceId::new(),
                     OBS_TRIAL_BALANCE_STATEMENT_NAME.to_string(),
-                    OBS_TRIAL_BALANCE_STATEMENT_REF.to_string(),
                 )
                 .await?
         }
     };
 
-    Ok(TrialBalanceStatementIds {
-        primary: primary.id,
-        off_balance_sheet: off_balance_sheet.id,
+    Ok(TrialBalanceIds {
+        primary: primary_id.into(),
+        off_balance_sheet: off_balance_sheet_id.into(),
     })
 }

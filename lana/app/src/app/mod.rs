@@ -23,9 +23,9 @@ use crate::{
     price::Price,
     primitives::Subject,
     report::Reports,
-    statements::Statements,
     storage::Storage,
     terms_template::TermsTemplates,
+    trial_balance::TrialBalances,
     user::Users,
 };
 
@@ -76,11 +76,13 @@ impl LanaApp {
             .expect("cala config");
         let cala = cala_ledger::CalaLedger::init(cala_config).await?;
         let journal_init = JournalInit::journal(&cala).await?;
-        let statements = Statements::init(&pool, &authz, &cala, journal_init.journal_id).await?;
-        let _statements_init = StatementsInit::statements(&statements).await?;
+        let trial_balances =
+            TrialBalances::init(&pool, &authz, &cala, journal_init.journal_id).await?;
+        let _statements_init = StatementsInit::statements(&trial_balances).await?;
         let chart_of_accounts =
             ChartOfAccounts::init(&pool, &authz, &cala, journal_init.journal_id).await?;
-        let charts_init = ChartsInit::charts_of_accounts(&statements, &chart_of_accounts).await?;
+        let charts_init =
+            ChartsInit::charts_of_accounts(&trial_balances, &chart_of_accounts).await?;
 
         let deposits_factory =
             chart_of_accounts.transaction_account_factory(charts_init.deposits.deposits);

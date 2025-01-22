@@ -4,8 +4,8 @@ use thiserror::Error;
 pub enum AccountingInitError {
     #[error("AccountingInitError - CoreChartOfAccountsError: {0}")]
     CoreChartOfAccountsError(#[from] chart_of_accounts::error::CoreChartOfAccountsError),
-    #[error("AccountingInitError - CoreStatementsError: {0}")]
-    CoreStatementsError(#[from] statements::error::CoreStatementsError),
     #[error("ApplicationError - JournalError: {0}")]
     JournalError(#[from] cala_ledger::journal::error::JournalError),
+    #[error("ApplicationError - TrialBalanceError: {0}")]
+    TrialBalanceError(#[from] crate::trial_balance::error::TrialBalanceError),
 }

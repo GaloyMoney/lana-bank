@@ -6,13 +6,13 @@ pub mod error;
 
 use chart_of_accounts::ChartId;
 
-use crate::{chart_of_accounts::ChartOfAccounts, statements::Statements};
+use crate::{chart_of_accounts::ChartOfAccounts, trial_balance::TrialBalances};
 
 use cala_ledger::CalaLedger;
 
 use error::*;
 pub use primitives::CreditFacilitiesAccountPaths;
-use primitives::{ChartIds, DepositsAccountPaths, LedgerJournalId, TrialBalanceStatementIds};
+use primitives::*;
 
 #[derive(Clone)]
 pub struct JournalInit {
@@ -27,12 +27,12 @@ impl JournalInit {
 
 #[derive(Clone)]
 pub struct StatementsInit {
-    trial_balance_ids: TrialBalanceStatementIds,
+    trial_balance_ids: TrialBalanceIds,
 }
 
 impl StatementsInit {
-    pub async fn statements(statements: &Statements) -> Result<Self, AccountingInitError> {
-        seed::statements::init(statements).await
+    pub async fn statements(trial_balances: &TrialBalances) -> Result<Self, AccountingInitError> {
+        seed::statements::init(trial_balances).await
     }
 }
 
@@ -45,9 +45,9 @@ pub struct ChartsInit {
 
 impl ChartsInit {
     pub async fn charts_of_accounts(
-        statements: &Statements,
+        trial_balances: &TrialBalances,
         chart_of_accounts: &ChartOfAccounts,
     ) -> Result<Self, AccountingInitError> {
-        seed::charts_of_accounts::init(statements, chart_of_accounts).await
+        seed::charts_of_accounts::init(trial_balances, chart_of_accounts).await
     }
 }
