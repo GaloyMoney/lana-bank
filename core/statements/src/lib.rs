@@ -69,7 +69,7 @@ where
         id: impl Into<TrialBalanceStatementId>,
         name: String,
         reference: String,
-    ) -> Result<(), CoreStatementsError> {
+    ) -> Result<TrialBalanceStatement, CoreStatementsError> {
         let id = id.into();
         let statement_id: StatementId = id.into();
         let account_set_id: LedgerAccountSetId = id.into();
@@ -94,7 +94,8 @@ where
             .build()
             .expect("Could not build new chart of accounts");
 
-        self.trial_balance_repo
+        let trial_balance = self
+            .trial_balance_repo
             .create_in_op(&mut op, new_trial_balance)
             .await?;
 
@@ -102,6 +103,30 @@ where
             .create(op, account_set_id, &name)
             .await?;
 
-        Ok(())
+        Ok(trial_balance)
+    }
+
+    pub async fn find_by_reference(
+        &self,
+        reference: String,
+    ) -> Result<Option<TrialBalanceStatement>, CoreStatementsError> {
+        let mut op = self.trial_balance_repo.begin_op().await?;
+        self.authz
+            .audit()
+            .record_system_entry_in_tx(
+                op.tx(),
+                CoreStatementsObject::all_statements(),
+                CoreStatementsAction::STATEMENT_LIST,
+            )
+            .await?;
+
+        let statement = match self.trial_balance_repo.find_by_reference(reference).await {
+            Ok(statement) => Some(statement),
+            Err(e) if e.was_not_found() => None,
+            Err(e) => return Err(e.into()),
+        };
+        op.commit().await?;
+
+        Ok(statement)
     }
 }

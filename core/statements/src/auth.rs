@@ -62,6 +62,7 @@ impl CoreStatementsAction {
     pub const STATEMENT_CREATE: Self =
         CoreStatementsAction::StatementAction(StatementAction::Create);
     pub const STATEMENT_READ: Self = CoreStatementsAction::StatementAction(StatementAction::Read);
+    pub const STATEMENT_LIST: Self = CoreStatementsAction::StatementAction(StatementAction::List);
 }
 
 impl Display for CoreStatementsAction {
@@ -93,6 +94,7 @@ impl FromStr for CoreStatementsAction {
 pub enum StatementAction {
     Create,
     Read,
+    List,
 }
 
 impl From<StatementAction> for CoreStatementsAction {
