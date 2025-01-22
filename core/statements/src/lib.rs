@@ -20,6 +20,7 @@ pub struct CoreStatements<Perms>
 where
     Perms: PermissionCheck,
 {
+    pool: sqlx::PgPool,
     trial_balance_repo: TrialBalanceStatementRepo,
     trial_balance_ledger: TrialBalanceStatementLedger,
     authz: Perms,
@@ -32,6 +33,7 @@ where
 {
     fn clone(&self) -> Self {
         Self {
+            pool: self.pool.clone(),
             trial_balance_repo: self.trial_balance_repo.clone(),
             trial_balance_ledger: self.trial_balance_ledger.clone(),
             authz: self.authz.clone(),
@@ -56,6 +58,7 @@ where
         let trial_balance_ledger = TrialBalanceStatementLedger::new(cala, journal_id);
 
         let res = Self {
+            pool: pool.clone(),
             trial_balance_repo,
             trial_balance_ledger,
             authz: authz.clone(),
@@ -128,5 +131,20 @@ where
         op.commit().await?;
 
         Ok(statement)
+    }
+
+    pub async fn add_to_trial_balance_statement(
+        &self,
+        statement_id: TrialBalanceStatementId,
+        member_id: impl Into<LedgerAccountSetId>,
+    ) -> Result<(), CoreStatementsError> {
+        let member_id = member_id.into();
+
+        let op = es_entity::DbOp::init(&self.pool).await?;
+        self.trial_balance_ledger
+            .add_member(op, statement_id, member_id)
+            .await?;
+
+        Ok(())
     }
 }

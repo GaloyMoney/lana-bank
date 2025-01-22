@@ -8,14 +8,15 @@ use crate::{
 };
 
 pub(crate) async fn init(
+    statements: &Statements,
     chart_of_accounts: &ChartOfAccounts,
 ) -> Result<ChartsInit, AccountingInitError> {
     let chart_ids = &create_charts_of_accounts(chart_of_accounts).await?;
 
-    let deposits = create_deposits_account_paths(chart_of_accounts, chart_ids).await?;
+    let deposits = create_deposits_account_paths(statements, chart_of_accounts, chart_ids).await?;
 
     let credit_facilities =
-        create_credit_facilities_account_paths(chart_of_accounts, chart_ids).await?;
+        create_credit_facilities_account_paths(statements, chart_of_accounts, chart_ids).await?;
 
     Ok(ChartsInit {
         chart_ids: *chart_ids,
@@ -72,7 +73,7 @@ async fn create_control_sub_account(
     control_account: ControlAccountCreationDetails,
     sub_name: String,
     sub_reference: String,
-) -> Result<ControlSubAccountDetails, AccountingInitError> {
+) -> Result<(ControlAccountDetails, ControlSubAccountDetails), AccountingInitError> {
     let control_account = match chart_of_accounts
         .find_control_account_by_reference(chart_id, control_account.reference.to_string())
         .await?
@@ -114,14 +115,25 @@ async fn create_control_sub_account(
         }
     };
 
-    Ok(control_sub_account)
+    Ok((control_account, control_sub_account))
 }
 
 async fn create_deposits_account_paths(
+    statements: &Statements,
     chart_of_accounts: &ChartOfAccounts,
     chart_ids: &ChartIds,
 ) -> Result<DepositsAccountPaths, AccountingInitError> {
-    let deposits = create_control_sub_account(
+    let trial_balance = statements
+        .find_by_reference(TRIAL_BALANCE_STATEMENT_REF.to_string())
+        .await?
+        .unwrap_or_else(|| {
+            panic!(
+                "Trial balance for reference '{}' not found",
+                TRIAL_BALANCE_STATEMENT_REF
+            )
+        });
+
+    let (deposits_control, deposits) = create_control_sub_account(
         chart_of_accounts,
         LedgerAccountSetId::new(),
         chart_ids.primary,
@@ -135,15 +147,29 @@ async fn create_deposits_account_paths(
         DEPOSITS_CONTROL_SUB_ACCOUNT_REF.to_string(),
     )
     .await?;
+    statements
+        .add_to_trial_balance_statement(trial_balance.id, deposits_control.account_set_id)
+        .await?;
 
     Ok(DepositsAccountPaths { deposits })
 }
 
 async fn create_credit_facilities_account_paths(
+    statements: &Statements,
     chart_of_accounts: &ChartOfAccounts,
     chart_ids: &ChartIds,
 ) -> Result<CreditFacilitiesAccountPaths, AccountingInitError> {
-    let collateral = create_control_sub_account(
+    let trial_balance = statements
+        .find_by_reference(TRIAL_BALANCE_STATEMENT_REF.to_string())
+        .await?
+        .unwrap_or_else(|| {
+            panic!(
+                "Trial balance for reference '{}' not found",
+                TRIAL_BALANCE_STATEMENT_REF
+            )
+        });
+
+    let (collateral_control, collateral) = create_control_sub_account(
         chart_of_accounts,
         LedgerAccountSetId::new(),
         chart_ids.off_balance_sheet,
@@ -157,8 +183,11 @@ async fn create_credit_facilities_account_paths(
         CREDIT_FACILITIES_COLLATERAL_CONTROL_SUB_ACCOUNT_REF.to_string(),
     )
     .await?;
+    statements
+        .add_to_trial_balance_statement(trial_balance.id, collateral_control.account_set_id)
+        .await?;
 
-    let facility = create_control_sub_account(
+    let (facility_control, facility) = create_control_sub_account(
         chart_of_accounts,
         LedgerAccountSetId::new(),
         chart_ids.off_balance_sheet,
@@ -172,8 +201,11 @@ async fn create_credit_facilities_account_paths(
         CREDIT_FACILITIES_FACILITY_CONTROL_SUB_ACCOUNT_REF.to_string(),
     )
     .await?;
+    statements
+        .add_to_trial_balance_statement(trial_balance.id, facility_control.account_set_id)
+        .await?;
 
-    let disbursed_receivable = create_control_sub_account(
+    let (disbursed_receivable_control, disbursed_receivable) = create_control_sub_account(
         chart_of_accounts,
         LedgerAccountSetId::new(),
         chart_ids.primary,
@@ -187,8 +219,14 @@ async fn create_credit_facilities_account_paths(
         CREDIT_FACILITIES_DISBURSED_RECEIVABLE_CONTROL_SUB_ACCOUNT_REF.to_string(),
     )
     .await?;
+    statements
+        .add_to_trial_balance_statement(
+            trial_balance.id,
+            disbursed_receivable_control.account_set_id,
+        )
+        .await?;
 
-    let interest_receivable = create_control_sub_account(
+    let (interest_receivable_control, interest_receivable) = create_control_sub_account(
         chart_of_accounts,
         LedgerAccountSetId::new(),
         chart_ids.primary,
@@ -202,8 +240,14 @@ async fn create_credit_facilities_account_paths(
         CREDIT_FACILITIES_INTEREST_RECEIVABLE_CONTROL_SUB_ACCOUNT_REF.to_string(),
     )
     .await?;
+    statements
+        .add_to_trial_balance_statement(
+            trial_balance.id,
+            interest_receivable_control.account_set_id,
+        )
+        .await?;
 
-    let interest_income = create_control_sub_account(
+    let (interest_income_control, interest_income) = create_control_sub_account(
         chart_of_accounts,
         LedgerAccountSetId::new(),
         chart_ids.primary,
@@ -217,8 +261,11 @@ async fn create_credit_facilities_account_paths(
         CREDIT_FACILITIES_INTEREST_INCOME_CONTROL_SUB_ACCOUNT_REF.to_string(),
     )
     .await?;
+    statements
+        .add_to_trial_balance_statement(trial_balance.id, interest_income_control.account_set_id)
+        .await?;
 
-    let fee_income = create_control_sub_account(
+    let (fee_income_control, fee_income) = create_control_sub_account(
         chart_of_accounts,
         LedgerAccountSetId::new(),
         chart_ids.primary,
@@ -232,6 +279,9 @@ async fn create_credit_facilities_account_paths(
         CREDIT_FACILITIES_FEE_INCOME_CONTROL_SUB_ACCOUNT_REF.to_string(),
     )
     .await?;
+    statements
+        .add_to_trial_balance_statement(trial_balance.id, fee_income_control.account_set_id)
+        .await?;
 
     Ok(CreditFacilitiesAccountPaths {
         collateral,
