@@ -18,10 +18,16 @@ jobs:
 - name: tap-postgres-to-target-bigquery
   tasks:
   - tap-postgres target-bigquery
+- name: poll-bitfinex
+  tasks:
+  - tap-bitfinexapi target-bigquery
 schedules:
 - name: postgres-to-bigquery
   interval: '@hourly'
   job: tap-postgres-to-target-bigquery
+- name: poll-bitfinex-on-minute
+  interval: '* * * * *'
+  job: poll-bitfinex
 plugins:
   extractors:
   - name: tap-postgres
@@ -33,6 +39,10 @@ plugins:
       flattening_max_depth: 10
     select:
     - public-*.*
+  - name: tap-bitfinexapi
+    namespace: tap_bitfinexapi
+    pip_url: -e extract/tap-bitfinexapi
+    executable: tap-bitfinexapi
   loaders:
   - name: target-bigquery
     variant: z3z1ma
