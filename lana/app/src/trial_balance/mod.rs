@@ -5,7 +5,7 @@ mod statement;
 use audit::AuditSvc;
 use authz::PermissionCheck;
 use cala_ledger::CalaLedger;
-use rbac_types::TrialBalanceAction;
+use rbac_types::{Subject, TrialBalanceAction};
 
 use crate::{
     authorization::{Authorization, Object},
@@ -14,7 +14,7 @@ use crate::{
 
 use error::*;
 use ledger::*;
-use statement::*;
+pub use statement::*;
 
 #[derive(Clone)]
 pub struct TrialBalances {
@@ -108,17 +108,18 @@ impl TrialBalances {
 
     pub async fn trial_balance(
         &self,
-        trial_balance_id: impl Into<TrialBalanceId>,
+        sub: &Subject,
+        name: String,
         currency: Currency,
     ) -> Result<TrialBalance, TrialBalanceError> {
-        let trial_balance_id = trial_balance_id.into();
-
-        let mut op = es_entity::DbOp::init(&self.pool).await?;
-
         self.authz
-            .audit()
-            .record_system_entry_in_tx(op.tx(), Object::TrialBalance, TrialBalanceAction::Read)
+            .enforce_permission(sub, Object::TrialBalance, TrialBalanceAction::Read)
             .await?;
+
+        let trial_balance_id = self
+            .find_by_name(name.to_string())
+            .await?
+            .ok_or(TrialBalanceError::NotFound(name))?;
 
         let trial_balance_details = self
             .trial_balance_ledger
@@ -130,11 +131,11 @@ impl TrialBalances {
 }
 
 pub struct TrialBalance {
-    id: TrialBalanceId,
-    name: String,
-    description: Option<String>,
-    balance: StatementAccountSetBalance,
-    accounts: Vec<StatementAccountSet>,
+    pub id: TrialBalanceId,
+    pub name: String,
+    pub description: Option<String>,
+    pub balance: StatementAccountSetBalance,
+    pub accounts: Vec<StatementAccountSet>,
 }
 
 impl From<LedgerAccountSetDetailsWithAccounts> for TrialBalance {
