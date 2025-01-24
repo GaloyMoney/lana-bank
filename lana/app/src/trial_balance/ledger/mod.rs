@@ -1,33 +1,18 @@
 pub mod error;
+pub mod statement;
 
-pub(super) use cala_ledger::balance::AccountBalance;
 use cala_ledger::{
-    account_set::{
-        AccountSet, AccountSetMemberId, AccountSetValues, AccountSetsByCreatedAtCursor,
-        NewAccountSet,
-    },
+    account_set::{AccountSet, AccountSetMemberId, AccountSetsByCreatedAtCursor, NewAccountSet},
     AccountSetId, CalaLedger, Currency, DebitOrCredit, JournalId, LedgerOperation,
 };
 
 use error::*;
+use statement::*;
 
 #[derive(Clone)]
 pub struct TrialBalanceLedger {
     cala: CalaLedger,
     journal_id: JournalId,
-}
-
-pub struct LedgerAccountSetDetails {
-    pub values: AccountSetValues,
-    pub btc_balance: AccountBalance,
-    pub usd_balance: AccountBalance,
-}
-
-pub struct LedgerAccountSetDetailsWithAccounts {
-    pub values: AccountSetValues,
-    pub btc_balance: AccountBalance,
-    pub usd_balance: AccountBalance,
-    pub accounts: Vec<LedgerAccountSetDetails>,
 }
 
 impl TrialBalanceLedger {
@@ -96,7 +81,7 @@ impl TrialBalanceLedger {
         &self,
         op: &mut LedgerOperation<'_>,
         id: impl Into<AccountSetId> + Copy,
-    ) -> Result<LedgerAccountSetDetails, TrialBalanceLedgerError> {
+    ) -> Result<StatementAccountSet, TrialBalanceLedgerError> {
         let id = id.into();
 
         let values = self.cala.account_sets().find(id).await?.into_values();
@@ -117,10 +102,12 @@ impl TrialBalanceLedger {
             .find_in_op(op, self.journal_id, id, usd_currency)
             .await?;
 
-        Ok(LedgerAccountSetDetails {
-            values,
-            btc_balance,
-            usd_balance,
+        Ok(StatementAccountSet {
+            id: values.id,
+            name: values.name,
+            description: values.description,
+            btc_balance: btc_balance.try_into()?,
+            usd_balance: usd_balance.try_into()?,
         })
     }
 
@@ -128,7 +115,7 @@ impl TrialBalanceLedger {
         &self,
         op: &mut LedgerOperation<'_>,
         id: impl Into<AccountSetId> + Copy,
-    ) -> Result<Vec<LedgerAccountSetDetails>, TrialBalanceLedgerError> {
+    ) -> Result<Vec<StatementAccountSet>, TrialBalanceLedgerError> {
         let id = id.into();
 
         let member_ids = self
@@ -144,7 +131,7 @@ impl TrialBalanceLedger {
             })
             .collect::<Result<Vec<AccountSetId>, TrialBalanceLedgerError>>()?;
 
-        let mut accounts: Vec<LedgerAccountSetDetails> = vec![];
+        let mut accounts: Vec<StatementAccountSet> = vec![];
         for id in member_ids {
             accounts.push(self.get_account_set(op, id).await?);
         }
@@ -155,7 +142,7 @@ impl TrialBalanceLedger {
     pub async fn get_trial_balance(
         &self,
         id: impl Into<AccountSetId> + Copy,
-    ) -> Result<LedgerAccountSetDetailsWithAccounts, TrialBalanceLedgerError> {
+    ) -> Result<StatementAccountSetWithAccounts, TrialBalanceLedgerError> {
         let mut op = self.cala.begin_operation().await?;
 
         let trial_balance_set = self.get_account_set(&mut op, id).await?;
@@ -164,8 +151,10 @@ impl TrialBalanceLedger {
 
         op.commit().await?;
 
-        Ok(LedgerAccountSetDetailsWithAccounts {
-            values: trial_balance_set.values,
+        Ok(StatementAccountSetWithAccounts {
+            id: trial_balance_set.id,
+            name: trial_balance_set.name,
+            description: trial_balance_set.description,
             btc_balance: trial_balance_set.btc_balance,
             usd_balance: trial_balance_set.usd_balance,
             accounts,

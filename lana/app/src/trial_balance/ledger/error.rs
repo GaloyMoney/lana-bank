@@ -10,6 +10,8 @@ pub enum TrialBalanceLedgerError {
     CalaAccountSet(#[from] cala_ledger::account_set::error::AccountSetError),
     #[error("TrialBalanceLedgerError - CalaBalance: {0}")]
     CalaBalance(#[from] cala_ledger::balance::error::BalanceError),
+    #[error("TrialBalanceError - ConversionError: {0}")]
+    ConversionError(#[from] core_money::ConversionError),
     #[error("TrialBalanceLedgerError - NonAccountSetMemberTypeFound")]
     NonAccountSetMemberTypeFound,
 }

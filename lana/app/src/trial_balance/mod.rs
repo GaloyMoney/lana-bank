@@ -1,6 +1,5 @@
 pub mod error;
 pub mod ledger;
-mod statement;
 
 use audit::AuditSvc;
 use authz::PermissionCheck;
@@ -129,28 +128,25 @@ impl TrialBalances {
     }
 }
 
+#[derive(Clone)]
 pub struct TrialBalance {
     pub id: TrialBalanceId,
     pub name: String,
     pub description: Option<String>,
-    pub btc_balance: StatementAccountSetBalance,
-    pub usd_balance: StatementAccountSetBalance,
+    pub btc_balance: BtcStatementAccountSetBalance,
+    pub usd_balance: UsdStatementAccountSetBalance,
     pub accounts: Vec<StatementAccountSet>,
 }
 
-impl From<LedgerAccountSetDetailsWithAccounts> for TrialBalance {
-    fn from(details: LedgerAccountSetDetailsWithAccounts) -> Self {
+impl From<StatementAccountSetWithAccounts> for TrialBalance {
+    fn from(details: StatementAccountSetWithAccounts) -> Self {
         Self {
-            id: details.values.id.into(),
-            name: details.values.name,
-            description: details.values.description,
-            btc_balance: details.btc_balance.into(),
-            usd_balance: details.usd_balance.into(),
-            accounts: details
-                .accounts
-                .into_iter()
-                .map(StatementAccountSet::from)
-                .collect(),
+            id: details.id.into(),
+            name: details.name,
+            description: details.description,
+            btc_balance: details.btc_balance,
+            usd_balance: details.usd_balance,
+            accounts: details.accounts,
         }
     }
 }
