@@ -72,6 +72,15 @@ impl TryFrom<AccountBalance> for BtcStatementAccountSetBalance {
     }
 }
 
+impl BtcStatementAccountSetBalance {
+    pub const ZERO: Self = Self {
+        all: BtcStatementBalanceAmount::ZERO,
+        settled: BtcStatementBalanceAmount::ZERO,
+        pending: BtcStatementBalanceAmount::ZERO,
+        encumbrance: BtcStatementBalanceAmount::ZERO,
+    };
+}
+
 #[derive(Clone)]
 pub struct UsdStatementAccountSetBalance {
     pub all: UsdStatementBalanceAmount,
@@ -121,6 +130,15 @@ impl TryFrom<AccountBalance> for UsdStatementAccountSetBalance {
     }
 }
 
+impl UsdStatementAccountSetBalance {
+    pub const ZERO: Self = Self {
+        all: UsdStatementBalanceAmount::ZERO,
+        settled: UsdStatementBalanceAmount::ZERO,
+        pending: UsdStatementBalanceAmount::ZERO,
+        encumbrance: UsdStatementBalanceAmount::ZERO,
+    };
+}
+
 #[derive(Clone)]
 pub struct BtcStatementBalanceAmount {
     pub normal_balance: Satoshis,
@@ -128,9 +146,25 @@ pub struct BtcStatementBalanceAmount {
     pub cr_balance: Satoshis,
 }
 
+impl BtcStatementBalanceAmount {
+    pub const ZERO: Self = Self {
+        normal_balance: Satoshis::ZERO,
+        dr_balance: Satoshis::ZERO,
+        cr_balance: Satoshis::ZERO,
+    };
+}
+
 #[derive(Clone)]
 pub struct UsdStatementBalanceAmount {
     pub normal_balance: UsdCents,
     pub dr_balance: UsdCents,
     pub cr_balance: UsdCents,
+}
+
+impl UsdStatementBalanceAmount {
+    pub const ZERO: Self = Self {
+        normal_balance: UsdCents::ZERO,
+        dr_balance: UsdCents::ZERO,
+        cr_balance: UsdCents::ZERO,
+    };
 }

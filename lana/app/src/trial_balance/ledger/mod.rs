@@ -3,6 +3,7 @@ pub mod statement;
 
 use cala_ledger::{
     account_set::{AccountSet, AccountSetMemberId, AccountSetsByCreatedAtCursor, NewAccountSet},
+    balance::error::BalanceError,
     AccountSetId, CalaLedger, Currency, DebitOrCredit, JournalId, LedgerOperation,
 };
 
@@ -88,26 +89,36 @@ impl TrialBalanceLedger {
 
         let btc_currency =
             Currency::try_from("BTC".to_string()).expect("Cannot deserialize 'BTC' as Currency");
-        let btc_balance = self
+        let btc_balance = match self
             .cala
             .balances()
             .find_in_op(op, self.journal_id, id, btc_currency)
-            .await?;
+            .await
+        {
+            Ok(balance) => balance.try_into()?,
+            Err(BalanceError::NotFound(_, _, _)) => BtcStatementAccountSetBalance::ZERO,
+            Err(e) => return Err(e.into()),
+        };
 
         let usd_currency =
-            Currency::try_from("BTC".to_string()).expect("Cannot deserialize 'BTC' as Currency");
-        let usd_balance = self
+            Currency::try_from("USD".to_string()).expect("Cannot deserialize 'USD' as Currency");
+        let usd_balance = match self
             .cala
             .balances()
             .find_in_op(op, self.journal_id, id, usd_currency)
-            .await?;
+            .await
+        {
+            Ok(balance) => balance.try_into()?,
+            Err(BalanceError::NotFound(_, _, _)) => UsdStatementAccountSetBalance::ZERO,
+            Err(e) => return Err(e.into()),
+        };
 
         Ok(StatementAccountSet {
             id: values.id,
             name: values.name,
             description: values.description,
-            btc_balance: btc_balance.try_into()?,
-            usd_balance: usd_balance.try_into()?,
+            btc_balance,
+            usd_balance,
         })
     }
 
