@@ -34,7 +34,7 @@
       };
       mkAlias = alias: command: pkgs.writeShellScriptBin alias command;
       aliases = [
-        (mkAlias "meltano" "docker compose run meltano --")
+        (mkAlias "meltano" ''docker compose run meltano -- "$@"'')
       ];
       nativeBuildInputs = with pkgs;
         [
