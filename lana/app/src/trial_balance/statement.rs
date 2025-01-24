@@ -6,7 +6,8 @@ pub struct StatementAccountSet {
     pub id: LedgerAccountSetId,
     pub name: String,
     pub description: Option<String>,
-    pub balance: StatementAccountSetBalance,
+    pub btc_balance: StatementAccountSetBalance,
+    pub usd_balance: StatementAccountSetBalance,
 }
 
 impl From<LedgerAccountSetDetails> for StatementAccountSet {
@@ -15,7 +16,8 @@ impl From<LedgerAccountSetDetails> for StatementAccountSet {
             id: details.values.id,
             name: details.values.name,
             description: details.values.description,
-            balance: details.balance.into(),
+            btc_balance: details.btc_balance.into(),
+            usd_balance: details.usd_balance.into(),
         }
     }
 }
@@ -24,7 +26,8 @@ pub struct StatementAccountSetWithAccounts {
     pub id: LedgerAccountSetId,
     pub name: String,
     pub description: Option<String>,
-    pub balance: StatementAccountSetBalance,
+    pub btc_balance: StatementAccountSetBalance,
+    pub usd_balance: StatementAccountSetBalance,
     pub accounts: Vec<StatementAccountSet>,
 }
 
@@ -34,7 +37,8 @@ impl From<LedgerAccountSetDetailsWithAccounts> for StatementAccountSetWithAccoun
             id: details.values.id,
             name: details.values.name,
             description: details.values.description,
-            balance: details.balance.into(),
+            btc_balance: details.btc_balance.into(),
+            usd_balance: details.usd_balance.into(),
             accounts: details
                 .accounts
                 .into_iter()

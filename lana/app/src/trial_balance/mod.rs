@@ -9,7 +9,7 @@ use rbac_types::{Subject, TrialBalanceAction};
 
 use crate::{
     authorization::{Authorization, Object},
-    primitives::{Currency, LedgerAccountSetId, TrialBalanceId},
+    primitives::{LedgerAccountSetId, TrialBalanceId},
 };
 
 use error::*;
@@ -110,7 +110,6 @@ impl TrialBalances {
         &self,
         sub: &Subject,
         name: String,
-        currency: Currency,
     ) -> Result<TrialBalance, TrialBalanceError> {
         self.authz
             .enforce_permission(sub, Object::TrialBalance, TrialBalanceAction::Read)
@@ -123,7 +122,7 @@ impl TrialBalances {
 
         let trial_balance_details = self
             .trial_balance_ledger
-            .get_trial_balance(trial_balance_id, currency)
+            .get_trial_balance(trial_balance_id)
             .await?;
 
         Ok(TrialBalance::from(trial_balance_details))
@@ -134,7 +133,8 @@ pub struct TrialBalance {
     pub id: TrialBalanceId,
     pub name: String,
     pub description: Option<String>,
-    pub balance: StatementAccountSetBalance,
+    pub btc_balance: StatementAccountSetBalance,
+    pub usd_balance: StatementAccountSetBalance,
     pub accounts: Vec<StatementAccountSet>,
 }
 
@@ -144,7 +144,8 @@ impl From<LedgerAccountSetDetailsWithAccounts> for TrialBalance {
             id: details.values.id.into(),
             name: details.values.name,
             description: details.values.description,
-            balance: details.balance.into(),
+            btc_balance: details.btc_balance.into(),
+            usd_balance: details.usd_balance.into(),
             accounts: details
                 .accounts
                 .into_iter()

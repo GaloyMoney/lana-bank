@@ -19,12 +19,14 @@ pub struct TrialBalanceLedger {
 
 pub struct LedgerAccountSetDetails {
     pub values: AccountSetValues,
-    pub balance: AccountBalance,
+    pub btc_balance: AccountBalance,
+    pub usd_balance: AccountBalance,
 }
 
 pub struct LedgerAccountSetDetailsWithAccounts {
     pub values: AccountSetValues,
-    pub balance: AccountBalance,
+    pub btc_balance: AccountBalance,
+    pub usd_balance: AccountBalance,
     pub accounts: Vec<LedgerAccountSetDetails>,
 }
 
@@ -94,25 +96,38 @@ impl TrialBalanceLedger {
         &self,
         op: &mut LedgerOperation<'_>,
         id: impl Into<AccountSetId> + Copy,
-        currency: Currency,
     ) -> Result<LedgerAccountSetDetails, TrialBalanceLedgerError> {
         let id = id.into();
 
         let values = self.cala.account_sets().find(id).await?.into_values();
-        let balance = self
+
+        let btc_currency =
+            Currency::try_from("BTC".to_string()).expect("Cannot deserialize 'BTC' as Currency");
+        let btc_balance = self
             .cala
             .balances()
-            .find_in_op(op, self.journal_id, id, currency)
+            .find_in_op(op, self.journal_id, id, btc_currency)
             .await?;
 
-        Ok(LedgerAccountSetDetails { values, balance })
+        let usd_currency =
+            Currency::try_from("BTC".to_string()).expect("Cannot deserialize 'BTC' as Currency");
+        let usd_balance = self
+            .cala
+            .balances()
+            .find_in_op(op, self.journal_id, id, usd_currency)
+            .await?;
+
+        Ok(LedgerAccountSetDetails {
+            values,
+            btc_balance,
+            usd_balance,
+        })
     }
 
     async fn get_member_account_sets(
         &self,
         op: &mut LedgerOperation<'_>,
         id: impl Into<AccountSetId> + Copy,
-        currency: Currency,
     ) -> Result<Vec<LedgerAccountSetDetails>, TrialBalanceLedgerError> {
         let id = id.into();
 
@@ -131,7 +146,7 @@ impl TrialBalanceLedger {
 
         let mut accounts: Vec<LedgerAccountSetDetails> = vec![];
         for id in member_ids {
-            accounts.push(self.get_account_set(op, id, currency).await?);
+            accounts.push(self.get_account_set(op, id).await?);
         }
 
         Ok(accounts)
@@ -140,19 +155,19 @@ impl TrialBalanceLedger {
     pub async fn get_trial_balance(
         &self,
         id: impl Into<AccountSetId> + Copy,
-        currency: Currency,
     ) -> Result<LedgerAccountSetDetailsWithAccounts, TrialBalanceLedgerError> {
         let mut op = self.cala.begin_operation().await?;
 
-        let trial_balance_set = self.get_account_set(&mut op, id, currency).await?;
+        let trial_balance_set = self.get_account_set(&mut op, id).await?;
 
-        let accounts = self.get_member_account_sets(&mut op, id, currency).await?;
+        let accounts = self.get_member_account_sets(&mut op, id).await?;
 
         op.commit().await?;
 
         Ok(LedgerAccountSetDetailsWithAccounts {
             values: trial_balance_set.values,
-            balance: trial_balance_set.balance,
+            btc_balance: trial_balance_set.btc_balance,
+            usd_balance: trial_balance_set.usd_balance,
             accounts,
         })
     }
