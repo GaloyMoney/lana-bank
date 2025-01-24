@@ -14,6 +14,14 @@ environments:
           password: password
 - name: staging
 - name: prod
+jobs:
+- name: tap-postgres-to-target-bigquery
+  tasks:
+  - tap-postgres target-bigquery
+schedules:
+- name: postgres-to-bigquery
+  interval: '@hourly'
+  job: tap-postgres-to-target-bigquery
 plugins:
   extractors:
   - name: tap-postgres
@@ -54,3 +62,8 @@ plugins:
     - name: project
       env: DBT_BIGQUERY_PROJECT
       value: lana-dev-440721
+  - name: airflow
+    variant: apache
+    pip_url: git+https://github.com/meltano/airflow-ext.git@main apache-airflow==2.8.1
+      --constraint
+      https://raw.githubusercontent.com/apache/airflow/constraints-2.8.1/constraints-no-providers-${MELTANO__PYTHON_VERSION}.txt
