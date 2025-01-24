@@ -44,6 +44,7 @@ pub struct LanaApp {
     applicants: Applicants,
     users: Users,
     credit_facilities: CreditFacilities,
+    trial_balances: TrialBalances,
     price: Price,
     report: Reports,
     terms_templates: TermsTemplates,
@@ -117,6 +118,8 @@ impl LanaApp {
             journal_init.journal_id,
         )
         .await?;
+        let trial_balances =
+            TrialBalances::init(&pool, &authz, &cala, journal_init.journal_id).await?;
         let terms_templates = TermsTemplates::new(&pool, &authz);
         jobs.start_poll().await?;
 
@@ -133,6 +136,7 @@ impl LanaApp {
             price,
             report,
             credit_facilities,
+            trial_balances,
             terms_templates,
             documents,
             _outbox: outbox,
@@ -194,6 +198,10 @@ impl LanaApp {
 
     pub fn credit_facilities(&self) -> &CreditFacilities {
         &self.credit_facilities
+    }
+
+    pub fn trial_balances(&self) -> &TrialBalances {
+        &self.trial_balances
     }
 
     pub fn users(&self) -> &Users {

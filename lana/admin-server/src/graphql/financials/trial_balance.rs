@@ -10,16 +10,16 @@ pub struct TrialBalance {
     sub_accounts: Vec<AccountSetSubAccount>,
 }
 
-// impl From<lana_app::ledger::account_set::LedgerTrialBalance> for TrialBalance {
-//     fn from(trial_balance: lana_app::ledger::account_set::LedgerTrialBalance) -> Self {
-//         TrialBalance {
-//             name: trial_balance.name,
-//             total: trial_balance.balance.into(),
-//             sub_accounts: trial_balance
-//                 .accounts
-//                 .into_iter()
-//                 .map(AccountSetSubAccount::from)
-//                 .collect(),
-//         }
-//     }
-// }
+impl From<lana_app::trial_balance::TrialBalance> for TrialBalance {
+    fn from(trial_balance: lana_app::trial_balance::TrialBalance) -> Self {
+        TrialBalance {
+            name: trial_balance.name.to_string(),
+            total: trial_balance.clone().into(),
+            sub_accounts: trial_balance
+                .accounts
+                .into_iter()
+                .map(AccountSetSubAccount::from)
+                .collect(),
+        }
+    }
+}

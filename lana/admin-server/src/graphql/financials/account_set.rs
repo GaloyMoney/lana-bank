@@ -15,21 +15,27 @@ pub struct AccountSet {
     has_sub_accounts: bool,
 }
 
-// impl From<lana_app::ledger::account_set::LedgerAccountSetWithBalance> for AccountSet {
-//     fn from(line_item: lana_app::ledger::account_set::LedgerAccountSetWithBalance) -> Self {
-//         AccountSet {
-//             id: line_item.id.into(),
-//             name: line_item.name,
-//             amounts: line_item.balance.into(),
-//             has_sub_accounts: line_item.page_info.start_cursor.is_some(),
-//         }
-//     }
-// }
+impl From<lana_app::trial_balance::StatementAccountSet> for AccountSet {
+    fn from(line_item: lana_app::trial_balance::StatementAccountSet) -> Self {
+        AccountSet {
+            id: line_item.id.into(),
+            name: line_item.name.to_string(),
+            amounts: line_item.into(),
+            has_sub_accounts: false, // FIXME: evaluate if still needed
+        }
+    }
+}
 
 #[derive(Union)]
 pub enum AccountSetSubAccount {
     Account(Account),
     AccountSet(AccountSet),
+}
+
+impl From<lana_app::trial_balance::StatementAccountSet> for AccountSetSubAccount {
+    fn from(member: lana_app::trial_balance::StatementAccountSet) -> Self {
+        AccountSetSubAccount::AccountSet(AccountSet::from(member))
+    }
 }
 
 // impl From<lana_app::ledger::account_set::PaginatedLedgerAccountSetSubAccountWithBalance>
