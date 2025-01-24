@@ -32,8 +32,8 @@ impl From<lana_app::trial_balance::BtcStatementBalanceAmount> for BtcAccountAmou
         BtcAccountAmounts {
             debit: balance.dr_balance,
             credit: balance.cr_balance,
-            net_debit: (balance.dr_balance - balance.cr_balance).into(),
-            net_credit: (balance.cr_balance - balance.dr_balance).into(),
+            net_debit: balance.net_dr_balance,
+            net_credit: balance.net_cr_balance,
         }
     }
 }
@@ -51,8 +51,8 @@ impl From<lana_app::trial_balance::UsdStatementBalanceAmount> for UsdAccountAmou
         UsdAccountAmounts {
             debit: balance.dr_balance,
             credit: balance.cr_balance,
-            net_debit: (balance.dr_balance - balance.cr_balance).into(),
-            net_credit: (balance.cr_balance - balance.dr_balance).into(),
+            net_debit: balance.net_dr_balance,
+            net_credit: balance.net_cr_balance,
         }
     }
 }
