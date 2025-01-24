@@ -255,7 +255,7 @@ where
         &self,
         id: impl Into<LedgerAccountSetId> + std::fmt::Debug,
         chart_id: impl Into<ChartId> + std::fmt::Debug,
-        control_account: ControlAccountPath,
+        control_account: ControlAccountDetails,
         name: String,
         reference: String,
     ) -> Result<ControlSubAccountDetails, CoreChartOfAccountsError> {
@@ -276,8 +276,13 @@ where
 
         let mut chart = self.repo.find_by_id(chart_id).await?;
 
-        let control_sub_account =
-            chart.create_control_sub_account(id, control_account, name, reference, audit_info)?;
+        let control_sub_account = chart.create_control_sub_account(
+            id,
+            control_account.path,
+            name,
+            reference,
+            audit_info,
+        )?;
 
         self.repo.update_in_op(&mut op, &mut chart).await?;
 
@@ -293,6 +298,14 @@ where
         self.cala
             .account_sets()
             .create_in_op(&mut op, new_account_set)
+            .await?;
+        self.cala
+            .account_sets()
+            .add_member_in_op(
+                &mut op,
+                control_account.account_set_id,
+                control_sub_account.account_set_id,
+            )
             .await?;
 
         op.commit().await?;

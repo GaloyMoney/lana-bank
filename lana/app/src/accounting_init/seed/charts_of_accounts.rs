@@ -109,7 +109,7 @@ async fn create_control_sub_account(
                 .create_control_sub_account(
                     id,
                     chart_id,
-                    control_account.path,
+                    control_account.clone(),
                     sub_name,
                     sub_reference,
                 )

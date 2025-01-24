@@ -53,7 +53,7 @@ async fn overdraw_and_cancel_withdrawal() -> anyhow::Result<()> {
         .create_control_sub_account(
             LedgerAccountSetId::new(),
             chart_id,
-            control_account.path,
+            control_account,
             "User Deposits".to_string(),
             "user-deposits".to_string(),
         )

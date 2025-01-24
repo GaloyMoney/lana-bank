@@ -68,7 +68,7 @@ async fn create_and_populate() -> anyhow::Result<()> {
         .create_control_sub_account(
             LedgerAccountSetId::new(),
             chart_id,
-            control_account.path,
+            control_account.clone(),
             control_sub_account_name.to_string(),
             "fixed-term-credit-facilities-receivable".to_string(),
         )
