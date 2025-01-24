@@ -10,12 +10,6 @@ pub struct ChartIds {
     pub off_balance_sheet: ChartId,
 }
 
-#[derive(Clone, Copy)]
-pub struct TrialBalanceIds {
-    pub primary: TrialBalanceId,
-    pub off_balance_sheet: TrialBalanceId,
-}
-
 #[derive(Clone)]
 pub struct DepositsAccountPaths {
     pub deposits: ControlSubAccountDetails,

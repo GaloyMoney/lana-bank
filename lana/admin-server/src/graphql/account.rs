@@ -30,8 +30,8 @@ struct BtcAccountAmounts {
 impl From<lana_app::trial_balance::BtcStatementBalanceAmount> for BtcAccountAmounts {
     fn from(balance: lana_app::trial_balance::BtcStatementBalanceAmount) -> Self {
         BtcAccountAmounts {
-            debit: balance.dr_balance.into(),
-            credit: balance.cr_balance.into(),
+            debit: balance.dr_balance,
+            credit: balance.cr_balance,
             net_debit: (balance.dr_balance - balance.cr_balance).into(),
             net_credit: (balance.cr_balance - balance.dr_balance).into(),
         }
@@ -49,8 +49,8 @@ struct UsdAccountAmounts {
 impl From<lana_app::trial_balance::UsdStatementBalanceAmount> for UsdAccountAmounts {
     fn from(balance: lana_app::trial_balance::UsdStatementBalanceAmount) -> Self {
         UsdAccountAmounts {
-            debit: balance.dr_balance.into(),
-            credit: balance.cr_balance.into(),
+            debit: balance.dr_balance,
+            credit: balance.cr_balance,
             net_debit: (balance.dr_balance - balance.cr_balance).into(),
             net_credit: (balance.cr_balance - balance.dr_balance).into(),
         }

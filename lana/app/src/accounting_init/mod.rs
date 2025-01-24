@@ -26,13 +26,12 @@ impl JournalInit {
 }
 
 #[derive(Clone)]
-pub struct StatementsInit {
-    trial_balance_ids: TrialBalanceIds,
-}
+pub struct StatementsInit;
 
 impl StatementsInit {
-    pub async fn statements(trial_balances: &TrialBalances) -> Result<Self, AccountingInitError> {
-        seed::statements::init(trial_balances).await
+    pub async fn statements(trial_balances: &TrialBalances) -> Result<(), AccountingInitError> {
+        seed::statements::init(trial_balances).await?;
+        Ok(())
     }
 }
 

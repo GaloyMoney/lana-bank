@@ -19,7 +19,6 @@ pub use statement::*;
 pub struct TrialBalances {
     pool: sqlx::PgPool,
     authz: Authorization,
-    cala: CalaLedger,
     trial_balance_ledger: TrialBalanceLedger,
 }
 
@@ -36,7 +35,6 @@ impl TrialBalances {
             pool: pool.clone(),
             trial_balance_ledger,
             authz: authz.clone(),
-            cala: cala.clone(),
         })
     }
 

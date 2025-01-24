@@ -79,7 +79,7 @@ impl LanaApp {
         let journal_init = JournalInit::journal(&cala).await?;
         let trial_balances =
             TrialBalances::init(&pool, &authz, &cala, journal_init.journal_id).await?;
-        let _statements_init = StatementsInit::statements(&trial_balances).await?;
+        StatementsInit::statements(&trial_balances).await?;
         let chart_of_accounts =
             ChartOfAccounts::init(&pool, &authz, &cala, journal_init.journal_id).await?;
         let charts_init =
@@ -118,8 +118,6 @@ impl LanaApp {
             journal_init.journal_id,
         )
         .await?;
-        let trial_balances =
-            TrialBalances::init(&pool, &authz, &cala, journal_init.journal_id).await?;
         let terms_templates = TermsTemplates::new(&pool, &authz);
         jobs.start_poll().await?;
 

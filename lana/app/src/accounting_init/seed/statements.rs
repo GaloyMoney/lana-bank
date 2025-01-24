@@ -5,15 +5,13 @@ use crate::accounting_init::*;
 pub(crate) async fn init(
     trial_balances: &TrialBalances,
 ) -> Result<StatementsInit, AccountingInitError> {
-    let trial_balance_ids = create_trial_balances(trial_balances).await?;
+    create_trial_balances(trial_balances).await?;
 
-    Ok(StatementsInit { trial_balance_ids })
+    Ok(StatementsInit)
 }
 
-async fn create_trial_balances(
-    trial_balances: &TrialBalances,
-) -> Result<TrialBalanceIds, AccountingInitError> {
-    let primary_id = match trial_balances
+async fn create_trial_balances(trial_balances: &TrialBalances) -> Result<(), AccountingInitError> {
+    let _primary_id = match trial_balances
         .find_by_name(TRIAL_BALANCE_STATEMENT_NAME.to_string())
         .await?
     {
@@ -28,7 +26,7 @@ async fn create_trial_balances(
         }
     };
 
-    let off_balance_sheet_id = match trial_balances
+    let _off_balance_sheet_id = match trial_balances
         .find_by_name(OBS_TRIAL_BALANCE_STATEMENT_NAME.to_string())
         .await?
     {
@@ -43,8 +41,5 @@ async fn create_trial_balances(
         }
     };
 
-    Ok(TrialBalanceIds {
-        primary: primary_id.into(),
-        off_balance_sheet: off_balance_sheet_id.into(),
-    })
+    Ok(())
 }
