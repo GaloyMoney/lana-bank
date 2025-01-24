@@ -78,7 +78,7 @@ groups:
       - bump-image-in-chart
       -  #@ build_app_edge_image_name("admin-panel")
       -  #@ build_app_edge_image_name("customer-portal")
-      - build-meltano-image
+      - build-meltano-edge-image
 
 jobs:
   -  #@ check_code()
@@ -106,7 +106,7 @@ jobs:
               -  #@ build_app_edge_image_name("customer-portal")
           - get: meltano-edge-image
             passed:
-              - build-meltano-image
+              - build-meltano-edge-image
       - task: prep-release
         config:
           platform: linux
@@ -344,7 +344,7 @@ jobs:
   -  #@ build_app_edge_image("admin-panel")
   -  #@ build_app_edge_image("customer-portal")
 
-  - name: build-meltano-image
+  - name: build-meltano-edge-image
     plan:
       - in_parallel:
           - get: repo

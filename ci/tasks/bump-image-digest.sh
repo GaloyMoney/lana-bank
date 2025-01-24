@@ -15,7 +15,7 @@ pushd charts-repo
 yq -i e '.lanaBank.image.digest = strenv(digest)' ./charts/${CHARTS_SUBDIR}/values.yaml
 yq -i e '.lanaBank.adminPanel.image.digest = strenv(admin_panel_image_digest)' ./charts/${CHARTS_SUBDIR}/values.yaml
 yq -i e '.lanaBank.customerPortal.image.digest = strenv(customer_portal_image_digest)' ./charts/${CHARTS_SUBDIR}/values.yaml
-yq -i e '.lanaBank.meltano.image.digest = strenv(meltano_image_digest)' ./charts/${CHARTS_SUBDIR}/values.yaml
+yq -i e '.meltano.image.digest = strenv(meltano_image_digest)' ./charts/${CHARTS_SUBDIR}/values.yaml
 sed -i "s|\(digest: \"${digest}\"\).*$|\1 # METADATA:: repository=https://github.com/GaloyMoney/${CHARTS_SUBDIR};commit_ref=${ref};app=${CHARTS_SUBDIR};|g" "./charts/${CHARTS_SUBDIR}/values.yaml"
 
 yq -i e '.lanaBank.appVersion = strenv(app_version)' ./charts/${CHARTS_SUBDIR}/values.yaml
