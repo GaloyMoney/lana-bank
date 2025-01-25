@@ -171,6 +171,16 @@ async fn create_credit_facilities_account_paths(
             )
         });
 
+    let obs_trial_balance_id = trial_balances
+        .find_by_name(OBS_TRIAL_BALANCE_STATEMENT_NAME.to_string())
+        .await?
+        .unwrap_or_else(|| {
+            panic!(
+                "Trial balance for reference '{}' not found",
+                OBS_TRIAL_BALANCE_STATEMENT_NAME
+            )
+        });
+
     let (collateral_control, collateral) = create_control_sub_account(
         chart_of_accounts,
         LedgerAccountSetId::new(),
@@ -186,7 +196,7 @@ async fn create_credit_facilities_account_paths(
     )
     .await?;
     trial_balances
-        .add_to_trial_balance(trial_balance_id, collateral_control.account_set_id)
+        .add_to_trial_balance(obs_trial_balance_id, collateral_control.account_set_id)
         .await?;
 
     let (facility_control, facility) = create_control_sub_account(
@@ -204,7 +214,7 @@ async fn create_credit_facilities_account_paths(
     )
     .await?;
     trial_balances
-        .add_to_trial_balance(trial_balance_id, facility_control.account_set_id)
+        .add_to_trial_balance(obs_trial_balance_id, facility_control.account_set_id)
         .await?;
 
     let (disbursed_receivable_control, disbursed_receivable) = create_control_sub_account(
