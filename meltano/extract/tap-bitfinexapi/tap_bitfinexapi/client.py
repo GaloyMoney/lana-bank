@@ -4,16 +4,13 @@ from __future__ import annotations
 
 import decimal
 import typing as t
-from importlib import resources
+from datetime import datetime
 
-from singer_sdk.helpers.jsonpath import extract_jsonpath
-from singer_sdk.pagination import BaseAPIPaginator  # noqa: TC002
 from singer_sdk.streams import RESTStream
 
 if t.TYPE_CHECKING:
     import requests
     from singer_sdk.helpers.types import Context
-
 
 class BitfinexApiStream(RESTStream):
     """BitfinexApi stream class."""
@@ -37,4 +34,4 @@ class BitfinexApiStream(RESTStream):
         yield dict(zip(
 		["BID", "BID_SIZE", "ASK", "ASK_SIZE", "DAILY_CHANGE", "DAILY_CHANGE_RELATIVE", "LAST_PRICE", "VOLUME", "HIGH", "LOW"],
 		response.json(parse_float=decimal.Decimal),
-	))
+	)) | {"requested_at": datetime.now().isoformat()}
