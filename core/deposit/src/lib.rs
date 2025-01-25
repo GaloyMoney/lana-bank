@@ -93,14 +93,14 @@ where
         governance: &Governance<Perms, E>,
         jobs: &Jobs,
         account_factory: TransactionAccountFactory,
+        omnibus_account_factory: TransactionAccountFactory,
         cala: &CalaLedger,
         journal_id: LedgerJournalId,
-        omnibus_account_code: String,
     ) -> Result<Self, CoreDepositError> {
         let accounts = DepositAccountRepo::new(pool);
         let deposits = DepositRepo::new(pool);
         let withdrawals = WithdrawalRepo::new(pool);
-        let ledger = DepositLedger::init(cala, journal_id, omnibus_account_code).await?;
+        let ledger = DepositLedger::init(cala, journal_id, omnibus_account_factory).await?;
 
         let approve_withdrawal = ApproveWithdrawal::new(&withdrawals, authz.audit(), governance);
 

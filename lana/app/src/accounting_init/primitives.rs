@@ -13,12 +13,15 @@ pub struct ChartIds {
 #[derive(Clone)]
 pub struct DepositsAccountPaths {
     pub deposits: ControlSubAccountDetails,
+    pub deposits_omnibus: ControlSubAccountDetails,
 }
 
 #[derive(Clone)]
 pub struct CreditFacilitiesAccountPaths {
     pub collateral: ControlSubAccountDetails,
+    pub collateral_omnibus: ControlSubAccountDetails,
     pub facility: ControlSubAccountDetails,
+    pub facility_omnibus: ControlSubAccountDetails,
     pub disbursed_receivable: ControlSubAccountDetails,
     pub interest_receivable: ControlSubAccountDetails,
     pub interest_income: ControlSubAccountDetails,

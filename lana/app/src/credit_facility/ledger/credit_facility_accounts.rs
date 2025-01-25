@@ -38,8 +38,10 @@ impl CreditFacilityAccountIds {
 #[derive(Clone)]
 pub struct CreditFacilityAccountFactories {
     pub facility: TransactionAccountFactory,
+    pub facility_omnibus: TransactionAccountFactory,
     pub disbursed_receivable: TransactionAccountFactory,
     pub collateral: TransactionAccountFactory,
+    pub collateral_omnibus: TransactionAccountFactory,
     pub interest_receivable: TransactionAccountFactory,
     pub interest_income: TransactionAccountFactory,
     pub fee_income: TransactionAccountFactory,
@@ -52,9 +54,13 @@ impl CreditFacilityAccountFactories {
     ) -> Self {
         Self {
             facility: chart_of_accounts.transaction_account_factory(credit_facilities.facility),
+            facility_omnibus: chart_of_accounts
+                .transaction_account_factory(credit_facilities.facility_omnibus),
             disbursed_receivable: chart_of_accounts
                 .transaction_account_factory(credit_facilities.disbursed_receivable),
             collateral: chart_of_accounts.transaction_account_factory(credit_facilities.collateral),
+            collateral_omnibus: chart_of_accounts
+                .transaction_account_factory(credit_facilities.collateral_omnibus),
             interest_receivable: chart_of_accounts
                 .transaction_account_factory(credit_facilities.interest_receivable),
             interest_income: chart_of_accounts

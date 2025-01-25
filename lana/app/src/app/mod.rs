@@ -87,6 +87,8 @@ impl LanaApp {
 
         let deposits_factory =
             chart_of_accounts.transaction_account_factory(charts_init.deposits.deposits);
+        let deposits_omnibus_factory =
+            chart_of_accounts.transaction_account_factory(charts_init.deposits.deposits_omnibus);
         let deposits = Deposits::init(
             &pool,
             &authz,
@@ -94,9 +96,9 @@ impl LanaApp {
             &governance,
             &jobs,
             deposits_factory,
+            deposits_omnibus_factory,
             &cala,
             journal_init.journal_id,
-            String::from("OMNIBUS_ACCOUNT_ID"),
         )
         .await?;
         let customers = Customers::new(&pool, &config.customer, &deposits, &authz);

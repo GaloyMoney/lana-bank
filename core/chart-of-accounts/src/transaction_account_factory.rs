@@ -7,7 +7,7 @@ use super::ControlSubAccountDetails;
 #[derive(Clone)]
 pub struct TransactionAccountFactory {
     cala: CalaLedger,
-    control_sub_account: ControlSubAccountDetails,
+    pub control_sub_account: ControlSubAccountDetails,
 }
 
 impl TransactionAccountFactory {

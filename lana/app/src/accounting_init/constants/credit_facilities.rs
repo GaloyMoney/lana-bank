@@ -33,11 +33,20 @@ pub const CREDIT_FACILITIES_FEE_INCOME_CONTROL_SUB_ACCOUNT_NAME: &str =
     "Fixed Term Credit Facilities Fee Income"; // Revenue
 
 pub const CREDIT_FACILITIES_COLLATERAL_CONTROL_ACCOUNT_REF: &str = "credit-facilities-collateral";
-pub const CREDIT_FACILITIES_COLLATERAL_CONTROL_ACCOUNT_NAME: &str = "Credit Facilities Collateral"; // Liabilities
+pub const CREDIT_FACILITIES_COLLATERAL_CONTROL_ACCOUNT_NAME: &str = "Credit Facilities Collateral"; // OBS Liabilities
 pub const CREDIT_FACILITIES_COLLATERAL_CONTROL_SUB_ACCOUNT_REF: &str =
     "fixed-term-credit-facilities-collateral";
 pub const CREDIT_FACILITIES_COLLATERAL_CONTROL_SUB_ACCOUNT_NAME: &str =
     "Fixed Term Credit Facilities Collateral"; // OBS Liabilities
+
+pub const CREDIT_FACILITIES_BANK_COLLATERAL_CONTROL_ACCOUNT_REF: &str =
+    "credit-facilities-bank-collateral";
+pub const CREDIT_FACILITIES_BANK_COLLATERAL_CONTROL_ACCOUNT_NAME: &str =
+    "Credit Facilities Bank Collateral"; // OBSAssets
+pub const CREDIT_FACILITIES_BANK_COLLATERAL_CONTROL_SUB_ACCOUNT_REF: &str =
+    "fixed-term-credit-facilities-bank-collateral";
+pub const CREDIT_FACILITIES_BANK_COLLATERAL_CONTROL_SUB_ACCOUNT_NAME: &str =
+    "Fixed Term Credit Facilities Bank Collateral"; // OBS Assets
 
 pub const CREDIT_FACILITIES_FACILITY_CONTROL_ACCOUNT_REF: &str = "credit-facilities-facility";
 pub const CREDIT_FACILITIES_FACILITY_CONTROL_ACCOUNT_NAME: &str =
@@ -45,4 +54,13 @@ pub const CREDIT_FACILITIES_FACILITY_CONTROL_ACCOUNT_NAME: &str =
 pub const CREDIT_FACILITIES_FACILITY_CONTROL_SUB_ACCOUNT_REF: &str =
     "fixed-term-credit-facilities-facility";
 pub const CREDIT_FACILITIES_FACILITY_CONTROL_SUB_ACCOUNT_NAME: &str =
-    "Fixed Term Credit Facilities Facility Available"; // OBS Assets
+    "Fixed Term Credit Facilities Facility Available"; // OBS Assets // TODO: Change to Liabilities?
+
+pub const CREDIT_FACILITIES_OMNIBUS_FACILITY_CONTROL_ACCOUNT_REF: &str =
+    "credit-facilities-omnibus-facility";
+pub const CREDIT_FACILITIES_OMNIBUS_FACILITY_CONTROL_ACCOUNT_NAME: &str =
+    "Credit Facilities Omnibus Facility Available";
+pub const CREDIT_FACILITIES_OMNIBUS_FACILITY_CONTROL_SUB_ACCOUNT_REF: &str =
+    "fixed-term-credit-facilities-omnibus-facility";
+pub const CREDIT_FACILITIES_OMNIBUS_FACILITY_CONTROL_SUB_ACCOUNT_NAME: &str =
+    "Fixed Term Credit Facilities Omnibus Facility Available"; // OBS Liabilities TODO: Change to Assets?

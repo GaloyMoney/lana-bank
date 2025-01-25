@@ -153,7 +153,28 @@ async fn create_deposits_account_paths(
         .add_to_trial_balance(trial_balance_id, deposits_control.account_set_id)
         .await?;
 
-    Ok(DepositsAccountPaths { deposits })
+    let (deposits_omnibus_control, deposits_omnibus) = create_control_sub_account(
+        chart_of_accounts,
+        LedgerAccountSetId::new(),
+        chart_ids.primary,
+        ControlAccountCreationDetails {
+            account_set_id: LedgerAccountSetId::new(),
+            category: chart_of_accounts::ChartCategory::Assets,
+            name: DEPOSITS_OMNIBUS_CONTROL_ACCOUNT_NAME.to_string(),
+            reference: DEPOSITS_OMNIBUS_CONTROL_ACCOUNT_REF.to_string(),
+        },
+        DEPOSITS_OMNIBUS_CONTROL_SUB_ACCOUNT_NAME.to_string(),
+        DEPOSITS_OMNIBUS_CONTROL_SUB_ACCOUNT_REF.to_string(),
+    )
+    .await?;
+    trial_balances
+        .add_to_trial_balance(trial_balance_id, deposits_omnibus_control.account_set_id)
+        .await?;
+
+    Ok(DepositsAccountPaths {
+        deposits,
+        deposits_omnibus,
+    })
 }
 
 async fn create_credit_facilities_account_paths(
@@ -199,6 +220,27 @@ async fn create_credit_facilities_account_paths(
         .add_to_trial_balance(obs_trial_balance_id, collateral_control.account_set_id)
         .await?;
 
+    let (collateral_omnibus_control, collateral_omnibus) = create_control_sub_account(
+        chart_of_accounts,
+        LedgerAccountSetId::new(),
+        chart_ids.off_balance_sheet,
+        ControlAccountCreationDetails {
+            account_set_id: LedgerAccountSetId::new(),
+            category: chart_of_accounts::ChartCategory::Assets,
+            name: CREDIT_FACILITIES_BANK_COLLATERAL_CONTROL_ACCOUNT_NAME.to_string(),
+            reference: CREDIT_FACILITIES_BANK_COLLATERAL_CONTROL_ACCOUNT_REF.to_string(),
+        },
+        CREDIT_FACILITIES_BANK_COLLATERAL_CONTROL_SUB_ACCOUNT_NAME.to_string(),
+        CREDIT_FACILITIES_BANK_COLLATERAL_CONTROL_SUB_ACCOUNT_REF.to_string(),
+    )
+    .await?;
+    trial_balances
+        .add_to_trial_balance(
+            obs_trial_balance_id,
+            collateral_omnibus_control.account_set_id,
+        )
+        .await?;
+
     let (facility_control, facility) = create_control_sub_account(
         chart_of_accounts,
         LedgerAccountSetId::new(),
@@ -215,6 +257,27 @@ async fn create_credit_facilities_account_paths(
     .await?;
     trial_balances
         .add_to_trial_balance(obs_trial_balance_id, facility_control.account_set_id)
+        .await?;
+
+    let (facility_omnibus_control, facility_omnibus) = create_control_sub_account(
+        chart_of_accounts,
+        LedgerAccountSetId::new(),
+        chart_ids.off_balance_sheet,
+        ControlAccountCreationDetails {
+            account_set_id: LedgerAccountSetId::new(),
+            category: chart_of_accounts::ChartCategory::Liabilities,
+            name: CREDIT_FACILITIES_OMNIBUS_FACILITY_CONTROL_ACCOUNT_NAME.to_string(),
+            reference: CREDIT_FACILITIES_OMNIBUS_FACILITY_CONTROL_ACCOUNT_REF.to_string(),
+        },
+        CREDIT_FACILITIES_OMNIBUS_FACILITY_CONTROL_SUB_ACCOUNT_NAME.to_string(),
+        CREDIT_FACILITIES_OMNIBUS_FACILITY_CONTROL_SUB_ACCOUNT_REF.to_string(),
+    )
+    .await?;
+    trial_balances
+        .add_to_trial_balance(
+            obs_trial_balance_id,
+            facility_omnibus_control.account_set_id,
+        )
         .await?;
 
     let (disbursed_receivable_control, disbursed_receivable) = create_control_sub_account(
@@ -294,7 +357,9 @@ async fn create_credit_facilities_account_paths(
 
     Ok(CreditFacilitiesAccountPaths {
         collateral,
+        collateral_omnibus,
         facility,
+        facility_omnibus,
         disbursed_receivable,
         interest_receivable,
         interest_income,

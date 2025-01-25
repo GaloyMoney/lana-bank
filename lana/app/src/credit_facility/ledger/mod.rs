@@ -4,18 +4,16 @@ mod templates;
 mod velocity;
 
 use cala_ledger::{
-    account::{error::AccountError, NewAccount},
     velocity::{NewVelocityControl, VelocityControlId},
-    AccountId, CalaLedger, Currency, DebitOrCredit, JournalId, TransactionId,
+    AccountId, CalaLedger, Currency, JournalId, TransactionId,
 };
+use chart_of_accounts::TransactionAccountFactory;
 
 use crate::primitives::{CollateralAction, CreditFacilityId, Satoshis, UsdCents};
 
 pub use credit_facility_accounts::*;
 use error::*;
 
-pub(super) const BANK_COLLATERAL_ACCOUNT_CODE: &str = "BANK.COLLATERAL.OMNIBUS";
-pub(super) const CREDIT_OMNIBUS_ACCOUNT_CODE: &str = "CREDIT.OMNIBUS";
 pub(super) const CREDIT_FACILITY_VELOCITY_CONTROL_ID: uuid::Uuid =
     uuid::uuid!("00000000-0000-0000-0000-000000000002");
 
@@ -31,7 +29,7 @@ pub struct CreditFacilityCollateralUpdate {
 pub struct CreditLedger {
     cala: CalaLedger,
     journal_id: JournalId,
-    credit_omnibus_account: AccountId,
+    credit_omnibus_account_id: AccountId,
     bank_collateral_account_id: AccountId,
     credit_facility_control_id: VelocityControlId,
     account_factories: CreditFacilityAccountFactories,
@@ -45,12 +43,14 @@ impl CreditLedger {
         journal_id: JournalId,
         account_factories: CreditFacilityAccountFactories,
     ) -> Result<Self, CreditLedgerError> {
-        let bank_collateral_account_id =
-            Self::create_bank_collateral_account(cala, BANK_COLLATERAL_ACCOUNT_CODE.to_string())
-                .await?;
+        let bank_collateral_account_id = Self::create_bank_collateral_account(
+            cala,
+            account_factories.collateral_omnibus.clone(),
+        )
+        .await?;
 
-        let credit_omnibus_account =
-            Self::create_credit_omnibus_account(cala, CREDIT_OMNIBUS_ACCOUNT_CODE.to_string())
+        let credit_omnibus_account_id =
+            Self::create_credit_omnibus_account(cala, account_factories.facility_omnibus.clone())
                 .await?;
 
         templates::AddCollateral::init(cala).await?;
@@ -81,7 +81,7 @@ impl CreditLedger {
             cala: cala.clone(),
             journal_id,
             bank_collateral_account_id,
-            credit_omnibus_account,
+            credit_omnibus_account_id,
             credit_facility_control_id,
             account_factories,
             usd: "USD".parse().expect("Could not parse 'USD'"),
@@ -285,7 +285,7 @@ impl CreditLedger {
                 templates::APPROVE_CREDIT_FACILITY_CODE,
                 templates::ApproveCreditFacilityParams {
                     journal_id: self.journal_id,
-                    credit_omnibus_account: self.credit_omnibus_account,
+                    credit_omnibus_account: self.credit_omnibus_account_id,
                     credit_facility_account: credit_facility_account_ids.facility_account_id,
                     facility_disbursed_receivable_account: credit_facility_account_ids
                         .disbursed_receivable_account_id,
@@ -385,7 +385,7 @@ impl CreditLedger {
                 templates::INITIATE_DISBURSAL_CODE,
                 templates::InitiateDisbursalParams {
                     journal_id: self.journal_id,
-                    credit_omnibus_account: self.credit_omnibus_account,
+                    credit_omnibus_account: self.credit_omnibus_account_id,
                     credit_facility_account: credit_facility_account_ids.facility_account_id,
                     disbursed_amount: amount.to_usd(),
                 },
@@ -416,7 +416,7 @@ impl CreditLedger {
                     templates::CANCEL_DISBURSAL_CODE,
                     templates::CancelDisbursalParams {
                         journal_id: self.journal_id,
-                        credit_omnibus_account: self.credit_omnibus_account,
+                        credit_omnibus_account: self.credit_omnibus_account_id,
                         credit_facility_account: credit_facility_account_ids.facility_account_id,
                         disbursed_amount: amount.to_usd(),
                     },
@@ -430,7 +430,7 @@ impl CreditLedger {
                     templates::SETTLE_DISBURSAL_CODE,
                     templates::SettleDisbursalParams {
                         journal_id: self.journal_id,
-                        credit_omnibus_account: self.credit_omnibus_account,
+                        credit_omnibus_account: self.credit_omnibus_account_id,
                         credit_facility_account: credit_facility_account_ids.facility_account_id,
                         facility_disbursed_receivable_account: credit_facility_account_ids
                             .disbursed_receivable_account_id,
@@ -447,46 +447,42 @@ impl CreditLedger {
 
     async fn create_bank_collateral_account(
         cala: &CalaLedger,
-        encoded_path: String,
+        account_factory: TransactionAccountFactory,
     ) -> Result<AccountId, CreditLedgerError> {
-        let new_account = NewAccount::builder()
-            .code(&encoded_path)
-            .id(AccountId::new())
-            .name("Bank collateral account")
-            .description("Bank collateral account")
-            .normal_balance_type(DebitOrCredit::Debit)
-            .build()
-            .expect("Couldn't create onchain incoming account");
-        match cala.accounts().create(new_account).await {
-            Err(AccountError::CodeAlreadyExists) => {
-                let account = cala.accounts().find_by_code(encoded_path).await?;
-                Ok(account.id)
-            }
-            Err(e) => Err(e.into()),
-            Ok(account) => Ok(account.id),
-        }
+        let id = AccountId::new();
+
+        let mut op = cala.begin_operation().await?;
+        account_factory
+            .create_transaction_account_in_op(
+                &mut op,
+                id,
+                &account_factory.control_sub_account.name,
+                &account_factory.control_sub_account.name,
+            )
+            .await?;
+        op.commit().await?;
+
+        Ok(id)
     }
 
     async fn create_credit_omnibus_account(
         cala: &CalaLedger,
-        encoded_path: String,
+        account_factory: TransactionAccountFactory,
     ) -> Result<AccountId, CreditLedgerError> {
-        let new_account = NewAccount::builder()
-            .code(&encoded_path)
-            .id(AccountId::new())
-            .name("Credit Omnibus Account")
-            .description("Omnibus Account for Credit module")
-            .normal_balance_type(DebitOrCredit::Debit)
-            .build()
-            .expect("Couldn't create credit omnibus account");
-        match cala.accounts().create(new_account).await {
-            Err(AccountError::CodeAlreadyExists) => {
-                let account = cala.accounts().find_by_code(encoded_path).await?;
-                Ok(account.id)
-            }
-            Err(e) => Err(e.into()),
-            Ok(account) => Ok(account.id),
-        }
+        let id = AccountId::new();
+
+        let mut op = cala.begin_operation().await?;
+        account_factory
+            .create_transaction_account_in_op(
+                &mut op,
+                id,
+                &account_factory.control_sub_account.name,
+                &account_factory.control_sub_account.name,
+            )
+            .await?;
+        op.commit().await?;
+
+        Ok(id)
     }
 
     pub async fn create_credit_facility_control(

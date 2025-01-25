@@ -3,11 +3,12 @@ mod templates;
 mod velocity;
 
 use cala_ledger::{
-    account::{error::AccountError, *},
+    account::*,
     tx_template::Params,
     velocity::{NewVelocityControl, VelocityControlId},
-    CalaLedger, Currency, DebitOrCredit, JournalId, TransactionId,
+    CalaLedger, Currency, JournalId, TransactionId,
 };
+use chart_of_accounts::TransactionAccountFactory;
 
 use crate::{primitives::UsdCents, DepositAccountBalance};
 
@@ -29,10 +30,10 @@ impl DepositLedger {
     pub async fn init(
         cala: &CalaLedger,
         journal_id: JournalId,
-        omnibus_account_code: String,
+        omnibus_account_factory: TransactionAccountFactory,
     ) -> Result<Self, DepositLedgerError> {
         let deposit_omnibus_account_id =
-            Self::create_deposit_omnibus_account(cala, omnibus_account_code.clone()).await?;
+            Self::create_deposit_omnibus_account(cala, omnibus_account_factory).await?;
 
         templates::RecordDeposit::init(cala).await?;
         templates::InitiateWithdraw::init(cala).await?;
@@ -169,24 +170,22 @@ impl DepositLedger {
 
     async fn create_deposit_omnibus_account(
         cala: &CalaLedger,
-        encoded_path: String,
+        account_factory: TransactionAccountFactory,
     ) -> Result<AccountId, DepositLedgerError> {
-        let new_account = NewAccount::builder()
-            .code(&encoded_path)
-            .id(AccountId::new())
-            .name("Deposit Omnibus Account")
-            .description("Omnibus Account for Deposit module")
-            .normal_balance_type(DebitOrCredit::Debit)
-            .build()
-            .expect("Couldn't create onchain incoming account");
-        match cala.accounts().create(new_account).await {
-            Err(AccountError::CodeAlreadyExists) => {
-                let account = cala.accounts().find_by_code(encoded_path).await?;
-                Ok(account.id)
-            }
-            Err(e) => Err(e.into()),
-            Ok(account) => Ok(account.id),
-        }
+        let id = AccountId::new();
+
+        let mut op = cala.begin_operation().await?;
+        account_factory
+            .create_transaction_account_in_op(
+                &mut op,
+                id,
+                &account_factory.control_sub_account.name,
+                &account_factory.control_sub_account.name,
+            )
+            .await?;
+        op.commit().await?;
+
+        Ok(id)
     }
 
     pub async fn balance(
