@@ -34,8 +34,6 @@ pub enum ApplicationError {
     CalaError(#[from] cala_ledger::error::LedgerError),
     #[error("ApplicationError - ChartOfAccountsError: {0}")]
     ChartOfAccountsError(#[from] chart_of_accounts::error::CoreChartOfAccountsError),
-    #[error("ApplicationError - StatementsError: {0}")]
-    StatementsError(#[from] statements::error::CoreStatementsError),
     #[error("ApplicationError - DepositError: {0}")]
     DepositError(#[from] crate::deposit::error::CoreDepositError),
 }

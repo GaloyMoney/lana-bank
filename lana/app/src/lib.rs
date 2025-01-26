@@ -72,8 +72,3 @@ pub mod chart_of_accounts {
     pub type ChartOfAccounts =
         chart_of_accounts::CoreChartOfAccounts<crate::authorization::Authorization>;
 }
-
-pub mod statements {
-
-    pub type Statements = statements::CoreStatements<crate::authorization::Authorization>;
-}

@@ -20,7 +20,6 @@ core-money = { path = "../../core/money" }
 core-user = { path = "../../core/user", features = ["graphql"] }
 deposit = { path = "../../core/deposit", features = ["graphql"] }
 chart-of-accounts = { path = "../../core/chart-of-accounts" }
-statements = { path = "../../core/statements" }
 
 tracing-utils = { path = "../../lib/tracing-utils", features = ["http"] }
 job = { path = "../../lib/job" }

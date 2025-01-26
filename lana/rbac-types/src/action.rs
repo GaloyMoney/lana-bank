@@ -5,7 +5,6 @@ use core_user::CoreUserAction;
 use dashboard::DashboardModuleAction;
 use deposit::CoreDepositAction;
 use governance::GovernanceAction;
-use statements::CoreStatementsAction;
 
 #[derive(Clone, Copy, Debug, PartialEq, strum::EnumDiscriminants)]
 #[strum_discriminants(derive(strum::Display, strum::EnumString))]
@@ -15,7 +14,6 @@ pub enum LanaAction {
     Governance(GovernanceAction),
     User(CoreUserAction),
     ChartOfAccounts(CoreChartOfAccountsAction),
-    Statements(CoreStatementsAction),
     Dashboard(DashboardModuleAction),
     Deposit(CoreDepositAction),
 }
@@ -45,11 +43,6 @@ impl From<CoreChartOfAccountsAction> for LanaAction {
         LanaAction::ChartOfAccounts(action)
     }
 }
-impl From<CoreStatementsAction> for LanaAction {
-    fn from(action: CoreStatementsAction) -> Self {
-        LanaAction::Statements(action)
-    }
-}
 impl From<CoreDepositAction> for LanaAction {
     fn from(action: CoreDepositAction) -> Self {
         LanaAction::Deposit(action)
@@ -66,7 +59,6 @@ impl Display for LanaAction {
             User(action) => action.fmt(f),
             Dashboard(action) => action.fmt(f),
             ChartOfAccounts(action) => action.fmt(f),
-            Statements(action) => action.fmt(f),
             Deposit(action) => action.fmt(f),
         }
     }
@@ -84,7 +76,6 @@ impl FromStr for LanaAction {
             User => LanaAction::from(action.parse::<CoreUserAction>()?),
             Dashboard => LanaAction::from(action.parse::<DashboardModuleAction>()?),
             ChartOfAccounts => LanaAction::from(action.parse::<CoreChartOfAccountsAction>()?),
-            Statements => LanaAction::from(action.parse::<CoreStatementsAction>()?),
             Deposit => LanaAction::from(action.parse::<CoreDepositAction>()?),
         };
         Ok(res)

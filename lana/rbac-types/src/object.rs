@@ -7,7 +7,6 @@ use dashboard::DashboardModuleObject;
 use deposit::CoreDepositObject;
 use governance::GovernanceObject;
 use lana_ids::CustomerId;
-use statements::CoreStatementsObject;
 
 #[derive(Clone, Copy, Debug, PartialEq, strum::EnumDiscriminants)]
 #[strum_discriminants(derive(strum::Display, strum::EnumString))]
@@ -17,7 +16,6 @@ pub enum LanaObject {
     Governance(GovernanceObject),
     User(UserObject),
     ChartOfAccounts(CoreChartOfAccountsObject),
-    Statements(CoreStatementsObject),
     Deposit(CoreDepositObject),
     Dashboard(DashboardModuleObject),
 }
@@ -47,11 +45,6 @@ impl From<CoreChartOfAccountsObject> for LanaObject {
         LanaObject::ChartOfAccounts(object)
     }
 }
-impl From<CoreStatementsObject> for LanaObject {
-    fn from(object: CoreStatementsObject) -> Self {
-        LanaObject::Statements(object)
-    }
-}
 impl From<CoreDepositObject> for LanaObject {
     fn from(object: CoreDepositObject) -> Self {
         LanaObject::Deposit(object)
@@ -67,7 +60,6 @@ impl Display for LanaObject {
             Governance(action) => action.fmt(f),
             User(action) => action.fmt(f),
             ChartOfAccounts(action) => action.fmt(f),
-            Statements(action) => action.fmt(f),
             Deposit(action) => action.fmt(f),
             Dashboard(action) => action.fmt(f),
         }
@@ -85,7 +77,6 @@ impl FromStr for LanaObject {
             Governance => LanaObject::from(object.parse::<GovernanceObject>()?),
             User => LanaObject::from(object.parse::<UserObject>()?),
             ChartOfAccounts => LanaObject::from(object.parse::<CoreChartOfAccountsObject>()?),
-            Statements => LanaObject::from(object.parse::<CoreStatementsObject>()?),
             Deposit => LanaObject::from(object.parse::<CoreDepositObject>()?),
             Dashboard => LanaObject::from(
                 object

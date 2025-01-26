@@ -14,7 +14,6 @@ dashboard = { path = "../dashboard" }
 governance = { path = "../../core/governance" }
 core-user = { path = "../../core/user" }
 chart-of-accounts = { path = "../../core/chart-of-accounts" }
-statements = { path = "../../core/statements" }
 deposit = { path = "../../core/deposit" }
 audit = { path = "../../lib/audit" }
 authz = { path = "../../lib/authz" }
