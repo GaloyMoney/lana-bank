@@ -83,7 +83,7 @@ impl InitiateDisbursal {
         let entries = vec![
             // SETTLED layer entries
             NewTxTemplateEntry::builder()
-                .account_id("params.credit_omnibus_account")
+                .account_id("params.credit_facility_account")
                 .units("params.disbursed_amount")
                 .currency("'USD'")
                 .entry_type("'INITIATE_DISBURSAL_DRAWDOWN_SETTLED_DR'")
@@ -92,7 +92,7 @@ impl InitiateDisbursal {
                 .build()
                 .expect("Couldn't build entry"),
             NewTxTemplateEntry::builder()
-                .account_id("params.credit_facility_account")
+                .account_id("params.credit_omnibus_account")
                 .units("params.disbursed_amount")
                 .currency("'USD'")
                 .entry_type("'INITIATE_DISBURSAL_DRAWDOWN_SETTLED_CR'")
@@ -101,7 +101,7 @@ impl InitiateDisbursal {
                 .build()
                 .expect("Couldn't build entry"),
             NewTxTemplateEntry::builder()
-                .account_id("params.credit_omnibus_account")
+                .account_id("params.credit_facility_account")
                 .units("params.disbursed_amount")
                 .currency("'USD'")
                 .entry_type("'INITIATE_DISBURSAL_DRAWDOWN_PENDING_CR'")
@@ -110,7 +110,7 @@ impl InitiateDisbursal {
                 .build()
                 .expect("Couldn't build entry"),
             NewTxTemplateEntry::builder()
-                .account_id("params.credit_facility_account")
+                .account_id("params.credit_omnibus_account")
                 .units("params.disbursed_amount")
                 .currency("'USD'")
                 .entry_type("'INITIATE_DISBURSAL_DRAWDOWN_PENDING_DR'")

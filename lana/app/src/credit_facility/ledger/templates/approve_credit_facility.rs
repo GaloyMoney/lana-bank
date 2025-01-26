@@ -135,7 +135,7 @@ impl ApproveCreditFacility {
 
         let entries = vec![
             NewTxTemplateEntry::builder()
-                .account_id("params.credit_facility_account")
+                .account_id("params.credit_omnibus_account")
                 .units("params.facility_amount")
                 .currency("params.currency")
                 .entry_type("'APPROVE_CREDIT_FACILITY_DR'")
@@ -144,7 +144,7 @@ impl ApproveCreditFacility {
                 .build()
                 .expect("Couldn't build entry"),
             NewTxTemplateEntry::builder()
-                .account_id("params.credit_omnibus_account")
+                .account_id("params.credit_facility_account")
                 .units("params.facility_amount")
                 .currency("params.currency")
                 .entry_type("'APPROVE_CREDIT_FACILITY_CR'")
@@ -153,7 +153,7 @@ impl ApproveCreditFacility {
                 .build()
                 .expect("Couldn't build entry"),
             NewTxTemplateEntry::builder()
-                .account_id("params.credit_omnibus_account")
+                .account_id("params.credit_facility_account")
                 .units("params.structuring_fee_amount")
                 .currency("params.currency")
                 .entry_type("'APPROVE_CREDIT_FACILITY_DISBURSEMENT_DRAWDOWN_DR'")
@@ -162,7 +162,7 @@ impl ApproveCreditFacility {
                 .build()
                 .expect("Couldn't build entry"),
             NewTxTemplateEntry::builder()
-                .account_id("params.credit_facility_account")
+                .account_id("params.credit_omnibus_account")
                 .units("params.structuring_fee_amount")
                 .currency("params.currency")
                 .entry_type("'APPROVE_CREDIT_FACILITY_DISBURSEMENT_DRAWDOWN_CR'")

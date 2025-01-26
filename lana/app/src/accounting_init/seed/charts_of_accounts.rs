@@ -247,7 +247,7 @@ async fn create_credit_facilities_account_paths(
         chart_ids.off_balance_sheet,
         ControlAccountCreationDetails {
             account_set_id: LedgerAccountSetId::new(),
-            category: chart_of_accounts::ChartCategory::Assets,
+            category: chart_of_accounts::ChartCategory::Liabilities,
             name: CREDIT_FACILITIES_FACILITY_CONTROL_ACCOUNT_NAME.to_string(),
             reference: CREDIT_FACILITIES_FACILITY_CONTROL_ACCOUNT_REF.to_string(),
         },
@@ -265,7 +265,7 @@ async fn create_credit_facilities_account_paths(
         chart_ids.off_balance_sheet,
         ControlAccountCreationDetails {
             account_set_id: LedgerAccountSetId::new(),
-            category: chart_of_accounts::ChartCategory::Liabilities,
+            category: chart_of_accounts::ChartCategory::Assets,
             name: CREDIT_FACILITIES_OMNIBUS_FACILITY_CONTROL_ACCOUNT_NAME.to_string(),
             reference: CREDIT_FACILITIES_OMNIBUS_FACILITY_CONTROL_ACCOUNT_REF.to_string(),
         },
