@@ -1,3 +1,5 @@
+{{ config(materialized='table') }}
+
 with ordered as (
 
     select
@@ -8,7 +10,7 @@ with ordered as (
         recorded_at,
         row_number()
             over (
-                partition by id
+                partition by id, sequence
                 order by _sdc_received_at desc
             )
             as order_received_desc
