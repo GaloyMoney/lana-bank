@@ -12,6 +12,7 @@ teardown_file() {
 
 @test "chart-of-accounts: can traverse chart of accounts" {
   exec_admin_graphql 'chart-of-accounts'
+  graphql_output
 
   category_account_code=$(echo "$output" | jq -r \
     '.data.chartOfAccounts.categories.assets.accountCode'
