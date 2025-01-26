@@ -16,7 +16,7 @@ resource "google_project_iam_member" "holistics_job_user" {
 
 resource "google_bigquery_dataset_iam_member" "holistics_viewer" {
   project    = local.gcp_project
-  dataset_id = local.dataform_dataset_name
+  dataset_id = local.dbt_dataset_name
   role       = "roles/bigquery.dataViewer"
   member     = "serviceAccount:${google_service_account.holistics.email}"
 }
