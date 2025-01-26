@@ -310,7 +310,7 @@ const TrialBalanceValues: React.FC<TrialBalanceValuesProps> = ({
               <Balance
                 align="end"
                 currency={currency}
-                amount={total[currency].closingBalance[layer].credit}
+                amount={total[currency].closingBalance[layer].netDebit}
               />
             </TableCell>
           </TableRow>
