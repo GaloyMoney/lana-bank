@@ -26,6 +26,10 @@ output "dataform_release_config" {
   value = local.dataform_release_config_name
 }
 
+output "dbt_output_dataset" {
+  value = local.dbt_dataset_name
+}
+
 output "reports_root_folder" {
   value = "reports"
 }
