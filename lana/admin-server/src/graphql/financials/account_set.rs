@@ -15,8 +15,8 @@ pub struct AccountSet {
     has_sub_accounts: bool,
 }
 
-impl From<lana_app::trial_balance::StatementAccountSet> for AccountSet {
-    fn from(line_item: lana_app::trial_balance::StatementAccountSet) -> Self {
+impl From<lana_app::statement::StatementAccountSet> for AccountSet {
+    fn from(line_item: lana_app::statement::StatementAccountSet) -> Self {
         AccountSet {
             id: line_item.id.into(),
             name: line_item.name.to_string(),
@@ -32,8 +32,8 @@ pub enum AccountSetSubAccount {
     AccountSet(AccountSet),
 }
 
-impl From<lana_app::trial_balance::StatementAccountSet> for AccountSetSubAccount {
-    fn from(member: lana_app::trial_balance::StatementAccountSet) -> Self {
+impl From<lana_app::statement::StatementAccountSet> for AccountSetSubAccount {
+    fn from(member: lana_app::statement::StatementAccountSet) -> Self {
         AccountSetSubAccount::AccountSet(AccountSet::from(member))
     }
 }

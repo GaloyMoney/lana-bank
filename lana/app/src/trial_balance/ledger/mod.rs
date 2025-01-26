@@ -1,5 +1,4 @@
 pub mod error;
-pub mod statement;
 
 use cala_ledger::{
     account_set::{AccountSet, AccountSetMemberId, AccountSetsByCreatedAtCursor, NewAccountSet},
@@ -7,8 +6,9 @@ use cala_ledger::{
     AccountSetId, CalaLedger, Currency, DebitOrCredit, JournalId, LedgerOperation,
 };
 
+use crate::statement::*;
+
 use error::*;
-use statement::*;
 
 #[derive(Clone)]
 pub struct TrialBalanceLedger {

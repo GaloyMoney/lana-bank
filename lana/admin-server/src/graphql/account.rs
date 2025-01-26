@@ -27,8 +27,8 @@ struct BtcAccountAmounts {
     net_credit: SignedSatoshis,
 }
 
-impl From<lana_app::trial_balance::BtcStatementBalanceAmount> for BtcAccountAmounts {
-    fn from(balance: lana_app::trial_balance::BtcStatementBalanceAmount) -> Self {
+impl From<lana_app::statement::BtcStatementBalanceAmount> for BtcAccountAmounts {
+    fn from(balance: lana_app::statement::BtcStatementBalanceAmount) -> Self {
         BtcAccountAmounts {
             debit: balance.dr_balance,
             credit: balance.cr_balance,
@@ -46,8 +46,8 @@ struct UsdAccountAmounts {
     net_credit: SignedUsdCents,
 }
 
-impl From<lana_app::trial_balance::UsdStatementBalanceAmount> for UsdAccountAmounts {
-    fn from(balance: lana_app::trial_balance::UsdStatementBalanceAmount) -> Self {
+impl From<lana_app::statement::UsdStatementBalanceAmount> for UsdAccountAmounts {
+    fn from(balance: lana_app::statement::UsdStatementBalanceAmount) -> Self {
         UsdAccountAmounts {
             debit: balance.dr_balance,
             credit: balance.cr_balance,
@@ -65,8 +65,8 @@ struct LayeredBtcAccountAmounts {
     encumbrance: BtcAccountAmounts,
 }
 
-impl From<lana_app::trial_balance::BtcStatementAccountSetBalance> for LayeredBtcAccountAmounts {
-    fn from(balances: lana_app::trial_balance::BtcStatementAccountSetBalance) -> Self {
+impl From<lana_app::statement::BtcStatementAccountSetBalance> for LayeredBtcAccountAmounts {
+    fn from(balances: lana_app::statement::BtcStatementAccountSetBalance) -> Self {
         LayeredBtcAccountAmounts {
             all: balances.all.into(),
             settled: balances.settled.into(),
@@ -84,8 +84,8 @@ struct LayeredUsdAccountAmounts {
     encumbrance: UsdAccountAmounts,
 }
 
-impl From<lana_app::trial_balance::UsdStatementAccountSetBalance> for LayeredUsdAccountAmounts {
-    fn from(balances: lana_app::trial_balance::UsdStatementAccountSetBalance) -> Self {
+impl From<lana_app::statement::UsdStatementAccountSetBalance> for LayeredUsdAccountAmounts {
+    fn from(balances: lana_app::statement::UsdStatementAccountSetBalance) -> Self {
         LayeredUsdAccountAmounts {
             all: balances.all.into(),
             settled: balances.settled.into(),
@@ -103,8 +103,8 @@ pub struct BtcAccountAmountsInPeriod {
 }
 
 // FIXME: Adjust for ranged balance from domain
-impl From<lana_app::trial_balance::BtcStatementAccountSetBalance> for BtcAccountAmountsInPeriod {
-    fn from(balances: lana_app::trial_balance::BtcStatementAccountSetBalance) -> Self {
+impl From<lana_app::statement::BtcStatementAccountSetBalance> for BtcAccountAmountsInPeriod {
+    fn from(balances: lana_app::statement::BtcStatementAccountSetBalance) -> Self {
         BtcAccountAmountsInPeriod {
             opening_balance: balances.clone().into(),
             closing_balance: balances.clone().into(),
@@ -121,8 +121,8 @@ pub struct UsdAccountAmountsInPeriod {
 }
 
 // FIXME: Adjust for ranged balance from domain
-impl From<lana_app::trial_balance::UsdStatementAccountSetBalance> for UsdAccountAmountsInPeriod {
-    fn from(balances: lana_app::trial_balance::UsdStatementAccountSetBalance) -> Self {
+impl From<lana_app::statement::UsdStatementAccountSetBalance> for UsdAccountAmountsInPeriod {
+    fn from(balances: lana_app::statement::UsdStatementAccountSetBalance) -> Self {
         UsdAccountAmountsInPeriod {
             opening_balance: balances.clone().into(),
             closing_balance: balances.clone().into(),
@@ -146,8 +146,8 @@ impl From<lana_app::trial_balance::TrialBalance> for AccountAmountsByCurrency {
     }
 }
 
-impl From<lana_app::trial_balance::StatementAccountSet> for AccountAmountsByCurrency {
-    fn from(balances: lana_app::trial_balance::StatementAccountSet) -> Self {
+impl From<lana_app::statement::StatementAccountSet> for AccountAmountsByCurrency {
+    fn from(balances: lana_app::statement::StatementAccountSet) -> Self {
         AccountAmountsByCurrency {
             btc: balances.btc_balance.into(),
             usd: balances.usd_balance.into(),

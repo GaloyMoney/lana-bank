@@ -12,6 +12,7 @@ pub mod price;
 pub mod primitives;
 pub mod report;
 pub mod service_account;
+pub mod statement;
 pub mod storage;
 pub mod terms;
 pub mod terms_template;

@@ -9,11 +9,11 @@ use rbac_types::{Subject, TrialBalanceAction};
 use crate::{
     authorization::{Authorization, Object},
     primitives::{LedgerAccountSetId, TrialBalanceId},
+    statement::*,
 };
 
 use error::*;
 use ledger::*;
-pub use statement::*;
 
 #[derive(Clone)]
 pub struct TrialBalances {

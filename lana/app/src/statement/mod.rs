@@ -1,8 +1,10 @@
+pub mod error;
+
 use cala_ledger::balance::AccountBalance;
 
 use crate::primitives::{LedgerAccountSetId, Satoshis, SignedSatoshis, SignedUsdCents, UsdCents};
 
-use super::TrialBalanceLedgerError;
+use error::*;
 
 #[derive(Clone)]
 pub struct StatementAccountSet {
@@ -32,7 +34,7 @@ pub struct BtcStatementAccountSetBalance {
 }
 
 impl TryFrom<AccountBalance> for BtcStatementAccountSetBalance {
-    type Error = TrialBalanceLedgerError;
+    type Error = StatementError;
 
     fn try_from(balance: AccountBalance) -> Result<Self, Self::Error> {
         let all_details = balance.details.available(cala_ledger::Layer::Encumbrance);
@@ -106,7 +108,7 @@ pub struct UsdStatementAccountSetBalance {
 }
 
 impl TryFrom<AccountBalance> for UsdStatementAccountSetBalance {
-    type Error = TrialBalanceLedgerError;
+    type Error = StatementError;
 
     fn try_from(balance: AccountBalance) -> Result<Self, Self::Error> {
         let all_details = balance.details.available(cala_ledger::Layer::Encumbrance);
