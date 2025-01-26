@@ -2,16 +2,22 @@
 
 load "helpers"
 
+PERSISTED_LOG_FILE="chart-of-accounts.e2e-logs"
+RUN_LOG_FILE="chart-of-accounts.run.e2e-logs"
+
 setup_file() {
   start_server
 }
 
 teardown_file() {
   stop_server
+  cp "$LOG_FILE" "$PERSISTED_LOG_FILE"
 }
 
 @test "chart-of-accounts: can traverse chart of accounts" {
   exec_admin_graphql 'chart-of-accounts'
+  graphql_output
+  echo "chart-of-accounts | $(graphql_output)" >> $RUN_LOG_FILE
 
   category_account_code=$(echo "$output" | jq -r \
     '.data.chartOfAccounts.categories.assets.accountCode'
