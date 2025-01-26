@@ -15,16 +15,16 @@ environments:
 - name: staging
 - name: prod
 jobs:
-- name: tap-postgres-to-target-bigquery
+- name: tap-postgres-to-target-bigquery-run-dbt
   tasks:
-  - tap-postgres target-bigquery
+  - tap-postgres target-bigquery dbt-bigquery:run
 - name: poll-bitfinex
   tasks:
   - tap-bitfinexapi target-bigquery
 schedules:
-- name: postgres-to-bigquery
+- name: postgres-to-bigquery-dbt
   interval: '@hourly'
-  job: tap-postgres-to-target-bigquery
+  job: tap-postgres-to-target-bigquery-run-dbt
 - name: poll-bitfinex-on-minute
   interval: '* * * * *'
   job: poll-bitfinex
