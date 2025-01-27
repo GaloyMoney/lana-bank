@@ -5,6 +5,7 @@ pub mod accounting_init;
 pub mod app;
 pub mod applicant;
 pub mod authorization;
+pub mod balance_sheet;
 pub mod credit_facility;
 pub mod customer;
 pub mod document;
