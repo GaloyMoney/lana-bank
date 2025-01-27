@@ -337,6 +337,21 @@ impl BalanceSheetLedger {
             .get_member_account_sets_in_op(&mut op, ids.expenses)
             .await?;
 
+        let liabilities_account_set = self.get_account_set_in_op(&mut op, ids.liabilities).await?;
+        let liabilities_accounts = self
+            .get_member_account_sets_in_op(&mut op, ids.liabilities)
+            .await?;
+
+        let equity_account_set = self.get_account_set_in_op(&mut op, ids.equity).await?;
+        let equity_accounts = self
+            .get_member_account_sets_in_op(&mut op, ids.equity)
+            .await?;
+
+        let assets_account_set = self.get_account_set_in_op(&mut op, ids.assets).await?;
+        let assets_accounts = self
+            .get_member_account_sets_in_op(&mut op, ids.assets)
+            .await?;
+
         op.commit().await?;
 
         Ok(BalanceSheet {
@@ -361,6 +376,30 @@ impl BalanceSheetLedger {
                     btc_balance: expenses_account_set.btc_balance,
                     usd_balance: expenses_account_set.usd_balance,
                     accounts: expenses_accounts,
+                },
+                StatementAccountSetWithAccounts {
+                    id: liabilities_account_set.id,
+                    name: liabilities_account_set.name,
+                    description: liabilities_account_set.description,
+                    btc_balance: liabilities_account_set.btc_balance,
+                    usd_balance: liabilities_account_set.usd_balance,
+                    accounts: liabilities_accounts,
+                },
+                StatementAccountSetWithAccounts {
+                    id: equity_account_set.id,
+                    name: equity_account_set.name,
+                    description: equity_account_set.description,
+                    btc_balance: equity_account_set.btc_balance,
+                    usd_balance: equity_account_set.usd_balance,
+                    accounts: equity_accounts,
+                },
+                StatementAccountSetWithAccounts {
+                    id: assets_account_set.id,
+                    name: assets_account_set.name,
+                    description: assets_account_set.description,
+                    btc_balance: assets_account_set.btc_balance,
+                    usd_balance: assets_account_set.usd_balance,
+                    accounts: assets_accounts,
                 },
             ],
         })
