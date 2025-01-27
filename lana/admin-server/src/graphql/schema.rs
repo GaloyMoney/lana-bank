@@ -2,8 +2,8 @@ use async_graphql::{types::connection::*, Context, Object};
 
 use lana_app::{
     accounting_init::constants::{
-        CHART_REF, OBS_CHART_REF, OBS_TRIAL_BALANCE_STATEMENT_NAME, PROFIT_AND_LOSS_STATEMENT_NAME,
-        TRIAL_BALANCE_STATEMENT_NAME,
+        BALANCE_SHEET_NAME, CHART_REF, OBS_CHART_REF, OBS_TRIAL_BALANCE_STATEMENT_NAME,
+        PROFIT_AND_LOSS_STATEMENT_NAME, TRIAL_BALANCE_STATEMENT_NAME,
     },
     app::LanaApp,
 };
@@ -465,13 +465,12 @@ impl Query {
         from: Timestamp,
         until: Option<Timestamp>,
     ) -> async_graphql::Result<Option<BalanceSheet>> {
-        unimplemented!()
-        // let (app, sub) = app_and_sub_from_ctx!(ctx);
-        // let balance_sheet = app
-        //     .ledger()
-        //     .balance_sheet(sub, from.into_inner(), until.map(|t| t.into_inner()))
-        //     .await?;
-        // Ok(balance_sheet.map(BalanceSheet::from))
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        let balance_sheet = app
+            .balance_sheets()
+            .balance_sheet(sub, BALANCE_SHEET_NAME.to_string())
+            .await?;
+        Ok(Some(BalanceSheet::from(balance_sheet)))
     }
 
     // TODO: remove Option from return type
