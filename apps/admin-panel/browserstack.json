@@ -1,43 +1,36 @@
 {
-    "auth": {
-        "username": "SET ENV: BROWSERSTACK_USERNAME",
-        "access_key": "SET ENV: BROWSERSTACK_ACCESS_KEY"
+  "auth": {
+    "username": "SET ENV: BROWSERSTACK_USERNAME",
+    "access_key": "SET ENV: BROWSERSTACK_ACCESS_KEY"
+  },
+  "browsers": [
+    {
+      "os": "Windows 11",
+      "browser": "chrome",
+      "versions": ["latest"]
+    }
+  ],
+  "run_settings": {
+    "cypress_config_file": "cypress.config.ts",
+    "project_name": "Lana Bank Admin Panel",
+    "build_name": "Lana Bank Admin Panel",
+    "parallels": 1,
+    "npm_dependencies": {
+      "typescript": "^4",
+      "browserstack-cypress-cli": "latest",
+      "cypress": "latest",
+      "cypress-file-upload": "latest",
+      "@apollo/client": "latest",
+      "graphql": "latest",
+      "react": "18",
+      "@faker-js/faker": "latest"
     },
-    "browsers": [
-        {
-            "os": "Windows 11",
-            "browser": "chrome",
-            "versions": ["latest"]
-        }
-    ],
-    "run_settings": {
-        "cypress_config_file": "cypress.config.ts",
-        "project_name": "Lana Bank Admin Panel",
-        "build_name": "Lana Bank Admin Panel",
-        "parallels": 1,
-        "npm_dependencies": {
-            "typescript": "^4",
-            "browserstack-cypress-cli": "latest",
-            "cypress": "latest",
-            "cypress-file-upload": "latest",
-            "@apollo/client": "latest",
-            "graphql": "latest",
-            "react": "18",
-            "@faker-js/faker": "latest"
-        },
-        "exclude": [
-            "node_modules/**/*",
-            ".git/**/*",
-            ".next/**/*"
-        ],
-        "resolution": "2560x1440",
-        "downloads": [
-            "./results",
-            "./cypress"
-        ]
-    },
-    "connection_settings": {
-        "local": true
-    },
-    "disable_usage_reporting": false
+    "exclude": ["node_modules/**/*", ".git/**/*", ".next/**/*"],
+    "resolution": "2560x1920",
+    "downloads": ["./results", "./cypress"]
+  },
+  "connection_settings": {
+    "local": true
+  },
+  "disable_usage_reporting": false
 }

@@ -4,8 +4,8 @@ describe("Customers", () => {
   let testCustomerId: string
 
   it("should successfully create a new customer", () => {
-    testEmail = `test-${Date.now()}@example.com`
-    testTelegramId = `user${Date.now()}`
+    testEmail = `t${Date.now().toString().slice(-6)}@example.com`
+    testTelegramId = `t${Date.now().toString().slice(-6)}`
 
     cy.visit("/customers")
     cy.takeScreenshot("2_list_all_customers")

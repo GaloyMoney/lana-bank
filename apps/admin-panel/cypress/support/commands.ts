@@ -52,8 +52,7 @@ Cypress.Commands.add(
 
 Cypress.Commands.add("takeScreenshot", (filename): Cypress.Chainable<null> => {
   cy.get('[data-testid="loading-skeleton"]', { timeout: 30000 }).should("not.exist")
-  cy.viewport(1280, 720)
-  cy.screenshot(filename, { capture: "viewport" })
+  cy.screenshot(filename, { capture: "viewport", overwrite: true })
   return cy.wrap(null)
 })
 

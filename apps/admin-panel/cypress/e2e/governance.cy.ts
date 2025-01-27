@@ -5,8 +5,8 @@ describe("Governance Test", () => {
   let depositAccountId: string
 
   before(() => {
-    const testEmail = `test-${Date.now()}@example.com`
-    const testTelegramId = `user${Date.now()}`
+    const testEmail = `t${Date.now().toString().slice(-6)}@example.com`
+    const testTelegramId = `t${Date.now()}`
     cy.createCustomer(testEmail, testTelegramId).then((customer) => {
       customerId = customer.customerId
       depositAccountId = customer.depositAccount.depositAccountId

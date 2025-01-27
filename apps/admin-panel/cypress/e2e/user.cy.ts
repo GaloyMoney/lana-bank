@@ -11,7 +11,7 @@ describe("Users", () => {
   })
 
   it("should create a user successfully", () => {
-    userEmail = `test-${Date.now()}@example.com`
+    userEmail = `t${Date.now().toString().slice(-6)}@example.com`
 
     cy.visit(`/users`)
     cy.wait(1000)

@@ -4,6 +4,36 @@ const multiplier = 100 // Browserstack local tunnel on GHA Runner can be quite s
 
 export default defineConfig({
   e2e: {
+    setupNodeEvents(on, config) {
+      on("before:browser:launch", (browser, launchOptions) => {
+        if (browser.name === "chrome") {
+          launchOptions.args.push("--window-size=1920,1080")
+          launchOptions.args.push("--disable-dev-shm-usage")
+          launchOptions.args.push("--force-device-scale-factor=1")
+          return launchOptions
+        }
+
+        if (browser.name === "electron") {
+          launchOptions.preferences = {
+            width: 1920,
+            height: 1080,
+            frame: false,
+            useContentSize: true,
+          }
+          return launchOptions
+        }
+
+        if (browser.name === "firefox") {
+          launchOptions.args.push("--width=1920")
+          launchOptions.args.push("--height=1080")
+          return launchOptions
+        }
+
+        return launchOptions
+      })
+    },
+    viewportWidth: 1280,
+    viewportHeight: 720,
     specPattern: [
       "cypress/e2e/user.cy.ts",
       "cypress/e2e/credit-facilities.cy.ts",
