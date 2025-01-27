@@ -42,6 +42,29 @@ AS r"""
       return ytm;
   };
 
+  const loan_ytm_from_price = function loan_ytm_from_price(pv, times, cash_flows) {
+      if (times.length != cash_flows.length) {
+          return NaN;
+      }
+
+      const ACCURACY = 0.00005;
+      const MAX_ITERATIONS = 200;
+
+      var bottom = 0, top = 1;
+
+      while (loan_pv(top, times, cash_flows) > pv) { top = top * 2; }
+      var ytm = 0.5 * (top + bottom);
+      for (i = 0; i < MAX_ITERATIONS; i++) {
+          var diff = loan_pv(ytm, times, cash_flows) - pv;
+          if (Math.abs(diff) < ACCURACY) { return ytm; }
+          if (diff > 0) { bottom = ytm; }
+          else { top = ytm; }
+          ytm = 0.5 * (top + bottom);
+      }
+
+      return ytm;
+  };
+
   const loan_duration = function loan_duration(interest_rate, times, cash_flows) {
       if (times.length != cash_flows.length) {
           return NaN;
