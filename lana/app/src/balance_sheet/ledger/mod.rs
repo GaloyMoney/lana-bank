@@ -75,7 +75,7 @@ impl BalanceSheetLedger {
             .journal_id(self.journal_id)
             .name(LIABILITIES_NAME)
             .description(LIABILITIES_NAME)
-            .normal_balance_type(DebitOrCredit::Debit)
+            .normal_balance_type(DebitOrCredit::Credit)
             .build()
             .expect("Could not build new account set");
         self.cala
@@ -93,7 +93,7 @@ impl BalanceSheetLedger {
             .journal_id(self.journal_id)
             .name(EQUITY_NAME)
             .description(EQUITY_NAME)
-            .normal_balance_type(DebitOrCredit::Debit)
+            .normal_balance_type(DebitOrCredit::Credit)
             .build()
             .expect("Could not build new account set");
         self.cala
@@ -111,7 +111,7 @@ impl BalanceSheetLedger {
             .journal_id(self.journal_id)
             .name(NET_INCOME_NAME)
             .description(NET_INCOME_NAME)
-            .normal_balance_type(DebitOrCredit::Debit)
+            .normal_balance_type(DebitOrCredit::Credit)
             .build()
             .expect("Could not build new account set");
         self.cala
@@ -129,7 +129,7 @@ impl BalanceSheetLedger {
             .journal_id(self.journal_id)
             .name(NI_REVENUE_NAME)
             .description(NI_REVENUE_NAME)
-            .normal_balance_type(DebitOrCredit::Debit)
+            .normal_balance_type(DebitOrCredit::Credit)
             .build()
             .expect("Could not build new account set");
         self.cala
