@@ -187,7 +187,7 @@ async fn create_deposits_account_paths(
         .await?;
 
     balance_sheets
-        .add_to_liabilities(balance_sheet, deposits_omnibus_control.account_set_id)
+        .add_to_assets(balance_sheet, deposits_omnibus_control.account_set_id)
         .await?;
 
     Ok(DepositsAccountPaths {
