@@ -172,3 +172,12 @@ impl From<lana_app::profit_and_loss::ProfitAndLossStatement> for AccountAmountsB
         }
     }
 }
+
+impl From<lana_app::balance_sheet::BalanceSheet> for AccountAmountsByCurrency {
+    fn from(balances: lana_app::balance_sheet::BalanceSheet) -> Self {
+        AccountAmountsByCurrency {
+            btc: balances.btc_balance.into(),
+            usd: balances.usd_balance.into(),
+        }
+    }
+}

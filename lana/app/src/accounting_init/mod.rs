@@ -7,8 +7,8 @@ pub mod error;
 use chart_of_accounts::ChartId;
 
 use crate::{
-    chart_of_accounts::ChartOfAccounts, profit_and_loss::ProfitAndLossStatements,
-    trial_balance::TrialBalances,
+    balance_sheet::BalanceSheet, chart_of_accounts::ChartOfAccounts,
+    profit_and_loss::ProfitAndLossStatements, trial_balance::TrialBalances,
 };
 
 use cala_ledger::CalaLedger;

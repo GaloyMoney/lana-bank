@@ -11,6 +11,7 @@ use crate::{
     applicant::Applicants,
     audit::{Audit, AuditCursor, AuditEntry},
     authorization::{init as init_authz, AppAction, AppObject, AuditAction, Authorization},
+    balance_sheet::BalanceSheets,
     chart_of_accounts::ChartOfAccounts,
     credit_facility::{CreditFacilities, CreditFacilityAccountFactories},
     customer::Customers,
@@ -47,6 +48,7 @@ pub struct LanaApp {
     credit_facilities: CreditFacilities,
     trial_balances: TrialBalances,
     profit_and_loss_statements: ProfitAndLossStatements,
+    balance_sheets: BalanceSheets,
     price: Price,
     report: Reports,
     terms_templates: TermsTemplates,
@@ -83,6 +85,8 @@ impl LanaApp {
             TrialBalances::init(&pool, &authz, &cala, journal_init.journal_id).await?;
         let pl_statements =
             ProfitAndLossStatements::init(&pool, &authz, &cala, journal_init.journal_id).await?;
+        let balance_sheets =
+            BalanceSheets::init(&pool, &authz, &cala, journal_init.journal_id).await?;
         StatementsInit::statements(&trial_balances, &pl_statements).await?;
         let chart_of_accounts =
             ChartOfAccounts::init(&pool, &authz, &cala, journal_init.journal_id).await?;
@@ -143,6 +147,7 @@ impl LanaApp {
             credit_facilities,
             trial_balances,
             profit_and_loss_statements: pl_statements,
+            balance_sheets,
             terms_templates,
             documents,
             _outbox: outbox,
@@ -212,6 +217,10 @@ impl LanaApp {
 
     pub fn profit_and_loss_statements(&self) -> &ProfitAndLossStatements {
         &self.profit_and_loss_statements
+    }
+
+    pub fn balance_sheets(&self) -> &BalanceSheets {
+        &self.balance_sheets
     }
 
     pub fn users(&self) -> &Users {

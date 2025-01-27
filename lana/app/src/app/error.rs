@@ -16,6 +16,8 @@ pub enum ApplicationError {
     TrialBalanceError(#[from] crate::trial_balance::error::TrialBalanceError),
     #[error("ApplicationError - ProfitAndLossStatementError: {0}")]
     ProfitAndLossStatementError(#[from] crate::profit_and_loss::error::ProfitAndLossStatementError),
+    #[error("ApplicationError - BalanceSheetError: {0}")]
+    BalanceSheetError(#[from] crate::balance_sheet::error::BalanceSheetError),
     #[error("ApplicationError - UserError: {0}")]
     UserError(#[from] crate::user::error::UserError),
     #[error("ApplicationError - AuthorizationError: {0}")]
