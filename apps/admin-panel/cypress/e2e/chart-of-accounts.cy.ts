@@ -41,7 +41,7 @@ describe("Chart Of Accounts", () => {
           })
 
         category.controlAccounts.forEach((control: ChartControlAccount) => {
-          cy.contains("td", control.name)
+          cy.contains("td", new RegExp(`^${control.name}$`))
             .should("be.visible")
             .parent("tr")
             .within(() => {
@@ -49,9 +49,9 @@ describe("Chart Of Accounts", () => {
             })
 
           if (control.controlSubAccounts.length > 0) {
-            cy.contains("td", control.name).click()
+            cy.contains("td", new RegExp(`^${control.name}$`)).click()
             control.controlSubAccounts.forEach((sub: ChartControlSubAccount) => {
-              cy.contains("td", sub.name)
+              cy.contains("td", new RegExp(`^${sub.name}$`))
                 .should("be.visible")
                 .parent("tr")
                 .within(() => {

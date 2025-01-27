@@ -91,7 +91,7 @@ EOL
     # First, preprocess the markdown to convert special page break markers to HTML
     sed 's/<!-- new-page -->/<div class="pb"><\/div>/g' "$file" > "temp.md"
 
-    pandoc "temp.md" \
+    pandoc --metadata title="${file%.md}" "temp.md" \
         -o "${MANUALS_DIR}/${file%.md}.pdf" \
         --pdf-engine=wkhtmltopdf \
         --pdf-engine-opt=--enable-local-file-access \

@@ -23,9 +23,12 @@ describe("Trial Balance", () => {
       },
     ).then((response) => {
       response.data.trialBalance?.subAccounts.forEach((account) => {
-        cy.contains(account.name).should("exist")
-        cy.contains(account.name)
-          .closest("tr")
+        cy.get("main")
+          .contains(new RegExp(`^${account.name}$`))
+          .should("exist")
+        cy.get("main")
+          .contains(new RegExp(`^${account.name}$`))
+          .parent("tr")
           .within(() => {
             cy.get("td").should("have.length", 4)
           })
