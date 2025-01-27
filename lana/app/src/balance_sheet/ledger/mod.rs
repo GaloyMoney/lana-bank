@@ -327,16 +327,6 @@ impl BalanceSheetLedger {
 
         let balance_sheet_set = self.get_account_set_in_op(&mut op, ids.id).await?;
 
-        let revenue_account_set = self.get_account_set_in_op(&mut op, ids.revenue).await?;
-        let revenue_accounts = self
-            .get_member_account_sets_in_op(&mut op, ids.revenue)
-            .await?;
-
-        let expenses_account_set = self.get_account_set_in_op(&mut op, ids.expenses).await?;
-        let expenses_accounts = self
-            .get_member_account_sets_in_op(&mut op, ids.expenses)
-            .await?;
-
         let liabilities_account_set = self.get_account_set_in_op(&mut op, ids.liabilities).await?;
         let liabilities_accounts = self
             .get_member_account_sets_in_op(&mut op, ids.liabilities)
@@ -362,20 +352,12 @@ impl BalanceSheetLedger {
             usd_balance: balance_sheet_set.usd_balance,
             categories: vec![
                 StatementAccountSetWithAccounts {
-                    id: revenue_account_set.id,
-                    name: revenue_account_set.name,
-                    description: revenue_account_set.description,
-                    btc_balance: revenue_account_set.btc_balance,
-                    usd_balance: revenue_account_set.usd_balance,
-                    accounts: revenue_accounts,
-                },
-                StatementAccountSetWithAccounts {
-                    id: expenses_account_set.id,
-                    name: expenses_account_set.name,
-                    description: expenses_account_set.description,
-                    btc_balance: expenses_account_set.btc_balance,
-                    usd_balance: expenses_account_set.usd_balance,
-                    accounts: expenses_accounts,
+                    id: assets_account_set.id,
+                    name: assets_account_set.name,
+                    description: assets_account_set.description,
+                    btc_balance: assets_account_set.btc_balance,
+                    usd_balance: assets_account_set.usd_balance,
+                    accounts: assets_accounts,
                 },
                 StatementAccountSetWithAccounts {
                     id: liabilities_account_set.id,
@@ -392,14 +374,6 @@ impl BalanceSheetLedger {
                     btc_balance: equity_account_set.btc_balance,
                     usd_balance: equity_account_set.usd_balance,
                     accounts: equity_accounts,
-                },
-                StatementAccountSetWithAccounts {
-                    id: assets_account_set.id,
-                    name: assets_account_set.name,
-                    description: assets_account_set.description,
-                    btc_balance: assets_account_set.btc_balance,
-                    usd_balance: assets_account_set.usd_balance,
-                    accounts: assets_accounts,
                 },
             ],
         })
