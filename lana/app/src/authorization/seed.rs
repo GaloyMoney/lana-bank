@@ -355,6 +355,27 @@ async fn add_permissions_for_bank_manager(authz: &Authorization) -> Result<(), A
     authz
         .add_permission_to_role(
             &role,
+            Object::ProfitAndLossStatement,
+            ProfitAndLossStatementAction::Read,
+        )
+        .await?;
+    authz
+        .add_permission_to_role(
+            &role,
+            Object::ProfitAndLossStatement,
+            ProfitAndLossStatementAction::Create,
+        )
+        .await?;
+    authz
+        .add_permission_to_role(
+            &role,
+            Object::ProfitAndLossStatement,
+            ProfitAndLossStatementAction::Update,
+        )
+        .await?;
+    authz
+        .add_permission_to_role(
+            &role,
             DashboardModuleObject::Dashboard,
             DashboardModuleAction::DASHBOARD_READ,
         )

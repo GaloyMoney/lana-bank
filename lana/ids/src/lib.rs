@@ -10,6 +10,7 @@ es_entity::entity_id! {
     InterestAccrualId,
     TermsTemplateId,
     TrialBalanceId,
+    ProfitAndLossStatementId,
     ReportId;
 
     CreditFacilityId => governance::ApprovalProcessId,
@@ -22,4 +23,5 @@ es_entity::entity_id! {
     DisbursalId => LedgerTransactionId,
     CustomerId => deposit::DepositAccountHolderId,
     TrialBalanceId => LedgerAccountSetId,
+    ProfitAndLossStatementId => LedgerAccountSetId,
 }

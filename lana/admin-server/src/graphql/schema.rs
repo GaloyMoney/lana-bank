@@ -2,7 +2,8 @@ use async_graphql::{types::connection::*, Context, Object};
 
 use lana_app::{
     accounting_init::constants::{
-        CHART_REF, OBS_CHART_REF, OBS_TRIAL_BALANCE_STATEMENT_NAME, TRIAL_BALANCE_STATEMENT_NAME,
+        CHART_REF, OBS_CHART_REF, OBS_TRIAL_BALANCE_STATEMENT_NAME, PROFIT_AND_LOSS_STATEMENT_NAME,
+        TRIAL_BALANCE_STATEMENT_NAME,
     },
     app::LanaApp,
 };
@@ -408,6 +409,7 @@ impl Query {
         Ok(Some(TrialBalance::from(account_summary)))
     }
 
+    // TODO: remove Option from return type
     #[allow(unused_variables)]
     async fn off_balance_sheet_trial_balance(
         &self,
@@ -472,6 +474,7 @@ impl Query {
         // Ok(balance_sheet.map(BalanceSheet::from))
     }
 
+    // TODO: remove Option from return type
     #[allow(unused_variables)]
     async fn profit_and_loss_statement(
         &self,
@@ -479,13 +482,12 @@ impl Query {
         from: Timestamp,
         until: Option<Timestamp>,
     ) -> async_graphql::Result<Option<ProfitAndLossStatement>> {
-        unimplemented!()
-        // let (app, sub) = app_and_sub_from_ctx!(ctx);
-        // let profit_and_loss = app
-        //     .ledger()
-        //     .profit_and_loss(sub, from.into_inner(), until.map(|t| t.into_inner()))
-        //     .await?;
-        // Ok(profit_and_loss.map(ProfitAndLossStatement::from))
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        let profit_and_loss = app
+            .profit_and_loss_statements()
+            .pl_statement(sub, PROFIT_AND_LOSS_STATEMENT_NAME.to_string())
+            .await?;
+        Ok(Some(ProfitAndLossStatement::from(profit_and_loss)))
     }
 
     #[allow(unused_variables)]

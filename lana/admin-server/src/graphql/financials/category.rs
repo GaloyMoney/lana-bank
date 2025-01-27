@@ -29,18 +29,16 @@ pub struct StatementCategory {
     accounts: Vec<AccountSetSubAccount>,
 }
 
-// impl From<lana_app::ledger::account_set::LedgerStatementCategoryWithBalance> for StatementCategory {
-//     fn from(
-//         account_set: lana_app::ledger::account_set::LedgerStatementCategoryWithBalance,
-//     ) -> Self {
-//         StatementCategory {
-//             name: account_set.name,
-//             amounts: account_set.balance.into(),
-//             accounts: account_set
-//                 .accounts
-//                 .into_iter()
-//                 .map(AccountSetSubAccount::from)
-//                 .collect(),
-//         }
-//     }
-// }
+impl From<lana_app::statement::StatementAccountSetWithAccounts> for StatementCategory {
+    fn from(account_set: lana_app::statement::StatementAccountSetWithAccounts) -> Self {
+        StatementCategory {
+            name: account_set.name.to_string(),
+            amounts: account_set.clone().into(),
+            accounts: account_set
+                .accounts
+                .into_iter()
+                .map(AccountSetSubAccount::from)
+                .collect(),
+        }
+    }
+}

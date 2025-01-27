@@ -137,6 +137,24 @@ pub struct AccountAmountsByCurrency {
     usd: UsdAccountAmountsInPeriod,
 }
 
+impl From<lana_app::statement::StatementAccountSet> for AccountAmountsByCurrency {
+    fn from(balances: lana_app::statement::StatementAccountSet) -> Self {
+        AccountAmountsByCurrency {
+            btc: balances.btc_balance.into(),
+            usd: balances.usd_balance.into(),
+        }
+    }
+}
+
+impl From<lana_app::statement::StatementAccountSetWithAccounts> for AccountAmountsByCurrency {
+    fn from(balances: lana_app::statement::StatementAccountSetWithAccounts) -> Self {
+        AccountAmountsByCurrency {
+            btc: balances.btc_balance.into(),
+            usd: balances.usd_balance.into(),
+        }
+    }
+}
+
 impl From<lana_app::trial_balance::TrialBalance> for AccountAmountsByCurrency {
     fn from(balances: lana_app::trial_balance::TrialBalance) -> Self {
         AccountAmountsByCurrency {
@@ -146,8 +164,8 @@ impl From<lana_app::trial_balance::TrialBalance> for AccountAmountsByCurrency {
     }
 }
 
-impl From<lana_app::statement::StatementAccountSet> for AccountAmountsByCurrency {
-    fn from(balances: lana_app::statement::StatementAccountSet) -> Self {
+impl From<lana_app::profit_and_loss::ProfitAndLossStatement> for AccountAmountsByCurrency {
+    fn from(balances: lana_app::profit_and_loss::ProfitAndLossStatement) -> Self {
         AccountAmountsByCurrency {
             btc: balances.btc_balance.into(),
             usd: balances.usd_balance.into(),

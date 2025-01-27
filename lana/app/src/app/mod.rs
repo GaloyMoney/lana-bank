@@ -22,6 +22,7 @@ use crate::{
     outbox::Outbox,
     price::Price,
     primitives::Subject,
+    profit_and_loss::ProfitAndLossStatements,
     report::Reports,
     storage::Storage,
     terms_template::TermsTemplates,
@@ -45,6 +46,7 @@ pub struct LanaApp {
     users: Users,
     credit_facilities: CreditFacilities,
     trial_balances: TrialBalances,
+    profit_and_loss_statements: ProfitAndLossStatements,
     price: Price,
     report: Reports,
     terms_templates: TermsTemplates,
@@ -79,11 +81,14 @@ impl LanaApp {
         let journal_init = JournalInit::journal(&cala).await?;
         let trial_balances =
             TrialBalances::init(&pool, &authz, &cala, journal_init.journal_id).await?;
-        StatementsInit::statements(&trial_balances).await?;
+        let pl_statements =
+            ProfitAndLossStatements::init(&pool, &authz, &cala, journal_init.journal_id).await?;
+        StatementsInit::statements(&trial_balances, &pl_statements).await?;
         let chart_of_accounts =
             ChartOfAccounts::init(&pool, &authz, &cala, journal_init.journal_id).await?;
         let charts_init =
-            ChartsInit::charts_of_accounts(&trial_balances, &chart_of_accounts).await?;
+            ChartsInit::charts_of_accounts(&trial_balances, &pl_statements, &chart_of_accounts)
+                .await?;
 
         let deposits_factory =
             chart_of_accounts.transaction_account_factory(charts_init.deposits.deposits);
@@ -137,6 +142,7 @@ impl LanaApp {
             report,
             credit_facilities,
             trial_balances,
+            profit_and_loss_statements: pl_statements,
             terms_templates,
             documents,
             _outbox: outbox,
@@ -202,6 +208,10 @@ impl LanaApp {
 
     pub fn trial_balances(&self) -> &TrialBalances {
         &self.trial_balances
+    }
+
+    pub fn profit_and_loss_statements(&self) -> &ProfitAndLossStatements {
+        &self.profit_and_loss_statements
     }
 
     pub fn users(&self) -> &Users {

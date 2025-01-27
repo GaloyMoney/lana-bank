@@ -9,6 +9,7 @@ use crate::{
 
 pub(crate) async fn init(
     trial_balances: &TrialBalances,
+    pl_statements: &ProfitAndLossStatements,
     chart_of_accounts: &ChartOfAccounts,
 ) -> Result<ChartsInit, AccountingInitError> {
     let chart_ids = &create_charts_of_accounts(chart_of_accounts).await?;
@@ -16,9 +17,13 @@ pub(crate) async fn init(
     let deposits =
         create_deposits_account_paths(trial_balances, chart_of_accounts, chart_ids).await?;
 
-    let credit_facilities =
-        create_credit_facilities_account_paths(trial_balances, chart_of_accounts, chart_ids)
-            .await?;
+    let credit_facilities = create_credit_facilities_account_paths(
+        trial_balances,
+        pl_statements,
+        chart_of_accounts,
+        chart_ids,
+    )
+    .await?;
 
     Ok(ChartsInit {
         chart_ids: *chart_ids,
@@ -80,12 +85,7 @@ async fn create_control_sub_account(
         .find_control_account_by_reference(chart_id, control_account.reference.to_string())
         .await?
     {
-        Some(path) => ControlAccountDetails {
-            path,
-            account_set_id: control_account.account_set_id,
-            name: control_account.name.to_string(),
-            reference: control_account.reference.to_string(),
-        },
+        Some(details) => details,
         None => {
             chart_of_accounts
                 .create_control_account(
@@ -149,6 +149,7 @@ async fn create_deposits_account_paths(
         DEPOSITS_CONTROL_SUB_ACCOUNT_REF.to_string(),
     )
     .await?;
+
     trial_balances
         .add_to_trial_balance(trial_balance_id, deposits_control.account_set_id)
         .await?;
@@ -179,6 +180,7 @@ async fn create_deposits_account_paths(
 
 async fn create_credit_facilities_account_paths(
     trial_balances: &TrialBalances,
+    pl_statements: &ProfitAndLossStatements,
     chart_of_accounts: &ChartOfAccounts,
     chart_ids: &ChartIds,
 ) -> Result<CreditFacilitiesAccountPaths, AccountingInitError> {
@@ -199,6 +201,16 @@ async fn create_credit_facilities_account_paths(
             panic!(
                 "Trial balance for reference '{}' not found",
                 OBS_TRIAL_BALANCE_STATEMENT_NAME
+            )
+        });
+
+    let pl_statement_ids = pl_statements
+        .find_by_name(PROFIT_AND_LOSS_STATEMENT_NAME.to_string())
+        .await?
+        .unwrap_or_else(|| {
+            panic!(
+                "Profit & Loss Statement for reference '{}' not found",
+                PROFIT_AND_LOSS_STATEMENT_NAME
             )
         });
 
@@ -336,6 +348,9 @@ async fn create_credit_facilities_account_paths(
     trial_balances
         .add_to_trial_balance(trial_balance_id, interest_income_control.account_set_id)
         .await?;
+    pl_statements
+        .add_to_revenue(pl_statement_ids, interest_income_control.account_set_id)
+        .await?;
 
     let (fee_income_control, fee_income) = create_control_sub_account(
         chart_of_accounts,
@@ -353,6 +368,9 @@ async fn create_credit_facilities_account_paths(
     .await?;
     trial_balances
         .add_to_trial_balance(trial_balance_id, fee_income_control.account_set_id)
+        .await?;
+    pl_statements
+        .add_to_revenue(pl_statement_ids, fee_income_control.account_set_id)
         .await?;
 
     Ok(CreditFacilitiesAccountPaths {

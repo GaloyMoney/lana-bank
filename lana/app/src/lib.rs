@@ -10,6 +10,7 @@ pub mod customer;
 pub mod document;
 pub mod price;
 pub mod primitives;
+pub mod profit_and_loss;
 pub mod report;
 pub mod service_account;
 pub mod statement;

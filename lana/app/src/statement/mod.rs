@@ -7,6 +7,13 @@ use crate::primitives::{LedgerAccountSetId, Satoshis, SignedSatoshis, SignedUsdC
 use error::*;
 
 #[derive(Clone)]
+pub struct StatementAccountSetDetails {
+    pub id: LedgerAccountSetId,
+    pub name: String,
+    pub description: Option<String>,
+}
+
+#[derive(Clone)]
 pub struct StatementAccountSet {
     pub id: LedgerAccountSetId,
     pub name: String,
