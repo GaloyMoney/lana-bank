@@ -1,6 +1,6 @@
 import { defineConfig } from "cypress"
 
-const multiplier = 100 // Browserstack local tunnel on GHA Runner can be quite slow
+const multiplier = 10 // Browserstack local tunnel on GHA Runner can be quite slow
 
 export default defineConfig({
   e2e: {
