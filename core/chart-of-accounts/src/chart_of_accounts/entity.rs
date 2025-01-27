@@ -75,11 +75,22 @@ impl Chart {
     pub fn find_control_account_by_reference(
         &self,
         reference_to_check: String,
-    ) -> Option<ControlAccountPath> {
+    ) -> Option<ControlAccountDetails> {
         self.events.iter_all().rev().find_map(|event| match event {
             ChartEvent::ControlAccountAdded {
-                path, reference, ..
-            } if reference_to_check == *reference => Some(*path),
+                path,
+                reference,
+                id,
+                name,
+                ..
+            } if reference_to_check == *reference => Some({
+                ControlAccountDetails {
+                    path: *path,
+                    account_set_id: *id,
+                    name: name.to_string(),
+                    reference: reference.to_string(),
+                }
+            }),
             _ => None,
         })
     }

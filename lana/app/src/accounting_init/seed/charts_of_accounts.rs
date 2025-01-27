@@ -85,12 +85,7 @@ async fn create_control_sub_account(
         .find_control_account_by_reference(chart_id, control_account.reference.to_string())
         .await?
     {
-        Some(path) => ControlAccountDetails {
-            path,
-            account_set_id: control_account.account_set_id,
-            name: control_account.name.to_string(),
-            reference: control_account.reference.to_string(),
-        },
+        Some(details) => details,
         None => {
             chart_of_accounts
                 .create_control_account(
@@ -154,6 +149,7 @@ async fn create_deposits_account_paths(
         DEPOSITS_CONTROL_SUB_ACCOUNT_REF.to_string(),
     )
     .await?;
+
     trial_balances
         .add_to_trial_balance(trial_balance_id, deposits_control.account_set_id)
         .await?;

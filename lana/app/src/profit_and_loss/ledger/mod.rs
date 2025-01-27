@@ -113,10 +113,15 @@ impl ProfitAndLossStatementLedger {
         let node_account_set_id = node_account_set_id.into();
 
         let mut op = self.cala.ledger_operation_from_db_op(op);
-        self.cala
+        match self
+            .cala
             .account_sets()
             .add_member_in_op(&mut op, node_account_set_id, member)
-            .await?;
+            .await
+        {
+            Ok(_) | Err(cala_ledger::account_set::error::AccountSetError::MemberAlreadyAdded) => {}
+            Err(e) => return Err(e.into()),
+        }
 
         op.commit().await?;
         Ok(())

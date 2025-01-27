@@ -16,7 +16,6 @@ use authz::PermissionCheck;
 pub use chart_of_accounts::tree;
 use chart_of_accounts::*;
 use error::*;
-use path::ControlAccountPath;
 pub use path::ControlSubAccountPath;
 pub use primitives::*;
 pub use transaction_account_factory::*;
@@ -160,7 +159,7 @@ where
         &self,
         chart_id: impl Into<ChartId>,
         reference: String,
-    ) -> Result<Option<ControlAccountPath>, CoreChartOfAccountsError> {
+    ) -> Result<Option<ControlAccountDetails>, CoreChartOfAccountsError> {
         let chart_id = chart_id.into();
 
         let mut op = self.repo.begin_op().await?;
