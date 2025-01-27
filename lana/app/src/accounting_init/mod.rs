@@ -7,7 +7,7 @@ pub mod error;
 use chart_of_accounts::ChartId;
 
 use crate::{
-    balance_sheet::BalanceSheet, chart_of_accounts::ChartOfAccounts,
+    balance_sheet::BalanceSheets, chart_of_accounts::ChartOfAccounts,
     profit_and_loss::ProfitAndLossStatements, trial_balance::TrialBalances,
 };
 
@@ -35,8 +35,9 @@ impl StatementsInit {
     pub async fn statements(
         trial_balances: &TrialBalances,
         pl_statements: &ProfitAndLossStatements,
+        balance_sheets: &BalanceSheets,
     ) -> Result<(), AccountingInitError> {
-        seed::statements::init(trial_balances, pl_statements).await?;
+        seed::statements::init(trial_balances, pl_statements, balance_sheets).await?;
         Ok(())
     }
 }

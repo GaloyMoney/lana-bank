@@ -87,7 +87,7 @@ impl LanaApp {
             ProfitAndLossStatements::init(&pool, &authz, &cala, journal_init.journal_id).await?;
         let balance_sheets =
             BalanceSheets::init(&pool, &authz, &cala, journal_init.journal_id).await?;
-        StatementsInit::statements(&trial_balances, &pl_statements).await?;
+        StatementsInit::statements(&trial_balances, &pl_statements, &balance_sheets).await?;
         let chart_of_accounts =
             ChartOfAccounts::init(&pool, &authz, &cala, journal_init.journal_id).await?;
         let charts_init =
