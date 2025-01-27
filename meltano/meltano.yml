@@ -23,7 +23,7 @@ jobs:
   - tap-bitfinexapi target-bigquery
 schedules:
 - name: postgres-to-bigquery-dbt
-  interval: '@hourly'
+  interval: '*/5 * * * *'
   job: tap-postgres-to-target-bigquery-run-dbt
 - name: poll-bitfinex-on-minute
   interval: '* * * * *'
