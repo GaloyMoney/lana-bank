@@ -70,7 +70,7 @@ hex = "0.4.3"
 hmac = "0.12.1"
 sha2 = "0.10.8"
 tower-http = { version = "0.5.2", features = ["cors"] }
-sqlx-adapter = { version = "1.6.0", default-features = false, features = ["postgres", "runtime-tokio-rustls"]}
+sqlx-adapter = { version = "1.7.0", default-features = false, features = ["postgres", "runtime-tokio-rustls"]}
 ory-kratos-client = "1.1.0"
 cached = { version = "0.53.1", features = ["async"] }
 gcp_auth = { version = "0.12.2", features = ["webpki-roots"] }
