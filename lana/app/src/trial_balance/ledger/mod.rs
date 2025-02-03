@@ -165,8 +165,6 @@ impl TrialBalanceLedger {
 
         let accounts = self.get_member_account_sets_in_op(&mut op, id).await?;
 
-        op.commit().await?;
-
         Ok(StatementAccountSetWithAccounts {
             id: trial_balance_set.id,
             name: trial_balance_set.name,
