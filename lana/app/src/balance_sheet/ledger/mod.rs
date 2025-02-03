@@ -342,8 +342,6 @@ impl BalanceSheetLedger {
             .get_member_account_sets_in_op(&mut op, ids.assets)
             .await?;
 
-        op.commit().await?;
-
         Ok(BalanceSheet {
             id: balance_sheet_set.id,
             name: balance_sheet_set.name,
