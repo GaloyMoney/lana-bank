@@ -259,8 +259,6 @@ impl ProfitAndLossStatementLedger {
             .get_member_account_sets_in_op(&mut op, ids.expenses)
             .await?;
 
-        op.commit().await?;
-
         Ok(ProfitAndLossStatement {
             id: pl_statement_set.id.into(),
             name: pl_statement_set.name,
