@@ -66,30 +66,16 @@ impl ProfitAndLossStatements {
         Ok(self.pl_statement_ledger.find_or_create(op, &name).await?)
     }
 
-    pub async fn find_by_name(
-        &self,
-        name: String,
-    ) -> Result<ProfitAndLossStatementIds, ProfitAndLossStatementError> {
-        self.authz
-            .audit()
-            .record_system_entry(
-                Object::ProfitAndLossStatement,
-                ProfitAndLossStatementAction::Read,
-            )
-            .await?;
-
-        Ok(self
-            .pl_statement_ledger
-            .find_by_name(name.to_string())
-            .await?)
-    }
-
     pub async fn add_to_revenue(
         &self,
-        statement_ids: ProfitAndLossStatementIds,
+        name: String,
         member_id: impl Into<LedgerAccountSetId>,
     ) -> Result<(), ProfitAndLossStatementError> {
         let member_id = member_id.into();
+        let statement_ids = self
+            .pl_statement_ledger
+            .find_by_name(name.to_string())
+            .await?;
 
         let mut op = es_entity::DbOp::init(&self.pool).await?;
 
@@ -111,10 +97,14 @@ impl ProfitAndLossStatements {
 
     pub async fn add_to_expenses(
         &self,
-        statement_ids: ProfitAndLossStatementIds,
+        name: String,
         member_id: impl Into<LedgerAccountSetId>,
     ) -> Result<(), ProfitAndLossStatementError> {
         let member_id = member_id.into();
+        let statement_ids = self
+            .pl_statement_ledger
+            .find_by_name(name.to_string())
+            .await?;
 
         let mut op = es_entity::DbOp::init(&self.pool).await?;
 

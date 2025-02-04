@@ -202,10 +202,6 @@ async fn create_credit_facilities_account_paths(
         .find_by_name(OBS_BALANCE_SHEET_NAME.to_string())
         .await?;
 
-    let pl_statement_ids = pl_statements
-        .find_by_name(PROFIT_AND_LOSS_STATEMENT_NAME.to_string())
-        .await?;
-
     let (collateral_control, collateral) = find_or_create_control_sub_account(
         chart_of_accounts,
         chart_ids.off_balance_sheet,
@@ -376,7 +372,10 @@ async fn create_credit_facilities_account_paths(
         )
         .await?;
     pl_statements
-        .add_to_revenue(pl_statement_ids, interest_income_control.account_set_id)
+        .add_to_revenue(
+            PROFIT_AND_LOSS_STATEMENT_NAME.to_string(),
+            interest_income_control.account_set_id,
+        )
         .await?;
     balance_sheets
         .add_to_revenue(balance_sheet_ids, interest_income_control.account_set_id)
@@ -402,7 +401,10 @@ async fn create_credit_facilities_account_paths(
         )
         .await?;
     pl_statements
-        .add_to_revenue(pl_statement_ids, fee_income_control.account_set_id)
+        .add_to_revenue(
+            PROFIT_AND_LOSS_STATEMENT_NAME.to_string(),
+            fee_income_control.account_set_id,
+        )
         .await?;
     balance_sheets
         .add_to_revenue(balance_sheet_ids, fee_income_control.account_set_id)
