@@ -33,7 +33,7 @@ class PostgresClient:
             query = """
                 SELECT customer_id, recorded_at
                 FROM sumsub_callbacks
-                WHERE content->>'reviewResult.reviewAnswer' = 'GREEN'
+                WHERE content->'reviewResult'->>'reviewAnswer' = 'GREEN'
                     AND recorded_at > %s
             """
             cursor.execute(query, (starting_timestamp,))
