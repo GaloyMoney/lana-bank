@@ -1,5 +1,6 @@
 "use client"
 
+import { useMemo } from "react"
 import { Inter_Tight } from "next/font/google"
 
 import { ApolloProvider } from "@apollo/client"
@@ -21,9 +22,11 @@ const inter = Inter_Tight({
 
 const RootLayout: React.FC<React.PropsWithChildren> = ({ children }) => {
   const appVersion = env.NEXT_PUBLIC_APP_VERSION
-  const client = makeClient({
-    coreAdminGqlUrl: appVersion.endsWith("dev") ? "/admin/graphql" : "/graphql",
-  })
+  const client = useMemo(() => {
+    return makeClient({
+      coreAdminGqlUrl: appVersion.endsWith("dev") ? "/admin/graphql" : "/graphql",
+    })
+  }, [appVersion])
 
   return (
     <html lang="en">
