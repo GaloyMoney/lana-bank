@@ -14,4 +14,8 @@ pub enum TrialBalanceLedgerError {
     Statement(#[from] crate::statement::error::StatementError),
     #[error("TrialBalanceLedgerError - NonAccountSetMemberTypeFound")]
     NonAccountSetMemberTypeFound,
+    #[error("TrialBalanceLedgerError - NotFound: {0}")]
+    NotFound(String),
+    #[error("TrialBalanceLedgerError - MultipleFound: {0}")]
+    MultipleFound(String),
 }

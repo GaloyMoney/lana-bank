@@ -189,7 +189,7 @@ impl_trivial_action!(CreditFacilityAction, CreditFacility);
 #[derive(PartialEq, Clone, Copy, Debug, strum::Display, strum::EnumString)]
 #[strum(serialize_all = "kebab-case")]
 pub enum TrialBalanceAction {
-    Create,
+    FindOrCreate,
     Update,
     Read,
 }

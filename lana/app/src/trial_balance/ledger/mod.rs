@@ -1,7 +1,7 @@
 pub mod error;
 
 use cala_ledger::{
-    account_set::{AccountSet, AccountSetMemberId, AccountSetsByCreatedAtCursor, NewAccountSet},
+    account_set::{AccountSetMemberId, NewAccountSet},
     balance::error::BalanceError,
     AccountSetId, CalaLedger, Currency, DebitOrCredit, JournalId, LedgerOperation,
 };
@@ -24,14 +24,26 @@ impl TrialBalanceLedger {
         }
     }
 
-    pub async fn create(
+    pub async fn find_or_create(
         &self,
         op: es_entity::DbOp<'_>,
-        statement_id: impl Into<AccountSetId>,
         name: &str,
-    ) -> Result<(), TrialBalanceLedgerError> {
+    ) -> Result<AccountSetId, TrialBalanceLedgerError> {
         let mut op = self.cala.ledger_operation_from_db_op(op);
 
+        let trial_balances = self
+            .cala
+            .account_sets()
+            .list_for_name_in_op(&mut op, name.to_string(), Default::default())
+            .await?
+            .entities;
+        match trial_balances.len() {
+            0 => (),
+            1 => return Ok(trial_balances[0].id),
+            _ => return Err(TrialBalanceLedgerError::MultipleFound(name.to_string())),
+        };
+
+        let statement_id = AccountSetId::new();
         let new_account_set = NewAccountSet::builder()
             .id(statement_id)
             .journal_id(self.journal_id)
@@ -46,18 +58,25 @@ impl TrialBalanceLedger {
             .await?;
 
         op.commit().await?;
-        Ok(())
+        Ok(statement_id)
     }
 
-    pub async fn list_for_name(
+    pub async fn find_by_name(
         &self,
         name: String,
-        args: es_entity::PaginatedQueryArgs<AccountSetsByCreatedAtCursor>,
-    ) -> Result<
-        es_entity::PaginatedQueryRet<AccountSet, AccountSetsByCreatedAtCursor>,
-        TrialBalanceLedgerError,
-    > {
-        Ok(self.cala.account_sets().list_for_name(name, args).await?)
+    ) -> Result<AccountSetId, TrialBalanceLedgerError> {
+        let trial_balances = self
+            .cala
+            .account_sets()
+            .list_for_name(name.to_string(), Default::default())
+            .await?
+            .entities;
+
+        match trial_balances.len() {
+            1 => Ok(trial_balances[0].id),
+            0 => Err(TrialBalanceLedgerError::NotFound(name.to_string())),
+            _ => Err(TrialBalanceLedgerError::MultipleFound(name.to_string())),
+        }
     }
 
     pub async fn add_member(
@@ -75,7 +94,7 @@ impl TrialBalanceLedger {
             .add_member_in_op(&mut op, statement_id, member)
             .await
         {
-            Ok(_) | Err(cala_ledger::account_set::error::AccountSetError::MemberAlreadyAdded) => {}
+            Ok(_) | Err(cala_ledger::account_set::error::AccountSetError::MemberAlreadyAdded) => (),
             Err(e) => return Err(e.into()),
         }
 
@@ -157,12 +176,12 @@ impl TrialBalanceLedger {
 
     pub async fn get_trial_balance(
         &self,
-        id: impl Into<AccountSetId> + Copy,
+        name: String,
     ) -> Result<StatementAccountSetWithAccounts, TrialBalanceLedgerError> {
+        let id = self.find_by_name(name).await?;
+
         let mut op = self.cala.begin_operation().await?;
-
         let trial_balance_set = self.get_account_set_in_op(&mut op, id).await?;
-
         let accounts = self.get_member_account_sets_in_op(&mut op, id).await?;
 
         Ok(StatementAccountSetWithAccounts {

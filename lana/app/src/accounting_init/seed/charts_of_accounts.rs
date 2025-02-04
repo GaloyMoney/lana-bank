@@ -136,13 +136,7 @@ async fn create_deposits_account_paths(
 
     let trial_balance_id = trial_balances
         .find_by_name(TRIAL_BALANCE_STATEMENT_NAME.to_string())
-        .await?
-        .unwrap_or_else(|| {
-            panic!(
-                "Trial balance for name '{}' not found",
-                TRIAL_BALANCE_STATEMENT_NAME
-            )
-        });
+        .await?;
 
     let (deposits_control, deposits) = create_control_sub_account(
         chart_of_accounts,
@@ -215,23 +209,11 @@ async fn create_credit_facilities_account_paths(
 
     let trial_balance_id = trial_balances
         .find_by_name(TRIAL_BALANCE_STATEMENT_NAME.to_string())
-        .await?
-        .unwrap_or_else(|| {
-            panic!(
-                "Trial balance for reference '{}' not found",
-                TRIAL_BALANCE_STATEMENT_NAME
-            )
-        });
+        .await?;
 
     let obs_trial_balance_id = trial_balances
         .find_by_name(OBS_TRIAL_BALANCE_STATEMENT_NAME.to_string())
-        .await?
-        .unwrap_or_else(|| {
-            panic!(
-                "Trial balance for reference '{}' not found",
-                OBS_TRIAL_BALANCE_STATEMENT_NAME
-            )
-        });
+        .await?;
 
     let pl_statement_ids = pl_statements
         .find_by_name(PROFIT_AND_LOSS_STATEMENT_NAME.to_string())

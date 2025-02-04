@@ -38,47 +38,37 @@ impl TrialBalances {
         })
     }
 
-    pub async fn create_trial_balance_statement(
+    pub async fn find_or_create_trial_balance_statement(
         &self,
-        id: impl Into<LedgerAccountSetId>,
         name: String,
     ) -> Result<LedgerAccountSetId, TrialBalanceError> {
-        let account_set_id = id.into();
-
         let mut op = es_entity::DbOp::init(&self.pool).await?;
 
         self.authz
             .audit()
-            .record_system_entry_in_tx(op.tx(), Object::TrialBalance, TrialBalanceAction::Create)
+            .record_system_entry_in_tx(
+                op.tx(),
+                Object::TrialBalance,
+                TrialBalanceAction::FindOrCreate,
+            )
             .await?;
 
-        self.trial_balance_ledger
-            .create(op, account_set_id, &name)
-            .await?;
-
-        Ok(account_set_id)
+        Ok(self.trial_balance_ledger.find_or_create(op, &name).await?)
     }
 
     pub async fn find_by_name(
         &self,
         name: String,
-    ) -> Result<Option<LedgerAccountSetId>, TrialBalanceError> {
+    ) -> Result<LedgerAccountSetId, TrialBalanceError> {
         self.authz
             .audit()
             .record_system_entry(Object::TrialBalance, TrialBalanceAction::Read)
             .await?;
 
-        let trial_balances = self
+        Ok(self
             .trial_balance_ledger
-            .list_for_name(name.to_string(), Default::default())
-            .await?
-            .entities;
-
-        match trial_balances.len() {
-            0 => Ok(None),
-            1 => Ok(Some(trial_balances[0].id)),
-            _ => Err(TrialBalanceError::MultipleFound(name)),
-        }
+            .find_by_name(name.to_string())
+            .await?)
     }
 
     pub async fn add_to_trial_balance(
@@ -112,17 +102,11 @@ impl TrialBalances {
             .enforce_permission(sub, Object::TrialBalance, TrialBalanceAction::Read)
             .await?;
 
-        let trial_balance_id = self
-            .find_by_name(name.to_string())
-            .await?
-            .ok_or(TrialBalanceError::NotFound(name))?;
-
-        let trial_balance_details = self
+        Ok(self
             .trial_balance_ledger
-            .get_trial_balance(trial_balance_id)
-            .await?;
-
-        Ok(TrialBalance::from(trial_balance_details))
+            .get_trial_balance(name)
+            .await?
+            .into())
     }
 }
 

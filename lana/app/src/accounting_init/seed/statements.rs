@@ -20,35 +20,13 @@ pub(crate) async fn init(
 }
 
 async fn create_trial_balances(trial_balances: &TrialBalances) -> Result<(), AccountingInitError> {
-    let _primary_id = match trial_balances
-        .find_by_name(TRIAL_BALANCE_STATEMENT_NAME.to_string())
-        .await?
-    {
-        Some(trial_balance_id) => trial_balance_id,
-        None => {
-            trial_balances
-                .create_trial_balance_statement(
-                    LedgerAccountSetId::new(),
-                    TRIAL_BALANCE_STATEMENT_NAME.to_string(),
-                )
-                .await?
-        }
-    };
+    let _primary_id = trial_balances
+        .find_or_create_trial_balance_statement(TRIAL_BALANCE_STATEMENT_NAME.to_string())
+        .await?;
 
-    let _off_balance_sheet_id = match trial_balances
-        .find_by_name(OBS_TRIAL_BALANCE_STATEMENT_NAME.to_string())
-        .await?
-    {
-        Some(chart) => chart,
-        None => {
-            trial_balances
-                .create_trial_balance_statement(
-                    LedgerAccountSetId::new(),
-                    OBS_TRIAL_BALANCE_STATEMENT_NAME.to_string(),
-                )
-                .await?
-        }
-    };
+    let _off_balance_sheet_id = trial_balances
+        .find_or_create_trial_balance_statement(OBS_TRIAL_BALANCE_STATEMENT_NAME.to_string())
+        .await?;
 
     Ok(())
 }

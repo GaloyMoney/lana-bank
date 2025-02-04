@@ -10,8 +10,4 @@ pub enum TrialBalanceError {
     AuthorizationError(#[from] authz::error::AuthorizationError),
     #[error("TrialBalanceError - TrialBalanceLedgerError: {0}")]
     TrialBalanceLedgerError(#[from] super::ledger::error::TrialBalanceLedgerError),
-    #[error("TrialBalanceError - MultipleFound: {0}")]
-    MultipleFound(String),
-    #[error("TrialBalanceError - NotFound: {0}")]
-    NotFound(String),
 }
