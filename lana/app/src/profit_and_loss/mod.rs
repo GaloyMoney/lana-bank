@@ -8,7 +8,7 @@ use rbac_types::{ProfitAndLossStatementAction, Subject};
 
 use crate::{
     authorization::{Authorization, Object},
-    primitives::{LedgerAccountSetId, ProfitAndLossStatementId},
+    primitives::LedgerAccountSetId,
     statement::*,
 };
 
@@ -20,7 +20,7 @@ pub(crate) const EXPENSES_NAME: &str = "Expenses";
 
 #[derive(Clone, Copy)]
 pub struct ProfitAndLossStatementIds {
-    pub id: ProfitAndLossStatementId,
+    pub id: LedgerAccountSetId,
     pub revenue: LedgerAccountSetId,
     pub expenses: LedgerAccountSetId,
 }
@@ -50,10 +50,10 @@ impl ProfitAndLossStatements {
 
     pub async fn create_pl_statement(
         &self,
-        id: impl Into<ProfitAndLossStatementId>,
+        id: impl Into<LedgerAccountSetId>,
         name: String,
     ) -> Result<ProfitAndLossStatementIds, ProfitAndLossStatementError> {
-        let account_set_id: LedgerAccountSetId = id.into().into();
+        let account_set_id = id.into();
 
         let mut op = es_entity::DbOp::init(&self.pool).await?;
 
@@ -118,7 +118,7 @@ impl ProfitAndLossStatements {
             .id;
 
         Ok(Some(ProfitAndLossStatementIds {
-            id: statement_id.into(),
+            id: statement_id,
             revenue: revenue_id,
             expenses: expenses_id,
         }))
@@ -201,7 +201,7 @@ impl ProfitAndLossStatements {
 
 #[derive(Clone)]
 pub struct ProfitAndLossStatement {
-    pub id: ProfitAndLossStatementId,
+    pub id: LedgerAccountSetId,
     pub name: String,
     pub description: Option<String>,
     pub btc_balance: BtcStatementAccountSetBalance,

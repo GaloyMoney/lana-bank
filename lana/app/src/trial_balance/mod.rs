@@ -8,7 +8,7 @@ use rbac_types::{Subject, TrialBalanceAction};
 
 use crate::{
     authorization::{Authorization, Object},
-    primitives::{LedgerAccountSetId, TrialBalanceId},
+    primitives::LedgerAccountSetId,
     statement::*,
 };
 
@@ -40,10 +40,10 @@ impl TrialBalances {
 
     pub async fn create_trial_balance_statement(
         &self,
-        id: impl Into<TrialBalanceId>,
+        id: impl Into<LedgerAccountSetId>,
         name: String,
     ) -> Result<LedgerAccountSetId, TrialBalanceError> {
-        let account_set_id: LedgerAccountSetId = id.into().into();
+        let account_set_id = id.into();
 
         let mut op = es_entity::DbOp::init(&self.pool).await?;
 
@@ -83,7 +83,7 @@ impl TrialBalances {
 
     pub async fn add_to_trial_balance(
         &self,
-        trial_balance_id: impl Into<TrialBalanceId>,
+        trial_balance_id: impl Into<LedgerAccountSetId>,
         member_id: impl Into<LedgerAccountSetId>,
     ) -> Result<(), TrialBalanceError> {
         let trial_balance_id = trial_balance_id.into();
@@ -128,7 +128,7 @@ impl TrialBalances {
 
 #[derive(Clone)]
 pub struct TrialBalance {
-    pub id: TrialBalanceId,
+    pub id: LedgerAccountSetId,
     pub name: String,
     pub description: Option<String>,
     pub btc_balance: BtcStatementAccountSetBalance,
@@ -139,7 +139,7 @@ pub struct TrialBalance {
 impl From<StatementAccountSetWithAccounts> for TrialBalance {
     fn from(details: StatementAccountSetWithAccounts) -> Self {
         Self {
-            id: details.id.into(),
+            id: details.id,
             name: details.name,
             description: details.description,
             btc_balance: details.btc_balance,

@@ -87,7 +87,7 @@ impl ProfitAndLossStatementLedger {
         op.commit().await?;
 
         Ok(ProfitAndLossStatementIds {
-            id: statement_id.into(),
+            id: statement_id,
             revenue: revenue_id,
             expenses: expenses_id,
         })
@@ -260,7 +260,7 @@ impl ProfitAndLossStatementLedger {
             .await?;
 
         Ok(ProfitAndLossStatement {
-            id: pl_statement_set.id.into(),
+            id: pl_statement_set.id,
             name: pl_statement_set.name,
             description: pl_statement_set.description,
             btc_balance: pl_statement_set.btc_balance,

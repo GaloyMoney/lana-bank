@@ -28,7 +28,7 @@ async fn create_trial_balances(trial_balances: &TrialBalances) -> Result<(), Acc
         None => {
             trial_balances
                 .create_trial_balance_statement(
-                    TrialBalanceId::new(),
+                    LedgerAccountSetId::new(),
                     TRIAL_BALANCE_STATEMENT_NAME.to_string(),
                 )
                 .await?
@@ -43,7 +43,7 @@ async fn create_trial_balances(trial_balances: &TrialBalances) -> Result<(), Acc
         None => {
             trial_balances
                 .create_trial_balance_statement(
-                    TrialBalanceId::new(),
+                    LedgerAccountSetId::new(),
                     OBS_TRIAL_BALANCE_STATEMENT_NAME.to_string(),
                 )
                 .await?
@@ -64,7 +64,7 @@ async fn create_pl_statements(
         None => {
             pl_statements
                 .create_pl_statement(
-                    ProfitAndLossStatementId::new(),
+                    LedgerAccountSetId::new(),
                     PROFIT_AND_LOSS_STATEMENT_NAME.to_string(),
                 )
                 .await?
@@ -82,10 +82,7 @@ async fn create_balance_sheets(balance_sheets: &BalanceSheets) -> Result<(), Acc
         Some(balance_sheet_id) => balance_sheet_id,
         None => {
             balance_sheets
-                .create_balance_sheet(
-                    ProfitAndLossStatementId::new(),
-                    BALANCE_SHEET_NAME.to_string(),
-                )
+                .create_balance_sheet(LedgerAccountSetId::new(), BALANCE_SHEET_NAME.to_string())
                 .await?
         }
     };
@@ -98,7 +95,7 @@ async fn create_balance_sheets(balance_sheets: &BalanceSheets) -> Result<(), Acc
         None => {
             balance_sheets
                 .create_balance_sheet(
-                    ProfitAndLossStatementId::new(),
+                    LedgerAccountSetId::new(),
                     OBS_BALANCE_SHEET_NAME.to_string(),
                 )
                 .await?

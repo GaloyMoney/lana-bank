@@ -1,6 +1,4 @@
-use cala_ledger::primitives::{
-    AccountSetId as LedgerAccountSetId, TransactionId as LedgerTransactionId,
-};
+use cala_ledger::primitives::TransactionId as LedgerTransactionId;
 
 es_entity::entity_id! {
     DocumentId,
@@ -8,8 +6,6 @@ es_entity::entity_id! {
     DisbursalId,
     InterestAccrualId,
     TermsTemplateId,
-    TrialBalanceId,
-    ProfitAndLossStatementId,
     ReportId;
 
     CreditFacilityId => governance::ApprovalProcessId,
@@ -20,6 +16,4 @@ es_entity::entity_id! {
     InterestAccrualId => job::JobId,
 
     DisbursalId => LedgerTransactionId,
-    TrialBalanceId => LedgerAccountSetId,
-    ProfitAndLossStatementId => LedgerAccountSetId,
 }
