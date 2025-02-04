@@ -18,6 +18,7 @@ outbox = { path = "../../lib/outbox" }
 job = { path = "../../lib/job" }
 audit = { path = "../../lib/audit" }
 authz = { path = "../../lib/authz" }
+kratos-admin = { path = "../../lib/kratos-admin" }
 
 sim-time = { workspace = true, optional = true }
 es-entity = { workspace = true, features = ["graphql"] }
@@ -31,7 +32,6 @@ async-trait = { workspace = true }
 futures = { workspace = true }
 thiserror = { workspace = true }
 async-graphql = { workspace = true }
-ory-kratos-client = { workspace = true }
 
 [dev-dependencies]
 tokio = { workspace = true }

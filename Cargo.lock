@@ -1144,8 +1144,8 @@ dependencies = [
  "futures",
  "governance",
  "job",
+ "kratos-admin",
  "lana-events",
- "ory-kratos-client",
  "outbox",
  "serde",
  "serde_json",
@@ -2487,6 +2487,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "kratos-admin"
+version = "0.3.43-dev"
+dependencies = [
+ "ory-kratos-client",
+ "serde",
+ "serde_json",
+ "thiserror 1.0.69",
+ "uuid",
+]
+
+[[package]]
 name = "lalrpop"
 version = "0.20.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2539,6 +2550,7 @@ dependencies = [
  "core-customer",
  "core-money",
  "core-user",
+ "customer-onboarding",
  "dashboard",
  "deposit",
  "derive_builder",
@@ -5409,6 +5421,7 @@ dependencies = [
  "es-entity",
  "futures",
  "job",
+ "kratos-admin",
  "lana-events",
  "ory-kratos-client",
  "outbox",

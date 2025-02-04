@@ -1,10 +1,10 @@
-use core_user::AuthenticationId;
-
 mod config;
 mod error;
 
 pub use config::KratosAdminConfig;
 pub use error::KratosAdminError;
+
+use uuid::Uuid;
 
 use ory_kratos_client::apis::{configuration::Configuration, identity_api};
 use ory_kratos_client::models::create_identity_body::CreateIdentityBody;
@@ -24,7 +24,10 @@ impl KratosAdmin {
         }
     }
 
-    pub async fn create_user(&self, email: String) -> Result<AuthenticationId, KratosAdminError> {
+    pub async fn create_user<T>(&self, email: String) -> Result<T, KratosAdminError>
+    where
+        T: From<Uuid>,
+    {
         let identity = CreateIdentityBody {
             schema_id: "email".to_string(),
             traits: serde_json::json!({ "email": email }),
@@ -37,6 +40,6 @@ impl KratosAdmin {
         };
 
         let identity = identity_api::create_identity(&self.config, Some(&identity)).await?;
-        Ok(identity.id.parse::<AuthenticationId>()?)
+        Ok(identity.id.parse::<Uuid>()?.into())
     }
 }

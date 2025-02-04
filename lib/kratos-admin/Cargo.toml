@@ -1,0 +1,16 @@
+[package]
+name = "kratos-admin"
+version = "0.3.43-dev"
+edition = "2021"
+
+[features]
+
+fail-on-warnings = []
+
+[dependencies]
+
+uuid = { workspace = true }
+thiserror = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+ory-kratos-client = { workspace = true }

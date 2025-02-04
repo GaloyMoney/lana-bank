@@ -15,6 +15,7 @@ use crate::{
     chart_of_accounts::ChartOfAccounts,
     credit_facility::{CreditFacilities, CreditFacilityAccountFactories},
     customer::Customers,
+    customer_onboarding::CustomerOnboarding,
     dashboard::Dashboard,
     deposit::Deposits,
     document::Documents,
@@ -58,6 +59,7 @@ pub struct LanaApp {
     governance: Governance,
     dashboard: Dashboard,
     _user_onboarding: UserOnboarding,
+    _customer_onboarding: CustomerOnboarding,
 }
 
 impl LanaApp {
@@ -119,6 +121,9 @@ impl LanaApp {
         )
         .await?;
         let customers = Customers::new(&pool, &deposits, &authz, &outbox);
+        let customer_onboarding =
+            CustomerOnboarding::init(&jobs, &outbox, &customers, config.customer_onboarding)
+                .await?;
         let applicants = Applicants::new(&pool, &config.sumsub, &customers, &jobs);
 
         let credit_account_factories =
@@ -162,6 +167,7 @@ impl LanaApp {
             governance,
             dashboard,
             _user_onboarding: user_onboarding,
+            _customer_onboarding: customer_onboarding,
         })
     }
 

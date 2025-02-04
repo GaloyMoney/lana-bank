@@ -10,6 +10,8 @@ pub enum ApplicationError {
     JobError(#[from] crate::job::error::JobError),
     #[error("ApplicationError - CustomerError: {0}")]
     CustomerError(#[from] crate::customer::error::CustomerError),
+    #[error("ApplicationError - CustomerOnboardingError: {0}")]
+    CustomerOnboardingError(#[from] customer_onboarding::error::CustomerOnboardingError),
     #[error("ApplicationError - CreditFacilityError: {0}")]
     CreditFacilityError(#[from] crate::credit_facility::error::CreditFacilityError),
     #[error("ApplicationError - TrialBalanceError: {0}")]

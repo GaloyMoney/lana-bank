@@ -6,9 +6,6 @@ pub mod error;
 mod job;
 mod time;
 
-mod kratos_admin;
-use kratos_admin::KratosAdmin;
-
 use config::*;
 use error::*;
 use job::*;
@@ -53,7 +50,7 @@ where
         users: &Users<Audit, E>,
         config: UserOnboardingConfig,
     ) -> Result<Self, UserOnboardingError> {
-        let kratos_admin = KratosAdmin::init(config.kratos_admin);
+        let kratos_admin = kratos_admin::KratosAdmin::init(config.kratos_admin);
 
         jobs.add_initializer_and_spawn_unique(
             UserOnboardingJobInitializer::new(outbox, users, kratos_admin),

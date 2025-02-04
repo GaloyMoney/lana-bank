@@ -1,19 +1,19 @@
 use async_trait::async_trait;
 use futures::StreamExt;
+use kratos_admin::KratosAdmin;
 
 use audit::AuditSvc;
 use authz::PermissionCheck;
-use core_customer::{CoreCustomerAction, CoreCustomerEvent, CustomerObject, Customers};
+use core_customer::{
+    AuthenticationId, CoreCustomerAction, CoreCustomerEvent, CustomerObject, Customers,
+};
 use deposit::{
     CoreDepositAction, CoreDepositEvent, CoreDepositObject, GovernanceAction, GovernanceObject,
 };
 use governance::GovernanceEvent;
-
-use job::*;
-
 use outbox::{Outbox, OutboxEventMarker};
 
-use super::kratos_admin::KratosAdmin;
+use job::*;
 
 #[derive(serde::Serialize)]
 pub struct CustomerOnboardingJobConfig<Perms, E> {
@@ -148,7 +148,10 @@ where
             if let Some(CoreCustomerEvent::CustomerCreated { id, email }) =
                 &message.as_ref().as_event()
             {
-                let authentication_id = self.kratos_admin.create_user(email.clone()).await?;
+                let authentication_id = self
+                    .kratos_admin
+                    .create_user::<AuthenticationId>(email.clone())
+                    .await?;
                 self.customers
                     .update_authentication_id_for_customer(*id, authentication_id)
                     .await?;

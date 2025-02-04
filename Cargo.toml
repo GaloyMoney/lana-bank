@@ -25,6 +25,7 @@ members = [
   "lib/tracing-utils",
   "lib/outbox",
   "lib/jwks-utils",
+  "lib/kratos-admin",
 ]
 
 [workspace.dependencies]

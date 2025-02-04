@@ -1,5 +1,5 @@
 use async_trait::async_trait;
-use core_user::CoreUserEvent;
+use core_user::{AuthenticationId, CoreUserEvent};
 use futures::StreamExt;
 
 use job::*;
@@ -8,7 +8,7 @@ use audit::AuditSvc;
 use core_user::{CoreUserAction, UserId, UserObject, Users};
 use outbox::{Outbox, OutboxEventMarker};
 
-use super::kratos_admin::KratosAdmin;
+use kratos_admin::KratosAdmin;
 
 #[derive(serde::Serialize)]
 pub struct UserOnboardingJobConfig<Audit, E> {
@@ -125,7 +125,10 @@ where
 
         while let Some(message) = stream.next().await {
             if let Some(CoreUserEvent::UserCreated { id, email }) = &message.as_ref().as_event() {
-                let authentication_id = self.kratos_admin.create_user(email.clone()).await?;
+                let authentication_id = self
+                    .kratos_admin
+                    .create_user::<AuthenticationId>(email.clone())
+                    .await?;
                 self.users
                     .update_authentication_id_for_user(*id, authentication_id)
                     .await?;

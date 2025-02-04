@@ -49,6 +49,14 @@ pub mod customer {
         core_customer::Customers<crate::authorization::Authorization, lana_events::LanaEvent>;
 }
 
+pub mod customer_onboarding {
+    pub use customer_onboarding::config::CustomerOnboardingConfig;
+    pub type CustomerOnboarding = customer_onboarding::CustomerOnboarding<
+        crate::authorization::Authorization,
+        lana_events::LanaEvent,
+    >;
+}
+
 pub mod job {
     pub use job::*;
 }

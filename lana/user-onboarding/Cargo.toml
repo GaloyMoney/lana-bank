@@ -14,6 +14,7 @@ core-user = { path = "../../core/user" }
 outbox = { path = "../../lib/outbox" }
 job = { path = "../../lib/job" }
 audit = { path = "../../lib/audit" }
+kratos-admin = { path = "../../lib/kratos-admin" }
 
 sim-time = { workspace = true, optional = true }
 es-entity = { workspace = true, features = ["graphql"] }
