@@ -13,6 +13,7 @@ use super::{entity::*, error::*};
     err = "CustomerError",
     columns(
         email(ty = "String", list_by),
+        authentication_id(ty = "Option<AuthenticationId>", list_by),
         telegram_id(ty = "String", list_by),
         status(ty = "AccountStatus", list_for)
     )
@@ -79,6 +80,9 @@ impl From<(CustomersSortBy, &Customer)> for customer_cursor::CustomersCursor {
                 customer_cursor::CustomersByTelegramIdCursor::from(customer).into()
             }
             CustomersSortBy::Id => customer_cursor::CustomersByIdCursor::from(customer).into(),
+            CustomersSortBy::AuthenticationId => {
+                customer_cursor::CustomersByAuthenticationIdCursor::from(customer).into()
+            }
         }
     }
 }

@@ -6,9 +6,10 @@ pub use authz::AllOrOne;
 
 es_entity::entity_id! {
     CustomerId;
-
     CustomerId => deposit::DepositAccountHolderId,
 }
+
+es_entity::entity_id! { AuthenticationId }
 
 #[derive(Debug, Deserialize, Clone, Copy, Serialize, Eq, PartialEq)]
 #[cfg_attr(feature = "graphql", derive(async_graphql::Enum))]
@@ -85,6 +86,8 @@ impl CoreCustomerAction {
     pub const CUSTOMER_READ: Self = CoreCustomerAction::Customer(CustomerEntityAction::Read);
     pub const CUSTOMER_LIST: Self = CoreCustomerAction::Customer(CustomerEntityAction::List);
     pub const CUSTOMER_UPDATE: Self = CoreCustomerAction::Customer(CustomerEntityAction::Update);
+    pub const CUSTOMER_SET_AUTHENTICATION_ID: Self =
+        CoreCustomerAction::Customer(CustomerEntityAction::SetAuthenticationId);
     pub const CUSTOMER_START_KYC: Self =
         CoreCustomerAction::Customer(CustomerEntityAction::StartKyc);
     pub const CUSTOMER_APPROVE_KYC: Self =
@@ -100,6 +103,7 @@ pub enum CustomerEntityAction {
     Create,
     List,
     Update,
+    SetAuthenticationId,
     StartKyc,
     ApproveKyc,
     DeclineKyc,

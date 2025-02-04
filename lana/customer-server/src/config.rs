@@ -15,7 +15,7 @@ impl Default for CustomerServerConfig {
         Self {
             port: default_port(),
             jwks_url: default_jwks_url(),
-            aud: "https://admin-api/graphql".to_string(),
+            aud: "https://customer-api/graphql".to_string(),
         }
     }
 }

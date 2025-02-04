@@ -225,6 +225,48 @@ where
         self.repo.find_many(filter, sort.into(), query).await
     }
 
+    #[instrument(
+        name = "core_customer.set_authentication_id_for_user",
+        skip(self, authentication_id)
+    )]
+    pub async fn set_authentication_id_for_customer(
+        &self,
+        customer_id: CustomerId,
+        authentication_id: AuthenticationId,
+    ) -> Result<Customer, CustomerError> {
+        self.authz
+            .audit()
+            .record_system_entry(
+                CustomerObject::customer(customer_id),
+                CoreCustomerAction::CUSTOMER_SET_AUTHENTICATION_ID,
+            )
+            .await?;
+
+        let mut customer = self.repo.find_by_id(customer_id).await?;
+        customer.set_authentication_id(authentication_id);
+        self.repo.update(&mut customer).await?;
+        Ok(customer)
+    }
+
+    #[instrument(
+        name = "core_customer.find_by_authentication_id",
+        skip(self, authentication_id)
+    )]
+    pub async fn find_by_authentication_id(
+        &self,
+        authentication_id: AuthenticationId,
+    ) -> Result<Option<Customer>, CustomerError> {
+        match self
+            .repo
+            .find_by_authentication_id(Some(authentication_id))
+            .await
+        {
+            Ok(customer) => Ok(Some(customer)),
+            Err(e) if e.was_not_found() => Ok(None),
+            Err(e) => Err(e),
+        }
+    }
+
     pub async fn start_kyc(
         &self,
         db: &mut es_entity::DbOp<'_>,

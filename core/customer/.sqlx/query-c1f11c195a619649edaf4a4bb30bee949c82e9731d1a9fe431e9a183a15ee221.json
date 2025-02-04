@@ -1,12 +1,13 @@
 {
   "db_name": "PostgreSQL",
-  "query": "INSERT INTO customers (id, email, telegram_id, status, created_at) VALUES ($1, $2, $3, $4, $5)",
+  "query": "INSERT INTO customers (id, email, authentication_id, telegram_id, status, created_at) VALUES ($1, $2, $3, $4, $5, $6)",
   "describe": {
     "columns": [],
     "parameters": {
       "Left": [
         "Uuid",
         "Varchar",
+        "Uuid",
         "Varchar",
         "Varchar",
         "Timestamptz"
@@ -14,5 +15,5 @@
     },
     "nullable": []
   },
-  "hash": "8a34d2f3de5c6bef7c0d8b0b74b77943a393b7d0bd87381e0084d8968120006f"
+  "hash": "c1f11c195a619649edaf4a4bb30bee949c82e9731d1a9fe431e9a183a15ee221"
 }

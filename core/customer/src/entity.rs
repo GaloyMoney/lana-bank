@@ -17,6 +17,9 @@ pub enum CustomerEvent {
         telegram_id: String,
         audit_info: AuditInfo,
     },
+    AuthenticationIdSet {
+        authentication_id: AuthenticationId,
+    },
     KycStarted {
         applicant_id: String,
         audit_info: AuditInfo,
@@ -40,6 +43,8 @@ pub enum CustomerEvent {
 #[builder(pattern = "owned", build_fn(error = "EsEntityError"))]
 pub struct Customer {
     pub id: CustomerId,
+    #[builder(setter(strip_option), default)]
+    pub authentication_id: Option<AuthenticationId>,
     pub email: String,
     pub telegram_id: String,
     #[builder(default)]
@@ -65,6 +70,12 @@ impl Customer {
 
     pub fn may_create_loan(&self) -> bool {
         true
+    }
+
+    pub fn set_authentication_id(&mut self, authentication_id: AuthenticationId) {
+        self.authentication_id = Some(authentication_id);
+        self.events
+            .push(CustomerEvent::AuthenticationIdSet { authentication_id });
     }
 
     pub fn start_kyc(&mut self, applicant_id: String, audit_info: AuditInfo) {
@@ -123,6 +134,9 @@ impl TryFromEvents<CustomerEvent> for Customer {
                         .telegram_id(telegram_id.clone())
                         .level(KycLevel::NotKyced);
                 }
+                CustomerEvent::AuthenticationIdSet { authentication_id } => {
+                    builder = builder.authentication_id(*authentication_id);
+                }
                 CustomerEvent::KycStarted { applicant_id, .. } => {
                     builder = builder.applicant_id(applicant_id.clone());
                 }
@@ -157,6 +171,8 @@ pub struct NewCustomer {
     pub(super) id: CustomerId,
     #[builder(setter(into))]
     pub(super) email: String,
+    #[builder(setter(skip), default)]
+    pub(super) authentication_id: Option<AuthenticationId>,
     #[builder(setter(into))]
     pub(super) telegram_id: String,
     #[builder(setter(skip), default)]

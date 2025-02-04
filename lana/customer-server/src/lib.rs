@@ -1,6 +1,7 @@
 #![cfg_attr(feature = "fail-on-warnings", deny(warnings))]
 #![cfg_attr(feature = "fail-on-warnings", deny(clippy::all))]
 
+mod auth;
 mod config;
 pub mod graphql;
 mod primitives;
@@ -40,6 +41,7 @@ pub async fn run(config: CustomerServerConfig, app: LanaApp) -> anyhow::Result<(
             "/graphql",
             get(playground).post(axum::routing::post(graphql_handler)),
         )
+        .merge(auth::auth_routes())
         .with_state(JwtDecoderState {
             decoder: jwks_decoder,
         })
