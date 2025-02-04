@@ -10,15 +10,26 @@ services:
     volumes: [ "./dev/otel-agent-config.yaml:/etc/otel-agent-config.yaml" ]
 
   #! Auth Services (ORY Stack)
-  kratos:
+  kratos-admin:
     image: oryd/kratos:v1.2.0
     extra_hosts: [ "dockerhost-alias:host-gateway" ]
     ports: [ 4433:4433, 4434:4434 ]
     entrypoint: sh -c
     command: '"kratos migrate sql up -y -e && kratos serve -c /home/ory/admin/kratos.yml --watch-courier --sqa-opt-out"'
     environment:
-      DSN: postgres://dbuser:secret@kratos-pg:5432/default?sslmode=disable
-    links: [ kratos-pg:kratos-pg, mailhog:mailhog ]
+      DSN: postgres://dbuser:secret@kratos-admin-pg:5432/default?sslmode=disable
+    links: [ kratos-admin-pg:kratos-admin-pg, mailhog:mailhog ]
+    volumes: [ "./dev/ory:/home/ory" ]
+
+  kratos-customer:
+    image: oryd/kratos:v1.2.0
+    extra_hosts: [ "dockerhost-alias:host-gateway" ]
+    ports: [ 4435:4433, 4436:4434 ]
+    entrypoint: sh -c
+    command: '"kratos migrate sql up -y -e && kratos serve -c /home/ory/customer/kratos.yml --watch-courier --sqa-opt-out"'
+    environment:
+      DSN: postgres://dbuser:secret@kratos-customer-pg:5432/default?sslmode=disable
+    links: [ kratos-customer-pg:kratos-customer-pg, mailhog:mailhog ]
     volumes: [ "./dev/ory:/home/ory" ]
 
   oathkeeper:
@@ -27,7 +38,7 @@ services:
     ports: [ 4455:4455, 4456:4456 ]
     command: serve -c /home/ory/oathkeeper.yml --sqa-opt-out
     volumes: [ "./dev/ory:/home/ory" ]
-    depends_on: [ kratos, otel-agent ]
+    depends_on: [ kratos-admin, kratos-customer, otel-agent ]
 
   mailhog:
     image: mailhog/mailhog:latest
@@ -40,16 +51,20 @@ services:
     environment: [ POSTGRES_USER=user, POSTGRES_PASSWORD=password, POSTGRES_DB=pg ]
     healthcheck: { test: ["CMD-SHELL", "pg_isready"], interval: 1s, timeout: 1s, retries: 20 }
 
-  kratos-pg:
+  kratos-admin-pg:
     image: postgres:16.4
     ports: [ 5434:5432 ]
+    environment: [ POSTGRES_USER=dbuser, POSTGRES_PASSWORD=secret, POSTGRES_DB=default ]
+
+  kratos-customer-pg:
+    image: postgres:16.4
+    ports: [ 5435:5432 ]
     environment: [ POSTGRES_USER=dbuser, POSTGRES_PASSWORD=secret, POSTGRES_DB=default ]
 
   #! Reporting
   meltano:
     image: us.gcr.io/galoyorg/meltano
-    volumes:
-      - ./meltano:/lana
+    volumes: [ ./meltano:/lana ]
     working_dir: /lana
     environment:
       - TARGET_BIGQUERY_CREDENTIALS_JSON=${TARGET_BIGQUERY_CREDENTIALS_JSON}
@@ -67,7 +82,9 @@ services:
     depends_on:
       - core-pg
       - otel-agent
-      - kratos
-      - kratos-pg
+      - kratos-admin
+      - kratos-admin-pg
+      - kratos-customer
+      - kratos-customer-pg
       - oathkeeper
       - mailhog

@@ -37,10 +37,10 @@ selfservice:
 
   flows:
     login:
-      ui_url: http://localhost:4455/admin/login
+      ui_url: http://localhost:4455/app/login
 
     error:
-      ui_url: http://localhost:4455/admin/errored
+      ui_url: http://localhost:4455/app/errored
 
     settings:
       lifespan: 1s
@@ -77,7 +77,7 @@ identity:
   default_schema_id: email
   schemas:
     - id: email
-      url: file:///home/ory/admin/identity.schema.json
+      url: file:///home/ory/customer/identity.schema.json
 
 courier:
   smtp:

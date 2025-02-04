@@ -6,7 +6,7 @@
     "node": "20"
   },
   "scripts": {
-    "dev": "next dev",
+    "dev": "next dev --port 3002",
     "dev:https": "next dev --experimental-https",
     "build": "next build",
     "start": "next start",
