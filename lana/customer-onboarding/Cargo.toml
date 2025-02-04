@@ -1,0 +1,38 @@
+[package]
+name = "customer-onboarding"
+version = "0.3.43-dev"
+edition = "2021"
+
+[features]
+
+fail-on-warnings = []
+
+[dependencies]
+lana-events = { path = "../events" }
+
+core-customer = { path = "../../core/customer" }
+deposit = { path = "../../core/deposit" }
+governance = { path = "../../core/governance" }
+
+outbox = { path = "../../lib/outbox" }
+job = { path = "../../lib/job" }
+audit = { path = "../../lib/audit" }
+authz = { path = "../../lib/authz" }
+
+sim-time = { workspace = true, optional = true }
+es-entity = { workspace = true, features = ["graphql"] }
+
+uuid = { workspace = true }
+strum = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+chrono = { workspace = true }
+async-trait = { workspace = true }
+futures = { workspace = true }
+thiserror = { workspace = true }
+async-graphql = { workspace = true }
+ory-kratos-client = { workspace = true }
+
+[dev-dependencies]
+tokio = { workspace = true }
+anyhow = { workspace = true }

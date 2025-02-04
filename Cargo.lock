@@ -1129,6 +1129,34 @@ dependencies = [
 ]
 
 [[package]]
+name = "customer-onboarding"
+version = "0.3.43-dev"
+dependencies = [
+ "anyhow",
+ "async-graphql",
+ "async-trait",
+ "audit",
+ "authz",
+ "chrono",
+ "core-customer",
+ "deposit",
+ "es-entity",
+ "futures",
+ "governance",
+ "job",
+ "lana-events",
+ "ory-kratos-client",
+ "outbox",
+ "serde",
+ "serde_json",
+ "sim-time",
+ "strum",
+ "thiserror 1.0.69",
+ "tokio",
+ "uuid",
+]
+
+[[package]]
 name = "customer-server"
 version = "0.3.44-dev"
 dependencies = [

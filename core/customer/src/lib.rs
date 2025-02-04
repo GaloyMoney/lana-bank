@@ -226,7 +226,7 @@ where
     }
 
     #[instrument(
-        name = "core_customer.set_authentication_id_for_user",
+        name = "core_customer.set_authentication_id_for_customer",
         skip(self, authentication_id)
     )]
     pub async fn set_authentication_id_for_customer(
