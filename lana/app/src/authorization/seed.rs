@@ -371,7 +371,7 @@ async fn add_permissions_for_bank_manager(authz: &Authorization) -> Result<(), A
         .add_permission_to_role(
             &role,
             Object::ProfitAndLossStatement,
-            ProfitAndLossStatementAction::Create,
+            ProfitAndLossStatementAction::FindOrCreate,
         )
         .await?;
     authz

@@ -12,8 +12,4 @@ pub enum ProfitAndLossStatementError {
     ProfitAndLossStatementLedgerError(
         #[from] super::ledger::error::ProfitAndLossStatementLedgerError,
     ),
-    #[error("ProfitAndLossStatementError - MultipleFound: {0}")]
-    MultipleFound(String),
-    #[error("ProfitAndLossStatementError - NotFound: {0}")]
-    NotFound(String),
 }

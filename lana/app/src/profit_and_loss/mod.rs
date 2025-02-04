@@ -48,13 +48,10 @@ impl ProfitAndLossStatements {
         })
     }
 
-    pub async fn create_pl_statement(
+    pub async fn find_or_create_pl_statement(
         &self,
-        id: impl Into<LedgerAccountSetId>,
         name: String,
     ) -> Result<ProfitAndLossStatementIds, ProfitAndLossStatementError> {
-        let account_set_id = id.into();
-
         let mut op = es_entity::DbOp::init(&self.pool).await?;
 
         self.authz
@@ -62,20 +59,17 @@ impl ProfitAndLossStatements {
             .record_system_entry_in_tx(
                 op.tx(),
                 Object::ProfitAndLossStatement,
-                ProfitAndLossStatementAction::Create,
+                ProfitAndLossStatementAction::FindOrCreate,
             )
             .await?;
 
-        Ok(self
-            .pl_statement_ledger
-            .create(op, account_set_id, &name)
-            .await?)
+        Ok(self.pl_statement_ledger.find_or_create(op, &name).await?)
     }
 
     pub async fn find_by_name(
         &self,
         name: String,
-    ) -> Result<Option<ProfitAndLossStatementIds>, ProfitAndLossStatementError> {
+    ) -> Result<ProfitAndLossStatementIds, ProfitAndLossStatementError> {
         self.authz
             .audit()
             .record_system_entry(
@@ -84,44 +78,10 @@ impl ProfitAndLossStatements {
             )
             .await?;
 
-        let pl_statements = self
+        Ok(self
             .pl_statement_ledger
-            .list_for_name(name.to_string(), Default::default())
-            .await?
-            .entities;
-
-        let statement_id = match pl_statements.len() {
-            0 => return Ok(None),
-            1 => pl_statements[0].id,
-            _ => return Err(ProfitAndLossStatementError::MultipleFound(name)),
-        };
-
-        let members = self
-            .pl_statement_ledger
-            .get_member_account_sets(statement_id)
-            .await?;
-
-        let revenue_id = members
-            .iter()
-            .find(|m| m.name == REVENUE_NAME)
-            .ok_or(ProfitAndLossStatementError::NotFound(
-                REVENUE_NAME.to_string(),
-            ))?
-            .id;
-
-        let expenses_id = members
-            .iter()
-            .find(|m| m.name == EXPENSES_NAME)
-            .ok_or(ProfitAndLossStatementError::NotFound(
-                EXPENSES_NAME.to_string(),
-            ))?
-            .id;
-
-        Ok(Some(ProfitAndLossStatementIds {
-            id: statement_id,
-            revenue: revenue_id,
-            expenses: expenses_id,
-        }))
+            .find_by_name(name.to_string())
+            .await?)
     }
 
     pub async fn add_to_revenue(
@@ -187,15 +147,7 @@ impl ProfitAndLossStatements {
             )
             .await?;
 
-        let pl_statement_ids = self
-            .find_by_name(name.to_string())
-            .await?
-            .ok_or(ProfitAndLossStatementError::NotFound(name))?;
-
-        Ok(self
-            .pl_statement_ledger
-            .get_pl_statement(pl_statement_ids)
-            .await?)
+        Ok(self.pl_statement_ledger.get_pl_statement(name).await?)
     }
 }
 

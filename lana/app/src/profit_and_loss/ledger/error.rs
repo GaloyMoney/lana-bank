@@ -14,4 +14,8 @@ pub enum ProfitAndLossStatementLedgerError {
     Statement(#[from] crate::statement::error::StatementError),
     #[error("ProfitAndLossStatementLedgerError - NonAccountSetMemberTypeFound")]
     NonAccountSetMemberTypeFound,
+    #[error("ProfitAndLossStatementLedgerError - MultipleFound: {0}")]
+    MultipleFound(String),
+    #[error("ProfitAndLossStatementLedgerError - NotFound: {0}")]
+    NotFound(String),
 }

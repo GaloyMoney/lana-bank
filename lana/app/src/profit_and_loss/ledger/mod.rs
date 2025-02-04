@@ -1,7 +1,7 @@
 pub mod error;
 
 use cala_ledger::{
-    account_set::{AccountSet, AccountSetMemberId, AccountSetsByCreatedAtCursor, NewAccountSet},
+    account_set::{AccountSetMemberId, NewAccountSet},
     balance::error::BalanceError,
     AccountSetId, CalaLedger, Currency, DebitOrCredit, JournalId, LedgerOperation,
 };
@@ -26,15 +26,18 @@ impl ProfitAndLossStatementLedger {
         }
     }
 
-    pub async fn create(
+    pub async fn find_or_create(
         &self,
         op: es_entity::DbOp<'_>,
-        statement_id: impl Into<AccountSetId>,
         name: &str,
     ) -> Result<ProfitAndLossStatementIds, ProfitAndLossStatementLedgerError> {
         let mut op = self.cala.ledger_operation_from_db_op(op);
 
-        let statement_id = statement_id.into();
+        if let Some(ids) = self.find_by_name_in_op(&mut op, name.to_string()).await? {
+            return Ok(ids);
+        }
+
+        let statement_id = AccountSetId::new();
         let new_account_set = NewAccountSet::builder()
             .id(statement_id)
             .journal_id(self.journal_id)
@@ -93,15 +96,58 @@ impl ProfitAndLossStatementLedger {
         })
     }
 
-    pub async fn list_for_name(
+    pub async fn find_by_name(
         &self,
         name: String,
-        args: es_entity::PaginatedQueryArgs<AccountSetsByCreatedAtCursor>,
-    ) -> Result<
-        es_entity::PaginatedQueryRet<AccountSet, AccountSetsByCreatedAtCursor>,
-        ProfitAndLossStatementLedgerError,
-    > {
-        Ok(self.cala.account_sets().list_for_name(name, args).await?)
+    ) -> Result<ProfitAndLossStatementIds, ProfitAndLossStatementLedgerError> {
+        let mut op = self.cala.begin_operation().await?;
+        match self.find_by_name_in_op(&mut op, name.to_string()).await? {
+            Some(ids) => Ok(ids),
+            None => Err(ProfitAndLossStatementLedgerError::NotFound(name)),
+        }
+    }
+
+    async fn find_by_name_in_op(
+        &self,
+        op: &mut LedgerOperation<'_>,
+        name: String,
+    ) -> Result<Option<ProfitAndLossStatementIds>, ProfitAndLossStatementLedgerError> {
+        let pl_statements = self
+            .cala
+            .account_sets()
+            .list_for_name_in_op(op, name.to_string(), Default::default())
+            .await?
+            .entities;
+
+        let statement_id = match pl_statements.len() {
+            1 => pl_statements[0].id,
+            0 => return Ok(None),
+            _ => return Err(ProfitAndLossStatementLedgerError::MultipleFound(name)),
+        };
+
+        let members = self.get_member_account_sets_in_op(op, statement_id).await?;
+
+        let revenue_id = members
+            .iter()
+            .find(|m| m.name == REVENUE_NAME)
+            .ok_or(ProfitAndLossStatementLedgerError::NotFound(
+                REVENUE_NAME.to_string(),
+            ))?
+            .id;
+
+        let expenses_id = members
+            .iter()
+            .find(|m| m.name == EXPENSES_NAME)
+            .ok_or(ProfitAndLossStatementLedgerError::NotFound(
+                EXPENSES_NAME.to_string(),
+            ))?
+            .id;
+
+        Ok(Some(ProfitAndLossStatementIds {
+            id: statement_id,
+            revenue: revenue_id,
+            expenses: expenses_id,
+        }))
     }
 
     pub async fn add_member(
@@ -243,8 +289,10 @@ impl ProfitAndLossStatementLedger {
 
     pub async fn get_pl_statement(
         &self,
-        ids: ProfitAndLossStatementIds,
+        name: String,
     ) -> Result<ProfitAndLossStatement, ProfitAndLossStatementLedgerError> {
+        let ids = self.find_by_name(name.to_string()).await?;
+
         let mut op = self.cala.begin_operation().await?;
 
         let pl_statement_set = self.get_account_set_in_op(&mut op, ids.id).await?;

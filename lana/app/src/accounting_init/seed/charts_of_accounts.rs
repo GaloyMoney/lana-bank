@@ -217,13 +217,7 @@ async fn create_credit_facilities_account_paths(
 
     let pl_statement_ids = pl_statements
         .find_by_name(PROFIT_AND_LOSS_STATEMENT_NAME.to_string())
-        .await?
-        .unwrap_or_else(|| {
-            panic!(
-                "Profit & Loss Statement for reference '{}' not found",
-                PROFIT_AND_LOSS_STATEMENT_NAME
-            )
-        });
+        .await?;
 
     let (collateral_control, collateral) = create_control_sub_account(
         chart_of_accounts,

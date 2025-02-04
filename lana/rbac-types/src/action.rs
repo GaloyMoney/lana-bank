@@ -199,7 +199,7 @@ impl_trivial_action!(TrialBalanceAction, TrialBalance);
 #[derive(PartialEq, Clone, Copy, Debug, strum::Display, strum::EnumString)]
 #[strum(serialize_all = "kebab-case")]
 pub enum ProfitAndLossStatementAction {
-    Create,
+    FindOrCreate,
     Update,
     Read,
 }

@@ -38,8 +38,8 @@ impl TrialBalanceLedger {
             .await?
             .entities;
         match trial_balances.len() {
-            0 => (),
             1 => return Ok(trial_balances[0].id),
+            0 => (),
             _ => return Err(TrialBalanceLedgerError::MultipleFound(name.to_string())),
         };
 

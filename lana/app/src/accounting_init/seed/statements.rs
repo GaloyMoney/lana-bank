@@ -34,20 +34,9 @@ async fn create_trial_balances(trial_balances: &TrialBalances) -> Result<(), Acc
 async fn create_pl_statements(
     pl_statements: &ProfitAndLossStatements,
 ) -> Result<(), AccountingInitError> {
-    let _primary_id = match pl_statements
-        .find_by_name(PROFIT_AND_LOSS_STATEMENT_NAME.to_string())
-        .await?
-    {
-        Some(pl_statement_id) => pl_statement_id,
-        None => {
-            pl_statements
-                .create_pl_statement(
-                    LedgerAccountSetId::new(),
-                    PROFIT_AND_LOSS_STATEMENT_NAME.to_string(),
-                )
-                .await?
-        }
-    };
+    let _primary_id = pl_statements
+        .find_or_create_pl_statement(PROFIT_AND_LOSS_STATEMENT_NAME.to_string())
+        .await?;
 
     Ok(())
 }
