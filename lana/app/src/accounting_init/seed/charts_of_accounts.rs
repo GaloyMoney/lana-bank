@@ -127,10 +127,6 @@ async fn create_deposits_account_paths(
     chart_of_accounts: &ChartOfAccounts,
     chart_ids: &ChartIds,
 ) -> Result<DepositsAccountPaths, AccountingInitError> {
-    let balance_sheet_ids = balance_sheets
-        .find_by_name(BALANCE_SHEET_NAME.to_string())
-        .await?;
-
     let (deposits_control, deposits) = find_or_create_control_sub_account(
         chart_of_accounts,
         chart_ids.primary,
@@ -153,7 +149,10 @@ async fn create_deposits_account_paths(
         .await?;
 
     balance_sheets
-        .add_to_liabilities(balance_sheet_ids, deposits_control.account_set_id)
+        .add_to_liabilities(
+            BALANCE_SHEET_NAME.to_string(),
+            deposits_control.account_set_id,
+        )
         .await?;
 
     let (deposits_omnibus_control, deposits_omnibus) = find_or_create_control_sub_account(
@@ -178,7 +177,10 @@ async fn create_deposits_account_paths(
         .await?;
 
     balance_sheets
-        .add_to_assets(balance_sheet_ids, deposits_omnibus_control.account_set_id)
+        .add_to_assets(
+            BALANCE_SHEET_NAME.to_string(),
+            deposits_omnibus_control.account_set_id,
+        )
         .await?;
 
     Ok(DepositsAccountPaths {
@@ -194,14 +196,6 @@ async fn create_credit_facilities_account_paths(
     chart_of_accounts: &ChartOfAccounts,
     chart_ids: &ChartIds,
 ) -> Result<CreditFacilitiesAccountPaths, AccountingInitError> {
-    let balance_sheet_ids = balance_sheets
-        .find_by_name(BALANCE_SHEET_NAME.to_string())
-        .await?;
-
-    let obs_balance_sheet_ids = balance_sheets
-        .find_by_name(OBS_BALANCE_SHEET_NAME.to_string())
-        .await?;
-
     let (collateral_control, collateral) = find_or_create_control_sub_account(
         chart_of_accounts,
         chart_ids.off_balance_sheet,
@@ -222,7 +216,10 @@ async fn create_credit_facilities_account_paths(
         )
         .await?;
     balance_sheets
-        .add_to_liabilities(obs_balance_sheet_ids, collateral_control.account_set_id)
+        .add_to_liabilities(
+            OBS_BALANCE_SHEET_NAME.to_string(),
+            collateral_control.account_set_id,
+        )
         .await?;
 
     let (collateral_omnibus_control, collateral_omnibus) = find_or_create_control_sub_account(
@@ -246,7 +243,7 @@ async fn create_credit_facilities_account_paths(
         .await?;
     balance_sheets
         .add_to_assets(
-            obs_balance_sheet_ids,
+            OBS_BALANCE_SHEET_NAME.to_string(),
             collateral_omnibus_control.account_set_id,
         )
         .await?;
@@ -271,7 +268,10 @@ async fn create_credit_facilities_account_paths(
         )
         .await?;
     balance_sheets
-        .add_to_liabilities(obs_balance_sheet_ids, facility_control.account_set_id)
+        .add_to_liabilities(
+            OBS_BALANCE_SHEET_NAME.to_string(),
+            facility_control.account_set_id,
+        )
         .await?;
 
     let (facility_omnibus_control, facility_omnibus) = find_or_create_control_sub_account(
@@ -295,7 +295,7 @@ async fn create_credit_facilities_account_paths(
         .await?;
     balance_sheets
         .add_to_assets(
-            obs_balance_sheet_ids,
+            OBS_BALANCE_SHEET_NAME.to_string(),
             facility_omnibus_control.account_set_id,
         )
         .await?;
@@ -321,7 +321,7 @@ async fn create_credit_facilities_account_paths(
         .await?;
     balance_sheets
         .add_to_assets(
-            balance_sheet_ids,
+            BALANCE_SHEET_NAME.to_string(),
             disbursed_receivable_control.account_set_id,
         )
         .await?;
@@ -347,7 +347,7 @@ async fn create_credit_facilities_account_paths(
         .await?;
     balance_sheets
         .add_to_assets(
-            balance_sheet_ids,
+            BALANCE_SHEET_NAME.to_string(),
             interest_receivable_control.account_set_id,
         )
         .await?;
@@ -378,7 +378,10 @@ async fn create_credit_facilities_account_paths(
         )
         .await?;
     balance_sheets
-        .add_to_revenue(balance_sheet_ids, interest_income_control.account_set_id)
+        .add_to_revenue(
+            BALANCE_SHEET_NAME.to_string(),
+            interest_income_control.account_set_id,
+        )
         .await?;
 
     let (fee_income_control, fee_income) = find_or_create_control_sub_account(
@@ -407,7 +410,10 @@ async fn create_credit_facilities_account_paths(
         )
         .await?;
     balance_sheets
-        .add_to_revenue(balance_sheet_ids, fee_income_control.account_set_id)
+        .add_to_revenue(
+            BALANCE_SHEET_NAME.to_string(),
+            fee_income_control.account_set_id,
+        )
         .await?;
 
     Ok(CreditFacilitiesAccountPaths {

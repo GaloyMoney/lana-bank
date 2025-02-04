@@ -73,18 +73,6 @@ impl BalanceSheets {
         Ok(self.balance_sheet_ledger.find_or_create(op, &name).await?)
     }
 
-    pub async fn find_by_name(&self, name: String) -> Result<BalanceSheetIds, BalanceSheetError> {
-        self.authz
-            .audit()
-            .record_system_entry(Object::BalanceSheet, BalanceSheetAction::Read)
-            .await?;
-
-        Ok(self
-            .balance_sheet_ledger
-            .find_by_name(name.to_string())
-            .await?)
-    }
-
     async fn add_to(
         &self,
         account_set_id: LedgerAccountSetId,
@@ -108,41 +96,51 @@ impl BalanceSheets {
 
     pub async fn add_to_assets(
         &self,
-        statement_ids: BalanceSheetIds,
+        name: String,
         member_id: impl Into<LedgerAccountSetId>,
     ) -> Result<(), BalanceSheetError> {
+        let statement_ids = self.balance_sheet_ledger.find_by_name(name).await?;
+
         self.add_to(statement_ids.assets, member_id).await
     }
 
     pub async fn add_to_liabilities(
         &self,
-        statement_ids: BalanceSheetIds,
+        name: String,
         member_id: impl Into<LedgerAccountSetId>,
     ) -> Result<(), BalanceSheetError> {
+        let statement_ids = self.balance_sheet_ledger.find_by_name(name).await?;
+
         self.add_to(statement_ids.liabilities, member_id).await
     }
 
     pub async fn add_to_equity(
         &self,
-        statement_ids: BalanceSheetIds,
+        name: String,
         member_id: impl Into<LedgerAccountSetId>,
     ) -> Result<(), BalanceSheetError> {
+        let statement_ids = self.balance_sheet_ledger.find_by_name(name).await?;
+
         self.add_to(statement_ids.equity, member_id).await
     }
 
     pub async fn add_to_revenue(
         &self,
-        statement_ids: BalanceSheetIds,
+        name: String,
         member_id: impl Into<LedgerAccountSetId>,
     ) -> Result<(), BalanceSheetError> {
+        let statement_ids = self.balance_sheet_ledger.find_by_name(name).await?;
+
         self.add_to(statement_ids.revenue, member_id).await
     }
 
     pub async fn add_to_expenses(
         &self,
-        statement_ids: BalanceSheetIds,
+        name: String,
         member_id: impl Into<LedgerAccountSetId>,
     ) -> Result<(), BalanceSheetError> {
+        let statement_ids = self.balance_sheet_ledger.find_by_name(name).await?;
+
         self.add_to(statement_ids.expenses, member_id).await
     }
 
