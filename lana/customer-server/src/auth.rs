@@ -16,10 +16,10 @@ pub async fn customer_id_from_authentication_id(
     Extension(app): Extension<LanaApp>,
     Json(mut payload): Json<AuthenticationPayload>,
 ) -> impl IntoResponse {
-    let authentication_id = match uuid::Uuid::parse_str(&payload.subject) {
-        Ok(authentication_id) => core_customer::AuthenticationId::from(authentication_id),
-        Err(error) => {
-            println!("Error parsing authentication id: {:?}", error);
+    let authentication_id = match payload.subject.parse::<core_customer::AuthenticationId>() {
+        Ok(id) => id,
+        Err(e) => {
+            println!("Error parsing authentication id: {:?}", e);
             return StatusCode::BAD_REQUEST.into_response();
         }
     };
@@ -29,7 +29,7 @@ pub async fn customer_id_from_authentication_id(
         .find_by_authentication_id(authentication_id)
         .await
     {
-        Ok(Some(customer)) => {
+        Ok(customer) => {
             if let serde_json::Value::Object(ref mut extra) = payload.extra {
                 extra.insert(
                     "subject".to_string(),
@@ -42,7 +42,7 @@ pub async fn customer_id_from_authentication_id(
             }
             Json(payload).into_response()
         }
-        Ok(None) => {
+        Err(e) if e.was_not_found() => {
             println!("Customer not found: {:?}", authentication_id);
             StatusCode::NOT_FOUND.into_response()
         }

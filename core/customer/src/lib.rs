@@ -226,10 +226,10 @@ where
     }
 
     #[instrument(
-        name = "core_customer.set_authentication_id_for_customer",
+        name = "core_customer.update_authentication_id_for_customer",
         skip(self, authentication_id)
     )]
-    pub async fn set_authentication_id_for_customer(
+    pub async fn update_authentication_id_for_customer(
         &self,
         customer_id: CustomerId,
         authentication_id: AuthenticationId,
@@ -238,13 +238,17 @@ where
             .audit()
             .record_system_entry(
                 CustomerObject::customer(customer_id),
-                CoreCustomerAction::CUSTOMER_SET_AUTHENTICATION_ID,
+                CoreCustomerAction::CUSTOMER_UPDATE_AUTHENTICATION_ID,
             )
             .await?;
 
         let mut customer = self.repo.find_by_id(customer_id).await?;
-        customer.set_authentication_id(authentication_id);
-        self.repo.update(&mut customer).await?;
+        if customer
+            .update_authentication_id(authentication_id)
+            .did_execute()
+        {
+            self.repo.update(&mut customer).await?;
+        }
         Ok(customer)
     }
 
@@ -255,16 +259,10 @@ where
     pub async fn find_by_authentication_id(
         &self,
         authentication_id: AuthenticationId,
-    ) -> Result<Option<Customer>, CustomerError> {
-        match self
-            .repo
+    ) -> Result<Customer, CustomerError> {
+        self.repo
             .find_by_authentication_id(Some(authentication_id))
             .await
-        {
-            Ok(customer) => Ok(Some(customer)),
-            Err(e) if e.was_not_found() => Ok(None),
-            Err(e) => Err(e),
-        }
     }
 
     pub async fn start_kyc(

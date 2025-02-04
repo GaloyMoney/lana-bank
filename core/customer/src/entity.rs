@@ -17,7 +17,7 @@ pub enum CustomerEvent {
         telegram_id: String,
         audit_info: AuditInfo,
     },
-    AuthenticationIdSet {
+    AuthenticationIdUpdated {
         authentication_id: AuthenticationId,
     },
     KycStarted {
@@ -72,10 +72,18 @@ impl Customer {
         true
     }
 
-    pub fn set_authentication_id(&mut self, authentication_id: AuthenticationId) {
+    pub fn update_authentication_id(
+        &mut self,
+        authentication_id: AuthenticationId,
+    ) -> Idempotent<()> {
+        idempotency_guard!(
+            self.events.iter_all(),
+            CustomerEvent::AuthenticationIdUpdated { authentication_id: existing_id } if existing_id == &authentication_id
+        );
         self.authentication_id = Some(authentication_id);
         self.events
-            .push(CustomerEvent::AuthenticationIdSet { authentication_id });
+            .push(CustomerEvent::AuthenticationIdUpdated { authentication_id });
+        Idempotent::Executed(())
     }
 
     pub fn start_kyc(&mut self, applicant_id: String, audit_info: AuditInfo) {
@@ -134,7 +142,7 @@ impl TryFromEvents<CustomerEvent> for Customer {
                         .telegram_id(telegram_id.clone())
                         .level(KycLevel::NotKyced);
                 }
-                CustomerEvent::AuthenticationIdSet { authentication_id } => {
+                CustomerEvent::AuthenticationIdUpdated { authentication_id } => {
                     builder = builder.authentication_id(*authentication_id);
                 }
                 CustomerEvent::KycStarted { applicant_id, .. } => {

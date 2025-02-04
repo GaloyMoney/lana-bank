@@ -150,7 +150,7 @@ where
             {
                 let authentication_id = self.kratos_admin.create_user(email.clone()).await?;
                 self.customers
-                    .set_authentication_id_for_customer(*id, authentication_id)
+                    .update_authentication_id_for_customer(*id, authentication_id)
                     .await?;
             }
         }
