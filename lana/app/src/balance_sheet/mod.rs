@@ -55,106 +55,34 @@ impl BalanceSheets {
         })
     }
 
-    pub async fn create_balance_sheet(
+    pub async fn find_or_create_balance_sheet(
         &self,
-        id: impl Into<LedgerAccountSetId>,
         name: String,
     ) -> Result<BalanceSheetIds, BalanceSheetError> {
-        let account_set_id: LedgerAccountSetId = id.into();
-
         let mut op = es_entity::DbOp::init(&self.pool).await?;
 
         self.authz
             .audit()
-            .record_system_entry_in_tx(op.tx(), Object::BalanceSheet, BalanceSheetAction::Create)
+            .record_system_entry_in_tx(
+                op.tx(),
+                Object::BalanceSheet,
+                BalanceSheetAction::FindOrCreate,
+            )
             .await?;
 
-        Ok(self
-            .balance_sheet_ledger
-            .create(op, account_set_id, &name)
-            .await?)
+        Ok(self.balance_sheet_ledger.find_or_create(op, &name).await?)
     }
 
-    pub async fn find_by_name(
-        &self,
-        name: String,
-    ) -> Result<Option<BalanceSheetIds>, BalanceSheetError> {
+    pub async fn find_by_name(&self, name: String) -> Result<BalanceSheetIds, BalanceSheetError> {
         self.authz
             .audit()
             .record_system_entry(Object::BalanceSheet, BalanceSheetAction::Read)
             .await?;
 
-        let balance_sheets = self
+        Ok(self
             .balance_sheet_ledger
-            .list_for_name(name.to_string(), Default::default())
-            .await?
-            .entities;
-
-        let statement_id = match balance_sheets.len() {
-            0 => return Ok(None),
-            1 => balance_sheets[0].id,
-            _ => return Err(BalanceSheetError::MultipleFound(name)),
-        };
-
-        let statement_members = self
-            .balance_sheet_ledger
-            .get_member_account_sets(statement_id)
-            .await?;
-
-        let assets_id = statement_members
-            .iter()
-            .find(|m| m.name == ASSETS_NAME)
-            .ok_or(BalanceSheetError::NotFound(ASSETS_NAME.to_string()))?
-            .id;
-
-        let liabilities_id = statement_members
-            .iter()
-            .find(|m| m.name == LIABILITIES_NAME)
-            .ok_or(BalanceSheetError::NotFound(LIABILITIES_NAME.to_string()))?
-            .id;
-
-        let equity_id = statement_members
-            .iter()
-            .find(|m| m.name == EQUITY_NAME)
-            .ok_or(BalanceSheetError::NotFound(EQUITY_NAME.to_string()))?
-            .id;
-
-        let equity_members = self
-            .balance_sheet_ledger
-            .get_member_account_sets(equity_id)
-            .await?;
-
-        let net_income_id = equity_members
-            .iter()
-            .find(|m| m.name == NET_INCOME_NAME)
-            .ok_or(BalanceSheetError::NotFound(NET_INCOME_NAME.to_string()))?
-            .id;
-
-        let net_income_members = self
-            .balance_sheet_ledger
-            .get_member_account_sets(net_income_id)
-            .await?;
-
-        let revenue_id = net_income_members
-            .iter()
-            .find(|m| m.name == NI_REVENUE_NAME)
-            .ok_or(BalanceSheetError::NotFound(NI_REVENUE_NAME.to_string()))?
-            .id;
-
-        let expenses_id = net_income_members
-            .iter()
-            .find(|m| m.name == NI_EXPENSES_NAME)
-            .ok_or(BalanceSheetError::NotFound(NI_EXPENSES_NAME.to_string()))?
-            .id;
-
-        Ok(Some(BalanceSheetIds {
-            id: statement_id,
-            assets: assets_id,
-            liabilities: liabilities_id,
-            equity: equity_id,
-            revenue: revenue_id,
-            expenses: expenses_id,
-        }))
+            .find_by_name(name.to_string())
+            .await?)
     }
 
     async fn add_to(
@@ -227,15 +155,7 @@ impl BalanceSheets {
             .enforce_permission(sub, Object::BalanceSheet, BalanceSheetAction::Read)
             .await?;
 
-        let balance_sheet_ids = self
-            .find_by_name(name.to_string())
-            .await?
-            .ok_or(BalanceSheetError::NotFound(name))?;
-
-        Ok(self
-            .balance_sheet_ledger
-            .get_balance_sheet(balance_sheet_ids)
-            .await?)
+        Ok(self.balance_sheet_ledger.get_balance_sheet(name).await?)
     }
 }
 

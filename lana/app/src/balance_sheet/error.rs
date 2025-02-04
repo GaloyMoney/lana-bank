@@ -10,8 +10,4 @@ pub enum BalanceSheetError {
     AuthorizationError(#[from] authz::error::AuthorizationError),
     #[error("BalanceSheetError - BalanceSheetLedgerError: {0}")]
     BalanceSheetLedgerError(#[from] super::ledger::error::BalanceSheetLedgerError),
-    #[error("BalanceSheetError - MultipleFound: {0}")]
-    MultipleFound(String),
-    #[error("BalanceSheetError - NotFound: {0}")]
-    NotFound(String),
 }

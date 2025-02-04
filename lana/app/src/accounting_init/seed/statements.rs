@@ -42,31 +42,13 @@ async fn create_pl_statements(
 }
 
 async fn create_balance_sheets(balance_sheets: &BalanceSheets) -> Result<(), AccountingInitError> {
-    let _primary_id = match balance_sheets
-        .find_by_name(BALANCE_SHEET_NAME.to_string())
-        .await?
-    {
-        Some(balance_sheet_id) => balance_sheet_id,
-        None => {
-            balance_sheets
-                .create_balance_sheet(LedgerAccountSetId::new(), BALANCE_SHEET_NAME.to_string())
-                .await?
-        }
-    };
+    let _primary_id = balance_sheets
+        .find_or_create_balance_sheet(BALANCE_SHEET_NAME.to_string())
+        .await?;
 
-    let _off_balance_sheet_id = match balance_sheets
-        .find_by_name(OBS_BALANCE_SHEET_NAME.to_string())
-        .await?
-    {
-        Some(balance_sheet_id) => balance_sheet_id,
-        None => {
-            balance_sheets
-                .create_balance_sheet(
-                    LedgerAccountSetId::new(),
-                    OBS_BALANCE_SHEET_NAME.to_string(),
-                )
-                .await?
-        }
-    };
+    let _off_balance_sheet_id = balance_sheets
+        .find_or_create_balance_sheet(OBS_BALANCE_SHEET_NAME.to_string())
+        .await?;
+
     Ok(())
 }

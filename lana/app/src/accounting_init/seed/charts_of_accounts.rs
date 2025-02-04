@@ -131,8 +131,7 @@ async fn create_deposits_account_paths(
 ) -> Result<DepositsAccountPaths, AccountingInitError> {
     let balance_sheet = balance_sheets
         .find_by_name(BALANCE_SHEET_NAME.to_string())
-        .await?
-        .unwrap_or_else(|| panic!("Balance sheet for name '{}' not found", BALANCE_SHEET_NAME));
+        .await?;
 
     let trial_balance_id = trial_balances
         .find_by_name(TRIAL_BALANCE_STATEMENT_NAME.to_string())
@@ -199,13 +198,11 @@ async fn create_credit_facilities_account_paths(
 ) -> Result<CreditFacilitiesAccountPaths, AccountingInitError> {
     let balance_sheet = balance_sheets
         .find_by_name(BALANCE_SHEET_NAME.to_string())
-        .await?
-        .unwrap_or_else(|| panic!("Balance sheet for name '{}' not found", BALANCE_SHEET_NAME));
+        .await?;
 
     let obs_balance_sheet = balance_sheets
         .find_by_name(OBS_BALANCE_SHEET_NAME.to_string())
-        .await?
-        .unwrap_or_else(|| panic!("Balance sheet for name '{}' not found", BALANCE_SHEET_NAME));
+        .await?;
 
     let trial_balance_id = trial_balances
         .find_by_name(TRIAL_BALANCE_STATEMENT_NAME.to_string())

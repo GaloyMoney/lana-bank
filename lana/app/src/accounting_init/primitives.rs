@@ -1,6 +1,4 @@
-pub use cala_ledger::primitives::{
-    AccountSetId as LedgerAccountSetId, JournalId as LedgerJournalId,
-};
+pub use cala_ledger::primitives::JournalId as LedgerJournalId;
 
 use chart_of_accounts::{ChartId, ControlSubAccountDetails};
 

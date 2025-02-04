@@ -1,7 +1,7 @@
 pub mod error;
 
 use cala_ledger::{
-    account_set::{AccountSet, AccountSetMemberId, AccountSetsByCreatedAtCursor, NewAccountSet},
+    account_set::{AccountSetMemberId, NewAccountSet},
     balance::error::BalanceError,
     AccountSetId, CalaLedger, Currency, DebitOrCredit, JournalId, LedgerOperation,
 };
@@ -29,15 +29,18 @@ impl BalanceSheetLedger {
         }
     }
 
-    pub async fn create(
+    pub async fn find_or_create(
         &self,
         op: es_entity::DbOp<'_>,
-        statement_id: impl Into<AccountSetId>,
         name: &str,
     ) -> Result<BalanceSheetIds, BalanceSheetLedgerError> {
         let mut op = self.cala.ledger_operation_from_db_op(op);
 
-        let statement_id = statement_id.into();
+        if let Some(ids) = self.find_by_name_in_op(&mut op, name.to_string()).await? {
+            return Ok(ids);
+        }
+
+        let statement_id = AccountSetId::new();
         let new_account_set = NewAccountSet::builder()
             .id(statement_id)
             .journal_id(self.journal_id)
@@ -171,15 +174,95 @@ impl BalanceSheetLedger {
         })
     }
 
-    pub async fn list_for_name(
+    pub async fn find_by_name(
         &self,
         name: String,
-        args: es_entity::PaginatedQueryArgs<AccountSetsByCreatedAtCursor>,
-    ) -> Result<
-        es_entity::PaginatedQueryRet<AccountSet, AccountSetsByCreatedAtCursor>,
-        BalanceSheetLedgerError,
-    > {
-        Ok(self.cala.account_sets().list_for_name(name, args).await?)
+    ) -> Result<BalanceSheetIds, BalanceSheetLedgerError> {
+        let mut op = self.cala.begin_operation().await?;
+        match self.find_by_name_in_op(&mut op, name.to_string()).await? {
+            Some(ids) => Ok(ids),
+            None => Err(BalanceSheetLedgerError::NotFound(name)),
+        }
+    }
+
+    async fn find_by_name_in_op(
+        &self,
+        op: &mut LedgerOperation<'_>,
+        name: String,
+    ) -> Result<Option<BalanceSheetIds>, BalanceSheetLedgerError> {
+        let balance_sheets = self
+            .cala
+            .account_sets()
+            .list_for_name_in_op(op, name.to_string(), Default::default())
+            .await?
+            .entities;
+
+        let statement_id = match balance_sheets.len() {
+            1 => balance_sheets[0].id,
+            0 => return Ok(None),
+            _ => return Err(BalanceSheetLedgerError::MultipleFound(name)),
+        };
+
+        let statement_members = self.get_member_account_sets_in_op(op, statement_id).await?;
+
+        let assets_id = statement_members
+            .iter()
+            .find(|m| m.name == ASSETS_NAME)
+            .ok_or(BalanceSheetLedgerError::NotFound(ASSETS_NAME.to_string()))?
+            .id;
+
+        let liabilities_id = statement_members
+            .iter()
+            .find(|m| m.name == LIABILITIES_NAME)
+            .ok_or(BalanceSheetLedgerError::NotFound(
+                LIABILITIES_NAME.to_string(),
+            ))?
+            .id;
+
+        let equity_id = statement_members
+            .iter()
+            .find(|m| m.name == EQUITY_NAME)
+            .ok_or(BalanceSheetLedgerError::NotFound(EQUITY_NAME.to_string()))?
+            .id;
+
+        let equity_members = self.get_member_account_sets_in_op(op, equity_id).await?;
+
+        let net_income_id = equity_members
+            .iter()
+            .find(|m| m.name == NET_INCOME_NAME)
+            .ok_or(BalanceSheetLedgerError::NotFound(
+                NET_INCOME_NAME.to_string(),
+            ))?
+            .id;
+
+        let net_income_members = self
+            .get_member_account_sets_in_op(op, net_income_id)
+            .await?;
+
+        let revenue_id = net_income_members
+            .iter()
+            .find(|m| m.name == NI_REVENUE_NAME)
+            .ok_or(BalanceSheetLedgerError::NotFound(
+                NI_REVENUE_NAME.to_string(),
+            ))?
+            .id;
+
+        let expenses_id = net_income_members
+            .iter()
+            .find(|m| m.name == NI_EXPENSES_NAME)
+            .ok_or(BalanceSheetLedgerError::NotFound(
+                NI_EXPENSES_NAME.to_string(),
+            ))?
+            .id;
+
+        Ok(Some(BalanceSheetIds {
+            id: statement_id,
+            assets: assets_id,
+            liabilities: liabilities_id,
+            equity: equity_id,
+            revenue: revenue_id,
+            expenses: expenses_id,
+        }))
     }
 
     pub async fn add_member(
@@ -321,8 +404,10 @@ impl BalanceSheetLedger {
 
     pub async fn get_balance_sheet(
         &self,
-        ids: BalanceSheetIds,
+        name: String,
     ) -> Result<BalanceSheet, BalanceSheetLedgerError> {
+        let ids = self.find_by_name(name.to_string()).await?;
+
         let mut op = self.cala.begin_operation().await?;
 
         let balance_sheet_set = self.get_account_set_in_op(&mut op, ids.id).await?;

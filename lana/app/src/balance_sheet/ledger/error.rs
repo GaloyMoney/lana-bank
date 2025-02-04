@@ -14,4 +14,8 @@ pub enum BalanceSheetLedgerError {
     Statement(#[from] crate::statement::error::StatementError),
     #[error("BalanceSheetLedgerError - NonAccountSetMemberTypeFound")]
     NonAccountSetMemberTypeFound,
+    #[error("BalanceSheetLedgerError - MultipleFound: {0}")]
+    MultipleFound(String),
+    #[error("BalanceSheetLedgerError - NotFound: {0}")]
+    NotFound(String),
 }
