@@ -252,13 +252,11 @@ where
 
     pub async fn create_control_sub_account(
         &self,
-        id: impl Into<LedgerAccountSetId> + std::fmt::Debug,
         chart_id: impl Into<ChartId> + std::fmt::Debug,
         control_account: ControlAccountDetails,
         name: String,
         reference: String,
     ) -> Result<ControlSubAccountDetails, CoreChartOfAccountsError> {
-        let id = id.into();
         let chart_id = chart_id.into();
 
         let mut op = self.repo.begin_op().await?;
@@ -276,7 +274,7 @@ where
         let mut chart = self.repo.find_by_id(chart_id).await?;
 
         let control_sub_account = chart.create_control_sub_account(
-            id,
+            LedgerAccountSetId::new(),
             control_account.path,
             name,
             reference,

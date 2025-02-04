@@ -49,7 +49,6 @@ async fn deposit() -> anyhow::Result<()> {
         .await?;
     let control_sub_account = chart_of_accounts
         .create_control_sub_account(
-            LedgerAccountSetId::new(),
             chart_id,
             control_account,
             "User Deposits".to_string(),
@@ -69,7 +68,6 @@ async fn deposit() -> anyhow::Result<()> {
         .await?;
     let omnibus_control_sub_account = chart_of_accounts
         .create_control_sub_account(
-            LedgerAccountSetId::new(),
             chart_id,
             omnibus_control_account,
             "User Deposits Omnibus".to_string(),
