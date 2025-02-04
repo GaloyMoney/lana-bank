@@ -59,13 +59,13 @@ class TapSumsubApi(Tap):
             ),
         ),
         th.Property(
-            "key",
+            "secret",
             th.StringType,
             description="Example: Hej2ch71kG2kTd1iIUDZFNsO5C1lh5Gq",
             required=True,
         ),
         th.Property(
-            "secret",
+            "key",
             th.StringType,
             description="Example: sbx:uY0CgwELmgUAEyl4hNWxLngb.0WSeQeiYny4WEqmAALEAiK2qTC96fBad",
             required=True,

@@ -20,14 +20,13 @@ poetry run tap-sumsubapi --about --format=markdown
 
 | Setting | Required | Default | Description |
 |:--------|:--------:|:-------:|:------------|
-| host | True     | None    |             |
-| port | False    |    5432 |             |
-| database | True     | None    |             |
-| user | True     | None    |             |
-| password | True     | None    |             |
-| sslmode | False    | prefer  |             |
-| sumsub_secret_key | True     | None    |             |
-| sumsub_app_token | True     | None    |             |
+| host | False    | None    | Hostname for postgres instance. Note if sqlalchemy_url is set this will be ignored. |
+| port | False    |    5432 | The port on which postgres is awaiting connection. Note if sqlalchemy_url is set this will be ignored. |
+| user | False    | None    | User name used to authenticate. Note if sqlalchemy_url is set this will be ignored. |
+| password | False    | None    | Password used to authenticate. Note if sqlalchemy_url is set this will be ignored. |
+| database | False    | None    | Database name. Note if sqlalchemy_url is set this will be ignored. |
+| secret | True     | None    | Example: Hej2ch71kG2kTd1iIUDZFNsO5C1lh5Gq |
+| key | True     | None    | Example: sbx:uY0CgwELmgUAEyl4hNWxLngb.0WSeQeiYny4WEqmAALEAiK2qTC96fBad |
 
 ### Configure using environment variables
 

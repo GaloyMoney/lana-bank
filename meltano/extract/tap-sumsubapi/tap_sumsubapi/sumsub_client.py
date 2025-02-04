@@ -48,11 +48,11 @@ class SumsubClient:
         )
         # hmac needs bytes
         signature = hmac.new(
-            self.config.get("key").encode("utf-8"),
+            self.config.get("secret").encode("utf-8"),
             data_to_sign,
             digestmod=hashlib.sha256,
         )
-        prepared_request.headers["X-App-Token"] = self.config.get("secret")
+        prepared_request.headers["X-App-Token"] = self.config.get("key")
         prepared_request.headers["X-App-Access-Ts"] = str(now)
         prepared_request.headers["X-App-Access-Sig"] = signature.hexdigest()
         return prepared_request
