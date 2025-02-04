@@ -131,10 +131,6 @@ async fn create_deposits_account_paths(
         .find_by_name(BALANCE_SHEET_NAME.to_string())
         .await?;
 
-    let trial_balance_id = trial_balances
-        .find_by_name(TRIAL_BALANCE_STATEMENT_NAME.to_string())
-        .await?;
-
     let (deposits_control, deposits) = find_or_create_control_sub_account(
         chart_of_accounts,
         chart_ids.primary,
@@ -150,7 +146,10 @@ async fn create_deposits_account_paths(
     .await?;
 
     trial_balances
-        .add_to_trial_balance(trial_balance_id, deposits_control.account_set_id)
+        .add_to_trial_balance(
+            TRIAL_BALANCE_STATEMENT_NAME.to_string(),
+            deposits_control.account_set_id,
+        )
         .await?;
 
     balance_sheets
@@ -172,7 +171,10 @@ async fn create_deposits_account_paths(
     .await?;
 
     trial_balances
-        .add_to_trial_balance(trial_balance_id, deposits_omnibus_control.account_set_id)
+        .add_to_trial_balance(
+            TRIAL_BALANCE_STATEMENT_NAME.to_string(),
+            deposits_omnibus_control.account_set_id,
+        )
         .await?;
 
     balance_sheets
@@ -200,14 +202,6 @@ async fn create_credit_facilities_account_paths(
         .find_by_name(OBS_BALANCE_SHEET_NAME.to_string())
         .await?;
 
-    let trial_balance_id = trial_balances
-        .find_by_name(TRIAL_BALANCE_STATEMENT_NAME.to_string())
-        .await?;
-
-    let obs_trial_balance_id = trial_balances
-        .find_by_name(OBS_TRIAL_BALANCE_STATEMENT_NAME.to_string())
-        .await?;
-
     let pl_statement_ids = pl_statements
         .find_by_name(PROFIT_AND_LOSS_STATEMENT_NAME.to_string())
         .await?;
@@ -226,7 +220,10 @@ async fn create_credit_facilities_account_paths(
     )
     .await?;
     trial_balances
-        .add_to_trial_balance(obs_trial_balance_id, collateral_control.account_set_id)
+        .add_to_trial_balance(
+            OBS_TRIAL_BALANCE_STATEMENT_NAME.to_string(),
+            collateral_control.account_set_id,
+        )
         .await?;
     balance_sheets
         .add_to_liabilities(obs_balance_sheet_ids, collateral_control.account_set_id)
@@ -247,7 +244,7 @@ async fn create_credit_facilities_account_paths(
     .await?;
     trial_balances
         .add_to_trial_balance(
-            obs_trial_balance_id,
+            OBS_TRIAL_BALANCE_STATEMENT_NAME.to_string(),
             collateral_omnibus_control.account_set_id,
         )
         .await?;
@@ -272,7 +269,10 @@ async fn create_credit_facilities_account_paths(
     )
     .await?;
     trial_balances
-        .add_to_trial_balance(obs_trial_balance_id, facility_control.account_set_id)
+        .add_to_trial_balance(
+            OBS_TRIAL_BALANCE_STATEMENT_NAME.to_string(),
+            facility_control.account_set_id,
+        )
         .await?;
     balance_sheets
         .add_to_liabilities(obs_balance_sheet_ids, facility_control.account_set_id)
@@ -293,7 +293,7 @@ async fn create_credit_facilities_account_paths(
     .await?;
     trial_balances
         .add_to_trial_balance(
-            obs_trial_balance_id,
+            OBS_TRIAL_BALANCE_STATEMENT_NAME.to_string(),
             facility_omnibus_control.account_set_id,
         )
         .await?;
@@ -319,7 +319,7 @@ async fn create_credit_facilities_account_paths(
     .await?;
     trial_balances
         .add_to_trial_balance(
-            trial_balance_id,
+            TRIAL_BALANCE_STATEMENT_NAME.to_string(),
             disbursed_receivable_control.account_set_id,
         )
         .await?;
@@ -344,7 +344,10 @@ async fn create_credit_facilities_account_paths(
     )
     .await?;
     trial_balances
-        .add_to_trial_balance(trial_balance_id, interest_receivable_control.account_set_id)
+        .add_to_trial_balance(
+            TRIAL_BALANCE_STATEMENT_NAME.to_string(),
+            interest_receivable_control.account_set_id,
+        )
         .await?;
     balance_sheets
         .add_to_assets(
@@ -367,7 +370,10 @@ async fn create_credit_facilities_account_paths(
     )
     .await?;
     trial_balances
-        .add_to_trial_balance(trial_balance_id, interest_income_control.account_set_id)
+        .add_to_trial_balance(
+            TRIAL_BALANCE_STATEMENT_NAME.to_string(),
+            interest_income_control.account_set_id,
+        )
         .await?;
     pl_statements
         .add_to_revenue(pl_statement_ids, interest_income_control.account_set_id)
@@ -390,7 +396,10 @@ async fn create_credit_facilities_account_paths(
     )
     .await?;
     trial_balances
-        .add_to_trial_balance(trial_balance_id, fee_income_control.account_set_id)
+        .add_to_trial_balance(
+            TRIAL_BALANCE_STATEMENT_NAME.to_string(),
+            fee_income_control.account_set_id,
+        )
         .await?;
     pl_statements
         .add_to_revenue(pl_statement_ids, fee_income_control.account_set_id)

@@ -56,28 +56,14 @@ impl TrialBalances {
         Ok(self.trial_balance_ledger.find_or_create(op, &name).await?)
     }
 
-    pub async fn find_by_name(
-        &self,
-        name: String,
-    ) -> Result<LedgerAccountSetId, TrialBalanceError> {
-        self.authz
-            .audit()
-            .record_system_entry(Object::TrialBalance, TrialBalanceAction::Read)
-            .await?;
-
-        Ok(self
-            .trial_balance_ledger
-            .find_by_name(name.to_string())
-            .await?)
-    }
-
     pub async fn add_to_trial_balance(
         &self,
-        trial_balance_id: impl Into<LedgerAccountSetId>,
+        name: String,
         member_id: impl Into<LedgerAccountSetId>,
     ) -> Result<(), TrialBalanceError> {
-        let trial_balance_id = trial_balance_id.into();
         let member_id = member_id.into();
+
+        let trial_balance_id = self.trial_balance_ledger.find_by_name(name).await?;
 
         let mut op = es_entity::DbOp::init(&self.pool).await?;
 
