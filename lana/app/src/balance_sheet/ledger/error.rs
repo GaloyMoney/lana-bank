@@ -20,11 +20,11 @@ pub enum BalanceSheetLedgerError {
 
 impl BalanceSheetLedgerError {
     pub fn account_set_exists(&self) -> bool {
-        match self {
+        matches!(
+            self,
             Self::CalaAccountSet(
                 cala_ledger::account_set::error::AccountSetError::ExternalIdAlreadyExists,
-            ) => true,
-            _ => false,
-        }
+            )
+        )
     }
 }
