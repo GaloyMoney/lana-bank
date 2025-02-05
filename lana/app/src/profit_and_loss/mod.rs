@@ -48,10 +48,10 @@ impl ProfitAndLossStatements {
         })
     }
 
-    pub async fn find_or_create_pl_statement(
+    pub async fn create_pl_statement(
         &self,
         name: String,
-    ) -> Result<ProfitAndLossStatementIds, ProfitAndLossStatementError> {
+    ) -> Result<Option<ProfitAndLossStatementIds>, ProfitAndLossStatementError> {
         let mut op = es_entity::DbOp::init(&self.pool).await?;
 
         self.authz
@@ -59,23 +59,23 @@ impl ProfitAndLossStatements {
             .record_system_entry_in_tx(
                 op.tx(),
                 Object::ProfitAndLossStatement,
-                ProfitAndLossStatementAction::FindOrCreate,
+                ProfitAndLossStatementAction::Create,
             )
             .await?;
 
-        Ok(self.pl_statement_ledger.find_or_create(op, &name).await?)
+        match self.pl_statement_ledger.create(op, &name).await {
+            Ok(id) => Ok(Some(id)),
+            Err(e) if e.account_set_exists() => Ok(None),
+            Err(e) => Err(e.into()),
+        }
     }
 
     pub async fn add_to_revenue(
         &self,
-        name: String,
+        reference: String,
         member_id: impl Into<LedgerAccountSetId>,
     ) -> Result<(), ProfitAndLossStatementError> {
         let member_id = member_id.into();
-        let statement_ids = self
-            .pl_statement_ledger
-            .find_by_name(name.to_string())
-            .await?;
 
         let mut op = es_entity::DbOp::init(&self.pool).await?;
 
@@ -86,6 +86,11 @@ impl ProfitAndLossStatements {
                 Object::ProfitAndLossStatement,
                 ProfitAndLossStatementAction::Update,
             )
+            .await?;
+
+        let statement_ids = self
+            .pl_statement_ledger
+            .find_by_reference(reference)
             .await?;
 
         self.pl_statement_ledger
@@ -97,14 +102,10 @@ impl ProfitAndLossStatements {
 
     pub async fn add_to_expenses(
         &self,
-        name: String,
+        reference: String,
         member_id: impl Into<LedgerAccountSetId>,
     ) -> Result<(), ProfitAndLossStatementError> {
         let member_id = member_id.into();
-        let statement_ids = self
-            .pl_statement_ledger
-            .find_by_name(name.to_string())
-            .await?;
 
         let mut op = es_entity::DbOp::init(&self.pool).await?;
 
@@ -115,6 +116,11 @@ impl ProfitAndLossStatements {
                 Object::ProfitAndLossStatement,
                 ProfitAndLossStatementAction::Update,
             )
+            .await?;
+
+        let statement_ids = self
+            .pl_statement_ledger
+            .find_by_reference(reference)
             .await?;
 
         self.pl_statement_ledger
@@ -127,7 +133,7 @@ impl ProfitAndLossStatements {
     pub async fn pl_statement(
         &self,
         sub: &Subject,
-        name: String,
+        reference: String,
     ) -> Result<ProfitAndLossStatement, ProfitAndLossStatementError> {
         self.authz
             .enforce_permission(
@@ -137,7 +143,7 @@ impl ProfitAndLossStatements {
             )
             .await?;
 
-        Ok(self.pl_statement_ledger.get_pl_statement(name).await?)
+        Ok(self.pl_statement_ledger.get_pl_statement(reference).await?)
     }
 }
 

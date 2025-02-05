@@ -14,8 +14,17 @@ pub enum ProfitAndLossStatementLedgerError {
     Statement(#[from] crate::statement::error::StatementError),
     #[error("ProfitAndLossStatementLedgerError - NonAccountSetMemberTypeFound")]
     NonAccountSetMemberTypeFound,
-    #[error("ProfitAndLossStatementLedgerError - MultipleFound: {0}")]
-    MultipleFound(String),
     #[error("ProfitAndLossStatementLedgerError - NotFound: {0}")]
     NotFound(String),
+}
+
+impl ProfitAndLossStatementLedgerError {
+    pub fn account_set_exists(&self) -> bool {
+        match self {
+            Self::CalaAccountSet(
+                cala_ledger::account_set::error::AccountSetError::ExternalIdAlreadyExists,
+            ) => true,
+            _ => false,
+        }
+    }
 }
