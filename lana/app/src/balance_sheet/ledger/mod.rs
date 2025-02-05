@@ -29,23 +29,20 @@ impl BalanceSheetLedger {
         }
     }
 
-    pub async fn find_or_create(
+    pub async fn create(
         &self,
         op: es_entity::DbOp<'_>,
-        name: &str,
+        reference: &str,
     ) -> Result<BalanceSheetIds, BalanceSheetLedgerError> {
         let mut op = self.cala.ledger_operation_from_db_op(op);
-
-        if let Some(ids) = self.find_by_name_in_op(&mut op, name.to_string()).await? {
-            return Ok(ids);
-        }
 
         let statement_id = AccountSetId::new();
         let new_account_set = NewAccountSet::builder()
             .id(statement_id)
             .journal_id(self.journal_id)
-            .name(name)
-            .description(name)
+            .external_id(reference)
+            .name(reference)
+            .description(reference)
             .normal_balance_type(DebitOrCredit::Debit)
             .build()
             .expect("Could not build new account set");
@@ -174,36 +171,18 @@ impl BalanceSheetLedger {
         })
     }
 
-    pub async fn find_by_name(
+    pub async fn find_by_reference(
         &self,
-        name: String,
+        reference: String,
     ) -> Result<BalanceSheetIds, BalanceSheetLedgerError> {
-        let mut op = self.cala.begin_operation().await?;
-        match self.find_by_name_in_op(&mut op, name.to_string()).await? {
-            Some(ids) => Ok(ids),
-            None => Err(BalanceSheetLedgerError::NotFound(name)),
-        }
-    }
-
-    async fn find_by_name_in_op(
-        &self,
-        op: &mut LedgerOperation<'_>,
-        name: String,
-    ) -> Result<Option<BalanceSheetIds>, BalanceSheetLedgerError> {
-        let balance_sheets = self
+        let statement_id = self
             .cala
             .account_sets()
-            .list_for_name_in_op(op, name.to_string(), Default::default())
+            .find_by_external_id(reference)
             .await?
-            .entities;
+            .id;
 
-        let statement_id = match balance_sheets.len() {
-            1 => balance_sheets[0].id,
-            0 => return Ok(None),
-            _ => return Err(BalanceSheetLedgerError::MultipleFound(name)),
-        };
-
-        let statement_members = self.get_member_account_sets_in_op(op, statement_id).await?;
+        let statement_members = self.get_member_account_sets(statement_id).await?;
 
         let assets_id = statement_members
             .iter()
@@ -225,7 +204,7 @@ impl BalanceSheetLedger {
             .ok_or(BalanceSheetLedgerError::NotFound(EQUITY_NAME.to_string()))?
             .id;
 
-        let equity_members = self.get_member_account_sets_in_op(op, equity_id).await?;
+        let equity_members = self.get_member_account_sets(equity_id).await?;
 
         let net_income_id = equity_members
             .iter()
@@ -235,9 +214,7 @@ impl BalanceSheetLedger {
             ))?
             .id;
 
-        let net_income_members = self
-            .get_member_account_sets_in_op(op, net_income_id)
-            .await?;
+        let net_income_members = self.get_member_account_sets(net_income_id).await?;
 
         let revenue_id = net_income_members
             .iter()
@@ -255,14 +232,14 @@ impl BalanceSheetLedger {
             ))?
             .id;
 
-        Ok(Some(BalanceSheetIds {
+        Ok(BalanceSheetIds {
             id: statement_id,
             assets: assets_id,
             liabilities: liabilities_id,
             equity: equity_id,
             revenue: revenue_id,
             expenses: expenses_id,
-        }))
+        })
     }
 
     pub async fn add_member(
@@ -404,9 +381,9 @@ impl BalanceSheetLedger {
 
     pub async fn get_balance_sheet(
         &self,
-        name: String,
+        reference: String,
     ) -> Result<BalanceSheet, BalanceSheetLedgerError> {
-        let ids = self.find_by_name(name.to_string()).await?;
+        let ids = self.find_by_reference(reference).await?;
 
         let mut op = self.cala.begin_operation().await?;
 

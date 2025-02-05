@@ -55,22 +55,22 @@ impl BalanceSheets {
         })
     }
 
-    pub async fn find_or_create_balance_sheet(
+    pub async fn create_balance_sheet(
         &self,
         name: String,
-    ) -> Result<BalanceSheetIds, BalanceSheetError> {
+    ) -> Result<Option<BalanceSheetIds>, BalanceSheetError> {
         let mut op = es_entity::DbOp::init(&self.pool).await?;
 
         self.authz
             .audit()
-            .record_system_entry_in_tx(
-                op.tx(),
-                Object::BalanceSheet,
-                BalanceSheetAction::FindOrCreate,
-            )
+            .record_system_entry_in_tx(op.tx(), Object::BalanceSheet, BalanceSheetAction::Create)
             .await?;
 
-        Ok(self.balance_sheet_ledger.find_or_create(op, &name).await?)
+        match self.balance_sheet_ledger.create(op, &name).await {
+            Ok(id) => Ok(Some(id)),
+            Err(e) if e.account_set_exists() => Ok(None),
+            Err(e) => Err(e.into()),
+        }
     }
 
     async fn add_to(
@@ -96,50 +96,65 @@ impl BalanceSheets {
 
     pub async fn add_to_assets(
         &self,
-        name: String,
+        reference: String,
         member_id: impl Into<LedgerAccountSetId>,
     ) -> Result<(), BalanceSheetError> {
-        let statement_ids = self.balance_sheet_ledger.find_by_name(name).await?;
+        let statement_ids = self
+            .balance_sheet_ledger
+            .find_by_reference(reference)
+            .await?;
 
         self.add_to(statement_ids.assets, member_id).await
     }
 
     pub async fn add_to_liabilities(
         &self,
-        name: String,
+        reference: String,
         member_id: impl Into<LedgerAccountSetId>,
     ) -> Result<(), BalanceSheetError> {
-        let statement_ids = self.balance_sheet_ledger.find_by_name(name).await?;
+        let statement_ids = self
+            .balance_sheet_ledger
+            .find_by_reference(reference)
+            .await?;
 
         self.add_to(statement_ids.liabilities, member_id).await
     }
 
     pub async fn add_to_equity(
         &self,
-        name: String,
+        reference: String,
         member_id: impl Into<LedgerAccountSetId>,
     ) -> Result<(), BalanceSheetError> {
-        let statement_ids = self.balance_sheet_ledger.find_by_name(name).await?;
+        let statement_ids = self
+            .balance_sheet_ledger
+            .find_by_reference(reference)
+            .await?;
 
         self.add_to(statement_ids.equity, member_id).await
     }
 
     pub async fn add_to_revenue(
         &self,
-        name: String,
+        reference: String,
         member_id: impl Into<LedgerAccountSetId>,
     ) -> Result<(), BalanceSheetError> {
-        let statement_ids = self.balance_sheet_ledger.find_by_name(name).await?;
+        let statement_ids = self
+            .balance_sheet_ledger
+            .find_by_reference(reference)
+            .await?;
 
         self.add_to(statement_ids.revenue, member_id).await
     }
 
     pub async fn add_to_expenses(
         &self,
-        name: String,
+        reference: String,
         member_id: impl Into<LedgerAccountSetId>,
     ) -> Result<(), BalanceSheetError> {
-        let statement_ids = self.balance_sheet_ledger.find_by_name(name).await?;
+        let statement_ids = self
+            .balance_sheet_ledger
+            .find_by_reference(reference)
+            .await?;
 
         self.add_to(statement_ids.expenses, member_id).await
     }
@@ -147,13 +162,16 @@ impl BalanceSheets {
     pub async fn balance_sheet(
         &self,
         sub: &Subject,
-        name: String,
+        reference: String,
     ) -> Result<BalanceSheet, BalanceSheetError> {
         self.authz
             .enforce_permission(sub, Object::BalanceSheet, BalanceSheetAction::Read)
             .await?;
 
-        Ok(self.balance_sheet_ledger.get_balance_sheet(name).await?)
+        Ok(self
+            .balance_sheet_ledger
+            .get_balance_sheet(reference)
+            .await?)
     }
 }
 
