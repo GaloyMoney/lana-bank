@@ -38,22 +38,22 @@ impl TrialBalances {
         })
     }
 
-    pub async fn find_or_create_trial_balance_statement(
+    pub async fn create_trial_balance_statement(
         &self,
-        name: String,
-    ) -> Result<LedgerAccountSetId, TrialBalanceError> {
+        reference: String,
+    ) -> Result<Option<LedgerAccountSetId>, TrialBalanceError> {
         let mut op = es_entity::DbOp::init(&self.pool).await?;
 
         self.authz
             .audit()
-            .record_system_entry_in_tx(
-                op.tx(),
-                Object::TrialBalance,
-                TrialBalanceAction::FindOrCreate,
-            )
+            .record_system_entry_in_tx(op.tx(), Object::TrialBalance, TrialBalanceAction::Create)
             .await?;
 
-        Ok(self.trial_balance_ledger.find_or_create(op, &name).await?)
+        match self.trial_balance_ledger.create(op, &reference).await {
+            Ok(id) => Ok(Some(id)),
+            Err(e) if e.account_set_exists() => Ok(None),
+            Err(e) => Err(e.into()),
+        }
     }
 
     pub async fn add_to_trial_balance(

@@ -20,12 +20,11 @@ pub(crate) async fn init(
 }
 
 async fn create_trial_balances(trial_balances: &TrialBalances) -> Result<(), AccountingInitError> {
-    let _primary_id = trial_balances
-        .find_or_create_trial_balance_statement(TRIAL_BALANCE_STATEMENT_NAME.to_string())
+    trial_balances
+        .create_trial_balance_statement(TRIAL_BALANCE_STATEMENT_NAME.to_string())
         .await?;
-
-    let _off_balance_sheet_id = trial_balances
-        .find_or_create_trial_balance_statement(OBS_TRIAL_BALANCE_STATEMENT_NAME.to_string())
+    trial_balances
+        .create_trial_balance_statement(OBS_TRIAL_BALANCE_STATEMENT_NAME.to_string())
         .await?;
 
     Ok(())

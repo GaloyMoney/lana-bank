@@ -14,8 +14,15 @@ pub enum TrialBalanceLedgerError {
     Statement(#[from] crate::statement::error::StatementError),
     #[error("TrialBalanceLedgerError - NonAccountSetMemberTypeFound")]
     NonAccountSetMemberTypeFound,
-    #[error("TrialBalanceLedgerError - NotFound: {0}")]
-    NotFound(String),
-    #[error("TrialBalanceLedgerError - MultipleFound: {0}")]
-    MultipleFound(String),
+}
+
+impl TrialBalanceLedgerError {
+    pub fn account_set_exists(&self) -> bool {
+        match self {
+            Self::CalaAccountSet(
+                cala_ledger::account_set::error::AccountSetError::ExternalIdAlreadyExists,
+            ) => true,
+            _ => false,
+        }
+    }
 }

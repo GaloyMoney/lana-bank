@@ -24,38 +24,24 @@ impl TrialBalanceLedger {
         }
     }
 
-    pub async fn find_or_create(
+    pub async fn create(
         &self,
         op: es_entity::DbOp<'_>,
-        name: &str,
+        reference: &str,
     ) -> Result<AccountSetId, TrialBalanceLedgerError> {
-        let mut op = self.cala.ledger_operation_from_db_op(op);
-
-        let trial_balances = self
-            .cala
-            .account_sets()
-            .list_for_name_in_op(&mut op, name.to_string(), Default::default())
-            .await?
-            .entities;
-        match trial_balances.len() {
-            1 => return Ok(trial_balances[0].id),
-            0 => (),
-            _ => return Err(TrialBalanceLedgerError::MultipleFound(name.to_string())),
-        };
+        let op = self.cala.ledger_operation_from_db_op(op);
 
         let statement_id = AccountSetId::new();
         let new_account_set = NewAccountSet::builder()
             .id(statement_id)
             .journal_id(self.journal_id)
-            .name(name)
-            .description(name)
+            .external_id(reference)
+            .name(reference)
+            .description(reference)
             .normal_balance_type(DebitOrCredit::Debit)
             .build()
             .expect("Could not build new account set");
-        self.cala
-            .account_sets()
-            .create_in_op(&mut op, new_account_set)
-            .await?;
+        self.cala.account_sets().create(new_account_set).await?;
 
         op.commit().await?;
         Ok(statement_id)
@@ -63,20 +49,14 @@ impl TrialBalanceLedger {
 
     pub async fn find_by_name(
         &self,
-        name: String,
+        reference: String,
     ) -> Result<AccountSetId, TrialBalanceLedgerError> {
-        let trial_balances = self
+        Ok(self
             .cala
             .account_sets()
-            .list_for_name(name.to_string(), Default::default())
+            .find_by_external_id(reference)
             .await?
-            .entities;
-
-        match trial_balances.len() {
-            1 => Ok(trial_balances[0].id),
-            0 => Err(TrialBalanceLedgerError::NotFound(name.to_string())),
-            _ => Err(TrialBalanceLedgerError::MultipleFound(name.to_string())),
-        }
+            .id)
     }
 
     pub async fn add_member(
