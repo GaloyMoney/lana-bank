@@ -1,9 +1,11 @@
 pub mod error;
 
+use std::collections::HashMap;
+
 use cala_ledger::{
-    account_set::{AccountSetMemberId, NewAccountSet},
-    balance::error::BalanceError,
-    AccountSetId, CalaLedger, Currency, DebitOrCredit, JournalId, LedgerOperation,
+    account_set::{AccountSetMemberId, AccountSetValues, NewAccountSet},
+    balance::AccountBalance,
+    AccountId, AccountSetId, BalanceId, CalaLedger, Currency, DebitOrCredit, JournalId,
 };
 
 use crate::statement::*;
@@ -82,43 +84,31 @@ impl TrialBalanceLedger {
         Ok(())
     }
 
-    async fn get_account_set_in_op(
+    async fn get_statement_account_set(
         &self,
-        op: &mut LedgerOperation<'_>,
-        id: impl Into<AccountSetId> + Copy,
+        account_set_id: AccountSetId,
+        balances_by_id: &HashMap<AccountId, HashMap<Currency, AccountBalance>>,
     ) -> Result<StatementAccountSet, TrialBalanceLedgerError> {
-        let id = id.into();
-
-        let values = self.cala.account_sets().find(id).await?.into_values();
-
-        let btc_currency =
-            Currency::try_from("BTC".to_string()).expect("Cannot deserialize 'BTC' as Currency");
-        let btc_balance = match self
+        let values = self
             .cala
-            .balances()
-            .find_in_op(op, self.journal_id, id, btc_currency)
-            .await
-        {
-            Ok(balance) => balance.try_into()?,
-            Err(BalanceError::NotFound(_, _, _)) => BtcStatementAccountSetBalance::ZERO,
-            Err(e) => return Err(e.into()),
-        };
+            .account_sets()
+            .find(account_set_id)
+            .await?
+            .into_values();
 
-        let usd_currency =
-            Currency::try_from("USD".to_string()).expect("Cannot deserialize 'USD' as Currency");
-        let usd_balance = match self
-            .cala
-            .balances()
-            .find_in_op(op, self.journal_id, id, usd_currency)
-            .await
-        {
-            Ok(balance) => balance.try_into()?,
-            Err(BalanceError::NotFound(_, _, _)) => UsdStatementAccountSetBalance::ZERO,
-            Err(e) => return Err(e.into()),
+        let mut btc_balance = BtcStatementAccountSetBalance::ZERO;
+        let mut usd_balance = UsdStatementAccountSetBalance::ZERO;
+        if let Some(balances) = balances_by_id.get(&account_set_id.into()) {
+            if let Some(bal) = balances.get(&("BTC".parse()?)) {
+                btc_balance = bal.clone().try_into()?;
+            };
+            if let Some(bal) = balances.get(&("USD".parse()?)) {
+                usd_balance = bal.clone().try_into()?;
+            };
         };
 
         Ok(StatementAccountSet {
-            id: values.id,
+            id: account_set_id,
             name: values.name,
             description: values.description,
             btc_balance,
@@ -126,17 +116,17 @@ impl TrialBalanceLedger {
         })
     }
 
-    async fn get_member_account_sets_in_op(
+    pub async fn get_trial_balance(
         &self,
-        op: &mut LedgerOperation<'_>,
-        id: impl Into<AccountSetId> + Copy,
-    ) -> Result<Vec<StatementAccountSet>, TrialBalanceLedgerError> {
-        let id = id.into();
+        name: String,
+    ) -> Result<StatementAccountSetWithAccounts, TrialBalanceLedgerError> {
+        let statement_id = self.find_by_name(name).await?;
+        let mut all_account_set_ids = vec![statement_id];
 
-        let member_ids = self
+        let member_account_sets_ids = self
             .cala
             .account_sets()
-            .list_members_in_op(op, id, Default::default())
+            .list_members(statement_id, Default::default())
             .await?
             .entities
             .into_iter()
@@ -145,31 +135,44 @@ impl TrialBalanceLedger {
                 _ => Err(TrialBalanceLedgerError::NonAccountSetMemberTypeFound),
             })
             .collect::<Result<Vec<AccountSetId>, TrialBalanceLedgerError>>()?;
+        all_account_set_ids.extend(&member_account_sets_ids);
 
-        let mut accounts: Vec<StatementAccountSet> = vec![];
-        for id in member_ids {
-            accounts.push(self.get_account_set_in_op(op, id).await?);
+        let mut balance_ids: Vec<BalanceId> = vec![];
+        for account_id in all_account_set_ids {
+            balance_ids.extend([
+                (self.journal_id, account_id.into(), "BTC".parse()?),
+                (self.journal_id, account_id.into(), "USD".parse()?),
+            ]);
         }
 
-        Ok(accounts)
-    }
+        let all_balances = self.cala.balances().find_all(&balance_ids).await?;
+        let mut balances_by_id: HashMap<AccountId, HashMap<Currency, AccountBalance>> =
+            HashMap::new();
+        for ((_, account_id, currency), balance) in all_balances {
+            balances_by_id
+                .entry(account_id)
+                .or_default()
+                .insert(currency, balance);
+        }
 
-    pub async fn get_trial_balance(
-        &self,
-        name: String,
-    ) -> Result<StatementAccountSetWithAccounts, TrialBalanceLedgerError> {
-        let id = self.find_by_name(name).await?;
+        let statement_account_set = self
+            .get_statement_account_set(statement_id, &balances_by_id)
+            .await?;
 
-        let mut op = self.cala.begin_operation().await?;
-        let trial_balance_set = self.get_account_set_in_op(&mut op, id).await?;
-        let accounts = self.get_member_account_sets_in_op(&mut op, id).await?;
+        let mut accounts = Vec::new();
+        for account_set_id in member_account_sets_ids {
+            accounts.push(
+                self.get_statement_account_set(account_set_id, &balances_by_id)
+                    .await?,
+            );
+        }
 
         Ok(StatementAccountSetWithAccounts {
-            id: trial_balance_set.id,
-            name: trial_balance_set.name,
-            description: trial_balance_set.description,
-            btc_balance: trial_balance_set.btc_balance,
-            usd_balance: trial_balance_set.usd_balance,
+            id: statement_account_set.id,
+            name: statement_account_set.name,
+            description: statement_account_set.description,
+            btc_balance: statement_account_set.btc_balance,
+            usd_balance: statement_account_set.usd_balance,
             accounts,
         })
     }
