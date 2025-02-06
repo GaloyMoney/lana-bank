@@ -51,7 +51,7 @@ impl ProfitAndLossStatements {
     pub async fn create_pl_statement(
         &self,
         name: String,
-    ) -> Result<Option<ProfitAndLossStatementIds>, ProfitAndLossStatementError> {
+    ) -> Result<(), ProfitAndLossStatementError> {
         let mut op = es_entity::DbOp::init(&self.pool).await?;
 
         self.authz
@@ -64,8 +64,8 @@ impl ProfitAndLossStatements {
             .await?;
 
         match self.pl_statement_ledger.create(op, &name).await {
-            Ok(id) => Ok(Some(id)),
-            Err(e) if e.account_set_exists() => Ok(None),
+            Ok(_) => Ok(()),
+            Err(e) if e.account_set_exists() => Ok(()),
             Err(e) => Err(e.into()),
         }
     }

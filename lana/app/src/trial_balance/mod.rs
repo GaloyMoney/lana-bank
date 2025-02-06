@@ -41,7 +41,7 @@ impl TrialBalances {
     pub async fn create_trial_balance_statement(
         &self,
         reference: String,
-    ) -> Result<Option<LedgerAccountSetId>, TrialBalanceError> {
+    ) -> Result<(), TrialBalanceError> {
         let mut op = es_entity::DbOp::init(&self.pool).await?;
 
         self.authz
@@ -50,8 +50,8 @@ impl TrialBalances {
             .await?;
 
         match self.trial_balance_ledger.create(op, &reference).await {
-            Ok(id) => Ok(Some(id)),
-            Err(e) if e.account_set_exists() => Ok(None),
+            Ok(_) => Ok(()),
+            Err(e) if e.account_set_exists() => Ok(()),
             Err(e) => Err(e.into()),
         }
     }

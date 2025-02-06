@@ -55,10 +55,7 @@ impl BalanceSheets {
         })
     }
 
-    pub async fn create_balance_sheet(
-        &self,
-        name: String,
-    ) -> Result<Option<BalanceSheetIds>, BalanceSheetError> {
+    pub async fn create_balance_sheet(&self, name: String) -> Result<(), BalanceSheetError> {
         let mut op = es_entity::DbOp::init(&self.pool).await?;
 
         self.authz
@@ -67,8 +64,8 @@ impl BalanceSheets {
             .await?;
 
         match self.balance_sheet_ledger.create(op, &name).await {
-            Ok(id) => Ok(Some(id)),
-            Err(e) if e.account_set_exists() => Ok(None),
+            Ok(_) => Ok(()),
+            Err(e) if e.account_set_exists() => Ok(()),
             Err(e) => Err(e.into()),
         }
     }
