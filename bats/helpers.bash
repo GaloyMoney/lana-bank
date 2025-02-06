@@ -54,14 +54,14 @@ start_server() {
   fi
 
   # Start server if not already running
-  background server_cmd > "$LOG_FILE" 2>&1
+  background server_cmd >"$LOG_FILE" 2>&1
   for i in {1..20}; do
     if head "$LOG_FILE" | grep -q 'Starting graphql server on port'; then
       break
     elif head "$LOG_FILE" | grep -q 'Connection reset by peer'; then
       stop_server
       sleep 1
-      background server_cmd > "$LOG_FILE" 2>&1
+      background server_cmd >"$LOG_FILE" 2>&1
     else
       sleep 1
     fi
@@ -273,7 +273,7 @@ getEmailCode() {
 }
 
 generate_email() {
-  echo "user$(date +%s%N)@example.com" | tr '[:upper:]' '[:lower:]'
+  echo "user$(date +%s | sha256sum | head -c 6)$(head /dev/urandom | tr -dc a-z0-9 | head -c 4)@example.com"
 }
 
 create_customer() {
