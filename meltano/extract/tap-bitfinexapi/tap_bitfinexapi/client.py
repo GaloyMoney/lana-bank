@@ -16,11 +16,7 @@ if t.TYPE_CHECKING:
 class BitfinexApiStream(RESTStream):
     """BitfinexApi stream class."""
 
-    @property
-    def url_base(self) -> str:
-        """Return the API URL root, configurable via tap settings."""
-        # TODO: hardcode a value here, or retrieve it from self.config
-        return "https://api-pub.bitfinex.com"
+    url_base = "https://api-pub.bitfinex.com"
 
     def parse_response(self, response: requests.Response) -> t.Iterable[dict]:
         """Parse the response and return an iterator of result records.
@@ -31,21 +27,50 @@ class BitfinexApiStream(RESTStream):
         Yields:
             Each record from the source.
         """
-
-        yield dict(
-            zip(
-                [
-                    "BID",
-                    "BID_SIZE",
-                    "ASK",
-                    "ASK_SIZE",
-                    "DAILY_CHANGE",
-                    "DAILY_CHANGE_RELATIVE",
-                    "LAST_PRICE",
-                    "VOLUME",
-                    "HIGH",
-                    "LOW",
-                ],
-                response.json(parse_float=decimal.Decimal),
-            )
-        ) | {"requested_at": datetime.now().isoformat()}
+        if "ticker" in response.url:
+            yield dict(
+                zip(
+                    [
+                        "BID",
+                        "BID_SIZE",
+                        "ASK",
+                        "ASK_SIZE",
+                        "DAILY_CHANGE",
+                        "DAILY_CHANGE_RELATIVE",
+                        "LAST_PRICE",
+                        "VOLUME",
+                        "HIGH",
+                        "LOW",
+                    ],
+                    response.json(parse_float=decimal.Decimal),
+                )
+            ) | {"requested_at": datetime.now().isoformat()}
+        elif "trades" in response.url:
+            for trade in response.json(parse_float=decimal.Decimal):
+                yield dict(
+                    zip(
+                        [
+                            "ID",
+                            "MTS",
+                            "AMOUNT",
+                            "PRICE",
+                        ],
+                        trade,
+                    )
+                )
+        elif "book" in response.url:
+            book = {"requested_at": datetime.now().isoformat(), "orders": []}
+            for order in response.json(parse_float=decimal.Decimal):
+                book["orders"].append(
+                    dict(
+                        zip(
+                            [
+                                "PRICE",
+                                "COUNT",
+                                "AMOUNT",
+                            ],
+                            order,
+                        )
+                    )
+                )
+            yield book

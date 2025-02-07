@@ -17,7 +17,7 @@ from tap_sumsubapi.sumsub_client import SumsubClient
 
 
 class ApplicantStream(Stream):
-    name = "applicants"
+    name = "sumsub_applicants"
     path = "resources/applicants"
     primary_keys: t.ClassVar[list[str]] = ["customer_id"]
     replication_key = "recorded_at"

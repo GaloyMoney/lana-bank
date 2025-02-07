@@ -68,7 +68,7 @@ sources:
             count: 7
             period: day
 
-      - name: ticker_view
+      - name: bitfinex_ticker_view
         freshness:
           warn_after:
             count: 1
@@ -77,7 +77,7 @@ sources:
             count: 1
             period: day
 
-      - name: applicants_view
+      - name: sumsub_applicants_view
         freshness:
           warn_after:
             count: 2

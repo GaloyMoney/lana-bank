@@ -10,4 +10,4 @@ select
     high,
     low
 
-from {{ source("lana", "ticker_view") }}
+from {{ source("lana", "bitfinex_ticker_view") }}
