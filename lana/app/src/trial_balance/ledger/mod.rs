@@ -2,7 +2,7 @@ pub mod error;
 
 use cala_ledger::{
     account_set::{AccountSetMemberId, NewAccountSet},
-    AccountSetId, BalanceId, CalaLedger, DebitOrCredit, JournalId,
+    AccountSetId, CalaLedger, DebitOrCredit, JournalId,
 };
 
 use crate::statement::*;
@@ -129,13 +129,8 @@ impl TrialBalanceLedger {
         let member_account_sets_ids = self.get_member_account_set_ids(statement_id).await?;
         all_account_set_ids.extend(&member_account_sets_ids);
 
-        let mut balance_ids: Vec<BalanceId> = vec![];
-        for account_set_id in all_account_set_ids {
-            let account_set_balance_ids =
-                BalanceIdsForAccountSet::from((self.journal_id, account_set_id)).balance_ids;
-            balance_ids.extend(account_set_balance_ids);
-        }
-
+        let balance_ids =
+            BalanceIdsForAccountSets::from((self.journal_id, all_account_set_ids)).balance_ids;
         let balances_by_id = self.cala.balances().find_all(&balance_ids).await?.into();
 
         let statement_account_set = self

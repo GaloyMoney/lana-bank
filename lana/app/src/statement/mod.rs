@@ -285,11 +285,11 @@ impl From<HashMap<BalanceId, AccountBalance>> for BalancesByAccount {
     }
 }
 
-pub struct BalanceIdsForAccountSet {
-    pub balance_ids: Vec<BalanceId>,
+struct BalanceIdsForSingleAccountSet {
+    balance_ids: Vec<BalanceId>,
 }
 
-impl From<(JournalId, LedgerAccountSetId)> for BalanceIdsForAccountSet {
+impl From<(JournalId, LedgerAccountSetId)> for BalanceIdsForSingleAccountSet {
     fn from(ids: (JournalId, LedgerAccountSetId)) -> Self {
         let journal_id = ids.0;
         let account_set_id = ids.1;
@@ -306,6 +306,25 @@ impl From<(JournalId, LedgerAccountSetId)> for BalanceIdsForAccountSet {
                     "USD".parse().expect("USD is not a valid currency"),
                 ),
             ],
+        }
+    }
+}
+
+pub struct BalanceIdsForAccountSets {
+    pub balance_ids: Vec<BalanceId>,
+}
+
+impl From<(JournalId, Vec<LedgerAccountSetId>)> for BalanceIdsForAccountSets {
+    fn from(values: (JournalId, Vec<LedgerAccountSetId>)) -> Self {
+        let journal_id = values.0;
+        let account_set_ids = values.1;
+        Self {
+            balance_ids: account_set_ids
+                .into_iter()
+                .flat_map(|account_set_id| {
+                    BalanceIdsForSingleAccountSet::from((journal_id, account_set_id)).balance_ids
+                })
+                .collect(),
         }
     }
 }
