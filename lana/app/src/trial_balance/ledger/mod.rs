@@ -93,21 +93,12 @@ impl TrialBalanceLedger {
             .await?
             .into_values();
 
-        let mut btc_balance = BtcStatementAccountSetBalance::ZERO;
-        let mut usd_balance = UsdStatementAccountSetBalance::ZERO;
-        if let Some(bal) = balances_by_id.get(account_set_id.into(), "BTC".parse()?) {
-            btc_balance = bal.clone().try_into()?;
-        };
-        if let Some(bal) = balances_by_id.get(account_set_id.into(), "USD".parse()?) {
-            usd_balance = bal.clone().try_into()?;
-        };
-
         Ok(StatementAccountSet {
             id: account_set_id,
             name: values.name,
             description: values.description,
-            btc_balance,
-            usd_balance,
+            btc_balance: balances_by_id.btc_for_account(account_set_id)?,
+            usd_balance: balances_by_id.usd_for_account(account_set_id)?,
         })
     }
 
@@ -139,11 +130,10 @@ impl TrialBalanceLedger {
         all_account_set_ids.extend(&member_account_sets_ids);
 
         let mut balance_ids: Vec<BalanceId> = vec![];
-        for account_id in all_account_set_ids {
-            balance_ids.extend([
-                (self.journal_id, account_id.into(), "BTC".parse()?),
-                (self.journal_id, account_id.into(), "USD".parse()?),
-            ]);
+        for account_set_id in all_account_set_ids {
+            let account_set_balance_ids =
+                BalanceIdsForAccountSet::from((self.journal_id, account_set_id)).balance_ids;
+            balance_ids.extend(account_set_balance_ids);
         }
 
         let balances_by_id = self.cala.balances().find_all(&balance_ids).await?.into();

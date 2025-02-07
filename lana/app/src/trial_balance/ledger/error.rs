@@ -10,8 +10,6 @@ pub enum TrialBalanceLedgerError {
     CalaAccountSet(#[from] cala_ledger::account_set::error::AccountSetError),
     #[error("TrialBalanceLedgerError - CalaBalance: {0}")]
     CalaBalance(#[from] cala_ledger::balance::error::BalanceError),
-    #[error("TrialBalanceLedgerError - ParseCurrencyError: {0}")]
-    ParseCurrencyError(#[from] cala_ledger::ParseCurrencyError),
     #[error("TrialBalanceLedgerError - Statement: {0}")]
     Statement(#[from] crate::statement::error::StatementError),
     #[error("TrialBalanceLedgerError - NonAccountSetMemberTypeFound")]
