@@ -1,6 +1,8 @@
 pub mod error;
 
-use cala_ledger::balance::AccountBalance;
+use std::collections::HashMap;
+
+use cala_ledger::{balance::AccountBalance, AccountId, BalanceId, Currency};
 
 use crate::primitives::{LedgerAccountSetId, Satoshis, SignedSatoshis, SignedUsdCents, UsdCents};
 
@@ -216,4 +218,41 @@ impl UsdStatementBalanceAmount {
         net_dr_balance: SignedUsdCents::ZERO,
         net_cr_balance: SignedUsdCents::ZERO,
     };
+}
+
+#[derive(Clone)]
+pub struct BalancesByAccount {
+    balances: HashMap<AccountId, HashMap<Currency, AccountBalance>>,
+}
+
+impl BalancesByAccount {
+    fn new() -> Self {
+        Self {
+            balances: HashMap::new(),
+        }
+    }
+
+    fn insert(&mut self, account_id: AccountId, currency: Currency, balance: AccountBalance) {
+        self.balances
+            .entry(account_id)
+            .or_default()
+            .insert(currency, balance);
+    }
+
+    pub fn get(&self, account_id: AccountId, currency: Currency) -> Option<&AccountBalance> {
+        self.balances
+            .get(&account_id)
+            .and_then(|currencies| currencies.get(&currency))
+    }
+}
+
+impl From<HashMap<BalanceId, AccountBalance>> for BalancesByAccount {
+    fn from(all_balances: HashMap<BalanceId, AccountBalance>) -> Self {
+        let mut balances_by_account = Self::new();
+        for ((_, account_id, currency), balance) in all_balances {
+            balances_by_account.insert(account_id, currency, balance);
+        }
+
+        balances_by_account
+    }
 }

@@ -1,11 +1,8 @@
 pub mod error;
 
-use std::collections::HashMap;
-
 use cala_ledger::{
-    account_set::{AccountSetMemberId, AccountSetValues, NewAccountSet},
-    balance::AccountBalance,
-    AccountId, AccountSetId, BalanceId, CalaLedger, Currency, DebitOrCredit, JournalId,
+    account_set::{AccountSetMemberId, NewAccountSet},
+    AccountSetId, BalanceId, CalaLedger, DebitOrCredit, JournalId,
 };
 
 use crate::statement::*;
@@ -87,7 +84,7 @@ impl TrialBalanceLedger {
     async fn get_statement_account_set(
         &self,
         account_set_id: AccountSetId,
-        balances_by_id: &HashMap<AccountId, HashMap<Currency, AccountBalance>>,
+        balances_by_id: &BalancesByAccount,
     ) -> Result<StatementAccountSet, TrialBalanceLedgerError> {
         let values = self
             .cala
@@ -98,13 +95,11 @@ impl TrialBalanceLedger {
 
         let mut btc_balance = BtcStatementAccountSetBalance::ZERO;
         let mut usd_balance = UsdStatementAccountSetBalance::ZERO;
-        if let Some(balances) = balances_by_id.get(&account_set_id.into()) {
-            if let Some(bal) = balances.get(&("BTC".parse()?)) {
-                btc_balance = bal.clone().try_into()?;
-            };
-            if let Some(bal) = balances.get(&("USD".parse()?)) {
-                usd_balance = bal.clone().try_into()?;
-            };
+        if let Some(bal) = balances_by_id.get(account_set_id.into(), "BTC".parse()?) {
+            btc_balance = bal.clone().try_into()?;
+        };
+        if let Some(bal) = balances_by_id.get(account_set_id.into(), "USD".parse()?) {
+            usd_balance = bal.clone().try_into()?;
         };
 
         Ok(StatementAccountSet {
@@ -116,17 +111,13 @@ impl TrialBalanceLedger {
         })
     }
 
-    pub async fn get_trial_balance(
+    async fn get_member_account_set_ids(
         &self,
-        name: String,
-    ) -> Result<StatementAccountSetWithAccounts, TrialBalanceLedgerError> {
-        let statement_id = self.find_by_name(name).await?;
-        let mut all_account_set_ids = vec![statement_id];
-
-        let member_account_sets_ids = self
-            .cala
+        account_set_id: AccountSetId,
+    ) -> Result<Vec<AccountSetId>, TrialBalanceLedgerError> {
+        self.cala
             .account_sets()
-            .list_members(statement_id, Default::default())
+            .list_members(account_set_id, Default::default())
             .await?
             .entities
             .into_iter()
@@ -134,7 +125,17 @@ impl TrialBalanceLedger {
                 AccountSetMemberId::AccountSet(id) => Ok(id),
                 _ => Err(TrialBalanceLedgerError::NonAccountSetMemberTypeFound),
             })
-            .collect::<Result<Vec<AccountSetId>, TrialBalanceLedgerError>>()?;
+            .collect::<Result<Vec<AccountSetId>, TrialBalanceLedgerError>>()
+    }
+
+    pub async fn get_trial_balance(
+        &self,
+        name: String,
+    ) -> Result<StatementAccountSetWithAccounts, TrialBalanceLedgerError> {
+        let statement_id = self.find_by_name(name).await?;
+        let mut all_account_set_ids = vec![statement_id];
+
+        let member_account_sets_ids = self.get_member_account_set_ids(statement_id).await?;
         all_account_set_ids.extend(&member_account_sets_ids);
 
         let mut balance_ids: Vec<BalanceId> = vec![];
@@ -145,15 +146,7 @@ impl TrialBalanceLedger {
             ]);
         }
 
-        let all_balances = self.cala.balances().find_all(&balance_ids).await?;
-        let mut balances_by_id: HashMap<AccountId, HashMap<Currency, AccountBalance>> =
-            HashMap::new();
-        for ((_, account_id, currency), balance) in all_balances {
-            balances_by_id
-                .entry(account_id)
-                .or_default()
-                .insert(currency, balance);
-        }
+        let balances_by_id = self.cala.balances().find_all(&balance_ids).await?.into();
 
         let statement_account_set = self
             .get_statement_account_set(statement_id, &balances_by_id)
