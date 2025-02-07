@@ -63,7 +63,10 @@ impl TrialBalances {
     ) -> Result<(), TrialBalanceError> {
         let member_id = member_id.into();
 
-        let trial_balance_id = self.trial_balance_ledger.find_by_name(name).await?;
+        let trial_balance_id = self
+            .trial_balance_ledger
+            .get_id_from_reference(name)
+            .await?;
 
         let mut op = es_entity::DbOp::init(&self.pool).await?;
 

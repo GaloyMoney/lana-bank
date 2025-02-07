@@ -46,7 +46,7 @@ impl TrialBalanceLedger {
         Ok(statement_id)
     }
 
-    pub async fn find_by_name(
+    pub async fn get_id_from_reference(
         &self,
         reference: String,
     ) -> Result<AccountSetId, TrialBalanceLedgerError> {
@@ -123,7 +123,7 @@ impl TrialBalanceLedger {
         &self,
         name: String,
     ) -> Result<StatementAccountSetWithAccounts, TrialBalanceLedgerError> {
-        let statement_id = self.find_by_name(name).await?;
+        let statement_id = self.get_id_from_reference(name).await?;
         let mut all_account_set_ids = vec![statement_id];
 
         let member_account_sets_ids = self.get_member_account_set_ids(statement_id).await?;
