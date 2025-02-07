@@ -81,7 +81,7 @@ impl TrialBalanceLedger {
         Ok(())
     }
 
-    async fn get_statement_account_set(
+    async fn get_account_set(
         &self,
         account_set_id: AccountSetId,
         balances_by_id: &BalancesByAccount,
@@ -133,14 +133,12 @@ impl TrialBalanceLedger {
             BalanceIdsForAccountSets::from((self.journal_id, all_account_set_ids)).balance_ids;
         let balances_by_id = self.cala.balances().find_all(&balance_ids).await?.into();
 
-        let statement_account_set = self
-            .get_statement_account_set(statement_id, &balances_by_id)
-            .await?;
+        let statement_account_set = self.get_account_set(statement_id, &balances_by_id).await?;
 
         let mut accounts = Vec::new();
         for account_set_id in member_account_sets_ids {
             accounts.push(
-                self.get_statement_account_set(account_set_id, &balances_by_id)
+                self.get_account_set(account_set_id, &balances_by_id)
                     .await?,
             );
         }

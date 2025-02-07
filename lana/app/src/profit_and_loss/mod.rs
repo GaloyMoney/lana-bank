@@ -90,7 +90,7 @@ impl ProfitAndLossStatements {
 
         let statement_ids = self
             .pl_statement_ledger
-            .find_by_reference(reference)
+            .get_ids_from_reference(reference)
             .await?;
 
         self.pl_statement_ledger
@@ -120,7 +120,7 @@ impl ProfitAndLossStatements {
 
         let statement_ids = self
             .pl_statement_ledger
-            .find_by_reference(reference)
+            .get_ids_from_reference(reference)
             .await?;
 
         self.pl_statement_ledger
