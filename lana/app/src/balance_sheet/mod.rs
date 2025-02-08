@@ -98,7 +98,7 @@ impl BalanceSheets {
     ) -> Result<(), BalanceSheetError> {
         let statement_ids = self
             .balance_sheet_ledger
-            .find_by_reference(reference)
+            .get_ids_from_reference(reference)
             .await?;
 
         self.add_to(statement_ids.assets, member_id).await
@@ -111,7 +111,7 @@ impl BalanceSheets {
     ) -> Result<(), BalanceSheetError> {
         let statement_ids = self
             .balance_sheet_ledger
-            .find_by_reference(reference)
+            .get_ids_from_reference(reference)
             .await?;
 
         self.add_to(statement_ids.liabilities, member_id).await
@@ -124,7 +124,7 @@ impl BalanceSheets {
     ) -> Result<(), BalanceSheetError> {
         let statement_ids = self
             .balance_sheet_ledger
-            .find_by_reference(reference)
+            .get_ids_from_reference(reference)
             .await?;
 
         self.add_to(statement_ids.equity, member_id).await
@@ -137,7 +137,7 @@ impl BalanceSheets {
     ) -> Result<(), BalanceSheetError> {
         let statement_ids = self
             .balance_sheet_ledger
-            .find_by_reference(reference)
+            .get_ids_from_reference(reference)
             .await?;
 
         self.add_to(statement_ids.revenue, member_id).await
@@ -150,7 +150,7 @@ impl BalanceSheets {
     ) -> Result<(), BalanceSheetError> {
         let statement_ids = self
             .balance_sheet_ledger
-            .find_by_reference(reference)
+            .get_ids_from_reference(reference)
             .await?;
 
         self.add_to(statement_ids.expenses, member_id).await

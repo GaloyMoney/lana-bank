@@ -1,9 +1,10 @@
 pub mod error;
 
+use std::collections::HashMap;
+
 use cala_ledger::{
     account_set::{AccountSetMemberId, NewAccountSet},
-    balance::error::BalanceError,
-    AccountSetId, CalaLedger, Currency, DebitOrCredit, JournalId, LedgerOperation,
+    AccountSetId, CalaLedger, DebitOrCredit, JournalId,
 };
 
 use crate::statement::*;
@@ -171,7 +172,35 @@ impl BalanceSheetLedger {
         })
     }
 
-    pub async fn find_by_reference(
+    async fn get_member_account_set_ids_and_names(
+        &self,
+        id: impl Into<AccountSetId> + Copy,
+    ) -> Result<HashMap<String, AccountSetId>, BalanceSheetLedgerError> {
+        let id = id.into();
+
+        let member_ids = self
+            .cala
+            .account_sets()
+            .list_members(id, Default::default())
+            .await?
+            .entities
+            .into_iter()
+            .map(|m| match m.id {
+                AccountSetMemberId::AccountSet(id) => Ok(id),
+                _ => Err(BalanceSheetLedgerError::NonAccountSetMemberTypeFound),
+            })
+            .collect::<Result<Vec<AccountSetId>, BalanceSheetLedgerError>>()?;
+
+        let mut accounts: HashMap<String, AccountSetId> = HashMap::new();
+        for id in member_ids {
+            let account_set = self.cala.account_sets().find(id).await?.into_values();
+            accounts.insert(account_set.name, id);
+        }
+
+        Ok(accounts)
+    }
+
+    pub async fn get_ids_from_reference(
         &self,
         reference: String,
     ) -> Result<BalanceSheetIds, BalanceSheetLedgerError> {
@@ -182,63 +211,55 @@ impl BalanceSheetLedger {
             .await?
             .id;
 
-        let statement_members = self.get_member_account_sets(statement_id).await?;
-
+        let statement_members = self
+            .get_member_account_set_ids_and_names(statement_id)
+            .await?;
         let assets_id = statement_members
-            .iter()
-            .find(|m| m.name == ASSETS_NAME)
-            .ok_or(BalanceSheetLedgerError::NotFound(ASSETS_NAME.to_string()))?
-            .id;
-
-        let liabilities_id = statement_members
-            .iter()
-            .find(|m| m.name == LIABILITIES_NAME)
-            .ok_or(BalanceSheetLedgerError::NotFound(
-                LIABILITIES_NAME.to_string(),
-            ))?
-            .id;
-
+            .get(ASSETS_NAME)
+            .ok_or(BalanceSheetLedgerError::NotFound(ASSETS_NAME.to_string()))?;
+        let liabilities_id =
+            statement_members
+                .get(LIABILITIES_NAME)
+                .ok_or(BalanceSheetLedgerError::NotFound(
+                    LIABILITIES_NAME.to_string(),
+                ))?;
         let equity_id = statement_members
-            .iter()
-            .find(|m| m.name == EQUITY_NAME)
-            .ok_or(BalanceSheetLedgerError::NotFound(EQUITY_NAME.to_string()))?
-            .id;
+            .get(EQUITY_NAME)
+            .ok_or(BalanceSheetLedgerError::NotFound(EQUITY_NAME.to_string()))?;
 
-        let equity_members = self.get_member_account_sets(equity_id).await?;
+        let equity_members = self
+            .get_member_account_set_ids_and_names(*equity_id)
+            .await?;
+        let net_income_id =
+            equity_members
+                .get(NET_INCOME_NAME)
+                .ok_or(BalanceSheetLedgerError::NotFound(
+                    NET_INCOME_NAME.to_string(),
+                ))?;
 
-        let net_income_id = equity_members
-            .iter()
-            .find(|m| m.name == NET_INCOME_NAME)
-            .ok_or(BalanceSheetLedgerError::NotFound(
-                NET_INCOME_NAME.to_string(),
-            ))?
-            .id;
-
-        let net_income_members = self.get_member_account_sets(net_income_id).await?;
-
-        let revenue_id = net_income_members
-            .iter()
-            .find(|m| m.name == NI_REVENUE_NAME)
-            .ok_or(BalanceSheetLedgerError::NotFound(
-                NI_REVENUE_NAME.to_string(),
-            ))?
-            .id;
-
-        let expenses_id = net_income_members
-            .iter()
-            .find(|m| m.name == NI_EXPENSES_NAME)
-            .ok_or(BalanceSheetLedgerError::NotFound(
-                NI_EXPENSES_NAME.to_string(),
-            ))?
-            .id;
+        let net_income_members = self
+            .get_member_account_set_ids_and_names(*net_income_id)
+            .await?;
+        let revenue_id =
+            net_income_members
+                .get(NI_REVENUE_NAME)
+                .ok_or(BalanceSheetLedgerError::NotFound(
+                    NI_REVENUE_NAME.to_string(),
+                ))?;
+        let expenses_id =
+            net_income_members
+                .get(NI_EXPENSES_NAME)
+                .ok_or(BalanceSheetLedgerError::NotFound(
+                    NI_EXPENSES_NAME.to_string(),
+                ))?;
 
         Ok(BalanceSheetIds {
             id: statement_id,
-            assets: assets_id,
-            liabilities: liabilities_id,
-            equity: equity_id,
-            revenue: revenue_id,
-            expenses: expenses_id,
+            assets: *assets_id,
+            liabilities: *liabilities_id,
+            equity: *equity_id,
+            revenue: *revenue_id,
+            expenses: *expenses_id,
         })
     }
 
@@ -265,76 +286,33 @@ impl BalanceSheetLedger {
         Ok(())
     }
 
-    async fn get_account_set_in_op(
-        &self,
-        op: &mut LedgerOperation<'_>,
-        id: impl Into<AccountSetId> + Copy,
-    ) -> Result<StatementAccountSet, BalanceSheetLedgerError> {
-        let id = id.into();
-
-        let values = self.cala.account_sets().find(id).await?.into_values();
-
-        let btc_currency =
-            Currency::try_from("BTC".to_string()).expect("Cannot deserialize 'BTC' as Currency");
-        let btc_balance = match self
-            .cala
-            .balances()
-            .find_in_op(op, self.journal_id, id, btc_currency)
-            .await
-        {
-            Ok(balance) => balance.try_into()?,
-            Err(BalanceError::NotFound(_, _, _)) => BtcStatementAccountSetBalance::ZERO,
-            Err(e) => return Err(e.into()),
-        };
-
-        let usd_currency =
-            Currency::try_from("USD".to_string()).expect("Cannot deserialize 'USD' as Currency");
-        let usd_balance = match self
-            .cala
-            .balances()
-            .find_in_op(op, self.journal_id, id, usd_currency)
-            .await
-        {
-            Ok(balance) => balance.try_into()?,
-            Err(BalanceError::NotFound(_, _, _)) => UsdStatementAccountSetBalance::ZERO,
-            Err(e) => return Err(e.into()),
-        };
-
-        Ok(StatementAccountSet {
-            id: values.id,
-            name: values.name,
-            description: values.description,
-            btc_balance,
-            usd_balance,
-        })
-    }
-
     async fn get_account_set(
         &self,
-        id: impl Into<AccountSetId> + Copy,
-    ) -> Result<StatementAccountSetDetails, BalanceSheetLedgerError> {
-        let id = id.into();
+        account_set_id: AccountSetId,
+        balances_by_id: &BalancesByAccount,
+    ) -> Result<StatementAccountSet, BalanceSheetLedgerError> {
+        let values = self
+            .cala
+            .account_sets()
+            .find(account_set_id)
+            .await?
+            .into_values();
 
-        let values = self.cala.account_sets().find(id).await?.into_values();
-
-        Ok(StatementAccountSetDetails {
-            id: values.id,
+        Ok(StatementAccountSet {
+            id: account_set_id,
             name: values.name,
             description: values.description,
+            btc_balance: balances_by_id.btc_for_account(account_set_id)?,
+            usd_balance: balances_by_id.usd_for_account(account_set_id)?,
         })
     }
-
-    async fn get_member_account_sets_in_op(
+    async fn get_member_account_set_ids(
         &self,
-        op: &mut LedgerOperation<'_>,
-        id: impl Into<AccountSetId> + Copy,
-    ) -> Result<Vec<StatementAccountSet>, BalanceSheetLedgerError> {
-        let id = id.into();
-
-        let member_ids = self
-            .cala
+        account_set_id: AccountSetId,
+    ) -> Result<Vec<AccountSetId>, BalanceSheetLedgerError> {
+        self.cala
             .account_sets()
-            .list_members_in_op(op, id, Default::default())
+            .list_members(account_set_id, Default::default())
             .await?
             .entities
             .into_iter()
@@ -342,74 +320,66 @@ impl BalanceSheetLedger {
                 AccountSetMemberId::AccountSet(id) => Ok(id),
                 _ => Err(BalanceSheetLedgerError::NonAccountSetMemberTypeFound),
             })
-            .collect::<Result<Vec<AccountSetId>, BalanceSheetLedgerError>>()?;
-
-        let mut accounts: Vec<StatementAccountSet> = vec![];
-        for id in member_ids {
-            accounts.push(self.get_account_set_in_op(op, id).await?);
-        }
-
-        Ok(accounts)
-    }
-
-    pub async fn get_member_account_sets(
-        &self,
-        id: impl Into<AccountSetId> + Copy,
-    ) -> Result<Vec<StatementAccountSetDetails>, BalanceSheetLedgerError> {
-        let id = id.into();
-
-        let member_ids = self
-            .cala
-            .account_sets()
-            .list_members(id, Default::default())
-            .await?
-            .entities
-            .into_iter()
-            .map(|m| match m.id {
-                AccountSetMemberId::AccountSet(id) => Ok(id),
-                _ => Err(BalanceSheetLedgerError::NonAccountSetMemberTypeFound),
-            })
-            .collect::<Result<Vec<AccountSetId>, BalanceSheetLedgerError>>()?;
-
-        let mut accounts: Vec<StatementAccountSetDetails> = vec![];
-        for id in member_ids {
-            accounts.push(self.get_account_set(id).await?);
-        }
-
-        Ok(accounts)
+            .collect::<Result<Vec<AccountSetId>, BalanceSheetLedgerError>>()
     }
 
     pub async fn get_balance_sheet(
         &self,
         reference: String,
     ) -> Result<BalanceSheet, BalanceSheetLedgerError> {
-        let ids = self.find_by_reference(reference).await?;
+        let ids = self.get_ids_from_reference(reference).await?;
+        let mut all_account_set_ids = vec![ids.id, ids.assets, ids.liabilities, ids.equity];
 
-        let mut op = self.cala.begin_operation().await?;
+        let assets_member_account_sets_ids = self.get_member_account_set_ids(ids.assets).await?;
+        all_account_set_ids.extend(&assets_member_account_sets_ids);
 
-        let balance_sheet_set = self.get_account_set_in_op(&mut op, ids.id).await?;
+        let liabilities_member_account_sets_ids =
+            self.get_member_account_set_ids(ids.liabilities).await?;
+        all_account_set_ids.extend(&liabilities_member_account_sets_ids);
 
-        let liabilities_account_set = self.get_account_set_in_op(&mut op, ids.liabilities).await?;
-        let liabilities_accounts = self
-            .get_member_account_sets_in_op(&mut op, ids.liabilities)
+        let equity_member_account_sets_ids = self.get_member_account_set_ids(ids.equity).await?;
+        all_account_set_ids.extend(&equity_member_account_sets_ids);
+
+        let balance_ids =
+            BalanceIdsForAccountSets::from((self.journal_id, all_account_set_ids)).balance_ids;
+        let balances_by_id = self.cala.balances().find_all(&balance_ids).await?.into();
+
+        let statement_account_set = self.get_account_set(ids.id, &balances_by_id).await?;
+        let assets_account_set = self.get_account_set(ids.assets, &balances_by_id).await?;
+        let liabilities_account_set = self
+            .get_account_set(ids.liabilities, &balances_by_id)
             .await?;
+        let equity_account_set = self.get_account_set(ids.equity, &balances_by_id).await?;
 
-        let equity_account_set = self.get_account_set_in_op(&mut op, ids.equity).await?;
-        let equity_accounts = self
-            .get_member_account_sets_in_op(&mut op, ids.equity)
-            .await?;
+        let mut assets_accounts = Vec::new();
+        for account_set_id in assets_member_account_sets_ids {
+            assets_accounts.push(
+                self.get_account_set(account_set_id, &balances_by_id)
+                    .await?,
+            );
+        }
 
-        let assets_account_set = self.get_account_set_in_op(&mut op, ids.assets).await?;
-        let assets_accounts = self
-            .get_member_account_sets_in_op(&mut op, ids.assets)
-            .await?;
+        let mut liabilities_accounts = Vec::new();
+        for account_set_id in liabilities_member_account_sets_ids {
+            liabilities_accounts.push(
+                self.get_account_set(account_set_id, &balances_by_id)
+                    .await?,
+            );
+        }
 
+        let mut equity_accounts = Vec::new();
+        for account_set_id in equity_member_account_sets_ids {
+            equity_accounts.push(
+                self.get_account_set(account_set_id, &balances_by_id)
+                    .await?,
+            );
+        }
         Ok(BalanceSheet {
-            id: balance_sheet_set.id,
-            name: balance_sheet_set.name,
-            description: balance_sheet_set.description,
-            btc_balance: balance_sheet_set.btc_balance,
-            usd_balance: balance_sheet_set.usd_balance,
+            id: statement_account_set.id,
+            name: statement_account_set.name,
+            description: statement_account_set.description,
+            btc_balance: statement_account_set.btc_balance,
+            usd_balance: statement_account_set.usd_balance,
             categories: vec![
                 StatementAccountSetWithAccounts {
                     id: assets_account_set.id,
