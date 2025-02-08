@@ -73,7 +73,7 @@ impl ProfitAndLossStatementLedger {
             .journal_id(self.journal_id)
             .name(EXPENSES_NAME)
             .description(EXPENSES_NAME)
-            .normal_balance_type(DebitOrCredit::Credit)
+            .normal_balance_type(DebitOrCredit::Debit)
             .build()
             .expect("Could not build new account set");
         self.cala
