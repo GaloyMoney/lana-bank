@@ -4,7 +4,7 @@ use std::collections::HashMap;
 
 use cala_ledger::{
     account_set::{AccountSetMemberId, NewAccountSet},
-    AccountSetId, CalaLedger, DebitOrCredit, JournalId,
+    AccountSetId, CalaLedger, DebitOrCredit, JournalId, LedgerOperation,
 };
 
 use crate::statement::*;
@@ -27,6 +27,69 @@ impl ProfitAndLossStatementLedger {
         }
     }
 
+    async fn create_unique_account_set(
+        &self,
+        op: &mut LedgerOperation<'_>,
+        reference: &str,
+        normal_balance_type: DebitOrCredit,
+        parents: Vec<AccountSetId>,
+    ) -> Result<AccountSetId, ProfitAndLossStatementLedgerError> {
+        let id = AccountSetId::new();
+        let new_account_set = NewAccountSet::builder()
+            .id(id)
+            .journal_id(self.journal_id)
+            .external_id(reference)
+            .name(reference)
+            .description(reference)
+            .normal_balance_type(normal_balance_type)
+            .build()
+            .expect("Could not build new account set");
+        self.cala
+            .account_sets()
+            .create_in_op(op, new_account_set)
+            .await?;
+
+        for parent_id in parents {
+            self.cala
+                .account_sets()
+                .add_member_in_op(op, parent_id, id)
+                .await?;
+        }
+
+        Ok(id)
+    }
+
+    async fn create_account_set(
+        &self,
+        op: &mut LedgerOperation<'_>,
+        reference: &str,
+        normal_balance_type: DebitOrCredit,
+        parents: Vec<AccountSetId>,
+    ) -> Result<AccountSetId, ProfitAndLossStatementLedgerError> {
+        let id = AccountSetId::new();
+        let new_account_set = NewAccountSet::builder()
+            .id(id)
+            .journal_id(self.journal_id)
+            .name(reference)
+            .description(reference)
+            .normal_balance_type(normal_balance_type)
+            .build()
+            .expect("Could not build new account set");
+        self.cala
+            .account_sets()
+            .create_in_op(op, new_account_set)
+            .await?;
+
+        for parent_id in parents {
+            self.cala
+                .account_sets()
+                .add_member_in_op(op, parent_id, id)
+                .await?;
+        }
+
+        Ok(id)
+    }
+
     pub async fn create(
         &self,
         op: es_entity::DbOp<'_>,
@@ -34,55 +97,25 @@ impl ProfitAndLossStatementLedger {
     ) -> Result<ProfitAndLossStatementIds, ProfitAndLossStatementLedgerError> {
         let mut op = self.cala.ledger_operation_from_db_op(op);
 
-        let statement_id = AccountSetId::new();
-        let new_account_set = NewAccountSet::builder()
-            .id(statement_id)
-            .journal_id(self.journal_id)
-            .external_id(reference)
-            .name(reference)
-            .description(reference)
-            .normal_balance_type(DebitOrCredit::Credit)
-            .build()
-            .expect("Could not build new account set");
-        self.cala
-            .account_sets()
-            .create_in_op(&mut op, new_account_set)
+        let statement_id = self
+            .create_unique_account_set(&mut op, reference, DebitOrCredit::Credit, vec![])
             .await?;
 
-        let revenue_id = AccountSetId::new();
-        let new_account_set = NewAccountSet::builder()
-            .id(revenue_id)
-            .journal_id(self.journal_id)
-            .name(REVENUE_NAME)
-            .description(REVENUE_NAME)
-            .normal_balance_type(DebitOrCredit::Credit)
-            .build()
-            .expect("Could not build new account set");
-        self.cala
-            .account_sets()
-            .create_in_op(&mut op, new_account_set)
+        let revenue_id = self
+            .create_account_set(
+                &mut op,
+                REVENUE_NAME,
+                DebitOrCredit::Credit,
+                vec![statement_id],
+            )
             .await?;
-        self.cala
-            .account_sets()
-            .add_member_in_op(&mut op, statement_id, revenue_id)
-            .await?;
-
-        let expenses_id = AccountSetId::new();
-        let new_account_set = NewAccountSet::builder()
-            .id(expenses_id)
-            .journal_id(self.journal_id)
-            .name(EXPENSES_NAME)
-            .description(EXPENSES_NAME)
-            .normal_balance_type(DebitOrCredit::Debit)
-            .build()
-            .expect("Could not build new account set");
-        self.cala
-            .account_sets()
-            .create_in_op(&mut op, new_account_set)
-            .await?;
-        self.cala
-            .account_sets()
-            .add_member_in_op(&mut op, statement_id, expenses_id)
+        let expenses_id = self
+            .create_account_set(
+                &mut op,
+                EXPENSES_NAME,
+                DebitOrCredit::Debit,
+                vec![statement_id],
+            )
             .await?;
 
         op.commit().await?;

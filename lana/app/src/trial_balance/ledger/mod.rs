@@ -2,7 +2,7 @@ pub mod error;
 
 use cala_ledger::{
     account_set::{AccountSetMemberId, NewAccountSet},
-    AccountSetId, CalaLedger, DebitOrCredit, JournalId,
+    AccountSetId, CalaLedger, DebitOrCredit, JournalId, LedgerOperation,
 };
 
 use crate::statement::*;
@@ -23,24 +23,48 @@ impl TrialBalanceLedger {
         }
     }
 
+    async fn create_unique_account_set(
+        &self,
+        op: &mut LedgerOperation<'_>,
+        reference: &str,
+        normal_balance_type: DebitOrCredit,
+        parents: Vec<AccountSetId>,
+    ) -> Result<AccountSetId, TrialBalanceLedgerError> {
+        let id = AccountSetId::new();
+        let new_account_set = NewAccountSet::builder()
+            .id(id)
+            .journal_id(self.journal_id)
+            .external_id(reference)
+            .name(reference)
+            .description(reference)
+            .normal_balance_type(normal_balance_type)
+            .build()
+            .expect("Could not build new account set");
+        self.cala
+            .account_sets()
+            .create_in_op(op, new_account_set)
+            .await?;
+
+        for parent_id in parents {
+            self.cala
+                .account_sets()
+                .add_member_in_op(op, parent_id, id)
+                .await?;
+        }
+
+        Ok(id)
+    }
+
     pub async fn create(
         &self,
         op: es_entity::DbOp<'_>,
         reference: &str,
     ) -> Result<AccountSetId, TrialBalanceLedgerError> {
-        let op = self.cala.ledger_operation_from_db_op(op);
+        let mut op = self.cala.ledger_operation_from_db_op(op);
 
-        let statement_id = AccountSetId::new();
-        let new_account_set = NewAccountSet::builder()
-            .id(statement_id)
-            .journal_id(self.journal_id)
-            .external_id(reference)
-            .name(reference)
-            .description(reference)
-            .normal_balance_type(DebitOrCredit::Debit)
-            .build()
-            .expect("Could not build new account set");
-        self.cala.account_sets().create(new_account_set).await?;
+        let statement_id = self
+            .create_unique_account_set(&mut op, reference, DebitOrCredit::Debit, vec![])
+            .await?;
 
         op.commit().await?;
         Ok(statement_id)
