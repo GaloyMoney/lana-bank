@@ -19,7 +19,9 @@ with ordered as (
 
 )
 
-select * except (order_received_desc)
+select
+    * except (order_received_desc),
+    safe.parse_json(event) as parsed_event
 
 from ordered
 
