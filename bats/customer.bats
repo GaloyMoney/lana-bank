@@ -119,7 +119,7 @@ wait_for_approval() {
   # pending_usd_balance=$(graphql_output '.data.withdrawalInitiate.withdrawal.customer.balance.checking.pending')
   # [[ "$pending_usd_balance" == "150000" ]] || exit 1
 
-  # assert_accounts_balanced
+  assert_accounts_balanced
 
   variables=$(
     jq -n \
@@ -142,7 +142,7 @@ wait_for_approval() {
   # pending_usd_balance=$(graphql_output '.data.withdrawalCancel.withdrawal.customer.balance.checking.pending')
   # [[ "$pending_usd_balance" == "0" ]] || exit 1
 
-  # assert_accounts_balanced
+  assert_accounts_balanced
 }
 
 @test "customer: can withdraw" {
@@ -169,7 +169,7 @@ wait_for_approval() {
   # pending_usd_balance=$(graphql_output '.data.withdrawalInitiate.withdrawal.customer.balance.checking.pending')
   # [[ "$pending_usd_balance" == "150000" ]] || exit 1
 
-  # assert_accounts_balanced
+  assert_accounts_balanced
 
   retry 5 1 wait_for_approval $withdrawal_id
 
@@ -194,5 +194,5 @@ wait_for_approval() {
   # pending_usd_balance=$(graphql_output '.data.withdrawalConfirm.withdrawal.customer.balance.checking.pending')
   # [[ "$pending_usd_balance" == "0" ]] || exit 1
 
-  # assert_accounts_balanced
+  assert_accounts_balanced
 }
