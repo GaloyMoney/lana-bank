@@ -16,4 +16,6 @@
 
 {{create_udf_loan_ytm()}};
 
+{{create_udf_avg_open_price()}};
+
 {% endmacro %}

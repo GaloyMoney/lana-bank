@@ -26,3 +26,5 @@ models:
   my_meltano_project: null
 on-run-start:
 - '{{create_udfs()}}'
+vars:
+  sats_per_bitcoin: '100000000'
