@@ -15,55 +15,6 @@ with approvals as (
 
 ),
 
-disbursal_inits as (
-
-    select
-        id as credit_facility_id,
-        json_value(parsed_event.idx) as disbursal_idx,
-        lax_int64(parsed_event.amount) / 100 as disbursal_amount_usd
-
-    from {{ ref('stg_credit_facility_events') }}
-
-    where event_type = "disbursal_initiated"
-
-),
-
-disbursal_concludes as (
-
-    select
-        id as credit_facility_id,
-        date(recorded_at) as day,
-        json_value(parsed_event.idx) as disbursal_idx,
-        lax_bool(parsed_event.canceled) as disbursal_canceled
-
-    from {{ ref('stg_credit_facility_events') }}
-
-    where event_type = "disbursal_concluded"
-
-),
-
-disbursals as (
-
-    select
-        credit_facility_id,
-        day,
-        sum(disbursal_amount_usd) as disbursal_amount_usd,
-        count(distinct disbursal_idx) as n_disbursals,
-        sum(
-            case
-                when disbursal_canceled then 0
-                else disbursal_amount_usd
-            end
-        ) as approved_disbursal_amount_usd,
-        countif(not disbursal_canceled) as approved_n_disbursals
-
-    from disbursal_inits
-    inner join disbursal_concludes using (credit_facility_id, disbursal_idx)
-
-    group by credit_facility_id, day
-
-),
-
 payments as (
 
     select
@@ -91,50 +42,6 @@ interest as (
     from {{ ref('stg_credit_facility_events') }}
 
     where event_type = "interest_accrual_concluded"
-
-),
-
-collateral_updates as (
-
-    select
-        id as credit_facility_id,
-        recorded_at,
-        lax_int64(parsed_event.total_collateral)
-        / {{ var('sats_per_bitcoin') }}
-            as total_collateral_btc,
-        json_value(parsed_event.audit_info.audit_entry_id) as audit_entry_id
-
-    from {{ ref('stg_credit_facility_events') }}
-
-    where event_type = "collateral_updated"
-
-),
-
-collateralization as (
-
-    select
-        id as credit_facility_id,
-        lax_int64(parsed_event.price) / 100 as initial_price_usd_per_btc,
-        json_value(parsed_event.audit_info.audit_entry_id) as audit_entry_id
-
-    from {{ ref('stg_credit_facility_events') }}
-
-    where event_type = "collateralization_changed"
-
-),
-
-collateral as (
-
-    select
-        credit_facility_id,
-        date(recorded_at) as day,
-        any_value(initial_price_usd_per_btc) as initial_price_usd_per_btc,
-        any_value(total_collateral_btc having max recorded_at) as total_collateral_btc
-
-    from collateral_updates
-    left join collateralization using (credit_facility_id, audit_entry_id)
-
-    group by credit_facility_id, day
 
 ),
 
@@ -182,12 +89,12 @@ joined as (
         ) as total_collateral_btc,
         coalesce(completed, false) as completed
 
-    from {{ ref('days') }}
+    from {{ ref('int_days') }}
     full join approvals using (day)
-    full join disbursals using (credit_facility_id, day)
+    full join {{ ref('int_credit_facility_disbursals') }} using (credit_facility_id, day)
     full join payments using (credit_facility_id, day)
     full join interest using (credit_facility_id, day)
-    full join collateral using (credit_facility_id, day)
+    full join {{ ref('int_credit_facility_collateral') }} using (credit_facility_id, day)
     full join completions using (credit_facility_id, day)
 
 ),
