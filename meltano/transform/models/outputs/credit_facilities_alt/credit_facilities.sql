@@ -1,3 +1,5 @@
+{{ config(materialized='table') }}
+
 select
     id as credit_facility_id,
     json_value(parsed_event.customer_id) as customer_id,

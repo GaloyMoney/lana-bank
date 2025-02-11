@@ -1,3 +1,5 @@
+{{ config(materialized='table') }}
+
 -- TODO: these daily states should be derived from an instantaneous state table
 -- this would reduce any potential inconsistencies due to the aggregation.
 -- It can be done in a future PR if it turns out the interface works.
