@@ -171,4 +171,4 @@ select
     total_collateral_btc * close_price_usd_per_btc as total_collateral_value_usd
 
 from filled
-inner join avg_open_price using (credit_facility_id, day)
+left join avg_open_price using (credit_facility_id, day)

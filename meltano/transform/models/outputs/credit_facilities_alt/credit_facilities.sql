@@ -2,8 +2,9 @@
 
 select
     id as credit_facility_id,
+    recorded_at as created_at,
     json_value(parsed_event.customer_id) as customer_id,
-    lax_int64(parsed_event.facility) as facility,
+    lax_int64(parsed_event.facility) / 100 as facility_usd,
     json_value(parsed_event.terms.accrual_interval.type) as terms_accrual_interval_type,
     lax_int64(parsed_event.terms.annual_rate) as terms_annual_rate,
     json_value(parsed_event.terms.duration.type) as terms_duration_type,
