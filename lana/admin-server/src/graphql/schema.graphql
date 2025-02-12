@@ -1047,13 +1047,13 @@ type Query {
 	approvalProcess(id: UUID!): ApprovalProcess
 	approvalProcesses(first: Int!, after: String): ApprovalProcessConnection!
 	document(id: UUID!): Document
-	trialBalance(from: Timestamp!, until: Timestamp): TrialBalance
-	offBalanceSheetTrialBalance(from: Timestamp!, until: Timestamp): TrialBalance
+	trialBalance(from: Timestamp!, until: Timestamp): TrialBalance!
+	offBalanceSheetTrialBalance(from: Timestamp!, until: Timestamp): TrialBalance!
 	chartOfAccounts: ChartOfAccounts!
 	offBalanceSheetChartOfAccounts: ChartOfAccounts!
-	balanceSheet(from: Timestamp!, until: Timestamp): BalanceSheet
-	profitAndLossStatement(from: Timestamp!, until: Timestamp): ProfitAndLossStatement
-	cashFlowStatement(from: Timestamp!, until: Timestamp): CashFlowStatement
+	balanceSheet(from: Timestamp!, until: Timestamp): BalanceSheet!
+	profitAndLossStatement(from: Timestamp!, until: Timestamp): ProfitAndLossStatement!
+	cashFlowStatement(from: Timestamp!, until: Timestamp): CashFlowStatement!
 	accountSet(accountSetId: UUID!, from: Timestamp!, until: Timestamp): AccountSetAndSubAccounts
 	realtimePrice: RealtimePrice!
 	report(id: UUID!): Report
