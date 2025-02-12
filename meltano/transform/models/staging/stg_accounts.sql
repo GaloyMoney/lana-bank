@@ -14,6 +14,7 @@ with ordered as (
         normal_balance_type,
         latest_values,
         created_at,
+        _sdc_batched_at,
         row_number()
             over (
                 partition by id
@@ -24,7 +25,7 @@ with ordered as (
     from {{ source("lana", "public_cala_accounts_view") }}
 
     {% if is_incremental() %}
-    where created_at >= (select coalesce(max(created_at),'1900-01-01') from {{ this }} )
+    where _sdc_batched_at >= (select coalesce(max(_sdc_batched_at),'1900-01-01') from {{ this }} )
     {% endif %}
 
 )

@@ -12,6 +12,7 @@ with ordered as (
         member_account_id,
         transitive,
         created_at,
+        _sdc_batched_at,
         row_number()
             over (
                 partition by account_set_id, member_account_id
@@ -22,7 +23,7 @@ with ordered as (
     from {{ source("lana", "public_cala_account_set_member_accounts_view") }}
 
     {% if is_incremental() %}
-    where created_at >= (select coalesce(max(created_at),'1900-01-01') from {{ this }} )
+    where _sdc_batched_at >= (select coalesce(max(_sdc_batched_at),'1900-01-01') from {{ this }} )
     {% endif %}
 
 )
