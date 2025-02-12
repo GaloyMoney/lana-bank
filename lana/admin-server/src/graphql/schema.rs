@@ -394,7 +394,6 @@ impl Query {
     }
 
     // TODO: remove Option from return type
-    #[allow(unused_variables)]
     async fn trial_balance(
         &self,
         ctx: &Context<'_>,
@@ -404,13 +403,17 @@ impl Query {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         let account_summary = app
             .trial_balances()
-            .trial_balance(sub, TRIAL_BALANCE_STATEMENT_NAME.to_string())
+            .trial_balance(
+                sub,
+                TRIAL_BALANCE_STATEMENT_NAME.to_string(),
+                from.into_inner(),
+                until.map(|t| t.into_inner()),
+            )
             .await?;
         Ok(Some(TrialBalance::from(account_summary)))
     }
 
     // TODO: remove Option from return type
-    #[allow(unused_variables)]
     async fn off_balance_sheet_trial_balance(
         &self,
         ctx: &Context<'_>,
@@ -420,7 +423,12 @@ impl Query {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         let account_summary = app
             .trial_balances()
-            .trial_balance(sub, OBS_TRIAL_BALANCE_STATEMENT_NAME.to_string())
+            .trial_balance(
+                sub,
+                OBS_TRIAL_BALANCE_STATEMENT_NAME.to_string(),
+                from.into_inner(),
+                until.map(|t| t.into_inner()),
+            )
             .await?;
         Ok(Some(TrialBalance::from(account_summary)))
     }
@@ -458,7 +466,7 @@ impl Query {
         Ok(ChartOfAccounts::from(chart_projection))
     }
 
-    #[allow(unused_variables)]
+    // TODO: remove Option from return type
     async fn balance_sheet(
         &self,
         ctx: &Context<'_>,
@@ -468,13 +476,17 @@ impl Query {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         let balance_sheet = app
             .balance_sheets()
-            .balance_sheet(sub, BALANCE_SHEET_NAME.to_string())
+            .balance_sheet(
+                sub,
+                BALANCE_SHEET_NAME.to_string(),
+                from.into_inner(),
+                until.map(|t| t.into_inner()),
+            )
             .await?;
         Ok(Some(BalanceSheet::from(balance_sheet)))
     }
 
     // TODO: remove Option from return type
-    #[allow(unused_variables)]
     async fn profit_and_loss_statement(
         &self,
         ctx: &Context<'_>,
@@ -484,7 +496,12 @@ impl Query {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         let profit_and_loss = app
             .profit_and_loss_statements()
-            .pl_statement(sub, PROFIT_AND_LOSS_STATEMENT_NAME.to_string())
+            .pl_statement(
+                sub,
+                PROFIT_AND_LOSS_STATEMENT_NAME.to_string(),
+                from.into_inner(),
+                until.map(|t| t.into_inner()),
+            )
             .await?;
         Ok(Some(ProfitAndLossStatement::from(profit_and_loss)))
     }

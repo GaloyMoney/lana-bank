@@ -1,5 +1,7 @@
 pub mod error;
 
+use chrono::{DateTime, Utc};
+
 use cala_ledger::{
     account_set::{AccountSetMemberId, NewAccountSet},
     AccountSetId, CalaLedger, DebitOrCredit, JournalId, LedgerOperation,
@@ -146,6 +148,8 @@ impl TrialBalanceLedger {
     pub async fn get_trial_balance(
         &self,
         name: String,
+        from: DateTime<Utc>,
+        until: Option<DateTime<Utc>>,
     ) -> Result<StatementAccountSetWithAccounts, TrialBalanceLedgerError> {
         let statement_id = self.get_id_from_reference(name).await?;
         let mut all_account_set_ids = vec![statement_id];
@@ -155,7 +159,12 @@ impl TrialBalanceLedger {
 
         let balance_ids =
             BalanceIdsForAccountSets::from((self.journal_id, all_account_set_ids)).balance_ids;
-        let balances_by_id = self.cala.balances().find_all(&balance_ids).await?.into();
+        let balances_by_id = self
+            .cala
+            .balances()
+            .find_all_in_range(&balance_ids, from, until)
+            .await?
+            .into();
 
         let statement_account_set = self.get_account_set(statement_id, &balances_by_id).await?;
 

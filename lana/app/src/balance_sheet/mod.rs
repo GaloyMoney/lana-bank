@@ -4,6 +4,7 @@ pub mod ledger;
 use audit::AuditSvc;
 use authz::PermissionCheck;
 use cala_ledger::CalaLedger;
+use chrono::{DateTime, Utc};
 use rbac_types::{BalanceSheetAction, Subject};
 
 use crate::{
@@ -160,6 +161,8 @@ impl BalanceSheets {
         &self,
         sub: &Subject,
         reference: String,
+        from: DateTime<Utc>,
+        until: Option<DateTime<Utc>>,
     ) -> Result<BalanceSheet, BalanceSheetError> {
         self.authz
             .enforce_permission(sub, Object::BalanceSheet, BalanceSheetAction::Read)
@@ -167,7 +170,7 @@ impl BalanceSheets {
 
         Ok(self
             .balance_sheet_ledger
-            .get_balance_sheet(reference)
+            .get_balance_sheet(reference, from, until)
             .await?)
     }
 }
@@ -177,7 +180,7 @@ pub struct BalanceSheet {
     pub id: LedgerAccountSetId,
     pub name: String,
     pub description: Option<String>,
-    pub btc_balance: BtcStatementAccountSetBalance,
-    pub usd_balance: UsdStatementAccountSetBalance,
+    pub btc_balance: BtcStatementAccountSetBalanceRange,
+    pub usd_balance: UsdStatementAccountSetBalanceRange,
     pub categories: Vec<StatementAccountSetWithAccounts>,
 }

@@ -2,7 +2,10 @@ pub mod error;
 
 use std::collections::HashMap;
 
-use cala_ledger::{balance::AccountBalance, AccountId, BalanceId, Currency, JournalId};
+use cala_ledger::{
+    balance::{AccountBalance, BalanceRange},
+    AccountId, BalanceId, Currency, JournalId,
+};
 
 use crate::primitives::{LedgerAccountSetId, Satoshis, SignedSatoshis, SignedUsdCents, UsdCents};
 
@@ -20,8 +23,8 @@ pub struct StatementAccountSet {
     pub id: LedgerAccountSetId,
     pub name: String,
     pub description: Option<String>,
-    pub btc_balance: BtcStatementAccountSetBalance,
-    pub usd_balance: UsdStatementAccountSetBalance,
+    pub btc_balance: BtcStatementAccountSetBalanceRange,
+    pub usd_balance: UsdStatementAccountSetBalanceRange,
 }
 
 #[derive(Clone)]
@@ -29,8 +32,8 @@ pub struct StatementAccountSetWithAccounts {
     pub id: LedgerAccountSetId,
     pub name: String,
     pub description: Option<String>,
-    pub btc_balance: BtcStatementAccountSetBalance,
-    pub usd_balance: UsdStatementAccountSetBalance,
+    pub btc_balance: BtcStatementAccountSetBalanceRange,
+    pub usd_balance: UsdStatementAccountSetBalanceRange,
     pub accounts: Vec<StatementAccountSet>,
 }
 
@@ -109,6 +112,33 @@ impl BtcStatementAccountSetBalance {
 }
 
 #[derive(Clone)]
+pub struct BtcStatementAccountSetBalanceRange {
+    pub start: BtcStatementAccountSetBalance,
+    pub end: BtcStatementAccountSetBalance,
+    pub diff: BtcStatementAccountSetBalance,
+}
+
+impl TryFrom<BalanceRange> for BtcStatementAccountSetBalanceRange {
+    type Error = StatementError;
+
+    fn try_from(range: BalanceRange) -> Result<Self, Self::Error> {
+        Ok(Self {
+            start: range.start.try_into()?,
+            end: range.end.try_into()?,
+            diff: range.diff.try_into()?,
+        })
+    }
+}
+
+impl BtcStatementAccountSetBalanceRange {
+    pub const ZERO: Self = Self {
+        start: BtcStatementAccountSetBalance::ZERO,
+        end: BtcStatementAccountSetBalance::ZERO,
+        diff: BtcStatementAccountSetBalance::ZERO,
+    };
+}
+
+#[derive(Clone)]
 pub struct UsdStatementAccountSetBalance {
     pub all: UsdStatementBalanceAmount,
     pub settled: UsdStatementBalanceAmount,
@@ -183,6 +213,33 @@ impl UsdStatementAccountSetBalance {
 }
 
 #[derive(Clone)]
+pub struct UsdStatementAccountSetBalanceRange {
+    pub start: UsdStatementAccountSetBalance,
+    pub end: UsdStatementAccountSetBalance,
+    pub diff: UsdStatementAccountSetBalance,
+}
+
+impl TryFrom<BalanceRange> for UsdStatementAccountSetBalanceRange {
+    type Error = StatementError;
+
+    fn try_from(range: BalanceRange) -> Result<Self, Self::Error> {
+        Ok(Self {
+            start: range.start.try_into()?,
+            end: range.end.try_into()?,
+            diff: range.diff.try_into()?,
+        })
+    }
+}
+
+impl UsdStatementAccountSetBalanceRange {
+    pub const ZERO: Self = Self {
+        start: UsdStatementAccountSetBalance::ZERO,
+        end: UsdStatementAccountSetBalance::ZERO,
+        diff: UsdStatementAccountSetBalance::ZERO,
+    };
+}
+
+#[derive(Clone)]
 pub struct BtcStatementBalanceAmount {
     pub normal_balance: Satoshis,
     pub dr_balance: Satoshis,
@@ -222,7 +279,7 @@ impl UsdStatementBalanceAmount {
 
 #[derive(Clone)]
 pub struct BalancesByAccount {
-    balances: HashMap<AccountId, HashMap<Currency, AccountBalance>>,
+    balances: HashMap<AccountId, HashMap<Currency, Option<BalanceRange>>>,
 }
 
 impl BalancesByAccount {
@@ -232,7 +289,7 @@ impl BalancesByAccount {
         }
     }
 
-    fn insert(&mut self, account_id: AccountId, currency: Currency, balance: AccountBalance) {
+    fn insert(&mut self, account_id: AccountId, currency: Currency, balance: Option<BalanceRange>) {
         self.balances
             .entry(account_id)
             .or_default()
@@ -242,40 +299,51 @@ impl BalancesByAccount {
     pub fn btc_for_account(
         &self,
         account_set_id: LedgerAccountSetId,
-    ) -> Result<BtcStatementAccountSetBalance, StatementError> {
+    ) -> Result<BtcStatementAccountSetBalanceRange, StatementError> {
         let currency = "BTC".parse().expect("BTC is not a valid currency");
-        Ok(
-            match self
-                .balances
-                .get(&account_set_id.into())
-                .and_then(|currencies| currencies.get(&currency))
-            {
-                Some(bal) => bal.clone().try_into()?,
-                None => BtcStatementAccountSetBalance::ZERO,
-            },
-        )
+        Ok(self
+            .balances
+            .get(&account_set_id.into())
+            .and_then(|currencies| currencies.get(&currency))
+            .into_iter()
+            .flatten()
+            .map(|bal| bal.clone().try_into())
+            .next()
+            .transpose()?
+            .unwrap_or(BtcStatementAccountSetBalanceRange::ZERO))
     }
 
     pub fn usd_for_account(
         &self,
         account_set_id: LedgerAccountSetId,
-    ) -> Result<UsdStatementAccountSetBalance, StatementError> {
+    ) -> Result<UsdStatementAccountSetBalanceRange, StatementError> {
         let currency = "USD".parse().expect("USD is not a valid currency");
-        Ok(
-            match self
-                .balances
-                .get(&account_set_id.into())
-                .and_then(|currencies| currencies.get(&currency))
-            {
-                Some(bal) => bal.clone().try_into()?,
-                None => UsdStatementAccountSetBalance::ZERO,
-            },
-        )
+        Ok(self
+            .balances
+            .get(&account_set_id.into())
+            .and_then(|currencies| currencies.get(&currency))
+            .into_iter()
+            .flatten()
+            .map(|bal| bal.clone().try_into())
+            .next()
+            .transpose()?
+            .unwrap_or(UsdStatementAccountSetBalanceRange::ZERO))
     }
 }
 
-impl From<HashMap<BalanceId, AccountBalance>> for BalancesByAccount {
-    fn from(all_balances: HashMap<BalanceId, AccountBalance>) -> Self {
+impl From<HashMap<BalanceId, BalanceRange>> for BalancesByAccount {
+    fn from(all_balances: HashMap<BalanceId, BalanceRange>) -> Self {
+        let mut balances_by_account = Self::new();
+        for ((_, account_id, currency), balance) in all_balances {
+            balances_by_account.insert(account_id, currency, Some(balance));
+        }
+
+        balances_by_account
+    }
+}
+
+impl From<HashMap<BalanceId, Option<BalanceRange>>> for BalancesByAccount {
+    fn from(all_balances: HashMap<BalanceId, Option<BalanceRange>>) -> Self {
         let mut balances_by_account = Self::new();
         for ((_, account_id, currency), balance) in all_balances {
             balances_by_account.insert(account_id, currency, balance);

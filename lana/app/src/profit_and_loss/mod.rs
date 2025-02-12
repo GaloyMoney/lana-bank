@@ -1,6 +1,8 @@
 pub mod error;
 pub mod ledger;
 
+use chrono::{DateTime, Utc};
+
 use audit::AuditSvc;
 use authz::PermissionCheck;
 use cala_ledger::CalaLedger;
@@ -134,6 +136,8 @@ impl ProfitAndLossStatements {
         &self,
         sub: &Subject,
         reference: String,
+        from: DateTime<Utc>,
+        until: Option<DateTime<Utc>>,
     ) -> Result<ProfitAndLossStatement, ProfitAndLossStatementError> {
         self.authz
             .enforce_permission(
@@ -143,7 +147,10 @@ impl ProfitAndLossStatements {
             )
             .await?;
 
-        Ok(self.pl_statement_ledger.get_pl_statement(reference).await?)
+        Ok(self
+            .pl_statement_ledger
+            .get_pl_statement(reference, from, until)
+            .await?)
     }
 }
 
@@ -152,7 +159,7 @@ pub struct ProfitAndLossStatement {
     pub id: LedgerAccountSetId,
     pub name: String,
     pub description: Option<String>,
-    pub btc_balance: BtcStatementAccountSetBalance,
-    pub usd_balance: UsdStatementAccountSetBalance,
+    pub btc_balance: BtcStatementAccountSetBalanceRange,
+    pub usd_balance: UsdStatementAccountSetBalanceRange,
     pub categories: Vec<StatementAccountSetWithAccounts>,
 }

@@ -102,13 +102,12 @@ pub struct BtcAccountAmountsInPeriod {
     amount: LayeredBtcAccountAmounts,
 }
 
-// FIXME: Adjust for ranged balance from domain
-impl From<lana_app::statement::BtcStatementAccountSetBalance> for BtcAccountAmountsInPeriod {
-    fn from(balances: lana_app::statement::BtcStatementAccountSetBalance) -> Self {
+impl From<lana_app::statement::BtcStatementAccountSetBalanceRange> for BtcAccountAmountsInPeriod {
+    fn from(balances: lana_app::statement::BtcStatementAccountSetBalanceRange) -> Self {
         BtcAccountAmountsInPeriod {
-            opening_balance: balances.clone().into(),
-            closing_balance: balances.clone().into(),
-            amount: balances.into(),
+            opening_balance: balances.start.into(),
+            closing_balance: balances.end.into(),
+            amount: balances.diff.into(),
         }
     }
 }
@@ -120,13 +119,12 @@ pub struct UsdAccountAmountsInPeriod {
     amount: LayeredUsdAccountAmounts,
 }
 
-// FIXME: Adjust for ranged balance from domain
-impl From<lana_app::statement::UsdStatementAccountSetBalance> for UsdAccountAmountsInPeriod {
-    fn from(balances: lana_app::statement::UsdStatementAccountSetBalance) -> Self {
+impl From<lana_app::statement::UsdStatementAccountSetBalanceRange> for UsdAccountAmountsInPeriod {
+    fn from(balances: lana_app::statement::UsdStatementAccountSetBalanceRange) -> Self {
         UsdAccountAmountsInPeriod {
-            opening_balance: balances.clone().into(),
-            closing_balance: balances.clone().into(),
-            amount: balances.into(),
+            opening_balance: balances.start.into(),
+            closing_balance: balances.end.into(),
+            amount: balances.diff.into(),
         }
     }
 }

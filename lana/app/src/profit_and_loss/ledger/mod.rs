@@ -1,5 +1,6 @@
 pub mod error;
 
+use chrono::{DateTime, Utc};
 use std::collections::HashMap;
 
 use cala_ledger::{
@@ -246,6 +247,8 @@ impl ProfitAndLossStatementLedger {
     pub async fn get_pl_statement(
         &self,
         reference: String,
+        from: DateTime<Utc>,
+        until: Option<DateTime<Utc>>,
     ) -> Result<ProfitAndLossStatement, ProfitAndLossStatementLedgerError> {
         let ids = self.get_ids_from_reference(reference).await?;
         let mut all_account_set_ids = vec![ids.id, ids.revenue, ids.expenses];
@@ -259,7 +262,12 @@ impl ProfitAndLossStatementLedger {
 
         let balance_ids =
             BalanceIdsForAccountSets::from((self.journal_id, all_account_set_ids)).balance_ids;
-        let balances_by_id = self.cala.balances().find_all(&balance_ids).await?.into();
+        let balances_by_id = self
+            .cala
+            .balances()
+            .find_all_in_range(&balance_ids, from, until)
+            .await?
+            .into();
 
         let statement_account_set = self.get_account_set(ids.id, &balances_by_id).await?;
         let revenue_account_set = self.get_account_set(ids.revenue, &balances_by_id).await?;

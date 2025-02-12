@@ -1,6 +1,8 @@
 pub mod error;
 pub mod ledger;
 
+use chrono::{DateTime, Utc};
+
 use audit::AuditSvc;
 use authz::PermissionCheck;
 use cala_ledger::CalaLedger;
@@ -86,6 +88,8 @@ impl TrialBalances {
         &self,
         sub: &Subject,
         name: String,
+        from: DateTime<Utc>,
+        until: Option<DateTime<Utc>>,
     ) -> Result<TrialBalance, TrialBalanceError> {
         self.authz
             .enforce_permission(sub, Object::TrialBalance, TrialBalanceAction::Read)
@@ -93,7 +97,7 @@ impl TrialBalances {
 
         Ok(self
             .trial_balance_ledger
-            .get_trial_balance(name)
+            .get_trial_balance(name, from, until)
             .await?
             .into())
     }
@@ -104,8 +108,8 @@ pub struct TrialBalance {
     pub id: LedgerAccountSetId,
     pub name: String,
     pub description: Option<String>,
-    pub btc_balance: BtcStatementAccountSetBalance,
-    pub usd_balance: UsdStatementAccountSetBalance,
+    pub btc_balance: BtcStatementAccountSetBalanceRange,
+    pub usd_balance: UsdStatementAccountSetBalanceRange,
     pub accounts: Vec<StatementAccountSet>,
 }
 
