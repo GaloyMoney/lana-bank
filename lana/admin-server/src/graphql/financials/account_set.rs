@@ -12,7 +12,6 @@ pub struct AccountSet {
     id: UUID,
     name: String,
     amounts: AccountAmountsByCurrency,
-    has_sub_accounts: bool,
 }
 
 impl From<lana_app::statement::StatementAccountSet> for AccountSet {
@@ -21,7 +20,6 @@ impl From<lana_app::statement::StatementAccountSet> for AccountSet {
             id: line_item.id.into(),
             name: line_item.name.to_string(),
             amounts: line_item.into(),
-            has_sub_accounts: false, // FIXME: evaluate if still needed
         }
     }
 }

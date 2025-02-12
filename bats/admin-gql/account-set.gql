@@ -27,7 +27,6 @@ query AccountSet(
             __typename
             id
             name
-            hasSubAccounts
             amounts {
               ...amountsByCurrency
             }
