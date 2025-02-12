@@ -1,3 +1,10 @@
+{{ config(
+    materialized = 'incremental',
+    unique_key = ['id', 'sequence'],
+    full_refresh = true,
+) }}
+-- TODO: remove full_refresh config after rollout
+
 with ordered as (
 
     select
@@ -14,6 +21,10 @@ with ordered as (
             as order_received_desc
 
     from {{ source("lana", "public_customer_events_view") }}
+
+    {% if is_incremental() %}
+    where recorded_at >= (select coalesce(max(recorded_at),'1900-01-01') from {{ this }} )
+    {% endif %}
 
 )
 

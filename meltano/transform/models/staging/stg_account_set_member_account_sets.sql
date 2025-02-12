@@ -1,3 +1,10 @@
+{{ config(
+    materialized = 'incremental',
+    unique_key = 'account_set_id',
+    full_refresh = true,
+) }}
+-- TODO: remove full_refresh config after rollout
+
 with ordered as (
 
     select
@@ -13,6 +20,10 @@ with ordered as (
 
     from
         {{ source("lana", "public_cala_account_set_member_account_sets_view") }}
+
+    {% if is_incremental() %}
+    where created_at >= (select coalesce(max(created_at),'1900-01-01') from {{ this }} )
+    {% endif %}
 
 )
 
