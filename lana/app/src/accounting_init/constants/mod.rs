@@ -17,5 +17,7 @@ pub const OBS_TRIAL_BALANCE_STATEMENT_NAME: &str = "Off-Balance-Sheet Trial Bala
 
 pub const PROFIT_AND_LOSS_STATEMENT_NAME: &str = "Profit & Loss Statement";
 
+pub const CASH_FLOW_STATEMENT_NAME: &str = "Cash Flow Statement";
+
 pub const BALANCE_SHEET_NAME: &str = "Balance Sheet";
 pub const OBS_BALANCE_SHEET_NAME: &str = "Off-Balance-Sheet Balance Sheet";

@@ -2,8 +2,9 @@ use async_graphql::{types::connection::*, Context, Object};
 
 use lana_app::{
     accounting_init::constants::{
-        BALANCE_SHEET_NAME, CHART_REF, OBS_CHART_REF, OBS_TRIAL_BALANCE_STATEMENT_NAME,
-        PROFIT_AND_LOSS_STATEMENT_NAME, TRIAL_BALANCE_STATEMENT_NAME,
+        BALANCE_SHEET_NAME, CASH_FLOW_STATEMENT_NAME, CHART_REF, OBS_CHART_REF,
+        OBS_TRIAL_BALANCE_STATEMENT_NAME, PROFIT_AND_LOSS_STATEMENT_NAME,
+        TRIAL_BALANCE_STATEMENT_NAME,
     },
     app::LanaApp,
 };
@@ -506,20 +507,24 @@ impl Query {
         Ok(Some(ProfitAndLossStatement::from(profit_and_loss)))
     }
 
-    #[allow(unused_variables)]
+    // TODO: remove Option from return type
     async fn cash_flow_statement(
         &self,
         ctx: &Context<'_>,
         from: Timestamp,
         until: Option<Timestamp>,
     ) -> async_graphql::Result<Option<CashFlowStatement>> {
-        unimplemented!()
-        // let (app, sub) = app_and_sub_from_ctx!(ctx);
-        // let cash_flow = app
-        //     .ledger()
-        //     .cash_flow(sub, from.into_inner(), until.map(|t| t.into_inner()))
-        //     .await?;
-        // Ok(cash_flow.map(CashFlowStatement::from))
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        let cash_flow = app
+            .cash_flow_statements()
+            .cash_flow_statement(
+                sub,
+                CASH_FLOW_STATEMENT_NAME.to_string(),
+                from.into_inner(),
+                until.map(|t| t.into_inner()),
+            )
+            .await?;
+        Ok(Some(CashFlowStatement::from(cash_flow)))
     }
 
     #[allow(unused_variables)]

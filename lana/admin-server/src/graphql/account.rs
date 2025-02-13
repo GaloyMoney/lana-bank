@@ -179,3 +179,12 @@ impl From<lana_app::balance_sheet::BalanceSheet> for AccountAmountsByCurrency {
         }
     }
 }
+
+impl From<lana_app::cash_flow::CashFlowStatement> for AccountAmountsByCurrency {
+    fn from(balances: lana_app::cash_flow::CashFlowStatement) -> Self {
+        AccountAmountsByCurrency {
+            btc: balances.btc_balance.into(),
+            usd: balances.usd_balance.into(),
+        }
+    }
+}
