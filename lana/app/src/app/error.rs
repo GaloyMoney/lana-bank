@@ -20,6 +20,8 @@ pub enum ApplicationError {
     ProfitAndLossStatementError(#[from] crate::profit_and_loss::error::ProfitAndLossStatementError),
     #[error("ApplicationError - BalanceSheetError: {0}")]
     BalanceSheetError(#[from] crate::balance_sheet::error::BalanceSheetError),
+    #[error("ApplicationError - CashFlowStatementError: {0}")]
+    CashFlowStatementError(#[from] crate::cash_flow::error::CashFlowStatementError),
     #[error("ApplicationError - UserError: {0}")]
     UserError(#[from] crate::user::error::UserError),
     #[error("ApplicationError - UserOnboardingError: {0}")]

@@ -12,6 +12,7 @@ use crate::{
     audit::{Audit, AuditCursor, AuditEntry},
     authorization::{init as init_authz, AppAction, AppObject, AuditAction, Authorization},
     balance_sheet::BalanceSheets,
+    cash_flow::CashFlowStatements,
     chart_of_accounts::ChartOfAccounts,
     credit_facility::{CreditFacilities, CreditFacilityAccountFactories},
     customer::Customers,
@@ -51,6 +52,7 @@ pub struct LanaApp {
     trial_balances: TrialBalances,
     profit_and_loss_statements: ProfitAndLossStatements,
     balance_sheets: BalanceSheets,
+    cash_flow_statements: CashFlowStatements,
     price: Price,
     report: Reports,
     terms_templates: TermsTemplates,
@@ -93,13 +95,22 @@ impl LanaApp {
             ProfitAndLossStatements::init(&pool, &authz, &cala, journal_init.journal_id).await?;
         let balance_sheets =
             BalanceSheets::init(&pool, &authz, &cala, journal_init.journal_id).await?;
-        StatementsInit::statements(&trial_balances, &pl_statements, &balance_sheets).await?;
+        let cash_flow_statements =
+            CashFlowStatements::init(&pool, &authz, &cala, journal_init.journal_id).await?;
+        StatementsInit::statements(
+            &trial_balances,
+            &pl_statements,
+            &balance_sheets,
+            &cash_flow_statements,
+        )
+        .await?;
         let chart_of_accounts =
             ChartOfAccounts::init(&pool, &authz, &cala, journal_init.journal_id).await?;
         let charts_init = ChartsInit::charts_of_accounts(
             &balance_sheets,
             &trial_balances,
             &pl_statements,
+            &cash_flow_statements,
             &chart_of_accounts,
         )
         .await?;
@@ -161,6 +172,7 @@ impl LanaApp {
             trial_balances,
             profit_and_loss_statements: pl_statements,
             balance_sheets,
+            cash_flow_statements,
             terms_templates,
             documents,
             outbox,
@@ -240,6 +252,10 @@ impl LanaApp {
 
     pub fn balance_sheets(&self) -> &BalanceSheets {
         &self.balance_sheets
+    }
+
+    pub fn cash_flow_statements(&self) -> &CashFlowStatements {
+        &self.cash_flow_statements
     }
 
     pub fn users(&self) -> &Users {

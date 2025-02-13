@@ -9,6 +9,7 @@ pub(crate) async fn init(
     trial_balances: &TrialBalances,
     pl_statements: &ProfitAndLossStatements,
     balance_sheets: &BalanceSheets,
+    _cash_flow_statements: &CashFlowStatements,
 ) -> Result<StatementsInit, AccountingInitError> {
     create_trial_balances(trial_balances).await?;
 

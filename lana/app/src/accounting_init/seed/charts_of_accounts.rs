@@ -11,6 +11,7 @@ pub(crate) async fn init(
     balance_sheets: &BalanceSheets,
     trial_balances: &TrialBalances,
     pl_statements: &ProfitAndLossStatements,
+    _cash_flow_statements: &CashFlowStatements,
     chart_of_accounts: &ChartOfAccounts,
 ) -> Result<ChartsInit, AccountingInitError> {
     let chart_ids = &create_charts_of_accounts(chart_of_accounts).await?;

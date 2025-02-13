@@ -7,8 +7,9 @@ pub mod error;
 use chart_of_accounts::ChartId;
 
 use crate::{
-    balance_sheet::BalanceSheets, chart_of_accounts::ChartOfAccounts,
-    profit_and_loss::ProfitAndLossStatements, trial_balance::TrialBalances,
+    balance_sheet::BalanceSheets, cash_flow::CashFlowStatements,
+    chart_of_accounts::ChartOfAccounts, profit_and_loss::ProfitAndLossStatements,
+    trial_balance::TrialBalances,
 };
 
 use cala_ledger::CalaLedger;
@@ -36,8 +37,15 @@ impl StatementsInit {
         trial_balances: &TrialBalances,
         pl_statements: &ProfitAndLossStatements,
         balance_sheets: &BalanceSheets,
+        cash_flow_statements: &CashFlowStatements,
     ) -> Result<(), AccountingInitError> {
-        seed::statements::init(trial_balances, pl_statements, balance_sheets).await?;
+        seed::statements::init(
+            trial_balances,
+            pl_statements,
+            balance_sheets,
+            cash_flow_statements,
+        )
+        .await?;
         Ok(())
     }
 }
@@ -54,12 +62,14 @@ impl ChartsInit {
         balance_sheet: &BalanceSheets,
         trial_balances: &TrialBalances,
         pl_statements: &ProfitAndLossStatements,
+        cash_flow_statements: &CashFlowStatements,
         chart_of_accounts: &ChartOfAccounts,
     ) -> Result<Self, AccountingInitError> {
         seed::charts_of_accounts::init(
             balance_sheet,
             trial_balances,
             pl_statements,
+            cash_flow_statements,
             chart_of_accounts,
         )
         .await
