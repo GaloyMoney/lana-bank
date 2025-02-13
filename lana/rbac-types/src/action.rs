@@ -119,6 +119,7 @@ pub enum AppAction {
     TrialBalance(TrialBalanceAction),
     ProfitAndLossStatement(ProfitAndLossStatementAction),
     BalanceSheet(BalanceSheetAction),
+    CashFlowStatement(CashFlowStatementAction),
     Document(DocumentAction),
 }
 
@@ -135,6 +136,7 @@ impl Display for AppAction {
             TrialBalance(action) => action.fmt(f),
             ProfitAndLossStatement(action) => action.fmt(f),
             BalanceSheet(action) => action.fmt(f),
+            CashFlowStatement(action) => action.fmt(f),
             Document(action) => action.fmt(f),
         }
     }
@@ -159,6 +161,7 @@ impl FromStr for AppAction {
                 AppAction::from(action.parse::<ProfitAndLossStatementAction>()?)
             }
             BalanceSheet => AppAction::from(action.parse::<BalanceSheetAction>()?),
+            CashFlowStatement => AppAction::from(action.parse::<CashFlowStatementAction>()?),
             Document => AppAction::from(action.parse::<DocumentAction>()?),
         };
         Ok(res)
@@ -216,6 +219,16 @@ pub enum BalanceSheetAction {
 }
 
 impl_trivial_action!(BalanceSheetAction, BalanceSheet);
+
+#[derive(PartialEq, Clone, Copy, Debug, strum::Display, strum::EnumString)]
+#[strum(serialize_all = "kebab-case")]
+pub enum CashFlowStatementAction {
+    Create,
+    Update,
+    Read,
+}
+
+impl_trivial_action!(CashFlowStatementAction, CashFlowStatement);
 
 #[derive(PartialEq, Clone, Copy, Debug, strum::Display, strum::EnumString)]
 #[strum(serialize_all = "kebab-case")]

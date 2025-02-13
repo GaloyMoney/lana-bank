@@ -112,6 +112,7 @@ pub enum AppObject {
     TrialBalance,
     ProfitAndLossStatement,
     BalanceSheet,
+    CashFlowStatement,
 }
 
 impl Display for AppObject {
@@ -139,6 +140,7 @@ impl FromStr for AppObject {
             TrialBalance => AppObject::TrialBalance,
             ProfitAndLossStatement => AppObject::ProfitAndLossStatement,
             BalanceSheet => AppObject::BalanceSheet,
+            CashFlowStatement => AppObject::CashFlowStatement,
             Document => AppObject::Document,
         };
         Ok(res)

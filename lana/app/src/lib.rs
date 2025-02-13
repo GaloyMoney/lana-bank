@@ -6,6 +6,7 @@ pub mod app;
 pub mod applicant;
 pub mod authorization;
 pub mod balance_sheet;
+pub mod cash_flow;
 pub mod credit_facility;
 pub mod document;
 pub mod price;
