@@ -57,56 +57,6 @@ impl TrialBalanceLedger {
         Ok(id)
     }
 
-    pub async fn create(
-        &self,
-        op: es_entity::DbOp<'_>,
-        reference: &str,
-    ) -> Result<AccountSetId, TrialBalanceLedgerError> {
-        let mut op = self.cala.ledger_operation_from_db_op(op);
-
-        let statement_id = self
-            .create_unique_account_set(&mut op, reference, DebitOrCredit::Debit, vec![])
-            .await?;
-
-        op.commit().await?;
-        Ok(statement_id)
-    }
-
-    pub async fn get_id_from_reference(
-        &self,
-        reference: String,
-    ) -> Result<AccountSetId, TrialBalanceLedgerError> {
-        Ok(self
-            .cala
-            .account_sets()
-            .find_by_external_id(reference)
-            .await?
-            .id)
-    }
-
-    pub async fn add_member(
-        &self,
-        op: es_entity::DbOp<'_>,
-        statement_id: impl Into<AccountSetId>,
-        member: AccountSetId,
-    ) -> Result<(), TrialBalanceLedgerError> {
-        let statement_id = statement_id.into();
-
-        let mut op = self.cala.ledger_operation_from_db_op(op);
-        match self
-            .cala
-            .account_sets()
-            .add_member_in_op(&mut op, statement_id, member)
-            .await
-        {
-            Ok(_) | Err(cala_ledger::account_set::error::AccountSetError::MemberAlreadyAdded) => (),
-            Err(e) => return Err(e.into()),
-        }
-
-        op.commit().await?;
-        Ok(())
-    }
-
     async fn get_account_set(
         &self,
         account_set_id: AccountSetId,
@@ -145,6 +95,72 @@ impl TrialBalanceLedger {
             .collect::<Result<Vec<AccountSetId>, TrialBalanceLedgerError>>()
     }
 
+    async fn get_balances_by_id(
+        &self,
+        all_account_set_ids: Vec<AccountSetId>,
+        from: DateTime<Utc>,
+        until: Option<DateTime<Utc>>,
+    ) -> Result<BalancesByAccount, TrialBalanceLedgerError> {
+        let balance_ids =
+            BalanceIdsForAccountSets::from((self.journal_id, all_account_set_ids)).balance_ids;
+        Ok(self
+            .cala
+            .balances()
+            .find_all_in_range(&balance_ids, from, until)
+            .await?
+            .into())
+    }
+
+    pub async fn add_member(
+        &self,
+        op: es_entity::DbOp<'_>,
+        node_account_set_id: impl Into<AccountSetId>,
+        member: AccountSetId,
+    ) -> Result<(), TrialBalanceLedgerError> {
+        let node_account_set_id = node_account_set_id.into();
+
+        let mut op = self.cala.ledger_operation_from_db_op(op);
+        match self
+            .cala
+            .account_sets()
+            .add_member_in_op(&mut op, node_account_set_id, member)
+            .await
+        {
+            Ok(_) | Err(cala_ledger::account_set::error::AccountSetError::MemberAlreadyAdded) => {}
+            Err(e) => return Err(e.into()),
+        }
+
+        op.commit().await?;
+        Ok(())
+    }
+
+    pub async fn create(
+        &self,
+        op: es_entity::DbOp<'_>,
+        reference: &str,
+    ) -> Result<AccountSetId, TrialBalanceLedgerError> {
+        let mut op = self.cala.ledger_operation_from_db_op(op);
+
+        let statement_id = self
+            .create_unique_account_set(&mut op, reference, DebitOrCredit::Debit, vec![])
+            .await?;
+
+        op.commit().await?;
+        Ok(statement_id)
+    }
+
+    pub async fn get_id_from_reference(
+        &self,
+        reference: String,
+    ) -> Result<AccountSetId, TrialBalanceLedgerError> {
+        Ok(self
+            .cala
+            .account_sets()
+            .find_by_external_id(reference)
+            .await?
+            .id)
+    }
+
     pub async fn get_trial_balance(
         &self,
         name: String,
@@ -157,14 +173,9 @@ impl TrialBalanceLedger {
         let member_account_sets_ids = self.get_member_account_set_ids(statement_id).await?;
         all_account_set_ids.extend(&member_account_sets_ids);
 
-        let balance_ids =
-            BalanceIdsForAccountSets::from((self.journal_id, all_account_set_ids)).balance_ids;
         let balances_by_id = self
-            .cala
-            .balances()
-            .find_all_in_range(&balance_ids, from, until)
-            .await?
-            .into();
+            .get_balances_by_id(all_account_set_ids, from, until)
+            .await?;
 
         let statement_account_set = self.get_account_set(statement_id, &balances_by_id).await?;
 

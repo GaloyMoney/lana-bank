@@ -30,6 +30,7 @@ impl BalanceSheetLedger {
             journal_id,
         }
     }
+
     async fn create_unique_account_set(
         &self,
         op: &mut LedgerOperation<'_>,
@@ -91,6 +92,111 @@ impl BalanceSheetLedger {
         }
 
         Ok(id)
+    }
+
+    async fn get_member_account_set_ids_and_names(
+        &self,
+        id: impl Into<AccountSetId> + Copy,
+    ) -> Result<HashMap<String, AccountSetId>, BalanceSheetLedgerError> {
+        let id = id.into();
+
+        let member_ids = self
+            .cala
+            .account_sets()
+            .list_members(id, Default::default())
+            .await?
+            .entities
+            .into_iter()
+            .map(|m| match m.id {
+                AccountSetMemberId::AccountSet(id) => Ok(id),
+                _ => Err(BalanceSheetLedgerError::NonAccountSetMemberTypeFound),
+            })
+            .collect::<Result<Vec<AccountSetId>, BalanceSheetLedgerError>>()?;
+
+        let mut accounts: HashMap<String, AccountSetId> = HashMap::new();
+        for id in member_ids {
+            let account_set = self.cala.account_sets().find(id).await?.into_values();
+            accounts.insert(account_set.name, id);
+        }
+
+        Ok(accounts)
+    }
+
+    async fn get_account_set(
+        &self,
+        account_set_id: AccountSetId,
+        balances_by_id: &BalancesByAccount,
+    ) -> Result<StatementAccountSet, BalanceSheetLedgerError> {
+        let values = self
+            .cala
+            .account_sets()
+            .find(account_set_id)
+            .await?
+            .into_values();
+
+        Ok(StatementAccountSet {
+            id: account_set_id,
+            name: values.name,
+            description: values.description,
+            btc_balance: balances_by_id.btc_for_account(account_set_id)?,
+            usd_balance: balances_by_id.usd_for_account(account_set_id)?,
+        })
+    }
+
+    async fn get_member_account_set_ids(
+        &self,
+        account_set_id: AccountSetId,
+    ) -> Result<Vec<AccountSetId>, BalanceSheetLedgerError> {
+        self.cala
+            .account_sets()
+            .list_members(account_set_id, Default::default())
+            .await?
+            .entities
+            .into_iter()
+            .map(|m| match m.id {
+                AccountSetMemberId::AccountSet(id) => Ok(id),
+                _ => Err(BalanceSheetLedgerError::NonAccountSetMemberTypeFound),
+            })
+            .collect::<Result<Vec<AccountSetId>, BalanceSheetLedgerError>>()
+    }
+
+    async fn get_balances_by_id(
+        &self,
+        all_account_set_ids: Vec<AccountSetId>,
+        from: DateTime<Utc>,
+        until: Option<DateTime<Utc>>,
+    ) -> Result<BalancesByAccount, BalanceSheetLedgerError> {
+        let balance_ids =
+            BalanceIdsForAccountSets::from((self.journal_id, all_account_set_ids)).balance_ids;
+        Ok(self
+            .cala
+            .balances()
+            .find_all_in_range(&balance_ids, from, until)
+            .await?
+            .into())
+    }
+
+    pub async fn add_member(
+        &self,
+        op: es_entity::DbOp<'_>,
+        node_account_set_id: impl Into<AccountSetId>,
+        member: AccountSetId,
+    ) -> Result<(), BalanceSheetLedgerError> {
+        let node_account_set_id = node_account_set_id.into();
+
+        let mut op = self.cala.ledger_operation_from_db_op(op);
+        match self
+            .cala
+            .account_sets()
+            .add_member_in_op(&mut op, node_account_set_id, member)
+            .await
+        {
+            Ok(_) | Err(cala_ledger::account_set::error::AccountSetError::MemberAlreadyAdded) => {}
+            Err(e) => return Err(e.into()),
+        }
+
+        op.commit().await?;
+        Ok(())
     }
 
     pub async fn create(
@@ -167,34 +273,6 @@ impl BalanceSheetLedger {
         })
     }
 
-    async fn get_member_account_set_ids_and_names(
-        &self,
-        id: impl Into<AccountSetId> + Copy,
-    ) -> Result<HashMap<String, AccountSetId>, BalanceSheetLedgerError> {
-        let id = id.into();
-
-        let member_ids = self
-            .cala
-            .account_sets()
-            .list_members(id, Default::default())
-            .await?
-            .entities
-            .into_iter()
-            .map(|m| match m.id {
-                AccountSetMemberId::AccountSet(id) => Ok(id),
-                _ => Err(BalanceSheetLedgerError::NonAccountSetMemberTypeFound),
-            })
-            .collect::<Result<Vec<AccountSetId>, BalanceSheetLedgerError>>()?;
-
-        let mut accounts: HashMap<String, AccountSetId> = HashMap::new();
-        for id in member_ids {
-            let account_set = self.cala.account_sets().find(id).await?.into_values();
-            accounts.insert(account_set.name, id);
-        }
-
-        Ok(accounts)
-    }
-
     pub async fn get_ids_from_reference(
         &self,
         reference: String,
@@ -258,66 +336,6 @@ impl BalanceSheetLedger {
         })
     }
 
-    pub async fn add_member(
-        &self,
-        op: es_entity::DbOp<'_>,
-        node_account_set_id: impl Into<AccountSetId>,
-        member: AccountSetId,
-    ) -> Result<(), BalanceSheetLedgerError> {
-        let node_account_set_id = node_account_set_id.into();
-
-        let mut op = self.cala.ledger_operation_from_db_op(op);
-        match self
-            .cala
-            .account_sets()
-            .add_member_in_op(&mut op, node_account_set_id, member)
-            .await
-        {
-            Ok(_) | Err(cala_ledger::account_set::error::AccountSetError::MemberAlreadyAdded) => {}
-            Err(e) => return Err(e.into()),
-        }
-
-        op.commit().await?;
-        Ok(())
-    }
-
-    async fn get_account_set(
-        &self,
-        account_set_id: AccountSetId,
-        balances_by_id: &BalancesByAccount,
-    ) -> Result<StatementAccountSet, BalanceSheetLedgerError> {
-        let values = self
-            .cala
-            .account_sets()
-            .find(account_set_id)
-            .await?
-            .into_values();
-
-        Ok(StatementAccountSet {
-            id: account_set_id,
-            name: values.name,
-            description: values.description,
-            btc_balance: balances_by_id.btc_for_account(account_set_id)?,
-            usd_balance: balances_by_id.usd_for_account(account_set_id)?,
-        })
-    }
-    async fn get_member_account_set_ids(
-        &self,
-        account_set_id: AccountSetId,
-    ) -> Result<Vec<AccountSetId>, BalanceSheetLedgerError> {
-        self.cala
-            .account_sets()
-            .list_members(account_set_id, Default::default())
-            .await?
-            .entities
-            .into_iter()
-            .map(|m| match m.id {
-                AccountSetMemberId::AccountSet(id) => Ok(id),
-                _ => Err(BalanceSheetLedgerError::NonAccountSetMemberTypeFound),
-            })
-            .collect::<Result<Vec<AccountSetId>, BalanceSheetLedgerError>>()
-    }
-
     pub async fn get_balance_sheet(
         &self,
         reference: String,
@@ -337,14 +355,9 @@ impl BalanceSheetLedger {
         let equity_member_account_sets_ids = self.get_member_account_set_ids(ids.equity).await?;
         all_account_set_ids.extend(&equity_member_account_sets_ids);
 
-        let balance_ids =
-            BalanceIdsForAccountSets::from((self.journal_id, all_account_set_ids)).balance_ids;
         let balances_by_id = self
-            .cala
-            .balances()
-            .find_all_in_range(&balance_ids, from, until)
-            .await?
-            .into();
+            .get_balances_by_id(all_account_set_ids, from, until)
+            .await?;
 
         let statement_account_set = self.get_account_set(ids.id, &balances_by_id).await?;
         let assets_account_set = self.get_account_set(ids.assets, &balances_by_id).await?;
