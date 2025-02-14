@@ -52,7 +52,7 @@ completions as (
     select distinct
         id as credit_facility_id,
         true as completed,
-        date(recorded_at) as day
+        date(recorded_at) as completed_on
 
     from {{ ref('stg_credit_facility_events') }}
 
@@ -60,13 +60,37 @@ completions as (
 
 ),
 
-joined as (
+active_days as (
 
     select
         credit_facility_id,
+        true as active,
+        date(day) as day
+
+    from (
+
+        select
+            credit_facility_id,
+            generate_timestamp_array(
+                timestamp(day),
+                coalesce(timestamp(completed_on), current_timestamp()),
+                interval 1 day
+            ) as days
+
+        from approvals
+        left join completions using (credit_facility_id)
+
+    ), unnest(days) as day
+
+),
+
+joined as (
+
+    select
         day,
+        credit_facility_id,
         initial_price_usd_per_btc,
-        approved,
+        coalesce(active, false) as active,
         coalesce(
             last_value(close_price_usd_per_btc ignore nulls) over (
                 order by day asc
@@ -88,26 +112,22 @@ joined as (
                 partition by credit_facility_id
                 order by day
             ), 0
-        ) as total_collateral_btc,
-        coalesce(completed, false) as completed
+        ) as total_collateral_btc
 
     from {{ ref('int_days') }}
-    full join approvals using (day)
+    full join active_days using (day)
     full join {{ ref('int_credit_facility_disbursals') }} using (credit_facility_id, day)
     full join payments using (credit_facility_id, day)
     full join interest using (credit_facility_id, day)
     full join {{ ref('int_credit_facility_collateral') }} using (credit_facility_id, day)
-    full join completions using (credit_facility_id, day)
 
 ),
 
 filled as (
 
     select
-        joined.* except (initial_price_usd_per_btc, approved, completed),
+        joined.* except (initial_price_usd_per_btc),
         coalesce(initial_price_usd_per_btc, close_price_usd_per_btc) as initial_price_usd_per_btc,
-        last_value(approved ignore nulls) over (past)
-        and not last_value(completed ignore nulls) over (past) as active,
         sum(approved_disbursal_amount_usd) over (past) as total_disbursed_usd,
         sum(approved_n_disbursals) over (past) as total_n_disbursals,
         sum(disbursal_amount_paid_usd) over (past) as total_disbursal_amount_paid_usd,
@@ -168,7 +188,8 @@ select
             order by day
         )
         as initial_collateral_value_usd,
-    total_collateral_btc * close_price_usd_per_btc as total_collateral_value_usd
+    total_collateral_btc * close_price_usd_per_btc as total_collateral_value_usd,
+    day = max(day) over () as today
 
 from filled
 left join avg_open_price using (credit_facility_id, day)
