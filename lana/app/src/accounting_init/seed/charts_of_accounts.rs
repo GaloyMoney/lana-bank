@@ -11,7 +11,7 @@ pub(crate) async fn init(
     balance_sheets: &BalanceSheets,
     trial_balances: &TrialBalances,
     pl_statements: &ProfitAndLossStatements,
-    _cash_flow_statements: &CashFlowStatements,
+    cash_flow_statements: &CashFlowStatements,
     chart_of_accounts: &ChartOfAccounts,
 ) -> Result<ChartsInit, AccountingInitError> {
     let chart_ids = &create_charts_of_accounts(chart_of_accounts).await?;
@@ -24,6 +24,7 @@ pub(crate) async fn init(
         balance_sheets,
         trial_balances,
         pl_statements,
+        cash_flow_statements,
         chart_of_accounts,
         chart_ids,
     )
@@ -194,6 +195,7 @@ async fn create_credit_facilities_account_paths(
     balance_sheets: &BalanceSheets,
     trial_balances: &TrialBalances,
     pl_statements: &ProfitAndLossStatements,
+    cash_flow_statements: &CashFlowStatements,
     chart_of_accounts: &ChartOfAccounts,
     chart_ids: &ChartIds,
 ) -> Result<CreditFacilitiesAccountPaths, AccountingInitError> {
@@ -326,6 +328,12 @@ async fn create_credit_facilities_account_paths(
             disbursed_receivable_control.account_set_id,
         )
         .await?;
+    cash_flow_statements
+        .add_to_from_operations(
+            CASH_FLOW_STATEMENT_NAME.to_string(),
+            disbursed_receivable_control.account_set_id,
+        )
+        .await?;
 
     let (interest_receivable_control, interest_receivable) = find_or_create_control_sub_account(
         chart_of_accounts,
@@ -349,6 +357,12 @@ async fn create_credit_facilities_account_paths(
     balance_sheets
         .add_to_assets(
             BALANCE_SHEET_NAME.to_string(),
+            interest_receivable_control.account_set_id,
+        )
+        .await?;
+    cash_flow_statements
+        .add_to_from_operations(
+            CASH_FLOW_STATEMENT_NAME.to_string(),
             interest_receivable_control.account_set_id,
         )
         .await?;
@@ -384,6 +398,12 @@ async fn create_credit_facilities_account_paths(
             interest_income_control.account_set_id,
         )
         .await?;
+    cash_flow_statements
+        .add_to_revenue(
+            CASH_FLOW_STATEMENT_NAME.to_string(),
+            interest_income_control.account_set_id,
+        )
+        .await?;
 
     let (fee_income_control, fee_income) = find_or_create_control_sub_account(
         chart_of_accounts,
@@ -413,6 +433,12 @@ async fn create_credit_facilities_account_paths(
     balance_sheets
         .add_to_revenue(
             BALANCE_SHEET_NAME.to_string(),
+            fee_income_control.account_set_id,
+        )
+        .await?;
+    cash_flow_statements
+        .add_to_revenue(
+            CASH_FLOW_STATEMENT_NAME.to_string(),
             fee_income_control.account_set_id,
         )
         .await?;
