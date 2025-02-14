@@ -163,6 +163,7 @@ where
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         holder_id: impl Into<DepositAccountHolderId> + std::fmt::Debug,
+        reference: &str,
         name: &str,
         description: &str,
     ) -> Result<DepositAccount, CoreDepositError> {
@@ -179,6 +180,7 @@ where
         let new_account = NewDepositAccount::builder()
             .id(account_id)
             .account_holder_id(holder_id)
+            .reference(reference.to_string())
             .name(name.to_string())
             .description(description.to_string())
             .audit_info(audit_info.clone())
