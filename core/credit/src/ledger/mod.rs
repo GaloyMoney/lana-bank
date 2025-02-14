@@ -453,6 +453,7 @@ impl CreditLedger {
             .create_transaction_account_in_op(
                 &mut op,
                 id,
+                &account_factory.control_sub_account.reference,
                 &account_factory.control_sub_account.name,
                 &account_factory.control_sub_account.name,
             )
@@ -473,6 +474,7 @@ impl CreditLedger {
             .create_transaction_account_in_op(
                 &mut op,
                 id,
+                &account_factory.control_sub_account.reference,
                 &account_factory.control_sub_account.name,
                 &account_factory.control_sub_account.name,
             )
@@ -524,6 +526,7 @@ impl CreditLedger {
         credit_facility_id: CreditFacilityId,
         account_ids: CreditFacilityAccountIds,
     ) -> Result<(), CreditLedgerError> {
+        let collateral_reference = &format!("credit-facility-collateral:{}", credit_facility_id);
         let collateral_name = &format!(
             "Credit Facility Collateral Account for {}",
             credit_facility_id
@@ -533,11 +536,13 @@ impl CreditLedger {
             .create_transaction_account_in_op(
                 op,
                 account_ids.collateral_account_id,
+                collateral_reference,
                 collateral_name,
                 collateral_name,
             )
             .await?;
 
+        let facility_reference = &format!("credit-facility-obs-facility:{}", credit_facility_id);
         let facility_name = &format!(
             "Off-Balance-Sheet Facility Account for Credit Facility {}",
             credit_facility_id
@@ -547,11 +552,16 @@ impl CreditLedger {
             .create_transaction_account_in_op(
                 op,
                 account_ids.facility_account_id,
+                facility_reference,
                 facility_name,
                 facility_name,
             )
             .await?;
 
+        let disbursed_receivable_reference = &format!(
+            "credit-facility-disbursed-receivable:{}",
+            credit_facility_id
+        );
         let disbursed_receivable_name = &format!(
             "Disbursed Receivable Account for Credit Facility {}",
             credit_facility_id
@@ -561,11 +571,14 @@ impl CreditLedger {
             .create_transaction_account_in_op(
                 op,
                 account_ids.disbursed_receivable_account_id,
+                disbursed_receivable_reference,
                 disbursed_receivable_name,
                 disbursed_receivable_name,
             )
             .await?;
 
+        let interest_receivable_reference =
+            &format!("credit-facility-interest-receivable:{}", credit_facility_id);
         let interest_receivable_name = &format!(
             "Interest Receivable Account for Credit Facility {}",
             credit_facility_id
@@ -575,11 +588,14 @@ impl CreditLedger {
             .create_transaction_account_in_op(
                 op,
                 account_ids.interest_receivable_account_id,
+                interest_receivable_reference,
                 interest_receivable_name,
                 interest_receivable_name,
             )
             .await?;
 
+        let interest_income_reference =
+            &format!("credit-facility-interest-income:{}", credit_facility_id);
         let interest_income_name = &format!(
             "Interest Income Account for Credit Facility {}",
             credit_facility_id
@@ -589,11 +605,13 @@ impl CreditLedger {
             .create_transaction_account_in_op(
                 op,
                 account_ids.interest_account_id,
+                interest_income_reference,
                 interest_income_name,
                 interest_income_name,
             )
             .await?;
 
+        let fee_income_reference = &format!("credit-facility-fee-income:{}", credit_facility_id);
         let fee_income_name = &format!(
             "Fee Income Account for Credit Facility {}",
             credit_facility_id
@@ -603,6 +621,7 @@ impl CreditLedger {
             .create_transaction_account_in_op(
                 op,
                 account_ids.fee_income_account_id,
+                fee_income_reference,
                 fee_income_name,
                 fee_income_name,
             )

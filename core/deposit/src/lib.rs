@@ -195,6 +195,7 @@ where
             .create_transaction_account_in_op(
                 &mut op,
                 account_id,
+                &account.reference,
                 &account.name,
                 &account.description,
             )

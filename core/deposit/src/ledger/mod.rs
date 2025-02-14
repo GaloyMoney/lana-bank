@@ -35,7 +35,7 @@ impl DepositLedger {
         omnibus_account_factory: TransactionAccountFactory,
     ) -> Result<Self, DepositLedgerError> {
         let deposit_omnibus_account_id =
-            Self::create_deposit_omnibus_account(cala, omnibus_account_factory).await?;
+            Self::create_ledger_account(cala, omnibus_account_factory).await?;
 
         templates::RecordDeposit::init(cala).await?;
         templates::InitiateWithdraw::init(cala).await?;
@@ -202,20 +202,22 @@ impl DepositLedger {
         Ok(())
     }
 
-    async fn create_deposit_omnibus_account(
+    async fn create_ledger_account(
         cala: &CalaLedger,
         account_factory: TransactionAccountFactory,
     ) -> Result<AccountId, DepositLedgerError> {
         let id = AccountId::new();
+        let name: &str = &account_factory.control_sub_account.name;
+
+        match cala.accounts().find_by_external_id(name.to_string()).await {
+            Ok(account) => return Ok(account.id),
+            Err(e) if e.was_not_found() => (),
+            Err(e) => return Err(e.into()),
+        };
 
         let mut op = cala.begin_operation().await?;
         account_factory
-            .create_transaction_account_in_op(
-                &mut op,
-                id,
-                &account_factory.control_sub_account.name,
-                &account_factory.control_sub_account.name,
-            )
+            .create_transaction_account_in_op(&mut op, id, name, name, name)
             .await?;
         op.commit().await?;
 

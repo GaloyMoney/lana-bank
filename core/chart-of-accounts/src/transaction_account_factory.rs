@@ -22,6 +22,7 @@ impl TransactionAccountFactory {
         &self,
         op: &mut LedgerOperation<'_>,
         account_id: impl Into<LedgerAccountId>,
+        reference: &str,
         name: &str,
         description: &str,
     ) -> Result<(), CoreChartOfAccountsError> {
@@ -29,6 +30,7 @@ impl TransactionAccountFactory {
 
         let new_account = NewAccount::builder()
             .id(account_id)
+            .external_id(reference.to_string())
             .name(name.to_string())
             .description(description.to_string())
             .code(format!("{}.{}", self.control_sub_account.path, account_id))
