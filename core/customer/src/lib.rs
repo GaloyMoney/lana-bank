@@ -126,9 +126,10 @@ where
         let mut db = self.repo.begin_op().await?;
         let customer = self.repo.create_in_op(&mut db, new_customer).await?;
 
+        let account_ref = &format!("deposit-customer-account:{}", customer.id);
         let account_name = &format!("Deposit Account for Customer {}", customer.id);
         self.deposit
-            .create_account(sub, customer.id, account_name, account_name)
+            .create_account(sub, customer.id, account_ref, account_name, account_name)
             .await?;
 
         db.commit().await?;
