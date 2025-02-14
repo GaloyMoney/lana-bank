@@ -13,8 +13,8 @@ use crate::statement::*;
 use error::*;
 
 use super::{
-    BalanceSheet, BalanceSheetIds, ASSETS_NAME, EQUITY_NAME, LIABILITIES_NAME, NET_INCOME_NAME,
-    NI_EXPENSES_NAME, NI_REVENUE_NAME,
+    BalanceSheet, BalanceSheetIds, ASSETS_NAME, EQUITY_NAME, EXPENSES_NAME, LIABILITIES_NAME,
+    NET_INCOME_NAME, REVENUE_NAME,
 };
 
 #[derive(Clone)]
@@ -247,7 +247,7 @@ impl BalanceSheetLedger {
         let revenue_id = self
             .create_account_set(
                 &mut op,
-                NI_REVENUE_NAME,
+                REVENUE_NAME,
                 DebitOrCredit::Credit,
                 vec![net_income_id],
             )
@@ -255,7 +255,7 @@ impl BalanceSheetLedger {
         let expenses_id = self
             .create_account_set(
                 &mut op,
-                NI_EXPENSES_NAME,
+                EXPENSES_NAME,
                 DebitOrCredit::Debit,
                 vec![net_income_id],
             )
@@ -313,18 +313,12 @@ impl BalanceSheetLedger {
         let net_income_members = self
             .get_member_account_set_ids_and_names(*net_income_id)
             .await?;
-        let revenue_id =
-            net_income_members
-                .get(NI_REVENUE_NAME)
-                .ok_or(BalanceSheetLedgerError::NotFound(
-                    NI_REVENUE_NAME.to_string(),
-                ))?;
-        let expenses_id =
-            net_income_members
-                .get(NI_EXPENSES_NAME)
-                .ok_or(BalanceSheetLedgerError::NotFound(
-                    NI_EXPENSES_NAME.to_string(),
-                ))?;
+        let revenue_id = net_income_members
+            .get(REVENUE_NAME)
+            .ok_or(BalanceSheetLedgerError::NotFound(REVENUE_NAME.to_string()))?;
+        let expenses_id = net_income_members
+            .get(EXPENSES_NAME)
+            .ok_or(BalanceSheetLedgerError::NotFound(EXPENSES_NAME.to_string()))?;
 
         Ok(BalanceSheetIds {
             id: statement_id,

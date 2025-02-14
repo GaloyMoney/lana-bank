@@ -12,10 +12,7 @@ use crate::statement::*;
 
 use error::*;
 
-use super::{
-    CashFlowStatement, CashFlowStatementIds, FROM_FINANCING_NAME, FROM_INVESTING_NAME,
-    FROM_OPERATIONS_NAME,
-};
+use super::*;
 
 #[derive(Clone)]
 pub struct CashFlowStatementLedger {
@@ -235,6 +232,32 @@ impl CashFlowStatementLedger {
             )
             .await?;
 
+        let net_income_id = self
+            .create_account_set(
+                &mut op,
+                NET_INCOME_NAME,
+                DebitOrCredit::Credit,
+                vec![from_operations_id],
+            )
+            .await?;
+
+        let revenue_id = self
+            .create_account_set(
+                &mut op,
+                REVENUE_NAME,
+                DebitOrCredit::Credit,
+                vec![net_income_id],
+            )
+            .await?;
+        let expenses_id = self
+            .create_account_set(
+                &mut op,
+                EXPENSES_NAME,
+                DebitOrCredit::Debit,
+                vec![net_income_id],
+            )
+            .await?;
+
         op.commit().await?;
 
         Ok(CashFlowStatementIds {
@@ -242,6 +265,8 @@ impl CashFlowStatementLedger {
             from_operations: from_operations_id,
             from_investing: from_investing_id,
             from_financing: from_financing_id,
+            revenue: revenue_id,
+            expenses: expenses_id,
         })
     }
 
@@ -269,11 +294,36 @@ impl CashFlowStatementLedger {
             CashFlowStatementLedgerError::NotFound(FROM_FINANCING_NAME.to_string()),
         )?;
 
+        let from_operations_members = self
+            .get_member_account_set_ids_and_names(*from_operations_id)
+            .await?;
+        let net_income_id = from_operations_members.get(NET_INCOME_NAME).ok_or(
+            CashFlowStatementLedgerError::NotFound(NET_INCOME_NAME.to_string()),
+        )?;
+
+        let net_income_members = self
+            .get_member_account_set_ids_and_names(*net_income_id)
+            .await?;
+        let revenue_id =
+            net_income_members
+                .get(REVENUE_NAME)
+                .ok_or(CashFlowStatementLedgerError::NotFound(
+                    REVENUE_NAME.to_string(),
+                ))?;
+        let expenses_id =
+            net_income_members
+                .get(EXPENSES_NAME)
+                .ok_or(CashFlowStatementLedgerError::NotFound(
+                    EXPENSES_NAME.to_string(),
+                ))?;
+
         Ok(CashFlowStatementIds {
             id: statement_id,
             from_operations: *from_operations_id,
             from_investing: *from_investing_id,
             from_financing: *from_financing_id,
+            revenue: *revenue_id,
+            expenses: *expenses_id,
         })
     }
 

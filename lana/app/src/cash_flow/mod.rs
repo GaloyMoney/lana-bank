@@ -20,13 +20,18 @@ use ledger::*;
 pub(crate) const FROM_OPERATIONS_NAME: &str = "Cash Flow From Operations";
 pub(crate) const FROM_INVESTING_NAME: &str = "Cash Flow From Investing";
 pub(crate) const FROM_FINANCING_NAME: &str = "Cash Flow From Financing";
+pub(crate) const NET_INCOME_NAME: &str = "Net Income";
+pub(crate) const REVENUE_NAME: &str = "Revenue";
+pub(crate) const EXPENSES_NAME: &str = "Expenses";
 
 #[derive(Clone, Copy)]
 pub struct CashFlowStatementIds {
     pub id: LedgerAccountSetId,
-    pub from_operations: LedgerAccountSetId,
-    pub from_investing: LedgerAccountSetId,
-    pub from_financing: LedgerAccountSetId,
+    from_operations: LedgerAccountSetId,
+    from_investing: LedgerAccountSetId,
+    from_financing: LedgerAccountSetId,
+    revenue: LedgerAccountSetId,
+    expenses: LedgerAccountSetId,
 }
 
 #[derive(Clone)]
@@ -136,6 +141,32 @@ impl CashFlowStatements {
             .await?;
 
         self.add_to(statement_ids.from_financing, member_id).await
+    }
+
+    pub async fn add_to_revenue(
+        &self,
+        reference: String,
+        member_id: impl Into<LedgerAccountSetId>,
+    ) -> Result<(), CashFlowStatementError> {
+        let statement_ids = self
+            .cash_flow_statement_ledger
+            .get_ids_from_reference(reference)
+            .await?;
+
+        self.add_to(statement_ids.revenue, member_id).await
+    }
+
+    pub async fn add_to_expenses(
+        &self,
+        reference: String,
+        member_id: impl Into<LedgerAccountSetId>,
+    ) -> Result<(), CashFlowStatementError> {
+        let statement_ids = self
+            .cash_flow_statement_ledger
+            .get_ids_from_reference(reference)
+            .await?;
+
+        self.add_to(statement_ids.expenses, member_id).await
     }
 
     pub async fn cash_flow_statement(

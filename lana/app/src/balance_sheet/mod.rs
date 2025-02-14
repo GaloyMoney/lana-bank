@@ -20,8 +20,8 @@ pub(crate) const ASSETS_NAME: &str = "Assets";
 pub(crate) const LIABILITIES_NAME: &str = "Liabilities";
 pub(crate) const EQUITY_NAME: &str = "Equity";
 pub(crate) const NET_INCOME_NAME: &str = "Net Income";
-pub(crate) const NI_REVENUE_NAME: &str = "Revenue";
-pub(crate) const NI_EXPENSES_NAME: &str = "Expenses";
+pub(crate) const REVENUE_NAME: &str = "Revenue";
+pub(crate) const EXPENSES_NAME: &str = "Expenses";
 
 #[derive(Clone, Copy)]
 pub struct BalanceSheetIds {
