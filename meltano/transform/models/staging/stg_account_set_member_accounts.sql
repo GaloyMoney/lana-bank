@@ -1,9 +1,7 @@
 {{ config(
     materialized = 'incremental',
     unique_key = ['account_set_id', 'member_account_id'],
-    full_refresh = true,
 ) }}
--- TODO: remove full_refresh config after rollout
 
 with ordered as (
 
