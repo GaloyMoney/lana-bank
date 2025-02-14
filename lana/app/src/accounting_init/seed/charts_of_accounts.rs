@@ -328,12 +328,6 @@ async fn create_credit_facilities_account_paths(
             disbursed_receivable_control.account_set_id,
         )
         .await?;
-    cash_flow_statements
-        .add_to_from_operations(
-            CASH_FLOW_STATEMENT_NAME.to_string(),
-            disbursed_receivable_control.account_set_id,
-        )
-        .await?;
 
     let (interest_receivable_control, interest_receivable) = find_or_create_control_sub_account(
         chart_of_accounts,
