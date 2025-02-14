@@ -24,6 +24,9 @@ jobs:
 - name: tap-postgres-to-target-bigquery-run-dbt
   tasks:
   - tap-postgres target-bigquery dbt-bigquery:run
+- name: tap-postgres-to-target-bigquery-overwrite
+  tasks:
+  - tap-postgres target-bigquery-overwrite
 - name: poll-bitfinex
   tasks:
   - tap-bitfinexapi target-bigquery
@@ -34,6 +37,9 @@ schedules:
 - name: postgres-to-bigquery-dbt
   interval: '*/5 * * * *'
   job: tap-postgres-to-target-bigquery-run-dbt
+- name: postgres-to-bigquery-overwrite
+  interval: '@weekly'
+  job: tap-postgres-to-target-bigquery-overwrite
 - name: poll-bitfinex-on-minute
   interval: '* * * * *'
   job: poll-bitfinex
@@ -73,6 +79,10 @@ plugins:
     config:
       project: lana-dev-440721
       generate_view: true
+  - name: target-bigquery-overwrite
+    inherit_from: target-bigquery
+    config:
+      overwrite: true
   transformers:
   - name: dbt-bigquery
     variant: dbt-labs
