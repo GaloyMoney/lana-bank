@@ -23,6 +23,8 @@ pub(crate) const FROM_FINANCING_NAME: &str = "Cash Flow From Financing";
 pub(crate) const NET_INCOME_NAME: &str = "Net Income";
 pub(crate) const REVENUE_NAME: &str = "Revenue";
 pub(crate) const EXPENSES_NAME: &str = "Expenses";
+pub(crate) const NON_CASH_ADJUSTMENTS_NAME: &str = "Adjustments for Non-Cash Items";
+pub(crate) const FEE_INCOME_ADJUSTMENTS_NAME: &str = "Non-Cash Fee Income Adjustment";
 
 #[derive(Clone, Copy)]
 pub struct CashFlowStatementIds {
@@ -32,6 +34,7 @@ pub struct CashFlowStatementIds {
     from_financing: LedgerAccountSetId,
     revenue: LedgerAccountSetId,
     expenses: LedgerAccountSetId,
+    fee_income_adjustments: LedgerAccountSetId,
 }
 
 #[derive(Clone)]
@@ -167,6 +170,20 @@ impl CashFlowStatements {
             .await?;
 
         self.add_to(statement_ids.expenses, member_id).await
+    }
+
+    pub async fn add_to_fee_income_adjustments(
+        &self,
+        reference: String,
+        member_id: impl Into<LedgerAccountSetId>,
+    ) -> Result<(), CashFlowStatementError> {
+        let statement_ids = self
+            .cash_flow_statement_ledger
+            .get_ids_from_reference(reference)
+            .await?;
+
+        self.add_to(statement_ids.fee_income_adjustments, member_id)
+            .await
     }
 
     pub async fn cash_flow_statement(

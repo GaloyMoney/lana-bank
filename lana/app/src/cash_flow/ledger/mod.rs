@@ -258,6 +258,23 @@ impl CashFlowStatementLedger {
             )
             .await?;
 
+        let non_cash_adustments_id = self
+            .create_account_set(
+                &mut op,
+                NON_CASH_ADJUSTMENTS_NAME,
+                DebitOrCredit::Debit,
+                vec![from_operations_id],
+            )
+            .await?;
+        let fee_income_non_cash_adj_id = self
+            .create_account_set(
+                &mut op,
+                FEE_INCOME_ADJUSTMENTS_NAME,
+                DebitOrCredit::Debit,
+                vec![non_cash_adustments_id],
+            )
+            .await?;
+
         op.commit().await?;
 
         Ok(CashFlowStatementIds {
@@ -267,6 +284,7 @@ impl CashFlowStatementLedger {
             from_financing: from_financing_id,
             revenue: revenue_id,
             expenses: expenses_id,
+            fee_income_adjustments: fee_income_non_cash_adj_id,
         })
     }
 
@@ -300,6 +318,11 @@ impl CashFlowStatementLedger {
         let net_income_id = from_operations_members.get(NET_INCOME_NAME).ok_or(
             CashFlowStatementLedgerError::NotFound(NET_INCOME_NAME.to_string()),
         )?;
+        let non_cash_adjustments_id = from_operations_members
+            .get(NON_CASH_ADJUSTMENTS_NAME)
+            .ok_or(CashFlowStatementLedgerError::NotFound(
+                NON_CASH_ADJUSTMENTS_NAME.to_string(),
+            ))?;
 
         let net_income_members = self
             .get_member_account_set_ids_and_names(*net_income_id)
@@ -317,6 +340,15 @@ impl CashFlowStatementLedger {
                     EXPENSES_NAME.to_string(),
                 ))?;
 
+        let non_cash_adjustments_members = self
+            .get_member_account_set_ids_and_names(*non_cash_adjustments_id)
+            .await?;
+        let fee_income_adj_id = non_cash_adjustments_members
+            .get(FEE_INCOME_ADJUSTMENTS_NAME)
+            .ok_or(CashFlowStatementLedgerError::NotFound(
+                FEE_INCOME_ADJUSTMENTS_NAME.to_string(),
+            ))?;
+
         Ok(CashFlowStatementIds {
             id: statement_id,
             from_operations: *from_operations_id,
@@ -324,6 +356,7 @@ impl CashFlowStatementLedger {
             from_financing: *from_financing_id,
             revenue: *revenue_id,
             expenses: *expenses_id,
+            fee_income_adjustments: *fee_income_adj_id,
         })
     }
 
