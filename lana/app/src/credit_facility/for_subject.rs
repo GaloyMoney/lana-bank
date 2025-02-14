@@ -159,10 +159,9 @@ impl<'a> CreditFacilitiesForSubject<'a> {
 
     pub async fn find_payment_by_id(
         &self,
-        tx_id: impl Into<PaymentId> + std::fmt::Debug,
+        payment_id: impl Into<PaymentId> + std::fmt::Debug,
     ) -> Result<Payment, CreditFacilityError> {
-        let tx_id = tx_id.into();
-        let payment = self.payments.find_by_id(tx_id).await?;
+        let payment = self.payments.find_by_id(payment_id.into()).await?;
 
         let credit_facility = self
             .credit_facilities

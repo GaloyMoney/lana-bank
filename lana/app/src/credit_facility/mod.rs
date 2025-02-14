@@ -749,6 +749,20 @@ impl CreditFacilities {
         Ok(credit_facility)
     }
 
+    pub async fn find_payment_by_id(
+        &self,
+        sub: &Subject,
+        payment_id: impl Into<PaymentId> + std::fmt::Debug,
+    ) -> Result<Payment, CreditFacilityError> {
+        let payment = self.payment_repo.find_by_id(payment_id.into()).await?;
+
+        self.authz
+            .enforce_permission(sub, Object::CreditFacility, CreditFacilityAction::Read)
+            .await?;
+
+        Ok(payment)
+    }
+
     pub async fn list_disbursals(
         &self,
         sub: &Subject,

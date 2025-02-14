@@ -127,8 +127,7 @@ impl PaymentEntry {
 
         let payment = app
             .credit_facilities()
-            .for_subject(sub)?
-            .find_payment_by_id(self.tx_id)
+            .find_payment_by_id(sub, self.tx_id)
             .await?;
 
         Ok(CreditFacilityPayment::from(payment))
