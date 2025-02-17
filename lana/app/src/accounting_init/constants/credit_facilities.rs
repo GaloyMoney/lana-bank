@@ -32,6 +32,24 @@ pub const CREDIT_FACILITIES_FEE_INCOME_CONTROL_SUB_ACCOUNT_REF: &str =
 pub const CREDIT_FACILITIES_FEE_INCOME_CONTROL_SUB_ACCOUNT_NAME: &str =
     "Fixed Term Credit Facilities Fee Income"; // Revenue
 
+pub const CREDIT_FACILITIES_FEE_INCOME_ADJUSTMENT_CONTROL_ACCOUNT_REF: &str =
+    "credit-facilities-fee-income-adjustment";
+pub const CREDIT_FACILITIES_FEE_INCOME_ADJUSTMENT_CONTROL_ACCOUNT_NAME: &str =
+    "Credit Facilities Fee Income Non-Cash Adjustments";
+pub const CREDIT_FACILITIES_FEE_INCOME_ADJUSTMENT_CONTROL_SUB_ACCOUNT_REF: &str =
+    "fixed-term-credit-facilities-fee-income-adjustment";
+pub const CREDIT_FACILITIES_FEE_INCOME_ADJUSTMENT_CONTROL_SUB_ACCOUNT_NAME: &str =
+    "Fixed Term Credit Facilities Fee Income Non-Cash Adjustments"; // Revenue
+
+pub const CREDIT_FACILITIES_NON_CASH_OFFSET_CONTROL_ACCOUNT_REF: &str =
+    "credit-facilities-non-cash-offset";
+pub const CREDIT_FACILITIES_NON_CASH_OFFSET_CONTROL_ACCOUNT_NAME: &str =
+    "Credit Facilities Non-Cash Offset";
+pub const CREDIT_FACILITIES_NON_CASH_OFFSET_CONTROL_SUB_ACCOUNT_REF: &str =
+    "fixed-term-credit-facilities-non-cash-offset";
+pub const CREDIT_FACILITIES_NON_CASH_OFFSET_CONTROL_SUB_ACCOUNT_NAME: &str =
+    "Fixed Term Credit Facilities Non-Cash Offset"; // Revenue
+
 pub const CREDIT_FACILITIES_COLLATERAL_CONTROL_ACCOUNT_REF: &str = "credit-facilities-collateral";
 pub const CREDIT_FACILITIES_COLLATERAL_CONTROL_ACCOUNT_NAME: &str = "Credit Facilities Collateral"; // OBS Liabilities
 pub const CREDIT_FACILITIES_COLLATERAL_CONTROL_SUB_ACCOUNT_REF: &str =
