@@ -31,6 +31,8 @@ pub struct CreditLedger {
     journal_id: JournalId,
     credit_omnibus_account_id: AccountId,
     bank_collateral_account_id: AccountId,
+    fee_income_adjustment_omnibus_account_id: AccountId,
+    non_cash_offset_omnibus_account_id: AccountId,
     credit_facility_control_id: VelocityControlId,
     account_factories: CreditFacilityAccountFactories,
     usd: Currency,
@@ -48,6 +50,16 @@ impl CreditLedger {
 
         let credit_omnibus_account_id =
             Self::create_ledger_account(cala, account_factories.facility_omnibus.clone()).await?;
+
+        let fee_income_adjustment_omnibus_account_id = Self::create_ledger_account(
+            cala,
+            account_factories.fee_income_adjustment_omnibus.clone(),
+        )
+        .await?;
+
+        let non_cash_offset_omnibus_account_id =
+            Self::create_ledger_account(cala, account_factories.non_cash_offset_omnibus.clone())
+                .await?;
 
         templates::AddCollateral::init(cala).await?;
         templates::ActivateCreditFacility::init(cala).await?;
@@ -79,6 +91,8 @@ impl CreditLedger {
             bank_collateral_account_id,
             credit_omnibus_account_id,
             credit_facility_control_id,
+            fee_income_adjustment_omnibus_account_id,
+            non_cash_offset_omnibus_account_id,
             account_factories,
             usd: "USD".parse().expect("Could not parse 'USD'"),
             btc: "BTC".parse().expect("Could not parse 'BTC'"),

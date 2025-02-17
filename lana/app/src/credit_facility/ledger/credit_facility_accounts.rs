@@ -45,6 +45,8 @@ pub struct CreditFacilityAccountFactories {
     pub interest_receivable: TransactionAccountFactory,
     pub interest_income: TransactionAccountFactory,
     pub fee_income: TransactionAccountFactory,
+    pub fee_income_adjustment_omnibus: TransactionAccountFactory,
+    pub non_cash_offset_omnibus: TransactionAccountFactory,
 }
 
 impl CreditFacilityAccountFactories {
@@ -66,6 +68,10 @@ impl CreditFacilityAccountFactories {
             interest_income: chart_of_accounts
                 .transaction_account_factory(credit_facilities.interest_income),
             fee_income: chart_of_accounts.transaction_account_factory(credit_facilities.fee_income),
+            fee_income_adjustment_omnibus: chart_of_accounts
+                .transaction_account_factory(credit_facilities.fee_income_adjustment_omnibus),
+            non_cash_offset_omnibus: chart_of_accounts
+                .transaction_account_factory(credit_facilities.non_cash_offset_omnibus),
         }
     }
 }
