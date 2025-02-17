@@ -8,10 +8,10 @@ use cala_ledger::{
 
 use crate::credit_facility::ledger::error::*;
 
-pub const APPROVE_CREDIT_FACILITY_CODE: &str = "APPROVE_CREDIT_FACILITY";
+pub const ACTIVATE_CREDIT_FACILITY_CODE: &str = "ACTIVATE_CREDIT_FACILITY";
 
 #[derive(Debug)]
-pub struct ApproveCreditFacilityParams {
+pub struct ActivateCreditFacilityParams {
     pub journal_id: JournalId,
     pub credit_omnibus_account: AccountId,
     pub credit_facility_account: AccountId,
@@ -24,7 +24,7 @@ pub struct ApproveCreditFacilityParams {
     pub external_id: String,
 }
 
-impl ApproveCreditFacilityParams {
+impl ActivateCreditFacilityParams {
     pub fn defs() -> Vec<NewParamDefinition> {
         vec![
             NewParamDefinition::builder()
@@ -86,9 +86,9 @@ impl ApproveCreditFacilityParams {
     }
 }
 
-impl From<ApproveCreditFacilityParams> for Params {
+impl From<ActivateCreditFacilityParams> for Params {
     fn from(
-        ApproveCreditFacilityParams {
+        ActivateCreditFacilityParams {
             journal_id,
             credit_omnibus_account,
             credit_facility_account,
@@ -99,7 +99,7 @@ impl From<ApproveCreditFacilityParams> for Params {
             structuring_fee_amount,
             currency,
             external_id,
-        }: ApproveCreditFacilityParams,
+        }: ActivateCreditFacilityParams,
     ) -> Self {
         let mut params = Self::default();
         params.insert("journal_id", journal_id);
@@ -120,16 +120,16 @@ impl From<ApproveCreditFacilityParams> for Params {
     }
 }
 
-pub struct ApproveCreditFacility;
+pub struct ActivateCreditFacility;
 
-impl ApproveCreditFacility {
-    #[instrument(name = "ledger.approve_credit_facility.init", skip_all)]
+impl ActivateCreditFacility {
+    #[instrument(name = "ledger.activate_credit_facility.init", skip_all)]
     pub async fn init(ledger: &CalaLedger) -> Result<(), CreditLedgerError> {
         let tx_input = NewTxTemplateTransaction::builder()
             .journal_id("params.journal_id")
             .effective("params.effective")
             .external_id("params.external_id")
-            .description("'Approve credit facility'")
+            .description("'Activate credit facility'")
             .build()
             .expect("Couldn't build TxInput");
 
@@ -207,10 +207,10 @@ impl ApproveCreditFacility {
                 .build()
                 .expect("Couldn't build entry"),
         ];
-        let params = ApproveCreditFacilityParams::defs();
+        let params = ActivateCreditFacilityParams::defs();
         let template = NewTxTemplate::builder()
             .id(TxTemplateId::new())
-            .code(APPROVE_CREDIT_FACILITY_CODE)
+            .code(ACTIVATE_CREDIT_FACILITY_CODE)
             .transaction(tx_input)
             .entries(entries)
             .params(params)

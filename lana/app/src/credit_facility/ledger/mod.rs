@@ -50,7 +50,7 @@ impl CreditLedger {
             Self::create_ledger_account(cala, account_factories.facility_omnibus.clone()).await?;
 
         templates::AddCollateral::init(cala).await?;
-        templates::ApproveCreditFacility::init(cala).await?;
+        templates::ActivateCreditFacility::init(cala).await?;
         templates::RemoveCollateral::init(cala).await?;
         templates::RecordPayment::init(cala).await?;
         templates::CreditFacilityIncurInterest::init(cala).await?;
@@ -276,8 +276,8 @@ impl CreditLedger {
             .post_transaction_in_op(
                 &mut op,
                 tx_id,
-                templates::APPROVE_CREDIT_FACILITY_CODE,
-                templates::ApproveCreditFacilityParams {
+                templates::ACTIVATE_CREDIT_FACILITY_CODE,
+                templates::ActivateCreditFacilityParams {
                     journal_id: self.journal_id,
                     credit_omnibus_account: self.credit_omnibus_account_id,
                     credit_facility_account: credit_facility_account_ids.facility_account_id,
