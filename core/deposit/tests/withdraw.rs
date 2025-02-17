@@ -98,8 +98,8 @@ async fn overdraw_and_cancel_withdrawal() -> anyhow::Result<()> {
         .create_account(
             &DummySubject,
             account_holder_id,
-            "Deposit for User #1",
-            "Deposit for User #1",
+            &format!("user-deposit:{}", account_holder_id),
+            &format!("Deposit for User {}", account_holder_id),
             "Deposit checking account for user.",
         )
         .await?;
