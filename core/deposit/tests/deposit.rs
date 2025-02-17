@@ -6,7 +6,7 @@ use authz::dummy::DummySubject;
 use cala_ledger::{CalaLedger, CalaLedgerConfig};
 use chart_of_accounts::{ChartCategory, CoreChartOfAccounts};
 use deposit::*;
-use helpers::{action, event, object};
+use helpers::{action, event, jittered_delay, object};
 
 #[tokio::test]
 async fn deposit() -> anyhow::Result<()> {
@@ -77,6 +77,7 @@ async fn deposit() -> anyhow::Result<()> {
     let omnibus_factory =
         chart_of_accounts.transaction_account_factory(omnibus_control_sub_account);
 
+    jittered_delay().await;
     let deposit = CoreDeposit::init(
         &pool,
         &authz,
