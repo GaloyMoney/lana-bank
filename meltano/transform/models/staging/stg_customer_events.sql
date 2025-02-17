@@ -22,7 +22,8 @@ with ordered as (
     from {{ source("lana", "public_customer_events_view") }}
 
     {% if is_incremental() %}
-    where _sdc_batched_at >= (select coalesce(max(_sdc_batched_at),'1900-01-01') from {{ this }} )
+        where
+            _sdc_batched_at >= (select coalesce(max(_sdc_batched_at), '1900-01-01') from {{ this }})
     {% endif %}
 
 )

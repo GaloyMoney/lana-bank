@@ -77,6 +77,24 @@ sources:
             count: 1
             period: day
 
+      - name: bitfinex_trades_view
+        freshness:
+          warn_after:
+            count: 1
+            period: hour
+          error_after:
+            count: 1
+            period: day
+
+      - name: bitfinex_order_book_view
+        freshness:
+          warn_after:
+            count: 1
+            period: hour
+          error_after:
+            count: 1
+            period: day
+
       - name: sumsub_applicants_view
         freshness:
           warn_after:
