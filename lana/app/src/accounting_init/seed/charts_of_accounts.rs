@@ -437,6 +437,54 @@ async fn create_credit_facilities_account_paths(
         )
         .await?;
 
+    let (fee_income_adjustment_omnibus_control, fee_income_adjustment_omnibus) =
+        find_or_create_control_sub_account(
+            chart_of_accounts,
+            chart_ids.primary,
+            ControlAccountCreationDetails {
+                account_set_id: LedgerAccountSetId::new(),
+                category: chart_of_accounts::ChartCategory::Revenues,
+                name: CREDIT_FACILITIES_FEE_INCOME_ADJUSTMENT_CONTROL_ACCOUNT_NAME.to_string(),
+                reference: CREDIT_FACILITIES_FEE_INCOME_ADJUSTMENT_CONTROL_ACCOUNT_REF.to_string(),
+            },
+            CREDIT_FACILITIES_FEE_INCOME_ADJUSTMENT_CONTROL_SUB_ACCOUNT_NAME.to_string(),
+            CREDIT_FACILITIES_FEE_INCOME_ADJUSTMENT_CONTROL_SUB_ACCOUNT_REF.to_string(),
+        )
+        .await?;
+    trial_balances
+        .add_to_trial_balance(
+            TRIAL_BALANCE_STATEMENT_NAME.to_string(),
+            fee_income_adjustment_omnibus_control.account_set_id,
+        )
+        .await?;
+    cash_flow_statements
+        .add_to_fee_income_adjustments(
+            CASH_FLOW_STATEMENT_NAME.to_string(),
+            fee_income_control.account_set_id,
+        )
+        .await?;
+
+    let (non_cash_offset_omnibus_control, non_cash_offset_omnibus) =
+        find_or_create_control_sub_account(
+            chart_of_accounts,
+            chart_ids.primary,
+            ControlAccountCreationDetails {
+                account_set_id: LedgerAccountSetId::new(),
+                category: chart_of_accounts::ChartCategory::Revenues,
+                name: CREDIT_FACILITIES_NON_CASH_OFFSET_CONTROL_ACCOUNT_NAME.to_string(),
+                reference: CREDIT_FACILITIES_NON_CASH_OFFSET_CONTROL_ACCOUNT_REF.to_string(),
+            },
+            CREDIT_FACILITIES_NON_CASH_OFFSET_CONTROL_SUB_ACCOUNT_NAME.to_string(),
+            CREDIT_FACILITIES_NON_CASH_OFFSET_CONTROL_SUB_ACCOUNT_REF.to_string(),
+        )
+        .await?;
+    trial_balances
+        .add_to_trial_balance(
+            TRIAL_BALANCE_STATEMENT_NAME.to_string(),
+            non_cash_offset_omnibus_control.account_set_id,
+        )
+        .await?;
+
     Ok(CreditFacilitiesAccountPaths {
         collateral,
         collateral_omnibus,
@@ -446,5 +494,7 @@ async fn create_credit_facilities_account_paths(
         interest_receivable,
         interest_income,
         fee_income,
+        fee_income_adjustment_omnibus,
+        non_cash_offset_omnibus,
     })
 }
