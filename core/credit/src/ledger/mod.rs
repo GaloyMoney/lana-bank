@@ -282,6 +282,9 @@ impl CreditLedger {
                     facility_disbursed_receivable_account: credit_facility_account_ids
                         .disbursed_receivable_account_id,
                     facility_fee_income_account: credit_facility_account_ids.fee_income_account_id,
+                    fee_income_adjustment_omnibus_account: self
+                        .fee_income_adjustment_omnibus_account_id,
+                    non_cash_offset_omnibus_account: self.non_cash_offset_omnibus_account_id,
                     debit_account_id,
                     facility_amount: facility_amount.to_usd(),
                     structuring_fee_amount: structuring_fee_amount.to_usd(),

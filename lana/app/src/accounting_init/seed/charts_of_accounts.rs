@@ -464,9 +464,9 @@ async fn create_credit_facilities_account_paths(
             chart_ids.primary,
             ControlAccountCreationDetails {
                 account_set_id: LedgerAccountSetId::new(),
-                category: chart_of_accounts::ChartCategory::Revenues,
-                name: CREDIT_FACILITIES_FEE_INCOME_ADJUSTMENT_CONTROL_ACCOUNT_NAME.to_string(),
-                reference: CREDIT_FACILITIES_FEE_INCOME_ADJUSTMENT_CONTROL_ACCOUNT_REF.to_string(),
+                category: chart_of_accounts::ChartCategory::Expenses,
+                name: CREDIT_FACILITIES_NON_CASH_ADJUSTMENTS_CONTROL_ACCOUNT_NAME.to_string(),
+                reference: CREDIT_FACILITIES_NON_CASH_ADJUSTMENTS_CONTROL_ACCOUNT_REF.to_string(),
             },
             CREDIT_FACILITIES_FEE_INCOME_ADJUSTMENT_CONTROL_SUB_ACCOUNT_NAME.to_string(),
             CREDIT_FACILITIES_FEE_INCOME_ADJUSTMENT_CONTROL_SUB_ACCOUNT_REF.to_string(),
@@ -481,7 +481,7 @@ async fn create_credit_facilities_account_paths(
     cash_flow_statements
         .add_to_fee_income_adjustments(
             CASH_FLOW_STATEMENT_NAME.to_string(),
-            fee_income_control.account_set_id,
+            fee_income_adjustment_omnibus_control.account_set_id,
         )
         .await?;
     let fee_income_adjustment_omnibus_account_id =
@@ -493,7 +493,7 @@ async fn create_credit_facilities_account_paths(
             chart_ids.primary,
             ControlAccountCreationDetails {
                 account_set_id: LedgerAccountSetId::new(),
-                category: chart_of_accounts::ChartCategory::Revenues,
+                category: chart_of_accounts::ChartCategory::Equity,
                 name: CREDIT_FACILITIES_NON_CASH_OFFSET_CONTROL_ACCOUNT_NAME.to_string(),
                 reference: CREDIT_FACILITIES_NON_CASH_OFFSET_CONTROL_ACCOUNT_REF.to_string(),
             },
