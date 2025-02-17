@@ -1,7 +1,0 @@
-config {
-	type: "table",
-}
-
-SELECT 'N' AS code, 'Número de Identificación Tributaria (NIT)' as description UNION ALL
-SELECT 'U', 'Número de Identificación Único (NIU)' UNION ALL
-SELECT 'D', 'Número de Identificación Tributaria (NIT) reemplazado por número de DUI por el Ministerio de Hacienda (21)'

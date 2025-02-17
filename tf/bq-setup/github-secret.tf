@@ -24,7 +24,6 @@ resource "google_secret_manager_secret_iam_binding" "git_token" {
   secret_id = google_secret_manager_secret.git_token.secret_id
   role      = "roles/secretmanager.secretAccessor"
   members = [
-    "serviceAccount:service-${data.google_project.project.number}@gcp-sa-dataform.iam.gserviceaccount.com",
     "serviceAccount:${google_service_account.bq_access_sa.email}",
   ]
 }

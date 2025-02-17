@@ -1,9 +1,0 @@
-config {
-	type: "table",
-}
-
-SELECT '1' AS code, 'Vigente' AS description UNION ALL
-SELECT '2', 'Vencido' UNION ALL
-SELECT '3', 'Cancelado' UNION ALL
-SELECT '4', 'Saneado' UNION ALL
-SELECT '5', 'Vía Judicial'

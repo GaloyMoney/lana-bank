@@ -1,8 +1,0 @@
-config {
-	type: "table",
-}
-
-SELECT '1' AS code, 'VISA' AS description UNION ALL
-SELECT '2', 'Master Card' UNION ALL
-SELECT '3', 'American Express' UNION ALL
-SELECT '4', 'Otras'

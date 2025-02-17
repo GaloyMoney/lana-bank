@@ -1,9 +1,0 @@
-config {
-	type: "table",
-}
-
-SELECT '01' AS code, 'Varas cuadradas' AS description UNION ALL
-SELECT '02', 'Cabezas de ganado' UNION ALL
-SELECT '03', 'Quintales' UNION ALL
-SELECT '04', 'Metros cuadrados de construcción' UNION ALL
-SELECT '99', 'Otras no clasificadas'

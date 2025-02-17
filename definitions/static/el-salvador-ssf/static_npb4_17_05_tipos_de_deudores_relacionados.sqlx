@@ -1,7 +1,0 @@
-config {
-	type: "table",
-}
-
-SELECT '0' AS code, 'No tiene relación.' AS description UNION ALL
-SELECT '1', 'Directores y gerentes, sus cónyuges y parientes dentro del tercer grado de consanguineidad y segundo de afinidad.' UNION ALL
-SELECT '2', 'Accionistas con participación de 3% o más de las acciones de la entidad, incluyendo las acciones de sus cónyuges parientes dentro del primer grado de consanguineidad y empresas vinculadas con la propiedad o administración.'
