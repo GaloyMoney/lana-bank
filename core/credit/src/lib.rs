@@ -17,7 +17,7 @@ mod repo;
 
 use std::collections::HashMap;
 
-use audit::AuditInfo;
+use audit::{AuditInfo, AuditSvc};
 use authz::PermissionCheck;
 use cala_ledger::CalaLedger;
 use deposit::{DepositAccount, DepositAccountHolderId};
@@ -105,7 +105,7 @@ where
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
         From<CoreCreditAction> + From<GovernanceAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object:
-        From<CoreDepositObject> + From<GovernanceObject>,
+        From<CoreCreditObject> + From<GovernanceObject>,
     E: OutboxEventMarker<GovernanceEvent> + OutboxEventMarker<CreditEvent>,
 {
     #[allow(clippy::too_many_arguments)]

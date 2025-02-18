@@ -1,5 +1,7 @@
 use std::{fmt::Display, str::FromStr};
 
+use authz::AllOrOne;
+
 es_entity::entity_id! {
     CreditFacilityId,
     DibursalId,
@@ -12,6 +14,51 @@ es_entity::entity_id! {
 pub enum CoreCreditAction {
     CreditFacility(CreditFacilityAction),
     Disbursal(DisbursalAction),
+}
+
+pub type CreditFacilityAllOrOne = AllOrOne<CreditFacilityId>;
+
+#[derive(Clone, Copy, Debug, PartialEq, strum::EnumDiscriminants)]
+#[strum_discriminants(derive(strum::Display, strum::EnumString))]
+#[strum_discriminants(strum(serialize_all = "kebab-case"))]
+pub enum CoreCreditObject {
+    CreditFacility(CreditFacilityAllOrOne),
+}
+
+impl CoreCreditObject {
+    pub fn all_credit_facilities() -> Self {
+        CoreCreditObject::CreditFacility(AllOrOne::All)
+    }
+
+    pub fn credit_facility(id: CreditFacilityId) -> Self {
+        CoreCreditObject::CreditFacility(AllOrOne::ById(id))
+    }
+}
+
+impl Display for CoreCreditObject {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let discriminant = CoreCreditObjectDiscriminants::from(self);
+        use CoreCreditObject::*;
+        match self {
+            CreditFacility(obj_ref) => write!(f, "{}/{}", discriminant, obj_ref),
+        }
+    }
+}
+
+impl FromStr for CoreCreditObject {
+    type Err = &'static str;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let (entity, id) = s.split_once('/').expect("missing slash");
+        use CoreCreditObjectDiscriminants::*;
+        let res = match entity.parse().expect("invalid entity") {
+            CreditFacility => {
+                let obj_ref = id.parse().map_err(|_| "could not parse CoreCreditObject")?;
+                CoreCreditObject::CreditFacility(obj_ref)
+            }
+        };
+        Ok(res)
+    }
 }
 
 impl CoreCreditAction {
