@@ -247,7 +247,7 @@ const CashFlowStatement = ({
   dateRange,
   setDateRange,
 }: {
-  data: CashFlowStatementQuery["cashFlowStatement"]
+  data?: CashFlowStatementQuery["cashFlowStatement"]
   loading: boolean
   error: Error | undefined
   dateRange: DateRange

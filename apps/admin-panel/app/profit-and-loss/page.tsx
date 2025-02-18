@@ -55,7 +55,7 @@ gql`
             __typename
             id
             name
-            hasSubAccounts
+
             amounts {
               ...balancesByCurrency
             }
@@ -220,7 +220,6 @@ const ProfitAndLossStatement = ({
                   category={category}
                   currency={currency}
                   layer={layer}
-                  dateRange={dateRange}
                   transactionType={
                     BALANCE_FOR_CATEGORY[category.name].TransactionType || "netCredit"
                   }
@@ -251,13 +250,11 @@ const CategoryRow = ({
   currency,
   layer,
   transactionType,
-  dateRange,
 }: {
   category: StatementCategory
   currency: Currency
   layer: Layers
   transactionType: TransactionType
-  dateRange: DateRange
 }) => {
   return (
     <>
@@ -283,7 +280,6 @@ const CategoryRow = ({
           currency={currency}
           layer={layer}
           transactionType={transactionType}
-          dateRange={dateRange}
         />
       ))}
     </>
