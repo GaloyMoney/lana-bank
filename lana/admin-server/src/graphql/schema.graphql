@@ -13,7 +13,6 @@ type AccountSet {
 	id: UUID!
 	name: String!
 	amounts: AccountAmountsByCurrency!
-	hasSubAccounts: Boolean!
 }
 
 type AccountSetAndSubAccounts {
