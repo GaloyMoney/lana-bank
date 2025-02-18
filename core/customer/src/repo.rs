@@ -2,12 +2,13 @@ use sqlx::PgPool;
 
 pub use es_entity::Sort;
 use es_entity::*;
+use outbox::OutboxEventMarker;
 
-use crate::primitives::*;
+use crate::{event::CoreCustomerEvent, primitives::*, publisher::*};
 
 use super::{entity::*, error::*};
 
-#[derive(EsRepo, Clone)]
+#[derive(EsRepo)]
 #[es_repo(
     entity = "Customer",
     err = "CustomerError",
@@ -18,13 +19,35 @@ use super::{entity::*, error::*};
         status(ty = "AccountStatus", list_for)
     )
 )]
-pub struct CustomerRepo {
+pub struct CustomerRepo<E>
+where
+    E: OutboxEventMarker<CoreCustomerEvent>,
+{
     pool: PgPool,
+    publisher: CustomerPublisher<E>,
 }
 
-impl CustomerRepo {
-    pub(super) fn new(pool: &PgPool) -> Self {
-        Self { pool: pool.clone() }
+impl<E> Clone for CustomerRepo<E>
+where
+    E: OutboxEventMarker<CoreCustomerEvent>,
+{
+    fn clone(&self) -> Self {
+        Self {
+            pool: self.pool.clone(),
+            publisher: self.publisher.clone(),
+        }
+    }
+}
+
+impl<E> CustomerRepo<E>
+where
+    E: OutboxEventMarker<CoreCustomerEvent>,
+{
+    pub(super) fn new(pool: &PgPool, publisher: &CustomerPublisher<E>) -> Self {
+        Self {
+            pool: pool.clone(),
+            publisher: publisher.clone(),
+        }
     }
 }
 

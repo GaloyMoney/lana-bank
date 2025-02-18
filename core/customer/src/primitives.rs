@@ -19,8 +19,20 @@ pub enum KycLevel {
     Advanced,
 }
 
-#[derive(Debug, Default, Clone, Copy, PartialEq, Eq, strum::Display, strum::EnumString)]
+#[derive(
+    Debug,
+    Default,
+    Clone,
+    Copy,
+    PartialEq,
+    Eq,
+    strum::Display,
+    strum::EnumString,
+    Serialize,
+    Deserialize,
+)]
 #[cfg_attr(feature = "graphql", derive(async_graphql::Enum))]
+#[serde(rename_all = "kebab-case")]
 pub enum AccountStatus {
     #[default]
     Inactive,
