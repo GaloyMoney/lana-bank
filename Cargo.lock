@@ -1117,6 +1117,40 @@ dependencies = [
 ]
 
 [[package]]
+name = "credit-facility"
+version = "0.3.93-dev"
+dependencies = [
+ "anyhow",
+ "async-graphql",
+ "async-trait",
+ "audit",
+ "authz",
+ "base64 0.22.1",
+ "cala-ledger",
+ "chart-of-accounts",
+ "chrono",
+ "core-money",
+ "deposit",
+ "derive_builder",
+ "es-entity",
+ "futures",
+ "governance",
+ "job",
+ "outbox",
+ "rand",
+ "rust_decimal",
+ "rust_decimal_macros",
+ "serde",
+ "serde_json",
+ "sqlx",
+ "strum",
+ "thiserror 1.0.69",
+ "tokio",
+ "tracing",
+ "uuid",
+]
+
+[[package]]
 name = "crossbeam-queue"
 version = "0.3.12"
 source = "registry+https://github.com/rust-lang/crates.io-index"
