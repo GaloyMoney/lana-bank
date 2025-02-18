@@ -1117,7 +1117,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "credit-facility"
+name = "credit"
 version = "0.3.93-dev"
 dependencies = [
  "anyhow",

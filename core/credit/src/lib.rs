@@ -2,12 +2,14 @@ mod config;
 mod disbursal;
 mod entity;
 pub mod error;
+mod event;
 mod for_subject;
 mod history;
 mod interest_accrual;
 mod jobs;
 pub mod ledger;
 mod payment;
+mod primitives;
 mod processes;
 mod publisher;
 mod repayment_plan;
@@ -19,30 +21,31 @@ use audit::AuditInfo;
 use authz::PermissionCheck;
 use cala_ledger::CalaLedger;
 use deposit::{DepositAccount, DepositAccountHolderId};
-use governance::{Governance, GovernanceEvent};
+use governance::{Governance, GovernanceAction, GovernanceEvent, GovernanceObject};
 use job::Jobs;
 use outbox::{Outbox, OutboxEventMarker};
 use tracing::instrument;
 
-use crate::{
-    audit::AuditInfo,
-    authorization::{Authorization, CreditFacilityAction, Object},
-    deposit::Deposits,
-    price::Price,
-    primitives::*,
-    terms::{CollateralizationState, TermValues},
-};
+// use crate::{
+// authorization::{Authorization, CreditFacilityAction, Object},
+// deposit::Deposits,
+// price::Price,
+// primitives::*,
+// terms::{CollateralizationState, TermValues},
+// };
 
 pub use config::*;
 pub use disbursal::{disbursal_cursor::*, *};
 pub use entity::*;
 use error::*;
+pub use event::*;
 use for_subject::CreditFacilitiesForSubject;
 pub use history::*;
 pub use interest_accrual::*;
 use jobs::*;
 pub use ledger::*;
 pub use payment::*;
+pub use primitives::*;
 use processes::activate_credit_facility::*;
 pub use processes::approve_credit_facility::*;
 pub use processes::approve_disbursal::*;
@@ -54,33 +57,67 @@ pub use repo::{
     Sort,
 };
 
-#[derive(Clone)]
-pub struct CreditFacilities {
-    authz: Authorization,
-    deposits: Deposits,
+pub struct CreditFacilities<Perms, E>
+where
+    Perms: PermissionCheck,
+    E: OutboxEventMarker<GovernanceEvent>,
+{
+    authz: Perms,
+    // deposits: Deposits,
     credit_facility_repo: CreditFacilityRepo,
     disbursal_repo: DisbursalRepo,
     payment_repo: PaymentRepo,
-    governance: Governance,
+    governance: Governance<Perms, E>,
     ledger: CreditLedger,
-    price: Price,
+    // price: Price,
     config: CreditFacilityConfig,
     approve_disbursal: ApproveDisbursal,
     cala: CalaLedger,
     approve_credit_facility: ApproveCreditFacility,
 }
 
-impl CreditFacilities {
+impl<Perms, E> Clone for CreditFacilities<Perms, E>
+where
+    Perms: PermissionCheck,
+    E: OutboxEventMarker<GovernanceEvent> + OutboxEventMarker<CreditEvent>,
+{
+    fn clone(&self) -> Self {
+        Self {
+            authz: self.authz.clone(),
+            // deposits: self.deposits.clone(),
+            credit_facility_repo: self.credit_facility_repo.clone(),
+            disbursal_repo: self.disbursal_repo.clone(),
+            payment_repo: self.payment_repo.clone(),
+            governance: self.governance.clone(),
+            ledger: self.ledger.clone(),
+            // price: self.price.clone(),
+            config: self.config.clone(),
+            cala: self.cala.clone(),
+            approve_disbursal: self.approve_disbursal.clone(),
+            approve_credit_facility: self.approve_credit_facility.clone(),
+        }
+    }
+}
+
+impl<Perms, E> CreditFacilities<Perms, E>
+where
+    Perms: PermissionCheck,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
+        From<CoreCreditAction> + From<GovernanceAction>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object:
+        From<CoreDepositObject> + From<GovernanceObject>,
+    E: OutboxEventMarker<GovernanceEvent> + OutboxEventMarker<CreditEvent>,
+{
     #[allow(clippy::too_many_arguments)]
     pub async fn init(
         pool: &sqlx::PgPool,
         config: CreditFacilityConfig,
-        governance: &Governance,
+        governance: &Governance<Perms, E>,
         jobs: &Jobs,
-        authz: &Authorization,
-        deposits: &Deposits,
-        price: &Price,
-        outbox: &Outbox,
+        authz: &Perms,
+        // deposits: &Deposits,
+        // price: &Price,
+        outbox: &Outbox<E>,
         account_factories: CreditFacilityAccountFactories,
         cala: &CalaLedger,
         journal_id: cala_ledger::JournalId,
@@ -104,14 +141,14 @@ impl CreditFacilities {
             &credit_facility_repo,
             &disbursal_repo,
             &ledger,
-            price,
+            // price,
             jobs,
             authz.audit(),
         );
         jobs.add_initializer_and_spawn_unique(
             cvl::CreditFacilityProcessingJobInitializer::new(
                 credit_facility_repo.clone(),
-                price,
+                // price,
                 authz.audit(),
             ),
             cvl::CreditFacilityJobConfig {
@@ -158,13 +195,13 @@ impl CreditFacilities {
 
         Ok(Self {
             authz: authz.clone(),
-            deposits: deposits.clone(),
+            // deposits: deposits.clone(),
             credit_facility_repo,
             disbursal_repo,
             payment_repo,
             governance: governance.clone(),
             ledger,
-            price: price.clone(),
+            // price: price.clone(),
             config,
             cala: cala.clone(),
             approve_disbursal,
@@ -344,7 +381,7 @@ impl CreditFacilities {
             .find_by_id(credit_facility_id)
             .await?;
 
-        let price = self.price.usd_cents_per_btc().await?;
+        // let price = self.price.usd_cents_per_btc().await?;
 
         let mut db = self.credit_facility_repo.begin_op().await?;
         let now = crate::time::now();
@@ -453,7 +490,7 @@ impl CreditFacilities {
             .await?
             .expect("audit info missing");
 
-        let price = self.price.usd_cents_per_btc().await?;
+        // let price = self.price.usd_cents_per_btc().await?;
 
         let mut credit_facility = self
             .credit_facility_repo
@@ -508,7 +545,7 @@ impl CreditFacilities {
             .await?
             .expect("audit info missing");
 
-        let price = self.price.usd_cents_per_btc().await?;
+        // let price = self.price.usd_cents_per_btc().await?;
 
         let mut credit_facility = self
             .credit_facility_repo
