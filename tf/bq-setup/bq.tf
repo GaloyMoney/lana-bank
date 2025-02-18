@@ -95,7 +95,7 @@ resource "google_bigquery_dataset_access" "view_access" {
   dataset_id = google_bigquery_dataset.dataset.dataset_id
   dataset {
     dataset {
-      project_id = local.project
+      project_id = local.gcp_project
       dataset_id = google_bigquery_dataset.dbt.dataset_id
     }
     target_types = ["VIEWS"]
