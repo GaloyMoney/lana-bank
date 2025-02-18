@@ -32,9 +32,9 @@ members = [
 # es-entity = { git = "https://github.com/galoymoney/cala.git", branch = "main" }
 # sim-time = { git = "https://github.com/galoymoney/cala.git", branch = "main" }
 # cala-ledger = { git = "https://github.com/galoymoney/cala.git", branch = "main" }
-es-entity = "0.3.12"
-sim-time = "0.3.12"
-cala-ledger = "0.3.12"
+es-entity = "0.3.13"
+sim-time = "0.3.13"
+cala-ledger = "0.3.13"
 
 anyhow = "1.0.95"
 async-graphql = { version = "7.0.11", default-features = false, features = ["dataloader", "tracing", "chrono", "playground"] }
