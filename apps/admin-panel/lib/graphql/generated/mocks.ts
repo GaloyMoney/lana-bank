@@ -87,7 +87,6 @@ export const mockAccountSet = (overrides?: Partial<AccountSet>, _relationshipsTo
     return {
         __typename: 'AccountSet',
         amounts: overrides && overrides.hasOwnProperty('amounts') ? overrides.amounts! : relationshipsToOmit.has('AccountAmountsByCurrency') ? {} as AccountAmountsByCurrency : mockAccountAmountsByCurrency({}, relationshipsToOmit),
-        hasSubAccounts: overrides && overrides.hasOwnProperty('hasSubAccounts') ? overrides.hasSubAccounts! : generateMockValue.boolean(),
         id: overrides && overrides.hasOwnProperty('id') ? overrides.id! : generateMockValue.uuid(),
         name: overrides && overrides.hasOwnProperty('name') ? overrides.name! : generateMockValue.name(),
     };

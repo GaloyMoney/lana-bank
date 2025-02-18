@@ -56,7 +56,7 @@ gql`
             __typename
             id
             name
-            hasSubAccounts
+
             amounts {
               ...balancesByCurrency
             }
@@ -201,7 +201,6 @@ const BalanceSheet = ({
               categories={assets}
               currency={currency}
               layer={layer}
-              dateRange={dateRange}
               total={
                 assets[0].amounts[currency].closingBalance[layer][
                   BALANCE_FOR_CATEGORY["Assets"].TransactionType
@@ -217,7 +216,6 @@ const BalanceSheet = ({
               currency={currency}
               layer={layer}
               total={totalLiabilitiesAndEquity}
-              dateRange={dateRange}
             />
           )}
         </div>
@@ -255,14 +253,12 @@ function BalanceSheetColumn({
   currency,
   layer,
   total,
-  dateRange,
 }: {
   title: string
   categories: StatementCategory[]
   currency: Currency
   layer: Layers
   total: number
-  dateRange: DateRange
 }) {
   return (
     <div className="flex-grow flex flex-col justify-between w-1/2">
@@ -275,7 +271,6 @@ function BalanceSheetColumn({
               currency={currency}
               layer={layer}
               transactionType={BALANCE_FOR_CATEGORY[category.name].TransactionType}
-              dateRange={dateRange}
             />
           ))}
         </TableBody>
@@ -304,13 +299,11 @@ function CategoryRow({
   currency,
   layer,
   transactionType,
-  dateRange,
 }: {
   category: StatementCategory
   currency: Currency
   layer: Layers
   transactionType: TransactionType
-  dateRange: DateRange
 }) {
   return (
     <>
@@ -330,7 +323,6 @@ function CategoryRow({
           currency={currency}
           layer={layer}
           transactionType={transactionType}
-          dateRange={dateRange}
         />
       ))}
       {category.name !== "Assets" && (
