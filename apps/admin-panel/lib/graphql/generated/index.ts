@@ -239,6 +239,19 @@ export type CashFlowStatement = {
   total: AccountAmountsByCurrency;
 };
 
+export type ChartAddControlAccountInput = {
+  categoryType: ChartCategoryType;
+  chartId: Scalars['UUID']['input'];
+  controlAccountId: Scalars['UUID']['input'];
+  name: Scalars['String']['input'];
+  reference: Scalars['String']['input'];
+};
+
+export type ChartAddControlAccountPayload = {
+  __typename?: 'ChartAddControlAccountPayload';
+  chart: ChartOfAccounts;
+};
+
 export type ChartCategories = {
   __typename?: 'ChartCategories';
   assets: ChartCategory;
@@ -254,6 +267,14 @@ export type ChartCategory = {
   controlAccounts: Array<ChartControlAccount>;
   name: Scalars['String']['output'];
 };
+
+export enum ChartCategoryType {
+  Assets = 'ASSETS',
+  Equity = 'EQUITY',
+  Expenses = 'EXPENSES',
+  Liabilities = 'LIABILITIES',
+  Revenues = 'REVENUES'
+}
 
 export type ChartControlAccount = {
   __typename?: 'ChartControlAccount';
@@ -924,6 +945,7 @@ export type Mutation = {
   __typename?: 'Mutation';
   approvalProcessApprove: ApprovalProcessApprovePayload;
   approvalProcessDeny: ApprovalProcessDenyPayload;
+  chartAddControlAccount: ChartAddControlAccountPayload;
   committeeAddUser: CommitteeAddUserPayload;
   committeeCreate: CommitteeCreatePayload;
   committeeRemoveUser: CommitteeRemoveUserPayload;
@@ -963,6 +985,11 @@ export type MutationApprovalProcessApproveArgs = {
 export type MutationApprovalProcessDenyArgs = {
   input: ApprovalProcessDenyInput;
   reason: Scalars['String']['input'];
+};
+
+
+export type MutationChartAddControlAccountArgs = {
+  input: ChartAddControlAccountInput;
 };
 
 
