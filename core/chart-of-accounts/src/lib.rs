@@ -110,6 +110,14 @@ where
         Ok(chart)
     }
 
+    #[instrument(name = "chart_of_accounts.find_all", skip(self), err)]
+    pub async fn find_all<T: From<Chart>>(
+        &self,
+        ids: &[ChartId],
+    ) -> Result<std::collections::HashMap<ChartId, T>, CoreChartOfAccountsError> {
+        Ok(self.repo.find_all(ids).await?)
+    }
+
     #[instrument(name = "chart_of_accounts.find_by_reference", skip(self))]
     pub async fn find_by_reference(
         &self,

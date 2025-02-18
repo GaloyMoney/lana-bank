@@ -2,13 +2,17 @@ use async_graphql::dataloader::{DataLoader, Loader};
 
 use std::collections::HashMap;
 
-use lana_app::{app::LanaApp, deposit::error::CoreDepositError, user::error::UserError};
+use lana_app::{
+    app::LanaApp, chart_of_accounts::error::CoreChartOfAccountsError,
+    deposit::error::CoreDepositError, user::error::UserError,
+};
 
 use crate::primitives::*;
 
 use super::{
-    approval_process::*, committee::*, credit_facility::*, customer::*, deposit::*,
-    deposit_account::*, document::*, policy::*, terms_template::*, user::*, withdrawal::*,
+    approval_process::*, chart_of_accounts::*, committee::*, credit_facility::*, customer::*,
+    deposit::*, deposit_account::*, document::*, policy::*, terms_template::*, user::*,
+    withdrawal::*,
 };
 
 pub type LanaDataLoader = DataLoader<LanaLoader>;
@@ -99,6 +103,22 @@ impl Loader<CustomerId> for LanaLoader {
         keys: &[CustomerId],
     ) -> Result<HashMap<CustomerId, Customer>, Self::Error> {
         self.app.customers().find_all(keys).await.map_err(Arc::new)
+    }
+}
+
+impl Loader<ChartId> for LanaLoader {
+    type Value = ChartOfAccounts;
+    type Error = Arc<CoreChartOfAccountsError>;
+
+    async fn load(
+        &self,
+        keys: &[ChartId],
+    ) -> Result<HashMap<ChartId, ChartOfAccounts>, Self::Error> {
+        self.app
+            .chart_of_accounts()
+            .find_all(keys)
+            .await
+            .map_err(Arc::new)
     }
 }
 
