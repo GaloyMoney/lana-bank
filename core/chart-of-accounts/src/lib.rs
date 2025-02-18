@@ -186,7 +186,7 @@ where
         Ok(chart.find_control_account_by_reference(reference))
     }
 
-    pub async fn create_control_account(
+    pub async fn create_system_control_account(
         &self,
         id: impl Into<LedgerAccountSetId> + std::fmt::Debug,
         chart_id: impl Into<ChartId>,
@@ -198,7 +198,6 @@ where
         let chart_id = chart_id.into();
 
         let mut op = self.repo.begin_op().await?;
-
         let audit_info = self
             .authz
             .audit()
@@ -210,7 +209,6 @@ where
             .await?;
 
         let mut chart = self.repo.find_by_id(chart_id).await?;
-
         let control_account =
             chart.create_control_account(id, category, name, reference, audit_info)?;
 
@@ -233,6 +231,55 @@ where
         op.commit().await?;
 
         Ok(control_account)
+    }
+
+    #[instrument(name = "chart_of_accounts.create_control_account", skip(self), err)]
+    pub async fn create_control_account(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        id: impl Into<LedgerAccountSetId> + std::fmt::Debug,
+        chart_id: impl Into<ChartId> + std::fmt::Debug,
+        category: impl Into<ChartCategory> + std::fmt::Debug,
+        name: String,
+        reference: String,
+    ) -> Result<Chart, CoreChartOfAccountsError> {
+        let id = id.into();
+        let chart_id = chart_id.into();
+        let category = category.into();
+
+        let audit_info = self
+            .authz
+            .enforce_permission(
+                sub,
+                CoreChartOfAccountsObject::chart(chart_id),
+                CoreChartOfAccountsAction::CHART_CREATE_CONTROL_ACCOUNT,
+            )
+            .await?;
+
+        let mut chart = self.repo.find_by_id(chart_id).await?;
+        let control_account =
+            chart.create_control_account(id, category, name, reference, audit_info)?;
+
+        let mut op = self.repo.begin_op().await?;
+        self.repo.update_in_op(&mut op, &mut chart).await?;
+
+        let mut op = self.cala.ledger_operation_from_db_op(op);
+        let new_account_set = NewAccountSet::builder()
+            .id(control_account.account_set_id)
+            .journal_id(self.journal_id)
+            .name(control_account.name.to_string())
+            .description(control_account.name.to_string())
+            .normal_balance_type(control_account.path.normal_balance_type())
+            .build()
+            .expect("Could not build new account set");
+        self.cala
+            .account_sets()
+            .create_in_op(&mut op, new_account_set)
+            .await?;
+
+        op.commit().await?;
+
+        Ok(chart)
     }
 
     pub async fn find_control_sub_account_by_reference(

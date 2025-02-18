@@ -97,7 +97,7 @@ pub mod deposit {
 }
 
 pub mod chart_of_accounts {
-    pub use chart_of_accounts::{error, tree, Chart, ControlAccountDetails};
+    pub use chart_of_accounts::{error, tree, Chart, ChartCategory, ControlAccountDetails};
 
     pub type ChartOfAccounts =
         chart_of_accounts::CoreChartOfAccounts<crate::authorization::Authorization>;

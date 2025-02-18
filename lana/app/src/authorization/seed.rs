@@ -385,6 +385,13 @@ async fn add_permissions_for_bank_manager(authz: &Authorization) -> Result<(), A
             CoreChartOfAccountsAction::CHART_LIST,
         )
         .await?;
+    authz
+        .add_permission_to_role(
+            &role,
+            CoreChartOfAccountsObject::all_charts(),
+            CoreChartOfAccountsAction::CHART_CREATE_CONTROL_ACCOUNT,
+        )
+        .await?;
 
     authz
         .add_permission_to_role(

@@ -708,6 +708,27 @@ impl Mutation {
         )
     }
 
+    pub async fn chart_add_control_account(
+        &self,
+        ctx: &Context<'_>,
+        input: ChartAddControlAccountInput,
+    ) -> async_graphql::Result<ChartAddControlAccountPayload> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        exec_mutation!(
+            ChartAddControlAccountPayload,
+            ChartOfAccounts,
+            ctx,
+            app.chart_of_accounts().create_control_account(
+                sub,
+                input.control_account_id,
+                input.chart_id,
+                input.category_type,
+                input.name,
+                input.reference,
+            )
+        )
+    }
+
     pub async fn deposit_record(
         &self,
         ctx: &Context<'_>,

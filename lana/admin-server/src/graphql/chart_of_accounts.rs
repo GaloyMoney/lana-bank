@@ -152,3 +152,36 @@ impl From<lana_app::chart_of_accounts::tree::ChartTreeControlSubAccount>
         }
     }
 }
+
+#[derive(async_graphql::Enum, Debug, Clone, Copy, PartialEq, Eq)]
+pub enum ChartCategoryType {
+    Assets,
+    Liabilities,
+    Equity,
+    Revenues,
+    Expenses,
+}
+
+impl From<ChartCategoryType> for lana_app::chart_of_accounts::ChartCategory {
+    fn from(category: ChartCategoryType) -> Self {
+        match category {
+            ChartCategoryType::Assets => lana_app::chart_of_accounts::ChartCategory::Assets,
+            ChartCategoryType::Liabilities => {
+                lana_app::chart_of_accounts::ChartCategory::Liabilities
+            }
+            ChartCategoryType::Equity => lana_app::chart_of_accounts::ChartCategory::Equity,
+            ChartCategoryType::Revenues => lana_app::chart_of_accounts::ChartCategory::Revenues,
+            ChartCategoryType::Expenses => lana_app::chart_of_accounts::ChartCategory::Expenses,
+        }
+    }
+}
+
+#[derive(InputObject)]
+pub struct ChartAddControlAccountInput {
+    pub chart_id: UUID,
+    pub category_type: ChartCategoryType,
+    pub control_account_id: UUID,
+    pub reference: String,
+    pub name: String,
+}
+crate::mutation_payload! { ChartAddControlAccountPayload, chart: ChartOfAccounts }

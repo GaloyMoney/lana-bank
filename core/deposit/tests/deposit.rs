@@ -40,7 +40,7 @@ async fn deposit() -> anyhow::Result<()> {
         .await?;
 
     let control_account = chart_of_accounts
-        .create_control_account(
+        .create_system_control_account(
             LedgerAccountSetId::new(),
             chart_id,
             ChartCategory::Liabilities,
@@ -59,7 +59,7 @@ async fn deposit() -> anyhow::Result<()> {
     let factory = chart_of_accounts.transaction_account_factory(control_sub_account);
 
     let omnibus_control_account = chart_of_accounts
-        .create_control_account(
+        .create_system_control_account(
             LedgerAccountSetId::new(),
             chart_id,
             ChartCategory::Assets,

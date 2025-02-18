@@ -217,6 +217,18 @@ type CashFlowStatement {
 	categories: [StatementCategory!]!
 }
 
+input ChartAddControlAccountInput {
+	chartId: UUID!
+	categoryType: ChartCategoryType!
+	controlAccountId: UUID!
+	reference: String!
+	name: String!
+}
+
+type ChartAddControlAccountPayload {
+	chart: ChartOfAccounts!
+}
+
 type ChartCategories {
 	assets: ChartCategory!
 	liabilities: ChartCategory!
@@ -229,6 +241,14 @@ type ChartCategory {
 	name: String!
 	accountCode: String!
 	controlAccounts: [ChartControlAccount!]!
+}
+
+enum ChartCategoryType {
+	ASSETS
+	LIABILITIES
+	EQUITY
+	REVENUES
+	EXPENSES
 }
 
 type ChartControlAccount {
@@ -908,6 +928,7 @@ type Mutation {
 	userRevokeRole(input: UserRevokeRoleInput!): UserRevokeRolePayload!
 	customerCreate(input: CustomerCreateInput!): CustomerCreatePayload!
 	customerUpdate(input: CustomerUpdateInput!): CustomerUpdatePayload!
+	chartAddControlAccount(input: ChartAddControlAccountInput!): ChartAddControlAccountPayload!
 	depositRecord(input: DepositRecordInput!): DepositRecordPayload!
 	withdrawalInitiate(input: WithdrawalInitiateInput!): WithdrawalInitiatePayload!
 	withdrawalConfirm(input: WithdrawalConfirmInput!): WithdrawalConfirmPayload!
