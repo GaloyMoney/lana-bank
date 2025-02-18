@@ -271,6 +271,7 @@ export type ChartControlSubAccount = {
 export type ChartOfAccounts = {
   __typename?: 'ChartOfAccounts';
   categories: ChartCategories;
+  id: Scalars['ID']['output'];
   name: Scalars['String']['output'];
 };
 

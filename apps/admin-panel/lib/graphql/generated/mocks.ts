@@ -355,6 +355,7 @@ export const mockChartOfAccounts = (overrides?: Partial<ChartOfAccounts>, _relat
     return {
         __typename: 'ChartOfAccounts',
         categories: overrides && overrides.hasOwnProperty('categories') ? overrides.categories! : relationshipsToOmit.has('ChartCategories') ? {} as ChartCategories : mockChartCategories({}, relationshipsToOmit),
+        id: overrides && overrides.hasOwnProperty('id') ? overrides.id! : faker.string.uuid(),
         name: overrides && overrides.hasOwnProperty('name') ? overrides.name! : generateMockValue.name(),
     };
 };

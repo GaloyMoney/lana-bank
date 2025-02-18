@@ -5,9 +5,9 @@ use serde::{Deserialize, Serialize};
 
 pub use lana_app::{
     primitives::{
-        ApprovalProcessId, CommitteeId, CreditFacilityId, CustomerId, DepositAccountId, DepositId,
-        DisbursalId, DisbursalIdx, DisbursalStatus, DocumentId, LanaRole, PaymentId, PolicyId,
-        ReportId, ReportProgress, Satoshis, SignedSatoshis, SignedUsdCents, Subject,
+        ApprovalProcessId, ChartId, CommitteeId, CreditFacilityId, CustomerId, DepositAccountId,
+        DepositId, DisbursalId, DisbursalIdx, DisbursalStatus, DocumentId, LanaRole, PaymentId,
+        PolicyId, ReportId, ReportProgress, Satoshis, SignedSatoshis, SignedUsdCents, Subject,
         TermsTemplateId, UsdCents, UserId, WithdrawalId,
     },
     terms::CollateralizationState,
@@ -76,6 +76,7 @@ macro_rules! impl_to_global_id {
 impl_to_global_id! {
     UserId,
     CustomerId,
+    ChartId,
     TermsTemplateId,
     CreditFacilityId,
     DisbursalId,

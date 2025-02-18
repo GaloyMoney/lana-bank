@@ -244,6 +244,7 @@ type ChartControlSubAccount {
 }
 
 type ChartOfAccounts {
+	id: ID!
 	name: String!
 	categories: ChartCategories!
 }

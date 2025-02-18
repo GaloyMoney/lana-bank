@@ -47,6 +47,7 @@ pub enum ChartEvent {
 pub struct Chart {
     pub id: ChartId,
     pub reference: String,
+    pub name: String,
     pub(super) events: EntityEvents<ChartEvent>,
 }
 
@@ -208,8 +209,16 @@ impl TryFromEvents<ChartEvent> for Chart {
         let mut builder = ChartBuilder::default();
         for event in events.iter_all() {
             match event {
-                ChartEvent::Initialized { id, reference, .. } => {
-                    builder = builder.id(*id).reference(reference.to_string())
+                ChartEvent::Initialized {
+                    id,
+                    reference,
+                    name,
+                    ..
+                } => {
+                    builder = builder
+                        .id(*id)
+                        .reference(reference.to_string())
+                        .name(name.to_string())
                 }
                 ChartEvent::ControlAccountAdded { .. } => (),
                 ChartEvent::ControlSubAccountAdded { .. } => (),

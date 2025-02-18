@@ -438,15 +438,14 @@ impl Query {
         let reference = CHART_REF.to_string();
 
         let (app, sub) = app_and_sub_from_ctx!(ctx);
-        let chart_projection = app
+        let chart = app
             .chart_of_accounts()
             .list_charts(sub)
             .await?
             .into_iter()
             .find(|p| p.reference == reference)
-            .unwrap_or_else(|| panic!("Chart of accounts not found for ref {}", reference))
-            .chart();
-        Ok(ChartOfAccounts::from(chart_projection))
+            .unwrap_or_else(|| panic!("Chart of accounts not found for ref {}", reference));
+        Ok(ChartOfAccounts::from(chart))
     }
 
     async fn off_balance_sheet_chart_of_accounts(
@@ -456,15 +455,14 @@ impl Query {
         let reference = OBS_CHART_REF.to_string();
 
         let (app, sub) = app_and_sub_from_ctx!(ctx);
-        let chart_projection = app
+        let chart = app
             .chart_of_accounts()
             .list_charts(sub)
             .await?
             .into_iter()
             .find(|p| p.reference == reference)
-            .unwrap_or_else(|| panic!("Chart of accounts not found for ref {}", reference))
-            .chart();
-        Ok(ChartOfAccounts::from(chart_projection))
+            .unwrap_or_else(|| panic!("Chart of accounts not found for ref {}", reference));
+        Ok(ChartOfAccounts::from(chart))
     }
 
     // TODO: remove Option from return type
