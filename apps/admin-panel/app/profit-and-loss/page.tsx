@@ -158,7 +158,7 @@ const ProfitAndLossStatement = ({
   dateRange,
   setDateRange,
 }: {
-  data: ProfitAndLossStatementQuery["profitAndLossStatement"]
+  data?: ProfitAndLossStatementQuery["profitAndLossStatement"]
   loading: boolean
   error: Error | undefined
   dateRange: DateRange

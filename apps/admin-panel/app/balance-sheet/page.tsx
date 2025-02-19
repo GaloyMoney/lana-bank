@@ -129,7 +129,7 @@ const BalanceSheet = ({
   dateRange,
   setDateRange,
 }: {
-  data: BalanceSheetQuery["balanceSheet"]
+  data?: BalanceSheetQuery["balanceSheet"]
   loading: boolean
   error: Error | undefined
   dateRange: DateRange

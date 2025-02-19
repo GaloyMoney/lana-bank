@@ -394,13 +394,12 @@ impl Query {
         maybe_fetch_one!(Document, ctx, app.documents().find_by_id(sub, id))
     }
 
-    // TODO: remove Option from return type
     async fn trial_balance(
         &self,
         ctx: &Context<'_>,
         from: Timestamp,
         until: Option<Timestamp>,
-    ) -> async_graphql::Result<Option<TrialBalance>> {
+    ) -> async_graphql::Result<TrialBalance> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         let account_summary = app
             .trial_balances()
@@ -411,16 +410,15 @@ impl Query {
                 until.map(|t| t.into_inner()),
             )
             .await?;
-        Ok(Some(TrialBalance::from(account_summary)))
+        Ok(TrialBalance::from(account_summary))
     }
 
-    // TODO: remove Option from return type
     async fn off_balance_sheet_trial_balance(
         &self,
         ctx: &Context<'_>,
         from: Timestamp,
         until: Option<Timestamp>,
-    ) -> async_graphql::Result<Option<TrialBalance>> {
+    ) -> async_graphql::Result<TrialBalance> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         let account_summary = app
             .trial_balances()
@@ -431,7 +429,7 @@ impl Query {
                 until.map(|t| t.into_inner()),
             )
             .await?;
-        Ok(Some(TrialBalance::from(account_summary)))
+        Ok(TrialBalance::from(account_summary))
     }
 
     async fn chart_of_accounts(&self, ctx: &Context<'_>) -> async_graphql::Result<ChartOfAccounts> {
@@ -465,13 +463,12 @@ impl Query {
         Ok(ChartOfAccounts::from(chart))
     }
 
-    // TODO: remove Option from return type
     async fn balance_sheet(
         &self,
         ctx: &Context<'_>,
         from: Timestamp,
         until: Option<Timestamp>,
-    ) -> async_graphql::Result<Option<BalanceSheet>> {
+    ) -> async_graphql::Result<BalanceSheet> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         let balance_sheet = app
             .balance_sheets()
@@ -482,16 +479,15 @@ impl Query {
                 until.map(|t| t.into_inner()),
             )
             .await?;
-        Ok(Some(BalanceSheet::from(balance_sheet)))
+        Ok(BalanceSheet::from(balance_sheet))
     }
 
-    // TODO: remove Option from return type
     async fn profit_and_loss_statement(
         &self,
         ctx: &Context<'_>,
         from: Timestamp,
         until: Option<Timestamp>,
-    ) -> async_graphql::Result<Option<ProfitAndLossStatement>> {
+    ) -> async_graphql::Result<ProfitAndLossStatement> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         let profit_and_loss = app
             .profit_and_loss_statements()
@@ -502,16 +498,15 @@ impl Query {
                 until.map(|t| t.into_inner()),
             )
             .await?;
-        Ok(Some(ProfitAndLossStatement::from(profit_and_loss)))
+        Ok(ProfitAndLossStatement::from(profit_and_loss))
     }
 
-    // TODO: remove Option from return type
     async fn cash_flow_statement(
         &self,
         ctx: &Context<'_>,
         from: Timestamp,
         until: Option<Timestamp>,
-    ) -> async_graphql::Result<Option<CashFlowStatement>> {
+    ) -> async_graphql::Result<CashFlowStatement> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         let cash_flow = app
             .cash_flow_statements()
@@ -522,7 +517,7 @@ impl Query {
                 until.map(|t| t.into_inner()),
             )
             .await?;
-        Ok(Some(CashFlowStatement::from(cash_flow)))
+        Ok(CashFlowStatement::from(cash_flow))
     }
 
     #[allow(unused_variables)]
