@@ -26,6 +26,8 @@ pub enum ReportError {
     JobError(#[from] crate::job::error::JobError),
     #[error("ReportError - StorageError: {0}")]
     StorageError(#[from] crate::storage::StorageError),
+    #[error("ReportError - ServiceAccountError: {0}")]
+    ServiceAccountError(#[from] crate::service_account::error::ServiceAccountError),
 }
 
 es_entity::from_es_entity_error!(ReportError);

@@ -42,7 +42,7 @@ pub struct EnvSecrets {
     pub pg_con: String,
     pub sumsub_key: String,
     pub sumsub_secret: String,
-    pub sa_creds_base64: String,
+    pub sa_creds_base64: Option<String>,
 }
 
 impl Config {
