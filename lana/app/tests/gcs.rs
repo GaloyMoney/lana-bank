@@ -5,13 +5,15 @@ use lana_app::{
 
 #[tokio::test]
 async fn upload_doc() -> anyhow::Result<()> {
-    let sa_creds_base64 = if let Ok(sa_creds_base64) = std::env::var("SA_CREDS_BASE64") {
-        sa_creds_base64
-    } else {
-        return Ok(());
+    let sa_creds_base64 = match std::env::var("SA_CREDS_BASE64") {
+        Ok(value) if !value.trim().is_empty() => value,
+        _ => {
+            println!("Skipping GCS test: SA_CREDS_BASE64 not set or empty");
+            return Ok(());
+        }
     };
 
-    let sa = ServiceAccountConfig::default().set_sa_creds_base64(sa_creds_base64)?;
+    let sa = ServiceAccountConfig::default().set_sa_creds_base64(Some(sa_creds_base64))?;
 
     let config = if let Ok(name_prefix) = std::env::var("DEV_ENV_NAME_PREFIX") {
         StorageConfig::new_dev_mode(name_prefix, sa)
