@@ -284,7 +284,7 @@ where
         Ok(customer)
     }
 
-    pub async fn approve_basic(
+    pub async fn approve_kyc(
         &self,
         db: &mut es_entity::DbOp<'_>,
         customer_id: CustomerId,
@@ -302,14 +302,17 @@ where
             )
             .await?;
 
-        let _ = customer.approve_kyc(KycLevel::Basic, applicant_id, audit_info);
-
-        self.repo.update_in_op(db, &mut customer).await?;
+        if customer
+            .approve_kyc(KycLevel::Basic, applicant_id, audit_info)
+            .did_execute()
+        {
+            self.repo.update_in_op(db, &mut customer).await?;
+        }
 
         Ok(customer)
     }
 
-    pub async fn deactivate(
+    pub async fn decline_kyc(
         &self,
         db: &mut es_entity::DbOp<'_>,
         customer_id: CustomerId,
@@ -327,8 +330,9 @@ where
             )
             .await?;
 
-        customer.deactivate(applicant_id, audit_info);
-        self.repo.update_in_op(db, &mut customer).await?;
+        if customer.decline_kyc(applicant_id, audit_info).did_execute() {
+            self.repo.update_in_op(db, &mut customer).await?;
+        }
 
         Ok(customer)
     }

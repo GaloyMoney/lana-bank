@@ -104,6 +104,11 @@ impl Customer {
         applicant_id: String,
         audit_info: AuditInfo,
     ) -> Idempotent<()> {
+        idempotency_guard!(
+            self.events.iter_all().rev(),
+            CustomerEvent::KycApproved { .. },
+            => CustomerEvent::KycDeclined { .. }
+        );
         self.events.push(CustomerEvent::KycApproved {
             level,
             applicant_id: applicant_id.clone(),
@@ -114,6 +119,20 @@ impl Customer {
         self.level = KycLevel::Basic;
 
         self.update_account_status(AccountStatus::Active, audit_info)
+    }
+
+    pub fn decline_kyc(&mut self, applicant_id: String, audit_info: AuditInfo) -> Idempotent<()> {
+        idempotency_guard!(
+            self.events.iter_all().rev(),
+            CustomerEvent::KycDeclined { .. },
+            => CustomerEvent::KycApproved { .. }
+        );
+        self.events.push(CustomerEvent::KycDeclined {
+            applicant_id,
+            audit_info: audit_info.clone(),
+        });
+        self.level = KycLevel::NotKyced;
+        self.update_account_status(AccountStatus::Inactive, audit_info)
     }
 
     fn update_account_status(
@@ -129,15 +148,6 @@ impl Customer {
             .push(CustomerEvent::AccountStatusUpdated { status, audit_info });
         self.status = status;
         Idempotent::Executed(())
-    }
-
-    pub fn deactivate(&mut self, applicant_id: String, audit_info: AuditInfo) {
-        self.events.push(CustomerEvent::KycDeclined {
-            applicant_id,
-            audit_info,
-        });
-        self.level = KycLevel::NotKyced;
-        self.status = AccountStatus::Inactive;
     }
 
     pub fn update_telegram_id(&mut self, new_telegram_id: String, audit_info: AuditInfo) {

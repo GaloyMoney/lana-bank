@@ -190,7 +190,7 @@ impl Applicants {
             } => {
                 let res = self
                     .users
-                    .deactivate(db, external_user_id, applicant_id)
+                    .decline_kyc(db, external_user_id, applicant_id)
                     .await;
 
                 match res {
@@ -215,7 +215,7 @@ impl Applicants {
             } => {
                 let res = self
                     .users
-                    .approve_basic(db, external_user_id, applicant_id)
+                    .approve_kyc(db, external_user_id, applicant_id)
                     .await;
 
                 match res {
