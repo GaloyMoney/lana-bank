@@ -24,4 +24,7 @@ pub struct CreditFacilitiesAccountPaths {
     pub interest_receivable: ControlSubAccountDetails,
     pub interest_income: ControlSubAccountDetails,
     pub fee_income: ControlSubAccountDetails,
+    pub fee_income_adjustment_omnibus: ControlSubAccountDetails,
+    pub deposit_adjustment_omnibus: ControlSubAccountDetails,
+    pub non_cash_offset_omnibus: ControlSubAccountDetails,
 }

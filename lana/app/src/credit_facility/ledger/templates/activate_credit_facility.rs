@@ -8,15 +8,17 @@ use cala_ledger::{
 
 use crate::credit_facility::ledger::error::*;
 
-pub const APPROVE_CREDIT_FACILITY_CODE: &str = "APPROVE_CREDIT_FACILITY";
+pub const ACTIVATE_CREDIT_FACILITY_CODE: &str = "ACTIVATE_CREDIT_FACILITY";
 
 #[derive(Debug)]
-pub struct ApproveCreditFacilityParams {
+pub struct ActivateCreditFacilityParams {
     pub journal_id: JournalId,
     pub credit_omnibus_account: AccountId,
     pub credit_facility_account: AccountId,
     pub facility_disbursed_receivable_account: AccountId,
     pub facility_fee_income_account: AccountId,
+    pub fee_income_adjustment_omnibus_account: AccountId,
+    pub non_cash_offset_omnibus_account: AccountId,
     pub debit_account_id: AccountId,
     pub facility_amount: Decimal,
     pub structuring_fee_amount: Decimal,
@@ -24,7 +26,7 @@ pub struct ApproveCreditFacilityParams {
     pub external_id: String,
 }
 
-impl ApproveCreditFacilityParams {
+impl ActivateCreditFacilityParams {
     pub fn defs() -> Vec<NewParamDefinition> {
         vec![
             NewParamDefinition::builder()
@@ -49,6 +51,16 @@ impl ApproveCreditFacilityParams {
                 .unwrap(),
             NewParamDefinition::builder()
                 .name("facility_fee_income_account")
+                .r#type(ParamDataType::Uuid)
+                .build()
+                .unwrap(),
+            NewParamDefinition::builder()
+                .name("fee_income_adjustment_omnibus_account")
+                .r#type(ParamDataType::Uuid)
+                .build()
+                .unwrap(),
+            NewParamDefinition::builder()
+                .name("non_cash_offset_omnibus_account")
                 .r#type(ParamDataType::Uuid)
                 .build()
                 .unwrap(),
@@ -86,20 +98,22 @@ impl ApproveCreditFacilityParams {
     }
 }
 
-impl From<ApproveCreditFacilityParams> for Params {
+impl From<ActivateCreditFacilityParams> for Params {
     fn from(
-        ApproveCreditFacilityParams {
+        ActivateCreditFacilityParams {
             journal_id,
             credit_omnibus_account,
             credit_facility_account,
             facility_disbursed_receivable_account,
             facility_fee_income_account,
+            fee_income_adjustment_omnibus_account,
+            non_cash_offset_omnibus_account,
             debit_account_id,
             facility_amount,
             structuring_fee_amount,
             currency,
             external_id,
-        }: ApproveCreditFacilityParams,
+        }: ActivateCreditFacilityParams,
     ) -> Self {
         let mut params = Self::default();
         params.insert("journal_id", journal_id);
@@ -110,6 +124,14 @@ impl From<ApproveCreditFacilityParams> for Params {
             facility_disbursed_receivable_account,
         );
         params.insert("facility_fee_income_account", facility_fee_income_account);
+        params.insert(
+            "fee_income_adjustment_omnibus_account",
+            fee_income_adjustment_omnibus_account,
+        );
+        params.insert(
+            "non_cash_offset_omnibus_account",
+            non_cash_offset_omnibus_account,
+        );
         params.insert("debit_account_id", debit_account_id);
         params.insert("facility_amount", facility_amount);
         params.insert("structuring_fee_amount", structuring_fee_amount);
@@ -120,16 +142,16 @@ impl From<ApproveCreditFacilityParams> for Params {
     }
 }
 
-pub struct ApproveCreditFacility;
+pub struct ActivateCreditFacility;
 
-impl ApproveCreditFacility {
-    #[instrument(name = "ledger.approve_credit_facility.init", skip_all)]
+impl ActivateCreditFacility {
+    #[instrument(name = "ledger.activate_credit_facility.init", skip_all)]
     pub async fn init(ledger: &CalaLedger) -> Result<(), CreditLedgerError> {
         let tx_input = NewTxTemplateTransaction::builder()
             .journal_id("params.journal_id")
             .effective("params.effective")
             .external_id("params.external_id")
-            .description("'Approve credit facility'")
+            .description("'Activate credit facility'")
             .build()
             .expect("Couldn't build TxInput");
 
@@ -206,11 +228,29 @@ impl ApproveCreditFacility {
                 .layer("SETTLED")
                 .build()
                 .expect("Couldn't build entry"),
+            NewTxTemplateEntry::builder()
+                .account_id("params.fee_income_adjustment_omnibus_account")
+                .units("params.structuring_fee_amount")
+                .currency("params.currency")
+                .entry_type("'APPROVE_CREDIT_FACILITY_STRUCTURING_FEE_NON_CASH_ADJ_DR'")
+                .direction("DEBIT")
+                .layer("SETTLED")
+                .build()
+                .expect("Couldn't build entry"),
+            NewTxTemplateEntry::builder()
+                .account_id("params.non_cash_offset_omnibus_account")
+                .units("params.structuring_fee_amount")
+                .currency("params.currency")
+                .entry_type("'APPROVE_CREDIT_FACILITY_STRUCTURING_FEE_NON_CASH_ADJ_CR'")
+                .direction("CREDIT")
+                .layer("SETTLED")
+                .build()
+                .expect("Couldn't build entry"),
         ];
-        let params = ApproveCreditFacilityParams::defs();
+        let params = ActivateCreditFacilityParams::defs();
         let template = NewTxTemplate::builder()
             .id(TxTemplateId::new())
-            .code(APPROVE_CREDIT_FACILITY_CODE)
+            .code(ACTIVATE_CREDIT_FACILITY_CODE)
             .transaction(tx_input)
             .entries(entries)
             .params(params)

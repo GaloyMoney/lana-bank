@@ -31,6 +31,8 @@ pub struct CreditLedger {
     journal_id: JournalId,
     credit_omnibus_account_id: AccountId,
     bank_collateral_account_id: AccountId,
+    fee_income_adjustment_omnibus_account_id: AccountId,
+    non_cash_offset_omnibus_account_id: AccountId,
     credit_facility_control_id: VelocityControlId,
     account_factories: CreditFacilityAccountFactories,
     usd: Currency,
@@ -49,8 +51,20 @@ impl CreditLedger {
         let credit_omnibus_account_id =
             Self::create_ledger_account(cala, account_factories.facility_omnibus.clone()).await?;
 
+        dbg!("HERE 20");
+        let fee_income_adjustment_omnibus_account_id = Self::create_ledger_account(
+            cala,
+            account_factories.fee_income_adjustment_omnibus.clone(),
+        )
+        .await?;
+        dbg!("HERE 21");
+
+        let non_cash_offset_omnibus_account_id =
+            Self::create_ledger_account(cala, account_factories.non_cash_offset_omnibus.clone())
+                .await?;
+
         templates::AddCollateral::init(cala).await?;
-        templates::ApproveCreditFacility::init(cala).await?;
+        templates::ActivateCreditFacility::init(cala).await?;
         templates::RemoveCollateral::init(cala).await?;
         templates::RecordPayment::init(cala).await?;
         templates::CreditFacilityIncurInterest::init(cala).await?;
@@ -79,6 +93,8 @@ impl CreditLedger {
             bank_collateral_account_id,
             credit_omnibus_account_id,
             credit_facility_control_id,
+            fee_income_adjustment_omnibus_account_id,
+            non_cash_offset_omnibus_account_id,
             account_factories,
             usd: "USD".parse().expect("Could not parse 'USD'"),
             btc: "BTC".parse().expect("Could not parse 'BTC'"),
@@ -276,14 +292,17 @@ impl CreditLedger {
             .post_transaction_in_op(
                 &mut op,
                 tx_id,
-                templates::APPROVE_CREDIT_FACILITY_CODE,
-                templates::ApproveCreditFacilityParams {
+                templates::ACTIVATE_CREDIT_FACILITY_CODE,
+                templates::ActivateCreditFacilityParams {
                     journal_id: self.journal_id,
                     credit_omnibus_account: self.credit_omnibus_account_id,
                     credit_facility_account: credit_facility_account_ids.facility_account_id,
                     facility_disbursed_receivable_account: credit_facility_account_ids
                         .disbursed_receivable_account_id,
                     facility_fee_income_account: credit_facility_account_ids.fee_income_account_id,
+                    fee_income_adjustment_omnibus_account: self
+                        .fee_income_adjustment_omnibus_account_id,
+                    non_cash_offset_omnibus_account: self.non_cash_offset_omnibus_account_id,
                     debit_account_id,
                     facility_amount: facility_amount.to_usd(),
                     structuring_fee_amount: structuring_fee_amount.to_usd(),
