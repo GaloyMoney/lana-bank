@@ -362,8 +362,12 @@ where
             .await?;
 
         let mut customer = self.repo.find_by_id(customer_id).await?;
-        customer.update_telegram_id(new_telegram_id, audit_info);
-        self.repo.update(&mut customer).await?;
+        if customer
+            .update_telegram_id(new_telegram_id, audit_info)
+            .did_execute()
+        {
+            self.repo.update(&mut customer).await?;
+        }
 
         Ok(customer)
     }

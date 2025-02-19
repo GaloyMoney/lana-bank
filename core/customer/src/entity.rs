@@ -150,12 +150,21 @@ impl Customer {
         Idempotent::Executed(())
     }
 
-    pub fn update_telegram_id(&mut self, new_telegram_id: String, audit_info: AuditInfo) {
+    pub fn update_telegram_id(
+        &mut self,
+        new_telegram_id: String,
+        audit_info: AuditInfo,
+    ) -> Idempotent<()> {
+        idempotency_guard!(
+            self.events.iter_all().rev(),
+            CustomerEvent::TelegramIdUpdated { telegram_id: existing_telegram_id , ..} if existing_telegram_id == &new_telegram_id
+        );
         self.events.push(CustomerEvent::TelegramIdUpdated {
             telegram_id: new_telegram_id.clone(),
             audit_info,
         });
         self.telegram_id = new_telegram_id;
+        Idempotent::Executed(())
     }
 }
 
