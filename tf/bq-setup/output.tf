@@ -14,18 +14,6 @@ output "gcp_location" {
   value = local.gcp_region
 }
 
-output "dataform_repo_name" {
-  value = local.dataform_repo_name
-}
-
-output "dataform_output_dataset" {
-  value = local.dataform_dataset_name
-}
-
-output "dataform_release_config" {
-  value = local.dataform_release_config_name
-}
-
 output "dbt_output_dataset" {
   value = local.dbt_dataset_name
 }

@@ -1,6 +1,0 @@
-config {
-	type: "table",
-}
-
-SELECT '01' AS code, 'Mercadería perecedera o sujeta a obsolescencia en el corto plazo' AS description UNION ALL
-SELECT '02', 'Mercadería no perecedera o no sujeta a obsolescencia en el corto plazo'

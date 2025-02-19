@@ -1,6 +1,0 @@
-config {
-	type: "table",
-}
-
-SELECT '1' AS code, 'Dólares' AS description UNION ALL
-SELECT '2', 'Otras monedas'

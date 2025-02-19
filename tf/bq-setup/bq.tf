@@ -22,52 +22,6 @@ resource "google_bigquery_dataset_iam_member" "dataset_additional_owners" {
   member     = "user:${each.value}"
 }
 
-resource "google_bigquery_dataset" "dataform" {
-  project       = local.gcp_project
-  dataset_id    = local.dataform_dataset_name
-  friendly_name = "${local.name_prefix} dataform"
-  description   = "Dataform for ${local.name_prefix}"
-  location      = local.dataform_location
-}
-
-resource "google_bigquery_dataset_iam_member" "dataform_owner" {
-  project    = local.gcp_project
-  dataset_id = google_bigquery_dataset.dataform.dataset_id
-  role       = "roles/bigquery.dataOwner"
-  member     = "serviceAccount:${google_service_account.bq_access_sa.email}"
-}
-
-resource "google_bigquery_dataset_iam_member" "dataform_additional_owners" {
-  for_each   = toset(local.additional_owners)
-  project    = local.gcp_project
-  dataset_id = google_bigquery_dataset.dataform.dataset_id
-  role       = "roles/bigquery.dataOwner"
-  member     = "user:${each.value}"
-}
-
-resource "google_bigquery_dataset" "dataform_assertions" {
-  project       = local.gcp_project
-  dataset_id    = local.dataform_assertions_dataset_name
-  friendly_name = "${local.name_prefix} assertions dataform"
-  description   = "Dataform assertions for ${local.name_prefix}"
-  location      = local.dataform_location
-}
-
-resource "google_bigquery_dataset_iam_member" "dataform_assertions_owner" {
-  project    = local.gcp_project
-  dataset_id = google_bigquery_dataset.dataform_assertions.dataset_id
-  role       = "roles/bigquery.dataOwner"
-  member     = "serviceAccount:${google_service_account.bq_access_sa.email}"
-}
-
-resource "google_bigquery_dataset_iam_member" "dataform_assertions_additional_owners" {
-  for_each   = toset(local.additional_owners)
-  project    = local.gcp_project
-  dataset_id = google_bigquery_dataset.dataform_assertions.dataset_id
-  role       = "roles/bigquery.dataOwner"
-  member     = "user:${each.value}"
-}
-
 resource "google_bigquery_dataset" "dbt" {
   project       = local.gcp_project
   dataset_id    = local.dbt_dataset_name
