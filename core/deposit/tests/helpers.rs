@@ -1,3 +1,5 @@
+use rand::Rng;
+
 use cala_ledger::CalaLedger;
 
 pub async fn init_pool() -> anyhow::Result<sqlx::PgPool> {
@@ -18,6 +20,13 @@ pub async fn init_journal(cala: &CalaLedger) -> anyhow::Result<cala_ledger::Jour
         .unwrap();
     let journal = cala.journals().create(new).await?;
     Ok(journal.id)
+}
+
+pub async fn jittered_delay() {
+    tokio::time::sleep(std::time::Duration::from_millis(
+        rand::thread_rng().gen_range(0..=500),
+    ))
+    .await;
 }
 
 pub mod action {

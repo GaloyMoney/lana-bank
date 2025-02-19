@@ -128,7 +128,7 @@ where
 
         let account_name = &format!("Deposit Account for Customer {}", customer.id);
         self.deposit
-            .create_account(sub, customer.id, account_name, account_name)
+            .create_account(sub, customer.id, account_name, account_name, account_name)
             .await?;
 
         db.commit().await?;

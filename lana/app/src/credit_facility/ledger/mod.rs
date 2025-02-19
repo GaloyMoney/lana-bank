@@ -43,15 +43,11 @@ impl CreditLedger {
         journal_id: JournalId,
         account_factories: CreditFacilityAccountFactories,
     ) -> Result<Self, CreditLedgerError> {
-        let bank_collateral_account_id = Self::create_bank_collateral_account(
-            cala,
-            account_factories.collateral_omnibus.clone(),
-        )
-        .await?;
+        let bank_collateral_account_id =
+            Self::create_ledger_account(cala, account_factories.collateral_omnibus.clone()).await?;
 
         let credit_omnibus_account_id =
-            Self::create_credit_omnibus_account(cala, account_factories.facility_omnibus.clone())
-                .await?;
+            Self::create_ledger_account(cala, account_factories.facility_omnibus.clone()).await?;
 
         templates::AddCollateral::init(cala).await?;
         templates::ApproveCreditFacility::init(cala).await?;
@@ -443,40 +439,22 @@ impl CreditLedger {
         Ok(())
     }
 
-    async fn create_bank_collateral_account(
+    async fn create_ledger_account(
         cala: &CalaLedger,
         account_factory: TransactionAccountFactory,
     ) -> Result<AccountId, CreditLedgerError> {
         let id = AccountId::new();
+        let name: &str = &account_factory.control_sub_account.name;
+
+        match cala.accounts().find_by_external_id(name.to_string()).await {
+            Ok(account) => return Ok(account.id),
+            Err(e) if e.was_not_found() => (),
+            Err(e) => return Err(e.into()),
+        };
 
         let mut op = cala.begin_operation().await?;
         account_factory
-            .create_transaction_account_in_op(
-                &mut op,
-                id,
-                &account_factory.control_sub_account.name,
-                &account_factory.control_sub_account.name,
-            )
-            .await?;
-        op.commit().await?;
-
-        Ok(id)
-    }
-
-    async fn create_credit_omnibus_account(
-        cala: &CalaLedger,
-        account_factory: TransactionAccountFactory,
-    ) -> Result<AccountId, CreditLedgerError> {
-        let id = AccountId::new();
-
-        let mut op = cala.begin_operation().await?;
-        account_factory
-            .create_transaction_account_in_op(
-                &mut op,
-                id,
-                &account_factory.control_sub_account.name,
-                &account_factory.control_sub_account.name,
-            )
+            .create_transaction_account_in_op(&mut op, id, name, name, name)
             .await?;
         op.commit().await?;
 
@@ -536,6 +514,7 @@ impl CreditLedger {
                 account_ids.collateral_account_id,
                 collateral_name,
                 collateral_name,
+                collateral_name,
             )
             .await?;
 
@@ -548,6 +527,7 @@ impl CreditLedger {
             .create_transaction_account_in_op(
                 op,
                 account_ids.facility_account_id,
+                facility_name,
                 facility_name,
                 facility_name,
             )
@@ -564,6 +544,7 @@ impl CreditLedger {
                 account_ids.disbursed_receivable_account_id,
                 disbursed_receivable_name,
                 disbursed_receivable_name,
+                disbursed_receivable_name,
             )
             .await?;
 
@@ -576,6 +557,7 @@ impl CreditLedger {
             .create_transaction_account_in_op(
                 op,
                 account_ids.interest_receivable_account_id,
+                interest_receivable_name,
                 interest_receivable_name,
                 interest_receivable_name,
             )
@@ -592,6 +574,7 @@ impl CreditLedger {
                 account_ids.interest_account_id,
                 interest_income_name,
                 interest_income_name,
+                interest_income_name,
             )
             .await?;
 
@@ -604,6 +587,7 @@ impl CreditLedger {
             .create_transaction_account_in_op(
                 op,
                 account_ids.fee_income_account_id,
+                fee_income_name,
                 fee_income_name,
                 fee_income_name,
             )
