@@ -1,6 +1,6 @@
 use chrono::{DateTime, Utc};
 
-use crate::credit_facility::CreditFacilityReceivable;
+use crate::CreditFacilityReceivable;
 
 use super::{CreditFacilityEvent, UsdCents};
 
@@ -163,15 +163,11 @@ pub(super) fn project<'a>(
 
 #[cfg(test)]
 mod tests {
+    use audit::{AuditEntryId, AuditInfo};
     use chrono::{Datelike, TimeZone, Utc};
     use rust_decimal_macros::dec;
 
-    use crate::{
-        audit::{AuditEntryId, AuditInfo},
-        credit_facility::CreditFacilityAccountIds,
-        primitives::*,
-        terms::*,
-    };
+    use crate::{primitives::*, terms::*, CreditFacilityAccountIds};
 
     use super::*;
 

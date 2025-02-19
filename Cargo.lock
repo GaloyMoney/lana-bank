@@ -1130,6 +1130,7 @@ dependencies = [
  "chart-of-accounts",
  "chrono",
  "core-money",
+ "core-price",
  "deposit",
  "derive_builder",
  "es-entity",

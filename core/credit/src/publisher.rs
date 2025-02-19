@@ -1,16 +1,30 @@
-use lana_events::{CreditEvent, FacilityCollateralUpdateAction};
+use outbox::{Outbox, OutboxEventMarker};
 
-use crate::outbox::Outbox;
+use super::{entity::*, error::*, event::*};
 
-use super::{entity::*, error::*};
-
-#[derive(Clone)]
-pub struct CreditFacilityPublisher {
-    outbox: Outbox,
+pub struct CreditFacilityPublisher<E>
+where
+    E: OutboxEventMarker<CoreCreditEvent>,
+{
+    outbox: Outbox<E>,
 }
 
-impl CreditFacilityPublisher {
-    pub fn new(outbox: &Outbox) -> Self {
+impl<E> Clone for CreditFacilityPublisher<E>
+where
+    E: OutboxEventMarker<CoreCreditEvent>,
+{
+    fn clone(&self) -> Self {
+        Self {
+            outbox: self.outbox.clone(),
+        }
+    }
+}
+
+impl<E> CreditFacilityPublisher<E>
+where
+    E: OutboxEventMarker<CoreCreditEvent>,
+{
+    pub fn new(outbox: &Outbox<E>) -> Self {
         Self {
             outbox: outbox.clone(),
         }
@@ -25,18 +39,18 @@ impl CreditFacilityPublisher {
         use CreditFacilityEvent::*;
         let publish_events = new_events
             .filter_map(|event| match &event.event {
-                Initialized { .. } => Some(CreditEvent::FacilityCreated {
+                Initialized { .. } => Some(CoreCreditEvent::FacilityCreated {
                     id: entity.id,
                     created_at: entity.created_at(),
                 }),
                 ApprovalProcessConcluded { approved, .. } if *approved => {
-                    Some(CreditEvent::FacilityApproved { id: entity.id })
+                    Some(CoreCreditEvent::FacilityApproved { id: entity.id })
                 }
-                Activated { activated_at, .. } => Some(CreditEvent::FacilityActivated {
+                Activated { activated_at, .. } => Some(CoreCreditEvent::FacilityActivated {
                     id: entity.id,
                     activated_at: *activated_at,
                 }),
-                Completed { completed_at, .. } => Some(CreditEvent::FacilityCompleted {
+                Completed { completed_at, .. } => Some(CoreCreditEvent::FacilityCompleted {
                     id: entity.id,
                     completed_at: *completed_at,
                 }),
@@ -47,7 +61,7 @@ impl CreditFacilityPublisher {
                     ..
                 } => {
                     let amount = entity.disbursal_amount_from_idx(*idx);
-                    Some(CreditEvent::DisbursalExecuted {
+                    Some(CoreCreditEvent::DisbursalExecuted {
                         id: entity.id,
                         amount,
                         recorded_at: *recorded_at,
@@ -58,7 +72,7 @@ impl CreditFacilityPublisher {
                     interest_amount,
                     recorded_at: recorded_in_ledger_at,
                     ..
-                } => Some(CreditEvent::FacilityRepaymentRecorded {
+                } => Some(CoreCreditEvent::FacilityRepaymentRecorded {
                     id: entity.id,
                     disbursal_amount: *disbursal_amount,
                     interest_amount: *interest_amount,
@@ -80,7 +94,7 @@ impl CreditFacilityPublisher {
                         }
                     };
 
-                    Some(CreditEvent::FacilityCollateralUpdated {
+                    Some(CoreCreditEvent::FacilityCollateralUpdated {
                         id: entity.id,
                         new_amount: *total_collateral,
                         abs_diff: *abs_diff,
@@ -91,7 +105,7 @@ impl CreditFacilityPublisher {
 
                 InterestAccrualConcluded {
                     amount, accrued_at, ..
-                } => Some(CreditEvent::AccrualExecuted {
+                } => Some(CoreCreditEvent::AccrualExecuted {
                     id: entity.id,
                     amount: *amount,
                     accrued_at: *accrued_at,

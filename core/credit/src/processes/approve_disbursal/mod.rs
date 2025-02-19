@@ -2,39 +2,66 @@ mod job;
 
 use tracing::instrument;
 
+use audit::AuditSvc;
+use authz::PermissionCheck;
 use es_entity::Idempotent;
-use governance::{ApprovalProcess, ApprovalProcessStatus, ApprovalProcessType};
+use governance::{
+    ApprovalProcess, ApprovalProcessStatus, ApprovalProcessType, Governance, GovernanceAction,
+    GovernanceEvent, GovernanceObject,
+};
+use outbox::OutboxEventMarker;
 
 use crate::{
-    audit::{Audit, AuditSvc},
-    credit_facility::{
-        error::CreditFacilityError, ledger::CreditLedger, repo::CreditFacilityRepo, Disbursal,
-        DisbursalRepo,
-    },
-    governance::Governance,
-    primitives::DisbursalId,
+    error::CreditFacilityError, ledger::CreditLedger, primitives::DisbursalId,
+    repo::CreditFacilityRepo, CoreCreditAction, CoreCreditEvent, CoreCreditObject, Disbursal,
+    DisbursalRepo,
 };
-use rbac_types::{AppObject, CreditFacilityAction};
 
 pub use job::*;
-
 pub const APPROVE_DISBURSAL_PROCESS: ApprovalProcessType = ApprovalProcessType::new("disbursal");
 
-#[derive(Clone)]
-pub struct ApproveDisbursal {
+pub struct ApproveDisbursal<Perms, E>
+where
+    Perms: PermissionCheck,
+    E: OutboxEventMarker<GovernanceEvent> + OutboxEventMarker<CoreCreditEvent>,
+{
     disbursal_repo: DisbursalRepo,
-    credit_facility_repo: CreditFacilityRepo,
-    audit: Audit,
-    governance: Governance,
+    credit_facility_repo: CreditFacilityRepo<E>,
+    audit: Perms::Audit,
+    governance: Governance<Perms, E>,
     ledger: CreditLedger,
 }
 
-impl ApproveDisbursal {
-    pub(in crate::credit_facility) fn new(
+impl<Perms, E> Clone for ApproveDisbursal<Perms, E>
+where
+    Perms: PermissionCheck,
+    E: OutboxEventMarker<GovernanceEvent> + OutboxEventMarker<CoreCreditEvent>,
+{
+    fn clone(&self) -> Self {
+        Self {
+            disbursal_repo: self.disbursal_repo.clone(),
+            credit_facility_repo: self.credit_facility_repo.clone(),
+            audit: self.audit.clone(),
+            governance: self.governance.clone(),
+            ledger: self.ledger.clone(),
+        }
+    }
+}
+
+impl<Perms, E> ApproveDisbursal<Perms, E>
+where
+    Perms: PermissionCheck,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
+        From<CoreCreditAction> + From<GovernanceAction>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object:
+        From<CoreCreditObject> + From<GovernanceObject>,
+    E: OutboxEventMarker<GovernanceEvent> + OutboxEventMarker<CoreCreditEvent>,
+{
+    pub fn new(
         disbursal_repo: &DisbursalRepo,
-        credit_facility_repo: &CreditFacilityRepo,
-        audit: &Audit,
-        governance: &Governance,
+        credit_facility_repo: &CreditFacilityRepo<E>,
+        audit: &Perms::Audit,
+        governance: &Governance<Perms, E>,
         ledger: &CreditLedger,
     ) -> Self {
         Self {
@@ -86,8 +113,9 @@ impl ApproveDisbursal {
             .audit
             .record_system_entry_in_tx(
                 db.tx(),
-                AppObject::CreditFacility,
-                CreditFacilityAction::ConcludeDisbursalApprovalProcess,
+                // NOTE: change to DisbursalObject
+                CoreCreditObject::credit_facility(disbursal.facility_id),
+                CoreCreditAction::DISBURSAL_CONCLUDE_APPROVAL_PROCESS,
             )
             .await?;
         let span = tracing::Span::current();
@@ -109,8 +137,9 @@ impl ApproveDisbursal {
             .audit
             .record_system_entry_in_tx(
                 db.tx(),
-                AppObject::CreditFacility,
-                CreditFacilityAction::SettleDisbursal,
+                // NOTE: change to DisbursalObject
+                CoreCreditObject::credit_facility(credit_facility.id),
+                CoreCreditAction::DISBURSAL_SETTLE,
             )
             .await?;
 

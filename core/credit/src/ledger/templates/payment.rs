@@ -6,7 +6,7 @@ use cala_ledger::{
     *,
 };
 
-use crate::credit_facility::ledger::error::*;
+use crate::ledger::error::*;
 
 pub const RECORD_PAYMENT_CODE: &str = "RECORD_PAYMENT";
 

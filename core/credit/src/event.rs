@@ -7,7 +7,7 @@ use super::primitives::*;
 
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(tag = "type")]
-pub enum CreditEvent {
+pub enum CoreCreditEvent {
     FacilityCreated {
         id: CreditFacilityId,
         created_at: DateTime<Utc>,
@@ -38,7 +38,7 @@ pub enum CreditEvent {
         id: CreditFacilityId,
         new_amount: Satoshis,
         abs_diff: Satoshis,
-        // action: FacilityCollateralUpdateAction,
+        action: FacilityCollateralUpdateAction,
         recorded_at: DateTime<Utc>,
     },
     AccrualExecuted {
@@ -46,4 +46,10 @@ pub enum CreditEvent {
         amount: UsdCents,
         accrued_at: DateTime<Utc>,
     },
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub enum FacilityCollateralUpdateAction {
+    Add,
+    Remove,
 }

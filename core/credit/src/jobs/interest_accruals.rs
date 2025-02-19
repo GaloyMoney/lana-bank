@@ -2,38 +2,54 @@ use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
 use tracing::instrument;
 
+use audit::{AuditInfo, AuditSvc};
+use authz::PermissionCheck;
+use job::*;
+use outbox::OutboxEventMarker;
+
 use crate::{
-    audit::*,
-    authorization::{CreditFacilityAction, Object},
-    credit_facility::{
-        interest_incurrences, ledger::*, repo::*, CreditFacilityError,
-        CreditFacilityInterestAccrual,
-    },
-    job::*,
-    primitives::CreditFacilityId,
+    interest_incurrences, ledger::*, repo::*, CoreCreditAction, CoreCreditEvent, CoreCreditObject,
+    CreditFacilityError, CreditFacilityId, CreditFacilityInterestAccrual,
 };
 
 #[derive(Clone, Serialize, Deserialize)]
-pub struct CreditFacilityJobConfig {
+pub struct CreditFacilityJobConfig<Perms, E> {
     pub credit_facility_id: CreditFacilityId,
+    pub _phantom: std::marker::PhantomData<(Perms, E)>,
 }
-impl JobConfig for CreditFacilityJobConfig {
-    type Initializer = CreditFacilityProcessingJobInitializer;
+impl<Perms, E> JobConfig for CreditFacilityJobConfig<Perms, E>
+where
+    Perms: PermissionCheck,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>,
+    E: OutboxEventMarker<CoreCreditEvent>,
+{
+    type Initializer = CreditFacilityProcessingJobInitializer<Perms, E>;
 }
 
-pub struct CreditFacilityProcessingJobInitializer {
+pub struct CreditFacilityProcessingJobInitializer<Perms, E>
+where
+    Perms: PermissionCheck,
+    E: OutboxEventMarker<CoreCreditEvent>,
+{
     ledger: CreditLedger,
-    credit_facility_repo: CreditFacilityRepo,
+    credit_facility_repo: CreditFacilityRepo<E>,
     jobs: Jobs,
-    audit: Audit,
+    audit: Perms::Audit,
 }
 
-impl CreditFacilityProcessingJobInitializer {
+impl<Perms, E> CreditFacilityProcessingJobInitializer<Perms, E>
+where
+    Perms: PermissionCheck,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>,
+    E: OutboxEventMarker<CoreCreditEvent>,
+{
     pub fn new(
         ledger: &CreditLedger,
-        credit_facility_repo: CreditFacilityRepo,
+        credit_facility_repo: CreditFacilityRepo<E>,
         jobs: &Jobs,
-        audit: &Audit,
+        audit: &Perms::Audit,
     ) -> Self {
         Self {
             ledger: ledger.clone(),
@@ -46,7 +62,13 @@ impl CreditFacilityProcessingJobInitializer {
 
 const CREDIT_FACILITY_INTEREST_PROCESSING_JOB: JobType =
     JobType::new("credit-facility-interest-accrual-processing");
-impl JobInitializer for CreditFacilityProcessingJobInitializer {
+impl<Perms, E> JobInitializer for CreditFacilityProcessingJobInitializer<Perms, E>
+where
+    Perms: PermissionCheck,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>,
+    E: OutboxEventMarker<CoreCreditEvent>,
+{
     fn job_type() -> JobType
     where
         Self: Sized,
@@ -55,7 +77,7 @@ impl JobInitializer for CreditFacilityProcessingJobInitializer {
     }
 
     fn init(&self, job: &Job) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
-        Ok(Box::new(CreditFacilityProcessingJobRunner {
+        Ok(Box::new(CreditFacilityProcessingJobRunner::<Perms, E> {
             config: job.config()?,
             credit_facility_repo: self.credit_facility_repo.clone(),
             ledger: self.ledger.clone(),
@@ -65,15 +87,25 @@ impl JobInitializer for CreditFacilityProcessingJobInitializer {
     }
 }
 
-pub struct CreditFacilityProcessingJobRunner {
-    config: CreditFacilityJobConfig,
-    credit_facility_repo: CreditFacilityRepo,
+pub struct CreditFacilityProcessingJobRunner<Perms, E>
+where
+    Perms: PermissionCheck,
+    E: OutboxEventMarker<CoreCreditEvent>,
+{
+    config: CreditFacilityJobConfig<Perms, E>,
+    credit_facility_repo: CreditFacilityRepo<E>,
     ledger: CreditLedger,
     jobs: Jobs,
-    audit: Audit,
+    audit: Perms::Audit,
 }
 
-impl CreditFacilityProcessingJobRunner {
+impl<Perms, E> CreditFacilityProcessingJobRunner<Perms, E>
+where
+    Perms: PermissionCheck,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>,
+    E: OutboxEventMarker<CoreCreditEvent>,
+{
     #[es_entity::retry_on_concurrent_modification]
     async fn record_interest_accrual(
         &self,
@@ -95,7 +127,13 @@ impl CreditFacilityProcessingJobRunner {
 }
 
 #[async_trait]
-impl JobRunner for CreditFacilityProcessingJobRunner {
+impl<Perms, E> JobRunner for CreditFacilityProcessingJobRunner<Perms, E>
+where
+    Perms: PermissionCheck,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>,
+    E: OutboxEventMarker<CoreCreditEvent>,
+{
     #[instrument(
         name = "credit-facility.interest-accruals.job",
         skip(self, current_job),
@@ -113,8 +151,8 @@ impl JobRunner for CreditFacilityProcessingJobRunner {
             .audit
             .record_system_entry_in_tx(
                 db.tx(),
-                Object::CreditFacility,
-                CreditFacilityAction::RecordInterest,
+                CoreCreditObject::all_credit_facilities(),
+                CoreCreditAction::CREDIT_FACILITY_RECORD_INTEREST,
             )
             .await?;
 
@@ -158,8 +196,9 @@ impl JobRunner for CreditFacilityProcessingJobRunner {
             .create_and_spawn_at_in_op(
                 &mut db,
                 accrual_id,
-                interest_incurrences::CreditFacilityJobConfig {
+                interest_incurrences::CreditFacilityJobConfig::<Perms, E> {
                     credit_facility_id: credit_facility.id,
+                    _phantom: std::marker::PhantomData,
                 },
                 periods.incurrence.end,
             )

@@ -2,38 +2,62 @@ mod job;
 
 use tracing::instrument;
 
+use audit::AuditSvc;
+use authz::PermissionCheck;
+use core_price::Price;
+use outbox::OutboxEventMarker;
+
 use crate::{
-    audit::{Audit, AuditSvc},
-    credit_facility::{
-        error::CreditFacilityError, interest_incurrences, ledger::CreditLedger, CreditFacility,
-        CreditFacilityRepo, DisbursalRepo,
-    },
-    job::Jobs,
-    price::Price,
-    primitives::CreditFacilityId,
+    error::CreditFacilityError, interest_incurrences, ledger::CreditLedger,
+    primitives::CreditFacilityId, CoreCreditAction, CoreCreditEvent, CoreCreditObject,
+    CreditFacility, CreditFacilityRepo, DisbursalRepo, Jobs,
 };
-use rbac_types::{AppObject, CreditFacilityAction};
 
 pub use job::*;
 
-#[derive(Clone)]
-pub struct ActivateCreditFacility {
-    credit_facility_repo: CreditFacilityRepo,
+pub struct ActivateCreditFacility<Perms, E>
+where
+    Perms: PermissionCheck,
+    E: OutboxEventMarker<CoreCreditEvent>,
+{
+    credit_facility_repo: CreditFacilityRepo<E>,
     disbursal_repo: DisbursalRepo,
     ledger: CreditLedger,
     price: Price,
     jobs: Jobs,
-    audit: Audit,
+    audit: Perms::Audit,
 }
 
-impl ActivateCreditFacility {
-    pub(in crate::credit_facility) fn new(
-        credit_facility_repo: &CreditFacilityRepo,
+impl<Perms, E> Clone for ActivateCreditFacility<Perms, E>
+where
+    Perms: PermissionCheck,
+    E: OutboxEventMarker<CoreCreditEvent>,
+{
+    fn clone(&self) -> Self {
+        Self {
+            credit_facility_repo: self.credit_facility_repo.clone(),
+            disbursal_repo: self.disbursal_repo.clone(),
+            ledger: self.ledger.clone(),
+            price: self.price.clone(),
+            jobs: self.jobs.clone(),
+            audit: self.audit.clone(),
+        }
+    }
+}
+impl<Perms, E> ActivateCreditFacility<Perms, E>
+where
+    Perms: PermissionCheck,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>,
+    E: OutboxEventMarker<CoreCreditEvent>,
+{
+    pub fn new(
+        credit_facility_repo: &CreditFacilityRepo<E>,
         disbursal_repo: &DisbursalRepo,
         ledger: &CreditLedger,
         price: &Price,
         jobs: &Jobs,
-        audit: &Audit,
+        audit: &Perms::Audit,
     ) -> Self {
         Self {
             credit_facility_repo: credit_facility_repo.clone(),
@@ -60,8 +84,8 @@ impl ActivateCreditFacility {
             .audit
             .record_system_entry_in_tx(
                 db.tx(),
-                AppObject::CreditFacility,
-                CreditFacilityAction::Activate,
+                CoreCreditObject::all_credit_facilities(),
+                CoreCreditAction::CREDIT_FACILITY_ACTIVATE,
             )
             .await?;
 
@@ -110,8 +134,9 @@ impl ActivateCreditFacility {
             .create_and_spawn_at_in_op(
                 &mut db,
                 accrual_id,
-                interest_incurrences::CreditFacilityJobConfig {
+                interest_incurrences::CreditFacilityJobConfig::<Perms, E> {
                     credit_facility_id: id,
+                    _phantom: std::marker::PhantomData,
                 },
                 next_incurrence_period.end,
             )

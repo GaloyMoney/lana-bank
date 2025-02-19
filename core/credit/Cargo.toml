@@ -10,6 +10,7 @@ graphql = [ "dep:async-graphql", "cala-ledger/graphql" ]
 
 [dependencies]
 core-money = { path = "../money" }
+core-price = { path = "../price" }
 governance = { path = "../governance" }
 deposit = { path = "../deposit" }
 chart-of-accounts = { path = "../chart-of-accounts" }
@@ -33,15 +34,14 @@ tracing = { workspace = true }
 uuid = { workspace = true }
 derive_builder = { workspace = true }
 rust_decimal = { workspace = true }
+rust_decimal_macros = { workspace = true }
 async-trait = { workspace = true }
 futures = { workspace = true }
 async-graphql = { workspace = true, optional = true }
 base64 = { workspace = true }
-
 [dev-dependencies]
 authz = { path = "../../lib/authz", features = ["test-dummy"] }
 
 tokio = { workspace = true }
 anyhow = { workspace = true }
-rust_decimal_macros = { workspace = true }
 rand = { workspace = true }

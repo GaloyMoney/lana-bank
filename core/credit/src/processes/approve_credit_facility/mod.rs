@@ -2,33 +2,60 @@ mod job;
 
 use tracing::instrument;
 
-use governance::{ApprovalProcess, ApprovalProcessStatus, ApprovalProcessType};
+use audit::AuditSvc;
+use authz::PermissionCheck;
+use governance::{
+    ApprovalProcess, ApprovalProcessStatus, ApprovalProcessType, Governance, GovernanceAction,
+    GovernanceEvent, GovernanceObject,
+};
+use outbox::OutboxEventMarker;
 
 use crate::{
-    audit::{Audit, AuditSvc},
-    credit_facility::{error::CreditFacilityError, CreditFacility, CreditFacilityRepo},
-    governance::Governance,
-    primitives::CreditFacilityId,
+    error::CreditFacilityError, CoreCreditAction, CoreCreditEvent, CoreCreditObject,
+    CreditFacility, CreditFacilityId, CreditFacilityRepo,
 };
-use rbac_types::{AppObject, CreditFacilityAction};
 
 pub use job::*;
-
 pub const APPROVE_CREDIT_FACILITY_PROCESS: ApprovalProcessType =
     ApprovalProcessType::new("credit-facility");
 
-#[derive(Clone)]
-pub struct ApproveCreditFacility {
-    repo: CreditFacilityRepo,
-    audit: Audit,
-    governance: Governance,
+pub struct ApproveCreditFacility<Perms, E>
+where
+    Perms: PermissionCheck,
+    E: OutboxEventMarker<GovernanceEvent> + OutboxEventMarker<CoreCreditEvent>,
+{
+    repo: CreditFacilityRepo<E>,
+    audit: Perms::Audit,
+    governance: Governance<Perms, E>,
 }
 
-impl ApproveCreditFacility {
-    pub(in crate::credit_facility) fn new(
-        repo: &CreditFacilityRepo,
-        audit: &Audit,
-        governance: &Governance,
+impl<Perms, E> Clone for ApproveCreditFacility<Perms, E>
+where
+    Perms: PermissionCheck,
+    E: OutboxEventMarker<GovernanceEvent> + OutboxEventMarker<CoreCreditEvent>,
+{
+    fn clone(&self) -> Self {
+        Self {
+            repo: self.repo.clone(),
+            audit: self.audit.clone(),
+            governance: self.governance.clone(),
+        }
+    }
+}
+
+impl<Perms, E> ApproveCreditFacility<Perms, E>
+where
+    Perms: PermissionCheck,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
+        From<CoreCreditAction> + From<GovernanceAction>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object:
+        From<CoreCreditObject> + From<GovernanceObject>,
+    E: OutboxEventMarker<GovernanceEvent> + OutboxEventMarker<CoreCreditEvent>,
+{
+    pub fn new(
+        repo: &CreditFacilityRepo<E>,
+        audit: &Perms::Audit,
+        governance: &Governance<Perms, E>,
     ) -> Self {
         Self {
             repo: repo.clone(),
@@ -76,8 +103,8 @@ impl ApproveCreditFacility {
             .audit
             .record_system_entry_in_tx(
                 db.tx(),
-                AppObject::CreditFacility,
-                CreditFacilityAction::ConcludeApprovalProcess,
+                CoreCreditObject::credit_facility(credit_facility.id),
+                CoreCreditAction::CREDIT_FACILITY_CONCLUDE_APPROVAL_PROCESS,
             )
             .await?;
         if credit_facility

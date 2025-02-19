@@ -299,7 +299,6 @@ impl CreditLedger {
         op.commit().await?;
         Ok(())
     }
-
     pub async fn record_interest_incurrence(
         &self,
         op: es_entity::DbOp<'_>,

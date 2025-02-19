@@ -6,7 +6,7 @@ use cala_ledger::{
     *,
 };
 
-use crate::credit_facility::ledger::error::*;
+use crate::ledger::error::*;
 
 pub const APPROVE_CREDIT_FACILITY_CODE: &str = "APPROVE_CREDIT_FACILITY";
 

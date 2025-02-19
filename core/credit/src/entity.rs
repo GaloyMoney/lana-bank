@@ -3,10 +3,10 @@ use derive_builder::Builder;
 use rust_decimal::Decimal;
 use serde::{Deserialize, Serialize};
 
+use audit::AuditInfo;
 use es_entity::*;
 
 use crate::{
-    audit::AuditInfo,
     primitives::*,
     terms::{CVLData, CVLPct, CollateralizationState, InterestPeriod, TermValues},
 };
@@ -1199,12 +1199,12 @@ impl IntoEvents<CreditFacilityEvent> for NewCreditFacility {
 
 #[cfg(test)]
 mod test {
+    use audit::{AuditEntryId, AuditInfo};
     use rust_decimal_macros::dec;
 
     use crate::{
-        audit::AuditEntryId,
-        credit_facility::*,
         terms::{Duration, InterestInterval, OneTimeFeeRatePct},
+        *,
     };
 
     use super::*;

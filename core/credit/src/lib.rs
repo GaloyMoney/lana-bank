@@ -14,25 +14,20 @@ mod processes;
 mod publisher;
 mod repayment_plan;
 mod repo;
+mod terms;
+mod time;
 
 use std::collections::HashMap;
 
 use audit::{AuditInfo, AuditSvc};
 use authz::PermissionCheck;
 use cala_ledger::CalaLedger;
+use core_price::Price;
 use deposit::{DepositAccount, DepositAccountHolderId};
 use governance::{Governance, GovernanceAction, GovernanceEvent, GovernanceObject};
 use job::Jobs;
 use outbox::{Outbox, OutboxEventMarker};
 use tracing::instrument;
-
-// use crate::{
-// authorization::{Authorization, CreditFacilityAction, Object},
-// deposit::Deposits,
-// price::Price,
-// primitives::*,
-// terms::{CollateralizationState, TermValues},
-// };
 
 pub use config::*;
 pub use disbursal::{disbursal_cursor::*, *};
@@ -56,11 +51,13 @@ pub use repo::{
     credit_facility_cursor::*, CreditFacilitiesSortBy, FindManyCreditFacilities, ListDirection,
     Sort,
 };
+use terms::*;
+use time::*;
 
 pub struct CreditFacilities<Perms, E>
 where
     Perms: PermissionCheck,
-    E: OutboxEventMarker<GovernanceEvent>,
+    E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<GovernanceEvent>,
 {
     authz: Perms,
     // deposits: Deposits,
@@ -69,17 +66,17 @@ where
     payment_repo: PaymentRepo,
     governance: Governance<Perms, E>,
     ledger: CreditLedger,
-    // price: Price,
+    price: Price,
     config: CreditFacilityConfig,
-    approve_disbursal: ApproveDisbursal,
+    approve_disbursal: ApproveDisbursal<Perms, E>,
     cala: CalaLedger,
-    approve_credit_facility: ApproveCreditFacility,
+    approve_credit_facility: ApproveCreditFacility<Perms, E>,
 }
 
 impl<Perms, E> Clone for CreditFacilities<Perms, E>
 where
     Perms: PermissionCheck,
-    E: OutboxEventMarker<GovernanceEvent> + OutboxEventMarker<CreditEvent>,
+    E: OutboxEventMarker<GovernanceEvent> + OutboxEventMarker<CoreCreditEvent>,
 {
     fn clone(&self) -> Self {
         Self {
@@ -90,7 +87,7 @@ where
             payment_repo: self.payment_repo.clone(),
             governance: self.governance.clone(),
             ledger: self.ledger.clone(),
-            // price: self.price.clone(),
+            price: self.price.clone(),
             config: self.config.clone(),
             cala: self.cala.clone(),
             approve_disbursal: self.approve_disbursal.clone(),
@@ -106,7 +103,7 @@ where
         From<CoreCreditAction> + From<GovernanceAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object:
         From<CoreCreditObject> + From<GovernanceObject>,
-    E: OutboxEventMarker<GovernanceEvent> + OutboxEventMarker<CreditEvent>,
+    E: OutboxEventMarker<GovernanceEvent> + OutboxEventMarker<CoreCreditEvent>,
 {
     #[allow(clippy::too_many_arguments)]
     pub async fn init(
@@ -116,7 +113,7 @@ where
         jobs: &Jobs,
         authz: &Perms,
         // deposits: &Deposits,
-        // price: &Price,
+        price: &Price,
         outbox: &Outbox<E>,
         account_factories: CreditFacilityAccountFactories,
         cala: &CalaLedger,
@@ -141,14 +138,15 @@ where
             &credit_facility_repo,
             &disbursal_repo,
             &ledger,
-            // price,
+            price,
             jobs,
             authz.audit(),
         );
+
         jobs.add_initializer_and_spawn_unique(
             cvl::CreditFacilityProcessingJobInitializer::new(
                 credit_facility_repo.clone(),
-                // price,
+                price,
                 authz.audit(),
             ),
             cvl::CreditFacilityJobConfig {
@@ -175,17 +173,17 @@ where
         );
         jobs.add_initializer_and_spawn_unique(
             CreditFacilityApprovalJobInitializer::new(outbox, &approve_credit_facility),
-            CreditFacilityApprovalJobConfig,
+            CreditFacilityApprovalJobConfig::<Perms, E>::new(),
         )
         .await?;
         jobs.add_initializer_and_spawn_unique(
             DisbursalApprovalJobInitializer::new(outbox, &approve_disbursal),
-            DisbursalApprovalJobConfig,
+            DisbursalApprovalJobConfig::<Perms, E>::new(),
         )
         .await?;
         jobs.add_initializer_and_spawn_unique(
             CreditFacilityActivationJobInitializer::new(outbox, &activate_credit_facility),
-            CreditFacilityActivationJobConfig,
+            CreditFacilityActivationJobConfig::<Perms, E>::new(),
         )
         .await?;
         let _ = governance
@@ -201,7 +199,7 @@ where
             payment_repo,
             governance: governance.clone(),
             ledger,
-            // price: price.clone(),
+            price: price.clone(),
             config,
             cala: cala.clone(),
             approve_disbursal,
@@ -211,15 +209,15 @@ where
 
     pub async fn subject_can_create(
         &self,
-        sub: &Subject,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         enforce: bool,
     ) -> Result<Option<AuditInfo>, CreditFacilityError> {
         Ok(self
             .authz
             .evaluate_permission(
                 sub,
-                Object::CreditFacility,
-                CreditFacilityAction::Create,
+                CoreCreditObject::all_credit_facilities(),
+                CoreCreditAction::CREDIT_FACILITY_CREATE,
                 enforce,
             )
             .await?)
@@ -227,7 +225,7 @@ where
 
     pub fn for_subject<'s>(
         &'s self,
-        sub: &'s Subject,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
     ) -> Result<CreditFacilitiesForSubject<'s>, CreditFacilityError> {
         let customer_id =
             CustomerId::try_from(sub).map_err(|_| CreditFacilityError::SubjectIsNotCustomer)?;
@@ -244,7 +242,7 @@ where
     #[instrument(name = "credit_facility.initiate", skip(self), err)]
     pub async fn initiate(
         &self,
-        sub: &Subject,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         customer_id: impl Into<CustomerId> + Into<DepositAccountHolderId> + std::fmt::Debug + Copy,
         facility: UsdCents,
         terms: TermValues,
@@ -318,14 +316,19 @@ where
     #[instrument(name = "credit_facility.find", skip(self), err)]
     pub async fn find_by_id(
         &self,
-        sub: &Subject,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         id: impl Into<CreditFacilityId> + std::fmt::Debug,
     ) -> Result<Option<CreditFacility>, CreditFacilityError> {
+        let id = id.into();
         self.authz
-            .enforce_permission(sub, Object::CreditFacility, CreditFacilityAction::Read)
+            .enforce_permission(
+                sub,
+                CoreCreditObject::credit_facility(id),
+                CoreCreditAction::CREDIT_FACILITY_READ,
+            )
             .await?;
 
-        match self.credit_facility_repo.find_by_id(id.into()).await {
+        match self.credit_facility_repo.find_by_id(id).await {
             Ok(credit_facility) => Ok(Some(credit_facility)),
             Err(e) if e.was_not_found() => Ok(None),
             Err(e) => Err(e),
@@ -335,29 +338,34 @@ where
     #[instrument(name = "credit_facility.balance", skip(self), err)]
     pub async fn balance(
         &self,
-        sub: &Subject,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         id: impl Into<CreditFacilityId> + std::fmt::Debug,
     ) -> Result<CreditFacilityBalance, CreditFacilityError> {
+        let id = id.into();
         self.authz
-            .enforce_permission(sub, Object::CreditFacility, CreditFacilityAction::Read)
+            .enforce_permission(
+                sub,
+                CoreCreditObject::credit_facility(id),
+                CoreCreditAction::CREDIT_FACILITY_READ,
+            )
             .await?;
 
-        let credit_facility = self.credit_facility_repo.find_by_id(id.into()).await?;
+        let credit_facility = self.credit_facility_repo.find_by_id(id).await?;
 
         Ok(credit_facility.balances())
     }
 
     pub async fn subject_can_initiate_disbursal(
         &self,
-        sub: &Subject,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         enforce: bool,
     ) -> Result<Option<AuditInfo>, CreditFacilityError> {
         Ok(self
             .authz
             .evaluate_permission(
                 sub,
-                Object::CreditFacility,
-                CreditFacilityAction::InitiateDisbursal,
+                CoreCreditObject::all_credit_facilities(),
+                CoreCreditAction::DISBURSAL_INITIATE,
                 enforce,
             )
             .await?)
@@ -367,7 +375,7 @@ where
     #[es_entity::retry_on_concurrent_modification]
     pub async fn initiate_disbursal(
         &self,
-        sub: &Subject,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         credit_facility_id: CreditFacilityId,
         amount: UsdCents,
     ) -> Result<Disbursal, CreditFacilityError> {
@@ -381,7 +389,7 @@ where
             .find_by_id(credit_facility_id)
             .await?;
 
-        // let price = self.price.usd_cents_per_btc().await?;
+        let price = self.price.usd_cents_per_btc().await?;
 
         let mut db = self.credit_facility_repo.begin_op().await?;
         let now = crate::time::now();
@@ -413,11 +421,15 @@ where
     #[instrument(name = "credit_facility.find_disbursal_by_id", skip(self), err)]
     pub async fn find_disbursal_by_id(
         &self,
-        sub: &Subject,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         id: impl Into<DisbursalId> + std::fmt::Debug,
     ) -> Result<Option<Disbursal>, CreditFacilityError> {
         self.authz
-            .enforce_permission(sub, Object::CreditFacility, CreditFacilityAction::Read)
+            .enforce_permission(
+                sub,
+                CoreCreditObject::all_credit_facilities(),
+                CoreCreditAction::CREDIT_FACILITY_READ,
+            )
             .await?;
 
         match self.disbursal_repo.find_by_id(id.into()).await {
@@ -429,7 +441,7 @@ where
 
     pub async fn find_disbursal_by_concluded_tx_id(
         &self,
-        sub: &Subject,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         tx_id: impl Into<crate::primitives::LedgerTxId> + std::fmt::Debug,
     ) -> Result<Disbursal, CreditFacilityError> {
         let tx_id = tx_id.into();
@@ -439,7 +451,11 @@ where
             .await?;
 
         self.authz
-            .enforce_permission(sub, Object::CreditFacility, CreditFacilityAction::Read)
+            .enforce_permission(
+                sub,
+                CoreCreditObject::all_credit_facilities(),
+                CoreCreditAction::CREDIT_FACILITY_READ,
+            )
             .await?;
 
         Ok(disbursal)
@@ -463,15 +479,15 @@ where
 
     pub async fn subject_can_update_collateral(
         &self,
-        sub: &Subject,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         enforce: bool,
     ) -> Result<Option<AuditInfo>, CreditFacilityError> {
         Ok(self
             .authz
             .evaluate_permission(
                 sub,
-                Object::CreditFacility,
-                CreditFacilityAction::UpdateCollateral,
+                CoreCreditObject::all_credit_facilities(),
+                CoreCreditAction::CREDIT_FACILITY_UPDATE_COLLATERAL,
                 enforce,
             )
             .await?)
@@ -481,7 +497,7 @@ where
     #[instrument(name = "credit_facility.update_collateral", skip(self), err)]
     pub async fn update_collateral(
         &self,
-        sub: &Subject,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         credit_facility_id: CreditFacilityId,
         updated_collateral: Satoshis,
     ) -> Result<CreditFacility, CreditFacilityError> {
@@ -490,7 +506,7 @@ where
             .await?
             .expect("audit info missing");
 
-        // let price = self.price.usd_cents_per_btc().await?;
+        let price = self.price.usd_cents_per_btc().await?;
 
         let mut credit_facility = self
             .credit_facility_repo
@@ -517,15 +533,15 @@ where
 
     pub async fn subject_can_record_payment(
         &self,
-        sub: &Subject,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         enforce: bool,
     ) -> Result<Option<AuditInfo>, CreditFacilityError> {
         Ok(self
             .authz
             .evaluate_permission(
                 sub,
-                Object::CreditFacility,
-                CreditFacilityAction::RecordPayment,
+                CoreCreditObject::all_credit_facilities(),
+                CoreCreditAction::CREDIT_FACILITY_RECORD_PAYMENT,
                 enforce,
             )
             .await?)
@@ -534,7 +550,7 @@ where
     #[instrument(name = "credit_facility.record_payment", skip(self), err)]
     pub async fn record_payment(
         &self,
-        sub: &Subject,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         credit_facility_id: CreditFacilityId,
         amount: UsdCents,
     ) -> Result<CreditFacility, CreditFacilityError> {
@@ -545,7 +561,7 @@ where
             .await?
             .expect("audit info missing");
 
-        // let price = self.price.usd_cents_per_btc().await?;
+        let price = self.price.usd_cents_per_btc().await?;
 
         let mut credit_facility = self
             .credit_facility_repo
@@ -591,7 +607,7 @@ where
     #[instrument(name = "credit_facility.list", skip(self), err)]
     pub async fn list(
         &self,
-        sub: &Subject,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         query: es_entity::PaginatedQueryArgs<CreditFacilitiesCursor>,
         filter: FindManyCreditFacilities,
         sort: impl Into<Sort<CreditFacilitiesSortBy>> + std::fmt::Debug,
@@ -614,7 +630,7 @@ where
     )]
     pub async fn list_by_created_at_for_status(
         &self,
-        sub: &Subject,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         status: CreditFacilityStatus,
         query: es_entity::PaginatedQueryArgs<CreditFacilitiesByCreatedAtCursor>,
         direction: impl Into<es_entity::ListDirection> + std::fmt::Debug,
@@ -637,7 +653,7 @@ where
     )]
     pub async fn list_by_created_at_for_collateralization_state(
         &self,
-        sub: &Subject,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         collateralization_state: CollateralizationState,
         query: es_entity::PaginatedQueryArgs<CreditFacilitiesByCreatedAtCursor>,
         direction: impl Into<es_entity::ListDirection> + std::fmt::Debug,
@@ -664,7 +680,7 @@ where
     )]
     pub async fn list_by_collateralization_ratio(
         &self,
-        sub: &Subject,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         query: es_entity::PaginatedQueryArgs<CreditFacilitiesByCollateralizationRatioCursor>,
         direction: impl Into<es_entity::ListDirection> + std::fmt::Debug,
     ) -> Result<
@@ -689,7 +705,7 @@ where
     )]
     pub async fn list_by_collateralization_ratio_for_status(
         &self,
-        sub: &Subject,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         status: CreditFacilityStatus,
         query: es_entity::PaginatedQueryArgs<CreditFacilitiesByCollateralizationRatioCursor>,
         direction: impl Into<es_entity::ListDirection> + std::fmt::Debug,
@@ -715,7 +731,7 @@ where
     )]
     pub async fn list_by_collateralization_ratio_for_collateralization_state(
         &self,
-        sub: &Subject,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         collateralization_state: CollateralizationState,
         query: es_entity::PaginatedQueryArgs<CreditFacilitiesByCollateralizationRatioCursor>,
         direction: impl Into<es_entity::ListDirection> + std::fmt::Debug,
@@ -740,7 +756,7 @@ where
 
     pub async fn subject_can_complete(
         &self,
-        sub: &Subject,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         enforce: bool,
     ) -> Result<Option<AuditInfo>, CreditFacilityError> {
         Ok(self
@@ -757,7 +773,7 @@ where
     #[instrument(name = "credit_facility.complete", skip(self), err)]
     pub async fn complete_facility(
         &self,
-        sub: &Subject,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         credit_facility_id: impl Into<CreditFacilityId> + std::fmt::Debug,
     ) -> Result<CreditFacility, CreditFacilityError> {
         let credit_facility_id = credit_facility_id.into();
@@ -789,13 +805,17 @@ where
 
     pub async fn find_payment_by_id(
         &self,
-        sub: &Subject,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         payment_id: impl Into<PaymentId> + std::fmt::Debug,
     ) -> Result<Payment, CreditFacilityError> {
         let payment = self.payment_repo.find_by_id(payment_id.into()).await?;
 
         self.authz
-            .enforce_permission(sub, Object::CreditFacility, CreditFacilityAction::Read)
+            .enforce_permission(
+                sub,
+                CoreCreditObject::all_credit_facilities(),
+                CoreCreditAction::CREDIT_FACILITY_READ,
+            )
             .await?;
 
         Ok(payment)
@@ -803,7 +823,7 @@ where
 
     pub async fn list_disbursals(
         &self,
-        sub: &Subject,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         query: es_entity::PaginatedQueryArgs<DisbursalsCursor>,
         filter: FindManyDisbursals,
         sort: impl Into<Sort<DisbursalsSortBy>>,
@@ -812,8 +832,8 @@ where
         self.authz
             .enforce_permission(
                 sub,
-                Object::CreditFacility,
-                CreditFacilityAction::ListDisbursals,
+                CoreCreditObject::all_credit_facilities(),
+                CoreCreditAction::DISBURSAL_LIST,
             )
             .await?;
 

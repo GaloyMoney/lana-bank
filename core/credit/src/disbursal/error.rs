@@ -9,7 +9,7 @@ pub enum DisbursalError {
     #[error("DisbursalError - CursorDestructureError: {0}")]
     CursorDestructureError(#[from] es_entity::CursorDestructureError),
     #[error("DisbursalError - JobError: {0}")]
-    JobError(#[from] crate::job::error::JobError),
+    JobError(#[from] job::error::JobError),
 }
 
 es_entity::from_es_entity_error!(DisbursalError);

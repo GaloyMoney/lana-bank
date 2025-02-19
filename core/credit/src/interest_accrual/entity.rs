@@ -2,13 +2,14 @@ use chrono::{DateTime, Utc};
 use derive_builder::Builder;
 use serde::{Deserialize, Serialize};
 
+use audit::AuditInfo;
 use es_entity::*;
 
 use crate::{
-    audit::AuditInfo,
-    credit_facility::{CreditFacilityInterestAccrual, CreditFacilityReceivable},
+    entity::CreditFacilityReceivable,
     primitives::*,
     terms::{InterestPeriod, TermValues},
+    CreditFacilityInterestAccrual,
 };
 
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
@@ -248,12 +249,12 @@ impl InterestAccrual {
 #[derive(Debug, Builder)]
 pub struct NewInterestAccrual {
     #[builder(setter(into))]
-    pub(in crate::credit_facility) id: InterestAccrualId,
+    pub id: InterestAccrualId,
     #[builder(setter(into))]
-    pub(in crate::credit_facility) credit_facility_id: CreditFacilityId,
-    pub(in crate::credit_facility) idx: InterestAccrualIdx,
-    pub(in crate::credit_facility) started_at: DateTime<Utc>,
-    pub(in crate::credit_facility) facility_expires_at: DateTime<Utc>,
+    pub credit_facility_id: CreditFacilityId,
+    pub idx: InterestAccrualIdx,
+    pub started_at: DateTime<Utc>,
+    pub facility_expires_at: DateTime<Utc>,
     terms: TermValues,
     #[builder(setter(into))]
     audit_info: AuditInfo,
@@ -288,13 +289,11 @@ impl IntoEvents<InterestAccrualEvent> for NewInterestAccrual {
 
 #[cfg(test)]
 mod test {
+    use audit::AuditEntryId;
     use chrono::{Datelike, TimeZone, Utc};
     use rust_decimal_macros::dec;
 
-    use crate::{
-        audit::AuditEntryId,
-        terms::{Duration, InterestInterval, OneTimeFeeRatePct},
-    };
+    use crate::terms::{Duration, InterestInterval, OneTimeFeeRatePct};
 
     use super::*;
 

@@ -3,6 +3,7 @@ use sqlx::PgPool;
 
 use es_entity::*;
 pub use es_entity::{ListDirection, Sort};
+use outbox::OutboxEventMarker;
 
 use crate::{primitives::*, terms::CollateralizationState};
 
@@ -11,9 +12,10 @@ use super::{
     error::CreditFacilityError,
     interest_accrual::{error::InterestAccrualError, *},
     publisher::*,
+    CoreCreditEvent,
 };
 
-#[derive(EsRepo, Clone)]
+#[derive(EsRepo)]
 #[es_repo(
     entity = "CreditFacility",
     err = "CreditFacilityError",
@@ -35,16 +37,35 @@ use super::{
     ),
     post_persist_hook = "publish"
 )]
-pub struct CreditFacilityRepo {
+pub struct CreditFacilityRepo<E>
+where
+    E: OutboxEventMarker<CoreCreditEvent>,
+{
     pool: PgPool,
-    publisher: CreditFacilityPublisher,
+    publisher: CreditFacilityPublisher<E>,
 
     #[es_repo(nested)]
     interest_accruals: InterestAccrualRepo,
 }
 
-impl CreditFacilityRepo {
-    pub(super) fn new(pool: &PgPool, publisher: &CreditFacilityPublisher) -> Self {
+impl<E> Clone for CreditFacilityRepo<E>
+where
+    E: OutboxEventMarker<CoreCreditEvent>,
+{
+    fn clone(&self) -> Self {
+        Self {
+            pool: self.pool.clone(),
+            publisher: self.publisher.clone(),
+            interest_accruals: self.interest_accruals.clone(),
+        }
+    }
+}
+
+impl<E> CreditFacilityRepo<E>
+where
+    E: OutboxEventMarker<CoreCreditEvent>,
+{
+    pub(super) fn new(pool: &PgPool, publisher: &CreditFacilityPublisher<E>) -> Self {
         let interest_accruals = InterestAccrualRepo::new(pool);
         Self {
             pool: pool.clone(),

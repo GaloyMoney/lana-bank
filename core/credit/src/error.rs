@@ -1,6 +1,8 @@
 use thiserror::Error;
 
-use crate::primitives::{DepositAccountHolderId, Satoshis, UsdCents};
+use core_money::{Satoshis, UsdCents};
+
+// use crate::primitives::DepositAccountHolderId;
 
 #[derive(Error, Debug)]
 pub enum CreditFacilityError {
@@ -13,15 +15,15 @@ pub enum CreditFacilityError {
     #[error("FacilityError - CursorDestructureError: {0}")]
     CursorDestructureError(#[from] es_entity::CursorDestructureError),
     #[error("CreditFacilityError - JobError: {0}")]
-    JobError(#[from] crate::job::error::JobError),
+    JobError(#[from] job::error::JobError),
     #[error("CreditFacilityError - GovernanceError: {0}")]
     GovernanceError(#[from] governance::error::GovernanceError),
-    #[error("LoanError - PriceError: {0}")]
-    PriceError(#[from] crate::price::error::PriceError),
+    #[error("CreditFacilityError - PriceError: {0}")]
+    PriceError(#[from] core_price::error::PriceError),
     #[error("CreditFacilityError - AuthorizationError: {0}")]
-    AuthorizationError(#[from] crate::authorization::error::AuthorizationError),
+    AuthorizationError(#[from] authz::error::AuthorizationError),
     #[error("CreditFacilityError - AuditError: {0}")]
-    AuditError(#[from] crate::audit::error::AuditError),
+    AuditError(#[from] audit::error::AuditError),
     #[error("CreditFacilityError - ConversionError: {0}")]
     ConversionError(#[from] crate::primitives::ConversionError),
     #[error("CreditFacilityError - DisbursalError: {0}")]

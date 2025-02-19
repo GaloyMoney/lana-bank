@@ -1,19 +1,33 @@
-use std::{fmt::Display, str::FromStr};
+use serde::{Deserialize, Serialize};
+
+use std::str::FromStr;
 
 use authz::AllOrOne;
 
-es_entity::entity_id! {
-    CreditFacilityId,
-    DibursalId,
-    PaymentId,
-}
+pub use cala_ledger::primitives::{
+    AccountId as LedgerAccountId, AccountSetId as LedgerAccountSetId, Currency,
+    DebitOrCredit as LedgerDebitOrCredit, JournalId as LedgerJournalId,
+    TransactionId as LedgerTxId, TxTemplateId as LedgerTxTemplateId,
+};
+pub use core_money::*;
+pub use core_price::PriceOfOneBTC;
+pub use governance::ApprovalProcessId;
 
-#[derive(Clone, Copy, Debug, PartialEq, strum::EnumDiscriminants)]
-#[strum_discriminants(derive(strum::Display, strum::EnumString))]
-#[strum_discriminants(strum(serialize_all = "kebab-case"))]
-pub enum CoreCreditAction {
-    CreditFacility(CreditFacilityAction),
-    Disbursal(DisbursalAction),
+es_entity::entity_id! {
+CreditFacilityId,
+DisbursalId,
+PaymentId,
+InterestAccrualId;
+
+CreditFacilityId => governance::ApprovalProcessId,
+DisbursalId => governance::ApprovalProcessId,
+
+
+CreditFacilityId => job::JobId,
+InterestAccrualId => job::JobId,
+
+DisbursalId => LedgerTxId,
+PaymentId => LedgerTxId,
 }
 
 pub type CreditFacilityAllOrOne = AllOrOne<CreditFacilityId>;
@@ -35,7 +49,7 @@ impl CoreCreditObject {
     }
 }
 
-impl Display for CoreCreditObject {
+impl std::fmt::Display for CoreCreditObject {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let discriminant = CoreCreditObjectDiscriminants::from(self);
         use CoreCreditObject::*;
@@ -59,6 +73,14 @@ impl FromStr for CoreCreditObject {
         };
         Ok(res)
     }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, strum::EnumDiscriminants)]
+#[strum_discriminants(derive(strum::Display, strum::EnumString))]
+#[strum_discriminants(strum(serialize_all = "kebab-case"))]
+pub enum CoreCreditAction {
+    CreditFacility(CreditFacilityAction),
+    Disbursal(DisbursalAction),
 }
 
 impl CoreCreditAction {
@@ -88,7 +110,7 @@ impl CoreCreditAction {
         CoreCreditAction::Disbursal(DisbursalAction::ConcludeApprovalProcess);
 }
 
-impl Display for CoreCreditAction {
+impl std::fmt::Display for CoreCreditAction {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}:", CoreCreditActionDiscriminants::from(self))?;
         use CoreCreditAction::*;
@@ -146,4 +168,78 @@ impl From<DisbursalAction> for CoreCreditAction {
     fn from(action: DisbursalAction) -> Self {
         Self::Disbursal(action)
     }
+}
+
+#[derive(
+    Debug,
+    Default,
+    Clone,
+    Copy,
+    Serialize,
+    Deserialize,
+    PartialEq,
+    Eq,
+    strum::Display,
+    strum::EnumString,
+)]
+#[cfg_attr(feature = "graphql", async_graphql::Enum)]
+pub enum CreditFacilityStatus {
+    #[default]
+    PendingCollateralization,
+    PendingApproval,
+    Active,
+    Expired,
+    Closed,
+}
+
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
+#[cfg_attr(feature = "graphql", async_graphql::Enum)]
+pub enum DisbursalStatus {
+    New,
+    Approved,
+    Denied,
+    Confirmed,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Hash, Deserialize, sqlx::Type)]
+#[serde(transparent)]
+#[sqlx(transparent)]
+pub struct InterestAccrualIdx(i32);
+impl std::fmt::Display for InterestAccrualIdx {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        write!(f, "{}", self.0)
+    }
+}
+impl InterestAccrualIdx {
+    pub const FIRST: Self = Self(1);
+    pub const fn next(&self) -> Self {
+        Self(self.0 + 1)
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Hash, Deserialize, sqlx::Type)]
+#[serde(transparent)]
+#[sqlx(transparent)]
+pub struct DisbursalIdx(i32);
+#[cfg(feature = "graphql")]
+async_graphql::scalar!(DisbursalIdx);
+
+impl std::fmt::Display for DisbursalIdx {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        write!(f, "{}", self.0)
+    }
+}
+
+impl DisbursalIdx {
+    pub const FIRST: Self = Self(1);
+    pub const fn next(&self) -> Self {
+        Self(self.0 + 1)
+    }
+}
+
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, Eq, PartialEq)]
+#[cfg_attr(feature = "graphql", async_graphql::Enum)]
+pub enum CollateralAction {
+    Add,
+    Remove,
 }

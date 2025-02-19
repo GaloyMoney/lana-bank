@@ -1,10 +1,11 @@
-use crate::credit_facility::ledger::error::*;
 use cala_ledger::{
     tx_template::{error::TxTemplateError, Params, *},
     *,
 };
 use rust_decimal::Decimal;
 use tracing::instrument;
+
+use crate::ledger::error::*;
 
 pub const INITIATE_DISBURSAL_CODE: &str = "INITIATE_CREDIT_FACILITY_DISBURSAL";
 

@@ -9,7 +9,7 @@ pub enum InterestAccrualError {
     #[error("InterestAccrualError - CursorDestructureError: {0}")]
     CursorDestructureError(#[from] es_entity::CursorDestructureError),
     #[error("InterestAccrualError - JobError: {0}")]
-    JobError(#[from] crate::job::error::JobError),
+    JobError(#[from] job::error::JobError),
     #[error("InterestAccrualError - AlreadyAccrued")]
     AlreadyAccrued,
     #[error("InterestAccrualError - InterestPeriodStartDatePastAccrualDate")]

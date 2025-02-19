@@ -17,7 +17,7 @@ use super::{entity::*, error::DisbursalError};
         idx(ty = "DisbursalIdx", list_by, update(persist = false)),
     )
 )]
-pub(in crate::credit_facility) struct DisbursalRepo {
+pub struct DisbursalRepo {
     pool: PgPool,
 }
 

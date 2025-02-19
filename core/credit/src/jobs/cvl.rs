@@ -3,22 +3,14 @@ use serde::{Deserialize, Serialize};
 
 use std::time::Duration;
 
-// use crate::{
-//     audit::*,
-//     authorization::{CreditFacilityAction, Object},
-//     credit_facility::{repo::*, CreditFacilitiesByCollateralizationRatioCursor},
-//     // job::*,
-//     price::Price,
-//     primitives::CreditFacilityStatus,
-//     terms::CVLPct,
-// };
 use audit::AuditSvc;
 use authz::PermissionCheck;
+use core_price::Price;
 use job::*;
 use outbox::OutboxEventMarker;
 
 use crate::{
-    primitives::*, repo::*, CoreCreditAction, CoreCreditObject, CreditEvent,
+    primitives::*, repo::*, terms::CVLPct, CoreCreditAction, CoreCreditEvent, CoreCreditObject,
     CreditFacilitiesByCollateralizationRatioCursor,
 };
 
@@ -28,25 +20,25 @@ pub struct CreditFacilityJobConfig<Perms, E> {
     #[serde_as(as = "serde_with::DurationSeconds<u64>")]
     pub job_interval: Duration,
     pub upgrade_buffer_cvl_pct: CVLPct,
+    pub _phantom: std::marker::PhantomData<(Perms, E)>,
 }
 impl<Perms, E> JobConfig for CreditFacilityJobConfig<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>,
-    E: OutboxEventMarker<CreditEvent>,
+    E: OutboxEventMarker<CoreCreditEvent>,
 {
     type Initializer = CreditFacilityProcessingJobInitializer<Perms, E>;
 }
-
 pub struct CreditFacilityProcessingJobInitializer<Perms, E>
 where
     Perms: PermissionCheck,
-    E: OutboxEventMarker<CreditEvent>,
+    E: OutboxEventMarker<CoreCreditEvent>,
 {
-    repo: CreditFacilityRepo,
+    repo: CreditFacilityRepo<E>,
     audit: Perms::Audit,
-    // price: Price,
+    price: Price,
 }
 
 impl<Perms, E> CreditFacilityProcessingJobInitializer<Perms, E>
@@ -54,13 +46,12 @@ where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>,
-    E: OutboxEventMarker<CreditEvent>,
+    E: OutboxEventMarker<CoreCreditEvent>,
 {
-    // add price as argument
-    pub fn new(repo: CreditFacilityRepo, audit: &Perms::Audit) -> Self {
+    pub fn new(repo: CreditFacilityRepo<E>, price: &Price, audit: &Perms::Audit) -> Self {
         Self {
             repo,
-            // price: price.clone(),
+            price: price.clone(),
             audit: audit.clone(),
         }
     }
@@ -69,7 +60,7 @@ where
 const CREDIT_FACILITY_CVL_PROCESSING_JOB: JobType = JobType::new("credit-facility-cvl-processing");
 impl<Perms, E> JobInitializer for CreditFacilityProcessingJobInitializer<Perms, E>
 where
-    E: OutboxEventMarker<CreditEvent>,
+    E: OutboxEventMarker<CoreCreditEvent>,
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>,
@@ -82,10 +73,10 @@ where
     }
 
     fn init(&self, job: &Job) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
-        Ok(Box::new(CreditFacilityProcessingJobRunner {
+        Ok(Box::new(CreditFacilityProcessingJobRunner::<Perms, E> {
             config: job.config()?,
             repo: self.repo.clone(),
-            // price: self.price.clone(),
+            price: self.price.clone(),
             audit: self.audit.clone(),
         }))
     }
@@ -94,11 +85,11 @@ where
 pub struct CreditFacilityProcessingJobRunner<Perms, E>
 where
     Perms: PermissionCheck,
-    E: OutboxEventMarker<CreditEvent>,
+    E: OutboxEventMarker<CoreCreditEvent>,
 {
     config: CreditFacilityJobConfig<Perms, E>,
-    repo: CreditFacilityRepo,
-    // price: Price,
+    repo: CreditFacilityRepo<E>,
+    price: Price,
     audit: Perms::Audit,
 }
 
@@ -108,7 +99,7 @@ where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>,
-    E: OutboxEventMarker<CreditEvent>,
+    E: OutboxEventMarker<CoreCreditEvent>,
 {
     async fn run(
         &self,
@@ -139,8 +130,8 @@ where
                 .audit
                 .record_system_entry_in_tx(
                     db.tx(),
-                    Object::CreditFacility,
-                    CreditFacilityAction::UpdateCollateralizationState,
+                    CoreCreditObject::all_credit_facilities(),
+                    CoreCreditAction::CREDIT_FACILITY_UPDATE_COLLATERALIZATION_STATE,
                 )
                 .await?;
 

@@ -6,7 +6,7 @@ use cala_ledger::{
     *,
 };
 
-use crate::credit_facility::ledger::error::*;
+use crate::ledger::error::*;
 
 pub const REMOVE_COLLATERAL_CODE: &str = "REMOVE_COLLATERAL";
 

@@ -1,25 +1,53 @@
 use async_trait::async_trait;
 use futures::StreamExt;
 
+use audit::AuditSvc;
+use authz::PermissionCheck;
 use job::*;
-use lana_events::{CreditEvent, LanaEvent};
+use outbox::{Outbox, OutboxEventMarker};
+
+use crate::{CoreCreditAction, CoreCreditEvent, CoreCreditObject};
 
 use super::ActivateCreditFacility;
-use crate::outbox::Outbox;
 
 #[derive(serde::Serialize)]
-pub(in crate::credit_facility) struct CreditFacilityActivationJobConfig;
-impl JobConfig for CreditFacilityActivationJobConfig {
-    type Initializer = CreditFacilityActivationJobInitializer;
+pub struct CreditFacilityActivationJobConfig<Perms, E> {
+    _phantom: std::marker::PhantomData<(Perms, E)>,
+}
+impl<Perms, E> CreditFacilityActivationJobConfig<Perms, E> {
+    pub fn new() -> Self {
+        Self {
+            _phantom: std::marker::PhantomData,
+        }
+    }
+}
+impl<Perms, E> JobConfig for CreditFacilityActivationJobConfig<Perms, E>
+where
+    Perms: PermissionCheck,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>,
+    E: OutboxEventMarker<CoreCreditEvent>,
+{
+    type Initializer = CreditFacilityActivationJobInitializer<Perms, E>;
 }
 
-pub(in crate::credit_facility) struct CreditFacilityActivationJobInitializer {
-    outbox: Outbox,
-    process: ActivateCreditFacility,
+pub struct CreditFacilityActivationJobInitializer<Perms, E>
+where
+    Perms: PermissionCheck,
+    E: OutboxEventMarker<CoreCreditEvent>,
+{
+    outbox: Outbox<E>,
+    process: ActivateCreditFacility<Perms, E>,
 }
 
-impl CreditFacilityActivationJobInitializer {
-    pub fn new(outbox: &Outbox, process: &ActivateCreditFacility) -> Self {
+impl<Perms, E> CreditFacilityActivationJobInitializer<Perms, E>
+where
+    Perms: PermissionCheck,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>,
+    E: OutboxEventMarker<CoreCreditEvent>,
+{
+    pub fn new(outbox: &Outbox<E>, process: &ActivateCreditFacility<Perms, E>) -> Self {
         Self {
             process: process.clone(),
             outbox: outbox.clone(),
@@ -28,7 +56,13 @@ impl CreditFacilityActivationJobInitializer {
 }
 
 const CREDIT_FACILITY_ACTIVATE_JOB: JobType = JobType::new("credit-facility-activation");
-impl JobInitializer for CreditFacilityActivationJobInitializer {
+impl<Perms, E> JobInitializer for CreditFacilityActivationJobInitializer<Perms, E>
+where
+    Perms: PermissionCheck,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>,
+    E: OutboxEventMarker<CoreCreditEvent>,
+{
     fn job_type() -> JobType
     where
         Self: Sized,
@@ -56,12 +90,24 @@ struct CreditFacilityActivationJobData {
     sequence: outbox::EventSequence,
 }
 
-pub struct CreditFacilityActivationJobRunner {
-    outbox: Outbox,
-    process: ActivateCreditFacility,
+pub struct CreditFacilityActivationJobRunner<Perms, E>
+where
+    Perms: PermissionCheck,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>,
+    E: OutboxEventMarker<CoreCreditEvent>,
+{
+    outbox: Outbox<E>,
+    process: ActivateCreditFacility<Perms, E>,
 }
 #[async_trait]
-impl JobRunner for CreditFacilityActivationJobRunner {
+impl<Perms, E> JobRunner for CreditFacilityActivationJobRunner<Perms, E>
+where
+    Perms: PermissionCheck,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>,
+    E: OutboxEventMarker<CoreCreditEvent>,
+{
     #[allow(clippy::single_match)]
     async fn run(
         &self,
@@ -73,9 +119,9 @@ impl JobRunner for CreditFacilityActivationJobRunner {
         let mut stream = self.outbox.listen_persisted(Some(state.sequence)).await?;
 
         while let Some(message) = stream.next().await {
-            match message.payload {
-                Some(LanaEvent::Credit(CreditEvent::FacilityCollateralUpdated { id, .. }))
-                | Some(LanaEvent::Credit(CreditEvent::FacilityApproved { id, .. })) => {
+            match message.as_ref().as_event() {
+                Some(CoreCreditEvent::FacilityCollateralUpdated { id, .. })
+                | Some(CoreCreditEvent::FacilityApproved { id, .. }) => {
                     self.process.execute(id).await?;
                     state.sequence = message.sequence;
                     current_job.update_execution_state(state).await?;

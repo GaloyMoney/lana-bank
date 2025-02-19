@@ -12,7 +12,7 @@ use super::{entity::*, error::PaymentError};
     err = "PaymentError",
     columns(credit_facility_id(ty = "CreditFacilityId", list_for, update(persist = false)),)
 )]
-pub(in crate::credit_facility) struct PaymentRepo {
+pub struct PaymentRepo {
     #[allow(dead_code)]
     pool: PgPool,
 }
