@@ -468,6 +468,7 @@ async fn create_credit_facilities_account_paths(
             fee_income_adjustment_omnibus_control.account_set_id,
         )
         .await?;
+    dbg!("1/2 Commenting this below hides problem");
     cash_flow_statements
         .add_to_fee_income_adjustments(
             CASH_FLOW_STATEMENT_NAME.to_string(),
@@ -482,8 +483,8 @@ async fn create_credit_facilities_account_paths(
             ControlAccountCreationDetails {
                 account_set_id: LedgerAccountSetId::new(),
                 category: chart_of_accounts::ChartCategory::Expenses,
-                name: CREDIT_FACILITIES_NON_CASH_ADJUSTMENTS_CONTROL_ACCOUNT_NAME.to_string(),
-                reference: CREDIT_FACILITIES_NON_CASH_ADJUSTMENTS_CONTROL_ACCOUNT_REF.to_string(),
+                name: "dummy-ref".to_string(), // DEBUG: reverting these changes breaks code
+                reference: "dummy-ref".to_string(),
             },
             CREDIT_FACILITIES_DEPOSIT_ADJUSTMENT_CONTROL_SUB_ACCOUNT_NAME.to_string(),
             CREDIT_FACILITIES_DEPOSIT_ADJUSTMENT_CONTROL_SUB_ACCOUNT_REF.to_string(),
@@ -495,6 +496,7 @@ async fn create_credit_facilities_account_paths(
             deposit_adjustment_omnibus_control.account_set_id,
         )
         .await?;
+    dbg!("(2/2) Commenting this below hides problem");
     cash_flow_statements
         .add_to_deposit_adjustments(
             CASH_FLOW_STATEMENT_NAME.to_string(),

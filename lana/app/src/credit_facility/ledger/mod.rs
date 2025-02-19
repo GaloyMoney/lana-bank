@@ -51,11 +51,13 @@ impl CreditLedger {
         let credit_omnibus_account_id =
             Self::create_ledger_account(cala, account_factories.facility_omnibus.clone()).await?;
 
+        dbg!("HERE 20");
         let fee_income_adjustment_omnibus_account_id = Self::create_ledger_account(
             cala,
             account_factories.fee_income_adjustment_omnibus.clone(),
         )
         .await?;
+        dbg!("HERE 21");
 
         let non_cash_offset_omnibus_account_id =
             Self::create_ledger_account(cala, account_factories.non_cash_offset_omnibus.clone())

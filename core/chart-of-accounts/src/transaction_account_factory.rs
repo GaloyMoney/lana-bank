@@ -40,10 +40,30 @@ impl TransactionAccountFactory {
 
         let account = self.cala.accounts().create_in_op(op, new_account).await?;
 
-        self.cala
+        dbg!("HERE 0b");
+        dbg!(format!(
+            "Trying to add to account_set: {:?}",
+            self.control_sub_account.account_set_id
+        ));
+        dbg!(format!(
+            "reference for account set {:?}",
+            self.control_sub_account.reference
+        ));
+        dbg!(format!("Member we are trying to add: {:?}", account.id));
+        dbg!(format!("external_id for member: {:?}", reference));
+        match self
+            .cala
             .account_sets()
             .add_member_in_op(op, self.control_sub_account.account_set_id, account.id)
-            .await?;
+            .await
+        {
+            Ok(_) => (),
+            Err(e) => {
+                dbg!("Why are here! 😭");
+                return Err(e.into());
+            }
+        };
+        dbg!("HERE 1b");
 
         Ok(())
     }

@@ -108,6 +108,7 @@ impl CashFlowStatements {
         self.cash_flow_statement_ledger
             .add_member(op, account_set_id, member_id)
             .await?;
+        dbg!("HERE 1");
 
         Ok(())
     }
@@ -180,13 +181,16 @@ impl CashFlowStatements {
     pub async fn add_to_fee_income_adjustments(
         &self,
         reference: String,
-        member_id: impl Into<LedgerAccountSetId>,
+        member_id: impl Into<LedgerAccountSetId> + Copy,
     ) -> Result<(), CashFlowStatementError> {
         let statement_ids = self
             .cash_flow_statement_ledger
             .get_ids_from_reference(reference)
             .await?;
 
+        dbg!("HERE 0");
+        dbg!(statement_ids.fee_income_adjustments);
+        dbg!(member_id.into());
         self.add_to(statement_ids.fee_income_adjustments, member_id)
             .await
     }
@@ -194,13 +198,16 @@ impl CashFlowStatements {
     pub async fn add_to_deposit_adjustments(
         &self,
         reference: String,
-        member_id: impl Into<LedgerAccountSetId>,
+        member_id: impl Into<LedgerAccountSetId> + Copy,
     ) -> Result<(), CashFlowStatementError> {
         let statement_ids = self
             .cash_flow_statement_ledger
             .get_ids_from_reference(reference)
             .await?;
 
+        dbg!("HERE 0");
+        dbg!(statement_ids.fee_income_adjustments);
+        dbg!(member_id.into());
         self.add_to(statement_ids.deposit_adjustments, member_id)
             .await
     }
