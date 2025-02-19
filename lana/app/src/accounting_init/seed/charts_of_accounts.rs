@@ -499,6 +499,35 @@ async fn create_credit_facilities_account_paths(
     let fee_income_adjustment_omnibus_account_id =
         create_sub_account_as_account(chart_of_accounts, fee_income_adjustment_omnibus).await?;
 
+    let (deposit_adjustment_omnibus_control, deposit_adjustment_omnibus) =
+        find_or_create_control_sub_account(
+            chart_of_accounts,
+            chart_ids.primary,
+            ControlAccountCreationDetails {
+                account_set_id: LedgerAccountSetId::new(),
+                category: chart_of_accounts::ChartCategory::Expenses,
+                name: CREDIT_FACILITIES_NON_CASH_ADJUSTMENTS_CONTROL_ACCOUNT_NAME.to_string(),
+                reference: CREDIT_FACILITIES_NON_CASH_ADJUSTMENTS_CONTROL_ACCOUNT_REF.to_string(),
+            },
+            CREDIT_FACILITIES_DEPOSIT_ADJUSTMENT_CONTROL_SUB_ACCOUNT_NAME.to_string(),
+            CREDIT_FACILITIES_DEPOSIT_ADJUSTMENT_CONTROL_SUB_ACCOUNT_REF.to_string(),
+        )
+        .await?;
+    trial_balances
+        .add_to_trial_balance(
+            TRIAL_BALANCE_STATEMENT_NAME.to_string(),
+            deposit_adjustment_omnibus_control.account_set_id,
+        )
+        .await?;
+    cash_flow_statements
+        .add_to_deposit_adjustments(
+            CASH_FLOW_STATEMENT_NAME.to_string(),
+            deposit_adjustment_omnibus_control.account_set_id,
+        )
+        .await?;
+    let deposit_adjustment_omnibus_account_id =
+        create_sub_account_as_account(chart_of_accounts, deposit_adjustment_omnibus).await?;
+
     let (non_cash_offset_omnibus_control, non_cash_offset_omnibus) =
         find_or_create_control_sub_account(
             chart_of_accounts,
@@ -536,6 +565,7 @@ async fn create_credit_facilities_account_paths(
             bank_collateral: collateral_omnibus_account_id,
             facility: facility_omnibus_account_id,
             fee_income_adjustment: fee_income_adjustment_omnibus_account_id,
+            deposit_adjustment: deposit_adjustment_omnibus_account_id,
             non_cash_offset: non_cash_offset_omnibus_account_id,
         },
     })

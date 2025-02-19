@@ -38,6 +38,7 @@ pub struct CreditFacilityOmnibusAccountIds {
     pub bank_collateral: LedgerAccountId,
     pub facility: LedgerAccountId,
     pub fee_income_adjustment: LedgerAccountId,
+    pub deposit_adjustment: LedgerAccountId,
     pub non_cash_offset: LedgerAccountId,
 }
 
