@@ -258,10 +258,10 @@ impl CashFlowStatementLedger {
             )
             .await?;
 
-        let non_cash_adustments_id = self
+        let operations_non_cash_adustments_id = self
             .create_account_set(
                 &mut op,
-                NON_CASH_ADJUSTMENTS_NAME,
+                OPERATIONS_NON_CASH_ADJUSTMENTS_NAME,
                 DebitOrCredit::Debit,
                 vec![from_operations_id],
             )
@@ -271,7 +271,24 @@ impl CashFlowStatementLedger {
                 &mut op,
                 FEE_INCOME_ADJUSTMENTS_NAME,
                 DebitOrCredit::Debit,
-                vec![non_cash_adustments_id],
+                vec![operations_non_cash_adustments_id],
+            )
+            .await?;
+
+        let financing_non_cash_adustments_id = self
+            .create_account_set(
+                &mut op,
+                FINANCING_NON_CASH_ADJUSTMENTS_NAME,
+                DebitOrCredit::Debit,
+                vec![from_financing_id],
+            )
+            .await?;
+        let deposit_non_cash_adj_id = self
+            .create_account_set(
+                &mut op,
+                DEPOSIT_ADJUSTMENTS_NAME,
+                DebitOrCredit::Debit,
+                vec![financing_non_cash_adustments_id],
             )
             .await?;
 
@@ -285,6 +302,7 @@ impl CashFlowStatementLedger {
             revenue: revenue_id,
             expenses: expenses_id,
             fee_income_adjustments: fee_income_non_cash_adj_id,
+            deposit_adjustments: deposit_non_cash_adj_id,
         })
     }
 
@@ -318,10 +336,10 @@ impl CashFlowStatementLedger {
         let net_income_id = from_operations_members.get(NET_INCOME_NAME).ok_or(
             CashFlowStatementLedgerError::NotFound(NET_INCOME_NAME.to_string()),
         )?;
-        let non_cash_adjustments_id = from_operations_members
-            .get(NON_CASH_ADJUSTMENTS_NAME)
+        let operations_non_cash_adjustments_id = from_operations_members
+            .get(OPERATIONS_NON_CASH_ADJUSTMENTS_NAME)
             .ok_or(CashFlowStatementLedgerError::NotFound(
-                NON_CASH_ADJUSTMENTS_NAME.to_string(),
+                OPERATIONS_NON_CASH_ADJUSTMENTS_NAME.to_string(),
             ))?;
 
         let net_income_members = self
@@ -340,13 +358,30 @@ impl CashFlowStatementLedger {
                     EXPENSES_NAME.to_string(),
                 ))?;
 
-        let non_cash_adjustments_members = self
-            .get_member_account_set_ids_and_names(*non_cash_adjustments_id)
+        let operations_non_cash_adjustments_members = self
+            .get_member_account_set_ids_and_names(*operations_non_cash_adjustments_id)
             .await?;
-        let fee_income_adj_id = non_cash_adjustments_members
+        let fee_income_adj_id = operations_non_cash_adjustments_members
             .get(FEE_INCOME_ADJUSTMENTS_NAME)
             .ok_or(CashFlowStatementLedgerError::NotFound(
                 FEE_INCOME_ADJUSTMENTS_NAME.to_string(),
+            ))?;
+
+        let from_financing_members = self
+            .get_member_account_set_ids_and_names(*from_financing_id)
+            .await?;
+        let financing_non_cash_adjustments_id = from_financing_members
+            .get(FINANCING_NON_CASH_ADJUSTMENTS_NAME)
+            .ok_or(CashFlowStatementLedgerError::NotFound(
+                FINANCING_NON_CASH_ADJUSTMENTS_NAME.to_string(),
+            ))?;
+        let financing_non_cash_adjustments_members = self
+            .get_member_account_set_ids_and_names(*financing_non_cash_adjustments_id)
+            .await?;
+        let deposit_adj_id = financing_non_cash_adjustments_members
+            .get(DEPOSIT_ADJUSTMENTS_NAME)
+            .ok_or(CashFlowStatementLedgerError::NotFound(
+                DEPOSIT_ADJUSTMENTS_NAME.to_string(),
             ))?;
 
         Ok(CashFlowStatementIds {
@@ -357,6 +392,7 @@ impl CashFlowStatementLedger {
             revenue: *revenue_id,
             expenses: *expenses_id,
             fee_income_adjustments: *fee_income_adj_id,
+            deposit_adjustments: *deposit_adj_id,
         })
     }
 
