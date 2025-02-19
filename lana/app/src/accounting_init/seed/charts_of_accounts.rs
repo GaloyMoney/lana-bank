@@ -477,8 +477,10 @@ async fn create_credit_facilities_account_paths(
             ControlAccountCreationDetails {
                 account_set_id: LedgerAccountSetId::new(),
                 category: chart_of_accounts::ChartCategory::Expenses,
-                name: CREDIT_FACILITIES_NON_CASH_ADJUSTMENTS_CONTROL_ACCOUNT_NAME.to_string(),
-                reference: CREDIT_FACILITIES_NON_CASH_ADJUSTMENTS_CONTROL_ACCOUNT_REF.to_string(),
+                name: CREDIT_FACILITIES_OPERATIONS_NON_CASH_ADJUSTMENTS_CONTROL_ACCOUNT_NAME
+                    .to_string(),
+                reference: CREDIT_FACILITIES_OPERATIONS_NON_CASH_ADJUSTMENTS_CONTROL_ACCOUNT_REF
+                    .to_string(),
             },
             CREDIT_FACILITIES_FEE_INCOME_ADJUSTMENT_CONTROL_SUB_ACCOUNT_NAME.to_string(),
             CREDIT_FACILITIES_FEE_INCOME_ADJUSTMENT_CONTROL_SUB_ACCOUNT_REF.to_string(),
@@ -506,8 +508,10 @@ async fn create_credit_facilities_account_paths(
             ControlAccountCreationDetails {
                 account_set_id: LedgerAccountSetId::new(),
                 category: chart_of_accounts::ChartCategory::Expenses,
-                name: CREDIT_FACILITIES_NON_CASH_ADJUSTMENTS_CONTROL_ACCOUNT_NAME.to_string(),
-                reference: CREDIT_FACILITIES_NON_CASH_ADJUSTMENTS_CONTROL_ACCOUNT_REF.to_string(),
+                name: CREDIT_FACILITIES_FINANCING_NON_CASH_ADJUSTMENTS_CONTROL_ACCOUNT_NAME
+                    .to_string(),
+                reference: CREDIT_FACILITIES_FINANCING_NON_CASH_ADJUSTMENTS_CONTROL_ACCOUNT_REF
+                    .to_string(),
             },
             CREDIT_FACILITIES_DEPOSIT_ADJUSTMENT_CONTROL_SUB_ACCOUNT_NAME.to_string(),
             CREDIT_FACILITIES_DEPOSIT_ADJUSTMENT_CONTROL_SUB_ACCOUNT_REF.to_string(),

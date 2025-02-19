@@ -32,15 +32,19 @@ pub const CREDIT_FACILITIES_FEE_INCOME_CONTROL_SUB_ACCOUNT_REF: &str =
 pub const CREDIT_FACILITIES_FEE_INCOME_CONTROL_SUB_ACCOUNT_NAME: &str =
     "Fixed Term Credit Facilities Fee Income"; // Revenue
 
-pub const CREDIT_FACILITIES_NON_CASH_ADJUSTMENTS_CONTROL_ACCOUNT_REF: &str = "non-cash-adjustments";
-pub const CREDIT_FACILITIES_NON_CASH_ADJUSTMENTS_CONTROL_ACCOUNT_NAME: &str =
-    "Credit Facilities Non-Cash Adjustments";
-
+pub const CREDIT_FACILITIES_OPERATIONS_NON_CASH_ADJUSTMENTS_CONTROL_ACCOUNT_REF: &str =
+    "non-cash-adjustments-from-operations";
+pub const CREDIT_FACILITIES_OPERATIONS_NON_CASH_ADJUSTMENTS_CONTROL_ACCOUNT_NAME: &str =
+    "Credit Facilities Non-Cash Adjustments From Operations";
 pub const CREDIT_FACILITIES_FEE_INCOME_ADJUSTMENT_CONTROL_SUB_ACCOUNT_REF: &str =
     "fixed-term-credit-facilities-fee-income-adjustment";
 pub const CREDIT_FACILITIES_FEE_INCOME_ADJUSTMENT_CONTROL_SUB_ACCOUNT_NAME: &str =
     "Fixed Term Credit Facilities Fee Income Non-Cash Adjustments"; // Other Expense (or Contra Revenue)
 
+pub const CREDIT_FACILITIES_FINANCING_NON_CASH_ADJUSTMENTS_CONTROL_ACCOUNT_REF: &str =
+    "non-cash-adjustments-from-financing";
+pub const CREDIT_FACILITIES_FINANCING_NON_CASH_ADJUSTMENTS_CONTROL_ACCOUNT_NAME: &str =
+    "Credit Facilities Non-Cash Adjustments From Financing";
 pub const CREDIT_FACILITIES_DEPOSIT_ADJUSTMENT_CONTROL_SUB_ACCOUNT_REF: &str =
     "fixed-term-credit-facilities-deposit-adjustment";
 pub const CREDIT_FACILITIES_DEPOSIT_ADJUSTMENT_CONTROL_SUB_ACCOUNT_NAME: &str =
