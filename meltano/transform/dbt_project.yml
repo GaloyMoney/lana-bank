@@ -29,5 +29,7 @@ tests:
   store_failures: true
 on-run-start:
 - '{{create_udfs()}}'
+on-run-end:
+- '{{create_data_test_results()}}'
 vars:
   sats_per_bitcoin: '100000000'
