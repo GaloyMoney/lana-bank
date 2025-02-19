@@ -17,7 +17,8 @@ use super::{entity::*, error::*};
         authentication_id(ty = "Option<AuthenticationId>", list_by, create(persist = false)),
         telegram_id(ty = "String", list_by),
         status(ty = "AccountStatus", list_for)
-    )
+    ),
+    post_persist_hook = "publish"
 )]
 pub struct CustomerRepo<E>
 where
@@ -48,6 +49,15 @@ where
             pool: pool.clone(),
             publisher: publisher.clone(),
         }
+    }
+
+    async fn publish(
+        &self,
+        db: &mut es_entity::DbOp<'_>,
+        entity: &Customer,
+        new_events: es_entity::LastPersisted<'_, CustomerEvent>,
+    ) -> Result<(), CustomerError> {
+        self.publisher.publish(db, entity, new_events).await
     }
 }
 
