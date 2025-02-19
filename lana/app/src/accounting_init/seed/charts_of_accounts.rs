@@ -18,9 +18,14 @@ pub(crate) async fn init(
 ) -> Result<ChartsInit, AccountingInitError> {
     let chart_ids = &create_charts_of_accounts(chart_of_accounts).await?;
 
-    let deposits =
-        create_deposits_account_paths(balance_sheets, trial_balances, chart_of_accounts, chart_ids)
-            .await?;
+    let deposits = create_deposits_account_paths(
+        balance_sheets,
+        trial_balances,
+        cash_flow_statements,
+        chart_of_accounts,
+        chart_ids,
+    )
+    .await?;
 
     let credit_facilities = create_credit_facilities_account_paths(
         balance_sheets,
@@ -141,6 +146,7 @@ async fn create_sub_account_as_account(
 async fn create_deposits_account_paths(
     balance_sheets: &BalanceSheets,
     trial_balances: &TrialBalances,
+    cash_flow_statements: &CashFlowStatements,
     chart_of_accounts: &ChartOfAccounts,
     chart_ids: &ChartIds,
 ) -> Result<DepositsSeed, AccountingInitError> {
@@ -166,6 +172,12 @@ async fn create_deposits_account_paths(
     balance_sheets
         .add_to_liabilities(
             BALANCE_SHEET_NAME.to_string(),
+            deposits_control.account_set_id,
+        )
+        .await?;
+    cash_flow_statements
+        .add_to_from_financing(
+            CASH_FLOW_STATEMENT_NAME.to_string(),
             deposits_control.account_set_id,
         )
         .await?;
