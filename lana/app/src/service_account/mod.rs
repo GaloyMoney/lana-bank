@@ -1,4 +1,4 @@
-mod error;
+pub mod error;
 
 use error::ServiceAccountError;
 use gcp_bigquery_client::yup_oauth2::ServiceAccountKey;
@@ -9,7 +9,7 @@ pub struct ServiceAccountConfig {
     #[serde(skip)]
     pub gcp_project: String,
     #[serde(skip)]
-    pub sa_creds_base64: String,
+    pub sa_creds_base64: Option<String>,
     #[serde(skip)]
     service_account_key: Option<ServiceAccountKey>,
 
@@ -21,7 +21,7 @@ impl Default for ServiceAccountConfig {
     fn default() -> Self {
         Self {
             gcp_project: "".to_string(),
-            sa_creds_base64: "".to_string(),
+            sa_creds_base64: None,
             service_account_key: None,
             gcp_location: default_gcp_location(),
         }
@@ -31,8 +31,14 @@ impl Default for ServiceAccountConfig {
 impl ServiceAccountConfig {
     pub fn set_sa_creds_base64(
         mut self,
-        sa_creds_base64: String,
+        sa_creds_base64: Option<String>,
     ) -> Result<Self, ServiceAccountError> {
+        if sa_creds_base64.is_none() {
+            return Ok(self);
+        }
+
+        println!("sa_creds_base64: {:?}", sa_creds_base64);
+
         self.sa_creds_base64 = sa_creds_base64;
 
         let creds = self.get_json_creds()?;
@@ -48,19 +54,27 @@ impl ServiceAccountConfig {
         Ok(self)
     }
 
-    pub fn service_account_key(&self) -> ServiceAccountKey {
+    pub fn service_account_key(&self) -> Result<ServiceAccountKey, ServiceAccountError> {
         self.service_account_key
-            .clone()
-            .expect("Service Account not set")
+            .as_ref()
+            .cloned()
+            .ok_or(ServiceAccountError::CredentialsNotProvided)
     }
 
-    pub fn get_json_creds(&self) -> Result<String, ServiceAccountError> {
+    fn get_json_creds(&self) -> Result<String, ServiceAccountError> {
+        if self.sa_creds_base64.is_none() {
+            return Err(ServiceAccountError::CredentialsNotProvided);
+        }
+
+        let creds = self
+            .sa_creds_base64
+            .as_ref()
+            .ok_or(ServiceAccountError::CredentialsNotProvided)?
+            .as_bytes();
+
         use base64::{engine::general_purpose, Engine as _};
 
-        Ok(std::str::from_utf8(
-            &general_purpose::STANDARD.decode(self.sa_creds_base64.as_bytes())?,
-        )?
-        .to_string())
+        Ok(std::str::from_utf8(&general_purpose::STANDARD.decode(creds)?)?.to_string())
     }
 }
 
