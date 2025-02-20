@@ -9,9 +9,11 @@ use cala_ledger::{
     velocity::{NewVelocityControl, VelocityControlId},
     CalaLedger, Currency, JournalId, TransactionId,
 };
-use chart_of_accounts::TransactionAccountFactory;
 
-use crate::{primitives::UsdCents, DepositAccountBalance};
+use crate::{
+    primitives::{LedgerAccountId, UsdCents},
+    DepositAccountBalance,
+};
 
 pub use accounts::*;
 use error::*;
@@ -32,11 +34,8 @@ impl DepositLedger {
     pub async fn init(
         cala: &CalaLedger,
         journal_id: JournalId,
-        omnibus_account_factory: TransactionAccountFactory,
+        deposit_omnibus_account_id: LedgerAccountId,
     ) -> Result<Self, DepositLedgerError> {
-        let deposit_omnibus_account_id =
-            Self::create_ledger_account(cala, omnibus_account_factory).await?;
-
         templates::RecordDeposit::init(cala).await?;
         templates::InitiateWithdraw::init(cala).await?;
         templates::CancelWithdraw::init(cala).await?;
@@ -200,28 +199,6 @@ impl DepositLedger {
             .await?;
         op.commit().await?;
         Ok(())
-    }
-
-    async fn create_ledger_account(
-        cala: &CalaLedger,
-        account_factory: TransactionAccountFactory,
-    ) -> Result<AccountId, DepositLedgerError> {
-        let id = AccountId::new();
-        let name: &str = &account_factory.control_sub_account.name;
-
-        match cala.accounts().find_by_external_id(name.to_string()).await {
-            Ok(account) => return Ok(account.id),
-            Err(e) if e.was_not_found() => (),
-            Err(e) => return Err(e.into()),
-        };
-
-        let mut op = cala.begin_operation().await?;
-        account_factory
-            .create_transaction_account_in_op(&mut op, id, name, name, name)
-            .await?;
-        op.commit().await?;
-
-        Ok(id)
     }
 
     pub async fn balance(

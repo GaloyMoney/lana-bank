@@ -62,6 +62,7 @@ impl ChartsInit {
         trial_balances: &TrialBalances,
         pl_statements: &ProfitAndLossStatements,
         cash_flow_statements: &CashFlowStatements,
+        cala: &CalaLedger,
         chart_of_accounts: &ChartOfAccounts,
     ) -> Result<Self, AccountingInitError> {
         seed::charts_of_accounts::init(
@@ -69,6 +70,7 @@ impl ChartsInit {
             trial_balances,
             pl_statements,
             cash_flow_statements,
+            cala,
             chart_of_accounts,
         )
         .await

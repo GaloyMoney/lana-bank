@@ -66,16 +66,30 @@ async fn deposit() -> anyhow::Result<()> {
             "deposits-omnibus".to_string(),
         )
         .await?;
+    let omnibus_name = "User Deposits Omnibus";
+    let omnibus_reference = "user-deposits-omnibus-deposit";
     let omnibus_control_sub_account = chart_of_accounts
         .create_control_sub_account(
             chart_id,
             omnibus_control_account,
-            "User Deposits Omnibus".to_string(),
-            "user-deposits-omnibus".to_string(),
+            omnibus_name.to_string(),
+            omnibus_reference.to_string(),
         )
         .await?;
     let omnibus_factory =
         chart_of_accounts.transaction_account_factory(omnibus_control_sub_account);
+    let omnibus_account_id = LedgerAccountId::new();
+    let mut op = cala.begin_operation().await?;
+    omnibus_factory
+        .create_transaction_account_in_op(
+            &mut op,
+            omnibus_account_id,
+            omnibus_reference,
+            omnibus_name,
+            omnibus_name,
+        )
+        .await?;
+    op.commit().await?;
 
     let deposit = CoreDeposit::init(
         &pool,
@@ -83,9 +97,9 @@ async fn deposit() -> anyhow::Result<()> {
         &outbox,
         &governance,
         &jobs,
-        DepositAccountFactories {
-            deposits: factory,
-            deposits_omnibus: omnibus_factory,
+        DepositAccountFactories { deposits: factory },
+        DepositOmnibusAccountIds {
+            deposits: omnibus_account_id,
         },
         &cala,
         journal_id,

@@ -34,12 +34,16 @@ impl CreditFacilityAccountIds {
 }
 
 #[derive(Clone)]
+pub struct CreditFacilityOmnibusAccountIds {
+    pub bank_collateral: LedgerAccountId,
+    pub facility: LedgerAccountId,
+}
+
+#[derive(Clone)]
 pub struct CreditFacilityAccountFactories {
     pub facility: TransactionAccountFactory,
-    pub facility_omnibus: TransactionAccountFactory,
     pub disbursed_receivable: TransactionAccountFactory,
     pub collateral: TransactionAccountFactory,
-    pub collateral_omnibus: TransactionAccountFactory,
     pub interest_receivable: TransactionAccountFactory,
     pub interest_income: TransactionAccountFactory,
     pub fee_income: TransactionAccountFactory,

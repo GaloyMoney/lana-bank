@@ -111,6 +111,7 @@ impl LanaApp {
             &trial_balances,
             &pl_statements,
             &cash_flow_statements,
+            &cala,
             &chart_of_accounts,
         )
         .await?;
@@ -122,6 +123,7 @@ impl LanaApp {
             &governance,
             &jobs,
             charts_init.deposits.factories,
+            charts_init.deposits.omnibus_ids,
             &cala,
             journal_init.journal_id,
         )
@@ -142,6 +144,7 @@ impl LanaApp {
             &price,
             &outbox,
             charts_init.credit_facilities.factories,
+            charts_init.credit_facilities.omnibus_ids,
             &cala,
             journal_init.journal_id,
         )
