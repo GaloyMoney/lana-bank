@@ -2,14 +2,14 @@ apiVersion: vendir.k14s.io/v1alpha1
 directories:
 - contents:
   - git:
-      commitTitle: 'chore: upgrade shared rust github actions (#57)'
-      sha: 47fcb3b3e18d67f28b551b8aa9a36e01ef635eda
+      commitTitle: 'ci: fix concourse locks git uri'
+      sha: 0c18d91f1b5bff905eb5e14ee3ba7f1c2db2595b
     path: .
   path: ../.github/workflows/vendor
 - contents:
   - git:
-      commitTitle: 'chore: upgrade shared rust github actions (#57)'
-      sha: 47fcb3b3e18d67f28b551b8aa9a36e01ef635eda
+      commitTitle: 'ci: fix concourse locks git uri'
+      sha: 0c18d91f1b5bff905eb5e14ee3ba7f1c2db2595b
     path: .
   path: vendor
 kind: LockConfig
