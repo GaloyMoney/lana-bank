@@ -79,3 +79,17 @@ local_resource(
         link("http://localhost:4455/app", "customer-portal"),
     ]
 )
+
+
+local_resource(
+    "chat-app",
+    labels=["apps"],
+    serve_cmd="cd ../apps/lana-chat && pnpm install && pnpm run dev",
+    allow_parallel=True,
+    resource_deps=[
+        "core",
+    ],
+    links = [
+        link("http://localhost:3003", "chat-app"),
+    ]
+)
