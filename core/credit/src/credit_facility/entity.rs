@@ -263,8 +263,8 @@ impl FacilityCVL {
 }
 
 #[derive(Debug)]
-pub struct NewAccrualPeriods {
-    pub incurrence: InterestPeriod,
+pub(crate) struct NewAccrualPeriods {
+    pub(crate) incurrence: InterestPeriod,
     pub(super) _accrual: InterestPeriod,
 }
 
@@ -436,7 +436,7 @@ impl CreditFacility {
         repayment_plan::project(self.events.iter_all())
     }
 
-    pub fn is_approval_process_concluded(&self) -> bool {
+    pub(crate) fn is_approval_process_concluded(&self) -> bool {
         for event in self.events.iter_all() {
             match event {
                 CreditFacilityEvent::ApprovalProcessConcluded { .. } => return true,
@@ -446,7 +446,7 @@ impl CreditFacility {
         false
     }
 
-    pub(super) fn is_approved(&self) -> Result<bool, CreditFacilityError> {
+    fn is_approved(&self) -> Result<bool, CreditFacilityError> {
         for event in self.events.iter_all() {
             match event {
                 CreditFacilityEvent::ApprovalProcessConcluded { approved, .. } => {
@@ -458,7 +458,7 @@ impl CreditFacility {
         Err(CreditFacilityError::ApprovalInProgress)
     }
 
-    pub(super) fn is_activated(&self) -> bool {
+    fn is_activated(&self) -> bool {
         for event in self.events.iter_all() {
             match event {
                 CreditFacilityEvent::Activated { .. } => return true,
@@ -468,7 +468,7 @@ impl CreditFacility {
         false
     }
 
-    pub(super) fn is_expired(&self) -> bool {
+    pub fn is_expired(&self) -> bool {
         let now = crate::time::now();
         self.expires_at.is_some_and(|expires_at| now > expires_at)
     }
@@ -487,7 +487,7 @@ impl CreditFacility {
         }
     }
 
-    pub fn approval_process_concluded(
+    pub(crate) fn approval_process_concluded(
         &mut self,
         approved: bool,
         audit_info: AuditInfo,
@@ -505,7 +505,7 @@ impl CreditFacility {
         Idempotent::Executed(())
     }
 
-    pub fn activate(
+    pub(crate) fn activate(
         &mut self,
         activated_at: DateTime<Utc>,
         price: PriceOfOneBTC,
@@ -556,7 +556,7 @@ impl CreditFacility {
         Ok(Idempotent::Executed((activation, periods.incurrence)))
     }
 
-    pub fn initiate_disbursal(
+    pub(crate) fn initiate_disbursal(
         &mut self,
         amount: UsdCents,
         initiated_at: DateTime<Utc>,
@@ -607,7 +607,7 @@ impl CreditFacility {
             .expect("could not build new disbursal"))
     }
 
-    pub fn disbursal_concluded(
+    pub(crate) fn disbursal_concluded(
         &mut self,
         disbursal: &Disbursal,
         tx_id: Option<LedgerTxId>,
@@ -650,7 +650,7 @@ impl CreditFacility {
         Ok(full_period.truncate(self.expires_at.expect("Facility is already active")))
     }
 
-    pub fn start_interest_accrual(
+    pub(crate) fn start_interest_accrual(
         &mut self,
         audit_info: AuditInfo,
     ) -> Result<Option<NewAccrualPeriods>, CreditFacilityError> {
@@ -700,7 +700,7 @@ impl CreditFacility {
         }))
     }
 
-    pub fn record_interest_accrual(
+    pub(crate) fn record_interest_accrual(
         &mut self,
         audit_info: AuditInfo,
     ) -> Result<CreditFacilityInterestAccrual, CreditFacilityError> {
@@ -732,7 +732,7 @@ impl CreditFacility {
         Ok(interest_accrual)
     }
 
-    pub fn interest_accrual_in_progress(&mut self) -> Option<&mut InterestAccrual> {
+    pub(crate) fn interest_accrual_in_progress(&mut self) -> Option<&mut InterestAccrual> {
         if let Some(id) = self
             .events
             .iter_all()
@@ -794,11 +794,7 @@ impl CreditFacility {
         }
     }
 
-    pub fn can_be_completed(&self) -> bool {
-        self.outstanding().is_zero()
-    }
-
-    pub fn collateral(&self) -> Satoshis {
+    fn collateral(&self) -> Satoshis {
         self.events
             .iter_all()
             .rev()
@@ -816,7 +812,7 @@ impl CreditFacility {
             .facility_cvl_data(self.collateral(), self.facility_remaining())
     }
 
-    pub fn initiate_repayment(
+    pub(crate) fn initiate_repayment(
         &mut self,
         amount: UsdCents,
         price: PriceOfOneBTC,
@@ -868,7 +864,7 @@ impl CreditFacility {
             .count()
     }
 
-    pub fn last_collateralization_state(&self) -> CollateralizationState {
+    pub(super) fn last_collateralization_state(&self) -> CollateralizationState {
         if self.is_completed() {
             return CollateralizationState::NoCollateral;
         }
@@ -883,11 +879,11 @@ impl CreditFacility {
             .unwrap_or(CollateralizationState::NoCollateral)
     }
 
-    pub fn is_fully_collateralized(&self) -> bool {
+    fn is_fully_collateralized(&self) -> bool {
         self.last_collateralization_state() == CollateralizationState::FullyCollateralized
     }
 
-    pub fn maybe_update_collateralization(
+    pub(crate) fn maybe_update_collateralization(
         &mut self,
         price: PriceOfOneBTC,
         upgrade_buffer_cvl_pct: CVLPct,
@@ -942,7 +938,7 @@ impl CreditFacility {
             .facility_cvl_data(self.collateral(), self.facility_remaining())
     }
 
-    pub fn record_collateral_update(
+    pub(crate) fn record_collateral_update(
         &mut self,
         updated_collateral: Satoshis,
         audit_info: AuditInfo,
@@ -1019,7 +1015,7 @@ impl CreditFacility {
             .any(|event| matches!(event, CreditFacilityEvent::Completed { .. }))
     }
 
-    pub fn complete(
+    pub(crate) fn complete(
         &mut self,
         audit_info: AuditInfo,
         price: PriceOfOneBTC,
@@ -1060,7 +1056,7 @@ impl CreditFacility {
         Ok(res)
     }
 
-    pub fn collateralization_ratio(&self) -> Option<Decimal> {
+    pub(super) fn collateralization_ratio(&self) -> Option<Decimal> {
         let amount = if self.status() == CreditFacilityStatus::PendingCollateralization
             || self.status() == CreditFacilityStatus::PendingApproval
             || self.total_disbursed() == UsdCents::ZERO
@@ -1080,7 +1076,7 @@ impl CreditFacility {
         }
     }
 
-    pub fn disbursal_amount_from_idx(&self, idx: DisbursalIdx) -> UsdCents {
+    pub(crate) fn disbursal_amount_from_idx(&self, idx: DisbursalIdx) -> UsdCents {
         if let Some(amount) = self
             .events
             .iter_all()
