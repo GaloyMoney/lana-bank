@@ -14,19 +14,13 @@ pub(crate) async fn init(
     trial_balances: &TrialBalances,
     pl_statements: &ProfitAndLossStatements,
     cash_flow_statements: &CashFlowStatements,
-    cala: &CalaLedger,
     chart_of_accounts: &ChartOfAccounts,
 ) -> Result<ChartsInit, AccountingInitError> {
     let chart_ids = &create_charts_of_accounts(chart_of_accounts).await?;
 
-    let deposits = create_deposits_account_paths(
-        balance_sheets,
-        trial_balances,
-        chart_of_accounts,
-        cala,
-        chart_ids,
-    )
-    .await?;
+    let deposits =
+        create_deposits_account_paths(balance_sheets, trial_balances, chart_of_accounts, chart_ids)
+            .await?;
 
     let credit_facilities = create_credit_facilities_account_paths(
         balance_sheets,
@@ -34,7 +28,6 @@ pub(crate) async fn init(
         pl_statements,
         cash_flow_statements,
         chart_of_accounts,
-        cala,
         chart_ids,
     )
     .await?;
@@ -131,41 +124,24 @@ async fn find_or_create_control_sub_account(
 
     Ok((control_account, control_sub_account))
 }
-async fn create_account(
+async fn create_sub_account_as_account(
     chart_of_accounts: &ChartOfAccounts,
-    cala: &CalaLedger,
     details: ControlSubAccountDetails,
 ) -> Result<LedgerAccountId, AccountingInitError> {
-    let id = LedgerAccountId::new();
+    let reference = &details.reference.to_string();
+    let name = &details.name.to_string();
+    let description = &details.name.to_string();
 
-    let factory = chart_of_accounts.transaction_account_factory(details);
-    let reference: &str = &factory.control_sub_account.reference;
-    let name: &str = &factory.control_sub_account.name;
-
-    match cala
-        .accounts()
-        .find_by_external_id(reference.to_string())
-        .await
-    {
-        Ok(account) => return Ok(account.id),
-        Err(e) if e.was_not_found() => (),
-        Err(e) => return Err(e.into()),
-    };
-
-    let mut op = cala.begin_operation().await?;
-    factory
-        .create_transaction_account_in_op(&mut op, id, reference, name, name)
-        .await?;
-    op.commit().await?;
-
-    Ok(id)
+    Ok(chart_of_accounts
+        .transaction_account_factory(details)
+        .find_or_create_transaction_account(reference, name, description)
+        .await?)
 }
 
 async fn create_deposits_account_paths(
     balance_sheets: &BalanceSheets,
     trial_balances: &TrialBalances,
     chart_of_accounts: &ChartOfAccounts,
-    cala: &CalaLedger,
     chart_ids: &ChartIds,
 ) -> Result<DepositsSeed, AccountingInitError> {
     let (deposits_control, deposits) = find_or_create_control_sub_account(
@@ -220,7 +196,7 @@ async fn create_deposits_account_paths(
         )
         .await?;
     let deposit_omnibus_account_id =
-        create_account(chart_of_accounts, cala, deposits_omnibus).await?;
+        create_sub_account_as_account(chart_of_accounts, deposits_omnibus).await?;
 
     Ok(DepositsSeed {
         factories: DepositAccountFactories {
@@ -238,7 +214,6 @@ async fn create_credit_facilities_account_paths(
     pl_statements: &ProfitAndLossStatements,
     cash_flow_statements: &CashFlowStatements,
     chart_of_accounts: &ChartOfAccounts,
-    cala: &CalaLedger,
     chart_ids: &ChartIds,
 ) -> Result<CreditFacilitiesSeed, AccountingInitError> {
     let (collateral_control, collateral) = find_or_create_control_sub_account(
@@ -293,7 +268,7 @@ async fn create_credit_facilities_account_paths(
         )
         .await?;
     let collateral_omnibus_account_id =
-        create_account(chart_of_accounts, cala, collateral_omnibus).await?;
+        create_sub_account_as_account(chart_of_accounts, collateral_omnibus).await?;
 
     let (facility_control, facility) = find_or_create_control_sub_account(
         chart_of_accounts,
@@ -347,7 +322,7 @@ async fn create_credit_facilities_account_paths(
         )
         .await?;
     let facility_omnibus_account_id =
-        create_account(chart_of_accounts, cala, facility_omnibus).await?;
+        create_sub_account_as_account(chart_of_accounts, facility_omnibus).await?;
 
     let (disbursed_receivable_control, disbursed_receivable) = find_or_create_control_sub_account(
         chart_of_accounts,

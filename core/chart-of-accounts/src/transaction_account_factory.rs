@@ -18,6 +18,45 @@ impl TransactionAccountFactory {
         }
     }
 
+    async fn create_transaction_account(
+        &self,
+        account_id: impl Into<LedgerAccountId>,
+        reference: &str,
+        name: &str,
+        description: &str,
+    ) -> Result<(), CoreChartOfAccountsError> {
+        let mut op = self.cala.begin_operation().await?;
+        self.create_transaction_account_in_op(&mut op, account_id, reference, name, description)
+            .await?;
+        op.commit().await?;
+
+        Ok(())
+    }
+
+    pub async fn find_or_create_transaction_account(
+        &self,
+        reference: &str,
+        name: &str,
+        description: &str,
+    ) -> Result<LedgerAccountId, CoreChartOfAccountsError> {
+        match self
+            .cala
+            .accounts()
+            .find_by_external_id(reference.to_string())
+            .await
+        {
+            Ok(account) => return Ok(account.id),
+            Err(e) if e.was_not_found() => (),
+            Err(e) => return Err(e.into()),
+        };
+
+        let id = LedgerAccountId::new();
+        self.create_transaction_account(id, reference, name, description)
+            .await?;
+
+        Ok(id)
+    }
+
     pub async fn create_transaction_account_in_op(
         &self,
         op: &mut LedgerOperation<'_>,

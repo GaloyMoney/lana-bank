@@ -111,7 +111,6 @@ impl LanaApp {
             &trial_balances,
             &pl_statements,
             &cash_flow_statements,
-            &cala,
             &chart_of_accounts,
         )
         .await?;
