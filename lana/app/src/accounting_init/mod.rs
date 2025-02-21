@@ -15,7 +15,6 @@ use crate::{
 use cala_ledger::CalaLedger;
 
 use error::*;
-pub use primitives::CreditFacilitiesAccountPaths;
 use primitives::*;
 
 #[derive(Clone)]
@@ -53,8 +52,8 @@ impl StatementsInit {
 #[derive(Clone)]
 pub struct ChartsInit {
     pub chart_ids: ChartIds,
-    pub deposits: DepositsAccountPaths,
-    pub credit_facilities: CreditFacilitiesAccountPaths,
+    pub deposits: DepositsSeed,
+    pub credit_facilities: CreditFacilitiesSeed,
 }
 
 impl ChartsInit {

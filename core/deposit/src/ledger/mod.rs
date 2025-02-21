@@ -1,3 +1,4 @@
+mod accounts;
 pub mod error;
 mod templates;
 mod velocity;
@@ -12,6 +13,7 @@ use chart_of_accounts::TransactionAccountFactory;
 
 use crate::{primitives::UsdCents, DepositAccountBalance};
 
+pub use accounts::*;
 use error::*;
 
 pub const DEPOSITS_VELOCITY_CONTROL_ID: uuid::Uuid =

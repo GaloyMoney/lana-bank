@@ -14,7 +14,7 @@ use crate::{
     balance_sheet::BalanceSheets,
     cash_flow::CashFlowStatements,
     chart_of_accounts::ChartOfAccounts,
-    credit_facility::{CreditFacilities, CreditFacilityAccountFactories},
+    credit_facility::CreditFacilities,
     customer::Customers,
     customer_onboarding::CustomerOnboarding,
     dashboard::Dashboard,
@@ -115,18 +115,13 @@ impl LanaApp {
         )
         .await?;
 
-        let deposits_factory =
-            chart_of_accounts.transaction_account_factory(charts_init.deposits.deposits);
-        let deposits_omnibus_factory =
-            chart_of_accounts.transaction_account_factory(charts_init.deposits.deposits_omnibus);
         let deposits = Deposits::init(
             &pool,
             &authz,
             &outbox,
             &governance,
             &jobs,
-            deposits_factory,
-            deposits_omnibus_factory,
+            charts_init.deposits.factories,
             &cala,
             journal_init.journal_id,
         )
@@ -137,8 +132,6 @@ impl LanaApp {
                 .await?;
         let applicants = Applicants::new(&pool, &config.sumsub, &customers, &jobs);
 
-        let credit_account_factories =
-            CreditFacilityAccountFactories::new(&chart_of_accounts, charts_init.credit_facilities);
         let credit_facilities = CreditFacilities::init(
             &pool,
             config.credit_facility,
@@ -148,7 +141,7 @@ impl LanaApp {
             &deposits,
             &price,
             &outbox,
-            credit_account_factories,
+            charts_init.credit_facilities.factories,
             &cala,
             journal_init.journal_id,
         )

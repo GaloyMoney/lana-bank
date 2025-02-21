@@ -1,11 +1,13 @@
 use crate::{
     accounting_init::{constants::*, *},
+    credit_facility::CreditFacilityAccountFactories,
     primitives::LedgerAccountSetId,
 };
 
 use chart_of_accounts::{
     ControlAccountCreationDetails, ControlAccountDetails, ControlSubAccountDetails,
 };
+use deposit::DepositAccountFactories;
 
 pub(crate) async fn init(
     balance_sheets: &BalanceSheets,
@@ -128,7 +130,7 @@ async fn create_deposits_account_paths(
     trial_balances: &TrialBalances,
     chart_of_accounts: &ChartOfAccounts,
     chart_ids: &ChartIds,
-) -> Result<DepositsAccountPaths, AccountingInitError> {
+) -> Result<DepositsSeed, AccountingInitError> {
     let (deposits_control, deposits) = find_or_create_control_sub_account(
         chart_of_accounts,
         chart_ids.primary,
@@ -142,14 +144,12 @@ async fn create_deposits_account_paths(
         DEPOSITS_CONTROL_SUB_ACCOUNT_REF.to_string(),
     )
     .await?;
-
     trial_balances
         .add_to_trial_balance(
             TRIAL_BALANCE_STATEMENT_NAME.to_string(),
             deposits_control.account_set_id,
         )
         .await?;
-
     balance_sheets
         .add_to_liabilities(
             BALANCE_SHEET_NAME.to_string(),
@@ -170,14 +170,12 @@ async fn create_deposits_account_paths(
         DEPOSITS_OMNIBUS_CONTROL_SUB_ACCOUNT_REF.to_string(),
     )
     .await?;
-
     trial_balances
         .add_to_trial_balance(
             TRIAL_BALANCE_STATEMENT_NAME.to_string(),
             deposits_omnibus_control.account_set_id,
         )
         .await?;
-
     balance_sheets
         .add_to_assets(
             BALANCE_SHEET_NAME.to_string(),
@@ -185,9 +183,11 @@ async fn create_deposits_account_paths(
         )
         .await?;
 
-    Ok(DepositsAccountPaths {
-        deposits,
-        deposits_omnibus,
+    Ok(DepositsSeed {
+        factories: DepositAccountFactories {
+            deposits: chart_of_accounts.transaction_account_factory(deposits),
+            deposits_omnibus: chart_of_accounts.transaction_account_factory(deposits_omnibus),
+        },
     })
 }
 
@@ -198,7 +198,7 @@ async fn create_credit_facilities_account_paths(
     cash_flow_statements: &CashFlowStatements,
     chart_of_accounts: &ChartOfAccounts,
     chart_ids: &ChartIds,
-) -> Result<CreditFacilitiesAccountPaths, AccountingInitError> {
+) -> Result<CreditFacilitiesSeed, AccountingInitError> {
     let (collateral_control, collateral) = find_or_create_control_sub_account(
         chart_of_accounts,
         chart_ids.off_balance_sheet,
@@ -437,14 +437,17 @@ async fn create_credit_facilities_account_paths(
         )
         .await?;
 
-    Ok(CreditFacilitiesAccountPaths {
-        collateral,
-        collateral_omnibus,
-        facility,
-        facility_omnibus,
-        disbursed_receivable,
-        interest_receivable,
-        interest_income,
-        fee_income,
+    Ok(CreditFacilitiesSeed {
+        factories: CreditFacilityAccountFactories {
+            facility: chart_of_accounts.transaction_account_factory(facility),
+            facility_omnibus: chart_of_accounts.transaction_account_factory(facility_omnibus),
+            disbursed_receivable: chart_of_accounts
+                .transaction_account_factory(disbursed_receivable),
+            collateral: chart_of_accounts.transaction_account_factory(collateral),
+            collateral_omnibus: chart_of_accounts.transaction_account_factory(collateral_omnibus),
+            interest_receivable: chart_of_accounts.transaction_account_factory(interest_receivable),
+            interest_income: chart_of_accounts.transaction_account_factory(interest_income),
+            fee_income: chart_of_accounts.transaction_account_factory(fee_income),
+        },
     })
 }

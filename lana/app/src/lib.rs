@@ -87,9 +87,9 @@ pub mod audit {
 
 pub mod deposit {
     pub use deposit::{
-        error, Deposit, DepositAccount, DepositAccountBalance, DepositAccountHistoryCursor,
-        DepositAccountHistoryEntry, DepositsByCreatedAtCursor, Withdrawal, WithdrawalStatus,
-        WithdrawalsByCreatedAtCursor,
+        error, Deposit, DepositAccount, DepositAccountBalance, DepositAccountFactories,
+        DepositAccountHistoryCursor, DepositAccountHistoryEntry, DepositsByCreatedAtCursor,
+        Withdrawal, WithdrawalStatus, WithdrawalsByCreatedAtCursor,
     };
 
     pub type Deposits =

@@ -83,8 +83,10 @@ async fn deposit() -> anyhow::Result<()> {
         &outbox,
         &governance,
         &jobs,
-        factory,
-        omnibus_factory,
+        DepositAccountFactories {
+            deposits: factory,
+            deposits_omnibus: omnibus_factory,
+        },
         &cala,
         journal_id,
     )

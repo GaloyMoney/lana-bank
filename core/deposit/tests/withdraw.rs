@@ -84,8 +84,10 @@ async fn overdraw_and_cancel_withdrawal() -> anyhow::Result<()> {
         &outbox,
         &governance,
         &jobs,
-        factory,
-        omnibus_factory,
+        DepositAccountFactories {
+            deposits: factory,
+            deposits_omnibus: omnibus_factory,
+        },
         &cala,
         journal_id,
     )

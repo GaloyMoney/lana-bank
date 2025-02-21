@@ -33,6 +33,7 @@ use error::*;
 pub use event::*;
 pub use for_subject::DepositsForSubject;
 pub use history::{DepositAccountHistoryCursor, DepositAccountHistoryEntry};
+pub use ledger::DepositAccountFactories;
 use ledger::*;
 pub use primitives::*;
 pub use processes::approval::APPROVE_WITHDRAWAL_PROCESS;
@@ -96,15 +97,14 @@ where
         outbox: &Outbox<E>,
         governance: &Governance<Perms, E>,
         jobs: &Jobs,
-        account_factory: TransactionAccountFactory,
-        omnibus_account_factory: TransactionAccountFactory,
+        factories: DepositAccountFactories,
         cala: &CalaLedger,
         journal_id: LedgerJournalId,
     ) -> Result<Self, CoreDepositError> {
         let accounts = DepositAccountRepo::new(pool);
         let deposits = DepositRepo::new(pool);
         let withdrawals = WithdrawalRepo::new(pool);
-        let ledger = DepositLedger::init(cala, journal_id, omnibus_account_factory).await?;
+        let ledger = DepositLedger::init(cala, journal_id, factories.deposits_omnibus).await?;
 
         let approve_withdrawal = ApproveWithdrawal::new(&withdrawals, authz.audit(), governance);
 
@@ -132,7 +132,7 @@ where
             cala: cala.clone(),
             approve_withdrawal,
             ledger,
-            account_factory,
+            account_factory: factories.deposits,
         };
         Ok(res)
     }
