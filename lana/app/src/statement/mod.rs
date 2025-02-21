@@ -5,7 +5,7 @@ pub mod ledger;
 
 use cala_ledger::CalaLedger;
 
-use crate::authorization::Authorization;
+use crate::{authorization::Authorization, primitives::*};
 
 pub use account_set::*;
 pub use balance::*;
@@ -33,5 +33,14 @@ impl Statements {
             _statement_ledger: statement_ledger,
             _authz: authz.clone(),
         })
+    }
+
+    pub async fn list_transactions_for_account_set(
+        &self,
+        _sub: &Subject,
+        _account_set_id: LedgerAccountSetId,
+        // query: PaginatedQueryArgs<..>,
+    ) {
+        unimplemented!()
     }
 }
