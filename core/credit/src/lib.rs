@@ -19,8 +19,8 @@ use std::collections::HashMap;
 use audit::{AuditInfo, AuditSvc};
 use authz::PermissionCheck;
 use cala_ledger::CalaLedger;
+use core_customer::{CoreCustomerAction, CoreCustomerEvent, CustomerObject, Customers};
 use core_price::Price;
-use deposit::DepositAccountHolderId;
 use governance::{Governance, GovernanceAction, GovernanceEvent, GovernanceObject};
 use job::Jobs;
 use outbox::{Outbox, OutboxEventMarker};
@@ -46,14 +46,17 @@ use terms::*;
 pub struct CreditFacilities<Perms, E>
 where
     Perms: PermissionCheck,
-    E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<GovernanceEvent>,
+    E: OutboxEventMarker<CoreCreditEvent>
+        + OutboxEventMarker<GovernanceEvent>
+        + OutboxEventMarker<CoreCustomerEvent>
+        + OutboxEventMarker<deposit::CoreDepositEvent>,
 {
     authz: Perms,
-    // deposits: Deposits,
     credit_facility_repo: CreditFacilityRepo<E>,
     disbursal_repo: DisbursalRepo,
     payment_repo: PaymentRepo,
     governance: Governance<Perms, E>,
+    customer: Customers<Perms, E>,
     ledger: CreditLedger,
     price: Price,
     config: CreditFacilityConfig,
@@ -65,16 +68,19 @@ where
 impl<Perms, E> Clone for CreditFacilities<Perms, E>
 where
     Perms: PermissionCheck,
-    E: OutboxEventMarker<GovernanceEvent> + OutboxEventMarker<CoreCreditEvent>,
+    E: OutboxEventMarker<GovernanceEvent>
+        + OutboxEventMarker<CoreCreditEvent>
+        + OutboxEventMarker<CoreCustomerEvent>
+        + OutboxEventMarker<deposit::CoreDepositEvent>,
 {
     fn clone(&self) -> Self {
         Self {
             authz: self.authz.clone(),
-            // deposits: self.deposits.clone(),
             credit_facility_repo: self.credit_facility_repo.clone(),
             disbursal_repo: self.disbursal_repo.clone(),
             payment_repo: self.payment_repo.clone(),
             governance: self.governance.clone(),
+            customer: self.customer.clone(),
             ledger: self.ledger.clone(),
             price: self.price.clone(),
             config: self.config.clone(),
@@ -88,11 +94,18 @@ where
 impl<Perms, E> CreditFacilities<Perms, E>
 where
     Perms: PermissionCheck,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
-        From<CoreCreditAction> + From<GovernanceAction>,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object:
-        From<CoreCreditObject> + From<GovernanceObject>,
-    E: OutboxEventMarker<GovernanceEvent> + OutboxEventMarker<CoreCreditEvent>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>
+        + From<GovernanceAction>
+        + From<deposit::CoreDepositAction>
+        + From<CoreCustomerAction>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>
+        + From<GovernanceObject>
+        + From<deposit::CoreDepositObject>
+        + From<CustomerObject>,
+    E: OutboxEventMarker<GovernanceEvent>
+        + OutboxEventMarker<CoreCreditEvent>
+        + OutboxEventMarker<CoreCustomerEvent>
+        + OutboxEventMarker<deposit::CoreDepositEvent>,
 {
     #[allow(clippy::too_many_arguments)]
     pub async fn init(
@@ -101,7 +114,7 @@ where
         governance: &Governance<Perms, E>,
         jobs: &Jobs,
         authz: &Perms,
-        // deposits: &Deposits,
+        customer: &Customers<Perms, E>,
         price: &Price,
         outbox: &Outbox<E>,
         account_factories: CreditFacilityAccountFactories,
@@ -181,7 +194,7 @@ where
 
         Ok(Self {
             authz: authz.clone(),
-            // deposits: deposits.clone(),
+            customer: customer.clone(),
             credit_facility_repo,
             disbursal_repo,
             payment_repo,
@@ -216,14 +229,13 @@ where
         sub: &'s <<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
     ) -> Result<CreditFacilitiesForSubject<'s, Perms, E>, CoreCreditError>
     where
-        CreditRecipientId:
-            for<'a> TryFrom<&'a <<Perms as PermissionCheck>::Audit as AuditSvc>::Subject>,
+        CustomerId: for<'a> TryFrom<&'a <<Perms as PermissionCheck>::Audit as AuditSvc>::Subject>,
     {
-        let credit_recipient_id = CreditRecipientId::try_from(sub)
-            .map_err(|_| CoreCreditError::SubjectIsNotCreditRecipient)?;
+        let customer_id =
+            CustomerId::try_from(sub).map_err(|_| CoreCreditError::SubjectIsNotCustomer)?;
         Ok(CreditFacilitiesForSubject::new(
             sub,
-            credit_recipient_id,
+            customer_id,
             &self.authz,
             &self.credit_facility_repo,
             &self.disbursal_repo,
@@ -235,10 +247,7 @@ where
     pub async fn initiate(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        credit_recipient_id: impl Into<CreditRecipientId>
-            + Into<DepositAccountHolderId>
-            + std::fmt::Debug
-            + Copy,
+        customer_id: impl Into<CustomerId> + std::fmt::Debug + Copy,
         facility: UsdCents,
         terms: TermValues,
     ) -> Result<CreditFacility, CoreCreditError> {
@@ -247,11 +256,22 @@ where
             .await?
             .expect("audit info missing");
 
+        if self
+            .customer
+            .find_by_id(sub, customer_id)
+            .await?
+            .ok_or(CoreCreditError::CustomerMismatchForCreditFacility)?
+            .status
+            .is_inactive()
+        {
+            return Err(CoreCreditError::CustomerNotActive);
+        }
+
         let id = CreditFacilityId::new();
         let new_credit_facility = NewCreditFacility::builder()
             .id(id)
             .approval_process_id(id)
-            .credit_recipient_id(credit_recipient_id)
+            .customer_id(customer_id)
             .terms(terms)
             .facility(facility)
             .account_ids(CreditFacilityAccountIds::new())

@@ -9,7 +9,7 @@ where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCreditEvent>,
 {
-    credit_recipient_id: CreditRecipientId,
+    customer_id: CustomerId,
     subject: &'a <<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
     authz: &'a Perms,
     credit_facilities: &'a CreditFacilityRepo<E>,
@@ -26,14 +26,14 @@ where
 {
     pub(super) fn new(
         subject: &'a <<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        credit_recipient_id: CreditRecipientId,
+        customer_id: CustomerId,
         authz: &'a Perms,
         credit_facilities: &'a CreditFacilityRepo<E>,
         disbursals: &'a DisbursalRepo,
         payments: &'a PaymentRepo,
     ) -> Self {
         Self {
-            credit_recipient_id,
+            customer_id,
             subject,
             authz,
             credit_facilities,
@@ -60,7 +60,7 @@ where
 
         Ok(self
             .credit_facilities
-            .list_for_credit_recipient_id_by_created_at(self.credit_recipient_id, query, direction)
+            .list_for_customer_id_by_created_at(self.customer_id, query, direction)
             .await?)
     }
 
@@ -107,12 +107,12 @@ where
         object: CoreCreditObject,
         action: CoreCreditAction,
     ) -> Result<(), CoreCreditError> {
-        if credit_facility.credit_recipient_id != self.credit_recipient_id {
+        if credit_facility.customer_id != self.customer_id {
             self.authz
                 .audit()
                 .record_entry(self.subject, object, action, false)
                 .await?;
-            return Err(CoreCreditError::CreditRecipientMismatchForCreditFacility);
+            return Err(CoreCreditError::CustomerMismatchForCreditFacility);
         }
 
         self.authz

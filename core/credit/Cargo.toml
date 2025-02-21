@@ -12,6 +12,7 @@ sim-time = ["dep:sim-time", "es-entity/sim-time"]
 [dependencies]
 core-money = { path = "../money" }
 core-price = { path = "../price" }
+core-customer = { path = "../customer" }
 governance = { path = "../governance" }
 deposit = { path = "../deposit" }
 chart-of-accounts = { path = "../chart-of-accounts" }

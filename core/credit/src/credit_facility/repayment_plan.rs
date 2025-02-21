@@ -221,7 +221,7 @@ mod tests {
         vec![
             CreditFacilityEvent::Initialized {
                 id: credit_facility_id,
-                credit_recipient_id: CreditRecipientId::new(),
+                customer_id: CustomerId::new(),
                 account_ids: CreditFacilityAccountIds::new(),
                 facility: UsdCents::from(1_000_000),
                 terms: terms(),

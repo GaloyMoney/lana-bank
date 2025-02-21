@@ -1,0 +1,18 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "UPDATE customers SET email = $2, authentication_id = $3, telegram_id = $4, status = $5 WHERE id = $1",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Varchar",
+        "Uuid",
+        "Varchar",
+        "Varchar"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "ef83e3153f3eda86ad8c6211b6f88dae0c0bff5201ebb28c363c0d07d4261b79"
+}

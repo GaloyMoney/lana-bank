@@ -21,7 +21,7 @@ use super::{error::CreditFacilityError, history, repayment_plan};
 pub enum CreditFacilityEvent {
     Initialized {
         id: CreditFacilityId,
-        credit_recipient_id: CreditRecipientId,
+        customer_id: CustomerId,
         terms: TermValues,
         facility: UsdCents,
         account_ids: CreditFacilityAccountIds,
@@ -315,7 +315,7 @@ impl From<(InterestAccrualData, CreditFacilityAccountIds)> for CreditFacilityInt
 pub struct CreditFacility {
     pub id: CreditFacilityId,
     pub approval_process_id: ApprovalProcessId,
-    pub credit_recipient_id: CreditRecipientId,
+    pub customer_id: CustomerId,
     pub terms: TermValues,
     pub account_ids: CreditFacilityAccountIds,
     pub deposit_account_id: uuid::Uuid,
@@ -1109,7 +1109,7 @@ impl TryFromEvents<CreditFacilityEvent> for CreditFacility {
             match event {
                 CreditFacilityEvent::Initialized {
                     id,
-                    credit_recipient_id,
+                    customer_id,
                     account_ids,
                     deposit_account_id,
                     terms: t,
@@ -1119,7 +1119,7 @@ impl TryFromEvents<CreditFacilityEvent> for CreditFacility {
                     terms = Some(*t);
                     builder = builder
                         .id(*id)
-                        .credit_recipient_id(*credit_recipient_id)
+                        .customer_id(*customer_id)
                         .terms(*t)
                         .account_ids(*account_ids)
                         .deposit_account_id(*deposit_account_id)
@@ -1155,7 +1155,7 @@ pub struct NewCreditFacility {
     #[builder(setter(into))]
     pub(super) approval_process_id: ApprovalProcessId,
     #[builder(setter(into))]
-    pub(super) credit_recipient_id: CreditRecipientId,
+    pub(super) customer_id: CustomerId,
     terms: TermValues,
     facility: UsdCents,
     #[builder(setter(skip), default)]
@@ -1181,7 +1181,7 @@ impl IntoEvents<CreditFacilityEvent> for NewCreditFacility {
             [CreditFacilityEvent::Initialized {
                 id: self.id,
                 audit_info: self.audit_info.clone(),
-                credit_recipient_id: self.credit_recipient_id,
+                customer_id: self.customer_id,
                 terms: self.terms,
                 facility: self.facility,
                 account_ids: self.account_ids,
@@ -1250,7 +1250,7 @@ mod test {
         vec![CreditFacilityEvent::Initialized {
             id: CreditFacilityId::new(),
             audit_info: dummy_audit_info(),
-            credit_recipient_id: CreditRecipientId::new(),
+            customer_id: CustomerId::new(),
             facility: default_facility(),
             terms: default_terms(),
             account_ids: CreditFacilityAccountIds::new(),
@@ -1935,7 +1935,7 @@ mod test {
             let new_credit_facility = NewCreditFacility::builder()
                 .id(id)
                 .approval_process_id(id)
-                .credit_recipient_id(CreditRecipientId::new())
+                .customer_id(CustomerId::new())
                 .terms(default_terms())
                 .facility(UsdCents::from(1_000_000_00))
                 .account_ids(CreditFacilityAccountIds::new())

@@ -6,6 +6,8 @@ pub enum CoreCreditError {
     Sqlx(#[from] sqlx::Error),
     #[error("CoreCreditError - AuditError: {0}")]
     AuditError(#[from] audit::error::AuditError),
+    #[error("CoreCreditError - CustomerError: {0}")]
+    CustomerError(#[from] core_customer::error::CustomerError),
     #[error("CoreCreditError - AuthorizationError: {0}")]
     AuthorizationError(#[from] authz::error::AuthorizationError),
     #[error("CoreCreditError - CreditError: {0}")]
@@ -26,10 +28,12 @@ pub enum CoreCreditError {
     GovernanceError(#[from] governance::error::GovernanceError),
     #[error("CoreCreditError - JobError: {0}")]
     JobError(#[from] job::error::JobError),
-    #[error("CoreCreditError - CreditRecipientMismatchForCreditFacility")]
-    CreditRecipientMismatchForCreditFacility,
-    #[error("CreditFacilityError - SubjectIsNotCreditRecipientId")]
-    SubjectIsNotCreditRecipient,
+    #[error("CoreCreditError - CustomerMismatchForCreditFacility")]
+    CustomerMismatchForCreditFacility,
+    #[error("CreditFacilityError - SubjectIsNotCustomer")]
+    SubjectIsNotCustomer,
+    #[error("CreditFacilityError - CustomerIsNotActive")]
+    CustomerNotActive,
 }
 
 es_entity::from_es_entity_error!(CoreCreditError);

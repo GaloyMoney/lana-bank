@@ -39,6 +39,12 @@ pub enum AccountStatus {
     Active,
 }
 
+impl AccountStatus {
+    pub fn is_inactive(&self) -> bool {
+        matches!(self, AccountStatus::Inactive)
+    }
+}
+
 pub type CustomerAllOrOne = AllOrOne<CustomerId>;
 
 #[derive(Clone, Copy, Debug, PartialEq, strum::EnumDiscriminants)]

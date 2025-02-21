@@ -2,8 +2,6 @@ use thiserror::Error;
 
 use core_money::{Satoshis, UsdCents};
 
-// use crate::primitives::DepositAccountHolderId;
-
 #[derive(Error, Debug)]
 pub enum CreditFacilityError {
     #[error("CreditFacilityError - Sqlx: {0}")]
@@ -14,10 +12,6 @@ pub enum CreditFacilityError {
     CursorDestructureError(#[from] es_entity::CursorDestructureError),
     #[error("CreditFacilityError - ConversionError: {0}")]
     ConversionError(#[from] crate::primitives::ConversionError),
-    // #[error("CreditFacilityError - DepositAccountForHolderNotFound: {0}")]
-    // DepositAccountForHolderNotFound(DepositAccountHolderId),
-    // #[error("CreditFacilityError - CoreDepositError: '{0}'")]
-    // CoreDepositError(#[from] crate::deposit::error::CoreDepositError),
     #[error("CreditFacilityError - InterestAccrualError: {0}")]
     InterestAccrualError(#[from] crate::interest_accrual::error::InterestAccrualError),
     #[error("CreditFacilityError - ApprovalInProgress")]
@@ -50,8 +44,6 @@ pub enum CreditFacilityError {
     InterestAccrualInProgress,
     #[error("CreditFacilityError - InterestAccrualWithInvalidFutureStartDate")]
     InterestAccrualWithInvalidFutureStartDate,
-    #[error("CreditFacilityError - SubjectIsNotUser")]
-    SubjectIsNotUser,
     #[error(
         "CreditFacilityError - DisbursalAmountTooLarge: amount '{0}' is larger than facility balance '{1}'"
     )]

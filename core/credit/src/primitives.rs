@@ -9,13 +9,13 @@ pub use cala_ledger::primitives::{
     DebitOrCredit as LedgerDebitOrCredit, JournalId as LedgerJournalId,
     TransactionId as LedgerTxId, TxTemplateId as LedgerTxTemplateId,
 };
+pub use core_customer::CustomerId;
 pub use core_money::*;
 pub use core_price::PriceOfOneBTC;
 pub use governance::ApprovalProcessId;
 
 es_entity::entity_id! {
     CreditFacilityId,
-    CreditRecipientId,
     DisbursalId,
     PaymentId,
     InterestAccrualId;

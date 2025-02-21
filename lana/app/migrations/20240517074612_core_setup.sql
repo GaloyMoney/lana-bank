@@ -162,7 +162,7 @@ CREATE TABLE user_events (
 
 CREATE TABLE core_credit_facilities (
   id UUID PRIMARY KEY,
-  credit_recipient_id UUID NOT NULL REFERENCES customers(id),
+  customer_id UUID NOT NULL REFERENCES customers(id),
   approval_process_id UUID NOT NULL REFERENCES approval_processes(id),
   collateralization_ratio NUMERIC,
   collateralization_state VARCHAR NOT NULL,

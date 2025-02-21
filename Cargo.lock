@@ -1129,6 +1129,7 @@ dependencies = [
  "cala-ledger",
  "chart-of-accounts",
  "chrono",
+ "core-customer",
  "core-money",
  "core-price",
  "deposit",
