@@ -274,11 +274,11 @@ pub enum Duration {
 }
 
 impl Duration {
-    pub fn expiration_date(&self, start_date: DateTime<Utc>) -> DateTime<Utc> {
+    pub fn maturity_date(&self, start_date: DateTime<Utc>) -> DateTime<Utc> {
         match self {
             Duration::Months(months) => start_date
                 .checked_add_months(chrono::Months::new(*months))
-                .expect("should return a expiration date"),
+                .expect("should return a maturity date"),
         }
     }
 }
@@ -642,11 +642,11 @@ mod test {
     }
 
     #[test]
-    fn expiration_date() {
+    fn maturity_date() {
         let start_date = "2024-12-03T14:00:00Z".parse::<DateTime<Utc>>().unwrap();
         let duration = Duration::Months(3);
-        let expiration_date = "2025-03-03T14:00:00Z".parse::<DateTime<Utc>>().unwrap();
-        assert_eq!(duration.expiration_date(start_date), expiration_date);
+        let maturity_date = "2025-03-03T14:00:00Z".parse::<DateTime<Utc>>().unwrap();
+        assert_eq!(duration.maturity_date(start_date), maturity_date);
     }
 
     #[test]

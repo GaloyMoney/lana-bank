@@ -2,7 +2,7 @@ query creditFacility($id: UUID!) {
   creditFacility(id: $id) {
     creditFacilityId
     status
-    expiresAt
+    maturesAt
     collateralizationState
     facilityAmount
     disbursals {

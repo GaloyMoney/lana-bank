@@ -178,8 +178,8 @@ ymd() {
   [[ "$amount" -gt "0" ]] || exit 1
 
   last_accrual_at=$(echo $last_accrual | jq -r '.recordedAt' | ymd)
-  expires_at=$(graphql_output '.data.creditFacility.expiresAt' | ymd)
-  [[ "$last_accrual_at" == "$expires_at" ]] || exit 1
+  matures_at=$(graphql_output '.data.creditFacility.maturesAt' | ymd)
+  [[ "$last_accrual_at" == "$matures_at" ]] || exit 1
 
   assert_accounts_balanced
 }

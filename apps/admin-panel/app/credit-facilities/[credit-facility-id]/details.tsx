@@ -55,8 +55,8 @@ const CreditFacilityDetailsCard: React.FC<CreditFacilityDetailsProps> = ({
       ),
     },
     {
-      label: "Expires At",
-      value: formatDate(creditFacilityDetails.expiresAt),
+      label: "Matures At",
+      value: formatDate(creditFacilityDetails.maturesAt),
     },
   ]
 

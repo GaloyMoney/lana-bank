@@ -34,7 +34,7 @@ pub struct CreditFacility {
     credit_facility_id: UUID,
     approval_process_id: UUID,
     activated_at: Option<Timestamp>,
-    expires_at: Option<Timestamp>,
+    matures_at: Option<Timestamp>,
     created_at: Timestamp,
     collateralization_state: CollateralizationState,
     facility_amount: UsdCents,
@@ -48,14 +48,14 @@ pub struct CreditFacility {
 impl From<DomainCreditFacility> for CreditFacility {
     fn from(credit_facility: DomainCreditFacility) -> Self {
         let activated_at: Option<Timestamp> = credit_facility.activated_at.map(|t| t.into());
-        let expires_at: Option<Timestamp> = credit_facility.expires_at.map(|t| t.into());
+        let matures_at: Option<Timestamp> = credit_facility.matures_at.map(|t| t.into());
 
         Self {
             id: credit_facility.id.to_global_id(),
             credit_facility_id: UUID::from(credit_facility.id),
             approval_process_id: UUID::from(credit_facility.approval_process_id),
             activated_at,
-            expires_at,
+            matures_at,
             can_be_completed: credit_facility.can_be_completed(),
             created_at: credit_facility.created_at().into(),
             facility_amount: credit_facility.initial_facility(),

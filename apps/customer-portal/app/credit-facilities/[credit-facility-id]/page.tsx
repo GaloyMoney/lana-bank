@@ -37,7 +37,7 @@ gql`
       status
       createdAt
       activatedAt
-      expiresAt
+      maturesAt
       disbursals {
         id
         disbursalId
@@ -168,8 +168,8 @@ async function page({ params }: { params: { "credit-facility-id": string } }) {
       value: removeUnderscore(data.creditFacility.collateralizationState),
     },
     {
-      label: "Expires At",
-      value: formatDate(data.creditFacility.expiresAt) || "N/A",
+      label: "Matures At",
+      value: formatDate(data.creditFacility.maturesAt) || "N/A",
     },
     {
       label: "Status",

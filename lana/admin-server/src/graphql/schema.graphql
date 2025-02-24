@@ -358,7 +358,7 @@ type CreditFacility {
 	creditFacilityId: UUID!
 	approvalProcessId: UUID!
 	activatedAt: Timestamp
-	expiresAt: Timestamp
+	maturesAt: Timestamp
 	createdAt: Timestamp!
 	collateralizationState: CollateralizationState!
 	facilityAmount: UsdCents!
@@ -579,7 +579,7 @@ enum CreditFacilityStatus {
 	PENDING_COLLATERALIZATION
 	PENDING_APPROVAL
 	ACTIVE
-	EXPIRED
+	MATURED
 	CLOSED
 }
 

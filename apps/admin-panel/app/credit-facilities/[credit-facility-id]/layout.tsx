@@ -33,7 +33,7 @@ gql`
     creditFacilityId
     status
     facilityAmount
-    expiresAt
+    maturesAt
     collateral
     collateralizationState
     createdAt

@@ -120,13 +120,13 @@ pub(super) fn project<'a>(
         .map(CreditFacilityRepaymentInPlan::Interest)
         .collect();
 
-    let expiry_date = terms.duration.expiration_date(activated_at);
+    let maturity_date = terms.duration.maturity_date(activated_at);
     let last_interest_payment = last_interest_accrual_at.unwrap_or(activated_at);
     let mut next_interest_period = terms
         .accrual_interval
         .period_from(last_interest_payment)
         .next()
-        .truncate(expiry_date);
+        .truncate(maturity_date);
 
     if !due_and_outstanding.is_zero() {
         while let Some(period) = next_interest_period {
@@ -142,7 +142,7 @@ pub(super) fn project<'a>(
                 due_at: period.end,
             }));
 
-            next_interest_period = period.next().truncate(expiry_date);
+            next_interest_period = period.next().truncate(maturity_date);
         }
     }
 
@@ -154,8 +154,8 @@ pub(super) fn project<'a>(
         },
         initial: total_disbursed,
         outstanding: due_and_outstanding_disbursed,
-        accrual_at: expiry_date,
-        due_at: expiry_date,
+        accrual_at: maturity_date,
+        due_at: maturity_date,
     }));
 
     res

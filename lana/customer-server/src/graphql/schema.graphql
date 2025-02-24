@@ -38,7 +38,7 @@ type CreditFacility {
 	status: CreditFacilityStatus!
 	createdAt: Timestamp!
 	activatedAt: Timestamp
-	expiresAt: Timestamp
+	maturesAt: Timestamp
 	creditFacilityTerms: TermValues!
 	balance: CreditFacilityBalance!
 	currentCvl: FacilityCVL!
@@ -142,7 +142,7 @@ enum CreditFacilityStatus {
 	PENDING_COLLATERALIZATION
 	PENDING_APPROVAL
 	ACTIVE
-	EXPIRED
+	MATURED
 	CLOSED
 }
 

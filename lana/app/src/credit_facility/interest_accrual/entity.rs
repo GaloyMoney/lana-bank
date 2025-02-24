@@ -20,7 +20,7 @@ pub enum InterestAccrualEvent {
         facility_id: CreditFacilityId,
         idx: InterestAccrualIdx,
         started_at: DateTime<Utc>,
-        facility_expires_at: DateTime<Utc>,
+        facility_matures_at: DateTime<Utc>,
         terms: TermValues,
         audit_info: AuditInfo,
     },
@@ -47,7 +47,7 @@ pub struct InterestAccrual {
     pub credit_facility_id: CreditFacilityId,
     pub idx: InterestAccrualIdx,
     pub started_at: DateTime<Utc>,
-    pub facility_expires_at: DateTime<Utc>,
+    pub facility_matures_at: DateTime<Utc>,
     pub terms: TermValues,
     pub(super) events: EntityEvents<InterestAccrualEvent>,
 }
@@ -78,7 +78,7 @@ impl TryFromEvents<InterestAccrualEvent> for InterestAccrual {
                     facility_id,
                     idx,
                     started_at,
-                    facility_expires_at,
+                    facility_matures_at,
                     terms,
                     ..
                 } => {
@@ -87,7 +87,7 @@ impl TryFromEvents<InterestAccrualEvent> for InterestAccrual {
                         .credit_facility_id(*facility_id)
                         .idx(*idx)
                         .started_at(*started_at)
-                        .facility_expires_at(*facility_expires_at)
+                        .facility_matures_at(*facility_matures_at)
                         .terms(*terms)
                 }
                 InterestAccrualEvent::InterestIncurred { .. } => (),
@@ -103,8 +103,8 @@ impl InterestAccrual {
         self.terms
             .accrual_interval
             .period_from(self.started_at)
-            .truncate(self.facility_expires_at)
-            .expect("'started_at' should be before 'facility_expires_at'")
+            .truncate(self.facility_matures_at)
+            .expect("'started_at' should be before 'facility_matures_at'")
             .end
     }
 
@@ -253,7 +253,7 @@ pub struct NewInterestAccrual {
     pub(in crate::credit_facility) credit_facility_id: CreditFacilityId,
     pub(in crate::credit_facility) idx: InterestAccrualIdx,
     pub(in crate::credit_facility) started_at: DateTime<Utc>,
-    pub(in crate::credit_facility) facility_expires_at: DateTime<Utc>,
+    pub(in crate::credit_facility) facility_matures_at: DateTime<Utc>,
     terms: TermValues,
     #[builder(setter(into))]
     audit_info: AuditInfo,
@@ -278,7 +278,7 @@ impl IntoEvents<InterestAccrualEvent> for NewInterestAccrual {
                 facility_id: self.credit_facility_id,
                 idx: self.idx,
                 started_at: self.started_at,
-                facility_expires_at: self.facility_expires_at,
+                facility_matures_at: self.facility_matures_at,
                 terms: self.terms,
                 audit_info: self.audit_info,
             }],
@@ -336,7 +336,7 @@ mod test {
             facility_id: CreditFacilityId::new(),
             idx: InterestAccrualIdx::FIRST,
             started_at,
-            facility_expires_at: terms.duration.expiration_date(started_at),
+            facility_matures_at: terms.duration.maturity_date(started_at),
             terms,
             audit_info: dummy_audit_info(),
         }]
@@ -421,13 +421,11 @@ mod test {
     fn next_incurrence_period_at_end() {
         let mut events = initial_events();
 
-        let facility_expires_at = default_terms()
-            .duration
-            .expiration_date(default_started_at());
+        let facility_matures_at = default_terms().duration.maturity_date(default_started_at());
         let final_incurrence_period = default_terms()
             .accrual_interval
             .period_from(default_started_at())
-            .truncate(facility_expires_at)
+            .truncate(facility_matures_at)
             .unwrap();
         let final_incurrence_at = final_incurrence_period.end;
 

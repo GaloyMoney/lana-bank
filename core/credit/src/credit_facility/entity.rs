@@ -322,7 +322,7 @@ pub struct CreditFacility {
     #[builder(setter(strip_option), default)]
     pub activated_at: Option<DateTime<Utc>>,
     #[builder(setter(strip_option), default)]
-    pub expires_at: Option<DateTime<Utc>>,
+    pub matures_at: Option<DateTime<Utc>>,
 
     #[es_entity(nested)]
     #[builder(default)]
@@ -383,7 +383,7 @@ impl CreditFacility {
     }
 
     fn disbursed_due(&self) -> UsdCents {
-        if self.is_expired() {
+        if self.is_matured() {
             self.total_disbursed()
         } else {
             UsdCents::ZERO
@@ -468,16 +468,16 @@ impl CreditFacility {
         false
     }
 
-    pub fn is_expired(&self) -> bool {
+    pub fn is_matured(&self) -> bool {
         let now = crate::time::now();
-        self.expires_at.is_some_and(|expires_at| now > expires_at)
+        self.matures_at.is_some_and(|matures_at| now > matures_at)
     }
 
     pub fn status(&self) -> CreditFacilityStatus {
         if self.is_completed() {
             CreditFacilityStatus::Closed
-        } else if self.is_expired() {
-            CreditFacilityStatus::Expired
+        } else if self.is_matured() {
+            CreditFacilityStatus::Matured
         } else if self.is_activated() {
             CreditFacilityStatus::Active
         } else if self.is_fully_collateralized() {
@@ -532,7 +532,7 @@ impl CreditFacility {
             .check_approval_allowed(self.terms)?;
 
         self.activated_at = Some(activated_at);
-        self.expires_at = Some(self.terms.duration.expiration_date(activated_at));
+        self.matures_at = Some(self.terms.duration.maturity_date(activated_at));
         let tx_id = LedgerTxId::new();
         self.events.push(CreditFacilityEvent::Activated {
             ledger_tx_id: tx_id,
@@ -564,9 +564,9 @@ impl CreditFacility {
         approval_process_id: Option<ApprovalProcessId>,
         audit_info: AuditInfo,
     ) -> Result<NewDisbursal, CreditFacilityError> {
-        if let Some(expires_at) = self.expires_at {
-            if initiated_at > expires_at {
-                return Err(CreditFacilityError::DisbursalPastExpiryDate);
+        if let Some(matures_at) = self.matures_at {
+            if initiated_at > matures_at {
+                return Err(CreditFacilityError::DisbursalPastMaturityDate);
             }
         }
 
@@ -647,7 +647,7 @@ impl CreditFacility {
             ),
         };
 
-        Ok(full_period.truncate(self.expires_at.expect("Facility is already active")))
+        Ok(full_period.truncate(self.matures_at.expect("Facility is already active")))
     }
 
     pub(crate) fn start_interest_accrual(
@@ -686,7 +686,7 @@ impl CreditFacility {
             .credit_facility_id(self.id)
             .idx(idx)
             .started_at(accrual_period.start)
-            .facility_expires_at(self.expires_at.expect("Facility is already approved"))
+            .facility_matures_at(self.matures_at.expect("Facility is already approved"))
             .terms(self.terms)
             .audit_info(audit_info)
             .build()
@@ -898,7 +898,7 @@ impl CreditFacility {
                 | CreditFacilityStatus::PendingApproval => facility_cvl
                     .total
                     .collateralization_update(self.terms, last_collateralization_state, None, true),
-                CreditFacilityStatus::Active | CreditFacilityStatus::Expired => {
+                CreditFacilityStatus::Active | CreditFacilityStatus::Matured => {
                     let cvl = if self.total_disbursed() == UsdCents::ZERO {
                         facility_cvl.total
                     } else {
@@ -1126,11 +1126,11 @@ impl TryFromEvents<CreditFacilityEvent> for CreditFacility {
                         .approval_process_id(*approval_process_id)
                 }
                 CreditFacilityEvent::Activated { activated_at, .. } => {
-                    builder = builder.activated_at(*activated_at).expires_at(
+                    builder = builder.activated_at(*activated_at).matures_at(
                         terms
                             .expect("terms should be set")
                             .duration
-                            .expiration_date(*activated_at),
+                            .maturity_date(*activated_at),
                     )
                 }
                 CreditFacilityEvent::ApprovalProcessConcluded { .. } => (),
@@ -1381,7 +1381,7 @@ mod test {
     }
 
     #[test]
-    fn outstanding_from_due_before_expiry() {
+    fn outstanding_from_due_before_maturity() {
         let mut events = initial_events();
         let activated_at = Utc::now();
         let disbursal_id = DisbursalId::new();
@@ -1415,7 +1415,7 @@ mod test {
     }
 
     #[test]
-    fn outstanding_from_due_after_expiry() {
+    fn outstanding_from_due_after_maturity() {
         let mut events = initial_events();
         let activated_at = "2023-01-01T00:00:00Z".parse::<DateTime<Utc>>().unwrap();
         let disbursal_id = DisbursalId::new();
@@ -1613,9 +1613,9 @@ mod test {
                 .credit_facility_id(credit_facility.id)
                 .idx(new_idx)
                 .started_at(accrual_starts_at)
-                .facility_expires_at(
+                .facility_matures_at(
                     credit_facility
-                        .expires_at
+                        .matures_at
                         .expect("Facility is already approved"),
                 )
                 .terms(credit_facility.terms)
@@ -1631,7 +1631,7 @@ mod test {
         assert_eq!(
             accrual_period.start.format("%Y-%m").to_string(),
             credit_facility
-                .expires_at
+                .matures_at
                 .unwrap()
                 .format("%Y-%m")
                 .to_string()
@@ -1699,7 +1699,7 @@ mod test {
     fn check_activated_at() {
         let mut credit_facility = facility_from(initial_events());
         assert_eq!(credit_facility.activated_at, None);
-        assert_eq!(credit_facility.expires_at, None);
+        assert_eq!(credit_facility.matures_at, None);
 
         credit_facility
             .record_collateral_update(
@@ -1720,7 +1720,7 @@ mod test {
             .unwrap()
             .did_execute());
         assert_eq!(credit_facility.activated_at, Some(approval_time));
-        assert!(credit_facility.expires_at.is_some())
+        assert!(credit_facility.matures_at.is_some())
     }
 
     #[test]
@@ -2017,7 +2017,7 @@ mod test {
         }
 
         #[test]
-        fn initiate_repayment_before_expiry_errors_for_amount_above_interest() {
+        fn initiate_repayment_before_maturity_errors_for_amount_above_interest() {
             let activated_at = Utc::now();
             let mut credit_facility = credit_facility_with_interest_accrual(activated_at);
             let interest = credit_facility.outstanding().interest;
@@ -2043,7 +2043,7 @@ mod test {
         }
 
         #[test]
-        fn initiate_repayment_after_expiry_errors_for_amount_above_total() {
+        fn initiate_repayment_after_maturity_errors_for_amount_above_total() {
             let activated_at = "2023-01-01T00:00:00Z".parse::<DateTime<Utc>>().unwrap();
             let mut credit_facility = credit_facility_with_interest_accrual(activated_at);
             let outstanding = credit_facility.outstanding().total();
@@ -2069,7 +2069,7 @@ mod test {
         }
 
         #[test]
-        fn confirm_repayment_before_expiry() {
+        fn confirm_repayment_before_maturity() {
             let activated_at = Utc::now();
             let mut credit_facility = credit_facility_with_interest_accrual(activated_at);
 
@@ -2094,7 +2094,7 @@ mod test {
         }
 
         #[test]
-        fn confirm_partial_repayment_after_expiry() {
+        fn confirm_partial_repayment_after_maturity() {
             let activated_at = "2023-01-01T00:00:00Z".parse::<DateTime<Utc>>().unwrap();
             let mut credit_facility = credit_facility_with_interest_accrual(activated_at);
 

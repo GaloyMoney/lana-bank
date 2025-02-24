@@ -114,7 +114,7 @@ generates:
               createdAt: "generateMockValue.timestamp()"
               updatedAt: "generateMockValue.timestamp()"
               activatedAt: "generateMockValue.timestamp()"
-              expiresAt: "generateMockValue.timestamp()"
+              maturesAt: "generateMockValue.timestamp()"
               recordedAt: "generateMockValue.timestamp()"
               votedAt: "generateMockValue.timestamp()"
               telegramId: "generateMockValue.telegramId()"

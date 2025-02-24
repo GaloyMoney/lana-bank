@@ -80,7 +80,7 @@ pub enum CreditFacilityStatus {
     PendingCollateralization,
     PendingApproval,
     Active,
-    Expired,
+    Matured,
     Closed,
 }
 

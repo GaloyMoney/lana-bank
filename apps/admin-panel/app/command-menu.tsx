@@ -222,7 +222,7 @@ const CommandMenu = () => {
       condition: () =>
         facility?.subjectCanUpdateCollateral &&
         facility?.status !== CreditFacilityStatus.Closed &&
-        facility?.status !== CreditFacilityStatus.Expired,
+        facility?.status !== CreditFacilityStatus.Matured,
     },
     {
       label: "Create Disbursal",
