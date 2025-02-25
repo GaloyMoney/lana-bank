@@ -1,6 +1,7 @@
 mod entity;
 pub mod error;
 mod history;
+mod interest_outstanding;
 mod repayment_plan;
 mod repo;
 

@@ -13,7 +13,7 @@ use crate::{
 
 use crate::{disbursal::*, interest_accrual::*, ledger::*, payment::*};
 
-use super::{error::CreditFacilityError, history, repayment_plan};
+use super::{error::CreditFacilityError, history, interest_outstanding, repayment_plan};
 
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
@@ -412,6 +412,22 @@ impl CreditFacility {
         }
     }
 
+    fn interest_total_outstanding(&self) -> UsdCents {
+        interest_outstanding::project(self.events.iter_all()).total()
+    }
+
+    fn _interest_outstanding_due(&self) -> UsdCents {
+        interest_outstanding::project(self.events.iter_all()).due
+    }
+
+    fn interest_outstanding_overdue(&self) -> UsdCents {
+        interest_outstanding::project(self.events.iter_all()).overdue
+    }
+
+    fn _interest_outstanding_defaulted(&self) -> UsdCents {
+        interest_outstanding::project(self.events.iter_all()).defaulted
+    }
+
     fn facility_remaining(&self) -> UsdCents {
         self.initial_facility() - self.total_disbursed()
     }
@@ -433,18 +449,6 @@ impl CreditFacility {
                 CreditFacilityEvent::PaymentRecorded {
                     disbursal_amount, ..
                 } => Some(*disbursal_amount),
-                _ => None,
-            })
-            .fold(UsdCents::ZERO, |acc, amount| acc + amount)
-    }
-
-    fn interest_payments(&self) -> UsdCents {
-        self.events
-            .iter_all()
-            .filter_map(|event| match event {
-                CreditFacilityEvent::PaymentRecorded {
-                    interest_amount, ..
-                } => Some(*interest_amount),
                 _ => None,
             })
             .fold(UsdCents::ZERO, |acc, amount| acc + amount)
@@ -786,7 +790,7 @@ impl CreditFacility {
     pub fn total_outstanding(&self) -> CreditFacilityReceivable {
         CreditFacilityReceivable {
             disbursed: self.disbursed_total_outstanding(),
-            interest: self.interest_accrued() - self.interest_payments(),
+            interest: self.interest_total_outstanding(),
         }
     }
 
@@ -801,7 +805,7 @@ impl CreditFacility {
     pub fn outstanding_overdue(&self) -> CreditFacilityReceivable {
         CreditFacilityReceivable {
             disbursed: self.disbursed_outstanding_overdue(),
-            interest: self.interest_accrued() - self.interest_payments(),
+            interest: self.interest_outstanding_overdue(),
         }
     }
 
