@@ -12,4 +12,6 @@ pub enum ServiceAccountError {
     Deserialization(#[from] serde_json::Error),
     #[error("ServiceAccountError - Base64Decode: {0}")]
     Base64Decode(#[from] base64::DecodeError),
+    #[error("ServiceAccountError - CredentialsNotProvided")]
+    CredentialsNotProvided,
 }
