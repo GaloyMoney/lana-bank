@@ -27,6 +27,7 @@ use crate::{
     primitives::Subject,
     profit_and_loss::ProfitAndLossStatements,
     report::Reports,
+    statement::Statements,
     storage::Storage,
     terms_template::TermsTemplates,
     trial_balance::TrialBalances,
@@ -53,6 +54,7 @@ pub struct LanaApp {
     profit_and_loss_statements: ProfitAndLossStatements,
     balance_sheets: BalanceSheets,
     cash_flow_statements: CashFlowStatements,
+    statements: Statements,
     price: Price,
     report: Reports,
     terms_templates: TermsTemplates,
@@ -97,6 +99,7 @@ impl LanaApp {
             BalanceSheets::init(&pool, &authz, &cala, journal_init.journal_id).await?;
         let cash_flow_statements =
             CashFlowStatements::init(&pool, &authz, &cala, journal_init.journal_id).await?;
+        let statements = Statements::init(&pool, &authz, &cala, journal_init.journal_id).await?;
         StatementsInit::statements(
             &trial_balances,
             &pl_statements,
@@ -173,6 +176,7 @@ impl LanaApp {
             profit_and_loss_statements: pl_statements,
             balance_sheets,
             cash_flow_statements,
+            statements,
             terms_templates,
             documents,
             outbox,
@@ -256,6 +260,10 @@ impl LanaApp {
 
     pub fn cash_flow_statements(&self) -> &CashFlowStatements {
         &self.cash_flow_statements
+    }
+
+    pub fn statements(&self) -> &Statements {
+        &self.statements
     }
 
     pub fn users(&self) -> &Users {
