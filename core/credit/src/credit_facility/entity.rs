@@ -128,7 +128,7 @@ impl CreditFacilityReceivable {
         self.total().is_zero()
     }
 
-    fn add_to_disbursed(&self, amount: UsdCents) -> Self {
+    fn with_added_disbursal_amount(&self, amount: UsdCents) -> Self {
         Self {
             disbursed: self.disbursed + amount,
             interest: self.interest,
@@ -757,18 +757,19 @@ impl CreditFacility {
         }
     }
 
-    pub fn outstanding(&self) -> CreditFacilityReceivable {
+    pub fn total_outstanding(&self) -> CreditFacilityReceivable {
         CreditFacilityReceivable {
             disbursed: self.total_disbursed() - self.disbursed_payments(),
             interest: self.interest_accrued() - self.interest_payments(),
         }
     }
 
-    pub fn outstanding_after_disbursal(
+    pub fn total_outstanding_after_added_disbursal_amount(
         &self,
         disbursal_amount: UsdCents,
     ) -> CreditFacilityReceivable {
-        self.outstanding().add_to_disbursed(disbursal_amount)
+        self.total_outstanding()
+            .with_added_disbursal_amount(disbursal_amount)
     }
 
     pub fn outstanding_from_due(&self) -> CreditFacilityReceivable {
@@ -786,16 +787,16 @@ impl CreditFacility {
             facility_remaining: self.facility_remaining(),
             collateral: self.collateral(),
             total_disbursed: self.total_disbursed(),
-            disbursed_receivable: self.outstanding().disbursed,
-            due_disbursed_receivable: self.outstanding_from_due().disbursed,
+            disbursed_receivable: self.total_outstanding().disbursed,
+            due_disbursed_receivable: self.outstanding_due_and_not_overdue().disbursed,
             total_interest_accrued: self.interest_accrued(),
-            interest_receivable: self.outstanding().interest,
-            due_interest_receivable: self.outstanding_from_due().interest,
+            interest_receivable: self.total_outstanding().interest,
+            due_interest_receivable: self.outstanding_due_and_not_overdue().interest,
         }
     }
 
     pub fn can_be_completed(&self) -> bool {
-        self.outstanding().is_zero()
+        self.total_outstanding().is_zero()
     }
 
     pub fn collateral(&self) -> Satoshis {
@@ -812,7 +813,7 @@ impl CreditFacility {
     }
 
     pub fn facility_cvl_data(&self) -> FacilityCVLData {
-        self.outstanding()
+        self.total_outstanding()
             .facility_cvl_data(self.collateral(), self.facility_remaining())
     }
 
@@ -824,10 +825,10 @@ impl CreditFacility {
         now: DateTime<Utc>,
         audit_info: AuditInfo,
     ) -> Result<NewPayment, CreditFacilityError> {
-        if self.outstanding().is_zero() {
+        if self.total_outstanding().is_zero() {
             return Err(
                 CreditFacilityError::PaymentExceedsOutstandingCreditFacilityAmount(
-                    self.outstanding().total(),
+                    self.total_outstanding().total(),
                     amount,
                 ),
             );
@@ -925,7 +926,7 @@ impl CreditFacility {
                 .push(CreditFacilityEvent::CollateralizationChanged {
                     state: calculated_collateralization,
                     collateral: self.collateral(),
-                    outstanding: self.outstanding(),
+                    outstanding: self.total_outstanding(),
                     price,
                     recorded_at: now,
                     audit_info: audit_info.clone(),
@@ -938,7 +939,7 @@ impl CreditFacility {
     }
 
     fn projected_cvl_data_for_disbursal(&self, disbursal_amount: UsdCents) -> FacilityCVLData {
-        self.outstanding_after_disbursal(disbursal_amount)
+        self.total_outstanding_after_added_disbursal_amount(disbursal_amount)
             .facility_cvl_data(self.collateral(), self.facility_remaining())
     }
 
@@ -1028,7 +1029,7 @@ impl CreditFacility {
         if self.is_completed() {
             return Err(CreditFacilityError::AlreadyCompleted);
         }
-        if !self.outstanding().is_zero() {
+        if !self.total_outstanding().is_zero() {
             return Err(CreditFacilityError::OutstandingAmount);
         }
 
@@ -1067,7 +1068,7 @@ impl CreditFacility {
         {
             self.initial_facility()
         } else {
-            self.outstanding().total()
+            self.total_outstanding().total()
         };
 
         if amount > UsdCents::ZERO {
@@ -1376,7 +1377,7 @@ mod test {
         let credit_facility = facility_from(events);
 
         assert_eq!(
-            credit_facility.outstanding(),
+            credit_facility.total_outstanding(),
             CreditFacilityReceivable {
                 disbursed: UsdCents::from(100),
                 interest: UsdCents::ZERO
@@ -1992,7 +1993,7 @@ mod test {
 
             let mut accrual_data: Option<InterestAccrualData> = None;
             while accrual_data.is_none() {
-                let outstanding = credit_facility.outstanding();
+                let outstanding = credit_facility.total_outstanding();
                 let accrual = credit_facility.interest_accrual_in_progress().unwrap();
                 accrual.record_incurrence(outstanding, dummy_audit_info());
                 accrual_data = accrual.accrual_data();
@@ -2024,7 +2025,7 @@ mod test {
         fn initiate_repayment_before_maturity_errors_for_amount_above_interest() {
             let activated_at = Utc::now();
             let mut credit_facility = credit_facility_with_interest_accrual(activated_at);
-            let interest = credit_facility.outstanding().interest;
+            let interest = credit_facility.total_outstanding().interest;
 
             assert!(credit_facility
                 .initiate_repayment(
@@ -2050,7 +2051,7 @@ mod test {
         fn initiate_repayment_after_maturity_errors_for_amount_above_total() {
             let activated_at = "2023-01-01T00:00:00Z".parse::<DateTime<Utc>>().unwrap();
             let mut credit_facility = credit_facility_with_interest_accrual(activated_at);
-            let outstanding = credit_facility.outstanding().total();
+            let outstanding = credit_facility.total_outstanding().total();
 
             assert!(credit_facility
                 .initiate_repayment(
@@ -2077,8 +2078,8 @@ mod test {
             let activated_at = Utc::now();
             let mut credit_facility = credit_facility_with_interest_accrual(activated_at);
 
-            let repayment_amount = credit_facility.outstanding().interest;
-            let outstanding_before = credit_facility.outstanding();
+            let repayment_amount = credit_facility.total_outstanding().interest;
+            let outstanding_before = credit_facility.total_outstanding();
             credit_facility
                 .initiate_repayment(
                     repayment_amount,
@@ -2089,7 +2090,7 @@ mod test {
                 )
                 .unwrap();
 
-            let outstanding_after = credit_facility.outstanding();
+            let outstanding_after = credit_facility.total_outstanding();
 
             assert_eq!(
                 outstanding_before.total() - outstanding_after.total(),
@@ -2102,10 +2103,10 @@ mod test {
             let activated_at = "2023-01-01T00:00:00Z".parse::<DateTime<Utc>>().unwrap();
             let mut credit_facility = credit_facility_with_interest_accrual(activated_at);
 
-            let partial_repayment_amount = credit_facility.outstanding().interest
-                + credit_facility.outstanding().disbursed
+            let partial_repayment_amount = credit_facility.total_outstanding().interest
+                + credit_facility.total_outstanding().disbursed
                 - UsdCents::from(100);
-            let outstanding_before = credit_facility.outstanding();
+            let outstanding_before = credit_facility.total_outstanding();
             credit_facility
                 .initiate_repayment(
                     partial_repayment_amount,
@@ -2115,7 +2116,7 @@ mod test {
                     dummy_audit_info(),
                 )
                 .unwrap();
-            let outstanding_after = credit_facility.outstanding();
+            let outstanding_after = credit_facility.total_outstanding();
 
             assert!(!outstanding_after.is_zero());
             assert_eq!(
@@ -2131,14 +2132,14 @@ mod test {
 
             credit_facility
                 .initiate_repayment(
-                    credit_facility.outstanding().total(),
+                    credit_facility.total_outstanding().total(),
                     default_price(),
                     default_upgrade_buffer_cvl_pct(),
                     Utc::now(),
                     dummy_audit_info(),
                 )
                 .unwrap();
-            assert!(credit_facility.outstanding().is_zero());
+            assert!(credit_facility.total_outstanding().is_zero());
 
             credit_facility
                 .complete(
