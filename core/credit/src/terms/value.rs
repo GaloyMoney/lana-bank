@@ -395,8 +395,8 @@ pub struct TermValues {
     pub duration: Duration,
     #[builder(setter(into))]
     pub interest_due_duration: InterestDuration,
-    #[builder(setter(into))]
-    pub interest_overdue_duration: InterestDuration,
+    #[builder(default, setter(into))]
+    pub interest_overdue_duration: Option<InterestDuration>,
     #[builder(setter(into))]
     pub accrual_interval: InterestInterval,
     #[builder(setter(into))]
@@ -527,6 +527,7 @@ mod test {
         TermValues::builder()
             .annual_rate(AnnualRatePct(dec!(12)))
             .duration(Duration::Months(3))
+            .interest_due_duration(InterestDuration::Days(0))
             .accrual_interval(InterestInterval::EndOfMonth)
             .incurrence_interval(InterestInterval::EndOfDay)
             .one_time_fee_rate(OneTimeFeeRatePct(dec!(1)))
@@ -755,6 +756,7 @@ mod test {
             TermValues::builder()
                 .annual_rate(dec!(12))
                 .duration(Duration::Months(3))
+                .interest_due_duration(InterestDuration::Days(0))
                 .accrual_interval(InterestInterval::EndOfMonth)
                 .incurrence_interval(InterestInterval::EndOfDay)
                 .one_time_fee_rate(OneTimeFeeRatePct(dec!(1)))

@@ -77,9 +77,8 @@ pub(super) fn project<'a>(
     let mut overdue = UsdCents::ZERO;
     let mut defaulted = UsdCents::ZERO;
     for accrual in accruals {
-        if terms
-            .interest_overdue_duration
-            .is_past_end_date(accrual.accrued_at)
+        if let Some(interest_overdue_duration) = terms.interest_overdue_duration
+            && interest_overdue_duration.is_past_end_date(accrual.accrued_at)
         {
             defaulted += accrual.remaining;
         } else if terms
