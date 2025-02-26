@@ -173,7 +173,7 @@ wait_for_approval() {
     '{
       input: {
         depositAccountId: $depositAccountId,
-        amount: 150000,
+        amount: 120000,
         reference: ("withdrawal-ref-" + $date)
       }
     }'
@@ -185,7 +185,7 @@ wait_for_approval() {
   # settled_usd_balance=$(graphql_output '.data.withdrawalInitiate.withdrawal.customer.balance.checking.settled')
   # [[ "$settled_usd_balance" == "0" ]] || exit 1
   # pending_usd_balance=$(graphql_output '.data.withdrawalInitiate.withdrawal.customer.balance.checking.pending')
-  # [[ "$pending_usd_balance" == "150000" ]] || exit 1
+  # [[ "$pending_usd_balance" == "120000" ]] || exit 1
 
   assert_accounts_balanced
 

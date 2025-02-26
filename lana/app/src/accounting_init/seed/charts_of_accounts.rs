@@ -18,9 +18,14 @@ pub(crate) async fn init(
 ) -> Result<ChartsInit, AccountingInitError> {
     let chart_ids = &create_charts_of_accounts(chart_of_accounts).await?;
 
-    let deposits =
-        create_deposits_account_paths(balance_sheets, trial_balances, chart_of_accounts, chart_ids)
-            .await?;
+    let deposits = create_deposits_account_paths(
+        balance_sheets,
+        trial_balances,
+        cash_flow_statements,
+        chart_of_accounts,
+        chart_ids,
+    )
+    .await?;
 
     let credit_facilities = create_credit_facilities_account_paths(
         balance_sheets,
@@ -141,6 +146,7 @@ async fn create_sub_account_as_account(
 async fn create_deposits_account_paths(
     balance_sheets: &BalanceSheets,
     trial_balances: &TrialBalances,
+    cash_flow_statements: &CashFlowStatements,
     chart_of_accounts: &ChartOfAccounts,
     chart_ids: &ChartIds,
 ) -> Result<DepositsSeed, AccountingInitError> {
@@ -166,6 +172,12 @@ async fn create_deposits_account_paths(
     balance_sheets
         .add_to_liabilities(
             BALANCE_SHEET_NAME.to_string(),
+            deposits_control.account_set_id,
+        )
+        .await?;
+    cash_flow_statements
+        .add_to_from_financing(
+            CASH_FLOW_STATEMENT_NAME.to_string(),
             deposits_control.account_set_id,
         )
         .await?;
@@ -458,12 +470,97 @@ async fn create_credit_facilities_account_paths(
         )
         .await?;
 
+    let (fee_income_adjustment_omnibus_control, fee_income_adjustment_omnibus) =
+        find_or_create_control_sub_account(
+            chart_of_accounts,
+            chart_ids.primary,
+            ControlAccountCreationDetails {
+                account_set_id: LedgerAccountSetId::new(),
+                category: chart_of_accounts::ChartCategory::Expenses,
+                name: CREDIT_FACILITIES_OPERATIONS_NON_CASH_ADJUSTMENTS_CONTROL_ACCOUNT_NAME
+                    .to_string(),
+                reference: CREDIT_FACILITIES_OPERATIONS_NON_CASH_ADJUSTMENTS_CONTROL_ACCOUNT_REF
+                    .to_string(),
+            },
+            CREDIT_FACILITIES_FEE_INCOME_ADJUSTMENT_CONTROL_SUB_ACCOUNT_NAME.to_string(),
+            CREDIT_FACILITIES_FEE_INCOME_ADJUSTMENT_CONTROL_SUB_ACCOUNT_REF.to_string(),
+        )
+        .await?;
+    trial_balances
+        .add_to_trial_balance(
+            TRIAL_BALANCE_STATEMENT_NAME.to_string(),
+            fee_income_adjustment_omnibus_control.account_set_id,
+        )
+        .await?;
+    cash_flow_statements
+        .add_to_fee_income_adjustments(
+            CASH_FLOW_STATEMENT_NAME.to_string(),
+            fee_income_adjustment_omnibus_control.account_set_id,
+        )
+        .await?;
+    let fee_income_adjustment_omnibus_account_id =
+        create_sub_account_as_account(chart_of_accounts, fee_income_adjustment_omnibus).await?;
+
+    let (deposit_adjustment_omnibus_control, deposit_adjustment_omnibus) =
+        find_or_create_control_sub_account(
+            chart_of_accounts,
+            chart_ids.primary,
+            ControlAccountCreationDetails {
+                account_set_id: LedgerAccountSetId::new(),
+                category: chart_of_accounts::ChartCategory::Expenses,
+                name: CREDIT_FACILITIES_FINANCING_NON_CASH_ADJUSTMENTS_CONTROL_ACCOUNT_NAME
+                    .to_string(),
+                reference: CREDIT_FACILITIES_FINANCING_NON_CASH_ADJUSTMENTS_CONTROL_ACCOUNT_REF
+                    .to_string(),
+            },
+            CREDIT_FACILITIES_DEPOSIT_ADJUSTMENT_CONTROL_SUB_ACCOUNT_NAME.to_string(),
+            CREDIT_FACILITIES_DEPOSIT_ADJUSTMENT_CONTROL_SUB_ACCOUNT_REF.to_string(),
+        )
+        .await?;
+    trial_balances
+        .add_to_trial_balance(
+            TRIAL_BALANCE_STATEMENT_NAME.to_string(),
+            deposit_adjustment_omnibus_control.account_set_id,
+        )
+        .await?;
+    cash_flow_statements
+        .add_to_deposit_adjustments(
+            CASH_FLOW_STATEMENT_NAME.to_string(),
+            deposit_adjustment_omnibus_control.account_set_id,
+        )
+        .await?;
+    let deposit_adjustment_omnibus_account_id =
+        create_sub_account_as_account(chart_of_accounts, deposit_adjustment_omnibus).await?;
+
+    let (non_cash_offset_omnibus_control, non_cash_offset_omnibus) =
+        find_or_create_control_sub_account(
+            chart_of_accounts,
+            chart_ids.primary,
+            ControlAccountCreationDetails {
+                account_set_id: LedgerAccountSetId::new(),
+                category: chart_of_accounts::ChartCategory::Equity,
+                name: CREDIT_FACILITIES_NON_CASH_OFFSET_CONTROL_ACCOUNT_NAME.to_string(),
+                reference: CREDIT_FACILITIES_NON_CASH_OFFSET_CONTROL_ACCOUNT_REF.to_string(),
+            },
+            CREDIT_FACILITIES_NON_CASH_OFFSET_CONTROL_SUB_ACCOUNT_NAME.to_string(),
+            CREDIT_FACILITIES_NON_CASH_OFFSET_CONTROL_SUB_ACCOUNT_REF.to_string(),
+        )
+        .await?;
+    trial_balances
+        .add_to_trial_balance(
+            TRIAL_BALANCE_STATEMENT_NAME.to_string(),
+            non_cash_offset_omnibus_control.account_set_id,
+        )
+        .await?;
+    let non_cash_offset_omnibus_account_id =
+        create_sub_account_as_account(chart_of_accounts, non_cash_offset_omnibus).await?;
+
     Ok(CreditFacilitiesSeed {
         factories: CreditFacilityAccountFactories {
+            collateral: chart_of_accounts.transaction_account_factory(collateral),
             facility: chart_of_accounts.transaction_account_factory(facility),
             disbursed_receivable: chart_of_accounts
                 .transaction_account_factory(disbursed_receivable),
-            collateral: chart_of_accounts.transaction_account_factory(collateral),
             interest_receivable: chart_of_accounts.transaction_account_factory(interest_receivable),
             interest_income: chart_of_accounts.transaction_account_factory(interest_income),
             fee_income: chart_of_accounts.transaction_account_factory(fee_income),
@@ -471,6 +568,9 @@ async fn create_credit_facilities_account_paths(
         omnibus_ids: CreditFacilityOmnibusAccountIds {
             bank_collateral: collateral_omnibus_account_id,
             facility: facility_omnibus_account_id,
+            fee_income_adjustment: fee_income_adjustment_omnibus_account_id,
+            debit_account_adjustment: deposit_adjustment_omnibus_account_id,
+            non_cash_offset: non_cash_offset_omnibus_account_id,
         },
     })
 }
