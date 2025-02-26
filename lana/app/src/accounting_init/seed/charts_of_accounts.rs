@@ -94,7 +94,7 @@ async fn find_or_create_control_sub_account(
         Some(details) => details,
         None => {
             chart_of_accounts
-                .create_control_account(
+                .create_system_control_account(
                     control_account.account_set_id,
                     chart_id,
                     control_account.category,
