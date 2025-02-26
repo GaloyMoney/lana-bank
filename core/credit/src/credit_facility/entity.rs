@@ -2065,7 +2065,7 @@ mod test {
 
         #[test]
         fn initiate_repayment_before_maturity_errors_for_amount_above_interest() {
-            let activated_at = Utc::now();
+            let activated_at = Utc::now() - chrono::Duration::days(40);
             let mut credit_facility = credit_facility_with_interest_accrual(activated_at);
             let interest = credit_facility.total_outstanding().interest;
 
@@ -2087,6 +2087,7 @@ mod test {
                     dummy_audit_info(),
                 )
                 .is_ok());
+            assert!(!credit_facility.is_matured())
         }
 
         #[test]
@@ -2113,11 +2114,12 @@ mod test {
                     dummy_audit_info(),
                 )
                 .is_ok());
+            assert!(credit_facility.is_matured())
         }
 
         #[test]
         fn confirm_repayment_before_maturity() {
-            let activated_at = Utc::now();
+            let activated_at = Utc::now() - chrono::Duration::days(40);
             let mut credit_facility = credit_facility_with_interest_accrual(activated_at);
 
             let repayment_amount = credit_facility.total_outstanding().interest;
@@ -2138,6 +2140,7 @@ mod test {
                 outstanding_before.total() - outstanding_after.total(),
                 repayment_amount
             );
+            assert!(!credit_facility.is_matured())
         }
 
         #[test]
@@ -2165,6 +2168,7 @@ mod test {
                 outstanding_before.total() - outstanding_after.total(),
                 partial_repayment_amount
             );
+            assert!(credit_facility.is_matured())
         }
 
         #[test]
