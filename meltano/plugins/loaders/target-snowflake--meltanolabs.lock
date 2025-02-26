@@ -1,0 +1,205 @@
+{
+  "plugin_type": "loaders",
+  "name": "target-snowflake",
+  "namespace": "target_snowflake",
+  "variant": "meltanolabs",
+  "label": "Snowflake",
+  "docs": "https://hub.meltano.com/loaders/target-snowflake--meltanolabs",
+  "repo": "https://github.com/MeltanoLabs/target-snowflake",
+  "pip_url": "meltanolabs-target-snowflake",
+  "executable": "target-snowflake",
+  "description": "Snowflake database loader",
+  "logo_url": "https://hub.meltano.com/assets/logos/loaders/snowflake.png",
+  "capabilities": [
+    "about",
+    "activate-version",
+    "hard-delete",
+    "schema-flattening",
+    "stream-maps"
+  ],
+  "settings_group_validation": [
+    [
+      "account",
+      "database",
+      "password",
+      "user"
+    ]
+  ],
+  "settings": [
+    {
+      "name": "account",
+      "kind": "string",
+      "label": "Account",
+      "description": "Your account identifier. See [Account Identifiers](https://docs.snowflake.com/en/user-guide/admin-account-identifier.html)."
+    },
+    {
+      "name": "add_record_metadata",
+      "kind": "boolean",
+      "value": true,
+      "label": "Add Record Metadata",
+      "description": "Whether to add metadata columns."
+    },
+    {
+      "name": "batch_size_rows",
+      "kind": "integer",
+      "label": "Batch Size Rows",
+      "description": "Maximum number of rows in each batch."
+    },
+    {
+      "name": "clean_up_batch_files",
+      "kind": "boolean",
+      "value": true,
+      "label": "Clean Up Batch Files",
+      "description": "Whether to remove batch files after processing."
+    },
+    {
+      "name": "database",
+      "kind": "string",
+      "label": "Database",
+      "description": "The initial database for the Snowflake session."
+    },
+    {
+      "name": "default_target_schema",
+      "kind": "string",
+      "label": "Default Target Schema",
+      "description": "The default target database schema name to use for all streams."
+    },
+    {
+      "name": "faker_config.locale",
+      "kind": "array",
+      "label": "Faker Locale",
+      "description": "One or more LCID locale strings to produce localized output for: https://faker.readthedocs.io/en/master/#localization"
+    },
+    {
+      "name": "faker_config.seed",
+      "kind": "string",
+      "label": "Faker Seed",
+      "description": "Value to seed the Faker generator for deterministic output: https://faker.readthedocs.io/en/master/#seeding-the-generator"
+    },
+    {
+      "name": "flattening_enabled",
+      "kind": "boolean",
+      "label": "Enable Schema Flattening",
+      "description": "'True' to enable schema flattening and automatically expand nested properties."
+    },
+    {
+      "name": "flattening_max_depth",
+      "kind": "integer",
+      "label": "Max Flattening Depth",
+      "description": "The max depth to flatten schemas."
+    },
+    {
+      "name": "hard_delete",
+      "kind": "boolean",
+      "value": false,
+      "label": "Hard Delete",
+      "description": "Hard delete records."
+    },
+    {
+      "name": "load_method",
+      "kind": "options",
+      "value": "append-only",
+      "label": "Load Method",
+      "description": "The method to use when loading data into the destination. `append-only` will always write all input records whether that records already exists or not. `upsert` will update existing records and insert new records. `overwrite` will delete all existing records and insert all input records.",
+      "options": [
+        {
+          "label": "Append Only",
+          "value": "append-only"
+        },
+        {
+          "label": "Upsert",
+          "value": "upsert"
+        },
+        {
+          "label": "Overwrite",
+          "value": "overwrite"
+        }
+      ]
+    },
+    {
+      "name": "password",
+      "kind": "string",
+      "label": "Password",
+      "description": "The password for your Snowflake user.",
+      "sensitive": true
+    },
+    {
+      "name": "private_key",
+      "kind": "string",
+      "label": "Private Key",
+      "description": "The private key contents. For KeyPair authentication either private_key or private_key_path must be provided.",
+      "sensitive": true
+    },
+    {
+      "name": "private_key_passphrase",
+      "kind": "string",
+      "label": "Private Key Passphrase",
+      "description": "Passphrase to decrypt private key if encrypted.",
+      "sensitive": true
+    },
+    {
+      "name": "private_key_path",
+      "kind": "string",
+      "label": "Private Key Path",
+      "description": "Path to file containing private key. For KeyPair authentication either private_key or private_key_path must be provided.",
+      "sensitive": true
+    },
+    {
+      "name": "process_activate_version_messages",
+      "kind": "boolean",
+      "value": true,
+      "label": "Process `ACTIVATE_VERSION` messages",
+      "description": "Whether to process `ACTIVATE_VERSION` messages."
+    },
+    {
+      "name": "role",
+      "kind": "string",
+      "label": "Role",
+      "description": "The initial role for the session."
+    },
+    {
+      "name": "schema",
+      "kind": "string",
+      "label": "Schema",
+      "description": "The initial schema for the Snowflake session."
+    },
+    {
+      "name": "stream_map_config",
+      "kind": "object",
+      "label": "User Stream Map Configuration",
+      "description": "User-defined config values to be used within map expressions."
+    },
+    {
+      "name": "stream_maps",
+      "kind": "object",
+      "label": "Stream Maps",
+      "description": "Config object for stream maps capability. For more information check out [Stream Maps](https://sdk.meltano.com/en/latest/stream_maps.html)."
+    },
+    {
+      "name": "use_browser_authentication",
+      "kind": "boolean",
+      "value": false,
+      "label": "Use Browser Authentication",
+      "description": "Whether to use SSO authentication using an external browser."
+    },
+    {
+      "name": "user",
+      "kind": "string",
+      "label": "User",
+      "description": "The login name for your Snowflake user."
+    },
+    {
+      "name": "validate_records",
+      "kind": "boolean",
+      "value": true,
+      "label": "Validate Records",
+      "description": "Whether to validate the schema of the incoming streams."
+    },
+    {
+      "name": "warehouse",
+      "kind": "string",
+      "label": "Warehouse",
+      "description": "The initial warehouse for the session."
+    }
+  ]
+}

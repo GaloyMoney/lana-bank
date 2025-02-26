@@ -1,0 +1,24 @@
+meltano:
+  target: dev
+  outputs:
+    dev:
+      type: snowflake
+      account: cdagppu-sy37948
+
+      # User/password auth
+      user: MELTANO_USER
+      password: "{{ env_var('DBT_SNOWFLAKE_PASSWORD') }}"
+
+      role: MELTANO_ROLE
+      database: MELTANO_DATABASE
+      warehouse: MELTANO_WAREHOUSE
+      schema: DBT_SCHEMA
+      threads: 2
+      client_session_keep_alive: False
+
+      # optional
+      connect_retries: 0 # default 0
+      connect_timeout: 10 # default: 10
+      retry_on_database_errors: False # default: false
+      retry_all: False  # default: false
+      reuse_connections: True # default: True if client_session_keep_alive is False, otherwise None

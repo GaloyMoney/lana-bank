@@ -10,7 +10,7 @@ select
     price,
     _sdc_batched_at
 
-from {{ source("lana", "bitfinex_trades_view") }}
+from {{ source("lana", "bitfinex_trades") }}
 
 {% if is_incremental() %}
     where _sdc_batched_at >= (select coalesce(max(_sdc_batched_at), '1900-01-01') from {{ this }})

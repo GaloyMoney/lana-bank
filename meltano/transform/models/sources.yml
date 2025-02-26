@@ -2,10 +2,10 @@ version: 2
 
 sources:
   - name: lana
-    dataset: "{{ env_var('TARGET_BIGQUERY_DATASET', '') }}"
+    schema: RAW_SCHEMA
     tables:
 
-      - name: public_cala_balance_history_view
+      - name: cala_balance_history
         freshness:
           warn_after:
             count: 2
@@ -14,7 +14,7 @@ sources:
             count: 7
             period: day
 
-      - name: public_cala_accounts_view
+      - name: cala_accounts
         freshness:
           warn_after:
             count: 2
@@ -23,7 +23,7 @@ sources:
             count: 7
             period: day
 
-      - name: public_cala_account_sets_view
+      - name: cala_account_sets
         freshness:
           warn_after:
             count: 2
@@ -32,7 +32,7 @@ sources:
             count: 7
             period: day
 
-      - name: public_cala_account_set_member_accounts_view
+      - name: cala_account_set_member_accounts
         freshness:
           warn_after:
             count: 2
@@ -41,7 +41,7 @@ sources:
             count: 7
             period: day
 
-      - name: public_cala_account_set_member_account_sets_view
+      - name: cala_account_set_member_account_sets
         freshness:
           warn_after:
             count: 2
@@ -50,7 +50,7 @@ sources:
             count: 7
             period: day
 
-      - name: public_credit_facility_events_view
+      - name: credit_facility_events
         freshness:
           warn_after:
             count: 2
@@ -59,7 +59,7 @@ sources:
             count: 7
             period: day
 
-      - name: public_customer_events_view
+      - name: customer_events
         freshness:
           warn_after:
             count: 2
@@ -68,7 +68,7 @@ sources:
             count: 7
             period: day
 
-      - name: bitfinex_ticker_view
+      - name: bitfinex_ticker
         freshness:
           warn_after:
             count: 1
@@ -77,7 +77,7 @@ sources:
             count: 1
             period: day
 
-      - name: bitfinex_trades_view
+      - name: bitfinex_trades
         freshness:
           warn_after:
             count: 1
@@ -86,7 +86,7 @@ sources:
             count: 1
             period: day
 
-      - name: bitfinex_order_book_view
+      - name: bitfinex_order_book
         freshness:
           warn_after:
             count: 1
@@ -95,7 +95,7 @@ sources:
             count: 1
             period: day
 
-      - name: sumsub_applicants_view
+      - name: sumsub_applicants
         freshness:
           warn_after:
             count: 2
