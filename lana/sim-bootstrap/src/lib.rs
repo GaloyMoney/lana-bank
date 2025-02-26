@@ -9,7 +9,7 @@ use rust_decimal_macros::dec;
 use lana_app::{
     app::LanaApp,
     primitives::*,
-    terms::{Duration, InterestInterval, TermValues},
+    terms::{Duration, InterestDuration, InterestInterval, TermValues},
 };
 use lana_events::*;
 
@@ -211,6 +211,7 @@ fn std_terms() -> TermValues {
         .margin_call_cvl(dec!(125))
         .liquidation_cvl(dec!(105))
         .duration(Duration::Months(3))
+        .interest_due_duration(InterestDuration::Days(0))
         .incurrence_interval(InterestInterval::EndOfDay)
         .accrual_interval(InterestInterval::EndOfMonth)
         .one_time_fee_rate(dec!(0.01))

@@ -1240,6 +1240,7 @@ mod test {
         TermValues::builder()
             .annual_rate(dec!(12))
             .duration(Duration::Months(3))
+            .interest_due_duration(InterestDuration::Days(0))
             .accrual_interval(InterestInterval::EndOfMonth)
             .incurrence_interval(InterestInterval::EndOfDay)
             .one_time_fee_rate(OneTimeFeeRatePct::new(5))
