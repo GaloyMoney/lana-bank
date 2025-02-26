@@ -565,7 +565,7 @@ async fn create_credit_facilities_account_paths(
             bank_collateral: collateral_omnibus_account_id,
             facility: facility_omnibus_account_id,
             fee_income_adjustment: fee_income_adjustment_omnibus_account_id,
-            deposit_adjustment: deposit_adjustment_omnibus_account_id,
+            debit_account_adjustment: deposit_adjustment_omnibus_account_id,
             non_cash_offset: non_cash_offset_omnibus_account_id,
         },
     })

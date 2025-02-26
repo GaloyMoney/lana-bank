@@ -31,6 +31,7 @@ pub struct CreditLedger {
     credit_omnibus_account_id: AccountId,
     bank_collateral_account_id: AccountId,
     fee_income_adjustment_omnibus_account_id: AccountId,
+    debit_account_adjustment_omnibus_account_id: AccountId,
     non_cash_offset_omnibus_account_id: AccountId,
     credit_facility_control_id: VelocityControlId,
     account_factories: CreditFacilityAccountFactories,
@@ -75,6 +76,7 @@ impl CreditLedger {
             bank_collateral_account_id: omnibus_ids.bank_collateral,
             credit_omnibus_account_id: omnibus_ids.facility,
             fee_income_adjustment_omnibus_account_id: omnibus_ids.fee_income_adjustment,
+            debit_account_adjustment_omnibus_account_id: omnibus_ids.debit_account_adjustment,
             non_cash_offset_omnibus_account_id: omnibus_ids.non_cash_offset,
             credit_facility_control_id,
             account_factories,
@@ -430,6 +432,9 @@ impl CreditLedger {
                         facility_disbursed_receivable_account: credit_facility_account_ids
                             .disbursed_receivable_account_id,
                         debit_account_id,
+                        debit_account_adjustment_omnibus_account: self
+                            .debit_account_adjustment_omnibus_account_id,
+                        non_cash_offset_omnibus_account: self.non_cash_offset_omnibus_account_id,
                         disbursed_amount: amount.to_usd(),
                         external_id: tx_ref,
                     },
