@@ -62,11 +62,16 @@ Cypress.Commands.add("takeScreenshot", (filename): Cypress.Chainable<null> => {
   return cy.wrap(null)
 })
 
-interface CustomerResponse {
+interface CustomerCreateResponse {
   data: {
     customerCreate: {
       customer: Customer
     }
+  }
+}
+interface CustomerQueryResponse {
+  data: {
+    customer: Customer
   }
 }
 
@@ -86,11 +91,32 @@ Cypress.Commands.add(
         }
       }
     `
+    const query = `
+      query Customer($id: UUID!) {
+        customer(id: $id) {
+          customerId
+          applicantId
+          level
+          status
+          email
+          depositAccount {
+            depositAccountId
+          }
+        }
+      }
+    `
     return cy
-      .graphqlRequest<CustomerResponse>(mutation, {
+      .graphqlRequest<CustomerCreateResponse>(mutation, {
         input: { email, telegramId },
       })
-      .then((response) => response.data.customerCreate.customer)
+      .then((response) => {
+        const customerId = response.data.customerCreate.customer.customerId
+        return cy
+          .graphqlRequest<CustomerQueryResponse>(query, {
+            id: customerId,
+          })
+          .then((response) => response.data.customer)
+      })
   },
 )
 
