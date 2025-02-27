@@ -290,7 +290,7 @@ pub enum InterestDuration {
 }
 
 impl InterestDuration {
-    fn end_date(&self, start_date: DateTime<Utc>) -> DateTime<Utc> {
+    pub fn end_date(&self, start_date: DateTime<Utc>) -> DateTime<Utc> {
         match self {
             Self::Days(days) => start_date
                 .checked_add_days(chrono::Days::new(*days))
