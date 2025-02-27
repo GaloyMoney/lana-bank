@@ -126,6 +126,7 @@ ymd() {
           incurrenceInterval: "END_OF_DAY",
           oneTimeFeeRate: "5",
           duration: { period: "MONTHS", units: 3 },
+          interestDueDuration: { period: "DAYS", units: 0 },
           liquidationCvl: "105",
           marginCallCvl: "125",
           initialCvl: "140"

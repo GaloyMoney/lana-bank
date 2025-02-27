@@ -1126,6 +1126,7 @@ type PaymentEntry {
 
 enum Period {
 	MONTHS
+	DAYS
 }
 
 type Policy {
@@ -1332,6 +1333,7 @@ input TermsInput {
 	liquidationCvl: CVLPct!
 	oneTimeFeeRate: OneTimeFeeRatePct!
 	duration: DurationInput!
+	interestDueDuration: DurationInput!
 	marginCallCvl: CVLPct!
 	initialCvl: CVLPct!
 }
@@ -1352,6 +1354,7 @@ input TermsTemplateCreateInput {
 	incurrenceInterval: InterestInterval!
 	oneTimeFeeRate: OneTimeFeeRatePct!
 	duration: DurationInput!
+	interestDueDuration: DurationInput!
 	liquidationCvl: CVLPct!
 	marginCallCvl: CVLPct!
 	initialCvl: CVLPct!
@@ -1369,6 +1372,7 @@ input TermsTemplateUpdateInput {
 	oneTimeFeeRate: OneTimeFeeRatePct!
 	liquidationCvl: CVLPct!
 	duration: DurationInput!
+	interestDueDuration: DurationInput!
 	marginCallCvl: CVLPct!
 	initialCvl: CVLPct!
 }
