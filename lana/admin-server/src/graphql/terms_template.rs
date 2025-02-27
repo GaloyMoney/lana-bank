@@ -57,6 +57,7 @@ pub(super) struct TermsTemplateCreateInput {
     pub incurrence_interval: InterestInterval,
     pub one_time_fee_rate: OneTimeFeeRatePct,
     pub duration: DurationInput,
+    pub interest_due_duration: DurationInput,
     pub liquidation_cvl: CVLPct,
     pub margin_call_cvl: CVLPct,
     pub initial_cvl: CVLPct,
@@ -72,6 +73,7 @@ pub(super) struct TermsTemplateUpdateInput {
     pub one_time_fee_rate: OneTimeFeeRatePct,
     pub liquidation_cvl: CVLPct,
     pub duration: DurationInput,
+    pub interest_due_duration: DurationInput,
     pub margin_call_cvl: CVLPct,
     pub initial_cvl: CVLPct,
 }

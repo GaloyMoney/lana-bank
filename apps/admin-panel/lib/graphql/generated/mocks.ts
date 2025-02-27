@@ -1117,7 +1117,7 @@ export const mockDurationInput = (overrides?: Partial<DurationInput>, _relations
     const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
     relationshipsToOmit.add('DurationInput');
     return {
-        period: overrides && overrides.hasOwnProperty('period') ? overrides.period! : Period.Months,
+        period: overrides && overrides.hasOwnProperty('period') ? overrides.period! : Period.Days,
         units: overrides && overrides.hasOwnProperty('units') ? overrides.units! : faker.number.int({ min: 0, max: 9999 }),
     };
 };
@@ -1532,6 +1532,7 @@ export const mockTermsInput = (overrides?: Partial<TermsInput>, _relationshipsTo
         duration: overrides && overrides.hasOwnProperty('duration') ? overrides.duration! : relationshipsToOmit.has('DurationInput') ? {} as DurationInput : mockDurationInput({}, relationshipsToOmit),
         incurrenceInterval: overrides && overrides.hasOwnProperty('incurrenceInterval') ? overrides.incurrenceInterval! : InterestInterval.EndOfDay,
         initialCvl: overrides && overrides.hasOwnProperty('initialCvl') ? overrides.initialCvl! : generateMockValue.int(),
+        interestDueDuration: overrides && overrides.hasOwnProperty('interestDueDuration') ? overrides.interestDueDuration! : relationshipsToOmit.has('DurationInput') ? {} as DurationInput : mockDurationInput({}, relationshipsToOmit),
         liquidationCvl: overrides && overrides.hasOwnProperty('liquidationCvl') ? overrides.liquidationCvl! : generateMockValue.int(),
         marginCallCvl: overrides && overrides.hasOwnProperty('marginCallCvl') ? overrides.marginCallCvl! : generateMockValue.int(),
         oneTimeFeeRate: overrides && overrides.hasOwnProperty('oneTimeFeeRate') ? overrides.oneTimeFeeRate! : faker.lorem.word(),
@@ -1561,6 +1562,7 @@ export const mockTermsTemplateCreateInput = (overrides?: Partial<TermsTemplateCr
         duration: overrides && overrides.hasOwnProperty('duration') ? overrides.duration! : relationshipsToOmit.has('DurationInput') ? {} as DurationInput : mockDurationInput({}, relationshipsToOmit),
         incurrenceInterval: overrides && overrides.hasOwnProperty('incurrenceInterval') ? overrides.incurrenceInterval! : InterestInterval.EndOfDay,
         initialCvl: overrides && overrides.hasOwnProperty('initialCvl') ? overrides.initialCvl! : generateMockValue.int(),
+        interestDueDuration: overrides && overrides.hasOwnProperty('interestDueDuration') ? overrides.interestDueDuration! : relationshipsToOmit.has('DurationInput') ? {} as DurationInput : mockDurationInput({}, relationshipsToOmit),
         liquidationCvl: overrides && overrides.hasOwnProperty('liquidationCvl') ? overrides.liquidationCvl! : generateMockValue.int(),
         marginCallCvl: overrides && overrides.hasOwnProperty('marginCallCvl') ? overrides.marginCallCvl! : generateMockValue.int(),
         name: overrides && overrides.hasOwnProperty('name') ? overrides.name! : generateMockValue.name(),
@@ -1587,6 +1589,7 @@ export const mockTermsTemplateUpdateInput = (overrides?: Partial<TermsTemplateUp
         id: overrides && overrides.hasOwnProperty('id') ? overrides.id! : generateMockValue.uuid(),
         incurrenceInterval: overrides && overrides.hasOwnProperty('incurrenceInterval') ? overrides.incurrenceInterval! : InterestInterval.EndOfDay,
         initialCvl: overrides && overrides.hasOwnProperty('initialCvl') ? overrides.initialCvl! : generateMockValue.int(),
+        interestDueDuration: overrides && overrides.hasOwnProperty('interestDueDuration') ? overrides.interestDueDuration! : relationshipsToOmit.has('DurationInput') ? {} as DurationInput : mockDurationInput({}, relationshipsToOmit),
         liquidationCvl: overrides && overrides.hasOwnProperty('liquidationCvl') ? overrides.liquidationCvl! : generateMockValue.int(),
         marginCallCvl: overrides && overrides.hasOwnProperty('marginCallCvl') ? overrides.marginCallCvl! : generateMockValue.int(),
         oneTimeFeeRate: overrides && overrides.hasOwnProperty('oneTimeFeeRate') ? overrides.oneTimeFeeRate! : faker.lorem.word(),
