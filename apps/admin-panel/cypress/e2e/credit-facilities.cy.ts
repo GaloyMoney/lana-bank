@@ -28,6 +28,10 @@ describe("credit facility", () => {
         units: 12 * 9999999,
         period: Period.Months,
       },
+      interestDueDuration: {
+        units: 0,
+        period: Period.Days,
+      },
     }).then((id) => {
       cy.log(`Created terms template with ID: ${id}`)
     })
