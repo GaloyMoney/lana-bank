@@ -54,7 +54,7 @@ async fn create_and_populate() -> anyhow::Result<()> {
     assert!(charts.iter().any(|chart| chart.id == chart_id));
 
     let control_account = chart_of_accounts
-        .create_control_account(
+        .create_system_control_account(
             LedgerAccountSetId::new(),
             chart_id,
             ChartCategory::Assets,
