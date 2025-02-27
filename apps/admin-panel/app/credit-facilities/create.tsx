@@ -234,6 +234,10 @@ export const CreateCreditFacilityDialog: React.FC<CreateCreditFacilityDialogProp
                 units: parseInt(durationUnits),
                 period: durationPeriod as Period,
               },
+              interestDueDuration: {
+                units: parseInt("0"),
+                period: Period.Days,
+              },
             },
           },
         },

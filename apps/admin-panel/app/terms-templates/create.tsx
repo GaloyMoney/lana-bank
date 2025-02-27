@@ -113,6 +113,10 @@ export const CreateTermsTemplateDialog: React.FC<CreateTermsTemplateDialogProps>
               period: formValues.durationPeriod as Period,
               units: parseInt(formValues.durationUnits),
             },
+            interestDueDuration: {
+              period: Period.Days,
+              units: parseInt("0"),
+            },
             liquidationCvl: formValues.liquidationCvl,
             marginCallCvl: formValues.marginCallCvl,
             initialCvl: formValues.initialCvl,
