@@ -230,11 +230,13 @@ export const CreateTermsTemplateDialog: React.FC<CreateTermsTemplateDialogProps>
                       <SelectValue placeholder={t("placeholders.durationPeriod")} />
                     </SelectTrigger>
                     <SelectContent>
-                      {Object.values(Period).map((period) => (
-                        <SelectItem key={period} value={period}>
-                          {formatPeriod(period)}
-                        </SelectItem>
-                      ))}
+                      {Object.values(Period)
+                        .filter((period) => period !== Period.Days)
+                        .map((period) => (
+                          <SelectItem key={period} value={period}>
+                            {formatPeriod(period)}
+                          </SelectItem>
+                        ))}
                     </SelectContent>
                   </Select>
                 </div>

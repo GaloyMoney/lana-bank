@@ -467,11 +467,13 @@ export const CreateCreditFacilityDialog: React.FC<CreateCreditFacilityDialogProp
                         <SelectValue placeholder={t("form.placeholders.selectPeriod")} />
                       </SelectTrigger>
                       <SelectContent>
-                        {Object.values(Period).map((period) => (
-                          <SelectItem key={period} value={period}>
-                            {formatPeriod(period)}
-                          </SelectItem>
-                        ))}
+                        {Object.values(Period)
+                          .filter((period) => period !== Period.Days)
+                          .map((period) => (
+                            <SelectItem key={period} value={period}>
+                              {formatPeriod(period)}
+                            </SelectItem>
+                          ))}
                       </SelectContent>
                     </Select>
                   </div>
