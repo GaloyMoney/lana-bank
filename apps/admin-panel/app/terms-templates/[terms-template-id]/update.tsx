@@ -115,6 +115,10 @@ export const UpdateTermsTemplateDialog: React.FC<UpdateTermsTemplateDialogProps>
               period: formValues.durationPeriod as Period,
               units: parseInt(formValues.durationUnits),
             },
+            interestDueDuration: {
+              period: Period.Days,
+              units: parseInt("0"),
+            },
             liquidationCvl: formValues.liquidationCvl,
             marginCallCvl: formValues.marginCallCvl,
             initialCvl: formValues.initialCvl,
@@ -213,11 +217,13 @@ export const UpdateTermsTemplateDialog: React.FC<UpdateTermsTemplateDialogProps>
                       <SelectValue placeholder={t("placeholders.durationPeriod")} />
                     </SelectTrigger>
                     <SelectContent>
-                      {Object.values(Period).map((period) => (
-                        <SelectItem key={period} value={period}>
-                          {formatPeriod(period)}
-                        </SelectItem>
-                      ))}
+                      {Object.values(Period)
+                        .filter((period) => period !== Period.Days)
+                        .map((period) => (
+                          <SelectItem key={period} value={period}>
+                            {formatPeriod(period)}
+                          </SelectItem>
+                        ))}
                     </SelectContent>
                   </Select>
                 </div>

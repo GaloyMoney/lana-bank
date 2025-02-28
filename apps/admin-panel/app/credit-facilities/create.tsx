@@ -234,6 +234,10 @@ export const CreateCreditFacilityDialog: React.FC<CreateCreditFacilityDialogProp
                 units: parseInt(durationUnits),
                 period: durationPeriod as Period,
               },
+              interestDueDuration: {
+                units: parseInt("0"),
+                period: Period.Days,
+              },
             },
           },
         },
@@ -463,11 +467,13 @@ export const CreateCreditFacilityDialog: React.FC<CreateCreditFacilityDialogProp
                         <SelectValue placeholder={t("form.placeholders.selectPeriod")} />
                       </SelectTrigger>
                       <SelectContent>
-                        {Object.values(Period).map((period) => (
-                          <SelectItem key={period} value={period}>
-                            {formatPeriod(period)}
-                          </SelectItem>
-                        ))}
+                        {Object.values(Period)
+                          .filter((period) => period !== Period.Days)
+                          .map((period) => (
+                            <SelectItem key={period} value={period}>
+                              {formatPeriod(period)}
+                            </SelectItem>
+                          ))}
                       </SelectContent>
                     </Select>
                   </div>
