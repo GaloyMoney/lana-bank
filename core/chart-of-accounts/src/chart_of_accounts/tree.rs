@@ -66,6 +66,8 @@ pub(super) fn project<'a>(events: impl DoubleEndedIterator<Item = &'a ChartEvent
                     name: name.to_string(),
                     encoded_path: path.to_string(),
                 }),
+            ChartEvent::Updated { .. } => (),
+            ChartEvent::NodeAdded { .. } => (),
         }
     }
 

@@ -9,7 +9,10 @@ pub use cala_ledger::{
 };
 
 pub use crate::path::ChartCategory;
-use crate::path::{ControlAccountPath, ControlSubAccountPath};
+use crate::{
+    path::{ControlAccountPath, ControlSubAccountPath},
+    ChartError,
+};
 
 es_entity::entity_id! {
     ChartId,
@@ -143,4 +146,46 @@ pub struct ControlSubAccountDetails {
     pub account_set_id: LedgerAccountSetId,
     pub name: String,
     pub reference: String,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct EncodedPath {
+    value: String,
+}
+
+impl Display for EncodedPath {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        Display::fmt(&self.value, f)
+    }
+}
+
+impl FromStr for EncodedPath {
+    type Err = ChartError;
+
+    fn from_str(raw_path: &str) -> Result<Self, Self::Err> {
+        if !raw_path.chars().all(|c| c.is_ascii_digit()) {
+            return Err(ChartError::NonDigitCharactersInCode(raw_path.to_string()));
+        }
+
+        Ok(EncodedPath {
+            value: raw_path.to_string(),
+        })
+    }
+}
+
+impl EncodedPath {
+    pub fn len(&self) -> usize {
+        self.value.len()
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.value.is_empty()
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct NodeDetails {
+    pub account_set_id: LedgerAccountSetId,
+    pub reference: String,
+    pub encoded_path: EncodedPath,
 }
