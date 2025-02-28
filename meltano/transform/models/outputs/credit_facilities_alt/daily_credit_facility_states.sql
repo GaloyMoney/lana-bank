@@ -151,7 +151,7 @@ avg_open_price as (
     select
         credit_facility_id,
         day,
-        avg_open_prices[o] as collateral_avg_open_price
+        nullif(avg_open_prices[o], 0) as collateral_avg_open_price
 
     from (
 
