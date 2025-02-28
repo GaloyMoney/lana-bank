@@ -39,6 +39,27 @@ impl Segmentation {
 
         Ok(())
     }
+
+    pub fn level(&self, path: EncodedPath) -> Result<usize, ChartError> {
+        self.check_path(path.clone())?;
+
+        Ok(self
+            .schema_by_length_from_start_to_segment_end()
+            .iter()
+            .position(|&len| len == path.len())
+            .expect("path length was not validated against segmentation schema"))
+    }
+
+    pub fn parent(&self, path: EncodedPath) -> Result<Option<EncodedPath>, ChartError> {
+        let valid_lengths = self.schema_by_length_from_start_to_segment_end();
+        let level = self.level(path.clone())?;
+        if level == 0 {
+            return Ok(None);
+        }
+
+        let parent_length = valid_lengths[level - 1];
+        Ok(Some(path.slice(parent_length)))
+    }
 }
 
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
