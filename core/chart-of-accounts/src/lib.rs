@@ -97,6 +97,7 @@ where
             .id(id)
             .name(name)
             .reference(reference)
+            .segmentation(Segmentation::new(vec![]))
             .audit_info(audit_info)
             .build()
             .expect("Could not build new chart of accounts");

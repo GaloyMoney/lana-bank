@@ -8,11 +8,42 @@ use es_entity::*;
 use crate::{
     path::*,
     primitives::{ChartId, LedgerAccountSetId},
-    ControlAccountDetails, ControlSubAccountDetails,
+    ControlAccountDetails, ControlSubAccountDetails, EncodedPath, NodeDetails,
 };
 
 pub use super::error::*;
 use super::tree;
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Segmentation {
+    schema: Vec<u8>,
+}
+
+impl Segmentation {
+    pub fn new(schema: Vec<u8>) -> Self {
+        Segmentation { schema }
+    }
+
+    fn schema_by_length_from_start_to_segment_end(&self) -> Vec<usize> {
+        let mut lengths_from_start_to_segment_end = vec![];
+        let mut cumulative = 0;
+        for &segment_length in &self.schema {
+            cumulative += segment_length as usize;
+            lengths_from_start_to_segment_end.push(cumulative);
+        }
+
+        lengths_from_start_to_segment_end
+    }
+
+    pub fn check_path(&self, path: EncodedPath) -> Result<(), ChartError> {
+        let valid_lengths = self.schema_by_length_from_start_to_segment_end();
+        if !valid_lengths.contains(&path.len()) {
+            return Err(ChartError::InvalidCodeLength(path.len(), valid_lengths));
+        }
+
+        Ok(())
+    }
+}
 
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
@@ -21,6 +52,19 @@ pub enum ChartEvent {
     Initialized {
         id: ChartId,
         name: String,
+        reference: String,
+        segmentation: Segmentation,
+        audit_info: AuditInfo,
+    },
+    Updated {
+        name: String,
+        reference: String,
+        segmentation: Segmentation,
+        audit_info: AuditInfo,
+    },
+    NodeAdded {
+        id: LedgerAccountSetId,
+        encoded_path: EncodedPath,
         reference: String,
         audit_info: AuditInfo,
     },
@@ -204,6 +248,100 @@ impl Chart {
     }
 }
 
+impl Chart {
+    fn segmentation(&self) -> Segmentation {
+        self.events
+            .iter_all()
+            .rev()
+            .find_map(|event| match event {
+                ChartEvent::Updated { segmentation, .. } => Some(segmentation.clone()),
+                ChartEvent::Initialized { segmentation, .. } => Some(segmentation.clone()),
+                _ => None,
+            })
+            .expect("'segmentation' not found")
+    }
+
+    pub fn find_node_by_reference(&self, reference_to_check: String) -> Option<NodeDetails> {
+        self.events.iter_all().rev().find_map(|event| match event {
+            ChartEvent::NodeAdded {
+                reference,
+                encoded_path,
+                id,
+                ..
+            } if reference_to_check == *reference => Some({
+                NodeDetails {
+                    account_set_id: *id,
+                    reference: reference.to_string(),
+                    encoded_path: encoded_path.clone(),
+                }
+            }),
+            _ => None,
+        })
+    }
+
+    fn check_node_exists(&self, node: NodeDetails) -> Result<(), ChartError> {
+        if self
+            .find_node_by_reference(node.reference.to_string())
+            .is_some()
+        {
+            return Err(ChartError::NodeAlreadyRegisteredByReference(node.reference));
+        }
+
+        if self
+            .events
+            .iter_all()
+            .rev()
+            .find_map(|event| match event {
+                ChartEvent::NodeAdded { encoded_path, .. }
+                    if node.encoded_path == *encoded_path =>
+                {
+                    Some(true)
+                }
+                _ => None,
+            })
+            .unwrap_or(false)
+        {
+            return Err(ChartError::NodeAlreadyRegisteredByPath(
+                node.encoded_path.to_string(),
+            ));
+        }
+
+        Ok(())
+    }
+
+    fn validate_node(&self, node: NodeDetails) -> Result<(), ChartError> {
+        self.check_node_exists(node.clone())?;
+
+        self.segmentation().check_path(node.encoded_path)?;
+
+        Ok(())
+    }
+
+    pub fn create_node(
+        &mut self,
+        id: LedgerAccountSetId,
+        reference: String,
+        raw_code: String,
+        audit_info: AuditInfo,
+    ) -> Result<NodeDetails, ChartError> {
+        let node_details = NodeDetails {
+            account_set_id: id,
+            reference,
+            encoded_path: raw_code.parse()?,
+        };
+        self.validate_node(node_details.clone())?;
+
+        self.events.push(ChartEvent::NodeAdded {
+            id,
+            encoded_path: node_details.encoded_path.clone(),
+            reference: node_details.reference.to_string(),
+            audit_info,
+        });
+
+        Ok(node_details)
+    }
+}
+
 impl TryFromEvents<ChartEvent> for Chart {
     fn try_from_events(events: EntityEvents<ChartEvent>) -> Result<Self, EsEntityError> {
         let mut builder = ChartBuilder::default();
@@ -220,6 +358,14 @@ impl TryFromEvents<ChartEvent> for Chart {
                         .reference(reference.to_string())
                         .name(name.to_string())
                 }
+                ChartEvent::Updated {
+                    reference, name, ..
+                } => {
+                    builder = builder
+                        .reference(reference.to_string())
+                        .name(name.to_string())
+                }
+                ChartEvent::NodeAdded { .. } => (),
                 ChartEvent::ControlAccountAdded { .. } => (),
                 ChartEvent::ControlSubAccountAdded { .. } => (),
             }
@@ -234,6 +380,7 @@ pub struct NewChart {
     pub(super) id: ChartId,
     pub(super) name: String,
     pub(super) reference: String,
+    pub(super) segmentation: Segmentation,
     #[builder(setter(into))]
     pub audit_info: AuditInfo,
 }
@@ -252,6 +399,7 @@ impl IntoEvents<ChartEvent> for NewChart {
                 id: self.id,
                 name: self.name,
                 reference: self.reference,
+                segmentation: self.segmentation,
                 audit_info: self.audit_info,
             }],
         )
@@ -281,6 +429,9 @@ mod tests {
             .id(id)
             .name("Test Chart".to_string())
             .reference("ref-01".to_string())
+            .segmentation(Segmentation {
+                schema: vec![1, 1, 1, 1, 3],
+            })
             .audit_info(audit_info)
             .build()
             .unwrap();
@@ -298,6 +449,7 @@ mod tests {
             .id(id)
             .name("Test Chart".to_string())
             .reference("ref-01".to_string())
+            .segmentation(Segmentation::new(vec![]))
             .audit_info(audit_info.clone())
             .build()
             .unwrap();
@@ -306,6 +458,72 @@ mod tests {
         let chart = Chart::try_from_events(events).unwrap();
 
         assert_eq!(chart.id, id);
+    }
+
+    #[test]
+    fn test_create_node() {
+        let mut chart = init_chart_of_events();
+        let res = chart.create_node(
+            LedgerAccountSetId::new(),
+            "assets".to_string(),
+            "110".parse().unwrap(),
+            dummy_audit_info(),
+        );
+        assert!(res.is_ok())
+    }
+
+    #[test]
+    fn test_node_duplicate_reference() {
+        let mut chart = init_chart_of_events();
+        chart
+            .create_node(
+                LedgerAccountSetId::new(),
+                "assets".to_string(),
+                "110".parse().unwrap(),
+                dummy_audit_info(),
+            )
+            .unwrap();
+
+        match chart.create_node(
+            LedgerAccountSetId::new(),
+            "assets".to_string(),
+            "111".parse().unwrap(),
+            dummy_audit_info(),
+        ) {
+            Err(e) => {
+                assert!(matches!(e, ChartError::NodeAlreadyRegisteredByReference(_)));
+            }
+            _ => {
+                panic!("Expected duplicate reference to error")
+            }
+        }
+    }
+
+    #[test]
+    fn test_node_duplicate_code() {
+        let mut chart = init_chart_of_events();
+        chart
+            .create_node(
+                LedgerAccountSetId::new(),
+                "assets_01".to_string(),
+                "110".parse().unwrap(),
+                dummy_audit_info(),
+            )
+            .unwrap();
+
+        match chart.create_node(
+            LedgerAccountSetId::new(),
+            "assets_02".to_string(),
+            "110".parse().unwrap(),
+            dummy_audit_info(),
+        ) {
+            Err(e) => {
+                assert!(matches!(e, ChartError::NodeAlreadyRegisteredByPath(_)));
+            }
+            _ => {
+                panic!("Expected duplicate reference to error")
+            }
+        }
     }
 
     #[test]
@@ -505,5 +723,43 @@ mod tests {
         assert_eq!(category, ChartCategory::Assets);
         assert_eq!(control_index, AccountIdx::FIRST);
         assert_eq!(index, AccountIdx::FIRST.next());
+    }
+
+    mod segmentation {
+        use super::*;
+
+        #[test]
+        fn test_schema_by_length_from_start_to_segment_end() {
+            let segmentation = Segmentation {
+                schema: vec![2, 3, 4],
+            };
+            let expected = vec![2, 5, 9];
+            assert_eq!(
+                segmentation.schema_by_length_from_start_to_segment_end(),
+                expected
+            );
+        }
+
+        #[test]
+        fn test_check_path_valid() {
+            let segmentation = Segmentation {
+                schema: vec![2, 3, 4],
+            };
+            let valid_path: EncodedPath = "12345".parse().unwrap();
+            let result = segmentation.check_path(valid_path);
+            assert!(
+                result.is_ok(),
+                "Expected valid code length to pass check_path"
+            );
+        }
+
+        #[test]
+        fn test_check_path_invalid() {
+            let schema = vec![2, 3, 4];
+            let segmentation = Segmentation { schema };
+            let invalid_path: EncodedPath = "1234".parse().unwrap();
+            let e = segmentation.check_path(invalid_path);
+            assert!(matches!(e, Err(ChartError::InvalidCodeLength(4, _))));
+        }
     }
 }

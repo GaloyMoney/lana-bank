@@ -14,6 +14,14 @@ pub enum ChartError {
     ControlAccountAlreadyRegistered(String),
     #[error("ChartError - ControlSubAccountAlreadyRegistered: '{0}'")]
     ControlSubAccountAlreadyRegistered(String),
+    #[error("ChartError - NodeAlreadyRegisteredByReference: '{0}'")]
+    NodeAlreadyRegisteredByReference(String),
+    #[error("ChartError - NodeAlreadyRegisteredByPath: '{0}'")]
+    NodeAlreadyRegisteredByPath(String),
+    #[error("ChartError - InvalidCodeLength: Account code length {0} does not match any valid lengths: {1:?}")]
+    InvalidCodeLength(usize, Vec<usize>),
+    #[error("ChartError - NonDigitCharactersInCode: '{0}'")]
+    NonDigitCharactersInCode(String),
 }
 
 es_entity::from_es_entity_error!(ChartError);

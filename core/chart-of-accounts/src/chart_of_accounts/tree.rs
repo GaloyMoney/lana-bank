@@ -66,6 +66,8 @@ pub(super) fn project<'a>(events: impl DoubleEndedIterator<Item = &'a ChartEvent
                     name: name.to_string(),
                     encoded_path: path.to_string(),
                 }),
+            ChartEvent::Updated { .. } => (),
+            ChartEvent::NodeAdded { .. } => (),
         }
     }
 
@@ -129,7 +131,7 @@ pub(super) fn project<'a>(events: impl DoubleEndedIterator<Item = &'a ChartEvent
 mod tests {
     use es_entity::*;
 
-    use crate::{path::ChartCategory, Chart, LedgerAccountSetId, NewChart};
+    use crate::{path::ChartCategory, Chart, LedgerAccountSetId, NewChart, Segmentation};
 
     use super::*;
 
@@ -150,6 +152,7 @@ mod tests {
             .id(id)
             .name("Test Chart".to_string())
             .reference("ref-01".to_string())
+            .segmentation(Segmentation::new(vec![]))
             .audit_info(audit_info)
             .build()
             .unwrap();
