@@ -19,7 +19,7 @@ with ordered as (
             )
             as order_received_desc
 
-    from {{ source("lana", "public_customer_events_view") }}
+    from {{ source("lana", "customer_events") }}
 
     {% if is_incremental() %}
         where
