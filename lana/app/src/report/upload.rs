@@ -100,9 +100,9 @@ pub(super) mod bq {
     pub(super) async fn find_report_outputs(
         config: &ReportConfig,
     ) -> Result<Vec<String>, ReportError> {
-        let client =
-            Client::from_service_account_key(config.service_account().service_account_key(), false)
-                .await?;
+        let sa_key = config.service_account().service_account_key()?;
+
+        let client = Client::from_service_account_key(sa_key, false).await?;
         let tables = client
             .table()
             .list(
@@ -129,9 +129,9 @@ pub(super) mod bq {
         config: &ReportConfig,
         report: &str,
     ) -> Result<Vec<QueryRow>, ReportError> {
-        let client =
-            Client::from_service_account_key(config.service_account().service_account_key(), false)
-                .await?;
+        let sa_key = config.service_account().service_account_key()?;
+
+        let client = Client::from_service_account_key(sa_key, false).await?;
         let gcp_project = &config.service_account().gcp_project;
         let query = format!(
             "SELECT * FROM `{}.{}.{}`",
