@@ -12,7 +12,7 @@ use crate::{
 };
 
 pub use super::error::*;
-use super::tree;
+use super::{tree, tree_alt};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Segmentation {
@@ -20,6 +20,10 @@ pub struct Segmentation {
 }
 
 impl Segmentation {
+    pub fn new(schema: Vec<u8>) -> Self {
+        Segmentation { schema }
+    }
+
     fn schema_by_length_from_start_to_segment_end(&self) -> Vec<usize> {
         let mut lengths_from_start_to_segment_end = vec![];
         let mut cumulative = 0;
@@ -132,6 +136,10 @@ impl Chart {
 
     pub fn chart(&self) -> tree::ChartTree {
         tree::project(self.events.iter_all())
+    }
+
+    pub fn chart_alt(&self) -> tree_alt::ChartTreeAlt {
+        tree_alt::project(self.events.iter_all())
     }
 
     pub fn find_control_account_by_reference(
