@@ -60,10 +60,6 @@ impl ServiceAccountConfig {
     }
 
     fn get_json_creds(&self) -> Result<String, ServiceAccountError> {
-        if self.sa_creds_base64.is_none() {
-            return Err(ServiceAccountError::CredentialsNotProvided);
-        }
-
         let creds = self
             .sa_creds_base64
             .as_ref()
