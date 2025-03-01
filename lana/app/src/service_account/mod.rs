@@ -37,8 +37,6 @@ impl ServiceAccountConfig {
             return Ok(self);
         }
 
-        println!("sa_creds_base64: {:?}", sa_creds_base64);
-
         self.sa_creds_base64 = sa_creds_base64;
 
         let creds = self.get_json_creds()?;
