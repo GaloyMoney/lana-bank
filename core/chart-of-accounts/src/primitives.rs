@@ -148,7 +148,7 @@ pub struct ControlSubAccountDetails {
     pub reference: String,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 pub struct EncodedPath {
     value: String,
 }
@@ -180,6 +180,12 @@ impl EncodedPath {
 
     pub fn is_empty(&self) -> bool {
         self.value.is_empty()
+    }
+
+    pub fn slice(&self, end: usize) -> Self {
+        EncodedPath {
+            value: self.value[..end].to_string(),
+        }
     }
 }
 
