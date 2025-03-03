@@ -141,7 +141,6 @@ export const CreateCommitteeDialog: React.FC<CreateCommitteeDialogProps> = ({
               type="text"
               required
               placeholder={t("placeholders.name")}
-              value={formValues.name}
               onChange={handleChange}
               disabled={isLoading}
               data-testid="committee-create-name-input"

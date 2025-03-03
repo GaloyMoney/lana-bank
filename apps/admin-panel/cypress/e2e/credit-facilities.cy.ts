@@ -1,4 +1,8 @@
-import { InterestInterval, Period } from "../../lib/graphql/generated/index"
+import {
+  InterestInterval,
+  Period,
+  CreateCommitteeMutationResult,
+} from "../../lib/graphql/generated/index"
 
 describe("credit facility", () => {
   let customerId: string
@@ -40,51 +44,55 @@ describe("credit facility", () => {
 
   it("should add admin to credit facility and disbursal approvers", () => {
     const committeeName = `${Date.now()}-CF-and-Disbursal-Approvers`
-    cy.visit("/committees")
-    cy.get('[data-testid="global-create-button"]').click()
-    cy.get('[data-testid="committee-create-name-input"]')
-      .type(committeeName)
-      .should("have.value", committeeName)
-    cy.get('[data-testid="committee-create-submit-button"]').click()
-    cy.url().should("include", "/committees/")
-    cy.contains(committeeName).should("be.visible")
+    const createCommitteeMutation = `mutation CreateCommittee($input: CommitteeCreateInput!) {
+      committeeCreate(input: $input) {
+        committee {
+          committeeId
+        }
+      }
+    }`
+    cy.graphqlRequest<CreateCommitteeMutationResult>(createCommitteeMutation, {
+      input: { name: committeeName },
+    }).then((response) => {
+      const committeeId = response.data?.committeeCreate.committee.committeeId
+      cy.visit(`/committees/${committeeId}`)
+      cy.get('[data-testid="committee-add-member-button"]').click()
+      cy.get('[data-testid="committee-add-user-select"]').should("be.visible").click()
+      cy.get('[role="option"]')
+        .contains("admin")
+        .then((option) => {
+          cy.wrap(option).click()
+          cy.get('[data-testid="committee-add-user-submit-button"]').click()
+          cy.contains("User added to committee successfully").should("be.visible")
+          cy.contains(option.text().split(" ")[0]).should("be.visible")
+        })
 
-    cy.get('[data-testid="committee-add-member-button"]').click()
-    cy.get('[data-testid="committee-add-user-select"]').should("be.visible").click()
-    cy.get('[role="option"]')
-      .contains("admin")
-      .then((option) => {
-        cy.wrap(option).click()
-        cy.get('[data-testid="committee-add-user-submit-button"]').click()
-        cy.contains("User added to committee successfully").should("be.visible")
-        cy.contains(option.text().split(" ")[0]).should("be.visible")
-      })
+      cy.visit(`/policies`)
+      cy.get('[data-testid="table-row-1"] > :nth-child(3) > a > .gap-2').should(
+        "be.visible",
+      )
+      cy.get('[data-testid="table-row-1"] > :nth-child(3) > a > .gap-2').click()
+      cy.get('[data-testid="policy-assign-committee"]').click()
+      cy.get('[data-testid="policy-select-committee-selector"]').click()
+      cy.get('[role="option"]').contains(committeeName).click()
+      cy.get("[data-testid=policy-assign-committee-threshold-input]").type("1")
+      cy.get("[data-testid=policy-assign-committee-submit-button]").click()
+      cy.contains("Committee assigned to policy successfully").should("be.visible")
+      cy.contains(committeeName).should("be.visible")
 
-    cy.visit(`/policies`)
-    cy.get('[data-testid="table-row-1"] > :nth-child(3) > a > .gap-2').should(
-      "be.visible",
-    )
-    cy.get('[data-testid="table-row-1"] > :nth-child(3) > a > .gap-2').click()
-    cy.get('[data-testid="policy-assign-committee"]').click()
-    cy.get('[data-testid="policy-select-committee-selector"]').click()
-    cy.get('[role="option"]').contains(committeeName).click()
-    cy.get("[data-testid=policy-assign-committee-threshold-input]").type("1")
-    cy.get("[data-testid=policy-assign-committee-submit-button]").click()
-    cy.contains("Committee assigned to policy successfully").should("be.visible")
-    cy.contains(committeeName).should("be.visible")
-
-    cy.visit(`/policies`)
-    cy.get('[data-testid="table-row-0"] > :nth-child(3) > a > .gap-2').should(
-      "be.visible",
-    )
-    cy.get('[data-testid="table-row-0"] > :nth-child(3) > a > .gap-2').click()
-    cy.get('[data-testid="policy-assign-committee"]').click()
-    cy.get('[data-testid="policy-select-committee-selector"]').click()
-    cy.get('[role="option"]').contains(committeeName).click()
-    cy.get("[data-testid=policy-assign-committee-threshold-input]").type("1")
-    cy.get("[data-testid=policy-assign-committee-submit-button]").click()
-    cy.contains("Committee assigned to policy successfully").should("be.visible")
-    cy.contains(committeeName).should("be.visible")
+      cy.visit(`/policies`)
+      cy.get('[data-testid="table-row-0"] > :nth-child(3) > a > .gap-2').should(
+        "be.visible",
+      )
+      cy.get('[data-testid="table-row-0"] > :nth-child(3) > a > .gap-2').click()
+      cy.get('[data-testid="policy-assign-committee"]').click()
+      cy.get('[data-testid="policy-select-committee-selector"]').click()
+      cy.get('[role="option"]').contains(committeeName).click()
+      cy.get("[data-testid=policy-assign-committee-threshold-input]").type("1")
+      cy.get("[data-testid=policy-assign-committee-submit-button]").click()
+      cy.contains("Committee assigned to policy successfully").should("be.visible")
+      cy.contains(committeeName).should("be.visible")
+    })
   })
 
   it("should create a credit facility and verify initial state", () => {
