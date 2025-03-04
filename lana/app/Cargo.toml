@@ -29,6 +29,7 @@ lana-ids = { path = "../ids" }
 dashboard = { path = "../dashboard" }
 user-onboarding = { path = "../user-onboarding" }
 customer-sync = { path = "../customer-sync" }
+notification = { path = "../notification" }
 
 governance = { path = "../../core/governance", features = ["graphql"] }
 core-money = { path = "../../core/money" }
