@@ -16,14 +16,15 @@
               "code": {
                 "identifier": true,
                 "via": "email"
+              },
+              "webauthn": {
+                "identifier": true
               }
             }
           }
         }
       },
-      "required": [
-        "email"
-      ]
+      "required": ["email"]
     }
   }
 }
