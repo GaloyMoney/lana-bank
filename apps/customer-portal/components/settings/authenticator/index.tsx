@@ -60,8 +60,8 @@ export const AuthenticatorDialog: React.FC<AuthenticatorDialogProps> = ({
         <div className="flex justify-center items-center bg-white p-4 rounded-lg">
           <QRCode size={200} value={totpSecret || ""} />
         </div>
-        <div className="bg-secondary-foreground p-1 rounded-md px-2 flex gap-2 items-center">
-          <p className="text-textColor-secondary text-xs">{totpSecret}</p>
+        <div className="bg-secondary p-1 rounded-md px-2 flex gap-2 items-center">
+          <p className="text-xs">{totpSecret}</p>
         </div>
         <Input
           value={totpCode}
