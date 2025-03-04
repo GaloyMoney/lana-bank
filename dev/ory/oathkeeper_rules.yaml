@@ -5,7 +5,7 @@
     strip_path: /admin
   match:
     url: <(http|https)>://<[a-zA-Z0-9-.:]+>/admin/<(sessions|self-service)>/<.*>
-    methods: [ GET, POST, PUT, OPTIONS, DELETE, PATCH ]
+    methods: [GET, POST, PUT, OPTIONS, DELETE, PATCH]
   authenticators:
     - handler: noop
   authorizer:
@@ -19,7 +19,7 @@
     strip_path: /admin
   match:
     url: <(http|https)>://<[a-zA-Z0-9-.:]+>/admin/graphql
-    methods: [ GET, POST, OPTIONS ]
+    methods: [GET, POST, OPTIONS]
   authenticators:
     - handler: cookie_session
       config:
@@ -44,7 +44,7 @@
     # strip_path: /admin # nextjs base path will handle this
   match:
     url: <(http|https)>://<[a-zA-Z0-9-.:]+>/admin<(?!\/sessions|\/self-service|\/graphql).*>
-    methods: [ GET, POST, OPTIONS, PUT, DELETE, PATCH ]
+    methods: [GET, POST, OPTIONS, PUT, DELETE, PATCH]
   authenticators:
     - handler: noop
   authorizer:
@@ -59,7 +59,7 @@
     strip_path: /app
   match:
     url: <(http|https)>://<[a-zA-Z0-9-.:]+>/app/<(sessions|self-service)>/<.*>
-    methods: [ GET, POST, PUT, OPTIONS, DELETE, PATCH ]
+    methods: [GET, POST, PUT, OPTIONS, DELETE, PATCH]
   authenticators:
     - handler: noop
   authorizer:
@@ -73,7 +73,7 @@
     strip_path: /app
   match:
     url: <(http|https)>://<[a-zA-Z0-9-.:]+>/app/graphql
-    methods: [ GET, POST, OPTIONS ]
+    methods: [GET, POST, OPTIONS]
   authenticators:
     - handler: cookie_session
       config:
@@ -82,7 +82,9 @@
       config:
         check_session_url: http://kratos-customer:4433/sessions/whoami
   authorizer:
-    handler: allow
+    handler: remote_json
+    config:
+      remote: http://dockerhost-alias:5254/customer/verify-2fa
   mutators:
     - handler: hydrator
       config:
@@ -92,14 +94,13 @@
       config:
         claims: '{"aud": ["https://customer-api/graphql"], "subject": {{ print .Extra.subject | toJson }} }'
 
-
 - id: customer-portal-ui # apps/customer-portal
   upstream:
     url: http://dockerhost-alias:3002
     # strip_path: /app # nextjs base path will handle this
   match:
     url: <(http|https)>://<[a-zA-Z0-9-.:]+>/app<(?!\/sessions|\/self-service|\/graphql).*>
-    methods: [ GET, POST, OPTIONS, PUT, DELETE, PATCH ]
+    methods: [GET, POST, OPTIONS, PUT, DELETE, PATCH]
   authenticators:
     - handler: noop
   authorizer:
