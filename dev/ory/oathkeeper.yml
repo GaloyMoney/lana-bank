@@ -36,6 +36,12 @@ authorizers:
   allow:
     enabled: true
 
+  remote_json:
+    enabled: true
+    config:
+      remote: http://example.local
+      payload: '{"subject": "{{ print .Subject }}", "extra": {{ toJson .Extra }} }'
+
 mutators:
   id_token:
     enabled: true
