@@ -22,6 +22,7 @@ use crate::{
     document::Documents,
     governance::Governance,
     job::Jobs,
+    notification::Notification,
     outbox::Outbox,
     price::Price,
     primitives::Subject,
@@ -54,6 +55,7 @@ pub struct LanaApp {
     dashboard: Dashboard,
     _user_onboarding: UserOnboarding,
     _customer_sync: CustomerSync,
+    _notification: Notification,
 }
 
 impl LanaApp {
@@ -113,6 +115,7 @@ impl LanaApp {
         .await?;
         let customer_sync =
             CustomerSync::init(&jobs, &outbox, &customers, &deposits, config.customer_sync).await?;
+        let notification = Notification::init(&pool, &jobs, &outbox, config.email).await?;
         let applicants =
             Applicants::init(&pool, &config.sumsub, &customers, &deposits, &jobs, &outbox).await?;
 
@@ -156,6 +159,7 @@ impl LanaApp {
             dashboard,
             _user_onboarding: user_onboarding,
             _customer_sync: customer_sync,
+            _notification: notification,
         })
     }
 
