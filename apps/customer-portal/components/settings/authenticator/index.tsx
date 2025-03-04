@@ -6,7 +6,7 @@ import { toast } from "sonner"
 
 import { UiNode } from "@ory/client"
 
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 
 import { IoAdd, IoTrashOutline } from "react-icons/io5"
 
@@ -78,6 +78,7 @@ export const AuthenticatorDialog: React.FC<AuthenticatorDialogProps> = ({
 
 const SetupAuthenticator = ({ totpUnlinkNode }: { totpUnlinkNode: UiNode | null }) => {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const [totpCode, setTotpCode] = useState<string>("")
   const [error, setError] = useState<string | null>(null)
   const [openTotpDialog, setOpenTotpDialog] = useState<boolean>(false)
@@ -124,6 +125,9 @@ const SetupAuthenticator = ({ totpUnlinkNode }: { totpUnlinkNode: UiNode | null 
       toast.success("Authenticator app setup successfully")
       setOpenTotpDialog(false)
       router.refresh()
+      if (searchParams.has("onboard")) {
+        router.replace("/")
+      }
     }
   }
 

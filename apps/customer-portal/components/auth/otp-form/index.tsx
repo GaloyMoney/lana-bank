@@ -16,10 +16,7 @@ import { InputOTP, InputOTPGroup, InputOTPSlot } from "@lana/web/ui/input-otp"
 
 import { Alert, AlertDescription } from "@lana/web/ui/alert"
 
-import {
-  checkIfTwoFactorRequired,
-  submitAuthFlow,
-} from "@/lib/kratos/public/submit-auth-flow"
+import { submitAuthFlow } from "@/lib/kratos/public/submit-auth-flow"
 
 export type OtpParams = {
   flowId: string
@@ -40,22 +37,7 @@ const OtpForm: React.FC<OtpParams> = ({ flowId, type }) => {
     setLoading(true)
     try {
       await submitAuthFlow({ flowId, otp, type })
-      const response = await checkIfTwoFactorRequired()
-      if (response instanceof Error) {
-        setError(response.message)
-        setLoading(false)
-        return
-      }
-
-      if (response.userHasWebAuth && response.userHasTotp) {
-        router.replace(`/auth/2fa?flowId=${response.flowId}`)
-      } else if (response.userHasTotp) {
-        router.replace(`/auth/2fa/totp?flowId=${response.flowId}`)
-      } else if (response.userHasWebAuth) {
-        router.replace(`/auth/2fa/webauth?flowId=${response.flowId}`)
-      } else {
-        window.location.reload()
-      }
+      router.replace("/auth/2fa")
     } catch (error) {
       console.error(error)
       setError("Invalid OTP or OTP has expired. Please go back and try again.")
