@@ -15,10 +15,24 @@ export async function middleware(request: NextRequest): Promise<NextResponse | v
 
     const session = await toSession({ cookie: cookies })
 
-    if (!(session instanceof Error) && session?.active) {
+    if (
+      !(session instanceof Error) &&
+      session.authenticator_assurance_level &&
+      parseInt(session.authenticator_assurance_level[3]) >= 2 &&
+      session?.active
+    ) {
       if (isAuthRoute) {
         return NextResponse.redirect(new URL(basePath || "/", request.url))
       }
+      return NextResponse.next()
+    }
+
+    if (
+      !(session instanceof Error) &&
+      session.authenticator_assurance_level &&
+      parseInt(session.authenticator_assurance_level[3]) < 2 &&
+      session?.active
+    ) {
       return NextResponse.next()
     }
 

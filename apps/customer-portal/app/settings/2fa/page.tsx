@@ -19,7 +19,11 @@ import { SetupAuthenticator } from "@/components/settings/authenticator"
 import { SetupWebAuth } from "@/components/settings/webauth"
 import { kratosPublic } from "@/lib/kratos/sdk"
 
-const SettingsPage = async () => {
+const SettingsPage = async ({
+  searchParams: { onboard },
+}: {
+  searchParams?: { onboard: string }
+}) => {
   let settingsFlowResponse: SettingsFlow
   const cookieParam = cookies()
     .getAll()
@@ -68,6 +72,11 @@ const SettingsPage = async () => {
 
   return (
     <main className="md:max-w-[70rem] m-auto w-[90%]">
+      {onboard && (
+        <div className="bg-secondary p-2">
+          Please set up two-factor authentication to continue
+        </div>
+      )}
       <Card className="mt-10">
         <CardHeader>
           <CardTitle>Setup Two Factor Authentication</CardTitle>

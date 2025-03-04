@@ -14,6 +14,8 @@ import {
 import { Button } from "@lana/web/ui/button"
 import { Alert, AlertDescription } from "@lana/web/ui/alert"
 
+import { useRouter } from "next/navigation"
+
 import {
   SerializedPublicKeyCredentialRequestOptions,
   signinWithPasskey,
@@ -31,6 +33,7 @@ const PasskeySignIn = ({
   email: string
   csrfToken: string
 }) => {
+  const router = useRouter()
   const [error, setError] = useState<string | null>(null)
 
   const startWebAuth = async () => {
@@ -47,7 +50,8 @@ const PasskeySignIn = ({
       return
     }
 
-    window.location.href = "/"
+    router.replace("/")
+    setTimeout(() => window.location.reload(), 1) // to ensure the layout is loaded
   }
 
   useEffect(() => {

@@ -25,11 +25,14 @@ export default async function Home() {
     const cookie = cookies()
       .getAll()
       .reduce((acc, cookie) => `${acc}${cookie.name}=${cookie.value}; `, "")
-
     const session = await toSession({ cookie })
 
-    if (!(session instanceof Error)) {
-      redirect("/settings/2fa")
+    if (
+      !(session instanceof Error) &&
+      session.authenticator_assurance_level &&
+      parseInt(session.authenticator_assurance_level[3]) < 2
+    ) {
+      redirect("/auth/2fa")
     }
 
     return <div className="text-destructive">{data.message}</div>
