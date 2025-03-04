@@ -11,6 +11,7 @@ members = [
   "lana/dashboard",
   "lana/user-onboarding",
   "lana/customer-onboarding",
+  "lana/notification",
 
   "core/user",
   "core/customer",
