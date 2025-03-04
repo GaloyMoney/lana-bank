@@ -3,7 +3,6 @@
 
 pub mod accounting_init;
 pub mod app;
-pub mod applicant;
 pub mod authorization;
 pub mod balance_sheet;
 pub mod cash_flow;
@@ -51,6 +50,12 @@ pub mod customer_onboarding {
         crate::authorization::Authorization,
         lana_events::LanaEvent,
     >;
+}
+
+pub mod applicant {
+    pub use applicant::{AccessTokenResponse, PermalinkResponse, SumsubConfig};
+    pub type Applicants =
+        applicant::Applicants<crate::authorization::Authorization, lana_events::LanaEvent>;
 }
 
 pub mod price {

@@ -1,3 +1,4 @@
+use applicant::Applicants;
 use async_trait::async_trait;
 use futures::StreamExt;
 use kratos_admin::KratosAdmin;
@@ -55,6 +56,7 @@ where
     kratos_admin: KratosAdmin,
     customers: Customers<Perms, E>,
     deposit: CoreDeposit<Perms, E>,
+    applicants: Applicants<Perms, E>,
     config: CustomerOnboardingConfig,
 }
 
@@ -69,6 +71,7 @@ where
         outbox: &Outbox<E>,
         customers: &Customers<Perms, E>,
         deposit: &CoreDeposit<Perms, E>,
+        applicant: &Applicants<Perms, E>,
         config: CustomerOnboardingConfig,
     ) -> Self {
         let kratos_admin = kratos_admin::KratosAdmin::init(config.kratos_admin.clone());
@@ -77,6 +80,7 @@ where
             outbox: outbox.clone(),
             customers: customers.clone(),
             deposit: deposit.clone(),
+            applicants: applicant.clone(),
             kratos_admin,
             config,
         }
@@ -107,6 +111,7 @@ where
             outbox: self.outbox.clone(),
             customers: self.customers.clone(),
             deposit: self.deposit.clone(),
+            applicants: self.applicants.clone(),
             kratos_admin: self.kratos_admin.clone(),
             config: self.config.clone(),
         }))
@@ -135,6 +140,7 @@ where
     outbox: Outbox<E>,
     customers: Customers<Perms, E>,
     deposit: CoreDeposit<Perms, E>,
+    applicants: Applicants<Perms, E>,
     kratos_admin: KratosAdmin,
     config: CustomerOnboardingConfig,
 }
@@ -215,6 +221,7 @@ where
             self.customers
                 .update_authentication_id_for_customer(*id, authentication_id)
                 .await?;
+            self.applicants.create_permalink(*id).await?;
         }
         Ok(())
     }

@@ -10,6 +10,7 @@ use config::*;
 use error::*;
 use job::*;
 
+use applicant::Applicants;
 use audit::AuditSvc;
 use authz::PermissionCheck;
 use core_customer::{CoreCustomerAction, CoreCustomerEvent, CustomerObject, Customers};
@@ -62,10 +63,11 @@ where
         outbox: &Outbox<E>,
         customers: &Customers<Perms, E>,
         deposit: &CoreDeposit<Perms, E>,
+        applicant: &Applicants<Perms, E>,
         config: CustomerOnboardingConfig,
     ) -> Result<Self, CustomerOnboardingError> {
         jobs.add_initializer_and_spawn_unique(
-            CustomerOnboardingJobInitializer::new(outbox, customers, deposit, config),
+            CustomerOnboardingJobInitializer::new(outbox, customers, deposit, applicant, config),
             CustomerOnboardingJobConfig::new(),
         )
         .await?;

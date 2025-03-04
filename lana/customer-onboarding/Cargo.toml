@@ -9,6 +9,7 @@ fail-on-warnings = []
 
 [dependencies]
 lana-events = { path = "../events" }
+applicant = { path = "../applicant" }
 
 core-customer = { path = "../../core/customer" }
 deposit = { path = "../../core/deposit" }

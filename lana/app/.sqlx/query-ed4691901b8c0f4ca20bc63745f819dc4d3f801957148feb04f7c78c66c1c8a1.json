@@ -1,0 +1,43 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "WITH entities AS (SELECT status, approval_process_id, id FROM core_credit_facilities WHERE ((status = $1) AND (COALESCE((approval_process_id, id) < ($4, $3), $3 IS NULL))) ORDER BY approval_process_id DESC, id DESC LIMIT $2) SELECT i.id AS \"entity_id: CreditFacilityId\", e.sequence, e.event, e.recorded_at FROM entities i JOIN core_credit_facility_events e ON i.id = e.id ORDER BY i.approval_process_id desc, i.id desc, i.id, e.sequence",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "entity_id: CreditFacilityId",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "sequence",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 2,
+        "name": "event",
+        "type_info": "Jsonb"
+      },
+      {
+        "ordinal": 3,
+        "name": "recorded_at",
+        "type_info": "Timestamptz"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Text",
+        "Int8",
+        "Uuid",
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "ed4691901b8c0f4ca20bc63745f819dc4d3f801957148feb04f7c78c66c1c8a1"
+}

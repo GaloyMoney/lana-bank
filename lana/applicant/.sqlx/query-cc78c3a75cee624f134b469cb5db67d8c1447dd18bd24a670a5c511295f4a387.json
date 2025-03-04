@@ -1,0 +1,42 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "WITH entities AS (SELECT authentication_id, id FROM customers WHERE ((authentication_id IS NOT DISTINCT FROM $3) AND COALESCE(id < $2, true) OR COALESCE(authentication_id < $3, authentication_id IS NOT NULL)) ORDER BY authentication_id DESC NULLS LAST, id DESC LIMIT $1) SELECT i.id AS \"entity_id: CustomerId\", e.sequence, e.event, e.recorded_at FROM entities i JOIN customer_events e ON i.id = e.id ORDER BY i.authentication_id desc nulls last, i.id desc, i.id, e.sequence",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "entity_id: CustomerId",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "sequence",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 2,
+        "name": "event",
+        "type_info": "Jsonb"
+      },
+      {
+        "ordinal": 3,
+        "name": "recorded_at",
+        "type_info": "Timestamptz"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Int8",
+        "Uuid",
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "cc78c3a75cee624f134b469cb5db67d8c1447dd18bd24a670a5c511295f4a387"
+}

@@ -169,6 +169,40 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "34ac096ce696dc2fcabef30516bb13c0a68a11d30131d3df6f04711467681b04"
 
 [[package]]
+name = "applicant"
+version = "0.3.132-dev"
+dependencies = [
+ "anyhow",
+ "async-graphql",
+ "async-trait",
+ "audit",
+ "authz",
+ "chrono",
+ "core-customer",
+ "deposit",
+ "es-entity",
+ "futures",
+ "governance",
+ "hex",
+ "hmac",
+ "job",
+ "kratos-admin",
+ "lana-ids",
+ "outbox",
+ "reqwest 0.12.12",
+ "serde",
+ "serde_json",
+ "sha2",
+ "sim-time",
+ "sqlx",
+ "strum",
+ "thiserror 1.0.69",
+ "tokio",
+ "tracing",
+ "uuid",
+]
+
+[[package]]
 name = "arrayvec"
 version = "0.7.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1188,6 +1222,7 @@ name = "customer-onboarding"
 version = "0.3.134-dev"
 dependencies = [
  "anyhow",
+ "applicant",
  "async-graphql",
  "async-trait",
  "audit",
@@ -2593,6 +2628,7 @@ name = "lana-app"
 version = "0.3.134-dev"
 dependencies = [
  "anyhow",
+ "applicant",
  "async-graphql",
  "async-graphql-axum",
  "async-trait",

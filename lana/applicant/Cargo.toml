@@ -1,0 +1,44 @@
+[package]
+name = "applicant"
+version = "0.3.132-dev"
+edition = "2021"
+
+[features]
+
+fail-on-warnings = []
+
+[dependencies]
+lana-ids = { path = "../ids" }
+
+core-customer = { path = "../../core/customer" }
+deposit = { path = "../../core/deposit" }
+governance = { path = "../../core/governance" }
+
+outbox = { path = "../../lib/outbox" }
+job = { path = "../../lib/job" }
+audit = { path = "../../lib/audit" }
+authz = { path = "../../lib/authz" }
+kratos-admin = { path = "../../lib/kratos-admin" }
+
+sim-time = { workspace = true, optional = true }
+es-entity = { workspace = true, features = ["graphql"] }
+
+tracing = { workspace = true }
+uuid = { workspace = true }
+strum = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+sqlx = { workspace = true }
+chrono = { workspace = true }
+async-trait = { workspace = true }
+futures = { workspace = true }
+thiserror = { workspace = true }
+async-graphql = { workspace = true }
+reqwest = { workspace = true }
+sha2 = { workspace = true }
+hmac = { workspace = true }
+hex = { workspace = true }
+
+[dev-dependencies]
+tokio = { workspace = true }
+anyhow = { workspace = true }

@@ -27,6 +27,7 @@ sqlx-prepare:
 	cd core/credit && cargo sqlx prepare
 	cd core/chart-of-accounts && cargo sqlx prepare
 	cd lana/app && cargo sqlx prepare
+	cd lana/applicant && cargo sqlx prepare
 	cd lana/dashboard && cargo sqlx prepare
 
 reset-deps: clean-deps start-deps setup-db

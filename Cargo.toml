@@ -9,6 +9,7 @@ members = [
   "lana/events",
   "lana/ids",
   "lana/dashboard",
+  "lana/applicant",
   "lana/user-onboarding",
   "lana/customer-onboarding",
 

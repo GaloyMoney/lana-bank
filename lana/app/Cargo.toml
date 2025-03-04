@@ -13,6 +13,7 @@ rbac-types = { path = "../rbac-types" }
 lana-events = { path = "../events" }
 lana-ids = { path = "../ids" }
 
+applicant = { path = "../applicant" }
 dashboard = { path = "../dashboard" }
 user-onboarding = { path = "../user-onboarding" }
 customer-onboarding = { path = "../customer-onboarding" }
