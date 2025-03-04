@@ -1,3 +1,5 @@
+import { cookies } from "next/headers"
+import { redirect } from "next/navigation"
 import { ArrowDownUp, CreditCard, Wallet } from "lucide-react"
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@lana/web/ui/tab"
@@ -13,12 +15,23 @@ import { meQuery } from "@/lib/graphql/query/me"
 import { BalanceCard } from "@/components/balance-card"
 import Balance from "@/components/balance"
 import { getTransactionHistoryQuery } from "@/lib/graphql/query/transaction-history"
+import { toSession } from "@/lib/kratos/public/to-session"
 
 export default async function Home() {
   const data = await meQuery()
   const transactionHistory = await getTransactionHistoryQuery()
 
   if (data instanceof Error) {
+    const cookie = cookies()
+      .getAll()
+      .reduce((acc, cookie) => `${acc}${cookie.name}=${cookie.value}; `, "")
+
+    const session = await toSession({ cookie })
+
+    if (!(session instanceof Error)) {
+      redirect("/settings/2fa")
+    }
+
     return <div className="text-destructive">{data.message}</div>
   }
 

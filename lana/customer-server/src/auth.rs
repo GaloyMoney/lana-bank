@@ -64,10 +64,11 @@ pub struct ExtraPayload {
 }
 
 pub async fn verify_2fa(Json(payload): Json<Verify2faPayload>) -> impl IntoResponse {
-    println!(
-        "2FA verification AAL: {}",
-        payload.extra.authenticator_assurance_level
-    );
+    let aal = payload.extra.authenticator_assurance_level;
+    println!("2FA verification AAL: {}", aal);
+    if aal == "aal1" {
+        return StatusCode::UNAUTHORIZED.into_response();
+    }
     StatusCode::OK.into_response()
 }
 
