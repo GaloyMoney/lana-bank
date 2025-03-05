@@ -2,7 +2,7 @@ use csv::{ReaderBuilder, Trim};
 use std::io::Cursor;
 
 use super::primitives::{
-    AccountCategory, AccountCodeSection, AccountCodeSectionParseError, AccountSpec,
+    AccountCodeSection, AccountCodeSectionParseError, AccountName, AccountSpec,
 };
 
 use thiserror::Error;
@@ -37,7 +37,7 @@ impl CsvParser {
                     }
 
                     for (idx, field) in record.iter().enumerate() {
-                        if let Ok(category) = field.parse::<AccountCategory>() {
+                        if let Ok(category) = field.parse::<AccountName>() {
                             if let Some(s) = specs.last() {
                                 if s.code.is_parent(&sections) {
                                     specs.push(AccountSpec::new(

@@ -13,7 +13,7 @@ pub use crate::primitives::ChartId;
 use thiserror::Error;
 
 #[derive(Error, Debug)]
-pub enum AccountCategoryParseError {
+pub enum AccountNameParseError {
     #[error("empty")]
     Empty,
     #[error("starts-with-digit")]
@@ -21,28 +21,28 @@ pub enum AccountCategoryParseError {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct AccountCategory {
+pub struct AccountName {
     name: String,
 }
 
-impl std::fmt::Display for AccountCategory {
+impl std::fmt::Display for AccountName {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", self.name)
     }
 }
 
-impl FromStr for AccountCategory {
-    type Err = AccountCategoryParseError;
+impl FromStr for AccountName {
+    type Err = AccountNameParseError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let trimmed = s.trim();
         if trimmed.is_empty() {
-            return Err(AccountCategoryParseError::Empty);
+            return Err(AccountNameParseError::Empty);
         }
         if trimmed.chars().next().unwrap().is_ascii_digit() {
-            return Err(AccountCategoryParseError::StartsWithDigit);
+            return Err(AccountNameParseError::StartsWithDigit);
         }
-        Ok(AccountCategory {
+        Ok(AccountName {
             name: trimmed.to_string(),
         })
     }
@@ -148,21 +148,17 @@ impl std::fmt::Display for AccountCode {
 pub struct AccountSpec {
     pub parent: Option<AccountCode>,
     pub code: AccountCode,
-    pub category: AccountCategory,
+    pub name: AccountName,
 }
 
 impl AccountSpec {
     pub(super) fn new(
         parent: Option<AccountCode>,
         sections: Vec<AccountCodeSection>,
-        category: AccountCategory,
+        name: AccountName,
     ) -> Self {
         let code = AccountCode { section: sections };
-        AccountSpec {
-            parent,
-            code,
-            category,
-        }
+        AccountSpec { parent, code, name }
     }
 
     pub(super) fn account_set_external_id(&self, chart_id: ChartId) -> String {

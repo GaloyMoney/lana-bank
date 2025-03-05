@@ -118,35 +118,22 @@ where
         let mut new_account_sets = Vec::new();
         let mut new_connections = Vec::new();
         for spec in account_specs {
-            if !spec.has_parent() {
-                if let es_entity::Idempotent::Executed(set_id) =
-                    chart.create_control_account(&spec, audit_info.clone())
-                {
-                    let new_account_set = NewAccountSet::builder()
-                        .id(set_id)
-                        .journal_id(self.journal_id)
-                        .name(spec.category.to_string())
-                        .description(spec.category.to_string())
-                        .external_id(spec.account_set_external_id(id))
-                        // .normal_balance_type()
-                        .build()
-                        .expect("Could not build new account set");
-                    new_account_sets.push(new_account_set);
-                }
-            } else if let es_entity::Idempotent::Executed((parent, set_id)) =
-                chart.create_control_sub_account(&spec, audit_info.clone())
+            if let es_entity::Idempotent::Executed((parent, set_id)) =
+                chart.create_node(&spec, audit_info.clone())
             {
                 let new_account_set = NewAccountSet::builder()
                     .id(set_id)
                     .journal_id(self.journal_id)
-                    .name(spec.category.to_string())
-                    .description(spec.category.to_string())
+                    .name(spec.name.to_string())
+                    .description(spec.name.to_string())
                     .external_id(spec.account_set_external_id(id))
                     // .normal_balance_type()
                     .build()
                     .expect("Could not build new account set");
                 new_account_sets.push(new_account_set);
-                new_connections.push((parent, set_id));
+                if let Some(parent) = parent {
+                    new_connections.push((parent, set_id));
+                }
             }
         }
         let mut op = self.repo.begin_op().await?;
@@ -159,12 +146,10 @@ where
             .await?;
 
         for (parent, child) in new_connections {
-            if let Some(parent) = parent {
-                self.cala
-                    .account_sets()
-                    .add_member_in_op(&mut op, parent, child)
-                    .await?;
-            }
+            self.cala
+                .account_sets()
+                .add_member_in_op(&mut op, parent, child)
+                .await?;
         }
         op.commit().await?;
         Ok(())
