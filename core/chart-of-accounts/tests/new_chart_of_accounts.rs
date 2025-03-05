@@ -1,3 +1,4 @@
+use authz::dummy::DummySubject;
 use cala_ledger::{CalaLedger, CalaLedgerConfig};
 
 use chart_of_accounts::new::{CoreChartOfAccounts, *};
@@ -56,7 +57,9 @@ async fn import_from_csv() -> anyhow::Result<()> {
         "#
     );
 
-    chart_of_accounts.import_from_csv(chart_id, data).await?;
+    chart_of_accounts
+        .import_from_csv(&DummySubject, chart_id, data)
+        .await?;
 
     Ok(())
 }
