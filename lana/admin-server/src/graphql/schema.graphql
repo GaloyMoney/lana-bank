@@ -248,6 +248,15 @@ type ChartOfAccounts {
 	categories: ChartCategories!
 }
 
+input ChartOfAccountsCsvImportInput {
+	chartId: UUID!
+	file: Upload!
+}
+
+type ChartOfAccountsCsvImportPayload {
+	success: Boolean!
+}
+
 type Collateral {
 	btcBalance: Satoshis!
 }
@@ -931,6 +940,7 @@ type Mutation {
 	documentArchive(input: DocumentArchiveInput!): DocumentArchivePayload!
 	reportCreate: ReportCreatePayload!
 	reportDownloadLinksGenerate(input: ReportDownloadLinksGenerateInput!): ReportDownloadLinksGeneratePayload!
+	chartOfAccountsCsvImport(input: ChartOfAccountsCsvImportInput!): ChartOfAccountsCsvImportPayload!
 	shareholderEquityAdd(input: ShareholderEquityAddInput!): SuccessPayload!
 }
 
