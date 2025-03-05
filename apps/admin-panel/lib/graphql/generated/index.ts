@@ -274,6 +274,16 @@ export type ChartOfAccounts = {
   name: Scalars['String']['output'];
 };
 
+export type ChartOfAccountsCsvImportInput = {
+  chartId: Scalars['UUID']['input'];
+  file: Scalars['Upload']['input'];
+};
+
+export type ChartOfAccountsCsvImportPayload = {
+  __typename?: 'ChartOfAccountsCsvImportPayload';
+  success: Scalars['Boolean']['output'];
+};
+
 export type Collateral = {
   __typename?: 'Collateral';
   btcBalance: Scalars['Satoshis']['output'];
@@ -924,6 +934,7 @@ export type Mutation = {
   __typename?: 'Mutation';
   approvalProcessApprove: ApprovalProcessApprovePayload;
   approvalProcessDeny: ApprovalProcessDenyPayload;
+  chartOfAccountsCsvImport: ChartOfAccountsCsvImportPayload;
   committeeAddUser: CommitteeAddUserPayload;
   committeeCreate: CommitteeCreatePayload;
   committeeRemoveUser: CommitteeRemoveUserPayload;
@@ -963,6 +974,11 @@ export type MutationApprovalProcessApproveArgs = {
 export type MutationApprovalProcessDenyArgs = {
   input: ApprovalProcessDenyInput;
   reason: Scalars['String']['input'];
+};
+
+
+export type MutationChartOfAccountsCsvImportArgs = {
+  input: ChartOfAccountsCsvImportInput;
 };
 
 

@@ -12,6 +12,7 @@ use tracing::instrument;
 use super::error::*;
 
 pub(crate) use csv::CsvParseError;
+pub use entity::Chart;
 use entity::*;
 pub use primitives::*;
 use repo::*;

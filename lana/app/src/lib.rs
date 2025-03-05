@@ -93,10 +93,15 @@ pub mod deposit {
 }
 
 pub mod chart_of_accounts {
-    pub use chart_of_accounts::{error, tree, Chart, ControlAccountDetails};
+    pub use chart_of_accounts::{
+        error, new::Chart as CoreChart, tree, Chart, ControlAccountDetails,
+    };
 
     pub type ChartOfAccounts =
         chart_of_accounts::CoreChartOfAccounts<crate::authorization::Authorization>;
+
+    pub type CoreChartOfAccounts =
+        chart_of_accounts::new::CoreChartOfAccounts<crate::authorization::Authorization>;
 }
 
 pub mod credit_facility {

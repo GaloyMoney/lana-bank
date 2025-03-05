@@ -13,7 +13,7 @@ use crate::{
     authorization::{init as init_authz, AppAction, AppObject, AuditAction, Authorization},
     balance_sheet::BalanceSheets,
     cash_flow::CashFlowStatements,
-    chart_of_accounts::ChartOfAccounts,
+    chart_of_accounts::{ChartOfAccounts, CoreChartOfAccounts},
     credit_facility::CreditFacilities,
     customer::Customers,
     customer_onboarding::CustomerOnboarding,
@@ -44,6 +44,7 @@ pub struct LanaApp {
     audit: Audit,
     authz: Authorization,
     chart_of_accounts: ChartOfAccounts,
+    core_chart_of_accounts: CoreChartOfAccounts,
     customers: Customers,
     deposits: Deposits,
     applicants: Applicants,
@@ -106,6 +107,8 @@ impl LanaApp {
         .await?;
         let chart_of_accounts =
             ChartOfAccounts::init(&pool, &authz, &cala, journal_init.journal_id).await?;
+        let core_chart_of_accounts =
+            CoreChartOfAccounts::init(&pool, &authz, &cala, journal_init.journal_id).await?;
         let charts_init = ChartsInit::charts_of_accounts(
             &balance_sheets,
             &trial_balances,
@@ -162,6 +165,7 @@ impl LanaApp {
             audit,
             authz,
             chart_of_accounts,
+            core_chart_of_accounts,
             customers,
             deposits,
             applicants,
@@ -228,6 +232,10 @@ impl LanaApp {
 
     pub fn chart_of_accounts(&self) -> &ChartOfAccounts {
         &self.chart_of_accounts
+    }
+
+    pub fn core_chart_of_accounts(&self) -> &CoreChartOfAccounts {
+        &self.core_chart_of_accounts
     }
 
     pub fn deposits(&self) -> &Deposits {

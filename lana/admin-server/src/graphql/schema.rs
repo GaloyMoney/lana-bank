@@ -1,3 +1,5 @@
+use std::io::Read;
+
 use async_graphql::{types::connection::*, Context, Object};
 
 use lana_app::{
@@ -13,9 +15,9 @@ use crate::primitives::*;
 
 use super::{
     approval_process::*, audit::*, authenticated_subject::*, chart_of_accounts::*, committee::*,
-    credit_facility::*, customer::*, dashboard::*, deposit::*, document::*, financials::*,
-    loader::*, policy::*, price::*, report::*, sumsub::*, terms_template::*, user::*,
-    withdrawal::*,
+    core_chart_of_accounts::*, credit_facility::*, customer::*, dashboard::*, deposit::*,
+    document::*, financials::*, loader::*, policy::*, price::*, report::*, sumsub::*,
+    terms_template::*, user::*, withdrawal::*,
 };
 
 pub struct Query;
@@ -613,13 +615,17 @@ impl Mutation {
         input: DocumentCreateInput,
     ) -> async_graphql::Result<DocumentCreatePayload> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
-        let file = input.file.value(ctx)?;
+        let mut file = input.file.value(ctx)?;
+
+        let mut data = Vec::new();
+        file.content.read_to_end(&mut data)?;
+
         exec_mutation!(
             DocumentCreatePayload,
             Document,
             ctx,
             app.documents()
-                .create(sub, file.content.to_vec(), input.customer_id, file.filename)
+                .create(sub, data, input.customer_id, file.filename)
         )
     }
 
@@ -1087,6 +1093,28 @@ impl Mutation {
             .generate_download_links(sub, input.report_id.into())
             .await?;
         Ok(ReportDownloadLinksGeneratePayload::from(links))
+    }
+
+    async fn chart_of_accounts_csv_import(
+        &self,
+        ctx: &Context<'_>,
+        input: ChartOfAccountsCsvImportInput,
+    ) -> async_graphql::Result<ChartOfAccountsCsvImportPayload> {
+        //TODO: extract sub as well for audit ?
+
+        let app = ctx.data_unchecked::<LanaApp>();
+        let ChartOfAccountsCsvImportInput { chart_id, file } = input;
+
+        let mut file = file.value(ctx)?.content;
+
+        let mut data = String::new();
+        file.read_to_string(&mut data)?;
+
+        app.core_chart_of_accounts()
+            .import_from_csv(chart_id, data)
+            .await?;
+
+        Ok(ChartOfAccountsCsvImportPayload { success: true })
     }
 
     #[allow(unused_variables)]
