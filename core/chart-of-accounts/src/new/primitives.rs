@@ -56,7 +56,7 @@ pub enum AccountCodeSectionParseError {
     NonDigit,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 pub struct AccountCodeSection {
     code: String,
 }
@@ -84,7 +84,7 @@ impl std::fmt::Display for AccountCodeSection {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 pub struct AccountCode {
     section: Vec<AccountCodeSection>,
 }

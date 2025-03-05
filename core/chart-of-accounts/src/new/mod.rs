@@ -2,6 +2,7 @@ mod csv;
 mod entity;
 mod primitives;
 mod repo;
+pub mod tree;
 
 use audit::AuditSvc;
 use authz::PermissionCheck;

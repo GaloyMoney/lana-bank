@@ -8,6 +8,7 @@ use audit::AuditInfo;
 use es_entity::*;
 
 use super::primitives::*;
+use super::tree;
 
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
@@ -57,6 +58,10 @@ impl Chart {
             None
         };
         Idempotent::Executed((parent, ledger_account_set_id))
+    }
+
+    pub fn chart(&self) -> tree::ChartTree {
+        tree::project(self.events.iter_all())
     }
 }
 
