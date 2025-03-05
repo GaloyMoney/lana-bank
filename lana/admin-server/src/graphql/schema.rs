@@ -1100,9 +1100,7 @@ impl Mutation {
         ctx: &Context<'_>,
         input: ChartOfAccountsCsvImportInput,
     ) -> async_graphql::Result<ChartOfAccountsCsvImportPayload> {
-        //TODO: extract sub as well for audit ?
-
-        let app = ctx.data_unchecked::<LanaApp>();
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
         let ChartOfAccountsCsvImportInput { chart_id, file } = input;
 
         let mut file = file.value(ctx)?.content;
@@ -1111,7 +1109,7 @@ impl Mutation {
         file.read_to_string(&mut data)?;
 
         app.core_chart_of_accounts()
-            .import_from_csv(chart_id, data)
+            .import_from_csv(sub, chart_id, data)
             .await?;
 
         Ok(ChartOfAccountsCsvImportPayload { success: true })

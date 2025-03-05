@@ -100,14 +100,15 @@ where
     #[instrument(name = "chart_of_account.import_from_csv", skip(self, data))]
     pub async fn import_from_csv(
         &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         id: impl Into<ChartId> + std::fmt::Debug,
         data: impl AsRef<str>,
     ) -> Result<(), CoreChartOfAccountsError> {
         let id = id.into();
         let audit_info = self
             .authz
-            .audit()
-            .record_system_entry(
+            .enforce_permission(
+                sub,
                 CoreChartOfAccountsObjectNew::chart(id),
                 CoreChartOfAccountsActionNew::CHART_LIST,
             )
