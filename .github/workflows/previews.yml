@@ -1,0 +1,38 @@
+name: deploy previews to vercel
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  admin-panel:
+    runs-on: ubuntu-latest
+    env:
+      VERCEL_ORG_ID: "team_6IvldowTmCOM7iNyRbdhmv8H"
+      VERCEL_PROJECT_ID: "prj_nfuHoWMSkaOEi2bOpTTwdLBvawkH"
+    steps:
+      - uses: actions/checkout@v4
+      - run: npm install --global vercel@latest pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: vercel magic
+        run: |
+          vercel env pull --token=${{ secrets.VERCEL_TOKEN }}
+          cp .env.local apps/admin-panel
+          vercel pull --yes --environment=preview --token=${{ secrets.VERCEL_TOKEN }}
+          vercel deploy --build-env NEXT_PUBLIC_CORE_ADMIN_URL=https://admin.staging.lana.galoy.io/graphql --token=${{ secrets.VERCEL_TOKEN }}
+
+  customer-portal:
+    runs-on: ubuntu-latest
+    env:
+      VERCEL_ORG_ID: "team_6IvldowTmCOM7iNyRbdhmv8H"
+      VERCEL_PROJECT_ID: "prj_r4CylWukwHpyvoXOA3ZdLaCremoJ"
+    steps:
+      - uses: actions/checkout@v4
+      - run: npm install --global vercel@latest pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: vercel magic
+        run: |
+          vercel env pull --token=${{ secrets.VERCEL_TOKEN }}
+          cp .env.local apps/customer-portal
+          vercel pull --yes --environment=preview --token=${{ secrets.VERCEL_TOKEN }}
+          vercel deploy --build-env NEXT_PUBLIC_CORE_URL=https://app.staging.lana.galoy.io --build-env NEXT_PUBLIC_KRATOS_PUBLIC_API=https://app.staging.lana.galoy.io --token=${{ secrets.VERCEL_TOKEN }}

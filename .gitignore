@@ -24,3 +24,4 @@ node_modules/
 
 *.tgz
 meltano/keyfile.json
+.vercel

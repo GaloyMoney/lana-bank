@@ -61,6 +61,7 @@
           pnpm
           tilt
           pandoc
+          nodePackages.vercel
         ]
         ++ lib.optionals pkgs.stdenv.isLinux [
           xvfb-run
