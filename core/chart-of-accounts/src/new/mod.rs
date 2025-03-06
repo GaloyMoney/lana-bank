@@ -1,5 +1,6 @@
 mod csv;
 mod entity;
+mod leaf_account_factory;
 mod primitives;
 mod repo;
 pub mod tree;
@@ -7,7 +8,7 @@ pub mod tree;
 use audit::AuditSvc;
 use authz::PermissionCheck;
 
-use cala_ledger::{account::NewAccount, account_set::NewAccountSet, CalaLedger, LedgerOperation};
+use cala_ledger::{account_set::NewAccountSet, CalaLedger};
 use tracing::instrument;
 
 use super::error::*;
@@ -15,6 +16,7 @@ use super::error::*;
 pub(crate) use csv::CsvParseError;
 pub use entity::Chart;
 use entity::*;
+pub use leaf_account_factory::*;
 pub use primitives::*;
 use repo::*;
 
@@ -64,6 +66,10 @@ where
         Ok(res)
     }
 
+    pub fn leaf_account_factory(&self) -> LeafAccountFactory {
+        LeafAccountFactory::new(&self.cala, &self.repo)
+    }
+
     #[instrument(name = "chart_of_accounts.create_chart", skip(self))]
     pub async fn create_chart(
         &self,
@@ -95,42 +101,6 @@ where
         op.commit().await?;
 
         Ok(chart)
-    }
-
-    #[allow(clippy::too_many_arguments)]
-    pub async fn create_leaf_account_in_op(
-        &self,
-        op: &mut LedgerOperation<'_>,
-        chart_id: ChartId,
-        parent_code: AccountCode,
-        account_id: impl Into<LedgerAccountId>,
-        reference: &str,
-        name: &str,
-        description: &str,
-    ) -> Result<(), CoreChartOfAccountsError> {
-        let account_id = account_id.into();
-
-        let chart = self.repo.find_by_id(chart_id).await?;
-        let (spec, account_set_id) = chart.account_spec(&parent_code).ok_or(
-            CoreChartOfAccountsError::AccountNotFoundInChart(parent_code),
-        )?;
-        let new_account = NewAccount::builder()
-            .id(account_id)
-            .external_id(reference)
-            .name(name.to_string())
-            .description(description.to_string())
-            .code(spec.leaf_account_code(chart_id, account_id))
-            // .normal_balance_type(spec.normal_balance_type)
-            .build()
-            .expect("Could not build new account");
-
-        let account = self.cala.accounts().create_in_op(op, new_account).await?;
-
-        self.cala
-            .account_sets()
-            .add_member_in_op(op, *account_set_id, account.id)
-            .await?;
-        Ok(())
     }
 
     #[instrument(name = "chart_of_account.import_from_csv", skip(self, data))]

@@ -20,10 +20,7 @@ use tracing::instrument;
 use audit::AuditSvc;
 use authz::PermissionCheck;
 use cala_ledger::CalaLedger;
-use chart_of_accounts::{
-    new::{CoreChartOfAccounts, CoreChartOfAccountsActionNew, CoreChartOfAccountsObjectNew},
-    TransactionAccountFactory,
-};
+use chart_of_accounts::new::LeafAccountFactory;
 use core_customer::{CoreCustomerEvent, Customers};
 use governance::{Governance, GovernanceEvent};
 use job::Jobs;
@@ -38,8 +35,8 @@ use error::*;
 pub use event::*;
 pub use for_subject::DepositsForSubject;
 pub use history::{DepositAccountHistoryCursor, DepositAccountHistoryEntry};
+pub use ledger::DepositOmnibusAccountIds;
 use ledger::*;
-pub use ledger::{DepositAccountFactories, DepositOmnibusAccountIds};
 use module_config::*;
 pub use primitives::*;
 pub use processes::approval::APPROVE_WITHDRAWAL_PROCESS;
@@ -62,8 +59,7 @@ where
     approve_withdrawal: ApproveWithdrawal<Perms, E>,
     ledger: DepositLedger,
     cala: CalaLedger,
-    chart_of_accounts: CoreChartOfAccounts<Perms>,
-    account_factory: TransactionAccountFactory,
+    account_factory: LeafAccountFactory,
     authz: Perms,
     governance: Governance<Perms, E>,
     customers: Customers<Perms, E>,
@@ -85,7 +81,6 @@ where
             withdrawals: self.withdrawals.clone(),
             ledger: self.ledger.clone(),
             cala: self.cala.clone(),
-            chart_of_accounts: self.chart_of_accounts.clone(),
             account_factory: self.account_factory.clone(),
             authz: self.authz.clone(),
             governance: self.governance.clone(),
@@ -101,9 +96,9 @@ impl<Perms, E> CoreDeposit<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
-        From<CoreDepositAction> + From<GovernanceAction> + From<CoreChartOfAccountsActionNew>,
+        From<CoreDepositAction> + From<GovernanceAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object:
-        From<CoreDepositObject> + From<GovernanceObject> + From<CoreChartOfAccountsObjectNew>,
+        From<CoreDepositObject> + From<GovernanceObject>,
     E: OutboxEventMarker<CoreDepositEvent>
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCustomerEvent>,
@@ -116,8 +111,7 @@ where
         governance: &Governance<Perms, E>,
         customers: &Customers<Perms, E>,
         jobs: &Jobs,
-        factories: DepositAccountFactories,
-        chart_of_accounts: &CoreChartOfAccounts<Perms>,
+        account_factory: LeafAccountFactory,
         omnibus_ids: DepositOmnibusAccountIds,
         cala: &CalaLedger,
         journal_id: LedgerJournalId,
@@ -154,10 +148,9 @@ where
             governance: governance.clone(),
             customers: customers.clone(),
             cala: cala.clone(),
-            chart_of_accounts: chart_of_accounts.clone(),
             approve_withdrawal,
             ledger,
-            account_factory: factories.deposits,
+            account_factory,
         };
         Ok(res)
     }
@@ -216,20 +209,11 @@ where
         let account = self.accounts.create_in_op(&mut op, new_account).await?;
 
         let mut op = self.cala.ledger_operation_from_db_op(op);
-        // self.account_factory
-        //     .create_transaction_account_in_op(
-        //         &mut op,
-        //         account_id,
-        //         &account.reference,
-        //         &account.name,
-        //         &account.description,
-        //     )
-        //     .await?;
         let module_config = self
             .config_repo
             .find_by_id(DepositConfigId::DEFAULT)
             .await?;
-        self.chart_of_accounts
+        self.account_factory
             .create_leaf_account_in_op(
                 &mut op,
                 module_config.chart_of_accounts_id,

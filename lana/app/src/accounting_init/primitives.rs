@@ -4,7 +4,7 @@ use chart_of_accounts::ChartId;
 
 use crate::{
     credit_facility::{CreditFacilityAccountFactories, CreditFacilityOmnibusAccountIds},
-    deposit::{DepositAccountFactories, DepositOmnibusAccountIds},
+    deposit::DepositOmnibusAccountIds,
 };
 
 #[derive(Clone, Copy)]
@@ -15,7 +15,6 @@ pub struct ChartIds {
 
 #[derive(Clone)]
 pub struct DepositsSeed {
-    pub factories: DepositAccountFactories,
     pub omnibus_ids: DepositOmnibusAccountIds,
 }
 

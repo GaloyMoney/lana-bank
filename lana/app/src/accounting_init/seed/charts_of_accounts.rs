@@ -7,7 +7,7 @@ use crate::{
 use chart_of_accounts::{
     ControlAccountCreationDetails, ControlAccountDetails, ControlSubAccountDetails,
 };
-use deposit::{DepositAccountFactories, DepositOmnibusAccountIds};
+use deposit::DepositOmnibusAccountIds;
 
 pub(crate) async fn init(
     balance_sheets: &BalanceSheets,
@@ -150,7 +150,7 @@ async fn create_deposits_account_paths(
     chart_of_accounts: &ChartOfAccounts,
     chart_ids: &ChartIds,
 ) -> Result<DepositsSeed, AccountingInitError> {
-    let (deposits_control, deposits) = find_or_create_control_sub_account(
+    let (deposits_control, _deposits) = find_or_create_control_sub_account(
         chart_of_accounts,
         chart_ids.primary,
         ControlAccountCreationDetails {
@@ -211,9 +211,6 @@ async fn create_deposits_account_paths(
         create_sub_account_as_account(chart_of_accounts, deposits_omnibus).await?;
 
     Ok(DepositsSeed {
-        factories: DepositAccountFactories {
-            deposits: chart_of_accounts.transaction_account_factory(deposits),
-        },
         omnibus_ids: DepositOmnibusAccountIds {
             deposits: deposit_omnibus_account_id,
         },
