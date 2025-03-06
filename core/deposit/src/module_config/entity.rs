@@ -19,7 +19,8 @@ pub enum DepositConfigEvent {
 pub struct DepositConfig {
     pub id: DepositConfigId,
     pub chart_of_accounts_id: ChartId,
-    pub chart_of_accounts_parent_code: AccountCode,
+    pub chart_of_accounts_deposit_accounts_parent_code: AccountCode,
+    pub chart_of_accounts_omnibus_parent_code: AccountCode,
     pub(super) events: EntityEvents<DepositConfigEvent>,
 }
 
