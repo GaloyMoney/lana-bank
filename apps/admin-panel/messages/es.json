@@ -1,4 +1,24 @@
 {
+  "Common": {
+    "loading": "Cargando...",
+    "error": "Ha ocurrido un error",
+    "notFound": "No encontrado",
+    "back": "Volver",
+    "save": "Guardar",
+    "cancel": "Cancelar",
+    "delete": "Eliminar",
+    "edit": "Editar",
+    "create": "Crear",
+    "search": "Buscar",
+    "filter": "Filtrar",
+    "sort": "Ordenar",
+    "refresh": "Actualizar",
+    "view": "Ver",
+    "download": "Descargar",
+    "upload": "Subir",
+    "close": "Cerrar",
+    "submit": "Enviar"
+  },
   "Sidebar": {
     "labels": {
       "loans": "Préstamos",
@@ -36,25 +56,6 @@
     "settings": "Configuración",
     "logout": "Cerrar Sesión",
     "profile": "Perfil"
-  },
-  "Common": {
-    "loading": "Cargando...",
-    "error": "Ha ocurrido un error",
-    "notFound": "No encontrado",
-    "back": "Volver",
-    "save": "Guardar",
-    "cancel": "Cancelar",
-    "delete": "Eliminar",
-    "edit": "Editar",
-    "create": "Crear",
-    "search": "Buscar",
-    "filter": "Filtrar",
-    "sort": "Ordenar",
-    "refresh": "Actualizar",
-    "view": "Ver",
-    "download": "Descargar",
-    "upload": "Subir",
-    "close": "Cerrar"
   },
   "CommandMenu": {
     "placeholders": {

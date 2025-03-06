@@ -1,0 +1,26 @@
+name: Lingo.dev Translations
+
+on:
+  pull_request:
+    paths:
+      - "apps/admin-panel/messages/en.json"
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  translations:
+    name: Update Translations
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+
+      - name: Run Lingo.dev translations
+        uses: lingodotdev/lingo.dev@main
+        with:
+          api-key: ${{ secrets.LINGODOTDEV_API_KEY }}
+          commit-message: "chore: update translations via Lingo.dev"
+          working-directory: "apps/admin-panel"

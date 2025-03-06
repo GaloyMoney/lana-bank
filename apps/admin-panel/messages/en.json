@@ -16,7 +16,8 @@
     "view": "View",
     "download": "Download",
     "upload": "Upload",
-    "close": "Close"
+    "close": "Close",
+    "submit": "Submit"
   },
   "Sidebar": {
     "labels": {
