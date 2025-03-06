@@ -1,6 +1,8 @@
 mod entity;
 pub mod error;
 mod repo;
+mod value;
 
-pub(super) use entity::*;
+pub use entity::DepositConfig;
 pub(super) use repo::*;
+pub use value::DepositConfigValues;

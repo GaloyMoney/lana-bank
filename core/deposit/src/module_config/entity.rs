@@ -1,27 +1,42 @@
+use audit::AuditInfo;
 use derive_builder::Builder;
 use serde::{Deserialize, Serialize};
 
 use es_entity::*;
 
-use chart_of_accounts::{new::AccountCode, ChartId};
-
 use crate::primitives::DepositConfigId;
+
+use super::DepositConfigValues;
 
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
 #[es_event(id = "DepositConfigId")]
 pub enum DepositConfigEvent {
-    Initialized { id: DepositConfigId },
+    Initialized {
+        id: DepositConfigId,
+    },
+    DepositConfigUpdated {
+        values: DepositConfigValues,
+        audit_info: AuditInfo,
+    },
 }
 
 #[derive(EsEntity, Builder)]
 #[builder(pattern = "owned", build_fn(error = "EsEntityError"))]
 pub struct DepositConfig {
     pub id: DepositConfigId,
-    pub chart_of_accounts_id: ChartId,
-    pub chart_of_accounts_deposit_accounts_parent_code: AccountCode,
-    pub chart_of_accounts_omnibus_parent_code: AccountCode,
+    pub values: DepositConfigValues,
     pub(super) events: EntityEvents<DepositConfigEvent>,
+}
+
+impl DepositConfig {
+    pub fn update_values(&mut self, new_values: DepositConfigValues, audit_info: AuditInfo) {
+        self.events.push(DepositConfigEvent::DepositConfigUpdated {
+            values: new_values.clone(),
+            audit_info,
+        });
+        self.values = new_values;
+    }
 }
 
 impl TryFromEvents<DepositConfigEvent> for DepositConfig {
@@ -30,6 +45,9 @@ impl TryFromEvents<DepositConfigEvent> for DepositConfig {
         for event in events.iter_all() {
             match event {
                 DepositConfigEvent::Initialized { id } => builder = builder.id(*id),
+                DepositConfigEvent::DepositConfigUpdated { values, .. } => {
+                    builder = builder.values(values.clone())
+                }
             }
         }
         builder.events(events).build()
