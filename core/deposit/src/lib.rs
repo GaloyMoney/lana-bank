@@ -9,7 +9,7 @@ mod event;
 mod for_subject;
 mod history;
 mod ledger;
-mod module_config;
+// mod module_config;
 mod primitives;
 mod processes;
 mod withdrawal;
@@ -37,6 +37,7 @@ pub use for_subject::DepositsForSubject;
 pub use history::{DepositAccountHistoryCursor, DepositAccountHistoryEntry};
 use ledger::*;
 pub use ledger::{DepositAccountFactories, DepositOmnibusAccountIds};
+// use module_config::*;
 pub use primitives::*;
 pub use processes::approval::APPROVE_WITHDRAWAL_PROCESS;
 use processes::approval::{
@@ -59,10 +60,11 @@ where
     ledger: DepositLedger,
     cala: CalaLedger,
     chart_of_accounts: CoreChartOfAccounts<Perms>,
-    // account_factory: TransactionAccountFactory,
+    account_factory: TransactionAccountFactory,
     authz: Perms,
     governance: Governance<Perms, E>,
     customers: Customers<Perms, E>,
+    // config_repo: DepositConfigRepo,
     outbox: Outbox<E>,
 }
 
@@ -81,11 +83,12 @@ where
             ledger: self.ledger.clone(),
             cala: self.cala.clone(),
             chart_of_accounts: self.chart_of_accounts.clone(),
-            // account_factory: self.account_factory.clone(),
+            account_factory: self.account_factory.clone(),
             authz: self.authz.clone(),
             governance: self.governance.clone(),
             customers: self.customers.clone(),
             approve_withdrawal: self.approve_withdrawal.clone(),
+            // config_repo: self.config_repo.clone(),
             outbox: self.outbox.clone(),
         }
     }
@@ -119,6 +122,7 @@ where
         let accounts = DepositAccountRepo::new(pool);
         let deposits = DepositRepo::new(pool);
         let withdrawals = WithdrawalRepo::new(pool);
+        // let config_repo = DepositConfigRepo::new(pool);
         let ledger = DepositLedger::init(cala, journal_id, omnibus_ids.deposits).await?;
 
         let approve_withdrawal = ApproveWithdrawal::new(&withdrawals, authz.audit(), governance);
@@ -141,6 +145,7 @@ where
             accounts,
             deposits,
             withdrawals,
+            // config_repo,
             authz: authz.clone(),
             outbox: outbox.clone(),
             governance: governance.clone(),
@@ -149,7 +154,7 @@ where
             chart_of_accounts: chart_of_accounts.clone(),
             approve_withdrawal,
             ledger,
-            // account_factory: factories.deposits,
+            account_factory: factories.deposits,
         };
         Ok(res)
     }
@@ -208,17 +213,19 @@ where
         let account = self.accounts.create_in_op(&mut op, new_account).await?;
 
         let mut op = self.cala.ledger_operation_from_db_op(op);
-        // self.account_factory
-        //     .create_transaction_account_in_op(
-        //         &mut op,
-        //         account_id,
-        //         &account.reference,
-        //         &account.name,
-        //         &account.description,
-        //     )
-        //     .await?;
+        self.account_factory
+            .create_transaction_account_in_op(
+                &mut op,
+                account_id,
+                &account.reference,
+                &account.name,
+                &account.description,
+            )
+            .await?;
         // self.chart_of_accounts.create_leaf_account_in_op(
         //     &mut op,
+        //     chart_id,
+        //     parent_code,
         //     account_id,
         //     account.reference.clone(),
         //     account.name.clone(),

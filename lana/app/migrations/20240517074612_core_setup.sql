@@ -76,14 +76,28 @@ CREATE TABLE core_alt_chart_events (
   UNIQUE(id, sequence)
 );
 
-CREATE TABLE deposit_accounts (
+CREATE TABLE core_deposit_configs (
+  id UUID PRIMARY KEY,
+  created_at TIMESTAMPTZ NOT NULL
+);
+
+CREATE TABLE core_deposit_config_events (
+  id UUID NOT NULL REFERENCES core_deposit_configs(id),
+  sequence INT NOT NULL,
+  event_type VARCHAR NOT NULL,
+  event JSONB NOT NULL,
+  recorded_at TIMESTAMPTZ NOT NULL,
+  UNIQUE(id, sequence)
+);
+
+CREATE TABLE core_deposit_accounts (
   id UUID PRIMARY KEY,
   account_holder_id UUID NOT NULL,
   created_at TIMESTAMPTZ NOT NULL
 );
 
-CREATE TABLE deposit_account_events (
-  id UUID NOT NULL REFERENCES deposit_accounts(id),
+CREATE TABLE core_deposit_account_events (
+  id UUID NOT NULL REFERENCES core_deposit_accounts(id),
   sequence INT NOT NULL,
   event_type VARCHAR NOT NULL,
   event JSONB NOT NULL,
@@ -93,7 +107,7 @@ CREATE TABLE deposit_account_events (
 
 CREATE TABLE core_deposits (
   id UUID PRIMARY KEY,
-  deposit_account_id UUID NOT NULL REFERENCES deposit_accounts(id),
+  deposit_account_id UUID NOT NULL REFERENCES core_deposit_accounts(id),
   reference VARCHAR NOT NULL UNIQUE,
   created_at TIMESTAMPTZ NOT NULL
 );
@@ -109,7 +123,7 @@ CREATE TABLE core_deposit_events (
 
 CREATE TABLE core_withdrawals (
   id UUID PRIMARY KEY,
-  deposit_account_id UUID NOT NULL REFERENCES deposit_accounts(id),
+  deposit_account_id UUID NOT NULL REFERENCES core_deposit_accounts(id),
   approval_process_id UUID REFERENCES approval_processes(id),
   cancelled_tx_id UUID DEFAULT NULL,
   reference VARCHAR NOT NULL UNIQUE,
@@ -307,39 +321,6 @@ CREATE TABLE interest_accruals (
 
 CREATE TABLE interest_accrual_events (
   id UUID NOT NULL REFERENCES interest_accruals(id),
-  sequence INT NOT NULL,
-  event_type VARCHAR NOT NULL,
-  event JSONB NOT NULL,
-  recorded_at TIMESTAMPTZ NOT NULL,
-  UNIQUE(id, sequence)
-);
-
-CREATE TABLE withdrawals (
-  id UUID PRIMARY KEY,
-  customer_id UUID NOT NULL REFERENCES customers(id),
-  approval_process_id UUID NOT NULL REFERENCES approval_processes(id),
-  reference VARCHAR NOT NULL UNIQUE,
-  created_at TIMESTAMPTZ NOT NULL
-);
-
-CREATE TABLE withdrawal_events (
-  id UUID NOT NULL REFERENCES withdrawals(id),
-  sequence INT NOT NULL,
-  event_type VARCHAR NOT NULL,
-  event JSONB NOT NULL,
-  recorded_at TIMESTAMPTZ NOT NULL,
-  UNIQUE(id, sequence)
-);
-
-CREATE TABLE deposits (
-  id UUID PRIMARY KEY,
-  customer_id UUID NOT NULL REFERENCES customers(id),
-  reference VARCHAR NOT NULL UNIQUE,
-  created_at TIMESTAMPTZ NOT NULL
-);
-
-CREATE TABLE deposit_events (
-  id UUID NOT NULL REFERENCES deposits(id),
   sequence INT NOT NULL,
   event_type VARCHAR NOT NULL,
   event JSONB NOT NULL,

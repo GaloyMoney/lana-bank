@@ -101,7 +101,7 @@ where
     pub async fn create_leaf_account_in_op(
         &self,
         op: &mut LedgerOperation<'_>,
-        chart_id: AltChartId,
+        chart_id: ChartId,
         parent_code: AccountCode,
         account_id: impl Into<LedgerAccountId>,
         reference: &str,
