@@ -11,11 +11,13 @@ import {
   DropdownMenuTrigger,
 } from "@lana/web/ui/dropdown-menu"
 import { Avatar, AvatarFallback } from "@lana/web/ui/avatar"
-import { Laptop, LogOut, Moon, Sun } from "lucide-react"
+import { Cog, Laptop, LogOut, Moon, Sun } from "lucide-react"
 import { useTheme } from "next-themes"
 import { Badge } from "@lana/web/ui/badge"
 
 import { useState, useCallback } from "react"
+import Link from "next/link"
+import { useRouter } from "next/navigation"
 
 import { KycLevel, MeQuery } from "@/lib/graphql/generated"
 
@@ -31,6 +33,7 @@ interface MenuItem {
 function NavBar({ meQueryData }: { meQueryData: MeQuery }) {
   const { setTheme } = useTheme()
   const { logout } = useLogout()
+  const router = useRouter()
   const [isOpen, setIsOpen] = useState(false)
   const avatarCallback = meQueryData.me.customer.email[0].toUpperCase()
 
@@ -39,6 +42,13 @@ function NavBar({ meQueryData }: { meQueryData: MeQuery }) {
       label: "Logout",
       icon: <LogOut className="mr-2 h-4 w-4" />,
       onClick: () => logout(),
+    },
+    {
+      label: "Settings",
+      icon: <Cog className="mr-2 h-4 w-4" />,
+      onClick: () => {
+        router.push("/settings/2fa")
+      },
     },
   ]
 
@@ -64,9 +74,11 @@ function NavBar({ meQueryData }: { meQueryData: MeQuery }) {
     <nav>
       <div className="max-w-7xl mx-auto px-4">
         <div className="flex items-center justify-between h-16">
-          <div className="flex items-center gap-8">
-            <div className="text-2xl font-semibold">Lana Bank.</div>
-          </div>
+          <Link href="/">
+            <div className="flex items-center gap-8">
+              <div className="text-2xl font-semibold">Lana Bank.</div>
+            </div>
+          </Link>
           <div className="flex gap-2">
             <KYCBadge level={meQueryData.me.customer.level} />
             <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
