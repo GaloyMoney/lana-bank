@@ -60,6 +60,10 @@ impl Chart {
         Idempotent::Executed((parent, ledger_account_set_id))
     }
 
+    pub fn account_spec(&self, code: &AccountCode) -> Option<&(AccountSpec, LedgerAccountSetId)> {
+        self.all_accounts.get(code)
+    }
+
     pub fn chart(&self) -> tree::ChartTree {
         tree::project(self.events.iter_all())
     }

@@ -5,7 +5,7 @@ use std::{fmt::Display, str::FromStr};
 use authz::AllOrOne;
 
 pub use cala_ledger::primitives::{
-    AccountSetId as LedgerAccountSetId, JournalId as LedgerJournalId,
+    AccountId as LedgerAccountId, AccountSetId as LedgerAccountSetId, JournalId as LedgerJournalId,
 };
 
 pub use crate::primitives::ChartId;
@@ -163,6 +163,14 @@ impl AccountSpec {
 
     pub(super) fn account_set_external_id(&self, chart_id: ChartId) -> String {
         format!("{}.{}", chart_id, self.code)
+    }
+
+    pub(super) fn leaf_account_code(
+        &self,
+        chart_id: AltChartId,
+        account_id: LedgerAccountId,
+    ) -> String {
+        format!("{}.{}.{}", chart_id, self.code, account_id)
     }
 
     pub fn has_parent(&self) -> bool {

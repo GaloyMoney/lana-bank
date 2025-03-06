@@ -1,5 +1,7 @@
 use thiserror::Error;
 
+use crate::new::AccountCode;
+
 #[derive(Error, Debug)]
 pub enum CoreChartOfAccountsError {
     #[error("CoreChartOfAccountsError - Sqlx: {0}")]
@@ -18,4 +20,6 @@ pub enum CoreChartOfAccountsError {
     CalaAccountSet(#[from] cala_ledger::account_set::error::AccountSetError),
     #[error("CoreChartOfAccountsError - CsvParseError: {0}")]
     CsvParse(#[from] crate::new::CsvParseError),
+    #[error("CoreChartOfAccountsError - AccountNotFoundInChart: {0}")]
+    AccountNotFoundInChart(AccountCode),
 }

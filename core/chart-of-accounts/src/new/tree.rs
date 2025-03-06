@@ -195,10 +195,7 @@ mod tests {
                     &AccountSpec {
                         parent: Some(AccountCode::new(vec!["11".parse().unwrap()])),
                         code: AccountCode::new(
-                            vec!["11", "01"]
-                                .iter()
-                                .map(|c| c.parse().unwrap())
-                                .collect(),
+                            ["11", "01"].iter().map(|c| c.parse().unwrap()).collect(),
                         ),
                         name: "Cash".parse().unwrap(),
                     },
@@ -209,13 +206,10 @@ mod tests {
                 .create_node(
                     &AccountSpec {
                         parent: Some(AccountCode::new(
-                            vec!["11", "01"]
-                                .iter()
-                                .map(|c| c.parse().unwrap())
-                                .collect(),
+                            ["11", "01"].iter().map(|c| c.parse().unwrap()).collect(),
                         )),
                         code: AccountCode::new(
-                            vec!["11", "01", "0101"]
+                            ["11", "01", "0101"]
                                 .iter()
                                 .map(|c| c.parse().unwrap())
                                 .collect(),
@@ -234,18 +228,13 @@ mod tests {
         let cash = &assets_2.children[0];
         assert_eq!(
             cash.code,
-            AccountCode::new(
-                vec!["11", "01"]
-                    .iter()
-                    .map(|c| c.parse().unwrap())
-                    .collect(),
-            )
+            AccountCode::new(["11", "01"].iter().map(|c| c.parse().unwrap()).collect(),)
         );
         let central_office = &cash.children[0];
         assert_eq!(
             central_office.code,
             AccountCode::new(
-                vec!["11", "01", "0101"]
+                ["11", "01", "0101"]
                     .iter()
                     .map(|c| c.parse().unwrap())
                     .collect(),
