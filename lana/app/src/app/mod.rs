@@ -127,6 +127,7 @@ impl LanaApp {
             &customers,
             &jobs,
             charts_init.deposits.factories,
+            &new_chart_of_accounts,
             charts_init.deposits.omnibus_ids,
             &cala,
             journal_init.journal_id,
