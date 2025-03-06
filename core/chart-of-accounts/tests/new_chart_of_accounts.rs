@@ -1,5 +1,6 @@
 use cala_ledger::{CalaLedger, CalaLedgerConfig};
 
+use authz::dummy::DummySubject;
 use chart_of_accounts::new::{CoreChartOfAccounts, *};
 
 pub async fn init_pool() -> anyhow::Result<sqlx::PgPool> {
@@ -41,11 +42,15 @@ async fn import_from_csv() -> anyhow::Result<()> {
 
     let chart_of_accounts = CoreChartOfAccounts::init(&pool, &authz, &cala, journal_id).await?;
 
+<<<<<<< HEAD
     let chart_id = ChartId::new();
+=======
+>>>>>>> 70bcd1339 (feat: chart create and csv import gql  (#1552))
     let rand_ref = format!("{:05}", rand::thread_rng().gen_range(0..100000));
-    chart_of_accounts
-        .create_chart(chart_id, "Test Chart".to_string(), rand_ref.clone())
-        .await?;
+    let chart_id = chart_of_accounts
+        .create_chart(&DummySubject, "Test Chart".to_string(), rand_ref.clone())
+        .await?
+        .id;
 
     let data = format!(
         r#"
@@ -56,7 +61,9 @@ async fn import_from_csv() -> anyhow::Result<()> {
         "#
     );
 
-    chart_of_accounts.import_from_csv(chart_id, data).await?;
+    chart_of_accounts
+        .import_from_csv(&DummySubject, chart_id, data)
+        .await?;
 
     Ok(())
 }

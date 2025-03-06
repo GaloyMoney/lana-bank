@@ -8,6 +8,7 @@ use lana_app::new_chart_of_accounts::Chart as DomainChart;
 #[graphql(complex)]
 pub struct NewChartOfAccounts {
     id: ID,
+    chart_id: UUID,
     name: String,
 
     #[graphql(skip)]
@@ -18,6 +19,7 @@ impl From<DomainChart> for NewChartOfAccounts {
     fn from(chart: DomainChart) -> Self {
         NewChartOfAccounts {
             id: chart.id.to_global_id(),
+            chart_id: UUID::from(chart.id),
             name: chart.name.to_string(),
 
             entity: Arc::new(chart),
@@ -52,4 +54,23 @@ impl From<lana_app::new_chart_of_accounts::tree::TreeNode> for ChartNode {
             children: node.children.into_iter().map(ChartNode::from).collect(),
         }
     }
+}
+
+#[derive(InputObject)]
+pub struct ChartOfAccountsCreateInput {
+    pub name: String,
+    pub reference: String,
+}
+
+crate::mutation_payload!(ChartOfAccountsCreatePayload, chart_of_accounts: NewChartOfAccounts);
+
+#[derive(InputObject)]
+pub struct ChartOfAccountsCsvImportInput {
+    pub chart_id: UUID,
+    pub file: Upload,
+}
+
+#[derive(SimpleObject)]
+pub struct ChartOfAccountsCsvImportPayload {
+    pub success: bool,
 }

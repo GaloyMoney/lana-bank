@@ -100,7 +100,7 @@ pub mod chart_of_accounts {
 }
 
 pub mod new_chart_of_accounts {
-    pub use chart_of_accounts::new::{tree, AltChart as Chart};
+    pub use chart_of_accounts::new::{tree, Chart};
 
     pub type NewChartOfAccounts =
         chart_of_accounts::new::CoreChartOfAccounts<crate::authorization::Authorization>;

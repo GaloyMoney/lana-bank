@@ -254,6 +254,24 @@ type ChartOfAccounts {
 	categories: ChartCategories!
 }
 
+input ChartOfAccountsCreateInput {
+	name: String!
+	reference: String!
+}
+
+type ChartOfAccountsCreatePayload {
+	chartOfAccounts: NewChartOfAccounts!
+}
+
+input ChartOfAccountsCsvImportInput {
+	chartId: UUID!
+	file: Upload!
+}
+
+type ChartOfAccountsCsvImportPayload {
+	success: Boolean!
+}
+
 type Collateral {
 	btcBalance: Satoshis!
 }
@@ -937,11 +955,14 @@ type Mutation {
 	documentArchive(input: DocumentArchiveInput!): DocumentArchivePayload!
 	reportCreate: ReportCreatePayload!
 	reportDownloadLinksGenerate(input: ReportDownloadLinksGenerateInput!): ReportDownloadLinksGeneratePayload!
+	chartOfAccountsCreate(input: ChartOfAccountsCreateInput!): ChartOfAccountsCreatePayload!
+	chartOfAccountsCsvImport(input: ChartOfAccountsCsvImportInput!): ChartOfAccountsCsvImportPayload!
 	shareholderEquityAdd(input: ShareholderEquityAddInput!): SuccessPayload!
 }
 
 type NewChartOfAccounts {
 	id: ID!
+	chartId: UUID!
 	name: String!
 	children: [ChartNode!]!
 }
@@ -1063,7 +1084,7 @@ type Query {
 	trialBalance(from: Timestamp!, until: Timestamp): TrialBalance!
 	offBalanceSheetTrialBalance(from: Timestamp!, until: Timestamp): TrialBalance!
 	chartOfAccounts: ChartOfAccounts!
-	newChartOfAccounts: NewChartOfAccounts!
+	newChartOfAccounts(reference: String!): NewChartOfAccounts!
 	offBalanceSheetChartOfAccounts: ChartOfAccounts!
 	balanceSheet(from: Timestamp!, until: Timestamp): BalanceSheet!
 	profitAndLossStatement(from: Timestamp!, until: Timestamp): ProfitAndLossStatement!

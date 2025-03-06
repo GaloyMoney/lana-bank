@@ -11,8 +11,8 @@ use crate::primitives::*;
 
 use super::{
     approval_process::*, chart_of_accounts::*, committee::*, credit_facility::*, customer::*,
-    deposit::*, deposit_account::*, document::*, policy::*, terms_template::*, user::*,
-    withdrawal::*,
+    deposit::*, deposit_account::*, document::*, new_chart_of_accounts::*, policy::*,
+    terms_template::*, user::*, withdrawal::*,
 };
 
 pub type LanaDataLoader = DataLoader<LanaLoader>;
@@ -116,6 +116,22 @@ impl Loader<ChartId> for LanaLoader {
     ) -> Result<HashMap<ChartId, ChartOfAccounts>, Self::Error> {
         self.app
             .chart_of_accounts()
+            .find_all(keys)
+            .await
+            .map_err(Arc::new)
+    }
+}
+
+impl Loader<AltChartId> for LanaLoader {
+    type Value = NewChartOfAccounts;
+    type Error = Arc<CoreChartOfAccountsError>;
+
+    async fn load(
+        &self,
+        keys: &[AltChartId],
+    ) -> Result<HashMap<AltChartId, NewChartOfAccounts>, Self::Error> {
+        self.app
+            .new_chart_of_accounts()
             .find_all(keys)
             .await
             .map_err(Arc::new)

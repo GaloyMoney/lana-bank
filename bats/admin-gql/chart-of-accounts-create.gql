@@ -1,0 +1,7 @@
+mutation ChartOfAccountsCreate($input: ChartOfAccountsCreateInput) {
+  chartOfAccountsCreate(input: $input) {
+    chartOfAccounts {
+      chartId
+    }
+  }
+}

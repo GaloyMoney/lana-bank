@@ -39,7 +39,7 @@ sim-time = "0.3.15"
 cala-ledger = "0.3.15"
 
 anyhow = "1.0.95"
-async-graphql = { version = "7.0.11", default-features = false, features = ["dataloader", "tracing", "chrono", "playground"] }
+async-graphql = { version = "7.0.11", default-features = false, features = ["dataloader", "tracing", "chrono", "playground", "tempfile"] }
 async-graphql-axum = "7.0.9"
 async-trait = "0.1.80"
 axum = { version = "0.7.9", features = ["macros"] }

@@ -281,6 +281,26 @@ export type ChartOfAccounts = {
   name: Scalars['String']['output'];
 };
 
+export type ChartOfAccountsCreateInput = {
+  name: Scalars['String']['input'];
+  reference: Scalars['String']['input'];
+};
+
+export type ChartOfAccountsCreatePayload = {
+  __typename?: 'ChartOfAccountsCreatePayload';
+  chartOfAccounts: NewChartOfAccounts;
+};
+
+export type ChartOfAccountsCsvImportInput = {
+  chartId: Scalars['UUID']['input'];
+  file: Scalars['Upload']['input'];
+};
+
+export type ChartOfAccountsCsvImportPayload = {
+  __typename?: 'ChartOfAccountsCsvImportPayload';
+  success: Scalars['Boolean']['output'];
+};
+
 export type Collateral = {
   __typename?: 'Collateral';
   btcBalance: Scalars['Satoshis']['output'];
@@ -931,6 +951,8 @@ export type Mutation = {
   __typename?: 'Mutation';
   approvalProcessApprove: ApprovalProcessApprovePayload;
   approvalProcessDeny: ApprovalProcessDenyPayload;
+  chartOfAccountsCreate: ChartOfAccountsCreatePayload;
+  chartOfAccountsCsvImport: ChartOfAccountsCsvImportPayload;
   committeeAddUser: CommitteeAddUserPayload;
   committeeCreate: CommitteeCreatePayload;
   committeeRemoveUser: CommitteeRemoveUserPayload;
@@ -970,6 +992,16 @@ export type MutationApprovalProcessApproveArgs = {
 export type MutationApprovalProcessDenyArgs = {
   input: ApprovalProcessDenyInput;
   reason: Scalars['String']['input'];
+};
+
+
+export type MutationChartOfAccountsCreateArgs = {
+  input: ChartOfAccountsCreateInput;
+};
+
+
+export type MutationChartOfAccountsCsvImportArgs = {
+  input: ChartOfAccountsCsvImportInput;
 };
 
 
@@ -1109,6 +1141,7 @@ export type MutationWithdrawalInitiateArgs = {
 
 export type NewChartOfAccounts = {
   __typename?: 'NewChartOfAccounts';
+  chartId: Scalars['UUID']['output'];
   children: Array<ChartNode>;
   id: Scalars['ID']['output'];
   name: Scalars['String']['output'];
@@ -1331,6 +1364,11 @@ export type QueryDisbursalsArgs = {
 
 export type QueryDocumentArgs = {
   id: Scalars['UUID']['input'];
+};
+
+
+export type QueryNewChartOfAccountsArgs = {
+  reference: Scalars['String']['input'];
 };
 
 

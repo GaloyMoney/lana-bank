@@ -1,5 +1,7 @@
 use async_graphql::{types::connection::*, Context, Object};
 
+use std::io::Read;
+
 use lana_app::{
     accounting_init::constants::{
         BALANCE_SHEET_NAME, CASH_FLOW_STATEMENT_NAME, CHART_REF, OBS_CHART_REF,
@@ -629,13 +631,17 @@ impl Mutation {
         input: DocumentCreateInput,
     ) -> async_graphql::Result<DocumentCreatePayload> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
-        let file = input.file.value(ctx)?;
+
+        let mut file = input.file.value(ctx)?;
+        let mut data = Vec::new();
+        file.content.read_to_end(&mut data)?;
+
         exec_mutation!(
             DocumentCreatePayload,
             Document,
             ctx,
             app.documents()
-                .create(sub, file.content.to_vec(), input.customer_id, file.filename)
+                .create(sub, data, input.customer_id, file.filename)
         )
     }
 
@@ -1103,6 +1109,41 @@ impl Mutation {
             .generate_download_links(sub, input.report_id.into())
             .await?;
         Ok(ReportDownloadLinksGeneratePayload::from(links))
+    }
+
+    async fn chart_of_accounts_create(
+        &self,
+        ctx: &Context<'_>,
+        input: ChartOfAccountsCreateInput,
+    ) -> async_graphql::Result<ChartOfAccountsCreatePayload> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        exec_mutation!(
+            ChartOfAccountsCreatePayload,
+            NewChartOfAccounts,
+            ctx,
+            app.new_chart_of_accounts()
+                .create_chart(sub, input.name, input.reference)
+        )
+    }
+
+    async fn chart_of_accounts_csv_import(
+        &self,
+        ctx: &Context<'_>,
+        input: ChartOfAccountsCsvImportInput,
+    ) -> async_graphql::Result<ChartOfAccountsCsvImportPayload> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        let ChartOfAccountsCsvImportInput { chart_id, file } = input;
+
+        let mut file = file.value(ctx)?.content;
+
+        let mut data = String::new();
+        file.read_to_string(&mut data)?;
+
+        app.new_chart_of_accounts()
+            .import_from_csv(sub, chart_id, data)
+            .await?;
+
+        Ok(ChartOfAccountsCsvImportPayload { success: true })
     }
 
     #[allow(unused_variables)]
