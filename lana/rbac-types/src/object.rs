@@ -1,7 +1,7 @@
 use std::{fmt::Display, str::FromStr};
 
 use authz::AllOrOne;
-use chart_of_accounts::CoreChartOfAccountsObject;
+use chart_of_accounts::{new::CoreChartOfAccountsObjectNew, CoreChartOfAccountsObject};
 use core_credit::CoreCreditObject;
 use core_customer::{CustomerId, CustomerObject};
 use core_user::UserObject;
@@ -18,6 +18,7 @@ pub enum LanaObject {
     User(UserObject),
     Customer(CustomerObject),
     ChartOfAccounts(CoreChartOfAccountsObject),
+    NewChartOfAccounts(CoreChartOfAccountsObjectNew),
     Deposit(CoreDepositObject),
     Credit(CoreCreditObject),
     Dashboard(DashboardModuleObject),
@@ -53,6 +54,11 @@ impl From<CoreChartOfAccountsObject> for LanaObject {
         LanaObject::ChartOfAccounts(object)
     }
 }
+impl From<CoreChartOfAccountsObjectNew> for LanaObject {
+    fn from(object: CoreChartOfAccountsObjectNew) -> Self {
+        LanaObject::NewChartOfAccounts(object)
+    }
+}
 impl From<CoreDepositObject> for LanaObject {
     fn from(object: CoreDepositObject) -> Self {
         LanaObject::Deposit(object)
@@ -74,6 +80,7 @@ impl Display for LanaObject {
             User(action) => action.fmt(f),
             Customer(action) => action.fmt(f),
             ChartOfAccounts(action) => action.fmt(f),
+            NewChartOfAccounts(action) => action.fmt(f),
             Deposit(action) => action.fmt(f),
             Credit(action) => action.fmt(f),
             Dashboard(action) => action.fmt(f),
@@ -93,6 +100,7 @@ impl FromStr for LanaObject {
             User => LanaObject::from(object.parse::<UserObject>()?),
             Customer => LanaObject::from(object.parse::<CustomerObject>()?),
             ChartOfAccounts => LanaObject::from(object.parse::<CoreChartOfAccountsObject>()?),
+            NewChartOfAccounts => LanaObject::from(object.parse::<CoreChartOfAccountsObjectNew>()?),
             Deposit => LanaObject::from(object.parse::<CoreDepositObject>()?),
             Credit => LanaObject::from(object.parse::<CoreCreditObject>()?),
             Dashboard => LanaObject::from(

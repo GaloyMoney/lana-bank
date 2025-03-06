@@ -14,6 +14,7 @@ mod deposit_account_history;
 mod document;
 mod financials;
 mod loader;
+mod new_chart_of_accounts;
 mod price;
 mod primitives;
 mod report;

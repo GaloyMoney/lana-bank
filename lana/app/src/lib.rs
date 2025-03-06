@@ -99,6 +99,13 @@ pub mod chart_of_accounts {
         chart_of_accounts::CoreChartOfAccounts<crate::authorization::Authorization>;
 }
 
+pub mod new_chart_of_accounts {
+    pub use chart_of_accounts::new::{tree, AltChart as Chart};
+
+    pub type NewChartOfAccounts =
+        chart_of_accounts::new::CoreChartOfAccounts<crate::authorization::Authorization>;
+}
+
 pub mod credit_facility {
     pub use core_credit::{
         error, CollateralUpdated, CollateralizationUpdated, CoreCreditEvent,

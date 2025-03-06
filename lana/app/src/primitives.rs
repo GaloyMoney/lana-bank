@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 
 use std::fmt;
 
-pub use chart_of_accounts::ChartId;
+pub use chart_of_accounts::{new::AltChartId, ChartId};
 pub use core_credit::{
     CollateralAction, CreditFacilityId, CreditFacilityStatus, DisbursalId, DisbursalIdx,
     DisbursalStatus, PaymentId,

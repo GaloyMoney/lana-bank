@@ -242,6 +242,12 @@ type ChartControlSubAccount {
 	accountCode: String!
 }
 
+type ChartNode {
+	name: String!
+	accountCode: String!
+	children: [ChartNode!]!
+}
+
 type ChartOfAccounts {
 	id: ID!
 	name: String!
@@ -934,6 +940,12 @@ type Mutation {
 	shareholderEquityAdd(input: ShareholderEquityAddInput!): SuccessPayload!
 }
 
+type NewChartOfAccounts {
+	id: ID!
+	name: String!
+	children: [ChartNode!]!
+}
+
 scalar OneTimeFeeRatePct
 
 type Outstanding {
@@ -1051,6 +1063,7 @@ type Query {
 	trialBalance(from: Timestamp!, until: Timestamp): TrialBalance!
 	offBalanceSheetTrialBalance(from: Timestamp!, until: Timestamp): TrialBalance!
 	chartOfAccounts: ChartOfAccounts!
+	newChartOfAccounts: NewChartOfAccounts!
 	offBalanceSheetChartOfAccounts: ChartOfAccounts!
 	balanceSheet(from: Timestamp!, until: Timestamp): BalanceSheet!
 	profitAndLossStatement(from: Timestamp!, until: Timestamp): ProfitAndLossStatement!

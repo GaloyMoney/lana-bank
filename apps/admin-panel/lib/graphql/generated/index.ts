@@ -267,6 +267,13 @@ export type ChartControlSubAccount = {
   name: Scalars['String']['output'];
 };
 
+export type ChartNode = {
+  __typename?: 'ChartNode';
+  accountCode: Scalars['String']['output'];
+  children: Array<ChartNode>;
+  name: Scalars['String']['output'];
+};
+
 export type ChartOfAccounts = {
   __typename?: 'ChartOfAccounts';
   categories: ChartCategories;
@@ -1100,6 +1107,13 @@ export type MutationWithdrawalInitiateArgs = {
   input: WithdrawalInitiateInput;
 };
 
+export type NewChartOfAccounts = {
+  __typename?: 'NewChartOfAccounts';
+  children: Array<ChartNode>;
+  id: Scalars['ID']['output'];
+  name: Scalars['String']['output'];
+};
+
 export type Outstanding = {
   __typename?: 'Outstanding';
   usdBalance: Scalars['UsdCents']['output'];
@@ -1196,6 +1210,7 @@ export type Query = {
   disbursals: CreditFacilityDisbursalConnection;
   document?: Maybe<Document>;
   me: Subject;
+  newChartOfAccounts: NewChartOfAccounts;
   offBalanceSheetChartOfAccounts: ChartOfAccounts;
   offBalanceSheetTrialBalance: TrialBalance;
   policies: PolicyConnection;

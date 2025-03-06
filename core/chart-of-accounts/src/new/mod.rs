@@ -155,4 +155,27 @@ where
         op.commit().await?;
         Ok(())
     }
+
+    #[instrument(name = "chart_of_accounts.find_by_reference", skip(self))]
+    pub async fn find_by_reference(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        reference: String,
+    ) -> Result<Option<AltChart>, CoreChartOfAccountsError> {
+        self.authz
+            .enforce_permission(
+                sub,
+                CoreChartOfAccountsObjectNew::all_charts(),
+                CoreChartOfAccountsActionNew::CHART_LIST,
+            )
+            .await?;
+
+        let chart = match self.repo.find_by_reference(reference).await {
+            Ok(chart) => Some(chart),
+            Err(e) if e.was_not_found() => None,
+            Err(e) => return Err(e.into()),
+        };
+
+        Ok(chart)
+    }
 }

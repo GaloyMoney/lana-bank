@@ -14,8 +14,8 @@ use crate::primitives::*;
 use super::{
     approval_process::*, audit::*, authenticated_subject::*, chart_of_accounts::*, committee::*,
     credit_facility::*, customer::*, dashboard::*, deposit::*, document::*, financials::*,
-    loader::*, policy::*, price::*, report::*, sumsub::*, terms_template::*, user::*,
-    withdrawal::*,
+    loader::*, new_chart_of_accounts::*, policy::*, price::*, report::*, sumsub::*,
+    terms_template::*, user::*, withdrawal::*,
 };
 
 pub struct Query;
@@ -444,6 +444,22 @@ impl Query {
             .find(|p| p.reference == reference)
             .unwrap_or_else(|| panic!("Chart of accounts not found for ref {}", reference));
         Ok(ChartOfAccounts::from(chart))
+    }
+
+    async fn new_chart_of_accounts(
+        &self,
+        ctx: &Context<'_>,
+        reference: String, // TODO: remove and use CHART_REF
+    ) -> async_graphql::Result<NewChartOfAccounts> {
+        // let reference = CHART_REF.to_string();
+
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        let chart = app
+            .new_chart_of_accounts()
+            .find_by_reference(sub, reference.to_string())
+            .await?
+            .unwrap_or_else(|| panic!("Chart of accounts not found for ref {}", reference));
+        Ok(NewChartOfAccounts::from(chart))
     }
 
     async fn off_balance_sheet_chart_of_accounts(
