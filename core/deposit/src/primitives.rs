@@ -14,6 +14,7 @@ es_entity::entity_id! {
     DepositAccountHolderId,
     DepositAccountId,
     WithdrawalId,
+    DepositConfigId,
     DepositId;
 
     DepositAccountHolderId => core_customer::CustomerId,

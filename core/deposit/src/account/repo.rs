@@ -10,7 +10,8 @@ use super::{entity::*, error::*};
 #[es_repo(
     entity = "DepositAccount",
     err = "DepositAccountError",
-    columns(account_holder_id(ty = "DepositAccountHolderId", list_for, update(persist = false)))
+    columns(account_holder_id(ty = "DepositAccountHolderId", list_for, update(persist = false))),
+    tbl_prefix = "core"
 )]
 pub struct DepositAccountRepo {
     #[allow(dead_code)]

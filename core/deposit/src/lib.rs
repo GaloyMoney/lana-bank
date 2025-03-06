@@ -9,6 +9,7 @@ mod event;
 mod for_subject;
 mod history;
 mod ledger;
+mod module_config;
 mod primitives;
 mod processes;
 mod withdrawal;
@@ -19,7 +20,7 @@ use tracing::instrument;
 use audit::AuditSvc;
 use authz::PermissionCheck;
 use cala_ledger::CalaLedger;
-use chart_of_accounts::TransactionAccountFactory;
+use chart_of_accounts::{new::CoreChartOfAccounts, TransactionAccountFactory};
 use core_customer::{CoreCustomerEvent, Customers};
 use governance::{Governance, GovernanceEvent};
 use job::Jobs;
@@ -57,7 +58,8 @@ where
     approve_withdrawal: ApproveWithdrawal<Perms, E>,
     ledger: DepositLedger,
     cala: CalaLedger,
-    account_factory: TransactionAccountFactory,
+    chart_of_accounts: CoreChartOfAccounts<Perms>,
+    // account_factory: TransactionAccountFactory,
     authz: Perms,
     governance: Governance<Perms, E>,
     customers: Customers<Perms, E>,
@@ -78,7 +80,8 @@ where
             withdrawals: self.withdrawals.clone(),
             ledger: self.ledger.clone(),
             cala: self.cala.clone(),
-            account_factory: self.account_factory.clone(),
+            chart_of_accounts: self.chart_of_accounts.clone(),
+            // account_factory: self.account_factory.clone(),
             authz: self.authz.clone(),
             governance: self.governance.clone(),
             customers: self.customers.clone(),
@@ -108,6 +111,7 @@ where
         customers: &Customers<Perms, E>,
         jobs: &Jobs,
         factories: DepositAccountFactories,
+        chart_of_accounts: &CoreChartOfAccounts<Perms>,
         omnibus_ids: DepositOmnibusAccountIds,
         cala: &CalaLedger,
         journal_id: LedgerJournalId,
@@ -142,9 +146,10 @@ where
             governance: governance.clone(),
             customers: customers.clone(),
             cala: cala.clone(),
+            chart_of_accounts: chart_of_accounts.clone(),
             approve_withdrawal,
             ledger,
-            account_factory: factories.deposits,
+            // account_factory: factories.deposits,
         };
         Ok(res)
     }
@@ -203,15 +208,22 @@ where
         let account = self.accounts.create_in_op(&mut op, new_account).await?;
 
         let mut op = self.cala.ledger_operation_from_db_op(op);
-        self.account_factory
-            .create_transaction_account_in_op(
-                &mut op,
-                account_id,
-                &account.reference,
-                &account.name,
-                &account.description,
-            )
-            .await?;
+        // self.account_factory
+        //     .create_transaction_account_in_op(
+        //         &mut op,
+        //         account_id,
+        //         &account.reference,
+        //         &account.name,
+        //         &account.description,
+        //     )
+        //     .await?;
+        // self.chart_of_accounts.create_leaf_account_in_op(
+        //     &mut op,
+        //     account_id,
+        //     account.reference.clone(),
+        //     account.name.clone(),
+        //     account.description.clone(),
+        // )?;
 
         self.ledger
             .add_deposit_control_to_account(&mut op, account_id)
