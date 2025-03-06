@@ -8,6 +8,8 @@ pub enum DepositConfigError {
     EsEntityError(es_entity::EsEntityError),
     #[error("CommitteeError - CursorDestructureError: {0}")]
     CursorDestructureError(#[from] es_entity::CursorDestructureError),
+    #[error("TermsError - UninitializedField: {0}")]
+    UninitializedField(#[from] derive_builder::UninitializedFieldError),
 }
 
 es_entity::from_es_entity_error!(DepositConfigError);
