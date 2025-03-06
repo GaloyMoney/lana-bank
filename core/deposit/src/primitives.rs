@@ -33,6 +33,7 @@ pub use core_money::UsdCents;
 pub type DepositAccountAllOrOne = AllOrOne<DepositAccountId>;
 pub type DepositAccountByHolderAllOrOne = AllOrOne<DepositAccountHolderId>;
 pub type DepositAllOrOne = AllOrOne<DepositId>;
+pub type DepositConfigAllOrOne = AllOrOne<DepositConfigId>;
 pub type WithdrawalAllOrOne = AllOrOne<WithdrawalId>;
 
 #[derive(Clone, Copy, Debug, PartialEq, strum::EnumDiscriminants)]
@@ -41,6 +42,7 @@ pub type WithdrawalAllOrOne = AllOrOne<WithdrawalId>;
 pub enum CoreDepositObject {
     DepositAccount(DepositAccountAllOrOne),
     Deposit(DepositAllOrOne),
+    DepositConfig(DepositConfigAllOrOne),
     Withdrawal(WithdrawalAllOrOne),
 }
 
@@ -68,6 +70,14 @@ impl CoreDepositObject {
     pub fn withdrawal(id: WithdrawalId) -> Self {
         CoreDepositObject::Withdrawal(AllOrOne::ById(id))
     }
+
+    pub fn all_deposit_configs() -> Self {
+        CoreDepositObject::DepositConfig(AllOrOne::All)
+    }
+
+    pub fn deposit_config(id: DepositConfigId) -> Self {
+        CoreDepositObject::DepositConfig(AllOrOne::ById(id))
+    }
 }
 
 impl Display for CoreDepositObject {
@@ -77,6 +87,7 @@ impl Display for CoreDepositObject {
         match self {
             DepositAccount(obj_ref) => write!(f, "{}/{}", discriminant, obj_ref),
             Deposit(obj_ref) => write!(f, "{}/{}", discriminant, obj_ref),
+            DepositConfig(obj_ref) => write!(f, "{}/{}", discriminant, obj_ref),
             Withdrawal(obj_ref) => write!(f, "{}/{}", discriminant, obj_ref),
         }
     }
@@ -101,6 +112,12 @@ impl FromStr for CoreDepositObject {
                     .map_err(|_| "could not parse CoreDepositObject")?;
                 CoreDepositObject::Deposit(obj_ref)
             }
+            DepositConfig => {
+                let obj_ref = id
+                    .parse()
+                    .map_err(|_| "could not parse CoreDepositObject")?;
+                CoreDepositObject::DepositConfig(obj_ref)
+            }
             Withdrawal => {
                 let obj_ref = id
                     .parse()
@@ -118,6 +135,7 @@ impl FromStr for CoreDepositObject {
 pub enum CoreDepositAction {
     DepositAccount(DepositAccountAction),
     Deposit(DepositAction),
+    DepositConfig(DepositConfigAction),
     Withdrawal(WithdrawalAction),
 }
 
@@ -135,6 +153,9 @@ impl CoreDepositAction {
     pub const DEPOSIT_READ: Self = CoreDepositAction::Deposit(DepositAction::Read);
     pub const DEPOSIT_LIST: Self = CoreDepositAction::Deposit(DepositAction::List);
 
+    pub const DEPOSIT_CONFIG_UPDATE: Self =
+        CoreDepositAction::DepositConfig(DepositConfigAction::Update);
+
     pub const WITHDRAWAL_INITIATE: Self = CoreDepositAction::Withdrawal(WithdrawalAction::Initiate);
     pub const WITHDRAWAL_CONCLUDE_APPROVAL_PROCESS: Self =
         CoreDepositAction::Withdrawal(WithdrawalAction::ConcludeApprovalProcess);
@@ -151,6 +172,7 @@ impl Display for CoreDepositAction {
         match self {
             DepositAccount(action) => action.fmt(f),
             Deposit(action) => action.fmt(f),
+            DepositConfig(action) => action.fmt(f),
             Withdrawal(action) => action.fmt(f),
         }
     }
@@ -165,6 +187,7 @@ impl FromStr for CoreDepositAction {
         let res = match entity.parse()? {
             DepositAccount => CoreDepositAction::from(action.parse::<DepositAccountAction>()?),
             Deposit => CoreDepositAction::from(action.parse::<DepositAction>()?),
+            DepositConfig => CoreDepositAction::from(action.parse::<DepositConfigAction>()?),
             Withdrawal => CoreDepositAction::from(action.parse::<WithdrawalAction>()?),
         };
 
@@ -216,5 +239,17 @@ pub enum WithdrawalAction {
 impl From<WithdrawalAction> for CoreDepositAction {
     fn from(action: WithdrawalAction) -> Self {
         CoreDepositAction::Withdrawal(action)
+    }
+}
+
+#[derive(PartialEq, Clone, Copy, Debug, strum::Display, strum::EnumString)]
+#[strum(serialize_all = "kebab-case")]
+pub enum DepositConfigAction {
+    Update,
+}
+
+impl From<DepositConfigAction> for CoreDepositAction {
+    fn from(action: DepositConfigAction) -> Self {
+        CoreDepositAction::DepositConfig(action)
     }
 }

@@ -14,6 +14,8 @@ mod primitives;
 mod processes;
 mod withdrawal;
 
+use std::collections::HashMap;
+
 use deposit_account_cursor::DepositAccountsByCreatedAtCursor;
 use tracing::instrument;
 
@@ -38,6 +40,7 @@ pub use history::{DepositAccountHistoryCursor, DepositAccountHistoryEntry};
 pub use ledger::DepositOmnibusAccountIds;
 use ledger::*;
 use module_config::*;
+pub use module_config::{DepositConfig, DepositConfigValues};
 pub use primitives::*;
 pub use processes::approval::APPROVE_WITHDRAWAL_PROCESS;
 use processes::approval::{
@@ -648,5 +651,37 @@ where
             .accounts
             .list_for_account_holder_id_by_created_at(account_holder_id, query, direction.into())
             .await?)
+    }
+
+    pub async fn find_all_deposit_configs<T: From<DepositConfig>>(
+        &self,
+        ids: &[DepositConfigId],
+    ) -> Result<HashMap<DepositConfigId, T>, CoreDepositError> {
+        Ok(self.config_repo.find_all(ids).await?)
+    }
+
+    pub async fn update_deposit_config_values(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        id: impl Into<DepositConfigId> + std::fmt::Debug,
+        values: DepositConfigValues,
+    ) -> Result<DepositConfig, CoreDepositError> {
+        let id = id.into();
+
+        let audit_info = self
+            .authz
+            .enforce_permission(
+                sub,
+                CoreDepositObject::deposit_config(id),
+                CoreDepositAction::DEPOSIT_CONFIG_UPDATE,
+            )
+            .await?;
+
+        let mut deposit_config = self.config_repo.find_by_id(id).await?;
+        deposit_config.update_values(values, audit_info);
+
+        self.config_repo.update(&mut deposit_config).await?;
+
+        Ok(deposit_config)
     }
 }

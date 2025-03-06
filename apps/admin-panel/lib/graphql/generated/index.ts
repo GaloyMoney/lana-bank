@@ -778,6 +778,26 @@ export type DepositAccountHistoryEntryEdge = {
   node: DepositAccountHistoryEntry;
 };
 
+export type DepositConfig = {
+  __typename?: 'DepositConfig';
+  chartOfAccountsDepositAccountsParentCode: Scalars['String']['output'];
+  chartOfAccountsId: Scalars['UUID']['output'];
+  chartOfAccountsOmnibusParentCode: Scalars['String']['output'];
+  id: Scalars['ID']['output'];
+};
+
+export type DepositConfigUpdateInput = {
+  chartOfAccountsDepositAccountsParentCode: Scalars['String']['input'];
+  chartOfAccountsId: Scalars['UUID']['input'];
+  chartOfAccountsOmnibusParentCode: Scalars['String']['input'];
+  id: Scalars['UUID']['input'];
+};
+
+export type DepositConfigUpdatePayload = {
+  __typename?: 'DepositConfigUpdatePayload';
+  depositConfig: DepositConfig;
+};
+
 export type DepositConnection = {
   __typename?: 'DepositConnection';
   /** A list of edges. */
@@ -971,6 +991,7 @@ export type Mutation = {
   customerCreate: CustomerCreatePayload;
   customerDocumentAttach: DocumentCreatePayload;
   customerUpdate: CustomerUpdatePayload;
+  depositConfigUpdate: DepositConfigUpdatePayload;
   depositRecord: DepositRecordPayload;
   documentArchive: DocumentArchivePayload;
   documentDelete: DocumentDeletePayload;
@@ -1064,6 +1085,11 @@ export type MutationCustomerDocumentAttachArgs = {
 
 export type MutationCustomerUpdateArgs = {
   input: CustomerUpdateInput;
+};
+
+
+export type MutationDepositConfigUpdateArgs = {
+  input: DepositConfigUpdateInput;
 };
 
 

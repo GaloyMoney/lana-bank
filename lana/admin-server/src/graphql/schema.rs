@@ -15,8 +15,8 @@ use crate::primitives::*;
 
 use super::{
     approval_process::*, audit::*, authenticated_subject::*, chart_of_accounts::*, committee::*,
-    credit_facility::*, customer::*, dashboard::*, deposit::*, document::*, financials::*,
-    loader::*, new_chart_of_accounts::*, policy::*, price::*, report::*, sumsub::*,
+    credit_facility::*, customer::*, dashboard::*, deposit::*, deposit_config::*, document::*,
+    financials::*, loader::*, new_chart_of_accounts::*, policy::*, price::*, report::*, sumsub::*,
     terms_template::*, user::*, withdrawal::*,
 };
 
@@ -729,6 +729,47 @@ impl Mutation {
             ctx,
             app.customers()
                 .update(sub, input.customer_id, input.telegram_id)
+        )
+    }
+
+    async fn deposit_config_update(
+        &self,
+        ctx: &Context<'_>,
+        input: DepositConfigUpdateInput,
+    ) -> async_graphql::Result<DepositConfigUpdatePayload> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+
+        let chart = app
+            .new_chart_of_accounts()
+            .find_by_id(input.chart_of_accounts_id)
+            .await?;
+        chart.check_code_exists(
+            input
+                .chart_of_accounts_deposit_accounts_parent_code
+                .parse()?,
+        )?;
+        chart.check_code_exists(input.chart_of_accounts_omnibus_parent_code.parse()?)?;
+
+        let config_values = lana_app::deposit::DepositConfigValues::builder()
+            .chart_of_accounts_id(input.chart_of_accounts_id)
+            .chart_of_accounts_deposit_accounts_parent_code(
+                input
+                    .chart_of_accounts_deposit_accounts_parent_code
+                    .parse()?,
+            )
+            .chart_of_accounts_omnibus_parent_code(
+                input.chart_of_accounts_omnibus_parent_code.parse()?,
+            )
+            .build()?;
+        exec_mutation!(
+            DepositConfigUpdatePayload,
+            DepositConfig,
+            ctx,
+            app.deposits().update_deposit_config_values(
+                sub,
+                DepositConfigId::from(input.id),
+                config_values
+            )
         )
     }
 

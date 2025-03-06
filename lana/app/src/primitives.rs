@@ -11,7 +11,9 @@ pub use core_customer::CustomerId;
 pub use core_money::*;
 pub use core_price::PriceOfOneBTC;
 pub use core_user::UserId;
-pub use deposit::{DepositAccountHolderId, DepositAccountId, DepositId, WithdrawalId};
+pub use deposit::{
+    DepositAccountHolderId, DepositAccountId, DepositConfigId, DepositId, WithdrawalId,
+};
 pub use governance::{ApprovalProcessId, CommitteeId, CommitteeMemberId, PolicyId};
 pub use job::JobId;
 pub use lana_ids::*;
