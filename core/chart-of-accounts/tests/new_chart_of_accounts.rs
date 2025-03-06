@@ -42,10 +42,6 @@ async fn import_from_csv() -> anyhow::Result<()> {
 
     let chart_of_accounts = CoreChartOfAccounts::init(&pool, &authz, &cala, journal_id).await?;
 
-<<<<<<< HEAD
-    let chart_id = ChartId::new();
-=======
->>>>>>> 70bcd1339 (feat: chart create and csv import gql  (#1552))
     let rand_ref = format!("{:05}", rand::thread_rng().gen_range(0..100000));
     let chart_id = chart_of_accounts
         .create_chart(&DummySubject, "Test Chart".to_string(), rand_ref.clone())

@@ -68,11 +68,10 @@ where
     pub async fn create_chart(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        id: impl Into<ChartId> + std::fmt::Debug,
         name: String,
         reference: String,
     ) -> Result<Chart, CoreChartOfAccountsError> {
-        let id = id.into();
+        let id = ChartId::new();
 
         let mut op = self.repo.begin_op().await?;
         let audit_info = self
