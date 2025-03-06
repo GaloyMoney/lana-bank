@@ -54,15 +54,15 @@ sigma_to_event_frequency as (
 btc_price_loss_simulation as (
     select
         freq.*,
-        safe_multiply(vol.vol_1_day, -freq.sigma_level) as period_1_day_loss_percent,
-        safe_multiply(vol.vol_3_day, -freq.sigma_level) as period_3_day_loss_percent,
-        safe_multiply(vol.vol_1_week, -freq.sigma_level) as period_1_week_loss_percent,
-        safe_multiply(vol.vol_2_week, -freq.sigma_level) as period_2_week_loss_percent,
-        safe_multiply(vol.vol_3_week, -freq.sigma_level) as period_3_week_loss_percent,
-        safe_multiply(vol.vol_1_month, -freq.sigma_level) as period_1_month_loss_percent,
-        safe_multiply(vol.vol_3_month, -freq.sigma_level) as period_3_month_loss_percent,
-        safe_multiply(vol.vol_6_month, -freq.sigma_level) as period_6_month_loss_percent,
-        safe_multiply(vol.vol_1_year, -freq.sigma_level) as period_1_year_loss_percent
+        (vol.vol_1_day * -freq.sigma_level) as period_1_day_loss_percent,
+        (vol.vol_3_day * -freq.sigma_level) as period_3_day_loss_percent,
+        (vol.vol_1_week * -freq.sigma_level) as period_1_week_loss_percent,
+        (vol.vol_2_week * -freq.sigma_level) as period_2_week_loss_percent,
+        (vol.vol_3_week * -freq.sigma_level) as period_3_week_loss_percent,
+        (vol.vol_1_month * -freq.sigma_level) as period_1_month_loss_percent,
+        (vol.vol_3_month * -freq.sigma_level) as period_3_month_loss_percent,
+        (vol.vol_6_month * -freq.sigma_level) as period_6_month_loss_percent,
+        (vol.vol_1_year * -freq.sigma_level) as period_1_year_loss_percent
     from sigma_to_event_frequency as freq, btc_volatility_term_structure as vol
 )
 

@@ -8,7 +8,7 @@ select
     orders,
     _sdc_batched_at
 
-from {{ source("lana", "bitfinex_order_book_view") }}
+from {{ source("lana", "bitfinex_order_book") }}
 
 {% if is_incremental() %}
     where _sdc_batched_at >= (select coalesce(max(_sdc_batched_at), '1900-01-01') from {{ this }})

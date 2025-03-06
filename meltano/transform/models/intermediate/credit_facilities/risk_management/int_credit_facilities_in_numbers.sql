@@ -19,21 +19,21 @@ select
     1 as order_by,
     'Number Approved CF' as kpi_title,
     'number_approved_cf' as kpi_name,
-    cast(kpi_value as numeric) as kpi_value
+    cast(kpi_value as {{ dbt.type_numeric() }}) as kpi_value
 from approved
 union all
 select
     2 as order_by,
     'Number CF' as kpi_title,
     'number_cf' as kpi_name,
-    cast(kpi_value as numeric) as kpi_value
+    cast(kpi_value as {{ dbt.type_numeric() }}) as kpi_value
 from total
 union all
 select
     3 as order_by,
     'Approval Rate (%)' as kpi_title,
     'approval_rate_percent' as kpi_name,
-    cast(safe_multiply(safe_divide(a.kpi_value, t.kpi_value), 100.0) as numeric) as kpi_value
+    cast(a.kpi_value / nullif(t.kpi_value, 0) * 100.0 as {{ dbt.type_numeric() }}) as kpi_value
 from approved as a, total as t
 
 order by order_by

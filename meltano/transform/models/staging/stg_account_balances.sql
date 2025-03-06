@@ -19,7 +19,7 @@ with ordered as (
             )
             as order_received_desc
 
-    from {{ source("lana", "public_cala_balance_history_view") }}
+    from {{ source("lana", "cala_balance_history") }}
 
     {% if is_incremental() %}
         where

@@ -79,6 +79,19 @@ plugins:
     config:
       project: lana-dev-440721
       generate_view: true
+  - name: target-snowflake
+    variant: meltanolabs
+    pip_url: meltanolabs-target-snowflake
+    config:
+      account: cdagppu-sy37948
+      database: MELTANO_DATABASE
+      user: MELTANO_USER
+      role: MELTANO_ROLE
+      warehouse: MELTANO_WAREHOUSE
+      schema: RAW_SCHEMA
+      default_target_schema: RAW_SCHEMA
+      flattening_enabled: true
+      flattening_max_depth: 10
   transformers:
   - name: dbt-bigquery
     variant: dbt-labs
@@ -89,20 +102,26 @@ plugins:
   utilities:
   - name: sqlfluff
     variant: sqlfluff
-    pip_url: sqlfluff sqlfluff-templater-dbt dbt-core dbt-bigquery
-    settings:
-    - name: dataset
-      env: DBT_BIGQUERY_DATASET
-    - name: keyfile
-      env: DBT_BIGQUERY_KEYFILE
-    - name: auth_method
-      env: DBT_BIGQUERY_AUTH_METHOD
-      value: service-account
-    - name: project
-      env: DBT_BIGQUERY_PROJECT
-      value: lana-dev-440721
+    pip_url: sqlfluff sqlfluff-templater-dbt dbt-core dbt-snowflake
+    config:
+      account: cdagppu-sy37948
+      database: MELTANO_DATABASE
+      role: MELTANO_ROLE
+      schema: DBT_SCHEMA
+      user: MELTANO_USER
+      warehouse: MELTANO_WAREHOUSE
   - name: airflow
     variant: apache
     pip_url: git+https://github.com/meltano/airflow-ext.git@main apache-airflow==2.8.1
-      --constraint
+      --constraint 
       https://raw.githubusercontent.com/apache/airflow/constraints-2.8.1/constraints-no-providers-${MELTANO__PYTHON_VERSION}.txt
+  - name: dbt-snowflake
+    variant: dbt-labs
+    pip_url: dbt-core dbt-snowflake meltano-dbt-ext~=0.3.0
+    config:
+      account: cdagppu-sy37948
+      database: MELTANO_DATABASE
+      role: MELTANO_ROLE
+      schema: DBT_SCHEMA
+      user: MELTANO_USER
+      warehouse: MELTANO_WAREHOUSE

@@ -1,9 +1,23 @@
 {% macro create_udf_loan_mod_duration() %}
 
-CREATE OR REPLACE FUNCTION {{target.schema}}.udf_loan_mod_duration (interest_rate FLOAT64, times ARRAY<FLOAT64>, cash_flows ARRAY<FLOAT64>)
-RETURNS FLOAT64
+CREATE OR REPLACE FUNCTION {{target.schema}}.udf_loan_mod_duration(
+{% if target.type == 'bigquery' %}
+    interest_rate {{ dbt.type_float() }},
+    times ARRAY<{{ dbt.type_float() }}>,
+    cash_flows ARRAY<{{ dbt.type_float() }}>
+)
+RETURNS {{ dbt.type_float() }}
 LANGUAGE js
 AS r"""
+{% elif target.type == 'snowflake' %}
+    interest_rate {{ dbt.type_float() }},
+    times ARRAY,
+    cash_flows ARRAY
+)
+RETURNS {{ dbt.type_float() }}
+LANGUAGE JAVASCRIPT
+AS $$
+{% endif %}
   const loan_pv = function loan_pv(interest_rate, times, cash_flows) {
       if (times.length != cash_flows.length) {
           return NaN;
@@ -120,7 +134,12 @@ AS r"""
       return delta_percent * pv;
   };
 
+{% if target.type == 'bigquery' %}
   return loan_mod_duration(interest_rate, times, cash_flows);
 """
+{% elif target.type == 'snowflake' %}
+  return loan_mod_duration(INTEREST_RATE, TIMES, CASH_FLOWS);
+$$
+{% endif %}
 
 {% endmacro %}

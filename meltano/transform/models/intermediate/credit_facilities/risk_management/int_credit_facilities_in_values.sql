@@ -1,7 +1,7 @@
 {{ config(materialized='table') }}
 
 with value_approved_cf as (
-    select safe_divide(sum(facility), 100.0) as amount_in_usd
+    select (sum(facility) / 100.0) as amount_in_usd
     from {{ ref("int_credit_facilities") }}
     where
         approval_process_concluded_approved
@@ -9,7 +9,7 @@ with value_approved_cf as (
 ),
 
 disbursed as (
-    select safe_divide(sum(total_disbursed_amount), 100.0) as amount_in_usd
+    select (sum(total_disbursed_amount) / 100.0) as amount_in_usd
     from {{ ref("int_cf_flatten") }}
     where
         disbursal_concluded_event_recorded_at_date_key != 19000101
@@ -53,13 +53,9 @@ breakeven_ratio as (
         disbursal_amount_in_cents,
         credit_facility_limit_in_cents,
         bench_mark / 100.0 as bench_mark_interest_rate,
-        safe_divide(
-            credit_facility_limit_in_cents,
-            sum(credit_facility_limit_in_cents) over ()
-        ) as facility_limit_ratio,
-        safe_divide(disbursal_amount_in_cents, credit_facility_limit_in_cents)
-            as disbursal_ratio,
-        safe_divide(bench_mark, terms_annual_rate) as breakeven_disbursal_ratio
+        (credit_facility_limit_in_cents / nullif(sum(credit_facility_limit_in_cents) over (), 0)) as facility_limit_ratio,
+        (disbursal_amount_in_cents / nullif(credit_facility_limit_in_cents, 0)) as disbursal_ratio,
+        (bench_mark / nullif(terms_annual_rate, 0)) as breakeven_disbursal_ratio
     from breakeven_by_cf
 ),
 
@@ -74,10 +70,8 @@ breakeven_prop as (
         facility_limit_ratio,
         disbursal_ratio,
         breakeven_disbursal_ratio,
-        safe_multiply(breakeven_disbursal_ratio, facility_limit_ratio)
-            as prop_breakeven_disbursal_ratio,
-        safe_multiply(disbursal_ratio, facility_limit_ratio)
-            as prop_disbursal_ratio
+        (breakeven_disbursal_ratio * facility_limit_ratio) as prop_breakeven_disbursal_ratio,
+        (disbursal_ratio * facility_limit_ratio) as prop_disbursal_ratio
     from breakeven_ratio
 ),
 
@@ -95,28 +89,28 @@ select
     1 as order_by,
     'Value Approved CF (USD)' as kpi_title,
     'value_approved_cf_usd' as kpi_name,
-    cast(amount_in_usd as numeric) as kpi_value
+    cast(amount_in_usd as {{ dbt.type_numeric() }}) as kpi_value
 from value_approved_cf
 union all
 select
     2 as order_by,
     'Value Disbursed from Approved CF (USD)' as kpi_title,
     'value_disbursed_from_approved_cf_usd' as kpi_name,
-    cast(amount_in_usd as numeric) as kpi_value
+    cast(amount_in_usd as {{ dbt.type_numeric() }}) as kpi_value
 from disbursed
 union all
 select
     3 as order_by,
     'Value NOT-YET Dsbd from Appd CF (USD)' as kpi_title,
     'value_not_yet_dsbd_from_appd_cf_usd' as kpi_name,
-    cast(safe_subtract(v.amount_in_usd, d.amount_in_usd) as numeric) as kpi_value
+    cast((v.amount_in_usd - d.amount_in_usd) as {{ dbt.type_numeric() }}) as kpi_value
 from value_approved_cf as v, disbursed as d
 union all
 select
     4 as order_by,
     'Disbursed-to-Approved Ratio (%)' as kpi_title,
     'disbursed_to_approved_ratio_percent' as kpi_name,
-    cast(safe_multiply(safe_divide(d.amount_in_usd, v.amount_in_usd), 100.0) as numeric)
+    cast(((d.amount_in_usd / nullif(v.amount_in_usd, 0)) * 100.0) as {{ dbt.type_numeric() }})
         as kpi_value
 from value_approved_cf as v, disbursed as d
 union all
@@ -124,14 +118,14 @@ select
     5 as order_by,
     'Disbursal Ratio (%) - proportional' as kpi_title,
     'disbursal_ratio_percent_proportional' as kpi_name,
-    cast(safe_multiply(disbursal_ratio, 100.0) as numeric) as kpi_value
+    cast((disbursal_ratio * 100.0) as {{ dbt.type_numeric() }}) as kpi_value
 from breakeven_sum
 union all
 select
     6 as order_by,
     'Breakeven Ratio (%) - prop @' || bench_mark || '% bmk' as kpi_title,
     'breakeven_ratio_percent_prop_bmk' as kpi_name,
-    cast(safe_multiply(breakeven_disbursal_ratio, 100.0) as numeric) as kpi_value
+    cast((breakeven_disbursal_ratio * 100.0) as {{ dbt.type_numeric() }}) as kpi_value
 from breakeven_sum
 
 order by order_by

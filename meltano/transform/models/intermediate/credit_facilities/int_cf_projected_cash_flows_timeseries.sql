@@ -34,11 +34,17 @@ grouped as (
 
 select
     *,
+{% if target.type == 'bigquery' %}
     timestamp(
-        timestamp_add(date(now_ts), interval cast(days_from_now as int64) day)
+        timestamp_add(date(now_ts), interval cast(days_from_now as {{ dbt.type_int() }}) day)
     ) as date_from_now,
-    safe_divide(projected_disbursal_amount_in_cents, 100.0)
+{% elif target.type == 'snowflake' %}
+    TO_TIMESTAMP(
+        TIMESTAMPADD(day, cast(days_from_now as {{ dbt.type_int() }}), date(now_ts))
+    ) as date_from_now,
+{% endif %}
+    (projected_disbursal_amount_in_cents / 100.0)
         as projected_disbursal_amount_in_usd,
-    safe_divide(projected_payment_amount_in_cents, 100.0)
+    (projected_payment_amount_in_cents / 100.0)
         as projected_payment_amount_in_usd
 from grouped

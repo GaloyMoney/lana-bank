@@ -1,5 +1,11 @@
 {{ config(materialized='table') }}
 
+{% if target.type == 'bigquery' %}
+{% set target_database = '' %}
+{% elif target.type == 'snowflake' %}
+{% set target_database = target.database + '.' %}
+{% endif %}
+
 with projected_cash_flows_common as (
     select *
     from {{ ref('int_cf_projected_cash_flows_common') }}
@@ -70,43 +76,40 @@ with_risk as (
         projected_disbursal_amount_in_cents,
         days_from_now,
         cash_flows,
-        {{ target.schema }}.udf_loan_pv(
+        {{ target_database }}{{ target.schema }}.udf_loan_pv(
             bench_mark_daily_interest_rate,
             days_from_now,
             projected_disbursal_amount_in_cents
         ) as disbursal_pv,
-        {{ target.schema }}.udf_loan_pv(
+        {{ target_database }}{{ target.schema }}.udf_loan_pv(
             bench_mark_daily_interest_rate, days_from_now, cash_flows
         ) as pv,
-        safe_multiply(
-            {{ target.schema }}.udf_loan_ytm(
+        (
+            {{ target_database }}{{ target.schema }}.udf_loan_ytm(
                 bench_mark_daily_interest_rate, days_from_now, cash_flows
-            ),
-            365.0
+            ) * 365.0
         ) as ytm,
-        {{ target.schema }}.udf_loan_mac_duration(
+        {{ target_database }}{{ target.schema }}.udf_loan_mac_duration(
             bench_mark_daily_interest_rate, days_from_now, cash_flows
         ) as mac_duration,
-        safe_divide(
-            {{ target.schema }}.udf_loan_mod_duration(
+        (
+            {{ target_database }}{{ target.schema }}.udf_loan_mod_duration(
                 bench_mark_daily_interest_rate, days_from_now, cash_flows
-            ),
-            365.0
+            ) / 365.0
         ) as mod_duration,
-        safe_divide(
-            {{ target.schema }}.udf_loan_convexity(
+        (
+            {{ target_database }}{{ target.schema }}.udf_loan_convexity(
                 bench_mark_daily_interest_rate, days_from_now, cash_flows
-            ),
-            365.0 * 365.0
+            ) / (365.0 * 365.0)
         ) as convexity,
-        {{ target.schema }}.udf_loan_pv_delta_on_interest_rate_delta_with_convex(
+        {{ target_database }}{{ target.schema }}.udf_loan_pv_delta_on_interest_rate_delta_with_convex(
             bench_mark_daily_interest_rate,
             days_from_now,
             cash_flows,
-            0.0001 / days_per_year
+            0.0001 / nullif(days_per_year, 0)
         ) as dv01,
-        {{ target.schema }}.udf_loan_pv(
-            bench_mark_daily_interest_rate + (0.0001 / days_per_year),
+        {{ target_database }}{{ target.schema }}.udf_loan_pv(
+            bench_mark_daily_interest_rate + (0.0001 / nullif(days_per_year, 0)),
             days_from_now,
             cash_flows
         ) as pv_at_dv01
@@ -125,37 +128,45 @@ final as (
         projected_disbursal_amount_in_cents,
         days_from_now,
         cash_flows,
-        safe_divide(disbursal_pv, 100.0) as disbursal_pv,
-        safe_divide(pv, 100.0) as pv,
-        safe_divide(
-            safe_add(
-                {{ target.schema }}.udf_loan_pv(
+        (disbursal_pv / 100.0) as disbursal_pv,
+        (pv / 100.0) as pv,
+        (
+            (
+                {{ target_database }}{{ target.schema }}.udf_loan_pv(
                     bench_mark_daily_interest_rate, days_from_now, cash_flows
-                ),
-                disbursal_pv
-            ),
-            100.0
+                ) + disbursal_pv
+            ) / 100.0
         ) as npv,
         ytm,
-        safe_multiply(
-            {{ target.schema }}.udf_loan_ytm_from_price(
-                safe_negate(disbursal_pv), days_from_now, cash_flows
-            ),
-            365.0
+        (
+            {{ target_database }}{{ target.schema }}.udf_loan_ytm_from_price(
+                -(disbursal_pv), days_from_now, cash_flows
+            ) * 365.0
         ) as ytm_from_price,
         mac_duration,
         case
+        {% if target.type == 'bigquery' %}
             when is_nan(mac_duration)
                 then timestamp('1900-01-01')
             else
                 timestamp(
                     timestamp_add(
-                        date(now_ts), interval cast(mac_duration as int64) day
+                        date(now_ts), interval cast(mac_duration as {{ dbt.type_int() }}) day
                     )
                 )
+        {% elif target.type == 'snowflake' %}
+            when try_cast(mac_duration::varchar as float) = 'NaN'
+                then TO_TIMESTAMP('1900-01-01')
+            else
+                TO_TIMESTAMP(
+                    TIMESTAMPADD(
+                        day, cast(mac_duration as {{ dbt.type_int() }}), date(now_ts)
+                    )
+                )
+        {% endif %}
         end as mac_duration_date,
-        safe_divide(dv01, 100.0) as dv01,
-        safe_divide(pv_at_dv01, 100.0) as pv_at_dv01
+        (dv01 / 100.0) as dv01,
+        (pv_at_dv01 / 100.0) as pv_at_dv01
     from with_risk
 )
 

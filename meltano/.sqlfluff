@@ -1,6 +1,6 @@
 [sqlfluff]
 templater = dbt
-dialect = bigquery
+dialect = snowflake
 exclude_rules = structure.using,references.qualification,references.from
 runaway_limit = 10
 max_line_length = 100
@@ -35,5 +35,5 @@ aliasing = explicit
 
 [sqlfluff:templater:dbt]
 project_dir = transform
-profiles_dir = transform/profiles/bigquery/
+profiles_dir = transform/profiles/snowflake/
 profile = meltano
