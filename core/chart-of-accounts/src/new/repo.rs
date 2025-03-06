@@ -11,7 +11,7 @@ use super::entity::*;
     entity = "Chart",
     err = "ChartError",
     columns(reference(ty = "String")),
-    tbl_prefix = "core"
+    tbl_prefix = "core_alt"
 )]
 pub struct ChartRepo {
     pool: PgPool,
