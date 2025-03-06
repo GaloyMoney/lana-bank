@@ -14,6 +14,8 @@ pub enum ChartError {
     ControlAccountAlreadyRegistered(String),
     #[error("ChartError - ControlSubAccountAlreadyRegistered: '{0}'")]
     ControlSubAccountAlreadyRegistered(String),
+    #[error("ChartError - CodeDoesNotExistInChart: '{0}'")]
+    CodeDoesNotExistInChart(String),
 }
 
 es_entity::from_es_entity_error!(ChartError);

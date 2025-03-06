@@ -163,6 +163,14 @@ where
         Ok(())
     }
 
+    #[instrument(name = "chart_of_accounts.find_by_id", skip(self), err)]
+    pub async fn find_by_id(
+        &self,
+        id: impl Into<ChartId> + std::fmt::Debug,
+    ) -> Result<Chart, CoreChartOfAccountsError> {
+        Ok(self.repo.find_by_id(id.into()).await?)
+    }
+
     #[instrument(name = "chart_of_accounts.find_by_reference", skip(self))]
     pub async fn find_by_reference(
         &self,

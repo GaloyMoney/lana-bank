@@ -762,6 +762,24 @@ type DepositAccountHistoryEntryEdge {
 	cursor: String!
 }
 
+type DepositConfig {
+	id: ID!
+	chartOfAccountsId: UUID!
+	chartOfAccountsDepositAccountsParentCode: String!
+	chartOfAccountsOmnibusParentCode: String!
+}
+
+input DepositConfigUpdateInput {
+	id: UUID!
+	chartOfAccountsId: UUID!
+	chartOfAccountsDepositAccountsParentCode: String!
+	chartOfAccountsOmnibusParentCode: String!
+}
+
+type DepositConfigUpdatePayload {
+	depositConfig: DepositConfig!
+}
+
 type DepositConnection {
 	"""
 	Information to aid in pagination.
@@ -940,6 +958,7 @@ type Mutation {
 	userRevokeRole(input: UserRevokeRoleInput!): UserRevokeRolePayload!
 	customerCreate(input: CustomerCreateInput!): CustomerCreatePayload!
 	customerUpdate(input: CustomerUpdateInput!): CustomerUpdatePayload!
+	depositConfigUpdate(input: DepositConfigUpdateInput!): DepositConfigUpdatePayload!
 	depositRecord(input: DepositRecordInput!): DepositRecordPayload!
 	withdrawalInitiate(input: WithdrawalInitiateInput!): WithdrawalInitiatePayload!
 	withdrawalConfirm(input: WithdrawalConfirmInput!): WithdrawalConfirmPayload!
