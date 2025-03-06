@@ -64,7 +64,6 @@ async fn overdraw_and_cancel_withdrawal() -> anyhow::Result<()> {
             deposits_reference,
         )
         .await?;
-    let factory = chart_of_accounts.transaction_account_factory(control_sub_account);
 
     let omnibus_control_account = chart_of_accounts
         .create_control_account(
@@ -111,8 +110,7 @@ async fn overdraw_and_cancel_withdrawal() -> anyhow::Result<()> {
         &governance,
         &customers,
         &jobs,
-        DepositAccountFactories { deposits: factory },
-        &new_chart_of_accounts,
+        new_chart_of_accounts.leaf_account_factory(),
         DepositOmnibusAccountIds {
             deposits: omnibus_account_id,
         },
