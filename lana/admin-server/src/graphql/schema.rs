@@ -15,8 +15,8 @@ use crate::primitives::*;
 
 use super::{
     approval_process::*, audit::*, authenticated_subject::*, chart_of_accounts::*, committee::*,
-    core_chart_of_accounts::*, credit_facility::*, customer::*, dashboard::*, deposit::*,
-    document::*, financials::*, loader::*, policy::*, price::*, report::*, sumsub::*,
+    credit_facility::*, customer::*, dashboard::*, deposit::*, document::*, financials::*,
+    loader::*, new_chart_of_accounts::*, policy::*, price::*, report::*, sumsub::*,
     terms_template::*, user::*, withdrawal::*,
 };
 
