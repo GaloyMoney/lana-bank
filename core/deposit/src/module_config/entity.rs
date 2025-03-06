@@ -3,6 +3,8 @@ use serde::{Deserialize, Serialize};
 
 use es_entity::*;
 
+use chart_of_accounts::{new::AccountCode, ChartId};
+
 use crate::primitives::DepositConfigId;
 
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
@@ -16,6 +18,8 @@ pub enum DepositConfigEvent {
 #[builder(pattern = "owned", build_fn(error = "EsEntityError"))]
 pub struct DepositConfig {
     pub id: DepositConfigId,
+    pub chart_of_accounts_id: ChartId,
+    pub chart_of_accounts_parent_code: AccountCode,
     pub(super) events: EntityEvents<DepositConfigEvent>,
 }
 
