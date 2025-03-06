@@ -217,7 +217,7 @@ where
             .create_leaf_account_in_op(
                 &mut op,
                 module_config.chart_of_accounts_id,
-                module_config.chart_of_accounts_parent_code,
+                module_config.chart_of_accounts_deposit_accounts_parent_code,
                 account_id,
                 &account.reference,
                 &account.name,
