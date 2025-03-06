@@ -35,3 +35,18 @@ impl Query {
         Ok(usd_cents_per_btc.into())
     }
 }
+
+pub struct Mutation;
+
+#[Object]
+impl Mutation {
+    pub async fn sumsub_permalink_create(
+        &self,
+        ctx: &Context<'_>,
+    ) -> async_graphql::Result<String> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        let customer = app.customers().find_for_subject(sub).await?;
+        let res = app.applicants().create_permalink(customer.id).await?;
+        Ok(res.url)
+    }
+}
