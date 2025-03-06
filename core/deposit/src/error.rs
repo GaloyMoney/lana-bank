@@ -14,6 +14,8 @@ pub enum CoreDepositError {
     DepositError(#[from] crate::deposit::error::DepositError),
     #[error("CoreDepositError - WithdrawalError: {0}")]
     WithdrawalError(#[from] crate::withdrawal::error::WithdrawalError),
+    #[error("CoreDepositError - DepositConfigError: {0}")]
+    DepositConfigError(#[from] crate::module_config::error::DepositConfigError),
     #[error("CoreDepositError - DepositLedgerError: {0}")]
     DepositLedgerError(#[from] crate::ledger::error::DepositLedgerError),
     #[error("CoreDepositError - GovernanceError: {0}")]

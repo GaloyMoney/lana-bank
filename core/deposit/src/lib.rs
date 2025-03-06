@@ -9,7 +9,7 @@ mod event;
 mod for_subject;
 mod history;
 mod ledger;
-// mod module_config;
+mod module_config;
 mod primitives;
 mod processes;
 mod withdrawal;
@@ -20,7 +20,10 @@ use tracing::instrument;
 use audit::AuditSvc;
 use authz::PermissionCheck;
 use cala_ledger::CalaLedger;
-use chart_of_accounts::{new::CoreChartOfAccounts, TransactionAccountFactory};
+use chart_of_accounts::{
+    new::{CoreChartOfAccounts, CoreChartOfAccountsActionNew, CoreChartOfAccountsObjectNew},
+    TransactionAccountFactory,
+};
 use core_customer::{CoreCustomerEvent, Customers};
 use governance::{Governance, GovernanceEvent};
 use job::Jobs;
@@ -37,7 +40,7 @@ pub use for_subject::DepositsForSubject;
 pub use history::{DepositAccountHistoryCursor, DepositAccountHistoryEntry};
 use ledger::*;
 pub use ledger::{DepositAccountFactories, DepositOmnibusAccountIds};
-// use module_config::*;
+use module_config::*;
 pub use primitives::*;
 pub use processes::approval::APPROVE_WITHDRAWAL_PROCESS;
 use processes::approval::{
@@ -64,7 +67,7 @@ where
     authz: Perms,
     governance: Governance<Perms, E>,
     customers: Customers<Perms, E>,
-    // config_repo: DepositConfigRepo,
+    config_repo: DepositConfigRepo,
     outbox: Outbox<E>,
 }
 
@@ -88,7 +91,7 @@ where
             governance: self.governance.clone(),
             customers: self.customers.clone(),
             approve_withdrawal: self.approve_withdrawal.clone(),
-            // config_repo: self.config_repo.clone(),
+            config_repo: self.config_repo.clone(),
             outbox: self.outbox.clone(),
         }
     }
@@ -98,9 +101,9 @@ impl<Perms, E> CoreDeposit<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
-        From<CoreDepositAction> + From<GovernanceAction>,
+        From<CoreDepositAction> + From<GovernanceAction> + From<CoreChartOfAccountsActionNew>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object:
-        From<CoreDepositObject> + From<GovernanceObject>,
+        From<CoreDepositObject> + From<GovernanceObject> + From<CoreChartOfAccountsObjectNew>,
     E: OutboxEventMarker<CoreDepositEvent>
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCustomerEvent>,
@@ -122,7 +125,7 @@ where
         let accounts = DepositAccountRepo::new(pool);
         let deposits = DepositRepo::new(pool);
         let withdrawals = WithdrawalRepo::new(pool);
-        // let config_repo = DepositConfigRepo::new(pool);
+        let config_repo = DepositConfigRepo::new(pool);
         let ledger = DepositLedger::init(cala, journal_id, omnibus_ids.deposits).await?;
 
         let approve_withdrawal = ApproveWithdrawal::new(&withdrawals, authz.audit(), governance);
@@ -145,7 +148,7 @@ where
             accounts,
             deposits,
             withdrawals,
-            // config_repo,
+            config_repo,
             authz: authz.clone(),
             outbox: outbox.clone(),
             governance: governance.clone(),
@@ -213,24 +216,30 @@ where
         let account = self.accounts.create_in_op(&mut op, new_account).await?;
 
         let mut op = self.cala.ledger_operation_from_db_op(op);
-        self.account_factory
-            .create_transaction_account_in_op(
+        // self.account_factory
+        //     .create_transaction_account_in_op(
+        //         &mut op,
+        //         account_id,
+        //         &account.reference,
+        //         &account.name,
+        //         &account.description,
+        //     )
+        //     .await?;
+        let module_config = self
+            .config_repo
+            .find_by_id(DepositConfigId::DEFAULT)
+            .await?;
+        self.chart_of_accounts
+            .create_leaf_account_in_op(
                 &mut op,
+                module_config.chart_of_accounts_id,
+                module_config.chart_of_accounts_parent_code,
                 account_id,
                 &account.reference,
                 &account.name,
                 &account.description,
             )
             .await?;
-        // self.chart_of_accounts.create_leaf_account_in_op(
-        //     &mut op,
-        //     chart_id,
-        //     parent_code,
-        //     account_id,
-        //     account.reference.clone(),
-        //     account.name.clone(),
-        //     account.description.clone(),
-        // )?;
 
         self.ledger
             .add_deposit_control_to_account(&mut op, account_id)
