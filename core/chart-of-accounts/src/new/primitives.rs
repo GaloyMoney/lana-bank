@@ -154,12 +154,6 @@ impl FromStr for AccountCode {
     }
 }
 
-impl From<String> for AccountCode {
-    fn from(s: String) -> Self {
-        s.parse().expect("Invalid account code format")
-    }
-}
-
 impl std::fmt::Display for AccountCode {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         if self.section.is_empty() {
