@@ -14,6 +14,7 @@ use super::DepositConfigValues;
 pub enum DepositConfigEvent {
     Initialized {
         id: DepositConfigId,
+        reference: String,
     },
     DepositConfigUpdated {
         values: DepositConfigValues,
@@ -25,6 +26,7 @@ pub enum DepositConfigEvent {
 #[builder(pattern = "owned", build_fn(error = "EsEntityError"))]
 pub struct DepositConfig {
     pub id: DepositConfigId,
+    pub reference: String,
     pub values: DepositConfigValues,
     pub(super) events: EntityEvents<DepositConfigEvent>,
 }
@@ -44,7 +46,9 @@ impl TryFromEvents<DepositConfigEvent> for DepositConfig {
         let mut builder = DepositConfigBuilder::default();
         for event in events.iter_all() {
             match event {
-                DepositConfigEvent::Initialized { id } => builder = builder.id(*id),
+                DepositConfigEvent::Initialized { id, reference } => {
+                    builder = builder.id(*id).reference(reference.to_string())
+                }
                 DepositConfigEvent::DepositConfigUpdated { values, .. } => {
                     builder = builder.values(values.clone())
                 }
@@ -58,6 +62,7 @@ impl TryFromEvents<DepositConfigEvent> for DepositConfig {
 pub struct NewDepositConfig {
     #[builder(setter(into))]
     pub(super) id: DepositConfigId,
+    pub(super) reference: String,
 }
 
 impl NewDepositConfig {
@@ -68,6 +73,12 @@ impl NewDepositConfig {
 
 impl IntoEvents<DepositConfigEvent> for NewDepositConfig {
     fn into_events(self) -> EntityEvents<DepositConfigEvent> {
-        EntityEvents::init(self.id, [DepositConfigEvent::Initialized { id: self.id }])
+        EntityEvents::init(
+            self.id,
+            [DepositConfigEvent::Initialized {
+                id: self.id,
+                reference: self.reference,
+            }],
+        )
     }
 }
