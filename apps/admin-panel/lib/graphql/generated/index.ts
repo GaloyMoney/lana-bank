@@ -780,9 +780,9 @@ export type DepositAccountHistoryEntryEdge = {
 
 export type DepositConfig = {
   __typename?: 'DepositConfig';
-  chartOfAccountsDepositAccountsParentCode: Scalars['String']['output'];
-  chartOfAccountsId: Scalars['UUID']['output'];
-  chartOfAccountsOmnibusParentCode: Scalars['String']['output'];
+  chartOfAccountsDepositAccountsParentCode?: Maybe<Scalars['String']['output']>;
+  chartOfAccountsId?: Maybe<Scalars['UUID']['output']>;
+  chartOfAccountsOmnibusParentCode?: Maybe<Scalars['String']['output']>;
   id: Scalars['ID']['output'];
 };
 
