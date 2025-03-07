@@ -64,17 +64,6 @@ impl Chart {
         Idempotent::Executed((parent, ledger_account_set_id))
     }
 
-    pub fn find_node_by_code(&self, code_to_check: AccountCode) -> Option<LedgerAccountSetId> {
-        self.all_accounts.get(&code_to_check).map(|(_, id)| *id)
-    }
-
-    pub fn check_code_exists(&self, code_to_check: AccountCode) -> Result<(), ChartError> {
-        let code_as_string = code_to_check.to_string();
-        self.find_node_by_code(code_to_check)
-            .ok_or(ChartError::CodeDoesNotExistInChart(code_as_string))?;
-        Ok(())
-    }
-
     pub fn account_spec(&self, code: &AccountCode) -> Option<&(AccountSpec, LedgerAccountSetId)> {
         self.all_accounts.get(code)
     }
