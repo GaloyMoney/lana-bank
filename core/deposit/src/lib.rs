@@ -214,11 +214,7 @@ where
         let account = self.accounts.create_in_op(&mut op, new_account).await?;
 
         let mut op = self.cala.ledger_operation_from_db_op(op);
-        let module_config = self
-            .config_repo
-            .find_by_id(DepositConfigId::DEFAULT)
-            .await?
-            .values()?;
+        let module_config = self.get_deposit_config().await?.values()?;
         self.account_factory
             .create_leaf_account_in_op(
                 &mut op,
