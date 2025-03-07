@@ -22,7 +22,7 @@ use tracing::instrument;
 use audit::AuditSvc;
 use authz::PermissionCheck;
 use cala_ledger::CalaLedger;
-use chart_of_accounts::new::{Chart, LeafAccountFactory};
+use chart_of_accounts::new::Chart;
 use core_customer::{CoreCustomerEvent, Customers};
 use governance::{Governance, GovernanceEvent};
 use job::Jobs;
@@ -62,7 +62,6 @@ where
     approve_withdrawal: ApproveWithdrawal<Perms, E>,
     ledger: DepositLedger,
     cala: CalaLedger,
-    account_factory: LeafAccountFactory,
     authz: Perms,
     governance: Governance<Perms, E>,
     customers: Customers<Perms, E>,
@@ -84,7 +83,6 @@ where
             withdrawals: self.withdrawals.clone(),
             ledger: self.ledger.clone(),
             cala: self.cala.clone(),
-            account_factory: self.account_factory.clone(),
             authz: self.authz.clone(),
             governance: self.governance.clone(),
             customers: self.customers.clone(),
@@ -114,8 +112,6 @@ where
         governance: &Governance<Perms, E>,
         customers: &Customers<Perms, E>,
         jobs: &Jobs,
-        account_factory: LeafAccountFactory,
-        omnibus_ids: DepositOmnibusAccountIds,
         cala: &CalaLedger,
         journal_id: LedgerJournalId,
     ) -> Result<Self, CoreDepositError> {
@@ -123,7 +119,7 @@ where
         let deposits = DepositRepo::new(pool);
         let withdrawals = WithdrawalRepo::new(pool);
         let config_repo = DepositConfigRepo::new(pool);
-        let ledger = DepositLedger::init(cala, journal_id, omnibus_ids.deposits).await?;
+        let ledger = DepositLedger::init(cala, journal_id).await?;
 
         let approve_withdrawal = ApproveWithdrawal::new(&withdrawals, authz.audit(), governance);
 
@@ -153,7 +149,6 @@ where
             cala: cala.clone(),
             approve_withdrawal,
             ledger,
-            account_factory,
         };
         Ok(res)
     }
@@ -211,25 +206,15 @@ where
         let mut op = self.accounts.begin_op().await?;
         let account = self.accounts.create_in_op(&mut op, new_account).await?;
 
-        let mut op = self.cala.ledger_operation_from_db_op(op);
-        let module_config = self.get_deposit_config().await?.values()?;
-        self.account_factory
-            .create_leaf_account_in_op(
-                &mut op,
-                module_config.chart_of_accounts_id,
-                module_config.chart_of_accounts_deposit_accounts_parent_code,
+        self.ledger
+            .create_deposit_account(
+                op,
                 account_id,
-                &account.reference,
-                &account.name,
-                &account.description,
+                account.reference.to_string(),
+                account.name.to_string(),
+                account.description.to_string(),
             )
             .await?;
-
-        self.ledger
-            .add_deposit_control_to_account(&mut op, account_id)
-            .await?;
-
-        op.commit().await?;
 
         Ok(account)
     }
