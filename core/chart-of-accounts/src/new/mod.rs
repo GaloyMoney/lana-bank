@@ -1,6 +1,5 @@
 mod csv;
 mod entity;
-mod leaf_account_factory;
 mod primitives;
 mod repo;
 pub mod tree;
@@ -16,7 +15,6 @@ use super::error::*;
 pub(crate) use csv::CsvParseError;
 pub use entity::Chart;
 use entity::*;
-pub use leaf_account_factory::*;
 pub use primitives::*;
 use repo::*;
 
@@ -64,10 +62,6 @@ where
             journal_id,
         };
         Ok(res)
-    }
-
-    pub fn leaf_account_factory(&self) -> LeafAccountFactory {
-        LeafAccountFactory::new(&self.cala, &self.repo)
     }
 
     #[instrument(name = "chart_of_accounts.create_chart", skip(self))]
