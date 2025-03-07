@@ -191,14 +191,6 @@ impl AccountSpec {
         format!("{}.{}", chart_id, self.code)
     }
 
-    pub(super) fn leaf_account_code(
-        &self,
-        chart_id: ChartId,
-        account_id: LedgerAccountId,
-    ) -> String {
-        format!("{}.{}.{}", chart_id, self.code, account_id)
-    }
-
     pub fn has_parent(&self) -> bool {
         self.parent.is_some()
     }
