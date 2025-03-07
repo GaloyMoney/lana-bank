@@ -790,7 +790,6 @@ export type DepositConfigUpdateInput = {
   chartOfAccountsDepositAccountsParentCode: Scalars['String']['input'];
   chartOfAccountsId: Scalars['UUID']['input'];
   chartOfAccountsOmnibusParentCode: Scalars['String']['input'];
-  id: Scalars['UUID']['input'];
 };
 
 export type DepositConfigUpdatePayload = {

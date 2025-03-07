@@ -36,7 +36,6 @@ impl From<DomainDepositConfig> for DepositConfig {
 
 #[derive(InputObject)]
 pub struct DepositConfigUpdateInput {
-    pub id: UUID,
     pub chart_of_accounts_id: UUID,
     pub chart_of_accounts_deposit_accounts_parent_code: String,
     pub chart_of_accounts_omnibus_parent_code: String,

@@ -770,7 +770,6 @@ type DepositConfig {
 }
 
 input DepositConfigUpdateInput {
-	id: UUID!
 	chartOfAccountsId: UUID!
 	chartOfAccountsDepositAccountsParentCode: String!
 	chartOfAccountsOmnibusParentCode: String!
