@@ -22,7 +22,7 @@ use tracing::instrument;
 use audit::AuditSvc;
 use authz::PermissionCheck;
 use cala_ledger::CalaLedger;
-use chart_of_accounts::new::LeafAccountFactory;
+use chart_of_accounts::new::{Chart, LeafAccountFactory};
 use core_customer::{CoreCustomerEvent, Customers};
 use governance::{Governance, GovernanceEvent};
 use job::Jobs;
@@ -673,8 +673,26 @@ where
     pub async fn update_deposit_config_values(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        chart: Chart,
         values: DepositConfigValues,
     ) -> Result<DepositConfig, CoreDepositError> {
+        if chart
+            .account_spec(&values.chart_of_accounts_deposit_accounts_parent_code)
+            .is_none()
+        {
+            return Err(CoreDepositError::CodeNotFoundInChart(
+                values.chart_of_accounts_deposit_accounts_parent_code,
+            ));
+        }
+        if chart
+            .account_spec(&values.chart_of_accounts_omnibus_parent_code)
+            .is_none()
+        {
+            return Err(CoreDepositError::CodeNotFoundInChart(
+                values.chart_of_accounts_omnibus_parent_code,
+            ));
+        }
+
         let mut deposit_config = self.get_deposit_config().await?;
 
         let audit_info = self

@@ -743,13 +743,6 @@ impl Mutation {
             .new_chart_of_accounts()
             .find_by_id(input.chart_of_accounts_id)
             .await?;
-        chart.check_code_exists(
-            input
-                .chart_of_accounts_deposit_accounts_parent_code
-                .parse()?,
-        )?;
-        chart.check_code_exists(input.chart_of_accounts_omnibus_parent_code.parse()?)?;
-
         let config_values = lana_app::deposit::DepositConfigValues::builder()
             .chart_of_accounts_id(input.chart_of_accounts_id)
             .chart_of_accounts_deposit_accounts_parent_code(
@@ -766,7 +759,7 @@ impl Mutation {
             DepositConfig,
             ctx,
             app.deposits()
-                .update_deposit_config_values(sub, config_values)
+                .update_deposit_config_values(sub, chart, config_values)
         )
     }
 
