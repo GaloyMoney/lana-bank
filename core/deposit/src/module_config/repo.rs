@@ -10,7 +10,6 @@ use super::{entity::*, error::*};
 #[es_repo(
     entity = "DepositConfig",
     err = "DepositConfigError",
-    columns(reference(ty = "String")),
     tbl_prefix = "core"
 )]
 pub struct DepositConfigRepo {

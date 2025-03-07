@@ -14,7 +14,6 @@ use super::{error::DepositConfigError, DepositConfigValues};
 pub enum DepositConfigEvent {
     Initialized {
         id: DepositConfigId,
-        reference: String,
     },
     DepositConfigUpdated {
         values: DepositConfigValues,
@@ -26,7 +25,6 @@ pub enum DepositConfigEvent {
 #[builder(pattern = "owned", build_fn(error = "EsEntityError"))]
 pub struct DepositConfig {
     pub id: DepositConfigId,
-    pub reference: String,
     values: Option<DepositConfigValues>,
     pub(super) events: EntityEvents<DepositConfigEvent>,
 }
@@ -52,12 +50,7 @@ impl TryFromEvents<DepositConfigEvent> for DepositConfig {
         let mut builder = DepositConfigBuilder::default();
         for event in events.iter_all() {
             match event {
-                DepositConfigEvent::Initialized { id, reference } => {
-                    builder = builder
-                        .id(*id)
-                        .reference(reference.to_string())
-                        .values(None)
-                }
+                DepositConfigEvent::Initialized { id } => builder = builder.id(*id).values(None),
                 DepositConfigEvent::DepositConfigUpdated { values, .. } => {
                     builder = builder.values(Some(values.clone()))
                 }
@@ -71,7 +64,6 @@ impl TryFromEvents<DepositConfigEvent> for DepositConfig {
 pub struct NewDepositConfig {
     #[builder(setter(into))]
     pub(super) id: DepositConfigId,
-    pub(super) reference: String,
 }
 
 impl NewDepositConfig {
@@ -82,13 +74,7 @@ impl NewDepositConfig {
 
 impl IntoEvents<DepositConfigEvent> for NewDepositConfig {
     fn into_events(self) -> EntityEvents<DepositConfigEvent> {
-        EntityEvents::init(
-            self.id,
-            [DepositConfigEvent::Initialized {
-                id: self.id,
-                reference: self.reference,
-            }],
-        )
+        EntityEvents::init(self.id, [DepositConfigEvent::Initialized { id: self.id }])
     }
 }
 
@@ -110,11 +96,7 @@ mod tests {
     fn test_create_and_update_new_deposit_config() {
         let id = DepositConfigId::new();
 
-        let new_chart = NewDepositConfig::builder()
-            .id(id)
-            .reference("ref-01".to_string())
-            .build()
-            .unwrap();
+        let new_chart = NewDepositConfig::builder().id(id).build().unwrap();
 
         let events = new_chart.into_events();
         let mut deposit_config = DepositConfig::try_from_events(events).unwrap();

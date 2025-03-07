@@ -49,8 +49,6 @@ use processes::approval::{
 use withdrawal::*;
 pub use withdrawal::{Withdrawal, WithdrawalStatus, WithdrawalsByCreatedAtCursor};
 
-const DEPOSIT_CONFIG_REF: &str = "deposit-config";
-
 pub struct CoreDeposit<Perms, E>
 where
     Perms: PermissionCheck,
@@ -651,20 +649,14 @@ where
     }
 
     async fn get_deposit_config(&self) -> Result<DepositConfig, CoreDepositError> {
-        match self
-            .config_repo
-            .find_by_reference(DEPOSIT_CONFIG_REF.to_string())
-            .await
-        {
+        match self.config_repo.find_by_id(DepositConfigId::DEFAULT).await {
             Ok(deposit_config) => return Ok(deposit_config),
             Err(e) if e.was_not_found() => (),
             Err(e) => return Err(e.into()),
         };
 
-        let id = DepositConfigId::new();
         let new_deposit_config = NewDepositConfig::builder()
-            .id(id)
-            .reference(DEPOSIT_CONFIG_REF.to_string())
+            .id(DepositConfigId::DEFAULT)
             .build()
             .expect("Could not build new deposit config");
 
