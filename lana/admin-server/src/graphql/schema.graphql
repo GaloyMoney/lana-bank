@@ -764,9 +764,9 @@ type DepositAccountHistoryEntryEdge {
 
 type DepositConfig {
 	id: ID!
-	chartOfAccountsId: UUID!
-	chartOfAccountsDepositAccountsParentCode: String!
-	chartOfAccountsOmnibusParentCode: String!
+	chartOfAccountsId: UUID
+	chartOfAccountsDepositAccountsParentCode: String
+	chartOfAccountsOmnibusParentCode: String
 }
 
 input DepositConfigUpdateInput {

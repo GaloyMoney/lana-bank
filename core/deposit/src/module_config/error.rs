@@ -2,14 +2,16 @@ use thiserror::Error;
 
 #[derive(Error, Debug)]
 pub enum DepositConfigError {
-    #[error("CommitteeError - Sqlx: {0}")]
+    #[error("DepositConfigError - Sqlx: {0}")]
     Sqlx(#[from] sqlx::Error),
-    #[error("CommitteeError - EsEntityError: {0}")]
+    #[error("DepositConfigError - EsEntityError: {0}")]
     EsEntityError(es_entity::EsEntityError),
-    #[error("CommitteeError - CursorDestructureError: {0}")]
+    #[error("DepositConfigError - CursorDestructureError: {0}")]
     CursorDestructureError(#[from] es_entity::CursorDestructureError),
-    #[error("TermsError - UninitializedField: {0}")]
+    #[error("DepositConfigError - UninitializedField: {0}")]
     UninitializedField(#[from] derive_builder::UninitializedFieldError),
+    #[error("DepositConfigError - ValuesNotConfigured")]
+    ValuesNotConfigured,
 }
 
 es_entity::from_es_entity_error!(DepositConfigError);
