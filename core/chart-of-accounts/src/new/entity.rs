@@ -57,6 +57,8 @@ impl Chart {
         } else {
             None
         };
+        self.all_accounts
+            .insert(spec.code.clone(), (spec.clone(), ledger_account_set_id));
         Idempotent::Executed((parent, ledger_account_set_id))
     }
 

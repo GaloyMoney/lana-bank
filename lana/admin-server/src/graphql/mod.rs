@@ -11,6 +11,7 @@ mod dashboard;
 mod deposit;
 mod deposit_account;
 mod deposit_account_history;
+mod deposit_config;
 mod document;
 mod financials;
 mod loader;

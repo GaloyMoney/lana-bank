@@ -9,10 +9,12 @@ mod event;
 mod for_subject;
 mod history;
 mod ledger;
-// mod module_config;
+mod module_config;
 mod primitives;
 mod processes;
 mod withdrawal;
+
+use std::collections::HashMap;
 
 use deposit_account_cursor::DepositAccountsByCreatedAtCursor;
 use tracing::instrument;
@@ -20,7 +22,7 @@ use tracing::instrument;
 use audit::AuditSvc;
 use authz::PermissionCheck;
 use cala_ledger::CalaLedger;
-use chart_of_accounts::{new::CoreChartOfAccounts, TransactionAccountFactory};
+use chart_of_accounts::new::Chart;
 use core_customer::{CoreCustomerEvent, Customers};
 use governance::{Governance, GovernanceEvent};
 use job::Jobs;
@@ -35,9 +37,10 @@ use error::*;
 pub use event::*;
 pub use for_subject::DepositsForSubject;
 pub use history::{DepositAccountHistoryCursor, DepositAccountHistoryEntry};
+pub use ledger::DepositOmnibusAccountIds;
 use ledger::*;
-pub use ledger::{DepositAccountFactories, DepositOmnibusAccountIds};
-// use module_config::*;
+use module_config::*;
+pub use module_config::{DepositConfig, DepositConfigValues};
 pub use primitives::*;
 pub use processes::approval::APPROVE_WITHDRAWAL_PROCESS;
 use processes::approval::{
@@ -59,12 +62,10 @@ where
     approve_withdrawal: ApproveWithdrawal<Perms, E>,
     ledger: DepositLedger,
     cala: CalaLedger,
-    chart_of_accounts: CoreChartOfAccounts<Perms>,
-    account_factory: TransactionAccountFactory,
     authz: Perms,
     governance: Governance<Perms, E>,
     customers: Customers<Perms, E>,
-    // config_repo: DepositConfigRepo,
+    config_repo: DepositConfigRepo,
     outbox: Outbox<E>,
 }
 
@@ -82,13 +83,11 @@ where
             withdrawals: self.withdrawals.clone(),
             ledger: self.ledger.clone(),
             cala: self.cala.clone(),
-            chart_of_accounts: self.chart_of_accounts.clone(),
-            account_factory: self.account_factory.clone(),
             authz: self.authz.clone(),
             governance: self.governance.clone(),
             customers: self.customers.clone(),
             approve_withdrawal: self.approve_withdrawal.clone(),
-            // config_repo: self.config_repo.clone(),
+            config_repo: self.config_repo.clone(),
             outbox: self.outbox.clone(),
         }
     }
@@ -113,17 +112,14 @@ where
         governance: &Governance<Perms, E>,
         customers: &Customers<Perms, E>,
         jobs: &Jobs,
-        factories: DepositAccountFactories,
-        chart_of_accounts: &CoreChartOfAccounts<Perms>,
-        omnibus_ids: DepositOmnibusAccountIds,
         cala: &CalaLedger,
         journal_id: LedgerJournalId,
     ) -> Result<Self, CoreDepositError> {
         let accounts = DepositAccountRepo::new(pool);
         let deposits = DepositRepo::new(pool);
         let withdrawals = WithdrawalRepo::new(pool);
-        // let config_repo = DepositConfigRepo::new(pool);
-        let ledger = DepositLedger::init(cala, journal_id, omnibus_ids.deposits).await?;
+        let config_repo = DepositConfigRepo::new(pool);
+        let ledger = DepositLedger::init(cala, journal_id).await?;
 
         let approve_withdrawal = ApproveWithdrawal::new(&withdrawals, authz.audit(), governance);
 
@@ -145,16 +141,14 @@ where
             accounts,
             deposits,
             withdrawals,
-            // config_repo,
+            config_repo,
             authz: authz.clone(),
             outbox: outbox.clone(),
             governance: governance.clone(),
             customers: customers.clone(),
             cala: cala.clone(),
-            chart_of_accounts: chart_of_accounts.clone(),
             approve_withdrawal,
             ledger,
-            account_factory: factories.deposits,
         };
         Ok(res)
     }
@@ -212,31 +206,15 @@ where
         let mut op = self.accounts.begin_op().await?;
         let account = self.accounts.create_in_op(&mut op, new_account).await?;
 
-        let mut op = self.cala.ledger_operation_from_db_op(op);
-        self.account_factory
-            .create_transaction_account_in_op(
-                &mut op,
+        self.ledger
+            .create_deposit_account(
+                op,
                 account_id,
-                &account.reference,
-                &account.name,
-                &account.description,
+                account.reference.to_string(),
+                account.name.to_string(),
+                account.description.to_string(),
             )
             .await?;
-        // self.chart_of_accounts.create_leaf_account_in_op(
-        //     &mut op,
-        //     chart_id,
-        //     parent_code,
-        //     account_id,
-        //     account.reference.clone(),
-        //     account.name.clone(),
-        //     account.description.clone(),
-        // )?;
-
-        self.ledger
-            .add_deposit_control_to_account(&mut op, account_id)
-            .await?;
-
-        op.commit().await?;
 
         Ok(account)
     }
@@ -653,5 +631,68 @@ where
             .accounts
             .list_for_account_holder_id_by_created_at(account_holder_id, query, direction.into())
             .await?)
+    }
+
+    async fn get_deposit_config(&self) -> Result<DepositConfig, CoreDepositError> {
+        match self.config_repo.find_by_id(DepositConfigId::DEFAULT).await {
+            Ok(deposit_config) => return Ok(deposit_config),
+            Err(e) if e.was_not_found() => (),
+            Err(e) => return Err(e.into()),
+        };
+
+        let new_deposit_config = NewDepositConfig::builder()
+            .id(DepositConfigId::DEFAULT)
+            .build()
+            .expect("Could not build new deposit config");
+
+        Ok(self.config_repo.create(new_deposit_config).await?)
+    }
+
+    pub async fn find_all_deposit_configs<T: From<DepositConfig>>(
+        &self,
+        ids: &[DepositConfigId],
+    ) -> Result<HashMap<DepositConfigId, T>, CoreDepositError> {
+        Ok(self.config_repo.find_all(ids).await?)
+    }
+
+    pub async fn update_deposit_config_values(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        chart: Chart,
+        values: DepositConfigValues,
+    ) -> Result<DepositConfig, CoreDepositError> {
+        if chart
+            .account_spec(&values.chart_of_accounts_deposit_accounts_parent_code)
+            .is_none()
+        {
+            return Err(CoreDepositError::CodeNotFoundInChart(
+                values.chart_of_accounts_deposit_accounts_parent_code,
+            ));
+        }
+        if chart
+            .account_spec(&values.chart_of_accounts_omnibus_parent_code)
+            .is_none()
+        {
+            return Err(CoreDepositError::CodeNotFoundInChart(
+                values.chart_of_accounts_omnibus_parent_code,
+            ));
+        }
+
+        let mut deposit_config = self.get_deposit_config().await?;
+
+        let audit_info = self
+            .authz
+            .enforce_permission(
+                sub,
+                CoreDepositObject::deposit_config(deposit_config.id),
+                CoreDepositAction::DEPOSIT_CONFIG_UPDATE,
+            )
+            .await?;
+
+        deposit_config.update_values(values, audit_info);
+
+        self.config_repo.update(&mut deposit_config).await?;
+
+        Ok(deposit_config)
     }
 }

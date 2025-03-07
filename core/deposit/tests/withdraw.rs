@@ -4,9 +4,7 @@ use rust_decimal_macros::dec;
 
 use authz::dummy::DummySubject;
 use cala_ledger::{CalaLedger, CalaLedgerConfig};
-use chart_of_accounts::{
-    new::CoreChartOfAccounts as NewChartOfAccounts, ChartCategory, CoreChartOfAccounts,
-};
+use chart_of_accounts::{ChartCategory, CoreChartOfAccounts};
 use deposit::*;
 
 use helpers::{action, event, object};
@@ -56,7 +54,7 @@ async fn overdraw_and_cancel_withdrawal() -> anyhow::Result<()> {
         "user-deposits:{:04}",
         rand::thread_rng().gen_range(0..10000)
     );
-    let control_sub_account = chart_of_accounts
+    let _control_sub_account = chart_of_accounts
         .create_control_sub_account(
             chart_id,
             control_account,
@@ -64,7 +62,6 @@ async fn overdraw_and_cancel_withdrawal() -> anyhow::Result<()> {
             deposits_reference,
         )
         .await?;
-    let factory = chart_of_accounts.transaction_account_factory(control_sub_account);
 
     let omnibus_control_account = chart_of_accounts
         .create_control_account(
@@ -103,7 +100,6 @@ async fn overdraw_and_cancel_withdrawal() -> anyhow::Result<()> {
         .await?;
     op.commit().await?;
 
-    let new_chart_of_accounts = NewChartOfAccounts::init(&pool, &authz, &cala, journal_id).await?;
     let deposit = CoreDeposit::init(
         &pool,
         &authz,
@@ -111,11 +107,6 @@ async fn overdraw_and_cancel_withdrawal() -> anyhow::Result<()> {
         &governance,
         &customers,
         &jobs,
-        DepositAccountFactories { deposits: factory },
-        &new_chart_of_accounts,
-        DepositOmnibusAccountIds {
-            deposits: omnibus_account_id,
-        },
         &cala,
         journal_id,
     )

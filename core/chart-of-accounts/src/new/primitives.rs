@@ -56,6 +56,14 @@ pub enum AccountCodeSectionParseError {
     NonDigit,
 }
 
+#[derive(Error, Debug)]
+pub enum AccountCodeParseError {
+    #[error("AccountCodeParseError - Empty")]
+    Empty,
+    #[error("AccountCodeParseError - AccountCodeSectionParseError: {0}")]
+    AccountCodeSectionParseError(#[from] AccountCodeSectionParseError),
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 pub struct AccountCodeSection {
     code: String,
@@ -128,6 +136,24 @@ impl AccountCode {
     }
 }
 
+impl FromStr for AccountCode {
+    type Err = AccountCodeParseError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        if s.is_empty() {
+            return Err(AccountCodeParseError::Empty);
+        }
+        let sections = s
+            .split('.')
+            .map(|part| {
+                part.parse::<AccountCodeSection>()
+                    .map_err(AccountCodeParseError::from)
+            })
+            .collect::<Result<Vec<_>, _>>()?;
+        Ok(AccountCode::new(sections))
+    }
+}
+
 impl std::fmt::Display for AccountCode {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         if self.section.is_empty() {
@@ -163,14 +189,6 @@ impl AccountSpec {
 
     pub(super) fn account_set_external_id(&self, chart_id: ChartId) -> String {
         format!("{}.{}", chart_id, self.code)
-    }
-
-    pub(super) fn leaf_account_code(
-        &self,
-        chart_id: ChartId,
-        account_id: LedgerAccountId,
-    ) -> String {
-        format!("{}.{}.{}", chart_id, self.code, account_id)
     }
 
     pub fn has_parent(&self) -> bool {

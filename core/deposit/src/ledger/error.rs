@@ -8,6 +8,8 @@ pub enum DepositLedgerError {
     CalaLedger(#[from] cala_ledger::error::LedgerError),
     #[error("DepositLedgerError - CalaAccountError: {0}")]
     CalaAccount(#[from] cala_ledger::account::error::AccountError),
+    #[error("CoreDepositError - CalaAccountSetError: {0}")]
+    AccountSetError(#[from] cala_ledger::account_set::error::AccountSetError),
     #[error("DepositLedgerError - CalaJournalError: {0}")]
     CalaJournal(#[from] cala_ledger::journal::error::JournalError),
     #[error("DepositLedgerError - CalaTxTemplateError: {0}")]
@@ -28,4 +30,6 @@ pub enum DepositLedgerError {
     CoreChartOfAccountsError(#[from] chart_of_accounts::error::CoreChartOfAccountsError),
     #[error("DepositLedgerError - MismatchedTxMetadata: {0}")]
     MismatchedTxMetadata(serde_json::Error),
+    #[error("DepositLedgerError - NonAccountMemberFoundInAccountSet: Found non-Account typed member in account set {0}")]
+    NonAccountMemberFoundInAccountSet(String),
 }

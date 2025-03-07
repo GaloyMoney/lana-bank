@@ -11,8 +11,8 @@ use crate::primitives::*;
 
 use super::{
     approval_process::*, chart_of_accounts::*, committee::*, credit_facility::*, customer::*,
-    deposit::*, deposit_account::*, document::*, policy::*, terms_template::*, user::*,
-    withdrawal::*,
+    deposit::*, deposit_account::*, deposit_config::*, document::*, policy::*, terms_template::*,
+    user::*, withdrawal::*,
 };
 
 pub type LanaDataLoader = DataLoader<LanaLoader>;
@@ -162,6 +162,22 @@ impl Loader<DepositId> for LanaLoader {
         self.app
             .deposits()
             .find_all_deposits(keys)
+            .await
+            .map_err(Arc::new)
+    }
+}
+
+impl Loader<DepositConfigId> for LanaLoader {
+    type Value = DepositConfig;
+    type Error = Arc<CoreDepositError>;
+
+    async fn load(
+        &self,
+        keys: &[DepositConfigId],
+    ) -> Result<HashMap<DepositConfigId, DepositConfig>, Self::Error> {
+        self.app
+            .deposits()
+            .find_all_deposit_configs(keys)
             .await
             .map_err(Arc::new)
     }
