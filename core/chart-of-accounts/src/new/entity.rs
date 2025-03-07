@@ -63,14 +63,7 @@ impl Chart {
     }
 
     pub fn find_node_by_code(&self, code_to_check: AccountCode) -> Option<LedgerAccountSetId> {
-        self.events.iter_all().rev().find_map(|event| match event {
-            ChartEvent::NodeAdded {
-                ledger_account_set_id,
-                spec: AccountSpec { code, .. },
-                ..
-            } if code_to_check == *code => Some(*ledger_account_set_id),
-            _ => None,
-        })
+        self.all_accounts.get(&code_to_check).map(|(_, id)| *id)
     }
 
     pub fn check_code_exists(&self, code_to_check: AccountCode) -> Result<(), ChartError> {
