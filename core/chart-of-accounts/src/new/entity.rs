@@ -10,8 +10,6 @@ use es_entity::*;
 use super::primitives::*;
 use super::tree;
 
-use crate::chart_of_accounts::error::*;
-
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
 #[es_event(id = "ChartId")]
