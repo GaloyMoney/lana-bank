@@ -78,7 +78,6 @@ CREATE TABLE core_alt_chart_events (
 
 CREATE TABLE core_deposit_configs (
   id UUID PRIMARY KEY,
-  reference VARCHAR NOT NULL UNIQUE,
   created_at TIMESTAMPTZ NOT NULL
 );
 

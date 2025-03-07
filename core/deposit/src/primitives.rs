@@ -24,6 +24,11 @@ es_entity::entity_id! {
     WithdrawalId => ApprovalProcessId
 }
 
+impl DepositConfigId {
+    pub(crate) const DEFAULT: Self =
+        DepositConfigId(uuid::uuid!("00000000-0000-0000-0000-000000000000"));
+}
+
 pub use core_money::UsdCents;
 
 pub type DepositAccountAllOrOne = AllOrOne<DepositAccountId>;
