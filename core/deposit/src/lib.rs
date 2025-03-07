@@ -49,6 +49,8 @@ use processes::approval::{
 use withdrawal::*;
 pub use withdrawal::{Withdrawal, WithdrawalStatus, WithdrawalsByCreatedAtCursor};
 
+const DEPOSIT_CONFIG_REF: &str = "deposit-config";
+
 pub struct CoreDeposit<Perms, E>
 where
     Perms: PermissionCheck,
@@ -653,6 +655,27 @@ where
             .await?)
     }
 
+    async fn get_deposit_config(&self) -> Result<DepositConfig, CoreDepositError> {
+        match self
+            .config_repo
+            .find_by_reference(DEPOSIT_CONFIG_REF.to_string())
+            .await
+        {
+            Ok(deposit_config) => return Ok(deposit_config),
+            Err(e) if e.was_not_found() => (),
+            Err(e) => return Err(e.into()),
+        };
+
+        let id = DepositConfigId::new();
+        let new_deposit_config = NewDepositConfig::builder()
+            .id(id)
+            .reference(DEPOSIT_CONFIG_REF.to_string())
+            .build()
+            .expect("Could not build new deposit config");
+
+        Ok(self.config_repo.create(new_deposit_config).await?)
+    }
+
     pub async fn find_all_deposit_configs<T: From<DepositConfig>>(
         &self,
         ids: &[DepositConfigId],
@@ -663,21 +686,19 @@ where
     pub async fn update_deposit_config_values(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        id: impl Into<DepositConfigId> + std::fmt::Debug,
         values: DepositConfigValues,
     ) -> Result<DepositConfig, CoreDepositError> {
-        let id = id.into();
+        let mut deposit_config = self.get_deposit_config().await?;
 
         let audit_info = self
             .authz
             .enforce_permission(
                 sub,
-                CoreDepositObject::deposit_config(id),
+                CoreDepositObject::deposit_config(deposit_config.id),
                 CoreDepositAction::DEPOSIT_CONFIG_UPDATE,
             )
             .await?;
 
-        let mut deposit_config = self.config_repo.find_by_id(id).await?;
         deposit_config.update_values(values, audit_info);
 
         self.config_repo.update(&mut deposit_config).await?;

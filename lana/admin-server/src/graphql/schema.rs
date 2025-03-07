@@ -765,11 +765,8 @@ impl Mutation {
             DepositConfigUpdatePayload,
             DepositConfig,
             ctx,
-            app.deposits().update_deposit_config_values(
-                sub,
-                DepositConfigId::from(input.id),
-                config_values
-            )
+            app.deposits()
+                .update_deposit_config_values(sub, config_values)
         )
     }
 
