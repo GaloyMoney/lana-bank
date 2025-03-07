@@ -126,8 +126,6 @@ impl LanaApp {
             &governance,
             &customers,
             &jobs,
-            new_chart_of_accounts.leaf_account_factory(),
-            charts_init.deposits.omnibus_ids,
             &cala,
             journal_init.journal_id,
         )
