@@ -20,9 +20,23 @@ registerCustomerCreditFacilitiesTool(server);
 registerCustomerDetailsTool(server);
 
 async function main() {
+  // Validate required admin secret from command-line arguments
+  // The secret is expected to be the first argument after the script path (index 2)
+  const adminSecret = process.argv[2];
+
+  if (!adminSecret) {
+    console.error(
+      "Error: ADMIN_SECRET is not provided as a command-line argument."
+    );
+    console.error(
+      "Please add it to your Claude Desktop configuration file as the first argument."
+    );
+    process.exit(1);
+  }
+
   const transport = new StdioServerTransport();
   await server.connect(transport);
-  console.error("Weather MCP Server running on stdio");
+  console.error("Lana Admin MCP Server running on stdio");
 }
 
 main().catch((error) => {
