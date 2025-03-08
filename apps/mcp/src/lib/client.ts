@@ -1,6 +1,7 @@
 import { createRequire } from "module";
 const require = createRequire(import.meta.url);
-const { ApolloClient, InMemoryCache, HttpLink } = require("@apollo/client");
+const apolloClient = require("@apollo/client");
+const { ApolloClient, InMemoryCache, HttpLink } = apolloClient;
 
 // Create and export the Apollo Client instance directly
 export const graphqlClient = new ApolloClient({
