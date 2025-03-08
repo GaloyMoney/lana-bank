@@ -46,7 +46,10 @@ impl Mutation {
     ) -> async_graphql::Result<String> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         let customer = app.customers().find_for_subject(sub).await?;
-        let res = app.applicants().create_permalink(customer.id).await?;
+        let res = app
+            .applicants()
+            .create_permalink(&Subject::System, customer.id)
+            .await?;
         Ok(res.url)
     }
 }
