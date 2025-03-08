@@ -5,17 +5,15 @@ import { headers } from "next/headers"
 import { basePath, env } from "@/env"
 
 export const { getClient } = registerApolloClient(() => {
-  const requestHeaders = Object.fromEntries(
-    Array.from(headers()).map(([key, value]) => [key, value]),
-  )
-
   return new ApolloClient({
     cache: new InMemoryCache(),
     link: ApolloLink.from([
       new HttpLink({
         uri: `${env.NEXT_PUBLIC_CORE_URL + basePath}/graphql`,
         fetchOptions: { cache: "no-store" },
-        headers: requestHeaders,
+        headers: {
+          cookie: headers().get("cookie") ?? "",
+        },
       }),
     ]),
   })

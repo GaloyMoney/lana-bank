@@ -30,9 +30,16 @@ export async function executeMutation<
 
     return response.data
   } catch (error) {
+    console.log("Error on apollo client => ", error)
     if (error instanceof Error) {
+      console.error(
+        `Mutation ${options.document.definitions} failed with error: ${error.message}`,
+      )
       return error
     }
+    console.error(
+      `Mutation ${options.document.definitions} failed with error: Unknown error`,
+    )
     return new Error("An unknown error occurred")
   }
 }
