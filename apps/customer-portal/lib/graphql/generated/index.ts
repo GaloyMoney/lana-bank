@@ -66,9 +66,9 @@ export type CreditFacility = {
   creditFacilityTerms: TermValues;
   currentCvl: FacilityCvl;
   disbursals: Array<CreditFacilityDisbursal>;
-  maturesAt?: Maybe<Scalars['Timestamp']['output']>;
   facilityAmount: Scalars['UsdCents']['output'];
   id: Scalars['ID']['output'];
+  maturesAt?: Maybe<Scalars['Timestamp']['output']>;
   repaymentPlan: Array<CreditFacilityRepaymentInPlan>;
   status: CreditFacilityStatus;
   transactions: Array<CreditFacilityHistoryEntry>;
@@ -188,6 +188,7 @@ export type Customer = {
   createdAt: Scalars['Timestamp']['output'];
   creditFacilities: Array<CreditFacility>;
   customerId: Scalars['UUID']['output'];
+  customerType: CustomerType;
   depositAccount: DepositAccount;
   email: Scalars['String']['output'];
   id: Scalars['ID']['output'];
@@ -195,6 +196,11 @@ export type Customer = {
   status: AccountStatus;
   telegramId: Scalars['String']['output'];
 };
+
+export enum CustomerType {
+  Company = 'COMPANY',
+  Individual = 'INDIVIDUAL'
+}
 
 export type Deposit = {
   __typename?: 'Deposit';
@@ -312,6 +318,11 @@ export enum KycLevel {
   NotKyced = 'NOT_KYCED'
 }
 
+export type Mutation = {
+  __typename?: 'Mutation';
+  sumsubPermalinkCreate: Scalars['String']['output'];
+};
+
 export type Outstanding = {
   __typename?: 'Outstanding';
   usdBalance: Scalars['UsdCents']['output'];
@@ -416,6 +427,11 @@ export type GetCreditFacilityQueryVariables = Exact<{
 
 
 export type GetCreditFacilityQuery = { __typename?: 'Query', creditFacility?: { __typename?: 'CreditFacility', id: string, creditFacilityId: any, facilityAmount: any, collateral: any, collateralizationState: CollateralizationState, status: CreditFacilityStatus, createdAt: any, activatedAt?: any | null, maturesAt?: any | null, disbursals: Array<{ __typename?: 'CreditFacilityDisbursal', id: string, disbursalId: any, index: any, amount: any, status: DisbursalStatus, createdAt: any }>, creditFacilityTerms: { __typename?: 'TermValues', annualRate: any, accrualInterval: InterestInterval, incurrenceInterval: InterestInterval, oneTimeFeeRate: any, liquidationCvl: any, marginCallCvl: any, initialCvl: any, duration: { __typename?: 'Duration', period: Period, units: number } }, balance: { __typename?: 'CreditFacilityBalance', facilityRemaining: { __typename?: 'FacilityRemaining', usdBalance: any }, disbursed: { __typename?: 'Disbursed', total: { __typename?: 'Total', usdBalance: any }, outstanding: { __typename?: 'Outstanding', usdBalance: any }, dueOutstanding: { __typename?: 'Outstanding', usdBalance: any } }, interest: { __typename?: 'Interest', total: { __typename?: 'Total', usdBalance: any }, outstanding: { __typename?: 'Outstanding', usdBalance: any }, dueOutstanding: { __typename?: 'Outstanding', usdBalance: any } }, collateral: { __typename?: 'Collateral', btcBalance: any }, dueOutstanding: { __typename?: 'Outstanding', usdBalance: any }, outstanding: { __typename?: 'Outstanding', usdBalance: any } }, currentCvl: { __typename?: 'FacilityCVL', total: any, disbursed: any }, repaymentPlan: Array<{ __typename?: 'CreditFacilityRepaymentInPlan', repaymentType: CreditFacilityRepaymentType, status: CreditFacilityRepaymentStatus, initial: any, outstanding: any, accrualAt: any, dueAt: any }>, transactions: Array<{ __typename?: 'CreditFacilityCollateralUpdated', satoshis: any, recordedAt: any, action: CollateralAction, txId: any } | { __typename?: 'CreditFacilityCollateralizationUpdated', state: CollateralizationState, collateral: any, outstandingInterest: any, outstandingDisbursal: any, recordedAt: any, price: any } | { __typename?: 'CreditFacilityDisbursalExecuted', cents: any, recordedAt: any, txId: any } | { __typename?: 'CreditFacilityIncrementalPayment', cents: any, recordedAt: any, txId: any } | { __typename?: 'CreditFacilityInterestAccrued', cents: any, recordedAt: any, txId: any, days: number } | { __typename?: 'CreditFacilityOrigination', cents: any, recordedAt: any, txId: any }> } | null };
+
+export type SumsubPermalinkCreateMutationVariables = Exact<{ [key: string]: never; }>;
+
+
+export type SumsubPermalinkCreateMutation = { __typename?: 'Mutation', sumsubPermalinkCreate: string };
 
 export type MeQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -585,6 +601,36 @@ export function useGetCreditFacilityLazyQuery(baseOptions?: Apollo.LazyQueryHook
 export type GetCreditFacilityQueryHookResult = ReturnType<typeof useGetCreditFacilityQuery>;
 export type GetCreditFacilityLazyQueryHookResult = ReturnType<typeof useGetCreditFacilityLazyQuery>;
 export type GetCreditFacilityQueryResult = Apollo.QueryResult<GetCreditFacilityQuery, GetCreditFacilityQueryVariables>;
+export const SumsubPermalinkCreateDocument = gql`
+    mutation sumsubPermalinkCreate {
+  sumsubPermalinkCreate
+}
+    `;
+export type SumsubPermalinkCreateMutationFn = Apollo.MutationFunction<SumsubPermalinkCreateMutation, SumsubPermalinkCreateMutationVariables>;
+
+/**
+ * __useSumsubPermalinkCreateMutation__
+ *
+ * To run a mutation, you first call `useSumsubPermalinkCreateMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useSumsubPermalinkCreateMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [sumsubPermalinkCreateMutation, { data, loading, error }] = useSumsubPermalinkCreateMutation({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useSumsubPermalinkCreateMutation(baseOptions?: Apollo.MutationHookOptions<SumsubPermalinkCreateMutation, SumsubPermalinkCreateMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<SumsubPermalinkCreateMutation, SumsubPermalinkCreateMutationVariables>(SumsubPermalinkCreateDocument, options);
+      }
+export type SumsubPermalinkCreateMutationHookResult = ReturnType<typeof useSumsubPermalinkCreateMutation>;
+export type SumsubPermalinkCreateMutationResult = Apollo.MutationResult<SumsubPermalinkCreateMutation>;
+export type SumsubPermalinkCreateMutationOptions = Apollo.BaseMutationOptions<SumsubPermalinkCreateMutation, SumsubPermalinkCreateMutationVariables>;
 export const MeDocument = gql`
     query me {
   me {
