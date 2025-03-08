@@ -1,3 +1,4 @@
+# Docker and tilt
 dev-up:
 	cd dev && tilt up
 
@@ -13,6 +14,7 @@ clean-deps:
 start-deps:
 	docker compose up --wait -d integration-deps
 
+# Rust backend
 setup-db:
 	cd lana/app && cargo sqlx migrate run
 
@@ -57,34 +59,19 @@ build-for-tests:
 e2e: clean-deps start-deps build-for-tests
 	bats --setup-suite-file bats/ci-setup-suite.bash -t bats
 
-e2e-in-ci: clean-deps start-deps build-for-tests
-	lsof -i :5253 | tail -n 1 | cut -d" " -f2 | xargs -L 1 kill -9 || true
-	SA_CREDS_BASE64=$$(cat ./dev/fake-service-account.json | tr -d '\n' | base64 -w 0) bats --setup-suite-file bats/ci-setup-suite.bash -t bats
-
-
 sdl:
 	SQLX_OFFLINE=true cargo run --bin write_sdl > lana/admin-server/src/graphql/schema.graphql
+	SQLX_OFFLINE=true cargo run --bin write_customer_sdl > lana/customer-server/src/graphql/schema.graphql
 	cd apps/admin-panel && pnpm install && pnpm codegen
 
-customer-sdl:
-	SQLX_OFFLINE=true cargo run --bin write_customer_sdl > lana/customer-server/src/graphql/schema.graphql
-
-test-in-ci: start-deps setup-db
-	cargo nextest run --verbose --locked
-
-build-x86_64-unknown-linux-musl-release:
-	SQLX_OFFLINE=true cargo build --release --locked --bin lana-cli --target x86_64-unknown-linux-musl
-
-build-x86_64-apple-darwin-release:
-	bin/osxcross-compile.sh
+# Frontend Apps
+check-code-apps: check-code-apps-admin-panel check-code-apps-customer-portal
 
 start-admin:
 	cd apps/admin-panel && pnpm install --frozen-lockfile && pnpm dev
 
 start-customer-portal:
 	cd apps/customer-portal && pnpm install --frozen-lockfile && pnpm dev
-
-check-code-apps: check-code-apps-admin-panel check-code-apps-customer-portal
 
 check-code-apps-admin-panel:
 	cd apps/admin-panel && pnpm install --frozen-lockfile && pnpm lint && pnpm tsc-check && pnpm build
@@ -95,16 +82,10 @@ check-code-apps-customer-portal:
 build-storybook-admin-panel:
 	cd apps/admin-panel && pnpm install --frozen-lockfile && pnpm run build-storybook
 
-# add https://xxx.ngrok-free.app/sumsub/callback to test integration with sumsub
-ngrok:
-	ngrok http 5253
-
-tilt-in-ci:
-	./dev/bin/tilt-ci.sh
-
 test-cypress-in-ci-through-browserstack:
 	cd apps/admin-panel && pnpm cypress:run browserstack
 
+# Meltano
 pg2bq-run:
 	meltano run tap-postgres target-bigquery
 
@@ -122,3 +103,23 @@ bitfinex-run:
 
 sumsub-run:
 	meltano run tap-sumsubapi target-bigquery
+
+# misc 
+sumsub-webhook-test: # add https://xxx.ngrok-free.app/sumsub/callback to test integration with sumsub
+	ngrok http 5253
+
+tilt-in-ci:
+	./dev/bin/tilt-ci.sh
+
+build-x86_64-apple-darwin-release:
+	bin/osxcross-compile.sh
+
+test-in-ci: start-deps setup-db
+	cargo nextest run --verbose --locked
+
+build-x86_64-unknown-linux-musl-release:
+	SQLX_OFFLINE=true cargo build --release --locked --bin lana-cli --target x86_64-unknown-linux-musl
+
+e2e-in-ci: clean-deps start-deps build-for-tests
+	lsof -i :5253 | tail -n 1 | cut -d" " -f2 | xargs -L 1 kill -9 || true
+	SA_CREDS_BASE64=$$(cat ./dev/fake-service-account.json | tr -d '\n' | base64 -w 0) bats --setup-suite-file bats/ci-setup-suite.bash -t bats

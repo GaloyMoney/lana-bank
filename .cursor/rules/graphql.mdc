@@ -1,0 +1,7 @@
+---
+description: graphql
+globs: **.graphql
+alwaysApply: false
+---
+
+do not update this file. it's auto generated with `make sdl`

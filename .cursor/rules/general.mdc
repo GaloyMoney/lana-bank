@@ -1,0 +1,19 @@
+---
+description: general description
+globs: 
+alwaysApply: true
+---
+
+# application
+
+This is code for a core banking application. The first use case covered in bitcoin backed lending.
+
+This github repository is a monorepo. 
+
+The backend is in rust. The frontend is in next js.
+
+To make the environement run, it needs Docker and some Docker compose dependencies.
+
+Useful commands to run are in the Makefile.
+
+The ledger is being handle by Cala, another rust crate. It maintain the list of all transactions and provide double entry bookkeeping ledger with strong consistency guarantees through custom templates

@@ -1,34 +1,43 @@
 ---
-description: rust rulec
+description: rust rul`
 globs: **.rs
 alwaysApply: false
 ---
 
-# Your rule content
+## general organization of the rust code
 
-## general organization of the repo
+The rust application is split across different layer:
+- lana/ is the application layer. most of the code is in lana/app/src
+- core/ contains the key primitives of our banking application that are split around multiple repositories
+- lib/ contains some general supporting utilities
 
-the rust application is split across different layer:
-lana/ is the application layer
-you will find most of the code in lana/app/src
+when started, the application expose two servers on 2 different ports: the admin API and the customer API
 
-
-core/ contains the key primitives of our banking application that are split around multiple repositories
-lib/ contains some general supporting utilities
-
-there are 2 servers enables by the application, the admin api is on lana/admin-server and the custmer facing API is on lana/customer-server.
+The admin API is located in lana/admin-server and the custmer API is located in lana/customer-server.
 this is where you will find the code for the graphql layer
 
-
-they are split into modules for faster compilation time
+The server run with Postgres, and is being accessed through the sqlx library.
 
 ## verify your work
 
-run `make check-code` to verify that the code compile
+You should know about those commands:
 
+- `make check-code` to verify that the code compile
+- `make sdl` to regenerate the schema.graphql. do not attempt to update schema.graphql yourself
+- `make sqlx-prepare` to update the .sqlx files. do not attempt to update the .sqlx files yourself
 
 ## general coding rules
-use Strum library for primitive enum <-> string conversion
 
+- interaction across module boundaries are done through events. public events are listed 
+- do not update schema.graphql manually. rather do it with `make sdl`
 
+- use Strum library for primitive enum <-> string conversion
+- we use DDD (Domaine Driven Design) pattern. the filename give a hint as what it's aim to do: 
+-- mod.rs are the interface of the module
+-- repo.rs is the interface to the storage layer (most likely postgres)
+-- entity.rs contains the events definition, and implementation for their lifecycles
+
+- the dependency graph should be as follow: 
+-- core can import lib
+-- lana can import core
 
