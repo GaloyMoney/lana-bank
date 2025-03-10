@@ -17,7 +17,7 @@ use cala_ledger::{
 use crate::{
     chart_of_accounts_integration::ChartOfAccountsIntegrationConfig,
     primitives::{LedgerAccountId, LedgerAccountSetId, UsdCents},
-    DepositAccountBalance,
+    DepositAccountBalance, LedgerOmnibusAccountIds,
 };
 
 use error::*;
@@ -37,8 +37,7 @@ pub struct DepositLedger {
     cala: CalaLedger,
     journal_id: JournalId,
     deposits_account_set_id: LedgerAccountSetId,
-    deposit_omnibus_account_set_id: LedgerAccountSetId,
-    deposit_omnibus_account_id: LedgerAccountId,
+    deposit_omnibus_account_ids: LedgerOmnibusAccountIds,
     usd: Currency,
     deposit_control_id: VelocityControlId,
 }
@@ -61,17 +60,10 @@ impl DepositLedger {
             DebitOrCredit::Credit,
         )
         .await?;
-        let deposit_omnibus_account_set_id = Self::find_or_create_account_set(
+        let deposit_omnibus_account_ids = Self::find_or_create_omnibus_account(
             cala,
             journal_id,
             format!("{journal_id}:{DEPOSIT_OMNIBUS_ACCOUNT_SET_REF}"),
-            DEPOSIT_OMNIBUS_ACCOUNT_SET_NAME.to_string(),
-            DebitOrCredit::Debit,
-        )
-        .await?;
-        let deposit_omnibus_account_id = Self::find_or_create_account_in_account_set(
-            cala,
-            deposit_omnibus_account_set_id,
             format!("{journal_id}:{DEPOSIT_OMNIBUS_ACCOUNT_REF}"),
             DEPOSIT_OMNIBUS_ACCOUNT_SET_NAME.to_string(),
             DebitOrCredit::Debit,
@@ -96,8 +88,7 @@ impl DepositLedger {
             cala: cala.clone(),
             journal_id,
             deposits_account_set_id,
-            deposit_omnibus_account_set_id,
-            deposit_omnibus_account_id,
+            deposit_omnibus_account_ids,
             deposit_control_id,
             usd: "USD".parse().expect("Could not parse 'USD'"),
         })
@@ -143,13 +134,23 @@ impl DepositLedger {
         }
     }
 
-    async fn find_or_create_account_in_account_set(
+    async fn find_or_create_omnibus_account(
         cala: &CalaLedger,
-        account_set_id: LedgerAccountSetId,
+        journal_id: JournalId,
+        account_set_reference: String,
         reference: String,
         name: String,
         normal_balance_type: DebitOrCredit,
-    ) -> Result<LedgerAccountId, DepositLedgerError> {
+    ) -> Result<LedgerOmnibusAccountIds, DepositLedgerError> {
+        let account_set_id = Self::find_or_create_account_set(
+            cala,
+            journal_id,
+            account_set_reference,
+            name.to_string(),
+            normal_balance_type,
+        )
+        .await?;
+
         let members = cala
             .account_sets()
             .list_members(account_set_id, Default::default())
@@ -157,7 +158,12 @@ impl DepositLedger {
             .entities;
         if !members.is_empty() {
             match members[0].id {
-                AccountSetMemberId::Account(id) => return Ok(id),
+                AccountSetMemberId::Account(id) => {
+                    return Ok(LedgerOmnibusAccountIds {
+                        account_set_id,
+                        account_id: id,
+                    })
+                }
                 AccountSetMemberId::AccountSet(_) => {
                     return Err(DepositLedgerError::NonAccountMemberFoundInAccountSet(
                         account_set_id.to_string(),
@@ -178,7 +184,7 @@ impl DepositLedger {
             .build()
             .expect("Could not build new account");
 
-        match cala
+        let account_id = match cala
             .accounts()
             .create_in_op(&mut op, new_ledger_account)
             .await
@@ -189,14 +195,19 @@ impl DepositLedger {
                     .await?;
 
                 op.commit().await?;
-                Ok(id)
+                id
             }
             Err(cala_ledger::account::error::AccountError::ExternalIdAlreadyExists) => {
                 op.commit().await?;
-                Ok(cala.accounts().find_by_external_id(reference).await?.id)
+                cala.accounts().find_by_external_id(reference).await?.id
             }
-            Err(e) => Err(e.into()),
-        }
+            Err(e) => return Err(e.into()),
+        };
+
+        Ok(LedgerOmnibusAccountIds {
+            account_set_id,
+            account_id,
+        })
     }
 
     pub async fn account_history<T, U>(
@@ -245,7 +256,7 @@ impl DepositLedger {
             journal_id: self.journal_id,
             currency: self.usd,
             amount: amount.to_usd(),
-            deposit_omnibus_account_id: self.deposit_omnibus_account_id,
+            deposit_omnibus_account_id: self.deposit_omnibus_account_ids.account_id,
             credit_account_id: credit_account_id.into(),
         };
         self.cala
@@ -268,7 +279,7 @@ impl DepositLedger {
 
         let params = templates::InitiateWithdrawParams {
             journal_id: self.journal_id,
-            deposit_omnibus_account_id: self.deposit_omnibus_account_id,
+            deposit_omnibus_account_id: self.deposit_omnibus_account_ids.account_id,
             credit_account_id: credit_account_id.into(),
             amount: amount.to_usd(),
             currency: self.usd,
@@ -298,7 +309,7 @@ impl DepositLedger {
             journal_id: self.journal_id,
             currency: self.usd,
             amount: amount.to_usd(),
-            deposit_omnibus_account_id: self.deposit_omnibus_account_id,
+            deposit_omnibus_account_id: self.deposit_omnibus_account_ids.account_id,
             credit_account_id: credit_account_id.into(),
             correlation_id,
             external_id,
@@ -326,7 +337,7 @@ impl DepositLedger {
             currency: self.usd,
             amount: amount.to_usd(),
             credit_account_id: credit_account_id.into(),
-            deposit_omnibus_account_id: self.deposit_omnibus_account_id,
+            deposit_omnibus_account_id: self.deposit_omnibus_account_ids.account_id,
         };
 
         self.cala
@@ -463,7 +474,7 @@ impl DepositLedger {
                 &mut op,
                 &[
                     self.deposits_account_set_id,
-                    self.deposit_omnibus_account_set_id,
+                    self.deposit_omnibus_account_ids.account_set_id,
                 ],
             )
             .await?;
@@ -514,7 +525,7 @@ impl DepositLedger {
             .await?;
 
         let mut omnibus_account_set = account_sets
-            .remove(&self.deposit_omnibus_account_set_id)
+            .remove(&self.deposit_omnibus_account_ids.account_set_id)
             .expect("deposit account set not found");
 
         if let Some(old_meta) = omnibus_account_set.values().metadata.as_ref() {
@@ -526,7 +537,7 @@ impl DepositLedger {
                     .remove_member_in_op(
                         &mut op,
                         old_meta.omnibus_parent_account_set_id,
-                        self.deposit_omnibus_account_set_id,
+                        self.deposit_omnibus_account_ids.account_set_id,
                     )
                     .await?;
             }
@@ -536,7 +547,7 @@ impl DepositLedger {
             .add_member_in_op(
                 &mut op,
                 omnibus_parent_account_set_id,
-                self.deposit_omnibus_account_set_id,
+                self.deposit_omnibus_account_ids.account_set_id,
             )
             .await?;
         let mut update = AccountSetUpdate::default();

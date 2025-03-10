@@ -32,6 +32,12 @@ pub type DepositAllOrOne = AllOrOne<DepositId>;
 pub type ChartOfAccountsIntegrationConfigAllOrOne = AllOrOne<ChartOfAccountsIntegrationConfigId>;
 pub type WithdrawalAllOrOne = AllOrOne<WithdrawalId>;
 
+#[derive(Debug, Clone)]
+pub struct LedgerOmnibusAccountIds {
+    pub account_set_id: LedgerAccountSetId,
+    pub account_id: LedgerAccountId,
+}
+
 #[derive(Clone, Copy, Debug, PartialEq, strum::EnumDiscriminants)]
 #[strum_discriminants(derive(strum::Display, strum::EnumString))]
 #[strum_discriminants(strum(serialize_all = "kebab-case"))]
