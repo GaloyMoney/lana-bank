@@ -1,3 +1,5 @@
+use audit::AuditInfo;
+
 mod constants;
 mod credit_facility_accounts;
 pub mod error;
@@ -848,5 +850,13 @@ impl CreditLedger {
         .await?;
 
         Ok(())
+    }
+
+    pub async fn attach_chart_of_accounts_account_sets(
+        &self,
+        audit_info: AuditInfo,
+        config: &ChartOfAccountsIntegrationConfig,
+    ) -> Result<(), CreditLedgerError> {
+        unimplemented!()
     }
 }
