@@ -17,6 +17,10 @@ import { Badge } from "@lana/web/ui/badge"
 
 import { useState, useCallback } from "react"
 
+import { Button } from "@lana/web/ui/button"
+
+import { createSumsubPermalink } from "./server-actions"
+
 import { KycLevel, MeQuery } from "@/lib/graphql/generated"
 
 import { useLogout } from "@/hooks/use-logout"
@@ -123,8 +127,6 @@ function NavBar({ meQueryData }: { meQueryData: MeQuery }) {
 export default NavBar
 
 import { cn } from "@/lib/utils"
-import { Button } from "@lana/web/ui/button"
-import { createSumsubPermalink } from "./server-actions"
 
 interface KYCBadgeProps {
   level: KycLevel
