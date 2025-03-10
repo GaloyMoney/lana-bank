@@ -1,3 +1,4 @@
+mod constants;
 mod credit_facility_accounts;
 pub mod error;
 mod templates;
@@ -10,11 +11,9 @@ use cala_ledger::{
 
 use crate::primitives::{CollateralAction, CreditFacilityId, Satoshis, UsdCents};
 
+use constants::*;
 pub use credit_facility_accounts::*;
 use error::*;
-
-pub(super) const CREDIT_FACILITY_VELOCITY_CONTROL_ID: uuid::Uuid =
-    uuid::uuid!("00000000-0000-0000-0000-000000000002");
 
 #[derive(Debug, Clone)]
 pub struct CreditFacilityCollateralUpdate {
