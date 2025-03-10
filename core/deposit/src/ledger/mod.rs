@@ -56,8 +56,7 @@ impl DepositLedger {
         let deposits_account_set_id = Self::find_or_create_account_set(
             cala,
             journal_id,
-            DEPOSITS_ACCOUNT_SET_REF.to_string(),
-            DEPOSITS_ACCOUNT_SET_NAME.to_string(),
+            format!("{journal_id}:{DEPOSITS_ACCOUNT_SET_REF}"),
             DEPOSITS_ACCOUNT_SET_NAME.to_string(),
             DebitOrCredit::Credit,
         )
@@ -65,8 +64,7 @@ impl DepositLedger {
         let deposit_omnibus_account_set_id = Self::find_or_create_account_set(
             cala,
             journal_id,
-            DEPOSIT_OMNIBUS_ACCOUNT_SET_REF.to_string(),
-            DEPOSIT_OMNIBUS_ACCOUNT_SET_NAME.to_string(),
+            format!("{journal_id}:{DEPOSIT_OMNIBUS_ACCOUNT_SET_REF}"),
             DEPOSIT_OMNIBUS_ACCOUNT_SET_NAME.to_string(),
             DebitOrCredit::Debit,
         )
@@ -74,8 +72,7 @@ impl DepositLedger {
         let deposit_omnibus_account_id = Self::find_or_create_account_in_account_set(
             cala,
             deposit_omnibus_account_set_id,
-            DEPOSIT_OMNIBUS_ACCOUNT_REF.to_string(),
-            DEPOSIT_OMNIBUS_ACCOUNT_SET_NAME.to_string(),
+            format!("{journal_id}:{DEPOSIT_OMNIBUS_ACCOUNT_REF}"),
             DEPOSIT_OMNIBUS_ACCOUNT_SET_NAME.to_string(),
             DebitOrCredit::Debit,
         )
@@ -111,7 +108,6 @@ impl DepositLedger {
         journal_id: JournalId,
         reference: String,
         name: String,
-        description: String,
         normal_balance_type: DebitOrCredit,
     ) -> Result<LedgerAccountSetId, DepositLedgerError> {
         match cala
@@ -119,6 +115,9 @@ impl DepositLedger {
             .find_by_external_id(reference.to_string())
             .await
         {
+            Ok(account_set) if account_set.values().journal_id != journal_id => {
+                return Err(DepositLedgerError::JournalIdMismatch)
+            }
             Ok(account_set) => return Ok(account_set.id),
             Err(e) if e.was_not_found() => (),
             Err(e) => return Err(e.into()),
@@ -129,13 +128,13 @@ impl DepositLedger {
             .id(id)
             .journal_id(journal_id)
             .external_id(reference.to_string())
-            .name(name)
-            .description(description)
+            .name(name.clone())
+            .description(name)
             .normal_balance_type(normal_balance_type)
             .build()
             .expect("Could not build new account set");
         match cala.account_sets().create(new_account_set).await {
-            Ok(_) => Ok(id),
+            Ok(set) => Ok(set.id),
             Err(cala_ledger::account_set::error::AccountSetError::ExternalIdAlreadyExists) => {
                 Ok(cala.account_sets().find_by_external_id(reference).await?.id)
             }
@@ -149,7 +148,6 @@ impl DepositLedger {
         account_set_id: LedgerAccountSetId,
         reference: String,
         name: String,
-        description: String,
         normal_balance_type: DebitOrCredit,
     ) -> Result<LedgerAccountId, DepositLedgerError> {
         let members = cala
@@ -173,8 +171,8 @@ impl DepositLedger {
         let new_ledger_account = NewAccount::builder()
             .id(id)
             .external_id(reference.to_string())
-            .name(name)
-            .description(description)
+            .name(name.clone())
+            .description(name)
             .code(id.to_string())
             .normal_balance_type(normal_balance_type)
             .build()
@@ -478,25 +476,28 @@ impl DepositLedger {
                         self.deposits_account_set_id,
                     )
                     .await?;
-                self.cala
-                    .account_sets()
-                    .add_member_in_op(
-                        &mut op,
-                        deposit_accounts_parent_account_set_id,
-                        self.deposits_account_set_id,
-                    )
-                    .await?;
             }
-            let mut update = AccountSetUpdate::default();
-            update
-                .metadata(&new_meta)
-                .expect("Could not update metadata");
-            deposit_account_set.update(update);
-            self.cala
-                .account_sets()
-                .persist_in_op(&mut op, &mut deposit_account_set)
-                .await?;
         }
+        dbg!("hello");
+        self.cala
+            .account_sets()
+            .add_member_in_op(
+                &mut op,
+                deposit_accounts_parent_account_set_id,
+                self.deposits_account_set_id,
+            )
+            .await?;
+        dbg!("hello 2");
+        let mut update = AccountSetUpdate::default();
+        update
+            .metadata(&new_meta)
+            .expect("Could not update metadata");
+        deposit_account_set.update(update);
+        self.cala
+            .account_sets()
+            .persist_in_op(&mut op, &mut deposit_account_set)
+            .await?;
+        dbg!("hello 3");
 
         let mut omnibus_account_set = account_sets
             .remove(&self.deposit_omnibus_account_set_id)
@@ -514,25 +515,27 @@ impl DepositLedger {
                         self.deposit_omnibus_account_set_id,
                     )
                     .await?;
-                self.cala
-                    .account_sets()
-                    .add_member_in_op(
-                        &mut op,
-                        omnibus_parent_account_set_id,
-                        self.deposit_omnibus_account_set_id,
-                    )
-                    .await?;
             }
-            let mut update = AccountSetUpdate::default();
-            update
-                .metadata(new_meta)
-                .expect("Could not update metadata");
-            omnibus_account_set.update(update);
-            self.cala
-                .account_sets()
-                .persist_in_op(&mut op, &mut omnibus_account_set)
-                .await?;
         }
+        self.cala
+            .account_sets()
+            .add_member_in_op(
+                &mut op,
+                omnibus_parent_account_set_id,
+                self.deposit_omnibus_account_set_id,
+            )
+            .await?;
+        let mut update = AccountSetUpdate::default();
+        update
+            .metadata(new_meta)
+            .expect("Could not update metadata");
+        omnibus_account_set.update(update);
+        self.cala
+            .account_sets()
+            .persist_in_op(&mut op, &mut omnibus_account_set)
+            .await?;
+
+        op.commit().await?;
 
         Ok(())
     }

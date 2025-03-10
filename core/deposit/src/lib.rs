@@ -625,28 +625,6 @@ where
             .await?)
     }
 
-    //     async fn get_deposit_config(&self) -> Result<DepositConfig, CoreDepositError> {
-    //         match self.config_repo.find_by_id(DepositConfigId::DEFAULT).await {
-    //             Ok(deposit_config) => return Ok(deposit_config),
-    //             Err(e) if e.was_not_found() => (),
-    //             Err(e) => return Err(e.into()),
-    //         };
-
-    //         let new_deposit_config = NewDepositConfig::builder()
-    //             .id(DepositConfigId::DEFAULT)
-    //             .build()
-    //             .expect("Could not build new deposit config");
-
-    //         Ok(self.config_repo.create(new_deposit_config).await?)
-    //     }
-
-    //     pub async fn find_all_deposit_configs<T: From<DepositConfig>>(
-    //         &self,
-    //         ids: &[DepositConfigId],
-    //     ) -> Result<HashMap<DepositConfigId, T>, CoreDepositError> {
-    //         Ok(self.config_repo.find_all(ids).await?)
-    //     }
-
     pub async fn update_chart_of_accounts_integration_config(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,

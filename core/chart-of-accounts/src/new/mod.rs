@@ -103,7 +103,7 @@ where
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         id: impl Into<ChartId> + std::fmt::Debug,
         data: impl AsRef<str>,
-    ) -> Result<(), CoreChartOfAccountsError> {
+    ) -> Result<Chart, CoreChartOfAccountsError> {
         let id = id.into();
         let audit_info = self
             .authz
@@ -154,7 +154,7 @@ where
                 .await?;
         }
         op.commit().await?;
-        Ok(())
+        Ok(chart)
     }
 
     #[instrument(name = "chart_of_accounts.find_by_id", skip(self), err)]
