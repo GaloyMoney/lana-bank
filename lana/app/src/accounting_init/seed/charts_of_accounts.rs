@@ -1,6 +1,6 @@
 use crate::{
     accounting_init::{constants::*, *},
-    credit_facility::{CreditFacilityAccountFactories, CreditFacilityOmnibusAccountIds},
+    credit_facility::CreditFacilityAccountFactories,
     primitives::LedgerAccountSetId,
 };
 
@@ -118,20 +118,6 @@ async fn find_or_create_control_sub_account(
 
     Ok((control_account, control_sub_account))
 }
-async fn create_sub_account_as_account(
-    chart_of_accounts: &ChartOfAccounts,
-    details: ControlSubAccountDetails,
-) -> Result<LedgerAccountId, AccountingInitError> {
-    let reference = &details.reference.to_string();
-    let name = &details.name.to_string();
-    let description = &details.name.to_string();
-
-    Ok(chart_of_accounts
-        .transaction_account_factory(details)
-        .find_or_create_transaction_account(reference, name, description)
-        .await?)
-}
-
 async fn create_credit_facilities_account_paths(
     balance_sheets: &BalanceSheets,
     trial_balances: &TrialBalances,
@@ -166,34 +152,6 @@ async fn create_credit_facilities_account_paths(
         )
         .await?;
 
-    let (collateral_omnibus_control, collateral_omnibus) = find_or_create_control_sub_account(
-        chart_of_accounts,
-        chart_ids.off_balance_sheet,
-        ControlAccountCreationDetails {
-            account_set_id: LedgerAccountSetId::new(),
-            category: chart_of_accounts::ChartCategory::Assets,
-            name: CREDIT_FACILITIES_BANK_COLLATERAL_CONTROL_ACCOUNT_NAME.to_string(),
-            reference: CREDIT_FACILITIES_BANK_COLLATERAL_CONTROL_ACCOUNT_REF.to_string(),
-        },
-        CREDIT_FACILITIES_BANK_COLLATERAL_CONTROL_SUB_ACCOUNT_NAME.to_string(),
-        CREDIT_FACILITIES_BANK_COLLATERAL_CONTROL_SUB_ACCOUNT_REF.to_string(),
-    )
-    .await?;
-    trial_balances
-        .add_to_trial_balance(
-            OBS_TRIAL_BALANCE_STATEMENT_NAME.to_string(),
-            collateral_omnibus_control.account_set_id,
-        )
-        .await?;
-    balance_sheets
-        .add_to_assets(
-            OBS_BALANCE_SHEET_NAME.to_string(),
-            collateral_omnibus_control.account_set_id,
-        )
-        .await?;
-    let collateral_omnibus_account_id =
-        create_sub_account_as_account(chart_of_accounts, collateral_omnibus).await?;
-
     let (facility_control, facility) = find_or_create_control_sub_account(
         chart_of_accounts,
         chart_ids.off_balance_sheet,
@@ -219,34 +177,6 @@ async fn create_credit_facilities_account_paths(
             facility_control.account_set_id,
         )
         .await?;
-
-    let (facility_omnibus_control, facility_omnibus) = find_or_create_control_sub_account(
-        chart_of_accounts,
-        chart_ids.off_balance_sheet,
-        ControlAccountCreationDetails {
-            account_set_id: LedgerAccountSetId::new(),
-            category: chart_of_accounts::ChartCategory::Assets,
-            name: CREDIT_FACILITIES_OMNIBUS_FACILITY_CONTROL_ACCOUNT_NAME.to_string(),
-            reference: CREDIT_FACILITIES_OMNIBUS_FACILITY_CONTROL_ACCOUNT_REF.to_string(),
-        },
-        CREDIT_FACILITIES_OMNIBUS_FACILITY_CONTROL_SUB_ACCOUNT_NAME.to_string(),
-        CREDIT_FACILITIES_OMNIBUS_FACILITY_CONTROL_SUB_ACCOUNT_REF.to_string(),
-    )
-    .await?;
-    trial_balances
-        .add_to_trial_balance(
-            OBS_TRIAL_BALANCE_STATEMENT_NAME.to_string(),
-            facility_omnibus_control.account_set_id,
-        )
-        .await?;
-    balance_sheets
-        .add_to_assets(
-            OBS_BALANCE_SHEET_NAME.to_string(),
-            facility_omnibus_control.account_set_id,
-        )
-        .await?;
-    let facility_omnibus_account_id =
-        create_sub_account_as_account(chart_of_accounts, facility_omnibus).await?;
 
     let (disbursed_receivable_control, disbursed_receivable) = find_or_create_control_sub_account(
         chart_of_accounts,
@@ -391,10 +321,6 @@ async fn create_credit_facilities_account_paths(
             interest_receivable: chart_of_accounts.transaction_account_factory(interest_receivable),
             interest_income: chart_of_accounts.transaction_account_factory(interest_income),
             fee_income: chart_of_accounts.transaction_account_factory(fee_income),
-        },
-        omnibus_ids: CreditFacilityOmnibusAccountIds {
-            bank_collateral: collateral_omnibus_account_id,
-            facility: facility_omnibus_account_id,
         },
     })
 }

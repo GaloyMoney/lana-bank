@@ -150,7 +150,6 @@ impl LanaApp {
             &price,
             &outbox,
             charts_init.credit_facilities.factories,
-            charts_init.credit_facilities.omnibus_ids,
             &cala,
             journal_init.journal_id,
         )

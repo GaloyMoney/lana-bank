@@ -30,6 +30,12 @@ es_entity::entity_id! {
     PaymentId => LedgerTxId,
 }
 
+#[derive(Debug, Clone)]
+pub struct LedgerOmnibusAccountIds {
+    pub account_set_id: LedgerAccountSetId,
+    pub account_id: LedgerAccountId,
+}
+
 pub type CreditFacilityAllOrOne = AllOrOne<CreditFacilityId>;
 
 #[derive(Clone, Copy, Debug, PartialEq, strum::EnumDiscriminants)]

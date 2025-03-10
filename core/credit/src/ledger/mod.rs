@@ -8,11 +8,12 @@ use cala_ledger::{
     account::NewAccount,
     account_set::{AccountSetMemberId, NewAccountSet},
     velocity::{NewVelocityControl, VelocityControlId},
-    AccountId, CalaLedger, Currency, DebitOrCredit, JournalId, TransactionId,
+    CalaLedger, Currency, DebitOrCredit, JournalId, TransactionId,
 };
 
 use crate::primitives::{
-    CollateralAction, CreditFacilityId, LedgerAccountId, LedgerAccountSetId, Satoshis, UsdCents,
+    CollateralAction, CreditFacilityId, LedgerAccountId, LedgerAccountSetId,
+    LedgerOmnibusAccountIds, Satoshis, UsdCents,
 };
 
 use constants::*;
@@ -31,8 +32,8 @@ pub struct CreditFacilityCollateralUpdate {
 pub struct CreditLedger {
     cala: CalaLedger,
     journal_id: JournalId,
-    credit_omnibus_account_id: AccountId,
-    bank_collateral_account_id: AccountId,
+    facility_omnibus_account_ids: LedgerOmnibusAccountIds,
+    collateral_omnibus_account_ids: LedgerOmnibusAccountIds,
     credit_facility_control_id: VelocityControlId,
     account_factories: CreditFacilityAccountFactories,
     usd: Currency,
@@ -44,7 +45,6 @@ impl CreditLedger {
         cala: &CalaLedger,
         journal_id: JournalId,
         account_factories: CreditFacilityAccountFactories,
-        omnibus_ids: CreditFacilityOmnibusAccountIds,
     ) -> Result<Self, CreditLedgerError> {
         templates::AddCollateral::init(cala).await?;
         templates::ActivateCreditFacility::init(cala).await?;
@@ -55,6 +55,26 @@ impl CreditLedger {
         templates::InitiateDisbursal::init(cala).await?;
         templates::CancelDisbursal::init(cala).await?;
         templates::SettleDisbursal::init(cala).await?;
+
+        let collateral_omnibus_account_ids = Self::find_or_create_omnibus_account(
+            cala,
+            journal_id,
+            format!("{journal_id}:{CREDIT_COLLATERAL_OMNIBUS_ACCOUNT_SET_REF}"),
+            format!("{journal_id}:{CREDIT_COLLATERAL_OMNIBUS_ACCOUNT_REF}"),
+            CREDIT_COLLATERAL_OMNIBUS_ACCOUNT_SET_NAME.to_string(),
+            DebitOrCredit::Debit,
+        )
+        .await?;
+
+        let facility_omnibus_account_ids = Self::find_or_create_omnibus_account(
+            cala,
+            journal_id,
+            format!("{journal_id}:{CREDIT_FACILITY_OMNIBUS_ACCOUNT_SET_REF}"),
+            format!("{journal_id}:{CREDIT_FACILITY_OMNIBUS_ACCOUNT_REF}"),
+            CREDIT_FACILITY_OMNIBUS_ACCOUNT_SET_NAME.to_string(),
+            DebitOrCredit::Debit,
+        )
+        .await?;
 
         let disbursal_limit_id = velocity::DisbursalLimit::init(cala).await?;
 
@@ -73,8 +93,8 @@ impl CreditLedger {
         Ok(Self {
             cala: cala.clone(),
             journal_id,
-            bank_collateral_account_id: omnibus_ids.bank_collateral,
-            credit_omnibus_account_id: omnibus_ids.facility,
+            facility_omnibus_account_ids,
+            collateral_omnibus_account_ids,
             credit_facility_control_id,
             account_factories,
             usd: "USD".parse().expect("Could not parse 'USD'"),
@@ -122,13 +142,23 @@ impl CreditLedger {
         }
     }
 
-    async fn find_or_create_account_in_account_set(
+    async fn find_or_create_omnibus_account(
         cala: &CalaLedger,
-        account_set_id: LedgerAccountSetId,
+        journal_id: JournalId,
+        account_set_reference: String,
         reference: String,
         name: String,
         normal_balance_type: DebitOrCredit,
-    ) -> Result<LedgerAccountId, CreditLedgerError> {
+    ) -> Result<LedgerOmnibusAccountIds, CreditLedgerError> {
+        let account_set_id = Self::find_or_create_account_set(
+            cala,
+            journal_id,
+            account_set_reference,
+            name.to_string(),
+            normal_balance_type,
+        )
+        .await?;
+
         let members = cala
             .account_sets()
             .list_members(account_set_id, Default::default())
@@ -136,7 +166,12 @@ impl CreditLedger {
             .entities;
         if !members.is_empty() {
             match members[0].id {
-                AccountSetMemberId::Account(id) => return Ok(id),
+                AccountSetMemberId::Account(id) => {
+                    return Ok(LedgerOmnibusAccountIds {
+                        account_set_id,
+                        account_id: id,
+                    })
+                }
                 AccountSetMemberId::AccountSet(_) => {
                     return Err(CreditLedgerError::NonAccountMemberFoundInAccountSet(
                         account_set_id.to_string(),
@@ -157,7 +192,7 @@ impl CreditLedger {
             .build()
             .expect("Could not build new account");
 
-        match cala
+        let account_id = match cala
             .accounts()
             .create_in_op(&mut op, new_ledger_account)
             .await
@@ -168,14 +203,19 @@ impl CreditLedger {
                     .await?;
 
                 op.commit().await?;
-                Ok(id)
+                id
             }
             Err(cala_ledger::account::error::AccountError::ExternalIdAlreadyExists) => {
                 op.commit().await?;
-                Ok(cala.accounts().find_by_external_id(reference).await?.id)
+                cala.accounts().find_by_external_id(reference).await?.id
             }
-            Err(e) => Err(e.into()),
-        }
+            Err(e) => return Err(e.into()),
+        };
+
+        Ok(LedgerOmnibusAccountIds {
+            account_set_id,
+            account_id,
+        })
     }
 
     pub async fn get_credit_facility_balance(
@@ -266,7 +306,9 @@ impl CreditLedger {
                             amount: abs_diff.to_btc(),
                             collateral_account_id: credit_facility_account_ids
                                 .collateral_account_id,
-                            bank_collateral_account_id: self.bank_collateral_account_id,
+                            bank_collateral_account_id: self
+                                .collateral_omnibus_account_ids
+                                .account_id,
                         },
                     )
                     .await
@@ -283,7 +325,9 @@ impl CreditLedger {
                             amount: abs_diff.to_btc(),
                             collateral_account_id: credit_facility_account_ids
                                 .collateral_account_id,
-                            bank_collateral_account_id: self.bank_collateral_account_id,
+                            bank_collateral_account_id: self
+                                .collateral_omnibus_account_ids
+                                .account_id,
                         },
                     )
                     .await
@@ -300,7 +344,7 @@ impl CreditLedger {
         tx_ref: String,
         amounts: CreditFacilityPaymentAmounts,
         credit_facility_account_ids: CreditFacilityAccountIds,
-        debit_account_id: AccountId,
+        debit_account_id: LedgerAccountId,
     ) -> Result<(), CreditLedgerError> {
         let mut op = self.cala.ledger_operation_from_db_op(op);
 
@@ -344,7 +388,7 @@ impl CreditLedger {
                     currency: self.btc,
                     amount: collateral.to_btc(),
                     collateral_account_id: credit_facility_account_ids.collateral_account_id,
-                    bank_collateral_account_id: self.bank_collateral_account_id,
+                    bank_collateral_account_id: self.collateral_omnibus_account_ids.account_id,
                 },
             )
             .await?;
@@ -372,7 +416,7 @@ impl CreditLedger {
                 templates::ACTIVATE_CREDIT_FACILITY_CODE,
                 templates::ActivateCreditFacilityParams {
                     journal_id: self.journal_id,
-                    credit_omnibus_account: self.credit_omnibus_account_id,
+                    credit_omnibus_account: self.facility_omnibus_account_ids.account_id,
                     credit_facility_account: credit_facility_account_ids.facility_account_id,
                     facility_disbursed_receivable_account: credit_facility_account_ids
                         .disbursed_receivable_account_id,
@@ -472,7 +516,7 @@ impl CreditLedger {
                 templates::INITIATE_DISBURSAL_CODE,
                 templates::InitiateDisbursalParams {
                     journal_id: self.journal_id,
-                    credit_omnibus_account: self.credit_omnibus_account_id,
+                    credit_omnibus_account: self.facility_omnibus_account_ids.account_id,
                     credit_facility_account: credit_facility_account_ids.facility_account_id,
                     disbursed_amount: amount.to_usd(),
                 },
@@ -503,7 +547,7 @@ impl CreditLedger {
                     templates::CANCEL_DISBURSAL_CODE,
                     templates::CancelDisbursalParams {
                         journal_id: self.journal_id,
-                        credit_omnibus_account: self.credit_omnibus_account_id,
+                        credit_omnibus_account: self.facility_omnibus_account_ids.account_id,
                         credit_facility_account: credit_facility_account_ids.facility_account_id,
                         disbursed_amount: amount.to_usd(),
                     },
@@ -517,7 +561,7 @@ impl CreditLedger {
                     templates::SETTLE_DISBURSAL_CODE,
                     templates::SettleDisbursalParams {
                         journal_id: self.journal_id,
-                        credit_omnibus_account: self.credit_omnibus_account_id,
+                        credit_omnibus_account: self.facility_omnibus_account_ids.account_id,
                         credit_facility_account: credit_facility_account_ids.facility_account_id,
                         facility_disbursed_receivable_account: credit_facility_account_ids
                             .disbursed_receivable_account_id,
@@ -554,7 +598,7 @@ impl CreditLedger {
     pub async fn add_credit_facility_control_to_account(
         &self,
         op: &mut cala_ledger::LedgerOperation<'_>,
-        account_id: impl Into<AccountId>,
+        account_id: impl Into<LedgerAccountId>,
     ) -> Result<(), CreditLedgerError> {
         self.cala
             .velocities()
