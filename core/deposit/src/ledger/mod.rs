@@ -123,15 +123,20 @@ impl DepositLedger {
         let new_account_set = NewAccountSet::builder()
             .id(id)
             .journal_id(journal_id)
-            .external_id(reference)
+            .external_id(reference.to_string())
             .name(name)
             .description(description)
             .normal_balance_type(normal_balance_type)
             .build()
             .expect("Could not build new account set");
-        cala.account_sets().create(new_account_set).await?;
+        match cala.account_sets().create(new_account_set).await {
+            Ok(_) => Ok(id),
+            Err(cala_ledger::account_set::error::AccountSetError::ExternalIdAlreadyExists) => {
+                Ok(cala.account_sets().find_by_external_id(reference).await?.id)
+            }
 
-        Ok(id)
+            Err(e) => Err(e.into()),
+        }
     }
 
     async fn find_or_create_account_in_account_set(
@@ -162,24 +167,33 @@ impl DepositLedger {
         let id = LedgerAccountId::new();
         let new_ledger_account = NewAccount::builder()
             .id(id)
-            .external_id(reference)
+            .external_id(reference.to_string())
             .name(name)
             .description(description)
             .code(id.to_string())
             .normal_balance_type(normal_balance_type)
             .build()
             .expect("Could not build new account");
-        let ledger_account = cala
+
+        match cala
             .accounts()
             .create_in_op(&mut op, new_ledger_account)
-            .await?;
-        cala.account_sets()
-            .add_member_in_op(&mut op, account_set_id, ledger_account.id)
-            .await?;
+            .await
+        {
+            Ok(account) => {
+                cala.account_sets()
+                    .add_member_in_op(&mut op, account_set_id, account.id)
+                    .await?;
 
-        op.commit().await?;
-
-        Ok(id)
+                op.commit().await?;
+                Ok(id)
+            }
+            Err(cala_ledger::account::error::AccountError::ExternalIdAlreadyExists) => {
+                op.commit().await?;
+                Ok(cala.accounts().find_by_external_id(reference).await?.id)
+            }
+            Err(e) => Err(e.into()),
+        }
     }
 
     pub async fn account_history<T, U>(
