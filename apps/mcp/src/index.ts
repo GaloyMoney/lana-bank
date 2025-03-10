@@ -2,10 +2,7 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { z } from "zod";
 import { graphqlClient } from "./lib/client.js";
-import { registerCreditFacilitiesTool } from "./chat/tools/get-credit-facilities.js";
-import { registerCreditFacilityDetailsTool } from "./chat/tools/get-credit-facility-details.js";
-import { registerCustomerCreditFacilitiesTool } from "./chat/tools/get-customer-credit-facility.js";
-import { registerCustomerDetailsTool } from "./chat/tools/get-customer-details.js";
+import { registerAllTools } from "./chat/tools.js";
 
 // Create server instance
 const server = new McpServer({
@@ -14,10 +11,7 @@ const server = new McpServer({
 });
 
 // Register all tools
-registerCreditFacilitiesTool(server);
-registerCreditFacilityDetailsTool(server);
-registerCustomerCreditFacilitiesTool(server);
-registerCustomerDetailsTool(server);
+registerAllTools(server);
 
 async function main() {
   // Validate required admin secret from command-line arguments
