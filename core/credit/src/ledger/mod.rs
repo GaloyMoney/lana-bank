@@ -8,7 +8,7 @@ use cala_ledger::{
     account::NewAccount,
     account_set::{AccountSetMemberId, NewAccountSet},
     velocity::{NewVelocityControl, VelocityControlId},
-    CalaLedger, Currency, DebitOrCredit, JournalId, TransactionId,
+    CalaLedger, Currency, DebitOrCredit, JournalId, LedgerOperation, TransactionId,
 };
 
 use crate::primitives::{
@@ -28,14 +28,30 @@ pub struct CreditFacilityCollateralUpdate {
     pub credit_facility_account_ids: CreditFacilityAccountIds,
 }
 
+#[derive(Clone, Copy)]
+pub struct InternalAccountSetDetails {
+    id: LedgerAccountSetId,
+    normal_balance_type: DebitOrCredit,
+}
+
+#[derive(Clone, Copy)]
+pub struct CreditFacilityInternalAccountSets {
+    pub facility: InternalAccountSetDetails,
+    pub collateral: InternalAccountSetDetails,
+    pub disbursed_receivable: InternalAccountSetDetails,
+    pub interest_receivable: InternalAccountSetDetails,
+    pub interest_income: InternalAccountSetDetails,
+    pub fee_income: InternalAccountSetDetails,
+}
+
 #[derive(Clone)]
 pub struct CreditLedger {
     cala: CalaLedger,
     journal_id: JournalId,
     facility_omnibus_account_ids: LedgerOmnibusAccountIds,
     collateral_omnibus_account_ids: LedgerOmnibusAccountIds,
+    internal_account_sets: CreditFacilityInternalAccountSets,
     credit_facility_control_id: VelocityControlId,
-    account_factories: CreditFacilityAccountFactories,
     usd: Currency,
     btc: Currency,
 }
@@ -44,7 +60,7 @@ impl CreditLedger {
     pub async fn init(
         cala: &CalaLedger,
         journal_id: JournalId,
-        account_factories: CreditFacilityAccountFactories,
+        _account_factories: CreditFacilityAccountFactories,
     ) -> Result<Self, CreditLedgerError> {
         templates::AddCollateral::init(cala).await?;
         templates::ActivateCreditFacility::init(cala).await?;
@@ -56,25 +72,114 @@ impl CreditLedger {
         templates::CancelDisbursal::init(cala).await?;
         templates::SettleDisbursal::init(cala).await?;
 
+        let collateral_omnibus_normal_balance_type = DebitOrCredit::Debit;
         let collateral_omnibus_account_ids = Self::find_or_create_omnibus_account(
             cala,
             journal_id,
             format!("{journal_id}:{CREDIT_COLLATERAL_OMNIBUS_ACCOUNT_SET_REF}"),
             format!("{journal_id}:{CREDIT_COLLATERAL_OMNIBUS_ACCOUNT_REF}"),
             CREDIT_COLLATERAL_OMNIBUS_ACCOUNT_SET_NAME.to_string(),
-            DebitOrCredit::Debit,
+            collateral_omnibus_normal_balance_type,
         )
         .await?;
 
+        let facility_omnibus_normal_balance_type = DebitOrCredit::Debit;
         let facility_omnibus_account_ids = Self::find_or_create_omnibus_account(
             cala,
             journal_id,
             format!("{journal_id}:{CREDIT_FACILITY_OMNIBUS_ACCOUNT_SET_REF}"),
             format!("{journal_id}:{CREDIT_FACILITY_OMNIBUS_ACCOUNT_REF}"),
             CREDIT_FACILITY_OMNIBUS_ACCOUNT_SET_NAME.to_string(),
-            DebitOrCredit::Debit,
+            facility_omnibus_normal_balance_type,
         )
         .await?;
+
+        let facility_normal_balance_type = DebitOrCredit::Credit;
+        let facility_account_set_id = Self::find_or_create_account_set(
+            cala,
+            journal_id,
+            format!("{journal_id}:{CREDIT_FACILITY_REMAINING_ACCOUNT_SET_REF}"),
+            CREDIT_FACILITY_REMAINING_ACCOUNT_SET_NAME.to_string(),
+            facility_normal_balance_type,
+        )
+        .await?;
+
+        let collateral_normal_balance_type = DebitOrCredit::Credit;
+        let collateral_account_set_id = Self::find_or_create_account_set(
+            cala,
+            journal_id,
+            format!("{journal_id}:{CREDIT_COLLATERAL_ACCOUNT_SET_REF}"),
+            CREDIT_COLLATERAL_ACCOUNT_SET_NAME.to_string(),
+            collateral_normal_balance_type,
+        )
+        .await?;
+
+        let disbursed_receivable_normal_balance_type = DebitOrCredit::Debit;
+        let disbursed_receivable_account_set_id = Self::find_or_create_account_set(
+            cala,
+            journal_id,
+            format!("{journal_id}:{CREDIT_DISBURSED_RECEIVABLE_ACCOUNT_SET_REF}"),
+            CREDIT_DISBURSED_RECEIVABLE_ACCOUNT_SET_NAME.to_string(),
+            disbursed_receivable_normal_balance_type,
+        )
+        .await?;
+
+        let interest_receivable_normal_balance_type = DebitOrCredit::Debit;
+        let interest_receivable_account_set_id = Self::find_or_create_account_set(
+            cala,
+            journal_id,
+            format!("{journal_id}:{CREDIT_INTEREST_RECEIVABLE_ACCOUNT_SET_REF}"),
+            CREDIT_INTEREST_RECEIVABLE_ACCOUNT_SET_NAME.to_string(),
+            interest_receivable_normal_balance_type,
+        )
+        .await?;
+
+        let interest_income_normal_balance_type = DebitOrCredit::Credit;
+        let interest_income_account_set_id = Self::find_or_create_account_set(
+            cala,
+            journal_id,
+            format!("{journal_id}:{CREDIT_INTEREST_INCOME_ACCOUNT_SET_REF}"),
+            CREDIT_INTEREST_INCOME_ACCOUNT_SET_NAME.to_string(),
+            interest_income_normal_balance_type,
+        )
+        .await?;
+
+        let fee_income_normal_balance_type = DebitOrCredit::Credit;
+        let fee_income_account_set_id = Self::find_or_create_account_set(
+            cala,
+            journal_id,
+            format!("{journal_id}:{CREDIT_FEE_INCOME_ACCOUNT_SET_REF}"),
+            CREDIT_FEE_INCOME_ACCOUNT_SET_NAME.to_string(),
+            fee_income_normal_balance_type,
+        )
+        .await?;
+
+        let internal_account_sets = CreditFacilityInternalAccountSets {
+            facility: InternalAccountSetDetails {
+                id: facility_account_set_id,
+                normal_balance_type: facility_normal_balance_type,
+            },
+            collateral: InternalAccountSetDetails {
+                id: collateral_account_set_id,
+                normal_balance_type: collateral_normal_balance_type,
+            },
+            disbursed_receivable: InternalAccountSetDetails {
+                id: disbursed_receivable_account_set_id,
+                normal_balance_type: disbursed_receivable_normal_balance_type,
+            },
+            interest_receivable: InternalAccountSetDetails {
+                id: interest_receivable_account_set_id,
+                normal_balance_type: interest_receivable_normal_balance_type,
+            },
+            interest_income: InternalAccountSetDetails {
+                id: interest_income_account_set_id,
+                normal_balance_type: interest_income_normal_balance_type,
+            },
+            fee_income: InternalAccountSetDetails {
+                id: fee_income_account_set_id,
+                normal_balance_type: fee_income_normal_balance_type,
+            },
+        };
 
         let disbursal_limit_id = velocity::DisbursalLimit::init(cala).await?;
 
@@ -95,8 +200,8 @@ impl CreditLedger {
             journal_id,
             facility_omnibus_account_ids,
             collateral_omnibus_account_ids,
+            internal_account_sets,
             credit_facility_control_id,
-            account_factories,
             usd: "USD".parse().expect("Could not parse 'USD'"),
             btc: "BTC".parse().expect("Could not parse 'BTC'"),
         })
@@ -612,6 +717,39 @@ impl CreditLedger {
         Ok(())
     }
 
+    async fn create_account_in_op(
+        &self,
+        op: &mut LedgerOperation<'_>,
+        id: impl Into<LedgerAccountId>,
+        parent_account_set: InternalAccountSetDetails,
+        reference: &str,
+        name: &str,
+        description: &str,
+    ) -> Result<(), CreditLedgerError> {
+        let id = id.into();
+
+        let new_ledger_account = NewAccount::builder()
+            .id(id)
+            .external_id(reference)
+            .name(name)
+            .description(description)
+            .code(id.to_string())
+            .normal_balance_type(parent_account_set.normal_balance_type)
+            .build()
+            .expect("Could not build new account");
+        let ledger_account = self
+            .cala
+            .accounts()
+            .create_in_op(op, new_ledger_account)
+            .await?;
+        self.cala
+            .account_sets()
+            .add_member_in_op(op, parent_account_set.id, ledger_account.id)
+            .await?;
+
+        Ok(())
+    }
+
     pub async fn create_accounts_for_credit_facility(
         &self,
         op: &mut cala_ledger::LedgerOperation<'_>,
@@ -623,32 +761,30 @@ impl CreditLedger {
             "Credit Facility Collateral Account for {}",
             credit_facility_id
         );
-        self.account_factories
-            .collateral
-            .create_transaction_account_in_op(
-                op,
-                account_ids.collateral_account_id,
-                collateral_reference,
-                collateral_name,
-                collateral_name,
-            )
-            .await?;
+        self.create_account_in_op(
+            op,
+            account_ids.collateral_account_id,
+            self.internal_account_sets.collateral,
+            collateral_reference,
+            collateral_name,
+            collateral_name,
+        )
+        .await?;
 
         let facility_reference = &format!("credit-facility-obs-facility:{}", credit_facility_id);
         let facility_name = &format!(
             "Off-Balance-Sheet Facility Account for Credit Facility {}",
             credit_facility_id
         );
-        self.account_factories
-            .facility
-            .create_transaction_account_in_op(
-                op,
-                account_ids.facility_account_id,
-                facility_reference,
-                facility_name,
-                facility_name,
-            )
-            .await?;
+        self.create_account_in_op(
+            op,
+            account_ids.facility_account_id,
+            self.internal_account_sets.facility,
+            facility_reference,
+            facility_name,
+            facility_name,
+        )
+        .await?;
 
         let disbursed_receivable_reference = &format!(
             "credit-facility-disbursed-receivable:{}",
@@ -658,16 +794,15 @@ impl CreditLedger {
             "Disbursed Receivable Account for Credit Facility {}",
             credit_facility_id
         );
-        self.account_factories
-            .disbursed_receivable
-            .create_transaction_account_in_op(
-                op,
-                account_ids.disbursed_receivable_account_id,
-                disbursed_receivable_reference,
-                disbursed_receivable_name,
-                disbursed_receivable_name,
-            )
-            .await?;
+        self.create_account_in_op(
+            op,
+            account_ids.disbursed_receivable_account_id,
+            self.internal_account_sets.disbursed_receivable,
+            disbursed_receivable_reference,
+            disbursed_receivable_name,
+            disbursed_receivable_name,
+        )
+        .await?;
 
         let interest_receivable_reference =
             &format!("credit-facility-interest-receivable:{}", credit_facility_id);
@@ -675,16 +810,15 @@ impl CreditLedger {
             "Interest Receivable Account for Credit Facility {}",
             credit_facility_id
         );
-        self.account_factories
-            .interest_receivable
-            .create_transaction_account_in_op(
-                op,
-                account_ids.interest_receivable_account_id,
-                interest_receivable_reference,
-                interest_receivable_name,
-                interest_receivable_name,
-            )
-            .await?;
+        self.create_account_in_op(
+            op,
+            account_ids.interest_receivable_account_id,
+            self.internal_account_sets.interest_receivable,
+            interest_receivable_reference,
+            interest_receivable_name,
+            interest_receivable_name,
+        )
+        .await?;
 
         let interest_income_reference =
             &format!("credit-facility-interest-income:{}", credit_facility_id);
@@ -692,32 +826,30 @@ impl CreditLedger {
             "Interest Income Account for Credit Facility {}",
             credit_facility_id
         );
-        self.account_factories
-            .interest_income
-            .create_transaction_account_in_op(
-                op,
-                account_ids.interest_account_id,
-                interest_income_reference,
-                interest_income_name,
-                interest_income_name,
-            )
-            .await?;
+        self.create_account_in_op(
+            op,
+            account_ids.interest_account_id,
+            self.internal_account_sets.interest_income,
+            interest_income_reference,
+            interest_income_name,
+            interest_income_name,
+        )
+        .await?;
 
         let fee_income_reference = &format!("credit-facility-fee-income:{}", credit_facility_id);
         let fee_income_name = &format!(
             "Fee Income Account for Credit Facility {}",
             credit_facility_id
         );
-        self.account_factories
-            .fee_income
-            .create_transaction_account_in_op(
-                op,
-                account_ids.fee_income_account_id,
-                fee_income_reference,
-                fee_income_name,
-                fee_income_name,
-            )
-            .await?;
+        self.create_account_in_op(
+            op,
+            account_ids.fee_income_account_id,
+            self.internal_account_sets.fee_income,
+            fee_income_reference,
+            fee_income_name,
+            fee_income_name,
+        )
+        .await?;
 
         Ok(())
     }
