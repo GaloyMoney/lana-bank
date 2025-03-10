@@ -108,14 +108,7 @@ impl LanaApp {
         .await?;
         let chart_of_accounts =
             ChartOfAccounts::init(&pool, &authz, &cala, journal_init.journal_id).await?;
-        let charts_init = ChartsInit::charts_of_accounts(
-            &balance_sheets,
-            &trial_balances,
-            &pl_statements,
-            &cash_flow_statements,
-            &chart_of_accounts,
-        )
-        .await?;
+        ChartsInit::charts_of_accounts(&chart_of_accounts).await?;
         let new_chart_of_accounts =
             NewChartOfAccounts::init(&pool, &authz, &cala, journal_init.journal_id).await?;
         let customers = Customers::new(&pool, &authz, &outbox);
@@ -149,7 +142,6 @@ impl LanaApp {
             &customers,
             &price,
             &outbox,
-            charts_init.credit_facilities.factories,
             &cala,
             journal_init.journal_id,
         )

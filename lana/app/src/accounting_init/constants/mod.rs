@@ -1,7 +1,3 @@
-mod credit_facilities;
-
-pub(super) use credit_facilities::*;
-
 pub(super) const LANA_JOURNAL_CODE: &str = "LANA_BANK_JOURNAL";
 
 pub const CHART_REF: &str = "primary-chart";

@@ -57,11 +57,7 @@ pub struct CreditLedger {
 }
 
 impl CreditLedger {
-    pub async fn init(
-        cala: &CalaLedger,
-        journal_id: JournalId,
-        _account_factories: CreditFacilityAccountFactories,
-    ) -> Result<Self, CreditLedgerError> {
+    pub async fn init(cala: &CalaLedger, journal_id: JournalId) -> Result<Self, CreditLedgerError> {
         templates::AddCollateral::init(cala).await?;
         templates::ActivateCreditFacility::init(cala).await?;
         templates::RemoveCollateral::init(cala).await?;

@@ -52,24 +52,12 @@ impl StatementsInit {
 #[derive(Clone)]
 pub struct ChartsInit {
     pub chart_ids: ChartIds,
-    pub credit_facilities: CreditFacilitiesSeed,
 }
 
 impl ChartsInit {
     pub async fn charts_of_accounts(
-        balance_sheet: &BalanceSheets,
-        trial_balances: &TrialBalances,
-        pl_statements: &ProfitAndLossStatements,
-        cash_flow_statements: &CashFlowStatements,
         chart_of_accounts: &ChartOfAccounts,
     ) -> Result<Self, AccountingInitError> {
-        seed::charts_of_accounts::init(
-            balance_sheet,
-            trial_balances,
-            pl_statements,
-            cash_flow_statements,
-            chart_of_accounts,
-        )
-        .await
+        seed::charts_of_accounts::init(chart_of_accounts).await
     }
 }

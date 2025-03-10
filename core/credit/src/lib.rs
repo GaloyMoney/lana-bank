@@ -110,7 +110,6 @@ where
         customer: &Customers<Perms, E>,
         price: &Price,
         outbox: &Outbox<E>,
-        account_factories: CreditFacilityAccountFactories,
         cala: &CalaLedger,
         journal_id: cala_ledger::JournalId,
     ) -> Result<Self, CoreCreditError> {
@@ -118,7 +117,7 @@ where
         let credit_facility_repo = CreditFacilityRepo::new(pool, &publisher);
         let disbursal_repo = DisbursalRepo::new(pool);
         let payment_repo = PaymentRepo::new(pool);
-        let ledger = CreditLedger::init(cala, journal_id, account_factories).await?;
+        let ledger = CreditLedger::init(cala, journal_id).await?;
         let approve_disbursal = ApproveDisbursal::new(
             &disbursal_repo,
             &credit_facility_repo,

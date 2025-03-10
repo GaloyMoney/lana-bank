@@ -6,7 +6,6 @@ pub mod error;
 pub mod new;
 mod path;
 mod primitives;
-mod transaction_account_factory;
 
 use cala_ledger::{account_set::NewAccountSet, CalaLedger};
 use tracing::instrument;
@@ -19,7 +18,6 @@ pub use chart_of_accounts::{tree, Chart};
 use error::*;
 pub use path::ControlSubAccountPath;
 pub use primitives::*;
-pub use transaction_account_factory::*;
 
 pub struct CoreChartOfAccounts<Perms>
 where
@@ -65,13 +63,6 @@ where
             journal_id,
         };
         Ok(res)
-    }
-
-    pub fn transaction_account_factory(
-        &self,
-        control_sub_account: ControlSubAccountDetails,
-    ) -> TransactionAccountFactory {
-        TransactionAccountFactory::new(&self.cala, control_sub_account)
     }
 
     #[instrument(name = "chart_of_accounts.create_chart", skip(self))]

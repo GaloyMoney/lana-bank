@@ -109,13 +109,12 @@ pub mod new_chart_of_accounts {
 pub mod credit_facility {
     pub use core_credit::{
         error, CollateralUpdated, CollateralizationUpdated, CoreCreditEvent,
-        CreditFacilitiesCursor, CreditFacilitiesSortBy, CreditFacility,
-        CreditFacilityAccountFactories, CreditFacilityBalance, CreditFacilityConfig,
-        CreditFacilityHistoryEntry, CreditFacilityOrigination, CreditFacilityRepaymentInPlan,
-        CreditFacilityStatus, Disbursal, DisbursalExecuted, DisbursalStatus, DisbursalsCursor,
-        DisbursalsSortBy, FacilityCVL, FindManyCreditFacilities, FindManyDisbursals,
-        IncrementalPayment, InterestAccrued, ListDirection, Payment, RepaymentStatus, Sort,
-        APPROVE_CREDIT_FACILITY_PROCESS, APPROVE_DISBURSAL_PROCESS,
+        CreditFacilitiesCursor, CreditFacilitiesSortBy, CreditFacility, CreditFacilityBalance,
+        CreditFacilityConfig, CreditFacilityHistoryEntry, CreditFacilityOrigination,
+        CreditFacilityRepaymentInPlan, CreditFacilityStatus, Disbursal, DisbursalExecuted,
+        DisbursalStatus, DisbursalsCursor, DisbursalsSortBy, FacilityCVL, FindManyCreditFacilities,
+        FindManyDisbursals, IncrementalPayment, InterestAccrued, ListDirection, Payment,
+        RepaymentStatus, Sort, APPROVE_CREDIT_FACILITY_PROCESS, APPROVE_DISBURSAL_PROCESS,
     };
 
     pub type CreditFacilities =
