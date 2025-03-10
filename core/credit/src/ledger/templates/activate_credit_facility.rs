@@ -17,8 +17,6 @@ pub struct ActivateCreditFacilityParams {
     pub credit_facility_account: AccountId,
     pub facility_disbursed_receivable_account: AccountId,
     pub facility_fee_income_account: AccountId,
-    pub fee_income_adjustment_omnibus_account: AccountId,
-    pub non_cash_offset_omnibus_account: AccountId,
     pub debit_account_id: AccountId,
     pub facility_amount: Decimal,
     pub structuring_fee_amount: Decimal,
@@ -51,16 +49,6 @@ impl ActivateCreditFacilityParams {
                 .unwrap(),
             NewParamDefinition::builder()
                 .name("facility_fee_income_account")
-                .r#type(ParamDataType::Uuid)
-                .build()
-                .unwrap(),
-            NewParamDefinition::builder()
-                .name("fee_income_adjustment_omnibus_account")
-                .r#type(ParamDataType::Uuid)
-                .build()
-                .unwrap(),
-            NewParamDefinition::builder()
-                .name("non_cash_offset_omnibus_account")
                 .r#type(ParamDataType::Uuid)
                 .build()
                 .unwrap(),
@@ -106,8 +94,6 @@ impl From<ActivateCreditFacilityParams> for Params {
             credit_facility_account,
             facility_disbursed_receivable_account,
             facility_fee_income_account,
-            fee_income_adjustment_omnibus_account,
-            non_cash_offset_omnibus_account,
             debit_account_id,
             facility_amount,
             structuring_fee_amount,
@@ -124,14 +110,6 @@ impl From<ActivateCreditFacilityParams> for Params {
             facility_disbursed_receivable_account,
         );
         params.insert("facility_fee_income_account", facility_fee_income_account);
-        params.insert(
-            "fee_income_adjustment_omnibus_account",
-            fee_income_adjustment_omnibus_account,
-        );
-        params.insert(
-            "non_cash_offset_omnibus_account",
-            non_cash_offset_omnibus_account,
-        );
         params.insert("debit_account_id", debit_account_id);
         params.insert("facility_amount", facility_amount);
         params.insert("structuring_fee_amount", structuring_fee_amount);
@@ -224,24 +202,6 @@ impl ActivateCreditFacility {
                 .units("params.structuring_fee_amount")
                 .currency("params.currency")
                 .entry_type("'ACTIVATE_CREDIT_FACILITY_STRUCTURING_FEE_CR'")
-                .direction("CREDIT")
-                .layer("SETTLED")
-                .build()
-                .expect("Couldn't build entry"),
-            NewTxTemplateEntry::builder()
-                .account_id("params.fee_income_adjustment_omnibus_account")
-                .units("params.structuring_fee_amount")
-                .currency("params.currency")
-                .entry_type("'ACTIVATE_CREDIT_FACILITY_STRUCTURING_FEE_NON_CASH_ADJ_DR'")
-                .direction("DEBIT")
-                .layer("SETTLED")
-                .build()
-                .expect("Couldn't build entry"),
-            NewTxTemplateEntry::builder()
-                .account_id("params.non_cash_offset_omnibus_account")
-                .units("params.structuring_fee_amount")
-                .currency("params.currency")
-                .entry_type("'ACTIVATE_CREDIT_FACILITY_STRUCTURING_FEE_NON_CASH_ADJ_CR'")
                 .direction("CREDIT")
                 .layer("SETTLED")
                 .build()

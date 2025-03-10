@@ -16,8 +16,6 @@ pub struct SettleDisbursalParams {
     pub credit_facility_account: AccountId,
     pub facility_disbursed_receivable_account: AccountId,
     pub debit_account_id: AccountId,
-    pub debit_account_adjustment_omnibus_account: AccountId,
-    pub non_cash_offset_omnibus_account: AccountId,
     pub disbursed_amount: Decimal,
     pub external_id: String,
 }
@@ -51,16 +49,6 @@ impl SettleDisbursalParams {
                 .build()
                 .unwrap(),
             NewParamDefinition::builder()
-                .name("debit_account_adjustment_omnibus_account")
-                .r#type(ParamDataType::Uuid)
-                .build()
-                .unwrap(),
-            NewParamDefinition::builder()
-                .name("non_cash_offset_omnibus_account")
-                .r#type(ParamDataType::Uuid)
-                .build()
-                .unwrap(),
-            NewParamDefinition::builder()
                 .name("disbursed_amount")
                 .r#type(ParamDataType::Decimal)
                 .build()
@@ -87,8 +75,6 @@ impl From<SettleDisbursalParams> for Params {
             credit_facility_account,
             facility_disbursed_receivable_account,
             debit_account_id,
-            debit_account_adjustment_omnibus_account,
-            non_cash_offset_omnibus_account,
             disbursed_amount,
             external_id,
         }: SettleDisbursalParams,
@@ -102,14 +88,6 @@ impl From<SettleDisbursalParams> for Params {
             facility_disbursed_receivable_account,
         );
         params.insert("debit_account_id", debit_account_id);
-        params.insert(
-            "debit_account_adjustment_omnibus_account",
-            debit_account_adjustment_omnibus_account,
-        );
-        params.insert(
-            "non_cash_offset_omnibus_account",
-            non_cash_offset_omnibus_account,
-        );
         params.insert("disbursed_amount", disbursed_amount);
         params.insert("external_id", external_id);
         params.insert("effective", chrono::Utc::now().date_naive());
@@ -164,24 +142,6 @@ impl SettleDisbursal {
                 .units("params.disbursed_amount")
                 .currency("'USD'")
                 .entry_type("'SETTLE_DISBURSAL_SETTLED_CR'")
-                .direction("CREDIT")
-                .layer("SETTLED")
-                .build()
-                .expect("Couldn't build entry"),
-            NewTxTemplateEntry::builder()
-                .account_id("params.debit_account_adjustment_omnibus_account")
-                .units("params.disbursed_amount")
-                .currency("'USD'")
-                .entry_type("'SETTLE_DISBURSAL_NON_CASH_ADJ_DR'")
-                .direction("DEBIT")
-                .layer("SETTLED")
-                .build()
-                .expect("Couldn't build entry"),
-            NewTxTemplateEntry::builder()
-                .account_id("params.non_cash_offset_omnibus_account")
-                .units("params.disbursed_amount")
-                .currency("'USD'")
-                .entry_type("'SETTLE_DISBURSAL_NON_CASH_ADJ_CR'")
                 .direction("CREDIT")
                 .layer("SETTLED")
                 .build()
