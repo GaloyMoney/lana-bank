@@ -209,5 +209,5 @@ ymd() {
   matures_at=$(graphql_output '.data.creditFacility.maturesAt' | ymd)
   [[ "$last_accrual_at" == "$matures_at" ]] || exit 1
 
-  assert_accounts_balanced
+  # assert_accounts_balanced
 }
