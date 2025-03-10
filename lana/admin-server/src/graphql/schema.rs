@@ -735,8 +735,8 @@ impl Mutation {
     async fn deposit_config_update(
         &self,
         ctx: &Context<'_>,
-        input: ChartOfAccountsIntegrationConfigUpdateInput,
-    ) -> async_graphql::Result<ChartOfAccountsIntegrationConfigUpdatePayload> {
+        input: DepositModuleConfigUpdateInput,
+    ) -> async_graphql::Result<DepositModuleConfigUpdatePayload> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
 
         let chart = app
@@ -758,8 +758,8 @@ impl Mutation {
             .deposits()
             .update_chart_of_accounts_integration_config(sub, chart, config_values)
             .await?;
-        Ok(ChartOfAccountsIntegrationConfigUpdatePayload::from(
-            ChartOfAccountsIntegrationConfig::from(config),
+        Ok(DepositModuleConfigUpdatePayload::from(
+            DepositModuleConfig::from(config),
         ))
     }
 

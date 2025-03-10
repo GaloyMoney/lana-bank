@@ -32,8 +32,8 @@ pub enum CoreDepositError {
     DepositAccountNotFound,
     #[error("CoreDepositError - CodeNotFoundInChart: {0}")]
     CodeNotFoundInChart(chart_of_accounts::new::AccountCode),
-    #[error("CoreDepositError - ChartIdMissmatch")]
-    ChartIdMissmatch,
+    #[error("CoreDepositError - ChartIdMismatch")]
+    ChartIdMismatch,
 }
 
 impl CoreDepositError {

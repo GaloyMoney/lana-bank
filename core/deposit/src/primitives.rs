@@ -14,7 +14,7 @@ es_entity::entity_id! {
     DepositAccountHolderId,
     DepositAccountId,
     WithdrawalId,
-    DepositConfigId,
+    ChartOfAccountsIntegrationConfigId,
     DepositId;
 
     DepositAccountHolderId => core_customer::CustomerId,
@@ -24,17 +24,12 @@ es_entity::entity_id! {
     WithdrawalId => ApprovalProcessId
 }
 
-impl DepositConfigId {
-    pub(crate) const DEFAULT: Self =
-        DepositConfigId(uuid::uuid!("00000000-0000-0000-0000-000000000000"));
-}
-
 pub use core_money::UsdCents;
 
 pub type DepositAccountAllOrOne = AllOrOne<DepositAccountId>;
 pub type DepositAccountByHolderAllOrOne = AllOrOne<DepositAccountHolderId>;
 pub type DepositAllOrOne = AllOrOne<DepositId>;
-pub type DepositConfigAllOrOne = AllOrOne<DepositConfigId>;
+pub type ChartOfAccountsIntegrationConfigAllOrOne = AllOrOne<ChartOfAccountsIntegrationConfigId>;
 pub type WithdrawalAllOrOne = AllOrOne<WithdrawalId>;
 
 #[derive(Clone, Copy, Debug, PartialEq, strum::EnumDiscriminants)]
@@ -43,7 +38,7 @@ pub type WithdrawalAllOrOne = AllOrOne<WithdrawalId>;
 pub enum CoreDepositObject {
     DepositAccount(DepositAccountAllOrOne),
     Deposit(DepositAllOrOne),
-    ChartOfAccountsIntegration(DepositConfigAllOrOne),
+    ChartOfAccountsIntegration(ChartOfAccountsIntegrationConfigAllOrOne),
     Withdrawal(WithdrawalAllOrOne),
 }
 
@@ -84,8 +79,8 @@ impl Display for CoreDepositObject {
         match self {
             DepositAccount(obj_ref) => write!(f, "{}/{}", discriminant, obj_ref),
             Deposit(obj_ref) => write!(f, "{}/{}", discriminant, obj_ref),
-            ChartOfAccountsIntegration(obj_ref) => write!(f, "{}/{}", discriminant, obj_ref),
             Withdrawal(obj_ref) => write!(f, "{}/{}", discriminant, obj_ref),
+            ChartOfAccountsIntegration(obj_ref) => write!(f, "{}/{}", discriminant, obj_ref),
         }
     }
 }
@@ -109,17 +104,17 @@ impl FromStr for CoreDepositObject {
                     .map_err(|_| "could not parse CoreDepositObject")?;
                 CoreDepositObject::Deposit(obj_ref)
             }
-            DepositConfig => {
-                let obj_ref = id
-                    .parse()
-                    .map_err(|_| "could not parse CoreDepositObject")?;
-                CoreDepositObject::ChartOfAccountsIntegration(obj_ref)
-            }
             Withdrawal => {
                 let obj_ref = id
                     .parse()
                     .map_err(|_| "could not parse CoreDepositObject")?;
                 CoreDepositObject::Withdrawal(obj_ref)
+            }
+            ChartOfAccountsIntegration => {
+                let obj_ref = id
+                    .parse()
+                    .map_err(|_| "could not parse CoreDepositObject")?;
+                CoreDepositObject::ChartOfAccountsIntegration(obj_ref)
             }
         };
         Ok(res)
@@ -132,7 +127,7 @@ impl FromStr for CoreDepositObject {
 pub enum CoreDepositAction {
     DepositAccount(DepositAccountAction),
     Deposit(DepositAction),
-    DepositConfig(DepositConfigAction),
+    ChartOfAccountsIntegrationConfig(ChartOfAccountsIntegrationConfigAction),
     Withdrawal(WithdrawalAction),
 }
 
@@ -151,7 +146,9 @@ impl CoreDepositAction {
     pub const DEPOSIT_LIST: Self = CoreDepositAction::Deposit(DepositAction::List);
 
     pub const CHART_OF_ACCOUNTS_INTEGRATION_CONFIG_UPDATE: Self =
-        CoreDepositAction::DepositConfig(DepositConfigAction::Update);
+        CoreDepositAction::ChartOfAccountsIntegrationConfig(
+            ChartOfAccountsIntegrationConfigAction::Update,
+        );
 
     pub const WITHDRAWAL_INITIATE: Self = CoreDepositAction::Withdrawal(WithdrawalAction::Initiate);
     pub const WITHDRAWAL_CONCLUDE_APPROVAL_PROCESS: Self =
@@ -169,7 +166,7 @@ impl Display for CoreDepositAction {
         match self {
             DepositAccount(action) => action.fmt(f),
             Deposit(action) => action.fmt(f),
-            DepositConfig(action) => action.fmt(f),
+            ChartOfAccountsIntegrationConfig(action) => action.fmt(f),
             Withdrawal(action) => action.fmt(f),
         }
     }
@@ -184,7 +181,9 @@ impl FromStr for CoreDepositAction {
         let res = match entity.parse()? {
             DepositAccount => CoreDepositAction::from(action.parse::<DepositAccountAction>()?),
             Deposit => CoreDepositAction::from(action.parse::<DepositAction>()?),
-            DepositConfig => CoreDepositAction::from(action.parse::<DepositConfigAction>()?),
+            ChartOfAccountsIntegrationConfig => {
+                CoreDepositAction::from(action.parse::<ChartOfAccountsIntegrationConfigAction>()?)
+            }
             Withdrawal => CoreDepositAction::from(action.parse::<WithdrawalAction>()?),
         };
 
@@ -241,12 +240,12 @@ impl From<WithdrawalAction> for CoreDepositAction {
 
 #[derive(PartialEq, Clone, Copy, Debug, strum::Display, strum::EnumString)]
 #[strum(serialize_all = "kebab-case")]
-pub enum DepositConfigAction {
+pub enum ChartOfAccountsIntegrationConfigAction {
     Update,
 }
 
-impl From<DepositConfigAction> for CoreDepositAction {
-    fn from(action: DepositConfigAction) -> Self {
-        CoreDepositAction::DepositConfig(action)
+impl From<ChartOfAccountsIntegrationConfigAction> for CoreDepositAction {
+    fn from(action: ChartOfAccountsIntegrationConfigAction) -> Self {
+        CoreDepositAction::ChartOfAccountsIntegrationConfig(action)
     }
 }

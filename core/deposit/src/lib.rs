@@ -14,8 +14,6 @@ mod primitives;
 mod processes;
 mod withdrawal;
 
-use std::collections::HashMap;
-
 use deposit_account_cursor::DepositAccountsByCreatedAtCursor;
 use tracing::instrument;
 
@@ -38,7 +36,6 @@ use error::*;
 pub use event::*;
 pub use for_subject::DepositsForSubject;
 pub use history::{DepositAccountHistoryCursor, DepositAccountHistoryEntry};
-pub use ledger::DepositOmnibusAccountIds;
 use ledger::*;
 pub use primitives::*;
 pub use processes::approval::APPROVE_WITHDRAWAL_PROCESS;
@@ -675,7 +672,7 @@ where
             ));
         };
         if chart.id != config.chart_of_accounts_id {
-            return Err(CoreDepositError::ChartIdMissmatch);
+            return Err(CoreDepositError::ChartIdMismatch);
         }
 
         let audit_info = self
@@ -687,13 +684,14 @@ where
             )
             .await?;
 
-        // lookup the deposit account set metadata
-        // lookup the omnibus account set metadata
-        // if there is a diff - remove / attach the new account sets
-
-        // deposit_config.update_values(values, audit_info);
-
-        // self.config_repo.update(&mut deposit_config).await?;
+        self.ledger
+            .attach_chart_of_accounts_account_sets(
+                audit_info,
+                &config,
+                *deposit_accounts_parent_account_set_id,
+                *omnibus_parent_account_set_id,
+            )
+            .await?;
 
         Ok(config)
     }

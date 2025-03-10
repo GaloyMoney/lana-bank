@@ -7,7 +7,6 @@ use crate::{
 use chart_of_accounts::{
     ControlAccountCreationDetails, ControlAccountDetails, ControlSubAccountDetails,
 };
-use deposit::DepositOmnibusAccountIds;
 
 pub(crate) async fn init(
     balance_sheets: &BalanceSheets,

@@ -1,8 +1,6 @@
 mod credit_facilities;
-mod deposits;
 
 pub(super) use credit_facilities::*;
-pub(super) use deposits::*;
 
 pub(super) const LANA_JOURNAL_CODE: &str = "LANA_BANK_JOURNAL";
 

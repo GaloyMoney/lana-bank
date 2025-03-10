@@ -1,22 +1,25 @@
-mod accounts;
+use serde::{Deserialize, Serialize};
+
+use audit::AuditInfo;
+
 pub mod error;
 mod templates;
 mod velocity;
 
 use cala_ledger::{
     account::*,
-    account_set::{AccountSetMemberId, NewAccountSet},
+    account_set::{AccountSet, AccountSetMemberId, AccountSetUpdate, NewAccountSet},
     tx_template::Params,
     velocity::{NewVelocityControl, VelocityControlId},
     CalaLedger, Currency, DebitOrCredit, JournalId, TransactionId,
 };
 
 use crate::{
+    chart_of_accounts_integration::ChartOfAccountsIntegrationConfig,
     primitives::{LedgerAccountId, LedgerAccountSetId, UsdCents},
     DepositAccountBalance,
 };
 
-pub use accounts::*;
 use error::*;
 
 pub const DEPOSITS_ACCOUNT_SET_NAME: &str = "Deposits Account Set";
@@ -33,7 +36,8 @@ pub const DEPOSITS_VELOCITY_CONTROL_ID: uuid::Uuid =
 pub struct DepositLedger {
     cala: CalaLedger,
     journal_id: JournalId,
-    pub deposits_account_set_id: LedgerAccountSetId,
+    deposits_account_set_id: LedgerAccountSetId,
+    deposit_omnibus_account_set_id: LedgerAccountSetId,
     deposit_omnibus_account_id: LedgerAccountId,
     usd: Currency,
     deposit_control_id: VelocityControlId,
@@ -95,6 +99,7 @@ impl DepositLedger {
             cala: cala.clone(),
             journal_id,
             deposits_account_set_id,
+            deposit_omnibus_account_set_id,
             deposit_omnibus_account_id,
             deposit_control_id,
             usd: "USD".parse().expect("Could not parse 'USD'"),
@@ -427,4 +432,116 @@ impl DepositLedger {
 
         Ok(())
     }
+
+    pub async fn attach_chart_of_accounts_account_sets(
+        &self,
+        audit_info: AuditInfo,
+        config: &ChartOfAccountsIntegrationConfig,
+        deposit_accounts_parent_account_set_id: LedgerAccountSetId,
+        omnibus_parent_account_set_id: LedgerAccountSetId,
+    ) -> Result<(), DepositLedgerError> {
+        let mut op = self.cala.begin_operation().await?;
+        let mut account_sets = self
+            .cala
+            .account_sets()
+            .find_all_in_op::<AccountSet>(
+                &mut op,
+                &[
+                    self.deposits_account_set_id,
+                    self.deposit_omnibus_account_set_id,
+                ],
+            )
+            .await?;
+
+        let new_meta = ChartOfAccountsIntegrationMeta {
+            config: config.clone(),
+            deposit_accounts_parent_account_set_id,
+            omnibus_parent_account_set_id,
+            audit_info,
+        };
+
+        let mut deposit_account_set = account_sets
+            .remove(&self.deposits_account_set_id)
+            .expect("deposit account set not found");
+
+        if let Some(old_meta) = deposit_account_set.values().metadata.as_ref() {
+            let old_meta: ChartOfAccountsIntegrationMeta =
+                serde_json::from_value(old_meta.clone()).expect("Could not deserialize metadata");
+            if old_meta.deposit_accounts_parent_account_set_id
+                != deposit_accounts_parent_account_set_id
+            {
+                self.cala
+                    .account_sets()
+                    .remove_member_in_op(
+                        &mut op,
+                        old_meta.deposit_accounts_parent_account_set_id,
+                        self.deposits_account_set_id,
+                    )
+                    .await?;
+                self.cala
+                    .account_sets()
+                    .add_member_in_op(
+                        &mut op,
+                        deposit_accounts_parent_account_set_id,
+                        self.deposits_account_set_id,
+                    )
+                    .await?;
+            }
+            let mut update = AccountSetUpdate::default();
+            update
+                .metadata(&new_meta)
+                .expect("Could not update metadata");
+            deposit_account_set.update(update);
+            self.cala
+                .account_sets()
+                .persist_in_op(&mut op, &mut deposit_account_set)
+                .await?;
+        }
+
+        let mut omnibus_account_set = account_sets
+            .remove(&self.deposit_omnibus_account_set_id)
+            .expect("deposit account set not found");
+
+        if let Some(old_meta) = omnibus_account_set.values().metadata.as_ref() {
+            let old_meta: ChartOfAccountsIntegrationMeta =
+                serde_json::from_value(old_meta.clone()).expect("Could not deserialize metadata");
+            if old_meta.omnibus_parent_account_set_id != omnibus_parent_account_set_id {
+                self.cala
+                    .account_sets()
+                    .remove_member_in_op(
+                        &mut op,
+                        old_meta.omnibus_parent_account_set_id,
+                        self.deposit_omnibus_account_set_id,
+                    )
+                    .await?;
+                self.cala
+                    .account_sets()
+                    .add_member_in_op(
+                        &mut op,
+                        omnibus_parent_account_set_id,
+                        self.deposit_omnibus_account_set_id,
+                    )
+                    .await?;
+            }
+            let mut update = AccountSetUpdate::default();
+            update
+                .metadata(new_meta)
+                .expect("Could not update metadata");
+            omnibus_account_set.update(update);
+            self.cala
+                .account_sets()
+                .persist_in_op(&mut op, &mut omnibus_account_set)
+                .await?;
+        }
+
+        Ok(())
+    }
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug)]
+struct ChartOfAccountsIntegrationMeta {
+    config: ChartOfAccountsIntegrationConfig,
+    deposit_accounts_parent_account_set_id: LedgerAccountSetId,
+    omnibus_parent_account_set_id: LedgerAccountSetId,
+    audit_info: AuditInfo,
 }

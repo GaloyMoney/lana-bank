@@ -762,23 +762,6 @@ type DepositAccountHistoryEntryEdge {
 	cursor: String!
 }
 
-type DepositConfig {
-	id: ID!
-	chartOfAccountsId: UUID
-	chartOfAccountsDepositAccountsParentCode: String
-	chartOfAccountsOmnibusParentCode: String
-}
-
-input DepositConfigUpdateInput {
-	chartOfAccountsId: UUID!
-	chartOfAccountsDepositAccountsParentCode: String!
-	chartOfAccountsOmnibusParentCode: String!
-}
-
-type DepositConfigUpdatePayload {
-	depositConfig: DepositConfig!
-}
-
 type DepositConnection {
 	"""
 	Information to aid in pagination.
@@ -811,6 +794,22 @@ type DepositEdge {
 type DepositEntry {
 	recordedAt: Timestamp!
 	deposit: Deposit!
+}
+
+type DepositModuleConfig {
+	chartOfAccountsId: UUID
+	chartOfAccountsDepositAccountsParentCode: String
+	chartOfAccountsOmnibusParentCode: String
+}
+
+input DepositModuleConfigUpdateInput {
+	chartOfAccountsId: UUID!
+	chartOfAccountsDepositAccountsParentCode: String!
+	chartOfAccountsOmnibusParentCode: String!
+}
+
+type DepositModuleConfigUpdatePayload {
+	depositConfig: DepositModuleConfig!
 }
 
 input DepositRecordInput {
@@ -957,7 +956,7 @@ type Mutation {
 	userRevokeRole(input: UserRevokeRoleInput!): UserRevokeRolePayload!
 	customerCreate(input: CustomerCreateInput!): CustomerCreatePayload!
 	customerUpdate(input: CustomerUpdateInput!): CustomerUpdatePayload!
-	depositConfigUpdate(input: DepositConfigUpdateInput!): DepositConfigUpdatePayload!
+	depositConfigUpdate(input: DepositModuleConfigUpdateInput!): DepositModuleConfigUpdatePayload!
 	depositRecord(input: DepositRecordInput!): DepositRecordPayload!
 	withdrawalInitiate(input: WithdrawalInitiateInput!): WithdrawalInitiatePayload!
 	withdrawalConfirm(input: WithdrawalConfirmInput!): WithdrawalConfirmPayload!
