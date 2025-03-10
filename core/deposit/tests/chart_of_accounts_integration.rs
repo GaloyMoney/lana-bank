@@ -44,12 +44,11 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
     let chart = charts
         .create_chart(&DummySubject, "Test chart".to_string(), chart_ref)
         .await?;
-    let import = format!(
-        r#"
+    let import = r#"
         1,Deposit Parent
         2,Omnibus Parent
         "#
-    );
+    .to_string();
     let chart_id = chart.id;
     let chart = charts
         .import_from_csv(&DummySubject, chart_id, import)
@@ -89,12 +88,11 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
         .create_chart(&DummySubject, "Other Test chart".to_string(), chart_ref)
         .await?;
 
-    let import = format!(
-        r#"
+    let import = r#"
         1,Other Deposit Parent
         2,Other Omnibus Parent
         "#
-    );
+    .to_string();
     let chart_id = chart.id;
     let chart = charts
         .import_from_csv(&DummySubject, chart_id, import)

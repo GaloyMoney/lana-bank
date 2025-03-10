@@ -478,7 +478,6 @@ impl DepositLedger {
                     .await?;
             }
         }
-        dbg!("hello");
         self.cala
             .account_sets()
             .add_member_in_op(
@@ -487,7 +486,6 @@ impl DepositLedger {
                 self.deposits_account_set_id,
             )
             .await?;
-        dbg!("hello 2");
         let mut update = AccountSetUpdate::default();
         update
             .metadata(&new_meta)
@@ -497,7 +495,6 @@ impl DepositLedger {
             .account_sets()
             .persist_in_op(&mut op, &mut deposit_account_set)
             .await?;
-        dbg!("hello 3");
 
         let mut omnibus_account_set = account_sets
             .remove(&self.deposit_omnibus_account_set_id)
