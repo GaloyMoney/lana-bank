@@ -18,15 +18,6 @@ pub(crate) async fn init(
 ) -> Result<ChartsInit, AccountingInitError> {
     let chart_ids = &create_charts_of_accounts(chart_of_accounts).await?;
 
-    let deposits = create_deposits_account_paths(
-        balance_sheets,
-        trial_balances,
-        cash_flow_statements,
-        chart_of_accounts,
-        chart_ids,
-    )
-    .await?;
-
     let credit_facilities = create_credit_facilities_account_paths(
         balance_sheets,
         trial_balances,
@@ -39,7 +30,6 @@ pub(crate) async fn init(
 
     Ok(ChartsInit {
         chart_ids: *chart_ids,
-        deposits,
         credit_facilities,
     })
 }
@@ -141,80 +131,6 @@ async fn create_sub_account_as_account(
         .transaction_account_factory(details)
         .find_or_create_transaction_account(reference, name, description)
         .await?)
-}
-
-async fn create_deposits_account_paths(
-    balance_sheets: &BalanceSheets,
-    trial_balances: &TrialBalances,
-    cash_flow_statements: &CashFlowStatements,
-    chart_of_accounts: &ChartOfAccounts,
-    chart_ids: &ChartIds,
-) -> Result<DepositsSeed, AccountingInitError> {
-    let (deposits_control, _deposits) = find_or_create_control_sub_account(
-        chart_of_accounts,
-        chart_ids.primary,
-        ControlAccountCreationDetails {
-            account_set_id: LedgerAccountSetId::new(),
-            category: chart_of_accounts::ChartCategory::Liabilities,
-            name: DEPOSITS_CONTROL_ACCOUNT_NAME.to_string(),
-            reference: DEPOSITS_CONTROL_ACCOUNT_REF.to_string(),
-        },
-        DEPOSITS_CONTROL_SUB_ACCOUNT_NAME.to_string(),
-        DEPOSITS_CONTROL_SUB_ACCOUNT_REF.to_string(),
-    )
-    .await?;
-    trial_balances
-        .add_to_trial_balance(
-            TRIAL_BALANCE_STATEMENT_NAME.to_string(),
-            deposits_control.account_set_id,
-        )
-        .await?;
-    balance_sheets
-        .add_to_liabilities(
-            BALANCE_SHEET_NAME.to_string(),
-            deposits_control.account_set_id,
-        )
-        .await?;
-    cash_flow_statements
-        .add_to_from_financing(
-            CASH_FLOW_STATEMENT_NAME.to_string(),
-            deposits_control.account_set_id,
-        )
-        .await?;
-
-    let (deposits_omnibus_control, deposits_omnibus) = find_or_create_control_sub_account(
-        chart_of_accounts,
-        chart_ids.primary,
-        ControlAccountCreationDetails {
-            account_set_id: LedgerAccountSetId::new(),
-            category: chart_of_accounts::ChartCategory::Assets,
-            name: DEPOSITS_OMNIBUS_CONTROL_ACCOUNT_NAME.to_string(),
-            reference: DEPOSITS_OMNIBUS_CONTROL_ACCOUNT_REF.to_string(),
-        },
-        DEPOSITS_OMNIBUS_CONTROL_SUB_ACCOUNT_NAME.to_string(),
-        DEPOSITS_OMNIBUS_CONTROL_SUB_ACCOUNT_REF.to_string(),
-    )
-    .await?;
-    trial_balances
-        .add_to_trial_balance(
-            TRIAL_BALANCE_STATEMENT_NAME.to_string(),
-            deposits_omnibus_control.account_set_id,
-        )
-        .await?;
-    balance_sheets
-        .add_to_assets(
-            BALANCE_SHEET_NAME.to_string(),
-            deposits_omnibus_control.account_set_id,
-        )
-        .await?;
-    let deposit_omnibus_account_id =
-        create_sub_account_as_account(chart_of_accounts, deposits_omnibus).await?;
-
-    Ok(DepositsSeed {
-        omnibus_ids: DepositOmnibusAccountIds {
-            deposits: deposit_omnibus_account_id,
-        },
-    })
 }
 
 async fn create_credit_facilities_account_paths(

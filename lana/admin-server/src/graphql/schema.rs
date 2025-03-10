@@ -735,15 +735,15 @@ impl Mutation {
     async fn deposit_config_update(
         &self,
         ctx: &Context<'_>,
-        input: DepositConfigUpdateInput,
-    ) -> async_graphql::Result<DepositConfigUpdatePayload> {
+        input: ChartOfAccountsIntegrationConfigUpdateInput,
+    ) -> async_graphql::Result<ChartOfAccountsIntegrationConfigUpdatePayload> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
 
         let chart = app
             .new_chart_of_accounts()
             .find_by_id(input.chart_of_accounts_id)
             .await?;
-        let config_values = lana_app::deposit::DepositConfigValues::builder()
+        let config_values = lana_app::deposit::ChartOfAccountsIntegrationConfig::builder()
             .chart_of_accounts_id(input.chart_of_accounts_id)
             .chart_of_accounts_deposit_accounts_parent_code(
                 input
@@ -754,13 +754,13 @@ impl Mutation {
                 input.chart_of_accounts_omnibus_parent_code.parse()?,
             )
             .build()?;
-        exec_mutation!(
-            DepositConfigUpdatePayload,
-            DepositConfig,
-            ctx,
-            app.deposits()
-                .update_deposit_config_values(sub, chart, config_values)
-        )
+        let config = app
+            .deposits()
+            .update_chart_of_accounts_integration_config(sub, chart, config_values)
+            .await?;
+        Ok(ChartOfAccountsIntegrationConfigUpdatePayload::from(
+            ChartOfAccountsIntegrationConfig::from(config),
+        ))
     }
 
     pub async fn deposit_record(

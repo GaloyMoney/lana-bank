@@ -52,7 +52,6 @@ impl StatementsInit {
 #[derive(Clone)]
 pub struct ChartsInit {
     pub chart_ids: ChartIds,
-    pub deposits: DepositsSeed,
     pub credit_facilities: CreditFacilitiesSeed,
 }
 

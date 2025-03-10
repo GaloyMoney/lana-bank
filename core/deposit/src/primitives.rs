@@ -43,7 +43,7 @@ pub type WithdrawalAllOrOne = AllOrOne<WithdrawalId>;
 pub enum CoreDepositObject {
     DepositAccount(DepositAccountAllOrOne),
     Deposit(DepositAllOrOne),
-    DepositConfig(DepositConfigAllOrOne),
+    ChartOfAccountsIntegration(DepositConfigAllOrOne),
     Withdrawal(WithdrawalAllOrOne),
 }
 
@@ -72,12 +72,8 @@ impl CoreDepositObject {
         CoreDepositObject::Withdrawal(AllOrOne::ById(id))
     }
 
-    pub fn all_deposit_configs() -> Self {
-        CoreDepositObject::DepositConfig(AllOrOne::All)
-    }
-
-    pub fn deposit_config(id: DepositConfigId) -> Self {
-        CoreDepositObject::DepositConfig(AllOrOne::ById(id))
+    pub fn chart_of_accounts_integration() -> Self {
+        CoreDepositObject::ChartOfAccountsIntegration(AllOrOne::All)
     }
 }
 
@@ -88,7 +84,7 @@ impl Display for CoreDepositObject {
         match self {
             DepositAccount(obj_ref) => write!(f, "{}/{}", discriminant, obj_ref),
             Deposit(obj_ref) => write!(f, "{}/{}", discriminant, obj_ref),
-            DepositConfig(obj_ref) => write!(f, "{}/{}", discriminant, obj_ref),
+            ChartOfAccountsIntegration(obj_ref) => write!(f, "{}/{}", discriminant, obj_ref),
             Withdrawal(obj_ref) => write!(f, "{}/{}", discriminant, obj_ref),
         }
     }
@@ -117,7 +113,7 @@ impl FromStr for CoreDepositObject {
                 let obj_ref = id
                     .parse()
                     .map_err(|_| "could not parse CoreDepositObject")?;
-                CoreDepositObject::DepositConfig(obj_ref)
+                CoreDepositObject::ChartOfAccountsIntegration(obj_ref)
             }
             Withdrawal => {
                 let obj_ref = id
@@ -154,7 +150,7 @@ impl CoreDepositAction {
     pub const DEPOSIT_READ: Self = CoreDepositAction::Deposit(DepositAction::Read);
     pub const DEPOSIT_LIST: Self = CoreDepositAction::Deposit(DepositAction::List);
 
-    pub const DEPOSIT_CONFIG_UPDATE: Self =
+    pub const CHART_OF_ACCOUNTS_INTEGRATION_CONFIG_UPDATE: Self =
         CoreDepositAction::DepositConfig(DepositConfigAction::Update);
 
     pub const WITHDRAWAL_INITIATE: Self = CoreDepositAction::Withdrawal(WithdrawalAction::Initiate);

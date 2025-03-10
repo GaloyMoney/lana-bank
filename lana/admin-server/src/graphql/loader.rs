@@ -167,22 +167,6 @@ impl Loader<DepositId> for LanaLoader {
     }
 }
 
-impl Loader<DepositConfigId> for LanaLoader {
-    type Value = DepositConfig;
-    type Error = Arc<CoreDepositError>;
-
-    async fn load(
-        &self,
-        keys: &[DepositConfigId],
-    ) -> Result<HashMap<DepositConfigId, DepositConfig>, Self::Error> {
-        self.app
-            .deposits()
-            .find_all_deposit_configs(keys)
-            .await
-            .map_err(Arc::new)
-    }
-}
-
 impl Loader<DepositAccountId> for LanaLoader {
     type Value = DepositAccount;
     type Error = Arc<CoreDepositError>;

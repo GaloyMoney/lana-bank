@@ -2,6 +2,7 @@
 #![cfg_attr(feature = "fail-on-warnings", deny(clippy::all))]
 
 mod account;
+mod chart_of_accounts_integration;
 mod deposit;
 mod deposit_account_balance;
 pub mod error;
@@ -9,7 +10,6 @@ mod event;
 mod for_subject;
 mod history;
 mod ledger;
-mod module_config;
 mod primitives;
 mod processes;
 mod withdrawal;
@@ -30,6 +30,7 @@ use outbox::{Outbox, OutboxEventMarker};
 
 pub use account::DepositAccount;
 use account::*;
+pub use chart_of_accounts_integration::ChartOfAccountsIntegrationConfig;
 use deposit::*;
 pub use deposit::{Deposit, DepositsByCreatedAtCursor};
 pub use deposit_account_balance::DepositAccountBalance;
@@ -39,8 +40,6 @@ pub use for_subject::DepositsForSubject;
 pub use history::{DepositAccountHistoryCursor, DepositAccountHistoryEntry};
 pub use ledger::DepositOmnibusAccountIds;
 use ledger::*;
-use module_config::*;
-pub use module_config::{DepositConfig, DepositConfigValues};
 pub use primitives::*;
 pub use processes::approval::APPROVE_WITHDRAWAL_PROCESS;
 use processes::approval::{
@@ -65,7 +64,6 @@ where
     authz: Perms,
     governance: Governance<Perms, E>,
     customers: Customers<Perms, E>,
-    config_repo: DepositConfigRepo,
     outbox: Outbox<E>,
 }
 
@@ -87,7 +85,6 @@ where
             governance: self.governance.clone(),
             customers: self.customers.clone(),
             approve_withdrawal: self.approve_withdrawal.clone(),
-            config_repo: self.config_repo.clone(),
             outbox: self.outbox.clone(),
         }
     }
@@ -118,7 +115,6 @@ where
         let accounts = DepositAccountRepo::new(pool);
         let deposits = DepositRepo::new(pool);
         let withdrawals = WithdrawalRepo::new(pool);
-        let config_repo = DepositConfigRepo::new(pool);
         let ledger = DepositLedger::init(cala, journal_id).await?;
 
         let approve_withdrawal = ApproveWithdrawal::new(&withdrawals, authz.audit(), governance);
@@ -141,7 +137,6 @@ where
             accounts,
             deposits,
             withdrawals,
-            config_repo,
             authz: authz.clone(),
             outbox: outbox.clone(),
             governance: governance.clone(),
@@ -633,66 +628,73 @@ where
             .await?)
     }
 
-    async fn get_deposit_config(&self) -> Result<DepositConfig, CoreDepositError> {
-        match self.config_repo.find_by_id(DepositConfigId::DEFAULT).await {
-            Ok(deposit_config) => return Ok(deposit_config),
-            Err(e) if e.was_not_found() => (),
-            Err(e) => return Err(e.into()),
-        };
+    //     async fn get_deposit_config(&self) -> Result<DepositConfig, CoreDepositError> {
+    //         match self.config_repo.find_by_id(DepositConfigId::DEFAULT).await {
+    //             Ok(deposit_config) => return Ok(deposit_config),
+    //             Err(e) if e.was_not_found() => (),
+    //             Err(e) => return Err(e.into()),
+    //         };
 
-        let new_deposit_config = NewDepositConfig::builder()
-            .id(DepositConfigId::DEFAULT)
-            .build()
-            .expect("Could not build new deposit config");
+    //         let new_deposit_config = NewDepositConfig::builder()
+    //             .id(DepositConfigId::DEFAULT)
+    //             .build()
+    //             .expect("Could not build new deposit config");
 
-        Ok(self.config_repo.create(new_deposit_config).await?)
-    }
+    //         Ok(self.config_repo.create(new_deposit_config).await?)
+    //     }
 
-    pub async fn find_all_deposit_configs<T: From<DepositConfig>>(
-        &self,
-        ids: &[DepositConfigId],
-    ) -> Result<HashMap<DepositConfigId, T>, CoreDepositError> {
-        Ok(self.config_repo.find_all(ids).await?)
-    }
+    //     pub async fn find_all_deposit_configs<T: From<DepositConfig>>(
+    //         &self,
+    //         ids: &[DepositConfigId],
+    //     ) -> Result<HashMap<DepositConfigId, T>, CoreDepositError> {
+    //         Ok(self.config_repo.find_all(ids).await?)
+    //     }
 
-    pub async fn update_deposit_config_values(
+    pub async fn update_chart_of_accounts_integration_config(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         chart: Chart,
-        values: DepositConfigValues,
-    ) -> Result<DepositConfig, CoreDepositError> {
-        if chart
-            .account_spec(&values.chart_of_accounts_deposit_accounts_parent_code)
-            .is_none()
+        config: ChartOfAccountsIntegrationConfig,
+    ) -> Result<ChartOfAccountsIntegrationConfig, CoreDepositError> {
+        let deposit_accounts_parent_account_set_id = if let Some((_, id)) =
+            chart.account_spec(&config.chart_of_accounts_deposit_accounts_parent_code)
         {
+            id
+        } else {
             return Err(CoreDepositError::CodeNotFoundInChart(
-                values.chart_of_accounts_deposit_accounts_parent_code,
+                config.chart_of_accounts_deposit_accounts_parent_code,
             ));
-        }
-        if chart
-            .account_spec(&values.chart_of_accounts_omnibus_parent_code)
-            .is_none()
+        };
+        let omnibus_parent_account_set_id = if let Some((_, id)) =
+            chart.account_spec(&config.chart_of_accounts_omnibus_parent_code)
         {
+            id
+        } else {
             return Err(CoreDepositError::CodeNotFoundInChart(
-                values.chart_of_accounts_omnibus_parent_code,
+                config.chart_of_accounts_omnibus_parent_code,
             ));
+        };
+        if chart.id != config.chart_of_accounts_id {
+            return Err(CoreDepositError::ChartIdMissmatch);
         }
-
-        let mut deposit_config = self.get_deposit_config().await?;
 
         let audit_info = self
             .authz
             .enforce_permission(
                 sub,
-                CoreDepositObject::deposit_config(deposit_config.id),
-                CoreDepositAction::DEPOSIT_CONFIG_UPDATE,
+                CoreDepositObject::chart_of_accounts_integration(),
+                CoreDepositAction::CHART_OF_ACCOUNTS_INTEGRATION_CONFIG_UPDATE,
             )
             .await?;
 
-        deposit_config.update_values(values, audit_info);
+        // lookup the deposit account set metadata
+        // lookup the omnibus account set metadata
+        // if there is a diff - remove / attach the new account sets
 
-        self.config_repo.update(&mut deposit_config).await?;
+        // deposit_config.update_values(values, audit_info);
 
-        Ok(deposit_config)
+        // self.config_repo.update(&mut deposit_config).await?;
+
+        Ok(config)
     }
 }
