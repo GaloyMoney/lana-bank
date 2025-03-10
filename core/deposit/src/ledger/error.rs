@@ -8,7 +8,7 @@ pub enum DepositLedgerError {
     CalaLedger(#[from] cala_ledger::error::LedgerError),
     #[error("DepositLedgerError - CalaAccountError: {0}")]
     CalaAccount(#[from] cala_ledger::account::error::AccountError),
-    #[error("CoreDepositError - CalaAccountSetError: {0}")]
+    #[error("DepositLedgerError - CalaAccountSetError: {0}")]
     AccountSetError(#[from] cala_ledger::account_set::error::AccountSetError),
     #[error("DepositLedgerError - CalaJournalError: {0}")]
     CalaJournal(#[from] cala_ledger::journal::error::JournalError),

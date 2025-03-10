@@ -5,11 +5,15 @@ mod templates;
 mod velocity;
 
 use cala_ledger::{
+    account::NewAccount,
+    account_set::{AccountSetMemberId, NewAccountSet},
     velocity::{NewVelocityControl, VelocityControlId},
-    AccountId, CalaLedger, Currency, JournalId, TransactionId,
+    AccountId, CalaLedger, Currency, DebitOrCredit, JournalId, TransactionId,
 };
 
-use crate::primitives::{CollateralAction, CreditFacilityId, Satoshis, UsdCents};
+use crate::primitives::{
+    CollateralAction, CreditFacilityId, LedgerAccountId, LedgerAccountSetId, Satoshis, UsdCents,
+};
 
 use constants::*;
 pub use credit_facility_accounts::*;
@@ -76,6 +80,102 @@ impl CreditLedger {
             usd: "USD".parse().expect("Could not parse 'USD'"),
             btc: "BTC".parse().expect("Could not parse 'BTC'"),
         })
+    }
+
+    async fn find_or_create_account_set(
+        cala: &CalaLedger,
+        journal_id: JournalId,
+        reference: String,
+        name: String,
+        normal_balance_type: DebitOrCredit,
+    ) -> Result<LedgerAccountSetId, CreditLedgerError> {
+        match cala
+            .account_sets()
+            .find_by_external_id(reference.to_string())
+            .await
+        {
+            Ok(account_set) if account_set.values().journal_id != journal_id => {
+                return Err(CreditLedgerError::JournalIdMismatch)
+            }
+            Ok(account_set) => return Ok(account_set.id),
+            Err(e) if e.was_not_found() => (),
+            Err(e) => return Err(e.into()),
+        };
+
+        let id = LedgerAccountSetId::new();
+        let new_account_set = NewAccountSet::builder()
+            .id(id)
+            .journal_id(journal_id)
+            .external_id(reference.to_string())
+            .name(name.clone())
+            .description(name)
+            .normal_balance_type(normal_balance_type)
+            .build()
+            .expect("Could not build new account set");
+        match cala.account_sets().create(new_account_set).await {
+            Ok(set) => Ok(set.id),
+            Err(cala_ledger::account_set::error::AccountSetError::ExternalIdAlreadyExists) => {
+                Ok(cala.account_sets().find_by_external_id(reference).await?.id)
+            }
+
+            Err(e) => Err(e.into()),
+        }
+    }
+
+    async fn find_or_create_account_in_account_set(
+        cala: &CalaLedger,
+        account_set_id: LedgerAccountSetId,
+        reference: String,
+        name: String,
+        normal_balance_type: DebitOrCredit,
+    ) -> Result<LedgerAccountId, CreditLedgerError> {
+        let members = cala
+            .account_sets()
+            .list_members(account_set_id, Default::default())
+            .await?
+            .entities;
+        if !members.is_empty() {
+            match members[0].id {
+                AccountSetMemberId::Account(id) => return Ok(id),
+                AccountSetMemberId::AccountSet(_) => {
+                    return Err(CreditLedgerError::NonAccountMemberFoundInAccountSet(
+                        account_set_id.to_string(),
+                    ))
+                }
+            }
+        }
+
+        let mut op = cala.begin_operation().await?;
+        let id = LedgerAccountId::new();
+        let new_ledger_account = NewAccount::builder()
+            .id(id)
+            .external_id(reference.to_string())
+            .name(name.clone())
+            .description(name)
+            .code(id.to_string())
+            .normal_balance_type(normal_balance_type)
+            .build()
+            .expect("Could not build new account");
+
+        match cala
+            .accounts()
+            .create_in_op(&mut op, new_ledger_account)
+            .await
+        {
+            Ok(account) => {
+                cala.account_sets()
+                    .add_member_in_op(&mut op, account_set_id, account.id)
+                    .await?;
+
+                op.commit().await?;
+                Ok(id)
+            }
+            Err(cala_ledger::account::error::AccountError::ExternalIdAlreadyExists) => {
+                op.commit().await?;
+                Ok(cala.accounts().find_by_external_id(reference).await?.id)
+            }
+            Err(e) => Err(e.into()),
+        }
     }
 
     pub async fn get_credit_facility_balance(
