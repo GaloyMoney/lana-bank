@@ -32,11 +32,17 @@ pub const DEPOSIT_OMNIBUS_ACCOUNT_REF: &str = "deposit-omnibus-account";
 pub const DEPOSITS_VELOCITY_CONTROL_ID: uuid::Uuid =
     uuid::uuid!("00000000-0000-0000-0000-000000000001");
 
+#[derive(Clone, Copy)]
+pub struct InternalAccountSetDetails {
+    id: LedgerAccountSetId,
+    normal_balance_type: DebitOrCredit,
+}
+
 #[derive(Clone)]
 pub struct DepositLedger {
     cala: CalaLedger,
     journal_id: JournalId,
-    deposits_account_set_id: LedgerAccountSetId,
+    deposits_account_set: InternalAccountSetDetails,
     deposit_omnibus_account_ids: LedgerOmnibusAccountIds,
     usd: Currency,
     deposit_control_id: VelocityControlId,
@@ -52,14 +58,16 @@ impl DepositLedger {
         templates::CancelWithdraw::init(cala).await?;
         templates::ConfirmWithdraw::init(cala).await?;
 
+        let deposits_normal_balance_type = DebitOrCredit::Credit;
         let deposits_account_set_id = Self::find_or_create_account_set(
             cala,
             journal_id,
             format!("{journal_id}:{DEPOSITS_ACCOUNT_SET_REF}"),
             DEPOSITS_ACCOUNT_SET_NAME.to_string(),
-            DebitOrCredit::Credit,
+            deposits_normal_balance_type,
         )
         .await?;
+
         let deposit_omnibus_account_ids = Self::find_or_create_omnibus_account(
             cala,
             journal_id,
@@ -87,7 +95,10 @@ impl DepositLedger {
         Ok(Self {
             cala: cala.clone(),
             journal_id,
-            deposits_account_set_id,
+            deposits_account_set: InternalAccountSetDetails {
+                id: deposits_account_set_id,
+                normal_balance_type: deposits_normal_balance_type,
+            },
             deposit_omnibus_account_ids,
             deposit_control_id,
             usd: "USD".parse().expect("Could not parse 'USD'"),
@@ -385,7 +396,7 @@ impl DepositLedger {
             .name(name)
             .description(description)
             .code(id.to_string())
-            .normal_balance_type(DebitOrCredit::Credit)
+            .normal_balance_type(self.deposits_account_set.normal_balance_type)
             .build()
             .expect("Could not build new account");
         let ledger_account = self
@@ -395,7 +406,7 @@ impl DepositLedger {
             .await?;
         self.cala
             .account_sets()
-            .add_member_in_op(&mut op, self.deposits_account_set_id, ledger_account.id)
+            .add_member_in_op(&mut op, self.deposits_account_set.id, ledger_account.id)
             .await?;
 
         self.add_deposit_control_to_account(&mut op, id).await?;
@@ -473,7 +484,7 @@ impl DepositLedger {
             .find_all_in_op::<AccountSet>(
                 &mut op,
                 &[
-                    self.deposits_account_set_id,
+                    self.deposits_account_set.id,
                     self.deposit_omnibus_account_ids.account_set_id,
                 ],
             )
@@ -487,7 +498,7 @@ impl DepositLedger {
         };
 
         let mut deposit_account_set = account_sets
-            .remove(&self.deposits_account_set_id)
+            .remove(&self.deposits_account_set.id)
             .expect("deposit account set not found");
 
         if let Some(old_meta) = deposit_account_set.values().metadata.as_ref() {
@@ -501,7 +512,7 @@ impl DepositLedger {
                     .remove_member_in_op(
                         &mut op,
                         old_meta.deposit_accounts_parent_account_set_id,
-                        self.deposits_account_set_id,
+                        self.deposits_account_set.id,
                     )
                     .await?;
             }
@@ -511,7 +522,7 @@ impl DepositLedger {
             .add_member_in_op(
                 &mut op,
                 deposit_accounts_parent_account_set_id,
-                self.deposits_account_set_id,
+                self.deposits_account_set.id,
             )
             .await?;
         let mut update = AccountSetUpdate::default();
