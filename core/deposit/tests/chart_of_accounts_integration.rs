@@ -57,7 +57,7 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
     let code = "1".parse::<chart_of_accounts::new::AccountCode>().unwrap();
     let account_set_id = cala
         .account_sets()
-        .find(chart.account_spec(&code).unwrap().1)
+        .find(chart.id_from_code(&code).unwrap())
         .await?
         .id;
 
@@ -101,7 +101,7 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
     let code = "1".parse::<chart_of_accounts::new::AccountCode>().unwrap();
     let account_set_id = cala
         .account_sets()
-        .find(chart.account_spec(&code).unwrap().1)
+        .find(chart.id_from_code(&code).unwrap())
         .await?
         .id;
 
