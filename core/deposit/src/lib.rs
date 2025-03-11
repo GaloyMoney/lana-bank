@@ -20,7 +20,7 @@ use tracing::instrument;
 use audit::AuditSvc;
 use authz::PermissionCheck;
 use cala_ledger::CalaLedger;
-use chart_of_accounts::new::Chart;
+use chart_of_accounts::{error::CoreChartOfAccountsError, new::Chart};
 use core_customer::{CoreCustomerEvent, Customers};
 use governance::{Governance, GovernanceEvent};
 use job::Jobs;
@@ -648,27 +648,16 @@ where
         chart: Chart,
         config: ChartOfAccountsIntegrationConfig,
     ) -> Result<ChartOfAccountsIntegrationConfig, CoreDepositError> {
-        let deposit_accounts_parent_account_set_id = if let Some((_, id)) =
-            chart.account_spec(&config.chart_of_accounts_deposit_accounts_parent_code)
-        {
-            id
-        } else {
-            return Err(CoreDepositError::CodeNotFoundInChart(
-                config.chart_of_accounts_deposit_accounts_parent_code,
-            ));
-        };
-        let omnibus_parent_account_set_id = if let Some((_, id)) =
-            chart.account_spec(&config.chart_of_accounts_omnibus_parent_code)
-        {
-            id
-        } else {
-            return Err(CoreDepositError::CodeNotFoundInChart(
-                config.chart_of_accounts_omnibus_parent_code,
-            ));
-        };
         if chart.id != config.chart_of_accounts_id {
             return Err(CoreDepositError::ChartIdMismatch);
         }
+
+        let deposit_accounts_parent_account_set_id = chart
+            .id_from_code(&config.chart_of_accounts_deposit_accounts_parent_code)
+            .map_err(CoreChartOfAccountsError::AltChartError)?;
+        let omnibus_parent_account_set_id = chart
+            .id_from_code(&config.chart_of_accounts_omnibus_parent_code)
+            .map_err(CoreChartOfAccountsError::AltChartError)?;
 
         let audit_info = self
             .authz
@@ -683,8 +672,8 @@ where
             .attach_chart_of_accounts_account_sets(
                 audit_info,
                 &config,
-                *deposit_accounts_parent_account_set_id,
-                *omnibus_parent_account_set_id,
+                deposit_accounts_parent_account_set_id,
+                omnibus_parent_account_set_id,
             )
             .await?;
 

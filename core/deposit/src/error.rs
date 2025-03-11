@@ -30,8 +30,6 @@ pub enum CoreDepositError {
     SubjectIsNotDepositAccountHolder,
     #[error("CoreDepositError - DepositAccountNotFound")]
     DepositAccountNotFound,
-    #[error("CoreDepositError - CodeNotFoundInChart: {0}")]
-    CodeNotFoundInChart(chart_of_accounts::new::AccountCode),
     #[error("CoreDepositError - ChartIdMismatch")]
     ChartIdMismatch,
 }

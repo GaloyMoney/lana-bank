@@ -10,6 +10,8 @@ pub enum CoreChartOfAccountsError {
     AuthorizationError(#[from] authz::error::AuthorizationError),
     #[error("CoreChartOfAccountsError - ChartError: {0}")]
     ChartError(#[from] crate::chart_of_accounts::error::ChartError),
+    #[error("CoreChartOfAccountsError - AltChartError: {0}")]
+    AltChartError(#[from] crate::new::error::AltChartError),
     #[error("CoreChartOfAccountsError - AuditError: {0}")]
     AuditError(#[from] audit::error::AuditError),
     #[error("CoreChartOfAccountsError - CalaLedgerError: {0}")]

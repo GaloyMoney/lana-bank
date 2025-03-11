@@ -7,6 +7,7 @@ use audit::AuditInfo;
 
 use es_entity::*;
 
+use super::error::*;
 use super::primitives::*;
 use super::tree;
 
@@ -64,6 +65,12 @@ impl Chart {
 
     pub fn account_spec(&self, code: &AccountCode) -> Option<&(AccountSpec, LedgerAccountSetId)> {
         self.all_accounts.get(code)
+    }
+
+    pub fn id_from_code(&self, code: &AccountCode) -> Result<LedgerAccountSetId, AltChartError> {
+        self.account_spec(code)
+            .map(|(_, id)| *id)
+            .ok_or_else(|| AltChartError::CodeNotFoundInChart(code.clone()))
     }
 
     pub fn chart(&self) -> tree::ChartTree {
