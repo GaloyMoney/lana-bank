@@ -117,20 +117,48 @@ impl TrialBalanceLedger {
         node_account_set_id: impl Into<AccountSetId>,
         member: AccountSetId,
     ) -> Result<(), TrialBalanceLedgerError> {
+        let mut op = self.cala.ledger_operation_from_db_op(op);
+        self.add_member_in_op(&mut op, node_account_set_id, member)
+            .await?;
+
+        op.commit().await?;
+        Ok(())
+    }
+
+    pub async fn add_members(
+        &self,
+        op: es_entity::DbOp<'_>,
+        node_account_set_id: impl Into<AccountSetId> + Copy,
+        members: Vec<AccountSetId>,
+    ) -> Result<(), TrialBalanceLedgerError> {
+        let mut op = self.cala.ledger_operation_from_db_op(op);
+        for member in members {
+            self.add_member_in_op(&mut op, node_account_set_id, member)
+                .await?;
+        }
+
+        op.commit().await?;
+        Ok(())
+    }
+
+    async fn add_member_in_op(
+        &self,
+        op: &mut LedgerOperation<'_>,
+        node_account_set_id: impl Into<AccountSetId>,
+        member: AccountSetId,
+    ) -> Result<(), TrialBalanceLedgerError> {
         let node_account_set_id = node_account_set_id.into();
 
-        let mut op = self.cala.ledger_operation_from_db_op(op);
         match self
             .cala
             .account_sets()
-            .add_member_in_op(&mut op, node_account_set_id, member)
+            .add_member_in_op(op, node_account_set_id, member)
             .await
         {
             Ok(_) | Err(cala_ledger::account_set::error::AccountSetError::MemberAlreadyAdded) => {}
             Err(e) => return Err(e.into()),
         }
 
-        op.commit().await?;
         Ok(())
     }
 

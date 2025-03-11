@@ -1235,8 +1235,13 @@ impl Mutation {
         let mut data = String::new();
         file.read_to_string(&mut data)?;
 
-        app.new_chart_of_accounts()
+        let chart = app
+            .new_chart_of_accounts()
             .import_from_csv(sub, chart_id, data)
+            .await?;
+
+        app.trial_balances()
+            .add_chart_to_trial_balance(TRIAL_BALANCE_STATEMENT_NAME.to_string(), chart)
             .await?;
 
         Ok(ChartOfAccountsCsvImportPayload { success: true })
