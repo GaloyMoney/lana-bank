@@ -5,6 +5,7 @@ mod audit;
 mod authenticated_subject;
 mod chart_of_accounts;
 mod committee;
+mod credit_config;
 mod credit_facility;
 mod customer;
 mod dashboard;

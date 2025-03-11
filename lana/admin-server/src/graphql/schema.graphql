@@ -608,6 +608,34 @@ enum CreditFacilityStatus {
 	CLOSED
 }
 
+type CreditModuleConfig {
+	chartOfAccountsId: UUID
+	chartOfAccountFacilityOmnibusParentCode: String
+	chartOfAccountCollateralOmnibusParentCode: String
+	chartOfAccountFacilityParentCode: String
+	chartOfAccountCollateralParentCode: String
+	chartOfAccountDisbursedReceivableParentCode: String
+	chartOfAccountInterestReceivableParentCode: String
+	chartOfAccountInterestIncomeParentCode: String
+	chartOfAccountFeeIncomeParentCode: String
+}
+
+input CreditModuleConfigUpdateInput {
+	chartOfAccountsId: UUID!
+	chartOfAccountFacilityOmnibusParentCode: String!
+	chartOfAccountCollateralOmnibusParentCode: String!
+	chartOfAccountFacilityParentCode: String!
+	chartOfAccountCollateralParentCode: String!
+	chartOfAccountDisbursedReceivableParentCode: String!
+	chartOfAccountInterestReceivableParentCode: String!
+	chartOfAccountInterestIncomeParentCode: String!
+	chartOfAccountFeeIncomeParentCode: String!
+}
+
+type CreditModuleConfigUpdatePayload {
+	creditConfig: CreditModuleConfig!
+}
+
 type Customer {
 	id: ID!
 	customerId: UUID!
@@ -963,6 +991,7 @@ type Mutation {
 	withdrawalCancel(input: WithdrawalCancelInput!): WithdrawalCancelPayload!
 	termsTemplateCreate(input: TermsTemplateCreateInput!): TermsTemplateCreatePayload!
 	termsTemplateUpdate(input: TermsTemplateUpdateInput!): TermsTemplateUpdatePayload!
+	creditConfigUpdate(input: CreditModuleConfigUpdateInput!): CreditModuleConfigUpdatePayload!
 	creditFacilityCreate(input: CreditFacilityCreateInput!): CreditFacilityCreatePayload!
 	creditFacilityCollateralUpdate(input: CreditFacilityCollateralUpdateInput!): CreditFacilityCollateralUpdatePayload!
 	creditFacilityPartialPayment(input: CreditFacilityPartialPaymentInput!): CreditFacilityPartialPaymentPayload!

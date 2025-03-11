@@ -15,9 +15,9 @@ use crate::primitives::*;
 
 use super::{
     approval_process::*, audit::*, authenticated_subject::*, chart_of_accounts::*, committee::*,
-    credit_facility::*, customer::*, dashboard::*, deposit::*, deposit_config::*, document::*,
-    financials::*, loader::*, new_chart_of_accounts::*, policy::*, price::*, report::*, sumsub::*,
-    terms_template::*, user::*, withdrawal::*,
+    credit_config::*, credit_facility::*, customer::*, dashboard::*, deposit::*, deposit_config::*,
+    document::*, financials::*, loader::*, new_chart_of_accounts::*, policy::*, price::*,
+    report::*, sumsub::*, terms_template::*, user::*, withdrawal::*,
 };
 
 pub struct Query;
@@ -894,6 +894,61 @@ impl Mutation {
                 term_values
             )
         )
+    }
+
+    async fn credit_config_update(
+        &self,
+        ctx: &Context<'_>,
+        input: CreditModuleConfigUpdateInput,
+    ) -> async_graphql::Result<CreditModuleConfigUpdatePayload> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+
+        let chart = app
+            .new_chart_of_accounts()
+            .find_by_id(input.chart_of_accounts_id)
+            .await?;
+        let config_values = lana_app::credit_facility::ChartOfAccountsIntegrationConfig::builder()
+            .chart_of_accounts_id(input.chart_of_accounts_id)
+            .chart_of_account_facility_omnibus_parent_code(
+                input
+                    .chart_of_account_facility_omnibus_parent_code
+                    .parse()?,
+            )
+            .chart_of_account_collateral_omnibus_parent_code(
+                input
+                    .chart_of_account_collateral_omnibus_parent_code
+                    .parse()?,
+            )
+            .chart_of_account_facility_parent_code(
+                input.chart_of_account_facility_parent_code.parse()?,
+            )
+            .chart_of_account_collateral_parent_code(
+                input.chart_of_account_collateral_parent_code.parse()?,
+            )
+            .chart_of_account_disbursed_receivable_parent_code(
+                input
+                    .chart_of_account_disbursed_receivable_parent_code
+                    .parse()?,
+            )
+            .chart_of_account_interest_receivable_parent_code(
+                input
+                    .chart_of_account_interest_receivable_parent_code
+                    .parse()?,
+            )
+            .chart_of_account_interest_income_parent_code(
+                input.chart_of_account_interest_income_parent_code.parse()?,
+            )
+            .chart_of_account_fee_income_parent_code(
+                input.chart_of_account_fee_income_parent_code.parse()?,
+            )
+            .build()?;
+        let config = app
+            .credit_facilities()
+            .update_chart_of_accounts_integration_config(sub, chart, config_values)
+            .await?;
+        Ok(CreditModuleConfigUpdatePayload::from(
+            CreditModuleConfig::from(config),
+        ))
     }
 
     pub async fn credit_facility_create(

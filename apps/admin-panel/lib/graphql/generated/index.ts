@@ -630,6 +630,36 @@ export enum CreditFacilityStatus {
   PendingCollateralization = 'PENDING_COLLATERALIZATION'
 }
 
+export type CreditModuleConfig = {
+  __typename?: 'CreditModuleConfig';
+  chartOfAccountCollateralOmnibusParentCode?: Maybe<Scalars['String']['output']>;
+  chartOfAccountCollateralParentCode?: Maybe<Scalars['String']['output']>;
+  chartOfAccountDisbursedReceivableParentCode?: Maybe<Scalars['String']['output']>;
+  chartOfAccountFacilityOmnibusParentCode?: Maybe<Scalars['String']['output']>;
+  chartOfAccountFacilityParentCode?: Maybe<Scalars['String']['output']>;
+  chartOfAccountFeeIncomeParentCode?: Maybe<Scalars['String']['output']>;
+  chartOfAccountInterestIncomeParentCode?: Maybe<Scalars['String']['output']>;
+  chartOfAccountInterestReceivableParentCode?: Maybe<Scalars['String']['output']>;
+  chartOfAccountsId?: Maybe<Scalars['UUID']['output']>;
+};
+
+export type CreditModuleConfigUpdateInput = {
+  chartOfAccountCollateralOmnibusParentCode: Scalars['String']['input'];
+  chartOfAccountCollateralParentCode: Scalars['String']['input'];
+  chartOfAccountDisbursedReceivableParentCode: Scalars['String']['input'];
+  chartOfAccountFacilityOmnibusParentCode: Scalars['String']['input'];
+  chartOfAccountFacilityParentCode: Scalars['String']['input'];
+  chartOfAccountFeeIncomeParentCode: Scalars['String']['input'];
+  chartOfAccountInterestIncomeParentCode: Scalars['String']['input'];
+  chartOfAccountInterestReceivableParentCode: Scalars['String']['input'];
+  chartOfAccountsId: Scalars['UUID']['input'];
+};
+
+export type CreditModuleConfigUpdatePayload = {
+  __typename?: 'CreditModuleConfigUpdatePayload';
+  creditConfig: CreditModuleConfig;
+};
+
 export type Customer = {
   __typename?: 'Customer';
   applicantId?: Maybe<Scalars['String']['output']>;
@@ -981,6 +1011,7 @@ export type Mutation = {
   committeeAddUser: CommitteeAddUserPayload;
   committeeCreate: CommitteeCreatePayload;
   committeeRemoveUser: CommitteeRemoveUserPayload;
+  creditConfigUpdate: CreditModuleConfigUpdatePayload;
   creditFacilityCollateralUpdate: CreditFacilityCollateralUpdatePayload;
   creditFacilityComplete: CreditFacilityCompletePayload;
   creditFacilityCreate: CreditFacilityCreatePayload;
@@ -1043,6 +1074,11 @@ export type MutationCommitteeCreateArgs = {
 
 export type MutationCommitteeRemoveUserArgs = {
   input: CommitteeRemoveUserInput;
+};
+
+
+export type MutationCreditConfigUpdateArgs = {
+  input: CreditModuleConfigUpdateInput;
 };
 
 
