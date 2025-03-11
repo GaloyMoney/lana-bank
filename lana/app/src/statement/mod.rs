@@ -11,14 +11,14 @@ use crate::primitives::{LedgerAccountSetId, Satoshis, SignedSatoshis, SignedUsdC
 
 use error::*;
 
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub struct StatementAccountSetDetails {
     pub id: LedgerAccountSetId,
     pub name: String,
     pub description: Option<String>,
 }
 
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub struct StatementAccountSet {
     pub id: LedgerAccountSetId,
     pub name: String,
@@ -27,7 +27,7 @@ pub struct StatementAccountSet {
     pub usd_balance: UsdStatementAccountSetBalanceRange,
 }
 
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub struct StatementAccountSetWithAccounts {
     pub id: LedgerAccountSetId,
     pub name: String,
@@ -37,7 +37,7 @@ pub struct StatementAccountSetWithAccounts {
     pub accounts: Vec<StatementAccountSet>,
 }
 
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub struct BtcStatementAccountSetBalance {
     pub all: BtcStatementBalanceAmount,
     pub settled: BtcStatementBalanceAmount,
@@ -111,7 +111,7 @@ impl BtcStatementAccountSetBalance {
     };
 }
 
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub struct BtcStatementAccountSetBalanceRange {
     pub start: BtcStatementAccountSetBalance,
     pub end: BtcStatementAccountSetBalance,
@@ -138,7 +138,7 @@ impl BtcStatementAccountSetBalanceRange {
     };
 }
 
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub struct UsdStatementAccountSetBalance {
     pub all: UsdStatementBalanceAmount,
     pub settled: UsdStatementBalanceAmount,
@@ -212,7 +212,7 @@ impl UsdStatementAccountSetBalance {
     };
 }
 
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub struct UsdStatementAccountSetBalanceRange {
     pub start: UsdStatementAccountSetBalance,
     pub end: UsdStatementAccountSetBalance,
@@ -239,7 +239,7 @@ impl UsdStatementAccountSetBalanceRange {
     };
 }
 
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub struct BtcStatementBalanceAmount {
     pub normal_balance: Satoshis,
     pub dr_balance: Satoshis,
@@ -258,7 +258,7 @@ impl BtcStatementBalanceAmount {
     };
 }
 
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub struct UsdStatementBalanceAmount {
     pub normal_balance: UsdCents,
     pub dr_balance: UsdCents,
@@ -277,7 +277,7 @@ impl UsdStatementBalanceAmount {
     };
 }
 
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub struct BalancesByAccount {
     balances: HashMap<AccountId, HashMap<Currency, Option<BalanceRange>>>,
 }

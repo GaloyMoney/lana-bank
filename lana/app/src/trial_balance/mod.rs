@@ -135,7 +135,7 @@ impl TrialBalances {
     }
 }
 
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub struct TrialBalance {
     pub id: LedgerAccountSetId,
     pub name: String,
