@@ -1298,6 +1298,7 @@ export type Query = {
   chartOfAccounts: ChartOfAccounts;
   committee?: Maybe<Committee>;
   committees: CommitteeConnection;
+  creditConfig?: Maybe<CreditModuleConfig>;
   creditFacilities: CreditFacilityConnection;
   creditFacility?: Maybe<CreditFacility>;
   customer?: Maybe<Customer>;

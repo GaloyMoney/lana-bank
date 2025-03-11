@@ -879,6 +879,23 @@ where
         Ok(self.disbursal_repo.find_all(ids).await?)
     }
 
+    pub async fn get_chart_of_accounts_integration_config(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+    ) -> Result<Option<ChartOfAccountsIntegrationConfig>, CoreCreditError> {
+        self.authz
+            .enforce_permission(
+                sub,
+                CoreCreditObject::chart_of_accounts_integration(),
+                CoreCreditAction::CHART_OF_ACCOUNTS_INTEGRATION_CONFIG_READ,
+            )
+            .await?;
+        Ok(self
+            .ledger
+            .get_chart_of_accounts_integration_config()
+            .await?)
+    }
+
     pub async fn update_chart_of_accounts_integration_config(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,

@@ -1148,6 +1148,7 @@ type Query {
 	reports: [Report!]!
 	audit(first: Int!, after: String): AuditEntryConnection!
 	depositConfig: DepositModuleConfig
+	creditConfig: CreditModuleConfig
 }
 
 type RealtimePrice {

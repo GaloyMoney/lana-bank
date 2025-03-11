@@ -631,6 +631,18 @@ impl Query {
             .await?;
         Ok(config.map(DepositModuleConfig::from))
     }
+
+    async fn credit_config(
+        &self,
+        ctx: &Context<'_>,
+    ) -> async_graphql::Result<Option<CreditModuleConfig>> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        let config = app
+            .credit_facilities()
+            .get_chart_of_accounts_integration_config(sub)
+            .await?;
+        Ok(config.map(CreditModuleConfig::from))
+    }
 }
 
 pub struct Mutation;

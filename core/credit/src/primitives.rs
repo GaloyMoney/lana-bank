@@ -124,6 +124,10 @@ impl CoreCreditAction {
     pub const CREDIT_FACILITY_UPDATE_COLLATERALIZATION_STATE: Self =
         CoreCreditAction::CreditFacility(CreditFacilityAction::UpdateCollateralizationState);
 
+    pub const CHART_OF_ACCOUNTS_INTEGRATION_CONFIG_READ: Self =
+        CoreCreditAction::ChartOfAccountsIntegrationConfig(
+            ChartOfAccountsIntegrationConfigAction::Read,
+        );
     pub const CHART_OF_ACCOUNTS_INTEGRATION_CONFIG_UPDATE: Self =
         CoreCreditAction::ChartOfAccountsIntegrationConfig(
             ChartOfAccountsIntegrationConfigAction::Update,
@@ -204,6 +208,7 @@ impl From<DisbursalAction> for CoreCreditAction {
 #[derive(PartialEq, Clone, Copy, Debug, strum::Display, strum::EnumString)]
 #[strum(serialize_all = "kebab-case")]
 pub enum ChartOfAccountsIntegrationConfigAction {
+    Read,
     Update,
 }
 
