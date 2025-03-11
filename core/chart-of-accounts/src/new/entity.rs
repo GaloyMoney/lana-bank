@@ -8,6 +8,7 @@ use audit::AuditInfo;
 use es_entity::*;
 
 use super::error::*;
+use super::nodes;
 use super::primitives::*;
 use super::tree;
 
@@ -78,6 +79,10 @@ impl Chart {
 
     pub fn chart(&self) -> tree::ChartTree {
         tree::project(self.events.iter_all())
+    }
+
+    pub fn nodes(&self) -> Vec<nodes::Node> {
+        nodes::project(self.events.iter_all())
     }
 }
 
