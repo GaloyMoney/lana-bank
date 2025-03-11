@@ -26,6 +26,8 @@ pub enum CoreCreditError {
     PriceError(#[from] core_price::error::PriceError),
     #[error("CoreCreditError - GovernanceError: {0}")]
     GovernanceError(#[from] governance::error::GovernanceError),
+    #[error("CoreDepositError - CoreChartOfAccountsError: {0}")]
+    CoreChartOfAccountsError(#[from] chart_of_accounts::error::CoreChartOfAccountsError),
     #[error("CoreCreditError - JobError: {0}")]
     JobError(#[from] job::error::JobError),
     #[error("CoreCreditError - CustomerMismatchForCreditFacility")]
@@ -36,6 +38,8 @@ pub enum CoreCreditError {
     CustomerNotActive,
     #[error("CreditFacilityError - CustomerNotFound")]
     CustomerNotFound,
+    #[error("CreditFacilityError - ChartIdMismatch")]
+    ChartIdMismatch,
 }
 
 es_entity::from_es_entity_error!(CoreCreditError);

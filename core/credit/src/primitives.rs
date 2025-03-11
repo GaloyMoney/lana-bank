@@ -18,6 +18,7 @@ es_entity::entity_id! {
     CreditFacilityId,
     DisbursalId,
     PaymentId,
+    ChartOfAccountsIntegrationConfigId,
     InterestAccrualId;
 
     CreditFacilityId => governance::ApprovalProcessId,
@@ -37,12 +38,14 @@ pub struct LedgerOmnibusAccountIds {
 }
 
 pub type CreditFacilityAllOrOne = AllOrOne<CreditFacilityId>;
+pub type ChartOfAccountsIntegrationConfigAllOrOne = AllOrOne<ChartOfAccountsIntegrationConfigId>;
 
 #[derive(Clone, Copy, Debug, PartialEq, strum::EnumDiscriminants)]
 #[strum_discriminants(derive(strum::Display, strum::EnumString))]
 #[strum_discriminants(strum(serialize_all = "kebab-case"))]
 pub enum CoreCreditObject {
     CreditFacility(CreditFacilityAllOrOne),
+    ChartOfAccountsIntegration(ChartOfAccountsIntegrationConfigAllOrOne),
 }
 
 impl CoreCreditObject {
@@ -53,6 +56,10 @@ impl CoreCreditObject {
     pub fn credit_facility(id: CreditFacilityId) -> Self {
         CoreCreditObject::CreditFacility(AllOrOne::ById(id))
     }
+
+    pub fn chart_of_accounts_integration() -> Self {
+        CoreCreditObject::ChartOfAccountsIntegration(AllOrOne::All)
+    }
 }
 
 impl std::fmt::Display for CoreCreditObject {
@@ -61,6 +68,7 @@ impl std::fmt::Display for CoreCreditObject {
         use CoreCreditObject::*;
         match self {
             CreditFacility(obj_ref) => write!(f, "{}/{}", discriminant, obj_ref),
+            &ChartOfAccountsIntegration(obj_ref) => write!(f, "{}/{}", discriminant, obj_ref),
         }
     }
 }
@@ -76,6 +84,10 @@ impl FromStr for CoreCreditObject {
                 let obj_ref = id.parse().map_err(|_| "could not parse CoreCreditObject")?;
                 CoreCreditObject::CreditFacility(obj_ref)
             }
+            ChartOfAccountsIntegration => {
+                let obj_ref = id.parse().map_err(|_| "could not parse CoreCreditObject")?;
+                CoreCreditObject::ChartOfAccountsIntegration(obj_ref)
+            }
         };
         Ok(res)
     }
@@ -86,6 +98,7 @@ impl FromStr for CoreCreditObject {
 #[strum_discriminants(strum(serialize_all = "kebab-case"))]
 pub enum CoreCreditAction {
     CreditFacility(CreditFacilityAction),
+    ChartOfAccountsIntegrationConfig(ChartOfAccountsIntegrationConfigAction),
     Disbursal(DisbursalAction),
 }
 
@@ -111,6 +124,11 @@ impl CoreCreditAction {
     pub const CREDIT_FACILITY_UPDATE_COLLATERALIZATION_STATE: Self =
         CoreCreditAction::CreditFacility(CreditFacilityAction::UpdateCollateralizationState);
 
+    pub const CHART_OF_ACCOUNTS_INTEGRATION_CONFIG_UPDATE: Self =
+        CoreCreditAction::ChartOfAccountsIntegrationConfig(
+            ChartOfAccountsIntegrationConfigAction::Update,
+        );
+
     pub const DISBURSAL_INITIATE: Self = CoreCreditAction::Disbursal(DisbursalAction::Initiate);
     pub const DISBURSAL_SETTLE: Self = CoreCreditAction::Disbursal(DisbursalAction::Settle);
     pub const DISBURSAL_LIST: Self = CoreCreditAction::Disbursal(DisbursalAction::List);
@@ -124,6 +142,7 @@ impl std::fmt::Display for CoreCreditAction {
         use CoreCreditAction::*;
         match self {
             CreditFacility(action) => action.fmt(f),
+            ChartOfAccountsIntegrationConfig(action) => action.fmt(f),
             Disbursal(action) => action.fmt(f),
         }
     }
@@ -139,6 +158,9 @@ impl FromStr for CoreCreditAction {
         use CoreCreditActionDiscriminants::*;
         let res = match entity.parse()? {
             CreditFacility => CoreCreditAction::from(action.parse::<CreditFacilityAction>()?),
+            ChartOfAccountsIntegrationConfig => {
+                CoreCreditAction::from(action.parse::<ChartOfAccountsIntegrationConfigAction>()?)
+            }
             Disbursal => CoreCreditAction::from(action.parse::<DisbursalAction>()?),
         };
         Ok(res)
@@ -176,6 +198,18 @@ pub enum DisbursalAction {
 impl From<DisbursalAction> for CoreCreditAction {
     fn from(action: DisbursalAction) -> Self {
         Self::Disbursal(action)
+    }
+}
+
+#[derive(PartialEq, Clone, Copy, Debug, strum::Display, strum::EnumString)]
+#[strum(serialize_all = "kebab-case")]
+pub enum ChartOfAccountsIntegrationConfigAction {
+    Update,
+}
+
+impl From<ChartOfAccountsIntegrationConfigAction> for CoreCreditAction {
+    fn from(action: ChartOfAccountsIntegrationConfigAction) -> Self {
+        CoreCreditAction::ChartOfAccountsIntegrationConfig(action)
     }
 }
 
