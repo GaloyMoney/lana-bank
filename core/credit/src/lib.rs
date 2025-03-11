@@ -1,3 +1,4 @@
+mod chart_of_accounts_integration;
 mod config;
 mod credit_facility;
 mod disbursal;
@@ -26,6 +27,7 @@ use job::Jobs;
 use outbox::{Outbox, OutboxEventMarker};
 use tracing::instrument;
 
+pub use chart_of_accounts_integration::ChartOfAccountsIntegrationConfig;
 pub use config::*;
 pub use credit_facility::*;
 pub use disbursal::{disbursal_cursor::*, *};

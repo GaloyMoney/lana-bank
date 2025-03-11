@@ -1,3 +1,7 @@
+use std::collections::HashMap;
+
+use serde::{Deserialize, Serialize};
+
 use audit::AuditInfo;
 
 mod constants;
@@ -8,14 +12,17 @@ mod velocity;
 
 use cala_ledger::{
     account::NewAccount,
-    account_set::{AccountSetMemberId, NewAccountSet},
+    account_set::{AccountSet, AccountSetMemberId, AccountSetUpdate, NewAccountSet},
     velocity::{NewVelocityControl, VelocityControlId},
     CalaLedger, Currency, DebitOrCredit, JournalId, LedgerOperation, TransactionId,
 };
 
-use crate::primitives::{
-    CollateralAction, CreditFacilityId, LedgerAccountId, LedgerAccountSetId,
-    LedgerOmnibusAccountIds, Satoshis, UsdCents,
+use crate::{
+    primitives::{
+        CollateralAction, CreditFacilityId, LedgerAccountId, LedgerAccountSetId,
+        LedgerOmnibusAccountIds, Satoshis, UsdCents,
+    },
+    ChartOfAccountsIntegrationConfig,
 };
 
 use constants::*;
@@ -44,6 +51,19 @@ pub struct CreditFacilityInternalAccountSets {
     pub interest_receivable: InternalAccountSetDetails,
     pub interest_income: InternalAccountSetDetails,
     pub fee_income: InternalAccountSetDetails,
+}
+
+impl CreditFacilityInternalAccountSets {
+    fn account_set_ids(&self) -> Vec<LedgerAccountSetId> {
+        vec![
+            self.facility.id,
+            self.collateral.id,
+            self.disbursed_receivable.id,
+            self.interest_receivable.id,
+            self.interest_income.id,
+            self.fee_income.id,
+        ]
+    }
 }
 
 #[derive(Clone)]
@@ -852,11 +872,198 @@ impl CreditLedger {
         Ok(())
     }
 
+    async fn attach_charts_account_set<F>(
+        &self,
+        op: &mut LedgerOperation<'_>,
+        account_sets: &mut HashMap<LedgerAccountSetId, AccountSet>,
+        internal_account_set_id: LedgerAccountSetId,
+        parent_account_set_id: LedgerAccountSetId,
+        new_meta: &ChartOfAccountsIntegrationMeta,
+        old_parent_id_getter: F,
+    ) -> Result<(), CreditLedgerError>
+    where
+        F: FnOnce(ChartOfAccountsIntegrationMeta) -> LedgerAccountSetId,
+    {
+        let mut internal_account_set = account_sets
+            .remove(&internal_account_set_id)
+            .expect("internal account set not found");
+
+        if let Some(old_meta) = internal_account_set.values().metadata.as_ref() {
+            let old_meta: ChartOfAccountsIntegrationMeta =
+                serde_json::from_value(old_meta.clone()).expect("Could not deserialize metadata");
+            let old_parent_account_set_id = old_parent_id_getter(old_meta);
+            if old_parent_account_set_id != parent_account_set_id {
+                self.cala
+                    .account_sets()
+                    .remove_member_in_op(op, old_parent_account_set_id, internal_account_set_id)
+                    .await?;
+            }
+        }
+
+        self.cala
+            .account_sets()
+            .add_member_in_op(op, parent_account_set_id, internal_account_set_id)
+            .await?;
+        let mut update = AccountSetUpdate::default();
+        update
+            .metadata(new_meta)
+            .expect("Could not update metadata");
+        internal_account_set.update(update);
+        self.cala
+            .account_sets()
+            .persist_in_op(op, &mut internal_account_set)
+            .await?;
+
+        Ok(())
+    }
+
+    #[allow(clippy::too_many_arguments)]
     pub async fn attach_chart_of_accounts_account_sets(
         &self,
         audit_info: AuditInfo,
         config: &ChartOfAccountsIntegrationConfig,
+        facility_omnibus_parent_account_set_id: impl Into<LedgerAccountSetId>,
+        collateral_omnibus_parent_account_set_id: impl Into<LedgerAccountSetId>,
+        facility_parent_account_set_id: impl Into<LedgerAccountSetId>,
+        collateral_parent_account_set_id: impl Into<LedgerAccountSetId>,
+        disbursed_receivable_parent_account_set_id: impl Into<LedgerAccountSetId>,
+        interest_receivable_parent_account_set_id: impl Into<LedgerAccountSetId>,
+        interest_income_parent_account_set_id: impl Into<LedgerAccountSetId>,
+        fee_income_parent_account_set_id: impl Into<LedgerAccountSetId>,
     ) -> Result<(), CreditLedgerError> {
-        unimplemented!()
+        let mut op = self.cala.begin_operation().await?;
+
+        let mut account_set_ids = vec![
+            self.facility_omnibus_account_ids.account_set_id,
+            self.collateral_omnibus_account_ids.account_set_id,
+        ];
+        account_set_ids.extend(self.internal_account_sets.account_set_ids());
+        let mut account_sets = self
+            .cala
+            .account_sets()
+            .find_all_in_op::<AccountSet>(&mut op, &account_set_ids)
+            .await?;
+
+        let new_meta = ChartOfAccountsIntegrationMeta {
+            config: config.clone(),
+            facility_omnibus_parent_account_set_id: facility_omnibus_parent_account_set_id.into(),
+            collateral_omnibus_parent_account_set_id: collateral_omnibus_parent_account_set_id
+                .into(),
+            facility_parent_account_set_id: facility_parent_account_set_id.into(),
+            collateral_parent_account_set_id: collateral_parent_account_set_id.into(),
+            disbursed_receivable_parent_account_set_id: disbursed_receivable_parent_account_set_id
+                .into(),
+            interest_receivable_parent_account_set_id: interest_receivable_parent_account_set_id
+                .into(),
+            interest_income_parent_account_set_id: interest_income_parent_account_set_id.into(),
+            fee_income_parent_account_set_id: fee_income_parent_account_set_id.into(),
+            audit_info,
+        };
+
+        let ChartOfAccountsIntegrationMeta {
+            config: _,
+            audit_info: _,
+
+            facility_omnibus_parent_account_set_id: facility_omnibus_parent_id_for_attach,
+            collateral_omnibus_parent_account_set_id: collateral_omnibus_parent_id_for_attach,
+            facility_parent_account_set_id: facility_parent_id_for_attach,
+            collateral_parent_account_set_id: collateral_parent_id_for_attach,
+            disbursed_receivable_parent_account_set_id: disbursed_receivable_parent_id_for_attach,
+            interest_receivable_parent_account_set_id: interest_receivable_parent_id_for_attach,
+            interest_income_parent_account_set_id: interest_income_parent_id_for_attach,
+            fee_income_parent_account_set_id: fee_income_parent_id_for_attach,
+        } = &new_meta;
+
+        self.attach_charts_account_set(
+            &mut op,
+            &mut account_sets,
+            self.facility_omnibus_account_ids.account_set_id,
+            *facility_omnibus_parent_id_for_attach,
+            &new_meta,
+            |meta| meta.facility_omnibus_parent_account_set_id,
+        )
+        .await?;
+        self.attach_charts_account_set(
+            &mut op,
+            &mut account_sets,
+            self.collateral_omnibus_account_ids.account_set_id,
+            *collateral_omnibus_parent_id_for_attach,
+            &new_meta,
+            |meta| meta.collateral_omnibus_parent_account_set_id,
+        )
+        .await?;
+
+        self.attach_charts_account_set(
+            &mut op,
+            &mut account_sets,
+            self.internal_account_sets.facility.id,
+            *facility_parent_id_for_attach,
+            &new_meta,
+            |meta| meta.facility_parent_account_set_id,
+        )
+        .await?;
+        self.attach_charts_account_set(
+            &mut op,
+            &mut account_sets,
+            self.internal_account_sets.collateral.id,
+            *collateral_parent_id_for_attach,
+            &new_meta,
+            |meta| meta.collateral_parent_account_set_id,
+        )
+        .await?;
+        self.attach_charts_account_set(
+            &mut op,
+            &mut account_sets,
+            self.internal_account_sets.disbursed_receivable.id,
+            *disbursed_receivable_parent_id_for_attach,
+            &new_meta,
+            |meta| meta.disbursed_receivable_parent_account_set_id,
+        )
+        .await?;
+        self.attach_charts_account_set(
+            &mut op,
+            &mut account_sets,
+            self.internal_account_sets.interest_receivable.id,
+            *interest_receivable_parent_id_for_attach,
+            &new_meta,
+            |meta| meta.interest_receivable_parent_account_set_id,
+        )
+        .await?;
+        self.attach_charts_account_set(
+            &mut op,
+            &mut account_sets,
+            self.internal_account_sets.interest_income.id,
+            *interest_income_parent_id_for_attach,
+            &new_meta,
+            |meta| meta.interest_income_parent_account_set_id,
+        )
+        .await?;
+        self.attach_charts_account_set(
+            &mut op,
+            &mut account_sets,
+            self.internal_account_sets.fee_income.id,
+            *fee_income_parent_id_for_attach,
+            &new_meta,
+            |meta| meta.fee_income_parent_account_set_id,
+        )
+        .await?;
+
+        op.commit().await?;
+
+        Ok(())
     }
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug)]
+struct ChartOfAccountsIntegrationMeta {
+    config: ChartOfAccountsIntegrationConfig,
+    facility_omnibus_parent_account_set_id: LedgerAccountSetId,
+    collateral_omnibus_parent_account_set_id: LedgerAccountSetId,
+    facility_parent_account_set_id: LedgerAccountSetId,
+    collateral_parent_account_set_id: LedgerAccountSetId,
+    disbursed_receivable_parent_account_set_id: LedgerAccountSetId,
+    interest_receivable_parent_account_set_id: LedgerAccountSetId,
+    interest_income_parent_account_set_id: LedgerAccountSetId,
+    fee_income_parent_account_set_id: LedgerAccountSetId,
+    audit_info: AuditInfo,
 }
