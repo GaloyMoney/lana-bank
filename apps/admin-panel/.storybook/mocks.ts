@@ -1206,105 +1206,437 @@ export const cashFlowMockData = JSON.parse(`{
 }`)
 export const regularChartOfAccountsMockData = JSON.parse(`{
     "data": {
-        "chartOfAccounts": {
+        "newChartOfAccounts": {
+            "id": "Chart:df8b2978-8e96-4da9-90f9-ff0b6a213d06",
+            "chartId": "df8b2978-8e96-4da9-90f9-ff0b6a213d06",
             "name": "Chart of Accounts",
-            "categories": {
-                "assets": {
+            "children": [
+                {
                     "name": "Assets",
-                    "accountCode": "10000",
-                    "controlAccounts": [
+                    "accountCode": "1",
+                    "children": [
                         {
-                            "name": "Credit Facilities Disbursed Receivable",
-                            "accountCode": "10100",
-                            "controlSubAccounts": [
+                            "name": "Current Assets",
+                            "accountCode": "11",
+                            "children": [
                                 {
-                                    "name": "Fixed Term Credit Facilities Disbursed Receivable",
-                                    "accountCode": "10101",
-                                    "__typename": "ChartControlSubAccount"
+                                    "name": "Cash and Equivalents",
+                                    "accountCode": "11.01",
+                                    "children": [
+                                        {
+                                            "name": "Operating Cash",
+                                            "accountCode": "11.01.0101",
+                                            "children": [],
+                                            "__typename": "ChartNode"
+                                        },
+                                        {
+                                            "name": "Petty Cash",
+                                            "accountCode": "11.01.0102",
+                                            "children": [],
+                                            "__typename": "ChartNode"
+                                        }
+                                    ],
+                                    "__typename": "ChartNode"
+                                },
+                                {
+                                    "name": "Receivables",
+                                    "accountCode": "11.02",
+                                    "children": [
+                                        {
+                                            "name": "Accounts Receivable",
+                                            "accountCode": "11.02.0201",
+                                            "children": [],
+                                            "__typename": "ChartNode"
+                                        },
+                                        {
+                                            "name": "Notes Receivable",
+                                            "accountCode": "11.02.0202",
+                                            "children": [],
+                                            "__typename": "ChartNode"
+                                        }
+                                    ],
+                                    "__typename": "ChartNode"
+                                },
+                                {
+                                    "name": "Inventory",
+                                    "accountCode": "11.03",
+                                    "children": [
+                                        {
+                                            "name": "Raw Materials",
+                                            "accountCode": "11.03.0301",
+                                            "children": [],
+                                            "__typename": "ChartNode"
+                                        },
+                                        {
+                                            "name": "Work In Progress",
+                                            "accountCode": "11.03.0302",
+                                            "children": [],
+                                            "__typename": "ChartNode"
+                                        },
+                                        {
+                                            "name": "Finished Goods",
+                                            "accountCode": "11.03.0303",
+                                            "children": [],
+                                            "__typename": "ChartNode"
+                                        }
+                                    ],
+                                    "__typename": "ChartNode"
                                 }
                             ],
-                            "__typename": "ChartControlAccount"
+                            "__typename": "ChartNode"
                         },
                         {
-                            "name": "Credit Facilities Interest Receivable",
-                            "accountCode": "10200",
-                            "controlSubAccounts": [
+                            "name": "Non-Current Assets",
+                            "accountCode": "12",
+                            "children": [
                                 {
-                                    "name": "Fixed Term Credit Facilities Interest Receivable",
-                                    "accountCode": "10201",
-                                    "__typename": "ChartControlSubAccount"
+                                    "name": "Property and Equipment",
+                                    "accountCode": "12.01",
+                                    "children": [
+                                        {
+                                            "name": "Land",
+                                            "accountCode": "12.01.0101",
+                                            "children": [],
+                                            "__typename": "ChartNode"
+                                        },
+                                        {
+                                            "name": "Buildings",
+                                            "accountCode": "12.01.0102",
+                                            "children": [],
+                                            "__typename": "ChartNode"
+                                        },
+                                        {
+                                            "name": "Equipment",
+                                            "accountCode": "12.01.0103",
+                                            "children": [],
+                                            "__typename": "ChartNode"
+                                        }
+                                    ],
+                                    "__typename": "ChartNode"
+                                },
+                                {
+                                    "name": "Intangible Assets",
+                                    "accountCode": "12.02",
+                                    "children": [
+                                        {
+                                            "name": "Goodwill",
+                                            "accountCode": "12.02.0201",
+                                            "children": [],
+                                            "__typename": "ChartNode"
+                                        },
+                                        {
+                                            "name": "Intellectual Property",
+                                            "accountCode": "12.02.0202",
+                                            "children": [],
+                                            "__typename": "ChartNode"
+                                        }
+                                    ],
+                                    "__typename": "ChartNode"
                                 }
                             ],
-                            "__typename": "ChartControlAccount"
+                            "__typename": "ChartNode"
                         }
                     ],
-                    "__typename": "ChartCategory"
+                    "__typename": "ChartNode"
                 },
-                "liabilities": {
+                {
                     "name": "Liabilities",
-                    "accountCode": "20000",
-                    "controlAccounts": [
+                    "accountCode": "2",
+                    "children": [
                         {
-                            "name": "Deposits",
-                            "accountCode": "20100",
-                            "controlSubAccounts": [
+                            "name": "Current Liabilities",
+                            "accountCode": "21",
+                            "children": [
                                 {
-                                    "name": "User Deposits",
-                                    "accountCode": "20101",
-                                    "__typename": "ChartControlSubAccount"
+                                    "name": "Accounts Payable",
+                                    "accountCode": "21.01",
+                                    "children": [
+                                        {
+                                            "name": "Trade Payables",
+                                            "accountCode": "21.01.0101",
+                                            "children": [],
+                                            "__typename": "ChartNode"
+                                        },
+                                        {
+                                            "name": "Accrued Expenses",
+                                            "accountCode": "21.01.0102",
+                                            "children": [],
+                                            "__typename": "ChartNode"
+                                        }
+                                    ],
+                                    "__typename": "ChartNode"
+                                },
+                                {
+                                    "name": "Short-term Loans",
+                                    "accountCode": "21.02",
+                                    "children": [
+                                        {
+                                            "name": "Bank Overdrafts",
+                                            "accountCode": "21.02.0201",
+                                            "children": [],
+                                            "__typename": "ChartNode"
+                                        },
+                                        {
+                                            "name": "Current Portion of Long-term Debt",
+                                            "accountCode": "21.02.0202",
+                                            "children": [],
+                                            "__typename": "ChartNode"
+                                        }
+                                    ],
+                                    "__typename": "ChartNode"
                                 }
                             ],
-                            "__typename": "ChartControlAccount"
-                        }
-                    ],
-                    "__typename": "ChartCategory"
-                },
-                "equity": {
-                    "name": "Equity",
-                    "accountCode": "30000",
-                    "controlAccounts": [],
-                    "__typename": "ChartCategory"
-                },
-                "revenues": {
-                    "name": "Revenues",
-                    "accountCode": "40000",
-                    "controlAccounts": [
-                        {
-                            "name": "Credit Facilities Interest Income",
-                            "accountCode": "40100",
-                            "controlSubAccounts": [
-                                {
-                                    "name": "Fixed Term Credit Facilities Interest Income",
-                                    "accountCode": "40101",
-                                    "__typename": "ChartControlSubAccount"
-                                }
-                            ],
-                            "__typename": "ChartControlAccount"
+                            "__typename": "ChartNode"
                         },
                         {
-                            "name": "Credit Facilities Fee Income",
-                            "accountCode": "40200",
-                            "controlSubAccounts": [
+                            "name": "Non-Current Liabilities",
+                            "accountCode": "22",
+                            "children": [
                                 {
-                                    "name": "Fixed Term Credit Facilities Fee Income",
-                                    "accountCode": "40201",
-                                    "__typename": "ChartControlSubAccount"
+                                    "name": "Long-term Loans",
+                                    "accountCode": "22.01",
+                                    "children": [
+                                        {
+                                            "name": "Mortgages Payable",
+                                            "accountCode": "22.01.0101",
+                                            "children": [],
+                                            "__typename": "ChartNode"
+                                        },
+                                        {
+                                            "name": "Bonds Payable",
+                                            "accountCode": "22.01.0102",
+                                            "children": [],
+                                            "__typename": "ChartNode"
+                                        }
+                                    ],
+                                    "__typename": "ChartNode"
                                 }
                             ],
-                            "__typename": "ChartControlAccount"
+                            "__typename": "ChartNode"
                         }
                     ],
-                    "__typename": "ChartCategory"
+                    "__typename": "ChartNode"
                 },
-                "expenses": {
+                {
+                    "name": "Equity",
+                    "accountCode": "3",
+                    "children": [
+                        {
+                            "name": "Contributed Capital",
+                            "accountCode": "31",
+                            "children": [
+                                {
+                                    "name": "Common Stock",
+                                    "accountCode": "31.01",
+                                    "children": [],
+                                    "__typename": "ChartNode"
+                                },
+                                {
+                                    "name": "Preferred Stock",
+                                    "accountCode": "31.02",
+                                    "children": [],
+                                    "__typename": "ChartNode"
+                                }
+                            ],
+                            "__typename": "ChartNode"
+                        },
+                        {
+                            "name": "Retained Earnings",
+                            "accountCode": "32",
+                            "children": [
+                                {
+                                    "name": "Current Year Earnings",
+                                    "accountCode": "32.01",
+                                    "children": [],
+                                    "__typename": "ChartNode"
+                                },
+                                {
+                                    "name": "Prior Years Earnings",
+                                    "accountCode": "32.02",
+                                    "children": [],
+                                    "__typename": "ChartNode"
+                                }
+                            ],
+                            "__typename": "ChartNode"
+                        }
+                    ],
+                    "__typename": "ChartNode"
+                },
+                {
+                    "name": "Revenue",
+                    "accountCode": "4",
+                    "children": [
+                        {
+                            "name": "Operating Revenue",
+                            "accountCode": "41",
+                            "children": [
+                                {
+                                    "name": "Sales Revenue",
+                                    "accountCode": "41.01",
+                                    "children": [
+                                        {
+                                            "name": "Product A Sales",
+                                            "accountCode": "41.01.0101",
+                                            "children": [],
+                                            "__typename": "ChartNode"
+                                        },
+                                        {
+                                            "name": "Product B Sales",
+                                            "accountCode": "41.01.0102",
+                                            "children": [],
+                                            "__typename": "ChartNode"
+                                        }
+                                    ],
+                                    "__typename": "ChartNode"
+                                },
+                                {
+                                    "name": "Service Revenue",
+                                    "accountCode": "41.02",
+                                    "children": [
+                                        {
+                                            "name": "Consulting Services",
+                                            "accountCode": "41.02.0201",
+                                            "children": [],
+                                            "__typename": "ChartNode"
+                                        },
+                                        {
+                                            "name": "Maintenance Services",
+                                            "accountCode": "41.02.0202",
+                                            "children": [],
+                                            "__typename": "ChartNode"
+                                        }
+                                    ],
+                                    "__typename": "ChartNode"
+                                }
+                            ],
+                            "__typename": "ChartNode"
+                        }
+                    ],
+                    "__typename": "ChartNode"
+                },
+                {
                     "name": "Expenses",
-                    "accountCode": "50000",
-                    "controlAccounts": [],
-                    "__typename": "ChartCategory"
+                    "accountCode": "5",
+                    "children": [
+                        {
+                            "name": "Cost of Goods Sold",
+                            "accountCode": "51",
+                            "children": [
+                                {
+                                    "name": "Direct Materials",
+                                    "accountCode": "51.01",
+                                    "children": [],
+                                    "__typename": "ChartNode"
+                                },
+                                {
+                                    "name": "Direct Labor",
+                                    "accountCode": "51.02",
+                                    "children": [],
+                                    "__typename": "ChartNode"
+                                }
+                            ],
+                            "__typename": "ChartNode"
+                        },
+                        {
+                            "name": "Operating Expenses",
+                            "accountCode": "52",
+                            "children": [
+                                {
+                                    "name": "Salaries and Wages",
+                                    "accountCode": "52.01",
+                                    "children": [],
+                                    "__typename": "ChartNode"
+                                },
+                                {
+                                    "name": "Rent Expense",
+                                    "accountCode": "52.02",
+                                    "children": [],
+                                    "__typename": "ChartNode"
+                                },
+                                {
+                                    "name": "Utilities",
+                                    "accountCode": "52.03",
+                                    "children": [],
+                                    "__typename": "ChartNode"
+                                },
+                                {
+                                    "name": "Depreciation",
+                                    "accountCode": "52.04",
+                                    "children": [],
+                                    "__typename": "ChartNode"
+                                }
+                            ],
+                            "__typename": "ChartNode"
+                        },
+                        {
+                            "name": "Financial Expenses",
+                            "accountCode": "53",
+                            "children": [
+                                {
+                                    "name": "Interest Expense",
+                                    "accountCode": "53.01",
+                                    "children": [],
+                                    "__typename": "ChartNode"
+                                },
+                                {
+                                    "name": "Bank Charges",
+                                    "accountCode": "53.02",
+                                    "children": [],
+                                    "__typename": "ChartNode"
+                                }
+                            ],
+                            "__typename": "ChartNode"
+                        }
+                    ],
+                    "__typename": "ChartNode"
                 },
-                "__typename": "ChartCategories"
-            },
-            "__typename": "ChartOfAccounts"
+                {
+                    "name": "Other Income and Expenses",
+                    "accountCode": "6",
+                    "children": [
+                        {
+                            "name": "Other Income",
+                            "accountCode": "61",
+                            "children": [
+                                {
+                                    "name": "Interest Income",
+                                    "accountCode": "61.01",
+                                    "children": [],
+                                    "__typename": "ChartNode"
+                                },
+                                {
+                                    "name": "Gain on Sale of Assets",
+                                    "accountCode": "61.02",
+                                    "children": [],
+                                    "__typename": "ChartNode"
+                                }
+                            ],
+                            "__typename": "ChartNode"
+                        },
+                        {
+                            "name": "Other Expenses",
+                            "accountCode": "62",
+                            "children": [
+                                {
+                                    "name": "Loss on Sale of Assets",
+                                    "accountCode": "62.01",
+                                    "children": [],
+                                    "__typename": "ChartNode"
+                                },
+                                {
+                                    "name": "Foreign Exchange Loss",
+                                    "accountCode": "62.02",
+                                    "children": [],
+                                    "__typename": "ChartNode"
+                                }
+                            ],
+                            "__typename": "ChartNode"
+                        }
+                    ],
+                    "__typename": "ChartNode"
+                }
+            ],
+            "__typename": "NewChartOfAccounts"
         }
     }
 }`)

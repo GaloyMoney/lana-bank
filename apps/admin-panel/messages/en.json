@@ -1121,16 +1121,17 @@
   "ChartOfAccounts": {
     "title": "Chart Of Accounts",
     "description": "A structured list of all accounts used to categorize and track financial records.",
-    "tabs": {
-      "regular": "Regular",
-      "offBalanceSheet": "Off Balance Sheet"
-    },
-    "table": {
-      "headers": {
-        "accountName": "Account Name",
-        "accountCode": "Account Code"
-      },
-      "error": "An error occurred while fetching the chart of accounts."
+    "upload": {
+      "dragAndDrop": "Drag and drop your CSV file here",
+      "dropHere": "Drop your file here",
+      "csvOnly": "CSV files only (.csv)",
+      "noFileSelected": "No file selected",
+      "genericError": "An error occurred while uploading your file",
+      "successDescription": "Chart of accounts successfully imported",
+      "errorTitle": "Upload Failed",
+      "uploading": "Uploading your chart of accounts...",
+      "reset": "Reset",
+      "upload": "Upload"
     }
   },
   "BalanceSheet": {

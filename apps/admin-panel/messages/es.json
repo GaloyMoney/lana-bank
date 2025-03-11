@@ -1120,17 +1120,18 @@
   },
   "ChartOfAccounts": {
     "title": "Plan de Cuentas",
-    "description": "Una lista estructurada de todas las cuentas utilizadas para categorizar y rastrear registros financieros.",
-    "tabs": {
-      "regular": "Regular",
-      "offBalanceSheet": "Fuera del Balance"
-    },
-    "table": {
-      "headers": {
-        "accountName": "Nombre de Cuenta",
-        "accountCode": "Código de Cuenta"
-      },
-      "error": "Ocurrió un error al obtener el plan de cuentas."
+    "description": "Una lista estructurada de todas las cuentas utilizadas para categorizar y seguir los registros financieros.",
+    "upload": {
+      "dragAndDrop": "Arrastra y suelta tu archivo CSV aquí",
+      "dropHere": "Suelta tu archivo aquí",
+      "csvOnly": "Solo archivos CSV (.csv)",
+      "noFileSelected": "Ningún archivo seleccionado",
+      "genericError": "Ha ocurrido un error al subir tu archivo",
+      "successDescription": "Plan de cuentas importado con éxito",
+      "errorTitle": "Error de Carga",
+      "uploading": "Subiendo tu plan de cuentas...",
+      "reset": "Restablecer",
+      "upload": "Subir"
     }
   },
   "BalanceSheet": {
