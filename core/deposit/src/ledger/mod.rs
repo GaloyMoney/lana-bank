@@ -1,4 +1,5 @@
 use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
 
 use audit::AuditInfo;
 
@@ -11,7 +12,7 @@ use cala_ledger::{
     account_set::{AccountSet, AccountSetMemberId, AccountSetUpdate, NewAccountSet},
     tx_template::Params,
     velocity::{NewVelocityControl, VelocityControlId},
-    CalaLedger, Currency, DebitOrCredit, JournalId, TransactionId,
+    CalaLedger, Currency, DebitOrCredit, JournalId, LedgerOperation, TransactionId,
 };
 
 use crate::{
@@ -459,7 +460,7 @@ impl DepositLedger {
         let account_set = self
             .cala
             .account_sets()
-            .find(self.deposits_account_set_id)
+            .find(self.deposits_account_set.id)
             .await?;
         if let Some(meta) = account_set.values().metadata.as_ref() {
             let meta: ChartOfAccountsIntegrationMeta =
@@ -468,6 +469,51 @@ impl DepositLedger {
         } else {
             Ok(None)
         }
+    }
+
+    async fn attach_charts_account_set<F>(
+        &self,
+        op: &mut LedgerOperation<'_>,
+        account_sets: &mut HashMap<LedgerAccountSetId, AccountSet>,
+        internal_account_set_id: LedgerAccountSetId,
+        parent_account_set_id: LedgerAccountSetId,
+        new_meta: &ChartOfAccountsIntegrationMeta,
+        old_parent_id_getter: F,
+    ) -> Result<(), DepositLedgerError>
+    where
+        F: FnOnce(ChartOfAccountsIntegrationMeta) -> LedgerAccountSetId,
+    {
+        let mut internal_account_set = account_sets
+            .remove(&internal_account_set_id)
+            .expect("internal account set not found");
+
+        if let Some(old_meta) = internal_account_set.values().metadata.as_ref() {
+            let old_meta: ChartOfAccountsIntegrationMeta =
+                serde_json::from_value(old_meta.clone()).expect("Could not deserialize metadata");
+            let old_parent_account_set_id = old_parent_id_getter(old_meta);
+            if old_parent_account_set_id != parent_account_set_id {
+                self.cala
+                    .account_sets()
+                    .remove_member_in_op(op, old_parent_account_set_id, internal_account_set_id)
+                    .await?;
+            }
+        }
+
+        self.cala
+            .account_sets()
+            .add_member_in_op(op, parent_account_set_id, internal_account_set_id)
+            .await?;
+        let mut update = AccountSetUpdate::default();
+        update
+            .metadata(new_meta)
+            .expect("Could not update metadata");
+        internal_account_set.update(update);
+        self.cala
+            .account_sets()
+            .persist_in_op(op, &mut internal_account_set)
+            .await?;
+
+        Ok(())
     }
 
     pub async fn attach_chart_of_accounts_account_sets(
@@ -497,79 +543,24 @@ impl DepositLedger {
             audit_info,
         };
 
-        let mut deposit_account_set = account_sets
-            .remove(&self.deposits_account_set.id)
-            .expect("deposit account set not found");
-
-        if let Some(old_meta) = deposit_account_set.values().metadata.as_ref() {
-            let old_meta: ChartOfAccountsIntegrationMeta =
-                serde_json::from_value(old_meta.clone()).expect("Could not deserialize metadata");
-            if old_meta.deposit_accounts_parent_account_set_id
-                != deposit_accounts_parent_account_set_id
-            {
-                self.cala
-                    .account_sets()
-                    .remove_member_in_op(
-                        &mut op,
-                        old_meta.deposit_accounts_parent_account_set_id,
-                        self.deposits_account_set.id,
-                    )
-                    .await?;
-            }
-        }
-        self.cala
-            .account_sets()
-            .add_member_in_op(
-                &mut op,
-                deposit_accounts_parent_account_set_id,
-                self.deposits_account_set.id,
-            )
-            .await?;
-        let mut update = AccountSetUpdate::default();
-        update
-            .metadata(&new_meta)
-            .expect("Could not update metadata");
-        deposit_account_set.update(update);
-        self.cala
-            .account_sets()
-            .persist_in_op(&mut op, &mut deposit_account_set)
-            .await?;
-
-        let mut omnibus_account_set = account_sets
-            .remove(&self.deposit_omnibus_account_ids.account_set_id)
-            .expect("deposit account set not found");
-
-        if let Some(old_meta) = omnibus_account_set.values().metadata.as_ref() {
-            let old_meta: ChartOfAccountsIntegrationMeta =
-                serde_json::from_value(old_meta.clone()).expect("Could not deserialize metadata");
-            if old_meta.omnibus_parent_account_set_id != omnibus_parent_account_set_id {
-                self.cala
-                    .account_sets()
-                    .remove_member_in_op(
-                        &mut op,
-                        old_meta.omnibus_parent_account_set_id,
-                        self.deposit_omnibus_account_ids.account_set_id,
-                    )
-                    .await?;
-            }
-        }
-        self.cala
-            .account_sets()
-            .add_member_in_op(
-                &mut op,
-                omnibus_parent_account_set_id,
-                self.deposit_omnibus_account_ids.account_set_id,
-            )
-            .await?;
-        let mut update = AccountSetUpdate::default();
-        update
-            .metadata(new_meta)
-            .expect("Could not update metadata");
-        omnibus_account_set.update(update);
-        self.cala
-            .account_sets()
-            .persist_in_op(&mut op, &mut omnibus_account_set)
-            .await?;
+        self.attach_charts_account_set(
+            &mut op,
+            &mut account_sets,
+            self.deposits_account_set.id,
+            deposit_accounts_parent_account_set_id,
+            &new_meta,
+            |meta| meta.deposit_accounts_parent_account_set_id,
+        )
+        .await?;
+        self.attach_charts_account_set(
+            &mut op,
+            &mut account_sets,
+            self.deposit_omnibus_account_ids.account_set_id,
+            omnibus_parent_account_set_id,
+            &new_meta,
+            |meta| meta.omnibus_parent_account_set_id,
+        )
+        .await?;
 
         op.commit().await?;
 
