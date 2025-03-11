@@ -872,6 +872,24 @@ impl CreditLedger {
         Ok(())
     }
 
+    pub async fn get_chart_of_accounts_integration_config(
+        &self,
+    ) -> Result<Option<ChartOfAccountsIntegrationConfig>, CreditLedgerError> {
+        let account_set_id = *self
+            .internal_account_sets
+            .account_set_ids()
+            .first()
+            .expect("No internal account set ids found");
+        let account_set = self.cala.account_sets().find(account_set_id).await?;
+        if let Some(meta) = account_set.values().metadata.as_ref() {
+            let meta: ChartOfAccountsIntegrationMeta =
+                serde_json::from_value(meta.clone()).expect("Could not deserialize metadata");
+            Ok(Some(meta.config))
+        } else {
+            Ok(None)
+        }
+    }
+
     async fn attach_charts_account_set<F>(
         &self,
         op: &mut LedgerOperation<'_>,
