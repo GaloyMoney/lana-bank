@@ -625,6 +625,23 @@ where
             .await?)
     }
 
+    pub async fn get_chart_of_accounts_integration_config(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+    ) -> Result<Option<ChartOfAccountsIntegrationConfig>, CoreDepositError> {
+        self.authz
+            .enforce_permission(
+                sub,
+                CoreDepositObject::chart_of_accounts_integration(),
+                CoreDepositAction::CHART_OF_ACCOUNTS_INTEGRATION_CONFIG_READ,
+            )
+            .await?;
+        Ok(self
+            .ledger
+            .get_chart_of_accounts_integration_config()
+            .await?)
+    }
+
     pub async fn update_chart_of_accounts_integration_config(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,

@@ -476,6 +476,13 @@ async fn add_permissions_for_bank_manager(authz: &Authorization) -> Result<(), A
             CoreDepositAction::CHART_OF_ACCOUNTS_INTEGRATION_CONFIG_UPDATE,
         )
         .await?;
+    authz
+        .add_permission_to_role(
+            &role,
+            CoreDepositObject::chart_of_accounts_integration(),
+            CoreDepositAction::CHART_OF_ACCOUNTS_INTEGRATION_CONFIG_READ,
+        )
+        .await?;
 
     authz
         .add_permission_to_role(

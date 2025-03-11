@@ -149,6 +149,10 @@ impl CoreDepositAction {
         CoreDepositAction::ChartOfAccountsIntegrationConfig(
             ChartOfAccountsIntegrationConfigAction::Update,
         );
+    pub const CHART_OF_ACCOUNTS_INTEGRATION_CONFIG_READ: Self =
+        CoreDepositAction::ChartOfAccountsIntegrationConfig(
+            ChartOfAccountsIntegrationConfigAction::Read,
+        );
 
     pub const WITHDRAWAL_INITIATE: Self = CoreDepositAction::Withdrawal(WithdrawalAction::Initiate);
     pub const WITHDRAWAL_CONCLUDE_APPROVAL_PROCESS: Self =
@@ -241,6 +245,7 @@ impl From<WithdrawalAction> for CoreDepositAction {
 #[derive(PartialEq, Clone, Copy, Debug, strum::Display, strum::EnumString)]
 #[strum(serialize_all = "kebab-case")]
 pub enum ChartOfAccountsIntegrationConfigAction {
+    Read,
     Update,
 }
 

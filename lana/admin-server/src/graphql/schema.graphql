@@ -1118,6 +1118,7 @@ type Query {
 	report(id: UUID!): Report
 	reports: [Report!]!
 	audit(first: Int!, after: String): AuditEntryConnection!
+	depositConfig: DepositModuleConfig
 }
 
 type RealtimePrice {

@@ -619,6 +619,18 @@ impl Query {
         )
         .await
     }
+
+    async fn deposit_config(
+        &self,
+        ctx: &Context<'_>,
+    ) -> async_graphql::Result<Option<DepositModuleConfig>> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        let config = app
+            .deposits()
+            .get_chart_of_accounts_integration_config(sub)
+            .await?;
+        Ok(config.map(DepositModuleConfig::from))
+    }
 }
 
 pub struct Mutation;
