@@ -105,6 +105,10 @@ impl AccountCode {
         self.section.len()
     }
 
+    pub fn chart_level(&self) -> usize {
+        self.len_sections() - 1
+    }
+
     pub fn section(&self, idx: usize) -> Option<&AccountCodeSection> {
         self.section.get(idx)
     }
@@ -328,5 +332,21 @@ mod tests {
         let child = "0201".parse::<AccountCodeSection>().unwrap();
         let account_code = AccountCode::new(vec![parent.clone(), sub.clone()]);
         assert!(account_code.is_parent(&[parent, sub, child]));
+    }
+
+    #[test]
+    fn chart_level() {
+        let parent = "11".parse::<AccountCodeSection>().unwrap();
+        let sub = "01".parse::<AccountCodeSection>().unwrap();
+        let child = "0201".parse::<AccountCodeSection>().unwrap();
+
+        let account_code = AccountCode::new(vec![parent.clone()]);
+        assert_eq!(account_code.chart_level(), 0);
+
+        let account_code = AccountCode::new(vec![parent.clone(), sub.clone()]);
+        assert_eq!(account_code.chart_level(), 1);
+
+        let account_code = AccountCode::new(vec![parent, sub, child]);
+        assert_eq!(account_code.chart_level(), 2);
     }
 }
