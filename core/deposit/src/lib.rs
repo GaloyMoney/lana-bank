@@ -20,7 +20,7 @@ use tracing::instrument;
 use audit::AuditSvc;
 use authz::PermissionCheck;
 use cala_ledger::CalaLedger;
-use chart_of_accounts::{error::CoreChartOfAccountsError, new::Chart};
+use chart_of_accounts::new::Chart;
 use core_customer::{CoreCustomerEvent, Customers};
 use governance::{Governance, GovernanceEvent};
 use job::Jobs;
@@ -653,11 +653,9 @@ where
         }
 
         let deposit_accounts_parent_account_set_id = chart
-            .id_from_code(&config.chart_of_accounts_deposit_accounts_parent_code)
-            .map_err(CoreChartOfAccountsError::AltChartError)?;
-        let omnibus_parent_account_set_id = chart
-            .id_from_code(&config.chart_of_accounts_omnibus_parent_code)
-            .map_err(CoreChartOfAccountsError::AltChartError)?;
+            .account_set_id_from_code(&config.chart_of_accounts_deposit_accounts_parent_code)?;
+        let omnibus_parent_account_set_id =
+            chart.account_set_id_from_code(&config.chart_of_accounts_omnibus_parent_code)?;
 
         let audit_info = self
             .authz

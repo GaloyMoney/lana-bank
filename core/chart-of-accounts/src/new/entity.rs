@@ -67,7 +67,10 @@ impl Chart {
         self.all_accounts.get(code)
     }
 
-    pub fn id_from_code(&self, code: &AccountCode) -> Result<LedgerAccountSetId, AltChartError> {
+    pub fn account_set_id_from_code(
+        &self,
+        code: &AccountCode,
+    ) -> Result<LedgerAccountSetId, AltChartError> {
         self.account_spec(code)
             .map(|(_, id)| *id)
             .ok_or_else(|| AltChartError::CodeNotFoundInChart(code.clone()))
