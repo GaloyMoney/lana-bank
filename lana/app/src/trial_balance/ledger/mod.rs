@@ -129,7 +129,7 @@ impl TrialBalanceLedger {
         &self,
         op: es_entity::DbOp<'_>,
         node_account_set_id: impl Into<AccountSetId> + Copy,
-        members: Vec<AccountSetId>,
+        members: impl Iterator<Item = AccountSetId>,
     ) -> Result<(), TrialBalanceLedgerError> {
         let mut op = self.cala.ledger_operation_from_db_op(op);
         for member in members {

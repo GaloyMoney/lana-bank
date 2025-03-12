@@ -102,15 +102,12 @@ impl TrialBalances {
             .record_system_entry_in_tx(op.tx(), Object::TrialBalance, TrialBalanceAction::Update)
             .await?;
 
-        let member_ids = chart
-            .nodes()
-            .iter()
-            .filter(|n| n.code.chart_level() > 0)
-            .map(|n| n.id)
-            .collect::<Vec<LedgerAccountSetId>>();
-
         self.trial_balance_ledger
-            .add_members(op, trial_balance_id, member_ids)
+            .add_members(
+                op,
+                trial_balance_id,
+                chart.all_non_top_level_accounts().map(|(_, id)| *id),
+            )
             .await?;
 
         Ok(())
