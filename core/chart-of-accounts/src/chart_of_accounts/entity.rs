@@ -1,18 +1,15 @@
 use derive_builder::Builder;
 use serde::{Deserialize, Serialize};
 
+use std::collections::HashMap;
+
 use audit::AuditInfo;
 
 use es_entity::*;
 
-use crate::{
-    path::*,
-    primitives::{ChartId, LedgerAccountSetId},
-    ControlAccountDetails, ControlSubAccountDetails,
-};
+use crate::primitives::*;
 
-pub use super::error::*;
-use super::tree;
+use super::{error::*, tree};
 
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
@@ -24,20 +21,9 @@ pub enum ChartEvent {
         reference: String,
         audit_info: AuditInfo,
     },
-    ControlAccountAdded {
-        id: LedgerAccountSetId,
-        encoded_path: String,
-        path: ControlAccountPath,
-        name: String,
-        reference: String,
-        audit_info: AuditInfo,
-    },
-    ControlSubAccountAdded {
-        id: LedgerAccountSetId,
-        encoded_path: String,
-        path: ControlSubAccountPath,
-        name: String,
-        reference: String,
+    NodeAdded {
+        spec: AccountSpec,
+        ledger_account_set_id: LedgerAccountSetId,
         audit_info: AuditInfo,
     },
 }
@@ -48,165 +34,65 @@ pub struct Chart {
     pub id: ChartId,
     pub reference: String,
     pub name: String,
+    all_accounts: HashMap<AccountCode, (AccountSpec, LedgerAccountSetId)>,
     pub(super) events: EntityEvents<ChartEvent>,
 }
 
 impl Chart {
-    fn next_control_account(
+    pub fn create_node(
+        &mut self,
+        spec: &AccountSpec,
+        audit_info: AuditInfo,
+    ) -> Idempotent<(Option<LedgerAccountSetId>, LedgerAccountSetId)> {
+        if self.all_accounts.contains_key(&spec.code) {
+            return Idempotent::AlreadyApplied;
+        }
+        let ledger_account_set_id = LedgerAccountSetId::new();
+        self.events.push(ChartEvent::NodeAdded {
+            spec: spec.clone(),
+            ledger_account_set_id,
+            audit_info,
+        });
+        let parent = if let Some(parent) = spec.parent.as_ref() {
+            self.all_accounts.get(parent).map(|(_, id)| *id)
+        } else {
+            None
+        };
+        self.all_accounts
+            .insert(spec.code.clone(), (spec.clone(), ledger_account_set_id));
+        Idempotent::Executed((parent, ledger_account_set_id))
+    }
+
+    pub fn all_non_top_level_accounts(
         &self,
-        category: ChartCategory,
-    ) -> Result<ControlAccountPath, ChartError> {
-        Ok(self
-            .events
-            .iter_all()
-            .rev()
-            .find_map(|event| match event {
-                ChartEvent::ControlAccountAdded { path, .. } if path.category == category => {
-                    Some(path.next())
-                }
-                _ => None,
-            })
-            .unwrap_or_else(|| Ok(category.first_control_account()))?)
+    ) -> impl Iterator<Item = &(AccountSpec, LedgerAccountSetId)> {
+        self.all_accounts
+            .values()
+            .filter(|(spec, _)| spec.code.len_sections() != 1)
+    }
+
+    pub fn account_spec(&self, code: &AccountCode) -> Option<&(AccountSpec, LedgerAccountSetId)> {
+        self.all_accounts.get(code)
+    }
+
+    pub fn account_set_id_from_code(
+        &self,
+        code: &AccountCode,
+    ) -> Result<LedgerAccountSetId, ChartError> {
+        self.account_spec(code)
+            .map(|(_, id)| *id)
+            .ok_or_else(|| ChartError::CodeNotFoundInChart(code.clone()))
     }
 
     pub fn chart(&self) -> tree::ChartTree {
         tree::project(self.events.iter_all())
-    }
-
-    pub fn find_control_account_by_reference(
-        &self,
-        reference_to_check: String,
-    ) -> Option<ControlAccountDetails> {
-        self.events.iter_all().rev().find_map(|event| match event {
-            ChartEvent::ControlAccountAdded {
-                path,
-                reference,
-                id,
-                name,
-                ..
-            } if reference_to_check == *reference => Some({
-                ControlAccountDetails {
-                    path: *path,
-                    account_set_id: *id,
-                    name: name.to_string(),
-                    reference: reference.to_string(),
-                }
-            }),
-            _ => None,
-        })
-    }
-
-    pub fn create_control_account(
-        &mut self,
-        id: LedgerAccountSetId,
-        category: ChartCategory,
-        name: String,
-        reference: String,
-        audit_info: AuditInfo,
-    ) -> Result<ControlAccountDetails, ChartError> {
-        if self
-            .find_control_account_by_reference(reference.to_string())
-            .is_some()
-        {
-            return Err(ChartError::ControlAccountAlreadyRegistered(reference));
-        };
-
-        let path = self.next_control_account(category)?;
-        self.events.push(ChartEvent::ControlAccountAdded {
-            id,
-            encoded_path: path.path_encode(self.id),
-            path,
-            name: name.to_string(),
-            reference: reference.to_string(),
-            audit_info,
-        });
-
-        Ok(ControlAccountDetails {
-            path,
-            account_set_id: id,
-            name,
-            reference,
-        })
-    }
-
-    fn next_control_sub_account(
-        &self,
-        control_account: ControlAccountPath,
-    ) -> Result<ControlSubAccountPath, ChartError> {
-        Ok(self
-            .events
-            .iter_all()
-            .rev()
-            .find_map(|event| match event {
-                ChartEvent::ControlSubAccountAdded { path, .. }
-                    if path.category == control_account.category
-                        && path.control_account() == control_account =>
-                {
-                    Some(path.next())
-                }
-                _ => None,
-            })
-            .unwrap_or(Ok(control_account.first_control_sub_account()))?)
-    }
-
-    pub fn find_control_sub_account_by_reference(
-        &self,
-        reference_to_check: String,
-    ) -> Option<ControlSubAccountDetails> {
-        self.events.iter_all().rev().find_map(|event| match event {
-            ChartEvent::ControlSubAccountAdded {
-                path,
-                id: account_set_id,
-                name,
-                reference,
-                ..
-            } if reference_to_check == *reference => Some(ControlSubAccountDetails {
-                path: *path,
-                account_set_id: *account_set_id,
-                name: name.to_string(),
-                reference: reference.to_string(),
-            }),
-            _ => None,
-        })
-    }
-
-    pub fn create_control_sub_account(
-        &mut self,
-        id: LedgerAccountSetId,
-        control_account: ControlAccountPath,
-        name: String,
-        reference: String,
-        audit_info: AuditInfo,
-    ) -> Result<ControlSubAccountDetails, ChartError> {
-        if self
-            .find_control_sub_account_by_reference(reference.to_string())
-            .is_some()
-        {
-            return Err(ChartError::ControlSubAccountAlreadyRegistered(reference));
-        };
-
-        let path = self.next_control_sub_account(control_account)?;
-        self.events.push(ChartEvent::ControlSubAccountAdded {
-            id,
-            encoded_path: path.path_encode(self.id),
-            path,
-            name: name.to_string(),
-            reference: reference.to_string(),
-            audit_info,
-        });
-
-        Ok(ControlSubAccountDetails {
-            path,
-            account_set_id: id,
-            name,
-            reference,
-        })
     }
 }
 
 impl TryFromEvents<ChartEvent> for Chart {
     fn try_from_events(events: EntityEvents<ChartEvent>) -> Result<Self, EsEntityError> {
         let mut builder = ChartBuilder::default();
+        let mut all_accounts = HashMap::new();
         for event in events.iter_all() {
             match event {
                 ChartEvent::Initialized {
@@ -220,11 +106,16 @@ impl TryFromEvents<ChartEvent> for Chart {
                         .reference(reference.to_string())
                         .name(name.to_string())
                 }
-                ChartEvent::ControlAccountAdded { .. } => (),
-                ChartEvent::ControlSubAccountAdded { .. } => (),
+                ChartEvent::NodeAdded {
+                    spec,
+                    ledger_account_set_id,
+                    ..
+                } => {
+                    all_accounts.insert(spec.code.clone(), (spec.clone(), *ledger_account_set_id));
+                }
             }
         }
-        builder.events(events).build()
+        builder.all_accounts(all_accounts).events(events).build()
     }
 }
 
@@ -255,255 +146,5 @@ impl IntoEvents<ChartEvent> for NewChart {
                 audit_info: self.audit_info,
             }],
         )
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use crate::path::{AccountIdx, ChartCategory};
-
-    use super::*;
-
-    use audit::{AuditEntryId, AuditInfo};
-
-    fn dummy_audit_info() -> AuditInfo {
-        AuditInfo {
-            audit_entry_id: AuditEntryId::from(1),
-            sub: "sub".to_string(),
-        }
-    }
-
-    fn init_chart_of_events() -> Chart {
-        let id = ChartId::new();
-        let audit_info = dummy_audit_info();
-
-        let new_chart = NewChart::builder()
-            .id(id)
-            .name("Test Chart".to_string())
-            .reference("ref-01".to_string())
-            .audit_info(audit_info)
-            .build()
-            .unwrap();
-
-        let events = new_chart.into_events();
-        Chart::try_from_events(events).unwrap()
-    }
-
-    #[test]
-    fn test_create_new_chart_of_account() {
-        let id = ChartId::new();
-        let audit_info = dummy_audit_info();
-
-        let new_chart = NewChart::builder()
-            .id(id)
-            .name("Test Chart".to_string())
-            .reference("ref-01".to_string())
-            .audit_info(audit_info.clone())
-            .build()
-            .unwrap();
-
-        let events = new_chart.into_events();
-        let chart = Chart::try_from_events(events).unwrap();
-
-        assert_eq!(chart.id, id);
-    }
-
-    #[test]
-    fn test_create_control_account() {
-        let mut chart = init_chart_of_events();
-        let ControlAccountDetails {
-            path: ControlAccountPath { category, index },
-            ..
-        } = chart
-            .create_control_account(
-                LedgerAccountSetId::new(),
-                ChartCategory::Assets,
-                "Assets".to_string(),
-                "assets".to_string(),
-                dummy_audit_info(),
-            )
-            .unwrap();
-        assert_eq!(category, ChartCategory::Assets);
-        assert_eq!(index, AccountIdx::FIRST);
-    }
-
-    #[test]
-    fn test_control_account_duplicate_reference() {
-        let mut chart = init_chart_of_events();
-        chart
-            .create_control_account(
-                LedgerAccountSetId::new(),
-                ChartCategory::Assets,
-                "Assets #1".to_string(),
-                "assets".to_string(),
-                dummy_audit_info(),
-            )
-            .unwrap();
-
-        match chart.create_control_account(
-            LedgerAccountSetId::new(),
-            ChartCategory::Assets,
-            "Assets #2".to_string(),
-            "assets".to_string(),
-            dummy_audit_info(),
-        ) {
-            Err(e) => {
-                assert!(matches!(e, ChartError::ControlAccountAlreadyRegistered(_)));
-            }
-            _ => {
-                panic!("Expected duplicate reference to error")
-            }
-        }
-    }
-
-    #[test]
-    fn test_create_control_sub_account() {
-        let mut chart = init_chart_of_events();
-        let control_account = chart
-            .create_control_account(
-                LedgerAccountSetId::new(),
-                ChartCategory::Assets,
-                "Assets".to_string(),
-                "assets".to_string(),
-                dummy_audit_info(),
-            )
-            .unwrap();
-
-        let ControlSubAccountDetails {
-            path:
-                ControlSubAccountPath {
-                    category,
-                    control_index,
-                    index,
-                },
-            ..
-        } = chart
-            .create_control_sub_account(
-                LedgerAccountSetId::new(),
-                control_account.path,
-                "Current Assets".to_string(),
-                "current-assets".to_string(),
-                dummy_audit_info(),
-            )
-            .unwrap();
-        assert_eq!(category, ChartCategory::Assets);
-        assert_eq!(control_index, AccountIdx::FIRST);
-        assert_eq!(index, AccountIdx::FIRST);
-    }
-
-    #[test]
-    fn test_control_sub_account_duplicate_reference() {
-        let mut chart = init_chart_of_events();
-        let control_account = chart
-            .create_control_account(
-                LedgerAccountSetId::new(),
-                ChartCategory::Assets,
-                "Assets".to_string(),
-                "assets".to_string(),
-                dummy_audit_info(),
-            )
-            .unwrap();
-        chart
-            .create_control_sub_account(
-                LedgerAccountSetId::new(),
-                control_account.path,
-                "Current Assets #1".to_string(),
-                "current-assets".to_string(),
-                dummy_audit_info(),
-            )
-            .unwrap();
-
-        match chart.create_control_sub_account(
-            LedgerAccountSetId::new(),
-            control_account.path,
-            "Current Assets #2".to_string(),
-            "current-assets".to_string(),
-            dummy_audit_info(),
-        ) {
-            Err(e) => {
-                assert!(matches!(
-                    e,
-                    ChartError::ControlSubAccountAlreadyRegistered(_)
-                ));
-            }
-            _ => {
-                panic!("Expected duplicate reference to error")
-            }
-        }
-    }
-
-    #[test]
-    fn test_create_sequential_control_accounts() {
-        let mut chart = init_chart_of_events();
-
-        chart
-            .create_control_account(
-                LedgerAccountSetId::new(),
-                ChartCategory::Assets,
-                "First".to_string(),
-                "assets-01".to_string(),
-                dummy_audit_info(),
-            )
-            .unwrap();
-
-        let ControlAccountDetails {
-            path: ControlAccountPath { category, index },
-            ..
-        } = chart
-            .create_control_account(
-                LedgerAccountSetId::new(),
-                ChartCategory::Assets,
-                "Second".to_string(),
-                "assets-02".to_string(),
-                dummy_audit_info(),
-            )
-            .unwrap();
-        assert_eq!(category, ChartCategory::Assets);
-        assert_eq!(index, AccountIdx::FIRST.next());
-    }
-
-    #[test]
-    fn test_create_sequential_control_sub_accounts() {
-        let mut chart = init_chart_of_events();
-        let control_account = chart
-            .create_control_account(
-                LedgerAccountSetId::new(),
-                ChartCategory::Assets,
-                "Assets".to_string(),
-                "assets".to_string(),
-                dummy_audit_info(),
-            )
-            .unwrap();
-
-        chart
-            .create_control_sub_account(
-                LedgerAccountSetId::new(),
-                control_account.path,
-                "First".to_string(),
-                "first-asset".to_string(),
-                dummy_audit_info(),
-            )
-            .unwrap();
-
-        let ControlSubAccountDetails {
-            path:
-                ControlSubAccountPath {
-                    category,
-                    control_index,
-                    index,
-                },
-            ..
-        } = chart
-            .create_control_sub_account(
-                LedgerAccountSetId::new(),
-                control_account.path,
-                "Second".to_string(),
-                "second-asset".to_string(),
-                dummy_audit_info(),
-            )
-            .unwrap();
-        assert_eq!(category, ChartCategory::Assets);
-        assert_eq!(control_index, AccountIdx::FIRST);
-        assert_eq!(index, AccountIdx::FIRST.next());
     }
 }

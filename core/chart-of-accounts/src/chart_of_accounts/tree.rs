@@ -1,47 +1,69 @@
-use std::collections::HashMap;
+use std::{
+    cell::RefCell,
+    collections::HashMap,
+    rc::{Rc, Weak},
+};
 
-use crate::{path::*, ChartId};
+use crate::{primitives::LedgerAccountSetId, ChartId};
 
-use super::ChartEvent;
+use crate::{AccountCode, AccountName, AccountSpec, ChartEvent};
 
-pub struct ChartTreeCategory {
-    pub name: String,
-    pub encoded_path: String,
-    pub children: Vec<ChartTreeControlAccount>,
-}
-
-struct ControlAccountAdded {
-    name: String,
-    path: ControlAccountPath,
-}
-
-pub struct ChartTreeControlAccount {
-    pub name: String,
-    pub encoded_path: String,
-    pub children: Vec<ChartTreeControlSubAccount>,
-}
-
-pub struct ChartTreeControlSubAccount {
-    pub name: String,
-    pub encoded_path: String,
-}
-
+#[derive(Debug)]
 pub struct ChartTree {
     pub id: ChartId,
     pub name: String,
-    pub assets: ChartTreeCategory,
-    pub liabilities: ChartTreeCategory,
-    pub equity: ChartTreeCategory,
-    pub revenues: ChartTreeCategory,
-    pub expenses: ChartTreeCategory,
+    pub children: Vec<TreeNode>,
+}
+
+#[derive(Debug, Clone)]
+pub struct TreeNode {
+    pub id: LedgerAccountSetId,
+    pub code: AccountCode,
+    pub name: AccountName,
+    pub parent: Option<AccountCode>,
+    pub children: Vec<TreeNode>,
+}
+
+#[derive(Debug, Clone)]
+pub struct TreeNodeWithRef {
+    id: LedgerAccountSetId,
+    code: AccountCode,
+    name: AccountName,
+    parent: Option<AccountCode>,
+    children: Vec<Rc<RefCell<TreeNodeWithRef>>>,
+}
+
+impl TreeNodeWithRef {
+    fn into_node(self) -> TreeNode {
+        TreeNode {
+            id: self.id,
+            code: self.code,
+            name: self.name,
+            parent: self.parent,
+            children: self
+                .children
+                .into_iter()
+                .map(|child_rc| {
+                    let child = Rc::try_unwrap(child_rc)
+                        .expect("Child has multiple owners")
+                        .into_inner();
+                    child.into_node()
+                })
+                .collect(),
+        }
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct EntityNode {
+    pub id: LedgerAccountSetId,
+    pub spec: AccountSpec,
 }
 
 pub(super) fn project<'a>(events: impl DoubleEndedIterator<Item = &'a ChartEvent>) -> ChartTree {
     let mut id: Option<ChartId> = None;
     let mut name: Option<String> = None;
-    let mut control_accounts_added: Vec<ControlAccountAdded> = vec![];
-    let mut control_sub_accounts_by_parent: HashMap<String, Vec<ChartTreeControlSubAccount>> =
-        HashMap::new();
+    let mut entity_nodes: Vec<EntityNode> = vec![];
 
     for event in events {
         match event {
@@ -53,75 +75,60 @@ pub(super) fn project<'a>(events: impl DoubleEndedIterator<Item = &'a ChartEvent
                 id = Some(*chart_id);
                 name = Some(chart_name.to_string());
             }
-            ChartEvent::ControlAccountAdded { path, name, .. } => {
-                control_accounts_added.push(ControlAccountAdded {
-                    name: name.to_string(),
-                    path: *path,
-                })
-            }
-            ChartEvent::ControlSubAccountAdded { path, name, .. } => control_sub_accounts_by_parent
-                .entry(path.control_account().to_string())
-                .or_default()
-                .push(ChartTreeControlSubAccount {
-                    name: name.to_string(),
-                    encoded_path: path.to_string(),
-                }),
+            ChartEvent::NodeAdded {
+                ledger_account_set_id: id,
+                spec,
+                ..
+            } => entity_nodes.push(EntityNode {
+                id: *id,
+                spec: spec.clone(),
+            }),
         }
     }
 
-    let mut control_accounts_by_category: HashMap<ChartCategory, Vec<ChartTreeControlAccount>> =
+    let mut chart_children: Vec<Rc<RefCell<TreeNodeWithRef>>> = vec![];
+    let mut tree_nodes_by_code: HashMap<AccountCode, Weak<RefCell<TreeNodeWithRef>>> =
         HashMap::new();
-    for account in control_accounts_added {
-        control_accounts_by_category
-            .entry(account.path.category)
-            .or_default()
-            .push(ChartTreeControlAccount {
-                name: account.name,
-                encoded_path: account.path.to_string(),
-                children: control_sub_accounts_by_parent
-                    .remove(&account.path.to_string())
-                    .unwrap_or_default(),
-            });
+
+    entity_nodes.sort_by_key(|l| l.spec.code.clone());
+    for node in entity_nodes {
+        let node_rc = Rc::new(RefCell::new(TreeNodeWithRef {
+            id: node.id,
+            code: node.spec.code.clone(),
+            name: node.spec.name.clone(),
+            parent: node.spec.parent.clone(),
+            children: vec![],
+        }));
+        if let Some(parent) = node.spec.parent {
+            tree_nodes_by_code
+                .get_mut(&parent)
+                .expect("Parent missing in tree_nodes_by_code for code")
+                .upgrade()
+                .expect("Parent node for code was dropped")
+                .borrow_mut()
+                .children
+                .push(Rc::clone(&node_rc));
+        } else {
+            chart_children.push(Rc::clone(&node_rc));
+        }
+
+        tree_nodes_by_code
+            .entry(node.spec.code)
+            .or_insert_with(|| Rc::downgrade(&node_rc));
     }
 
     ChartTree {
-        id: id.expect("Chart must be initialized"),
-        name: name.expect("Chart must be initialized"),
-        assets: ChartTreeCategory {
-            name: "Assets".to_string(),
-            encoded_path: ChartCategory::Assets.to_string(),
-            children: control_accounts_by_category
-                .remove(&ChartCategory::Assets)
-                .unwrap_or_default(),
-        },
-        liabilities: ChartTreeCategory {
-            name: "Liabilities".to_string(),
-            encoded_path: ChartCategory::Liabilities.to_string(),
-            children: control_accounts_by_category
-                .remove(&ChartCategory::Liabilities)
-                .unwrap_or_default(),
-        },
-        equity: ChartTreeCategory {
-            name: "Equity".to_string(),
-            encoded_path: ChartCategory::Equity.to_string(),
-            children: control_accounts_by_category
-                .remove(&ChartCategory::Equity)
-                .unwrap_or_default(),
-        },
-        revenues: ChartTreeCategory {
-            name: "Revenues".to_string(),
-            encoded_path: ChartCategory::Revenues.to_string(),
-            children: control_accounts_by_category
-                .remove(&ChartCategory::Revenues)
-                .unwrap_or_default(),
-        },
-        expenses: ChartTreeCategory {
-            name: "Expenses".to_string(),
-            encoded_path: ChartCategory::Expenses.to_string(),
-            children: control_accounts_by_category
-                .remove(&ChartCategory::Expenses)
-                .unwrap_or_default(),
-        },
+        id: id.expect("chart id is missing"),
+        name: name.expect("chart name is missing"),
+        children: chart_children
+            .into_iter()
+            .map(|child_rc| {
+                let child_refcell = Rc::try_unwrap(child_rc)
+                    .expect("Child has multiple owners")
+                    .into_inner();
+                child_refcell.into_node()
+            })
+            .collect(),
     }
 }
 
@@ -129,7 +136,7 @@ pub(super) fn project<'a>(events: impl DoubleEndedIterator<Item = &'a ChartEvent
 mod tests {
     use es_entity::*;
 
-    use crate::{path::ChartCategory, Chart, LedgerAccountSetId, NewChart};
+    use crate::chart_of_accounts::{Chart, NewChart};
 
     use super::*;
 
@@ -163,94 +170,76 @@ mod tests {
         let mut chart = init_chart_of_events();
 
         {
-            let control_account = chart
-                .create_control_account(
-                    LedgerAccountSetId::new(),
-                    ChartCategory::Assets,
-                    "Loans Receivable".to_string(),
-                    "loans-receivable".to_string(),
+            chart
+                .create_node(
+                    &AccountSpec {
+                        parent: None,
+                        code: AccountCode::new(vec!["1".parse().unwrap()]),
+                        name: "Assets".parse().unwrap(),
+                    },
                     dummy_audit_info(),
                 )
                 .unwrap();
             chart
-                .create_control_sub_account(
-                    LedgerAccountSetId::new(),
-                    control_account.path,
-                    "Fixed Loans Receivable".to_string(),
-                    "fixed-loans-receivable".to_string(),
+                .create_node(
+                    &AccountSpec {
+                        parent: Some(AccountCode::new(vec!["1".parse().unwrap()])),
+                        code: AccountCode::new(vec!["11".parse().unwrap()]),
+                        name: "Assets".parse().unwrap(),
+                    },
+                    dummy_audit_info(),
+                )
+                .unwrap();
+            chart
+                .create_node(
+                    &AccountSpec {
+                        parent: Some(AccountCode::new(vec!["11".parse().unwrap()])),
+                        code: AccountCode::new(
+                            ["11", "01"].iter().map(|c| c.parse().unwrap()).collect(),
+                        ),
+                        name: "Cash".parse().unwrap(),
+                    },
+                    dummy_audit_info(),
+                )
+                .unwrap();
+            chart
+                .create_node(
+                    &AccountSpec {
+                        parent: Some(AccountCode::new(
+                            ["11", "01"].iter().map(|c| c.parse().unwrap()).collect(),
+                        )),
+                        code: AccountCode::new(
+                            ["11", "01", "0101"]
+                                .iter()
+                                .map(|c| c.parse().unwrap())
+                                .collect(),
+                        ),
+                        name: "Central Office".parse().unwrap(),
+                    },
                     dummy_audit_info(),
                 )
                 .unwrap();
         }
+        let tree = chart.chart();
+        let assets = &tree.children[0];
+        assert_eq!(assets.code, AccountCode::new(vec!["1".parse().unwrap()]));
+        let assets_2 = &assets.children[0];
+        assert_eq!(assets_2.code, AccountCode::new(vec!["11".parse().unwrap()]));
+        let cash = &assets_2.children[0];
         assert_eq!(
-            chart.chart().assets.children[0].children[0].encoded_path,
-            "10101".to_string()
+            cash.code,
+            AccountCode::new(["11", "01"].iter().map(|c| c.parse().unwrap()).collect(),)
         );
-
-        {
-            let control_account = chart
-                .create_control_account(
-                    LedgerAccountSetId::new(),
-                    ChartCategory::Liabilities,
-                    "User Checking".to_string(),
-                    "user-checking".to_string(),
-                    dummy_audit_info(),
-                )
-                .unwrap();
-            chart
-                .create_control_sub_account(
-                    LedgerAccountSetId::new(),
-                    control_account.path,
-                    "User Checking".to_string(),
-                    "sub-user-checking".to_string(),
-                    dummy_audit_info(),
-                )
-                .unwrap();
-        }
+        let central_office = &cash.children[0];
         assert_eq!(
-            chart.chart().liabilities.children[0].children[0].encoded_path,
-            "20101".to_string()
+            central_office.code,
+            AccountCode::new(
+                ["11", "01", "0101"]
+                    .iter()
+                    .map(|c| c.parse().unwrap())
+                    .collect(),
+            )
         );
-
-        {
-            let control_account = chart
-                .create_control_account(
-                    LedgerAccountSetId::new(),
-                    ChartCategory::Equity,
-                    "Shareholder Equity".to_string(),
-                    "shareholder-equity".to_string(),
-                    dummy_audit_info(),
-                )
-                .unwrap();
-            chart
-                .create_control_sub_account(
-                    LedgerAccountSetId::new(),
-                    control_account.path,
-                    "Shareholder Equity".to_string(),
-                    "sub-shareholder-equity".to_string(),
-                    dummy_audit_info(),
-                )
-                .unwrap();
-        }
-        assert_eq!(
-            chart.chart().equity.children[0].children[0].encoded_path,
-            "30101"
-        );
-
-        {
-            chart
-                .create_control_account(
-                    LedgerAccountSetId::new(),
-                    ChartCategory::Revenues,
-                    "Interest Revenue".to_string(),
-                    "interest-revenue".to_string(),
-                    dummy_audit_info(),
-                )
-                .unwrap();
-        }
-        assert_eq!(chart.chart().revenues.children[0].encoded_path, "40100");
-        assert_eq!(chart.chart().revenues.children[0].children.len(), 0);
-
-        assert_eq!(chart.chart().expenses.children.len(), 0);
+        assert!(central_office.children.is_empty());
     }
 }

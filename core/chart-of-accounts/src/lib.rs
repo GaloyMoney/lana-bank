@@ -3,20 +3,17 @@
 
 mod chart_of_accounts;
 pub mod error;
-pub mod new;
-mod path;
 mod primitives;
-
-use cala_ledger::{account_set::NewAccountSet, CalaLedger};
-use tracing::instrument;
 
 use audit::AuditSvc;
 use authz::PermissionCheck;
 
+use cala_ledger::{account_set::NewAccountSet, CalaLedger};
+use tracing::instrument;
+
 use chart_of_accounts::*;
 pub use chart_of_accounts::{tree, Chart};
 use error::*;
-pub use path::ControlSubAccountPath;
 pub use primitives::*;
 
 pub struct CoreChartOfAccounts<Perms>
@@ -68,24 +65,23 @@ where
     #[instrument(name = "chart_of_accounts.create_chart", skip(self))]
     pub async fn create_chart(
         &self,
-        id: impl Into<ChartId> + std::fmt::Debug,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         name: String,
         reference: String,
     ) -> Result<Chart, CoreChartOfAccountsError> {
-        let id = id.into();
+        let id = ChartId::new();
 
         let mut op = self.repo.begin_op().await?;
         let audit_info = self
             .authz
-            .audit()
-            .record_system_entry_in_tx(
-                op.tx(),
+            .enforce_permission(
+                sub,
                 CoreChartOfAccountsObject::chart(id),
                 CoreChartOfAccountsAction::CHART_CREATE,
             )
             .await?;
 
-        let new_chart_of_account = NewChart::builder()
+        let new_chart = NewChart::builder()
             .id(id)
             .name(name)
             .reference(reference)
@@ -93,33 +89,89 @@ where
             .build()
             .expect("Could not build new chart of accounts");
 
-        let chart = self
-            .repo
-            .create_in_op(&mut op, new_chart_of_account)
-            .await?;
+        let chart = self.repo.create_in_op(&mut op, new_chart).await?;
         op.commit().await?;
 
         Ok(chart)
     }
 
-    #[instrument(name = "chart_of_accounts.find_all", skip(self), err)]
-    pub async fn find_all<T: From<Chart>>(
+    #[instrument(name = "chart_of_account.import_from_csv", skip(self, data))]
+    pub async fn import_from_csv(
         &self,
-        ids: &[ChartId],
-    ) -> Result<std::collections::HashMap<ChartId, T>, CoreChartOfAccountsError> {
-        Ok(self.repo.find_all(ids).await?)
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        id: impl Into<ChartId> + std::fmt::Debug,
+        data: impl AsRef<str>,
+    ) -> Result<Chart, CoreChartOfAccountsError> {
+        let id = id.into();
+        let audit_info = self
+            .authz
+            .enforce_permission(
+                sub,
+                CoreChartOfAccountsObject::chart(id),
+                CoreChartOfAccountsAction::CHART_LIST,
+            )
+            .await?;
+        let mut chart = self.repo.find_by_id(id).await?;
+
+        let data = data.as_ref().to_string();
+        let account_specs = CsvParser::new(data).account_specs()?;
+        let mut new_account_sets = Vec::new();
+        let mut new_connections = Vec::new();
+        for spec in account_specs {
+            if let es_entity::Idempotent::Executed((parent, set_id)) =
+                chart.create_node(&spec, audit_info.clone())
+            {
+                let new_account_set = NewAccountSet::builder()
+                    .id(set_id)
+                    .journal_id(self.journal_id)
+                    .name(spec.name.to_string())
+                    .description(spec.name.to_string())
+                    .external_id(spec.account_set_external_id(id))
+                    // .normal_balance_type()
+                    .build()
+                    .expect("Could not build new account set");
+                new_account_sets.push(new_account_set);
+                if let Some(parent) = parent {
+                    new_connections.push((parent, set_id));
+                }
+            }
+        }
+        let mut op = self.repo.begin_op().await?;
+        self.repo.update_in_op(&mut op, &mut chart).await?;
+
+        let mut op = self.cala.ledger_operation_from_db_op(op);
+        self.cala
+            .account_sets()
+            .create_all_in_op(&mut op, new_account_sets)
+            .await?;
+
+        for (parent, child) in new_connections {
+            self.cala
+                .account_sets()
+                .add_member_in_op(&mut op, parent, child)
+                .await?;
+        }
+        op.commit().await?;
+        Ok(chart)
+    }
+
+    #[instrument(name = "chart_of_accounts.find_by_id", skip(self), err)]
+    pub async fn find_by_id(
+        &self,
+        id: impl Into<ChartId> + std::fmt::Debug,
+    ) -> Result<Chart, CoreChartOfAccountsError> {
+        Ok(self.repo.find_by_id(id.into()).await?)
     }
 
     #[instrument(name = "chart_of_accounts.find_by_reference", skip(self))]
     pub async fn find_by_reference(
         &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         reference: String,
     ) -> Result<Option<Chart>, CoreChartOfAccountsError> {
-        let mut op = self.repo.begin_op().await?;
         self.authz
-            .audit()
-            .record_system_entry_in_tx(
-                op.tx(),
+            .enforce_permission(
+                sub,
                 CoreChartOfAccountsObject::all_charts(),
                 CoreChartOfAccountsAction::CHART_LIST,
             )
@@ -130,183 +182,15 @@ where
             Err(e) if e.was_not_found() => None,
             Err(e) => return Err(e.into()),
         };
-        op.commit().await?;
 
         Ok(chart)
     }
 
-    #[instrument(name = "core_user.list_charts", skip(self))]
-    pub async fn list_charts(
+    #[instrument(name = "chart_of_accounts.find_all", skip(self), err)]
+    pub async fn find_all<T: From<Chart>>(
         &self,
-        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-    ) -> Result<Vec<Chart>, CoreChartOfAccountsError> {
-        self.authz
-            .enforce_permission(
-                sub,
-                CoreChartOfAccountsObject::all_charts(),
-                CoreChartOfAccountsAction::CHART_LIST,
-            )
-            .await?;
-
-        Ok(self
-            .repo
-            .list_by_id(Default::default(), es_entity::ListDirection::Ascending)
-            .await?
-            .entities)
-    }
-
-    pub async fn find_control_account_by_reference(
-        &self,
-        chart_id: impl Into<ChartId>,
-        reference: String,
-    ) -> Result<Option<ControlAccountDetails>, CoreChartOfAccountsError> {
-        let chart_id = chart_id.into();
-
-        let mut op = self.repo.begin_op().await?;
-        self.authz
-            .audit()
-            .record_system_entry_in_tx(
-                op.tx(),
-                CoreChartOfAccountsObject::chart(chart_id),
-                CoreChartOfAccountsAction::CHART_FIND_CONTROL_ACCOUNT,
-            )
-            .await?;
-        op.commit().await?;
-
-        let chart = self.repo.find_by_id(chart_id).await?;
-
-        Ok(chart.find_control_account_by_reference(reference))
-    }
-
-    pub async fn create_control_account(
-        &self,
-        id: impl Into<LedgerAccountSetId> + std::fmt::Debug,
-        chart_id: impl Into<ChartId>,
-        category: ChartCategory,
-        name: String,
-        reference: String,
-    ) -> Result<ControlAccountDetails, CoreChartOfAccountsError> {
-        let id = id.into();
-        let chart_id = chart_id.into();
-
-        let mut op = self.repo.begin_op().await?;
-
-        let audit_info = self
-            .authz
-            .audit()
-            .record_system_entry_in_tx(
-                op.tx(),
-                CoreChartOfAccountsObject::chart(chart_id),
-                CoreChartOfAccountsAction::CHART_CREATE_CONTROL_ACCOUNT,
-            )
-            .await?;
-
-        let mut chart = self.repo.find_by_id(chart_id).await?;
-
-        let control_account =
-            chart.create_control_account(id, category, name, reference, audit_info)?;
-
-        self.repo.update_in_op(&mut op, &mut chart).await?;
-
-        let mut op = self.cala.ledger_operation_from_db_op(op);
-        let new_account_set = NewAccountSet::builder()
-            .id(control_account.account_set_id)
-            .journal_id(self.journal_id)
-            .name(control_account.name.to_string())
-            .description(control_account.name.to_string())
-            .normal_balance_type(control_account.path.normal_balance_type())
-            .build()
-            .expect("Could not build new account set");
-        self.cala
-            .account_sets()
-            .create_in_op(&mut op, new_account_set)
-            .await?;
-
-        op.commit().await?;
-
-        Ok(control_account)
-    }
-
-    pub async fn find_control_sub_account_by_reference(
-        &self,
-        chart_id: impl Into<ChartId>,
-        reference: String,
-    ) -> Result<Option<ControlSubAccountDetails>, CoreChartOfAccountsError> {
-        let chart_id = chart_id.into();
-
-        let mut op = self.repo.begin_op().await?;
-        self.authz
-            .audit()
-            .record_system_entry_in_tx(
-                op.tx(),
-                CoreChartOfAccountsObject::chart(chart_id),
-                CoreChartOfAccountsAction::CHART_FIND_CONTROL_SUB_ACCOUNT,
-            )
-            .await?;
-        op.commit().await?;
-
-        let chart = self.repo.find_by_id(chart_id).await?;
-
-        Ok(chart.find_control_sub_account_by_reference(reference))
-    }
-
-    pub async fn create_control_sub_account(
-        &self,
-        chart_id: impl Into<ChartId> + std::fmt::Debug,
-        control_account: ControlAccountDetails,
-        name: String,
-        reference: String,
-    ) -> Result<ControlSubAccountDetails, CoreChartOfAccountsError> {
-        let chart_id = chart_id.into();
-
-        let mut op = self.repo.begin_op().await?;
-
-        let audit_info = self
-            .authz
-            .audit()
-            .record_system_entry_in_tx(
-                op.tx(),
-                CoreChartOfAccountsObject::chart(chart_id),
-                CoreChartOfAccountsAction::CHART_CREATE_CONTROL_SUB_ACCOUNT,
-            )
-            .await?;
-
-        let mut chart = self.repo.find_by_id(chart_id).await?;
-
-        let control_sub_account = chart.create_control_sub_account(
-            LedgerAccountSetId::new(),
-            control_account.path,
-            name,
-            reference,
-            audit_info,
-        )?;
-
-        self.repo.update_in_op(&mut op, &mut chart).await?;
-
-        let mut op = self.cala.ledger_operation_from_db_op(op);
-        let new_account_set = NewAccountSet::builder()
-            .id(control_sub_account.account_set_id)
-            .journal_id(self.journal_id)
-            .name(control_sub_account.name.to_string())
-            .description(control_sub_account.name.to_string())
-            .normal_balance_type(control_sub_account.path.normal_balance_type())
-            .build()
-            .expect("Could not build new account set");
-        self.cala
-            .account_sets()
-            .create_in_op(&mut op, new_account_set)
-            .await?;
-        self.cala
-            .account_sets()
-            .add_member_in_op(
-                &mut op,
-                control_account.account_set_id,
-                control_sub_account.account_set_id,
-            )
-            .await?;
-
-        op.commit().await?;
-
-        Ok(control_sub_account)
+        ids: &[ChartId],
+    ) -> Result<std::collections::HashMap<ChartId, T>, CoreChartOfAccountsError> {
+        Ok(self.repo.find_all(ids).await?)
     }
 }

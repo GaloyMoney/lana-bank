@@ -53,12 +53,6 @@ pub mod action {
         }
     }
 
-    impl From<chart_of_accounts::new::CoreChartOfAccountsActionNew> for DummyAction {
-        fn from(_: chart_of_accounts::new::CoreChartOfAccountsActionNew) -> Self {
-            Self
-        }
-    }
-
     impl std::fmt::Display for DummyAction {
         fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
             write!(f, "dummy")?;
@@ -91,11 +85,6 @@ pub mod object {
     }
     impl From<CoreChartOfAccountsObject> for DummyObject {
         fn from(_: CoreChartOfAccountsObject) -> Self {
-            Self
-        }
-    }
-    impl From<chart_of_accounts::new::CoreChartOfAccountsObjectNew> for DummyObject {
-        fn from(_: chart_of_accounts::new::CoreChartOfAccountsObjectNew) -> Self {
             Self
         }
     }

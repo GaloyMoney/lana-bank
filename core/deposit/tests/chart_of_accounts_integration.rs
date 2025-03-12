@@ -2,7 +2,7 @@ mod helpers;
 
 use authz::dummy::DummySubject;
 use cala_ledger::{CalaLedger, CalaLedgerConfig};
-use chart_of_accounts::new::CoreChartOfAccounts;
+use chart_of_accounts::CoreChartOfAccounts;
 use deposit::*;
 use helpers::{action, event, object};
 
@@ -54,7 +54,7 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
         .import_from_csv(&DummySubject, chart_id, import)
         .await?;
 
-    let code = "1".parse::<chart_of_accounts::new::AccountCode>().unwrap();
+    let code = "1".parse::<chart_of_accounts::AccountCode>().unwrap();
     let account_set_id = cala
         .account_sets()
         .find(chart.account_set_id_from_code(&code).unwrap())
@@ -98,7 +98,7 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
         .import_from_csv(&DummySubject, chart_id, import)
         .await?;
 
-    let code = "1".parse::<chart_of_accounts::new::AccountCode>().unwrap();
+    let code = "1".parse::<chart_of_accounts::AccountCode>().unwrap();
     let account_set_id = cala
         .account_sets()
         .find(chart.account_set_id_from_code(&code).unwrap())

@@ -1,7 +1,7 @@
 use derive_builder::Builder;
 use serde::{Deserialize, Serialize};
 
-use chart_of_accounts::{new::AccountCode, ChartId};
+use chart_of_accounts::{AccountCode, ChartId};
 
 #[derive(Builder, Debug, Serialize, Deserialize, Clone)]
 pub struct ChartOfAccountsIntegrationConfig {

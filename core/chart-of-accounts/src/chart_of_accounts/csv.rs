@@ -1,7 +1,7 @@
 use csv::{ReaderBuilder, Trim};
 use std::io::Cursor;
 
-use super::primitives::{
+use crate::primitives::{
     AccountCodeSection, AccountCodeSectionParseError, AccountName, AccountSpec,
 };
 

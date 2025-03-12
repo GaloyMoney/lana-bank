@@ -23,7 +23,7 @@ pub enum CoreDepositError {
     #[error("CoreDepositError - CoreChartOfAccountsError: {0}")]
     CoreChartOfAccountsError(#[from] chart_of_accounts::error::CoreChartOfAccountsError),
     #[error("CoreDepositError - CoreChartOfAccountsError: {0}")]
-    AltCoreChartOfAccountsError(#[from] chart_of_accounts::new::error::AltChartError),
+    AltCoreChartOfAccountsError(#[from] chart_of_accounts::error::ChartError),
     #[error("CoreDepositError - JobError: {0}")]
     JobError(#[from] job::error::JobError),
     #[error("CoreDepositError - ProcessError: {0}")]

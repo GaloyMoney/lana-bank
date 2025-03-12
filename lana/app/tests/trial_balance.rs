@@ -7,7 +7,7 @@ use lana_app::{authorization::Authorization, trial_balance::TrialBalances};
 
 use cala_ledger::{CalaLedger, CalaLedgerConfig};
 
-use chart_of_accounts::new::{CoreChartOfAccounts, *};
+use chart_of_accounts::*;
 use rbac_types::Subject;
 
 pub async fn init_pool() -> anyhow::Result<sqlx::PgPool> {

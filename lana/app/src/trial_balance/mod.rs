@@ -1,7 +1,7 @@
 pub mod error;
 pub mod ledger;
 
-use chart_of_accounts::new::Chart;
+use chart_of_accounts::Chart;
 use chrono::{DateTime, Utc};
 
 use audit::AuditSvc;
