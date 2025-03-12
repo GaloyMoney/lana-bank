@@ -110,7 +110,7 @@ impl LanaApp {
             ChartOfAccounts::init(&pool, &authz, &cala, journal_init.journal_id).await?;
         let new_chart_of_accounts =
             NewChartOfAccounts::init(&pool, &authz, &cala, journal_init.journal_id).await?;
-        ChartsInit::charts_of_accounts(&chart_of_accounts, &new_chart_of_accounts).await?;
+        ChartsInit::charts_of_accounts(&new_chart_of_accounts).await?;
         let customers = Customers::new(&pool, &authz, &outbox);
         let deposits = Deposits::init(
             &pool,
