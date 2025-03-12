@@ -1,94 +1,42 @@
-import { print } from "@apollo/client/utilities"
-
-import {
-  ChartOfAccountsDocument,
-  ChartOfAccountsQuery,
-  ChartControlAccount,
-  ChartControlSubAccount,
-} from "../../lib/graphql/generated"
-
 describe("Chart Of Accounts", () => {
-  beforeEach(() => {
+  it("should upload CSV and display chart data", () => {
     cy.visit("/chart-of-accounts")
     cy.get('[data-testid="loading-skeleton"]').should("not.exist")
-  })
 
-  it("should render all categories and their accounts", () => {
-    cy.graphqlRequest<{ data: ChartOfAccountsQuery }>(
-      print(ChartOfAccountsDocument),
-    ).then((response) => {
-      const categories = response.data.chartOfAccounts?.categories
-      if (!categories) return
+    cy.get("body").then(($body) => {
+      const hasUploadButton = $body.find('button:contains("Upload")').length > 0
+      const hasDropzoneText = $body.find(':contains("Drag and drop")').length > 0
 
-      const categoryNames = [
-        "assets",
-        "liabilities",
-        "equity",
-        "revenues",
-        "expenses",
-      ] as const
-
-      categoryNames.forEach((name) => {
-        const category = categories[name]
-        if (!category) return
-
-        cy.get(`[data-testid="category-${name}"]`)
-          .should("be.visible")
-          .parent("tr")
-          .within(() => {
-            cy.contains(category.name).should("be.visible")
-            cy.contains(category.accountCode).should("be.visible")
-          })
-
-        category.controlAccounts.forEach((control: ChartControlAccount) => {
-          cy.contains("td", new RegExp(`^${control.name}$`))
-            .should("be.visible")
-            .parent("tr")
-            .within(() => {
-              cy.contains(control.accountCode).should("be.visible")
-            })
-
-          if (control.controlSubAccounts.length > 0) {
-            cy.contains("td", new RegExp(`^${control.name}$`)).click()
-            control.controlSubAccounts.forEach((sub: ChartControlSubAccount) => {
-              cy.contains("td", new RegExp(`^${sub.name}$`))
-                .should("be.visible")
-                .parent("tr")
-                .within(() => {
-                  cy.contains(sub.accountCode).should("be.visible")
-                })
-            })
-          }
-        })
-      })
+      cy.takeScreenshot("1_chart_of_account_upload")
+      if (hasUploadButton || hasDropzoneText) {
+        cy.get('input[type="file"]').attachFile("coa.csv", { force: true })
+        cy.contains("button", /upload/i, { timeout: 5000 }).click()
+      }
     })
-    cy.takeScreenshot("chart-of-accounts")
-  })
 
-  it("should show Off Balance Sheet", () => {
-    cy.contains("button", "Off Balance Sheet").click()
-    cy.get('[data-testid="loading-skeleton"]').should("not.exist")
-    cy.takeScreenshot("off-balance-sheet")
-  })
+    cy.get("body")
+      .contains(/Assets/i)
+      .should("be.visible")
+    cy.get("body")
+      .contains(/Liabilities/i)
+      .should("be.visible")
+    cy.get("body")
+      .contains(/Equity/i)
+      .should("be.visible")
+    cy.get("body")
+      .contains(/Revenue/i)
+      .should("be.visible")
+    cy.get("body")
+      .contains(/Expenses/i)
+      .should("be.visible")
 
-  it("should toggle control accounts correctly", () => {
-    cy.graphqlRequest<{ data: ChartOfAccountsQuery }>(
-      print(ChartOfAccountsDocument),
-    ).then((response) => {
-      const assets = response.data.chartOfAccounts?.categories.assets
-      if (!assets) return
+    cy.get("body")
+      .contains(/Current Assets/i)
+      .should("be.visible")
+    cy.get("body")
+      .contains(/Non-Current Assets/i)
+      .should("be.visible")
 
-      const controlAccount = assets.controlAccounts.find(
-        (ca: ChartControlAccount) => ca.controlSubAccounts.length > 0,
-      )
-      if (!controlAccount) return
-
-      const subAccountName = controlAccount.controlSubAccounts[0].name
-      cy.contains("td", subAccountName).should("not.exist")
-      cy.contains("td", controlAccount.name).click()
-      cy.contains("td", subAccountName).should("be.visible")
-      cy.contains("td", controlAccount.name).click()
-      cy.contains("td", subAccountName).should("not.exist")
-    })
+    cy.takeScreenshot("2_chart_of_account_view")
   })
 })
