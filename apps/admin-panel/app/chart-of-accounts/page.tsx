@@ -29,7 +29,7 @@ import {
 
 gql`
   query ChartOfAccounts {
-    newChartOfAccounts {
+    chartOfAccounts {
       id
       chartId
       name
@@ -207,18 +207,15 @@ const ChartOfAccountsView: React.FC<ChartOfAccountsViewProps> = ({
 
   if (loading && !data) return <LoadingSkeleton />
   if (error) return <p className="text-destructive">{error.message}</p>
-  if (!data?.newChartOfAccounts) return null
+  if (!data?.chartOfAccounts) return null
 
   const renderChartOfAccounts = () => {
     const result: React.ReactNode[] = []
-    if (
-      !data.newChartOfAccounts.children ||
-      !Array.isArray(data.newChartOfAccounts.children)
-    ) {
+    if (!data.chartOfAccounts.children || !Array.isArray(data.chartOfAccounts.children)) {
       return result
     }
 
-    const queue = [...data.newChartOfAccounts.children] as ChartNode[]
+    const queue = [...data.chartOfAccounts.children] as ChartNode[]
     const visited = new Set<string>()
 
     while (queue.length > 0) {
@@ -296,17 +293,17 @@ const ChartOfAccountsPage: React.FC = () => {
         <CardDescription>{t("description")}</CardDescription>
       </CardHeader>
       <CardContent>
-        {newChartData?.newChartOfAccounts?.children &&
-          newChartData.newChartOfAccounts.children.length > 0 && (
+        {newChartData?.chartOfAccounts?.children &&
+          newChartData.chartOfAccounts.children.length > 0 && (
             <ChartOfAccountsView
               data={newChartData}
               loading={newChartLoading}
               error={newChartError}
             />
           )}
-        {newChartData?.newChartOfAccounts?.chartId &&
-          newChartData.newChartOfAccounts.children.length === 0 && (
-            <ChartOfAccountsUpload chartId={newChartData?.newChartOfAccounts?.chartId} />
+        {newChartData?.chartOfAccounts?.chartId &&
+          newChartData.chartOfAccounts.children.length === 0 && (
+            <ChartOfAccountsUpload chartId={newChartData?.chartOfAccounts?.chartId} />
           )}
       </CardContent>
     </Card>

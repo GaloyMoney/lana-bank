@@ -217,31 +217,6 @@ type CashFlowStatement {
 	categories: [StatementCategory!]!
 }
 
-type ChartCategories {
-	assets: ChartCategory!
-	liabilities: ChartCategory!
-	equity: ChartCategory!
-	revenues: ChartCategory!
-	expenses: ChartCategory!
-}
-
-type ChartCategory {
-	name: String!
-	accountCode: String!
-	controlAccounts: [ChartControlAccount!]!
-}
-
-type ChartControlAccount {
-	name: String!
-	accountCode: String!
-	controlSubAccounts: [ChartControlSubAccount!]!
-}
-
-type ChartControlSubAccount {
-	name: String!
-	accountCode: String!
-}
-
 type ChartNode {
 	name: String!
 	accountCode: String!
@@ -250,8 +225,9 @@ type ChartNode {
 
 type ChartOfAccounts {
 	id: ID!
+	chartId: UUID!
 	name: String!
-	categories: ChartCategories!
+	children: [ChartNode!]!
 }
 
 input ChartOfAccountsCsvImportInput {
@@ -1001,13 +977,6 @@ type Mutation {
 	shareholderEquityAdd(input: ShareholderEquityAddInput!): SuccessPayload!
 }
 
-type NewChartOfAccounts {
-	id: ID!
-	chartId: UUID!
-	name: String!
-	children: [ChartNode!]!
-}
-
 scalar OneTimeFeeRatePct
 
 type Outstanding {
@@ -1125,8 +1094,6 @@ type Query {
 	trialBalance(from: Timestamp!, until: Timestamp): TrialBalance!
 	offBalanceSheetTrialBalance(from: Timestamp!, until: Timestamp): TrialBalance!
 	chartOfAccounts: ChartOfAccounts!
-	newChartOfAccounts: NewChartOfAccounts!
-	offBalanceSheetChartOfAccounts: ChartOfAccounts!
 	balanceSheet(from: Timestamp!, until: Timestamp): BalanceSheet!
 	profitAndLossStatement(from: Timestamp!, until: Timestamp): ProfitAndLossStatement!
 	cashFlowStatement(from: Timestamp!, until: Timestamp): CashFlowStatement!

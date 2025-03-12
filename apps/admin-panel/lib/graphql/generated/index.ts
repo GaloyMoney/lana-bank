@@ -238,35 +238,6 @@ export type CashFlowStatement = {
   total: AccountAmountsByCurrency;
 };
 
-export type ChartCategories = {
-  __typename?: 'ChartCategories';
-  assets: ChartCategory;
-  equity: ChartCategory;
-  expenses: ChartCategory;
-  liabilities: ChartCategory;
-  revenues: ChartCategory;
-};
-
-export type ChartCategory = {
-  __typename?: 'ChartCategory';
-  accountCode: Scalars['String']['output'];
-  controlAccounts: Array<ChartControlAccount>;
-  name: Scalars['String']['output'];
-};
-
-export type ChartControlAccount = {
-  __typename?: 'ChartControlAccount';
-  accountCode: Scalars['String']['output'];
-  controlSubAccounts: Array<ChartControlSubAccount>;
-  name: Scalars['String']['output'];
-};
-
-export type ChartControlSubAccount = {
-  __typename?: 'ChartControlSubAccount';
-  accountCode: Scalars['String']['output'];
-  name: Scalars['String']['output'];
-};
-
 export type ChartNode = {
   __typename?: 'ChartNode';
   accountCode: Scalars['String']['output'];
@@ -276,7 +247,8 @@ export type ChartNode = {
 
 export type ChartOfAccounts = {
   __typename?: 'ChartOfAccounts';
-  categories: ChartCategories;
+  chartId: Scalars['UUID']['output'];
+  children: Array<ChartNode>;
   id: Scalars['ID']['output'];
   name: Scalars['String']['output'];
 };
@@ -1188,14 +1160,6 @@ export type MutationWithdrawalInitiateArgs = {
   input: WithdrawalInitiateInput;
 };
 
-export type NewChartOfAccounts = {
-  __typename?: 'NewChartOfAccounts';
-  chartId: Scalars['UUID']['output'];
-  children: Array<ChartNode>;
-  id: Scalars['ID']['output'];
-  name: Scalars['String']['output'];
-};
-
 export type Outstanding = {
   __typename?: 'Outstanding';
   usdBalance: Scalars['UsdCents']['output'];
@@ -1294,8 +1258,6 @@ export type Query = {
   disbursals: CreditFacilityDisbursalConnection;
   document?: Maybe<Document>;
   me: Subject;
-  newChartOfAccounts: NewChartOfAccounts;
-  offBalanceSheetChartOfAccounts: ChartOfAccounts;
   offBalanceSheetTrialBalance: TrialBalance;
   policies: PolicyConnection;
   policy?: Maybe<Policy>;
@@ -1862,7 +1824,7 @@ export type CashFlowStatementQuery = { __typename?: 'Query', cashFlowStatement: 
 export type ChartOfAccountsQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type ChartOfAccountsQuery = { __typename?: 'Query', newChartOfAccounts: { __typename?: 'NewChartOfAccounts', id: string, chartId: string, name: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: string }> }> }> }> }> }> } };
+export type ChartOfAccountsQuery = { __typename?: 'Query', chartOfAccounts: { __typename?: 'ChartOfAccounts', id: string, chartId: string, name: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: string }> }> }> }> }> }> } };
 
 export type ChartOfAccountsCsvImportMutationVariables = Exact<{
   input: ChartOfAccountsCsvImportInput;
@@ -3084,7 +3046,7 @@ export type CashFlowStatementLazyQueryHookResult = ReturnType<typeof useCashFlow
 export type CashFlowStatementQueryResult = Apollo.QueryResult<CashFlowStatementQuery, CashFlowStatementQueryVariables>;
 export const ChartOfAccountsDocument = gql`
     query ChartOfAccounts {
-  newChartOfAccounts {
+  chartOfAccounts {
     id
     chartId
     name

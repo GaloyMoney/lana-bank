@@ -16,7 +16,6 @@ mod deposit_config;
 mod document;
 mod financials;
 mod loader;
-mod new_chart_of_accounts;
 mod price;
 mod primitives;
 mod report;

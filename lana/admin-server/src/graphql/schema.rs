@@ -4,9 +4,8 @@ use std::io::Read;
 
 use lana_app::{
     accounting_init::constants::{
-        BALANCE_SHEET_NAME, CASH_FLOW_STATEMENT_NAME, CHART_REF, OBS_CHART_REF,
-        OBS_TRIAL_BALANCE_STATEMENT_NAME, PROFIT_AND_LOSS_STATEMENT_NAME,
-        TRIAL_BALANCE_STATEMENT_NAME,
+        BALANCE_SHEET_NAME, CASH_FLOW_STATEMENT_NAME, CHART_REF, OBS_TRIAL_BALANCE_STATEMENT_NAME,
+        PROFIT_AND_LOSS_STATEMENT_NAME, TRIAL_BALANCE_STATEMENT_NAME,
     },
     app::LanaApp,
 };
@@ -16,8 +15,8 @@ use crate::primitives::*;
 use super::{
     approval_process::*, audit::*, authenticated_subject::*, chart_of_accounts::*, committee::*,
     credit_config::*, credit_facility::*, customer::*, dashboard::*, deposit::*, deposit_config::*,
-    document::*, financials::*, loader::*, new_chart_of_accounts::*, policy::*, price::*,
-    report::*, sumsub::*, terms_template::*, user::*, withdrawal::*,
+    document::*, financials::*, loader::*, policy::*, price::*, report::*, sumsub::*,
+    terms_template::*, user::*, withdrawal::*,
 };
 
 pub struct Query;
@@ -439,43 +438,9 @@ impl Query {
 
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         let chart = app
-            .chart_of_accounts()
-            .list_charts(sub)
-            .await?
-            .into_iter()
-            .find(|p| p.reference == reference)
-            .unwrap_or_else(|| panic!("Chart of accounts not found for ref {}", reference));
-        Ok(ChartOfAccounts::from(chart))
-    }
-
-    async fn new_chart_of_accounts(
-        &self,
-        ctx: &Context<'_>,
-    ) -> async_graphql::Result<NewChartOfAccounts> {
-        let reference = CHART_REF.to_string();
-
-        let (app, sub) = app_and_sub_from_ctx!(ctx);
-        let chart = app
             .new_chart_of_accounts()
             .find_by_reference(sub, reference.to_string())
             .await?
-            .unwrap_or_else(|| panic!("Chart of accounts not found for ref {}", reference));
-        Ok(NewChartOfAccounts::from(chart))
-    }
-
-    async fn off_balance_sheet_chart_of_accounts(
-        &self,
-        ctx: &Context<'_>,
-    ) -> async_graphql::Result<ChartOfAccounts> {
-        let reference = OBS_CHART_REF.to_string();
-
-        let (app, sub) = app_and_sub_from_ctx!(ctx);
-        let chart = app
-            .chart_of_accounts()
-            .list_charts(sub)
-            .await?
-            .into_iter()
-            .find(|p| p.reference == reference)
             .unwrap_or_else(|| panic!("Chart of accounts not found for ref {}", reference));
         Ok(ChartOfAccounts::from(chart))
     }
