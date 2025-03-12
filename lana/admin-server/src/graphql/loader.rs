@@ -115,7 +115,7 @@ impl Loader<ChartId> for LanaLoader {
         keys: &[ChartId],
     ) -> Result<HashMap<ChartId, ChartOfAccounts>, Self::Error> {
         self.app
-            .new_chart_of_accounts()
+            .chart_of_accounts()
             .find_all(keys)
             .await
             .map_err(Arc::new)

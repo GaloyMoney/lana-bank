@@ -22,7 +22,6 @@ use crate::{
     document::Documents,
     governance::Governance,
     job::Jobs,
-    new_chart_of_accounts::NewChartOfAccounts,
     outbox::Outbox,
     price::Price,
     primitives::Subject,
@@ -45,7 +44,6 @@ pub struct LanaApp {
     audit: Audit,
     authz: Authorization,
     chart_of_accounts: ChartOfAccounts,
-    new_chart_of_accounts: NewChartOfAccounts,
     customers: Customers,
     deposits: Deposits,
     applicants: Applicants,
@@ -108,9 +106,7 @@ impl LanaApp {
         .await?;
         let chart_of_accounts =
             ChartOfAccounts::init(&pool, &authz, &cala, journal_init.journal_id).await?;
-        let new_chart_of_accounts =
-            NewChartOfAccounts::init(&pool, &authz, &cala, journal_init.journal_id).await?;
-        ChartsInit::charts_of_accounts(&new_chart_of_accounts).await?;
+        ChartsInit::charts_of_accounts(&chart_of_accounts).await?;
         let customers = Customers::new(&pool, &authz, &outbox);
         let deposits = Deposits::init(
             &pool,
@@ -155,7 +151,6 @@ impl LanaApp {
             audit,
             authz,
             chart_of_accounts,
-            new_chart_of_accounts,
             customers,
             deposits,
             applicants,
@@ -222,10 +217,6 @@ impl LanaApp {
 
     pub fn chart_of_accounts(&self) -> &ChartOfAccounts {
         &self.chart_of_accounts
-    }
-
-    pub fn new_chart_of_accounts(&self) -> &NewChartOfAccounts {
-        &self.new_chart_of_accounts
     }
 
     pub fn deposits(&self) -> &Deposits {

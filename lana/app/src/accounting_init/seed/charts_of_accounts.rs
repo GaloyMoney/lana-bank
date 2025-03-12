@@ -1,20 +1,18 @@
 use crate::{
     accounting_init::{constants::*, *},
-    new_chart_of_accounts::NewChartOfAccounts,
+    chart_of_accounts::ChartOfAccounts,
 };
 
 use rbac_types::Subject;
 
-pub(crate) async fn init(
-    new_chart_of_accounts: &NewChartOfAccounts,
-) -> Result<(), AccountingInitError> {
-    create_new_chart_of_accounts(new_chart_of_accounts).await?;
+pub(crate) async fn init(chart_of_accounts: &ChartOfAccounts) -> Result<(), AccountingInitError> {
+    create_chart_of_accounts(chart_of_accounts).await?;
 
     Ok(())
 }
 
-async fn create_new_chart_of_accounts(
-    chart_of_accounts: &NewChartOfAccounts,
+async fn create_chart_of_accounts(
+    chart_of_accounts: &ChartOfAccounts,
 ) -> Result<(), AccountingInitError> {
     if chart_of_accounts
         .find_by_reference(&Subject::System, CHART_REF.to_string())
