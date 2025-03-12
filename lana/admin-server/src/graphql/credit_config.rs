@@ -65,7 +65,6 @@ impl From<DomainChartOfAccountsIntegrationConfig> for CreditModuleConfig {
 
 #[derive(InputObject)]
 pub struct CreditModuleConfigUpdateInput {
-    pub chart_of_accounts_id: UUID,
     pub chart_of_account_facility_omnibus_parent_code: String,
     pub chart_of_account_collateral_omnibus_parent_code: String,
     pub chart_of_account_facility_parent_code: String,

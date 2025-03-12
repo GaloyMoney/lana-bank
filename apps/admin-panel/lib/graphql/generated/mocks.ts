@@ -836,7 +836,6 @@ export const mockCreditModuleConfigUpdateInput = (overrides?: Partial<CreditModu
         chartOfAccountFeeIncomeParentCode: overrides && overrides.hasOwnProperty('chartOfAccountFeeIncomeParentCode') ? overrides.chartOfAccountFeeIncomeParentCode! : faker.lorem.word(),
         chartOfAccountInterestIncomeParentCode: overrides && overrides.hasOwnProperty('chartOfAccountInterestIncomeParentCode') ? overrides.chartOfAccountInterestIncomeParentCode! : faker.lorem.word(),
         chartOfAccountInterestReceivableParentCode: overrides && overrides.hasOwnProperty('chartOfAccountInterestReceivableParentCode') ? overrides.chartOfAccountInterestReceivableParentCode! : faker.lorem.word(),
-        chartOfAccountsId: overrides && overrides.hasOwnProperty('chartOfAccountsId') ? overrides.chartOfAccountsId! : generateMockValue.uuid(),
     };
 };
 
@@ -1069,7 +1068,6 @@ export const mockDepositModuleConfigUpdateInput = (overrides?: Partial<DepositMo
     relationshipsToOmit.add('DepositModuleConfigUpdateInput');
     return {
         chartOfAccountsDepositAccountsParentCode: overrides && overrides.hasOwnProperty('chartOfAccountsDepositAccountsParentCode') ? overrides.chartOfAccountsDepositAccountsParentCode! : faker.lorem.word(),
-        chartOfAccountsId: overrides && overrides.hasOwnProperty('chartOfAccountsId') ? overrides.chartOfAccountsId! : generateMockValue.uuid(),
         chartOfAccountsOmnibusParentCode: overrides && overrides.hasOwnProperty('chartOfAccountsOmnibusParentCode') ? overrides.chartOfAccountsOmnibusParentCode! : faker.lorem.word(),
     };
 };

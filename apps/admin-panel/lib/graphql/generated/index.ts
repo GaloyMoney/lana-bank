@@ -642,7 +642,6 @@ export type CreditModuleConfigUpdateInput = {
   chartOfAccountFeeIncomeParentCode: Scalars['String']['input'];
   chartOfAccountInterestIncomeParentCode: Scalars['String']['input'];
   chartOfAccountInterestReceivableParentCode: Scalars['String']['input'];
-  chartOfAccountsId: Scalars['UUID']['input'];
 };
 
 export type CreditModuleConfigUpdatePayload = {
@@ -832,7 +831,6 @@ export type DepositModuleConfig = {
 
 export type DepositModuleConfigUpdateInput = {
   chartOfAccountsDepositAccountsParentCode: Scalars['String']['input'];
-  chartOfAccountsId: Scalars['UUID']['input'];
   chartOfAccountsOmnibusParentCode: Scalars['String']['input'];
 };
 

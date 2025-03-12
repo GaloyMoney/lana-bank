@@ -764,10 +764,12 @@ impl Mutation {
 
         let chart = app
             .new_chart_of_accounts()
-            .find_by_id(input.chart_of_accounts_id)
-            .await?;
+            .find_by_reference(sub, CHART_REF.to_string())
+            .await?
+            .unwrap_or_else(|| panic!("Chart of accounts not found for ref {}", CHART_REF));
+
         let config_values = lana_app::deposit::ChartOfAccountsIntegrationConfig::builder()
-            .chart_of_accounts_id(input.chart_of_accounts_id)
+            .chart_of_accounts_id(chart.id)
             .chart_of_accounts_deposit_accounts_parent_code(
                 input
                     .chart_of_accounts_deposit_accounts_parent_code
@@ -916,10 +918,12 @@ impl Mutation {
 
         let chart = app
             .new_chart_of_accounts()
-            .find_by_id(input.chart_of_accounts_id)
-            .await?;
+            .find_by_reference(sub, CHART_REF.to_string())
+            .await?
+            .unwrap_or_else(|| panic!("Chart of accounts not found for ref {}", CHART_REF));
+
         let config_values = lana_app::credit_facility::ChartOfAccountsIntegrationConfig::builder()
-            .chart_of_accounts_id(input.chart_of_accounts_id)
+            .chart_of_accounts_id(chart.id)
             .chart_of_account_facility_omnibus_parent_code(
                 input
                     .chart_of_account_facility_omnibus_parent_code

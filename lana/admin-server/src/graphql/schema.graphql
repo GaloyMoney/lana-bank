@@ -612,7 +612,6 @@ type CreditModuleConfig {
 }
 
 input CreditModuleConfigUpdateInput {
-	chartOfAccountsId: UUID!
 	chartOfAccountFacilityOmnibusParentCode: String!
 	chartOfAccountCollateralOmnibusParentCode: String!
 	chartOfAccountFacilityParentCode: String!
@@ -822,7 +821,6 @@ type DepositModuleConfig {
 }
 
 input DepositModuleConfigUpdateInput {
-	chartOfAccountsId: UUID!
 	chartOfAccountsDepositAccountsParentCode: String!
 	chartOfAccountsOmnibusParentCode: String!
 }

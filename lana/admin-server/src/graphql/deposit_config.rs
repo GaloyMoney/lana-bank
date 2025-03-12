@@ -34,7 +34,6 @@ impl From<DomainChartOfAccountsIntegrationConfig> for DepositModuleConfig {
 
 #[derive(InputObject)]
 pub struct DepositModuleConfigUpdateInput {
-    pub chart_of_accounts_id: UUID,
     pub chart_of_accounts_deposit_accounts_parent_code: String,
     pub chart_of_accounts_omnibus_parent_code: String,
 }
