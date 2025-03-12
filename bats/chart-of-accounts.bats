@@ -56,3 +56,33 @@ teardown_file() {
   )
   [[ "$control_account_code" == "40101" ]] || exit 1
 }
+
+@test "chart-of-accounts: can import CSV file" {
+exec_admin_graphql 'chart-of-accounts'
+  chart_id=$(graphql_output '.data.chartOfAccounts.chartId')
+
+  temp_file=$(mktemp)
+  echo "
+    $((RANDOM % 100)),,,Assets ,,
+    ,,,,,
+    $((RANDOM % 100)),,,Assets,,
+    ,,,,,
+    ,$((RANDOM % 100)),,Effective,,
+    ,,$((RANDOM % 1000)),Central Office,
+  " > "$temp_file"
+
+  variables=$(
+    jq -n \
+    --arg chart_id "$chart_id" \
+    '{
+      input: {
+        chartId: $chart_id,
+        file: null
+      }
+    }'
+  )
+
+  response=$(exec_admin_graphql_upload 'chart-of-accounts-csv-import' "$variables" "$temp_file" "input.file")
+  success=$(echo "$response" | jq -r '.data.chartOfAccountsCsvImport.success')
+  [[ "$success" == "true" ]] || exit 1
+}

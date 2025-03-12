@@ -1,35 +1,6 @@
 query ChartOfAccounts {
   chartOfAccounts {
+    chartId
     name
-    categories {
-      assets {
-        ...category
-      }
-      liabilities {
-        ...category
-      }
-      equity {
-        ...category
-      }
-      revenues {
-        ...category
-      }
-      expenses {
-        ...category
-      }
-    }
-  }
-}
-
-fragment category on ChartCategory {
-  name
-  accountCode
-  controlAccounts {
-    name
-    accountCode
-    controlSubAccounts {
-      name
-      accountCode
-    }
   }
 }
