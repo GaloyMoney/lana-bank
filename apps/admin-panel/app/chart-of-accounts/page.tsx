@@ -218,7 +218,7 @@ const ChartOfAccountsView: React.FC<ChartOfAccountsViewProps> = ({
       return result
     }
 
-    const queue: ChartNode[] = [...data.newChartOfAccounts.children]
+    const queue = [...data.newChartOfAccounts.children] as ChartNode[]
     const visited = new Set<string>()
 
     while (queue.length > 0) {

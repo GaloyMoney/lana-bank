@@ -87,6 +87,9 @@ checksums:
     Customers/create/emailPlaceholder: 5eed7fb7e109b4ab618bce37c6bed35d
     Customers/create/telegramLabel: 5b869865612135085d626758b8d447a7
     Customers/create/telegramPlaceholder: f98d5a7bdb51eafc8754b561481f151d
+    Customers/create/customerTypeLabel: 84318756282cff0923bb4f1a81748506
+    Customers/create/individualLabel: 52ebce389ed97a13b6089802055ed667
+    Customers/create/companyLabel: 9e36d11fa82d1bd4563eef2abc4fcfba
     Customers/create/reviewButton: a39de287a6a60912916975468730f5b0
     Customers/create/backButton: f541015a827e37cb3b1234e56bc2aa3c
     Customers/create/confirmButton: 51513935f1cf81f830d434f64a05270e
@@ -97,8 +100,6 @@ checksums:
     Customers/CustomerDetails/layout/tabs/transactions: 59973447457c6bd57c161d594f551651
     Customers/CustomerDetails/layout/tabs/creditFacilities: 4283868565aa25d5513636fc6e12d49c
     Customers/CustomerDetails/layout/tabs/documents: c3882fc98216636873ab9091f3453f0c
-    Customers/CustomerDetails/layout/breadcrumbs/dashboard: c9380ea68c8c76ea451bd9613329a07c
-    Customers/CustomerDetails/layout/breadcrumbs/customers: c31a0dfd0d92496ba6f5673781db24ef
     Customers/CustomerDetails/layout/errors/loading: 82b4ea7ed1439094d7c4be13aaba9a66
     Customers/CustomerDetails/layout/errors/error: 53a2b5f5e7d83c737c8e02fe18fb4bdb
     Customers/CustomerDetails/details/title: 846b48bb14b3d62c75cde5031e6bbfd7
@@ -106,8 +107,11 @@ checksums:
     Customers/CustomerDetails/details/labels/createdOn: 24d89e2759464207b31141138abf2e81
     Customers/CustomerDetails/details/labels/telegram: 0719cb55ded3146892d106733a8431b2
     Customers/CustomerDetails/details/labels/status: 4e1fcce15854d824919b4a582c697c90
+    Customers/CustomerDetails/details/labels/customerType: f04471a7ddac844b9ad145eb9911ef75
     Customers/CustomerDetails/details/status/active: 3e1ec025c4a50830bbb9ad57a176630a
     Customers/CustomerDetails/details/status/inactive: 239e3b722db75bbafc6c628a2685eed2
+    Customers/CustomerDetails/details/customerType/individual: 52ebce389ed97a13b6089802055ed667
+    Customers/CustomerDetails/details/customerType/company: 9e36d11fa82d1bd4563eef2abc4fcfba
     Customers/CustomerDetails/details/actions/editTelegram: f75713ea7482c56d5fd7dc78ce25c6e1
     Customers/CustomerDetails/kycStatus/title: 0812527db67eb37688eb605718471c6c
     Customers/CustomerDetails/kycStatus/labels/level: 1e3bf31d5c6083e898dd3e3359fbb0c2
@@ -246,8 +250,6 @@ checksums:
     CreditFacilities/CreditFacilityDetails/Layout/tabs/transactions: 59973447457c6bd57c161d594f551651
     CreditFacilities/CreditFacilityDetails/Layout/tabs/disbursals: a926d10544d2ae0fd17a6e5f19a97080
     CreditFacilities/CreditFacilityDetails/Layout/tabs/repaymentPlan: 416716dbfa4883b589c792610e827d74
-    CreditFacilities/CreditFacilityDetails/Layout/breadcrumbs/dashboard: c9380ea68c8c76ea451bd9613329a07c
-    CreditFacilities/CreditFacilityDetails/Layout/breadcrumbs/creditFacilities: 4283868565aa25d5513636fc6e12d49c
     CreditFacilities/CreditFacilityDetails/Layout/errors/notFound: 58efcf2ecdcf18f0cd0253acc60eb812
     CreditFacilities/CreditFacilityDetails/Layout/errors/loading: 82b4ea7ed1439094d7c4be13aaba9a66
     CreditFacilities/CreditFacilityDetails/CreateCreditFacility/dialog/customerInfo: 9d01a95693694439b5be41672913c23d
@@ -472,7 +474,7 @@ checksums:
     Committees/CommitteeDetails/AddUserCommitteeDialog/errors/failed: 5569b14914bbbd72c5fb0bc04a64479e
     Committees/CommitteeDetails/AddUserCommitteeDialog/errors/general: dd9aef0a9c3638442bc8f6151feb33d6
     Deposits/title: 9518ad41e01682ba217001a93932bc1c
-    Deposits/description: bb314714ec5d9755203352f00cad2961
+    Deposits/description: 574e2918e4528209b7d3f987da3d5964
     Deposits/table/headers/customer: 846b48bb14b3d62c75cde5031e6bbfd7
     Deposits/table/headers/reference: fbba6b416a620e774c0fa80e167e5d46
     Deposits/table/headers/amount: a0ae9c6ff98b57475cdce56f66066aa4
@@ -490,7 +492,7 @@ checksums:
     Deposits/CreateDepositDialog/errors/noData: 15bbd3de8bd8d4529675467807b4427b
     Deposits/CreateDepositDialog/errors/unknown: 4fa139b42a7b7ed262b07bdda7cd2fb6
     Withdrawals/title: 4f557c00affbc9ba31b380c6c9b39156
-    Withdrawals/description: f5ee0327e1dce6a40c5e7cf56b915f82
+    Withdrawals/description: 4f7906ac0f68f580ad77ce69816d9b22
     Withdrawals/table/headers/customer: 846b48bb14b3d62c75cde5031e6bbfd7
     Withdrawals/table/headers/reference: fbba6b416a620e774c0fa80e167e5d46
     Withdrawals/table/headers/amount: a0ae9c6ff98b57475cdce56f66066aa4
@@ -618,11 +620,16 @@ checksums:
     AuditLogs/table/emptyMessage: b3ef7a5a76768db254c867944b84b04c
     ChartOfAccounts/title: 785b8862f83c931ce85f5939e38be7c0
     ChartOfAccounts/description: d386b72a014828c82a6218385dd8c27a
-    ChartOfAccounts/tabs/regular: a85e9f646b05a474ec32a9cdbc1ef123
-    ChartOfAccounts/tabs/offBalanceSheet: 6b84f41a7ced3ff1db94af889f8330ed
-    ChartOfAccounts/table/headers/accountName: 5a4c82f1bc517348b64c107345f94f65
-    ChartOfAccounts/table/headers/accountCode: 9218742c297d337fdc0f5f5dd985294d
-    ChartOfAccounts/table/error: 60508da31f2a1d5f9a473c0ef2ba5c74
+    ChartOfAccounts/upload/dragAndDrop: 4d24050d9792d5ee1d1229553a1a5cbe
+    ChartOfAccounts/upload/dropHere: c396eb3e3cdc8788750150ca38725495
+    ChartOfAccounts/upload/csvOnly: a7964b2b0e8676b4cd9e20c5a724a736
+    ChartOfAccounts/upload/noFileSelected: dfa552762594d996e94a7538d76bdf0e
+    ChartOfAccounts/upload/genericError: 823d27ca89e26fd90f356a583c8409f8
+    ChartOfAccounts/upload/successDescription: c4df30777b22c88a7d9fb531b262e246
+    ChartOfAccounts/upload/errorTitle: d8b0a8f504eaa0f761d7958dc1e6823a
+    ChartOfAccounts/upload/uploading: a61a76d2fa69d41f012849f91b4e159a
+    ChartOfAccounts/upload/reset: c19c53a05e21c7f3b395247809a14b51
+    ChartOfAccounts/upload/upload: 4a6c84aa16db0f4e5697f49b45257bc7
     BalanceSheet/title: 0c5e5cc9dd1e661a276e1536917a8db8
     BalanceSheet/description: 3025ff334feb2d3790244d58a9a40eb3
     BalanceSheet/noData: 81e91b979968615c55f9c0701fa9bbe3

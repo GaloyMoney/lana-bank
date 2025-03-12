@@ -113,8 +113,8 @@
       "emailPlaceholder": "Por favor ingrese la dirección de correo electrónico",
       "telegramLabel": "ID de Telegram",
       "telegramPlaceholder": "Por favor ingrese el ID de Telegram",
-      "customerTypeLabel": "Tipo de Cliente",
-      "individualLabel": "Individuo",
+      "customerTypeLabel": "Tipo de cliente",
+      "individualLabel": "Particular",
       "companyLabel": "Empresa",
       "reviewButton": "Revisar Detalles",
       "backButton": "Atrás",
@@ -150,7 +150,7 @@
           "inactive": "Inactivo"
         },
         "customerType": {
-          "individual": "Individuo",
+          "individual": "Particular",
           "company": "Empresa"
         },
         "actions": {
@@ -829,7 +829,7 @@
   },
   "Deposits": {
     "title": "Depósitos",
-    "description": "Sumas de dinero añadidas desde líneas de crédito a las cuentas de los clientes",
+    "description": "Sumas de dinero añadidas desde líneas de crédito a las cuentas del cliente",
     "table": {
       "headers": {
         "customer": "Cliente",
@@ -865,7 +865,7 @@
   },
   "Withdrawals": {
     "title": "Retiros",
-    "description": "Dinero retirado de las cuentas de los clientes",
+    "description": "Dinero retirado de las cuentas del cliente",
     "table": {
       "headers": {
         "customer": "Cliente",
@@ -1126,11 +1126,11 @@
       "dropHere": "Suelta tu archivo aquí",
       "csvOnly": "Solo archivos CSV (.csv)",
       "noFileSelected": "Ningún archivo seleccionado",
-      "genericError": "Ha ocurrido un error al subir tu archivo",
+      "genericError": "Ocurrió un error al subir tu archivo",
       "successDescription": "Plan de cuentas importado con éxito",
-      "errorTitle": "Error de Carga",
+      "errorTitle": "Carga fallida",
       "uploading": "Subiendo tu plan de cuentas...",
-      "reset": "Restablecer",
+      "reset": "Reiniciar",
       "upload": "Subir"
     }
   },
