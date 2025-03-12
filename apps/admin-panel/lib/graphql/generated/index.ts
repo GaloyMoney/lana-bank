@@ -1864,7 +1864,7 @@ export type CashFlowStatementQuery = { __typename?: 'Query', cashFlowStatement: 
 export type ChartOfAccountsQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type ChartOfAccountsQuery = { __typename?: 'Query', newChartOfAccounts: { __typename?: 'NewChartOfAccounts', id: string, chartId: string, name: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: string }> }> }> }> }> } };
+export type ChartOfAccountsQuery = { __typename?: 'Query', newChartOfAccounts: { __typename?: 'NewChartOfAccounts', id: string, chartId: string, name: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: string }> }> }> }> }> }> } };
 
 export type ChartOfAccountsCsvImportMutationVariables = Exact<{
   input: ChartOfAccountsCsvImportInput;
@@ -3105,6 +3105,10 @@ export const ChartOfAccountsDocument = gql`
             children {
               name
               accountCode
+              children {
+                name
+                accountCode
+              }
             }
           }
         }

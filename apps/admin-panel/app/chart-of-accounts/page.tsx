@@ -48,6 +48,10 @@ gql`
               children {
                 name
                 accountCode
+                children {
+                  name
+                  accountCode
+                }
               }
             }
           }
@@ -153,21 +157,25 @@ const AccountRow = React.memo<AccountRowProps>(
         onClick={hasDots ? toggleExpand : undefined}
       >
         <TableCell className={getIndentClass(account.accountCode)}>
-          <div className="flex items-center gap-4">
-            <Badge className="font-mono mr-20" variant="secondary">
-              {formatAccountCode(account.accountCode)}
-            </Badge>
-            {hasDots && (
-              <span className="text-muted-foreground">
-                {isExpanded ? (
-                  <IoCaretDownSharp className="h-4 w-4" />
-                ) : (
-                  <IoCaretForwardSharp className="h-4 w-4" />
-                )}
-              </span>
-            )}
-            {!hasDots && <span className="w-6"></span>}
-
+          <div className="grid grid-cols-[100px_40px_1fr] items-center">
+            <div>
+              <Badge className="font-mono" variant="secondary">
+                {formatAccountCode(account.accountCode)}
+              </Badge>
+            </div>
+            <div className="flex justify-center">
+              {hasDots ? (
+                <span className="text-muted-foreground">
+                  {isExpanded ? (
+                    <IoCaretDownSharp className="h-4 w-4" />
+                  ) : (
+                    <IoCaretForwardSharp className="h-4 w-4" />
+                  )}
+                </span>
+              ) : (
+                <span className="w-4"></span>
+              )}
+            </div>
             <span className={getTextClass(account.accountCode)}>{account.name}</span>
           </div>
         </TableCell>
