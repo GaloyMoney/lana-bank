@@ -84,7 +84,7 @@ groups:
 jobs:
   -  #@ check_code()
   -  #@ on_nix_host("integration-tests", "make test-in-ci")
-  -  #@ on_nix_host("bats-tests", "make e2e-in-ci")
+  -  #@ on_nix_host("bats-tests", "make e2e")
   -  #@ build_edge_image()
 
   - name: release

@@ -12,9 +12,8 @@ teardown_file() {
 }
 
 @test "documents: can upload a file, retrieve, archive, delete, and verify deletion" {
-  # fake service account used in concourse
-  if echo "${SA_CREDS_BASE64}" | base64 -d | grep -q "abc_app"; then
-    skip
+  if [[ -z "${SA_CREDS_BASE64}" ]]; then
+    skip "Skipping test because SA_CREDS_BASE64 is not defined"
   fi
 
   # Create a customer
