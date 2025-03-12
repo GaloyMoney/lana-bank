@@ -283,6 +283,26 @@ impl Duration {
     }
 }
 
+#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
+#[serde(tag = "type", content = "value", rename_all = "snake_case")]
+pub enum InterestDuration {
+    Days(u64),
+}
+
+impl InterestDuration {
+    pub fn end_date(&self, start_date: DateTime<Utc>) -> DateTime<Utc> {
+        match self {
+            Self::Days(days) => start_date
+                .checked_add_days(chrono::Days::new(*days))
+                .expect("should return an end date"),
+        }
+    }
+
+    pub fn is_past_end_date(&self, start_date: DateTime<Utc>) -> bool {
+        crate::time::now() > self.end_date(start_date)
+    }
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 pub struct InterestPeriod {
     pub interval: InterestInterval,
@@ -373,6 +393,10 @@ pub struct TermValues {
     pub annual_rate: AnnualRatePct,
     #[builder(setter(into))]
     pub duration: Duration,
+    #[builder(setter(into))]
+    pub interest_due_duration: InterestDuration,
+    #[builder(default, setter(into))]
+    pub interest_overdue_duration: Option<InterestDuration>,
     #[builder(setter(into))]
     pub accrual_interval: InterestInterval,
     #[builder(setter(into))]
@@ -503,6 +527,7 @@ mod test {
         TermValues::builder()
             .annual_rate(AnnualRatePct(dec!(12)))
             .duration(Duration::Months(3))
+            .interest_due_duration(InterestDuration::Days(0))
             .accrual_interval(InterestInterval::EndOfMonth)
             .incurrence_interval(InterestInterval::EndOfDay)
             .one_time_fee_rate(OneTimeFeeRatePct(dec!(1)))
@@ -731,6 +756,7 @@ mod test {
             TermValues::builder()
                 .annual_rate(dec!(12))
                 .duration(Duration::Months(3))
+                .interest_due_duration(InterestDuration::Days(0))
                 .accrual_interval(InterestInterval::EndOfMonth)
                 .incurrence_interval(InterestInterval::EndOfDay)
                 .one_time_fee_rate(OneTimeFeeRatePct(dec!(1)))

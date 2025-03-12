@@ -10,7 +10,7 @@ use lana_app::{
     app::LanaApp,
     customer::CustomerType,
     primitives::*,
-    terms::{Duration, InterestInterval, TermValues},
+    terms::{Duration, InterestDuration, InterestInterval, TermValues},
 };
 use lana_events::*;
 
@@ -109,7 +109,7 @@ async fn create_and_process_facility(
                     .expect("cf exists");
                 if facility.interest_accrual_in_progress().is_none() {
                     app.credit_facilities()
-                        .record_payment(&sub, facility.id, facility.outstanding().total())
+                        .record_payment(&sub, facility.id, facility.total_outstanding().total())
                         .await?;
                     app.credit_facilities()
                         .complete_facility(&sub, facility.id)
@@ -213,6 +213,7 @@ fn std_terms() -> TermValues {
         .margin_call_cvl(dec!(125))
         .liquidation_cvl(dec!(105))
         .duration(Duration::Months(3))
+        .interest_due_duration(InterestDuration::Days(0))
         .incurrence_interval(InterestInterval::EndOfDay)
         .accrual_interval(InterestInterval::EndOfMonth)
         .one_time_fee_rate(dec!(0.01))

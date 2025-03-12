@@ -26,6 +26,7 @@ teardown_file() {
           period: "MONTHS",
           units: 12
         },
+        interestDueDuration: { period: "DAYS", units: 0 },
         liquidationCvl: 80,
         marginCallCvl: 90,
         initialCvl: 100
@@ -58,6 +59,7 @@ teardown_file() {
           period: "MONTHS",
           units: 24
         },
+        interestDueDuration: { period: "DAYS", units: 0 },
         liquidationCvl: 75,
         marginCallCvl: 85,
         initialCvl: 95

@@ -127,7 +127,7 @@ where
             .await?;
 
         let confirmed_incurrence = {
-            let outstanding = credit_facility.outstanding();
+            let outstanding = credit_facility.total_outstanding();
             let account_ids = credit_facility.account_ids;
 
             let accrual = credit_facility
