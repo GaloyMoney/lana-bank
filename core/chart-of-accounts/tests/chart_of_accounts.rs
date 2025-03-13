@@ -52,8 +52,9 @@ async fn import_from_csv() -> anyhow::Result<()> {
         r#"
         {rand_ref},,,Assets
         {rand_ref}1,,,Assets
-        ,01,,Effective
+        ,01,,Cash
         ,,0101,Central Office,
+        ,,,(A description for central office)
         "#
     );
 
