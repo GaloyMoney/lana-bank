@@ -90,7 +90,7 @@ impl Chart {
 
         self.all_accounts
             .iter()
-            .find(|(k, _)| k.is_equivilant_to_str(&code))
+            .find(|(k, _)| k.is_equivalent_to_str(&code))
             .map(|(_, v)| v)
     }
 

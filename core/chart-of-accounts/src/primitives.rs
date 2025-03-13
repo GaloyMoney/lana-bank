@@ -129,7 +129,7 @@ impl AccountCode {
         self.sections.get(idx)
     }
 
-    pub fn is_equivilant_to_str(&self, code: &str) -> bool {
+    pub fn is_equivalent_to_str(&self, code: &str) -> bool {
         let mut position = 0;
 
         for section in &self.sections {
@@ -392,7 +392,7 @@ mod tests {
         let child = "0201".parse::<AccountCodeSection>().unwrap();
 
         let account_code = AccountCode::new(vec![parent, sub, child]);
-        assert!(account_code.is_equivilant_to_str("11010201"));
-        assert!(!account_code.is_equivilant_to_str("110102010"));
+        assert!(account_code.is_equivalent_to_str("11010201"));
+        assert!(!account_code.is_equivalent_to_str("110102010"));
     }
 }
