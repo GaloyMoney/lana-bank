@@ -386,7 +386,7 @@ mod tests {
     }
 
     #[test]
-    fn is_equivilent_to_str() {
+    fn is_equivalent_to_str() {
         let parent = "11".parse::<AccountCodeSection>().unwrap();
         let sub = "01".parse::<AccountCodeSection>().unwrap();
         let child = "0201".parse::<AccountCodeSection>().unwrap();
