@@ -75,6 +75,25 @@ impl Chart {
         self.all_accounts.get(code)
     }
 
+    pub fn account_spec_from_code_str(
+        &self,
+        code: String,
+    ) -> Option<&(AccountSpec, LedgerAccountSetId)> {
+        if let Ok(code) = code.parse() {
+            if let Some(spec) = self.account_spec(&code) {
+                return Some(spec);
+            }
+            if code.len_sections() > 1 {
+                return None;
+            }
+        }
+
+        self.all_accounts
+            .iter()
+            .find(|(k, _)| k.is_equivilant_to_str(&code))
+            .map(|(_, v)| v)
+    }
+
     pub fn account_set_id_from_code(
         &self,
         code: &AccountCode,

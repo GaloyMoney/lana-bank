@@ -129,6 +129,26 @@ impl AccountCode {
         self.sections.get(idx)
     }
 
+    pub fn is_equivilant_to_str(&self, code: &str) -> bool {
+        let mut position = 0;
+
+        for section in &self.sections {
+            let section_len = section.code.len();
+
+            if position + section_len > code.len() {
+                return false;
+            }
+
+            if &code[position..position + section_len] != section.code {
+                return false;
+            }
+
+            position += section_len;
+        }
+
+        position == code.len()
+    }
+
     pub fn is_parent(&self, sections: &[AccountCodeSection]) -> bool {
         if self.sections.is_empty() {
             return false;
@@ -363,5 +383,16 @@ mod tests {
 
         let account_code = AccountCode::new(vec![parent, sub, child]);
         assert_eq!(account_code.chart_level(), 2);
+    }
+
+    #[test]
+    fn is_equivilent_to_str() {
+        let parent = "11".parse::<AccountCodeSection>().unwrap();
+        let sub = "01".parse::<AccountCodeSection>().unwrap();
+        let child = "0201".parse::<AccountCodeSection>().unwrap();
+
+        let account_code = AccountCode::new(vec![parent, sub, child]);
+        assert!(account_code.is_equivilant_to_str("11010201"));
+        assert!(!account_code.is_equivilant_to_str("110102010"));
     }
 }

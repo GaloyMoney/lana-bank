@@ -200,10 +200,9 @@ where
                 CoreChartOfAccountsAction::CHART_ACCOUNT_DETAILS_READ,
             )
             .await?;
-        let code = code
-            .parse()
-            .map_err(|_| CoreChartOfAccountsError::InvalidAccountCode)?;
-        let details = chart.account_spec(&code).map(AccountDetails::from);
+        let details = chart
+            .account_spec_from_code_str(code)
+            .map(AccountDetails::from);
         Ok(details)
     }
 
