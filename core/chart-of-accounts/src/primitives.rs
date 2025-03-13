@@ -15,6 +15,7 @@ es_entity::entity_id! {
 pub struct AccountDetails {
     pub id: LedgerAccountId,
     pub name: AccountName,
+    pub code: AccountCode,
 }
 
 impl From<&(AccountSpec, LedgerAccountSetId)> for AccountDetails {
@@ -22,6 +23,7 @@ impl From<&(AccountSpec, LedgerAccountSetId)> for AccountDetails {
         AccountDetails {
             id: LedgerAccountId::new(),
             name: spec.name.clone(),
+            code: spec.code.clone(),
         }
     }
 }
