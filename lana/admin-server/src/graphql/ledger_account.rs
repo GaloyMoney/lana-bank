@@ -5,6 +5,8 @@ use lana_app::chart_of_accounts::AccountDetails;
 
 use crate::primitives::*;
 
+use super::account::{LayeredBtcAccountAmounts, LayeredUsdAccountAmounts};
+
 #[derive(SimpleObject)]
 #[graphql(complex)]
 pub struct LedgerAccount {
@@ -39,10 +41,24 @@ impl LedgerAccount {
     }
 }
 
+#[derive(Union)]
+pub(super) enum LedgerAccountHistoryEntry {
+    Usd(UsdLedgerAccountHistoryEntry),
+    Btc(BtcLedgerAccountHistoryEntry),
+}
+
 #[derive(SimpleObject)]
-pub(super) struct LedgerAccountHistoryEntry {
+pub(super) struct UsdLedgerAccountHistoryEntry {
     pub tx_id: UUID,
     pub recorded_at: Timestamp,
+    pub amount: LayeredUsdAccountAmounts,
+}
+
+#[derive(SimpleObject)]
+pub(super) struct BtcLedgerAccountHistoryEntry {
+    pub tx_id: UUID,
+    pub recorded_at: Timestamp,
+    pub amount: LayeredBtcAccountAmounts,
 }
 
 #[derive(Serialize, Deserialize)]

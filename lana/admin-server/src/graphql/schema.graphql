@@ -206,6 +206,12 @@ type BtcAccountAmountsInPeriod {
 	amount: LayeredBtcAccountAmounts!
 }
 
+type BtcLedgerAccountHistoryEntry {
+	txId: UUID!
+	recordedAt: Timestamp!
+	amount: LayeredBtcAccountAmounts!
+}
+
 scalar CVLPct
 
 type CancelledWithdrawalEntry {
@@ -950,10 +956,7 @@ type LedgerAccount {
 	history(first: Int!, after: String): LedgerAccountHistoryEntryConnection!
 }
 
-type LedgerAccountHistoryEntry {
-	txId: UUID!
-	recordedAt: Timestamp!
-}
+union LedgerAccountHistoryEntry = UsdLedgerAccountHistoryEntry | BtcLedgerAccountHistoryEntry
 
 type LedgerAccountHistoryEntryConnection {
 	"""
@@ -1340,6 +1343,12 @@ type UsdAccountAmountsInPeriod {
 }
 
 scalar UsdCents
+
+type UsdLedgerAccountHistoryEntry {
+	txId: UUID!
+	recordedAt: Timestamp!
+	amount: LayeredUsdAccountAmounts!
+}
 
 type User {
 	id: ID!

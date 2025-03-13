@@ -58,7 +58,7 @@ impl From<lana_app::statement::UsdStatementBalanceAmount> for UsdAccountAmounts 
 }
 
 #[derive(SimpleObject)]
-struct LayeredBtcAccountAmounts {
+pub struct LayeredBtcAccountAmounts {
     all: BtcAccountAmounts,
     settled: BtcAccountAmounts,
     pending: BtcAccountAmounts,
@@ -77,7 +77,7 @@ impl From<lana_app::statement::BtcStatementAccountSetBalance> for LayeredBtcAcco
 }
 
 #[derive(SimpleObject)]
-struct LayeredUsdAccountAmounts {
+pub struct LayeredUsdAccountAmounts {
     all: UsdAccountAmounts,
     settled: UsdAccountAmounts,
     pending: UsdAccountAmounts,

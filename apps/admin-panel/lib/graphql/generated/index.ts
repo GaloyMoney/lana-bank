@@ -226,6 +226,13 @@ export type BtcAccountAmountsInPeriod = {
   openingBalance: LayeredBtcAccountAmounts;
 };
 
+export type BtcLedgerAccountHistoryEntry = {
+  __typename?: 'BtcLedgerAccountHistoryEntry';
+  amount: LayeredBtcAccountAmounts;
+  recordedAt: Scalars['Timestamp']['output'];
+  txId: Scalars['UUID']['output'];
+};
+
 export type CancelledWithdrawalEntry = {
   __typename?: 'CancelledWithdrawalEntry';
   recordedAt: Scalars['Timestamp']['output'];
@@ -972,11 +979,7 @@ export type LedgerAccountHistoryArgs = {
   first: Scalars['Int']['input'];
 };
 
-export type LedgerAccountHistoryEntry = {
-  __typename?: 'LedgerAccountHistoryEntry';
-  recordedAt: Scalars['Timestamp']['output'];
-  txId: Scalars['UUID']['output'];
-};
+export type LedgerAccountHistoryEntry = BtcLedgerAccountHistoryEntry | UsdLedgerAccountHistoryEntry;
 
 export type LedgerAccountHistoryEntryConnection = {
   __typename?: 'LedgerAccountHistoryEntryConnection';
@@ -1676,6 +1679,13 @@ export type UsdAccountAmountsInPeriod = {
   amount: LayeredUsdAccountAmounts;
   closingBalance: LayeredUsdAccountAmounts;
   openingBalance: LayeredUsdAccountAmounts;
+};
+
+export type UsdLedgerAccountHistoryEntry = {
+  __typename?: 'UsdLedgerAccountHistoryEntry';
+  amount: LayeredUsdAccountAmounts;
+  recordedAt: Scalars['Timestamp']['output'];
+  txId: Scalars['UUID']['output'];
 };
 
 export type User = {
