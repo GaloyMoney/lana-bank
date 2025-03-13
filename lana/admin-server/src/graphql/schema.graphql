@@ -9,6 +9,8 @@ type AccountAmountsByCurrency {
 	usd: UsdAccountAmountsInPeriod!
 }
 
+scalar AccountCode
+
 type AccountSet {
 	id: UUID!
 	name: String!
@@ -944,6 +946,7 @@ type LayeredUsdAccountAmounts {
 type LedgerAccount {
 	id: UUID!
 	name: String!
+	code: AccountCode!
 }
 
 type Mutation {

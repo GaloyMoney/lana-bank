@@ -1249,6 +1249,7 @@ export const mockLedgerAccount = (overrides?: Partial<LedgerAccount>, _relations
     relationshipsToOmit.add('LedgerAccount');
     return {
         __typename: 'LedgerAccount',
+        code: overrides && overrides.hasOwnProperty('code') ? overrides.code! : faker.lorem.word(),
         id: overrides && overrides.hasOwnProperty('id') ? overrides.id! : generateMockValue.uuid(),
         name: overrides && overrides.hasOwnProperty('name') ? overrides.name! : generateMockValue.name(),
     };

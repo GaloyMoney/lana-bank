@@ -139,7 +139,7 @@ impl AccountCode {
                 return false;
             }
 
-            if &code[position..position + section_len] != section.code {
+            if code[position..position + section_len] != section.code {
                 return false;
             }
 
