@@ -12,6 +12,20 @@ es_entity::entity_id! {
     ChartId,
 }
 
+pub struct AccountDetails {
+    pub id: LedgerAccountId,
+    pub name: AccountName,
+}
+
+impl From<&(AccountSpec, LedgerAccountSetId)> for AccountDetails {
+    fn from((spec, _): &(AccountSpec, LedgerAccountSetId)) -> Self {
+        AccountDetails {
+            id: LedgerAccountId::new(),
+            name: spec.name.clone(),
+        }
+    }
+}
+
 #[derive(Error, Debug)]
 pub enum AccountNameParseError {
     #[error("empty")]
@@ -255,6 +269,8 @@ impl FromStr for CoreChartOfAccountsObject {
 impl CoreChartOfAccountsAction {
     pub const CHART_CREATE: Self = CoreChartOfAccountsAction::ChartAction(ChartAction::Create);
     pub const CHART_LIST: Self = CoreChartOfAccountsAction::ChartAction(ChartAction::List);
+    pub const CHART_ACCOUNT_DETAILS_READ: Self =
+        CoreChartOfAccountsAction::ChartAction(ChartAction::AccountDetailsRead);
     pub const CHART_IMPORT_ACCOUNTS: Self =
         CoreChartOfAccountsAction::ChartAction(ChartAction::ImportAccounts);
 }
@@ -288,6 +304,7 @@ impl FromStr for CoreChartOfAccountsAction {
 pub enum ChartAction {
     Create,
     List,
+    AccountDetailsRead,
     ImportAccounts,
     CreateControlAccount,
     FindControlAccount,

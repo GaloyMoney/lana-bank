@@ -15,8 +15,8 @@ use crate::primitives::*;
 use super::{
     approval_process::*, audit::*, authenticated_subject::*, chart_of_accounts::*, committee::*,
     credit_config::*, credit_facility::*, customer::*, dashboard::*, deposit::*, deposit_config::*,
-    document::*, financials::*, loader::*, policy::*, price::*, report::*, sumsub::*,
-    terms_template::*, user::*, withdrawal::*,
+    document::*, financials::*, ledger_account::*, loader::*, policy::*, price::*, report::*,
+    sumsub::*, terms_template::*, user::*, withdrawal::*,
 };
 
 pub struct Query;
@@ -393,6 +393,25 @@ impl Query {
     ) -> async_graphql::Result<Option<Document>> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         maybe_fetch_one!(Document, ctx, app.documents().find_by_id(sub, id))
+    }
+
+    async fn ledger_account_by_code(
+        &self,
+        ctx: &Context<'_>,
+        code: String,
+    ) -> async_graphql::Result<Option<LedgerAccount>> {
+        let reference = CHART_REF.to_string();
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        let chart = app
+            .chart_of_accounts()
+            .find_by_reference(sub, reference.clone())
+            .await?
+            .unwrap_or_else(|| panic!("Chart of accounts not found for ref {}", reference));
+        let account = app
+            .chart_of_accounts()
+            .account_details_by_code(sub, chart, code)
+            .await?;
+        Ok(account.map(LedgerAccount::from))
     }
 
     async fn trial_balance(

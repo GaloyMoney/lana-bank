@@ -15,6 +15,7 @@ mod deposit_account_history;
 mod deposit_config;
 mod document;
 mod financials;
+mod ledger_account;
 mod loader;
 mod price;
 mod primitives;

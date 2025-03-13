@@ -186,6 +186,27 @@ where
         Ok(chart)
     }
 
+    #[instrument(name = "chart_of_accounts.account_details_by_code", skip(self, chart))]
+    pub async fn account_details_by_code(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        chart: Chart,
+        code: String,
+    ) -> Result<Option<AccountDetails>, CoreChartOfAccountsError> {
+        self.authz
+            .enforce_permission(
+                sub,
+                CoreChartOfAccountsObject::chart(chart.id),
+                CoreChartOfAccountsAction::CHART_ACCOUNT_DETAILS_READ,
+            )
+            .await?;
+        let code = code
+            .parse()
+            .map_err(|_| CoreChartOfAccountsError::InvalidAccountCode)?;
+        let details = chart.account_spec(&code).map(AccountDetails::from);
+        Ok(details)
+    }
+
     #[instrument(name = "chart_of_accounts.find_all", skip(self), err)]
     pub async fn find_all<T: From<Chart>>(
         &self,

@@ -957,6 +957,12 @@ export type LayeredUsdAccountAmounts = {
   settled: UsdAccountAmounts;
 };
 
+export type LedgerAccount = {
+  __typename?: 'LedgerAccount';
+  id: Scalars['UUID']['output'];
+  name: Scalars['String']['output'];
+};
+
 export type Loan = {
   __typename?: 'Loan';
   collateralToMatchInitialCvl?: Maybe<Scalars['Satoshis']['output']>;
@@ -1257,6 +1263,7 @@ export type Query = {
   disbursal?: Maybe<CreditFacilityDisbursal>;
   disbursals: CreditFacilityDisbursalConnection;
   document?: Maybe<Document>;
+  ledgerAccountByCode?: Maybe<LedgerAccount>;
   me: Subject;
   offBalanceSheetTrialBalance: TrialBalance;
   policies: PolicyConnection;
@@ -1377,6 +1384,11 @@ export type QueryDisbursalsArgs = {
 
 export type QueryDocumentArgs = {
   id: Scalars['UUID']['input'];
+};
+
+
+export type QueryLedgerAccountByCodeArgs = {
+  code: Scalars['String']['input'];
 };
 
 
