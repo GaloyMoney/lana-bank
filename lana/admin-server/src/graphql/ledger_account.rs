@@ -51,14 +51,14 @@ pub(super) enum LedgerAccountHistoryEntry {
 pub(super) struct UsdLedgerAccountHistoryEntry {
     pub tx_id: UUID,
     pub recorded_at: Timestamp,
-    pub amount: LayeredUsdAccountAmounts,
+    pub usd_amount: LayeredUsdAccountAmounts,
 }
 
 #[derive(SimpleObject)]
 pub(super) struct BtcLedgerAccountHistoryEntry {
     pub tx_id: UUID,
     pub recorded_at: Timestamp,
-    pub amount: LayeredBtcAccountAmounts,
+    pub btc_amount: LayeredBtcAccountAmounts,
 }
 
 #[derive(Serialize, Deserialize)]

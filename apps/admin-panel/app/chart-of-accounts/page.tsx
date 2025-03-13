@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useCallback } from "react"
+import React, { useState, useCallback, MouseEventHandler } from "react"
 import { ApolloError, gql } from "@apollo/client"
 import { useTranslations } from "next-intl"
 
@@ -20,6 +20,10 @@ import {
 import { Badge } from "@lana/web/ui/badge"
 
 import { toast } from "sonner"
+
+import { Button } from "@lana/web/ui/button"
+
+import { useRouter } from "next/navigation"
 
 import ChartOfAccountsUpload from "./upload"
 
@@ -105,15 +109,15 @@ const getIndentClass = (accountCode: string): string => {
     case 0:
       return ""
     case 1:
-      return "pl-16"
+      return "pl-6"
     case 2:
-      return "pl-24"
+      return "pl-12"
     case 3:
-      return "pl-32"
+      return "pl-18"
     case 4:
-      return "pl-40"
+      return "pl-24"
     default:
-      return `pl-${Math.min(level * 8, 56)}`
+      return `pl-[${Math.min(level * 8, 56)}]`
   }
 }
 
@@ -154,13 +158,27 @@ interface AccountRowProps {
 const AccountRow = React.memo<AccountRowProps>(
   ({ account, hasDots, isExpanded, toggleExpand }) => {
     const t = useTranslations("ChartOfAccounts")
+    const tCommon = useTranslations("Common")
+    const [isHovering, setIsHovering] = useState(false)
+
+    const router = useRouter()
+
+    const onClick: MouseEventHandler<HTMLButtonElement> = (e) => {
+      e.preventDefault()
+      e.stopPropagation()
+      router.push(`/chart-of-accounts/${account.accountCode}`)
+    }
 
     return (
       <TableRow
         className={hasDots ? "cursor-pointer hover:bg-muted/5" : ""}
         onClick={hasDots ? toggleExpand : undefined}
+        onMouseEnter={() => setIsHovering(true)}
+        onMouseLeave={() => setIsHovering(false)}
       >
-        <TableCell className={getIndentClass(account.accountCode)}>
+        <TableCell
+          className={`${getIndentClass(account.accountCode)} flex justify-between`}
+        >
           <div className="grid grid-cols-[100px_40px_1fr] items-center">
             <div>
               <Badge
@@ -189,8 +207,23 @@ const AccountRow = React.memo<AccountRowProps>(
                 <span className="w-4"></span>
               )}
             </div>
-            <span className={getTextClass(account.accountCode)}>{account.name}</span>
+            <div className="flex space-x-4 items-center">
+              <span className={getTextClass(account.accountCode)}>{account.name}</span>
+              <div className="font-mono text-xs text-gray-500">
+                ({account.accountCode})
+              </div>
+            </div>
           </div>
+          {isHovering && (
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-[22px] uppercase"
+              onClick={onClick}
+            >
+              {tCommon("view")}
+            </Button>
+          )}
         </TableCell>
       </TableRow>
     )

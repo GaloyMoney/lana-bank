@@ -287,7 +287,7 @@ export const mockBtcLedgerAccountHistoryEntry = (overrides?: Partial<BtcLedgerAc
     relationshipsToOmit.add('BtcLedgerAccountHistoryEntry');
     return {
         __typename: 'BtcLedgerAccountHistoryEntry',
-        amount: overrides && overrides.hasOwnProperty('amount') ? overrides.amount! : relationshipsToOmit.has('LayeredBtcAccountAmounts') ? {} as LayeredBtcAccountAmounts : mockLayeredBtcAccountAmounts({}, relationshipsToOmit),
+        btcAmount: overrides && overrides.hasOwnProperty('btcAmount') ? overrides.btcAmount! : relationshipsToOmit.has('LayeredBtcAccountAmounts') ? {} as LayeredBtcAccountAmounts : mockLayeredBtcAccountAmounts({}, relationshipsToOmit),
         recordedAt: overrides && overrides.hasOwnProperty('recordedAt') ? overrides.recordedAt! : generateMockValue.timestamp(),
         txId: overrides && overrides.hasOwnProperty('txId') ? overrides.txId! : generateMockValue.uuid(),
     };
@@ -1766,9 +1766,9 @@ export const mockUsdLedgerAccountHistoryEntry = (overrides?: Partial<UsdLedgerAc
     relationshipsToOmit.add('UsdLedgerAccountHistoryEntry');
     return {
         __typename: 'UsdLedgerAccountHistoryEntry',
-        amount: overrides && overrides.hasOwnProperty('amount') ? overrides.amount! : relationshipsToOmit.has('LayeredUsdAccountAmounts') ? {} as LayeredUsdAccountAmounts : mockLayeredUsdAccountAmounts({}, relationshipsToOmit),
         recordedAt: overrides && overrides.hasOwnProperty('recordedAt') ? overrides.recordedAt! : generateMockValue.timestamp(),
         txId: overrides && overrides.hasOwnProperty('txId') ? overrides.txId! : generateMockValue.uuid(),
+        usdAmount: overrides && overrides.hasOwnProperty('usdAmount') ? overrides.usdAmount! : relationshipsToOmit.has('LayeredUsdAccountAmounts') ? {} as LayeredUsdAccountAmounts : mockLayeredUsdAccountAmounts({}, relationshipsToOmit),
     };
 };
 

@@ -228,7 +228,7 @@ export type BtcAccountAmountsInPeriod = {
 
 export type BtcLedgerAccountHistoryEntry = {
   __typename?: 'BtcLedgerAccountHistoryEntry';
-  amount: LayeredBtcAccountAmounts;
+  btcAmount: LayeredBtcAccountAmounts;
   recordedAt: Scalars['Timestamp']['output'];
   txId: Scalars['UUID']['output'];
 };
@@ -1683,9 +1683,9 @@ export type UsdAccountAmountsInPeriod = {
 
 export type UsdLedgerAccountHistoryEntry = {
   __typename?: 'UsdLedgerAccountHistoryEntry';
-  amount: LayeredUsdAccountAmounts;
   recordedAt: Scalars['Timestamp']['output'];
   txId: Scalars['UUID']['output'];
+  usdAmount: LayeredUsdAccountAmounts;
 };
 
 export type User = {
@@ -1876,6 +1876,15 @@ export type CashFlowStatementQueryVariables = Exact<{
 
 
 export type CashFlowStatementQuery = { __typename?: 'Query', cashFlowStatement: { __typename?: 'CashFlowStatement', name: string, total: { __typename?: 'AccountAmountsByCurrency', btc: { __typename?: 'BtcAccountAmountsInPeriod', openingBalance: { __typename?: 'LayeredBtcAccountAmounts', all: { __typename?: 'BtcAccountAmounts', debit: Satoshis, credit: Satoshis, netDebit: SignedSatoshis, netCredit: SignedSatoshis }, settled: { __typename?: 'BtcAccountAmounts', debit: Satoshis, credit: Satoshis, netDebit: SignedSatoshis, netCredit: SignedSatoshis }, pending: { __typename?: 'BtcAccountAmounts', debit: Satoshis, credit: Satoshis, netDebit: SignedSatoshis, netCredit: SignedSatoshis }, encumbrance: { __typename?: 'BtcAccountAmounts', debit: Satoshis, credit: Satoshis, netDebit: SignedSatoshis, netCredit: SignedSatoshis } }, closingBalance: { __typename?: 'LayeredBtcAccountAmounts', all: { __typename?: 'BtcAccountAmounts', debit: Satoshis, credit: Satoshis, netDebit: SignedSatoshis, netCredit: SignedSatoshis }, settled: { __typename?: 'BtcAccountAmounts', debit: Satoshis, credit: Satoshis, netDebit: SignedSatoshis, netCredit: SignedSatoshis }, pending: { __typename?: 'BtcAccountAmounts', debit: Satoshis, credit: Satoshis, netDebit: SignedSatoshis, netCredit: SignedSatoshis }, encumbrance: { __typename?: 'BtcAccountAmounts', debit: Satoshis, credit: Satoshis, netDebit: SignedSatoshis, netCredit: SignedSatoshis } }, amount: { __typename?: 'LayeredBtcAccountAmounts', all: { __typename?: 'BtcAccountAmounts', debit: Satoshis, credit: Satoshis, netDebit: SignedSatoshis, netCredit: SignedSatoshis }, settled: { __typename?: 'BtcAccountAmounts', debit: Satoshis, credit: Satoshis, netDebit: SignedSatoshis, netCredit: SignedSatoshis }, pending: { __typename?: 'BtcAccountAmounts', debit: Satoshis, credit: Satoshis, netDebit: SignedSatoshis, netCredit: SignedSatoshis }, encumbrance: { __typename?: 'BtcAccountAmounts', debit: Satoshis, credit: Satoshis, netDebit: SignedSatoshis, netCredit: SignedSatoshis } } }, usd: { __typename?: 'UsdAccountAmountsInPeriod', openingBalance: { __typename?: 'LayeredUsdAccountAmounts', all: { __typename?: 'UsdAccountAmounts', debit: UsdCents, credit: UsdCents, netDebit: SignedUsdCents, netCredit: SignedUsdCents }, settled: { __typename?: 'UsdAccountAmounts', debit: UsdCents, credit: UsdCents, netDebit: SignedUsdCents, netCredit: SignedUsdCents }, pending: { __typename?: 'UsdAccountAmounts', debit: UsdCents, credit: UsdCents, netDebit: SignedUsdCents, netCredit: SignedUsdCents }, encumbrance: { __typename?: 'UsdAccountAmounts', debit: UsdCents, credit: UsdCents, netDebit: SignedUsdCents, netCredit: SignedUsdCents } }, closingBalance: { __typename?: 'LayeredUsdAccountAmounts', all: { __typename?: 'UsdAccountAmounts', debit: UsdCents, credit: UsdCents, netDebit: SignedUsdCents, netCredit: SignedUsdCents }, settled: { __typename?: 'UsdAccountAmounts', debit: UsdCents, credit: UsdCents, netDebit: SignedUsdCents, netCredit: SignedUsdCents }, pending: { __typename?: 'UsdAccountAmounts', debit: UsdCents, credit: UsdCents, netDebit: SignedUsdCents, netCredit: SignedUsdCents }, encumbrance: { __typename?: 'UsdAccountAmounts', debit: UsdCents, credit: UsdCents, netDebit: SignedUsdCents, netCredit: SignedUsdCents } }, amount: { __typename?: 'LayeredUsdAccountAmounts', all: { __typename?: 'UsdAccountAmounts', debit: UsdCents, credit: UsdCents, netDebit: SignedUsdCents, netCredit: SignedUsdCents }, settled: { __typename?: 'UsdAccountAmounts', debit: UsdCents, credit: UsdCents, netDebit: SignedUsdCents, netCredit: SignedUsdCents }, pending: { __typename?: 'UsdAccountAmounts', debit: UsdCents, credit: UsdCents, netDebit: SignedUsdCents, netCredit: SignedUsdCents }, encumbrance: { __typename?: 'UsdAccountAmounts', debit: UsdCents, credit: UsdCents, netDebit: SignedUsdCents, netCredit: SignedUsdCents } } } }, categories: Array<{ __typename?: 'StatementCategory', name: string, accounts: Array<{ __typename: 'Account', id: string, name: string, amounts: { __typename?: 'AccountAmountsByCurrency', btc: { __typename?: 'BtcAccountAmountsInPeriod', openingBalance: { __typename?: 'LayeredBtcAccountAmounts', all: { __typename?: 'BtcAccountAmounts', debit: Satoshis, credit: Satoshis, netDebit: SignedSatoshis, netCredit: SignedSatoshis }, settled: { __typename?: 'BtcAccountAmounts', debit: Satoshis, credit: Satoshis, netDebit: SignedSatoshis, netCredit: SignedSatoshis }, pending: { __typename?: 'BtcAccountAmounts', debit: Satoshis, credit: Satoshis, netDebit: SignedSatoshis, netCredit: SignedSatoshis }, encumbrance: { __typename?: 'BtcAccountAmounts', debit: Satoshis, credit: Satoshis, netDebit: SignedSatoshis, netCredit: SignedSatoshis } }, closingBalance: { __typename?: 'LayeredBtcAccountAmounts', all: { __typename?: 'BtcAccountAmounts', debit: Satoshis, credit: Satoshis, netDebit: SignedSatoshis, netCredit: SignedSatoshis }, settled: { __typename?: 'BtcAccountAmounts', debit: Satoshis, credit: Satoshis, netDebit: SignedSatoshis, netCredit: SignedSatoshis }, pending: { __typename?: 'BtcAccountAmounts', debit: Satoshis, credit: Satoshis, netDebit: SignedSatoshis, netCredit: SignedSatoshis }, encumbrance: { __typename?: 'BtcAccountAmounts', debit: Satoshis, credit: Satoshis, netDebit: SignedSatoshis, netCredit: SignedSatoshis } }, amount: { __typename?: 'LayeredBtcAccountAmounts', all: { __typename?: 'BtcAccountAmounts', debit: Satoshis, credit: Satoshis, netDebit: SignedSatoshis, netCredit: SignedSatoshis }, settled: { __typename?: 'BtcAccountAmounts', debit: Satoshis, credit: Satoshis, netDebit: SignedSatoshis, netCredit: SignedSatoshis }, pending: { __typename?: 'BtcAccountAmounts', debit: Satoshis, credit: Satoshis, netDebit: SignedSatoshis, netCredit: SignedSatoshis }, encumbrance: { __typename?: 'BtcAccountAmounts', debit: Satoshis, credit: Satoshis, netDebit: SignedSatoshis, netCredit: SignedSatoshis } } }, usd: { __typename?: 'UsdAccountAmountsInPeriod', openingBalance: { __typename?: 'LayeredUsdAccountAmounts', all: { __typename?: 'UsdAccountAmounts', debit: UsdCents, credit: UsdCents, netDebit: SignedUsdCents, netCredit: SignedUsdCents }, settled: { __typename?: 'UsdAccountAmounts', debit: UsdCents, credit: UsdCents, netDebit: SignedUsdCents, netCredit: SignedUsdCents }, pending: { __typename?: 'UsdAccountAmounts', debit: UsdCents, credit: UsdCents, netDebit: SignedUsdCents, netCredit: SignedUsdCents }, encumbrance: { __typename?: 'UsdAccountAmounts', debit: UsdCents, credit: UsdCents, netDebit: SignedUsdCents, netCredit: SignedUsdCents } }, closingBalance: { __typename?: 'LayeredUsdAccountAmounts', all: { __typename?: 'UsdAccountAmounts', debit: UsdCents, credit: UsdCents, netDebit: SignedUsdCents, netCredit: SignedUsdCents }, settled: { __typename?: 'UsdAccountAmounts', debit: UsdCents, credit: UsdCents, netDebit: SignedUsdCents, netCredit: SignedUsdCents }, pending: { __typename?: 'UsdAccountAmounts', debit: UsdCents, credit: UsdCents, netDebit: SignedUsdCents, netCredit: SignedUsdCents }, encumbrance: { __typename?: 'UsdAccountAmounts', debit: UsdCents, credit: UsdCents, netDebit: SignedUsdCents, netCredit: SignedUsdCents } }, amount: { __typename?: 'LayeredUsdAccountAmounts', all: { __typename?: 'UsdAccountAmounts', debit: UsdCents, credit: UsdCents, netDebit: SignedUsdCents, netCredit: SignedUsdCents }, settled: { __typename?: 'UsdAccountAmounts', debit: UsdCents, credit: UsdCents, netDebit: SignedUsdCents, netCredit: SignedUsdCents }, pending: { __typename?: 'UsdAccountAmounts', debit: UsdCents, credit: UsdCents, netDebit: SignedUsdCents, netCredit: SignedUsdCents }, encumbrance: { __typename?: 'UsdAccountAmounts', debit: UsdCents, credit: UsdCents, netDebit: SignedUsdCents, netCredit: SignedUsdCents } } } } } | { __typename: 'AccountSet', id: string, name: string, amounts: { __typename?: 'AccountAmountsByCurrency', btc: { __typename?: 'BtcAccountAmountsInPeriod', openingBalance: { __typename?: 'LayeredBtcAccountAmounts', all: { __typename?: 'BtcAccountAmounts', debit: Satoshis, credit: Satoshis, netDebit: SignedSatoshis, netCredit: SignedSatoshis }, settled: { __typename?: 'BtcAccountAmounts', debit: Satoshis, credit: Satoshis, netDebit: SignedSatoshis, netCredit: SignedSatoshis }, pending: { __typename?: 'BtcAccountAmounts', debit: Satoshis, credit: Satoshis, netDebit: SignedSatoshis, netCredit: SignedSatoshis }, encumbrance: { __typename?: 'BtcAccountAmounts', debit: Satoshis, credit: Satoshis, netDebit: SignedSatoshis, netCredit: SignedSatoshis } }, closingBalance: { __typename?: 'LayeredBtcAccountAmounts', all: { __typename?: 'BtcAccountAmounts', debit: Satoshis, credit: Satoshis, netDebit: SignedSatoshis, netCredit: SignedSatoshis }, settled: { __typename?: 'BtcAccountAmounts', debit: Satoshis, credit: Satoshis, netDebit: SignedSatoshis, netCredit: SignedSatoshis }, pending: { __typename?: 'BtcAccountAmounts', debit: Satoshis, credit: Satoshis, netDebit: SignedSatoshis, netCredit: SignedSatoshis }, encumbrance: { __typename?: 'BtcAccountAmounts', debit: Satoshis, credit: Satoshis, netDebit: SignedSatoshis, netCredit: SignedSatoshis } }, amount: { __typename?: 'LayeredBtcAccountAmounts', all: { __typename?: 'BtcAccountAmounts', debit: Satoshis, credit: Satoshis, netDebit: SignedSatoshis, netCredit: SignedSatoshis }, settled: { __typename?: 'BtcAccountAmounts', debit: Satoshis, credit: Satoshis, netDebit: SignedSatoshis, netCredit: SignedSatoshis }, pending: { __typename?: 'BtcAccountAmounts', debit: Satoshis, credit: Satoshis, netDebit: SignedSatoshis, netCredit: SignedSatoshis }, encumbrance: { __typename?: 'BtcAccountAmounts', debit: Satoshis, credit: Satoshis, netDebit: SignedSatoshis, netCredit: SignedSatoshis } } }, usd: { __typename?: 'UsdAccountAmountsInPeriod', openingBalance: { __typename?: 'LayeredUsdAccountAmounts', all: { __typename?: 'UsdAccountAmounts', debit: UsdCents, credit: UsdCents, netDebit: SignedUsdCents, netCredit: SignedUsdCents }, settled: { __typename?: 'UsdAccountAmounts', debit: UsdCents, credit: UsdCents, netDebit: SignedUsdCents, netCredit: SignedUsdCents }, pending: { __typename?: 'UsdAccountAmounts', debit: UsdCents, credit: UsdCents, netDebit: SignedUsdCents, netCredit: SignedUsdCents }, encumbrance: { __typename?: 'UsdAccountAmounts', debit: UsdCents, credit: UsdCents, netDebit: SignedUsdCents, netCredit: SignedUsdCents } }, closingBalance: { __typename?: 'LayeredUsdAccountAmounts', all: { __typename?: 'UsdAccountAmounts', debit: UsdCents, credit: UsdCents, netDebit: SignedUsdCents, netCredit: SignedUsdCents }, settled: { __typename?: 'UsdAccountAmounts', debit: UsdCents, credit: UsdCents, netDebit: SignedUsdCents, netCredit: SignedUsdCents }, pending: { __typename?: 'UsdAccountAmounts', debit: UsdCents, credit: UsdCents, netDebit: SignedUsdCents, netCredit: SignedUsdCents }, encumbrance: { __typename?: 'UsdAccountAmounts', debit: UsdCents, credit: UsdCents, netDebit: SignedUsdCents, netCredit: SignedUsdCents } }, amount: { __typename?: 'LayeredUsdAccountAmounts', all: { __typename?: 'UsdAccountAmounts', debit: UsdCents, credit: UsdCents, netDebit: SignedUsdCents, netCredit: SignedUsdCents }, settled: { __typename?: 'UsdAccountAmounts', debit: UsdCents, credit: UsdCents, netDebit: SignedUsdCents, netCredit: SignedUsdCents }, pending: { __typename?: 'UsdAccountAmounts', debit: UsdCents, credit: UsdCents, netDebit: SignedUsdCents, netCredit: SignedUsdCents }, encumbrance: { __typename?: 'UsdAccountAmounts', debit: UsdCents, credit: UsdCents, netDebit: SignedUsdCents, netCredit: SignedUsdCents } } } } }>, amounts: { __typename?: 'AccountAmountsByCurrency', btc: { __typename?: 'BtcAccountAmountsInPeriod', openingBalance: { __typename?: 'LayeredBtcAccountAmounts', all: { __typename?: 'BtcAccountAmounts', debit: Satoshis, credit: Satoshis, netDebit: SignedSatoshis, netCredit: SignedSatoshis }, settled: { __typename?: 'BtcAccountAmounts', debit: Satoshis, credit: Satoshis, netDebit: SignedSatoshis, netCredit: SignedSatoshis }, pending: { __typename?: 'BtcAccountAmounts', debit: Satoshis, credit: Satoshis, netDebit: SignedSatoshis, netCredit: SignedSatoshis }, encumbrance: { __typename?: 'BtcAccountAmounts', debit: Satoshis, credit: Satoshis, netDebit: SignedSatoshis, netCredit: SignedSatoshis } }, closingBalance: { __typename?: 'LayeredBtcAccountAmounts', all: { __typename?: 'BtcAccountAmounts', debit: Satoshis, credit: Satoshis, netDebit: SignedSatoshis, netCredit: SignedSatoshis }, settled: { __typename?: 'BtcAccountAmounts', debit: Satoshis, credit: Satoshis, netDebit: SignedSatoshis, netCredit: SignedSatoshis }, pending: { __typename?: 'BtcAccountAmounts', debit: Satoshis, credit: Satoshis, netDebit: SignedSatoshis, netCredit: SignedSatoshis }, encumbrance: { __typename?: 'BtcAccountAmounts', debit: Satoshis, credit: Satoshis, netDebit: SignedSatoshis, netCredit: SignedSatoshis } }, amount: { __typename?: 'LayeredBtcAccountAmounts', all: { __typename?: 'BtcAccountAmounts', debit: Satoshis, credit: Satoshis, netDebit: SignedSatoshis, netCredit: SignedSatoshis }, settled: { __typename?: 'BtcAccountAmounts', debit: Satoshis, credit: Satoshis, netDebit: SignedSatoshis, netCredit: SignedSatoshis }, pending: { __typename?: 'BtcAccountAmounts', debit: Satoshis, credit: Satoshis, netDebit: SignedSatoshis, netCredit: SignedSatoshis }, encumbrance: { __typename?: 'BtcAccountAmounts', debit: Satoshis, credit: Satoshis, netDebit: SignedSatoshis, netCredit: SignedSatoshis } } }, usd: { __typename?: 'UsdAccountAmountsInPeriod', openingBalance: { __typename?: 'LayeredUsdAccountAmounts', all: { __typename?: 'UsdAccountAmounts', debit: UsdCents, credit: UsdCents, netDebit: SignedUsdCents, netCredit: SignedUsdCents }, settled: { __typename?: 'UsdAccountAmounts', debit: UsdCents, credit: UsdCents, netDebit: SignedUsdCents, netCredit: SignedUsdCents }, pending: { __typename?: 'UsdAccountAmounts', debit: UsdCents, credit: UsdCents, netDebit: SignedUsdCents, netCredit: SignedUsdCents }, encumbrance: { __typename?: 'UsdAccountAmounts', debit: UsdCents, credit: UsdCents, netDebit: SignedUsdCents, netCredit: SignedUsdCents } }, closingBalance: { __typename?: 'LayeredUsdAccountAmounts', all: { __typename?: 'UsdAccountAmounts', debit: UsdCents, credit: UsdCents, netDebit: SignedUsdCents, netCredit: SignedUsdCents }, settled: { __typename?: 'UsdAccountAmounts', debit: UsdCents, credit: UsdCents, netDebit: SignedUsdCents, netCredit: SignedUsdCents }, pending: { __typename?: 'UsdAccountAmounts', debit: UsdCents, credit: UsdCents, netDebit: SignedUsdCents, netCredit: SignedUsdCents }, encumbrance: { __typename?: 'UsdAccountAmounts', debit: UsdCents, credit: UsdCents, netDebit: SignedUsdCents, netCredit: SignedUsdCents } }, amount: { __typename?: 'LayeredUsdAccountAmounts', all: { __typename?: 'UsdAccountAmounts', debit: UsdCents, credit: UsdCents, netDebit: SignedUsdCents, netCredit: SignedUsdCents }, settled: { __typename?: 'UsdAccountAmounts', debit: UsdCents, credit: UsdCents, netDebit: SignedUsdCents, netCredit: SignedUsdCents }, pending: { __typename?: 'UsdAccountAmounts', debit: UsdCents, credit: UsdCents, netDebit: SignedUsdCents, netCredit: SignedUsdCents }, encumbrance: { __typename?: 'UsdAccountAmounts', debit: UsdCents, credit: UsdCents, netDebit: SignedUsdCents, netCredit: SignedUsdCents } } } } }> } };
+
+export type LedgerAccountByCodeQueryVariables = Exact<{
+  code: Scalars['String']['input'];
+  first: Scalars['Int']['input'];
+  after?: InputMaybe<Scalars['String']['input']>;
+}>;
+
+
+export type LedgerAccountByCodeQuery = { __typename?: 'Query', ledgerAccountByCode?: { __typename?: 'LedgerAccount', id: string, name: string, code: any, history: { __typename?: 'LedgerAccountHistoryEntryConnection', edges: Array<{ __typename?: 'LedgerAccountHistoryEntryEdge', cursor: string, node: { __typename?: 'BtcLedgerAccountHistoryEntry', txId: string, recordedAt: any, btcAmount: { __typename?: 'LayeredBtcAccountAmounts', settled: { __typename?: 'BtcAccountAmounts', debit: Satoshis, credit: Satoshis } } } | { __typename?: 'UsdLedgerAccountHistoryEntry', txId: string, recordedAt: any, usdAmount: { __typename?: 'LayeredUsdAccountAmounts', settled: { __typename?: 'UsdAccountAmounts', debit: UsdCents, credit: UsdCents } } } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, startCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean } } } | null };
 
 export type ChartOfAccountsQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -3124,6 +3133,78 @@ export function useCashFlowStatementLazyQuery(baseOptions?: Apollo.LazyQueryHook
 export type CashFlowStatementQueryHookResult = ReturnType<typeof useCashFlowStatementQuery>;
 export type CashFlowStatementLazyQueryHookResult = ReturnType<typeof useCashFlowStatementLazyQuery>;
 export type CashFlowStatementQueryResult = Apollo.QueryResult<CashFlowStatementQuery, CashFlowStatementQueryVariables>;
+export const LedgerAccountByCodeDocument = gql`
+    query LedgerAccountByCode($code: String!, $first: Int!, $after: String) {
+  ledgerAccountByCode(code: $code) {
+    id
+    name
+    code
+    history(first: $first, after: $after) {
+      edges {
+        cursor
+        node {
+          ... on BtcLedgerAccountHistoryEntry {
+            txId
+            recordedAt
+            btcAmount {
+              settled {
+                debit
+                credit
+              }
+            }
+          }
+          ... on UsdLedgerAccountHistoryEntry {
+            txId
+            recordedAt
+            usdAmount {
+              settled {
+                debit
+                credit
+              }
+            }
+          }
+        }
+      }
+      pageInfo {
+        endCursor
+        startCursor
+        hasNextPage
+        hasPreviousPage
+      }
+    }
+  }
+}
+    `;
+
+/**
+ * __useLedgerAccountByCodeQuery__
+ *
+ * To run a query within a React component, call `useLedgerAccountByCodeQuery` and pass it any options that fit your needs.
+ * When your component renders, `useLedgerAccountByCodeQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useLedgerAccountByCodeQuery({
+ *   variables: {
+ *      code: // value for 'code'
+ *      first: // value for 'first'
+ *      after: // value for 'after'
+ *   },
+ * });
+ */
+export function useLedgerAccountByCodeQuery(baseOptions: Apollo.QueryHookOptions<LedgerAccountByCodeQuery, LedgerAccountByCodeQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<LedgerAccountByCodeQuery, LedgerAccountByCodeQueryVariables>(LedgerAccountByCodeDocument, options);
+      }
+export function useLedgerAccountByCodeLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<LedgerAccountByCodeQuery, LedgerAccountByCodeQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<LedgerAccountByCodeQuery, LedgerAccountByCodeQueryVariables>(LedgerAccountByCodeDocument, options);
+        }
+export type LedgerAccountByCodeQueryHookResult = ReturnType<typeof useLedgerAccountByCodeQuery>;
+export type LedgerAccountByCodeLazyQueryHookResult = ReturnType<typeof useLedgerAccountByCodeLazyQuery>;
+export type LedgerAccountByCodeQueryResult = Apollo.QueryResult<LedgerAccountByCodeQuery, LedgerAccountByCodeQueryVariables>;
 export const ChartOfAccountsDocument = gql`
     query ChartOfAccounts {
   chartOfAccounts {
