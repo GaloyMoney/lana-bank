@@ -8,6 +8,7 @@ pub mod authorization;
 pub mod balance_sheet;
 pub mod cash_flow;
 pub mod document;
+pub mod ledger_account;
 pub mod primitives;
 pub mod profit_and_loss;
 pub mod report;

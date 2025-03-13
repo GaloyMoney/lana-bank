@@ -124,6 +124,7 @@ pub enum AppAction {
     Report(ReportAction),
     Audit(AuditAction),
     Ledger(LedgerAction),
+    LedgerAccount(LedgerAccountAction),
     TrialBalance(TrialBalanceAction),
     ProfitAndLossStatement(ProfitAndLossStatementAction),
     BalanceSheet(BalanceSheetAction),
@@ -140,6 +141,7 @@ impl Display for AppAction {
             Report(action) => action.fmt(f),
             Audit(action) => action.fmt(f),
             Ledger(action) => action.fmt(f),
+            LedgerAccount(action) => action.fmt(f),
             TrialBalance(action) => action.fmt(f),
             ProfitAndLossStatement(action) => action.fmt(f),
             BalanceSheet(action) => action.fmt(f),
@@ -162,6 +164,7 @@ impl FromStr for AppAction {
             Report => AppAction::from(action.parse::<ReportAction>()?),
             Audit => AppAction::from(action.parse::<AuditAction>()?),
             Ledger => AppAction::from(action.parse::<LedgerAction>()?),
+            LedgerAccount => AppAction::from(action.parse::<LedgerAccountAction>()?),
             TrialBalance => AppAction::from(action.parse::<TrialBalanceAction>()?),
             ProfitAndLossStatement => {
                 AppAction::from(action.parse::<ProfitAndLossStatementAction>()?)
@@ -265,6 +268,14 @@ pub enum LedgerAction {
 }
 
 impl_trivial_action!(LedgerAction, Ledger);
+
+#[derive(PartialEq, Clone, Copy, Debug, strum::Display, strum::EnumString)]
+#[strum(serialize_all = "kebab-case")]
+pub enum LedgerAccountAction {
+    ReadHistory,
+}
+
+impl_trivial_action!(LedgerAccountAction, LedgerAccount);
 
 #[cfg(test)]
 mod test {

@@ -49,7 +49,7 @@ pub enum LoanStatus {
 
 pub use cala_ledger::primitives::{
     AccountId as LedgerAccountId, AccountSetId as LedgerAccountSetId, Currency,
-    DebitOrCredit as LedgerDebitOrCredit, JournalId as LedgerJournalId,
+    DebitOrCredit as LedgerDebitOrCredit, EntryId as LedgerEntryId, JournalId as LedgerJournalId,
     TransactionId as LedgerTxId, TxTemplateId as LedgerTxTemplateId,
 };
 
