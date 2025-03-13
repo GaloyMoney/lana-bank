@@ -947,6 +947,41 @@ type LedgerAccount {
 	id: UUID!
 	name: String!
 	code: AccountCode!
+	history(first: Int!, after: String): LedgerAccountHistoryEntryConnection!
+}
+
+type LedgerAccountHistoryEntry {
+	txId: UUID!
+	recordedAt: Timestamp!
+}
+
+type LedgerAccountHistoryEntryConnection {
+	"""
+	Information to aid in pagination.
+	"""
+	pageInfo: PageInfo!
+	"""
+	A list of edges.
+	"""
+	edges: [LedgerAccountHistoryEntryEdge!]!
+	"""
+	A list of nodes.
+	"""
+	nodes: [LedgerAccountHistoryEntry!]!
+}
+
+"""
+An edge in a connection.
+"""
+type LedgerAccountHistoryEntryEdge {
+	"""
+	The item at the end of the edge
+	"""
+	node: LedgerAccountHistoryEntry!
+	"""
+	A cursor for use in pagination
+	"""
+	cursor: String!
 }
 
 type Mutation {
