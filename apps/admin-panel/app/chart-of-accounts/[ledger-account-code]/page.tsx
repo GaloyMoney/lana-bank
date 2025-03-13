@@ -35,6 +35,7 @@ gql`
         edges {
           cursor
           node {
+            __typename
             ... on BtcLedgerAccountHistoryEntry {
               txId
               recordedAt
@@ -97,6 +98,30 @@ const LedgerAccountPage: React.FC<LedgerAccountPageProps> = ({ params }) => {
       render: (type: string | undefined) => (
         <div>{type === "UsdLedgerAccountHistoryEntry" ? "USD" : "BTC"}</div>
       ),
+    },
+    {
+      key: "__typename",
+      label: t("table.columns.debit"),
+      render: (_?: string, record?: LedgerAccountHistoryEntry) => {
+        if (!record) return null
+        if (record.__typename === "UsdLedgerAccountHistoryEntry") {
+          return <div>{record?.usdAmount?.settled?.debit}</div>
+        } else if (record.__typename === "BtcLedgerAccountHistoryEntry") {
+          return <div>{record?.btcAmount?.settled?.debit}</div>
+        }
+      },
+    },
+    {
+      key: "__typename",
+      label: t("table.columns.credit"),
+      render: (_?: string, record?: LedgerAccountHistoryEntry) => {
+        if (!record) return null
+        if (record.__typename === "UsdLedgerAccountHistoryEntry") {
+          return <div>{record?.usdAmount?.settled?.credit}</div>
+        } else if (record.__typename === "BtcLedgerAccountHistoryEntry") {
+          return <div>{record?.btcAmount?.settled?.credit}</div>
+        }
+      },
     },
   ]
 

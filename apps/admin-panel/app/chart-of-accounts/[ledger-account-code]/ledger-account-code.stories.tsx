@@ -27,7 +27,7 @@ const LedgerAccountStory = () => {
               edges: Array.from({ length: 10 }, () => ({
                 cursor: faker.string.alpha(10),
                 node: {
-                  __typename: "UsdLedgerAccountHistoryEntry",
+                  __typename: "BtcLedgerAccountHistoryEntry",
                   txId: faker.string.uuid(),
                   recordedAt: faker.date.past().toISOString(),
                   btcAmount: {

@@ -1884,7 +1884,7 @@ export type LedgerAccountByCodeQueryVariables = Exact<{
 }>;
 
 
-export type LedgerAccountByCodeQuery = { __typename?: 'Query', ledgerAccountByCode?: { __typename?: 'LedgerAccount', id: string, name: string, code: any, history: { __typename?: 'LedgerAccountHistoryEntryConnection', edges: Array<{ __typename?: 'LedgerAccountHistoryEntryEdge', cursor: string, node: { __typename?: 'BtcLedgerAccountHistoryEntry', txId: string, recordedAt: any, btcAmount: { __typename?: 'LayeredBtcAccountAmounts', settled: { __typename?: 'BtcAccountAmounts', debit: Satoshis, credit: Satoshis } } } | { __typename?: 'UsdLedgerAccountHistoryEntry', txId: string, recordedAt: any, usdAmount: { __typename?: 'LayeredUsdAccountAmounts', settled: { __typename?: 'UsdAccountAmounts', debit: UsdCents, credit: UsdCents } } } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, startCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean } } } | null };
+export type LedgerAccountByCodeQuery = { __typename?: 'Query', ledgerAccountByCode?: { __typename?: 'LedgerAccount', id: string, name: string, code: any, history: { __typename?: 'LedgerAccountHistoryEntryConnection', edges: Array<{ __typename?: 'LedgerAccountHistoryEntryEdge', cursor: string, node: { __typename: 'BtcLedgerAccountHistoryEntry', txId: string, recordedAt: any, btcAmount: { __typename?: 'LayeredBtcAccountAmounts', settled: { __typename?: 'BtcAccountAmounts', debit: Satoshis, credit: Satoshis } } } | { __typename: 'UsdLedgerAccountHistoryEntry', txId: string, recordedAt: any, usdAmount: { __typename?: 'LayeredUsdAccountAmounts', settled: { __typename?: 'UsdAccountAmounts', debit: UsdCents, credit: UsdCents } } } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, startCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean } } } | null };
 
 export type ChartOfAccountsQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -3143,6 +3143,7 @@ export const LedgerAccountByCodeDocument = gql`
       edges {
         cursor
         node {
+          __typename
           ... on BtcLedgerAccountHistoryEntry {
             txId
             recordedAt
