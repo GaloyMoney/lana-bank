@@ -730,3 +730,12 @@ checksums:
     Modules/credit/chartOfAccountInterestReceivableParentCode: e3582dd5597fda4cd2eb142eb9a04293
     Modules/credit/chartOfAccountInterestIncomeParentCode: 6f7bc91587039fec7e07edc8214be0b1
     Modules/credit/chartOfAccountFeeIncomeParentCode: 41eb6f093aee01175ddc0a61cb612efd
+    ChartOfAccountsLedgerAccount/title: b156c85b7cdaac35654dfa3b8bcc6cf2
+    ChartOfAccountsLedgerAccount/description: cd8f9f4d52de7097bb3bf5df68df82f8
+    ChartOfAccountsLedgerAccount/details/code: 9218742c297d337fdc0f5f5dd985294d
+    ChartOfAccountsLedgerAccount/details/name: 5a4c82f1bc517348b64c107345f94f65
+    ChartOfAccountsLedgerAccount/table/columns/recordedAt: 318586aae7b8deb15df7c2cc4abf172b
+    ChartOfAccountsLedgerAccount/table/columns/currency: d2ba9a9cea418ea653e3ca6785617a3f
+    ChartOfAccountsLedgerAccount/table/columns/entryType: e640b897b08ffe4a6624f9de5cc4835b
+    ChartOfAccountsLedgerAccount/table/columns/debit: 1b35db901aa1aeed8ee79aec6d807731
+    ChartOfAccountsLedgerAccount/table/columns/credit: 2d447a71ec815a039f175e94fbb12a56

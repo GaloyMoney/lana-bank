@@ -1287,5 +1287,22 @@
       "chartOfAccountInterestIncomeParentCode": "Código padre de ingresos por intereses",
       "chartOfAccountFeeIncomeParentCode": "Código padre de ingresos por comisiones"
     }
+  },
+  "ChartOfAccountsLedgerAccount": {
+    "title": "Detalles de la cuenta contable",
+    "description": "Detalles de la cuenta contable por código de cuenta {code}",
+    "details": {
+      "code": "Código de cuenta",
+      "name": "Nombre de la cuenta"
+    },
+    "table": {
+      "columns": {
+        "recordedAt": "Registrado el",
+        "currency": "Moneda",
+        "entryType": "Tipo de asiento",
+        "debit": "Debe",
+        "credit": "Haber"
+      }
+    }
   }
 }
