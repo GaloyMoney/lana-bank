@@ -99,7 +99,7 @@ impl From<DomainLedgerAccountEntry> for UsdLedgerAccountHistoryEntry {
             entry_id: entry.entry_id.into(),
             tx_id: entry.tx_id.into(),
             recorded_at: entry.recorded_at.into(),
-            amount: match entry.amount {
+            usd_amount: match entry.amount {
                 DomainLayeredLedgerAccountAmount::Usd(amount) => amount.into(),
                 DomainLayeredLedgerAccountAmount::Btc(_) => {
                     panic!("Uexpected currency for USD entry")
@@ -123,7 +123,7 @@ impl From<DomainLedgerAccountEntry> for BtcLedgerAccountHistoryEntry {
             entry_id: entry.entry_id.into(),
             tx_id: entry.tx_id.into(),
             recorded_at: entry.recorded_at.into(),
-            amount: match entry.amount {
+            btc_amount: match entry.amount {
                 DomainLayeredLedgerAccountAmount::Btc(amount) => amount.into(),
                 DomainLayeredLedgerAccountAmount::Usd(_) => {
                     panic!("Uexpected currency for BTC entry")
