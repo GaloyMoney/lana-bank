@@ -966,25 +966,29 @@ where
             )
             .await?;
 
+        let charts_integration_meta = ChartOfAccountsIntegrationMeta {
+            audit_info,
+            config: config.clone(),
+
+            facility_omnibus_parent_account_set_id,
+            collateral_omnibus_parent_account_set_id,
+            facility_parent_account_set_id,
+            collateral_parent_account_set_id,
+            interest_receivable_parent_account_set_id,
+            interest_income_parent_account_set_id,
+            fee_income_parent_account_set_id,
+
+            individual_disbursed_receivable_parent_account_set_id,
+            government_entity_disbursed_receivable_parent_account_set_id,
+            private_company_disbursed_receivable_parent_account_set_id,
+            bank_disbursed_receivable_parent_account_set_id,
+            financial_institution_disbursed_receivable_parent_account_set_id,
+            foreign_agency_or_subsidiary_disbursed_receivable_parent_account_set_id,
+            non_domiciled_company_disbursed_receivable_parent_account_set_id,
+        };
+
         self.ledger
-            .attach_chart_of_accounts_account_sets(
-                audit_info,
-                &config,
-                facility_omnibus_parent_account_set_id,
-                collateral_omnibus_parent_account_set_id,
-                facility_parent_account_set_id,
-                collateral_parent_account_set_id,
-                interest_receivable_parent_account_set_id,
-                interest_income_parent_account_set_id,
-                fee_income_parent_account_set_id,
-                individual_disbursed_receivable_parent_account_set_id,
-                government_entity_disbursed_receivable_parent_account_set_id,
-                private_company_disbursed_receivable_parent_account_set_id,
-                bank_disbursed_receivable_parent_account_set_id,
-                financial_institution_disbursed_receivable_parent_account_set_id,
-                foreign_agency_or_subsidiary_disbursed_receivable_parent_account_set_id,
-                non_domiciled_company_disbursed_receivable_parent_account_set_id,
-            )
+            .attach_chart_of_accounts_account_sets(charts_integration_meta)
             .await?;
 
         Ok(config)
