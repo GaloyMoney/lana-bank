@@ -13,9 +13,12 @@ import {
 import { Input } from "@lana/web/ui/input"
 import { Alert, AlertDescription } from "@lana/web/ui/alert"
 
+import { useRouter } from "next/navigation"
+
 import { submitTotpFow } from "@/lib/kratos/public/submit-totp"
 
 const TotpForm = ({ flowId }: { flowId: string }) => {
+  const router = useRouter()
   const [totpCode, setTotpCode] = useState("")
   const [error, setError] = useState<string | null>(null)
 
@@ -36,7 +39,8 @@ const TotpForm = ({ flowId }: { flowId: string }) => {
       return
     }
 
-    window.location.href = "/"
+    router.replace("/")
+    setTimeout(() => window.location.reload(), 1) // to ensure the layout is loaded
   }
 
   return (
