@@ -121,7 +121,7 @@ gql`
     }
   }
 
-  fragment btcBalances on LayeredBtcAccountAmounts {
+  fragment btcBalances on LayeredBtcAccountBalanceAmounts {
     all {
       debit
       credit
@@ -148,7 +148,7 @@ gql`
     }
   }
 
-  fragment usdBalances on LayeredUsdAccountAmounts {
+  fragment usdBalances on LayeredUsdAccountBalanceAmounts {
     all {
       debit
       credit

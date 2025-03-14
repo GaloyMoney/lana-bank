@@ -58,7 +58,7 @@ fragment usdAmountsInPeriod on UsdAccountAmountsInPeriod {
   }
 }
 
-fragment btcAmounts on LayeredBtcAccountAmounts {
+fragment btcAmounts on LayeredBtcAccountBalanceAmounts {
   all {
     ...btcLayers
   }
@@ -73,7 +73,7 @@ fragment btcAmounts on LayeredBtcAccountAmounts {
   }
 }
 
-fragment usdAmounts on LayeredUsdAccountAmounts {
+fragment usdAmounts on LayeredUsdAccountBalanceAmounts {
   all {
     ...usdLayers
   }
@@ -88,13 +88,13 @@ fragment usdAmounts on LayeredUsdAccountAmounts {
   }
 }
 
-fragment usdLayers on UsdAccountAmounts {
+fragment usdLayers on UsdAccountBalanceAmounts {
   netDebit
   debit
   credit
 }
 
-fragment btcLayers on BtcAccountAmounts {
+fragment btcLayers on BtcAccountBalanceAmounts {
   netDebit
   debit
   credit

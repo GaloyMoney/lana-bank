@@ -196,14 +196,19 @@ type BalanceSheet {
 type BtcAccountAmounts {
 	debit: Satoshis!
 	credit: Satoshis!
-	netDebit: SignedSatoshis!
-	netCredit: SignedSatoshis!
 }
 
 type BtcAccountAmountsInPeriod {
-	openingBalance: LayeredBtcAccountAmounts!
-	closingBalance: LayeredBtcAccountAmounts!
-	amount: LayeredBtcAccountAmounts!
+	openingBalance: LayeredBtcAccountBalanceAmounts!
+	closingBalance: LayeredBtcAccountBalanceAmounts!
+	amount: LayeredBtcAccountBalanceAmounts!
+}
+
+type BtcAccountBalanceAmounts {
+	debit: Satoshis!
+	credit: Satoshis!
+	netDebit: SignedSatoshis!
+	netCredit: SignedSatoshis!
 }
 
 type BtcLedgerAccountHistoryEntry {
@@ -936,17 +941,29 @@ enum KycLevel {
 }
 
 type LayeredBtcAccountAmounts {
-	all: BtcAccountAmounts!
 	settled: BtcAccountAmounts!
 	pending: BtcAccountAmounts!
 	encumbrance: BtcAccountAmounts!
 }
 
+type LayeredBtcAccountBalanceAmounts {
+	all: BtcAccountBalanceAmounts!
+	settled: BtcAccountBalanceAmounts!
+	pending: BtcAccountBalanceAmounts!
+	encumbrance: BtcAccountBalanceAmounts!
+}
+
 type LayeredUsdAccountAmounts {
-	all: UsdAccountAmounts!
 	settled: UsdAccountAmounts!
 	pending: UsdAccountAmounts!
 	encumbrance: UsdAccountAmounts!
+}
+
+type LayeredUsdAccountBalanceAmounts {
+	all: UsdAccountBalanceAmounts!
+	settled: UsdAccountBalanceAmounts!
+	pending: UsdAccountBalanceAmounts!
+	encumbrance: UsdAccountBalanceAmounts!
 }
 
 type LedgerAccount {
@@ -1332,14 +1349,19 @@ scalar Upload
 type UsdAccountAmounts {
 	debit: UsdCents!
 	credit: UsdCents!
-	netDebit: SignedUsdCents!
-	netCredit: SignedUsdCents!
 }
 
 type UsdAccountAmountsInPeriod {
-	openingBalance: LayeredUsdAccountAmounts!
-	closingBalance: LayeredUsdAccountAmounts!
-	amount: LayeredUsdAccountAmounts!
+	openingBalance: LayeredUsdAccountBalanceAmounts!
+	closingBalance: LayeredUsdAccountBalanceAmounts!
+	amount: LayeredUsdAccountBalanceAmounts!
+}
+
+type UsdAccountBalanceAmounts {
+	debit: UsdCents!
+	credit: UsdCents!
+	netDebit: SignedUsdCents!
+	netCredit: SignedUsdCents!
 }
 
 scalar UsdCents

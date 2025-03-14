@@ -41,7 +41,7 @@ fragment usdAmountsInPeriod on UsdAccountAmountsInPeriod {
   }
 }
 
-fragment usdAmounts on LayeredUsdAccountAmounts {
+fragment usdAmounts on LayeredUsdAccountBalanceAmounts {
   all {
     ...usdLayers
   }
@@ -56,7 +56,7 @@ fragment usdAmounts on LayeredUsdAccountAmounts {
   }
 }
 
-fragment usdLayers on UsdAccountAmounts {
+fragment usdLayers on UsdAccountBalanceAmounts {
   netCredit
   debit
   credit

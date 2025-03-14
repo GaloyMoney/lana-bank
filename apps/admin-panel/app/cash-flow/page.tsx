@@ -37,21 +37,21 @@ const BALANCE_FOR_CATEGORY: {
 }
 
 gql`
-  fragment basicBtcAmounts on BtcAccountAmounts {
+  fragment basicBtcAmounts on BtcAccountBalanceAmounts {
     debit
     credit
     netDebit
     netCredit
   }
 
-  fragment basicUsdAmounts on UsdAccountAmounts {
+  fragment basicUsdAmounts on UsdAccountBalanceAmounts {
     debit
     credit
     netDebit
     netCredit
   }
 
-  fragment layeredBtcAmounts on LayeredBtcAccountAmounts {
+  fragment layeredBtcAmounts on LayeredBtcAccountBalanceAmounts {
     all {
       ...basicBtcAmounts
     }
@@ -66,7 +66,7 @@ gql`
     }
   }
 
-  fragment layeredUsdAmounts on LayeredUsdAccountAmounts {
+  fragment layeredUsdAmounts on LayeredUsdAccountBalanceAmounts {
     all {
       ...basicUsdAmounts
     }

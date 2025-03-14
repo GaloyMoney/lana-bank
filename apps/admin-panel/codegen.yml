@@ -203,13 +203,13 @@ generates:
             Report:
               status: "mockEnums.reportProgress()"
 
-            BtcAccountAmounts:
+            BtcAccountBalanceAmounts:
               debit: "generateMockValue.satoshis()"
               credit: "generateMockValue.satoshis()"
               netDebit: "generateMockValue.signedSatoshis()"
               netCredit: "generateMockValue.signedSatoshis()"
 
-            UsdAccountAmounts:
+            UsdAccountBalanceAmounts:
               debit: "generateMockValue.usdCents()"
               credit: "generateMockValue.usdCents()"
               netDebit: "generateMockValue.signedUsdCents()"

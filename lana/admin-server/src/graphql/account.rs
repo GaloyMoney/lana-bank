@@ -20,16 +20,16 @@ pub struct Account {
 // }
 
 #[derive(SimpleObject)]
-struct BtcAccountAmounts {
+struct BtcAccountBalanceAmounts {
     debit: Satoshis,
     credit: Satoshis,
     net_debit: SignedSatoshis,
     net_credit: SignedSatoshis,
 }
 
-impl From<lana_app::statement::BtcStatementBalanceAmount> for BtcAccountAmounts {
+impl From<lana_app::statement::BtcStatementBalanceAmount> for BtcAccountBalanceAmounts {
     fn from(balance: lana_app::statement::BtcStatementBalanceAmount) -> Self {
-        BtcAccountAmounts {
+        BtcAccountBalanceAmounts {
             debit: balance.dr_balance,
             credit: balance.cr_balance,
             net_debit: balance.net_dr_balance,
@@ -39,16 +39,16 @@ impl From<lana_app::statement::BtcStatementBalanceAmount> for BtcAccountAmounts 
 }
 
 #[derive(SimpleObject)]
-struct UsdAccountAmounts {
+struct UsdAccountBalanceAmounts {
     debit: UsdCents,
     credit: UsdCents,
     net_debit: SignedUsdCents,
     net_credit: SignedUsdCents,
 }
 
-impl From<lana_app::statement::UsdStatementBalanceAmount> for UsdAccountAmounts {
+impl From<lana_app::statement::UsdStatementBalanceAmount> for UsdAccountBalanceAmounts {
     fn from(balance: lana_app::statement::UsdStatementBalanceAmount) -> Self {
-        UsdAccountAmounts {
+        UsdAccountBalanceAmounts {
             debit: balance.dr_balance,
             credit: balance.cr_balance,
             net_debit: balance.net_dr_balance,
@@ -58,16 +58,16 @@ impl From<lana_app::statement::UsdStatementBalanceAmount> for UsdAccountAmounts 
 }
 
 #[derive(SimpleObject)]
-pub struct LayeredBtcAccountAmounts {
-    all: BtcAccountAmounts,
-    settled: BtcAccountAmounts,
-    pending: BtcAccountAmounts,
-    encumbrance: BtcAccountAmounts,
+struct LayeredBtcAccountBalanceAmounts {
+    all: BtcAccountBalanceAmounts,
+    settled: BtcAccountBalanceAmounts,
+    pending: BtcAccountBalanceAmounts,
+    encumbrance: BtcAccountBalanceAmounts,
 }
 
-impl From<lana_app::statement::BtcStatementAccountSetBalance> for LayeredBtcAccountAmounts {
+impl From<lana_app::statement::BtcStatementAccountSetBalance> for LayeredBtcAccountBalanceAmounts {
     fn from(balances: lana_app::statement::BtcStatementAccountSetBalance) -> Self {
-        LayeredBtcAccountAmounts {
+        LayeredBtcAccountBalanceAmounts {
             all: balances.all.into(),
             settled: balances.settled.into(),
             pending: balances.pending.into(),
@@ -77,16 +77,16 @@ impl From<lana_app::statement::BtcStatementAccountSetBalance> for LayeredBtcAcco
 }
 
 #[derive(SimpleObject)]
-pub struct LayeredUsdAccountAmounts {
-    all: UsdAccountAmounts,
-    settled: UsdAccountAmounts,
-    pending: UsdAccountAmounts,
-    encumbrance: UsdAccountAmounts,
+struct LayeredUsdAccountBalanceAmounts {
+    all: UsdAccountBalanceAmounts,
+    settled: UsdAccountBalanceAmounts,
+    pending: UsdAccountBalanceAmounts,
+    encumbrance: UsdAccountBalanceAmounts,
 }
 
-impl From<lana_app::statement::UsdStatementAccountSetBalance> for LayeredUsdAccountAmounts {
+impl From<lana_app::statement::UsdStatementAccountSetBalance> for LayeredUsdAccountBalanceAmounts {
     fn from(balances: lana_app::statement::UsdStatementAccountSetBalance) -> Self {
-        LayeredUsdAccountAmounts {
+        LayeredUsdAccountBalanceAmounts {
             all: balances.all.into(),
             settled: balances.settled.into(),
             pending: balances.pending.into(),
@@ -97,9 +97,9 @@ impl From<lana_app::statement::UsdStatementAccountSetBalance> for LayeredUsdAcco
 
 #[derive(SimpleObject)]
 pub struct BtcAccountAmountsInPeriod {
-    opening_balance: LayeredBtcAccountAmounts,
-    closing_balance: LayeredBtcAccountAmounts,
-    amount: LayeredBtcAccountAmounts,
+    opening_balance: LayeredBtcAccountBalanceAmounts,
+    closing_balance: LayeredBtcAccountBalanceAmounts,
+    amount: LayeredBtcAccountBalanceAmounts,
 }
 
 impl From<lana_app::statement::BtcStatementAccountSetBalanceRange> for BtcAccountAmountsInPeriod {
@@ -114,9 +114,9 @@ impl From<lana_app::statement::BtcStatementAccountSetBalanceRange> for BtcAccoun
 
 #[derive(SimpleObject)]
 pub struct UsdAccountAmountsInPeriod {
-    opening_balance: LayeredUsdAccountAmounts,
-    closing_balance: LayeredUsdAccountAmounts,
-    amount: LayeredUsdAccountAmounts,
+    opening_balance: LayeredUsdAccountBalanceAmounts,
+    closing_balance: LayeredUsdAccountBalanceAmounts,
+    amount: LayeredUsdAccountBalanceAmounts,
 }
 
 impl From<lana_app::statement::UsdStatementAccountSetBalanceRange> for UsdAccountAmountsInPeriod {

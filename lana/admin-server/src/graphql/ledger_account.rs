@@ -5,8 +5,6 @@ use lana_app::chart_of_accounts::AccountDetails;
 
 use crate::primitives::*;
 
-use super::account::{LayeredBtcAccountAmounts, LayeredUsdAccountAmounts};
-
 #[derive(SimpleObject)]
 #[graphql(complex)]
 pub struct LedgerAccount {
@@ -83,3 +81,29 @@ impl CursorType for LedgerAccountHistoryCursor {
 scalar!(AccountCode);
 #[derive(Serialize, Deserialize, Debug, Clone, Eq, PartialEq, Ord, PartialOrd)]
 struct AccountCode(String);
+
+#[derive(SimpleObject)]
+pub struct LayeredUsdAccountAmounts {
+    settled: UsdAccountAmounts,
+    pending: UsdAccountAmounts,
+    encumbrance: UsdAccountAmounts,
+}
+
+#[derive(SimpleObject)]
+pub struct LayeredBtcAccountAmounts {
+    settled: BtcAccountAmounts,
+    pending: BtcAccountAmounts,
+    encumbrance: BtcAccountAmounts,
+}
+
+#[derive(SimpleObject)]
+struct UsdAccountAmounts {
+    debit: UsdCents,
+    credit: UsdCents,
+}
+
+#[derive(SimpleObject)]
+struct BtcAccountAmounts {
+    debit: Satoshis,
+    credit: Satoshis,
+}
