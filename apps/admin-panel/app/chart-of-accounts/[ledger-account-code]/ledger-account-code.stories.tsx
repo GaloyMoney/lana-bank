@@ -9,8 +9,9 @@ import faker from "@/.storybook/faker"
 
 import { LedgerAccountByCodeDocument } from "@/lib/graphql/generated"
 
+const ledgerAccountCode = String(faker.number.int(10))
+
 const LedgerAccountStory = () => {
-  const ledgerAccountCode = String(faker.number.int(10))
   const mocks = [
     {
       request: {
@@ -71,7 +72,7 @@ export const Default: Story = {
   parameters: {
     nextjs: {
       navigation: {
-        pathname: "/committees/[ledger-account-code]",
+        pathname: `/chart-of-accounts/${ledgerAccountCode}`,
       },
     },
   },
@@ -79,7 +80,6 @@ export const Default: Story = {
 
 export const Error: Story = {
   render: () => {
-    const ledgerAccountCode = String(faker.number.int(10))
     const errorMocks = [
       {
         request: {
@@ -122,7 +122,7 @@ export const Loading: Story = {
   parameters: {
     nextjs: {
       navigation: {
-        pathname: "/chart-of-accounts/[ledger-account-code]",
+        pathname: `/chart-of-accounts/${ledgerAccountCode}`,
       },
     },
   },

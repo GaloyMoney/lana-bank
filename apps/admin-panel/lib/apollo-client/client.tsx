@@ -28,6 +28,11 @@ export const makeClient = ({ coreAdminGqlUrl }: { coreAdminGqlUrl: string }) => 
           subAccounts: relayStylePagination(),
         },
       },
+      LedgerAccount: {
+        fields: {
+          history: relayStylePagination(),
+        },
+      },
       Query: {
         fields: {
           customers: { ...relayStylePagination(), keyArgs: ["sort", "filter"] },
