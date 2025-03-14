@@ -926,11 +926,6 @@ impl Mutation {
             .chart_of_account_collateral_parent_code(
                 input.chart_of_account_collateral_parent_code.parse()?,
             )
-            .chart_of_account_disbursed_receivable_parent_code(
-                input
-                    .chart_of_account_disbursed_receivable_parent_code
-                    .parse()?,
-            )
             .chart_of_account_interest_receivable_parent_code(
                 input
                     .chart_of_account_interest_receivable_parent_code
@@ -941,6 +936,41 @@ impl Mutation {
             )
             .chart_of_account_fee_income_parent_code(
                 input.chart_of_account_fee_income_parent_code.parse()?,
+            )
+            .chart_of_account_individual_disbursed_receivable_parent_code(
+                input
+                    .chart_of_account_individual_disbursed_receivable_parent_code
+                    .parse()?,
+            )
+            .chart_of_account_government_entity_disbursed_receivable_parent_code(
+                input
+                    .chart_of_account_government_entity_disbursed_receivable_parent_code
+                    .parse()?,
+            )
+            .chart_of_account_private_company_disbursed_receivable_parent_code(
+                input
+                    .chart_of_account_private_company_disbursed_receivable_parent_code
+                    .parse()?,
+            )
+            .chart_of_account_bank_disbursed_receivable_parent_code(
+                input
+                    .chart_of_account_bank_disbursed_receivable_parent_code
+                    .parse()?,
+            )
+            .chart_of_account_financial_institution_disbursed_receivable_parent_code(
+                input
+                    .chart_of_account_financial_institution_disbursed_receivable_parent_code
+                    .parse()?,
+            )
+            .chart_of_account_foreign_agency_or_subsidiary_disbursed_receivable_parent_code(
+                input
+                    .chart_of_account_foreign_agency_or_subsidiary_disbursed_receivable_parent_code
+                    .parse()?,
+            )
+            .chart_of_account_non_domiciled_company_disbursed_receivable_parent_code(
+                input
+                    .chart_of_account_non_domiciled_company_disbursed_receivable_parent_code
+                    .parse()?,
             )
             .build()?;
         let config = app

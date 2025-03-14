@@ -601,10 +601,16 @@ type CreditModuleConfig {
 	chartOfAccountCollateralOmnibusParentCode: String
 	chartOfAccountFacilityParentCode: String
 	chartOfAccountCollateralParentCode: String
-	chartOfAccountDisbursedReceivableParentCode: String
 	chartOfAccountInterestReceivableParentCode: String
 	chartOfAccountInterestIncomeParentCode: String
 	chartOfAccountFeeIncomeParentCode: String
+	chartOfAccountIndividualDisbursedReceivableParentCode: String
+	chartOfAccountGovernmentEntityDisbursedReceivableParentCode: String
+	chartOfAccountPrivateCompanyDisbursedReceivableParentCode: String
+	chartOfAccountBankDisbursedReceivableParentCode: String
+	chartOfAccountFinancialInstitutionDisbursedReceivableParentCode: String
+	chartOfAccountForeignAgencyOrSubsidiaryDisbursedReceivableParentCode: String
+	chartOfAccountNonDomiciledCompanyDisbursedReceivableParentCode: String
 }
 
 input CreditModuleConfigureInput {
@@ -612,10 +618,16 @@ input CreditModuleConfigureInput {
 	chartOfAccountCollateralOmnibusParentCode: String!
 	chartOfAccountFacilityParentCode: String!
 	chartOfAccountCollateralParentCode: String!
-	chartOfAccountDisbursedReceivableParentCode: String!
 	chartOfAccountInterestReceivableParentCode: String!
 	chartOfAccountInterestIncomeParentCode: String!
 	chartOfAccountFeeIncomeParentCode: String!
+	chartOfAccountIndividualDisbursedReceivableParentCode: String!
+	chartOfAccountGovernmentEntityDisbursedReceivableParentCode: String!
+	chartOfAccountPrivateCompanyDisbursedReceivableParentCode: String!
+	chartOfAccountBankDisbursedReceivableParentCode: String!
+	chartOfAccountFinancialInstitutionDisbursedReceivableParentCode: String!
+	chartOfAccountForeignAgencyOrSubsidiaryDisbursedReceivableParentCode: String!
+	chartOfAccountNonDomiciledCompanyDisbursedReceivableParentCode: String!
 }
 
 type CreditModuleConfigurePayload {
