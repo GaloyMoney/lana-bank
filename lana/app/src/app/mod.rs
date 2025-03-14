@@ -23,6 +23,7 @@ use crate::{
     document::Documents,
     governance::Governance,
     job::Jobs,
+    ledger_account::LedgerAccounts,
     outbox::Outbox,
     price::Price,
     primitives::{DepositAccountId, Subject, UsdCents, WithdrawalId},
@@ -54,6 +55,7 @@ pub struct LanaApp {
     profit_and_loss_statements: ProfitAndLossStatements,
     balance_sheets: BalanceSheets,
     cash_flow_statements: CashFlowStatements,
+    ledger_accounts: LedgerAccounts,
     price: Price,
     report: Reports,
     terms_templates: TermsTemplates,
@@ -108,6 +110,7 @@ impl LanaApp {
         let chart_of_accounts =
             ChartOfAccounts::init(&pool, &authz, &cala, journal_init.journal_id).await?;
         ChartsInit::charts_of_accounts(&chart_of_accounts).await?;
+        let ledger_accounts = LedgerAccounts::init(&authz, &cala, journal_init.journal_id);
         let customers = Customers::new(&pool, &authz, &outbox);
         let deposits = Deposits::init(
             &pool,
@@ -163,6 +166,7 @@ impl LanaApp {
             profit_and_loss_statements: pl_statements,
             balance_sheets,
             cash_flow_statements,
+            ledger_accounts,
             terms_templates,
             documents,
             outbox,
@@ -246,6 +250,10 @@ impl LanaApp {
 
     pub fn cash_flow_statements(&self) -> &CashFlowStatements {
         &self.cash_flow_statements
+    }
+
+    pub fn ledger_accounts(&self) -> &LedgerAccounts {
+        &self.ledger_accounts
     }
 
     pub fn users(&self) -> &Users {

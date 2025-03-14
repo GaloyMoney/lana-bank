@@ -235,6 +235,7 @@ export type BtcAccountBalanceAmounts = {
 export type BtcLedgerAccountHistoryEntry = {
   __typename?: 'BtcLedgerAccountHistoryEntry';
   btcAmount: LayeredBtcAccountAmounts;
+  entryId: Scalars['UUID']['output'];
   recordedAt: Scalars['Timestamp']['output'];
   txId: Scalars['UUID']['output'];
 };
@@ -1709,6 +1710,7 @@ export type UsdAccountBalanceAmounts = {
 
 export type UsdLedgerAccountHistoryEntry = {
   __typename?: 'UsdLedgerAccountHistoryEntry';
+  entryId: Scalars['UUID']['output'];
   recordedAt: Scalars['Timestamp']['output'];
   txId: Scalars['UUID']['output'];
   usdAmount: LayeredUsdAccountAmounts;

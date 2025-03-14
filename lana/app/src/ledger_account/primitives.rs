@@ -20,6 +20,24 @@ impl From<LedgerAccountHistoryCursor> for cala_ledger::entry::EntriesByCreatedAt
     }
 }
 
+impl From<LedgerAccountEntry> for LedgerAccountHistoryCursor {
+    fn from(cursor: LedgerAccountEntry) -> Self {
+        Self {
+            entry_id: cursor.entry_id,
+            created_at: cursor.recorded_at,
+        }
+    }
+}
+
+impl From<&LedgerAccountEntry> for LedgerAccountHistoryCursor {
+    fn from(cursor: &LedgerAccountEntry) -> Self {
+        Self {
+            entry_id: cursor.entry_id,
+            created_at: cursor.recorded_at,
+        }
+    }
+}
+
 impl From<cala_ledger::entry::EntriesByCreatedAtCursor> for LedgerAccountHistoryCursor {
     fn from(cursor: cala_ledger::entry::EntriesByCreatedAtCursor) -> Self {
         Self {
@@ -29,14 +47,32 @@ impl From<cala_ledger::entry::EntriesByCreatedAtCursor> for LedgerAccountHistory
     }
 }
 
+impl es_entity::graphql::async_graphql::connection::CursorType for LedgerAccountHistoryCursor {
+    type Error = String;
+
+    fn encode_cursor(&self) -> String {
+        use base64::{engine::general_purpose, Engine as _};
+        let json = serde_json::to_string(&self).expect("could not serialize cursor");
+        general_purpose::STANDARD_NO_PAD.encode(json.as_bytes())
+    }
+
+    fn decode_cursor(s: &str) -> Result<Self, Self::Error> {
+        use base64::{engine::general_purpose, Engine as _};
+        let bytes = general_purpose::STANDARD_NO_PAD
+            .decode(s.as_bytes())
+            .map_err(|e| e.to_string())?;
+        let json = String::from_utf8(bytes).map_err(|e| e.to_string())?;
+        serde_json::from_str(&json).map_err(|e| e.to_string())
+    }
+}
+
 pub struct LedgerAccountEntry {
     pub tx_id: LedgerTxId,
     pub entry_id: LedgerEntryId,
     pub recorded_at: chrono::DateTime<chrono::Utc>,
     pub account_id: LedgerAccountId,
     pub entry_type: String,
-    pub usd_amount: LayeredUsdLedgerAccountAmount,
-    pub btc_amount: LayeredBtcLedgerAccountAmount,
+    pub amount: LayeredLedgerAccountAmount,
 }
 
 impl TryFrom<cala_ledger::entry::Entry> for LedgerAccountEntry {
@@ -44,6 +80,8 @@ impl TryFrom<cala_ledger::entry::Entry> for LedgerAccountEntry {
 
     fn try_from(cala_entry: cala_ledger::entry::Entry) -> Result<Self, Self::Error> {
         let currency = cala_entry.values().currency;
+
+        let mut layered_amount = None;
 
         let mut layered_usd_amount = LayeredUsdLedgerAccountAmount::ZERO;
         if currency == "USD".parse()? {
@@ -61,6 +99,8 @@ impl TryFrom<cala_ledger::entry::Entry> for LedgerAccountEntry {
                 Layer::Pending => layered_usd_amount.pending = usd_amount,
                 Layer::Encumbrance => layered_usd_amount.encumbrance = usd_amount,
             }
+
+            layered_amount = Some(LayeredLedgerAccountAmount::Usd(layered_usd_amount))
         }
 
         let mut layered_btc_amount = LayeredBtcLedgerAccountAmount::ZERO;
@@ -79,6 +119,8 @@ impl TryFrom<cala_ledger::entry::Entry> for LedgerAccountEntry {
                 Layer::Pending => layered_btc_amount.pending = btc_amount,
                 Layer::Encumbrance => layered_btc_amount.encumbrance = btc_amount,
             }
+
+            layered_amount = Some(LayeredLedgerAccountAmount::Btc(layered_btc_amount))
         }
 
         Ok(Self {
@@ -87,10 +129,14 @@ impl TryFrom<cala_ledger::entry::Entry> for LedgerAccountEntry {
             recorded_at: cala_entry.created_at(),
             account_id: cala_entry.values().account_id,
             entry_type: cala_entry.values().entry_type.to_string(),
-            usd_amount: layered_usd_amount,
-            btc_amount: layered_btc_amount,
+            amount: layered_amount.expect("Currency is not 'USD' or 'BTC'"),
         })
     }
+}
+
+pub enum LayeredLedgerAccountAmount {
+    Usd(LayeredUsdLedgerAccountAmount),
+    Btc(LayeredBtcLedgerAccountAmount),
 }
 
 pub struct LayeredUsdLedgerAccountAmount {
@@ -108,8 +154,8 @@ impl LayeredUsdLedgerAccountAmount {
 }
 
 pub struct UsdLedgerAccountAmount {
-    dr_amount: UsdCents,
-    cr_amount: UsdCents,
+    pub dr_amount: UsdCents,
+    pub cr_amount: UsdCents,
 }
 
 impl UsdLedgerAccountAmount {
@@ -134,8 +180,8 @@ impl LayeredBtcLedgerAccountAmount {
 }
 
 pub struct BtcLedgerAccountAmount {
-    dr_amount: Satoshis,
-    cr_amount: Satoshis,
+    pub dr_amount: Satoshis,
+    pub cr_amount: Satoshis,
 }
 
 impl BtcLedgerAccountAmount {

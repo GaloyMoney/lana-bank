@@ -13,7 +13,7 @@ use crate::{
 
 use error::*;
 use ledger::*;
-use primitives::*;
+pub use primitives::*;
 
 #[derive(Clone)]
 pub struct LedgerAccounts {

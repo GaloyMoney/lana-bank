@@ -212,6 +212,7 @@ type BtcAccountBalanceAmounts {
 }
 
 type BtcLedgerAccountHistoryEntry {
+	entryId: UUID!
 	txId: UUID!
 	recordedAt: Timestamp!
 	btcAmount: LayeredBtcAccountAmounts!
@@ -1367,6 +1368,7 @@ type UsdAccountBalanceAmounts {
 scalar UsdCents
 
 type UsdLedgerAccountHistoryEntry {
+	entryId: UUID!
 	txId: UUID!
 	recordedAt: Timestamp!
 	usdAmount: LayeredUsdAccountAmounts!
