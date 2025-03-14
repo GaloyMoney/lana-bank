@@ -1301,14 +1301,13 @@
       "chartOfAccountInterestReceivableParentCode": "Código padre de intereses por cobrar",
       "chartOfAccountInterestIncomeParentCode": "Código padre de ingresos por intereses",
       "chartOfAccountFeeIncomeParentCode": "Código padre de ingresos por comisiones",
-      "chartOfAccountDisbursedReceivableParentCode": "Código padre de cuentas por cobrar desembolsadas",
-      "chartOfAccountIndividualDisbursedReceivableParentCode": "Código padre de cuenta matriz de desembolsos individuales",
-      "chartOfAccountGovernmentEntityDisbursedReceivableParentCode": "Código padre de cuenta matriz de desembolsos a entidades gubernamentales",
-      "chartOfAccountPrivateCompanyDisbursedReceivableParentCode": "Código padre de cuenta matriz de desembolsos a empresas privadas",
-      "chartOfAccountBankDisbursedReceivableParentCode": "Código padre de cuenta matriz de desembolsos a bancos",
-      "chartOfAccountFinancialInstitutionDisbursedReceivableParentCode": "Código padre de cuenta matriz de desembolsos a instituciones financieras",
-      "chartOfAccountForeignAgencyOrSubsidiaryDisbursedReceivableParentCode": "Código padre de cuenta matriz de desembolsos a agencias o filiales extranjeras",
-      "chartOfAccountNonDomiciledCompanyDisbursedReceivableParentCode": "Código padre de cuenta matriz de desembolsos a empresas no domiciliadas"
+      "chartOfAccountIndividualDisbursedReceivableParentCode": "Código padre de cuentas por cobrar desembolsadas a individuos",
+      "chartOfAccountGovernmentEntityDisbursedReceivableParentCode": "Código padre de cuentas por cobrar desembolsadas a entidades gubernamentales",
+      "chartOfAccountPrivateCompanyDisbursedReceivableParentCode": "Código padre de cuentas por cobrar desembolsadas a empresas privadas",
+      "chartOfAccountBankDisbursedReceivableParentCode": "Código padre de cuentas por cobrar desembolsadas a bancos",
+      "chartOfAccountFinancialInstitutionDisbursedReceivableParentCode": "Código padre de cuentas por cobrar desembolsadas a instituciones financieras",
+      "chartOfAccountForeignAgencyOrSubsidiaryDisbursedReceivableParentCode": "Código padre de cuentas por cobrar desembolsadas a agencias extranjeras o subsidiarias",
+      "chartOfAccountNonDomiciledCompanyDisbursedReceivableParentCode": "Código padre de cuentas por cobrar desembolsadas a empresas no domiciliadas"
     }
   },
   "ChartOfAccountsLedgerAccount": {
