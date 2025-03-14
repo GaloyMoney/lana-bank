@@ -252,15 +252,12 @@ where
             .await?
             .expect("audit info missing");
 
-        if self.config.customer_active_check_enabled
-            && self
-                .customer
-                .find_by_id(sub, customer_id)
-                .await?
-                .ok_or(CoreCreditError::CustomerNotFound)?
-                .status
-                .is_inactive()
-        {
+        let customer = self
+            .customer
+            .find_by_id(sub, customer_id)
+            .await?
+            .ok_or(CoreCreditError::CustomerNotFound)?;
+        if self.config.customer_active_check_enabled && customer.status.is_inactive() {
             return Err(CoreCreditError::CustomerNotActive);
         }
 
@@ -292,6 +289,7 @@ where
                 &mut op,
                 credit_facility.id,
                 credit_facility.account_ids,
+                customer.customer_type.into(),
             )
             .await?;
 
@@ -923,14 +921,41 @@ where
             chart.account_set_id_from_code(&config.chart_of_account_facility_parent_code)?;
         let collateral_parent_account_set_id =
             chart.account_set_id_from_code(&config.chart_of_account_collateral_parent_code)?;
-        let disbursed_receivable_parent_account_set_id = chart
-            .account_set_id_from_code(&config.chart_of_account_disbursed_receivable_parent_code)?;
         let interest_receivable_parent_account_set_id = chart
             .account_set_id_from_code(&config.chart_of_account_interest_receivable_parent_code)?;
         let interest_income_parent_account_set_id =
             chart.account_set_id_from_code(&config.chart_of_account_interest_income_parent_code)?;
         let fee_income_parent_account_set_id =
             chart.account_set_id_from_code(&config.chart_of_account_fee_income_parent_code)?;
+
+        let individual_disbursed_receivable_parent_account_set_id = chart
+            .account_set_id_from_code(
+                &config.chart_of_account_individual_disbursed_receivable_parent_code,
+            )?;
+        let government_entity_disbursed_receivable_parent_account_set_id = chart
+            .account_set_id_from_code(
+                &config.chart_of_account_government_entity_disbursed_receivable_parent_code,
+            )?;
+        let private_company_disbursed_receivable_parent_account_set_id = chart
+            .account_set_id_from_code(
+                &config.chart_of_account_private_company_disbursed_receivable_parent_code,
+            )?;
+        let bank_disbursed_receivable_parent_account_set_id = chart.account_set_id_from_code(
+            &config.chart_of_account_bank_disbursed_receivable_parent_code,
+        )?;
+        let financial_institution_disbursed_receivable_parent_account_set_id = chart
+            .account_set_id_from_code(
+                &config.chart_of_account_financial_institution_disbursed_receivable_parent_code,
+            )?;
+        let foreign_agency_or_subsidiary_disbursed_receivable_parent_account_set_id = chart
+            .account_set_id_from_code(
+                &config
+                    .chart_of_account_foreign_agency_or_subsidiary_disbursed_receivable_parent_code,
+            )?;
+        let non_domiciled_company_disbursed_receivable_parent_account_set_id = chart
+            .account_set_id_from_code(
+                &config.chart_of_account_non_domiciled_company_disbursed_receivable_parent_code,
+            )?;
 
         let audit_info = self
             .authz
@@ -949,10 +974,16 @@ where
                 collateral_omnibus_parent_account_set_id,
                 facility_parent_account_set_id,
                 collateral_parent_account_set_id,
-                disbursed_receivable_parent_account_set_id,
                 interest_receivable_parent_account_set_id,
                 interest_income_parent_account_set_id,
                 fee_income_parent_account_set_id,
+                individual_disbursed_receivable_parent_account_set_id,
+                government_entity_disbursed_receivable_parent_account_set_id,
+                private_company_disbursed_receivable_parent_account_set_id,
+                bank_disbursed_receivable_parent_account_set_id,
+                financial_institution_disbursed_receivable_parent_account_set_id,
+                foreign_agency_or_subsidiary_disbursed_receivable_parent_account_set_id,
+                non_domiciled_company_disbursed_receivable_parent_account_set_id,
             )
             .await?;
 
