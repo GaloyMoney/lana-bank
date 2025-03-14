@@ -1298,10 +1298,17 @@
       "chartOfAccountCollateralOmnibusParentCode": "Código padre ómnibus de garantía",
       "chartOfAccountFacilityParentCode": "Código padre de facilidad",
       "chartOfAccountCollateralParentCode": "Código padre de garantía",
-      "chartOfAccountDisbursedReceivableParentCode": "Código padre de cuentas por cobrar desembolsadas",
       "chartOfAccountInterestReceivableParentCode": "Código padre de intereses por cobrar",
       "chartOfAccountInterestIncomeParentCode": "Código padre de ingresos por intereses",
-      "chartOfAccountFeeIncomeParentCode": "Código padre de ingresos por comisiones"
+      "chartOfAccountFeeIncomeParentCode": "Código padre de ingresos por comisiones",
+      "chartOfAccountDisbursedReceivableParentCode": "Código padre de cuentas por cobrar desembolsadas",
+      "chartOfAccountIndividualDisbursedReceivableParentCode": "Código padre de cuenta matriz de desembolsos individuales",
+      "chartOfAccountGovernmentEntityDisbursedReceivableParentCode": "Código padre de cuenta matriz de desembolsos a entidades gubernamentales",
+      "chartOfAccountPrivateCompanyDisbursedReceivableParentCode": "Código padre de cuenta matriz de desembolsos a empresas privadas",
+      "chartOfAccountBankDisbursedReceivableParentCode": "Código padre de cuenta matriz de desembolsos a bancos",
+      "chartOfAccountFinancialInstitutionDisbursedReceivableParentCode": "Código padre de cuenta matriz de desembolsos a instituciones financieras",
+      "chartOfAccountForeignAgencyOrSubsidiaryDisbursedReceivableParentCode": "Código padre de cuenta matriz de desembolsos a agencias o filiales extranjeras",
+      "chartOfAccountNonDomiciledCompanyDisbursedReceivableParentCode": "Código padre de cuenta matriz de desembolsos a empresas no domiciliadas"
     }
   },
   "ChartOfAccountsLedgerAccount": {
