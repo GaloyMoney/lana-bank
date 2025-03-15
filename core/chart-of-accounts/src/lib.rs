@@ -127,7 +127,7 @@ where
                     .name(spec.name.to_string())
                     .description(spec.name.to_string())
                     .external_id(spec.account_set_external_id(id))
-                    // .normal_balance_type()
+                    .normal_balance_type(spec.normal_balance_type)
                     .build()
                     .expect("Could not build new account set");
                 new_account_sets.push(new_account_set);
