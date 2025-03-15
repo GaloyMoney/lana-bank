@@ -1,3 +1,4 @@
+use cala_ledger::DebitOrCredit;
 use serde::{Deserialize, Serialize};
 use std::{fmt::Display, str::FromStr};
 use thiserror::Error;
@@ -215,6 +216,7 @@ pub struct AccountSpec {
     pub parent: Option<AccountCode>,
     pub code: AccountCode,
     pub name: AccountName,
+    pub normal_balance_type: DebitOrCredit,
 }
 
 impl AccountSpec {
@@ -222,9 +224,15 @@ impl AccountSpec {
         parent: Option<AccountCode>,
         sections: Vec<AccountCodeSection>,
         name: AccountName,
+        normal_balance_type: DebitOrCredit,
     ) -> Self {
         let code = AccountCode { sections };
-        AccountSpec { parent, code, name }
+        AccountSpec {
+            parent,
+            code,
+            name,
+            normal_balance_type,
+        }
     }
 
     pub(super) fn account_set_external_id(&self, chart_id: ChartId) -> String {

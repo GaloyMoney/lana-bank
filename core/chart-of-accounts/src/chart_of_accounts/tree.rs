@@ -134,6 +134,7 @@ pub(super) fn project<'a>(events: impl DoubleEndedIterator<Item = &'a ChartEvent
 
 #[cfg(test)]
 mod tests {
+    use cala_ledger::DebitOrCredit;
     use es_entity::*;
 
     use crate::chart_of_accounts::{Chart, NewChart};
@@ -176,6 +177,7 @@ mod tests {
                         parent: None,
                         code: AccountCode::new(vec!["1".parse().unwrap()]),
                         name: "Assets".parse().unwrap(),
+                        normal_balance_type: DebitOrCredit::Credit,
                     },
                     dummy_audit_info(),
                 )
@@ -186,6 +188,7 @@ mod tests {
                         parent: Some(AccountCode::new(vec!["1".parse().unwrap()])),
                         code: AccountCode::new(vec!["11".parse().unwrap()]),
                         name: "Assets".parse().unwrap(),
+                        normal_balance_type: DebitOrCredit::Credit,
                     },
                     dummy_audit_info(),
                 )
@@ -198,6 +201,7 @@ mod tests {
                             ["11", "01"].iter().map(|c| c.parse().unwrap()).collect(),
                         ),
                         name: "Cash".parse().unwrap(),
+                        normal_balance_type: DebitOrCredit::Credit,
                     },
                     dummy_audit_info(),
                 )
@@ -215,6 +219,7 @@ mod tests {
                                 .collect(),
                         ),
                         name: "Central Office".parse().unwrap(),
+                        normal_balance_type: DebitOrCredit::Credit,
                     },
                     dummy_audit_info(),
                 )
