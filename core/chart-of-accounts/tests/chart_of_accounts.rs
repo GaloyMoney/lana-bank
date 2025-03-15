@@ -50,7 +50,7 @@ async fn import_from_csv() -> anyhow::Result<()> {
 
     let data = format!(
         r#"
-        {rand_ref},,,Assets
+        {rand_ref},,,Assets,type:debit
         {rand_ref}1,,,Assets
         ,01,,Effective
         ,,0101,Central Office,

@@ -5,7 +5,8 @@ use thiserror::Error;
 use authz::AllOrOne;
 
 pub use cala_ledger::primitives::{
-    AccountId as LedgerAccountId, AccountSetId as LedgerAccountSetId, JournalId as LedgerJournalId,
+    AccountId as LedgerAccountId, AccountSetId as LedgerAccountSetId,
+    DebitOrCredit as LedgerDebitOrCredit, JournalId as LedgerJournalId,
 };
 
 es_entity::entity_id! {
@@ -25,6 +26,36 @@ impl From<&(AccountSpec, LedgerAccountSetId)> for AccountDetails {
             name: spec.name.clone(),
             code: spec.code.clone(),
         }
+    }
+}
+
+#[derive(Error, Debug)]
+pub enum AccountNormalBalanceTypeParseError {
+    #[error("invalid-type-string")]
+    InvalidTypeString,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct AccountNormalBalanceType(LedgerDebitOrCredit);
+
+impl FromStr for AccountNormalBalanceType {
+    type Err = AccountNormalBalanceTypeParseError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let compacted: String = s.chars().filter(|c| !c.is_whitespace()).collect();
+        if compacted.to_lowercase() == "type:debit" {
+            Ok(AccountNormalBalanceType(LedgerDebitOrCredit::Debit))
+        } else if compacted.to_lowercase() == "type:credit" {
+            Ok(AccountNormalBalanceType(LedgerDebitOrCredit::Credit))
+        } else {
+            Err(AccountNormalBalanceTypeParseError::InvalidTypeString)
+        }
+    }
+}
+
+impl AccountNormalBalanceType {
+    pub fn normal_balance_type(&self) -> LedgerDebitOrCredit {
+        self.0
     }
 }
 
@@ -215,6 +246,7 @@ pub struct AccountSpec {
     pub parent: Option<AccountCode>,
     pub code: AccountCode,
     pub name: AccountName,
+    pub normal_balance_type: LedgerDebitOrCredit,
 }
 
 impl AccountSpec {
@@ -222,9 +254,15 @@ impl AccountSpec {
         parent: Option<AccountCode>,
         sections: Vec<AccountCodeSection>,
         name: AccountName,
+        normal_balance_type: LedgerDebitOrCredit,
     ) -> Self {
         let code = AccountCode { sections };
-        AccountSpec { parent, code, name }
+        AccountSpec {
+            parent,
+            code,
+            name,
+            normal_balance_type,
+        }
     }
 
     pub(super) fn account_set_external_id(&self, chart_id: ChartId) -> String {
