@@ -9,7 +9,7 @@ pub use cala_ledger::primitives::{
     DebitOrCredit as LedgerDebitOrCredit, JournalId as LedgerJournalId,
     TransactionId as LedgerTxId, TxTemplateId as LedgerTxTemplateId,
 };
-pub use core_customer::CustomerId;
+pub use core_customer::{CustomerId, CustomerType};
 pub use core_money::*;
 pub use core_price::PriceOfOneBTC;
 pub use governance::ApprovalProcessId;
@@ -290,4 +290,28 @@ impl DisbursalIdx {
 pub enum CollateralAction {
     Add,
     Remove,
+}
+
+pub enum DisbursedReceivableAccountType {
+    Individual,
+    GovernmentEntity,
+    PrivateCompany,
+    Bank,
+    FinancialInstitution,
+    ForeignAgencyOrSubsidiary,
+    NonDomiciledCompany,
+}
+
+impl From<CustomerType> for DisbursedReceivableAccountType {
+    fn from(customer_type: CustomerType) -> Self {
+        match customer_type {
+            CustomerType::Individual => Self::Individual,
+            CustomerType::GovernmentEntity => Self::GovernmentEntity,
+            CustomerType::PrivateCompany => Self::PrivateCompany,
+            CustomerType::Bank => Self::Bank,
+            CustomerType::FinancialInstitution => Self::FinancialInstitution,
+            CustomerType::ForeignAgencyOrSubsidiary => Self::ForeignAgencyOrSubsidiary,
+            CustomerType::NonDomiciledCompany => Self::NonDomiciledCompany,
+        }
+    }
 }

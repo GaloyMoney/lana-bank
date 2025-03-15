@@ -1298,10 +1298,16 @@
       "chartOfAccountCollateralOmnibusParentCode": "Collateral Omnibus Parent Code",
       "chartOfAccountFacilityParentCode": "Facility Parent Code",
       "chartOfAccountCollateralParentCode": "Collateral Parent Code",
-      "chartOfAccountDisbursedReceivableParentCode": "Disbursed Receivable Parent Code",
       "chartOfAccountInterestReceivableParentCode": "Interest Receivable Parent Code",
       "chartOfAccountInterestIncomeParentCode": "Interest Income Parent Code",
-      "chartOfAccountFeeIncomeParentCode": "Fee Income Parent Code"
+      "chartOfAccountFeeIncomeParentCode": "Fee Income Parent Code",
+      "chartOfAccountIndividualDisbursedReceivableParentCode": "Disbursed Individual Parent Code",
+      "chartOfAccountGovernmentEntityDisbursedReceivableParentCode": "Disbursed Government Entity Receivable Parent Code",
+      "chartOfAccountPrivateCompanyDisbursedReceivableParentCode": "Disbursed Private Company Receivable Parent Code",
+      "chartOfAccountBankDisbursedReceivableParentCode": "Disbursed Bank Receivable Parent Code",
+      "chartOfAccountFinancialInstitutionDisbursedReceivableParentCode": "Disbursed Financial Institution Receivable Parent Code",
+      "chartOfAccountForeignAgencyOrSubsidiaryDisbursedReceivableParentCode": "Disbursed Foreign Agency Or Subsidiary Receivable Parent Code",
+      "chartOfAccountNonDomiciledCompanyDisbursedReceivableParentCode": "Disbursed Non-Domiciled Company Receivable Parent Code"
     }
   },
   "ChartOfAccountsLedgerAccount": {

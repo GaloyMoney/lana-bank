@@ -801,14 +801,20 @@ export const mockCreditModuleConfig = (overrides?: Partial<CreditModuleConfig>, 
     relationshipsToOmit.add('CreditModuleConfig');
     return {
         __typename: 'CreditModuleConfig',
+        chartOfAccountBankDisbursedReceivableParentCode: overrides && overrides.hasOwnProperty('chartOfAccountBankDisbursedReceivableParentCode') ? overrides.chartOfAccountBankDisbursedReceivableParentCode! : faker.lorem.word(),
         chartOfAccountCollateralOmnibusParentCode: overrides && overrides.hasOwnProperty('chartOfAccountCollateralOmnibusParentCode') ? overrides.chartOfAccountCollateralOmnibusParentCode! : faker.lorem.word(),
         chartOfAccountCollateralParentCode: overrides && overrides.hasOwnProperty('chartOfAccountCollateralParentCode') ? overrides.chartOfAccountCollateralParentCode! : faker.lorem.word(),
-        chartOfAccountDisbursedReceivableParentCode: overrides && overrides.hasOwnProperty('chartOfAccountDisbursedReceivableParentCode') ? overrides.chartOfAccountDisbursedReceivableParentCode! : faker.lorem.word(),
         chartOfAccountFacilityOmnibusParentCode: overrides && overrides.hasOwnProperty('chartOfAccountFacilityOmnibusParentCode') ? overrides.chartOfAccountFacilityOmnibusParentCode! : faker.lorem.word(),
         chartOfAccountFacilityParentCode: overrides && overrides.hasOwnProperty('chartOfAccountFacilityParentCode') ? overrides.chartOfAccountFacilityParentCode! : faker.lorem.word(),
         chartOfAccountFeeIncomeParentCode: overrides && overrides.hasOwnProperty('chartOfAccountFeeIncomeParentCode') ? overrides.chartOfAccountFeeIncomeParentCode! : faker.lorem.word(),
+        chartOfAccountFinancialInstitutionDisbursedReceivableParentCode: overrides && overrides.hasOwnProperty('chartOfAccountFinancialInstitutionDisbursedReceivableParentCode') ? overrides.chartOfAccountFinancialInstitutionDisbursedReceivableParentCode! : faker.lorem.word(),
+        chartOfAccountForeignAgencyOrSubsidiaryDisbursedReceivableParentCode: overrides && overrides.hasOwnProperty('chartOfAccountForeignAgencyOrSubsidiaryDisbursedReceivableParentCode') ? overrides.chartOfAccountForeignAgencyOrSubsidiaryDisbursedReceivableParentCode! : faker.lorem.word(),
+        chartOfAccountGovernmentEntityDisbursedReceivableParentCode: overrides && overrides.hasOwnProperty('chartOfAccountGovernmentEntityDisbursedReceivableParentCode') ? overrides.chartOfAccountGovernmentEntityDisbursedReceivableParentCode! : faker.lorem.word(),
+        chartOfAccountIndividualDisbursedReceivableParentCode: overrides && overrides.hasOwnProperty('chartOfAccountIndividualDisbursedReceivableParentCode') ? overrides.chartOfAccountIndividualDisbursedReceivableParentCode! : faker.lorem.word(),
         chartOfAccountInterestIncomeParentCode: overrides && overrides.hasOwnProperty('chartOfAccountInterestIncomeParentCode') ? overrides.chartOfAccountInterestIncomeParentCode! : faker.lorem.word(),
         chartOfAccountInterestReceivableParentCode: overrides && overrides.hasOwnProperty('chartOfAccountInterestReceivableParentCode') ? overrides.chartOfAccountInterestReceivableParentCode! : faker.lorem.word(),
+        chartOfAccountNonDomiciledCompanyDisbursedReceivableParentCode: overrides && overrides.hasOwnProperty('chartOfAccountNonDomiciledCompanyDisbursedReceivableParentCode') ? overrides.chartOfAccountNonDomiciledCompanyDisbursedReceivableParentCode! : faker.lorem.word(),
+        chartOfAccountPrivateCompanyDisbursedReceivableParentCode: overrides && overrides.hasOwnProperty('chartOfAccountPrivateCompanyDisbursedReceivableParentCode') ? overrides.chartOfAccountPrivateCompanyDisbursedReceivableParentCode! : faker.lorem.word(),
         chartOfAccountsId: overrides && overrides.hasOwnProperty('chartOfAccountsId') ? overrides.chartOfAccountsId! : generateMockValue.uuid(),
     };
 };
@@ -817,14 +823,20 @@ export const mockCreditModuleConfigureInput = (overrides?: Partial<CreditModuleC
     const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
     relationshipsToOmit.add('CreditModuleConfigureInput');
     return {
+        chartOfAccountBankDisbursedReceivableParentCode: overrides && overrides.hasOwnProperty('chartOfAccountBankDisbursedReceivableParentCode') ? overrides.chartOfAccountBankDisbursedReceivableParentCode! : faker.lorem.word(),
         chartOfAccountCollateralOmnibusParentCode: overrides && overrides.hasOwnProperty('chartOfAccountCollateralOmnibusParentCode') ? overrides.chartOfAccountCollateralOmnibusParentCode! : faker.lorem.word(),
         chartOfAccountCollateralParentCode: overrides && overrides.hasOwnProperty('chartOfAccountCollateralParentCode') ? overrides.chartOfAccountCollateralParentCode! : faker.lorem.word(),
-        chartOfAccountDisbursedReceivableParentCode: overrides && overrides.hasOwnProperty('chartOfAccountDisbursedReceivableParentCode') ? overrides.chartOfAccountDisbursedReceivableParentCode! : faker.lorem.word(),
         chartOfAccountFacilityOmnibusParentCode: overrides && overrides.hasOwnProperty('chartOfAccountFacilityOmnibusParentCode') ? overrides.chartOfAccountFacilityOmnibusParentCode! : faker.lorem.word(),
         chartOfAccountFacilityParentCode: overrides && overrides.hasOwnProperty('chartOfAccountFacilityParentCode') ? overrides.chartOfAccountFacilityParentCode! : faker.lorem.word(),
         chartOfAccountFeeIncomeParentCode: overrides && overrides.hasOwnProperty('chartOfAccountFeeIncomeParentCode') ? overrides.chartOfAccountFeeIncomeParentCode! : faker.lorem.word(),
+        chartOfAccountFinancialInstitutionDisbursedReceivableParentCode: overrides && overrides.hasOwnProperty('chartOfAccountFinancialInstitutionDisbursedReceivableParentCode') ? overrides.chartOfAccountFinancialInstitutionDisbursedReceivableParentCode! : faker.lorem.word(),
+        chartOfAccountForeignAgencyOrSubsidiaryDisbursedReceivableParentCode: overrides && overrides.hasOwnProperty('chartOfAccountForeignAgencyOrSubsidiaryDisbursedReceivableParentCode') ? overrides.chartOfAccountForeignAgencyOrSubsidiaryDisbursedReceivableParentCode! : faker.lorem.word(),
+        chartOfAccountGovernmentEntityDisbursedReceivableParentCode: overrides && overrides.hasOwnProperty('chartOfAccountGovernmentEntityDisbursedReceivableParentCode') ? overrides.chartOfAccountGovernmentEntityDisbursedReceivableParentCode! : faker.lorem.word(),
+        chartOfAccountIndividualDisbursedReceivableParentCode: overrides && overrides.hasOwnProperty('chartOfAccountIndividualDisbursedReceivableParentCode') ? overrides.chartOfAccountIndividualDisbursedReceivableParentCode! : faker.lorem.word(),
         chartOfAccountInterestIncomeParentCode: overrides && overrides.hasOwnProperty('chartOfAccountInterestIncomeParentCode') ? overrides.chartOfAccountInterestIncomeParentCode! : faker.lorem.word(),
         chartOfAccountInterestReceivableParentCode: overrides && overrides.hasOwnProperty('chartOfAccountInterestReceivableParentCode') ? overrides.chartOfAccountInterestReceivableParentCode! : faker.lorem.word(),
+        chartOfAccountNonDomiciledCompanyDisbursedReceivableParentCode: overrides && overrides.hasOwnProperty('chartOfAccountNonDomiciledCompanyDisbursedReceivableParentCode') ? overrides.chartOfAccountNonDomiciledCompanyDisbursedReceivableParentCode! : faker.lorem.word(),
+        chartOfAccountPrivateCompanyDisbursedReceivableParentCode: overrides && overrides.hasOwnProperty('chartOfAccountPrivateCompanyDisbursedReceivableParentCode') ? overrides.chartOfAccountPrivateCompanyDisbursedReceivableParentCode! : faker.lorem.word(),
     };
 };
 

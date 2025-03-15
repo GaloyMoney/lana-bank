@@ -39,10 +39,16 @@ gql`
       chartOfAccountCollateralOmnibusParentCode
       chartOfAccountFacilityParentCode
       chartOfAccountCollateralParentCode
-      chartOfAccountDisbursedReceivableParentCode
       chartOfAccountInterestReceivableParentCode
       chartOfAccountInterestIncomeParentCode
       chartOfAccountFeeIncomeParentCode
+      chartOfAccountIndividualDisbursedReceivableParentCode
+      chartOfAccountGovernmentEntityDisbursedReceivableParentCode
+      chartOfAccountPrivateCompanyDisbursedReceivableParentCode
+      chartOfAccountBankDisbursedReceivableParentCode
+      chartOfAccountFinancialInstitutionDisbursedReceivableParentCode
+      chartOfAccountForeignAgencyOrSubsidiaryDisbursedReceivableParentCode
+      chartOfAccountNonDomiciledCompanyDisbursedReceivableParentCode
     }
   }
 `
