@@ -1,0 +1,28 @@
+[package]
+name = "notification"
+version = "0.3.125-dev"
+edition = "2021"
+
+[features]
+
+fail-on-warnings = []
+
+[dependencies]
+outbox = { path = "../../lib/outbox" }
+job = { path = "../../lib/job" }
+lana-events = { path = "../events" }
+
+uuid = { workspace = true }
+strum = { workspace = true }
+sqlx = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+chrono = { workspace = true }
+async-trait = { workspace = true }
+futures = { workspace = true }
+thiserror = { workspace = true }
+async-graphql = { workspace = true }
+lettre = { version = "0.11.7", default-features = false, features = ["builder", "tokio1", "tokio1-rustls-tls", "smtp-transport"] }
+
+[dev-dependencies]
+anyhow = { workspace = true }
