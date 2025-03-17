@@ -1286,8 +1286,14 @@
       "description": "Configuración de depósito",
       "setTitle": "Establecer configuración de depósito",
       "chartOfAccountsId": "ID del plan de cuentas",
+      "chartOfAccountsOmnibusParentCode": "Código padre ómnibus",
       "chartOfAccountsDepositAccountsParentCode": "Código padre de cuentas de depósito",
-      "chartOfAccountsOmnibusParentCode": "Código padre ómnibus"
+      "chartOfAccountsIndividualDepositAccountsParentCode": "",
+      "chartOfAccountsGovernmentEntityDepositAccountsParentCode": "",
+      "chartOfAccountsPrivateCompanyDepositAccountsParentCode": "",
+      "chartOfAccountsBankDepositAccountsParentCode": "",
+      "chartOfAccountsFinancialInstitutionDepositAccountsParentCode": "",
+      "chartOfAccountsNonDomiciledIndividualDepositAccountsParentCode": ")"
     },
     "credit": {
       "title": "Crédito",
