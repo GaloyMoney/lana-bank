@@ -51,7 +51,7 @@ dependencies = [
  "rust_decimal",
  "serde",
  "serde_json",
- "thiserror 1.0.69",
+ "thiserror 2.0.8",
  "tokio",
  "tower-http",
  "tracing",
@@ -336,7 +336,7 @@ dependencies = [
  "es-entity",
  "serde",
  "sqlx",
- "thiserror 1.0.69",
+ "thiserror 2.0.8",
 ]
 
 [[package]]
@@ -350,7 +350,7 @@ dependencies = [
  "sqlx",
  "sqlx-adapter",
  "strum",
- "thiserror 1.0.69",
+ "thiserror 2.0.8",
  "tokio",
  "tracing",
 ]
@@ -838,7 +838,7 @@ dependencies = [
  "serde",
  "sqlx",
  "strum",
- "thiserror 1.0.69",
+ "thiserror 2.0.8",
  "tokio",
  "tracing",
  "uuid",
@@ -990,7 +990,7 @@ dependencies = [
  "sim-time",
  "sqlx",
  "strum",
- "thiserror 1.0.69",
+ "thiserror 2.0.8",
  "tokio",
  "tracing",
  "uuid",
@@ -1012,7 +1012,7 @@ dependencies = [
  "serde",
  "sqlx",
  "strum",
- "thiserror 1.0.69",
+ "thiserror 2.0.8",
  "tracing",
 ]
 
@@ -1050,7 +1050,7 @@ dependencies = [
  "rust_decimal",
  "rust_decimal_macros",
  "serde",
- "thiserror 1.0.69",
+ "thiserror 2.0.8",
 ]
 
 [[package]]
@@ -1065,7 +1065,7 @@ dependencies = [
  "rust_decimal_macros",
  "serde",
  "serde_json",
- "thiserror 1.0.69",
+ "thiserror 2.0.8",
  "tokio",
 ]
 
@@ -1084,7 +1084,7 @@ dependencies = [
  "serde",
  "sqlx",
  "strum",
- "thiserror 1.0.69",
+ "thiserror 2.0.8",
  "tracing",
 ]
 
@@ -1196,7 +1196,7 @@ dependencies = [
  "serde_json",
  "sim-time",
  "strum",
- "thiserror 1.0.69",
+ "thiserror 2.0.8",
  "tokio",
  "tracing",
  "uuid",
@@ -1218,7 +1218,7 @@ dependencies = [
  "lana-app",
  "serde",
  "serde_json",
- "thiserror 1.0.69",
+ "thiserror 2.0.8",
  "tokio",
  "tower-http",
  "tracing",
@@ -1282,7 +1282,7 @@ dependencies = [
  "sim-time",
  "sqlx",
  "strum",
- "thiserror 1.0.69",
+ "thiserror 2.0.8",
  "tokio",
  "uuid",
 ]
@@ -1321,7 +1321,7 @@ dependencies = [
  "serde_json",
  "sqlx",
  "strum",
- "thiserror 1.0.69",
+ "thiserror 2.0.8",
  "tokio",
  "tracing",
  "uuid",
@@ -1913,7 +1913,7 @@ dependencies = [
  "serde_json",
  "sqlx",
  "strum",
- "thiserror 1.0.69",
+ "thiserror 2.0.8",
  "tokio",
  "tracing",
  "uuid",
@@ -2567,7 +2567,7 @@ dependencies = [
  "serde_with",
  "sim-time",
  "sqlx",
- "thiserror 1.0.69",
+ "thiserror 2.0.8",
  "tokio",
  "tracing",
  "uuid",
@@ -2607,7 +2607,7 @@ dependencies = [
  "jsonwebtoken",
  "reqwest 0.12.12",
  "serde",
- "thiserror 1.0.69",
+ "thiserror 2.0.8",
  "tokio",
 ]
 
@@ -2618,7 +2618,7 @@ dependencies = [
  "ory-kratos-client",
  "serde",
  "serde_json",
- "thiserror 1.0.69",
+ "thiserror 2.0.8",
  "tracing",
  "uuid",
 ]
@@ -2710,7 +2710,7 @@ dependencies = [
  "sim-time",
  "sqlx",
  "strum",
- "thiserror 1.0.69",
+ "thiserror 2.0.8",
  "tokio",
  "tracing",
  "tracing-utils",
@@ -3653,7 +3653,7 @@ dependencies = [
  "lana-ids",
  "serde",
  "strum",
- "thiserror 1.0.69",
+ "thiserror 2.0.8",
  "uuid",
 ]
 
@@ -5480,7 +5480,7 @@ dependencies = [
  "serde_json",
  "sim-time",
  "strum",
- "thiserror 1.0.69",
+ "thiserror 2.0.8",
  "tokio",
  "uuid",
 ]
