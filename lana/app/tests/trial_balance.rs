@@ -47,7 +47,7 @@ pub async fn init_chart(
 
     let data = format!(
         r#"
-        {rand_ref},,,Assets
+        {rand_ref},,,Assets,Debit
         {rand_ref}1,,,Assets
         ,01,,Cash
         ,,0101,Central Office,

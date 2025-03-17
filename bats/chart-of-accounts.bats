@@ -58,17 +58,18 @@ teardown_file() {
 }
 
 @test "chart-of-accounts: can import CSV file" {
-exec_admin_graphql 'chart-of-accounts'
+  exec_admin_graphql 'chart-of-accounts'
   chart_id=$(graphql_output '.data.chartOfAccounts.chartId')
 
   temp_file=$(mktemp)
+  rand_ref=$(printf "%04d\n" $((RANDOM % 10000)))
   echo "
-    $((RANDOM % 100)),,,Assets ,,
+    ${rand_ref},,,Assets ,Debit,
     ,,,,,
-    $((RANDOM % 100)),,,Assets,,
+    ${rand_ref}1,,,Assets,,
     ,,,,,
-    ,$((RANDOM % 100)),,Effective,,
-    ,,$((RANDOM % 1000)),Central Office,
+    ,01,,Cash,,
+    ,,0101,Central Office,
   " > "$temp_file"
 
   variables=$(

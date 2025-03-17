@@ -43,8 +43,8 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
         .create_chart(&DummySubject, "Test chart".to_string(), chart_ref)
         .await?;
     let import = r#"
-        1,Deposit Parent
-        2,Omnibus Parent
+        1,Deposit Parent,Credit
+        2,Omnibus Parent,Debit
         "#
     .to_string();
     let chart_id = chart.id;
@@ -85,8 +85,8 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
         .await?;
 
     let import = r#"
-        1,Other Deposit Parent
-        2,Other Omnibus Parent
+        1,Other Deposit Parent,Debit
+        2,Other Omnibus Parent,Credit
         "#
     .to_string();
     let chart_id = chart.id;

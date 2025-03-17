@@ -48,14 +48,14 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
         .create_chart(&DummySubject, "Test chart".to_string(), chart_ref)
         .await?;
     let import = r#"
-        1,Facility Omnibus Parent
-        2,Collateral Omnibus Parent
-        3,Facility Parent
-        4,Collateral Parent
-        5,Disbursed Receivable Parent
-        6,Interest Receivable Parent
-        7,Interest Income Parent
-        8,Fee Income Parent
+        1,Facility Omnibus Parent,Credit
+        2,Collateral Omnibus Parent,Credit
+        3,Facility Parent,Credit
+        4,Collateral Parent,Credit
+        5,Disbursed Receivable Parent,Credit
+        6,Interest Receivable Parent,Credit
+        7,Interest Income Parent,Credit
+        8,Fee Income Parent,Credit
         "#
     .to_string();
     let chart_id = chart.id;
@@ -102,14 +102,14 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
         .await?;
 
     let import = r#"
-        1,Other Facility Omnibus Parent
-        2,Other Collateral Omnibus Parent
-        3,Other Facility Parent
-        4,Other Collateral Parent
-        5,Other Disbursed Receivable Parent
-        6,Other Interest Receivable Parent
-        7,Other Interest Income Parent
-        8,Other Fee Income Parent
+        1,Other Facility Omnibus Parent,Credit
+        2,Other Collateral Omnibus Parent,Credit
+        3,Other Facility Parent,Credit
+        4,Other Collateral Parent,Credit
+        5,Other Disbursed Receivable Parent,Credit
+        6,Other Interest Receivable Parent,Credit
+        7,Other Interest Income Parent,Credit
+        8,Other Fee Income Parent,Credit
         "#
     .to_string();
     let chart_id = chart.id;

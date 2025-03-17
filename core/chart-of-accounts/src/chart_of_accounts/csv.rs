@@ -9,8 +9,10 @@ use crate::primitives::{
 use thiserror::Error;
 
 #[derive(Error, Debug)]
-#[error("CsvParseError")]
-pub struct CsvParseError;
+pub enum CsvParseError {
+    #[error("CsvParseError: Missing 'Debit' or 'Credit' for '{0}'")]
+    MissingTopLevelNormalBalanceType(String),
+}
 
 pub struct CsvParser {
     data: String,
@@ -33,35 +35,26 @@ impl CsvParser {
                 Ok(record) => {
                     let mut initial_empty = true;
                     let mut sections = vec![];
+                    let mut name = None;
+                    let mut top_level_normal_balance_type = None;
                     if record.iter().all(|field| field.is_empty()) {
                         continue;
                     }
 
-                    let normal_balance_type = record
-                        .get(4)
-                        .and_then(|b| b.parse::<DebitOrCredit>().ok())
-                        .unwrap_or_default();
-
                     for (idx, field) in record.iter().enumerate() {
-                        if let Ok(category) = field.parse::<AccountName>() {
-                            if let Some(s) = specs.iter().rposition(|s| s.code.is_parent(&sections))
-                            {
-                                specs.push(AccountSpec::new(
-                                    Some(specs[s].code.clone()),
-                                    sections,
-                                    category,
-                                    specs[s].normal_balance_type,
-                                ));
-                                break;
-                            }
-                            specs.push(AccountSpec::new(
-                                None,
-                                sections,
-                                category,
-                                normal_balance_type,
-                            ));
+                        if let Ok(balance_type) = field.parse::<DebitOrCredit>() {
+                            top_level_normal_balance_type = Some(balance_type);
                             break;
                         }
+
+                        if name.is_some() {
+                            continue;
+                        }
+                        if let Ok(account_name) = field.parse::<AccountName>() {
+                            name = Some(account_name);
+                            continue;
+                        }
+
                         match field.parse::<AccountCodeSection>() {
                             Ok(section) => {
                                 initial_empty = false;
@@ -78,11 +71,27 @@ impl CsvParser {
                                         .clone(),
                                 );
                             }
-                            _ => {
-                                continue;
-                            }
+                            _ => (),
                         }
                     }
+
+                    let name = if let Some(n) = name { n } else { continue };
+
+                    if let Some(s) = specs.iter().rposition(|s| s.code.is_parent(&sections)) {
+                        let parent = specs[s].clone();
+                        specs.push(AccountSpec::new(
+                            Some(parent.code),
+                            sections,
+                            name,
+                            parent.normal_balance_type,
+                        ));
+                        continue;
+                    }
+
+                    let normal_balance_type = top_level_normal_balance_type.ok_or(
+                        CsvParseError::MissingTopLevelNormalBalanceType(name.to_string()),
+                    )?;
+                    specs.push(AccountSpec::new(None, sections, name, normal_balance_type));
                 }
                 Err(e) => eprintln!("Error reading record: {}", e),
             }
@@ -98,7 +107,7 @@ mod tests {
 
     #[test]
     fn parse_one_line() {
-        let data = r#"1,,,Assets"#;
+        let data = r#"1,,,Assets,Debit"#;
         let parser = CsvParser::new(data.to_string());
         let specs = parser.account_specs().unwrap();
         assert_eq!(specs.len(), 1);
@@ -124,7 +133,7 @@ mod tests {
     #[test]
     fn parse_child_with_empty_top_section() {
         let data = r#"
-        1,,,Assets ,,
+        1,,,Assets ,Debit,
         ,,,,,
         11,,,Assets,,
         ,,,,,
@@ -147,7 +156,7 @@ mod tests {
     #[test]
     fn parse_when_parent_has_multiple_child_nodes() {
         let data = r#"
-        1,,,Assets,,
+        1,,,Assets,,Debit
         ,,,,
         11,,,Current Assets,,
         ,,,,,
@@ -170,5 +179,49 @@ mod tests {
 
         assert_eq!(Some(&specs[2].code), specs[4].parent.as_ref());
         assert_eq!(&specs[4].code.to_string(), "11.01.0102");
+    }
+
+    #[test]
+    fn error_when_no_balance_type_on_parent() {
+        let data = r#"
+        1,,,Assets,Debit,
+        ,,,,
+        11,,,Current Assets,,
+        ,,,,,
+            ,01,,Cash and Equivalents,,
+        ,,0101,,Operating Cash,,
+        2,,,Liabilities,,
+        ,,,,
+        21,,,Current Liabilities,,
+        ,,,,,
+        "#;
+
+        let parser = CsvParser::new(data.to_string());
+        let res = parser.account_specs();
+        matches!(res, Err(CsvParseError::MissingTopLevelNormalBalanceType(_)));
+    }
+
+    #[test]
+    fn parse_credit_from_parent() {
+        let data = r#"
+        1,,,Assets,Debit,
+        ,,,,
+        11,,,Current Assets,,
+        ,,,,,
+            ,01,,Cash and Equivalents,,
+        ,,0101,,Operating Cash,,
+        2,,,Liabilities,Credit,
+        ,,,,
+        21,,,Current Liabilities,,
+        ,,,,,
+        "#;
+
+        let parser = CsvParser::new(data.to_string());
+        let specs = parser.account_specs().unwrap();
+        assert_eq!(&specs[3].code.to_string(), "11.01.0101");
+        assert_eq!(specs[3].normal_balance_type, DebitOrCredit::Debit);
+
+        assert_eq!(&specs[5].code.to_string(), "21");
+        assert_eq!(specs[5].normal_balance_type, DebitOrCredit::Credit);
     }
 }
