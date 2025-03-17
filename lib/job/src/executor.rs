@@ -84,7 +84,7 @@ impl JobExecutor {
                     &mut keep_alive,
                     max_concurrency,
                     min_concurrency,
-                    pg_interval.clone(),
+                    pg_interval,
                     &running_jobs,
                     &jobs,
                 )
