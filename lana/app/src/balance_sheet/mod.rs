@@ -1,3 +1,4 @@
+mod chart_of_accounts_integration;
 pub mod error;
 pub mod ledger;
 
@@ -7,12 +8,15 @@ use cala_ledger::CalaLedger;
 use chrono::{DateTime, Utc};
 use rbac_types::{BalanceSheetAction, Subject};
 
+use chart_of_accounts::Chart;
+
 use crate::{
     authorization::{Authorization, Object},
     primitives::LedgerAccountSetId,
     statement::*,
 };
 
+pub use chart_of_accounts_integration::ChartOfAccountsIntegrationConfig;
 use error::*;
 use ledger::*;
 
@@ -31,6 +35,22 @@ pub struct BalanceSheetIds {
     pub equity: LedgerAccountSetId,
     pub revenue: LedgerAccountSetId,
     pub expenses: LedgerAccountSetId,
+}
+
+impl BalanceSheetIds {
+    fn as_vec(&self) -> Vec<LedgerAccountSetId> {
+        let Self {
+            id: _id,
+
+            assets,
+            liabilities,
+            equity,
+            revenue,
+            expenses,
+        } = self;
+
+        vec![*assets, *liabilities, *equity, *revenue, *expenses]
+    }
 }
 
 #[derive(Clone)]
@@ -71,90 +91,58 @@ impl BalanceSheets {
         }
     }
 
-    async fn add_to(
+    pub async fn set_chart_of_accounts_integration_config(
         &self,
-        account_set_id: LedgerAccountSetId,
-        member_id: impl Into<LedgerAccountSetId>,
-    ) -> Result<(), BalanceSheetError> {
-        let member_id = member_id.into();
+        sub: &Subject,
+        reference: String,
+        chart: Chart,
+        config: ChartOfAccountsIntegrationConfig,
+    ) -> Result<ChartOfAccountsIntegrationConfig, BalanceSheetError> {
+        if chart.id != config.chart_of_accounts_id {
+            return Err(BalanceSheetError::ChartIdMismatch);
+        }
 
-        let mut op = es_entity::DbOp::init(&self.pool).await?;
+        if self
+            .balance_sheet_ledger
+            .get_chart_of_accounts_integration_config(reference.to_string())
+            .await?
+            .is_some()
+        {
+            return Err(BalanceSheetError::CreditConfigAlreadyExists);
+        }
 
-        self.authz
-            .audit()
-            .record_system_entry_in_tx(op.tx(), Object::BalanceSheet, BalanceSheetAction::Update)
+        let assets_child_account_set_id_from_chart =
+            chart.account_set_id_from_code(&config.chart_of_accounts_assets_code)?;
+        let liabilities_child_account_set_id_from_chart =
+            chart.account_set_id_from_code(&config.chart_of_accounts_liabilities_code)?;
+        let equity_child_account_set_id_from_chart =
+            chart.account_set_id_from_code(&config.chart_of_accounts_equity_code)?;
+        let revenue_child_account_set_id_from_chart =
+            chart.account_set_id_from_code(&config.chart_of_accounts_revenue_code)?;
+        let expenses_child_account_set_id_from_chart =
+            chart.account_set_id_from_code(&config.chart_of_accounts_expenses_code)?;
+
+        let audit_info = self
+            .authz
+            .enforce_permission(sub, Object::BalanceSheet, BalanceSheetAction::Update)
             .await?;
+
+        let charts_integration_meta = ChartOfAccountsIntegrationMeta {
+            audit_info,
+            config: config.clone(),
+
+            assets_child_account_set_id_from_chart,
+            liabilities_child_account_set_id_from_chart,
+            equity_child_account_set_id_from_chart,
+            revenue_child_account_set_id_from_chart,
+            expenses_child_account_set_id_from_chart,
+        };
 
         self.balance_sheet_ledger
-            .add_member(op, account_set_id, member_id)
+            .attach_chart_of_accounts_account_sets(reference, charts_integration_meta)
             .await?;
 
-        Ok(())
-    }
-
-    pub async fn add_to_assets(
-        &self,
-        reference: String,
-        member_id: impl Into<LedgerAccountSetId>,
-    ) -> Result<(), BalanceSheetError> {
-        let statement_ids = self
-            .balance_sheet_ledger
-            .get_ids_from_reference(reference)
-            .await?;
-
-        self.add_to(statement_ids.assets, member_id).await
-    }
-
-    pub async fn add_to_liabilities(
-        &self,
-        reference: String,
-        member_id: impl Into<LedgerAccountSetId>,
-    ) -> Result<(), BalanceSheetError> {
-        let statement_ids = self
-            .balance_sheet_ledger
-            .get_ids_from_reference(reference)
-            .await?;
-
-        self.add_to(statement_ids.liabilities, member_id).await
-    }
-
-    pub async fn add_to_equity(
-        &self,
-        reference: String,
-        member_id: impl Into<LedgerAccountSetId>,
-    ) -> Result<(), BalanceSheetError> {
-        let statement_ids = self
-            .balance_sheet_ledger
-            .get_ids_from_reference(reference)
-            .await?;
-
-        self.add_to(statement_ids.equity, member_id).await
-    }
-
-    pub async fn add_to_revenue(
-        &self,
-        reference: String,
-        member_id: impl Into<LedgerAccountSetId>,
-    ) -> Result<(), BalanceSheetError> {
-        let statement_ids = self
-            .balance_sheet_ledger
-            .get_ids_from_reference(reference)
-            .await?;
-
-        self.add_to(statement_ids.revenue, member_id).await
-    }
-
-    pub async fn add_to_expenses(
-        &self,
-        reference: String,
-        member_id: impl Into<LedgerAccountSetId>,
-    ) -> Result<(), BalanceSheetError> {
-        let statement_ids = self
-            .balance_sheet_ledger
-            .get_ids_from_reference(reference)
-            .await?;
-
-        self.add_to(statement_ids.expenses, member_id).await
+        Ok(config)
     }
 
     pub async fn balance_sheet(
