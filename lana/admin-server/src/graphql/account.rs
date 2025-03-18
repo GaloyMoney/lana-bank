@@ -162,8 +162,8 @@ impl From<lana_app::statement::StatementAccountSetWithAccounts> for AccountAmoun
     }
 }
 
-impl From<lana_app::trial_balance::TrialBalance> for AccountAmountsByCurrency {
-    fn from(balances: lana_app::trial_balance::TrialBalance) -> Self {
+impl From<lana_app::trial_balance::TrialBalanceRoot> for AccountAmountsByCurrency {
+    fn from(balances: lana_app::trial_balance::TrialBalanceRoot) -> Self {
         AccountAmountsByCurrency {
             btc: balances.btc_balance.into(),
             usd: balances.usd_balance.into(),

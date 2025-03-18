@@ -1,17 +1,68 @@
-use async_graphql::*;
+use async_graphql::{connection::*, *};
 
 use crate::{
     graphql::{account::AccountAmountsByCurrency, ledger_account::AccountCode},
     primitives::*,
 };
 
+use lana_app::trial_balance::TrialBalanceAccountSetsCursor;
+
 #[derive(SimpleObject)]
+#[graphql(complex)]
 pub struct TrialBalance {
     name: String,
     total: AccountAmountsByCurrency,
-    accounts: Vec<TrialBalanceAccount>,
+
+    #[graphql(skip)]
+    from: Timestamp,
+    #[graphql(skip)]
+    until: Timestamp,
 }
 
+#[ComplexObject]
+impl TrialBalance {
+    pub async fn accounts(
+        &self,
+        ctx: &Context<'_>,
+        first: i32,
+        after: Option<String>,
+    ) -> async_graphql::Result<
+        Connection<TrialBalanceAccountSetsCursor, TrialBalanceAccount, EmptyFields, EmptyFields>,
+    > {
+        let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
+
+        query(
+            after,
+            None,
+            Some(first),
+            None,
+            |after, _, first, _| async move {
+                let first = first.expect("First always exists");
+                let query_args = es_entity::PaginatedQueryArgs { first, after };
+                let res = app
+                    .trial_balances()
+                    .trial_balance_accounts(
+                        sub,
+                        self.name.to_string(),
+                        self.from.into_inner(),
+                        Some(self.until.into_inner()),
+                        query_args,
+                    )
+                    .await?;
+
+                let mut connection = Connection::new(false, res.has_next_page);
+                connection
+                    .edges
+                    .extend(res.entities.into_iter().map(|entry| {
+                        let cursor = TrialBalanceAccountSetsCursor::from(&entry);
+                        Edge::new(cursor, TrialBalanceAccount::from(entry))
+                    }));
+                Ok::<_, async_graphql::Error>(connection)
+            },
+        )
+        .await
+    }
+}
 #[derive(SimpleObject)]
 pub struct TrialBalanceAccount {
     id: UUID,
@@ -31,16 +82,16 @@ impl From<lana_app::trial_balance::TrialBalanceAccountSet> for TrialBalanceAccou
     }
 }
 
-impl From<lana_app::trial_balance::TrialBalance> for TrialBalance {
-    fn from(trial_balance: lana_app::trial_balance::TrialBalance) -> Self {
+impl From<lana_app::trial_balance::TrialBalanceRoot> for TrialBalance {
+    fn from(trial_balance: lana_app::trial_balance::TrialBalanceRoot) -> Self {
         TrialBalance {
             name: trial_balance.name.to_string(),
             total: trial_balance.clone().into(),
-            accounts: trial_balance
-                .accounts
-                .into_iter()
-                .map(TrialBalanceAccount::from)
-                .collect(),
+            from: trial_balance.from.into(),
+            until: trial_balance
+                .until
+                .expect("Mandatory 'until' value missing")
+                .into(),
         }
     }
 }

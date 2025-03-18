@@ -1206,8 +1206,7 @@ type Query {
 	approvalProcesses(first: Int!, after: String): ApprovalProcessConnection!
 	document(id: UUID!): Document
 	ledgerAccountByCode(code: String!): LedgerAccount
-	trialBalance(from: Timestamp!, until: Timestamp): TrialBalance!
-	offBalanceSheetTrialBalance(from: Timestamp!, until: Timestamp): TrialBalance!
+	trialBalance(from: Timestamp!, until: Timestamp!): TrialBalance!
 	chartOfAccounts: ChartOfAccounts!
 	balanceSheet(from: Timestamp!, until: Timestamp): BalanceSheet!
 	profitAndLossStatement(from: Timestamp!, until: Timestamp): ProfitAndLossStatement!
@@ -1386,7 +1385,7 @@ type Total {
 type TrialBalance {
 	name: String!
 	total: AccountAmountsByCurrency!
-	accounts: [TrialBalanceAccount!]!
+	accounts(first: Int!, after: String): TrialBalanceAccountConnection!
 }
 
 type TrialBalanceAccount {
@@ -1394,6 +1393,35 @@ type TrialBalanceAccount {
 	name: String!
 	amounts: AccountAmountsByCurrency!
 	code: AccountCode!
+}
+
+type TrialBalanceAccountConnection {
+	"""
+	Information to aid in pagination.
+	"""
+	pageInfo: PageInfo!
+	"""
+	A list of edges.
+	"""
+	edges: [TrialBalanceAccountEdge!]!
+	"""
+	A list of nodes.
+	"""
+	nodes: [TrialBalanceAccount!]!
+}
+
+"""
+An edge in a connection.
+"""
+type TrialBalanceAccountEdge {
+	"""
+	The item at the end of the edge
+	"""
+	node: TrialBalanceAccount!
+	"""
+	A cursor for use in pagination
+	"""
+	cursor: String!
 }
 
 scalar UUID

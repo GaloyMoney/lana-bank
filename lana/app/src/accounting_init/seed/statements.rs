@@ -2,7 +2,7 @@ use crate::{accounting_init::*, balance_sheet::BalanceSheets};
 
 use constants::{
     BALANCE_SHEET_NAME, CASH_FLOW_STATEMENT_NAME, OBS_BALANCE_SHEET_NAME,
-    OBS_TRIAL_BALANCE_STATEMENT_NAME, PROFIT_AND_LOSS_STATEMENT_NAME, TRIAL_BALANCE_STATEMENT_NAME,
+    PROFIT_AND_LOSS_STATEMENT_NAME, TRIAL_BALANCE_STATEMENT_NAME,
 };
 
 pub(crate) async fn init(
@@ -25,9 +25,6 @@ pub(crate) async fn init(
 async fn create_trial_balances(trial_balances: &TrialBalances) -> Result<(), AccountingInitError> {
     trial_balances
         .create_trial_balance_statement(TRIAL_BALANCE_STATEMENT_NAME.to_string())
-        .await?;
-    trial_balances
-        .create_trial_balance_statement(OBS_TRIAL_BALANCE_STATEMENT_NAME.to_string())
         .await?;
 
     Ok(())

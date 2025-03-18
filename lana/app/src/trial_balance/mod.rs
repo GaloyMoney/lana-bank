@@ -13,7 +13,7 @@ use crate::authorization::{Authorization, Object};
 
 use error::*;
 use ledger::*;
-pub use ledger::{TrialBalance, TrialBalanceAccountSet};
+pub use ledger::{TrialBalanceAccountSet, TrialBalanceAccountSetsCursor, TrialBalanceRoot};
 
 #[derive(Clone)]
 pub struct TrialBalances {
@@ -89,15 +89,36 @@ impl TrialBalances {
         sub: &Subject,
         name: String,
         from: DateTime<Utc>,
-        until: Option<DateTime<Utc>>,
-    ) -> Result<TrialBalance, TrialBalanceError> {
+        until: DateTime<Utc>,
+    ) -> Result<TrialBalanceRoot, TrialBalanceError> {
         self.authz
             .enforce_permission(sub, Object::TrialBalance, TrialBalanceAction::Read)
             .await?;
 
         Ok(self
             .trial_balance_ledger
-            .get_trial_balance(name, from, until)
+            .get_trial_balance(name, from, Some(until))
+            .await?)
+    }
+
+    pub async fn trial_balance_accounts(
+        &self,
+        sub: &Subject,
+        name: String,
+        from: DateTime<Utc>,
+        until: Option<DateTime<Utc>>,
+        args: es_entity::PaginatedQueryArgs<TrialBalanceAccountSetsCursor>,
+    ) -> Result<
+        es_entity::PaginatedQueryRet<TrialBalanceAccountSet, TrialBalanceAccountSetsCursor>,
+        TrialBalanceError,
+    > {
+        self.authz
+            .enforce_permission(sub, Object::TrialBalance, TrialBalanceAction::Read)
+            .await?;
+
+        Ok(self
+            .trial_balance_ledger
+            .accounts(name, from, until, args)
             .await?)
     }
 }

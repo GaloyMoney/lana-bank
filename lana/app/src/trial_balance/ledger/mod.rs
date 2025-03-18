@@ -38,13 +38,13 @@ pub struct TrialBalanceRoot {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TrialBalanceAccountSetsCursor {
-    pub created_at: DateTime<Utc>,
+    pub member_created_at: DateTime<Utc>,
 }
 
 impl From<TrialBalanceAccountSetsCursor> for AccountSetMembersCursor {
     fn from(cursor: TrialBalanceAccountSetsCursor) -> Self {
         Self {
-            member_created_at: cursor.created_at,
+            member_created_at: cursor.member_created_at,
         }
     }
 }
@@ -52,7 +52,15 @@ impl From<TrialBalanceAccountSetsCursor> for AccountSetMembersCursor {
 impl From<AccountSetMembersCursor> for TrialBalanceAccountSetsCursor {
     fn from(cursor: AccountSetMembersCursor) -> Self {
         Self {
-            created_at: cursor.member_created_at,
+            member_created_at: cursor.member_created_at,
+        }
+    }
+}
+
+impl From<&TrialBalanceAccountSet> for TrialBalanceAccountSetsCursor {
+    fn from(account_set: &TrialBalanceAccountSet) -> Self {
+        Self {
+            member_created_at: account_set.member_created_at,
         }
     }
 }

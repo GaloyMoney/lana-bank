@@ -4,8 +4,8 @@ use std::io::Read;
 
 use lana_app::{
     accounting_init::constants::{
-        BALANCE_SHEET_NAME, CASH_FLOW_STATEMENT_NAME, CHART_REF, OBS_TRIAL_BALANCE_STATEMENT_NAME,
-        PROFIT_AND_LOSS_STATEMENT_NAME, TRIAL_BALANCE_STATEMENT_NAME,
+        BALANCE_SHEET_NAME, CASH_FLOW_STATEMENT_NAME, CHART_REF, PROFIT_AND_LOSS_STATEMENT_NAME,
+        TRIAL_BALANCE_STATEMENT_NAME,
     },
     app::LanaApp,
 };
@@ -419,7 +419,7 @@ impl Query {
         &self,
         ctx: &Context<'_>,
         from: Timestamp,
-        until: Option<Timestamp>,
+        until: Timestamp,
     ) -> async_graphql::Result<TrialBalance> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         let account_summary = app
@@ -428,26 +428,7 @@ impl Query {
                 sub,
                 TRIAL_BALANCE_STATEMENT_NAME.to_string(),
                 from.into_inner(),
-                until.map(|t| t.into_inner()),
-            )
-            .await?;
-        Ok(TrialBalance::from(account_summary))
-    }
-
-    async fn off_balance_sheet_trial_balance(
-        &self,
-        ctx: &Context<'_>,
-        from: Timestamp,
-        until: Option<Timestamp>,
-    ) -> async_graphql::Result<TrialBalance> {
-        let (app, sub) = app_and_sub_from_ctx!(ctx);
-        let account_summary = app
-            .trial_balances()
-            .trial_balance(
-                sub,
-                OBS_TRIAL_BALANCE_STATEMENT_NAME.to_string(),
-                from.into_inner(),
-                until.map(|t| t.into_inner()),
+                until.into_inner(),
             )
             .await?;
         Ok(TrialBalance::from(account_summary))
