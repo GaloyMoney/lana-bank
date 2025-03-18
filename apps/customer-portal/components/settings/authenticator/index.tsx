@@ -6,7 +6,7 @@ import { toast } from "sonner"
 
 import { UiNode } from "@ory/client"
 
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 
 import { IoAdd, IoTrashOutline } from "react-icons/io5"
 
@@ -60,8 +60,8 @@ export const AuthenticatorDialog: React.FC<AuthenticatorDialogProps> = ({
         <div className="flex justify-center items-center bg-white p-4 rounded-lg">
           <QRCode size={200} value={totpSecret || ""} />
         </div>
-        <div className="bg-secondary-foreground p-1 rounded-md px-2 flex gap-2 items-center">
-          <p className="text-textColor-secondary text-xs">{totpSecret}</p>
+        <div className="bg-secondary p-1 rounded-md px-2 flex gap-2 items-center">
+          <p className="text-xs">{totpSecret}</p>
         </div>
         <Input
           value={totpCode}
@@ -78,6 +78,7 @@ export const AuthenticatorDialog: React.FC<AuthenticatorDialogProps> = ({
 
 const SetupAuthenticator = ({ totpUnlinkNode }: { totpUnlinkNode: UiNode | null }) => {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const [totpCode, setTotpCode] = useState<string>("")
   const [error, setError] = useState<string | null>(null)
   const [openTotpDialog, setOpenTotpDialog] = useState<boolean>(false)
@@ -123,7 +124,10 @@ const SetupAuthenticator = ({ totpUnlinkNode }: { totpUnlinkNode: UiNode | null 
     if (response.success) {
       toast.success("Authenticator app setup successfully")
       setOpenTotpDialog(false)
-      router.refresh()
+      if (searchParams.has("onboard")) {
+        router.push("/")
+        router.refresh()
+      }
     }
   }
 

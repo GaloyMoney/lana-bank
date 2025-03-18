@@ -10,7 +10,7 @@ serve:
       allow_credentials: true
       allowed_origins:
         - http://localhost:4455
-      allowed_methods: [ POST, GET, PUT, PATCH, DELETE ]
+      allowed_methods: [POST, GET, PUT, PATCH, DELETE]
       allowed_headers:
         - Authorization
         - Cookie
@@ -34,6 +34,17 @@ selfservice:
       passwordless_enabled: true
     link:
       enabled: true
+    totp:
+      enabled: true
+    webauthn:
+      enabled: true
+      config:
+        passwordless: false
+        rp:
+          id: localhost
+          origins:
+            - http://localhost:4455
+          display_name: Lana Bank
 
   flows:
     login:
@@ -41,9 +52,6 @@ selfservice:
 
     error:
       ui_url: http://localhost:4455/app/errored
-
-    settings:
-      lifespan: 1s
 
     recovery:
       enabled: false

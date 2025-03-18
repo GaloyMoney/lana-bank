@@ -5,7 +5,7 @@ import { toast } from "sonner"
 
 import { UiNode } from "@ory/client"
 
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 
 import { IoAdd, IoTrashOutline } from "react-icons/io5"
 
@@ -47,6 +47,7 @@ export interface AuthenticatorDialogProps {
 
 const SetupWebAuth = ({ addedWebAuthNode }: { addedWebAuthNode: UiNode[] }) => {
   const router = useRouter()
+  const searchParams = useSearchParams()
 
   const [webAuthPasskeyName, setWebAuthPasskeyName] = useState<string>("")
   const [openNameWebAuthnDialog, setOpenNameWebAuthnDialog] = useState<boolean>(false)
@@ -108,7 +109,10 @@ const SetupWebAuth = ({ addedWebAuthNode }: { addedWebAuthNode: UiNode[] }) => {
 
     toast.success("Passkey added successfully")
     setOpenNameWebAuthnDialog(false)
-    router.refresh()
+    if (searchParams.has("onboard")) {
+      router.push("/")
+      router.refresh()
+    }
   }
 
   return (
