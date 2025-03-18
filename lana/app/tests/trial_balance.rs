@@ -87,28 +87,30 @@ async fn add_chart_to_trial_balance() -> anyhow::Result<()> {
         .create_trial_balance_statement(trial_balance_name.to_string())
         .await?;
     let trial_balance = trial_balances
-        .trial_balance(
+        .trial_balance_accounts(
             &superuser_subject,
             trial_balance_name.to_string(),
             Utc::now(),
             None,
+            Default::default(),
         )
         .await?;
-    assert_eq!(trial_balance.accounts.len(), 0);
+    assert_eq!(trial_balance.entities.len(), 0);
 
     let chart = init_chart(&pool, &authz, &cala, journal_id, &superuser_subject).await?;
     trial_balances
         .add_chart_to_trial_balance(trial_balance_name.to_string(), chart)
         .await?;
     let trial_balance = trial_balances
-        .trial_balance(
+        .trial_balance_accounts(
             &superuser_subject,
             trial_balance_name.to_string(),
             Utc::now(),
             None,
+            Default::default(),
         )
         .await?;
-    assert_eq!(trial_balance.accounts.len(), 4);
+    assert_eq!(trial_balance.entities.len(), 4);
 
     Ok(())
 }
