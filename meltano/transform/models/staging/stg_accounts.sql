@@ -29,7 +29,14 @@ with ordered as (
 
 )
 
-select * except (order_received_desc)
+select
+    id,
+    code,
+    name,
+    normal_balance_type,
+    latest_values,
+    created_at,
+    _sdc_batched_at,
 
 from ordered
 

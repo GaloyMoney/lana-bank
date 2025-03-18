@@ -29,8 +29,17 @@ with ordered as (
 )
 
 select
-    * except (order_received_desc),
+    id,
+    sequence,
+    event_type,
+    event,
+    recorded_at,
+    _sdc_batched_at,
+{% if target.type == 'bigquery' %}
     safe.parse_json(event) as parsed_event
+{% elif target.type == 'snowflake' %}
+    TRY_PARSE_JSON(event) as parsed_event
+{% endif %}
 
 from ordered
 

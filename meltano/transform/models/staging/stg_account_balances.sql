@@ -10,7 +10,11 @@ with ordered as (
         account_id,
         currency,
         recorded_at,
+    {% if target.type == 'bigquery' %}
         values,
+    {% elif target.type == 'snowflake' %}
+        "VALUES",
+    {% endif %}
         _sdc_batched_at,
         row_number()
             over (
@@ -28,7 +32,17 @@ with ordered as (
 
 )
 
-select * except (order_received_desc)
+select
+    journal_id,
+    account_id,
+    currency,
+    recorded_at,
+{% if target.type == 'bigquery' %}
+    values,
+{% elif target.type == 'snowflake' %}
+    "VALUES",
+{% endif %}
+    _sdc_batched_at
 
 from ordered
 

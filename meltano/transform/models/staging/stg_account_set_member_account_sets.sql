@@ -27,7 +27,11 @@ with ordered as (
 
 )
 
-select * except (order_received_desc)
+select
+    account_set_id,
+    member_account_set_id,
+    created_at,
+    _sdc_batched_at,
 
 from ordered
 

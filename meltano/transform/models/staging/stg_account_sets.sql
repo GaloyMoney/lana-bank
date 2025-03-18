@@ -27,7 +27,12 @@ with ordered as (
 
 )
 
-select * except (order_received_desc)
+select
+    id,
+    journal_id,
+    set_name,
+    created_at,
+    _sdc_batched_at,
 
 from ordered
 
