@@ -1152,7 +1152,7 @@
       "genericError": "An error occurred while uploading your file",
       "successDescription": "Chart of accounts successfully imported",
       "errorTitle": "Upload Failed",
-      "uploading": "Uploading your chart of accounts...",
+      "uploading": "Uploading and processing your chart of accounts...",
       "reset": "Reset",
       "upload": "Upload"
     },

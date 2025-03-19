@@ -36,18 +36,34 @@ import {
 } from "@/components/date-range-picker"
 
 gql`
-  query GetTrialBalance($from: Timestamp!, $until: Timestamp) {
+  query GetTrialBalance(
+    $from: Timestamp!
+    $until: Timestamp!
+    $first: Int!
+    $after: String
+  ) {
     trialBalance(from: $from, until: $until) {
       name
       total {
         ...balancesByCurrency
       }
-      accounts {
-        id
-        name
-        code
-        amounts {
-          ...balancesByCurrency
+      accounts(first: $first, after: $after) {
+        edges {
+          cursor
+          node {
+            id
+            code
+            name
+            amounts {
+              ...balancesByCurrency
+            }
+          }
+        }
+        pageInfo {
+          endCursor
+          startCursor
+          hasNextPage
+          hasPreviousPage
         }
       }
     }
