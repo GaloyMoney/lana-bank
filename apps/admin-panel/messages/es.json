@@ -1213,7 +1213,7 @@
     "description": "Un resumen de todas las cuentas que enumera los saldos de débito y crédito para garantizar que los asientos contables estén equilibrados.",
     "noData": "Sin datos",
     "dateRange": "Rango de Fechas",
-    "totals": "Totales",
+    "totals": "Totales (de todas las cuentas)",
     "tabs": {
       "regular": "Regular",
       "offBalanceSheet": "Fuera del Balance"
