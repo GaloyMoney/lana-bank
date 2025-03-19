@@ -24,7 +24,7 @@ describe(t(TB + ".title"), () => {
       from: lastMonthDate.toISOString(),
       until: currentDate.toISOString(),
     }).then((response) => {
-      response.data.trialBalance?.accounts.forEach((account) => {
+      response.data.trialBalance?.accounts.edges.forEach(({ node: account }) => {
         cy.get("main")
           .contains(new RegExp(`^${account.name}$`))
           .should("exist")
