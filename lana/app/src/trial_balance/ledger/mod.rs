@@ -38,12 +38,14 @@ pub struct TrialBalanceRoot {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TrialBalanceAccountSetsCursor {
+    id: AccountSetId,
     pub member_created_at: DateTime<Utc>,
 }
 
 impl From<TrialBalanceAccountSetsCursor> for AccountSetMembersCursor {
     fn from(cursor: TrialBalanceAccountSetsCursor) -> Self {
         Self {
+            id: AccountSetMemberId::AccountSet(cursor.id),
             member_created_at: cursor.member_created_at,
         }
     }
@@ -51,7 +53,12 @@ impl From<TrialBalanceAccountSetsCursor> for AccountSetMembersCursor {
 
 impl From<AccountSetMembersCursor> for TrialBalanceAccountSetsCursor {
     fn from(cursor: AccountSetMembersCursor) -> Self {
+        let id = match cursor.id {
+            AccountSetMemberId::AccountSet(id) => id,
+            _ => panic!("Unexpected non-AccountSet cursor id found"),
+        };
         Self {
+            id,
             member_created_at: cursor.member_created_at,
         }
     }
@@ -60,6 +67,7 @@ impl From<AccountSetMembersCursor> for TrialBalanceAccountSetsCursor {
 impl From<&TrialBalanceAccountSet> for TrialBalanceAccountSetsCursor {
     fn from(account_set: &TrialBalanceAccountSet) -> Self {
         Self {
+            id: account_set.id,
             member_created_at: account_set.member_created_at,
         }
     }
