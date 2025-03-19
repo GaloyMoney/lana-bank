@@ -34,10 +34,7 @@ import {
   DateRangeSelector,
   getInitialDateRange,
 } from "@/components/date-range-picker"
-import PaginatedTable, {
-  Column,
-  PaginatedData,
-} from "@/components/paginated-table"
+import PaginatedTable, { Column, PaginatedData } from "@/components/paginated-table"
 
 const DEFAULT_PAGESIZE = 15
 
