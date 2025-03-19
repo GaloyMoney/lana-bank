@@ -41,6 +41,7 @@ export type Column<T> = {
     sortable?: boolean
     filterValues?: Array<T[K]>
     render?: (value: T[K], record: T) => React.ReactNode
+    labelClassName?: string
   }
 }[keyof T]
 
@@ -67,6 +68,8 @@ interface PaginatedTableProps<T> {
   onClick?: (record: T) => void
   showHeader?: boolean
   navigateTo?: (record: T) => string
+  customFooter?: React.ReactNode
+  style?: "compact" | "comfortable"
 }
 
 const PaginatedTable = <T,>({
@@ -80,6 +83,8 @@ const PaginatedTable = <T,>({
   onClick,
   showHeader = true,
   navigateTo,
+  customFooter,
+  style = "comfortable",
 }: PaginatedTableProps<T>): React.ReactElement => {
   const isMobile = useBreakpointDown("md")
   const t = useTranslations("PaginatedTable")
@@ -277,12 +282,18 @@ const PaginatedTable = <T,>({
         ))}
       </div>
     ) : (
-      <div className="overflow-x-auto border rounded-md">
+      <div
+        className={`overflow-x-auto rounded-md ${style === "comfortable" ? "border" : ""}`}
+      >
         <Table className="table-fixed w-full">
-          <TableHeader className="bg-secondary [&_tr:hover]:!bg-secondary">
+          <TableHeader
+            className={
+              style === "comfortable" ? "bg-secondary [&_tr:hover]:!bg-secondary" : ""
+            }
+          >
             <TableRow>
               {columns.map((col) => (
-                <TableHead key={col.key as string}>
+                <TableHead className={col.labelClassName} key={col.key as string}>
                   <div className="flex items-center space-x-2 justify-between">
                     <span>{col.label}</span>
                     <div className="flex items-center">
@@ -473,7 +484,7 @@ const PaginatedTable = <T,>({
     <>
       <div
         ref={tableRef}
-        className="overflow-x-auto border rounded-md focus:outline-none"
+        className={`overflow-x-auto rounded-md focus:outline-none ${style === "comfortable" ? "border" : ""}`}
         tabIndex={0}
         role="grid"
         onFocus={() => setIsTableFocused(true)}
@@ -486,11 +497,17 @@ const PaginatedTable = <T,>({
       >
         <Table className="table-fixed w-full">
           {showHeader && (
-            <TableHeader className="bg-secondary [&_tr:hover]:!bg-secondary">
+            <TableHeader
+              className={
+                style === "comfortable" ? "bg-secondary [&_tr:hover]:!bg-secondary" : ""
+              }
+            >
               <TableRow>
                 {columns.map((col) => (
                   <TableHead key={col.key as string}>
-                    <div className="flex items-center space-x-2 justify-between">
+                    <div
+                      className={`flex items-center space-x-2 justify-between ${col.labelClassName}`}
+                    >
                       <span>{col.label}</span>
                       {col.sortable && (
                         <Button
@@ -565,7 +582,11 @@ const PaginatedTable = <T,>({
                 {columns.map((col) => (
                   <TableCell
                     key={col.key as string}
-                    className="whitespace-normal break-words h-[3.8rem]"
+                    className={
+                      style === "comfortable"
+                        ? "whitespace-normal break-words h-[3.8rem]"
+                        : ""
+                    }
                   >
                     {col.render ? col.render(node[col.key], node) : String(node[col.key])}
                   </TableCell>
@@ -586,6 +607,7 @@ const PaginatedTable = <T,>({
               </TableRow>
             ))}
           </TableBody>
+          {customFooter}
         </Table>
         <Separator />
         <div className="flex items-center justify-end space-x-4 py-2 mr-2">

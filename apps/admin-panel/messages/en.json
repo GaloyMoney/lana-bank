@@ -1213,7 +1213,7 @@
     "description": "A summary of all accounts listing debit and credit balances to ensure accounting entries are balanced.",
     "noData": "No data",
     "dateRange": "Date Range",
-    "totals": "Totals",
+    "totals": "Totals (across all accounts)",
     "tabs": {
       "regular": "Regular",
       "offBalanceSheet": "Off Balance Sheet"

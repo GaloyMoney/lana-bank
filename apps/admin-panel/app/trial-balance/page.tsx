@@ -1,6 +1,6 @@
 "use client"
-import React, { useCallback, useState } from "react"
-import { ApolloError, gql } from "@apollo/client"
+import React, { useState } from "react"
+import { gql } from "@apollo/client"
 
 import {
   Table,
@@ -25,7 +25,7 @@ import { Skeleton } from "@lana/web/ui/skeleton"
 import { useRouter } from "next/navigation"
 import { useTranslations } from "next-intl"
 
-import { GetTrialBalanceQuery, useGetTrialBalanceQuery } from "@/lib/graphql/generated"
+import { TrialBalanceAccount, useGetTrialBalanceQuery } from "@/lib/graphql/generated"
 
 import Balance, { Currency } from "@/components/balance/balance"
 import { CurrencyLayerSelection } from "@/components/financial/currency-layer-selection"
@@ -34,6 +34,12 @@ import {
   DateRangeSelector,
   getInitialDateRange,
 } from "@/components/date-range-picker"
+import PaginatedTable, {
+  Column,
+  PaginatedData,
+} from "@/components/paginated-table"
+
+const DEFAULT_PAGESIZE = 15
 
 gql`
   query GetTrialBalance(
@@ -205,29 +211,26 @@ const LoadingSkeleton = () => {
 }
 
 type Layers = "all" | "settled" | "pending"
-type TrialBalanceValuesProps = {
-  data: GetTrialBalanceQuery["trialBalance"] | undefined
-  loading: boolean
-  error: ApolloError | undefined
-  dateRange: DateRange
-  setDateRange: (dateRange: DateRange) => void
-}
 
-const TrialBalanceValues: React.FC<TrialBalanceValuesProps> = ({
-  data,
-  loading,
-  error,
-  dateRange,
-  setDateRange,
-}) => {
+function TrialBalancePage() {
   const t = useTranslations("TrialBalance")
+  const [dateRange, setDateRange] = useState<DateRange>(getInitialDateRange)
+
+  const { data, loading, error, fetchMore } = useGetTrialBalanceQuery({
+    variables: {
+      from: dateRange.from,
+      until: dateRange.until,
+      first: DEFAULT_PAGESIZE,
+    },
+  })
+
   const [currency, setCurrency] = React.useState<Currency>("usd")
   const [layer, setLayer] = React.useState<Layers>("all")
 
   const router = useRouter()
 
-  const total = data?.total
-  const accounts = data?.accounts
+  const total = data?.trialBalance.total
+  const accounts = data?.trialBalance.accounts
 
   if (error) return <div className="text-destructive">{error.message}</div>
   if (loading && !data) {
@@ -235,106 +238,82 @@ const TrialBalanceValues: React.FC<TrialBalanceValuesProps> = ({
   }
   if (!total) return <div>{t("noData")}</div>
 
-  return (
-    <>
-      <div className="flex gap-6 items-center">
-        <div>{t("dateRange")}:</div>
-        <DateRangeSelector initialDateRange={dateRange} onDateChange={setDateRange} />
-      </div>
-      <CurrencyLayerSelection
-        currency={currency}
-        setCurrency={setCurrency}
-        layer={layer}
-        setLayer={setLayer}
-      />
-      <Table className="mt-6">
-        <TableHeader>
-          <TableHead>{t("table.headers.accountName")}</TableHead>
-          <TableHead>{t("table.headers.accountCode")}</TableHead>
-          <TableHead className="text-right">{t("table.headers.debit")}</TableHead>
-          <TableHead className="text-right">{t("table.headers.credit")}</TableHead>
-          <TableHead className="text-right">{t("table.headers.net")}</TableHead>
-        </TableHeader>
-        <TableBody>
-          {accounts?.map((account, index) => (
-            <TableRow
-              className="cursor-pointer"
-              onClick={() => router.push(`/ledger-account/${account.code}`)}
-              key={index}
-            >
-              <TableCell>{account.name}</TableCell>
-              <TableCell className="w-48">
-                <div className="font-mono text-xs text-gray-500">{account.code}</div>
-              </TableCell>
-              <TableCell className="w-48">
-                <Balance
-                  align="end"
-                  currency={currency}
-                  amount={account.amounts[currency].closingBalance[layer].debit}
-                />
-              </TableCell>
-              <TableCell className="w-48">
-                <Balance
-                  align="end"
-                  currency={currency}
-                  amount={account.amounts[currency].closingBalance[layer].credit}
-                />
-              </TableCell>
-              <TableCell className="w-48">
-                <Balance
-                  align="end"
-                  currency={currency}
-                  amount={account.amounts[currency].closingBalance[layer].netDebit}
-                />
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-        <TableFooter className="border-t-4">
-          <TableRow>
-            <TableCell className="uppercase font-bold">{t("totals")}</TableCell>
-            <TableCell></TableCell>
-            <TableCell className="w-48">
-              <Balance
-                align="end"
-                currency={currency}
-                amount={total[currency].closingBalance[layer].debit}
-              />
-            </TableCell>
-            <TableCell className="w-48">
-              <Balance
-                align="end"
-                currency={currency}
-                amount={total[currency].closingBalance[layer].credit}
-              />
-            </TableCell>
-            <TableCell className="w-48">
-              <Balance
-                align="end"
-                currency={currency}
-                amount={total[currency].closingBalance[layer].netDebit}
-              />
-            </TableCell>
-          </TableRow>
-        </TableFooter>
-      </Table>
-    </>
+  const Footer = (
+    <TableFooter className="border-t-4">
+      <TableRow>
+        <TableCell className="font-bold">{t("totals")}</TableCell>
+        <TableCell className="w-48">
+          <Balance
+            align="end"
+            currency={currency}
+            amount={total[currency].closingBalance[layer].debit}
+          />
+        </TableCell>
+        <TableCell className="w-48">
+          <Balance
+            align="end"
+            currency={currency}
+            amount={total[currency].closingBalance[layer].credit}
+          />
+        </TableCell>
+        <TableCell className="w-48">
+          <Balance
+            align="end"
+            currency={currency}
+            amount={total[currency].closingBalance[layer].netDebit}
+          />
+        </TableCell>
+      </TableRow>
+    </TableFooter>
   )
-}
 
-function TrialBalancePage() {
-  const t = useTranslations("TrialBalance")
-  const [dateRange, setDateRange] = useState<DateRange>(getInitialDateRange)
-  const handleDateChange = useCallback((newDateRange: DateRange) => {
-    setDateRange(newDateRange)
-  }, [])
-
-  const { data, loading, error } = useGetTrialBalanceQuery({
-    variables: {
-      from: dateRange.from,
-      until: dateRange.until,
+  const columns: Column<TrialBalanceAccount>[] = [
+    {
+      key: "name",
+      label: t("table.headers.accountName"),
     },
-  })
+    {
+      key: "code",
+      label: t("table.headers.accountCode"),
+      render: (code) => <div className="font-mono text-xs text-gray-500">{code}</div>
+    },
+    {
+      key: "amounts",
+      label: t("table.headers.debit"),
+      labelClassName: "!justify-end",
+      render: (amounts) => (
+        <Balance
+          align="end"
+          currency={currency}
+          amount={amounts[currency].closingBalance[layer].debit}
+        />
+      ),
+    },
+    {
+      key: "amounts",
+      label: t("table.headers.credit"),
+      labelClassName: "!justify-end",
+      render: (amounts) => (
+        <Balance
+          align="end"
+          currency={currency}
+          amount={amounts[currency].closingBalance[layer].credit}
+        />
+      ),
+    },
+    {
+      key: "amounts",
+      labelClassName: "!justify-end",
+      label: t("table.headers.net"),
+      render: (amounts) => (
+        <Balance
+          align="end"
+          currency={currency}
+          amount={amounts[currency].closingBalance[layer].netDebit}
+        />
+      ),
+    },
+  ]
 
   return (
     <Card>
@@ -343,13 +322,36 @@ function TrialBalancePage() {
         <CardDescription>{t("description")}</CardDescription>
       </CardHeader>
       <CardContent>
-        <TrialBalanceValues
-          data={data?.trialBalance}
-          loading={loading && !data}
-          error={error}
-          dateRange={dateRange}
-          setDateRange={handleDateChange}
+        <div className="flex gap-6 items-center">
+          <div>{t("dateRange")}:</div>
+          <DateRangeSelector initialDateRange={dateRange} onDateChange={setDateRange} />
+        </div>
+        <CurrencyLayerSelection
+          currency={currency}
+          setCurrency={setCurrency}
+          layer={layer}
+          setLayer={setLayer}
         />
+        <PaginatedTable<TrialBalanceAccount>
+          columns={columns}
+          data={accounts as PaginatedData<TrialBalanceAccount>}
+          loading={loading}
+          pageSize={DEFAULT_PAGESIZE}
+          fetchMore={async (cursor) =>
+            fetchMore({
+              variables: {
+                after: cursor,
+                from: dateRange.from,
+                until: dateRange.until,
+                first: DEFAULT_PAGESIZE,
+              },
+            })
+          }
+          customFooter={Footer}
+          style="compact"
+          rowOnClick={(account) => router.push(`/ledger-account/${account.code}`)}
+        />
+        <div className="mt-4" />
       </CardContent>
     </Card>
   )
