@@ -11,6 +11,7 @@ pub struct BalanceSheetModuleConfig {
     chart_of_accounts_liabilities_code: Option<String>,
     chart_of_accounts_equity_code: Option<String>,
     chart_of_accounts_revenue_code: Option<String>,
+    chart_of_accounts_cost_of_revenue_code: Option<String>,
     chart_of_accounts_expenses_code: Option<String>,
 
     #[graphql(skip)]
@@ -27,6 +28,9 @@ impl From<DomainChartOfAccountsIntegrationConfig> for BalanceSheetModuleConfig {
             ),
             chart_of_accounts_equity_code: Some(values.chart_of_accounts_equity_code.to_string()),
             chart_of_accounts_revenue_code: Some(values.chart_of_accounts_revenue_code.to_string()),
+            chart_of_accounts_cost_of_revenue_code: Some(
+                values.chart_of_accounts_cost_of_revenue_code.to_string(),
+            ),
             chart_of_accounts_expenses_code: Some(
                 values.chart_of_accounts_expenses_code.to_string(),
             ),
@@ -42,6 +46,7 @@ pub struct BalanceSheetModuleConfigureInput {
     pub chart_of_accounts_liabilities_code: String,
     pub chart_of_accounts_equity_code: String,
     pub chart_of_accounts_revenue_code: String,
+    pub chart_of_accounts_cost_of_revenue_code: String,
     pub chart_of_accounts_expenses_code: String,
 }
 crate::mutation_payload! { BalanceSheetModuleConfigurePayload, balance_sheet_config: BalanceSheetModuleConfig }

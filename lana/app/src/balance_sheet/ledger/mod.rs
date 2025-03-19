@@ -15,8 +15,9 @@ use crate::statement::*;
 use error::*;
 
 use super::{
-    BalanceSheet, BalanceSheetIds, ChartOfAccountsIntegrationConfig, ASSETS_NAME, EQUITY_NAME,
-    EXPENSES_NAME, LIABILITIES_NAME, NET_INCOME_NAME, REVENUE_NAME,
+    BalanceSheet, BalanceSheetIds, ChartOfAccountsIntegrationConfig, ASSETS_NAME,
+    COST_OF_REVENUE_NAME, EQUITY_NAME, EXPENSES_NAME, LIABILITIES_NAME, NET_INCOME_NAME,
+    REVENUE_NAME,
 };
 
 #[derive(Clone)]
@@ -254,6 +255,14 @@ impl BalanceSheetLedger {
                 vec![net_income_id],
             )
             .await?;
+        let cost_of_revenue_id = self
+            .create_account_set(
+                &mut op,
+                COST_OF_REVENUE_NAME,
+                DebitOrCredit::Debit,
+                vec![net_income_id],
+            )
+            .await?;
         let expenses_id = self
             .create_account_set(
                 &mut op,
@@ -271,6 +280,7 @@ impl BalanceSheetLedger {
             liabilities: liabilities_id,
             equity: equity_id,
             revenue: revenue_id,
+            cost_of_revenue: cost_of_revenue_id,
             expenses: expenses_id,
         })
     }
@@ -318,6 +328,9 @@ impl BalanceSheetLedger {
         let revenue_id = net_income_members
             .get(REVENUE_NAME)
             .ok_or(BalanceSheetLedgerError::NotFound(REVENUE_NAME.to_string()))?;
+        let cost_of_revenue_id = net_income_members.get(COST_OF_REVENUE_NAME).ok_or(
+            BalanceSheetLedgerError::NotFound(COST_OF_REVENUE_NAME.to_string()),
+        )?;
         let expenses_id = net_income_members
             .get(EXPENSES_NAME)
             .ok_or(BalanceSheetLedgerError::NotFound(EXPENSES_NAME.to_string()))?;
@@ -328,6 +341,7 @@ impl BalanceSheetLedger {
             liabilities: *liabilities_id,
             equity: *equity_id,
             revenue: *revenue_id,
+            cost_of_revenue: *cost_of_revenue_id,
             expenses: *expenses_id,
         })
     }
@@ -419,6 +433,7 @@ impl BalanceSheetLedger {
             liabilities_child_account_set_id_from_chart,
             equity_child_account_set_id_from_chart,
             revenue_child_account_set_id_from_chart,
+            cost_of_revenue_child_account_set_id_from_chart,
             expenses_child_account_set_id_from_chart,
         } = &charts_integration_meta;
 
@@ -456,6 +471,15 @@ impl BalanceSheetLedger {
             *revenue_child_account_set_id_from_chart,
             &charts_integration_meta,
             |meta| meta.revenue_child_account_set_id_from_chart,
+        )
+        .await?;
+        self.attach_charts_account_set(
+            &mut op,
+            &mut account_sets,
+            account_set_ids.cost_of_revenue,
+            *cost_of_revenue_child_account_set_id_from_chart,
+            &charts_integration_meta,
+            |meta| meta.cost_of_revenue_child_account_set_id_from_chart,
         )
         .await?;
         self.attach_charts_account_set(
@@ -571,5 +595,6 @@ pub struct ChartOfAccountsIntegrationMeta {
     pub liabilities_child_account_set_id_from_chart: AccountSetId,
     pub equity_child_account_set_id_from_chart: AccountSetId,
     pub revenue_child_account_set_id_from_chart: AccountSetId,
+    pub cost_of_revenue_child_account_set_id_from_chart: AccountSetId,
     pub expenses_child_account_set_id_from_chart: AccountSetId,
 }

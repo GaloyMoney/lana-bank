@@ -1287,6 +1287,9 @@ impl Mutation {
             .chart_of_accounts_liabilities_code(input.chart_of_accounts_liabilities_code.parse()?)
             .chart_of_accounts_equity_code(input.chart_of_accounts_equity_code.parse()?)
             .chart_of_accounts_revenue_code(input.chart_of_accounts_revenue_code.parse()?)
+            .chart_of_accounts_cost_of_revenue_code(
+                input.chart_of_accounts_cost_of_revenue_code.parse()?,
+            )
             .chart_of_accounts_expenses_code(input.chart_of_accounts_expenses_code.parse()?)
             .build()?;
         let config = app

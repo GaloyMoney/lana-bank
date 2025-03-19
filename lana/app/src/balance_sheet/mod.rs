@@ -25,6 +25,7 @@ pub(crate) const LIABILITIES_NAME: &str = "Liabilities";
 pub(crate) const EQUITY_NAME: &str = "Equity";
 pub(crate) const NET_INCOME_NAME: &str = "Current Earnings";
 pub(crate) const REVENUE_NAME: &str = "Revenue";
+pub(crate) const COST_OF_REVENUE_NAME: &str = "Cost of Revenue";
 pub(crate) const EXPENSES_NAME: &str = "Expenses";
 
 #[derive(Clone, Copy)]
@@ -34,6 +35,7 @@ pub struct BalanceSheetIds {
     pub liabilities: LedgerAccountSetId,
     pub equity: LedgerAccountSetId,
     pub revenue: LedgerAccountSetId,
+    pub cost_of_revenue: LedgerAccountSetId,
     pub expenses: LedgerAccountSetId,
 }
 
@@ -46,10 +48,18 @@ impl BalanceSheetIds {
             liabilities,
             equity,
             revenue,
+            cost_of_revenue,
             expenses,
         } = self;
 
-        vec![*assets, *liabilities, *equity, *revenue, *expenses]
+        vec![
+            *assets,
+            *liabilities,
+            *equity,
+            *revenue,
+            *cost_of_revenue,
+            *expenses,
+        ]
     }
 }
 
@@ -119,6 +129,8 @@ impl BalanceSheets {
             chart.account_set_id_from_code(&config.chart_of_accounts_equity_code)?;
         let revenue_child_account_set_id_from_chart =
             chart.account_set_id_from_code(&config.chart_of_accounts_revenue_code)?;
+        let cost_of_revenue_child_account_set_id_from_chart =
+            chart.account_set_id_from_code(&config.chart_of_accounts_cost_of_revenue_code)?;
         let expenses_child_account_set_id_from_chart =
             chart.account_set_id_from_code(&config.chart_of_accounts_expenses_code)?;
 
@@ -135,6 +147,7 @@ impl BalanceSheets {
             liabilities_child_account_set_id_from_chart,
             equity_child_account_set_id_from_chart,
             revenue_child_account_set_id_from_chart,
+            cost_of_revenue_child_account_set_id_from_chart,
             expenses_child_account_set_id_from_chart,
         };
 

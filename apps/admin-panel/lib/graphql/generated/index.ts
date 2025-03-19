@@ -214,6 +214,7 @@ export type BalanceSheet = {
 export type BalanceSheetModuleConfig = {
   __typename?: 'BalanceSheetModuleConfig';
   chartOfAccountsAssetsCode?: Maybe<Scalars['String']['output']>;
+  chartOfAccountsCostOfRevenueCode?: Maybe<Scalars['String']['output']>;
   chartOfAccountsEquityCode?: Maybe<Scalars['String']['output']>;
   chartOfAccountsExpensesCode?: Maybe<Scalars['String']['output']>;
   chartOfAccountsId?: Maybe<Scalars['UUID']['output']>;
@@ -223,6 +224,7 @@ export type BalanceSheetModuleConfig = {
 
 export type BalanceSheetModuleConfigureInput = {
   chartOfAccountsAssetsCode: Scalars['String']['input'];
+  chartOfAccountsCostOfRevenueCode: Scalars['String']['input'];
   chartOfAccountsEquityCode: Scalars['String']['input'];
   chartOfAccountsExpensesCode: Scalars['String']['input'];
   chartOfAccountsLiabilitiesCode: Scalars['String']['input'];

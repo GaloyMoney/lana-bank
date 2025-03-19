@@ -198,6 +198,7 @@ type BalanceSheetModuleConfig {
 	chartOfAccountsLiabilitiesCode: String
 	chartOfAccountsEquityCode: String
 	chartOfAccountsRevenueCode: String
+	chartOfAccountsCostOfRevenueCode: String
 	chartOfAccountsExpensesCode: String
 }
 
@@ -206,6 +207,7 @@ input BalanceSheetModuleConfigureInput {
 	chartOfAccountsLiabilitiesCode: String!
 	chartOfAccountsEquityCode: String!
 	chartOfAccountsRevenueCode: String!
+	chartOfAccountsCostOfRevenueCode: String!
 	chartOfAccountsExpensesCode: String!
 }
 
