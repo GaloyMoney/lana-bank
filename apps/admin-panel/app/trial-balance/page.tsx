@@ -272,7 +272,7 @@ function TrialBalancePage() {
     {
       key: "code",
       label: t("table.headers.accountCode"),
-      render: (code) => <div className="font-mono text-xs text-gray-500">{code}</div>
+      render: (code) => <div className="font-mono text-xs text-gray-500">{code}</div>,
     },
     {
       key: "amounts",
@@ -346,7 +346,7 @@ function TrialBalancePage() {
           }
           customFooter={Footer}
           style="compact"
-          rowOnClick={(account) => router.push(`/ledger-account/${account.code}`)}
+          onClick={(account) => router.push(`/ledger-account/${account.code}`)}
         />
         <div className="mt-4" />
       </CardContent>
