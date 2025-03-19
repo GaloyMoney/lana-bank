@@ -627,6 +627,18 @@ impl Query {
             .await?;
         Ok(config.map(CreditModuleConfig::from))
     }
+
+    async fn balance_sheet_config(
+        &self,
+        ctx: &Context<'_>,
+    ) -> async_graphql::Result<Option<BalanceSheetModuleConfig>> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        let config = app
+            .balance_sheets()
+            .get_chart_of_accounts_integration_config(sub, BALANCE_SHEET_NAME.to_string())
+            .await?;
+        Ok(config.map(BalanceSheetModuleConfig::from))
+    }
 }
 
 pub struct Mutation;

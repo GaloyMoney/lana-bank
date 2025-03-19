@@ -1219,6 +1219,7 @@ type Query {
 	audit(first: Int!, after: String): AuditEntryConnection!
 	depositConfig: DepositModuleConfig
 	creditConfig: CreditModuleConfig
+	balanceSheetConfig: BalanceSheetModuleConfig
 }
 
 type RealtimePrice {

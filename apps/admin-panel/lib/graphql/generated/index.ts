@@ -1362,6 +1362,7 @@ export type Query = {
   approvalProcesses: ApprovalProcessConnection;
   audit: AuditEntryConnection;
   balanceSheet: BalanceSheet;
+  balanceSheetConfig?: Maybe<BalanceSheetModuleConfig>;
   cashFlowStatement: CashFlowStatement;
   chartOfAccounts: ChartOfAccounts;
   committee?: Maybe<Committee>;

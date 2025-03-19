@@ -101,6 +101,24 @@ impl BalanceSheets {
         }
     }
 
+    pub async fn get_chart_of_accounts_integration_config(
+        &self,
+        sub: &Subject,
+        reference: String,
+    ) -> Result<Option<ChartOfAccountsIntegrationConfig>, BalanceSheetError> {
+        self.authz
+            .enforce_permission(
+                sub,
+                Object::BalanceSheetConfiguration,
+                BalanceSheetConfigurationAction::Read,
+            )
+            .await?;
+        Ok(self
+            .balance_sheet_ledger
+            .get_chart_of_accounts_integration_config(reference)
+            .await?)
+    }
+
     pub async fn set_chart_of_accounts_integration_config(
         &self,
         sub: &Subject,
