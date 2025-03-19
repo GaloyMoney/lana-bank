@@ -23,7 +23,7 @@ use ledger::*;
 pub(crate) const ASSETS_NAME: &str = "Assets";
 pub(crate) const LIABILITIES_NAME: &str = "Liabilities";
 pub(crate) const EQUITY_NAME: &str = "Equity";
-pub(crate) const NET_INCOME_NAME: &str = "Net Income";
+pub(crate) const NET_INCOME_NAME: &str = "Current Earnings";
 pub(crate) const REVENUE_NAME: &str = "Revenue";
 pub(crate) const EXPENSES_NAME: &str = "Expenses";
 
