@@ -121,6 +121,7 @@ pub enum AppObject {
     TrialBalance,
     ProfitAndLossStatement,
     BalanceSheet,
+    BalanceSheetConfiguration,
     CashFlowStatement,
 }
 
@@ -149,6 +150,7 @@ impl FromStr for AppObject {
             TrialBalance => AppObject::TrialBalance,
             ProfitAndLossStatement => AppObject::ProfitAndLossStatement,
             BalanceSheet => AppObject::BalanceSheet,
+            BalanceSheetConfiguration => AppObject::BalanceSheetConfiguration,
             CashFlowStatement => AppObject::CashFlowStatement,
             Document => AppObject::Document,
         };

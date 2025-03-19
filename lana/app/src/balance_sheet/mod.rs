@@ -6,7 +6,7 @@ use audit::AuditSvc;
 use authz::PermissionCheck;
 use cala_ledger::CalaLedger;
 use chrono::{DateTime, Utc};
-use rbac_types::{BalanceSheetAction, Subject};
+use rbac_types::{BalanceSheetAction, BalanceSheetConfigurationAction, Subject};
 
 use chart_of_accounts::Chart;
 
@@ -136,7 +136,11 @@ impl BalanceSheets {
 
         let audit_info = self
             .authz
-            .enforce_permission(sub, Object::BalanceSheet, BalanceSheetAction::Update)
+            .enforce_permission(
+                sub,
+                Object::BalanceSheetConfiguration,
+                BalanceSheetConfigurationAction::Update,
+            )
             .await?;
 
         let charts_integration_meta = ChartOfAccountsIntegrationMeta {
