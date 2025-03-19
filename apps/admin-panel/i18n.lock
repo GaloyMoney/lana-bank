@@ -650,7 +650,7 @@ checksums:
     ChartOfAccounts/upload/genericError: 823d27ca89e26fd90f356a583c8409f8
     ChartOfAccounts/upload/successDescription: c4df30777b22c88a7d9fb531b262e246
     ChartOfAccounts/upload/errorTitle: d8b0a8f504eaa0f761d7958dc1e6823a
-    ChartOfAccounts/upload/uploading: a61a76d2fa69d41f012849f91b4e159a
+    ChartOfAccounts/upload/uploading: a318ac63eb5403166dae52e92478fd18
     ChartOfAccounts/upload/reset: c19c53a05e21c7f3b395247809a14b51
     ChartOfAccounts/upload/upload: 4a6c84aa16db0f4e5697f49b45257bc7
     ChartOfAccounts/copied: e5fa151fba7800f5e76e25a1c6fe61e0

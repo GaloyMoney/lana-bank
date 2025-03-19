@@ -1152,7 +1152,7 @@
       "genericError": "Ocurrió un error al subir tu archivo",
       "successDescription": "Plan de cuentas importado con éxito",
       "errorTitle": "Carga fallida",
-      "uploading": "Subiendo tu plan de cuentas...",
+      "uploading": "Subiendo y procesando tu plan de cuentas...",
       "reset": "Reiniciar",
       "upload": "Subir"
     },
