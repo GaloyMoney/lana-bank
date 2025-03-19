@@ -3,6 +3,7 @@ mod approval_process;
 mod approval_rules;
 mod audit;
 mod authenticated_subject;
+mod balance_sheet_config;
 mod chart_of_accounts;
 mod committee;
 mod credit_config;

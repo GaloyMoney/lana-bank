@@ -13,10 +13,11 @@ use lana_app::{
 use crate::primitives::*;
 
 use super::{
-    approval_process::*, audit::*, authenticated_subject::*, chart_of_accounts::*, committee::*,
-    credit_config::*, credit_facility::*, customer::*, dashboard::*, deposit::*, deposit_config::*,
-    document::*, financials::*, ledger_account::*, loader::*, policy::*, price::*, report::*,
-    sumsub::*, terms_template::*, user::*, withdrawal::*,
+    approval_process::*, audit::*, authenticated_subject::*, balance_sheet_config::*,
+    chart_of_accounts::*, committee::*, credit_config::*, credit_facility::*, customer::*,
+    dashboard::*, deposit::*, deposit_config::*, document::*, financials::*, ledger_account::*,
+    loader::*, policy::*, price::*, report::*, sumsub::*, terms_template::*, user::*,
+    withdrawal::*,
 };
 
 pub struct Query;
@@ -1265,6 +1266,41 @@ impl Mutation {
             .await?;
 
         Ok(ChartOfAccountsCsvImportPayload { success: true })
+    }
+
+    async fn balance_sheet_configure(
+        &self,
+        ctx: &Context<'_>,
+        input: BalanceSheetModuleConfigureInput,
+    ) -> async_graphql::Result<BalanceSheetModuleConfigurePayload> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+
+        let chart = app
+            .chart_of_accounts()
+            .find_by_reference(sub, CHART_REF.to_string())
+            .await?
+            .unwrap_or_else(|| panic!("Chart of accounts not found for ref {}", CHART_REF));
+
+        let config_values = lana_app::balance_sheet::ChartOfAccountsIntegrationConfig::builder()
+            .chart_of_accounts_id(chart.id)
+            .chart_of_accounts_assets_code(input.chart_of_accounts_assets_code.parse()?)
+            .chart_of_accounts_liabilities_code(input.chart_of_accounts_liabilities_code.parse()?)
+            .chart_of_accounts_equity_code(input.chart_of_accounts_equity_code.parse()?)
+            .chart_of_accounts_revenue_code(input.chart_of_accounts_revenue_code.parse()?)
+            .chart_of_accounts_expenses_code(input.chart_of_accounts_expenses_code.parse()?)
+            .build()?;
+        let config = app
+            .balance_sheets()
+            .set_chart_of_accounts_integration_config(
+                sub,
+                BALANCE_SHEET_NAME.to_string(),
+                chart,
+                config_values,
+            )
+            .await?;
+        Ok(BalanceSheetModuleConfigurePayload::from(
+            BalanceSheetModuleConfig::from(config),
+        ))
     }
 
     #[allow(unused_variables)]

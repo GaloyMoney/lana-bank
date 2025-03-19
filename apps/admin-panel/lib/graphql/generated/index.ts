@@ -211,6 +211,29 @@ export type BalanceSheet = {
   name: Scalars['String']['output'];
 };
 
+export type BalanceSheetModuleConfig = {
+  __typename?: 'BalanceSheetModuleConfig';
+  chartOfAccountsAssetsCode?: Maybe<Scalars['String']['output']>;
+  chartOfAccountsEquityCode?: Maybe<Scalars['String']['output']>;
+  chartOfAccountsExpensesCode?: Maybe<Scalars['String']['output']>;
+  chartOfAccountsId?: Maybe<Scalars['UUID']['output']>;
+  chartOfAccountsLiabilitiesCode?: Maybe<Scalars['String']['output']>;
+  chartOfAccountsRevenueCode?: Maybe<Scalars['String']['output']>;
+};
+
+export type BalanceSheetModuleConfigureInput = {
+  chartOfAccountsAssetsCode: Scalars['String']['input'];
+  chartOfAccountsEquityCode: Scalars['String']['input'];
+  chartOfAccountsExpensesCode: Scalars['String']['input'];
+  chartOfAccountsLiabilitiesCode: Scalars['String']['input'];
+  chartOfAccountsRevenueCode: Scalars['String']['input'];
+};
+
+export type BalanceSheetModuleConfigurePayload = {
+  __typename?: 'BalanceSheetModuleConfigurePayload';
+  balanceSheetConfig: BalanceSheetModuleConfig;
+};
+
 export type BtcAccountAmounts = {
   __typename?: 'BtcAccountAmounts';
   credit: Scalars['Satoshis']['output'];
@@ -1057,6 +1080,7 @@ export type Mutation = {
   __typename?: 'Mutation';
   approvalProcessApprove: ApprovalProcessApprovePayload;
   approvalProcessDeny: ApprovalProcessDenyPayload;
+  balanceSheetConfigure: BalanceSheetModuleConfigurePayload;
   chartOfAccountsCsvImport: ChartOfAccountsCsvImportPayload;
   committeeAddUser: CommitteeAddUserPayload;
   committeeCreate: CommitteeCreatePayload;
@@ -1099,6 +1123,11 @@ export type MutationApprovalProcessApproveArgs = {
 export type MutationApprovalProcessDenyArgs = {
   input: ApprovalProcessDenyInput;
   reason: Scalars['String']['input'];
+};
+
+
+export type MutationBalanceSheetConfigureArgs = {
+  input: BalanceSheetModuleConfigureInput;
 };
 
 

@@ -192,6 +192,27 @@ type BalanceSheet {
 	categories: [StatementCategory!]!
 }
 
+type BalanceSheetModuleConfig {
+	chartOfAccountsId: UUID
+	chartOfAccountsAssetsCode: String
+	chartOfAccountsLiabilitiesCode: String
+	chartOfAccountsEquityCode: String
+	chartOfAccountsRevenueCode: String
+	chartOfAccountsExpensesCode: String
+}
+
+input BalanceSheetModuleConfigureInput {
+	chartOfAccountsAssetsCode: String!
+	chartOfAccountsLiabilitiesCode: String!
+	chartOfAccountsEquityCode: String!
+	chartOfAccountsRevenueCode: String!
+	chartOfAccountsExpensesCode: String!
+}
+
+type BalanceSheetModuleConfigurePayload {
+	balanceSheetConfig: BalanceSheetModuleConfig!
+}
+
 
 type BtcAccountAmounts {
 	debit: Satoshis!
@@ -1064,6 +1085,7 @@ type Mutation {
 	reportCreate: ReportCreatePayload!
 	reportDownloadLinksGenerate(input: ReportDownloadLinksGenerateInput!): ReportDownloadLinksGeneratePayload!
 	chartOfAccountsCsvImport(input: ChartOfAccountsCsvImportInput!): ChartOfAccountsCsvImportPayload!
+	balanceSheetConfigure(input: BalanceSheetModuleConfigureInput!): BalanceSheetModuleConfigurePayload!
 	shareholderEquityAdd(input: ShareholderEquityAddInput!): SuccessPayload!
 }
 
