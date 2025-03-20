@@ -35,10 +35,11 @@ module "setup" {
 
   name_prefix = each.key
 
-  additional_owners = [each.value, local.justin]
-  gcp_project       = local.project
-  gcp_region        = var.gcp_region
-  git_token         = var.git_token
+  additional_viewers = []
+  additional_owners  = [each.value, local.justin]
+  gcp_project        = local.project
+  gcp_region         = var.gcp_region
+  git_token          = var.git_token
 }
 
 module "gha_setup" {
@@ -46,10 +47,11 @@ module "gha_setup" {
 
   name_prefix = "gha"
 
-  additional_owners = [local.justin]
-  gcp_project       = local.project
-  gcp_region        = var.gcp_region
-  git_token         = var.git_token
+  additional_viewers = [values(local.lana_dev)]
+  additional_owners  = [local.justin]
+  gcp_project        = local.project
+  gcp_region         = var.gcp_region
+  git_token          = var.git_token
 }
 
 module "concourse_setup" {
@@ -57,10 +59,11 @@ module "concourse_setup" {
 
   name_prefix = "concourse"
 
-  additional_owners = [local.justin]
-  gcp_project       = local.project
-  gcp_region        = var.gcp_region
-  git_token         = var.git_token
+  additional_viewers = [values(local.lana_dev)]
+  additional_owners  = [local.justin]
+  gcp_project        = local.project
+  gcp_region         = var.gcp_region
+  git_token          = var.git_token
 }
 
 output "bq_dev_sa_keys_base64" {
