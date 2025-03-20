@@ -382,9 +382,31 @@ impl CreditFacility {
             })
     }
 
-    fn disbursed_due(&self) -> UsdCents {
-        if self.is_matured() {
-            self.total_disbursed()
+    fn disbursed_total_outstanding(&self) -> UsdCents {
+        self.total_disbursed() - self.disbursed_payments()
+    }
+
+    fn _disbursed_outstanding_due(&self) -> UsdCents {
+        if self.is_defaulted() || self.is_matured() {
+            UsdCents::ZERO
+        } else {
+            self.disbursed_total_outstanding()
+        }
+    }
+
+    fn disbursed_outstanding_overdue(&self) -> UsdCents {
+        if self.is_defaulted() {
+            UsdCents::ZERO
+        } else if self.is_matured() {
+            self.disbursed_total_outstanding()
+        } else {
+            UsdCents::ZERO
+        }
+    }
+
+    fn _disbursed_outstanding_defaulted(&self) -> UsdCents {
+        if self.is_defaulted() {
+            self.disbursed_total_outstanding()
         } else {
             UsdCents::ZERO
         }
@@ -471,6 +493,10 @@ impl CreditFacility {
     pub fn is_matured(&self) -> bool {
         let now = crate::time::now();
         self.matures_at.is_some_and(|matures_at| now > matures_at)
+    }
+
+    pub fn is_defaulted(&self) -> bool {
+        false
     }
 
     pub fn status(&self) -> CreditFacilityStatus {
@@ -759,7 +785,7 @@ impl CreditFacility {
 
     pub fn total_outstanding(&self) -> CreditFacilityReceivable {
         CreditFacilityReceivable {
-            disbursed: self.total_disbursed() - self.disbursed_payments(),
+            disbursed: self.disbursed_total_outstanding(),
             interest: self.interest_accrued() - self.interest_payments(),
         }
     }
@@ -772,12 +798,9 @@ impl CreditFacility {
             .with_added_disbursal_amount(disbursal_amount)
     }
 
-    pub fn outstanding_from_due(&self) -> CreditFacilityReceivable {
+    pub fn outstanding_overdue(&self) -> CreditFacilityReceivable {
         CreditFacilityReceivable {
-            disbursed: std::cmp::max(
-                self.disbursed_due() - self.disbursed_payments(),
-                UsdCents::ZERO,
-            ),
+            disbursed: self.disbursed_outstanding_overdue(),
             interest: self.interest_accrued() - self.interest_payments(),
         }
     }
@@ -788,10 +811,10 @@ impl CreditFacility {
             collateral: self.collateral(),
             total_disbursed: self.total_disbursed(),
             disbursed_receivable: self.total_outstanding().disbursed,
-            due_disbursed_receivable: self.outstanding_due_and_not_overdue().disbursed,
+            due_disbursed_receivable: self.outstanding_overdue().disbursed,
             total_interest_accrued: self.interest_accrued(),
             interest_receivable: self.total_outstanding().interest,
-            due_interest_receivable: self.outstanding_due_and_not_overdue().interest,
+            due_interest_receivable: self.outstanding_overdue().interest,
         }
     }
 
@@ -834,7 +857,7 @@ impl CreditFacility {
             );
         }
 
-        let amounts = self.outstanding_from_due().allocate_payment(amount)?;
+        let amounts = self.outstanding_overdue().allocate_payment(amount)?;
 
         let payment_id = PaymentId::new();
         let tx_ref = format!("{}-payment-{}", self.id, self.count_recorded_payments() + 1);
@@ -1386,7 +1409,7 @@ mod test {
     }
 
     #[test]
-    fn outstanding_from_due_before_maturity() {
+    fn outstanding_overdue_before_maturity() {
         let mut events = initial_events();
         let activated_at = Utc::now();
         let disbursal_id = DisbursalId::new();
@@ -1414,13 +1437,13 @@ mod test {
         let credit_facility = facility_from(events);
 
         assert_eq!(
-            credit_facility.outstanding_from_due().disbursed,
+            credit_facility.outstanding_overdue().disbursed,
             UsdCents::ZERO
         );
     }
 
     #[test]
-    fn outstanding_from_due_after_maturity() {
+    fn outstanding_overdue_after_maturity() {
         let mut events = initial_events();
         let activated_at = "2023-01-01T00:00:00Z".parse::<DateTime<Utc>>().unwrap();
         let disbursal_id = DisbursalId::new();
@@ -1448,7 +1471,7 @@ mod test {
         let credit_facility = facility_from(events);
 
         assert_eq!(
-            credit_facility.outstanding_from_due().disbursed,
+            credit_facility.outstanding_overdue().disbursed,
             UsdCents::from(100)
         );
     }
