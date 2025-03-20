@@ -766,6 +766,16 @@ checksums:
     Modules/credit/chartOfAccountFinancialInstitutionDisbursedReceivableParentCode: 5731cf030716c038d0b520dee77e2edf
     Modules/credit/chartOfAccountForeignAgencyOrSubsidiaryDisbursedReceivableParentCode: 712b57f9c4ee9c51bc26b39c888458b9
     Modules/credit/chartOfAccountNonDomiciledCompanyDisbursedReceivableParentCode: 0b7423d59d4607c9f7a87e0a9e648fb4
+    Modules/balanceSheet/title: 0c5e5cc9dd1e661a276e1536917a8db8
+    Modules/balanceSheet/description: f323e3abc32a91a9d072d1859e9e9dcc
+    Modules/balanceSheet/setTitle: b9c45d77b313d7dc36328d38c144d41f
+    Modules/balanceSheet/chartOfAccountsId: 608a35070a1a88b6f113b5c9f4a59300
+    Modules/balanceSheet/chartOfAccountsAssetsCode: 8f986fe29b86e9325d22b83328dbffa2
+    Modules/balanceSheet/chartOfAccountsLiabilitiesCode: beb993cfc6ffa883856a248cbb95b7ab
+    Modules/balanceSheet/chartOfAccountsEquityCode: e55caa88a6401f1f7e91265f0d83fbb1
+    Modules/balanceSheet/chartOfAccountsRevenueCode: bc86928c960b6057fa6698cbfb2ea07e
+    Modules/balanceSheet/chartOfAccountsCostOfRevenueCode: 4b42343b75c55a8a7d7eac5a08641bc6
+    Modules/balanceSheet/chartOfAccountsExpensesCode: 5fbddc52c73c4614166f8daec9cda586
     ChartOfAccountsLedgerAccount/title: b156c85b7cdaac35654dfa3b8bcc6cf2
     ChartOfAccountsLedgerAccount/description: cd8f9f4d52de7097bb3bf5df68df82f8
     ChartOfAccountsLedgerAccount/details/code: 9218742c297d337fdc0f5f5dd985294d

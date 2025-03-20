@@ -1322,6 +1322,18 @@
       "chartOfAccountFinancialInstitutionDisbursedReceivableParentCode": "Código padre de cuentas por cobrar desembolsadas por institución financiera (ej. 1141.06.0101)",
       "chartOfAccountForeignAgencyOrSubsidiaryDisbursedReceivableParentCode": "Código padre de cuentas por cobrar desembolsadas por agencia extranjera o subsidiaria (ej. 1141.07.0101)",
       "chartOfAccountNonDomiciledCompanyDisbursedReceivableParentCode": "Código padre de cuentas por cobrar desembolsadas por empresa no domiciliada (ej. 1141.08.0101)"
+    },
+    "balanceSheet": {
+      "title": "Balance general",
+      "description": "Configuración del balance general",
+      "setTitle": "Establecer configuración del balance general",
+      "chartOfAccountsId": "ID del plan de cuentas",
+      "chartOfAccountsAssetsCode": "Código de activos",
+      "chartOfAccountsLiabilitiesCode": "Código de pasivos",
+      "chartOfAccountsEquityCode": "Código de patrimonio",
+      "chartOfAccountsRevenueCode": "Código de ingresos",
+      "chartOfAccountsCostOfRevenueCode": "Código de costo de ingresos",
+      "chartOfAccountsExpensesCode": "Código de gastos"
     }
   },
   "ChartOfAccountsLedgerAccount": {
