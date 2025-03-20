@@ -1211,7 +1211,7 @@
   "TrialBalance": {
     "title": "Trial Balance",
     "description": "A summary of all accounts listing debit and credit balances to ensure accounting entries are balanced.",
-    "noData": "No data",
+    "noAccountsPresent": "No accounts present",
     "dateRange": "Date Range",
     "totals": "Totals (across all accounts)",
     "tabs": {

@@ -233,12 +233,13 @@ function TrialBalancePage() {
   if (loading && !data) {
     return <LoadingSkeleton />
   }
-  if (!total) return <div>{t("noData")}</div>
+  if (!total) return <div>{t("noAccountsPresent")}</div>
 
   const Footer = (
     <TableFooter className="border-t-4">
       <TableRow>
         <TableCell className="font-bold">{t("totals")}</TableCell>
+        <TableCell />
         <TableCell className="w-48">
           <Balance
             align="end"
@@ -266,13 +267,13 @@ function TrialBalancePage() {
 
   const columns: Column<TrialBalanceAccount>[] = [
     {
-      key: "name",
-      label: t("table.headers.accountName"),
-    },
-    {
       key: "code",
       label: t("table.headers.accountCode"),
       render: (code) => <div className="font-mono text-xs text-gray-500">{code}</div>,
+    },
+    {
+      key: "name",
+      label: t("table.headers.accountName"),
     },
     {
       key: "amounts",
@@ -347,6 +348,7 @@ function TrialBalancePage() {
           customFooter={Footer}
           style="compact"
           onClick={(account) => router.push(`/ledger-account/${account.code}`)}
+          noDataText={t("noAccountsPresent")}
         />
         <div className="mt-4" />
       </CardContent>

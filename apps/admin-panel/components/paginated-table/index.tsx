@@ -70,6 +70,7 @@ interface PaginatedTableProps<T> {
   navigateTo?: (record: T) => string
   customFooter?: React.ReactNode
   style?: "compact" | "comfortable"
+  noDataText?: string
 }
 
 const PaginatedTable = <T,>({
@@ -85,6 +86,7 @@ const PaginatedTable = <T,>({
   navigateTo,
   customFooter,
   style = "comfortable",
+  noDataText,
 }: PaginatedTableProps<T>): React.ReactElement => {
   const isMobile = useBreakpointDown("md")
   const t = useTranslations("PaginatedTable")
@@ -358,7 +360,11 @@ const PaginatedTable = <T,>({
   }
 
   if (data?.edges.length === 0 && Object.keys(filterState).length === 0) {
-    return <div className="text-sm">No data to display</div>
+    return (
+      <div className={`text-sm ${style === "compact" && "mt-2"}`}>
+        {noDataText || t("noData")}
+      </div>
+    )
   }
 
   if (isMobile) {
