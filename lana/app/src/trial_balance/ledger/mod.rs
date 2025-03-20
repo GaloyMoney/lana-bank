@@ -163,35 +163,6 @@ impl TrialBalanceLedger {
         })
     }
 
-    async fn get_member_account_set(
-        &self,
-        account_set_id: AccountSetId,
-        member_created_at: DateTime<Utc>,
-        balances_by_id: &BalancesByAccount,
-    ) -> Result<TrialBalanceAccountSet, TrialBalanceLedgerError> {
-        let values = self
-            .cala
-            .account_sets()
-            .find(account_set_id)
-            .await?
-            .into_values();
-
-        let code = values
-            .external_id
-            .expect("external_id should exist")
-            .parse()?;
-
-        Ok(TrialBalanceAccountSet {
-            id: account_set_id,
-            name: values.name,
-            description: values.description,
-            btc_balance: balances_by_id.btc_for_account(account_set_id)?,
-            usd_balance: balances_by_id.usd_for_account(account_set_id)?,
-            code,
-            member_created_at,
-        })
-    }
-
     async fn get_member_account_sets<U>(
         &self,
         account_set_id: AccountSetId,
@@ -371,18 +342,55 @@ impl TrialBalanceLedger {
             .get_balances_by_id(member_account_sets_ids, from, until)
             .await?;
 
-        let mut accounts = Vec::new();
-        for (account_set_id, created_at) in member_account_sets_tuples {
-            accounts.push(
-                self.get_member_account_set(account_set_id, created_at, &balances_by_id)
-                    .await?,
-            );
-        }
+        let accounts = self
+            .get_all_member_account_sets(member_account_sets_tuples, &balances_by_id)
+            .await?;
 
         Ok(es_entity::PaginatedQueryRet {
             entities: accounts,
             has_next_page: member_account_sets.has_next_page,
             end_cursor: member_account_sets.end_cursor,
         })
+    }
+
+    async fn get_all_member_account_sets(
+        &self,
+        member_account_sets_tuples: Vec<(AccountSetId, DateTime<Utc>)>,
+        balances_by_id: &BalancesByAccount,
+    ) -> Result<Vec<TrialBalanceAccountSet>, TrialBalanceLedgerError> {
+        let mut account_sets = self
+            .cala
+            .account_sets()
+            .find_all::<cala_ledger::account_set::AccountSet>(
+                member_account_sets_tuples
+                    .iter()
+                    .map(|(id, _)| *id)
+                    .collect::<Vec<_>>()
+                    .as_slice(),
+            )
+            .await?;
+
+        member_account_sets_tuples
+            .into_iter()
+            .map(|(account_set_id, member_created_at)| {
+                let values = account_sets
+                    .remove(&account_set_id)
+                    .expect("account set should exist")
+                    .into_values();
+
+                Ok(TrialBalanceAccountSet {
+                    id: account_set_id,
+                    name: values.name,
+                    description: values.description,
+                    btc_balance: balances_by_id.btc_for_account(account_set_id)?,
+                    usd_balance: balances_by_id.usd_for_account(account_set_id)?,
+                    code: values
+                        .external_id
+                        .expect("external_id should exist")
+                        .parse()?,
+                    member_created_at,
+                })
+            })
+            .collect()
     }
 }
