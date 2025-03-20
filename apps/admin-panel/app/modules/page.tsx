@@ -19,11 +19,15 @@ import { LoaderCircle, Pencil } from "lucide-react"
 import { DetailsGroup } from "@lana/web/components/details"
 
 import { DepositConfigUpdateDialog } from "./deposit-config-update"
-
 import { CreditConfigUpdateDialog } from "./credit-config-update"
+import { BalanceSheetConfigUpdateDialog } from "./balance-sheet-config-update"
 
 import { DetailItem } from "@/components/details"
-import { useDepositConfigQuery, useCreditConfigQuery } from "@/lib/graphql/generated"
+import {
+  useDepositConfigQuery,
+  useCreditConfigQuery,
+  useBalanceSheetConfigQuery,
+} from "@/lib/graphql/generated"
 
 gql`
   query depositConfig {
@@ -51,6 +55,17 @@ gql`
       chartOfAccountNonDomiciledCompanyDisbursedReceivableParentCode
     }
   }
+
+  query BalanceSheetConfig {
+    balanceSheetConfig {
+      chartOfAccountsAssetsCode
+      chartOfAccountsLiabilitiesCode
+      chartOfAccountsEquityCode
+      chartOfAccountsRevenueCode
+      chartOfAccountsCostOfRevenueCode
+      chartOfAccountsExpensesCode
+    }
+  }
 `
 
 const Modules: React.FC = () => {
@@ -60,9 +75,13 @@ const Modules: React.FC = () => {
   const [openDepositConfigUpdateDialog, setOpenDepositConfigUpdateDialog] =
     useState(false)
   const [openCreditConfigUpdateDialog, setOpenCreditConfigUpdateDialog] = useState(false)
+  const [openBalanceSheetConfigUpdateDialog, setOpenBalanceSheetConfigUpdateDialog] =
+    useState(false)
 
   const { data: depositConfig, loading: depositConfigLoading } = useDepositConfigQuery()
   const { data: creditConfig, loading: creditConfigLoading } = useCreditConfigQuery()
+  const { data: balanceSheetConfig, loading: balanceSheetConfigLoading } =
+    useBalanceSheetConfigQuery()
 
   return (
     <>
@@ -76,6 +95,12 @@ const Modules: React.FC = () => {
         setOpen={setOpenCreditConfigUpdateDialog}
         creditModuleConfig={creditConfig?.creditConfig || undefined}
       />
+      <BalanceSheetConfigUpdateDialog
+        open={openBalanceSheetConfigUpdateDialog}
+        setOpen={setOpenBalanceSheetConfigUpdateDialog}
+        balanceSheetConfig={balanceSheetConfig?.balanceSheetConfig || undefined}
+      />
+
       <Card>
         <CardHeader>
           <CardTitle>{t("deposit.title")}</CardTitle>
@@ -151,6 +176,47 @@ const Modules: React.FC = () => {
               <Button
                 variant="outline"
                 onClick={() => setOpenCreditConfigUpdateDialog(true)}
+              >
+                <Pencil />
+                {tCommon("set")}
+              </Button>
+            </CardFooter>
+          </>
+        )}
+      </Card>
+      <Card className="mt-3">
+        <CardHeader>
+          <CardTitle>{t("balanceSheet.title")}</CardTitle>
+          <CardDescription>{t("balanceSheet.description")}</CardDescription>
+        </CardHeader>
+
+        <CardContent>
+          {balanceSheetConfigLoading ? (
+            <LoaderCircle className="animate-spin" />
+          ) : balanceSheetConfig?.balanceSheetConfig ? (
+            <DetailsGroup>
+              {Object.entries(balanceSheetConfig?.balanceSheetConfig || {}).map(
+                ([key, value]) =>
+                  key !== "__typename" && (
+                    <DetailItem
+                      key={key}
+                      label={t(`balanceSheet.${key}`)}
+                      value={value?.replace(/\./g, "")}
+                    />
+                  ),
+              )}
+            </DetailsGroup>
+          ) : (
+            <div>{t("notYetConfigured")}</div>
+          )}
+        </CardContent>
+        {!balanceSheetConfig?.balanceSheetConfig && (
+          <>
+            <Separator className="mb-4" />
+            <CardFooter className="-mb-3 -mt-1 justify-end">
+              <Button
+                variant="outline"
+                onClick={() => setOpenBalanceSheetConfigUpdateDialog(true)}
               >
                 <Pencil />
                 {tCommon("set")}

@@ -2239,6 +2239,13 @@ export type LedgerAccountByCodeQueryVariables = Exact<{
 
 export type LedgerAccountByCodeQuery = { __typename?: 'Query', ledgerAccountByCode?: { __typename?: 'LedgerAccount', id: string, name: string, code: any, balance: { __typename: 'BtcLedgerAccountBalance', btcSettledBalance: Satoshis } | { __typename: 'UsdLedgerAccountBalance', usdSettledBalance: UsdCents }, history: { __typename?: 'LedgerAccountHistoryEntryConnection', edges: Array<{ __typename?: 'LedgerAccountHistoryEntryEdge', cursor: string, node: { __typename: 'BtcLedgerAccountHistoryEntry', txId: string, recordedAt: any, btcAmount: { __typename?: 'LayeredBtcAccountAmounts', settled: { __typename?: 'BtcAccountAmounts', debit: Satoshis, credit: Satoshis } } } | { __typename: 'UsdLedgerAccountHistoryEntry', txId: string, recordedAt: any, usdAmount: { __typename?: 'LayeredUsdAccountAmounts', settled: { __typename?: 'UsdAccountAmounts', debit: UsdCents, credit: UsdCents } } } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, startCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean } } } | null };
 
+export type BalanceSheetConfigureMutationVariables = Exact<{
+  input: BalanceSheetModuleConfigureInput;
+}>;
+
+
+export type BalanceSheetConfigureMutation = { __typename?: 'Mutation', balanceSheetConfigure: { __typename?: 'BalanceSheetModuleConfigurePayload', balanceSheetConfig: { __typename?: 'BalanceSheetModuleConfig', chartOfAccountsId?: string | null, chartOfAccountsAssetsCode?: string | null, chartOfAccountsLiabilitiesCode?: string | null, chartOfAccountsEquityCode?: string | null, chartOfAccountsRevenueCode?: string | null, chartOfAccountsCostOfRevenueCode?: string | null, chartOfAccountsExpensesCode?: string | null } } };
+
 export type CreditModuleConfigureMutationVariables = Exact<{
   input: CreditModuleConfigureInput;
 }>;
@@ -2262,6 +2269,11 @@ export type CreditConfigQueryVariables = Exact<{ [key: string]: never; }>;
 
 
 export type CreditConfigQuery = { __typename?: 'Query', creditConfig?: { __typename?: 'CreditModuleConfig', chartOfAccountFacilityOmnibusParentCode?: string | null, chartOfAccountCollateralOmnibusParentCode?: string | null, chartOfAccountFacilityParentCode?: string | null, chartOfAccountCollateralParentCode?: string | null, chartOfAccountInterestReceivableParentCode?: string | null, chartOfAccountInterestIncomeParentCode?: string | null, chartOfAccountFeeIncomeParentCode?: string | null, chartOfAccountIndividualDisbursedReceivableParentCode?: string | null, chartOfAccountGovernmentEntityDisbursedReceivableParentCode?: string | null, chartOfAccountPrivateCompanyDisbursedReceivableParentCode?: string | null, chartOfAccountBankDisbursedReceivableParentCode?: string | null, chartOfAccountFinancialInstitutionDisbursedReceivableParentCode?: string | null, chartOfAccountForeignAgencyOrSubsidiaryDisbursedReceivableParentCode?: string | null, chartOfAccountNonDomiciledCompanyDisbursedReceivableParentCode?: string | null } | null };
+
+export type BalanceSheetConfigQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type BalanceSheetConfigQuery = { __typename?: 'Query', balanceSheetConfig?: { __typename?: 'BalanceSheetModuleConfig', chartOfAccountsAssetsCode?: string | null, chartOfAccountsLiabilitiesCode?: string | null, chartOfAccountsEquityCode?: string | null, chartOfAccountsRevenueCode?: string | null, chartOfAccountsCostOfRevenueCode?: string | null, chartOfAccountsExpensesCode?: string | null } | null };
 
 export type PolicyAssignCommitteeMutationVariables = Exact<{
   input: PolicyAssignCommitteeInput;
@@ -4811,6 +4823,47 @@ export function useLedgerAccountByCodeLazyQuery(baseOptions?: Apollo.LazyQueryHo
 export type LedgerAccountByCodeQueryHookResult = ReturnType<typeof useLedgerAccountByCodeQuery>;
 export type LedgerAccountByCodeLazyQueryHookResult = ReturnType<typeof useLedgerAccountByCodeLazyQuery>;
 export type LedgerAccountByCodeQueryResult = Apollo.QueryResult<LedgerAccountByCodeQuery, LedgerAccountByCodeQueryVariables>;
+export const BalanceSheetConfigureDocument = gql`
+    mutation BalanceSheetConfigure($input: BalanceSheetModuleConfigureInput!) {
+  balanceSheetConfigure(input: $input) {
+    balanceSheetConfig {
+      chartOfAccountsId
+      chartOfAccountsAssetsCode
+      chartOfAccountsLiabilitiesCode
+      chartOfAccountsEquityCode
+      chartOfAccountsRevenueCode
+      chartOfAccountsCostOfRevenueCode
+      chartOfAccountsExpensesCode
+    }
+  }
+}
+    `;
+export type BalanceSheetConfigureMutationFn = Apollo.MutationFunction<BalanceSheetConfigureMutation, BalanceSheetConfigureMutationVariables>;
+
+/**
+ * __useBalanceSheetConfigureMutation__
+ *
+ * To run a mutation, you first call `useBalanceSheetConfigureMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useBalanceSheetConfigureMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [balanceSheetConfigureMutation, { data, loading, error }] = useBalanceSheetConfigureMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useBalanceSheetConfigureMutation(baseOptions?: Apollo.MutationHookOptions<BalanceSheetConfigureMutation, BalanceSheetConfigureMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<BalanceSheetConfigureMutation, BalanceSheetConfigureMutationVariables>(BalanceSheetConfigureDocument, options);
+      }
+export type BalanceSheetConfigureMutationHookResult = ReturnType<typeof useBalanceSheetConfigureMutation>;
+export type BalanceSheetConfigureMutationResult = Apollo.MutationResult<BalanceSheetConfigureMutation>;
+export type BalanceSheetConfigureMutationOptions = Apollo.BaseMutationOptions<BalanceSheetConfigureMutation, BalanceSheetConfigureMutationVariables>;
 export const CreditModuleConfigureDocument = gql`
     mutation CreditModuleConfigure($input: CreditModuleConfigureInput!) {
   creditModuleConfigure(input: $input) {
@@ -4979,6 +5032,45 @@ export function useCreditConfigLazyQuery(baseOptions?: Apollo.LazyQueryHookOptio
 export type CreditConfigQueryHookResult = ReturnType<typeof useCreditConfigQuery>;
 export type CreditConfigLazyQueryHookResult = ReturnType<typeof useCreditConfigLazyQuery>;
 export type CreditConfigQueryResult = Apollo.QueryResult<CreditConfigQuery, CreditConfigQueryVariables>;
+export const BalanceSheetConfigDocument = gql`
+    query BalanceSheetConfig {
+  balanceSheetConfig {
+    chartOfAccountsAssetsCode
+    chartOfAccountsLiabilitiesCode
+    chartOfAccountsEquityCode
+    chartOfAccountsRevenueCode
+    chartOfAccountsCostOfRevenueCode
+    chartOfAccountsExpensesCode
+  }
+}
+    `;
+
+/**
+ * __useBalanceSheetConfigQuery__
+ *
+ * To run a query within a React component, call `useBalanceSheetConfigQuery` and pass it any options that fit your needs.
+ * When your component renders, `useBalanceSheetConfigQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useBalanceSheetConfigQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useBalanceSheetConfigQuery(baseOptions?: Apollo.QueryHookOptions<BalanceSheetConfigQuery, BalanceSheetConfigQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<BalanceSheetConfigQuery, BalanceSheetConfigQueryVariables>(BalanceSheetConfigDocument, options);
+      }
+export function useBalanceSheetConfigLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<BalanceSheetConfigQuery, BalanceSheetConfigQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<BalanceSheetConfigQuery, BalanceSheetConfigQueryVariables>(BalanceSheetConfigDocument, options);
+        }
+export type BalanceSheetConfigQueryHookResult = ReturnType<typeof useBalanceSheetConfigQuery>;
+export type BalanceSheetConfigLazyQueryHookResult = ReturnType<typeof useBalanceSheetConfigLazyQuery>;
+export type BalanceSheetConfigQueryResult = Apollo.QueryResult<BalanceSheetConfigQuery, BalanceSheetConfigQueryVariables>;
 export const PolicyAssignCommitteeDocument = gql`
     mutation PolicyAssignCommittee($input: PolicyAssignCommitteeInput!) {
   policyAssignCommittee(input: $input) {
