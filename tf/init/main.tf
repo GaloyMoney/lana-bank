@@ -47,7 +47,7 @@ module "gha_setup" {
 
   name_prefix = "gha"
 
-  additional_viewers = [values(local.lana_dev)]
+  additional_viewers = values(local.lana_dev)
   additional_owners  = [local.justin]
   gcp_project        = local.project
   gcp_region         = var.gcp_region
@@ -59,7 +59,7 @@ module "concourse_setup" {
 
   name_prefix = "concourse"
 
-  additional_viewers = [values(local.lana_dev)]
+  additional_viewers = values(local.lana_dev)
   additional_owners  = [local.justin]
   gcp_project        = local.project
   gcp_region         = var.gcp_region
