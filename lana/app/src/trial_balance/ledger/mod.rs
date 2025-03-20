@@ -193,8 +193,16 @@ impl TrialBalanceLedger {
     ) -> Result<(), TrialBalanceLedgerError> {
         let mut op = self.cala.ledger_operation_from_db_op(op);
         for member in members {
-            self.add_member_in_op(&mut op, node_account_set_id, member)
-                .await?;
+            match self
+                .add_member_in_op(&mut op, node_account_set_id, member)
+                .await
+            {
+                Ok(_) => (),
+                Err(e) => {
+                    op.rollback().await?;
+                    return Err(e.into());
+                }
+            };
         }
 
         op.commit().await?;
