@@ -1211,7 +1211,7 @@
   "TrialBalance": {
     "title": "Balance de Comprobación",
     "description": "Un resumen de todas las cuentas que enumera los saldos de débito y crédito para garantizar que los asientos contables estén equilibrados.",
-    "noData": "Sin datos",
+    "noAccountsPresent": "No hay cuentas presentes",
     "dateRange": "Rango de Fechas",
     "totals": "Totales (de todas las cuentas)",
     "tabs": {
