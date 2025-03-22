@@ -276,6 +276,8 @@ where
             .await?;
 
         if customer
+            // TODO: this is wrong, we should pass the SumSub verification level
+            // because we also have KYB approval
             .approve_kyc(KycLevel::Basic, applicant_id, audit_info)
             .did_execute()
         {
