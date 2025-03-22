@@ -44,66 +44,41 @@ pub struct InternalAccountSetDetails {
 }
 
 #[derive(Clone, Copy)]
-pub struct ShortTermDisbursedReceivableAccountSets {
-    individual: InternalAccountSetDetails,
-    government_entity: InternalAccountSetDetails,
-    private_company: InternalAccountSetDetails,
-    bank: InternalAccountSetDetails,
-    financial_institution: InternalAccountSetDetails,
-    foreign_agency_or_subsidiary: InternalAccountSetDetails,
-    non_domiciled_company: InternalAccountSetDetails,
-}
-
-impl ShortTermDisbursedReceivableAccountSets {
-    fn account_set_ids(&self) -> Vec<LedgerAccountSetId> {
-        vec![
-            self.individual.id,
-            self.government_entity.id,
-            self.private_company.id,
-            self.bank.id,
-            self.financial_institution.id,
-            self.foreign_agency_or_subsidiary.id,
-            self.non_domiciled_company.id,
-        ]
-    }
-}
-
-#[derive(Clone, Copy)]
-pub struct LongTermDisbursedReceivableAccountSets {
-    individual: InternalAccountSetDetails,
-    government_entity: InternalAccountSetDetails,
-    private_company: InternalAccountSetDetails,
-    bank: InternalAccountSetDetails,
-    financial_institution: InternalAccountSetDetails,
-    foreign_agency_or_subsidiary: InternalAccountSetDetails,
-    non_domiciled_company: InternalAccountSetDetails,
-}
-
-impl LongTermDisbursedReceivableAccountSets {
-    fn account_set_ids(&self) -> Vec<LedgerAccountSetId> {
-        vec![
-            self.individual.id,
-            self.government_entity.id,
-            self.private_company.id,
-            self.bank.id,
-            self.financial_institution.id,
-            self.foreign_agency_or_subsidiary.id,
-            self.non_domiciled_company.id,
-        ]
-    }
-}
-
-#[derive(Clone, Copy)]
 pub struct DisbursedReceivableAccountSets {
-    short_term: ShortTermDisbursedReceivableAccountSets,
-    long_term: LongTermDisbursedReceivableAccountSets,
+    individual: InternalAccountSetDetails,
+    government_entity: InternalAccountSetDetails,
+    private_company: InternalAccountSetDetails,
+    bank: InternalAccountSetDetails,
+    financial_institution: InternalAccountSetDetails,
+    foreign_agency_or_subsidiary: InternalAccountSetDetails,
+    non_domiciled_company: InternalAccountSetDetails,
+}
+
+impl DisbursedReceivableAccountSets {
+    fn account_set_ids(&self) -> Vec<LedgerAccountSetId> {
+        vec![
+            self.individual.id,
+            self.government_entity.id,
+            self.private_company.id,
+            self.bank.id,
+            self.financial_institution.id,
+            self.foreign_agency_or_subsidiary.id,
+            self.non_domiciled_company.id,
+        ]
+    }
+}
+
+#[derive(Clone, Copy)]
+pub struct DisbursedReceivable {
+    short_term: DisbursedReceivableAccountSets,
+    long_term: DisbursedReceivableAccountSets,
 }
 
 #[derive(Clone, Copy)]
 pub struct CreditFacilityInternalAccountSets {
     pub facility: InternalAccountSetDetails,
     pub collateral: InternalAccountSetDetails,
-    pub disbursed_receivable: DisbursedReceivableAccountSets,
+    pub disbursed_receivable: DisbursedReceivable,
     pub interest_receivable: InternalAccountSetDetails,
     pub interest_income: InternalAccountSetDetails,
     pub fee_income: InternalAccountSetDetails,
@@ -352,8 +327,8 @@ impl CreditLedger {
         )
         .await?;
 
-        let disbursed_receivable = DisbursedReceivableAccountSets {
-            short_term: ShortTermDisbursedReceivableAccountSets {
+        let disbursed_receivable = DisbursedReceivable {
+            short_term: DisbursedReceivableAccountSets {
                 individual: InternalAccountSetDetails {
                     id: short_term_individual_disbursed_receivable_account_set_id,
                     normal_balance_type: disbursed_receivable_normal_balance_type,
@@ -383,7 +358,7 @@ impl CreditLedger {
                     normal_balance_type: disbursed_receivable_normal_balance_type,
                 },
             },
-            long_term: LongTermDisbursedReceivableAccountSets {
+            long_term: DisbursedReceivableAccountSets {
                 individual: InternalAccountSetDetails {
                     id: long_term_individual_disbursed_receivable_account_set_id,
                     normal_balance_type: disbursed_receivable_normal_balance_type,
