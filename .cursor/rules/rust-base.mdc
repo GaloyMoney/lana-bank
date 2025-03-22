@@ -56,3 +56,28 @@ You should know about those commands:
 -- core can import lib
 -- lana can import core
 
+## hexagonal architecture
+
+the adapter layer is graphql. code for it is in:
+- lana/admin-server/src/graphql
+- lana/customer-server/src/graphql
+
+the use case layer are located in:
+- lana/app/*
+
+the adapter layer should only be calling do into the use case layer
+
+### within modules
+
+careful filename convention allow for consistency across the application
+
+- `lib.rs` and `mod.rs` expose the use case for the module
+- `primitives.rs` represents the value objects in the module
+- `repo.rs` represents the storage layer. repo is heavily templatize with `es_repo`. 
+- `error.rs` contains the list of errors enum returned by the module
+- `entity.rs` transform the list of events into the current state, and contain addition method to mutate the state from business operation. this contain the business logic.
+- `event.rs` contains the list of internal events the module has
+- `publisher.rs` is used to published external events to the outbox
+- `job.rs` contain code to interact with the asynchronus jobs library
+
+if the filename is different than what is above, this contains domain logic code. 
