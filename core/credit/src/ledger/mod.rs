@@ -1013,96 +1013,22 @@ impl CreditLedger {
         disbursed_account_type: DisbursedReceivableAccountType,
         is_short_term: bool,
     ) -> InternalAccountSetDetails {
-        if is_short_term {
-            match disbursed_account_type {
-                DisbursedReceivableAccountType::Individual => {
-                    self.internal_account_sets
-                        .disbursed_receivable
-                        .short_term
-                        .individual
-                }
-                DisbursedReceivableAccountType::GovernmentEntity => {
-                    self.internal_account_sets
-                        .disbursed_receivable
-                        .short_term
-                        .government_entity
-                }
-                DisbursedReceivableAccountType::PrivateCompany => {
-                    self.internal_account_sets
-                        .disbursed_receivable
-                        .short_term
-                        .private_company
-                }
-                DisbursedReceivableAccountType::Bank => {
-                    self.internal_account_sets
-                        .disbursed_receivable
-                        .short_term
-                        .bank
-                }
-                DisbursedReceivableAccountType::FinancialInstitution => {
-                    self.internal_account_sets
-                        .disbursed_receivable
-                        .short_term
-                        .financial_institution
-                }
-                DisbursedReceivableAccountType::ForeignAgencyOrSubsidiary => {
-                    self.internal_account_sets
-                        .disbursed_receivable
-                        .short_term
-                        .foreign_agency_or_subsidiary
-                }
-                DisbursedReceivableAccountType::NonDomiciledCompany => {
-                    self.internal_account_sets
-                        .disbursed_receivable
-                        .short_term
-                        .non_domiciled_company
-                }
-            }
+        let term_type = if is_short_term {
+            &self.internal_account_sets.disbursed_receivable.short_term
         } else {
-            match disbursed_account_type {
-                DisbursedReceivableAccountType::Individual => {
-                    self.internal_account_sets
-                        .disbursed_receivable
-                        .long_term
-                        .individual
-                }
-                DisbursedReceivableAccountType::GovernmentEntity => {
-                    self.internal_account_sets
-                        .disbursed_receivable
-                        .long_term
-                        .government_entity
-                }
-                DisbursedReceivableAccountType::PrivateCompany => {
-                    self.internal_account_sets
-                        .disbursed_receivable
-                        .long_term
-                        .private_company
-                }
-                DisbursedReceivableAccountType::Bank => {
-                    self.internal_account_sets
-                        .disbursed_receivable
-                        .long_term
-                        .bank
-                }
-                DisbursedReceivableAccountType::FinancialInstitution => {
-                    self.internal_account_sets
-                        .disbursed_receivable
-                        .long_term
-                        .financial_institution
-                }
-                DisbursedReceivableAccountType::ForeignAgencyOrSubsidiary => {
-                    self.internal_account_sets
-                        .disbursed_receivable
-                        .long_term
-                        .foreign_agency_or_subsidiary
-                }
-                DisbursedReceivableAccountType::NonDomiciledCompany => {
-                    self.internal_account_sets
-                        .disbursed_receivable
-                        .long_term
-                        .non_domiciled_company
-                }
+            &self.internal_account_sets.disbursed_receivable.long_term
+        };
+
+        match disbursed_account_type {
+            DisbursedReceivableAccountType::Individual => term_type.individual,
+            DisbursedReceivableAccountType::GovernmentEntity => term_type.government_entity,
+            DisbursedReceivableAccountType::PrivateCompany => term_type.private_company,
+            DisbursedReceivableAccountType::Bank => term_type.bank,
+            DisbursedReceivableAccountType::FinancialInstitution => term_type.financial_institution,
+            DisbursedReceivableAccountType::ForeignAgencyOrSubsidiary => {
+                term_type.foreign_agency_or_subsidiary
             }
+            DisbursedReceivableAccountType::NonDomiciledCompany => term_type.non_domiciled_company,
         }
     }
 
