@@ -20,6 +20,18 @@ this is where you will find the code for the graphql layer
 
 The server run with Postgres, and is being accessed through the sqlx library.
 
+## Cargo.toml
+
+Use `{ workspace = true }` when you import new package in a sub module
+
+All dependencies should be declared in the root Cargo.toml file
+
+## database
+
+Migrations files are located in `lana/app/migrations/*.sql`
+
+You can query the database to debug with `psql -U user -h localhost -p 5433 -d pg -c {}`
+
 ## verify your work
 
 You should know about those commands:

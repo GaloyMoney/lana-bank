@@ -12,7 +12,7 @@ This github repository is a monorepo.
 
 The backend is in rust. The frontend is in next js.
 
-To make the environement run, it needs Docker and some Docker compose dependencies.
+During local dev, Docker and Docker compose is being used.
 
 Useful commands to run are in the Makefile.
 
