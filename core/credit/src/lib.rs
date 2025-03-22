@@ -928,34 +928,72 @@ where
         let fee_income_parent_account_set_id =
             chart.account_set_id_from_code(&config.chart_of_account_fee_income_parent_code)?;
 
-        let individual_disbursed_receivable_parent_account_set_id = chart
+        let short_term_individual_disbursed_receivable_parent_account_set_id = chart
             .account_set_id_from_code(
-                &config.chart_of_account_individual_disbursed_receivable_parent_code,
+                &config.chart_of_account_short_term_individual_disbursed_receivable_parent_code,
             )?;
-        let government_entity_disbursed_receivable_parent_account_set_id = chart
-            .account_set_id_from_code(
-                &config.chart_of_account_government_entity_disbursed_receivable_parent_code,
-            )?;
-        let private_company_disbursed_receivable_parent_account_set_id = chart
-            .account_set_id_from_code(
-                &config.chart_of_account_private_company_disbursed_receivable_parent_code,
-            )?;
-        let bank_disbursed_receivable_parent_account_set_id = chart.account_set_id_from_code(
-            &config.chart_of_account_bank_disbursed_receivable_parent_code,
-        )?;
-        let financial_institution_disbursed_receivable_parent_account_set_id = chart
-            .account_set_id_from_code(
-                &config.chart_of_account_financial_institution_disbursed_receivable_parent_code,
-            )?;
-        let foreign_agency_or_subsidiary_disbursed_receivable_parent_account_set_id = chart
+        let short_term_government_entity_disbursed_receivable_parent_account_set_id = chart
             .account_set_id_from_code(
                 &config
-                    .chart_of_account_foreign_agency_or_subsidiary_disbursed_receivable_parent_code,
+                    .chart_of_account_short_term_government_entity_disbursed_receivable_parent_code,
             )?;
-        let non_domiciled_company_disbursed_receivable_parent_account_set_id = chart
+        let short_term_private_company_disbursed_receivable_parent_account_set_id = chart
             .account_set_id_from_code(
-                &config.chart_of_account_non_domiciled_company_disbursed_receivable_parent_code,
+                &config
+                    .chart_of_account_short_term_private_company_disbursed_receivable_parent_code,
             )?;
+        let short_term_bank_disbursed_receivable_parent_account_set_id = chart
+            .account_set_id_from_code(
+                &config.chart_of_account_short_term_bank_disbursed_receivable_parent_code,
+            )?;
+        let short_term_financial_institution_disbursed_receivable_parent_account_set_id = chart
+            .account_set_id_from_code(
+            &config
+                .chart_of_account_short_term_financial_institution_disbursed_receivable_parent_code,
+        )?;
+        let short_term_foreign_agency_or_subsidiary_disbursed_receivable_parent_account_set_id = chart
+            .account_set_id_from_code(
+                &config
+                    .chart_of_account_short_term_foreign_agency_or_subsidiary_disbursed_receivable_parent_code,
+            )?;
+        let short_term_non_domiciled_company_disbursed_receivable_parent_account_set_id = chart
+            .account_set_id_from_code(
+            &config
+                .chart_of_account_short_term_non_domiciled_company_disbursed_receivable_parent_code,
+        )?;
+
+        let long_term_individual_disbursed_receivable_parent_account_set_id = chart
+            .account_set_id_from_code(
+                &config.chart_of_account_long_term_individual_disbursed_receivable_parent_code,
+            )?;
+        let long_term_government_entity_disbursed_receivable_parent_account_set_id = chart
+            .account_set_id_from_code(
+                &config
+                    .chart_of_account_long_term_government_entity_disbursed_receivable_parent_code,
+            )?;
+        let long_term_private_company_disbursed_receivable_parent_account_set_id = chart
+            .account_set_id_from_code(
+                &config.chart_of_account_long_term_private_company_disbursed_receivable_parent_code,
+            )?;
+        let long_term_bank_disbursed_receivable_parent_account_set_id = chart
+            .account_set_id_from_code(
+                &config.chart_of_account_long_term_bank_disbursed_receivable_parent_code,
+            )?;
+        let long_term_financial_institution_disbursed_receivable_parent_account_set_id = chart
+            .account_set_id_from_code(
+            &config
+                .chart_of_account_long_term_financial_institution_disbursed_receivable_parent_code,
+        )?;
+        let long_term_foreign_agency_or_subsidiary_disbursed_receivable_parent_account_set_id = chart
+            .account_set_id_from_code(
+                &config
+                    .chart_of_account_long_term_foreign_agency_or_subsidiary_disbursed_receivable_parent_code,
+            )?;
+        let long_term_non_domiciled_company_disbursed_receivable_parent_account_set_id = chart
+            .account_set_id_from_code(
+            &config
+                .chart_of_account_long_term_non_domiciled_company_disbursed_receivable_parent_code,
+        )?;
 
         let audit_info = self
             .authz
@@ -978,13 +1016,21 @@ where
             interest_income_parent_account_set_id,
             fee_income_parent_account_set_id,
 
-            individual_disbursed_receivable_parent_account_set_id,
-            government_entity_disbursed_receivable_parent_account_set_id,
-            private_company_disbursed_receivable_parent_account_set_id,
-            bank_disbursed_receivable_parent_account_set_id,
-            financial_institution_disbursed_receivable_parent_account_set_id,
-            foreign_agency_or_subsidiary_disbursed_receivable_parent_account_set_id,
-            non_domiciled_company_disbursed_receivable_parent_account_set_id,
+            short_term_individual_disbursed_receivable_parent_account_set_id,
+            short_term_government_entity_disbursed_receivable_parent_account_set_id,
+            short_term_private_company_disbursed_receivable_parent_account_set_id,
+            short_term_bank_disbursed_receivable_parent_account_set_id,
+            short_term_financial_institution_disbursed_receivable_parent_account_set_id,
+            short_term_foreign_agency_or_subsidiary_disbursed_receivable_parent_account_set_id,
+            short_term_non_domiciled_company_disbursed_receivable_parent_account_set_id,
+
+            long_term_individual_disbursed_receivable_parent_account_set_id,
+            long_term_government_entity_disbursed_receivable_parent_account_set_id,
+            long_term_private_company_disbursed_receivable_parent_account_set_id,
+            long_term_bank_disbursed_receivable_parent_account_set_id,
+            long_term_financial_institution_disbursed_receivable_parent_account_set_id,
+            long_term_foreign_agency_or_subsidiary_disbursed_receivable_parent_account_set_id,
+            long_term_non_domiciled_company_disbursed_receivable_parent_account_set_id,
         };
 
         self.ledger
