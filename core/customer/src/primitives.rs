@@ -33,6 +33,7 @@ pub enum KycLevel {
 #[cfg_attr(feature = "graphql", derive(async_graphql::Enum))]
 #[serde(rename_all = "kebab-case")]
 pub enum AccountStatus {
+    // no need for a default here?
     #[default]
     Inactive,
     Active,

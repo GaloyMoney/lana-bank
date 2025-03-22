@@ -11,7 +11,6 @@ use core_customer::{
 use deposit::{
     CoreDepositAction, CoreDepositEvent, CoreDepositObject, GovernanceAction, GovernanceObject,
 };
-use governance::GovernanceEvent;
 use outbox::{Outbox, OutboxEventMarker, PersistentOutboxEvent};
 
 use job::*;
@@ -36,9 +35,7 @@ where
         From<CoreCustomerAction> + From<CoreDepositAction> + From<GovernanceAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object:
         From<CustomerObject> + From<CoreDepositObject> + From<GovernanceObject>,
-    E: OutboxEventMarker<CoreCustomerEvent>
-        + OutboxEventMarker<CoreDepositEvent>
-        + OutboxEventMarker<GovernanceEvent>,
+    E: OutboxEventMarker<CoreCustomerEvent> + OutboxEventMarker<CoreDepositEvent>,
 {
     type Initializer = CreateKratosUserJobInitializer<Perms, E>;
 }
@@ -46,9 +43,7 @@ where
 pub struct CreateKratosUserJobInitializer<Perms, E>
 where
     Perms: PermissionCheck,
-    E: OutboxEventMarker<CoreCustomerEvent>
-        + OutboxEventMarker<CoreDepositEvent>
-        + OutboxEventMarker<GovernanceEvent>,
+    E: OutboxEventMarker<CoreCustomerEvent> + OutboxEventMarker<CoreDepositEvent>,
 {
     outbox: Outbox<E>,
     kratos_admin: KratosAdmin,
@@ -58,9 +53,7 @@ where
 impl<Perms, E> CreateKratosUserJobInitializer<Perms, E>
 where
     Perms: PermissionCheck,
-    E: OutboxEventMarker<CoreCustomerEvent>
-        + OutboxEventMarker<CoreDepositEvent>
-        + OutboxEventMarker<GovernanceEvent>,
+    E: OutboxEventMarker<CoreCustomerEvent> + OutboxEventMarker<CoreDepositEvent>,
 {
     pub fn new(
         outbox: &Outbox<E>,
@@ -86,9 +79,7 @@ where
         From<CoreCustomerAction> + From<CoreDepositAction> + From<GovernanceAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object:
         From<CustomerObject> + From<CoreDepositObject> + From<GovernanceObject>,
-    E: OutboxEventMarker<CoreCustomerEvent>
-        + OutboxEventMarker<CoreDepositEvent>
-        + OutboxEventMarker<GovernanceEvent>,
+    E: OutboxEventMarker<CoreCustomerEvent> + OutboxEventMarker<CoreDepositEvent>,
 {
     fn job_type() -> JobType
     where
@@ -121,9 +112,7 @@ struct CreateKratosUserJobData {
 pub struct CreateKratosUserJobRunner<Perms, E>
 where
     Perms: PermissionCheck,
-    E: OutboxEventMarker<CoreCustomerEvent>
-        + OutboxEventMarker<CoreDepositEvent>
-        + OutboxEventMarker<GovernanceEvent>,
+    E: OutboxEventMarker<CoreCustomerEvent> + OutboxEventMarker<CoreDepositEvent>,
 {
     outbox: Outbox<E>,
     customers: Customers<Perms, E>,
@@ -137,9 +126,7 @@ where
         From<CoreCustomerAction> + From<CoreDepositAction> + From<GovernanceAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object:
         From<CustomerObject> + From<CoreDepositObject> + From<GovernanceObject>,
-    E: OutboxEventMarker<CoreCustomerEvent>
-        + OutboxEventMarker<CoreDepositEvent>
-        + OutboxEventMarker<GovernanceEvent>,
+    E: OutboxEventMarker<CoreCustomerEvent> + OutboxEventMarker<CoreDepositEvent>,
 {
     async fn run(
         &self,
@@ -168,9 +155,7 @@ where
         From<CoreCustomerAction> + From<CoreDepositAction> + From<GovernanceAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object:
         From<CustomerObject> + From<CoreDepositObject> + From<GovernanceObject>,
-    E: OutboxEventMarker<CoreCustomerEvent>
-        + OutboxEventMarker<CoreDepositEvent>
-        + OutboxEventMarker<GovernanceEvent>,
+    E: OutboxEventMarker<CoreCustomerEvent> + OutboxEventMarker<CoreDepositEvent>,
 {
     #[instrument(name = "customer_onboarding.create_kratos_user", skip(self, message))]
     async fn handle_create_kratos_user(
