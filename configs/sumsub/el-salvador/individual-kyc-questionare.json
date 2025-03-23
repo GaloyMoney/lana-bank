@@ -1,0 +1,923 @@
+{
+  "id": "reg_report_dedup",
+  "title": "",
+  "localizedTitle": {
+    "values": [
+      {
+        "lang": "en",
+        "value": ""
+      }
+    ]
+  },
+  "desc": "",
+  "localizedDesc": {
+    "values": [
+      {
+        "lang": "en",
+        "value": ""
+      }
+    ]
+  },
+  "modifiable": true,
+  "sections": [
+    {
+      "id": "personalInformation",
+      "title": "Personal inforamtion",
+      "localizedTitle": {
+        "values": [
+          {
+            "lang": "en",
+            "value": "Personal inforamtion"
+          },
+          {
+            "lang": "es",
+            "value": "Información personal"
+          }
+        ]
+      },
+      "desc": "",
+      "localizedDesc": {
+        "values": [
+          {
+            "lang": "en",
+            "value": ""
+          }
+        ]
+      },
+      "condition": "",
+      "showCondition": null,
+      "items": [
+        {
+          "id": "gender",
+          "title": "Gender",
+          "localizedTitle": {
+            "values": [
+              {
+                "lang": "en",
+                "value": "Gender"
+              },
+              {
+                "lang": "es",
+                "value": "Genero"
+              }
+            ]
+          },
+          "desc": "",
+          "localizedDesc": {
+            "values": [
+              {
+                "lang": "en",
+                "value": ""
+              }
+            ]
+          },
+          "type": "selectDropdown",
+          "required": true,
+          "format": null,
+          "condition": null,
+          "showCondition": null,
+          "placeholder": "Type something",
+          "localizedPlaceholder": {
+            "values": [
+              {
+                "lang": "en",
+                "value": "Type something"
+              }
+            ]
+          },
+          "options": [
+            {
+              "value": "F",
+              "title": "Female",
+              "localizedTitle": {
+                "values": [
+                  {
+                    "lang": "en",
+                    "value": "Female"
+                  },
+                  {
+                    "lang": "es",
+                    "value": "Mujer"
+                  }
+                ]
+              },
+              "score": null
+            },
+            {
+              "value": "MFirst and last",
+              "title": "Male",
+              "localizedTitle": {
+                "values": [
+                  {
+                    "lang": "en",
+                    "value": "Male"
+                  },
+                  {
+                    "lang": "es",
+                    "value": "Hombre"
+                  }
+                ]
+              },
+              "score": null
+            }
+          ],
+          "arbitraryDocType": null
+        },
+        {
+          "id": "maritalStatus",
+          "title": "Marital status",
+          "localizedTitle": {
+            "values": [
+              {
+                "lang": "en",
+                "value": "Marital status"
+              },
+              {
+                "lang": "es",
+                "value": "Estado familiar"
+              }
+            ]
+          },
+          "desc": "",
+          "localizedDesc": {
+            "values": [
+              {
+                "lang": "en",
+                "value": ""
+              }
+            ]
+          },
+          "type": "selectDropdown",
+          "required": true,
+          "format": null,
+          "condition": null,
+          "showCondition": null,
+          "placeholder": "Type something",
+          "localizedPlaceholder": {
+            "values": [
+              {
+                "lang": "en",
+                "value": "Type something"
+              }
+            ]
+          },
+          "options": [
+            {
+              "value": "Single",
+              "title": "Single",
+              "localizedTitle": {
+                "values": [
+                  {
+                    "lang": "en",
+                    "value": "Single"
+                  },
+                  {
+                    "lang": "es",
+                    "value": "Soltero/a"
+                  }
+                ]
+              },
+              "score": null
+            },
+            {
+              "value": "Married",
+              "title": "Married",
+              "localizedTitle": {
+                "values": [
+                  {
+                    "lang": "en",
+                    "value": "Married"
+                  },
+                  {
+                    "lang": "es",
+                    "value": "Casado/a"
+                  }
+                ]
+              },
+              "score": null
+            },
+            {
+              "value": "Divorced",
+              "title": "Divorced",
+              "localizedTitle": {
+                "values": [
+                  {
+                    "lang": "en",
+                    "value": "Divorced"
+                  },
+                  {
+                    "lang": "es",
+                    "value": "Divorciado/a"
+                  }
+                ]
+              },
+              "score": null
+            },
+            {
+              "value": "Widowed",
+              "title": "Widowed",
+              "localizedTitle": {
+                "values": [
+                  {
+                    "lang": "en",
+                    "value": "Widowed"
+                  },
+                  {
+                    "lang": "es",
+                    "value": "Viudo/a"
+                  }
+                ]
+              },
+              "score": null
+            },
+            {
+              "value": "Union",
+              "title": "Civil union",
+              "localizedTitle": {
+                "values": [
+                  {
+                    "lang": "en",
+                    "value": "Civil union"
+                  },
+                  {
+                    "lang": "es",
+                    "value": "Union libre"
+                  }
+                ]
+              },
+              "score": null
+            }
+          ],
+          "arbitraryDocType": null
+        },
+        {
+          "id": "maidenName",
+          "title": "Maiden name",
+          "localizedTitle": {
+            "values": [
+              {
+                "lang": "en",
+                "value": "Maiden name"
+              },
+              {
+                "lang": "es",
+                "value": "Nomber de conyuge"
+              }
+            ]
+          },
+          "desc": "",
+          "localizedDesc": {
+            "values": [
+              {
+                "lang": "en",
+                "value": ""
+              }
+            ]
+          },
+          "type": "text",
+          "required": true,
+          "format": null,
+          "condition": "personalInformation.gender = F && personalInformation.maritalStatus = Divorced",
+          "showCondition": null,
+          "placeholder": "Type something",
+          "localizedPlaceholder": {
+            "values": [
+              {
+                "lang": "en",
+                "value": "Type something"
+              }
+            ]
+          },
+          "options": null,
+          "arbitraryDocType": null
+        },
+        {
+          "id": "nameOfSpouse",
+          "title": "Name of spouse",
+          "localizedTitle": {
+            "values": [
+              {
+                "lang": "en",
+                "value": "Name of spouse"
+              }
+            ]
+          },
+          "desc": "",
+          "localizedDesc": {
+            "values": [
+              {
+                "lang": "en",
+                "value": ""
+              }
+            ]
+          },
+          "type": "text",
+          "required": true,
+          "format": null,
+          "condition": "personalInformation.maritalStatus = Married",
+          "showCondition": null,
+          "placeholder": "",
+          "localizedPlaceholder": {
+            "values": [
+              {
+                "lang": "en",
+                "value": ""
+              }
+            ]
+          },
+          "options": null,
+          "arbitraryDocType": null
+        },
+        {
+          "id": "relationshipToBank",
+          "title": "Relationship to bank",
+          "localizedTitle": {
+            "values": [
+              {
+                "lang": "en",
+                "value": "Relationship to bank"
+              },
+              {
+                "lang": "es",
+                "value": "Relación con el banco"
+              }
+            ]
+          },
+          "desc": "",
+          "localizedDesc": {
+            "values": [
+              {
+                "lang": "en",
+                "value": ""
+              }
+            ]
+          },
+          "type": "selectDropdown",
+          "required": true,
+          "format": null,
+          "condition": null,
+          "showCondition": null,
+          "placeholder": "Type something",
+          "localizedPlaceholder": {
+            "values": [
+              {
+                "lang": "en",
+                "value": "Type something"
+              }
+            ]
+          },
+          "options": [
+            {
+              "value": "0",
+              "title": "No relation",
+              "localizedTitle": {
+                "values": [
+                  {
+                    "lang": "en",
+                    "value": "No relation"
+                  }
+                ]
+              },
+              "score": null
+            },
+            {
+              "value": "1",
+              "title": "Directors and managers, their spouses, and relatives up to the third degree of consanguinity and the second degree of affinity.",
+              "localizedTitle": {
+                "values": [
+                  {
+                    "lang": "en",
+                    "value": "Directors and managers, their spouses, and relatives up to the third degree of consanguinity and the second degree of affinity."
+                  }
+                ]
+              },
+              "score": null
+            },
+            {
+              "value": "2",
+              "title": "Shareholders with 3% or more participation in the entity's shares, including shares held by their spouses, first-degree relatives, and companies linked by ownership or management.",
+              "localizedTitle": {
+                "values": [
+                  {
+                    "lang": "en",
+                    "value": "Shareholders with 3% or more participation in the entity's shares, including shares held by their spouses, first-degree relatives, and companies linked by ownership or management."
+                  }
+                ]
+              },
+              "score": null
+            }
+          ],
+          "arbitraryDocType": null
+        },
+        {
+          "id": "phoneNumber",
+          "title": "Phone number",
+          "localizedTitle": {
+            "values": [
+              {
+                "lang": "en",
+                "value": "Phone number"
+              },
+              {
+                "lang": "es",
+                "value": "Número de teléfono"
+              }
+            ]
+          },
+          "desc": "",
+          "localizedDesc": {
+            "values": [
+              {
+                "lang": "en",
+                "value": ""
+              }
+            ]
+          },
+          "type": "phone",
+          "required": true,
+          "format": null,
+          "condition": null,
+          "showCondition": null,
+          "placeholder": "1234567890",
+          "localizedPlaceholder": {
+            "values": [
+              {
+                "lang": "en",
+                "value": "1234567890"
+              }
+            ]
+          },
+          "options": null,
+          "arbitraryDocType": null
+        },
+        {
+          "id": "countryOfResidence",
+          "title": "Country of Residence",
+          "localizedTitle": {
+            "values": [
+              {
+                "lang": "en",
+                "value": "Country of Residence"
+              },
+              {
+                "lang": "es",
+                "value": "Pais residencia"
+              }
+            ]
+          },
+          "desc": "",
+          "localizedDesc": {
+            "values": [
+              {
+                "lang": "en",
+                "value": ""
+              }
+            ]
+          },
+          "type": "countrySelect",
+          "required": true,
+          "format": null,
+          "condition": null,
+          "showCondition": null,
+          "placeholder": "Canada",
+          "localizedPlaceholder": {
+            "values": [
+              {
+                "lang": "en",
+                "value": "Canada"
+              }
+            ]
+          },
+          "options": null,
+          "arbitraryDocType": null
+        },
+        {
+          "id": "dui",
+          "title": "DUI",
+          "localizedTitle": {
+            "values": [
+              {
+                "lang": "en",
+                "value": "DUI"
+              }
+            ]
+          },
+          "desc": "",
+          "localizedDesc": {
+            "values": [
+              {
+                "lang": "en",
+                "value": ""
+              }
+            ]
+          },
+          "type": "text",
+          "required": true,
+          "format": null,
+          "condition": "personalInformation.countryOfResidence = SLV",
+          "showCondition": null,
+          "placeholder": "123456789",
+          "localizedPlaceholder": {
+            "values": [
+              {
+                "lang": "en",
+                "value": "123456789"
+              }
+            ]
+          },
+          "options": null,
+          "arbitraryDocType": null
+        },
+        {
+          "id": "nit",
+          "title": "NIT",
+          "localizedTitle": {
+            "values": [
+              {
+                "lang": "en",
+                "value": "NIT"
+              }
+            ]
+          },
+          "desc": "",
+          "localizedDesc": {
+            "values": [
+              {
+                "lang": "en",
+                "value": ""
+              }
+            ]
+          },
+          "type": "text",
+          "required": true,
+          "format": null,
+          "condition": "personalInformation.countryOfResidence != SLV",
+          "showCondition": null,
+          "placeholder": "Type something",
+          "localizedPlaceholder": {
+            "values": [
+              {
+                "lang": "en",
+                "value": "Type something"
+              }
+            ]
+          },
+          "options": null,
+          "arbitraryDocType": null
+        },
+        {
+          "id": "taxIdentificationNum",
+          "title": "Tax Identification Number (TIN)",
+          "localizedTitle": {
+            "values": [
+              {
+                "lang": "en",
+                "value": "Tax Identification Number (TIN)"
+              },
+              {
+                "lang": "es",
+                "value": "TIN"
+              }
+            ]
+          },
+          "desc": "",
+          "localizedDesc": {
+            "values": [
+              {
+                "lang": "en",
+                "value": ""
+              }
+            ]
+          },
+          "type": "text",
+          "required": true,
+          "format": "regex:^([-0-9A-Z]+)$",
+          "condition": "personalInformation.countryOfResidence = USA",
+          "showCondition": null,
+          "placeholder": "123-456-7890",
+          "localizedPlaceholder": {
+            "values": [
+              {
+                "lang": "en",
+                "value": "123-456-7890"
+              }
+            ]
+          },
+          "options": null,
+          "arbitraryDocType": null
+        },
+        {
+          "id": "occupation",
+          "title": "Occupation",
+          "localizedTitle": {
+            "values": [
+              {
+                "lang": "en",
+                "value": "Occupation"
+              },
+              {
+                "lang": "es",
+                "value": "Ocupación"
+              }
+            ]
+          },
+          "desc": "",
+          "localizedDesc": {
+            "values": [
+              {
+                "lang": "en",
+                "value": ""
+              }
+            ]
+          },
+          "type": "selectDropdown",
+          "required": true,
+          "format": null,
+          "condition": null,
+          "showCondition": null,
+          "placeholder": "Engineer",
+          "localizedPlaceholder": {
+            "values": [
+              {
+                "lang": "en",
+                "value": "Engineer"
+              }
+            ]
+          },
+          "options": [
+            {
+              "value": "001",
+              "title": "Administrator",
+              "localizedTitle": {
+                "values": [
+                  {
+                    "lang": "en",
+                    "value": "Administrator"
+                  }
+                ]
+              },
+              "score": null
+            },
+            {
+              "value": "044",
+              "title": "Consultant",
+              "localizedTitle": {
+                "values": [
+                  {
+                    "lang": "en",
+                    "value": "Consultant"
+                  }
+                ]
+              },
+              "score": null
+            },
+            {
+              "value": "060",
+              "title": "Domestic employee",
+              "localizedTitle": {
+                "values": [
+                  {
+                    "lang": "en",
+                    "value": "Domestic employee"
+                  }
+                ]
+              },
+              "score": null
+            },
+            {
+              "value": "062",
+              "title": "Public sector employee",
+              "localizedTitle": {
+                "values": [
+                  {
+                    "lang": "en",
+                    "value": "Public sector employee"
+                  }
+                ]
+              },
+              "score": null
+            },
+            {
+              "value": "063",
+              "title": "Businessman",
+              "localizedTitle": {
+                "values": [
+                  {
+                    "lang": "en",
+                    "value": "Businessman"
+                  }
+                ]
+              },
+              "score": null
+            },
+            {
+              "value": "087",
+              "title": "Engineer",
+              "localizedTitle": {
+                "values": [
+                  {
+                    "lang": "en",
+                    "value": "Engineer"
+                  }
+                ]
+              },
+              "score": null
+            },
+            {
+              "value": "100",
+              "title": "Teacher",
+              "localizedTitle": {
+                "values": [
+                  {
+                    "lang": "en",
+                    "value": "Teacher"
+                  }
+                ]
+              },
+              "score": null
+            },
+            {
+              "value": "114",
+              "title": "Worker",
+              "localizedTitle": {
+                "values": [
+                  {
+                    "lang": "en",
+                    "value": "Worker"
+                  }
+                ]
+              },
+              "score": null
+            },
+            {
+              "value": "142",
+              "title": "Other occupations",
+              "localizedTitle": {
+                "values": [
+                  {
+                    "lang": "en",
+                    "value": "Other occupations"
+                  }
+                ]
+              },
+              "score": null
+            }
+          ],
+          "arbitraryDocType": null
+        },
+        {
+          "id": "economicActivity",
+          "title": "Economic Activity",
+          "localizedTitle": {
+            "values": [
+              {
+                "lang": "en",
+                "value": "Economic Activity"
+              },
+              {
+                "lang": "es",
+                "value": "Actividad economica"
+              }
+            ]
+          },
+          "desc": "",
+          "localizedDesc": {
+            "values": [
+              {
+                "lang": "en",
+                "value": ""
+              }
+            ]
+          },
+          "type": "selectDropdown",
+          "required": true,
+          "format": null,
+          "condition": null,
+          "showCondition": null,
+          "placeholder": "Public sector employee",
+          "localizedPlaceholder": {
+            "values": [
+              {
+                "lang": "en",
+                "value": "Public sector employee"
+              }
+            ]
+          },
+          "options": [
+            {
+              "value": "120101",
+              "title": "Public sector employee",
+              "localizedTitle": {
+                "values": [
+                  {
+                    "lang": "en",
+                    "value": "Public sector employee"
+                  },
+                  {
+                    "lang": "es",
+                    "value": "Empleados del sector público"
+                  }
+                ]
+              },
+              "score": null
+            },
+            {
+              "value": "120102",
+              "title": "Private sector employee",
+              "localizedTitle": {
+                "values": [
+                  {
+                    "lang": "en",
+                    "value": "Private sector employee"
+                  },
+                  {
+                    "lang": "es",
+                    "value": "Empleados del sector privado"
+                  }
+                ]
+              },
+              "score": null
+            },
+            {
+              "value": "120201",
+              "title": "Other dependent worker",
+              "localizedTitle": {
+                "values": [
+                  {
+                    "lang": "en",
+                    "value": "Other dependent worker"
+                  },
+                  {
+                    "lang": "es",
+                    "value": "Otros trabajadores dependientes"
+                  }
+                ]
+              },
+              "score": null
+            },
+            {
+              "value": "120202",
+              "title": "Other",
+              "localizedTitle": {
+                "values": [
+                  {
+                    "lang": "en",
+                    "value": "Other"
+                  },
+                  {
+                    "lang": "es",
+                    "value": "Otras personas naturales"
+                  }
+                ]
+              },
+              "score": null
+            }
+          ],
+          "arbitraryDocType": null
+        },
+        {
+          "id": "sourceOfFunds",
+          "title": "Source of funds",
+          "localizedTitle": {
+            "values": [
+              {
+                "lang": "en",
+                "value": "Source of funds"
+              },
+              {
+                "lang": "es",
+                "value": "Fuente de fondos"
+              }
+            ]
+          },
+          "desc": "",
+          "localizedDesc": {
+            "values": [
+              {
+                "lang": "en",
+                "value": ""
+              }
+            ]
+          },
+          "type": "textArea",
+          "required": true,
+          "format": null,
+          "condition": null,
+          "showCondition": null,
+          "placeholder": "Type something",
+          "localizedPlaceholder": {
+            "values": [
+              {
+                "lang": "en",
+                "value": "Type something"
+              }
+            ]
+          },
+          "options": null,
+          "arbitraryDocType": null
+        }
+      ],
+      "delimiter": null
+    }
+  ]
+}
