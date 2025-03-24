@@ -157,6 +157,7 @@ impl CreditLedger {
         templates::ActivateCreditFacility::init(cala).await?;
         templates::RemoveCollateral::init(cala).await?;
         templates::RecordPayment::init(cala).await?;
+        templates::RecordOverdueDisbursedBalance::init(cala).await?;
         templates::CreditFacilityIncurInterest::init(cala).await?;
         templates::CreditFacilityAccrueInterest::init(cala).await?;
         templates::InitiateDisbursal::init(cala).await?;
@@ -1013,6 +1014,36 @@ impl CreditLedger {
             .post_transaction_in_op(&mut op, tx_id, templates::RECORD_PAYMENT_CODE, params)
             .await?;
 
+        op.commit().await?;
+        Ok(())
+    }
+
+    pub async fn mature_credit_facility(
+        &self,
+        op: es_entity::DbOp<'_>,
+        CreditFacilityMaturationWithOverdueBalance {
+            tx_id,
+            disbursed_outstanding,
+            credit_facility_account_ids,
+        }: CreditFacilityMaturationWithOverdueBalance,
+    ) -> Result<(), CreditLedgerError> {
+        let mut op = self.cala.ledger_operation_from_db_op(op);
+        self.cala
+            .post_transaction_in_op(
+                &mut op,
+                tx_id,
+                templates::RECORD_OVERDUE_DISBURSED_BALANCE_CODE,
+                templates::RecordOverdueDisbursedBalanceParams {
+                    journal_id: self.journal_id,
+                    currency: self.btc,
+                    amount: disbursed_outstanding.to_usd(),
+                    disbursed_receivable_account_id: credit_facility_account_ids
+                        .disbursed_receivable_account_id,
+                    disbursed_receivable_overdue_account_id: credit_facility_account_ids
+                        .disbursed_receivable_overdue_account_id,
+                },
+            )
+            .await?;
         op.commit().await?;
         Ok(())
     }

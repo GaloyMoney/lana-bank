@@ -1,0 +1,133 @@
+use rust_decimal::Decimal;
+use tracing::instrument;
+
+use cala_ledger::{
+    tx_template::{error::TxTemplateError, Params, *},
+    *,
+};
+
+use crate::ledger::error::*;
+
+pub const RECORD_OVERDUE_DISBURSED_BALANCE_CODE: &str = "RECORD_OVERDUE_DISBURSED_BALANCE";
+
+#[derive(Debug)]
+pub struct RecordOverdueDisbursedBalanceParams {
+    pub journal_id: JournalId,
+    pub currency: Currency,
+    pub amount: Decimal,
+    pub disbursed_receivable_account_id: AccountId,
+    pub disbursed_receivable_overdue_account_id: AccountId,
+}
+
+impl RecordOverdueDisbursedBalanceParams {
+    pub fn defs() -> Vec<NewParamDefinition> {
+        vec![
+            NewParamDefinition::builder()
+                .name("journal_id")
+                .r#type(ParamDataType::Uuid)
+                .build()
+                .unwrap(),
+            NewParamDefinition::builder()
+                .name("currency")
+                .r#type(ParamDataType::String)
+                .build()
+                .unwrap(),
+            NewParamDefinition::builder()
+                .name("amount")
+                .r#type(ParamDataType::Decimal)
+                .build()
+                .unwrap(),
+            NewParamDefinition::builder()
+                .name("disbursed_receivable_account_id")
+                .r#type(ParamDataType::Uuid)
+                .build()
+                .unwrap(),
+            NewParamDefinition::builder()
+                .name("disbursed_receivable_overdue_account_id")
+                .r#type(ParamDataType::Uuid)
+                .build()
+                .unwrap(),
+            NewParamDefinition::builder()
+                .name("effective")
+                .r#type(ParamDataType::Date)
+                .build()
+                .unwrap(),
+        ]
+    }
+}
+impl From<RecordOverdueDisbursedBalanceParams> for Params {
+    fn from(
+        RecordOverdueDisbursedBalanceParams {
+            journal_id,
+            currency,
+            amount,
+            disbursed_receivable_account_id,
+            disbursed_receivable_overdue_account_id,
+        }: RecordOverdueDisbursedBalanceParams,
+    ) -> Self {
+        let mut params = Self::default();
+        params.insert("journal_id", journal_id);
+        params.insert("currency", currency);
+        params.insert("amount", amount);
+        params.insert(
+            "disbursed_receivable_account_id",
+            disbursed_receivable_account_id,
+        );
+        params.insert(
+            "disbursed_receivable_overdue_account_id",
+            disbursed_receivable_overdue_account_id,
+        );
+        params.insert("effective", chrono::Utc::now().date_naive());
+
+        params
+    }
+}
+
+pub struct RecordOverdueDisbursedBalance;
+
+impl RecordOverdueDisbursedBalance {
+    #[instrument(name = "ledger.record_overdue_disbursed_balance.init", skip_all)]
+    pub async fn init(ledger: &CalaLedger) -> Result<(), CreditLedgerError> {
+        let tx_input = NewTxTemplateTransaction::builder()
+            .journal_id("params.journal_id")
+            .effective("params.effective")
+            .description("'Record an overdue disbursed balance'")
+            .build()
+            .expect("Couldn't build TxInput");
+        let entries = vec![
+            NewTxTemplateEntry::builder()
+                .entry_type("'RECORD_OVERDUE_DISBURSED_BALANCE_CR'")
+                .currency("params.currency")
+                .account_id("params.disbursed_receivable_account_id")
+                .direction("CREDIT")
+                .layer("SETTLED")
+                .units("params.amount")
+                .build()
+                .expect("Couldn't build entry"),
+            NewTxTemplateEntry::builder()
+                .entry_type("'RECORD_OVERDUE_DISBURSED_BALANCE_DR'")
+                .currency("params.currency")
+                .account_id("params.disbursed_receivable_overdue_account_id")
+                .direction("DEBIT")
+                .layer("SETTLED")
+                .units("params.amount")
+                .build()
+                .expect("Couldn't build entry"),
+        ];
+
+        let params = RecordOverdueDisbursedBalanceParams::defs();
+        let template = NewTxTemplate::builder()
+            .id(TxTemplateId::new())
+            .code(RECORD_OVERDUE_DISBURSED_BALANCE_CODE)
+            .transaction(tx_input)
+            .entries(entries)
+            .params(params)
+            .build()
+            .expect("Couldn't build template");
+        match ledger.tx_templates().create(template).await {
+            Err(TxTemplateError::DuplicateCode) => Ok(()),
+            Err(e) => Err(e.into()),
+            Ok(_) => Ok(()),
+        }
+    }
+}

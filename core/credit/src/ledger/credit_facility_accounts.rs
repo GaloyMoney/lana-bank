@@ -59,6 +59,13 @@ pub struct CreditFacilityPaymentAmounts {
 }
 
 #[derive(Debug, Clone)]
+pub struct CreditFacilityMaturationWithOverdueBalance {
+    pub tx_id: LedgerTxId,
+    pub disbursed_outstanding: UsdCents,
+    pub credit_facility_account_ids: CreditFacilityAccountIds,
+}
+
+#[derive(Debug, Clone)]
 pub struct CreditFacilityCompletion {
     pub tx_id: LedgerTxId,
     pub collateral: Satoshis,
