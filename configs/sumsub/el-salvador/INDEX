@@ -1,0 +1,9 @@
+
+individual-kyc-questionare.json
+
+	JSON object that is imported as a questionare into sumsub
+
+list-of-occupations.csv
+
+	The list of possible classifications for occupations in the risk norm
+	Table 25 in NRP-41

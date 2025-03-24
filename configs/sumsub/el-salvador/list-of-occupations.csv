@@ -1,0 +1,144 @@
+Code,Description,English Description
+1,Administrador,Administrator
+2,Agente de aduana,Customs agent
+3,Agente de ventas,Sales agent
+4,Agricultor,Farmer
+5,Agrónomo,Agronomist
+6,Albañil,Mason
+7,Ama de casa,Housewife
+8,Analista de computación,Computer analyst
+9,Apicultor,Beekeeper
+10,Arquitecto,Architect
+11,Artesano,Craftsman
+12,Ascensorista,Elevator operator
+13,Asistente de abogacía,Legal assistant
+14,Asistente de auditoría,Audit assistant
+15,Asistente de consultorio médico,Medical office assistant
+16,Asesor,Advisor
+17,Auditor,Auditor
+18,Auxiliar de contabilidad,Accounting assistant
+19,Auxiliar dental,Dental assistant
+20,Auxiliar de cocina,Kitchen assistant
+21,Ayudante de mecánico general,Mechanic's helper
+22,"Ayudante operario, construcción",Construction worker helper
+23,Bachiller,High school graduate
+24,Barbero,Barber
+25,Bartender,Bartender
+26,Bodeguero,Warehouse keeper
+27,Bombero,Firefighter
+28,Botones,Bellhop
+29,Cajero,Cashier
+30,Camarógrafo de prensa,Press cameraman
+31,Cantante de música,Singer
+32,Carnicero (destazador),Butcher
+33,Carpintero,Carpenter
+34,Catedrático,Professor
+35,Cerrajero,Locksmith
+36,Chequeador de buses,Bus checker
+37,Chofer de bus,Bus driver
+38,Chofer de tráiler,Trailer driver
+39,Chofer de vehículo,Vehicle driver
+40,Cobrador,Collector
+41,Cocinero,Cook
+42,Comerciante,Merchant
+43,Constructor,Builder
+44,Consultor,Consultant
+45,Contador,Accountant
+46,Corredor de seguros,Insurance broker
+47,Cosmetóloga,Cosmetologist
+48,Costurera (modista),Seamstress (dressmaker)
+49,Dependiente de mostrador,Counter attendant
+50,Despachador agencia de aduana,Customs agency dispatcher
+51,Dibujante de artes gráficas,Graphic artist
+52,"Dibujante ingeniería, arquitectura","Engineering, architecture draftsman"
+53,Digitador,Data entry operator
+54,Diputado,Deputy
+55,Director centro educativo,Educational center director
+56,Diseñador,Designer
+57,Ebanista,Cabinetmaker
+58,Electricista,Electrician
+59,"Empacador, etiquetador","Packer, labeler"
+60,Empleada doméstica,Domestic worker
+61,Empleado de despacho,Dispatch clerk
+62,Empleado sector público,Public sector employee
+63,Empresario,Entrepreneur
+64,Encargado indicar acomodo parqueo,Parking attendant
+65,Encargado de limpieza en general,General cleaner
+66,Encargado limpieza en piscinas,Pool cleaner
+67,Encargado mantenimiento correctivo cómputo,Corrective computer maintenance
+68,Encargado mantenimiento preventivo cómputo,Preventive computer maintenance
+69,Encargado de poner discos (discjockey),Disc jockey
+70,Encargado de fotocopiadora,Photocopier operator
+71,Encargado mantenimiento edificio,Building maintenance
+72,Encuadernador-empastador,Binder
+73,Encuestador,Surveyor
+74,Enderezador automotriz,Automotive body repairer
+75,Engrasador de autos,Car greaser
+76,Ensamblador de computadoras,Computer assembler
+77,Estampador en textil (serigrafía),Textile printer (screen printing)
+78,Estilista,Stylist
+79,Florista,Florist
+80,Fontanero,Plumber
+81,Fotógrafo,Photographer
+82,Fumigador,Fumigator
+83,Fundidor,Founder
+84,Guía turístico,Tour guide
+85,Hojalatero,Tinsmith
+86,Horneador,Baker
+87,Ingeniero,Engineer
+88,Instructor de bailes,Dance instructor
+89,Jardinero,Gardener
+90,Jefe de cocina (chef),Chef
+91,Joyero,Jeweler
+92,Laboratorista clínico,Clinical laboratory technician
+93,"Lavador de baños, pisos, etc.","Bathroom, floor washer, etc."
+94,Lavador de cabellos,Hair washer
+95,Lavador de carros,Car washer
+96,Levantador de textos (artes gráficas),Text lifter (graphic arts)
+97,Locutor de radioemisora,Radio broadcaster
+98,Locutor de televisión,TV broadcaster
+99,Llanteros,Tire technician
+100,Maestro,Teacher
+101,Maestro de obras,Construction foreman
+102,Mecánico,Mechanic
+103,Mecánico dental,Dental mechanic
+104,Mensajero,Messenger
+105,Mesero,Waiter
+106,Oficinista,Office clerk
+107,Operador de computación,Computer operator
+108,Operador de grúa estacionaria,Stationary crane operator
+109,Operador de máquina de lavar ropa,Laundry machine operator
+110,Operador de máquina en general,General machine operator
+111,Operador de planta transmisora,Transmitter plant operator
+112,Operador de radio-taxi,Radio-taxi operator
+113,Operador escogedoras de café,Coffee sorting operator
+114,Operario,Operator
+115,Ordenanza,Orderly
+116,Ordeñador,Milker
+117,Panadero,Baker
+118,Pastelero,Pastry cook
+119,Peluquero,Hairdresser
+120,Periodista,Journalist
+121,Pintor,Painter
+122,Portero,Doorman
+123,Recamarera,Room attendant
+124,Recepcionista,Receptionist
+125,Recolector de café,Coffee picker
+126,Relojero,Watchmaker
+127,Sastre,Tailor
+128,Secretaria,Secretary
+129,Soldador en general,Welder
+130,Tapicero,Upholsterer
+131,Taxista,Taxi driver
+132,Técnico en educación superior,Higher education technician
+133,Técnico en aparatos ortopédicos,Orthopedic appliance technician
+134,Técnico en refrigeración,Refrigeration technician
+135,Técnico máquinas coser industrial,Industrial sewing machine technician
+136,Técnico en salud,Health technician
+137,Telefonista,Telephone operator
+138,Tornero en madera,Wood turner
+139,Tornero en metal,Metal turner
+140,Verdulero,Greengrocer
+141,Zapatero,Shoemaker
+142,Otras ocupaciones,Other occupations
+143,Doctor en medicina,Medical Doctor
