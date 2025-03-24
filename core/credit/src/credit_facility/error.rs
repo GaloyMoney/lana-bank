@@ -42,8 +42,8 @@ pub enum CreditFacilityError {
     NoOutstandingAmount,
     #[error("CreditFacilityError - AlreadyCompleted")]
     AlreadyCompleted,
-    #[error("CreditFacilityError - AlreadyMaturedWithOverdueBalance")]
-    AlreadyMaturedWithOverdueBalance,
+    #[error("CreditFacilityError - OverdueDisbursedBalanceAlreadyRecorded")]
+    OverdueDisbursedBalanceAlreadyRecorded,
     #[error("CreditFacilityError - InterestAccrualInProgress")]
     InterestAccrualInProgress,
     #[error("CreditFacilityError - InterestAccrualWithInvalidFutureStartDate")]

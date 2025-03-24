@@ -1016,14 +1016,14 @@ impl CreditLedger {
         Ok(())
     }
 
-    pub async fn mature_credit_facility(
+    pub async fn record_credit_facility_overdue_disbursed(
         &self,
         op: es_entity::DbOp<'_>,
-        CreditFacilityMaturationWithOverdueBalance {
+        CreditFacilityOverdueDisbursedBalance {
             tx_id,
             disbursed_outstanding,
             credit_facility_account_ids,
-        }: CreditFacilityMaturationWithOverdueBalance,
+        }: CreditFacilityOverdueDisbursedBalance,
     ) -> Result<(), CreditLedgerError> {
         let mut op = self.cala.ledger_operation_from_db_op(op);
         self.cala

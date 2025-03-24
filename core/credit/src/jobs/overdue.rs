@@ -107,15 +107,15 @@ where
             .record_system_entry_in_tx(
                 db.tx(),
                 CoreCreditObject::all_credit_facilities(),
-                CoreCreditAction::CREDIT_FACILITY_MATURE_WITH_OVERDUE_BALANCE,
+                CoreCreditAction::CREDIT_FACILITY_RECORD_OVERDUE_DISBURSED_BALANCE,
             )
             .await?;
 
         let mut credit_facility = self.repo.find_by_id(self.config.credit_facility_id).await?;
-        let maturation = match credit_facility.mature_with_overdue_balance(audit_info) {
-            Ok(maturation) => maturation,
+        let overdue = match credit_facility.record_overdue_disbursed_balance(audit_info) {
+            Ok(overdue) => overdue,
             Err(CreditFacilityError::AlreadyCompleted)
-            | Err(CreditFacilityError::AlreadyMaturedWithOverdueBalance)
+            | Err(CreditFacilityError::OverdueDisbursedBalanceAlreadyRecorded)
             | Err(CreditFacilityError::NoOutstandingAmount) => return Ok(JobCompletion::Complete),
             Err(e) => return Err(e.into()),
         };
@@ -123,7 +123,9 @@ where
         self.repo
             .update_in_op(&mut db, &mut credit_facility)
             .await?;
-        self.ledger.mature_credit_facility(db, maturation).await?;
+        self.ledger
+            .record_credit_facility_overdue_disbursed(db, overdue)
+            .await?;
 
         Ok(JobCompletion::Complete)
     }

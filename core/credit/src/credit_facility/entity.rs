@@ -90,7 +90,7 @@ pub enum CreditFacilityEvent {
         recorded_at: DateTime<Utc>,
         audit_info: AuditInfo,
     },
-    MaturedWithOverdueBalance {
+    OverdueDisbursedBalanceRecorded {
         amount: UsdCents,
         recorded_at: DateTime<Utc>,
         audit_info: AuditInfo,
@@ -344,6 +344,10 @@ impl CreditFacility {
             .expect("entity_first_persisted_at not found")
     }
 
+    pub fn disbursed_overdue_at(&self) -> DateTime<Utc> {
+        self.matures_at.expect("Facility not activated yet")
+    }
+
     pub fn initial_facility(&self) -> UsdCents {
         for event in self.events.iter_all() {
             match event {
@@ -394,7 +398,7 @@ impl CreditFacility {
     }
 
     fn _disbursed_outstanding_due(&self) -> UsdCents {
-        if self.is_after_default_date() || self.is_after_maturity_date() {
+        if self.is_after_disbursed_default_date() || self.is_after_disbursed_overdue_date() {
             UsdCents::ZERO
         } else {
             self.disbursed_total_outstanding()
@@ -402,9 +406,9 @@ impl CreditFacility {
     }
 
     fn disbursed_outstanding_overdue(&self) -> UsdCents {
-        if self.is_after_default_date() {
+        if self.is_after_disbursed_default_date() {
             UsdCents::ZERO
-        } else if self.is_after_maturity_date() {
+        } else if self.is_after_disbursed_overdue_date() {
             self.disbursed_total_outstanding()
         } else {
             UsdCents::ZERO
@@ -412,7 +416,7 @@ impl CreditFacility {
     }
 
     fn _disbursed_outstanding_defaulted(&self) -> UsdCents {
-        if self.is_after_default_date() {
+        if self.is_after_disbursed_default_date() {
             self.disbursed_total_outstanding()
         } else {
             UsdCents::ZERO
@@ -506,7 +510,11 @@ impl CreditFacility {
         self.matures_at.is_some_and(|matures_at| now > matures_at)
     }
 
-    pub fn is_after_default_date(&self) -> bool {
+    pub fn is_after_disbursed_overdue_date(&self) -> bool {
+        self.is_after_maturity_date()
+    }
+
+    pub fn is_after_disbursed_default_date(&self) -> bool {
         let now = crate::time::now();
         self.defaults_at
             .is_some_and(|defaults_at| now > defaults_at)
@@ -858,7 +866,7 @@ impl CreditFacility {
     }
 
     fn payment_account_ids(&self) -> PaymentAccountIds {
-        if self.is_matured_with_overdue_balance() {
+        if self.has_overdue_disbursed_balance_recorded() {
             PaymentAccountIds {
                 disbursed_receivable_account_id: self
                     .account_ids
@@ -1070,10 +1078,13 @@ impl CreditFacility {
         self.maybe_update_collateralization(price, upgrade_buffer_cvl_pct, &audit_info);
     }
 
-    pub(crate) fn is_matured_with_overdue_balance(&self) -> bool {
-        self.events
-            .iter_all()
-            .any(|event| matches!(event, CreditFacilityEvent::MaturedWithOverdueBalance { .. }))
+    pub(crate) fn has_overdue_disbursed_balance_recorded(&self) -> bool {
+        self.events.iter_all().any(|event| {
+            matches!(
+                event,
+                CreditFacilityEvent::OverdueDisbursedBalanceRecorded { .. }
+            )
+        })
     }
 
     pub(crate) fn is_completed(&self) -> bool {
@@ -1082,31 +1093,31 @@ impl CreditFacility {
             .any(|event| matches!(event, CreditFacilityEvent::Completed { .. }))
     }
 
-    pub(crate) fn mature_with_overdue_balance(
+    pub(crate) fn record_overdue_disbursed_balance(
         &mut self,
         audit_info: AuditInfo,
-    ) -> Result<CreditFacilityMaturationWithOverdueBalance, CreditFacilityError> {
+    ) -> Result<CreditFacilityOverdueDisbursedBalance, CreditFacilityError> {
         if self.is_completed() {
             return Err(CreditFacilityError::AlreadyCompleted);
         }
-        if self.is_matured_with_overdue_balance() {
-            return Err(CreditFacilityError::AlreadyMaturedWithOverdueBalance);
+        if self.has_overdue_disbursed_balance_recorded() {
+            return Err(CreditFacilityError::OverdueDisbursedBalanceAlreadyRecorded);
         }
         if self.total_outstanding().is_zero() {
             return Err(CreditFacilityError::NoOutstandingAmount);
         }
 
-        let res = CreditFacilityMaturationWithOverdueBalance {
+        let res = CreditFacilityOverdueDisbursedBalance {
             tx_id: LedgerTxId::new(),
             disbursed_outstanding: self.disbursed_outstanding_overdue(),
             credit_facility_account_ids: self.account_ids,
         };
 
-        let matured_at = self.matures_at.expect("No 'matures_at' date set");
+        let overdue_at = self.disbursed_overdue_at();
         self.events
-            .push(CreditFacilityEvent::MaturedWithOverdueBalance {
+            .push(CreditFacilityEvent::OverdueDisbursedBalanceRecorded {
                 amount: res.disbursed_outstanding,
-                recorded_at: matured_at,
+                recorded_at: overdue_at,
                 audit_info,
             });
 
@@ -1245,7 +1256,7 @@ impl TryFromEvents<CreditFacilityEvent> for CreditFacility {
                 CreditFacilityEvent::CollateralUpdated { .. } => (),
                 CreditFacilityEvent::CollateralizationChanged { .. } => (),
                 CreditFacilityEvent::PaymentRecorded { .. } => (),
-                CreditFacilityEvent::MaturedWithOverdueBalance { .. } => (),
+                CreditFacilityEvent::OverdueDisbursedBalanceRecorded { .. } => (),
                 CreditFacilityEvent::Completed { .. } => (),
             }
         }
@@ -2177,7 +2188,7 @@ mod test {
         }
 
         #[test]
-        fn initiate_repayment_after_maturity_event_returns_overdue_account() {
+        fn initiate_repayment_after_overdue_event_returns_overdue_account() {
             let activated_at = "2023-01-01T00:00:00Z".parse::<DateTime<Utc>>().unwrap();
             let mut credit_facility = credit_facility_with_interest_accrual(activated_at);
 
@@ -2197,7 +2208,7 @@ mod test {
             );
 
             credit_facility
-                .mature_with_overdue_balance(dummy_audit_info())
+                .record_overdue_disbursed_balance(dummy_audit_info())
                 .unwrap();
 
             let new_payment = credit_facility

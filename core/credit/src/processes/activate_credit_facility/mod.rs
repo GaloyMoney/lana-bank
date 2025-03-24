@@ -109,9 +109,7 @@ where
                     credit_facility_id: id,
                     _phantom: std::marker::PhantomData,
                 },
-                credit_facility
-                    .matures_at
-                    .expect("Facility was not activated yet"),
+                credit_facility.disbursed_overdue_at(),
             )
             .await?;
 
