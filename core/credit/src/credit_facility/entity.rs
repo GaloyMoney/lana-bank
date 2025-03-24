@@ -389,7 +389,7 @@ impl CreditFacility {
     }
 
     fn _disbursed_outstanding_due(&self) -> UsdCents {
-        if self.is_defaulted() || self.is_matured() {
+        if self.is_after_default_date() || self.is_after_maturity_date() {
             UsdCents::ZERO
         } else {
             self.disbursed_total_outstanding()
@@ -397,9 +397,9 @@ impl CreditFacility {
     }
 
     fn disbursed_outstanding_overdue(&self) -> UsdCents {
-        if self.is_defaulted() {
+        if self.is_after_default_date() {
             UsdCents::ZERO
-        } else if self.is_matured() {
+        } else if self.is_after_maturity_date() {
             self.disbursed_total_outstanding()
         } else {
             UsdCents::ZERO
@@ -407,7 +407,7 @@ impl CreditFacility {
     }
 
     fn _disbursed_outstanding_defaulted(&self) -> UsdCents {
-        if self.is_defaulted() {
+        if self.is_after_default_date() {
             self.disbursed_total_outstanding()
         } else {
             UsdCents::ZERO
@@ -496,12 +496,12 @@ impl CreditFacility {
         false
     }
 
-    pub fn is_matured(&self) -> bool {
+    pub fn is_after_maturity_date(&self) -> bool {
         let now = crate::time::now();
         self.matures_at.is_some_and(|matures_at| now > matures_at)
     }
 
-    pub fn is_defaulted(&self) -> bool {
+    pub fn is_after_default_date(&self) -> bool {
         let now = crate::time::now();
         self.defaults_at
             .is_some_and(|defaults_at| now > defaults_at)
@@ -510,7 +510,7 @@ impl CreditFacility {
     pub fn status(&self) -> CreditFacilityStatus {
         if self.is_completed() {
             CreditFacilityStatus::Closed
-        } else if self.is_matured() {
+        } else if self.is_after_maturity_date() {
             CreditFacilityStatus::Matured
         } else if self.is_activated() {
             CreditFacilityStatus::Active
@@ -2087,7 +2087,7 @@ mod test {
                     dummy_audit_info(),
                 )
                 .is_ok());
-            assert!(!credit_facility.is_matured())
+            assert!(!credit_facility.is_after_maturity_date())
         }
 
         #[test]
@@ -2114,7 +2114,7 @@ mod test {
                     dummy_audit_info(),
                 )
                 .is_ok());
-            assert!(credit_facility.is_matured())
+            assert!(credit_facility.is_after_maturity_date())
         }
 
         #[test]
@@ -2140,7 +2140,7 @@ mod test {
                 outstanding_before.total() - outstanding_after.total(),
                 repayment_amount
             );
-            assert!(!credit_facility.is_matured())
+            assert!(!credit_facility.is_after_maturity_date())
         }
 
         #[test]
@@ -2168,7 +2168,7 @@ mod test {
                 outstanding_before.total() - outstanding_after.total(),
                 partial_repayment_amount
             );
-            assert!(credit_facility.is_matured())
+            assert!(credit_facility.is_after_maturity_date())
         }
 
         #[test]
