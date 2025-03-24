@@ -1341,21 +1341,21 @@
       "description": "Balance sheet configuration",
       "setTitle": "Set Balance Sheet Configuration",
       "chartOfAccountsId": "Chart of Accounts ID",
-      "chartOfAccountsAssetsCode": "Assets Code",
-      "chartOfAccountsLiabilitiesCode": "Liabilities Code",
-      "chartOfAccountsEquityCode": "Equity Code",
-      "chartOfAccountsRevenueCode": "Revenue Code",
-      "chartOfAccountsCostOfRevenueCode": "Cost of Revenue Code",
-      "chartOfAccountsExpensesCode": "Expenses Code"
+      "chartOfAccountsAssetsCode": "Assets Code (e.g. 1)",
+      "chartOfAccountsLiabilitiesCode": "Liabilities Code (e.g. 2)",
+      "chartOfAccountsEquityCode": "Equity Code (e.g. 3)",
+      "chartOfAccountsRevenueCode": "Revenue Code (e.g. 4)",
+      "chartOfAccountsCostOfRevenueCode": "Cost of Revenue Code (e.g. 7)",
+      "chartOfAccountsExpensesCode": "Expenses Code (e.g. 8)"
     },
     "profitAndLoss": {
       "title": "Profit and Loss",
       "description": "Profit and loss statement configuration",
       "setTitle": "Set Profit and Loss Configuration",
       "chartOfAccountsId": "Chart of Accounts ID",
-      "chartOfAccountsRevenueCode": "Revenue Code",
-      "chartOfAccountsCostOfRevenueCode": "Cost of Revenue Code",
-      "chartOfAccountsExpensesCode": "Expenses Code"
+      "chartOfAccountsRevenueCode": "Revenue Code (e.g. 6)",
+      "chartOfAccountsCostOfRevenueCode": "Cost of Revenue Code (e.g. 7)",
+      "chartOfAccountsExpensesCode": "Expenses Code (e.g. 8)"
     }
   },
   "ChartOfAccountsLedgerAccount": {
