@@ -90,6 +90,11 @@ pub enum CreditFacilityEvent {
         recorded_at: DateTime<Utc>,
         audit_info: AuditInfo,
     },
+    MaturedWithOverdueBalance {
+        amount: UsdCents,
+        recorded_at: DateTime<Utc>,
+        audit_info: AuditInfo,
+    },
     Completed {
         completed_at: DateTime<Utc>,
         audit_info: AuditInfo,
@@ -1065,10 +1070,47 @@ impl CreditFacility {
         self.maybe_update_collateralization(price, upgrade_buffer_cvl_pct, &audit_info);
     }
 
-    fn is_completed(&self) -> bool {
+    pub(crate) fn is_matured_with_overdue_balance(&self) -> bool {
+        self.events
+            .iter_all()
+            .any(|event| matches!(event, CreditFacilityEvent::MaturedWithOverdueBalance { .. }))
+    }
+
+    pub(crate) fn is_completed(&self) -> bool {
         self.events
             .iter_all()
             .any(|event| matches!(event, CreditFacilityEvent::Completed { .. }))
+    }
+
+    pub(crate) fn mature_with_overdue_balance(
+        &mut self,
+        audit_info: AuditInfo,
+    ) -> Result<CreditFacilityMaturationWithOverdueBalance, CreditFacilityError> {
+        if self.is_completed() {
+            return Err(CreditFacilityError::AlreadyCompleted);
+        }
+        if self.is_matured_with_overdue_balance() {
+            return Err(CreditFacilityError::AlreadyMaturedWithOverdueBalance);
+        }
+        if self.total_outstanding().is_zero() {
+            return Err(CreditFacilityError::NoOutstandingAmount);
+        }
+
+        let res = CreditFacilityMaturationWithOverdueBalance {
+            tx_id: LedgerTxId::new(),
+            disbursed_outstanding: self.disbursed_outstanding_overdue(),
+            credit_facility_account_ids: self.account_ids,
+        };
+
+        let matured_at = self.matures_at.expect("No 'matures_at' date set");
+        self.events
+            .push(CreditFacilityEvent::MaturedWithOverdueBalance {
+                amount: res.disbursed_outstanding,
+                recorded_at: matured_at,
+                audit_info,
+            });
+
+        Ok(res)
     }
 
     pub(crate) fn complete(
@@ -1203,6 +1245,7 @@ impl TryFromEvents<CreditFacilityEvent> for CreditFacility {
                 CreditFacilityEvent::CollateralUpdated { .. } => (),
                 CreditFacilityEvent::CollateralizationChanged { .. } => (),
                 CreditFacilityEvent::PaymentRecorded { .. } => (),
+                CreditFacilityEvent::MaturedWithOverdueBalance { .. } => (),
                 CreditFacilityEvent::Completed { .. } => (),
             }
         }

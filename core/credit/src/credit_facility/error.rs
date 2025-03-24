@@ -38,8 +38,12 @@ pub enum CreditFacilityError {
     FacilityLedgerBalanceMismatch,
     #[error("CreditFacilityError - OutstandingAmount")]
     OutstandingAmount,
+    #[error("CreditFacilityError - NoOutstandingAmount")]
+    NoOutstandingAmount,
     #[error("CreditFacilityError - AlreadyCompleted")]
     AlreadyCompleted,
+    #[error("CreditFacilityError - AlreadyMaturedWithOverdueBalance")]
+    AlreadyMaturedWithOverdueBalance,
     #[error("CreditFacilityError - InterestAccrualInProgress")]
     InterestAccrualInProgress,
     #[error("CreditFacilityError - InterestAccrualWithInvalidFutureStartDate")]
