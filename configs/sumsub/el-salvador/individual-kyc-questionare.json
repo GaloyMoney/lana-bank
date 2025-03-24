@@ -1,5 +1,5 @@
 {
-  "id": "reg_report_dedup",
+  "id": "el_salvador_onboarding",
   "title": "",
   "localizedTitle": {
     "values": [
@@ -58,7 +58,7 @@
               },
               {
                 "lang": "es",
-                "value": "Genero"
+                "value": "Género"
               }
             ]
           },
@@ -104,7 +104,7 @@
               "score": null
             },
             {
-              "value": "MFirst and last",
+              "value": "M",
               "title": "Male",
               "localizedTitle": {
                 "values": [
@@ -277,7 +277,7 @@
           "type": "text",
           "required": true,
           "format": null,
-          "condition": "personalInformation.gender = F && personalInformation.maritalStatus = Divorced",
+          "condition": "personalInformation.gender = F && personalInformation.maritalStatus = Married",
           "showCondition": null,
           "placeholder": "Type something",
           "localizedPlaceholder": {
@@ -299,6 +299,10 @@
               {
                 "lang": "en",
                 "value": "Name of spouse"
+              },
+              {
+                "lang": "es",
+                "value": "Nombre del cónyuge"
               }
             ]
           },
@@ -375,6 +379,10 @@
                   {
                     "lang": "en",
                     "value": "No relation"
+                  },
+                  {
+                    "lang": "es",
+                    "value": "No tiene relación. "
                   }
                 ]
               },
@@ -388,6 +396,10 @@
                   {
                     "lang": "en",
                     "value": "Directors and managers, their spouses, and relatives up to the third degree of consanguinity and the second degree of affinity."
+                  },
+                  {
+                    "lang": "es",
+                    "value": "Directores y gerentes, sus cónyuges y parientes dentro del tercer grado de consanguineidad y segundo de afinidad."
                   }
                 ]
               },
@@ -401,6 +413,10 @@
                   {
                     "lang": "en",
                     "value": "Shareholders with 3% or more participation in the entity's shares, including shares held by their spouses, first-degree relatives, and companies linked by ownership or management."
+                  },
+                  {
+                    "lang": "es",
+                    "value": "Accionistas con participación de 3% o más de las acciones de la entidad, incluyendo las acciones de sus cónyuges parientes dentro del primer grado de consanguineidad y empresas vinculadas con la propiedad o administración."
                   }
                 ]
               },
@@ -641,6 +657,10 @@
               {
                 "lang": "en",
                 "value": "Engineer"
+              },
+              {
+                "lang": "es",
+                "value": "Ingeniero"
               }
             ]
           },
