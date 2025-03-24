@@ -673,6 +673,724 @@
                   {
                     "lang": "en",
                     "value": "Administrator"
+                  },
+                  {
+                    "lang": "es",
+                    "value": "Administrador"
+                  }
+                ]
+              },
+              "score": null
+            },
+            {
+              "value": "002",
+              "title": "Customs agent",
+              "localizedTitle": {
+                "values": [
+                  {
+                    "lang": "en",
+                    "value": "Customs agent"
+                  },
+                  {
+                    "lang": "es",
+                    "value": "Agente de aduana"
+                  }
+                ]
+              },
+              "score": null
+            },
+            {
+              "value": "003",
+              "title": "Sales agent",
+              "localizedTitle": {
+                "values": [
+                  {
+                    "lang": "en",
+                    "value": "Sales agent"
+                  },
+                  {
+                    "lang": "es",
+                    "value": "Agente de ventas"
+                  }
+                ]
+              },
+              "score": null
+            },
+            {
+              "value": "004",
+              "title": "Farmer",
+              "localizedTitle": {
+                "values": [
+                  {
+                    "lang": "en",
+                    "value": "Farmer"
+                  },
+                  {
+                    "lang": "es",
+                    "value": "Agricultor"
+                  }
+                ]
+              },
+              "score": null
+            },
+            {
+              "value": "005",
+              "title": "Agronomist",
+              "localizedTitle": {
+                "values": [
+                  {
+                    "lang": "en",
+                    "value": "Agronomist"
+                  },
+                  {
+                    "lang": "es",
+                    "value": "Agrónomo"
+                  }
+                ]
+              },
+              "score": null
+            },
+            {
+              "value": "006",
+              "title": "Mason",
+              "localizedTitle": {
+                "values": [
+                  {
+                    "lang": "en",
+                    "value": "Mason"
+                  },
+                  {
+                    "lang": "es",
+                    "value": "Albañil"
+                  }
+                ]
+              },
+              "score": null
+            },
+            {
+              "value": "007",
+              "title": "Housewife",
+              "localizedTitle": {
+                "values": [
+                  {
+                    "lang": "en",
+                    "value": "Housewife"
+                  },
+                  {
+                    "lang": "es",
+                    "value": "Ama de casa"
+                  }
+                ]
+              },
+              "score": null
+            },
+            {
+              "value": "008",
+              "title": "Computer analyst",
+              "localizedTitle": {
+                "values": [
+                  {
+                    "lang": "en",
+                    "value": "Computer analyst"
+                  },
+                  {
+                    "lang": "es",
+                    "value": "Analista de computación"
+                  }
+                ]
+              },
+              "score": null
+            },
+            {
+              "value": "009",
+              "title": "Beekeeper",
+              "localizedTitle": {
+                "values": [
+                  {
+                    "lang": "en",
+                    "value": "Beekeeper"
+                  },
+                  {
+                    "lang": "es",
+                    "value": "Apicultor"
+                  }
+                ]
+              },
+              "score": null
+            },
+            {
+              "value": "010",
+              "title": "Architect",
+              "localizedTitle": {
+                "values": [
+                  {
+                    "lang": "en",
+                    "value": "Architect"
+                  },
+                  {
+                    "lang": "es",
+                    "value": "Arquitecto"
+                  }
+                ]
+              },
+              "score": null
+            },
+            {
+              "value": "011",
+              "title": "Craftsman",
+              "localizedTitle": {
+                "values": [
+                  {
+                    "lang": "en",
+                    "value": "Craftsman"
+                  },
+                  {
+                    "lang": "es",
+                    "value": "Artesano"
+                  }
+                ]
+              },
+              "score": null
+            },
+            {
+              "value": "012",
+              "title": "Elevator operator",
+              "localizedTitle": {
+                "values": [
+                  {
+                    "lang": "en",
+                    "value": "Elevator operator"
+                  },
+                  {
+                    "lang": "es",
+                    "value": "Ascensorista"
+                  }
+                ]
+              },
+              "score": null
+            },
+            {
+              "value": "013",
+              "title": "Legal assistant",
+              "localizedTitle": {
+                "values": [
+                  {
+                    "lang": "en",
+                    "value": "Legal assistant"
+                  },
+                  {
+                    "lang": "es",
+                    "value": "Asistente de abogacía"
+                  }
+                ]
+              },
+              "score": null
+            },
+            {
+              "value": "014",
+              "title": "Audit assistant",
+              "localizedTitle": {
+                "values": [
+                  {
+                    "lang": "en",
+                    "value": "Audit assistant"
+                  },
+                  {
+                    "lang": "es",
+                    "value": "Asistente de auditoría"
+                  }
+                ]
+              },
+              "score": null
+            },
+            {
+              "value": "015",
+              "title": "Medical office assistant",
+              "localizedTitle": {
+                "values": [
+                  {
+                    "lang": "en",
+                    "value": "Medical office assistant"
+                  },
+                  {
+                    "lang": "es",
+                    "value": "Asistente de consultorio médico"
+                  }
+                ]
+              },
+              "score": null
+            },
+            {
+              "value": "016",
+              "title": "Advisor",
+              "localizedTitle": {
+                "values": [
+                  {
+                    "lang": "en",
+                    "value": "Advisor"
+                  },
+                  {
+                    "lang": "es",
+                    "value": "Asesor"
+                  }
+                ]
+              },
+              "score": null
+            },
+            {
+              "value": "017",
+              "title": "Auditor",
+              "localizedTitle": {
+                "values": [
+                  {
+                    "lang": "en",
+                    "value": "Auditor"
+                  },
+                  {
+                    "lang": "es",
+                    "value": "Auditor"
+                  }
+                ]
+              },
+              "score": null
+            },
+            {
+              "value": "018",
+              "title": "Accounting assistant",
+              "localizedTitle": {
+                "values": [
+                  {
+                    "lang": "en",
+                    "value": "Accounting assistant"
+                  },
+                  {
+                    "lang": "es",
+                    "value": "Auxiliar de contabilidad"
+                  }
+                ]
+              },
+              "score": null
+            },
+            {
+              "value": "019",
+              "title": "Dental assistant",
+              "localizedTitle": {
+                "values": [
+                  {
+                    "lang": "en",
+                    "value": "Dental assistant"
+                  },
+                  {
+                    "lang": "es",
+                    "value": "Auxiliar dental"
+                  }
+                ]
+              },
+              "score": null
+            },
+            {
+              "value": "020",
+              "title": "Kitchen assistant",
+              "localizedTitle": {
+                "values": [
+                  {
+                    "lang": "en",
+                    "value": "Kitchen assistant"
+                  },
+                  {
+                    "lang": "es",
+                    "value": "Auxiliar de cocina"
+                  }
+                ]
+              },
+              "score": null
+            },
+            {
+              "value": "021",
+              "title": "Mechanic's helper",
+              "localizedTitle": {
+                "values": [
+                  {
+                    "lang": "en",
+                    "value": "Mechanic's helper"
+                  },
+                  {
+                    "lang": "es",
+                    "value": "Ayudante de mecánico general"
+                  }
+                ]
+              },
+              "score": null
+            },
+            {
+              "value": "022",
+              "title": "Ayudante operario, construcción",
+              "localizedTitle": {
+                "values": [
+                  {
+                    "lang": "en",
+                    "value": "Construction worker helper"
+                  },
+                  {
+                    "lang": "es",
+                    "value": "Ayudante operario, construcción"
+                  }
+                ]
+              },
+              "score": null
+            },
+            {
+              "value": "023",
+              "title": "High school graduate",
+              "localizedTitle": {
+                "values": [
+                  {
+                    "lang": "en",
+                    "value": "High school graduate"
+                  },
+                  {
+                    "lang": "es",
+                    "value": "Bachiller"
+                  }
+                ]
+              },
+              "score": null
+            },
+            {
+              "value": "024",
+              "title": "Barber",
+              "localizedTitle": {
+                "values": [
+                  {
+                    "lang": "en",
+                    "value": "Barber"
+                  },
+                  {
+                    "lang": "es",
+                    "value": "Barbero"
+                  }
+                ]
+              },
+              "score": null
+            },
+            {
+              "value": "025",
+              "title": "Bartender",
+              "localizedTitle": {
+                "values": [
+                  {
+                    "lang": "en",
+                    "value": "Bartender"
+                  },
+                  {
+                    "lang": "es",
+                    "value": "Bartender"
+                  }
+                ]
+              },
+              "score": null
+            },
+            {
+              "value": "026",
+              "title": "Warehouse keeper",
+              "localizedTitle": {
+                "values": [
+                  {
+                    "lang": "en",
+                    "value": "Warehouse keeper"
+                  },
+                  {
+                    "lang": "es",
+                    "value": "Bodeguero"
+                  }
+                ]
+              },
+              "score": null
+            },
+            {
+              "value": "027",
+              "title": "Firefighter",
+              "localizedTitle": {
+                "values": [
+                  {
+                    "lang": "en",
+                    "value": "Firefighter"
+                  },
+                  {
+                    "lang": "es",
+                    "value": "Bombero"
+                  }
+                ]
+              },
+              "score": null
+            },
+            {
+              "value": "028",
+              "title": "Bellhop",
+              "localizedTitle": {
+                "values": [
+                  {
+                    "lang": "en",
+                    "value": "Bellhop"
+                  },
+                  {
+                    "lang": "es",
+                    "value": "Botones"
+                  }
+                ]
+              },
+              "score": null
+            },
+            {
+              "value": "029",
+              "title": "Cashier",
+              "localizedTitle": {
+                "values": [
+                  {
+                    "lang": "en",
+                    "value": "Cashier"
+                  },
+                  {
+                    "lang": "es",
+                    "value": "Cajero"
+                  }
+                ]
+              },
+              "score": null
+            },
+            {
+              "value": "030",
+              "title": "Press cameraman",
+              "localizedTitle": {
+                "values": [
+                  {
+                    "lang": "en",
+                    "value": "Press cameraman"
+                  },
+                  {
+                    "lang": "es",
+                    "value": "Camarógrafo de prensa"
+                  }
+                ]
+              },
+              "score": null
+            },
+            {
+              "value": "031",
+              "title": "Singer",
+              "localizedTitle": {
+                "values": [
+                  {
+                    "lang": "en",
+                    "value": "Singer"
+                  },
+                  {
+                    "lang": "es",
+                    "value": "Cantante de música"
+                  }
+                ]
+              },
+              "score": null
+            },
+            {
+              "value": "032",
+              "title": "Butcher",
+              "localizedTitle": {
+                "values": [
+                  {
+                    "lang": "en",
+                    "value": "Butcher"
+                  },
+                  {
+                    "lang": "es",
+                    "value": "Carnicero (destazador)"
+                  }
+                ]
+              },
+              "score": null
+            },
+            {
+              "value": "033",
+              "title": "Carpenter",
+              "localizedTitle": {
+                "values": [
+                  {
+                    "lang": "en",
+                    "value": "Carpenter"
+                  },
+                  {
+                    "lang": "es",
+                    "value": "Carpintero"
+                  }
+                ]
+              },
+              "score": null
+            },
+            {
+              "value": "034",
+              "title": "Professor",
+              "localizedTitle": {
+                "values": [
+                  {
+                    "lang": "en",
+                    "value": "Professor"
+                  },
+                  {
+                    "lang": "es",
+                    "value": "Catedrático"
+                  }
+                ]
+              },
+              "score": null
+            },
+            {
+              "value": "035",
+              "title": "Locksmith",
+              "localizedTitle": {
+                "values": [
+                  {
+                    "lang": "en",
+                    "value": "Locksmith"
+                  },
+                  {
+                    "lang": "es",
+                    "value": "Cerrajero"
+                  }
+                ]
+              },
+              "score": null
+            },
+            {
+              "value": "036",
+              "title": "Bus checker",
+              "localizedTitle": {
+                "values": [
+                  {
+                    "lang": "en",
+                    "value": "Bus checker"
+                  },
+                  {
+                    "lang": "es",
+                    "value": "Chequeador de buses"
+                  }
+                ]
+              },
+              "score": null
+            },
+            {
+              "value": "037",
+              "title": "Bus driver",
+              "localizedTitle": {
+                "values": [
+                  {
+                    "lang": "en",
+                    "value": "Bus driver"
+                  },
+                  {
+                    "lang": "es",
+                    "value": "Chofer de bus"
+                  }
+                ]
+              },
+              "score": null
+            },
+            {
+              "value": "038",
+              "title": "Trailer driver",
+              "localizedTitle": {
+                "values": [
+                  {
+                    "lang": "en",
+                    "value": "Trailer driver"
+                  },
+                  {
+                    "lang": "es",
+                    "value": "Chofer de tráiler"
+                  }
+                ]
+              },
+              "score": null
+            },
+            {
+              "value": "039",
+              "title": "Vehicle driver",
+              "localizedTitle": {
+                "values": [
+                  {
+                    "lang": "en",
+                    "value": "Vehicle driver"
+                  },
+                  {
+                    "lang": "es",
+                    "value": "Chofer de vehículo"
+                  }
+                ]
+              },
+              "score": null
+            },
+            {
+              "value": "040",
+              "title": "Collector",
+              "localizedTitle": {
+                "values": [
+                  {
+                    "lang": "en",
+                    "value": "Collector"
+                  },
+                  {
+                    "lang": "es",
+                    "value": "Cobrador"
+                  }
+                ]
+              },
+              "score": null
+            },
+            {
+              "value": "041",
+              "title": "Cook",
+              "localizedTitle": {
+                "values": [
+                  {
+                    "lang": "en",
+                    "value": "Cook"
+                  },
+                  {
+                    "lang": "es",
+                    "value": "Cocinero"
+                  }
+                ]
+              },
+              "score": null
+            },
+            {
+              "value": "042",
+              "title": "Merchant",
+              "localizedTitle": {
+                "values": [
+                  {
+                    "lang": "en",
+                    "value": "Merchant"
+                  },
+                  {
+                    "lang": "es",
+                    "value": "Comerciante"
+                  }
+                ]
+              },
+              "score": null
+            },
+            {
+              "value": "043",
+              "title": "Builder",
+              "localizedTitle": {
+                "values": [
+                  {
+                    "lang": "en",
+                    "value": "Builder"
+                  },
+                  {
+                    "lang": "es",
+                    "value": "Constructor"
                   }
                 ]
               },
@@ -686,6 +1404,265 @@
                   {
                     "lang": "en",
                     "value": "Consultant"
+                  },
+                  {
+                    "lang": "es",
+                    "value": "Consultor"
+                  }
+                ]
+              },
+              "score": null
+            },
+            {
+              "value": "045",
+              "title": "Accountant",
+              "localizedTitle": {
+                "values": [
+                  {
+                    "lang": "en",
+                    "value": "Accountant"
+                  },
+                  {
+                    "lang": "es",
+                    "value": "Contador"
+                  }
+                ]
+              },
+              "score": null
+            },
+            {
+              "value": "046",
+              "title": "Insurance broker",
+              "localizedTitle": {
+                "values": [
+                  {
+                    "lang": "en",
+                    "value": "Insurance broker"
+                  },
+                  {
+                    "lang": "es",
+                    "value": "Corredor de seguros"
+                  }
+                ]
+              },
+              "score": null
+            },
+            {
+              "value": "047",
+              "title": "Cosmetologist",
+              "localizedTitle": {
+                "values": [
+                  {
+                    "lang": "en",
+                    "value": "Cosmetologist"
+                  },
+                  {
+                    "lang": "es",
+                    "value": "Cosmetóloga"
+                  }
+                ]
+              },
+              "score": null
+            },
+            {
+              "value": "048",
+              "title": "Seamstress (dressmaker)",
+              "localizedTitle": {
+                "values": [
+                  {
+                    "lang": "en",
+                    "value": "Seamstress (dressmaker)"
+                  },
+                  {
+                    "lang": "es",
+                    "value": "Costurera (modista)"
+                  }
+                ]
+              },
+              "score": null
+            },
+            {
+              "value": "049",
+              "title": "Counter attendant",
+              "localizedTitle": {
+                "values": [
+                  {
+                    "lang": "en",
+                    "value": "Counter attendant"
+                  },
+                  {
+                    "lang": "es",
+                    "value": "Dependiente de mostrador"
+                  }
+                ]
+              },
+              "score": null
+            },
+            {
+              "value": "050",
+              "title": "Customs agency dispatcher",
+              "localizedTitle": {
+                "values": [
+                  {
+                    "lang": "en",
+                    "value": "Customs agency dispatcher"
+                  },
+                  {
+                    "lang": "es",
+                    "value": "Despachador agencia de aduana"
+                  }
+                ]
+              },
+              "score": null
+            },
+            {
+              "value": "051",
+              "title": "Graphic artist",
+              "localizedTitle": {
+                "values": [
+                  {
+                    "lang": "en",
+                    "value": "Graphic artist"
+                  },
+                  {
+                    "lang": "es",
+                    "value": "Dibujante de artes gráficas"
+                  }
+                ]
+              },
+              "score": null
+            },
+            {
+              "value": "052",
+              "title": " arquitectura",
+              "localizedTitle": {
+                "values": [
+                  {
+                    "lang": "en",
+                    "value": "arquitectura"
+                  },
+                  {
+                    "lang": "es",
+                    "value": "Dibujante ingeniería"
+                  }
+                ]
+              },
+              "score": null
+            },
+            {
+              "value": "053",
+              "title": "Data entry operator",
+              "localizedTitle": {
+                "values": [
+                  {
+                    "lang": "en",
+                    "value": "Data entry operator"
+                  },
+                  {
+                    "lang": "es",
+                    "value": "Digitador"
+                  }
+                ]
+              },
+              "score": null
+            },
+            {
+              "value": "054",
+              "title": "Deputy",
+              "localizedTitle": {
+                "values": [
+                  {
+                    "lang": "en",
+                    "value": "Deputy"
+                  },
+                  {
+                    "lang": "es",
+                    "value": "Diputado"
+                  }
+                ]
+              },
+              "score": null
+            },
+            {
+              "value": "055",
+              "title": "Educational center director",
+              "localizedTitle": {
+                "values": [
+                  {
+                    "lang": "en",
+                    "value": "Educational center director"
+                  },
+                  {
+                    "lang": "es",
+                    "value": "Director centro educativo"
+                  }
+                ]
+              },
+              "score": null
+            },
+            {
+              "value": "056",
+              "title": "Designer",
+              "localizedTitle": {
+                "values": [
+                  {
+                    "lang": "en",
+                    "value": "Designer"
+                  },
+                  {
+                    "lang": "es",
+                    "value": "Diseñador"
+                  }
+                ]
+              },
+              "score": null
+            },
+            {
+              "value": "057",
+              "title": "Cabinetmaker",
+              "localizedTitle": {
+                "values": [
+                  {
+                    "lang": "en",
+                    "value": "Cabinetmaker"
+                  },
+                  {
+                    "lang": "es",
+                    "value": "Ebanista"
+                  }
+                ]
+              },
+              "score": null
+            },
+            {
+              "value": "058",
+              "title": "Electrician",
+              "localizedTitle": {
+                "values": [
+                  {
+                    "lang": "en",
+                    "value": "Electrician"
+                  },
+                  {
+                    "lang": "es",
+                    "value": "Electricista"
+                  }
+                ]
+              },
+              "score": null
+            },
+            {
+              "value": "059",
+              "title": "etiquetador",
+              "localizedTitle": {
+                "values": [
+                  {
+                    "lang": "en",
+                    "value": "etiquetador"
+                  },
+                  {
+                    "lang": "es",
+                    "value": "Empacador"
                   }
                 ]
               },
@@ -693,12 +1670,33 @@
             },
             {
               "value": "060",
-              "title": "Domestic employee",
+              "title": "Domestic worker",
               "localizedTitle": {
                 "values": [
                   {
                     "lang": "en",
-                    "value": "Domestic employee"
+                    "value": "Domestic worker"
+                  },
+                  {
+                    "lang": "es",
+                    "value": "Empleada doméstica"
+                  }
+                ]
+              },
+              "score": null
+            },
+            {
+              "value": "061",
+              "title": "Dispatch clerk",
+              "localizedTitle": {
+                "values": [
+                  {
+                    "lang": "en",
+                    "value": "Dispatch clerk"
+                  },
+                  {
+                    "lang": "es",
+                    "value": "Empleado de despacho"
                   }
                 ]
               },
@@ -712,6 +1710,10 @@
                   {
                     "lang": "en",
                     "value": "Public sector employee"
+                  },
+                  {
+                    "lang": "es",
+                    "value": "Empleado sector público"
                   }
                 ]
               },
@@ -719,12 +1721,407 @@
             },
             {
               "value": "063",
-              "title": "Businessman",
+              "title": "Entrepreneur",
               "localizedTitle": {
                 "values": [
                   {
                     "lang": "en",
-                    "value": "Businessman"
+                    "value": "Entrepreneur"
+                  },
+                  {
+                    "lang": "es",
+                    "value": "Empresario"
+                  }
+                ]
+              },
+              "score": null
+            },
+            {
+              "value": "064",
+              "title": "Parking attendant",
+              "localizedTitle": {
+                "values": [
+                  {
+                    "lang": "en",
+                    "value": "Parking attendant"
+                  },
+                  {
+                    "lang": "es",
+                    "value": "Encargado indicar acomodo parqueo"
+                  }
+                ]
+              },
+              "score": null
+            },
+            {
+              "value": "065",
+              "title": "General cleaner",
+              "localizedTitle": {
+                "values": [
+                  {
+                    "lang": "en",
+                    "value": "General cleaner"
+                  },
+                  {
+                    "lang": "es",
+                    "value": "Encargado de limpieza en general"
+                  }
+                ]
+              },
+              "score": null
+            },
+            {
+              "value": "066",
+              "title": "Pool cleaner",
+              "localizedTitle": {
+                "values": [
+                  {
+                    "lang": "en",
+                    "value": "Pool cleaner"
+                  },
+                  {
+                    "lang": "es",
+                    "value": "Encargado limpieza en piscinas"
+                  }
+                ]
+              },
+              "score": null
+            },
+            {
+              "value": "067",
+              "title": "Corrective computer maintenance",
+              "localizedTitle": {
+                "values": [
+                  {
+                    "lang": "en",
+                    "value": "Corrective computer maintenance"
+                  },
+                  {
+                    "lang": "es",
+                    "value": "Encargado mantenimiento correctivo cómputo"
+                  }
+                ]
+              },
+              "score": null
+            },
+            {
+              "value": "068",
+              "title": "Preventive computer maintenance",
+              "localizedTitle": {
+                "values": [
+                  {
+                    "lang": "en",
+                    "value": "Preventive computer maintenance"
+                  },
+                  {
+                    "lang": "es",
+                    "value": "Encargado mantenimiento preventivo cómputo"
+                  }
+                ]
+              },
+              "score": null
+            },
+            {
+              "value": "069",
+              "title": "Disc jockey",
+              "localizedTitle": {
+                "values": [
+                  {
+                    "lang": "en",
+                    "value": "Disc jockey"
+                  },
+                  {
+                    "lang": "es",
+                    "value": "Encargado de poner discos (discjockey)"
+                  }
+                ]
+              },
+              "score": null
+            },
+            {
+              "value": "070",
+              "title": "Photocopier operator",
+              "localizedTitle": {
+                "values": [
+                  {
+                    "lang": "en",
+                    "value": "Photocopier operator"
+                  },
+                  {
+                    "lang": "es",
+                    "value": "Encargado de fotocopiadora"
+                  }
+                ]
+              },
+              "score": null
+            },
+            {
+              "value": "071",
+              "title": "Building maintenance",
+              "localizedTitle": {
+                "values": [
+                  {
+                    "lang": "en",
+                    "value": "Building maintenance"
+                  },
+                  {
+                    "lang": "es",
+                    "value": "Encargado mantenimiento edificio"
+                  }
+                ]
+              },
+              "score": null
+            },
+            {
+              "value": "072",
+              "title": "Binder",
+              "localizedTitle": {
+                "values": [
+                  {
+                    "lang": "en",
+                    "value": "Binder"
+                  },
+                  {
+                    "lang": "es",
+                    "value": "Encuadernador-empastador"
+                  }
+                ]
+              },
+              "score": null
+            },
+            {
+              "value": "073",
+              "title": "Surveyor",
+              "localizedTitle": {
+                "values": [
+                  {
+                    "lang": "en",
+                    "value": "Surveyor"
+                  },
+                  {
+                    "lang": "es",
+                    "value": "Encuestador"
+                  }
+                ]
+              },
+              "score": null
+            },
+            {
+              "value": "074",
+              "title": "Automotive body repairer",
+              "localizedTitle": {
+                "values": [
+                  {
+                    "lang": "en",
+                    "value": "Automotive body repairer"
+                  },
+                  {
+                    "lang": "es",
+                    "value": "Enderezador automotriz"
+                  }
+                ]
+              },
+              "score": null
+            },
+            {
+              "value": "075",
+              "title": "Car greaser",
+              "localizedTitle": {
+                "values": [
+                  {
+                    "lang": "en",
+                    "value": "Car greaser"
+                  },
+                  {
+                    "lang": "es",
+                    "value": "Engrasador de autos"
+                  }
+                ]
+              },
+              "score": null
+            },
+            {
+              "value": "076",
+              "title": "Computer assembler",
+              "localizedTitle": {
+                "values": [
+                  {
+                    "lang": "en",
+                    "value": "Computer assembler"
+                  },
+                  {
+                    "lang": "es",
+                    "value": "Ensamblador de computadoras"
+                  }
+                ]
+              },
+              "score": null
+            },
+            {
+              "value": "077",
+              "title": "Textile printer (screen printing)",
+              "localizedTitle": {
+                "values": [
+                  {
+                    "lang": "en",
+                    "value": "Textile printer (screen printing)"
+                  },
+                  {
+                    "lang": "es",
+                    "value": "Estampador en textil (serigrafía)"
+                  }
+                ]
+              },
+              "score": null
+            },
+            {
+              "value": "078",
+              "title": "Stylist",
+              "localizedTitle": {
+                "values": [
+                  {
+                    "lang": "en",
+                    "value": "Stylist"
+                  },
+                  {
+                    "lang": "es",
+                    "value": "Estilista"
+                  }
+                ]
+              },
+              "score": null
+            },
+            {
+              "value": "079",
+              "title": "Florist",
+              "localizedTitle": {
+                "values": [
+                  {
+                    "lang": "en",
+                    "value": "Florist"
+                  },
+                  {
+                    "lang": "es",
+                    "value": "Florista"
+                  }
+                ]
+              },
+              "score": null
+            },
+            {
+              "value": "080",
+              "title": "Plumber",
+              "localizedTitle": {
+                "values": [
+                  {
+                    "lang": "en",
+                    "value": "Plumber"
+                  },
+                  {
+                    "lang": "es",
+                    "value": "Fontanero"
+                  }
+                ]
+              },
+              "score": null
+            },
+            {
+              "value": "081",
+              "title": "Photographer",
+              "localizedTitle": {
+                "values": [
+                  {
+                    "lang": "en",
+                    "value": "Photographer"
+                  },
+                  {
+                    "lang": "es",
+                    "value": "Fotógrafo"
+                  }
+                ]
+              },
+              "score": null
+            },
+            {
+              "value": "082",
+              "title": "Fumigator",
+              "localizedTitle": {
+                "values": [
+                  {
+                    "lang": "en",
+                    "value": "Fumigator"
+                  },
+                  {
+                    "lang": "es",
+                    "value": "Fumigador"
+                  }
+                ]
+              },
+              "score": null
+            },
+            {
+              "value": "083",
+              "title": "Founder",
+              "localizedTitle": {
+                "values": [
+                  {
+                    "lang": "en",
+                    "value": "Founder"
+                  },
+                  {
+                    "lang": "es",
+                    "value": "Fundidor"
+                  }
+                ]
+              },
+              "score": null
+            },
+            {
+              "value": "084",
+              "title": "Tour guide",
+              "localizedTitle": {
+                "values": [
+                  {
+                    "lang": "en",
+                    "value": "Tour guide"
+                  },
+                  {
+                    "lang": "es",
+                    "value": "Guía turístico"
+                  }
+                ]
+              },
+              "score": null
+            },
+            {
+              "value": "085",
+              "title": "Tinsmith",
+              "localizedTitle": {
+                "values": [
+                  {
+                    "lang": "en",
+                    "value": "Tinsmith"
+                  },
+                  {
+                    "lang": "es",
+                    "value": "Hojalatero"
+                  }
+                ]
+              },
+              "score": null
+            },
+            {
+              "value": "086",
+              "title": "Baker",
+              "localizedTitle": {
+                "values": [
+                  {
+                    "lang": "en",
+                    "value": "Baker"
+                  },
+                  {
+                    "lang": "es",
+                    "value": "Horneador"
                   }
                 ]
               },
@@ -738,6 +2135,214 @@
                   {
                     "lang": "en",
                     "value": "Engineer"
+                  },
+                  {
+                    "lang": "es",
+                    "value": "Ingeniero"
+                  }
+                ]
+              },
+              "score": null
+            },
+            {
+              "value": "088",
+              "title": "Dance instructor",
+              "localizedTitle": {
+                "values": [
+                  {
+                    "lang": "en",
+                    "value": "Dance instructor"
+                  },
+                  {
+                    "lang": "es",
+                    "value": "Instructor de bailes"
+                  }
+                ]
+              },
+              "score": null
+            },
+            {
+              "value": "089",
+              "title": "Gardener",
+              "localizedTitle": {
+                "values": [
+                  {
+                    "lang": "en",
+                    "value": "Gardener"
+                  },
+                  {
+                    "lang": "es",
+                    "value": "Jardinero"
+                  }
+                ]
+              },
+              "score": null
+            },
+            {
+              "value": "090",
+              "title": "Chef",
+              "localizedTitle": {
+                "values": [
+                  {
+                    "lang": "en",
+                    "value": "Chef"
+                  },
+                  {
+                    "lang": "es",
+                    "value": "Jefe de cocina (chef)"
+                  }
+                ]
+              },
+              "score": null
+            },
+            {
+              "value": "091",
+              "title": "Jeweler",
+              "localizedTitle": {
+                "values": [
+                  {
+                    "lang": "en",
+                    "value": "Jeweler"
+                  },
+                  {
+                    "lang": "es",
+                    "value": "Joyero"
+                  }
+                ]
+              },
+              "score": null
+            },
+            {
+              "value": "092",
+              "title": "Clinical laboratory technician",
+              "localizedTitle": {
+                "values": [
+                  {
+                    "lang": "en",
+                    "value": "Clinical laboratory technician"
+                  },
+                  {
+                    "lang": "es",
+                    "value": "Laboratorista clínico"
+                  }
+                ]
+              },
+              "score": null
+            },
+            {
+              "value": "093",
+              "title": "Bathroom, floor, or other cleaner",
+              "localizedTitle": {
+                "values": [
+                  {
+                    "lang": "en",
+                    "value": "Bathroom, floor, or other cleaner"
+                  },
+                  {
+                    "lang": "es",
+                    "value": "Lavador de baños, pisos, etc."
+                  }
+                ]
+              },
+              "score": null
+            },
+            {
+              "value": "094",
+              "title": "Hair washer",
+              "localizedTitle": {
+                "values": [
+                  {
+                    "lang": "en",
+                    "value": "Hair washer"
+                  },
+                  {
+                    "lang": "es",
+                    "value": "Lavador de cabellos"
+                  }
+                ]
+              },
+              "score": null
+            },
+            {
+              "value": "095",
+              "title": "Car washer",
+              "localizedTitle": {
+                "values": [
+                  {
+                    "lang": "en",
+                    "value": "Car washer"
+                  },
+                  {
+                    "lang": "es",
+                    "value": "Lavador de carros"
+                  }
+                ]
+              },
+              "score": null
+            },
+            {
+              "value": "096",
+              "title": "Text lifter (graphic arts)",
+              "localizedTitle": {
+                "values": [
+                  {
+                    "lang": "en",
+                    "value": "Text lifter (graphic arts)"
+                  },
+                  {
+                    "lang": "es",
+                    "value": "Levantador de textos (artes gráficas)"
+                  }
+                ]
+              },
+              "score": null
+            },
+            {
+              "value": "097",
+              "title": "Radio broadcaster",
+              "localizedTitle": {
+                "values": [
+                  {
+                    "lang": "en",
+                    "value": "Radio broadcaster"
+                  },
+                  {
+                    "lang": "es",
+                    "value": "Locutor de radioemisora"
+                  }
+                ]
+              },
+              "score": null
+            },
+            {
+              "value": "098",
+              "title": "TV broadcaster",
+              "localizedTitle": {
+                "values": [
+                  {
+                    "lang": "en",
+                    "value": "TV broadcaster"
+                  },
+                  {
+                    "lang": "es",
+                    "value": "Locutor de televisión"
+                  }
+                ]
+              },
+              "score": null
+            },
+            {
+              "value": "099",
+              "title": "Tire technician",
+              "localizedTitle": {
+                "values": [
+                  {
+                    "lang": "en",
+                    "value": "Tire technician"
+                  },
+                  {
+                    "lang": "es",
+                    "value": "Llanteros"
                   }
                 ]
               },
@@ -751,6 +2356,231 @@
                   {
                     "lang": "en",
                     "value": "Teacher"
+                  },
+                  {
+                    "lang": "es",
+                    "value": "Maestro"
+                  }
+                ]
+              },
+              "score": null
+            },
+            {
+              "value": "101",
+              "title": "Construction foreman",
+              "localizedTitle": {
+                "values": [
+                  {
+                    "lang": "en",
+                    "value": "Construction foreman"
+                  },
+                  {
+                    "lang": "es",
+                    "value": "Maestro de obras"
+                  }
+                ]
+              },
+              "score": null
+            },
+            {
+              "value": "102",
+              "title": "Mechanic",
+              "localizedTitle": {
+                "values": [
+                  {
+                    "lang": "en",
+                    "value": "Mechanic"
+                  },
+                  {
+                    "lang": "es",
+                    "value": "Mecánico"
+                  }
+                ]
+              },
+              "score": null
+            },
+            {
+              "value": "103",
+              "title": "Dental mechanic",
+              "localizedTitle": {
+                "values": [
+                  {
+                    "lang": "en",
+                    "value": "Dental mechanic"
+                  },
+                  {
+                    "lang": "es",
+                    "value": "Mecánico dental"
+                  }
+                ]
+              },
+              "score": null
+            },
+            {
+              "value": "104",
+              "title": "Messenger",
+              "localizedTitle": {
+                "values": [
+                  {
+                    "lang": "en",
+                    "value": "Messenger"
+                  },
+                  {
+                    "lang": "es",
+                    "value": "Mensajero"
+                  }
+                ]
+              },
+              "score": null
+            },
+            {
+              "value": "105",
+              "title": "Waiter",
+              "localizedTitle": {
+                "values": [
+                  {
+                    "lang": "en",
+                    "value": "Waiter"
+                  },
+                  {
+                    "lang": "es",
+                    "value": "Mesero"
+                  }
+                ]
+              },
+              "score": null
+            },
+            {
+              "value": "106",
+              "title": "Office clerk",
+              "localizedTitle": {
+                "values": [
+                  {
+                    "lang": "en",
+                    "value": "Office clerk"
+                  },
+                  {
+                    "lang": "es",
+                    "value": "Oficinista"
+                  }
+                ]
+              },
+              "score": null
+            },
+            {
+              "value": "107",
+              "title": "Computer operator",
+              "localizedTitle": {
+                "values": [
+                  {
+                    "lang": "en",
+                    "value": "Computer operator"
+                  },
+                  {
+                    "lang": "es",
+                    "value": "Operador de computación"
+                  }
+                ]
+              },
+              "score": null
+            },
+            {
+              "value": "108",
+              "title": "Stationary crane operator",
+              "localizedTitle": {
+                "values": [
+                  {
+                    "lang": "en",
+                    "value": "Stationary crane operator"
+                  },
+                  {
+                    "lang": "es",
+                    "value": "Operador de grúa estacionaria"
+                  }
+                ]
+              },
+              "score": null
+            },
+            {
+              "value": "109",
+              "title": "Laundry machine operator",
+              "localizedTitle": {
+                "values": [
+                  {
+                    "lang": "en",
+                    "value": "Laundry machine operator"
+                  },
+                  {
+                    "lang": "es",
+                    "value": "Operador de máquina de lavar ropa"
+                  }
+                ]
+              },
+              "score": null
+            },
+            {
+              "value": "110",
+              "title": "General machine operator",
+              "localizedTitle": {
+                "values": [
+                  {
+                    "lang": "en",
+                    "value": "General machine operator"
+                  },
+                  {
+                    "lang": "es",
+                    "value": "Operador de máquina en general"
+                  }
+                ]
+              },
+              "score": null
+            },
+            {
+              "value": "111",
+              "title": "Transmitter plant operator",
+              "localizedTitle": {
+                "values": [
+                  {
+                    "lang": "en",
+                    "value": "Transmitter plant operator"
+                  },
+                  {
+                    "lang": "es",
+                    "value": "Operador de planta transmisora"
+                  }
+                ]
+              },
+              "score": null
+            },
+            {
+              "value": "112",
+              "title": "Radio-taxi operator",
+              "localizedTitle": {
+                "values": [
+                  {
+                    "lang": "en",
+                    "value": "Radio-taxi operator"
+                  },
+                  {
+                    "lang": "es",
+                    "value": "Operador de radio-taxi"
+                  }
+                ]
+              },
+              "score": null
+            },
+            {
+              "value": "113",
+              "title": "Coffee sorting operator",
+              "localizedTitle": {
+                "values": [
+                  {
+                    "lang": "en",
+                    "value": "Coffee sorting operator"
+                  },
+                  {
+                    "lang": "es",
+                    "value": "Operador escogedoras de café"
                   }
                 ]
               },
@@ -758,12 +2588,475 @@
             },
             {
               "value": "114",
-              "title": "Worker",
+              "title": "Operator",
               "localizedTitle": {
                 "values": [
                   {
                     "lang": "en",
-                    "value": "Worker"
+                    "value": "Operator"
+                  },
+                  {
+                    "lang": "es",
+                    "value": "Operario"
+                  }
+                ]
+              },
+              "score": null
+            },
+            {
+              "value": "115",
+              "title": "Orderly",
+              "localizedTitle": {
+                "values": [
+                  {
+                    "lang": "en",
+                    "value": "Orderly"
+                  },
+                  {
+                    "lang": "es",
+                    "value": "Ordenanza"
+                  }
+                ]
+              },
+              "score": null
+            },
+            {
+              "value": "116",
+              "title": "Milker",
+              "localizedTitle": {
+                "values": [
+                  {
+                    "lang": "en",
+                    "value": "Milker"
+                  },
+                  {
+                    "lang": "es",
+                    "value": "Ordeñador"
+                  }
+                ]
+              },
+              "score": null
+            },
+            {
+              "value": "117",
+              "title": "Baker",
+              "localizedTitle": {
+                "values": [
+                  {
+                    "lang": "en",
+                    "value": "Baker"
+                  },
+                  {
+                    "lang": "es",
+                    "value": "Panadero"
+                  }
+                ]
+              },
+              "score": null
+            },
+            {
+              "value": "118",
+              "title": "Pastry cook",
+              "localizedTitle": {
+                "values": [
+                  {
+                    "lang": "en",
+                    "value": "Pastry cook"
+                  },
+                  {
+                    "lang": "es",
+                    "value": "Pastelero"
+                  }
+                ]
+              },
+              "score": null
+            },
+            {
+              "value": "119",
+              "title": "Hairdresser",
+              "localizedTitle": {
+                "values": [
+                  {
+                    "lang": "en",
+                    "value": "Hairdresser"
+                  },
+                  {
+                    "lang": "es",
+                    "value": "Peluquero"
+                  }
+                ]
+              },
+              "score": null
+            },
+            {
+              "value": "120",
+              "title": "Journalist",
+              "localizedTitle": {
+                "values": [
+                  {
+                    "lang": "en",
+                    "value": "Journalist"
+                  },
+                  {
+                    "lang": "es",
+                    "value": "Periodista"
+                  }
+                ]
+              },
+              "score": null
+            },
+            {
+              "value": "121",
+              "title": "Painter",
+              "localizedTitle": {
+                "values": [
+                  {
+                    "lang": "en",
+                    "value": "Painter"
+                  },
+                  {
+                    "lang": "es",
+                    "value": "Pintor"
+                  }
+                ]
+              },
+              "score": null
+            },
+            {
+              "value": "122",
+              "title": "Doorman",
+              "localizedTitle": {
+                "values": [
+                  {
+                    "lang": "en",
+                    "value": "Doorman"
+                  },
+                  {
+                    "lang": "es",
+                    "value": "Portero"
+                  }
+                ]
+              },
+              "score": null
+            },
+            {
+              "value": "123",
+              "title": "Room attendant",
+              "localizedTitle": {
+                "values": [
+                  {
+                    "lang": "en",
+                    "value": "Room attendant"
+                  },
+                  {
+                    "lang": "es",
+                    "value": "Recamarera"
+                  }
+                ]
+              },
+              "score": null
+            },
+            {
+              "value": "124",
+              "title": "Receptionist",
+              "localizedTitle": {
+                "values": [
+                  {
+                    "lang": "en",
+                    "value": "Receptionist"
+                  },
+                  {
+                    "lang": "es",
+                    "value": "Recepcionista"
+                  }
+                ]
+              },
+              "score": null
+            },
+            {
+              "value": "125",
+              "title": "Coffee picker",
+              "localizedTitle": {
+                "values": [
+                  {
+                    "lang": "en",
+                    "value": "Coffee picker"
+                  },
+                  {
+                    "lang": "es",
+                    "value": "Recolector de café"
+                  }
+                ]
+              },
+              "score": null
+            },
+            {
+              "value": "126",
+              "title": "Watchmaker",
+              "localizedTitle": {
+                "values": [
+                  {
+                    "lang": "en",
+                    "value": "Watchmaker"
+                  },
+                  {
+                    "lang": "es",
+                    "value": "Relojero"
+                  }
+                ]
+              },
+              "score": null
+            },
+            {
+              "value": "127",
+              "title": "Tailor",
+              "localizedTitle": {
+                "values": [
+                  {
+                    "lang": "en",
+                    "value": "Tailor"
+                  },
+                  {
+                    "lang": "es",
+                    "value": "Sastre"
+                  }
+                ]
+              },
+              "score": null
+            },
+            {
+              "value": "128",
+              "title": "Secretary",
+              "localizedTitle": {
+                "values": [
+                  {
+                    "lang": "en",
+                    "value": "Secretary"
+                  },
+                  {
+                    "lang": "es",
+                    "value": "Secretaria"
+                  }
+                ]
+              },
+              "score": null
+            },
+            {
+              "value": "129",
+              "title": "Welder",
+              "localizedTitle": {
+                "values": [
+                  {
+                    "lang": "en",
+                    "value": "Welder"
+                  },
+                  {
+                    "lang": "es",
+                    "value": "Soldador en general"
+                  }
+                ]
+              },
+              "score": null
+            },
+            {
+              "value": "130",
+              "title": "Upholsterer",
+              "localizedTitle": {
+                "values": [
+                  {
+                    "lang": "en",
+                    "value": "Upholsterer"
+                  },
+                  {
+                    "lang": "es",
+                    "value": "Tapicero"
+                  }
+                ]
+              },
+              "score": null
+            },
+            {
+              "value": "131",
+              "title": "Taxi driver",
+              "localizedTitle": {
+                "values": [
+                  {
+                    "lang": "en",
+                    "value": "Taxi driver"
+                  },
+                  {
+                    "lang": "es",
+                    "value": "Taxista"
+                  }
+                ]
+              },
+              "score": null
+            },
+            {
+              "value": "132",
+              "title": "Higher education technician",
+              "localizedTitle": {
+                "values": [
+                  {
+                    "lang": "en",
+                    "value": "Higher education technician"
+                  },
+                  {
+                    "lang": "es",
+                    "value": "Técnico en educación superior"
+                  }
+                ]
+              },
+              "score": null
+            },
+            {
+              "value": "133",
+              "title": "Orthopedic appliance technician",
+              "localizedTitle": {
+                "values": [
+                  {
+                    "lang": "en",
+                    "value": "Orthopedic appliance technician"
+                  },
+                  {
+                    "lang": "es",
+                    "value": "Técnico en aparatos ortopédicos"
+                  }
+                ]
+              },
+              "score": null
+            },
+            {
+              "value": "134",
+              "title": "Refrigeration technician",
+              "localizedTitle": {
+                "values": [
+                  {
+                    "lang": "en",
+                    "value": "Refrigeration technician"
+                  },
+                  {
+                    "lang": "es",
+                    "value": "Técnico en refrigeración"
+                  }
+                ]
+              },
+              "score": null
+            },
+            {
+              "value": "135",
+              "title": "Industrial sewing machine technician",
+              "localizedTitle": {
+                "values": [
+                  {
+                    "lang": "en",
+                    "value": "Industrial sewing machine technician"
+                  },
+                  {
+                    "lang": "es",
+                    "value": "Técnico máquinas coser industrial"
+                  }
+                ]
+              },
+              "score": null
+            },
+            {
+              "value": "136",
+              "title": "Health technician",
+              "localizedTitle": {
+                "values": [
+                  {
+                    "lang": "en",
+                    "value": "Health technician"
+                  },
+                  {
+                    "lang": "es",
+                    "value": "Técnico en salud"
+                  }
+                ]
+              },
+              "score": null
+            },
+            {
+              "value": "137",
+              "title": "Telephone operator",
+              "localizedTitle": {
+                "values": [
+                  {
+                    "lang": "en",
+                    "value": "Telephone operator"
+                  },
+                  {
+                    "lang": "es",
+                    "value": "Telefonista"
+                  }
+                ]
+              },
+              "score": null
+            },
+            {
+              "value": "138",
+              "title": "Wood turner",
+              "localizedTitle": {
+                "values": [
+                  {
+                    "lang": "en",
+                    "value": "Wood turner"
+                  },
+                  {
+                    "lang": "es",
+                    "value": "Tornero en madera"
+                  }
+                ]
+              },
+              "score": null
+            },
+            {
+              "value": "139",
+              "title": "Metal turner",
+              "localizedTitle": {
+                "values": [
+                  {
+                    "lang": "en",
+                    "value": "Metal turner"
+                  },
+                  {
+                    "lang": "es",
+                    "value": "Tornero en metal"
+                  }
+                ]
+              },
+              "score": null
+            },
+            {
+              "value": "140",
+              "title": "Greengrocer",
+              "localizedTitle": {
+                "values": [
+                  {
+                    "lang": "en",
+                    "value": "Greengrocer"
+                  },
+                  {
+                    "lang": "es",
+                    "value": "Verdulero"
+                  }
+                ]
+              },
+              "score": null
+            },
+            {
+              "value": "141",
+              "title": "Shoemaker",
+              "localizedTitle": {
+                "values": [
+                  {
+                    "lang": "en",
+                    "value": "Shoemaker"
+                  },
+                  {
+                    "lang": "es",
+                    "value": "Zapatero"
                   }
                 ]
               },
@@ -777,6 +3070,27 @@
                   {
                     "lang": "en",
                     "value": "Other occupations"
+                  },
+                  {
+                    "lang": "es",
+                    "value": "Otras ocupaciones"
+                  }
+                ]
+              },
+              "score": null
+            },
+            {
+              "value": "143",
+              "title": "Medical Doctor",
+              "localizedTitle": {
+                "values": [
+                  {
+                    "lang": "en",
+                    "value": "Medical Doctor"
+                  },
+                  {
+                    "lang": "es",
+                    "value": "Doctor en medicina"
                   }
                 ]
               },
