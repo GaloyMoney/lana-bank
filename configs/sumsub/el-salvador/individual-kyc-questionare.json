@@ -292,17 +292,58 @@
           "arbitraryDocType": null
         },
         {
-          "id": "nameOfSpouse",
-          "title": "Name of spouse",
+          "id": "firstNameOfSpouse",
+          "title": "First name of spouse",
           "localizedTitle": {
             "values": [
               {
                 "lang": "en",
-                "value": "Name of spouse"
+                "value": "First Name of spouse"
               },
               {
                 "lang": "es",
                 "value": "Nombre del cónyuge"
+              }
+            ]
+          },
+          "desc": "",
+          "localizedDesc": {
+            "values": [
+              {
+                "lang": "en",
+                "value": ""
+              }
+            ]
+          },
+          "type": "text",
+          "required": true,
+          "format": null,
+          "condition": "personalInformation.maritalStatus = Married",
+          "showCondition": null,
+          "placeholder": "",
+          "localizedPlaceholder": {
+            "values": [
+              {
+                "lang": "en",
+                "value": ""
+              }
+            ]
+          },
+          "options": null,
+          "arbitraryDocType": null
+        },
+        {
+          "id": "lastNameOfSpouse",
+          "title": "Last name of spouse",
+          "localizedTitle": {
+            "values": [
+              {
+                "lang": "en",
+                "value": "Last name of spouse"
+              },
+              {
+                "lang": "es",
+                "value": "Apellido del cónyuge"
               }
             ]
           },
@@ -3261,7 +3302,7 @@
               },
               {
                 "lang": "es",
-                "value": "Fuente de fondos"
+                "value": "Origen de su ingreso"
               }
             ]
           },
