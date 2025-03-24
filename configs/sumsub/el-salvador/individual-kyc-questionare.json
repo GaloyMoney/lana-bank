@@ -507,6 +507,47 @@
           "options": null,
           "arbitraryDocType": null
         },
+	{
+          "id": "secondNationality",
+          "title": "Second Nationality",
+          "localizedTitle": {
+            "values": [
+              {
+                "lang": "en",
+                "value": "Second Nationality"
+              },
+              {
+                "lang": "es",
+                "value": "Otra Nacionalidad"
+              }
+            ]
+          },
+          "desc": "",
+          "localizedDesc": {
+            "values": [
+              {
+                "lang": "en",
+                "value": ""
+              }
+            ]
+          },
+          "type": "countrySelect",
+          "required": false,
+          "format": null,
+          "condition": null,
+          "showCondition": null,
+          "placeholder": "Canada",
+          "localizedPlaceholder": {
+            "values": [
+              {
+                "lang": "en",
+                "value": "Canada"
+              }
+            ]
+          },
+          "options": null,
+          "arbitraryDocType": null
+	},
         {
           "id": "dui",
           "title": "DUI",
