@@ -1,5 +1,6 @@
 mod job;
 
+use ::job::JobId;
 use tracing::instrument;
 
 use audit::AuditSvc;
@@ -8,7 +9,7 @@ use core_price::Price;
 use outbox::OutboxEventMarker;
 
 use crate::{
-    error::CoreCreditError, interest_incurrences, ledger::CreditLedger,
+    error::CoreCreditError, interest_incurrences, ledger::CreditLedger, overdue,
     primitives::CreditFacilityId, CoreCreditAction, CoreCreditEvent, CoreCreditObject,
     CreditFacility, CreditFacilityRepo, DisbursalRepo, Jobs,
 };
@@ -99,6 +100,20 @@ where
         else {
             return Ok(credit_facility);
         };
+
+        self.jobs
+            .create_and_spawn_at_in_op(
+                &mut db,
+                JobId::new(),
+                overdue::CreditFacilityJobConfig::<Perms, E> {
+                    credit_facility_id: id,
+                    _phantom: std::marker::PhantomData,
+                },
+                credit_facility
+                    .matures_at
+                    .expect("Facility was not activated yet"),
+            )
+            .await?;
 
         let new_disbursal = credit_facility.initiate_disbursal(
             credit_facility.structuring_fee(),

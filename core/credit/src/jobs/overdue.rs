@@ -43,10 +43,10 @@ where
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>,
     E: OutboxEventMarker<CoreCreditEvent>,
 {
-    pub fn new(repo: CreditFacilityRepo<E>, ledger: &CreditLedger, audit: &Perms::Audit) -> Self {
+    pub fn new(ledger: &CreditLedger, repo: CreditFacilityRepo<E>, audit: &Perms::Audit) -> Self {
         Self {
-            repo,
             ledger: ledger.clone(),
+            repo,
             audit: audit.clone(),
         }
     }

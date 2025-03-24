@@ -167,6 +167,13 @@ where
         >::new(
             &ledger, credit_facility_repo.clone(), jobs, authz.audit()
         ));
+        jobs.add_initializer(
+            overdue::CreditFacilityProcessingJobInitializer::<Perms, E>::new(
+                &ledger,
+                credit_facility_repo.clone(),
+                authz.audit(),
+            ),
+        );
         jobs.add_initializer_and_spawn_unique(
             CreditFacilityApprovalJobInitializer::new(outbox, &approve_credit_facility),
             CreditFacilityApprovalJobConfig::<Perms, E>::new(),
