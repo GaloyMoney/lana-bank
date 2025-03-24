@@ -23,7 +23,7 @@ use crate::{
         DisbursedReceivableAccountType, InterestReceivableAccountType, LedgerAccountId,
         LedgerAccountSetId, LedgerOmnibusAccountIds, Satoshis, UsdCents,
     },
-    ChartOfAccountsIntegrationConfig, DurationType,
+    ChartOfAccountsIntegrationConfig, DurationType, PaymentAccountIds,
 };
 
 use constants::*;
@@ -993,7 +993,7 @@ impl CreditLedger {
         tx_id: TransactionId,
         tx_ref: String,
         amounts: CreditFacilityPaymentAmounts,
-        credit_facility_account_ids: CreditFacilityAccountIds,
+        payment_account_ids: PaymentAccountIds,
         debit_account_id: LedgerAccountId,
     ) -> Result<(), CreditLedgerError> {
         let mut op = self.cala.ledger_operation_from_db_op(op);
@@ -1004,10 +1004,8 @@ impl CreditLedger {
             interest_amount: amounts.interest.to_usd(),
             principal_amount: amounts.disbursal.to_usd(),
             debit_account_id,
-            principal_receivable_account_id: credit_facility_account_ids
-                .disbursed_receivable_account_id,
-            interest_receivable_account_id: credit_facility_account_ids
-                .interest_receivable_account_id,
+            principal_receivable_account_id: payment_account_ids.disbursed_receivable_account_id,
+            interest_receivable_account_id: payment_account_ids.interest_receivable_account_id,
             tx_ref,
         };
         self.cala

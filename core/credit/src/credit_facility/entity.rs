@@ -852,6 +852,22 @@ impl CreditFacility {
             .facility_cvl_data(self.collateral(), self.facility_remaining())
     }
 
+    fn payment_account_ids(&self) -> PaymentAccountIds {
+        if self.is_matured_with_overdue_balance() {
+            PaymentAccountIds {
+                disbursed_receivable_account_id: self
+                    .account_ids
+                    .disbursed_receivable_overdue_account_id,
+                interest_receivable_account_id: self.account_ids.interest_receivable_account_id,
+            }
+        } else {
+            PaymentAccountIds {
+                disbursed_receivable_account_id: self.account_ids.disbursed_receivable_account_id,
+                interest_receivable_account_id: self.account_ids.interest_receivable_account_id,
+            }
+        }
+    }
+
     pub(crate) fn initiate_repayment(
         &mut self,
         amount: UsdCents,
@@ -890,7 +906,7 @@ impl CreditFacility {
             .ledger_tx_ref(tx_ref)
             .credit_facility_id(self.id)
             .amounts(amounts)
-            .account_ids(self.account_ids)
+            .account_ids(self.payment_account_ids())
             .disbursal_credit_account_id(self.disbursal_credit_account_id)
             .audit_info(audit_info)
             .build()
@@ -2115,6 +2131,48 @@ mod test {
                 )
                 .is_ok());
             assert!(credit_facility.is_after_maturity_date())
+        }
+
+        #[test]
+        fn initiate_repayment_after_maturity_event_returns_overdue_account() {
+            let activated_at = "2023-01-01T00:00:00Z".parse::<DateTime<Utc>>().unwrap();
+            let mut credit_facility = credit_facility_with_interest_accrual(activated_at);
+
+            let new_payment = credit_facility
+                .initiate_repayment(
+                    UsdCents::ONE,
+                    default_price(),
+                    default_upgrade_buffer_cvl_pct(),
+                    Utc::now(),
+                    dummy_audit_info(),
+                )
+                .unwrap();
+            let payment = Payment::try_from_events(new_payment.into_events()).unwrap();
+            assert_eq!(
+                payment.account_ids.disbursed_receivable_account_id,
+                credit_facility.account_ids.disbursed_receivable_account_id,
+            );
+
+            credit_facility
+                .mature_with_overdue_balance(dummy_audit_info())
+                .unwrap();
+
+            let new_payment = credit_facility
+                .initiate_repayment(
+                    UsdCents::ONE,
+                    default_price(),
+                    default_upgrade_buffer_cvl_pct(),
+                    Utc::now(),
+                    dummy_audit_info(),
+                )
+                .unwrap();
+            let payment = Payment::try_from_events(new_payment.into_events()).unwrap();
+            assert_eq!(
+                payment.account_ids.disbursed_receivable_account_id,
+                credit_facility
+                    .account_ids
+                    .disbursed_receivable_overdue_account_id,
+            );
         }
 
         #[test]

@@ -5,7 +5,13 @@ use serde::{Deserialize, Serialize};
 use audit::AuditInfo;
 use es_entity::*;
 
-use crate::{primitives::*, CreditFacilityAccountIds, CreditFacilityPaymentAmounts};
+use crate::{primitives::*, CreditFacilityPaymentAmounts};
+
+#[derive(Debug, Copy, Clone, Serialize, Deserialize)]
+pub struct PaymentAccountIds {
+    pub disbursed_receivable_account_id: LedgerAccountId,
+    pub interest_receivable_account_id: LedgerAccountId,
+}
 
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
@@ -17,7 +23,7 @@ pub enum PaymentEvent {
         ledger_tx_ref: String,
         facility_id: CreditFacilityId,
         amounts: CreditFacilityPaymentAmounts,
-        account_ids: CreditFacilityAccountIds,
+        account_ids: PaymentAccountIds,
         disbursal_credit_account_id: LedgerAccountId,
         audit_info: AuditInfo,
     },
@@ -31,7 +37,7 @@ pub struct Payment {
     pub ledger_tx_ref: String,
     pub facility_id: CreditFacilityId,
     pub amounts: CreditFacilityPaymentAmounts,
-    pub account_ids: CreditFacilityAccountIds,
+    pub account_ids: PaymentAccountIds,
     pub disbursal_credit_account_id: LedgerAccountId,
 
     pub(super) events: EntityEvents<PaymentEvent>,
@@ -86,7 +92,7 @@ pub struct NewPayment {
     #[builder(setter(into))]
     pub(super) credit_facility_id: CreditFacilityId,
     pub(super) amounts: CreditFacilityPaymentAmounts,
-    pub(super) account_ids: CreditFacilityAccountIds,
+    pub(super) account_ids: PaymentAccountIds,
     pub(super) disbursal_credit_account_id: LedgerAccountId,
     #[builder(setter(into))]
     pub(super) audit_info: AuditInfo,
