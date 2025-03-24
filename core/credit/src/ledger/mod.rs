@@ -19,9 +19,9 @@ use cala_ledger::{
 
 use crate::{
     primitives::{
-        CollateralAction, CreditFacilityId, CustomerType, DisbursedReceivableAccountType,
-        InterestReceivableAccountType, LedgerAccountId, LedgerAccountSetId,
-        LedgerOmnibusAccountIds, Satoshis, UsdCents,
+        CollateralAction, CreditFacilityId, CustomerType, DisbursedReceivableAccountCategory,
+        DisbursedReceivableAccountType, InterestReceivableAccountType, LedgerAccountId,
+        LedgerAccountSetId, LedgerOmnibusAccountIds, Satoshis, UsdCents,
     },
     ChartOfAccountsIntegrationConfig, DurationType,
 };
@@ -73,6 +73,7 @@ impl DisbursedReceivableAccountSets {
 pub struct DisbursedReceivable {
     short_term: DisbursedReceivableAccountSets,
     long_term: DisbursedReceivableAccountSets,
+    overdue: DisbursedReceivableAccountSets,
 }
 
 #[derive(Clone, Copy)]
@@ -330,6 +331,74 @@ impl CreditLedger {
         )
         .await?;
 
+        let overdue_individual_disbursed_receivable_account_set_id =
+            Self::find_or_create_account_set(
+                cala,
+                journal_id,
+                format!(
+                    "{journal_id}:{OVERDUE_CREDIT_INDIVIDUAL_DISBURSED_RECEIVABLE_ACCOUNT_SET_REF}"
+                ),
+                OVERDUE_CREDIT_INDIVIDUAL_DISBURSED_RECEIVABLE_ACCOUNT_SET_NAME.to_string(),
+                disbursed_receivable_normal_balance_type,
+            )
+            .await?;
+        let overdue_government_entity_disbursed_receivable_account_set_id =
+            Self::find_or_create_account_set(
+                cala,
+                journal_id,
+                format!(
+                    "{journal_id}:{OVERDUE_CREDIT_GOVERNMENT_ENTITY_DISBURSED_RECEIVABLE_ACCOUNT_SET_REF}"
+                ),
+                OVERDUE_CREDIT_GOVERNMENT_ENTITY_DISBURSED_RECEIVABLE_ACCOUNT_SET_NAME
+                    .to_string(),
+                disbursed_receivable_normal_balance_type,
+            )
+            .await?;
+        let overdue_private_company_disbursed_receivable_account_set_id = Self::find_or_create_account_set(
+            cala,
+            journal_id,
+            format!("{journal_id}:{OVERDUE_CREDIT_PRIVATE_COMPANY_DISBURSED_RECEIVABLE_ACCOUNT_SET_REF}"),
+            OVERDUE_CREDIT_PRIVATE_COMPANY_DISBURSED_RECEIVABLE_ACCOUNT_SET_NAME.to_string(),
+            disbursed_receivable_normal_balance_type,
+        )
+        .await?;
+        let overdue_bank_disbursed_receivable_account_set_id = Self::find_or_create_account_set(
+            cala,
+            journal_id,
+            format!("{journal_id}:{OVERDUE_CREDIT_BANK_DISBURSED_RECEIVABLE_ACCOUNT_SET_REF}"),
+            OVERDUE_CREDIT_BANK_DISBURSED_RECEIVABLE_ACCOUNT_SET_NAME.to_string(),
+            disbursed_receivable_normal_balance_type,
+        )
+        .await?;
+        let overdue_financial_institution_disbursed_receivable_account_set_id =
+            Self::find_or_create_account_set(
+                cala,
+                journal_id,
+                format!("{journal_id}:{OVERDUE_CREDIT_FINANCIAL_INSTITUTION_DISBURSED_RECEIVABLE_ACCOUNT_SET_REF}"),
+                OVERDUE_CREDIT_FINANCIAL_INSTITUTION_DISBURSED_RECEIVABLE_ACCOUNT_SET_NAME.to_string(),
+                disbursed_receivable_normal_balance_type,
+            )
+            .await?;
+        let overdue_foreign_agency_or_subsidiary_disbursed_receivable_account_set_id =
+            Self::find_or_create_account_set(
+                cala,
+                journal_id,
+                format!("{journal_id}:{OVERDUE_CREDIT_FOREIGN_AGENCY_OR_SUBSIDIARY_DISBURSED_RECEIVABLE_ACCOUNT_SET_REF}"),
+                OVERDUE_CREDIT_FOREIGN_AGENCY_OR_SUBSIDIARY_DISBURSED_RECEIVABLE_ACCOUNT_SET_NAME
+                    .to_string(),
+                disbursed_receivable_normal_balance_type,
+            )
+            .await?;
+        let overdue_non_domiciled_company_disbursed_receivable_account_set_id =
+            Self::find_or_create_account_set(
+                cala,
+                journal_id,
+                format!("{journal_id}:{OVERDUE_CREDIT_NON_DOMICILED_COMPANY_DISBURSED_RECEIVABLE_ACCOUNT_SET_REF}"),
+                OVERDUE_CREDIT_NON_DOMICILED_COMPANY_DISBURSED_RECEIVABLE_ACCOUNT_SET_NAME.to_string(),
+                disbursed_receivable_normal_balance_type,
+            )
+            .await?;
+
         let interest_receivable_normal_balance_type = DebitOrCredit::Debit;
 
         let short_term_individual_interest_receivable_account_set_id = Self::find_or_create_account_set(
@@ -524,6 +593,36 @@ impl CreditLedger {
                 },
                 non_domiciled_company: InternalAccountSetDetails {
                     id: long_term_non_domiciled_company_disbursed_receivable_account_set_id,
+                    normal_balance_type: disbursed_receivable_normal_balance_type,
+                },
+            },
+            overdue: DisbursedReceivableAccountSets {
+                individual: InternalAccountSetDetails {
+                    id: overdue_individual_disbursed_receivable_account_set_id,
+                    normal_balance_type: disbursed_receivable_normal_balance_type,
+                },
+                government_entity: InternalAccountSetDetails {
+                    id: overdue_government_entity_disbursed_receivable_account_set_id,
+                    normal_balance_type: disbursed_receivable_normal_balance_type,
+                },
+                private_company: InternalAccountSetDetails {
+                    id: overdue_private_company_disbursed_receivable_account_set_id,
+                    normal_balance_type: disbursed_receivable_normal_balance_type,
+                },
+                bank: InternalAccountSetDetails {
+                    id: overdue_bank_disbursed_receivable_account_set_id,
+                    normal_balance_type: disbursed_receivable_normal_balance_type,
+                },
+                financial_institution: InternalAccountSetDetails {
+                    id: overdue_financial_institution_disbursed_receivable_account_set_id,
+                    normal_balance_type: disbursed_receivable_normal_balance_type,
+                },
+                foreign_agency_or_subsidiary: InternalAccountSetDetails {
+                    id: overdue_foreign_agency_or_subsidiary_disbursed_receivable_account_set_id,
+                    normal_balance_type: disbursed_receivable_normal_balance_type,
+                },
+                non_domiciled_company: InternalAccountSetDetails {
+                    id: overdue_non_domiciled_company_disbursed_receivable_account_set_id,
                     normal_balance_type: disbursed_receivable_normal_balance_type,
                 },
             },
@@ -760,6 +859,7 @@ impl CreditLedger {
         CreditFacilityAccountIds {
             facility_account_id,
             disbursed_receivable_account_id,
+            disbursed_receivable_overdue_account_id,
             collateral_account_id,
             interest_receivable_account_id,
             ..
@@ -768,6 +868,11 @@ impl CreditLedger {
         let facility_id = (self.journal_id, facility_account_id, self.usd);
         let collateral_id = (self.journal_id, collateral_account_id, self.btc);
         let disbursed_receivable_id = (self.journal_id, disbursed_receivable_account_id, self.usd);
+        let disbursed_receivable_overdue_id = (
+            self.journal_id,
+            disbursed_receivable_overdue_account_id,
+            self.usd,
+        );
         let interest_receivable_id = (self.journal_id, interest_receivable_account_id, self.usd);
         let balances = self
             .cala
@@ -776,6 +881,7 @@ impl CreditLedger {
                 facility_id,
                 collateral_id,
                 disbursed_receivable_id,
+                disbursed_receivable_overdue_id,
                 interest_receivable_id,
             ])
             .await?;
@@ -794,6 +900,12 @@ impl CreditLedger {
         } else {
             UsdCents::ZERO
         };
+        let disbursed_receivable_overdue =
+            if let Some(b) = balances.get(&disbursed_receivable_overdue_id) {
+                UsdCents::try_from_usd(b.settled())?
+            } else {
+                UsdCents::ZERO
+            };
         let interest = if let Some(b) = balances.get(&interest_receivable_id) {
             UsdCents::try_from_usd(b.details.settled.dr_balance)?
         } else {
@@ -813,7 +925,7 @@ impl CreditLedger {
             facility,
             collateral,
             disbursed,
-            disbursed_receivable,
+            disbursed_receivable: disbursed_receivable + disbursed_receivable_overdue,
             interest,
             interest_receivable,
         })
@@ -1185,14 +1297,21 @@ impl CreditLedger {
     fn disbursed_internal_account_set_from_type(
         &self,
         disbursed_account_type: impl Into<DisbursedReceivableAccountType>,
-        duration_type: DurationType,
+        disbursed_account_category: impl Into<DisbursedReceivableAccountCategory>,
     ) -> InternalAccountSetDetails {
         let disbursed_account_type = disbursed_account_type.into();
+        let disbursed_account_category = disbursed_account_category.into();
 
-        let term_type = if duration_type == DurationType::ShortTerm {
-            &self.internal_account_sets.disbursed_receivable.short_term
-        } else {
-            &self.internal_account_sets.disbursed_receivable.long_term
+        let term_type = match disbursed_account_category {
+            DisbursedReceivableAccountCategory::ShortTerm => {
+                &self.internal_account_sets.disbursed_receivable.short_term
+            }
+            DisbursedReceivableAccountCategory::LongTerm => {
+                &self.internal_account_sets.disbursed_receivable.long_term
+            }
+            DisbursedReceivableAccountCategory::Overdue => {
+                &self.internal_account_sets.disbursed_receivable.overdue
+            }
         };
 
         match disbursed_account_type {
@@ -1287,6 +1406,27 @@ impl CreditLedger {
             disbursed_receivable_reference,
             disbursed_receivable_name,
             disbursed_receivable_name,
+        )
+        .await?;
+
+        let disbursed_receivable_overdue_reference = &format!(
+            "credit-facility-disbursed-overdue-receivable:{}",
+            credit_facility_id
+        );
+        let disbursed_receivable_overdue_name = &format!(
+            "Disbursed Receivable Overdue Account for Credit Facility {}",
+            credit_facility_id
+        );
+        self.create_account_in_op(
+            op,
+            account_ids.disbursed_receivable_overdue_account_id,
+            self.disbursed_internal_account_set_from_type(
+                customer_type,
+                DisbursedReceivableAccountCategory::Overdue,
+            ),
+            disbursed_receivable_overdue_reference,
+            disbursed_receivable_overdue_name,
+            disbursed_receivable_overdue_name,
         )
         .await?;
 

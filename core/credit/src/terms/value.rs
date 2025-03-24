@@ -6,7 +6,7 @@ use serde::{Deserialize, Serialize};
 use std::fmt;
 
 use super::error::TermsError;
-use crate::primitives::{PriceOfOneBTC, Satoshis, UsdCents};
+use crate::primitives::{DisbursedReceivableAccountCategory, PriceOfOneBTC, Satoshis, UsdCents};
 
 const NUMBER_OF_DAYS_IN_YEAR: u64 = 366;
 const SHORT_TERM_DURATION_MONTHS_THRESHOLD: u32 = 12;
@@ -278,6 +278,15 @@ pub enum Duration {
 pub enum DurationType {
     LongTerm,
     ShortTerm,
+}
+
+impl From<DurationType> for DisbursedReceivableAccountCategory {
+    fn from(duration_type: DurationType) -> Self {
+        match duration_type {
+            DurationType::LongTerm => DisbursedReceivableAccountCategory::LongTerm,
+            DurationType::ShortTerm => DisbursedReceivableAccountCategory::ShortTerm,
+        }
+    }
 }
 
 impl Duration {

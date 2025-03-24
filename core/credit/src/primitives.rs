@@ -292,6 +292,7 @@ pub enum CollateralAction {
     Remove,
 }
 
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, Eq, PartialEq)]
 pub enum DisbursedReceivableAccountType {
     Individual,
     GovernmentEntity,
@@ -338,4 +339,10 @@ impl From<CustomerType> for InterestReceivableAccountType {
             CustomerType::NonDomiciledCompany => Self::NonDomiciledCompany,
         }
     }
+}
+
+pub enum DisbursedReceivableAccountCategory {
+    LongTerm,
+    ShortTerm,
+    Overdue,
 }

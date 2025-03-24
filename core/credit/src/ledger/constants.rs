@@ -132,6 +132,35 @@ pub const LONG_TERM_CREDIT_NON_DOMICILED_COMPANY_INTEREST_RECEIVABLE_ACCOUNT_SET
 pub const LONG_TERM_CREDIT_NON_DOMICILED_COMPANY_INTEREST_RECEIVABLE_ACCOUNT_SET_REF: &str =
     "long-term-credit-non-domiciled-company-interest-receivable-account-set";
 
+pub const OVERDUE_CREDIT_INDIVIDUAL_DISBURSED_RECEIVABLE_ACCOUNT_SET_NAME: &str =
+    "Overdue Credit Individual Disbursed Receivable Account Set";
+pub const OVERDUE_CREDIT_INDIVIDUAL_DISBURSED_RECEIVABLE_ACCOUNT_SET_REF: &str =
+    "overdue-credit-individual-disbursed-receivable-account-set";
+pub const OVERDUE_CREDIT_GOVERNMENT_ENTITY_DISBURSED_RECEIVABLE_ACCOUNT_SET_NAME: &str =
+    "Overdue Credit Government Entity Disbursed Receivable Account Set";
+pub const OVERDUE_CREDIT_GOVERNMENT_ENTITY_DISBURSED_RECEIVABLE_ACCOUNT_SET_REF: &str =
+    "overdue-credit-government-entity-disbursed-receivable-account-set";
+pub const OVERDUE_CREDIT_PRIVATE_COMPANY_DISBURSED_RECEIVABLE_ACCOUNT_SET_NAME: &str =
+    "Overdue Credit Private Company Disbursed Receivable Account Set";
+pub const OVERDUE_CREDIT_PRIVATE_COMPANY_DISBURSED_RECEIVABLE_ACCOUNT_SET_REF: &str =
+    "overdue-credit-private-company-disbursed-receivable-account-set";
+pub const OVERDUE_CREDIT_BANK_DISBURSED_RECEIVABLE_ACCOUNT_SET_NAME: &str =
+    "Overdue Credit Bank Disbursed Receivable Account Set";
+pub const OVERDUE_CREDIT_BANK_DISBURSED_RECEIVABLE_ACCOUNT_SET_REF: &str =
+    "overdue-credit-bank-disbursed-receivable-account-set";
+pub const OVERDUE_CREDIT_FINANCIAL_INSTITUTION_DISBURSED_RECEIVABLE_ACCOUNT_SET_NAME: &str =
+    "Overdue Credit Financial Institution Disbursed Receivable Account Set";
+pub const OVERDUE_CREDIT_FINANCIAL_INSTITUTION_DISBURSED_RECEIVABLE_ACCOUNT_SET_REF: &str =
+    "overdue-credit-financial-institution-disbursed-receivable-account-set";
+pub const OVERDUE_CREDIT_FOREIGN_AGENCY_OR_SUBSIDIARY_DISBURSED_RECEIVABLE_ACCOUNT_SET_NAME: &str =
+    "Overdue Credit Foreign Agency Or Subsidiary Disbursed Receivable Account Set";
+pub const OVERDUE_CREDIT_FOREIGN_AGENCY_OR_SUBSIDIARY_DISBURSED_RECEIVABLE_ACCOUNT_SET_REF: &str =
+    "overdue-credit-foreign-agency-or-subsidiary-disbursed-receivable-account-set";
+pub const OVERDUE_CREDIT_NON_DOMICILED_COMPANY_DISBURSED_RECEIVABLE_ACCOUNT_SET_NAME: &str =
+    "Overdue Credit Non-Domiciled Company Disbursed Receivable Account Set";
+pub const OVERDUE_CREDIT_NON_DOMICILED_COMPANY_DISBURSED_RECEIVABLE_ACCOUNT_SET_REF: &str =
+    "overdue-credit-non-domiciled-company-disbursed-receivable-account-set";
+
 pub const CREDIT_INTEREST_INCOME_ACCOUNT_SET_NAME: &str = "Credit Interest Income Account Set";
 pub const CREDIT_INTEREST_INCOME_ACCOUNT_SET_REF: &str = "credit-interest-income-account-set";
 
