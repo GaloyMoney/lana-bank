@@ -7,3 +7,7 @@ list-of-occupations.csv
 
 	The list of possible classifications for occupations in the risk norm
 	Table 25 in NRP-41
+
+generate-occupation-options.sh
+
+	jq string to turn list-of-occupations.csv into a JSON array sumsub will understand
