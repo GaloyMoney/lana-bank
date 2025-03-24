@@ -507,7 +507,7 @@
           "options": null,
           "arbitraryDocType": null
         },
-	{
+        {
           "id": "secondNationality",
           "title": "Second Nationality",
           "localizedTitle": {
@@ -547,7 +547,7 @@
           },
           "options": null,
           "arbitraryDocType": null
-	},
+        },
         {
           "id": "dui",
           "title": "DUI",
@@ -3285,6 +3285,51 @@
               {
                 "lang": "en",
                 "value": "Type something"
+              }
+            ]
+          },
+          "options": null,
+          "arbitraryDocType": null
+        },
+        {
+          "id": "declaracionJurada",
+          "title": "Sworn Declaration of Truthfulness and Authorization for Verification",
+          "localizedTitle": {
+            "values": [
+              {
+                "lang": "en",
+                "value": "Sworn Declaration of Truthfulness and Authorization for Verification"
+              },
+              {
+                "lang": "es",
+                "value": "Declaración Jurada de Veracidad y Autorización de Verificación"
+              }
+            ]
+          },
+          "desc": "",
+          "localizedDesc": {
+            "values": [
+              {
+                "lang": "en",
+                "value": ""
+              }
+            ]
+          },
+          "type": "bool",
+          "required": null,
+          "format": null,
+          "condition": null,
+          "showCondition": null,
+          "placeholder": "I declare under oath that all information provided in this form is true, complete, and accurate. I also expressly authorize \"VOLCANO BANK\" to verify any data supplied and confirm the authenticity of the information provided herein. Likewise, I swear to immediately inform \"VOLCANO BANK\" of any change, modification, and/or other circumstances related to the information contained in this form. Finally, I declare that the signature appearing on this document and on my personal identification document is the same.",
+          "localizedPlaceholder": {
+            "values": [
+              {
+                "lang": "en",
+                "value": "I declare under oath that all information provided in this form is true, complete, and accurate. I also expressly authorize \"VOLCANO BANK\" to verify any data supplied and confirm the authenticity of the information provided herein. Likewise, I swear to immediately inform \"VOLCANO BANK\" of any change, modification, and/or other circumstances related to the information contained in this form. Finally, I declare that the signature appearing on this document and on my personal identification document is the same."
+              },
+              {
+                "lang": "es",
+                "value": "Declaro bajo juramento que toda la información contenida en este formulario es verdadera, completa y exacta; también autorizo expresamente a \"VOLCANO BANK\", para verificar cualquier dato suministrado y corroborar la veracidad de la información aquí suministrada. Asimismo, bajo juramento, me comprometo en informar inmediatamente a \"VOLCANO BANK\", sobre cualquier cambio, modificación y/o cualquier otra circunstancia relacionada con la información contenida en este formulario. Finalmente, declaro que la firma que aparece inserta en este documento y, en mi documento de identificación personal, es la misma."
               }
             ]
           },
