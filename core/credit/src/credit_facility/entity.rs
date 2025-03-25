@@ -1094,18 +1094,16 @@ impl CreditFacility {
             .any(|event| matches!(event, CreditFacilityEvent::Completed { .. }))
     }
 
-    pub(crate) fn record_overdue_disbursed_balance(
+    pub(crate) fn maybe_record_overdue_disbursed_balance(
         &mut self,
         audit_info: AuditInfo,
-    ) -> Result<CreditFacilityOverdueDisbursedBalance, CreditFacilityError> {
-        if self.is_completed() {
-            return Err(CreditFacilityError::AlreadyCompleted);
-        }
-        if self.has_overdue_disbursed_balance_recorded() {
-            return Err(CreditFacilityError::OverdueDisbursedBalanceAlreadyRecorded);
-        }
-        if self.total_outstanding().is_zero() {
-            return Err(CreditFacilityError::NoOutstandingAmount);
+    ) -> Idempotent<Option<CreditFacilityOverdueDisbursedBalance>> {
+        idempotency_guard!(
+            self.events.iter_all().rev(),
+            CreditFacilityEvent::OverdueDisbursedBalanceRecorded { .. }
+        );
+        if self.is_completed() || self.total_outstanding().is_zero() {
+            return Idempotent::Executed(None);
         }
 
         let res = CreditFacilityOverdueDisbursedBalance {
@@ -1114,15 +1112,14 @@ impl CreditFacility {
             credit_facility_account_ids: self.account_ids,
         };
 
-        let overdue_at = self.disbursed_overdue_at();
         self.events
             .push(CreditFacilityEvent::OverdueDisbursedBalanceRecorded {
                 amount: res.disbursed_outstanding,
-                recorded_at: overdue_at,
+                recorded_at: self.disbursed_overdue_at(),
                 audit_info,
             });
 
-        Ok(res)
+        Idempotent::Executed(Some(res))
     }
 
     pub(crate) fn complete(
@@ -2208,9 +2205,7 @@ mod test {
                 credit_facility.account_ids.disbursed_receivable_account_id,
             );
 
-            credit_facility
-                .record_overdue_disbursed_balance(dummy_audit_info())
-                .unwrap();
+            credit_facility.maybe_record_overdue_disbursed_balance(dummy_audit_info());
 
             let new_payment = credit_facility
                 .initiate_repayment(

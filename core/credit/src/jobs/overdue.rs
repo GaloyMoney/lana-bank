@@ -7,9 +7,8 @@ use job::*;
 use outbox::OutboxEventMarker;
 
 use crate::{
-    credit_facility::{error::CreditFacilityError, CreditFacilityRepo},
-    primitives::*,
-    CoreCreditAction, CoreCreditEvent, CoreCreditObject, CreditLedger,
+    credit_facility::CreditFacilityRepo, primitives::*, CoreCreditAction, CoreCreditEvent,
+    CoreCreditObject, CreditLedger,
 };
 
 #[derive(Clone, Serialize, Deserialize)]
@@ -112,12 +111,9 @@ where
             .await?;
 
         let mut credit_facility = self.repo.find_by_id(self.config.credit_facility_id).await?;
-        let overdue = match credit_facility.record_overdue_disbursed_balance(audit_info) {
-            Ok(overdue) => overdue,
-            Err(CreditFacilityError::AlreadyCompleted)
-            | Err(CreditFacilityError::OverdueDisbursedBalanceAlreadyRecorded)
-            | Err(CreditFacilityError::NoOutstandingAmount) => return Ok(JobCompletion::Complete),
-            Err(e) => return Err(e.into()),
+        let overdue = match credit_facility.maybe_record_overdue_disbursed_balance(audit_info) {
+            es_entity::Idempotent::Executed(Some(overdue)) => overdue,
+            _ => return Ok(JobCompletion::Complete),
         };
 
         self.repo
