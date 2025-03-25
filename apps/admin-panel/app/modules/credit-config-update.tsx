@@ -129,10 +129,13 @@ export const CreditConfigUpdateDialog: React.FC<CreditConfigUpdateDialogProps> =
   }
 
   useEffect(() => {
+    console.log(creditModuleConfig)
     if (creditModuleConfig) {
       const updatedFormData = { ...initialFormData }
       Object.keys(initialFormData).forEach((key) => {
+        console.log(`key: ${key}`)
         if (creditModuleConfig[key as keyof CreditModuleConfig]) {
+          console.log(`value: ${creditModuleConfig[key as keyof CreditModuleConfig]}`)
           updatedFormData[key as keyof CreditModuleConfigureInput] = creditModuleConfig[
             key as keyof CreditModuleConfig
           ] as string

@@ -977,59 +977,98 @@ impl Mutation {
             .await?
             .unwrap_or_else(|| panic!("Chart of accounts not found for ref {}", CHART_REF));
 
+        let CreditModuleConfigureInput {
+            chart_of_account_facility_omnibus_parent_code,
+            chart_of_account_collateral_omnibus_parent_code,
+            chart_of_account_facility_parent_code,
+            chart_of_account_collateral_parent_code,
+            chart_of_account_interest_income_parent_code,
+            chart_of_account_fee_income_parent_code,
+
+            chart_of_account_short_term_individual_disbursed_receivable_parent_code,
+            chart_of_account_short_term_government_entity_disbursed_receivable_parent_code,
+            chart_of_account_short_term_private_company_disbursed_receivable_parent_code,
+            chart_of_account_short_term_bank_disbursed_receivable_parent_code,
+            chart_of_account_short_term_financial_institution_disbursed_receivable_parent_code,
+            chart_of_account_short_term_foreign_agency_or_subsidiary_disbursed_receivable_parent_code,
+            chart_of_account_short_term_non_domiciled_company_disbursed_receivable_parent_code,
+
+            chart_of_account_long_term_individual_disbursed_receivable_parent_code,
+            chart_of_account_long_term_government_entity_disbursed_receivable_parent_code,
+            chart_of_account_long_term_private_company_disbursed_receivable_parent_code,
+            chart_of_account_long_term_bank_disbursed_receivable_parent_code,
+            chart_of_account_long_term_financial_institution_disbursed_receivable_parent_code,
+            chart_of_account_long_term_foreign_agency_or_subsidiary_disbursed_receivable_parent_code,
+            chart_of_account_long_term_non_domiciled_company_disbursed_receivable_parent_code,
+
+            chart_of_account_short_term_individual_interest_receivable_parent_code,
+            chart_of_account_short_term_government_entity_interest_receivable_parent_code,
+            chart_of_account_short_term_private_company_interest_receivable_parent_code,
+            chart_of_account_short_term_bank_interest_receivable_parent_code,
+            chart_of_account_short_term_financial_institution_interest_receivable_parent_code,
+            chart_of_account_short_term_foreign_agency_or_subsidiary_interest_receivable_parent_code,
+            chart_of_account_short_term_non_domiciled_company_interest_receivable_parent_code,
+
+            chart_of_account_long_term_individual_interest_receivable_parent_code,
+            chart_of_account_long_term_government_entity_interest_receivable_parent_code,
+            chart_of_account_long_term_private_company_interest_receivable_parent_code,
+            chart_of_account_long_term_bank_interest_receivable_parent_code,
+            chart_of_account_long_term_financial_institution_interest_receivable_parent_code,
+            chart_of_account_long_term_foreign_agency_or_subsidiary_interest_receivable_parent_code,
+            chart_of_account_long_term_non_domiciled_company_interest_receivable_parent_code,
+        } = input;
+
         let config_values = lana_app::credit_facility::ChartOfAccountsIntegrationConfig::builder()
             .chart_of_accounts_id(chart.id)
             .chart_of_account_facility_omnibus_parent_code(
-                input
-                    .chart_of_account_facility_omnibus_parent_code
+                chart_of_account_facility_omnibus_parent_code
                     .parse()?,
             )
             .chart_of_account_collateral_omnibus_parent_code(
-                input
-                    .chart_of_account_collateral_omnibus_parent_code
+                chart_of_account_collateral_omnibus_parent_code
                     .parse()?,
             )
             .chart_of_account_facility_parent_code(
-                input.chart_of_account_facility_parent_code.parse()?,
+                chart_of_account_facility_parent_code.parse()?,
             )
             .chart_of_account_collateral_parent_code(
-                input.chart_of_account_collateral_parent_code.parse()?,
+                chart_of_account_collateral_parent_code.parse()?,
             )
             .chart_of_account_interest_income_parent_code(
-                input.chart_of_account_interest_income_parent_code.parse()?,
+                chart_of_account_interest_income_parent_code.parse()?,
             )
             .chart_of_account_fee_income_parent_code(
-                input.chart_of_account_fee_income_parent_code.parse()?,
+                chart_of_account_fee_income_parent_code.parse()?,
             )
-            .chart_of_account_short_term_individual_disbursed_receivable_parent_code(input.chart_of_account_short_term_individual_disbursed_receivable_parent_code.parse()?)
-            .chart_of_account_short_term_government_entity_disbursed_receivable_parent_code(input.chart_of_account_short_term_government_entity_disbursed_receivable_parent_code.parse()?)
-            .chart_of_account_short_term_private_company_disbursed_receivable_parent_code(input.chart_of_account_short_term_private_company_disbursed_receivable_parent_code.parse()?)
-            .chart_of_account_short_term_bank_disbursed_receivable_parent_code(input.chart_of_account_short_term_bank_disbursed_receivable_parent_code.parse()?)
-            .chart_of_account_short_term_financial_institution_disbursed_receivable_parent_code(input.chart_of_account_short_term_financial_institution_disbursed_receivable_parent_code.parse()?)
-            .chart_of_account_long_term_foreign_agency_or_subsidiary_disbursed_receivable_parent_code(input.chart_of_account_long_term_foreign_agency_or_subsidiary_disbursed_receivable_parent_code.parse()?)
-            .chart_of_account_short_term_non_domiciled_company_disbursed_receivable_parent_code(input.chart_of_account_short_term_non_domiciled_company_disbursed_receivable_parent_code.parse()?)
-            .chart_of_account_long_term_individual_disbursed_receivable_parent_code(input.chart_of_account_long_term_individual_disbursed_receivable_parent_code.parse()?)
-            .chart_of_account_long_term_government_entity_disbursed_receivable_parent_code(input.chart_of_account_long_term_government_entity_disbursed_receivable_parent_code.parse()?)
-            .chart_of_account_long_term_private_company_disbursed_receivable_parent_code(input.chart_of_account_long_term_private_company_disbursed_receivable_parent_code.parse()?)
-            .chart_of_account_long_term_bank_disbursed_receivable_parent_code(input.chart_of_account_long_term_bank_disbursed_receivable_parent_code.parse()?)
-            .chart_of_account_long_term_financial_institution_disbursed_receivable_parent_code(input.chart_of_account_long_term_financial_institution_disbursed_receivable_parent_code.parse()?)
-            .chart_of_account_long_term_foreign_agency_or_subsidiary_disbursed_receivable_parent_code(input.chart_of_account_long_term_foreign_agency_or_subsidiary_disbursed_receivable_parent_code.parse()?)
-            .chart_of_account_long_term_non_domiciled_company_disbursed_receivable_parent_code(input.chart_of_account_long_term_non_domiciled_company_disbursed_receivable_parent_code.parse()?)
+            .chart_of_account_short_term_individual_disbursed_receivable_parent_code(chart_of_account_short_term_individual_disbursed_receivable_parent_code.parse()?)
+            .chart_of_account_short_term_government_entity_disbursed_receivable_parent_code(chart_of_account_short_term_government_entity_disbursed_receivable_parent_code.parse()?)
+            .chart_of_account_short_term_private_company_disbursed_receivable_parent_code(chart_of_account_short_term_private_company_disbursed_receivable_parent_code.parse()?)
+            .chart_of_account_short_term_bank_disbursed_receivable_parent_code(chart_of_account_short_term_bank_disbursed_receivable_parent_code.parse()?)
+            .chart_of_account_short_term_financial_institution_disbursed_receivable_parent_code(chart_of_account_short_term_financial_institution_disbursed_receivable_parent_code.parse()?)
+            .chart_of_account_long_term_foreign_agency_or_subsidiary_disbursed_receivable_parent_code(chart_of_account_long_term_foreign_agency_or_subsidiary_disbursed_receivable_parent_code.parse()?)
+            .chart_of_account_short_term_non_domiciled_company_disbursed_receivable_parent_code(chart_of_account_short_term_non_domiciled_company_disbursed_receivable_parent_code.parse()?)
+            .chart_of_account_long_term_individual_disbursed_receivable_parent_code(chart_of_account_long_term_individual_disbursed_receivable_parent_code.parse()?)
+            .chart_of_account_long_term_government_entity_disbursed_receivable_parent_code(chart_of_account_long_term_government_entity_disbursed_receivable_parent_code.parse()?)
+            .chart_of_account_long_term_private_company_disbursed_receivable_parent_code(chart_of_account_long_term_private_company_disbursed_receivable_parent_code.parse()?)
+            .chart_of_account_long_term_bank_disbursed_receivable_parent_code(chart_of_account_long_term_bank_disbursed_receivable_parent_code.parse()?)
+            .chart_of_account_long_term_financial_institution_disbursed_receivable_parent_code(chart_of_account_long_term_financial_institution_disbursed_receivable_parent_code.parse()?)
+            .chart_of_account_long_term_foreign_agency_or_subsidiary_disbursed_receivable_parent_code(chart_of_account_long_term_foreign_agency_or_subsidiary_disbursed_receivable_parent_code.parse()?)
+            .chart_of_account_long_term_non_domiciled_company_disbursed_receivable_parent_code(chart_of_account_long_term_non_domiciled_company_disbursed_receivable_parent_code.parse()?)
 
-            .chart_of_account_short_term_individual_interest_receivable_parent_code(input.chart_of_account_short_term_individual_interest_receivable_parent_code.parse()?)
-            .chart_of_account_short_term_government_entity_interest_receivable_parent_code(input.chart_of_account_short_term_government_entity_interest_receivable_parent_code.parse()?)
-            .chart_of_account_short_term_private_company_interest_receivable_parent_code(input.chart_of_account_short_term_private_company_interest_receivable_parent_code.parse()?)
-            .chart_of_account_short_term_bank_interest_receivable_parent_code(input.chart_of_account_short_term_bank_interest_receivable_parent_code.parse()?)
-            .chart_of_account_short_term_financial_institution_interest_receivable_parent_code(input.chart_of_account_short_term_financial_institution_interest_receivable_parent_code.parse()?)
-            .chart_of_account_long_term_foreign_agency_or_subsidiary_interest_receivable_parent_code(input.chart_of_account_long_term_foreign_agency_or_subsidiary_interest_receivable_parent_code.parse()?)
-            .chart_of_account_short_term_non_domiciled_company_interest_receivable_parent_code(input.chart_of_account_short_term_non_domiciled_company_interest_receivable_parent_code.parse()?)
-            .chart_of_account_long_term_individual_interest_receivable_parent_code(input.chart_of_account_long_term_individual_interest_receivable_parent_code.parse()?)
-            .chart_of_account_long_term_government_entity_interest_receivable_parent_code(input.chart_of_account_long_term_government_entity_interest_receivable_parent_code.parse()?)
-            .chart_of_account_long_term_private_company_interest_receivable_parent_code(input.chart_of_account_long_term_private_company_interest_receivable_parent_code.parse()?)
-            .chart_of_account_long_term_bank_interest_receivable_parent_code(input.chart_of_account_long_term_bank_interest_receivable_parent_code.parse()?)
-            .chart_of_account_long_term_financial_institution_interest_receivable_parent_code(input.chart_of_account_long_term_financial_institution_interest_receivable_parent_code.parse()?)
-            .chart_of_account_long_term_foreign_agency_or_subsidiary_interest_receivable_parent_code(input.chart_of_account_long_term_foreign_agency_or_subsidiary_interest_receivable_parent_code.parse()?)
-            .chart_of_account_long_term_non_domiciled_company_interest_receivable_parent_code(input.chart_of_account_long_term_non_domiciled_company_interest_receivable_parent_code.parse()?)
+            .chart_of_account_short_term_individual_interest_receivable_parent_code(chart_of_account_short_term_individual_interest_receivable_parent_code.parse()?)
+            .chart_of_account_short_term_government_entity_interest_receivable_parent_code(chart_of_account_short_term_government_entity_interest_receivable_parent_code.parse()?)
+            .chart_of_account_short_term_private_company_interest_receivable_parent_code(chart_of_account_short_term_private_company_interest_receivable_parent_code.parse()?)
+            .chart_of_account_short_term_bank_interest_receivable_parent_code(chart_of_account_short_term_bank_interest_receivable_parent_code.parse()?)
+            .chart_of_account_short_term_financial_institution_interest_receivable_parent_code(chart_of_account_short_term_financial_institution_interest_receivable_parent_code.parse()?)
+            .chart_of_account_long_term_foreign_agency_or_subsidiary_interest_receivable_parent_code(chart_of_account_long_term_foreign_agency_or_subsidiary_interest_receivable_parent_code.parse()?)
+            .chart_of_account_short_term_non_domiciled_company_interest_receivable_parent_code(chart_of_account_short_term_non_domiciled_company_interest_receivable_parent_code.parse()?)
+            .chart_of_account_long_term_individual_interest_receivable_parent_code(chart_of_account_long_term_individual_interest_receivable_parent_code.parse()?)
+            .chart_of_account_long_term_government_entity_interest_receivable_parent_code(chart_of_account_long_term_government_entity_interest_receivable_parent_code.parse()?)
+            .chart_of_account_long_term_private_company_interest_receivable_parent_code(chart_of_account_long_term_private_company_interest_receivable_parent_code.parse()?)
+            .chart_of_account_long_term_bank_interest_receivable_parent_code(chart_of_account_long_term_bank_interest_receivable_parent_code.parse()?)
+            .chart_of_account_long_term_financial_institution_interest_receivable_parent_code(chart_of_account_long_term_financial_institution_interest_receivable_parent_code.parse()?)
+            .chart_of_account_long_term_foreign_agency_or_subsidiary_interest_receivable_parent_code(chart_of_account_long_term_foreign_agency_or_subsidiary_interest_receivable_parent_code.parse()?)
+            .chart_of_account_long_term_non_domiciled_company_interest_receivable_parent_code(chart_of_account_long_term_non_domiciled_company_interest_receivable_parent_code.parse()?)
 
 
             .build()?;
