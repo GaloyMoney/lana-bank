@@ -149,6 +149,7 @@ impl CreditFacilityInternalAccountSets {
                 .account_set_ids()
                 .into_iter()
                 .chain(disbursed_long_term.account_set_ids())
+                .chain(disbursed_overdue.account_set_ids())
                 .chain(interest_short_term.account_set_ids())
                 .chain(interest_long_term.account_set_ids()),
         );
