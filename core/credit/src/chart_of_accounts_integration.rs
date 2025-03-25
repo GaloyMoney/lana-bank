@@ -57,6 +57,17 @@ pub struct ChartOfAccountsIntegrationConfig {
         AccountCode,
     pub chart_of_account_long_term_non_domiciled_company_interest_receivable_parent_code:
         AccountCode,
+
+    pub chart_of_account_overdue_individual_disbursed_receivable_parent_code: AccountCode,
+    pub chart_of_account_overdue_government_entity_disbursed_receivable_parent_code: AccountCode,
+    pub chart_of_account_overdue_private_company_disbursed_receivable_parent_code: AccountCode,
+    pub chart_of_account_overdue_bank_disbursed_receivable_parent_code: AccountCode,
+    pub chart_of_account_overdue_financial_institution_disbursed_receivable_parent_code:
+        AccountCode,
+    pub chart_of_account_overdue_foreign_agency_or_subsidiary_disbursed_receivable_parent_code:
+        AccountCode,
+    pub chart_of_account_overdue_non_domiciled_company_disbursed_receivable_parent_code:
+        AccountCode,
 }
 
 impl ChartOfAccountsIntegrationConfig {

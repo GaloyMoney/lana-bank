@@ -1603,6 +1603,7 @@ impl CreditLedger {
             long_term_disbursed_integration_meta,
             short_term_interest_integration_meta,
             long_term_interest_integration_meta,
+            overdue_disbursed_integration_meta,
         } = &charts_integration_meta;
 
         self.attach_charts_account_set(
@@ -1688,6 +1689,14 @@ impl CreditLedger {
         self.attach_long_term_interest_receivable_account_sets(
             &mut op,
             long_term_interest_integration_meta,
+            &mut account_sets,
+            &charts_integration_meta,
+        )
+        .await?;
+
+        self.attach_overdue_disbursed_receivable_account_sets(
+            &mut op,
+            overdue_disbursed_integration_meta,
             &mut account_sets,
             &charts_integration_meta,
         )
@@ -2142,6 +2151,119 @@ impl CreditLedger {
 
         Ok(())
     }
+
+    async fn attach_overdue_disbursed_receivable_account_sets(
+        &self,
+        op: &mut LedgerOperation<'_>,
+        overdue_disbursed_integration_meta: &OverdueDisbursedIntegrationMeta,
+        account_sets: &mut HashMap<LedgerAccountSetId, AccountSet>,
+        charts_integration_meta: &ChartOfAccountsIntegrationMeta,
+    ) -> Result<(), CreditLedgerError> {
+        let overdue = &self.internal_account_sets.disbursed_receivable.overdue;
+
+        let OverdueDisbursedIntegrationMeta {
+            overdue_individual_disbursed_receivable_parent_account_set_id,
+            overdue_government_entity_disbursed_receivable_parent_account_set_id,
+            overdue_private_company_disbursed_receivable_parent_account_set_id,
+            overdue_bank_disbursed_receivable_parent_account_set_id,
+            overdue_financial_institution_disbursed_receivable_parent_account_set_id,
+            overdue_foreign_agency_or_subsidiary_disbursed_receivable_parent_account_set_id,
+            overdue_non_domiciled_company_disbursed_receivable_parent_account_set_id,
+        } = &overdue_disbursed_integration_meta;
+
+        self.attach_charts_account_set(
+            op,
+            account_sets,
+            overdue.individual.id,
+            *overdue_individual_disbursed_receivable_parent_account_set_id,
+            charts_integration_meta,
+            |meta| {
+                meta.overdue_disbursed_integration_meta
+                    .overdue_individual_disbursed_receivable_parent_account_set_id
+            },
+        )
+        .await?;
+
+        self.attach_charts_account_set(
+            op,
+            account_sets,
+            overdue.government_entity.id,
+            *overdue_government_entity_disbursed_receivable_parent_account_set_id,
+            charts_integration_meta,
+            |meta| {
+                meta.overdue_disbursed_integration_meta
+                    .overdue_government_entity_disbursed_receivable_parent_account_set_id
+            },
+        )
+        .await?;
+
+        self.attach_charts_account_set(
+            op,
+            account_sets,
+            overdue.private_company.id,
+            *overdue_private_company_disbursed_receivable_parent_account_set_id,
+            charts_integration_meta,
+            |meta| {
+                meta.overdue_disbursed_integration_meta
+                    .overdue_private_company_disbursed_receivable_parent_account_set_id
+            },
+        )
+        .await?;
+
+        self.attach_charts_account_set(
+            op,
+            account_sets,
+            overdue.bank.id,
+            *overdue_bank_disbursed_receivable_parent_account_set_id,
+            charts_integration_meta,
+            |meta| {
+                meta.overdue_disbursed_integration_meta
+                    .overdue_bank_disbursed_receivable_parent_account_set_id
+            },
+        )
+        .await?;
+
+        self.attach_charts_account_set(
+            op,
+            account_sets,
+            overdue.financial_institution.id,
+            *overdue_financial_institution_disbursed_receivable_parent_account_set_id,
+            charts_integration_meta,
+            |meta| {
+                meta.overdue_disbursed_integration_meta
+                    .overdue_financial_institution_disbursed_receivable_parent_account_set_id
+            },
+        )
+        .await?;
+
+        self.attach_charts_account_set(
+            op,
+            account_sets,
+            overdue.foreign_agency_or_subsidiary.id,
+            *overdue_foreign_agency_or_subsidiary_disbursed_receivable_parent_account_set_id,
+            charts_integration_meta,
+            |meta| {
+                meta.overdue_disbursed_integration_meta
+                    .overdue_foreign_agency_or_subsidiary_disbursed_receivable_parent_account_set_id
+            },
+        )
+        .await?;
+
+        self.attach_charts_account_set(
+            op,
+            account_sets,
+            overdue.non_domiciled_company.id,
+            *overdue_non_domiciled_company_disbursed_receivable_parent_account_set_id,
+            charts_integration_meta,
+            |meta| {
+                meta.overdue_disbursed_integration_meta
+                    .overdue_non_domiciled_company_disbursed_receivable_parent_account_set_id
+            },
+        )
+        .await?;
+
+        Ok(())
+    }
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
@@ -2201,6 +2323,20 @@ pub struct LongTermInterestIntegrationMeta {
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
+pub struct OverdueDisbursedIntegrationMeta {
+    pub overdue_individual_disbursed_receivable_parent_account_set_id: LedgerAccountSetId,
+    pub overdue_government_entity_disbursed_receivable_parent_account_set_id: LedgerAccountSetId,
+    pub overdue_private_company_disbursed_receivable_parent_account_set_id: LedgerAccountSetId,
+    pub overdue_bank_disbursed_receivable_parent_account_set_id: LedgerAccountSetId,
+    pub overdue_financial_institution_disbursed_receivable_parent_account_set_id:
+        LedgerAccountSetId,
+    pub overdue_foreign_agency_or_subsidiary_disbursed_receivable_parent_account_set_id:
+        LedgerAccountSetId,
+    pub overdue_non_domiciled_company_disbursed_receivable_parent_account_set_id:
+        LedgerAccountSetId,
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct ChartOfAccountsIntegrationMeta {
     pub config: ChartOfAccountsIntegrationConfig,
     pub audit_info: AuditInfo,
@@ -2217,4 +2353,6 @@ pub struct ChartOfAccountsIntegrationMeta {
 
     pub short_term_interest_integration_meta: ShortTermInterestIntegrationMeta,
     pub long_term_interest_integration_meta: LongTermInterestIntegrationMeta,
+
+    pub overdue_disbursed_integration_meta: OverdueDisbursedIntegrationMeta,
 }
