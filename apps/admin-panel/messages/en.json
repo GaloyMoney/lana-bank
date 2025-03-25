@@ -1307,7 +1307,6 @@
       "chartOfAccountCollateralParentCode": "Collateral Parent Code (e.g. 9220.08.____)",
       "chartOfAccountInterestIncomeParentCode": "Interest Income Parent Code (e.g. 6110.01.0100)",
       "chartOfAccountFeeIncomeParentCode": "Fee Income Parent Code (e.g. 6110.01.0300)",
-      "chartOfAccountInterestReceivableParentCode": "Interest Receivable Parent Code (e.g. 1141.04.9901) [TODO: remove]",
       "chartOfAccountShortTermIndividualInterestReceivableParentCode": "Short Term Interest Receivable Parent Code (e.g. 1141.04.9901)",
       "chartOfAccountShortTermGovernmentEntityInterestReceivableParentCode": "Short Term Interest Receivable Parent Code (e.g. 1141.02.9901)",
       "chartOfAccountShortTermPrivateCompanyInterestReceivableParentCode": "Short Term Interest Receivable Parent Code (e.g. 1141.03.9901)",

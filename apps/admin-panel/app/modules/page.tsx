@@ -50,7 +50,6 @@ gql`
       chartOfAccountCollateralOmnibusParentCode
       chartOfAccountFacilityParentCode
       chartOfAccountCollateralParentCode
-      chartOfAccountInterestReceivableParentCode
       chartOfAccountInterestIncomeParentCode
       chartOfAccountFeeIncomeParentCode
       chartOfAccountShortTermIndividualDisbursedReceivableParentCode
@@ -67,6 +66,20 @@ gql`
       chartOfAccountLongTermFinancialInstitutionDisbursedReceivableParentCode
       chartOfAccountLongTermForeignAgencyOrSubsidiaryDisbursedReceivableParentCode
       chartOfAccountLongTermNonDomiciledCompanyDisbursedReceivableParentCode
+      chartOfAccountShortTermIndividualInterestReceivableParentCode
+      chartOfAccountShortTermGovernmentEntityInterestReceivableParentCode
+      chartOfAccountShortTermPrivateCompanyInterestReceivableParentCode
+      chartOfAccountShortTermBankInterestReceivableParentCode
+      chartOfAccountShortTermFinancialInstitutionInterestReceivableParentCode
+      chartOfAccountShortTermForeignAgencyOrSubsidiaryInterestReceivableParentCode
+      chartOfAccountShortTermNonDomiciledCompanyInterestReceivableParentCode
+      chartOfAccountLongTermIndividualInterestReceivableParentCode
+      chartOfAccountLongTermGovernmentEntityInterestReceivableParentCode
+      chartOfAccountLongTermPrivateCompanyInterestReceivableParentCode
+      chartOfAccountLongTermBankInterestReceivableParentCode
+      chartOfAccountLongTermFinancialInstitutionInterestReceivableParentCode
+      chartOfAccountLongTermForeignAgencyOrSubsidiaryInterestReceivableParentCode
+      chartOfAccountLongTermNonDomiciledCompanyInterestReceivableParentCode
     }
   }
 

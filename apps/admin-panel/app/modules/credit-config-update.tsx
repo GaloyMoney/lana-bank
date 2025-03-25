@@ -30,7 +30,6 @@ gql`
         chartOfAccountCollateralOmnibusParentCode
         chartOfAccountFacilityParentCode
         chartOfAccountCollateralParentCode
-        chartOfAccountInterestReceivableParentCode
         chartOfAccountInterestIncomeParentCode
         chartOfAccountFeeIncomeParentCode
         chartOfAccountShortTermIndividualDisbursedReceivableParentCode
@@ -47,6 +46,20 @@ gql`
         chartOfAccountLongTermFinancialInstitutionDisbursedReceivableParentCode
         chartOfAccountLongTermForeignAgencyOrSubsidiaryDisbursedReceivableParentCode
         chartOfAccountLongTermNonDomiciledCompanyDisbursedReceivableParentCode
+        chartOfAccountShortTermIndividualInterestReceivableParentCode
+        chartOfAccountShortTermGovernmentEntityInterestReceivableParentCode
+        chartOfAccountShortTermPrivateCompanyInterestReceivableParentCode
+        chartOfAccountShortTermBankInterestReceivableParentCode
+        chartOfAccountShortTermFinancialInstitutionInterestReceivableParentCode
+        chartOfAccountShortTermForeignAgencyOrSubsidiaryInterestReceivableParentCode
+        chartOfAccountShortTermNonDomiciledCompanyInterestReceivableParentCode
+        chartOfAccountLongTermIndividualInterestReceivableParentCode
+        chartOfAccountLongTermGovernmentEntityInterestReceivableParentCode
+        chartOfAccountLongTermPrivateCompanyInterestReceivableParentCode
+        chartOfAccountLongTermBankInterestReceivableParentCode
+        chartOfAccountLongTermFinancialInstitutionInterestReceivableParentCode
+        chartOfAccountLongTermForeignAgencyOrSubsidiaryInterestReceivableParentCode
+        chartOfAccountLongTermNonDomiciledCompanyInterestReceivableParentCode
       }
     }
   }
@@ -63,7 +76,6 @@ const initialFormData: CreditModuleConfigureInput = {
   chartOfAccountCollateralOmnibusParentCode: "",
   chartOfAccountFacilityParentCode: "",
   chartOfAccountCollateralParentCode: "",
-  chartOfAccountInterestReceivableParentCode: "",
   chartOfAccountInterestIncomeParentCode: "",
   chartOfAccountFeeIncomeParentCode: "",
   chartOfAccountShortTermIndividualDisbursedReceivableParentCode: "",
@@ -80,6 +92,20 @@ const initialFormData: CreditModuleConfigureInput = {
   chartOfAccountLongTermFinancialInstitutionDisbursedReceivableParentCode: "",
   chartOfAccountLongTermForeignAgencyOrSubsidiaryDisbursedReceivableParentCode: "",
   chartOfAccountLongTermNonDomiciledCompanyDisbursedReceivableParentCode: "",
+  chartOfAccountShortTermIndividualInterestReceivableParentCode: "",
+  chartOfAccountShortTermGovernmentEntityInterestReceivableParentCode: "",
+  chartOfAccountShortTermPrivateCompanyInterestReceivableParentCode: "",
+  chartOfAccountShortTermBankInterestReceivableParentCode: "",
+  chartOfAccountShortTermFinancialInstitutionInterestReceivableParentCode: "",
+  chartOfAccountShortTermForeignAgencyOrSubsidiaryInterestReceivableParentCode: "",
+  chartOfAccountShortTermNonDomiciledCompanyInterestReceivableParentCode: "",
+  chartOfAccountLongTermIndividualInterestReceivableParentCode: "",
+  chartOfAccountLongTermGovernmentEntityInterestReceivableParentCode: "",
+  chartOfAccountLongTermPrivateCompanyInterestReceivableParentCode: "",
+  chartOfAccountLongTermBankInterestReceivableParentCode: "",
+  chartOfAccountLongTermFinancialInstitutionInterestReceivableParentCode: "",
+  chartOfAccountLongTermForeignAgencyOrSubsidiaryInterestReceivableParentCode: "",
+  chartOfAccountLongTermNonDomiciledCompanyInterestReceivableParentCode: "",
 }
 
 export const CreditConfigUpdateDialog: React.FC<CreditConfigUpdateDialogProps> = ({
@@ -103,74 +129,18 @@ export const CreditConfigUpdateDialog: React.FC<CreditConfigUpdateDialogProps> =
   }
 
   useEffect(() => {
-    if (
-      creditModuleConfig &&
-      creditModuleConfig.chartOfAccountFacilityOmnibusParentCode &&
-      creditModuleConfig.chartOfAccountCollateralOmnibusParentCode &&
-      creditModuleConfig.chartOfAccountFacilityParentCode &&
-      creditModuleConfig.chartOfAccountCollateralParentCode &&
-      creditModuleConfig.chartOfAccountInterestReceivableParentCode &&
-      creditModuleConfig.chartOfAccountInterestIncomeParentCode &&
-      creditModuleConfig.chartOfAccountFeeIncomeParentCode &&
-      creditModuleConfig.chartOfAccountShortTermIndividualDisbursedReceivableParentCode &&
-      creditModuleConfig.chartOfAccountShortTermGovernmentEntityDisbursedReceivableParentCode &&
-      creditModuleConfig.chartOfAccountShortTermPrivateCompanyDisbursedReceivableParentCode &&
-      creditModuleConfig.chartOfAccountShortTermBankDisbursedReceivableParentCode &&
-      creditModuleConfig.chartOfAccountShortTermFinancialInstitutionDisbursedReceivableParentCode &&
-      creditModuleConfig.chartOfAccountShortTermForeignAgencyOrSubsidiaryDisbursedReceivableParentCode &&
-      creditModuleConfig.chartOfAccountShortTermNonDomiciledCompanyDisbursedReceivableParentCode &&
-      creditModuleConfig.chartOfAccountLongTermIndividualDisbursedReceivableParentCode &&
-      creditModuleConfig.chartOfAccountLongTermGovernmentEntityDisbursedReceivableParentCode &&
-      creditModuleConfig.chartOfAccountLongTermPrivateCompanyDisbursedReceivableParentCode &&
-      creditModuleConfig.chartOfAccountLongTermBankDisbursedReceivableParentCode &&
-      creditModuleConfig.chartOfAccountLongTermFinancialInstitutionDisbursedReceivableParentCode &&
-      creditModuleConfig.chartOfAccountLongTermForeignAgencyOrSubsidiaryDisbursedReceivableParentCode &&
-      creditModuleConfig.chartOfAccountLongTermNonDomiciledCompanyDisbursedReceivableParentCode
-    ) {
-      setFormData({
-        chartOfAccountFacilityOmnibusParentCode:
-          creditModuleConfig.chartOfAccountFacilityOmnibusParentCode,
-        chartOfAccountCollateralOmnibusParentCode:
-          creditModuleConfig.chartOfAccountCollateralOmnibusParentCode,
-        chartOfAccountFacilityParentCode:
-          creditModuleConfig.chartOfAccountFacilityParentCode,
-        chartOfAccountCollateralParentCode:
-          creditModuleConfig.chartOfAccountCollateralParentCode,
-        chartOfAccountInterestReceivableParentCode:
-          creditModuleConfig.chartOfAccountInterestReceivableParentCode,
-        chartOfAccountInterestIncomeParentCode:
-          creditModuleConfig.chartOfAccountInterestIncomeParentCode,
-        chartOfAccountFeeIncomeParentCode:
-          creditModuleConfig.chartOfAccountFeeIncomeParentCode,
-        chartOfAccountShortTermIndividualDisbursedReceivableParentCode:
-          creditModuleConfig.chartOfAccountShortTermIndividualDisbursedReceivableParentCode,
-        chartOfAccountShortTermGovernmentEntityDisbursedReceivableParentCode:
-          creditModuleConfig.chartOfAccountShortTermGovernmentEntityDisbursedReceivableParentCode,
-        chartOfAccountShortTermPrivateCompanyDisbursedReceivableParentCode:
-          creditModuleConfig.chartOfAccountShortTermPrivateCompanyDisbursedReceivableParentCode,
-        chartOfAccountShortTermBankDisbursedReceivableParentCode:
-          creditModuleConfig.chartOfAccountShortTermBankDisbursedReceivableParentCode,
-        chartOfAccountShortTermFinancialInstitutionDisbursedReceivableParentCode:
-          creditModuleConfig.chartOfAccountShortTermFinancialInstitutionDisbursedReceivableParentCode,
-        chartOfAccountShortTermForeignAgencyOrSubsidiaryDisbursedReceivableParentCode:
-          creditModuleConfig.chartOfAccountShortTermForeignAgencyOrSubsidiaryDisbursedReceivableParentCode,
-        chartOfAccountShortTermNonDomiciledCompanyDisbursedReceivableParentCode:
-          creditModuleConfig.chartOfAccountShortTermNonDomiciledCompanyDisbursedReceivableParentCode,
-        chartOfAccountLongTermIndividualDisbursedReceivableParentCode:
-          creditModuleConfig.chartOfAccountLongTermIndividualDisbursedReceivableParentCode,
-        chartOfAccountLongTermGovernmentEntityDisbursedReceivableParentCode:
-          creditModuleConfig.chartOfAccountLongTermGovernmentEntityDisbursedReceivableParentCode,
-        chartOfAccountLongTermPrivateCompanyDisbursedReceivableParentCode:
-          creditModuleConfig.chartOfAccountLongTermPrivateCompanyDisbursedReceivableParentCode,
-        chartOfAccountLongTermBankDisbursedReceivableParentCode:
-          creditModuleConfig.chartOfAccountLongTermBankDisbursedReceivableParentCode,
-        chartOfAccountLongTermFinancialInstitutionDisbursedReceivableParentCode:
-          creditModuleConfig.chartOfAccountLongTermFinancialInstitutionDisbursedReceivableParentCode,
-        chartOfAccountLongTermForeignAgencyOrSubsidiaryDisbursedReceivableParentCode:
-          creditModuleConfig.chartOfAccountLongTermForeignAgencyOrSubsidiaryDisbursedReceivableParentCode,
-        chartOfAccountLongTermNonDomiciledCompanyDisbursedReceivableParentCode:
-          creditModuleConfig.chartOfAccountLongTermNonDomiciledCompanyDisbursedReceivableParentCode,
+    if (creditModuleConfig) {
+      const updatedFormData = { ...initialFormData }
+      Object.keys(initialFormData).forEach((key) => {
+        if (creditModuleConfig[key as keyof CreditModuleConfig]) {
+          updatedFormData[key as keyof CreditModuleConfigureInput] = creditModuleConfig[
+            key as keyof CreditModuleConfig
+          ] as string
+        }
       })
+      if (Object.values(updatedFormData).some((value) => value !== "")) {
+        setFormData(updatedFormData)
+      }
     }
   }, [creditModuleConfig])
 
