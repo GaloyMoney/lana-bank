@@ -23,6 +23,7 @@ use cala_ledger::CalaLedger;
 use chart_of_accounts::Chart;
 use core_customer::{CoreCustomerAction, CoreCustomerEvent, CustomerObject, Customers};
 use core_price::Price;
+use es_entity::Idempotent;
 use governance::{Governance, GovernanceAction, GovernanceEvent, GovernanceObject};
 use job::Jobs;
 use outbox::{Outbox, OutboxEventMarker};
@@ -819,7 +820,10 @@ where
             .await?;
 
         let completion =
-            credit_facility.complete(audit_info, price, self.config.upgrade_buffer_cvl_pct)?;
+            match credit_facility.complete(audit_info, price, self.config.upgrade_buffer_cvl_pct) {
+                Idempotent::Executed(completion) => completion,
+                _ => return Ok(credit_facility),
+            }?;
 
         let mut db = self.credit_facility_repo.begin_op().await?;
         self.credit_facility_repo

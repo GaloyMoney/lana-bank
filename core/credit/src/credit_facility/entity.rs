@@ -1127,12 +1127,13 @@ impl CreditFacility {
         audit_info: AuditInfo,
         price: PriceOfOneBTC,
         upgrade_buffer_cvl_pct: CVLPct,
-    ) -> Result<CreditFacilityCompletion, CreditFacilityError> {
-        if self.is_completed() {
-            return Err(CreditFacilityError::AlreadyCompleted);
-        }
+    ) -> Idempotent<Result<CreditFacilityCompletion, CreditFacilityError>> {
+        idempotency_guard!(
+            self.events.iter_all(),
+            CreditFacilityEvent::Completed { .. }
+        );
         if !self.total_outstanding().is_zero() {
-            return Err(CreditFacilityError::OutstandingAmount);
+            return Idempotent::Executed(Err(CreditFacilityError::OutstandingAmount));
         }
 
         let res = CreditFacilityCompletion {
@@ -1160,7 +1161,7 @@ impl CreditFacility {
             audit_info,
         });
 
-        Ok(res)
+        Idempotent::Executed(Ok(res))
     }
 
     pub(super) fn collateralization_ratio(&self) -> Option<Decimal> {
