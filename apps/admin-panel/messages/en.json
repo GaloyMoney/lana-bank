@@ -1344,7 +1344,7 @@
       "chartOfAccountsAssetsCode": "Assets Code (e.g. 1)",
       "chartOfAccountsLiabilitiesCode": "Liabilities Code (e.g. 2)",
       "chartOfAccountsEquityCode": "Equity Code (e.g. 3)",
-      "chartOfAccountsRevenueCode": "Revenue Code (e.g. 4)",
+      "chartOfAccountsRevenueCode": "Revenue Code (e.g. 6)",
       "chartOfAccountsCostOfRevenueCode": "Cost of Revenue Code (e.g. 7)",
       "chartOfAccountsExpensesCode": "Expenses Code (e.g. 8)"
     },
