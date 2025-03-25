@@ -786,7 +786,7 @@ checksums:
     Modules/balanceSheet/chartOfAccountsAssetsCode: 21d11e44eea59d406970b2d20d9c6df0
     Modules/balanceSheet/chartOfAccountsLiabilitiesCode: 8d9f7e256e431bb142490ddefe1bcf06
     Modules/balanceSheet/chartOfAccountsEquityCode: daba3de8b197e9aba323a29697ba85f7
-    Modules/balanceSheet/chartOfAccountsRevenueCode: 6fb668c0051fbcf77ddcf3d03a9d424f
+    Modules/balanceSheet/chartOfAccountsRevenueCode: 89653780bccb10893aae06bd7d0e67a3
     Modules/balanceSheet/chartOfAccountsCostOfRevenueCode: 7d76f4a893a0c06530cc8d4bce784cd9
     Modules/balanceSheet/chartOfAccountsExpensesCode: d7a124a68a0474a9d74f961a68e8e855
     Modules/profitAndLoss/title: 3ba19a10374d5fe19675af7a4b2f7832

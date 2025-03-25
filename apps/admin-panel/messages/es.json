@@ -1344,7 +1344,7 @@
       "chartOfAccountsAssetsCode": "Código de activos (ej. 1)",
       "chartOfAccountsLiabilitiesCode": "Código de pasivos (ej. 2)",
       "chartOfAccountsEquityCode": "Código de patrimonio (ej. 3)",
-      "chartOfAccountsRevenueCode": "Código de ingresos (ej. 4)",
+      "chartOfAccountsRevenueCode": "Código de ingresos (p. ej. 6)",
       "chartOfAccountsCostOfRevenueCode": "Código de costo de ingresos (ej. 7)",
       "chartOfAccountsExpensesCode": "Código de gastos (ej. 8)"
     },
