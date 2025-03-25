@@ -1538,12 +1538,21 @@ impl CreditLedger {
     ) -> Result<(), CreditLedgerError> {
         let short_term = &self.internal_account_sets.disbursed_receivable.short_term;
 
+        let ShortTermDisbursedIntegrationMeta {
+            short_term_individual_disbursed_receivable_parent_account_set_id,
+            short_term_government_entity_disbursed_receivable_parent_account_set_id,
+            short_term_private_company_disbursed_receivable_parent_account_set_id,
+            short_term_bank_disbursed_receivable_parent_account_set_id,
+            short_term_financial_institution_disbursed_receivable_parent_account_set_id,
+            short_term_foreign_agency_or_subsidiary_disbursed_receivable_parent_account_set_id,
+            short_term_non_domiciled_company_disbursed_receivable_parent_account_set_id,
+        } = &short_term_disbursed_integration_meta;
+
         self.attach_charts_account_set(
             op,
             account_sets,
             short_term.individual.id,
-            short_term_disbursed_integration_meta
-                .short_term_individual_disbursed_receivable_parent_account_set_id,
+            *short_term_individual_disbursed_receivable_parent_account_set_id,
             charts_integration_meta,
             |meta| {
                 meta.short_term_disbursed_integration_meta
@@ -1556,8 +1565,7 @@ impl CreditLedger {
             op,
             account_sets,
             short_term.government_entity.id,
-            short_term_disbursed_integration_meta
-                .short_term_government_entity_disbursed_receivable_parent_account_set_id,
+            *short_term_government_entity_disbursed_receivable_parent_account_set_id,
             charts_integration_meta,
             |meta| {
                 meta.short_term_disbursed_integration_meta
@@ -1570,8 +1578,7 @@ impl CreditLedger {
             op,
             account_sets,
             short_term.private_company.id,
-            short_term_disbursed_integration_meta
-                .short_term_private_company_disbursed_receivable_parent_account_set_id,
+            *short_term_private_company_disbursed_receivable_parent_account_set_id,
             charts_integration_meta,
             |meta| {
                 meta.short_term_disbursed_integration_meta
@@ -1584,8 +1591,7 @@ impl CreditLedger {
             op,
             account_sets,
             short_term.bank.id,
-            short_term_disbursed_integration_meta
-                .short_term_bank_disbursed_receivable_parent_account_set_id,
+            *short_term_bank_disbursed_receivable_parent_account_set_id,
             charts_integration_meta,
             |meta| {
                 meta.short_term_disbursed_integration_meta
@@ -1598,8 +1604,7 @@ impl CreditLedger {
             op,
             account_sets,
             short_term.financial_institution.id,
-            short_term_disbursed_integration_meta
-                .short_term_financial_institution_disbursed_receivable_parent_account_set_id,
+            *short_term_financial_institution_disbursed_receivable_parent_account_set_id,
             charts_integration_meta,
             |meta| {
                 meta.short_term_disbursed_integration_meta
@@ -1612,8 +1617,8 @@ impl CreditLedger {
             op,
             account_sets,
             short_term.foreign_agency_or_subsidiary.id,
-            short_term_disbursed_integration_meta
-                .short_term_foreign_agency_or_subsidiary_disbursed_receivable_parent_account_set_id,
+
+                *short_term_foreign_agency_or_subsidiary_disbursed_receivable_parent_account_set_id,
             charts_integration_meta,
             |meta| meta.short_term_disbursed_integration_meta.short_term_foreign_agency_or_subsidiary_disbursed_receivable_parent_account_set_id,
         )
@@ -1623,8 +1628,7 @@ impl CreditLedger {
             op,
             account_sets,
             short_term.non_domiciled_company.id,
-            short_term_disbursed_integration_meta
-                .short_term_non_domiciled_company_disbursed_receivable_parent_account_set_id,
+            *short_term_non_domiciled_company_disbursed_receivable_parent_account_set_id,
             charts_integration_meta,
             |meta| {
                 meta.short_term_disbursed_integration_meta
@@ -1645,12 +1649,21 @@ impl CreditLedger {
     ) -> Result<(), CreditLedgerError> {
         let long_term = &self.internal_account_sets.disbursed_receivable.long_term;
 
+        let LongTermDisbursedIntegrationMeta {
+            long_term_individual_disbursed_receivable_parent_account_set_id,
+            long_term_government_entity_disbursed_receivable_parent_account_set_id,
+            long_term_private_company_disbursed_receivable_parent_account_set_id,
+            long_term_bank_disbursed_receivable_parent_account_set_id,
+            long_term_financial_institution_disbursed_receivable_parent_account_set_id,
+            long_term_foreign_agency_or_subsidiary_disbursed_receivable_parent_account_set_id,
+            long_term_non_domiciled_company_disbursed_receivable_parent_account_set_id,
+        } = &long_term_disbursed_integration_meta;
+
         self.attach_charts_account_set(
             op,
             account_sets,
             long_term.individual.id,
-            long_term_disbursed_integration_meta
-                .long_term_individual_disbursed_receivable_parent_account_set_id,
+            *long_term_individual_disbursed_receivable_parent_account_set_id,
             charts_integration_meta,
             |meta| {
                 meta.long_term_disbursed_integration_meta
@@ -1663,8 +1676,7 @@ impl CreditLedger {
             op,
             account_sets,
             long_term.government_entity.id,
-            long_term_disbursed_integration_meta
-                .long_term_government_entity_disbursed_receivable_parent_account_set_id,
+            *long_term_government_entity_disbursed_receivable_parent_account_set_id,
             charts_integration_meta,
             |meta| {
                 meta.long_term_disbursed_integration_meta
@@ -1677,8 +1689,7 @@ impl CreditLedger {
             op,
             account_sets,
             long_term.private_company.id,
-            long_term_disbursed_integration_meta
-                .long_term_private_company_disbursed_receivable_parent_account_set_id,
+            *long_term_private_company_disbursed_receivable_parent_account_set_id,
             charts_integration_meta,
             |meta| {
                 meta.long_term_disbursed_integration_meta
@@ -1691,8 +1702,7 @@ impl CreditLedger {
             op,
             account_sets,
             long_term.bank.id,
-            long_term_disbursed_integration_meta
-                .long_term_bank_disbursed_receivable_parent_account_set_id,
+            *long_term_bank_disbursed_receivable_parent_account_set_id,
             charts_integration_meta,
             |meta| {
                 meta.long_term_disbursed_integration_meta
@@ -1705,8 +1715,7 @@ impl CreditLedger {
             op,
             account_sets,
             long_term.financial_institution.id,
-            long_term_disbursed_integration_meta
-                .long_term_financial_institution_disbursed_receivable_parent_account_set_id,
+            *long_term_financial_institution_disbursed_receivable_parent_account_set_id,
             charts_integration_meta,
             |meta| {
                 meta.long_term_disbursed_integration_meta
@@ -1719,8 +1728,7 @@ impl CreditLedger {
             op,
             account_sets,
             long_term.foreign_agency_or_subsidiary.id,
-            long_term_disbursed_integration_meta
-                .long_term_foreign_agency_or_subsidiary_disbursed_receivable_parent_account_set_id,
+                *long_term_foreign_agency_or_subsidiary_disbursed_receivable_parent_account_set_id,
             charts_integration_meta,
             |meta| meta.long_term_disbursed_integration_meta.long_term_foreign_agency_or_subsidiary_disbursed_receivable_parent_account_set_id,
         )
@@ -1730,8 +1738,7 @@ impl CreditLedger {
             op,
             account_sets,
             long_term.non_domiciled_company.id,
-            long_term_disbursed_integration_meta
-                .long_term_non_domiciled_company_disbursed_receivable_parent_account_set_id,
+            *long_term_non_domiciled_company_disbursed_receivable_parent_account_set_id,
             charts_integration_meta,
             |meta| {
                 meta.long_term_disbursed_integration_meta
@@ -1752,12 +1759,21 @@ impl CreditLedger {
     ) -> Result<(), CreditLedgerError> {
         let short_term = &self.internal_account_sets.interest_receivable.short_term;
 
+        let ShortTermInterestIntegrationMeta {
+            short_term_individual_interest_receivable_parent_account_set_id,
+            short_term_government_entity_interest_receivable_parent_account_set_id,
+            short_term_private_company_interest_receivable_parent_account_set_id,
+            short_term_bank_interest_receivable_parent_account_set_id,
+            short_term_financial_institution_interest_receivable_parent_account_set_id,
+            short_term_foreign_agency_or_subsidiary_interest_receivable_parent_account_set_id,
+            short_term_non_domiciled_company_interest_receivable_parent_account_set_id,
+        } = &short_term_interest_integration_meta;
+
         self.attach_charts_account_set(
             op,
             account_sets,
             short_term.individual.id,
-            short_term_interest_integration_meta
-                .short_term_individual_interest_receivable_parent_account_set_id,
+            *short_term_individual_interest_receivable_parent_account_set_id,
             charts_integration_meta,
             |meta| {
                 meta.short_term_interest_integration_meta
@@ -1770,8 +1786,7 @@ impl CreditLedger {
             op,
             account_sets,
             short_term.government_entity.id,
-            short_term_interest_integration_meta
-                .short_term_government_entity_interest_receivable_parent_account_set_id,
+            *short_term_government_entity_interest_receivable_parent_account_set_id,
             charts_integration_meta,
             |meta| {
                 meta.short_term_interest_integration_meta
@@ -1784,8 +1799,7 @@ impl CreditLedger {
             op,
             account_sets,
             short_term.private_company.id,
-            short_term_interest_integration_meta
-                .short_term_private_company_interest_receivable_parent_account_set_id,
+            *short_term_private_company_interest_receivable_parent_account_set_id,
             charts_integration_meta,
             |meta| {
                 meta.short_term_interest_integration_meta
@@ -1798,8 +1812,7 @@ impl CreditLedger {
             op,
             account_sets,
             short_term.bank.id,
-            short_term_interest_integration_meta
-                .short_term_bank_interest_receivable_parent_account_set_id,
+            *short_term_bank_interest_receivable_parent_account_set_id,
             charts_integration_meta,
             |meta| {
                 meta.short_term_interest_integration_meta
@@ -1812,8 +1825,7 @@ impl CreditLedger {
             op,
             account_sets,
             short_term.financial_institution.id,
-            short_term_interest_integration_meta
-                .short_term_financial_institution_interest_receivable_parent_account_set_id,
+            *short_term_financial_institution_interest_receivable_parent_account_set_id,
             charts_integration_meta,
             |meta| {
                 meta.short_term_interest_integration_meta
@@ -1826,8 +1838,7 @@ impl CreditLedger {
             op,
             account_sets,
             short_term.foreign_agency_or_subsidiary.id,
-            short_term_interest_integration_meta
-                .short_term_foreign_agency_or_subsidiary_interest_receivable_parent_account_set_id,
+                *short_term_foreign_agency_or_subsidiary_interest_receivable_parent_account_set_id,
             charts_integration_meta,
             |meta| {
                 meta.short_term_interest_integration_meta
@@ -1839,8 +1850,7 @@ impl CreditLedger {
             op,
             account_sets,
             short_term.non_domiciled_company.id,
-            short_term_interest_integration_meta
-                .short_term_non_domiciled_company_interest_receivable_parent_account_set_id,
+            *short_term_non_domiciled_company_interest_receivable_parent_account_set_id,
             charts_integration_meta,
             |meta| {
                 meta.short_term_interest_integration_meta
@@ -1861,12 +1871,21 @@ impl CreditLedger {
     ) -> Result<(), CreditLedgerError> {
         let long_term = &self.internal_account_sets.interest_receivable.long_term;
 
+        let LongTermInterestIntegrationMeta {
+            long_term_individual_interest_receivable_parent_account_set_id,
+            long_term_government_entity_interest_receivable_parent_account_set_id,
+            long_term_private_company_interest_receivable_parent_account_set_id,
+            long_term_bank_interest_receivable_parent_account_set_id,
+            long_term_financial_institution_interest_receivable_parent_account_set_id,
+            long_term_foreign_agency_or_subsidiary_interest_receivable_parent_account_set_id,
+            long_term_non_domiciled_company_interest_receivable_parent_account_set_id,
+        } = &long_term_interest_integration_meta;
+
         self.attach_charts_account_set(
             op,
             account_sets,
             long_term.individual.id,
-            long_term_interest_integration_meta
-                .long_term_individual_interest_receivable_parent_account_set_id,
+            *long_term_individual_interest_receivable_parent_account_set_id,
             charts_integration_meta,
             |meta| {
                 meta.long_term_interest_integration_meta
@@ -1879,8 +1898,7 @@ impl CreditLedger {
             op,
             account_sets,
             long_term.government_entity.id,
-            long_term_interest_integration_meta
-                .long_term_government_entity_interest_receivable_parent_account_set_id,
+            *long_term_government_entity_interest_receivable_parent_account_set_id,
             charts_integration_meta,
             |meta| {
                 meta.long_term_interest_integration_meta
@@ -1893,8 +1911,7 @@ impl CreditLedger {
             op,
             account_sets,
             long_term.private_company.id,
-            long_term_interest_integration_meta
-                .long_term_private_company_interest_receivable_parent_account_set_id,
+            *long_term_private_company_interest_receivable_parent_account_set_id,
             charts_integration_meta,
             |meta| {
                 meta.long_term_interest_integration_meta
@@ -1907,8 +1924,7 @@ impl CreditLedger {
             op,
             account_sets,
             long_term.bank.id,
-            long_term_interest_integration_meta
-                .long_term_bank_interest_receivable_parent_account_set_id,
+            *long_term_bank_interest_receivable_parent_account_set_id,
             charts_integration_meta,
             |meta| {
                 meta.long_term_interest_integration_meta
@@ -1921,8 +1937,7 @@ impl CreditLedger {
             op,
             account_sets,
             long_term.financial_institution.id,
-            long_term_interest_integration_meta
-                .long_term_financial_institution_interest_receivable_parent_account_set_id,
+            *long_term_financial_institution_interest_receivable_parent_account_set_id,
             charts_integration_meta,
             |meta| {
                 meta.long_term_interest_integration_meta
@@ -1935,8 +1950,7 @@ impl CreditLedger {
             op,
             account_sets,
             long_term.foreign_agency_or_subsidiary.id,
-            long_term_interest_integration_meta
-                .long_term_foreign_agency_or_subsidiary_interest_receivable_parent_account_set_id,
+                *long_term_foreign_agency_or_subsidiary_interest_receivable_parent_account_set_id,
             charts_integration_meta,
             |meta| {
                 meta.long_term_interest_integration_meta
@@ -1948,8 +1962,7 @@ impl CreditLedger {
             op,
             account_sets,
             long_term.non_domiciled_company.id,
-            long_term_interest_integration_meta
-                .long_term_non_domiciled_company_interest_receivable_parent_account_set_id,
+            *long_term_non_domiciled_company_interest_receivable_parent_account_set_id,
             charts_integration_meta,
             |meta| {
                 meta.long_term_interest_integration_meta
