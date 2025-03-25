@@ -80,6 +80,13 @@ gql`
       chartOfAccountLongTermFinancialInstitutionInterestReceivableParentCode
       chartOfAccountLongTermForeignAgencyOrSubsidiaryInterestReceivableParentCode
       chartOfAccountLongTermNonDomiciledCompanyInterestReceivableParentCode
+      chartOfAccountOverdueIndividualDisbursedReceivableParentCode
+      chartOfAccountOverdueGovernmentEntityDisbursedReceivableParentCode
+      chartOfAccountOverduePrivateCompanyDisbursedReceivableParentCode
+      chartOfAccountOverdueBankDisbursedReceivableParentCode
+      chartOfAccountOverdueFinancialInstitutionDisbursedReceivableParentCode
+      chartOfAccountOverdueForeignAgencyOrSubsidiaryDisbursedReceivableParentCode
+      chartOfAccountOverdueNonDomiciledCompanyDisbursedReceivableParentCode
     }
   }
 
