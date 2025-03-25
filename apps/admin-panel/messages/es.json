@@ -1307,7 +1307,6 @@
       "chartOfAccountCollateralParentCode": "Código padre de garantía (p. ej. 9220.08.____)",
       "chartOfAccountInterestIncomeParentCode": "Código padre de ingresos por intereses (p. ej. 6110.01.0100)",
       "chartOfAccountFeeIncomeParentCode": "Código padre de ingresos por comisiones (p. ej. 6110.01.0300)",
-      "chartOfAccountInterestReceivableParentCode": "Código padre de intereses por cobrar (ej. 1141.04.9901) [TODO: eliminar]",
       "chartOfAccountShortTermIndividualInterestReceivableParentCode": "Código padre de intereses por cobrar a corto plazo para individuos (ej. 1141.04.9901)",
       "chartOfAccountShortTermGovernmentEntityInterestReceivableParentCode": "Código padre de intereses por cobrar a corto plazo para entidades gubernamentales (ej. 1141.02.9901)",
       "chartOfAccountShortTermPrivateCompanyInterestReceivableParentCode": "Código padre de intereses por cobrar a corto plazo para empresas privadas (ej. 1141.03.9901)",
