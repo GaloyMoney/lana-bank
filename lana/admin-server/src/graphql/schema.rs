@@ -1016,6 +1016,14 @@ impl Mutation {
             chart_of_account_long_term_financial_institution_interest_receivable_parent_code,
             chart_of_account_long_term_foreign_agency_or_subsidiary_interest_receivable_parent_code,
             chart_of_account_long_term_non_domiciled_company_interest_receivable_parent_code,
+
+            chart_of_account_overdue_individual_disbursed_receivable_parent_code,
+            chart_of_account_overdue_government_entity_disbursed_receivable_parent_code,
+            chart_of_account_overdue_private_company_disbursed_receivable_parent_code,
+            chart_of_account_overdue_bank_disbursed_receivable_parent_code,
+            chart_of_account_overdue_financial_institution_disbursed_receivable_parent_code,
+            chart_of_account_overdue_foreign_agency_or_subsidiary_disbursed_receivable_parent_code,
+            chart_of_account_overdue_non_domiciled_company_disbursed_receivable_parent_code,
         } = input;
 
         let config_values = lana_app::credit_facility::ChartOfAccountsIntegrationConfig::builder()
@@ -1070,6 +1078,13 @@ impl Mutation {
             .chart_of_account_long_term_foreign_agency_or_subsidiary_interest_receivable_parent_code(chart_of_account_long_term_foreign_agency_or_subsidiary_interest_receivable_parent_code.parse()?)
             .chart_of_account_long_term_non_domiciled_company_interest_receivable_parent_code(chart_of_account_long_term_non_domiciled_company_interest_receivable_parent_code.parse()?)
 
+            .chart_of_account_overdue_individual_disbursed_receivable_parent_code(chart_of_account_overdue_individual_disbursed_receivable_parent_code.parse()?)
+            .chart_of_account_overdue_government_entity_disbursed_receivable_parent_code(chart_of_account_overdue_government_entity_disbursed_receivable_parent_code.parse()?)
+            .chart_of_account_overdue_private_company_disbursed_receivable_parent_code(chart_of_account_overdue_private_company_disbursed_receivable_parent_code.parse()?)
+            .chart_of_account_overdue_bank_disbursed_receivable_parent_code(chart_of_account_overdue_bank_disbursed_receivable_parent_code.parse()?)
+            .chart_of_account_overdue_financial_institution_disbursed_receivable_parent_code(chart_of_account_overdue_financial_institution_disbursed_receivable_parent_code.parse()?)
+            .chart_of_account_overdue_foreign_agency_or_subsidiary_disbursed_receivable_parent_code(chart_of_account_overdue_foreign_agency_or_subsidiary_disbursed_receivable_parent_code.parse()?)
+            .chart_of_account_overdue_non_domiciled_company_disbursed_receivable_parent_code(chart_of_account_overdue_non_domiciled_company_disbursed_receivable_parent_code.parse()?)
 
             .build()?;
         let config = app

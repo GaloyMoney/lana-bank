@@ -672,6 +672,13 @@ export type CreditModuleConfig = {
   chartOfAccountLongTermNonDomiciledCompanyInterestReceivableParentCode?: Maybe<Scalars['String']['output']>;
   chartOfAccountLongTermPrivateCompanyDisbursedReceivableParentCode?: Maybe<Scalars['String']['output']>;
   chartOfAccountLongTermPrivateCompanyInterestReceivableParentCode?: Maybe<Scalars['String']['output']>;
+  chartOfAccountOverdueBankDisbursedReceivableParentCode?: Maybe<Scalars['String']['output']>;
+  chartOfAccountOverdueFinancialInstitutionDisbursedReceivableParentCode?: Maybe<Scalars['String']['output']>;
+  chartOfAccountOverdueForeignAgencyOrSubsidiaryDisbursedReceivableParentCode?: Maybe<Scalars['String']['output']>;
+  chartOfAccountOverdueGovernmentEntityDisbursedReceivableParentCode?: Maybe<Scalars['String']['output']>;
+  chartOfAccountOverdueIndividualDisbursedReceivableParentCode?: Maybe<Scalars['String']['output']>;
+  chartOfAccountOverdueNonDomiciledCompanyDisbursedReceivableParentCode?: Maybe<Scalars['String']['output']>;
+  chartOfAccountOverduePrivateCompanyDisbursedReceivableParentCode?: Maybe<Scalars['String']['output']>;
   chartOfAccountShortTermBankDisbursedReceivableParentCode?: Maybe<Scalars['String']['output']>;
   chartOfAccountShortTermBankInterestReceivableParentCode?: Maybe<Scalars['String']['output']>;
   chartOfAccountShortTermFinancialInstitutionDisbursedReceivableParentCode?: Maybe<Scalars['String']['output']>;
@@ -710,6 +717,13 @@ export type CreditModuleConfigureInput = {
   chartOfAccountLongTermNonDomiciledCompanyInterestReceivableParentCode: Scalars['String']['input'];
   chartOfAccountLongTermPrivateCompanyDisbursedReceivableParentCode: Scalars['String']['input'];
   chartOfAccountLongTermPrivateCompanyInterestReceivableParentCode: Scalars['String']['input'];
+  chartOfAccountOverdueBankDisbursedReceivableParentCode: Scalars['String']['input'];
+  chartOfAccountOverdueFinancialInstitutionDisbursedReceivableParentCode: Scalars['String']['input'];
+  chartOfAccountOverdueForeignAgencyOrSubsidiaryDisbursedReceivableParentCode: Scalars['String']['input'];
+  chartOfAccountOverdueGovernmentEntityDisbursedReceivableParentCode: Scalars['String']['input'];
+  chartOfAccountOverdueIndividualDisbursedReceivableParentCode: Scalars['String']['input'];
+  chartOfAccountOverdueNonDomiciledCompanyDisbursedReceivableParentCode: Scalars['String']['input'];
+  chartOfAccountOverduePrivateCompanyDisbursedReceivableParentCode: Scalars['String']['input'];
   chartOfAccountShortTermBankDisbursedReceivableParentCode: Scalars['String']['input'];
   chartOfAccountShortTermBankInterestReceivableParentCode: Scalars['String']['input'];
   chartOfAccountShortTermFinancialInstitutionDisbursedReceivableParentCode: Scalars['String']['input'];
