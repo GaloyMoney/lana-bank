@@ -315,3 +315,27 @@ impl From<CustomerType> for DisbursedReceivableAccountType {
         }
     }
 }
+
+pub enum InterestReceivableAccountType {
+    Individual,
+    GovernmentEntity,
+    PrivateCompany,
+    Bank,
+    FinancialInstitution,
+    ForeignAgencyOrSubsidiary,
+    NonDomiciledCompany,
+}
+
+impl From<CustomerType> for InterestReceivableAccountType {
+    fn from(customer_type: CustomerType) -> Self {
+        match customer_type {
+            CustomerType::Individual => Self::Individual,
+            CustomerType::GovernmentEntity => Self::GovernmentEntity,
+            CustomerType::PrivateCompany => Self::PrivateCompany,
+            CustomerType::Bank => Self::Bank,
+            CustomerType::FinancialInstitution => Self::FinancialInstitution,
+            CustomerType::ForeignAgencyOrSubsidiary => Self::ForeignAgencyOrSubsidiary,
+            CustomerType::NonDomiciledCompany => Self::NonDomiciledCompany,
+        }
+    }
+}

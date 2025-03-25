@@ -11,7 +11,6 @@ pub struct ChartOfAccountsIntegrationConfig {
     pub chart_of_account_collateral_omnibus_parent_code: AccountCode,
     pub chart_of_account_facility_parent_code: AccountCode,
     pub chart_of_account_collateral_parent_code: AccountCode,
-    pub chart_of_account_interest_receivable_parent_code: AccountCode,
     pub chart_of_account_interest_income_parent_code: AccountCode,
     pub chart_of_account_fee_income_parent_code: AccountCode,
 
@@ -35,6 +34,28 @@ pub struct ChartOfAccountsIntegrationConfig {
     pub chart_of_account_long_term_foreign_agency_or_subsidiary_disbursed_receivable_parent_code:
         AccountCode,
     pub chart_of_account_long_term_non_domiciled_company_disbursed_receivable_parent_code:
+        AccountCode,
+
+    pub chart_of_account_short_term_individual_interest_receivable_parent_code: AccountCode,
+    pub chart_of_account_short_term_government_entity_interest_receivable_parent_code: AccountCode,
+    pub chart_of_account_short_term_private_company_interest_receivable_parent_code: AccountCode,
+    pub chart_of_account_short_term_bank_interest_receivable_parent_code: AccountCode,
+    pub chart_of_account_short_term_financial_institution_interest_receivable_parent_code:
+        AccountCode,
+    pub chart_of_account_short_term_foreign_agency_or_subsidiary_interest_receivable_parent_code:
+        AccountCode,
+    pub chart_of_account_short_term_non_domiciled_company_interest_receivable_parent_code:
+        AccountCode,
+
+    pub chart_of_account_long_term_individual_interest_receivable_parent_code: AccountCode,
+    pub chart_of_account_long_term_government_entity_interest_receivable_parent_code: AccountCode,
+    pub chart_of_account_long_term_private_company_interest_receivable_parent_code: AccountCode,
+    pub chart_of_account_long_term_bank_interest_receivable_parent_code: AccountCode,
+    pub chart_of_account_long_term_financial_institution_interest_receivable_parent_code:
+        AccountCode,
+    pub chart_of_account_long_term_foreign_agency_or_subsidiary_interest_receivable_parent_code:
+        AccountCode,
+    pub chart_of_account_long_term_non_domiciled_company_interest_receivable_parent_code:
         AccountCode,
 }
 

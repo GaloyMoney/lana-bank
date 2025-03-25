@@ -19,11 +19,11 @@ use cala_ledger::{
 
 use crate::{
     primitives::{
-        CollateralAction, CreditFacilityId, LedgerAccountId, LedgerAccountSetId,
+        CollateralAction, CreditFacilityId, CustomerType, DisbursedReceivableAccountType,
+        InterestReceivableAccountType, LedgerAccountId, LedgerAccountSetId,
         LedgerOmnibusAccountIds, Satoshis, UsdCents,
     },
-    terms::DurationType,
-    ChartOfAccountsIntegrationConfig, DisbursedReceivableAccountType,
+    ChartOfAccountsIntegrationConfig, DurationType,
 };
 
 use constants::*;
@@ -76,11 +76,42 @@ pub struct DisbursedReceivable {
 }
 
 #[derive(Clone, Copy)]
+pub struct InterestReceivableAccountSets {
+    individual: InternalAccountSetDetails,
+    government_entity: InternalAccountSetDetails,
+    private_company: InternalAccountSetDetails,
+    bank: InternalAccountSetDetails,
+    financial_institution: InternalAccountSetDetails,
+    foreign_agency_or_subsidiary: InternalAccountSetDetails,
+    non_domiciled_company: InternalAccountSetDetails,
+}
+
+impl InterestReceivableAccountSets {
+    fn account_set_ids(&self) -> Vec<LedgerAccountSetId> {
+        vec![
+            self.individual.id,
+            self.government_entity.id,
+            self.private_company.id,
+            self.bank.id,
+            self.financial_institution.id,
+            self.foreign_agency_or_subsidiary.id,
+            self.non_domiciled_company.id,
+        ]
+    }
+}
+
+#[derive(Clone, Copy)]
+pub struct InterestReceivable {
+    short_term: InterestReceivableAccountSets,
+    long_term: InterestReceivableAccountSets,
+}
+
+#[derive(Clone, Copy)]
 pub struct CreditFacilityInternalAccountSets {
     pub facility: InternalAccountSetDetails,
     pub collateral: InternalAccountSetDetails,
     pub disbursed_receivable: DisbursedReceivable,
-    pub interest_receivable: InternalAccountSetDetails,
+    pub interest_receivable: InterestReceivable,
     pub interest_income: InternalAccountSetDetails,
     pub fee_income: InternalAccountSetDetails,
 }
@@ -90,7 +121,6 @@ impl CreditFacilityInternalAccountSets {
         let mut ids = vec![
             self.facility.id,
             self.collateral.id,
-            self.interest_receivable.id,
             self.interest_income.id,
             self.fee_income.id,
         ];
@@ -99,7 +129,9 @@ impl CreditFacilityInternalAccountSets {
                 .short_term
                 .account_set_ids()
                 .into_iter()
-                .chain(self.disbursed_receivable.long_term.account_set_ids()),
+                .chain(self.disbursed_receivable.long_term.account_set_ids())
+                .chain(self.interest_receivable.short_term.account_set_ids())
+                .chain(self.interest_receivable.long_term.account_set_ids()),
         );
 
         ids
@@ -299,14 +331,120 @@ impl CreditLedger {
         .await?;
 
         let interest_receivable_normal_balance_type = DebitOrCredit::Debit;
-        let interest_receivable_account_set_id = Self::find_or_create_account_set(
+
+        let short_term_individual_interest_receivable_account_set_id = Self::find_or_create_account_set(
             cala,
             journal_id,
-            format!("{journal_id}:{CREDIT_INTEREST_RECEIVABLE_ACCOUNT_SET_REF}"),
-            CREDIT_INTEREST_RECEIVABLE_ACCOUNT_SET_NAME.to_string(),
+            format!("{journal_id}:{SHORT_TERM_CREDIT_INDIVIDUAL_INTEREST_RECEIVABLE_ACCOUNT_SET_REF}"),
+            SHORT_TERM_CREDIT_INDIVIDUAL_INTEREST_RECEIVABLE_ACCOUNT_SET_NAME.to_string(),
+            interest_receivable_normal_balance_type,
+        ).await?;
+
+        let short_term_government_entity_interest_receivable_account_set_id = Self::find_or_create_account_set(
+            cala,
+            journal_id,
+            format!("{journal_id}:{SHORT_TERM_CREDIT_GOVERNMENT_ENTITY_INTEREST_RECEIVABLE_ACCOUNT_SET_REF}"),
+            SHORT_TERM_CREDIT_GOVERNMENT_ENTITY_INTEREST_RECEIVABLE_ACCOUNT_SET_NAME.to_string(),
+            interest_receivable_normal_balance_type,
+        ).await?;
+
+        let short_term_private_company_interest_receivable_account_set_id = Self::find_or_create_account_set(
+            cala,
+            journal_id,
+            format!("{journal_id}:{SHORT_TERM_CREDIT_PRIVATE_COMPANY_INTEREST_RECEIVABLE_ACCOUNT_SET_REF}"),
+            SHORT_TERM_CREDIT_PRIVATE_COMPANY_INTEREST_RECEIVABLE_ACCOUNT_SET_NAME.to_string(),
+            interest_receivable_normal_balance_type,
+        ).await?;
+
+        let short_term_bank_interest_receivable_account_set_id = Self::find_or_create_account_set(
+            cala,
+            journal_id,
+            format!("{journal_id}:{SHORT_TERM_CREDIT_BANK_INTEREST_RECEIVABLE_ACCOUNT_SET_REF}"),
+            SHORT_TERM_CREDIT_BANK_INTEREST_RECEIVABLE_ACCOUNT_SET_NAME.to_string(),
             interest_receivable_normal_balance_type,
         )
         .await?;
+
+        let short_term_financial_institution_interest_receivable_account_set_id = Self::find_or_create_account_set(
+            cala,
+            journal_id,
+            format!("{journal_id}:{SHORT_TERM_CREDIT_FINANCIAL_INSTITUTION_INTEREST_RECEIVABLE_ACCOUNT_SET_REF}"),
+            SHORT_TERM_CREDIT_FINANCIAL_INSTITUTION_INTEREST_RECEIVABLE_ACCOUNT_SET_NAME.to_string(),
+            interest_receivable_normal_balance_type,
+        ).await?;
+
+        let short_term_foreign_agency_or_subsidiary_interest_receivable_account_set_id = Self::find_or_create_account_set(
+            cala,
+            journal_id,
+            format!("{journal_id}:{SHORT_TERM_CREDIT_FOREIGN_AGENCY_OR_SUBSIDIARY_INTEREST_RECEIVABLE_ACCOUNT_SET_REF}"),
+            SHORT_TERM_CREDIT_FOREIGN_AGENCY_OR_SUBSIDIARY_INTEREST_RECEIVABLE_ACCOUNT_SET_NAME.to_string(),
+            interest_receivable_normal_balance_type,
+        ).await?;
+
+        let short_term_non_domiciled_company_interest_receivable_account_set_id = Self::find_or_create_account_set(
+            cala,
+            journal_id,
+            format!("{journal_id}:{SHORT_TERM_CREDIT_NON_DOMICILED_COMPANY_INTEREST_RECEIVABLE_ACCOUNT_SET_REF}"),
+            SHORT_TERM_CREDIT_NON_DOMICILED_COMPANY_INTEREST_RECEIVABLE_ACCOUNT_SET_NAME.to_string(),
+            interest_receivable_normal_balance_type,
+        ).await?;
+
+        let long_term_individual_interest_receivable_account_set_id = Self::find_or_create_account_set(
+            cala,
+            journal_id,
+            format!("{journal_id}:{LONG_TERM_CREDIT_INDIVIDUAL_INTEREST_RECEIVABLE_ACCOUNT_SET_REF}"),
+            LONG_TERM_CREDIT_INDIVIDUAL_INTEREST_RECEIVABLE_ACCOUNT_SET_NAME.to_string(),
+            interest_receivable_normal_balance_type,
+        ).await?;
+
+        let long_term_government_entity_interest_receivable_account_set_id = Self::find_or_create_account_set(
+            cala,
+            journal_id,
+            format!("{journal_id}:{LONG_TERM_CREDIT_GOVERNMENT_ENTITY_INTEREST_RECEIVABLE_ACCOUNT_SET_REF}"),
+            LONG_TERM_CREDIT_GOVERNMENT_ENTITY_INTEREST_RECEIVABLE_ACCOUNT_SET_NAME.to_string(),
+            interest_receivable_normal_balance_type,
+        ).await?;
+
+        let long_term_private_company_interest_receivable_account_set_id = Self::find_or_create_account_set(
+            cala,
+            journal_id,
+            format!("{journal_id}:{LONG_TERM_CREDIT_PRIVATE_COMPANY_INTEREST_RECEIVABLE_ACCOUNT_SET_REF}"),
+            LONG_TERM_CREDIT_PRIVATE_COMPANY_INTEREST_RECEIVABLE_ACCOUNT_SET_NAME.to_string(),
+            interest_receivable_normal_balance_type,
+        ).await?;
+
+        let long_term_bank_interest_receivable_account_set_id = Self::find_or_create_account_set(
+            cala,
+            journal_id,
+            format!("{journal_id}:{LONG_TERM_CREDIT_BANK_INTEREST_RECEIVABLE_ACCOUNT_SET_REF}"),
+            LONG_TERM_CREDIT_BANK_INTEREST_RECEIVABLE_ACCOUNT_SET_NAME.to_string(),
+            interest_receivable_normal_balance_type,
+        )
+        .await?;
+
+        let long_term_financial_institution_interest_receivable_account_set_id = Self::find_or_create_account_set(
+            cala,
+            journal_id,
+            format!("{journal_id}:{LONG_TERM_CREDIT_FINANCIAL_INSTITUTION_INTEREST_RECEIVABLE_ACCOUNT_SET_REF}"),
+            LONG_TERM_CREDIT_FINANCIAL_INSTITUTION_INTEREST_RECEIVABLE_ACCOUNT_SET_NAME.to_string(),
+            interest_receivable_normal_balance_type,
+        ).await?;
+
+        let long_term_foreign_agency_or_subsidiary_interest_receivable_account_set_id = Self::find_or_create_account_set(
+            cala,
+            journal_id,
+            format!("{journal_id}:{LONG_TERM_CREDIT_FOREIGN_AGENCY_OR_SUBSIDIARY_INTEREST_RECEIVABLE_ACCOUNT_SET_REF}"),
+            LONG_TERM_CREDIT_FOREIGN_AGENCY_OR_SUBSIDIARY_INTEREST_RECEIVABLE_ACCOUNT_SET_NAME.to_string(),
+            interest_receivable_normal_balance_type,
+        ).await?;
+
+        let long_term_non_domiciled_company_interest_receivable_account_set_id = Self::find_or_create_account_set(
+            cala,
+            journal_id,
+            format!("{journal_id}:{LONG_TERM_CREDIT_NON_DOMICILED_COMPANY_INTEREST_RECEIVABLE_ACCOUNT_SET_REF}"),
+            LONG_TERM_CREDIT_NON_DOMICILED_COMPANY_INTEREST_RECEIVABLE_ACCOUNT_SET_NAME.to_string(),
+            interest_receivable_normal_balance_type,
+        ).await?;
 
         let interest_income_normal_balance_type = DebitOrCredit::Credit;
         let interest_income_account_set_id = Self::find_or_create_account_set(
@@ -391,6 +529,69 @@ impl CreditLedger {
             },
         };
 
+        let interest_receivable = InterestReceivable {
+            short_term: InterestReceivableAccountSets {
+                individual: InternalAccountSetDetails {
+                    id: short_term_individual_interest_receivable_account_set_id,
+                    normal_balance_type: interest_receivable_normal_balance_type,
+                },
+                government_entity: InternalAccountSetDetails {
+                    id: short_term_government_entity_interest_receivable_account_set_id,
+                    normal_balance_type: interest_receivable_normal_balance_type,
+                },
+                private_company: InternalAccountSetDetails {
+                    id: short_term_private_company_interest_receivable_account_set_id,
+                    normal_balance_type: interest_receivable_normal_balance_type,
+                },
+                bank: InternalAccountSetDetails {
+                    id: short_term_bank_interest_receivable_account_set_id,
+                    normal_balance_type: interest_receivable_normal_balance_type,
+                },
+                financial_institution: InternalAccountSetDetails {
+                    id: short_term_financial_institution_interest_receivable_account_set_id,
+                    normal_balance_type: interest_receivable_normal_balance_type,
+                },
+                foreign_agency_or_subsidiary: InternalAccountSetDetails {
+                    id: short_term_foreign_agency_or_subsidiary_interest_receivable_account_set_id,
+                    normal_balance_type: interest_receivable_normal_balance_type,
+                },
+                non_domiciled_company: InternalAccountSetDetails {
+                    id: short_term_non_domiciled_company_interest_receivable_account_set_id,
+                    normal_balance_type: interest_receivable_normal_balance_type,
+                },
+            },
+            long_term: InterestReceivableAccountSets {
+                individual: InternalAccountSetDetails {
+                    id: long_term_individual_interest_receivable_account_set_id,
+                    normal_balance_type: interest_receivable_normal_balance_type,
+                },
+                government_entity: InternalAccountSetDetails {
+                    id: long_term_government_entity_interest_receivable_account_set_id,
+                    normal_balance_type: interest_receivable_normal_balance_type,
+                },
+                private_company: InternalAccountSetDetails {
+                    id: long_term_private_company_interest_receivable_account_set_id,
+                    normal_balance_type: interest_receivable_normal_balance_type,
+                },
+                bank: InternalAccountSetDetails {
+                    id: long_term_bank_interest_receivable_account_set_id,
+                    normal_balance_type: interest_receivable_normal_balance_type,
+                },
+                financial_institution: InternalAccountSetDetails {
+                    id: long_term_financial_institution_interest_receivable_account_set_id,
+                    normal_balance_type: interest_receivable_normal_balance_type,
+                },
+                foreign_agency_or_subsidiary: InternalAccountSetDetails {
+                    id: long_term_foreign_agency_or_subsidiary_interest_receivable_account_set_id,
+                    normal_balance_type: interest_receivable_normal_balance_type,
+                },
+                non_domiciled_company: InternalAccountSetDetails {
+                    id: long_term_non_domiciled_company_interest_receivable_account_set_id,
+                    normal_balance_type: interest_receivable_normal_balance_type,
+                },
+            },
+        };
+
         let internal_account_sets = CreditFacilityInternalAccountSets {
             facility: InternalAccountSetDetails {
                 id: facility_account_set_id,
@@ -401,10 +602,7 @@ impl CreditLedger {
                 normal_balance_type: collateral_normal_balance_type,
             },
             disbursed_receivable,
-            interest_receivable: InternalAccountSetDetails {
-                id: interest_receivable_account_set_id,
-                normal_balance_type: interest_receivable_normal_balance_type,
-            },
+            interest_receivable,
             interest_income: InternalAccountSetDetails {
                 id: interest_income_account_set_id,
                 normal_balance_type: interest_income_normal_balance_type,
@@ -986,9 +1184,11 @@ impl CreditLedger {
 
     fn disbursed_internal_account_set_from_type(
         &self,
-        disbursed_account_type: DisbursedReceivableAccountType,
+        disbursed_account_type: impl Into<DisbursedReceivableAccountType>,
         duration_type: DurationType,
     ) -> InternalAccountSetDetails {
+        let disbursed_account_type = disbursed_account_type.into();
+
         let term_type = if duration_type == DurationType::ShortTerm {
             &self.internal_account_sets.disbursed_receivable.short_term
         } else {
@@ -1008,12 +1208,38 @@ impl CreditLedger {
         }
     }
 
+    fn interest_internal_account_set_from_type(
+        &self,
+        interest_receivable_account_type: impl Into<InterestReceivableAccountType>,
+        duration_type: DurationType,
+    ) -> InternalAccountSetDetails {
+        let interest_receivable_account_type = interest_receivable_account_type.into();
+
+        let term_type = if duration_type == DurationType::ShortTerm {
+            &self.internal_account_sets.interest_receivable.short_term
+        } else {
+            &self.internal_account_sets.interest_receivable.long_term
+        };
+
+        match interest_receivable_account_type {
+            InterestReceivableAccountType::Individual => term_type.individual,
+            InterestReceivableAccountType::GovernmentEntity => term_type.government_entity,
+            InterestReceivableAccountType::PrivateCompany => term_type.private_company,
+            InterestReceivableAccountType::Bank => term_type.bank,
+            InterestReceivableAccountType::FinancialInstitution => term_type.financial_institution,
+            InterestReceivableAccountType::ForeignAgencyOrSubsidiary => {
+                term_type.foreign_agency_or_subsidiary
+            }
+            InterestReceivableAccountType::NonDomiciledCompany => term_type.non_domiciled_company,
+        }
+    }
+
     pub async fn create_accounts_for_credit_facility(
         &self,
         op: &mut cala_ledger::LedgerOperation<'_>,
         credit_facility_id: CreditFacilityId,
         account_ids: CreditFacilityAccountIds,
-        disbursed_account_type: DisbursedReceivableAccountType,
+        customer_type: CustomerType,
         duration_type: DurationType,
     ) -> Result<(), CreditLedgerError> {
         let collateral_reference = &format!("credit-facility-collateral:{}", credit_facility_id);
@@ -1057,7 +1283,7 @@ impl CreditLedger {
         self.create_account_in_op(
             op,
             account_ids.disbursed_receivable_account_id,
-            self.disbursed_internal_account_set_from_type(disbursed_account_type, duration_type),
+            self.disbursed_internal_account_set_from_type(customer_type, duration_type),
             disbursed_receivable_reference,
             disbursed_receivable_name,
             disbursed_receivable_name,
@@ -1073,7 +1299,7 @@ impl CreditLedger {
         self.create_account_in_op(
             op,
             account_ids.interest_receivable_account_id,
-            self.internal_account_sets.interest_receivable,
+            self.interest_internal_account_set_from_type(customer_type, duration_type),
             interest_receivable_reference,
             interest_receivable_name,
             interest_receivable_name,
@@ -1202,7 +1428,6 @@ impl CreditLedger {
             collateral_omnibus_parent_account_set_id,
             facility_parent_account_set_id,
             collateral_parent_account_set_id,
-            interest_receivable_parent_account_set_id,
             interest_income_parent_account_set_id,
             fee_income_parent_account_set_id,
             ..
@@ -1217,6 +1442,7 @@ impl CreditLedger {
             |meta| meta.facility_omnibus_parent_account_set_id,
         )
         .await?;
+
         self.attach_charts_account_set(
             &mut op,
             &mut account_sets,
@@ -1248,15 +1474,6 @@ impl CreditLedger {
         self.attach_charts_account_set(
             &mut op,
             &mut account_sets,
-            self.internal_account_sets.interest_receivable.id,
-            *interest_receivable_parent_account_set_id,
-            &charts_integration_meta,
-            |meta| meta.interest_receivable_parent_account_set_id,
-        )
-        .await?;
-        self.attach_charts_account_set(
-            &mut op,
-            &mut account_sets,
             self.internal_account_sets.interest_income.id,
             *interest_income_parent_account_set_id,
             &charts_integration_meta,
@@ -1280,6 +1497,20 @@ impl CreditLedger {
         )
         .await?;
         self.attach_long_term_disbursed_receivable_account_sets(
+            &mut op,
+            &mut account_sets,
+            &charts_integration_meta,
+        )
+        .await?;
+
+        self.attach_short_term_interest_receivable_account_sets(
+            &mut op,
+            &mut account_sets,
+            &charts_integration_meta,
+        )
+        .await?;
+
+        self.attach_long_term_interest_receivable_account_sets(
             &mut op,
             &mut account_sets,
             &charts_integration_meta,
@@ -1463,6 +1694,175 @@ impl CreditLedger {
 
         Ok(())
     }
+
+    async fn attach_short_term_interest_receivable_account_sets(
+        &self,
+        op: &mut LedgerOperation<'_>,
+        account_sets: &mut HashMap<LedgerAccountSetId, AccountSet>,
+        charts_integration_meta: &ChartOfAccountsIntegrationMeta,
+    ) -> Result<(), CreditLedgerError> {
+        let short_term = &self.internal_account_sets.interest_receivable.short_term;
+
+        self.attach_charts_account_set(
+            op,
+            account_sets,
+            short_term.individual.id,
+            charts_integration_meta
+                .short_term_individual_disbursed_receivable_parent_account_set_id,
+            charts_integration_meta,
+            |meta| meta.short_term_individual_disbursed_receivable_parent_account_set_id,
+        )
+        .await?;
+
+        self.attach_charts_account_set(
+            op,
+            account_sets,
+            short_term.government_entity.id,
+            charts_integration_meta
+                .short_term_government_entity_disbursed_receivable_parent_account_set_id,
+            charts_integration_meta,
+            |meta| meta.short_term_government_entity_disbursed_receivable_parent_account_set_id,
+        )
+        .await?;
+
+        self.attach_charts_account_set(
+            op,
+            account_sets,
+            short_term.private_company.id,
+            charts_integration_meta
+                .short_term_private_company_disbursed_receivable_parent_account_set_id,
+            charts_integration_meta,
+            |meta| meta.short_term_private_company_disbursed_receivable_parent_account_set_id,
+        )
+        .await?;
+
+        self.attach_charts_account_set(
+            op,
+            account_sets,
+            short_term.bank.id,
+            charts_integration_meta.short_term_bank_disbursed_receivable_parent_account_set_id,
+            charts_integration_meta,
+            |meta| meta.short_term_bank_disbursed_receivable_parent_account_set_id,
+        )
+        .await?;
+
+        self.attach_charts_account_set(
+            op,
+            account_sets,
+            short_term.financial_institution.id,
+            charts_integration_meta
+                .short_term_financial_institution_disbursed_receivable_parent_account_set_id,
+            charts_integration_meta,
+            |meta| meta.short_term_financial_institution_disbursed_receivable_parent_account_set_id,
+        )
+        .await?;
+
+        self.attach_charts_account_set(
+            op,
+            account_sets,
+            short_term.foreign_agency_or_subsidiary.id,
+            charts_integration_meta.short_term_foreign_agency_or_subsidiary_disbursed_receivable_parent_account_set_id,
+            charts_integration_meta,
+            |meta| meta.short_term_foreign_agency_or_subsidiary_disbursed_receivable_parent_account_set_id,
+        ).await?;
+
+        self.attach_charts_account_set(
+            op,
+            account_sets,
+            short_term.non_domiciled_company.id,
+            charts_integration_meta
+                .short_term_non_domiciled_company_disbursed_receivable_parent_account_set_id,
+            charts_integration_meta,
+            |meta| meta.short_term_non_domiciled_company_disbursed_receivable_parent_account_set_id,
+        )
+        .await?;
+
+        Ok(())
+    }
+
+    async fn attach_long_term_interest_receivable_account_sets(
+        &self,
+        op: &mut LedgerOperation<'_>,
+        account_sets: &mut HashMap<LedgerAccountSetId, AccountSet>,
+        charts_integration_meta: &ChartOfAccountsIntegrationMeta,
+    ) -> Result<(), CreditLedgerError> {
+        let long_term = &self.internal_account_sets.interest_receivable.long_term;
+
+        self.attach_charts_account_set(
+            op,
+            account_sets,
+            long_term.individual.id,
+            charts_integration_meta.long_term_individual_disbursed_receivable_parent_account_set_id,
+            charts_integration_meta,
+            |meta| meta.long_term_individual_disbursed_receivable_parent_account_set_id,
+        )
+        .await?;
+
+        self.attach_charts_account_set(
+            op,
+            account_sets,
+            long_term.government_entity.id,
+            charts_integration_meta
+                .long_term_government_entity_disbursed_receivable_parent_account_set_id,
+            charts_integration_meta,
+            |meta| meta.long_term_government_entity_disbursed_receivable_parent_account_set_id,
+        )
+        .await?;
+
+        self.attach_charts_account_set(
+            op,
+            account_sets,
+            long_term.private_company.id,
+            charts_integration_meta
+                .long_term_private_company_disbursed_receivable_parent_account_set_id,
+            charts_integration_meta,
+            |meta| meta.long_term_private_company_disbursed_receivable_parent_account_set_id,
+        )
+        .await?;
+
+        self.attach_charts_account_set(
+            op,
+            account_sets,
+            long_term.bank.id,
+            charts_integration_meta.long_term_bank_disbursed_receivable_parent_account_set_id,
+            charts_integration_meta,
+            |meta| meta.long_term_bank_disbursed_receivable_parent_account_set_id,
+        )
+        .await?;
+
+        self.attach_charts_account_set(
+            op,
+            account_sets,
+            long_term.financial_institution.id,
+            charts_integration_meta
+                .long_term_financial_institution_disbursed_receivable_parent_account_set_id,
+            charts_integration_meta,
+            |meta| meta.long_term_financial_institution_disbursed_receivable_parent_account_set_id,
+        )
+        .await?;
+
+        self.attach_charts_account_set(
+            op,
+            account_sets,
+            long_term.foreign_agency_or_subsidiary.id,
+            charts_integration_meta
+                .long_term_foreign_agency_or_subsidiary_disbursed_receivable_parent_account_set_id,
+            charts_integration_meta,
+            |meta| meta.long_term_foreign_agency_or_subsidiary_disbursed_receivable_parent_account_set_id,
+        ).await?;
+
+        self.attach_charts_account_set(
+            op,
+            account_sets,
+            long_term.non_domiciled_company.id,
+            charts_integration_meta
+                .long_term_non_domiciled_company_disbursed_receivable_parent_account_set_id,
+            charts_integration_meta,
+            |meta| meta.long_term_non_domiciled_company_disbursed_receivable_parent_account_set_id,
+        )
+        .await?;
+        Ok(())
+    }
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
@@ -1474,7 +1874,6 @@ pub struct ChartOfAccountsIntegrationMeta {
     pub collateral_omnibus_parent_account_set_id: LedgerAccountSetId,
     pub facility_parent_account_set_id: LedgerAccountSetId,
     pub collateral_parent_account_set_id: LedgerAccountSetId,
-    pub interest_receivable_parent_account_set_id: LedgerAccountSetId,
     pub interest_income_parent_account_set_id: LedgerAccountSetId,
     pub fee_income_parent_account_set_id: LedgerAccountSetId,
 
@@ -1498,5 +1897,27 @@ pub struct ChartOfAccountsIntegrationMeta {
     pub long_term_foreign_agency_or_subsidiary_disbursed_receivable_parent_account_set_id:
         LedgerAccountSetId,
     pub long_term_non_domiciled_company_disbursed_receivable_parent_account_set_id:
+        LedgerAccountSetId,
+
+    pub short_term_individual_interest_receivable_parent_account_set_id: LedgerAccountSetId,
+    pub short_term_government_entity_interest_receivable_parent_account_set_id: LedgerAccountSetId,
+    pub short_term_private_company_interest_receivable_parent_account_set_id: LedgerAccountSetId,
+    pub short_term_bank_interest_receivable_parent_account_set_id: LedgerAccountSetId,
+    pub short_term_financial_institution_interest_receivable_parent_account_set_id:
+        LedgerAccountSetId,
+    pub short_term_foreign_agency_or_subsidiary_interest_receivable_parent_account_set_id:
+        LedgerAccountSetId,
+    pub short_term_non_domiciled_company_interest_receivable_parent_account_set_id:
+        LedgerAccountSetId,
+
+    pub long_term_individual_interest_receivable_parent_account_set_id: LedgerAccountSetId,
+    pub long_term_government_entity_interest_receivable_parent_account_set_id: LedgerAccountSetId,
+    pub long_term_private_company_interest_receivable_parent_account_set_id: LedgerAccountSetId,
+    pub long_term_bank_interest_receivable_parent_account_set_id: LedgerAccountSetId,
+    pub long_term_financial_institution_interest_receivable_parent_account_set_id:
+        LedgerAccountSetId,
+    pub long_term_foreign_agency_or_subsidiary_interest_receivable_parent_account_set_id:
+        LedgerAccountSetId,
+    pub long_term_non_domiciled_company_interest_receivable_parent_account_set_id:
         LedgerAccountSetId,
 }
