@@ -1341,13 +1341,13 @@
       "chartOfAccountLongTermFinancialInstitutionDisbursedReceivableParentCode": "Código padre de cuentas por cobrar desembolsadas a largo plazo por instituciones financieras (ej. 1142.06.0101)",
       "chartOfAccountLongTermForeignAgencyOrSubsidiaryDisbursedReceivableParentCode": "Código padre de cuentas por cobrar desembolsadas a largo plazo por agencias extranjeras o subsidiarias (ej. 1142.07.0101)",
       "chartOfAccountLongTermNonDomiciledCompanyDisbursedReceivableParentCode": "Long Term Disbursed Non-Domiciled Company Receivable Parent Code (e.g. 1142.08.0101)",
-      "chartOfAccountOverdueIndividualDisbursedReceivableParentCode": "",
-      "chartOfAccountOverdueGovernmentEntityDisbursedReceivableParentCode": "",
-      "chartOfAccountOverduePrivateCompanyDisbursedReceivableParentCode": "",
-      "chartOfAccountOverdueBankDisbursedReceivableParentCode": "",
-      "chartOfAccountOverdueFinancialInstitutionDisbursedReceivableParentCode": "",
-      "chartOfAccountOverdueForeignAgencyOrSubsidiaryDisbursedReceivableParentCode": "",
-      "chartOfAccountOverdueNonDomiciledCompanyDisbursedReceivableParentCode": ""
+      "chartOfAccountOverdueIndividualDisbursedReceivableParentCode": "Código matriz de cuentas por cobrar desembolsadas vencidas para individuos (ej. 1148.04.0101)",
+      "chartOfAccountOverdueGovernmentEntityDisbursedReceivableParentCode": "Código matriz de cuentas por cobrar desembolsadas vencidas para entidades gubernamentales (ej. 1148.02.0101)",
+      "chartOfAccountOverduePrivateCompanyDisbursedReceivableParentCode": "Código matriz de cuentas por cobrar desembolsadas vencidas para empresas privadas (ej. 1148.03.0101)",
+      "chartOfAccountOverdueBankDisbursedReceivableParentCode": "Código matriz de cuentas por cobrar desembolsadas vencidas para bancos (ej. 1148.05.0401)",
+      "chartOfAccountOverdueFinancialInstitutionDisbursedReceivableParentCode": "Código matriz de cuentas por cobrar desembolsadas vencidas para instituciones financieras (ej. 1148.06.0101)",
+      "chartOfAccountOverdueForeignAgencyOrSubsidiaryDisbursedReceivableParentCode": "Código matriz de cuentas por cobrar desembolsadas vencidas para agencias extranjeras o subsidiarias (ej. 1148.07.0101)",
+      "chartOfAccountOverdueNonDomiciledCompanyDisbursedReceivableParentCode": "Código matriz de cuentas por cobrar desembolsadas vencidas para empresas no domiciliadas (ej. 1148.08.0101)"
     },
     "balanceSheet": {
       "title": "Balance general",
