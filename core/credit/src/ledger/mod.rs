@@ -119,20 +119,38 @@ pub struct CreditFacilityInternalAccountSets {
 
 impl CreditFacilityInternalAccountSets {
     fn account_set_ids(&self) -> Vec<LedgerAccountSetId> {
+        let Self {
+            facility,
+            collateral,
+            interest_income,
+            fee_income,
+
+            disbursed_receivable:
+                DisbursedReceivable {
+                    short_term: disbursed_short_term,
+                    long_term: disbursed_long_term,
+                    overdue: disbursed_overdue,
+                },
+            interest_receivable:
+                InterestReceivable {
+                    short_term: interest_short_term,
+                    long_term: interest_long_term,
+                },
+        } = self;
+
         let mut ids = vec![
-            self.facility.id,
-            self.collateral.id,
-            self.interest_income.id,
-            self.fee_income.id,
+            facility.id,
+            collateral.id,
+            interest_income.id,
+            fee_income.id,
         ];
         ids.extend(
-            self.disbursed_receivable
-                .short_term
+            disbursed_short_term
                 .account_set_ids()
                 .into_iter()
-                .chain(self.disbursed_receivable.long_term.account_set_ids())
-                .chain(self.interest_receivable.short_term.account_set_ids())
-                .chain(self.interest_receivable.long_term.account_set_ids()),
+                .chain(disbursed_long_term.account_set_ids())
+                .chain(interest_short_term.account_set_ids())
+                .chain(interest_long_term.account_set_ids()),
         );
 
         ids
