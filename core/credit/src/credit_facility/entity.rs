@@ -1079,7 +1079,7 @@ impl CreditFacility {
     }
 
     pub(crate) fn has_overdue_disbursed_balance_recorded(&self) -> bool {
-        self.events.iter_all().any(|event| {
+        self.events.iter_all().rev().any(|event| {
             matches!(
                 event,
                 CreditFacilityEvent::OverdueDisbursedBalanceRecorded { .. }
@@ -1090,6 +1090,7 @@ impl CreditFacility {
     pub(crate) fn is_completed(&self) -> bool {
         self.events
             .iter_all()
+            .rev()
             .any(|event| matches!(event, CreditFacilityEvent::Completed { .. }))
     }
 
