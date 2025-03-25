@@ -1340,7 +1340,14 @@
       "chartOfAccountLongTermBankDisbursedReceivableParentCode": "Long Term Disbursed Bank Receivable Parent Code (e.g. 1142.05.0401)",
       "chartOfAccountLongTermFinancialInstitutionDisbursedReceivableParentCode": "Long Term Disbursed Financial Institution Receivable Parent Code (e.g. 1142.06.0101)",
       "chartOfAccountLongTermForeignAgencyOrSubsidiaryDisbursedReceivableParentCode": "Long Term Disbursed Foreign Agency Or Subsidiary Receivable Parent Code (e.g. 1142.07.0101)",
-      "chartOfAccountLongTermNonDomiciledCompanyDisbursedReceivableParentCode": "Long Term Disbursed Non-Domiciled Company Receivable Parent Code (e.g. 1142.08.0101)"
+      "chartOfAccountLongTermNonDomiciledCompanyDisbursedReceivableParentCode": "Long Term Disbursed Non-Domiciled Company Receivable Parent Code (e.g. 1142.08.0101)",
+      "chartOfAccountOverdueIndividualDisbursedReceivableParentCode": "Overdue Disbursed Individual Receivable Parent Code (e.g. 1148.04.0101)",
+      "chartOfAccountOverdueGovernmentEntityDisbursedReceivableParentCode": "Overdue Disbursed Government Entity Receivable Parent Code (e.g. 1148.02.0101)",
+      "chartOfAccountOverduePrivateCompanyDisbursedReceivableParentCode": "Overdue Disbursed Private Company Receivable Parent Code (e.g. 1148.03.0101)",
+      "chartOfAccountOverdueBankDisbursedReceivableParentCode": "Overdue Disbursed Bank Receivable Parent Code (e.g. 1148.05.0401)",
+      "chartOfAccountOverdueFinancialInstitutionDisbursedReceivableParentCode": "Overdue Disbursed Financial Institution Receivable Parent Code (e.g. 1148.06.0101)",
+      "chartOfAccountOverdueForeignAgencyOrSubsidiaryDisbursedReceivableParentCode": "Overdue Disbursed Foreign Agency Or Subsidiary Receivable Parent Code (e.g. 1148.07.0101)",
+      "chartOfAccountOverdueNonDomiciledCompanyDisbursedReceivableParentCode": "Overdue Disbursed Non-Domiciled Company Receivable Parent Code (e.g. 1148.08.0101)"
     },
     "balanceSheet": {
       "title": "Balance Sheet",
