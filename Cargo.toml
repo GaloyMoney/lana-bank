@@ -31,12 +31,12 @@ members = [
 ]
 
 [workspace.dependencies]
-es-entity = { git = "https://github.com/galoymoney/cala.git", branch = "main" }
-sim-time = { git = "https://github.com/galoymoney/cala.git", branch = "main" }
-cala-ledger = { git = "https://github.com/galoymoney/cala.git", branch = "main" }
-# es-entity = "0.3.19"
-# sim-time = "0.3.19"
-# cala-ledger = "0.3.19"
+# es-entity = { git = "https://github.com/galoymoney/cala.git", branch = "main" }
+# sim-time = { git = "https://github.com/galoymoney/cala.git", branch = "main" }
+# cala-ledger = { git = "https://github.com/galoymoney/cala.git", branch = "main" }
+es-entity = "0.3.20"
+sim-time = "0.3.20"
+cala-ledger = "0.3.20"
 
 anyhow = "1.0.95"
 async-graphql = { version = "7.0.11", default-features = false, features = ["dataloader", "tracing", "chrono", "playground", "tempfile"] }

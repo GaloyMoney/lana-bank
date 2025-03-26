@@ -680,8 +680,9 @@ checksum = "ade8366b8bd5ba243f0a58f036cc0ca8a2f069cff1a2351ef1cac6b083e16fc0"
 
 [[package]]
 name = "cala-cel-interpreter"
-version = "0.3.20-dev"
-source = "git+https://github.com/galoymoney/cala.git?branch=main#5267b539b8ffd9ed02bed66add9e419987c09056"
+version = "0.3.20"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "261c8a7263026e4bcfcdfa2b879c34c41126340980f4ef9936f8577847f20ad5"
 dependencies = [
  "cala-cel-parser",
  "chrono",
@@ -695,8 +696,9 @@ dependencies = [
 
 [[package]]
 name = "cala-cel-parser"
-version = "0.3.20-dev"
-source = "git+https://github.com/galoymoney/cala.git?branch=main#5267b539b8ffd9ed02bed66add9e419987c09056"
+version = "0.3.20"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c50eb1d6d20cc7c39ca26ba440826223626ba0a24cac52f7a61981b5c70d7f66"
 dependencies = [
  "lalrpop",
  "lalrpop-util",
@@ -704,8 +706,9 @@ dependencies = [
 
 [[package]]
 name = "cala-ledger"
-version = "0.3.20-dev"
-source = "git+https://github.com/galoymoney/cala.git?branch=main#5267b539b8ffd9ed02bed66add9e419987c09056"
+version = "0.3.20"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "04eae4fac3bb336ddf59f0de3425c815736cb0a2dde8ca444440545c9a166b59"
 dependencies = [
  "async-graphql",
  "base64 0.22.1",
@@ -738,8 +741,9 @@ dependencies = [
 
 [[package]]
 name = "cala-ledger-core-types"
-version = "0.3.20-dev"
-source = "git+https://github.com/galoymoney/cala.git?branch=main#5267b539b8ffd9ed02bed66add9e419987c09056"
+version = "0.3.20"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "56d4a0118c6697eb37793108f4be099c20c4bca34aee133e0d087e7d2a94651f"
 dependencies = [
  "async-graphql",
  "cala-cel-interpreter",
@@ -758,8 +762,9 @@ dependencies = [
 
 [[package]]
 name = "cala-tracing"
-version = "0.3.20-dev"
-source = "git+https://github.com/galoymoney/cala.git?branch=main#5267b539b8ffd9ed02bed66add9e419987c09056"
+version = "0.3.20"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "cda1f45945d5df6203e4e8b089e5d389757cbae59b48f02a91d84fa12748b0df"
 dependencies = [
  "anyhow",
  "axum-extra",
@@ -1485,8 +1490,9 @@ dependencies = [
 
 [[package]]
 name = "es-entity"
-version = "0.3.20-dev"
-source = "git+https://github.com/galoymoney/cala.git?branch=main#5267b539b8ffd9ed02bed66add9e419987c09056"
+version = "0.3.20"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "fb5186970c96c742a8605defd09a081322dc1f885cf3519631aade10df158367"
 dependencies = [
  "async-graphql",
  "async-trait",
@@ -1504,8 +1510,9 @@ dependencies = [
 
 [[package]]
 name = "es-entity-macros"
-version = "0.3.20-dev"
-source = "git+https://github.com/galoymoney/cala.git?branch=main#5267b539b8ffd9ed02bed66add9e419987c09056"
+version = "0.3.20"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "fcb06c3c4bf6e266ab129b57b5ca24bbc57f194e63a959aa14cb5cb9e8d36197"
 dependencies = [
  "convert_case",
  "darling",
@@ -3397,7 +3404,7 @@ version = "0.13.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d0f3e5beed80eb580c68e2c600937ac2c4eedabdfd5ef1e5b7ea4f3fba84497b"
 dependencies = [
- "heck 0.4.1",
+ "heck 0.5.0",
  "itertools 0.13.0",
  "log",
  "multimap",
@@ -3456,7 +3463,7 @@ version = "0.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8a669d5acbe719010c6f62a64e6d7d88fdedc1fe46e419747949ecb6312e9b14"
 dependencies = [
- "heck 0.4.1",
+ "heck 0.5.0",
  "prost",
  "prost-build",
  "prost-types",
@@ -4348,8 +4355,9 @@ dependencies = [
 
 [[package]]
 name = "sim-time"
-version = "0.3.20-dev"
-source = "git+https://github.com/galoymoney/cala.git?branch=main#5267b539b8ffd9ed02bed66add9e419987c09056"
+version = "0.3.20"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "48a036a2342c8832c98769d44d20e8d6213c4d6517e506dc1e808c1d0f79b120"
 dependencies = [
  "chrono",
  "serde",
