@@ -46,7 +46,7 @@ impl Chart {
         audit_info: AuditInfo,
     ) -> Idempotent<(Option<LedgerAccountSetId>, LedgerAccountSetId)> {
         if self.all_accounts.contains_key(&spec.code) {
-            return Idempotent::AlreadyApplied;
+            return Idempotent::Ignored;
         }
         let ledger_account_set_id = LedgerAccountSetId::new();
         self.events.push(ChartEvent::NodeAdded {

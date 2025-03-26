@@ -111,9 +111,12 @@ where
             .await?;
 
         let mut credit_facility = self.repo.find_by_id(self.config.credit_facility_id).await?;
-        let overdue = match credit_facility.maybe_record_overdue_disbursed_balance(audit_info) {
-            es_entity::Idempotent::Executed(Some(overdue)) => overdue,
-            _ => return Ok(JobCompletion::Complete),
+        let overdue = if let es_entity::Idempotent::Executed(overdue) =
+            credit_facility.maybe_record_overdue_disbursed_balance(audit_info)
+        {
+            overdue
+        } else {
+            return Ok(JobCompletion::Complete);
         };
 
         self.repo

@@ -559,7 +559,7 @@ impl CreditFacility {
         audit_info: AuditInfo,
     ) -> Result<Idempotent<(CreditFacilityActivation, InterestPeriod)>, CreditFacilityError> {
         if self.is_activated() {
-            return Ok(Idempotent::AlreadyApplied);
+            return Ok(Idempotent::Ignored);
         }
 
         if !self.is_approval_process_concluded() {
@@ -1097,13 +1097,13 @@ impl CreditFacility {
     pub(crate) fn maybe_record_overdue_disbursed_balance(
         &mut self,
         audit_info: AuditInfo,
-    ) -> Idempotent<Option<CreditFacilityOverdueDisbursedBalance>> {
+    ) -> Idempotent<CreditFacilityOverdueDisbursedBalance> {
         idempotency_guard!(
             self.events.iter_all().rev(),
             CreditFacilityEvent::OverdueDisbursedBalanceRecorded { .. }
         );
         if self.is_completed() || self.total_outstanding().is_zero() {
-            return Idempotent::Executed(None);
+            return Idempotent::Ignored;
         }
 
         let res = CreditFacilityOverdueDisbursedBalance {
@@ -1119,7 +1119,7 @@ impl CreditFacility {
                 audit_info,
             });
 
-        Idempotent::Executed(Some(res))
+        Idempotent::Executed(res)
     }
 
     pub(crate) fn complete(
@@ -1127,13 +1127,13 @@ impl CreditFacility {
         audit_info: AuditInfo,
         price: PriceOfOneBTC,
         upgrade_buffer_cvl_pct: CVLPct,
-    ) -> Idempotent<Result<CreditFacilityCompletion, CreditFacilityError>> {
+    ) -> Result<Idempotent<CreditFacilityCompletion>, CreditFacilityError> {
         idempotency_guard!(
             self.events.iter_all(),
             CreditFacilityEvent::Completed { .. }
         );
         if !self.total_outstanding().is_zero() {
-            return Idempotent::Executed(Err(CreditFacilityError::OutstandingAmount));
+            return Err(CreditFacilityError::OutstandingAmount);
         }
 
         let res = CreditFacilityCompletion {
@@ -1161,7 +1161,7 @@ impl CreditFacility {
             audit_info,
         });
 
-        Idempotent::Executed(Ok(res))
+        Ok(Idempotent::Executed(res))
     }
 
     pub(super) fn collateralization_ratio(&self) -> Option<Decimal> {
@@ -2010,7 +2010,7 @@ mod test {
 
             assert!(matches!(
                 credit_facility.activate(Utc::now(), default_price(), dummy_audit_info()),
-                Ok(Idempotent::AlreadyApplied)
+                Ok(Idempotent::Ignored)
             ));
         }
 
@@ -2206,7 +2206,7 @@ mod test {
                 credit_facility.account_ids.disbursed_receivable_account_id,
             );
 
-            credit_facility.maybe_record_overdue_disbursed_balance(dummy_audit_info());
+            let _ = credit_facility.maybe_record_overdue_disbursed_balance(dummy_audit_info());
 
             let new_payment = credit_facility
                 .initiate_repayment(
@@ -2296,7 +2296,7 @@ mod test {
                 .unwrap();
             assert!(credit_facility.total_outstanding().is_zero());
 
-            credit_facility
+            let _ = credit_facility
                 .complete(
                     dummy_audit_info(),
                     default_price(),

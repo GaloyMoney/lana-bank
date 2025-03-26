@@ -819,11 +819,13 @@ where
             .find_by_id(credit_facility_id)
             .await?;
 
-        let completion =
-            match credit_facility.complete(audit_info, price, self.config.upgrade_buffer_cvl_pct) {
-                Idempotent::Executed(completion) => completion,
-                _ => return Ok(credit_facility),
-            }?;
+        let completion = if let Idempotent::Executed(completion) =
+            credit_facility.complete(audit_info, price, self.config.upgrade_buffer_cvl_pct)?
+        {
+            completion
+        } else {
+            return Ok(credit_facility);
+        };
 
         let mut db = self.credit_facility_repo.begin_op().await?;
         self.credit_facility_repo

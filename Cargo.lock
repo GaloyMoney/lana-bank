@@ -51,7 +51,7 @@ dependencies = [
  "rust_decimal",
  "serde",
  "serde_json",
- "thiserror 2.0.8",
+ "thiserror 2.0.12",
  "tokio",
  "tower-http",
  "tracing",
@@ -186,9 +186,9 @@ dependencies = [
 
 [[package]]
 name = "async-graphql"
-version = "7.0.15"
+version = "7.0.16"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "bfff2b17d272a5e3e201feda444e2c24b011fa722951268d1bd8b9b5bc6dc449"
+checksum = "d3ee559e72d983e7e04001ba3bf32e6b71c1d670595780723727fd8a29d36e87"
 dependencies = [
  "async-graphql-derive",
  "async-graphql-parser",
@@ -240,9 +240,9 @@ dependencies = [
 
 [[package]]
 name = "async-graphql-derive"
-version = "7.0.15"
+version = "7.0.16"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d8e5d0c6697def2f79ccbd972fb106b633173a6066e430b480e1ff9376a7561a"
+checksum = "29db05b624fb6352fc11bfe30c54ab1b16a1fe937d7c05a783f4e88ef1292b3b"
 dependencies = [
  "Inflector",
  "async-graphql-parser",
@@ -257,9 +257,9 @@ dependencies = [
 
 [[package]]
 name = "async-graphql-parser"
-version = "7.0.15"
+version = "7.0.16"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8531ee6d292c26df31c18c565ff22371e7bdfffe7f5e62b69537db0b8fd554dc"
+checksum = "4904895044116aab098ca82c6cec831ec43ed99efd04db9b70a390419bc88c5b"
 dependencies = [
  "async-graphql-value",
  "pest",
@@ -269,9 +269,9 @@ dependencies = [
 
 [[package]]
 name = "async-graphql-value"
-version = "7.0.15"
+version = "7.0.16"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "741110dda927420a28fbc1c310543d3416f789a6ba96859c2c265843a0a96887"
+checksum = "d0cde74de18e3a00c5dd5cfa002ab6f532e1a06c2a79ee6671e2fc353b400b92"
 dependencies = [
  "bytes",
  "indexmap 2.7.0",
@@ -336,7 +336,7 @@ dependencies = [
  "es-entity",
  "serde",
  "sqlx",
- "thiserror 2.0.8",
+ "thiserror 2.0.12",
 ]
 
 [[package]]
@@ -350,7 +350,7 @@ dependencies = [
  "sqlx",
  "sqlx-adapter",
  "strum",
- "thiserror 2.0.8",
+ "thiserror 2.0.12",
  "tokio",
  "tracing",
 ]
@@ -680,9 +680,8 @@ checksum = "ade8366b8bd5ba243f0a58f036cc0ca8a2f069cff1a2351ef1cac6b083e16fc0"
 
 [[package]]
 name = "cala-cel-interpreter"
-version = "0.3.19"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "09af778d23df8054cacdb0078fa192a77425fefb0851124d2e12b11e4436a386"
+version = "0.3.20-dev"
+source = "git+https://github.com/galoymoney/cala.git?branch=main#5267b539b8ffd9ed02bed66add9e419987c09056"
 dependencies = [
  "cala-cel-parser",
  "chrono",
@@ -690,15 +689,14 @@ dependencies = [
  "rust_decimal",
  "serde",
  "serde_json",
- "thiserror 1.0.69",
+ "thiserror 2.0.12",
  "uuid",
 ]
 
 [[package]]
 name = "cala-cel-parser"
-version = "0.3.19"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "884ef9a540a3affa724802c295111a7f582be9d563ad4959a987a7c0fb139901"
+version = "0.3.20-dev"
+source = "git+https://github.com/galoymoney/cala.git?branch=main#5267b539b8ffd9ed02bed66add9e419987c09056"
 dependencies = [
  "lalrpop",
  "lalrpop-util",
@@ -706,9 +704,8 @@ dependencies = [
 
 [[package]]
 name = "cala-ledger"
-version = "0.3.19"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "809ffcda95906173d973a7f31223185c19cb8d0e16ead937b2563ae38cf1f808"
+version = "0.3.20-dev"
+source = "git+https://github.com/galoymoney/cala.git?branch=main#5267b539b8ffd9ed02bed66add9e419987c09056"
 dependencies = [
  "async-graphql",
  "base64 0.22.1",
@@ -728,7 +725,7 @@ dependencies = [
  "serde",
  "serde_json",
  "sqlx",
- "thiserror 1.0.69",
+ "thiserror 2.0.12",
  "tokio",
  "tokio-stream",
  "tonic",
@@ -741,9 +738,8 @@ dependencies = [
 
 [[package]]
 name = "cala-ledger-core-types"
-version = "0.3.19"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "92fb08ff612fd380b037dbb5ab99c3ceceae87b850e6f4a6de7d3ec1001465a0"
+version = "0.3.20-dev"
+source = "git+https://github.com/galoymoney/cala.git?branch=main#5267b539b8ffd9ed02bed66add9e419987c09056"
 dependencies = [
  "async-graphql",
  "cala-cel-interpreter",
@@ -756,15 +752,14 @@ dependencies = [
  "serde_json",
  "sqlx",
  "strum",
- "thiserror 1.0.69",
+ "thiserror 2.0.12",
  "uuid",
 ]
 
 [[package]]
 name = "cala-tracing"
-version = "0.3.19"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "64c52cec857d9bbcf5915ddb8d62e3eb2628888b2dfc0285c141d55196cf546b"
+version = "0.3.20-dev"
+source = "git+https://github.com/galoymoney/cala.git?branch=main#5267b539b8ffd9ed02bed66add9e419987c09056"
 dependencies = [
  "anyhow",
  "axum-extra",
@@ -838,7 +833,7 @@ dependencies = [
  "serde",
  "sqlx",
  "strum",
- "thiserror 2.0.8",
+ "thiserror 2.0.12",
  "tokio",
  "tracing",
  "uuid",
@@ -990,7 +985,7 @@ dependencies = [
  "sim-time",
  "sqlx",
  "strum",
- "thiserror 2.0.8",
+ "thiserror 2.0.12",
  "tokio",
  "tracing",
  "uuid",
@@ -1012,7 +1007,7 @@ dependencies = [
  "serde",
  "sqlx",
  "strum",
- "thiserror 2.0.8",
+ "thiserror 2.0.12",
  "tracing",
 ]
 
@@ -1050,7 +1045,7 @@ dependencies = [
  "rust_decimal",
  "rust_decimal_macros",
  "serde",
- "thiserror 2.0.8",
+ "thiserror 2.0.12",
 ]
 
 [[package]]
@@ -1065,7 +1060,7 @@ dependencies = [
  "rust_decimal_macros",
  "serde",
  "serde_json",
- "thiserror 2.0.8",
+ "thiserror 2.0.12",
  "tokio",
 ]
 
@@ -1084,7 +1079,7 @@ dependencies = [
  "serde",
  "sqlx",
  "strum",
- "thiserror 2.0.8",
+ "thiserror 2.0.12",
  "tracing",
 ]
 
@@ -1196,7 +1191,7 @@ dependencies = [
  "serde_json",
  "sim-time",
  "strum",
- "thiserror 2.0.8",
+ "thiserror 2.0.12",
  "tokio",
  "tracing",
  "uuid",
@@ -1218,7 +1213,7 @@ dependencies = [
  "lana-app",
  "serde",
  "serde_json",
- "thiserror 2.0.8",
+ "thiserror 2.0.12",
  "tokio",
  "tower-http",
  "tracing",
@@ -1282,7 +1277,7 @@ dependencies = [
  "sim-time",
  "sqlx",
  "strum",
- "thiserror 2.0.8",
+ "thiserror 2.0.12",
  "tokio",
  "uuid",
 ]
@@ -1321,7 +1316,7 @@ dependencies = [
  "serde_json",
  "sqlx",
  "strum",
- "thiserror 2.0.8",
+ "thiserror 2.0.12",
  "tokio",
  "tracing",
  "uuid",
@@ -1490,9 +1485,8 @@ dependencies = [
 
 [[package]]
 name = "es-entity"
-version = "0.3.19"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0e492ed686be4e83e3f38aa7d96ec2b43c48fdd60f26f04bdab90168f42b3fe3"
+version = "0.3.20-dev"
+source = "git+https://github.com/galoymoney/cala.git?branch=main#5267b539b8ffd9ed02bed66add9e419987c09056"
 dependencies = [
  "async-graphql",
  "async-trait",
@@ -1504,15 +1498,14 @@ dependencies = [
  "serde_json",
  "sim-time",
  "sqlx",
- "thiserror 1.0.69",
+ "thiserror 2.0.12",
  "uuid",
 ]
 
 [[package]]
 name = "es-entity-macros"
-version = "0.3.19"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d9730136f9cce3a5692a3413d06aee4434d48a6a5737b6ad2d8ccc6417191e05"
+version = "0.3.20-dev"
+source = "git+https://github.com/galoymoney/cala.git?branch=main#5267b539b8ffd9ed02bed66add9e419987c09056"
 dependencies = [
  "convert_case",
  "darling",
@@ -1913,7 +1906,7 @@ dependencies = [
  "serde_json",
  "sqlx",
  "strum",
- "thiserror 2.0.8",
+ "thiserror 2.0.12",
  "tokio",
  "tracing",
  "uuid",
@@ -2567,7 +2560,7 @@ dependencies = [
  "serde_with",
  "sim-time",
  "sqlx",
- "thiserror 2.0.8",
+ "thiserror 2.0.12",
  "tokio",
  "tracing",
  "uuid",
@@ -2607,7 +2600,7 @@ dependencies = [
  "jsonwebtoken",
  "reqwest 0.12.15",
  "serde",
- "thiserror 2.0.8",
+ "thiserror 2.0.12",
  "tokio",
 ]
 
@@ -2618,7 +2611,7 @@ dependencies = [
  "ory-kratos-client",
  "serde",
  "serde_json",
- "thiserror 2.0.8",
+ "thiserror 2.0.12",
  "tracing",
  "uuid",
 ]
@@ -2710,7 +2703,7 @@ dependencies = [
  "sim-time",
  "sqlx",
  "strum",
- "thiserror 2.0.8",
+ "thiserror 2.0.12",
  "tokio",
  "tracing",
  "tracing-utils",
@@ -3235,7 +3228,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8b7cafe60d6cf8e62e1b9b2ea516a089c008945bb5a275416789e7db0bc199dc"
 dependencies = [
  "memchr",
- "thiserror 2.0.8",
+ "thiserror 2.0.12",
  "ucd-trie",
 ]
 
@@ -3325,11 +3318,11 @@ checksum = "953ec861398dccce10c670dfeaf3ec4911ca479e9c02154b3a215178c5f566f2"
 
 [[package]]
 name = "pluralizer"
-version = "0.4.0"
+version = "0.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "35e4616e94b67b8b61846ea69d4bf041a62147d569d16f437689229e2677d38c"
+checksum = "4b3eba432a00a1f6c16f39147847a870e94e2e9b992759b503e330efec778cbe"
 dependencies = [
- "lazy_static",
+ "once_cell",
  "regex",
 ]
 
@@ -3404,7 +3397,7 @@ version = "0.13.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d0f3e5beed80eb580c68e2c600937ac2c4eedabdfd5ef1e5b7ea4f3fba84497b"
 dependencies = [
- "heck 0.5.0",
+ "heck 0.4.1",
  "itertools 0.13.0",
  "log",
  "multimap",
@@ -3463,7 +3456,7 @@ version = "0.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8a669d5acbe719010c6f62a64e6d7d88fdedc1fe46e419747949ecb6312e9b14"
 dependencies = [
- "heck 0.5.0",
+ "heck 0.4.1",
  "prost",
  "prost-build",
  "prost-types",
@@ -3551,7 +3544,7 @@ dependencies = [
  "rustc-hash",
  "rustls 0.23.20",
  "socket2",
- "thiserror 2.0.8",
+ "thiserror 2.0.12",
  "tokio",
  "tracing",
 ]
@@ -3570,7 +3563,7 @@ dependencies = [
  "rustls 0.23.20",
  "rustls-pki-types",
  "slab",
- "thiserror 2.0.8",
+ "thiserror 2.0.12",
  "tinyvec",
  "tracing",
  "web-time",
@@ -3653,7 +3646,7 @@ dependencies = [
  "lana-ids",
  "serde",
  "strum",
- "thiserror 2.0.8",
+ "thiserror 2.0.12",
  "uuid",
 ]
 
@@ -3930,9 +3923,9 @@ dependencies = [
 
 [[package]]
 name = "rust_decimal"
-version = "1.37.0"
+version = "1.37.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5c24af6e7ac43c88a8a458d1139d0246fdce2f6cd2f1ac6cb51eb88b29c978af"
+checksum = "faa7de2ba56ac291bd90c6b9bece784a52ae1411f9506544b3eae36dd2356d50"
 dependencies = [
  "arrayvec",
  "borsh",
@@ -4355,9 +4348,8 @@ dependencies = [
 
 [[package]]
 name = "sim-time"
-version = "0.3.19"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "83337885078e0ce6a1b2856bb6b611ec7c0997e642ca7793faf4980ccf740a12"
+version = "0.3.20-dev"
+source = "git+https://github.com/galoymoney/cala.git?branch=main#5267b539b8ffd9ed02bed66add9e419987c09056"
 dependencies = [
  "chrono",
  "serde",
@@ -4509,7 +4501,7 @@ dependencies = [
  "serde_json",
  "sha2",
  "smallvec",
- "thiserror 2.0.8",
+ "thiserror 2.0.12",
  "tokio",
  "tokio-stream",
  "tracing",
@@ -4596,7 +4588,7 @@ dependencies = [
  "smallvec",
  "sqlx-core",
  "stringprep",
- "thiserror 2.0.8",
+ "thiserror 2.0.12",
  "tracing",
  "uuid",
  "whoami",
@@ -4636,7 +4628,7 @@ dependencies = [
  "smallvec",
  "sqlx-core",
  "stringprep",
- "thiserror 2.0.8",
+ "thiserror 2.0.12",
  "tracing",
  "uuid",
  "whoami",
@@ -4862,11 +4854,11 @@ dependencies = [
 
 [[package]]
 name = "thiserror"
-version = "2.0.8"
+version = "2.0.12"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "08f5383f3e0071702bf93ab5ee99b52d26936be9dedd9413067cbdcddcb6141a"
+checksum = "567b8a2dae586314f7be2a752ec7474332959c6460e02bde30d702a66d488708"
 dependencies = [
- "thiserror-impl 2.0.8",
+ "thiserror-impl 2.0.12",
 ]
 
 [[package]]
@@ -4882,9 +4874,9 @@ dependencies = [
 
 [[package]]
 name = "thiserror-impl"
-version = "2.0.8"
+version = "2.0.12"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f2f357fcec90b3caef6623a099691be676d033b40a058ac95d2a6ade6fa0c943"
+checksum = "7f7cf42b4507d8ea322120659672cf1b9dbb93f8f2d4ecfd6e51350ff5b17a1d"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -4970,9 +4962,9 @@ checksum = "1f3ccbac311fea05f86f61904b462b55fb3df8837a366dfc601a0161d0532f20"
 
 [[package]]
 name = "tokio"
-version = "1.43.0"
+version = "1.44.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3d61fa4ffa3de412bfea335c6ecff681de2b609ba3c77ef3e00e521813a9ed9e"
+checksum = "f382da615b842244d4b8738c82ed1275e6c5dd90c459a30941cd07080b06c91a"
 dependencies = [
  "backtrace",
  "bytes",
@@ -5480,7 +5472,7 @@ dependencies = [
  "serde_json",
  "sim-time",
  "strum",
- "thiserror 2.0.8",
+ "thiserror 2.0.12",
  "tokio",
  "uuid",
 ]

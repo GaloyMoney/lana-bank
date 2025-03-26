@@ -109,7 +109,7 @@ where
             .await?;
         if credit_facility
             .approval_process_concluded(approved, audit_info)
-            .was_already_applied()
+            .was_ignored()
         {
             return Ok(credit_facility);
         }
