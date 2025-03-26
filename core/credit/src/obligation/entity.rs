@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 use audit::AuditInfo;
 use es_entity::*;
 
-use crate::primitives::ObligationId;
+use crate::primitives::{CalaAccountId, ObligationId, UsdCents};
 
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
@@ -13,6 +13,12 @@ use crate::primitives::ObligationId;
 pub enum ObligationEvent {
     Initialized {
         id: ObligationId,
+        amount: UsdCents,
+        account_to_be_debited_id: CalaAccountId,
+        account_to_be_credited_id: CalaAccountId,
+        due_date: DateTime<Utc>,
+        overdue_date: Option<DateTime<Utc>>,
+        default_date: Option<DateTime<Utc>>,
         audit_info: AuditInfo,
     },
 }
@@ -51,6 +57,15 @@ pub struct NewObligation {
     #[builder(setter(into))]
     pub(super) id: ObligationId,
     #[builder(setter(into))]
+    pub(super) amount: UsdCents,
+    #[builder(setter(into))]
+    account_to_be_debited_id: CalaAccountId,
+    #[builder(setter(into))]
+    account_to_be_credited_id: CalaAccountId,
+    due_date: DateTime<Utc>,
+    overdue_date: Option<DateTime<Utc>>,
+    default_date: Option<DateTime<Utc>>,
+    #[builder(setter(into))]
     pub audit_info: AuditInfo,
 }
 
@@ -66,6 +81,12 @@ impl IntoEvents<ObligationEvent> for NewObligation {
             self.id,
             [ObligationEvent::Initialized {
                 id: self.id,
+                amount: self.amount,
+                account_to_be_debited_id: self.account_to_be_debited_id,
+                account_to_be_credited_id: self.account_to_be_credited_id,
+                due_date: self.due_date,
+                overdue_date: self.overdue_date,
+                default_date: self.default_date,
                 audit_info: self.audit_info,
             }],
         )
