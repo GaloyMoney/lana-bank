@@ -1094,7 +1094,7 @@ impl CreditFacility {
             .any(|event| matches!(event, CreditFacilityEvent::Completed { .. }))
     }
 
-    pub(crate) fn maybe_record_overdue_disbursed_balance(
+    pub(crate) fn record_overdue_disbursed_balance(
         &mut self,
         audit_info: AuditInfo,
     ) -> Idempotent<CreditFacilityOverdueDisbursedBalance> {
@@ -2206,7 +2206,7 @@ mod test {
                 credit_facility.account_ids.disbursed_receivable_account_id,
             );
 
-            let _ = credit_facility.maybe_record_overdue_disbursed_balance(dummy_audit_info());
+            let _ = credit_facility.record_overdue_disbursed_balance(dummy_audit_info());
 
             let new_payment = credit_facility
                 .initiate_repayment(

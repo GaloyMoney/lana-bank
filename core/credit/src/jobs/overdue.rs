@@ -112,7 +112,7 @@ where
 
         let mut credit_facility = self.repo.find_by_id(self.config.credit_facility_id).await?;
         let overdue = if let es_entity::Idempotent::Executed(overdue) =
-            credit_facility.maybe_record_overdue_disbursed_balance(audit_info)
+            credit_facility.record_overdue_disbursed_balance(audit_info)
         {
             overdue
         } else {
