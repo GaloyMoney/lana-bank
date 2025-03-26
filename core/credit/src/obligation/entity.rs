@@ -1,3 +1,4 @@
+use chrono::{DateTime, Utc};
 use derive_builder::Builder;
 use serde::{Deserialize, Serialize};
 
@@ -21,6 +22,14 @@ pub enum ObligationEvent {
 pub struct Obligation {
     pub id: ObligationId,
     pub(super) events: EntityEvents<ObligationEvent>,
+}
+
+impl Obligation {
+    pub fn created_at(&self) -> DateTime<Utc> {
+        self.events
+            .entity_first_persisted_at()
+            .expect("entity_first_persisted_at not found")
+    }
 }
 
 impl TryFromEvents<ObligationEvent> for Obligation {
