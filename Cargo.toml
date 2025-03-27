@@ -17,7 +17,6 @@ members = [
   "core/customer",
   "core/governance",
   "core/money",
-  "core/chart-of-accounts",
   "core/deposit",
   "core/price",
   "core/credit",

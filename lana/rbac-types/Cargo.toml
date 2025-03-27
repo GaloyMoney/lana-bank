@@ -15,7 +15,6 @@ governance = { path = "../../core/governance" }
 core-user = { path = "../../core/user" }
 core-customer = { path = "../../core/customer" }
 core-credit = { path = "../../core/credit" }
-chart-of-accounts = { path = "../../core/chart-of-accounts" }
 deposit = { path = "../../core/deposit" }
 core-accounting = { path = "../../core/accounting" }
 
