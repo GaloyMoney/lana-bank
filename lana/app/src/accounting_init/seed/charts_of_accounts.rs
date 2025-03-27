@@ -1,6 +1,6 @@
 use crate::{
+    accounting::ChartOfAccounts,
     accounting_init::{constants::*, *},
-    chart_of_accounts::ChartOfAccounts,
 };
 
 use rbac_types::Subject;

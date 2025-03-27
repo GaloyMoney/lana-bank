@@ -7,7 +7,7 @@ use lana_app::{authorization::Authorization, trial_balance::TrialBalances};
 
 use cala_ledger::{CalaLedger, CalaLedgerConfig};
 
-use chart_of_accounts::*;
+use core_accounting::*;
 use rbac_types::Subject;
 
 pub async fn init_pool() -> anyhow::Result<sqlx::PgPool> {
@@ -37,10 +37,11 @@ pub async fn init_chart(
     journal_id: LedgerJournalId,
     subject: &Subject,
 ) -> anyhow::Result<Chart> {
-    let chart_of_accounts = CoreChartOfAccounts::init(pool, authz, cala, journal_id).await?;
+    let accounting = CoreAccounting::new(pool, authz, cala, journal_id);
 
     let rand_ref = format!("{:05}", rand::thread_rng().gen_range(0..100000));
-    let chart_id = chart_of_accounts
+    let chart_id = accounting
+        .chart_of_accounts()
         .create_chart(subject, "Test Chart".to_string(), rand_ref.clone())
         .await?
         .id;
@@ -56,7 +57,8 @@ pub async fn init_chart(
         "#
     );
 
-    Ok(chart_of_accounts
+    Ok(accounting
+        .chart_of_accounts()
         .import_from_csv(subject, chart_id, data)
         .await?)
 }

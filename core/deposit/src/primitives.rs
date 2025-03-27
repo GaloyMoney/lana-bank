@@ -2,7 +2,7 @@ use std::{fmt::Display, str::FromStr};
 
 use authz::AllOrOne;
 
-pub use chart_of_accounts::ChartId;
+pub use core_accounting::ChartId;
 pub use core_customer::CustomerType;
 pub use governance::{ApprovalProcessId, GovernanceAction, GovernanceObject};
 

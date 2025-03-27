@@ -2,7 +2,7 @@ use async_graphql::{connection::*, *};
 use serde::{Deserialize, Serialize};
 
 use lana_app::{
-    chart_of_accounts::{AccountCode as DomainAccountCode, AccountDetails},
+    accounting::{AccountCode as DomainAccountCode, AccountDetails},
     ledger_account::{
         LayeredLedgerAccountAmount as DomainLayeredLedgerAccountAmount,
         LedgerAccountEntry as DomainLedgerAccountEntry, LedgerAccountHistoryCursor,

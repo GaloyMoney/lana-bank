@@ -14,16 +14,14 @@ pub enum CoreDepositError {
     DepositError(#[from] crate::deposit::error::DepositError),
     #[error("CoreDepositError - WithdrawalError: {0}")]
     WithdrawalError(#[from] crate::withdrawal::error::WithdrawalError),
-    // #[error("CoreDepositError - DepositConfigError: {0}")]
-    // DepositConfigError(#[from] crate::module_config::error::DepositConfigError),
     #[error("CoreDepositError - DepositLedgerError: {0}")]
     DepositLedgerError(#[from] crate::ledger::error::DepositLedgerError),
     #[error("CoreDepositError - GovernanceError: {0}")]
     GovernanceError(#[from] governance::error::GovernanceError),
     #[error("CoreDepositError - CoreChartOfAccountsError: {0}")]
-    CoreChartOfAccountsError(#[from] chart_of_accounts::error::CoreChartOfAccountsError),
-    #[error("CoreDepositError - CoreChartOfAccountsError: {0}")]
-    AltCoreChartOfAccountsError(#[from] chart_of_accounts::error::ChartError),
+    CoreChartOfAccountsError(
+        #[from] core_accounting::chart_of_accounts::error::ChartOfAccountsError,
+    ),
     #[error("CoreDepositError - JobError: {0}")]
     JobError(#[from] job::error::JobError),
     #[error("CoreDepositError - ProcessError: {0}")]
@@ -45,7 +43,7 @@ impl CoreDepositError {
         matches!(
             self,
             Self::CoreChartOfAccountsError(
-                chart_of_accounts::error::CoreChartOfAccountsError::CalaAccount(
+                core_accounting::chart_of_accounts::error::ChartOfAccountsError::CalaAccount(
                     cala_ledger::account::error::AccountError::ExternalIdAlreadyExists
                 )
             )

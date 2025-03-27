@@ -1,6 +1,6 @@
 use audit::SystemSubject;
 use authz::error::AuthorizationError;
-use chart_of_accounts::{CoreChartOfAccountsAction, CoreChartOfAccountsObject};
+use core_accounting::{CoreAccountingAction, CoreAccountingObject};
 use core_credit::{CoreCreditAction, CoreCreditObject};
 use core_customer::{CoreCustomerAction, CustomerObject};
 use core_user::{CoreUserAction, UserEntityAction, UserObject};
@@ -492,22 +492,22 @@ async fn add_permissions_for_bank_manager(authz: &Authorization) -> Result<(), A
     authz
         .add_permission_to_role(
             &role,
-            CoreChartOfAccountsObject::all_charts(),
-            CoreChartOfAccountsAction::CHART_CREATE,
+            CoreAccountingObject::all_charts(),
+            CoreAccountingAction::CHART_CREATE,
         )
         .await?;
     authz
         .add_permission_to_role(
             &role,
-            CoreChartOfAccountsObject::all_charts(),
-            CoreChartOfAccountsAction::CHART_LIST,
+            CoreAccountingObject::all_charts(),
+            CoreAccountingAction::CHART_LIST,
         )
         .await?;
     authz
         .add_permission_to_role(
             &role,
-            CoreChartOfAccountsObject::all_charts(),
-            CoreChartOfAccountsAction::CHART_ACCOUNT_DETAILS_READ,
+            CoreAccountingObject::all_charts(),
+            CoreAccountingAction::CHART_ACCOUNT_DETAILS_READ,
         )
         .await?;
 

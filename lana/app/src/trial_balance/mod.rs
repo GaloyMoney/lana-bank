@@ -1,8 +1,8 @@
 pub mod error;
 pub mod ledger;
 
-use chart_of_accounts::Chart;
 use chrono::{DateTime, Utc};
+use core_accounting::Chart;
 
 use audit::AuditSvc;
 use authz::PermissionCheck;

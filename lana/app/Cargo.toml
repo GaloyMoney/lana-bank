@@ -24,7 +24,6 @@ core-credit = { path = "../../core/credit", features = ["graphql"] }
 core-customer = { path = "../../core/customer", features = ["graphql"] }
 core-price = { path = "../../core/price" }
 deposit = { path = "../../core/deposit", features = ["graphql"] }
-chart-of-accounts = { path = "../../core/chart-of-accounts" }
 core-accounting = { path = "../../core/accounting" }
 
 tracing-utils = { path = "../../lib/tracing-utils", features = ["http"] }

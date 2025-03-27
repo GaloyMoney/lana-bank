@@ -8,7 +8,7 @@ use cala_ledger::CalaLedger;
 use chrono::{DateTime, Utc};
 use rbac_types::{BalanceSheetAction, BalanceSheetConfigurationAction, Subject};
 
-use chart_of_accounts::Chart;
+use core_accounting::Chart;
 
 use crate::{
     authorization::{Authorization, Object},

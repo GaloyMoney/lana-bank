@@ -12,8 +12,8 @@ pub enum ProfitAndLossStatementError {
     ProfitAndLossStatementLedgerError(
         #[from] super::ledger::error::ProfitAndLossStatementLedgerError,
     ),
-    #[error("ProfitAndLossStatementError - CoreChartOfAccountsError: {0}")]
-    CoreChartOfAccountsError(#[from] chart_of_accounts::error::ChartError),
+    #[error("ProfitAndLossStatementError - ChartOfAccountsError: {0}")]
+    ChartOfAccountsError(#[from] core_accounting::chart_of_accounts::error::ChartOfAccountsError),
     #[error("ProfitAndLossStatementError - ChartConfigAlreadyExists")]
     ChartConfigAlreadyExists,
     #[error("ProfitAndLossStatementError - ChartIdMismatch")]

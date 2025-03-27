@@ -17,7 +17,7 @@ pub enum TrialBalanceLedgerError {
     #[error("TrialBalanceLedgerError - NonAccountSetMemberTypeFound")]
     NonAccountSetMemberTypeFound,
     #[error("TrialBalanceLedgerError - AccountCodeParseError: {0}")]
-    AccountCodeParseError(#[from] chart_of_accounts::AccountCodeParseError),
+    AccountCodeParseError(#[from] core_accounting::AccountCodeParseError),
 }
 
 impl TrialBalanceLedgerError {

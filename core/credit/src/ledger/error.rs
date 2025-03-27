@@ -18,8 +18,8 @@ pub enum CreditLedgerError {
     ConversionError(#[from] core_money::ConversionError),
     #[error("CreditLedgerError - CalaVelocityError: {0}")]
     CalaVelocity(#[from] cala_ledger::velocity::error::VelocityError),
-    #[error("CreditLedgerError - CoreChartOfAccountsError: {0}")]
-    CoreChartOfAccountsError(#[from] chart_of_accounts::error::CoreChartOfAccountsError),
+    #[error("CreditLedgerError - ChartOfAccountsError: {0}")]
+    ChartOfAccountsError(#[from] core_accounting::chart_of_accounts::error::ChartOfAccountsError),
     #[error("CreditLedgerError - NonAccountMemberFoundInAccountSet: Found non-Account typed member in account set {0}")]
     NonAccountMemberFoundInAccountSet(String),
     #[error("CreditLedgerError - JournalIdMismatch: Account sets have wrong JournalId")]

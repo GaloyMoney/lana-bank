@@ -8,7 +8,7 @@ use cala_ledger::{
     AccountSetId, CalaLedger, DebitOrCredit, JournalId, LedgerOperation,
 };
 
-use chart_of_accounts::AccountCode;
+use core_accounting::AccountCode;
 
 use crate::statement::*;
 

@@ -43,7 +43,7 @@ pub enum ApplicationError {
     #[error("ApplicationError - CalaInit: {0}")]
     CalaError(#[from] cala_ledger::error::LedgerError),
     #[error("ApplicationError - ChartOfAccountsError: {0}")]
-    ChartOfAccountsError(#[from] chart_of_accounts::error::CoreChartOfAccountsError),
+    ChartOfAccountsError(#[from] core_accounting::chart_of_accounts::error::ChartOfAccountsError),
     #[error("ApplicationError - DepositError: {0}")]
     DepositError(#[from] crate::deposit::error::CoreDepositError),
     #[error("ApplicationError - StorageError: {0}")]

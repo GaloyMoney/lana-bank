@@ -14,7 +14,6 @@ use crate::{
     authorization::{init as init_authz, AppAction, AppObject, AuditAction, Authorization},
     balance_sheet::BalanceSheets,
     cash_flow::CashFlowStatements,
-    chart_of_accounts::ChartOfAccounts,
     credit_facility::CreditFacilities,
     customer::Customers,
     customer_onboarding::CustomerOnboarding,
@@ -46,7 +45,6 @@ pub struct LanaApp {
     _jobs: Jobs,
     audit: Audit,
     authz: Authorization,
-    chart_of_accounts: ChartOfAccounts,
     accounting: Accounting,
     customers: Customers,
     deposits: Deposits,
@@ -110,10 +108,8 @@ impl LanaApp {
             &cash_flow_statements,
         )
         .await?;
-        let chart_of_accounts =
-            ChartOfAccounts::init(&pool, &authz, &cala, journal_init.journal_id).await?;
         let accounting = Accounting::new(&pool, &authz, &cala, journal_init.journal_id);
-        ChartsInit::charts_of_accounts(&chart_of_accounts).await?;
+        ChartsInit::charts_of_accounts(accounting.chart_of_accounts()).await?;
         let ledger_accounts = LedgerAccounts::init(&authz, &cala, journal_init.journal_id);
         let general_ledger = GeneralLedger::init(&authz, &cala, journal_init.journal_id);
         let customers = Customers::new(&pool, &authz, &outbox);
@@ -159,7 +155,6 @@ impl LanaApp {
             _jobs: jobs,
             audit,
             authz,
-            chart_of_accounts,
             accounting,
             customers,
             deposits,
@@ -225,10 +220,6 @@ impl LanaApp {
             .await?;
 
         self.audit.list(query).await.map_err(ApplicationError::from)
-    }
-
-    pub fn chart_of_accounts(&self) -> &ChartOfAccounts {
-        &self.chart_of_accounts
     }
 
     pub fn accounting(&self) -> &Accounting {

@@ -12,8 +12,8 @@ use rbac_types::{
 };
 
 use crate::{
+    accounting::Chart,
     authorization::{Authorization, Object},
-    chart_of_accounts::Chart,
     primitives::LedgerAccountSetId,
     statement::*,
 };

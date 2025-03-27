@@ -2,7 +2,7 @@ use async_graphql::*;
 
 use crate::{graphql::ledger_account::AccountCode, primitives::*};
 
-use lana_app::chart_of_accounts::Chart as DomainChart;
+use lana_app::accounting::Chart as DomainChart;
 
 #[derive(SimpleObject, Clone)]
 #[graphql(complex)]
@@ -46,8 +46,8 @@ pub struct ChartNode {
     children: Vec<ChartNode>,
 }
 
-impl From<lana_app::chart_of_accounts::tree::TreeNode> for ChartNode {
-    fn from(node: lana_app::chart_of_accounts::tree::TreeNode) -> Self {
+impl From<lana_app::accounting::tree::TreeNode> for ChartNode {
+    fn from(node: lana_app::accounting::tree::TreeNode) -> Self {
         Self {
             name: node.name.to_string(),
             account_code: AccountCode::from(&node.code),

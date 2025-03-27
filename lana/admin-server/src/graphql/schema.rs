@@ -404,11 +404,13 @@ impl Query {
         let reference = CHART_REF.to_string();
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         let chart = app
+            .accounting()
             .chart_of_accounts()
             .find_by_reference(sub, reference.clone())
             .await?
             .unwrap_or_else(|| panic!("Chart of accounts not found for ref {}", reference));
         let account = app
+            .accounting()
             .chart_of_accounts()
             .account_details_by_code(sub, chart, code)
             .await?;
@@ -472,6 +474,7 @@ impl Query {
 
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         let chart = app
+            .accounting()
             .chart_of_accounts()
             .find_by_reference(sub, reference.to_string())
             .await?
@@ -789,6 +792,7 @@ impl Mutation {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
 
         let chart = app
+            .accounting()
             .chart_of_accounts()
             .find_by_reference(sub, CHART_REF.to_string())
             .await?
@@ -972,6 +976,7 @@ impl Mutation {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
 
         let chart = app
+            .accounting()
             .chart_of_accounts()
             .find_by_reference(sub, CHART_REF.to_string())
             .await?
@@ -1371,6 +1376,7 @@ impl Mutation {
         file.read_to_string(&mut data)?;
 
         let chart = app
+            .accounting()
             .chart_of_accounts()
             .import_from_csv(sub, chart_id, data)
             .await?;
@@ -1390,6 +1396,7 @@ impl Mutation {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
 
         let chart = app
+            .accounting()
             .chart_of_accounts()
             .find_by_reference(sub, CHART_REF.to_string())
             .await?
@@ -1428,6 +1435,7 @@ impl Mutation {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
 
         let chart = app
+            .accounting()
             .chart_of_accounts()
             .find_by_reference(sub, CHART_REF.to_string())
             .await?

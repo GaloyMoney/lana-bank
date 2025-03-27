@@ -20,7 +20,7 @@ use std::collections::HashMap;
 use audit::{AuditInfo, AuditSvc};
 use authz::PermissionCheck;
 use cala_ledger::CalaLedger;
-use chart_of_accounts::Chart;
+use core_accounting::Chart;
 use core_customer::{CoreCustomerAction, CoreCustomerEvent, CustomerObject, Customers};
 use core_price::Price;
 use es_entity::Idempotent;

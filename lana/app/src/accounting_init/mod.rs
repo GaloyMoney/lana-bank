@@ -4,9 +4,9 @@ mod seed;
 pub mod error;
 
 use crate::{
-    balance_sheet::BalanceSheets, cash_flow::CashFlowStatements,
-    chart_of_accounts::ChartOfAccounts, primitives::LedgerJournalId,
-    profit_and_loss::ProfitAndLossStatements, trial_balance::TrialBalances,
+    accounting::ChartOfAccounts, balance_sheet::BalanceSheets, cash_flow::CashFlowStatements,
+    primitives::LedgerJournalId, profit_and_loss::ProfitAndLossStatements,
+    trial_balance::TrialBalances,
 };
 
 use cala_ledger::CalaLedger;

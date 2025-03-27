@@ -95,21 +95,14 @@ pub mod deposit {
         deposit::CoreDeposit<crate::authorization::Authorization, lana_events::LanaEvent>;
 }
 
-pub mod chart_of_accounts {
-    pub use chart_of_accounts::{
-        error, AccountCode, AccountDetails, {tree, Chart},
-    };
-
-    pub type ChartOfAccounts =
-        chart_of_accounts::CoreChartOfAccounts<crate::authorization::Authorization>;
-}
-
 pub mod accounting {
     pub use core_accounting::{
-        AccountCode, AccountDetails, {tree, Chart},
+        chart_of_accounts, AccountCode, AccountDetails, {tree, Chart},
     };
 
     pub type Accounting = core_accounting::CoreAccounting<crate::authorization::Authorization>;
+    pub type ChartOfAccounts =
+        core_accounting::ChartOfAccounts<crate::authorization::Authorization>;
 }
 
 pub mod credit_facility {

@@ -2,7 +2,7 @@ mod helpers;
 
 use authz::dummy::DummySubject;
 use cala_ledger::{CalaLedger, CalaLedgerConfig};
-use chart_of_accounts::CoreChartOfAccounts;
+use core_accounting::CoreAccounting;
 use deposit::*;
 use helpers::{action, event, object};
 
@@ -36,9 +36,10 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
     )
     .await?;
 
-    let charts = CoreChartOfAccounts::init(&pool, &authz, &cala, journal_id).await?;
+    let accounting = CoreAccounting::new(&pool, &authz, &cala, journal_id);
     let chart_ref = format!("ref-{:08}", rand::thread_rng().gen_range(0..10000));
-    let chart = charts
+    let chart = accounting
+        .chart_of_accounts()
         .create_chart(&DummySubject, "Test chart".to_string(), chart_ref)
         .await?;
     let import = r#"
@@ -52,11 +53,12 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
         "#
     .to_string();
     let chart_id = chart.id;
-    let chart = charts
+    let chart = accounting
+        .chart_of_accounts()
         .import_from_csv(&DummySubject, chart_id, import)
         .await?;
 
-    let code = "1".parse::<chart_of_accounts::AccountCode>().unwrap();
+    let code = "1".parse::<core_accounting::AccountCode>().unwrap();
     let account_set_id = cala
         .account_sets()
         .find(chart.account_set_id_from_code(&code).unwrap())
@@ -95,7 +97,8 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
     assert_eq!(res.entities.len(), 1);
 
     let chart_ref = format!("other-ref-{:08}", rand::thread_rng().gen_range(0..10000));
-    let chart = charts
+    let chart = accounting
+        .chart_of_accounts()
         .create_chart(&DummySubject, "Other Test chart".to_string(), chart_ref)
         .await?;
 
@@ -110,7 +113,8 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
         "#
     .to_string();
     let chart_id = chart.id;
-    let chart = charts
+    let chart = accounting
+        .chart_of_accounts()
         .import_from_csv(&DummySubject, chart_id, import)
         .await?;
 
