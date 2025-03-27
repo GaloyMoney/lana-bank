@@ -23,7 +23,7 @@ impl TryFrom<Entry> for JournalEntry {
     type Error = JournalError;
 
     fn try_from(entry: Entry) -> Result<Self, Self::Error> {
-        let amount = if entry.values().currency == "USD".parse().expect("pasre USD") {
+        let amount = if entry.values().currency == "USD".parse().expect("parse USD") {
             JournalEntryAmount::Usd(UsdCents::try_from_usd(entry.values().units)?)
         } else if entry.values().currency == "BTC".parse().expect("parse BTC") {
             JournalEntryAmount::Btc(Satoshis::try_from_btc(entry.values().units)?)
