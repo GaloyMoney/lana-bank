@@ -6,7 +6,7 @@ use thiserror::Error;
 use authz::AllOrOne;
 
 pub use cala_ledger::primitives::{
-    AccountId as LedgerAccountId, AccountSetId as LedgerAccountSetId, JournalId as LedgerJournalId,
+    AccountSetId as LedgerAccountSetId, JournalId as LedgerJournalId,
 };
 
 es_entity::entity_id! {

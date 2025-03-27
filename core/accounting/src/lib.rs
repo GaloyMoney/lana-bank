@@ -4,4 +4,37 @@
 mod chart_of_accounts;
 mod primitives;
 
-pub struct CoreAccounting {}
+use audit::AuditSvc;
+use authz::PermissionCheck;
+use cala_ledger::CalaLedger;
+
+use chart_of_accounts::*;
+use primitives::*;
+
+pub struct CoreAccounting<Perms>
+where
+    Perms: PermissionCheck,
+{
+    chart_of_accounts: ChartOfAccounts<Perms>,
+}
+
+impl<Perms> CoreAccounting<Perms>
+where
+    Perms: PermissionCheck,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreAccountingAction>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreAccountingObject>,
+{
+    pub fn new(
+        pool: &sqlx::PgPool,
+        authz: &Perms,
+        cala: &CalaLedger,
+        journal_id: LedgerJournalId,
+    ) -> Self {
+        let chart_of_accounts = ChartOfAccounts::new(pool, authz, cala, journal_id);
+        Self { chart_of_accounts }
+    }
+
+    pub fn chart_of_accounts(&self) -> &ChartOfAccounts<Perms> {
+        &self.chart_of_accounts
+    }
+}

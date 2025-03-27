@@ -57,13 +57,12 @@ where
         journal_id: LedgerJournalId,
     ) -> Self {
         let chart_of_account = ChartRepo::new(pool);
-        let res = Self {
+        Self {
             repo: chart_of_account,
             cala: cala.clone(),
             authz: authz.clone(),
             journal_id,
-        };
-        res
+        }
     }
 
     #[instrument(name = "chart_of_accounts.create_chart", skip(self))]
@@ -164,7 +163,7 @@ where
         &self,
         id: impl Into<ChartId> + std::fmt::Debug,
     ) -> Result<Chart, ChartOfAccountsError> {
-        Ok(self.repo.find_by_id(id.into()).await?)
+        self.repo.find_by_id(id.into()).await
     }
 
     #[instrument(name = "chart_of_accounts.find_by_reference", skip(self))]
@@ -184,7 +183,7 @@ where
         let chart = match self.repo.find_by_reference(reference).await {
             Ok(chart) => Some(chart),
             Err(e) if e.was_not_found() => None,
-            Err(e) => return Err(e.into()),
+            Err(e) => return Err(e),
         };
 
         Ok(chart)
@@ -215,6 +214,6 @@ where
         &self,
         ids: &[ChartId],
     ) -> Result<std::collections::HashMap<ChartId, T>, ChartOfAccountsError> {
-        Ok(self.repo.find_all(ids).await?)
+        self.repo.find_all(ids).await
     }
 }
