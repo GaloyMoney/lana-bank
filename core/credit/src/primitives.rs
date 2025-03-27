@@ -19,6 +19,7 @@ es_entity::entity_id! {
     DisbursalId,
     PaymentId,
     ChartOfAccountsIntegrationConfigId,
+    ObligationId,
     InterestAccrualId;
 
     CreditFacilityId => governance::ApprovalProcessId,
