@@ -257,6 +257,11 @@ export type BtcAccountBalanceAmounts = {
   netDebit: Scalars['SignedSatoshis']['output'];
 };
 
+export type BtcAmount = {
+  __typename?: 'BtcAmount';
+  btc: Scalars['Satoshis']['output'];
+};
+
 export type BtcGeneralLedgerEntry = {
   __typename?: 'BtcGeneralLedgerEntry';
   btcAmount: Scalars['Satoshis']['output'];
@@ -1100,6 +1105,38 @@ export enum InterestInterval {
   EndOfMonth = 'END_OF_MONTH'
 }
 
+export type JournalEntry = {
+  __typename?: 'JournalEntry';
+  amount: JournalEntryAmount;
+  createdAt: Scalars['Timestamp']['output'];
+  description?: Maybe<Scalars['String']['output']>;
+  direction: DebitOrCredit;
+  entryId: Scalars['UUID']['output'];
+  entryType: Scalars['String']['output'];
+  id: Scalars['ID']['output'];
+};
+
+export type JournalEntryAmount = BtcAmount | UsdAmount;
+
+export type JournalEntryConnection = {
+  __typename?: 'JournalEntryConnection';
+  /** A list of edges. */
+  edges: Array<JournalEntryEdge>;
+  /** A list of nodes. */
+  nodes: Array<JournalEntry>;
+  /** Information to aid in pagination. */
+  pageInfo: PageInfo;
+};
+
+/** An edge in a connection. */
+export type JournalEntryEdge = {
+  __typename?: 'JournalEntryEdge';
+  /** A cursor for use in pagination */
+  cursor: Scalars['String']['output'];
+  /** The item at the end of the edge */
+  node: JournalEntry;
+};
+
 export enum KycLevel {
   Advanced = 'ADVANCED',
   Basic = 'BASIC',
@@ -1508,6 +1545,7 @@ export type Query = {
   disbursals: CreditFacilityDisbursalConnection;
   document?: Maybe<Document>;
   generalLedgerEntries: GeneralLedgerEntryConnection;
+  journalEntries: JournalEntryConnection;
   ledgerAccountByCode?: Maybe<LedgerAccount>;
   me: Subject;
   policies: PolicyConnection;
@@ -1633,6 +1671,12 @@ export type QueryDocumentArgs = {
 
 
 export type QueryGeneralLedgerEntriesArgs = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  first: Scalars['Int']['input'];
+};
+
+
+export type QueryJournalEntriesArgs = {
   after?: InputMaybe<Scalars['String']['input']>;
   first: Scalars['Int']['input'];
 };
@@ -1929,6 +1973,11 @@ export type UsdAccountBalanceAmounts = {
   debit: Scalars['UsdCents']['output'];
   netCredit: Scalars['SignedUsdCents']['output'];
   netDebit: Scalars['SignedUsdCents']['output'];
+};
+
+export type UsdAmount = {
+  __typename?: 'UsdAmount';
+  usd: Scalars['UsdCents']['output'];
 };
 
 export type UsdGeneralLedgerEntry = {

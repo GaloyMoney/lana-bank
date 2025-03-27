@@ -97,7 +97,7 @@ pub mod deposit {
 
 pub mod accounting {
     pub use core_accounting::{
-        chart_of_accounts, AccountCode, AccountDetails, {tree, Chart},
+        chart_of_accounts, journal, AccountCode, AccountDetails, {tree, Chart},
     };
 
     pub type Accounting = core_accounting::CoreAccounting<crate::authorization::Authorization>;

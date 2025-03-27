@@ -234,6 +234,10 @@ type BtcAccountBalanceAmounts {
 	netCredit: SignedSatoshis!
 }
 
+type BtcAmount {
+	btc: Satoshis!
+}
+
 type BtcGeneralLedgerEntry {
 	id: ID!
 	entryId: UUID!
@@ -1091,6 +1095,47 @@ enum InterestInterval {
 	END_OF_DAY
 }
 
+type JournalEntry {
+	id: ID!
+	entryId: UUID!
+	entryType: String!
+	amount: JournalEntryAmount!
+	description: String
+	direction: DebitOrCredit!
+	createdAt: Timestamp!
+}
+
+union JournalEntryAmount = UsdAmount | BtcAmount
+
+type JournalEntryConnection {
+	"""
+	Information to aid in pagination.
+	"""
+	pageInfo: PageInfo!
+	"""
+	A list of edges.
+	"""
+	edges: [JournalEntryEdge!]!
+	"""
+	A list of nodes.
+	"""
+	nodes: [JournalEntry!]!
+}
+
+"""
+An edge in a connection.
+"""
+type JournalEntryEdge {
+	"""
+	The item at the end of the edge
+	"""
+	node: JournalEntry!
+	"""
+	A cursor for use in pagination
+	"""
+	cursor: String!
+}
+
 enum KycLevel {
 	NOT_KYCED
 	BASIC
@@ -1335,6 +1380,7 @@ type Query {
 	approvalProcesses(first: Int!, after: String): ApprovalProcessConnection!
 	document(id: UUID!): Document
 	ledgerAccountByCode(code: String!): LedgerAccount
+	journalEntries(first: Int!, after: String): JournalEntryConnection!
 	generalLedgerEntries(first: Int!, after: String): GeneralLedgerEntryConnection!
 	trialBalance(from: Timestamp!, until: Timestamp!): TrialBalance!
 	chartOfAccounts: ChartOfAccounts!
@@ -1583,6 +1629,10 @@ type UsdAccountBalanceAmounts {
 	credit: UsdCents!
 	netDebit: SignedUsdCents!
 	netCredit: SignedUsdCents!
+}
+
+type UsdAmount {
+	usd: UsdCents!
 }
 
 scalar UsdCents
