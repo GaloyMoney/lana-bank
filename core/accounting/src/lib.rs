@@ -2,7 +2,8 @@
 #![cfg_attr(feature = "fail-on-warnings", deny(clippy::all))]
 
 pub mod chart_of_accounts;
-pub mod general_ledger;
+// pub mod general_ledger;
+pub mod journal;
 mod primitives;
 
 use audit::AuditSvc;

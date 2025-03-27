@@ -250,12 +250,14 @@ impl AccountSpec {
 }
 
 pub type ChartAllOrOne = AllOrOne<ChartId>;
+pub type JournalAllOrOne = AllOrOne<LedgerJournalId>;
 
 #[derive(Clone, Copy, Debug, PartialEq, strum::EnumDiscriminants)]
 #[strum_discriminants(derive(strum::Display, strum::EnumString))]
 #[strum_discriminants(strum(serialize_all = "kebab-case"))]
 pub enum CoreAccountingAction {
     ChartAction(ChartAction),
+    JournalAction(JournalAction),
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, strum::EnumDiscriminants)]
@@ -263,6 +265,7 @@ pub enum CoreAccountingAction {
 #[strum_discriminants(strum(serialize_all = "kebab-case"))]
 pub enum CoreAccountingObject {
     Chart(ChartAllOrOne),
+    Journal(JournalAllOrOne),
 }
 
 impl CoreAccountingObject {
@@ -273,6 +276,10 @@ impl CoreAccountingObject {
     pub fn all_charts() -> Self {
         CoreAccountingObject::Chart(AllOrOne::All)
     }
+
+    pub fn journal(id: LedgerJournalId) -> Self {
+        CoreAccountingObject::Journal(AllOrOne::ById(id))
+    }
 }
 
 impl Display for CoreAccountingObject {
@@ -281,6 +288,7 @@ impl Display for CoreAccountingObject {
         use CoreAccountingObject::*;
         match self {
             Chart(obj_ref) => write!(f, "{}/{}", discriminant, obj_ref),
+            Journal(obj_ref) => write!(f, "{}/{}", discriminant, obj_ref),
         }
     }
 }
@@ -296,6 +304,10 @@ impl FromStr for CoreAccountingObject {
                 let obj_ref = id.parse().map_err(|_| "could not parse CoreChartObject")?;
                 CoreAccountingObject::Chart(obj_ref)
             }
+            Journal => {
+                let obj_ref = id.parse().map_err(|_| "could not parse CoreChartObject")?;
+                CoreAccountingObject::Journal(obj_ref)
+            }
         };
         Ok(res)
     }
@@ -308,6 +320,9 @@ impl CoreAccountingAction {
         CoreAccountingAction::ChartAction(ChartAction::AccountDetailsRead);
     pub const CHART_IMPORT_ACCOUNTS: Self =
         CoreAccountingAction::ChartAction(ChartAction::ImportAccounts);
+
+    pub const JOURNAL_READ_ENTRIES: Self =
+        CoreAccountingAction::JournalAction(JournalAction::ReadEntries);
 }
 
 impl Display for CoreAccountingAction {
@@ -316,6 +331,7 @@ impl Display for CoreAccountingAction {
         use CoreAccountingAction::*;
         match self {
             ChartAction(action) => action.fmt(f),
+            JournalAction(action) => action.fmt(f),
         }
     }
 }
@@ -328,6 +344,9 @@ impl FromStr for CoreAccountingAction {
         let res = match entity.parse()? {
             CoreAccountingActionDiscriminants::ChartAction => {
                 CoreAccountingAction::from(action.parse::<ChartAction>()?)
+            }
+            CoreAccountingActionDiscriminants::JournalAction => {
+                CoreAccountingAction::from(action.parse::<JournalAction>()?)
             }
         };
         Ok(res)
@@ -355,8 +374,14 @@ impl From<ChartAction> for CoreAccountingAction {
 
 #[derive(PartialEq, Clone, Copy, Debug, strum::Display, strum::EnumString)]
 #[strum(serialize_all = "kebab-case")]
-pub enum GeneralLedgerAction {
+pub enum JournalAction {
     ReadEntries,
+}
+
+impl From<JournalAction> for CoreAccountingAction {
+    fn from(action: JournalAction) -> Self {
+        CoreAccountingAction::JournalAction(action)
+    }
 }
 
 #[cfg(test)]

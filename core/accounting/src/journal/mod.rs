@@ -1,31 +1,33 @@
-pub mod error;
-use error::*;
-
 mod entry;
+pub mod error;
+
 pub use entry::*;
+use error::*;
 
 use audit::AuditSvc;
 use authz::PermissionCheck;
 
-use cala_ledger::{CalaLedger, JournalId};
+use cala_ledger::CalaLedger;
 
-use crate::GeneralLedgerAction;
+use crate::primitives::{CoreAccountingAction, CoreAccountingObject, LedgerJournalId};
 
 #[derive(Clone)]
-pub struct GeneralLedger<Perms>
+pub struct Journal<Perms>
 where
     Perms: PermissionCheck,
 {
     authz: Perms,
     cala: CalaLedger,
-    journal_id: JournalId,
+    journal_id: LedgerJournalId,
 }
 
-impl<Perms> GeneralLedger<Perms>
+impl<Perms> Journal<Perms>
 where
     Perms: PermissionCheck,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreAccountingAction>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreAccountingObject>,
 {
-    pub fn init(authz: &Perms, cala: &CalaLedger, journal_id: JournalId) -> Self {
+    pub fn new(authz: &Perms, cala: &CalaLedger, journal_id: LedgerJournalId) -> Self {
         Self {
             authz: authz.clone(),
             cala: cala.clone(),
@@ -36,13 +38,14 @@ where
     pub async fn entries(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        args: es_entity::PaginatedQueryArgs<GeneralLedgerEntryCursor>,
-    ) -> Result<
-        es_entity::PaginatedQueryRet<GeneralLedgerEntry, GeneralLedgerEntryCursor>,
-        GeneralLedgerError,
-    > {
+        args: es_entity::PaginatedQueryArgs<JournalEntryCursor>,
+    ) -> Result<es_entity::PaginatedQueryRet<JournalEntry, JournalEntryCursor>, JournalError> {
         self.authz
-            .enforce_permission(sub, Object::GeneralLedger, GeneralLedgerAction::ReadEntries)
+            .enforce_permission(
+                sub,
+                CoreAccountingObject::journal(self.journal_id),
+                CoreAccountingAction::JOURNAL_READ_ENTRIES,
+            )
             .await?;
 
         let cala_cursor = es_entity::PaginatedQueryArgs {
@@ -65,13 +68,13 @@ where
         let entities = ret
             .entities
             .into_iter()
-            .map(GeneralLedgerEntry::try_from)
+            .map(JournalEntry::try_from)
             .collect::<Result<Vec<_>, _>>()?;
 
         Ok(es_entity::PaginatedQueryRet {
             entities,
             has_next_page: ret.has_next_page,
-            end_cursor: ret.end_cursor.map(GeneralLedgerEntryCursor::from),
+            end_cursor: ret.end_cursor.map(JournalEntryCursor::from),
         })
     }
 }
