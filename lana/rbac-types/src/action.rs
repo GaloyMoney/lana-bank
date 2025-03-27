@@ -1,6 +1,7 @@
 use std::{fmt::Display, str::FromStr};
 
 use chart_of_accounts::CoreChartOfAccountsAction;
+use core_accounting::CoreAccountingAction;
 use core_credit::CoreCreditAction;
 use core_customer::CoreCustomerAction;
 use core_user::CoreUserAction;
@@ -17,6 +18,7 @@ pub enum LanaAction {
     User(CoreUserAction),
     Customer(CoreCustomerAction),
     ChartOfAccounts(CoreChartOfAccountsAction),
+    Accounting(CoreAccountingAction),
     Dashboard(DashboardModuleAction),
     Deposit(CoreDepositAction),
     Credit(CoreCreditAction),
@@ -52,6 +54,11 @@ impl From<CoreChartOfAccountsAction> for LanaAction {
         LanaAction::ChartOfAccounts(action)
     }
 }
+impl From<CoreAccountingAction> for LanaAction {
+    fn from(action: CoreAccountingAction) -> Self {
+        LanaAction::Accounting(action)
+    }
+}
 impl From<CoreDepositAction> for LanaAction {
     fn from(action: CoreDepositAction) -> Self {
         LanaAction::Deposit(action)
@@ -74,6 +81,7 @@ impl Display for LanaAction {
             Customer(action) => action.fmt(f),
             Dashboard(action) => action.fmt(f),
             ChartOfAccounts(action) => action.fmt(f),
+            Accounting(action) => action.fmt(f),
             Deposit(action) => action.fmt(f),
             Credit(action) => action.fmt(f),
         }
@@ -93,6 +101,7 @@ impl FromStr for LanaAction {
             Customer => LanaAction::from(action.parse::<CoreCustomerAction>()?),
             Dashboard => LanaAction::from(action.parse::<DashboardModuleAction>()?),
             ChartOfAccounts => LanaAction::from(action.parse::<CoreChartOfAccountsAction>()?),
+            Accounting => LanaAction::from(action.parse::<CoreAccountingAction>()?),
             Deposit => LanaAction::from(action.parse::<CoreDepositAction>()?),
             Credit => LanaAction::from(action.parse::<CoreCreditAction>()?),
         };

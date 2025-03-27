@@ -17,6 +17,8 @@ core-customer = { path = "../../core/customer" }
 core-credit = { path = "../../core/credit" }
 chart-of-accounts = { path = "../../core/chart-of-accounts" }
 deposit = { path = "../../core/deposit" }
+core-accounting = { path = "../../core/accounting" }
+
 audit = { path = "../../lib/audit" }
 authz = { path = "../../lib/authz" }
 

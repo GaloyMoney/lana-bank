@@ -104,6 +104,14 @@ pub mod chart_of_accounts {
         chart_of_accounts::CoreChartOfAccounts<crate::authorization::Authorization>;
 }
 
+pub mod accounting {
+    pub use core_accounting::{
+        AccountCode, AccountDetails, {tree, Chart},
+    };
+
+    pub type Accounting = core_accounting::CoreAccounting<crate::authorization::Authorization>;
+}
+
 pub mod credit_facility {
     pub use core_credit::{
         error, ChartOfAccountsIntegrationConfig, CollateralUpdated, CollateralizationUpdated,

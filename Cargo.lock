@@ -13,28 +13,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "accounting"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "audit",
- "authz",
- "cala-ledger",
- "csv",
- "derive_builder",
- "es-entity",
- "outbox",
- "rand",
- "serde",
- "sqlx",
- "strum",
- "thiserror 2.0.12",
- "tokio",
- "tracing",
- "uuid",
-]
-
-[[package]]
 name = "addr2line"
 version = "0.24.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -979,6 +957,28 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "baaaa0ecca5b51987b9423ccdc971514dd8b0bb7b4060b983d3664dad3f1f89f"
 dependencies = [
  "unicode-segmentation",
+]
+
+[[package]]
+name = "core-accounting"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "audit",
+ "authz",
+ "cala-ledger",
+ "csv",
+ "derive_builder",
+ "es-entity",
+ "outbox",
+ "rand",
+ "serde",
+ "sqlx",
+ "strum",
+ "thiserror 2.0.12",
+ "tokio",
+ "tracing",
+ "uuid",
 ]
 
 [[package]]
@@ -2694,6 +2694,7 @@ dependencies = [
  "chart-of-accounts",
  "chrono",
  "clap",
+ "core-accounting",
  "core-credit",
  "core-customer",
  "core-money",
@@ -3666,6 +3667,7 @@ dependencies = [
  "audit",
  "authz",
  "chart-of-accounts",
+ "core-accounting",
  "core-credit",
  "core-customer",
  "core-user",

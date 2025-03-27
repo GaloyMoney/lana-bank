@@ -7,6 +7,7 @@ use tracing::instrument;
 use authz::PermissionCheck;
 
 use crate::{
+    accounting::Accounting,
     accounting_init::{ChartsInit, JournalInit, StatementsInit},
     applicant::Applicants,
     audit::{Audit, AuditCursor, AuditEntry},
@@ -46,6 +47,7 @@ pub struct LanaApp {
     audit: Audit,
     authz: Authorization,
     chart_of_accounts: ChartOfAccounts,
+    accounting: Accounting,
     customers: Customers,
     deposits: Deposits,
     applicants: Applicants,
@@ -110,6 +112,7 @@ impl LanaApp {
         .await?;
         let chart_of_accounts =
             ChartOfAccounts::init(&pool, &authz, &cala, journal_init.journal_id).await?;
+        let accounting = Accounting::new(&pool, &authz, &cala, journal_init.journal_id);
         ChartsInit::charts_of_accounts(&chart_of_accounts).await?;
         let ledger_accounts = LedgerAccounts::init(&authz, &cala, journal_init.journal_id);
         let general_ledger = GeneralLedger::init(&authz, &cala, journal_init.journal_id);
@@ -157,6 +160,7 @@ impl LanaApp {
             audit,
             authz,
             chart_of_accounts,
+            accounting,
             customers,
             deposits,
             applicants,
@@ -225,6 +229,10 @@ impl LanaApp {
 
     pub fn chart_of_accounts(&self) -> &ChartOfAccounts {
         &self.chart_of_accounts
+    }
+
+    pub fn accounting(&self) -> &Accounting {
+        &self.accounting
     }
 
     pub fn deposits(&self) -> &Deposits {

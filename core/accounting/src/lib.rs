@@ -8,14 +8,25 @@ use audit::AuditSvc;
 use authz::PermissionCheck;
 use cala_ledger::CalaLedger;
 
-use chart_of_accounts::*;
-use primitives::*;
+pub use chart_of_accounts::*;
+pub use primitives::*;
 
 pub struct CoreAccounting<Perms>
 where
     Perms: PermissionCheck,
 {
     chart_of_accounts: ChartOfAccounts<Perms>,
+}
+
+impl<Perms> Clone for CoreAccounting<Perms>
+where
+    Perms: PermissionCheck,
+{
+    fn clone(&self) -> Self {
+        Self {
+            chart_of_accounts: self.chart_of_accounts.clone(),
+        }
+    }
 }
 
 impl<Perms> CoreAccounting<Perms>
