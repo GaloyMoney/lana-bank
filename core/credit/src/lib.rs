@@ -8,6 +8,7 @@ mod for_subject;
 mod interest_accrual_cycle;
 mod jobs;
 pub mod ledger;
+mod obligation;
 mod payment;
 mod primitives;
 mod processes;

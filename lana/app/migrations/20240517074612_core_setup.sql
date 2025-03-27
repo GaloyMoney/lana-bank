@@ -243,6 +243,20 @@ CREATE TABLE core_interest_accrual_cycle_events (
   UNIQUE(id, sequence)
 );
 
+CREATE TABLE core_obligations (
+  id UUID PRIMARY KEY,
+  created_at TIMESTAMPTZ NOT NULL
+);
+
+CREATE TABLE core_obligation_events (
+  id UUID NOT NULL REFERENCES core_obligations(id),
+  sequence INT NOT NULL,
+  event_type VARCHAR NOT NULL,
+  event JSONB NOT NULL,
+  recorded_at TIMESTAMPTZ NOT NULL,
+  UNIQUE(id, sequence)
+);
+
 CREATE TABLE documents (
   id UUID PRIMARY KEY,
   deleted BOOLEAN NOT NULL DEFAULT FALSE,
