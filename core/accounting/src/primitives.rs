@@ -353,6 +353,12 @@ impl From<ChartAction> for CoreAccountingAction {
     }
 }
 
+#[derive(PartialEq, Clone, Copy, Debug, strum::Display, strum::EnumString)]
+#[strum(serialize_all = "kebab-case")]
+pub enum GeneralLedgerAction {
+    ReadEntries,
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
