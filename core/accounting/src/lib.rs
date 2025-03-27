@@ -3,3 +3,5 @@
 
 mod chart_of_accounts;
 mod primitives;
+
+pub struct CoreAccounting {}
