@@ -12,6 +12,7 @@ members = [
   "lana/user-onboarding",
   "lana/customer-onboarding",
 
+  "core/accounting",
   "core/user",
   "core/customer",
   "core/governance",
