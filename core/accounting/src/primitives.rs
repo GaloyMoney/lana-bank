@@ -254,80 +254,80 @@ pub type ChartAllOrOne = AllOrOne<ChartId>;
 #[derive(Clone, Copy, Debug, PartialEq, strum::EnumDiscriminants)]
 #[strum_discriminants(derive(strum::Display, strum::EnumString))]
 #[strum_discriminants(strum(serialize_all = "kebab-case"))]
-pub enum CoreChartOfAccountsAction {
+pub enum CoreAccountingAction {
     ChartAction(ChartAction),
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, strum::EnumDiscriminants)]
 #[strum_discriminants(derive(strum::Display, strum::EnumString))]
 #[strum_discriminants(strum(serialize_all = "kebab-case"))]
-pub enum CoreChartOfAccountsObject {
+pub enum CoreAccountingObject {
     Chart(ChartAllOrOne),
 }
 
-impl CoreChartOfAccountsObject {
+impl CoreAccountingObject {
     pub fn chart(id: ChartId) -> Self {
-        CoreChartOfAccountsObject::Chart(AllOrOne::ById(id))
+        CoreAccountingObject::Chart(AllOrOne::ById(id))
     }
 
     pub fn all_charts() -> Self {
-        CoreChartOfAccountsObject::Chart(AllOrOne::All)
+        CoreAccountingObject::Chart(AllOrOne::All)
     }
 }
 
-impl Display for CoreChartOfAccountsObject {
+impl Display for CoreAccountingObject {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let discriminant = CoreChartOfAccountsObjectDiscriminants::from(self);
-        use CoreChartOfAccountsObject::*;
+        let discriminant = CoreAccountingObjectDiscriminants::from(self);
+        use CoreAccountingObject::*;
         match self {
             Chart(obj_ref) => write!(f, "{}/{}", discriminant, obj_ref),
         }
     }
 }
 
-impl FromStr for CoreChartOfAccountsObject {
+impl FromStr for CoreAccountingObject {
     type Err = &'static str;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let (entity, id) = s.split_once('/').expect("missing slash");
-        use CoreChartOfAccountsObjectDiscriminants::*;
+        use CoreAccountingObjectDiscriminants::*;
         let res = match entity.parse().expect("invalid entity") {
             Chart => {
                 let obj_ref = id.parse().map_err(|_| "could not parse CoreChartObject")?;
-                CoreChartOfAccountsObject::Chart(obj_ref)
+                CoreAccountingObject::Chart(obj_ref)
             }
         };
         Ok(res)
     }
 }
 
-impl CoreChartOfAccountsAction {
-    pub const CHART_CREATE: Self = CoreChartOfAccountsAction::ChartAction(ChartAction::Create);
-    pub const CHART_LIST: Self = CoreChartOfAccountsAction::ChartAction(ChartAction::List);
+impl CoreAccountingAction {
+    pub const CHART_CREATE: Self = CoreAccountingAction::ChartAction(ChartAction::Create);
+    pub const CHART_LIST: Self = CoreAccountingAction::ChartAction(ChartAction::List);
     pub const CHART_ACCOUNT_DETAILS_READ: Self =
-        CoreChartOfAccountsAction::ChartAction(ChartAction::AccountDetailsRead);
+        CoreAccountingAction::ChartAction(ChartAction::AccountDetailsRead);
     pub const CHART_IMPORT_ACCOUNTS: Self =
-        CoreChartOfAccountsAction::ChartAction(ChartAction::ImportAccounts);
+        CoreAccountingAction::ChartAction(ChartAction::ImportAccounts);
 }
 
-impl Display for CoreChartOfAccountsAction {
+impl Display for CoreAccountingAction {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}:", CoreChartOfAccountsActionDiscriminants::from(self))?;
-        use CoreChartOfAccountsAction::*;
+        write!(f, "{}:", CoreAccountingActionDiscriminants::from(self))?;
+        use CoreAccountingAction::*;
         match self {
             ChartAction(action) => action.fmt(f),
         }
     }
 }
 
-impl FromStr for CoreChartOfAccountsAction {
+impl FromStr for CoreAccountingAction {
     type Err = strum::ParseError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let (entity, action) = s.split_once(':').expect("missing colon");
         let res = match entity.parse()? {
-            CoreChartOfAccountsActionDiscriminants::ChartAction => {
-                CoreChartOfAccountsAction::from(action.parse::<ChartAction>()?)
+            CoreAccountingActionDiscriminants::ChartAction => {
+                CoreAccountingAction::from(action.parse::<ChartAction>()?)
             }
         };
         Ok(res)
@@ -347,9 +347,9 @@ pub enum ChartAction {
     FindControlSubAccount,
 }
 
-impl From<ChartAction> for CoreChartOfAccountsAction {
+impl From<ChartAction> for CoreAccountingAction {
     fn from(action: ChartAction) -> Self {
-        CoreChartOfAccountsAction::ChartAction(action)
+        CoreAccountingAction::ChartAction(action)
     }
 }
 

@@ -98,10 +98,10 @@ impl Chart {
     pub fn account_set_id_from_code(
         &self,
         code: &AccountCode,
-    ) -> Result<LedgerAccountSetId, ChartError> {
+    ) -> Result<LedgerAccountSetId, ChartOfAccountsError> {
         self.account_spec(code)
             .map(|(_, id)| *id)
-            .ok_or_else(|| ChartError::CodeNotFoundInChart(code.clone()))
+            .ok_or_else(|| ChartOfAccountsError::CodeNotFoundInChart(code.clone()))
     }
 
     pub fn chart(&self) -> tree::ChartTree {

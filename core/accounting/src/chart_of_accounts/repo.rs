@@ -4,12 +4,12 @@ use es_entity::*;
 
 use crate::primitives::ChartId;
 
-use super::{entity::*, error::ChartError};
+use super::{entity::*, error::ChartOfAccountsError};
 
 #[derive(EsRepo, Clone)]
 #[es_repo(
     entity = "Chart",
-    err = "ChartError",
+    err = "ChartOfAccountsError",
     columns(reference(ty = "String")),
     tbl_prefix = "core"
 )]

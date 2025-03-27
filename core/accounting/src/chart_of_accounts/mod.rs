@@ -16,11 +16,11 @@ use cala_ledger::{account_set::NewAccountSet, CalaLedger};
 use tracing::instrument;
 
 use crate::primitives::{
-    AccountDetails, ChartId, CoreChartOfAccountsAction, CoreChartOfAccountsObject, LedgerJournalId,
+    AccountDetails, ChartId, CoreAccountingAction, CoreAccountingObject, LedgerJournalId,
 };
 use error::*;
 
-pub struct CoreChartOfAccounts<Perms>
+pub struct ChartOfAccounts<Perms>
 where
     Perms: PermissionCheck,
 {
@@ -30,7 +30,7 @@ where
     journal_id: LedgerJournalId,
 }
 
-impl<Perms> Clone for CoreChartOfAccounts<Perms>
+impl<Perms> Clone for ChartOfAccounts<Perms>
 where
     Perms: PermissionCheck,
 {
@@ -44,11 +44,11 @@ where
     }
 }
 
-impl<Perms> CoreChartOfAccounts<Perms>
+impl<Perms> ChartOfAccounts<Perms>
 where
     Perms: PermissionCheck,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreChartOfAccountsAction>,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreChartOfAccountsObject>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreAccountingAction>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreAccountingObject>,
 {
     pub fn new(
         pool: &sqlx::PgPool,
@@ -72,7 +72,7 @@ where
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         name: String,
         reference: String,
-    ) -> Result<Chart, ChartError> {
+    ) -> Result<Chart, ChartOfAccountsError> {
         let id = ChartId::new();
 
         let mut op = self.repo.begin_op().await?;
@@ -80,8 +80,8 @@ where
             .authz
             .enforce_permission(
                 sub,
-                CoreChartOfAccountsObject::chart(id),
-                CoreChartOfAccountsAction::CHART_CREATE,
+                CoreAccountingObject::chart(id),
+                CoreAccountingAction::CHART_CREATE,
             )
             .await?;
 
@@ -105,14 +105,14 @@ where
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         id: impl Into<ChartId> + std::fmt::Debug,
         data: impl AsRef<str>,
-    ) -> Result<Chart, ChartError> {
+    ) -> Result<Chart, ChartOfAccountsError> {
         let id = id.into();
         let audit_info = self
             .authz
             .enforce_permission(
                 sub,
-                CoreChartOfAccountsObject::chart(id),
-                CoreChartOfAccountsAction::CHART_LIST,
+                CoreAccountingObject::chart(id),
+                CoreAccountingAction::CHART_LIST,
             )
             .await?;
         let mut chart = self.repo.find_by_id(id).await?;
@@ -163,7 +163,7 @@ where
     pub async fn find_by_id(
         &self,
         id: impl Into<ChartId> + std::fmt::Debug,
-    ) -> Result<Chart, ChartError> {
+    ) -> Result<Chart, ChartOfAccountsError> {
         Ok(self.repo.find_by_id(id.into()).await?)
     }
 
@@ -172,12 +172,12 @@ where
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         reference: String,
-    ) -> Result<Option<Chart>, ChartError> {
+    ) -> Result<Option<Chart>, ChartOfAccountsError> {
         self.authz
             .enforce_permission(
                 sub,
-                CoreChartOfAccountsObject::all_charts(),
-                CoreChartOfAccountsAction::CHART_LIST,
+                CoreAccountingObject::all_charts(),
+                CoreAccountingAction::CHART_LIST,
             )
             .await?;
 
@@ -196,12 +196,12 @@ where
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         chart: Chart,
         code: String,
-    ) -> Result<Option<AccountDetails>, ChartError> {
+    ) -> Result<Option<AccountDetails>, ChartOfAccountsError> {
         self.authz
             .enforce_permission(
                 sub,
-                CoreChartOfAccountsObject::chart(chart.id),
-                CoreChartOfAccountsAction::CHART_ACCOUNT_DETAILS_READ,
+                CoreAccountingObject::chart(chart.id),
+                CoreAccountingAction::CHART_ACCOUNT_DETAILS_READ,
             )
             .await?;
         let details = chart
@@ -214,7 +214,7 @@ where
     pub async fn find_all<T: From<Chart>>(
         &self,
         ids: &[ChartId],
-    ) -> Result<std::collections::HashMap<ChartId, T>, ChartError> {
+    ) -> Result<std::collections::HashMap<ChartId, T>, ChartOfAccountsError> {
         Ok(self.repo.find_all(ids).await?)
     }
 }
