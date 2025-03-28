@@ -396,6 +396,19 @@ impl Query {
         maybe_fetch_one!(Document, ctx, app.documents().find_by_id(sub, id))
     }
 
+    async fn ledger_account(
+        &self,
+        ctx: &Context<'_>,
+        id: UUID,
+    ) -> async_graphql::Result<Option<LedgerAccount>> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        maybe_fetch_one!(
+            LedgerAccount,
+            ctx,
+            app.accounting().ledger_accounts().find_by_id(sub, id)
+        )
+    }
+
     async fn ledger_account_by_code(
         &self,
         ctx: &Context<'_>,

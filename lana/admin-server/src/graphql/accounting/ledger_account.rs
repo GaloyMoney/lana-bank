@@ -1,29 +1,44 @@
 use async_graphql::{connection::*, *};
 use serde::{Deserialize, Serialize};
 
-use lana_app::accounting::ledger_account::{
-    LayeredLedgerAccountAmount as DomainLayeredLedgerAccountAmount,
-    LedgerAccountEntry as DomainLedgerAccountEntry, LedgerAccountHistoryCursor,
+use std::sync::Arc;
+
+use lana_app::accounting::{
+    ledger_account::{
+        LayeredLedgerAccountAmount as DomainLayeredLedgerAccountAmount,
+        LedgerAccount as DomainLedgerAccount, LedgerAccountEntry as DomainLedgerAccountEntry,
+        LedgerAccountHistoryCursor,
+    },
+    AccountCode as DomainAccountCode, AccountDetails,
 };
-use lana_app::accounting::{AccountCode as DomainAccountCode, AccountDetails};
 
 use crate::primitives::*;
 
-#[derive(SimpleObject)]
+#[derive(Clone, SimpleObject)]
 #[graphql(complex)]
 pub struct LedgerAccount {
     id: UUID,
     name: String,
     code: AccountCode,
+
+    #[graphql(skip)]
+    pub entity: Arc<DomainLedgerAccount>,
 }
 
 impl From<AccountDetails> for LedgerAccount {
     fn from(account: AccountDetails) -> Self {
-        LedgerAccount {
-            id: account.id.into(),
-            name: account.name.to_string(),
-            code: AccountCode(account.code.to_string()),
-        }
+        // LedgerAccount {
+        //     id: account.id.into(),
+        //     name: account.name.to_string(),
+        //     code: AccountCode(account.code.to_string()),
+        // }
+        unimplemented!()
+    }
+}
+
+impl From<DomainLedgerAccount> for LedgerAccount {
+    fn from(account: DomainLedgerAccount) -> Self {
+        unimplemented!()
     }
 }
 
