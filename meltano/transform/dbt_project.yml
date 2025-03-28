@@ -33,3 +33,4 @@ on-run-end:
 - '{{create_data_test_results()}}'
 vars:
   sats_per_bitcoin: '100000000'
+  deposits_coverage_limit: '10289.00'
