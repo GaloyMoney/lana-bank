@@ -9,8 +9,8 @@ use audit::AuditSvc;
 use authz::PermissionCheck;
 use cala_ledger::CalaLedger;
 
-pub use chart_of_accounts::{error as chart_of_accounts_error, tree, Chart, ChartOfAccounts};
-pub use journal::{error as journal_error, Journal};
+pub use chart_of_accounts::{Chart, ChartOfAccounts, error as chart_of_accounts_error, tree};
+pub use journal::{Journal, error as journal_error};
 pub use primitives::*;
 
 pub struct CoreAccounting<Perms>
