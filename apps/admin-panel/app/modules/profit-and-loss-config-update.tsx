@@ -46,6 +46,12 @@ const initialFormData = {
   chartOfAccountsExpensesCode: "",
 }
 
+const pnlAccountCodes = {
+  chartOfAccountsRevenueCode: "6",
+  chartOfAccountsCostOfRevenueCode: "7",
+  chartOfAccountsExpensesCode: "8",
+}
+
 export const ProfitAndLossConfigUpdateDialog: React.FC<
   ProfitAndLossConfigUpdateDialogProps
 > = ({ open, setOpen, profitAndLossConfig }) => {
@@ -87,6 +93,10 @@ export const ProfitAndLossConfigUpdateDialog: React.FC<
     close()
   }
 
+  const autoPopulate = () => {
+    setFormData(pnlAccountCodes)
+  }
+
   return (
     <Dialog open={open} onOpenChange={close}>
       <DialogContent>
@@ -109,7 +119,15 @@ export const ProfitAndLossConfigUpdateDialog: React.FC<
             {error && <div className="text-destructive">{error.message}</div>}
           </div>
           <DialogFooter className="mt-4">
-            <Button variant="outline" onClick={close}>
+            <Button
+              variant="outline"
+              type="button"
+              onClick={autoPopulate}
+              className="mr-auto"
+            >
+              {t("autoPopulate")}
+            </Button>
+            <Button variant="outline" type="button" onClick={close}>
               {tCommon("cancel")}
             </Button>
             <Button loading={loading} type="submit">
