@@ -36,10 +36,11 @@
       aliases = [
         (mkAlias "meltano" ''docker compose run --rm meltano -- "$@"'')
       ];
-      sqlx-cli = pkgs.sqlx-cli.override {
-        features = ["rustls"];
-        nativeTls = false;
-      };
+      sqlx-cli = pkgs.sqlx-cli.overrideAttrs (oldAttrs: {
+        buildInputs = (oldAttrs.buildInputs or []) ++ [
+          pkgs.openssl.dev
+        ];
+      });
       nativeBuildInputs = with pkgs;
         [
           rustToolchain
