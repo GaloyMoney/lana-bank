@@ -32,15 +32,10 @@ impl KratosAdmin {
         let identity = CreateIdentityBody {
             schema_id: "email".to_string(),
             traits: serde_json::json!({ "email": email }),
-            credentials: None,
-            metadata_admin: None,
-            metadata_public: None,
-            recovery_addresses: None,
-            state: None,
-            verifiable_addresses: None,
+            ..Default::default()
         };
 
-        let identity = identity_api::create_identity(&self.config, Some(&identity)).await?;
+        let identity = identity_api::create_identity(&self.config, Some(identity)).await?;
         Ok(identity.id.parse::<Uuid>()?.into())
     }
 }
