@@ -3,6 +3,7 @@
 
 pub mod chart_of_accounts;
 pub mod journal;
+pub mod ledger_account;
 mod primitives;
 
 use audit::AuditSvc;
