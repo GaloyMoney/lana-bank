@@ -7,7 +7,12 @@ use crate::primitives::ObligationId;
 use super::{entity::*, error::*};
 
 #[derive(EsRepo)]
-#[es_repo(entity = "Obligation", err = "ObligationError", tbl_prefix = "core")]
+#[es_repo(
+    entity = "Obligation",
+    err = "ObligationError",
+    columns(reference(ty = "String", create(accessor = "reference()"))),
+    tbl_prefix = "core"
+)]
 pub struct ObligationRepo {
     pool: PgPool,
 }

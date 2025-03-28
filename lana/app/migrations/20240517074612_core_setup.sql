@@ -245,6 +245,7 @@ CREATE TABLE core_interest_accrual_cycle_events (
 
 CREATE TABLE core_obligations (
   id UUID PRIMARY KEY,
+  reference VARCHAR NOT NULL UNIQUE,
   created_at TIMESTAMPTZ NOT NULL
 );
 
