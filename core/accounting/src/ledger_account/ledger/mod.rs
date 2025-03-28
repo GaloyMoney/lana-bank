@@ -4,6 +4,8 @@ use cala_ledger::{AccountSetId, CalaLedger, JournalId};
 
 use error::*;
 
+use crate::journal_error::JournalError;
+
 #[derive(Clone)]
 pub struct LedgerAccountLedger {
     cala: CalaLedger,
@@ -47,9 +49,9 @@ impl LedgerAccountLedger {
         &self,
         account_set_id: AccountSetId,
         cursor: es_entity::PaginatedQueryArgs<U>,
-    ) -> Result<es_entity::PaginatedQueryRet<T, U>, LedgerAccountLedgerError>
+    ) -> Result<es_entity::PaginatedQueryRet<T, U>, JournalError>
     where
-        T: TryFrom<cala_ledger::entry::Entry, Error = LedgerAccountLedgerError>,
+        T: TryFrom<cala_ledger::entry::Entry, Error = JournalError>,
         U: std::fmt::Debug + From<cala_ledger::entry::EntriesByCreatedAtCursor>,
         cala_ledger::entry::EntriesByCreatedAtCursor: From<U>,
     {
