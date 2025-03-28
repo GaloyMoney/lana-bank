@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 use audit::AuditInfo;
 use es_entity::*;
 
-use crate::primitives::{LedgerAccountId, ObligationId, UsdCents};
+use crate::primitives::{LedgerAccountId, LedgerTxId, ObligationId, UsdCents};
 
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
@@ -14,6 +14,8 @@ pub enum ObligationEvent {
     Initialized {
         id: ObligationId,
         amount: UsdCents,
+        reference: String,
+        tx_id: LedgerTxId,
         account_to_be_debited_id: LedgerAccountId,
         account_to_be_credited_id: LedgerAccountId,
         due_date: DateTime<Utc>,
@@ -27,6 +29,11 @@ pub enum ObligationEvent {
 #[builder(pattern = "owned", build_fn(error = "EsEntityError"))]
 pub struct Obligation {
     pub id: ObligationId,
+    pub tx_id: LedgerTxId,
+    pub reference: String,
+    pub amount: UsdCents,
+    pub account_to_be_debited_id: LedgerAccountId,
+    pub account_to_be_credited_id: LedgerAccountId,
     pub(super) events: EntityEvents<ObligationEvent>,
 }
 
@@ -43,8 +50,22 @@ impl TryFromEvents<ObligationEvent> for Obligation {
         let mut builder = ObligationBuilder::default();
         for event in events.iter_all() {
             match event {
-                ObligationEvent::Initialized { id, .. } => {
-                    builder = builder.id(*id);
+                ObligationEvent::Initialized {
+                    id,
+                    tx_id,
+                    reference,
+                    amount,
+                    account_to_be_debited_id,
+                    account_to_be_credited_id,
+                    ..
+                } => {
+                    builder = builder
+                        .id(*id)
+                        .tx_id(*tx_id)
+                        .reference(reference.clone())
+                        .amount(*amount)
+                        .account_to_be_debited_id(*account_to_be_debited_id)
+                        .account_to_be_credited_id(*account_to_be_credited_id)
                 }
             }
         }
@@ -58,12 +79,17 @@ pub struct NewObligation {
     pub(super) id: ObligationId,
     #[builder(setter(into))]
     pub(super) amount: UsdCents,
+    reference: Option<String>,
+    #[builder(setter(into))]
+    pub(super) tx_id: LedgerTxId,
     #[builder(setter(into))]
     account_to_be_debited_id: LedgerAccountId,
     #[builder(setter(into))]
     account_to_be_credited_id: LedgerAccountId,
     due_date: DateTime<Utc>,
+    #[builder(setter(strip_option), default)]
     overdue_date: Option<DateTime<Utc>>,
+    #[builder(setter(strip_option), default)]
     default_date: Option<DateTime<Utc>>,
     #[builder(setter(into))]
     pub audit_info: AuditInfo,
@@ -73,6 +99,14 @@ impl NewObligation {
     pub fn builder() -> NewObligationBuilder {
         NewObligationBuilder::default()
     }
+
+    pub(super) fn reference(&self) -> String {
+        match self.reference.as_deref() {
+            None => self.id.to_string(),
+            Some("") => self.id.to_string(),
+            Some(reference) => reference.to_string(),
+        }
+    }
 }
 
 impl IntoEvents<ObligationEvent> for NewObligation {
@@ -81,7 +115,9 @@ impl IntoEvents<ObligationEvent> for NewObligation {
             self.id,
             [ObligationEvent::Initialized {
                 id: self.id,
+                reference: self.reference(),
                 amount: self.amount,
+                tx_id: self.tx_id,
                 account_to_be_debited_id: self.account_to_be_debited_id,
                 account_to_be_credited_id: self.account_to_be_credited_id,
                 due_date: self.due_date,
