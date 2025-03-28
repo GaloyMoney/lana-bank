@@ -1114,6 +1114,7 @@ export type JournalEntry = {
   entryId: Scalars['UUID']['output'];
   entryType: Scalars['String']['output'];
   id: Scalars['ID']['output'];
+  ledgerAccount: LedgerAccount;
 };
 
 export type JournalEntryAmount = BtcAmount | UsdAmount;

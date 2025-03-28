@@ -6,17 +6,21 @@ use lana_app::accounting::journal::{
     JournalEntry as DomainJournalEntry, JournalEntryAmount as DomainJournalEntryAmount,
 };
 
-use crate::primitives::*;
+use super::ledger_account::LedgerAccount;
+
+use crate::{graphql::loader::LanaDataLoader, primitives::*};
 
 #[derive(SimpleObject)]
+#[graphql(complex)]
 pub struct JournalEntry {
     id: ID,
     entry_id: UUID,
-    entry_type: String,
     amount: JournalEntryAmount,
-    description: Option<String>,
     direction: DebitOrCredit,
     created_at: Timestamp,
+
+    #[graphql(skip)]
+    pub entity: Arc<DomainJournalEntry>,
 }
 
 impl From<DomainJournalEntry> for JournalEntry {
@@ -24,12 +28,31 @@ impl From<DomainJournalEntry> for JournalEntry {
         Self {
             id: entry.entry_id.into(),
             entry_id: entry.entry_id.into(),
-            entry_type: entry.entry_type,
             amount: entry.amount.into(),
-            description: entry.description,
             direction: entry.direction,
             created_at: entry.created_at.into(),
+            entity: Arc::new(entry),
         }
+    }
+}
+
+#[ComplexObject]
+impl JournalEntry {
+    pub async fn entry_type(&self) -> &str {
+        &self.entity.entry_type
+    }
+
+    pub async fn description(&self) -> &Option<String> {
+        &self.entity.description
+    }
+
+    pub async fn ledger_account(&self, ctx: &Context<'_>) -> async_graphql::Result<LedgerAccount> {
+        let loader = ctx.data_unchecked::<LanaDataLoader>();
+        let account = loader
+            .load_one(self.entity.ledger_account_id)
+            .await?
+            .expect("committee not found");
+        Ok(account)
     }
 }
 

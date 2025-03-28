@@ -127,23 +127,6 @@ impl Customer {
             .await
             .is_ok())
     }
-
-    // async fn subject_can_record_deposit(&self, ctx: &Context<'_>) -> async_graphql::Result<bool> {
-    //     let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
-    //     Ok(app.deposits().subject_can_record(sub, false).await.is_ok())
-    // }
-
-    // async fn subject_can_initiate_withdrawal(
-    //     &self,
-    //     ctx: &Context<'_>,
-    // ) -> async_graphql::Result<bool> {
-    //     let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
-    //     Ok(app
-    //         .withdrawals()
-    //         .subject_can_initiate(sub, false)
-    //         .await
-    //         .is_ok())
-    // }
 }
 
 #[derive(InputObject)]
