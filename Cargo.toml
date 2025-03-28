@@ -40,7 +40,7 @@ cala-ledger = "0.3.20"
 
 anyhow = "1.0.95"
 async-graphql = { version = "7.0.11", default-features = false, features = ["dataloader", "tracing", "chrono", "playground", "tempfile"] }
-async-graphql-axum = "7.0.9"
+async-graphql-axum = "7.0.16"
 async-trait = "0.1.80"
 axum = { version = "0.7.9", features = ["macros"] }
 axum-extra = { version = "0.9.6", default-features = false, features = ["tracing", "typed-header"] }
