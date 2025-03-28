@@ -1,6 +1,6 @@
 use async_graphql::*;
 
-use cala_ledger::DebitOrCredit;
+use cala_ledger::{DebitOrCredit, Layer};
 pub use lana_app::accounting::journal::JournalEntryCursor;
 use lana_app::accounting::journal::{
     JournalEntry as DomainJournalEntry, JournalEntryAmount as DomainJournalEntryAmount,
@@ -15,8 +15,10 @@ use crate::{graphql::loader::LanaDataLoader, primitives::*};
 pub struct JournalEntry {
     id: ID,
     entry_id: UUID,
+    tx_id: UUID,
     amount: JournalEntryAmount,
     direction: DebitOrCredit,
+    layer: Layer,
     created_at: Timestamp,
 
     #[graphql(skip)]
@@ -28,8 +30,10 @@ impl From<DomainJournalEntry> for JournalEntry {
         Self {
             id: entry.entry_id.into(),
             entry_id: entry.entry_id.into(),
+            tx_id: entry.tx_id.into(),
             amount: entry.amount.into(),
             direction: entry.direction,
+            layer: entry.layer,
             created_at: entry.created_at.into(),
             entity: Arc::new(entry),
         }

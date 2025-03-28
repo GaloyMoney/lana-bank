@@ -16,6 +16,8 @@ pub enum LedgerAccountLedgerError {
     CalaAccount(#[from] cala_ledger::account::error::AccountError),
     #[error("LedgerAccountError - ParseCurrencyError: {0}")]
     ParseCurrencyError(#[from] cala_ledger::ParseCurrencyError),
+    #[error("LedgerAccountLedgerError - JournalError: {0}")]
+    JournalError(#[from] crate::journal_error::JournalError),
     #[error("LedgerAccountError - ConversionError: {0}")]
     ConversionError(#[from] core_money::ConversionError),
 }

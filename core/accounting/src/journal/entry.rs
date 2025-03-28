@@ -1,4 +1,5 @@
-use cala_ledger::{Currency, DebitOrCredit, EntryId, entry::Entry};
+use cala_ledger::entry::Entry;
+use cala_ledger::{Currency, DebitOrCredit, EntryId, Layer, TransactionId};
 use core_money::{Satoshis, UsdCents};
 use serde::{Deserialize, Serialize};
 
@@ -8,10 +9,12 @@ use crate::primitives::LedgerAccountId;
 pub struct JournalEntry {
     pub ledger_account_id: LedgerAccountId,
     pub entry_id: EntryId,
+    pub tx_id: TransactionId,
     pub entry_type: String,
     pub amount: JournalEntryAmount,
     pub description: Option<String>,
     pub direction: DebitOrCredit,
+    pub layer: Layer,
     pub created_at: chrono::DateTime<chrono::Utc>,
 }
 
@@ -35,10 +38,12 @@ impl TryFrom<Entry> for JournalEntry {
         Ok(Self {
             ledger_account_id: entry.values().account_id.into(),
             entry_id: entry.id,
+            tx_id: entry.values().transaction_id,
             entry_type: entry.values().entry_type.clone(),
             amount,
             description: entry.values().description.clone(),
             direction: entry.values().direction,
+            layer: entry.values().layer,
             created_at: entry.created_at(),
         })
     }

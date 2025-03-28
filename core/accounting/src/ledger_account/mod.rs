@@ -1,6 +1,5 @@
 pub mod error;
 mod ledger;
-mod primitives;
 
 use std::collections::HashMap;
 use tracing::instrument;
@@ -9,6 +8,7 @@ use audit::AuditSvc;
 use authz::PermissionCheck;
 use cala_ledger::CalaLedger;
 
+use crate::journal::{JournalEntry, JournalEntryCursor};
 use crate::primitives::{
     AccountCode, CalaAccountBalance, CalaJournalId, ChartId, CoreAccountingAction,
     CoreAccountingObject, LedgerAccountId,
@@ -16,7 +16,6 @@ use crate::primitives::{
 
 use error::*;
 use ledger::*;
-pub use primitives::*;
 
 pub struct LedgerAccount {
     pub id: LedgerAccountId,
@@ -52,11 +51,9 @@ where
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         id: impl Into<LedgerAccountId>,
-        args: es_entity::PaginatedQueryArgs<LedgerAccountHistoryCursor>,
-    ) -> Result<
-        es_entity::PaginatedQueryRet<LedgerAccountEntry, LedgerAccountHistoryCursor>,
-        LedgerAccountError,
-    > {
+        args: es_entity::PaginatedQueryArgs<JournalEntryCursor>,
+    ) -> Result<es_entity::PaginatedQueryRet<JournalEntry, JournalEntryCursor>, LedgerAccountError>
+    {
         let id = id.into();
         self.authz
             .enforce_permission(
@@ -66,10 +63,7 @@ where
             )
             .await?;
 
-        let res = self
-            .ledger
-            .account_set_history::<LedgerAccountEntry, LedgerAccountHistoryCursor>(id.into(), args)
-            .await?;
+        let res = self.ledger.account_set_history(id.into(), args).await?;
 
         // TODO if empty check account history
         Ok(res)
