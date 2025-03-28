@@ -23,7 +23,6 @@ use crate::{
     general_ledger::GeneralLedger,
     governance::Governance,
     job::Jobs,
-    ledger_account::LedgerAccounts,
     outbox::Outbox,
     price::Price,
     primitives::Subject,
@@ -55,7 +54,6 @@ pub struct LanaApp {
     profit_and_loss_statements: ProfitAndLossStatements,
     balance_sheets: BalanceSheets,
     cash_flow_statements: CashFlowStatements,
-    ledger_accounts: LedgerAccounts,
     general_ledger: GeneralLedger,
     price: Price,
     report: Reports,
@@ -110,7 +108,6 @@ impl LanaApp {
         .await?;
         let accounting = Accounting::new(&pool, &authz, &cala, journal_init.journal_id);
         ChartsInit::charts_of_accounts(accounting.chart_of_accounts()).await?;
-        let ledger_accounts = LedgerAccounts::init(&authz, &cala, journal_init.journal_id);
         let general_ledger = GeneralLedger::init(&authz, &cala, journal_init.journal_id);
         let customers = Customers::new(&pool, &authz, &outbox);
         let deposits = Deposits::init(
@@ -167,7 +164,6 @@ impl LanaApp {
             profit_and_loss_statements: pl_statements,
             balance_sheets,
             cash_flow_statements,
-            ledger_accounts,
             general_ledger,
             terms_templates,
             documents,
@@ -252,10 +248,6 @@ impl LanaApp {
 
     pub fn cash_flow_statements(&self) -> &CashFlowStatements {
         &self.cash_flow_statements
-    }
-
-    pub fn ledger_accounts(&self) -> &LedgerAccounts {
-        &self.ledger_accounts
     }
 
     pub fn general_ledger(&self) -> &GeneralLedger {

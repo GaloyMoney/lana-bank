@@ -9,7 +9,6 @@ pub mod balance_sheet;
 pub mod cash_flow;
 pub mod document;
 pub mod general_ledger;
-pub mod ledger_account;
 pub mod primitives;
 pub mod profit_and_loss;
 pub mod report;
@@ -97,7 +96,7 @@ pub mod deposit {
 
 pub mod accounting {
     pub use core_accounting::{
-        chart_of_accounts, journal, AccountCode, AccountDetails, {tree, Chart},
+        chart_of_accounts, journal, ledger_account, AccountCode, AccountDetails, {tree, Chart},
     };
 
     pub type Accounting = core_accounting::CoreAccounting<crate::authorization::Authorization>;

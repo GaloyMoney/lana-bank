@@ -1,13 +1,11 @@
 use async_graphql::{connection::*, *};
 use serde::{Deserialize, Serialize};
 
-use lana_app::{
-    accounting::{AccountCode as DomainAccountCode, AccountDetails},
-    ledger_account::{
-        LayeredLedgerAccountAmount as DomainLayeredLedgerAccountAmount,
-        LedgerAccountEntry as DomainLedgerAccountEntry, LedgerAccountHistoryCursor,
-    },
+use lana_app::accounting::ledger_account::{
+    LayeredLedgerAccountAmount as DomainLayeredLedgerAccountAmount,
+    LedgerAccountEntry as DomainLedgerAccountEntry, LedgerAccountHistoryCursor,
 };
+use lana_app::accounting::{AccountCode as DomainAccountCode, AccountDetails};
 
 use crate::primitives::*;
 
@@ -207,8 +205,10 @@ pub struct LayeredUsdAccountAmounts {
     encumbrance: UsdAccountAmounts,
 }
 
-impl From<lana_app::ledger_account::LayeredUsdLedgerAccountAmount> for LayeredUsdAccountAmounts {
-    fn from(amount: lana_app::ledger_account::LayeredUsdLedgerAccountAmount) -> Self {
+impl From<lana_app::accounting::ledger_account::LayeredUsdLedgerAccountAmount>
+    for LayeredUsdAccountAmounts
+{
+    fn from(amount: lana_app::accounting::ledger_account::LayeredUsdLedgerAccountAmount) -> Self {
         Self {
             settled: amount.settled.into(),
             pending: amount.pending.into(),
@@ -224,8 +224,10 @@ pub struct LayeredBtcAccountAmounts {
     encumbrance: BtcAccountAmounts,
 }
 
-impl From<lana_app::ledger_account::LayeredBtcLedgerAccountAmount> for LayeredBtcAccountAmounts {
-    fn from(amount: lana_app::ledger_account::LayeredBtcLedgerAccountAmount) -> Self {
+impl From<lana_app::accounting::ledger_account::LayeredBtcLedgerAccountAmount>
+    for LayeredBtcAccountAmounts
+{
+    fn from(amount: lana_app::accounting::ledger_account::LayeredBtcLedgerAccountAmount) -> Self {
         Self {
             settled: amount.settled.into(),
             pending: amount.pending.into(),
@@ -240,8 +242,8 @@ struct UsdAccountAmounts {
     credit: UsdCents,
 }
 
-impl From<lana_app::ledger_account::UsdLedgerAccountAmount> for UsdAccountAmounts {
-    fn from(amount: lana_app::ledger_account::UsdLedgerAccountAmount) -> Self {
+impl From<lana_app::accounting::ledger_account::UsdLedgerAccountAmount> for UsdAccountAmounts {
+    fn from(amount: lana_app::accounting::ledger_account::UsdLedgerAccountAmount) -> Self {
         Self {
             debit: amount.dr_amount,
             credit: amount.cr_amount,
@@ -255,8 +257,8 @@ struct BtcAccountAmounts {
     credit: Satoshis,
 }
 
-impl From<lana_app::ledger_account::BtcLedgerAccountAmount> for BtcAccountAmounts {
-    fn from(amount: lana_app::ledger_account::BtcLedgerAccountAmount) -> Self {
+impl From<lana_app::accounting::ledger_account::BtcLedgerAccountAmount> for BtcAccountAmounts {
+    fn from(amount: lana_app::accounting::ledger_account::BtcLedgerAccountAmount) -> Self {
         Self {
             debit: amount.dr_amount,
             credit: amount.cr_amount,

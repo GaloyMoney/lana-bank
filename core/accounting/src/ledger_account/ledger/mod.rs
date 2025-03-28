@@ -11,7 +11,7 @@ pub struct LedgerAccountLedger {
 }
 
 impl LedgerAccountLedger {
-    pub fn init(cala: &CalaLedger, journal_id: JournalId) -> Self {
+    pub fn new(cala: &CalaLedger, journal_id: JournalId) -> Self {
         Self {
             cala: cala.clone(),
             journal_id, // TODO: filter entries by journal_id

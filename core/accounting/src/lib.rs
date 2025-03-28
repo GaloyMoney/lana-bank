@@ -12,6 +12,7 @@ use cala_ledger::CalaLedger;
 
 pub use chart_of_accounts::{Chart, ChartOfAccounts, error as chart_of_accounts_error, tree};
 pub use journal::{Journal, error as journal_error};
+pub use ledger_account::LedgerAccounts;
 pub use primitives::*;
 
 pub struct CoreAccounting<Perms>
@@ -20,6 +21,7 @@ where
 {
     chart_of_accounts: ChartOfAccounts<Perms>,
     journal: Journal<Perms>,
+    ledger_accounts: LedgerAccounts<Perms>,
 }
 
 impl<Perms> Clone for CoreAccounting<Perms>
@@ -30,6 +32,7 @@ where
         Self {
             chart_of_accounts: self.chart_of_accounts.clone(),
             journal: self.journal.clone(),
+            ledger_accounts: self.ledger_accounts.clone(),
         }
     }
 }
@@ -48,9 +51,11 @@ where
     ) -> Self {
         let chart_of_accounts = ChartOfAccounts::new(pool, authz, cala, journal_id);
         let journal = Journal::new(authz, cala, journal_id);
+        let ledger_accounts = LedgerAccounts::new(authz, cala, journal_id);
         Self {
             chart_of_accounts,
             journal,
+            ledger_accounts,
         }
     }
 
@@ -60,5 +65,9 @@ where
 
     pub fn journal(&self) -> &Journal<Perms> {
         &self.journal
+    }
+
+    pub fn ledger_accounts(&self) -> &LedgerAccounts<Perms> {
+        &self.ledger_accounts
     }
 }

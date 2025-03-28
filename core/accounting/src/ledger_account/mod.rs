@@ -30,10 +30,10 @@ where
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreAccountingAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreAccountingObject>,
 {
-    pub fn init(authz: &Perms, cala: &CalaLedger, journal_id: LedgerJournalId) -> Self {
+    pub fn new(authz: &Perms, cala: &CalaLedger, journal_id: LedgerJournalId) -> Self {
         Self {
             authz: authz.clone(),
-            ledger: LedgerAccountLedger::init(cala, journal_id),
+            ledger: LedgerAccountLedger::new(cala, journal_id),
         }
     }
 

@@ -18,7 +18,6 @@ mod deposit_config;
 mod document;
 mod financials;
 mod general_ledger;
-mod ledger_account;
 mod loader;
 mod price;
 mod primitives;

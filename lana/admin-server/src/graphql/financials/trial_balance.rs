@@ -1,7 +1,7 @@
 use async_graphql::{connection::*, *};
 
 use crate::{
-    graphql::{account::AccountAmountsByCurrency, ledger_account::AccountCode},
+    graphql::{account::AccountAmountsByCurrency, accounting::AccountCode},
     primitives::*,
 };
 
