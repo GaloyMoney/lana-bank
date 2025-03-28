@@ -40,6 +40,7 @@ use for_subject::CreditFacilitiesForSubject;
 pub use interest_accrual_cycle::*;
 use jobs::*;
 pub use ledger::*;
+pub use obligation::*;
 pub use payment::*;
 pub use primitives::*;
 use processes::activate_credit_facility::*;
@@ -121,10 +122,12 @@ where
         let publisher = CreditFacilityPublisher::new(outbox);
         let credit_facility_repo = CreditFacilityRepo::new(pool, &publisher);
         let disbursal_repo = DisbursalRepo::new(pool);
+        let obligation_repo = ObligationRepo::new(pool);
         let payment_repo = PaymentRepo::new(pool);
         let ledger = CreditLedger::init(cala, journal_id).await?;
         let approve_disbursal = ApproveDisbursal::new(
             &disbursal_repo,
+            &obligation_repo,
             &credit_facility_repo,
             authz.audit(),
             governance,
@@ -414,7 +417,12 @@ where
             .await?;
 
         self.ledger
-            .initiate_disbursal(db, disbursal.id, disbursal.amount, disbursal.account_ids)
+            .initiate_disbursal(
+                db,
+                disbursal.id,
+                disbursal.amount,
+                disbursal.account_ids.facility_account_id,
+            )
             .await?;
 
         Ok(disbursal)

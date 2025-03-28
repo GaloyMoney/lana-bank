@@ -14,6 +14,7 @@ use outbox::OutboxEventMarker;
 use crate::{
     credit_facility::CreditFacilityRepo, ledger::CreditLedger, primitives::DisbursalId,
     CoreCreditAction, CoreCreditError, CoreCreditEvent, CoreCreditObject, Disbursal, DisbursalRepo,
+    LedgerTxId, ObligationRepo,
 };
 
 pub use job::*;
@@ -25,6 +26,7 @@ where
     E: OutboxEventMarker<GovernanceEvent> + OutboxEventMarker<CoreCreditEvent>,
 {
     disbursal_repo: DisbursalRepo,
+    obligation_repo: ObligationRepo,
     credit_facility_repo: CreditFacilityRepo<E>,
     audit: Perms::Audit,
     governance: Governance<Perms, E>,
@@ -39,6 +41,7 @@ where
     fn clone(&self) -> Self {
         Self {
             disbursal_repo: self.disbursal_repo.clone(),
+            obligation_repo: self.obligation_repo.clone(),
             credit_facility_repo: self.credit_facility_repo.clone(),
             audit: self.audit.clone(),
             governance: self.governance.clone(),
@@ -58,6 +61,7 @@ where
 {
     pub fn new(
         disbursal_repo: &DisbursalRepo,
+        obligation_repo: &ObligationRepo,
         credit_facility_repo: &CreditFacilityRepo<E>,
         audit: &Perms::Audit,
         governance: &Governance<Perms, E>,
@@ -65,6 +69,7 @@ where
     ) -> Self {
         Self {
             disbursal_repo: disbursal_repo.clone(),
+            obligation_repo: obligation_repo.clone(),
             credit_facility_repo: credit_facility_repo.clone(),
             audit: audit.clone(),
             governance: governance.clone(),
@@ -107,7 +112,13 @@ where
         approved: bool,
     ) -> Result<Disbursal, CoreCreditError> {
         let mut disbursal = self.disbursal_repo.find_by_id(id.into()).await?;
+        let mut credit_facility = self
+            .credit_facility_repo
+            .find_by_id(disbursal.facility_id)
+            .await?;
+
         let mut db = self.disbursal_repo.begin_op().await?;
+        let executed_at = db.now();
         let audit_info = self
             .audit
             .record_system_entry_in_tx(
@@ -117,21 +128,6 @@ where
                 CoreCreditAction::DISBURSAL_CONCLUDE_APPROVAL_PROCESS,
             )
             .await?;
-        let span = tracing::Span::current();
-        let Idempotent::Executed(disbursal_data) =
-            disbursal.approval_process_concluded(approved, audit_info.clone())
-        else {
-            span.record("already_applied", true);
-            return Ok(disbursal);
-        };
-        span.record("already_applied", false);
-
-        let mut credit_facility = self
-            .credit_facility_repo
-            .find_by_id(disbursal.facility_id)
-            .await?;
-
-        let executed_at = db.now();
         let disbursal_audit_info = self
             .audit
             .record_system_entry_in_tx(
@@ -142,31 +138,61 @@ where
             )
             .await?;
 
-        let (now, mut tx) = (db.now(), db.into_tx());
-        let sub_op = {
-            use sqlx::Acquire;
-            es_entity::DbOp::new(tx.begin().await?, now)
+        let span = tracing::Span::current();
+        let tx_id = LedgerTxId::new();
+        let new_obligation = if let Idempotent::Executed(new_obligation) =
+            disbursal.approval_process_concluded(tx_id, approved, audit_info.clone())
+        {
+            if credit_facility
+                .disbursal_concluded(
+                    &disbursal,
+                    tx_id,
+                    new_obligation.is_none(),
+                    executed_at,
+                    disbursal_audit_info,
+                )
+                .was_ignored()
+            {
+                return Ok(disbursal);
+            }
+
+            new_obligation
+        } else {
+            span.record("already_applied", true);
+            return Ok(disbursal);
         };
+        span.record("already_applied", false);
 
-        if let Idempotent::Executed(_) = credit_facility.disbursal_concluded(
-            &disbursal,
-            Some(disbursal_data.tx_id),
-            executed_at,
-            disbursal_audit_info,
-        ) {
+        self.disbursal_repo
+            .update_in_op(&mut db, &mut disbursal)
+            .await?;
+        self.credit_facility_repo
+            .update_in_op(&mut db, &mut credit_facility)
+            .await?;
+
+        if let Some(new_obligation) = new_obligation {
+            let obligation = self
+                .obligation_repo
+                .create_in_op(&mut db, new_obligation)
+                .await?;
             self.ledger
-                .conclude_disbursal(sub_op, disbursal_data)
+                .settle_disbursal(
+                    db,
+                    obligation,
+                    credit_facility.account_ids.facility_account_id,
+                )
                 .await?;
-
-            let mut db = es_entity::DbOp::new(tx, now);
-            self.disbursal_repo
-                .update_in_op(&mut db, &mut disbursal)
+        } else {
+            self.ledger
+                .cancel_disbursal(
+                    db,
+                    tx_id,
+                    disbursal.amount,
+                    credit_facility.account_ids.facility_account_id,
+                )
                 .await?;
-            self.credit_facility_repo
-                .update_in_op(&mut db, &mut credit_facility)
-                .await?;
-            db.commit().await?;
         }
+
         Ok(disbursal)
     }
 }

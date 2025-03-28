@@ -251,7 +251,7 @@ mod tests {
             },
             CreditFacilityEvent::DisbursalConcluded {
                 idx: first_disbursal_idx,
-                tx_id: Some(LedgerTxId::new()),
+                tx_id: LedgerTxId::new(),
                 recorded_at: Utc::now(),
                 audit_info: dummy_audit_info(),
                 canceled: false,
@@ -305,7 +305,7 @@ mod tests {
             },
             CreditFacilityEvent::DisbursalConcluded {
                 idx: first_disbursal_idx,
-                tx_id: Some(LedgerTxId::new()),
+                tx_id: LedgerTxId::new(),
                 recorded_at: Utc::now(),
                 audit_info: dummy_audit_info(),
                 canceled: false,
@@ -495,7 +495,7 @@ mod tests {
             },
             CreditFacilityEvent::DisbursalConcluded {
                 idx: second_disbursal_idx,
-                tx_id: Some(LedgerTxId::new()),
+                tx_id: LedgerTxId::new(),
                 recorded_at: second_disbursal_at,
                 audit_info: dummy_audit_info(),
                 canceled: false,

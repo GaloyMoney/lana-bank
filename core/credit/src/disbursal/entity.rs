@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 use audit::AuditInfo;
 use es_entity::*;
 
-use crate::{ledger::CreditFacilityAccountIds, primitives::*, DisbursalData};
+use crate::{ledger::CreditFacilityAccountIds, obligation::NewObligation, primitives::*};
 
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
@@ -19,6 +19,7 @@ pub enum DisbursalEvent {
         amount: UsdCents,
         account_ids: CreditFacilityAccountIds,
         disbursal_credit_account_id: CalaAccountId,
+        disbursal_due_date: DateTime<Utc>,
         audit_info: AuditInfo,
     },
     ApprovalProcessConcluded {
@@ -28,6 +29,7 @@ pub enum DisbursalEvent {
     },
     Settled {
         ledger_tx_id: LedgerTxId,
+        obligation_id: ObligationId,
         audit_info: AuditInfo,
     },
     Cancelled {
@@ -46,6 +48,7 @@ pub struct Disbursal {
     pub amount: UsdCents,
     pub account_ids: CreditFacilityAccountIds,
     pub disbursal_credit_account_id: CalaAccountId,
+    pub disbursal_due_date: DateTime<Utc>,
     #[builder(setter(strip_option), default)]
     pub concluded_tx_id: Option<LedgerTxId>,
     pub(super) events: EntityEvents<DisbursalEvent>,
@@ -64,6 +67,7 @@ impl TryFromEvents<DisbursalEvent> for Disbursal {
                     amount,
                     account_ids,
                     disbursal_credit_account_id,
+                    disbursal_due_date,
                     ..
                 } => {
                     builder = builder
@@ -74,6 +78,7 @@ impl TryFromEvents<DisbursalEvent> for Disbursal {
                         .amount(*amount)
                         .account_ids(*account_ids)
                         .disbursal_credit_account_id(*disbursal_credit_account_id)
+                        .disbursal_due_date(*disbursal_due_date)
                 }
                 DisbursalEvent::Settled { ledger_tx_id, .. } => {
                     builder = builder.concluded_tx_id(*ledger_tx_id)
@@ -114,9 +119,10 @@ impl Disbursal {
 
     pub(crate) fn approval_process_concluded(
         &mut self,
+        tx_id: LedgerTxId,
         approved: bool,
         audit_info: AuditInfo,
-    ) -> Idempotent<DisbursalData> {
+    ) -> Idempotent<Option<NewObligation>> {
         idempotency_guard!(
             self.events.iter_all(),
             DisbursalEvent::ApprovalProcessConcluded { .. }
@@ -126,29 +132,19 @@ impl Disbursal {
             approved,
             audit_info: audit_info.clone(),
         });
-        let tx_id = LedgerTxId::new();
-        let data = DisbursalData {
-            tx_ref: format!("disbursal-{}", self.id),
-            tx_id,
-            amount: self.amount,
-            cancelled: !approved,
-            credit_facility_account_ids: self.account_ids,
-            debit_account_id: self.disbursal_credit_account_id,
-        };
-        if approved {
-            self.events.push(DisbursalEvent::Settled {
-                ledger_tx_id: tx_id,
-                audit_info,
-            });
+        let tx_ref: &str = &format!("disbursal-{}", self.id);
+        let new_obligation = if approved {
+            Some(self.settle_disbursal(tx_id, tx_ref, audit_info))
         } else {
             self.events.push(DisbursalEvent::Cancelled {
                 ledger_tx_id: tx_id,
                 audit_info,
             });
-        }
+            None
+        };
         self.concluded_tx_id = Some(tx_id);
 
-        Idempotent::Executed(data)
+        Idempotent::Executed(new_obligation)
     }
 
     pub(super) fn is_approved(&self) -> Option<bool> {
@@ -158,6 +154,33 @@ impl Disbursal {
             }
         }
         None
+    }
+
+    fn settle_disbursal(
+        &mut self,
+        tx_id: LedgerTxId,
+        tx_ref: &str,
+        audit_info: AuditInfo,
+    ) -> NewObligation {
+        let obligation_id = ObligationId::new();
+        self.events.push(DisbursalEvent::Settled {
+            ledger_tx_id: tx_id,
+            obligation_id,
+            audit_info: audit_info.clone(),
+        });
+
+        NewObligation::builder()
+            .id(obligation_id)
+            .reference(tx_ref.to_string())
+            .amount(self.amount)
+            .tx_id(tx_id)
+            .account_to_be_debited_id(self.account_ids.disbursed_receivable_account_id)
+            .account_to_be_credited_id(self.disbursal_credit_account_id)
+            .due_date(self.disbursal_due_date)
+            .overdue_date(self.disbursal_due_date)
+            .audit_info(audit_info)
+            .build()
+            .expect("could not build new disbursal obligation")
     }
 
     pub(super) fn is_confirmed(&self) -> bool {
@@ -183,6 +206,7 @@ pub struct NewDisbursal {
     pub(super) amount: UsdCents,
     pub(super) account_ids: CreditFacilityAccountIds,
     pub(super) disbursal_credit_account_id: CalaAccountId,
+    pub(super) disbursal_due_date: DateTime<Utc>,
     #[builder(setter(into))]
     pub(super) audit_info: AuditInfo,
 }
@@ -205,6 +229,7 @@ impl IntoEvents<DisbursalEvent> for NewDisbursal {
                 amount: self.amount,
                 account_ids: self.account_ids,
                 disbursal_credit_account_id: self.disbursal_credit_account_id,
+                disbursal_due_date: self.disbursal_due_date,
                 audit_info: self.audit_info,
             }],
         )

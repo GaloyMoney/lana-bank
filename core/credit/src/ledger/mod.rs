@@ -21,9 +21,9 @@ use crate::{
     primitives::{
         CalaAccountId, CalaAccountSetId, CollateralAction, CreditFacilityId, CustomerType,
         DisbursedReceivableAccountCategory, DisbursedReceivableAccountType,
-        InterestReceivableAccountType, LedgerOmnibusAccountIds, Satoshis, UsdCents,
+        InterestReceivableAccountType, LedgerOmnibusAccountIds, LedgerTxId, Satoshis, UsdCents,
     },
-    ChartOfAccountsIntegrationConfig, DurationType, PaymentAccountIds,
+    ChartOfAccountsIntegrationConfig, DurationType, Obligation, PaymentAccountIds,
 };
 
 use constants::*;
@@ -1203,7 +1203,7 @@ impl CreditLedger {
         op: es_entity::DbOp<'_>,
         tx_id: impl Into<TransactionId>,
         amount: UsdCents,
-        credit_facility_account_ids: CreditFacilityAccountIds,
+        facility_account_id: CalaAccountId,
     ) -> Result<(), CreditLedgerError> {
         let mut op = self.cala.ledger_operation_from_db_op(op);
         self.cala
@@ -1214,7 +1214,7 @@ impl CreditLedger {
                 templates::InitiateDisbursalParams {
                     journal_id: self.journal_id,
                     credit_omnibus_account: self.facility_omnibus_account_ids.account_id,
-                    credit_facility_account: credit_facility_account_ids.facility_account_id,
+                    credit_facility_account: facility_account_id,
                     disbursed_amount: amount.to_usd(),
                 },
             )
@@ -1223,52 +1223,61 @@ impl CreditLedger {
         Ok(())
     }
 
-    pub async fn conclude_disbursal(
+    pub async fn cancel_disbursal(
         &self,
         op: es_entity::DbOp<'_>,
-        DisbursalData {
-            tx_id,
-            tx_ref,
-            amount,
-            credit_facility_account_ids,
-            debit_account_id,
-            cancelled: canceled,
-        }: DisbursalData,
+        tx_id: LedgerTxId,
+        amount: UsdCents,
+        facility_account_id: CalaAccountId,
     ) -> Result<(), CreditLedgerError> {
         let mut op = self.cala.ledger_operation_from_db_op(op);
-        if canceled {
-            self.cala
-                .post_transaction_in_op(
-                    &mut op,
-                    tx_id,
-                    templates::CANCEL_DISBURSAL_CODE,
-                    templates::CancelDisbursalParams {
-                        journal_id: self.journal_id,
-                        credit_omnibus_account: self.facility_omnibus_account_ids.account_id,
-                        credit_facility_account: credit_facility_account_ids.facility_account_id,
-                        disbursed_amount: amount.to_usd(),
-                    },
-                )
-                .await?;
-        } else {
-            self.cala
-                .post_transaction_in_op(
-                    &mut op,
-                    tx_id,
-                    templates::SETTLE_DISBURSAL_CODE,
-                    templates::SettleDisbursalParams {
-                        journal_id: self.journal_id,
-                        credit_omnibus_account: self.facility_omnibus_account_ids.account_id,
-                        credit_facility_account: credit_facility_account_ids.facility_account_id,
-                        facility_disbursed_receivable_account: credit_facility_account_ids
-                            .disbursed_receivable_account_id,
-                        debit_account_id,
-                        disbursed_amount: amount.to_usd(),
-                        external_id: tx_ref,
-                    },
-                )
-                .await?;
-        }
+        self.cala
+            .post_transaction_in_op(
+                &mut op,
+                tx_id,
+                templates::CANCEL_DISBURSAL_CODE,
+                templates::CancelDisbursalParams {
+                    journal_id: self.journal_id,
+                    credit_omnibus_account: self.facility_omnibus_account_ids.account_id,
+                    credit_facility_account: facility_account_id,
+                    disbursed_amount: amount.to_usd(),
+                },
+            )
+            .await?;
+        op.commit().await?;
+        Ok(())
+    }
+
+    pub async fn settle_disbursal(
+        &self,
+        op: es_entity::DbOp<'_>,
+        Obligation {
+            tx_id,
+            reference: external_id,
+            amount,
+            account_to_be_debited_id: facility_disbursed_receivable_account,
+            account_to_be_credited_id: debit_account_id,
+            ..
+        }: Obligation,
+        facility_account_id: CalaAccountId,
+    ) -> Result<(), CreditLedgerError> {
+        let mut op = self.cala.ledger_operation_from_db_op(op);
+        self.cala
+            .post_transaction_in_op(
+                &mut op,
+                tx_id,
+                templates::SETTLE_DISBURSAL_CODE,
+                templates::SettleDisbursalParams {
+                    journal_id: self.journal_id,
+                    credit_omnibus_account: self.facility_omnibus_account_ids.account_id,
+                    credit_facility_account: facility_account_id,
+                    facility_disbursed_receivable_account,
+                    debit_account_id,
+                    disbursed_amount: amount.to_usd(),
+                    external_id,
+                },
+            )
+            .await?;
         op.commit().await?;
         Ok(())
     }

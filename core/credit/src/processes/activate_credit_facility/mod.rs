@@ -11,7 +11,7 @@ use outbox::OutboxEventMarker;
 use crate::{
     error::CoreCreditError, interest_accruals, ledger::CreditLedger, overdue,
     primitives::CreditFacilityId, CoreCreditAction, CoreCreditEvent, CoreCreditObject,
-    CreditFacility, CreditFacilityRepo, DisbursalRepo, Jobs,
+    CreditFacility, CreditFacilityRepo, DisbursalRepo, Jobs, LedgerTxId,
 };
 
 pub use job::*;
@@ -123,11 +123,15 @@ where
             .create_in_op(&mut db, new_disbursal)
             .await?;
 
-        let data = disbursal
-            .approval_process_concluded(true, audit_info.clone())
-            .unwrap();
+        let tx_id = LedgerTxId::new();
+        let is_canceled = disbursal
+            .approval_process_concluded(tx_id, true, audit_info.clone())
+            .unwrap()
+            // .expect("First instance of idempotent action ignored") // TODO
+            .is_none();
         credit_facility
-            .disbursal_concluded(&disbursal, Some(data.tx_id), now, audit_info.clone())
+            .disbursal_concluded(&disbursal, tx_id, is_canceled, now, audit_info.clone())
+            // .expect("First instance of idempotent action ignored"); // TODO
             .unwrap();
 
         self.disbursal_repo
