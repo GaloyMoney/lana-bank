@@ -58,10 +58,7 @@ where
                     completed_at: *completed_at,
                 }),
                 DisbursalConcluded {
-                    idx,
-                    tx_id: Some(_),
-                    recorded_at,
-                    ..
+                    idx, recorded_at, ..
                 } => {
                     let amount = entity.disbursal_amount_from_idx(*idx);
                     Some(CoreCreditEvent::DisbursalExecuted {

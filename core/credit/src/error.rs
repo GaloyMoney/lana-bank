@@ -20,6 +20,8 @@ pub enum CoreCreditError {
     PaymentError(#[from] super::payment::error::PaymentError),
     #[error("CoreCreditError - DisbursalError: {0}")]
     DisbursalError(#[from] super::disbursal::error::DisbursalError),
+    #[error("CoreCreditError - ObligationError: {0}")]
+    ObligationError(#[from] super::obligation::error::ObligationError),
     #[error("CoreCreditError - InterestAccrualError: {0}")]
     InterestAccrualError(#[from] super::interest_accrual::error::InterestAccrualError),
     #[error("CoreCreditError - PriceError: {0}")]

@@ -48,7 +48,7 @@ pub enum CreditFacilityEvent {
     },
     DisbursalConcluded {
         idx: DisbursalIdx,
-        tx_id: Option<LedgerTxId>,
+        tx_id: LedgerTxId,
         canceled: bool,
         audit_info: AuditInfo,
         recorded_at: DateTime<Utc>,
@@ -378,11 +378,7 @@ impl CreditFacility {
                     CreditFacilityEvent::DisbursalInitiated { idx, amount, .. } => {
                         amounts.insert(*idx, *amount);
                     }
-                    CreditFacilityEvent::DisbursalConcluded {
-                        idx,
-                        tx_id: Some(_),
-                        ..
-                    } => {
+                    CreditFacilityEvent::DisbursalConcluded { idx, .. } => {
                         if let Some(amount) = amounts.remove(idx) {
                             total_sum += amount;
                         }
@@ -653,6 +649,7 @@ impl CreditFacility {
             .amount(amount)
             .account_ids(self.account_ids)
             .disbursal_credit_account_id(self.disbursal_credit_account_id)
+            .disbursal_due_date(self.activated_at().expect("Facility is not active"))
             .audit_info(audit_info)
             .build()
             .expect("could not build new disbursal"))
@@ -661,7 +658,8 @@ impl CreditFacility {
     pub(crate) fn disbursal_concluded(
         &mut self,
         disbursal: &Disbursal,
-        tx_id: Option<LedgerTxId>,
+        tx_id: LedgerTxId,
+        canceled: bool,
         executed_at: DateTime<Utc>,
         audit_info: AuditInfo,
     ) -> Idempotent<()> {
@@ -677,7 +675,7 @@ impl CreditFacility {
             idx: disbursal.idx,
             recorded_at: executed_at,
             tx_id,
-            canceled: tx_id.is_none(),
+            canceled,
             audit_info,
         });
         Idempotent::Executed(())
@@ -1199,7 +1197,7 @@ impl CreditFacility {
             if self.events.iter_all().any(|event| {
                 matches!(
                     event,
-                    CreditFacilityEvent::DisbursalConcluded { idx: i, tx_id: Some(_), .. } if i == &idx
+                    CreditFacilityEvent::DisbursalConcluded { idx: i,  .. } if i == &idx
                 )
             }) {
                 return *amount;
@@ -1423,7 +1421,7 @@ mod test {
 
         events.push(CreditFacilityEvent::DisbursalConcluded {
             idx: first_idx,
-            tx_id: Some(LedgerTxId::new()),
+            tx_id: LedgerTxId::new(),
             canceled: false,
             recorded_at: Utc::now(),
             audit_info: dummy_audit_info(),
@@ -1479,7 +1477,7 @@ mod test {
             },
             CreditFacilityEvent::DisbursalConcluded {
                 idx: DisbursalIdx::FIRST,
-                tx_id: Some(LedgerTxId::new()),
+                tx_id: LedgerTxId::new(),
                 canceled: false,
                 recorded_at: Utc::now(),
                 audit_info: dummy_audit_info(),
@@ -1516,7 +1514,7 @@ mod test {
             },
             CreditFacilityEvent::DisbursalConcluded {
                 idx: DisbursalIdx::FIRST,
-                tx_id: Some(LedgerTxId::new()),
+                tx_id: LedgerTxId::new(),
                 canceled: false,
                 recorded_at: activated_at,
                 audit_info: dummy_audit_info(),
@@ -1550,7 +1548,7 @@ mod test {
             },
             CreditFacilityEvent::DisbursalConcluded {
                 idx: DisbursalIdx::FIRST,
-                tx_id: Some(LedgerTxId::new()),
+                tx_id: LedgerTxId::new(),
                 canceled: false,
                 recorded_at: activated_at,
                 audit_info: dummy_audit_info(),
@@ -1642,7 +1640,7 @@ mod test {
             },
             CreditFacilityEvent::DisbursalConcluded {
                 idx: DisbursalIdx::FIRST,
-                tx_id: Some(LedgerTxId::new()),
+                tx_id: LedgerTxId::new(),
                 canceled: false,
                 recorded_at: Utc::now(),
                 audit_info: dummy_audit_info(),
@@ -2090,13 +2088,15 @@ mod test {
                 )
                 .unwrap();
             let mut disbursal = Disbursal::try_from_events(new_disbursal.into_events()).unwrap();
-            let data = disbursal
-                .approval_process_concluded(true, dummy_audit_info())
+            let tx_id = LedgerTxId::new();
+            let new_obligation = disbursal
+                .approval_process_concluded(tx_id, true, dummy_audit_info())
                 .unwrap();
             credit_facility
                 .disbursal_concluded(
                     &disbursal,
-                    Some(data.tx_id),
+                    tx_id,
+                    new_obligation.is_none(),
                     facility_activated_at,
                     dummy_audit_info(),
                 )
