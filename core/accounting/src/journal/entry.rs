@@ -1,4 +1,4 @@
-use cala_ledger::{AccountId, DebitOrCredit, EntryId, entry::Entry};
+use cala_ledger::{entry::Entry, AccountId, DebitOrCredit, EntryId};
 use core_money::{Satoshis, UsdCents};
 use serde::{Deserialize, Serialize};
 
@@ -14,6 +14,7 @@ pub struct JournalEntry {
     pub created_at: chrono::DateTime<chrono::Utc>,
 }
 
+#[derive(Clone, Copy)]
 pub enum JournalEntryAmount {
     Usd(UsdCents),
     Btc(Satoshis),
@@ -80,13 +81,13 @@ impl async_graphql::connection::CursorType for JournalEntryCursor {
     type Error = String;
 
     fn encode_cursor(&self) -> String {
-        use base64::{Engine as _, engine::general_purpose};
+        use base64::{engine::general_purpose, Engine as _};
         let json = serde_json::to_string(&self).expect("could not serialize cursor");
         general_purpose::STANDARD_NO_PAD.encode(json.as_bytes())
     }
 
     fn decode_cursor(s: &str) -> Result<Self, Self::Error> {
-        use base64::{Engine as _, engine::general_purpose};
+        use base64::{engine::general_purpose, Engine as _};
         let bytes = general_purpose::STANDARD_NO_PAD
             .decode(s.as_bytes())
             .map_err(|e| e.to_string())?;

@@ -1098,11 +1098,12 @@ enum InterestInterval {
 type JournalEntry {
 	id: ID!
 	entryId: UUID!
-	entryType: String!
 	amount: JournalEntryAmount!
-	description: String
 	direction: DebitOrCredit!
 	createdAt: Timestamp!
+	entryType: String!
+	description: String
+	ledgerAccount: LedgerAccount!
 }
 
 union JournalEntryAmount = UsdAmount | BtcAmount
