@@ -39,7 +39,7 @@ checksums:
     Sidebar/navItems/auditLogs: c7efb33d09676938d07651774b067bf6
     Sidebar/navItems/committees: c5de346d62a6ad000e90b53d5f4e123c
     Sidebar/navItems/chartOfAccounts: b7e16497105264b631772ce1952e136c
-    Sidebar/navItems/generalLedger: ea559768af78a6d69298b6fd9f4ebd98
+    Sidebar/navItems/journal: f7b651715289f785561bd3bca4911a73
     Sidebar/navItems/users: fe42f97809c24d700d3912c8d02ed452
     Sidebar/navItems/balanceSheet: 0c5e5cc9dd1e661a276e1536917a8db8
     Sidebar/navItems/cashFlow: c1973ef8eea5a4e30472be8d8e847e47
@@ -821,11 +821,11 @@ checksums:
     ChartOfAccountsLedgerAccount/table/columns/currency: d2ba9a9cea418ea653e3ca6785617a3f
     ChartOfAccountsLedgerAccount/table/columns/debit: 1b35db901aa1aeed8ee79aec6d807731
     ChartOfAccountsLedgerAccount/table/columns/credit: 2d447a71ec815a039f175e94fbb12a56
-    GeneralLedger/title: ea559768af78a6d69298b6fd9f4ebd98
-    GeneralLedger/description: 379a3b404e6b33f849b0c1e72914ef17
-    GeneralLedger/noTableData: 4e596dd74f4876912cee8539bd1d4995
-    GeneralLedger/table/createdAt: 9ce495d7fc74e1a2ae86c07206a3e531
-    GeneralLedger/table/entryType: e640b897b08ffe4a6624f9de5cc4835b
-    GeneralLedger/table/direction: 2920314e7f25957f16577b544b4e860b
-    GeneralLedger/table/amount: a0ae9c6ff98b57475cdce56f66066aa4
-    GeneralLedger/table/description: e17686a22ffad04cc7bb70524ed4478b
+    Journal/title: f7b651715289f785561bd3bca4911a73
+    Journal/description: 4c36cd4610ecc9bd3c882356aa27a8fc
+    Journal/noTableData: 342f60ede8690eada6440087569863ed
+    Journal/table/createdAt: 9ce495d7fc74e1a2ae86c07206a3e531
+    Journal/table/entryType: e640b897b08ffe4a6624f9de5cc4835b
+    Journal/table/direction: 2920314e7f25957f16577b544b4e860b
+    Journal/table/amount: a0ae9c6ff98b57475cdce56f66066aa4
+    Journal/table/description: e17686a22ffad04cc7bb70524ed4478b

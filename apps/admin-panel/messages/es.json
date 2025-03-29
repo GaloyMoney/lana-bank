@@ -43,7 +43,7 @@
       "auditLogs": "Registros de Auditoría",
       "committees": "Comités",
       "chartOfAccounts": "Plan de Cuentas",
-      "generalLedger": "Libro mayor",
+      "journal": "Diario",
       "users": "Usuarios",
       "balanceSheet": "Balance General",
       "cashFlow": "Flujo de Caja",
@@ -1391,15 +1391,15 @@
       }
     }
   },
-  "GeneralLedger": {
-    "title": "Libro mayor",
-    "description": "Un registro completo de transacciones financieras sobre el diario general",
-    "noTableData": "No hay entradas presentes en el libro mayor",
+  "Journal": {
+    "title": "Diario",
+    "description": "Un registro completo de transacciones financieras en el diario",
+    "noTableData": "No hay entradas presentes en el diario",
     "table": {
-      "createdAt": "Creado el",
+      "createdAt": "Fecha de creación",
       "entryType": "Tipo de entrada",
       "direction": "Dirección",
-      "amount": "Importe",
+      "amount": "Monto",
       "description": "Descripción"
     }
   }
