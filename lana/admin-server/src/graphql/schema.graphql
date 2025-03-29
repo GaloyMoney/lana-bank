@@ -1098,11 +1098,12 @@ enum InterestInterval {
 type JournalEntry {
 	id: ID!
 	entryId: UUID!
-	entryType: String!
 	amount: JournalEntryAmount!
-	description: String
 	direction: DebitOrCredit!
 	createdAt: Timestamp!
+	entryType: String!
+	description: String
+	ledgerAccount: LedgerAccount!
 }
 
 union JournalEntryAmount = UsdAmount | BtcAmount
@@ -1379,6 +1380,7 @@ type Query {
 	approvalProcess(id: UUID!): ApprovalProcess
 	approvalProcesses(first: Int!, after: String): ApprovalProcessConnection!
 	document(id: UUID!): Document
+	ledgerAccount(id: UUID!): LedgerAccount
 	ledgerAccountByCode(code: String!): LedgerAccount
 	journalEntries(first: Int!, after: String): JournalEntryConnection!
 	generalLedgerEntries(first: Int!, after: String): GeneralLedgerEntryConnection!

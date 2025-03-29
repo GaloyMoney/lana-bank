@@ -254,6 +254,7 @@ impl AccountSpec {
 
 pub type ChartAllOrOne = AllOrOne<ChartId>;
 pub type JournalAllOrOne = AllOrOne<LedgerJournalId>;
+pub type LedgerAccountAllOrOne = AllOrOne<LedgerAccountId>;
 
 #[derive(Clone, Copy, Debug, PartialEq, strum::EnumDiscriminants)]
 #[strum_discriminants(derive(strum::Display, strum::EnumString))]
@@ -270,7 +271,7 @@ pub enum CoreAccountingAction {
 pub enum CoreAccountingObject {
     Chart(ChartAllOrOne),
     Journal(JournalAllOrOne),
-    LedgerAccount,
+    LedgerAccount(LedgerAccountAllOrOne),
 }
 
 impl CoreAccountingObject {
@@ -285,6 +286,10 @@ impl CoreAccountingObject {
     pub fn journal(id: LedgerJournalId) -> Self {
         CoreAccountingObject::Journal(AllOrOne::ById(id))
     }
+
+    pub fn ledger_account(id: LedgerAccountId) -> Self {
+        CoreAccountingObject::LedgerAccount(AllOrOne::ById(id))
+    }
 }
 
 impl Display for CoreAccountingObject {
@@ -294,7 +299,7 @@ impl Display for CoreAccountingObject {
         match self {
             Chart(obj_ref) => write!(f, "{}/{}", discriminant, obj_ref),
             Journal(obj_ref) => write!(f, "{}/{}", discriminant, obj_ref),
-            LedgerAccount => write!(f, "{discriminant}"),
+            LedgerAccount(obj_ref) => write!(f, "{}/{}", discriminant, obj_ref),
         }
     }
 }
@@ -316,7 +321,10 @@ impl FromStr for CoreAccountingObject {
                     .map_err(|_| "could not parse CoreJournalObject")?;
                 CoreAccountingObject::Journal(obj_ref)
             }
-            LedgerAccount => CoreAccountingObject::LedgerAccount,
+            LedgerAccount => {
+                let obj_ref = id.parse().map_err(|_| "could not parse LedgerAccount")?;
+                CoreAccountingObject::LedgerAccount(obj_ref)
+            }
         };
         Ok(res)
     }
@@ -333,8 +341,8 @@ impl CoreAccountingAction {
     pub const JOURNAL_READ_ENTRIES: Self =
         CoreAccountingAction::JournalAction(JournalAction::ReadEntries);
 
-    pub const LEDGER_ACCOUNT_READ_BALANCE: Self =
-        CoreAccountingAction::LedgerAccountAction(LedgerAccountAction::ReadBalance);
+    pub const LEDGER_ACCOUNT_READ: Self =
+        CoreAccountingAction::LedgerAccountAction(LedgerAccountAction::Read);
     pub const LEDGER_ACCOUNT_READ_HISTORY: Self =
         CoreAccountingAction::LedgerAccountAction(LedgerAccountAction::ReadHistory);
 }
@@ -393,7 +401,7 @@ impl From<ChartAction> for CoreAccountingAction {
 #[derive(PartialEq, Clone, Copy, Debug, strum::Display, strum::EnumString)]
 #[strum(serialize_all = "kebab-case")]
 pub enum LedgerAccountAction {
-    ReadBalance,
+    Read,
     ReadHistory,
 }
 
