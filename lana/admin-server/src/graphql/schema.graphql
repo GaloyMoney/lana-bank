@@ -216,11 +216,6 @@ type BalanceSheetModuleConfigurePayload {
 }
 
 
-type BtcAccountAmounts {
-	debit: Satoshis!
-	credit: Satoshis!
-}
-
 type BtcAccountAmountsInPeriod {
 	openingBalance: LayeredBtcAccountBalanceAmounts!
 	closingBalance: LayeredBtcAccountBalanceAmounts!
@@ -252,13 +247,6 @@ type BtcLedgerAccountBalance {
 	settled: Satoshis!
 	pending: Satoshis!
 	encumbrance: Satoshis!
-}
-
-type BtcLedgerAccountHistoryEntry {
-	entryId: UUID!
-	txId: UUID!
-	recordedAt: Timestamp!
-	btcAmount: LayeredBtcAccountAmounts!
 }
 
 scalar CVLPct
@@ -1142,23 +1130,11 @@ enum KycLevel {
 	ADVANCED
 }
 
-type LayeredBtcAccountAmounts {
-	settled: BtcAccountAmounts!
-	pending: BtcAccountAmounts!
-	encumbrance: BtcAccountAmounts!
-}
-
 type LayeredBtcAccountBalanceAmounts {
 	all: BtcAccountBalanceAmounts!
 	settled: BtcAccountBalanceAmounts!
 	pending: BtcAccountBalanceAmounts!
 	encumbrance: BtcAccountBalanceAmounts!
-}
-
-type LayeredUsdAccountAmounts {
-	settled: UsdAccountAmounts!
-	pending: UsdAccountAmounts!
-	encumbrance: UsdAccountAmounts!
 }
 
 type LayeredUsdAccountBalanceAmounts {
@@ -1172,42 +1148,11 @@ type LedgerAccount {
 	id: UUID!
 	name: String!
 	code: AccountCode!
-	history(first: Int!, after: String): LedgerAccountHistoryEntryConnection!
+	history(first: Int!, after: String): JournalEntryConnection!
 	balance: LedgerAccountBalance!
 }
 
 union LedgerAccountBalance = UsdLedgerAccountBalance | BtcLedgerAccountBalance
-
-union LedgerAccountHistoryEntry = UsdLedgerAccountHistoryEntry | BtcLedgerAccountHistoryEntry
-
-type LedgerAccountHistoryEntryConnection {
-	"""
-	Information to aid in pagination.
-	"""
-	pageInfo: PageInfo!
-	"""
-	A list of edges.
-	"""
-	edges: [LedgerAccountHistoryEntryEdge!]!
-	"""
-	A list of nodes.
-	"""
-	nodes: [LedgerAccountHistoryEntry!]!
-}
-
-"""
-An edge in a connection.
-"""
-type LedgerAccountHistoryEntryEdge {
-	"""
-	The item at the end of the edge
-	"""
-	node: LedgerAccountHistoryEntry!
-	"""
-	A cursor for use in pagination
-	"""
-	cursor: String!
-}
 
 type Mutation {
 	customerDocumentAttach(input: DocumentCreateInput!): DocumentCreatePayload!
@@ -1613,11 +1558,6 @@ type UnknownEntry {
 
 scalar Upload
 
-type UsdAccountAmounts {
-	debit: UsdCents!
-	credit: UsdCents!
-}
-
 type UsdAccountAmountsInPeriod {
 	openingBalance: LayeredUsdAccountBalanceAmounts!
 	closingBalance: LayeredUsdAccountBalanceAmounts!
@@ -1651,13 +1591,6 @@ type UsdLedgerAccountBalance {
 	settled: UsdCents!
 	pending: UsdCents!
 	encumbrance: UsdCents!
-}
-
-type UsdLedgerAccountHistoryEntry {
-	entryId: UUID!
-	txId: UUID!
-	recordedAt: Timestamp!
-	usdAmount: LayeredUsdAccountAmounts!
 }
 
 type User {

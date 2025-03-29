@@ -6,8 +6,10 @@ use audit::AuditSvc;
 use authz::PermissionCheck;
 use cala_ledger::CalaLedger;
 
-use crate::primitives::{
-    CoreAccountingAction, CoreAccountingObject, LedgerAccountSetId, LedgerJournalId,
+use crate::{
+    journal::{JournalEntry, JournalEntryCursor},
+    journal_error::JournalError,
+    primitives::{CoreAccountingAction, CoreAccountingObject, LedgerAccountSetId, LedgerJournalId},
 };
 
 use error::*;
@@ -61,11 +63,8 @@ where
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         id: impl Into<LedgerAccountSetId>,
-        args: es_entity::PaginatedQueryArgs<LedgerAccountHistoryCursor>,
-    ) -> Result<
-        es_entity::PaginatedQueryRet<LedgerAccountEntry, LedgerAccountHistoryCursor>,
-        LedgerAccountError,
-    > {
+        args: es_entity::PaginatedQueryArgs<JournalEntryCursor>,
+    ) -> Result<es_entity::PaginatedQueryRet<JournalEntry, JournalEntryCursor>, JournalError> {
         self.authz
             .enforce_permission(
                 sub,
@@ -74,10 +73,7 @@ where
             )
             .await?;
 
-        let res = self
-            .ledger
-            .account_set_history::<LedgerAccountEntry, LedgerAccountHistoryCursor>(id.into(), args)
-            .await?;
+        let res = self.ledger.account_set_history(id.into(), args).await?;
 
         Ok(res)
     }

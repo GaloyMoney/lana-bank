@@ -1,13 +1,12 @@
 use async_graphql::{connection::*, *};
 use serde::{Deserialize, Serialize};
 
-use lana_app::accounting::ledger_account::{
-    LayeredLedgerAccountAmount as DomainLayeredLedgerAccountAmount,
-    LedgerAccountEntry as DomainLedgerAccountEntry, LedgerAccountHistoryCursor,
-};
+use lana_app::accounting::journal::JournalEntryCursor;
 use lana_app::accounting::{AccountCode as DomainAccountCode, AccountDetails};
 
 use crate::primitives::*;
+
+use super::JournalEntry;
 
 #[derive(SimpleObject)]
 #[graphql(complex)]
@@ -34,9 +33,8 @@ impl LedgerAccount {
         ctx: &Context<'_>,
         first: i32,
         after: Option<String>,
-    ) -> async_graphql::Result<
-        Connection<LedgerAccountHistoryCursor, LedgerAccountHistoryEntry, EmptyFields, EmptyFields>,
-    > {
+    ) -> async_graphql::Result<Connection<JournalEntryCursor, JournalEntry, EmptyFields, EmptyFields>>
+    {
         let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
 
         query(
@@ -57,8 +55,8 @@ impl LedgerAccount {
                 connection
                     .edges
                     .extend(res.entities.into_iter().map(|entry| {
-                        let cursor = LedgerAccountHistoryCursor::from(&entry);
-                        Edge::new(cursor, LedgerAccountHistoryEntry::from(entry))
+                        let cursor = JournalEntryCursor::from(&entry);
+                        Edge::new(cursor, JournalEntry::from(entry))
                     }));
                 Ok::<_, async_graphql::Error>(connection)
             },
@@ -125,67 +123,12 @@ pub(super) struct BtcLedgerAccountBalance {
     encumbrance: Satoshis,
 }
 
-#[derive(Union)]
-pub(super) enum LedgerAccountHistoryEntry {
-    Usd(UsdLedgerAccountHistoryEntry),
-    Btc(BtcLedgerAccountHistoryEntry),
-}
-
-impl From<DomainLedgerAccountEntry> for LedgerAccountHistoryEntry {
-    fn from(entry: DomainLedgerAccountEntry) -> Self {
-        match entry.amount {
-            DomainLayeredLedgerAccountAmount::Usd(_) => Self::Usd(entry.into()),
-            DomainLayeredLedgerAccountAmount::Btc(_) => Self::Btc(entry.into()),
-        }
-    }
-}
-
-#[derive(SimpleObject)]
-pub(super) struct UsdLedgerAccountHistoryEntry {
-    pub entry_id: UUID,
-    pub tx_id: UUID,
-    pub recorded_at: Timestamp,
-    pub usd_amount: LayeredUsdAccountAmounts,
-}
-
-impl From<DomainLedgerAccountEntry> for UsdLedgerAccountHistoryEntry {
-    fn from(entry: DomainLedgerAccountEntry) -> Self {
-        Self {
-            entry_id: entry.entry_id.into(),
-            tx_id: entry.tx_id.into(),
-            recorded_at: entry.recorded_at.into(),
-            usd_amount: match entry.amount {
-                DomainLayeredLedgerAccountAmount::Usd(amount) => amount.into(),
-                DomainLayeredLedgerAccountAmount::Btc(_) => {
-                    panic!("Uexpected currency for USD entry")
-                }
-            },
-        }
-    }
-}
-
 #[derive(SimpleObject)]
 pub(super) struct BtcLedgerAccountHistoryEntry {
     pub entry_id: UUID,
     pub tx_id: UUID,
     pub recorded_at: Timestamp,
     pub btc_amount: LayeredBtcAccountAmounts,
-}
-
-impl From<DomainLedgerAccountEntry> for BtcLedgerAccountHistoryEntry {
-    fn from(entry: DomainLedgerAccountEntry) -> Self {
-        Self {
-            entry_id: entry.entry_id.into(),
-            tx_id: entry.tx_id.into(),
-            recorded_at: entry.recorded_at.into(),
-            btc_amount: match entry.amount {
-                DomainLayeredLedgerAccountAmount::Btc(amount) => amount.into(),
-                DomainLayeredLedgerAccountAmount::Usd(_) => {
-                    panic!("Uexpected currency for BTC entry")
-                }
-            },
-        }
-    }
 }
 
 scalar!(AccountCode);
