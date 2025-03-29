@@ -6,7 +6,7 @@ const config = {
   content: [
     "./app/**/*.{ts,tsx}",
     "./components/**/*.{ts,tsx}",
-    "../../lib/js/shared-web/src/**/*.{ts,tsx}",
+    "../shared-web/src/**/*.{ts,tsx}",
   ],
 } satisfies Config
 

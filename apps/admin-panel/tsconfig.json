@@ -18,7 +18,7 @@
       }
     ],
     "paths": {
-      "@lana/web/*": ["../../lib/js/shared-web/src/*"],
+      "@lana/web/*": ["../shared-web/src/*"],
       "@/*": ["./*"],
       "types": ["./types"]
     }
