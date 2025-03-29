@@ -141,8 +141,8 @@ impl From<lana_app::credit_facility::DisbursalExecuted> for CreditFacilityDisbur
     }
 }
 
-impl From<lana_app::credit_facility::InterestAccrued> for CreditFacilityInterestAccrued {
-    fn from(interest: lana_app::credit_facility::InterestAccrued) -> Self {
+impl From<lana_app::credit_facility::InterestAccrualsPosted> for CreditFacilityInterestAccrued {
+    fn from(interest: lana_app::credit_facility::InterestAccrualsPosted) -> Self {
         Self {
             cents: interest.cents,
             recorded_at: interest.recorded_at.into(),

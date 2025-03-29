@@ -426,9 +426,9 @@ pub struct TermValues {
     #[builder(default, setter(into))]
     pub interest_overdue_duration: Option<InterestDuration>,
     #[builder(setter(into))]
-    pub accrual_interval: InterestInterval,
+    pub accrual_cycle_interval: InterestInterval,
     #[builder(setter(into))]
-    pub incurrence_interval: InterestInterval,
+    pub accrual_interval: InterestInterval,
     #[builder(setter(into))]
     pub one_time_fee_rate: OneTimeFeeRatePct,
     // overdue_penalty_rate: LoanAnnualRate,
@@ -556,8 +556,8 @@ mod test {
             .annual_rate(AnnualRatePct(dec!(12)))
             .duration(Duration::Months(3))
             .interest_due_duration(InterestDuration::Days(0))
-            .accrual_interval(InterestInterval::EndOfMonth)
-            .incurrence_interval(InterestInterval::EndOfDay)
+            .accrual_cycle_interval(InterestInterval::EndOfMonth)
+            .accrual_interval(InterestInterval::EndOfDay)
             .one_time_fee_rate(OneTimeFeeRatePct(dec!(1)))
             .liquidation_cvl(CVLPct(dec!(105)))
             .margin_call_cvl(CVLPct(dec!(125)))
@@ -571,7 +571,7 @@ mod test {
         let result = TermValues::builder()
             .annual_rate(AnnualRatePct(dec!(12)))
             .duration(Duration::Months(3))
-            .accrual_interval(InterestInterval::EndOfMonth)
+            .accrual_cycle_interval(InterestInterval::EndOfMonth)
             .one_time_fee_rate(OneTimeFeeRatePct(dec!(1)))
             .liquidation_cvl(CVLPct(dec!(105)))
             .margin_call_cvl(CVLPct(dec!(150)))
@@ -592,7 +592,7 @@ mod test {
         let result = TermValues::builder()
             .annual_rate(AnnualRatePct(dec!(12)))
             .duration(Duration::Months(3))
-            .accrual_interval(InterestInterval::EndOfMonth)
+            .accrual_cycle_interval(InterestInterval::EndOfMonth)
             .one_time_fee_rate(OneTimeFeeRatePct(dec!(1)))
             .liquidation_cvl(CVLPct(dec!(130)))
             .margin_call_cvl(CVLPct(dec!(125)))
@@ -613,7 +613,7 @@ mod test {
         let result = TermValues::builder()
             .annual_rate(AnnualRatePct(dec!(12)))
             .duration(Duration::Months(3))
-            .accrual_interval(InterestInterval::EndOfMonth)
+            .accrual_cycle_interval(InterestInterval::EndOfMonth)
             .one_time_fee_rate(OneTimeFeeRatePct(dec!(1)))
             .liquidation_cvl(CVLPct(dec!(125)))
             .margin_call_cvl(CVLPct(dec!(125)))
@@ -785,8 +785,8 @@ mod test {
                 .annual_rate(dec!(12))
                 .duration(Duration::Months(3))
                 .interest_due_duration(InterestDuration::Days(0))
-                .accrual_interval(InterestInterval::EndOfMonth)
-                .incurrence_interval(InterestInterval::EndOfDay)
+                .accrual_cycle_interval(InterestInterval::EndOfMonth)
+                .accrual_interval(InterestInterval::EndOfDay)
                 .one_time_fee_rate(OneTimeFeeRatePct(dec!(1)))
                 .liquidation_cvl(dec!(105))
                 .margin_call_cvl(dec!(125))

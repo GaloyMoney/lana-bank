@@ -951,8 +951,8 @@ impl Mutation {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         let term_values = lana_app::terms::TermValues::builder()
             .annual_rate(input.annual_rate)
-            .accrual_interval(input.accrual_interval)
-            .incurrence_interval(input.incurrence_interval)
+            .accrual_cycle_interval(input.accrual_interval)
+            .accrual_interval(input.incurrence_interval)
             .one_time_fee_rate(input.one_time_fee_rate)
             .duration(input.duration)
             .interest_due_duration(input.interest_due_duration)
@@ -979,8 +979,8 @@ impl Mutation {
 
         let term_values = lana_app::terms::TermValues::builder()
             .annual_rate(input.annual_rate)
-            .accrual_interval(input.accrual_interval)
-            .incurrence_interval(input.incurrence_interval)
+            .accrual_cycle_interval(input.accrual_interval)
+            .accrual_interval(input.incurrence_interval)
             .one_time_fee_rate(input.one_time_fee_rate)
             .duration(input.duration)
             .interest_due_duration(input.interest_due_duration)
@@ -1148,8 +1148,8 @@ impl Mutation {
 
         let credit_facility_term_values = lana_app::terms::TermValues::builder()
             .annual_rate(terms.annual_rate)
-            .accrual_interval(terms.accrual_interval)
-            .incurrence_interval(terms.incurrence_interval)
+            .accrual_cycle_interval(terms.accrual_interval)
+            .accrual_interval(terms.incurrence_interval)
             .one_time_fee_rate(terms.one_time_fee_rate)
             .duration(terms.duration)
             .interest_due_duration(terms.interest_due_duration)

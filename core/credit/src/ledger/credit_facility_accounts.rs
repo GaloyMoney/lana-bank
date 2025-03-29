@@ -83,7 +83,7 @@ pub struct CreditFacilityActivation {
 }
 
 #[derive(Debug, Clone)]
-pub struct CreditFacilityInterestIncurrence {
+pub struct CreditFacilityInterestAccrual {
     pub tx_id: LedgerTxId,
     pub tx_ref: String,
     pub interest: UsdCents,
@@ -92,12 +92,12 @@ pub struct CreditFacilityInterestIncurrence {
 }
 
 #[derive(Debug, Clone)]
-pub struct CreditFacilityInterestAccrual {
+pub struct CreditFacilityInterestAccrualCycle {
     pub tx_id: LedgerTxId,
     pub tx_ref: String,
     pub interest: UsdCents,
     pub credit_facility_account_ids: CreditFacilityAccountIds,
-    pub accrued_at: DateTime<Utc>,
+    pub posted_at: DateTime<Utc>,
 }
 
 #[derive(Debug, Clone)]

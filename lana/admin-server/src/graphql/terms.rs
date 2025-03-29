@@ -21,8 +21,8 @@ impl From<DomainTermValues> for TermValues {
     fn from(values: DomainTermValues) -> Self {
         Self {
             annual_rate: values.annual_rate,
-            accrual_interval: values.accrual_interval,
-            incurrence_interval: values.incurrence_interval,
+            accrual_interval: values.accrual_cycle_interval,
+            incurrence_interval: values.accrual_interval,
             one_time_fee_rate: values.one_time_fee_rate,
             duration: values.duration.into(),
             liquidation_cvl: values.liquidation_cvl,

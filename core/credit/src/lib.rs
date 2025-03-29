@@ -5,7 +5,7 @@ mod disbursal;
 pub mod error;
 mod event;
 mod for_subject;
-mod interest_accrual;
+mod interest_accrual_cycle;
 mod jobs;
 pub mod ledger;
 mod payment;
@@ -36,7 +36,7 @@ pub use disbursal::{disbursal_cursor::*, *};
 use error::*;
 pub use event::*;
 use for_subject::CreditFacilitiesForSubject;
-pub use interest_accrual::*;
+pub use interest_accrual_cycle::*;
 use jobs::*;
 pub use ledger::*;
 pub use payment::*;
@@ -154,20 +154,20 @@ where
             },
         )
         .await?;
-        jobs.add_initializer(
-            interest_incurrences::CreditFacilityProcessingJobInitializer::<Perms, E>::new(
-                &ledger,
-                credit_facility_repo.clone(),
-                authz.audit(),
-                jobs,
-            ),
-        );
         jobs.add_initializer(interest_accruals::CreditFacilityProcessingJobInitializer::<
             Perms,
             E,
         >::new(
-            &ledger, credit_facility_repo.clone(), jobs, authz.audit()
+            &ledger, credit_facility_repo.clone(), authz.audit(), jobs
         ));
+        jobs.add_initializer(
+            interest_accrual_cycles::CreditFacilityProcessingJobInitializer::<Perms, E>::new(
+                &ledger,
+                credit_facility_repo.clone(),
+                jobs,
+                authz.audit(),
+            ),
+        );
         jobs.add_initializer(
             overdue::CreditFacilityProcessingJobInitializer::<Perms, E>::new(
                 &ledger,

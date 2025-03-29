@@ -8,9 +8,9 @@ use job::*;
 use outbox::OutboxEventMarker;
 
 use crate::{
-    credit_facility::CreditFacilityRepo, interest_incurrences, ledger::*, CoreCreditAction,
-    CoreCreditError, CoreCreditEvent, CoreCreditObject, CreditFacilityId,
-    CreditFacilityInterestAccrual,
+    credit_facility::CreditFacilityRepo, ledger::*, CoreCreditAction, CoreCreditError,
+    CoreCreditEvent, CoreCreditObject, CreditFacilityId, CreditFacilityInterestAccrual,
+    InterestAccrualCycleIdx, InterestPeriod,
 };
 
 #[derive(Clone, Serialize, Deserialize)]
@@ -18,6 +18,7 @@ pub struct CreditFacilityJobConfig<Perms, E> {
     pub credit_facility_id: CreditFacilityId,
     pub _phantom: std::marker::PhantomData<(Perms, E)>,
 }
+
 impl<Perms, E> JobConfig for CreditFacilityJobConfig<Perms, E>
 where
     Perms: PermissionCheck,
@@ -35,8 +36,8 @@ where
 {
     ledger: CreditLedger,
     credit_facility_repo: CreditFacilityRepo<E>,
-    jobs: Jobs,
     audit: Perms::Audit,
+    jobs: Jobs,
 }
 
 impl<Perms, E> CreditFacilityProcessingJobInitializer<Perms, E>
@@ -49,19 +50,19 @@ where
     pub fn new(
         ledger: &CreditLedger,
         credit_facility_repo: CreditFacilityRepo<E>,
-        jobs: &Jobs,
         audit: &Perms::Audit,
+        jobs: &Jobs,
     ) -> Self {
         Self {
             ledger: ledger.clone(),
             credit_facility_repo,
-            jobs: jobs.clone(),
             audit: audit.clone(),
+            jobs: jobs.clone(),
         }
     }
 }
 
-const CREDIT_FACILITY_INTEREST_PROCESSING_JOB: JobType =
+const CREDIT_FACILITY_INTEREST_ACCRUAL_PROCESSING_JOB: JobType =
     JobType::new("credit-facility-interest-accrual-processing");
 impl<Perms, E> JobInitializer for CreditFacilityProcessingJobInitializer<Perms, E>
 where
@@ -74,7 +75,7 @@ where
     where
         Self: Sized,
     {
-        CREDIT_FACILITY_INTEREST_PROCESSING_JOB
+        CREDIT_FACILITY_INTEREST_ACCRUAL_PROCESSING_JOB
     }
 
     fn init(&self, job: &Job) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
@@ -82,10 +83,17 @@ where
             config: job.config()?,
             credit_facility_repo: self.credit_facility_repo.clone(),
             ledger: self.ledger.clone(),
-            jobs: self.jobs.clone(),
             audit: self.audit.clone(),
+            jobs: self.jobs.clone(),
         }))
     }
+}
+
+#[derive(Clone)]
+struct ConfirmedAccrual {
+    accrual: CreditFacilityInterestAccrual,
+    next_period: Option<InterestPeriod>,
+    accrual_idx: InterestAccrualCycleIdx,
 }
 
 pub struct CreditFacilityProcessingJobRunner<Perms, E>
@@ -96,8 +104,8 @@ where
     config: CreditFacilityJobConfig<Perms, E>,
     credit_facility_repo: CreditFacilityRepo<E>,
     ledger: CreditLedger,
-    jobs: Jobs,
     audit: Perms::Audit,
+    jobs: Jobs,
 }
 
 impl<Perms, E> CreditFacilityProcessingJobRunner<Perms, E>
@@ -108,22 +116,38 @@ where
     E: OutboxEventMarker<CoreCreditEvent>,
 {
     #[es_entity::retry_on_concurrent_modification]
-    async fn record_interest_accrual(
+    async fn confirm_interest_accrual(
         &self,
         db: &mut es_entity::DbOp<'_>,
         audit_info: &AuditInfo,
-    ) -> Result<CreditFacilityInterestAccrual, CoreCreditError> {
+    ) -> Result<ConfirmedAccrual, CoreCreditError> {
         let mut credit_facility = self
             .credit_facility_repo
             .find_by_id(self.config.credit_facility_id)
             .await?;
 
-        let interest_accrual = credit_facility.record_interest_accrual(audit_info.clone())?;
+        let confirmed_accrual = {
+            let outstanding = credit_facility.total_outstanding();
+            let account_ids = credit_facility.account_ids;
+
+            let accrual = credit_facility
+                .interest_accrual_cycle_in_progress()
+                .expect("Accrual in progress should exist for scheduled job");
+
+            let interest_accrual = accrual.record_accrual(outstanding, audit_info.clone());
+
+            ConfirmedAccrual {
+                accrual: (interest_accrual, account_ids).into(),
+                next_period: accrual.next_accrual_period(),
+                accrual_idx: accrual.idx,
+            }
+        };
+
         self.credit_facility_repo
             .update_in_op(db, &mut credit_facility)
             .await?;
 
-        Ok(interest_accrual)
+        Ok(confirmed_accrual)
     }
 }
 
@@ -157,7 +181,11 @@ where
             )
             .await?;
 
-        let interest_accrual = self.record_interest_accrual(&mut db, &audit_info).await?;
+        let ConfirmedAccrual {
+            accrual: interest_accrual,
+            next_period: next_accrual_period,
+            accrual_idx,
+        } = self.confirm_interest_accrual(&mut db, &audit_info).await?;
 
         let (now, mut tx) = (db.now(), db.into_tx());
         let sub_op = {
@@ -169,46 +197,24 @@ where
             .await?;
 
         let mut db = es_entity::DbOp::new(tx, now);
-        let mut credit_facility = self
-            .credit_facility_repo
-            .find_by_id_in_tx(db.tx(), self.config.credit_facility_id)
-            .await?;
-        let periods = match credit_facility.start_interest_accrual(audit_info)? {
-            Some(periods) => periods,
-            None => {
-                println!(
-                    "Credit Facility interest accrual job completed for credit_facility: {:?}",
-                    self.config.credit_facility_id
-                );
-
-                return Ok(JobCompletion::CompleteWithOp(db));
-            }
-        };
-
-        self.credit_facility_repo
-            .update_in_op(&mut db, &mut credit_facility)
-            .await?;
-
-        let accrual_id = credit_facility
-            .interest_accrual_in_progress()
-            .expect("First accrual not found")
-            .id;
-        self.jobs
-            .create_and_spawn_at_in_op(
-                &mut db,
-                accrual_id,
-                interest_incurrences::CreditFacilityJobConfig::<Perms, E> {
-                    credit_facility_id: credit_facility.id,
-                    _phantom: std::marker::PhantomData,
-                },
-                periods.incurrence.end,
-            )
-            .await?;
-
-        self.credit_facility_repo
-            .update_in_op(&mut db, &mut credit_facility)
-            .await?;
-
-        return Ok(JobCompletion::CompleteWithOp(db));
+        if let Some(period) = next_accrual_period {
+            Ok(JobCompletion::RescheduleAtWithOp(db, period.end))
+        } else {
+            self.jobs
+                .create_and_spawn_in_op(
+                    &mut db,
+                    uuid::Uuid::new_v4(),
+                    super::interest_accrual_cycles::CreditFacilityJobConfig::<Perms, E> {
+                        credit_facility_id: self.config.credit_facility_id,
+                        _phantom: std::marker::PhantomData,
+                    },
+                )
+                .await?;
+            println!(
+            "Credit Facility interest accruals job completed for accrual index {:?} for credit_facility: {:?}",
+            accrual_idx, self.config.credit_facility_id
+        );
+            Ok(JobCompletion::CompleteWithOp(db))
+        }
     }
 }

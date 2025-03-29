@@ -111,7 +111,7 @@ pub mod credit_facility {
         CreditFacilityBalance, CreditFacilityConfig, CreditFacilityHistoryEntry,
         CreditFacilityOrigination, CreditFacilityRepaymentInPlan, CreditFacilityStatus, Disbursal,
         DisbursalExecuted, DisbursalStatus, DisbursalsCursor, DisbursalsSortBy, FacilityCVL,
-        FindManyCreditFacilities, FindManyDisbursals, IncrementalPayment, InterestAccrued,
+        FindManyCreditFacilities, FindManyDisbursals, IncrementalPayment, InterestAccrualsPosted,
         ListDirection, Payment, RepaymentStatus, Sort, APPROVE_CREDIT_FACILITY_PROCESS,
         APPROVE_DISBURSAL_PROCESS,
     };

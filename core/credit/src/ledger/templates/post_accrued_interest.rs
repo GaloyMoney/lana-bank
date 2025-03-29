@@ -8,10 +8,11 @@ use cala_ledger::{
 
 use crate::ledger::error::*;
 
-pub const CREDIT_FACILITY_INCUR_INTEREST_CODE: &str = "CREDIT_FACILITY_INCUR_INTEREST";
+pub const CREDIT_FACILITY_POST_ACCRUED_INTEREST_CODE: &str =
+    "CREDIT_FACILITY_POST_ACCRUED_INTEREST";
 
 #[derive(Debug)]
-pub struct CreditFacilityIncurInterestParams {
+pub struct CreditFacilityPostAccruedInterestParams {
     pub journal_id: JournalId,
     pub credit_facility_interest_receivable_account: AccountId,
     pub credit_facility_interest_income_account: AccountId,
@@ -20,7 +21,7 @@ pub struct CreditFacilityIncurInterestParams {
     pub effective: chrono::NaiveDate,
 }
 
-impl CreditFacilityIncurInterestParams {
+impl CreditFacilityPostAccruedInterestParams {
     pub fn defs() -> Vec<NewParamDefinition> {
         vec![
             NewParamDefinition::builder()
@@ -57,16 +58,16 @@ impl CreditFacilityIncurInterestParams {
     }
 }
 
-impl From<CreditFacilityIncurInterestParams> for Params {
+impl From<CreditFacilityPostAccruedInterestParams> for Params {
     fn from(
-        CreditFacilityIncurInterestParams {
+        CreditFacilityPostAccruedInterestParams {
             journal_id,
             credit_facility_interest_receivable_account,
             credit_facility_interest_income_account,
             interest_amount,
             external_id,
             effective,
-        }: CreditFacilityIncurInterestParams,
+        }: CreditFacilityPostAccruedInterestParams,
     ) -> Self {
         let mut params = Self::default();
         params.insert("journal_id", journal_id);
@@ -85,44 +86,62 @@ impl From<CreditFacilityIncurInterestParams> for Params {
     }
 }
 
-pub struct CreditFacilityIncurInterest;
+pub struct CreditFacilityPostAccruedInterest;
 
-impl CreditFacilityIncurInterest {
-    #[instrument(name = "ledger.credit_facility_incur_interest.init", skip_all)]
+impl CreditFacilityPostAccruedInterest {
+    #[instrument(name = "ledger.credit_facility_post_accrued_interest.init", skip_all)]
     pub async fn init(ledger: &CalaLedger) -> Result<(), CreditLedgerError> {
         let tx_input = NewTxTemplateTransaction::builder()
             .journal_id("params.journal_id")
             .effective("params.effective")
             .external_id("params.external_id")
-            .description("'Incur interest in accrual period for credit facility'")
+            .description("'Post accrued interest from accrual cycle for credit facility'")
             .build()
             .expect("Couldn't build TxInput");
 
         let entries = vec![
             NewTxTemplateEntry::builder()
+                .account_id("params.credit_facility_interest_income_account")
+                .units("params.interest_amount")
+                .currency("'USD'")
+                .entry_type("'ACCUMULATE_ACCRUED_INTEREST_DR'")
+                .direction("DEBIT")
+                .layer("PENDING")
+                .build()
+                .expect("Couldn't build entry"),
+            NewTxTemplateEntry::builder()
                 .account_id("params.credit_facility_interest_receivable_account")
                 .units("params.interest_amount")
                 .currency("'USD'")
-                .entry_type("'INCUR_INTEREST_DR'")
-                .direction("DEBIT")
+                .entry_type("'ACCUMULATE_ACCRUED_INTEREST_CR'")
+                .direction("CREDIT")
                 .layer("PENDING")
+                .build()
+                .expect("Couldn't build entry"),
+            NewTxTemplateEntry::builder()
+                .account_id("params.credit_facility_interest_receivable_account")
+                .units("params.interest_amount")
+                .currency("'USD'")
+                .entry_type("'POST_ACCRUED_INTEREST_DR'")
+                .direction("DEBIT")
+                .layer("SETTLED")
                 .build()
                 .expect("Couldn't build entry"),
             NewTxTemplateEntry::builder()
                 .account_id("params.credit_facility_interest_income_account")
                 .units("params.interest_amount")
                 .currency("'USD'")
-                .entry_type("'INCUR_INTEREST_CR'")
+                .entry_type("'POST_ACCRUED_INTEREST_CR'")
                 .direction("CREDIT")
-                .layer("PENDING")
+                .layer("SETTLED")
                 .build()
                 .expect("Couldn't build entry"),
         ];
 
-        let params = CreditFacilityIncurInterestParams::defs();
+        let params = CreditFacilityPostAccruedInterestParams::defs();
         let template = NewTxTemplate::builder()
             .id(TxTemplateId::new())
-            .code(CREDIT_FACILITY_INCUR_INTEREST_CODE)
+            .code(CREDIT_FACILITY_POST_ACCRUED_INTEREST_CODE)
             .transaction(tx_input)
             .entries(entries)
             .params(params)

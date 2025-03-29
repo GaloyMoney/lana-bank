@@ -19,13 +19,13 @@ es_entity::entity_id! {
     DisbursalId,
     PaymentId,
     ChartOfAccountsIntegrationConfigId,
-    InterestAccrualId;
+    InterestAccrualCycleId;
 
     CreditFacilityId => governance::ApprovalProcessId,
     DisbursalId => governance::ApprovalProcessId,
 
     CreditFacilityId => job::JobId,
-    InterestAccrualId => job::JobId,
+    InterestAccrualCycleId => job::JobId,
 
     DisbursalId => LedgerTxId,
     PaymentId => LedgerTxId,
@@ -255,13 +255,13 @@ pub enum DisbursalStatus {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Hash, Deserialize, sqlx::Type)]
 #[serde(transparent)]
 #[sqlx(transparent)]
-pub struct InterestAccrualIdx(i32);
-impl std::fmt::Display for InterestAccrualIdx {
+pub struct InterestAccrualCycleIdx(i32);
+impl std::fmt::Display for InterestAccrualCycleIdx {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         write!(f, "{}", self.0)
     }
 }
-impl InterestAccrualIdx {
+impl InterestAccrualCycleIdx {
     pub const FIRST: Self = Self(1);
     pub const fn next(&self) -> Self {
         Self(self.0 + 1)

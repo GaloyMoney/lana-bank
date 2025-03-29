@@ -20,13 +20,13 @@ pub use rbac_types::{LanaRole, Role, Subject};
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, sqlx::Type)]
 #[serde(transparent)]
 #[sqlx(transparent)]
-pub struct InterestAccrualIdx(i32);
-impl fmt::Display for InterestAccrualIdx {
+pub struct InterestAccrualCycleIdx(i32);
+impl fmt::Display for InterestAccrualCycleIdx {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> fmt::Result {
         write!(f, "{}", self.0)
     }
 }
-impl InterestAccrualIdx {
+impl InterestAccrualCycleIdx {
     pub const FIRST: Self = Self(1);
     pub const fn next(&self) -> Self {
         Self(self.0 + 1)

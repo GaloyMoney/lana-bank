@@ -6,7 +6,7 @@ pub use es_entity::{ListDirection, Sort};
 use outbox::OutboxEventMarker;
 
 use crate::{
-    interest_accrual::{error::InterestAccrualError, *},
+    interest_accrual_cycle::{error::InterestAccrualCycleError, *},
     primitives::*,
     publisher::*,
     terms::CollateralizationState,
@@ -89,11 +89,11 @@ where
 
 #[derive(EsRepo, Clone)]
 #[es_repo(
-    entity = "InterestAccrual",
-    err = "InterestAccrualError",
+    entity = "InterestAccrualCycle",
+    err = "InterestAccrualCycleError",
     columns(
         credit_facility_id(ty = "CreditFacilityId", update(persist = false), list_for, parent),
-        idx(ty = "InterestAccrualIdx", update(persist = false), list_by),
+        idx(ty = "InterestAccrualCycleIdx", update(persist = false), list_by),
     ),
     tbl_prefix = "core"
 )]

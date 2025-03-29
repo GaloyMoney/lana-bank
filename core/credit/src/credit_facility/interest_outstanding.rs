@@ -5,7 +5,7 @@ use crate::primitives::UsdCents;
 use super::CreditFacilityEvent;
 
 struct Accrual {
-    accrued_at: DateTime<Utc>,
+    posted_at: DateTime<Utc>,
     remaining: UsdCents,
 }
 
@@ -35,11 +35,11 @@ pub(super) fn project<'a>(
     for event in events {
         match event {
             CreditFacilityEvent::Initialized { terms, .. } => facility_terms = Some(**terms),
-            CreditFacilityEvent::InterestAccrualConcluded {
-                amount, accrued_at, ..
+            CreditFacilityEvent::InterestAccrualCycleConcluded {
+                amount, posted_at, ..
             } => {
                 accruals.push(Accrual {
-                    accrued_at: *accrued_at,
+                    posted_at: *posted_at,
                     remaining: *amount,
                 });
             }
@@ -58,7 +58,7 @@ pub(super) fn project<'a>(
     }
     let terms = facility_terms.expect("Facility terms not found");
 
-    accruals.sort_by_key(|a| a.accrued_at);
+    accruals.sort_by_key(|a| a.posted_at);
     payments.sort_by_key(|p| p.paid_at);
 
     for payment in payments {
@@ -78,13 +78,13 @@ pub(super) fn project<'a>(
     let mut defaulted = UsdCents::ZERO;
     for accrual in accruals {
         if let Some(interest_overdue_duration) = terms.interest_overdue_duration {
-            if interest_overdue_duration.is_past_end_date(accrual.accrued_at) {
+            if interest_overdue_duration.is_past_end_date(accrual.posted_at) {
                 defaulted += accrual.remaining;
                 continue;
             }
         } else if terms
             .interest_due_duration
-            .is_past_end_date(accrual.accrued_at)
+            .is_past_end_date(accrual.posted_at)
         {
             overdue += accrual.remaining;
         } else {
@@ -117,8 +117,8 @@ mod tests {
             .duration(Duration::Months(2))
             .interest_due_duration(interest_due_duration)
             .interest_overdue_duration(interest_overdue_duration)
-            .accrual_interval(InterestInterval::EndOfMonth)
-            .incurrence_interval(InterestInterval::EndOfDay)
+            .accrual_cycle_interval(InterestInterval::EndOfMonth)
+            .accrual_interval(InterestInterval::EndOfDay)
             .liquidation_cvl(dec!(105))
             .margin_call_cvl(dec!(125))
             .initial_cvl(dec!(140))
@@ -180,14 +180,14 @@ mod tests {
         let interest_due_duration = InterestDuration::Days(30);
         let mut events = initial_credit_facility_events(activated_at, interest_due_duration, None);
 
-        let first_interest_idx = InterestAccrualIdx::FIRST;
-        let first_interest_accrued_at = activated_at;
-        events.push(CreditFacilityEvent::InterestAccrualConcluded {
+        let first_interest_idx = InterestAccrualCycleIdx::FIRST;
+        let first_interest_posted_at = activated_at;
+        events.push(CreditFacilityEvent::InterestAccrualCycleConcluded {
             idx: first_interest_idx,
             tx_id: LedgerTxId::new(),
             tx_ref: "".to_string(),
             amount: UsdCents::from(2),
-            accrued_at: first_interest_accrued_at,
+            posted_at: first_interest_posted_at,
             audit_info: dummy_audit_info(),
         });
         let outstanding = project(events.iter());
@@ -204,14 +204,14 @@ mod tests {
         let interest_due_duration = InterestDuration::Days(0);
         let mut events = initial_credit_facility_events(activated_at, interest_due_duration, None);
 
-        let first_interest_idx = InterestAccrualIdx::FIRST;
-        let first_interest_accrued_at = activated_at;
-        events.push(CreditFacilityEvent::InterestAccrualConcluded {
+        let first_interest_idx = InterestAccrualCycleIdx::FIRST;
+        let first_interest_posted_at = activated_at;
+        events.push(CreditFacilityEvent::InterestAccrualCycleConcluded {
             idx: first_interest_idx,
             tx_id: LedgerTxId::new(),
             tx_ref: "".to_string(),
             amount: UsdCents::from(2),
-            accrued_at: first_interest_accrued_at,
+            posted_at: first_interest_posted_at,
             audit_info: dummy_audit_info(),
         });
         let outstanding = project(events.iter());
@@ -233,14 +233,14 @@ mod tests {
             interest_overdue_duration,
         );
 
-        let first_interest_idx = InterestAccrualIdx::FIRST;
-        let first_interest_accrued_at = activated_at;
-        events.push(CreditFacilityEvent::InterestAccrualConcluded {
+        let first_interest_idx = InterestAccrualCycleIdx::FIRST;
+        let first_interest_posted_at = activated_at;
+        events.push(CreditFacilityEvent::InterestAccrualCycleConcluded {
             idx: first_interest_idx,
             tx_id: LedgerTxId::new(),
             tx_ref: "".to_string(),
             amount: UsdCents::from(2),
-            accrued_at: first_interest_accrued_at,
+            posted_at: first_interest_posted_at,
             audit_info: dummy_audit_info(),
         });
         let outstanding = project(events.iter());
@@ -257,14 +257,14 @@ mod tests {
         let interest_due_duration = InterestDuration::Days(30);
         let mut events = initial_credit_facility_events(activated_at, interest_due_duration, None);
 
-        let first_interest_idx = InterestAccrualIdx::FIRST;
-        let first_interest_accrued_at = activated_at;
-        events.push(CreditFacilityEvent::InterestAccrualConcluded {
+        let first_interest_idx = InterestAccrualCycleIdx::FIRST;
+        let first_interest_posted_at = activated_at;
+        events.push(CreditFacilityEvent::InterestAccrualCycleConcluded {
             idx: first_interest_idx,
             tx_id: LedgerTxId::new(),
             tx_ref: "".to_string(),
             amount: UsdCents::from(2),
-            accrued_at: first_interest_accrued_at,
+            posted_at: first_interest_posted_at,
             audit_info: dummy_audit_info(),
         });
         let outstanding = project(events.iter());
@@ -275,7 +275,7 @@ mod tests {
             disbursal_amount: UsdCents::ZERO,
             interest_amount: UsdCents::from(2),
             audit_info: dummy_audit_info(),
-            recorded_at: first_interest_accrued_at,
+            recorded_at: first_interest_posted_at,
         });
         let outstanding = project(events.iter());
         assert_eq!(outstanding.total(), UsdCents::ZERO);
@@ -287,25 +287,25 @@ mod tests {
         let interest_due_duration = InterestDuration::Days(1);
         let mut events = initial_credit_facility_events(activated_at, interest_due_duration, None);
 
-        let first_interest_idx = InterestAccrualIdx::FIRST;
-        let first_interest_accrued_at = activated_at;
+        let first_interest_idx = InterestAccrualCycleIdx::FIRST;
+        let first_interest_posted_at = activated_at;
         let second_interest_idx = first_interest_idx.next();
-        let second_interest_accrued_at = activated_at + chrono::Duration::days(1);
+        let second_interest_posted_at = activated_at + chrono::Duration::days(1);
         events.extend([
-            CreditFacilityEvent::InterestAccrualConcluded {
+            CreditFacilityEvent::InterestAccrualCycleConcluded {
                 idx: first_interest_idx,
                 tx_id: LedgerTxId::new(),
                 tx_ref: "".to_string(),
                 amount: UsdCents::from(2),
-                accrued_at: first_interest_accrued_at,
+                posted_at: first_interest_posted_at,
                 audit_info: dummy_audit_info(),
             },
-            CreditFacilityEvent::InterestAccrualConcluded {
+            CreditFacilityEvent::InterestAccrualCycleConcluded {
                 idx: second_interest_idx,
                 tx_id: LedgerTxId::new(),
                 tx_ref: "".to_string(),
                 amount: UsdCents::from(4),
-                accrued_at: second_interest_accrued_at,
+                posted_at: second_interest_posted_at,
                 audit_info: dummy_audit_info(),
             },
         ]);
@@ -323,25 +323,25 @@ mod tests {
         let interest_due_duration = InterestDuration::Days(1);
         let mut events = initial_credit_facility_events(activated_at, interest_due_duration, None);
 
-        let first_interest_idx = InterestAccrualIdx::FIRST;
-        let first_interest_accrued_at = activated_at;
+        let first_interest_idx = InterestAccrualCycleIdx::FIRST;
+        let first_interest_posted_at = activated_at;
         let second_interest_idx = first_interest_idx.next();
-        let second_interest_accrued_at = activated_at + chrono::Duration::days(1);
+        let second_interest_posted_at = activated_at + chrono::Duration::days(1);
         events.extend([
-            CreditFacilityEvent::InterestAccrualConcluded {
+            CreditFacilityEvent::InterestAccrualCycleConcluded {
                 idx: first_interest_idx,
                 tx_id: LedgerTxId::new(),
                 tx_ref: "".to_string(),
                 amount: UsdCents::from(2),
-                accrued_at: first_interest_accrued_at,
+                posted_at: first_interest_posted_at,
                 audit_info: dummy_audit_info(),
             },
-            CreditFacilityEvent::InterestAccrualConcluded {
+            CreditFacilityEvent::InterestAccrualCycleConcluded {
                 idx: second_interest_idx,
                 tx_id: LedgerTxId::new(),
                 tx_ref: "".to_string(),
                 amount: UsdCents::from(4),
-                accrued_at: second_interest_accrued_at,
+                posted_at: second_interest_posted_at,
                 audit_info: dummy_audit_info(),
             },
             CreditFacilityEvent::PaymentRecorded {
@@ -349,7 +349,7 @@ mod tests {
                 disbursal_amount: UsdCents::ZERO,
                 interest_amount: UsdCents::from(3),
                 audit_info: dummy_audit_info(),
-                recorded_at: second_interest_accrued_at,
+                recorded_at: second_interest_posted_at,
             },
         ]);
         let outstanding = project(events.iter());

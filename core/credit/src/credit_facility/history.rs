@@ -38,7 +38,7 @@ pub struct DisbursalExecuted {
     pub tx_id: LedgerTxId,
 }
 
-pub struct InterestAccrued {
+pub struct InterestAccrualsPosted {
     pub cents: UsdCents,
     pub recorded_at: DateTime<Utc>,
     pub days: i64,
@@ -51,7 +51,7 @@ pub enum CreditFacilityHistoryEntry {
     Origination(CreditFacilityOrigination),
     Collateralization(CollateralizationUpdated),
     Disbursal(DisbursalExecuted),
-    Interest(InterestAccrued),
+    Interest(InterestAccrualsPosted),
 }
 
 pub(super) fn project<'a>(
@@ -155,28 +155,30 @@ pub(super) fn project<'a>(
                     tx_id: *tx_id,
                 }));
             }
-            CreditFacilityEvent::InterestAccrualStarted {
+            CreditFacilityEvent::InterestAccrualCycleStarted {
                 idx, started_at, ..
             } => {
                 interest_accruals.insert(*idx, *started_at);
             }
-            CreditFacilityEvent::InterestAccrualConcluded {
+            CreditFacilityEvent::InterestAccrualCycleConcluded {
                 idx,
                 tx_id,
                 amount,
-                accrued_at,
+                posted_at,
                 ..
             } => {
                 let started_at = interest_accruals
                     .remove(idx)
                     .expect("Accrual must have been initiated");
-                let days = (*accrued_at - started_at).num_days();
-                history.push(CreditFacilityHistoryEntry::Interest(InterestAccrued {
-                    cents: *amount,
-                    tx_id: *tx_id,
-                    days,
-                    recorded_at: *accrued_at,
-                }));
+                let days = (*posted_at - started_at).num_days();
+                history.push(CreditFacilityHistoryEntry::Interest(
+                    InterestAccrualsPosted {
+                        cents: *amount,
+                        tx_id: *tx_id,
+                        days,
+                        recorded_at: *posted_at,
+                    },
+                ));
             }
 
             _ => {}

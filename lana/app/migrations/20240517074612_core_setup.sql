@@ -226,7 +226,7 @@ CREATE TABLE core_disbursal_events (
   UNIQUE(id, sequence)
 );
 
-CREATE TABLE core_interest_accruals (
+CREATE TABLE core_interest_accrual_cycles (
   id UUID PRIMARY KEY,
   credit_facility_id UUID NOT NULL REFERENCES core_credit_facilities(id),
   idx INT NOT NULL,
@@ -234,8 +234,8 @@ CREATE TABLE core_interest_accruals (
   UNIQUE(credit_facility_id, idx)
 );
 
-CREATE TABLE core_interest_accrual_events (
-  id UUID NOT NULL REFERENCES core_interest_accruals(id),
+CREATE TABLE core_interest_accrual_cycle_events (
+  id UUID NOT NULL REFERENCES core_interest_accrual_cycles(id),
   sequence INT NOT NULL,
   event_type VARCHAR NOT NULL,
   event JSONB NOT NULL,

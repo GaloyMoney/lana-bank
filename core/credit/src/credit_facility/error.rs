@@ -12,8 +12,10 @@ pub enum CreditFacilityError {
     CursorDestructureError(#[from] es_entity::CursorDestructureError),
     #[error("CreditFacilityError - ConversionError: {0}")]
     ConversionError(#[from] crate::primitives::ConversionError),
-    #[error("CreditFacilityError - InterestAccrualError: {0}")]
-    InterestAccrualError(#[from] crate::interest_accrual::error::InterestAccrualError),
+    #[error("CreditFacilityError - InterestAccrualCycleError: {0}")]
+    InterestAccrualCycleError(
+        #[from] crate::interest_accrual_cycle::error::InterestAccrualCycleError,
+    ),
     #[error("CreditFacilityError - ApprovalInProgress")]
     ApprovalInProgress,
     #[error("CreditFacilityError - Denied")]
@@ -38,10 +40,8 @@ pub enum CreditFacilityError {
     FacilityLedgerBalanceMismatch,
     #[error("CreditFacilityError - OutstandingAmount")]
     OutstandingAmount,
-    #[error("CreditFacilityError - InterestAccrualInProgress")]
-    InterestAccrualInProgress,
-    #[error("CreditFacilityError - InterestAccrualWithInvalidFutureStartDate")]
-    InterestAccrualWithInvalidFutureStartDate,
+    #[error("CreditFacilityError - InterestAccrualCycleWithInvalidFutureStartDate")]
+    InterestAccrualCycleWithInvalidFutureStartDate,
     #[error(
         "CreditFacilityError - DisbursalAmountTooLarge: amount '{0}' is larger than facility balance '{1}'"
     )]

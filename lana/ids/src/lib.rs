@@ -5,7 +5,7 @@ es_entity::entity_id! {
     CreditFacilityId,
     DisbursalId,
     PaymentId,
-    InterestAccrualId,
+    InterestAccrualCycleId,
     TermsTemplateId,
     ReportId;
 
@@ -14,7 +14,7 @@ es_entity::entity_id! {
 
     ReportId => job::JobId,
     CreditFacilityId => job::JobId,
-    InterestAccrualId => job::JobId,
+    InterestAccrualCycleId => job::JobId,
 
     DisbursalId => LedgerTransactionId,
     PaymentId => LedgerTransactionId,

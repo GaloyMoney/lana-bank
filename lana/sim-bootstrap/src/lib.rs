@@ -107,7 +107,7 @@ async fn create_and_process_facility(
                     .find_by_id(&sub, *id)
                     .await?
                     .expect("cf exists");
-                if facility.interest_accrual_in_progress().is_none() {
+                if facility.interest_accrual_cycle_in_progress().is_none() {
                     app.credit_facilities()
                         .record_payment(&sub, facility.id, facility.total_outstanding().total())
                         .await?;
@@ -214,8 +214,8 @@ fn std_terms() -> TermValues {
         .liquidation_cvl(dec!(105))
         .duration(Duration::Months(3))
         .interest_due_duration(InterestDuration::Days(0))
-        .incurrence_interval(InterestInterval::EndOfDay)
-        .accrual_interval(InterestInterval::EndOfMonth)
+        .accrual_interval(InterestInterval::EndOfDay)
+        .accrual_cycle_interval(InterestInterval::EndOfMonth)
         .one_time_fee_rate(dec!(0.01))
         .build()
         .unwrap()

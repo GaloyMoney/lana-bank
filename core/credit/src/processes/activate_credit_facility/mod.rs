@@ -9,7 +9,7 @@ use core_price::Price;
 use outbox::OutboxEventMarker;
 
 use crate::{
-    error::CoreCreditError, interest_incurrences, ledger::CreditLedger, overdue,
+    error::CoreCreditError, interest_accruals, ledger::CreditLedger, overdue,
     primitives::CreditFacilityId, CoreCreditAction, CoreCreditEvent, CoreCreditObject,
     CreditFacility, CreditFacilityRepo, DisbursalRepo, Jobs,
 };
@@ -93,10 +93,8 @@ where
         let price = self.price.usd_cents_per_btc().await?;
         let now = db.now();
 
-        let Ok(es_entity::Idempotent::Executed((
-            credit_facility_activation,
-            next_incurrence_period,
-        ))) = credit_facility.activate(now, price, audit_info.clone())
+        let Ok(es_entity::Idempotent::Executed((credit_facility_activation, next_accrual_period))) =
+            credit_facility.activate(now, price, audit_info.clone())
         else {
             return Ok(credit_facility);
         };
@@ -140,18 +138,18 @@ where
             .await?;
 
         let accrual_id = credit_facility
-            .interest_accrual_in_progress()
+            .interest_accrual_cycle_in_progress()
             .expect("First accrual not found")
             .id;
         self.jobs
             .create_and_spawn_at_in_op(
                 &mut db,
                 accrual_id,
-                interest_incurrences::CreditFacilityJobConfig::<Perms, E> {
+                interest_accruals::CreditFacilityJobConfig::<Perms, E> {
                     credit_facility_id: id,
                     _phantom: std::marker::PhantomData,
                 },
-                next_incurrence_period.end,
+                next_accrual_period.end,
             )
             .await?;
 
