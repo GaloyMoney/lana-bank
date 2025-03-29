@@ -58,9 +58,11 @@ You should know about those commands:
 
 ## hexagonal architecture
 
-the adapter layer is graphql. code for it is in:
+the incoming adapter layer is graphql. code for it is in:
 - lana/admin-server/src/graphql
 - lana/customer-server/src/graphql
+
+there are also outgoing adapter layers for external services.
 
 the use case layer are located in:
 - lana/app/*
@@ -75,14 +77,8 @@ careful filename convention allow for consistency across the application
 - `primitives.rs` represents the value objects in the module
 - `repo.rs` represents the storage layer. repo is heavily templatize with `es_repo`. 
 - `error.rs` contains the list of errors enum returned by the module
-- `entity.rs` transform the list of events into the current state, and contain addition method to mutate the state from business operation. this contain the business logic.
-
-entities has query and mutations.
-every mutation needs to have idempotent return type
-function that are command have `&mut self` target type
-there is no domain invariance
-
-- `event.rs` contains the list of internal events the module has
+- `entity.rs` transforms the list of events into the current state, and contain addition method to mutate the state from business operation. Entities have queries and mutations. mutation have `&mut self` as the first input, and `Idempotent<>` as the return type
+- `event.rs` contains the list of __public__ events the module has
 - `publisher.rs` is used to published external events to the outbox
 - `job.rs` contain code to interact with the asynchronus jobs library
 
