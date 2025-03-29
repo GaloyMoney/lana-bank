@@ -44,7 +44,7 @@ pub enum CoreCreditEvent {
     AccrualExecuted {
         id: CreditFacilityId,
         amount: UsdCents,
-        accrued_at: DateTime<Utc>,
+        posted_at: DateTime<Utc>,
     },
 }
 

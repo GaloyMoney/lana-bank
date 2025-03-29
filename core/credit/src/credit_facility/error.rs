@@ -12,8 +12,10 @@ pub enum CreditFacilityError {
     CursorDestructureError(#[from] es_entity::CursorDestructureError),
     #[error("CreditFacilityError - ConversionError: {0}")]
     ConversionError(#[from] crate::primitives::ConversionError),
-    #[error("CreditFacilityError - InterestAccrualError: {0}")]
-    InterestAccrualError(#[from] crate::interest_accrual::error::InterestAccrualError),
+    #[error("CreditFacilityError - InterestAccrualCycleError: {0}")]
+    InterestAccrualCycleError(
+        #[from] crate::interest_accrual_cycle::error::InterestAccrualCycleError,
+    ),
     #[error("CreditFacilityError - ApprovalInProgress")]
     ApprovalInProgress,
     #[error("CreditFacilityError - Denied")]

@@ -11,7 +11,7 @@ use crate::{
     terms::{CVLData, CVLPct, CollateralizationState, InterestPeriod, TermValues},
 };
 
-use crate::{disbursal::*, interest_accrual::*, ledger::*, payment::*};
+use crate::{disbursal::*, interest_accrual_cycle::*, ledger::*, payment::*};
 
 use super::{error::CreditFacilityError, history, interest_outstanding, repayment_plan};
 
@@ -54,17 +54,17 @@ pub enum CreditFacilityEvent {
         recorded_at: DateTime<Utc>,
     },
     InterestAccrualStarted {
-        interest_accrual_id: InterestAccrualId,
-        idx: InterestAccrualIdx,
+        interest_accrual_id: InterestAccrualCycleId,
+        idx: InterestAccrualCycleIdx,
         started_at: DateTime<Utc>,
         audit_info: AuditInfo,
     },
     InterestAccrualConcluded {
-        idx: InterestAccrualIdx,
+        idx: InterestAccrualCycleIdx,
         tx_id: LedgerTxId,
         tx_ref: String,
         amount: UsdCents,
-        accrued_at: DateTime<Utc>,
+        posted_at: DateTime<Utc>,
         audit_info: AuditInfo,
     },
     CollateralUpdated {
@@ -294,14 +294,16 @@ impl From<(InterestIncurrenceData, CreditFacilityAccountIds)> for CreditFacility
     }
 }
 
-impl From<(InterestAccrualData, CreditFacilityAccountIds)> for CreditFacilityInterestAccrual {
-    fn from(data: (InterestAccrualData, CreditFacilityAccountIds)) -> Self {
+impl From<(InterestAccrualsPostingData, CreditFacilityAccountIds)>
+    for CreditFacilityInterestAccrualsPosting
+{
+    fn from(data: (InterestAccrualsPostingData, CreditFacilityAccountIds)) -> Self {
         let (
-            InterestAccrualData {
+            InterestAccrualsPostingData {
                 interest,
                 tx_ref,
                 tx_id,
-                accrued_at,
+                posted_at,
             },
             credit_facility_account_ids,
         ) = data;
@@ -309,7 +311,7 @@ impl From<(InterestAccrualData, CreditFacilityAccountIds)> for CreditFacilityInt
             interest,
             tx_ref,
             tx_id,
-            accrued_at,
+            posted_at,
             credit_facility_account_ids,
         }
     }
@@ -333,7 +335,7 @@ pub struct CreditFacility {
 
     #[es_entity(nested)]
     #[builder(default)]
-    interest_accruals: Nested<InterestAccrual>,
+    interest_accruals: Nested<InterestAccrualCycle>,
     events: EntityEvents<CreditFacilityEvent>,
 }
 
@@ -722,8 +724,8 @@ impl CreditFacility {
                 CreditFacilityEvent::InterestAccrualStarted { idx, .. } => Some(idx.next()),
                 _ => None,
             })
-            .unwrap_or(InterestAccrualIdx::FIRST);
-        let id = InterestAccrualId::new();
+            .unwrap_or(InterestAccrualCycleIdx::FIRST);
+        let id = InterestAccrualCycleId::new();
         self.events
             .push(CreditFacilityEvent::InterestAccrualStarted {
                 interest_accrual_id: id,
@@ -732,7 +734,7 @@ impl CreditFacility {
                 audit_info: audit_info.clone(),
             });
 
-        let new_accrual = NewInterestAccrual::builder()
+        let new_accrual = NewInterestAccrualCycle::builder()
             .id(id)
             .credit_facility_id(self.id)
             .idx(idx)
@@ -754,20 +756,20 @@ impl CreditFacility {
     pub(crate) fn record_interest_accrual(
         &mut self,
         audit_info: AuditInfo,
-    ) -> Result<CreditFacilityInterestAccrual, CreditFacilityError> {
-        let accrual_data = self
+    ) -> Result<CreditFacilityInterestAccrualsPosting, CreditFacilityError> {
+        let accruals_posting_data = self
             .interest_accrual_in_progress()
             .expect("accrual not found")
-            .accrual_data();
-        let interest_accrual = accrual_data
-            .map(|data| CreditFacilityInterestAccrual::from((data, self.account_ids)))
+            .accruals_posting_data();
+        let interest_accrual = accruals_posting_data
+            .map(|data| CreditFacilityInterestAccrualsPosting::from((data, self.account_ids)))
             .ok_or(CreditFacilityError::InterestAccrualNotCompletedYet)?;
 
         let idx = {
             let accrual = self
                 .interest_accrual_in_progress()
                 .expect("accrual not found");
-            accrual.record_accrual(interest_accrual.clone(), audit_info.clone());
+            accrual.accumulate_unposted_accruals(interest_accrual.clone(), audit_info.clone());
             accrual.idx
         };
         self.events
@@ -776,14 +778,14 @@ impl CreditFacility {
                 tx_id: interest_accrual.tx_id,
                 tx_ref: interest_accrual.tx_ref.to_string(),
                 amount: interest_accrual.interest,
-                accrued_at: interest_accrual.accrued_at,
+                posted_at: interest_accrual.posted_at,
                 audit_info,
             });
 
         Ok(interest_accrual)
     }
 
-    pub fn interest_accrual_in_progress(&mut self) -> Option<&mut InterestAccrual> {
+    pub fn interest_accrual_in_progress(&mut self) -> Option<&mut InterestAccrualCycle> {
         if let Some(id) = self
             .events
             .iter_all()
@@ -1380,7 +1382,9 @@ mod test {
             .interest_accruals
             .new_entities_mut()
             .drain(..)
-            .map(|new| InterestAccrual::try_from_events(new.into_events()).expect("hydrate failed"))
+            .map(|new| {
+                InterestAccrualCycle::try_from_events(new.into_events()).expect("hydrate failed")
+            })
             .collect::<Vec<_>>();
         credit_facility
             .interest_accruals
@@ -1444,19 +1448,19 @@ mod test {
         let mut events = initial_events();
         events.extend([
             CreditFacilityEvent::InterestAccrualConcluded {
-                idx: InterestAccrualIdx::FIRST,
+                idx: InterestAccrualCycleIdx::FIRST,
                 tx_id: LedgerTxId::new(),
                 tx_ref: "".to_string(),
                 amount: UsdCents::from(10),
-                accrued_at: Utc::now(),
+                posted_at: Utc::now(),
                 audit_info: dummy_audit_info(),
             },
             CreditFacilityEvent::InterestAccrualConcluded {
-                idx: InterestAccrualIdx::FIRST.next(),
+                idx: InterestAccrualCycleIdx::FIRST.next(),
                 tx_id: LedgerTxId::new(),
                 tx_ref: "".to_string(),
                 amount: UsdCents::from(20),
-                accrued_at: Utc::now(),
+                posted_at: Utc::now(),
                 audit_info: dummy_audit_info(),
             },
         ]);
@@ -1715,7 +1719,7 @@ mod test {
             let _ = credit_facility.record_interest_accrual(dummy_audit_info());
 
             let accrual_starts_at = next_accrual_period.unwrap().start;
-            let id = InterestAccrualId::new();
+            let id = InterestAccrualCycleId::new();
             credit_facility
                 .events
                 .push(CreditFacilityEvent::InterestAccrualStarted {
@@ -1724,7 +1728,7 @@ mod test {
                     started_at: accrual_starts_at,
                     audit_info: dummy_audit_info(),
                 });
-            let new_accrual = NewInterestAccrual::builder()
+            let new_accrual = NewInterestAccrualCycle::builder()
                 .id(id)
                 .credit_facility_id(credit_facility.id)
                 .idx(new_idx)
@@ -2102,12 +2106,12 @@ mod test {
                 )
                 .unwrap();
 
-            let mut accrual_data: Option<InterestAccrualData> = None;
-            while accrual_data.is_none() {
+            let mut accruals_posting_data: Option<InterestAccrualsPostingData> = None;
+            while accruals_posting_data.is_none() {
                 let outstanding = credit_facility.total_outstanding();
                 let accrual = credit_facility.interest_accrual_in_progress().unwrap();
                 accrual.record_incurrence(outstanding, dummy_audit_info());
-                accrual_data = accrual.accrual_data();
+                accruals_posting_data = accrual.accruals_posting_data();
             }
             credit_facility
                 .record_interest_accrual(dummy_audit_info())

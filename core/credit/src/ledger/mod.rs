@@ -1167,13 +1167,13 @@ impl CreditLedger {
     pub async fn record_interest_accrual(
         &self,
         op: es_entity::DbOp<'_>,
-        CreditFacilityInterestAccrual {
+        CreditFacilityInterestAccrualsPosting {
             tx_id,
             tx_ref,
             interest,
             credit_facility_account_ids,
-            accrued_at,
-        }: CreditFacilityInterestAccrual,
+            posted_at,
+        }: CreditFacilityInterestAccrualsPosting,
     ) -> Result<(), CreditLedgerError> {
         let mut op = self.cala.ledger_operation_from_db_op(op);
         self.cala
@@ -1190,7 +1190,7 @@ impl CreditLedger {
                         .interest_account_id,
                     interest_amount: interest.to_usd(),
                     external_id: tx_ref,
-                    effective: accrued_at.date_naive(),
+                    effective: posted_at.date_naive(),
                 },
             )
             .await?;

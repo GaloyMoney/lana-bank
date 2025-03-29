@@ -10,7 +10,7 @@ use outbox::OutboxEventMarker;
 use crate::{
     credit_facility::CreditFacilityRepo, ledger::*, CoreCreditAction, CoreCreditError,
     CoreCreditEvent, CoreCreditObject, CreditFacilityId, CreditFacilityInterestIncurrence,
-    InterestAccrualIdx, InterestPeriod,
+    InterestAccrualCycleIdx, InterestPeriod,
 };
 
 #[derive(Clone, Serialize, Deserialize)]
@@ -93,7 +93,7 @@ where
 struct ConfirmedIncurrence {
     incurrence: CreditFacilityInterestIncurrence,
     next_period: Option<InterestPeriod>,
-    accrual_idx: InterestAccrualIdx,
+    accrual_idx: InterestAccrualCycleIdx,
 }
 
 pub struct CreditFacilityProcessingJobRunner<Perms, E>
