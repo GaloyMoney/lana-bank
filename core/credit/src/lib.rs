@@ -379,7 +379,7 @@ where
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         credit_facility_id: CreditFacilityId,
         amount: UsdCents,
-    ) -> Result<Disbursal, CoreCreditError> {
+    ) -> Result<Option<Disbursal>, CoreCreditError> {
         let audit_info = self
             .subject_can_initiate_disbursal(sub, true)
             .await?
@@ -395,7 +395,11 @@ where
         let mut db = self.credit_facility_repo.begin_op().await?;
         let now = crate::time::now();
         let new_disbursal =
-            credit_facility.initiate_disbursal(amount, now, price, None, audit_info)?;
+            match credit_facility.initiate_disbursal(amount, now, price, None, audit_info) {
+                Idempotent::Executed(new_disbursal) => new_disbursal,
+                _ => return Ok(None),
+            };
+
         self.governance
             .start_process(
                 &mut db,
@@ -416,7 +420,7 @@ where
             .initiate_disbursal(db, disbursal.id, disbursal.amount, disbursal.account_ids)
             .await?;
 
-        Ok(disbursal)
+        Ok(Some(disbursal))
     }
 
     #[instrument(name = "credit_facility.find_disbursal_by_id", skip(self), err)]

@@ -614,16 +614,21 @@ impl CreditFacility {
         price: PriceOfOneBTC,
         approval_process_id: Option<ApprovalProcessId>,
         audit_info: AuditInfo,
-    ) -> Result<NewDisbursal, CreditFacilityError> {
+    ) -> Idempotent<NewDisbursal> {
         if let Some(matures_at) = self.matures_at {
             if initiated_at > matures_at {
-                return Err(CreditFacilityError::DisbursalPastMaturityDate);
+                return Idempotent::Ignored;
             }
         }
 
-        self.projected_cvl_data_for_disbursal(amount)
+        if self
+            .projected_cvl_data_for_disbursal(amount)
             .cvl(price)
-            .check_disbursal_allowed(self.terms)?;
+            .check_disbursal_allowed(self.terms)
+            .is_err()
+        {
+            return Idempotent::Ignored;
+        };
 
         let idx = self
             .events
@@ -645,17 +650,19 @@ impl CreditFacility {
             audit_info: audit_info.clone(),
         });
 
-        Ok(NewDisbursal::builder()
-            .id(disbursal_id)
-            .approval_process_id(approval_process_id)
-            .credit_facility_id(self.id)
-            .idx(idx)
-            .amount(amount)
-            .account_ids(self.account_ids)
-            .disbursal_credit_account_id(self.disbursal_credit_account_id)
-            .audit_info(audit_info)
-            .build()
-            .expect("could not build new disbursal"))
+        Idempotent::Executed(
+            NewDisbursal::builder()
+                .id(disbursal_id)
+                .approval_process_id(approval_process_id)
+                .credit_facility_id(self.id)
+                .idx(idx)
+                .amount(amount)
+                .account_ids(self.account_ids)
+                .disbursal_credit_account_id(self.disbursal_credit_account_id)
+                .audit_info(audit_info)
+                .build()
+                .expect("could not build new disbursal"),
+        )
     }
 
     pub(crate) fn disbursal_concluded(
@@ -1436,7 +1443,7 @@ mod test {
                 None,
                 dummy_audit_info()
             )
-            .is_ok());
+            .did_execute());
     }
 
     #[test]
