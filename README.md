@@ -42,12 +42,9 @@ For enterprise inquiries, contact **[biz@galoy.io](mailto:biz@galoy.io)**.
 
 Set them in your `.env` file
 
-#### Mandatory
-
-- `TF_VAR_sa_creds`: Service account credentials into GCP (BigQuery & Documents access)
-
 #### Optional
 
+- `TF_VAR_sa_creds`: Service account credentials into GCP (BigQuery & Documents access)
 - `SUMSUB_KEY`: SumSub API key for identity verification
 - `SUMSUB_SECRET`: SumSub API secret for identity verification
 

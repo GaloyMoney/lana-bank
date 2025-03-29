@@ -15,8 +15,6 @@ use audit::AuditSvc;
 use authz::PermissionCheck;
 use outbox::{Outbox, OutboxEventMarker};
 
-use governance::{GovernanceAction, GovernanceEvent, GovernanceObject};
-
 pub use entity::Customer;
 use entity::*;
 use error::*;
@@ -29,7 +27,7 @@ use publisher::*;
 pub struct Customers<Perms, E>
 where
     Perms: PermissionCheck,
-    E: OutboxEventMarker<CoreCustomerEvent> + OutboxEventMarker<GovernanceEvent>,
+    E: OutboxEventMarker<CoreCustomerEvent>,
 {
     authz: Perms,
     outbox: Outbox<E>,
@@ -39,7 +37,7 @@ where
 impl<Perms, E> Clone for Customers<Perms, E>
 where
     Perms: PermissionCheck,
-    E: OutboxEventMarker<CoreCustomerEvent> + OutboxEventMarker<GovernanceEvent>,
+    E: OutboxEventMarker<CoreCustomerEvent>,
 {
     fn clone(&self) -> Self {
         Self {
@@ -53,11 +51,9 @@ where
 impl<Perms, E> Customers<Perms, E>
 where
     Perms: PermissionCheck,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
-        From<CoreCustomerAction> + From<GovernanceAction>,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object:
-        From<CustomerObject> + From<GovernanceObject>,
-    E: OutboxEventMarker<CoreCustomerEvent> + OutboxEventMarker<GovernanceEvent>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCustomerAction>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CustomerObject>,
+    E: OutboxEventMarker<CoreCustomerEvent>,
 {
     pub fn new(pool: &sqlx::PgPool, authz: &Perms, outbox: &Outbox<E>) -> Self {
         let publisher = CustomerPublisher::new(outbox);
@@ -276,6 +272,8 @@ where
             .await?;
 
         if customer
+            // TODO: this is wrong, we should pass the SumSub verification level
+            // because we also have KYB approval
             .approve_kyc(KycLevel::Basic, applicant_id, audit_info)
             .did_execute()
         {
