@@ -2446,13 +2446,13 @@ export type DisbursalsQueryVariables = Exact<{
 
 export type DisbursalsQuery = { __typename?: 'Query', disbursals: { __typename?: 'CreditFacilityDisbursalConnection', edges: Array<{ __typename?: 'CreditFacilityDisbursalEdge', cursor: string, node: { __typename?: 'CreditFacilityDisbursal', id: string, disbursalId: string, amount: UsdCents, createdAt: any, status: DisbursalStatus } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, startCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean } } };
 
-export type GeneralLedgerEntriesQueryVariables = Exact<{
+export type JournalEntriesQueryVariables = Exact<{
   first: Scalars['Int']['input'];
   after?: InputMaybe<Scalars['String']['input']>;
 }>;
 
 
-export type GeneralLedgerEntriesQuery = { __typename?: 'Query', generalLedgerEntries: { __typename?: 'GeneralLedgerEntryConnection', edges: Array<{ __typename?: 'GeneralLedgerEntryEdge', cursor: string, node: { __typename: 'BtcGeneralLedgerEntry', id: string, entryId: string, entryType: string, description?: string | null, direction: DebitOrCredit, createdAt: any, btcAmount: Satoshis } | { __typename: 'UsdGeneralLedgerEntry', id: string, entryId: string, entryType: string, description?: string | null, direction: DebitOrCredit, createdAt: any, usdAmount: UsdCents } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, startCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean } } };
+export type JournalEntriesQuery = { __typename?: 'Query', journalEntries: { __typename?: 'JournalEntryConnection', edges: Array<{ __typename?: 'JournalEntryEdge', cursor: string, node: { __typename?: 'JournalEntry', id: string, entryId: string, entryType: string, description?: string | null, direction: DebitOrCredit, createdAt: any, amount: { __typename?: 'BtcAmount', btc: Satoshis } | { __typename?: 'UsdAmount', usd: UsdCents } } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, startCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean } } };
 
 export type LedgerAccountByCodeQueryVariables = Exact<{
   code: Scalars['String']['input'];
@@ -4979,30 +4979,25 @@ export function useDisbursalsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions
 export type DisbursalsQueryHookResult = ReturnType<typeof useDisbursalsQuery>;
 export type DisbursalsLazyQueryHookResult = ReturnType<typeof useDisbursalsLazyQuery>;
 export type DisbursalsQueryResult = Apollo.QueryResult<DisbursalsQuery, DisbursalsQueryVariables>;
-export const GeneralLedgerEntriesDocument = gql`
-    query GeneralLedgerEntries($first: Int!, $after: String) {
-  generalLedgerEntries(first: $first, after: $after) {
+export const JournalEntriesDocument = gql`
+    query JournalEntries($first: Int!, $after: String) {
+  journalEntries(first: $first, after: $after) {
     edges {
       cursor
       node {
-        __typename
-        ... on BtcGeneralLedgerEntry {
-          id
-          entryId
-          entryType
-          description
-          direction
-          createdAt
-          btcAmount
-        }
-        ... on UsdGeneralLedgerEntry {
-          id
-          entryId
-          entryType
-          description
-          direction
-          createdAt
-          usdAmount
+        id
+        entryId
+        entryType
+        description
+        direction
+        createdAt
+        amount {
+          ... on UsdAmount {
+            usd
+          }
+          ... on BtcAmount {
+            btc
+          }
         }
       }
     }
@@ -5017,33 +5012,33 @@ export const GeneralLedgerEntriesDocument = gql`
     `;
 
 /**
- * __useGeneralLedgerEntriesQuery__
+ * __useJournalEntriesQuery__
  *
- * To run a query within a React component, call `useGeneralLedgerEntriesQuery` and pass it any options that fit your needs.
- * When your component renders, `useGeneralLedgerEntriesQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * To run a query within a React component, call `useJournalEntriesQuery` and pass it any options that fit your needs.
+ * When your component renders, `useJournalEntriesQuery` returns an object from Apollo Client that contains loading, error, and data properties
  * you can use to render your UI.
  *
  * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
  *
  * @example
- * const { data, loading, error } = useGeneralLedgerEntriesQuery({
+ * const { data, loading, error } = useJournalEntriesQuery({
  *   variables: {
  *      first: // value for 'first'
  *      after: // value for 'after'
  *   },
  * });
  */
-export function useGeneralLedgerEntriesQuery(baseOptions: Apollo.QueryHookOptions<GeneralLedgerEntriesQuery, GeneralLedgerEntriesQueryVariables>) {
+export function useJournalEntriesQuery(baseOptions: Apollo.QueryHookOptions<JournalEntriesQuery, JournalEntriesQueryVariables>) {
         const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<GeneralLedgerEntriesQuery, GeneralLedgerEntriesQueryVariables>(GeneralLedgerEntriesDocument, options);
+        return Apollo.useQuery<JournalEntriesQuery, JournalEntriesQueryVariables>(JournalEntriesDocument, options);
       }
-export function useGeneralLedgerEntriesLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GeneralLedgerEntriesQuery, GeneralLedgerEntriesQueryVariables>) {
+export function useJournalEntriesLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<JournalEntriesQuery, JournalEntriesQueryVariables>) {
           const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<GeneralLedgerEntriesQuery, GeneralLedgerEntriesQueryVariables>(GeneralLedgerEntriesDocument, options);
+          return Apollo.useLazyQuery<JournalEntriesQuery, JournalEntriesQueryVariables>(JournalEntriesDocument, options);
         }
-export type GeneralLedgerEntriesQueryHookResult = ReturnType<typeof useGeneralLedgerEntriesQuery>;
-export type GeneralLedgerEntriesLazyQueryHookResult = ReturnType<typeof useGeneralLedgerEntriesLazyQuery>;
-export type GeneralLedgerEntriesQueryResult = Apollo.QueryResult<GeneralLedgerEntriesQuery, GeneralLedgerEntriesQueryVariables>;
+export type JournalEntriesQueryHookResult = ReturnType<typeof useJournalEntriesQuery>;
+export type JournalEntriesLazyQueryHookResult = ReturnType<typeof useJournalEntriesLazyQuery>;
+export type JournalEntriesQueryResult = Apollo.QueryResult<JournalEntriesQuery, JournalEntriesQueryVariables>;
 export const LedgerAccountByCodeDocument = gql`
     query LedgerAccountByCode($code: String!, $first: Int!, $after: String) {
   ledgerAccountByCode(code: $code) {

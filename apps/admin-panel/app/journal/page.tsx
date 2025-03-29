@@ -11,7 +11,7 @@ import {
   CardTitle,
 } from "@lana/web/ui/card"
 
-import { GeneralLedgerEntry, useGeneralLedgerEntriesQuery } from "@/lib/graphql/generated"
+import { JournalEntry, useJournalEntriesQuery } from "@/lib/graphql/generated"
 
 import { formatDate, formatDirection } from "@/lib/utils"
 
@@ -23,29 +23,24 @@ import PaginatedTable, {
 import Balance from "@/components/balance/balance"
 
 gql`
-  query GeneralLedgerEntries($first: Int!, $after: String) {
-    generalLedgerEntries(first: $first, after: $after) {
+  query JournalEntries($first: Int!, $after: String) {
+    journalEntries(first: $first, after: $after) {
       edges {
         cursor
         node {
-          __typename
-          ... on BtcGeneralLedgerEntry {
-            id
-            entryId
-            entryType
-            description
-            direction
-            createdAt
-            btcAmount
-          }
-          ... on UsdGeneralLedgerEntry {
-            id
-            entryId
-            entryType
-            description
-            direction
-            createdAt
-            usdAmount
+          id
+          entryId
+          entryType
+          description
+          direction
+          createdAt
+          amount {
+            ... on UsdAmount {
+              usd
+            }
+            ... on BtcAmount {
+              btc
+            }
           }
         }
       }
@@ -59,16 +54,16 @@ gql`
   }
 `
 
-const GeneralLedgerPage: React.FC = () => {
-  const t = useTranslations("GeneralLedger")
+const JournalPage: React.FC = () => {
+  const t = useTranslations("Journal")
 
-  const { data, loading, error, fetchMore } = useGeneralLedgerEntriesQuery({
+  const { data, loading, error, fetchMore } = useJournalEntriesQuery({
     variables: {
       first: DEFAULT_PAGESIZE,
     },
   })
 
-  const columns: Column<GeneralLedgerEntry>[] = [
+  const columns: Column<JournalEntry>[] = [
     {
       key: "createdAt",
       label: t("table.createdAt"),
@@ -84,13 +79,13 @@ const GeneralLedgerPage: React.FC = () => {
       render: (direction: string) => formatDirection(direction),
     },
     {
-      key: "__typename",
+      key: "amount",
       label: t("table.amount"),
-      render: (_: string | undefined, entry: GeneralLedgerEntry) => {
-        if (entry.__typename === "BtcGeneralLedgerEntry") {
-          return <Balance amount={entry.btcAmount} currency="btc" />
-        } else if (entry.__typename === "UsdGeneralLedgerEntry") {
-          return <Balance amount={entry.usdAmount} currency="usd" />
+      render: (amount) => {
+        if (amount.__typename === "UsdAmount") {
+          return <Balance currency="usd" amount={amount.usd} />
+        } else if (amount.__typename === "BtcAmount") {
+          return <Balance currency="btc" amount={amount.btc} />
         }
       },
     },
@@ -114,9 +109,9 @@ const GeneralLedgerPage: React.FC = () => {
         {error ? (
           <p className="text-destructive text-sm">{error?.message}</p>
         ) : (
-          <PaginatedTable<GeneralLedgerEntry>
+          <PaginatedTable<JournalEntry>
             columns={columns}
-            data={data?.generalLedgerEntries as PaginatedData<GeneralLedgerEntry>}
+            data={data?.journalEntries as PaginatedData<JournalEntry>}
             pageSize={DEFAULT_PAGESIZE}
             fetchMore={async (cursor) => fetchMore({ variables: { after: cursor } })}
             loading={loading}
@@ -128,4 +123,4 @@ const GeneralLedgerPage: React.FC = () => {
   )
 }
 
-export default GeneralLedgerPage
+export default JournalPage

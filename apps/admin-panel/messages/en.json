@@ -43,7 +43,7 @@
       "auditLogs": "Audit Logs",
       "committees": "Committees",
       "chartOfAccounts": "Chart of Accounts",
-      "generalLedger": "General Ledger",
+      "journal": "Journal",
       "users": "Users",
       "balanceSheet": "Balance Sheet",
       "cashFlow": "Cash Flow",
@@ -1391,10 +1391,10 @@
       }
     }
   },
-  "GeneralLedger": {
-    "title": "General Ledger",
-    "description": "A complete record of financial transactions over the general journal",
-    "noTableData": "No entries present in the general ledger",
+  "Journal": {
+    "title": "Journal",
+    "description": "A complete record of financial transactions over the journal",
+    "noTableData": "No entries present in the journal",
     "table": {
       "createdAt": "Created At",
       "entryType": "Entry Type",
@@ -1404,3 +1404,4 @@
     }
   }
 }
+
