@@ -31,16 +31,15 @@
         }
     },
     "features": {
-        "ghcr.io/devcontainers/features/rust:1": {
-            "version": "latest"
-        },
-        "ghcr.io/devcontainers/features/node:1": {
-            "version": "lts"
-        },
         "ghcr.io/devcontainers/features/docker-in-docker:2": {}
     },
     "forwardPorts": [
         3000,
         8000
-    ]
+    ],
+    "initializeCommand": ". /etc/profile.d/nix.sh",
+    "updateContentCommand": ". /etc/profile.d/nix.sh && nix develop",
+    "remoteEnv": {
+        "PATH": "${containerEnv:PATH}:/nix/var/nix/profiles/default/bin:/home/vscode/.nix-profile/bin"
+    }
 }
