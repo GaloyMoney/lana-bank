@@ -122,8 +122,8 @@ ymd() {
         disbursalCreditAccountId: $disbursal_credit_account_id,
         terms: {
           annualRate: "12",
-          accrualInterval: "END_OF_MONTH",
-          incurrenceInterval: "END_OF_DAY",
+          accrualCycleInterval: "END_OF_MONTH",
+          accrualInterval: "END_OF_DAY",
           oneTimeFeeRate: "5",
           duration: { period: "MONTHS", units: 3 },
           interestDueDuration: { period: "DAYS", units: 0 },

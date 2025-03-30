@@ -9,7 +9,7 @@ pub use lana_app::terms::{
 pub struct TermValues {
     annual_rate: AnnualRatePct,
     accrual_interval: InterestInterval,
-    incurrence_interval: InterestInterval,
+    accrual_cycle_interval: InterestInterval,
     one_time_fee_rate: OneTimeFeeRatePct,
     duration: Duration,
     liquidation_cvl: CVLPct,
@@ -21,8 +21,8 @@ impl From<DomainTermValues> for TermValues {
     fn from(values: DomainTermValues) -> Self {
         Self {
             annual_rate: values.annual_rate,
-            accrual_interval: values.accrual_cycle_interval,
-            incurrence_interval: values.accrual_interval,
+            accrual_interval: values.accrual_interval,
+            accrual_cycle_interval: values.accrual_cycle_interval,
             one_time_fee_rate: values.one_time_fee_rate,
             duration: values.duration.into(),
             liquidation_cvl: values.liquidation_cvl,

@@ -4,7 +4,7 @@ query TermsTemplateGet($id: UUID!) {
     name
     values {
       annualRate
-      accrualInterval
+      accrualCycleInterval
       duration {
         period
         units

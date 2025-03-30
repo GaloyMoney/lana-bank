@@ -341,7 +341,7 @@ type Subject {
 type TermValues {
 	annualRate: AnnualRatePct!
 	accrualInterval: InterestInterval!
-	incurrenceInterval: InterestInterval!
+	accrualCycleInterval: InterestInterval!
 	oneTimeFeeRate: OneTimeFeeRatePct!
 	duration: Duration!
 	liquidationCvl: CVLPct!

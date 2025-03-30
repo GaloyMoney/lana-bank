@@ -1493,7 +1493,7 @@ type SystemApproval {
 type TermValues {
 	annualRate: AnnualRatePct!
 	accrualInterval: InterestInterval!
-	incurrenceInterval: InterestInterval!
+	accrualCycleInterval: InterestInterval!
 	oneTimeFeeRate: OneTimeFeeRatePct!
 	duration: Duration!
 	liquidationCvl: CVLPct!
@@ -1504,7 +1504,7 @@ type TermValues {
 input TermsInput {
 	annualRate: AnnualRatePct!
 	accrualInterval: InterestInterval!
-	incurrenceInterval: InterestInterval!
+	accrualCycleInterval: InterestInterval!
 	liquidationCvl: CVLPct!
 	oneTimeFeeRate: OneTimeFeeRatePct!
 	duration: DurationInput!
@@ -1526,7 +1526,7 @@ input TermsTemplateCreateInput {
 	name: String!
 	annualRate: AnnualRatePct!
 	accrualInterval: InterestInterval!
-	incurrenceInterval: InterestInterval!
+	accrualCycleInterval: InterestInterval!
 	oneTimeFeeRate: OneTimeFeeRatePct!
 	duration: DurationInput!
 	interestDueDuration: DurationInput!
@@ -1543,7 +1543,7 @@ input TermsTemplateUpdateInput {
 	id: UUID!
 	annualRate: AnnualRatePct!
 	accrualInterval: InterestInterval!
-	incurrenceInterval: InterestInterval!
+	accrualCycleInterval: InterestInterval!
 	oneTimeFeeRate: OneTimeFeeRatePct!
 	liquidationCvl: CVLPct!
 	duration: DurationInput!

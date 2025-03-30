@@ -2,7 +2,7 @@ mutation {
   currentTermsUpdate(
     input: {
       annualRate: "12"
-      accrualInterval: END_OF_MONTH
+      accrualCycleInterval: END_OF_MONTH
       duration: { period: MONTHS, units: 3 }
       liquidationCvl: "105"
       marginCallCvl: "125"
