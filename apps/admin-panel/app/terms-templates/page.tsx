@@ -27,8 +27,8 @@ gql`
     subjectCanUpdateTermsTemplate
     values {
       annualRate
+      accrualCycleInterval
       accrualInterval
-      incurrenceInterval
       liquidationCvl
       marginCallCvl
       initialCvl

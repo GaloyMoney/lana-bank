@@ -73,8 +73,8 @@ gql`
     }
     creditFacilityTerms {
       annualRate
+      accrualCycleInterval
       accrualInterval
-      incurrenceInterval
       liquidationCvl
       marginCallCvl
       initialCvl

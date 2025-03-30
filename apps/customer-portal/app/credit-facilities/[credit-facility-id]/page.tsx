@@ -48,8 +48,8 @@ gql`
       }
       creditFacilityTerms {
         annualRate
+        accrualCycleInterval
         accrualInterval
-        incurrenceInterval
         oneTimeFeeRate
         duration {
           period

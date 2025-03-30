@@ -31,12 +31,12 @@ const TermsTemplateDetailsCard: React.FC<TermsTemplateDetailsProps> = ({
       )}`,
     },
     {
-      label: t("fields.accrualInterval"),
-      value: formatInterval(termsTemplate.values.accrualInterval),
+      label: t("fields.accrualCycleInterval"),
+      value: formatInterval(termsTemplate.values.accrualCycleInterval),
     },
     {
-      label: t("fields.incurrenceInterval"),
-      value: formatInterval(termsTemplate.values.incurrenceInterval),
+      label: t("fields.accrualInterval"),
+      value: formatInterval(termsTemplate.values.accrualInterval),
     },
     {
       label: t("fields.annualRate"),

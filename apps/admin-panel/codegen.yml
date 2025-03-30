@@ -193,8 +193,8 @@ generates:
 
             TermValues:
               annualRate: "faker.number.int({ min: 5, max: 20 })"
+              accrualCycleInterval: "mockEnums.interestInterval()"
               accrualInterval: "mockEnums.interestInterval()"
-              incurrenceInterval: "mockEnums.interestInterval()"
               liquidationCvl: "faker.number.int({ min: 85, max: 88 })"
               marginCallCvl: "faker.number.int({ min: 90, max: 92 })"
               initialCvl: "faker.number.int({ min: 95, max: 98 })"

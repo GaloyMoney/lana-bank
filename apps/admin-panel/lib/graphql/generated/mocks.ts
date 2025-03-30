@@ -1893,10 +1893,10 @@ export const mockTermValues = (overrides?: Partial<TermValues>, _relationshipsTo
     relationshipsToOmit.add('TermValues');
     return {
         __typename: 'TermValues',
+        accrualCycleInterval: overrides && overrides.hasOwnProperty('accrualCycleInterval') ? overrides.accrualCycleInterval! : mockEnums.interestInterval(),
         accrualInterval: overrides && overrides.hasOwnProperty('accrualInterval') ? overrides.accrualInterval! : mockEnums.interestInterval(),
         annualRate: overrides && overrides.hasOwnProperty('annualRate') ? overrides.annualRate! : faker.number.int({ min: 5, max: 20 }),
         duration: overrides && overrides.hasOwnProperty('duration') ? overrides.duration! : relationshipsToOmit.has('Duration') ? {} as Duration : mockDuration({}, relationshipsToOmit),
-        incurrenceInterval: overrides && overrides.hasOwnProperty('incurrenceInterval') ? overrides.incurrenceInterval! : mockEnums.interestInterval(),
         initialCvl: overrides && overrides.hasOwnProperty('initialCvl') ? overrides.initialCvl! : faker.number.int({ min: 95, max: 98 }),
         liquidationCvl: overrides && overrides.hasOwnProperty('liquidationCvl') ? overrides.liquidationCvl! : faker.number.int({ min: 85, max: 88 }),
         marginCallCvl: overrides && overrides.hasOwnProperty('marginCallCvl') ? overrides.marginCallCvl! : faker.number.int({ min: 90, max: 92 }),
@@ -1908,10 +1908,10 @@ export const mockTermsInput = (overrides?: Partial<TermsInput>, _relationshipsTo
     const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
     relationshipsToOmit.add('TermsInput');
     return {
+        accrualCycleInterval: overrides && overrides.hasOwnProperty('accrualCycleInterval') ? overrides.accrualCycleInterval! : InterestInterval.EndOfDay,
         accrualInterval: overrides && overrides.hasOwnProperty('accrualInterval') ? overrides.accrualInterval! : InterestInterval.EndOfDay,
         annualRate: overrides && overrides.hasOwnProperty('annualRate') ? overrides.annualRate! : generateMockValue.int(),
         duration: overrides && overrides.hasOwnProperty('duration') ? overrides.duration! : relationshipsToOmit.has('DurationInput') ? {} as DurationInput : mockDurationInput({}, relationshipsToOmit),
-        incurrenceInterval: overrides && overrides.hasOwnProperty('incurrenceInterval') ? overrides.incurrenceInterval! : InterestInterval.EndOfDay,
         initialCvl: overrides && overrides.hasOwnProperty('initialCvl') ? overrides.initialCvl! : generateMockValue.int(),
         interestDueDuration: overrides && overrides.hasOwnProperty('interestDueDuration') ? overrides.interestDueDuration! : relationshipsToOmit.has('DurationInput') ? {} as DurationInput : mockDurationInput({}, relationshipsToOmit),
         liquidationCvl: overrides && overrides.hasOwnProperty('liquidationCvl') ? overrides.liquidationCvl! : generateMockValue.int(),
@@ -1938,10 +1938,10 @@ export const mockTermsTemplateCreateInput = (overrides?: Partial<TermsTemplateCr
     const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
     relationshipsToOmit.add('TermsTemplateCreateInput');
     return {
+        accrualCycleInterval: overrides && overrides.hasOwnProperty('accrualCycleInterval') ? overrides.accrualCycleInterval! : InterestInterval.EndOfDay,
         accrualInterval: overrides && overrides.hasOwnProperty('accrualInterval') ? overrides.accrualInterval! : InterestInterval.EndOfDay,
         annualRate: overrides && overrides.hasOwnProperty('annualRate') ? overrides.annualRate! : generateMockValue.int(),
         duration: overrides && overrides.hasOwnProperty('duration') ? overrides.duration! : relationshipsToOmit.has('DurationInput') ? {} as DurationInput : mockDurationInput({}, relationshipsToOmit),
-        incurrenceInterval: overrides && overrides.hasOwnProperty('incurrenceInterval') ? overrides.incurrenceInterval! : InterestInterval.EndOfDay,
         initialCvl: overrides && overrides.hasOwnProperty('initialCvl') ? overrides.initialCvl! : generateMockValue.int(),
         interestDueDuration: overrides && overrides.hasOwnProperty('interestDueDuration') ? overrides.interestDueDuration! : relationshipsToOmit.has('DurationInput') ? {} as DurationInput : mockDurationInput({}, relationshipsToOmit),
         liquidationCvl: overrides && overrides.hasOwnProperty('liquidationCvl') ? overrides.liquidationCvl! : generateMockValue.int(),
@@ -1964,11 +1964,11 @@ export const mockTermsTemplateUpdateInput = (overrides?: Partial<TermsTemplateUp
     const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
     relationshipsToOmit.add('TermsTemplateUpdateInput');
     return {
+        accrualCycleInterval: overrides && overrides.hasOwnProperty('accrualCycleInterval') ? overrides.accrualCycleInterval! : InterestInterval.EndOfDay,
         accrualInterval: overrides && overrides.hasOwnProperty('accrualInterval') ? overrides.accrualInterval! : InterestInterval.EndOfDay,
         annualRate: overrides && overrides.hasOwnProperty('annualRate') ? overrides.annualRate! : generateMockValue.int(),
         duration: overrides && overrides.hasOwnProperty('duration') ? overrides.duration! : relationshipsToOmit.has('DurationInput') ? {} as DurationInput : mockDurationInput({}, relationshipsToOmit),
         id: overrides && overrides.hasOwnProperty('id') ? overrides.id! : generateMockValue.uuid(),
-        incurrenceInterval: overrides && overrides.hasOwnProperty('incurrenceInterval') ? overrides.incurrenceInterval! : InterestInterval.EndOfDay,
         initialCvl: overrides && overrides.hasOwnProperty('initialCvl') ? overrides.initialCvl! : generateMockValue.int(),
         interestDueDuration: overrides && overrides.hasOwnProperty('interestDueDuration') ? overrides.interestDueDuration! : relationshipsToOmit.has('DurationInput') ? {} as DurationInput : mockDurationInput({}, relationshipsToOmit),
         liquidationCvl: overrides && overrides.hasOwnProperty('liquidationCvl') ? overrides.liquidationCvl! : generateMockValue.int(),

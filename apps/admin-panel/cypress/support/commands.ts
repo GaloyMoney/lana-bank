@@ -149,8 +149,8 @@ Cypress.Commands.add(
         input: {
           name: input.name,
           annualRate: input.annualRate,
+          accrualCycleInterval: input.accrualCycleInterval,
           accrualInterval: input.accrualInterval,
-          incurrenceInterval: input.incurrenceInterval,
           duration: {
             period: input.duration.period,
             units: input.duration.units,

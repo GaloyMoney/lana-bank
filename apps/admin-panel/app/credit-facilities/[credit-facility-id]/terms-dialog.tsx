@@ -33,8 +33,8 @@ export const CreditFacilityTermsDialog: React.FC<CreditFacilityTermsDialogProps>
       value: `${creditFacility.creditFacilityTerms.annualRate}%`,
     },
     {
-      label: t("details.accrualInterval"),
-      value: formatInterval(creditFacility.creditFacilityTerms.accrualInterval),
+      label: t("details.accrualCycleInterval"),
+      value: formatInterval(creditFacility.creditFacilityTerms.accrualCycleInterval),
     },
     {
       label: t("details.targetCvl"),
@@ -53,8 +53,8 @@ export const CreditFacilityTermsDialog: React.FC<CreditFacilityTermsDialogProps>
       value: formatDate(creditFacility.createdAt),
     },
     {
-      label: t("details.incurrenceInterval"),
-      value: formatInterval(creditFacility.creditFacilityTerms.incurrenceInterval),
+      label: t("details.accrualInterval"),
+      value: formatInterval(creditFacility.creditFacilityTerms.accrualInterval),
     },
     {
       label: t("details.structuringFeeRate"),

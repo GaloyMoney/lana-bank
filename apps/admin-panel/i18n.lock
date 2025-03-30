@@ -232,12 +232,12 @@ checksums:
     CreditFacilities/CreditFacilityDetails/TermsDialog/title: c531b88ecfe7dd2337a34f4a9ed18a5f
     CreditFacilities/CreditFacilityDetails/TermsDialog/details/duration: bf6ed0974fdd4eb9d8bd3f4f8c4bd5ae
     CreditFacilities/CreditFacilityDetails/TermsDialog/details/interestRate: c80e0e607a0f82c490d098e2e49e9c0e
-    CreditFacilities/CreditFacilityDetails/TermsDialog/details/accrualInterval: cee4aec6d3ef2c7dee3f320f76648276
+    CreditFacilities/CreditFacilityDetails/TermsDialog/details/accrualCycleInterval: cee4aec6d3ef2c7dee3f320f76648276
     CreditFacilities/CreditFacilityDetails/TermsDialog/details/targetCvl: 7352e14d09b0f91c5262a2861bd6d036
     CreditFacilities/CreditFacilityDetails/TermsDialog/details/marginCallCvl: 0f3e5e753a6597188deb78325a13a1e4
     CreditFacilities/CreditFacilityDetails/TermsDialog/details/liquidationCvl: 4ff7e3744753ab1c2d1a42e60c3ebfac
     CreditFacilities/CreditFacilityDetails/TermsDialog/details/dateCreated: ee01a6e3f6a547bee9fe53f7ccdcb2cc
-    CreditFacilities/CreditFacilityDetails/TermsDialog/details/incurrenceInterval: c8e2cde343a052340b70065540b3611d
+    CreditFacilities/CreditFacilityDetails/TermsDialog/details/accrualInterval: c8e2cde343a052340b70065540b3611d
     CreditFacilities/CreditFacilityDetails/TermsDialog/details/structuringFeeRate: 6884eb8153e27f57dfff956ff8efa511
     CreditFacilities/CreditFacilityDetails/CollateralCard/title: b0dcbdb652cb11f0d9eeb77666c8ca8d
     CreditFacilities/CreditFacilityDetails/CollateralCard/details/collateralBalance: c10ffee396cceecea1fab22fb04a37d9
@@ -283,9 +283,9 @@ checksums:
     CreditFacilities/CreditFacilityDetails/CreateCreditFacility/form/labels/initialCvl: 8df908fa9a5a85cc569558a3daa9cb42
     CreditFacilities/CreditFacilityDetails/CreateCreditFacility/form/labels/duration: bf6ed0974fdd4eb9d8bd3f4f8c4bd5ae
     CreditFacilities/CreditFacilityDetails/CreateCreditFacility/form/labels/marginCallCvl: c529157844f9007ce1170fd28729c5d8
-    CreditFacilities/CreditFacilityDetails/CreateCreditFacility/form/labels/accrualInterval: cee4aec6d3ef2c7dee3f320f76648276
+    CreditFacilities/CreditFacilityDetails/CreateCreditFacility/form/labels/accrualCycleInterval: cee4aec6d3ef2c7dee3f320f76648276
     CreditFacilities/CreditFacilityDetails/CreateCreditFacility/form/labels/liquidationCvl: 9d30f40e2446a6678c2a50da22a662ba
-    CreditFacilities/CreditFacilityDetails/CreateCreditFacility/form/labels/incurrenceInterval: c8e2cde343a052340b70065540b3611d
+    CreditFacilities/CreditFacilityDetails/CreateCreditFacility/form/labels/accrualInterval: c8e2cde343a052340b70065540b3611d
     CreditFacilities/CreditFacilityDetails/CreateCreditFacility/form/labels/structuringFeeRate: 7242ef1273e70c16c9cfa50a847e292f
     CreditFacilities/CreditFacilityDetails/CreateCreditFacility/form/placeholders/facilityAmount: 3f06a0124b2929e2ec4d3d7eff4a42a6
     CreditFacilities/CreditFacilityDetails/CreateCreditFacility/form/placeholders/termsTemplate: 287c659be5bb36ec26ba953e5fc6af0c
@@ -293,9 +293,9 @@ checksums:
     CreditFacilities/CreditFacilityDetails/CreateCreditFacility/form/placeholders/initialCvl: a998ba9d61091370aa7189476c74a7d9
     CreditFacilities/CreditFacilityDetails/CreateCreditFacility/form/placeholders/duration: bf6ed0974fdd4eb9d8bd3f4f8c4bd5ae
     CreditFacilities/CreditFacilityDetails/CreateCreditFacility/form/placeholders/marginCallCvl: 952d084f0d620f22e86f7370c5224cbe
-    CreditFacilities/CreditFacilityDetails/CreateCreditFacility/form/placeholders/accrualInterval: 5078fd7a0af42113f5d64f49a5567fdc
+    CreditFacilities/CreditFacilityDetails/CreateCreditFacility/form/placeholders/accrualCycleInterval: 5078fd7a0af42113f5d64f49a5567fdc
     CreditFacilities/CreditFacilityDetails/CreateCreditFacility/form/placeholders/liquidationCvl: 5f0f77c8829d191a16ae2dbe15f74162
-    CreditFacilities/CreditFacilityDetails/CreateCreditFacility/form/placeholders/incurrenceInterval: 5795f1d331018aca96dd0458d52f944a
+    CreditFacilities/CreditFacilityDetails/CreateCreditFacility/form/placeholders/accrualInterval: 5795f1d331018aca96dd0458d52f944a
     CreditFacilities/CreditFacilityDetails/CreateCreditFacility/form/placeholders/structuringFeeRate: cabace0fe5d4058e89d57b2770469c2b
     CreditFacilities/CreditFacilityDetails/CreateCreditFacility/form/placeholders/selectPeriod: f3e492e15b52807eda6248fcdd65e36f
     CreditFacilities/CreditFacilityDetails/CreateCreditFacility/form/buttons/back: f541015a827e37cb3b1234e56bc2aa3c
@@ -375,8 +375,8 @@ checksums:
     TermsTemplates/TermsTemplateDetails/DetailsCard/fields/name: 9368b5a047572b6051f334af5aa76819
     TermsTemplates/TermsTemplateDetails/DetailsCard/fields/createdAt: 9ce495d7fc74e1a2ae86c07206a3e531
     TermsTemplates/TermsTemplateDetails/DetailsCard/fields/duration: bf6ed0974fdd4eb9d8bd3f4f8c4bd5ae
-    TermsTemplates/TermsTemplateDetails/DetailsCard/fields/accrualInterval: cee4aec6d3ef2c7dee3f320f76648276
-    TermsTemplates/TermsTemplateDetails/DetailsCard/fields/incurrenceInterval: c8e2cde343a052340b70065540b3611d
+    TermsTemplates/TermsTemplateDetails/DetailsCard/fields/accrualCycleInterval: cee4aec6d3ef2c7dee3f320f76648276
+    TermsTemplates/TermsTemplateDetails/DetailsCard/fields/accrualInterval: c8e2cde343a052340b70065540b3611d
     TermsTemplates/TermsTemplateDetails/DetailsCard/fields/annualRate: a97d9e7efb32f04f06100745281ea098
     TermsTemplates/TermsTemplateDetails/DetailsCard/fields/initialCvl: 8df908fa9a5a85cc569558a3daa9cb42
     TermsTemplates/TermsTemplateDetails/DetailsCard/fields/marginCallCvl: c529157844f9007ce1170fd28729c5d8
@@ -387,8 +387,8 @@ checksums:
     TermsTemplates/TermsTemplateDetails/UpdateTermsTemplate/description: 45fe649cda16d0441781cd976d9c456b
     TermsTemplates/TermsTemplateDetails/UpdateTermsTemplate/fields/annualRate: cda40ba773dec9bdf510201b70014393
     TermsTemplates/TermsTemplateDetails/UpdateTermsTemplate/fields/duration: bf6ed0974fdd4eb9d8bd3f4f8c4bd5ae
-    TermsTemplates/TermsTemplateDetails/UpdateTermsTemplate/fields/accrualInterval: cee4aec6d3ef2c7dee3f320f76648276
-    TermsTemplates/TermsTemplateDetails/UpdateTermsTemplate/fields/incurrenceInterval: c8e2cde343a052340b70065540b3611d
+    TermsTemplates/TermsTemplateDetails/UpdateTermsTemplate/fields/accrualCycleInterval: cee4aec6d3ef2c7dee3f320f76648276
+    TermsTemplates/TermsTemplateDetails/UpdateTermsTemplate/fields/accrualInterval: c8e2cde343a052340b70065540b3611d
     TermsTemplates/TermsTemplateDetails/UpdateTermsTemplate/fields/initialCvl: 8df908fa9a5a85cc569558a3daa9cb42
     TermsTemplates/TermsTemplateDetails/UpdateTermsTemplate/fields/marginCallCvl: c529157844f9007ce1170fd28729c5d8
     TermsTemplates/TermsTemplateDetails/UpdateTermsTemplate/fields/liquidationCvl: 9d30f40e2446a6678c2a50da22a662ba
@@ -396,8 +396,8 @@ checksums:
     TermsTemplates/TermsTemplateDetails/UpdateTermsTemplate/placeholders/annualRate: b6b7d2eb8e45df6544d97bafff21b4ea
     TermsTemplates/TermsTemplateDetails/UpdateTermsTemplate/placeholders/durationUnits: bf6ed0974fdd4eb9d8bd3f4f8c4bd5ae
     TermsTemplates/TermsTemplateDetails/UpdateTermsTemplate/placeholders/durationPeriod: f3e492e15b52807eda6248fcdd65e36f
-    TermsTemplates/TermsTemplateDetails/UpdateTermsTemplate/placeholders/accrualInterval: 5078fd7a0af42113f5d64f49a5567fdc
-    TermsTemplates/TermsTemplateDetails/UpdateTermsTemplate/placeholders/incurrenceInterval: 5795f1d331018aca96dd0458d52f944a
+    TermsTemplates/TermsTemplateDetails/UpdateTermsTemplate/placeholders/accrualCycleInterval: 5078fd7a0af42113f5d64f49a5567fdc
+    TermsTemplates/TermsTemplateDetails/UpdateTermsTemplate/placeholders/accrualInterval: 5795f1d331018aca96dd0458d52f944a
     TermsTemplates/TermsTemplateDetails/UpdateTermsTemplate/placeholders/initialCvl: a998ba9d61091370aa7189476c74a7d9
     TermsTemplates/TermsTemplateDetails/UpdateTermsTemplate/placeholders/marginCallCvl: 952d084f0d620f22e86f7370c5224cbe
     TermsTemplates/TermsTemplateDetails/UpdateTermsTemplate/placeholders/liquidationCvl: 5f0f77c8829d191a16ae2dbe15f74162
@@ -411,8 +411,8 @@ checksums:
     TermsTemplates/TermsTemplateDetails/CreateTermsTemplate/fields/name: 7da9de6504c596c0e68e047fa124015f
     TermsTemplates/TermsTemplateDetails/CreateTermsTemplate/fields/annualRate: cda40ba773dec9bdf510201b70014393
     TermsTemplates/TermsTemplateDetails/CreateTermsTemplate/fields/duration: bf6ed0974fdd4eb9d8bd3f4f8c4bd5ae
-    TermsTemplates/TermsTemplateDetails/CreateTermsTemplate/fields/accrualInterval: cee4aec6d3ef2c7dee3f320f76648276
-    TermsTemplates/TermsTemplateDetails/CreateTermsTemplate/fields/incurrenceInterval: c8e2cde343a052340b70065540b3611d
+    TermsTemplates/TermsTemplateDetails/CreateTermsTemplate/fields/accrualCycleInterval: cee4aec6d3ef2c7dee3f320f76648276
+    TermsTemplates/TermsTemplateDetails/CreateTermsTemplate/fields/accrualInterval: c8e2cde343a052340b70065540b3611d
     TermsTemplates/TermsTemplateDetails/CreateTermsTemplate/fields/initialCvl: 8df908fa9a5a85cc569558a3daa9cb42
     TermsTemplates/TermsTemplateDetails/CreateTermsTemplate/fields/marginCallCvl: c529157844f9007ce1170fd28729c5d8
     TermsTemplates/TermsTemplateDetails/CreateTermsTemplate/fields/liquidationCvl: 9d30f40e2446a6678c2a50da22a662ba
@@ -425,8 +425,8 @@ checksums:
     TermsTemplates/TermsTemplateDetails/CreateTermsTemplate/placeholders/marginCallCvl: 952d084f0d620f22e86f7370c5224cbe
     TermsTemplates/TermsTemplateDetails/CreateTermsTemplate/placeholders/liquidationCvl: 5f0f77c8829d191a16ae2dbe15f74162
     TermsTemplates/TermsTemplateDetails/CreateTermsTemplate/placeholders/oneTimeFeeRate: cabace0fe5d4058e89d57b2770469c2b
-    TermsTemplates/TermsTemplateDetails/CreateTermsTemplate/placeholders/accrualInterval: 5078fd7a0af42113f5d64f49a5567fdc
-    TermsTemplates/TermsTemplateDetails/CreateTermsTemplate/placeholders/incurrenceInterval: 5795f1d331018aca96dd0458d52f944a
+    TermsTemplates/TermsTemplateDetails/CreateTermsTemplate/placeholders/accrualCycleInterval: 5078fd7a0af42113f5d64f49a5567fdc
+    TermsTemplates/TermsTemplateDetails/CreateTermsTemplate/placeholders/accrualInterval: 5795f1d331018aca96dd0458d52f944a
     TermsTemplates/TermsTemplateDetails/CreateTermsTemplate/buttons/submit: 51fc4806b6fea86ef2d73e2e4ac897bc
     TermsTemplates/TermsTemplateDetails/CreateTermsTemplate/errors/general: dd9aef0a9c3638442bc8f6151feb33d6
     TermsTemplates/TermsTemplateDetails/CreateTermsTemplate/errors/creationFailed: c274d3a05f0f2c3a4b8d6165142e76d6

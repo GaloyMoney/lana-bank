@@ -18,8 +18,8 @@ function TermsCard({ data }: { data: NonNullable<CreditFacility> }) {
       value: `${data.creditFacilityTerms.annualRate}%`,
     },
     {
-      label: "Accrual Interval",
-      value: removeUnderscore(data.creditFacilityTerms.accrualInterval),
+      label: "Accrual Cycle Interval",
+      value: removeUnderscore(data.creditFacilityTerms.accrualCycleInterval),
     },
     {
       label: "Target/initial CVL %",
@@ -34,8 +34,8 @@ function TermsCard({ data }: { data: NonNullable<CreditFacility> }) {
       value: `${data.creditFacilityTerms.liquidationCvl}%`,
     },
     {
-      label: "Incurrence Interval",
-      value: removeUnderscore(data.creditFacilityTerms.incurrenceInterval),
+      label: "Accrual Interval",
+      value: removeUnderscore(data.creditFacilityTerms.accrualInterval),
     },
     {
       label: "Structuring Fee Rate",

@@ -360,12 +360,12 @@
         "details": {
           "duration": "Duration",
           "interestRate": "Interest (APR)",
-          "accrualInterval": "Accrual Interval",
+          "accrualCycleInterval": "Accrual Cycle Interval",
           "targetCvl": "Target/initial CVL %",
           "marginCallCvl": "Margin call CVL %",
           "liquidationCvl": "Liquidation CVL %",
           "dateCreated": "Date created",
-          "incurrenceInterval": "Incurrence Interval",
+          "accrualInterval": "Accrual Interval",
           "structuringFeeRate": "Structuring Fee Rate"
         }
       },
@@ -440,9 +440,9 @@
             "initialCvl": "Initial CVL (%)",
             "duration": "Duration",
             "marginCallCvl": "Margin Call CVL (%)",
-            "accrualInterval": "Accrual Interval",
+            "accrualCycleInterval": "Accrual Cycle Interval",
             "liquidationCvl": "Liquidation CVL (%)",
-            "incurrenceInterval": "Incurrence Interval",
+            "accrualInterval": "Accrual Interval",
             "structuringFeeRate": "Structuring Fee Rate (%)"
           },
           "placeholders": {
@@ -452,9 +452,9 @@
             "initialCvl": "Enter the initial CVL",
             "duration": "Duration",
             "marginCallCvl": "Enter the margin call CVL",
-            "accrualInterval": "Select accrual interval",
+            "accrualCycleInterval": "Select accrual cycle interval",
             "liquidationCvl": "Enter the liquidation CVL",
-            "incurrenceInterval": "Select incurrence interval",
+            "accrualInterval": "Select accrual interval",
             "structuringFeeRate": "Enter the Structuring Fee Rate",
             "selectPeriod": "Select period"
           },
@@ -623,8 +623,8 @@
           "name": "Name",
           "createdAt": "Created At",
           "duration": "Duration",
+          "accrualCycleInterval": "Accrual Cycle Interval",
           "accrualInterval": "Accrual Interval",
-          "incurrenceInterval": "Incurrence Interval",
           "annualRate": "Annual Rate",
           "initialCvl": "Initial CVL (%)",
           "marginCallCvl": "Margin Call CVL (%)",
@@ -641,8 +641,8 @@
         "fields": {
           "annualRate": "Interest Rate (APR)",
           "duration": "Duration",
+          "accrualCycleInterval": "Accrual Cycle Interval",
           "accrualInterval": "Accrual Interval",
-          "incurrenceInterval": "Incurrence Interval",
           "initialCvl": "Initial CVL (%)",
           "marginCallCvl": "Margin Call CVL (%)",
           "liquidationCvl": "Liquidation CVL (%)",
@@ -652,8 +652,8 @@
           "annualRate": "Enter the annual rate",
           "durationUnits": "Duration",
           "durationPeriod": "Select period",
+          "accrualCycleInterval": "Select accrual cycle interval",
           "accrualInterval": "Select accrual interval",
-          "incurrenceInterval": "Select incurrence interval",
           "initialCvl": "Enter the initial CVL",
           "marginCallCvl": "Enter the margin call CVL",
           "liquidationCvl": "Enter the liquidation CVL",
@@ -677,8 +677,8 @@
           "name": "Template Name",
           "annualRate": "Interest Rate (APR)",
           "duration": "Duration",
+          "accrualCycleInterval": "Accrual Cycle Interval",
           "accrualInterval": "Accrual Interval",
-          "incurrenceInterval": "Incurrence Interval",
           "initialCvl": "Initial CVL (%)",
           "marginCallCvl": "Margin Call CVL (%)",
           "liquidationCvl": "Liquidation CVL (%)",
@@ -693,8 +693,8 @@
           "marginCallCvl": "Enter the margin call CVL",
           "liquidationCvl": "Enter the liquidation CVL",
           "oneTimeFeeRate": "Enter the Structuring Fee Rate",
-          "accrualInterval": "Select accrual interval",
-          "incurrenceInterval": "Select incurrence interval"
+          "accrualCycleInterval": "Select accrual cycle interval",
+          "accrualInterval": "Select accrual interval"
         },
         "buttons": {
           "submit": "Create Terms Template"

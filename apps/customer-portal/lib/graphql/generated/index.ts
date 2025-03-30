@@ -364,10 +364,10 @@ export type Subject = {
 
 export type TermValues = {
   __typename?: 'TermValues';
-  accrualInterval: InterestInterval;
+  accrualCycleInterval: InterestInterval;
   annualRate: Scalars['AnnualRatePct']['output'];
   duration: Duration;
-  incurrenceInterval: InterestInterval;
+  accrualInterval: InterestInterval;
   initialCvl: Scalars['CVLPct']['output'];
   liquidationCvl: Scalars['CVLPct']['output'];
   marginCallCvl: Scalars['CVLPct']['output'];
@@ -415,7 +415,7 @@ export type GetCreditFacilityQueryVariables = Exact<{
 }>;
 
 
-export type GetCreditFacilityQuery = { __typename?: 'Query', creditFacility?: { __typename?: 'CreditFacility', id: string, creditFacilityId: any, facilityAmount: any, collateral: any, collateralizationState: CollateralizationState, status: CreditFacilityStatus, createdAt: any, activatedAt?: any | null, maturesAt?: any | null, disbursals: Array<{ __typename?: 'CreditFacilityDisbursal', id: string, disbursalId: any, index: any, amount: any, status: DisbursalStatus, createdAt: any }>, creditFacilityTerms: { __typename?: 'TermValues', annualRate: any, accrualInterval: InterestInterval, incurrenceInterval: InterestInterval, oneTimeFeeRate: any, liquidationCvl: any, marginCallCvl: any, initialCvl: any, duration: { __typename?: 'Duration', period: Period, units: number } }, balance: { __typename?: 'CreditFacilityBalance', facilityRemaining: { __typename?: 'FacilityRemaining', usdBalance: any }, disbursed: { __typename?: 'Disbursed', total: { __typename?: 'Total', usdBalance: any }, outstanding: { __typename?: 'Outstanding', usdBalance: any }, dueOutstanding: { __typename?: 'Outstanding', usdBalance: any } }, interest: { __typename?: 'Interest', total: { __typename?: 'Total', usdBalance: any }, outstanding: { __typename?: 'Outstanding', usdBalance: any }, dueOutstanding: { __typename?: 'Outstanding', usdBalance: any } }, collateral: { __typename?: 'Collateral', btcBalance: any }, dueOutstanding: { __typename?: 'Outstanding', usdBalance: any }, outstanding: { __typename?: 'Outstanding', usdBalance: any } }, currentCvl: { __typename?: 'FacilityCVL', total: any, disbursed: any }, repaymentPlan: Array<{ __typename?: 'CreditFacilityRepaymentInPlan', repaymentType: CreditFacilityRepaymentType, status: CreditFacilityRepaymentStatus, initial: any, outstanding: any, accrualAt: any, dueAt: any }>, transactions: Array<{ __typename?: 'CreditFacilityCollateralUpdated', satoshis: any, recordedAt: any, action: CollateralAction, txId: any } | { __typename?: 'CreditFacilityCollateralizationUpdated', state: CollateralizationState, collateral: any, outstandingInterest: any, outstandingDisbursal: any, recordedAt: any, price: any } | { __typename?: 'CreditFacilityDisbursalExecuted', cents: any, recordedAt: any, txId: any } | { __typename?: 'CreditFacilityIncrementalPayment', cents: any, recordedAt: any, txId: any } | { __typename?: 'CreditFacilityInterestAccrued', cents: any, recordedAt: any, txId: any, days: number } | { __typename?: 'CreditFacilityOrigination', cents: any, recordedAt: any, txId: any }> } | null };
+export type GetCreditFacilityQuery = { __typename?: 'Query', creditFacility?: { __typename?: 'CreditFacility', id: string, creditFacilityId: any, facilityAmount: any, collateral: any, collateralizationState: CollateralizationState, status: CreditFacilityStatus, createdAt: any, activatedAt?: any | null, maturesAt?: any | null, disbursals: Array<{ __typename?: 'CreditFacilityDisbursal', id: string, disbursalId: any, index: any, amount: any, status: DisbursalStatus, createdAt: any }>, creditFacilityTerms: { __typename?: 'TermValues', annualRate: any, accrualCycleInterval: InterestInterval, accrualInterval: InterestInterval, oneTimeFeeRate: any, liquidationCvl: any, marginCallCvl: any, initialCvl: any, duration: { __typename?: 'Duration', period: Period, units: number } }, balance: { __typename?: 'CreditFacilityBalance', facilityRemaining: { __typename?: 'FacilityRemaining', usdBalance: any }, disbursed: { __typename?: 'Disbursed', total: { __typename?: 'Total', usdBalance: any }, outstanding: { __typename?: 'Outstanding', usdBalance: any }, dueOutstanding: { __typename?: 'Outstanding', usdBalance: any } }, interest: { __typename?: 'Interest', total: { __typename?: 'Total', usdBalance: any }, outstanding: { __typename?: 'Outstanding', usdBalance: any }, dueOutstanding: { __typename?: 'Outstanding', usdBalance: any } }, collateral: { __typename?: 'Collateral', btcBalance: any }, dueOutstanding: { __typename?: 'Outstanding', usdBalance: any }, outstanding: { __typename?: 'Outstanding', usdBalance: any } }, currentCvl: { __typename?: 'FacilityCVL', total: any, disbursed: any }, repaymentPlan: Array<{ __typename?: 'CreditFacilityRepaymentInPlan', repaymentType: CreditFacilityRepaymentType, status: CreditFacilityRepaymentStatus, initial: any, outstanding: any, accrualAt: any, dueAt: any }>, transactions: Array<{ __typename?: 'CreditFacilityCollateralUpdated', satoshis: any, recordedAt: any, action: CollateralAction, txId: any } | { __typename?: 'CreditFacilityCollateralizationUpdated', state: CollateralizationState, collateral: any, outstandingInterest: any, outstandingDisbursal: any, recordedAt: any, price: any } | { __typename?: 'CreditFacilityDisbursalExecuted', cents: any, recordedAt: any, txId: any } | { __typename?: 'CreditFacilityIncrementalPayment', cents: any, recordedAt: any, txId: any } | { __typename?: 'CreditFacilityInterestAccrued', cents: any, recordedAt: any, txId: any, days: number } | { __typename?: 'CreditFacilityOrigination', cents: any, recordedAt: any, txId: any }> } | null };
 
 export type MeQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -458,8 +458,8 @@ export const GetCreditFacilityDocument = gql`
     }
     creditFacilityTerms {
       annualRate
+      accrualCycleInterval
       accrualInterval
-      incurrenceInterval
       oneTimeFeeRate
       duration {
         period
@@ -575,13 +575,13 @@ export const GetCreditFacilityDocument = gql`
  * });
  */
 export function useGetCreditFacilityQuery(baseOptions: Apollo.QueryHookOptions<GetCreditFacilityQuery, GetCreditFacilityQueryVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<GetCreditFacilityQuery, GetCreditFacilityQueryVariables>(GetCreditFacilityDocument, options);
-      }
+  const options = { ...defaultOptions, ...baseOptions }
+  return Apollo.useQuery<GetCreditFacilityQuery, GetCreditFacilityQueryVariables>(GetCreditFacilityDocument, options);
+}
 export function useGetCreditFacilityLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetCreditFacilityQuery, GetCreditFacilityQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<GetCreditFacilityQuery, GetCreditFacilityQueryVariables>(GetCreditFacilityDocument, options);
-        }
+  const options = { ...defaultOptions, ...baseOptions }
+  return Apollo.useLazyQuery<GetCreditFacilityQuery, GetCreditFacilityQueryVariables>(GetCreditFacilityDocument, options);
+}
 export type GetCreditFacilityQueryHookResult = ReturnType<typeof useGetCreditFacilityQuery>;
 export type GetCreditFacilityLazyQueryHookResult = ReturnType<typeof useGetCreditFacilityLazyQuery>;
 export type GetCreditFacilityQueryResult = Apollo.QueryResult<GetCreditFacilityQuery, GetCreditFacilityQueryVariables>;
@@ -659,13 +659,13 @@ export const MeDocument = gql`
  * });
  */
 export function useMeQuery(baseOptions?: Apollo.QueryHookOptions<MeQuery, MeQueryVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<MeQuery, MeQueryVariables>(MeDocument, options);
-      }
+  const options = { ...defaultOptions, ...baseOptions }
+  return Apollo.useQuery<MeQuery, MeQueryVariables>(MeDocument, options);
+}
 export function useMeLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<MeQuery, MeQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<MeQuery, MeQueryVariables>(MeDocument, options);
-        }
+  const options = { ...defaultOptions, ...baseOptions }
+  return Apollo.useLazyQuery<MeQuery, MeQueryVariables>(MeDocument, options);
+}
 export type MeQueryHookResult = ReturnType<typeof useMeQuery>;
 export type MeLazyQueryHookResult = ReturnType<typeof useMeLazyQuery>;
 export type MeQueryResult = Apollo.QueryResult<MeQuery, MeQueryVariables>;
@@ -693,13 +693,13 @@ export const GetRealtimePriceUpdatesDocument = gql`
  * });
  */
 export function useGetRealtimePriceUpdatesQuery(baseOptions?: Apollo.QueryHookOptions<GetRealtimePriceUpdatesQuery, GetRealtimePriceUpdatesQueryVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<GetRealtimePriceUpdatesQuery, GetRealtimePriceUpdatesQueryVariables>(GetRealtimePriceUpdatesDocument, options);
-      }
+  const options = { ...defaultOptions, ...baseOptions }
+  return Apollo.useQuery<GetRealtimePriceUpdatesQuery, GetRealtimePriceUpdatesQueryVariables>(GetRealtimePriceUpdatesDocument, options);
+}
 export function useGetRealtimePriceUpdatesLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetRealtimePriceUpdatesQuery, GetRealtimePriceUpdatesQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<GetRealtimePriceUpdatesQuery, GetRealtimePriceUpdatesQueryVariables>(GetRealtimePriceUpdatesDocument, options);
-        }
+  const options = { ...defaultOptions, ...baseOptions }
+  return Apollo.useLazyQuery<GetRealtimePriceUpdatesQuery, GetRealtimePriceUpdatesQueryVariables>(GetRealtimePriceUpdatesDocument, options);
+}
 export type GetRealtimePriceUpdatesQueryHookResult = ReturnType<typeof useGetRealtimePriceUpdatesQuery>;
 export type GetRealtimePriceUpdatesLazyQueryHookResult = ReturnType<typeof useGetRealtimePriceUpdatesLazyQuery>;
 export type GetRealtimePriceUpdatesQueryResult = Apollo.QueryResult<GetRealtimePriceUpdatesQuery, GetRealtimePriceUpdatesQueryVariables>;
@@ -801,13 +801,13 @@ export const GetTransactionHistoryDocument = gql`
  * });
  */
 export function useGetTransactionHistoryQuery(baseOptions: Apollo.QueryHookOptions<GetTransactionHistoryQuery, GetTransactionHistoryQueryVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<GetTransactionHistoryQuery, GetTransactionHistoryQueryVariables>(GetTransactionHistoryDocument, options);
-      }
+  const options = { ...defaultOptions, ...baseOptions }
+  return Apollo.useQuery<GetTransactionHistoryQuery, GetTransactionHistoryQueryVariables>(GetTransactionHistoryDocument, options);
+}
 export function useGetTransactionHistoryLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetTransactionHistoryQuery, GetTransactionHistoryQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<GetTransactionHistoryQuery, GetTransactionHistoryQueryVariables>(GetTransactionHistoryDocument, options);
-        }
+  const options = { ...defaultOptions, ...baseOptions }
+  return Apollo.useLazyQuery<GetTransactionHistoryQuery, GetTransactionHistoryQueryVariables>(GetTransactionHistoryDocument, options);
+}
 export type GetTransactionHistoryQueryHookResult = ReturnType<typeof useGetTransactionHistoryQuery>;
 export type GetTransactionHistoryLazyQueryHookResult = ReturnType<typeof useGetTransactionHistoryLazyQuery>;
 export type GetTransactionHistoryQueryResult = Apollo.QueryResult<GetTransactionHistoryQuery, GetTransactionHistoryQueryVariables>;

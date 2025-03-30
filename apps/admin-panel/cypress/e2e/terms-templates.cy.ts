@@ -42,13 +42,13 @@ describe("Terms Template", () => {
     cy.get('[role="option"]').contains("Months").click()
     cy.takeScreenshot("6_select_duration_period")
 
+    cy.get('[data-testid="terms-template-accrual-cycle-interval-select"]').click()
+    cy.get('[role="option"]').contains("End Of Month").click()
+    cy.takeScreenshot("7_select_accrual_cycle_interval")
+
     cy.get('[data-testid="terms-template-accrual-interval-select"]').click()
     cy.get('[role="option"]').contains("End Of Month").click()
-    cy.takeScreenshot("7_select_accrual_interval")
-
-    cy.get('[data-testid="terms-template-incurrence-interval-select"]').click()
-    cy.get('[role="option"]').contains("End Of Month").click()
-    cy.takeScreenshot("8_select_incurrence_interval")
+    cy.takeScreenshot("8_select_accrual_interval")
 
     cy.get('[data-testid="terms-template-initial-cvl-input"]')
       .type("140", { delay: 0, waitForAnimations: false })

@@ -62,8 +62,8 @@ export const UpdateTermsTemplateDialog: React.FC<UpdateTermsTemplateDialogProps>
   const [formValues, setFormValues] = useState({
     name: termsTemplate.name,
     annualRate: termsTemplate.values.annualRate.toString(),
+    accrualCycleInterval: termsTemplate.values.accrualCycleInterval,
     accrualInterval: termsTemplate.values.accrualInterval,
-    incurrenceInterval: termsTemplate.values.incurrenceInterval,
     durationUnits: termsTemplate.values.duration.units.toString(),
     durationPeriod: termsTemplate.values.duration.period,
     liquidationCvl: termsTemplate.values.liquidationCvl.toString(),
@@ -79,8 +79,8 @@ export const UpdateTermsTemplateDialog: React.FC<UpdateTermsTemplateDialogProps>
       setFormValues({
         name: termsTemplate.name,
         annualRate: termsTemplate.values.annualRate.toString(),
+        accrualCycleInterval: termsTemplate.values.accrualCycleInterval,
         accrualInterval: termsTemplate.values.accrualInterval,
-        incurrenceInterval: termsTemplate.values.incurrenceInterval,
         durationUnits: termsTemplate.values.duration.units.toString(),
         durationPeriod: termsTemplate.values.duration.period,
         liquidationCvl: termsTemplate.values.liquidationCvl.toString(),
@@ -109,8 +109,8 @@ export const UpdateTermsTemplateDialog: React.FC<UpdateTermsTemplateDialogProps>
           input: {
             id: termsTemplate.termsId,
             annualRate: formValues.annualRate,
+            accrualCycleInterval: formValues.accrualCycleInterval as InterestInterval,
             accrualInterval: formValues.accrualInterval as InterestInterval,
-            incurrenceInterval: formValues.incurrenceInterval as InterestInterval,
             duration: {
               period: formValues.durationPeriod as Period,
               units: parseInt(formValues.durationUnits),
@@ -149,8 +149,8 @@ export const UpdateTermsTemplateDialog: React.FC<UpdateTermsTemplateDialogProps>
     setFormValues({
       name: termsTemplate.name,
       annualRate: termsTemplate.values.annualRate.toString(),
+      accrualCycleInterval: termsTemplate.values.accrualCycleInterval,
       accrualInterval: termsTemplate.values.accrualInterval,
-      incurrenceInterval: termsTemplate.values.incurrenceInterval,
       durationUnits: termsTemplate.values.duration.units.toString(),
       durationPeriod: termsTemplate.values.duration.period,
       liquidationCvl: termsTemplate.values.liquidationCvl.toString(),
@@ -229,17 +229,19 @@ export const UpdateTermsTemplateDialog: React.FC<UpdateTermsTemplateDialogProps>
                 </div>
               </div>
               <div>
-                <Label htmlFor="accrualInterval">{t("fields.accrualInterval")}</Label>
+                <Label htmlFor="accrualCycleInterval">
+                  {t("fields.accrualCycleInterval")}
+                </Label>
                 <Select
-                  value={formValues.accrualInterval}
+                  value={formValues.accrualCycleInterval}
                   onValueChange={(value) =>
                     handleChange({
-                      target: { name: "accrualInterval", value },
+                      target: { name: "accrualCycleInterval", value },
                     } as React.ChangeEvent<HTMLSelectElement>)
                   }
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder={t("placeholders.accrualInterval")} />
+                    <SelectValue placeholder={t("placeholders.accrualCycleInterval")} />
                   </SelectTrigger>
                   <SelectContent>
                     {Object.values(InterestInterval).map((int) => (
@@ -251,19 +253,17 @@ export const UpdateTermsTemplateDialog: React.FC<UpdateTermsTemplateDialogProps>
                 </Select>
               </div>
               <div>
-                <Label htmlFor="incurrenceInterval">
-                  {t("fields.incurrenceInterval")}
-                </Label>
+                <Label htmlFor="accrualInterval">{t("fields.accrualInterval")}</Label>
                 <Select
-                  value={formValues.incurrenceInterval}
+                  value={formValues.accrualInterval}
                   onValueChange={(value) =>
                     handleChange({
-                      target: { name: "incurrenceInterval", value },
+                      target: { name: "accrualInterval", value },
                     } as React.ChangeEvent<HTMLSelectElement>)
                   }
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder={t("placeholders.incurrenceInterval")} />
+                    <SelectValue placeholder={t("placeholders.accrualInterval")} />
                   </SelectTrigger>
                   <SelectContent>
                     {Object.values(InterestInterval).map((int) => (
