@@ -360,12 +360,12 @@
         "details": {
           "duration": "Duración",
           "interestRate": "Interés (APR)",
-          "accrualCycleInterval": "Intervalo de Acumulación",
+          "accrualCycleInterval": "Intervalo del ciclo de devengo",
           "targetCvl": "CVL objetivo/inicial %",
           "marginCallCvl": "CVL de llamada de margen %",
           "liquidationCvl": "CVL de liquidación %",
           "dateCreated": "Fecha de creación",
-          "accrualInterval": "Intervalo de Incurrencia",
+          "accrualInterval": "Intervalo de devengo",
           "structuringFeeRate": "Tasa de Comisión de Estructuración"
         }
       },
@@ -440,9 +440,9 @@
             "initialCvl": "CVL Inicial (%)",
             "duration": "Duración",
             "marginCallCvl": "CVL de Llamada de Margen (%)",
-            "accrualCycleInterval": "Intervalo de Acumulación",
+            "accrualCycleInterval": "Intervalo del ciclo de devengo",
             "liquidationCvl": "CVL de Liquidación (%)",
-            "accrualInterval": "Intervalo de Incurrencia",
+            "accrualInterval": "Intervalo de devengo",
             "structuringFeeRate": "Tasa de Comisión de Estructuración (%)"
           },
           "placeholders": {
@@ -452,9 +452,9 @@
             "initialCvl": "Ingrese el CVL inicial",
             "duration": "Duración",
             "marginCallCvl": "Ingrese el CVL de llamada de margen",
-            "accrualCycleInterval": "Seleccione el intervalo de acumulación",
+            "accrualCycleInterval": "Seleccionar intervalo del ciclo de devengo",
             "liquidationCvl": "Ingrese el CVL de liquidación",
-            "accrualInterval": "Seleccione el intervalo de incurrencia",
+            "accrualInterval": "Seleccionar intervalo de devengo",
             "structuringFeeRate": "Ingrese la Tasa de Comisión de Estructuración",
             "selectPeriod": "Seleccione período"
           },
@@ -623,8 +623,8 @@
           "name": "Nombre",
           "createdAt": "Creado El",
           "duration": "Duración",
-          "accrualCycleInterval": "Intervalo de Acumulación",
-          "accrualInterval": "Intervalo de Incurrencia",
+          "accrualCycleInterval": "Intervalo del ciclo de devengo",
+          "accrualInterval": "Intervalo de devengo",
           "annualRate": "Tasa Anual",
           "initialCvl": "CVL Inicial (%)",
           "marginCallCvl": "CVL de Llamada de Margen (%)",
@@ -641,8 +641,8 @@
         "fields": {
           "annualRate": "Tasa de Interés (APR)",
           "duration": "Duración",
-          "accrualCycleInterval": "Intervalo de Acumulación",
-          "accrualInterval": "Intervalo de Incurrencia",
+          "accrualCycleInterval": "Intervalo del ciclo de devengo",
+          "accrualInterval": "Intervalo de devengo",
           "initialCvl": "CVL Inicial (%)",
           "marginCallCvl": "CVL de Llamada de Margen (%)",
           "liquidationCvl": "CVL de Liquidación (%)",
@@ -652,8 +652,8 @@
           "annualRate": "Ingrese la tasa anual",
           "durationUnits": "Duración",
           "durationPeriod": "Seleccione período",
-          "accrualCycleInterval": "Seleccione intervalo de acumulación",
-          "accrualInterval": "Seleccione intervalo de incurrencia",
+          "accrualCycleInterval": "Seleccionar intervalo del ciclo de devengo",
+          "accrualInterval": "Seleccionar intervalo de devengo",
           "initialCvl": "Ingrese el CVL inicial",
           "marginCallCvl": "Ingrese el CVL de llamada de margen",
           "liquidationCvl": "Ingrese el CVL de liquidación",
@@ -677,8 +677,8 @@
           "name": "Nombre de la Plantilla",
           "annualRate": "Tasa de Interés (APR)",
           "duration": "Duración",
-          "accrualCycleInterval": "Intervalo de Acumulación",
-          "accrualInterval": "Intervalo de Incurrencia",
+          "accrualCycleInterval": "Intervalo del ciclo de devengo",
+          "accrualInterval": "Intervalo de devengo",
           "initialCvl": "CVL Inicial (%)",
           "marginCallCvl": "CVL de Llamada de Margen (%)",
           "liquidationCvl": "CVL de Liquidación (%)",
@@ -693,8 +693,8 @@
           "marginCallCvl": "Ingrese el CVL de llamada de margen",
           "liquidationCvl": "Ingrese el CVL de liquidación",
           "oneTimeFeeRate": "Ingrese la Tasa de Comisión de Estructuración",
-          "accrualCycleInterval": "Seleccione intervalo de acumulación",
-          "accrualInterval": "Seleccione intervalo de incurrencia"
+          "accrualCycleInterval": "Seleccionar intervalo del ciclo de devengo",
+          "accrualInterval": "Seleccionar intervalo de devengo"
         },
         "buttons": {
           "submit": "Crear Plantilla de Términos"
