@@ -16,4 +16,6 @@ During local dev, Docker and Docker compose is being used.
 
 Useful commands to run are in the Makefile.
 
+List of table in the system are available in the directory lana/app/migrations
+
 The ledger is being handle by Cala, another rust crate. It maintain the list of all transactions and provide double entry bookkeeping ledger with strong consistency guarantees through custom templates

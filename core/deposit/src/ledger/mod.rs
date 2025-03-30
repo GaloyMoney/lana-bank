@@ -92,7 +92,27 @@ pub struct DepositLedger {
 }
 
 impl DepositLedger {
-    pub async fn init(
+    pub async fn init( 
+        // need 2 account sets
+        // 1. deposit omnibus account: cash account
+        // 2. deposit control: user liability account
+
+        // before we used to connect this to the chart of accounts
+        // now those accounts set are being created independantly of the chart of accounts
+
+        // now it's about "attaching" the account set to the chart of accounts
+        // taking the account set and setting as a child of the chart of accounts associated account set
+
+        // the chart of accounts also creates account sets
+
+        // the underlying primitivies, whether it's chart of accounts or deposits: all use cala accounts sets
+
+        // we did it to break the dependency but also gain flexibility (ie: we could _maybe_ shift the accounts in the future (but balance will need to be re-calculated))
+
+        // there is still dependency on the set up for now because the history would not follow if the deposit is attached later.        
+        // it will create this reconciliation transaction for now that make it accurate as of now, but not retroactively accurate.
+
+        
         cala: &CalaLedger,
         journal_id: JournalId,
     ) -> Result<Self, DepositLedgerError> {
