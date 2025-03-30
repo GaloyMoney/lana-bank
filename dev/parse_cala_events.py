@@ -82,8 +82,10 @@ def main():
                     event_type = event_json.get('type', 'unknown_type')
                     filename_suffix = sanitize_filename(event_code if event_code else event_type)
 
-                    # Construct filename
-                    filename = f"{sanitize_filename(event_id)}_{filename_suffix}.json"
+                    # Construct filename with a counter to ensure uniqueness
+                    # Use processed_count + 1 as sequential number (e.g. 0001, 0002, etc.)
+                    counter = processed_count + 1
+                    filename = f"{counter:04d}_{sanitize_filename(event_id)}_{filename_suffix}.json"
                     filepath = os.path.join(table_output_dir, filename) # Save to table-specific directory
 
                     # Save the pretty-printed JSON to the file
