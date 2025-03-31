@@ -1,11 +1,12 @@
-use cala_ledger::{AccountId, DebitOrCredit, EntryId, entry::Entry};
+use cala_ledger::{entry::Entry, DebitOrCredit, EntryId};
 use core_money::{Satoshis, UsdCents};
 use serde::{Deserialize, Serialize};
 
 use super::error::JournalError;
+use crate::primitives::LedgerAccountId;
 
 pub struct JournalEntry {
-    pub ledger_account_id: AccountId,
+    pub ledger_account_id: LedgerAccountId,
     pub entry_id: EntryId,
     pub entry_type: String,
     pub amount: JournalEntryAmount,
@@ -32,7 +33,7 @@ impl TryFrom<Entry> for JournalEntry {
             return Err(JournalError::UnexpectedCurrency);
         };
         Ok(Self {
-            ledger_account_id: entry.values().account_id,
+            ledger_account_id: entry.values().account_id.into(),
             entry_id: entry.id,
             entry_type: entry.values().entry_type.clone(),
             amount,
@@ -81,13 +82,13 @@ impl async_graphql::connection::CursorType for JournalEntryCursor {
     type Error = String;
 
     fn encode_cursor(&self) -> String {
-        use base64::{Engine as _, engine::general_purpose};
+        use base64::{engine::general_purpose, Engine as _};
         let json = serde_json::to_string(&self).expect("could not serialize cursor");
         general_purpose::STANDARD_NO_PAD.encode(json.as_bytes())
     }
 
     fn decode_cursor(s: &str) -> Result<Self, Self::Error> {
-        use base64::{Engine as _, engine::general_purpose};
+        use base64::{engine::general_purpose, Engine as _};
         let bytes = general_purpose::STANDARD_NO_PAD
             .decode(s.as_bytes())
             .map_err(|e| e.to_string())?;

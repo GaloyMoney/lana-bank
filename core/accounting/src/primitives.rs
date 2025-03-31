@@ -14,10 +14,10 @@ pub use core_money::{Satoshis, UsdCents};
 
 es_entity::entity_id! {
     ChartId,
-    LanaLedgerAccountId;
+    LedgerAccountId;
 
-    LanaLedgerAccountId => CalaAccountId,
-    LanaLedgerAccountId => CalaAccountSetId,
+    LedgerAccountId => CalaAccountId,
+    LedgerAccountId => CalaAccountSetId,
 }
 
 pub struct AccountDetails {
@@ -258,7 +258,7 @@ impl AccountSpec {
 
 pub type ChartAllOrOne = AllOrOne<ChartId>;
 pub type JournalAllOrOne = AllOrOne<CalaJournalId>;
-pub type LedgerAccountAllOrOne = AllOrOne<CalaAccountId>;
+pub type LedgerAccountAllOrOne = AllOrOne<LedgerAccountId>;
 
 #[derive(Clone, Copy, Debug, PartialEq, strum::EnumDiscriminants)]
 #[strum_discriminants(derive(strum::Display, strum::EnumString))]
@@ -291,7 +291,7 @@ impl CoreAccountingObject {
         CoreAccountingObject::Journal(AllOrOne::ById(id))
     }
 
-    pub fn ledger_account(id: CalaAccountId) -> Self {
+    pub fn ledger_account(id: LedgerAccountId) -> Self {
         CoreAccountingObject::LedgerAccount(AllOrOne::ById(id))
     }
 }

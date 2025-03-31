@@ -11,6 +11,7 @@ use cala_ledger::CalaLedger;
 
 use crate::primitives::{
     CalaAccountId, CalaAccountSetId, CalaJournalId, CoreAccountingAction, CoreAccountingObject,
+    LedgerAccountId,
 };
 
 use error::*;
@@ -18,7 +19,7 @@ use ledger::*;
 pub use primitives::*;
 
 pub struct LedgerAccount {
-    pub id: CalaAccountId,
+    pub id: LedgerAccountId,
 }
 
 #[derive(Clone)]
@@ -95,7 +96,7 @@ where
     pub async fn find_by_id(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        id: impl Into<CalaAccountId> + std::fmt::Debug,
+        id: impl Into<LedgerAccountId> + std::fmt::Debug,
     ) -> Result<Option<LedgerAccount>, LedgerAccountError> {
         let id = id.into();
         self.authz
@@ -110,8 +111,8 @@ where
 
     pub async fn find_all<T: From<LedgerAccount>>(
         &self,
-        ids: &[CalaAccountId],
-    ) -> Result<HashMap<CalaAccountId, T>, LedgerAccountError> {
+        ids: &[LedgerAccountId],
+    ) -> Result<HashMap<LedgerAccountId, T>, LedgerAccountError> {
         // Ok(self.repo.find_all(ids).await?)
         unimplemented!()
     }

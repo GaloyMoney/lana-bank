@@ -3,7 +3,7 @@ use async_graphql::dataloader::{DataLoader, Loader};
 use std::collections::HashMap;
 
 use lana_app::{
-    accounting::{chart_of_accounts::error::ChartOfAccountsError, CalaAccountId},
+    accounting::{chart_of_accounts::error::ChartOfAccountsError, LedgerAccountId},
     app::LanaApp,
     deposit::error::CoreDepositError,
     user::error::UserError,
@@ -218,14 +218,14 @@ impl Loader<DisbursalId> for LanaLoader {
     }
 }
 
-impl Loader<CalaAccountId> for LanaLoader {
+impl Loader<LedgerAccountId> for LanaLoader {
     type Value = LedgerAccount;
     type Error = Arc<lana_app::accounting::ledger_account::error::LedgerAccountError>;
 
     async fn load(
         &self,
-        keys: &[CalaAccountId],
-    ) -> Result<HashMap<CalaAccountId, LedgerAccount>, Self::Error> {
+        keys: &[LedgerAccountId],
+    ) -> Result<HashMap<LedgerAccountId, LedgerAccount>, Self::Error> {
         self.app
             .accounting()
             .ledger_accounts()
