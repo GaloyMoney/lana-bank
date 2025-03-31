@@ -48,28 +48,6 @@ where
         }
     }
 
-    pub async fn balance<T>(
-        &self,
-        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        id: impl Into<CalaAccountSetId>,
-    ) -> Result<T, LedgerAccountError>
-    where
-        T: From<Option<cala_ledger::balance::AccountBalance>>,
-    {
-        let id = id.into();
-        self.authz
-            .enforce_permission(
-                sub,
-                CoreAccountingObject::ledger_account(id.into()),
-                CoreAccountingAction::LEDGER_ACCOUNT_READ,
-            )
-            .await?;
-
-        let res = self.ledger.balance(id).await?;
-
-        Ok(res)
-    }
-
     pub async fn history(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,

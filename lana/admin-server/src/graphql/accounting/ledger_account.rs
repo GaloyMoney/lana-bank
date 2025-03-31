@@ -88,15 +88,12 @@ impl LedgerAccount {
         .await
     }
 
-    async fn balance(&self, ctx: &Context<'_>) -> async_graphql::Result<LedgerAccountBalance> {
-        let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
-
-        let res: LedgerAccountBalance = app
-            .accounting()
-            .ledger_accounts()
-            .balance(sub, self.id)
-            .await?;
-        Ok(res)
+    async fn balance(&self, _ctx: &Context<'_>) -> async_graphql::Result<LedgerAccountBalance> {
+        if let Some(balance) = self.entity.btc_balance.as_ref() {
+            Ok(Some(balance).into())
+        } else {
+            Ok(self.entity.usd_balance.as_ref().into())
+        }
     }
 }
 
@@ -106,8 +103,8 @@ pub(super) enum LedgerAccountBalance {
     Btc(BtcLedgerAccountBalance),
 }
 
-impl From<Option<cala_ledger::balance::AccountBalance>> for LedgerAccountBalance {
-    fn from(balance: Option<cala_ledger::balance::AccountBalance>) -> Self {
+impl From<Option<&cala_ledger::balance::AccountBalance>> for LedgerAccountBalance {
+    fn from(balance: Option<&cala_ledger::balance::AccountBalance>) -> Self {
         match balance {
             None => LedgerAccountBalance::Usd(UsdLedgerAccountBalance {
                 settled: UsdCents::ZERO,
