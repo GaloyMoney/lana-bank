@@ -5,9 +5,12 @@ use thiserror::Error;
 
 use authz::AllOrOne;
 
-pub use cala_ledger::primitives::{
-    AccountId as CalaAccountId, AccountSetId as CalaAccountSetId, EntryId as CalaEntryId,
-    JournalId as CalaJournalId, TransactionId as CalaTxId,
+pub use cala_ledger::{
+    balance::AccountBalance as CalaAccountBalance,
+    primitives::{
+        AccountId as CalaAccountId, AccountSetId as CalaAccountSetId, EntryId as CalaEntryId,
+        JournalId as CalaJournalId, TransactionId as CalaTxId,
+    },
 };
 
 pub use core_money::{Satoshis, UsdCents};

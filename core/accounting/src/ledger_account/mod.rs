@@ -10,8 +10,8 @@ use authz::PermissionCheck;
 use cala_ledger::CalaLedger;
 
 use crate::primitives::{
-    CalaAccountId, CalaAccountSetId, CalaJournalId, CoreAccountingAction, CoreAccountingObject,
-    LedgerAccountId,
+    CalaAccountBalance, CalaAccountSetId, CalaJournalId, CoreAccountingAction,
+    CoreAccountingObject, LedgerAccountId,
 };
 
 use error::*;
@@ -20,6 +20,8 @@ pub use primitives::*;
 
 pub struct LedgerAccount {
     pub id: LedgerAccountId,
+    pub usd_balance: Option<CalaAccountBalance>,
+    pub btc_balance: Option<CalaAccountBalance>,
 }
 
 #[derive(Clone)]
@@ -113,7 +115,6 @@ where
         &self,
         ids: &[LedgerAccountId],
     ) -> Result<HashMap<LedgerAccountId, T>, LedgerAccountError> {
-        // Ok(self.repo.find_all(ids).await?)
-        unimplemented!()
+        Ok(self.ledger.load_ledger_accounts(ids).await?)
     }
 }
