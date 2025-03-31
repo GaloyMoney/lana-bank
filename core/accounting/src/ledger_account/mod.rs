@@ -108,7 +108,8 @@ where
                 CoreAccountingAction::LEDGER_ACCOUNT_READ,
             )
             .await?;
-        unimplemented!()
+        let mut accounts = self.ledger.load_ledger_accounts([id].as_ref()).await?;
+        Ok(accounts.remove(&id))
     }
 
     pub async fn find_all<T: From<LedgerAccount>>(
