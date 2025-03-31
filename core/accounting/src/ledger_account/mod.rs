@@ -10,7 +10,7 @@ use authz::PermissionCheck;
 use cala_ledger::CalaLedger;
 
 use crate::primitives::{
-    CalaAccountBalance, CalaAccountSetId, CalaJournalId, CoreAccountingAction,
+    AccountCode, CalaAccountBalance, CalaAccountSetId, CalaJournalId, CoreAccountingAction,
     CoreAccountingObject, LedgerAccountId,
 };
 
@@ -20,6 +20,8 @@ pub use primitives::*;
 
 pub struct LedgerAccount {
     pub id: LedgerAccountId,
+    pub name: String,
+    pub code: Option<AccountCode>,
     pub usd_balance: Option<CalaAccountBalance>,
     pub btc_balance: Option<CalaAccountBalance>,
 }

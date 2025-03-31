@@ -18,8 +18,7 @@ use crate::primitives::*;
 #[graphql(complex)]
 pub struct LedgerAccount {
     id: UUID,
-    name: String,
-    code: AccountCode,
+    code: Option<AccountCode>,
 
     #[graphql(skip)]
     pub entity: Arc<DomainLedgerAccount>,
@@ -38,12 +37,20 @@ impl From<AccountDetails> for LedgerAccount {
 
 impl From<DomainLedgerAccount> for LedgerAccount {
     fn from(account: DomainLedgerAccount) -> Self {
-        unimplemented!()
+        LedgerAccount {
+            id: account.id.into(),
+            code: account.code.as_ref().map(|code| code.into()),
+            entity: Arc::new(account),
+        }
     }
 }
 
 #[ComplexObject]
 impl LedgerAccount {
+    async fn name(&self) -> &str {
+        &self.entity.name
+    }
+
     async fn history(
         &self,
         ctx: &Context<'_>,

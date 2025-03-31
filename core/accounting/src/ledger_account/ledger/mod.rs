@@ -181,8 +181,12 @@ impl From<(AccountSet, Option<AccountBalance>, Option<AccountBalance>)> for Ledg
             Option<AccountBalance>,
         ),
     ) -> Self {
+        let values = account_set.into_values();
+        let code = values.external_id.and_then(|id| id.parse().ok());
         LedgerAccount {
-            id: account_set.id.into(),
+            id: values.id.into(),
+            name: values.name,
+            code,
             usd_balance,
             btc_balance,
         }
@@ -199,6 +203,8 @@ impl From<(Account, Option<AccountBalance>, Option<AccountBalance>)> for LedgerA
     ) -> Self {
         LedgerAccount {
             id: account.id.into(),
+            name: account.into_values().name,
+            code: None,
             usd_balance,
             btc_balance,
         }
