@@ -5,7 +5,7 @@ use std::str::FromStr;
 use authz::AllOrOne;
 
 pub use cala_ledger::primitives::{
-    AccountId as LedgerAccountId, AccountSetId as LedgerAccountSetId, Currency,
+    AccountId as CalaAccountId, AccountSetId as CalaAccountSetId, Currency,
     DebitOrCredit as LedgerDebitOrCredit, JournalId as LedgerJournalId,
     TransactionId as LedgerTxId, TxTemplateId as LedgerTxTemplateId,
 };
@@ -33,8 +33,8 @@ es_entity::entity_id! {
 
 #[derive(Debug, Clone)]
 pub struct LedgerOmnibusAccountIds {
-    pub account_set_id: LedgerAccountSetId,
-    pub account_id: LedgerAccountId,
+    pub account_set_id: CalaAccountSetId,
+    pub account_id: CalaAccountId,
 }
 
 pub type CreditFacilityAllOrOne = AllOrOne<CreditFacilityId>;

@@ -23,7 +23,7 @@ pub enum ChartEvent {
     },
     NodeAdded {
         spec: AccountSpec,
-        ledger_account_set_id: LedgerAccountSetId,
+        ledger_account_set_id: CalaAccountSetId,
         audit_info: AuditInfo,
     },
 }
@@ -34,7 +34,7 @@ pub struct Chart {
     pub id: ChartId,
     pub reference: String,
     pub name: String,
-    all_accounts: HashMap<AccountCode, (AccountSpec, LedgerAccountSetId)>,
+    all_accounts: HashMap<AccountCode, (AccountSpec, CalaAccountSetId)>,
 
     pub(super) events: EntityEvents<ChartEvent>,
 }
@@ -44,11 +44,11 @@ impl Chart {
         &mut self,
         spec: &AccountSpec,
         audit_info: AuditInfo,
-    ) -> Idempotent<(Option<LedgerAccountSetId>, LedgerAccountSetId)> {
+    ) -> Idempotent<(Option<CalaAccountSetId>, CalaAccountSetId)> {
         if self.all_accounts.contains_key(&spec.code) {
             return Idempotent::Ignored;
         }
-        let ledger_account_set_id = LedgerAccountSetId::new();
+        let ledger_account_set_id = CalaAccountSetId::new();
         self.events.push(ChartEvent::NodeAdded {
             spec: spec.clone(),
             ledger_account_set_id,
@@ -66,20 +66,20 @@ impl Chart {
 
     pub fn all_trial_balance_accounts(
         &self,
-    ) -> impl Iterator<Item = &(AccountSpec, LedgerAccountSetId)> {
+    ) -> impl Iterator<Item = &(AccountSpec, CalaAccountSetId)> {
         self.all_accounts
             .values()
             .filter(|(spec, _)| spec.code.len_sections() == 2)
     }
 
-    pub fn account_spec(&self, code: &AccountCode) -> Option<&(AccountSpec, LedgerAccountSetId)> {
+    pub fn account_spec(&self, code: &AccountCode) -> Option<&(AccountSpec, CalaAccountSetId)> {
         self.all_accounts.get(code)
     }
 
     pub fn account_spec_from_code_str(
         &self,
         code: String,
-    ) -> Option<&(AccountSpec, LedgerAccountSetId)> {
+    ) -> Option<&(AccountSpec, CalaAccountSetId)> {
         if let Ok(code) = code.parse() {
             if let Some(spec) = self.account_spec(&code) {
                 return Some(spec);
@@ -98,7 +98,7 @@ impl Chart {
     pub fn account_set_id_from_code(
         &self,
         code: &AccountCode,
-    ) -> Result<LedgerAccountSetId, ChartOfAccountsError> {
+    ) -> Result<CalaAccountSetId, ChartOfAccountsError> {
         self.account_spec(code)
             .map(|(_, id)| *id)
             .ok_or_else(|| ChartOfAccountsError::CodeNotFoundInChart(code.clone()))

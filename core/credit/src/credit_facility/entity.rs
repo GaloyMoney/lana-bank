@@ -25,7 +25,7 @@ pub enum CreditFacilityEvent {
         terms: Box<TermValues>,
         facility: UsdCents,
         account_ids: CreditFacilityAccountIds,
-        disbursal_credit_account_id: LedgerAccountId,
+        disbursal_credit_account_id: CalaAccountId,
         approval_process_id: ApprovalProcessId,
         audit_info: AuditInfo,
     },
@@ -323,7 +323,7 @@ pub struct CreditFacility {
     pub customer_id: CustomerId,
     pub terms: TermValues,
     pub account_ids: CreditFacilityAccountIds,
-    pub disbursal_credit_account_id: LedgerAccountId,
+    pub disbursal_credit_account_id: CalaAccountId,
     #[builder(setter(strip_option), default)]
     pub activated_at: Option<DateTime<Utc>>,
     #[builder(setter(strip_option), default)]
@@ -1278,7 +1278,7 @@ pub struct NewCreditFacility {
     #[builder(setter(skip), default)]
     pub(super) collateralization_state: CollateralizationState,
     account_ids: CreditFacilityAccountIds,
-    disbursal_credit_account_id: LedgerAccountId,
+    disbursal_credit_account_id: CalaAccountId,
     #[builder(setter(into))]
     pub(super) audit_info: AuditInfo,
 }
@@ -1370,7 +1370,7 @@ mod test {
             facility: default_facility(),
             terms: Box::new(default_terms()),
             account_ids: CreditFacilityAccountIds::new(),
-            disbursal_credit_account_id: LedgerAccountId::new(),
+            disbursal_credit_account_id: CalaAccountId::new(),
             approval_process_id: ApprovalProcessId::new(),
         }]
     }
@@ -2055,7 +2055,7 @@ mod test {
                 .terms(default_terms())
                 .facility(UsdCents::from(1_000_000_00))
                 .account_ids(CreditFacilityAccountIds::new())
-                .disbursal_credit_account_id(LedgerAccountId::new())
+                .disbursal_credit_account_id(CalaAccountId::new())
                 .audit_info(dummy_audit_info())
                 .build()
                 .expect("could not build new credit facility");

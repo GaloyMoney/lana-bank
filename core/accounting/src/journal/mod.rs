@@ -9,7 +9,7 @@ use authz::PermissionCheck;
 
 use cala_ledger::CalaLedger;
 
-use crate::primitives::{CoreAccountingAction, CoreAccountingObject, LedgerJournalId};
+use crate::primitives::{CalaJournalId, CoreAccountingAction, CoreAccountingObject};
 
 #[derive(Clone)]
 pub struct Journal<Perms>
@@ -18,7 +18,7 @@ where
 {
     authz: Perms,
     cala: CalaLedger,
-    journal_id: LedgerJournalId,
+    journal_id: CalaJournalId,
 }
 
 impl<Perms> Journal<Perms>
@@ -27,7 +27,7 @@ where
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreAccountingAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreAccountingObject>,
 {
-    pub fn new(authz: &Perms, cala: &CalaLedger, journal_id: LedgerJournalId) -> Self {
+    pub fn new(authz: &Perms, cala: &CalaLedger, journal_id: CalaJournalId) -> Self {
         Self {
             authz: authz.clone(),
             cala: cala.clone(),

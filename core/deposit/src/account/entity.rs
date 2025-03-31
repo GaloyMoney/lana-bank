@@ -14,7 +14,7 @@ pub enum DepositAccountEvent {
     Initialized {
         id: DepositAccountId,
         account_holder_id: DepositAccountHolderId,
-        ledger_account_id: LedgerAccountId,
+        ledger_account_id: CalaAccountId,
         reference: String,
         name: String,
         description: String,

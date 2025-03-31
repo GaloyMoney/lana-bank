@@ -1,7 +1,7 @@
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
-use crate::primitives::{LedgerEntryId, LedgerTransactionId as LedgerTxId};
+use crate::primitives::{CalaEntryId, CalaTransactionId as CalaTxId};
 
 pub enum DepositAccountHistoryEntry {
     Deposit(DepositEntry),
@@ -13,32 +13,32 @@ pub enum DepositAccountHistoryEntry {
     Ignored,
 }
 pub struct DepositEntry {
-    pub tx_id: LedgerTxId,
-    pub entry_id: LedgerEntryId,
+    pub tx_id: CalaTxId,
+    pub entry_id: CalaEntryId,
     pub recorded_at: DateTime<Utc>,
 }
 
 pub struct WithdrawalEntry {
-    pub tx_id: LedgerTxId,
-    pub entry_id: LedgerEntryId,
+    pub tx_id: CalaTxId,
+    pub entry_id: CalaEntryId,
     pub recorded_at: DateTime<Utc>,
 }
 
 pub struct DisbursalEntry {
-    pub tx_id: LedgerTxId,
-    pub entry_id: LedgerEntryId,
+    pub tx_id: CalaTxId,
+    pub entry_id: CalaEntryId,
     pub recorded_at: DateTime<Utc>,
 }
 
 pub struct PaymentEntry {
-    pub tx_id: LedgerTxId,
-    pub entry_id: LedgerEntryId,
+    pub tx_id: CalaTxId,
+    pub entry_id: CalaEntryId,
     pub recorded_at: DateTime<Utc>,
 }
 
 pub struct UnknownEntry {
-    pub tx_id: LedgerTxId,
-    pub entry_id: LedgerEntryId,
+    pub tx_id: CalaTxId,
+    pub entry_id: CalaEntryId,
     pub recorded_at: DateTime<Utc>,
 }
 
@@ -96,7 +96,7 @@ impl From<cala_ledger::entry::Entry> for DepositAccountHistoryEntry {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct DepositAccountHistoryCursor {
-    pub entry_id: LedgerEntryId,
+    pub entry_id: CalaEntryId,
     pub created_at: chrono::DateTime<chrono::Utc>,
 }
 

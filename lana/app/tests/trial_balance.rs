@@ -34,7 +34,7 @@ pub async fn init_chart(
     pool: &sqlx::Pool<sqlx::Postgres>,
     authz: &Authorization,
     cala: &CalaLedger,
-    journal_id: LedgerJournalId,
+    journal_id: CalaJournalId,
     subject: &Subject,
 ) -> anyhow::Result<Chart> {
     let accounting = CoreAccounting::new(pool, authz, cala, journal_id);

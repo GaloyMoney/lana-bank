@@ -10,8 +10,7 @@ use authz::PermissionCheck;
 use cala_ledger::CalaLedger;
 
 use crate::primitives::{
-    CoreAccountingAction, CoreAccountingObject, LedgerAccountId, LedgerAccountSetId,
-    LedgerJournalId,
+    CalaAccountId, CalaAccountSetId, CalaJournalId, CoreAccountingAction, CoreAccountingObject,
 };
 
 use error::*;
@@ -19,7 +18,7 @@ use ledger::*;
 pub use primitives::*;
 
 pub struct LedgerAccount {
-    pub id: LedgerAccountId,
+    pub id: CalaAccountId,
 }
 
 #[derive(Clone)]
@@ -37,7 +36,7 @@ where
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreAccountingAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreAccountingObject>,
 {
-    pub fn new(authz: &Perms, cala: &CalaLedger, journal_id: LedgerJournalId) -> Self {
+    pub fn new(authz: &Perms, cala: &CalaLedger, journal_id: CalaJournalId) -> Self {
         Self {
             authz: authz.clone(),
             ledger: LedgerAccountLedger::new(cala, journal_id),
@@ -47,7 +46,7 @@ where
     pub async fn balance<T>(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        id: impl Into<LedgerAccountSetId>,
+        id: impl Into<CalaAccountSetId>,
     ) -> Result<T, LedgerAccountError>
     where
         T: From<Option<cala_ledger::balance::AccountBalance>>,
@@ -69,7 +68,7 @@ where
     pub async fn history(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        id: impl Into<LedgerAccountSetId>,
+        id: impl Into<CalaAccountSetId>,
         args: es_entity::PaginatedQueryArgs<LedgerAccountHistoryCursor>,
     ) -> Result<
         es_entity::PaginatedQueryRet<LedgerAccountEntry, LedgerAccountHistoryCursor>,
@@ -96,7 +95,7 @@ where
     pub async fn find_by_id(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        id: impl Into<LedgerAccountId> + std::fmt::Debug,
+        id: impl Into<CalaAccountId> + std::fmt::Debug,
     ) -> Result<Option<LedgerAccount>, LedgerAccountError> {
         let id = id.into();
         self.authz
@@ -111,8 +110,8 @@ where
 
     pub async fn find_all<T: From<LedgerAccount>>(
         &self,
-        ids: &[LedgerAccountId],
-    ) -> Result<HashMap<LedgerAccountId, T>, LedgerAccountError> {
+        ids: &[CalaAccountId],
+    ) -> Result<HashMap<CalaAccountId, T>, LedgerAccountError> {
         // Ok(self.repo.find_all(ids).await?)
         unimplemented!()
     }

@@ -14,7 +14,7 @@ use rbac_types::{
 use crate::{
     accounting::Chart,
     authorization::{Authorization, Object},
-    primitives::LedgerAccountSetId,
+    primitives::CalaAccountSetId,
     statement::*,
 };
 
@@ -28,14 +28,14 @@ pub(crate) const COST_OF_REVENUE_NAME: &str = "Cost of Revenue";
 
 #[derive(Clone, Copy)]
 pub struct ProfitAndLossStatementIds {
-    pub id: LedgerAccountSetId,
-    pub revenue: LedgerAccountSetId,
-    pub cost_of_revenue: LedgerAccountSetId,
-    pub expenses: LedgerAccountSetId,
+    pub id: CalaAccountSetId,
+    pub revenue: CalaAccountSetId,
+    pub cost_of_revenue: CalaAccountSetId,
+    pub expenses: CalaAccountSetId,
 }
 
 impl ProfitAndLossStatementIds {
-    fn internal_ids(&self) -> Vec<LedgerAccountSetId> {
+    fn internal_ids(&self) -> Vec<CalaAccountSetId> {
         let Self {
             id: _id,
             revenue,
@@ -46,7 +46,7 @@ impl ProfitAndLossStatementIds {
         vec![*revenue, *cost_of_revenue, *expenses]
     }
 
-    fn account_set_id_for_config(&self) -> LedgerAccountSetId {
+    fn account_set_id_for_config(&self) -> CalaAccountSetId {
         self.revenue
     }
 }
@@ -169,7 +169,7 @@ impl ProfitAndLossStatements {
     pub async fn add_to_revenue(
         &self,
         reference: String,
-        member_id: impl Into<LedgerAccountSetId>,
+        member_id: impl Into<CalaAccountSetId>,
     ) -> Result<(), ProfitAndLossStatementError> {
         let member_id = member_id.into();
 
@@ -199,7 +199,7 @@ impl ProfitAndLossStatements {
     pub async fn add_to_expenses(
         &self,
         reference: String,
-        member_id: impl Into<LedgerAccountSetId>,
+        member_id: impl Into<CalaAccountSetId>,
     ) -> Result<(), ProfitAndLossStatementError> {
         let member_id = member_id.into();
 
@@ -250,7 +250,7 @@ impl ProfitAndLossStatements {
 
 #[derive(Clone)]
 pub struct ProfitAndLossStatement {
-    pub id: LedgerAccountSetId,
+    pub id: CalaAccountSetId,
     pub name: String,
     pub description: Option<String>,
     pub btc_balance: BtcStatementAccountSetBalanceRange,

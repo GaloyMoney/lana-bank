@@ -9,8 +9,8 @@ use crate::{primitives::*, CreditFacilityPaymentAmounts};
 
 #[derive(Debug, Copy, Clone, Serialize, Deserialize)]
 pub struct PaymentAccountIds {
-    pub disbursed_receivable_account_id: LedgerAccountId,
-    pub interest_receivable_account_id: LedgerAccountId,
+    pub disbursed_receivable_account_id: CalaAccountId,
+    pub interest_receivable_account_id: CalaAccountId,
 }
 
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
@@ -24,7 +24,7 @@ pub enum PaymentEvent {
         facility_id: CreditFacilityId,
         amounts: CreditFacilityPaymentAmounts,
         account_ids: PaymentAccountIds,
-        disbursal_credit_account_id: LedgerAccountId,
+        disbursal_credit_account_id: CalaAccountId,
         audit_info: AuditInfo,
     },
 }
@@ -38,7 +38,7 @@ pub struct Payment {
     pub facility_id: CreditFacilityId,
     pub amounts: CreditFacilityPaymentAmounts,
     pub account_ids: PaymentAccountIds,
-    pub disbursal_credit_account_id: LedgerAccountId,
+    pub disbursal_credit_account_id: CalaAccountId,
 
     pub(super) events: EntityEvents<PaymentEvent>,
 }
@@ -93,7 +93,7 @@ pub struct NewPayment {
     pub(super) credit_facility_id: CreditFacilityId,
     pub(super) amounts: CreditFacilityPaymentAmounts,
     pub(super) account_ids: PaymentAccountIds,
-    pub(super) disbursal_credit_account_id: LedgerAccountId,
+    pub(super) disbursal_credit_account_id: CalaAccountId,
     #[builder(setter(into))]
     pub(super) audit_info: AuditInfo,
 }

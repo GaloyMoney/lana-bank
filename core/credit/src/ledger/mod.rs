@@ -19,9 +19,9 @@ use cala_ledger::{
 
 use crate::{
     primitives::{
-        CollateralAction, CreditFacilityId, CustomerType, DisbursedReceivableAccountCategory,
-        DisbursedReceivableAccountType, InterestReceivableAccountType, LedgerAccountId,
-        LedgerAccountSetId, LedgerOmnibusAccountIds, Satoshis, UsdCents,
+        CalaAccountId, CalaAccountSetId, CollateralAction, CreditFacilityId, CustomerType,
+        DisbursedReceivableAccountCategory, DisbursedReceivableAccountType,
+        InterestReceivableAccountType, LedgerOmnibusAccountIds, Satoshis, UsdCents,
     },
     ChartOfAccountsIntegrationConfig, DurationType, PaymentAccountIds,
 };
@@ -40,7 +40,7 @@ pub struct CreditFacilityCollateralUpdate {
 
 #[derive(Clone, Copy)]
 pub struct InternalAccountSetDetails {
-    id: LedgerAccountSetId,
+    id: CalaAccountSetId,
     normal_balance_type: DebitOrCredit,
 }
 
@@ -56,7 +56,7 @@ pub struct DisbursedReceivableAccountSets {
 }
 
 impl DisbursedReceivableAccountSets {
-    fn account_set_ids(&self) -> Vec<LedgerAccountSetId> {
+    fn account_set_ids(&self) -> Vec<CalaAccountSetId> {
         vec![
             self.individual.id,
             self.government_entity.id,
@@ -88,7 +88,7 @@ pub struct InterestReceivableAccountSets {
 }
 
 impl InterestReceivableAccountSets {
-    fn account_set_ids(&self) -> Vec<LedgerAccountSetId> {
+    fn account_set_ids(&self) -> Vec<CalaAccountSetId> {
         vec![
             self.individual.id,
             self.government_entity.id,
@@ -118,7 +118,7 @@ pub struct CreditFacilityInternalAccountSets {
 }
 
 impl CreditFacilityInternalAccountSets {
-    fn account_set_ids(&self) -> Vec<LedgerAccountSetId> {
+    fn account_set_ids(&self) -> Vec<CalaAccountSetId> {
         let Self {
             facility,
             collateral,
@@ -764,7 +764,7 @@ impl CreditLedger {
         reference: String,
         name: String,
         normal_balance_type: DebitOrCredit,
-    ) -> Result<LedgerAccountSetId, CreditLedgerError> {
+    ) -> Result<CalaAccountSetId, CreditLedgerError> {
         match cala
             .account_sets()
             .find_by_external_id(reference.to_string())
@@ -778,7 +778,7 @@ impl CreditLedger {
             Err(e) => return Err(e.into()),
         };
 
-        let id = LedgerAccountSetId::new();
+        let id = CalaAccountSetId::new();
         let new_account_set = NewAccountSet::builder()
             .id(id)
             .journal_id(journal_id)
@@ -837,7 +837,7 @@ impl CreditLedger {
         }
 
         let mut op = cala.begin_operation().await?;
-        let id = LedgerAccountId::new();
+        let id = CalaAccountId::new();
         let new_ledger_account = NewAccount::builder()
             .id(id)
             .external_id(reference.to_string())
@@ -1013,7 +1013,7 @@ impl CreditLedger {
         tx_ref: String,
         amounts: CreditFacilityPaymentAmounts,
         payment_account_ids: PaymentAccountIds,
-        debit_account_id: LedgerAccountId,
+        debit_account_id: CalaAccountId,
     ) -> Result<(), CreditLedgerError> {
         let mut op = self.cala.ledger_operation_from_db_op(op);
 
@@ -1295,7 +1295,7 @@ impl CreditLedger {
     pub async fn add_credit_facility_control_to_account(
         &self,
         op: &mut cala_ledger::LedgerOperation<'_>,
-        account_id: impl Into<LedgerAccountId>,
+        account_id: impl Into<CalaAccountId>,
     ) -> Result<(), CreditLedgerError> {
         self.cala
             .velocities()
@@ -1312,7 +1312,7 @@ impl CreditLedger {
     async fn create_account_in_op(
         &self,
         op: &mut LedgerOperation<'_>,
-        id: impl Into<LedgerAccountId>,
+        id: impl Into<CalaAccountId>,
         parent_account_set: InternalAccountSetDetails,
         reference: &str,
         name: &str,
@@ -1549,14 +1549,14 @@ impl CreditLedger {
     async fn attach_charts_account_set<F>(
         &self,
         op: &mut LedgerOperation<'_>,
-        account_sets: &mut HashMap<LedgerAccountSetId, AccountSet>,
-        internal_account_set_id: LedgerAccountSetId,
-        parent_account_set_id: LedgerAccountSetId,
+        account_sets: &mut HashMap<CalaAccountSetId, AccountSet>,
+        internal_account_set_id: CalaAccountSetId,
+        parent_account_set_id: CalaAccountSetId,
         new_meta: &ChartOfAccountsIntegrationMeta,
         old_parent_id_getter: F,
     ) -> Result<(), CreditLedgerError>
     where
-        F: FnOnce(ChartOfAccountsIntegrationMeta) -> LedgerAccountSetId,
+        F: FnOnce(ChartOfAccountsIntegrationMeta) -> CalaAccountSetId,
     {
         let mut internal_account_set = account_sets
             .remove(&internal_account_set_id)
@@ -1730,7 +1730,7 @@ impl CreditLedger {
         &self,
         op: &mut LedgerOperation<'_>,
         short_term_disbursed_integration_meta: &ShortTermDisbursedIntegrationMeta,
-        account_sets: &mut HashMap<LedgerAccountSetId, AccountSet>,
+        account_sets: &mut HashMap<CalaAccountSetId, AccountSet>,
         charts_integration_meta: &ChartOfAccountsIntegrationMeta,
     ) -> Result<(), CreditLedgerError> {
         let short_term = &self.internal_account_sets.disbursed_receivable.short_term;
@@ -1841,7 +1841,7 @@ impl CreditLedger {
         &self,
         op: &mut LedgerOperation<'_>,
         long_term_disbursed_integration_meta: &LongTermDisbursedIntegrationMeta,
-        account_sets: &mut HashMap<LedgerAccountSetId, AccountSet>,
+        account_sets: &mut HashMap<CalaAccountSetId, AccountSet>,
         charts_integration_meta: &ChartOfAccountsIntegrationMeta,
     ) -> Result<(), CreditLedgerError> {
         let long_term = &self.internal_account_sets.disbursed_receivable.long_term;
@@ -1951,7 +1951,7 @@ impl CreditLedger {
         &self,
         op: &mut LedgerOperation<'_>,
         short_term_interest_integration_meta: &ShortTermInterestIntegrationMeta,
-        account_sets: &mut HashMap<LedgerAccountSetId, AccountSet>,
+        account_sets: &mut HashMap<CalaAccountSetId, AccountSet>,
         charts_integration_meta: &ChartOfAccountsIntegrationMeta,
     ) -> Result<(), CreditLedgerError> {
         let short_term = &self.internal_account_sets.interest_receivable.short_term;
@@ -2063,7 +2063,7 @@ impl CreditLedger {
         &self,
         op: &mut LedgerOperation<'_>,
         long_term_interest_integration_meta: &LongTermInterestIntegrationMeta,
-        account_sets: &mut HashMap<LedgerAccountSetId, AccountSet>,
+        account_sets: &mut HashMap<CalaAccountSetId, AccountSet>,
         charts_integration_meta: &ChartOfAccountsIntegrationMeta,
     ) -> Result<(), CreditLedgerError> {
         let long_term = &self.internal_account_sets.interest_receivable.long_term;
@@ -2175,7 +2175,7 @@ impl CreditLedger {
         &self,
         op: &mut LedgerOperation<'_>,
         overdue_disbursed_integration_meta: &OverdueDisbursedIntegrationMeta,
-        account_sets: &mut HashMap<LedgerAccountSetId, AccountSet>,
+        account_sets: &mut HashMap<CalaAccountSetId, AccountSet>,
         charts_integration_meta: &ChartOfAccountsIntegrationMeta,
     ) -> Result<(), CreditLedgerError> {
         let overdue = &self.internal_account_sets.disbursed_receivable.overdue;
@@ -2287,72 +2287,68 @@ impl CreditLedger {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct ShortTermDisbursedIntegrationMeta {
-    pub short_term_individual_disbursed_receivable_parent_account_set_id: LedgerAccountSetId,
-    pub short_term_government_entity_disbursed_receivable_parent_account_set_id: LedgerAccountSetId,
-    pub short_term_private_company_disbursed_receivable_parent_account_set_id: LedgerAccountSetId,
-    pub short_term_bank_disbursed_receivable_parent_account_set_id: LedgerAccountSetId,
+    pub short_term_individual_disbursed_receivable_parent_account_set_id: CalaAccountSetId,
+    pub short_term_government_entity_disbursed_receivable_parent_account_set_id: CalaAccountSetId,
+    pub short_term_private_company_disbursed_receivable_parent_account_set_id: CalaAccountSetId,
+    pub short_term_bank_disbursed_receivable_parent_account_set_id: CalaAccountSetId,
     pub short_term_financial_institution_disbursed_receivable_parent_account_set_id:
-        LedgerAccountSetId,
+        CalaAccountSetId,
     pub short_term_foreign_agency_or_subsidiary_disbursed_receivable_parent_account_set_id:
-        LedgerAccountSetId,
+        CalaAccountSetId,
     pub short_term_non_domiciled_company_disbursed_receivable_parent_account_set_id:
-        LedgerAccountSetId,
+        CalaAccountSetId,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct LongTermDisbursedIntegrationMeta {
-    pub long_term_individual_disbursed_receivable_parent_account_set_id: LedgerAccountSetId,
-    pub long_term_government_entity_disbursed_receivable_parent_account_set_id: LedgerAccountSetId,
-    pub long_term_private_company_disbursed_receivable_parent_account_set_id: LedgerAccountSetId,
-    pub long_term_bank_disbursed_receivable_parent_account_set_id: LedgerAccountSetId,
+    pub long_term_individual_disbursed_receivable_parent_account_set_id: CalaAccountSetId,
+    pub long_term_government_entity_disbursed_receivable_parent_account_set_id: CalaAccountSetId,
+    pub long_term_private_company_disbursed_receivable_parent_account_set_id: CalaAccountSetId,
+    pub long_term_bank_disbursed_receivable_parent_account_set_id: CalaAccountSetId,
     pub long_term_financial_institution_disbursed_receivable_parent_account_set_id:
-        LedgerAccountSetId,
+        CalaAccountSetId,
     pub long_term_foreign_agency_or_subsidiary_disbursed_receivable_parent_account_set_id:
-        LedgerAccountSetId,
+        CalaAccountSetId,
     pub long_term_non_domiciled_company_disbursed_receivable_parent_account_set_id:
-        LedgerAccountSetId,
+        CalaAccountSetId,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct ShortTermInterestIntegrationMeta {
-    pub short_term_individual_interest_receivable_parent_account_set_id: LedgerAccountSetId,
-    pub short_term_government_entity_interest_receivable_parent_account_set_id: LedgerAccountSetId,
-    pub short_term_private_company_interest_receivable_parent_account_set_id: LedgerAccountSetId,
-    pub short_term_bank_interest_receivable_parent_account_set_id: LedgerAccountSetId,
+    pub short_term_individual_interest_receivable_parent_account_set_id: CalaAccountSetId,
+    pub short_term_government_entity_interest_receivable_parent_account_set_id: CalaAccountSetId,
+    pub short_term_private_company_interest_receivable_parent_account_set_id: CalaAccountSetId,
+    pub short_term_bank_interest_receivable_parent_account_set_id: CalaAccountSetId,
     pub short_term_financial_institution_interest_receivable_parent_account_set_id:
-        LedgerAccountSetId,
+        CalaAccountSetId,
     pub short_term_foreign_agency_or_subsidiary_interest_receivable_parent_account_set_id:
-        LedgerAccountSetId,
+        CalaAccountSetId,
     pub short_term_non_domiciled_company_interest_receivable_parent_account_set_id:
-        LedgerAccountSetId,
+        CalaAccountSetId,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct LongTermInterestIntegrationMeta {
-    pub long_term_individual_interest_receivable_parent_account_set_id: LedgerAccountSetId,
-    pub long_term_government_entity_interest_receivable_parent_account_set_id: LedgerAccountSetId,
-    pub long_term_private_company_interest_receivable_parent_account_set_id: LedgerAccountSetId,
-    pub long_term_bank_interest_receivable_parent_account_set_id: LedgerAccountSetId,
-    pub long_term_financial_institution_interest_receivable_parent_account_set_id:
-        LedgerAccountSetId,
+    pub long_term_individual_interest_receivable_parent_account_set_id: CalaAccountSetId,
+    pub long_term_government_entity_interest_receivable_parent_account_set_id: CalaAccountSetId,
+    pub long_term_private_company_interest_receivable_parent_account_set_id: CalaAccountSetId,
+    pub long_term_bank_interest_receivable_parent_account_set_id: CalaAccountSetId,
+    pub long_term_financial_institution_interest_receivable_parent_account_set_id: CalaAccountSetId,
     pub long_term_foreign_agency_or_subsidiary_interest_receivable_parent_account_set_id:
-        LedgerAccountSetId,
-    pub long_term_non_domiciled_company_interest_receivable_parent_account_set_id:
-        LedgerAccountSetId,
+        CalaAccountSetId,
+    pub long_term_non_domiciled_company_interest_receivable_parent_account_set_id: CalaAccountSetId,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct OverdueDisbursedIntegrationMeta {
-    pub overdue_individual_disbursed_receivable_parent_account_set_id: LedgerAccountSetId,
-    pub overdue_government_entity_disbursed_receivable_parent_account_set_id: LedgerAccountSetId,
-    pub overdue_private_company_disbursed_receivable_parent_account_set_id: LedgerAccountSetId,
-    pub overdue_bank_disbursed_receivable_parent_account_set_id: LedgerAccountSetId,
-    pub overdue_financial_institution_disbursed_receivable_parent_account_set_id:
-        LedgerAccountSetId,
+    pub overdue_individual_disbursed_receivable_parent_account_set_id: CalaAccountSetId,
+    pub overdue_government_entity_disbursed_receivable_parent_account_set_id: CalaAccountSetId,
+    pub overdue_private_company_disbursed_receivable_parent_account_set_id: CalaAccountSetId,
+    pub overdue_bank_disbursed_receivable_parent_account_set_id: CalaAccountSetId,
+    pub overdue_financial_institution_disbursed_receivable_parent_account_set_id: CalaAccountSetId,
     pub overdue_foreign_agency_or_subsidiary_disbursed_receivable_parent_account_set_id:
-        LedgerAccountSetId,
-    pub overdue_non_domiciled_company_disbursed_receivable_parent_account_set_id:
-        LedgerAccountSetId,
+        CalaAccountSetId,
+    pub overdue_non_domiciled_company_disbursed_receivable_parent_account_set_id: CalaAccountSetId,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
@@ -2360,12 +2356,12 @@ pub struct ChartOfAccountsIntegrationMeta {
     pub config: ChartOfAccountsIntegrationConfig,
     pub audit_info: AuditInfo,
 
-    pub facility_omnibus_parent_account_set_id: LedgerAccountSetId,
-    pub collateral_omnibus_parent_account_set_id: LedgerAccountSetId,
-    pub facility_parent_account_set_id: LedgerAccountSetId,
-    pub collateral_parent_account_set_id: LedgerAccountSetId,
-    pub interest_income_parent_account_set_id: LedgerAccountSetId,
-    pub fee_income_parent_account_set_id: LedgerAccountSetId,
+    pub facility_omnibus_parent_account_set_id: CalaAccountSetId,
+    pub collateral_omnibus_parent_account_set_id: CalaAccountSetId,
+    pub facility_parent_account_set_id: CalaAccountSetId,
+    pub collateral_parent_account_set_id: CalaAccountSetId,
+    pub interest_income_parent_account_set_id: CalaAccountSetId,
+    pub fee_income_parent_account_set_id: CalaAccountSetId,
 
     pub short_term_disbursed_integration_meta: ShortTermDisbursedIntegrationMeta,
     pub long_term_disbursed_integration_meta: LongTermDisbursedIntegrationMeta,

@@ -10,7 +10,7 @@ use rbac_types::{CashFlowStatementAction, Subject};
 
 use crate::{
     authorization::{Authorization, Object},
-    primitives::LedgerAccountSetId,
+    primitives::CalaAccountSetId,
     statement::*,
 };
 
@@ -32,14 +32,14 @@ pub(crate) const DEPOSIT_ADJUSTMENTS_NAME: &str = "Non-Cash Deposit Adjustment";
 
 #[derive(Clone, Copy)]
 pub struct CashFlowStatementIds {
-    pub id: LedgerAccountSetId,
-    from_operations: LedgerAccountSetId,
-    from_investing: LedgerAccountSetId,
-    from_financing: LedgerAccountSetId,
-    revenue: LedgerAccountSetId,
-    expenses: LedgerAccountSetId,
-    fee_income_adjustments: LedgerAccountSetId,
-    deposit_adjustments: LedgerAccountSetId,
+    pub id: CalaAccountSetId,
+    from_operations: CalaAccountSetId,
+    from_investing: CalaAccountSetId,
+    from_financing: CalaAccountSetId,
+    revenue: CalaAccountSetId,
+    expenses: CalaAccountSetId,
+    fee_income_adjustments: CalaAccountSetId,
+    deposit_adjustments: CalaAccountSetId,
 }
 
 #[derive(Clone)]
@@ -89,8 +89,8 @@ impl CashFlowStatements {
 
     async fn add_to(
         &self,
-        account_set_id: LedgerAccountSetId,
-        member_id: impl Into<LedgerAccountSetId>,
+        account_set_id: CalaAccountSetId,
+        member_id: impl Into<CalaAccountSetId>,
     ) -> Result<(), CashFlowStatementError> {
         let member_id = member_id.into();
 
@@ -115,7 +115,7 @@ impl CashFlowStatements {
     pub async fn add_to_from_operations(
         &self,
         reference: String,
-        member_id: impl Into<LedgerAccountSetId>,
+        member_id: impl Into<CalaAccountSetId>,
     ) -> Result<(), CashFlowStatementError> {
         let statement_ids = self
             .cash_flow_statement_ledger
@@ -128,7 +128,7 @@ impl CashFlowStatements {
     pub async fn add_to_from_investing(
         &self,
         reference: String,
-        member_id: impl Into<LedgerAccountSetId>,
+        member_id: impl Into<CalaAccountSetId>,
     ) -> Result<(), CashFlowStatementError> {
         let statement_ids = self
             .cash_flow_statement_ledger
@@ -141,7 +141,7 @@ impl CashFlowStatements {
     pub async fn add_to_from_financing(
         &self,
         reference: String,
-        member_id: impl Into<LedgerAccountSetId>,
+        member_id: impl Into<CalaAccountSetId>,
     ) -> Result<(), CashFlowStatementError> {
         let statement_ids = self
             .cash_flow_statement_ledger
@@ -154,7 +154,7 @@ impl CashFlowStatements {
     pub async fn add_to_revenue(
         &self,
         reference: String,
-        member_id: impl Into<LedgerAccountSetId>,
+        member_id: impl Into<CalaAccountSetId>,
     ) -> Result<(), CashFlowStatementError> {
         let statement_ids = self
             .cash_flow_statement_ledger
@@ -167,7 +167,7 @@ impl CashFlowStatements {
     pub async fn add_to_expenses(
         &self,
         reference: String,
-        member_id: impl Into<LedgerAccountSetId>,
+        member_id: impl Into<CalaAccountSetId>,
     ) -> Result<(), CashFlowStatementError> {
         let statement_ids = self
             .cash_flow_statement_ledger
@@ -180,7 +180,7 @@ impl CashFlowStatements {
     pub async fn add_to_fee_income_adjustments(
         &self,
         reference: String,
-        member_id: impl Into<LedgerAccountSetId>,
+        member_id: impl Into<CalaAccountSetId>,
     ) -> Result<(), CashFlowStatementError> {
         let statement_ids = self
             .cash_flow_statement_ledger
@@ -194,7 +194,7 @@ impl CashFlowStatements {
     pub async fn add_to_deposit_adjustments(
         &self,
         reference: String,
-        member_id: impl Into<LedgerAccountSetId>,
+        member_id: impl Into<CalaAccountSetId>,
     ) -> Result<(), CashFlowStatementError> {
         let statement_ids = self
             .cash_flow_statement_ledger
@@ -229,7 +229,7 @@ impl CashFlowStatements {
 
 #[derive(Clone)]
 pub struct CashFlowStatement {
-    pub id: LedgerAccountSetId,
+    pub id: CalaAccountSetId,
     pub name: String,
     pub description: Option<String>,
     pub btc_balance: BtcStatementAccountSetBalanceRange,

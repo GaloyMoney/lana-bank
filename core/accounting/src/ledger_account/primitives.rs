@@ -1,13 +1,13 @@
 use cala_ledger::{DebitOrCredit, Layer};
 use serde::{Deserialize, Serialize};
 
-use crate::primitives::{LedgerAccountId, LedgerEntryId, LedgerTxId, Satoshis, UsdCents};
+use crate::primitives::{CalaAccountId, CalaEntryId, CalaTxId, Satoshis, UsdCents};
 
 use super::ledger::error::*;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct LedgerAccountHistoryCursor {
-    pub entry_id: LedgerEntryId,
+    pub entry_id: CalaEntryId,
     pub created_at: chrono::DateTime<chrono::Utc>,
 }
 
@@ -52,13 +52,13 @@ impl async_graphql::connection::CursorType for LedgerAccountHistoryCursor {
     type Error = String;
 
     fn encode_cursor(&self) -> String {
-        use base64::{Engine as _, engine::general_purpose};
+        use base64::{engine::general_purpose, Engine as _};
         let json = serde_json::to_string(&self).expect("could not serialize cursor");
         general_purpose::STANDARD_NO_PAD.encode(json.as_bytes())
     }
 
     fn decode_cursor(s: &str) -> Result<Self, Self::Error> {
-        use base64::{Engine as _, engine::general_purpose};
+        use base64::{engine::general_purpose, Engine as _};
         let bytes = general_purpose::STANDARD_NO_PAD
             .decode(s.as_bytes())
             .map_err(|e| e.to_string())?;
@@ -68,10 +68,10 @@ impl async_graphql::connection::CursorType for LedgerAccountHistoryCursor {
 }
 
 pub struct LedgerAccountEntry {
-    pub tx_id: LedgerTxId,
-    pub entry_id: LedgerEntryId,
+    pub tx_id: CalaTxId,
+    pub entry_id: CalaEntryId,
     pub recorded_at: chrono::DateTime<chrono::Utc>,
-    pub account_id: LedgerAccountId,
+    pub account_id: CalaAccountId,
     pub entry_type: String,
     pub amount: LayeredLedgerAccountAmount,
 }

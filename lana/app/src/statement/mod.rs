@@ -7,20 +7,20 @@ use cala_ledger::{
     AccountId, BalanceId, Currency, JournalId,
 };
 
-use crate::primitives::{LedgerAccountSetId, Satoshis, SignedSatoshis, SignedUsdCents, UsdCents};
+use crate::primitives::{CalaAccountSetId, Satoshis, SignedSatoshis, SignedUsdCents, UsdCents};
 
 use error::*;
 
 #[derive(Debug, Clone)]
 pub struct StatementAccountSetDetails {
-    pub id: LedgerAccountSetId,
+    pub id: CalaAccountSetId,
     pub name: String,
     pub description: Option<String>,
 }
 
 #[derive(Debug, Clone)]
 pub struct StatementAccountSet {
-    pub id: LedgerAccountSetId,
+    pub id: CalaAccountSetId,
     pub name: String,
     pub description: Option<String>,
     pub btc_balance: BtcStatementAccountSetBalanceRange,
@@ -29,7 +29,7 @@ pub struct StatementAccountSet {
 
 #[derive(Debug, Clone)]
 pub struct StatementAccountSetWithAccounts {
-    pub id: LedgerAccountSetId,
+    pub id: CalaAccountSetId,
     pub name: String,
     pub description: Option<String>,
     pub btc_balance: BtcStatementAccountSetBalanceRange,
@@ -298,7 +298,7 @@ impl BalancesByAccount {
 
     pub fn btc_for_account(
         &self,
-        account_set_id: LedgerAccountSetId,
+        account_set_id: CalaAccountSetId,
     ) -> Result<BtcStatementAccountSetBalanceRange, StatementError> {
         let currency = "BTC".parse().expect("BTC is not a valid currency");
         Ok(self
@@ -315,7 +315,7 @@ impl BalancesByAccount {
 
     pub fn usd_for_account(
         &self,
-        account_set_id: LedgerAccountSetId,
+        account_set_id: CalaAccountSetId,
     ) -> Result<UsdStatementAccountSetBalanceRange, StatementError> {
         let currency = "USD".parse().expect("USD is not a valid currency");
         Ok(self
@@ -357,8 +357,8 @@ struct BalanceIdsForSingleAccountSet {
     balance_ids: Vec<BalanceId>,
 }
 
-impl From<(JournalId, LedgerAccountSetId)> for BalanceIdsForSingleAccountSet {
-    fn from(ids: (JournalId, LedgerAccountSetId)) -> Self {
+impl From<(JournalId, CalaAccountSetId)> for BalanceIdsForSingleAccountSet {
+    fn from(ids: (JournalId, CalaAccountSetId)) -> Self {
         let journal_id = ids.0;
         let account_set_id = ids.1;
         Self {
@@ -382,8 +382,8 @@ pub struct BalanceIdsForAccountSets {
     pub balance_ids: Vec<BalanceId>,
 }
 
-impl From<(JournalId, Vec<LedgerAccountSetId>)> for BalanceIdsForAccountSets {
-    fn from(values: (JournalId, Vec<LedgerAccountSetId>)) -> Self {
+impl From<(JournalId, Vec<CalaAccountSetId>)> for BalanceIdsForAccountSets {
+    fn from(values: (JournalId, Vec<CalaAccountSetId>)) -> Self {
         let journal_id = values.0;
         let account_set_ids = values.1;
         Self {

@@ -12,7 +12,7 @@ use core_accounting::Chart;
 
 use crate::{
     authorization::{Authorization, Object},
-    primitives::LedgerAccountSetId,
+    primitives::CalaAccountSetId,
     statement::*,
 };
 
@@ -30,17 +30,17 @@ pub(crate) const EXPENSES_NAME: &str = "Expenses";
 
 #[derive(Clone, Copy)]
 pub struct BalanceSheetIds {
-    pub id: LedgerAccountSetId,
-    pub assets: LedgerAccountSetId,
-    pub liabilities: LedgerAccountSetId,
-    pub equity: LedgerAccountSetId,
-    pub revenue: LedgerAccountSetId,
-    pub cost_of_revenue: LedgerAccountSetId,
-    pub expenses: LedgerAccountSetId,
+    pub id: CalaAccountSetId,
+    pub assets: CalaAccountSetId,
+    pub liabilities: CalaAccountSetId,
+    pub equity: CalaAccountSetId,
+    pub revenue: CalaAccountSetId,
+    pub cost_of_revenue: CalaAccountSetId,
+    pub expenses: CalaAccountSetId,
 }
 
 impl BalanceSheetIds {
-    fn internal_ids(&self) -> Vec<LedgerAccountSetId> {
+    fn internal_ids(&self) -> Vec<CalaAccountSetId> {
         let Self {
             id: _id,
 
@@ -62,7 +62,7 @@ impl BalanceSheetIds {
         ]
     }
 
-    fn account_set_id_for_config(&self) -> LedgerAccountSetId {
+    fn account_set_id_for_config(&self) -> CalaAccountSetId {
         self.revenue
     }
 }
@@ -204,7 +204,7 @@ impl BalanceSheets {
 
 #[derive(Clone)]
 pub struct BalanceSheet {
-    pub id: LedgerAccountSetId,
+    pub id: CalaAccountSetId,
     pub name: String,
     pub description: Option<String>,
     pub btc_balance: BtcStatementAccountSetBalanceRange,

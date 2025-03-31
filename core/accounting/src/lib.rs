@@ -10,8 +10,8 @@ use audit::AuditSvc;
 use authz::PermissionCheck;
 use cala_ledger::CalaLedger;
 
-pub use chart_of_accounts::{Chart, ChartOfAccounts, error as chart_of_accounts_error, tree};
-pub use journal::{Journal, error as journal_error};
+pub use chart_of_accounts::{error as chart_of_accounts_error, tree, Chart, ChartOfAccounts};
+pub use journal::{error as journal_error, Journal};
 pub use ledger_account::LedgerAccounts;
 pub use primitives::*;
 
@@ -47,7 +47,7 @@ where
         pool: &sqlx::PgPool,
         authz: &Perms,
         cala: &CalaLedger,
-        journal_id: LedgerJournalId,
+        journal_id: CalaJournalId,
     ) -> Self {
         let chart_of_accounts = ChartOfAccounts::new(pool, authz, cala, journal_id);
         let journal = Journal::new(authz, cala, journal_id);

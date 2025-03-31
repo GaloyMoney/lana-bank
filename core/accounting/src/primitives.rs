@@ -6,24 +6,28 @@ use thiserror::Error;
 use authz::AllOrOne;
 
 pub use cala_ledger::primitives::{
-    AccountId as LedgerAccountId, AccountSetId as LedgerAccountSetId, EntryId as LedgerEntryId,
-    JournalId as LedgerJournalId, TransactionId as LedgerTxId,
+    AccountId as CalaAccountId, AccountSetId as CalaAccountSetId, EntryId as CalaEntryId,
+    JournalId as CalaJournalId, TransactionId as CalaTxId,
 };
 
 pub use core_money::{Satoshis, UsdCents};
 
 es_entity::entity_id! {
     ChartId,
+    LanaLedgerAccountId;
+
+    LanaLedgerAccountId => CalaAccountId,
+    LanaLedgerAccountId => CalaAccountSetId,
 }
 
 pub struct AccountDetails {
-    pub id: LedgerAccountSetId,
+    pub id: CalaAccountSetId,
     pub name: AccountName,
     pub code: AccountCode,
 }
 
-impl From<&(AccountSpec, LedgerAccountSetId)> for AccountDetails {
-    fn from((spec, id): &(AccountSpec, LedgerAccountSetId)) -> Self {
+impl From<&(AccountSpec, CalaAccountSetId)> for AccountDetails {
+    fn from((spec, id): &(AccountSpec, CalaAccountSetId)) -> Self {
         AccountDetails {
             id: *id,
             name: spec.name.clone(),
@@ -253,8 +257,8 @@ impl AccountSpec {
 }
 
 pub type ChartAllOrOne = AllOrOne<ChartId>;
-pub type JournalAllOrOne = AllOrOne<LedgerJournalId>;
-pub type LedgerAccountAllOrOne = AllOrOne<LedgerAccountId>;
+pub type JournalAllOrOne = AllOrOne<CalaJournalId>;
+pub type LedgerAccountAllOrOne = AllOrOne<CalaAccountId>;
 
 #[derive(Clone, Copy, Debug, PartialEq, strum::EnumDiscriminants)]
 #[strum_discriminants(derive(strum::Display, strum::EnumString))]
@@ -283,11 +287,11 @@ impl CoreAccountingObject {
         CoreAccountingObject::Chart(AllOrOne::All)
     }
 
-    pub fn journal(id: LedgerJournalId) -> Self {
+    pub fn journal(id: CalaJournalId) -> Self {
         CoreAccountingObject::Journal(AllOrOne::ById(id))
     }
 
-    pub fn ledger_account(id: LedgerAccountId) -> Self {
+    pub fn ledger_account(id: CalaAccountId) -> Self {
         CoreAccountingObject::LedgerAccount(AllOrOne::ById(id))
     }
 }

@@ -17,7 +17,7 @@ use cala_ledger::{
 
 use crate::{
     chart_of_accounts_integration::ChartOfAccountsIntegrationConfig,
-    primitives::{DepositAccountType, LedgerAccountId, LedgerAccountSetId, UsdCents},
+    primitives::{CalaAccountId, CalaAccountSetId, DepositAccountType, UsdCents},
     DepositAccountBalance, LedgerOmnibusAccountIds,
 };
 
@@ -50,7 +50,7 @@ pub const DEPOSITS_VELOCITY_CONTROL_ID: uuid::Uuid =
 
 #[derive(Clone, Copy)]
 pub struct InternalAccountSetDetails {
-    id: LedgerAccountSetId,
+    id: CalaAccountSetId,
     normal_balance_type: DebitOrCredit,
 }
 
@@ -65,7 +65,7 @@ pub struct DepositAccountSets {
 }
 
 impl DepositAccountSets {
-    fn account_set_ids(&self) -> Vec<LedgerAccountSetId> {
+    fn account_set_ids(&self) -> Vec<CalaAccountSetId> {
         vec![
             self.individual.id,
             self.government_entity.id,
@@ -76,7 +76,7 @@ impl DepositAccountSets {
         ]
     }
 
-    fn account_set_id_for_config(&self) -> LedgerAccountSetId {
+    fn account_set_id_for_config(&self) -> CalaAccountSetId {
         self.individual.id
     }
 }
@@ -222,7 +222,7 @@ impl DepositLedger {
         reference: String,
         name: String,
         normal_balance_type: DebitOrCredit,
-    ) -> Result<LedgerAccountSetId, DepositLedgerError> {
+    ) -> Result<CalaAccountSetId, DepositLedgerError> {
         match cala
             .account_sets()
             .find_by_external_id(reference.to_string())
@@ -236,7 +236,7 @@ impl DepositLedger {
             Err(e) => return Err(e.into()),
         };
 
-        let id = LedgerAccountSetId::new();
+        let id = CalaAccountSetId::new();
         let new_account_set = NewAccountSet::builder()
             .id(id)
             .journal_id(journal_id)
@@ -295,7 +295,7 @@ impl DepositLedger {
         }
 
         let mut op = cala.begin_operation().await?;
-        let id = LedgerAccountId::new();
+        let id = CalaAccountId::new();
         let new_ledger_account = NewAccount::builder()
             .id(id)
             .external_id(reference.to_string())
@@ -493,7 +493,7 @@ impl DepositLedger {
     pub async fn create_deposit_account(
         &self,
         op: es_entity::DbOp<'_>,
-        id: impl Into<LedgerAccountId>,
+        id: impl Into<CalaAccountId>,
         deposit_account_reference: String,
         deposit_account_name: String,
         deposit_account_type: impl Into<DepositAccountType>,
@@ -540,7 +540,7 @@ impl DepositLedger {
     async fn create_account_in_op(
         &self,
         op: &mut LedgerOperation<'_>,
-        id: impl Into<LedgerAccountId>,
+        id: impl Into<CalaAccountId>,
         parent_account_set: InternalAccountSetDetails,
         reference: &str,
         name: &str,
@@ -627,14 +627,14 @@ impl DepositLedger {
     async fn attach_charts_account_set<F>(
         &self,
         op: &mut LedgerOperation<'_>,
-        account_sets: &mut HashMap<LedgerAccountSetId, AccountSet>,
-        internal_account_set_id: LedgerAccountSetId,
-        parent_account_set_id: LedgerAccountSetId,
+        account_sets: &mut HashMap<CalaAccountSetId, AccountSet>,
+        internal_account_set_id: CalaAccountSetId,
+        parent_account_set_id: CalaAccountSetId,
         new_meta: &ChartOfAccountsIntegrationMeta,
         old_parent_id_getter: F,
     ) -> Result<(), DepositLedgerError>
     where
-        F: FnOnce(ChartOfAccountsIntegrationMeta) -> LedgerAccountSetId,
+        F: FnOnce(ChartOfAccountsIntegrationMeta) -> CalaAccountSetId,
     {
         let mut internal_account_set = account_sets
             .remove(&internal_account_set_id)
@@ -781,12 +781,12 @@ pub struct ChartOfAccountsIntegrationMeta {
     pub config: ChartOfAccountsIntegrationConfig,
     pub audit_info: AuditInfo,
 
-    pub omnibus_parent_account_set_id: LedgerAccountSetId,
+    pub omnibus_parent_account_set_id: CalaAccountSetId,
 
-    pub individual_deposit_accounts_parent_account_set_id: LedgerAccountSetId,
-    pub government_entity_deposit_accounts_parent_account_set_id: LedgerAccountSetId,
-    pub private_company_deposit_accounts_parent_account_set_id: LedgerAccountSetId,
-    pub bank_deposit_accounts_parent_account_set_id: LedgerAccountSetId,
-    pub financial_institution_deposit_accounts_parent_account_set_id: LedgerAccountSetId,
-    pub non_domiciled_individual_deposit_accounts_parent_account_set_id: LedgerAccountSetId,
+    pub individual_deposit_accounts_parent_account_set_id: CalaAccountSetId,
+    pub government_entity_deposit_accounts_parent_account_set_id: CalaAccountSetId,
+    pub private_company_deposit_accounts_parent_account_set_id: CalaAccountSetId,
+    pub bank_deposit_accounts_parent_account_set_id: CalaAccountSetId,
+    pub financial_institution_deposit_accounts_parent_account_set_id: CalaAccountSetId,
+    pub non_domiciled_individual_deposit_accounts_parent_account_set_id: CalaAccountSetId,
 }

@@ -149,7 +149,7 @@ mod tests {
                 facility: UsdCents::from(1_000_000),
                 terms: Box::new(terms(interest_due_duration, interest_overdue_duration)),
                 audit_info: dummy_audit_info(),
-                disbursal_credit_account_id: LedgerAccountId::new(),
+                disbursal_credit_account_id: CalaAccountId::new(),
                 approval_process_id: ApprovalProcessId::new(),
             },
             CreditFacilityEvent::Activated {

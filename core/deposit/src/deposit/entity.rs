@@ -5,7 +5,7 @@ use audit::AuditInfo;
 use core_money::UsdCents;
 use es_entity::*;
 
-use crate::primitives::{DepositAccountId, DepositId, LedgerTransactionId};
+use crate::primitives::{CalaTransactionId, DepositAccountId, DepositId};
 
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
@@ -13,7 +13,7 @@ use crate::primitives::{DepositAccountId, DepositId, LedgerTransactionId};
 pub enum DepositEvent {
     Initialized {
         id: DepositId,
-        ledger_transaction_id: LedgerTransactionId,
+        ledger_transaction_id: CalaTransactionId,
         deposit_account_id: DepositAccountId,
         amount: UsdCents,
         reference: String,
@@ -68,7 +68,7 @@ pub struct NewDeposit {
     #[builder(setter(into))]
     pub(super) id: DepositId,
     #[builder(setter(into))]
-    pub(super) ledger_transaction_id: LedgerTransactionId,
+    pub(super) ledger_transaction_id: CalaTransactionId,
     #[builder(setter(into))]
     pub(super) deposit_account_id: DepositAccountId,
     #[builder(setter(into))]

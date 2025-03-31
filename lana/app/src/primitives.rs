@@ -48,9 +48,9 @@ pub enum LoanStatus {
 }
 
 pub use cala_ledger::primitives::{
-    AccountId as LedgerAccountId, AccountSetId as LedgerAccountSetId, Currency,
-    DebitOrCredit as LedgerDebitOrCredit, EntryId as LedgerEntryId, JournalId as LedgerJournalId,
-    TransactionId as LedgerTxId, TxTemplateId as LedgerTxTemplateId,
+    AccountId as CalaAccountId, AccountSetId as CalaAccountSetId, Currency,
+    DebitOrCredit as CalaDebitOrCredit, EntryId as CalaEntryId, JournalId as CalaJournalId,
+    TransactionId as CalaTxId, TxTemplateId as CalaTxTemplateId,
 };
 
 #[derive(async_graphql::Enum, Debug, Clone, Copy, PartialEq, Eq)]

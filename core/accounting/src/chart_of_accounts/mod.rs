@@ -12,11 +12,11 @@ pub(super) use repo::*;
 use audit::AuditSvc;
 use authz::PermissionCheck;
 
-use cala_ledger::{CalaLedger, account_set::NewAccountSet};
+use cala_ledger::{account_set::NewAccountSet, CalaLedger};
 use tracing::instrument;
 
 use crate::primitives::{
-    AccountDetails, ChartId, CoreAccountingAction, CoreAccountingObject, LedgerJournalId,
+    AccountDetails, CalaJournalId, ChartId, CoreAccountingAction, CoreAccountingObject,
 };
 use error::*;
 
@@ -27,7 +27,7 @@ where
     repo: ChartRepo,
     cala: CalaLedger,
     authz: Perms,
-    journal_id: LedgerJournalId,
+    journal_id: CalaJournalId,
 }
 
 impl<Perms> Clone for ChartOfAccounts<Perms>
@@ -54,7 +54,7 @@ where
         pool: &sqlx::PgPool,
         authz: &Perms,
         cala: &CalaLedger,
-        journal_id: LedgerJournalId,
+        journal_id: CalaJournalId,
     ) -> Self {
         let chart_of_account = ChartRepo::new(pool);
         Self {

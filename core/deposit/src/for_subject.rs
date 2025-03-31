@@ -216,7 +216,7 @@ where
 
     pub async fn find_withdrawal_by_cancelled_tx_id(
         &self,
-        cancelled_tx_id: impl Into<LedgerTransactionId> + std::fmt::Debug,
+        cancelled_tx_id: impl Into<CalaTransactionId> + std::fmt::Debug,
     ) -> Result<Withdrawal, CoreDepositError> {
         let cancelled_tx_id = cancelled_tx_id.into();
         let withdrawal = self

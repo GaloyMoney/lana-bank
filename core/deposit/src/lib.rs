@@ -99,7 +99,7 @@ where
         governance: &Governance<Perms, E>,
         jobs: &Jobs,
         cala: &CalaLedger,
-        journal_id: LedgerJournalId,
+        journal_id: CalaJournalId,
     ) -> Result<Self, CoreDepositError> {
         let publisher = DepositPublisher::new(outbox);
         let accounts = DepositAccountRepo::new(pool);
@@ -511,7 +511,7 @@ where
     pub async fn find_withdrawal_by_cancelled_tx_id(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        cancelled_tx_id: impl Into<LedgerTransactionId> + std::fmt::Debug,
+        cancelled_tx_id: impl Into<CalaTransactionId> + std::fmt::Debug,
     ) -> Result<Withdrawal, CoreDepositError> {
         let cancelled_tx_id = cancelled_tx_id.into();
         let withdrawal = self

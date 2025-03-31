@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 use es_entity::*;
 
 use crate::primitives::{
-    ApprovalProcessId, DepositAccountId, LedgerTransactionId, UsdCents, WithdrawalId,
+    ApprovalProcessId, CalaTransactionId, DepositAccountId, UsdCents, WithdrawalId,
 };
 use audit::AuditInfo;
 
@@ -38,11 +38,11 @@ pub enum WithdrawalEvent {
         audit_info: AuditInfo,
     },
     Confirmed {
-        ledger_tx_id: LedgerTransactionId,
+        ledger_tx_id: CalaTransactionId,
         audit_info: AuditInfo,
     },
     Cancelled {
-        ledger_tx_id: LedgerTransactionId,
+        ledger_tx_id: CalaTransactionId,
         audit_info: AuditInfo,
     },
 }
@@ -56,7 +56,7 @@ pub struct Withdrawal {
     pub amount: UsdCents,
     pub approval_process_id: ApprovalProcessId,
     #[builder(setter(strip_option), default)]
-    pub cancelled_tx_id: Option<LedgerTransactionId>,
+    pub cancelled_tx_id: Option<CalaTransactionId>,
 
     pub(super) events: EntityEvents<WithdrawalEvent>,
 }
@@ -68,10 +68,7 @@ impl Withdrawal {
             .expect("No events for deposit")
     }
 
-    pub fn confirm(
-        &mut self,
-        audit_info: AuditInfo,
-    ) -> Result<LedgerTransactionId, WithdrawalError> {
+    pub fn confirm(&mut self, audit_info: AuditInfo) -> Result<CalaTransactionId, WithdrawalError> {
         match self.is_approved_or_denied() {
             Some(false) => return Err(WithdrawalError::NotApproved(self.id)),
             None => return Err(WithdrawalError::NotApproved(self.id)),
@@ -86,7 +83,7 @@ impl Withdrawal {
             return Err(WithdrawalError::AlreadyCancelled(self.id));
         }
 
-        let ledger_tx_id = LedgerTransactionId::new();
+        let ledger_tx_id = CalaTransactionId::new();
         self.events.push(WithdrawalEvent::Confirmed {
             ledger_tx_id,
             audit_info,
@@ -95,10 +92,7 @@ impl Withdrawal {
         Ok(ledger_tx_id)
     }
 
-    pub fn cancel(
-        &mut self,
-        audit_info: AuditInfo,
-    ) -> Result<LedgerTransactionId, WithdrawalError> {
+    pub fn cancel(&mut self, audit_info: AuditInfo) -> Result<CalaTransactionId, WithdrawalError> {
         if self.is_confirmed() {
             return Err(WithdrawalError::AlreadyConfirmed(self.id));
         }
@@ -107,7 +101,7 @@ impl Withdrawal {
             return Err(WithdrawalError::AlreadyCancelled(self.id));
         }
 
-        let ledger_tx_id = LedgerTransactionId::new();
+        let ledger_tx_id = CalaTransactionId::new();
         self.events.push(WithdrawalEvent::Cancelled {
             ledger_tx_id,
             audit_info,

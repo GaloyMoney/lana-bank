@@ -5,7 +5,7 @@ pub mod error;
 
 use crate::{
     accounting::ChartOfAccounts, balance_sheet::BalanceSheets, cash_flow::CashFlowStatements,
-    primitives::LedgerJournalId, profit_and_loss::ProfitAndLossStatements,
+    primitives::CalaJournalId, profit_and_loss::ProfitAndLossStatements,
     trial_balance::TrialBalances,
 };
 
@@ -14,7 +14,7 @@ use error::*;
 
 #[derive(Clone)]
 pub struct JournalInit {
-    pub journal_id: LedgerJournalId,
+    pub journal_id: CalaJournalId,
 }
 
 impl JournalInit {

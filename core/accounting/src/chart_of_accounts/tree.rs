@@ -5,7 +5,7 @@ use std::{
 };
 
 use super::entity::ChartEvent;
-use crate::primitives::{AccountCode, AccountName, AccountSpec, ChartId, LedgerAccountSetId};
+use crate::primitives::{AccountCode, AccountName, AccountSpec, CalaAccountSetId, ChartId};
 
 #[derive(Debug)]
 pub struct ChartTree {
@@ -16,7 +16,7 @@ pub struct ChartTree {
 
 #[derive(Debug, Clone)]
 pub struct TreeNode {
-    pub id: LedgerAccountSetId,
+    pub id: CalaAccountSetId,
     pub code: AccountCode,
     pub name: AccountName,
     pub parent: Option<AccountCode>,
@@ -25,7 +25,7 @@ pub struct TreeNode {
 
 #[derive(Debug, Clone)]
 pub struct TreeNodeWithRef {
-    id: LedgerAccountSetId,
+    id: CalaAccountSetId,
     code: AccountCode,
     name: AccountName,
     parent: Option<AccountCode>,
@@ -55,7 +55,7 @@ impl TreeNodeWithRef {
 
 #[derive(Debug, Clone)]
 pub struct EntityNode {
-    pub id: LedgerAccountSetId,
+    pub id: CalaAccountSetId,
     pub spec: AccountSpec,
 }
 
