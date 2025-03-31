@@ -65,6 +65,45 @@ impl LedgerAccountLedger {
         })
     }
 
+    pub async fn load_ledger_account_by_external_id<T: From<LedgerAccount>>(
+        &self,
+        external_id: String,
+    ) -> Result<Option<T>, LedgerAccountLedgerError> {
+        let account_set = self
+            .cala
+            .account_sets()
+            .find_by_external_id(external_id)
+            .await?;
+        let balance_ids = [
+            (
+                self.journal_id,
+                account_set.id.into(),
+                "USD".parse::<cala_ledger::Currency>().unwrap(),
+            ),
+            (
+                self.journal_id,
+                account_set.id.into(),
+                "BTC".parse::<cala_ledger::Currency>().unwrap(),
+            ),
+        ];
+        let mut balances = self.cala.balances().find_all(&balance_ids).await?;
+
+        let usd_balance = balances.remove(&(
+            self.journal_id,
+            account_set.id.into(),
+            "USD".parse::<cala_ledger::Currency>().unwrap(),
+        ));
+
+        let btc_balance = balances.remove(&(
+            self.journal_id,
+            account_set.id.into(),
+            "BTC".parse::<cala_ledger::Currency>().unwrap(),
+        ));
+
+        let ledger_account = T::from(LedgerAccount::from((account_set, usd_balance, btc_balance)));
+        Ok(Some(ledger_account))
+    }
+
     pub async fn load_ledger_accounts<T: From<LedgerAccount>>(
         &self,
         ids: &[LedgerAccountId],

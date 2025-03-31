@@ -510,6 +510,27 @@ async fn add_permissions_for_bank_manager(authz: &Authorization) -> Result<(), A
             CoreAccountingAction::CHART_ACCOUNT_DETAILS_READ,
         )
         .await?;
+    authz
+        .add_permission_to_role(
+            &role,
+            CoreAccountingObject::all_ledger_accounts(),
+            CoreAccountingAction::LEDGER_ACCOUNT_READ,
+        )
+        .await?;
+    authz
+        .add_permission_to_role(
+            &role,
+            CoreAccountingObject::all_ledger_accounts(),
+            CoreAccountingAction::LEDGER_ACCOUNT_LIST,
+        )
+        .await?;
+    authz
+        .add_permission_to_role(
+            &role,
+            CoreAccountingObject::all_ledger_accounts(),
+            CoreAccountingAction::LEDGER_ACCOUNT_READ_HISTORY,
+        )
+        .await?;
 
     authz
         .add_permission_to_role(

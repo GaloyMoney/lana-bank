@@ -414,18 +414,10 @@ impl Query {
         ctx: &Context<'_>,
         code: String,
     ) -> async_graphql::Result<Option<LedgerAccount>> {
-        let reference = CHART_REF.to_string();
         let (app, sub) = app_and_sub_from_ctx!(ctx);
-        let chart = app
-            .accounting()
-            .chart_of_accounts()
-            .find_by_reference(sub, reference.clone())
-            .await?
-            .unwrap_or_else(|| panic!("Chart of accounts not found for ref {}", reference));
         let account = app
             .accounting()
-            .chart_of_accounts()
-            .account_details_by_code(sub, chart, code)
+            .find_ledger_account_by_code(sub, CHART_REF, code)
             .await?;
         Ok(account.map(LedgerAccount::from))
     }

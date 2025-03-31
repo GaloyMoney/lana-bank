@@ -23,22 +23,6 @@ es_entity::entity_id! {
     LedgerAccountId => CalaAccountSetId,
 }
 
-pub struct AccountDetails {
-    pub id: CalaAccountSetId,
-    pub name: AccountName,
-    pub code: AccountCode,
-}
-
-impl From<&(AccountSpec, CalaAccountSetId)> for AccountDetails {
-    fn from((spec, id): &(AccountSpec, CalaAccountSetId)) -> Self {
-        AccountDetails {
-            id: *id,
-            name: spec.name.clone(),
-            code: spec.code.clone(),
-        }
-    }
-}
-
 #[derive(Error, Debug)]
 pub enum AccountNameParseError {
     #[error("empty")]
@@ -126,6 +110,10 @@ pub struct AccountCode {
 impl AccountCode {
     pub fn new(section: Vec<AccountCodeSection>) -> Self {
         AccountCode { sections: section }
+    }
+
+    pub(super) fn account_set_external_id(&self, chart_id: ChartId) -> String {
+        format!("{}.{}", chart_id, self)
     }
 
     pub fn len_sections(&self) -> usize {
@@ -250,10 +238,6 @@ impl AccountSpec {
         }
     }
 
-    pub(super) fn account_set_external_id(&self, chart_id: ChartId) -> String {
-        format!("{}.{}", chart_id, self.code)
-    }
-
     pub fn has_parent(&self) -> bool {
         self.parent.is_some()
     }
@@ -292,6 +276,10 @@ impl CoreAccountingObject {
 
     pub fn journal(id: CalaJournalId) -> Self {
         CoreAccountingObject::Journal(AllOrOne::ById(id))
+    }
+
+    pub fn all_ledger_accounts() -> Self {
+        CoreAccountingObject::LedgerAccount(AllOrOne::All)
     }
 
     pub fn ledger_account(id: LedgerAccountId) -> Self {
@@ -350,6 +338,8 @@ impl CoreAccountingAction {
 
     pub const LEDGER_ACCOUNT_READ: Self =
         CoreAccountingAction::LedgerAccountAction(LedgerAccountAction::Read);
+    pub const LEDGER_ACCOUNT_LIST: Self =
+        CoreAccountingAction::LedgerAccountAction(LedgerAccountAction::List);
     pub const LEDGER_ACCOUNT_READ_HISTORY: Self =
         CoreAccountingAction::LedgerAccountAction(LedgerAccountAction::ReadHistory);
 }
@@ -409,6 +399,7 @@ impl From<ChartAction> for CoreAccountingAction {
 #[strum(serialize_all = "kebab-case")]
 pub enum LedgerAccountAction {
     Read,
+    List,
     ReadHistory,
 }
 

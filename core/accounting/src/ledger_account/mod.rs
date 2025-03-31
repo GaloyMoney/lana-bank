@@ -10,7 +10,7 @@ use authz::PermissionCheck;
 use cala_ledger::CalaLedger;
 
 use crate::primitives::{
-    AccountCode, CalaAccountBalance, CalaAccountSetId, CalaJournalId, CoreAccountingAction,
+    AccountCode, CalaAccountBalance, CalaJournalId, ChartId, CoreAccountingAction,
     CoreAccountingObject, LedgerAccountId,
 };
 
@@ -51,7 +51,7 @@ where
     pub async fn history(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        id: impl Into<CalaAccountSetId>,
+        id: impl Into<LedgerAccountId>,
         args: es_entity::PaginatedQueryArgs<LedgerAccountHistoryCursor>,
     ) -> Result<
         es_entity::PaginatedQueryRet<LedgerAccountEntry, LedgerAccountHistoryCursor>,
@@ -61,7 +61,7 @@ where
         self.authz
             .enforce_permission(
                 sub,
-                CoreAccountingObject::ledger_account(id.into()),
+                CoreAccountingObject::ledger_account(id),
                 CoreAccountingAction::LEDGER_ACCOUNT_READ_HISTORY,
             )
             .await?;
@@ -71,6 +71,7 @@ where
             .account_set_history::<LedgerAccountEntry, LedgerAccountHistoryCursor>(id.into(), args)
             .await?;
 
+        // TODO if empty check account history
         Ok(res)
     }
 
@@ -90,6 +91,26 @@ where
             .await?;
         let mut accounts = self.ledger.load_ledger_accounts([id].as_ref()).await?;
         Ok(accounts.remove(&id))
+    }
+
+    #[instrument(name = "accounting.ledger_account.find_by_id", skip(self), err)]
+    pub async fn find_by_code(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        chart_id: ChartId,
+        code: AccountCode,
+    ) -> Result<Option<LedgerAccount>, LedgerAccountError> {
+        self.authz
+            .enforce_permission(
+                sub,
+                CoreAccountingObject::all_ledger_accounts(),
+                CoreAccountingAction::LEDGER_ACCOUNT_LIST,
+            )
+            .await?;
+        Ok(self
+            .ledger
+            .load_ledger_account_by_external_id(code.account_set_external_id(chart_id))
+            .await?)
     }
 
     pub async fn find_all<T: From<LedgerAccount>>(

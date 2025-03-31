@@ -9,7 +9,7 @@ use lana_app::accounting::{
         LedgerAccount as DomainLedgerAccount, LedgerAccountEntry as DomainLedgerAccountEntry,
         LedgerAccountHistoryCursor,
     },
-    AccountCode as DomainAccountCode, AccountDetails,
+    AccountCode as DomainAccountCode,
 };
 
 use crate::primitives::*;
@@ -22,17 +22,6 @@ pub struct LedgerAccount {
 
     #[graphql(skip)]
     pub entity: Arc<DomainLedgerAccount>,
-}
-
-impl From<AccountDetails> for LedgerAccount {
-    fn from(account: AccountDetails) -> Self {
-        // LedgerAccount {
-        //     id: account.id.into(),
-        //     name: account.name.to_string(),
-        //     code: AccountCode(account.code.to_string()),
-        // }
-        unimplemented!()
-    }
 }
 
 impl From<DomainLedgerAccount> for LedgerAccount {

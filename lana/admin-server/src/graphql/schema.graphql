@@ -1171,8 +1171,8 @@ type LayeredUsdAccountBalanceAmounts {
 
 type LedgerAccount {
 	id: UUID!
+	code: AccountCode
 	name: String!
-	code: AccountCode!
 	history(first: Int!, after: String): LedgerAccountHistoryEntryConnection!
 	balance: LedgerAccountBalance!
 }
