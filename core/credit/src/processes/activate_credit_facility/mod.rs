@@ -113,13 +113,15 @@ where
             )
             .await?;
 
-        let new_disbursal = credit_facility.initiate_disbursal(
-            credit_facility.structuring_fee(),
-            now,
-            price,
-            Some(credit_facility.approval_process_id),
-            audit_info.clone(),
-        )?;
+        let new_disbursal = credit_facility
+            .initiate_disbursal(
+                credit_facility.structuring_fee(),
+                now,
+                price,
+                Some(credit_facility.approval_process_id),
+                audit_info.clone(),
+            )
+            .expect("first disbursal on new facility was invalid");
         let mut disbursal = self
             .disbursal_repo
             .create_in_op(&mut db, new_disbursal)

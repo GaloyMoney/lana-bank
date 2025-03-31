@@ -18,8 +18,6 @@ pub enum CreditFacilityError {
     ApprovalInProgress,
     #[error("CreditFacilityError - Denied")]
     Denied,
-    #[error("CreditFacilityError - DisbursalMaturityDate")]
-    DisbursalPastMaturityDate,
     #[error("CreditFacilityError - NotActivatedYet")]
     NotActivatedYet,
     #[error("CreditFacilityError - InterestAccrualNotCompletedYet")]
