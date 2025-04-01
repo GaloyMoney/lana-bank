@@ -507,7 +507,7 @@ async fn add_permissions_for_bank_manager(authz: &Authorization) -> Result<(), A
         .add_permission_to_role(
             &role,
             CoreAccountingObject::all_charts(),
-            CoreAccountingAction::CHART_ACCOUNT_DETAILS_READ,
+            CoreAccountingAction::CHART_IMPORT_ACCOUNTS,
         )
         .await?;
     authz

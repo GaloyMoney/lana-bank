@@ -328,8 +328,6 @@ impl FromStr for CoreAccountingObject {
 impl CoreAccountingAction {
     pub const CHART_CREATE: Self = CoreAccountingAction::ChartAction(ChartAction::Create);
     pub const CHART_LIST: Self = CoreAccountingAction::ChartAction(ChartAction::List);
-    pub const CHART_ACCOUNT_DETAILS_READ: Self =
-        CoreAccountingAction::ChartAction(ChartAction::AccountDetailsRead);
     pub const CHART_IMPORT_ACCOUNTS: Self =
         CoreAccountingAction::ChartAction(ChartAction::ImportAccounts);
 
@@ -381,12 +379,7 @@ impl FromStr for CoreAccountingAction {
 pub enum ChartAction {
     Create,
     List,
-    AccountDetailsRead,
     ImportAccounts,
-    CreateControlAccount,
-    FindControlAccount,
-    CreateControlSubAccount,
-    FindControlSubAccount,
 }
 
 impl From<ChartAction> for CoreAccountingAction {
