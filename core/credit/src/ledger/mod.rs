@@ -753,8 +753,8 @@ impl CreditLedger {
             collateral_omnibus_account_ids,
             internal_account_sets,
             credit_facility_control_id,
-            usd: "USD".parse().expect("Could not parse 'USD'"),
-            btc: "BTC".parse().expect("Could not parse 'BTC'"),
+            usd: Currency::USD,
+            btc: Currency::BTC,
         })
     }
 
@@ -817,7 +817,7 @@ impl CreditLedger {
 
         let members = cala
             .account_sets()
-            .list_members(account_set_id, Default::default())
+            .list_members_by_created_at(account_set_id, Default::default())
             .await?
             .entities;
         if !members.is_empty() {

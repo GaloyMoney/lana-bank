@@ -300,11 +300,10 @@ impl BalancesByAccount {
         &self,
         account_set_id: CalaAccountSetId,
     ) -> Result<BtcStatementAccountSetBalanceRange, StatementError> {
-        let currency = "BTC".parse().expect("BTC is not a valid currency");
         Ok(self
             .balances
             .get(&account_set_id.into())
-            .and_then(|currencies| currencies.get(&currency))
+            .and_then(|currencies| currencies.get(&Currency::BTC))
             .into_iter()
             .flatten()
             .map(|bal| bal.clone().try_into())
@@ -317,11 +316,10 @@ impl BalancesByAccount {
         &self,
         account_set_id: CalaAccountSetId,
     ) -> Result<UsdStatementAccountSetBalanceRange, StatementError> {
-        let currency = "USD".parse().expect("USD is not a valid currency");
         Ok(self
             .balances
             .get(&account_set_id.into())
-            .and_then(|currencies| currencies.get(&currency))
+            .and_then(|currencies| currencies.get(&Currency::USD))
             .into_iter()
             .flatten()
             .map(|bal| bal.clone().try_into())
@@ -363,16 +361,8 @@ impl From<(JournalId, CalaAccountSetId)> for BalanceIdsForSingleAccountSet {
         let account_set_id = ids.1;
         Self {
             balance_ids: vec![
-                (
-                    journal_id,
-                    account_set_id.into(),
-                    "BTC".parse().expect("BTC is not a valid currency"),
-                ),
-                (
-                    journal_id,
-                    account_set_id.into(),
-                    "USD".parse().expect("USD is not a valid currency"),
-                ),
+                (journal_id, account_set_id.into(), Currency::BTC),
+                (journal_id, account_set_id.into(), Currency::USD),
             ],
         }
     }

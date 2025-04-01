@@ -1,7 +1,7 @@
 pub mod error;
 
 use cala_ledger::{
-    AccountSetId, CalaLedger, JournalId, account::Account, account_set::AccountSet,
+    AccountSetId, CalaLedger, Currency, JournalId, account::Account, account_set::AccountSet,
     balance::AccountBalance,
 };
 
@@ -75,30 +75,13 @@ impl LedgerAccountLedger {
             .find_by_external_id(external_id)
             .await?;
         let balance_ids = [
-            (
-                self.journal_id,
-                account_set.id.into(),
-                "USD".parse::<cala_ledger::Currency>().unwrap(),
-            ),
-            (
-                self.journal_id,
-                account_set.id.into(),
-                "BTC".parse::<cala_ledger::Currency>().unwrap(),
-            ),
+            (self.journal_id, account_set.id.into(), Currency::USD),
+            (self.journal_id, account_set.id.into(), Currency::BTC),
         ];
         let mut balances = self.cala.balances().find_all(&balance_ids).await?;
 
-        let usd_balance = balances.remove(&(
-            self.journal_id,
-            account_set.id.into(),
-            "USD".parse::<cala_ledger::Currency>().unwrap(),
-        ));
-
-        let btc_balance = balances.remove(&(
-            self.journal_id,
-            account_set.id.into(),
-            "BTC".parse::<cala_ledger::Currency>().unwrap(),
-        ));
+        let usd_balance = balances.remove(&(self.journal_id, account_set.id.into(), Currency::USD));
+        let btc_balance = balances.remove(&(self.journal_id, account_set.id.into(), Currency::BTC));
 
         let ledger_account = T::from(LedgerAccount::from((account_set, usd_balance, btc_balance)));
         Ok(Some(ledger_account))
@@ -114,16 +97,8 @@ impl LedgerAccountLedger {
             .iter()
             .flat_map(|id| {
                 [
-                    (
-                        self.journal_id,
-                        (*id).into(),
-                        "USD".parse::<cala_ledger::Currency>().unwrap(),
-                    ),
-                    (
-                        self.journal_id,
-                        (*id).into(),
-                        "BTC".parse::<cala_ledger::Currency>().unwrap(),
-                    ),
+                    (self.journal_id, (*id).into(), Currency::USD),
+                    (self.journal_id, (*id).into(), Currency::BTC),
                 ]
             })
             .collect::<Vec<_>>();
@@ -145,17 +120,9 @@ impl LedgerAccountLedger {
 
         for (id, account_set) in account_sets {
             let account_id: LedgerAccountId = id.into();
-            let usd_balance = balances.remove(&(
-                self.journal_id,
-                account_id.into(),
-                "USD".parse::<cala_ledger::Currency>().unwrap(),
-            ));
 
-            let btc_balance = balances.remove(&(
-                self.journal_id,
-                account_id.into(),
-                "BTC".parse::<cala_ledger::Currency>().unwrap(),
-            ));
+            let usd_balance = balances.remove(&(self.journal_id, account_id.into(), Currency::USD));
+            let btc_balance = balances.remove(&(self.journal_id, account_id.into(), Currency::BTC));
 
             let ledger_account =
                 T::from(LedgerAccount::from((account_set, usd_balance, btc_balance)));
@@ -167,17 +134,8 @@ impl LedgerAccountLedger {
             if result.contains_key(&account_id) {
                 continue;
             }
-            let usd_balance = balances.remove(&(
-                self.journal_id,
-                account_id.into(),
-                "USD".parse::<cala_ledger::Currency>().unwrap(),
-            ));
-
-            let btc_balance = balances.remove(&(
-                self.journal_id,
-                account_id.into(),
-                "BTC".parse::<cala_ledger::Currency>().unwrap(),
-            ));
+            let usd_balance = balances.remove(&(self.journal_id, account_id.into(), Currency::USD));
+            let btc_balance = balances.remove(&(self.journal_id, account_id.into(), Currency::BTC));
 
             let ledger_account = T::from(LedgerAccount::from((account, usd_balance, btc_balance)));
             result.insert(account_id, ledger_account);

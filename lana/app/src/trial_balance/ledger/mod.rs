@@ -4,7 +4,9 @@ use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
 use cala_ledger::{
-    account_set::{AccountSetMember, AccountSetMemberId, AccountSetMembersCursor, NewAccountSet},
+    account_set::{
+        AccountSetMember, AccountSetMemberId, AccountSetMembersByCreatedAtCursor, NewAccountSet,
+    },
     AccountSetId, CalaLedger, DebitOrCredit, JournalId, LedgerOperation,
 };
 
@@ -42,7 +44,7 @@ pub struct TrialBalanceAccountSetsCursor {
     pub member_created_at: DateTime<Utc>,
 }
 
-impl From<TrialBalanceAccountSetsCursor> for AccountSetMembersCursor {
+impl From<TrialBalanceAccountSetsCursor> for AccountSetMembersByCreatedAtCursor {
     fn from(cursor: TrialBalanceAccountSetsCursor) -> Self {
         Self {
             id: AccountSetMemberId::AccountSet(cursor.id),
@@ -51,8 +53,8 @@ impl From<TrialBalanceAccountSetsCursor> for AccountSetMembersCursor {
     }
 }
 
-impl From<AccountSetMembersCursor> for TrialBalanceAccountSetsCursor {
-    fn from(cursor: AccountSetMembersCursor) -> Self {
+impl From<AccountSetMembersByCreatedAtCursor> for TrialBalanceAccountSetsCursor {
+    fn from(cursor: AccountSetMembersByCreatedAtCursor) -> Self {
         let id = match cursor.id {
             AccountSetMemberId::AccountSet(id) => id,
             _ => panic!("Unexpected non-AccountSet cursor id found"),
@@ -169,7 +171,9 @@ impl TrialBalanceLedger {
         cursor: es_entity::PaginatedQueryArgs<U>,
     ) -> Result<es_entity::PaginatedQueryRet<AccountSetMember, U>, TrialBalanceLedgerError>
     where
-        U: std::fmt::Debug + From<AccountSetMembersCursor> + Into<AccountSetMembersCursor>,
+        U: std::fmt::Debug
+            + From<AccountSetMembersByCreatedAtCursor>
+            + Into<AccountSetMembersByCreatedAtCursor>,
     {
         let cala_cursor = es_entity::PaginatedQueryArgs {
             after: cursor.after.map(|u| u.into()),
@@ -179,7 +183,7 @@ impl TrialBalanceLedger {
         let ret = self
             .cala
             .account_sets()
-            .list_members(account_set_id, cala_cursor)
+            .list_members_by_created_at(account_set_id, cala_cursor)
             .await?;
 
         Ok(es_entity::PaginatedQueryRet {

@@ -1,4 +1,4 @@
-use cala_ledger::{DebitOrCredit, Layer};
+use cala_ledger::{Currency, DebitOrCredit, Layer};
 use serde::{Deserialize, Serialize};
 
 use crate::primitives::{CalaAccountId, CalaEntryId, CalaTxId, Satoshis, UsdCents};
@@ -85,7 +85,7 @@ impl TryFrom<cala_ledger::entry::Entry> for LedgerAccountEntry {
         let mut layered_amount = None;
 
         let mut layered_usd_amount = LayeredUsdLedgerAccountAmount::ZERO;
-        if currency == "USD".parse()? {
+        if currency == Currency::USD {
             let mut usd_amount = UsdLedgerAccountAmount::ZERO;
             match cala_entry.values().direction {
                 DebitOrCredit::Debit => {
@@ -105,7 +105,7 @@ impl TryFrom<cala_ledger::entry::Entry> for LedgerAccountEntry {
         }
 
         let mut layered_btc_amount = LayeredBtcLedgerAccountAmount::ZERO;
-        if currency == "BTC".parse()? {
+        if currency == Currency::BTC {
             let mut btc_amount = BtcLedgerAccountAmount::ZERO;
             match cala_entry.values().direction {
                 DebitOrCredit::Debit => {

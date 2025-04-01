@@ -212,7 +212,7 @@ impl DepositLedger {
             },
             deposit_omnibus_account_ids,
             deposit_control_id,
-            usd: "USD".parse().expect("Could not parse 'USD'"),
+            usd: Currency::USD,
         })
     }
 
@@ -275,7 +275,7 @@ impl DepositLedger {
 
         let members = cala
             .account_sets()
-            .list_members(account_set_id, Default::default())
+            .list_members_by_created_at(account_set_id, Default::default())
             .await?
             .entities;
         if !members.is_empty() {

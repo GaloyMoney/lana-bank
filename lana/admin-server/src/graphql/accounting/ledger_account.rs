@@ -3,14 +3,13 @@ use serde::{Deserialize, Serialize};
 
 use std::sync::Arc;
 
-use lana_app::accounting::{
-    ledger_account::{
-        LayeredLedgerAccountAmount as DomainLayeredLedgerAccountAmount,
-        LedgerAccount as DomainLedgerAccount, LedgerAccountEntry as DomainLedgerAccountEntry,
-        LedgerAccountHistoryCursor,
-    },
-    AccountCode as DomainAccountCode,
+use lana_app::accounting::ledger_account::{
+    LayeredLedgerAccountAmount as DomainLayeredLedgerAccountAmount,
+    LedgerAccount as DomainLedgerAccount, LedgerAccountEntry as DomainLedgerAccountEntry,
+    LedgerAccountHistoryCursor,
 };
+use lana_app::accounting::AccountCode as DomainAccountCode;
+use lana_app::primitives::Currency;
 
 use crate::primitives::*;
 
@@ -100,14 +99,14 @@ impl From<Option<&cala_ledger::balance::AccountBalance>> for LedgerAccountBalanc
                 pending: UsdCents::ZERO,
                 encumbrance: UsdCents::ZERO,
             }),
-            Some(balance) if balance.details.currency == "USD".parse().unwrap() => {
+            Some(balance) if balance.details.currency == Currency::USD => {
                 LedgerAccountBalance::Usd(UsdLedgerAccountBalance {
                     settled: UsdCents::try_from_usd(balance.settled()).expect("positive"),
                     pending: UsdCents::try_from_usd(balance.pending()).expect("positive"),
                     encumbrance: UsdCents::try_from_usd(balance.encumbrance()).expect("positive"),
                 })
             }
-            Some(balance) if balance.details.currency == "BTC".parse().unwrap() => {
+            Some(balance) if balance.details.currency == Currency::BTC => {
                 LedgerAccountBalance::Btc(BtcLedgerAccountBalance {
                     settled: Satoshis::try_from_btc(balance.settled()).expect("positive"),
                     pending: Satoshis::try_from_btc(balance.pending()).expect("positive"),

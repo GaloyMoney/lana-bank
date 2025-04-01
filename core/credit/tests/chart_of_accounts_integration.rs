@@ -177,7 +177,7 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
 
     let res = cala
         .account_sets()
-        .list_members(account_set_id, Default::default())
+        .list_members_by_created_at(account_set_id, Default::default())
         .await?;
 
     assert_eq!(res.entities.len(), 6);

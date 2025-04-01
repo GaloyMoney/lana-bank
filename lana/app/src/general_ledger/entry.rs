@@ -1,4 +1,4 @@
-use cala_ledger::{entry::Entry, DebitOrCredit, EntryId};
+use cala_ledger::{entry::Entry, Currency, DebitOrCredit, EntryId};
 use core_money::{Satoshis, UsdCents};
 use serde::{Deserialize, Serialize};
 
@@ -31,7 +31,7 @@ impl TryFrom<Entry> for GeneralLedgerEntry {
     type Error = GeneralLedgerError;
 
     fn try_from(entry: Entry) -> Result<Self, Self::Error> {
-        if entry.values().currency == "USD".parse()? {
+        if entry.values().currency == Currency::USD {
             Ok(Self::Usd(UsdGeneralLedgerEntry {
                 entry_id: entry.id,
                 entry_type: entry.values().entry_type.clone(),
@@ -40,7 +40,7 @@ impl TryFrom<Entry> for GeneralLedgerEntry {
                 direction: entry.values().direction,
                 created_at: entry.created_at(),
             }))
-        } else if entry.values().currency == "BTC".parse()? {
+        } else if entry.values().currency == Currency::BTC {
             Ok(Self::Btc(BtcGeneralLedgerEntry {
                 entry_id: entry.id,
                 entry_type: entry.values().entry_type.clone(),

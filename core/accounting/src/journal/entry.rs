@@ -1,4 +1,4 @@
-use cala_ledger::{DebitOrCredit, EntryId, entry::Entry};
+use cala_ledger::{Currency, DebitOrCredit, EntryId, entry::Entry};
 use core_money::{Satoshis, UsdCents};
 use serde::{Deserialize, Serialize};
 
@@ -25,9 +25,9 @@ impl TryFrom<Entry> for JournalEntry {
     type Error = JournalError;
 
     fn try_from(entry: Entry) -> Result<Self, Self::Error> {
-        let amount = if entry.values().currency == "USD".parse().expect("parse USD") {
+        let amount = if entry.values().currency == Currency::USD {
             JournalEntryAmount::Usd(UsdCents::try_from_usd(entry.values().units)?)
-        } else if entry.values().currency == "BTC".parse().expect("parse BTC") {
+        } else if entry.values().currency == Currency::BTC {
             JournalEntryAmount::Btc(Satoshis::try_from_btc(entry.values().units)?)
         } else {
             return Err(JournalError::UnexpectedCurrency);
