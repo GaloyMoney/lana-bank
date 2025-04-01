@@ -1,5 +1,7 @@
 #![allow(dead_code)]
 
+use rand::Rng;
+
 use lana_app::{authorization::Authorization, outbox::Outbox, primitives::Subject, user::Users};
 
 pub async fn init_pool() -> anyhow::Result<sqlx::PgPool> {
@@ -13,7 +15,10 @@ pub async fn init_users(
     pool: &sqlx::PgPool,
     authz: &Authorization,
 ) -> anyhow::Result<(Users, Subject)> {
-    let superuser_email = "superuser@test.io".to_string();
+    let superuser_email = format!(
+        "superuser_{:05}@test.io",
+        rand::thread_rng().gen_range(0..100000)
+    );
     let outbox = Outbox::init(pool).await?;
     let users = Users::init(pool, authz, &outbox, Some(superuser_email.clone())).await?;
     let superuser = users
