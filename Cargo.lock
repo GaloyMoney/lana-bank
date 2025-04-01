@@ -4360,9 +4360,9 @@ dependencies = [
 
 [[package]]
 name = "sim-time"
-version = "0.3.20"
+version = "0.3.22"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "48a036a2342c8832c98769d44d20e8d6213c4d6517e506dc1e808c1d0f79b120"
+checksum = "078767cbe3507130b2d49aa02b8bfd4a32bb626873fde7e3b8b28cee3c8bdbf5"
 dependencies = [
  "chrono",
  "serde",
