@@ -7,6 +7,7 @@ use audit::AuditInfo;
 use es_entity::*;
 
 use crate::{
+    obligation::NewObligation,
     primitives::*,
     terms::{CVLData, CVLPct, CollateralizationState, InterestPeriod, TermValues},
 };
@@ -289,29 +290,6 @@ impl From<(InterestAccrualData, CreditFacilityAccountIds)> for CreditFacilityInt
             period,
             tx_ref,
             tx_id,
-            credit_facility_account_ids,
-        }
-    }
-}
-
-impl From<(InterestAccrualCycleData, CreditFacilityAccountIds)>
-    for CreditFacilityInterestAccrualCycle
-{
-    fn from(data: (InterestAccrualCycleData, CreditFacilityAccountIds)) -> Self {
-        let (
-            InterestAccrualCycleData {
-                interest,
-                tx_ref,
-                tx_id,
-                posted_at,
-            },
-            credit_facility_account_ids,
-        ) = data;
-        Self {
-            interest,
-            tx_ref,
-            tx_id,
-            posted_at,
             credit_facility_account_ids,
         }
     }
@@ -739,7 +717,7 @@ impl CreditFacility {
         let new_accrual = NewInterestAccrualCycle::builder()
             .id(id)
             .credit_facility_id(self.id)
-            .credit_facility_account_ids(self.account_ids)
+            .account_ids(self.account_ids.into())
             .idx(idx)
             .started_at(accrual_cycle_period.start)
             .facility_matures_at(self.matures_at.expect("Facility is already approved"))
@@ -759,33 +737,33 @@ impl CreditFacility {
     pub(crate) fn record_interest_accrual_cycle(
         &mut self,
         audit_info: AuditInfo,
-    ) -> Result<CreditFacilityInterestAccrualCycle, CreditFacilityError> {
+    ) -> Result<NewObligation, CreditFacilityError> {
         let accrual_cycle_data = self
             .interest_accrual_cycle_in_progress()
             .expect("accrual not found")
-            .accrual_cycle_data();
-        let interest_accrual = accrual_cycle_data
-            .map(|data| CreditFacilityInterestAccrualCycle::from((data, self.account_ids)))
+            .accrual_cycle_data()
             .ok_or(CreditFacilityError::InterestAccrualNotCompletedYet)?;
 
-        let idx = {
+        let (idx, new_obligation) = {
             let accrual = self
                 .interest_accrual_cycle_in_progress()
                 .expect("accrual not found");
-            accrual.record_accrual_cycle(interest_accrual.clone(), audit_info.clone());
-            accrual.idx
+            (
+                accrual.idx,
+                accrual.record_accrual_cycle(accrual_cycle_data.clone(), audit_info.clone()),
+            )
         };
         self.events
             .push(CreditFacilityEvent::InterestAccrualCycleConcluded {
                 idx,
-                tx_id: interest_accrual.tx_id,
-                tx_ref: interest_accrual.tx_ref.to_string(),
-                amount: interest_accrual.interest,
-                posted_at: interest_accrual.posted_at,
+                tx_id: accrual_cycle_data.tx_id,
+                tx_ref: accrual_cycle_data.tx_ref.to_string(),
+                amount: accrual_cycle_data.interest,
+                posted_at: accrual_cycle_data.posted_at,
                 audit_info,
             });
 
-        Ok(interest_accrual)
+        Ok(new_obligation)
     }
 
     pub fn interest_accrual_cycle_in_progress(&mut self) -> Option<&mut InterestAccrualCycle> {
@@ -1742,7 +1720,7 @@ mod test {
             let new_accrual = NewInterestAccrualCycle::builder()
                 .id(id)
                 .credit_facility_id(credit_facility.id)
-                .credit_facility_account_ids(credit_facility.account_ids)
+                .account_ids(credit_facility.account_ids.into())
                 .idx(new_idx)
                 .started_at(accrual_starts_at)
                 .facility_matures_at(

@@ -21,6 +21,7 @@ pub enum ObligationEvent {
         due_date: DateTime<Utc>,
         overdue_date: Option<DateTime<Utc>>,
         default_date: Option<DateTime<Utc>>,
+        recorded_at: DateTime<Utc>,
         audit_info: AuditInfo,
     },
 }
@@ -34,6 +35,7 @@ pub struct Obligation {
     pub amount: UsdCents,
     pub account_to_be_debited_id: CalaAccountId,
     pub account_to_be_credited_id: CalaAccountId,
+    pub recorded_at: DateTime<Utc>,
     pub(super) events: EntityEvents<ObligationEvent>,
 }
 
@@ -57,6 +59,7 @@ impl TryFromEvents<ObligationEvent> for Obligation {
                     amount,
                     account_to_be_debited_id,
                     account_to_be_credited_id,
+                    recorded_at,
                     ..
                 } => {
                     builder = builder
@@ -66,6 +69,7 @@ impl TryFromEvents<ObligationEvent> for Obligation {
                         .amount(*amount)
                         .account_to_be_debited_id(*account_to_be_debited_id)
                         .account_to_be_credited_id(*account_to_be_credited_id)
+                        .recorded_at(*recorded_at)
                 }
             }
         }
@@ -92,6 +96,7 @@ pub struct NewObligation {
     overdue_date: Option<DateTime<Utc>>,
     #[builder(setter(strip_option), default)]
     default_date: Option<DateTime<Utc>>,
+    recorded_at: DateTime<Utc>,
     #[builder(setter(into))]
     pub audit_info: AuditInfo,
 }
@@ -124,6 +129,7 @@ impl IntoEvents<ObligationEvent> for NewObligation {
                 due_date: self.due_date,
                 overdue_date: self.overdue_date,
                 default_date: self.default_date,
+                recorded_at: self.recorded_at,
                 audit_info: self.audit_info,
             }],
         )

@@ -1167,13 +1167,15 @@ impl CreditLedger {
     pub async fn record_interest_accrual_cycle(
         &self,
         op: es_entity::DbOp<'_>,
-        CreditFacilityInterestAccrualCycle {
+        Obligation {
             tx_id,
-            tx_ref,
-            interest,
-            credit_facility_account_ids,
-            posted_at,
-        }: CreditFacilityInterestAccrualCycle,
+            reference: tx_ref,
+            amount: interest,
+            account_to_be_debited_id: interest_receivable_account_id,
+            account_to_be_credited_id: interest_income_account_id,
+            recorded_at: posted_at,
+            ..
+        }: Obligation,
     ) -> Result<(), CreditLedgerError> {
         let mut op = self.cala.ledger_operation_from_db_op(op);
         self.cala
@@ -1184,10 +1186,8 @@ impl CreditLedger {
                 templates::CreditFacilityPostAccruedInterestParams {
                     journal_id: self.journal_id,
 
-                    credit_facility_interest_receivable_account: credit_facility_account_ids
-                        .interest_receivable_account_id,
-                    credit_facility_interest_income_account: credit_facility_account_ids
-                        .interest_account_id,
+                    credit_facility_interest_receivable_account: interest_receivable_account_id,
+                    credit_facility_interest_income_account: interest_income_account_id,
                     interest_amount: interest.to_usd(),
                     external_id: tx_ref,
                     effective: posted_at.date_naive(),

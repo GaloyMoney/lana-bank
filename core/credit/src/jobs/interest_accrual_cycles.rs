@@ -10,8 +10,8 @@ use outbox::OutboxEventMarker;
 
 use crate::{
     credit_facility::CreditFacilityRepo, interest_accruals, ledger::*, CoreCreditAction,
-    CoreCreditError, CoreCreditEvent, CoreCreditObject, CreditFacilityId,
-    CreditFacilityInterestAccrualCycle, InterestAccrualCycleId,
+    CoreCreditError, CoreCreditEvent, CoreCreditObject, CreditFacilityId, InterestAccrualCycleId,
+    Obligation, ObligationRepo,
 };
 
 #[derive(Clone, Serialize, Deserialize)]
@@ -35,6 +35,7 @@ where
     E: OutboxEventMarker<CoreCreditEvent>,
 {
     ledger: CreditLedger,
+    obligation_repo: ObligationRepo,
     credit_facility_repo: CreditFacilityRepo<E>,
     jobs: Jobs,
     audit: Perms::Audit,
@@ -49,12 +50,14 @@ where
 {
     pub fn new(
         ledger: &CreditLedger,
+        obligation_repo: ObligationRepo,
         credit_facility_repo: CreditFacilityRepo<E>,
         jobs: &Jobs,
         audit: &Perms::Audit,
     ) -> Self {
         Self {
             ledger: ledger.clone(),
+            obligation_repo,
             credit_facility_repo,
             jobs: jobs.clone(),
             audit: audit.clone(),
@@ -81,6 +84,7 @@ where
     fn init(&self, job: &Job) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
         Ok(Box::new(CreditFacilityProcessingJobRunner::<Perms, E> {
             config: job.config()?,
+            obligation_repo: self.obligation_repo.clone(),
             credit_facility_repo: self.credit_facility_repo.clone(),
             ledger: self.ledger.clone(),
             jobs: self.jobs.clone(),
@@ -95,6 +99,7 @@ where
     E: OutboxEventMarker<CoreCreditEvent>,
 {
     config: CreditFacilityJobConfig<Perms, E>,
+    obligation_repo: ObligationRepo,
     credit_facility_repo: CreditFacilityRepo<E>,
     ledger: CreditLedger,
     jobs: Jobs,
@@ -113,21 +118,17 @@ where
         &self,
         db: &mut es_entity::DbOp<'_>,
         audit_info: &AuditInfo,
-    ) -> Result<
-        Option<(
-            CreditFacilityInterestAccrualCycle,
-            InterestAccrualCycleId,
-            DateTime<Utc>,
-        )>,
-        CoreCreditError,
-    > {
+    ) -> Result<Option<(Obligation, InterestAccrualCycleId, DateTime<Utc>)>, CoreCreditError> {
         let mut credit_facility = self
             .credit_facility_repo
             .find_by_id(self.config.credit_facility_id)
             .await?;
 
-        let completed_interest_accrual_cycle =
-            credit_facility.record_interest_accrual_cycle(audit_info.clone())?;
+        let new_obligation = credit_facility.record_interest_accrual_cycle(audit_info.clone())?;
+        let obligation = self
+            .obligation_repo
+            .create_in_op(db, new_obligation)
+            .await?;
         self.credit_facility_repo
             .update_in_op(db, &mut credit_facility)
             .await?;
@@ -147,7 +148,7 @@ where
             .id;
 
         Ok(Some((
-            completed_interest_accrual_cycle,
+            obligation,
             new_accrual_cycle_id,
             first_accrual_period_in_new_cycle.end,
         )))
@@ -184,20 +185,12 @@ where
             )
             .await?;
 
-        let (completed_interest_accrual_cycle, new_accrual_cycle_id, first_accrual_end_date) =
-            if let Some((
-                completed_interest_accrual_cycle,
-                new_accrual_cycle_id,
-                first_accrual_end_date,
-            )) = self
+        let (obligation, new_accrual_cycle_id, first_accrual_end_date) =
+            if let Some((obligation, new_accrual_cycle_id, first_accrual_end_date)) = self
                 .complete_interest_cycle_and_maybe_start_new_cycle(&mut db, &audit_info)
                 .await?
             {
-                (
-                    completed_interest_accrual_cycle,
-                    new_accrual_cycle_id,
-                    first_accrual_end_date,
-                )
+                (obligation, new_accrual_cycle_id, first_accrual_end_date)
             } else {
                 println!(
                     "Credit Facility interest accrual job completed for credit_facility: {:?}",
@@ -219,7 +212,7 @@ where
             .await?;
 
         self.ledger
-            .record_interest_accrual_cycle(db, completed_interest_accrual_cycle)
+            .record_interest_accrual_cycle(db, obligation)
             .await?;
 
         return Ok(JobCompletion::Complete);

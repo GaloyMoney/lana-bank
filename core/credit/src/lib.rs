@@ -167,6 +167,7 @@ where
         jobs.add_initializer(
             interest_accrual_cycles::CreditFacilityProcessingJobInitializer::<Perms, E>::new(
                 &ledger,
+                obligation_repo.clone(),
                 credit_facility_repo.clone(),
                 jobs,
                 authz.audit(),

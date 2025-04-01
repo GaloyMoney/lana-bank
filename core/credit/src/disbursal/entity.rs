@@ -178,6 +178,7 @@ impl Disbursal {
             .account_to_be_credited_id(self.disbursal_credit_account_id)
             .due_date(self.disbursal_due_date)
             .overdue_date(self.disbursal_due_date)
+            .recorded_at(crate::time::now())
             .audit_info(audit_info)
             .build()
             .expect("could not build new disbursal obligation")
