@@ -7,9 +7,11 @@ use es_entity::*;
 
 use crate::{
     credit_facility::CreditFacilityReceivable,
+    ledger::CreditFacilityInterestAccrualCycle,
+    obligation::NewObligation,
     primitives::*,
     terms::{InterestPeriod, TermValues},
-    CreditFacilityInterestAccrualCycle,
+    CreditFacilityAccountIds,
 };
 
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
@@ -22,6 +24,7 @@ pub enum InterestAccrualCycleEvent {
         idx: InterestAccrualCycleIdx,
         started_at: DateTime<Utc>,
         facility_matures_at: DateTime<Utc>,
+        account_ids: CreditFacilityAccountIds,
         terms: TermValues,
         audit_info: AuditInfo,
     },
@@ -35,6 +38,7 @@ pub enum InterestAccrualCycleEvent {
     InterestAccrualsPosted {
         tx_id: LedgerTxId,
         tx_ref: String,
+        obligation_id: ObligationId,
         total: UsdCents,
         posted_at: DateTime<Utc>,
         audit_info: AuditInfo,
@@ -46,6 +50,7 @@ pub enum InterestAccrualCycleEvent {
 pub struct InterestAccrualCycle {
     pub id: InterestAccrualCycleId,
     pub credit_facility_id: CreditFacilityId,
+    pub account_ids: CreditFacilityAccountIds,
     pub idx: InterestAccrualCycleIdx,
     pub started_at: DateTime<Utc>,
     pub facility_matures_at: DateTime<Utc>,
@@ -79,6 +84,7 @@ impl TryFromEvents<InterestAccrualCycleEvent> for InterestAccrualCycle {
                 InterestAccrualCycleEvent::Initialized {
                     id,
                     facility_id,
+                    account_ids,
                     idx,
                     started_at,
                     facility_matures_at,
@@ -88,6 +94,7 @@ impl TryFromEvents<InterestAccrualCycleEvent> for InterestAccrualCycle {
                     builder = builder
                         .id(*id)
                         .credit_facility_id(*facility_id)
+                        .account_ids(*account_ids)
                         .idx(*idx)
                         .started_at(*started_at)
                         .facility_matures_at(*facility_matures_at)
@@ -233,15 +240,30 @@ impl InterestAccrualCycle {
             ..
         }: CreditFacilityInterestAccrualCycle,
         audit_info: AuditInfo,
-    ) {
+    ) -> NewObligation {
+        let obligation_id = ObligationId::new();
         self.events
             .push(InterestAccrualCycleEvent::InterestAccrualsPosted {
                 tx_id,
-                tx_ref,
+                tx_ref: tx_ref.to_string(),
+                obligation_id,
                 total: interest,
                 posted_at,
-                audit_info,
+                audit_info: audit_info.clone(),
             });
+
+        NewObligation::builder()
+            .id(obligation_id)
+            .reference(tx_ref.to_string())
+            .amount(interest)
+            .tx_id(tx_id)
+            .account_to_be_debited_id(self.account_ids.interest_receivable_account_id)
+            .account_to_be_credited_id(self.account_ids.interest_account_id)
+            .due_date(self.accrual_cycle_ends_at())
+            .overdue_date(self.accrual_cycle_ends_at())
+            .audit_info(audit_info)
+            .build()
+            .expect("could not build new interest accrual cycle obligation")
     }
 }
 
@@ -251,6 +273,7 @@ pub struct NewInterestAccrualCycle {
     pub id: InterestAccrualCycleId,
     #[builder(setter(into))]
     pub credit_facility_id: CreditFacilityId,
+    pub credit_facility_account_ids: CreditFacilityAccountIds,
     pub idx: InterestAccrualCycleIdx,
     pub started_at: DateTime<Utc>,
     pub facility_matures_at: DateTime<Utc>,
@@ -276,6 +299,7 @@ impl IntoEvents<InterestAccrualCycleEvent> for NewInterestAccrualCycle {
             [InterestAccrualCycleEvent::Initialized {
                 id: self.id,
                 facility_id: self.credit_facility_id,
+                account_ids: self.credit_facility_account_ids,
                 idx: self.idx,
                 started_at: self.started_at,
                 facility_matures_at: self.facility_matures_at,
@@ -336,6 +360,7 @@ mod test {
         vec![InterestAccrualCycleEvent::Initialized {
             id: InterestAccrualCycleId::new(),
             facility_id: CreditFacilityId::new(),
+            account_ids: CreditFacilityAccountIds::new(),
             idx: InterestAccrualCycleIdx::FIRST,
             started_at,
             facility_matures_at: terms.duration.maturity_date(started_at),

@@ -739,6 +739,7 @@ impl CreditFacility {
         let new_accrual = NewInterestAccrualCycle::builder()
             .id(id)
             .credit_facility_id(self.id)
+            .credit_facility_account_ids(self.account_ids)
             .idx(idx)
             .started_at(accrual_cycle_period.start)
             .facility_matures_at(self.matures_at.expect("Facility is already approved"))
@@ -1741,6 +1742,7 @@ mod test {
             let new_accrual = NewInterestAccrualCycle::builder()
                 .id(id)
                 .credit_facility_id(credit_facility.id)
+                .credit_facility_account_ids(credit_facility.account_ids)
                 .idx(new_idx)
                 .started_at(accrual_starts_at)
                 .facility_matures_at(
