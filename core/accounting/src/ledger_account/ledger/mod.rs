@@ -105,7 +105,6 @@ impl LedgerAccountLedger {
             })
             .collect::<Vec<_>>();
 
-        // Start all three queries in parallel
         let (account_sets_result, accounts_result, balances_result) = tokio::join!(
             self.cala
                 .account_sets()
@@ -114,7 +113,6 @@ impl LedgerAccountLedger {
             self.cala.balances().find_all(&balance_ids)
         );
 
-        // Extract results, propagating any errors
         let account_sets = account_sets_result?;
         let accounts = accounts_result?;
         let mut balances = balances_result?;

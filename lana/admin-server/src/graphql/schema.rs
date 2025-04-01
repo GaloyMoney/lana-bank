@@ -415,11 +415,12 @@ impl Query {
         code: String,
     ) -> async_graphql::Result<Option<LedgerAccount>> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
-        let account = app
-            .accounting()
-            .find_ledger_account_by_code(sub, CHART_REF, code)
-            .await?;
-        Ok(account.map(LedgerAccount::from))
+        maybe_fetch_one!(
+            LedgerAccount,
+            ctx,
+            app.accounting()
+                .find_ledger_account_by_code(sub, CHART_REF, code)
+        )
     }
 
     async fn journal_entries(
