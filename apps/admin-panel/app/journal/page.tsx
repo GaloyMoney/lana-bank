@@ -2,6 +2,7 @@
 
 import { gql } from "@apollo/client"
 import { useTranslations } from "next-intl"
+import { useRouter } from "next/navigation"
 
 import {
   Card,
@@ -42,6 +43,9 @@ gql`
               btc
             }
           }
+          ledgerAccount {
+            code
+          }
         }
       }
       pageInfo {
@@ -56,6 +60,7 @@ gql`
 
 const JournalPage: React.FC = () => {
   const t = useTranslations("Journal")
+  const router = useRouter()
 
   const { data, loading, error, fetchMore } = useJournalEntriesQuery({
     variables: {
@@ -116,6 +121,7 @@ const JournalPage: React.FC = () => {
             fetchMore={async (cursor) => fetchMore({ variables: { after: cursor } })}
             loading={loading}
             noDataText={t("noTableData")}
+            onClick={(entry) => router.push(`/journal/${entry.ledgerAccount.code}`)}
           />
         )}
       </CardContent>
