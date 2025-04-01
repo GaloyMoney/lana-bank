@@ -20,8 +20,9 @@ import { useRouter } from "next/navigation"
 import { formatDate, isUUID } from "@/lib/utils"
 import {
   useLedgerAccountByCodeQuery,
-  LedgerAccountHistoryEntry,
   useLedgerAccountQuery,
+  JournalEntry,
+  DebitOrCredit,
 } from "@/lib/graphql/generated"
 import PaginatedTable, {
   Column,
@@ -49,27 +50,23 @@ gql`
       edges {
         cursor
         node {
-          __typename
-          ... on BtcLedgerAccountHistoryEntry {
-            txId
-            recordedAt
-            btcAmount {
-              settled {
-                debit
-                credit
-              }
+          id
+          entryId
+          txId
+          entryType
+          amount {
+            __typename
+            ... on UsdAmount {
+              usd
+            }
+            ... on BtcAmount {
+              btc
             }
           }
-          ... on UsdLedgerAccountHistoryEntry {
-            txId
-            recordedAt
-            usdAmount {
-              settled {
-                debit
-                credit
-              }
-            }
-          }
+          description
+          direction
+          layer
+          createdAt
         }
       }
       pageInfo {
@@ -129,40 +126,38 @@ const LedgerAccountPage: React.FC<LedgerAccountPageProps> = ({ params }) => {
     }
   }, [ledgerAccount, isRefUUID, router])
 
-  const columns: Column<LedgerAccountHistoryEntry>[] = [
+  const columns: Column<JournalEntry>[] = [
     {
-      key: "recordedAt",
+      key: "createdAt",
       label: t("table.columns.recordedAt"),
       render: (recordedAt: string) => formatDate(recordedAt),
     },
     {
-      key: "__typename",
+      key: "amount",
       label: t("table.columns.currency"),
-      render: (type: string | undefined) => (
-        <div>{type === "UsdLedgerAccountHistoryEntry" ? "USD" : "BTC"}</div>
-      ),
+      render: (amount) => <div>{amount.__typename === "UsdAmount" ? "USD" : "BTC"}</div>,
     },
     {
       key: "__typename",
       label: t("table.columns.debit"),
-      render: (_?: string, record?: LedgerAccountHistoryEntry) => {
-        if (!record) return null
-        if (record.__typename === "UsdLedgerAccountHistoryEntry") {
-          return <Balance amount={record?.usdAmount?.settled?.debit} currency="usd" />
-        } else if (record.__typename === "BtcLedgerAccountHistoryEntry") {
-          return <Balance amount={record?.btcAmount?.settled?.debit} currency="btc" />
+      render: (_, record) => {
+        if (record.direction !== DebitOrCredit.Debit) return null
+        if (record.amount.__typename === "UsdAmount") {
+          return <Balance amount={record?.amount.usd} currency="usd" />
+        } else if (record.amount.__typename === "BtcAmount") {
+          return <Balance amount={record?.amount.btc} currency="btc" />
         }
       },
     },
     {
       key: "__typename",
       label: t("table.columns.credit"),
-      render: (_?: string, record?: LedgerAccountHistoryEntry) => {
-        if (!record) return null
-        if (record.__typename === "UsdLedgerAccountHistoryEntry") {
-          return <Balance amount={record?.usdAmount?.settled?.credit} currency="usd" />
-        } else if (record.__typename === "BtcLedgerAccountHistoryEntry") {
-          return <Balance amount={record?.btcAmount?.settled?.credit} currency="btc" />
+      render: (_, record) => {
+        if (record.direction !== DebitOrCredit.Credit) return null
+        if (record.amount.__typename === "UsdAmount") {
+          return <Balance amount={record?.amount.usd} currency="usd" />
+        } else if (record.amount.__typename === "BtcAmount") {
+          return <Balance amount={record?.amount.btc} currency="btc" />
         }
       },
     },
@@ -225,9 +220,9 @@ const LedgerAccountPage: React.FC<LedgerAccountPageProps> = ({ params }) => {
           <CardTitle>{t("transactionsTitle")}</CardTitle>
         </CardHeader>
         <CardContent>
-          <PaginatedTable<LedgerAccountHistoryEntry>
+          <PaginatedTable<JournalEntry>
             columns={columns}
-            data={ledgerAccount?.history as PaginatedData<LedgerAccountHistoryEntry>}
+            data={ledgerAccount?.history as PaginatedData<JournalEntry>}
             pageSize={DEFAULT_PAGESIZE}
             fetchMore={async (cursor) => fetchMore({ variables: { after: cursor } })}
             loading={loading}

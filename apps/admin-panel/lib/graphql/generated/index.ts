@@ -236,12 +236,6 @@ export type BalanceSheetModuleConfigurePayload = {
   balanceSheetConfig: BalanceSheetModuleConfig;
 };
 
-export type BtcAccountAmounts = {
-  __typename?: 'BtcAccountAmounts';
-  credit: Scalars['Satoshis']['output'];
-  debit: Scalars['Satoshis']['output'];
-};
-
 export type BtcAccountAmountsInPeriod = {
   __typename?: 'BtcAccountAmountsInPeriod';
   amount: LayeredBtcAccountBalanceAmounts;
@@ -278,14 +272,6 @@ export type BtcLedgerAccountBalance = {
   encumbrance: Scalars['Satoshis']['output'];
   pending: Scalars['Satoshis']['output'];
   settled: Scalars['Satoshis']['output'];
-};
-
-export type BtcLedgerAccountHistoryEntry = {
-  __typename?: 'BtcLedgerAccountHistoryEntry';
-  btcAmount: LayeredBtcAccountAmounts;
-  entryId: Scalars['UUID']['output'];
-  recordedAt: Scalars['Timestamp']['output'];
-  txId: Scalars['UUID']['output'];
 };
 
 export type CancelledWithdrawalEntry = {
@@ -1114,7 +1100,9 @@ export type JournalEntry = {
   entryId: Scalars['UUID']['output'];
   entryType: Scalars['String']['output'];
   id: Scalars['ID']['output'];
+  layer: Layer;
   ledgerAccount: LedgerAccount;
+  txId: Scalars['UUID']['output'];
 };
 
 export type JournalEntryAmount = BtcAmount | UsdAmount;
@@ -1144,12 +1132,11 @@ export enum KycLevel {
   NotKyced = 'NOT_KYCED'
 }
 
-export type LayeredBtcAccountAmounts = {
-  __typename?: 'LayeredBtcAccountAmounts';
-  encumbrance: BtcAccountAmounts;
-  pending: BtcAccountAmounts;
-  settled: BtcAccountAmounts;
-};
+export enum Layer {
+  Encumbrance = 'ENCUMBRANCE',
+  Pending = 'PENDING',
+  Settled = 'SETTLED'
+}
 
 export type LayeredBtcAccountBalanceAmounts = {
   __typename?: 'LayeredBtcAccountBalanceAmounts';
@@ -1157,13 +1144,6 @@ export type LayeredBtcAccountBalanceAmounts = {
   encumbrance: BtcAccountBalanceAmounts;
   pending: BtcAccountBalanceAmounts;
   settled: BtcAccountBalanceAmounts;
-};
-
-export type LayeredUsdAccountAmounts = {
-  __typename?: 'LayeredUsdAccountAmounts';
-  encumbrance: UsdAccountAmounts;
-  pending: UsdAccountAmounts;
-  settled: UsdAccountAmounts;
 };
 
 export type LayeredUsdAccountBalanceAmounts = {
@@ -1178,7 +1158,7 @@ export type LedgerAccount = {
   __typename?: 'LedgerAccount';
   balance: LedgerAccountBalance;
   code?: Maybe<Scalars['AccountCode']['output']>;
-  history: LedgerAccountHistoryEntryConnection;
+  history: JournalEntryConnection;
   id: Scalars['UUID']['output'];
   name: Scalars['String']['output'];
 };
@@ -1190,27 +1170,6 @@ export type LedgerAccountHistoryArgs = {
 };
 
 export type LedgerAccountBalance = BtcLedgerAccountBalance | UsdLedgerAccountBalance;
-
-export type LedgerAccountHistoryEntry = BtcLedgerAccountHistoryEntry | UsdLedgerAccountHistoryEntry;
-
-export type LedgerAccountHistoryEntryConnection = {
-  __typename?: 'LedgerAccountHistoryEntryConnection';
-  /** A list of edges. */
-  edges: Array<LedgerAccountHistoryEntryEdge>;
-  /** A list of nodes. */
-  nodes: Array<LedgerAccountHistoryEntry>;
-  /** Information to aid in pagination. */
-  pageInfo: PageInfo;
-};
-
-/** An edge in a connection. */
-export type LedgerAccountHistoryEntryEdge = {
-  __typename?: 'LedgerAccountHistoryEntryEdge';
-  /** A cursor for use in pagination */
-  cursor: Scalars['String']['output'];
-  /** The item at the end of the edge */
-  node: LedgerAccountHistoryEntry;
-};
 
 export type Loan = {
   __typename?: 'Loan';
@@ -1961,12 +1920,6 @@ export type UnknownEntry = {
   txId: Scalars['UUID']['output'];
 };
 
-export type UsdAccountAmounts = {
-  __typename?: 'UsdAccountAmounts';
-  credit: Scalars['UsdCents']['output'];
-  debit: Scalars['UsdCents']['output'];
-};
-
 export type UsdAccountAmountsInPeriod = {
   __typename?: 'UsdAccountAmountsInPeriod';
   amount: LayeredUsdAccountBalanceAmounts;
@@ -2003,14 +1956,6 @@ export type UsdLedgerAccountBalance = {
   encumbrance: Scalars['UsdCents']['output'];
   pending: Scalars['UsdCents']['output'];
   settled: Scalars['UsdCents']['output'];
-};
-
-export type UsdLedgerAccountHistoryEntry = {
-  __typename?: 'UsdLedgerAccountHistoryEntry';
-  entryId: Scalars['UUID']['output'];
-  recordedAt: Scalars['Timestamp']['output'];
-  txId: Scalars['UUID']['output'];
-  usdAmount: LayeredUsdAccountAmounts;
 };
 
 export type User = {
@@ -2461,7 +2406,7 @@ export type JournalEntriesQueryVariables = Exact<{
 
 export type JournalEntriesQuery = { __typename?: 'Query', journalEntries: { __typename?: 'JournalEntryConnection', edges: Array<{ __typename?: 'JournalEntryEdge', cursor: string, node: { __typename?: 'JournalEntry', id: string, entryId: string, entryType: string, description?: string | null, direction: DebitOrCredit, createdAt: any, amount: { __typename?: 'BtcAmount', btc: Satoshis } | { __typename?: 'UsdAmount', usd: UsdCents }, ledgerAccount: { __typename?: 'LedgerAccount', id: string, code?: any | null } } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, startCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean } } };
 
-export type LedgerAccountDetailsFragment = { __typename?: 'LedgerAccount', id: string, name: string, code?: any | null, balance: { __typename: 'BtcLedgerAccountBalance', btcSettledBalance: Satoshis } | { __typename: 'UsdLedgerAccountBalance', usdSettledBalance: UsdCents }, history: { __typename?: 'LedgerAccountHistoryEntryConnection', edges: Array<{ __typename?: 'LedgerAccountHistoryEntryEdge', cursor: string, node: { __typename: 'BtcLedgerAccountHistoryEntry', txId: string, recordedAt: any, btcAmount: { __typename?: 'LayeredBtcAccountAmounts', settled: { __typename?: 'BtcAccountAmounts', debit: Satoshis, credit: Satoshis } } } | { __typename: 'UsdLedgerAccountHistoryEntry', txId: string, recordedAt: any, usdAmount: { __typename?: 'LayeredUsdAccountAmounts', settled: { __typename?: 'UsdAccountAmounts', debit: UsdCents, credit: UsdCents } } } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, startCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean } } };
+export type LedgerAccountDetailsFragment = { __typename?: 'LedgerAccount', id: string, name: string, code?: any | null, balance: { __typename: 'BtcLedgerAccountBalance', btcSettledBalance: Satoshis } | { __typename: 'UsdLedgerAccountBalance', usdSettledBalance: UsdCents }, history: { __typename?: 'JournalEntryConnection', edges: Array<{ __typename?: 'JournalEntryEdge', cursor: string, node: { __typename?: 'JournalEntry', id: string, entryId: string, txId: string, entryType: string, description?: string | null, direction: DebitOrCredit, layer: Layer, createdAt: any, amount: { __typename: 'BtcAmount', btc: Satoshis } | { __typename: 'UsdAmount', usd: UsdCents } } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, startCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean } } };
 
 export type LedgerAccountByCodeQueryVariables = Exact<{
   code: Scalars['String']['input'];
@@ -2470,7 +2415,7 @@ export type LedgerAccountByCodeQueryVariables = Exact<{
 }>;
 
 
-export type LedgerAccountByCodeQuery = { __typename?: 'Query', ledgerAccountByCode?: { __typename?: 'LedgerAccount', id: string, name: string, code?: any | null, balance: { __typename: 'BtcLedgerAccountBalance', btcSettledBalance: Satoshis } | { __typename: 'UsdLedgerAccountBalance', usdSettledBalance: UsdCents }, history: { __typename?: 'LedgerAccountHistoryEntryConnection', edges: Array<{ __typename?: 'LedgerAccountHistoryEntryEdge', cursor: string, node: { __typename: 'BtcLedgerAccountHistoryEntry', txId: string, recordedAt: any, btcAmount: { __typename?: 'LayeredBtcAccountAmounts', settled: { __typename?: 'BtcAccountAmounts', debit: Satoshis, credit: Satoshis } } } | { __typename: 'UsdLedgerAccountHistoryEntry', txId: string, recordedAt: any, usdAmount: { __typename?: 'LayeredUsdAccountAmounts', settled: { __typename?: 'UsdAccountAmounts', debit: UsdCents, credit: UsdCents } } } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, startCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean } } } | null };
+export type LedgerAccountByCodeQuery = { __typename?: 'Query', ledgerAccountByCode?: { __typename?: 'LedgerAccount', id: string, name: string, code?: any | null, balance: { __typename: 'BtcLedgerAccountBalance', btcSettledBalance: Satoshis } | { __typename: 'UsdLedgerAccountBalance', usdSettledBalance: UsdCents }, history: { __typename?: 'JournalEntryConnection', edges: Array<{ __typename?: 'JournalEntryEdge', cursor: string, node: { __typename?: 'JournalEntry', id: string, entryId: string, txId: string, entryType: string, description?: string | null, direction: DebitOrCredit, layer: Layer, createdAt: any, amount: { __typename: 'BtcAmount', btc: Satoshis } | { __typename: 'UsdAmount', usd: UsdCents } } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, startCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean } } } | null };
 
 export type LedgerAccountQueryVariables = Exact<{
   id: Scalars['UUID']['input'];
@@ -2479,7 +2424,7 @@ export type LedgerAccountQueryVariables = Exact<{
 }>;
 
 
-export type LedgerAccountQuery = { __typename?: 'Query', ledgerAccount?: { __typename?: 'LedgerAccount', id: string, name: string, code?: any | null, balance: { __typename: 'BtcLedgerAccountBalance', btcSettledBalance: Satoshis } | { __typename: 'UsdLedgerAccountBalance', usdSettledBalance: UsdCents }, history: { __typename?: 'LedgerAccountHistoryEntryConnection', edges: Array<{ __typename?: 'LedgerAccountHistoryEntryEdge', cursor: string, node: { __typename: 'BtcLedgerAccountHistoryEntry', txId: string, recordedAt: any, btcAmount: { __typename?: 'LayeredBtcAccountAmounts', settled: { __typename?: 'BtcAccountAmounts', debit: Satoshis, credit: Satoshis } } } | { __typename: 'UsdLedgerAccountHistoryEntry', txId: string, recordedAt: any, usdAmount: { __typename?: 'LayeredUsdAccountAmounts', settled: { __typename?: 'UsdAccountAmounts', debit: UsdCents, credit: UsdCents } } } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, startCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean } } } | null };
+export type LedgerAccountQuery = { __typename?: 'Query', ledgerAccount?: { __typename?: 'LedgerAccount', id: string, name: string, code?: any | null, balance: { __typename: 'BtcLedgerAccountBalance', btcSettledBalance: Satoshis } | { __typename: 'UsdLedgerAccountBalance', usdSettledBalance: UsdCents }, history: { __typename?: 'JournalEntryConnection', edges: Array<{ __typename?: 'JournalEntryEdge', cursor: string, node: { __typename?: 'JournalEntry', id: string, entryId: string, txId: string, entryType: string, description?: string | null, direction: DebitOrCredit, layer: Layer, createdAt: any, amount: { __typename: 'BtcAmount', btc: Satoshis } | { __typename: 'UsdAmount', usd: UsdCents } } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, startCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean } } } | null };
 
 export type BalanceSheetConfigureMutationVariables = Exact<{
   input: BalanceSheetModuleConfigureInput;
@@ -3015,27 +2960,23 @@ export const LedgerAccountDetailsFragmentDoc = gql`
     edges {
       cursor
       node {
-        __typename
-        ... on BtcLedgerAccountHistoryEntry {
-          txId
-          recordedAt
-          btcAmount {
-            settled {
-              debit
-              credit
-            }
+        id
+        entryId
+        txId
+        entryType
+        amount {
+          __typename
+          ... on UsdAmount {
+            usd
+          }
+          ... on BtcAmount {
+            btc
           }
         }
-        ... on UsdLedgerAccountHistoryEntry {
-          txId
-          recordedAt
-          usdAmount {
-            settled {
-              debit
-              credit
-            }
-          }
-        }
+        description
+        direction
+        layer
+        createdAt
       }
     }
     pageInfo {

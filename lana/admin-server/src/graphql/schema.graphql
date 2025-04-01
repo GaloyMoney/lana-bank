@@ -1157,7 +1157,6 @@ type LedgerAccount {
 	id: UUID!
 	code: AccountCode
 	name: String!
-	code: AccountCode!
 	history(first: Int!, after: String): JournalEntryConnection!
 	balance: LedgerAccountBalance!
 }
