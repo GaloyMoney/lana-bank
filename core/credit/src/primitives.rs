@@ -41,6 +41,8 @@ pub struct LedgerOmnibusAccountIds {
 
 pub type CreditFacilityAllOrOne = AllOrOne<CreditFacilityId>;
 pub type ChartOfAccountsIntegrationConfigAllOrOne = AllOrOne<ChartOfAccountsIntegrationConfigId>;
+pub type DisbursalAllOrOne = AllOrOne<DisbursalId>;
+pub type ObligationAllOrOne = AllOrOne<ObligationId>;
 
 #[derive(Clone, Copy, Debug, PartialEq, strum::EnumDiscriminants)]
 #[strum_discriminants(derive(strum::Display, strum::EnumString))]
@@ -48,6 +50,8 @@ pub type ChartOfAccountsIntegrationConfigAllOrOne = AllOrOne<ChartOfAccountsInte
 pub enum CoreCreditObject {
     CreditFacility(CreditFacilityAllOrOne),
     ChartOfAccountsIntegration(ChartOfAccountsIntegrationConfigAllOrOne),
+    Disbursal(DisbursalAllOrOne),
+    Obligation(ObligationAllOrOne),
 }
 
 impl CoreCreditObject {
@@ -62,6 +66,22 @@ impl CoreCreditObject {
     pub fn chart_of_accounts_integration() -> Self {
         CoreCreditObject::ChartOfAccountsIntegration(AllOrOne::All)
     }
+
+    pub fn disbursal(id: DisbursalId) -> Self {
+        CoreCreditObject::Disbursal(AllOrOne::ById(id))
+    }
+
+    pub fn all_disbursals() -> Self {
+        CoreCreditObject::Disbursal(AllOrOne::All)
+    }
+
+    pub fn obligation(id: ObligationId) -> Self {
+        CoreCreditObject::Obligation(AllOrOne::ById(id))
+    }
+
+    pub fn all_obligations() -> Self {
+        CoreCreditObject::Obligation(AllOrOne::All)
+    }
 }
 
 impl std::fmt::Display for CoreCreditObject {
@@ -70,7 +90,9 @@ impl std::fmt::Display for CoreCreditObject {
         use CoreCreditObject::*;
         match self {
             CreditFacility(obj_ref) => write!(f, "{}/{}", discriminant, obj_ref),
-            &ChartOfAccountsIntegration(obj_ref) => write!(f, "{}/{}", discriminant, obj_ref),
+            ChartOfAccountsIntegration(obj_ref) => write!(f, "{}/{}", discriminant, obj_ref),
+            Disbursal(obj_ref) => write!(f, "{}/{}", discriminant, obj_ref),
+            Obligation(obj_ref) => write!(f, "{}/{}", discriminant, obj_ref),
         }
     }
 }
@@ -90,6 +112,14 @@ impl FromStr for CoreCreditObject {
                 let obj_ref = id.parse().map_err(|_| "could not parse CoreCreditObject")?;
                 CoreCreditObject::ChartOfAccountsIntegration(obj_ref)
             }
+            Obligation => {
+                let obj_ref = id.parse().map_err(|_| "could not parse CoreCreditObject")?;
+                CoreCreditObject::Obligation(obj_ref)
+            }
+            Disbursal => {
+                let obj_ref = id.parse().map_err(|_| "could not parse CoreCreditObject")?;
+                CoreCreditObject::Disbursal(obj_ref)
+            }
         };
         Ok(res)
     }
@@ -102,6 +132,7 @@ pub enum CoreCreditAction {
     CreditFacility(CreditFacilityAction),
     ChartOfAccountsIntegrationConfig(ChartOfAccountsIntegrationConfigAction),
     Disbursal(DisbursalAction),
+    Obligation(ObligationAction),
 }
 
 impl CoreCreditAction {
@@ -142,6 +173,9 @@ impl CoreCreditAction {
     pub const DISBURSAL_LIST: Self = CoreCreditAction::Disbursal(DisbursalAction::List);
     pub const DISBURSAL_CONCLUDE_APPROVAL_PROCESS: Self =
         CoreCreditAction::Disbursal(DisbursalAction::ConcludeApprovalProcess);
+
+    pub const OBLIGATION_UPDATE_STATUS: Self =
+        CoreCreditAction::Obligation(ObligationAction::UpdateStatus);
 }
 
 impl std::fmt::Display for CoreCreditAction {
@@ -152,6 +186,7 @@ impl std::fmt::Display for CoreCreditAction {
             CreditFacility(action) => action.fmt(f),
             ChartOfAccountsIntegrationConfig(action) => action.fmt(f),
             Disbursal(action) => action.fmt(f),
+            Obligation(action) => action.fmt(f),
         }
     }
 }
@@ -170,6 +205,7 @@ impl FromStr for CoreCreditAction {
                 CoreCreditAction::from(action.parse::<ChartOfAccountsIntegrationConfigAction>()?)
             }
             Disbursal => CoreCreditAction::from(action.parse::<DisbursalAction>()?),
+            Obligation => CoreCreditAction::from(action.parse::<ObligationAction>()?),
         };
         Ok(res)
     }
@@ -220,6 +256,17 @@ pub enum ChartOfAccountsIntegrationConfigAction {
 impl From<ChartOfAccountsIntegrationConfigAction> for CoreCreditAction {
     fn from(action: ChartOfAccountsIntegrationConfigAction) -> Self {
         CoreCreditAction::ChartOfAccountsIntegrationConfig(action)
+    }
+}
+
+#[derive(PartialEq, Clone, Copy, Debug, strum::Display, strum::EnumString)]
+#[strum(serialize_all = "kebab-case")]
+pub enum ObligationAction {
+    UpdateStatus,
+}
+impl From<ObligationAction> for CoreCreditAction {
+    fn from(action: ObligationAction) -> Self {
+        Self::Obligation(action)
     }
 }
 

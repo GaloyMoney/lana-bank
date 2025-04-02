@@ -104,8 +104,8 @@ where
             .audit
             .record_system_entry_in_tx(
                 db.tx(),
-                CoreCreditObject::all_credit_facilities(),
-                CoreCreditAction::CREDIT_FACILITY_RECORD_OVERDUE_DISBURSED_BALANCE,
+                CoreCreditObject::all_obligations(),
+                CoreCreditAction::OBLIGATION_UPDATE_STATUS,
             )
             .await?;
 

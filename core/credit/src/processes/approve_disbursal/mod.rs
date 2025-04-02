@@ -123,8 +123,7 @@ where
             .audit
             .record_system_entry_in_tx(
                 db.tx(),
-                // NOTE: change to DisbursalObject
-                CoreCreditObject::credit_facility(disbursal.facility_id),
+                CoreCreditObject::disbursal(disbursal.id),
                 CoreCreditAction::DISBURSAL_CONCLUDE_APPROVAL_PROCESS,
             )
             .await?;
@@ -133,7 +132,7 @@ where
             .record_system_entry_in_tx(
                 db.tx(),
                 // NOTE: change to DisbursalObject
-                CoreCreditObject::credit_facility(credit_facility.id),
+                CoreCreditObject::disbursal(disbursal.id),
                 CoreCreditAction::DISBURSAL_SETTLE,
             )
             .await?;
