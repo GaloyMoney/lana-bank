@@ -125,10 +125,21 @@ where
             .await?;
 
         let new_obligation = credit_facility.record_interest_accrual_cycle(audit_info.clone())?;
-        let obligation = self
+        let mut obligation = self
             .obligation_repo
             .create_in_op(db, new_obligation)
             .await?;
+
+        obligation
+            .record_due(audit_info.clone())
+            .expect("Obligation was already marked due");
+        obligation
+            .record_overdue(audit_info.clone())?
+            .expect("Obligation was already marked overdue");
+        self.obligation_repo
+            .update_in_op(db, &mut obligation)
+            .await?;
+
         self.credit_facility_repo
             .update_in_op(db, &mut credit_facility)
             .await?;
