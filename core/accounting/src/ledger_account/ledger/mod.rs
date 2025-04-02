@@ -67,10 +67,10 @@ impl LedgerAccountLedger {
         })
     }
 
-    pub async fn load_ledger_account_by_external_id<T: From<LedgerAccount>>(
+    pub async fn load_ledger_account_by_external_id(
         &self,
         external_id: String,
-    ) -> Result<Option<T>, LedgerAccountLedgerError> {
+    ) -> Result<Option<LedgerAccount>, LedgerAccountLedgerError> {
         let account_set = self
             .cala
             .account_sets()
@@ -85,14 +85,14 @@ impl LedgerAccountLedger {
         let usd_balance = balances.remove(&(self.journal_id, account_set.id.into(), Currency::USD));
         let btc_balance = balances.remove(&(self.journal_id, account_set.id.into(), Currency::BTC));
 
-        let ledger_account = T::from(LedgerAccount::from((account_set, usd_balance, btc_balance)));
+        let ledger_account = LedgerAccount::from((account_set, usd_balance, btc_balance));
         Ok(Some(ledger_account))
     }
 
-    pub async fn load_ledger_accounts<T: From<LedgerAccount>>(
+    pub async fn load_ledger_accounts(
         &self,
         ids: &[LedgerAccountId],
-    ) -> Result<HashMap<LedgerAccountId, T>, LedgerAccountLedgerError> {
+    ) -> Result<HashMap<LedgerAccountId, LedgerAccount>, LedgerAccountLedgerError> {
         let account_set_ids = ids.iter().map(|id| (*id).into()).collect::<Vec<_>>();
         let account_ids = ids.iter().map(|id| (*id).into()).collect::<Vec<_>>();
         let balance_ids = ids
@@ -124,8 +124,7 @@ impl LedgerAccountLedger {
             let usd_balance = balances.remove(&(self.journal_id, account_id.into(), Currency::USD));
             let btc_balance = balances.remove(&(self.journal_id, account_id.into(), Currency::BTC));
 
-            let ledger_account =
-                T::from(LedgerAccount::from((account_set, usd_balance, btc_balance)));
+            let ledger_account = LedgerAccount::from((account_set, usd_balance, btc_balance));
             result.insert(account_id, ledger_account);
         }
 
@@ -137,7 +136,7 @@ impl LedgerAccountLedger {
             let usd_balance = balances.remove(&(self.journal_id, account_id.into(), Currency::USD));
             let btc_balance = balances.remove(&(self.journal_id, account_id.into(), Currency::BTC));
 
-            let ledger_account = T::from(LedgerAccount::from((account, usd_balance, btc_balance)));
+            let ledger_account = LedgerAccount::from((account, usd_balance, btc_balance));
             result.insert(account_id, ledger_account);
         }
 
@@ -161,6 +160,8 @@ impl From<(AccountSet, Option<AccountBalance>, Option<AccountBalance>)> for Ledg
             code,
             usd_balance,
             btc_balance,
+            ancestors_ids: Vec::new(),
+            is_leaf: false,
         }
     }
 }
@@ -179,6 +180,8 @@ impl From<(Account, Option<AccountBalance>, Option<AccountBalance>)> for LedgerA
             code: None,
             usd_balance,
             btc_balance,
+            ancestors_ids: Vec::new(),
+            is_leaf: true,
         }
     }
 }

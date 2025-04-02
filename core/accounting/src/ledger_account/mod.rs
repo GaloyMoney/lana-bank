@@ -23,6 +23,20 @@ pub struct LedgerAccount {
     pub code: Option<AccountCode>,
     pub usd_balance: Option<CalaAccountBalance>,
     pub btc_balance: Option<CalaAccountBalance>,
+
+    pub ancestors_ids: Vec<LedgerAccountId>,
+
+    is_leaf: bool,
+}
+
+impl LedgerAccount {
+    pub(crate) fn is_leaf_account(&self) -> bool {
+        self.is_leaf
+    }
+
+    pub(crate) fn is_module_account_set(&self) -> bool {
+        self.code.is_none() && !self.is_leaf
+    }
 }
 
 #[derive(Clone)]
@@ -111,6 +125,7 @@ where
         &self,
         ids: &[LedgerAccountId],
     ) -> Result<HashMap<LedgerAccountId, T>, LedgerAccountError> {
-        Ok(self.ledger.load_ledger_accounts(ids).await?)
+        let accounts = self.ledger.load_ledger_accounts(ids).await?;
+        Ok(accounts.into_iter().map(|(k, v)| (k, v.into())).collect())
     }
 }
