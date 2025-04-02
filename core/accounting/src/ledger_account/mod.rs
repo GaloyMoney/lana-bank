@@ -27,7 +27,7 @@ pub struct LedgerAccount {
     pub usd_balance: Option<CalaAccountBalance>,
     pub btc_balance: Option<CalaAccountBalance>,
 
-    pub ancestors_ids: Vec<LedgerAccountId>,
+    pub ancestor_ids: Vec<LedgerAccountId>,
 
     is_leaf: bool,
 }
@@ -101,7 +101,7 @@ where
                 CoreAccountingAction::LEDGER_ACCOUNT_READ,
             )
             .await?;
-        let mut accounts = self.ledger.load_ledger_accounts([id].as_ref()).await?;
+        let mut accounts = self.find_all(chart, &[id]).await?;
         Ok(accounts.remove(&id))
     }
 
@@ -119,10 +119,16 @@ where
                 CoreAccountingAction::LEDGER_ACCOUNT_LIST,
             )
             .await?;
-        Ok(self
+        if let Some(mut account) = self
             .ledger
             .load_ledger_account_by_external_id(code.account_set_external_id(chart.id))
-            .await?)
+            .await?
+        {
+            self.populate_ancestors(&chart, &mut account).await?;
+            Ok(Some(account))
+        } else {
+            Ok(None)
+        }
     }
 
     pub async fn find_all<T: From<LedgerAccount>>(
@@ -130,9 +136,23 @@ where
         chart: &Chart,
         ids: &[LedgerAccountId],
     ) -> Result<HashMap<LedgerAccountId, T>, LedgerAccountError> {
-        // need handle on chart
-        //
         let accounts = self.ledger.load_ledger_accounts(ids).await?;
-        Ok(accounts.into_iter().map(|(k, v)| (k, v.into())).collect())
+        let mut res = HashMap::new();
+        for (k, mut v) in accounts.into_iter() {
+            self.populate_ancestors(chart, &mut v).await?;
+            res.insert(k, v.into());
+        }
+        Ok(res)
+    }
+
+    async fn populate_ancestors(
+        &self,
+        chart: &Chart,
+        account: &mut LedgerAccount,
+    ) -> Result<(), LedgerAccountError> {
+        if let Some(code) = account.code.as_ref() {
+            account.ancestor_ids = chart.ancestors(code);
+        }
+        Ok(())
     }
 }

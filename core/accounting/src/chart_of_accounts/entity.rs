@@ -76,6 +76,30 @@ impl Chart {
         self.all_accounts.get(code)
     }
 
+    pub fn ancestors<T: From<CalaAccountSetId>>(&self, code: &AccountCode) -> Vec<T> {
+        let mut result = Vec::new();
+        let mut current_code = code;
+
+        if let Some((spec, _)) = self.all_accounts.get(current_code) {
+            current_code = match &spec.parent {
+                Some(parent_code) => parent_code,
+                None => return result,
+            };
+        } else {
+            return result;
+        }
+
+        while let Some((spec, account_set_id)) = self.all_accounts.get(current_code) {
+            result.push(T::from(*account_set_id));
+            match &spec.parent {
+                Some(parent_code) => current_code = parent_code,
+                None => break,
+            }
+        }
+
+        result
+    }
+
     pub fn account_spec_from_code_str(
         &self,
         code: String,

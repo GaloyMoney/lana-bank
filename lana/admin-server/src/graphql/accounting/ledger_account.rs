@@ -38,6 +38,14 @@ impl LedgerAccount {
         &self.entity.name
     }
 
+    async fn balance(&self, _ctx: &Context<'_>) -> async_graphql::Result<LedgerAccountBalance> {
+        if let Some(balance) = self.entity.btc_balance.as_ref() {
+            Ok(Some(balance).into())
+        } else {
+            Ok(self.entity.usd_balance.as_ref().into())
+        }
+    }
+
     async fn history(
         &self,
         ctx: &Context<'_>,
@@ -72,14 +80,6 @@ impl LedgerAccount {
             },
         )
         .await
-    }
-
-    async fn balance(&self, _ctx: &Context<'_>) -> async_graphql::Result<LedgerAccountBalance> {
-        if let Some(balance) = self.entity.btc_balance.as_ref() {
-            Ok(Some(balance).into())
-        } else {
-            Ok(self.entity.usd_balance.as_ref().into())
-        }
     }
 }
 

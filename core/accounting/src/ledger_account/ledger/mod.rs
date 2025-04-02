@@ -160,7 +160,7 @@ impl From<(AccountSet, Option<AccountBalance>, Option<AccountBalance>)> for Ledg
             code,
             usd_balance,
             btc_balance,
-            ancestors_ids: Vec::new(),
+            ancestor_ids: Vec::new(),
             is_leaf: false,
         }
     }
@@ -180,7 +180,7 @@ impl From<(Account, Option<AccountBalance>, Option<AccountBalance>)> for LedgerA
             code: None,
             usd_balance,
             btc_balance,
-            ancestors_ids: Vec::new(),
+            ancestor_ids: Vec::new(),
             is_leaf: true,
         }
     }
