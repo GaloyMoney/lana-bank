@@ -7,6 +7,13 @@ use es_entity::*;
 
 use crate::primitives::{CalaAccountId, LedgerTxId, ObligationId, UsdCents};
 
+pub(crate) enum _ObligationStatus {
+    NotYetDue,
+    Due,
+    Overdue,
+    Defaulted,
+}
+
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
 #[es_event(id = "ObligationId")]
@@ -22,6 +29,9 @@ pub enum ObligationEvent {
         overdue_date: Option<DateTime<Utc>>,
         defaulted_date: Option<DateTime<Utc>>,
         recorded_at: DateTime<Utc>,
+        audit_info: AuditInfo,
+    },
+    MarkedOverdue {
         audit_info: AuditInfo,
     },
 }
@@ -44,6 +54,50 @@ impl Obligation {
         self.events
             .entity_first_persisted_at()
             .expect("entity_first_persisted_at not found")
+    }
+
+    pub fn overdue_at(&self) -> Option<DateTime<Utc>> {
+        self.events
+            .iter_all()
+            .find_map(|e| match e {
+                ObligationEvent::Initialized { overdue_date, .. } => Some(*overdue_date),
+                _ => None,
+            })
+            .expect("Entity was not Initialized")
+    }
+
+    pub(super) fn _status(&self) -> _ObligationStatus {
+        self.events
+            .iter_all()
+            .rev()
+            .find_map(|event| match event {
+                ObligationEvent::MarkedOverdue { .. } => Some(_ObligationStatus::Overdue),
+                _ => None,
+            })
+            .unwrap_or(_ObligationStatus::NotYetDue)
+    }
+
+    pub fn outstanding(&self) -> UsdCents {
+        self.events
+            .iter_all()
+            .fold(UsdCents::from(0), |mut total_sum, event| {
+                if let ObligationEvent::Initialized { amount, .. } = event {
+                    total_sum += *amount;
+                }
+                total_sum
+            })
+    }
+
+    pub(crate) fn record_overdue(&mut self, audit_info: AuditInfo) -> Idempotent<UsdCents> {
+        idempotency_guard!(
+            self.events.iter_all().rev(),
+            ObligationEvent::MarkedOverdue { .. }
+        );
+
+        self.events
+            .push(ObligationEvent::MarkedOverdue { audit_info });
+
+        Idempotent::Executed(self.outstanding())
     }
 }
 
@@ -71,6 +125,7 @@ impl TryFromEvents<ObligationEvent> for Obligation {
                         .account_to_be_credited_id(*account_to_be_credited_id)
                         .recorded_at(*recorded_at)
                 }
+                ObligationEvent::MarkedOverdue { .. } => (),
             }
         }
         builder.events(events).build()

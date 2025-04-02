@@ -10,7 +10,7 @@ use super::{entity::*, error::*};
 #[es_repo(
     entity = "Obligation",
     err = "ObligationError",
-    columns(reference(ty = "String", create(accessor = "reference()"))),
+    columns(reference(ty = "String", create(accessor = "reference()")),),
     tbl_prefix = "core"
 )]
 pub struct ObligationRepo {
