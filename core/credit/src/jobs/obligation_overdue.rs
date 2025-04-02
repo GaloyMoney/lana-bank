@@ -109,8 +109,11 @@ where
             )
             .await?;
 
+        obligation
+            .record_due(audit_info.clone())
+            .expect("Obligation was already marked due");
         let _overdue = if let es_entity::Idempotent::Executed(overdue) =
-            obligation.record_overdue(audit_info)
+            obligation.record_overdue(audit_info)?
         {
             overdue
         } else {

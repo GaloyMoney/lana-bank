@@ -7,11 +7,14 @@ use es_entity::*;
 
 use crate::primitives::{CalaAccountId, LedgerTxId, ObligationId, UsdCents};
 
-pub(crate) enum _ObligationStatus {
+use super::error::ObligationError;
+
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
+pub(crate) enum ObligationStatus {
     NotYetDue,
     Due,
     Overdue,
-    Defaulted,
+    _Defaulted,
 }
 
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
@@ -29,6 +32,9 @@ pub enum ObligationEvent {
         overdue_date: Option<DateTime<Utc>>,
         defaulted_date: Option<DateTime<Utc>>,
         recorded_at: DateTime<Utc>,
+        audit_info: AuditInfo,
+    },
+    MarkedDue {
         audit_info: AuditInfo,
     },
     MarkedOverdue {
@@ -66,15 +72,16 @@ impl Obligation {
             .expect("Entity was not Initialized")
     }
 
-    pub(super) fn _status(&self) -> _ObligationStatus {
+    pub(super) fn status(&self) -> ObligationStatus {
         self.events
             .iter_all()
             .rev()
             .find_map(|event| match event {
-                ObligationEvent::MarkedOverdue { .. } => Some(_ObligationStatus::Overdue),
+                ObligationEvent::MarkedDue { .. } => Some(ObligationStatus::Due),
+                ObligationEvent::MarkedOverdue { .. } => Some(ObligationStatus::Overdue),
                 _ => None,
             })
-            .unwrap_or(_ObligationStatus::NotYetDue)
+            .unwrap_or(ObligationStatus::NotYetDue)
     }
 
     pub fn outstanding(&self) -> UsdCents {
@@ -88,16 +95,34 @@ impl Obligation {
             })
     }
 
-    pub(crate) fn record_overdue(&mut self, audit_info: AuditInfo) -> Idempotent<UsdCents> {
+    pub(crate) fn record_due(&mut self, audit_info: AuditInfo) -> Idempotent<UsdCents> {
+        idempotency_guard!(
+            self.events.iter_all().rev(),
+            ObligationEvent::MarkedDue { .. }
+        );
+
+        self.events.push(ObligationEvent::MarkedDue { audit_info });
+
+        Idempotent::Executed(self.outstanding())
+    }
+
+    pub(crate) fn record_overdue(
+        &mut self,
+        audit_info: AuditInfo,
+    ) -> Result<Idempotent<UsdCents>, ObligationError> {
         idempotency_guard!(
             self.events.iter_all().rev(),
             ObligationEvent::MarkedOverdue { .. }
         );
 
+        if self.status() != ObligationStatus::Due {
+            return Err(ObligationError::InvalidStatusTransitionToOverdue);
+        }
+
         self.events
             .push(ObligationEvent::MarkedOverdue { audit_info });
 
-        Idempotent::Executed(self.outstanding())
+        Ok(Idempotent::Executed(self.outstanding()))
     }
 }
 
@@ -125,6 +150,7 @@ impl TryFromEvents<ObligationEvent> for Obligation {
                         .account_to_be_credited_id(*account_to_be_credited_id)
                         .recorded_at(*recorded_at)
                 }
+                ObligationEvent::MarkedDue { .. } => (),
                 ObligationEvent::MarkedOverdue { .. } => (),
             }
         }
