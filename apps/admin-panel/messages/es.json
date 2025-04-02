@@ -1376,7 +1376,8 @@
   "ChartOfAccountsLedgerAccount": {
     "title": "Detalles de la cuenta contable",
     "transactionsTitle": "Transacciones en esta cuenta",
-    "description": "Detalles de la cuenta contable por código de cuenta {code}",
+    "description": "Detalles de la cuenta contable",
+    "descriptionWithCode": "Detalles de la cuenta contable por código de cuenta {code}",
     "details": {
       "code": "Código de cuenta",
       "name": "Nombre de la cuenta",
