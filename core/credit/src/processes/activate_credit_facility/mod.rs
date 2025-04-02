@@ -11,7 +11,7 @@ use outbox::OutboxEventMarker;
 use crate::{
     error::CoreCreditError, interest_accruals, ledger::CreditLedger, overdue,
     primitives::CreditFacilityId, CoreCreditAction, CoreCreditEvent, CoreCreditObject,
-    CreditFacility, CreditFacilityRepo, DisbursalRepo, Jobs, LedgerTxId,
+    CreditFacility, CreditFacilityRepo, DisbursalRepo, Jobs, LedgerTxId, ObligationRepo,
 };
 
 pub use job::*;
@@ -21,6 +21,7 @@ where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCreditEvent>,
 {
+    obligation_repo: ObligationRepo,
     credit_facility_repo: CreditFacilityRepo<E>,
     disbursal_repo: DisbursalRepo,
     ledger: CreditLedger,
@@ -36,6 +37,7 @@ where
 {
     fn clone(&self) -> Self {
         Self {
+            obligation_repo: self.obligation_repo.clone(),
             credit_facility_repo: self.credit_facility_repo.clone(),
             disbursal_repo: self.disbursal_repo.clone(),
             ledger: self.ledger.clone(),
@@ -53,6 +55,7 @@ where
     E: OutboxEventMarker<CoreCreditEvent>,
 {
     pub fn new(
+        obligation_repo: &ObligationRepo,
         credit_facility_repo: &CreditFacilityRepo<E>,
         disbursal_repo: &DisbursalRepo,
         ledger: &CreditLedger,
@@ -61,6 +64,7 @@ where
         audit: &Perms::Audit,
     ) -> Self {
         Self {
+            obligation_repo: obligation_repo.clone(),
             credit_facility_repo: credit_facility_repo.clone(),
             disbursal_repo: disbursal_repo.clone(),
             ledger: ledger.clone(),
@@ -124,14 +128,23 @@ where
             .await?;
 
         let tx_id = LedgerTxId::new();
-        let obligation_id = disbursal
+        let new_obligation = disbursal
             .approval_process_concluded(tx_id, true, audit_info.clone())
             .expect("First instance of idempotent action ignored")
-            .map(|n| n.id());
+            .expect("First disbursal obligation was already created");
         credit_facility
-            .disbursal_concluded(&disbursal, tx_id, obligation_id, now, audit_info.clone())
+            .disbursal_concluded(
+                &disbursal,
+                tx_id,
+                Some(new_obligation.id()),
+                now,
+                audit_info.clone(),
+            )
             .expect("First instance of idempotent action ignored");
 
+        self.obligation_repo
+            .create_in_op(&mut db, new_obligation)
+            .await?;
         self.disbursal_repo
             .update_in_op(&mut db, &mut disbursal)
             .await?;
