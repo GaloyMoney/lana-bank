@@ -13,6 +13,10 @@ import {
   CardTitle,
 } from "@lana/web/ui/card"
 
+import { useEffect } from "react"
+
+import { useRouter } from "next/navigation"
+
 import { formatDate, isUUID } from "@/lib/utils"
 import {
   useLedgerAccountByCodeQuery,
@@ -26,8 +30,6 @@ import PaginatedTable, {
 } from "@/components/paginated-table"
 import { DetailsGroup } from "@/components/details"
 import Balance from "@/components/balance/balance"
-import { useEffect } from "react"
-import { useRouter } from "next/navigation"
 
 gql`
   fragment LedgerAccountDetails on LedgerAccount {
@@ -122,10 +124,10 @@ const LedgerAccountPage: React.FC<LedgerAccountPageProps> = ({ params }) => {
     : ledgerAccountByCodeData
 
   useEffect(() => {
-    if (isRefUUID && ledgerAccount) {
+    if (isRefUUID && ledgerAccount && ledgerAccount.code) {
       router.push(`/ledger-account/${ledgerAccount.code}`)
     }
-  }, [ledgerAccount, isRefUUID])
+  }, [ledgerAccount, isRefUUID, router])
 
   const columns: Column<LedgerAccountHistoryEntry>[] = [
     {
@@ -172,7 +174,9 @@ const LedgerAccountPage: React.FC<LedgerAccountPageProps> = ({ params }) => {
         <CardHeader>
           <CardTitle>{t("title")}</CardTitle>
           <CardDescription>
-            {t("description", { code: ledgerAccount?.code })}
+            {ledgerAccount?.code
+              ? t("descriptionWithCode", { code: ledgerAccount?.code })
+              : t("description")}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -185,7 +189,7 @@ const LedgerAccountPage: React.FC<LedgerAccountPageProps> = ({ params }) => {
                   <DetailItem label={t("details.name")} value={ledgerAccount?.name} />
                   <DetailItem
                     label={t("details.code")}
-                    value={ledgerAccount?.code.replace(/\./g, "")}
+                    value={ledgerAccount?.code || "-"}
                   />
                   <DetailItem
                     label={

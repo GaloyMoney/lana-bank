@@ -44,6 +44,7 @@ gql`
             }
           }
           ledgerAccount {
+            id
             code
           }
         }
@@ -121,11 +122,12 @@ const JournalPage: React.FC = () => {
             fetchMore={async (cursor) => fetchMore({ variables: { after: cursor } })}
             loading={loading}
             noDataText={t("noTableData")}
-            onClick={(entry) =>
+            onClick={(entry) => {
+              console.log(entry.ledgerAccount)
               router.push(
                 `/ledger-account/${entry.ledgerAccount.code || entry.ledgerAccount.id}`,
               )
-            }
+            }}
           />
         )}
       </CardContent>

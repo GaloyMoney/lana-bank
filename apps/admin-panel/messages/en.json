@@ -1376,7 +1376,8 @@
   "ChartOfAccountsLedgerAccount": {
     "title": "Ledger Account Details",
     "transactionsTitle": "Transactions in this account",
-    "description": "Details of ledger account by account code {code}",
+    "description": "Details of ledger account",
+    "descriptionWithCode": "Details of ledger account by account code {code}",
     "details": {
       "code": "Account Code",
       "name": "Account Name",
