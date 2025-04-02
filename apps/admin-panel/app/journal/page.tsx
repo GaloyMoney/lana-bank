@@ -121,7 +121,11 @@ const JournalPage: React.FC = () => {
             fetchMore={async (cursor) => fetchMore({ variables: { after: cursor } })}
             loading={loading}
             noDataText={t("noTableData")}
-            onClick={(entry) => router.push(`/journal/${entry.ledgerAccount.code}`)}
+            onClick={(entry) =>
+              router.push(
+                `/ledger-account/${entry.ledgerAccount.code || entry.ledgerAccount.id}`,
+              )
+            }
           />
         )}
       </CardContent>

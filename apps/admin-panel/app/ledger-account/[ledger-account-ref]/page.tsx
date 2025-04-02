@@ -13,10 +13,11 @@ import {
   CardTitle,
 } from "@lana/web/ui/card"
 
-import { formatDate } from "@/lib/utils"
+import { formatDate, isUUID } from "@/lib/utils"
 import {
   useLedgerAccountByCodeQuery,
   LedgerAccountHistoryEntry,
+  useLedgerAccountQuery,
 } from "@/lib/graphql/generated"
 import PaginatedTable, {
   Column,
@@ -25,76 +26,106 @@ import PaginatedTable, {
 } from "@/components/paginated-table"
 import { DetailsGroup } from "@/components/details"
 import Balance from "@/components/balance/balance"
+import { useEffect } from "react"
+import { useRouter } from "next/navigation"
 
 gql`
-  query LedgerAccountByCode($code: String!, $first: Int!, $after: String) {
-    ledgerAccountByCode(code: $code) {
-      id
-      name
-      code
-      balance {
-        __typename
-        ... on UsdLedgerAccountBalance {
-          usdSettledBalance: settled
-        }
-        ... on BtcLedgerAccountBalance {
-          btcSettledBalance: settled
-        }
+  fragment LedgerAccountDetails on LedgerAccount {
+    id
+    name
+    code
+    balance {
+      __typename
+      ... on UsdLedgerAccountBalance {
+        usdSettledBalance: settled
       }
-      history(first: $first, after: $after) {
-        edges {
-          cursor
-          node {
-            __typename
-            ... on BtcLedgerAccountHistoryEntry {
-              txId
-              recordedAt
-              btcAmount {
-                settled {
-                  debit
-                  credit
-                }
+      ... on BtcLedgerAccountBalance {
+        btcSettledBalance: settled
+      }
+    }
+    history(first: $first, after: $after) {
+      edges {
+        cursor
+        node {
+          __typename
+          ... on BtcLedgerAccountHistoryEntry {
+            txId
+            recordedAt
+            btcAmount {
+              settled {
+                debit
+                credit
               }
             }
-            ... on UsdLedgerAccountHistoryEntry {
-              txId
-              recordedAt
-              usdAmount {
-                settled {
-                  debit
-                  credit
-                }
+          }
+          ... on UsdLedgerAccountHistoryEntry {
+            txId
+            recordedAt
+            usdAmount {
+              settled {
+                debit
+                credit
               }
             }
           }
         }
-        pageInfo {
-          endCursor
-          startCursor
-          hasNextPage
-          hasPreviousPage
-        }
       }
+      pageInfo {
+        endCursor
+        startCursor
+        hasNextPage
+        hasPreviousPage
+      }
+    }
+  }
+
+  query LedgerAccountByCode($code: String!, $first: Int!, $after: String) {
+    ledgerAccountByCode(code: $code) {
+      ...LedgerAccountDetails
+    }
+  }
+
+  query LedgerAccount($id: UUID!, $first: Int!, $after: String) {
+    ledgerAccount(id: $id) {
+      ...LedgerAccountDetails
     }
   }
 `
 
 type LedgerAccountPageProps = {
   params: {
-    "ledger-account-code": string
+    "ledger-account-ref": string
   }
 }
 
 const LedgerAccountPage: React.FC<LedgerAccountPageProps> = ({ params }) => {
+  const router = useRouter()
   const t = useTranslations("ChartOfAccountsLedgerAccount")
-  const { "ledger-account-code": code } = params
+  const { "ledger-account-ref": ref } = params
+  const isRefUUID = isUUID(ref)
 
-  const { data, loading, error, fetchMore } = useLedgerAccountByCodeQuery({
-    variables: {
-      code,
-      first: DEFAULT_PAGESIZE,
-    },
+  const ledgerAccountByCodeData = useLedgerAccountByCodeQuery({
+    variables: { code: ref, first: DEFAULT_PAGESIZE },
+    skip: isRefUUID,
   })
+  const ledgerAccountData = useLedgerAccountQuery({
+    variables: { id: ref, first: DEFAULT_PAGESIZE },
+    skip: !isRefUUID,
+  })
+
+  const ledgerAccount = isRefUUID
+    ? ledgerAccountData.data?.ledgerAccount
+    : ledgerAccountByCodeData.data?.ledgerAccountByCode
+
+  const { loading, error, fetchMore } = isRefUUID
+    ? ledgerAccountData
+    : ledgerAccountByCodeData
+
+  useEffect(() => {
+    if (isRefUUID && ledgerAccount) {
+      router.push(`/ledger-account/${ledgerAccount.code}`)
+    }
+  }, [ledgerAccount, isRefUUID])
 
   const columns: Column<LedgerAccountHistoryEntry>[] = [
     {
@@ -141,7 +172,7 @@ const LedgerAccountPage: React.FC<LedgerAccountPageProps> = ({ params }) => {
         <CardHeader>
           <CardTitle>{t("title")}</CardTitle>
           <CardDescription>
-            {t("description", { code: data?.ledgerAccountByCode?.code })}
+            {t("description", { code: ledgerAccount?.code })}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -151,33 +182,28 @@ const LedgerAccountPage: React.FC<LedgerAccountPageProps> = ({ params }) => {
             <>
               {!loading && (
                 <DetailsGroup columns={3} className="mb-4">
-                  <DetailItem
-                    label={t("details.name")}
-                    value={data?.ledgerAccountByCode?.name}
-                  />
+                  <DetailItem label={t("details.name")} value={ledgerAccount?.name} />
                   <DetailItem
                     label={t("details.code")}
-                    value={data?.ledgerAccountByCode?.code.replace(/\./g, "")}
+                    value={ledgerAccount?.code.replace(/\./g, "")}
                   />
                   <DetailItem
                     label={
-                      data?.ledgerAccountByCode?.balance.__typename ===
-                      "BtcLedgerAccountBalance"
+                      ledgerAccount?.balance.__typename === "BtcLedgerAccountBalance"
                         ? t("details.btcBalance")
                         : t("details.usdBalance")
                     }
                     value={
-                      data?.ledgerAccountByCode?.balance.__typename ===
-                      "UsdLedgerAccountBalance" ? (
+                      ledgerAccount?.balance.__typename === "UsdLedgerAccountBalance" ? (
                         <Balance
                           currency="usd"
-                          amount={data?.ledgerAccountByCode?.balance?.usdSettledBalance}
+                          amount={ledgerAccount?.balance?.usdSettledBalance}
                         />
-                      ) : data?.ledgerAccountByCode?.balance.__typename ===
+                      ) : ledgerAccount?.balance.__typename ===
                         "BtcLedgerAccountBalance" ? (
                         <Balance
                           currency="btc"
-                          amount={data?.ledgerAccountByCode?.balance?.btcSettledBalance}
+                          amount={ledgerAccount?.balance?.btcSettledBalance}
                         />
                       ) : (
                         <>N/A</>
@@ -197,10 +223,7 @@ const LedgerAccountPage: React.FC<LedgerAccountPageProps> = ({ params }) => {
         <CardContent>
           <PaginatedTable<LedgerAccountHistoryEntry>
             columns={columns}
-            data={
-              data?.ledgerAccountByCode
-                ?.history as PaginatedData<LedgerAccountHistoryEntry>
-            }
+            data={ledgerAccount?.history as PaginatedData<LedgerAccountHistoryEntry>}
             pageSize={DEFAULT_PAGESIZE}
             fetchMore={async (cursor) => fetchMore({ variables: { after: cursor } })}
             loading={loading}

@@ -2461,6 +2461,8 @@ export type JournalEntriesQueryVariables = Exact<{
 
 export type JournalEntriesQuery = { __typename?: 'Query', journalEntries: { __typename?: 'JournalEntryConnection', edges: Array<{ __typename?: 'JournalEntryEdge', cursor: string, node: { __typename?: 'JournalEntry', id: string, entryId: string, entryType: string, description?: string | null, direction: DebitOrCredit, createdAt: any, amount: { __typename?: 'BtcAmount', btc: Satoshis } | { __typename?: 'UsdAmount', usd: UsdCents }, ledgerAccount: { __typename?: 'LedgerAccount', code?: any | null } } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, startCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean } } };
 
+export type LedgerAccountDetailsFragment = { __typename?: 'LedgerAccount', id: string, name: string, code?: any | null, balance: { __typename: 'BtcLedgerAccountBalance', btcSettledBalance: Satoshis } | { __typename: 'UsdLedgerAccountBalance', usdSettledBalance: UsdCents }, history: { __typename?: 'LedgerAccountHistoryEntryConnection', edges: Array<{ __typename?: 'LedgerAccountHistoryEntryEdge', cursor: string, node: { __typename: 'BtcLedgerAccountHistoryEntry', txId: string, recordedAt: any, btcAmount: { __typename?: 'LayeredBtcAccountAmounts', settled: { __typename?: 'BtcAccountAmounts', debit: Satoshis, credit: Satoshis } } } | { __typename: 'UsdLedgerAccountHistoryEntry', txId: string, recordedAt: any, usdAmount: { __typename?: 'LayeredUsdAccountAmounts', settled: { __typename?: 'UsdAccountAmounts', debit: UsdCents, credit: UsdCents } } } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, startCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean } } };
+
 export type LedgerAccountByCodeQueryVariables = Exact<{
   code: Scalars['String']['input'];
   first: Scalars['Int']['input'];
@@ -2469,6 +2471,15 @@ export type LedgerAccountByCodeQueryVariables = Exact<{
 
 
 export type LedgerAccountByCodeQuery = { __typename?: 'Query', ledgerAccountByCode?: { __typename?: 'LedgerAccount', id: string, name: string, code?: any | null, balance: { __typename: 'BtcLedgerAccountBalance', btcSettledBalance: Satoshis } | { __typename: 'UsdLedgerAccountBalance', usdSettledBalance: UsdCents }, history: { __typename?: 'LedgerAccountHistoryEntryConnection', edges: Array<{ __typename?: 'LedgerAccountHistoryEntryEdge', cursor: string, node: { __typename: 'BtcLedgerAccountHistoryEntry', txId: string, recordedAt: any, btcAmount: { __typename?: 'LayeredBtcAccountAmounts', settled: { __typename?: 'BtcAccountAmounts', debit: Satoshis, credit: Satoshis } } } | { __typename: 'UsdLedgerAccountHistoryEntry', txId: string, recordedAt: any, usdAmount: { __typename?: 'LayeredUsdAccountAmounts', settled: { __typename?: 'UsdAccountAmounts', debit: UsdCents, credit: UsdCents } } } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, startCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean } } } | null };
+
+export type LedgerAccountQueryVariables = Exact<{
+  id: Scalars['UUID']['input'];
+  first: Scalars['Int']['input'];
+  after?: InputMaybe<Scalars['String']['input']>;
+}>;
+
+
+export type LedgerAccountQuery = { __typename?: 'Query', ledgerAccount?: { __typename?: 'LedgerAccount', id: string, name: string, code?: any | null, balance: { __typename: 'BtcLedgerAccountBalance', btcSettledBalance: Satoshis } | { __typename: 'UsdLedgerAccountBalance', usdSettledBalance: UsdCents }, history: { __typename?: 'LedgerAccountHistoryEntryConnection', edges: Array<{ __typename?: 'LedgerAccountHistoryEntryEdge', cursor: string, node: { __typename: 'BtcLedgerAccountHistoryEntry', txId: string, recordedAt: any, btcAmount: { __typename?: 'LayeredBtcAccountAmounts', settled: { __typename?: 'BtcAccountAmounts', debit: Satoshis, credit: Satoshis } } } | { __typename: 'UsdLedgerAccountHistoryEntry', txId: string, recordedAt: any, usdAmount: { __typename?: 'LayeredUsdAccountAmounts', settled: { __typename?: 'UsdAccountAmounts', debit: UsdCents, credit: UsdCents } } } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, startCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean } } } | null };
 
 export type BalanceSheetConfigureMutationVariables = Exact<{
   input: BalanceSheetModuleConfigureInput;
@@ -2984,6 +2995,56 @@ export const DepositFieldsFragmentDoc = gql`
   depositId
   reference
   amount
+}
+    `;
+export const LedgerAccountDetailsFragmentDoc = gql`
+    fragment LedgerAccountDetails on LedgerAccount {
+  id
+  name
+  code
+  balance {
+    __typename
+    ... on UsdLedgerAccountBalance {
+      usdSettledBalance: settled
+    }
+    ... on BtcLedgerAccountBalance {
+      btcSettledBalance: settled
+    }
+  }
+  history(first: $first, after: $after) {
+    edges {
+      cursor
+      node {
+        __typename
+        ... on BtcLedgerAccountHistoryEntry {
+          txId
+          recordedAt
+          btcAmount {
+            settled {
+              debit
+              credit
+            }
+          }
+        }
+        ... on UsdLedgerAccountHistoryEntry {
+          txId
+          recordedAt
+          usdAmount {
+            settled {
+              debit
+              credit
+            }
+          }
+        }
+      }
+    }
+    pageInfo {
+      endCursor
+      startCursor
+      hasNextPage
+      hasPreviousPage
+    }
+  }
 }
     `;
 export const TermsTemplateFieldsFragmentDoc = gql`
@@ -5052,55 +5113,10 @@ export type JournalEntriesQueryResult = Apollo.QueryResult<JournalEntriesQuery, 
 export const LedgerAccountByCodeDocument = gql`
     query LedgerAccountByCode($code: String!, $first: Int!, $after: String) {
   ledgerAccountByCode(code: $code) {
-    id
-    name
-    code
-    balance {
-      __typename
-      ... on UsdLedgerAccountBalance {
-        usdSettledBalance: settled
-      }
-      ... on BtcLedgerAccountBalance {
-        btcSettledBalance: settled
-      }
-    }
-    history(first: $first, after: $after) {
-      edges {
-        cursor
-        node {
-          __typename
-          ... on BtcLedgerAccountHistoryEntry {
-            txId
-            recordedAt
-            btcAmount {
-              settled {
-                debit
-                credit
-              }
-            }
-          }
-          ... on UsdLedgerAccountHistoryEntry {
-            txId
-            recordedAt
-            usdAmount {
-              settled {
-                debit
-                credit
-              }
-            }
-          }
-        }
-      }
-      pageInfo {
-        endCursor
-        startCursor
-        hasNextPage
-        hasPreviousPage
-      }
-    }
+    ...LedgerAccountDetails
   }
 }
-    `;
+    ${LedgerAccountDetailsFragmentDoc}`;
 
 /**
  * __useLedgerAccountByCodeQuery__
@@ -5131,6 +5147,43 @@ export function useLedgerAccountByCodeLazyQuery(baseOptions?: Apollo.LazyQueryHo
 export type LedgerAccountByCodeQueryHookResult = ReturnType<typeof useLedgerAccountByCodeQuery>;
 export type LedgerAccountByCodeLazyQueryHookResult = ReturnType<typeof useLedgerAccountByCodeLazyQuery>;
 export type LedgerAccountByCodeQueryResult = Apollo.QueryResult<LedgerAccountByCodeQuery, LedgerAccountByCodeQueryVariables>;
+export const LedgerAccountDocument = gql`
+    query LedgerAccount($id: UUID!, $first: Int!, $after: String) {
+  ledgerAccount(id: $id) {
+    ...LedgerAccountDetails
+  }
+}
+    ${LedgerAccountDetailsFragmentDoc}`;
+
+/**
+ * __useLedgerAccountQuery__
+ *
+ * To run a query within a React component, call `useLedgerAccountQuery` and pass it any options that fit your needs.
+ * When your component renders, `useLedgerAccountQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useLedgerAccountQuery({
+ *   variables: {
+ *      id: // value for 'id'
+ *      first: // value for 'first'
+ *      after: // value for 'after'
+ *   },
+ * });
+ */
+export function useLedgerAccountQuery(baseOptions: Apollo.QueryHookOptions<LedgerAccountQuery, LedgerAccountQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<LedgerAccountQuery, LedgerAccountQueryVariables>(LedgerAccountDocument, options);
+      }
+export function useLedgerAccountLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<LedgerAccountQuery, LedgerAccountQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<LedgerAccountQuery, LedgerAccountQueryVariables>(LedgerAccountDocument, options);
+        }
+export type LedgerAccountQueryHookResult = ReturnType<typeof useLedgerAccountQuery>;
+export type LedgerAccountLazyQueryHookResult = ReturnType<typeof useLedgerAccountLazyQuery>;
+export type LedgerAccountQueryResult = Apollo.QueryResult<LedgerAccountQuery, LedgerAccountQueryVariables>;
 export const BalanceSheetConfigureDocument = gql`
     mutation BalanceSheetConfigure($input: BalanceSheetModuleConfigureInput!) {
   balanceSheetConfigure(input: $input) {
