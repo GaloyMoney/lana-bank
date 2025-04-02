@@ -22,6 +22,14 @@ resource "google_bigquery_dataset_iam_member" "dataset_additional_owners" {
   member     = "user:${each.value}"
 }
 
+resource "google_bigquery_dataset_iam_member" "dataset_additional_viewers" {
+  for_each   = toset(local.additional_viewers)
+  project    = local.gcp_project
+  dataset_id = google_bigquery_dataset.dataset.dataset_id
+  role       = "roles/bigquery.dataViewer"
+  member     = "user:${each.value}"
+}
+
 resource "google_bigquery_dataset" "dbt" {
   project       = local.gcp_project
   dataset_id    = local.dbt_dataset_name
@@ -42,6 +50,14 @@ resource "google_bigquery_dataset_iam_member" "dbt_additional_owners" {
   project    = local.gcp_project
   dataset_id = google_bigquery_dataset.dbt.dataset_id
   role       = "roles/bigquery.dataOwner"
+  member     = "user:${each.value}"
+}
+
+resource "google_bigquery_dataset_iam_member" "dbt_additional_viewers" {
+  for_each   = toset(local.additional_viewers)
+  project    = local.gcp_project
+  dataset_id = google_bigquery_dataset.dbt.dataset_id
+  role       = "roles/bigquery.dataViewer"
   member     = "user:${each.value}"
 }
 
