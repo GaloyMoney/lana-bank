@@ -817,7 +817,7 @@ impl CreditLedger {
 
         let members = cala
             .account_sets()
-            .list_members(account_set_id, Default::default())
+            .list_members_by_created_at(account_set_id, Default::default())
             .await?
             .entities;
         if !members.is_empty() {

@@ -100,7 +100,7 @@ impl CashFlowStatementLedger {
         let member_ids = self
             .cala
             .account_sets()
-            .list_members(id, Default::default())
+            .list_members_by_created_at(id, Default::default())
             .await?
             .entities
             .into_iter()
@@ -146,7 +146,7 @@ impl CashFlowStatementLedger {
     ) -> Result<Vec<AccountSetId>, CashFlowStatementLedgerError> {
         self.cala
             .account_sets()
-            .list_members(account_set_id, Default::default())
+            .list_members_by_created_at(account_set_id, Default::default())
             .await?
             .entities
             .into_iter()
