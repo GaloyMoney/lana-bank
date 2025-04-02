@@ -746,7 +746,7 @@ impl CreditFacility {
 
         let (idx, new_obligation) = {
             let accrual = self
-                .interest_accrual_cycle_in_progress()
+                .interest_accrual_cycle_in_progress_mut()
                 .expect("accrual not found");
             (
                 accrual.idx,
@@ -766,7 +766,32 @@ impl CreditFacility {
         Ok(new_obligation)
     }
 
-    pub fn interest_accrual_cycle_in_progress(&mut self) -> Option<&mut InterestAccrualCycle> {
+    pub fn interest_accrual_cycle_in_progress(&self) -> Option<&InterestAccrualCycle> {
+        if let Some(id) = self
+            .events
+            .iter_all()
+            .rev()
+            .find_map(|event| match event {
+                CreditFacilityEvent::InterestAccrualCycleConcluded { .. } => Some(None),
+                CreditFacilityEvent::InterestAccrualCycleStarted {
+                    interest_accrual_id: id,
+                    ..
+                } => Some(Some(id)),
+                _ => None,
+            })
+            .flatten()
+        {
+            Some(
+                self.interest_accruals
+                    .get_persisted(id)
+                    .expect("Interest accrual not found"),
+            )
+        } else {
+            None
+        }
+    }
+
+    pub fn interest_accrual_cycle_in_progress_mut(&mut self) -> Option<&mut InterestAccrualCycle> {
         if let Some(id) = self
             .events
             .iter_all()
@@ -2104,7 +2129,7 @@ mod test {
             while accrual_cycle_data.is_none() {
                 let outstanding = credit_facility.total_outstanding();
                 let accrual = credit_facility
-                    .interest_accrual_cycle_in_progress()
+                    .interest_accrual_cycle_in_progress_mut()
                     .unwrap();
                 accrual.record_accrual(outstanding, dummy_audit_info());
                 accrual_cycle_data = accrual.accrual_cycle_data();

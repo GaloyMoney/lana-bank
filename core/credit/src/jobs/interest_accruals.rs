@@ -131,7 +131,7 @@ where
             let account_ids = credit_facility.account_ids;
 
             let accrual = credit_facility
-                .interest_accrual_cycle_in_progress()
+                .interest_accrual_cycle_in_progress_mut()
                 .expect("Accrual in progress should exist for scheduled job");
 
             let interest_accrual = accrual.record_accrual(outstanding, audit_info.clone());

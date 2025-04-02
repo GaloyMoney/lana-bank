@@ -143,7 +143,7 @@ where
             .await?;
 
         let new_accrual_cycle_id = credit_facility
-            .interest_accrual_cycle_in_progress() // TODO: remove &mut from self arg for this fn
+            .interest_accrual_cycle_in_progress()
             .expect("First accrual cycle not found")
             .id;
 

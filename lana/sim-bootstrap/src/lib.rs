@@ -102,7 +102,7 @@ async fn create_and_process_facility(
                     .credit_facilities()
                     .record_payment(&sub, *id, *amount)
                     .await;
-                let mut facility = app
+                let facility = app
                     .credit_facilities()
                     .find_by_id(&sub, *id)
                     .await?
