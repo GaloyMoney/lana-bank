@@ -274,6 +274,10 @@ impl CoreAccountingObject {
         CoreAccountingObject::Chart(AllOrOne::All)
     }
 
+    pub fn all_journals() -> Self {
+        CoreAccountingObject::Journal(AllOrOne::All)
+    }
+
     pub fn journal(id: CalaJournalId) -> Self {
         CoreAccountingObject::Journal(AllOrOne::ById(id))
     }
