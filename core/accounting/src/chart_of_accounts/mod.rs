@@ -12,7 +12,7 @@ pub(super) use repo::*;
 use audit::AuditSvc;
 use authz::PermissionCheck;
 
-use cala_ledger::{CalaLedger, account_set::NewAccountSet};
+use cala_ledger::{account_set::NewAccountSet, CalaLedger};
 use tracing::instrument;
 
 use crate::primitives::{CalaJournalId, ChartId, CoreAccountingAction, CoreAccountingObject};
@@ -164,11 +164,11 @@ where
         self.repo.find_by_id(id.into()).await
     }
 
-    #[instrument(name = "chart_of_accounts.find_by_reference", skip(self))]
-    pub async fn find_by_reference(
+    #[instrument(name = "chart_of_accounts.find_by_reference_with_sub", skip(self))]
+    pub async fn find_by_reference_with_sub(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        reference: impl std::borrow::Borrow<String> + std::fmt::Debug,
+        reference: &str,
     ) -> Result<Option<Chart>, ChartOfAccountsError> {
         self.authz
             .enforce_permission(
@@ -178,6 +178,15 @@ where
             )
             .await?;
 
+        self.find_by_reference(reference).await
+    }
+
+    #[instrument(name = "chart_of_accounts.find_by_reference", skip(self))]
+    pub async fn find_by_reference(
+        &self,
+        reference: &str,
+    ) -> Result<Option<Chart>, ChartOfAccountsError> {
+        let reference = reference.to_string();
         let chart = match self.repo.find_by_reference(reference).await {
             Ok(chart) => Some(chart),
             Err(e) if e.was_not_found() => None,

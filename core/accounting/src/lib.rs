@@ -12,9 +12,9 @@ use authz::PermissionCheck;
 use cala_ledger::CalaLedger;
 use tracing::instrument;
 
-pub use chart_of_accounts::{Chart, ChartOfAccounts, error as chart_of_accounts_error, tree};
+pub use chart_of_accounts::{error as chart_of_accounts_error, tree, Chart, ChartOfAccounts};
 use error::CoreAccountingError;
-pub use journal::{Journal, error as journal_error};
+pub use journal::{error as journal_error, Journal};
 pub use ledger_account::{LedgerAccount, LedgerAccounts};
 pub use primitives::*;
 
@@ -84,13 +84,12 @@ where
         chart_ref: &str,
         code: String,
     ) -> Result<Option<LedgerAccount>, CoreAccountingError> {
-        let chart_ref = chart_ref.to_string();
         let chart = self
             .chart_of_accounts
-            .find_by_reference(sub, &chart_ref)
+            .find_by_reference(&chart_ref)
             .await?
             .ok_or_else(move || {
-                CoreAccountingError::ChartOfAccountsNotFoundByReference(chart_ref)
+                CoreAccountingError::ChartOfAccountsNotFoundByReference(chart_ref.to_string())
             })?;
         Ok(self
             .ledger_accounts

@@ -127,7 +127,7 @@ impl BalanceSheets {
         &self,
         sub: &Subject,
         reference: String,
-        chart: Chart,
+        chart: &Chart,
         config: ChartOfAccountsIntegrationConfig,
     ) -> Result<ChartOfAccountsIntegrationConfig, BalanceSheetError> {
         if chart.id != config.chart_of_accounts_id {

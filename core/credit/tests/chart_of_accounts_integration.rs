@@ -75,7 +75,7 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
     credit
         .set_chart_of_accounts_integration_config(
             &DummySubject,
-            chart,
+            &chart,
             ChartOfAccountsIntegrationConfig::builder()
                 .chart_of_accounts_id(chart_id)
                 .chart_of_account_facility_omnibus_parent_code("1".parse().unwrap())
@@ -208,7 +208,7 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
     let res = credit
         .set_chart_of_accounts_integration_config(
             &DummySubject,
-            chart,
+            &chart,
             ChartOfAccountsIntegrationConfig::builder()
                 .chart_of_accounts_id(chart_id)
                 .chart_of_account_facility_omnibus_parent_code("1".parse().unwrap())

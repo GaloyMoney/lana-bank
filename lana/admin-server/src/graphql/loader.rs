@@ -3,7 +3,7 @@ use async_graphql::dataloader::{DataLoader, Loader};
 use std::collections::HashMap;
 
 use lana_app::{
-    accounting::{chart_of_accounts::error::ChartOfAccountsError, LedgerAccountId},
+    accounting::{chart_of_accounts::error::ChartOfAccountsError, Chart, LedgerAccountId},
     app::LanaApp,
     deposit::error::CoreDepositError,
     user::error::UserError,
@@ -16,6 +16,10 @@ use super::{
     credit_facility::*, customer::*, deposit::*, deposit_account::*, document::*, policy::*,
     terms_template::*, user::*, withdrawal::*,
 };
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub struct ChartRef(pub &'static str);
+pub const CHART_REF: ChartRef = ChartRef(lana_app::accounting_init::constants::CHART_REF);
 
 pub type LanaDataLoader = DataLoader<LanaLoader>;
 pub struct LanaLoader {
@@ -105,6 +109,28 @@ impl Loader<CustomerId> for LanaLoader {
         keys: &[CustomerId],
     ) -> Result<HashMap<CustomerId, Customer>, Self::Error> {
         self.app.customers().find_all(keys).await.map_err(Arc::new)
+    }
+}
+
+impl Loader<ChartRef> for LanaLoader {
+    type Value = Arc<Chart>;
+    type Error = Arc<ChartOfAccountsError>;
+
+    async fn load(&self, keys: &[ChartRef]) -> Result<HashMap<ChartRef, Arc<Chart>>, Self::Error> {
+        let mut res = HashMap::new();
+        for key in keys {
+            if let Some(chart) = self
+                .app
+                .accounting()
+                .chart_of_accounts()
+                .find_by_reference(&key.0)
+                .await
+                .map_err(Arc::new)?
+            {
+                res.insert(key.clone(), Arc::new(chart));
+            }
+        }
+        Ok(res)
     }
 }
 

@@ -911,7 +911,7 @@ where
     pub async fn set_chart_of_accounts_integration_config(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        chart: Chart,
+        chart: &Chart,
         config: ChartOfAccountsIntegrationConfig,
     ) -> Result<ChartOfAccountsIntegrationConfig, CoreCreditError> {
         if chart.id != config.chart_of_accounts_id {
