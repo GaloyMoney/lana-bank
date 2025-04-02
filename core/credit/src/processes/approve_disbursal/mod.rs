@@ -143,11 +143,12 @@ where
         let new_obligation = if let Idempotent::Executed(new_obligation) =
             disbursal.approval_process_concluded(tx_id, approved, audit_info.clone())
         {
+            let obligation_id = new_obligation.as_ref().map(|n| n.id());
             if credit_facility
                 .disbursal_concluded(
                     &disbursal,
                     tx_id,
-                    new_obligation.is_none(),
+                    obligation_id,
                     executed_at,
                     disbursal_audit_info,
                 )

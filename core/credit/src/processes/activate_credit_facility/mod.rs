@@ -124,13 +124,13 @@ where
             .await?;
 
         let tx_id = LedgerTxId::new();
-        let is_canceled = disbursal
+        let obligation_id = disbursal
             .approval_process_concluded(tx_id, true, audit_info.clone())
-            .expect("First instance of idempotent action was ignored")
-            .is_none();
+            .expect("First instance of idempotent action ignored")
+            .map(|n| n.id());
         credit_facility
-            .disbursal_concluded(&disbursal, tx_id, is_canceled, now, audit_info.clone())
-            .expect("First instance of idempotent action was ignored");
+            .disbursal_concluded(&disbursal, tx_id, obligation_id, now, audit_info.clone())
+            .expect("First instance of idempotent action ignored");
 
         self.disbursal_repo
             .update_in_op(&mut db, &mut disbursal)

@@ -169,7 +169,7 @@ mod tests {
                 tx_id: LedgerTxId::new(),
                 recorded_at: Utc::now(),
                 audit_info: dummy_audit_info(),
-                canceled: false,
+                obligation_id: Some(ObligationId::new()),
             },
         ]
     }

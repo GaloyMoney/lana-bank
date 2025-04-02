@@ -50,7 +50,7 @@ pub enum CreditFacilityEvent {
     DisbursalConcluded {
         idx: DisbursalIdx,
         tx_id: LedgerTxId,
-        canceled: bool,
+        obligation_id: Option<ObligationId>,
         audit_info: AuditInfo,
         recorded_at: DateTime<Utc>,
     },
@@ -639,7 +639,7 @@ impl CreditFacility {
         &mut self,
         disbursal: &Disbursal,
         tx_id: LedgerTxId,
-        canceled: bool,
+        obligation_id: Option<ObligationId>,
         executed_at: DateTime<Utc>,
         audit_info: AuditInfo,
     ) -> Idempotent<()> {
@@ -655,7 +655,7 @@ impl CreditFacility {
             idx: disbursal.idx,
             recorded_at: executed_at,
             tx_id,
-            canceled,
+            obligation_id,
             audit_info,
         });
         Idempotent::Executed(())
@@ -1440,7 +1440,7 @@ mod test {
         events.push(CreditFacilityEvent::DisbursalConcluded {
             idx: first_idx,
             tx_id: LedgerTxId::new(),
-            canceled: false,
+            obligation_id: Some(ObligationId::new()),
             recorded_at: Utc::now(),
             audit_info: dummy_audit_info(),
         });
@@ -1496,7 +1496,7 @@ mod test {
             CreditFacilityEvent::DisbursalConcluded {
                 idx: DisbursalIdx::FIRST,
                 tx_id: LedgerTxId::new(),
-                canceled: false,
+                obligation_id: Some(ObligationId::new()),
                 recorded_at: Utc::now(),
                 audit_info: dummy_audit_info(),
             },
@@ -1533,7 +1533,7 @@ mod test {
             CreditFacilityEvent::DisbursalConcluded {
                 idx: DisbursalIdx::FIRST,
                 tx_id: LedgerTxId::new(),
-                canceled: false,
+                obligation_id: Some(ObligationId::new()),
                 recorded_at: activated_at,
                 audit_info: dummy_audit_info(),
             },
@@ -1567,7 +1567,7 @@ mod test {
             CreditFacilityEvent::DisbursalConcluded {
                 idx: DisbursalIdx::FIRST,
                 tx_id: LedgerTxId::new(),
-                canceled: false,
+                obligation_id: Some(ObligationId::new()),
                 recorded_at: activated_at,
                 audit_info: dummy_audit_info(),
             },
@@ -1659,7 +1659,7 @@ mod test {
             CreditFacilityEvent::DisbursalConcluded {
                 idx: DisbursalIdx::FIRST,
                 tx_id: LedgerTxId::new(),
-                canceled: false,
+                obligation_id: Some(ObligationId::new()),
                 recorded_at: Utc::now(),
                 audit_info: dummy_audit_info(),
             },
@@ -2115,11 +2115,13 @@ mod test {
             let new_obligation = disbursal
                 .approval_process_concluded(tx_id, true, dummy_audit_info())
                 .unwrap();
+            let obligation_id =
+                new_obligation.map(|n| Obligation::try_from_events(n.into_events()).unwrap().id);
             credit_facility
                 .disbursal_concluded(
                     &disbursal,
                     tx_id,
-                    new_obligation.is_none(),
+                    obligation_id,
                     facility_activated_at,
                     dummy_audit_info(),
                 )

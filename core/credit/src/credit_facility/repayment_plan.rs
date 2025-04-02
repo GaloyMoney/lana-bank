@@ -254,7 +254,7 @@ mod tests {
                 tx_id: LedgerTxId::new(),
                 recorded_at: Utc::now(),
                 audit_info: dummy_audit_info(),
-                canceled: false,
+                obligation_id: Some(ObligationId::new()),
             },
             CreditFacilityEvent::InterestAccrualCycleConcluded {
                 idx: first_interest_idx,
@@ -308,7 +308,7 @@ mod tests {
                 tx_id: LedgerTxId::new(),
                 recorded_at: Utc::now(),
                 audit_info: dummy_audit_info(),
-                canceled: false,
+                obligation_id: Some(ObligationId::new()),
             },
         ];
 
@@ -498,7 +498,7 @@ mod tests {
                 tx_id: LedgerTxId::new(),
                 recorded_at: second_disbursal_at,
                 audit_info: dummy_audit_info(),
-                canceled: false,
+                obligation_id: Some(ObligationId::new()),
             },
         ]);
         let repayment_plan = super::project(events.iter());

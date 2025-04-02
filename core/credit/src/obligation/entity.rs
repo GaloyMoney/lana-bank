@@ -106,6 +106,10 @@ impl NewObligation {
         NewObligationBuilder::default()
     }
 
+    pub(crate) fn id(&self) -> ObligationId {
+        self.id
+    }
+
     pub(super) fn reference(&self) -> String {
         match self.reference.as_deref() {
             None => self.id.to_string(),
