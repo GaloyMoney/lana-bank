@@ -27,6 +27,7 @@ es_entity::entity_id! {
 
     CreditFacilityId => job::JobId,
     InterestAccrualCycleId => job::JobId,
+    ObligationId => job::JobId,
 
     DisbursalId => LedgerTxId,
     PaymentId => LedgerTxId,
