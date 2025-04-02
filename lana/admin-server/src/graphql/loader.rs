@@ -246,7 +246,7 @@ impl Loader<DisbursalId> for LanaLoader {
 
 impl Loader<LedgerAccountId> for LanaLoader {
     type Value = LedgerAccount;
-    type Error = Arc<lana_app::accounting::ledger_account::error::LedgerAccountError>;
+    type Error = Arc<lana_app::accounting::error::CoreAccountingError>;
 
     async fn load(
         &self,
@@ -254,8 +254,7 @@ impl Loader<LedgerAccountId> for LanaLoader {
     ) -> Result<HashMap<LedgerAccountId, LedgerAccount>, Self::Error> {
         self.app
             .accounting()
-            .ledger_accounts()
-            .find_all(keys)
+            .find_all_ledger_accounts(&CHART_REF.0, keys)
             .await
             .map_err(Arc::new)
     }

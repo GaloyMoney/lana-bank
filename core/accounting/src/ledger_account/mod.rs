@@ -9,9 +9,12 @@ use authz::PermissionCheck;
 use cala_ledger::CalaLedger;
 
 use crate::journal::{JournalEntry, JournalEntryCursor};
-use crate::primitives::{
-    AccountCode, CalaAccountBalance, CalaJournalId, ChartId, CoreAccountingAction,
-    CoreAccountingObject, LedgerAccountId,
+use crate::{
+    chart_of_accounts::Chart,
+    primitives::{
+        AccountCode, CalaAccountBalance, CalaJournalId, CoreAccountingAction, CoreAccountingObject,
+        LedgerAccountId,
+    },
 };
 
 use error::*;
@@ -83,10 +86,11 @@ where
         Ok(res)
     }
 
-    #[instrument(name = "accounting.ledger_account.find_by_id", skip(self), err)]
+    #[instrument(name = "accounting.ledger_account.find_by_id", skip(self, chart), err)]
     pub async fn find_by_id(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        chart: &Chart,
         id: impl Into<LedgerAccountId> + std::fmt::Debug,
     ) -> Result<Option<LedgerAccount>, LedgerAccountError> {
         let id = id.into();
@@ -101,11 +105,11 @@ where
         Ok(accounts.remove(&id))
     }
 
-    #[instrument(name = "accounting.ledger_account.find_by_id", skip(self), err)]
+    #[instrument(name = "accounting.ledger_account.find_by_id", skip(self, chart), err)]
     pub async fn find_by_code(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        chart_id: ChartId,
+        chart: &Chart,
         code: AccountCode,
     ) -> Result<Option<LedgerAccount>, LedgerAccountError> {
         self.authz
@@ -117,14 +121,17 @@ where
             .await?;
         Ok(self
             .ledger
-            .load_ledger_account_by_external_id(code.account_set_external_id(chart_id))
+            .load_ledger_account_by_external_id(code.account_set_external_id(chart.id))
             .await?)
     }
 
     pub async fn find_all<T: From<LedgerAccount>>(
         &self,
+        chart: &Chart,
         ids: &[LedgerAccountId],
     ) -> Result<HashMap<LedgerAccountId, T>, LedgerAccountError> {
+        // need handle on chart
+        //
         let accounts = self.ledger.load_ledger_accounts(ids).await?;
         Ok(accounts.into_iter().map(|(k, v)| (k, v.into())).collect())
     }

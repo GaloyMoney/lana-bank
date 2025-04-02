@@ -405,7 +405,8 @@ impl Query {
         maybe_fetch_one!(
             LedgerAccount,
             ctx,
-            app.accounting().ledger_accounts().find_by_id(sub, id)
+            app.accounting()
+                .find_ledger_account_by_id(sub, &CHART_REF.0, id)
         )
     }
 

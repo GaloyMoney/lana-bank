@@ -7,6 +7,8 @@ pub mod journal;
 pub mod ledger_account;
 mod primitives;
 
+use std::collections::HashMap;
+
 use audit::AuditSvc;
 use authz::PermissionCheck;
 use cala_ledger::CalaLedger;
@@ -78,6 +80,23 @@ where
     }
 
     #[instrument(name = "core_accounting.find_ledger_account_by_code", skip(self))]
+    pub async fn find_ledger_account_by_id(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        chart_ref: &str,
+        id: impl Into<LedgerAccountId> + std::fmt::Debug,
+    ) -> Result<Option<LedgerAccount>, CoreAccountingError> {
+        let chart = self
+            .chart_of_accounts
+            .find_by_reference(&chart_ref)
+            .await?
+            .ok_or_else(move || {
+                CoreAccountingError::ChartOfAccountsNotFoundByReference(chart_ref.to_string())
+            })?;
+        Ok(self.ledger_accounts.find_by_id(sub, &chart, id).await?)
+    }
+
+    #[instrument(name = "core_accounting.find_ledger_account_by_code", skip(self))]
     pub async fn find_ledger_account_by_code(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
@@ -93,7 +112,23 @@ where
             })?;
         Ok(self
             .ledger_accounts
-            .find_by_code(sub, chart.id, code.parse()?)
+            .find_by_code(sub, &chart, code.parse()?)
             .await?)
+    }
+
+    #[instrument(name = "core_accounting.find_all_ledger_accounts", skip(self))]
+    pub async fn find_all_ledger_accounts<T: From<LedgerAccount>>(
+        &self,
+        chart_ref: &str,
+        ids: &[LedgerAccountId],
+    ) -> Result<HashMap<LedgerAccountId, T>, CoreAccountingError> {
+        let chart = self
+            .chart_of_accounts
+            .find_by_reference(&chart_ref)
+            .await?
+            .ok_or_else(move || {
+                CoreAccountingError::ChartOfAccountsNotFoundByReference(chart_ref.to_string())
+            })?;
+        Ok(self.ledger_accounts.find_all(&chart, ids).await?)
     }
 }
