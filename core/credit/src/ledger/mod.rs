@@ -1170,7 +1170,7 @@ impl CreditLedger {
         Obligation {
             tx_id,
             reference: tx_ref,
-            amount: interest,
+            initial_amount: interest,
             account_to_be_debited_id: interest_receivable_account_id,
             account_to_be_credited_id: interest_income_account_id,
             recorded_at: posted_at,
@@ -1254,7 +1254,7 @@ impl CreditLedger {
         Obligation {
             tx_id,
             reference: external_id,
-            amount,
+            initial_amount: amount,
             account_to_be_debited_id: facility_disbursed_receivable_account,
             account_to_be_credited_id: debit_account_id,
             ..
