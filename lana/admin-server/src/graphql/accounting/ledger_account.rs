@@ -8,7 +8,7 @@ use lana_app::accounting::ledger_account::LedgerAccount as DomainLedgerAccount;
 use lana_app::accounting::AccountCode as DomainAccountCode;
 use lana_app::primitives::Currency;
 
-use crate::primitives::*;
+use crate::{graphql::loader::*, primitives::*};
 
 use super::JournalEntry;
 
@@ -38,12 +38,27 @@ impl LedgerAccount {
         &self.entity.name
     }
 
-    async fn balance(&self, _ctx: &Context<'_>) -> async_graphql::Result<LedgerAccountBalance> {
+    async fn balance(&self) -> async_graphql::Result<LedgerAccountBalance> {
         if let Some(balance) = self.entity.btc_balance.as_ref() {
             Ok(Some(balance).into())
         } else {
             Ok(self.entity.usd_balance.as_ref().into())
         }
+    }
+
+    async fn ancestors(&self, ctx: &Context<'_>) -> async_graphql::Result<Vec<LedgerAccount>> {
+        let loader = ctx.data_unchecked::<LanaDataLoader>();
+        let mut ancestors = loader.load_many(self.entity.ancestor_ids.clone()).await?;
+
+        let mut result = Vec::with_capacity(self.entity.ancestor_ids.len());
+
+        for id in self.entity.ancestor_ids.iter() {
+            if let Some(account) = ancestors.remove(id) {
+                result.push(account);
+            }
+        }
+
+        Ok(result)
     }
 
     async fn history(

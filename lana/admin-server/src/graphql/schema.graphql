@@ -1157,8 +1157,9 @@ type LedgerAccount {
 	id: UUID!
 	code: AccountCode
 	name: String!
-	history(first: Int!, after: String): JournalEntryConnection!
 	balance: LedgerAccountBalance!
+	ancestors: [LedgerAccount!]!
+	history(first: Int!, after: String): JournalEntryConnection!
 }
 
 union LedgerAccountBalance = UsdLedgerAccountBalance | BtcLedgerAccountBalance

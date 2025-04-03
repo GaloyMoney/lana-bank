@@ -1156,6 +1156,7 @@ export type LayeredUsdAccountBalanceAmounts = {
 
 export type LedgerAccount = {
   __typename?: 'LedgerAccount';
+  ancestors: Array<LedgerAccount>;
   balance: LedgerAccountBalance;
   code?: Maybe<Scalars['AccountCode']['output']>;
   history: JournalEntryConnection;

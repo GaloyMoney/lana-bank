@@ -1457,6 +1457,7 @@ export const mockLedgerAccount = (overrides?: Partial<LedgerAccount>, _relations
     relationshipsToOmit.add('LedgerAccount');
     return {
         __typename: 'LedgerAccount',
+        ancestors: overrides && overrides.hasOwnProperty('ancestors') ? overrides.ancestors! : [relationshipsToOmit.has('LedgerAccount') ? {} as LedgerAccount : mockLedgerAccount({}, relationshipsToOmit)],
         balance: overrides && overrides.hasOwnProperty('balance') ? overrides.balance! : relationshipsToOmit.has('BtcLedgerAccountBalance') ? {} as BtcLedgerAccountBalance : mockBtcLedgerAccountBalance({}, relationshipsToOmit),
         code: overrides && overrides.hasOwnProperty('code') ? overrides.code! : faker.lorem.word(),
         history: overrides && overrides.hasOwnProperty('history') ? overrides.history! : relationshipsToOmit.has('JournalEntryConnection') ? {} as JournalEntryConnection : mockJournalEntryConnection({}, relationshipsToOmit),
