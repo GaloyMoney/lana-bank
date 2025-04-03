@@ -126,7 +126,7 @@ where
 
         // TODO: switch to recording in ledger and committing
         // self.ledger
-        //     .record_credit_facility_overdue_disbursed(db, overdue)
+        //     .record_overdue_obligation(db, overdue)
         //     .await?;
         db.commit().await?;
 

@@ -14,6 +14,8 @@ use crate::{
     Obligation, ObligationRepo,
 };
 
+use super::obligation_overdue;
+
 #[derive(Clone, Serialize, Deserialize)]
 pub struct CreditFacilityJobConfig<Perms, E> {
     pub credit_facility_id: CreditFacilityId,
@@ -125,19 +127,9 @@ where
             .await?;
 
         let new_obligation = credit_facility.record_interest_accrual_cycle(audit_info.clone())?;
-        let mut obligation = self
+        let obligation = self
             .obligation_repo
             .create_in_op(db, new_obligation)
-            .await?;
-
-        obligation
-            .record_due(audit_info.clone())
-            .expect("Obligation was already marked due");
-        obligation
-            .record_overdue(audit_info.clone())?
-            .expect("Obligation was already marked overdue");
-        self.obligation_repo
-            .update_in_op(db, &mut obligation)
             .await?;
 
         self.credit_facility_repo
@@ -210,6 +202,20 @@ where
                 return Ok(JobCompletion::CompleteWithOp(db));
             };
 
+        let overdue_at = obligation
+            .overdue_at()
+            .expect("No overdue_at value set on Obligation");
+        self.jobs
+            .create_and_spawn_at_in_op(
+                &mut db,
+                obligation.id,
+                obligation_overdue::CreditFacilityJobConfig::<Perms> {
+                    obligation_id: obligation.id,
+                    _phantom: std::marker::PhantomData,
+                },
+                overdue_at,
+            )
+            .await?;
         self.jobs
             .create_and_spawn_at_in_op(
                 &mut db,
