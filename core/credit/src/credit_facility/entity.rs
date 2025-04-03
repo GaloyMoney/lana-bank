@@ -349,20 +349,6 @@ impl CreditFacility {
         self.terms.one_time_fee_rate.apply(self.initial_facility())
     }
 
-    fn disbursal_obligation_ids(&self) -> Vec<ObligationId> {
-        let mut obligation_ids = vec![];
-        for event in self.events.iter_all() {
-            if let CreditFacilityEvent::DisbursalConcluded {
-                obligation_id: Some(obligation_id),
-                ..
-            } = event
-            {
-                obligation_ids.push(*obligation_id);
-            }
-        }
-        obligation_ids
-    }
-
     fn total_disbursed(&self) -> UsdCents {
         let mut amounts = std::collections::HashMap::new();
         self.events
@@ -1119,7 +1105,7 @@ impl CreditFacility {
     pub(crate) fn record_overdue_disbursed_balance(
         &mut self,
         audit_info: AuditInfo,
-    ) -> Idempotent<(CreditFacilityOverdueDisbursedBalance, Vec<ObligationId>)> {
+    ) -> Idempotent<CreditFacilityOverdueDisbursedBalance> {
         idempotency_guard!(
             self.events.iter_all().rev(),
             CreditFacilityEvent::OverdueDisbursedBalanceRecorded { .. }
@@ -1141,7 +1127,7 @@ impl CreditFacility {
                 audit_info,
             });
 
-        Idempotent::Executed((res, self.disbursal_obligation_ids()))
+        Idempotent::Executed(res)
     }
 
     pub(crate) fn complete(

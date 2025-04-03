@@ -7,14 +7,9 @@ use job::*;
 use outbox::OutboxEventMarker;
 
 use crate::{
-    credit_facility::CreditFacilityRepo,
-    event::CoreCreditEvent,
-    ledger::CreditLedger,
-    obligation::{Obligation, ObligationRepo},
+    credit_facility::CreditFacilityRepo, event::CoreCreditEvent, ledger::CreditLedger,
     primitives::*,
 };
-
-use super::obligation_overdue;
 
 #[derive(Clone, Serialize, Deserialize)]
 pub struct CreditFacilityJobConfig<Perms, E> {
@@ -35,10 +30,8 @@ where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCreditEvent>,
 {
-    obligation_repo: ObligationRepo,
     credit_facility_repo: CreditFacilityRepo<E>,
     ledger: CreditLedger,
-    jobs: Jobs,
     audit: Perms::Audit,
 }
 
@@ -51,16 +44,12 @@ where
 {
     pub fn new(
         ledger: &CreditLedger,
-        obligation_repo: ObligationRepo,
         credit_facility_repo: CreditFacilityRepo<E>,
-        jobs: &Jobs,
         audit: &Perms::Audit,
     ) -> Self {
         Self {
             ledger: ledger.clone(),
-            obligation_repo,
             credit_facility_repo,
-            jobs: jobs.clone(),
             audit: audit.clone(),
         }
     }
@@ -85,10 +74,8 @@ where
     fn init(&self, job: &Job) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
         Ok(Box::new(CreditFacilityProcessingJobRunner::<Perms, E> {
             config: job.config()?,
-            obligation_repo: self.obligation_repo.clone(),
             credit_facility_repo: self.credit_facility_repo.clone(),
             ledger: self.ledger.clone(),
-            jobs: self.jobs.clone(),
             audit: self.audit.clone(),
         }))
     }
@@ -100,10 +87,8 @@ where
     E: OutboxEventMarker<CoreCreditEvent>,
 {
     config: CreditFacilityJobConfig<Perms, E>,
-    obligation_repo: ObligationRepo,
     credit_facility_repo: CreditFacilityRepo<E>,
     ledger: CreditLedger,
-    jobs: Jobs,
     audit: Perms::Audit,
 }
 
@@ -133,35 +118,9 @@ where
             .credit_facility_repo
             .find_by_id(self.config.credit_facility_id)
             .await?;
-        let overdue = if let es_entity::Idempotent::Executed((overdue, obligation_ids)) =
+        let overdue = if let es_entity::Idempotent::Executed(overdue) =
             credit_facility.record_overdue_disbursed_balance(audit_info)
         {
-            let mut obligations = self
-                .obligation_repo
-                .find_all::<Obligation>(&obligation_ids)
-                .await?;
-
-            for obligation_id in obligation_ids {
-                let obligation = obligations
-                    .remove(&obligation_id)
-                    .expect("Obligation for obligation_id not found in hashmap");
-
-                let overdue_at = obligation
-                    .overdue_at()
-                    .expect("No overdue_at value set on Obligation");
-                self.jobs
-                    .create_and_spawn_at_in_op(
-                        &mut db,
-                        obligation.id,
-                        obligation_overdue::CreditFacilityJobConfig::<Perms> {
-                            obligation_id: obligation.id,
-                            _phantom: std::marker::PhantomData,
-                        },
-                        overdue_at,
-                    )
-                    .await?;
-            }
-
             overdue
         } else {
             return Ok(JobCompletion::Complete);

@@ -1,8 +1,8 @@
 mod job;
 
-use ::job::JobId;
 use tracing::instrument;
 
+use ::job::JobId;
 use audit::AuditSvc;
 use authz::PermissionCheck;
 use core_price::Price;

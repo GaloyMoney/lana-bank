@@ -2,6 +2,7 @@ mod job;
 
 use tracing::instrument;
 
+use ::job::Jobs;
 use audit::AuditSvc;
 use authz::PermissionCheck;
 use es_entity::Idempotent;
@@ -9,12 +10,13 @@ use governance::{
     ApprovalProcess, ApprovalProcessStatus, ApprovalProcessType, Governance, GovernanceAction,
     GovernanceEvent, GovernanceObject,
 };
+
 use outbox::OutboxEventMarker;
 
 use crate::{
-    credit_facility::CreditFacilityRepo, ledger::CreditLedger, primitives::DisbursalId,
-    CoreCreditAction, CoreCreditError, CoreCreditEvent, CoreCreditObject, Disbursal, DisbursalRepo,
-    LedgerTxId, ObligationRepo,
+    credit_facility::CreditFacilityRepo, ledger::CreditLedger, obligation_overdue,
+    primitives::DisbursalId, CoreCreditAction, CoreCreditError, CoreCreditEvent, CoreCreditObject,
+    Disbursal, DisbursalRepo, LedgerTxId, ObligationRepo,
 };
 
 pub use job::*;
@@ -28,6 +30,7 @@ where
     disbursal_repo: DisbursalRepo,
     obligation_repo: ObligationRepo,
     credit_facility_repo: CreditFacilityRepo<E>,
+    jobs: Jobs,
     audit: Perms::Audit,
     governance: Governance<Perms, E>,
     ledger: CreditLedger,
@@ -43,6 +46,7 @@ where
             disbursal_repo: self.disbursal_repo.clone(),
             obligation_repo: self.obligation_repo.clone(),
             credit_facility_repo: self.credit_facility_repo.clone(),
+            jobs: self.jobs.clone(),
             audit: self.audit.clone(),
             governance: self.governance.clone(),
             ledger: self.ledger.clone(),
@@ -63,6 +67,7 @@ where
         disbursal_repo: &DisbursalRepo,
         obligation_repo: &ObligationRepo,
         credit_facility_repo: &CreditFacilityRepo<E>,
+        jobs: &Jobs,
         audit: &Perms::Audit,
         governance: &Governance<Perms, E>,
         ledger: &CreditLedger,
@@ -71,6 +76,7 @@ where
             disbursal_repo: disbursal_repo.clone(),
             obligation_repo: obligation_repo.clone(),
             credit_facility_repo: credit_facility_repo.clone(),
+            jobs: jobs.clone(),
             audit: audit.clone(),
             governance: governance.clone(),
             ledger: ledger.clone(),
@@ -175,6 +181,22 @@ where
                 .obligation_repo
                 .create_in_op(&mut db, new_obligation)
                 .await?;
+
+            let overdue_at = obligation
+                .overdue_at()
+                .expect("No overdue_at value set on Obligation");
+            self.jobs
+                .create_and_spawn_at_in_op(
+                    &mut db,
+                    obligation.id,
+                    obligation_overdue::CreditFacilityJobConfig::<Perms> {
+                        obligation_id: obligation.id,
+                        _phantom: std::marker::PhantomData,
+                    },
+                    overdue_at,
+                )
+                .await?;
+
             self.ledger
                 .settle_disbursal(
                     db,

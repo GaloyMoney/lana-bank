@@ -129,6 +129,7 @@ where
             &disbursal_repo,
             &obligation_repo,
             &credit_facility_repo,
+            jobs,
             authz.audit(),
             governance,
             &ledger,
@@ -177,9 +178,7 @@ where
         jobs.add_initializer(
             overdue::CreditFacilityProcessingJobInitializer::<Perms, E>::new(
                 &ledger,
-                obligation_repo.clone(),
                 credit_facility_repo.clone(),
-                jobs,
                 authz.audit(),
             ),
         );
