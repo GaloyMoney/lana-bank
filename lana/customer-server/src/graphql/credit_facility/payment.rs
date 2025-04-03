@@ -19,11 +19,18 @@ pub struct CreditFacilityPayment {
 
 impl From<DomainPayment> for CreditFacilityPayment {
     fn from(payment: DomainPayment) -> Self {
+        let (mut disbursal_amount, mut interest_amount) = (UsdCents::ZERO, UsdCents::ZERO);
+        if payment.is_disbursal_temp {
+            disbursal_amount = payment.amount;
+        } else {
+            interest_amount = payment.amount;
+        };
+
         Self {
             id: payment.id.to_global_id(),
             payment_id: UUID::from(payment.id),
-            interest_amount: payment.amounts.interest,
-            disbursal_amount: payment.amounts.disbursal,
+            interest_amount,
+            disbursal_amount,
             created_at: payment.created_at().into(),
             entity: Arc::new(payment),
         }

@@ -601,7 +601,7 @@ where
             .balances()
             .check_against_ledger(ledger_balances)?;
 
-        let new_payment = credit_facility.initiate_repayment(
+        let (disbursed_new_payment, interest_new_payment) = credit_facility.initiate_repayment(
             amount,
             price,
             self.config.upgrade_buffer_cvl_pct,
@@ -613,16 +613,31 @@ where
             .update_in_op(&mut db, &mut credit_facility)
             .await?;
 
-        let payment = self.payment_repo.create_in_op(&mut db, new_payment).await?;
+        let disbursed_payment = self
+            .payment_repo
+            .create_in_op(&mut db, disbursed_new_payment)
+            .await?;
+        let interest_payment = self
+            .payment_repo
+            .create_in_op(&mut db, interest_new_payment)
+            .await?;
 
         self.ledger
             .record_credit_facility_repayment(
                 db,
-                payment.ledger_tx_id,
-                payment.ledger_tx_ref,
-                payment.amounts,
-                payment.account_ids,
-                payment.disbursal_credit_account_id,
+                disbursed_payment.ledger_tx_id,
+                disbursed_payment.ledger_tx_ref,
+                interest_payment.ledger_tx_id,
+                interest_payment.ledger_tx_ref,
+                CreditFacilityPaymentAmounts {
+                    disbursal: disbursed_payment.amount,
+                    interest: interest_payment.amount,
+                },
+                PaymentAccountIds {
+                    disbursed_receivable_account_id: disbursed_payment.receivable_account_id,
+                    interest_receivable_account_id: interest_payment.receivable_account_id,
+                },
+                disbursed_payment.account_to_be_debited_id,
             )
             .await?;
 

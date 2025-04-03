@@ -1009,26 +1009,48 @@ impl CreditLedger {
     pub async fn record_credit_facility_repayment(
         &self,
         op: es_entity::DbOp<'_>,
-        tx_id: TransactionId,
-        tx_ref: String,
+        disbursal_tx_id: TransactionId,
+        disbursal_tx_ref: String,
+        interest_tx_id: TransactionId,
+        interest_tx_ref: String,
         amounts: CreditFacilityPaymentAmounts,
         payment_account_ids: PaymentAccountIds,
         debit_account_id: CalaAccountId,
     ) -> Result<(), CreditLedgerError> {
         let mut op = self.cala.ledger_operation_from_db_op(op);
 
-        let params = templates::RecordPaymentParams {
+        let disbursed_params = templates::RecordPaymentParams {
             journal_id: self.journal_id,
             currency: self.usd,
-            interest_amount: amounts.interest.to_usd(),
-            principal_amount: amounts.disbursal.to_usd(),
-            debit_account_id,
-            principal_receivable_account_id: payment_account_ids.disbursed_receivable_account_id,
-            interest_receivable_account_id: payment_account_ids.interest_receivable_account_id,
-            tx_ref,
+            amount: amounts.disbursal.to_usd(),
+            account_to_be_debited_id: debit_account_id,
+            receivable_account_id: payment_account_ids.disbursed_receivable_account_id,
+            tx_ref: disbursal_tx_ref,
         };
         self.cala
-            .post_transaction_in_op(&mut op, tx_id, templates::RECORD_PAYMENT_CODE, params)
+            .post_transaction_in_op(
+                &mut op,
+                disbursal_tx_id,
+                templates::RECORD_PAYMENT_CODE,
+                disbursed_params,
+            )
+            .await?;
+
+        let interest_params = templates::RecordPaymentParams {
+            journal_id: self.journal_id,
+            currency: self.usd,
+            amount: amounts.interest.to_usd(),
+            account_to_be_debited_id: debit_account_id,
+            receivable_account_id: payment_account_ids.interest_receivable_account_id,
+            tx_ref: interest_tx_ref,
+        };
+        self.cala
+            .post_transaction_in_op(
+                &mut op,
+                interest_tx_id,
+                templates::RECORD_PAYMENT_CODE,
+                interest_params,
+            )
             .await?;
 
         op.commit().await?;
