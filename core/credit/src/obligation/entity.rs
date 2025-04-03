@@ -5,7 +5,10 @@ use serde::{Deserialize, Serialize};
 use audit::AuditInfo;
 use es_entity::*;
 
-use crate::primitives::{CalaAccountId, LedgerTxId, ObligationId, UsdCents};
+use crate::{
+    primitives::{CalaAccountId, LedgerTxId, ObligationId, UsdCents},
+    NewPayment, PaymentId,
+};
 
 use super::error::ObligationError;
 
@@ -15,6 +18,7 @@ pub(crate) enum ObligationStatus {
     Due,
     Overdue,
     _Defaulted,
+    Paid,
 }
 
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
@@ -40,6 +44,16 @@ pub enum ObligationEvent {
     OverdueRecorded {
         audit_info: AuditInfo,
     },
+    PaymentRecorded {
+        payment_id: PaymentId,
+        amount: UsdCents,
+        recorded_at: DateTime<Utc>,
+        audit_info: AuditInfo,
+    },
+    Completed {
+        completed_at: DateTime<Utc>,
+        audit_info: AuditInfo,
+    },
 }
 
 #[derive(EsEntity, Builder)]
@@ -48,7 +62,7 @@ pub struct Obligation {
     pub id: ObligationId,
     pub tx_id: LedgerTxId,
     pub reference: String,
-    pub amount: UsdCents,
+    pub initial_amount: UsdCents,
     pub account_to_be_debited_id: CalaAccountId,
     pub account_to_be_credited_id: CalaAccountId,
     pub recorded_at: DateTime<Utc>,
@@ -89,9 +103,18 @@ impl Obligation {
             .find_map(|event| match event {
                 ObligationEvent::DueRecorded { .. } => Some(ObligationStatus::Due),
                 ObligationEvent::OverdueRecorded { .. } => Some(ObligationStatus::Overdue),
+                ObligationEvent::Completed { .. } => Some(ObligationStatus::Paid),
                 _ => None,
             })
             .unwrap_or(ObligationStatus::NotYetDue)
+    }
+
+    fn is_not_yet_due(&self) -> bool {
+        self.status() == ObligationStatus::NotYetDue
+    }
+
+    fn is_completed(&self) -> bool {
+        self.status() == ObligationStatus::Paid
     }
 
     pub fn outstanding(&self) -> UsdCents {
@@ -135,6 +158,47 @@ impl Obligation {
 
         Ok(Idempotent::Executed(self.outstanding()))
     }
+
+    fn count_recorded_payments(&self) -> usize {
+        self.events
+            .iter_all()
+            .filter(|event| matches!(event, ObligationEvent::PaymentRecorded { .. }))
+            .count()
+    }
+
+    pub(crate) fn record_payment(
+        &mut self,
+        amount: UsdCents,
+        audit_info: AuditInfo,
+    ) -> Idempotent<NewPayment> {
+        if self.is_not_yet_due() || self.is_completed() {
+            return Idempotent::Ignored;
+        }
+
+        let payment_id = PaymentId::new();
+        let tx_ref = format!("{}-payment-{}", self.id, self.count_recorded_payments() + 1);
+
+        let now = crate::time::now();
+        self.events.push(ObligationEvent::PaymentRecorded {
+            payment_id,
+            amount,
+            recorded_at: now,
+            audit_info: audit_info.clone(),
+        });
+
+        Idempotent::Executed(
+            NewPayment::builder()
+                .id(payment_id)
+                .ledger_tx_id(payment_id)
+                .ledger_tx_ref(tx_ref)
+                .amount(amount)
+                .receivable_account_id(self.account_to_be_credited_id)
+                .account_to_be_debited_id(self.account_to_be_debited_id)
+                .audit_info(audit_info)
+                .build()
+                .expect("could not build new payment"),
+        )
+    }
 }
 
 impl TryFromEvents<ObligationEvent> for Obligation {
@@ -156,13 +220,15 @@ impl TryFromEvents<ObligationEvent> for Obligation {
                         .id(*id)
                         .tx_id(*tx_id)
                         .reference(reference.clone())
-                        .amount(*amount)
+                        .initial_amount(*amount)
                         .account_to_be_debited_id(*account_to_be_debited_id)
                         .account_to_be_credited_id(*account_to_be_credited_id)
                         .recorded_at(*recorded_at)
                 }
                 ObligationEvent::DueRecorded { .. } => (),
                 ObligationEvent::OverdueRecorded { .. } => (),
+                ObligationEvent::PaymentRecorded { .. } => (),
+                ObligationEvent::Completed { .. } => (),
             }
         }
         builder.events(events).build()
@@ -272,7 +338,7 @@ mod test {
             .record_overdue(dummy_audit_info())
             .unwrap()
             .unwrap();
-        assert_eq!(res, obligation.amount);
+        assert_eq!(res, obligation.initial_amount);
     }
 
     #[test]
