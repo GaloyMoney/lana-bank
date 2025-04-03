@@ -53,7 +53,7 @@ async fn ledger_account_ancestors() -> anyhow::Result<()> {
 
     // leaf account with internal
     let ledger_account = accounting.find_ledger_account_by_id(&DummySubject, &chart_ref, leaf_id).await?.unwrap();
-    assert_eq!(ledger_account.ancestor_ids, vec![internal_id.into(), grandchild.id, child.id, root.id]);
+    assert_eq!(ledger_account.ancestor_ids, vec![grandchild.id, child.id, root.id]);
 
     let leaf2_id = AccountId::new();
     cala.accounts()

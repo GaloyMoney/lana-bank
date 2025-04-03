@@ -145,13 +145,9 @@ where
         Ok(res)
     }
 
-    /// Pushes into `account`'s `ancestor_ids` parents of itself. Inner parents are pushed
-    /// first in ascending order, the root of the chart of accounts is pushed last. `account`
+    /// Pushes into `account`'s `ancestor_ids` ancestors from the chart of account. The ancestors
+    /// are pushed in ascending order, the root of the chart of accounts is pushed last. `account`
     /// itself is not pushed.
-    ///
-    /// If `account` is a leaf account, the function assumes that there is at most one
-    /// intermediate level (account set) between the leaf account and the chart of accounts.
-    /// If `account` is account set, itself or its parent must be in the chart of accounts.
     async fn populate_ancestors(
         &self,
         chart: &Chart,
