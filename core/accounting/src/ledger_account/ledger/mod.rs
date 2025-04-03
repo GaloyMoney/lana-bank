@@ -4,7 +4,7 @@ use std::collections::HashMap;
 
 use cala_ledger::account_set::{AccountSet, AccountSetMemberId};
 use cala_ledger::balance::AccountBalance;
-use cala_ledger::{AccountSetId, CalaLedger, Currency, JournalId, account::Account};
+use cala_ledger::{account::Account, AccountSetId, CalaLedger, Currency, JournalId};
 
 use crate::journal_error::JournalError;
 use crate::{AccountCode, LedgerAccount, LedgerAccountId};
@@ -65,32 +65,49 @@ impl LedgerAccountLedger {
         })
     }
 
-    /// Returns parent and its account code of the given ID, which can be either
-    /// account set ID or account ID. Raises error if the account/account set has
-    /// more than one parent.
-    pub async fn find_parent_of_account(
+    #[allow(clippy::type_complexity)]
+    pub fn find_parent_with_account_code(
         &self,
-        id: impl Into<AccountSetMemberId> + std::fmt::Debug,
-    ) -> Result<Option<(LedgerAccountId, Option<AccountCode>)>, LedgerAccountLedgerError> {
-        let all_parents = self
-            .cala
-            .account_sets()
-            .find_where_member(id, Default::default())
-            .await?
-            .entities;
+        id: AccountSetMemberId,
+        current_depth: usize,
+    ) -> std::pin::Pin<
+        Box<
+            dyn Future<
+                    Output = Result<Option<(AccountSetId, AccountCode)>, LedgerAccountLedgerError>,
+                > + Send
+                + '_,
+        >,
+    > {
+        Box::pin(async move {
+            if current_depth > 2 {
+                return Ok(None);
+            }
+            let all_parents = self
+                .cala
+                .account_sets()
+                .find_where_member(id, Default::default())
+                .await?
+                .entities;
 
-        match &all_parents[..] {
-            [] => Ok(None),
-            [single] => {
-                let code = single
+            for parent in all_parents.iter() {
+                if let Some(Ok(code)) = parent
                     .values()
                     .external_id
                     .as_ref()
-                    .and_then(|id| id.parse().ok());
-                Ok(Some((single.id.into(), code)))
+                    .map(|id| id.parse::<AccountCode>())
+                {
+                    return Ok(Some((parent.id, code)));
+                }
+                if let Some(res) = self
+                    .find_parent_with_account_code(parent.id.into(), current_depth + 1)
+                    .await?
+                {
+                    return Ok(Some(res));
+                }
             }
-            _ => Err(LedgerAccountLedgerError::MultipleParents),
-        }
+
+            Ok(None)
+        })
     }
 
     pub async fn load_ledger_account_by_external_id(

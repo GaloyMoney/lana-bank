@@ -6,14 +6,14 @@ use tracing::instrument;
 
 use audit::AuditSvc;
 use authz::PermissionCheck;
-use cala_ledger::{AccountId, AccountSetId, CalaLedger};
+use cala_ledger::CalaLedger;
 
 use crate::journal::{JournalEntry, JournalEntryCursor};
 use crate::{
     chart_of_accounts::Chart,
     primitives::{
-        AccountCode, CalaAccountBalance, CalaJournalId, CoreAccountingAction, CoreAccountingObject,
-        LedgerAccountId,
+        AccountCode, CalaAccountBalance, CalaAccountId, CalaAccountSetId, CalaJournalId,
+        CoreAccountingAction, CoreAccountingObject, LedgerAccountId,
     },
 };
 
@@ -33,12 +33,12 @@ pub struct LedgerAccount {
 }
 
 impl LedgerAccount {
-    pub(crate) const fn is_leaf_account(&self) -> bool {
-        self.is_leaf
-    }
-
-    pub(crate) const fn is_module_account_set(&self) -> bool {
-        self.code.is_none() && !self.is_leaf
+    fn account_set_member_id(&self) -> cala_ledger::account_set::AccountSetMemberId {
+        if self.is_leaf {
+            CalaAccountId::from(self.id).into()
+        } else {
+            CalaAccountSetId::from(self.id).into()
+        }
     }
 }
 
@@ -158,53 +158,15 @@ where
         account: &mut LedgerAccount,
     ) -> Result<(), LedgerAccountError> {
         if let Some(code) = account.code.as_ref() {
-            // `account` is already in the chart
             account.ancestor_ids = chart.ancestors(code);
-        } else if account.is_leaf_account() {
-            // account is a leaf account whose parent may or may not be in CoA
-            match self
-                .ledger
-                .find_parent_of_account(AccountId::from(account.id))
-                .await?
-            {
-                // parent is already in CoA
-                Some((parent, Some(code))) => {
-                    account.ancestor_ids.push(parent); // because chart.ancestors excludes itself
-                    account
-                        .ancestor_ids
-                        .extend(chart.ancestors::<LedgerAccountId>(&code));
-                }
-                // parent is not in CoA but its parents should be
-                Some((parent, None)) => {
-                    account.ancestor_ids.push(parent);
-                    self.populate_parent_coa(chart, parent, &mut account.ancestor_ids)
-                        .await?;
-                }
-                _ => {}
-            }
-        } else if account.is_module_account_set() {
-            // account is an internal account set whose parent is expected to be in CoA
-            self.populate_parent_coa(chart, account.id, &mut account.ancestor_ids)
-                .await?;
-        }
-        Ok(())
-    }
-
-    /// Pushes into `ancestor_ids` all parents of `id` if they are in the chart of accounts, otherwise
-    /// does nothing.
-    async fn populate_parent_coa(
-        &self,
-        chart: &Chart,
-        id: LedgerAccountId,
-        ancestor_ids: &mut Vec<LedgerAccountId>,
-    ) -> Result<(), LedgerAccountError> {
-        if let Some((coa, Some(code))) = self
+        } else if let Some((id, code)) = self
             .ledger
-            .find_parent_of_account(AccountSetId::from(id))
+            .find_parent_with_account_code(account.account_set_member_id(), 1)
             .await?
         {
-            ancestor_ids.push(coa); // because chart.ancestors excludes itself
-            ancestor_ids.extend(chart.ancestors::<LedgerAccountId>(&code));
+            let mut ancestors = chart.ancestors(&code);
+            ancestors.insert(0, id.into());
+            account.ancestor_ids = ancestors;
         }
         Ok(())
     }
