@@ -151,7 +151,7 @@ where
     ///
     /// If `account` is a leaf account, the function assumes that there is at most one
     /// intermediate level (account set) between the leaf account and the chart of accounts.
-    /// If `acccount` is account set, itself or its parent must be in the chart of accounts.
+    /// If `account` is account set, itself or its parent must be in the chart of accounts.
     async fn populate_ancestors(
         &self,
         chart: &Chart,
