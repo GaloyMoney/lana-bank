@@ -29,15 +29,15 @@ pub enum ObligationEvent {
         account_to_be_debited_id: CalaAccountId,
         account_to_be_credited_id: CalaAccountId,
         due_date: DateTime<Utc>,
-        overdue_date: Option<DateTime<Utc>>,
+        overdue_date: DateTime<Utc>,
         defaulted_date: Option<DateTime<Utc>>,
         recorded_at: DateTime<Utc>,
         audit_info: AuditInfo,
     },
-    MarkedDue {
+    DueRecorded {
         audit_info: AuditInfo,
     },
-    MarkedOverdue {
+    OverdueRecorded {
         audit_info: AuditInfo,
     },
 }
@@ -62,7 +62,7 @@ impl Obligation {
             .expect("entity_first_persisted_at not found")
     }
 
-    pub fn overdue_at(&self) -> Option<DateTime<Utc>> {
+    pub fn overdue_at(&self) -> DateTime<Utc> {
         self.events
             .iter_all()
             .find_map(|e| match e {
@@ -77,8 +77,8 @@ impl Obligation {
             .iter_all()
             .rev()
             .find_map(|event| match event {
-                ObligationEvent::MarkedDue { .. } => Some(ObligationStatus::Due),
-                ObligationEvent::MarkedOverdue { .. } => Some(ObligationStatus::Overdue),
+                ObligationEvent::DueRecorded { .. } => Some(ObligationStatus::Due),
+                ObligationEvent::OverdueRecorded { .. } => Some(ObligationStatus::Overdue),
                 _ => None,
             })
             .unwrap_or(ObligationStatus::NotYetDue)
@@ -98,10 +98,11 @@ impl Obligation {
     pub(crate) fn record_due(&mut self, audit_info: AuditInfo) -> Idempotent<UsdCents> {
         idempotency_guard!(
             self.events.iter_all().rev(),
-            ObligationEvent::MarkedDue { .. }
+            ObligationEvent::DueRecorded { .. }
         );
 
-        self.events.push(ObligationEvent::MarkedDue { audit_info });
+        self.events
+            .push(ObligationEvent::DueRecorded { audit_info });
 
         Idempotent::Executed(self.outstanding())
     }
@@ -112,7 +113,7 @@ impl Obligation {
     ) -> Result<Idempotent<UsdCents>, ObligationError> {
         idempotency_guard!(
             self.events.iter_all().rev(),
-            ObligationEvent::MarkedOverdue { .. }
+            ObligationEvent::OverdueRecorded { .. }
         );
 
         if self.status() != ObligationStatus::Due {
@@ -120,7 +121,7 @@ impl Obligation {
         }
 
         self.events
-            .push(ObligationEvent::MarkedOverdue { audit_info });
+            .push(ObligationEvent::OverdueRecorded { audit_info });
 
         Ok(Idempotent::Executed(self.outstanding()))
     }
@@ -150,8 +151,8 @@ impl TryFromEvents<ObligationEvent> for Obligation {
                         .account_to_be_credited_id(*account_to_be_credited_id)
                         .recorded_at(*recorded_at)
                 }
-                ObligationEvent::MarkedDue { .. } => (),
-                ObligationEvent::MarkedOverdue { .. } => (),
+                ObligationEvent::DueRecorded { .. } => (),
+                ObligationEvent::OverdueRecorded { .. } => (),
             }
         }
         builder.events(events).build()
@@ -173,8 +174,7 @@ pub struct NewObligation {
     #[builder(setter(into))]
     account_to_be_credited_id: CalaAccountId,
     due_date: DateTime<Utc>,
-    #[builder(setter(strip_option), default)]
-    overdue_date: Option<DateTime<Utc>>,
+    overdue_date: DateTime<Utc>,
     #[builder(setter(strip_option), default)]
     defaulted_date: Option<DateTime<Utc>>,
     recorded_at: DateTime<Utc>,
@@ -218,5 +218,60 @@ impl IntoEvents<ObligationEvent> for NewObligation {
                 audit_info: self.audit_info,
             }],
         )
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use audit::{AuditEntryId, AuditInfo};
+
+    use super::*;
+
+    fn dummy_audit_info() -> AuditInfo {
+        AuditInfo {
+            audit_entry_id: AuditEntryId::from(1),
+            sub: "sub".to_string(),
+        }
+    }
+
+    fn obligation_from(events: Vec<ObligationEvent>) -> Obligation {
+        Obligation::try_from_events(EntityEvents::init(ObligationId::new(), events)).unwrap()
+    }
+
+    fn initial_events() -> Vec<ObligationEvent> {
+        vec![ObligationEvent::Initialized {
+            id: ObligationId::new(),
+            amount: UsdCents::ONE,
+            reference: "ref-01".to_string(),
+            tx_id: LedgerTxId::new(),
+            account_to_be_debited_id: CalaAccountId::new(),
+            account_to_be_credited_id: CalaAccountId::new(),
+            due_date: Utc::now(),
+            overdue_date: Utc::now(),
+            defaulted_date: None,
+            recorded_at: Utc::now(),
+            audit_info: dummy_audit_info(),
+        }]
+    }
+
+    #[test]
+    fn record_overdue() {
+        let mut obligation = obligation_from(initial_events());
+        obligation.record_due(dummy_audit_info()).did_execute();
+        let res = obligation
+            .record_overdue(dummy_audit_info())
+            .unwrap()
+            .unwrap();
+        assert_eq!(res, obligation.amount);
+    }
+
+    #[test]
+    fn errors_if_overdue_recorded_before_due() {
+        let mut obligation = obligation_from(initial_events());
+        let res = obligation.record_overdue(dummy_audit_info());
+        assert!(matches!(
+            res,
+            Err(ObligationError::InvalidStatusTransitionToOverdue)
+        ));
     }
 }

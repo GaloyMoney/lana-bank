@@ -182,9 +182,6 @@ where
                 .create_in_op(&mut db, new_obligation)
                 .await?;
 
-            let overdue_at = obligation
-                .overdue_at()
-                .expect("No overdue_at value set on Obligation");
             self.jobs
                 .create_and_spawn_at_in_op(
                     &mut db,
@@ -193,7 +190,7 @@ where
                         obligation_id: obligation.id,
                         _phantom: std::marker::PhantomData,
                     },
-                    overdue_at,
+                    obligation.overdue_at(),
                 )
                 .await?;
 
