@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 use audit::AuditInfo;
 use es_entity::*;
 
-use crate::{primitives::*, CreditFacilityPaymentAmounts};
+use crate::primitives::*;
 
 #[derive(Debug, Copy, Clone, Serialize, Deserialize)]
 pub struct PaymentAccountIds {
@@ -22,9 +22,9 @@ pub enum PaymentEvent {
         ledger_tx_id: LedgerTxId,
         ledger_tx_ref: String,
         facility_id: CreditFacilityId,
-        amounts: CreditFacilityPaymentAmounts,
-        account_ids: PaymentAccountIds,
-        disbursal_credit_account_id: CalaAccountId,
+        amount: UsdCents,
+        receivable_account_id: CalaAccountId,
+        account_to_be_debited_id: CalaAccountId,
         audit_info: AuditInfo,
     },
 }
@@ -36,9 +36,9 @@ pub struct Payment {
     pub ledger_tx_id: LedgerTxId,
     pub ledger_tx_ref: String,
     pub facility_id: CreditFacilityId,
-    pub amounts: CreditFacilityPaymentAmounts,
-    pub account_ids: PaymentAccountIds,
-    pub disbursal_credit_account_id: CalaAccountId,
+    pub amount: UsdCents,
+    pub receivable_account_id: CalaAccountId,
+    pub account_to_be_debited_id: CalaAccountId,
 
     pub(super) events: EntityEvents<PaymentEvent>,
 }
@@ -53,9 +53,9 @@ impl TryFromEvents<PaymentEvent> for Payment {
                     ledger_tx_id,
                     ledger_tx_ref,
                     facility_id,
-                    account_ids,
-                    amounts,
-                    disbursal_credit_account_id,
+                    receivable_account_id,
+                    account_to_be_debited_id,
+                    amount,
                     ..
                 } => {
                     builder = builder
@@ -63,9 +63,9 @@ impl TryFromEvents<PaymentEvent> for Payment {
                         .ledger_tx_id(*ledger_tx_id)
                         .ledger_tx_ref(ledger_tx_ref.clone())
                         .facility_id(*facility_id)
-                        .amounts(*amounts)
-                        .account_ids(*account_ids)
-                        .disbursal_credit_account_id(*disbursal_credit_account_id)
+                        .amount(*amount)
+                        .receivable_account_id(*receivable_account_id)
+                        .account_to_be_debited_id(*account_to_be_debited_id)
                 }
             }
         }
@@ -91,9 +91,11 @@ pub struct NewPayment {
     pub(super) ledger_tx_ref: String,
     #[builder(setter(into))]
     pub(super) credit_facility_id: CreditFacilityId,
-    pub(super) amounts: CreditFacilityPaymentAmounts,
-    pub(super) account_ids: PaymentAccountIds,
-    pub(super) disbursal_credit_account_id: CalaAccountId,
+    pub(super) amount: UsdCents,
+    #[builder(setter(into))]
+    pub(super) receivable_account_id: CalaAccountId,
+    #[builder(setter(into))]
+    pub(super) account_to_be_debited_id: CalaAccountId,
     #[builder(setter(into))]
     pub(super) audit_info: AuditInfo,
 }
@@ -112,9 +114,9 @@ impl IntoEvents<PaymentEvent> for NewPayment {
                 ledger_tx_id: self.ledger_tx_id,
                 ledger_tx_ref: self.ledger_tx_ref,
                 facility_id: self.credit_facility_id,
-                amounts: self.amounts,
-                account_ids: self.account_ids,
-                disbursal_credit_account_id: self.disbursal_credit_account_id,
+                amount: self.amount,
+                receivable_account_id: self.receivable_account_id,
+                account_to_be_debited_id: self.account_to_be_debited_id,
                 audit_info: self.audit_info,
             }],
         )
