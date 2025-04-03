@@ -20,7 +20,7 @@ pub enum ObligationEvent {
         account_to_be_credited_id: CalaAccountId,
         due_date: DateTime<Utc>,
         overdue_date: Option<DateTime<Utc>>,
-        default_date: Option<DateTime<Utc>>,
+        defaulted_date: Option<DateTime<Utc>>,
         recorded_at: DateTime<Utc>,
         audit_info: AuditInfo,
     },
@@ -95,7 +95,7 @@ pub struct NewObligation {
     #[builder(setter(strip_option), default)]
     overdue_date: Option<DateTime<Utc>>,
     #[builder(setter(strip_option), default)]
-    default_date: Option<DateTime<Utc>>,
+    defaulted_date: Option<DateTime<Utc>>,
     recorded_at: DateTime<Utc>,
     #[builder(setter(into))]
     pub audit_info: AuditInfo,
@@ -128,7 +128,7 @@ impl IntoEvents<ObligationEvent> for NewObligation {
                 account_to_be_credited_id: self.account_to_be_credited_id,
                 due_date: self.due_date,
                 overdue_date: self.overdue_date,
-                default_date: self.default_date,
+                defaulted_date: self.defaulted_date,
                 recorded_at: self.recorded_at,
                 audit_info: self.audit_info,
             }],

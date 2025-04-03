@@ -374,7 +374,7 @@ impl CreditFacility {
     }
 
     fn _disbursed_outstanding_due(&self) -> UsdCents {
-        if self.is_after_disbursed_default_date() || self.is_after_disbursed_overdue_date() {
+        if self.is_after_disbursed_defaulted_date() || self.is_after_disbursed_overdue_date() {
             UsdCents::ZERO
         } else {
             self.disbursed_total_outstanding()
@@ -382,7 +382,7 @@ impl CreditFacility {
     }
 
     fn disbursed_outstanding_overdue(&self) -> UsdCents {
-        if self.is_after_disbursed_default_date() {
+        if self.is_after_disbursed_defaulted_date() {
             UsdCents::ZERO
         } else if self.is_after_disbursed_overdue_date() {
             self.disbursed_total_outstanding()
@@ -392,7 +392,7 @@ impl CreditFacility {
     }
 
     fn _disbursed_outstanding_defaulted(&self) -> UsdCents {
-        if self.is_after_disbursed_default_date() {
+        if self.is_after_disbursed_defaulted_date() {
             self.disbursed_total_outstanding()
         } else {
             UsdCents::ZERO
@@ -490,7 +490,7 @@ impl CreditFacility {
         self.is_after_maturity_date()
     }
 
-    pub fn is_after_disbursed_default_date(&self) -> bool {
+    pub fn is_after_disbursed_defaulted_date(&self) -> bool {
         let now = crate::time::now();
         self.defaults_at
             .is_some_and(|defaults_at| now > defaults_at)
