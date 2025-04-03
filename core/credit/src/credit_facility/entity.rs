@@ -896,7 +896,7 @@ impl CreditFacility {
         upgrade_buffer_cvl_pct: CVLPct,
         now: DateTime<Utc>,
         audit_info: AuditInfo,
-    ) -> Result<NewPayment, CreditFacilityError> {
+    ) -> Result<(NewPayment, NewPayment), CreditFacilityError> {
         if self.total_outstanding().is_zero() {
             return Err(
                 CreditFacilityError::PaymentExceedsOutstandingCreditFacilityAmount(
@@ -908,12 +908,29 @@ impl CreditFacility {
 
         let amounts = self.outstanding_overdue().allocate_payment(amount)?;
 
-        let payment_id = PaymentId::new();
-        let tx_ref = format!("{}-payment-{}", self.id, self.count_recorded_payments() + 1);
-
+        let disbursal_payment_id = PaymentId::new();
+        let disbursal_tx_ref = format!(
+            "{}-disbursal-payment-{}",
+            self.id,
+            self.count_recorded_payments() + 1
+        );
         self.events.push(CreditFacilityEvent::PaymentRecorded {
-            payment_id,
+            payment_id: disbursal_payment_id,
             disbursal_amount: amounts.disbursal,
+            interest_amount: UsdCents::ZERO,
+            recorded_at: now,
+            audit_info: audit_info.clone(),
+        });
+
+        let interest_payment_id = PaymentId::new();
+        let interest_tx_ref = format!(
+            "{}-interest-payment-{}",
+            self.id,
+            self.count_recorded_payments() + 1
+        );
+        self.events.push(CreditFacilityEvent::PaymentRecorded {
+            payment_id: interest_payment_id,
+            disbursal_amount: UsdCents::ZERO,
             interest_amount: amounts.interest,
             recorded_at: now,
             audit_info: audit_info.clone(),
@@ -921,17 +938,31 @@ impl CreditFacility {
 
         self.maybe_update_collateralization(price, upgrade_buffer_cvl_pct, &audit_info);
 
-        Ok(NewPayment::builder()
-            .id(payment_id)
-            .ledger_tx_id(payment_id)
-            .ledger_tx_ref(tx_ref)
+        let disbursed_new_payment = NewPayment::builder()
+            .id(disbursal_payment_id)
+            .ledger_tx_id(disbursal_payment_id)
+            .ledger_tx_ref(disbursal_tx_ref.to_string())
             .credit_facility_id(self.id)
-            .amounts(amounts)
-            .account_ids(self.payment_account_ids())
-            .disbursal_credit_account_id(self.disbursal_credit_account_id)
+            .amount(amounts.disbursal)
+            .receivable_account_id(self.payment_account_ids().disbursed_receivable_account_id)
+            .account_to_be_debited_id(self.disbursal_credit_account_id)
+            .audit_info(audit_info.clone())
+            .build()
+            .expect("could not build new payment");
+
+        let interest_new_payment = NewPayment::builder()
+            .id(interest_payment_id)
+            .ledger_tx_id(interest_payment_id)
+            .ledger_tx_ref(interest_tx_ref)
+            .credit_facility_id(self.id)
+            .amount(amounts.interest)
+            .receivable_account_id(self.payment_account_ids().interest_receivable_account_id)
+            .account_to_be_debited_id(self.disbursal_credit_account_id)
             .audit_info(audit_info)
             .build()
-            .expect("could not build new payment"))
+            .expect("could not build new payment");
+
+        Ok((disbursed_new_payment, interest_new_payment))
     }
 
     fn count_recorded_payments(&self) -> usize {
@@ -2218,7 +2249,7 @@ mod test {
             let activated_at = "2023-01-01T00:00:00Z".parse::<DateTime<Utc>>().unwrap();
             let mut credit_facility = credit_facility_with_interest_accrual(activated_at);
 
-            let new_payment = credit_facility
+            let (disbursed_new_payment, _) = credit_facility
                 .initiate_repayment(
                     UsdCents::ONE,
                     default_price(),
@@ -2227,15 +2258,16 @@ mod test {
                     dummy_audit_info(),
                 )
                 .unwrap();
-            let payment = Payment::try_from_events(new_payment.into_events()).unwrap();
+            let disbursed_payment =
+                Payment::try_from_events(disbursed_new_payment.into_events()).unwrap();
             assert_eq!(
-                payment.account_ids.disbursed_receivable_account_id,
+                disbursed_payment.receivable_account_id,
                 credit_facility.account_ids.disbursed_receivable_account_id,
             );
 
             let _ = credit_facility.record_overdue_disbursed_balance(dummy_audit_info());
 
-            let new_payment = credit_facility
+            let (disbursed_new_payment, _) = credit_facility
                 .initiate_repayment(
                     UsdCents::ONE,
                     default_price(),
@@ -2244,9 +2276,10 @@ mod test {
                     dummy_audit_info(),
                 )
                 .unwrap();
-            let payment = Payment::try_from_events(new_payment.into_events()).unwrap();
+            let disbursed_payment =
+                Payment::try_from_events(disbursed_new_payment.into_events()).unwrap();
             assert_eq!(
-                payment.account_ids.disbursed_receivable_account_id,
+                disbursed_payment.receivable_account_id,
                 credit_facility
                     .account_ids
                     .disbursed_receivable_overdue_account_id,
