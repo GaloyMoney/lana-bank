@@ -947,6 +947,7 @@ impl CreditFacility {
             .receivable_account_id(self.payment_account_ids().disbursed_receivable_account_id)
             .account_to_be_debited_id(self.disbursal_credit_account_id)
             .audit_info(audit_info.clone())
+            .is_disbursal_temp(true)
             .build()
             .expect("could not build new payment");
 
@@ -959,6 +960,7 @@ impl CreditFacility {
             .receivable_account_id(self.payment_account_ids().interest_receivable_account_id)
             .account_to_be_debited_id(self.disbursal_credit_account_id)
             .audit_info(audit_info)
+            .is_disbursal_temp(false)
             .build()
             .expect("could not build new payment");
 

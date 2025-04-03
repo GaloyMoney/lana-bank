@@ -25,6 +25,7 @@ pub enum PaymentEvent {
         amount: UsdCents,
         receivable_account_id: CalaAccountId,
         account_to_be_debited_id: CalaAccountId,
+        is_disbursal_temp: bool,
         audit_info: AuditInfo,
     },
 }
@@ -39,6 +40,7 @@ pub struct Payment {
     pub amount: UsdCents,
     pub receivable_account_id: CalaAccountId,
     pub account_to_be_debited_id: CalaAccountId,
+    pub is_disbursal_temp: bool,
 
     pub(super) events: EntityEvents<PaymentEvent>,
 }
@@ -56,6 +58,7 @@ impl TryFromEvents<PaymentEvent> for Payment {
                     receivable_account_id,
                     account_to_be_debited_id,
                     amount,
+                    is_disbursal_temp,
                     ..
                 } => {
                     builder = builder
@@ -66,6 +69,7 @@ impl TryFromEvents<PaymentEvent> for Payment {
                         .amount(*amount)
                         .receivable_account_id(*receivable_account_id)
                         .account_to_be_debited_id(*account_to_be_debited_id)
+                        .is_disbursal_temp(*is_disbursal_temp)
                 }
             }
         }
@@ -98,6 +102,7 @@ pub struct NewPayment {
     pub(super) account_to_be_debited_id: CalaAccountId,
     #[builder(setter(into))]
     pub(super) audit_info: AuditInfo,
+    pub(super) is_disbursal_temp: bool,
 }
 
 impl NewPayment {
@@ -118,6 +123,7 @@ impl IntoEvents<PaymentEvent> for NewPayment {
                 receivable_account_id: self.receivable_account_id,
                 account_to_be_debited_id: self.account_to_be_debited_id,
                 audit_info: self.audit_info,
+                is_disbursal_temp: self.is_disbursal_temp,
             }],
         )
     }
