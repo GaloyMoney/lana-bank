@@ -20,4 +20,6 @@ pub enum LedgerAccountLedgerError {
     JournalError(#[from] crate::journal_error::JournalError),
     #[error("LedgerAccountError - ConversionError: {0}")]
     ConversionError(#[from] core_money::ConversionError),
+    #[error("LedgerAccountError - Account has more than one parent")]
+    MultipleParents,
 }

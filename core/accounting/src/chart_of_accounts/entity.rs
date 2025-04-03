@@ -76,6 +76,9 @@ impl Chart {
         self.all_accounts.get(code)
     }
 
+    /// Returns ancestors of this chart of accounts, starting with `code` (not included).
+    /// The lower in hierarchy the parent is, the lower index it will have in the resulting vector;
+    /// the root of the chart of accounts will be last.
     pub fn ancestors<T: From<CalaAccountSetId>>(&self, code: &AccountCode) -> Vec<T> {
         let mut result = Vec::new();
         let mut current_code = code;

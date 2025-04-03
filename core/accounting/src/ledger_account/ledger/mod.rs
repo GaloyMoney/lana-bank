@@ -1,17 +1,15 @@
 pub mod error;
 
-use cala_ledger::{
-    AccountSetId, CalaLedger, Currency, JournalId, account::Account, account_set::AccountSet,
-    balance::AccountBalance,
-};
-
 use std::collections::HashMap;
 
-use super::{LedgerAccount, LedgerAccountId};
-
-use error::*;
+use cala_ledger::account_set::{AccountSet, AccountSetMemberId};
+use cala_ledger::balance::AccountBalance;
+use cala_ledger::{AccountSetId, CalaLedger, Currency, JournalId, account::Account};
 
 use crate::journal_error::JournalError;
+use crate::{AccountCode, LedgerAccount, LedgerAccountId};
+
+use error::*;
 
 #[derive(Clone)]
 pub struct LedgerAccountLedger {
@@ -65,6 +63,34 @@ impl LedgerAccountLedger {
             has_next_page: ret.has_next_page,
             end_cursor: ret.end_cursor.map(U::from),
         })
+    }
+
+    /// Returns parent and its account code of the given ID, which can be either
+    /// account set ID or account ID. Raises error if the account/account set has
+    /// more than one parent.
+    pub async fn find_parent_of_account(
+        &self,
+        id: impl Into<AccountSetMemberId> + std::fmt::Debug,
+    ) -> Result<Option<(LedgerAccountId, Option<AccountCode>)>, LedgerAccountLedgerError> {
+        let all_parents = self
+            .cala
+            .account_sets()
+            .find_where_member(id, Default::default())
+            .await?
+            .entities;
+
+        match &all_parents[..] {
+            [] => Ok(None),
+            [single] => {
+                let code = single
+                    .values()
+                    .external_id
+                    .as_ref()
+                    .and_then(|id| id.parse().ok());
+                Ok(Some((single.id.into(), code)))
+            }
+            _ => Err(LedgerAccountLedgerError::MultipleParents),
+        }
     }
 
     pub async fn load_ledger_account_by_external_id(
