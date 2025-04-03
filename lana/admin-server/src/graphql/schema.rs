@@ -406,7 +406,7 @@ impl Query {
             LedgerAccount,
             ctx,
             app.accounting()
-                .find_ledger_account_by_id(sub, &CHART_REF.0, id)
+                .find_ledger_account_by_id(sub, CHART_REF.0, id)
         )
     }
 
@@ -420,7 +420,7 @@ impl Query {
             LedgerAccount,
             ctx,
             app.accounting()
-                .find_ledger_account_by_code(sub, &CHART_REF.0, code)
+                .find_ledger_account_by_code(sub, CHART_REF.0, code)
         )
     }
 
@@ -513,7 +513,7 @@ impl Query {
         let chart = app
             .accounting()
             .chart_of_accounts()
-            .find_by_reference_with_sub(&sub, &CHART_REF.0)
+            .find_by_reference_with_sub(sub, CHART_REF.0)
             .await?
             .unwrap_or_else(|| panic!("Chart of accounts not found for ref {}", CHART_REF.0));
         Ok(ChartOfAccounts::from(chart))

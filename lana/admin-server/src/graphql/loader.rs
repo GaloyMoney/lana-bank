@@ -123,7 +123,7 @@ impl Loader<ChartRef> for LanaLoader {
                 .app
                 .accounting()
                 .chart_of_accounts()
-                .find_by_reference(&key.0)
+                .find_by_reference(key.0)
                 .await
                 .map_err(Arc::new)?
             {
@@ -254,7 +254,7 @@ impl Loader<LedgerAccountId> for LanaLoader {
     ) -> Result<HashMap<LedgerAccountId, LedgerAccount>, Self::Error> {
         self.app
             .accounting()
-            .find_all_ledger_accounts(&CHART_REF.0, keys)
+            .find_all_ledger_accounts(CHART_REF.0, keys)
             .await
             .map_err(Arc::new)
     }

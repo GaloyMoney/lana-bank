@@ -124,7 +124,7 @@ where
             .load_ledger_account_by_external_id(code.account_set_external_id(chart.id))
             .await?
         {
-            self.populate_ancestors(&chart, &mut account).await?;
+            self.populate_ancestors(chart, &mut account).await?;
             Ok(Some(account))
         } else {
             Ok(None)

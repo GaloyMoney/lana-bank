@@ -322,8 +322,8 @@ mod tests {
             n_existing_interest_accruals + n_future_interest_accruals + n_principal_accruals
         );
 
-        for i in 0..3 {
-            match &repayment_plan[i] {
+        for item in repayment_plan.iter().take(3) {
+            match item {
                 CreditFacilityRepaymentInPlan::Interest(interest) => {
                     assert_eq!(interest.status, RepaymentStatus::Upcoming);
                 }

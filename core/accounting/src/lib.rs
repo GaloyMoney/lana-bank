@@ -88,7 +88,7 @@ where
     ) -> Result<Option<LedgerAccount>, CoreAccountingError> {
         let chart = self
             .chart_of_accounts
-            .find_by_reference(&chart_ref)
+            .find_by_reference(chart_ref)
             .await?
             .ok_or_else(move || {
                 CoreAccountingError::ChartOfAccountsNotFoundByReference(chart_ref.to_string())
@@ -105,7 +105,7 @@ where
     ) -> Result<Option<LedgerAccount>, CoreAccountingError> {
         let chart = self
             .chart_of_accounts
-            .find_by_reference(&chart_ref)
+            .find_by_reference(chart_ref)
             .await?
             .ok_or_else(move || {
                 CoreAccountingError::ChartOfAccountsNotFoundByReference(chart_ref.to_string())
@@ -124,7 +124,7 @@ where
     ) -> Result<HashMap<LedgerAccountId, T>, CoreAccountingError> {
         let chart = self
             .chart_of_accounts
-            .find_by_reference(&chart_ref)
+            .find_by_reference(chart_ref)
             .await?
             .ok_or_else(move || {
                 CoreAccountingError::ChartOfAccountsNotFoundByReference(chart_ref.to_string())
