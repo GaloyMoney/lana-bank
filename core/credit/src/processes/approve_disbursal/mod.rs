@@ -14,7 +14,7 @@ use governance::{
 use outbox::OutboxEventMarker;
 
 use crate::{
-    credit_facility::CreditFacilityRepo, ledger::CreditLedger, obligation_overdue,
+    credit_facility::CreditFacilityRepo, jobs::obligation_due, ledger::CreditLedger,
     primitives::DisbursalId, CoreCreditAction, CoreCreditError, CoreCreditEvent, CoreCreditObject,
     Disbursal, DisbursalRepo, LedgerTxId, ObligationRepo,
 };
@@ -186,11 +186,11 @@ where
                 .create_and_spawn_at_in_op(
                     &mut db,
                     obligation.id,
-                    obligation_overdue::CreditFacilityJobConfig::<Perms> {
+                    obligation_due::CreditFacilityJobConfig::<Perms> {
                         obligation_id: obligation.id,
                         _phantom: std::marker::PhantomData,
                     },
-                    obligation.overdue_at(),
+                    obligation.due_at(),
                 )
                 .await?;
 

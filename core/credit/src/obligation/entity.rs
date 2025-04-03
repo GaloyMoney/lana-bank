@@ -62,6 +62,16 @@ impl Obligation {
             .expect("entity_first_persisted_at not found")
     }
 
+    pub fn due_at(&self) -> DateTime<Utc> {
+        self.events
+            .iter_all()
+            .find_map(|e| match e {
+                ObligationEvent::Initialized { due_date, .. } => Some(*due_date),
+                _ => None,
+            })
+            .expect("Entity was not Initialized")
+    }
+
     pub fn overdue_at(&self) -> DateTime<Utc> {
         self.events
             .iter_all()

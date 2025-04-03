@@ -14,7 +14,7 @@ use crate::{
     Obligation, ObligationRepo,
 };
 
-use super::obligation_overdue;
+use super::obligation_due;
 
 #[derive(Clone, Serialize, Deserialize)]
 pub struct CreditFacilityJobConfig<Perms, E> {
@@ -206,11 +206,11 @@ where
             .create_and_spawn_at_in_op(
                 &mut db,
                 obligation.id,
-                obligation_overdue::CreditFacilityJobConfig::<Perms> {
+                obligation_due::CreditFacilityJobConfig::<Perms> {
                     obligation_id: obligation.id,
                     _phantom: std::marker::PhantomData,
                 },
-                obligation.overdue_at(),
+                obligation.due_at(),
             )
             .await?;
         self.jobs

@@ -7,6 +7,8 @@ use job::*;
 
 use crate::{ledger::CreditLedger, obligation::ObligationRepo, primitives::*};
 
+use super::obligation_overdue;
+
 #[derive(Clone, Serialize, Deserialize)]
 pub struct CreditFacilityJobConfig<Perms> {
     pub obligation_id: ObligationId,
@@ -26,6 +28,7 @@ where
 {
     obligation_repo: ObligationRepo,
     ledger: CreditLedger,
+    jobs: Jobs,
     audit: Perms::Audit,
 }
 
@@ -38,18 +41,19 @@ where
     pub fn new(
         ledger: &CreditLedger,
         obligation_repo: ObligationRepo,
+        jobs: &Jobs,
         audit: &Perms::Audit,
     ) -> Self {
         Self {
             ledger: ledger.clone(),
             obligation_repo,
+            jobs: jobs.clone(),
             audit: audit.clone(),
         }
     }
 }
 
-const CREDIT_FACILITY_OVERDUE_PROCESSING_JOB: JobType =
-    JobType::new("credit-facility-overdue-processing");
+const CREDIT_FACILITY_DUE_PROCESSING_JOB: JobType = JobType::new("credit-facility-due-processing");
 impl<Perms> JobInitializer for CreditFacilityProcessingJobInitializer<Perms>
 where
     Perms: PermissionCheck,
@@ -60,7 +64,7 @@ where
     where
         Self: Sized,
     {
-        CREDIT_FACILITY_OVERDUE_PROCESSING_JOB
+        CREDIT_FACILITY_DUE_PROCESSING_JOB
     }
 
     fn init(&self, job: &Job) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
@@ -68,6 +72,7 @@ where
             config: job.config()?,
             obligation_repo: self.obligation_repo.clone(),
             _ledger: self.ledger.clone(),
+            jobs: self.jobs.clone(),
             audit: self.audit.clone(),
         }))
     }
@@ -80,6 +85,7 @@ where
     config: CreditFacilityJobConfig<Perms>,
     obligation_repo: ObligationRepo,
     _ledger: CreditLedger,
+    jobs: Jobs,
     audit: Perms::Audit,
 }
 
@@ -109,10 +115,8 @@ where
             )
             .await?;
 
-        let _overdue = if let es_entity::Idempotent::Executed(overdue) =
-            obligation.record_overdue(audit_info)?
-        {
-            overdue
+        let _due = if let es_entity::Idempotent::Executed(due) = obligation.record_due(audit_info) {
+            due
         } else {
             return Ok(JobCompletion::Complete);
         };
@@ -121,9 +125,21 @@ where
             .update_in_op(&mut db, &mut obligation)
             .await?;
 
+        self.jobs
+            .create_and_spawn_at_in_op(
+                &mut db,
+                obligation.id,
+                obligation_overdue::CreditFacilityJobConfig::<Perms> {
+                    obligation_id: obligation.id,
+                    _phantom: std::marker::PhantomData,
+                },
+                obligation.overdue_at(),
+            )
+            .await?;
+
         // TODO: switch to recording in ledger and committing
         // self.ledger
-        //     .record_overdue_obligation(db, overdue)
+        //     .record_due_obligation(db, due)
         //     .await?;
         db.commit().await?;
 
