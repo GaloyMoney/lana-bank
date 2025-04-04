@@ -192,14 +192,14 @@ CREATE TABLE core_credit_facility_events (
   UNIQUE(id, sequence)
 );
 
-CREATE TABLE core_payments (
+CREATE TABLE core_obligations (
   id UUID PRIMARY KEY,
-  credit_facility_id UUID NOT NULL REFERENCES core_credit_facilities(id),
+  reference VARCHAR NOT NULL UNIQUE,
   created_at TIMESTAMPTZ NOT NULL
 );
 
-CREATE TABLE core_payment_events (
-  id UUID NOT NULL REFERENCES core_payments(id),
+CREATE TABLE core_obligation_events (
+  id UUID NOT NULL REFERENCES core_obligations(id),
   sequence INT NOT NULL,
   event_type VARCHAR NOT NULL,
   event JSONB NOT NULL,
@@ -211,6 +211,7 @@ CREATE TABLE core_disbursals (
   id UUID PRIMARY KEY,
   credit_facility_id UUID NOT NULL REFERENCES core_credit_facilities(id),
   approval_process_id UUID NOT NULL REFERENCES approval_processes(id),
+  obligation_id UUID DEFAULT NULL REFERENCES core_obligations(id),
   concluded_tx_id UUID DEFAULT NULL,
   idx INT NOT NULL,
   created_at TIMESTAMPTZ NOT NULL,
@@ -243,14 +244,14 @@ CREATE TABLE core_interest_accrual_cycle_events (
   UNIQUE(id, sequence)
 );
 
-CREATE TABLE core_obligations (
+CREATE TABLE core_payments (
   id UUID PRIMARY KEY,
-  reference VARCHAR NOT NULL UNIQUE,
+  obligation_id UUID NOT NULL REFERENCES core_obligations(id),
   created_at TIMESTAMPTZ NOT NULL
 );
 
-CREATE TABLE core_obligation_events (
-  id UUID NOT NULL REFERENCES core_obligations(id),
+CREATE TABLE core_payment_events (
+  id UUID NOT NULL REFERENCES core_payments(id),
   sequence INT NOT NULL,
   event_type VARCHAR NOT NULL,
   event JSONB NOT NULL,

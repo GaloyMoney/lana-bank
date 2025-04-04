@@ -146,8 +146,6 @@ impl CoreCreditAction {
         CoreCreditAction::CreditFacility(CreditFacilityAction::ConcludeApprovalProcess);
     pub const CREDIT_FACILITY_ACTIVATE: Self =
         CoreCreditAction::CreditFacility(CreditFacilityAction::Activate);
-    pub const CREDIT_FACILITY_RECORD_PAYMENT: Self =
-        CoreCreditAction::CreditFacility(CreditFacilityAction::RecordPayment);
     pub const CREDIT_FACILITY_RECORD_INTEREST: Self =
         CoreCreditAction::CreditFacility(CreditFacilityAction::RecordInterest);
     pub const CREDIT_FACILITY_RECORD_OVERDUE_DISBURSED_BALANCE: Self =
@@ -176,6 +174,8 @@ impl CoreCreditAction {
 
     pub const OBLIGATION_UPDATE_STATUS: Self =
         CoreCreditAction::Obligation(ObligationAction::UpdateStatus);
+    pub const OBLIGATION_RECORD_PAYMENT: Self =
+        CoreCreditAction::Obligation(ObligationAction::RecordPayment);
 }
 
 impl std::fmt::Display for CoreCreditAction {
@@ -220,7 +220,6 @@ pub enum CreditFacilityAction {
     ConcludeApprovalProcess,
     Activate,
     UpdateCollateral,
-    RecordPayment,
     RecordInterest,
     RecordOverdueDisbursedBalance,
     Complete,
@@ -263,6 +262,7 @@ impl From<ChartOfAccountsIntegrationConfigAction> for CoreCreditAction {
 #[strum(serialize_all = "kebab-case")]
 pub enum ObligationAction {
     UpdateStatus,
+    RecordPayment,
 }
 impl From<ObligationAction> for CoreCreditAction {
     fn from(action: ObligationAction) -> Self {
