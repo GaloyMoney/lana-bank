@@ -1,7 +1,7 @@
 "use client"
 
 import type { ComponentProps } from "react"
-import { ShipWheel } from "lucide-react"
+import { Logo } from "@components/logo"
 import Link from "next/link"
 import { useTranslations } from "next-intl"
 
@@ -57,9 +57,9 @@ export function AppSidebar({ appVersion, ...props }: AppSidebarProps) {
           <SidebarMenuItem>
             <SidebarMenuButton size="lg" asChild tabIndex={-1}>
               <Link href="/dashboard">
-                <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
-                  <ShipWheel className="size-4" />
-                </div>
+              <div className="flex aspect-square size-10 items-center justify-center rounded-lg">
+                <Logo className="size-10" />
+              </div>
                 <div className="grid flex-1 text-left text-sm leading-tight">
                   <span className="truncate font-semibold">{t("footer.appName")}</span>
                   <span className="truncate text-xs">
