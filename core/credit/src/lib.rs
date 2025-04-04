@@ -588,32 +588,6 @@ where
             .await?)
     }
 
-    // TODO: Move this to another layer, somewhere unit-testable
-    fn allocate_payment_across_obligations(
-        mut obligations: Vec<&mut Obligation>,
-        amount: UsdCents,
-        audit_info: AuditInfo,
-    ) -> (Vec<&mut Obligation>, Vec<NewPayment>) {
-        obligations.sort_by_key(|obligation| obligation.recorded_at);
-
-        let mut remaining = amount;
-        let mut new_payments = vec![];
-        let mut updated_obligations = vec![];
-        for obligation in obligations {
-            let payment_amount = std::cmp::min(remaining, obligation.outstanding());
-            remaining -= payment_amount;
-
-            if let Idempotent::Executed(new_payment) =
-                obligation.record_payment(payment_amount, audit_info.clone())
-            {
-                updated_obligations.push(obligation);
-                new_payments.push(new_payment);
-            }
-        }
-
-        (updated_obligations, new_payments)
-    }
-
     #[instrument(name = "credit_facility.record_disbursal_payment", skip(self), err)]
     pub async fn record_disbursal_payment(
         &self,
@@ -645,11 +619,12 @@ where
             };
         }
 
-        let mut res = self
+        let obligations = self
             .obligation_repo
             .find_all::<Obligation>(&obligation_ids)
-            .await?;
-        let obligations = res.values_mut().into_iter().collect::<Vec<_>>();
+            .await?
+            .into_values()
+            .collect::<Vec<_>>();
 
         let mut db = self.obligation_repo.begin_op().await?;
         let audit_info = self
@@ -657,23 +632,42 @@ where
             .await?
             .expect("audit info missing");
 
-        let (updated_obligations, new_payments) =
-            Self::allocate_payment_across_obligations(obligations, amount, audit_info);
+        let payment_id = PaymentId::new();
+        let new_allocations = PaymentAllocator::new(payment_id, amount).allocate(
+            obligations
+                .iter()
+                .map(ObligationDataForAllocation::from)
+                .collect::<Vec<_>>(),
+        )?;
+
+        let new_payment = NewPayment::builder()
+            .id(payment_id)
+            .amount(amount)
+            .credit_facility_id(credit_facility_id)
+            .build()
+            .expect("could not build new payment");
+        self.payment_repo.create_in_op(&mut db, new_payment).await?;
 
         // TODO: remove n+1
-        for obligation in updated_obligations {
-            self.obligation_repo
-                .update_in_op(&mut db, obligation)
-                .await?;
+        for mut obligation in obligations {
+            if let Some(new_allocation) = new_allocations.iter().find_map(|new_allocation| {
+                if new_allocation.obligation_id == obligation.id {
+                    Some(new_allocation)
+                } else {
+                    None
+                }
+            }) {
+                obligation
+                    .record_payment(new_allocation.id, new_allocation.amount, audit_info.clone())
+                    .did_execute();
+                self.obligation_repo
+                    .update_in_op(&mut db, &mut obligation)
+                    .await?;
+            }
         }
 
-        let payments = self
-            .payment_repo
-            .create_all_in_op(&mut db, new_payments)
-            .await?;
-
         self.ledger
-            .record_obligation_repayments(db, payments)
+            .record_obligation_repayments(db, new_allocations)
             .await?;
 
         Ok(credit_facility_id)
