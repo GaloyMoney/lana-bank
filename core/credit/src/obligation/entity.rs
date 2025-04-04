@@ -6,9 +6,8 @@ use audit::AuditInfo;
 use es_entity::*;
 
 use crate::{
-    payment::NewPayment,
     primitives::{CalaAccountId, LedgerTxId, ObligationId, UsdCents},
-    CreditFacilityId, PaymentId,
+    CreditFacilityId,
 };
 
 use super::error::ObligationError;
@@ -47,7 +46,7 @@ pub enum ObligationEvent {
         audit_info: AuditInfo,
     },
     PaymentRecorded {
-        payment_id: PaymentId,
+        payment_allocation_id: LedgerTxId,
         amount: UsdCents,
         recorded_at: DateTime<Utc>,
         audit_info: AuditInfo,
@@ -162,45 +161,33 @@ impl Obligation {
         Ok(Idempotent::Executed(self.outstanding()))
     }
 
-    fn count_recorded_payments(&self) -> usize {
-        self.events
-            .iter_all()
-            .filter(|event| matches!(event, ObligationEvent::PaymentRecorded { .. }))
-            .count()
-    }
-
     pub(crate) fn record_payment(
         &mut self,
+        payment_allocation_id: LedgerTxId,
         amount: UsdCents,
         audit_info: AuditInfo,
-    ) -> Idempotent<NewPayment> {
+    ) -> Idempotent<()> {
+        idempotency_guard!(
+            self.events.iter_all().rev(),
+            ObligationEvent::PaymentRecorded {
+                payment_allocation_id: id_from_event,
+                ..
+            } if payment_allocation_id == *id_from_event
+        );
+
         if self.is_not_yet_due() || self.is_completed() || amount.is_zero() {
             return Idempotent::Ignored;
         }
 
-        let payment_id = PaymentId::new();
-        let tx_ref = format!("{}-payment-{}", self.id, self.count_recorded_payments() + 1);
-
         let now = crate::time::now();
         self.events.push(ObligationEvent::PaymentRecorded {
-            payment_id,
+            payment_allocation_id,
             amount,
             recorded_at: now,
             audit_info: audit_info.clone(),
         });
 
-        Idempotent::Executed(
-            NewPayment::builder()
-                .id(payment_id)
-                .ledger_tx_id(payment_id)
-                .ledger_tx_ref(tx_ref)
-                .amount(amount)
-                .receivable_account_id(self.account_to_be_credited_id)
-                .account_to_be_debited_id(self.account_to_be_debited_id)
-                .audit_info(audit_info)
-                .build()
-                .expect("could not build new payment"),
-        )
+        Idempotent::Executed(())
     }
 }
 
