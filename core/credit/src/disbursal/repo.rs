@@ -12,6 +12,12 @@ use super::{entity::*, error::DisbursalError};
     err = "DisbursalError",
     columns(
         credit_facility_id(ty = "CreditFacilityId", list_for, update(persist = false)),
+        obligation_id(
+            ty = "Option<ObligationId>",
+            list_for,
+            create(persist = false),
+            update(accessor = "obligation_id()")
+        ),
         approval_process_id(ty = "ApprovalProcessId", list_by, update(persist = "false")),
         concluded_tx_id(ty = "Option<LedgerTxId>", create(persist = false)),
         idx(ty = "DisbursalIdx", list_by, update(persist = false)),
