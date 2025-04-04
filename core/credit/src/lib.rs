@@ -10,6 +10,7 @@ mod jobs;
 pub mod ledger;
 mod obligation;
 mod payment;
+mod payment_allocator;
 mod primitives;
 mod processes;
 mod publisher;
@@ -28,6 +29,7 @@ use es_entity::Idempotent;
 use governance::{Governance, GovernanceAction, GovernanceEvent, GovernanceObject};
 use job::Jobs;
 use outbox::{Outbox, OutboxEventMarker};
+use payment_allocator::{ObligationDataForAllocation, PaymentAllocator};
 use tracing::instrument;
 
 pub use chart_of_accounts_integration::ChartOfAccountsIntegrationConfig;
