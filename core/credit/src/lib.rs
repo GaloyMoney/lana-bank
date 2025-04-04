@@ -586,6 +586,32 @@ where
             .await?)
     }
 
+    // TODO: Move this to another layer, somewhere unit-testable
+    fn allocate_payment_across_obligations(
+        mut obligations: Vec<&mut Obligation>,
+        amount: UsdCents,
+        audit_info: AuditInfo,
+    ) -> (Vec<&mut Obligation>, Vec<NewPayment>) {
+        obligations.sort_by_key(|obligation| obligation.recorded_at);
+
+        let mut remaining = amount;
+        let mut new_payments = vec![];
+        let mut updated_obligations = vec![];
+        for obligation in obligations {
+            let payment_amount = std::cmp::min(remaining, obligation.outstanding());
+            remaining -= payment_amount;
+
+            if let Idempotent::Executed(new_payment) =
+                obligation.record_payment(payment_amount, audit_info.clone())
+            {
+                updated_obligations.push(obligation);
+                new_payments.push(new_payment);
+            }
+        }
+
+        (updated_obligations, new_payments)
+    }
+
     #[instrument(name = "credit_facility.record_disbursal_payment", skip(self), err)]
     pub async fn record_disbursal_payment(
         &self,
@@ -621,8 +647,7 @@ where
             .obligation_repo
             .find_all::<Obligation>(&obligation_ids)
             .await?;
-        let mut obligations = res.values_mut().into_iter().collect::<Vec<_>>();
-        obligations.sort_by_key(|obligation| obligation.recorded_at);
+        let obligations = res.values_mut().into_iter().collect::<Vec<_>>();
 
         let mut db = self.obligation_repo.begin_op().await?;
         let audit_info = self
@@ -630,22 +655,18 @@ where
             .await?
             .expect("audit info missing");
 
-        let mut remaining = amount;
+        let (updated_obligations, new_payments) =
+            Self::allocate_payment_across_obligations(obligations, amount, audit_info);
+
+        for obligation in updated_obligations {
+            self.obligation_repo
+                .update_in_op(&mut db, obligation)
+                .await?;
+        }
+
         let mut payments = vec![];
-        for obligation in obligations {
-            let payment_amount = std::cmp::min(remaining, obligation.outstanding());
-            remaining -= payment_amount;
-
-            if let Idempotent::Executed(new_payment) =
-                obligation.record_payment(payment_amount, audit_info.clone())
-            {
-                self.obligation_repo
-                    .update_in_op(&mut db, obligation)
-                    .await?;
-                let payment = self.payment_repo.create_in_op(&mut db, new_payment).await?;
-
-                payments.push(payment)
-            }
+        for new_payment in new_payments {
+            payments.push(self.payment_repo.create_in_op(&mut db, new_payment).await?);
         }
 
         self.ledger
