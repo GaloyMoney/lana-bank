@@ -180,6 +180,7 @@ CREATE TABLE core_credit_facility_events (
 
 CREATE TABLE core_obligations (
   id UUID PRIMARY KEY,
+  credit_facility_id UUID NOT NULL REFERENCES core_credit_facilities(id),
   reference VARCHAR NOT NULL UNIQUE,
   created_at TIMESTAMPTZ NOT NULL
 );

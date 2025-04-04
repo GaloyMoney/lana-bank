@@ -178,6 +178,7 @@ impl Disbursal {
 
         NewObligation::builder()
             .id(obligation_id)
+            .credit_facility_id(self.facility_id)
             .reference(tx_ref.to_string())
             .amount(self.amount)
             .tx_id(tx_id)

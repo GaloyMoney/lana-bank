@@ -2,7 +2,7 @@ use sqlx::PgPool;
 
 use es_entity::*;
 
-use crate::primitives::ObligationId;
+use crate::primitives::{CreditFacilityId, ObligationId};
 
 use super::{entity::*, error::*};
 
@@ -10,7 +10,10 @@ use super::{entity::*, error::*};
 #[es_repo(
     entity = "Obligation",
     err = "ObligationError",
-    columns(reference(ty = "String", create(accessor = "reference()")),),
+    columns(
+        credit_facility_id(ty = "CreditFacilityId", list_for, update(persist = false)),
+        reference(ty = "String", create(accessor = "reference()")),
+    ),
     tbl_prefix = "core"
 )]
 pub struct ObligationRepo {
