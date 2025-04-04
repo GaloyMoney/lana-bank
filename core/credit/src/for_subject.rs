@@ -174,13 +174,9 @@ where
     ) -> Result<Payment, CoreCreditError> {
         let payment = self.payments.find_by_id(payment_id.into()).await?;
 
-        let disbursal = self
-            .disbursals
-            .find_by_obligation_id(Some(payment.obligation_id))
-            .await?;
         let credit_facility = self
             .credit_facilities
-            .find_by_id(disbursal.facility_id)
+            .find_by_id(payment.credit_facility_id)
             .await?;
         self.ensure_credit_facility_access(
             &credit_facility,
