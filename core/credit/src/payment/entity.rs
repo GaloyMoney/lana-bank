@@ -7,12 +7,6 @@ use es_entity::*;
 
 use crate::primitives::*;
 
-#[derive(Debug, Copy, Clone, Serialize, Deserialize)]
-pub struct PaymentAccountIds {
-    pub disbursed_receivable_account_id: CalaAccountId,
-    pub interest_receivable_account_id: CalaAccountId,
-}
-
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
 #[es_event(id = "PaymentId")]

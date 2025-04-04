@@ -12,7 +12,7 @@ use crate::{
     terms::{CVLData, CVLPct, CollateralizationState, InterestPeriod, TermValues},
 };
 
-use crate::{disbursal::*, interest_accrual_cycle::*, ledger::*, payment::*};
+use crate::{disbursal::*, interest_accrual_cycle::*, ledger::*};
 
 use super::{error::CreditFacilityError, history, interest_outstanding, repayment_plan};
 
@@ -150,33 +150,6 @@ impl CreditFacilityReceivable {
             total: self.total_cvl(collateral, facility_remaining),
             disbursed: self.disbursed_cvl(collateral),
         }
-    }
-
-    fn allocate_payment(
-        &self,
-        amount: UsdCents,
-    ) -> Result<CreditFacilityPaymentAmounts, CreditFacilityError> {
-        if self.total() < amount {
-            return Err(
-                CreditFacilityError::PaymentExceedsOutstandingCreditFacilityAmount(
-                    amount,
-                    self.total(),
-                ),
-            );
-        }
-
-        let mut remaining = amount;
-
-        let interest = std::cmp::min(amount, self.interest);
-        remaining -= interest;
-
-        let disbursal = std::cmp::min(remaining, self.disbursed);
-        remaining -= disbursal;
-
-        Ok(CreditFacilityPaymentAmounts {
-            interest,
-            disbursal,
-        })
     }
 }
 
@@ -873,74 +846,6 @@ impl CreditFacility {
             .facility_cvl_data(self.collateral(), self.facility_remaining())
     }
 
-    fn payment_account_ids(&self) -> PaymentAccountIds {
-        if self.has_overdue_disbursed_balance_recorded() {
-            PaymentAccountIds {
-                disbursed_receivable_account_id: self
-                    .account_ids
-                    .disbursed_receivable_overdue_account_id,
-                interest_receivable_account_id: self.account_ids.interest_receivable_account_id,
-            }
-        } else {
-            PaymentAccountIds {
-                disbursed_receivable_account_id: self.account_ids.disbursed_receivable_account_id,
-                interest_receivable_account_id: self.account_ids.interest_receivable_account_id,
-            }
-        }
-    }
-
-    pub(crate) fn initiate_repayment(
-        &mut self,
-        amount: UsdCents,
-        price: PriceOfOneBTC,
-        upgrade_buffer_cvl_pct: CVLPct,
-        now: DateTime<Utc>,
-        audit_info: AuditInfo,
-    ) -> Result<NewPayment, CreditFacilityError> {
-        if self.total_outstanding().is_zero() {
-            return Err(
-                CreditFacilityError::PaymentExceedsOutstandingCreditFacilityAmount(
-                    self.total_outstanding().total(),
-                    amount,
-                ),
-            );
-        }
-
-        let amounts = self.outstanding_overdue().allocate_payment(amount)?;
-
-        let payment_id = PaymentId::new();
-        let tx_ref = format!("{}-payment-{}", self.id, self.count_recorded_payments() + 1);
-
-        self.events.push(CreditFacilityEvent::PaymentRecorded {
-            payment_id,
-            disbursal_amount: amounts.disbursal,
-            interest_amount: amounts.interest,
-            recorded_at: now,
-            audit_info: audit_info.clone(),
-        });
-
-        self.maybe_update_collateralization(price, upgrade_buffer_cvl_pct, &audit_info);
-
-        Ok(NewPayment::builder()
-            .id(payment_id)
-            .ledger_tx_id(payment_id)
-            .ledger_tx_ref(tx_ref)
-            .credit_facility_id(self.id)
-            .amounts(amounts)
-            .account_ids(self.payment_account_ids())
-            .disbursal_credit_account_id(self.disbursal_credit_account_id)
-            .audit_info(audit_info)
-            .build()
-            .expect("could not build new payment"))
-    }
-
-    fn count_recorded_payments(&self) -> usize {
-        self.events
-            .iter_all()
-            .filter(|event| matches!(event, CreditFacilityEvent::PaymentRecorded { .. }))
-            .count()
-    }
-
     pub fn last_collateralization_state(&self) -> CollateralizationState {
         if self.is_completed() {
             return CollateralizationState::NoCollateral;
@@ -1084,15 +989,6 @@ impl CreditFacility {
         });
 
         self.maybe_update_collateralization(price, upgrade_buffer_cvl_pct, &audit_info);
-    }
-
-    pub(crate) fn has_overdue_disbursed_balance_recorded(&self) -> bool {
-        self.events.iter_all().rev().any(|event| {
-            matches!(
-                event,
-                CreditFacilityEvent::OverdueDisbursedBalanceRecorded { .. }
-            )
-        })
     }
 
     pub(crate) fn is_completed(&self) -> bool {
@@ -1395,16 +1291,6 @@ mod test {
         credit_facility
             .interest_accruals
             .extend_entities(new_entities);
-    }
-
-    #[test]
-    fn allocate_payment() {
-        let outstanding = CreditFacilityReceivable {
-            disbursed: UsdCents::from(100),
-            interest: UsdCents::from(2),
-        };
-        assert!(outstanding.allocate_payment(UsdCents::from(200)).is_err());
-        assert!(outstanding.allocate_payment(UsdCents::from(100)).is_ok());
     }
 
     #[test]
@@ -2143,195 +2029,31 @@ mod test {
             credit_facility
         }
 
-        #[test]
-        fn initiate_repayment_errors_when_no_disbursals() {
-            let mut credit_facility = facility_from(initial_events());
+        // #[test]
+        // fn confirm_completion() {
+        //     let activated_at = "2023-01-01T00:00:00Z".parse::<DateTime<Utc>>().unwrap();
+        //     let mut credit_facility = credit_facility_with_interest_accrual(activated_at);
 
-            let repayment_amount = UsdCents::from(5);
-            assert!(credit_facility
-                .initiate_repayment(
-                    repayment_amount,
-                    default_price(),
-                    default_upgrade_buffer_cvl_pct(),
-                    Utc::now(),
-                    dummy_audit_info(),
-                )
-                .is_err());
-        }
+        //     credit_facility
+        //         .initiate_repayment(
+        //             credit_facility.total_outstanding().total(),
+        //             default_price(),
+        //             default_upgrade_buffer_cvl_pct(),
+        //             Utc::now(),
+        //             dummy_audit_info(),
+        //         )
+        //         .unwrap();
+        //     assert!(credit_facility.total_outstanding().is_zero());
 
-        #[test]
-        fn initiate_repayment_before_maturity_errors_for_amount_above_interest() {
-            let activated_at = Utc::now() - chrono::Duration::days(40);
-            let mut credit_facility = credit_facility_with_interest_accrual(activated_at);
-            let interest = credit_facility.total_outstanding().interest;
-
-            assert!(credit_facility
-                .initiate_repayment(
-                    interest + UsdCents::ONE,
-                    default_price(),
-                    default_upgrade_buffer_cvl_pct(),
-                    Utc::now(),
-                    dummy_audit_info(),
-                )
-                .is_err());
-            assert!(credit_facility
-                .initiate_repayment(
-                    interest,
-                    default_price(),
-                    default_upgrade_buffer_cvl_pct(),
-                    Utc::now(),
-                    dummy_audit_info(),
-                )
-                .is_ok());
-            assert!(!credit_facility.is_after_maturity_date())
-        }
-
-        #[test]
-        fn initiate_repayment_after_maturity_errors_for_amount_above_total() {
-            let activated_at = "2023-01-01T00:00:00Z".parse::<DateTime<Utc>>().unwrap();
-            let mut credit_facility = credit_facility_with_interest_accrual(activated_at);
-            let outstanding = credit_facility.total_outstanding().total();
-
-            assert!(credit_facility
-                .initiate_repayment(
-                    outstanding + UsdCents::ONE,
-                    default_price(),
-                    default_upgrade_buffer_cvl_pct(),
-                    Utc::now(),
-                    dummy_audit_info(),
-                )
-                .is_err());
-            assert!(credit_facility
-                .initiate_repayment(
-                    outstanding,
-                    default_price(),
-                    default_upgrade_buffer_cvl_pct(),
-                    Utc::now(),
-                    dummy_audit_info(),
-                )
-                .is_ok());
-            assert!(credit_facility.is_after_maturity_date())
-        }
-
-        #[test]
-        fn initiate_repayment_after_overdue_event_returns_overdue_account() {
-            let activated_at = "2023-01-01T00:00:00Z".parse::<DateTime<Utc>>().unwrap();
-            let mut credit_facility = credit_facility_with_interest_accrual(activated_at);
-
-            let new_payment = credit_facility
-                .initiate_repayment(
-                    UsdCents::ONE,
-                    default_price(),
-                    default_upgrade_buffer_cvl_pct(),
-                    Utc::now(),
-                    dummy_audit_info(),
-                )
-                .unwrap();
-            let payment = Payment::try_from_events(new_payment.into_events()).unwrap();
-            assert_eq!(
-                payment.account_ids.disbursed_receivable_account_id,
-                credit_facility.account_ids.disbursed_receivable_account_id,
-            );
-
-            let _ = credit_facility.record_overdue_disbursed_balance(dummy_audit_info());
-
-            let new_payment = credit_facility
-                .initiate_repayment(
-                    UsdCents::ONE,
-                    default_price(),
-                    default_upgrade_buffer_cvl_pct(),
-                    Utc::now(),
-                    dummy_audit_info(),
-                )
-                .unwrap();
-            let payment = Payment::try_from_events(new_payment.into_events()).unwrap();
-            assert_eq!(
-                payment.account_ids.disbursed_receivable_account_id,
-                credit_facility
-                    .account_ids
-                    .disbursed_receivable_overdue_account_id,
-            );
-        }
-
-        #[test]
-        fn confirm_repayment_before_maturity() {
-            let activated_at = Utc::now() - chrono::Duration::days(40);
-            let mut credit_facility = credit_facility_with_interest_accrual(activated_at);
-
-            let repayment_amount = credit_facility.total_outstanding().interest;
-            let outstanding_before = credit_facility.total_outstanding();
-            credit_facility
-                .initiate_repayment(
-                    repayment_amount,
-                    default_price(),
-                    default_upgrade_buffer_cvl_pct(),
-                    Utc::now(),
-                    dummy_audit_info(),
-                )
-                .unwrap();
-
-            let outstanding_after = credit_facility.total_outstanding();
-
-            assert_eq!(
-                outstanding_before.total() - outstanding_after.total(),
-                repayment_amount
-            );
-            assert!(!credit_facility.is_after_maturity_date())
-        }
-
-        #[test]
-        fn confirm_partial_repayment_after_maturity() {
-            let activated_at = "2023-01-01T00:00:00Z".parse::<DateTime<Utc>>().unwrap();
-            let mut credit_facility = credit_facility_with_interest_accrual(activated_at);
-
-            let partial_repayment_amount = credit_facility.total_outstanding().interest
-                + credit_facility.total_outstanding().disbursed
-                - UsdCents::from(100);
-            let outstanding_before = credit_facility.total_outstanding();
-            credit_facility
-                .initiate_repayment(
-                    partial_repayment_amount,
-                    default_price(),
-                    default_upgrade_buffer_cvl_pct(),
-                    Utc::now(),
-                    dummy_audit_info(),
-                )
-                .unwrap();
-            let outstanding_after = credit_facility.total_outstanding();
-
-            assert!(!outstanding_after.is_zero());
-            assert_eq!(
-                outstanding_before.total() - outstanding_after.total(),
-                partial_repayment_amount
-            );
-            assert!(credit_facility.is_after_maturity_date())
-        }
-
-        #[test]
-        fn confirm_completion() {
-            let activated_at = "2023-01-01T00:00:00Z".parse::<DateTime<Utc>>().unwrap();
-            let mut credit_facility = credit_facility_with_interest_accrual(activated_at);
-
-            credit_facility
-                .initiate_repayment(
-                    credit_facility.total_outstanding().total(),
-                    default_price(),
-                    default_upgrade_buffer_cvl_pct(),
-                    Utc::now(),
-                    dummy_audit_info(),
-                )
-                .unwrap();
-            assert!(credit_facility.total_outstanding().is_zero());
-
-            let _ = credit_facility
-                .complete(
-                    dummy_audit_info(),
-                    default_price(),
-                    default_upgrade_buffer_cvl_pct(),
-                )
-                .unwrap();
-            assert!(credit_facility.is_completed());
-            assert!(credit_facility.status() == CreditFacilityStatus::Closed);
-        }
+        //     let _ = credit_facility
+        //         .complete(
+        //             dummy_audit_info(),
+        //             default_price(),
+        //             default_upgrade_buffer_cvl_pct(),
+        //         )
+        //         .unwrap();
+        //     assert!(credit_facility.is_completed());
+        //     assert!(credit_facility.status() == CreditFacilityStatus::Closed);
+        // }
     }
 }

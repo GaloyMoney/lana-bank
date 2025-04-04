@@ -23,7 +23,7 @@ use crate::{
         DisbursedReceivableAccountCategory, DisbursedReceivableAccountType,
         InterestReceivableAccountType, LedgerOmnibusAccountIds, LedgerTxId, Satoshis, UsdCents,
     },
-    ChartOfAccountsIntegrationConfig, DurationType, Obligation, PaymentAccountIds,
+    ChartOfAccountsIntegrationConfig, DurationType, Obligation, Payment,
 };
 
 use constants::*;
@@ -1006,30 +1006,44 @@ impl CreditLedger {
         Ok(())
     }
 
-    pub async fn record_credit_facility_repayment(
+    async fn record_obligation_repayment_in_op(
         &self,
-        op: es_entity::DbOp<'_>,
-        tx_id: TransactionId,
-        tx_ref: String,
-        amounts: CreditFacilityPaymentAmounts,
-        payment_account_ids: PaymentAccountIds,
-        debit_account_id: CalaAccountId,
+        op: &mut LedgerOperation<'_>,
+        Payment {
+            ledger_tx_id,
+            ledger_tx_ref: tx_ref,
+            amount,
+            account_to_be_debited_id,
+            receivable_account_id,
+            ..
+        }: Payment,
     ) -> Result<(), CreditLedgerError> {
-        let mut op = self.cala.ledger_operation_from_db_op(op);
-
         let params = templates::RecordPaymentParams {
             journal_id: self.journal_id,
             currency: self.usd,
-            interest_amount: amounts.interest.to_usd(),
-            principal_amount: amounts.disbursal.to_usd(),
-            debit_account_id,
-            principal_receivable_account_id: payment_account_ids.disbursed_receivable_account_id,
-            interest_receivable_account_id: payment_account_ids.interest_receivable_account_id,
+            amount: amount.to_usd(),
+            receivable_account_id,
+            account_to_be_debited_id,
             tx_ref,
         };
         self.cala
-            .post_transaction_in_op(&mut op, tx_id, templates::RECORD_PAYMENT_CODE, params)
+            .post_transaction_in_op(op, ledger_tx_id, templates::RECORD_PAYMENT_CODE, params)
             .await?;
+
+        Ok(())
+    }
+
+    pub async fn record_obligation_repayments(
+        &self,
+        op: es_entity::DbOp<'_>,
+        payments: Vec<Payment>,
+    ) -> Result<(), CreditLedgerError> {
+        let mut op = self.cala.ledger_operation_from_db_op(op);
+
+        for payment in payments {
+            self.record_obligation_repayment_in_op(&mut op, payment)
+                .await?;
+        }
 
         op.commit().await?;
         Ok(())
