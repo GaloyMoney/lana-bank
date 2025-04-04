@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "WITH entities AS (SELECT obligation_id, id FROM core_payments WHERE ((obligation_id = $1) AND (COALESCE(id < $3, true))) ORDER BY id DESC LIMIT $2) SELECT i.id AS \"entity_id: PaymentId\", e.sequence, e.event, e.recorded_at FROM entities i JOIN core_payment_events e ON i.id = e.id ORDER BY i.id desc, i.id, e.sequence",
+  "query": "WITH entities AS (SELECT credit_facility_id, id FROM core_payments WHERE ((credit_facility_id = $1) AND (COALESCE(id > $3, true))) ORDER BY id ASC LIMIT $2) SELECT i.id AS \"entity_id: PaymentId\", e.sequence, e.event, e.recorded_at FROM entities i JOIN core_payment_events e ON i.id = e.id ORDER BY i.id asc, i.id, e.sequence",
   "describe": {
     "columns": [
       {
@@ -38,5 +38,5 @@
       false
     ]
   },
-  "hash": "05ee946134adfcf318225d87275c8ea1dc594907d2ee7b6570ec90700af3858b"
+  "hash": "1b3417ec758aac29412b0c01b72960961f2861d99ed1245cc35f791f54d68209"
 }
