@@ -18,12 +18,13 @@ use cala_ledger::{
 };
 
 use crate::{
+    payment_allocator::PaymentAllocation,
     primitives::{
         CalaAccountId, CalaAccountSetId, CollateralAction, CreditFacilityId, CustomerType,
         DisbursedReceivableAccountCategory, DisbursedReceivableAccountType,
         InterestReceivableAccountType, LedgerOmnibusAccountIds, LedgerTxId, Satoshis, UsdCents,
     },
-    ChartOfAccountsIntegrationConfig, DurationType, Obligation, Payment,
+    ChartOfAccountsIntegrationConfig, DurationType, Obligation,
 };
 
 use constants::*;
@@ -1009,14 +1010,14 @@ impl CreditLedger {
     async fn record_obligation_repayment_in_op(
         &self,
         op: &mut LedgerOperation<'_>,
-        Payment {
-            ledger_tx_id,
-            ledger_tx_ref: tx_ref,
+        PaymentAllocation {
+            tx_id,
+            obligation_id: tx_ref,
             amount,
             account_to_be_debited_id,
             receivable_account_id,
             ..
-        }: Payment,
+        }: PaymentAllocation,
     ) -> Result<(), CreditLedgerError> {
         let params = templates::RecordPaymentParams {
             journal_id: self.journal_id,
@@ -1024,10 +1025,10 @@ impl CreditLedger {
             amount: amount.to_usd(),
             receivable_account_id,
             account_to_be_debited_id,
-            tx_ref,
+            tx_ref: tx_ref.to_string(),
         };
         self.cala
-            .post_transaction_in_op(op, ledger_tx_id, templates::RECORD_PAYMENT_CODE, params)
+            .post_transaction_in_op(op, tx_id, templates::RECORD_PAYMENT_CODE, params)
             .await?;
 
         Ok(())
@@ -1036,7 +1037,7 @@ impl CreditLedger {
     pub async fn record_obligation_repayments(
         &self,
         op: es_entity::DbOp<'_>,
-        payments: Vec<Payment>,
+        payments: Vec<PaymentAllocation>,
     ) -> Result<(), CreditLedgerError> {
         let mut op = self.cala.ledger_operation_from_db_op(op);
 
