@@ -269,6 +269,7 @@ impl InterestAccrualCycle {
 
         NewObligation::builder()
             .id(obligation_id)
+            .credit_facility_id(self.credit_facility_id)
             .reference(tx_ref.to_string())
             .amount(interest)
             .tx_id(tx_id)

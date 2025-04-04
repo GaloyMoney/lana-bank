@@ -6,8 +6,9 @@ use audit::AuditInfo;
 use es_entity::*;
 
 use crate::{
+    payment::NewPayment,
     primitives::{CalaAccountId, LedgerTxId, ObligationId, UsdCents},
-    NewPayment, PaymentId,
+    CreditFacilityId, PaymentId,
 };
 
 use super::error::ObligationError;
@@ -27,6 +28,7 @@ pub(crate) enum ObligationStatus {
 pub enum ObligationEvent {
     Initialized {
         id: ObligationId,
+        credit_facility_id: CreditFacilityId,
         amount: UsdCents,
         reference: String,
         tx_id: LedgerTxId,
@@ -240,6 +242,8 @@ pub struct NewObligation {
     #[builder(setter(into))]
     pub(super) id: ObligationId,
     #[builder(setter(into))]
+    pub(super) credit_facility_id: CreditFacilityId,
+    #[builder(setter(into))]
     pub(super) amount: UsdCents,
     #[builder(setter(strip_option), default)]
     reference: Option<String>,
@@ -282,6 +286,7 @@ impl IntoEvents<ObligationEvent> for NewObligation {
             self.id,
             [ObligationEvent::Initialized {
                 id: self.id,
+                credit_facility_id: self.credit_facility_id,
                 reference: self.reference(),
                 amount: self.amount,
                 tx_id: self.tx_id,
@@ -317,6 +322,7 @@ mod test {
     fn initial_events() -> Vec<ObligationEvent> {
         vec![ObligationEvent::Initialized {
             id: ObligationId::new(),
+            credit_facility_id: CreditFacilityId::new(),
             amount: UsdCents::ONE,
             reference: "ref-01".to_string(),
             tx_id: LedgerTxId::new(),
