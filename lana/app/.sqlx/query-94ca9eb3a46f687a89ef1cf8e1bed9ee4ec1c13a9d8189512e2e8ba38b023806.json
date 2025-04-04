@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "WITH entities AS (SELECT obligation_id, created_at, id FROM core_payments WHERE ((obligation_id = $1) AND (COALESCE((created_at, id) > ($4, $3), $3 IS NULL))) ORDER BY created_at ASC, id ASC LIMIT $2) SELECT i.id AS \"entity_id: PaymentId\", e.sequence, e.event, e.recorded_at FROM entities i JOIN core_payment_events e ON i.id = e.id ORDER BY i.created_at asc, i.id asc, i.id, e.sequence",
+  "query": "WITH entities AS (SELECT id FROM core_payments WHERE credit_facility_id = $1) SELECT i.id AS \"entity_id: PaymentId\", e.sequence, e.event, e.recorded_at FROM entities i JOIN core_payment_events e ON i.id = e.id ORDER BY i.id, e.sequence",
   "describe": {
     "columns": [
       {
@@ -26,10 +26,7 @@
     ],
     "parameters": {
       "Left": [
-        "Uuid",
-        "Int8",
-        "Uuid",
-        "Timestamptz"
+        "Uuid"
       ]
     },
     "nullable": [
@@ -39,5 +36,5 @@
       false
     ]
   },
-  "hash": "e2c2466d42a2d47b71412dbfcbe8a5d324b0ebe16d240ca460f7f73faa230ab6"
+  "hash": "94ca9eb3a46f687a89ef1cf8e1bed9ee4ec1c13a9d8189512e2e8ba38b023806"
 }
