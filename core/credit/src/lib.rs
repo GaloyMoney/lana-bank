@@ -658,16 +658,17 @@ where
         let (updated_obligations, new_payments) =
             Self::allocate_payment_across_obligations(obligations, amount, audit_info);
 
+        // TODO: remove n+1
         for obligation in updated_obligations {
             self.obligation_repo
                 .update_in_op(&mut db, obligation)
                 .await?;
         }
 
-        let mut payments = vec![];
-        for new_payment in new_payments {
-            payments.push(self.payment_repo.create_in_op(&mut db, new_payment).await?);
-        }
+        let payments = self
+            .payment_repo
+            .create_all_in_op(&mut db, new_payments)
+            .await?;
 
         self.ledger
             .record_obligation_repayments(db, payments)
