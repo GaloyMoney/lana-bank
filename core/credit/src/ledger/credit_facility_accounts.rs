@@ -51,12 +51,6 @@ impl CreditFacilityLedgerBalance {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Deserialize, Serialize)]
-pub struct CreditFacilityPaymentAmounts {
-    pub interest: UsdCents,
-    pub disbursal: UsdCents,
-}
-
 #[derive(Debug, Clone)]
 pub struct CreditFacilityOverdueDisbursedBalance {
     pub tx_id: LedgerTxId,

@@ -117,6 +117,13 @@ impl Disbursal {
         }
     }
 
+    pub fn obligation_id(&self) -> Option<ObligationId> {
+        self.events.iter_all().find_map(|event| match event {
+            DisbursalEvent::Settled { obligation_id, .. } => Some(*obligation_id),
+            _ => None,
+        })
+    }
+
     pub(crate) fn approval_process_concluded(
         &mut self,
         tx_id: LedgerTxId,

@@ -58,6 +58,7 @@ where
 {
     authz: Perms,
     credit_facility_repo: CreditFacilityRepo<E>,
+    obligation_repo: ObligationRepo,
     disbursal_repo: DisbursalRepo,
     payment_repo: PaymentRepo,
     governance: Governance<Perms, E>,
@@ -81,6 +82,7 @@ where
         Self {
             authz: self.authz.clone(),
             credit_facility_repo: self.credit_facility_repo.clone(),
+            obligation_repo: self.obligation_repo.clone(),
             disbursal_repo: self.disbursal_repo.clone(),
             payment_repo: self.payment_repo.clone(),
             governance: self.governance.clone(),
@@ -218,6 +220,7 @@ where
             authz: authz.clone(),
             customer: customer.clone(),
             credit_facility_repo,
+            obligation_repo,
             disbursal_repo,
             payment_repo,
             governance: governance.clone(),
@@ -576,68 +579,80 @@ where
             .authz
             .evaluate_permission(
                 sub,
-                CoreCreditObject::all_credit_facilities(),
-                CoreCreditAction::CREDIT_FACILITY_RECORD_PAYMENT,
+                CoreCreditObject::all_obligations(),
+                CoreCreditAction::OBLIGATION_RECORD_PAYMENT,
                 enforce,
             )
             .await?)
     }
 
-    #[instrument(name = "credit_facility.record_payment", skip(self), err)]
-    pub async fn record_payment(
+    #[instrument(name = "credit_facility.record_disbursal_payment", skip(self), err)]
+    pub async fn record_disbursal_payment(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         credit_facility_id: CreditFacilityId,
         amount: UsdCents,
-    ) -> Result<CreditFacility, CoreCreditError> {
-        let mut db = self.credit_facility_repo.begin_op().await?;
+    ) -> Result<CreditFacilityId, CoreCreditError> {
+        let mut obligation_ids = vec![];
+        let mut query = es_entity::PaginatedQueryArgs::<DisbursalsByCreatedAtCursor>::default();
+        loop {
+            let res = self
+                .disbursal_repo
+                .list_for_credit_facility_id_by_created_at(
+                    credit_facility_id,
+                    query,
+                    ListDirection::Ascending,
+                )
+                .await?;
 
+            obligation_ids.extend(res.entities.iter().filter_map(|d| d.obligation_id()));
+
+            if res.has_next_page {
+                query = es_entity::PaginatedQueryArgs::<DisbursalsByCreatedAtCursor> {
+                    first: 100,
+                    after: res.end_cursor,
+                }
+            } else {
+                break;
+            };
+        }
+
+        let mut res = self
+            .obligation_repo
+            .find_all::<Obligation>(&obligation_ids)
+            .await?;
+        let mut obligations = res.values_mut().into_iter().collect::<Vec<_>>();
+        obligations.sort_by_key(|obligation| obligation.recorded_at);
+
+        let mut db = self.obligation_repo.begin_op().await?;
         let audit_info = self
             .subject_can_record_payment(sub, true)
             .await?
             .expect("audit info missing");
 
-        let price = self.price.usd_cents_per_btc().await?;
+        let mut remaining = amount;
+        let mut payments = vec![];
+        for obligation in obligations {
+            let payment_amount = std::cmp::min(remaining, obligation.outstanding());
+            remaining -= payment_amount;
 
-        let mut credit_facility = self
-            .credit_facility_repo
-            .find_by_id(credit_facility_id)
-            .await?;
+            if let Idempotent::Executed(new_payment) =
+                obligation.record_payment(payment_amount, audit_info.clone())
+            {
+                self.obligation_repo
+                    .update_in_op(&mut db, obligation)
+                    .await?;
+                let payment = self.payment_repo.create_in_op(&mut db, new_payment).await?;
 
-        let ledger_balances = self
-            .ledger
-            .get_credit_facility_balance(credit_facility.account_ids)
-            .await?;
-        credit_facility
-            .balances()
-            .check_against_ledger(ledger_balances)?;
-
-        let new_payment = credit_facility.initiate_repayment(
-            amount,
-            price,
-            self.config.upgrade_buffer_cvl_pct,
-            db.now(),
-            audit_info,
-        )?;
-
-        self.credit_facility_repo
-            .update_in_op(&mut db, &mut credit_facility)
-            .await?;
-
-        let payment = self.payment_repo.create_in_op(&mut db, new_payment).await?;
+                payments.push(payment)
+            }
+        }
 
         self.ledger
-            .record_credit_facility_repayment(
-                db,
-                payment.ledger_tx_id,
-                payment.ledger_tx_ref,
-                payment.amounts,
-                payment.account_ids,
-                payment.disbursal_credit_account_id,
-            )
+            .record_obligation_repayments(db, payments)
             .await?;
 
-        Ok(credit_facility)
+        Ok(credit_facility_id)
     }
 
     #[instrument(name = "credit_facility.list", skip(self), err)]

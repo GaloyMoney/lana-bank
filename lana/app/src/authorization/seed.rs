@@ -332,13 +332,6 @@ async fn add_permissions_for_bank_manager(authz: &Authorization) -> Result<(), A
         .add_permission_to_role(
             &role,
             CoreCreditObject::all_credit_facilities(),
-            CoreCreditAction::CREDIT_FACILITY_RECORD_PAYMENT,
-        )
-        .await?;
-    authz
-        .add_permission_to_role(
-            &role,
-            CoreCreditObject::all_credit_facilities(),
             CoreCreditAction::CREDIT_FACILITY_RECORD_INTEREST,
         )
         .await?;
@@ -354,6 +347,13 @@ async fn add_permissions_for_bank_manager(authz: &Authorization) -> Result<(), A
             &role,
             CoreCreditObject::all_credit_facilities(),
             CoreCreditAction::CREDIT_FACILITY_UPDATE_COLLATERALIZATION_STATE,
+        )
+        .await?;
+    authz
+        .add_permission_to_role(
+            &role,
+            CoreCreditObject::all_obligations(),
+            CoreCreditAction::OBLIGATION_RECORD_PAYMENT,
         )
         .await?;
     authz
