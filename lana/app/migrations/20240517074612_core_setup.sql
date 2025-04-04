@@ -233,7 +233,7 @@ CREATE TABLE core_interest_accrual_cycle_events (
 
 CREATE TABLE core_payments (
   id UUID PRIMARY KEY,
-  obligation_id UUID NOT NULL REFERENCES core_obligations(id),
+  credit_facility_id UUID NOT NULL REFERENCES core_credit_facilities(id),
   created_at TIMESTAMPTZ NOT NULL
 );
 
