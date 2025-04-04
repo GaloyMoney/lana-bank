@@ -171,7 +171,7 @@ impl Obligation {
         amount: UsdCents,
         audit_info: AuditInfo,
     ) -> Idempotent<NewPayment> {
-        if self.is_not_yet_due() || self.is_completed() {
+        if self.is_not_yet_due() || self.is_completed() || amount.is_zero() {
             return Idempotent::Ignored;
         }
 
