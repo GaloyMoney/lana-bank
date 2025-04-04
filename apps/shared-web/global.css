@@ -95,4 +95,8 @@
   body {
     @apply bg-background text-foreground;
   }
+  .scrollbar-thin {
+    scrollbar-width: thin;
+  }
+
 }
