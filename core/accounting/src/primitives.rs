@@ -17,10 +17,12 @@ pub use core_money::{Satoshis, UsdCents};
 
 es_entity::entity_id! {
     ChartId,
+    ManualTransactionId,
     LedgerAccountId;
 
     LedgerAccountId => CalaAccountId,
     LedgerAccountId => CalaAccountSetId,
+    ManualTransactionId => CalaTxId,
 }
 
 #[derive(Error, Debug)]

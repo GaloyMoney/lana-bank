@@ -61,20 +61,6 @@ CREATE TABLE core_chart_events (
   UNIQUE(id, sequence)
 );
 
-CREATE TABLE core_deposit_configs (
-  id UUID PRIMARY KEY,
-  created_at TIMESTAMPTZ NOT NULL
-);
-
-CREATE TABLE core_deposit_config_events (
-  id UUID NOT NULL REFERENCES core_deposit_configs(id),
-  sequence INT NOT NULL,
-  event_type VARCHAR NOT NULL,
-  event JSONB NOT NULL,
-  recorded_at TIMESTAMPTZ NOT NULL,
-  UNIQUE(id, sequence)
-);
-
 CREATE TABLE core_deposit_accounts (
   id UUID PRIMARY KEY,
   account_holder_id UUID NOT NULL,
@@ -282,6 +268,21 @@ CREATE TABLE reports (
 
 CREATE TABLE report_events (
   id UUID NOT NULL REFERENCES reports(id),
+  sequence INT NOT NULL,
+  event_type VARCHAR NOT NULL,
+  event JSONB NOT NULL,
+  recorded_at TIMESTAMPTZ NOT NULL,
+  UNIQUE(id, sequence)
+);
+
+CREATE TABLE core_manual_transactions (
+  id UUID PRIMARY KEY,
+  reference VARCHAR NOT NULL UNIQUE,
+  created_at TIMESTAMPTZ NOT NULL
+);
+
+CREATE TABLE core_manual_transaction_events (
+  id UUID NOT NULL REFERENCES core_manual_transactions(id),
   sequence INT NOT NULL,
   event_type VARCHAR NOT NULL,
   event JSONB NOT NULL,
