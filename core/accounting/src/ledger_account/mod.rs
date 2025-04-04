@@ -80,10 +80,7 @@ where
             )
             .await?;
 
-        let res = self.ledger.account_set_history(id.into(), args).await?;
-
-        // TODO if empty check account history
-        Ok(res)
+        Ok(self.ledger.ledger_account_history(id, args).await?)
     }
 
     #[instrument(name = "accounting.ledger_account.find_by_id", skip(self, chart), err)]

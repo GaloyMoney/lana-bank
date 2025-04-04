@@ -2,12 +2,14 @@ pub mod error;
 
 use std::collections::HashMap;
 
-use cala_ledger::account_set::{AccountSet, AccountSetMemberId};
-use cala_ledger::balance::AccountBalance;
-use cala_ledger::{AccountSetId, CalaLedger, Currency, JournalId, account::Account};
+use cala_ledger::{
+    account::Account,
+    account_set::{AccountSet, AccountSetId, AccountSetMemberId},
+    balance::AccountBalance,
+    CalaLedger, Currency, JournalId,
+};
 
-use crate::journal_error::JournalError;
-use crate::{AccountCode, LedgerAccount, LedgerAccountId};
+use crate::{journal_error::JournalError, AccountCode, LedgerAccount, LedgerAccountId};
 
 use error::*;
 
@@ -25,16 +27,24 @@ impl LedgerAccountLedger {
         }
     }
 
-    pub async fn account_set_history<T, U>(
+    pub async fn ledger_account_history<T, U>(
         &self,
-        account_set_id: AccountSetId,
+        ledger_account_id: LedgerAccountId,
         cursor: es_entity::PaginatedQueryArgs<U>,
     ) -> Result<es_entity::PaginatedQueryRet<T, U>, LedgerAccountLedgerError>
     where
         T: TryFrom<cala_ledger::entry::Entry, Error = JournalError>,
-        U: std::fmt::Debug + From<cala_ledger::entry::EntriesByCreatedAtCursor>,
+        U: From<cala_ledger::entry::EntriesByCreatedAtCursor> + std::fmt::Debug + Clone,
         cala_ledger::entry::EntriesByCreatedAtCursor: From<U>,
     {
+        let cala_cursor_2 = es_entity::PaginatedQueryArgs {
+            after: cursor
+                .after
+                .clone()
+                .map(cala_ledger::entry::EntriesByCreatedAtCursor::from),
+            first: cursor.first,
+        };
+
         let cala_cursor = es_entity::PaginatedQueryArgs {
             after: cursor
                 .after
@@ -42,15 +52,27 @@ impl LedgerAccountLedger {
             first: cursor.first,
         };
 
-        let ret = self
+        let mut ret = self
             .cala
             .entries()
             .list_for_account_set_id(
-                account_set_id,
+                ledger_account_id.into(),
                 cala_cursor,
                 es_entity::ListDirection::Descending,
             )
             .await?;
+
+        if ret.entities.is_empty() {
+            ret = self
+                .cala
+                .entries()
+                .list_for_account_id(
+                    ledger_account_id.into(),
+                    cala_cursor_2,
+                    es_entity::ListDirection::Descending,
+                )
+                .await?;
+        }
 
         let entities = ret
             .entities
