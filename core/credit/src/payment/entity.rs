@@ -21,7 +21,7 @@ pub enum PaymentEvent {
         id: PaymentId,
         ledger_tx_id: LedgerTxId,
         ledger_tx_ref: String,
-        facility_id: CreditFacilityId,
+        obligation_id: ObligationId,
         amount: UsdCents,
         receivable_account_id: CalaAccountId,
         account_to_be_debited_id: CalaAccountId,
@@ -35,7 +35,7 @@ pub struct Payment {
     pub id: PaymentId,
     pub ledger_tx_id: LedgerTxId,
     pub ledger_tx_ref: String,
-    pub facility_id: CreditFacilityId,
+    pub obligation_id: ObligationId,
     pub amount: UsdCents,
     pub receivable_account_id: CalaAccountId,
     pub account_to_be_debited_id: CalaAccountId,
@@ -52,7 +52,7 @@ impl TryFromEvents<PaymentEvent> for Payment {
                     id,
                     ledger_tx_id,
                     ledger_tx_ref,
-                    facility_id,
+                    obligation_id,
                     receivable_account_id,
                     account_to_be_debited_id,
                     amount,
@@ -62,7 +62,7 @@ impl TryFromEvents<PaymentEvent> for Payment {
                         .id(*id)
                         .ledger_tx_id(*ledger_tx_id)
                         .ledger_tx_ref(ledger_tx_ref.clone())
-                        .facility_id(*facility_id)
+                        .obligation_id(*obligation_id)
                         .amount(*amount)
                         .receivable_account_id(*receivable_account_id)
                         .account_to_be_debited_id(*account_to_be_debited_id)
@@ -90,7 +90,7 @@ pub struct NewPayment {
     #[builder(setter(into))]
     pub(super) ledger_tx_ref: String,
     #[builder(setter(into))]
-    pub(super) credit_facility_id: CreditFacilityId,
+    pub(super) obligation_id: ObligationId,
     pub(super) amount: UsdCents,
     #[builder(setter(into))]
     pub(super) receivable_account_id: CalaAccountId,
@@ -113,7 +113,7 @@ impl IntoEvents<PaymentEvent> for NewPayment {
                 id: self.id,
                 ledger_tx_id: self.ledger_tx_id,
                 ledger_tx_ref: self.ledger_tx_ref,
-                facility_id: self.credit_facility_id,
+                obligation_id: self.obligation_id,
                 amount: self.amount,
                 receivable_account_id: self.receivable_account_id,
                 account_to_be_debited_id: self.account_to_be_debited_id,
