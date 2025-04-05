@@ -13,7 +13,7 @@ import NavBar from "@/components/nav-bar"
 import { meQuery } from "@/lib/graphql/query/me"
 
 export const metadata: Metadata = {
-  title: "lana Bank",
+  title: "Lana Bank",
   description: "Where the lana keeps flowing",
 }
 const inter = Inter_Tight({ subsets: ["latin"], display: "auto" })
