@@ -5,6 +5,7 @@ pub mod chart_of_accounts;
 pub mod error;
 pub mod journal;
 pub mod ledger_account;
+pub mod manual_transactions;
 mod primitives;
 
 use std::collections::HashMap;
@@ -14,9 +15,9 @@ use authz::PermissionCheck;
 use cala_ledger::CalaLedger;
 use tracing::instrument;
 
-pub use chart_of_accounts::{Chart, ChartOfAccounts, error as chart_of_accounts_error, tree};
+pub use chart_of_accounts::{error as chart_of_accounts_error, tree, Chart, ChartOfAccounts};
 use error::CoreAccountingError;
-pub use journal::{Journal, error as journal_error};
+pub use journal::{error as journal_error, Journal};
 pub use ledger_account::{LedgerAccount, LedgerAccounts};
 pub use primitives::*;
 
