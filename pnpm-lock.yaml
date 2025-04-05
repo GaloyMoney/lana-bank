@@ -9,8 +9,8 @@ importers:
   .:
     devDependencies:
       '@anthropic-ai/claude-code':
-        specifier: ^0.2.55
-        version: 0.2.55
+        specifier: ^0.2.56
+        version: 0.2.56
       '@mermaid-js/mermaid-cli':
         specifier: ^11.4.2
         version: 11.4.2(puppeteer@23.11.1(typescript@5.7.3))(typescript@5.7.3)
@@ -556,8 +556,8 @@ packages:
   '@antfu/utils@8.1.1':
     resolution: {integrity: sha512-Mex9nXf9vR6AhcXmMrlz/HVgYYZpVGJ6YlPgwl7UnaFpnshXs6EK/oa5Gpf3CzENMjkvEx2tQtntGnb7UtSTOQ==}
 
-  '@anthropic-ai/claude-code@0.2.55':
-    resolution: {integrity: sha512-FYKNHeV7uwovW4jvOA3VVTqx3nOgNPVCHmD9RXv75w2/WJpINIyjyUEaOa79bnKw5vBokZfD3GXQ9Ofe5JOuoQ==}
+  '@anthropic-ai/claude-code@0.2.56':
+    resolution: {integrity: sha512-+ouNnASXYEgR2RNB5LDTVsR8bzUBNU3n8ZN16tIzlm0jIO/kWL243zBubdrjwmQcqroYqyu1CtN2Aav/vaouUA==}
     engines: {node: '>=18.0.0'}
     hasBin: true
 
@@ -3002,13 +3002,13 @@ packages:
       react: '>=16.8.0'
       react-dom: '>=16.8.0'
 
-  '@svgdotjs/svg.draggable.js@3.0.5':
-    resolution: {integrity: sha512-ljL/fB0tAjRfFOJGhXpr7rEx9DJ6D7Pxt3AXvgxjEM17g6wK3Ho9nXhntraOMx8JLZdq4NBMjokeXMvnQzJVYA==}
+  '@svgdotjs/svg.draggable.js@3.0.6':
+    resolution: {integrity: sha512-7iJFm9lL3C40HQcqzEfezK2l+dW2CpoVY3b77KQGqc8GXWa6LhhmX5Ckv7alQfUXBuZbjpICZ+Dvq1czlGx7gA==}
     peerDependencies:
       '@svgdotjs/svg.js': ^3.2.4
 
-  '@svgdotjs/svg.filter.js@3.0.8':
-    resolution: {integrity: sha512-YshF2YDaeRA2StyzAs5nUPrev7npQ38oWD0eTRwnsciSL2KrRPMoUw8BzjIXItb3+dccKGTX3IQOd2NFzmHkog==}
+  '@svgdotjs/svg.filter.js@3.0.9':
+    resolution: {integrity: sha512-/69XMRCDoam2HgC4ldHIaDgeQf1ViHIsa0Ld4uWgiXtZ+E24DWHe/9Ib6kbNiZ7WRIdlVokUDR1Fg0kjIpkfbw==}
     engines: {node: '>= 0.8.0'}
 
   '@svgdotjs/svg.js@3.2.4':
@@ -9409,7 +9409,7 @@ snapshots:
 
   '@antfu/utils@8.1.1': {}
 
-  '@anthropic-ai/claude-code@0.2.55':
+  '@anthropic-ai/claude-code@0.2.56':
     optionalDependencies:
       '@img/sharp-darwin-arm64': 0.33.5
       '@img/sharp-linux-arm': 0.33.5
@@ -12581,11 +12581,11 @@ snapshots:
       react: 18.3.1
       react-dom: 18.3.1(react@18.3.1)
 
-  '@svgdotjs/svg.draggable.js@3.0.5(@svgdotjs/svg.js@3.2.4)':
+  '@svgdotjs/svg.draggable.js@3.0.6(@svgdotjs/svg.js@3.2.4)':
     dependencies:
       '@svgdotjs/svg.js': 3.2.4
 
-  '@svgdotjs/svg.filter.js@3.0.8':
+  '@svgdotjs/svg.filter.js@3.0.9':
     dependencies:
       '@svgdotjs/svg.js': 3.2.4
 
@@ -13554,8 +13554,8 @@ snapshots:
 
   apexcharts@4.4.0:
     dependencies:
-      '@svgdotjs/svg.draggable.js': 3.0.5(@svgdotjs/svg.js@3.2.4)
-      '@svgdotjs/svg.filter.js': 3.0.8
+      '@svgdotjs/svg.draggable.js': 3.0.6(@svgdotjs/svg.js@3.2.4)
+      '@svgdotjs/svg.filter.js': 3.0.9
       '@svgdotjs/svg.js': 3.2.4
       '@svgdotjs/svg.resize.js': 2.0.5(@svgdotjs/svg.js@3.2.4)(@svgdotjs/svg.select.js@4.0.2(@svgdotjs/svg.js@3.2.4))
       '@svgdotjs/svg.select.js': 4.0.2(@svgdotjs/svg.js@3.2.4)
