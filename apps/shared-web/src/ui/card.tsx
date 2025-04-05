@@ -2,7 +2,7 @@ import * as React from "react"
 import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "@lana/web/utils"
 
-const cardVariants = cva("rounded-xl text-card-foreground", {
+const cardVariants = cva("rounded-xxl text-card-foreground", {
   variants: {
     variant: {
       default: "border bg-card shadow",
