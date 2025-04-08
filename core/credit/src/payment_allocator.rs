@@ -117,3 +117,185 @@ impl PaymentAllocator {
         })
     }
 }
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn can_allocate_interest() {
+        let allocator = PaymentAllocator::new(PaymentId::new(), UsdCents::ONE);
+
+        let obligation_type = ObligationType::Interest;
+        let obligations = vec![ObligationDataForAllocation {
+            id: ObligationId::new(),
+            obligation_type,
+            recorded_at: Utc::now(),
+            outstanding: UsdCents::ONE,
+            receivable_account_id: CalaAccountId::new(),
+            account_to_be_debited_id: CalaAccountId::new(),
+        }];
+
+        let allocations = allocator.allocate(obligations).unwrap();
+        assert_eq!(allocations.new_allocations.len(), 1);
+        assert_eq!(allocations.disbursal_amount, UsdCents::ZERO);
+        assert_eq!(allocations.interest_amount, UsdCents::ONE);
+    }
+
+    #[test]
+    fn can_allocate_disbursal() {
+        let allocator = PaymentAllocator::new(PaymentId::new(), UsdCents::ONE);
+
+        let obligation_type = ObligationType::Disbursal;
+        let obligations = vec![ObligationDataForAllocation {
+            id: ObligationId::new(),
+            obligation_type,
+            recorded_at: Utc::now(),
+            outstanding: UsdCents::ONE,
+            receivable_account_id: CalaAccountId::new(),
+            account_to_be_debited_id: CalaAccountId::new(),
+        }];
+
+        let allocations = allocator.allocate(obligations).unwrap();
+        assert_eq!(allocations.new_allocations.len(), 1);
+        assert_eq!(allocations.disbursal_amount, UsdCents::ONE);
+        assert_eq!(allocations.interest_amount, UsdCents::ZERO);
+    }
+
+    #[test]
+    fn can_allocate_interest_and_disbursal() {
+        let allocator = PaymentAllocator::new(PaymentId::new(), UsdCents::from(2));
+
+        let obligations = vec![
+            ObligationDataForAllocation {
+                id: ObligationId::new(),
+                obligation_type: ObligationType::Interest,
+                recorded_at: Utc::now(),
+                outstanding: UsdCents::ONE,
+                receivable_account_id: CalaAccountId::new(),
+                account_to_be_debited_id: CalaAccountId::new(),
+            },
+            ObligationDataForAllocation {
+                id: ObligationId::new(),
+                obligation_type: ObligationType::Disbursal,
+                recorded_at: Utc::now(),
+                outstanding: UsdCents::ONE,
+                receivable_account_id: CalaAccountId::new(),
+                account_to_be_debited_id: CalaAccountId::new(),
+            },
+        ];
+
+        let allocations = allocator.allocate(obligations).unwrap();
+        assert_eq!(allocations.new_allocations.len(), 2);
+        assert_eq!(allocations.disbursal_amount, UsdCents::ONE);
+        assert_eq!(allocations.interest_amount, UsdCents::ONE);
+    }
+
+    #[test]
+    fn can_allocate_partially() {
+        let allocator = PaymentAllocator::new(PaymentId::new(), UsdCents::from(5));
+
+        let obligations = vec![
+            ObligationDataForAllocation {
+                id: ObligationId::new(),
+                obligation_type: ObligationType::Interest,
+                recorded_at: Utc::now(),
+                outstanding: UsdCents::from(4),
+                receivable_account_id: CalaAccountId::new(),
+                account_to_be_debited_id: CalaAccountId::new(),
+            },
+            ObligationDataForAllocation {
+                id: ObligationId::new(),
+                obligation_type: ObligationType::Disbursal,
+                recorded_at: Utc::now(),
+                outstanding: UsdCents::from(3),
+                receivable_account_id: CalaAccountId::new(),
+                account_to_be_debited_id: CalaAccountId::new(),
+            },
+        ];
+
+        let allocations = allocator.allocate(obligations).unwrap();
+
+        assert_eq!(allocations.new_allocations[0].amount, UsdCents::from(4));
+        assert_eq!(allocations.new_allocations[1].amount, UsdCents::from(1));
+        assert_eq!(allocations.interest_amount, UsdCents::from(4));
+        assert_eq!(allocations.disbursal_amount, UsdCents::from(1));
+    }
+
+    #[test]
+    fn errors_if_greater_than_outstanding() {
+        let allocator = PaymentAllocator::new(PaymentId::new(), UsdCents::from(3));
+
+        let obligations = vec![
+            ObligationDataForAllocation {
+                id: ObligationId::new(),
+                obligation_type: ObligationType::Interest,
+                recorded_at: Utc::now(),
+                outstanding: UsdCents::ONE,
+                receivable_account_id: CalaAccountId::new(),
+                account_to_be_debited_id: CalaAccountId::new(),
+            },
+            ObligationDataForAllocation {
+                id: ObligationId::new(),
+                obligation_type: ObligationType::Disbursal,
+                recorded_at: Utc::now(),
+                outstanding: UsdCents::ONE,
+                receivable_account_id: CalaAccountId::new(),
+                account_to_be_debited_id: CalaAccountId::new(),
+            },
+        ];
+
+        assert!(allocator.allocate(obligations).is_err());
+    }
+
+    #[test]
+    fn allocates_interest_first() {
+        let allocator = PaymentAllocator::new(PaymentId::new(), UsdCents::from(10));
+
+        let obligations = vec![
+            ObligationDataForAllocation {
+                id: ObligationId::new(),
+                obligation_type: ObligationType::Interest,
+                recorded_at: Utc::now(),
+                outstanding: UsdCents::from(4),
+                receivable_account_id: CalaAccountId::new(),
+                account_to_be_debited_id: CalaAccountId::new(),
+            },
+            ObligationDataForAllocation {
+                id: ObligationId::new(),
+                obligation_type: ObligationType::Interest,
+                recorded_at: Utc::now(),
+                outstanding: UsdCents::from(3),
+                receivable_account_id: CalaAccountId::new(),
+                account_to_be_debited_id: CalaAccountId::new(),
+            },
+            ObligationDataForAllocation {
+                id: ObligationId::new(),
+                obligation_type: ObligationType::Disbursal,
+                recorded_at: Utc::now(),
+                outstanding: UsdCents::from(2),
+                receivable_account_id: CalaAccountId::new(),
+                account_to_be_debited_id: CalaAccountId::new(),
+            },
+            ObligationDataForAllocation {
+                id: ObligationId::new(),
+                obligation_type: ObligationType::Disbursal,
+                recorded_at: Utc::now(),
+                outstanding: UsdCents::ONE,
+                receivable_account_id: CalaAccountId::new(),
+                account_to_be_debited_id: CalaAccountId::new(),
+            },
+        ];
+
+        let allocations = allocator.allocate(obligations).unwrap();
+        assert_eq!(allocations.new_allocations.len(), 4);
+
+        assert_eq!(allocations.new_allocations[0].amount, UsdCents::from(4));
+        assert_eq!(allocations.new_allocations[1].amount, UsdCents::from(3));
+        assert_eq!(allocations.interest_amount, UsdCents::from(7));
+
+        assert_eq!(allocations.new_allocations[2].amount, UsdCents::from(2));
+        assert_eq!(allocations.new_allocations[3].amount, UsdCents::from(1));
+        assert_eq!(allocations.disbursal_amount, UsdCents::from(3));
+    }
+}
