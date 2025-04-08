@@ -22,8 +22,8 @@ impl From<DomainPayment> for CreditFacilityPayment {
         Self {
             id: payment.id.to_global_id(),
             payment_id: UUID::from(payment.id),
-            interest_amount: payment.amounts.interest,
-            disbursal_amount: payment.amounts.disbursal,
+            interest_amount: payment.amount,  // FIXME: Implement
+            disbursal_amount: payment.amount, // FIXME: Implement
             created_at: payment.created_at().into(),
             entity: Arc::new(payment),
         }
@@ -41,7 +41,7 @@ impl CreditFacilityPayment {
         let cf = app
             .credit_facilities()
             .for_subject(sub)?
-            .find_by_id(self.entity.facility_id)
+            .find_by_id(self.entity.credit_facility_id)
             .await?
             .expect("facility should exist for a payment");
         Ok(super::CreditFacility::from(cf))

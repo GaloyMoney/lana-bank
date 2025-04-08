@@ -594,7 +594,7 @@ where
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         credit_facility_id: CreditFacilityId,
         amount: UsdCents,
-    ) -> Result<CreditFacilityId, CoreCreditError> {
+    ) -> Result<CreditFacility, CoreCreditError> {
         let mut obligations = vec![];
         let mut query = es_entity::PaginatedQueryArgs::<ObligationsByCreatedAtCursor>::default();
         loop {
@@ -643,13 +643,10 @@ where
 
         // TODO: remove n+1
         for mut obligation in obligations {
-            if let Some(new_allocation) = new_allocations.iter().find_map(|new_allocation| {
-                if new_allocation.obligation_id == obligation.id {
-                    Some(new_allocation)
-                } else {
-                    None
-                }
-            }) {
+            if let Some(new_allocation) = new_allocations
+                .iter()
+                .find(|new_allocation| new_allocation.obligation_id == obligation.id)
+            {
                 obligation
                     .record_payment(new_allocation.id, new_allocation.amount, audit_info.clone())
                     .did_execute();
@@ -659,11 +656,16 @@ where
             }
         }
 
+        let credit_facility = self
+            .credit_facility_repo
+            .find_by_id(credit_facility_id)
+            .await?;
+
         self.ledger
             .record_obligation_repayments(db, new_allocations)
             .await?;
 
-        Ok(credit_facility_id)
+        Ok(credit_facility)
     }
 
     #[instrument(name = "credit_facility.list", skip(self), err)]
