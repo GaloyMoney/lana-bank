@@ -1,6 +1,10 @@
 use chrono::{DateTime, Utc};
 
-use crate::{obligation::Obligation, primitives::*, CoreCreditError};
+use crate::{
+    obligation::{Obligation, ObligationType},
+    primitives::*,
+    CoreCreditError,
+};
 
 pub struct PaymentAllocator {
     payment_id: PaymentId,
@@ -9,6 +13,7 @@ pub struct PaymentAllocator {
 
 pub struct ObligationDataForAllocation {
     id: ObligationId,
+    obligation_type: ObligationType,
     recorded_at: DateTime<Utc>,
     outstanding: UsdCents,
     receivable_account_id: CalaAccountId,
@@ -19,6 +24,7 @@ impl From<&Obligation> for ObligationDataForAllocation {
     fn from(obligation: &Obligation) -> Self {
         Self {
             id: obligation.id,
+            obligation_type: obligation.obligation_type(),
             recorded_at: obligation.recorded_at,
             outstanding: obligation.outstanding(),
             receivable_account_id: obligation.account_to_be_credited_id,
@@ -44,7 +50,7 @@ impl PaymentAllocator {
 
     pub fn allocate(
         &self,
-        mut obligations: Vec<ObligationDataForAllocation>,
+        obligations: Vec<ObligationDataForAllocation>,
     ) -> Result<Vec<PaymentAllocation>, CoreCreditError> {
         let outstanding = obligations
             .iter()
@@ -54,10 +60,24 @@ impl PaymentAllocator {
             return Err(CoreCreditError::PaymentAmountGreaterThanOutstandingObligations);
         }
 
-        obligations.sort_by_key(|obligation| obligation.recorded_at);
+        let mut disbursal_obligations = vec![];
+        let mut interest_obligations = vec![];
+        for obligation in obligations {
+            match obligation.obligation_type {
+                ObligationType::Disbursal => disbursal_obligations.push(obligation),
+                ObligationType::Interest => interest_obligations.push(obligation),
+            }
+        }
+        disbursal_obligations.sort_by_key(|obligation| obligation.recorded_at);
+        interest_obligations.sort_by_key(|obligation| obligation.recorded_at);
+
+        let mut sorted_obligations = vec![];
+        sorted_obligations.extend(interest_obligations);
+        sorted_obligations.extend(disbursal_obligations);
+
         let mut remaining = self.amount;
         let mut new_payment_allocations = vec![];
-        for obligation in obligations {
+        for obligation in sorted_obligations {
             let payment_amount = std::cmp::min(remaining, obligation.outstanding);
             remaining -= payment_amount;
 
