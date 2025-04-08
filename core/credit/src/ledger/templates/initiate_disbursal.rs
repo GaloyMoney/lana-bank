@@ -101,6 +101,7 @@ impl InitiateDisbursal {
                 .layer("SETTLED")
                 .build()
                 .expect("Couldn't build entry"),
+            // PENDING layer entries
             NewTxTemplateEntry::builder()
                 .account_id("params.credit_omnibus_account")
                 .units("params.disbursed_amount")

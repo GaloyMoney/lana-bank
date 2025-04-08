@@ -182,7 +182,7 @@ impl CreditLedger {
         templates::CreditFacilityPostAccruedInterest::init(cala).await?;
         templates::InitiateDisbursal::init(cala).await?;
         templates::CancelDisbursal::init(cala).await?;
-        templates::SettleDisbursal::init(cala).await?;
+        templates::ConfirmDisbursal::init(cala).await?;
 
         let collateral_omnibus_normal_balance_type = DebitOrCredit::Debit;
         let collateral_omnibus_account_ids = Self::find_or_create_omnibus_account(
@@ -1284,8 +1284,8 @@ impl CreditLedger {
             .post_transaction_in_op(
                 &mut op,
                 tx_id,
-                templates::SETTLE_DISBURSAL_CODE,
-                templates::SettleDisbursalParams {
+                templates::CONFIRM_DISBURSAL_CODE,
+                templates::ConfirmDisbursalParams {
                     journal_id: self.journal_id,
                     credit_omnibus_account: self.facility_omnibus_account_ids.account_id,
                     credit_facility_account: facility_account_id,

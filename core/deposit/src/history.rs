@@ -45,7 +45,7 @@ pub struct UnknownEntry {
 const RECORD_DEPOSIT: &str = "RECORD_DEPOSIT_CR";
 const INITIATE_WITHDRAW: &str = "INITIATE_WITHDRAW_SETTLED_DR";
 const CANCEL_WITHDRAW: &str = "CANCEL_WITHDRAW_SETTLED_CR";
-const SETTLE_DISBURSAL: &str = "SETTLE_DISBURSAL_SETTLED_CR";
+const CONFIRM_DISBURSAL: &str = "CONFIRM_DISBURSAL_PENDING_CR";
 const RECORD_PAYMENT_ALLOCATION: &str = "RECORD_PAYMENT_ALLOCATION_DR";
 
 const IGNORE_INITIATE_WITHDRAW_PENDING: &str = "INITIATE_WITHDRAW_PENDING_CR";
@@ -70,7 +70,7 @@ impl From<cala_ledger::entry::Entry> for DepositAccountHistoryEntry {
                 entry_id: entry.id,
                 recorded_at: entry.created_at(),
             }),
-            SETTLE_DISBURSAL => DepositAccountHistoryEntry::Disbursal(DisbursalEntry {
+            CONFIRM_DISBURSAL => DepositAccountHistoryEntry::Disbursal(DisbursalEntry {
                 tx_id: entry.values().transaction_id,
                 entry_id: entry.id,
                 recorded_at: entry.created_at(),
