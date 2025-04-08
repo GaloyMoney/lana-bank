@@ -7,6 +7,20 @@ use es_entity::*;
 
 use crate::primitives::*;
 
+pub struct AllocatedAmounts {
+    pub disbursal: UsdCents,
+    pub interest: UsdCents,
+}
+
+impl Default for AllocatedAmounts {
+    fn default() -> Self {
+        Self {
+            disbursal: UsdCents::ZERO,
+            interest: UsdCents::ZERO,
+        }
+    }
+}
+
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
 #[es_event(id = "PaymentId")]
@@ -15,6 +29,11 @@ pub enum PaymentEvent {
         id: PaymentId,
         credit_facility_id: CreditFacilityId,
         amount: UsdCents,
+        audit_info: AuditInfo,
+    },
+    PaymentAllocated {
+        disbursal: UsdCents,
+        interest: UsdCents,
         audit_info: AuditInfo,
     },
 }
@@ -45,6 +64,7 @@ impl TryFromEvents<PaymentEvent> for Payment {
                         .credit_facility_id(*credit_facility_id)
                         .amount(*amount)
                 }
+                PaymentEvent::PaymentAllocated { .. } => (),
             }
         }
         builder.events(events).build()
@@ -56,6 +76,43 @@ impl Payment {
         self.events
             .entity_first_persisted_at()
             .expect("entity_first_persisted_at not found")
+    }
+
+    pub fn allocated_amounts(&self) -> AllocatedAmounts {
+        self.events
+            .iter_all()
+            .find_map(|event| match event {
+                PaymentEvent::PaymentAllocated {
+                    disbursal,
+                    interest,
+                    ..
+                } => Some(AllocatedAmounts {
+                    disbursal: *disbursal,
+                    interest: *interest,
+                }),
+                _ => None,
+            })
+            .unwrap_or_default()
+    }
+
+    pub fn record_allocated(
+        &mut self,
+        disbursal: UsdCents,
+        interest: UsdCents,
+        audit_info: AuditInfo,
+    ) -> Idempotent<()> {
+        idempotency_guard!(
+            self.events.iter_all().rev(),
+            PaymentEvent::PaymentAllocated { .. }
+        );
+
+        self.events.push(PaymentEvent::PaymentAllocated {
+            disbursal,
+            interest,
+            audit_info,
+        });
+
+        Idempotent::Executed(())
     }
 }
 

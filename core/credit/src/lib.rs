@@ -29,6 +29,7 @@ use es_entity::Idempotent;
 use governance::{Governance, GovernanceAction, GovernanceEvent, GovernanceObject};
 use job::Jobs;
 use outbox::{Outbox, OutboxEventMarker};
+use payment_allocator::PaymentAllocations;
 use payment_allocator::{ObligationDataForAllocation, PaymentAllocator};
 use tracing::instrument;
 
@@ -625,21 +626,31 @@ where
             .await?
             .expect("audit info missing");
 
-        let payment_id = PaymentId::new();
-        let new_allocations = PaymentAllocator::new(payment_id, amount).allocate(
+        let new_payment = NewPayment::builder()
+            .id(PaymentId::new())
+            .amount(amount)
+            .credit_facility_id(credit_facility_id)
+            .build()
+            .expect("could not build new payment");
+        let mut payment = self.payment_repo.create_in_op(&mut db, new_payment).await?;
+
+        let PaymentAllocations {
+            new_allocations,
+            disbursal_amount,
+            interest_amount,
+        } = PaymentAllocator::new(payment.id, amount).allocate(
             obligations
                 .iter()
                 .map(ObligationDataForAllocation::from)
                 .collect::<Vec<_>>(),
         )?;
 
-        let new_payment = NewPayment::builder()
-            .id(payment_id)
-            .amount(amount)
-            .credit_facility_id(credit_facility_id)
-            .build()
-            .expect("could not build new payment");
-        self.payment_repo.create_in_op(&mut db, new_payment).await?;
+        payment
+            .record_allocated(disbursal_amount, interest_amount, audit_info.clone())
+            .did_execute();
+        self.payment_repo
+            .update_in_op(&mut db, &mut payment)
+            .await?;
 
         // TODO: remove n+1
         for mut obligation in obligations {

@@ -22,8 +22,8 @@ impl From<DomainPayment> for CreditFacilityPayment {
         Self {
             id: payment.id.to_global_id(),
             payment_id: UUID::from(payment.id),
-            interest_amount: payment.amount,  // FIXME: Implement
-            disbursal_amount: payment.amount, // FIXME: Implement
+            interest_amount: payment.allocated_amounts().interest,
+            disbursal_amount: payment.allocated_amounts().disbursal,
             created_at: payment.created_at().into(),
             entity: Arc::new(payment),
         }
