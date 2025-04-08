@@ -652,7 +652,7 @@ where
             .update_in_op(&mut db, &mut payment)
             .await?;
 
-        // TODO: remove n+1
+        let mut updated_obligations = vec![];
         for mut obligation in obligations {
             if let Some(new_allocation) = new_allocations
                 .iter()
@@ -661,10 +661,15 @@ where
                 obligation
                     .record_payment(new_allocation.id, new_allocation.amount, audit_info.clone())
                     .did_execute();
-                self.obligation_repo
-                    .update_in_op(&mut db, &mut obligation)
-                    .await?;
+                updated_obligations.push(obligation);
             }
+        }
+
+        // TODO: remove n+1
+        for mut obligation in updated_obligations {
+            self.obligation_repo
+                .update_in_op(&mut db, &mut obligation)
+                .await?;
         }
 
         let credit_facility = self
