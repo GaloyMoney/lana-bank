@@ -11,6 +11,12 @@ pub struct PaymentAllocator {
     amount: UsdCents,
 }
 
+pub struct PaymentAllocations {
+    pub new_allocations: Vec<PaymentAllocation>,
+    pub disbursal_amount: UsdCents,
+    pub interest_amount: UsdCents,
+}
+
 pub struct ObligationDataForAllocation {
     id: ObligationId,
     obligation_type: ObligationType,
@@ -51,7 +57,7 @@ impl PaymentAllocator {
     pub fn allocate(
         &self,
         obligations: Vec<ObligationDataForAllocation>,
-    ) -> Result<Vec<PaymentAllocation>, CoreCreditError> {
+    ) -> Result<PaymentAllocations, CoreCreditError> {
         let outstanding = obligations
             .iter()
             .map(|o| o.outstanding)
@@ -77,6 +83,8 @@ impl PaymentAllocator {
 
         let mut remaining = self.amount;
         let mut new_payment_allocations = vec![];
+        let mut disbursal_amount = UsdCents::ZERO;
+        let mut interest_amount = UsdCents::ZERO;
         for obligation in sorted_obligations {
             let payment_amount = std::cmp::min(remaining, obligation.outstanding);
             remaining -= payment_amount;
@@ -91,11 +99,21 @@ impl PaymentAllocator {
                 account_to_be_debited_id: obligation.account_to_be_debited_id,
                 amount: payment_amount,
             });
+
+            match obligation.obligation_type {
+                ObligationType::Disbursal => disbursal_amount += payment_amount,
+                ObligationType::Interest => interest_amount += payment_amount,
+            }
+
             if remaining == UsdCents::ZERO {
                 break;
             }
         }
 
-        Ok(new_payment_allocations)
+        Ok(PaymentAllocations {
+            new_allocations: new_payment_allocations,
+            disbursal_amount,
+            interest_amount,
+        })
     }
 }
