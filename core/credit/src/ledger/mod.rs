@@ -24,7 +24,8 @@ use crate::{
         DisbursedReceivableAccountCategory, DisbursedReceivableAccountType,
         InterestReceivableAccountType, LedgerOmnibusAccountIds, LedgerTxId, Satoshis, UsdCents,
     },
-    ChartOfAccountsIntegrationConfig, DurationType, Obligation, ObligationOverdueReallocationData,
+    ChartOfAccountsIntegrationConfig, DurationType, Obligation, ObligationDueReallocationData,
+    ObligationOverdueReallocationData,
 };
 
 use constants::*;
@@ -177,6 +178,7 @@ impl CreditLedger {
         templates::ActivateCreditFacility::init(cala).await?;
         templates::RemoveCollateral::init(cala).await?;
         templates::RecordPaymentAllocation::init(cala).await?;
+        templates::RecordObligationDueBalance::init(cala).await?;
         templates::RecordObligationOverdueBalance::init(cala).await?;
         templates::CreditFacilityAccrueInterest::init(cala).await?;
         templates::CreditFacilityPostAccruedInterest::init(cala).await?;
@@ -1050,6 +1052,35 @@ impl CreditLedger {
         Ok(())
     }
 
+    pub async fn record_obligation_due(
+        &self,
+        op: es_entity::DbOp<'_>,
+        ObligationDueReallocationData {
+            tx_id,
+            amount,
+            receivable_account_id,
+            account_to_be_credited_id,
+            ..
+        }: ObligationDueReallocationData,
+    ) -> Result<(), CreditLedgerError> {
+        let mut op = self.cala.ledger_operation_from_db_op(op);
+        self.cala
+            .post_transaction_in_op(
+                &mut op,
+                tx_id,
+                templates::RECORD_OBLIGATION_DUE_BALANCE_CODE,
+                templates::RecordObligationDueBalanceParams {
+                    journal_id: self.journal_id,
+                    amount: amount.to_usd(),
+                    receivable_account_id,
+                    account_to_be_credited_id,
+                },
+            )
+            .await?;
+        op.commit().await?;
+        Ok(())
+    }
+
     pub async fn record_obligation_overdue(
         &self,
         op: es_entity::DbOp<'_>,
@@ -1271,7 +1302,7 @@ impl CreditLedger {
         facility_account_id: CalaAccountId,
     ) -> Result<(), CreditLedgerError> {
         let facility_disbursed_receivable_account = obligation.account_to_be_debited_id();
-        let debit_account_id = obligation.account_to_be_credited_id();
+        let account_to_be_credited_id = obligation.account_to_be_credited_id();
         let Obligation {
             tx_id,
             reference: external_id,
@@ -1290,7 +1321,7 @@ impl CreditLedger {
                     credit_omnibus_account: self.facility_omnibus_account_ids.account_id,
                     credit_facility_account: facility_account_id,
                     facility_disbursed_receivable_account,
-                    debit_account_id,
+                    account_to_be_credited_id,
                     disbursed_amount: amount.to_usd(),
                     external_id,
                 },

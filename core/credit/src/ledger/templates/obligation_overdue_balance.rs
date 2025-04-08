@@ -80,7 +80,7 @@ impl RecordObligationOverdueBalance {
         let tx_input = NewTxTemplateTransaction::builder()
             .journal_id("params.journal_id")
             .effective("params.effective")
-            .description("'Record an overdue disbursed balance'")
+            .description("'Record an overdue obligation balance'")
             .build()
             .expect("Couldn't build TxInput");
         let entries = vec![
