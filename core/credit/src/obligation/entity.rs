@@ -33,6 +33,13 @@ pub struct ObligationAccounts {
     pub account_to_be_credited_id: CalaAccountId,
 }
 
+pub struct ObligationDueReallocationData {
+    pub tx_id: LedgerTxId,
+    pub amount: UsdCents,
+    pub receivable_account_id: CalaAccountId,
+    pub account_to_be_credited_id: CalaAccountId,
+}
+
 pub struct ObligationOverdueReallocationData {
     pub tx_id: LedgerTxId,
     pub outstanding_amount: UsdCents,
@@ -60,6 +67,7 @@ pub enum ObligationEvent {
         audit_info: AuditInfo,
     },
     DueRecorded {
+        tx_id: LedgerTxId,
         audit_info: AuditInfo,
     },
     OverdueRecorded {
@@ -227,16 +235,28 @@ impl Obligation {
             })
     }
 
-    pub(crate) fn record_due(&mut self, audit_info: AuditInfo) -> Idempotent<UsdCents> {
+    pub(crate) fn record_due(
+        &mut self,
+        audit_info: AuditInfo,
+    ) -> Idempotent<ObligationDueReallocationData> {
         idempotency_guard!(
             self.events.iter_all().rev(),
             ObligationEvent::DueRecorded { .. }
         );
 
-        self.events
-            .push(ObligationEvent::DueRecorded { audit_info });
+        let res = ObligationDueReallocationData {
+            tx_id: LedgerTxId::new(),
+            amount: self.outstanding(),
+            receivable_account_id: self.account_to_be_debited_id(),
+            account_to_be_credited_id: self.account_to_be_credited_id(),
+        };
 
-        Idempotent::Executed(self.outstanding())
+        self.events.push(ObligationEvent::DueRecorded {
+            tx_id: res.tx_id,
+            audit_info,
+        });
+
+        Idempotent::Executed(res)
     }
 
     pub(crate) fn record_overdue_debited_balance(

@@ -71,7 +71,7 @@ where
         Ok(Box::new(CreditFacilityProcessingJobRunner::<Perms> {
             config: job.config()?,
             obligation_repo: self.obligation_repo.clone(),
-            _ledger: self.ledger.clone(),
+            ledger: self.ledger.clone(),
             jobs: self.jobs.clone(),
             audit: self.audit.clone(),
         }))
@@ -84,7 +84,7 @@ where
 {
     config: CreditFacilityJobConfig<Perms>,
     obligation_repo: ObligationRepo,
-    _ledger: CreditLedger,
+    ledger: CreditLedger,
     jobs: Jobs,
     audit: Perms::Audit,
 }
@@ -115,7 +115,7 @@ where
             )
             .await?;
 
-        let _due = if let es_entity::Idempotent::Executed(due) = obligation.record_due(audit_info) {
+        let due = if let es_entity::Idempotent::Executed(due) = obligation.record_due(audit_info) {
             due
         } else {
             return Ok(JobCompletion::Complete);
@@ -137,11 +137,7 @@ where
             )
             .await?;
 
-        // TODO: switch to recording in ledger and committing
-        // self.ledger
-        //     .record_due_obligation(db, due)
-        //     .await?;
-        db.commit().await?;
+        self.ledger.record_obligation_due(db, due).await?;
 
         Ok(JobCompletion::Complete)
     }
