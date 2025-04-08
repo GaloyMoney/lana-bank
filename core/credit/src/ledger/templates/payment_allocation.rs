@@ -8,10 +8,10 @@ use cala_ledger::{
 
 use crate::{ledger::error::*, primitives::CalaAccountId};
 
-pub const RECORD_PAYMENT_CODE: &str = "RECORD_PAYMENT";
+pub const RECORD_PAYMENT_ALLOCATION_CODE: &str = "RECORD_PAYMENT_ALLOCATION";
 
 #[derive(Debug)]
-pub struct RecordPaymentParams {
+pub struct RecordPaymentAllocationParams {
     pub journal_id: JournalId,
     pub currency: Currency,
     pub amount: Decimal,
@@ -20,7 +20,7 @@ pub struct RecordPaymentParams {
     pub tx_ref: String,
 }
 
-impl RecordPaymentParams {
+impl RecordPaymentAllocationParams {
     pub fn defs() -> Vec<NewParamDefinition> {
         vec![
             NewParamDefinition::builder()
@@ -61,16 +61,16 @@ impl RecordPaymentParams {
         ]
     }
 }
-impl From<RecordPaymentParams> for Params {
+impl From<RecordPaymentAllocationParams> for Params {
     fn from(
-        RecordPaymentParams {
+        RecordPaymentAllocationParams {
             journal_id,
             currency,
             amount,
             account_to_be_debited_id,
             receivable_account_id,
             tx_ref,
-        }: RecordPaymentParams,
+        }: RecordPaymentAllocationParams,
     ) -> Self {
         let mut params = Self::default();
         params.insert("external_id", tx_ref);
@@ -85,9 +85,9 @@ impl From<RecordPaymentParams> for Params {
     }
 }
 
-pub struct RecordPayment;
+pub struct RecordPaymentAllocation;
 
-impl RecordPayment {
+impl RecordPaymentAllocation {
     #[instrument(name = "ledger.record_payment.init", skip_all)]
     pub async fn init(ledger: &CalaLedger) -> Result<(), CreditLedgerError> {
         let tx_input = NewTxTemplateTransaction::builder()
@@ -99,7 +99,7 @@ impl RecordPayment {
             .expect("Couldn't build TxInput");
         let entries = vec![
             NewTxTemplateEntry::builder()
-                .entry_type("'RECORD_PAYMENT_DR'")
+                .entry_type("'RECORD_PAYMENT_ALLOCATION_DR'")
                 .currency("params.currency")
                 .account_id("params.account_to_be_debited_id")
                 .direction("DEBIT")
@@ -108,7 +108,7 @@ impl RecordPayment {
                 .build()
                 .expect("Couldn't build entry"),
             NewTxTemplateEntry::builder()
-                .entry_type("'RECORD_PAYMENT_CR'")
+                .entry_type("'RECORD_PAYMENT_ALLOCATION_CR'")
                 .currency("params.currency")
                 .account_id("params.receivable_account_id")
                 .direction("CREDIT")
@@ -118,10 +118,10 @@ impl RecordPayment {
                 .expect("Couldn't build entry"),
         ];
 
-        let params = RecordPaymentParams::defs();
+        let params = RecordPaymentAllocationParams::defs();
         let template = NewTxTemplate::builder()
             .id(TxTemplateId::new())
-            .code(RECORD_PAYMENT_CODE)
+            .code(RECORD_PAYMENT_ALLOCATION_CODE)
             .transaction(tx_input)
             .entries(entries)
             .params(params)

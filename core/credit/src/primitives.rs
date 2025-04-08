@@ -175,7 +175,7 @@ impl CoreCreditAction {
     pub const OBLIGATION_UPDATE_STATUS: Self =
         CoreCreditAction::Obligation(ObligationAction::UpdateStatus);
     pub const OBLIGATION_RECORD_PAYMENT: Self =
-        CoreCreditAction::Obligation(ObligationAction::RecordPayment);
+        CoreCreditAction::Obligation(ObligationAction::RecordPaymentAllocation);
 }
 
 impl std::fmt::Display for CoreCreditAction {
@@ -262,7 +262,7 @@ impl From<ChartOfAccountsIntegrationConfigAction> for CoreCreditAction {
 #[strum(serialize_all = "kebab-case")]
 pub enum ObligationAction {
     UpdateStatus,
-    RecordPayment,
+    RecordPaymentAllocation,
 }
 impl From<ObligationAction> for CoreCreditAction {
     fn from(action: ObligationAction) -> Self {
