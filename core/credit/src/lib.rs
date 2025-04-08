@@ -42,7 +42,7 @@ use for_subject::CreditFacilitiesForSubject;
 pub use interest_accrual_cycle::*;
 use jobs::*;
 pub use ledger::*;
-pub use obligation::*;
+pub use obligation::{obligation_cursor::*, *};
 pub use payment::*;
 pub use primitives::*;
 use processes::activate_credit_facility::*;
@@ -588,18 +588,18 @@ where
             .await?)
     }
 
-    #[instrument(name = "credit_facility.record_disbursal_payment", skip(self), err)]
-    pub async fn record_disbursal_payment(
+    #[instrument(name = "credit_facility.record_payment", skip(self), err)]
+    pub async fn record_payment(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         credit_facility_id: CreditFacilityId,
         amount: UsdCents,
     ) -> Result<CreditFacilityId, CoreCreditError> {
-        let mut obligation_ids = vec![];
-        let mut query = es_entity::PaginatedQueryArgs::<DisbursalsByCreatedAtCursor>::default();
+        let mut obligations = vec![];
+        let mut query = es_entity::PaginatedQueryArgs::<ObligationsByCreatedAtCursor>::default();
         loop {
             let res = self
-                .disbursal_repo
+                .obligation_repo
                 .list_for_credit_facility_id_by_created_at(
                     credit_facility_id,
                     query,
@@ -607,10 +607,10 @@ where
                 )
                 .await?;
 
-            obligation_ids.extend(res.entities.iter().filter_map(|d| d.obligation_id()));
+            obligations.extend(res.entities);
 
             if res.has_next_page {
-                query = es_entity::PaginatedQueryArgs::<DisbursalsByCreatedAtCursor> {
+                query = es_entity::PaginatedQueryArgs::<ObligationsByCreatedAtCursor> {
                     first: 100,
                     after: res.end_cursor,
                 }
@@ -618,13 +618,6 @@ where
                 break;
             };
         }
-
-        let obligations = self
-            .obligation_repo
-            .find_all::<Obligation>(&obligation_ids)
-            .await?
-            .into_values()
-            .collect::<Vec<_>>();
 
         let mut db = self.obligation_repo.begin_op().await?;
         let audit_info = self
