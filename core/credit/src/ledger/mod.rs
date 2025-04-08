@@ -24,7 +24,7 @@ use crate::{
         DisbursedReceivableAccountCategory, DisbursedReceivableAccountType,
         InterestReceivableAccountType, LedgerOmnibusAccountIds, LedgerTxId, Satoshis, UsdCents,
     },
-    ChartOfAccountsIntegrationConfig, DurationType, Obligation,
+    ChartOfAccountsIntegrationConfig, DurationType, Obligation, ObligationOverdueReallocationData,
 };
 
 use constants::*;
@@ -177,7 +177,7 @@ impl CreditLedger {
         templates::ActivateCreditFacility::init(cala).await?;
         templates::RemoveCollateral::init(cala).await?;
         templates::RecordPaymentAllocation::init(cala).await?;
-        templates::RecordOverdueDisbursedBalance::init(cala).await?;
+        templates::RecordObligationOverdueBalance::init(cala).await?;
         templates::CreditFacilityAccrueInterest::init(cala).await?;
         templates::CreditFacilityPostAccruedInterest::init(cala).await?;
         templates::InitiateDisbursal::init(cala).await?;
@@ -1050,29 +1050,28 @@ impl CreditLedger {
         Ok(())
     }
 
-    pub async fn record_credit_facility_overdue_disbursed(
+    pub async fn record_obligation_overdue(
         &self,
         op: es_entity::DbOp<'_>,
-        CreditFacilityOverdueDisbursedBalance {
+        ObligationOverdueReallocationData {
             tx_id,
-            disbursed_outstanding,
-            credit_facility_account_ids,
-        }: CreditFacilityOverdueDisbursedBalance,
+            outstanding_amount,
+            due_account_id,
+            overdue_account_id,
+            ..
+        }: ObligationOverdueReallocationData,
     ) -> Result<(), CreditLedgerError> {
         let mut op = self.cala.ledger_operation_from_db_op(op);
         self.cala
             .post_transaction_in_op(
                 &mut op,
                 tx_id,
-                templates::RECORD_OVERDUE_DISBURSED_BALANCE_CODE,
-                templates::RecordOverdueDisbursedBalanceParams {
+                templates::RECORD_OBLIGATION_OVERDUE_BALANCE_CODE,
+                templates::RecordObligationOverdueBalanceParams {
                     journal_id: self.journal_id,
-                    currency: self.btc,
-                    amount: disbursed_outstanding.to_usd(),
-                    disbursed_receivable_account_id: credit_facility_account_ids
-                        .disbursed_receivable_account_id,
-                    disbursed_receivable_overdue_account_id: credit_facility_account_ids
-                        .disbursed_receivable_overdue_account_id,
+                    amount: outstanding_amount.to_usd(),
+                    receivable_account_id: due_account_id,
+                    receivable_overdue_account_id: overdue_account_id,
                 },
             )
             .await?;
@@ -1182,16 +1181,18 @@ impl CreditLedger {
     pub async fn record_interest_accrual_cycle(
         &self,
         op: es_entity::DbOp<'_>,
-        Obligation {
+        obligation: Obligation,
+    ) -> Result<(), CreditLedgerError> {
+        let interest_receivable_account_id = obligation.account_to_be_debited_id();
+        let interest_income_account_id = obligation.account_to_be_credited_id();
+        let Obligation {
             tx_id,
             reference: tx_ref,
             initial_amount: interest,
-            account_to_be_debited_id: interest_receivable_account_id,
-            account_to_be_credited_id: interest_income_account_id,
             recorded_at: posted_at,
             ..
-        }: Obligation,
-    ) -> Result<(), CreditLedgerError> {
+        } = obligation;
+
         let mut op = self.cala.ledger_operation_from_db_op(op);
         self.cala
             .post_transaction_in_op(
@@ -1266,16 +1267,18 @@ impl CreditLedger {
     pub async fn settle_disbursal(
         &self,
         op: es_entity::DbOp<'_>,
-        Obligation {
+        obligation: Obligation,
+        facility_account_id: CalaAccountId,
+    ) -> Result<(), CreditLedgerError> {
+        let facility_disbursed_receivable_account = obligation.account_to_be_debited_id();
+        let debit_account_id = obligation.account_to_be_credited_id();
+        let Obligation {
             tx_id,
             reference: external_id,
             initial_amount: amount,
-            account_to_be_debited_id: facility_disbursed_receivable_account,
-            account_to_be_credited_id: debit_account_id,
             ..
-        }: Obligation,
-        facility_account_id: CalaAccountId,
-    ) -> Result<(), CreditLedgerError> {
+        } = obligation;
+
         let mut op = self.cala.ledger_operation_from_db_op(op);
         self.cala
             .post_transaction_in_op(

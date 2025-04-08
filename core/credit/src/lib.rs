@@ -180,13 +180,6 @@ where
                 authz.audit(),
             ),
         );
-        jobs.add_initializer(
-            overdue::CreditFacilityProcessingJobInitializer::<Perms, E>::new(
-                &ledger,
-                credit_facility_repo.clone(),
-                authz.audit(),
-            ),
-        );
         jobs.add_initializer(obligation_due::CreditFacilityProcessingJobInitializer::<
             Perms,
         >::new(

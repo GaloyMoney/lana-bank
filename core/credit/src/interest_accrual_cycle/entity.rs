@@ -7,7 +7,7 @@ use es_entity::*;
 
 use crate::{
     credit_facility::CreditFacilityReceivable,
-    obligation::{NewObligation, ObligationType},
+    obligation::{NewObligation, ObligationAccounts, ObligationType},
     primitives::*,
     terms::{InterestPeriod, TermValues},
     CreditFacilityAccountIds,
@@ -274,8 +274,15 @@ impl InterestAccrualCycle {
             .reference(tx_ref.to_string())
             .amount(interest)
             .tx_id(tx_id)
-            .account_to_be_debited_id(self.account_ids.interest_receivable_account_id)
-            .account_to_be_credited_id(self.account_ids.interest_income_account_id)
+            .due_accounts(ObligationAccounts {
+                account_to_be_debited_id: self.account_ids.interest_receivable_account_id,
+                account_to_be_credited_id: self.account_ids.interest_income_account_id,
+            })
+            // TODO: configure overdue accounts
+            .overdue_accounts(ObligationAccounts {
+                account_to_be_debited_id: self.account_ids.interest_receivable_account_id,
+                account_to_be_credited_id: self.account_ids.interest_income_account_id,
+            })
             .due_date(self.accrual_cycle_ends_at())
             .overdue_date(self.accrual_cycle_ends_at())
             .recorded_at(posted_at)

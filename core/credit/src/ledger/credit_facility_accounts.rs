@@ -52,13 +52,6 @@ impl CreditFacilityLedgerBalance {
 }
 
 #[derive(Debug, Clone)]
-pub struct CreditFacilityOverdueDisbursedBalance {
-    pub tx_id: LedgerTxId,
-    pub disbursed_outstanding: UsdCents,
-    pub credit_facility_account_ids: CreditFacilityAccountIds,
-}
-
-#[derive(Debug, Clone)]
 pub struct CreditFacilityCompletion {
     pub tx_id: LedgerTxId,
     pub collateral: Satoshis,

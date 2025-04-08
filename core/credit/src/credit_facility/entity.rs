@@ -91,11 +91,6 @@ pub enum CreditFacilityEvent {
         recorded_at: DateTime<Utc>,
         audit_info: AuditInfo,
     },
-    OverdueDisbursedBalanceRecorded {
-        amount: UsdCents,
-        recorded_at: DateTime<Utc>,
-        audit_info: AuditInfo,
-    },
     Completed {
         completed_at: DateTime<Utc>,
         audit_info: AuditInfo,
@@ -295,10 +290,6 @@ impl CreditFacility {
         self.events
             .entity_first_persisted_at()
             .expect("entity_first_persisted_at not found")
-    }
-
-    pub fn disbursed_overdue_at(&self) -> DateTime<Utc> {
-        self.matures_at.expect("Facility not activated yet")
     }
 
     pub fn initial_facility(&self) -> UsdCents {
@@ -998,34 +989,6 @@ impl CreditFacility {
             .any(|event| matches!(event, CreditFacilityEvent::Completed { .. }))
     }
 
-    pub(crate) fn record_overdue_disbursed_balance(
-        &mut self,
-        audit_info: AuditInfo,
-    ) -> Idempotent<CreditFacilityOverdueDisbursedBalance> {
-        idempotency_guard!(
-            self.events.iter_all().rev(),
-            CreditFacilityEvent::OverdueDisbursedBalanceRecorded { .. }
-        );
-        if self.is_completed() || self.total_outstanding().is_zero() {
-            return Idempotent::Ignored;
-        }
-
-        let res = CreditFacilityOverdueDisbursedBalance {
-            tx_id: LedgerTxId::new(),
-            disbursed_outstanding: self.disbursed_outstanding_overdue(),
-            credit_facility_account_ids: self.account_ids,
-        };
-
-        self.events
-            .push(CreditFacilityEvent::OverdueDisbursedBalanceRecorded {
-                amount: res.disbursed_outstanding,
-                recorded_at: self.disbursed_overdue_at(),
-                audit_info,
-            });
-
-        Idempotent::Executed(res)
-    }
-
     pub(crate) fn complete(
         &mut self,
         audit_info: AuditInfo,
@@ -1159,7 +1122,6 @@ impl TryFromEvents<CreditFacilityEvent> for CreditFacility {
                 CreditFacilityEvent::CollateralUpdated { .. } => (),
                 CreditFacilityEvent::CollateralizationChanged { .. } => (),
                 CreditFacilityEvent::PaymentRecorded { .. } => (),
-                CreditFacilityEvent::OverdueDisbursedBalanceRecorded { .. } => (),
                 CreditFacilityEvent::Completed { .. } => (),
             }
         }
