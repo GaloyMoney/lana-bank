@@ -12,13 +12,19 @@ use crate::{
 
 use super::error::ObligationError;
 
-#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 pub(crate) enum ObligationStatus {
     NotYetDue,
     Due,
     Overdue,
     _Defaulted,
     Paid,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
+pub enum ObligationType {
+    Disbursal,
+    Interest,
 }
 
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
@@ -28,6 +34,7 @@ pub enum ObligationEvent {
     Initialized {
         id: ObligationId,
         credit_facility_id: CreditFacilityId,
+        obligation_type: ObligationType,
         amount: UsdCents,
         reference: String,
         tx_id: LedgerTxId,
@@ -76,6 +83,18 @@ impl Obligation {
         self.events
             .entity_first_persisted_at()
             .expect("entity_first_persisted_at not found")
+    }
+
+    pub fn obligation_type(&self) -> ObligationType {
+        self.events
+            .iter_all()
+            .find_map(|e| match e {
+                ObligationEvent::Initialized {
+                    obligation_type, ..
+                } => Some(*obligation_type),
+                _ => None,
+            })
+            .expect("Entity was not Initialized")
     }
 
     pub fn due_at(&self) -> DateTime<Utc> {
@@ -233,6 +252,7 @@ pub struct NewObligation {
     pub(super) id: ObligationId,
     #[builder(setter(into))]
     pub(super) credit_facility_id: CreditFacilityId,
+    pub(super) obligation_type: ObligationType,
     #[builder(setter(into))]
     pub(super) amount: UsdCents,
     #[builder(setter(strip_option), default)]
@@ -277,6 +297,7 @@ impl IntoEvents<ObligationEvent> for NewObligation {
             [ObligationEvent::Initialized {
                 id: self.id,
                 credit_facility_id: self.credit_facility_id,
+                obligation_type: self.obligation_type,
                 reference: self.reference(),
                 amount: self.amount,
                 tx_id: self.tx_id,
@@ -313,6 +334,7 @@ mod test {
         vec![ObligationEvent::Initialized {
             id: ObligationId::new(),
             credit_facility_id: CreditFacilityId::new(),
+            obligation_type: ObligationType::Disbursal,
             amount: UsdCents::ONE,
             reference: "ref-01".to_string(),
             tx_id: LedgerTxId::new(),
