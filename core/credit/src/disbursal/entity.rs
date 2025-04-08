@@ -5,7 +5,11 @@ use serde::{Deserialize, Serialize};
 use audit::AuditInfo;
 use es_entity::*;
 
-use crate::{ledger::CreditFacilityAccountIds, obligation::NewObligation, primitives::*};
+use crate::{
+    ledger::CreditFacilityAccountIds,
+    obligation::{NewObligation, ObligationType},
+    primitives::*,
+};
 
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
@@ -179,6 +183,7 @@ impl Disbursal {
         NewObligation::builder()
             .id(obligation_id)
             .credit_facility_id(self.facility_id)
+            .obligation_type(ObligationType::Disbursal)
             .reference(tx_ref.to_string())
             .amount(self.amount)
             .tx_id(tx_id)
