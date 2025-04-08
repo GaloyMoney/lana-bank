@@ -169,6 +169,15 @@ where
         };
         span.record("already_applied", false);
 
+        let obligation = if let Some(new_obligation) = new_obligation {
+            Some(
+                self.obligation_repo
+                    .create_in_op(&mut db, new_obligation)
+                    .await?,
+            )
+        } else {
+            None
+        };
         self.disbursal_repo
             .update_in_op(&mut db, &mut disbursal)
             .await?;
@@ -176,12 +185,7 @@ where
             .update_in_op(&mut db, &mut credit_facility)
             .await?;
 
-        if let Some(new_obligation) = new_obligation {
-            let obligation = self
-                .obligation_repo
-                .create_in_op(&mut db, new_obligation)
-                .await?;
-
+        if let Some(obligation) = obligation {
             self.jobs
                 .create_and_spawn_at_in_op(
                     &mut db,
