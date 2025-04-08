@@ -67,7 +67,7 @@ where
         Ok(Box::new(CreditFacilityProcessingJobRunner::<Perms> {
             config: job.config()?,
             obligation_repo: self.obligation_repo.clone(),
-            _ledger: self.ledger.clone(),
+            ledger: self.ledger.clone(),
             audit: self.audit.clone(),
         }))
     }
@@ -79,7 +79,7 @@ where
 {
     config: CreditFacilityJobConfig<Perms>,
     obligation_repo: ObligationRepo,
-    _ledger: CreditLedger,
+    ledger: CreditLedger,
     audit: Perms::Audit,
 }
 
@@ -109,8 +109,8 @@ where
             )
             .await?;
 
-        let _overdue = if let es_entity::Idempotent::Executed(overdue) =
-            obligation.record_overdue(audit_info)?
+        let overdue = if let es_entity::Idempotent::Executed(overdue) =
+            obligation.record_overdue_debited_balance(audit_info)?
         {
             overdue
         } else {
@@ -121,11 +121,7 @@ where
             .update_in_op(&mut db, &mut obligation)
             .await?;
 
-        // TODO: switch to recording in ledger and committing
-        // self.ledger
-        //     .record_overdue_obligation(db, overdue)
-        //     .await?;
-        db.commit().await?;
+        self.ledger.record_obligation_overdue(db, overdue).await?;
 
         Ok(JobCompletion::Complete)
     }

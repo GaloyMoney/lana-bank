@@ -2,16 +2,15 @@ mod job;
 
 use tracing::instrument;
 
-use ::job::JobId;
 use audit::AuditSvc;
 use authz::PermissionCheck;
 use core_price::Price;
 use outbox::OutboxEventMarker;
 
 use crate::{
-    error::CoreCreditError, interest_accruals, ledger::CreditLedger, overdue,
-    primitives::CreditFacilityId, CoreCreditAction, CoreCreditEvent, CoreCreditObject,
-    CreditFacility, CreditFacilityRepo, DisbursalRepo, Jobs, LedgerTxId, ObligationRepo,
+    error::CoreCreditError, interest_accruals, ledger::CreditLedger, primitives::CreditFacilityId,
+    CoreCreditAction, CoreCreditEvent, CoreCreditObject, CreditFacility, CreditFacilityRepo,
+    DisbursalRepo, Jobs, LedgerTxId, ObligationRepo,
 };
 
 pub use job::*;
@@ -102,18 +101,6 @@ where
         else {
             return Ok(credit_facility);
         };
-
-        self.jobs
-            .create_and_spawn_at_in_op(
-                &mut db,
-                JobId::new(),
-                overdue::CreditFacilityJobConfig::<Perms, E> {
-                    credit_facility_id: id,
-                    _phantom: std::marker::PhantomData,
-                },
-                credit_facility.disbursed_overdue_at(),
-            )
-            .await?;
 
         let new_disbursal = credit_facility.initiate_disbursal(
             credit_facility.structuring_fee(),

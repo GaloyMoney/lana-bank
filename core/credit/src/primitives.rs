@@ -148,8 +148,6 @@ impl CoreCreditAction {
         CoreCreditAction::CreditFacility(CreditFacilityAction::Activate);
     pub const CREDIT_FACILITY_RECORD_INTEREST: Self =
         CoreCreditAction::CreditFacility(CreditFacilityAction::RecordInterest);
-    pub const CREDIT_FACILITY_RECORD_OVERDUE_DISBURSED_BALANCE: Self =
-        CoreCreditAction::CreditFacility(CreditFacilityAction::RecordOverdueDisbursedBalance);
     pub const CREDIT_FACILITY_COMPLETE: Self =
         CoreCreditAction::CreditFacility(CreditFacilityAction::Complete);
     pub const CREDIT_FACILITY_UPDATE_COLLATERAL: Self =
@@ -221,7 +219,6 @@ pub enum CreditFacilityAction {
     Activate,
     UpdateCollateral,
     RecordInterest,
-    RecordOverdueDisbursedBalance,
     Complete,
     UpdateCollateralizationState,
 }
