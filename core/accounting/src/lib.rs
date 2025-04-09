@@ -2,6 +2,7 @@
 #![cfg_attr(feature = "fail-on-warnings", deny(clippy::all))]
 
 pub mod chart_of_accounts;
+pub mod csv;
 pub mod error;
 pub mod journal;
 pub mod ledger_account;
