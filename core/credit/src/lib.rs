@@ -155,6 +155,7 @@ where
 
         jobs.add_initializer_and_spawn_unique(
             cvl::CreditFacilityProcessingJobInitializer::<Perms, E>::new(
+                obligation_repo.clone(),
                 credit_facility_repo.clone(),
                 price,
                 authz.audit(),
@@ -386,7 +387,7 @@ where
                 .collect::<Vec<_>>(),
         );
 
-        Ok(credit_facility.balances(aggregator.initial_amounts(), aggregator.outstanding()))
+        Ok(credit_facility.balances(&aggregator))
     }
 
     pub async fn subject_can_initiate_disbursal(
@@ -438,19 +439,18 @@ where
         let obligations = self
             .list_obligations_for_credit_facility(credit_facility_id)
             .await?;
-        let outstanding = ObligationAggregator::new(
+        let aggregator = ObligationAggregator::new(
             obligations
                 .iter()
                 .map(ObligationDataForAggregation::from)
                 .collect::<Vec<_>>(),
-        )
-        .outstanding();
+        );
 
         let mut db = self.credit_facility_repo.begin_op().await?;
         let now = crate::time::now();
         let new_disbursal = credit_facility.initiate_disbursal(
             amount,
-            outstanding.total(), // TODO: decide if default should be included here
+            &aggregator,
             now,
             price,
             None,
@@ -606,6 +606,7 @@ where
             audit_info,
             price,
             self.config.upgrade_buffer_cvl_pct,
+            &self.obligations_aggregator(credit_facility_id).await?,
         )?;
         self.credit_facility_repo
             .update_in_op(&mut db, &mut credit_facility)
@@ -954,9 +955,12 @@ where
             .find_by_id(credit_facility_id)
             .await?;
 
-        let completion = if let Idempotent::Executed(completion) =
-            credit_facility.complete(audit_info, price, self.config.upgrade_buffer_cvl_pct)?
-        {
+        let completion = if let Idempotent::Executed(completion) = credit_facility.complete(
+            audit_info,
+            price,
+            self.config.upgrade_buffer_cvl_pct,
+            &self.obligations_aggregator(credit_facility_id).await?,
+        )? {
             completion
         } else {
             return Ok(credit_facility);
@@ -1026,10 +1030,10 @@ where
         Ok(self.disbursal_repo.find_all(ids).await?)
     }
 
-    pub async fn outstanding(
+    pub async fn obligations_aggregator(
         &self,
         credit_facility_id: CreditFacilityId,
-    ) -> Result<ObligationsOutstanding, CoreCreditError> {
+    ) -> Result<ObligationAggregator, CoreCreditError> {
         let obligations = self
             .list_obligations_for_credit_facility(credit_facility_id)
             .await?;
@@ -1039,8 +1043,17 @@ where
                 .iter()
                 .map(ObligationDataForAggregation::from)
                 .collect::<Vec<_>>(),
-        )
-        .outstanding())
+        ))
+    }
+
+    pub async fn outstanding(
+        &self,
+        credit_facility_id: CreditFacilityId,
+    ) -> Result<ObligationsOutstanding, CoreCreditError> {
+        Ok(self
+            .obligations_aggregator(credit_facility_id)
+            .await?
+            .outstanding())
     }
 
     pub async fn get_chart_of_accounts_integration_config(

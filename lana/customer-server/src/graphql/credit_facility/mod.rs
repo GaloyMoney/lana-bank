@@ -78,8 +78,12 @@ impl CreditFacility {
     async fn current_cvl(&self, ctx: &Context<'_>) -> async_graphql::Result<FacilityCVL> {
         let app = ctx.data_unchecked::<LanaApp>();
         let price = app.price().usd_cents_per_btc().await?;
+        let obligations = app
+            .credit_facilities()
+            .obligations_aggregator(self.entity.id)
+            .await?;
         Ok(FacilityCVL::from(
-            self.entity.facility_cvl_data().cvl(price),
+            self.entity.facility_cvl_data(&obligations).cvl(price),
         ))
     }
 

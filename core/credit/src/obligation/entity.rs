@@ -63,7 +63,7 @@ impl ObligationsOutstanding {
         defaulted: ObligationsAmounts::ZERO,
     };
 
-    pub fn total(&self) -> ObligationsAmounts {
+    pub fn total_amounts(&self) -> ObligationsAmounts {
         let Self {
             not_yet_due,
             due,
@@ -100,6 +100,10 @@ impl ObligationsAmounts {
 
     pub fn total(&self) -> UsdCents {
         self.interest + self.disbursed
+    }
+
+    pub fn is_zero(&self) -> bool {
+        self.disbursed.is_zero() && self.interest.is_zero()
     }
 }
 
