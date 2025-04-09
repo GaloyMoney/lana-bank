@@ -3,6 +3,7 @@ use outbox::{Outbox, OutboxEventMarker};
 use crate::{
     credit_facility::{error::CreditFacilityError, CreditFacility, CreditFacilityEvent},
     event::*,
+    obligation::{error::ObligationError, Obligation, ObligationEvent, ObligationType},
 };
 
 pub struct CreditFacilityPublisher<E>
@@ -109,6 +110,43 @@ where
                         obligation_id: *obligation_id,
                     })
                 }
+
+                _ => None,
+            })
+            .collect::<Vec<_>>();
+        self.outbox
+            .publish_all_persisted(db.tx(), publish_events)
+            .await?;
+        Ok(())
+    }
+
+    pub async fn publish_obligation(
+        &self,
+        db: &mut es_entity::DbOp<'_>,
+        entity: &Obligation,
+        new_events: es_entity::LastPersisted<'_, ObligationEvent>,
+    ) -> Result<(), ObligationError> {
+        use ObligationEvent::*;
+        let publish_events = new_events
+            .filter_map(|event| match &event.event {
+                Initialized {
+                    obligation_type, ..
+                } => match obligation_type {
+                    ObligationType::Disbursal => {
+                        Some(CoreCreditEvent::DisbursalObligationCreated {
+                            id: entity.credit_facility_id,
+                            obligation_id: entity.id,
+                            amount: entity.initial_amount,
+                            recorded_at: entity.recorded_at,
+                        })
+                    }
+                    ObligationType::Interest => Some(CoreCreditEvent::AccrualObligationCreated {
+                        id: entity.credit_facility_id,
+                        obligation_id: entity.id,
+                        amount: entity.initial_amount,
+                        recorded_at: entity.recorded_at,
+                    }),
+                },
 
                 _ => None,
             })

@@ -28,6 +28,12 @@ pub enum CoreCreditEvent {
         amount: UsdCents,
         recorded_at: DateTime<Utc>,
     },
+    DisbursalObligationCreated {
+        id: CreditFacilityId,
+        obligation_id: ObligationId,
+        amount: UsdCents,
+        recorded_at: DateTime<Utc>,
+    },
     FacilityRepaymentRecorded {
         id: CreditFacilityId,
         disbursal_amount: UsdCents,
@@ -44,6 +50,12 @@ pub enum CoreCreditEvent {
     AccrualExecuted {
         id: CreditFacilityId,
         obligation_id: ObligationId,
+    },
+    AccrualObligationCreated {
+        id: CreditFacilityId,
+        obligation_id: ObligationId,
+        amount: UsdCents,
+        recorded_at: DateTime<Utc>,
     },
 }
 

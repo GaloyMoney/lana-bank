@@ -4,40 +4,46 @@ use serde::{Deserialize, Serialize};
 use audit::AuditSvc;
 use authz::PermissionCheck;
 use job::*;
+use outbox::OutboxEventMarker;
 
-use crate::{ledger::CreditLedger, obligation::ObligationRepo, primitives::*};
+use crate::{
+    event::CoreCreditEvent, ledger::CreditLedger, obligation::ObligationRepo, primitives::*,
+};
 
 #[derive(Clone, Serialize, Deserialize)]
-pub struct CreditFacilityJobConfig<Perms> {
+pub struct CreditFacilityJobConfig<Perms, E> {
     pub obligation_id: ObligationId,
-    pub _phantom: std::marker::PhantomData<Perms>,
+    pub _phantom: std::marker::PhantomData<(Perms, E)>,
 }
-impl<Perms> JobConfig for CreditFacilityJobConfig<Perms>
+impl<Perms, E> JobConfig for CreditFacilityJobConfig<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>,
+    E: OutboxEventMarker<CoreCreditEvent>,
 {
-    type Initializer = CreditFacilityProcessingJobInitializer<Perms>;
+    type Initializer = CreditFacilityProcessingJobInitializer<Perms, E>;
 }
-pub struct CreditFacilityProcessingJobInitializer<Perms>
+pub struct CreditFacilityProcessingJobInitializer<Perms, E>
 where
     Perms: PermissionCheck,
+    E: OutboxEventMarker<CoreCreditEvent>,
 {
-    obligation_repo: ObligationRepo,
+    obligation_repo: ObligationRepo<E>,
     ledger: CreditLedger,
     audit: Perms::Audit,
 }
 
-impl<Perms> CreditFacilityProcessingJobInitializer<Perms>
+impl<Perms, E> CreditFacilityProcessingJobInitializer<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>,
+    E: OutboxEventMarker<CoreCreditEvent>,
 {
     pub fn new(
         ledger: &CreditLedger,
-        obligation_repo: ObligationRepo,
+        obligation_repo: ObligationRepo<E>,
         audit: &Perms::Audit,
     ) -> Self {
         Self {
@@ -50,11 +56,12 @@ where
 
 const CREDIT_FACILITY_OVERDUE_PROCESSING_JOB: JobType =
     JobType::new("credit-facility-overdue-processing");
-impl<Perms> JobInitializer for CreditFacilityProcessingJobInitializer<Perms>
+impl<Perms, E> JobInitializer for CreditFacilityProcessingJobInitializer<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>,
+    E: OutboxEventMarker<CoreCreditEvent>,
 {
     fn job_type() -> JobType
     where
@@ -64,7 +71,7 @@ where
     }
 
     fn init(&self, job: &Job) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
-        Ok(Box::new(CreditFacilityProcessingJobRunner::<Perms> {
+        Ok(Box::new(CreditFacilityProcessingJobRunner::<Perms, E> {
             config: job.config()?,
             obligation_repo: self.obligation_repo.clone(),
             ledger: self.ledger.clone(),
@@ -73,22 +80,24 @@ where
     }
 }
 
-pub struct CreditFacilityProcessingJobRunner<Perms>
+pub struct CreditFacilityProcessingJobRunner<Perms, E>
 where
     Perms: PermissionCheck,
+    E: OutboxEventMarker<CoreCreditEvent>,
 {
-    config: CreditFacilityJobConfig<Perms>,
-    obligation_repo: ObligationRepo,
+    config: CreditFacilityJobConfig<Perms, E>,
+    obligation_repo: ObligationRepo<E>,
     ledger: CreditLedger,
     audit: Perms::Audit,
 }
 
 #[async_trait]
-impl<Perms> JobRunner for CreditFacilityProcessingJobRunner<Perms>
+impl<Perms, E> JobRunner for CreditFacilityProcessingJobRunner<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>,
+    E: OutboxEventMarker<CoreCreditEvent>,
 {
     async fn run(
         &self,

@@ -28,7 +28,7 @@ where
     E: OutboxEventMarker<GovernanceEvent> + OutboxEventMarker<CoreCreditEvent>,
 {
     disbursal_repo: DisbursalRepo,
-    obligation_repo: ObligationRepo,
+    obligation_repo: ObligationRepo<E>,
     credit_facility_repo: CreditFacilityRepo<E>,
     jobs: Jobs,
     audit: Perms::Audit,
@@ -65,7 +65,7 @@ where
 {
     pub fn new(
         disbursal_repo: &DisbursalRepo,
-        obligation_repo: &ObligationRepo,
+        obligation_repo: &ObligationRepo<E>,
         credit_facility_repo: &CreditFacilityRepo<E>,
         jobs: &Jobs,
         audit: &Perms::Audit,
@@ -190,7 +190,7 @@ where
                 .create_and_spawn_at_in_op(
                     &mut db,
                     obligation.id,
-                    obligation_due::CreditFacilityJobConfig::<Perms> {
+                    obligation_due::CreditFacilityJobConfig::<Perms, E> {
                         obligation_id: obligation.id,
                         _phantom: std::marker::PhantomData,
                     },

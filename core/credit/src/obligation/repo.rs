@@ -1,8 +1,13 @@
 use sqlx::PgPool;
 
 use es_entity::*;
+use outbox::OutboxEventMarker;
 
-use crate::primitives::{CreditFacilityId, ObligationId};
+use crate::{
+    event::CoreCreditEvent,
+    primitives::{CreditFacilityId, ObligationId},
+    publisher::CreditFacilityPublisher,
+};
 
 use super::{entity::*, error::*};
 
@@ -14,22 +19,48 @@ use super::{entity::*, error::*};
         credit_facility_id(ty = "CreditFacilityId", list_for, update(persist = false)),
         reference(ty = "String", create(accessor = "reference()")),
     ),
-    tbl_prefix = "core"
+    tbl_prefix = "core",
+    post_persist_hook = "publish"
 )]
-pub struct ObligationRepo {
+pub struct ObligationRepo<E>
+where
+    E: OutboxEventMarker<CoreCreditEvent>,
+{
     pool: PgPool,
+    publisher: CreditFacilityPublisher<E>,
 }
 
-impl Clone for ObligationRepo {
+impl<E> Clone for ObligationRepo<E>
+where
+    E: OutboxEventMarker<CoreCreditEvent>,
+{
     fn clone(&self) -> Self {
         Self {
             pool: self.pool.clone(),
+            publisher: self.publisher.clone(),
         }
     }
 }
 
-impl ObligationRepo {
-    pub fn new(pool: &PgPool) -> Self {
-        Self { pool: pool.clone() }
+impl<E> ObligationRepo<E>
+where
+    E: OutboxEventMarker<CoreCreditEvent>,
+{
+    pub fn new(pool: &PgPool, publisher: &CreditFacilityPublisher<E>) -> Self {
+        Self {
+            pool: pool.clone(),
+            publisher: publisher.clone(),
+        }
+    }
+
+    async fn publish(
+        &self,
+        db: &mut es_entity::DbOp<'_>,
+        entity: &Obligation,
+        new_events: es_entity::LastPersisted<'_, ObligationEvent>,
+    ) -> Result<(), ObligationError> {
+        self.publisher
+            .publish_obligation(db, entity, new_events)
+            .await
     }
 }
