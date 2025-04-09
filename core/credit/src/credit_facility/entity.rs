@@ -10,7 +10,7 @@ use crate::{
     obligation::NewObligation,
     primitives::*,
     terms::{CVLData, CVLPct, CollateralizationState, InterestPeriod, TermValues},
-    ObligationsAmounts,
+    ObligationsAmounts, ObligationsOutstanding,
 };
 
 use crate::{disbursal::*, interest_accrual_cycle::*, ledger::*};
@@ -391,16 +391,6 @@ impl CreditFacility {
 
     fn facility_remaining(&self) -> UsdCents {
         self.initial_facility() - self.total_disbursed()
-    }
-
-    fn interest_accrued(&self) -> UsdCents {
-        self.events
-            .iter_all()
-            .filter_map(|event| match event {
-                CreditFacilityEvent::InterestAccrualCycleConcluded { amount, .. } => Some(*amount),
-                _ => None,
-            })
-            .fold(UsdCents::ZERO, |acc, amount| acc + amount)
     }
 
     fn disbursed_payments(&self) -> UsdCents {
@@ -805,16 +795,23 @@ impl CreditFacility {
         }
     }
 
-    pub fn balances(&self) -> CreditFacilityBalance {
+    pub fn balances(
+        &self,
+        obligations_initial_amounts: ObligationsAmounts,
+        obligations_outstanding: ObligationsOutstanding,
+    ) -> CreditFacilityBalance {
         CreditFacilityBalance {
             facility_remaining: self.facility_remaining(),
             collateral: self.collateral(),
-            total_disbursed: self.total_disbursed(),
-            disbursed_receivable: self.total_outstanding().disbursed,
-            due_disbursed_receivable: self.outstanding_overdue().disbursed,
-            total_interest_accrued: self.interest_accrued(),
-            interest_receivable: self.total_outstanding().interest,
-            due_interest_receivable: self.outstanding_overdue().interest,
+
+            total_disbursed: obligations_initial_amounts.disbursed,
+            total_interest_accrued: obligations_initial_amounts.interest,
+
+            disbursed_receivable: obligations_outstanding.total().disbursed,
+            due_disbursed_receivable: obligations_outstanding.overdue.disbursed,
+
+            interest_receivable: obligations_outstanding.total().interest,
+            due_interest_receivable: obligations_outstanding.overdue.interest,
         }
     }
 
@@ -1311,32 +1308,6 @@ mod test {
                 dummy_audit_info()
             )
             .is_ok());
-    }
-
-    #[test]
-    fn interest_accrued() {
-        let mut events = initial_events();
-        events.extend([
-            CreditFacilityEvent::InterestAccrualCycleConcluded {
-                idx: InterestAccrualCycleIdx::FIRST,
-                tx_id: LedgerTxId::new(),
-                tx_ref: "".to_string(),
-                amount: UsdCents::from(10),
-                posted_at: Utc::now(),
-                audit_info: dummy_audit_info(),
-            },
-            CreditFacilityEvent::InterestAccrualCycleConcluded {
-                idx: InterestAccrualCycleIdx::FIRST.next(),
-                tx_id: LedgerTxId::new(),
-                tx_ref: "".to_string(),
-                amount: UsdCents::from(20),
-                posted_at: Utc::now(),
-                audit_info: dummy_audit_info(),
-            },
-        ]);
-        let credit_facility = facility_from(events);
-
-        assert_eq!(credit_facility.interest_accrued(), UsdCents::from(30));
     }
 
     #[test]
