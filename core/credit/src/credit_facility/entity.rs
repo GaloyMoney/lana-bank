@@ -991,30 +991,6 @@ impl CreditFacility {
             None
         }
     }
-
-    pub(crate) fn disbursal_amount_from_idx(&self, idx: DisbursalIdx) -> UsdCents {
-        if let Some(amount) = self
-            .events
-            .iter_all()
-            .filter_map(|event| match event {
-                CreditFacilityEvent::DisbursalInitiated { idx: i, amount, .. } if i == &idx => {
-                    Some(amount)
-                }
-                _ => None,
-            })
-            .next()
-        {
-            if self.events.iter_all().any(|event| {
-                matches!(
-                    event,
-                    CreditFacilityEvent::DisbursalConcluded { idx: i,  .. } if i == &idx
-                )
-            }) {
-                return *amount;
-            }
-        }
-        UsdCents::ZERO
-    }
 }
 
 impl TryFromEvents<CreditFacilityEvent> for CreditFacility {
