@@ -134,6 +134,7 @@ pub enum ObligationEvent {
         tx_id: LedgerTxId,
         audit_info: AuditInfo,
     },
+    // TODO: Remove and find from PaymentAllocation entities
     PaymentRecorded {
         payment_allocation_id: LedgerTxId,
         amount: UsdCents,
