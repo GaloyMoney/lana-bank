@@ -10,7 +10,7 @@ use outbox::OutboxEventMarker;
 use crate::{
     error::CoreCreditError, interest_accruals, ledger::CreditLedger, primitives::CreditFacilityId,
     CoreCreditAction, CoreCreditEvent, CoreCreditObject, CreditFacility, CreditFacilityRepo,
-    DisbursalRepo, Jobs, LedgerTxId, ObligationRepo,
+    DisbursalRepo, Jobs, LedgerTxId, ObligationRepo, ObligationsOutstanding,
 };
 
 pub use job::*;
@@ -104,6 +104,7 @@ where
 
         let new_disbursal = credit_facility.initiate_disbursal(
             credit_facility.structuring_fee(),
+            ObligationsOutstanding::ZERO,
             now,
             price,
             Some(credit_facility.approval_process_id),

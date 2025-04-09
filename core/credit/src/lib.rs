@@ -426,10 +426,27 @@ where
 
         let price = self.price.usd_cents_per_btc().await?;
 
+        let obligations = self
+            .list_obligations_for_credit_facility(credit_facility_id)
+            .await?;
+        let outstanding = ObligationAggregator::new(
+            obligations
+                .iter()
+                .map(ObligationDataForAggregation::from)
+                .collect::<Vec<_>>(),
+        )
+        .outstanding()?;
+
         let mut db = self.credit_facility_repo.begin_op().await?;
         let now = crate::time::now();
-        let new_disbursal =
-            credit_facility.initiate_disbursal(amount, now, price, None, audit_info)?;
+        let new_disbursal = credit_facility.initiate_disbursal(
+            amount,
+            outstanding,
+            now,
+            price,
+            None,
+            audit_info,
+        )?;
         self.governance
             .start_process(
                 &mut db,
