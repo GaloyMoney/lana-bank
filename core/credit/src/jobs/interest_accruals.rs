@@ -147,7 +147,7 @@ where
                     .map(ObligationDataForAggregation::from)
                     .collect::<Vec<_>>(),
             )
-            .outstanding()?;
+            .outstanding();
 
             let account_ids = credit_facility.account_ids;
 
@@ -155,7 +155,7 @@ where
                 .interest_accrual_cycle_in_progress_mut()
                 .expect("Accrual in progress should exist for scheduled job");
 
-            let interest_accrual = accrual.record_accrual(outstanding, audit_info.clone());
+            let interest_accrual = accrual.record_accrual(outstanding.overdue, audit_info.clone());
 
             ConfirmedAccrual {
                 accrual: (interest_accrual, account_ids).into(),

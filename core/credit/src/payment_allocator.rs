@@ -255,6 +255,14 @@ mod test {
         let obligations = vec![
             ObligationDataForAllocation {
                 id: ObligationId::new(),
+                obligation_type: ObligationType::Disbursal,
+                recorded_at: Utc::now(),
+                outstanding: UsdCents::from(2),
+                receivable_account_id: CalaAccountId::new(),
+                account_to_be_debited_id: CalaAccountId::new(),
+            },
+            ObligationDataForAllocation {
+                id: ObligationId::new(),
                 obligation_type: ObligationType::Interest,
                 recorded_at: Utc::now(),
                 outstanding: UsdCents::from(4),
@@ -273,15 +281,7 @@ mod test {
                 id: ObligationId::new(),
                 obligation_type: ObligationType::Disbursal,
                 recorded_at: Utc::now(),
-                outstanding: UsdCents::from(2),
-                receivable_account_id: CalaAccountId::new(),
-                account_to_be_debited_id: CalaAccountId::new(),
-            },
-            ObligationDataForAllocation {
-                id: ObligationId::new(),
-                obligation_type: ObligationType::Disbursal,
-                recorded_at: Utc::now(),
-                outstanding: UsdCents::ONE,
+                outstanding: UsdCents::from(1),
                 receivable_account_id: CalaAccountId::new(),
                 account_to_be_debited_id: CalaAccountId::new(),
             },

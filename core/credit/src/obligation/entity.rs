@@ -13,11 +13,11 @@ use crate::{
 use super::error::ObligationError;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
-pub(crate) enum ObligationStatus {
+pub enum ObligationStatus {
     NotYetDue,
     Due,
     Overdue,
-    _Defaulted,
+    Defaulted,
     Paid,
 }
 
@@ -47,13 +47,52 @@ pub struct ObligationOverdueReallocationData {
     pub overdue_account_id: CalaAccountId,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
 pub struct ObligationsOutstanding {
+    pub not_yet_due: ObligationsAmounts,
+    pub due: ObligationsAmounts,
+    pub overdue: ObligationsAmounts,
+    pub defaulted: ObligationsAmounts,
+}
+
+impl ObligationsOutstanding {
+    pub const ZERO: Self = Self {
+        not_yet_due: ObligationsAmounts::ZERO,
+        due: ObligationsAmounts::ZERO,
+        overdue: ObligationsAmounts::ZERO,
+        defaulted: ObligationsAmounts::ZERO,
+    };
+
+    pub fn total(&self) -> ObligationsAmounts {
+        let Self {
+            not_yet_due,
+            due,
+            overdue,
+            defaulted,
+        } = self;
+
+        *not_yet_due + *due + *overdue + *defaulted
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
+pub struct ObligationsAmounts {
     pub disbursed: UsdCents,
     pub interest: UsdCents,
 }
 
-impl ObligationsOutstanding {
+impl std::ops::Add<ObligationsAmounts> for ObligationsAmounts {
+    type Output = Self;
+
+    fn add(self, other: ObligationsAmounts) -> Self {
+        Self {
+            disbursed: self.disbursed + other.disbursed,
+            interest: self.interest + other.interest,
+        }
+    }
+}
+
+impl ObligationsAmounts {
     pub const ZERO: Self = Self {
         disbursed: UsdCents::ZERO,
         interest: UsdCents::ZERO,
@@ -191,7 +230,7 @@ impl Obligation {
             .expect("Entity was not Initialized");
 
         match self.status() {
-            ObligationStatus::Overdue | ObligationStatus::_Defaulted => {
+            ObligationStatus::Overdue | ObligationStatus::Defaulted => {
                 overdue_accounts.account_to_be_debited_id
             }
             _ => due_accounts.account_to_be_debited_id,
@@ -213,14 +252,14 @@ impl Obligation {
             .expect("Entity was not Initialized");
 
         match self.status() {
-            ObligationStatus::Overdue | ObligationStatus::_Defaulted => {
+            ObligationStatus::Overdue | ObligationStatus::Defaulted => {
                 overdue_accounts.account_to_be_credited_id
             }
             _ => due_accounts.account_to_be_credited_id,
         }
     }
 
-    pub(super) fn status(&self) -> ObligationStatus {
+    pub fn status(&self) -> ObligationStatus {
         self.events
             .iter_all()
             .rev()
