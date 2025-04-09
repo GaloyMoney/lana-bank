@@ -259,7 +259,7 @@ mod tests {
             CreditFacilityEvent::InterestAccrualCycleConcluded {
                 idx: first_interest_idx,
                 tx_id: LedgerTxId::new(),
-                tx_ref: "".to_string(),
+                obligation_id: ObligationId::new(),
                 amount: UsdCents::from(2),
                 posted_at: first_interest_posted_at,
                 audit_info: dummy_audit_info(),
@@ -415,7 +415,7 @@ mod tests {
         events.extend([CreditFacilityEvent::InterestAccrualCycleConcluded {
             idx: second_interest_idx,
             tx_id: LedgerTxId::new(),
-            tx_ref: "".to_string(),
+            obligation_id: ObligationId::new(),
             amount: UsdCents::from(12),
             posted_at: second_interest_posted_at,
             audit_info: dummy_audit_info(),
@@ -448,7 +448,7 @@ mod tests {
             CreditFacilityEvent::InterestAccrualCycleConcluded {
                 idx: second_interest_idx,
                 tx_id: LedgerTxId::new(),
-                tx_ref: "".to_string(),
+                obligation_id: ObligationId::new(),
                 amount: UsdCents::from(12),
                 posted_at: second_interest_posted_at,
                 audit_info: dummy_audit_info(),
@@ -532,7 +532,7 @@ mod tests {
             CreditFacilityEvent::InterestAccrualCycleConcluded {
                 idx: second_interest_idx,
                 tx_id: LedgerTxId::new(),
-                tx_ref: "".to_string(),
+                obligation_id: ObligationId::new(),
                 amount: UsdCents::from(12),
                 posted_at: second_interest_posted_at,
                 audit_info: dummy_audit_info(),
@@ -547,7 +547,7 @@ mod tests {
             CreditFacilityEvent::InterestAccrualCycleConcluded {
                 idx: second_interest_idx.next(),
                 tx_id: LedgerTxId::new(),
-                tx_ref: "".to_string(),
+                obligation_id: ObligationId::new(),
                 amount: UsdCents::from(6),
                 posted_at: third_interest_posted_at,
                 audit_info: dummy_audit_info(),
@@ -592,7 +592,7 @@ mod tests {
             CreditFacilityEvent::InterestAccrualCycleConcluded {
                 idx: second_interest_idx,
                 tx_id: LedgerTxId::new(),
-                tx_ref: "".to_string(),
+                obligation_id: ObligationId::new(),
                 amount: UsdCents::from(12),
                 posted_at: second_interest_posted_at,
                 audit_info: dummy_audit_info(),
@@ -607,7 +607,7 @@ mod tests {
             CreditFacilityEvent::InterestAccrualCycleConcluded {
                 idx: second_interest_idx.next(),
                 tx_id: LedgerTxId::new(),
-                tx_ref: "".to_string(),
+                obligation_id: ObligationId::new(),
                 amount: UsdCents::from(6),
                 posted_at: third_interest_posted_at,
                 audit_info: dummy_audit_info(),

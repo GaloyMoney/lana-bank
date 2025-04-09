@@ -527,6 +527,27 @@ where
         Ok(disbursal)
     }
 
+    #[instrument(name = "credit_facility.find_obligation_by_id", skip(self), err)]
+    pub async fn find_obligation_by_id(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        id: impl Into<ObligationId> + std::fmt::Debug,
+    ) -> Result<Option<Obligation>, CoreCreditError> {
+        self.authz
+            .enforce_permission(
+                sub,
+                CoreCreditObject::all_obligations(),
+                CoreCreditAction::OBLIGATION_READ,
+            )
+            .await?;
+
+        match self.obligation_repo.find_by_id(id.into()).await {
+            Ok(loan) => Ok(Some(loan)),
+            Err(e) if e.was_not_found() => Ok(None),
+            Err(e) => Err(e.into()),
+        }
+    }
+
     pub async fn ensure_up_to_date_disbursal_status(
         &self,
         disbursal: &Disbursal,

@@ -170,6 +170,7 @@ impl CoreCreditAction {
     pub const DISBURSAL_CONCLUDE_APPROVAL_PROCESS: Self =
         CoreCreditAction::Disbursal(DisbursalAction::ConcludeApprovalProcess);
 
+    pub const OBLIGATION_READ: Self = CoreCreditAction::Obligation(ObligationAction::Read);
     pub const OBLIGATION_UPDATE_STATUS: Self =
         CoreCreditAction::Obligation(ObligationAction::UpdateStatus);
     pub const OBLIGATION_RECORD_PAYMENT: Self =
@@ -258,6 +259,7 @@ impl From<ChartOfAccountsIntegrationConfigAction> for CoreCreditAction {
 #[derive(PartialEq, Clone, Copy, Debug, strum::Display, strum::EnumString)]
 #[strum(serialize_all = "kebab-case")]
 pub enum ObligationAction {
+    Read,
     UpdateStatus,
     RecordPaymentAllocation,
 }
