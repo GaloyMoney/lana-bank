@@ -58,16 +58,6 @@ where
                     id: entity.id,
                     completed_at: *completed_at,
                 }),
-                DisbursalConcluded {
-                    idx, recorded_at, ..
-                } => {
-                    let amount = entity.disbursal_amount_from_idx(*idx);
-                    Some(CoreCreditEvent::DisbursalExecuted {
-                        id: entity.id,
-                        amount,
-                        recorded_at: *recorded_at,
-                    })
-                }
                 PaymentRecorded {
                     disbursal_amount,
                     interest_amount,
@@ -104,13 +94,6 @@ where
                     })
                 }
 
-                InterestAccrualCycleConcluded { obligation_id, .. } => {
-                    Some(CoreCreditEvent::AccrualExecuted {
-                        id: entity.id,
-                        obligation_id: *obligation_id,
-                    })
-                }
-
                 _ => None,
             })
             .collect::<Vec<_>>();
@@ -132,19 +115,15 @@ where
                 Initialized {
                     obligation_type, ..
                 } => match obligation_type {
-                    ObligationType::Disbursal => {
-                        Some(CoreCreditEvent::DisbursalObligationCreated {
-                            id: entity.credit_facility_id,
-                            obligation_id: entity.id,
-                            amount: entity.initial_amount,
-                            recorded_at: entity.recorded_at,
-                        })
-                    }
-                    ObligationType::Interest => Some(CoreCreditEvent::AccrualObligationCreated {
+                    ObligationType::Disbursal => Some(CoreCreditEvent::DisbursalExecuted {
                         id: entity.credit_facility_id,
-                        obligation_id: entity.id,
                         amount: entity.initial_amount,
                         recorded_at: entity.recorded_at,
+                    }),
+                    ObligationType::Interest => Some(CoreCreditEvent::AccrualExecuted {
+                        id: entity.credit_facility_id,
+                        amount: entity.initial_amount,
+                        posted_at: entity.recorded_at,
                     }),
                 },
 
