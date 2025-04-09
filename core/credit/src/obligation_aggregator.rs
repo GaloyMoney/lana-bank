@@ -1,6 +1,7 @@
 use crate::{
     obligation::{Obligation, ObligationStatus, ObligationType, ObligationsOutstanding},
     primitives::*,
+    ObligationsAmounts,
 };
 
 pub struct ObligationAggregator {
@@ -11,6 +12,7 @@ pub struct ObligationAggregator {
 pub struct ObligationDataForAggregation {
     obligation_type: ObligationType,
     status: ObligationStatus,
+    initial_amount: UsdCents,
     outstanding: UsdCents,
 }
 
@@ -19,6 +21,7 @@ impl From<&Obligation> for ObligationDataForAggregation {
         Self {
             obligation_type: obligation.obligation_type(),
             status: obligation.status(),
+            initial_amount: obligation.initial_amount,
             outstanding: obligation.outstanding(),
         }
     }
@@ -29,6 +32,18 @@ impl ObligationAggregator {
         Self {
             obligations: obligations.into(),
         }
+    }
+
+    pub fn initial_amounts(&self) -> ObligationsAmounts {
+        let mut res = ObligationsAmounts::ZERO;
+        for obligation in &self.obligations {
+            match obligation.obligation_type {
+                ObligationType::Disbursal => res.disbursed += obligation.initial_amount,
+                ObligationType::Interest => res.interest += obligation.initial_amount,
+            }
+        }
+
+        res
     }
 
     pub fn outstanding(&self) -> ObligationsOutstanding {
@@ -71,41 +86,49 @@ mod test {
             ObligationDataForAggregation {
                 obligation_type: ObligationType::Disbursal,
                 status: ObligationStatus::NotYetDue,
+                initial_amount: UsdCents::from(1),
                 outstanding: UsdCents::from(1),
             },
             ObligationDataForAggregation {
                 obligation_type: ObligationType::Interest,
                 status: ObligationStatus::NotYetDue,
+                initial_amount: UsdCents::from(2),
                 outstanding: UsdCents::from(2),
             },
             ObligationDataForAggregation {
                 obligation_type: ObligationType::Disbursal,
                 status: ObligationStatus::Due,
+                initial_amount: UsdCents::from(3),
                 outstanding: UsdCents::from(3),
             },
             ObligationDataForAggregation {
                 obligation_type: ObligationType::Interest,
                 status: ObligationStatus::Due,
+                initial_amount: UsdCents::from(4),
                 outstanding: UsdCents::from(4),
             },
             ObligationDataForAggregation {
                 obligation_type: ObligationType::Disbursal,
                 status: ObligationStatus::Overdue,
+                initial_amount: UsdCents::from(5),
                 outstanding: UsdCents::from(5),
             },
             ObligationDataForAggregation {
                 obligation_type: ObligationType::Interest,
                 status: ObligationStatus::Overdue,
+                initial_amount: UsdCents::from(6),
                 outstanding: UsdCents::from(6),
             },
             ObligationDataForAggregation {
                 obligation_type: ObligationType::Disbursal,
                 status: ObligationStatus::Defaulted,
+                initial_amount: UsdCents::from(7),
                 outstanding: UsdCents::from(7),
             },
             ObligationDataForAggregation {
                 obligation_type: ObligationType::Interest,
                 status: ObligationStatus::Defaulted,
+                initial_amount: UsdCents::from(8),
                 outstanding: UsdCents::from(8),
             },
         ];

@@ -12,6 +12,7 @@ where
     customer_id: CustomerId,
     subject: &'a <<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
     authz: &'a Perms,
+    obligations: &'a ObligationRepo,
     credit_facilities: &'a CreditFacilityRepo<E>,
     disbursals: &'a DisbursalRepo,
     payments: &'a PaymentRepo,
@@ -28,6 +29,7 @@ where
         subject: &'a <<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         customer_id: CustomerId,
         authz: &'a Perms,
+        obligations: &'a ObligationRepo,
         credit_facilities: &'a CreditFacilityRepo<E>,
         disbursals: &'a DisbursalRepo,
         payments: &'a PaymentRepo,
@@ -36,6 +38,7 @@ where
             customer_id,
             subject,
             authz,
+            obligations,
             credit_facilities,
             disbursals,
             payments,
@@ -64,6 +67,37 @@ where
             .await?)
     }
 
+    async fn list_obligations_for_credit_facility(
+        &self,
+        credit_facility_id: CreditFacilityId,
+    ) -> Result<Vec<Obligation>, CoreCreditError> {
+        let mut obligations = vec![];
+        let mut query = es_entity::PaginatedQueryArgs::<ObligationsByCreatedAtCursor>::default();
+        loop {
+            let res = self
+                .obligations
+                .list_for_credit_facility_id_by_created_at(
+                    credit_facility_id,
+                    query,
+                    es_entity::ListDirection::Ascending,
+                )
+                .await?;
+
+            obligations.extend(res.entities);
+
+            if res.has_next_page {
+                query = es_entity::PaginatedQueryArgs::<ObligationsByCreatedAtCursor> {
+                    first: 100,
+                    after: res.end_cursor,
+                }
+            } else {
+                break;
+            };
+        }
+
+        Ok(obligations)
+    }
+
     pub async fn balance(
         &self,
         id: impl Into<CreditFacilityId> + std::fmt::Debug,
@@ -78,7 +112,15 @@ where
         )
         .await?;
 
-        Ok(credit_facility.balances())
+        let obligations = self.list_obligations_for_credit_facility(id).await?;
+        let aggregator = ObligationAggregator::new(
+            obligations
+                .iter()
+                .map(ObligationDataForAggregation::from)
+                .collect::<Vec<_>>(),
+        );
+
+        Ok(credit_facility.balances(aggregator.initial_amounts(), aggregator.outstanding()))
     }
 
     pub async fn find_by_id(

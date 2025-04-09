@@ -263,6 +263,7 @@ where
             sub,
             customer_id,
             &self.authz,
+            &self.obligation_repo,
             &self.credit_facility_repo,
             &self.disbursal_repo,
             &self.payment_repo,
@@ -377,7 +378,15 @@ where
 
         let credit_facility = self.credit_facility_repo.find_by_id(id).await?;
 
-        Ok(credit_facility.balances())
+        let obligations = self.list_obligations_for_credit_facility(id).await?;
+        let aggregator = ObligationAggregator::new(
+            obligations
+                .iter()
+                .map(ObligationDataForAggregation::from)
+                .collect::<Vec<_>>(),
+        );
+
+        Ok(credit_facility.balances(aggregator.initial_amounts(), aggregator.outstanding()))
     }
 
     pub async fn subject_can_initiate_disbursal(
