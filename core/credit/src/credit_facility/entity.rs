@@ -7,7 +7,7 @@ use audit::AuditInfo;
 use es_entity::*;
 
 use crate::{
-    obligation::NewObligation,
+    obligation::{NewObligation, ObligationsOutstanding},
     primitives::*,
     terms::{CVLData, CVLPct, CollateralizationState, InterestPeriod, TermValues},
 };
@@ -108,6 +108,15 @@ impl From<CreditFacilityLedgerBalance> for CreditFacilityReceivable {
         Self {
             disbursed: balance.disbursed_receivable,
             interest: balance.interest_receivable,
+        }
+    }
+}
+
+impl From<ObligationsOutstanding> for CreditFacilityReceivable {
+    fn from(outstanding: ObligationsOutstanding) -> Self {
+        Self {
+            disbursed: outstanding.disbursed,
+            interest: outstanding.interest,
         }
     }
 }
@@ -550,6 +559,7 @@ impl CreditFacility {
     pub(crate) fn initiate_disbursal(
         &mut self,
         amount: UsdCents,
+        outstanding_amount: ObligationsOutstanding,
         initiated_at: DateTime<Utc>,
         price: PriceOfOneBTC,
         approval_process_id: Option<ApprovalProcessId>,
@@ -561,7 +571,7 @@ impl CreditFacility {
             }
         }
 
-        self.projected_cvl_data_for_disbursal(amount)
+        self.projected_cvl_data_for_disbursal(outstanding_amount, amount)
             .cvl(price)
             .check_disbursal_allowed(self.terms)?;
 
@@ -787,14 +797,6 @@ impl CreditFacility {
         }
     }
 
-    pub fn total_outstanding_after_added_disbursal_amount(
-        &self,
-        disbursal_amount: UsdCents,
-    ) -> CreditFacilityReceivable {
-        self.total_outstanding()
-            .with_added_disbursal_amount(disbursal_amount)
-    }
-
     pub fn outstanding_overdue(&self) -> CreditFacilityReceivable {
         CreditFacilityReceivable {
             disbursed: self.disbursed_outstanding_overdue(),
@@ -906,8 +908,14 @@ impl CreditFacility {
         None
     }
 
-    fn projected_cvl_data_for_disbursal(&self, disbursal_amount: UsdCents) -> FacilityCVLData {
-        self.total_outstanding_after_added_disbursal_amount(disbursal_amount)
+    fn projected_cvl_data_for_disbursal(
+        &self,
+        outstanding_amount: impl Into<CreditFacilityReceivable>,
+        disbursal_amount: UsdCents,
+    ) -> FacilityCVLData {
+        outstanding_amount
+            .into()
+            .with_added_disbursal_amount(disbursal_amount)
             .facility_cvl_data(self.collateral(), self.facility_remaining())
     }
 
@@ -1295,6 +1303,7 @@ mod test {
         assert!(facility_from(events)
             .initiate_disbursal(
                 UsdCents::ONE,
+                ObligationsOutstanding::ZERO,
                 Utc::now(),
                 default_price(),
                 None,
@@ -1961,6 +1970,7 @@ mod test {
             let new_disbursal = credit_facility
                 .initiate_disbursal(
                     UsdCents::from(600_000_00),
+                    ObligationsOutstanding::ZERO,
                     facility_activated_at,
                     default_price(),
                     None,

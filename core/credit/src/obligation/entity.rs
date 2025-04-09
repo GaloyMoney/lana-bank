@@ -54,6 +54,11 @@ pub struct ObligationsOutstanding {
 }
 
 impl ObligationsOutstanding {
+    pub const ZERO: Self = Self {
+        disbursed: UsdCents::ZERO,
+        interest: UsdCents::ZERO,
+    };
+
     pub fn total(&self) -> UsdCents {
         self.interest + self.disbursed
     }
