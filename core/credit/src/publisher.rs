@@ -103,13 +103,12 @@ where
                     })
                 }
 
-                InterestAccrualCycleConcluded {
-                    amount, posted_at, ..
-                } => Some(CoreCreditEvent::AccrualExecuted {
-                    id: entity.id,
-                    amount: *amount,
-                    posted_at: *posted_at,
-                }),
+                InterestAccrualCycleConcluded { obligation_id, .. } => {
+                    Some(CoreCreditEvent::AccrualExecuted {
+                        id: entity.id,
+                        obligation_id: *obligation_id,
+                    })
+                }
 
                 _ => None,
             })

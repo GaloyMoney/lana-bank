@@ -43,8 +43,7 @@ pub enum CoreCreditEvent {
     },
     AccrualExecuted {
         id: CreditFacilityId,
-        amount: UsdCents,
-        posted_at: DateTime<Utc>,
+        obligation_id: ObligationId,
     },
 }
 

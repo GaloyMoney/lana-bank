@@ -138,7 +138,7 @@ mod test {
         assert_eq!(res.not_yet_due.interest, UsdCents::from(2));
         assert_eq!(res.due.disbursed, UsdCents::from(3));
         assert_eq!(res.due.interest, UsdCents::from(4));
-        assert_eq!(res.overdue.interdisbursedest, UsdCents::from(5));
+        assert_eq!(res.overdue.disbursed, UsdCents::from(5));
         assert_eq!(res.overdue.interest, UsdCents::from(6));
         assert_eq!(res.defaulted.disbursed, UsdCents::from(7));
         assert_eq!(res.defaulted.interest, UsdCents::from(8));
