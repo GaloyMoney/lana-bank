@@ -6,11 +6,10 @@ use audit::AuditInfo;
 use es_entity::*;
 
 use crate::{
-    credit_facility::CreditFacilityReceivable,
     obligation::{NewObligation, ObligationAccounts, ObligationType},
     primitives::*,
     terms::{InterestPeriod, TermValues},
-    CreditFacilityAccountIds,
+    CreditFacilityAccountIds, ObligationsOutstanding,
 };
 
 #[derive(Debug, Copy, Clone, Serialize, Deserialize)]
@@ -187,7 +186,7 @@ impl InterestAccrualCycle {
 
     pub(crate) fn record_accrual(
         &mut self,
-        outstanding: CreditFacilityReceivable,
+        outstanding: ObligationsOutstanding,
         audit_info: AuditInfo,
     ) -> InterestAccrualData {
         let accrual_period = self
@@ -499,7 +498,7 @@ mod test {
         let InterestAccrualData {
             interest, period, ..
         } = accrual.record_accrual(
-            CreditFacilityReceivable {
+            ObligationsOutstanding {
                 disbursed: UsdCents::ZERO,
                 interest: UsdCents::ZERO,
             },
@@ -551,7 +550,7 @@ mod test {
             let InterestAccrualData {
                 interest, period, ..
             } = accrual.record_accrual(
-                CreditFacilityReceivable {
+                ObligationsOutstanding {
                     disbursed: UsdCents::ZERO,
                     interest: UsdCents::ZERO,
                 },
@@ -596,7 +595,7 @@ mod test {
             let InterestAccrualData {
                 interest, period, ..
             } = accrual.record_accrual(
-                CreditFacilityReceivable {
+                ObligationsOutstanding {
                     disbursed: disbursed_outstanding,
                     interest: UsdCents::ZERO,
                 },

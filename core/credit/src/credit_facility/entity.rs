@@ -1913,6 +1913,15 @@ mod test {
     mod repayment {
         use super::*;
 
+        impl From<CreditFacilityReceivable> for ObligationsOutstanding {
+            fn from(receivable: CreditFacilityReceivable) -> Self {
+                Self {
+                    disbursed: receivable.disbursed,
+                    interest: receivable.interest,
+                }
+            }
+        }
+
         fn credit_facility_with_interest_accrual(
             facility_activated_at: DateTime<Utc>,
         ) -> CreditFacility {
@@ -1981,7 +1990,7 @@ mod test {
                 let accrual = credit_facility
                     .interest_accrual_cycle_in_progress_mut()
                     .unwrap();
-                accrual.record_accrual(outstanding, dummy_audit_info());
+                accrual.record_accrual(outstanding.into(), dummy_audit_info());
                 accrual_cycle_data = accrual.accrual_cycle_data();
             }
             credit_facility
