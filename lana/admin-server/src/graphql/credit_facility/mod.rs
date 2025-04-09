@@ -39,7 +39,6 @@ pub struct CreditFacility {
     collateralization_state: CollateralizationState,
     facility_amount: UsdCents,
     collateral: Satoshis,
-    can_be_completed: bool,
 
     #[graphql(skip)]
     pub(super) entity: Arc<DomainCreditFacility>,
@@ -56,7 +55,6 @@ impl From<DomainCreditFacility> for CreditFacility {
             approval_process_id: UUID::from(credit_facility.approval_process_id),
             activated_at,
             matures_at,
-            can_be_completed: credit_facility.can_be_completed(),
             created_at: credit_facility.created_at().into(),
             facility_amount: credit_facility.initial_facility(),
             collateral: credit_facility.collateral(),
@@ -69,6 +67,12 @@ impl From<DomainCreditFacility> for CreditFacility {
 
 #[ComplexObject]
 impl CreditFacility {
+    async fn can_be_completed(&self, ctx: &Context<'_>) -> async_graphql::Result<bool> {
+        let (app, _) = crate::app_and_sub_from_ctx!(ctx);
+        let obligations_outstanding = app.credit_facilities().outstanding(self.entity.id).await?;
+        Ok(self.entity.can_be_completed(obligations_outstanding))
+    }
+
     async fn credit_facility_terms(&self) -> TermValues {
         self.entity.terms.into()
     }
@@ -86,8 +90,13 @@ impl CreditFacility {
     async fn current_cvl(&self, ctx: &Context<'_>) -> async_graphql::Result<FacilityCVL> {
         let app = ctx.data_unchecked::<LanaApp>();
         let price = app.price().usd_cents_per_btc().await?;
+
+        let obligations = app
+            .credit_facilities()
+            .obligations_aggregator(self.entity.id)
+            .await?;
         Ok(FacilityCVL::from(
-            self.entity.facility_cvl_data().cvl(price),
+            self.entity.facility_cvl_data(&obligations).cvl(price),
         ))
     }
 

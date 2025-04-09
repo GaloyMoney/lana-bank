@@ -120,7 +120,7 @@ where
                 .collect::<Vec<_>>(),
         );
 
-        Ok(credit_facility.balances(aggregator.initial_amounts(), aggregator.outstanding()))
+        Ok(credit_facility.balances(&aggregator))
     }
 
     pub async fn find_by_id(

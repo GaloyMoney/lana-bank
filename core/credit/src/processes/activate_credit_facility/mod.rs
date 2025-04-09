@@ -14,7 +14,8 @@ use crate::{
     event::CoreCreditEvent,
     jobs::interest_accruals,
     ledger::CreditLedger,
-    obligation::{ObligationRepo, ObligationsAmounts},
+    obligation::ObligationRepo,
+    obligation_aggregator::ObligationAggregator,
     primitives::{CoreCreditAction, CoreCreditObject, CreditFacilityId, LedgerTxId},
     Jobs,
 };
@@ -110,7 +111,7 @@ where
 
         let new_disbursal = credit_facility.initiate_disbursal(
             credit_facility.structuring_fee(),
-            ObligationsAmounts::ZERO,
+            &ObligationAggregator::new(vec![]),
             now,
             price,
             Some(credit_facility.approval_process_id),
