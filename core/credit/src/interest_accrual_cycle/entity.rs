@@ -9,7 +9,7 @@ use crate::{
     obligation::{NewObligation, ObligationAccounts, ObligationType},
     primitives::*,
     terms::{InterestPeriod, TermValues},
-    CreditFacilityAccountIds, ObligationsOutstanding,
+    CreditFacilityAccountIds, ObligationsAmounts,
 };
 
 #[derive(Debug, Copy, Clone, Serialize, Deserialize)]
@@ -186,7 +186,7 @@ impl InterestAccrualCycle {
 
     pub(crate) fn record_accrual(
         &mut self,
-        outstanding: ObligationsOutstanding,
+        overdue_outstanding: ObligationsAmounts,
         audit_info: AuditInfo,
     ) -> InterestAccrualData {
         let accrual_period = self
@@ -197,7 +197,7 @@ impl InterestAccrualCycle {
         let interest_for_period = self
             .terms
             .annual_rate
-            .interest_for_time_period(outstanding.total(), days_in_interest_period);
+            .interest_for_time_period(overdue_outstanding.total(), days_in_interest_period);
 
         let accrual_tx_ref = format!("{}-interest-accrual-{}", self.id, self.count_accrued() + 1);
         let interest_accrual = InterestAccrualData {
@@ -498,7 +498,7 @@ mod test {
         let InterestAccrualData {
             interest, period, ..
         } = accrual.record_accrual(
-            ObligationsOutstanding {
+            ObligationsAmounts {
                 disbursed: UsdCents::ZERO,
                 interest: UsdCents::ZERO,
             },
@@ -550,7 +550,7 @@ mod test {
             let InterestAccrualData {
                 interest, period, ..
             } = accrual.record_accrual(
-                ObligationsOutstanding {
+                ObligationsAmounts {
                     disbursed: UsdCents::ZERO,
                     interest: UsdCents::ZERO,
                 },
@@ -595,7 +595,7 @@ mod test {
             let InterestAccrualData {
                 interest, period, ..
             } = accrual.record_accrual(
-                ObligationsOutstanding {
+                ObligationsAmounts {
                     disbursed: disbursed_outstanding,
                     interest: UsdCents::ZERO,
                 },

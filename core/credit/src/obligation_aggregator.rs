@@ -1,7 +1,6 @@
 use crate::{
-    obligation::{Obligation, ObligationType, ObligationsOutstanding},
+    obligation::{Obligation, ObligationStatus, ObligationType, ObligationsOutstanding},
     primitives::*,
-    CoreCreditError,
 };
 
 pub struct ObligationAggregator {
@@ -11,6 +10,7 @@ pub struct ObligationAggregator {
 #[derive(Debug, Clone, Copy)]
 pub struct ObligationDataForAggregation {
     obligation_type: ObligationType,
+    status: ObligationStatus,
     outstanding: UsdCents,
 }
 
@@ -18,6 +18,7 @@ impl From<&Obligation> for ObligationDataForAggregation {
     fn from(obligation: &Obligation) -> Self {
         Self {
             obligation_type: obligation.obligation_type(),
+            status: obligation.status(),
             outstanding: obligation.outstanding(),
         }
     }
@@ -30,29 +31,93 @@ impl ObligationAggregator {
         }
     }
 
-    pub fn outstanding(&self) -> Result<ObligationsOutstanding, CoreCreditError> {
-        let mut disbursal_obligations = vec![];
-        let mut interest_obligations = vec![];
+    pub fn outstanding(&self) -> ObligationsOutstanding {
+        let mut res = ObligationsOutstanding::ZERO;
         for obligation in &self.obligations {
-            match obligation.obligation_type {
-                ObligationType::Disbursal => disbursal_obligations.push(obligation),
-                ObligationType::Interest => interest_obligations.push(obligation),
+            match obligation.status {
+                ObligationStatus::NotYetDue => match obligation.obligation_type {
+                    ObligationType::Disbursal => {
+                        res.not_yet_due.disbursed += obligation.outstanding
+                    }
+                    ObligationType::Interest => res.not_yet_due.interest += obligation.outstanding,
+                },
+                ObligationStatus::Due => match obligation.obligation_type {
+                    ObligationType::Disbursal => res.due.disbursed += obligation.outstanding,
+                    ObligationType::Interest => res.due.interest += obligation.outstanding,
+                },
+                ObligationStatus::Overdue => match obligation.obligation_type {
+                    ObligationType::Disbursal => res.overdue.disbursed += obligation.outstanding,
+                    ObligationType::Interest => res.overdue.interest += obligation.outstanding,
+                },
+                ObligationStatus::Defaulted => match obligation.obligation_type {
+                    ObligationType::Disbursal => res.defaulted.disbursed += obligation.outstanding,
+                    ObligationType::Interest => res.defaulted.interest += obligation.outstanding,
+                },
+                ObligationStatus::Paid => (),
             }
         }
-        let disbursed_outstanding = disbursal_obligations
-            .iter()
-            .map(|o| o.outstanding)
-            .fold(UsdCents::ZERO, |acc, amount| acc + amount);
-        let interest_outstanding = interest_obligations
-            .iter()
-            .map(|o| o.outstanding)
-            .fold(UsdCents::ZERO, |acc, amount| acc + amount);
 
-        Ok(ObligationsOutstanding {
-            disbursed: disbursed_outstanding,
-            interest: interest_outstanding,
-        })
+        res
     }
 }
 
-// TODO: Add Tests
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn can_aggregate_outstanding() {
+        let obligations = vec![
+            ObligationDataForAggregation {
+                obligation_type: ObligationType::Disbursal,
+                status: ObligationStatus::NotYetDue,
+                outstanding: UsdCents::from(1),
+            },
+            ObligationDataForAggregation {
+                obligation_type: ObligationType::Interest,
+                status: ObligationStatus::NotYetDue,
+                outstanding: UsdCents::from(2),
+            },
+            ObligationDataForAggregation {
+                obligation_type: ObligationType::Disbursal,
+                status: ObligationStatus::Due,
+                outstanding: UsdCents::from(3),
+            },
+            ObligationDataForAggregation {
+                obligation_type: ObligationType::Interest,
+                status: ObligationStatus::Due,
+                outstanding: UsdCents::from(4),
+            },
+            ObligationDataForAggregation {
+                obligation_type: ObligationType::Disbursal,
+                status: ObligationStatus::Overdue,
+                outstanding: UsdCents::from(5),
+            },
+            ObligationDataForAggregation {
+                obligation_type: ObligationType::Interest,
+                status: ObligationStatus::Overdue,
+                outstanding: UsdCents::from(6),
+            },
+            ObligationDataForAggregation {
+                obligation_type: ObligationType::Disbursal,
+                status: ObligationStatus::Defaulted,
+                outstanding: UsdCents::from(7),
+            },
+            ObligationDataForAggregation {
+                obligation_type: ObligationType::Interest,
+                status: ObligationStatus::Defaulted,
+                outstanding: UsdCents::from(8),
+            },
+        ];
+
+        let res = ObligationAggregator::new(obligations).outstanding();
+        assert_eq!(res.not_yet_due.disbursed, UsdCents::from(1));
+        assert_eq!(res.not_yet_due.interest, UsdCents::from(2));
+        assert_eq!(res.due.disbursed, UsdCents::from(3));
+        assert_eq!(res.due.interest, UsdCents::from(4));
+        assert_eq!(res.overdue.interdisbursedest, UsdCents::from(5));
+        assert_eq!(res.overdue.interest, UsdCents::from(6));
+        assert_eq!(res.defaulted.disbursed, UsdCents::from(7));
+        assert_eq!(res.defaulted.interest, UsdCents::from(8));
+    }
+}

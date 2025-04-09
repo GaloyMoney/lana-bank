@@ -435,13 +435,13 @@ where
                 .map(ObligationDataForAggregation::from)
                 .collect::<Vec<_>>(),
         )
-        .outstanding()?;
+        .outstanding();
 
         let mut db = self.credit_facility_repo.begin_op().await?;
         let now = crate::time::now();
         let new_disbursal = credit_facility.initiate_disbursal(
             amount,
-            outstanding,
+            outstanding.total(), // TODO: decide if default should be included here
             now,
             price,
             None,
@@ -996,7 +996,7 @@ where
         Ok(self.disbursal_repo.find_all(ids).await?)
     }
 
-    pub async fn total_outstanding(
+    pub async fn outstanding(
         &self,
         credit_facility_id: CreditFacilityId,
     ) -> Result<ObligationsOutstanding, CoreCreditError> {
@@ -1004,13 +1004,13 @@ where
             .list_obligations_for_credit_facility(credit_facility_id)
             .await?;
 
-        ObligationAggregator::new(
+        Ok(ObligationAggregator::new(
             obligations
                 .iter()
                 .map(ObligationDataForAggregation::from)
                 .collect::<Vec<_>>(),
         )
-        .outstanding()
+        .outstanding())
     }
 
     pub async fn get_chart_of_accounts_integration_config(

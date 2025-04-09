@@ -7,9 +7,10 @@ use audit::AuditInfo;
 use es_entity::*;
 
 use crate::{
-    obligation::{NewObligation, ObligationsOutstanding},
+    obligation::NewObligation,
     primitives::*,
     terms::{CVLData, CVLPct, CollateralizationState, InterestPeriod, TermValues},
+    ObligationsAmounts,
 };
 
 use crate::{disbursal::*, interest_accrual_cycle::*, ledger::*};
@@ -112,8 +113,8 @@ impl From<CreditFacilityLedgerBalance> for CreditFacilityReceivable {
     }
 }
 
-impl From<ObligationsOutstanding> for CreditFacilityReceivable {
-    fn from(outstanding: ObligationsOutstanding) -> Self {
+impl From<ObligationsAmounts> for CreditFacilityReceivable {
+    fn from(outstanding: ObligationsAmounts) -> Self {
         Self {
             disbursed: outstanding.disbursed,
             interest: outstanding.interest,
@@ -559,7 +560,7 @@ impl CreditFacility {
     pub(crate) fn initiate_disbursal(
         &mut self,
         amount: UsdCents,
-        outstanding_amount: ObligationsOutstanding,
+        total_outstanding_amount: ObligationsAmounts,
         initiated_at: DateTime<Utc>,
         price: PriceOfOneBTC,
         approval_process_id: Option<ApprovalProcessId>,
@@ -571,7 +572,7 @@ impl CreditFacility {
             }
         }
 
-        self.projected_cvl_data_for_disbursal(outstanding_amount, amount)
+        self.projected_cvl_data_for_disbursal(total_outstanding_amount, amount)
             .cvl(price)
             .check_disbursal_allowed(self.terms)?;
 
@@ -1303,7 +1304,7 @@ mod test {
         assert!(facility_from(events)
             .initiate_disbursal(
                 UsdCents::ONE,
-                ObligationsOutstanding::ZERO,
+                ObligationsAmounts::ZERO,
                 Utc::now(),
                 default_price(),
                 None,
@@ -1922,7 +1923,7 @@ mod test {
     mod repayment {
         use super::*;
 
-        impl From<CreditFacilityReceivable> for ObligationsOutstanding {
+        impl From<CreditFacilityReceivable> for ObligationsAmounts {
             fn from(receivable: CreditFacilityReceivable) -> Self {
                 Self {
                     disbursed: receivable.disbursed,
@@ -1970,7 +1971,7 @@ mod test {
             let new_disbursal = credit_facility
                 .initiate_disbursal(
                     UsdCents::from(600_000_00),
-                    ObligationsOutstanding::ZERO,
+                    ObligationsAmounts::ZERO,
                     facility_activated_at,
                     default_price(),
                     None,
