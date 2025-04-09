@@ -42,7 +42,7 @@ where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCreditEvent>,
 {
-    obligation_repo: ObligationRepo,
+    obligation_repo: ObligationRepo<E>,
     credit_facility_repo: CreditFacilityRepo<E>,
     audit: Perms::Audit,
     price: Price,
@@ -56,7 +56,7 @@ where
     E: OutboxEventMarker<CoreCreditEvent>,
 {
     pub fn new(
-        obligation_repo: ObligationRepo,
+        obligation_repo: ObligationRepo<E>,
         credit_facility_repo: CreditFacilityRepo<E>,
         price: &Price,
         audit: &Perms::Audit,
@@ -102,7 +102,7 @@ where
     E: OutboxEventMarker<CoreCreditEvent>,
 {
     config: CreditFacilityJobConfig<Perms, E>,
-    obligation_repo: ObligationRepo,
+    obligation_repo: ObligationRepo<E>,
     credit_facility_repo: CreditFacilityRepo<E>,
     price: Price,
     audit: Perms::Audit,

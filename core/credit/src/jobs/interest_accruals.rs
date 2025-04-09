@@ -40,7 +40,7 @@ where
     E: OutboxEventMarker<CoreCreditEvent>,
 {
     ledger: CreditLedger,
-    obligation_repo: ObligationRepo,
+    obligation_repo: ObligationRepo<E>,
     credit_facility_repo: CreditFacilityRepo<E>,
     audit: Perms::Audit,
     jobs: Jobs,
@@ -55,7 +55,7 @@ where
 {
     pub fn new(
         ledger: &CreditLedger,
-        obligation_repo: ObligationRepo,
+        obligation_repo: ObligationRepo<E>,
         credit_facility_repo: CreditFacilityRepo<E>,
         audit: &Perms::Audit,
         jobs: &Jobs,
@@ -111,7 +111,7 @@ where
     E: OutboxEventMarker<CoreCreditEvent>,
 {
     config: CreditFacilityJobConfig<Perms, E>,
-    obligation_repo: ObligationRepo,
+    obligation_repo: ObligationRepo<E>,
     credit_facility_repo: CreditFacilityRepo<E>,
     ledger: CreditLedger,
     audit: Perms::Audit,

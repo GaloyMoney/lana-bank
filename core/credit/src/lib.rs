@@ -62,7 +62,7 @@ where
 {
     authz: Perms,
     credit_facility_repo: CreditFacilityRepo<E>,
-    obligation_repo: ObligationRepo,
+    obligation_repo: ObligationRepo<E>,
     disbursal_repo: DisbursalRepo,
     payment_repo: PaymentRepo,
     governance: Governance<Perms, E>,
@@ -128,7 +128,7 @@ where
         let publisher = CreditFacilityPublisher::new(outbox);
         let credit_facility_repo = CreditFacilityRepo::new(pool, &publisher);
         let disbursal_repo = DisbursalRepo::new(pool);
-        let obligation_repo = ObligationRepo::new(pool);
+        let obligation_repo = ObligationRepo::new(pool, &publisher);
         let payment_repo = PaymentRepo::new(pool);
         let ledger = CreditLedger::init(cala, journal_id).await?;
         let approve_disbursal = ApproveDisbursal::new(
@@ -188,11 +188,12 @@ where
         );
         jobs.add_initializer(obligation_due::CreditFacilityProcessingJobInitializer::<
             Perms,
+            E,
         >::new(
             &ledger, obligation_repo.clone(), jobs, authz.audit()
         ));
         jobs.add_initializer(
-            obligation_overdue::CreditFacilityProcessingJobInitializer::<Perms>::new(
+            obligation_overdue::CreditFacilityProcessingJobInitializer::<Perms, E>::new(
                 &ledger,
                 obligation_repo.clone(),
                 authz.audit(),

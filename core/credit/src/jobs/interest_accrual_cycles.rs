@@ -37,7 +37,7 @@ where
     E: OutboxEventMarker<CoreCreditEvent>,
 {
     ledger: CreditLedger,
-    obligation_repo: ObligationRepo,
+    obligation_repo: ObligationRepo<E>,
     credit_facility_repo: CreditFacilityRepo<E>,
     jobs: Jobs,
     audit: Perms::Audit,
@@ -52,7 +52,7 @@ where
 {
     pub fn new(
         ledger: &CreditLedger,
-        obligation_repo: ObligationRepo,
+        obligation_repo: ObligationRepo<E>,
         credit_facility_repo: CreditFacilityRepo<E>,
         jobs: &Jobs,
         audit: &Perms::Audit,
@@ -101,7 +101,7 @@ where
     E: OutboxEventMarker<CoreCreditEvent>,
 {
     config: CreditFacilityJobConfig<Perms, E>,
-    obligation_repo: ObligationRepo,
+    obligation_repo: ObligationRepo<E>,
     credit_facility_repo: CreditFacilityRepo<E>,
     ledger: CreditLedger,
     jobs: Jobs,
@@ -206,7 +206,7 @@ where
             .create_and_spawn_at_in_op(
                 &mut db,
                 obligation.id,
-                obligation_due::CreditFacilityJobConfig::<Perms> {
+                obligation_due::CreditFacilityJobConfig::<Perms, E> {
                     obligation_id: obligation.id,
                     _phantom: std::marker::PhantomData,
                 },
