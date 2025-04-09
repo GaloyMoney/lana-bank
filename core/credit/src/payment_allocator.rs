@@ -11,7 +11,7 @@ pub struct PaymentAllocator {
     amount: UsdCents,
 }
 
-pub struct PaymentAllocations {
+pub struct PaymentAllocationResult {
     pub new_allocations: Vec<PaymentAllocation>,
     pub disbursal_amount: UsdCents,
     pub interest_amount: UsdCents,
@@ -57,7 +57,7 @@ impl PaymentAllocator {
     pub fn allocate(
         &self,
         obligations: Vec<ObligationDataForAllocation>,
-    ) -> Result<PaymentAllocations, CoreCreditError> {
+    ) -> Result<PaymentAllocationResult, CoreCreditError> {
         let outstanding = obligations
             .iter()
             .map(|o| o.outstanding)
@@ -110,7 +110,7 @@ impl PaymentAllocator {
             }
         }
 
-        Ok(PaymentAllocations {
+        Ok(PaymentAllocationResult {
             new_allocations: new_payment_allocations,
             disbursal_amount,
             interest_amount,

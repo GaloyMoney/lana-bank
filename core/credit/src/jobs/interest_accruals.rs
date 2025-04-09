@@ -8,9 +8,14 @@ use job::*;
 use outbox::OutboxEventMarker;
 
 use crate::{
-    credit_facility::CreditFacilityRepo, ledger::*, CoreCreditAction, CoreCreditError,
-    CoreCreditEvent, CoreCreditObject, CreditFacilityId, CreditFacilityInterestAccrual,
-    InterestAccrualCycleIdx, InterestPeriod,
+    credit_facility::CreditFacilityRepo,
+    error::CoreCreditError,
+    event::CoreCreditEvent,
+    ledger::*,
+    obligation::{obligation_cursor::ObligationsByCreatedAtCursor, Obligation, ObligationRepo},
+    obligation_aggregator::{ObligationAggregator, ObligationDataForAggregation},
+    primitives::*,
+    terms::InterestPeriod,
 };
 
 #[derive(Clone, Serialize, Deserialize)]
@@ -35,6 +40,7 @@ where
     E: OutboxEventMarker<CoreCreditEvent>,
 {
     ledger: CreditLedger,
+    obligation_repo: ObligationRepo,
     credit_facility_repo: CreditFacilityRepo<E>,
     audit: Perms::Audit,
     jobs: Jobs,
@@ -49,12 +55,14 @@ where
 {
     pub fn new(
         ledger: &CreditLedger,
+        obligation_repo: ObligationRepo,
         credit_facility_repo: CreditFacilityRepo<E>,
         audit: &Perms::Audit,
         jobs: &Jobs,
     ) -> Self {
         Self {
             ledger: ledger.clone(),
+            obligation_repo,
             credit_facility_repo,
             audit: audit.clone(),
             jobs: jobs.clone(),
@@ -81,6 +89,7 @@ where
     fn init(&self, job: &Job) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
         Ok(Box::new(CreditFacilityProcessingJobRunner::<Perms, E> {
             config: job.config()?,
+            obligation_repo: self.obligation_repo.clone(),
             credit_facility_repo: self.credit_facility_repo.clone(),
             ledger: self.ledger.clone(),
             audit: self.audit.clone(),
@@ -102,6 +111,7 @@ where
     E: OutboxEventMarker<CoreCreditEvent>,
 {
     config: CreditFacilityJobConfig<Perms, E>,
+    obligation_repo: ObligationRepo,
     credit_facility_repo: CreditFacilityRepo<E>,
     ledger: CreditLedger,
     audit: Perms::Audit,
@@ -126,8 +136,19 @@ where
             .find_by_id(self.config.credit_facility_id)
             .await?;
 
+        let obligations = self
+            .list_obligations_for_credit_facility(self.config.credit_facility_id)
+            .await?;
+
         let confirmed_accrual = {
-            let outstanding = credit_facility.total_outstanding();
+            let outstanding = ObligationAggregator::new(
+                obligations
+                    .iter()
+                    .map(ObligationDataForAggregation::from)
+                    .collect::<Vec<_>>(),
+            )
+            .outstanding()?;
+
             let account_ids = credit_facility.account_ids;
 
             let accrual = credit_facility
@@ -148,6 +169,37 @@ where
             .await?;
 
         Ok(confirmed_accrual)
+    }
+
+    async fn list_obligations_for_credit_facility(
+        &self,
+        credit_facility_id: CreditFacilityId,
+    ) -> Result<Vec<Obligation>, CoreCreditError> {
+        let mut obligations = vec![];
+        let mut query = es_entity::PaginatedQueryArgs::<ObligationsByCreatedAtCursor>::default();
+        loop {
+            let res = self
+                .obligation_repo
+                .list_for_credit_facility_id_by_created_at(
+                    credit_facility_id,
+                    query,
+                    es_entity::ListDirection::Ascending,
+                )
+                .await?;
+
+            obligations.extend(res.entities);
+
+            if res.has_next_page {
+                query = es_entity::PaginatedQueryArgs::<ObligationsByCreatedAtCursor> {
+                    first: 100,
+                    after: res.end_cursor,
+                }
+            } else {
+                break;
+            };
+        }
+
+        Ok(obligations)
     }
 }
 

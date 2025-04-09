@@ -47,6 +47,18 @@ pub struct ObligationOverdueReallocationData {
     pub overdue_account_id: CalaAccountId,
 }
 
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct ObligationsOutstanding {
+    pub disbursed: UsdCents,
+    pub interest: UsdCents,
+}
+
+impl ObligationsOutstanding {
+    pub fn total(&self) -> UsdCents {
+        self.interest + self.disbursed
+    }
+}
+
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
 #[es_event(id = "ObligationId")]

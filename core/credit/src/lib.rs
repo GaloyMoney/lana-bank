@@ -9,6 +9,7 @@ mod interest_accrual_cycle;
 mod jobs;
 pub mod ledger;
 mod obligation;
+mod obligation_aggregator;
 mod payment;
 mod payment_allocator;
 mod primitives;
@@ -28,9 +29,9 @@ use core_price::Price;
 use es_entity::Idempotent;
 use governance::{Governance, GovernanceAction, GovernanceEvent, GovernanceObject};
 use job::Jobs;
+use obligation_aggregator::{ObligationAggregator, ObligationDataForAggregation};
 use outbox::{Outbox, OutboxEventMarker};
-use payment_allocator::PaymentAllocations;
-use payment_allocator::{ObligationDataForAllocation, PaymentAllocator};
+use payment_allocator::{ObligationDataForAllocation, PaymentAllocationResult, PaymentAllocator};
 use tracing::instrument;
 
 pub use chart_of_accounts_integration::ChartOfAccountsIntegrationConfig;
@@ -169,7 +170,11 @@ where
             Perms,
             E,
         >::new(
-            &ledger, credit_facility_repo.clone(), authz.audit(), jobs
+            &ledger,
+            obligation_repo.clone(),
+            credit_facility_repo.clone(),
+            authz.audit(),
+            jobs,
         ));
         jobs.add_initializer(
             interest_accrual_cycles::CreditFacilityProcessingJobInitializer::<Perms, E>::new(
@@ -582,13 +587,10 @@ where
             .await?)
     }
 
-    #[instrument(name = "credit_facility.record_payment", skip(self), err)]
-    pub async fn record_payment(
+    async fn list_obligations_for_credit_facility(
         &self,
-        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         credit_facility_id: CreditFacilityId,
-        amount: UsdCents,
-    ) -> Result<CreditFacility, CoreCreditError> {
+    ) -> Result<Vec<Obligation>, CoreCreditError> {
         let mut obligations = vec![];
         let mut query = es_entity::PaginatedQueryArgs::<ObligationsByCreatedAtCursor>::default();
         loop {
@@ -613,6 +615,20 @@ where
             };
         }
 
+        Ok(obligations)
+    }
+
+    #[instrument(name = "credit_facility.record_payment", skip(self), err)]
+    pub async fn record_payment(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        credit_facility_id: CreditFacilityId,
+        amount: UsdCents,
+    ) -> Result<CreditFacility, CoreCreditError> {
+        let obligations = self
+            .list_obligations_for_credit_facility(credit_facility_id)
+            .await?;
+
         let mut db = self.obligation_repo.begin_op().await?;
         let audit_info = self
             .subject_can_record_payment(sub, true)
@@ -627,7 +643,7 @@ where
             .expect("could not build new payment");
         let mut payment = self.payment_repo.create_in_op(&mut db, new_payment).await?;
 
-        let PaymentAllocations {
+        let PaymentAllocationResult {
             new_allocations,
             disbursal_amount,
             interest_amount,
@@ -961,6 +977,23 @@ where
         ids: &[DisbursalId],
     ) -> Result<HashMap<DisbursalId, T>, CoreCreditError> {
         Ok(self.disbursal_repo.find_all(ids).await?)
+    }
+
+    pub async fn total_outstanding(
+        &self,
+        credit_facility_id: CreditFacilityId,
+    ) -> Result<ObligationsOutstanding, CoreCreditError> {
+        let obligations = self
+            .list_obligations_for_credit_facility(credit_facility_id)
+            .await?;
+
+        ObligationAggregator::new(
+            obligations
+                .iter()
+                .map(ObligationDataForAggregation::from)
+                .collect::<Vec<_>>(),
+        )
+        .outstanding()
     }
 
     pub async fn get_chart_of_accounts_integration_config(
