@@ -1,0 +1,1 @@
+psql $PG_CON -c "\copy (SELECT event, event_type from core_chart_events) TO 'output.csv' WITH (FORMAT CSV, HEADER);"
