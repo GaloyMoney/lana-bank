@@ -74,8 +74,6 @@ pub enum CreditFacilityEvent {
         idx: DisbursalIdx,
         approval_process_id: ApprovalProcessId,
         audit_info: AuditInfo,
-        // TODO: remove below and get from disbursal
-        amount: UsdCents,
     },
     DisbursalConcluded {
         idx: DisbursalIdx,
@@ -531,7 +529,6 @@ impl CreditFacility {
             disbursal_id,
             approval_process_id,
             idx,
-            amount,
             audit_info: audit_info.clone(),
         });
 
@@ -1275,18 +1272,27 @@ mod test {
                 disbursal_id,
                 approval_process_id: disbursal_id.into(),
                 idx: first_idx,
-                amount: UsdCents::ONE,
                 audit_info: dummy_audit_info(),
             },
         ]);
 
-        events.push(CreditFacilityEvent::DisbursalConcluded {
-            idx: first_idx,
-            tx_id: LedgerTxId::new(),
-            obligation_id: Some(ObligationId::new()),
-            recorded_at: Utc::now(),
-            audit_info: dummy_audit_info(),
-        });
+        let obligation_id = ObligationId::new();
+        events.extend([
+            CreditFacilityEvent::DisbursalConcluded {
+                idx: first_idx,
+                tx_id: LedgerTxId::new(),
+                obligation_id: Some(obligation_id),
+                recorded_at: Utc::now(),
+                audit_info: dummy_audit_info(),
+            },
+            CreditFacilityEvent::BalanceUpdated {
+                source: BalanceUpdatedSource::Obligation(obligation_id),
+                balance_type: BalanceUpdatedType::Disbursal,
+                amount: UsdCents::ONE,
+                updated_at: Utc::now(),
+                audit_info: dummy_audit_info(),
+            },
+        ]);
         assert!(facility_from(events)
             .initiate_disbursal(
                 UsdCents::ONE,
@@ -1377,7 +1383,6 @@ mod test {
                 disbursal_id,
                 approval_process_id: disbursal_id.into(),
                 idx: DisbursalIdx::FIRST,
-                amount: disbursal_amount,
                 audit_info: dummy_audit_info(),
             },
             CreditFacilityEvent::DisbursalConcluded {

@@ -2,7 +2,7 @@ use chrono::{DateTime, Utc};
 
 use crate::{primitives::*, terms::CollateralizationState};
 
-use super::{BalanceUpdatedSource, CreditFacilityEvent};
+use super::{BalanceUpdatedSource, BalanceUpdatedType, CreditFacilityEvent};
 
 pub struct IncrementalPayment {
     pub cents: UsdCents,
@@ -137,21 +137,26 @@ pub(super) fn project<'a>(
                     },
                 ));
             }
-            CreditFacilityEvent::DisbursalInitiated { idx, amount, .. } => {
-                disbursals.insert(*idx, *amount);
-            }
             CreditFacilityEvent::DisbursalConcluded {
-                idx,
-                recorded_at,
                 tx_id,
+                obligation_id: Some(obligation_id),
+                ..
+            } => {
+                disbursals.insert(*obligation_id, *tx_id);
+            }
+            CreditFacilityEvent::BalanceUpdated {
+                source: BalanceUpdatedSource::Obligation(obligation_id),
+                balance_type: BalanceUpdatedType::Disbursal,
+                amount,
+                updated_at,
                 ..
             } => {
                 history.push(CreditFacilityHistoryEntry::Disbursal(DisbursalExecuted {
-                    cents: disbursals
-                        .remove(idx)
-                        .expect("Disbursal must have been initiated"),
-                    recorded_at: *recorded_at,
-                    tx_id: *tx_id,
+                    cents: *amount,
+                    recorded_at: *updated_at,
+                    tx_id: disbursals
+                        .remove(obligation_id)
+                        .expect("ObligationId was not found"),
                 }));
             }
             CreditFacilityEvent::InterestAccrualCycleStarted {
