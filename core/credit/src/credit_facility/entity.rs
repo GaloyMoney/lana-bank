@@ -115,13 +115,6 @@ pub enum CreditFacilityEvent {
         recorded_at: DateTime<Utc>,
         audit_info: AuditInfo,
     },
-    PaymentRecorded {
-        payment_id: PaymentId,
-        disbursal_amount: UsdCents,
-        interest_amount: UsdCents,
-        recorded_at: DateTime<Utc>,
-        audit_info: AuditInfo,
-    },
     Completed {
         completed_at: DateTime<Utc>,
         audit_info: AuditInfo,
@@ -1120,7 +1113,6 @@ impl TryFromEvents<CreditFacilityEvent> for CreditFacility {
                 CreditFacilityEvent::InterestAccrualCycleConcluded { .. } => (),
                 CreditFacilityEvent::CollateralUpdated { .. } => (),
                 CreditFacilityEvent::CollateralizationChanged { .. } => (),
-                CreditFacilityEvent::PaymentRecorded { .. } => (),
                 CreditFacilityEvent::Completed { .. } => (),
             }
         }

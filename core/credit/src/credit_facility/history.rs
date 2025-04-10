@@ -2,12 +2,12 @@ use chrono::{DateTime, Utc};
 
 use crate::{primitives::*, terms::CollateralizationState};
 
-use super::CreditFacilityEvent;
+use super::{BalanceUpdatedSource, CreditFacilityEvent};
 
 pub struct IncrementalPayment {
     pub cents: UsdCents,
     pub recorded_at: DateTime<Utc>,
-    pub payment_id: PaymentId,
+    pub payment_id: LedgerTxId, // TODO: change to PaymentAllocationId
 }
 
 pub struct CollateralUpdated {
@@ -90,15 +90,14 @@ pub(super) fn project<'a>(
                 }
             },
 
-            CreditFacilityEvent::PaymentRecorded {
-                payment_id,
-                disbursal_amount,
-                interest_amount,
-                recorded_at: recorded_in_ledger_at,
+            CreditFacilityEvent::BalanceUpdated {
+                source: BalanceUpdatedSource::PaymentAllocation(payment_id),
+                amount,
+                updated_at: recorded_in_ledger_at,
                 ..
             } => {
                 history.push(CreditFacilityHistoryEntry::Payment(IncrementalPayment {
-                    cents: *disbursal_amount + *interest_amount,
+                    cents: *amount,
                     recorded_at: *recorded_in_ledger_at,
                     payment_id: *payment_id,
                 }));
