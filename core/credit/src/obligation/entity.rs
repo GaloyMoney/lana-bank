@@ -352,6 +352,7 @@ impl Obligation {
         &mut self,
         payment_allocation_id: LedgerTxId,
         amount: UsdCents,
+        recorded_at: DateTime<Utc>,
         audit_info: AuditInfo,
     ) -> Idempotent<()> {
         idempotency_guard!(
@@ -366,11 +367,10 @@ impl Obligation {
             return Idempotent::Ignored;
         }
 
-        let now = crate::time::now();
         self.events.push(ObligationEvent::PaymentRecorded {
             payment_allocation_id,
             amount,
-            recorded_at: now,
+            recorded_at,
             audit_info: audit_info.clone(),
         });
 
