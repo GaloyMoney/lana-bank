@@ -11,6 +11,12 @@ variable "additional_owners" {
   default = []
 }
 
+variable "additional_viewers" {
+  type    = list(string)
+  default = []
+}
+
+
 locals {
   name_prefix       = var.name_prefix
   holistics_sa_name = "${var.name_prefix}-holistics"
@@ -18,6 +24,8 @@ locals {
   gcp_region        = var.gcp_region
 
   additional_owners = var.additional_owners
+
+  additional_viewers = var.additional_viewers
 
   dataset_id          = "${replace(local.name_prefix, "-", "_")}_dataset"
   sa_account_id       = replace("${var.name_prefix}-lana-bq-access", "_", "-")
