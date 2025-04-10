@@ -163,7 +163,10 @@ impl LedgerAccountLedger {
                         results.push(id.into());
                     }
                     cala_ledger::account_set::AccountSetMemberId::AccountSet(id) => {
-                        return self.find_leaf_children(id.into(), current_depth + 1).await;
+                        let nested_children = self
+                            .find_leaf_children(id.into(), current_depth + 1)
+                            .await?;
+                        results.extend(nested_children);
                     }
                 }
             }
