@@ -22,7 +22,7 @@ pub struct ManualTransactionEntryInput {
     pub amount: Decimal,
     pub currency: String,
     pub direction: DebitOrCredit,
-    pub description: Option<String>,
+    pub description: String,
 }
 
 impl TryFrom<ManualTransactionEntryInput> for ManualEntryInput {
@@ -31,15 +31,12 @@ impl TryFrom<ManualTransactionEntryInput> for ManualEntryInput {
     fn try_from(i: ManualTransactionEntryInput) -> Result<Self, Self::Error> {
         let mut builder = ManualEntryInput::builder();
 
-        builder.currency(i.currency.parse()?);
-
-        builder.account_id_or_code(i.account_ref.parse()?);
-
-        builder.direction(i.direction).amount(i.amount.into());
-
-        if let Some(description) = i.description {
-            builder.description(description);
-        }
+        builder
+            .currency(i.currency.parse()?)
+            .account_id_or_code(i.account_ref.parse()?)
+            .direction(i.direction)
+            .amount(i.amount.into())
+            .description(i.description);
 
         Ok(builder.build().expect("all fields provided"))
     }

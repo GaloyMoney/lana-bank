@@ -18,6 +18,8 @@ pub enum ManualTransactionError {
     TxTemplateError(#[from] cala_ledger::tx_template::error::TxTemplateError),
     #[error("ManualTransactionError - AuthorizationError: {0}")]
     AuthorizationError(#[from] authz::error::AuthorizationError),
+    #[error("ManualTransactionError - Unknown account code: {0}")]
+    UnknownAccountCode(String),
 }
 
 es_entity::from_es_entity_error!(ManualTransactionError);

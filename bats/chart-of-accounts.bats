@@ -63,6 +63,8 @@ exec_admin_graphql 'chart-of-accounts'
 
   temp_file=$(mktemp)
   echo "
+    201,,,Manuals 1,,
+    202,,,Manuals 2,,
     $((RANDOM % 100)),,,Assets ,,
     ,,,,,
     $((RANDOM % 100)),,,Assets,,
@@ -85,4 +87,40 @@ exec_admin_graphql 'chart-of-accounts'
   response=$(exec_admin_graphql_upload 'chart-of-accounts-csv-import' "$variables" "$temp_file" "input.file")
   success=$(echo "$response" | jq -r '.data.chartOfAccountsCsvImport.success')
   [[ "$success" == "true" ]] || exit 1
+}
+
+
+@test "chart-of-accounts: executes manual transaction" {
+
+  amount=$((RANDOM % 1000))
+
+  variables=$(
+    jq -n \
+    --arg amount "$amount" \
+    '{
+      input: {
+        description: "Manual transaction - test",
+        entries: [
+          {
+             "accountRef": "201",
+             "amount": $amount,
+             "currency": "USD",
+             "direction": "CREDIT",
+             "description": "Entry 1 description"
+          },
+          {
+             "accountRef": "202",
+             "amount": $amount,
+             "currency": "USD",
+             "direction": "DEBIT",
+             "description": "Entry 2 description"
+          }]
+        }
+      }'
+  )
+
+  exec_admin_graphql 'execute-manual-transaction' "$variables"
+  echo $(graphql_output) | jq .
+
+  # TODO: check
 }

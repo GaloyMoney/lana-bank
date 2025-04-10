@@ -1,0 +1,13 @@
+mutation ExecuteManualTransaction($input: ManualTransactionExecuteInput!) {
+  manualTransactionExecute(input: $input) {
+    transaction {
+      ledgerTransactionId
+      createdAt
+      description
+      entries {
+        entryId
+        txId
+      }
+    }
+  }
+}

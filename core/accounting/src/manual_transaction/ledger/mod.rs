@@ -58,7 +58,7 @@ impl ManualTransactionLedger {
                     )
                     .await
                 }
-                None => todo!("err"),
+                None => Err(ManualTransactionError::UnknownAccountCode(code.to_string())),
             },
         }
     }
