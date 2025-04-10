@@ -7,18 +7,17 @@ use audit::AuditInfo;
 use es_entity::*;
 
 use crate::{
-    obligation::NewObligation,
+    obligation::{NewObligation, ObligationType, ObligationsAmounts, ObligationsOutstanding},
     obligation_aggregator::ObligationAggregator,
     primitives::*,
     terms::{CVLData, CVLPct, CollateralizationState, InterestPeriod, TermValues},
-    ObligationsAmounts, ObligationsOutstanding,
 };
 
 use crate::{disbursal::*, interest_accrual_cycle::*, ledger::*};
 
 use super::{error::CreditFacilityError, history, repayment_plan};
 
-#[derive(Debug, Copy, Clone, Serialize, Deserialize)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
 pub enum BalanceUpdatedSource {
     Obligation(ObligationId),
     PaymentAllocation(LedgerTxId), // TODO: change to PaymentAllocationId
@@ -28,6 +27,15 @@ pub enum BalanceUpdatedSource {
 pub enum BalanceUpdatedType {
     Disbursal,
     InterestAccrual,
+}
+
+impl From<ObligationType> for BalanceUpdatedType {
+    fn from(obligation_type: ObligationType) -> Self {
+        match obligation_type {
+            ObligationType::Disbursal => Self::Disbursal,
+            ObligationType::Interest => Self::InterestAccrual,
+        }
+    }
 }
 
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
@@ -58,6 +66,8 @@ pub enum CreditFacilityEvent {
         source: BalanceUpdatedSource,
         balance_type: BalanceUpdatedType,
         amount: UsdCents,
+        updated_at: DateTime<Utc>,
+        audit_info: AuditInfo,
     },
     DisbursalInitiated {
         disbursal_id: DisbursalId,
@@ -567,8 +577,18 @@ impl CreditFacility {
             recorded_at: executed_at,
             tx_id,
             obligation_id,
-            audit_info,
+            audit_info: audit_info.clone(),
         });
+        if let Some(obligation_id) = obligation_id {
+            self.events.push(CreditFacilityEvent::BalanceUpdated {
+                source: BalanceUpdatedSource::Obligation(obligation_id),
+                balance_type: BalanceUpdatedType::Disbursal,
+                amount: disbursal.amount,
+                updated_at: executed_at,
+                audit_info,
+            });
+        }
+
         Idempotent::Executed(())
     }
 
@@ -671,8 +691,15 @@ impl CreditFacility {
                 tx_id: accrual_cycle_data.tx_id,
                 amount: accrual_cycle_data.interest,
                 posted_at: accrual_cycle_data.posted_at,
-                audit_info,
+                audit_info: audit_info.clone(),
             });
+        self.events.push(CreditFacilityEvent::BalanceUpdated {
+            source: BalanceUpdatedSource::Obligation(new_obligation.id()),
+            balance_type: BalanceUpdatedType::InterestAccrual,
+            amount: accrual_cycle_data.interest,
+            updated_at: accrual_cycle_data.posted_at,
+            audit_info,
+        });
 
         Ok(new_obligation)
     }
@@ -727,6 +754,32 @@ impl CreditFacility {
         }
     }
 
+    pub(crate) fn update_balance_from_payment(
+        &mut self,
+        payment_allocation_id: LedgerTxId,
+        balance_type: impl Into<BalanceUpdatedType>,
+        amount: UsdCents,
+        updated_at: DateTime<Utc>,
+        audit_info: AuditInfo,
+    ) -> Idempotent<()> {
+        idempotency_guard!(
+            self.events.iter_all().rev(),
+            CreditFacilityEvent::BalanceUpdated {
+                source,
+                ..
+            } if *source == BalanceUpdatedSource::PaymentAllocation(payment_allocation_id)
+        );
+
+        self.events.push(CreditFacilityEvent::BalanceUpdated {
+            source: BalanceUpdatedSource::PaymentAllocation(payment_allocation_id),
+            balance_type: balance_type.into(),
+            amount,
+            updated_at,
+            audit_info,
+        });
+
+        Idempotent::Executed(())
+    }
     pub fn balances(&self, obligations: &ObligationAggregator) -> CreditFacilityBalance {
         let initial_amount = obligations.initial_amounts();
         let outstanding = obligations.outstanding();
@@ -1346,6 +1399,8 @@ mod test {
                 source: BalanceUpdatedSource::Obligation(disbursal_obligation_id),
                 balance_type: BalanceUpdatedType::Disbursal,
                 amount: disbursal_amount,
+                updated_at: Utc::now(),
+                audit_info: dummy_audit_info(),
             },
         ]);
 

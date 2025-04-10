@@ -674,6 +674,11 @@ where
         credit_facility_id: CreditFacilityId,
         amount: UsdCents,
     ) -> Result<CreditFacility, CoreCreditError> {
+        let mut credit_facility = self
+            .credit_facility_repo
+            .find_by_id(credit_facility_id)
+            .await?;
+
         let obligations = self
             .list_obligations_for_credit_facility(credit_facility_id)
             .await?;
@@ -710,6 +715,7 @@ where
             .update_in_op(&mut db, &mut payment)
             .await?;
 
+        let now = crate::time::now();
         let mut updated_obligations = vec![];
         for mut obligation in obligations {
             if let Some(new_allocation) = new_allocations
@@ -717,7 +723,21 @@ where
                 .find(|new_allocation| new_allocation.obligation_id == obligation.id)
             {
                 obligation
-                    .record_payment(new_allocation.id, new_allocation.amount, audit_info.clone())
+                    .record_payment(
+                        new_allocation.id,
+                        new_allocation.amount,
+                        now,
+                        audit_info.clone(),
+                    )
+                    .did_execute();
+                credit_facility
+                    .update_balance_from_payment(
+                        new_allocation.id,
+                        obligation.obligation_type(),
+                        new_allocation.amount,
+                        now,
+                        audit_info.clone(),
+                    )
                     .did_execute();
                 updated_obligations.push(obligation);
             }
@@ -730,9 +750,8 @@ where
                 .await?;
         }
 
-        let credit_facility = self
-            .credit_facility_repo
-            .find_by_id(credit_facility_id)
+        self.credit_facility_repo
+            .update_in_op(&mut db, &mut credit_facility)
             .await?;
 
         self.ledger
