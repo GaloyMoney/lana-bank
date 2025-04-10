@@ -1,7 +1,7 @@
 "use client"
 
 import type { ComponentProps } from "react"
-import { Logo } from "@components/logo"
+import { Logo } from "@/components/logo"
 import Link from "next/link"
 import { useTranslations } from "next-intl"
 
