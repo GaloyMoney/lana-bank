@@ -4,7 +4,13 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
+    --background: 216 33% 97%;
+    --card-light: 220 33% 95%;
+    --productive-light: 133 60% 50%;
+    --productive-dark: 111 57% 48%;
+    --accent-foreground: 231 100% 61%;
+    --sidebar-background-light: 220 33% 95%;
+    --sidebar-accent-light: 225 25% 90%;
     --foreground: 240 10% 3.9%;
     --card: 0 0% 100%;
     --card-foreground: 240 10% 3.9%;
