@@ -18,6 +18,18 @@ use crate::{disbursal::*, interest_accrual_cycle::*, ledger::*};
 
 use super::{error::CreditFacilityError, history, repayment_plan};
 
+#[derive(Debug, Copy, Clone, Serialize, Deserialize)]
+pub enum BalanceUpdatedSource {
+    Obligation(ObligationId),
+    PaymentAllocation(LedgerTxId), // TODO: change to PaymentAllocationId
+}
+
+#[derive(Debug, Copy, Clone, Serialize, Deserialize)]
+pub enum BalanceUpdatedType {
+    Disbursal,
+    InterestAccrual,
+}
+
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
 #[es_event(id = "CreditFacilityId")]
@@ -41,6 +53,11 @@ pub enum CreditFacilityEvent {
         ledger_tx_id: LedgerTxId,
         activated_at: DateTime<Utc>,
         audit_info: AuditInfo,
+    },
+    BalanceUpdated {
+        source: BalanceUpdatedSource,
+        balance_type: BalanceUpdatedType,
+        amount: UsdCents,
     },
     DisbursalInitiated {
         disbursal_id: DisbursalId,
@@ -969,17 +986,28 @@ impl CreditFacility {
         Ok(Idempotent::Executed(res))
     }
 
-    pub(super) fn collateralization_ratio(
-        &self,
-        obligations_outstanding: ObligationsOutstanding,
-    ) -> Option<Decimal> {
+    fn balance_outstanding(&self) -> UsdCents {
+        self.events
+            .iter_all()
+            .fold(UsdCents::from(0), |mut total, event| {
+                if let CreditFacilityEvent::BalanceUpdated { source, amount, .. } = event {
+                    match source {
+                        BalanceUpdatedSource::Obligation(_) => total += *amount,
+                        BalanceUpdatedSource::PaymentAllocation(_) => total -= *amount,
+                    }
+                }
+                total
+            })
+    }
+
+    pub(super) fn collateralization_ratio(&self) -> Option<Decimal> {
         let amount = if self.status() == CreditFacilityStatus::PendingCollateralization
             || self.status() == CreditFacilityStatus::PendingApproval
             || !self.has_confirmed_disbursals()
         {
             self.initial_facility()
         } else {
-            obligations_outstanding.total_amounts().total()
+            self.balance_outstanding()
         };
 
         if amount > UsdCents::ZERO {
@@ -1032,6 +1060,7 @@ impl TryFromEvents<CreditFacilityEvent> for CreditFacility {
                         .defaults_at(defaults_at)
                 }
                 CreditFacilityEvent::ApprovalProcessConcluded { .. } => (),
+                CreditFacilityEvent::BalanceUpdated { .. } => (),
                 CreditFacilityEvent::DisbursalInitiated { .. } => (),
                 CreditFacilityEvent::DisbursalConcluded { .. } => (),
                 CreditFacilityEvent::InterestAccrualCycleStarted { .. } => (),
@@ -1258,7 +1287,7 @@ mod test {
         let events = initial_events();
         let mut credit_facility = facility_from(events);
         assert_eq!(
-            credit_facility.collateralization_ratio(ObligationsOutstanding::ZERO),
+            credit_facility.collateralization_ratio(),
             Some(Decimal::ZERO)
         );
 
@@ -1271,10 +1300,7 @@ mod test {
                 &empty_obligations(),
             )
             .unwrap();
-        assert_eq!(
-            credit_facility.collateralization_ratio(ObligationsOutstanding::ZERO),
-            Some(dec!(5))
-        );
+        assert_eq!(credit_facility.collateralization_ratio(), Some(dec!(5)));
     }
 
     #[test]
@@ -1282,6 +1308,7 @@ mod test {
         let mut events = initial_events();
         let disbursal_id = DisbursalId::new();
         let disbursal_amount = UsdCents::from(10);
+        let disbursal_obligation_id = ObligationId::new();
         events.extend([
             CreditFacilityEvent::CollateralUpdated {
                 tx_id: LedgerTxId::new(),
@@ -1311,26 +1338,19 @@ mod test {
             CreditFacilityEvent::DisbursalConcluded {
                 idx: DisbursalIdx::FIRST,
                 tx_id: LedgerTxId::new(),
-                obligation_id: Some(ObligationId::new()),
+                obligation_id: Some(disbursal_obligation_id),
                 recorded_at: Utc::now(),
                 audit_info: dummy_audit_info(),
             },
+            CreditFacilityEvent::BalanceUpdated {
+                source: BalanceUpdatedSource::Obligation(disbursal_obligation_id),
+                balance_type: BalanceUpdatedType::Disbursal,
+                amount: disbursal_amount,
+            },
         ]);
 
-        let obligations_outstanding = ObligationsOutstanding {
-            not_yet_due: ObligationsAmounts::ZERO,
-            due: ObligationsAmounts {
-                disbursed: disbursal_amount,
-                interest: UsdCents::ZERO,
-            },
-            overdue: ObligationsAmounts::ZERO,
-            defaulted: ObligationsAmounts::ZERO,
-        };
         let credit_facility = facility_from(events);
-        assert_eq!(
-            credit_facility.collateralization_ratio(obligations_outstanding),
-            Some(dec!(50))
-        );
+        assert_eq!(credit_facility.collateralization_ratio(), Some(dec!(50)));
     }
 
     #[test]
