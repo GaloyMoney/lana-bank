@@ -1186,7 +1186,7 @@ input ManualTransactionEntryInput {
 	amount: Decimal!
 	currency: String!
 	direction: DebitOrCredit!
-	description: String
+	description: String!
 }
 
 input ManualTransactionExecuteInput {

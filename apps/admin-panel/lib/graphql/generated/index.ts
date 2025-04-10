@@ -1199,7 +1199,7 @@ export type ManualTransactionEntryInput = {
   accountRef: Scalars['String']['input'];
   amount: Scalars['Decimal']['input'];
   currency: Scalars['String']['input'];
-  description?: InputMaybe<Scalars['String']['input']>;
+  description: Scalars['String']['input'];
   direction: DebitOrCredit;
 };
 
