@@ -58,7 +58,7 @@ teardown_file() {
 }
 
 @test "chart-of-accounts: can import CSV file" {
-exec_admin_graphql 'chart-of-accounts'
+  exec_admin_graphql 'chart-of-accounts'
   chart_id=$(graphql_output '.data.chartOfAccounts.chartId')
 
   temp_file=$(mktemp)
@@ -89,7 +89,6 @@ exec_admin_graphql 'chart-of-accounts'
   [[ "$success" == "true" ]] || exit 1
 }
 
-
 @test "chart-of-accounts: executes manual transaction" {
 
   amount=$((RANDOM % 1000))
@@ -119,8 +118,23 @@ exec_admin_graphql 'chart-of-accounts'
       }'
   )
 
-  exec_admin_graphql 'execute-manual-transaction' "$variables"
-  echo $(graphql_output) | jq .
+  exec_admin_graphql 'manual-transaction-execute' "$variables"
 
-  # TODO: check
+  exec_admin_graphql 'ledger-account-by-code' '{"code":"201"}'
+  txId1=$(graphql_output .data.ledgerAccountByCode.history.nodes[0].txId)
+  amount1=$(graphql_output .data.ledgerAccountByCode.history.nodes[0].amount.usd)
+  direction1=$(graphql_output .data.ledgerAccountByCode.history.nodes[0].direction)
+  entryType1=$(graphql_output .data.ledgerAccountByCode.history.nodes[0].entryType)
+
+  exec_admin_graphql 'ledger-account-by-code' '{"code":"202"}'
+  txId2=$(graphql_output .data.ledgerAccountByCode.history.nodes[0].txId)
+  amount2=$(graphql_output .data.ledgerAccountByCode.history.nodes[0].amount.usd)
+  direction2=$(graphql_output .data.ledgerAccountByCode.history.nodes[0].direction)
+  entryType2=$(graphql_output .data.ledgerAccountByCode.history.nodes[0].entryType)
+
+  [[ "$txId1" == "$txId2" ]] || exit 1
+  [[ $((amount * 100)) == $amount1 ]] || exit 1
+  [[ $amount1 == $amount2 ]] || exit 1
+  [[ "$direction1" != "$direction2" ]] || exit 1
+  [[ "$entryType1" != "$entryType2" ]] || exit 1
 }

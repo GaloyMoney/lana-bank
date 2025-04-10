@@ -1,0 +1,21 @@
+query LedgerAccountByCode($code: String!) {
+  ledgerAccountByCode(code: $code) {
+    history(first: 100) {
+      nodes {
+        txId
+        amount {
+          ... on UsdAmount {
+            usd
+          }
+        }
+        direction
+        createdAt
+        entryType
+        description
+        ledgerTransaction {
+          ledgerTransactionId
+        }
+      }
+    }
+  }
+}
