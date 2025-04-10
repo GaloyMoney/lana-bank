@@ -2,7 +2,7 @@ use chrono::{DateTime, Utc};
 
 use crate::{CreditFacilityReceivable, UsdCents};
 
-use super::CreditFacilityEvent;
+use super::{BalanceUpdatedSource, BalanceUpdatedType, CreditFacilityEvent};
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum RepaymentStatus {
@@ -75,14 +75,15 @@ pub(super) fn project<'a>(
                     due_at,
                 });
             }
-            CreditFacilityEvent::PaymentRecorded {
-                interest_amount,
-                disbursal_amount,
+            CreditFacilityEvent::BalanceUpdated {
+                source: BalanceUpdatedSource::PaymentAllocation(_),
+                balance_type,
+                amount,
                 ..
-            } => {
-                due_and_outstanding_disbursed -= *disbursal_amount;
-                due_and_outstanding_interest += *interest_amount;
-            }
+            } => match balance_type {
+                BalanceUpdatedType::Disbursal => due_and_outstanding_disbursed -= *amount,
+                BalanceUpdatedType::InterestAccrual => due_and_outstanding_interest += *amount,
+            },
             _ => {}
         }
     }
@@ -264,12 +265,12 @@ mod tests {
                 posted_at: first_interest_posted_at,
                 audit_info: dummy_audit_info(),
             },
-            CreditFacilityEvent::PaymentRecorded {
-                payment_id: PaymentId::new(),
-                disbursal_amount: UsdCents::ZERO,
-                interest_amount: UsdCents::from(2),
+            CreditFacilityEvent::BalanceUpdated {
+                source: BalanceUpdatedSource::PaymentAllocation(LedgerTxId::new()),
+                balance_type: BalanceUpdatedType::InterestAccrual,
+                amount: UsdCents::from(2),
+                updated_at: first_interest_posted_at,
                 audit_info: dummy_audit_info(),
-                recorded_at: first_interest_posted_at,
             },
         ]
     }
@@ -453,12 +454,12 @@ mod tests {
                 posted_at: second_interest_posted_at,
                 audit_info: dummy_audit_info(),
             },
-            CreditFacilityEvent::PaymentRecorded {
-                payment_id: PaymentId::new(),
-                disbursal_amount: UsdCents::ZERO,
-                interest_amount: UsdCents::from(2),
+            CreditFacilityEvent::BalanceUpdated {
+                source: BalanceUpdatedSource::PaymentAllocation(LedgerTxId::new()),
+                balance_type: BalanceUpdatedType::InterestAccrual,
+                amount: UsdCents::from(2),
+                updated_at: second_interest_posted_at,
                 audit_info: dummy_audit_info(),
-                recorded_at: second_interest_posted_at,
             },
         ]);
         let repayment_plan = super::project(events.iter());
@@ -537,12 +538,12 @@ mod tests {
                 posted_at: second_interest_posted_at,
                 audit_info: dummy_audit_info(),
             },
-            CreditFacilityEvent::PaymentRecorded {
-                payment_id: PaymentId::new(),
-                disbursal_amount: UsdCents::ZERO,
-                interest_amount: UsdCents::from(12),
+            CreditFacilityEvent::BalanceUpdated {
+                source: BalanceUpdatedSource::PaymentAllocation(LedgerTxId::new()),
+                balance_type: BalanceUpdatedType::InterestAccrual,
+                amount: UsdCents::from(12),
+                updated_at: second_interest_posted_at,
                 audit_info: dummy_audit_info(),
-                recorded_at: second_interest_posted_at,
             },
             CreditFacilityEvent::InterestAccrualCycleConcluded {
                 idx: second_interest_idx.next(),
@@ -552,12 +553,19 @@ mod tests {
                 posted_at: third_interest_posted_at,
                 audit_info: dummy_audit_info(),
             },
-            CreditFacilityEvent::PaymentRecorded {
-                payment_id: PaymentId::new(),
-                disbursal_amount: UsdCents::from(100),
-                interest_amount: UsdCents::from(6),
+            CreditFacilityEvent::BalanceUpdated {
+                source: BalanceUpdatedSource::PaymentAllocation(LedgerTxId::new()),
+                balance_type: BalanceUpdatedType::Disbursal,
+                amount: UsdCents::from(100),
+                updated_at: third_interest_posted_at,
                 audit_info: dummy_audit_info(),
-                recorded_at: third_interest_posted_at,
+            },
+            CreditFacilityEvent::BalanceUpdated {
+                source: BalanceUpdatedSource::PaymentAllocation(LedgerTxId::new()),
+                balance_type: BalanceUpdatedType::InterestAccrual,
+                amount: UsdCents::from(6),
+                updated_at: third_interest_posted_at,
+                audit_info: dummy_audit_info(),
             },
         ]);
         let repayment_plan = super::project(events.iter());
@@ -597,12 +605,12 @@ mod tests {
                 posted_at: second_interest_posted_at,
                 audit_info: dummy_audit_info(),
             },
-            CreditFacilityEvent::PaymentRecorded {
-                payment_id: PaymentId::new(),
-                disbursal_amount: UsdCents::ZERO,
-                interest_amount: UsdCents::from(12),
+            CreditFacilityEvent::BalanceUpdated {
+                source: BalanceUpdatedSource::PaymentAllocation(LedgerTxId::new()),
+                balance_type: BalanceUpdatedType::InterestAccrual,
+                amount: UsdCents::from(12),
+                updated_at: second_interest_posted_at,
                 audit_info: dummy_audit_info(),
-                recorded_at: second_interest_posted_at,
             },
             CreditFacilityEvent::InterestAccrualCycleConcluded {
                 idx: second_interest_idx.next(),
@@ -612,12 +620,19 @@ mod tests {
                 posted_at: third_interest_posted_at,
                 audit_info: dummy_audit_info(),
             },
-            CreditFacilityEvent::PaymentRecorded {
-                payment_id: PaymentId::new(),
-                disbursal_amount: UsdCents::from(1000),
-                interest_amount: UsdCents::from(6),
+            CreditFacilityEvent::BalanceUpdated {
+                source: BalanceUpdatedSource::PaymentAllocation(LedgerTxId::new()),
+                balance_type: BalanceUpdatedType::Disbursal,
+                amount: UsdCents::from(1000),
+                updated_at: third_interest_posted_at,
                 audit_info: dummy_audit_info(),
-                recorded_at: third_interest_posted_at,
+            },
+            CreditFacilityEvent::BalanceUpdated {
+                source: BalanceUpdatedSource::PaymentAllocation(LedgerTxId::new()),
+                balance_type: BalanceUpdatedType::InterestAccrual,
+                amount: UsdCents::from(6),
+                updated_at: third_interest_posted_at,
+                audit_info: dummy_audit_info(),
             },
         ]);
         let repayment_plan = super::project(events.iter());

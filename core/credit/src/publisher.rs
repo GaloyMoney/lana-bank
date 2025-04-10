@@ -1,9 +1,11 @@
+use core_money::UsdCents;
 use outbox::{Outbox, OutboxEventMarker};
 
 use crate::{
     credit_facility::{error::CreditFacilityError, CreditFacility, CreditFacilityEvent},
     event::*,
     obligation::{error::ObligationError, Obligation, ObligationEvent, ObligationType},
+    BalanceUpdatedType,
 };
 
 pub struct CreditFacilityPublisher<E>
@@ -58,17 +60,29 @@ where
                     id: entity.id,
                     completed_at: *completed_at,
                 }),
-                PaymentRecorded {
-                    disbursal_amount,
-                    interest_amount,
-                    recorded_at: recorded_in_ledger_at,
+                BalanceUpdated {
+                    balance_type,
+                    amount,
+                    updated_at: recorded_in_ledger_at,
                     ..
-                } => Some(CoreCreditEvent::FacilityRepaymentRecorded {
-                    id: entity.id,
-                    disbursal_amount: *disbursal_amount,
-                    interest_amount: *interest_amount,
-                    recorded_at: *recorded_in_ledger_at,
-                }),
+                } => match balance_type {
+                    BalanceUpdatedType::Disbursal => {
+                        Some(CoreCreditEvent::FacilityRepaymentRecorded {
+                            id: entity.id,
+                            disbursal_amount: *amount,
+                            interest_amount: UsdCents::ZERO,
+                            recorded_at: *recorded_in_ledger_at,
+                        })
+                    }
+                    BalanceUpdatedType::InterestAccrual => {
+                        Some(CoreCreditEvent::FacilityRepaymentRecorded {
+                            id: entity.id,
+                            disbursal_amount: UsdCents::ZERO,
+                            interest_amount: *amount,
+                            recorded_at: *recorded_in_ledger_at,
+                        })
+                    }
+                },
                 CollateralUpdated {
                     total_collateral,
                     abs_diff,
