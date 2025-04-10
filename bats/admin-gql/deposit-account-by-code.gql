@@ -1,0 +1,8 @@
+query DepositAccountByCode($code: String!) {
+  depositAccountByCode(code: $code) {
+    depositAccountId
+    shortCodeId
+    customerId
+    createdAt
+  }
+} 

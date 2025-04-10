@@ -64,8 +64,18 @@ CREATE TABLE core_chart_events (
 CREATE TABLE core_deposit_accounts (
   id UUID PRIMARY KEY,
   account_holder_id UUID NOT NULL,
+  short_code_id BIGINT NOT NULL UNIQUE,
   created_at TIMESTAMPTZ NOT NULL
 );
+
+CREATE SEQUENCE core_deposit_accounts_short_code_id_seq
+    AS bigint
+    START WITH 1000
+    INCREMENT BY 1
+    NO MINVALUE
+    MAXVALUE 9999999
+    NO CYCLE
+    OWNED BY core_deposit_accounts.short_code_id;
 
 CREATE TABLE core_deposit_account_events (
   id UUID NOT NULL REFERENCES core_deposit_accounts(id),

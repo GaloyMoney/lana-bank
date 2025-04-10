@@ -1,0 +1,20 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT nextval('core_deposit_accounts_short_code_id_seq')",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "nextval",
+        "type_info": "Int8"
+      }
+    ],
+    "parameters": {
+      "Left": []
+    },
+    "nullable": [
+      null
+    ]
+  },
+  "hash": "660ff3fa21d4f2e1cce261afb7292350f6b9a9bd7e7bb454c97a6c5cc01e51d0"
+}

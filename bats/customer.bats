@@ -52,7 +52,6 @@ wait_for_approval() {
 
   variables=$(jq -n --arg id "$customer_id" '{ id: $id }')
   exec_admin_graphql 'customer-audit-log' "$variables"
-  echo $(graphql_output) | jq .
 }
 
 @test "customer: can login" {
@@ -100,9 +99,11 @@ wait_for_approval() {
   )
 
   exec_admin_graphql 'customer' "$variables"
-  echo $(graphql_output) | jq .
   deposit_account_id=$(graphql_output .data.customer.depositAccount.depositAccountId)
   cache_value "deposit_account_id" $deposit_account_id
+
+  deposit_short_id=$(graphql_output .data.customer.depositAccount.shortCodeId)
+  [[ "$deposit_short_id" -ge 1000 && "$deposit_short_id" -le 2000 ]] || { echo "Expected deposit_short_id between 1000 and 2000, got $deposit_short_id"; exit 1; }
 
   variables=$(
     jq -n \
@@ -140,7 +141,6 @@ wait_for_approval() {
   exec_admin_graphql 'initiate-withdrawal' "$variables"
 
   withdrawal_id=$(graphql_output '.data.withdrawalInitiate.withdrawal.withdrawalId')
-  echo $(graphql_output) 
   [[ "$withdrawal_id" != "null" ]] || exit 1
   status=$(graphql_output '.data.withdrawalInitiate.withdrawal.status')
   # PENDING_APPROVAL is skipped due to status being updated on read
@@ -215,7 +215,6 @@ wait_for_approval() {
   )
   exec_admin_graphql 'confirm-withdrawal' "$variables"
 
-  echo $(graphql_output) | jq . 
   withdrawal_id=$(graphql_output '.data.withdrawalConfirm.withdrawal.withdrawalId')
   [[ "$withdrawal_id" != "null" ]] || exit 1
   status=$(graphql_output '.data.withdrawalConfirm.withdrawal.status')

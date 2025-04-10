@@ -12,8 +12,10 @@ use super::{customer::Customer, deposit::*, deposit_account_history::*, withdraw
 #[derive(SimpleObject, Clone)]
 #[graphql(complex)]
 pub struct DepositAccount {
+    // question: when is it a UUID and an ID?
     id: ID,
     deposit_account_id: UUID,
+    short_code_id: String,
     customer_id: UUID,
     created_at: Timestamp,
 
@@ -26,6 +28,7 @@ impl From<DomainDepositAccount> for DepositAccount {
         DepositAccount {
             id: account.id.to_global_id(),
             deposit_account_id: account.id.into(),
+            short_code_id: account.short_code_id.to_string(),
             customer_id: account.account_holder_id.into(),
             created_at: account.created_at().into(),
 

@@ -7,6 +7,8 @@ use audit::AuditInfo;
 
 use crate::primitives::*;
 
+use super::primitives::DepositAccountShortCodeId;
+
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
 #[es_event(id = "DepositAccountId")]
@@ -14,6 +16,7 @@ pub enum DepositAccountEvent {
     Initialized {
         id: DepositAccountId,
         account_holder_id: DepositAccountHolderId,
+        short_code_id: DepositAccountShortCodeId,
         ledger_account_id: CalaAccountId,
         reference: String,
         name: String,
@@ -32,6 +35,7 @@ pub enum DepositAccountEvent {
 pub struct DepositAccount {
     pub id: DepositAccountId,
     pub account_holder_id: DepositAccountHolderId,
+    pub short_code_id: DepositAccountShortCodeId,
     pub reference: String,
     pub name: String,
     pub description: String,
@@ -70,6 +74,7 @@ impl TryFromEvents<DepositAccountEvent> for DepositAccount {
                 DepositAccountEvent::Initialized {
                     id,
                     account_holder_id,
+                    short_code_id,
                     reference,
                     name,
                     description,
@@ -79,6 +84,7 @@ impl TryFromEvents<DepositAccountEvent> for DepositAccount {
                     builder = builder
                         .id(*id)
                         .account_holder_id(*account_holder_id)
+                        .short_code_id(*short_code_id)
                         .reference(reference.to_string())
                         .name(name.to_string())
                         .description(description.to_string())
@@ -99,6 +105,7 @@ pub struct NewDepositAccount {
     pub(super) id: DepositAccountId,
     #[builder(setter(into))]
     pub(super) account_holder_id: DepositAccountHolderId,
+    pub(super) short_code_id: DepositAccountShortCodeId,
     pub(super) reference: String,
     pub(super) name: String,
     pub(super) description: String,
@@ -120,6 +127,7 @@ impl IntoEvents<DepositAccountEvent> for NewDepositAccount {
             [DepositAccountEvent::Initialized {
                 id: self.id,
                 account_holder_id: self.account_holder_id,
+                short_code_id: self.short_code_id,
                 ledger_account_id: self.id.into(),
                 reference: self.reference,
                 name: self.name,

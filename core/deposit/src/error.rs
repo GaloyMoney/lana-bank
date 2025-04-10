@@ -36,6 +36,8 @@ pub enum CoreDepositError {
     DepositConfigAlreadyExists,
     #[error("CoreDepositError - DepositAccountNotActive")]
     DepositAccountNotActive,
+    #[error("CoreDepositError - AccountCodeParseError")]
+    AccountCodeParseError,
 }
 
 impl CoreDepositError {

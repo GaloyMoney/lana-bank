@@ -1,0 +1,8 @@
+query DepositAccount($id: UUID!) {
+  depositAccount(id: $id) {
+    depositAccountId
+    shortCodeId
+    customerId
+    createdAt
+  }
+} 
