@@ -2,8 +2,8 @@
 
 load "helpers"
 
-PERSISTED_LOG_FILE="chart-of-accounts.e2e-logs"
-RUN_LOG_FILE="chart-of-accounts.run.e2e-logs"
+PERSISTED_LOG_FILE="accounting.e2e-logs"
+RUN_LOG_FILE="accounting.run.e2e-logs"
 
 setup_file() {
   start_server
@@ -15,7 +15,7 @@ teardown_file() {
   cp "$LOG_FILE" "$PERSISTED_LOG_FILE"
 }
 
-@test "chart-of-accounts: can traverse chart of accounts" {
+@test "accounting: can traverse chart of accounts" {
   skip # until new structure is fully integrated
 
   exec_admin_graphql 'chart-of-accounts'
@@ -57,7 +57,7 @@ teardown_file() {
   [[ "$control_account_code" == "40101" ]] || exit 1
 }
 
-@test "chart-of-accounts: can import CSV file" {
+@test "accounting: can import CSV file into chart of accounts" {
   exec_admin_graphql 'chart-of-accounts'
   chart_id=$(graphql_output '.data.chartOfAccounts.chartId')
 
@@ -89,7 +89,9 @@ teardown_file() {
   [[ "$success" == "true" ]] || exit 1
 }
 
-@test "chart-of-accounts: executes manual transaction" {
+@test "accounting: can execute manual transaction" {
+
+  # expects chart of accounts from 'import CSV' step to exist
 
   amount=$((RANDOM % 1000))
 
