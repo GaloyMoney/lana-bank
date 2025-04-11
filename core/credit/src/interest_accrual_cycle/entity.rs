@@ -9,7 +9,7 @@ use crate::{
     obligation::{NewObligation, ObligationAccounts, ObligationType},
     primitives::*,
     terms::{InterestPeriod, TermValues},
-    CreditFacilityAccountIds, ObligationsAmounts,
+    CreditFacilityAccountIds,
 };
 
 #[derive(Debug, Copy, Clone, Serialize, Deserialize)]
@@ -186,7 +186,7 @@ impl InterestAccrualCycle {
 
     pub(crate) fn record_accrual(
         &mut self,
-        overdue_outstanding: ObligationsAmounts,
+        amount: UsdCents,
         audit_info: AuditInfo,
     ) -> InterestAccrualData {
         let accrual_period = self
@@ -197,7 +197,7 @@ impl InterestAccrualCycle {
         let interest_for_period = self
             .terms
             .annual_rate
-            .interest_for_time_period(overdue_outstanding.total(), days_in_interest_period);
+            .interest_for_time_period(amount, days_in_interest_period);
 
         let accrual_tx_ref = format!("{}-interest-accrual-{}", self.id, self.count_accrued() + 1);
         let interest_accrual = InterestAccrualData {
@@ -497,13 +497,7 @@ mod test {
         let mut accrual = accrual_from(initial_events());
         let InterestAccrualData {
             interest, period, ..
-        } = accrual.record_accrual(
-            ObligationsAmounts {
-                disbursed: UsdCents::ZERO,
-                interest: UsdCents::ZERO,
-            },
-            dummy_audit_info(),
-        );
+        } = accrual.record_accrual(UsdCents::ZERO, dummy_audit_info());
         assert_eq!(interest, UsdCents::ZERO);
         let start = default_started_at();
         assert_eq!(period.start, start);
@@ -549,13 +543,7 @@ mod test {
 
             let InterestAccrualData {
                 interest, period, ..
-            } = accrual.record_accrual(
-                ObligationsAmounts {
-                    disbursed: UsdCents::ZERO,
-                    interest: UsdCents::ZERO,
-                },
-                dummy_audit_info(),
-            );
+            } = accrual.record_accrual(UsdCents::ZERO, dummy_audit_info());
             assert_eq!(interest, UsdCents::ZERO);
             assert_eq!(period.end, expected_end_of_day);
 
@@ -594,13 +582,7 @@ mod test {
 
             let InterestAccrualData {
                 interest, period, ..
-            } = accrual.record_accrual(
-                ObligationsAmounts {
-                    disbursed: disbursed_outstanding,
-                    interest: UsdCents::ZERO,
-                },
-                dummy_audit_info(),
-            );
+            } = accrual.record_accrual(disbursed_outstanding, dummy_audit_info());
             assert_eq!(interest, expected_daily_interest);
             assert_eq!(period.end, expected_end_of_day);
 

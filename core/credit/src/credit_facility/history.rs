@@ -65,7 +65,7 @@ pub(super) fn project<'a>(
     let mut initial_facility = None;
     for event in events {
         match event {
-            CreditFacilityEvent::Initialized { facility, .. } => initial_facility = Some(*facility),
+            CreditFacilityEvent::Initialized { amount, .. } => initial_facility = Some(*amount),
             CreditFacilityEvent::CollateralUpdated {
                 abs_diff,
                 action,

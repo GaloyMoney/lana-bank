@@ -15,7 +15,6 @@ gql`
     disbursal(id: $id) {
       id
       disbursalId
-      index
       amount
       createdAt
       status

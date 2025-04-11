@@ -27,7 +27,6 @@ gql`
       disbursal {
         id
         disbursalId
-        index
         amount
         status
         createdAt

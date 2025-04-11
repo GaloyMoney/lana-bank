@@ -701,7 +701,6 @@ export const mockCreditFacilityDisbursal = (overrides?: Partial<CreditFacilityDi
         creditFacility: overrides && overrides.hasOwnProperty('creditFacility') ? overrides.creditFacility! : relationshipsToOmit.has('CreditFacility') ? {} as CreditFacility : mockCreditFacility({}, relationshipsToOmit),
         disbursalId: overrides && overrides.hasOwnProperty('disbursalId') ? overrides.disbursalId! : generateMockValue.uuid(),
         id: overrides && overrides.hasOwnProperty('id') ? overrides.id! : faker.string.uuid(),
-        index: overrides && overrides.hasOwnProperty('index') ? overrides.index! : generateMockValue.int(),
         status: overrides && overrides.hasOwnProperty('status') ? overrides.status! : DisbursalStatus.Approved,
     };
 };

@@ -55,7 +55,6 @@ gql`
             }
             ... on CreditFacilityDisbursal {
               id
-              index
               disbursalId
               creditFacility {
                 customer {
