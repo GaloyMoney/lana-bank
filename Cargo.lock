@@ -680,8 +680,8 @@ checksum = "ade8366b8bd5ba243f0a58f036cc0ca8a2f069cff1a2351ef1cac6b083e16fc0"
 
 [[package]]
 name = "cala-cel-interpreter"
-version = "0.3.25-dev"
-source = "git+https://github.com/galoymoney/cala.git?branch=main#1de59e8680b34563c495107fe8d03e044e608127"
+version = "0.4.3-dev"
+source = "git+https://github.com/galoymoney/cala.git?branch=main#cfdc23849493adfcdd01b2ecf8841868150f47a6"
 dependencies = [
  "cala-cel-parser",
  "chrono",
@@ -695,8 +695,8 @@ dependencies = [
 
 [[package]]
 name = "cala-cel-parser"
-version = "0.3.25-dev"
-source = "git+https://github.com/galoymoney/cala.git?branch=main#1de59e8680b34563c495107fe8d03e044e608127"
+version = "0.4.3-dev"
+source = "git+https://github.com/galoymoney/cala.git?branch=main#cfdc23849493adfcdd01b2ecf8841868150f47a6"
 dependencies = [
  "lalrpop",
  "lalrpop-util",
@@ -704,8 +704,8 @@ dependencies = [
 
 [[package]]
 name = "cala-ledger"
-version = "0.3.25-dev"
-source = "git+https://github.com/galoymoney/cala.git?branch=main#1de59e8680b34563c495107fe8d03e044e608127"
+version = "0.4.3-dev"
+source = "git+https://github.com/galoymoney/cala.git?branch=main#cfdc23849493adfcdd01b2ecf8841868150f47a6"
 dependencies = [
  "async-graphql",
  "base64 0.22.1",
@@ -738,8 +738,8 @@ dependencies = [
 
 [[package]]
 name = "cala-ledger-core-types"
-version = "0.3.25-dev"
-source = "git+https://github.com/galoymoney/cala.git?branch=main#1de59e8680b34563c495107fe8d03e044e608127"
+version = "0.4.3-dev"
+source = "git+https://github.com/galoymoney/cala.git?branch=main#cfdc23849493adfcdd01b2ecf8841868150f47a6"
 dependencies = [
  "async-graphql",
  "cala-cel-interpreter",
@@ -758,8 +758,8 @@ dependencies = [
 
 [[package]]
 name = "cala-tracing"
-version = "0.3.25-dev"
-source = "git+https://github.com/galoymoney/cala.git?branch=main#1de59e8680b34563c495107fe8d03e044e608127"
+version = "0.4.3-dev"
+source = "git+https://github.com/galoymoney/cala.git?branch=main#cfdc23849493adfcdd01b2ecf8841868150f47a6"
 dependencies = [
  "anyhow",
  "axum-extra",
@@ -1505,8 +1505,8 @@ dependencies = [
 
 [[package]]
 name = "es-entity"
-version = "0.3.25-dev"
-source = "git+https://github.com/galoymoney/cala.git?branch=main#1de59e8680b34563c495107fe8d03e044e608127"
+version = "0.4.3-dev"
+source = "git+https://github.com/galoymoney/cala.git?branch=main#cfdc23849493adfcdd01b2ecf8841868150f47a6"
 dependencies = [
  "async-graphql",
  "async-trait",
@@ -1524,8 +1524,8 @@ dependencies = [
 
 [[package]]
 name = "es-entity-macros"
-version = "0.3.25-dev"
-source = "git+https://github.com/galoymoney/cala.git?branch=main#1de59e8680b34563c495107fe8d03e044e608127"
+version = "0.4.3-dev"
+source = "git+https://github.com/galoymoney/cala.git?branch=main#cfdc23849493adfcdd01b2ecf8841868150f47a6"
 dependencies = [
  "convert_case",
  "darling",
@@ -3417,7 +3417,7 @@ version = "0.13.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d0f3e5beed80eb580c68e2c600937ac2c4eedabdfd5ef1e5b7ea4f3fba84497b"
 dependencies = [
- "heck 0.5.0",
+ "heck 0.4.1",
  "itertools 0.13.0",
  "log",
  "multimap",
@@ -3476,7 +3476,7 @@ version = "0.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8a669d5acbe719010c6f62a64e6d7d88fdedc1fe46e419747949ecb6312e9b14"
 dependencies = [
- "heck 0.5.0",
+ "heck 0.4.1",
  "prost",
  "prost-build",
  "prost-types",
@@ -4368,8 +4368,8 @@ dependencies = [
 
 [[package]]
 name = "sim-time"
-version = "0.3.25-dev"
-source = "git+https://github.com/galoymoney/cala.git?branch=main#1de59e8680b34563c495107fe8d03e044e608127"
+version = "0.4.3-dev"
+source = "git+https://github.com/galoymoney/cala.git?branch=main#cfdc23849493adfcdd01b2ecf8841868150f47a6"
 dependencies = [
  "chrono",
  "serde",
