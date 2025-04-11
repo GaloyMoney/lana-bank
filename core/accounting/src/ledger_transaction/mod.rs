@@ -1,11 +1,12 @@
 pub mod error;
 mod value;
 
+use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
 use audit::AuditSvc;
 use authz::PermissionCheck;
-use cala_ledger::CalaLedger;
+use cala_ledger::{CalaLedger, transaction::TransactionsByCreatedAtCursor};
 use tracing::instrument;
 
 use crate::primitives::{CoreAccountingAction, CoreAccountingObject, LedgerTransactionId};
@@ -66,8 +67,58 @@ where
         &self,
         ids: &[LedgerTransactionId],
     ) -> Result<HashMap<LedgerTransactionId, T>, LedgerTransactionError> {
-        let transactions: HashMap<_, cala_ledger::transaction::Transaction> =
-            self.cala.transactions().find_all(ids).await?;
+        self.transactions_into_ledger_transactions(self.cala.transactions().find_all(ids).await?)
+            .await
+    }
+
+    #[instrument(
+        name = "accounting.ledger_transaction.find_by_template_code",
+        skip(self),
+        err
+    )]
+    pub async fn find_by_template_code<T: From<LedgerTransaction>>(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        template_code: String,
+        cursor: es_entity::PaginatedQueryArgs<LedgerTransactionCursor>,
+        direction: es_entity::ListDirection,
+    ) -> Result<es_entity::PaginatedQueryRet<T, LedgerTransactionCursor>, LedgerTransactionError>
+    {
+        let template = self
+            .cala
+            .tx_templates()
+            .find_by_code(&template_code)
+            .await?;
+
+        let transactions = self
+            .cala
+            .transactions()
+            .list_for_template_id(template.id, cursor, direction)
+            .await?;
+
+        let entities = self
+            .transactions_into_ledger_transactions(
+                transactions
+                    .entities
+                    .into_iter()
+                    .map(|tx| (tx.id, tx))
+                    .collect(),
+            )
+            .await?
+            .into_values()
+            .collect();
+
+        Ok(es_entity::PaginatedQueryRet {
+            entities,
+            has_next_page: transactions.has_next_page,
+            end_cursor: transactions.end_cursor,
+        })
+    }
+
+    async fn transactions_into_ledger_transactions<T: From<LedgerTransaction>>(
+        &self,
+        transactions: HashMap<cala_ledger::TransactionId, cala_ledger::transaction::Transaction>,
+    ) -> Result<HashMap<LedgerTransactionId, T>, LedgerTransactionError> {
         let entries: Vec<cala_ledger::EntryId> = transactions
             .values()
             .flat_map(|tx| tx.values().entry_ids.iter().copied())
@@ -102,5 +153,40 @@ where
         }
 
         Ok(res)
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LedgerTransactionCursor {
+    pub ledger_transaction_id: LedgerTransactionId,
+    pub created_at: chrono::DateTime<chrono::Utc>,
+}
+
+#[cfg(feature = "graphql")]
+impl async_graphql::connection::CursorType for LedgerTransactionCursor {
+    type Error = String;
+
+    fn encode_cursor(&self) -> String {
+        use base64::{Engine as _, engine::general_purpose};
+        let json = serde_json::to_string(&self).expect("could not serialize cursor");
+        general_purpose::STANDARD_NO_PAD.encode(json.as_bytes())
+    }
+
+    fn decode_cursor(s: &str) -> Result<Self, Self::Error> {
+        use base64::{Engine as _, engine::general_purpose};
+        let bytes = general_purpose::STANDARD_NO_PAD
+            .decode(s.as_bytes())
+            .map_err(|e| e.to_string())?;
+        let json = String::from_utf8(bytes).map_err(|e| e.to_string())?;
+        serde_json::from_str(&json).map_err(|e| e.to_string())
+    }
+}
+
+impl From<&LedgerTransaction> for LedgerTransactionCursor {
+    fn from(transaction: &LedgerTransaction) -> Self {
+        Self {
+            ledger_transaction_id: transaction.id,
+            created_at: transaction.created_at,
+        }
     }
 }
