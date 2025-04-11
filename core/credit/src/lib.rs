@@ -73,6 +73,7 @@ where
     approve_disbursal: ApproveDisbursal<Perms, E>,
     cala: CalaLedger,
     approve_credit_facility: ApproveCreditFacility<Perms, E>,
+    obligations: Obligations<Perms, E>,
 }
 
 impl<Perms, E> Clone for CoreCredit<Perms, E>
@@ -87,6 +88,7 @@ where
             authz: self.authz.clone(),
             credit_facility_repo: self.credit_facility_repo.clone(),
             obligation_repo: self.obligation_repo.clone(),
+            obligations: self.obligations.clone(),
             disbursal_repo: self.disbursal_repo.clone(),
             payment_repo: self.payment_repo.clone(),
             governance: self.governance.clone(),
@@ -129,6 +131,7 @@ where
         let credit_facility_repo = CreditFacilityRepo::new(pool, &publisher);
         let disbursal_repo = DisbursalRepo::new(pool);
         let obligation_repo = ObligationRepo::new(pool, &publisher);
+        let obligations = Obligations::new(pool, authz, cala, &publisher);
         let payment_repo = PaymentRepo::new(pool);
         let ledger = CreditLedger::init(cala, journal_id).await?;
         let approve_disbursal = ApproveDisbursal::new(
@@ -224,6 +227,7 @@ where
             customer: customer.clone(),
             credit_facility_repo,
             obligation_repo,
+            obligations,
             disbursal_repo,
             payment_repo,
             governance: governance.clone(),
