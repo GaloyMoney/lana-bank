@@ -6,7 +6,7 @@ mod repayment;
 
 use async_graphql::*;
 
-pub use lana_app::credit_facility::{
+pub use lana_app::credit::{
     CreditFacility as DomainCreditFacility, DisbursalsSortBy as DomainDisbursalsSortBy,
     ListDirection, Sort,
 };
@@ -67,7 +67,7 @@ impl CreditFacility {
     async fn balance(&self, ctx: &Context<'_>) -> async_graphql::Result<CreditFacilityBalance> {
         let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
         let balance = app
-            .credit_facilities()
+            .credit()
             .for_subject(sub)?
             .balance(self.entity.id)
             .await?;
@@ -78,10 +78,7 @@ impl CreditFacility {
     async fn current_cvl(&self, ctx: &Context<'_>) -> async_graphql::Result<FacilityCVL> {
         let app = ctx.data_unchecked::<LanaApp>();
         let price = app.price().usd_cents_per_btc().await?;
-        let obligations = app
-            .credit_facilities()
-            .obligations_aggregator(self.entity.id)
-            .await?;
+        let obligations = app.credit().obligations_aggregator(self.entity.id).await?;
         Ok(FacilityCVL::from(
             self.entity.facility_cvl_data(&obligations).cvl(price),
         ))
@@ -102,7 +99,7 @@ impl CreditFacility {
         let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
 
         let disbursals = app
-            .credit_facilities()
+            .credit()
             .for_subject(sub)?
             .list_disbursals_for_credit_facility(
                 self.entity.id,
@@ -136,8 +133,8 @@ pub struct FacilityCVL {
     disbursed: CVLPct,
 }
 
-impl From<lana_app::credit_facility::FacilityCVL> for FacilityCVL {
-    fn from(value: lana_app::credit_facility::FacilityCVL) -> Self {
+impl From<lana_app::credit::FacilityCVL> for FacilityCVL {
+    fn from(value: lana_app::credit::FacilityCVL) -> Self {
         Self {
             total: value.total,
             disbursed: value.disbursed,

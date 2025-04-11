@@ -75,7 +75,7 @@ impl Customer {
         let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
 
         Ok(app
-            .credit_facilities()
+            .credit()
             .for_subject(sub)?
             .list_credit_facilities_by_created_at(Default::default(), ListDirection::Descending)
             .await?

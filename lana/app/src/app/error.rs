@@ -13,7 +13,7 @@ pub enum ApplicationError {
     #[error("ApplicationError - CustomerOnboardingError: {0}")]
     CustomerOnboardingError(#[from] customer_onboarding::error::CustomerOnboardingError),
     #[error("ApplicationError - CreditFacilityError: {0}")]
-    CreditFacilityError(#[from] crate::credit_facility::error::CoreCreditError),
+    CreditFacilityError(#[from] crate::credit::error::CoreCreditError),
     #[error("ApplicationError - TrialBalanceError: {0}")]
     TrialBalanceError(#[from] crate::trial_balance::error::TrialBalanceError),
     #[error("ApplicationError - ProfitAndLossStatementError: {0}")]

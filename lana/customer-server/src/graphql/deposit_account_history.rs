@@ -113,7 +113,7 @@ impl DisbursalEntry {
         let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
 
         let disbursal = app
-            .credit_facilities()
+            .credit()
             .for_subject(sub)?
             .find_disbursal_by_concluded_tx_id(self.tx_id)
             .await?;
@@ -128,7 +128,7 @@ impl PaymentEntry {
         let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
 
         let payment = app
-            .credit_facilities()
+            .credit()
             .for_subject(sub)?
             .find_payment_by_id(self.tx_id)
             .await?;

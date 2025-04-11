@@ -60,33 +60,33 @@ pub struct CreditFacilityInterestAccrued {
     pub days: i64,
 }
 
-impl From<lana_app::credit_facility::CreditFacilityHistoryEntry> for CreditFacilityHistoryEntry {
-    fn from(transaction: lana_app::credit_facility::CreditFacilityHistoryEntry) -> Self {
+impl From<lana_app::credit::CreditFacilityHistoryEntry> for CreditFacilityHistoryEntry {
+    fn from(transaction: lana_app::credit::CreditFacilityHistoryEntry) -> Self {
         match transaction {
-            lana_app::credit_facility::CreditFacilityHistoryEntry::Payment(payment) => {
+            lana_app::credit::CreditFacilityHistoryEntry::Payment(payment) => {
                 CreditFacilityHistoryEntry::Payment(payment.into())
             }
-            lana_app::credit_facility::CreditFacilityHistoryEntry::Collateral(collateral) => {
+            lana_app::credit::CreditFacilityHistoryEntry::Collateral(collateral) => {
                 CreditFacilityHistoryEntry::Collateral(collateral.into())
             }
-            lana_app::credit_facility::CreditFacilityHistoryEntry::Origination(origination) => {
+            lana_app::credit::CreditFacilityHistoryEntry::Origination(origination) => {
                 CreditFacilityHistoryEntry::Origination(origination.into())
             }
-            lana_app::credit_facility::CreditFacilityHistoryEntry::Collateralization(
-                collateralization,
-            ) => CreditFacilityHistoryEntry::Collateralization(collateralization.into()),
-            lana_app::credit_facility::CreditFacilityHistoryEntry::Disbursal(disbursal) => {
+            lana_app::credit::CreditFacilityHistoryEntry::Collateralization(collateralization) => {
+                CreditFacilityHistoryEntry::Collateralization(collateralization.into())
+            }
+            lana_app::credit::CreditFacilityHistoryEntry::Disbursal(disbursal) => {
                 CreditFacilityHistoryEntry::Disbursal(disbursal.into())
             }
-            lana_app::credit_facility::CreditFacilityHistoryEntry::Interest(interest) => {
+            lana_app::credit::CreditFacilityHistoryEntry::Interest(interest) => {
                 CreditFacilityHistoryEntry::Interest(interest.into())
             }
         }
     }
 }
 
-impl From<lana_app::credit_facility::IncrementalPayment> for CreditFacilityIncrementalPayment {
-    fn from(payment: lana_app::credit_facility::IncrementalPayment) -> Self {
+impl From<lana_app::credit::IncrementalPayment> for CreditFacilityIncrementalPayment {
+    fn from(payment: lana_app::credit::IncrementalPayment) -> Self {
         Self {
             cents: payment.cents,
             recorded_at: payment.recorded_at.into(),
@@ -95,8 +95,8 @@ impl From<lana_app::credit_facility::IncrementalPayment> for CreditFacilityIncre
     }
 }
 
-impl From<lana_app::credit_facility::CollateralUpdated> for CreditFacilityCollateralUpdated {
-    fn from(collateral: lana_app::credit_facility::CollateralUpdated) -> Self {
+impl From<lana_app::credit::CollateralUpdated> for CreditFacilityCollateralUpdated {
+    fn from(collateral: lana_app::credit::CollateralUpdated) -> Self {
         Self {
             satoshis: collateral.satoshis,
             recorded_at: collateral.recorded_at.into(),
@@ -106,8 +106,8 @@ impl From<lana_app::credit_facility::CollateralUpdated> for CreditFacilityCollat
     }
 }
 
-impl From<lana_app::credit_facility::CreditFacilityOrigination> for CreditFacilityOrigination {
-    fn from(origination: lana_app::credit_facility::CreditFacilityOrigination) -> Self {
+impl From<lana_app::credit::CreditFacilityOrigination> for CreditFacilityOrigination {
+    fn from(origination: lana_app::credit::CreditFacilityOrigination) -> Self {
         Self {
             cents: origination.cents,
             recorded_at: origination.recorded_at.into(),
@@ -116,10 +116,8 @@ impl From<lana_app::credit_facility::CreditFacilityOrigination> for CreditFacili
     }
 }
 
-impl From<lana_app::credit_facility::CollateralizationUpdated>
-    for CreditFacilityCollateralizationUpdated
-{
-    fn from(collateralization: lana_app::credit_facility::CollateralizationUpdated) -> Self {
+impl From<lana_app::credit::CollateralizationUpdated> for CreditFacilityCollateralizationUpdated {
+    fn from(collateralization: lana_app::credit::CollateralizationUpdated) -> Self {
         Self {
             state: collateralization.state,
             collateral: collateralization.collateral,
@@ -131,8 +129,8 @@ impl From<lana_app::credit_facility::CollateralizationUpdated>
     }
 }
 
-impl From<lana_app::credit_facility::DisbursalExecuted> for CreditFacilityDisbursalExecuted {
-    fn from(disbursal: lana_app::credit_facility::DisbursalExecuted) -> Self {
+impl From<lana_app::credit::DisbursalExecuted> for CreditFacilityDisbursalExecuted {
+    fn from(disbursal: lana_app::credit::DisbursalExecuted) -> Self {
         Self {
             cents: disbursal.cents,
             recorded_at: disbursal.recorded_at.into(),
@@ -141,8 +139,8 @@ impl From<lana_app::credit_facility::DisbursalExecuted> for CreditFacilityDisbur
     }
 }
 
-impl From<lana_app::credit_facility::InterestAccrualsPosted> for CreditFacilityInterestAccrued {
-    fn from(interest: lana_app::credit_facility::InterestAccrualsPosted) -> Self {
+impl From<lana_app::credit::InterestAccrualsPosted> for CreditFacilityInterestAccrued {
+    fn from(interest: lana_app::credit::InterestAccrualsPosted) -> Self {
         Self {
             cents: interest.cents,
             recorded_at: interest.recorded_at.into(),

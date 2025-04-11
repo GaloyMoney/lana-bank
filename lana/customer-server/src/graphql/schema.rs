@@ -22,7 +22,7 @@ impl Query {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
 
         Ok(app
-            .credit_facilities()
+            .credit()
             .for_subject(sub)?
             .find_by_id(id)
             .await?

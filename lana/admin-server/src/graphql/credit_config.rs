@@ -2,7 +2,7 @@ use async_graphql::*;
 
 use crate::primitives::*;
 
-pub use lana_app::credit_facility::ChartOfAccountsIntegrationConfig as DomainChartOfAccountsIntegrationConfig;
+pub use lana_app::credit::ChartOfAccountsIntegrationConfig as DomainChartOfAccountsIntegrationConfig;
 
 #[derive(SimpleObject, Clone)]
 pub struct CreditModuleConfig {

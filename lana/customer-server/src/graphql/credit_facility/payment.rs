@@ -2,7 +2,7 @@ use async_graphql::*;
 
 use crate::primitives::*;
 
-pub use lana_app::credit_facility::Payment as DomainPayment;
+pub use lana_app::credit::Payment as DomainPayment;
 
 #[derive(SimpleObject, Clone)]
 #[graphql(complex)]
@@ -39,7 +39,7 @@ impl CreditFacilityPayment {
         let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
 
         let cf = app
-            .credit_facilities()
+            .credit()
             .for_subject(sub)?
             .find_by_id(self.entity.credit_facility_id)
             .await?

@@ -253,30 +253,26 @@ impl Loader<TermsTemplateId> for LanaLoader {
 
 impl Loader<CreditFacilityId> for LanaLoader {
     type Value = CreditFacility;
-    type Error = Arc<lana_app::credit_facility::error::CoreCreditError>;
+    type Error = Arc<lana_app::credit::error::CoreCreditError>;
 
     async fn load(
         &self,
         keys: &[CreditFacilityId],
     ) -> Result<HashMap<CreditFacilityId, CreditFacility>, Self::Error> {
-        self.app
-            .credit_facilities()
-            .find_all(keys)
-            .await
-            .map_err(Arc::new)
+        self.app.credit().find_all(keys).await.map_err(Arc::new)
     }
 }
 
 impl Loader<DisbursalId> for LanaLoader {
     type Value = CreditFacilityDisbursal;
-    type Error = Arc<lana_app::credit_facility::error::CoreCreditError>;
+    type Error = Arc<lana_app::credit::error::CoreCreditError>;
 
     async fn load(
         &self,
         keys: &[DisbursalId],
     ) -> Result<HashMap<DisbursalId, CreditFacilityDisbursal>, Self::Error> {
         self.app
-            .credit_facilities()
+            .credit()
             .find_all_disbursals(keys)
             .await
             .map_err(Arc::new)

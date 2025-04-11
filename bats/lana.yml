@@ -10,7 +10,7 @@ app:
     root_folder: "gha"
   report:
     dbt_output_dataset: "dbt_gha"
-  credit_facility:
+  credit:
     customer_active_check_enabled: false
   customer_onboarding:
     customer_status_sync_active: false

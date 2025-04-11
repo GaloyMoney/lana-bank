@@ -5,7 +5,7 @@ use crate::{
     graphql::{approval_process::*, loader::LanaDataLoader},
     primitives::*,
 };
-pub use lana_app::credit_facility::{Disbursal as DomainDisbursal, DisbursalsCursor};
+pub use lana_app::credit::{Disbursal as DomainDisbursal, DisbursalsCursor};
 
 #[derive(SimpleObject, Clone)]
 #[graphql(complex)]
@@ -47,7 +47,7 @@ impl CreditFacilityDisbursal {
     async fn status(&self, ctx: &Context<'_>) -> async_graphql::Result<DisbursalStatus> {
         let (app, _) = crate::app_and_sub_from_ctx!(ctx);
         Ok(app
-            .credit_facilities()
+            .credit()
             .ensure_up_to_date_disbursal_status(&self.entity)
             .await?
             .map(|d| d.status())

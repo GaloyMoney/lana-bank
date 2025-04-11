@@ -13,7 +13,7 @@ use super::{
     approval_process::*, customer::*, loader::LanaDataLoader, primitives::SortDirection, terms::*,
 };
 pub use lana_app::{
-    credit_facility::{
+    credit::{
         CreditFacilitiesCursor, CreditFacilitiesSortBy as DomainCreditFacilitiesSortBy,
         CreditFacility as DomainCreditFacility, DisbursalsSortBy as DomainDisbursalsSortBy,
         FindManyCreditFacilities, FindManyDisbursals, ListDirection, Sort,
@@ -69,7 +69,7 @@ impl From<DomainCreditFacility> for CreditFacility {
 impl CreditFacility {
     async fn can_be_completed(&self, ctx: &Context<'_>) -> async_graphql::Result<bool> {
         let (app, _) = crate::app_and_sub_from_ctx!(ctx);
-        let obligations_outstanding = app.credit_facilities().outstanding(self.entity.id).await?;
+        let obligations_outstanding = app.credit().outstanding(self.entity.id).await?;
         Ok(self.entity.can_be_completed(obligations_outstanding))
     }
 
@@ -80,7 +80,7 @@ impl CreditFacility {
     async fn status(&self, ctx: &Context<'_>) -> async_graphql::Result<CreditFacilityStatus> {
         let (app, _) = crate::app_and_sub_from_ctx!(ctx);
         Ok(app
-            .credit_facilities()
+            .credit()
             .ensure_up_to_date_status(&self.entity)
             .await?
             .map(|cf| cf.status())
@@ -91,10 +91,7 @@ impl CreditFacility {
         let app = ctx.data_unchecked::<LanaApp>();
         let price = app.price().usd_cents_per_btc().await?;
 
-        let obligations = app
-            .credit_facilities()
-            .obligations_aggregator(self.entity.id)
-            .await?;
+        let obligations = app.credit().obligations_aggregator(self.entity.id).await?;
         Ok(FacilityCVL::from(
             self.entity.facility_cvl_data(&obligations).cvl(price),
         ))
@@ -123,7 +120,7 @@ impl CreditFacility {
         let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
 
         let disbursals = app
-            .credit_facilities()
+            .credit()
             .list_disbursals(
                 sub,
                 Default::default(),
@@ -157,7 +154,7 @@ impl CreditFacility {
     ) -> async_graphql::Result<bool> {
         let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
         Ok(app
-            .credit_facilities()
+            .credit()
             .subject_can_update_collateral(sub, false)
             .await
             .is_ok())
@@ -169,7 +166,7 @@ impl CreditFacility {
     ) -> async_graphql::Result<bool> {
         let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
         Ok(app
-            .credit_facilities()
+            .credit()
             .subject_can_initiate_disbursal(sub, false)
             .await
             .is_ok())
@@ -178,7 +175,7 @@ impl CreditFacility {
     async fn subject_can_record_payment(&self, ctx: &Context<'_>) -> async_graphql::Result<bool> {
         let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
         Ok(app
-            .credit_facilities()
+            .credit()
             .subject_can_record_payment(sub, false)
             .await
             .is_ok())
@@ -186,11 +183,7 @@ impl CreditFacility {
 
     async fn subject_can_complete(&self, ctx: &Context<'_>) -> async_graphql::Result<bool> {
         let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
-        Ok(app
-            .credit_facilities()
-            .subject_can_complete(sub, false)
-            .await
-            .is_ok())
+        Ok(app.credit().subject_can_complete(sub, false).await.is_ok())
     }
 
     async fn customer(&self, ctx: &Context<'_>) -> async_graphql::Result<Customer> {
@@ -204,7 +197,7 @@ impl CreditFacility {
 
     async fn balance(&self, ctx: &Context<'_>) -> async_graphql::Result<CreditFacilityBalance> {
         let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
-        let balance = app.credit_facilities().balance(sub, self.entity.id).await?;
+        let balance = app.credit().balance(sub, self.entity.id).await?;
         Ok(CreditFacilityBalance::from(balance))
     }
 }
@@ -215,8 +208,8 @@ pub struct FacilityCVL {
     disbursed: CVLPct,
 }
 
-impl From<lana_app::credit_facility::FacilityCVL> for FacilityCVL {
-    fn from(value: lana_app::credit_facility::FacilityCVL) -> Self {
+impl From<lana_app::credit::FacilityCVL> for FacilityCVL {
+    fn from(value: lana_app::credit::FacilityCVL) -> Self {
         Self {
             total: value.total,
             disbursed: value.disbursed,

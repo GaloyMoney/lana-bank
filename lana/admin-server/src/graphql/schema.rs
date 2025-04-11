@@ -199,11 +199,7 @@ impl Query {
         id: UUID,
     ) -> async_graphql::Result<Option<CreditFacility>> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
-        maybe_fetch_one!(
-            CreditFacility,
-            ctx,
-            app.credit_facilities().find_by_id(sub, id)
-        )
+        maybe_fetch_one!(CreditFacility, ctx, app.credit().find_by_id(sub, id))
     }
 
     async fn credit_facilities(
@@ -253,7 +249,7 @@ impl Query {
             ctx,
             after,
             first,
-            |query| app.credit_facilities().list(sub, query, filter, sort)
+            |query| app.credit().list(sub, query, filter, sort)
         )
     }
 
@@ -266,7 +262,7 @@ impl Query {
         maybe_fetch_one!(
             CreditFacilityDisbursal,
             ctx,
-            app.credit_facilities().find_disbursal_by_id(sub, id)
+            app.credit().find_disbursal_by_id(sub, id)
         )
     }
 
@@ -292,10 +288,7 @@ impl Query {
             ctx,
             after,
             first,
-            |query| {
-                app.credit_facilities()
-                    .list_disbursals(sub, query, filter, sort)
-            }
+            |query| { app.credit().list_disbursals(sub, query, filter, sort) }
         )
     }
 
@@ -733,7 +726,7 @@ impl Query {
     ) -> async_graphql::Result<Option<CreditModuleConfig>> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         let config = app
-            .credit_facilities()
+            .credit()
             .get_chart_of_accounts_integration_config(sub)
             .await?;
         Ok(config.map(CreditModuleConfig::from))
@@ -1152,7 +1145,7 @@ impl Mutation {
             chart_of_account_overdue_non_domiciled_company_disbursed_receivable_parent_code,
         } = input;
 
-        let config_values = lana_app::credit_facility::ChartOfAccountsIntegrationConfig::builder()
+        let config_values = lana_app::credit::ChartOfAccountsIntegrationConfig::builder()
             .chart_of_accounts_id(chart.id)
             .chart_of_account_facility_omnibus_parent_code(
                 chart_of_account_facility_omnibus_parent_code
@@ -1214,7 +1207,7 @@ impl Mutation {
 
             .build()?;
         let config = app
-            .credit_facilities()
+            .credit()
             .set_chart_of_accounts_integration_config(sub, chart.as_ref(), config_values)
             .await?;
         Ok(CreditModuleConfigurePayload::from(
@@ -1251,7 +1244,7 @@ impl Mutation {
             CreditFacilityCreatePayload,
             CreditFacility,
             ctx,
-            app.credit_facilities().initiate(
+            app.credit().initiate(
                 sub,
                 customer_id,
                 disbursal_credit_account_id,
@@ -1275,7 +1268,7 @@ impl Mutation {
             CreditFacilityCollateralUpdatePayload,
             CreditFacility,
             ctx,
-            app.credit_facilities()
+            app.credit()
                 .update_collateral(sub, credit_facility_id.into(), collateral)
         )
     }
@@ -1290,11 +1283,8 @@ impl Mutation {
             CreditFacilityPartialPaymentPayload,
             CreditFacility,
             ctx,
-            app.credit_facilities().record_payment(
-                sub,
-                input.credit_facility_id.into(),
-                input.amount
-            )
+            app.credit()
+                .record_payment(sub, input.credit_facility_id.into(), input.amount)
         )
     }
 
@@ -1308,11 +1298,8 @@ impl Mutation {
             CreditFacilityDisbursalInitiatePayload,
             CreditFacilityDisbursal,
             ctx,
-            app.credit_facilities().initiate_disbursal(
-                sub,
-                input.credit_facility_id.into(),
-                input.amount
-            )
+            app.credit()
+                .initiate_disbursal(sub, input.credit_facility_id.into(), input.amount)
         )
     }
 
@@ -1326,7 +1313,7 @@ impl Mutation {
             CreditFacilityCompletePayload,
             CreditFacility,
             ctx,
-            app.credit_facilities()
+            app.credit()
                 .complete_facility(sub, input.credit_facility_id)
         )
     }
