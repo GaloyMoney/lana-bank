@@ -275,6 +275,20 @@ CREATE TABLE report_events (
   UNIQUE(id, sequence)
 );
 
+CREATE TABLE accounting_csvs (
+  id UUID PRIMARY KEY,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE accounting_csv_events (
+  id UUID NOT NULL REFERENCES accounting_csvs(id),
+  sequence INT NOT NULL,
+  event_type VARCHAR NOT NULL,
+  event JSONB NOT NULL,
+  recorded_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  UNIQUE(id, sequence)
+);
+
 CREATE TABLE core_manual_transactions (
   id UUID PRIMARY KEY,
   reference VARCHAR NOT NULL UNIQUE,
