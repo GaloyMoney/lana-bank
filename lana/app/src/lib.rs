@@ -130,8 +130,8 @@ pub mod credit_facility {
         APPROVE_DISBURSAL_PROCESS,
     };
 
-    pub type CreditFacilities =
-        core_credit::CreditFacilities<crate::authorization::Authorization, lana_events::LanaEvent>;
+    pub type Credit =
+        core_credit::CoreCredit<crate::authorization::Authorization, lana_events::LanaEvent>;
 }
 
 pub mod terms {
