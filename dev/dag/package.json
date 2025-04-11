@@ -1,0 +1,22 @@
+{
+  "name": "dag",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start-lana": "pnpm exec node server.js",
+    "start-cala": "pnpm exec node cala-dag-server.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "packageManager": "pnpm@10.6.5",
+  "dependencies": {
+    "@dagrejs/dagre": "^1.1.4",
+    "d3": "^7.9.0",
+    "dagre-d3": "^0.6.4",
+    "express": "^5.1.0",
+    "pg": "^8.14.1"
+  }
+}
