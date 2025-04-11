@@ -882,10 +882,13 @@ impl CreditLedger {
         &self,
         CreditFacilityAccountIds {
             facility_account_id,
+            collateral_account_id,
             disbursed_receivable_account_id,
             disbursed_receivable_overdue_account_id,
-            collateral_account_id,
+            disbursed_defaulted_account_id,
             interest_receivable_account_id,
+            interest_receivable_overdue_account_id,
+            interest_defaulted_account_id,
             ..
         }: CreditFacilityAccountIds,
     ) -> Result<CreditFacilityBalanceSummary, CreditLedgerError> {
@@ -897,7 +900,14 @@ impl CreditLedger {
             disbursed_receivable_overdue_account_id,
             self.usd,
         );
-        let interest_receivable_id = (self.journal_id, interest_receivable_account_id, self.usd);
+        let disbursed_defaulted_id = (self.journal_id, disbursed_defaulted_account_id, self.usd);
+        let interest_receivable_id = (self.journal_id, interest_receivable_account_id, self.usd); // FIXME: do separate account for interest accruals not posted
+        let interest_receivable_overdue_id = (
+            self.journal_id,
+            interest_receivable_overdue_account_id,
+            self.usd,
+        );
+        let interest_defaulted_id = (self.journal_id, interest_defaulted_account_id, self.usd);
         let balances = self
             .cala
             .balances()
@@ -906,7 +916,10 @@ impl CreditLedger {
                 collateral_id,
                 disbursed_receivable_id,
                 disbursed_receivable_overdue_id,
+                disbursed_defaulted_id,
                 interest_receivable_id,
+                interest_receivable_overdue_id,
+                interest_defaulted_id,
             ])
             .await?;
         let facility = if let Some(b) = balances.get(&facility_id) {
@@ -915,31 +928,61 @@ impl CreditLedger {
             UsdCents::ZERO
         };
         let disbursed = if let Some(b) = balances.get(&disbursed_receivable_id) {
-            UsdCents::try_from_usd(b.details.settled.dr_balance)?
+            UsdCents::try_from_usd(b.details.pending.dr_balance)?
         } else {
             UsdCents::ZERO
         };
-        let disbursed_receivable = if let Some(b) = balances.get(&disbursed_receivable_id) {
+        let not_yet_due_disbursed_outstanding =
+            if let Some(b) = balances.get(&disbursed_receivable_id) {
+                UsdCents::try_from_usd(b.pending())?
+            } else {
+                UsdCents::ZERO
+            };
+        let due_disbursed_outstanding = if let Some(b) = balances.get(&disbursed_receivable_id) {
             UsdCents::try_from_usd(b.settled())?
         } else {
             UsdCents::ZERO
         };
-        let disbursed_receivable_overdue =
+        let overdue_disbursed_outstanding =
             if let Some(b) = balances.get(&disbursed_receivable_overdue_id) {
                 UsdCents::try_from_usd(b.settled())?
             } else {
                 UsdCents::ZERO
             };
-        let interest = if let Some(b) = balances.get(&interest_receivable_id) {
-            UsdCents::try_from_usd(b.details.settled.dr_balance)?
-        } else {
-            UsdCents::ZERO
-        };
-        let interest_receivable = if let Some(b) = balances.get(&interest_receivable_id) {
+        let disbursed_defaulted = if let Some(b) = balances.get(&disbursed_defaulted_id) {
             UsdCents::try_from_usd(b.settled())?
         } else {
             UsdCents::ZERO
         };
+
+        let interest_posted = if let Some(b) = balances.get(&interest_receivable_id) {
+            UsdCents::try_from_usd(b.details.pending.dr_balance)?
+        } else {
+            UsdCents::ZERO
+        };
+        let not_yet_due_interest_outstanding =
+            if let Some(b) = balances.get(&interest_receivable_id) {
+                UsdCents::try_from_usd(b.pending())?
+            } else {
+                UsdCents::ZERO
+            };
+        let due_interest_outstanding = if let Some(b) = balances.get(&interest_receivable_id) {
+            UsdCents::try_from_usd(b.settled())?
+        } else {
+            UsdCents::ZERO
+        };
+        let overdue_interest_outstanding =
+            if let Some(b) = balances.get(&interest_receivable_overdue_id) {
+                UsdCents::try_from_usd(b.settled())?
+            } else {
+                UsdCents::ZERO
+            };
+        let interest_defaulted = if let Some(b) = balances.get(&interest_defaulted_id) {
+            UsdCents::try_from_usd(b.settled())?
+        } else {
+            UsdCents::ZERO
+        };
+
         let collateral = if let Some(b) = balances.get(&collateral_id) {
             Satoshis::try_from_btc(b.settled())?
         } else {
@@ -948,10 +991,19 @@ impl CreditLedger {
         Ok(CreditFacilityBalanceSummary {
             facility_remaining: facility,
             collateral,
-            total_disbursed: disbursed,
-            disbursed_receivable: disbursed_receivable + disbursed_receivable_overdue,
-            total_interest_accrued: interest,
-            interest_receivable,
+
+            disbursed,
+            interest_posted,
+
+            not_yet_due_disbursed_outstanding,
+            due_disbursed_outstanding,
+            overdue_disbursed_outstanding,
+            disbursed_defaulted,
+
+            not_yet_due_interest_outstanding,
+            due_interest_outstanding,
+            overdue_interest_outstanding,
+            interest_defaulted,
         })
     }
 
@@ -1199,7 +1251,7 @@ impl CreditLedger {
                     credit_facility_interest_receivable_account: credit_facility_account_ids
                         .interest_receivable_account_id,
                     credit_facility_interest_income_account: credit_facility_account_ids
-                        .interest_account_id,
+                        .interest_income_account_id,
                     interest_amount: interest.to_usd(),
                     external_id: tx_ref,
                     effective: period.end.date_naive(),
@@ -1561,7 +1613,7 @@ impl CreditLedger {
         );
         self.create_account_in_op(
             op,
-            account_ids.interest_account_id,
+            account_ids.interest_income_account_id,
             self.internal_account_sets.interest_income,
             interest_income_reference,
             interest_income_name,
