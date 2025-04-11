@@ -2,6 +2,8 @@ use thiserror::Error;
 
 #[derive(Error, Debug)]
 pub enum ObligationError {
+    #[error("ObligationError - AuthorizationError: {0}")]
+    AuthorizationError(#[from] authz::error::AuthorizationError),
     #[error("ObligationError - Sqlx: {0}")]
     Sqlx(#[from] sqlx::Error),
     #[error("ObligationError - EsEntityError: {0}")]
