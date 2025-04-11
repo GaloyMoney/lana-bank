@@ -1,0 +1,9 @@
+{{ config(materialized='table') }}
+
+select
+    left(`NIU`, 25) as `NIU`,
+    left(`Código del Documento`, 5) as `Código del Documento`,
+    left(`Número de documento`, 25) as `Número de documento`,
+    current_timestamp() as created_at
+from
+    {{ ref('int_nrsf_03_03_documentos_clientes') }}
