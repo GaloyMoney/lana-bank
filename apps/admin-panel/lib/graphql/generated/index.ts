@@ -2576,6 +2576,14 @@ export type ProfitAndLossStatementQueryVariables = Exact<{
 
 export type ProfitAndLossStatementQuery = { __typename?: 'Query', profitAndLossStatement: { __typename?: 'ProfitAndLossStatement', name: string, net: { __typename: 'BtcLedgerAccountBalanceRange', btcStart: { __typename?: 'BtcLedgerAccountBalance', settled: Satoshis, pending: Satoshis, encumbrance: Satoshis }, btcDiff: { __typename?: 'BtcLedgerAccountBalance', settled: Satoshis, pending: Satoshis, encumbrance: Satoshis }, btcEnd: { __typename?: 'BtcLedgerAccountBalance', settled: Satoshis, pending: Satoshis, encumbrance: Satoshis } } | { __typename: 'UsdLedgerAccountBalanceRange', usdStart: { __typename?: 'UsdLedgerAccountBalance', settled: UsdCents, pending: UsdCents, encumbrance: UsdCents }, usdDiff: { __typename?: 'UsdLedgerAccountBalance', settled: UsdCents, pending: UsdCents, encumbrance: UsdCents }, usdEnd: { __typename?: 'UsdLedgerAccountBalance', settled: UsdCents, pending: UsdCents, encumbrance: UsdCents } }, categories: Array<{ __typename?: 'LedgerAccount', id: string, name: string, code?: any | null, balanceRange: { __typename: 'BtcLedgerAccountBalanceRange', btcStart: { __typename?: 'BtcLedgerAccountBalance', settled: Satoshis, pending: Satoshis, encumbrance: Satoshis }, btcDiff: { __typename?: 'BtcLedgerAccountBalance', settled: Satoshis, pending: Satoshis, encumbrance: Satoshis }, btcEnd: { __typename?: 'BtcLedgerAccountBalance', settled: Satoshis, pending: Satoshis, encumbrance: Satoshis } } | { __typename: 'UsdLedgerAccountBalanceRange', usdStart: { __typename?: 'UsdLedgerAccountBalance', settled: UsdCents, pending: UsdCents, encumbrance: UsdCents }, usdDiff: { __typename?: 'UsdLedgerAccountBalance', settled: UsdCents, pending: UsdCents, encumbrance: UsdCents }, usdEnd: { __typename?: 'UsdLedgerAccountBalance', settled: UsdCents, pending: UsdCents, encumbrance: UsdCents } }, children: Array<{ __typename?: 'LedgerAccount', id: string, name: string, code?: any | null, balanceRange: { __typename: 'BtcLedgerAccountBalanceRange', btcStart: { __typename?: 'BtcLedgerAccountBalance', settled: Satoshis, pending: Satoshis, encumbrance: Satoshis }, btcDiff: { __typename?: 'BtcLedgerAccountBalance', settled: Satoshis, pending: Satoshis, encumbrance: Satoshis }, btcEnd: { __typename?: 'BtcLedgerAccountBalance', settled: Satoshis, pending: Satoshis, encumbrance: Satoshis } } | { __typename: 'UsdLedgerAccountBalanceRange', usdStart: { __typename?: 'UsdLedgerAccountBalance', settled: UsdCents, pending: UsdCents, encumbrance: UsdCents }, usdDiff: { __typename?: 'UsdLedgerAccountBalance', settled: UsdCents, pending: UsdCents, encumbrance: UsdCents }, usdEnd: { __typename?: 'UsdLedgerAccountBalance', settled: UsdCents, pending: UsdCents, encumbrance: UsdCents } } }> }> } };
 
+export type UsdBalanceFragmentFragment = { __typename?: 'UsdLedgerAccountBalance', settled: UsdCents, pending: UsdCents, encumbrance: UsdCents };
+
+export type BtcBalanceFragmentFragment = { __typename?: 'BtcLedgerAccountBalance', settled: Satoshis, pending: Satoshis, encumbrance: Satoshis };
+
+export type UsdLedgerBalanceRangeFragmentFragment = { __typename?: 'UsdLedgerAccountBalanceRange', usdStart: { __typename?: 'UsdLedgerAccountBalance', settled: UsdCents, pending: UsdCents, encumbrance: UsdCents }, usdDiff: { __typename?: 'UsdLedgerAccountBalance', settled: UsdCents, pending: UsdCents, encumbrance: UsdCents }, usdEnd: { __typename?: 'UsdLedgerAccountBalance', settled: UsdCents, pending: UsdCents, encumbrance: UsdCents } };
+
+export type BtcLedgerBalanceRangeFragmentFragment = { __typename?: 'BtcLedgerAccountBalanceRange', btcStart: { __typename?: 'BtcLedgerAccountBalance', settled: Satoshis, pending: Satoshis, encumbrance: Satoshis }, btcDiff: { __typename?: 'BtcLedgerAccountBalance', settled: Satoshis, pending: Satoshis, encumbrance: Satoshis }, btcEnd: { __typename?: 'BtcLedgerAccountBalance', settled: Satoshis, pending: Satoshis, encumbrance: Satoshis } };
+
 export type ReportCreateMutationVariables = Exact<{ [key: string]: never; }>;
 
 
@@ -3069,6 +3077,46 @@ export const LedgerAccountDetailsFragmentDoc = gql`
   }
 }
     `;
+export const UsdBalanceFragmentFragmentDoc = gql`
+    fragment UsdBalanceFragment on UsdLedgerAccountBalance {
+  settled
+  pending
+  encumbrance
+}
+    `;
+export const UsdLedgerBalanceRangeFragmentFragmentDoc = gql`
+    fragment UsdLedgerBalanceRangeFragment on UsdLedgerAccountBalanceRange {
+  usdStart: start {
+    ...UsdBalanceFragment
+  }
+  usdDiff: diff {
+    ...UsdBalanceFragment
+  }
+  usdEnd: end {
+    ...UsdBalanceFragment
+  }
+}
+    ${UsdBalanceFragmentFragmentDoc}`;
+export const BtcBalanceFragmentFragmentDoc = gql`
+    fragment BtcBalanceFragment on BtcLedgerAccountBalance {
+  settled
+  pending
+  encumbrance
+}
+    `;
+export const BtcLedgerBalanceRangeFragmentFragmentDoc = gql`
+    fragment BtcLedgerBalanceRangeFragment on BtcLedgerAccountBalanceRange {
+  btcStart: start {
+    ...BtcBalanceFragment
+  }
+  btcDiff: diff {
+    ...BtcBalanceFragment
+  }
+  btcEnd: end {
+    ...BtcBalanceFragment
+  }
+}
+    ${BtcBalanceFragmentFragmentDoc}`;
 export const TermsTemplateFieldsFragmentDoc = gql`
     fragment TermsTemplateFields on TermsTemplate {
   id
@@ -5820,40 +5868,8 @@ export const ProfitAndLossStatementDocument = gql`
     name
     net {
       __typename
-      ... on UsdLedgerAccountBalanceRange {
-        usdStart: start {
-          settled
-          pending
-          encumbrance
-        }
-        usdDiff: diff {
-          settled
-          pending
-          encumbrance
-        }
-        usdEnd: end {
-          settled
-          pending
-          encumbrance
-        }
-      }
-      ... on BtcLedgerAccountBalanceRange {
-        btcStart: start {
-          settled
-          pending
-          encumbrance
-        }
-        btcDiff: diff {
-          settled
-          pending
-          encumbrance
-        }
-        btcEnd: end {
-          settled
-          pending
-          encumbrance
-        }
-      }
+      ...UsdLedgerBalanceRangeFragment
+      ...BtcLedgerBalanceRangeFragment
     }
     categories {
       id
@@ -5861,40 +5877,8 @@ export const ProfitAndLossStatementDocument = gql`
       code
       balanceRange {
         __typename
-        ... on UsdLedgerAccountBalanceRange {
-          usdStart: start {
-            settled
-            pending
-            encumbrance
-          }
-          usdDiff: diff {
-            settled
-            pending
-            encumbrance
-          }
-          usdEnd: end {
-            settled
-            pending
-            encumbrance
-          }
-        }
-        ... on BtcLedgerAccountBalanceRange {
-          btcStart: start {
-            settled
-            pending
-            encumbrance
-          }
-          btcDiff: diff {
-            settled
-            pending
-            encumbrance
-          }
-          btcEnd: end {
-            settled
-            pending
-            encumbrance
-          }
-        }
+        ...UsdLedgerBalanceRangeFragment
+        ...BtcLedgerBalanceRangeFragment
       }
       children {
         id
@@ -5902,46 +5886,15 @@ export const ProfitAndLossStatementDocument = gql`
         code
         balanceRange {
           __typename
-          ... on UsdLedgerAccountBalanceRange {
-            usdStart: start {
-              settled
-              pending
-              encumbrance
-            }
-            usdDiff: diff {
-              settled
-              pending
-              encumbrance
-            }
-            usdEnd: end {
-              settled
-              pending
-              encumbrance
-            }
-          }
-          ... on BtcLedgerAccountBalanceRange {
-            btcStart: start {
-              settled
-              pending
-              encumbrance
-            }
-            btcDiff: diff {
-              settled
-              pending
-              encumbrance
-            }
-            btcEnd: end {
-              settled
-              pending
-              encumbrance
-            }
-          }
+          ...UsdLedgerBalanceRangeFragment
+          ...BtcLedgerBalanceRangeFragment
         }
       }
     }
   }
 }
-    `;
+    ${UsdLedgerBalanceRangeFragmentFragmentDoc}
+${BtcLedgerBalanceRangeFragmentFragmentDoc}`;
 
 /**
  * __useProfitAndLossStatementQuery__
