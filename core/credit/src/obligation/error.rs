@@ -12,6 +12,8 @@ pub enum ObligationError {
     CursorDestructureError(#[from] es_entity::CursorDestructureError),
     #[error("ObligationError - InvalidStatusTransitionToOverdue")]
     InvalidStatusTransitionToOverdue,
+    #[error("ObligationError - PaymentAmountGreaterThanOutstandingObligations")]
+    PaymentAmountGreaterThanOutstandingObligations,
 }
 
 es_entity::from_es_entity_error!(ObligationError);

@@ -10,7 +10,6 @@ mod jobs;
 pub mod ledger;
 mod obligation;
 mod payment;
-mod payment_allocator;
 mod primitives;
 mod processes;
 mod publisher;
@@ -29,7 +28,6 @@ use es_entity::Idempotent;
 use governance::{Governance, GovernanceAction, GovernanceEvent, GovernanceObject};
 use job::Jobs;
 use outbox::{Outbox, OutboxEventMarker};
-use payment_allocator::{ObligationDataForAllocation, PaymentAllocationResult, PaymentAllocator};
 use tracing::instrument;
 
 pub use chart_of_accounts_integration::ChartOfAccountsIntegrationConfig;
@@ -61,7 +59,6 @@ where
 {
     authz: Perms,
     credit_facility_repo: CreditFacilityRepo<E>,
-    obligation_repo: ObligationRepo<E>,
     disbursal_repo: DisbursalRepo,
     payment_repo: PaymentRepo,
     governance: Governance<Perms, E>,
@@ -86,7 +83,6 @@ where
         Self {
             authz: self.authz.clone(),
             credit_facility_repo: self.credit_facility_repo.clone(),
-            obligation_repo: self.obligation_repo.clone(),
             obligations: self.obligations.clone(),
             disbursal_repo: self.disbursal_repo.clone(),
             payment_repo: self.payment_repo.clone(),
@@ -221,7 +217,6 @@ where
             authz: authz.clone(),
             customer: customer.clone(),
             credit_facility_repo,
-            obligation_repo,
             obligations,
             disbursal_repo,
             payment_repo,
@@ -268,7 +263,6 @@ where
             sub,
             customer_id,
             &self.authz,
-            &self.obligation_repo,
             &self.credit_facility_repo,
             &self.disbursal_repo,
             &self.payment_repo,
@@ -626,34 +620,6 @@ where
             .await?)
     }
 
-    async fn list_obligations_for_credit_facility(
-        &self,
-        credit_facility_id: CreditFacilityId,
-    ) -> Result<Vec<Obligation>, CoreCreditError> {
-        let mut obligations = vec![];
-        let mut query = Default::default();
-        loop {
-            let mut res = self
-                .obligation_repo
-                .list_for_credit_facility_id_by_created_at(
-                    credit_facility_id,
-                    query,
-                    ListDirection::Ascending,
-                )
-                .await?;
-
-            obligations.append(&mut res.entities);
-
-            if let Some(q) = res.into_next_query() {
-                query = q;
-            } else {
-                break;
-            };
-        }
-
-        Ok(obligations)
-    }
-
     #[instrument(name = "credit_facility.record_payment", skip(self), err)]
     pub async fn record_payment(
         &self,
@@ -666,11 +632,7 @@ where
             .find_by_id(credit_facility_id)
             .await?;
 
-        let obligations = self
-            .list_obligations_for_credit_facility(credit_facility_id)
-            .await?;
-
-        let mut db = self.obligation_repo.begin_op().await?;
+        let mut db = self.credit_facility_repo.begin_op().await?;
         let audit_info = self
             .subject_can_record_payment(sub, true)
             .await?
@@ -684,65 +646,46 @@ where
             .expect("could not build new payment");
         let mut payment = self.payment_repo.create_in_op(&mut db, new_payment).await?;
 
-        let PaymentAllocationResult {
-            new_allocations,
-            disbursal_amount,
-            interest_amount,
-        } = PaymentAllocator::new(payment.id, amount).allocate(
-            obligations
-                .iter()
-                .map(ObligationDataForAllocation::from)
-                .collect::<Vec<_>>(),
-        )?;
+        let res = self
+            .obligations
+            .allocate_payment_in_op(
+                &mut db,
+                credit_facility_id,
+                payment.id,
+                amount,
+                audit_info.clone(),
+            )
+            .await?;
 
         payment
-            .record_allocated(disbursal_amount, interest_amount, audit_info.clone())
+            .record_allocated(
+                res.disbursed_amount(),
+                res.interest_amount(),
+                audit_info.clone(),
+            )
             .did_execute();
         self.payment_repo
             .update_in_op(&mut db, &mut payment)
             .await?;
 
         let now = crate::time::now();
-        let mut updated_obligations = vec![];
-        for mut obligation in obligations {
-            if let Some(new_allocation) = new_allocations
-                .iter()
-                .find(|new_allocation| new_allocation.obligation_id == obligation.id)
-            {
-                obligation
-                    .record_payment(
-                        new_allocation.id,
-                        new_allocation.amount,
-                        now,
-                        audit_info.clone(),
-                    )
-                    .did_execute();
-                credit_facility
-                    .update_balance_from_payment(
-                        new_allocation.id,
-                        obligation.obligation_type(),
-                        new_allocation.amount,
-                        now,
-                        audit_info.clone(),
-                    )
-                    .did_execute();
-                updated_obligations.push(obligation);
-            }
+        for new_allocation in &res.allocations {
+            credit_facility
+                .update_balance_from_payment(
+                    new_allocation.id,
+                    new_allocation.obligation_type,
+                    new_allocation.amount,
+                    now,
+                    audit_info.clone(),
+                )
+                .did_execute();
         }
-
-        // TODO: remove n+1
-        for mut obligation in updated_obligations {
-            self.obligation_repo
-                .update_in_op(&mut db, &mut obligation)
-                .await?;
-        }
-
         self.credit_facility_repo
             .update_in_op(&mut db, &mut credit_facility)
             .await?;
 
         self.ledger
-            .record_obligation_repayments(db, new_allocations)
+            .record_obligation_repayments(db, res.allocations)
             .await?;
 
         Ok(credit_facility)
