@@ -136,6 +136,8 @@ where
             .find_by_id(self.config.credit_facility_id)
             .await?;
 
+        // TODO: figure out how to get this to execute after interest obligation due & overdue jobs
+        //       so that we have an overdue balance.
         let obligations = self
             .list_obligations_for_credit_facility(self.config.credit_facility_id)
             .await?;
@@ -148,6 +150,7 @@ where
                     .collect::<Vec<_>>(),
             )
             .outstanding();
+            dbg!(outstanding); // TODO: remove when we observe an overdue balance (for e2e tests)
 
             let account_ids = credit_facility.account_ids;
 

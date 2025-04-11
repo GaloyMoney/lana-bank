@@ -196,6 +196,7 @@ ymd() {
     '{ id: $creditFacilityId }'
   )
   exec_admin_graphql 'find-credit-facility' "$variables"
+  graphql_output
   last_accrual=$(
     graphql_output '[
       .data.creditFacility.transactions[]
