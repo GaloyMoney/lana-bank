@@ -114,8 +114,8 @@ pub struct CreditFacilityReceivable {
 impl From<CreditFacilityBalanceSummary> for CreditFacilityReceivable {
     fn from(balance: CreditFacilityBalanceSummary) -> Self {
         Self {
-            disbursed: balance.disbursed_receivable,
-            interest: balance.interest_receivable,
+            disbursed: balance.disbursed_outstanding(),
+            interest: balance.interest_outstanding(),
         }
     }
 }
@@ -580,7 +580,7 @@ impl CreditFacility {
     pub fn facility_cvl_data(&self, balances: CreditFacilityBalanceSummary) -> FacilityCVLData {
         CreditFacilityReceivable::from(balances).facility_cvl_data(
             self.collateral(),
-            self.facility_remaining(balances.total_disbursed),
+            self.facility_remaining(balances.disbursed),
         )
     }
 
@@ -964,10 +964,16 @@ mod test {
         CreditFacilityBalanceSummary {
             facility_remaining,
             collateral: Satoshis::ZERO,
-            total_disbursed: UsdCents::ZERO,
-            disbursed_receivable: UsdCents::ZERO,
-            total_interest_accrued: UsdCents::ZERO,
-            interest_receivable: UsdCents::ZERO,
+            disbursed: UsdCents::ZERO,
+            not_yet_due_disbursed_outstanding: UsdCents::ZERO,
+            due_disbursed_outstanding: UsdCents::ZERO,
+            overdue_disbursed_outstanding: UsdCents::ZERO,
+            disbursed_defaulted: UsdCents::ZERO,
+            interest_posted: UsdCents::ZERO,
+            not_yet_due_interest_outstanding: UsdCents::ZERO,
+            due_interest_outstanding: UsdCents::ZERO,
+            overdue_interest_outstanding: UsdCents::ZERO,
+            interest_defaulted: UsdCents::ZERO,
         }
     }
 

@@ -21,7 +21,7 @@ pub struct InterestAccrualCycleAccountIds {
 impl From<CreditFacilityAccountIds> for InterestAccrualCycleAccountIds {
     fn from(credit_facility_account_ids: CreditFacilityAccountIds) -> Self {
         Self {
-            interest_income_account_id: credit_facility_account_ids.interest_account_id,
+            interest_income_account_id: credit_facility_account_ids.interest_income_account_id,
             interest_receivable_account_id: credit_facility_account_ids
                 .interest_receivable_account_id,
         }

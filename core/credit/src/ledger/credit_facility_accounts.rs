@@ -15,7 +15,9 @@ pub struct CreditFacilityAccountIds {
     pub disbursed_defaulted_account_id: CalaAccountId,
     pub collateral_account_id: CalaAccountId,
     pub interest_receivable_account_id: CalaAccountId,
-    pub interest_account_id: CalaAccountId,
+    pub interest_receivable_overdue_account_id: CalaAccountId,
+    pub interest_defaulted_account_id: CalaAccountId,
+    pub interest_income_account_id: CalaAccountId,
     pub fee_income_account_id: CalaAccountId,
 }
 
@@ -29,7 +31,9 @@ impl CreditFacilityAccountIds {
             disbursed_defaulted_account_id: CalaAccountId::new(),
             collateral_account_id: CalaAccountId::new(),
             interest_receivable_account_id: CalaAccountId::new(),
-            interest_account_id: CalaAccountId::new(),
+            interest_receivable_overdue_account_id: CalaAccountId::new(),
+            interest_defaulted_account_id: CalaAccountId::new(),
+            interest_income_account_id: CalaAccountId::new(),
             fee_income_account_id: CalaAccountId::new(),
         }
     }
