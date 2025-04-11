@@ -60,8 +60,12 @@ pub(super) fn project<'a>(
                 total_disbursed += *amount;
                 due_and_outstanding_disbursed += *amount;
             }
-            CreditFacilityEvent::InterestAccrualCycleConcluded {
-                amount, posted_at, ..
+            CreditFacilityEvent::BalanceUpdated {
+                source: BalanceUpdatedSource::Obligation(_),
+                balance_type: BalanceUpdatedType::InterestAccrual,
+                amount,
+                updated_at: posted_at,
+                ..
             } => {
                 last_interest_accrual_at = Some(*posted_at);
                 let due_at = *posted_at;
@@ -227,6 +231,7 @@ mod tests {
         let disbursal_obligation_id = ObligationId::new();
         let first_interest_idx = InterestAccrualCycleIdx::FIRST;
         let first_interest_posted_at = end_of_month(activated_at);
+        let interest_obligation_id = ObligationId::new();
         vec![
             CreditFacilityEvent::Initialized {
                 id: credit_facility_id,
@@ -266,9 +271,14 @@ mod tests {
             CreditFacilityEvent::InterestAccrualCycleConcluded {
                 idx: first_interest_idx,
                 tx_id: LedgerTxId::new(),
-                obligation_id: ObligationId::new(),
+                obligation_id: interest_obligation_id,
+                audit_info: dummy_audit_info(),
+            },
+            CreditFacilityEvent::BalanceUpdated {
+                source: BalanceUpdatedSource::Obligation(interest_obligation_id),
+                balance_type: BalanceUpdatedType::InterestAccrual,
                 amount: UsdCents::from(2),
-                posted_at: first_interest_posted_at,
+                updated_at: first_interest_posted_at,
                 audit_info: dummy_audit_info(),
             },
             CreditFacilityEvent::BalanceUpdated {
@@ -426,14 +436,22 @@ mod tests {
         let second_interest_idx = InterestAccrualCycleIdx::FIRST.next();
         let second_interest_posted_at =
             end_of_month(first_interest_posted_at + chrono::Duration::days(1));
-        events.extend([CreditFacilityEvent::InterestAccrualCycleConcluded {
-            idx: second_interest_idx,
-            tx_id: LedgerTxId::new(),
-            obligation_id: ObligationId::new(),
-            amount: UsdCents::from(12),
-            posted_at: second_interest_posted_at,
-            audit_info: dummy_audit_info(),
-        }]);
+        let obligation_id = ObligationId::new();
+        events.extend([
+            CreditFacilityEvent::InterestAccrualCycleConcluded {
+                idx: second_interest_idx,
+                tx_id: LedgerTxId::new(),
+                obligation_id,
+                audit_info: dummy_audit_info(),
+            },
+            CreditFacilityEvent::BalanceUpdated {
+                source: BalanceUpdatedSource::Obligation(obligation_id),
+                balance_type: BalanceUpdatedType::InterestAccrual,
+                amount: UsdCents::from(12),
+                updated_at: second_interest_posted_at,
+                audit_info: dummy_audit_info(),
+            },
+        ]);
         let repayment_plan = super::project(events.iter());
 
         let n_existing_interest_accruals = 2;
@@ -458,13 +476,19 @@ mod tests {
         let second_interest_idx = InterestAccrualCycleIdx::FIRST.next();
         let second_interest_posted_at =
             end_of_month(first_interest_posted_at + chrono::Duration::days(1));
+        let obligation_id = ObligationId::new();
         events.extend([
             CreditFacilityEvent::InterestAccrualCycleConcluded {
                 idx: second_interest_idx,
                 tx_id: LedgerTxId::new(),
-                obligation_id: ObligationId::new(),
+                obligation_id,
+                audit_info: dummy_audit_info(),
+            },
+            CreditFacilityEvent::BalanceUpdated {
+                source: BalanceUpdatedSource::Obligation(obligation_id),
+                balance_type: BalanceUpdatedType::InterestAccrual,
                 amount: UsdCents::from(12),
-                posted_at: second_interest_posted_at,
+                updated_at: second_interest_posted_at,
                 audit_info: dummy_audit_info(),
             },
             CreditFacilityEvent::BalanceUpdated {
@@ -547,15 +571,22 @@ mod tests {
         let second_interest_idx = InterestAccrualCycleIdx::FIRST.next();
         let second_interest_posted_at =
             end_of_month(first_interest_posted_at + chrono::Duration::days(1));
+        let second_obligation_id = ObligationId::new();
         let third_interest_posted_at =
             end_of_month(second_interest_posted_at + chrono::Duration::days(1));
+        let third_obligation_id = ObligationId::new();
         events.extend([
             CreditFacilityEvent::InterestAccrualCycleConcluded {
                 idx: second_interest_idx,
                 tx_id: LedgerTxId::new(),
-                obligation_id: ObligationId::new(),
+                obligation_id: second_obligation_id,
+                audit_info: dummy_audit_info(),
+            },
+            CreditFacilityEvent::BalanceUpdated {
+                source: BalanceUpdatedSource::Obligation(second_obligation_id),
+                balance_type: BalanceUpdatedType::InterestAccrual,
                 amount: UsdCents::from(12),
-                posted_at: second_interest_posted_at,
+                updated_at: second_interest_posted_at,
                 audit_info: dummy_audit_info(),
             },
             CreditFacilityEvent::BalanceUpdated {
@@ -569,8 +600,13 @@ mod tests {
                 idx: second_interest_idx.next(),
                 tx_id: LedgerTxId::new(),
                 obligation_id: ObligationId::new(),
+                audit_info: dummy_audit_info(),
+            },
+            CreditFacilityEvent::BalanceUpdated {
+                source: BalanceUpdatedSource::Obligation(third_obligation_id),
+                balance_type: BalanceUpdatedType::InterestAccrual,
                 amount: UsdCents::from(6),
-                posted_at: third_interest_posted_at,
+                updated_at: third_interest_posted_at,
                 audit_info: dummy_audit_info(),
             },
             CreditFacilityEvent::BalanceUpdated {
@@ -614,15 +650,22 @@ mod tests {
         let second_interest_idx = InterestAccrualCycleIdx::FIRST.next();
         let second_interest_posted_at =
             end_of_month(first_interest_posted_at + chrono::Duration::days(1));
+        let second_obligation_id = ObligationId::new();
         let third_interest_posted_at =
             end_of_month(second_interest_posted_at + chrono::Duration::days(1));
+        let third_obligation_id = ObligationId::new();
         events.extend([
             CreditFacilityEvent::InterestAccrualCycleConcluded {
                 idx: second_interest_idx,
                 tx_id: LedgerTxId::new(),
-                obligation_id: ObligationId::new(),
+                obligation_id: second_obligation_id,
+                audit_info: dummy_audit_info(),
+            },
+            CreditFacilityEvent::BalanceUpdated {
+                source: BalanceUpdatedSource::Obligation(second_obligation_id),
+                balance_type: BalanceUpdatedType::InterestAccrual,
                 amount: UsdCents::from(12),
-                posted_at: second_interest_posted_at,
+                updated_at: second_interest_posted_at,
                 audit_info: dummy_audit_info(),
             },
             CreditFacilityEvent::BalanceUpdated {
@@ -636,8 +679,13 @@ mod tests {
                 idx: second_interest_idx.next(),
                 tx_id: LedgerTxId::new(),
                 obligation_id: ObligationId::new(),
+                audit_info: dummy_audit_info(),
+            },
+            CreditFacilityEvent::BalanceUpdated {
+                source: BalanceUpdatedSource::Obligation(third_obligation_id),
+                balance_type: BalanceUpdatedType::InterestAccrual,
                 amount: UsdCents::from(6),
-                posted_at: third_interest_posted_at,
+                updated_at: third_interest_posted_at,
                 audit_info: dummy_audit_info(),
             },
             CreditFacilityEvent::BalanceUpdated {

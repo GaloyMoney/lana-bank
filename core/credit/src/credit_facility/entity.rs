@@ -90,12 +90,9 @@ pub enum CreditFacilityEvent {
     },
     InterestAccrualCycleConcluded {
         idx: InterestAccrualCycleIdx,
+        tx_id: LedgerTxId,
         obligation_id: ObligationId,
         audit_info: AuditInfo,
-        // TODO: remove below and get from obligation
-        tx_id: LedgerTxId,
-        amount: UsdCents,
-        posted_at: DateTime<Utc>,
     },
     CollateralUpdated {
         tx_id: LedgerTxId,
@@ -679,8 +676,6 @@ impl CreditFacility {
                 idx,
                 obligation_id: new_obligation.id(),
                 tx_id: accrual_cycle_data.tx_id,
-                amount: accrual_cycle_data.interest,
-                posted_at: accrual_cycle_data.posted_at,
                 audit_info: audit_info.clone(),
             });
         self.events.push(CreditFacilityEvent::BalanceUpdated {

@@ -59,6 +59,7 @@ pub(super) fn project<'a>(
 ) -> Vec<CreditFacilityHistoryEntry> {
     let mut history = vec![];
     let mut disbursals = std::collections::HashMap::new();
+    let mut interest_accruals_started_at = std::collections::HashMap::new();
     let mut interest_accruals = std::collections::HashMap::new();
 
     let mut initial_facility = None;
@@ -162,23 +163,34 @@ pub(super) fn project<'a>(
             CreditFacilityEvent::InterestAccrualCycleStarted {
                 idx, started_at, ..
             } => {
-                interest_accruals.insert(*idx, *started_at);
+                interest_accruals_started_at.insert(*idx, *started_at);
             }
             CreditFacilityEvent::InterestAccrualCycleConcluded {
                 idx,
                 tx_id,
-                amount,
-                posted_at,
+                obligation_id,
                 ..
             } => {
-                let started_at = interest_accruals
+                let started_at = interest_accruals_started_at
                     .remove(idx)
+                    .expect("Accrual not found");
+                interest_accruals.insert(*obligation_id, (started_at, *tx_id));
+            }
+            CreditFacilityEvent::BalanceUpdated {
+                source: BalanceUpdatedSource::Obligation(obligation_id),
+                balance_type: BalanceUpdatedType::InterestAccrual,
+                amount,
+                updated_at: posted_at,
+                ..
+            } => {
+                let (started_at, tx_id) = interest_accruals
+                    .remove(obligation_id)
                     .expect("Accrual must have been initiated");
                 let days = (*posted_at - started_at).num_days();
                 history.push(CreditFacilityHistoryEntry::Interest(
                     InterestAccrualsPosted {
                         cents: *amount,
-                        tx_id: *tx_id,
+                        tx_id,
                         days,
                         recorded_at: *posted_at,
                     },
