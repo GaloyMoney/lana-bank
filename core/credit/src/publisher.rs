@@ -1,8 +1,11 @@
+use core_money::UsdCents;
 use outbox::{Outbox, OutboxEventMarker};
 
 use crate::{
     credit_facility::{error::CreditFacilityError, CreditFacility, CreditFacilityEvent},
     event::*,
+    obligation::{error::ObligationError, Obligation, ObligationEvent, ObligationType},
+    BalanceUpdatedType,
 };
 
 pub struct CreditFacilityPublisher<E>
@@ -57,27 +60,29 @@ where
                     id: entity.id,
                     completed_at: *completed_at,
                 }),
-                DisbursalConcluded {
-                    idx, recorded_at, ..
-                } => {
-                    let amount = entity.disbursal_amount_from_idx(*idx);
-                    Some(CoreCreditEvent::DisbursalExecuted {
-                        id: entity.id,
-                        amount,
-                        recorded_at: *recorded_at,
-                    })
-                }
-                PaymentRecorded {
-                    disbursal_amount,
-                    interest_amount,
-                    recorded_at: recorded_in_ledger_at,
+                BalanceUpdated {
+                    balance_type,
+                    amount,
+                    updated_at: recorded_in_ledger_at,
                     ..
-                } => Some(CoreCreditEvent::FacilityRepaymentRecorded {
-                    id: entity.id,
-                    disbursal_amount: *disbursal_amount,
-                    interest_amount: *interest_amount,
-                    recorded_at: *recorded_in_ledger_at,
-                }),
+                } => match balance_type {
+                    BalanceUpdatedType::Disbursal => {
+                        Some(CoreCreditEvent::FacilityRepaymentRecorded {
+                            id: entity.id,
+                            disbursal_amount: *amount,
+                            interest_amount: UsdCents::ZERO,
+                            recorded_at: *recorded_in_ledger_at,
+                        })
+                    }
+                    BalanceUpdatedType::InterestAccrual => {
+                        Some(CoreCreditEvent::FacilityRepaymentRecorded {
+                            id: entity.id,
+                            disbursal_amount: UsdCents::ZERO,
+                            interest_amount: *amount,
+                            recorded_at: *recorded_in_ledger_at,
+                        })
+                    }
+                },
                 CollateralUpdated {
                     total_collateral,
                     abs_diff,
@@ -103,13 +108,38 @@ where
                     })
                 }
 
-                InterestAccrualCycleConcluded {
-                    amount, posted_at, ..
-                } => Some(CoreCreditEvent::AccrualExecuted {
-                    id: entity.id,
-                    amount: *amount,
-                    posted_at: *posted_at,
-                }),
+                _ => None,
+            })
+            .collect::<Vec<_>>();
+        self.outbox
+            .publish_all_persisted(db.tx(), publish_events)
+            .await?;
+        Ok(())
+    }
+
+    pub async fn publish_obligation(
+        &self,
+        db: &mut es_entity::DbOp<'_>,
+        entity: &Obligation,
+        new_events: es_entity::LastPersisted<'_, ObligationEvent>,
+    ) -> Result<(), ObligationError> {
+        use ObligationEvent::*;
+        let publish_events = new_events
+            .filter_map(|event| match &event.event {
+                Initialized {
+                    obligation_type, ..
+                } => match obligation_type {
+                    ObligationType::Disbursal => Some(CoreCreditEvent::DisbursalExecuted {
+                        id: entity.credit_facility_id,
+                        amount: entity.initial_amount,
+                        recorded_at: entity.recorded_at,
+                    }),
+                    ObligationType::Interest => Some(CoreCreditEvent::AccrualExecuted {
+                        id: entity.credit_facility_id,
+                        amount: entity.initial_amount,
+                        posted_at: entity.recorded_at,
+                    }),
+                },
 
                 _ => None,
             })

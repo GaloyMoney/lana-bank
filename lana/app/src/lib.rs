@@ -68,8 +68,8 @@ pub mod governance {
     use crate::authorization::Authorization;
     use lana_events::LanaEvent;
     pub type Governance = governance::Governance<Authorization, LanaEvent>;
-    pub use crate::credit_facility::APPROVE_CREDIT_FACILITY_PROCESS;
-    pub use crate::credit_facility::APPROVE_DISBURSAL_PROCESS;
+    pub use crate::credit::APPROVE_CREDIT_FACILITY_PROCESS;
+    pub use crate::credit::APPROVE_DISBURSAL_PROCESS;
     pub use deposit::APPROVE_WITHDRAWAL_PROCESS;
 }
 
@@ -113,11 +113,11 @@ pub mod profit_and_loss {
         core_accounting::ProfitAndLossStatements<crate::authorization::Authorization>;
 }
 
-pub mod credit_facility {
+pub mod credit {
     pub use core_credit::{
         error, ChartOfAccountsIntegrationConfig, CollateralUpdated, CollateralizationUpdated,
-        CoreCreditEvent, CreditFacilitiesCursor, CreditFacilitiesSortBy, CreditFacility,
-        CreditFacilityBalance, CreditFacilityConfig, CreditFacilityHistoryEntry,
+        CoreCreditEvent, CreditConfig, CreditFacilitiesCursor, CreditFacilitiesSortBy,
+        CreditFacility, CreditFacilityBalanceSummary, CreditFacilityHistoryEntry,
         CreditFacilityOrigination, CreditFacilityRepaymentInPlan, CreditFacilityStatus, Disbursal,
         DisbursalExecuted, DisbursalStatus, DisbursalsCursor, DisbursalsSortBy, FacilityCVL,
         FindManyCreditFacilities, FindManyDisbursals, IncrementalPayment, InterestAccrualsPosted,
@@ -125,8 +125,8 @@ pub mod credit_facility {
         APPROVE_DISBURSAL_PROCESS,
     };
 
-    pub type CreditFacilities =
-        core_credit::CreditFacilities<crate::authorization::Authorization, lana_events::LanaEvent>;
+    pub type Credit =
+        core_credit::CoreCredit<crate::authorization::Authorization, lana_events::LanaEvent>;
 }
 
 pub mod terms {

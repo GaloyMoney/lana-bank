@@ -1,12 +1,15 @@
+mod balance;
+mod cvl;
 mod entity;
 pub mod error;
 mod history;
-mod interest_outstanding;
 mod repayment_plan;
 mod repo;
 
+pub use balance::CreditFacilityBalanceSummary;
+pub use cvl::FacilityCVL;
+pub use entity::CreditFacility;
 pub(crate) use entity::*;
-pub use entity::{CreditFacility, CreditFacilityBalance, FacilityCVL};
 pub use history::*;
 pub use repayment_plan::*;
 pub use repo::{

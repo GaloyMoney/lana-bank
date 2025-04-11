@@ -2,7 +2,7 @@ use chrono::{DateTime, Utc};
 
 use crate::{CreditFacilityReceivable, UsdCents};
 
-use super::CreditFacilityEvent;
+use super::{BalanceUpdatedSource, BalanceUpdatedType, CreditFacilityEvent};
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum RepaymentStatus {
@@ -33,7 +33,6 @@ pub(super) fn project<'a>(
     let mut terms = None;
     let mut activated_at = None;
 
-    let mut disbursed_amounts = std::collections::HashMap::new();
     let mut total_disbursed = UsdCents::ZERO;
     let mut due_and_outstanding_disbursed = UsdCents::ZERO;
 
@@ -52,17 +51,21 @@ pub(super) fn project<'a>(
             } => {
                 activated_at = Some(*recorded_at);
             }
-            CreditFacilityEvent::DisbursalInitiated { idx, amount, .. } => {
-                disbursed_amounts.insert(*idx, *amount);
+            CreditFacilityEvent::BalanceUpdated {
+                source: BalanceUpdatedSource::Obligation(_),
+                balance_type: BalanceUpdatedType::Disbursal,
+                amount,
+                ..
+            } => {
+                total_disbursed += *amount;
+                due_and_outstanding_disbursed += *amount;
             }
-            CreditFacilityEvent::DisbursalConcluded { idx, .. } => {
-                if let Some(amount) = disbursed_amounts.remove(idx) {
-                    total_disbursed += amount;
-                    due_and_outstanding_disbursed += amount;
-                }
-            }
-            CreditFacilityEvent::InterestAccrualCycleConcluded {
-                amount, posted_at, ..
+            CreditFacilityEvent::BalanceUpdated {
+                source: BalanceUpdatedSource::Obligation(_),
+                balance_type: BalanceUpdatedType::InterestAccrual,
+                amount,
+                updated_at: posted_at,
+                ..
             } => {
                 last_interest_accrual_at = Some(*posted_at);
                 let due_at = *posted_at;
@@ -75,14 +78,15 @@ pub(super) fn project<'a>(
                     due_at,
                 });
             }
-            CreditFacilityEvent::PaymentRecorded {
-                interest_amount,
-                disbursal_amount,
+            CreditFacilityEvent::BalanceUpdated {
+                source: BalanceUpdatedSource::PaymentAllocation(_),
+                balance_type,
+                amount,
                 ..
-            } => {
-                due_and_outstanding_disbursed -= *disbursal_amount;
-                due_and_outstanding_interest += *interest_amount;
-            }
+            } => match balance_type {
+                BalanceUpdatedType::Disbursal => due_and_outstanding_disbursed -= *amount,
+                BalanceUpdatedType::InterestAccrual => due_and_outstanding_interest += *amount,
+            },
             _ => {}
         }
     }
@@ -223,15 +227,16 @@ mod tests {
     fn happy_credit_facility_events() -> Vec<CreditFacilityEvent> {
         let credit_facility_id = CreditFacilityId::new();
         let activated_at = default_activated_at();
-        let first_disbursal_idx = DisbursalIdx::FIRST;
+        let disbursal_obligation_id = ObligationId::new();
         let first_interest_idx = InterestAccrualCycleIdx::FIRST;
         let first_interest_posted_at = end_of_month(activated_at);
+        let interest_obligation_id = ObligationId::new();
         vec![
             CreditFacilityEvent::Initialized {
                 id: credit_facility_id,
                 customer_id: CustomerId::new(),
                 account_ids: CreditFacilityAccountIds::new(),
-                facility: UsdCents::from(1_000_000),
+                amount: UsdCents::from(1_000_000),
                 terms: Box::new(terms()),
                 audit_info: dummy_audit_info(),
                 disbursal_credit_account_id: CalaAccountId::new(),
@@ -242,34 +247,32 @@ mod tests {
                 activated_at,
                 audit_info: dummy_audit_info(),
             },
-            CreditFacilityEvent::DisbursalInitiated {
-                approval_process_id: ApprovalProcessId::new(),
-                disbursal_id: DisbursalId::new(),
-                idx: first_disbursal_idx,
+            CreditFacilityEvent::BalanceUpdated {
+                source: BalanceUpdatedSource::Obligation(disbursal_obligation_id),
+                balance_type: BalanceUpdatedType::Disbursal,
                 amount: UsdCents::from(1000),
+                updated_at: Utc::now(),
                 audit_info: dummy_audit_info(),
-            },
-            CreditFacilityEvent::DisbursalConcluded {
-                idx: first_disbursal_idx,
-                tx_id: LedgerTxId::new(),
-                recorded_at: Utc::now(),
-                audit_info: dummy_audit_info(),
-                obligation_id: Some(ObligationId::new()),
             },
             CreditFacilityEvent::InterestAccrualCycleConcluded {
                 idx: first_interest_idx,
                 tx_id: LedgerTxId::new(),
-                tx_ref: "".to_string(),
-                amount: UsdCents::from(2),
-                posted_at: first_interest_posted_at,
+                obligation_id: interest_obligation_id,
                 audit_info: dummy_audit_info(),
             },
-            CreditFacilityEvent::PaymentRecorded {
-                payment_id: PaymentId::new(),
-                disbursal_amount: UsdCents::ZERO,
-                interest_amount: UsdCents::from(2),
+            CreditFacilityEvent::BalanceUpdated {
+                source: BalanceUpdatedSource::Obligation(interest_obligation_id),
+                balance_type: BalanceUpdatedType::InterestAccrual,
+                amount: UsdCents::from(2),
+                updated_at: first_interest_posted_at,
                 audit_info: dummy_audit_info(),
-                recorded_at: first_interest_posted_at,
+            },
+            CreditFacilityEvent::BalanceUpdated {
+                source: BalanceUpdatedSource::PaymentAllocation(LedgerTxId::new()),
+                balance_type: BalanceUpdatedType::InterestAccrual,
+                amount: UsdCents::from(2),
+                updated_at: first_interest_posted_at,
+                audit_info: dummy_audit_info(),
             },
         ]
     }
@@ -278,14 +281,14 @@ mod tests {
     fn no_interest_repayment() {
         let credit_facility_id = CreditFacilityId::new();
         let activated_at = default_activated_at();
-        let first_disbursal_idx = DisbursalIdx::FIRST;
+        let disbursal_obligation_id = ObligationId::new();
 
         let events = vec![
             CreditFacilityEvent::Initialized {
                 id: credit_facility_id,
                 customer_id: CustomerId::new(),
                 account_ids: CreditFacilityAccountIds::new(),
-                facility: UsdCents::from(1_000_000),
+                amount: UsdCents::from(1_000_000),
                 terms: Box::new(terms()),
                 audit_info: dummy_audit_info(),
                 disbursal_credit_account_id: CalaAccountId::new(),
@@ -296,19 +299,12 @@ mod tests {
                 activated_at,
                 audit_info: dummy_audit_info(),
             },
-            CreditFacilityEvent::DisbursalInitiated {
-                approval_process_id: ApprovalProcessId::new(),
-                disbursal_id: DisbursalId::new(),
-                idx: first_disbursal_idx,
+            CreditFacilityEvent::BalanceUpdated {
+                source: BalanceUpdatedSource::Obligation(disbursal_obligation_id),
+                balance_type: BalanceUpdatedType::Disbursal,
                 amount: UsdCents::from(1000),
+                updated_at: Utc::now(),
                 audit_info: dummy_audit_info(),
-            },
-            CreditFacilityEvent::DisbursalConcluded {
-                idx: first_disbursal_idx,
-                tx_id: LedgerTxId::new(),
-                recorded_at: Utc::now(),
-                audit_info: dummy_audit_info(),
-                obligation_id: Some(ObligationId::new()),
             },
         ];
 
@@ -412,14 +408,22 @@ mod tests {
         let second_interest_idx = InterestAccrualCycleIdx::FIRST.next();
         let second_interest_posted_at =
             end_of_month(first_interest_posted_at + chrono::Duration::days(1));
-        events.extend([CreditFacilityEvent::InterestAccrualCycleConcluded {
-            idx: second_interest_idx,
-            tx_id: LedgerTxId::new(),
-            tx_ref: "".to_string(),
-            amount: UsdCents::from(12),
-            posted_at: second_interest_posted_at,
-            audit_info: dummy_audit_info(),
-        }]);
+        let obligation_id = ObligationId::new();
+        events.extend([
+            CreditFacilityEvent::InterestAccrualCycleConcluded {
+                idx: second_interest_idx,
+                tx_id: LedgerTxId::new(),
+                obligation_id,
+                audit_info: dummy_audit_info(),
+            },
+            CreditFacilityEvent::BalanceUpdated {
+                source: BalanceUpdatedSource::Obligation(obligation_id),
+                balance_type: BalanceUpdatedType::InterestAccrual,
+                amount: UsdCents::from(12),
+                updated_at: second_interest_posted_at,
+                audit_info: dummy_audit_info(),
+            },
+        ]);
         let repayment_plan = super::project(events.iter());
 
         let n_existing_interest_accruals = 2;
@@ -444,21 +448,27 @@ mod tests {
         let second_interest_idx = InterestAccrualCycleIdx::FIRST.next();
         let second_interest_posted_at =
             end_of_month(first_interest_posted_at + chrono::Duration::days(1));
+        let obligation_id = ObligationId::new();
         events.extend([
             CreditFacilityEvent::InterestAccrualCycleConcluded {
                 idx: second_interest_idx,
                 tx_id: LedgerTxId::new(),
-                tx_ref: "".to_string(),
-                amount: UsdCents::from(12),
-                posted_at: second_interest_posted_at,
+                obligation_id,
                 audit_info: dummy_audit_info(),
             },
-            CreditFacilityEvent::PaymentRecorded {
-                payment_id: PaymentId::new(),
-                disbursal_amount: UsdCents::ZERO,
-                interest_amount: UsdCents::from(2),
+            CreditFacilityEvent::BalanceUpdated {
+                source: BalanceUpdatedSource::Obligation(obligation_id),
+                balance_type: BalanceUpdatedType::InterestAccrual,
+                amount: UsdCents::from(12),
+                updated_at: second_interest_posted_at,
                 audit_info: dummy_audit_info(),
-                recorded_at: second_interest_posted_at,
+            },
+            CreditFacilityEvent::BalanceUpdated {
+                source: BalanceUpdatedSource::PaymentAllocation(LedgerTxId::new()),
+                balance_type: BalanceUpdatedType::InterestAccrual,
+                amount: UsdCents::from(2),
+                updated_at: second_interest_posted_at,
+                audit_info: dummy_audit_info(),
             },
         ]);
         let repayment_plan = super::project(events.iter());
@@ -483,24 +493,15 @@ mod tests {
     #[test]
     fn increase_disbursal() {
         let mut events = happy_credit_facility_events();
-        let second_disbursal_idx = DisbursalIdx::FIRST.next();
         let second_disbursal_at = default_activated_at() + chrono::Duration::days(1);
-        events.extend([
-            CreditFacilityEvent::DisbursalInitiated {
-                disbursal_id: DisbursalId::new(),
-                approval_process_id: ApprovalProcessId::new(),
-                idx: second_disbursal_idx,
-                amount: UsdCents::from(2000),
-                audit_info: dummy_audit_info(),
-            },
-            CreditFacilityEvent::DisbursalConcluded {
-                idx: second_disbursal_idx,
-                tx_id: LedgerTxId::new(),
-                recorded_at: second_disbursal_at,
-                audit_info: dummy_audit_info(),
-                obligation_id: Some(ObligationId::new()),
-            },
-        ]);
+        let disbursal_obligation_id = ObligationId::new();
+        events.extend([CreditFacilityEvent::BalanceUpdated {
+            source: BalanceUpdatedSource::Obligation(disbursal_obligation_id),
+            balance_type: BalanceUpdatedType::Disbursal,
+            amount: UsdCents::from(2000),
+            updated_at: second_disbursal_at,
+            audit_info: dummy_audit_info(),
+        }]);
         let repayment_plan = super::project(events.iter());
 
         let n_existing_interest_accruals = 1;
@@ -526,38 +527,57 @@ mod tests {
         let second_interest_idx = InterestAccrualCycleIdx::FIRST.next();
         let second_interest_posted_at =
             end_of_month(first_interest_posted_at + chrono::Duration::days(1));
+        let second_obligation_id = ObligationId::new();
         let third_interest_posted_at =
             end_of_month(second_interest_posted_at + chrono::Duration::days(1));
+        let third_obligation_id = ObligationId::new();
         events.extend([
             CreditFacilityEvent::InterestAccrualCycleConcluded {
                 idx: second_interest_idx,
                 tx_id: LedgerTxId::new(),
-                tx_ref: "".to_string(),
-                amount: UsdCents::from(12),
-                posted_at: second_interest_posted_at,
+                obligation_id: second_obligation_id,
                 audit_info: dummy_audit_info(),
             },
-            CreditFacilityEvent::PaymentRecorded {
-                payment_id: PaymentId::new(),
-                disbursal_amount: UsdCents::ZERO,
-                interest_amount: UsdCents::from(12),
+            CreditFacilityEvent::BalanceUpdated {
+                source: BalanceUpdatedSource::Obligation(second_obligation_id),
+                balance_type: BalanceUpdatedType::InterestAccrual,
+                amount: UsdCents::from(12),
+                updated_at: second_interest_posted_at,
                 audit_info: dummy_audit_info(),
-                recorded_at: second_interest_posted_at,
+            },
+            CreditFacilityEvent::BalanceUpdated {
+                source: BalanceUpdatedSource::PaymentAllocation(LedgerTxId::new()),
+                balance_type: BalanceUpdatedType::InterestAccrual,
+                amount: UsdCents::from(12),
+                updated_at: second_interest_posted_at,
+                audit_info: dummy_audit_info(),
             },
             CreditFacilityEvent::InterestAccrualCycleConcluded {
                 idx: second_interest_idx.next(),
                 tx_id: LedgerTxId::new(),
-                tx_ref: "".to_string(),
-                amount: UsdCents::from(6),
-                posted_at: third_interest_posted_at,
+                obligation_id: ObligationId::new(),
                 audit_info: dummy_audit_info(),
             },
-            CreditFacilityEvent::PaymentRecorded {
-                payment_id: PaymentId::new(),
-                disbursal_amount: UsdCents::from(100),
-                interest_amount: UsdCents::from(6),
+            CreditFacilityEvent::BalanceUpdated {
+                source: BalanceUpdatedSource::Obligation(third_obligation_id),
+                balance_type: BalanceUpdatedType::InterestAccrual,
+                amount: UsdCents::from(6),
+                updated_at: third_interest_posted_at,
                 audit_info: dummy_audit_info(),
-                recorded_at: third_interest_posted_at,
+            },
+            CreditFacilityEvent::BalanceUpdated {
+                source: BalanceUpdatedSource::PaymentAllocation(LedgerTxId::new()),
+                balance_type: BalanceUpdatedType::Disbursal,
+                amount: UsdCents::from(100),
+                updated_at: third_interest_posted_at,
+                audit_info: dummy_audit_info(),
+            },
+            CreditFacilityEvent::BalanceUpdated {
+                source: BalanceUpdatedSource::PaymentAllocation(LedgerTxId::new()),
+                balance_type: BalanceUpdatedType::InterestAccrual,
+                amount: UsdCents::from(6),
+                updated_at: third_interest_posted_at,
+                audit_info: dummy_audit_info(),
             },
         ]);
         let repayment_plan = super::project(events.iter());
@@ -586,38 +606,57 @@ mod tests {
         let second_interest_idx = InterestAccrualCycleIdx::FIRST.next();
         let second_interest_posted_at =
             end_of_month(first_interest_posted_at + chrono::Duration::days(1));
+        let second_obligation_id = ObligationId::new();
         let third_interest_posted_at =
             end_of_month(second_interest_posted_at + chrono::Duration::days(1));
+        let third_obligation_id = ObligationId::new();
         events.extend([
             CreditFacilityEvent::InterestAccrualCycleConcluded {
                 idx: second_interest_idx,
                 tx_id: LedgerTxId::new(),
-                tx_ref: "".to_string(),
-                amount: UsdCents::from(12),
-                posted_at: second_interest_posted_at,
+                obligation_id: second_obligation_id,
                 audit_info: dummy_audit_info(),
             },
-            CreditFacilityEvent::PaymentRecorded {
-                payment_id: PaymentId::new(),
-                disbursal_amount: UsdCents::ZERO,
-                interest_amount: UsdCents::from(12),
+            CreditFacilityEvent::BalanceUpdated {
+                source: BalanceUpdatedSource::Obligation(second_obligation_id),
+                balance_type: BalanceUpdatedType::InterestAccrual,
+                amount: UsdCents::from(12),
+                updated_at: second_interest_posted_at,
                 audit_info: dummy_audit_info(),
-                recorded_at: second_interest_posted_at,
+            },
+            CreditFacilityEvent::BalanceUpdated {
+                source: BalanceUpdatedSource::PaymentAllocation(LedgerTxId::new()),
+                balance_type: BalanceUpdatedType::InterestAccrual,
+                amount: UsdCents::from(12),
+                updated_at: second_interest_posted_at,
+                audit_info: dummy_audit_info(),
             },
             CreditFacilityEvent::InterestAccrualCycleConcluded {
                 idx: second_interest_idx.next(),
                 tx_id: LedgerTxId::new(),
-                tx_ref: "".to_string(),
-                amount: UsdCents::from(6),
-                posted_at: third_interest_posted_at,
+                obligation_id: ObligationId::new(),
                 audit_info: dummy_audit_info(),
             },
-            CreditFacilityEvent::PaymentRecorded {
-                payment_id: PaymentId::new(),
-                disbursal_amount: UsdCents::from(1000),
-                interest_amount: UsdCents::from(6),
+            CreditFacilityEvent::BalanceUpdated {
+                source: BalanceUpdatedSource::Obligation(third_obligation_id),
+                balance_type: BalanceUpdatedType::InterestAccrual,
+                amount: UsdCents::from(6),
+                updated_at: third_interest_posted_at,
                 audit_info: dummy_audit_info(),
-                recorded_at: third_interest_posted_at,
+            },
+            CreditFacilityEvent::BalanceUpdated {
+                source: BalanceUpdatedSource::PaymentAllocation(LedgerTxId::new()),
+                balance_type: BalanceUpdatedType::Disbursal,
+                amount: UsdCents::from(1000),
+                updated_at: third_interest_posted_at,
+                audit_info: dummy_audit_info(),
+            },
+            CreditFacilityEvent::BalanceUpdated {
+                source: BalanceUpdatedSource::PaymentAllocation(LedgerTxId::new()),
+                balance_type: BalanceUpdatedType::InterestAccrual,
+                amount: UsdCents::from(6),
+                updated_at: third_interest_posted_at,
+                audit_info: dummy_audit_info(),
             },
         ]);
         let repayment_plan = super::project(events.iter());

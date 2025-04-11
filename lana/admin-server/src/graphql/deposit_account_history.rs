@@ -112,7 +112,7 @@ impl DisbursalEntry {
         let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
 
         let disbursal = app
-            .credit_facilities()
+            .credit()
             .find_disbursal_by_concluded_tx_id(sub, self.tx_id)
             .await?;
 
@@ -125,10 +125,7 @@ impl PaymentEntry {
     async fn payment(&self, ctx: &Context<'_>) -> async_graphql::Result<CreditFacilityPayment> {
         let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
 
-        let payment = app
-            .credit_facilities()
-            .find_payment_by_id(sub, self.tx_id)
-            .await?;
+        let payment = app.credit().find_payment_by_id(sub, self.tx_id).await?;
 
         Ok(CreditFacilityPayment::from(payment))
     }

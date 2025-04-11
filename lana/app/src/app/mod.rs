@@ -14,7 +14,7 @@ use crate::{
     authorization::{init as init_authz, AppAction, AppObject, AuditAction, Authorization},
     balance_sheet::BalanceSheets,
     cash_flow::CashFlowStatements,
-    credit_facility::CreditFacilities,
+    credit::Credit,
     customer::Customers,
     customer_onboarding::CustomerOnboarding,
     dashboard::Dashboard,
@@ -48,7 +48,7 @@ pub struct LanaApp {
     deposits: Deposits,
     applicants: Applicants,
     users: Users,
-    credit_facilities: CreditFacilities,
+    credit: Credit,
     trial_balances: TrialBalances,
     balance_sheets: BalanceSheets,
     cash_flow_statements: CashFlowStatements,
@@ -123,9 +123,9 @@ impl LanaApp {
         let applicants =
             Applicants::init(&pool, &config.sumsub, &customers, &deposits, &jobs, &outbox).await?;
 
-        let credit_facilities = CreditFacilities::init(
+        let credit = Credit::init(
             &pool,
-            config.credit_facility,
+            config.credit,
             &governance,
             &jobs,
             &authz,
@@ -151,7 +151,7 @@ impl LanaApp {
             users,
             price,
             report,
-            credit_facilities,
+            credit,
             trial_balances,
             balance_sheets,
             cash_flow_statements,
@@ -221,8 +221,8 @@ impl LanaApp {
         &self.applicants
     }
 
-    pub fn credit_facilities(&self) -> &CreditFacilities {
-        &self.credit_facilities
+    pub fn credit(&self) -> &Credit {
+        &self.credit
     }
 
     pub fn trial_balances(&self) -> &TrialBalances {

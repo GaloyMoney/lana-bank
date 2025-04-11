@@ -12,39 +12,39 @@ pub(super) struct CreditFacilityBalance {
     collateral: Collateral,
 }
 
-impl From<lana_app::credit_facility::CreditFacilityBalance> for CreditFacilityBalance {
-    fn from(balance: lana_app::credit_facility::CreditFacilityBalance) -> Self {
+impl From<lana_app::credit::CreditFacilityBalanceSummary> for CreditFacilityBalance {
+    fn from(balance: lana_app::credit::CreditFacilityBalanceSummary) -> Self {
         Self {
             facility_remaining: FacilityRemaining {
                 usd_balance: balance.facility_remaining,
             },
             disbursed: Disbursed {
                 total: Total {
-                    usd_balance: balance.total_disbursed,
+                    usd_balance: balance.disbursed,
                 },
                 outstanding: Outstanding {
-                    usd_balance: balance.disbursed_receivable,
+                    usd_balance: balance.disbursed_outstanding(),
                 },
                 due_outstanding: Outstanding {
-                    usd_balance: balance.due_disbursed_receivable,
+                    usd_balance: balance.overdue_disbursed_outstanding,
                 },
             },
             interest: Interest {
                 total: Total {
-                    usd_balance: balance.total_interest_accrued,
+                    usd_balance: balance.interest_posted,
                 },
                 outstanding: Outstanding {
-                    usd_balance: balance.interest_receivable,
+                    usd_balance: balance.interest_outstanding(),
                 },
                 due_outstanding: Outstanding {
-                    usd_balance: balance.due_interest_receivable,
+                    usd_balance: balance.overdue_interest_outstanding,
                 },
             },
             outstanding: Outstanding {
-                usd_balance: balance.disbursed_receivable + balance.interest_receivable,
+                usd_balance: balance.total_outstanding(),
             },
             due_outstanding: Outstanding {
-                usd_balance: balance.due_disbursed_receivable + balance.due_interest_receivable,
+                usd_balance: balance.total_overdue(),
             },
             collateral: Collateral {
                 btc_balance: balance.collateral,

@@ -32,6 +32,7 @@ use tracing::instrument;
 
 pub use chart_of_accounts_integration::ChartOfAccountsIntegrationConfig;
 pub use config::*;
+use credit_facility::error::CreditFacilityError;
 pub use credit_facility::*;
 pub use disbursal::{disbursal_cursor::*, *};
 use error::*;
@@ -40,7 +41,7 @@ use for_subject::CreditFacilitiesForSubject;
 pub use interest_accrual_cycle::*;
 use jobs::*;
 pub use ledger::*;
-pub use obligation::*;
+pub use obligation::{obligation_cursor::*, *};
 pub use payment::*;
 pub use primitives::*;
 use processes::activate_credit_facility::*;
@@ -49,7 +50,7 @@ pub use processes::approve_disbursal::*;
 use publisher::CreditFacilityPublisher;
 pub use terms::*;
 
-pub struct CreditFacilities<Perms, E>
+pub struct CoreCredit<Perms, E>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCreditEvent>
@@ -64,13 +65,14 @@ where
     customer: Customers<Perms, E>,
     ledger: CreditLedger,
     price: Price,
-    config: CreditFacilityConfig,
+    config: CreditConfig,
     approve_disbursal: ApproveDisbursal<Perms, E>,
     cala: CalaLedger,
     approve_credit_facility: ApproveCreditFacility<Perms, E>,
+    obligations: Obligations<Perms, E>,
 }
 
-impl<Perms, E> Clone for CreditFacilities<Perms, E>
+impl<Perms, E> Clone for CoreCredit<Perms, E>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<GovernanceEvent>
@@ -81,6 +83,7 @@ where
         Self {
             authz: self.authz.clone(),
             credit_facility_repo: self.credit_facility_repo.clone(),
+            obligations: self.obligations.clone(),
             disbursal_repo: self.disbursal_repo.clone(),
             payment_repo: self.payment_repo.clone(),
             governance: self.governance.clone(),
@@ -95,7 +98,7 @@ where
     }
 }
 
-impl<Perms, E> CreditFacilities<Perms, E>
+impl<Perms, E> CoreCredit<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
@@ -109,7 +112,7 @@ where
     #[allow(clippy::too_many_arguments)]
     pub async fn init(
         pool: &sqlx::PgPool,
-        config: CreditFacilityConfig,
+        config: CreditConfig,
         governance: &Governance<Perms, E>,
         jobs: &Jobs,
         authz: &Perms,
@@ -122,7 +125,8 @@ where
         let publisher = CreditFacilityPublisher::new(outbox);
         let credit_facility_repo = CreditFacilityRepo::new(pool, &publisher);
         let disbursal_repo = DisbursalRepo::new(pool);
-        let obligation_repo = ObligationRepo::new(pool);
+        let obligation_repo = ObligationRepo::new(pool, &publisher);
+        let obligations = Obligations::new(pool, authz, cala, &publisher);
         let payment_repo = PaymentRepo::new(pool);
         let ledger = CreditLedger::init(cala, journal_id).await?;
         let approve_disbursal = ApproveDisbursal::new(
@@ -150,6 +154,7 @@ where
         jobs.add_initializer_and_spawn_unique(
             cvl::CreditFacilityProcessingJobInitializer::<Perms, E>::new(
                 credit_facility_repo.clone(),
+                &ledger,
                 price,
                 authz.audit(),
             ),
@@ -175,20 +180,14 @@ where
                 authz.audit(),
             ),
         );
-        jobs.add_initializer(
-            overdue::CreditFacilityProcessingJobInitializer::<Perms, E>::new(
-                &ledger,
-                credit_facility_repo.clone(),
-                authz.audit(),
-            ),
-        );
         jobs.add_initializer(obligation_due::CreditFacilityProcessingJobInitializer::<
             Perms,
+            E,
         >::new(
             &ledger, obligation_repo.clone(), jobs, authz.audit()
         ));
         jobs.add_initializer(
-            obligation_overdue::CreditFacilityProcessingJobInitializer::<Perms>::new(
+            obligation_overdue::CreditFacilityProcessingJobInitializer::<Perms, E>::new(
                 &ledger,
                 obligation_repo.clone(),
                 authz.audit(),
@@ -218,6 +217,7 @@ where
             authz: authz.clone(),
             customer: customer.clone(),
             credit_facility_repo,
+            obligations,
             disbursal_repo,
             payment_repo,
             governance: governance.clone(),
@@ -228,6 +228,10 @@ where
             approve_disbursal,
             approve_credit_facility,
         })
+    }
+
+    pub fn obligations(&self) -> &Obligations<Perms, E> {
+        &self.obligations
     }
 
     pub async fn subject_can_create(
@@ -262,6 +266,7 @@ where
             &self.credit_facility_repo,
             &self.disbursal_repo,
             &self.payment_repo,
+            &self.ledger,
         ))
     }
 
@@ -271,7 +276,7 @@ where
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         customer_id: impl Into<CustomerId> + std::fmt::Debug + Copy,
         disbursal_credit_account_id: impl Into<CalaAccountId> + std::fmt::Debug,
-        facility: UsdCents,
+        amount: UsdCents,
         terms: TermValues,
     ) -> Result<CreditFacility, CoreCreditError> {
         let audit_info = self
@@ -295,7 +300,7 @@ where
             .approval_process_id(id)
             .customer_id(customer_id)
             .terms(terms)
-            .facility(facility)
+            .amount(amount)
             .account_ids(CreditFacilityAccountIds::new())
             .disbursal_credit_account_id(disbursal_credit_account_id.into())
             .audit_info(audit_info.clone())
@@ -361,7 +366,7 @@ where
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         id: impl Into<CreditFacilityId> + std::fmt::Debug,
-    ) -> Result<CreditFacilityBalance, CoreCreditError> {
+    ) -> Result<CreditFacilityBalanceSummary, CoreCreditError> {
         let id = id.into();
         self.authz
             .enforce_permission(
@@ -373,7 +378,12 @@ where
 
         let credit_facility = self.credit_facility_repo.find_by_id(id).await?;
 
-        Ok(credit_facility.balances())
+        let balances = self
+            .ledger
+            .get_credit_facility_balance(credit_facility.account_ids)
+            .await?;
+
+        Ok(balances)
     }
 
     pub async fn subject_can_initiate_disbursal(
@@ -405,12 +415,12 @@ where
             .await?
             .expect("audit info missing");
 
-        let mut credit_facility = self
+        let facility = self
             .credit_facility_repo
             .find_by_id(credit_facility_id)
             .await?;
 
-        let customer_id = credit_facility.customer_id;
+        let customer_id = facility.customer_id;
         let customer = self
             .customer
             .find_by_id(sub, customer_id)
@@ -420,12 +430,37 @@ where
             return Err(CoreCreditError::CustomerNotActive);
         }
 
+        let now = crate::time::now();
+        if !facility.can_initiate_disbursal(now) {
+            return Err(CreditFacilityError::DisbursalPastMaturityDate.into());
+        }
+        let balance = self
+            .ledger
+            .get_credit_facility_balance(facility.account_ids)
+            .await?;
+
+        let outstanding = CreditFacilityReceivable::from(balance);
+
         let price = self.price.usd_cents_per_btc().await?;
+        outstanding
+            .with_added_disbursal_amount(amount)
+            .facility_cvl_data(facility.collateral(), balance.facility_remaining)
+            .cvl(price)
+            .check_disbursal_allowed(facility.terms)?;
 
         let mut db = self.credit_facility_repo.begin_op().await?;
-        let now = crate::time::now();
-        let new_disbursal =
-            credit_facility.initiate_disbursal(amount, now, price, None, audit_info)?;
+        let new_disbursal = NewDisbursal::builder()
+            .id(DisbursalId::new())
+            .approval_process_id(ApprovalProcessId::new())
+            .credit_facility_id(credit_facility_id)
+            .amount(amount)
+            .account_ids(facility.account_ids)
+            .disbursal_credit_account_id(facility.disbursal_credit_account_id)
+            .disbursal_due_date(facility.activated_at().expect("Facility is not active"))
+            .audit_info(audit_info)
+            .build()
+            .expect("could not build new disbursal");
+
         self.governance
             .start_process(
                 &mut db,
@@ -433,9 +468,6 @@ where
                 new_disbursal.approval_process_id.to_string(),
                 APPROVE_DISBURSAL_PROCESS,
             )
-            .await?;
-        self.credit_facility_repo
-            .update_in_op(&mut db, &mut credit_facility)
             .await?;
         let disbursal = self
             .disbursal_repo
@@ -549,12 +581,17 @@ where
             .find_by_id(credit_facility_id)
             .await?;
 
+        let balances = self
+            .ledger
+            .get_credit_facility_balance(credit_facility.account_ids)
+            .await?;
         let mut db = self.credit_facility_repo.begin_op().await?;
         let credit_facility_collateral_update = credit_facility.record_collateral_update(
             updated_collateral,
             audit_info,
             price,
             self.config.upgrade_buffer_cvl_pct,
+            balances,
         )?;
         self.credit_facility_repo
             .update_in_op(&mut db, &mut credit_facility)
@@ -576,8 +613,8 @@ where
             .authz
             .evaluate_permission(
                 sub,
-                CoreCreditObject::all_credit_facilities(),
-                CoreCreditAction::CREDIT_FACILITY_RECORD_PAYMENT,
+                CoreCreditObject::all_obligations(),
+                CoreCreditAction::OBLIGATION_RECORD_PAYMENT,
                 enforce,
             )
             .await?)
@@ -590,51 +627,65 @@ where
         credit_facility_id: CreditFacilityId,
         amount: UsdCents,
     ) -> Result<CreditFacility, CoreCreditError> {
-        let mut db = self.credit_facility_repo.begin_op().await?;
-
-        let audit_info = self
-            .subject_can_record_payment(sub, true)
-            .await?
-            .expect("audit info missing");
-
-        let price = self.price.usd_cents_per_btc().await?;
-
         let mut credit_facility = self
             .credit_facility_repo
             .find_by_id(credit_facility_id)
             .await?;
 
-        let ledger_balances = self
-            .ledger
-            .get_credit_facility_balance(credit_facility.account_ids)
+        let mut db = self.credit_facility_repo.begin_op().await?;
+        let audit_info = self
+            .subject_can_record_payment(sub, true)
+            .await?
+            .expect("audit info missing");
+
+        let new_payment = NewPayment::builder()
+            .id(PaymentId::new())
+            .amount(amount)
+            .credit_facility_id(credit_facility_id)
+            .build()
+            .expect("could not build new payment");
+        let mut payment = self.payment_repo.create_in_op(&mut db, new_payment).await?;
+
+        let res = self
+            .obligations
+            .allocate_payment_in_op(
+                &mut db,
+                credit_facility_id,
+                payment.id,
+                amount,
+                audit_info.clone(),
+            )
             .await?;
-        credit_facility
-            .balances()
-            .check_against_ledger(ledger_balances)?;
 
-        let new_payment = credit_facility.initiate_repayment(
-            amount,
-            price,
-            self.config.upgrade_buffer_cvl_pct,
-            db.now(),
-            audit_info,
-        )?;
+        payment
+            .record_allocated(
+                res.disbursed_amount(),
+                res.interest_amount(),
+                audit_info.clone(),
+            )
+            .did_execute();
+        self.payment_repo
+            .update_in_op(&mut db, &mut payment)
+            .await?;
 
+        let now = crate::time::now();
+        for new_allocation in &res.allocations {
+            credit_facility
+                .update_balance_from_payment(
+                    new_allocation.id,
+                    new_allocation.obligation_type,
+                    new_allocation.amount,
+                    now,
+                    audit_info.clone(),
+                )
+                .did_execute();
+        }
         self.credit_facility_repo
             .update_in_op(&mut db, &mut credit_facility)
             .await?;
 
-        let payment = self.payment_repo.create_in_op(&mut db, new_payment).await?;
-
         self.ledger
-            .record_credit_facility_repayment(
-                db,
-                payment.ledger_tx_id,
-                payment.ledger_tx_ref,
-                payment.amounts,
-                payment.account_ids,
-                payment.disbursal_credit_account_id,
-            )
+            .record_obligation_repayments(db, res.allocations)
             .await?;
 
         Ok(credit_facility)
@@ -854,9 +905,16 @@ where
             .find_by_id(credit_facility_id)
             .await?;
 
-        let completion = if let Idempotent::Executed(completion) =
-            credit_facility.complete(audit_info, price, self.config.upgrade_buffer_cvl_pct)?
-        {
+        let balances = self
+            .ledger
+            .get_credit_facility_balance(credit_facility.account_ids)
+            .await?;
+        let completion = if let Idempotent::Executed(completion) = credit_facility.complete(
+            audit_info,
+            price,
+            self.config.upgrade_buffer_cvl_pct,
+            balances,
+        )? {
             completion
         } else {
             return Ok(credit_facility);
@@ -924,6 +982,30 @@ where
         ids: &[DisbursalId],
     ) -> Result<HashMap<DisbursalId, T>, CoreCreditError> {
         Ok(self.disbursal_repo.find_all(ids).await?)
+    }
+
+    pub async fn can_be_completed(&self, entity: &CreditFacility) -> Result<bool, CoreCreditError> {
+        Ok(self.outstanding(entity).await?.is_zero())
+    }
+
+    pub async fn facility_cvl(
+        &self,
+        entity: &CreditFacility,
+    ) -> Result<FacilityCVL, CoreCreditError> {
+        let balances = self
+            .ledger
+            .get_credit_facility_balance(entity.account_ids)
+            .await?;
+        let price = self.price.usd_cents_per_btc().await?;
+        Ok(entity.facility_cvl_data(balances).cvl(price))
+    }
+
+    pub async fn outstanding(&self, entity: &CreditFacility) -> Result<UsdCents, CoreCreditError> {
+        let balances = self
+            .ledger
+            .get_credit_facility_balance(entity.account_ids)
+            .await?;
+        Ok(balances.total_outstanding())
     }
 
     pub async fn get_chart_of_accounts_integration_config(

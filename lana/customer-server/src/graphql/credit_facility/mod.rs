@@ -6,7 +6,7 @@ mod repayment;
 
 use async_graphql::*;
 
-pub use lana_app::credit_facility::{
+pub use lana_app::credit::{
     CreditFacility as DomainCreditFacility, DisbursalsSortBy as DomainDisbursalsSortBy,
     ListDirection, Sort,
 };
@@ -48,7 +48,7 @@ impl From<DomainCreditFacility> for CreditFacility {
             activated_at,
             matures_at,
             created_at: credit_facility.created_at().into(),
-            facility_amount: credit_facility.initial_facility(),
+            facility_amount: credit_facility.amount,
             collateral: credit_facility.collateral(),
             collateralization_state: credit_facility.last_collateralization_state(),
             status: credit_facility.status(),
@@ -67,7 +67,7 @@ impl CreditFacility {
     async fn balance(&self, ctx: &Context<'_>) -> async_graphql::Result<CreditFacilityBalance> {
         let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
         let balance = app
-            .credit_facilities()
+            .credit()
             .for_subject(sub)?
             .balance(self.entity.id)
             .await?;
@@ -77,10 +77,7 @@ impl CreditFacility {
 
     async fn current_cvl(&self, ctx: &Context<'_>) -> async_graphql::Result<FacilityCVL> {
         let app = ctx.data_unchecked::<LanaApp>();
-        let price = app.price().usd_cents_per_btc().await?;
-        Ok(FacilityCVL::from(
-            self.entity.facility_cvl_data().cvl(price),
-        ))
+        Ok(app.credit().facility_cvl(&self.entity).await?.into())
     }
 
     async fn transactions(&self) -> Vec<CreditFacilityHistoryEntry> {
@@ -98,7 +95,7 @@ impl CreditFacility {
         let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
 
         let disbursals = app
-            .credit_facilities()
+            .credit()
             .for_subject(sub)?
             .list_disbursals_for_credit_facility(
                 self.entity.id,
@@ -132,8 +129,8 @@ pub struct FacilityCVL {
     disbursed: CVLPct,
 }
 
-impl From<lana_app::credit_facility::FacilityCVL> for FacilityCVL {
-    fn from(value: lana_app::credit_facility::FacilityCVL) -> Self {
+impl From<lana_app::credit::FacilityCVL> for FacilityCVL {
+    fn from(value: lana_app::credit::FacilityCVL) -> Self {
         Self {
             total: value.total,
             disbursed: value.disbursed,

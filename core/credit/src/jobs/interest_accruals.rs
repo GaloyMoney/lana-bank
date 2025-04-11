@@ -8,9 +8,8 @@ use job::*;
 use outbox::OutboxEventMarker;
 
 use crate::{
-    credit_facility::CreditFacilityRepo, ledger::*, CoreCreditAction, CoreCreditError,
-    CoreCreditEvent, CoreCreditObject, CreditFacilityId, CreditFacilityInterestAccrual,
-    InterestAccrualCycleIdx, InterestPeriod,
+    credit_facility::CreditFacilityRepo, error::CoreCreditError, event::CoreCreditEvent, ledger::*,
+    primitives::*, terms::InterestPeriod,
 };
 
 #[derive(Clone, Serialize, Deserialize)]
@@ -127,14 +126,22 @@ where
             .await?;
 
         let confirmed_accrual = {
-            let outstanding = credit_facility.total_outstanding();
+            // TODO: figure out how to get this to execute after interest obligation due & overdue jobs
+            //       so that we have an overdue balance.
+            let balances = self
+                .ledger
+                .get_credit_facility_balance(credit_facility.account_ids)
+                .await?;
+            dbg!(balances); // TODO: remove when we observe an overdue balance (for e2e tests)
+
             let account_ids = credit_facility.account_ids;
 
             let accrual = credit_facility
                 .interest_accrual_cycle_in_progress_mut()
                 .expect("Accrual in progress should exist for scheduled job");
 
-            let interest_accrual = accrual.record_accrual(outstanding, audit_info.clone());
+            let interest_accrual =
+                accrual.record_accrual(balances.total_overdue(), audit_info.clone());
 
             ConfirmedAccrual {
                 accrual: (interest_accrual, account_ids).into(),

@@ -2,16 +2,21 @@ mod job;
 
 use tracing::instrument;
 
-use ::job::JobId;
 use audit::AuditSvc;
 use authz::PermissionCheck;
 use core_price::Price;
 use outbox::OutboxEventMarker;
 
 use crate::{
-    error::CoreCreditError, interest_accruals, ledger::CreditLedger, overdue,
-    primitives::CreditFacilityId, CoreCreditAction, CoreCreditEvent, CoreCreditObject,
-    CreditFacility, CreditFacilityRepo, DisbursalRepo, Jobs, LedgerTxId, ObligationRepo,
+    credit_facility::{CreditFacility, CreditFacilityRepo},
+    disbursal::{DisbursalRepo, NewDisbursal},
+    error::CoreCreditError,
+    event::CoreCreditEvent,
+    jobs::interest_accruals,
+    ledger::CreditLedger,
+    obligation::ObligationRepo,
+    primitives::{CoreCreditAction, CoreCreditObject, CreditFacilityId, DisbursalId, LedgerTxId},
+    Jobs,
 };
 
 pub use job::*;
@@ -21,7 +26,7 @@ where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCreditEvent>,
 {
-    obligation_repo: ObligationRepo,
+    obligation_repo: ObligationRepo<E>,
     credit_facility_repo: CreditFacilityRepo<E>,
     disbursal_repo: DisbursalRepo,
     ledger: CreditLedger,
@@ -55,7 +60,7 @@ where
     E: OutboxEventMarker<CoreCreditEvent>,
 {
     pub fn new(
-        obligation_repo: &ObligationRepo,
+        obligation_repo: &ObligationRepo<E>,
         credit_facility_repo: &CreditFacilityRepo<E>,
         disbursal_repo: &DisbursalRepo,
         ledger: &CreditLedger,
@@ -97,31 +102,31 @@ where
         let price = self.price.usd_cents_per_btc().await?;
         let now = db.now();
 
+        let balances = self
+            .ledger
+            .get_credit_facility_balance(credit_facility.account_ids)
+            .await?;
         let Ok(es_entity::Idempotent::Executed((credit_facility_activation, next_accrual_period))) =
-            credit_facility.activate(now, price, audit_info.clone())
+            credit_facility.activate(now, price, balances, audit_info.clone())
         else {
             return Ok(credit_facility);
         };
 
-        self.jobs
-            .create_and_spawn_at_in_op(
-                &mut db,
-                JobId::new(),
-                overdue::CreditFacilityJobConfig::<Perms, E> {
-                    credit_facility_id: id,
-                    _phantom: std::marker::PhantomData,
-                },
-                credit_facility.disbursed_overdue_at(),
+        let new_disbursal = NewDisbursal::builder()
+            .id(DisbursalId::new())
+            .credit_facility_id(credit_facility.id)
+            .approval_process_id(credit_facility.approval_process_id)
+            .amount(credit_facility.structuring_fee())
+            .account_ids(credit_facility.account_ids)
+            .disbursal_credit_account_id(credit_facility.disbursal_credit_account_id)
+            .disbursal_due_date(
+                credit_facility
+                    .activated_at()
+                    .expect("Facility is not active"),
             )
-            .await?;
-
-        let new_disbursal = credit_facility.initiate_disbursal(
-            credit_facility.structuring_fee(),
-            now,
-            price,
-            Some(credit_facility.approval_process_id),
-            audit_info.clone(),
-        )?;
+            .audit_info(audit_info.clone())
+            .build()
+            .expect("could not build new disbursal");
         let mut disbursal = self
             .disbursal_repo
             .create_in_op(&mut db, new_disbursal)
@@ -132,15 +137,6 @@ where
             .approval_process_concluded(tx_id, true, audit_info.clone())
             .expect("First instance of idempotent action ignored")
             .expect("First disbursal obligation was already created");
-        credit_facility
-            .disbursal_concluded(
-                &disbursal,
-                tx_id,
-                Some(new_obligation.id()),
-                now,
-                audit_info.clone(),
-            )
-            .expect("First instance of idempotent action ignored");
 
         self.obligation_repo
             .create_in_op(&mut db, new_obligation)

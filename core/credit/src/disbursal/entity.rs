@@ -5,7 +5,11 @@ use serde::{Deserialize, Serialize};
 use audit::AuditInfo;
 use es_entity::*;
 
-use crate::{ledger::CreditFacilityAccountIds, obligation::NewObligation, primitives::*};
+use crate::{
+    ledger::CreditFacilityAccountIds,
+    obligation::{NewObligation, ObligationAccounts, ObligationType},
+    primitives::*,
+};
 
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
@@ -15,7 +19,6 @@ pub enum DisbursalEvent {
         id: DisbursalId,
         approval_process_id: ApprovalProcessId,
         facility_id: CreditFacilityId,
-        idx: DisbursalIdx,
         amount: UsdCents,
         account_ids: CreditFacilityAccountIds,
         disbursal_credit_account_id: CalaAccountId,
@@ -44,7 +47,6 @@ pub struct Disbursal {
     pub id: DisbursalId,
     pub approval_process_id: ApprovalProcessId,
     pub facility_id: CreditFacilityId,
-    pub idx: DisbursalIdx,
     pub amount: UsdCents,
     pub account_ids: CreditFacilityAccountIds,
     pub disbursal_credit_account_id: CalaAccountId,
@@ -63,7 +65,6 @@ impl TryFromEvents<DisbursalEvent> for Disbursal {
                     id,
                     approval_process_id,
                     facility_id,
-                    idx,
                     amount,
                     account_ids,
                     disbursal_credit_account_id,
@@ -74,7 +75,6 @@ impl TryFromEvents<DisbursalEvent> for Disbursal {
                         .id(*id)
                         .approval_process_id(*approval_process_id)
                         .facility_id(*facility_id)
-                        .idx(*idx)
                         .amount(*amount)
                         .account_ids(*account_ids)
                         .disbursal_credit_account_id(*disbursal_credit_account_id)
@@ -115,6 +115,13 @@ impl Disbursal {
                 None => DisbursalStatus::New,
             }
         }
+    }
+
+    pub fn obligation_id(&self) -> Option<ObligationId> {
+        self.events.iter_all().find_map(|event| match event {
+            DisbursalEvent::Settled { obligation_id, .. } => Some(*obligation_id),
+            _ => None,
+        })
     }
 
     pub(crate) fn approval_process_concluded(
@@ -171,11 +178,19 @@ impl Disbursal {
 
         NewObligation::builder()
             .id(obligation_id)
+            .credit_facility_id(self.facility_id)
+            .obligation_type(ObligationType::Disbursal)
             .reference(tx_ref.to_string())
             .amount(self.amount)
             .tx_id(tx_id)
-            .account_to_be_debited_id(self.account_ids.disbursed_receivable_account_id)
-            .account_to_be_credited_id(self.disbursal_credit_account_id)
+            .due_accounts(ObligationAccounts {
+                account_to_be_debited_id: self.account_ids.disbursed_receivable_account_id,
+                account_to_be_credited_id: self.disbursal_credit_account_id,
+            })
+            .overdue_accounts(ObligationAccounts {
+                account_to_be_debited_id: self.account_ids.disbursed_receivable_overdue_account_id,
+                account_to_be_credited_id: self.disbursal_credit_account_id,
+            })
             .due_date(self.disbursal_due_date)
             .overdue_date(self.disbursal_due_date)
             .recorded_at(crate::time::now())
@@ -203,7 +218,6 @@ pub struct NewDisbursal {
     pub(crate) approval_process_id: ApprovalProcessId,
     #[builder(setter(into))]
     pub(super) credit_facility_id: CreditFacilityId,
-    pub(super) idx: DisbursalIdx,
     pub(super) amount: UsdCents,
     pub(super) account_ids: CreditFacilityAccountIds,
     pub(super) disbursal_credit_account_id: CalaAccountId,
@@ -226,7 +240,6 @@ impl IntoEvents<DisbursalEvent> for NewDisbursal {
                 id: self.id,
                 approval_process_id: self.approval_process_id,
                 facility_id: self.credit_facility_id,
-                idx: self.idx,
                 amount: self.amount,
                 account_ids: self.account_ids,
                 disbursal_credit_account_id: self.disbursal_credit_account_id,

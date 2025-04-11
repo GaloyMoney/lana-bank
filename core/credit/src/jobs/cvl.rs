@@ -10,8 +10,9 @@ use job::*;
 use outbox::OutboxEventMarker;
 
 use crate::{
-    credit_facility::CreditFacilityRepo, primitives::*, terms::CVLPct, CoreCreditAction,
-    CoreCreditEvent, CoreCreditObject, CreditFacilitiesByCollateralizationRatioCursor,
+    credit_facility::CreditFacilityRepo, ledger::CreditLedger, primitives::*, terms::CVLPct,
+    CoreCreditAction, CoreCreditEvent, CoreCreditObject,
+    CreditFacilitiesByCollateralizationRatioCursor,
 };
 
 #[serde_with::serde_as]
@@ -36,7 +37,8 @@ where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCreditEvent>,
 {
-    repo: CreditFacilityRepo<E>,
+    credit_facility_repo: CreditFacilityRepo<E>,
+    ledger: CreditLedger,
     audit: Perms::Audit,
     price: Price,
 }
@@ -48,9 +50,15 @@ where
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>,
     E: OutboxEventMarker<CoreCreditEvent>,
 {
-    pub fn new(repo: CreditFacilityRepo<E>, price: &Price, audit: &Perms::Audit) -> Self {
+    pub fn new(
+        credit_facility_repo: CreditFacilityRepo<E>,
+        ledger: &CreditLedger,
+        price: &Price,
+        audit: &Perms::Audit,
+    ) -> Self {
         Self {
-            repo,
+            credit_facility_repo,
+            ledger: ledger.clone(),
             price: price.clone(),
             audit: audit.clone(),
         }
@@ -75,7 +83,8 @@ where
     fn init(&self, job: &Job) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
         Ok(Box::new(CreditFacilityProcessingJobRunner::<Perms, E> {
             config: job.config()?,
-            repo: self.repo.clone(),
+            credit_facility_repo: self.credit_facility_repo.clone(),
+            ledger: self.ledger.clone(),
             price: self.price.clone(),
             audit: self.audit.clone(),
         }))
@@ -88,7 +97,8 @@ where
     E: OutboxEventMarker<CoreCreditEvent>,
 {
     config: CreditFacilityJobConfig<Perms, E>,
-    repo: CreditFacilityRepo<E>,
+    ledger: CreditLedger,
+    credit_facility_repo: CreditFacilityRepo<E>,
     price: Price,
     audit: Perms::Audit,
 }
@@ -110,7 +120,7 @@ where
         let mut after: Option<CreditFacilitiesByCollateralizationRatioCursor> = None;
         while has_next_page {
             let mut credit_facilities =
-                self.repo
+                self.credit_facility_repo
                     .list_by_collateralization_ratio(
                         es_entity::PaginatedQueryArgs::<
                             CreditFacilitiesByCollateralizationRatioCursor,
@@ -125,7 +135,7 @@ where
                 credit_facilities.end_cursor,
                 credit_facilities.has_next_page,
             );
-            let mut db = self.repo.begin_op().await?;
+            let mut db = self.credit_facility_repo.begin_op().await?;
             let audit_info = self
                 .audit
                 .record_system_entry_in_tx(
@@ -141,15 +151,22 @@ where
                 if facility.status() == CreditFacilityStatus::Closed {
                     continue;
                 }
+                let balances = self
+                    .ledger
+                    .get_credit_facility_balance(facility.account_ids)
+                    .await?;
                 if facility
                     .maybe_update_collateralization(
                         price,
                         self.config.upgrade_buffer_cvl_pct,
+                        balances,
                         &audit_info,
                     )
                     .is_some()
                 {
-                    self.repo.update_in_op(&mut db, facility).await?;
+                    self.credit_facility_repo
+                        .update_in_op(&mut db, facility)
+                        .await?;
                     at_least_one = true;
                 }
             }
