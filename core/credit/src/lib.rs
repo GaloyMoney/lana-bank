@@ -69,7 +69,7 @@ where
     customer: Customers<Perms, E>,
     ledger: CreditLedger,
     price: Price,
-    config: CreditFacilityConfig,
+    config: CreditConfig,
     approve_disbursal: ApproveDisbursal<Perms, E>,
     cala: CalaLedger,
     approve_credit_facility: ApproveCreditFacility<Perms, E>,
@@ -115,7 +115,7 @@ where
     #[allow(clippy::too_many_arguments)]
     pub async fn init(
         pool: &sqlx::PgPool,
-        config: CreditFacilityConfig,
+        config: CreditConfig,
         governance: &Governance<Perms, E>,
         jobs: &Jobs,
         authz: &Perms,

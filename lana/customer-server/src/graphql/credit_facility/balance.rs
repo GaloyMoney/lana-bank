@@ -12,8 +12,8 @@ pub(super) struct CreditFacilityBalance {
     collateral: Collateral,
 }
 
-impl From<lana_app::credit_facility::CreditFacilityBalance> for CreditFacilityBalance {
-    fn from(balance: lana_app::credit_facility::CreditFacilityBalance) -> Self {
+impl From<lana_app::credit::CreditFacilityBalance> for CreditFacilityBalance {
+    fn from(balance: lana_app::credit::CreditFacilityBalance) -> Self {
         Self {
             facility_remaining: FacilityRemaining {
                 usd_balance: balance.facility_remaining,

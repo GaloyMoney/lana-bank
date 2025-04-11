@@ -71,7 +71,7 @@ async fn create_and_process_facility(
         .expect("Deposit account not found");
 
     let cf = app
-        .credit_facilities()
+        .credit()
         .initiate(
             &sub,
             customer_id,
@@ -84,42 +84,36 @@ async fn create_and_process_facility(
     while let Some(msg) = stream.next().await {
         match &msg.payload {
             Some(LanaEvent::Credit(CoreCreditEvent::FacilityApproved { id })) if cf.id == *id => {
-                app.credit_facilities()
+                app.credit()
                     .update_collateral(&sub, cf.id, Satoshis::try_from_btc(dec!(230))?)
                     .await?;
             }
             Some(LanaEvent::Credit(CoreCreditEvent::FacilityActivated { id, .. }))
                 if cf.id == *id =>
             {
-                app.credit_facilities()
+                app.credit()
                     .initiate_disbursal(&sub, cf.id, UsdCents::try_from_usd(dec!(1_000_000))?)
                     .await?;
             }
             Some(LanaEvent::Credit(CoreCreditEvent::AccrualExecuted { id, amount, .. }))
                 if { cf.id == *id && amount > &UsdCents::ZERO } =>
             {
-                let _ = app
-                    .credit_facilities()
-                    .record_payment(&sub, *id, *amount)
-                    .await;
+                let _ = app.credit().record_payment(&sub, *id, *amount).await;
                 let facility = app
-                    .credit_facilities()
+                    .credit()
                     .find_by_id(&sub, *id)
                     .await?
                     .expect("cf exists");
                 if facility.interest_accrual_cycle_in_progress().is_none() {
-                    let total_outstanding =
-                        app.credit_facilities().outstanding(facility.id).await?;
-                    app.credit_facilities()
+                    let total_outstanding = app.credit().outstanding(facility.id).await?;
+                    app.credit()
                         .record_payment(
                             &sub,
                             facility.id,
                             total_outstanding.due.total() + total_outstanding.overdue.total(),
                         )
                         .await?;
-                    app.credit_facilities()
-                        .complete_facility(&sub, facility.id)
-                        .await?;
+                    app.credit().complete_facility(&sub, facility.id).await?;
                 }
             }
             Some(LanaEvent::Credit(CoreCreditEvent::FacilityCompleted { id, .. })) => {
