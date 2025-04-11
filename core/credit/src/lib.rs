@@ -641,9 +641,9 @@ where
         credit_facility_id: CreditFacilityId,
     ) -> Result<Vec<Obligation>, CoreCreditError> {
         let mut obligations = vec![];
-        let mut query = es_entity::PaginatedQueryArgs::<ObligationsByCreatedAtCursor>::default();
+        let mut query = Default::default();
         loop {
-            let res = self
+            let mut res = self
                 .obligation_repo
                 .list_for_credit_facility_id_by_created_at(
                     credit_facility_id,
@@ -652,13 +652,10 @@ where
                 )
                 .await?;
 
-            obligations.extend(res.entities);
+            obligations.append(&mut res.entities);
 
-            if res.has_next_page {
-                query = es_entity::PaginatedQueryArgs::<ObligationsByCreatedAtCursor> {
-                    first: 100,
-                    after: res.end_cursor,
-                }
+            if let Some(q) = res.into_next_query() {
+                query = q;
             } else {
                 break;
             };
