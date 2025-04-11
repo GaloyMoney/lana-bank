@@ -311,8 +311,8 @@ impl CreditFacility {
             .is_some()
     }
 
-    fn facility_remaining(&self, obligation_initial_amounts: ObligationsAmounts) -> UsdCents {
-        self.initial_facility() - obligation_initial_amounts.disbursed
+    fn facility_remaining(&self, amount_disbursed: UsdCents) -> UsdCents {
+        self.initial_facility() - amount_disbursed
     }
 
     pub fn history(&self) -> Vec<history::CreditFacilityHistoryEntry> {
@@ -742,7 +742,7 @@ impl CreditFacility {
     pub fn facility_cvl_data(&self, obligations: &ObligationAggregator) -> FacilityCVLData {
         CreditFacilityReceivable::from(obligations.outstanding().total_amounts()).facility_cvl_data(
             self.collateral(),
-            self.facility_remaining(obligations.initial_amounts()),
+            self.facility_remaining(obligations.initial_amounts().disbursed),
         )
     }
 
@@ -828,7 +828,7 @@ impl CreditFacility {
             .with_added_disbursal_amount(disbursal_amount)
             .facility_cvl_data(
                 self.collateral(),
-                self.facility_remaining(obligations.initial_amounts()),
+                self.facility_remaining(obligations.initial_amounts().disbursed),
             )
     }
 
