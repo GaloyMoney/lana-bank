@@ -19,7 +19,6 @@ pub enum DisbursalEvent {
         id: DisbursalId,
         approval_process_id: ApprovalProcessId,
         facility_id: CreditFacilityId,
-        idx: DisbursalIdx,
         amount: UsdCents,
         account_ids: CreditFacilityAccountIds,
         disbursal_credit_account_id: CalaAccountId,
@@ -48,7 +47,6 @@ pub struct Disbursal {
     pub id: DisbursalId,
     pub approval_process_id: ApprovalProcessId,
     pub facility_id: CreditFacilityId,
-    pub idx: DisbursalIdx,
     pub amount: UsdCents,
     pub account_ids: CreditFacilityAccountIds,
     pub disbursal_credit_account_id: CalaAccountId,
@@ -67,7 +65,6 @@ impl TryFromEvents<DisbursalEvent> for Disbursal {
                     id,
                     approval_process_id,
                     facility_id,
-                    idx,
                     amount,
                     account_ids,
                     disbursal_credit_account_id,
@@ -78,7 +75,6 @@ impl TryFromEvents<DisbursalEvent> for Disbursal {
                         .id(*id)
                         .approval_process_id(*approval_process_id)
                         .facility_id(*facility_id)
-                        .idx(*idx)
                         .amount(*amount)
                         .account_ids(*account_ids)
                         .disbursal_credit_account_id(*disbursal_credit_account_id)
@@ -222,7 +218,6 @@ pub struct NewDisbursal {
     pub(crate) approval_process_id: ApprovalProcessId,
     #[builder(setter(into))]
     pub(super) credit_facility_id: CreditFacilityId,
-    pub(super) idx: DisbursalIdx,
     pub(super) amount: UsdCents,
     pub(super) account_ids: CreditFacilityAccountIds,
     pub(super) disbursal_credit_account_id: CalaAccountId,
@@ -245,7 +240,6 @@ impl IntoEvents<DisbursalEvent> for NewDisbursal {
                 id: self.id,
                 approval_process_id: self.approval_process_id,
                 facility_id: self.credit_facility_id,
-                idx: self.idx,
                 amount: self.amount,
                 account_ids: self.account_ids,
                 disbursal_credit_account_id: self.disbursal_credit_account_id,

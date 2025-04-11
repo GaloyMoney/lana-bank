@@ -20,7 +20,6 @@ use super::{entity::*, error::DisbursalError};
         ),
         approval_process_id(ty = "ApprovalProcessId", list_by, update(persist = "false")),
         concluded_tx_id(ty = "Option<LedgerTxId>", create(persist = false)),
-        idx(ty = "DisbursalIdx", list_by, update(persist = false)),
     ),
     tbl_prefix = "core"
 )]
@@ -40,9 +39,6 @@ impl From<(DisbursalsSortBy, &Disbursal)> for disbursal_cursor::DisbursalsCursor
         match sort {
             DisbursalsSortBy::CreatedAt => {
                 disbursal_cursor::DisbursalsByCreatedAtCursor::from(disbursal).into()
-            }
-            DisbursalsSortBy::Idx => {
-                disbursal_cursor::DisbursalsByIdxCursor::from(disbursal).into()
             }
             DisbursalsSortBy::ApprovalProcessId => {
                 disbursal_cursor::DisbursalsByApprovalProcessIdCursor::from(disbursal).into()

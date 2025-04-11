@@ -417,13 +417,6 @@ async fn add_permissions_for_bank_manager(authz: &Authorization) -> Result<(), A
         )
         .await?;
     authz
-        .add_permission_to_role(
-            &role,
-            CoreCreditObject::all_credit_facilities(),
-            CoreCreditAction::DISBURSAL_CONCLUDE_APPROVAL_PROCESS,
-        )
-        .await?;
-    authz
         .add_permission_to_role(&role, Object::TrialBalance, TrialBalanceAction::Read)
         .await?;
     authz

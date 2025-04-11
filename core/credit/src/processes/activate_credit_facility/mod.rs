@@ -9,14 +9,13 @@ use outbox::OutboxEventMarker;
 
 use crate::{
     credit_facility::{CreditFacility, CreditFacilityRepo},
-    disbursal::DisbursalRepo,
+    disbursal::{DisbursalRepo, NewDisbursal},
     error::CoreCreditError,
     event::CoreCreditEvent,
     jobs::interest_accruals,
     ledger::CreditLedger,
     obligation::ObligationRepo,
-    obligation_aggregator::ObligationAggregator,
-    primitives::{CoreCreditAction, CoreCreditObject, CreditFacilityId, LedgerTxId},
+    primitives::{CoreCreditAction, CoreCreditObject, CreditFacilityId, DisbursalId, LedgerTxId},
     Jobs,
 };
 
@@ -109,14 +108,21 @@ where
             return Ok(credit_facility);
         };
 
-        let new_disbursal = credit_facility.initiate_disbursal(
-            credit_facility.structuring_fee(),
-            &ObligationAggregator::new(vec![]),
-            now,
-            price,
-            Some(credit_facility.approval_process_id),
-            audit_info.clone(),
-        )?;
+        let new_disbursal = NewDisbursal::builder()
+            .id(DisbursalId::new())
+            .credit_facility_id(credit_facility.id)
+            .approval_process_id(credit_facility.approval_process_id)
+            .amount(credit_facility.structuring_fee())
+            .account_ids(credit_facility.account_ids)
+            .disbursal_credit_account_id(credit_facility.disbursal_credit_account_id)
+            .disbursal_due_date(
+                credit_facility
+                    .activated_at()
+                    .expect("Facility is not active"),
+            )
+            .audit_info(audit_info.clone())
+            .build()
+            .expect("could not build new disbursal");
         let mut disbursal = self
             .disbursal_repo
             .create_in_op(&mut db, new_disbursal)
@@ -127,15 +133,6 @@ where
             .approval_process_concluded(tx_id, true, audit_info.clone())
             .expect("First instance of idempotent action ignored")
             .expect("First disbursal obligation was already created");
-        credit_facility
-            .disbursal_concluded(
-                &disbursal,
-                tx_id,
-                Some(new_obligation.id()),
-                now,
-                audit_info.clone(),
-            )
-            .expect("First instance of idempotent action ignored");
 
         self.obligation_repo
             .create_in_op(&mut db, new_obligation)

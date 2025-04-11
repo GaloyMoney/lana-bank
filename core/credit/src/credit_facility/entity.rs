@@ -10,13 +10,14 @@ use crate::{
     obligation::{NewObligation, ObligationType, ObligationsAmounts, ObligationsOutstanding},
     obligation_aggregator::ObligationAggregator,
     primitives::*,
-    terms::{CVLData, CVLPct, CollateralizationState, InterestPeriod, TermValues},
+    terms::{CVLPct, CollateralizationState, InterestPeriod, TermValues},
 };
 
-use crate::{disbursal::*, interest_accrual_cycle::*, ledger::*};
+use crate::{interest_accrual_cycle::*, ledger::*};
 
 use super::{
-    balance::CreditFacilityBalanceSummary, error::CreditFacilityError, history, repayment_plan,
+    balance::CreditFacilityBalanceSummary, cvl::*, error::CreditFacilityError, history,
+    repayment_plan,
 };
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
@@ -70,19 +71,6 @@ pub enum CreditFacilityEvent {
         amount: UsdCents,
         updated_at: DateTime<Utc>,
         audit_info: AuditInfo,
-    },
-    DisbursalInitiated {
-        disbursal_id: DisbursalId,
-        idx: DisbursalIdx,
-        approval_process_id: ApprovalProcessId,
-        audit_info: AuditInfo,
-    },
-    DisbursalConcluded {
-        idx: DisbursalIdx,
-        tx_id: LedgerTxId,
-        obligation_id: Option<ObligationId>,
-        audit_info: AuditInfo,
-        recorded_at: DateTime<Utc>,
     },
     InterestAccrualCycleStarted {
         interest_accrual_id: InterestAccrualCycleId,
@@ -159,14 +147,14 @@ impl CreditFacilityReceivable {
         self.total().is_zero()
     }
 
-    fn with_added_disbursal_amount(&self, amount: UsdCents) -> Self {
+    pub fn with_added_disbursal_amount(&self, amount: UsdCents) -> Self {
         Self {
             disbursed: self.disbursed + amount,
             interest: self.interest,
         }
     }
 
-    fn facility_cvl_data(
+    pub fn facility_cvl_data(
         &self,
         collateral: Satoshis,
         facility_remaining: UsdCents,
@@ -175,48 +163,6 @@ impl CreditFacilityReceivable {
             total: self.total_cvl(collateral, facility_remaining),
             disbursed: self.disbursed_cvl(collateral),
         }
-    }
-}
-
-#[derive(Clone)]
-pub struct FacilityCVLData {
-    pub total: CVLData,
-    pub disbursed: CVLData,
-}
-
-impl FacilityCVLData {
-    pub fn cvl(&self, price: PriceOfOneBTC) -> FacilityCVL {
-        FacilityCVL {
-            total: self.total.cvl(price),
-            disbursed: self.disbursed.cvl(price),
-        }
-    }
-}
-
-pub struct FacilityCVL {
-    pub total: CVLPct,
-    pub disbursed: CVLPct,
-}
-
-impl FacilityCVL {
-    fn check_approval_allowed(&self, terms: TermValues) -> Result<(), CreditFacilityError> {
-        if self.total < terms.margin_call_cvl {
-            return Err(CreditFacilityError::BelowMarginLimit);
-        }
-        Ok(())
-    }
-
-    fn check_disbursal_allowed(&self, terms: TermValues) -> Result<(), CreditFacilityError> {
-        let cvl = if self.disbursed.is_zero() {
-            self.total
-        } else {
-            self.disbursed
-        };
-
-        if cvl < terms.margin_call_cvl {
-            return Err(CreditFacilityError::BelowMarginLimit);
-        }
-        Ok(())
     }
 }
 
@@ -295,20 +241,6 @@ impl CreditFacility {
 
     pub fn structuring_fee(&self) -> UsdCents {
         self.terms.one_time_fee_rate.apply(self.initial_facility())
-    }
-
-    fn has_confirmed_disbursals(&self) -> bool {
-        self.events
-            .iter_all()
-            .find_map(|event| match event {
-                CreditFacilityEvent::DisbursalConcluded { obligation_id, .. }
-                    if obligation_id.is_some() =>
-                {
-                    Some(true)
-                }
-                _ => None,
-            })
-            .is_some()
     }
 
     fn facility_remaining(&self, amount_disbursed: UsdCents) -> UsdCents {
@@ -447,92 +379,11 @@ impl CreditFacility {
         Ok(Idempotent::Executed((activation, periods.accrual)))
     }
 
-    pub(crate) fn initiate_disbursal(
-        &mut self,
-        amount: UsdCents,
-        obligations: &ObligationAggregator,
-        initiated_at: DateTime<Utc>,
-        price: PriceOfOneBTC,
-        approval_process_id: Option<ApprovalProcessId>,
-        audit_info: AuditInfo,
-    ) -> Result<NewDisbursal, CreditFacilityError> {
+    pub(crate) fn can_initiate_disbursal(&self, initiated_at: DateTime<Utc>) -> bool {
         if let Some(matures_at) = self.matures_at {
-            if initiated_at > matures_at {
-                return Err(CreditFacilityError::DisbursalPastMaturityDate);
-            }
+            return initiated_at > matures_at;
         }
-
-        self.projected_cvl_data_for_disbursal(obligations, amount)
-            .cvl(price)
-            .check_disbursal_allowed(self.terms)?;
-
-        let idx = self
-            .events
-            .iter_all()
-            .rev()
-            .find_map(|event| match event {
-                CreditFacilityEvent::DisbursalInitiated { idx, .. } => Some(idx.next()),
-                _ => None,
-            })
-            .unwrap_or(DisbursalIdx::FIRST);
-
-        let disbursal_id = DisbursalId::new();
-        let approval_process_id = approval_process_id.unwrap_or(disbursal_id.into());
-        self.events.push(CreditFacilityEvent::DisbursalInitiated {
-            disbursal_id,
-            approval_process_id,
-            idx,
-            audit_info: audit_info.clone(),
-        });
-
-        Ok(NewDisbursal::builder()
-            .id(disbursal_id)
-            .approval_process_id(approval_process_id)
-            .credit_facility_id(self.id)
-            .idx(idx)
-            .amount(amount)
-            .account_ids(self.account_ids)
-            .disbursal_credit_account_id(self.disbursal_credit_account_id)
-            .disbursal_due_date(self.activated_at().expect("Facility is not active"))
-            .audit_info(audit_info)
-            .build()
-            .expect("could not build new disbursal"))
-    }
-
-    pub(crate) fn disbursal_concluded(
-        &mut self,
-        disbursal: &Disbursal,
-        tx_id: LedgerTxId,
-        obligation_id: Option<ObligationId>,
-        executed_at: DateTime<Utc>,
-        audit_info: AuditInfo,
-    ) -> Idempotent<()> {
-        idempotency_guard!(
-            self.events().iter_all(),
-            CreditFacilityEvent::DisbursalConcluded {
-                idx,
-                ..
-            } if idx == &disbursal.idx
-        );
-
-        self.events.push(CreditFacilityEvent::DisbursalConcluded {
-            idx: disbursal.idx,
-            recorded_at: executed_at,
-            tx_id,
-            obligation_id,
-            audit_info: audit_info.clone(),
-        });
-        if let Some(obligation_id) = obligation_id {
-            self.events.push(CreditFacilityEvent::BalanceUpdated {
-                source: BalanceUpdatedSource::Obligation(obligation_id),
-                balance_type: BalanceUpdatedType::Disbursal,
-                amount: disbursal.amount,
-                updated_at: executed_at,
-                audit_info,
-            });
-        }
-
-        Idempotent::Executed(())
+        true
     }
 
     fn next_interest_accrual_cycle_period(
@@ -782,7 +633,7 @@ impl CreditFacility {
                     .total
                     .collateralization_update(self.terms, last_collateralization_state, None, true),
                 CreditFacilityStatus::Active | CreditFacilityStatus::Matured => {
-                    let cvl = if self.has_confirmed_disbursals() {
+                    let cvl = if obligations.has_confirmed_disbursals() {
                         facility_cvl.disbursed
                     } else {
                         facility_cvl.total
@@ -814,22 +665,6 @@ impl CreditFacility {
         }
 
         None
-    }
-
-    fn projected_cvl_data_for_disbursal(
-        &self,
-        obligations: &ObligationAggregator,
-        disbursal_amount: UsdCents,
-    ) -> FacilityCVLData {
-        // TODO: decide if default should be included in totals here
-        let outstanding = CreditFacilityReceivable::from(obligations.outstanding().total_amounts());
-
-        outstanding
-            .with_added_disbursal_amount(disbursal_amount)
-            .facility_cvl_data(
-                self.collateral(),
-                self.facility_remaining(obligations.initial_amounts().disbursed),
-            )
     }
 
     pub(crate) fn record_collateral_update(
@@ -979,7 +814,6 @@ impl CreditFacility {
     pub(super) fn collateralization_ratio(&self) -> Option<Decimal> {
         let amount = if self.status() == CreditFacilityStatus::PendingCollateralization
             || self.status() == CreditFacilityStatus::PendingApproval
-            || !self.has_confirmed_disbursals()
         {
             self.initial_facility()
         } else {
@@ -1037,8 +871,6 @@ impl TryFromEvents<CreditFacilityEvent> for CreditFacility {
                 }
                 CreditFacilityEvent::ApprovalProcessConcluded { .. } => (),
                 CreditFacilityEvent::BalanceUpdated { .. } => (),
-                CreditFacilityEvent::DisbursalInitiated { .. } => (),
-                CreditFacilityEvent::DisbursalConcluded { .. } => (),
                 CreditFacilityEvent::InterestAccrualCycleStarted { .. } => (),
                 CreditFacilityEvent::InterestAccrualCycleConcluded { .. } => (),
                 CreditFacilityEvent::CollateralUpdated { .. } => (),
@@ -1181,64 +1013,6 @@ mod test {
     }
 
     #[test]
-    fn is_disbursal_in_progress() {
-        let mut events = initial_events();
-
-        let first_idx = DisbursalIdx::FIRST;
-        let activated_at = Utc::now();
-        let disbursal_id = DisbursalId::new();
-        events.extend([
-            CreditFacilityEvent::CollateralUpdated {
-                tx_id: LedgerTxId::new(),
-                total_collateral: Satoshis::from(500),
-                abs_diff: Satoshis::from(500),
-                action: CollateralAction::Add,
-                recorded_in_ledger_at: Utc::now(),
-                audit_info: dummy_audit_info(),
-            },
-            CreditFacilityEvent::Activated {
-                ledger_tx_id: LedgerTxId::new(),
-                activated_at,
-                audit_info: dummy_audit_info(),
-            },
-            CreditFacilityEvent::DisbursalInitiated {
-                disbursal_id,
-                approval_process_id: disbursal_id.into(),
-                idx: first_idx,
-                audit_info: dummy_audit_info(),
-            },
-        ]);
-
-        let obligation_id = ObligationId::new();
-        events.extend([
-            CreditFacilityEvent::DisbursalConcluded {
-                idx: first_idx,
-                tx_id: LedgerTxId::new(),
-                obligation_id: Some(obligation_id),
-                recorded_at: Utc::now(),
-                audit_info: dummy_audit_info(),
-            },
-            CreditFacilityEvent::BalanceUpdated {
-                source: BalanceUpdatedSource::Obligation(obligation_id),
-                balance_type: BalanceUpdatedType::Disbursal,
-                amount: UsdCents::ONE,
-                updated_at: Utc::now(),
-                audit_info: dummy_audit_info(),
-            },
-        ]);
-        assert!(facility_from(events)
-            .initiate_disbursal(
-                UsdCents::ONE,
-                &empty_obligations(),
-                Utc::now(),
-                default_price(),
-                None,
-                dummy_audit_info()
-            )
-            .is_ok());
-    }
-
-    #[test]
     fn collateral() {
         let mut credit_facility = facility_from(initial_events());
         assert_eq!(credit_facility.collateral(), Satoshis::ZERO);
@@ -1290,7 +1064,6 @@ mod test {
     #[test]
     fn collateralization_ratio_when_active_disbursal() {
         let mut events = initial_events();
-        let disbursal_id = DisbursalId::new();
         let disbursal_amount = UsdCents::from(10);
         let disbursal_obligation_id = ObligationId::new();
         events.extend([
@@ -1310,19 +1083,6 @@ mod test {
             CreditFacilityEvent::Activated {
                 ledger_tx_id: LedgerTxId::new(),
                 activated_at: Utc::now(),
-                audit_info: dummy_audit_info(),
-            },
-            CreditFacilityEvent::DisbursalInitiated {
-                disbursal_id,
-                approval_process_id: disbursal_id.into(),
-                idx: DisbursalIdx::FIRST,
-                audit_info: dummy_audit_info(),
-            },
-            CreditFacilityEvent::DisbursalConcluded {
-                idx: DisbursalIdx::FIRST,
-                tx_id: LedgerTxId::new(),
-                obligation_id: Some(disbursal_obligation_id),
-                recorded_at: Utc::now(),
                 audit_info: dummy_audit_info(),
             },
             CreditFacilityEvent::BalanceUpdated {
