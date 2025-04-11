@@ -3,8 +3,6 @@ pub mod error;
 mod facility_obligations;
 mod repo;
 
-use tracing::instrument;
-
 use audit::AuditSvc;
 use authz::PermissionCheck;
 use cala_ledger::CalaLedger;
@@ -12,7 +10,7 @@ use outbox::OutboxEventMarker;
 
 use crate::{
     event::CoreCreditEvent,
-    primitives::{CoreCreditAction, CoreCreditObject, CreditFacilityId, ObligationId},
+    primitives::{CoreCreditAction, CoreCreditObject, CreditFacilityId},
     publisher::CreditFacilityPublisher,
 };
 

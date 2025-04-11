@@ -1,6 +1,7 @@
 use super::entity::Obligation;
 use crate::primitives::CreditFacilityId;
 
+#[allow(dead_code)]
 pub struct FacilityObligations {
     facility_id: CreditFacilityId,
     obligations: Vec<Obligation>,

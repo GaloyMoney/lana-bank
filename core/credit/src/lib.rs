@@ -36,6 +36,7 @@ use tracing::instrument;
 
 pub use chart_of_accounts_integration::ChartOfAccountsIntegrationConfig;
 pub use config::*;
+use credit_facility::error::CreditFacilityError;
 pub use credit_facility::*;
 pub use disbursal::{disbursal_cursor::*, *};
 use error::*;
@@ -426,12 +427,12 @@ where
             .await?
             .expect("audit info missing");
 
-        let mut credit_facility = self
+        let facility = self
             .credit_facility_repo
             .find_by_id(credit_facility_id)
             .await?;
 
-        let customer_id = credit_facility.customer_id;
+        let customer_id = facility.customer_id;
         let customer = self
             .customer
             .find_by_id(sub, customer_id)
@@ -441,28 +442,37 @@ where
             return Err(CoreCreditError::CustomerNotActive);
         }
 
-        let price = self.price.usd_cents_per_btc().await?;
-
-        let obligations = self
-            .list_obligations_for_credit_facility(credit_facility_id)
+        let now = crate::time::now();
+        if !facility.can_initiate_disbursal(now) {
+            return Err(CreditFacilityError::DisbursalPastMaturityDate.into());
+        }
+        let balance = self
+            .ledger
+            .get_credit_facility_balance(facility.account_ids)
             .await?;
-        let aggregator = ObligationAggregator::new(
-            obligations
-                .iter()
-                .map(ObligationDataForAggregation::from)
-                .collect::<Vec<_>>(),
-        );
+
+        let outstanding = CreditFacilityReceivable::from(balance);
+
+        let price = self.price.usd_cents_per_btc().await?;
+        outstanding
+            .with_added_disbursal_amount(amount)
+            .facility_cvl_data(facility.collateral(), balance.facility_remaining)
+            .cvl(price)
+            .check_disbursal_allowed(facility.terms)?;
 
         let mut db = self.credit_facility_repo.begin_op().await?;
-        let now = crate::time::now();
-        let new_disbursal = credit_facility.initiate_disbursal(
-            amount,
-            &aggregator,
-            now,
-            price,
-            None,
-            audit_info,
-        )?;
+        let new_disbursal = NewDisbursal::builder()
+            .id(DisbursalId::new())
+            .approval_process_id(ApprovalProcessId::new())
+            .credit_facility_id(credit_facility_id)
+            .amount(amount)
+            .account_ids(facility.account_ids)
+            .disbursal_credit_account_id(facility.disbursal_credit_account_id)
+            .disbursal_due_date(facility.activated_at().expect("Facility is not active"))
+            .audit_info(audit_info)
+            .build()
+            .expect("could not build new disbursal");
+
         self.governance
             .start_process(
                 &mut db,
@@ -470,9 +480,6 @@ where
                 new_disbursal.approval_process_id.to_string(),
                 APPROVE_DISBURSAL_PROCESS,
             )
-            .await?;
-        self.credit_facility_repo
-            .update_in_op(&mut db, &mut credit_facility)
             .await?;
         let disbursal = self
             .disbursal_repo

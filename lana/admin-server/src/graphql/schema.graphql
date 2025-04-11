@@ -492,7 +492,6 @@ type CreditFacilityCreatePayload {
 type CreditFacilityDisbursal {
 	id: ID!
 	disbursalId: UUID!
-	index: DisbursalIdx!
 	amount: UsdCents!
 	createdAt: Timestamp!
 	creditFacility: CreditFacility!
@@ -960,8 +959,6 @@ type DisbursalEntry {
 	recordedAt: Timestamp!
 	disbursal: CreditFacilityDisbursal!
 }
-
-scalar DisbursalIdx
 
 enum DisbursalStatus {
 	NEW

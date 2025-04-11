@@ -200,9 +200,7 @@ CREATE TABLE core_disbursals (
   approval_process_id UUID NOT NULL REFERENCES approval_processes(id),
   obligation_id UUID DEFAULT NULL REFERENCES core_obligations(id),
   concluded_tx_id UUID DEFAULT NULL,
-  idx INT NOT NULL,
-  created_at TIMESTAMPTZ NOT NULL,
-  UNIQUE(credit_facility_id, idx)
+  created_at TIMESTAMPTZ NOT NULL
 );
 
 CREATE TABLE core_disbursal_events (

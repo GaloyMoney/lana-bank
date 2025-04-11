@@ -34,6 +34,12 @@ impl ObligationAggregator {
         }
     }
 
+    pub fn has_confirmed_disbursals(&self) -> bool {
+        self.obligations
+            .iter()
+            .any(|obligation| obligation.obligation_type == ObligationType::Disbursal)
+    }
+
     pub fn initial_amounts(&self) -> ObligationsAmounts {
         let mut res = ObligationsAmounts::ZERO;
         for obligation in &self.obligations {

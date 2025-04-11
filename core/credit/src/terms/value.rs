@@ -85,27 +85,6 @@ impl From<Decimal> for OneTimeFeeRatePct {
     }
 }
 
-#[derive(Clone)]
-pub struct CVLData {
-    amount: UsdCents,
-    collateral: Satoshis,
-}
-
-impl CVLData {
-    pub fn new(collateral: Satoshis, amount: UsdCents) -> Self {
-        Self { collateral, amount }
-    }
-
-    pub fn cvl(&self, price: PriceOfOneBTC) -> CVLPct {
-        let collateral_value = price.sats_to_cents_round_down(self.collateral);
-        if collateral_value == UsdCents::ZERO {
-            CVLPct::ZERO
-        } else {
-            CVLPct::from_loan_amounts(collateral_value, self.amount)
-        }
-    }
-}
-
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 #[serde(transparent)]
 pub struct CVLPct(Decimal);

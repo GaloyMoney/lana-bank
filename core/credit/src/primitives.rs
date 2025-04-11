@@ -167,8 +167,6 @@ impl CoreCreditAction {
     pub const DISBURSAL_INITIATE: Self = CoreCreditAction::Disbursal(DisbursalAction::Initiate);
     pub const DISBURSAL_SETTLE: Self = CoreCreditAction::Disbursal(DisbursalAction::Settle);
     pub const DISBURSAL_LIST: Self = CoreCreditAction::Disbursal(DisbursalAction::List);
-    pub const DISBURSAL_CONCLUDE_APPROVAL_PROCESS: Self =
-        CoreCreditAction::Disbursal(DisbursalAction::ConcludeApprovalProcess);
 
     pub const OBLIGATION_READ: Self = CoreCreditAction::Obligation(ObligationAction::Read);
     pub const OBLIGATION_UPDATE_STATUS: Self =
@@ -235,7 +233,6 @@ pub enum DisbursalAction {
     Initiate,
     Settle,
     List,
-    ConcludeApprovalProcess,
 }
 impl From<DisbursalAction> for CoreCreditAction {
     fn from(action: DisbursalAction) -> Self {
@@ -310,26 +307,6 @@ impl std::fmt::Display for InterestAccrualCycleIdx {
     }
 }
 impl InterestAccrualCycleIdx {
-    pub const FIRST: Self = Self(1);
-    pub const fn next(&self) -> Self {
-        Self(self.0 + 1)
-    }
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Hash, Deserialize, sqlx::Type)]
-#[serde(transparent)]
-#[sqlx(transparent)]
-pub struct DisbursalIdx(i32);
-#[cfg(feature = "graphql")]
-async_graphql::scalar!(DisbursalIdx);
-
-impl std::fmt::Display for DisbursalIdx {
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        write!(f, "{}", self.0)
-    }
-}
-
-impl DisbursalIdx {
     pub const FIRST: Self = Self(1);
     pub const fn next(&self) -> Self {
         Self(self.0 + 1)

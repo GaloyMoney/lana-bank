@@ -58,7 +58,7 @@ pub(super) fn project<'a>(
     events: impl DoubleEndedIterator<Item = &'a CreditFacilityEvent>,
 ) -> Vec<CreditFacilityHistoryEntry> {
     let mut history = vec![];
-    let mut disbursals = std::collections::HashMap::new();
+    let mut disbursals = std::collections::HashMap::<ObligationId, LedgerTxId>::new();
     let mut interest_accruals_started_at = std::collections::HashMap::new();
     let mut interest_accruals = std::collections::HashMap::new();
 
@@ -138,13 +138,13 @@ pub(super) fn project<'a>(
                     },
                 ));
             }
-            CreditFacilityEvent::DisbursalConcluded {
-                tx_id,
-                obligation_id: Some(obligation_id),
-                ..
-            } => {
-                disbursals.insert(*obligation_id, *tx_id);
-            }
+            // CreditFacilityEvent::DisbursalConcluded {
+            //     tx_id,
+            //     obligation_id: Some(obligation_id),
+            //     ..
+            // } => {
+            //     disbursals.insert(*obligation_id, *tx_id);
+            // }
             CreditFacilityEvent::BalanceUpdated {
                 source: BalanceUpdatedSource::Obligation(obligation_id),
                 balance_type: BalanceUpdatedType::Disbursal,

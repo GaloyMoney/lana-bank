@@ -12,7 +12,6 @@ pub use lana_app::credit::{Disbursal as DomainDisbursal, DisbursalsCursor};
 pub struct CreditFacilityDisbursal {
     id: ID,
     disbursal_id: UUID,
-    index: DisbursalIdx,
     amount: UsdCents,
     created_at: Timestamp,
 
@@ -25,7 +24,6 @@ impl From<DomainDisbursal> for CreditFacilityDisbursal {
         Self {
             id: disbursal.id.to_global_id(),
             disbursal_id: UUID::from(disbursal.id),
-            index: disbursal.idx,
             amount: disbursal.amount,
             created_at: disbursal.created_at().into(),
             entity: Arc::new(disbursal),

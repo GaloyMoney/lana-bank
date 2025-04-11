@@ -227,7 +227,6 @@ mod tests {
     fn happy_credit_facility_events() -> Vec<CreditFacilityEvent> {
         let credit_facility_id = CreditFacilityId::new();
         let activated_at = default_activated_at();
-        let first_disbursal_idx = DisbursalIdx::FIRST;
         let disbursal_obligation_id = ObligationId::new();
         let first_interest_idx = InterestAccrualCycleIdx::FIRST;
         let first_interest_posted_at = end_of_month(activated_at);
@@ -247,19 +246,6 @@ mod tests {
                 ledger_tx_id: LedgerTxId::new(),
                 activated_at,
                 audit_info: dummy_audit_info(),
-            },
-            CreditFacilityEvent::DisbursalInitiated {
-                approval_process_id: ApprovalProcessId::new(),
-                disbursal_id: DisbursalId::new(),
-                idx: first_disbursal_idx,
-                audit_info: dummy_audit_info(),
-            },
-            CreditFacilityEvent::DisbursalConcluded {
-                idx: first_disbursal_idx,
-                tx_id: LedgerTxId::new(),
-                recorded_at: Utc::now(),
-                audit_info: dummy_audit_info(),
-                obligation_id: Some(disbursal_obligation_id),
             },
             CreditFacilityEvent::BalanceUpdated {
                 source: BalanceUpdatedSource::Obligation(disbursal_obligation_id),
@@ -295,7 +281,6 @@ mod tests {
     fn no_interest_repayment() {
         let credit_facility_id = CreditFacilityId::new();
         let activated_at = default_activated_at();
-        let first_disbursal_idx = DisbursalIdx::FIRST;
         let disbursal_obligation_id = ObligationId::new();
 
         let events = vec![
@@ -313,19 +298,6 @@ mod tests {
                 ledger_tx_id: LedgerTxId::new(),
                 activated_at,
                 audit_info: dummy_audit_info(),
-            },
-            CreditFacilityEvent::DisbursalInitiated {
-                approval_process_id: ApprovalProcessId::new(),
-                disbursal_id: DisbursalId::new(),
-                idx: first_disbursal_idx,
-                audit_info: dummy_audit_info(),
-            },
-            CreditFacilityEvent::DisbursalConcluded {
-                idx: first_disbursal_idx,
-                tx_id: LedgerTxId::new(),
-                recorded_at: Utc::now(),
-                audit_info: dummy_audit_info(),
-                obligation_id: Some(disbursal_obligation_id),
             },
             CreditFacilityEvent::BalanceUpdated {
                 source: BalanceUpdatedSource::Obligation(disbursal_obligation_id),
@@ -521,31 +493,15 @@ mod tests {
     #[test]
     fn increase_disbursal() {
         let mut events = happy_credit_facility_events();
-        let second_disbursal_idx = DisbursalIdx::FIRST.next();
         let second_disbursal_at = default_activated_at() + chrono::Duration::days(1);
         let disbursal_obligation_id = ObligationId::new();
-        events.extend([
-            CreditFacilityEvent::DisbursalInitiated {
-                disbursal_id: DisbursalId::new(),
-                approval_process_id: ApprovalProcessId::new(),
-                idx: second_disbursal_idx,
-                audit_info: dummy_audit_info(),
-            },
-            CreditFacilityEvent::DisbursalConcluded {
-                idx: second_disbursal_idx,
-                tx_id: LedgerTxId::new(),
-                recorded_at: second_disbursal_at,
-                audit_info: dummy_audit_info(),
-                obligation_id: Some(disbursal_obligation_id),
-            },
-            CreditFacilityEvent::BalanceUpdated {
-                source: BalanceUpdatedSource::Obligation(disbursal_obligation_id),
-                balance_type: BalanceUpdatedType::Disbursal,
-                amount: UsdCents::from(2000),
-                updated_at: second_disbursal_at,
-                audit_info: dummy_audit_info(),
-            },
-        ]);
+        events.extend([CreditFacilityEvent::BalanceUpdated {
+            source: BalanceUpdatedSource::Obligation(disbursal_obligation_id),
+            balance_type: BalanceUpdatedType::Disbursal,
+            amount: UsdCents::from(2000),
+            updated_at: second_disbursal_at,
+            audit_info: dummy_audit_info(),
+        }]);
         let repayment_plan = super::project(events.iter());
 
         let n_existing_interest_accruals = 1;
