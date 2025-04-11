@@ -277,6 +277,7 @@ where
             &self.credit_facility_repo,
             &self.disbursal_repo,
             &self.payment_repo,
+            &self.ledger,
         ))
     }
 
@@ -376,7 +377,7 @@ where
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         id: impl Into<CreditFacilityId> + std::fmt::Debug,
-    ) -> Result<CreditFacilityBalance, CoreCreditError> {
+    ) -> Result<CreditFacilityBalanceSummary, CoreCreditError> {
         let id = id.into();
         self.authz
             .enforce_permission(
@@ -388,15 +389,12 @@ where
 
         let credit_facility = self.credit_facility_repo.find_by_id(id).await?;
 
-        let obligations = self.list_obligations_for_credit_facility(id).await?;
-        let aggregator = ObligationAggregator::new(
-            obligations
-                .iter()
-                .map(ObligationDataForAggregation::from)
-                .collect::<Vec<_>>(),
-        );
+        let balances = self
+            .ledger
+            .get_credit_facility_balance(credit_facility.account_ids)
+            .await?;
 
-        Ok(credit_facility.balances(&aggregator))
+        Ok(balances)
     }
 
     pub async fn subject_can_initiate_disbursal(

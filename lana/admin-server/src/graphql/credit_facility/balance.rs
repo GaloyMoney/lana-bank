@@ -12,8 +12,8 @@ pub(super) struct CreditFacilityBalance {
     collateral: Collateral,
 }
 
-impl From<lana_app::credit::CreditFacilityBalance> for CreditFacilityBalance {
-    fn from(balance: lana_app::credit::CreditFacilityBalance) -> Self {
+impl From<lana_app::credit::CreditFacilityBalanceSummary> for CreditFacilityBalance {
+    fn from(balance: lana_app::credit::CreditFacilityBalanceSummary) -> Self {
         Self {
             facility_remaining: FacilityRemaining {
                 usd_balance: balance.facility_remaining,
@@ -26,7 +26,8 @@ impl From<lana_app::credit::CreditFacilityBalance> for CreditFacilityBalance {
                     usd_balance: balance.disbursed_receivable,
                 },
                 due_outstanding: Outstanding {
-                    usd_balance: balance.due_disbursed_receivable,
+                    // usd_balance: balance.due_disbursed_receivable,
+                    usd_balance: UsdCents::ZERO,
                 },
             },
             interest: Interest {
@@ -37,14 +38,16 @@ impl From<lana_app::credit::CreditFacilityBalance> for CreditFacilityBalance {
                     usd_balance: balance.interest_receivable,
                 },
                 due_outstanding: Outstanding {
-                    usd_balance: balance.due_interest_receivable,
+                    // usd_balance: balance.due_interest_receivable,
+                    usd_balance: UsdCents::ZERO,
                 },
             },
             outstanding: Outstanding {
                 usd_balance: balance.disbursed_receivable + balance.interest_receivable,
             },
             due_outstanding: Outstanding {
-                usd_balance: balance.due_disbursed_receivable + balance.due_interest_receivable,
+                // usd_balance: balance.due_disbursed_receivable + balance.due_interest_receivable,
+                usd_balance: UsdCents::ZERO,
             },
             collateral: Collateral {
                 btc_balance: balance.collateral,

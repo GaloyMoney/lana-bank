@@ -15,7 +15,9 @@ use crate::{
 
 use crate::{disbursal::*, interest_accrual_cycle::*, ledger::*};
 
-use super::{error::CreditFacilityError, history, repayment_plan};
+use super::{
+    balance::CreditFacilityBalanceSummary, error::CreditFacilityError, history, repayment_plan,
+};
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
 pub enum BalanceUpdatedSource {
@@ -122,8 +124,8 @@ pub struct CreditFacilityReceivable {
     pub interest: UsdCents,
 }
 
-impl From<CreditFacilityLedgerBalance> for CreditFacilityReceivable {
-    fn from(balance: CreditFacilityLedgerBalance) -> Self {
+impl From<CreditFacilityBalanceSummary> for CreditFacilityReceivable {
+    fn from(balance: CreditFacilityBalanceSummary) -> Self {
         Self {
             disbursed: balance.disbursed_receivable,
             interest: balance.interest_receivable,
@@ -173,52 +175,6 @@ impl CreditFacilityReceivable {
             total: self.total_cvl(collateral, facility_remaining),
             disbursed: self.disbursed_cvl(collateral),
         }
-    }
-}
-
-#[derive(Debug, Copy, Clone, Serialize, Deserialize)]
-pub struct CreditFacilityBalance {
-    pub facility_remaining: UsdCents,
-    pub collateral: Satoshis,
-    pub total_disbursed: UsdCents,
-    pub disbursed_receivable: UsdCents,
-    pub due_disbursed_receivable: UsdCents,
-    pub total_interest_accrued: UsdCents,
-    pub interest_receivable: UsdCents,
-    pub due_interest_receivable: UsdCents,
-}
-
-impl PartialEq<CreditFacilityLedgerBalance> for CreditFacilityBalance {
-    fn eq(&self, other: &CreditFacilityLedgerBalance) -> bool {
-        self.facility_remaining == other.facility
-            && self.collateral == other.collateral
-            && self.total_disbursed == other.disbursed
-            && self.disbursed_receivable == other.disbursed_receivable
-            && self.total_interest_accrued == other.interest
-            && self.interest_receivable == other.interest_receivable
-    }
-}
-
-impl CreditFacilityBalance {
-    pub fn check_disbursal_amount(&self, amount: UsdCents) -> Result<(), CreditFacilityError> {
-        if amount > self.facility_remaining {
-            return Err(CreditFacilityError::DisbursalAmountTooLarge(
-                amount,
-                self.facility_remaining,
-            ));
-        }
-        Ok(())
-    }
-
-    pub fn check_against_ledger(
-        &self,
-        ledger_balances: CreditFacilityLedgerBalance,
-    ) -> Result<(), CreditFacilityError> {
-        if *self != ledger_balances {
-            return Err(CreditFacilityError::FacilityLedgerBalanceMismatch);
-        }
-
-        Ok(())
     }
 }
 
@@ -764,24 +720,6 @@ impl CreditFacility {
         });
 
         Idempotent::Executed(())
-    }
-    pub fn balances(&self, obligations: &ObligationAggregator) -> CreditFacilityBalance {
-        let initial_amount = obligations.initial_amounts();
-        let outstanding = obligations.outstanding();
-
-        CreditFacilityBalance {
-            facility_remaining: self.facility_remaining(initial_amount),
-            collateral: self.collateral(),
-
-            total_disbursed: initial_amount.disbursed,
-            total_interest_accrued: initial_amount.interest,
-
-            disbursed_receivable: outstanding.total_amounts().disbursed,
-            due_disbursed_receivable: outstanding.overdue.disbursed,
-
-            interest_receivable: outstanding.total_amounts().interest,
-            due_interest_receivable: outstanding.overdue.interest,
-        }
     }
 
     pub fn can_be_completed(&self, obligations_outstanding: ObligationsOutstanding) -> bool {

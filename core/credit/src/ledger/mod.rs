@@ -18,6 +18,7 @@ use cala_ledger::{
 };
 
 use crate::{
+    credit_facility::CreditFacilityBalanceSummary,
     payment_allocator::PaymentAllocation,
     primitives::{
         CalaAccountId, CalaAccountSetId, CollateralAction, CreditFacilityId, CustomerType,
@@ -887,7 +888,7 @@ impl CreditLedger {
             interest_receivable_account_id,
             ..
         }: CreditFacilityAccountIds,
-    ) -> Result<CreditFacilityLedgerBalance, CreditLedgerError> {
+    ) -> Result<CreditFacilityBalanceSummary, CreditLedgerError> {
         let facility_id = (self.journal_id, facility_account_id, self.usd);
         let collateral_id = (self.journal_id, collateral_account_id, self.btc);
         let disbursed_receivable_id = (self.journal_id, disbursed_receivable_account_id, self.usd);
@@ -944,12 +945,12 @@ impl CreditLedger {
         } else {
             Satoshis::ZERO
         };
-        Ok(CreditFacilityLedgerBalance {
-            facility,
+        Ok(CreditFacilityBalanceSummary {
+            facility_remaining: facility,
             collateral,
-            disbursed,
+            total_disbursed: disbursed,
             disbursed_receivable: disbursed_receivable + disbursed_receivable_overdue,
-            interest,
+            total_interest_accrued: interest,
             interest_receivable,
         })
     }
