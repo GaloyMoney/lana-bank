@@ -16,6 +16,7 @@ where
     credit_facilities: &'a CreditFacilityRepo<E>,
     disbursals: &'a DisbursalRepo,
     payments: &'a PaymentRepo,
+    ledger: &'a CreditLedger,
 }
 
 impl<'a, Perms, E> CreditFacilitiesForSubject<'a, Perms, E>
@@ -33,6 +34,7 @@ where
         credit_facilities: &'a CreditFacilityRepo<E>,
         disbursals: &'a DisbursalRepo,
         payments: &'a PaymentRepo,
+        ledger: &'a CreditLedger,
     ) -> Self {
         Self {
             customer_id,
@@ -42,6 +44,7 @@ where
             credit_facilities,
             disbursals,
             payments,
+            ledger,
         }
     }
 
@@ -101,7 +104,7 @@ where
     pub async fn balance(
         &self,
         id: impl Into<CreditFacilityId> + std::fmt::Debug,
-    ) -> Result<CreditFacilityBalance, CoreCreditError> {
+    ) -> Result<CreditFacilityBalanceSummary, CoreCreditError> {
         let id = id.into();
         let credit_facility = self.credit_facilities.find_by_id(id).await?;
 
@@ -112,15 +115,12 @@ where
         )
         .await?;
 
-        let obligations = self.list_obligations_for_credit_facility(id).await?;
-        let aggregator = ObligationAggregator::new(
-            obligations
-                .iter()
-                .map(ObligationDataForAggregation::from)
-                .collect::<Vec<_>>(),
-        );
+        let balances = self
+            .ledger
+            .get_credit_facility_balance(credit_facility.account_ids)
+            .await?;
 
-        Ok(credit_facility.balances(&aggregator))
+        Ok(balances)
     }
 
     pub async fn find_by_id(

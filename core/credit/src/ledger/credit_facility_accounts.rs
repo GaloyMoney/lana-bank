@@ -35,22 +35,6 @@ impl CreditFacilityAccountIds {
     }
 }
 
-#[derive(Debug, Copy, Clone, Serialize, Deserialize)]
-pub struct CreditFacilityLedgerBalance {
-    pub facility: UsdCents,
-    pub collateral: Satoshis,
-    pub disbursed: UsdCents,
-    pub disbursed_receivable: UsdCents,
-    pub interest: UsdCents,
-    pub interest_receivable: UsdCents,
-}
-
-impl CreditFacilityLedgerBalance {
-    pub fn check_disbursal_amount(&self, amount: UsdCents) -> bool {
-        amount < self.facility
-    }
-}
-
 #[derive(Debug, Clone)]
 pub struct CreditFacilityCompletion {
     pub tx_id: LedgerTxId,
