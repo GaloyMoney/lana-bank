@@ -9,7 +9,6 @@ mod interest_accrual_cycle;
 mod jobs;
 pub mod ledger;
 mod obligation;
-mod obligation_aggregator;
 mod payment;
 mod payment_allocator;
 mod primitives;
@@ -29,7 +28,6 @@ use core_price::Price;
 use es_entity::Idempotent;
 use governance::{Governance, GovernanceAction, GovernanceEvent, GovernanceObject};
 use job::Jobs;
-use obligation_aggregator::{ObligationAggregator, ObligationDataForAggregation};
 use outbox::{Outbox, OutboxEventMarker};
 use payment_allocator::{ObligationDataForAllocation, PaymentAllocationResult, PaymentAllocator};
 use tracing::instrument;
@@ -159,8 +157,8 @@ where
 
         jobs.add_initializer_and_spawn_unique(
             cvl::CreditFacilityProcessingJobInitializer::<Perms, E>::new(
-                obligation_repo.clone(),
                 credit_facility_repo.clone(),
+                &ledger,
                 price,
                 authz.audit(),
             ),
@@ -175,11 +173,7 @@ where
             Perms,
             E,
         >::new(
-            &ledger,
-            obligation_repo.clone(),
-            credit_facility_repo.clone(),
-            authz.audit(),
-            jobs,
+            &ledger, credit_facility_repo.clone(), authz.audit(), jobs
         ));
         jobs.add_initializer(
             interest_accrual_cycles::CreditFacilityProcessingJobInitializer::<Perms, E>::new(
@@ -288,7 +282,7 @@ where
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         customer_id: impl Into<CustomerId> + std::fmt::Debug + Copy,
         disbursal_credit_account_id: impl Into<CalaAccountId> + std::fmt::Debug,
-        facility: UsdCents,
+        amount: UsdCents,
         terms: TermValues,
     ) -> Result<CreditFacility, CoreCreditError> {
         let audit_info = self
@@ -312,7 +306,7 @@ where
             .approval_process_id(id)
             .customer_id(customer_id)
             .terms(terms)
-            .facility(facility)
+            .amount(amount)
             .account_ids(CreditFacilityAccountIds::new())
             .disbursal_credit_account_id(disbursal_credit_account_id.into())
             .audit_info(audit_info.clone())
@@ -593,13 +587,17 @@ where
             .find_by_id(credit_facility_id)
             .await?;
 
+        let balances = self
+            .ledger
+            .get_credit_facility_balance(credit_facility.account_ids)
+            .await?;
         let mut db = self.credit_facility_repo.begin_op().await?;
         let credit_facility_collateral_update = credit_facility.record_collateral_update(
             updated_collateral,
             audit_info,
             price,
             self.config.upgrade_buffer_cvl_pct,
-            &self.obligations_aggregator(credit_facility_id).await?,
+            balances,
         )?;
         self.credit_facility_repo
             .update_in_op(&mut db, &mut credit_facility)
@@ -964,11 +962,15 @@ where
             .find_by_id(credit_facility_id)
             .await?;
 
+        let balances = self
+            .ledger
+            .get_credit_facility_balance(credit_facility.account_ids)
+            .await?;
         let completion = if let Idempotent::Executed(completion) = credit_facility.complete(
             audit_info,
             price,
             self.config.upgrade_buffer_cvl_pct,
-            &self.obligations_aggregator(credit_facility_id).await?,
+            balances,
         )? {
             completion
         } else {
@@ -1039,30 +1041,28 @@ where
         Ok(self.disbursal_repo.find_all(ids).await?)
     }
 
-    pub async fn obligations_aggregator(
-        &self,
-        credit_facility_id: CreditFacilityId,
-    ) -> Result<ObligationAggregator, CoreCreditError> {
-        let obligations = self
-            .list_obligations_for_credit_facility(credit_facility_id)
-            .await?;
-
-        Ok(ObligationAggregator::new(
-            obligations
-                .iter()
-                .map(ObligationDataForAggregation::from)
-                .collect::<Vec<_>>(),
-        ))
+    pub async fn can_be_completed(&self, entity: &CreditFacility) -> Result<bool, CoreCreditError> {
+        Ok(self.outstanding(entity).await?.is_zero())
     }
 
-    pub async fn outstanding(
+    pub async fn facility_cvl(
         &self,
-        credit_facility_id: CreditFacilityId,
-    ) -> Result<ObligationsOutstanding, CoreCreditError> {
-        Ok(self
-            .obligations_aggregator(credit_facility_id)
-            .await?
-            .outstanding())
+        entity: &CreditFacility,
+    ) -> Result<FacilityCVL, CoreCreditError> {
+        let balances = self
+            .ledger
+            .get_credit_facility_balance(entity.account_ids)
+            .await?;
+        let price = self.price.usd_cents_per_btc().await?;
+        Ok(entity.facility_cvl_data(balances).cvl(price))
+    }
+
+    pub async fn outstanding(&self, entity: &CreditFacility) -> Result<UsdCents, CoreCreditError> {
+        let balances = self
+            .ledger
+            .get_credit_facility_balance(entity.account_ids)
+            .await?;
+        Ok(balances.total_outstanding())
     }
 
     pub async fn get_chart_of_accounts_integration_config(

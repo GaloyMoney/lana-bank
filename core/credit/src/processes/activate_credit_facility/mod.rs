@@ -102,8 +102,12 @@ where
         let price = self.price.usd_cents_per_btc().await?;
         let now = db.now();
 
+        let balances = self
+            .ledger
+            .get_credit_facility_balance(credit_facility.account_ids)
+            .await?;
         let Ok(es_entity::Idempotent::Executed((credit_facility_activation, next_accrual_period))) =
-            credit_facility.activate(now, price, audit_info.clone())
+            credit_facility.activate(now, price, balances, audit_info.clone())
         else {
             return Ok(credit_facility);
         };

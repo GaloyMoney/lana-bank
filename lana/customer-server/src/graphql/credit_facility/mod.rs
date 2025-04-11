@@ -48,7 +48,7 @@ impl From<DomainCreditFacility> for CreditFacility {
             activated_at,
             matures_at,
             created_at: credit_facility.created_at().into(),
-            facility_amount: credit_facility.initial_facility(),
+            facility_amount: credit_facility.amount,
             collateral: credit_facility.collateral(),
             collateralization_state: credit_facility.last_collateralization_state(),
             status: credit_facility.status(),
@@ -77,11 +77,7 @@ impl CreditFacility {
 
     async fn current_cvl(&self, ctx: &Context<'_>) -> async_graphql::Result<FacilityCVL> {
         let app = ctx.data_unchecked::<LanaApp>();
-        let price = app.price().usd_cents_per_btc().await?;
-        let obligations = app.credit().obligations_aggregator(self.entity.id).await?;
-        Ok(FacilityCVL::from(
-            self.entity.facility_cvl_data(&obligations).cvl(price),
-        ))
+        Ok(app.credit().facility_cvl(&self.entity).await?.into())
     }
 
     async fn transactions(&self) -> Vec<CreditFacilityHistoryEntry> {

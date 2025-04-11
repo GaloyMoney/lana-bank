@@ -10,7 +10,6 @@ gql`
   fragment DisbursalOnFacilityPage on CreditFacilityDisbursal {
     id
     disbursalId
-    index
     amount
     status
     createdAt

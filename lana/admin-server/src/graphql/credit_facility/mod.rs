@@ -56,7 +56,7 @@ impl From<DomainCreditFacility> for CreditFacility {
             activated_at,
             matures_at,
             created_at: credit_facility.created_at().into(),
-            facility_amount: credit_facility.initial_facility(),
+            facility_amount: credit_facility.amount,
             collateral: credit_facility.collateral(),
             collateralization_state: credit_facility.last_collateralization_state(),
 
@@ -69,8 +69,7 @@ impl From<DomainCreditFacility> for CreditFacility {
 impl CreditFacility {
     async fn can_be_completed(&self, ctx: &Context<'_>) -> async_graphql::Result<bool> {
         let (app, _) = crate::app_and_sub_from_ctx!(ctx);
-        let obligations_outstanding = app.credit().outstanding(self.entity.id).await?;
-        Ok(self.entity.can_be_completed(obligations_outstanding))
+        Ok(app.credit().can_be_completed(&self.entity).await?)
     }
 
     async fn credit_facility_terms(&self) -> TermValues {
@@ -89,11 +88,8 @@ impl CreditFacility {
 
     async fn current_cvl(&self, ctx: &Context<'_>) -> async_graphql::Result<FacilityCVL> {
         let app = ctx.data_unchecked::<LanaApp>();
-        let price = app.price().usd_cents_per_btc().await?;
-
-        let obligations = app.credit().obligations_aggregator(self.entity.id).await?;
         Ok(FacilityCVL::from(
-            self.entity.facility_cvl_data(&obligations).cvl(price),
+            app.credit().facility_cvl(&self.entity).await?,
         ))
     }
 

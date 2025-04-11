@@ -10,12 +10,7 @@ use job::*;
 use outbox::OutboxEventMarker;
 
 use crate::{
-    credit_facility::CreditFacilityRepo,
-    error::CoreCreditError,
-    obligation::{obligation_cursor::ObligationsByCreatedAtCursor, Obligation, ObligationRepo},
-    obligation_aggregator::{ObligationAggregator, ObligationDataForAggregation},
-    primitives::*,
-    terms::CVLPct,
+    credit_facility::CreditFacilityRepo, ledger::CreditLedger, primitives::*, terms::CVLPct,
     CoreCreditAction, CoreCreditEvent, CoreCreditObject,
     CreditFacilitiesByCollateralizationRatioCursor,
 };
@@ -42,8 +37,8 @@ where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCreditEvent>,
 {
-    obligation_repo: ObligationRepo<E>,
     credit_facility_repo: CreditFacilityRepo<E>,
+    ledger: CreditLedger,
     audit: Perms::Audit,
     price: Price,
 }
@@ -56,14 +51,14 @@ where
     E: OutboxEventMarker<CoreCreditEvent>,
 {
     pub fn new(
-        obligation_repo: ObligationRepo<E>,
         credit_facility_repo: CreditFacilityRepo<E>,
+        ledger: &CreditLedger,
         price: &Price,
         audit: &Perms::Audit,
     ) -> Self {
         Self {
-            obligation_repo,
             credit_facility_repo,
+            ledger: ledger.clone(),
             price: price.clone(),
             audit: audit.clone(),
         }
@@ -88,8 +83,8 @@ where
     fn init(&self, job: &Job) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
         Ok(Box::new(CreditFacilityProcessingJobRunner::<Perms, E> {
             config: job.config()?,
-            obligation_repo: self.obligation_repo.clone(),
             credit_facility_repo: self.credit_facility_repo.clone(),
+            ledger: self.ledger.clone(),
             price: self.price.clone(),
             audit: self.audit.clone(),
         }))
@@ -102,49 +97,10 @@ where
     E: OutboxEventMarker<CoreCreditEvent>,
 {
     config: CreditFacilityJobConfig<Perms, E>,
-    obligation_repo: ObligationRepo<E>,
+    ledger: CreditLedger,
     credit_facility_repo: CreditFacilityRepo<E>,
     price: Price,
     audit: Perms::Audit,
-}
-
-impl<Perms, E> CreditFacilityProcessingJobRunner<Perms, E>
-where
-    Perms: PermissionCheck,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>,
-    E: OutboxEventMarker<CoreCreditEvent>,
-{
-    async fn list_obligations_for_credit_facility(
-        &self,
-        credit_facility_id: CreditFacilityId,
-    ) -> Result<Vec<Obligation>, CoreCreditError> {
-        let mut obligations = vec![];
-        let mut query = es_entity::PaginatedQueryArgs::<ObligationsByCreatedAtCursor>::default();
-        loop {
-            let res = self
-                .obligation_repo
-                .list_for_credit_facility_id_by_created_at(
-                    credit_facility_id,
-                    query,
-                    es_entity::ListDirection::Ascending,
-                )
-                .await?;
-
-            obligations.extend(res.entities);
-
-            if res.has_next_page {
-                query = es_entity::PaginatedQueryArgs::<ObligationsByCreatedAtCursor> {
-                    first: 100,
-                    after: res.end_cursor,
-                }
-            } else {
-                break;
-            };
-        }
-
-        Ok(obligations)
-    }
 }
 
 #[async_trait]
@@ -195,19 +151,15 @@ where
                 if facility.status() == CreditFacilityStatus::Closed {
                     continue;
                 }
-                let obligations = self
-                    .list_obligations_for_credit_facility(facility.id)
+                let balances = self
+                    .ledger
+                    .get_credit_facility_balance(facility.account_ids)
                     .await?;
                 if facility
                     .maybe_update_collateralization(
                         price,
                         self.config.upgrade_buffer_cvl_pct,
-                        &ObligationAggregator::new(
-                            obligations
-                                .iter()
-                                .map(ObligationDataForAggregation::from)
-                                .collect::<Vec<_>>(),
-                        ),
+                        balances,
                         &audit_info,
                     )
                     .is_some()
