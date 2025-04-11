@@ -28,7 +28,7 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
 
     let journal_id = helpers::init_journal(&cala).await?;
 
-    let credit = CreditFacilities::init(
+    let credit = CoreCredit::init(
         &pool,
         Default::default(),
         &governance,

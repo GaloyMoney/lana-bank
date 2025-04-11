@@ -53,7 +53,7 @@ pub use processes::approve_disbursal::*;
 use publisher::CreditFacilityPublisher;
 pub use terms::*;
 
-pub struct CreditFacilities<Perms, E>
+pub struct CoreCredit<Perms, E>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCreditEvent>
@@ -75,7 +75,7 @@ where
     approve_credit_facility: ApproveCreditFacility<Perms, E>,
 }
 
-impl<Perms, E> Clone for CreditFacilities<Perms, E>
+impl<Perms, E> Clone for CoreCredit<Perms, E>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<GovernanceEvent>
@@ -101,7 +101,7 @@ where
     }
 }
 
-impl<Perms, E> CreditFacilities<Perms, E>
+impl<Perms, E> CoreCredit<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
