@@ -456,6 +456,55 @@ impl Query {
         )
     }
 
+    async fn ledger_transactions_by_template_code(
+        &self,
+        ctx: &Context<'_>,
+        template_code: String,
+        first: i32,
+        after: Option<String>,
+    ) -> async_graphql::Result<
+        Connection<
+            lana_app::accounting::ledger_transaction::LedgerTransactionCursor,
+            LedgerTransaction,
+            EmptyFields,
+            EmptyFields,
+        >,
+    > {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+
+        query(
+            after,
+            None,
+            Some(first),
+            None,
+            |after, _, first, _| async move {
+                let first = first.expect("First always exists");
+                let query_args = es_entity::PaginatedQueryArgs { first, after };
+                let res = app
+                    .accounting()
+                    .ledger_transactions()
+                    .find_by_template_code::<LedgerTransaction>(
+                        sub,
+                        template_code,
+                        query_args,
+                        Default::default(),
+                    )
+                    .await?;
+
+                let mut connection = Connection::new(false, res.has_next_page);
+                connection.edges.extend(res.entities.into_iter().map(|tx| {
+                    let cursor =
+                        lana_app::accounting::ledger_transaction::LedgerTransactionCursor::from(
+                            &tx,
+                        );
+                    Edge::new(cursor, LedgerTransaction::from(tx))
+                }));
+                Ok::<_, async_graphql::Error>(connection)
+            },
+        )
+        .await
+    }
+
     async fn journal_entries(
         &self,
         ctx: &Context<'_>,

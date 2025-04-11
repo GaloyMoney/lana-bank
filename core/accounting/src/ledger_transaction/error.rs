@@ -10,6 +10,8 @@ pub enum LedgerTransactionError {
     CalaEntry(#[from] cala_ledger::entry::error::EntryError),
     #[error("LedgerTransactionError - CalaTransaction: {0}")]
     CalaTransaction(#[from] cala_ledger::transaction::error::TransactionError),
+    #[error("LedgerTransactionError - CalaTxTemplate: {0}")]
+    CalaTxTemplate(#[from] cala_ledger::tx_template::error::TxTemplateError),
     #[error("LedgerTransactionError - AuthorizationError: {0}")]
     AuthorizationError(#[from] authz::error::AuthorizationError),
     #[error("LedgerTransactionError - JournalError: {0}")]
