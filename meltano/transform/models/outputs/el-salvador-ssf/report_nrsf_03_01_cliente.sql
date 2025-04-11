@@ -1,5 +1,4 @@
 select
-    cast(round(`Saldo garantizado`, 2) as string) as `Saldo garantizado`,
     left(`NIU`, 25) as `NIU`,
     left(`Primer Nombre`, 30) as `Primer Nombre`,
     left(`Segundo Nombre`, 30) as `Segundo Nombre`,
@@ -26,6 +25,6 @@ select
     left(`Clasificación de Riesgo`, 2) as `Clasificación de Riesgo`,
     left(`Tipo de relación`, 1) as `Tipo de relación`,
     left(`Agencia`, 7) as `Agencia`,
-    current_timestamp() as created_at
+    cast(round(`Saldo garantizado`, 2) as string) as `Saldo garantizado`
 from
     {{ ref('int_nrsf_03_01_cliente') }}
