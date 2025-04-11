@@ -1,7 +1,7 @@
 "use client"
 
 import type { ComponentProps } from "react"
-import { Logo } from "@/components/logo"
+
 import Link from "next/link"
 import { useTranslations } from "next-intl"
 
@@ -18,6 +18,8 @@ import {
 import { UserBlock } from "./user-block"
 import { NavSection } from "./nav-section"
 import { useNavItems } from "./nav-items"
+
+import { Logo } from "@/components/logo"
 
 interface AppSidebarProps extends ComponentProps<typeof Sidebar> {
   appVersion?: string
@@ -57,9 +59,9 @@ export function AppSidebar({ appVersion, ...props }: AppSidebarProps) {
           <SidebarMenuItem>
             <SidebarMenuButton size="lg" asChild tabIndex={-1}>
               <Link href="/dashboard">
-              <div className="flex aspect-square size-10 items-center justify-center rounded-lg">
-                <Logo className="size-10" />
-              </div>
+                <div className="flex aspect-square size-10 items-center justify-center rounded-lg">
+                  <Logo className="size-10" />
+                </div>
                 <div className="grid flex-1 text-left text-sm leading-tight">
                   <span className="truncate font-semibold">{t("footer.appName")}</span>
                   <span className="truncate text-xs">
