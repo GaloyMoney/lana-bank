@@ -1,20 +1,15 @@
 use chrono::{DateTime, Utc};
 
-use crate::{
-    obligation::{Obligation, ObligationType},
-    primitives::*,
-    CoreCreditError,
+use crate::primitives::*;
+
+use super::{
+    entity::{Obligation, ObligationType},
+    error::*,
 };
 
 pub struct PaymentAllocator {
     payment_id: PaymentId,
     amount: UsdCents,
-}
-
-pub struct PaymentAllocationResult {
-    pub new_allocations: Vec<PaymentAllocation>,
-    pub disbursal_amount: UsdCents,
-    pub interest_amount: UsdCents,
 }
 
 pub struct ObligationDataForAllocation {
@@ -39,14 +34,17 @@ impl From<&Obligation> for ObligationDataForAllocation {
     }
 }
 
-pub struct PaymentAllocation {
+#[derive(Debug, Clone, Copy)]
+pub struct NewPaymentAllocation {
     pub id: LedgerTxId,    // TODO: change to PaymentAllocationId
     pub tx_id: LedgerTxId, // TODO: change to PaymentAllocationId
     pub payment_id: PaymentId,
     pub obligation_id: ObligationId,
+    pub obligation_type: ObligationType,
     pub receivable_account_id: CalaAccountId,
     pub account_to_be_debited_id: CalaAccountId,
     pub amount: UsdCents,
+    pub recorded_at: DateTime<Utc>,
 }
 
 impl PaymentAllocator {
@@ -57,13 +55,13 @@ impl PaymentAllocator {
     pub fn allocate(
         &self,
         obligations: Vec<ObligationDataForAllocation>,
-    ) -> Result<PaymentAllocationResult, CoreCreditError> {
+    ) -> Result<Vec<NewPaymentAllocation>, ObligationError> {
         let outstanding = obligations
             .iter()
             .map(|o| o.outstanding)
             .fold(UsdCents::ZERO, |acc, amount| acc + amount);
         if self.amount > outstanding {
-            return Err(CoreCreditError::PaymentAmountGreaterThanOutstandingObligations);
+            return Err(ObligationError::PaymentAmountGreaterThanOutstandingObligations);
         }
 
         let mut disbursal_obligations = vec![];
@@ -81,40 +79,32 @@ impl PaymentAllocator {
         sorted_obligations.extend(interest_obligations);
         sorted_obligations.extend(disbursal_obligations);
 
+        let now = crate::time::now();
         let mut remaining = self.amount;
         let mut new_payment_allocations = vec![];
-        let mut disbursal_amount = UsdCents::ZERO;
-        let mut interest_amount = UsdCents::ZERO;
         for obligation in sorted_obligations {
             let payment_amount = std::cmp::min(remaining, obligation.outstanding);
             remaining -= payment_amount;
 
             let id = LedgerTxId::new();
-            new_payment_allocations.push(PaymentAllocation {
+            new_payment_allocations.push(NewPaymentAllocation {
                 id,
                 tx_id: id,
                 payment_id: self.payment_id,
                 obligation_id: obligation.id,
+                obligation_type: obligation.obligation_type,
                 receivable_account_id: obligation.receivable_account_id,
                 account_to_be_debited_id: obligation.account_to_be_debited_id,
                 amount: payment_amount,
+                recorded_at: now,
             });
-
-            match obligation.obligation_type {
-                ObligationType::Disbursal => disbursal_amount += payment_amount,
-                ObligationType::Interest => interest_amount += payment_amount,
-            }
 
             if remaining == UsdCents::ZERO {
                 break;
             }
         }
 
-        Ok(PaymentAllocationResult {
-            new_allocations: new_payment_allocations,
-            disbursal_amount,
-            interest_amount,
-        })
+        Ok(new_payment_allocations)
     }
 }
 
@@ -136,10 +126,8 @@ mod test {
             account_to_be_debited_id: CalaAccountId::new(),
         }];
 
-        let allocations = allocator.allocate(obligations).unwrap();
-        assert_eq!(allocations.new_allocations.len(), 1);
-        assert_eq!(allocations.disbursal_amount, UsdCents::ZERO);
-        assert_eq!(allocations.interest_amount, UsdCents::ONE);
+        let new_allocations = allocator.allocate(obligations).unwrap();
+        assert_eq!(new_allocations.len(), 1);
     }
 
     #[test]
@@ -156,10 +144,8 @@ mod test {
             account_to_be_debited_id: CalaAccountId::new(),
         }];
 
-        let allocations = allocator.allocate(obligations).unwrap();
-        assert_eq!(allocations.new_allocations.len(), 1);
-        assert_eq!(allocations.disbursal_amount, UsdCents::ONE);
-        assert_eq!(allocations.interest_amount, UsdCents::ZERO);
+        let new_allocations = allocator.allocate(obligations).unwrap();
+        assert_eq!(new_allocations.len(), 1);
     }
 
     #[test]
@@ -185,10 +171,8 @@ mod test {
             },
         ];
 
-        let allocations = allocator.allocate(obligations).unwrap();
-        assert_eq!(allocations.new_allocations.len(), 2);
-        assert_eq!(allocations.disbursal_amount, UsdCents::ONE);
-        assert_eq!(allocations.interest_amount, UsdCents::ONE);
+        let new_allocations = allocator.allocate(obligations).unwrap();
+        assert_eq!(new_allocations.len(), 2);
     }
 
     #[test]
@@ -214,12 +198,10 @@ mod test {
             },
         ];
 
-        let allocations = allocator.allocate(obligations).unwrap();
+        let new_allocations = allocator.allocate(obligations).unwrap();
 
-        assert_eq!(allocations.new_allocations[0].amount, UsdCents::from(4));
-        assert_eq!(allocations.new_allocations[1].amount, UsdCents::from(1));
-        assert_eq!(allocations.interest_amount, UsdCents::from(4));
-        assert_eq!(allocations.disbursal_amount, UsdCents::from(1));
+        assert_eq!(new_allocations[0].amount, UsdCents::from(4));
+        assert_eq!(new_allocations[1].amount, UsdCents::from(1));
     }
 
     #[test]
@@ -287,15 +269,13 @@ mod test {
             },
         ];
 
-        let allocations = allocator.allocate(obligations).unwrap();
-        assert_eq!(allocations.new_allocations.len(), 4);
+        let new_allocations = allocator.allocate(obligations).unwrap();
+        assert_eq!(new_allocations.len(), 4);
 
-        assert_eq!(allocations.new_allocations[0].amount, UsdCents::from(4));
-        assert_eq!(allocations.new_allocations[1].amount, UsdCents::from(3));
-        assert_eq!(allocations.interest_amount, UsdCents::from(7));
+        assert_eq!(new_allocations[0].amount, UsdCents::from(4));
+        assert_eq!(new_allocations[1].amount, UsdCents::from(3));
 
-        assert_eq!(allocations.new_allocations[2].amount, UsdCents::from(2));
-        assert_eq!(allocations.new_allocations[3].amount, UsdCents::from(1));
-        assert_eq!(allocations.disbursal_amount, UsdCents::from(3));
+        assert_eq!(new_allocations[2].amount, UsdCents::from(2));
+        assert_eq!(new_allocations[3].amount, UsdCents::from(1));
     }
 }

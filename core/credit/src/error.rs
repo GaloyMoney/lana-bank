@@ -46,8 +46,6 @@ pub enum CoreCreditError {
     ChartIdMismatch,
     #[error("CoreCreditError - CreditConfigAlreadyExists")]
     CreditConfigAlreadyExists,
-    #[error("CoreCreditError - PaymentAmountGreaterThanOutstandingObligations")]
-    PaymentAmountGreaterThanOutstandingObligations,
 }
 
 es_entity::from_es_entity_error!(CoreCreditError);
