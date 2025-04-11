@@ -1,6 +1,9 @@
 mod entity;
 pub mod error;
+mod facility_obligations;
 mod repo;
+
+use tracing::instrument;
 
 use audit::AuditSvc;
 use authz::PermissionCheck;
@@ -9,13 +12,14 @@ use outbox::OutboxEventMarker;
 
 use crate::{
     event::CoreCreditEvent,
-    primitives::{CoreCreditAction, CoreCreditObject},
+    primitives::{CoreCreditAction, CoreCreditObject, CreditFacilityId, ObligationId},
     publisher::CreditFacilityPublisher,
 };
 
 pub use entity::Obligation;
 pub(crate) use entity::*;
 use error::ObligationError;
+pub(crate) use facility_obligations::FacilityObligations;
 pub(crate) use repo::*;
 
 pub struct Obligations<Perms, E>
@@ -58,5 +62,33 @@ where
             authz: authz.clone(),
             repo: obligation_repo,
         }
+    }
+
+    pub async fn facility_obligations(
+        &self,
+        credit_facility_id: CreditFacilityId,
+    ) -> Result<FacilityObligations, ObligationError> {
+        let mut obligations = vec![];
+        let mut query = Default::default();
+        loop {
+            let mut res = self
+                .repo
+                .list_for_credit_facility_id_by_created_at(
+                    credit_facility_id,
+                    query,
+                    es_entity::ListDirection::Ascending,
+                )
+                .await?;
+
+            obligations.append(&mut res.entities);
+
+            if let Some(q) = res.into_next_query() {
+                query = q;
+            } else {
+                break;
+            };
+        }
+
+        Ok(FacilityObligations::new(credit_facility_id, obligations))
     }
 }
