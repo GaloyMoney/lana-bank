@@ -883,17 +883,26 @@ impl CreditLedger {
         CreditFacilityAccountIds {
             facility_account_id,
             collateral_account_id,
+            disbursed_receivable_not_yet_due_account_id,
             disbursed_receivable_due_account_id,
             disbursed_receivable_overdue_account_id,
             disbursed_defaulted_account_id,
+            interest_receivable_not_yet_due_account_id,
             interest_receivable_due_account_id,
             interest_receivable_overdue_account_id,
             interest_defaulted_account_id,
-            ..
+
+            fee_income_account_id: _,
+            interest_income_account_id: _,
         }: CreditFacilityAccountIds,
     ) -> Result<CreditFacilityBalanceSummary, CreditLedgerError> {
         let facility_id = (self.journal_id, facility_account_id, self.usd);
         let collateral_id = (self.journal_id, collateral_account_id, self.btc);
+        let disbursed_receivable_not_yet_due_id = (
+            self.journal_id,
+            disbursed_receivable_not_yet_due_account_id,
+            self.usd,
+        );
         let disbursed_receivable_due_id = (
             self.journal_id,
             disbursed_receivable_due_account_id,
@@ -905,11 +914,16 @@ impl CreditLedger {
             self.usd,
         );
         let disbursed_defaulted_id = (self.journal_id, disbursed_defaulted_account_id, self.usd);
+        let interest_receivable_not_yet_due_id = (
+            self.journal_id,
+            interest_receivable_not_yet_due_account_id,
+            self.usd,
+        );
         let interest_receivable_due_id = (
             self.journal_id,
             interest_receivable_due_account_id,
             self.usd,
-        ); // FIXME: do separate account for interest accruals not posted
+        );
         let interest_receivable_overdue_id = (
             self.journal_id,
             interest_receivable_overdue_account_id,
@@ -922,9 +936,11 @@ impl CreditLedger {
             .find_all(&[
                 facility_id,
                 collateral_id,
+                disbursed_receivable_not_yet_due_id,
                 disbursed_receivable_due_id,
                 disbursed_receivable_overdue_id,
                 disbursed_defaulted_id,
+                interest_receivable_not_yet_due_id,
                 interest_receivable_due_id,
                 interest_receivable_overdue_id,
                 interest_defaulted_id,
@@ -941,8 +957,8 @@ impl CreditLedger {
             UsdCents::ZERO
         };
         let not_yet_due_disbursed_outstanding =
-            if let Some(b) = balances.get(&disbursed_receivable_due_id) {
-                UsdCents::try_from_usd(b.pending())?
+            if let Some(b) = balances.get(&disbursed_receivable_not_yet_due_id) {
+                UsdCents::try_from_usd(b.settled())?
             } else {
                 UsdCents::ZERO
             };
@@ -970,8 +986,8 @@ impl CreditLedger {
             UsdCents::ZERO
         };
         let not_yet_due_interest_outstanding =
-            if let Some(b) = balances.get(&interest_receivable_due_id) {
-                UsdCents::try_from_usd(b.pending())?
+            if let Some(b) = balances.get(&interest_receivable_not_yet_due_id) {
+                UsdCents::try_from_usd(b.settled())?
             } else {
                 UsdCents::ZERO
             };
