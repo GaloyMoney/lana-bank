@@ -10,11 +10,13 @@ use crate::{
 #[derive(Debug, Copy, Clone, Serialize, Deserialize)]
 pub struct CreditFacilityAccountIds {
     pub facility_account_id: CalaAccountId,
-    pub disbursed_receivable_account_id: CalaAccountId,
+    pub disbursed_receivable_not_yet_due_account_id: CalaAccountId,
+    pub disbursed_receivable_due_account_id: CalaAccountId,
     pub disbursed_receivable_overdue_account_id: CalaAccountId,
     pub disbursed_defaulted_account_id: CalaAccountId,
     pub collateral_account_id: CalaAccountId,
-    pub interest_receivable_account_id: CalaAccountId,
+    pub interest_receivable_not_yet_due_account_id: CalaAccountId,
+    pub interest_receivable_due_account_id: CalaAccountId,
     pub interest_receivable_overdue_account_id: CalaAccountId,
     pub interest_defaulted_account_id: CalaAccountId,
     pub interest_income_account_id: CalaAccountId,
@@ -26,11 +28,13 @@ impl CreditFacilityAccountIds {
     pub fn new() -> Self {
         Self {
             facility_account_id: CalaAccountId::new(),
-            disbursed_receivable_account_id: CalaAccountId::new(),
+            disbursed_receivable_not_yet_due_account_id: CalaAccountId::new(),
+            disbursed_receivable_due_account_id: CalaAccountId::new(),
             disbursed_receivable_overdue_account_id: CalaAccountId::new(),
             disbursed_defaulted_account_id: CalaAccountId::new(),
             collateral_account_id: CalaAccountId::new(),
-            interest_receivable_account_id: CalaAccountId::new(),
+            interest_receivable_not_yet_due_account_id: CalaAccountId::new(),
+            interest_receivable_due_account_id: CalaAccountId::new(),
             interest_receivable_overdue_account_id: CalaAccountId::new(),
             interest_defaulted_account_id: CalaAccountId::new(),
             interest_income_account_id: CalaAccountId::new(),

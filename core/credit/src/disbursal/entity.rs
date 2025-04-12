@@ -11,6 +11,7 @@ use crate::{
     primitives::*,
 };
 
+#[allow(clippy::large_enum_variant)]
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
 #[es_event(id = "DisbursalId")]
@@ -184,7 +185,7 @@ impl Disbursal {
             .amount(self.amount)
             .tx_id(tx_id)
             .due_accounts(ObligationAccounts {
-                account_to_be_debited_id: self.account_ids.disbursed_receivable_account_id,
+                account_to_be_debited_id: self.account_ids.disbursed_receivable_due_account_id,
                 account_to_be_credited_id: self.disbursal_credit_account_id,
             })
             .overdue_accounts(ObligationAccounts {

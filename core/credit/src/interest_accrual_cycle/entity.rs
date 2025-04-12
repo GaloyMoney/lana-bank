@@ -6,24 +6,33 @@ use audit::AuditInfo;
 use es_entity::*;
 
 use crate::{
+    ledger::CreditFacilityAccountIds,
     obligation::{NewObligation, ObligationAccounts, ObligationType},
     primitives::*,
     terms::{InterestPeriod, TermValues},
-    CreditFacilityAccountIds,
 };
 
 #[derive(Debug, Copy, Clone, Serialize, Deserialize)]
 pub struct InterestAccrualCycleAccountIds {
-    pub interest_receivable_account_id: CalaAccountId,
+    pub interest_receivable_not_yet_due_account_id: CalaAccountId,
+    pub interest_receivable_due_account_id: CalaAccountId,
+    pub interest_receivable_overdue_account_id: CalaAccountId,
+    pub interest_defaulted_account_id: CalaAccountId,
     pub interest_income_account_id: CalaAccountId,
 }
 
 impl From<CreditFacilityAccountIds> for InterestAccrualCycleAccountIds {
     fn from(credit_facility_account_ids: CreditFacilityAccountIds) -> Self {
         Self {
+            interest_receivable_not_yet_due_account_id: credit_facility_account_ids
+                .interest_receivable_not_yet_due_account_id,
+            interest_receivable_due_account_id: credit_facility_account_ids
+                .interest_receivable_due_account_id,
+            interest_receivable_overdue_account_id: credit_facility_account_ids
+                .interest_receivable_overdue_account_id,
+            interest_defaulted_account_id: credit_facility_account_ids
+                .interest_defaulted_account_id,
             interest_income_account_id: credit_facility_account_ids.interest_income_account_id,
-            interest_receivable_account_id: credit_facility_account_ids
-                .interest_receivable_account_id,
         }
     }
 }
@@ -274,12 +283,11 @@ impl InterestAccrualCycle {
             .amount(interest)
             .tx_id(tx_id)
             .due_accounts(ObligationAccounts {
-                account_to_be_debited_id: self.account_ids.interest_receivable_account_id,
+                account_to_be_debited_id: self.account_ids.interest_receivable_due_account_id,
                 account_to_be_credited_id: self.account_ids.interest_income_account_id,
             })
-            // TODO: configure overdue accounts
             .overdue_accounts(ObligationAccounts {
-                account_to_be_debited_id: self.account_ids.interest_receivable_account_id,
+                account_to_be_debited_id: self.account_ids.interest_receivable_overdue_account_id,
                 account_to_be_credited_id: self.account_ids.interest_income_account_id,
             })
             .due_date(self.accrual_cycle_ends_at())
