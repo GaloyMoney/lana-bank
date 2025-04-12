@@ -127,23 +127,23 @@ impl ConfirmDisbursal {
                 .units("params.disbursed_amount")
                 .build()
                 .expect("Couldn't build entry"),
-            // PENDING LAYER disbursal entries (not yet due)
+            // SETTLED LAYER disbursal entries (not yet due)
             NewTxTemplateEntry::builder()
                 .account_id("params.facility_disbursed_receivable_account")
                 .units("params.disbursed_amount")
                 .currency("'USD'")
-                .entry_type("'CONFIRM_DISBURSAL_PENDING_DR'")
+                .entry_type("'CONFIRM_DISBURSAL_SETTLED_DR'")
                 .direction("DEBIT")
-                .layer("PENDING")
+                .layer("SETTLED")
                 .build()
                 .expect("Couldn't build entry"),
             NewTxTemplateEntry::builder()
                 .account_id("params.account_to_be_credited_id")
                 .units("params.disbursed_amount")
                 .currency("'USD'")
-                .entry_type("'CONFIRM_DISBURSAL_PENDING_CR'")
+                .entry_type("'CONFIRM_DISBURSAL_SETTLED_CR'")
                 .direction("CREDIT")
-                .layer("PENDING")
+                .layer("SETTLED")
                 .build()
                 .expect("Couldn't build entry"),
         ];

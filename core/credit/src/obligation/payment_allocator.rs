@@ -28,8 +28,12 @@ impl From<&Obligation> for ObligationDataForAllocation {
             obligation_type: obligation.obligation_type(),
             recorded_at: obligation.recorded_at,
             outstanding: obligation.outstanding(),
-            receivable_account_id: obligation.account_to_be_credited_id(),
-            account_to_be_debited_id: obligation.account_to_be_debited_id(),
+            receivable_account_id: obligation
+                .account_to_be_credited_id()
+                .expect("Obligation was already paid"),
+            account_to_be_debited_id: obligation
+                .account_to_be_debited_id()
+                .expect("Obligation was already paid"),
         }
     }
 }

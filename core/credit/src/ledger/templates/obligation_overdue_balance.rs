@@ -14,7 +14,7 @@ pub const RECORD_OBLIGATION_OVERDUE_BALANCE_CODE: &str = "RECORD_OBLIGATION_OVER
 pub struct RecordObligationOverdueBalanceParams {
     pub journal_id: JournalId,
     pub amount: Decimal,
-    pub receivable_account_id: CalaAccountId,
+    pub receivable_due_account_id: CalaAccountId,
     pub receivable_overdue_account_id: CalaAccountId,
 }
 
@@ -32,7 +32,7 @@ impl RecordObligationOverdueBalanceParams {
                 .build()
                 .unwrap(),
             NewParamDefinition::builder()
-                .name("receivable_account_id")
+                .name("receivable_due_account_id")
                 .r#type(ParamDataType::Uuid)
                 .build()
                 .unwrap(),
@@ -54,14 +54,14 @@ impl From<RecordObligationOverdueBalanceParams> for Params {
         RecordObligationOverdueBalanceParams {
             journal_id,
             amount,
-            receivable_account_id,
+            receivable_due_account_id,
             receivable_overdue_account_id,
         }: RecordObligationOverdueBalanceParams,
     ) -> Self {
         let mut params = Self::default();
         params.insert("journal_id", journal_id);
         params.insert("amount", amount);
-        params.insert("receivable_account_id", receivable_account_id);
+        params.insert("receivable_due_account_id", receivable_due_account_id);
         params.insert(
             "receivable_overdue_account_id",
             receivable_overdue_account_id,
@@ -87,7 +87,7 @@ impl RecordObligationOverdueBalance {
             NewTxTemplateEntry::builder()
                 .entry_type("'RECORD_OBLIGATION_OVERDUE_BALANCE_CR'")
                 .currency("'USD'")
-                .account_id("params.receivable_account_id")
+                .account_id("params.receivable_due_account_id")
                 .direction("CREDIT")
                 .layer("SETTLED")
                 .units("params.amount")

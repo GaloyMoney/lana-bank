@@ -119,23 +119,23 @@ impl CreditFacilityPostAccruedInterest {
                 .layer("PENDING")
                 .build()
                 .expect("Couldn't build entry"),
-            // PENDING LAYER interest entries (not yet due)
+            // SETTLED LAYER interest entries (not yet due)
             NewTxTemplateEntry::builder()
                 .account_id("params.credit_facility_interest_receivable_account")
                 .units("params.interest_amount")
                 .currency("'USD'")
-                .entry_type("'POST_ACCRUED_INTEREST_PENDING_DR'")
+                .entry_type("'POST_ACCRUED_INTEREST_SETTLED_DR'")
                 .direction("DEBIT")
-                .layer("PENDING")
+                .layer("SETTLED")
                 .build()
                 .expect("Couldn't build entry"),
             NewTxTemplateEntry::builder()
                 .account_id("params.credit_facility_interest_income_account")
                 .units("params.interest_amount")
                 .currency("'USD'")
-                .entry_type("'POST_ACCRUED_INTEREST_PENDING_CR'")
+                .entry_type("'POST_ACCRUED_INTEREST_SETTLED_CR'")
                 .direction("CREDIT")
-                .layer("PENDING")
+                .layer("SETTLED")
                 .build()
                 .expect("Couldn't build entry"),
         ];

@@ -36,8 +36,8 @@ pub struct ObligationAccounts {
 pub struct ObligationDueReallocationData {
     pub tx_id: LedgerTxId,
     pub amount: UsdCents,
-    pub receivable_account_id: CalaAccountId,
-    pub account_to_be_credited_id: CalaAccountId,
+    pub not_yet_due_account_id: CalaAccountId,
+    pub due_account_id: CalaAccountId,
 }
 
 pub struct ObligationOverdueReallocationData {
@@ -90,6 +90,7 @@ pub enum ObligationEvent {
         amount: UsdCents,
         reference: String,
         tx_id: LedgerTxId,
+        not_yet_due_accounts: ObligationAccounts,
         due_accounts: ObligationAccounts,
         overdue_accounts: ObligationAccounts,
         due_date: DateTime<Utc>,
@@ -170,6 +171,19 @@ impl Obligation {
             .expect("Entity was not Initialized")
     }
 
+    pub fn not_yet_due_accounts(&self) -> ObligationAccounts {
+        self.events
+            .iter_all()
+            .find_map(|e| match e {
+                ObligationEvent::Initialized {
+                    not_yet_due_accounts,
+                    ..
+                } => Some(*not_yet_due_accounts),
+                _ => None,
+            })
+            .expect("Entity was not Initialized")
+    }
+
     pub fn due_accounts(&self) -> ObligationAccounts {
         self.events
             .iter_all()
@@ -192,47 +206,55 @@ impl Obligation {
             .expect("Entity was not Initialized")
     }
 
-    pub fn account_to_be_debited_id(&self) -> CalaAccountId {
-        let (due_accounts, overdue_accounts) = self
+    pub fn account_to_be_debited_id(&self) -> Option<CalaAccountId> {
+        let (not_yet_due_accounts, due_accounts, overdue_accounts) = self
             .events
             .iter_all()
             .find_map(|e| match e {
                 ObligationEvent::Initialized {
+                    not_yet_due_accounts,
                     due_accounts,
                     overdue_accounts,
                     ..
-                } => Some((*due_accounts, *overdue_accounts)),
+                } => Some((*not_yet_due_accounts, *due_accounts, *overdue_accounts)),
                 _ => None,
             })
             .expect("Entity was not Initialized");
 
         match self.status() {
+            ObligationStatus::NotYetDue => Some(not_yet_due_accounts.account_to_be_debited_id),
+            ObligationStatus::Due => Some(due_accounts.account_to_be_debited_id),
             ObligationStatus::Overdue | ObligationStatus::Defaulted => {
-                overdue_accounts.account_to_be_debited_id
+                Some(overdue_accounts.account_to_be_debited_id)
             }
-            _ => due_accounts.account_to_be_debited_id,
+
+            ObligationStatus::Paid => None,
         }
     }
 
-    pub fn account_to_be_credited_id(&self) -> CalaAccountId {
-        let (due_accounts, overdue_accounts) = self
+    pub fn account_to_be_credited_id(&self) -> Option<CalaAccountId> {
+        let (not_yet_due_accounts, due_accounts, overdue_accounts) = self
             .events
             .iter_all()
             .find_map(|e| match e {
                 ObligationEvent::Initialized {
+                    not_yet_due_accounts,
                     due_accounts,
                     overdue_accounts,
                     ..
-                } => Some((*due_accounts, *overdue_accounts)),
+                } => Some((*not_yet_due_accounts, *due_accounts, *overdue_accounts)),
                 _ => None,
             })
             .expect("Entity was not Initialized");
 
         match self.status() {
+            ObligationStatus::NotYetDue => Some(not_yet_due_accounts.account_to_be_credited_id),
+            ObligationStatus::Due => Some(due_accounts.account_to_be_credited_id),
             ObligationStatus::Overdue | ObligationStatus::Defaulted => {
-                overdue_accounts.account_to_be_credited_id
+                Some(overdue_accounts.account_to_be_credited_id)
             }
-            _ => due_accounts.account_to_be_credited_id,
+
+            ObligationStatus::Paid => None,
         }
     }
 
@@ -280,8 +302,8 @@ impl Obligation {
         let res = ObligationDueReallocationData {
             tx_id: LedgerTxId::new(),
             amount: self.outstanding(),
-            receivable_account_id: self.account_to_be_debited_id(),
-            account_to_be_credited_id: self.account_to_be_credited_id(),
+            not_yet_due_account_id: self.not_yet_due_accounts().account_to_be_debited_id,
+            due_account_id: self.due_accounts().account_to_be_debited_id,
         };
 
         self.events.push(ObligationEvent::DueRecorded {
@@ -395,6 +417,7 @@ pub struct NewObligation {
     reference: Option<String>,
     #[builder(setter(into))]
     pub(super) tx_id: LedgerTxId,
+    not_yet_due_accounts: ObligationAccounts,
     due_accounts: ObligationAccounts,
     due_date: DateTime<Utc>,
     overdue_accounts: ObligationAccounts,
@@ -435,6 +458,7 @@ impl IntoEvents<ObligationEvent> for NewObligation {
                 reference: self.reference(),
                 amount: self.amount,
                 tx_id: self.tx_id,
+                not_yet_due_accounts: self.not_yet_due_accounts,
                 due_accounts: self.due_accounts,
                 overdue_accounts: self.overdue_accounts,
                 due_date: self.due_date,
@@ -472,6 +496,10 @@ mod test {
             amount: UsdCents::ONE,
             reference: "ref-01".to_string(),
             tx_id: LedgerTxId::new(),
+            not_yet_due_accounts: ObligationAccounts {
+                account_to_be_debited_id: CalaAccountId::new(),
+                account_to_be_credited_id: CalaAccountId::new(),
+            },
             due_accounts: ObligationAccounts {
                 account_to_be_debited_id: CalaAccountId::new(),
                 account_to_be_credited_id: CalaAccountId::new(),

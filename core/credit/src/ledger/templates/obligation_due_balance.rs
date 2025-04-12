@@ -14,8 +14,8 @@ pub const RECORD_OBLIGATION_DUE_BALANCE_CODE: &str = "RECORD_OBLIGATION_DUE_BALA
 pub struct RecordObligationDueBalanceParams {
     pub journal_id: JournalId,
     pub amount: Decimal,
-    pub receivable_account_id: CalaAccountId,
-    pub account_to_be_credited_id: CalaAccountId,
+    pub receivable_not_yet_due_account_id: CalaAccountId,
+    pub receivable_due_account_id: CalaAccountId,
 }
 
 impl RecordObligationDueBalanceParams {
@@ -32,12 +32,12 @@ impl RecordObligationDueBalanceParams {
                 .build()
                 .unwrap(),
             NewParamDefinition::builder()
-                .name("receivable_account_id")
+                .name("receivable_not_yet_due_account_id")
                 .r#type(ParamDataType::Uuid)
                 .build()
                 .unwrap(),
             NewParamDefinition::builder()
-                .name("account_to_be_credited_id")
+                .name("receivable_due_account_id")
                 .r#type(ParamDataType::Uuid)
                 .build()
                 .unwrap(),
@@ -54,15 +54,18 @@ impl From<RecordObligationDueBalanceParams> for Params {
         RecordObligationDueBalanceParams {
             journal_id,
             amount,
-            receivable_account_id,
-            account_to_be_credited_id,
+            receivable_not_yet_due_account_id,
+            receivable_due_account_id,
         }: RecordObligationDueBalanceParams,
     ) -> Self {
         let mut params = Self::default();
         params.insert("journal_id", journal_id);
         params.insert("amount", amount);
-        params.insert("receivable_account_id", receivable_account_id);
-        params.insert("account_to_be_credited_id", account_to_be_credited_id);
+        params.insert(
+            "receivable_not_yet_due_account_id",
+            receivable_not_yet_due_account_id,
+        );
+        params.insert("receivable_due_account_id", receivable_due_account_id);
         params.insert("effective", chrono::Utc::now().date_naive());
 
         params
@@ -77,42 +80,24 @@ impl RecordObligationDueBalance {
         let tx_input = NewTxTemplateTransaction::builder()
             .journal_id("params.journal_id")
             .effective("params.effective")
-            .description("'Record an overdue obligation balance'")
+            .description("'Record a due obligation balance'")
             .build()
             .expect("Couldn't build TxInput");
         let entries = vec![
             NewTxTemplateEntry::builder()
-                .entry_type("'REVERT_OBLIGATION_PENDING_BALANCE_DR'")
+                .entry_type("'RECORD_OBLIGATION_DUE_BALANCE_CR'")
                 .currency("'USD'")
-                .account_id("params.account_to_be_credited_id")
-                .direction("DEBIT")
-                .layer("PENDING")
-                .units("params.amount")
-                .build()
-                .expect("Couldn't build entry"),
-            NewTxTemplateEntry::builder()
-                .entry_type("'REVERT_OBLIGATION_PENDING_BALANCE_CR'")
-                .currency("'USD'")
-                .account_id("params.receivable_account_id")
+                .account_id("params.receivable_not_yet_due_account_id")
                 .direction("CREDIT")
-                .layer("PENDING")
+                .layer("SETTLED")
                 .units("params.amount")
                 .build()
                 .expect("Couldn't build entry"),
             NewTxTemplateEntry::builder()
                 .entry_type("'RECORD_OBLIGATION_DUE_BALANCE_DR'")
                 .currency("'USD'")
-                .account_id("params.receivable_account_id")
+                .account_id("params.receivable_due_account_id")
                 .direction("DEBIT")
-                .layer("SETTLED")
-                .units("params.amount")
-                .build()
-                .expect("Couldn't build entry"),
-            NewTxTemplateEntry::builder()
-                .entry_type("'RECORD_OBLIGATION_DUE_BALANCE_CR'")
-                .currency("'USD'")
-                .account_id("params.account_to_be_credited_id")
-                .direction("CREDIT")
                 .layer("SETTLED")
                 .units("params.amount")
                 .build()
