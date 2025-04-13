@@ -463,12 +463,7 @@ impl Query {
         first: i32,
         after: Option<String>,
     ) -> async_graphql::Result<
-        Connection<
-            lana_app::accounting::ledger_transaction::LedgerTransactionCursor,
-            LedgerTransaction,
-            EmptyFields,
-            EmptyFields,
-        >,
+        Connection<LedgerTransactionCursor, LedgerTransaction, EmptyFields, EmptyFields>,
     > {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
 
@@ -488,10 +483,7 @@ impl Query {
 
                 let mut connection = Connection::new(false, res.has_next_page);
                 connection.edges.extend(res.entities.into_iter().map(|tx| {
-                    let cursor =
-                        lana_app::accounting::ledger_transaction::LedgerTransactionCursor::from(
-                            &tx,
-                        );
+                    let cursor = LedgerTransactionCursor::from(&tx);
                     Edge::new(cursor, LedgerTransaction::from(tx))
                 }));
                 Ok::<_, async_graphql::Error>(connection)

@@ -67,7 +67,7 @@ where
         &self,
         ids: &[LedgerTransactionId],
     ) -> Result<HashMap<LedgerTransactionId, T>, LedgerTransactionError> {
-        self.transactions_into_ledger_transactions(self.cala.transactions().find_all(ids).await?)
+        self.cala_txs_into_ledger_txs(self.cala.transactions().find_all(ids).await?)
             .await
     }
 
@@ -85,11 +85,7 @@ where
         es_entity::PaginatedQueryRet<LedgerTransaction, LedgerTransactionCursor>,
         LedgerTransactionError,
     > {
-        let template = self
-            .cala
-            .tx_templates()
-            .find_by_code(template_code)
-            .await?;
+        let template = self.cala.tx_templates().find_by_code(template_code).await?;
 
         let cala_cursor = es_entity::PaginatedQueryArgs {
             after: args.after.map(TransactionsByCreatedAtCursor::from),
@@ -103,7 +99,7 @@ where
             .await?;
 
         let entities = self
-            .transactions_into_ledger_transactions(
+            .cala_txs_into_ledger_txs(
                 transactions
                     .entities
                     .into_iter()
@@ -121,7 +117,10 @@ where
         })
     }
 
-    async fn transactions_into_ledger_transactions<T: From<LedgerTransaction>>(
+    // Ideally, transactions would be passed in a generic way but since we have to
+    // iterate through them twice, it is not easy. Hence the HashMap, which is more efficient
+    // with the more common use case (find_all) while requiring other usages to possibly reallocate.
+    async fn cala_txs_into_ledger_txs<T: From<LedgerTransaction>>(
         &self,
         transactions: HashMap<cala_ledger::TransactionId, cala_ledger::transaction::Transaction>,
     ) -> Result<HashMap<LedgerTransactionId, T>, LedgerTransactionError> {

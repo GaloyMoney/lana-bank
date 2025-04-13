@@ -1,6 +1,8 @@
 use async_graphql::*;
 
-pub use lana_app::accounting::ledger_transaction::LedgerTransaction as DomainLedgerTransaction;
+pub use lana_app::accounting::ledger_transaction::{
+    LedgerTransaction as DomainLedgerTransaction, LedgerTransactionCursor,
+};
 
 use crate::primitives::*;
 
