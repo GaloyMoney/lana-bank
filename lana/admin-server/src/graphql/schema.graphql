@@ -1184,6 +1184,35 @@ type LedgerTransaction {
 	entries: [JournalEntry!]!
 }
 
+type LedgerTransactionConnection {
+	"""
+	Information to aid in pagination.
+	"""
+	pageInfo: PageInfo!
+	"""
+	A list of edges.
+	"""
+	edges: [LedgerTransactionEdge!]!
+	"""
+	A list of nodes.
+	"""
+	nodes: [LedgerTransaction!]!
+}
+
+"""
+An edge in a connection.
+"""
+type LedgerTransactionEdge {
+	"""
+	The item at the end of the edge
+	"""
+	node: LedgerTransaction!
+	"""
+	A cursor for use in pagination
+	"""
+	cursor: String!
+}
+
 input ManualTransactionEntryInput {
 	accountRef: String!
 	amount: Decimal!
@@ -1378,6 +1407,7 @@ type Query {
 	ledgerAccountByCode(code: String!): LedgerAccount
 	transactionTemplates(first: Int!, after: String): TransactionTemplateConnection!
 	ledgerTransaction(id: UUID!): LedgerTransaction
+	ledgerTransactionsByTemplateCode(templateCode: String!, first: Int!, after: String): LedgerTransactionConnection!
 	journalEntries(first: Int!, after: String): JournalEntryConnection!
 	generalLedgerEntries(first: Int!, after: String): GeneralLedgerEntryConnection!
 	trialBalance(from: Timestamp!, until: Timestamp!): TrialBalance!

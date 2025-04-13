@@ -1192,6 +1192,25 @@ export type LedgerTransaction = {
   ledgerTransactionId: Scalars['UUID']['output'];
 };
 
+export type LedgerTransactionConnection = {
+  __typename?: 'LedgerTransactionConnection';
+  /** A list of edges. */
+  edges: Array<LedgerTransactionEdge>;
+  /** A list of nodes. */
+  nodes: Array<LedgerTransaction>;
+  /** Information to aid in pagination. */
+  pageInfo: PageInfo;
+};
+
+/** An edge in a connection. */
+export type LedgerTransactionEdge = {
+  __typename?: 'LedgerTransactionEdge';
+  /** A cursor for use in pagination */
+  cursor: Scalars['String']['output'];
+  /** The item at the end of the edge */
+  node: LedgerTransaction;
+};
+
 export type Loan = {
   __typename?: 'Loan';
   collateralToMatchInitialCvl?: Maybe<Scalars['Satoshis']['output']>;
@@ -1556,6 +1575,7 @@ export type Query = {
   ledgerAccount?: Maybe<LedgerAccount>;
   ledgerAccountByCode?: Maybe<LedgerAccount>;
   ledgerTransaction?: Maybe<LedgerTransaction>;
+  ledgerTransactionsByTemplateCode: LedgerTransactionConnection;
   me: Subject;
   policies: PolicyConnection;
   policy?: Maybe<Policy>;
@@ -1704,6 +1724,13 @@ export type QueryLedgerAccountByCodeArgs = {
 
 export type QueryLedgerTransactionArgs = {
   id: Scalars['UUID']['input'];
+};
+
+
+export type QueryLedgerTransactionsByTemplateCodeArgs = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  first: Scalars['Int']['input'];
+  templateCode: Scalars['String']['input'];
 };
 
 
