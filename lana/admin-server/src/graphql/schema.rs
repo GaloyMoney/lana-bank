@@ -483,12 +483,7 @@ impl Query {
                 let res = app
                     .accounting()
                     .ledger_transactions()
-                    .find_by_template_code::<LedgerTransaction>(
-                        sub,
-                        template_code,
-                        query_args,
-                        Default::default(),
-                    )
+                    .find_by_template_code(sub, template_code, query_args)
                     .await?;
 
                 let mut connection = Connection::new(false, res.has_next_page);

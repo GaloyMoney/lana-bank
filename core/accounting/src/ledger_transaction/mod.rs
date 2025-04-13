@@ -76,24 +76,30 @@ where
         skip(self),
         err
     )]
-    pub async fn find_by_template_code<T: From<LedgerTransaction>>(
+    pub async fn find_by_template_code(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         template_code: String,
-        cursor: es_entity::PaginatedQueryArgs<LedgerTransactionCursor>,
-        direction: es_entity::ListDirection,
-    ) -> Result<es_entity::PaginatedQueryRet<T, LedgerTransactionCursor>, LedgerTransactionError>
-    {
+        args: es_entity::PaginatedQueryArgs<LedgerTransactionCursor>,
+    ) -> Result<
+        es_entity::PaginatedQueryRet<LedgerTransaction, LedgerTransactionCursor>,
+        LedgerTransactionError,
+    > {
         let template = self
             .cala
             .tx_templates()
             .find_by_code(&template_code)
             .await?;
 
+        let cala_cursor = es_entity::PaginatedQueryArgs {
+            after: args.after.map(TransactionsByCreatedAtCursor::from),
+            first: args.first,
+        };
+
         let transactions = self
             .cala
             .transactions()
-            .list_for_template_id(template.id, cursor, direction)
+            .list_for_template_id(template.id, cala_cursor, Default::default())
             .await?;
 
         let entities = self
@@ -111,7 +117,7 @@ where
         Ok(es_entity::PaginatedQueryRet {
             entities,
             has_next_page: transactions.has_next_page,
-            end_cursor: transactions.end_cursor,
+            end_cursor: transactions.end_cursor.map(LedgerTransactionCursor::from),
         })
     }
 
@@ -162,6 +168,33 @@ pub struct LedgerTransactionCursor {
     pub created_at: chrono::DateTime<chrono::Utc>,
 }
 
+impl From<TransactionsByCreatedAtCursor> for LedgerTransactionCursor {
+    fn from(cursor: TransactionsByCreatedAtCursor) -> Self {
+        Self {
+            ledger_transaction_id: cursor.id,
+            created_at: cursor.created_at,
+        }
+    }
+}
+
+impl From<LedgerTransactionCursor> for TransactionsByCreatedAtCursor {
+    fn from(cursor: LedgerTransactionCursor) -> Self {
+        Self {
+            id: cursor.ledger_transaction_id,
+            created_at: cursor.created_at,
+        }
+    }
+}
+
+impl From<&LedgerTransaction> for LedgerTransactionCursor {
+    fn from(transaction: &LedgerTransaction) -> Self {
+        Self {
+            ledger_transaction_id: transaction.id,
+            created_at: transaction.created_at,
+        }
+    }
+}
+
 #[cfg(feature = "graphql")]
 impl async_graphql::connection::CursorType for LedgerTransactionCursor {
     type Error = String;
@@ -179,14 +212,5 @@ impl async_graphql::connection::CursorType for LedgerTransactionCursor {
             .map_err(|e| e.to_string())?;
         let json = String::from_utf8(bytes).map_err(|e| e.to_string())?;
         serde_json::from_str(&json).map_err(|e| e.to_string())
-    }
-}
-
-impl From<&LedgerTransaction> for LedgerTransactionCursor {
-    fn from(transaction: &LedgerTransaction) -> Self {
-        Self {
-            ledger_transaction_id: transaction.id,
-            created_at: transaction.created_at,
-        }
     }
 }
