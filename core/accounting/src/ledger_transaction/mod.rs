@@ -79,7 +79,7 @@ where
     pub async fn find_by_template_code(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        template_code: String,
+        template_code: &str,
         args: es_entity::PaginatedQueryArgs<LedgerTransactionCursor>,
     ) -> Result<
         es_entity::PaginatedQueryRet<LedgerTransaction, LedgerTransactionCursor>,
@@ -88,7 +88,7 @@ where
         let template = self
             .cala
             .tx_templates()
-            .find_by_code(&template_code)
+            .find_by_code(template_code)
             .await?;
 
         let cala_cursor = es_entity::PaginatedQueryArgs {
