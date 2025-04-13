@@ -11,7 +11,7 @@ pub use cala_ledger::{
     balance::{AccountBalance as CalaAccountBalance, BalanceRange as CalaBalanceRange},
     primitives::{
         AccountId as CalaAccountId, AccountSetId as CalaAccountSetId, EntryId as CalaEntryId,
-        JournalId as CalaJournalId, TransactionId as CalaTxId,
+        JournalId as CalaJournalId, TransactionId as CalaTxId, TxTemplateId as CalaTxTemplateId,
     },
 };
 
@@ -36,6 +36,7 @@ impl From<cala_ledger::account_set::AccountSetMemberId> for LedgerAccountId {
 }
 
 pub type LedgerTransactionId = CalaTxId;
+pub type TransactionTemplateId = CalaTxTemplateId;
 
 #[derive(Error, Debug)]
 pub enum AccountNameParseError {

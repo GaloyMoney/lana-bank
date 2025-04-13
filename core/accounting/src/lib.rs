@@ -9,6 +9,7 @@ pub mod ledger_transaction;
 pub mod manual_transaction;
 mod primitives;
 pub mod profit_and_loss;
+pub mod transaction_templates;
 
 use std::collections::HashMap;
 
@@ -26,6 +27,7 @@ pub use ledger_transaction::{LedgerTransaction, LedgerTransactions};
 pub use manual_transaction::ManualEntryInput;
 pub use primitives::*;
 pub use profit_and_loss::{ProfitAndLossStatement, ProfitAndLossStatements};
+pub use transaction_templates::TransactionTemplates;
 
 pub struct CoreAccounting<Perms>
 where
@@ -38,6 +40,7 @@ where
     ledger_transactions: LedgerTransactions<Perms>,
     manual_transactions: ManualTransactions<Perms>,
     profit_and_loss: ProfitAndLossStatements<Perms>,
+    transaction_templates: TransactionTemplates<Perms>,
 }
 
 impl<Perms> Clone for CoreAccounting<Perms>
@@ -53,6 +56,7 @@ where
             manual_transactions: self.manual_transactions.clone(),
             ledger_transactions: self.ledger_transactions.clone(),
             profit_and_loss: self.profit_and_loss.clone(),
+            transaction_templates: self.transaction_templates.clone(),
         }
     }
 }
@@ -75,6 +79,7 @@ where
         let manual_transactions = ManualTransactions::new(pool, authz, cala, journal_id);
         let ledger_transactions = LedgerTransactions::new(authz, cala);
         let profit_and_loss = ProfitAndLossStatements::new(pool, authz, cala, journal_id);
+        let transaction_templates = TransactionTemplates::new(authz, cala);
         Self {
             authz: authz.clone(),
             chart_of_accounts,
@@ -83,6 +88,7 @@ where
             ledger_transactions,
             manual_transactions,
             profit_and_loss,
+            transaction_templates,
         }
     }
 
@@ -108,6 +114,10 @@ where
 
     pub fn profit_and_loss(&self) -> &ProfitAndLossStatements<Perms> {
         &self.profit_and_loss
+    }
+
+    pub fn transaction_templates(&self) -> &TransactionTemplates<Perms> {
+        &self.transaction_templates
     }
 
     #[instrument(name = "core_accounting.find_ledger_account_by_code", skip(self))]

@@ -424,6 +424,20 @@ impl Query {
         )
     }
 
+    async fn transaction_templates(
+        &self,
+        ctx: &Context<'_>,
+    ) -> async_graphql::Result<Vec<TransactionTemplate>> {
+        let app = ctx.data_unchecked::<LanaApp>();
+        let x = app
+            .accounting()
+            .transaction_templates()
+            .list()
+            .await
+            .unwrap();
+        Ok(x.into_iter().map(Into::into).collect())
+    }
+
     async fn ledger_transaction(
         &self,
         ctx: &Context<'_>,
