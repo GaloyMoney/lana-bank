@@ -1376,7 +1376,7 @@ type Query {
 	document(id: UUID!): Document
 	ledgerAccount(id: UUID!): LedgerAccount
 	ledgerAccountByCode(code: String!): LedgerAccount
-	transactionTemplates: [TransactionTemplate!]!
+	transactionTemplates(first: Int!, after: String): TransactionTemplateConnection!
 	ledgerTransaction(id: UUID!): LedgerTransaction
 	journalEntries(first: Int!, after: String): JournalEntryConnection!
 	generalLedgerEntries(first: Int!, after: String): GeneralLedgerEntryConnection!
@@ -1563,6 +1563,35 @@ type Total {
 type TransactionTemplate {
 	id: UUID!
 	code: String!
+}
+
+type TransactionTemplateConnection {
+	"""
+	Information to aid in pagination.
+	"""
+	pageInfo: PageInfo!
+	"""
+	A list of edges.
+	"""
+	edges: [TransactionTemplateEdge!]!
+	"""
+	A list of nodes.
+	"""
+	nodes: [TransactionTemplate!]!
+}
+
+"""
+An edge in a connection.
+"""
+type TransactionTemplateEdge {
+	"""
+	The item at the end of the edge
+	"""
+	node: TransactionTemplate!
+	"""
+	A cursor for use in pagination
+	"""
+	cursor: String!
 }
 
 type TrialBalance {

@@ -1566,7 +1566,7 @@ export type Query = {
   reports: Array<Report>;
   termsTemplate?: Maybe<TermsTemplate>;
   termsTemplates: Array<TermsTemplate>;
-  transactionTemplates: Array<TransactionTemplate>;
+  transactionTemplates: TransactionTemplateConnection;
   trialBalance: TrialBalance;
   user?: Maybe<User>;
   users: Array<User>;
@@ -1731,6 +1731,12 @@ export type QueryReportArgs = {
 
 export type QueryTermsTemplateArgs = {
   id: Scalars['UUID']['input'];
+};
+
+
+export type QueryTransactionTemplatesArgs = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  first: Scalars['Int']['input'];
 };
 
 
@@ -1932,6 +1938,25 @@ export type TransactionTemplate = {
   __typename?: 'TransactionTemplate';
   code: Scalars['String']['output'];
   id: Scalars['UUID']['output'];
+};
+
+export type TransactionTemplateConnection = {
+  __typename?: 'TransactionTemplateConnection';
+  /** A list of edges. */
+  edges: Array<TransactionTemplateEdge>;
+  /** A list of nodes. */
+  nodes: Array<TransactionTemplate>;
+  /** Information to aid in pagination. */
+  pageInfo: PageInfo;
+};
+
+/** An edge in a connection. */
+export type TransactionTemplateEdge = {
+  __typename?: 'TransactionTemplateEdge';
+  /** A cursor for use in pagination */
+  cursor: Scalars['String']['output'];
+  /** The item at the end of the edge */
+  node: TransactionTemplate;
 };
 
 export type TrialBalance = {
