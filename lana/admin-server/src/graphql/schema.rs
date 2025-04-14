@@ -428,8 +428,8 @@ impl Query {
         &self,
         ctx: &Context<'_>,
     ) -> async_graphql::Result<Vec<TransactionTemplate>> {
-        let app = ctx.data_unchecked::<LanaApp>();
-        let templates = app.accounting().transaction_templates().list().await?;
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        let templates = app.accounting().transaction_templates().list(&sub).await?;
         Ok(templates.into_iter().map(Into::into).collect())
     }
 

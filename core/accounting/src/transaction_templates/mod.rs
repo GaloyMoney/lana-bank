@@ -13,7 +13,7 @@ pub struct TransactionTemplates<Perms>
 where
     Perms: PermissionCheck,
 {
-    _authz: Perms,
+    authz: Perms,
     cala: CalaLedger,
 }
 
@@ -25,12 +25,23 @@ where
 {
     pub fn new(authz: &Perms, cala: &CalaLedger) -> Self {
         Self {
-            _authz: authz.clone(),
+            authz: authz.clone(),
             cala: cala.clone(),
         }
     }
 
-    pub async fn list(&self) -> Result<Vec<TransactionTemplate>, TransactionTemplateError> {
+    pub async fn list(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+    ) -> Result<Vec<TransactionTemplate>, TransactionTemplateError> {
+        self.authz
+            .enforce_permission(
+                sub,
+                CoreAccountingObject::all_transaction_templates(),
+                CoreAccountingAction::TRANSACTION_TEMPLATE_LIST,
+            )
+            .await?;
+
         let templates = self
             .cala
             .tx_templates()
