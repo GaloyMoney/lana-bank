@@ -9,9 +9,12 @@ use job::*;
 use outbox::OutboxEventMarker;
 
 use crate::{
-    credit_facility::CreditFacilityRepo, interest_accruals, ledger::*, CoreCreditAction,
-    CoreCreditError, CoreCreditEvent, CoreCreditObject, CreditFacilityId, InterestAccrualCycleId,
-    Obligation, ObligationRepo,
+    credit_facility::CreditFacilityRepo,
+    interest_accruals,
+    ledger::*,
+    obligation::{Obligation, Obligations},
+    CoreCreditAction, CoreCreditError, CoreCreditEvent, CoreCreditObject, CreditFacilityId,
+    InterestAccrualCycleId,
 };
 
 use super::obligation_due;
@@ -37,7 +40,7 @@ where
     E: OutboxEventMarker<CoreCreditEvent>,
 {
     ledger: CreditLedger,
-    obligation_repo: ObligationRepo<E>,
+    obligations: Obligations<Perms, E>,
     credit_facility_repo: CreditFacilityRepo<E>,
     jobs: Jobs,
     audit: Perms::Audit,
@@ -52,15 +55,15 @@ where
 {
     pub fn new(
         ledger: &CreditLedger,
-        obligation_repo: ObligationRepo<E>,
-        credit_facility_repo: CreditFacilityRepo<E>,
+        obligations: &Obligations<Perms, E>,
+        credit_facility_repo: &CreditFacilityRepo<E>,
         jobs: &Jobs,
         audit: &Perms::Audit,
     ) -> Self {
         Self {
             ledger: ledger.clone(),
-            obligation_repo,
-            credit_facility_repo,
+            obligations: obligations.clone(),
+            credit_facility_repo: credit_facility_repo.clone(),
             jobs: jobs.clone(),
             audit: audit.clone(),
         }
@@ -86,7 +89,7 @@ where
     fn init(&self, job: &Job) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
         Ok(Box::new(CreditFacilityProcessingJobRunner::<Perms, E> {
             config: job.config()?,
-            obligation_repo: self.obligation_repo.clone(),
+            obligations: self.obligations.clone(),
             credit_facility_repo: self.credit_facility_repo.clone(),
             ledger: self.ledger.clone(),
             jobs: self.jobs.clone(),
@@ -101,7 +104,7 @@ where
     E: OutboxEventMarker<CoreCreditEvent>,
 {
     config: CreditFacilityJobConfig<Perms, E>,
-    obligation_repo: ObligationRepo<E>,
+    obligations: Obligations<Perms, E>,
     credit_facility_repo: CreditFacilityRepo<E>,
     ledger: CreditLedger,
     jobs: Jobs,
@@ -127,10 +130,7 @@ where
             .await?;
 
         let new_obligation = credit_facility.record_interest_accrual_cycle(audit_info.clone())?;
-        let obligation = self
-            .obligation_repo
-            .create_in_op(db, new_obligation)
-            .await?;
+        let obligation = self.obligations.create_in_op(db, new_obligation).await?;
 
         self.credit_facility_repo
             .update_in_op(db, &mut credit_facility)
