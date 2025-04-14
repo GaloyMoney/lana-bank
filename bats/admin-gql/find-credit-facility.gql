@@ -7,7 +7,6 @@ query creditFacility($id: UUID!) {
     facilityAmount
     disbursals {
       id
-      index
       status
     }
     transactions {

@@ -178,8 +178,8 @@ ymd() {
     }'
   )
   exec_admin_graphql 'credit-facility-disbursal-initiate' "$variables"
-  disbursal_index=$(graphql_output '.data.creditFacilityDisbursalInitiate.disbursal.index')
-  [[ "$disbursal_index" != "null" ]] || exit 1
+  disbursal_id=$(graphql_output '.data.creditFacilityDisbursalInitiate.disbursal.id')
+  [[ "$disbursal_id" != "null" ]] || exit 1
 
   retry 10 1 wait_for_disbursal "$credit_facility_id"
 }
