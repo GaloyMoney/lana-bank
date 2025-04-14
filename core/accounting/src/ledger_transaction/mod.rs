@@ -68,63 +68,9 @@ where
         &self,
         ids: &[LedgerTransactionId],
     ) -> Result<HashMap<LedgerTransactionId, T>, LedgerTransactionError> {
-        self.cala_txs_into_ledger_txs(self.cala.transactions().find_all(ids).await?)
-            .await
-    }
+        let transactions: HashMap<_, cala_ledger::transaction::Transaction> =
+            self.cala.transactions().find_all(ids).await?;
 
-    #[instrument(
-        name = "accounting.ledger_transaction.list_for_template_code",
-        skip(self),
-        err
-    )]
-    pub async fn list_for_template_code(
-        &self,
-        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        template_code: &str,
-        args: es_entity::PaginatedQueryArgs<LedgerTransactionCursor>,
-    ) -> Result<
-        es_entity::PaginatedQueryRet<LedgerTransaction, LedgerTransactionCursor>,
-        LedgerTransactionError,
-    > {
-        let template = self.cala.tx_templates().find_by_code(template_code).await?;
-
-        let cala_cursor = es_entity::PaginatedQueryArgs {
-            after: args.after.map(TransactionsByCreatedAtCursor::from),
-            first: args.first,
-        };
-
-        let transactions = self
-            .cala
-            .transactions()
-            .list_for_template_id(template.id, cala_cursor, Default::default())
-            .await?;
-
-        let entities = self
-            .cala_txs_into_ledger_txs(
-                transactions
-                    .entities
-                    .into_iter()
-                    .map(|tx| (tx.id, tx))
-                    .collect(),
-            )
-            .await?
-            .into_values()
-            .collect();
-
-        Ok(es_entity::PaginatedQueryRet {
-            entities,
-            has_next_page: transactions.has_next_page,
-            end_cursor: transactions.end_cursor.map(LedgerTransactionCursor::from),
-        })
-    }
-
-    // Ideally, transactions would be passed in a generic way but since we have to
-    // iterate through them twice, it is not easy. Hence the HashMap, which is more efficient
-    // with the more common use case (find_all) while requiring other usages to possibly reallocate.
-    async fn cala_txs_into_ledger_txs<T: From<LedgerTransaction>>(
-        &self,
-        transactions: HashMap<cala_ledger::TransactionId, cala_ledger::transaction::Transaction>,
-    ) -> Result<HashMap<LedgerTransactionId, T>, LedgerTransactionError> {
         let entries: Vec<cala_ledger::EntryId> = transactions
             .values()
             .flat_map(|tx| tx.values().entry_ids.iter().copied())
@@ -159,5 +105,73 @@ where
         }
 
         Ok(res)
+    }
+
+    #[instrument(
+        name = "accounting.ledger_transaction.list_for_template_code",
+        skip(self),
+        err
+    )]
+    pub async fn list_for_template_code(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        template_code: &str,
+        args: es_entity::PaginatedQueryArgs<LedgerTransactionCursor>,
+    ) -> Result<
+        es_entity::PaginatedQueryRet<LedgerTransaction, LedgerTransactionCursor>,
+        LedgerTransactionError,
+    > {
+        let template = self.cala.tx_templates().find_by_code(template_code).await?;
+
+        let cala_cursor = es_entity::PaginatedQueryArgs {
+            after: args.after.map(TransactionsByCreatedAtCursor::from),
+            first: args.first,
+        };
+
+        let transactions = self
+            .cala
+            .transactions()
+            .list_for_template_id(template.id, cala_cursor, Default::default())
+            .await?;
+
+        let entries: Vec<cala_ledger::EntryId> = transactions
+            .entities
+            .iter()
+            .flat_map(|tx| tx.values().entry_ids.iter().copied())
+            .collect();
+
+        let mut all_entries: HashMap<_, cala_ledger::entry::Entry> =
+            self.cala.entries().find_all(&entries).await?;
+
+        let mut entities = Vec::with_capacity(transactions.entities.len());
+
+        for tx in transactions.entities {
+            let tx_entries: Vec<_> = tx
+                .values()
+                .entry_ids
+                .iter()
+                .filter_map(|entry_id| all_entries.remove(entry_id))
+                .collect();
+
+            let mut sorted_entries = tx_entries;
+            sorted_entries.sort_by(|a, b| {
+                let a_sequence = a.values().sequence;
+                let b_sequence = b.values().sequence;
+                a_sequence.cmp(&b_sequence)
+            });
+
+            match LedgerTransaction::try_from((tx, sorted_entries)) {
+                Ok(ledger_tx) => {
+                    entities.push(ledger_tx);
+                }
+                Err(e) => return Err(e),
+            }
+        }
+
+        Ok(es_entity::PaginatedQueryRet {
+            entities,
+            has_next_page: transactions.has_next_page,
+            end_cursor: transactions.end_cursor.map(LedgerTransactionCursor::from),
+        })
     }
 }
