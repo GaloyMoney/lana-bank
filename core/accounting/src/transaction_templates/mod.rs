@@ -3,10 +3,15 @@ pub mod error;
 use audit::AuditSvc;
 use authz::PermissionCheck;
 
-use cala_ledger::{CalaLedger, tx_template::TxTemplate};
+use cala_ledger::{
+    CalaLedger,
+    tx_template::{TxTemplate, TxTemplatesByCodeCursor},
+};
 use error::TransactionTemplateError;
 
 use crate::primitives::{CoreAccountingAction, CoreAccountingObject, TransactionTemplateId};
+
+pub type TransactionTemplateCursor = TxTemplatesByCodeCursor;
 
 #[derive(Clone)]
 pub struct TransactionTemplates<Perms>
@@ -33,7 +38,11 @@ where
     pub async fn list(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-    ) -> Result<Vec<TransactionTemplate>, TransactionTemplateError> {
+        args: es_entity::PaginatedQueryArgs<TransactionTemplateCursor>,
+    ) -> Result<
+        es_entity::PaginatedQueryRet<TransactionTemplate, TransactionTemplateCursor>,
+        TransactionTemplateError,
+    > {
         self.authz
             .enforce_permission(
                 sub,
@@ -42,17 +51,17 @@ where
             )
             .await?;
 
-        let templates = self
+        let cursor = self
             .cala
             .tx_templates()
-            .list(Default::default(), Default::default())
-            .await?
-            .entities
-            .into_iter()
-            .map(Into::into)
-            .collect();
+            .list(args, es_entity::ListDirection::Ascending)
+            .await?;
 
-        Ok(templates)
+        Ok(es_entity::PaginatedQueryRet {
+            entities: cursor.entities.into_iter().map(Into::into).collect(),
+            has_next_page: cursor.has_next_page,
+            end_cursor: cursor.end_cursor,
+        })
     }
 }
 
@@ -68,6 +77,15 @@ impl From<TxTemplate> for TransactionTemplate {
         Self {
             id,
             code: values.code,
+        }
+    }
+}
+
+impl From<&TransactionTemplate> for TransactionTemplateCursor {
+    fn from(template: &TransactionTemplate) -> Self {
+        Self {
+            id: template.id,
+            code: template.code.clone(),
         }
     }
 }

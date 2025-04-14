@@ -427,10 +427,39 @@ impl Query {
     async fn transaction_templates(
         &self,
         ctx: &Context<'_>,
-    ) -> async_graphql::Result<Vec<TransactionTemplate>> {
+        first: i32,
+        after: Option<String>,
+    ) -> async_graphql::Result<
+        Connection<TransactionTemplateCursor, TransactionTemplate, EmptyFields, EmptyFields>,
+    > {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
-        let templates = app.accounting().transaction_templates().list(&sub).await?;
-        Ok(templates.into_iter().map(Into::into).collect())
+
+        query(
+            after,
+            None,
+            Some(first),
+            None,
+            |after, _, first, _| async move {
+                let first = first.expect("First always exists");
+                let res = app
+                    .accounting()
+                    .transaction_templates()
+                    .list(sub, es_entity::PaginatedQueryArgs { first, after })
+                    .await?;
+
+                let mut connection = Connection::new(false, res.has_next_page);
+                connection
+                    .edges
+                    .extend(res.entities.into_iter().map(|entry| {
+                        Edge::new(
+                            TransactionTemplateCursor::from(&entry),
+                            TransactionTemplate::from(entry),
+                        )
+                    }));
+                Ok::<_, async_graphql::Error>(connection)
+            },
+        )
+        .await
     }
 
     async fn ledger_transaction(
