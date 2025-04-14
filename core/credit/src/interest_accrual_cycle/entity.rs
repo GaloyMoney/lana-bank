@@ -151,13 +151,6 @@ impl InterestAccrualCycle {
             .fold(UsdCents::ZERO, |acc, amount| acc + amount)
     }
 
-    fn count_accrued(&self) -> usize {
-        self.events
-            .iter_all()
-            .filter(|event| matches!(event, InterestAccrualCycleEvent::InterestAccrued { .. }))
-            .count()
-    }
-
     fn last_accrual_period(&self) -> Option<InterestPeriod> {
         let mut last_accrued_at = None;
         let mut second_to_last_accrued_at = None;
@@ -175,6 +168,13 @@ impl InterestAccrualCycle {
             None => interval.period_from(self.started_at),
         }
         .truncate(self.accrual_cycle_ends_at())
+    }
+
+    pub fn count_accrued(&self) -> usize {
+        self.events
+            .iter_all()
+            .filter(|event| matches!(event, InterestAccrualCycleEvent::InterestAccrued { .. }))
+            .count()
     }
 
     pub(crate) fn next_accrual_period(&self) -> Option<InterestPeriod> {

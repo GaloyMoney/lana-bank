@@ -93,6 +93,7 @@ struct ConfirmedAccrual {
     accrual: CreditFacilityInterestAccrual,
     next_period: Option<InterestPeriod>,
     accrual_idx: InterestAccrualCycleIdx,
+    accrued_count: usize,
 }
 
 pub struct CreditFacilityProcessingJobRunner<Perms, E>
@@ -144,6 +145,7 @@ where
                 accrual: (interest_accrual, account_ids).into(),
                 next_period: accrual.next_accrual_period(),
                 accrual_idx: accrual.idx,
+                accrued_count: accrual.count_accrued(),
             }
         };
 
@@ -189,6 +191,7 @@ where
             accrual: interest_accrual,
             next_period: next_accrual_period,
             accrual_idx,
+            accrued_count,
         } = self.confirm_interest_accrual(&mut db, &audit_info).await?;
 
         let (now, mut tx) = (db.now(), db.into_tx());
@@ -215,9 +218,9 @@ where
                 )
                 .await?;
             println!(
-            "Credit Facility interest accruals job completed for accrual index {:?} for credit_facility: {:?}",
-            accrual_idx, self.config.credit_facility_id
-        );
+                "All ({:?}) accruals completed for {:?} of {:?}",
+                accrued_count, accrual_idx, self.config.credit_facility_id
+            );
             Ok(JobCompletion::CompleteWithOp(db))
         }
     }

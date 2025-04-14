@@ -206,9 +206,9 @@ where
                 new_cycle_data
             } else {
                 println!(
-                    "Credit Facility interest accrual job completed for credit_facility: {:?}",
-                    self.config.credit_facility_id
-                );
+                "All Credit Facility interest accrual cycles completed for credit_facility: {:?}",
+                self.config.credit_facility_id
+            );
                 return Ok(JobCompletion::CompleteWithOp(db));
             };
 
