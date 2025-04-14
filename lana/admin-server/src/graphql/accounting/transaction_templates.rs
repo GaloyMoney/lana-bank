@@ -20,7 +20,7 @@ impl From<DomainTransactionTemplate> for TransactionTemplate {
     fn from(template: DomainTransactionTemplate) -> Self {
         Self {
             id: template.id.into(),
-            code: template.code.clone(),
+            code: template.values().code.clone(),
             entity: Arc::new(template),
         }
     }

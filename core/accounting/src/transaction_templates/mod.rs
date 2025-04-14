@@ -14,6 +14,7 @@ use crate::primitives::{CoreAccountingAction, CoreAccountingObject, TransactionT
 use error::TransactionTemplateError;
 
 pub type TransactionTemplateCursor = TxTemplatesByCodeCursor;
+pub type TransactionTemplate = TxTemplate;
 
 #[derive(Clone)]
 pub struct TransactionTemplates<Perms>
@@ -60,7 +61,7 @@ where
             .await?;
 
         Ok(es_entity::PaginatedQueryRet {
-            entities: cursor.entities.into_iter().map(Into::into).collect(),
+            entities: cursor.entities,
             has_next_page: cursor.has_next_page,
             end_cursor: cursor.end_cursor,
         })
@@ -70,38 +71,6 @@ where
         &self,
         ids: &[TransactionTemplateId],
     ) -> Result<HashMap<TransactionTemplateId, T>, TransactionTemplateError> {
-        Ok(self
-            .cala
-            .tx_templates()
-            .find_all::<TxTemplate>(ids)
-            .await?
-            .into_iter()
-            .map(|(id, t)| (id, T::from(TransactionTemplate::from(t))))
-            .collect())
-    }
-}
-
-pub struct TransactionTemplate {
-    pub id: TransactionTemplateId,
-    pub code: String,
-}
-
-impl From<TxTemplate> for TransactionTemplate {
-    fn from(template: TxTemplate) -> Self {
-        let id = template.id;
-        let values = template.into_values();
-        Self {
-            id,
-            code: values.code,
-        }
-    }
-}
-
-impl From<&TransactionTemplate> for TransactionTemplateCursor {
-    fn from(template: &TransactionTemplate) -> Self {
-        Self {
-            id: template.id,
-            code: template.code.clone(),
-        }
+        Ok(self.cala.tx_templates().find_all(ids).await?)
     }
 }
