@@ -121,6 +121,14 @@ where
         es_entity::PaginatedQueryRet<LedgerTransaction, LedgerTransactionCursor>,
         LedgerTransactionError,
     > {
+        self.authz
+            .enforce_permission(
+                sub,
+                CoreAccountingObject::all_ledger_transactions(),
+                CoreAccountingAction::LEDGER_TRANSACTION_LIST,
+            )
+            .await?;
+
         let template = self.cala.tx_templates().find_by_code(template_code).await?;
 
         let cala_cursor = es_entity::PaginatedQueryArgs {

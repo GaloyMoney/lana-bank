@@ -442,6 +442,8 @@ impl CoreAccountingAction {
     pub const LEDGER_ACCOUNT_READ_HISTORY: Self =
         CoreAccountingAction::LedgerAccountAction(LedgerAccountAction::ReadHistory);
 
+    pub const LEDGER_TRANSACTION_LIST: Self =
+        CoreAccountingAction::LedgerTransactionAction(LedgerTransactionAction::List);
     pub const LEDGER_TRANSACTION_READ: Self =
         CoreAccountingAction::LedgerTransactionAction(LedgerTransactionAction::Read);
 
