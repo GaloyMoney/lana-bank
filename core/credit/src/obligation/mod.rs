@@ -64,32 +64,12 @@ where
         }
     }
 
-    pub async fn facility_obligations(
+    pub async fn create_in_op(
         &self,
-        credit_facility_id: CreditFacilityId,
-    ) -> Result<FacilityObligations, ObligationError> {
-        let mut obligations = vec![];
-        let mut query = Default::default();
-        loop {
-            let mut res = self
-                .repo
-                .list_for_credit_facility_id_by_created_at(
-                    credit_facility_id,
-                    query,
-                    es_entity::ListDirection::Ascending,
-                )
-                .await?;
-
-            obligations.append(&mut res.entities);
-
-            if let Some(q) = res.into_next_query() {
-                query = q;
-            } else {
-                break;
-            };
-        }
-
-        Ok(FacilityObligations::new(credit_facility_id, obligations))
+        db: &mut es_entity::DbOp<'_>,
+        new_obligation: NewObligation,
+    ) -> Result<Obligation, ObligationError> {
+        self.repo.create_in_op(db, new_obligation).await
     }
 
     pub async fn allocate_payment_in_op(
@@ -132,6 +112,34 @@ where
         }
 
         Ok(PaymentAllocationResult::new(new_allocations_applied))
+    }
+
+    async fn facility_obligations(
+        &self,
+        credit_facility_id: CreditFacilityId,
+    ) -> Result<FacilityObligations, ObligationError> {
+        let mut obligations = vec![];
+        let mut query = Default::default();
+        loop {
+            let mut res = self
+                .repo
+                .list_for_credit_facility_id_by_created_at(
+                    credit_facility_id,
+                    query,
+                    es_entity::ListDirection::Ascending,
+                )
+                .await?;
+
+            obligations.append(&mut res.entities);
+
+            if let Some(q) = res.into_next_query() {
+                query = q;
+            } else {
+                break;
+            };
+        }
+
+        Ok(FacilityObligations::new(credit_facility_id, obligations))
     }
 }
 

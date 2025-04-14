@@ -131,7 +131,7 @@ where
         let ledger = CreditLedger::init(cala, journal_id).await?;
         let approve_disbursal = ApproveDisbursal::new(
             &disbursal_repo,
-            &obligation_repo,
+            &obligations,
             &credit_facility_repo,
             jobs,
             authz.audit(),

@@ -15,8 +15,8 @@ use outbox::OutboxEventMarker;
 
 use crate::{
     credit_facility::CreditFacilityRepo, jobs::obligation_due, ledger::CreditLedger,
-    primitives::DisbursalId, CoreCreditAction, CoreCreditError, CoreCreditEvent, CoreCreditObject,
-    Disbursal, DisbursalRepo, LedgerTxId, ObligationRepo,
+    obligation::Obligations, primitives::DisbursalId, CoreCreditAction, CoreCreditError,
+    CoreCreditEvent, CoreCreditObject, Disbursal, DisbursalRepo, LedgerTxId,
 };
 
 pub use job::*;
@@ -28,7 +28,7 @@ where
     E: OutboxEventMarker<GovernanceEvent> + OutboxEventMarker<CoreCreditEvent>,
 {
     disbursal_repo: DisbursalRepo,
-    obligation_repo: ObligationRepo<E>,
+    obligations: Obligations<Perms, E>,
     credit_facility_repo: CreditFacilityRepo<E>,
     jobs: Jobs,
     audit: Perms::Audit,
@@ -44,7 +44,7 @@ where
     fn clone(&self) -> Self {
         Self {
             disbursal_repo: self.disbursal_repo.clone(),
-            obligation_repo: self.obligation_repo.clone(),
+            obligations: self.obligations.clone(),
             credit_facility_repo: self.credit_facility_repo.clone(),
             jobs: self.jobs.clone(),
             audit: self.audit.clone(),
@@ -65,7 +65,7 @@ where
 {
     pub fn new(
         disbursal_repo: &DisbursalRepo,
-        obligation_repo: &ObligationRepo<E>,
+        obligations: &Obligations<Perms, E>,
         credit_facility_repo: &CreditFacilityRepo<E>,
         jobs: &Jobs,
         audit: &Perms::Audit,
@@ -74,7 +74,7 @@ where
     ) -> Self {
         Self {
             disbursal_repo: disbursal_repo.clone(),
-            obligation_repo: obligation_repo.clone(),
+            obligations: obligations.clone(),
             credit_facility_repo: credit_facility_repo.clone(),
             jobs: jobs.clone(),
             audit: audit.clone(),
@@ -147,7 +147,7 @@ where
 
         let obligation = if let Some(new_obligation) = new_obligation {
             Some(
-                self.obligation_repo
+                self.obligations
                     .create_in_op(&mut db, new_obligation)
                     .await?,
             )
