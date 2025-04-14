@@ -1271,7 +1271,7 @@ impl CreditLedger {
                     credit_omnibus_account: self.facility_omnibus_account_ids.account_id,
                     credit_facility_account: credit_facility_account_ids.facility_account_id,
                     facility_disbursed_receivable_account: credit_facility_account_ids
-                        .disbursed_receivable_due_account_id,
+                        .disbursed_receivable_not_yet_due_account_id,
                     facility_fee_income_account: credit_facility_account_ids.fee_income_account_id,
                     debit_account_id,
                     facility_amount: facility_amount.to_usd(),
