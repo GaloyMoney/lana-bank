@@ -2,7 +2,7 @@ mod job;
 
 use tracing::instrument;
 
-use ::job::Jobs;
+use ::job::{JobId, Jobs};
 use audit::AuditSvc;
 use authz::PermissionCheck;
 use es_entity::Idempotent;
@@ -165,7 +165,7 @@ where
             self.jobs
                 .create_and_spawn_at_in_op(
                     &mut db,
-                    obligation.id,
+                    JobId::new(),
                     obligation_due::CreditFacilityJobConfig::<Perms, E> {
                         obligation_id: obligation.id,
                         _phantom: std::marker::PhantomData,

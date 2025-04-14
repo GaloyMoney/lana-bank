@@ -135,7 +135,7 @@ where
         self.jobs
             .create_and_spawn_at_in_op(
                 &mut db,
-                obligation.id,
+                JobId::new(),
                 obligation_overdue::CreditFacilityJobConfig::<Perms, E> {
                     obligation_id: obligation.id,
                     _phantom: std::marker::PhantomData,
