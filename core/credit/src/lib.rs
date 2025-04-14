@@ -125,7 +125,7 @@ where
         let publisher = CreditFacilityPublisher::new(outbox);
         let credit_facility_repo = CreditFacilityRepo::new(pool, &publisher);
         let disbursal_repo = DisbursalRepo::new(pool);
-        let obligations = Obligations::new(pool, authz, cala, &publisher);
+        let obligations = Obligations::new(pool, authz, cala, jobs, &publisher);
         let payment_repo = PaymentRepo::new(pool);
         let ledger = CreditLedger::init(cala, journal_id).await?;
         let approve_disbursal = ApproveDisbursal::new(

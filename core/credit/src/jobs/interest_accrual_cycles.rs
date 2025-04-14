@@ -17,8 +17,6 @@ use crate::{
     InterestAccrualCycleId,
 };
 
-use super::obligation_due;
-
 #[derive(Clone, Serialize, Deserialize)]
 pub struct CreditFacilityJobConfig<Perms, E> {
     pub credit_facility_id: CreditFacilityId,
@@ -130,7 +128,10 @@ where
             .await?;
 
         let new_obligation = credit_facility.record_interest_accrual_cycle(audit_info.clone())?;
-        let obligation = self.obligations.create_in_op(db, new_obligation).await?;
+        let obligation = self
+            .obligations
+            .create_with_jobs_in_op(db, new_obligation)
+            .await?;
 
         self.credit_facility_repo
             .update_in_op(db, &mut credit_facility)
@@ -198,11 +199,11 @@ where
             .await?;
 
         let (obligation, new_accrual_cycle_id, first_accrual_end_date) =
-            if let Some((obligation, new_accrual_cycle_id, first_accrual_end_date)) = self
+            if let Some(new_cycle_data) = self
                 .complete_interest_cycle_and_maybe_start_new_cycle(&mut db, &audit_info)
                 .await?
             {
-                (obligation, new_accrual_cycle_id, first_accrual_end_date)
+                new_cycle_data
             } else {
                 println!(
                     "Credit Facility interest accrual job completed for credit_facility: {:?}",
@@ -211,17 +212,6 @@ where
                 return Ok(JobCompletion::CompleteWithOp(db));
             };
 
-        self.jobs
-            .create_and_spawn_at_in_op(
-                &mut db,
-                JobId::new(),
-                obligation_due::CreditFacilityJobConfig::<Perms, E> {
-                    obligation_id: obligation.id,
-                    _phantom: std::marker::PhantomData,
-                },
-                obligation.due_at(),
-            )
-            .await?;
         self.jobs
             .create_and_spawn_at_in_op(
                 &mut db,

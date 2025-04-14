@@ -7,10 +7,12 @@ mod repo;
 use audit::{AuditInfo, AuditSvc};
 use authz::PermissionCheck;
 use cala_ledger::CalaLedger;
+use job::{JobId, Jobs};
 use outbox::OutboxEventMarker;
 
 use crate::{
     event::CoreCreditEvent,
+    jobs::obligation_due,
     primitives::{
         CoreCreditAction, CoreCreditObject, CreditFacilityId, ObligationId, PaymentId, UsdCents,
     },
@@ -32,6 +34,7 @@ where
 {
     authz: Perms,
     repo: ObligationRepo<E>,
+    jobs: Jobs,
 }
 
 impl<Perms, E> Clone for Obligations<Perms, E>
@@ -43,6 +46,7 @@ where
         Self {
             authz: self.authz.clone(),
             repo: self.repo.clone(),
+            jobs: self.jobs.clone(),
         }
     }
 }
@@ -58,12 +62,14 @@ where
         pool: &sqlx::PgPool,
         authz: &Perms,
         _cala: &CalaLedger,
+        jobs: &Jobs,
         publisher: &CreditFacilityPublisher<E>,
     ) -> Self {
         let obligation_repo = ObligationRepo::new(pool, publisher);
         Self {
             authz: authz.clone(),
             repo: obligation_repo,
+            jobs: jobs.clone(),
         }
     }
 
@@ -71,12 +77,25 @@ where
         Ok(self.repo.begin_op().await?)
     }
 
-    pub async fn create_in_op(
+    pub async fn create_with_jobs_in_op(
         &self,
         db: &mut es_entity::DbOp<'_>,
         new_obligation: NewObligation,
     ) -> Result<Obligation, ObligationError> {
-        self.repo.create_in_op(db, new_obligation).await
+        let obligation = self.repo.create_in_op(db, new_obligation).await?;
+        self.jobs
+            .create_and_spawn_at_in_op(
+                db,
+                JobId::new(),
+                obligation_due::CreditFacilityJobConfig::<Perms, E> {
+                    obligation_id: obligation.id,
+                    _phantom: std::marker::PhantomData,
+                },
+                obligation.due_at(),
+            )
+            .await?;
+
+        Ok(obligation)
     }
 
     pub async fn update_in_op(

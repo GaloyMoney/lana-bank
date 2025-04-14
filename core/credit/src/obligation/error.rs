@@ -10,6 +10,8 @@ pub enum ObligationError {
     EsEntityError(es_entity::EsEntityError),
     #[error("ObligationError - CursorDestructureError: {0}")]
     CursorDestructureError(#[from] es_entity::CursorDestructureError),
+    #[error("CoreCreditError - JobError: {0}")]
+    JobError(#[from] job::error::JobError),
     #[error("ObligationError - InvalidStatusTransitionToOverdue")]
     InvalidStatusTransitionToOverdue,
     #[error("ObligationError - PaymentAmountGreaterThanOutstandingObligations")]

@@ -2,7 +2,7 @@ mod job;
 
 use tracing::instrument;
 
-use ::job::{JobId, Jobs};
+use ::job::Jobs;
 use audit::AuditSvc;
 use authz::PermissionCheck;
 use es_entity::Idempotent;
@@ -14,9 +14,9 @@ use governance::{
 use outbox::OutboxEventMarker;
 
 use crate::{
-    credit_facility::CreditFacilityRepo, jobs::obligation_due, ledger::CreditLedger,
-    obligation::Obligations, primitives::DisbursalId, CoreCreditAction, CoreCreditError,
-    CoreCreditEvent, CoreCreditObject, Disbursal, DisbursalRepo, LedgerTxId,
+    credit_facility::CreditFacilityRepo, ledger::CreditLedger, obligation::Obligations,
+    primitives::DisbursalId, CoreCreditAction, CoreCreditError, CoreCreditEvent, CoreCreditObject,
+    Disbursal, DisbursalRepo, LedgerTxId,
 };
 
 pub use job::*;
@@ -146,11 +146,12 @@ where
         span.record("already_applied", false);
 
         let obligation = if let Some(new_obligation) = new_obligation {
-            Some(
-                self.obligations
-                    .create_in_op(&mut db, new_obligation)
-                    .await?,
-            )
+            let obligation = self
+                .obligations
+                .create_with_jobs_in_op(&mut db, new_obligation)
+                .await?;
+
+            Some(obligation)
         } else {
             None
         };
@@ -162,18 +163,6 @@ where
             .await?;
 
         if let Some(obligation) = obligation {
-            self.jobs
-                .create_and_spawn_at_in_op(
-                    &mut db,
-                    JobId::new(),
-                    obligation_due::CreditFacilityJobConfig::<Perms, E> {
-                        obligation_id: obligation.id,
-                        _phantom: std::marker::PhantomData,
-                    },
-                    obligation.due_at(),
-                )
-                .await?;
-
             self.ledger
                 .settle_disbursal(
                     db,

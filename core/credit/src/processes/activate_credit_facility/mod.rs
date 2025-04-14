@@ -139,7 +139,7 @@ where
             .expect("First disbursal obligation was already created");
 
         self.obligations
-            .create_in_op(&mut db, new_obligation)
+            .create_with_jobs_in_op(&mut db, new_obligation)
             .await?;
         self.disbursal_repo
             .update_in_op(&mut db, &mut disbursal)
