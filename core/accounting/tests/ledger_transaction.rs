@@ -39,7 +39,7 @@ async fn ledger_transactions_by_template_code() -> anyhow::Result<()> {
         ManualEntryInput::builder().account_id_or_code(from.clone()).amount(dec!(100)).currency(Currency::USD).direction(DebitOrCredit::Credit).description("test 1 credit").build().unwrap(),
     ];
 
-    let manual_tx = accounting.execute_manual_transaction(&DummySubject, &chart_ref, None, "Test transaction 1".to_string(), entries).await?;
+    let manual_tx = accounting.execute_manual_transaction(&DummySubject, &chart_ref, None, "Test transaction 1".to_string(), None, entries).await?;
 
     let template_txs = accounting.ledger_transactions().list_for_template_code(&DummySubject, "MANUAL_TRANSACTION_2", Default::default()).await?.entities;
     assert!(template_txs.iter().any(|tx| tx.id == manual_tx.id));
