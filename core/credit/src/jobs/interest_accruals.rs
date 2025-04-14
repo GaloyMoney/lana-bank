@@ -126,13 +126,10 @@ where
             .await?;
 
         let confirmed_accrual = {
-            // TODO: figure out how to get this to execute after interest obligation due & overdue jobs
-            //       so that we have an overdue balance.
             let balances = self
                 .ledger
                 .get_credit_facility_balance(credit_facility.account_ids)
                 .await?;
-            dbg!(balances); // TODO: remove when we observe an overdue balance (for e2e tests)
 
             let account_ids = credit_facility.account_ids;
 

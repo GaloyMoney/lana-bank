@@ -1,5 +1,5 @@
 use async_trait::async_trait;
-use chrono::{DateTime, Utc};
+use chrono::{DateTime, Duration, Utc};
 use serde::{Deserialize, Serialize};
 use tracing::instrument;
 
@@ -177,6 +177,15 @@ where
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
         let span = tracing::Span::current();
         span.record("attempt", current_job.attempt());
+
+        if !self
+            .obligations
+            .check_facility_obligations_status_updated(self.config.credit_facility_id)
+            .await?
+        {
+            let now = crate::time::now();
+            return Ok(JobCompletion::RescheduleAt(now + Duration::hours(1)));
+        }
 
         let mut db = self.credit_facility_repo.begin_op().await?;
         let audit_info = self

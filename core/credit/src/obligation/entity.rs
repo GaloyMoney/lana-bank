@@ -258,6 +258,38 @@ impl Obligation {
         }
     }
 
+    pub fn expected_status(&self) -> ObligationStatus {
+        let (due_date, overdue_date, defaulted_date) = self
+            .events
+            .iter_all()
+            .find_map(|e| match e {
+                ObligationEvent::Initialized {
+                    due_date,
+                    overdue_date,
+                    defaulted_date,
+                    ..
+                } => Some((*due_date, *overdue_date, *defaulted_date)),
+                _ => None,
+            })
+            .expect("Entity was not Initialized");
+
+        let now = crate::time::now();
+
+        if let Some(defaulted_date) = defaulted_date {
+            if now >= defaulted_date {
+                return ObligationStatus::Defaulted;
+            }
+        }
+
+        if now >= overdue_date {
+            ObligationStatus::Overdue
+        } else if now >= due_date {
+            ObligationStatus::Due
+        } else {
+            ObligationStatus::NotYetDue
+        }
+    }
+
     pub fn status(&self) -> ObligationStatus {
         self.events
             .iter_all()

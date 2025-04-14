@@ -134,6 +134,22 @@ where
         Ok(PaymentAllocationResult::new(new_allocations_applied))
     }
 
+    pub async fn check_facility_obligations_status_updated(
+        &self,
+        credit_facility_id: CreditFacilityId,
+    ) -> Result<bool, ObligationError> {
+        let obligations = self.facility_obligations(credit_facility_id).await?;
+        for obligation in obligations {
+            let expected_status = obligation.expected_status();
+            let actual_status = obligation.status();
+            if expected_status != actual_status {
+                return Ok(false);
+            }
+        }
+
+        Ok(true)
+    }
+
     async fn facility_obligations(
         &self,
         credit_facility_id: CreditFacilityId,
