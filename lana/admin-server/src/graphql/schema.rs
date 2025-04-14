@@ -466,30 +466,17 @@ impl Query {
         Connection<LedgerTransactionCursor, LedgerTransaction, EmptyFields, EmptyFields>,
     > {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
-
-        query(
+        list_with_cursor!(
+            LedgerTransactionCursor,
+            LedgerTransaction,
+            ctx,
             after,
-            None,
-            Some(first),
-            None,
-            |after, _, first, _| async move {
-                let first = first.expect("First always exists");
-                let query_args = es_entity::PaginatedQueryArgs { first, after };
-                let res = app
-                    .accounting()
-                    .ledger_transactions()
-                    .list_for_template_code(sub, &template_code, query_args)
-                    .await?;
-
-                let mut connection = Connection::new(false, res.has_next_page);
-                connection.edges.extend(res.entities.into_iter().map(|tx| {
-                    let cursor = LedgerTransactionCursor::from(&tx);
-                    Edge::new(cursor, LedgerTransaction::from(tx))
-                }));
-                Ok::<_, async_graphql::Error>(connection)
-            },
+            first,
+            |query| app
+                .accounting()
+                .ledger_transactions()
+                .list_for_template_code(sub, &template_code, query)
         )
-        .await
     }
 
     async fn journal_entries(
