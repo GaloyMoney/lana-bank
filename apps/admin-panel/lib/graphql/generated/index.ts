@@ -1566,6 +1566,7 @@ export type Query = {
   reports: Array<Report>;
   termsTemplate?: Maybe<TermsTemplate>;
   termsTemplates: Array<TermsTemplate>;
+  transactionTemplates: Array<TransactionTemplate>;
   trialBalance: TrialBalance;
   user?: Maybe<User>;
   users: Array<User>;
@@ -1926,6 +1927,12 @@ export type Total = {
 };
 
 export type Transaction = Deposit | Withdrawal;
+
+export type TransactionTemplate = {
+  __typename?: 'TransactionTemplate';
+  code: Scalars['String']['output'];
+  id: Scalars['UUID']['output'];
+};
 
 export type TrialBalance = {
   __typename?: 'TrialBalance';

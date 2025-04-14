@@ -1376,6 +1376,7 @@ type Query {
 	document(id: UUID!): Document
 	ledgerAccount(id: UUID!): LedgerAccount
 	ledgerAccountByCode(code: String!): LedgerAccount
+	transactionTemplates: [TransactionTemplate!]!
 	ledgerTransaction(id: UUID!): LedgerTransaction
 	journalEntries(first: Int!, after: String): JournalEntryConnection!
 	generalLedgerEntries(first: Int!, after: String): GeneralLedgerEntryConnection!
@@ -1557,6 +1558,11 @@ scalar Timestamp
 
 type Total {
 	usdBalance: UsdCents!
+}
+
+type TransactionTemplate {
+	id: UUID!
+	code: String!
 }
 
 type TrialBalance {

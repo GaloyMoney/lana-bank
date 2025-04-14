@@ -11,7 +11,10 @@ pub struct TransactionTemplate {
 }
 
 impl From<DomainTransactionTemplate> for TransactionTemplate {
-    fn from(value: DomainTransactionTemplate) -> Self {
-        todo!()
+    fn from(template: DomainTransactionTemplate) -> Self {
+        Self {
+            id: template.id.into(),
+            code: template.code,
+        }
     }
 }
