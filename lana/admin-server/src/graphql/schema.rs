@@ -456,7 +456,7 @@ impl Query {
         )
     }
 
-    async fn ledger_transactions_by_template_code(
+    async fn ledger_transactions_for_template_code(
         &self,
         ctx: &Context<'_>,
         template_code: String,
@@ -478,7 +478,7 @@ impl Query {
                 let res = app
                     .accounting()
                     .ledger_transactions()
-                    .find_by_template_code(sub, &template_code, query_args)
+                    .list_for_template_code(sub, &template_code, query_args)
                     .await?;
 
                 let mut connection = Connection::new(false, res.has_next_page);

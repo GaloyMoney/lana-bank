@@ -72,11 +72,11 @@ where
     }
 
     #[instrument(
-        name = "accounting.ledger_transaction.find_by_template_code",
+        name = "accounting.ledger_transaction.list_for_template_code",
         skip(self),
         err
     )]
-    pub async fn find_by_template_code(
+    pub async fn list_for_template_code(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         template_code: &str,

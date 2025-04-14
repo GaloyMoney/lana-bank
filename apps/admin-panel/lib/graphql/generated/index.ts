@@ -1575,7 +1575,7 @@ export type Query = {
   ledgerAccount?: Maybe<LedgerAccount>;
   ledgerAccountByCode?: Maybe<LedgerAccount>;
   ledgerTransaction?: Maybe<LedgerTransaction>;
-  ledgerTransactionsByTemplateCode: LedgerTransactionConnection;
+  ledgerTransactionsForTemplateCode: LedgerTransactionConnection;
   me: Subject;
   policies: PolicyConnection;
   policy?: Maybe<Policy>;
@@ -1727,7 +1727,7 @@ export type QueryLedgerTransactionArgs = {
 };
 
 
-export type QueryLedgerTransactionsByTemplateCodeArgs = {
+export type QueryLedgerTransactionsForTemplateCodeArgs = {
   after?: InputMaybe<Scalars['String']['input']>;
   first: Scalars['Int']['input'];
   templateCode: Scalars['String']['input'];
