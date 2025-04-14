@@ -54,3 +54,5 @@ fuzz/artifacts/
 fuzz/corpus/
 
 lib/rendering/test-output
+
+dev/dag/output/*
