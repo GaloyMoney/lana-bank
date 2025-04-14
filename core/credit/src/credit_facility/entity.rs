@@ -372,10 +372,7 @@ impl CreditFacility {
     }
 
     pub(crate) fn can_initiate_disbursal(&self, initiated_at: DateTime<Utc>) -> bool {
-        if let Some(matures_at) = self.matures_at {
-            return initiated_at > matures_at;
-        }
-        true
+        initiated_at < self.matures_at.expect("Facility not activated yet")
     }
 
     fn next_interest_accrual_cycle_period(

@@ -427,6 +427,9 @@ where
             return Err(CoreCreditError::CustomerNotActive);
         }
 
+        if facility.activated_at().is_none() {
+            return Err(CreditFacilityError::NotActivatedYet.into());
+        }
         let now = crate::time::now();
         if !facility.can_initiate_disbursal(now) {
             return Err(CreditFacilityError::DisbursalPastMaturityDate.into());
