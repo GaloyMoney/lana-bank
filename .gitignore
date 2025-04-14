@@ -35,3 +35,5 @@ i18n.cache
 dev/parsed_events/
 docs/slidev/
 docs/output/
+
+dev/dag/output/*

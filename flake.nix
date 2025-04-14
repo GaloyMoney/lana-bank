@@ -61,6 +61,7 @@
           pnpm
           tilt
           pandoc
+          graphviz-nox
         ]
         ++ lib.optionals pkgs.stdenv.isLinux [
           xvfb-run
