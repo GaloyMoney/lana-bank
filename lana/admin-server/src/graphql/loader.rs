@@ -5,7 +5,9 @@ use std::collections::HashMap;
 use lana_app::{
     accounting::{
         chart_of_accounts::error::ChartOfAccountsError,
-        ledger_transaction::error::LedgerTransactionError, Chart, LedgerAccountId,
+        ledger_transaction::error::LedgerTransactionError,
+        transaction_templates::error::TransactionTemplateError, Chart, LedgerAccountId,
+        TransactionTemplateId,
     },
     app::LanaApp,
     deposit::error::CoreDepositError,
@@ -210,6 +212,23 @@ impl Loader<LedgerTransactionId> for LanaLoader {
         self.app
             .accounting()
             .ledger_transactions()
+            .find_all(keys)
+            .await
+            .map_err(Arc::new)
+    }
+}
+
+impl Loader<TransactionTemplateId> for LanaLoader {
+    type Value = TransactionTemplate;
+    type Error = Arc<TransactionTemplateError>;
+
+    async fn load(
+        &self,
+        keys: &[TransactionTemplateId],
+    ) -> Result<HashMap<TransactionTemplateId, Self::Value>, Self::Error> {
+        self.app
+            .accounting()
+            .transaction_templates()
             .find_all(keys)
             .await
             .map_err(Arc::new)

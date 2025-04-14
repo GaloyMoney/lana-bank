@@ -433,33 +433,14 @@ impl Query {
         Connection<TransactionTemplateCursor, TransactionTemplate, EmptyFields, EmptyFields>,
     > {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
-
-        query(
+        list_with_cursor!(
+            TransactionTemplateCursor,
+            TransactionTemplate,
+            ctx,
             after,
-            None,
-            Some(first),
-            None,
-            |after, _, first, _| async move {
-                let first = first.expect("First always exists");
-                let res = app
-                    .accounting()
-                    .transaction_templates()
-                    .list(sub, es_entity::PaginatedQueryArgs { first, after })
-                    .await?;
-
-                let mut connection = Connection::new(false, res.has_next_page);
-                connection
-                    .edges
-                    .extend(res.entities.into_iter().map(|entry| {
-                        Edge::new(
-                            TransactionTemplateCursor::from(&entry),
-                            TransactionTemplate::from(entry),
-                        )
-                    }));
-                Ok::<_, async_graphql::Error>(connection)
-            },
+            first,
+            |query| app.accounting().transaction_templates().list(sub, query)
         )
-        .await
     }
 
     async fn ledger_transaction(

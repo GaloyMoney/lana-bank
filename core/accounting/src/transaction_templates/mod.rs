@@ -1,5 +1,7 @@
 pub mod error;
 
+use std::collections::HashMap;
+
 use audit::AuditSvc;
 use authz::PermissionCheck;
 
@@ -33,6 +35,20 @@ where
             authz: authz.clone(),
             cala: cala.clone(),
         }
+    }
+
+    pub async fn find_all<T: From<TransactionTemplate>>(
+        &self,
+        ids: &[TransactionTemplateId],
+    ) -> Result<HashMap<TransactionTemplateId, T>, TransactionTemplateError> {
+        Ok(self
+            .cala
+            .tx_templates()
+            .find_all::<TxTemplate>(ids)
+            .await?
+            .into_iter()
+            .map(|(id, t)| (id, T::from(TransactionTemplate::from(t))))
+            .collect())
     }
 
     pub async fn list(
