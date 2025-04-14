@@ -14,7 +14,7 @@ use crate::{
     event::CoreCreditEvent,
     jobs::interest_accruals,
     ledger::CreditLedger,
-    obligation::ObligationRepo,
+    obligation::Obligations,
     primitives::{CoreCreditAction, CoreCreditObject, CreditFacilityId, DisbursalId, LedgerTxId},
     Jobs,
 };
@@ -26,7 +26,7 @@ where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCreditEvent>,
 {
-    obligation_repo: ObligationRepo<E>,
+    obligations: Obligations<Perms, E>,
     credit_facility_repo: CreditFacilityRepo<E>,
     disbursal_repo: DisbursalRepo,
     ledger: CreditLedger,
@@ -42,7 +42,7 @@ where
 {
     fn clone(&self) -> Self {
         Self {
-            obligation_repo: self.obligation_repo.clone(),
+            obligations: self.obligations.clone(),
             credit_facility_repo: self.credit_facility_repo.clone(),
             disbursal_repo: self.disbursal_repo.clone(),
             ledger: self.ledger.clone(),
@@ -60,7 +60,7 @@ where
     E: OutboxEventMarker<CoreCreditEvent>,
 {
     pub fn new(
-        obligation_repo: &ObligationRepo<E>,
+        obligations: &Obligations<Perms, E>,
         credit_facility_repo: &CreditFacilityRepo<E>,
         disbursal_repo: &DisbursalRepo,
         ledger: &CreditLedger,
@@ -69,7 +69,7 @@ where
         audit: &Perms::Audit,
     ) -> Self {
         Self {
-            obligation_repo: obligation_repo.clone(),
+            obligations: obligations.clone(),
             credit_facility_repo: credit_facility_repo.clone(),
             disbursal_repo: disbursal_repo.clone(),
             ledger: ledger.clone(),
@@ -138,7 +138,7 @@ where
             .expect("First instance of idempotent action ignored")
             .expect("First disbursal obligation was already created");
 
-        self.obligation_repo
+        self.obligations
             .create_in_op(&mut db, new_obligation)
             .await?;
         self.disbursal_repo

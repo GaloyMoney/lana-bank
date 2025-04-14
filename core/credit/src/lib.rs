@@ -142,7 +142,7 @@ where
         let approve_credit_facility =
             ApproveCreditFacility::new(&credit_facility_repo, authz.audit(), governance);
         let activate_credit_facility = ActivateCreditFacility::new(
-            &obligation_repo,
+            &obligations,
             &credit_facility_repo,
             &disbursal_repo,
             &ledger,
