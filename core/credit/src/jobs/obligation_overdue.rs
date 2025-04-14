@@ -117,7 +117,7 @@ where
             .await?;
 
         let overdue = if let es_entity::Idempotent::Executed(overdue) =
-            obligation.record_overdue_debited_balance(audit_info)?
+            obligation.record_overdue(audit_info)?
         {
             overdue
         } else {

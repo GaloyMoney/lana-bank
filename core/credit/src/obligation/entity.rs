@@ -346,7 +346,7 @@ impl Obligation {
         Idempotent::Executed(res)
     }
 
-    pub(crate) fn record_overdue_debited_balance(
+    pub(crate) fn record_overdue(
         &mut self,
         audit_info: AuditInfo,
     ) -> Result<Idempotent<ObligationOverdueReallocationData>, ObligationError> {
@@ -553,7 +553,7 @@ mod test {
         let mut obligation = obligation_from(initial_events());
         obligation.record_due(dummy_audit_info()).did_execute();
         let res = obligation
-            .record_overdue_debited_balance(dummy_audit_info())
+            .record_overdue(dummy_audit_info())
             .unwrap()
             .unwrap();
         assert_eq!(res.outstanding_amount, obligation.initial_amount);
@@ -562,7 +562,7 @@ mod test {
     #[test]
     fn errors_if_overdue_recorded_before_due() {
         let mut obligation = obligation_from(initial_events());
-        let res = obligation.record_overdue_debited_balance(dummy_audit_info());
+        let res = obligation.record_overdue(dummy_audit_info());
         assert!(matches!(
             res,
             Err(ObligationError::InvalidStatusTransitionToOverdue)
