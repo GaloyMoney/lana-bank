@@ -449,9 +449,10 @@ where
             .check_disbursal_allowed(facility.terms)?;
 
         let mut db = self.credit_facility_repo.begin_op().await?;
+        let disbursal_id = DisbursalId::new();
         let new_disbursal = NewDisbursal::builder()
-            .id(DisbursalId::new())
-            .approval_process_id(ApprovalProcessId::new())
+            .id(disbursal_id)
+            .approval_process_id(ApprovalProcessId::from(disbursal_id))
             .credit_facility_id(credit_facility_id)
             .amount(amount)
             .account_ids(facility.account_ids)
