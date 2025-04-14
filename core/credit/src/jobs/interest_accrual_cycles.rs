@@ -121,7 +121,8 @@ where
         &self,
         db: &mut es_entity::DbOp<'_>,
         audit_info: &AuditInfo,
-    ) -> Result<Option<(Obligation, InterestAccrualCycleId, DateTime<Utc>)>, CoreCreditError> {
+    ) -> Result<(Obligation, Option<(InterestAccrualCycleId, DateTime<Utc>)>), CoreCreditError>
+    {
         let mut credit_facility = self
             .credit_facility_repo
             .find_by_id(self.config.credit_facility_id)
@@ -133,29 +134,22 @@ where
             .create_with_jobs_in_op(db, new_obligation)
             .await?;
 
+        let res = credit_facility.start_interest_accrual_cycle(audit_info.clone())?;
         self.credit_facility_repo
             .update_in_op(db, &mut credit_facility)
             .await?;
+        let credit_facility = credit_facility;
 
-        let first_accrual_period_in_new_cycle =
-            match credit_facility.start_interest_accrual_cycle(audit_info.clone())? {
-                Some(p) => p.accrual,
-                None => return Ok(None),
-            };
-        self.credit_facility_repo
-            .update_in_op(db, &mut credit_facility)
-            .await?;
+        let new_cycle_data = res.map(|periods| {
+            let new_accrual_cycle_id = credit_facility
+                .interest_accrual_cycle_in_progress()
+                .expect("First accrual cycle not found")
+                .id;
 
-        let new_accrual_cycle_id = credit_facility
-            .interest_accrual_cycle_in_progress()
-            .expect("First accrual cycle not found")
-            .id;
+            (new_accrual_cycle_id, periods.accrual.end)
+        });
 
-        Ok(Some((
-            obligation,
-            new_accrual_cycle_id,
-            first_accrual_period_in_new_cycle.end,
-        )))
+        Ok((obligation, new_cycle_data))
     }
 }
 
@@ -185,7 +179,7 @@ where
             .await?
         {
             let now = crate::time::now();
-            return Ok(JobCompletion::RescheduleAt(now + Duration::hours(1)));
+            return Ok(JobCompletion::RescheduleAt(now + Duration::minutes(5)));
         }
 
         let mut db = self.credit_facility_repo.begin_op().await?;
@@ -198,31 +192,28 @@ where
             )
             .await?;
 
-        let (obligation, new_accrual_cycle_id, first_accrual_end_date) =
-            if let Some(new_cycle_data) = self
-                .complete_interest_cycle_and_maybe_start_new_cycle(&mut db, &audit_info)
-                .await?
-            {
-                new_cycle_data
-            } else {
-                println!(
+        let (obligation, new_cycle_data) = self
+            .complete_interest_cycle_and_maybe_start_new_cycle(&mut db, &audit_info)
+            .await?;
+
+        if let Some((new_accrual_cycle_id, first_accrual_end_date)) = new_cycle_data {
+            self.jobs
+                .create_and_spawn_at_in_op(
+                    &mut db,
+                    new_accrual_cycle_id,
+                    interest_accruals::CreditFacilityJobConfig::<Perms, E> {
+                        credit_facility_id: self.config.credit_facility_id,
+                        _phantom: std::marker::PhantomData,
+                    },
+                    first_accrual_end_date,
+                )
+                .await?;
+        } else {
+            println!(
                 "All Credit Facility interest accrual cycles completed for credit_facility: {:?}",
                 self.config.credit_facility_id
             );
-                return Ok(JobCompletion::CompleteWithOp(db));
-            };
-
-        self.jobs
-            .create_and_spawn_at_in_op(
-                &mut db,
-                new_accrual_cycle_id,
-                interest_accruals::CreditFacilityJobConfig::<Perms, E> {
-                    credit_facility_id: self.config.credit_facility_id,
-                    _phantom: std::marker::PhantomData,
-                },
-                first_accrual_end_date,
-            )
-            .await?;
+        };
 
         self.ledger
             .record_interest_accrual_cycle(db, obligation)
