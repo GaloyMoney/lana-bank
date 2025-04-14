@@ -11,7 +11,9 @@ use outbox::OutboxEventMarker;
 
 use crate::{
     event::CoreCreditEvent,
-    primitives::{CoreCreditAction, CoreCreditObject, CreditFacilityId, PaymentId, UsdCents},
+    primitives::{
+        CoreCreditAction, CoreCreditObject, CreditFacilityId, ObligationId, PaymentId, UsdCents,
+    },
     publisher::CreditFacilityPublisher,
 };
 
@@ -64,12 +66,29 @@ where
         }
     }
 
+    pub async fn begin_op(&self) -> Result<es_entity::DbOp<'_>, ObligationError> {
+        Ok(self.repo.begin_op().await?)
+    }
+
     pub async fn create_in_op(
         &self,
         db: &mut es_entity::DbOp<'_>,
         new_obligation: NewObligation,
     ) -> Result<Obligation, ObligationError> {
         self.repo.create_in_op(db, new_obligation).await
+    }
+
+    pub async fn update_in_op(
+        &self,
+        db: &mut es_entity::DbOp<'_>,
+        obligation: &mut Obligation,
+    ) -> Result<(), ObligationError> {
+        self.repo.update_in_op(db, obligation).await?;
+        Ok(())
+    }
+
+    pub async fn find_by_id(&self, id: ObligationId) -> Result<Obligation, ObligationError> {
+        self.repo.find_by_id(id).await
     }
 
     pub async fn allocate_payment_in_op(

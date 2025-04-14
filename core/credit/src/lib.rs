@@ -183,9 +183,7 @@ where
         jobs.add_initializer(obligation_due::CreditFacilityProcessingJobInitializer::<
             Perms,
             E,
-        >::new(
-            &ledger, obligation_repo.clone(), jobs, authz.audit()
-        ));
+        >::new(&ledger, &obligations, jobs, authz.audit()));
         jobs.add_initializer(
             obligation_overdue::CreditFacilityProcessingJobInitializer::<Perms, E>::new(
                 &ledger,
