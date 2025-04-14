@@ -161,6 +161,15 @@ pub const OVERDUE_CREDIT_NON_DOMICILED_COMPANY_DISBURSED_RECEIVABLE_ACCOUNT_SET_
 pub const OVERDUE_CREDIT_NON_DOMICILED_COMPANY_DISBURSED_RECEIVABLE_ACCOUNT_SET_REF: &str =
     "overdue-credit-non-domiciled-company-disbursed-receivable-account-set";
 
+pub const CREDIT_DISBURSED_DEFAULTED_ACCOUNT_SET_NAME: &str =
+    "Credit Disbursed Defaulted Account Set";
+pub const CREDIT_DISBURSED_DEFAULTED_ACCOUNT_SET_REF: &str =
+    "credit-disbursed-defaulted-account-set";
+
+pub const CREDIT_INTEREST_DEFAULTED_ACCOUNT_SET_NAME: &str =
+    "Credit Interest Defaulted Account Set";
+pub const CREDIT_INTEREST_DEFAULTED_ACCOUNT_SET_REF: &str = "credit-interest-defaulted-account-set";
+
 pub const CREDIT_INTEREST_INCOME_ACCOUNT_SET_NAME: &str = "Credit Interest Income Account Set";
 pub const CREDIT_INTEREST_INCOME_ACCOUNT_SET_REF: &str = "credit-interest-income-account-set";
 
