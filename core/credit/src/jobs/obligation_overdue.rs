@@ -6,9 +6,7 @@ use authz::PermissionCheck;
 use job::*;
 use outbox::OutboxEventMarker;
 
-use crate::{
-    event::CoreCreditEvent, ledger::CreditLedger, obligation::ObligationRepo, primitives::*,
-};
+use crate::{event::CoreCreditEvent, ledger::CreditLedger, obligation::Obligations, primitives::*};
 
 #[derive(Clone, Serialize, Deserialize)]
 pub struct CreditFacilityJobConfig<Perms, E> {
@@ -29,7 +27,7 @@ where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCreditEvent>,
 {
-    obligation_repo: ObligationRepo<E>,
+    obligations: Obligations<Perms, E>,
     ledger: CreditLedger,
     audit: Perms::Audit,
 }
@@ -43,12 +41,12 @@ where
 {
     pub fn new(
         ledger: &CreditLedger,
-        obligation_repo: ObligationRepo<E>,
+        obligations: &Obligations<Perms, E>,
         audit: &Perms::Audit,
     ) -> Self {
         Self {
             ledger: ledger.clone(),
-            obligation_repo,
+            obligations: obligations.clone(),
             audit: audit.clone(),
         }
     }
@@ -73,7 +71,7 @@ where
     fn init(&self, job: &Job) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
         Ok(Box::new(CreditFacilityProcessingJobRunner::<Perms, E> {
             config: job.config()?,
-            obligation_repo: self.obligation_repo.clone(),
+            obligations: self.obligations.clone(),
             ledger: self.ledger.clone(),
             audit: self.audit.clone(),
         }))
@@ -86,7 +84,7 @@ where
     E: OutboxEventMarker<CoreCreditEvent>,
 {
     config: CreditFacilityJobConfig<Perms, E>,
-    obligation_repo: ObligationRepo<E>,
+    obligations: Obligations<Perms, E>,
     ledger: CreditLedger,
     audit: Perms::Audit,
 }
@@ -104,11 +102,11 @@ where
         _current_job: CurrentJob,
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
         let mut obligation = self
-            .obligation_repo
+            .obligations
             .find_by_id(self.config.obligation_id)
             .await?;
 
-        let mut db = self.obligation_repo.begin_op().await?;
+        let mut db = self.obligations.begin_op().await?;
         let audit_info = self
             .audit
             .record_system_entry_in_tx(
@@ -126,7 +124,7 @@ where
             return Ok(JobCompletion::Complete);
         };
 
-        self.obligation_repo
+        self.obligations
             .update_in_op(&mut db, &mut obligation)
             .await?;
 

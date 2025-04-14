@@ -125,7 +125,6 @@ where
         let publisher = CreditFacilityPublisher::new(outbox);
         let credit_facility_repo = CreditFacilityRepo::new(pool, &publisher);
         let disbursal_repo = DisbursalRepo::new(pool);
-        let obligation_repo = ObligationRepo::new(pool, &publisher);
         let obligations = Obligations::new(pool, authz, cala, &publisher);
         let payment_repo = PaymentRepo::new(pool);
         let ledger = CreditLedger::init(cala, journal_id).await?;
@@ -187,7 +186,7 @@ where
         jobs.add_initializer(
             obligation_overdue::CreditFacilityProcessingJobInitializer::<Perms, E>::new(
                 &ledger,
-                obligation_repo.clone(),
+                &obligations,
                 authz.audit(),
             ),
         );

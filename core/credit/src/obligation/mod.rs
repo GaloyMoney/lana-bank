@@ -20,9 +20,10 @@ use crate::{
 pub use entity::Obligation;
 pub(crate) use entity::*;
 use error::ObligationError;
-pub(crate) use facility_obligations::FacilityObligations;
+use facility_obligations::FacilityObligations;
 pub use payment_allocator::*;
-pub(crate) use repo::*;
+pub use repo::obligation_cursor;
+use repo::*;
 
 pub struct Obligations<Perms, E>
 where
