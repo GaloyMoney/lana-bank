@@ -1539,7 +1539,7 @@ mod test {
         }
     }
 
-    mod repayment {
+    mod completion {
         use super::*;
 
         impl From<CreditFacilityReceivable> for ObligationsAmounts {
@@ -1551,111 +1551,262 @@ mod test {
             }
         }
 
-        // fn credit_facility_with_interest_accrual(
-        //     facility_activated_at: DateTime<Utc>,
-        // ) -> CreditFacility {
-        //     let id = CreditFacilityId::new();
-        //     let new_credit_facility = NewCreditFacility::builder()
-        //         .id(id)
-        //         .approval_process_id(id)
-        //         .customer_id(CustomerId::new())
-        //         .terms(default_terms())
-        //         .facility(UsdCents::from(1_000_000_00))
-        //         .account_ids(CreditFacilityAccountIds::new())
-        //         .disbursal_credit_account_id(CalaAccountId::new())
-        //         .audit_info(dummy_audit_info())
-        //         .build()
-        //         .expect("could not build new credit facility");
-        //     let mut credit_facility =
-        //         CreditFacility::try_from_events(new_credit_facility.into_events()).unwrap();
+        #[test]
+        fn can_complete() {
+            let mut credit_facility = facility_from(initial_events());
 
-        //     credit_facility
-        //         .record_collateral_update(
-        //             Satoshis::from(50_00_000_000),
-        //             dummy_audit_info(),
-        //             default_price(),
-        //             default_upgrade_buffer_cvl_pct(),
-        //             ObligationsOutstanding::ZERO,
-        //         )
-        //         .unwrap();
+            let _ = credit_facility
+                .complete(
+                    dummy_audit_info(),
+                    default_price(),
+                    default_upgrade_buffer_cvl_pct(),
+                    CreditFacilityBalanceSummary {
+                        collateral: Satoshis::ZERO,
+                        not_yet_due_disbursed_outstanding: UsdCents::ZERO,
+                        due_disbursed_outstanding: UsdCents::ZERO,
+                        overdue_disbursed_outstanding: UsdCents::ZERO,
+                        disbursed_defaulted: UsdCents::ZERO,
+                        not_yet_due_interest_outstanding: UsdCents::ZERO,
+                        due_interest_outstanding: UsdCents::ZERO,
+                        overdue_interest_outstanding: UsdCents::ZERO,
+                        interest_defaulted: UsdCents::ZERO,
 
-        //     credit_facility
-        //         .approval_process_concluded(true, dummy_audit_info())
-        //         .unwrap();
-        //     assert!(credit_facility
-        //         .activate(facility_activated_at, default_price(), dummy_audit_info(),)
-        //         .unwrap()
-        //         .did_execute());
-        //     hydrate_accruals_in_facility(&mut credit_facility);
+                        facility_remaining: UsdCents::from(1),
+                        disbursed: UsdCents::from(1),
+                        interest_posted: UsdCents::from(1),
+                    },
+                )
+                .unwrap();
+            assert!(credit_facility.is_completed());
+            assert!(credit_facility.status() == CreditFacilityStatus::Closed);
+        }
 
-        //     let new_disbursal = credit_facility
-        //         .initiate_disbursal(
-        //             UsdCents::from(600_000_00),
-        //             ObligationsAmounts::ZERO,
-        //             facility_activated_at,
-        //             default_price(),
-        //             None,
-        //             dummy_audit_info(),
-        //         )
-        //         .unwrap();
-        //     let mut disbursal = Disbursal::try_from_events(new_disbursal.into_events()).unwrap();
-        //     let tx_id = LedgerTxId::new();
-        //     let new_obligation = disbursal
-        //         .approval_process_concluded(tx_id, true, dummy_audit_info())
-        //         .unwrap();
-        //     let obligation_id =
-        //         new_obligation.map(|n| Obligation::try_from_events(n.into_events()).unwrap().id);
-        //     credit_facility
-        //         .disbursal_concluded(
-        //             &disbursal,
-        //             tx_id,
-        //             obligation_id,
-        //             facility_activated_at,
-        //             dummy_audit_info(),
-        //         )
-        //         .unwrap();
+        #[test]
+        fn errors_if_not_yet_due_outstanding() {
+            let mut credit_facility = facility_from(initial_events());
 
-        //     let mut accrual_cycle_data: Option<InterestAccrualCycleData> = None;
-        //     while accrual_cycle_data.is_none() {
-        //         let outstanding = credit_facility.total_outstanding();
-        //         let accrual = credit_facility
-        //             .interest_accrual_cycle_in_progress_mut()
-        //             .unwrap();
-        //         accrual.record_accrual(outstanding.into(), dummy_audit_info());
-        //         accrual_cycle_data = accrual.accrual_cycle_data();
-        //     }
-        //     credit_facility
-        //         .record_interest_accrual_cycle(dummy_audit_info())
-        //         .unwrap();
+            let res_disbursed = credit_facility.complete(
+                dummy_audit_info(),
+                default_price(),
+                default_upgrade_buffer_cvl_pct(),
+                CreditFacilityBalanceSummary {
+                    not_yet_due_disbursed_outstanding: UsdCents::from(1),
+                    not_yet_due_interest_outstanding: UsdCents::ZERO,
 
-        //     credit_facility
-        // }
+                    collateral: Satoshis::ZERO,
+                    due_disbursed_outstanding: UsdCents::ZERO,
+                    overdue_disbursed_outstanding: UsdCents::ZERO,
+                    disbursed_defaulted: UsdCents::ZERO,
+                    due_interest_outstanding: UsdCents::ZERO,
+                    overdue_interest_outstanding: UsdCents::ZERO,
+                    interest_defaulted: UsdCents::ZERO,
 
-        // #[test]
-        // fn confirm_completion() {
-        //     let activated_at = "2023-01-01T00:00:00Z".parse::<DateTime<Utc>>().unwrap();
-        //     let mut credit_facility = credit_facility_with_interest_accrual(activated_at);
+                    facility_remaining: UsdCents::from(1),
+                    disbursed: UsdCents::from(1),
+                    interest_posted: UsdCents::from(1),
+                },
+            );
+            assert!(matches!(
+                res_disbursed,
+                Err(CreditFacilityError::OutstandingAmount)
+            ));
 
-        //     credit_facility
-        //         .initiate_repayment(
-        //             credit_facility.total_outstanding().total(),
-        //             default_price(),
-        //             default_upgrade_buffer_cvl_pct(),
-        //             Utc::now(),
-        //             dummy_audit_info(),
-        //         )
-        //         .unwrap();
-        //     assert!(credit_facility.total_outstanding().is_zero());
+            let res_interest = credit_facility.complete(
+                dummy_audit_info(),
+                default_price(),
+                default_upgrade_buffer_cvl_pct(),
+                CreditFacilityBalanceSummary {
+                    not_yet_due_disbursed_outstanding: UsdCents::ZERO,
+                    not_yet_due_interest_outstanding: UsdCents::from(1),
 
-        //     let _ = credit_facility
-        //         .complete(
-        //             dummy_audit_info(),
-        //             default_price(),
-        //             default_upgrade_buffer_cvl_pct(),
-        //         )
-        //         .unwrap();
-        //     assert!(credit_facility.is_completed());
-        //     assert!(credit_facility.status() == CreditFacilityStatus::Closed);
-        // }
+                    collateral: Satoshis::ZERO,
+                    due_disbursed_outstanding: UsdCents::ZERO,
+                    overdue_disbursed_outstanding: UsdCents::ZERO,
+                    disbursed_defaulted: UsdCents::ZERO,
+                    due_interest_outstanding: UsdCents::ZERO,
+                    overdue_interest_outstanding: UsdCents::ZERO,
+                    interest_defaulted: UsdCents::ZERO,
+
+                    facility_remaining: UsdCents::from(1),
+                    disbursed: UsdCents::from(1),
+                    interest_posted: UsdCents::from(1),
+                },
+            );
+            assert!(matches!(
+                res_interest,
+                Err(CreditFacilityError::OutstandingAmount)
+            ));
+        }
+
+        #[test]
+        fn errors_if_due_outstanding() {
+            let mut credit_facility = facility_from(initial_events());
+
+            let res_disbursed = credit_facility.complete(
+                dummy_audit_info(),
+                default_price(),
+                default_upgrade_buffer_cvl_pct(),
+                CreditFacilityBalanceSummary {
+                    due_disbursed_outstanding: UsdCents::from(1),
+                    due_interest_outstanding: UsdCents::ZERO,
+
+                    collateral: Satoshis::ZERO,
+                    not_yet_due_disbursed_outstanding: UsdCents::ZERO,
+                    overdue_disbursed_outstanding: UsdCents::ZERO,
+                    disbursed_defaulted: UsdCents::ZERO,
+                    not_yet_due_interest_outstanding: UsdCents::ZERO,
+                    overdue_interest_outstanding: UsdCents::ZERO,
+                    interest_defaulted: UsdCents::ZERO,
+
+                    facility_remaining: UsdCents::from(1),
+                    disbursed: UsdCents::from(1),
+                    interest_posted: UsdCents::from(1),
+                },
+            );
+            assert!(matches!(
+                res_disbursed,
+                Err(CreditFacilityError::OutstandingAmount)
+            ));
+
+            let res_interest = credit_facility.complete(
+                dummy_audit_info(),
+                default_price(),
+                default_upgrade_buffer_cvl_pct(),
+                CreditFacilityBalanceSummary {
+                    due_disbursed_outstanding: UsdCents::ZERO,
+                    due_interest_outstanding: UsdCents::from(1),
+
+                    collateral: Satoshis::ZERO,
+                    not_yet_due_disbursed_outstanding: UsdCents::ZERO,
+                    overdue_disbursed_outstanding: UsdCents::ZERO,
+                    disbursed_defaulted: UsdCents::ZERO,
+                    not_yet_due_interest_outstanding: UsdCents::ZERO,
+                    overdue_interest_outstanding: UsdCents::ZERO,
+                    interest_defaulted: UsdCents::ZERO,
+
+                    facility_remaining: UsdCents::from(1),
+                    disbursed: UsdCents::from(1),
+                    interest_posted: UsdCents::from(1),
+                },
+            );
+            assert!(matches!(
+                res_interest,
+                Err(CreditFacilityError::OutstandingAmount)
+            ));
+        }
+
+        #[test]
+        fn errors_if_overdue_outstanding() {
+            let mut credit_facility = facility_from(initial_events());
+
+            let res_disbursed = credit_facility.complete(
+                dummy_audit_info(),
+                default_price(),
+                default_upgrade_buffer_cvl_pct(),
+                CreditFacilityBalanceSummary {
+                    overdue_disbursed_outstanding: UsdCents::from(1),
+                    overdue_interest_outstanding: UsdCents::ZERO,
+
+                    collateral: Satoshis::ZERO,
+                    not_yet_due_disbursed_outstanding: UsdCents::ZERO,
+                    due_disbursed_outstanding: UsdCents::ZERO,
+                    disbursed_defaulted: UsdCents::ZERO,
+                    not_yet_due_interest_outstanding: UsdCents::ZERO,
+                    due_interest_outstanding: UsdCents::ZERO,
+                    interest_defaulted: UsdCents::ZERO,
+
+                    facility_remaining: UsdCents::from(1),
+                    disbursed: UsdCents::from(1),
+                    interest_posted: UsdCents::from(1),
+                },
+            );
+            assert!(matches!(
+                res_disbursed,
+                Err(CreditFacilityError::OutstandingAmount)
+            ));
+
+            let res_interest = credit_facility.complete(
+                dummy_audit_info(),
+                default_price(),
+                default_upgrade_buffer_cvl_pct(),
+                CreditFacilityBalanceSummary {
+                    overdue_disbursed_outstanding: UsdCents::ZERO,
+                    overdue_interest_outstanding: UsdCents::from(1),
+
+                    collateral: Satoshis::ZERO,
+                    not_yet_due_disbursed_outstanding: UsdCents::ZERO,
+                    due_disbursed_outstanding: UsdCents::ZERO,
+                    disbursed_defaulted: UsdCents::ZERO,
+                    not_yet_due_interest_outstanding: UsdCents::ZERO,
+                    due_interest_outstanding: UsdCents::ZERO,
+                    interest_defaulted: UsdCents::ZERO,
+
+                    facility_remaining: UsdCents::from(1),
+                    disbursed: UsdCents::from(1),
+                    interest_posted: UsdCents::from(1),
+                },
+            );
+            assert!(matches!(
+                res_interest,
+                Err(CreditFacilityError::OutstandingAmount)
+            ));
+        }
+
+        #[test]
+        fn errors_if_defaulted_outstanding() {
+            let mut credit_facility = facility_from(initial_events());
+
+            let res_disbursed = credit_facility.complete(
+                dummy_audit_info(),
+                default_price(),
+                default_upgrade_buffer_cvl_pct(),
+                CreditFacilityBalanceSummary {
+                    disbursed_defaulted: UsdCents::from(1),
+                    interest_defaulted: UsdCents::ZERO,
+
+                    collateral: Satoshis::ZERO,
+                    not_yet_due_disbursed_outstanding: UsdCents::ZERO,
+                    due_disbursed_outstanding: UsdCents::ZERO,
+                    overdue_disbursed_outstanding: UsdCents::ZERO,
+                    not_yet_due_interest_outstanding: UsdCents::ZERO,
+                    due_interest_outstanding: UsdCents::ZERO,
+                    overdue_interest_outstanding: UsdCents::ZERO,
+
+                    facility_remaining: UsdCents::from(1),
+                    disbursed: UsdCents::from(1),
+                    interest_posted: UsdCents::from(1),
+                },
+            );
+            assert!(matches!(
+                res_disbursed,
+                Err(CreditFacilityError::OutstandingAmount)
+            ));
+
+            let res_interest = credit_facility.complete(
+                dummy_audit_info(),
+                default_price(),
+                default_upgrade_buffer_cvl_pct(),
+                CreditFacilityBalanceSummary {
+                    disbursed_defaulted: UsdCents::ZERO,
+                    interest_defaulted: UsdCents::from(1),
+
+                    collateral: Satoshis::ZERO,
+                    not_yet_due_disbursed_outstanding: UsdCents::ZERO,
+                    due_disbursed_outstanding: UsdCents::ZERO,
+                    overdue_disbursed_outstanding: UsdCents::ZERO,
+                    not_yet_due_interest_outstanding: UsdCents::ZERO,
+                    due_interest_outstanding: UsdCents::ZERO,
+                    overdue_interest_outstanding: UsdCents::ZERO,
+
+                    facility_remaining: UsdCents::from(1),
+                    disbursed: UsdCents::from(1),
+                    interest_posted: UsdCents::from(1),
+                },
+            );
+            assert!(matches!(
+                res_interest,
+                Err(CreditFacilityError::OutstandingAmount)
+            ));
+        }
     }
 }
