@@ -108,7 +108,7 @@ where
             .enforce_permission(
                 sub,
                 CoreAccountingObject::all_profit_and_loss_configuration(),
-                CoreAccountingAction::PROFIT_AND_LOSS_READ,
+                CoreAccountingAction::PROFIT_AND_LOSS_CONFIGURATION_READ,
             )
             .await?;
         Ok(self
