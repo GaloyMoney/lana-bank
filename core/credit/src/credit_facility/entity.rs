@@ -1228,19 +1228,13 @@ mod test {
             total: terms.liquidation_cvl,
             disbursed: terms.margin_call_cvl - CVLPct::from(dec!(1)),
         };
-        assert!(matches!(
-            facility_cvl.check_disbursal_allowed(terms),
-            Err(CreditFacilityError::BelowMarginLimit),
-        ));
+        assert!(!facility_cvl.is_disbursal_allowed(terms));
 
         let facility_cvl = FacilityCVL {
             total: terms.liquidation_cvl,
             disbursed: terms.margin_call_cvl,
         };
-        assert!(matches!(
-            facility_cvl.check_disbursal_allowed(terms),
-            Ok(())
-        ));
+        assert!(facility_cvl.is_disbursal_allowed(terms));
     }
 
     #[test]
@@ -1251,10 +1245,7 @@ mod test {
             total: terms.margin_call_cvl,
             disbursed: CVLPct::ZERO,
         };
-        assert!(matches!(
-            facility_cvl.check_disbursal_allowed(terms),
-            Ok(())
-        ));
+        assert!(facility_cvl.is_disbursal_allowed(terms));
     }
 
     #[test]

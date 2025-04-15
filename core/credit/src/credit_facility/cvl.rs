@@ -1,7 +1,6 @@
 use core_money::{Satoshis, UsdCents};
 use core_price::PriceOfOneBTC;
 
-use super::error::CreditFacilityError;
 use crate::terms::{CVLPct, TermValues};
 
 #[derive(Clone)]
@@ -50,16 +49,13 @@ impl FacilityCVL {
         self.total >= terms.margin_call_cvl
     }
 
-    pub fn check_disbursal_allowed(&self, terms: TermValues) -> Result<(), CreditFacilityError> {
+    pub fn is_disbursal_allowed(&self, terms: TermValues) -> bool {
         let cvl = if self.disbursed.is_zero() {
             self.total
         } else {
             self.disbursed
         };
 
-        if cvl < terms.margin_call_cvl {
-            return Err(CreditFacilityError::BelowMarginLimit);
-        }
-        Ok(())
+        cvl >= terms.margin_call_cvl
     }
 }
