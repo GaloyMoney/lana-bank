@@ -338,9 +338,13 @@ impl CreditFacility {
             return Err(CreditFacilityError::NoCollateral);
         }
 
-        self.facility_cvl_data(balances)
+        if !self
+            .facility_cvl_data(balances)
             .cvl(price)
-            .check_approval_allowed(self.terms)?;
+            .is_approval_allowed(self.terms)
+        {
+            return Err(CreditFacilityError::BelowMarginLimit);
+        }
 
         self.activated_at = Some(activated_at);
         self.matures_at = Some(self.terms.duration.maturity_date(activated_at));
@@ -1207,16 +1211,13 @@ mod test {
             total: terms.margin_call_cvl - CVLPct::from(dec!(1)),
             disbursed: CVLPct::ZERO,
         };
-        assert!(matches!(
-            facility_cvl.check_approval_allowed(terms),
-            Err(CreditFacilityError::BelowMarginLimit),
-        ));
+        assert!(!facility_cvl.is_approval_allowed(terms));
 
         let facility_cvl = FacilityCVL {
             total: terms.margin_call_cvl,
             disbursed: CVLPct::ZERO,
         };
-        assert!(matches!(facility_cvl.check_approval_allowed(terms), Ok(())));
+        assert!(facility_cvl.is_approval_allowed(terms));
     }
 
     #[test]

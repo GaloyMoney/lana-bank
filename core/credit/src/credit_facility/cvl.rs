@@ -46,11 +46,8 @@ pub struct FacilityCVL {
 }
 
 impl FacilityCVL {
-    pub fn check_approval_allowed(&self, terms: TermValues) -> Result<(), CreditFacilityError> {
-        if self.total < terms.margin_call_cvl {
-            return Err(CreditFacilityError::BelowMarginLimit);
-        }
-        Ok(())
+    pub fn is_approval_allowed(&self, terms: TermValues) -> bool {
+        self.total >= terms.margin_call_cvl
     }
 
     pub fn check_disbursal_allowed(&self, terms: TermValues) -> Result<(), CreditFacilityError> {
