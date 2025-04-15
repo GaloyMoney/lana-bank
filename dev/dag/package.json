@@ -2,9 +2,8 @@
   "name": "lana-bank-dag-cli",
   "packageManager": "pnpm@10.6.5",
   "dependencies": {
-    "pg": "^8.14.1"
   },
   "scripts": {
-    "start": "node generate_dots.js"
+    "start": "echo \"DOT generation now handled by python generate_dots.py\" && python3 generate_dots.py"
   }
 }
