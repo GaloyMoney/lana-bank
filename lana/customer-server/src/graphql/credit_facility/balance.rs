@@ -23,7 +23,7 @@ impl From<lana_app::credit::CreditFacilityBalanceSummary> for CreditFacilityBala
                     usd_balance: balance.disbursed,
                 },
                 outstanding: Outstanding {
-                    usd_balance: balance.disbursed_outstanding(),
+                    usd_balance: balance.disbursed_outstanding_payable(),
                 },
                 due_outstanding: Outstanding {
                     usd_balance: balance.overdue_disbursed_outstanding,
@@ -34,14 +34,14 @@ impl From<lana_app::credit::CreditFacilityBalanceSummary> for CreditFacilityBala
                     usd_balance: balance.interest_posted,
                 },
                 outstanding: Outstanding {
-                    usd_balance: balance.interest_outstanding(),
+                    usd_balance: balance.interest_outstanding_payable(),
                 },
                 due_outstanding: Outstanding {
                     usd_balance: balance.overdue_interest_outstanding,
                 },
             },
             outstanding: Outstanding {
-                usd_balance: balance.total_outstanding(),
+                usd_balance: balance.total_outstanding_payable(),
             },
             due_outstanding: Outstanding {
                 usd_balance: balance.total_overdue(),

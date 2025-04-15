@@ -1006,7 +1006,7 @@ where
             .ledger
             .get_credit_facility_balance(entity.account_ids)
             .await?;
-        Ok(balances.total_outstanding())
+        Ok(balances.total_outstanding_payable())
     }
 
     pub async fn get_chart_of_accounts_integration_config(

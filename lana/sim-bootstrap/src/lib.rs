@@ -105,9 +105,9 @@ async fn create_and_process_facility(
                     .await?
                     .expect("cf exists");
                 if facility.interest_accrual_cycle_in_progress().is_none() {
-                    let total_outstanding = app.credit().outstanding(&facility).await?;
+                    let total_outstanding_amount = app.credit().outstanding(&facility).await?;
                     app.credit()
-                        .record_payment(&sub, facility.id, total_outstanding)
+                        .record_payment(&sub, facility.id, total_outstanding_amount)
                         .await?;
                     app.credit().complete_facility(&sub, facility.id).await?;
                 }

@@ -576,10 +576,10 @@ mod test {
 
     #[test]
     fn accrual_is_sum_of_all_interest() {
-        let disbursed_outstanding = UsdCents::from(1_000_000_00);
+        let disbursed_outstanding_amount = UsdCents::from(1_000_000_00);
         let expected_daily_interest = default_terms()
             .annual_rate
-            .interest_for_time_period(disbursed_outstanding, 1);
+            .interest_for_time_period(disbursed_outstanding_amount, 1);
 
         let mut accrual = accrual_from(initial_events());
 
@@ -596,7 +596,7 @@ mod test {
 
             let InterestAccrualData {
                 interest, period, ..
-            } = accrual.record_accrual(disbursed_outstanding, dummy_audit_info());
+            } = accrual.record_accrual(disbursed_outstanding_amount, dummy_audit_info());
             assert_eq!(interest, expected_daily_interest);
             assert_eq!(period.end, expected_end_of_day);
 

@@ -115,8 +115,8 @@ pub struct CreditFacilityReceivable {
 impl From<CreditFacilityBalanceSummary> for CreditFacilityReceivable {
     fn from(balance: CreditFacilityBalanceSummary) -> Self {
         Self {
-            disbursed: balance.disbursed_outstanding(),
-            interest: balance.interest_outstanding(),
+            disbursed: balance.disbursed_outstanding_payable(),
+            interest: balance.interest_outstanding_payable(),
         }
     }
 }
@@ -744,7 +744,7 @@ impl CreditFacility {
             self.events.iter_all(),
             CreditFacilityEvent::Completed { .. }
         );
-        if balances.any_outstanding() {
+        if balances.any_outstanding_or_defaulted() {
             return Err(CreditFacilityError::OutstandingAmount);
         }
 
