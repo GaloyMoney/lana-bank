@@ -82,8 +82,8 @@ check-code-apps-customer-portal:
 build-storybook-admin-panel:
 	cd apps/admin-panel && pnpm install --frozen-lockfile && pnpm run build-storybook
 
-test-cypress-in-ci-through-browserstack:
-	cd apps/admin-panel && pnpm cypress:run browserstack
+test-cypress-in-ci-locally:
+	cd apps/admin-panel && pnpm cypress:run headless
 
 # Meltano
 pg2bq-run:
