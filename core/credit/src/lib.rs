@@ -431,7 +431,7 @@ where
             return Err(CreditFacilityError::NotActivatedYet.into());
         }
         let now = crate::time::now();
-        if !facility.can_initiate_disbursal(now) {
+        if !facility.check_disbursal_date(now) {
             return Err(CreditFacilityError::DisbursalPastMaturityDate.into());
         }
         let balance = self

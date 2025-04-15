@@ -375,7 +375,7 @@ impl CreditFacility {
         Ok(Idempotent::Executed((activation, periods.accrual)))
     }
 
-    pub(crate) fn can_initiate_disbursal(&self, initiated_at: DateTime<Utc>) -> bool {
+    pub(crate) fn check_disbursal_date(&self, initiated_at: DateTime<Utc>) -> bool {
         initiated_at < self.matures_at.expect("Facility not activated yet")
     }
 
