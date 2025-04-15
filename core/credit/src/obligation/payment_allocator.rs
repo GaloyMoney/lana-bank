@@ -12,6 +12,7 @@ pub struct PaymentAllocator {
     amount: UsdCents,
 }
 
+#[derive(Clone)]
 pub struct ObligationDataForAllocation {
     id: ObligationId,
     obligation_type: ObligationType,
@@ -58,11 +59,14 @@ impl PaymentAllocator {
 
     pub fn allocate(
         &self,
-        obligations: Vec<ObligationDataForAllocation>,
+        obligations: impl Iterator<Item = impl Into<ObligationDataForAllocation>> + Clone,
     ) -> Result<Vec<NewPaymentAllocation>, ObligationError> {
         let outstanding = obligations
-            .iter()
-            .map(|o| o.outstanding)
+            .clone()
+            .map(|o| {
+                let data = o.into();
+                data.outstanding
+            })
             .fold(UsdCents::ZERO, |acc, amount| acc + amount);
         if self.amount > outstanding {
             return Err(ObligationError::PaymentAmountGreaterThanOutstandingObligations);
@@ -71,9 +75,10 @@ impl PaymentAllocator {
         let mut disbursal_obligations = vec![];
         let mut interest_obligations = vec![];
         for obligation in obligations {
-            match obligation.obligation_type {
-                ObligationType::Disbursal => disbursal_obligations.push(obligation),
-                ObligationType::Interest => interest_obligations.push(obligation),
+            let data = obligation.into();
+            match data.obligation_type {
+                ObligationType::Disbursal => disbursal_obligations.push(data),
+                ObligationType::Interest => interest_obligations.push(data),
             }
         }
         disbursal_obligations.sort_by_key(|obligation| obligation.recorded_at);
@@ -130,7 +135,7 @@ mod test {
             account_to_be_debited_id: CalaAccountId::new(),
         }];
 
-        let new_allocations = allocator.allocate(obligations).unwrap();
+        let new_allocations = allocator.allocate(obligations.into_iter()).unwrap();
         assert_eq!(new_allocations.len(), 1);
     }
 
@@ -148,7 +153,7 @@ mod test {
             account_to_be_debited_id: CalaAccountId::new(),
         }];
 
-        let new_allocations = allocator.allocate(obligations).unwrap();
+        let new_allocations = allocator.allocate(obligations.into_iter()).unwrap();
         assert_eq!(new_allocations.len(), 1);
     }
 
@@ -175,7 +180,7 @@ mod test {
             },
         ];
 
-        let new_allocations = allocator.allocate(obligations).unwrap();
+        let new_allocations = allocator.allocate(obligations.into_iter()).unwrap();
         assert_eq!(new_allocations.len(), 2);
     }
 
@@ -202,7 +207,7 @@ mod test {
             },
         ];
 
-        let new_allocations = allocator.allocate(obligations).unwrap();
+        let new_allocations = allocator.allocate(obligations.into_iter()).unwrap();
 
         assert_eq!(new_allocations[0].amount, UsdCents::from(4));
         assert_eq!(new_allocations[1].amount, UsdCents::from(1));
@@ -231,7 +236,7 @@ mod test {
             },
         ];
 
-        assert!(allocator.allocate(obligations).is_err());
+        assert!(allocator.allocate(obligations.into_iter()).is_err());
     }
 
     #[test]
@@ -273,7 +278,7 @@ mod test {
             },
         ];
 
-        let new_allocations = allocator.allocate(obligations).unwrap();
+        let new_allocations = allocator.allocate(obligations.into_iter()).unwrap();
         assert_eq!(new_allocations.len(), 4);
 
         assert_eq!(new_allocations[0].amount, UsdCents::from(4));

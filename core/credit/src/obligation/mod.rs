@@ -1,6 +1,5 @@
 mod entity;
 pub mod error;
-mod facility_obligations;
 mod payment_allocator;
 mod repo;
 
@@ -22,7 +21,6 @@ use crate::{
 pub use entity::Obligation;
 pub(crate) use entity::*;
 use error::ObligationError;
-use facility_obligations::FacilityObligations;
 pub use payment_allocator::*;
 pub use repo::obligation_cursor;
 use repo::*;
@@ -121,8 +119,8 @@ where
     ) -> Result<PaymentAllocationResult, ObligationError> {
         let obligations = self.facility_obligations(credit_facility_id).await?;
 
-        let new_allocations = PaymentAllocator::new(payment_id, amount)
-            .allocate(obligations.data_for_allocation())?;
+        let new_allocations =
+            PaymentAllocator::new(payment_id, amount).allocate(obligations.iter())?;
 
         let now = crate::time::now();
         let mut updated_obligations = vec![];
@@ -172,7 +170,7 @@ where
     async fn facility_obligations(
         &self,
         credit_facility_id: CreditFacilityId,
-    ) -> Result<FacilityObligations, ObligationError> {
+    ) -> Result<Vec<Obligation>, ObligationError> {
         let mut obligations = vec![];
         let mut query = Default::default();
         loop {
@@ -194,7 +192,7 @@ where
             };
         }
 
-        Ok(FacilityObligations::new(credit_facility_id, obligations))
+        Ok(obligations)
     }
 }
 
