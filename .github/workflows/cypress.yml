@@ -15,9 +15,9 @@ jobs:
     name: Run Tests
     runs-on: Lana-Big-Runner
     steps:
+      - uses: actions/checkout@v4
       - uses: DeterminateSystems/nix-installer-action@v4
       - uses: DeterminateSystems/magic-nix-cache-action@v8
-      - uses: actions/checkout@v4
 
       - uses: actions/cache@v4
         with:
