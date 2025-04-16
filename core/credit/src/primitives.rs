@@ -1,3 +1,4 @@
+use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
 use std::str::FromStr;
@@ -53,6 +54,33 @@ impl From<ObligationType> for BalanceUpdatedType {
             ObligationType::Interest => Self::InterestAccrual,
         }
     }
+}
+
+#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
+pub enum BalanceUpdatedSource {
+    Obligation(ObligationId),
+    PaymentAllocation(PaymentAllocationId),
+}
+
+impl From<ObligationId> for BalanceUpdatedSource {
+    fn from(obligation_id: ObligationId) -> Self {
+        Self::Obligation(obligation_id)
+    }
+}
+
+impl From<PaymentAllocationId> for BalanceUpdatedSource {
+    fn from(allocation_id: PaymentAllocationId) -> Self {
+        Self::PaymentAllocation(allocation_id)
+    }
+}
+
+#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
+pub struct BalanceUpdateData {
+    pub source_id: BalanceUpdatedSource,
+    pub ledger_tx_id: LedgerTxId,
+    pub balance_type: ObligationType,
+    pub amount: UsdCents,
+    pub updated_at: DateTime<Utc>,
 }
 
 #[derive(Debug, Clone)]

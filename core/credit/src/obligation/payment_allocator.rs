@@ -82,6 +82,7 @@ impl PaymentAllocator {
         sorted_obligations.extend(interest_obligations);
         sorted_obligations.extend(disbursal_obligations);
 
+        let now = crate::time::now();
         let mut remaining = self.amount;
         let mut new_payment_allocations = vec![];
         for obligation in sorted_obligations {
@@ -98,6 +99,7 @@ impl PaymentAllocator {
                     .receivable_account_id(obligation.receivable_account_id)
                     .account_to_be_debited_id(obligation.account_to_be_debited_id)
                     .amount(payment_amount)
+                    .recorded_at(now)
                     .audit_info(audit_info.clone())
                     .build()
                     .expect("could not build new payment allocation"),

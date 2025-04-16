@@ -5,12 +5,7 @@ use serde::{Deserialize, Serialize};
 use audit::AuditInfo;
 use es_entity::*;
 
-use crate::{
-    primitives::{
-        CalaAccountId, LedgerTxId, ObligationId, ObligationType, PaymentAllocationId, UsdCents,
-    },
-    CreditFacilityId,
-};
+use crate::{primitives::*, CreditFacilityId};
 
 use super::error::ObligationError;
 
@@ -297,6 +292,16 @@ impl Obligation {
                 _ => None,
             })
             .unwrap_or(ObligationStatus::NotYetDue)
+    }
+
+    pub fn facility_balance_update_data(&self) -> BalanceUpdateData {
+        BalanceUpdateData {
+            source_id: self.id.into(),
+            ledger_tx_id: self.tx_id,
+            balance_type: self.obligation_type(),
+            amount: self.initial_amount,
+            updated_at: self.recorded_at,
+        }
     }
 
     fn is_not_yet_due(&self) -> bool {
