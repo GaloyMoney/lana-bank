@@ -1,4 +1,4 @@
-name: cypress
+name: Cypress
 
 on:
   pull_request:
@@ -12,7 +12,7 @@ concurrency:
 
 jobs:
   run-cypress-tests:
-    name: run tests
+    name: Run Tests
     runs-on: Lana-Big-Runner
     steps:
       - uses: DeterminateSystems/nix-installer-action@v4
@@ -51,7 +51,7 @@ jobs:
           path: apps/admin-panel/cypress/manuals/screenshots/*
 
   manual-generation:
-    name: manual pdfs / upload to lana-manuals
+    name: Generate and Upload Lana Manuals
     needs: run-cypress-tests
     runs-on: ubuntu-latest
     steps:

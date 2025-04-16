@@ -115,6 +115,7 @@ Cypress.Commands.add(
       .then((response) => {
         const customerId = response.data.customerCreate.customer.customerId
         return cy
+          .wait(1000) // to make sure deposit account is created
           .graphqlRequest<CustomerQueryResponse>(query, {
             id: customerId,
           })
