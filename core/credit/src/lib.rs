@@ -684,15 +684,10 @@ where
             .create_all_in_op(&mut db, res.allocations)
             .await?;
 
-        let now = crate::time::now();
         for allocation in &allocations {
             credit_facility
-                .update_balance_from_payment(
-                    allocation.id,
-                    allocation.ledger_tx_id,
-                    allocation.obligation_type,
-                    allocation.amount,
-                    now,
+                .update_balance(
+                    allocation.facility_balance_update_data(),
                     audit_info.clone(),
                 )
                 .did_execute();

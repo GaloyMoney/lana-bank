@@ -1,8 +1,8 @@
 use chrono::{DateTime, Utc};
 
-use crate::primitives::{BalanceUpdatedType, UsdCents};
+use crate::primitives::*;
 
-use super::{BalanceUpdatedSource, CreditFacilityEvent, CreditFacilityReceivable};
+use super::{CreditFacilityEvent, CreditFacilityReceivable};
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum RepaymentStatus {

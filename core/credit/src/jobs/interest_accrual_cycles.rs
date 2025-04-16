@@ -141,11 +141,8 @@ where
             .create_with_jobs_in_op(db, new_obligation)
             .await?;
         credit_facility
-            .update_balance_from_obligation(
-                obligation.id,
-                obligation.obligation_type(),
-                obligation.initial_amount,
-                obligation.recorded_at,
+            .update_balance(
+                obligation.facility_balance_update_data(),
                 audit_info.clone(),
             )
             .did_execute();
