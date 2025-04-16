@@ -51,6 +51,7 @@ pub enum CreditFacilityEvent {
         audit_info: AuditInfo,
     },
     BalanceUpdated {
+        ledger_tx_id: LedgerTxId,
         source: BalanceUpdatedSource,
         balance_type: BalanceUpdatedType,
         amount: UsdCents,
@@ -469,6 +470,7 @@ impl CreditFacility {
                 audit_info: audit_info.clone(),
             });
         self.events.push(CreditFacilityEvent::BalanceUpdated {
+            ledger_tx_id: new_obligation.tx_id,
             source: BalanceUpdatedSource::Obligation(new_obligation.id),
             balance_type: BalanceUpdatedType::InterestAccrual,
             amount: accrual_cycle_data.interest,
@@ -532,6 +534,7 @@ impl CreditFacility {
     pub(crate) fn update_balance_from_payment(
         &mut self,
         payment_allocation_id: PaymentAllocationId,
+        tx_id: LedgerTxId,
         balance_type: impl Into<BalanceUpdatedType>,
         amount: UsdCents,
         updated_at: DateTime<Utc>,
@@ -546,6 +549,7 @@ impl CreditFacility {
         );
 
         self.events.push(CreditFacilityEvent::BalanceUpdated {
+            ledger_tx_id: tx_id,
             source: BalanceUpdatedSource::PaymentAllocation(payment_allocation_id),
             balance_type: balance_type.into(),
             amount,
@@ -1106,6 +1110,7 @@ mod test {
                 audit_info: dummy_audit_info(),
             },
             CreditFacilityEvent::BalanceUpdated {
+                ledger_tx_id: LedgerTxId::new(),
                 source: BalanceUpdatedSource::Obligation(ObligationId::new()),
                 balance_type: BalanceUpdatedType::Disbursal,
                 amount: UsdCents::from(10),
@@ -1187,6 +1192,7 @@ mod test {
                 audit_info: dummy_audit_info(),
             },
             CreditFacilityEvent::BalanceUpdated {
+                ledger_tx_id: LedgerTxId::new(),
                 source: BalanceUpdatedSource::Obligation(disbursal_obligation_id),
                 balance_type: BalanceUpdatedType::Disbursal,
                 amount: disbursal_amount,

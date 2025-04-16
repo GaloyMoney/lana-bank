@@ -678,13 +678,19 @@ where
             .update_in_op(&mut db, &mut payment)
             .await?;
 
+        let allocations = self
+            .payment_allocation_repo
+            .create_all_in_op(&mut db, res.allocations)
+            .await?;
+
         let now = crate::time::now();
-        for new_allocation in &res.allocations {
+        for allocation in &allocations {
             credit_facility
                 .update_balance_from_payment(
-                    new_allocation.id,
-                    new_allocation.obligation_type,
-                    new_allocation.amount,
+                    allocation.id,
+                    allocation.ledger_tx_id,
+                    allocation.obligation_type,
+                    allocation.amount,
                     now,
                     audit_info.clone(),
                 )
@@ -692,10 +698,6 @@ where
         }
         self.credit_facility_repo
             .update_in_op(&mut db, &mut credit_facility)
-            .await?;
-        let allocations = self
-            .payment_allocation_repo
-            .create_all_in_op(&mut db, res.allocations)
             .await?;
 
         self.ledger

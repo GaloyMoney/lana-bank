@@ -437,14 +437,14 @@ pub struct NewObligation {
     #[builder(setter(into))]
     pub(crate) id: ObligationId,
     #[builder(setter(into))]
+    pub(crate) tx_id: LedgerTxId,
+    #[builder(setter(into))]
     pub(super) credit_facility_id: CreditFacilityId,
     pub(super) obligation_type: ObligationType,
     #[builder(setter(into))]
     pub(super) amount: UsdCents,
     #[builder(setter(strip_option), default)]
     reference: Option<String>,
-    #[builder(setter(into))]
-    pub(super) tx_id: LedgerTxId,
     not_yet_due_accounts: ObligationAccounts,
     due_accounts: ObligationAccounts,
     due_date: DateTime<Utc>,

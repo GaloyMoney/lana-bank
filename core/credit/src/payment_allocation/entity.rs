@@ -30,6 +30,8 @@ pub enum PaymentAllocationEvent {
 pub struct PaymentAllocation {
     pub id: PaymentAllocationId,
     pub obligation_id: ObligationId,
+    pub obligation_type: ObligationType,
+    pub ledger_tx_id: LedgerTxId,
     pub amount: UsdCents,
     pub account_to_be_debited_id: CalaAccountId,
     pub receivable_account_id: CalaAccountId,
@@ -47,6 +49,8 @@ impl TryFromEvents<PaymentAllocationEvent> for PaymentAllocation {
                 PaymentAllocationEvent::Initialized {
                     id,
                     obligation_id,
+                    obligation_type,
+                    ledger_tx_id,
                     amount,
                     account_to_be_debited_id,
                     receivable_account_id,
@@ -55,6 +59,8 @@ impl TryFromEvents<PaymentAllocationEvent> for PaymentAllocation {
                     builder = builder
                         .id(*id)
                         .obligation_id(*obligation_id)
+                        .obligation_type(*obligation_type)
+                        .ledger_tx_id(*ledger_tx_id)
                         .amount(*amount)
                         .account_to_be_debited_id(*account_to_be_debited_id)
                         .receivable_account_id(*receivable_account_id);
