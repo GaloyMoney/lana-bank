@@ -65,7 +65,6 @@ pub(super) fn project<'a>(
     events: impl DoubleEndedIterator<Item = &'a CreditFacilityEvent>,
 ) -> Vec<CreditFacilityHistoryEntry> {
     let mut history = vec![];
-    let mut disbursals = std::collections::HashMap::<ObligationId, LedgerTxId>::new();
     let mut interest_accruals_started_at = std::collections::HashMap::new();
     let mut interest_accruals = std::collections::HashMap::new();
 
@@ -145,15 +144,9 @@ pub(super) fn project<'a>(
                     },
                 ));
             }
-            // CreditFacilityEvent::DisbursalConcluded {
-            //     tx_id,
-            //     obligation_id: Some(obligation_id),
-            //     ..
-            // } => {
-            //     disbursals.insert(*obligation_id, *tx_id);
-            // }
             CreditFacilityEvent::BalanceUpdated {
-                source: BalanceUpdatedSource::Obligation(obligation_id),
+                ledger_tx_id,
+                source: BalanceUpdatedSource::Obligation(_),
                 balance_type: BalanceUpdatedType::Disbursal,
                 amount,
                 updated_at,
@@ -162,9 +155,7 @@ pub(super) fn project<'a>(
                 history.push(CreditFacilityHistoryEntry::Disbursal(DisbursalExecuted {
                     cents: *amount,
                     recorded_at: *updated_at,
-                    tx_id: disbursals
-                        .remove(obligation_id)
-                        .expect("ObligationId was not found"),
+                    tx_id: *ledger_tx_id,
                 }));
             }
             CreditFacilityEvent::InterestAccrualCycleStarted {
@@ -228,6 +219,7 @@ mod test {
     fn can_project_disbursal_balance_update() {
         let disbursal_amount = UsdCents::from(10_000_00);
         let events = vec![CreditFacilityEvent::BalanceUpdated {
+            ledger_tx_id: LedgerTxId::new(),
             source: BalanceUpdatedSource::Obligation(ObligationId::new()),
             balance_type: BalanceUpdatedType::Disbursal,
             amount: disbursal_amount,

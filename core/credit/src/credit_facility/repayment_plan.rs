@@ -249,6 +249,7 @@ mod tests {
             },
             CreditFacilityEvent::BalanceUpdated {
                 source: BalanceUpdatedSource::Obligation(disbursal_obligation_id),
+                ledger_tx_id: LedgerTxId::new(),
                 balance_type: BalanceUpdatedType::Disbursal,
                 amount: UsdCents::from(1000),
                 updated_at: Utc::now(),
@@ -262,6 +263,7 @@ mod tests {
             },
             CreditFacilityEvent::BalanceUpdated {
                 source: BalanceUpdatedSource::Obligation(interest_obligation_id),
+                ledger_tx_id: LedgerTxId::new(),
                 balance_type: BalanceUpdatedType::InterestAccrual,
                 amount: UsdCents::from(2),
                 updated_at: first_interest_posted_at,
@@ -269,6 +271,7 @@ mod tests {
             },
             CreditFacilityEvent::BalanceUpdated {
                 source: BalanceUpdatedSource::PaymentAllocation(PaymentAllocationId::new()),
+                ledger_tx_id: LedgerTxId::new(),
                 balance_type: BalanceUpdatedType::InterestAccrual,
                 amount: UsdCents::from(2),
                 updated_at: first_interest_posted_at,
@@ -301,6 +304,7 @@ mod tests {
             },
             CreditFacilityEvent::BalanceUpdated {
                 source: BalanceUpdatedSource::Obligation(disbursal_obligation_id),
+                ledger_tx_id: LedgerTxId::new(),
                 balance_type: BalanceUpdatedType::Disbursal,
                 amount: UsdCents::from(1000),
                 updated_at: Utc::now(),
@@ -418,6 +422,7 @@ mod tests {
             },
             CreditFacilityEvent::BalanceUpdated {
                 source: BalanceUpdatedSource::Obligation(obligation_id),
+                ledger_tx_id: LedgerTxId::new(),
                 balance_type: BalanceUpdatedType::InterestAccrual,
                 amount: UsdCents::from(12),
                 updated_at: second_interest_posted_at,
@@ -458,6 +463,7 @@ mod tests {
             },
             CreditFacilityEvent::BalanceUpdated {
                 source: BalanceUpdatedSource::Obligation(obligation_id),
+                ledger_tx_id: LedgerTxId::new(),
                 balance_type: BalanceUpdatedType::InterestAccrual,
                 amount: UsdCents::from(12),
                 updated_at: second_interest_posted_at,
@@ -465,6 +471,7 @@ mod tests {
             },
             CreditFacilityEvent::BalanceUpdated {
                 source: BalanceUpdatedSource::PaymentAllocation(PaymentAllocationId::new()),
+                ledger_tx_id: LedgerTxId::new(),
                 balance_type: BalanceUpdatedType::InterestAccrual,
                 amount: UsdCents::from(2),
                 updated_at: second_interest_posted_at,
@@ -497,6 +504,7 @@ mod tests {
         let disbursal_obligation_id = ObligationId::new();
         events.extend([CreditFacilityEvent::BalanceUpdated {
             source: BalanceUpdatedSource::Obligation(disbursal_obligation_id),
+            ledger_tx_id: LedgerTxId::new(),
             balance_type: BalanceUpdatedType::Disbursal,
             amount: UsdCents::from(2000),
             updated_at: second_disbursal_at,
@@ -540,6 +548,7 @@ mod tests {
             },
             CreditFacilityEvent::BalanceUpdated {
                 source: BalanceUpdatedSource::Obligation(second_obligation_id),
+                ledger_tx_id: LedgerTxId::new(),
                 balance_type: BalanceUpdatedType::InterestAccrual,
                 amount: UsdCents::from(12),
                 updated_at: second_interest_posted_at,
@@ -547,6 +556,7 @@ mod tests {
             },
             CreditFacilityEvent::BalanceUpdated {
                 source: BalanceUpdatedSource::PaymentAllocation(PaymentAllocationId::new()),
+                ledger_tx_id: LedgerTxId::new(),
                 balance_type: BalanceUpdatedType::InterestAccrual,
                 amount: UsdCents::from(12),
                 updated_at: second_interest_posted_at,
@@ -560,6 +570,7 @@ mod tests {
             },
             CreditFacilityEvent::BalanceUpdated {
                 source: BalanceUpdatedSource::Obligation(third_obligation_id),
+                ledger_tx_id: LedgerTxId::new(),
                 balance_type: BalanceUpdatedType::InterestAccrual,
                 amount: UsdCents::from(6),
                 updated_at: third_interest_posted_at,
@@ -567,6 +578,7 @@ mod tests {
             },
             CreditFacilityEvent::BalanceUpdated {
                 source: BalanceUpdatedSource::PaymentAllocation(PaymentAllocationId::new()),
+                ledger_tx_id: LedgerTxId::new(),
                 balance_type: BalanceUpdatedType::Disbursal,
                 amount: UsdCents::from(100),
                 updated_at: third_interest_posted_at,
@@ -574,6 +586,7 @@ mod tests {
             },
             CreditFacilityEvent::BalanceUpdated {
                 source: BalanceUpdatedSource::PaymentAllocation(PaymentAllocationId::new()),
+                ledger_tx_id: LedgerTxId::new(),
                 balance_type: BalanceUpdatedType::InterestAccrual,
                 amount: UsdCents::from(6),
                 updated_at: third_interest_posted_at,
@@ -619,6 +632,7 @@ mod tests {
             },
             CreditFacilityEvent::BalanceUpdated {
                 source: BalanceUpdatedSource::Obligation(second_obligation_id),
+                ledger_tx_id: LedgerTxId::new(),
                 balance_type: BalanceUpdatedType::InterestAccrual,
                 amount: UsdCents::from(12),
                 updated_at: second_interest_posted_at,
@@ -626,6 +640,7 @@ mod tests {
             },
             CreditFacilityEvent::BalanceUpdated {
                 source: BalanceUpdatedSource::PaymentAllocation(PaymentAllocationId::new()),
+                ledger_tx_id: LedgerTxId::new(),
                 balance_type: BalanceUpdatedType::InterestAccrual,
                 amount: UsdCents::from(12),
                 updated_at: second_interest_posted_at,
@@ -639,6 +654,7 @@ mod tests {
             },
             CreditFacilityEvent::BalanceUpdated {
                 source: BalanceUpdatedSource::Obligation(third_obligation_id),
+                ledger_tx_id: LedgerTxId::new(),
                 balance_type: BalanceUpdatedType::InterestAccrual,
                 amount: UsdCents::from(6),
                 updated_at: third_interest_posted_at,
@@ -646,6 +662,7 @@ mod tests {
             },
             CreditFacilityEvent::BalanceUpdated {
                 source: BalanceUpdatedSource::PaymentAllocation(PaymentAllocationId::new()),
+                ledger_tx_id: LedgerTxId::new(),
                 balance_type: BalanceUpdatedType::Disbursal,
                 amount: UsdCents::from(1000),
                 updated_at: third_interest_posted_at,
@@ -653,6 +670,7 @@ mod tests {
             },
             CreditFacilityEvent::BalanceUpdated {
                 source: BalanceUpdatedSource::PaymentAllocation(PaymentAllocationId::new()),
+                ledger_tx_id: LedgerTxId::new(),
                 balance_type: BalanceUpdatedType::InterestAccrual,
                 amount: UsdCents::from(6),
                 updated_at: third_interest_posted_at,
