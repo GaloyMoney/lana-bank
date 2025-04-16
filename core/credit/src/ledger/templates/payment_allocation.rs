@@ -104,7 +104,7 @@ impl RecordPaymentAllocation {
                 .account_id("params.account_to_be_debited_id")
                 .direction("DEBIT")
                 .layer("SETTLED")
-                .units("params.principal_amount + params.interest_amount")
+                .units("params.amount")
                 .build()
                 .expect("Couldn't build entry"),
             NewTxTemplateEntry::builder()
