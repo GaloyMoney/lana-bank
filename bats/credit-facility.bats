@@ -227,3 +227,35 @@ ymd() {
 
   # assert_accounts_balanced
 }
+
+@test "credit-facility: record payment" {
+  credit_facility_id=$(read_value 'credit_facility_id')
+
+  variables=$(
+    jq -n \
+      --arg creditFacilityId "$credit_facility_id" \
+    '{ id: $creditFacilityId }'
+  )
+  exec_admin_graphql 'find-credit-facility' "$variables"
+  outstanding=$(graphql_output '.data.creditFacility.balance.outstanding.usdBalance')
+
+  amount=25000
+  variables=$(
+    jq -n \
+      --arg creditFacilityId "$credit_facility_id" \
+      --argjson amount "$amount" \
+    '{
+      input: {
+        creditFacilityId: $creditFacilityId,
+        amount: $amount,
+      }
+    }'
+  )
+  exec_admin_graphql 'credit-facility-partial-payment' "$variables"
+  updated_outstanding=$(
+    graphql_output '.data.creditFacilityPartialPayment.creditFacility.balance.outstanding.usdBalance'
+  )
+  [[ "$updated_outstanding" -lt "$outstanding" ]] || exit 1
+
+  # assert_accounts_balanced
+}
