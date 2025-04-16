@@ -85,6 +85,16 @@ wait_for_accruals() {
   [[ "$num_accruals" == "$expected_num_accruals" ]] || exit 1
 }
 
+wait_for_dashboard_disbursed() {
+  before=$1
+
+  exec_admin_graphql 'dashboard'
+  after=$(graphql_output '.data.dashboard.totalDisbursed')
+
+  [[ "$after" -gt "$before" ]] || exit 1
+}
+
+
 ymd() {
   local date_value
   read -r date_value
@@ -165,6 +175,9 @@ ymd() {
 @test "credit-facility: can initiate disbursal" {
   credit_facility_id=$(read_value 'credit_facility_id')
 
+  exec_admin_graphql 'dashboard'
+  disbursed_before=$(graphql_output '.data.dashboard.totalDisbursed')
+
   amount=50000
   variables=$(
     jq -n \
@@ -182,6 +195,7 @@ ymd() {
   [[ "$disbursal_id" != "null" ]] || exit 1
 
   retry 10 1 wait_for_disbursal "$credit_facility_id"
+  retry 10 1 wait_for_dashboard_disbursed "$disbursed_before"
 }
 
 @test "credit-facility: records accrual" {
