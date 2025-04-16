@@ -88,6 +88,11 @@ cp tsconfig.json tsconfig.json.bak
 trap '[ -f tsconfig.json.bak ] && mv tsconfig.json.bak tsconfig.json' EXIT
 sed -i 's/"moduleResolution": *"bundler"/"moduleResolution": "node"/' tsconfig.json
 
+if [[ $CI == "true" ]]; then
+  echo "Installing Cypress binary if missing..."
+  pnpm exec cypress install
+fi
+
 echo "==================== Running cypress ===================="
 if [[ $EXECUTION_MODE == "ui" ]]; then
   nix develop -c pnpm run cypress:run-local
