@@ -652,6 +652,7 @@ where
             .id(PaymentId::new())
             .amount(amount)
             .credit_facility_id(credit_facility_id)
+            .audit_info(audit_info.clone())
             .build()
             .expect("could not build new payment");
         let mut payment = self.payment_repo.create_in_op(&mut db, new_payment).await?;
