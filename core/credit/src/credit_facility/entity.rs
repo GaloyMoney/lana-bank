@@ -560,6 +560,33 @@ impl CreditFacility {
         Idempotent::Executed(())
     }
 
+    pub(crate) fn update_balance_from_obligation(
+        &mut self,
+        obligation_id: ObligationId,
+        balance_type: impl Into<BalanceUpdatedType>,
+        amount: UsdCents,
+        updated_at: DateTime<Utc>,
+        audit_info: AuditInfo,
+    ) -> Idempotent<()> {
+        idempotency_guard!(
+            self.events.iter_all().rev(),
+            CreditFacilityEvent::BalanceUpdated {
+                source,
+                ..
+            } if *source == BalanceUpdatedSource::Obligation(obligation_id)
+        );
+
+        self.events.push(CreditFacilityEvent::BalanceUpdated {
+            source: BalanceUpdatedSource::Obligation(obligation_id),
+            balance_type: balance_type.into(),
+            amount,
+            updated_at,
+            audit_info,
+        });
+
+        Idempotent::Executed(())
+    }
+
     pub fn collateral(&self) -> Satoshis {
         self.events
             .iter_all()
