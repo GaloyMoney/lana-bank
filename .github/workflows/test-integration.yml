@@ -4,7 +4,7 @@ on:
   pull_request:
     branches:
       - main
-      - 'feature/**'
+      - "feature/**"
 
 jobs:
   integration:
@@ -16,10 +16,19 @@ jobs:
       - name: Run the Magic Nix Cache
         uses: DeterminateSystems/magic-nix-cache-action@v2
       - uses: actions/checkout@v3
-      - id: 'gcp-auth'
-        uses: 'google-github-actions/auth@v2'
+      - uses: actions/cache@v4
         with:
-          credentials_json: '${{ secrets.GOOGLE_CREDENTIALS }}'
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-
+      - id: "gcp-auth"
+        uses: "google-github-actions/auth@v2"
+        with:
+          credentials_json: "${{ secrets.GOOGLE_CREDENTIALS }}"
 
       - name: Run integration tests
         run: nix develop -c make test-in-ci
