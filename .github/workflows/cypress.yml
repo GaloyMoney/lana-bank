@@ -60,6 +60,13 @@ jobs:
           name: screenshots
           path: apps/admin-panel/cypress/manuals/screenshots/*
 
+      - name: upload cypress run videos
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: videos
+          path: apps/admin-panel/cypress/videos/*
+
   manual-generation:
     name: Generate and Upload Lana Manuals
     needs: run-cypress-tests
