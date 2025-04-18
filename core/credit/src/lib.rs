@@ -63,7 +63,7 @@ where
     credit_facility_repo: CreditFacilityRepo<E>,
     disbursal_repo: DisbursalRepo<E>,
     payment_repo: PaymentRepo,
-    payment_allocation_repo: PaymentAllocationRepo,
+    payment_allocation_repo: PaymentAllocationRepo<E>,
     governance: Governance<Perms, E>,
     customer: Customers<Perms, E>,
     ledger: CreditLedger,
@@ -131,7 +131,7 @@ where
         let disbursal_repo = DisbursalRepo::new(pool, &publisher);
         let obligations = Obligations::new(pool, authz, cala, jobs, &publisher);
         let payment_repo = PaymentRepo::new(pool);
-        let payment_allocation_repo = PaymentAllocationRepo::new(pool);
+        let payment_allocation_repo = PaymentAllocationRepo::new(pool, &publisher);
         let ledger = CreditLedger::init(cala, journal_id).await?;
         let approve_disbursal = ApproveDisbursal::new(
             &disbursal_repo,
