@@ -8,6 +8,7 @@ export const { getClient } = registerApolloClient(() => {
   const requestHeaders = Object.fromEntries(
     Array.from(headers()).map(([key, value]) => [key, value]),
   )
+  requestHeaders.cookie = headers().get("cookie") ?? "";
 
   return new ApolloClient({
     cache: new InMemoryCache(),

@@ -92,11 +92,11 @@
       config:
         claims: '{"aud": ["https://customer-api/graphql"], "subject": {{ print .Extra.subject | toJson }} }'
 
-
 - id: customer-portal-ui # apps/customer-portal
   upstream:
     url: http://dockerhost-alias:3002
     # strip_path: /app # nextjs base path will handle this
+    preserve_host: true
   match:
     url: <(http|https)>://<[a-zA-Z0-9-.:]+>/app<(?!\/sessions|\/self-service|\/graphql).*>
     methods: [ GET, POST, OPTIONS, PUT, DELETE, PATCH ]
