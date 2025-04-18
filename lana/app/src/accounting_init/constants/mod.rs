@@ -7,6 +7,4 @@ pub const TRIAL_BALANCE_STATEMENT_NAME: &str = "Trial Balance";
 
 pub const PROFIT_AND_LOSS_STATEMENT_NAME: &str = "Profit & Loss Statement";
 
-pub const CASH_FLOW_STATEMENT_NAME: &str = "Cash Flow Statement";
-
 pub const BALANCE_SHEET_NAME: &str = "Balance Sheet";

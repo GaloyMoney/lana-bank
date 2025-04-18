@@ -12,7 +12,6 @@ use crate::{
     applicant::Applicants,
     audit::{Audit, AuditCursor, AuditEntry},
     authorization::{init as init_authz, AppAction, AppObject, AuditAction, Authorization},
-    cash_flow::CashFlowStatements,
     credit::Credit,
     customer::Customers,
     customer_onboarding::CustomerOnboarding,
@@ -47,7 +46,6 @@ pub struct LanaApp {
     applicants: Applicants,
     users: Users,
     credit: Credit,
-    cash_flow_statements: CashFlowStatements,
     general_ledger: GeneralLedger,
     price: Price,
     report: Reports,
@@ -85,8 +83,6 @@ impl LanaApp {
             .expect("cala config");
         let cala = cala_ledger::CalaLedger::init(cala_config).await?;
         let journal_init = JournalInit::journal(&cala).await?;
-        let cash_flow_statements =
-            CashFlowStatements::init(&pool, &authz, &cala, journal_init.journal_id).await?;
         let accounting = Accounting::new(
             &pool,
             &authz,
@@ -100,7 +96,6 @@ impl LanaApp {
             accounting.trial_balances(),
             accounting.profit_and_loss(),
             accounting.balance_sheets(),
-            &cash_flow_statements,
         )
         .await?;
 
@@ -157,7 +152,6 @@ impl LanaApp {
             price,
             report,
             credit,
-            cash_flow_statements,
             general_ledger,
             terms_templates,
             documents,
@@ -226,10 +220,6 @@ impl LanaApp {
 
     pub fn credit(&self) -> &Credit {
         &self.credit
-    }
-
-    pub fn cash_flow_statements(&self) -> &CashFlowStatements {
-        &self.cash_flow_statements
     }
 
     pub fn general_ledger(&self) -> &GeneralLedger {

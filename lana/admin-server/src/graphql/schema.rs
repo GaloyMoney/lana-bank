@@ -4,8 +4,7 @@ use std::io::Read;
 
 use lana_app::{
     accounting_init::constants::{
-        BALANCE_SHEET_NAME, CASH_FLOW_STATEMENT_NAME, PROFIT_AND_LOSS_STATEMENT_NAME,
-        TRIAL_BALANCE_STATEMENT_NAME,
+        BALANCE_SHEET_NAME, PROFIT_AND_LOSS_STATEMENT_NAME, TRIAL_BALANCE_STATEMENT_NAME,
     },
     app::LanaApp,
 };
@@ -16,8 +15,8 @@ use super::{
     accounting::*, approval_process::*, audit::*, authenticated_subject::*,
     balance_sheet_config::*, chart_of_accounts::*, committee::*, credit_config::*,
     credit_facility::*, customer::*, dashboard::*, deposit::*, deposit_config::*, document::*,
-    financials::*, general_ledger::*, loader::*, policy::*, price::*, profit_and_loss_config::*,
-    report::*, sumsub::*, terms_template::*, user::*, withdrawal::*,
+    general_ledger::*, loader::*, policy::*, price::*, profit_and_loss_config::*, report::*,
+    sumsub::*, terms_template::*, user::*, withdrawal::*,
 };
 
 pub struct Query;
@@ -606,51 +605,6 @@ impl Query {
             )
             .await?;
         Ok(ProfitAndLossStatement::from(profit_and_loss))
-    }
-
-    async fn cash_flow_statement(
-        &self,
-        ctx: &Context<'_>,
-        from: Timestamp,
-        until: Option<Timestamp>,
-    ) -> async_graphql::Result<CashFlowStatement> {
-        let (app, sub) = app_and_sub_from_ctx!(ctx);
-        let cash_flow = app
-            .cash_flow_statements()
-            .cash_flow_statement(
-                sub,
-                CASH_FLOW_STATEMENT_NAME.to_string(),
-                from.into_inner(),
-                until.map(|t| t.into_inner()),
-            )
-            .await?;
-        Ok(CashFlowStatement::from(cash_flow))
-    }
-
-    #[allow(unused_variables)]
-    async fn account_set(
-        &self,
-        ctx: &Context<'_>,
-        account_set_id: UUID,
-        from: Timestamp,
-        until: Option<Timestamp>,
-    ) -> async_graphql::Result<Option<AccountSetAndSubAccounts>> {
-        unimplemented!()
-        // let (app, sub) = app_and_sub_from_ctx!(ctx);
-        // let account_set = app
-        //     .ledger()
-        //     .account_set_and_sub_accounts_with_balance(
-        //         sub,
-        //         uuid::Uuid::from(&account_set_id).into(),
-        //         0,
-        //         None,
-        //         from.into_inner(),
-        //         until.map(|t| t.into_inner()),
-        //     )
-        //     .await?;
-        // Ok(account_set.map(|a| {
-        // AccountSetAndSubAccounts::from((from.into_inner(), until.map(|t| t.into_inner()), a))
-        // }))
     }
 
     async fn realtime_price(&self, ctx: &Context<'_>) -> async_graphql::Result<RealtimePrice> {
@@ -1565,20 +1519,5 @@ impl Mutation {
         Ok(ProfitAndLossStatementModuleConfigurePayload::from(
             ProfitAndLossStatementModuleConfig::from(config),
         ))
-    }
-
-    #[allow(unused_variables)]
-    pub async fn shareholder_equity_add(
-        &self,
-        ctx: &Context<'_>,
-        input: ShareholderEquityAddInput,
-    ) -> async_graphql::Result<SuccessPayload> {
-        unimplemented!()
-        // let app = ctx.data_unchecked::<LanaApp>();
-        // Ok(SuccessPayload::from(
-        //     app.ledger()
-        //         .add_equity(input.amount, input.reference)
-        //         .await?,
-        // ))
     }
 }

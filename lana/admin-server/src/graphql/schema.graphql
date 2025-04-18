@@ -1,59 +1,4 @@
-type Account {
-	id: UUID!
-	name: String!
-	amounts: AccountAmountsByCurrency!
-}
-
-type AccountAmountsByCurrency {
-	btc: BtcAccountAmountsInPeriod!
-	usd: UsdAccountAmountsInPeriod!
-}
-
 scalar AccountCode
-
-type AccountSet {
-	id: UUID!
-	name: String!
-	amounts: AccountAmountsByCurrency!
-}
-
-type AccountSetAndSubAccounts {
-	id: UUID!
-	name: String!
-	amounts: AccountAmountsByCurrency!
-	subAccounts(first: Int!, after: String): AccountSetSubAccountConnection!
-}
-
-union AccountSetSubAccount = Account | AccountSet
-
-type AccountSetSubAccountConnection {
-	"""
-	Information to aid in pagination.
-	"""
-	pageInfo: PageInfo!
-	"""
-	A list of edges.
-	"""
-	edges: [AccountSetSubAccountEdge!]!
-	"""
-	A list of nodes.
-	"""
-	nodes: [AccountSetSubAccount!]!
-}
-
-"""
-An edge in a connection.
-"""
-type AccountSetSubAccountEdge {
-	"""
-	The item at the end of the edge
-	"""
-	node: AccountSetSubAccount!
-	"""
-	A cursor for use in pagination
-	"""
-	cursor: String!
-}
 
 enum AccountStatus {
 	INACTIVE
@@ -216,19 +161,6 @@ type BalanceSheetModuleConfigurePayload {
 }
 
 
-type BtcAccountAmountsInPeriod {
-	openingBalance: LayeredBtcAccountBalanceAmounts!
-	closingBalance: LayeredBtcAccountBalanceAmounts!
-	amount: LayeredBtcAccountBalanceAmounts!
-}
-
-type BtcAccountBalanceAmounts {
-	debit: Satoshis!
-	credit: Satoshis!
-	netDebit: SignedSatoshis!
-	netCredit: SignedSatoshis!
-}
-
 type BtcAmount {
 	btc: Satoshis!
 }
@@ -260,12 +192,6 @@ scalar CVLPct
 type CancelledWithdrawalEntry {
 	recordedAt: Timestamp!
 	withdrawal: Withdrawal!
-}
-
-type CashFlowStatement {
-	name: String!
-	total: AccountAmountsByCurrency!
-	categories: [StatementCategory!]!
 }
 
 type ChartNode {
@@ -1147,20 +1073,6 @@ enum Layer {
 	ENCUMBRANCE
 }
 
-type LayeredBtcAccountBalanceAmounts {
-	all: BtcAccountBalanceAmounts!
-	settled: BtcAccountBalanceAmounts!
-	pending: BtcAccountBalanceAmounts!
-	encumbrance: BtcAccountBalanceAmounts!
-}
-
-type LayeredUsdAccountBalanceAmounts {
-	all: UsdAccountBalanceAmounts!
-	settled: UsdAccountBalanceAmounts!
-	pending: UsdAccountBalanceAmounts!
-	encumbrance: UsdAccountBalanceAmounts!
-}
-
 type LedgerAccount {
 	id: UUID!
 	code: AccountCode
@@ -1294,7 +1206,6 @@ type Mutation {
 	chartOfAccountsCsvImport(input: ChartOfAccountsCsvImportInput!): ChartOfAccountsCsvImportPayload!
 	balanceSheetConfigure(input: BalanceSheetModuleConfigureInput!): BalanceSheetModuleConfigurePayload!
 	profitAndLossStatementConfigure(input: ProfitAndLossModuleConfigureInput!): ProfitAndLossStatementModuleConfigurePayload!
-	shareholderEquityAdd(input: ShareholderEquityAddInput!): SuccessPayload!
 }
 
 scalar OneTimeFeeRatePct
@@ -1440,8 +1351,6 @@ type Query {
 	chartOfAccounts: ChartOfAccounts!
 	balanceSheet(from: Timestamp!, until: Timestamp): BalanceSheet!
 	profitAndLossStatement(from: Timestamp!, until: Timestamp): ProfitAndLossStatement!
-	cashFlowStatement(from: Timestamp!, until: Timestamp): CashFlowStatement!
-	accountSet(accountSetId: UUID!, from: Timestamp!, until: Timestamp): AccountSetAndSubAccounts
 	realtimePrice: RealtimePrice!
 	report(id: UUID!): Report
 	reports: [Report!]!
@@ -1495,24 +1404,9 @@ enum Role {
 
 scalar Satoshis
 
-input ShareholderEquityAddInput {
-	amount: UsdCents!
-	reference: String!
-}
-
-scalar SignedSatoshis
-
-scalar SignedUsdCents
-
 enum SortDirection {
 	ASC
 	DESC
-}
-
-type StatementCategory {
-	name: String!
-	amounts: AccountAmountsByCurrency!
-	accounts: [AccountSetSubAccount!]!
 }
 
 
@@ -1522,10 +1416,6 @@ type Subject {
 	subjectCanCreateCustomer: Boolean!
 	subjectCanCreateUser: Boolean!
 	subjectCanCreateTermsTemplate: Boolean!
-}
-
-type SuccessPayload {
-	success: Boolean!
 }
 
 input SumsubPermalinkCreateInput {
@@ -1664,19 +1554,6 @@ type UnknownEntry {
 }
 
 scalar Upload
-
-type UsdAccountAmountsInPeriod {
-	openingBalance: LayeredUsdAccountBalanceAmounts!
-	closingBalance: LayeredUsdAccountBalanceAmounts!
-	amount: LayeredUsdAccountBalanceAmounts!
-}
-
-type UsdAccountBalanceAmounts {
-	debit: UsdCents!
-	credit: UsdCents!
-	netDebit: SignedUsdCents!
-	netCredit: SignedUsdCents!
-}
 
 type UsdAmount {
 	usd: UsdCents!

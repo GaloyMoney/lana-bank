@@ -18,6 +18,4 @@ pub enum AccountingInitError {
     ProfitAndLossStatementError(#[from] crate::profit_and_loss::error::ProfitAndLossStatementError),
     #[error("AccountingInitError - BalanceSheetError: {0}")]
     BalanceSheetError(#[from] crate::balance_sheet::error::BalanceSheetError),
-    #[error("AccountingInitError - CashFlowStatementError: {0}")]
-    CashFlowStatementError(#[from] crate::cash_flow::error::CashFlowStatementError),
 }

@@ -4,9 +4,8 @@ mod seed;
 pub mod error;
 
 use crate::{
-    accounting::ChartOfAccounts, balance_sheet::BalanceSheets, cash_flow::CashFlowStatements,
-    primitives::CalaJournalId, profit_and_loss::ProfitAndLossStatements,
-    trial_balance::TrialBalances,
+    accounting::ChartOfAccounts, balance_sheet::BalanceSheets, primitives::CalaJournalId,
+    profit_and_loss::ProfitAndLossStatements, trial_balance::TrialBalances,
 };
 
 use cala_ledger::CalaLedger;
@@ -31,15 +30,8 @@ impl StatementsInit {
         trial_balances: &TrialBalances,
         pl_statements: &ProfitAndLossStatements,
         balance_sheets: &BalanceSheets,
-        cash_flow_statements: &CashFlowStatements,
     ) -> Result<(), AccountingInitError> {
-        seed::statements::init(
-            trial_balances,
-            pl_statements,
-            balance_sheets,
-            cash_flow_statements,
-        )
-        .await?;
+        seed::statements::init(trial_balances, pl_statements, balance_sheets).await?;
         Ok(())
     }
 }
