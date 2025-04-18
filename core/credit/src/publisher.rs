@@ -8,7 +8,10 @@ use crate::{
     interest_accrual_cycle::{
         error::InterestAccrualCycleError, InterestAccrualCycle, InterestAccrualCycleEvent,
     },
-    primitives::BalanceUpdatedType,
+    payment_allocation::{
+        error::PaymentAllocationError, PaymentAllocation, PaymentAllocationEvent,
+    },
+    primitives::ObligationType,
 };
 
 pub struct CreditFacilityPublisher<E>
@@ -63,29 +66,6 @@ where
                     id: entity.id,
                     completed_at: *completed_at,
                 }),
-                BalanceUpdated {
-                    balance_type,
-                    amount,
-                    updated_at: recorded_in_ledger_at,
-                    ..
-                } => match balance_type {
-                    BalanceUpdatedType::Disbursal => {
-                        Some(CoreCreditEvent::FacilityRepaymentRecorded {
-                            id: entity.id,
-                            disbursal_amount: *amount,
-                            interest_amount: UsdCents::ZERO,
-                            recorded_at: *recorded_in_ledger_at,
-                        })
-                    }
-                    BalanceUpdatedType::InterestAccrual => {
-                        Some(CoreCreditEvent::FacilityRepaymentRecorded {
-                            id: entity.id,
-                            disbursal_amount: UsdCents::ZERO,
-                            interest_amount: *amount,
-                            recorded_at: *recorded_in_ledger_at,
-                        })
-                    }
-                },
                 CollateralUpdated {
                     total_collateral,
                     abs_diff,
@@ -166,6 +146,41 @@ where
                 }),
 
                 _ => None,
+            })
+            .collect::<Vec<_>>();
+        self.outbox
+            .publish_all_persisted(db.tx(), publish_events)
+            .await?;
+        Ok(())
+    }
+
+    pub async fn publish_payment_allocation(
+        &self,
+        db: &mut es_entity::DbOp<'_>,
+        entity: &PaymentAllocation,
+        new_events: es_entity::LastPersisted<'_, PaymentAllocationEvent>,
+    ) -> Result<(), PaymentAllocationError> {
+        use PaymentAllocationEvent::*;
+        let publish_events = new_events
+            .map(|event| match &event.event {
+                Initialized {
+                    obligation_type,
+                    amount,
+                    ..
+                } => match obligation_type {
+                    ObligationType::Disbursal => CoreCreditEvent::FacilityRepaymentRecorded {
+                        id: entity.credit_facility_id,
+                        disbursal_amount: *amount,
+                        interest_amount: UsdCents::ZERO,
+                        recorded_at: event.recorded_at,
+                    },
+                    ObligationType::Interest => CoreCreditEvent::FacilityRepaymentRecorded {
+                        id: entity.credit_facility_id,
+                        disbursal_amount: UsdCents::ZERO,
+                        interest_amount: *amount,
+                        recorded_at: event.recorded_at,
+                    },
+                },
             })
             .collect::<Vec<_>>();
         self.outbox
