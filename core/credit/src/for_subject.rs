@@ -13,7 +13,7 @@ where
     subject: &'a <<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
     authz: &'a Perms,
     credit_facilities: &'a CreditFacilityRepo<E>,
-    disbursals: &'a DisbursalRepo,
+    disbursals: &'a DisbursalRepo<E>,
     payments: &'a PaymentRepo,
     ledger: &'a CreditLedger,
 }
@@ -31,7 +31,7 @@ where
         customer_id: CustomerId,
         authz: &'a Perms,
         credit_facilities: &'a CreditFacilityRepo<E>,
-        disbursals: &'a DisbursalRepo,
+        disbursals: &'a DisbursalRepo<E>,
         payments: &'a PaymentRepo,
         ledger: &'a CreditLedger,
     ) -> Self {

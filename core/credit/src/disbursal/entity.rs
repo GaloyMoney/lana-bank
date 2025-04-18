@@ -34,6 +34,8 @@ pub enum DisbursalEvent {
     Settled {
         ledger_tx_id: LedgerTxId,
         obligation_id: ObligationId,
+        amount: UsdCents,
+        recorded_at: DateTime<Utc>,
         audit_info: AuditInfo,
     },
     Cancelled {
@@ -178,9 +180,12 @@ impl Disbursal {
     ) -> Idempotent<NewObligation> {
         idempotency_guard!(self.events.iter_all(), DisbursalEvent::Settled { .. });
         let obligation_id = ObligationId::new();
+        let now = crate::time::now();
         self.events.push(DisbursalEvent::Settled {
             ledger_tx_id: tx_id,
             obligation_id,
+            amount: self.amount,
+            recorded_at: now,
             audit_info: audit_info.clone(),
         });
 
@@ -210,7 +215,7 @@ impl Disbursal {
                 })
                 .due_date(self.disbursal_due_date)
                 .overdue_date(self.disbursal_due_date)
-                .recorded_at(crate::time::now())
+                .recorded_at(now)
                 .audit_info(audit_info)
                 .build()
                 .expect("could not build new disbursal obligation"),

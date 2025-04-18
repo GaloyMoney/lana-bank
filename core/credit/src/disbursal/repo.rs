@@ -1,12 +1,13 @@
 use sqlx::PgPool;
 
 use es_entity::*;
+use outbox::OutboxEventMarker;
 
-use crate::primitives::*;
+use crate::{event::CoreCreditEvent, primitives::*, publisher::CreditFacilityPublisher};
 
 use super::{entity::*, error::DisbursalError};
 
-#[derive(EsRepo, Clone)]
+#[derive(EsRepo)]
 #[es_repo(
     entity = "Disbursal",
     err = "DisbursalError",
@@ -21,15 +22,49 @@ use super::{entity::*, error::DisbursalError};
         approval_process_id(ty = "ApprovalProcessId", list_by, update(persist = "false")),
         concluded_tx_id(ty = "Option<LedgerTxId>", create(persist = false)),
     ),
-    tbl_prefix = "core"
+    tbl_prefix = "core",
+    post_persist_hook = "publish"
 )]
-pub struct DisbursalRepo {
+pub struct DisbursalRepo<E>
+where
+    E: OutboxEventMarker<CoreCreditEvent>,
+{
     pool: PgPool,
+    publisher: CreditFacilityPublisher<E>,
 }
 
-impl DisbursalRepo {
-    pub fn new(pool: &PgPool) -> Self {
-        Self { pool: pool.clone() }
+impl<E> Clone for DisbursalRepo<E>
+where
+    E: OutboxEventMarker<CoreCreditEvent>,
+{
+    fn clone(&self) -> Self {
+        Self {
+            pool: self.pool.clone(),
+            publisher: self.publisher.clone(),
+        }
+    }
+}
+
+impl<E> DisbursalRepo<E>
+where
+    E: OutboxEventMarker<CoreCreditEvent>,
+{
+    pub fn new(pool: &PgPool, publisher: &CreditFacilityPublisher<E>) -> Self {
+        Self {
+            pool: pool.clone(),
+            publisher: publisher.clone(),
+        }
+    }
+
+    async fn publish(
+        &self,
+        db: &mut es_entity::DbOp<'_>,
+        entity: &Disbursal,
+        new_events: es_entity::LastPersisted<'_, DisbursalEvent>,
+    ) -> Result<(), DisbursalError> {
+        self.publisher
+            .publish_disbursal(db, entity, new_events)
+            .await
     }
 }
 

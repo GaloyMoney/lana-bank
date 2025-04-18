@@ -61,7 +61,7 @@ where
 {
     authz: Perms,
     credit_facility_repo: CreditFacilityRepo<E>,
-    disbursal_repo: DisbursalRepo,
+    disbursal_repo: DisbursalRepo<E>,
     payment_repo: PaymentRepo,
     payment_allocation_repo: PaymentAllocationRepo,
     governance: Governance<Perms, E>,
@@ -128,7 +128,7 @@ where
     ) -> Result<Self, CoreCreditError> {
         let publisher = CreditFacilityPublisher::new(outbox);
         let credit_facility_repo = CreditFacilityRepo::new(pool, &publisher);
-        let disbursal_repo = DisbursalRepo::new(pool);
+        let disbursal_repo = DisbursalRepo::new(pool, &publisher);
         let obligations = Obligations::new(pool, authz, cala, jobs, &publisher);
         let payment_repo = PaymentRepo::new(pool);
         let payment_allocation_repo = PaymentAllocationRepo::new(pool);

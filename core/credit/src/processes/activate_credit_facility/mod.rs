@@ -28,7 +28,7 @@ where
 {
     obligations: Obligations<Perms, E>,
     credit_facility_repo: CreditFacilityRepo<E>,
-    disbursal_repo: DisbursalRepo,
+    disbursal_repo: DisbursalRepo<E>,
     ledger: CreditLedger,
     price: Price,
     jobs: Jobs,
@@ -62,7 +62,7 @@ where
     pub fn new(
         obligations: &Obligations<Perms, E>,
         credit_facility_repo: &CreditFacilityRepo<E>,
-        disbursal_repo: &DisbursalRepo,
+        disbursal_repo: &DisbursalRepo<E>,
         ledger: &CreditLedger,
         price: &Price,
         jobs: &Jobs,

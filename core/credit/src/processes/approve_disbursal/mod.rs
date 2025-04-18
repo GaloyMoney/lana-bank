@@ -27,7 +27,7 @@ where
     Perms: PermissionCheck,
     E: OutboxEventMarker<GovernanceEvent> + OutboxEventMarker<CoreCreditEvent>,
 {
-    disbursal_repo: DisbursalRepo,
+    disbursal_repo: DisbursalRepo<E>,
     obligations: Obligations<Perms, E>,
     credit_facility_repo: CreditFacilityRepo<E>,
     jobs: Jobs,
@@ -64,7 +64,7 @@ where
     E: OutboxEventMarker<GovernanceEvent> + OutboxEventMarker<CoreCreditEvent>,
 {
     pub fn new(
-        disbursal_repo: &DisbursalRepo,
+        disbursal_repo: &DisbursalRepo<E>,
         obligations: &Obligations<Perms, E>,
         credit_facility_repo: &CreditFacilityRepo<E>,
         jobs: &Jobs,
