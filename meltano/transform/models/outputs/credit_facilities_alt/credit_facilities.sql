@@ -9,6 +9,8 @@ select
     lax_int64(parsed_event.terms.annual_rate) / 100 as terms_annual_rate,
     json_value(parsed_event.terms.duration.type) as terms_duration_type,
     lax_int64(parsed_event.terms.duration.value) as terms_duration_value,
+    json_value(parsed_event.terms.interest_due_duration.type) as terms_interest_due_duration_type,
+    lax_int64(parsed_event.terms.interest_due_duration.value) as terms_interest_due_duration_value,
     json_value(parsed_event.terms.accrual_interval.type) as terms_accrual_interval_type,
     lax_int64(parsed_event.terms.initial_cvl) / 100 as terms_initial_cvl,
     lax_int64(parsed_event.terms.liquidation_cvl) / 100 as terms_liquidation_cvl,

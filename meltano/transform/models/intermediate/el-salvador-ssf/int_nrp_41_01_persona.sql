@@ -1,5 +1,4 @@
-
- --TODO: business onboarding
+--TODO: business onboarding
 
 select
 
@@ -75,4 +74,4 @@ select
     el_salvador_municipality as `distrito_residencia`
 
 from {{ ref('int_customers') }}
-join {{ ref('int_customer_identities') }} using (customer_id)
+inner join {{ ref('int_customer_identities') }} using (customer_id)
