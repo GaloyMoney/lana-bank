@@ -19,12 +19,6 @@ use super::{
     repayment_plan,
 };
 
-#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
-pub enum BalanceUpdatedSource {
-    Obligation(ObligationId),
-    PaymentAllocation(PaymentAllocationId),
-}
-
 #[allow(clippy::large_enum_variant)]
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
@@ -531,13 +525,15 @@ impl CreditFacility {
         }
     }
 
-    pub(crate) fn update_balance_from_payment(
+    pub(crate) fn update_balance(
         &mut self,
-        payment_allocation_id: PaymentAllocationId,
-        tx_id: LedgerTxId,
-        balance_type: impl Into<BalanceUpdatedType>,
-        amount: UsdCents,
-        updated_at: DateTime<Utc>,
+        BalanceUpdateData {
+            source_id,
+            ledger_tx_id,
+            balance_type,
+            amount,
+            updated_at,
+        }: BalanceUpdateData,
         audit_info: AuditInfo,
     ) -> Idempotent<()> {
         idempotency_guard!(
@@ -545,12 +541,12 @@ impl CreditFacility {
             CreditFacilityEvent::BalanceUpdated {
                 source,
                 ..
-            } if *source == BalanceUpdatedSource::PaymentAllocation(payment_allocation_id)
+            } if *source == source_id
         );
 
         self.events.push(CreditFacilityEvent::BalanceUpdated {
-            ledger_tx_id: tx_id,
-            source: BalanceUpdatedSource::PaymentAllocation(payment_allocation_id),
+            source: source_id,
+            ledger_tx_id,
             balance_type: balance_type.into(),
             amount,
             updated_at,

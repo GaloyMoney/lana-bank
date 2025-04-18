@@ -2,7 +2,7 @@ use chrono::{DateTime, Utc};
 
 use crate::{primitives::*, terms::CollateralizationState};
 
-use super::{BalanceUpdatedSource, CreditFacilityEvent};
+use super::CreditFacilityEvent;
 
 #[derive(Debug)]
 pub struct IncrementalPayment {
