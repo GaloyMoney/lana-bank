@@ -43,6 +43,7 @@
       "auditLogs": "Audit Logs",
       "committees": "Committees",
       "chartOfAccounts": "Chart of Accounts",
+      "ledgerAccount": "Ledger Account",
       "journal": "Journal",
       "users": "Users",
       "balanceSheet": "Balance Sheet",
@@ -1446,6 +1447,14 @@
       "credit": "Credit",
       "amount": "Amount",
       "ledgerAccount": "Ledger Account"
+    },
+    "form": {
+      "labels": {
+        "transaction": "Search Transaction"
+      },
+      "placeholders": {
+        "transaction": "Transaction ID or Code"
+      }
     }
   },
   "ManualTransactions": {

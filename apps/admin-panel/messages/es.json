@@ -43,6 +43,7 @@
       "auditLogs": "Registros de Auditoría",
       "committees": "Comités",
       "chartOfAccounts": "Plan de Cuentas",
+      "ledgerAccount": "Cuenta del Libro Mayor",
       "journal": "Diario",
       "users": "Usuarios",
       "balanceSheet": "Balance General",
@@ -1446,6 +1447,14 @@
       "credit": "Crédito",
       "amount": "Monto",
       "ledgerAccount": "Cuenta del libro mayor"
+    },
+    "form": {
+      "labels": {
+        "transaction": "Busqueda de Transacciones"
+      },
+      "placeholders": {
+        "transaction": "Codigo o Referencia de la Transacción"
+      }
     }
   },
   "ManualTransactions": {
