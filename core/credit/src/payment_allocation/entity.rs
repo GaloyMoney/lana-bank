@@ -32,6 +32,7 @@ pub struct PaymentAllocation {
     pub id: PaymentAllocationId,
     pub obligation_id: ObligationId,
     pub obligation_type: ObligationType,
+    pub credit_facility_id: CreditFacilityId,
     pub ledger_tx_id: LedgerTxId,
     pub amount: UsdCents,
     pub account_to_be_debited_id: CalaAccountId,
@@ -52,6 +53,7 @@ impl TryFromEvents<PaymentAllocationEvent> for PaymentAllocation {
                     id,
                     obligation_id,
                     obligation_type,
+                    credit_facility_id,
                     ledger_tx_id,
                     amount,
                     account_to_be_debited_id,
@@ -63,6 +65,7 @@ impl TryFromEvents<PaymentAllocationEvent> for PaymentAllocation {
                         .id(*id)
                         .obligation_id(*obligation_id)
                         .obligation_type(*obligation_type)
+                        .credit_facility_id(*credit_facility_id)
                         .ledger_tx_id(*ledger_tx_id)
                         .amount(*amount)
                         .account_to_be_debited_id(*account_to_be_debited_id)
