@@ -113,29 +113,17 @@ where
         self.repo.find_by_id(id).await
     }
 
-    pub async fn allocate_payment_in_op(
+    pub async fn allocate_payment(
         &self,
-        db: &mut es_entity::DbOp<'_>,
         credit_facility_id: CreditFacilityId,
         payment_id: PaymentId,
         amount: UsdCents,
         audit_info: AuditInfo,
     ) -> Result<PaymentAllocationResult, ObligationError> {
-        let mut obligations = self.facility_obligations(credit_facility_id).await?;
+        let obligations = self.facility_obligations(credit_facility_id).await?;
 
         let new_allocations = PaymentAllocator::new(credit_facility_id, payment_id, amount)
             .allocate(obligations.values(), &audit_info)?;
-
-        for allocation in new_allocations.iter() {
-            let obligation = obligations
-                .get_mut(&allocation.obligation_id)
-                .expect("obligation not found");
-            obligation
-                .record_payment(allocation.id, allocation.amount, audit_info.clone())
-                .did_execute();
-
-            self.repo.update_in_op(db, obligation).await?;
-        }
 
         Ok(PaymentAllocationResult::new(new_allocations))
     }

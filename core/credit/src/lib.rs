@@ -659,13 +659,7 @@ where
 
         let res = self
             .obligations
-            .allocate_payment_in_op(
-                &mut db,
-                credit_facility_id,
-                payment.id,
-                amount,
-                audit_info.clone(),
-            )
+            .allocate_payment(credit_facility_id, payment.id, amount, audit_info.clone())
             .await?;
 
         payment
