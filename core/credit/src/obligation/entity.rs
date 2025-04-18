@@ -103,12 +103,6 @@ pub enum ObligationEvent {
         tx_id: LedgerTxId,
         audit_info: AuditInfo,
     },
-    // TODO: Remove and find from PaymentAllocation entities
-    PaymentRecorded {
-        payment_allocation_id: PaymentAllocationId,
-        amount: UsdCents,
-        audit_info: AuditInfo,
-    },
     Completed {
         completed_at: DateTime<Utc>,
         audit_info: AuditInfo,
@@ -368,33 +362,6 @@ impl Obligation {
 
         Ok(Idempotent::Executed(res))
     }
-
-    pub(crate) fn record_payment(
-        &mut self,
-        payment_allocation_id: PaymentAllocationId,
-        amount: UsdCents,
-        audit_info: AuditInfo,
-    ) -> Idempotent<()> {
-        idempotency_guard!(
-            self.events.iter_all().rev(),
-            ObligationEvent::PaymentRecorded {
-                payment_allocation_id: id_from_event,
-                ..
-            } if payment_allocation_id == *id_from_event
-        );
-
-        if self.is_not_yet_due() || self.is_completed() || amount.is_zero() {
-            return Idempotent::Ignored;
-        }
-
-        self.events.push(ObligationEvent::PaymentRecorded {
-            payment_allocation_id,
-            amount,
-            audit_info: audit_info.clone(),
-        });
-
-        Idempotent::Executed(())
-    }
 }
 
 impl TryFromEvents<ObligationEvent> for Obligation {
@@ -421,7 +388,6 @@ impl TryFromEvents<ObligationEvent> for Obligation {
                 }
                 ObligationEvent::DueRecorded { .. } => (),
                 ObligationEvent::OverdueRecorded { .. } => (),
-                ObligationEvent::PaymentRecorded { .. } => (),
                 ObligationEvent::Completed { .. } => (),
             }
         }
