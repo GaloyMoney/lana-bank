@@ -46,7 +46,7 @@ where
     publisher: CreditFacilityPublisher<E>,
 
     #[es_repo(nested)]
-    interest_accruals: InterestAccrualRepo,
+    interest_accruals: InterestAccrualRepo<E>,
 }
 
 impl<E> Clone for CreditFacilityRepo<E>
@@ -67,7 +67,7 @@ where
     E: OutboxEventMarker<CoreCreditEvent>,
 {
     pub fn new(pool: &PgPool, publisher: &CreditFacilityPublisher<E>) -> Self {
-        let interest_accruals = InterestAccrualRepo::new(pool);
+        let interest_accruals = InterestAccrualRepo::new(pool, publisher);
         Self {
             pool: pool.clone(),
             publisher: publisher.clone(),
@@ -87,7 +87,7 @@ where
     }
 }
 
-#[derive(EsRepo, Clone)]
+#[derive(EsRepo)]
 #[es_repo(
     entity = "InterestAccrualCycle",
     err = "InterestAccrualCycleError",
@@ -95,15 +95,49 @@ where
         credit_facility_id(ty = "CreditFacilityId", update(persist = false), list_for, parent),
         idx(ty = "InterestAccrualCycleIdx", update(persist = false), list_by),
     ),
-    tbl_prefix = "core"
+    tbl_prefix = "core",
+    post_persist_hook = "publish"
 )]
-pub(super) struct InterestAccrualRepo {
+pub(super) struct InterestAccrualRepo<E>
+where
+    E: OutboxEventMarker<CoreCreditEvent>,
+{
     pool: PgPool,
+    publisher: CreditFacilityPublisher<E>,
 }
 
-impl InterestAccrualRepo {
-    pub fn new(pool: &PgPool) -> Self {
-        Self { pool: pool.clone() }
+impl<E> Clone for InterestAccrualRepo<E>
+where
+    E: OutboxEventMarker<CoreCreditEvent>,
+{
+    fn clone(&self) -> Self {
+        Self {
+            pool: self.pool.clone(),
+            publisher: self.publisher.clone(),
+        }
+    }
+}
+
+impl<E> InterestAccrualRepo<E>
+where
+    E: OutboxEventMarker<CoreCreditEvent>,
+{
+    pub fn new(pool: &PgPool, publisher: &CreditFacilityPublisher<E>) -> Self {
+        Self {
+            pool: pool.clone(),
+            publisher: publisher.clone(),
+        }
+    }
+
+    async fn publish(
+        &self,
+        db: &mut es_entity::DbOp<'_>,
+        entity: &InterestAccrualCycle,
+        new_events: es_entity::LastPersisted<'_, InterestAccrualCycleEvent>,
+    ) -> Result<(), InterestAccrualCycleError> {
+        self.publisher
+            .publish_interest_accrual_cycle(db, entity, new_events)
+            .await
     }
 }
 
