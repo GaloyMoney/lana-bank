@@ -66,9 +66,9 @@ export type CreditFacility = {
   creditFacilityTerms: TermValues;
   currentCvl: FacilityCvl;
   disbursals: Array<CreditFacilityDisbursal>;
+  maturesAt?: Maybe<Scalars['Timestamp']['output']>;
   facilityAmount: Scalars['UsdCents']['output'];
   id: Scalars['ID']['output'];
-  maturesAt?: Maybe<Scalars['Timestamp']['output']>;
   repaymentPlan: Array<CreditFacilityRepaymentInPlan>;
   status: CreditFacilityStatus;
   transactions: Array<CreditFacilityHistoryEntry>;
@@ -223,7 +223,6 @@ export type DepositAccount = {
   id: Scalars['ID']['output'];
   withdrawals: Array<Withdrawal>;
 };
-
 
 export type DepositAccountHistoryArgs = {
   after?: InputMaybe<Scalars['String']['input']>;
