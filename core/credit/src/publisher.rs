@@ -3,10 +3,12 @@ use outbox::{Outbox, OutboxEventMarker};
 
 use crate::{
     credit_facility::{error::CreditFacilityError, CreditFacility, CreditFacilityEvent},
+    disbursal::{error::DisbursalError, Disbursal, DisbursalEvent},
     event::*,
-    obligation::{error::ObligationError, Obligation, ObligationEvent},
-    primitives::ObligationType,
-    BalanceUpdatedType,
+    interest_accrual_cycle::{
+        error::InterestAccrualCycleError, InterestAccrualCycle, InterestAccrualCycleEvent,
+    },
+    primitives::BalanceUpdatedType,
 };
 
 pub struct CreditFacilityPublisher<E>
@@ -118,29 +120,50 @@ where
         Ok(())
     }
 
-    pub async fn publish_obligation(
+    pub async fn publish_disbursal(
         &self,
         db: &mut es_entity::DbOp<'_>,
-        entity: &Obligation,
-        new_events: es_entity::LastPersisted<'_, ObligationEvent>,
-    ) -> Result<(), ObligationError> {
-        use ObligationEvent::*;
+        entity: &Disbursal,
+        new_events: es_entity::LastPersisted<'_, DisbursalEvent>,
+    ) -> Result<(), DisbursalError> {
+        use DisbursalEvent::*;
         let publish_events = new_events
             .filter_map(|event| match &event.event {
-                Initialized {
-                    obligation_type, ..
-                } => match obligation_type {
-                    ObligationType::Disbursal => Some(CoreCreditEvent::DisbursalExecuted {
-                        id: entity.credit_facility_id,
-                        amount: entity.initial_amount,
-                        recorded_at: entity.recorded_at,
-                    }),
-                    ObligationType::Interest => Some(CoreCreditEvent::AccrualExecuted {
-                        id: entity.credit_facility_id,
-                        amount: entity.initial_amount,
-                        posted_at: entity.recorded_at,
-                    }),
-                },
+                Settled {
+                    amount,
+                    recorded_at,
+                    ..
+                } => Some(CoreCreditEvent::DisbursalExecuted {
+                    id: entity.facility_id,
+                    amount: *amount,
+                    recorded_at: *recorded_at,
+                }),
+
+                _ => None,
+            })
+            .collect::<Vec<_>>();
+        self.outbox
+            .publish_all_persisted(db.tx(), publish_events)
+            .await?;
+        Ok(())
+    }
+
+    pub async fn publish_interest_accrual_cycle(
+        &self,
+        db: &mut es_entity::DbOp<'_>,
+        entity: &InterestAccrualCycle,
+        new_events: es_entity::LastPersisted<'_, InterestAccrualCycleEvent>,
+    ) -> Result<(), InterestAccrualCycleError> {
+        use InterestAccrualCycleEvent::*;
+        let publish_events = new_events
+            .filter_map(|event| match &event.event {
+                InterestAccrualsPosted {
+                    total, posted_at, ..
+                } => Some(CoreCreditEvent::AccrualExecuted {
+                    id: entity.credit_facility_id,
+                    amount: *total,
+                    posted_at: *posted_at,
+                }),
 
                 _ => None,
             })
