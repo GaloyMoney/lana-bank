@@ -36,7 +36,7 @@ members = [
 # sim-time = { git = "https://github.com/galoymoney/cala.git", branch = "main" }
 # cala-ledger = { git = "https://github.com/galoymoney/cala.git", branch = "main" }
 es-entity = "0.4.4"
-sim-time = "0.4.4"
+sim-time = "0.4.5"
 cala-ledger = "0.4.4"
 
 anyhow = "1.0.98"
