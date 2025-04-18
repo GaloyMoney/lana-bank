@@ -224,6 +224,7 @@ export type DepositAccount = {
   withdrawals: Array<Withdrawal>;
 };
 
+
 export type DepositAccountHistoryArgs = {
   after?: InputMaybe<Scalars['String']['input']>;
   first: Scalars['Int']['input'];
