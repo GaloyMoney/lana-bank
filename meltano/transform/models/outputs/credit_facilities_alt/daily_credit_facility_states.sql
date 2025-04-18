@@ -116,7 +116,17 @@ joined as (
 
     from {{ ref('int_days') }}
     full join active_days using (day)
-    full join {{ ref('int_credit_facility_disbursals') }} using (credit_facility_id, day)
+    full join (
+        select
+            credit_facility_id,
+            date(recorded_at) as day,
+            sum(disbursal_amount_usd) as disbursal_amount_usd,
+            count(distinct disbursal_idx) as n_disbursals,
+            sum(approved_disbursal_amount_usd) as approved_disbursal_amount_usd,
+            sum(case when approved then 1 else 0 end) as approved_n_disbursals
+        from {{ ref('int_credit_facility_disbursals') }}
+        group by credit_facility_id, day
+    ) using (credit_facility_id, day)
     full join payments using (credit_facility_id, day)
     full join interest using (credit_facility_id, day)
     full join {{ ref('int_credit_facility_collateral') }} using (credit_facility_id, day)
