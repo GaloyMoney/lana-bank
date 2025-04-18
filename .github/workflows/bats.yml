@@ -23,10 +23,6 @@ jobs:
           key: ${{ runner.os }}-cargo-gha-${{ hashFiles('**/Cargo.lock') }}
           restore-keys: |
             ${{ runner.os }}-cargo-gha-
-      - id: "gcp-auth"
-        uses: "google-github-actions/auth@v2"
-        with:
-          credentials_json: "${{ secrets.GOOGLE_CREDENTIALS }}"
       - name: Run e2e tests
         run: nix develop -c make e2e
         env:

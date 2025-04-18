@@ -29,10 +29,6 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-cargo-
 
-      - uses: "google-github-actions/auth@v2"
-        with:
-          credentials_json: "${{ secrets.GOOGLE_CREDENTIALS }}"
-
       - name: build backend
         run: nix develop -c make build-for-tests
 
