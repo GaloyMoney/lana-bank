@@ -7,8 +7,8 @@ pub use lana_app::{
     primitives::{
         ApprovalProcessId, ChartId, CommitteeId, CreditFacilityId, CustomerId, DepositAccountId,
         DepositId, DisbursalId, DisbursalStatus, DocumentId, LanaRole, LedgerTransactionId,
-        ManualTransactionId, PaymentId, PolicyId, ReportId, ReportProgress, Satoshis,
-        SignedSatoshis, SignedUsdCents, Subject, TermsTemplateId, UsdCents, UserId, WithdrawalId,
+        ManualTransactionId, PaymentId, PolicyId, ReportId, ReportProgress, Satoshis, Subject,
+        TermsTemplateId, UsdCents, UserId, WithdrawalId,
     },
     terms::CollateralizationState,
 };
