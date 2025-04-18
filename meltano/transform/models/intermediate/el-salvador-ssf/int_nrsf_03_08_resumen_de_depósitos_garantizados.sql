@@ -27,12 +27,7 @@ final as (
 
 select
     7060 as `Correlativo`,
-    left(replace(customer_id, '-', ''), 14) as `NIU`,
-    split(first_name, ' ')[safe_offset(0)] as `Primer Nombre`,
-    split(first_name, ' ')[safe_offset(1)] as `Segundo Nombre`,
     cast(null as string) as `Tercer Nombre`,
-    split(last_name, ' ')[safe_offset(0)] as `Primer Apellido`,
-    split(last_name, ' ')[safe_offset(1)] as `Segundo Apellido`,
     married_name as `Apellido de casada`,
     cast(null as string) as `Razón social`,
     'DUI' as `Código del Documento`,
@@ -40,6 +35,11 @@ select
     7060.0 as `Total de cuentas`,
     7060 as `Saldo de capital`,
     0.0 as `Saldo de intereses`,
-    7060 as `Saldo garantizado`
+    7060 as `Saldo garantizado`,
+    left(replace(customer_id, '-', ''), 14) as `NIU`,
+    split(first_name, ' ')[safe_offset(0)] as `Primer Nombre`,
+    split(first_name, ' ')[safe_offset(1)] as `Segundo Nombre`,
+    split(last_name, ' ')[safe_offset(0)] as `Primer Apellido`,
+    split(last_name, ' ')[safe_offset(1)] as `Segundo Apellido`
 from
     final

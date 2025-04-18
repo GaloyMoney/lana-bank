@@ -32,6 +32,6 @@ final as (
 
 select
     left(replace(customer_id, '-', ''), 14) as `NIU`,
-    left(replace(upper(deposit_account_id), '-', ''), 20) as `Número de cuenta`,
+    left(replace(upper(deposit_account_id), '-', ''), 20) as `Número de cuenta`
 from
     final

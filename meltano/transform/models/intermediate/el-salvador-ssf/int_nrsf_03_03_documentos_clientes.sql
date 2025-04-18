@@ -38,8 +38,8 @@ final as (
 
 
 select
-    left(replace(customer_id, '-', ''), 14) as `NIU`,
     `Código del Documento`,
-    `Número de documento`
+    `Número de documento`,
+    left(replace(customer_id, '-', ''), 14) as `NIU`
 from
     final

@@ -32,8 +32,8 @@ final as (
 
 
 select
-    left(replace(upper(deposit_account_id), '-', ''), 20) as `Número de la cuenta`,
     0 as `Monto de ajuste`,
-    'TODO' as `Detalle del ajuste`
+    'TODO' as `Detalle del ajuste`,
+    left(replace(upper(deposit_account_id), '-', ''), 20) as `Número de la cuenta`
 from
     final
