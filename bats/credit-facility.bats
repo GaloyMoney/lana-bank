@@ -87,11 +87,14 @@ wait_for_accruals() {
 
 wait_for_dashboard_disbursed() {
   before=$1
+  disbursed_amount=$2
+
+  expected_after="$(echo $before + $disbursed_amount | bc)"
 
   exec_admin_graphql 'dashboard'
   after=$(graphql_output '.data.dashboard.totalDisbursed')
 
-  [[ "$after" -gt "$before" ]] || exit 1
+  [[ "$after" -eq "$expected_after" ]] || exit 1
 }
 
 
@@ -195,7 +198,7 @@ ymd() {
   [[ "$disbursal_id" != "null" ]] || exit 1
 
   retry 10 1 wait_for_disbursal "$credit_facility_id"
-  retry 10 1 wait_for_dashboard_disbursed "$disbursed_before"
+  retry 10 1 wait_for_dashboard_disbursed "$disbursed_before" "$amount"
 }
 
 @test "credit-facility: records accrual" {

@@ -126,18 +126,6 @@ where
         let new_allocations = PaymentAllocator::new(credit_facility_id, payment_id, amount)
             .allocate(obligations.values(), &audit_info)?;
 
-        let now = crate::time::now();
-        for allocation in new_allocations.iter() {
-            let obligation = obligations
-                .get_mut(&allocation.obligation_id)
-                .expect("obligation not found");
-            obligation
-                .record_payment(allocation.id, allocation.amount, now, audit_info.clone())
-                .did_execute();
-
-            self.repo.update_in_op(db, obligation).await?;
-        }
-
         Ok(PaymentAllocationResult::new(new_allocations))
     }
 
