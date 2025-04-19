@@ -66,7 +66,7 @@ const LedgerAccountStory = () => {
 }
 
 const meta: Meta = {
-  title: "Pages/ChartOfAccounts/LedgerAccountDetails",
+  title: "Pages/LedgerAccounts/LedgerAccountDetails",
   component: LedgerAccountStory,
   parameters: { layout: "fullscreen", nextjs: { appDirectory: true } },
 }
@@ -78,7 +78,7 @@ export const Default: Story = {
   parameters: {
     nextjs: {
       navigation: {
-        pathname: `/chart-of-accounts/${ledgerAccountCode}`,
+        pathname: `/ledger-account/${ledgerAccountCode}`,
       },
     },
   },
@@ -128,7 +128,7 @@ export const Loading: Story = {
   parameters: {
     nextjs: {
       navigation: {
-        pathname: `/chart-of-accounts/${ledgerAccountCode}`,
+        pathname: `/ledger-account/${ledgerAccountCode}`,
       },
     },
   },
