@@ -1,0 +1,19 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "generate-es-reports"
+version = "0.1.0"
+description = "Meltano utility plugin to generate regulatory and upload to GCS"
+authors = [{ name = "Jose Rojas Echenique", email = "jir@galoy.io" }]
+requires-python = ">=3.8"
+dependencies = [
+  "google-cloud-bigquery>=3.0.0,<4.0.0",
+  "google-cloud-storage>=2.0.0,<3.0.0",
+  "dicttoxml>=1.7.0,<2.1.0"
+]
+
+# Define console script entry point for the plugin CLI
+[scripts]
+bigquery-to-xml = "bigquery_to_xml:main"
