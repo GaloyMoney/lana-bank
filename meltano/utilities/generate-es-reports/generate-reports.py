@@ -5,6 +5,10 @@ from dicttoxml import dicttoxml
 
 def main():
     # Read configuration from environment
+    required_envs = ["BQ_PROJECT", "BQ_DATASET", "BQ_TABLE", "GCS_BUCKET"]
+    missing = [var for var in required_envs if not os.getenv(var)]
+    if missing:
+        raise RuntimeError(f"Missing required environment variables: {', '.join(missing)}")
     project_id = os.getenv("BQ_PROJECT")
     dataset = os.getenv("BQ_DATASET")
     table = os.getenv("BQ_TABLE")
@@ -21,7 +25,7 @@ def main():
     field_names = [field.name for field in query_job.schema]  # get column names from job schema
     rows_data = [{name: row[name] for name in field_names} for row in rows]
 
-    # Convert to XML string with custom root "<rows>" and without type attributes&#8203;:contentReference[oaicite:6]{index=6}&#8203;:contentReference[oaicite:7]{index=7}
+    # Convert to XML string with custom root "<rows>" and without type attributes
     xml_bytes = dicttoxml(rows_data, custom_root='rows', item_root='row', attr_type=False)
     xml_content = xml_bytes.decode('utf-8')
 
@@ -29,7 +33,7 @@ def main():
     date_str = datetime.now().strftime("%Y-%m-%d")
     blob_path = f"reports/{date_str}/{report_name}.xml"
 
-    # Upload the XML report to GCS&#8203;:contentReference[oaicite:8]{index=8}
+    # Upload the XML report to GCS
     storage_client = storage.Client(project=project_id)  # uses env credentials
     bucket = storage_client.bucket(bucket_name)
     blob = bucket.blob(blob_path)

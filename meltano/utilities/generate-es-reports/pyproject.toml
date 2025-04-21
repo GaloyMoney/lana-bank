@@ -14,6 +14,5 @@ dependencies = [
   "dicttoxml>=1.7.0,<2.1.0"
 ]
 
-# Define console script entry point for the plugin CLI
-[scripts]
-bigquery-to-xml = "bigquery_to_xml:main"
+[project.scripts]
+generate-reports = "generate-reports:main"
