@@ -37,7 +37,11 @@ jobs:
         run: nix develop -c make build-for-tests
 
       - name: keep tilt running
-        run: nix develop -c make tilt-in-ci
+        uses: nick-fields/retry@v3
+        with:
+          timeout_minutes: 30
+          max_attempts: 3
+          command: nix develop -c make tilt-in-ci
         env:
           GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
           TF_VAR_sa_creds: ${{ secrets.GOOGLE_SA_BASE64 }}
