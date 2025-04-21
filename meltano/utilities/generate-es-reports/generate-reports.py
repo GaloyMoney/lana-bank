@@ -5,13 +5,13 @@ from dicttoxml import dicttoxml
 
 def main():
     # Read configuration from environment
-    required_envs = ["BQ_PROJECT", "TARGET_BIGQUERY_DATASET", "BQ_TABLE", "GCS_BUCKET"]
+    required_envs = ["TARGET_BIGQUERY_PROJECT", "TARGET_BIGQUERY_DATASET", "TARGET_BIGQUERY_TABLE", "GCS_BUCKET"]
     missing = [var for var in required_envs if not os.getenv(var)]
     if missing:
         raise RuntimeError(f"Missing required environment variables: {', '.join(missing)}")
-    project_id = os.getenv("BQ_PROJECT")
+    project_id = os.getenv("TARGET_BIGQUERY_PROJECT")
     dataset = os.getenv("TARGET_BIGQUERY_DATASET")
-    table = os.getenv("BQ_TABLE")
+    table = os.getenv("TARGET_BIGQUERY_TABLE")
     bucket_name = os.getenv("GCS_BUCKET")
     report_name = os.getenv("REPORT_NAME", "report")  # default to "report" if not provided
 
