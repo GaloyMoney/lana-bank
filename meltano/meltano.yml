@@ -134,8 +134,8 @@ plugins:
     - name: TARGET_BIGQUERY_TABLE
       env: TARGET_BIGQUERY_TABLE
       value: report_table
-    - name: GCS_BUCKET
-      env: GCS_BUCKET
+    - name: DOCS_BUCKET
+      env: DOCS_BUCKET
       value: lana-reports-bucket
     - name: REPORT_NAME
       env: REPORT_NAME
