@@ -2,6 +2,7 @@ import os
 from datetime import datetime
 from google.cloud import bigquery, storage
 from dicttoxml import dicttoxml
+from google.oauth2 import service_account
 
 def main():
     # Read configuration from environment
@@ -15,12 +16,18 @@ def main():
     bucket_name = os.getenv("DOCS_BUCKET_NAME")
     report_name = os.getenv("REPORT_NAME", "report")  # default to "report" if not provided
 
-    # Initialize BigQuery client (credentials via environment) and run query
-    bq_client = bigquery.Client(project=project_id)  # project optional if credentials provide a default
+    # Use DBT_BIGQUERY_KEYFILE for authentication
+    keyfile = os.getenv("DBT_BIGQUERY_KEYFILE")
+    if not keyfile or not os.path.isfile(keyfile):
+        raise RuntimeError("DBT_BIGQUERY_KEYFILE environment variable must be set to the path of a valid service account JSON file.")
+    credentials = service_account.Credentials.from_service_account_file(keyfile)
+
+    # Initialize BigQuery client with credentials and run query
+    bq_client = bigquery.Client(project=project_id, credentials=credentials)
     query = f"SELECT * FROM `{project_id}.{dataset}.{table}`;"
     query_job = bq_client.query(query)
     rows = query_job.result()  # Wait for query to complete and get an iterator of rows
-    
+
     # Convert query results to a list of dicts for XML conversion
     field_names = [field.name for field in query_job.schema]  # get column names from job schema
     rows_data = [{name: row[name] for name in field_names} for row in rows]
@@ -34,7 +41,7 @@ def main():
     blob_path = f"reports/{date_str}/{report_name}.xml"
 
     # Upload the XML report to GCS
-    storage_client = storage.Client(project=project_id)  # uses env credentials
+    storage_client = storage.Client(project=project_id, credentials=credentials)
     bucket = storage_client.bucket(bucket_name)
     blob = bucket.blob(blob_path)
     blob.upload_from_string(xml_content, content_type="text/xml")

@@ -140,3 +140,6 @@ plugins:
     - name: REPORT_NAME
       env: REPORT_NAME
       value: report
+    - name: DBT_BIGQUERY_KEYFILE
+      env: DBT_BIGQUERY_KEYFILE
+      value: "${DBT_BIGQUERY_KEYFILE}"
