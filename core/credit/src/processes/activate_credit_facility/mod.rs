@@ -155,9 +155,6 @@ where
         self.disbursal_repo
             .update_in_op(&mut db, &mut disbursal)
             .await?;
-        self.credit_facility_repo
-            .update_in_op(&mut db, &mut credit_facility)
-            .await?;
 
         let accrual_id = credit_facility
             .interest_accrual_cycle_in_progress()
