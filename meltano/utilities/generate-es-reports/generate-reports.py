@@ -10,7 +10,6 @@ def main():
     required_envs = [
         "DBT_BIGQUERY_PROJECT",
         "DBT_BIGQUERY_DATASET",
-        "DBT_BIGQUERY_TABLE",
         "DOCS_BUCKET_NAME",
     ]
     missing = [var for var in required_envs if not os.getenv(var)]
@@ -20,11 +19,7 @@ def main():
         )
     project_id = os.getenv("DBT_BIGQUERY_PROJECT")
     dataset = os.getenv("DBT_BIGQUERY_DATASET")
-    table = os.getenv("DBT_BIGQUERY_TABLE")
     bucket_name = os.getenv("DOCS_BUCKET_NAME")
-    report_name = os.getenv(
-        "REPORT_NAME", "report"
-    )  # default to "report" if not provided
 
     # Use DBT_BIGQUERY_KEYFILE for authentication
     keyfile = os.getenv("DBT_BIGQUERY_KEYFILE")
@@ -34,35 +29,31 @@ def main():
         )
     credentials = service_account.Credentials.from_service_account_file(keyfile)
 
-    # Initialize BigQuery client with credentials and run query
+    # Initialize BigQuery client with credentials
     bq_client = bigquery.Client(project=project_id, credentials=credentials)
-    query = f"SELECT * FROM `{project_id}.{dataset}.{table}`;"
-    query_job = bq_client.query(query)
-    rows = query_job.result()  # Wait for query to complete and get an iterator of rows
 
-    # Convert query results to a list of dicts for XML conversion
-    field_names = [
-        field.name for field in query_job.schema
-    ]  # get column names from job schema
-    rows_data = [{name: row[name] for name in field_names} for row in rows]
-
-    # Convert to XML string with custom root "<rows>" and without type attributes
-    xml_bytes = dicttoxml(
-        rows_data, custom_root="rows", item_root="row", attr_type=False
-    )
-    xml_content = xml_bytes.decode("utf-8")
-
-    # Determine file path in GCS: reports/YYYY-MM-DD/report_name.xml
-    date_str = datetime.now().strftime("%Y-%m-%d")
-    blob_path = f"reports/{date_str}/{report_name}.xml"
-
-    # Upload the XML report to GCS
-    storage_client = storage.Client(project=project_id, credentials=credentials)
-    bucket = storage_client.bucket(bucket_name)
-    blob = bucket.blob(blob_path)
-    blob.upload_from_string(xml_content, content_type="text/xml")
-
-    print(f"Uploaded XML report to gs://{bucket_name}/{blob_path}")
+    # List all tables in the dataset and process those starting with "report_"
+    tables_iter = bq_client.list_tables(dataset)
+    for table in tables_iter:
+        if not table.table_id.startswith("report_"):
+            continue
+        report_name = table.table_id
+        query = f"SELECT * FROM `{project_id}.{dataset}.{report_name}`;"
+        query_job = bq_client.query(query)
+        rows = query_job.result()
+        field_names = [field.name for field in query_job.schema]
+        rows_data = [{name: row[name] for name in field_names} for row in rows]
+        xml_bytes = dicttoxml(
+            rows_data, custom_root="rows", item_root="row", attr_type=False
+        )
+        xml_content = xml_bytes.decode("utf-8")
+        date_str = datetime.now().strftime("%Y-%m-%d")
+        blob_path = f"reports/{date_str}/{report_name}.xml"
+        storage_client = storage.Client(project=project_id, credentials=credentials)
+        bucket = storage_client.bucket(bucket_name)
+        blob = bucket.blob(blob_path)
+        blob.upload_from_string(xml_content, content_type="text/xml")
+        print(f"Uploaded XML report to gs://{bucket_name}/{blob_path}")
 
 
 # If this script is run as __main__, execute main()
