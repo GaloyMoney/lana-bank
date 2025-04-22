@@ -8,6 +8,11 @@ pkgs.mkShell {
     pkgs.python310Packages.wheel
     pkgs.python310Packages.black
     pkgs.ruff
+
+    pkgs.python310Packages.google_cloud_bigquery
+    pkgs.python310Packages.google_cloud_storage
+    pkgs.python310Packages.dicttoxml
+    pkgs.python310Packages.google_auth
   ];
 
   shellHook = ''
