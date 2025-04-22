@@ -4,22 +4,34 @@ from google.cloud import bigquery, storage
 from dicttoxml import dicttoxml
 from google.oauth2 import service_account
 
+
 def main():
     # Read configuration from environment
-    required_envs = ["DBT_BIGQUERY_PROJECT", "DBT_BIGQUERY_DATASET", "DBT_BIGQUERY_TABLE", "DOCS_BUCKET_NAME"]
+    required_envs = [
+        "DBT_BIGQUERY_PROJECT",
+        "DBT_BIGQUERY_DATASET",
+        "DBT_BIGQUERY_TABLE",
+        "DOCS_BUCKET_NAME",
+    ]
     missing = [var for var in required_envs if not os.getenv(var)]
     if missing:
-        raise RuntimeError(f"Missing required environment variables: {', '.join(missing)}")
+        raise RuntimeError(
+            f"Missing required environment variables: {', '.join(missing)}"
+        )
     project_id = os.getenv("DBT_BIGQUERY_PROJECT")
     dataset = os.getenv("DBT_BIGQUERY_DATASET")
     table = os.getenv("DBT_BIGQUERY_TABLE")
     bucket_name = os.getenv("DOCS_BUCKET_NAME")
-    report_name = os.getenv("REPORT_NAME", "report")  # default to "report" if not provided
+    report_name = os.getenv(
+        "REPORT_NAME", "report"
+    )  # default to "report" if not provided
 
     # Use DBT_BIGQUERY_KEYFILE for authentication
     keyfile = os.getenv("DBT_BIGQUERY_KEYFILE")
     if not keyfile or not os.path.isfile(keyfile):
-        raise RuntimeError("DBT_BIGQUERY_KEYFILE environment variable must be set to the path of a valid service account JSON file.")
+        raise RuntimeError(
+            "DBT_BIGQUERY_KEYFILE environment variable must be set to the path of a valid service account JSON file."
+        )
     credentials = service_account.Credentials.from_service_account_file(keyfile)
 
     # Initialize BigQuery client with credentials and run query
@@ -29,12 +41,16 @@ def main():
     rows = query_job.result()  # Wait for query to complete and get an iterator of rows
 
     # Convert query results to a list of dicts for XML conversion
-    field_names = [field.name for field in query_job.schema]  # get column names from job schema
+    field_names = [
+        field.name for field in query_job.schema
+    ]  # get column names from job schema
     rows_data = [{name: row[name] for name in field_names} for row in rows]
 
     # Convert to XML string with custom root "<rows>" and without type attributes
-    xml_bytes = dicttoxml(rows_data, custom_root='rows', item_root='row', attr_type=False)
-    xml_content = xml_bytes.decode('utf-8')
+    xml_bytes = dicttoxml(
+        rows_data, custom_root="rows", item_root="row", attr_type=False
+    )
+    xml_content = xml_bytes.decode("utf-8")
 
     # Determine file path in GCS: reports/YYYY-MM-DD/report_name.xml
     date_str = datetime.now().strftime("%Y-%m-%d")
@@ -47,6 +63,7 @@ def main():
     blob.upload_from_string(xml_content, content_type="text/xml")
 
     print(f"Uploaded XML report to gs://{bucket_name}/{blob_path}")
+
 
 # If this script is run as __main__, execute main()
 if __name__ == "__main__":
