@@ -1,7 +1,7 @@
 [project]
 name = "generate-es-reports"
 version = "0.1.0"
-description = "Meltano utility plugin to generate regulatory and upload to GCS"
+description = "Meltano utility plugin to generate regulatory reports and upload to GCS"
 readme = "README.md"
 authors = [{ name = "Jose Rojas Echenique", email = "jir@galoy.io" }]
 keywords = [
@@ -14,20 +14,16 @@ classifiers = [
     "Intended Audience :: Developers",
     "License :: OSI Approved :: Apache Software License",
     "Operating System :: OS Independent",
-    "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
 ]
 license = "Apache-2.0"
 license-files = [ "LICENSE" ]
 requires-python = ">=3.8"
-dependencies = [
-  "google-cloud-bigquery>=3.0.0,<4.0.0",
-  "google-cloud-storage>=2.0.0,<3.0.0",
-  "dicttoxml>=1.7.0,<2.1.0"
-]
+dynamic = ["dependencies"]
 
 [tool.poetry]
 
@@ -36,38 +32,9 @@ google-cloud-bigquery = ">=3.0.0,<4.0.0"
 google-cloud-storage = ">=2.0.0,<3.0.0"
 dicttoxml = ">=1.7.0,<2.1.0"
 
-[tool.poetry.group.dev.dependencies]
-pytest = ">=8"
-black = "^25.1.0"
-pylint = "^3.3.4"
-
-[tool.pytest.ini_options]
-addopts = [
-    "--durations=10",
-]
-
-[tool.mypy]
-python_version = "3.8"
-warn_unused_configs = true
-
-[tool.ruff]
-target-version = "py38"
-
-[tool.ruff.lint]
-ignore = [
-    "COM812",  # missing-trailing-comma
-]
-select = ["ALL"]
-
-[tool.ruff.lint.flake8-annotations]
-allow-star-arg-any = true
-
-[tool.ruff.lint.pydocstyle]
-convention = "google"
-
 [build-system]
 requires = ["poetry-core>=2,<3"]
 build-backend = "poetry.core.masonry.api"
 
-[project.scripts]
+[tool.poetry.scripts]
 generate-reports = "generate-reports:main"
