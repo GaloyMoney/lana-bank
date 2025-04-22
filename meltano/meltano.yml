@@ -130,16 +130,7 @@ plugins:
       value: lana-dev-440721
     - name: DBT_BIGQUERY_DATASET
       env: DBT_BIGQUERY_DATASET
-      value: "${USER}_dataset"
-    - name: DBT_BIGQUERY_TABLE
-      env: DBT_BIGQUERY_TABLE
-      value: report_table
     - name: DOCS_BUCKET_NAME
       env: DOCS_BUCKET_NAME
-      value: "${DOCS_BUCKET_NAME}"
-    - name: REPORT_NAME
-      env: REPORT_NAME
-      value: report
     - name: DBT_BIGQUERY_KEYFILE
       env: DBT_BIGQUERY_KEYFILE
-      value: "${DBT_BIGQUERY_KEYFILE}"
