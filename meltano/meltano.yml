@@ -134,9 +134,9 @@ plugins:
     - name: DBT_BIGQUERY_TABLE
       env: DBT_BIGQUERY_TABLE
       value: report_table
-    - name: DOCS_BUCKET
-      env: DOCS_BUCKET
-      value: lana-reports-bucket
+    - name: DOCS_BUCKET_NAME
+      env: DOCS_BUCKET_NAME
+      value: "${DOCS_BUCKET_NAME}"
     - name: REPORT_NAME
       env: REPORT_NAME
       value: report
