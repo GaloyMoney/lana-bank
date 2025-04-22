@@ -125,14 +125,14 @@ plugins:
     pip_url: -e utilities/generate-es-reports
     executable: generate-reports
     settings:
-    - name: TARGET_BIGQUERY_PROJECT
-      env: TARGET_BIGQUERY_PROJECT
+    - name: DBT_BIGQUERY_PROJECT
+      env: DBT_BIGQUERY_PROJECT
       value: lana-dev-440721
-    - name: TARGET_BIGQUERY_DATASET
-      env: TARGET_BIGQUERY_DATASET
+    - name: DBT_BIGQUERY_DATASET
+      env: DBT_BIGQUERY_DATASET
       value: "${USER}_dataset"
-    - name: TARGET_BIGQUERY_TABLE
-      env: TARGET_BIGQUERY_TABLE
+    - name: DBT_BIGQUERY_TABLE
+      env: DBT_BIGQUERY_TABLE
       value: report_table
     - name: DOCS_BUCKET
       env: DOCS_BUCKET
