@@ -12,6 +12,5 @@ pkgs.mkShell {
 
   shellHook = ''
     export PYTHONPATH=$PWD:$PYTHONPATH
-    echo "Run 'black .' to format and 'ruff .' to lint."
   '';
 }
