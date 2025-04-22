@@ -31,3 +31,9 @@ tmp/
 i18n.cache
 
 .DS_Store
+
+dev/parsed_events/
+docs/slidev/
+docs/output/
+
+dev/dag/output/*

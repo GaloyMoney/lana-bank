@@ -1,4 +1,4 @@
 packages:
   - "apps/*"
-  - "lib/js/*"
   - "package.json"
+  - "dev/dag/*"
