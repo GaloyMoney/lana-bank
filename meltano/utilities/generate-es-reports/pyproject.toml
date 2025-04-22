@@ -28,9 +28,12 @@ dynamic = ["dependencies"]
 [tool.poetry]
 
 [tool.poetry.dependencies]
-google-cloud-bigquery = ">=3.0.0,<4.0.0"
-google-cloud-storage = ">=2.0.0,<3.0.0"
-dicttoxml = ">=1.7.0,<2.1.0"
+python = ">=3.8,<4.0"
+google-cloud-bigquery = "^3.17.2"
+google-cloud-storage = "^2.16.0"
+dicttoxml = "^1.7.16"
+google-auth = "^2.29.0"
+google-auth-oauthlib = "^1.2.0"
 
 [build-system]
 requires = ["poetry-core>=2,<3"]
