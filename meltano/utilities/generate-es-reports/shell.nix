@@ -2,17 +2,17 @@
 
 pkgs.mkShell {
   buildInputs = [
-    pkgs.python310
-    pkgs.python310Packages.pip
-    pkgs.python310Packages.setuptools
-    pkgs.python310Packages.wheel
-    pkgs.python310Packages.black
-    pkgs.ruff
+    pkgs.python311
+    pkgs.python311Packages.pip
+    pkgs.python311Packages.setuptools
+    pkgs.python311Packages.wheel
+    pkgs.python311Packages.black
+    pkgs.python311Packages.google-cloud-bigquery
+    pkgs.python311Packages.google-cloud-storage
+    pkgs.python311Packages.dicttoxml
+    pkgs.python311Packages.google-auth
 
-    pkgs.python310Packages.google_cloud_bigquery
-    pkgs.python310Packages.google_cloud_storage
-    pkgs.python310Packages.dicttoxml
-    pkgs.python310Packages.google_auth
+    pkgs.ruff
   ];
 
   shellHook = ''
