@@ -18,13 +18,13 @@ import {
 } from "@lana/web/ui/card"
 
 export default function LedgerAccount() {
-  const t = useTranslations("LedgerTransaction")
+  const t = useTranslations("LedgerAccounts")
   const router = useRouter()
-  const [transactionId, setTransactionId] = useState("")
+  const [accountId, setAccountId] = useState("")
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    router.push(`/ledger-account/${transactionId}`)
+    router.push(`/ledger-account/${accountId}`)
   }
   return (
     <Card>
@@ -34,20 +34,20 @@ export default function LedgerAccount() {
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit}>
-          <Label htmlFor="ledger-transactions">{t("form.labels.transaction")}</Label>
+          <Label htmlFor="ledger-accounts">{t("form.labels.accountSearch")}</Label>
           <div className="flex flex-wrap md:flex-nowrap">
             <Input
-              id="ledger-transactions"
+              id="ledger-accounts"
               type="string"
               className="mr-2"
-              value={transactionId}
+              value={accountId}
               onChange={(e) => {
                 const { value } = e.target
-                setTransactionId(value)
+                setAccountId(value)
               }}
               required
-              placeholder={t("form.placeholders.transaction")}
-              data-testid="search-ledger-transaction"
+              placeholder={t("form.placeholders.accountSearch")}
+              data-testid="search-ledger-accounts"
             />
             <Button type="submit" className="mt-2 md:mt-0">
               Search

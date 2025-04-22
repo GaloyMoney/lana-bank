@@ -1447,13 +1447,17 @@
       "credit": "Credit",
       "amount": "Amount",
       "ledgerAccount": "Ledger Account"
-    },
+    }
+  },
+  "LedgerAccounts": {
+    "title": "Ledger Accounts",
+    "description": "Accounts with entries in the ledger",
     "form": {
       "labels": {
-        "transaction": "Search Transaction"
+        "accountSearch": "Search Accounts"
       },
       "placeholders": {
-        "transaction": "Transaction ID or Code"
+        "accountSearch": "Ledger Account ID"
       }
     }
   },

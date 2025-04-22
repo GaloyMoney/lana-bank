@@ -1447,13 +1447,17 @@
       "credit": "Crédito",
       "amount": "Monto",
       "ledgerAccount": "Cuenta del libro mayor"
-    },
+    }
+  },
+  "LedgerAccounts": {
+    "title": "Cuentas del Libro Mayor",
+    "description": "Cuentas con entradas en el libro mayor",
     "form": {
       "labels": {
-        "transaction": "Busqueda de Transacciones"
+        "accountSearch": "Busqueda de Cuentas"
       },
       "placeholders": {
-        "transaction": "Codigo o Referencia de la Transacción"
+        "accountSearch": "ID de Cuenta del Libro Mayor"
       }
     }
   },
