@@ -1330,7 +1330,7 @@ impl CreditLedger {
         obligation: Obligation,
     ) -> Result<(), CreditLedgerError> {
         let interest_receivable_account_id =
-            obligation.not_yet_due_accounts().account_to_be_debited_id;
+            obligation.not_yet_due_accounts().receivable_account_id;
         let interest_income_account_id =
             obligation.not_yet_due_accounts().account_to_be_credited_id;
         let Obligation {
@@ -1419,7 +1419,7 @@ impl CreditLedger {
         facility_account_id: CalaAccountId,
     ) -> Result<(), CreditLedgerError> {
         let facility_disbursed_receivable_account =
-            obligation.not_yet_due_accounts().account_to_be_debited_id;
+            obligation.not_yet_due_accounts().receivable_account_id;
         let account_to_be_credited_id = obligation.not_yet_due_accounts().account_to_be_credited_id;
         let Obligation {
             tx_id,

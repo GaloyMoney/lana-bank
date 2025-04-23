@@ -198,19 +198,17 @@ impl Disbursal {
                 .amount(self.amount)
                 .tx_id(tx_id)
                 .not_yet_due_accounts(ObligationAccounts {
-                    account_to_be_debited_id: self
+                    receivable_account_id: self
                         .account_ids
                         .disbursed_receivable_not_yet_due_account_id,
                     account_to_be_credited_id: self.disbursal_credit_account_id,
                 })
                 .due_accounts(ObligationAccounts {
-                    account_to_be_debited_id: self.account_ids.disbursed_receivable_due_account_id,
+                    receivable_account_id: self.account_ids.disbursed_receivable_due_account_id,
                     account_to_be_credited_id: self.disbursal_credit_account_id,
                 })
                 .overdue_accounts(ObligationAccounts {
-                    account_to_be_debited_id: self
-                        .account_ids
-                        .disbursed_receivable_overdue_account_id,
+                    receivable_account_id: self.account_ids.disbursed_receivable_overdue_account_id,
                     account_to_be_credited_id: self.disbursal_credit_account_id,
                 })
                 .due_date(self.disbursal_due_date)

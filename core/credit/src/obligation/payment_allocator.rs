@@ -31,7 +31,7 @@ impl From<&Obligation> for ObligationDataForAllocation {
                 .account_to_be_credited_id()
                 .expect("Obligation was already paid"),
             account_to_be_debited_id: obligation
-                .account_to_be_debited_id()
+                .receivable_account_id()
                 .expect("Obligation was already paid"),
         }
     }
@@ -69,7 +69,7 @@ impl PaymentAllocator {
         let mut disbursal_obligations = vec![];
         let mut interest_obligations = vec![];
         for obligation in obligations {
-            let data = obligation.into();
+            let data: ObligationDataForAllocation = obligation.into();
             match data.obligation_type {
                 ObligationType::Disbursal => disbursal_obligations.push(data),
                 ObligationType::Interest => interest_obligations.push(data),

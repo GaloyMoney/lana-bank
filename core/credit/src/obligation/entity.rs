@@ -20,7 +20,7 @@ pub enum ObligationStatus {
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
 pub struct ObligationAccounts {
-    pub account_to_be_debited_id: CalaAccountId,
+    pub receivable_account_id: CalaAccountId,
     pub account_to_be_credited_id: CalaAccountId,
 }
 
@@ -190,7 +190,7 @@ impl Obligation {
             .expect("Entity was not Initialized")
     }
 
-    pub fn account_to_be_debited_id(&self) -> Option<CalaAccountId> {
+    pub fn receivable_account_id(&self) -> Option<CalaAccountId> {
         let (not_yet_due_accounts, due_accounts, overdue_accounts) = self
             .events
             .iter_all()
@@ -206,10 +206,10 @@ impl Obligation {
             .expect("Entity was not Initialized");
 
         match self.status() {
-            ObligationStatus::NotYetDue => Some(not_yet_due_accounts.account_to_be_debited_id),
-            ObligationStatus::Due => Some(due_accounts.account_to_be_debited_id),
+            ObligationStatus::NotYetDue => Some(not_yet_due_accounts.receivable_account_id),
+            ObligationStatus::Due => Some(due_accounts.receivable_account_id),
             ObligationStatus::Overdue | ObligationStatus::Defaulted => {
-                Some(overdue_accounts.account_to_be_debited_id)
+                Some(overdue_accounts.receivable_account_id)
             }
 
             ObligationStatus::Paid => None,
@@ -320,8 +320,8 @@ impl Obligation {
         let res = ObligationDueReallocationData {
             tx_id: LedgerTxId::new(),
             amount: self.outstanding(),
-            not_yet_due_account_id: self.not_yet_due_accounts().account_to_be_debited_id,
-            due_account_id: self.due_accounts().account_to_be_debited_id,
+            not_yet_due_account_id: self.not_yet_due_accounts().receivable_account_id,
+            due_account_id: self.due_accounts().receivable_account_id,
         };
 
         self.events.push(ObligationEvent::DueRecorded {
@@ -348,8 +348,8 @@ impl Obligation {
         let res = ObligationOverdueReallocationData {
             tx_id: LedgerTxId::new(),
             outstanding_amount: self.outstanding(),
-            due_account_id: self.due_accounts().account_to_be_debited_id,
-            overdue_account_id: self.overdue_accounts().account_to_be_debited_id,
+            due_account_id: self.due_accounts().receivable_account_id,
+            overdue_account_id: self.overdue_accounts().receivable_account_id,
         };
 
         self.events.push(ObligationEvent::OverdueRecorded {
@@ -481,15 +481,15 @@ mod test {
             reference: "ref-01".to_string(),
             tx_id: LedgerTxId::new(),
             not_yet_due_accounts: ObligationAccounts {
-                account_to_be_debited_id: CalaAccountId::new(),
+                receivable_account_id: CalaAccountId::new(),
                 account_to_be_credited_id: CalaAccountId::new(),
             },
             due_accounts: ObligationAccounts {
-                account_to_be_debited_id: CalaAccountId::new(),
+                receivable_account_id: CalaAccountId::new(),
                 account_to_be_credited_id: CalaAccountId::new(),
             },
             overdue_accounts: ObligationAccounts {
-                account_to_be_debited_id: CalaAccountId::new(),
+                receivable_account_id: CalaAccountId::new(),
                 account_to_be_credited_id: CalaAccountId::new(),
             },
             due_date: Utc::now(),
