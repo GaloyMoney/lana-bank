@@ -317,8 +317,7 @@ where
             .amount(amount)
             .reference(reference)
             .audit_info(audit_info)
-            .build()
-            .expect("Could not build new account");
+            .build()?;
 
         let mut op = self.deposits.begin_op().await?;
         let deposit = self.deposits.create_in_op(&mut op, new_deposit).await?;
@@ -354,8 +353,7 @@ where
             .approval_process_id(withdrawal_id)
             .reference(reference)
             .audit_info(audit_info)
-            .build()
-            .expect("Could not build new withdrawal");
+            .build()?;
 
         let mut op = self.withdrawals.begin_op().await?;
         self.governance

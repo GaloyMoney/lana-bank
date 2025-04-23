@@ -64,6 +64,7 @@ impl TryFromEvents<DepositEvent> for Deposit {
 }
 
 #[derive(Debug, Builder)]
+#[builder(build_fn(validate = "Self::validate"))]
 pub struct NewDeposit {
     #[builder(setter(into))]
     pub(super) id: DepositId,
@@ -88,6 +89,15 @@ impl NewDeposit {
             None => self.id.to_string(),
             Some("") => self.id.to_string(),
             Some(reference) => reference.to_string(),
+        }
+    }
+}
+
+impl NewDepositBuilder {
+    fn validate(&self) -> Result<(), String> {
+        match self.amount {
+            Some(amount) if amount.is_zero() => Err("Deposit amount cannot be zero".to_string()),
+            _ => Ok(()),
         }
     }
 }

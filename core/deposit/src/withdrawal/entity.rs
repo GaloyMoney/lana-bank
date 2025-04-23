@@ -196,6 +196,7 @@ impl TryFromEvents<WithdrawalEvent> for Withdrawal {
 }
 
 #[derive(Debug, Builder)]
+#[builder(build_fn(validate = "Self::validate"))]
 pub struct NewWithdrawal {
     #[builder(setter(into))]
     pub(super) id: WithdrawalId,
@@ -220,6 +221,15 @@ impl NewWithdrawal {
             None => self.id.to_string(),
             Some("") => self.id.to_string(),
             Some(reference) => reference.to_string(),
+        }
+    }
+}
+
+impl NewWithdrawalBuilder {
+    fn validate(&self) -> Result<(), String> {
+        match self.amount {
+            Some(amount) if amount.is_zero() => Err("Withdrawal amount cannot be zero".to_string()),
+            _ => Ok(()),
         }
     }
 }
