@@ -66,7 +66,10 @@ describe("Customers", () => {
     cy.takeScreenshot("11_verify_customer_in_list")
   })
 
-  it("should upload a document", () => {
+  it("should upload a document", function () {
+    if (!Cypress.env("GOOGLE_CLOUD_AVAILABLE")) {
+      this.skip()
+    }
     cy.visit(`/customers/${testCustomerId}/documents`)
     cy.contains(t("Customers.CustomerDetails.Documents.description")).should("exist")
     cy.takeScreenshot("12_customer_documents")

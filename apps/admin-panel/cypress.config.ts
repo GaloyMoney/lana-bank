@@ -60,6 +60,11 @@ export default defineConfig({
     env: {
       COOKIES: process.env.COOKIES,
       TEST_LANGUAGE: "es",
+      GOOGLE_CLOUD_AVAILABLE: process.env.GOOGLE_CREDENTIALS
+        ? process.env.GOOGLE_CREDENTIALS.trim() !== ""
+          ? true
+          : false
+        : false,
     },
   },
 })
