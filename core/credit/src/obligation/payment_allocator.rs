@@ -1,40 +1,11 @@
-use chrono::{DateTime, Utc};
-
 use crate::{payment_allocation::NewPaymentAllocation, primitives::*};
 
-use super::{entity::Obligation, error::*};
+use super::{entity::ObligationDataForAllocation, error::*};
 
 pub struct PaymentAllocator {
     credit_facility_id: CreditFacilityId,
     payment_id: PaymentId,
     amount: UsdCents,
-}
-
-#[derive(Clone)]
-pub struct ObligationDataForAllocation {
-    id: ObligationId,
-    obligation_type: ObligationType,
-    recorded_at: DateTime<Utc>,
-    outstanding: UsdCents,
-    receivable_account_id: CalaAccountId,
-    account_to_be_debited_id: CalaAccountId,
-}
-
-impl From<&Obligation> for ObligationDataForAllocation {
-    fn from(obligation: &Obligation) -> Self {
-        Self {
-            id: obligation.id,
-            obligation_type: obligation.obligation_type(),
-            recorded_at: obligation.recorded_at,
-            outstanding: obligation.outstanding(),
-            receivable_account_id: obligation
-                .account_to_be_credited_id()
-                .expect("Obligation was already paid"),
-            account_to_be_debited_id: obligation
-                .receivable_account_id()
-                .expect("Obligation was already paid"),
-        }
-    }
 }
 
 impl PaymentAllocator {
@@ -50,7 +21,7 @@ impl PaymentAllocator {
         }
     }
 
-    pub fn allocate(
+    pub(super) fn allocate(
         &self,
         obligations: impl Iterator<Item = impl Into<ObligationDataForAllocation>> + Clone,
         audit_info: &audit::AuditInfo,
@@ -58,7 +29,7 @@ impl PaymentAllocator {
         let outstanding = obligations
             .clone()
             .map(|o| {
-                let data = o.into();
+                let data: ObligationDataForAllocation = o.into();
                 data.outstanding
             })
             .fold(UsdCents::ZERO, |acc, amount| acc + amount);
@@ -97,7 +68,7 @@ impl PaymentAllocator {
                     .obligation_id(obligation.id)
                     .obligation_type(obligation.obligation_type)
                     .receivable_account_id(obligation.receivable_account_id)
-                    .account_to_be_debited_id(obligation.account_to_be_debited_id)
+                    .account_to_be_debited_id(obligation.account_to_be_credited_id)
                     .amount(payment_amount)
                     .recorded_at(now)
                     .audit_info(audit_info.clone())
@@ -116,6 +87,8 @@ impl PaymentAllocator {
 
 #[cfg(test)]
 mod test {
+    use chrono::Utc;
+
     use audit::{AuditEntryId, AuditInfo};
 
     use super::*;
@@ -139,7 +112,7 @@ mod test {
             recorded_at: Utc::now(),
             outstanding: UsdCents::ONE,
             receivable_account_id: CalaAccountId::new(),
-            account_to_be_debited_id: CalaAccountId::new(),
+            account_to_be_credited_id: CalaAccountId::new(),
         }];
 
         let new_allocations = allocator
@@ -160,7 +133,7 @@ mod test {
             recorded_at: Utc::now(),
             outstanding: UsdCents::ONE,
             receivable_account_id: CalaAccountId::new(),
-            account_to_be_debited_id: CalaAccountId::new(),
+            account_to_be_credited_id: CalaAccountId::new(),
         }];
 
         let new_allocations = allocator
@@ -181,7 +154,7 @@ mod test {
                 recorded_at: Utc::now(),
                 outstanding: UsdCents::ONE,
                 receivable_account_id: CalaAccountId::new(),
-                account_to_be_debited_id: CalaAccountId::new(),
+                account_to_be_credited_id: CalaAccountId::new(),
             },
             ObligationDataForAllocation {
                 id: ObligationId::new(),
@@ -189,7 +162,7 @@ mod test {
                 recorded_at: Utc::now(),
                 outstanding: UsdCents::ONE,
                 receivable_account_id: CalaAccountId::new(),
-                account_to_be_debited_id: CalaAccountId::new(),
+                account_to_be_credited_id: CalaAccountId::new(),
             },
         ];
 
@@ -211,7 +184,7 @@ mod test {
                 recorded_at: Utc::now(),
                 outstanding: UsdCents::from(4),
                 receivable_account_id: CalaAccountId::new(),
-                account_to_be_debited_id: CalaAccountId::new(),
+                account_to_be_credited_id: CalaAccountId::new(),
             },
             ObligationDataForAllocation {
                 id: ObligationId::new(),
@@ -219,7 +192,7 @@ mod test {
                 recorded_at: Utc::now(),
                 outstanding: UsdCents::from(3),
                 receivable_account_id: CalaAccountId::new(),
-                account_to_be_debited_id: CalaAccountId::new(),
+                account_to_be_credited_id: CalaAccountId::new(),
             },
         ];
 
@@ -243,7 +216,7 @@ mod test {
                 recorded_at: Utc::now(),
                 outstanding: UsdCents::ONE,
                 receivable_account_id: CalaAccountId::new(),
-                account_to_be_debited_id: CalaAccountId::new(),
+                account_to_be_credited_id: CalaAccountId::new(),
             },
             ObligationDataForAllocation {
                 id: ObligationId::new(),
@@ -251,7 +224,7 @@ mod test {
                 recorded_at: Utc::now(),
                 outstanding: UsdCents::ONE,
                 receivable_account_id: CalaAccountId::new(),
-                account_to_be_debited_id: CalaAccountId::new(),
+                account_to_be_credited_id: CalaAccountId::new(),
             },
         ];
 
@@ -275,7 +248,7 @@ mod test {
                 recorded_at: Utc::now(),
                 outstanding: UsdCents::from(2),
                 receivable_account_id: CalaAccountId::new(),
-                account_to_be_debited_id: CalaAccountId::new(),
+                account_to_be_credited_id: CalaAccountId::new(),
             },
             ObligationDataForAllocation {
                 id: ObligationId::new(),
@@ -283,7 +256,7 @@ mod test {
                 recorded_at: Utc::now(),
                 outstanding: UsdCents::from(4),
                 receivable_account_id: CalaAccountId::new(),
-                account_to_be_debited_id: CalaAccountId::new(),
+                account_to_be_credited_id: CalaAccountId::new(),
             },
             ObligationDataForAllocation {
                 id: ObligationId::new(),
@@ -291,7 +264,7 @@ mod test {
                 recorded_at: Utc::now(),
                 outstanding: UsdCents::from(3),
                 receivable_account_id: CalaAccountId::new(),
-                account_to_be_debited_id: CalaAccountId::new(),
+                account_to_be_credited_id: CalaAccountId::new(),
             },
             ObligationDataForAllocation {
                 id: ObligationId::new(),
@@ -299,7 +272,7 @@ mod test {
                 recorded_at: Utc::now(),
                 outstanding: UsdCents::from(1),
                 receivable_account_id: CalaAccountId::new(),
-                account_to_be_debited_id: CalaAccountId::new(),
+                account_to_be_credited_id: CalaAccountId::new(),
             },
         ];
 

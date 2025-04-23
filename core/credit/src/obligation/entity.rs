@@ -431,6 +431,33 @@ impl NewObligation {
     }
 }
 
+#[derive(Clone)]
+pub(super) struct ObligationDataForAllocation {
+    pub(super) id: ObligationId,
+    pub(super) obligation_type: ObligationType,
+    pub(super) recorded_at: DateTime<Utc>,
+    pub(super) outstanding: UsdCents,
+    pub(super) receivable_account_id: CalaAccountId,
+    pub(super) account_to_be_credited_id: CalaAccountId,
+}
+
+impl From<&Obligation> for ObligationDataForAllocation {
+    fn from(obligation: &Obligation) -> Self {
+        Self {
+            id: obligation.id,
+            obligation_type: obligation.obligation_type(),
+            recorded_at: obligation.recorded_at,
+            outstanding: obligation.outstanding(),
+            receivable_account_id: obligation
+                .receivable_account_id()
+                .expect("Obligation was already paid"),
+            account_to_be_credited_id: obligation
+                .account_to_be_credited_id()
+                .expect("Obligation was already paid"),
+        }
+    }
+}
+
 impl IntoEvents<ObligationEvent> for NewObligation {
     fn into_events(self) -> EntityEvents<ObligationEvent> {
         EntityEvents::init(

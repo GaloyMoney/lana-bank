@@ -178,7 +178,7 @@ mod tests {
     use chrono::{Datelike, TimeZone, Utc};
     use rust_decimal_macros::dec;
 
-    use crate::{primitives::*, terms::*, CreditFacilityAccountIds};
+    use crate::{terms::*, CreditFacilityAccountIds};
 
     use super::*;
 
