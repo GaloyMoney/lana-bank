@@ -47,14 +47,34 @@ jobs:
         with:
           name: screenshots
           path: apps/admin-panel/cypress/manuals/screenshots
+
+      - name: Check for Netlify secret
+        id: check_netlify
+        run: |
+          if [ -z "${{ secrets.NETLIFY_AUTH_TOKEN }}" ]; then
+            echo "has_netlify=false" >> $GITHUB_OUTPUT
+          else
+            echo "has_netlify=true" >> $GITHUB_OUTPUT
+          fi
+
       - name: generate pdfs
-        run: cd apps/admin-panel && nix develop -c pnpm run local:pdf
-      - run: ls -R apps/admin-panel/cypress/manuals
+        if: steps.check_netlify.outputs.has_netlify == 'true'
+        run: |
+          cd apps/admin-panel && nix develop -c pnpm run local:pdf
+
+      - name: list manuals
+        if: steps.check_netlify.outputs.has_netlify == 'true'
+        run: |
+          ls -R apps/admin-panel/cypress/manuals
+
       - uses: actions/upload-artifact@v4
+        if: steps.check_netlify.outputs.has_netlify == 'true'
         with:
           name: pdfs
           path: apps/admin-panel/cypress/manuals/results/*
+
       - name: generate manual page
+        if: steps.check_netlify.outputs.has_netlify == 'true'
         run: |
           cd apps/admin-panel/cypress/manuals/results
           cat <<EOF > index.html
@@ -144,7 +164,9 @@ jobs:
 
       - name: Deploy to Netlify (Pull Request)
         id: netlify_deploy
-        if: github.event_name == 'pull_request'
+        if: >
+          github.event_name == 'pull_request'
+          && steps.check_netlify.outputs.has_netlify == 'true'
         env:
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
           NETLIFY_SITE_ID: 61296920-bd52-43a3-9253-78db17a78d9c
@@ -164,7 +186,9 @@ jobs:
           echo "deploy_url=$DEPLOY_URL" >> $GITHUB_OUTPUT
 
       - name: Deploy to Netlify (Push to Main)
-        if: github.event_name == 'push'
+        if: >
+          github.event_name == 'push'
+          && steps.check_netlify.outputs.has_netlify == 'true'
         env:
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
           NETLIFY_SITE_ID: 61296920-bd52-43a3-9253-78db17a78d9c
@@ -181,7 +205,9 @@ jobs:
           echo "deploy_url=$DEPLOY_URL" >> $GITHUB_OUTPUT
 
       - name: Create or Update Preview Comment
-        if: github.event_name == 'pull_request'
+        if: >
+          github.event_name == 'pull_request'
+          && steps.check_netlify.outputs.has_netlify == 'true'
         uses: actions/github-script@v6
         with:
           script: |

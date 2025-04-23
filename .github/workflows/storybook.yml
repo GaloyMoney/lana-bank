@@ -24,8 +24,19 @@ jobs:
           google_credentials: ${{ secrets.GOOGLE_CREDENTIALS }}
       - uses: ./.github/actions/cache-pnpm
       - run: nix develop -c make build-storybook-admin-panel
+      - name: Check for Netlify secret
+        id: check_netlify
+        run: |
+          if [ -z "${{ secrets.NETLIFY_AUTH_TOKEN }}" ]; then
+            echo "has_netlify=false" >> $GITHUB_OUTPUT
+          else
+            echo "has_netlify=true" >> $GITHUB_OUTPUT
+          fi
+
       - id: netlify_deploy
-        if: github.event_name == 'pull_request'
+        if: >
+          github.event_name == 'pull_request'
+          && steps.check_netlify.outputs.has_netlify == 'true'
         env:
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
           NETLIFY_SITE_ID: 8f3d8282-da53-4b6d-8d3c-708c7d7030c9
@@ -43,7 +54,10 @@ jobs:
             --json > deploy-info.json
           DEPLOY_URL=$(jq -r '.deploy_url' deploy-info.json)
           echo "deploy_url=$DEPLOY_URL" >> $GITHUB_OUTPUT
-      - if: github.event_name == 'push'
+
+      - if: >
+          github.event_name == 'push'
+          && steps.check_netlify.outputs.has_netlify == 'true'
         env:
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
           NETLIFY_SITE_ID: 8f3d8282-da53-4b6d-8d3c-708c7d7030c9
@@ -58,7 +72,10 @@ jobs:
             --json > deploy-info.json
           DEPLOY_URL=$(jq -r '.deploy_url' deploy-info.json)
           echo "deploy_url=$DEPLOY_URL" >> $GITHUB_OUTPUT
-      - if: github.event_name == 'pull_request'
+
+      - if: >
+          github.event_name == 'pull_request'
+          && steps.check_netlify.outputs.has_netlify == 'true'
         uses: actions/github-script@v6
         with:
           script: |
