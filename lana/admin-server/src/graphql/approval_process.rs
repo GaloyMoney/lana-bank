@@ -215,7 +215,6 @@ impl ApprovalProcessVoter {
     }
 }
 
-#[allow(clippy::large_enum_variant)]
 #[derive(async_graphql::Union)]
 pub(super) enum ApprovalProcessTarget {
     Withdrawal(Withdrawal),

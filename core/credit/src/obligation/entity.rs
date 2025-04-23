@@ -70,6 +70,7 @@ impl ObligationsAmounts {
     }
 }
 
+#[allow(clippy::large_enum_variant)]
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
 #[es_event(id = "ObligationId")]
