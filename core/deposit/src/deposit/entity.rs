@@ -117,3 +117,64 @@ impl IntoEvents<DepositEvent> for NewDeposit {
         )
     }
 }
+
+#[cfg(test)]
+mod test {
+    use audit::AuditEntryId;
+
+    use super::*;
+
+    fn dummy_audit_info() -> AuditInfo {
+        AuditInfo {
+            audit_entry_id: AuditEntryId::from(1),
+            sub: "sub".to_string(),
+        }
+    }
+
+    #[test]
+    fn errors_when_zero_amount_deposit_amount_is_passed() {
+        let deposit = NewDeposit::builder()
+            .id(DepositId::new())
+            .ledger_transaction_id(CalaTransactionId::new())
+            .deposit_account_id(DepositAccountId::new())
+            .amount(UsdCents::ZERO)
+            .reference(None)
+            .audit_info(dummy_audit_info())
+            .build();
+
+        assert!(matches!(
+            deposit,
+            Err(NewDepositBuilderError::ValidationError(_))
+        ));
+    }
+
+    #[test]
+    fn errors_when_amount_is_not_provided() {
+        let deposit = NewDeposit::builder()
+            .id(DepositId::new())
+            .ledger_transaction_id(CalaTransactionId::new())
+            .deposit_account_id(DepositAccountId::new())
+            .reference(None)
+            .audit_info(dummy_audit_info())
+            .build();
+
+        assert!(matches!(
+            deposit,
+            Err(NewDepositBuilderError::UninitializedField(_))
+        ));
+    }
+
+    #[test]
+    fn passes_when_all_inputs_provided() {
+        let deposit = NewDeposit::builder()
+            .id(DepositId::new())
+            .ledger_transaction_id(CalaTransactionId::new())
+            .deposit_account_id(DepositAccountId::new())
+            .amount(UsdCents::ONE)
+            .reference(None)
+            .audit_info(dummy_audit_info())
+            .build();
+
+        assert!(deposit.is_ok());
+    }
+}
