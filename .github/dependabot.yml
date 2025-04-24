@@ -30,3 +30,7 @@ updates:
     - dependency-name: "react-dom"
     - dependency-name: "@types/react-dom"
     - dependency-name: "next"
+    - dependency-name: "tailwindcss"
+    - dependency-name: "eslint"
+    - dependency-name: "@types/node"
+    - dependency-name: "@typescript-eslint/eslint-plugin"
