@@ -1458,7 +1458,13 @@
       },
       "placeholders": {
         "accountSearch": "Ledger Account ID"
+      },
+      "errors": {
+        "accountSearch": "No account with that ID found"
       }
+    },
+    "searchResult": {
+      "title": "Account Found"
     }
   },
   "ManualTransactions": {

@@ -217,3 +217,27 @@ export const removeUnderscore = (str: string | undefined) => {
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
     .join(" ")
 }
+
+/**
+ * Calls a function after {wait} time has passed
+ *
+ * @param callback - The function which we want to call
+ * @param wait - The amount of milliseconds to wait
+ * @param [immediate] - Whether to make an immediate call to the function
+ * @returns The function which will be called
+ */
+export const debounce = <T extends (args: Parameters<T>) => ReturnType<T>>(
+  callback: T,
+  wait: number,
+  immediate: boolean = false,
+) => {
+  let timeout: ReturnType<typeof setTimeout> | null
+  return function (callbackParams: Parameters<T>) {
+    if (timeout) clearTimeout(timeout)
+    if (immediate && !timeout) callback(callbackParams)
+    timeout = setTimeout(() => {
+      timeout = null
+      if (!immediate) callback(callbackParams)
+    }, wait)
+  }
+}

@@ -1459,6 +1459,12 @@
       "placeholders": {
         "accountSearch": "ID de Cuenta del Libro Mayor"
       }
+      "errors": {
+        "accountSearch": "No encontramos una cuenta con esa ID"
+      }
+    },
+    "searchResult": {
+      "title": "Cuenta"
     }
   },
   "ManualTransactions": {
