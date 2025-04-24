@@ -51,7 +51,6 @@
           postgresql
           docker-compose
           bats
-          bc
           jq
           napi-rs-cli
           yarn
