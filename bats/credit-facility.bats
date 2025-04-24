@@ -89,7 +89,7 @@ wait_for_dashboard_disbursed() {
   before=$1
   disbursed_amount=$2
 
-  expected_after="$(echo $before + $disbursed_amount | bc)"
+  expected_after="$(( $before + $disbursed_amount ))"
 
   exec_admin_graphql 'dashboard'
   after=$(graphql_output '.data.dashboard.totalDisbursed')
@@ -101,7 +101,7 @@ wait_for_dashboard_payment() {
   before=$1
   payment_amount=$2
 
-  expected_after="$(echo $before - $payment_amount | bc)"
+  expected_after="$(( $before - $payment_amount ))"
 
   exec_admin_graphql 'dashboard'
   after=$(graphql_output '.data.dashboard.totalDisbursed')
@@ -258,7 +258,7 @@ ymd() {
   total_outstanding=$(graphql_output '.data.creditFacility.balance.outstanding.usdBalance')
 
   disbursed_payment=25000
-  amount="$(echo $disbursed_payment + $interest_outstanding | bc)"
+  amount="$(( $disbursed_payment + $interest_outstanding ))"
   variables=$(
     jq -n \
       --arg creditFacilityId "$credit_facility_id" \

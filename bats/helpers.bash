@@ -288,23 +288,6 @@ create_customer() {
   echo $customer_id
 }
 
-add() {
-  sum=0
-  for num in "$@"; do
-    sum=$(echo "scale=2; $sum + $num" | bc)
-  done
-  echo $sum
-}
-
-sub() {
-  diff=$1
-  shift
-  for num in "$@"; do
-    diff=$(echo "scale=2; $diff - $num" | bc)
-  done
-  echo $diff
-}
-
 assert_balance_sheet_balanced() {
   variables=$(
     jq -n \
