@@ -18,6 +18,7 @@ import { Badge } from "@lana/web/ui/badge"
 import { useState, useCallback } from "react"
 
 import { LanaBankIcon } from "../icons"
+
 import { Button } from "@lana/web/ui/button"
 
 import { createSumsubPermalink } from "./server-actions"
