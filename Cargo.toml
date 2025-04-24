@@ -47,7 +47,7 @@ async-graphql = { version = "7.0.11", default-features = false, features = [
   "playground",
   "tempfile",
 ] }
-async-graphql-axum = "7.0.9"
+async-graphql-axum = "7.0.16"
 async-trait = "0.1.80"
 axum = { version = "0.7.9", features = ["macros"] }
 axum-extra = { version = "0.9.6", default-features = false, features = [
