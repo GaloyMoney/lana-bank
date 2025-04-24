@@ -65,7 +65,7 @@
     "@types/node": "20",
     "@types/react": "18",
     "@types/react-dom": "18",
-    "@typescript-eslint/eslint-plugin": "^7.12.0",
+    "@typescript-eslint/eslint-plugin": "^8.31.0",
     "cypress": "^13.13.0",
     "eslint": "^8.57.0",
     "eslint-config-next": "15.3.1",
