@@ -72,7 +72,7 @@
     "@types/apollo-upload-client": "^18.0.0",
     "@types/axios": "^0.14.0",
     "@types/lodash": "^4.17.16",
-    "@types/node": "20",
+    "@types/node": "22",
     "@types/pg": "^8.11.14",
     "@types/react": "18",
     "@types/react-dom": "18",
