@@ -129,12 +129,14 @@ export const CreateDepositDialog: React.FC<CreateDepositDialogProps> = ({
   return (
     <Dialog open={openCreateDepositDialog} onOpenChange={handleCloseDialog}>
       <DialogContent>
-        <div
-          className="absolute -top-6 -left-[1px] bg-primary rounded-tl-md rounded-tr-md text-md px-2 py-1 text-secondary"
-          style={{ width: "100.35%" }}
-        >
-          {t("creatingFor", { email: customer?.email })}
-        </div>
+        {customer?.email && (
+          <div
+            className="absolute -top-6 -left-[1px] bg-primary rounded-tl-md rounded-tr-md text-md px-2 py-1 text-secondary"
+            style={{ width: "100.35%" }}
+          >
+            {t("creatingFor", { email: customer.email })}
+          </div>
+        )}
         <DialogHeader className="mt-4">
           <DialogTitle>{t("title")}</DialogTitle>
           <DialogDescription>{t("description")}</DialogDescription>
