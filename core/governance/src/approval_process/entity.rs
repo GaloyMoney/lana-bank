@@ -371,9 +371,7 @@ mod tests {
         let mut process =
             ApprovalProcess::try_from_events(init_events(ApprovalRules::SystemAutoApprove))
                 .expect("Could not build approval process");
-        process
-            .check_concluded(HashSet::new(), dummy_audit_info())
-            .did_execute();
+        let _ = process.check_concluded(HashSet::new(), dummy_audit_info());
         let approver = CommitteeMemberId::new();
         let audit_info = dummy_audit_info();
         let eligible: HashSet<_> = [approver].iter().copied().collect();
@@ -441,9 +439,7 @@ mod tests {
         let mut process =
             ApprovalProcess::try_from_events(init_events(ApprovalRules::SystemAutoApprove))
                 .expect("Could not build approval process");
-        process
-            .check_concluded(HashSet::new(), dummy_audit_info())
-            .did_execute();
+        let _ = process.check_concluded(HashSet::new(), dummy_audit_info());
         let denier = CommitteeMemberId::new();
         let audit_info = dummy_audit_info();
         let eligible: HashSet<_> = [denier].iter().copied().collect();

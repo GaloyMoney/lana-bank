@@ -662,13 +662,11 @@ where
             .allocate_payment(credit_facility_id, payment.id, amount, audit_info.clone())
             .await?;
 
-        payment
-            .record_allocated(
-                res.disbursed_amount(),
-                res.interest_amount(),
-                audit_info.clone(),
-            )
-            .did_execute();
+        let _ = payment.record_allocated(
+            res.disbursed_amount(),
+            res.interest_amount(),
+            audit_info.clone(),
+        );
         self.payment_repo
             .update_in_op(&mut db, &mut payment)
             .await?;
@@ -679,12 +677,10 @@ where
             .await?;
 
         for allocation in &allocations {
-            credit_facility
-                .update_balance(
-                    allocation.facility_balance_update_data(),
-                    audit_info.clone(),
-                )
-                .did_execute();
+            let _ = credit_facility.update_balance(
+                allocation.facility_balance_update_data(),
+                audit_info.clone(),
+            );
         }
         self.credit_facility_repo
             .update_in_op(&mut db, &mut credit_facility)

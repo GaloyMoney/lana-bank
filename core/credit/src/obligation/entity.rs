@@ -531,7 +531,7 @@ mod test {
     #[test]
     fn record_overdue() {
         let mut obligation = obligation_from(initial_events());
-        obligation.record_due(dummy_audit_info()).did_execute();
+        let _ = obligation.record_due(dummy_audit_info());
         let res = obligation
             .record_overdue(dummy_audit_info())
             .unwrap()

@@ -150,12 +150,10 @@ where
                 .obligations
                 .create_with_jobs_in_op(&mut db, new_obligation)
                 .await?;
-            credit_facility
-                .update_balance(
-                    obligation.facility_balance_update_data(),
-                    audit_info.clone(),
-                )
-                .did_execute();
+            let _ = credit_facility.update_balance(
+                obligation.facility_balance_update_data(),
+                audit_info.clone(),
+            );
 
             Some(obligation)
         } else {
