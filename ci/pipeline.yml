@@ -130,6 +130,7 @@ jobs:
         trigger: true
       - get: pipeline-tasks
     - task: cargo-build-release
+      attempts: 2
       config:
         platform: linux
         image_resource:
@@ -192,6 +193,7 @@ jobs:
               - rust-check-code
               - integration-tests
               - bats-tests
+              - build-static-binary
             trigger: true
           - get: pipeline-tasks
           - get: version
