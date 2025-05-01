@@ -1,4 +1,6 @@
 mod entry;
+pub mod error;
+mod repo;
 
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
