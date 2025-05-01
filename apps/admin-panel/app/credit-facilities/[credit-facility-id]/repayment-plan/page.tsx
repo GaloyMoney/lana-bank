@@ -8,7 +8,7 @@ import { CreditFacilityRepaymentPlan } from "./list"
 import { useGetCreditFacilityRepaymentPlanQuery } from "@/lib/graphql/generated"
 
 gql`
-  fragment RepaymentOnFacilityPage on CreditFacilityRepaymentInPlan {
+  fragment RepaymentOnFacilityPage on CreditFacilityRepaymentPlanEntry {
     repaymentType
     status
     initial

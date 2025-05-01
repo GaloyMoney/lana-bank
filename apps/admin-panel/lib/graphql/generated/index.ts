@@ -416,7 +416,7 @@ export type CreditFacility = {
   history: Array<CreditFacilityHistoryEntry>;
   id: Scalars['ID']['output'];
   maturesAt?: Maybe<Scalars['Timestamp']['output']>;
-  repaymentPlan: Array<CreditFacilityRepaymentInPlan>;
+  repaymentPlan: Array<CreditFacilityRepaymentPlanEntry>;
   status: CreditFacilityStatus;
   subjectCanComplete: Scalars['Boolean']['output'];
   subjectCanInitiateDisbursal: Scalars['Boolean']['output'];
@@ -593,8 +593,8 @@ export type CreditFacilityPayment = {
   paymentId: Scalars['UUID']['output'];
 };
 
-export type CreditFacilityRepaymentInPlan = {
-  __typename?: 'CreditFacilityRepaymentInPlan';
+export type CreditFacilityRepaymentPlanEntry = {
+  __typename?: 'CreditFacilityRepaymentPlanEntry';
   accrualAt: Scalars['Timestamp']['output'];
   dueAt: Scalars['Timestamp']['output'];
   initial: Scalars['UsdCents']['output'];
@@ -604,7 +604,9 @@ export type CreditFacilityRepaymentInPlan = {
 };
 
 export enum CreditFacilityRepaymentStatus {
+  Defaulted = 'DEFAULTED',
   Due = 'DUE',
+  NotYetDue = 'NOT_YET_DUE',
   Overdue = 'OVERDUE',
   Paid = 'PAID',
   Upcoming = 'UPCOMING'
@@ -2289,14 +2291,14 @@ export type GetCreditFacilityTransactionsQueryVariables = Exact<{
 
 export type GetCreditFacilityTransactionsQuery = { __typename?: 'Query', creditFacility?: { __typename?: 'CreditFacility', id: string, creditFacilityId: string, history: Array<{ __typename?: 'CreditFacilityCollateralUpdated', satoshis: Satoshis, recordedAt: any, action: CollateralAction, txId: string } | { __typename?: 'CreditFacilityCollateralizationUpdated', state: CollateralizationState, collateral: Satoshis, outstandingInterest: UsdCents, outstandingDisbursal: UsdCents, recordedAt: any, price: UsdCents } | { __typename?: 'CreditFacilityDisbursalExecuted', cents: UsdCents, recordedAt: any, txId: string } | { __typename?: 'CreditFacilityIncrementalPayment', cents: UsdCents, recordedAt: any, txId: string } | { __typename?: 'CreditFacilityInterestAccrued', cents: UsdCents, recordedAt: any, txId: string, days: number } | { __typename?: 'CreditFacilityOrigination', cents: UsdCents, recordedAt: any, txId: string }> } | null };
 
-export type RepaymentOnFacilityPageFragment = { __typename?: 'CreditFacilityRepaymentInPlan', repaymentType: CreditFacilityRepaymentType, status: CreditFacilityRepaymentStatus, initial: UsdCents, outstanding: UsdCents, accrualAt: any, dueAt: any };
+export type RepaymentOnFacilityPageFragment = { __typename?: 'CreditFacilityRepaymentPlanEntry', repaymentType: CreditFacilityRepaymentType, status: CreditFacilityRepaymentStatus, initial: UsdCents, outstanding: UsdCents, accrualAt: any, dueAt: any };
 
 export type GetCreditFacilityRepaymentPlanQueryVariables = Exact<{
   id: Scalars['UUID']['input'];
 }>;
 
 
-export type GetCreditFacilityRepaymentPlanQuery = { __typename?: 'Query', creditFacility?: { __typename?: 'CreditFacility', id: string, creditFacilityId: string, repaymentPlan: Array<{ __typename?: 'CreditFacilityRepaymentInPlan', repaymentType: CreditFacilityRepaymentType, status: CreditFacilityRepaymentStatus, initial: UsdCents, outstanding: UsdCents, accrualAt: any, dueAt: any }> } | null };
+export type GetCreditFacilityRepaymentPlanQuery = { __typename?: 'Query', creditFacility?: { __typename?: 'CreditFacility', id: string, creditFacilityId: string, repaymentPlan: Array<{ __typename?: 'CreditFacilityRepaymentPlanEntry', repaymentType: CreditFacilityRepaymentType, status: CreditFacilityRepaymentStatus, initial: UsdCents, outstanding: UsdCents, accrualAt: any, dueAt: any }> } | null };
 
 export type CreditFacilityCollateralUpdateMutationVariables = Exact<{
   input: CreditFacilityCollateralUpdateInput;
@@ -3017,7 +3019,7 @@ export const CreditFacilityHistoryFragmentFragmentDoc = gql`
 }
     `;
 export const RepaymentOnFacilityPageFragmentDoc = gql`
-    fragment RepaymentOnFacilityPage on CreditFacilityRepaymentInPlan {
+    fragment RepaymentOnFacilityPage on CreditFacilityRepaymentPlanEntry {
   repaymentType
   status
   initial
