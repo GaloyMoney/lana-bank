@@ -200,6 +200,16 @@ where
             },
         )
         .await?;
+        jobs.add_initializer_and_spawn_unique(
+            credit_facility_repayment_plan::RepaymentPlanProjectionInitializer::<E>::new(
+                outbox,
+                &repayment_plan_repo,
+            ),
+            credit_facility_repayment_plan::RepaymentPlanProjectionConfig {
+                _phantom: std::marker::PhantomData,
+            },
+        )
+        .await?;
         jobs.add_initializer(interest_accruals::CreditFacilityProcessingJobInitializer::<
             Perms,
             E,
