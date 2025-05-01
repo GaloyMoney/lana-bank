@@ -18,6 +18,8 @@ pub enum CoreCreditError {
     CreditFacilityError(#[from] super::credit_facility::error::CreditFacilityError),
     #[error("CoreCreditError - HistoryError: {0}")]
     HistoryError(#[from] super::history::error::CreditFacilityHistoryError),
+    #[error("CoreCreditError - RepaymentPlanError: {0}")]
+    RepaymentPlanError(#[from] super::repayment_plan::error::CreditFacilityRepaymentPlanError),
     #[error("CoreCreditError - CollateralError: {0}")]
     CollateralError(#[from] super::collateral::error::CollateralError),
     #[error("CoreCreditError - PaymentError: {0}")]

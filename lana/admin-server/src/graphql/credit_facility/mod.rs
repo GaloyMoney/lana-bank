@@ -97,12 +97,12 @@ impl CreditFacility {
         Ok(app.credit().history(sub, self.entity.id).await?)
     }
 
-    async fn repayment_plan(&self) -> Vec<CreditFacilityRepaymentInPlan> {
-        self.entity
-            .repayment_plan()
-            .into_iter()
-            .map(CreditFacilityRepaymentInPlan::from)
-            .collect()
+    async fn repayment_plan(
+        &self,
+        ctx: &Context<'_>,
+    ) -> async_graphql::Result<Vec<CreditFacilityRepaymentPlanEntry>> {
+        let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
+        Ok(app.credit().repayment_plan(sub, self.entity.id).await?)
     }
 
     async fn disbursals(

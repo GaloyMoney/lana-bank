@@ -55,6 +55,7 @@ use processes::activate_credit_facility::*;
 pub use processes::approve_credit_facility::*;
 pub use processes::approve_disbursal::*;
 use publisher::CreditFacilityPublisher;
+pub use repayment_plan::*;
 pub use terms::*;
 
 pub struct CoreCredit<Perms, E>
@@ -69,6 +70,7 @@ where
     disbursal_repo: DisbursalRepo<E>,
     payment_repo: PaymentRepo,
     history_repo: HistoryRepo,
+    repayment_plan_repo: RepaymentPlanRepo,
     payment_allocation_repo: PaymentAllocationRepo<E>,
     governance: Governance<Perms, E>,
     customer: Customers<Perms, E>,
@@ -98,6 +100,7 @@ where
             disbursal_repo: self.disbursal_repo.clone(),
             payment_repo: self.payment_repo.clone(),
             history_repo: self.history_repo.clone(),
+            repayment_plan_repo: self.repayment_plan_repo.clone(),
             payment_allocation_repo: self.payment_allocation_repo.clone(),
             governance: self.governance.clone(),
             customer: self.customer.clone(),
@@ -142,6 +145,7 @@ where
         let collaterals = Collaterals::new(pool, authz, &publisher);
         let payment_repo = PaymentRepo::new(pool);
         let history_repo = HistoryRepo::new(pool);
+        let repayment_plan_repo = RepaymentPlanRepo::new(pool);
         let payment_allocation_repo = PaymentAllocationRepo::new(pool, &publisher);
         let ledger = CreditLedger::init(cala, journal_id).await?;
         let approve_disbursal = ApproveDisbursal::new(
@@ -259,6 +263,7 @@ where
             disbursal_repo,
             payment_repo,
             history_repo,
+            repayment_plan_repo,
             payment_allocation_repo,
             governance: governance.clone(),
             ledger,
@@ -311,6 +316,7 @@ where
             &self.disbursal_repo,
             &self.payment_repo,
             &self.history_repo,
+            &self.repayment_plan_repo,
             &self.ledger,
         ))
     }
@@ -440,6 +446,24 @@ where
             .await?;
         let history = self.history_repo.load(id).await?;
         Ok(history.entries.into_iter().rev().map(T::from).collect())
+    }
+
+    #[instrument(name = "credit_facility.repayment_plan", skip(self), err)]
+    pub async fn repayment_plan<T: From<CreditFacilityRepaymentPlanEntry>>(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        id: impl Into<CreditFacilityId> + std::fmt::Debug,
+    ) -> Result<Vec<T>, CoreCreditError> {
+        let id = id.into();
+        self.authz
+            .enforce_permission(
+                sub,
+                CoreCreditObject::credit_facility(id),
+                CoreCreditAction::CREDIT_FACILITY_READ,
+            )
+            .await?;
+        let repayment_plan = self.repayment_plan_repo.load(id).await?;
+        Ok(repayment_plan.project().into_iter().map(T::from).collect())
     }
 
     #[instrument(name = "credit_facility.balance", skip(self), err)]

@@ -123,11 +123,11 @@ pub mod credit {
         error, ChartOfAccountsIntegrationConfig, CollateralUpdated, CollateralizationUpdated,
         CoreCreditEvent, CreditConfig, CreditFacilitiesCursor, CreditFacilitiesSortBy,
         CreditFacility, CreditFacilityBalanceSummary, CreditFacilityHistoryEntry,
-        CreditFacilityOrigination, CreditFacilityRepaymentInPlan, CreditFacilityStatus, Disbursal,
-        DisbursalExecuted, DisbursalStatus, DisbursalsCursor, DisbursalsSortBy, FacilityCVL,
-        FindManyCreditFacilities, FindManyDisbursals, IncrementalPayment, InterestAccrualsPosted,
-        ListDirection, Payment, RepaymentStatus, Sort, APPROVE_CREDIT_FACILITY_PROCESS,
-        APPROVE_DISBURSAL_PROCESS,
+        CreditFacilityOrigination, CreditFacilityRepaymentPlanEntry, CreditFacilityStatus,
+        Disbursal, DisbursalExecuted, DisbursalStatus, DisbursalsCursor, DisbursalsSortBy,
+        FacilityCVL, FindManyCreditFacilities, FindManyDisbursals, IncrementalPayment,
+        InterestAccrualsPosted, ListDirection, Payment, RepaymentStatus, Sort,
+        APPROVE_CREDIT_FACILITY_PROCESS, APPROVE_DISBURSAL_PROCESS,
     };
 
     pub type Credit =

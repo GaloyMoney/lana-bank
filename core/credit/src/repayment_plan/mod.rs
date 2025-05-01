@@ -10,6 +10,7 @@ use outbox::EventSequence;
 use crate::{event::CoreCreditEvent, primitives::*, terms::TermValues};
 
 pub use entry::*;
+pub use repo::RepaymentPlanRepo;
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct CreditFacilityRepaymentPlan {
@@ -204,12 +205,17 @@ impl CreditFacilityRepaymentPlan {
         }
     }
 
-    pub(super) fn project(&self) -> Vec<RepaymentInPlan> {
+    pub(super) fn project(&self) -> Vec<CreditFacilityRepaymentPlanEntry> {
         let mut res = self
             .existing_obligations
             .iter()
-            .map(RepaymentInPlan::from)
-            .chain(self.upcoming_obligations.iter().cloned())
+            .map(CreditFacilityRepaymentPlanEntry::from)
+            .chain(
+                self.upcoming_obligations
+                    .iter()
+                    .cloned()
+                    .map(CreditFacilityRepaymentPlanEntry::from),
+            )
             .collect::<Vec<_>>();
 
         res.sort();

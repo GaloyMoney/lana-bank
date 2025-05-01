@@ -43,7 +43,7 @@ type CreditFacility {
 	currentCvl: FacilityCVL!
 	history: [CreditFacilityHistoryEntry!]!
 	disbursals: [CreditFacilityDisbursal!]!
-	repaymentPlan: [CreditFacilityRepaymentInPlan!]!
+	repaymentPlan: [CreditFacilityRepaymentPlanEntry!]!
 }
 
 type CreditFacilityBalance {
@@ -115,7 +115,7 @@ type CreditFacilityPayment {
 	creditFacility: CreditFacility!
 }
 
-type CreditFacilityRepaymentInPlan {
+type CreditFacilityRepaymentPlanEntry {
 	repaymentType: CreditFacilityRepaymentType!
 	status: CreditFacilityRepaymentStatus!
 	initial: UsdCents!
@@ -126,8 +126,10 @@ type CreditFacilityRepaymentInPlan {
 
 enum CreditFacilityRepaymentStatus {
 	UPCOMING
+	NOT_YET_DUE
 	DUE
 	OVERDUE
+	DEFAULTED
 	PAID
 }
 

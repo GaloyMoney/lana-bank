@@ -17,6 +17,7 @@ where
     disbursals: &'a DisbursalRepo<E>,
     payments: &'a PaymentRepo,
     histories: &'a HistoryRepo,
+    repayment_plans: &'a RepaymentPlanRepo,
     ledger: &'a CreditLedger,
 }
 
@@ -36,6 +37,7 @@ where
         disbursals: &'a DisbursalRepo<E>,
         payments: &'a PaymentRepo,
         history: &'a HistoryRepo,
+        repayment_plans: &'a RepaymentPlanRepo,
         ledger: &'a CreditLedger,
     ) -> Self {
         Self {
@@ -46,6 +48,7 @@ where
             disbursals,
             payments,
             histories: history,
+            repayment_plans,
             ledger,
         }
     }
@@ -87,6 +90,23 @@ where
         .await?;
         let history = self.histories.load(id).await?;
         Ok(history.entries.into_iter().rev().map(T::from).collect())
+    }
+
+    pub async fn repayment_plan<T: From<CreditFacilityRepaymentPlanEntry>>(
+        &self,
+        id: impl Into<CreditFacilityId> + std::fmt::Debug,
+    ) -> Result<Vec<T>, CoreCreditError> {
+        let id = id.into();
+        let credit_facility = self.credit_facilities.find_by_id(id).await?;
+
+        self.ensure_credit_facility_access(
+            &credit_facility,
+            CoreCreditObject::credit_facility(id),
+            CoreCreditAction::CREDIT_FACILITY_READ,
+        )
+        .await?;
+        let repayment_plan = self.repayment_plans.load(id).await?;
+        Ok(repayment_plan.project().into_iter().map(T::from).collect())
     }
 
     pub async fn balance(

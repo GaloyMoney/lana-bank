@@ -116,11 +116,15 @@ impl CreditFacility {
             .collect())
     }
 
-    async fn repayment_plan(&self) -> Vec<CreditFacilityRepaymentInPlan> {
-        self.entity
-            .repayment_plan()
-            .into_iter()
-            .map(CreditFacilityRepaymentInPlan::from)
-            .collect()
+    async fn repayment_plan(
+        &self,
+        ctx: &Context<'_>,
+    ) -> Result<Vec<CreditFacilityRepaymentPlanEntry>> {
+        let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
+        Ok(app
+            .credit()
+            .for_subject(sub)?
+            .repayment_plan(self.entity.id)
+            .await?)
     }
 }
