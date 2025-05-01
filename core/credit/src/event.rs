@@ -31,9 +31,10 @@ pub enum CoreCreditEvent {
     },
     FacilityRepaymentRecorded {
         credit_facility_id: CreditFacilityId,
+        obligation_id: ObligationId,
+        obligation_type: ObligationType,
         payment_id: PaymentAllocationId,
-        disbursal_amount: UsdCents,
-        interest_amount: UsdCents,
+        amount: UsdCents,
         recorded_at: DateTime<Utc>,
     },
     FacilityCollateralUpdated {
@@ -67,12 +68,28 @@ pub enum CoreCreditEvent {
     },
     ObligationCreated {
         id: ObligationId,
+        obligation_type: ObligationType,
         credit_facility_id: CreditFacilityId,
         amount: UsdCents,
+
+        due_at: DateTime<Utc>,
+        overdue_at: Option<DateTime<Utc>>,
+        defaulted_at: Option<DateTime<Utc>>,
+        created_at: DateTime<Utc>,
     },
     ObligationDue {
         id: ObligationId,
         credit_facility_id: CreditFacilityId,
-        amount: UsdCents,
+        outstanding_amount: UsdCents,
+    },
+    ObligationOverdue {
+        id: ObligationId,
+        credit_facility_id: CreditFacilityId,
+        outstanding_amount: UsdCents,
+    },
+    ObligationDefaulted {
+        id: ObligationId,
+        credit_facility_id: CreditFacilityId,
+        outstanding_amount: UsdCents,
     },
 }

@@ -35,10 +35,11 @@ impl DashboardValues {
                 true
             }
             LanaEvent::Credit(CoreCreditEvent::FacilityRepaymentRecorded {
-                disbursal_amount,
+                obligation_type: ObligationType::Disbursal,
+                amount,
                 ..
             }) => {
-                self.total_disbursed -= *disbursal_amount;
+                self.total_disbursed -= *amount;
                 true
             }
             LanaEvent::Credit(CoreCreditEvent::FacilityCollateralUpdated {

@@ -69,15 +69,14 @@ impl CreditFacilityHistory {
             }
             FacilityRepaymentRecorded {
                 payment_id,
-                disbursal_amount,
-                interest_amount,
+                amount,
                 recorded_at,
                 ..
             } => {
                 self.entries
                     .push(CreditFacilityHistoryEntry::Payment(IncrementalPayment {
                         recorded_at: *recorded_at,
-                        cents: *disbursal_amount + *interest_amount,
+                        cents: *amount,
                         payment_id: *payment_id,
                     }));
             }
@@ -113,6 +112,8 @@ impl CreditFacilityHistory {
             FacilityCompleted { .. } => {}
             ObligationCreated { .. } => {}
             ObligationDue { .. } => {}
+            ObligationOverdue { .. } => {}
+            ObligationDefaulted { .. } => {}
         }
     }
 }

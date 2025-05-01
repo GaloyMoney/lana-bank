@@ -204,24 +204,17 @@ where
             .map(|event| match &event.event {
                 Initialized {
                     id,
+                    obligation_id,
                     obligation_type,
                     amount,
                     ..
-                } => match obligation_type {
-                    ObligationType::Disbursal => CoreCreditEvent::FacilityRepaymentRecorded {
-                        credit_facility_id: entity.credit_facility_id,
-                        payment_id: *id,
-                        disbursal_amount: *amount,
-                        interest_amount: UsdCents::ZERO,
-                        recorded_at: event.recorded_at,
-                    },
-                    ObligationType::Interest => CoreCreditEvent::FacilityRepaymentRecorded {
-                        credit_facility_id: entity.credit_facility_id,
-                        payment_id: *id,
-                        disbursal_amount: UsdCents::ZERO,
-                        interest_amount: *amount,
-                        recorded_at: event.recorded_at,
-                    },
+                } => CoreCreditEvent::FacilityRepaymentRecorded {
+                    credit_facility_id: entity.credit_facility_id,
+                    obligation_id: *obligation_id,
+                    obligation_type: *obligation_type,
+                    payment_id: *id,
+                    amount: *amount,
+                    recorded_at: event.recorded_at,
                 },
             })
             .collect::<Vec<_>>();
@@ -240,15 +233,31 @@ where
         use ObligationEvent::*;
         let publish_events = new_events
             .filter_map(|event| match &event.event {
-                Initialized { amount, .. } => Some(CoreCreditEvent::ObligationCreated {
+                Initialized { .. } => Some(CoreCreditEvent::ObligationCreated {
                     id: entity.id,
+                    obligation_type: entity.obligation_type,
                     credit_facility_id: entity.credit_facility_id,
-                    amount: *amount,
+                    amount: entity.initial_amount,
+
+                    due_at: entity.due_at(),
+                    overdue_at: entity.overdue_at(),
+                    defaulted_at: entity.defaulted_at(),
+                    created_at: entity.created_at(),
                 }),
                 DueRecorded { .. } => Some(CoreCreditEvent::ObligationDue {
                     id: entity.id,
                     credit_facility_id: entity.credit_facility_id,
-                    amount: entity.initial_amount,
+                    outstanding_amount: entity.outstanding(),
+                }),
+                OverdueRecorded { .. } => Some(CoreCreditEvent::ObligationOverdue {
+                    id: entity.id,
+                    credit_facility_id: entity.credit_facility_id,
+                    outstanding_amount: entity.outstanding(),
+                }),
+                DefaultedRecorded { .. } => Some(CoreCreditEvent::ObligationDefaulted {
+                    id: entity.id,
+                    credit_facility_id: entity.credit_facility_id,
+                    outstanding_amount: entity.outstanding(),
                 }),
                 _ => None,
             })

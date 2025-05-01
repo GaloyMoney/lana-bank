@@ -70,6 +70,14 @@ where
                     | ObligationDue {
                         credit_facility_id: id,
                         ..
+                    }
+                    | ObligationOverdue {
+                        credit_facility_id: id,
+                        ..
+                    }
+                    | ObligationDefaulted {
+                        credit_facility_id: id,
+                        ..
                     } => *id,
                 };
 
