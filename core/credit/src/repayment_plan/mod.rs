@@ -1,6 +1,7 @@
 mod entry;
 pub mod error;
 mod repo;
+mod values;
 
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
@@ -11,14 +12,15 @@ use crate::{event::CoreCreditEvent, primitives::*, terms::TermValues};
 
 pub use entry::*;
 pub use repo::RepaymentPlanRepo;
+pub use values::*;
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct CreditFacilityRepaymentPlan {
     terms: Option<TermValues>,
     activated_at: DateTime<Utc>,
 
-    existing_obligations: Vec<ObligationInPlan>,
-    upcoming_obligations: Vec<RepaymentInPlan>,
+    existing_obligations: Vec<RecordedObligationInPlan>,
+    upcoming_obligations: Vec<ObligationInPlan>,
     last_updated_on_sequence: EventSequence,
 }
 
@@ -71,7 +73,7 @@ impl CreditFacilityRepaymentPlan {
                 .annual_rate
                 .interest_for_time_period(outstanding, period.days());
 
-            upcoming_repayments.push(RepaymentInPlan {
+            upcoming_repayments.push(ObligationInPlan {
                 status: RepaymentStatus::Upcoming,
                 obligation_type: ObligationType::Interest,
                 initial: interest,
@@ -116,9 +118,9 @@ impl CreditFacilityRepaymentPlan {
                 created_at,
                 ..
             } => {
-                self.existing_obligations.push(ObligationInPlan {
+                self.existing_obligations.push(RecordedObligationInPlan {
                     obligation_id: *id,
-                    values: RepaymentInPlan {
+                    values: ObligationInPlan {
                         obligation_type: *obligation_type,
                         status: RepaymentStatus::NotYetDue,
 

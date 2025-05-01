@@ -3,8 +3,10 @@ use serde::{Deserialize, Serialize};
 
 use crate::primitives::*;
 
-#[derive(Debug, PartialEq, Eq, serde::Deserialize, serde::Serialize)]
-pub struct ObligationInRepaymentPlan {
+use super::values::*;
+
+#[derive(Debug, PartialEq, Eq, Deserialize, Serialize)]
+pub struct ObligationDataForEntry {
     pub status: RepaymentStatus,
 
     pub initial: UsdCents,
@@ -16,8 +18,8 @@ pub struct ObligationInRepaymentPlan {
     pub recorded_at: DateTime<Utc>,
 }
 
-impl From<RepaymentInPlan> for ObligationInRepaymentPlan {
-    fn from(repayment: RepaymentInPlan) -> Self {
+impl From<ObligationInPlan> for ObligationDataForEntry {
+    fn from(repayment: ObligationInPlan) -> Self {
         Self {
             status: repayment.status,
             initial: repayment.initial,
@@ -30,15 +32,15 @@ impl From<RepaymentInPlan> for ObligationInRepaymentPlan {
     }
 }
 
-#[derive(Debug, PartialEq, Eq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, PartialEq, Eq, Deserialize, Serialize)]
 #[serde(tag = "type")]
 pub enum CreditFacilityRepaymentPlanEntry {
-    Disbursal(ObligationInRepaymentPlan),
-    Interest(ObligationInRepaymentPlan),
+    Disbursal(ObligationDataForEntry),
+    Interest(ObligationDataForEntry),
 }
 
-impl From<RepaymentInPlan> for CreditFacilityRepaymentPlanEntry {
-    fn from(obligation: RepaymentInPlan) -> Self {
+impl From<ObligationInPlan> for CreditFacilityRepaymentPlanEntry {
+    fn from(obligation: ObligationInPlan) -> Self {
         match obligation.obligation_type {
             ObligationType::Disbursal => Self::Disbursal(obligation.into()),
             ObligationType::Interest => Self::Interest(obligation.into()),
@@ -46,29 +48,9 @@ impl From<RepaymentInPlan> for CreditFacilityRepaymentPlanEntry {
     }
 }
 
-impl From<&ObligationInPlan> for CreditFacilityRepaymentPlanEntry {
-    fn from(obligation: &ObligationInPlan) -> Self {
+impl From<&RecordedObligationInPlan> for CreditFacilityRepaymentPlanEntry {
+    fn from(obligation: &RecordedObligationInPlan) -> Self {
         obligation.values.into()
-    }
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
-pub struct RepaymentInPlan {
-    pub obligation_type: ObligationType,
-    pub status: RepaymentStatus,
-
-    pub initial: UsdCents,
-    pub outstanding: UsdCents,
-
-    pub due_at: DateTime<Utc>,
-    pub overdue_at: Option<DateTime<Utc>>,
-    pub defaulted_at: Option<DateTime<Utc>>,
-    pub recorded_at: DateTime<Utc>,
-}
-
-impl From<&ObligationInPlan> for RepaymentInPlan {
-    fn from(obligation: &ObligationInPlan) -> Self {
-        obligation.values
     }
 }
 
@@ -91,33 +73,5 @@ impl Ord for CreditFacilityRepaymentPlanEntry {
         };
 
         self_due_at.cmp(&other_due_at)
-    }
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
-pub(super) struct ObligationInPlan {
-    pub obligation_id: ObligationId,
-    pub values: RepaymentInPlan,
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
-pub enum RepaymentStatus {
-    Upcoming,
-    NotYetDue,
-    Due,
-    Overdue,
-    Defaulted,
-    Paid,
-}
-
-impl From<ObligationStatus> for RepaymentStatus {
-    fn from(status: ObligationStatus) -> Self {
-        match status {
-            ObligationStatus::NotYetDue => RepaymentStatus::NotYetDue,
-            ObligationStatus::Due => RepaymentStatus::Due,
-            ObligationStatus::Overdue => RepaymentStatus::Overdue,
-            ObligationStatus::Defaulted => RepaymentStatus::Defaulted,
-            ObligationStatus::Paid => RepaymentStatus::Paid,
-        }
     }
 }
