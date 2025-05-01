@@ -1,4 +1,3 @@
-use core_money::UsdCents;
 use outbox::{Outbox, OutboxEventMarker};
 
 use crate::{
@@ -13,7 +12,6 @@ use crate::{
     payment_allocation::{
         error::PaymentAllocationError, PaymentAllocation, PaymentAllocationEvent,
     },
-    primitives::ObligationType,
 };
 
 pub struct CreditFacilityPublisher<E>

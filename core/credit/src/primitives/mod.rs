@@ -40,6 +40,15 @@ es_entity::entity_id! {
     PaymentAllocationId => LedgerTxId,
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+pub enum ObligationStatus {
+    NotYetDue,
+    Due,
+    Overdue,
+    Defaulted,
+    Paid,
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
 pub enum ObligationType {
     Disbursal,

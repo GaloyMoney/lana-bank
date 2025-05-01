@@ -16,6 +16,7 @@ mod payment_allocation;
 mod primitives;
 mod processes;
 mod publisher;
+mod repayment_plan;
 mod terms;
 mod time;
 

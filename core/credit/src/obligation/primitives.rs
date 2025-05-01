@@ -1,15 +1,6 @@
 use crate::primitives::*;
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
-pub enum ObligationStatus {
-    NotYetDue,
-    Due,
-    Overdue,
-    Defaulted,
-    Paid,
-}
-
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
 pub struct ObligationAccounts {
     pub receivable_account_id: CalaAccountId,
