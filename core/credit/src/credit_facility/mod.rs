@@ -1,6 +1,5 @@
 mod entity;
 pub mod error;
-// mod jobs;
 mod repo;
 
 pub use entity::CreditFacility;
