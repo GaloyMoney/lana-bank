@@ -20,28 +20,38 @@ pub struct CreditFacilityRepaymentPlan {
     activated_at: DateTime<Utc>,
 
     existing_obligations: Vec<RecordedObligationInPlan>,
-    upcoming_obligations: Vec<ObligationInPlan>,
     last_updated_on_sequence: EventSequence,
+
+    pub entries: Vec<CreditFacilityRepaymentPlanEntry>,
 }
 
 impl CreditFacilityRepaymentPlan {
     fn disbursed_outstanding(&self) -> UsdCents {
         self.existing_obligations
             .iter()
-            .fold(UsdCents::ZERO, |acc, obligation| {
-                if obligation.values.obligation_type == ObligationType::Disbursal {
-                    acc + obligation.values.outstanding
+            .filter_map(|obligation| {
+                let ObligationInPlan {
+                    obligation_type,
+                    outstanding,
+                    ..
+                } = obligation.values;
+                if obligation_type == ObligationType::Disbursal {
+                    Some(outstanding)
                 } else {
-                    acc
+                    None
                 }
             })
+            .fold(UsdCents::ZERO, |acc, outstanding| acc + outstanding)
     }
 
     fn update_upcoming(&mut self) {
-        let mut upcoming_repayments = Vec::new();
+        self.entries = self
+            .existing_obligations
+            .iter()
+            .map(CreditFacilityRepaymentPlanEntry::from)
+            .collect::<Vec<_>>();
         let outstanding = self.disbursed_outstanding();
         if outstanding.is_zero() {
-            self.upcoming_obligations = upcoming_repayments;
             return;
         }
 
@@ -73,22 +83,24 @@ impl CreditFacilityRepaymentPlan {
                 .annual_rate
                 .interest_for_time_period(outstanding, period.days());
 
-            upcoming_repayments.push(ObligationInPlan {
-                status: RepaymentStatus::Upcoming,
-                obligation_type: ObligationType::Interest,
-                initial: interest,
-                outstanding: interest,
+            self.entries
+                .push(CreditFacilityRepaymentPlanEntry::Interest(
+                    ObligationDataForEntry {
+                        status: RepaymentStatus::Upcoming,
+                        initial: interest,
+                        outstanding: interest,
 
-                due_at: period.end,
-                overdue_at: None,
-                defaulted_at: None,
-                recorded_at: period.end,
-            });
+                        due_at: period.end,
+                        overdue_at: None,
+                        defaulted_at: None,
+                        recorded_at: period.end,
+                    },
+                ));
 
             next_interest_period = period.next().truncate(maturity_date);
         }
 
-        self.upcoming_obligations = upcoming_repayments;
+        self.entries.sort();
     }
 
     pub(super) fn process_event(
@@ -205,23 +217,5 @@ impl CreditFacilityRepaymentPlan {
             self.update_upcoming();
             true
         }
-    }
-
-    pub(super) fn project(&self) -> Vec<CreditFacilityRepaymentPlanEntry> {
-        let mut res = self
-            .existing_obligations
-            .iter()
-            .map(CreditFacilityRepaymentPlanEntry::from)
-            .chain(
-                self.upcoming_obligations
-                    .iter()
-                    .cloned()
-                    .map(CreditFacilityRepaymentPlanEntry::from),
-            )
-            .collect::<Vec<_>>();
-
-        res.sort();
-
-        res
     }
 }

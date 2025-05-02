@@ -5,7 +5,7 @@ use crate::primitives::*;
 
 use super::values::*;
 
-#[derive(Debug, PartialEq, Eq, Deserialize, Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Deserialize, Serialize)]
 pub struct ObligationDataForEntry {
     pub status: RepaymentStatus,
 
@@ -32,7 +32,7 @@ impl From<ObligationInPlan> for ObligationDataForEntry {
     }
 }
 
-#[derive(Debug, PartialEq, Eq, Deserialize, Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Deserialize, Serialize)]
 #[serde(tag = "type")]
 pub enum CreditFacilityRepaymentPlanEntry {
     Disbursal(ObligationDataForEntry),

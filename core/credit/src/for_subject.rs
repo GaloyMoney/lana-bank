@@ -106,7 +106,7 @@ where
         )
         .await?;
         let repayment_plan = self.repayment_plans.load(id).await?;
-        Ok(repayment_plan.project().into_iter().map(T::from).collect())
+        Ok(repayment_plan.entries.into_iter().map(T::from).collect())
     }
 
     pub async fn balance(
