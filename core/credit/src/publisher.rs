@@ -242,20 +242,20 @@ where
                     defaulted_at: entity.defaulted_at(),
                     created_at: entity.created_at(),
                 }),
-                DueRecorded { .. } => Some(CoreCreditEvent::ObligationDue {
+                DueRecorded { amount, .. } => Some(CoreCreditEvent::ObligationDue {
                     id: entity.id,
                     credit_facility_id: entity.credit_facility_id,
-                    outstanding_amount: entity.outstanding(),
+                    amount: *amount,
                 }),
-                OverdueRecorded { .. } => Some(CoreCreditEvent::ObligationOverdue {
+                OverdueRecorded { amount, .. } => Some(CoreCreditEvent::ObligationOverdue {
                     id: entity.id,
                     credit_facility_id: entity.credit_facility_id,
-                    outstanding_amount: entity.outstanding(),
+                    amount: *amount,
                 }),
-                DefaultedRecorded { .. } => Some(CoreCreditEvent::ObligationDefaulted {
+                DefaultedRecorded { amount, .. } => Some(CoreCreditEvent::ObligationDefaulted {
                     id: entity.id,
                     credit_facility_id: entity.credit_facility_id,
-                    outstanding_amount: entity.outstanding(),
+                    amount: *amount,
                 }),
                 _ => None,
             })

@@ -34,14 +34,17 @@ pub enum ObligationEvent {
     },
     DueRecorded {
         tx_id: LedgerTxId,
+        amount: UsdCents,
         audit_info: AuditInfo,
     },
     OverdueRecorded {
         tx_id: LedgerTxId,
+        amount: UsdCents,
         audit_info: AuditInfo,
     },
     DefaultedRecorded {
         tx_id: LedgerTxId,
+        amount: UsdCents,
         audit_info: AuditInfo,
     },
     PaymentAllocated {
@@ -300,6 +303,7 @@ impl Obligation {
 
         self.events.push(ObligationEvent::DueRecorded {
             tx_id: res.tx_id,
+            amount: res.amount,
             audit_info,
         });
 
@@ -325,13 +329,14 @@ impl Obligation {
 
         let res = ObligationOverdueReallocationData {
             tx_id: LedgerTxId::new(),
-            outstanding_amount: self.outstanding(),
+            amount: self.outstanding(),
             due_account_id: self.due_accounts().receivable_account_id,
             overdue_account_id: self.overdue_accounts().receivable_account_id,
         };
 
         self.events.push(ObligationEvent::OverdueRecorded {
             tx_id: res.tx_id,
+            amount: res.amount,
             audit_info,
         });
 
@@ -357,13 +362,14 @@ impl Obligation {
 
         let res = ObligationDefaultedReallocationData {
             tx_id: LedgerTxId::new(),
-            outstanding_amount: self.outstanding(),
+            amount: self.outstanding(),
             receivable_account_id: self.receivable_account_id().expect("Obligation is Paid"),
             defaulted_account_id: self.defaulted_account(),
         };
 
         self.events.push(ObligationEvent::DefaultedRecorded {
             tx_id: res.tx_id,
+            amount: res.amount,
             audit_info,
         });
 
@@ -629,7 +635,7 @@ mod test {
             .record_overdue(dummy_audit_info())
             .unwrap()
             .unwrap();
-        assert_eq!(res.outstanding_amount, obligation.initial_amount);
+        assert_eq!(res.amount, obligation.initial_amount);
     }
 
     #[test]
@@ -668,7 +674,7 @@ mod test {
             .record_defaulted(dummy_audit_info())
             .unwrap()
             .unwrap();
-        assert_eq!(res.outstanding_amount, obligation.initial_amount);
+        assert_eq!(res.amount, obligation.initial_amount);
 
         let mut obligation = obligation_from(initial_events());
         let _ = obligation.record_due(dummy_audit_info());
@@ -677,7 +683,7 @@ mod test {
             .record_defaulted(dummy_audit_info())
             .unwrap()
             .unwrap();
-        assert_eq!(res.outstanding_amount, obligation.initial_amount);
+        assert_eq!(res.amount, obligation.initial_amount);
     }
 
     #[test]

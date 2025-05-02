@@ -16,14 +16,14 @@ pub struct ObligationDueReallocationData {
 
 pub struct ObligationOverdueReallocationData {
     pub tx_id: LedgerTxId,
-    pub outstanding_amount: UsdCents,
+    pub amount: UsdCents,
     pub due_account_id: CalaAccountId,
     pub overdue_account_id: CalaAccountId,
 }
 
 pub struct ObligationDefaultedReallocationData {
     pub tx_id: LedgerTxId,
-    pub outstanding_amount: UsdCents,
+    pub amount: UsdCents,
     pub receivable_account_id: CalaAccountId,
     pub defaulted_account_id: CalaAccountId,
 }

@@ -1174,7 +1174,7 @@ impl CreditLedger {
         op: es_entity::DbOp<'_>,
         ObligationDueReallocationData {
             tx_id,
-            amount,
+            amount: outstanding_amount,
             not_yet_due_account_id,
             due_account_id,
             ..
@@ -1188,7 +1188,7 @@ impl CreditLedger {
                 templates::RECORD_OBLIGATION_DUE_BALANCE_CODE,
                 templates::RecordObligationDueBalanceParams {
                     journal_id: self.journal_id,
-                    amount: amount.to_usd(),
+                    amount: outstanding_amount.to_usd(),
                     receivable_not_yet_due_account_id: not_yet_due_account_id,
                     receivable_due_account_id: due_account_id,
                 },
@@ -1203,7 +1203,7 @@ impl CreditLedger {
         op: es_entity::DbOp<'_>,
         ObligationOverdueReallocationData {
             tx_id,
-            outstanding_amount,
+            amount: outstanding_amount,
             due_account_id,
             overdue_account_id,
             ..
@@ -1232,7 +1232,7 @@ impl CreditLedger {
         op: es_entity::DbOp<'_>,
         ObligationDefaultedReallocationData {
             tx_id,
-            outstanding_amount,
+            amount: outstanding_amount,
             receivable_account_id,
             defaulted_account_id,
             ..
