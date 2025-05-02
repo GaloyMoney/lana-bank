@@ -68,7 +68,7 @@ export type CreditFacility = {
   history: Array<CreditFacilityHistoryEntry>;
   id: Scalars['ID']['output'];
   maturesAt?: Maybe<Scalars['Timestamp']['output']>;
-  repaymentPlan: Array<CreditFacilityRepaymentInPlan>;
+  repaymentPlan: Array<CreditFacilityRepaymentPlanEntry>;
   status: CreditFacilityStatus;
 };
 
@@ -197,8 +197,13 @@ export type Customer = {
 };
 
 export enum CustomerType {
-  Company = 'COMPANY',
-  Individual = 'INDIVIDUAL'
+  Bank = 'BANK',
+  FinancialInstitution = 'FINANCIAL_INSTITUTION',
+  ForeignAgencyOrSubsidiary = 'FOREIGN_AGENCY_OR_SUBSIDIARY',
+  GovernmentEntity = 'GOVERNMENT_ENTITY',
+  Individual = 'INDIVIDUAL',
+  NonDomiciledCompany = 'NON_DOMICILED_COMPANY',
+  PrivateCompany = 'PRIVATE_COMPANY'
 }
 
 export type Deposit = {

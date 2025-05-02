@@ -81,6 +81,7 @@ function NavBar({ meQueryData }: { meQueryData: MeQuery }) {
                   <AvatarFallback>{avatarCallback}</AvatarFallback>
                 </Avatar>
               </DropdownMenuTrigger>
+
               <DropdownMenuContent
                 align="end"
                 className="w-48"
@@ -96,6 +97,7 @@ function NavBar({ meQueryData }: { meQueryData: MeQuery }) {
                     <span>{item.label}</span>
                   </DropdownMenuItem>
                 ))}
+
                 <DropdownMenuSeparator />
                 <DropdownMenuSub>
                   <DropdownMenuSubTrigger className="cursor-pointer">
