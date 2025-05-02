@@ -36,6 +36,11 @@
       aliases = [
         (mkAlias "meltano" ''docker compose run --rm meltano -- "$@"'')
       ];
+      sqlx-cli = pkgs.sqlx-cli.overrideAttrs (oldAttrs: {
+        buildInputs = (oldAttrs.buildInputs or []) ++ [
+          pkgs.openssl.dev
+        ];
+      });
       nativeBuildInputs = with pkgs;
         [
           rustToolchain
@@ -49,6 +54,7 @@
           bacon
           typos
           postgresql
+          docker
           docker-compose
           bats
           jq
@@ -67,6 +73,7 @@
           xvfb-run
           cypress
           wkhtmltopdf
+          shadow
         ]
         ++ lib.optionals pkgs.stdenv.isDarwin [
           darwin.apple_sdk.frameworks.SystemConfiguration
