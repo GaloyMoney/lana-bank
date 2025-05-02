@@ -48,7 +48,7 @@ impl Mutation {
         let customer = app.customers().find_for_subject(sub).await?;
         let res = app
             .applicants()
-            .create_permalink(&Subject::System, customer.id)
+            .create_permalink(&Subject::Customer(customer.id), customer.id)
             .await?;
         Ok(res.url)
     }
