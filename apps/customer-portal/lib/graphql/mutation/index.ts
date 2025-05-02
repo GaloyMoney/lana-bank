@@ -15,7 +15,8 @@ export async function executeMutation<
   variables: TVariables
 }): Promise<TData | Error> {
   try {
-    const response = await getClient().mutate<TData, TVariables>({
+    const client = await getClient()
+    const response = await client.mutate<TData, TVariables>({
       mutation: options.document,
       variables: options.variables,
     })
