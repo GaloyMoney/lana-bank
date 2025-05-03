@@ -10,7 +10,7 @@
 - **Security-First Design** – Adheres to industry security standards and best practices
 - **Source Code Auditable** – Under Fair Source License
 
-For enterprise inquiries, contact **[biz@galoy.io](mailto:biz@galoy.io)**.
+For enterprise inquiries, contact **[biz@galoy.io](mailto:biz@galoy.io)**
 
 ---
 
@@ -130,7 +130,7 @@ gcloud auth application-default print-access-token
 
 ### Adding new BigQuery tables
 
-Commands to re-run when adding new BQ tables:
+Commands to re-run when adding new BQ tables
 
 ```
 git checkout pre-merged-commit

@@ -1,18 +1,18 @@
 #@ load("@ytt:data", "data")
 
 #@ load("vendor/pipeline-fragments.lib.yml",
-#@   "private_docker_registry",
+#@   "private_gar_registry",
 #@   "release_task_image_config")
 
 #@ def galoy_dev_image():
-#@   return data.values.docker_registry + "/galoy-dev"
+#@   return data.values.gar_registry + "/galoy-dev"
 #@ end
 
 #@ def task_image_config():
 type: registry-image
 source:
-  username: ((docker-creds.username))
-  password: ((docker-creds.password))
+  username: ((gar-creds.username))
+  password: ((gar-creds.password))
   repository: #@ galoy_dev_image()
 #@ end
 
@@ -94,9 +94,9 @@ name: #@ app_edge_image_resource_name(app)
 type: registry-image
 source:
   tag: edge
-  username: #@ data.values.docker_registry_user
-  password: #@ data.values.docker_registry_password
-  repository: #@ private_docker_registry() + "/" + data.values.gh_repository + "-" + app
+  username: #@ data.values.gar_registry_user
+  password: #@ data.values.gar_registry_password
+  repository: #@ private_gar_registry() + "/" + data.values.gh_repository + "-" + app
 #@ end
 
 #@ def app_latest_image_resource_name(app):
@@ -108,7 +108,7 @@ name: #@ app_latest_image_resource_name(app)
 type: registry-image
 source:
   tag: latest
-  username: #@ data.values.docker_registry_user
-  password: #@ data.values.docker_registry_password
-  repository: #@ private_docker_registry() + "/" + data.values.gh_repository + "-" + app
+  username: #@ data.values.gar_registry_user
+  password: #@ data.values.gar_registry_password
+  repository: #@ private_gar_registry() + "/" + data.values.gh_repository + "-" + app
 #@ end

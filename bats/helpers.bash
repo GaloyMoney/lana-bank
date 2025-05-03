@@ -239,9 +239,9 @@ cat_logs() {
 }
 
 reset_log_files() {
-    for file in "$@"; do
-        rm "$file" &> /dev/null || true && touch "$file"
-    done
+  for file in "$@"; do
+    rm "$file" &> /dev/null || true && touch "$file"
+  done
 }
 
 getEmailCode() {
@@ -350,4 +350,20 @@ net_usd_revenue() {
 
 from_utc() {
   date -u -d @0 +"%Y-%m-%dT%H:%M:%S.%3NZ"
+}
+
+
+wait_for_checking_account() {
+  customer_id=$1
+
+  variables=$(
+    jq -n \
+      --arg customerId "$customer_id" \
+    '{ id: $customerId }'
+  )
+  exec_admin_graphql 'customer' "$variables"
+
+  deposit_account_id=$(graphql_output '.data.customer.depositAccount.depositAccountId')
+  [[ "$deposit_account_id" != "null" ]] || exit 1
+
 }

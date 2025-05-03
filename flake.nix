@@ -11,6 +11,7 @@
       };
     };
   };
+
   outputs = {
     self,
     nixpkgs,
@@ -52,21 +53,31 @@
           docker-compose
           bats
           jq
-          napi-rs-cli
-          yarn
           nodejs
           typescript
           google-cloud-sdk
           pnpm
           vendir
           netlify-cli
-          tilt
           pandoc
+          nano
+          podman
+          podman-compose
+          cachix
+          ps
+          curl
+          tilt
         ]
         ++ lib.optionals pkgs.stdenv.isLinux [
           xvfb-run
           cypress
           wkhtmltopdf
+
+          slirp4netns
+          fuse-overlayfs
+
+          util-linux
+          psmisc
         ]
         ++ lib.optionals pkgs.stdenv.isDarwin [
           darwin.apple_sdk.frameworks.SystemConfiguration

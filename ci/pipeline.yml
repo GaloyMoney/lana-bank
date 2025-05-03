@@ -2,7 +2,7 @@
 
 #@ load("vendor/pipeline-fragments.lib.yml",
 #@   "build_edge_image",
-#@   "public_docker_registry",
+#@   "public_gar_registry",
 #@   "nodejs_task_image_config",
 #@   "docker_host_pool",
 #@   "test_on_docker_host",
@@ -15,7 +15,8 @@
 #@   "rust_task_image_config",
 #@   "charts_repo_resource",
 #@   "charts_repo_bot_branch",
-#@   "private_docker_registry"
+#@   "private_gar_registry",
+#@   "nix_task_image_config"
 #@ )
 
 #@ load("app-template.lib.yml",
@@ -29,42 +30,6 @@
 #@   "app_edge_image"
 #@ )
 
-#@ def on_nix_host(name, cmd):
-#@ params = {}
-#@ params["REPO_PATH"] = data.values.gh_repository
-#@ params["GOOGLE_CREDENTIALS"] = "((staging-gcp-creds.creds_json))"
-#@ params["SSH_PRIVATE_KEY"] = "((staging-ssh.ssh_private_key))"
-#@ params["SSH_PUB_KEY"] = "((staging-ssh.ssh_public_key))"
-#@ params["CMD"] = cmd
-name: #@ name
-serial: true
-plan:
-  - { put: nix-host, params: { acquire: true } }
-  - in_parallel:
-      - get: repo
-        trigger: true
-      - { get: pipeline-tasks }
-  - task: #@ name
-    attempts: 2
-    timeout: 18m
-    tags: ["galoy-staging"]
-    config:
-      platform: linux
-      image_resource: #@ rust_task_image_config()
-      inputs:
-        - name: pipeline-tasks
-        - name: nix-host
-        - name: repo
-          path: #@ data.values.gh_repository
-      params: #@ params
-      run:
-        path: pipeline-tasks/ci/tasks/run-on-nix-host.sh
-    ensure:
-      put: nix-host
-      params:
-        release: nix-host
-#@ end
-
 groups:
   - name: lana-bank
     jobs:
@@ -73,7 +38,7 @@ groups:
       - integration-tests
       - bats-tests
       - release
-      - build-edge-image
+      #!- build-edge-image
       - release-docker
       - set-dev-version
       - bump-image-in-chart
@@ -83,9 +48,104 @@ groups:
       - build-static-binary
 
 jobs:
-  -  #@ on_nix_host("integration-tests", "make test-in-ci")
-  -  #@ on_nix_host("bats-tests", "make e2e")
-  -  #@ build_edge_image()
+  #! -  #@ build_edge_image()
+  - name: integration-tests
+    serial: true
+    plan:
+      - in_parallel:
+          - get: repo
+            trigger: true
+          - { get: pipeline-tasks }
+      - task: integration-tests
+        attempts: 2
+        privileged: true
+        config:
+          platform: linux
+          image_resource: #@ nix_task_image_config()
+          inputs:
+            - name: pipeline-tasks
+            - name: repo
+              path: repo
+          run:
+            path: sh
+            args:
+              - -exc
+              - |
+                set -euo pipefail
+                pushd repo
+
+                echo "--- Manually configuring Nix for Cachix ---"
+                mkdir -p /etc/nix
+                # Append to nix.conf, creating if it doesn't exist
+                echo "substituters = https://cache.nixos.org/ https://lana-ci.cachix.org" >> /etc/nix/nix.conf
+                echo "trusted-public-keys = cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= lana-ci.cachix.org-1:azzCR3pnHnh+Ew66H0R3jDqdHXO8t47uD5utj4FaodI=" >> /etc/nix/nix.conf
+                echo "Configured /etc/nix/nix.conf:"
+                cat /etc/nix/nix.conf
+                # Ensure the auth token is available for nix commands
+                export CACHIX_AUTH_TOKEN="${CACHIX_AUTH_TOKEN:-}"
+                echo "--- Nix configuration done ---"
+
+                echo "--- Entering Nix Develop Environment and running script ---"
+                # The script path is relative to the pipeline-tasks input root
+                # Assumes pipeline-tasks is mounted at the task root, alongside repo
+                nix -L develop --command sh -exc ../pipeline-tasks/ci/tasks/podman-integration-tests.sh
+
+  - name: bats-tests
+    serial: true
+    plan:
+      - in_parallel:
+          - get: repo
+            trigger: true
+          - { get: pipeline-tasks }
+      - task: bats-tests
+        timeout: 50m
+        attempts: 1
+        privileged: true
+        config:
+          platform: linux
+          image_resource: #@ nix_task_image_config()
+          inputs:
+            - name: pipeline-tasks
+            - name: repo
+              path: repo
+          params:
+            DOCKERHUB_USERNAME: #@ data.values.docker_registry_user
+            DOCKERHUB_PASSWORD: #@ data.values.docker_registry_password
+            CACHIX_AUTH_TOKEN: #@ data.values.cachix_auth_token
+          run:
+            path: sh
+            args:
+              - -exc
+              - |
+                set -euo pipefail
+                pushd repo
+
+                echo "--- Manually configuring Nix for Cachix ---"
+                mkdir -p /etc/nix
+                # Append to nix.conf, creating if it doesn't exist
+                echo "substituters = https://cache.nixos.org/ https://lana-ci.cachix.org" >> /etc/nix/nix.conf
+                echo "trusted-public-keys = cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= lana-ci.cachix.org-1:azzCR3pnHnh+Ew66H0R3jDqdHXO8t47uD5utj4FaodI=" >> /etc/nix/nix.conf
+                echo "Configured /etc/nix/nix.conf:"
+                cat /etc/nix/nix.conf
+                # Ensure the auth token is available for nix commands
+                export CACHIX_AUTH_TOKEN="${CACHIX_AUTH_TOKEN:-}"
+                echo "--- Nix configuration done ---"
+
+                echo "--- Building and pushing devShell dependencies to Cachix ---"
+                if [[ -n "${CACHIX_AUTH_TOKEN}" ]]; then
+                  # Use nix shell to make cachix and nix available for the push command
+                  nix shell nixpkgs#cachix nixpkgs#nix --command sh -c \
+                    "nix build .#devShells.x86_64-linux.default --print-out-paths --no-link | cachix push lana-ci" \
+                  || echo "Warning: Failed to build or push devShell dependencies. Proceeding..."
+                else
+                  echo "Warning: CACHIX_AUTH_TOKEN not set. Skipping pre-emptive push of devShell dependencies."
+                fi
+                echo "--- devShell push attempt finished ---"
+
+                echo "--- Entering Nix Develop Environment and running script ---"
+                # The script path is relative to the pipeline-tasks input root
+                # Assumes pipeline-tasks is mounted at the task root, alongside repo
+                nix -L develop --command sh -exc ../pipeline-tasks/ci/tasks/podman-e2e-tests.sh                
 
   - name: rust-check-code
     serial: true
@@ -192,7 +252,6 @@ jobs:
               - nodejs-check-code
               - rust-check-code
               - integration-tests
-              - bats-tests
               - build-static-binary
             trigger: true
           - get: pipeline-tasks
@@ -546,44 +605,36 @@ resources:
     type: registry-image
     source:
       tag: latest
-      username: #@ data.values.docker_registry_user
-      password: #@ data.values.docker_registry_password
-      repository: #@ private_docker_registry() + "/" + data.values.folder_registry_image
-
-  - name: nix-host
-    type: pool
-    source:
-      uri: git@github.com:GaloyMoney/galoy-concourse-locks.git
-      branch: main
-      pool: docker-hosts
-      private_key: #@ data.values.github_private_key
+      username: #@ data.values.gar_registry_user
+      password: #@ data.values.gar_registry_password
+      repository: #@ private_gar_registry() + "/" + data.values.folder_registry_image
 
   - name: meltano-edge-image
     type: registry-image
     source:
       tag: edge
-      username: #@ data.values.docker_registry_user
-      password: #@ data.values.docker_registry_password
-      repository: #@ public_docker_registry() + "/meltano"
+      username: #@ data.values.gar_registry_user
+      password: #@ data.values.gar_registry_password
+      repository: #@ public_gar_registry() + "/meltano"
 
   - name: meltano-latest-image
     type: registry-image
     source:
       tag: latest
-      username: #@ data.values.docker_registry_user
-      password: #@ data.values.docker_registry_password
-      repository: #@ public_docker_registry() + "/meltano"
+      username: #@ data.values.gar_registry_user
+      password: #@ data.values.gar_registry_password
+      repository: #@ public_gar_registry() + "/meltano"
 
   - name: static-binary-image
     type: registry-image
     source:
       tag: latest
-      repository: #@ private_docker_registry() + "/" + data.values.folder_registry_image_static
-      username: #@ data.values.docker_registry_user
-      password: #@ data.values.docker_registry_password
+      repository: #@ private_gar_registry() + "/" + data.values.folder_registry_image_static
+      username: #@ data.values.gar_registry_user
+      password: #@ data.values.gar_registry_password
 
   -  #@ pipeline_tasks_resource()
-  -  #@ edge_image_resource(publicRepo=False)
+  #! -  #@ edge_image_resource(publicRepo=False)
   -  #@ version_resource()
   -  #@ gh_release_resource()
   -  #@ charts_repo_bot_branch()

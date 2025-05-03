@@ -1,4 +1,4 @@
-# Docker and tilt
+# Docker, Podman and Tilt
 dev-up:
 	cd dev && tilt up
 
@@ -9,10 +9,10 @@ next-watch:
 	cargo watch -s 'cargo nextest run'
 
 clean-deps:
-	docker compose down -t 1
+	./bin/clean-deps.sh
 
 start-deps:
-	docker compose up --wait -d integration-deps
+	./bin/docker-compose-up.sh integration-deps
 
 # Rust backend
 setup-db:

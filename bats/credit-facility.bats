@@ -16,21 +16,6 @@ teardown_file() {
   cp "$LOG_FILE" "$PERSISTED_LOG_FILE"
 }
 
-wait_for_customer_activation() {
-  customer_id=$1
-
-  variables=$(
-    jq -n \
-      --arg customerId "$customer_id" \
-    '{ id: $customerId }'
-  )
-  exec_admin_graphql 'customer' "$variables"
-
-  status=$(graphql_output '.data.customer.status')
-  [[ "$status" == "ACTIVE" ]] || exit 1
-
-}
-
 wait_for_active() {
   credit_facility_id=$1
 
@@ -119,7 +104,7 @@ ymd() {
   # Setup prerequisites
   customer_id=$(create_customer)
 
-  # retry 10 1 wait_for_customer_activation "$customer_id"
+  retry 10 1 wait_for_checking_account "$customer_id"
 
   variables=$(
     jq -n \
@@ -132,6 +117,7 @@ ymd() {
 
   deposit_account_id=$(graphql_output '.data.customer.depositAccount.depositAccountId')
   [[ "$deposit_account_id" != "null" ]] || exit 1
+
 
   facility=100000
   variables=$(

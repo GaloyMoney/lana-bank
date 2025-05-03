@@ -1,46 +1,46 @@
 #@ load("@ytt:data", "data")
 
-#@ def public_docker_registry():
+#@ def public_gar_registry():
 #@  return "us.gcr.io/galoyorg"
 #@ end
 
-#@ def private_docker_registry():
+#@ def private_gar_registry():
 #@  return "gcr.io/galoyorg"
 #@ end
 
 #@ def nodejs_concourse_image():
-#@   return public_docker_registry() + "/nodejs-concourse"
+#@   return public_gar_registry() + "/nodejs-concourse"
 #@ end
 
 #@ def rust_concourse_image():
-#@   return public_docker_registry() + "/rust-concourse"
+#@   return public_gar_registry() + "/rust-concourse"
 #@ end
 
 #@ def release_concourse_image():
-#@   return public_docker_registry() + "/release-pipeline"
+#@   return public_gar_registry() + "/release-pipeline"
 #@ end
 
 #@ def nodejs_task_image_config():
 type: registry-image
 source:
-  username: ((docker-creds.username))
-  password: ((docker-creds.password))
+  username: ((gar-creds.username))
+  password: ((gar-creds.password))
   repository: #@ nodejs_concourse_image()
 #@ end
 
 #@ def rust_task_image_config():
 type: registry-image
 source:
-  username: ((docker-creds.username))
-  password: ((docker-creds.password))
+  username: ((gar-creds.username))
+  password: ((gar-creds.password))
   repository: #@ rust_concourse_image()
 #@ end
 
 #@ def release_task_image_config():
 type: registry-image
 source:
-  username: ((docker-creds.username))
-  password: ((docker-creds.password))
+  username: ((gar-creds.username))
+  password: ((gar-creds.password))
   repository: #@ release_concourse_image()
 #@ end
 
@@ -425,9 +425,9 @@ name: edge-image
 type: registry-image
 source:
   tag: edge
-  username: #@ data.values.docker_registry_user
-  password: #@ data.values.docker_registry_password
-  repository: #@ public_docker_registry() + "/" + data.values.gh_repository if publicRepo else private_docker_registry() + "/" + data.values.gh_repository
+  username: #@ data.values.gar_registry_user
+  password: #@ data.values.gar_registry_password
+  repository: #@ public_gar_registry() + "/" + data.values.gh_repository if publicRepo else private_gar_registry() + "/" + data.values.gh_repository
 #@ end
 
 #@ def nodejs_deps_resource(webhook = False):
@@ -488,9 +488,9 @@ source:
 name: versioned-image
 type: registry-image
 source:
-  username: #@ data.values.docker_registry_user
-  password: #@ data.values.docker_registry_password
-  repository: #@ public_docker_registry() + "/" + data.values.gh_repository if publicRepo else private_docker_registry() + "/" + data.values.gh_repository
+  username: #@ data.values.gar_registry_user
+  password: #@ data.values.gar_registry_password
+  repository: #@ public_gar_registry() + "/" + data.values.gh_repository if publicRepo else private_gar_registry() + "/" + data.values.gh_repository
 #@ end
 
 #@ def gh_release_resource():
