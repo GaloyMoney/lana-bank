@@ -38,9 +38,10 @@ impl KratosAdmin {
             recovery_addresses: None,
             state: None,
             verifiable_addresses: None,
+            organization_id: None,
         };
 
-        let identity = identity_api::create_identity(&self.config, Some(&identity)).await?;
+        let identity = identity_api::create_identity(&self.config, Some(identity)).await?;
         Ok(identity.id.parse::<Uuid>()?.into())
     }
 
