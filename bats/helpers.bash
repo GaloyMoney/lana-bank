@@ -16,13 +16,6 @@ SERVER_PID_FILE="${LANA_HOME}/server-pid"
 
 LOG_FILE=".e2e-logs"
 
-reset_pg() {
-  docker exec "${COMPOSE_PROJECT_NAME}-core-pg-1" psql $PG_CON -c "DROP SCHEMA public CASCADE"
-  docker exec "${COMPOSE_PROJECT_NAME}-core-pg-1" psql $PG_CON -c "CREATE SCHEMA public"
-  docker exec "${COMPOSE_PROJECT_NAME}-cala-pg-1" psql $PG_CON -c "DROP SCHEMA public CASCADE"
-  docker exec "${COMPOSE_PROJECT_NAME}-cala-pg-1" psql $PG_CON -c "CREATE SCHEMA public"
-}
-
 server_cmd() {
   server_location="${REPO_ROOT}/target/debug/lana-cli"
   if [[ ! -z ${CARGO_TARGET_DIR} ]]; then
@@ -32,24 +25,14 @@ server_cmd() {
   bash -c ${server_location} $@
 }
 
+is_server_running() {
+  pgrep -f '[l]ana-cli' >/dev/null
+}
+
 start_server() {
   # Check for running server
-  if [ -n "$BASH_VERSION" ]; then
-    server_process_and_status=$(
-      ps a | grep 'target/debug/lana-cli' | grep -v grep
-      echo ${PIPESTATUS[2]}
-    )
-  elif [ -n "$ZSH_VERSION" ]; then
-    server_process_and_status=$(
-      ps a | grep 'target/debug/lana-cli' | grep -v grep
-      echo ${pipestatus[3]}
-    )
-  else
-    echo "Unsupported shell."
-    exit 1
-  fi
-  exit_status=$(echo "$server_process_and_status" | tail -n 1)
-  if [ "$exit_status" -eq 0 ]; then
+  if is_server_running; then
+    # Server is already running
     rm -f "$SERVER_PID_FILE"
     return 0
   fi
@@ -57,7 +40,8 @@ start_server() {
   # Start server if not already running
   background server_cmd > "$LOG_FILE" 2>&1
   for i in {1..20}; do
-    if head "$LOG_FILE" | grep -q 'Starting graphql server on port'; then
+    if head "$LOG_FILE" | grep -q 'Starting'; then
+      echo "Server started"
       break
     elif head "$LOG_FILE" | grep -q 'Connection reset by peer'; then
       stop_server
