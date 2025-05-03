@@ -1,7 +1,7 @@
 # ADMIN PANEL
 - id: kratos-admin
   upstream:
-    url: http://dockerhost-alias:4433
+    url: http://host.containers.internal:4433
     strip_path: /admin
   match:
     url: <(http|https)>://<[a-zA-Z0-9-.:]+>/admin/<(sessions|self-service)>/<.*>
@@ -15,7 +15,7 @@
 
 - id: admin-api # lana/admin-server
   upstream:
-    url: http://dockerhost-alias:5253
+    url: http://host.containers.internal:5253
     strip_path: /admin
   match:
     url: <(http|https)>://<[a-zA-Z0-9-.:]+>/admin/graphql
@@ -33,14 +33,14 @@
     - handler: hydrator
       config:
         api:
-          url: http://dockerhost-alias:5253/user/user-id-from-authentication-id
+          url: http://host.containers.internal:5253/user/user-id-from-authentication-id
     - handler: id_token
       config:
         claims: '{"aud": ["https://admin-api/graphql"], "subject": {{ print .Extra.subject | toJson }} }'
 
 - id: admin-panel-ui # apps/admin-panel
   upstream:
-    url: http://dockerhost-alias:3001
+    url: http://host.containers.internal:3001
     # strip_path: /admin # nextjs base path will handle this
   match:
     url: <(http|https)>://<[a-zA-Z0-9-.:]+>/admin<(?!\/sessions|\/self-service|\/graphql).*>
@@ -55,7 +55,7 @@
 # CUSTOMER PORTAL
 - id: kratos-customer
   upstream:
-    url: http://dockerhost-alias:4435
+    url: http://host.containers.internal:4435
     strip_path: /app
   match:
     url: <(http|https)>://<[a-zA-Z0-9-.:]+>/app/<(sessions|self-service)>/<.*>
@@ -69,7 +69,7 @@
 
 - id: app-api # lana/customer-server
   upstream:
-    url: http://dockerhost-alias:5254
+    url: http://host.containers.internal:5254
     strip_path: /app
   match:
     url: <(http|https)>://<[a-zA-Z0-9-.:]+>/app/graphql
@@ -87,7 +87,7 @@
     - handler: hydrator
       config:
         api:
-          url: http://dockerhost-alias:5254/customer/customer-id-from-authentication-id
+          url: http://host.containers.internal:5254/customer/customer-id-from-authentication-id
     - handler: id_token
       config:
         claims: '{"aud": ["https://customer-api/graphql"], "subject": {{ print .Extra.subject | toJson }} }'
@@ -95,7 +95,7 @@
 
 - id: customer-portal-ui # apps/customer-portal
   upstream:
-    url: http://dockerhost-alias:3002
+    url: http://host.containers.internal:3002
     # strip_path: /app # nextjs base path will handle this
   match:
     url: <(http|https)>://<[a-zA-Z0-9-.:]+>/app<(?!\/sessions|\/self-service|\/graphql).*>
