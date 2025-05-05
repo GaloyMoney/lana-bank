@@ -90,7 +90,7 @@ impl
     )> for LedgerAccount
 {
     fn from(
-        (account_set, btc_balance_range, usd_balance_range): (
+        (account_set, usd_balance_range, btc_balance_range): (
             CalaAccountSet,
             Option<CalaBalanceRange>,
             Option<CalaBalanceRange>,
