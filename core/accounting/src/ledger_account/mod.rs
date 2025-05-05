@@ -191,7 +191,7 @@ where
                 .await?;
 
             for mut account in res.entities {
-                if filter_non_zero && !account.has_non_zero_balance() {
+                if filter_non_zero && !account.has_non_zero_activity() {
                     continue;
                 }
                 self.populate_ancestors(chart, &mut account).await?;

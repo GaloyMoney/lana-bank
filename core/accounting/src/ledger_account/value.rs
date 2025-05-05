@@ -27,11 +27,11 @@ impl LedgerAccount {
         }
     }
 
-    pub(super) fn has_non_zero_balance(&self) -> bool {
+    pub(super) fn has_non_zero_activity(&self) -> bool {
         if let Some(usd) = self.usd_balance_range.as_ref() {
-            usd.has_non_zero_balance()
+            usd.has_non_zero_activity()
         } else if let Some(btc) = self.btc_balance_range.as_ref() {
-            btc.has_non_zero_balance()
+            btc.has_non_zero_activity()
         } else {
             false
         }
