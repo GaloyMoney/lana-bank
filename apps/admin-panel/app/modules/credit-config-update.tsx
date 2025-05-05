@@ -84,8 +84,8 @@ const initialFormData: CreditModuleConfigureInput = {
 const creditModuleCodes = {
   chartOfAccountFacilityOmnibusParentCode: "9110.02.0201",
   chartOfAccountCollateralOmnibusParentCode: "9220.08.0201",
-  chartOfAccountFacilityParentCode: "9110.02",
-  chartOfAccountCollateralParentCode: "9220.08",
+  chartOfAccountFacilityParentCode: "9110.02.0201",
+  chartOfAccountCollateralParentCode: "9220.08.0201",
   chartOfAccountInterestIncomeParentCode: "6110.01.0100",
   chartOfAccountFeeIncomeParentCode: "6110.01.0300",
   chartOfAccountShortTermIndividualInterestReceivableParentCode: "1141.04.9901",
