@@ -61,6 +61,15 @@ impl DepositAccount {
         self.status = status;
         Idempotent::Executed(())
     }
+
+    pub fn was_ever_activated(&self) -> bool {
+        self.events.iter_all().any(|event| match event {
+            DepositAccountEvent::Initialized { status, .. } => status == &AccountStatus::Active,
+            DepositAccountEvent::AccountStatusUpdated { status, .. } => {
+                status == &AccountStatus::Active
+            }
+        })
+    }
 }
 
 impl TryFromEvents<DepositAccountEvent> for DepositAccount {

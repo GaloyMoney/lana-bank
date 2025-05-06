@@ -458,6 +458,11 @@ where
             )
             .await?;
 
+        let account = self.accounts.find_by_id(account_id).await?;
+        if !account.was_ever_activated() {
+            return Err(CoreDepositError::DepositAccountNotActive);
+        }
+
         let balance = self.ledger.balance(account_id).await?;
         Ok(balance)
     }
