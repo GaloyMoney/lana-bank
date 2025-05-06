@@ -2,7 +2,8 @@ use std::collections::HashMap;
 
 use crate::{
     AccountCode, BalanceRange, CalaAccount, CalaAccountBalance, CalaAccountId, CalaAccountSet,
-    CalaAccountSetId, CalaBalanceRange, CalaCurrency, CalaJournalId, LedgerAccountId,
+    CalaAccountSetId, CalaBalanceId, CalaBalanceRange, CalaCurrency, CalaJournalId,
+    LedgerAccountId,
 };
 
 #[derive(Debug, Clone)]
@@ -48,7 +49,7 @@ pub(super) struct ByCurrency<B> {
 
 impl<B> ByCurrency<B> {
     pub(super) fn extract_from_balances(
-        balances: &mut HashMap<(CalaJournalId, CalaAccountId, CalaCurrency), B>,
+        balances: &mut HashMap<CalaBalanceId, B>,
         journal_id: CalaJournalId,
         account_id: impl Into<CalaAccountId>,
     ) -> Self {

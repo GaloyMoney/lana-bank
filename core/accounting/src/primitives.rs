@@ -11,8 +11,9 @@ pub use cala_ledger::{
     account_set::AccountSet as CalaAccountSet,
     balance::{AccountBalance as CalaAccountBalance, BalanceRange as CalaBalanceRange},
     primitives::{
-        AccountId as CalaAccountId, AccountSetId as CalaAccountSetId, EntryId as CalaEntryId,
-        JournalId as CalaJournalId, TransactionId as CalaTxId, TxTemplateId as CalaTxTemplateId,
+        AccountId as CalaAccountId, AccountSetId as CalaAccountSetId, BalanceId as CalaBalanceId,
+        EntryId as CalaEntryId, JournalId as CalaJournalId, TransactionId as CalaTxId,
+        TxTemplateId as CalaTxTemplateId,
     },
 };
 
