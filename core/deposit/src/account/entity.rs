@@ -64,8 +64,8 @@ impl DepositAccount {
 
     pub fn was_ever_activated(&self) -> bool {
         self.events.iter_all().any(|event| match event {
-            DepositAccountEvent::Initialized { status, .. } => status == &AccountStatus::Active,
-            DepositAccountEvent::AccountStatusUpdated { status, .. } => {
+            DepositAccountEvent::Initialized { status, .. }
+            | DepositAccountEvent::AccountStatusUpdated { status, .. } => {
                 status == &AccountStatus::Active
             }
         })
