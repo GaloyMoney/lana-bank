@@ -201,12 +201,10 @@ impl LedgerAccountLedger {
         ];
         let mut balances = self.cala.balances().find_all(&balance_ids).await?;
 
-        let balances = AccountBalances {
-            usd: balances.remove(&(self.journal_id, account_set.id.into(), Currency::USD)),
-            btc: balances.remove(&(self.journal_id, account_set.id.into(), Currency::BTC)),
-        };
+        let account_balances =
+            AccountBalances::extract_from_balances(&mut balances, self.journal_id, account_set.id);
 
-        let ledger_account = LedgerAccount::from((account_set, balances));
+        let ledger_account = LedgerAccount::from((account_set, account_balances));
         Ok(Some(ledger_account))
     }
 
@@ -242,12 +240,10 @@ impl LedgerAccountLedger {
         for (id, account_set) in account_sets {
             let account_id: LedgerAccountId = id.into();
 
-            let balances = AccountBalances {
-                usd: balances.remove(&(self.journal_id, account_id.into(), Currency::USD)),
-                btc: balances.remove(&(self.journal_id, account_id.into(), Currency::BTC)),
-            };
+            let account_balances =
+                AccountBalances::extract_from_balances(&mut balances, self.journal_id, account_id);
 
-            let ledger_account = LedgerAccount::from((account_set, balances));
+            let ledger_account = LedgerAccount::from((account_set, account_balances));
             result.insert(account_id, ledger_account);
         }
 
@@ -256,12 +252,10 @@ impl LedgerAccountLedger {
             if result.contains_key(&account_id) {
                 continue;
             }
-            let balances = AccountBalances {
-                usd: balances.remove(&(self.journal_id, account_id.into(), Currency::USD)),
-                btc: balances.remove(&(self.journal_id, account_id.into(), Currency::BTC)),
-            };
+            let account_balances =
+                AccountBalances::extract_from_balances(&mut balances, self.journal_id, account_id);
 
-            let ledger_account = LedgerAccount::from((account, balances));
+            let ledger_account = LedgerAccount::from((account, account_balances));
             result.insert(account_id, ledger_account);
         }
 
@@ -336,10 +330,11 @@ impl LedgerAccountLedger {
         for id in account_set_ids {
             if let Some(account_set) = account_sets.remove(&id) {
                 let account_id: LedgerAccountId = id.into();
-                let balance_ranges = BalanceRanges {
-                    usd: balances.remove(&(self.journal_id, account_id.into(), Currency::USD)),
-                    btc: balances.remove(&(self.journal_id, account_id.into(), Currency::BTC)),
-                };
+                let balance_ranges = BalanceRanges::extract_from_balances(
+                    &mut balances,
+                    self.journal_id,
+                    account_id,
+                );
                 let ledger_account = LedgerAccount::from((account_set, balance_ranges));
                 result.push(ledger_account);
             }
@@ -348,10 +343,11 @@ impl LedgerAccountLedger {
         for id in account_ids {
             if let Some(account) = accounts.remove(&id) {
                 let account_id: LedgerAccountId = id.into();
-                let balance_ranges = BalanceRanges {
-                    usd: balances.remove(&(self.journal_id, account_id.into(), Currency::USD)),
-                    btc: balances.remove(&(self.journal_id, account_id.into(), Currency::BTC)),
-                };
+                let balance_ranges = BalanceRanges::extract_from_balances(
+                    &mut balances,
+                    self.journal_id,
+                    account_id,
+                );
                 let ledger_account = LedgerAccount::from((account, balance_ranges));
                 result.push(ledger_account);
             }
