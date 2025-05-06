@@ -843,6 +843,7 @@ type DepositAccount {
 	depositAccountId: UUID!
 	customerId: UUID!
 	createdAt: Timestamp!
+	wasEverActivated: Boolean!
 	deposits: [Deposit!]!
 	withdrawals: [Withdrawal!]!
 	history(first: Int!, after: String): DepositAccountHistoryEntryConnection!
