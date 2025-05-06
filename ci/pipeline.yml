@@ -149,7 +149,7 @@ jobs:
             export CARGO_HOME="$PWD/cargo-home"
             export CARGO_TARGET_DIR="$PWD/cargo-target-dir"
             cd repo
-            SQLX_OFFLINE=true cargo build --release --locked --all-features --bin lana-cli --target x86_64-unknown-linux-musl
+            SQLX_OFFLINE=true cargo build --release --locked --bin lana-cli --target x86_64-unknown-linux-musl
             mkdir -p ../bin
             cp "${CARGO_TARGET_DIR}/x86_64-unknown-linux-musl/release/lana-cli" ../bin/
             cat > ../bin/Dockerfile <<'EOF'
