@@ -47,22 +47,25 @@ pub(super) struct ByCurrency<B> {
     pub(super) btc: Option<B>,
 }
 
-impl<B> ByCurrency<B> {
-    pub(super) fn extract_from_balances(
-        balances: &mut HashMap<CalaBalanceId, B>,
-        journal_id: CalaJournalId,
-        account_id: impl Into<CalaAccountId>,
+impl<B, I> From<(&HashMap<CalaBalanceId, B>, CalaJournalId, I)> for ByCurrency<B>
+where
+    B: Clone,
+    I: Into<CalaAccountId>,
+{
+    fn from(
+        (balances, journal_id, account_id): (&HashMap<CalaBalanceId, B>, CalaJournalId, I),
     ) -> Self {
         let account_id = account_id.into();
         let usd_key = (journal_id, account_id, CalaCurrency::USD);
         let btc_key = (journal_id, account_id, CalaCurrency::BTC);
 
         ByCurrency {
-            usd: balances.remove(&usd_key),
-            btc: balances.remove(&btc_key),
+            usd: balances.get(&usd_key).cloned(),
+            btc: balances.get(&btc_key).cloned(),
         }
     }
 }
+
 pub(super) type AccountBalances = ByCurrency<CalaAccountBalance>;
 pub(super) type BalanceRanges = ByCurrency<CalaBalanceRange>;
 
@@ -230,11 +233,12 @@ mod tests {
 
         use super::*;
 
+        #[derive(Debug, Clone)]
         struct DummyBalance(String);
         type DummyBalances = ByCurrency<DummyBalance>;
 
         #[test]
-        fn extract_both_usd_and_btc() {
+        fn get_both_usd_and_btc() {
             let journal_id = CalaJournalId::new();
             let account_id = CalaAccountId::new();
             let mut balances: HashMap<_, DummyBalance> = HashMap::new();
@@ -248,17 +252,14 @@ mod tests {
                 DummyBalance("BTC".to_string()),
             );
 
-            let account_balances =
-                DummyBalances::extract_from_balances(&mut balances, journal_id, account_id.clone());
+            let account_balances = DummyBalances::from((&balances, journal_id, account_id.clone()));
 
             assert_eq!(account_balances.usd.unwrap().0, "USD".to_string());
             assert_eq!(account_balances.btc.unwrap().0, "BTC".to_string());
-
-            assert!(balances.is_empty());
         }
 
         #[test]
-        fn extract_only_usd() {
+        fn get_only_usd() {
             let journal_id = CalaJournalId::new();
             let account_id = CalaAccountId::new();
             let mut balances: HashMap<_, DummyBalance> = HashMap::new();
@@ -268,17 +269,14 @@ mod tests {
                 DummyBalance("USD".to_string()),
             );
 
-            let account_balances =
-                DummyBalances::extract_from_balances(&mut balances, journal_id, account_id.clone());
+            let account_balances = DummyBalances::from((&balances, journal_id, account_id.clone()));
 
             assert_eq!(account_balances.usd.unwrap().0, "USD".to_string());
             assert!(account_balances.btc.is_none());
-
-            assert!(balances.is_empty());
         }
 
         #[test]
-        fn extract_only_btc() {
+        fn get_only_btc() {
             let journal_id = CalaJournalId::new();
             let account_id = CalaAccountId::new();
             let mut balances: HashMap<_, DummyBalance> = HashMap::new();
@@ -288,27 +286,22 @@ mod tests {
                 DummyBalance("BTC".to_string()),
             );
 
-            let account_balances =
-                DummyBalances::extract_from_balances(&mut balances, journal_id, account_id.clone());
+            let account_balances = DummyBalances::from((&balances, journal_id, account_id.clone()));
 
             assert!(account_balances.usd.is_none());
             assert_eq!(account_balances.btc.unwrap().0, "BTC".to_string());
-
-            assert!(balances.is_empty());
         }
 
         #[test]
-        fn extract_none_when_missing() {
+        fn get_none_when_missing() {
             let journal_id = CalaJournalId::new();
             let account_id = CalaAccountId::new();
-            let mut balances: HashMap<_, DummyBalance> = HashMap::new();
+            let balances: HashMap<_, DummyBalance> = HashMap::new();
 
-            let account_balances =
-                DummyBalances::extract_from_balances(&mut balances, journal_id, account_id.clone());
+            let account_balances = DummyBalances::from((&balances, journal_id, account_id.clone()));
 
             assert!(account_balances.usd.is_none());
             assert!(account_balances.btc.is_none());
-            assert!(balances.is_empty());
         }
     }
 }
