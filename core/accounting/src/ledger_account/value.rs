@@ -38,19 +38,25 @@ impl LedgerAccount {
     }
 }
 
-impl
-    From<(
-        CalaAccountSet,
-        Option<CalaAccountBalance>,
-        Option<CalaAccountBalance>,
-    )> for LedgerAccount
-{
+pub(super) struct AccountBalances {
+    pub(super) btc: Option<CalaAccountBalance>,
+    pub(super) usd: Option<CalaAccountBalance>,
+}
+
+pub(super) struct BalanceRanges {
+    pub(super) btc: Option<CalaBalanceRange>,
+    pub(super) usd: Option<CalaBalanceRange>,
+}
+
+impl From<(CalaAccountSet, AccountBalances)> for LedgerAccount {
     fn from(
-        (account_set, usd_balance, btc_balance): (
-            CalaAccountSet,
-            Option<CalaAccountBalance>,
-            Option<CalaAccountBalance>,
-        ),
+        (
+            account_set,
+            AccountBalances {
+                btc: btc_balance,
+                usd: usd_balance,
+            },
+        ): (CalaAccountSet, AccountBalances),
     ) -> Self {
         let values = account_set.into_values();
         let external_id = values.external_id.clone();
@@ -82,19 +88,15 @@ impl
     }
 }
 
-impl
-    From<(
-        CalaAccountSet,
-        Option<CalaBalanceRange>,
-        Option<CalaBalanceRange>,
-    )> for LedgerAccount
-{
+impl From<(CalaAccountSet, BalanceRanges)> for LedgerAccount {
     fn from(
-        (account_set, usd_balance_range, btc_balance_range): (
-            CalaAccountSet,
-            Option<CalaBalanceRange>,
-            Option<CalaBalanceRange>,
-        ),
+        (
+            account_set,
+            BalanceRanges {
+                usd: usd_balance_range,
+                btc: btc_balance_range,
+            },
+        ): (CalaAccountSet, BalanceRanges),
     ) -> Self {
         let values = account_set.into_values();
         let external_id = values.external_id.clone();
@@ -125,19 +127,15 @@ impl
     }
 }
 
-impl
-    From<(
-        CalaAccount,
-        Option<CalaAccountBalance>,
-        Option<CalaAccountBalance>,
-    )> for LedgerAccount
-{
+impl From<(CalaAccount, AccountBalances)> for LedgerAccount {
     fn from(
-        (account, usd_balance, btc_balance): (
-            CalaAccount,
-            Option<CalaAccountBalance>,
-            Option<CalaAccountBalance>,
-        ),
+        (
+            account,
+            AccountBalances {
+                usd: usd_balance,
+                btc: btc_balance,
+            },
+        ): (CalaAccount, AccountBalances),
     ) -> Self {
         let usd_balance_range = usd_balance.map(|balance| BalanceRange {
             start: None,
@@ -167,19 +165,15 @@ impl
     }
 }
 
-impl
-    From<(
-        CalaAccount,
-        Option<CalaBalanceRange>,
-        Option<CalaBalanceRange>,
-    )> for LedgerAccount
-{
+impl From<(CalaAccount, BalanceRanges)> for LedgerAccount {
     fn from(
-        (account, usd_balance_range, btc_balance_range): (
-            CalaAccount,
-            Option<CalaBalanceRange>,
-            Option<CalaBalanceRange>,
-        ),
+        (
+            account,
+            BalanceRanges {
+                usd: usd_balance_range,
+                btc: btc_balance_range,
+            },
+        ): (CalaAccount, BalanceRanges),
     ) -> Self {
         let usd_balance_range = usd_balance_range.map(|range| BalanceRange {
             start: Some(range.start),
