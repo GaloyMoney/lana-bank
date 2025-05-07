@@ -17,7 +17,7 @@ app:
     customer_active_check_enabled: false
   customer_sync:
     customer_status_sync_active: false
-    # create_deposit_account_on_customer_create: true
+    create_deposit_account_on_customer_create: true
 time:
   realtime: false
   sim_time:
