@@ -80,7 +80,7 @@ impl From<CreateCreditFacilityParams> for Params {
         params.insert("facility_amount", facility_amount);
         params.insert("currency", currency);
         params.insert("external_id", external_id);
-        params.insert("effective", chrono::Utc::now().date_naive());
+        params.insert("effective", crate::time::now().date_naive());
         params
     }
 }

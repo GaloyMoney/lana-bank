@@ -66,7 +66,7 @@ impl From<RecordObligationOverdueBalanceParams> for Params {
             "receivable_overdue_account_id",
             receivable_overdue_account_id,
         );
-        params.insert("effective", chrono::Utc::now().date_naive());
+        params.insert("effective", crate::time::now().date_naive());
 
         params
     }

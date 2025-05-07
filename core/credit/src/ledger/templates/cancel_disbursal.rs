@@ -63,7 +63,7 @@ impl From<CancelDisbursalParams> for Params {
         params.insert("credit_omnibus_account", credit_omnibus_account);
         params.insert("credit_facility_account", credit_facility_account);
         params.insert("disbursed_amount", disbursed_amount);
-        params.insert("effective", chrono::Utc::now().date_naive());
+        params.insert("effective", crate::time::now().date_naive());
         params
     }
 }

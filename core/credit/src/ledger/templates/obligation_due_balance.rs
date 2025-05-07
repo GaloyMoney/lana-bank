@@ -66,7 +66,7 @@ impl From<RecordObligationDueBalanceParams> for Params {
             receivable_not_yet_due_account_id,
         );
         params.insert("receivable_due_account_id", receivable_due_account_id);
-        params.insert("effective", chrono::Utc::now().date_naive());
+        params.insert("effective", crate::time::now().date_naive());
 
         params
     }

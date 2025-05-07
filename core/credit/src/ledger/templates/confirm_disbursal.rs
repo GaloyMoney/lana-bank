@@ -90,7 +90,7 @@ impl From<ConfirmDisbursalParams> for Params {
         params.insert("account_to_be_credited_id", account_to_be_credited_id);
         params.insert("disbursed_amount", disbursed_amount);
         params.insert("external_id", external_id);
-        params.insert("effective", chrono::Utc::now().date_naive());
+        params.insert("effective", crate::time::now().date_naive());
         params
     }
 }

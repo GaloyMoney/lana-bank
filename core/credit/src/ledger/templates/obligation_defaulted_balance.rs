@@ -63,7 +63,7 @@ impl From<RecordObligationDefaultedBalanceParams> for Params {
         params.insert("amount", amount);
         params.insert("receivable_account_id", receivable_account_id);
         params.insert("defaulted_account_id", defaulted_account_id);
-        params.insert("effective", chrono::Utc::now().date_naive());
+        params.insert("effective", crate::time::now().date_naive());
 
         params
     }

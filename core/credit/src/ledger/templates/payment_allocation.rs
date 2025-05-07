@@ -79,7 +79,7 @@ impl From<RecordPaymentAllocationParams> for Params {
         params.insert("amount", amount);
         params.insert("account_to_be_debited_id", account_to_be_debited_id);
         params.insert("receivable_account_id", receivable_account_id);
-        params.insert("effective", chrono::Utc::now().date_naive());
+        params.insert("effective", crate::time::now().date_naive());
 
         params
     }

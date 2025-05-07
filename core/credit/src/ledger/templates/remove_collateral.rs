@@ -72,7 +72,7 @@ impl From<RemoveCollateralParams> for Params {
         params.insert("amount", amount);
         params.insert("collateral_account_id", collateral_account_id);
         params.insert("bank_collateral_account_id", bank_collateral_account_id);
-        params.insert("effective", chrono::Utc::now().date_naive());
+        params.insert("effective", crate::time::now().date_naive());
 
         params
     }
