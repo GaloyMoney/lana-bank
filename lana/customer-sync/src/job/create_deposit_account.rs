@@ -147,7 +147,23 @@ where
         let mut stream = self.outbox.listen_persisted(Some(state.sequence)).await?;
 
         while let Some(message) = stream.next().await {
-            if let Some(CoreCustomerEvent::CustomerCreated { .. }) = &message.as_ref().as_event() {
+            let should_handle = match message.as_ref().as_event() {
+                Some(CoreCustomerEvent::CustomerCreated { .. })
+                    if self.config.create_deposit_account_on_customer_create =>
+                {
+                    true
+                }
+
+                Some(CoreCustomerEvent::CustomerAccountStatusUpdated { status, .. })
+                    if !status.is_inactive() =>
+                {
+                    true
+                }
+
+                _ => false,
+            };
+
+            if should_handle {
                 self.handle_create_deposit_account(message.as_ref()).await?;
                 state.sequence = message.sequence;
                 current_job.update_execution_state(&state).await?;
@@ -178,23 +194,36 @@ where
     where
         E: OutboxEventMarker<CoreCustomerEvent>,
     {
-        if let Some(CoreCustomerEvent::CustomerCreated {
-            id, customer_type, ..
-        }) = message.as_event()
-        {
-            message.inject_trace_parent();
+        let (id, customer_type) = match message.as_event() {
+            Some(CoreCustomerEvent::CustomerCreated {
+                id, customer_type, ..
+            }) => (id, customer_type),
+            Some(CoreCustomerEvent::CustomerAccountStatusUpdated {
+                id,
+                customer_type,
+                status,
+            }) if !status.is_inactive() => (id, customer_type),
+            _ => return Ok(()),
+        };
 
-            if self.config.auto_create_deposit_account {
-                match self.deposit
-                .create_account(&<<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject as SystemSubject>::system(), *id,
-                 !self.config.customer_status_sync_active, *customer_type)
-                .await {
+        message.inject_trace_parent();
+
+        if self.config.auto_create_deposit_account {
+            match self.deposit
+                .create_account(
+                    &<<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject as SystemSubject>::system(),
+                    *id,
+                    !self.config.customer_status_sync_active,
+                    *customer_type,
+                )
+                .await
+            {
                 Ok(_) => {}
-                Err(e) if e.is_account_already_exists() => {},
+                Err(e) if e.is_account_already_exists() => {}
                 Err(e) => return Err(e.into()),
-                }
             }
         }
+
         Ok(())
     }
 }

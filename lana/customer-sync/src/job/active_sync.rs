@@ -178,7 +178,7 @@ where
     where
         E: OutboxEventMarker<CoreCustomerEvent>,
     {
-        if let Some(CoreCustomerEvent::CustomerAccountStatusUpdated { id, status }) =
+        if let Some(CoreCustomerEvent::CustomerAccountStatusUpdated { id, status, .. }) =
             message.as_event()
         {
             message.inject_trace_parent();

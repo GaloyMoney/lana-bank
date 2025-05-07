@@ -48,6 +48,7 @@ where
                     Some(CoreCustomerEvent::CustomerAccountStatusUpdated {
                         id: entity.id,
                         status: *status,
+                        customer_type: entity.customer_type,
                     })
                 }
                 EmailUpdated { email, .. } => Some(CoreCustomerEvent::CustomerEmailUpdated {

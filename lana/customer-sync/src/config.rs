@@ -9,6 +9,8 @@ pub struct CustomerSyncConfig {
     pub customer_status_sync_active: bool,
     #[serde(default = "default_kratos_admin_config")]
     pub kratos_admin: KratosAdminConfig,
+    #[serde(default = "default_create_deposit_account_on_customer_create")]
+    pub create_deposit_account_on_customer_create: bool,
 }
 
 impl Default for CustomerSyncConfig {
@@ -17,6 +19,8 @@ impl Default for CustomerSyncConfig {
             auto_create_deposit_account: default_auto_create_deposit_account(),
             kratos_admin: default_kratos_admin_config(),
             customer_status_sync_active: default_customer_status_sync_active(),
+            create_deposit_account_on_customer_create:
+                default_create_deposit_account_on_customer_create(),
         }
     }
 }
@@ -33,4 +37,8 @@ fn default_auto_create_deposit_account() -> bool {
 
 fn default_customer_status_sync_active() -> bool {
     true
+}
+
+fn default_create_deposit_account_on_customer_create() -> bool {
+    false
 }
