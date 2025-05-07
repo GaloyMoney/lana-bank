@@ -261,11 +261,13 @@ ymd() {
   variables=$(
     jq -n \
       --arg creditFacilityId "$credit_facility_id" \
+      --arg effective "$(naive_now)" \
       --argjson amount "$amount" \
     '{
       input: {
         creditFacilityId: $creditFacilityId,
         amount: $amount,
+        effective: $effective,
       }
     }'
   )
