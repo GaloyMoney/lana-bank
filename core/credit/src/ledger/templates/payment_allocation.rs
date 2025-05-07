@@ -18,6 +18,7 @@ pub struct RecordPaymentAllocationParams {
     pub account_to_be_debited_id: CalaAccountId,
     pub receivable_account_id: CalaAccountId,
     pub tx_ref: String,
+    pub effective: chrono::NaiveDate,
 }
 
 impl RecordPaymentAllocationParams {
@@ -70,6 +71,7 @@ impl From<RecordPaymentAllocationParams> for Params {
             account_to_be_debited_id,
             receivable_account_id,
             tx_ref,
+            effective,
         }: RecordPaymentAllocationParams,
     ) -> Self {
         let mut params = Self::default();
@@ -79,7 +81,7 @@ impl From<RecordPaymentAllocationParams> for Params {
         params.insert("amount", amount);
         params.insert("account_to_be_debited_id", account_to_be_debited_id);
         params.insert("receivable_account_id", receivable_account_id);
-        params.insert("effective", crate::time::now().date_naive());
+        params.insert("effective", effective);
 
         params
     }

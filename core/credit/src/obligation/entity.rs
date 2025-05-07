@@ -385,6 +385,7 @@ impl Obligation {
         &mut self,
         amount: UsdCents,
         payment_id: PaymentId,
+        effective: chrono::NaiveDate,
         audit_info: &AuditInfo,
     ) -> Idempotent<Option<NewPaymentAllocation>> {
         idempotency_guard!(
@@ -418,6 +419,7 @@ impl Obligation {
                 self.account_to_be_credited_id()
                     .expect("Obligation was already paid"),
             )
+            .effective(effective)
             .amount(payment_amount)
             .audit_info(audit_info.clone())
             .build()

@@ -743,9 +743,13 @@ where
     pub async fn record_payment(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        credit_facility_id: CreditFacilityId,
+        credit_facility_id: impl Into<CreditFacilityId> + std::fmt::Debug + Copy,
         amount: UsdCents,
+        effective: impl Into<chrono::NaiveDate> + std::fmt::Debug + Copy,
     ) -> Result<CreditFacility, CoreCreditError> {
+        let credit_facility_id = credit_facility_id.into();
+        let effective = effective.into();
+
         let mut credit_facility = self
             .credit_facility_repo
             .find_by_id(credit_facility_id)
@@ -768,7 +772,14 @@ where
 
         let res = self
             .obligations
-            .allocate_payment_in_op(&mut db, credit_facility_id, payment.id, amount, &audit_info)
+            .allocate_payment_in_op(
+                &mut db,
+                credit_facility_id,
+                payment.id,
+                amount,
+                effective,
+                &audit_info,
+            )
             .await?;
 
         let _ = payment.record_allocated(

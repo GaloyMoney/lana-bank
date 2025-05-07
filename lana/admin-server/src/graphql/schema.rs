@@ -1261,8 +1261,12 @@ impl Mutation {
             CreditFacilityPartialPaymentPayload,
             CreditFacility,
             ctx,
-            app.credit()
-                .record_payment(sub, input.credit_facility_id.into(), input.amount)
+            app.credit().record_payment(
+                sub,
+                input.credit_facility_id,
+                input.amount,
+                input.effective
+            )
         )
     }
 

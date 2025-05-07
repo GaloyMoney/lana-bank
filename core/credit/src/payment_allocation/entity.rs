@@ -21,6 +21,7 @@ pub enum PaymentAllocationEvent {
         amount: UsdCents,
         receivable_account_id: CalaAccountId,
         account_to_be_debited_id: CalaAccountId,
+        effective: chrono::NaiveDate,
         audit_info: AuditInfo,
     },
 }
@@ -36,6 +37,7 @@ pub struct PaymentAllocation {
     pub amount: UsdCents,
     pub account_to_be_debited_id: CalaAccountId,
     pub receivable_account_id: CalaAccountId,
+    pub effective: chrono::NaiveDate,
 
     events: EntityEvents<PaymentAllocationEvent>,
 }
@@ -56,6 +58,7 @@ impl TryFromEvents<PaymentAllocationEvent> for PaymentAllocation {
                     amount,
                     account_to_be_debited_id,
                     receivable_account_id,
+                    effective,
                     ..
                 } => {
                     builder = builder
@@ -67,6 +70,7 @@ impl TryFromEvents<PaymentAllocationEvent> for PaymentAllocation {
                         .amount(*amount)
                         .account_to_be_debited_id(*account_to_be_debited_id)
                         .receivable_account_id(*receivable_account_id)
+                        .effective(*effective)
                 }
             }
         }
@@ -102,6 +106,7 @@ pub struct NewPaymentAllocation {
     pub(crate) credit_facility_id: CreditFacilityId,
     pub(crate) receivable_account_id: CalaAccountId,
     pub(crate) account_to_be_debited_id: CalaAccountId,
+    pub(crate) effective: chrono::NaiveDate,
     #[builder(setter(into))]
     pub(crate) amount: UsdCents,
     #[builder(setter(into))]
@@ -126,6 +131,7 @@ impl IntoEvents<PaymentAllocationEvent> for NewPaymentAllocation {
                 credit_facility_id: self.credit_facility_id,
                 amount: self.amount,
                 account_to_be_debited_id: self.account_to_be_debited_id,
+                effective: self.effective,
                 receivable_account_id: self.receivable_account_id,
                 audit_info: self.audit_info,
             }],

@@ -215,6 +215,7 @@ crate::mutation_payload! { CreditFacilityCollateralUpdatePayload, credit_facilit
 pub struct CreditFacilityPartialPaymentInput {
     pub credit_facility_id: UUID,
     pub amount: UsdCents,
+    pub effective: Date,
 }
 crate::mutation_payload! { CreditFacilityPartialPaymentPayload, credit_facility: CreditFacility }
 

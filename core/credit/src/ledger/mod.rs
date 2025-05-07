@@ -1133,6 +1133,7 @@ impl CreditLedger {
             amount,
             account_to_be_debited_id,
             receivable_account_id,
+            effective,
             ..
         }: PaymentAllocation,
     ) -> Result<(), CreditLedgerError> {
@@ -1143,6 +1144,7 @@ impl CreditLedger {
             receivable_account_id,
             account_to_be_debited_id,
             tx_ref: tx_ref.to_string(),
+            effective,
         };
         self.cala
             .post_transaction_in_op(
