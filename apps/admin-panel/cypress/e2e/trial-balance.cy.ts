@@ -21,8 +21,8 @@ describe(t(TB + ".title"), () => {
 
   it("should render trial balance with accounts and their balances", () => {
     cy.graphqlRequest<{ data: GetTrialBalanceQuery }>(print(GetTrialBalanceDocument), {
-      from: lastMonthDate.toISOString(),
-      until: currentDate.toISOString(),
+      from: lastMonthDate.toISOString().split('T')[0],
+      until: currentDate.toISOString().split('T')[0],
       first: 10,
     }).then((response) => {
       response.data.trialBalance?.accounts.edges.forEach(({ node: account }) => {
