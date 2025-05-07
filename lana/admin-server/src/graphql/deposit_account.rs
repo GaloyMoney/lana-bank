@@ -16,7 +16,6 @@ pub struct DepositAccount {
     deposit_account_id: UUID,
     customer_id: UUID,
     created_at: Timestamp,
-    was_ever_activated: bool,
 
     #[graphql(skip)]
     pub(super) entity: Arc<DomainDepositAccount>,
@@ -29,7 +28,6 @@ impl From<DomainDepositAccount> for DepositAccount {
             deposit_account_id: account.id.into(),
             customer_id: account.account_holder_id.into(),
             created_at: account.created_at().into(),
-            was_ever_activated: account.was_ever_activated(),
 
             entity: Arc::new(account),
         }
