@@ -352,6 +352,9 @@ from_utc() {
   date -u -d @0 +"%Y-%m-%dT%H:%M:%S.%3NZ"
 }
 
+naive_now() {
+  date +"%Y-%m-%d"
+}
 
 wait_for_checking_account() {
   customer_id=$1
