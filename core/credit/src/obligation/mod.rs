@@ -90,6 +90,7 @@ where
                 JobId::new(),
                 obligation_due::CreditFacilityJobConfig::<Perms, E> {
                     obligation_id: obligation.id,
+                    effective: obligation.due_at().date_naive(),
                     _phantom: std::marker::PhantomData,
                 },
                 obligation.due_at(),

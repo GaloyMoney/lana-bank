@@ -11,6 +11,7 @@ use crate::{event::CoreCreditEvent, ledger::CreditLedger, obligation::Obligation
 #[derive(Clone, Serialize, Deserialize)]
 pub struct CreditFacilityJobConfig<Perms, E> {
     pub obligation_id: ObligationId,
+    pub effective: chrono::NaiveDate,
     pub _phantom: std::marker::PhantomData<(Perms, E)>,
 }
 impl<Perms, E> JobConfig for CreditFacilityJobConfig<Perms, E>
@@ -117,7 +118,7 @@ where
             .await?;
 
         let defaulted = if let es_entity::Idempotent::Executed(defaulted) =
-            obligation.record_defaulted(audit_info)?
+            obligation.record_defaulted(self.config.effective, audit_info)?
         {
             defaulted
         } else {

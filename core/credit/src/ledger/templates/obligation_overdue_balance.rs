@@ -16,6 +16,7 @@ pub struct RecordObligationOverdueBalanceParams {
     pub amount: Decimal,
     pub receivable_due_account_id: CalaAccountId,
     pub receivable_overdue_account_id: CalaAccountId,
+    pub effective: chrono::NaiveDate,
 }
 
 impl RecordObligationOverdueBalanceParams {
@@ -56,6 +57,7 @@ impl From<RecordObligationOverdueBalanceParams> for Params {
             amount,
             receivable_due_account_id,
             receivable_overdue_account_id,
+            effective,
         }: RecordObligationOverdueBalanceParams,
     ) -> Self {
         let mut params = Self::default();
@@ -66,7 +68,7 @@ impl From<RecordObligationOverdueBalanceParams> for Params {
             "receivable_overdue_account_id",
             receivable_overdue_account_id,
         );
-        params.insert("effective", crate::time::now().date_naive());
+        params.insert("effective", effective);
 
         params
     }

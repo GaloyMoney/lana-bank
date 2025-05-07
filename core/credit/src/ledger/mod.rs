@@ -1180,6 +1180,7 @@ impl CreditLedger {
             amount: outstanding_amount,
             not_yet_due_account_id,
             due_account_id,
+            effective,
             ..
         }: ObligationDueReallocationData,
     ) -> Result<(), CreditLedgerError> {
@@ -1194,6 +1195,7 @@ impl CreditLedger {
                     amount: outstanding_amount.to_usd(),
                     receivable_not_yet_due_account_id: not_yet_due_account_id,
                     receivable_due_account_id: due_account_id,
+                    effective,
                 },
             )
             .await?;
@@ -1209,6 +1211,7 @@ impl CreditLedger {
             amount: outstanding_amount,
             due_account_id,
             overdue_account_id,
+            effective,
             ..
         }: ObligationOverdueReallocationData,
     ) -> Result<(), CreditLedgerError> {
@@ -1223,6 +1226,7 @@ impl CreditLedger {
                     amount: outstanding_amount.to_usd(),
                     receivable_due_account_id: due_account_id,
                     receivable_overdue_account_id: overdue_account_id,
+                    effective,
                 },
             )
             .await?;
@@ -1238,6 +1242,7 @@ impl CreditLedger {
             amount: outstanding_amount,
             receivable_account_id,
             defaulted_account_id,
+            effective,
             ..
         }: ObligationDefaultedReallocationData,
     ) -> Result<(), CreditLedgerError> {
@@ -1252,6 +1257,7 @@ impl CreditLedger {
                     amount: outstanding_amount.to_usd(),
                     receivable_account_id,
                     defaulted_account_id,
+                    effective,
                 },
             )
             .await?;

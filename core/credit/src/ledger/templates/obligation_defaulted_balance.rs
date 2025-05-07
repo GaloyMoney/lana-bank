@@ -16,6 +16,7 @@ pub struct RecordObligationDefaultedBalanceParams {
     pub amount: Decimal,
     pub receivable_account_id: CalaAccountId,
     pub defaulted_account_id: CalaAccountId,
+    pub effective: chrono::NaiveDate,
 }
 
 impl RecordObligationDefaultedBalanceParams {
@@ -56,6 +57,7 @@ impl From<RecordObligationDefaultedBalanceParams> for Params {
             amount,
             receivable_account_id,
             defaulted_account_id,
+            effective,
         }: RecordObligationDefaultedBalanceParams,
     ) -> Self {
         let mut params = Self::default();
@@ -63,7 +65,7 @@ impl From<RecordObligationDefaultedBalanceParams> for Params {
         params.insert("amount", amount);
         params.insert("receivable_account_id", receivable_account_id);
         params.insert("defaulted_account_id", defaulted_account_id);
-        params.insert("effective", crate::time::now().date_naive());
+        params.insert("effective", effective);
 
         params
     }

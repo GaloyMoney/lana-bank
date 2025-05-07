@@ -12,6 +12,7 @@ pub struct ObligationDueReallocationData {
     pub amount: UsdCents,
     pub not_yet_due_account_id: CalaAccountId,
     pub due_account_id: CalaAccountId,
+    pub effective: chrono::NaiveDate,
 }
 
 pub struct ObligationOverdueReallocationData {
@@ -19,6 +20,7 @@ pub struct ObligationOverdueReallocationData {
     pub amount: UsdCents,
     pub due_account_id: CalaAccountId,
     pub overdue_account_id: CalaAccountId,
+    pub effective: chrono::NaiveDate,
 }
 
 pub struct ObligationDefaultedReallocationData {
@@ -26,6 +28,7 @@ pub struct ObligationDefaultedReallocationData {
     pub amount: UsdCents,
     pub receivable_account_id: CalaAccountId,
     pub defaulted_account_id: CalaAccountId,
+    pub effective: chrono::NaiveDate,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]

@@ -13,6 +13,7 @@ use super::{obligation_defaulted, obligation_overdue};
 #[derive(Clone, Serialize, Deserialize)]
 pub struct CreditFacilityJobConfig<Perms, E> {
     pub obligation_id: ObligationId,
+    pub effective: chrono::NaiveDate,
     pub _phantom: std::marker::PhantomData<(Perms, E)>,
 }
 impl<Perms, E> JobConfig for CreditFacilityJobConfig<Perms, E>
@@ -122,7 +123,9 @@ where
             )
             .await?;
 
-        let due = if let es_entity::Idempotent::Executed(due) = obligation.record_due(audit_info) {
+        let due = if let es_entity::Idempotent::Executed(due) =
+            obligation.record_due(self.config.effective, audit_info)
+        {
             due
         } else {
             return Ok(JobCompletion::Complete);
@@ -139,6 +142,7 @@ where
                     JobId::new(),
                     obligation_overdue::CreditFacilityJobConfig::<Perms, E> {
                         obligation_id: obligation.id,
+                        effective: overdue_at.date_naive(),
                         _phantom: std::marker::PhantomData,
                     },
                     overdue_at,
@@ -151,6 +155,7 @@ where
                     JobId::new(),
                     obligation_defaulted::CreditFacilityJobConfig::<Perms, E> {
                         obligation_id: obligation.id,
+                        effective: defaulted_at.date_naive(),
                         _phantom: std::marker::PhantomData,
                     },
                     defaulted_at,

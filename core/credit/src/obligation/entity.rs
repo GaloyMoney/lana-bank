@@ -282,6 +282,7 @@ impl Obligation {
 
     pub(crate) fn record_due(
         &mut self,
+        effective: chrono::NaiveDate,
         audit_info: AuditInfo,
     ) -> Idempotent<ObligationDueReallocationData> {
         idempotency_guard!(
@@ -299,6 +300,7 @@ impl Obligation {
             amount: self.outstanding(),
             not_yet_due_account_id: self.not_yet_due_accounts().receivable_account_id,
             due_account_id: self.due_accounts().receivable_account_id,
+            effective,
         };
 
         self.events.push(ObligationEvent::DueRecorded {
@@ -312,6 +314,7 @@ impl Obligation {
 
     pub(crate) fn record_overdue(
         &mut self,
+        effective: chrono::NaiveDate,
         audit_info: AuditInfo,
     ) -> Result<Idempotent<ObligationOverdueReallocationData>, ObligationError> {
         idempotency_guard!(
@@ -332,6 +335,7 @@ impl Obligation {
             amount: self.outstanding(),
             due_account_id: self.due_accounts().receivable_account_id,
             overdue_account_id: self.overdue_accounts().receivable_account_id,
+            effective,
         };
 
         self.events.push(ObligationEvent::OverdueRecorded {
@@ -345,6 +349,7 @@ impl Obligation {
 
     pub(crate) fn record_defaulted(
         &mut self,
+        effective: chrono::NaiveDate,
         audit_info: AuditInfo,
     ) -> Result<Idempotent<ObligationDefaultedReallocationData>, ObligationError> {
         idempotency_guard!(
@@ -365,6 +370,7 @@ impl Obligation {
             amount: self.outstanding(),
             receivable_account_id: self.receivable_account_id().expect("Obligation is Paid"),
             defaulted_account_id: self.defaulted_account(),
+            effective,
         };
 
         self.events.push(ObligationEvent::DefaultedRecorded {
@@ -593,27 +599,29 @@ mod test {
     #[test]
     fn can_record_due() {
         let mut obligation = obligation_from(initial_events());
-        let res = obligation.record_due(dummy_audit_info()).unwrap();
+        let res = obligation
+            .record_due(Utc::now().date_naive(), dummy_audit_info())
+            .unwrap();
         assert_eq!(res.amount, obligation.initial_amount);
     }
 
     #[test]
     fn ignores_due_recorded_if_after_not_yet_due() {
         let mut obligation = obligation_from(initial_events());
-        let _ = obligation.record_due(dummy_audit_info());
+        let _ = obligation.record_due(Utc::now().date_naive(), dummy_audit_info());
 
         assert!(obligation
-            .record_overdue(dummy_audit_info())
+            .record_overdue(Utc::now().date_naive(), dummy_audit_info())
             .unwrap()
             .did_execute());
-        let res = obligation.record_due(dummy_audit_info());
+        let res = obligation.record_due(Utc::now().date_naive(), dummy_audit_info());
         assert!(matches!(res, Idempotent::Ignored));
 
         assert!(obligation
-            .record_defaulted(dummy_audit_info())
+            .record_defaulted(Utc::now().date_naive(), dummy_audit_info())
             .unwrap()
             .did_execute());
-        let res = obligation.record_due(dummy_audit_info());
+        let res = obligation.record_due(Utc::now().date_naive(), dummy_audit_info());
         assert!(matches!(res, Idempotent::Ignored));
 
         let mut events = initial_events();
@@ -623,16 +631,16 @@ mod test {
         });
         let mut obligation = obligation_from(events);
 
-        let res = obligation.record_due(dummy_audit_info());
+        let res = obligation.record_due(Utc::now().date_naive(), dummy_audit_info());
         assert!(matches!(res, Idempotent::Ignored));
     }
 
     #[test]
     fn can_record_overdue() {
         let mut obligation = obligation_from(initial_events());
-        let _ = obligation.record_due(dummy_audit_info());
+        let _ = obligation.record_due(Utc::now().date_naive(), dummy_audit_info());
         let res = obligation
-            .record_overdue(dummy_audit_info())
+            .record_overdue(Utc::now().date_naive(), dummy_audit_info())
             .unwrap()
             .unwrap();
         assert_eq!(res.amount, obligation.initial_amount);
@@ -641,9 +649,11 @@ mod test {
     #[test]
     fn ignores_overdue_recorded_if_after_due() {
         let mut obligation = obligation_from(initial_events());
-        let _ = obligation.record_due(dummy_audit_info());
-        let _ = obligation.record_defaulted(dummy_audit_info());
-        let res = obligation.record_overdue(dummy_audit_info()).unwrap();
+        let _ = obligation.record_due(Utc::now().date_naive(), dummy_audit_info());
+        let _ = obligation.record_defaulted(Utc::now().date_naive(), dummy_audit_info());
+        let res = obligation
+            .record_overdue(Utc::now().date_naive(), dummy_audit_info())
+            .unwrap();
         assert!(matches!(res, Idempotent::Ignored));
 
         let mut events = initial_events();
@@ -652,14 +662,16 @@ mod test {
             audit_info: dummy_audit_info(),
         });
         let mut obligation = obligation_from(events);
-        let res = obligation.record_overdue(dummy_audit_info()).unwrap();
+        let res = obligation
+            .record_overdue(Utc::now().date_naive(), dummy_audit_info())
+            .unwrap();
         assert!(matches!(res, Idempotent::Ignored));
     }
 
     #[test]
     fn errors_if_overdue_recorded_before_due() {
         let mut obligation = obligation_from(initial_events());
-        let res = obligation.record_overdue(dummy_audit_info());
+        let res = obligation.record_overdue(Utc::now().date_naive(), dummy_audit_info());
         assert!(matches!(
             res,
             Err(ObligationError::InvalidStatusTransitionToOverdue)
@@ -669,18 +681,18 @@ mod test {
     #[test]
     fn can_record_defaulted() {
         let mut obligation = obligation_from(initial_events());
-        let _ = obligation.record_due(dummy_audit_info());
+        let _ = obligation.record_due(Utc::now().date_naive(), dummy_audit_info());
         let res = obligation
-            .record_defaulted(dummy_audit_info())
+            .record_defaulted(Utc::now().date_naive(), dummy_audit_info())
             .unwrap()
             .unwrap();
         assert_eq!(res.amount, obligation.initial_amount);
 
         let mut obligation = obligation_from(initial_events());
-        let _ = obligation.record_due(dummy_audit_info());
-        let _ = obligation.record_overdue(dummy_audit_info());
+        let _ = obligation.record_due(Utc::now().date_naive(), dummy_audit_info());
+        let _ = obligation.record_overdue(Utc::now().date_naive(), dummy_audit_info());
         let res = obligation
-            .record_defaulted(dummy_audit_info())
+            .record_defaulted(Utc::now().date_naive(), dummy_audit_info())
             .unwrap()
             .unwrap();
         assert_eq!(res.amount, obligation.initial_amount);
@@ -694,14 +706,16 @@ mod test {
             audit_info: dummy_audit_info(),
         });
         let mut obligation = obligation_from(events);
-        let res = obligation.record_defaulted(dummy_audit_info()).unwrap();
+        let res = obligation
+            .record_defaulted(Utc::now().date_naive(), dummy_audit_info())
+            .unwrap();
         assert!(matches!(res, Idempotent::Ignored));
     }
 
     #[test]
     fn errors_if_default_recorded_before_due() {
         let mut obligation = obligation_from(initial_events());
-        let res = obligation.record_defaulted(dummy_audit_info());
+        let res = obligation.record_defaulted(Utc::now().date_naive(), dummy_audit_info());
         assert!(matches!(
             res,
             Err(ObligationError::InvalidStatusTransitionToDefaulted)
