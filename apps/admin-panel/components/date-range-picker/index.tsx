@@ -26,8 +26,8 @@ export const getInitialDateRange = (): DateRange => {
   const today = new Date()
   const oneYearAgo = new Date(today.getFullYear() - 1, today.getMonth(), today.getDate())
   return {
-    from: oneYearAgo.toISOString(),
-    until: today.toISOString(),
+    from: oneYearAgo.toISOString().split("T")[0],
+    until: today.toISOString().split("T")[0],
   }
 }
 
