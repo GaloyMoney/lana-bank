@@ -50,7 +50,9 @@ impl CoreDepositError {
                 core_accounting::chart_of_accounts::error::ChartOfAccountsError::CalaAccount(
                     cala_ledger::account::error::AccountError::ExternalIdAlreadyExists
                 )
-            )
+            ) | Self::DepositLedgerError(crate::ledger::error::DepositLedgerError::CalaAccount(
+                cala_ledger::account::error::AccountError::ExternalIdAlreadyExists
+            ))
         )
     }
 }
