@@ -13,6 +13,7 @@ mod ledger;
 mod primitives;
 mod processes;
 mod publisher;
+mod time;
 mod withdrawal;
 
 use deposit_account_cursor::DepositAccountsByCreatedAtCursor;

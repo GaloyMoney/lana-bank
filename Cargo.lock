@@ -1334,6 +1334,7 @@ dependencies = [
  "rust_decimal_macros",
  "serde",
  "serde_json",
+ "sim-time",
  "sqlx",
  "strum",
  "thiserror 2.0.12",
