@@ -47,7 +47,9 @@ pub async fn timely_payments_scenario(sub: Subject, app: &LanaApp) -> anyhow::Re
                 amount,
                 ..
             })) if { cf.id == *id && amount > &UsdCents::ZERO } => {
-                app.credit().record_payment(&sub, *id, *amount).await?;
+                app.credit()
+                    .record_payment(&sub, *id, *amount, sim_time::now().date_naive())
+                    .await?;
                 let facility = app
                     .credit()
                     .find_by_id(&sub, *id)
@@ -59,7 +61,12 @@ pub async fn timely_payments_scenario(sub: Subject, app: &LanaApp) -> anyhow::Re
                     let total_outstanding_amount = app.credit().outstanding(&facility).await?;
                     if !total_outstanding_amount.is_zero() {
                         app.credit()
-                            .record_payment(&sub, facility.id, total_outstanding_amount)
+                            .record_payment(
+                                &sub,
+                                facility.id,
+                                total_outstanding_amount,
+                                sim_time::now().date_naive(),
+                            )
                             .await?;
                     }
                     app.credit().complete_facility(&sub, facility.id).await?;
