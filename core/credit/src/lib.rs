@@ -679,9 +679,13 @@ where
     pub async fn update_collateral(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        credit_facility_id: CreditFacilityId,
+        credit_facility_id: impl Into<CreditFacilityId> + std::fmt::Debug + Copy,
         updated_collateral: Satoshis,
+        effective: impl Into<chrono::NaiveDate> + std::fmt::Debug + Copy,
     ) -> Result<CreditFacility, CoreCreditError> {
+        let credit_facility_id = credit_facility_id.into();
+        let effective = effective.into();
+
         let audit_info = self
             .subject_can_update_collateral(sub, true)
             .await?
@@ -698,7 +702,7 @@ where
             .await?;
 
         let collateral_update =
-            match collateral.record_collateral_update(updated_collateral, &audit_info) {
+            match collateral.record_collateral_update(updated_collateral, effective, &audit_info) {
                 Idempotent::Executed(update) => update,
                 Idempotent::Ignored => {
                     return Ok(credit_facility);
@@ -1015,7 +1019,11 @@ where
             .collaterals()
             .find_by_id(credit_facility.collateral_id)
             .await?;
-        let _ = collateral.record_collateral_update(Satoshis::ZERO, &audit_info);
+        let _ = collateral.record_collateral_update(
+            Satoshis::ZERO,
+            crate::time::now().date_naive(),
+            &audit_info,
+        );
         let mut db = self.credit_facility_repo.begin_op().await?;
         self.collaterals()
             .update_in_op(&mut db, &mut collateral)

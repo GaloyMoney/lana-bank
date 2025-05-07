@@ -1240,13 +1240,14 @@ impl Mutation {
         let CreditFacilityCollateralUpdateInput {
             credit_facility_id,
             collateral,
+            effective,
         } = input;
         exec_mutation!(
             CreditFacilityCollateralUpdatePayload,
             CreditFacility,
             ctx,
             app.credit()
-                .update_collateral(sub, credit_facility_id.into(), collateral)
+                .update_collateral(sub, credit_facility_id, collateral, effective)
         )
     }
 

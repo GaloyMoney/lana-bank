@@ -51,6 +51,7 @@ impl Collateral {
     pub fn record_collateral_update(
         &mut self,
         new_amount: Satoshis,
+        effective: chrono::NaiveDate,
         audit_info: &AuditInfo,
     ) -> Idempotent<CollateralUpdate> {
         let current = self.amount;
@@ -77,6 +78,7 @@ impl Collateral {
             tx_id,
             abs_diff,
             action,
+            effective,
         })
     }
 }

@@ -1073,6 +1073,7 @@ impl CreditLedger {
             tx_id,
             abs_diff,
             action,
+            effective,
         }: CollateralUpdate,
         credit_facility_account_ids: CreditFacilityAccountIds,
     ) -> Result<(), CreditLedgerError> {
@@ -1093,6 +1094,7 @@ impl CreditLedger {
                             bank_collateral_account_id: self
                                 .collateral_omnibus_account_ids
                                 .account_id,
+                            effective,
                         },
                     )
                     .await
@@ -1112,6 +1114,7 @@ impl CreditLedger {
                             bank_collateral_account_id: self
                                 .collateral_omnibus_account_ids
                                 .account_id,
+                            effective,
                         },
                     )
                     .await
@@ -1277,6 +1280,7 @@ impl CreditLedger {
                     amount: collateral.to_btc(),
                     collateral_account_id: credit_facility_account_ids.collateral_account_id,
                     bank_collateral_account_id: self.collateral_omnibus_account_ids.account_id,
+                    effective: crate::time::now().date_naive(),
                 },
             )
             .await?;

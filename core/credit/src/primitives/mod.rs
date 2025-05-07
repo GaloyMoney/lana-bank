@@ -409,6 +409,7 @@ pub struct CollateralUpdate {
     pub tx_id: LedgerTxId,
     pub abs_diff: Satoshis,
     pub action: CollateralAction,
+    pub effective: chrono::NaiveDate,
 }
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, Eq, PartialEq)]

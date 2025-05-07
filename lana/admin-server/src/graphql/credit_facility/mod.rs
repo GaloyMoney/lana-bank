@@ -207,6 +207,7 @@ crate::mutation_payload! { CreditFacilityCreatePayload, credit_facility: CreditF
 pub struct CreditFacilityCollateralUpdateInput {
     pub credit_facility_id: UUID,
     pub collateral: Satoshis,
+    pub effective: Date,
 }
 crate::mutation_payload! { CreditFacilityCollateralUpdatePayload, credit_facility: CreditFacility }
 
