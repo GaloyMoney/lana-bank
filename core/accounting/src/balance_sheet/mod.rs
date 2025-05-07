@@ -5,7 +5,7 @@ pub mod ledger;
 use audit::AuditSvc;
 use authz::PermissionCheck;
 use cala_ledger::CalaLedger;
-use chrono::{DateTime, Utc};
+use chrono::NaiveDate;
 
 use crate::{
     LedgerAccountId,
@@ -197,8 +197,8 @@ where
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         reference: String,
-        from: DateTime<Utc>,
-        until: Option<DateTime<Utc>>,
+        from: NaiveDate,
+        until: Option<NaiveDate>,
     ) -> Result<BalanceSheet, BalanceSheetError> {
         self.authz
             .enforce_permission(

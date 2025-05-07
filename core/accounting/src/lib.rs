@@ -214,8 +214,8 @@ where
         chart_ref: &str,
         id: cala_ledger::AccountSetId,
         args: es_entity::PaginatedQueryArgs<LedgerAccountChildrenCursor>,
-        from: chrono::DateTime<chrono::Utc>,
-        until: Option<chrono::DateTime<chrono::Utc>>,
+        from: chrono::NaiveDate,
+        until: Option<chrono::NaiveDate>,
     ) -> Result<
         es_entity::PaginatedQueryRet<LedgerAccount, LedgerAccountChildrenCursor>,
         CoreAccountingError,

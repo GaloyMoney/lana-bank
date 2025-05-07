@@ -18,9 +18,9 @@ pub struct TrialBalance {
     name: String,
 
     #[graphql(skip)]
-    from: Timestamp,
+    from: Date,
     #[graphql(skip)]
-    until: Timestamp,
+    until: Date,
     #[graphql(skip)]
     entity: Arc<lana_app::trial_balance::TrialBalanceRoot>,
 }

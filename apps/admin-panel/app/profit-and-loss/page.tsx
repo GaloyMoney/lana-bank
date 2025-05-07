@@ -31,7 +31,7 @@ import {
 } from "@/components/date-range-picker"
 
 gql`
-  query ProfitAndLossStatement($from: Timestamp!, $until: Timestamp) {
+  query ProfitAndLossStatement($from: Date!, $until: Date) {
     profitAndLossStatement(from: $from, until: $until) {
       name
       total {

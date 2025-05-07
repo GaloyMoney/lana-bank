@@ -1,6 +1,6 @@
 pub mod error;
 
-use chrono::{DateTime, Utc};
+use chrono::NaiveDate;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
@@ -150,8 +150,8 @@ impl BalanceSheetLedger {
     async fn get_balances_by_id(
         &self,
         all_account_set_ids: Vec<AccountSetId>,
-        from: DateTime<Utc>,
-        until: Option<DateTime<Utc>>,
+        from: NaiveDate,
+        until: Option<NaiveDate>,
     ) -> Result<HashMap<BalanceId, CalaBalanceRange>, BalanceSheetLedgerError> {
         let balance_ids = all_account_set_ids
             .iter()
@@ -165,6 +165,7 @@ impl BalanceSheetLedger {
         let res = self
             .cala
             .balances()
+            .effective()
             .find_all_in_range(&balance_ids, from, until)
             .await?;
 
@@ -495,8 +496,8 @@ impl BalanceSheetLedger {
     pub async fn get_balance_sheet(
         &self,
         reference: String,
-        from: DateTime<Utc>,
-        until: Option<DateTime<Utc>>,
+        from: NaiveDate,
+        until: Option<NaiveDate>,
     ) -> Result<BalanceSheet, BalanceSheetLedgerError> {
         let ids = self.get_ids_from_reference(reference).await?;
         let all_account_set_ids = vec![ids.id, ids.assets, ids.liabilities, ids.equity];
@@ -543,15 +544,15 @@ impl
         let values = account_set.into_values();
 
         let usd_balance_range = usd_balance.map(|range| BalanceRange {
-            start: Some(range.start),
-            end: Some(range.end),
-            diff: Some(range.diff),
+            start: Some(range.open),
+            end: Some(range.close),
+            diff: Some(range.period),
         });
 
         let btc_balance_range = btc_balance.map(|range| BalanceRange {
-            start: Some(range.start),
-            end: Some(range.end),
-            diff: Some(range.diff),
+            start: Some(range.open),
+            end: Some(range.close),
+            diff: Some(range.period),
         });
 
         BalanceSheet {

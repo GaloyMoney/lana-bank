@@ -556,8 +556,8 @@ impl Query {
     async fn trial_balance(
         &self,
         ctx: &Context<'_>,
-        from: Timestamp,
-        until: Timestamp,
+        from: Date,
+        until: Date,
     ) -> async_graphql::Result<TrialBalance> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         let account_summary = app
@@ -587,8 +587,8 @@ impl Query {
     async fn balance_sheet(
         &self,
         ctx: &Context<'_>,
-        from: Timestamp,
-        until: Option<Timestamp>,
+        from: Date,
+        until: Option<Date>,
     ) -> async_graphql::Result<BalanceSheet> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         let balance_sheet = app
@@ -607,8 +607,8 @@ impl Query {
     async fn profit_and_loss_statement(
         &self,
         ctx: &Context<'_>,
-        from: Timestamp,
-        until: Option<Timestamp>,
+        from: Date,
+        until: Option<Date>,
     ) -> async_graphql::Result<ProfitAndLossStatement> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         let profit_and_loss = app

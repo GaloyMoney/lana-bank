@@ -43,12 +43,7 @@ import PaginatedTable, { Column, PaginatedData } from "@/components/paginated-ta
 const DEFAULT_PAGESIZE = 15
 
 gql`
-  query GetTrialBalance(
-    $from: Timestamp!
-    $until: Timestamp!
-    $first: Int!
-    $after: String
-  ) {
+  query GetTrialBalance($from: Date!, $until: Date!, $first: Int!, $after: String) {
     trialBalance(from: $from, until: $until) {
       name
       total {

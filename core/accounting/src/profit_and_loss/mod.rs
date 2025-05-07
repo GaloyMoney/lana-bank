@@ -2,7 +2,7 @@ mod chart_of_accounts_integration;
 pub mod error;
 pub mod ledger;
 
-use chrono::{DateTime, Utc};
+use chrono::NaiveDate;
 
 use audit::AuditSvc;
 use authz::PermissionCheck;
@@ -173,8 +173,8 @@ where
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         reference: String,
-        from: DateTime<Utc>,
-        until: Option<DateTime<Utc>>,
+        from: NaiveDate,
+        until: Option<NaiveDate>,
     ) -> Result<ProfitAndLossStatement, ProfitAndLossStatementError> {
         self.authz
             .enforce_permission(

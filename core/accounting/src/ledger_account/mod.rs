@@ -161,8 +161,8 @@ where
         chart: &Chart,
         id: cala_ledger::AccountSetId,
         mut args: es_entity::PaginatedQueryArgs<LedgerAccountChildrenCursor>,
-        from: chrono::DateTime<chrono::Utc>,
-        until: Option<chrono::DateTime<chrono::Utc>>,
+        from: chrono::NaiveDate,
+        until: Option<chrono::NaiveDate>,
         filter_non_zero: bool,
     ) -> Result<
         es_entity::PaginatedQueryRet<LedgerAccount, LedgerAccountChildrenCursor>,

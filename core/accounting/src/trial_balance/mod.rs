@@ -1,7 +1,7 @@
 pub mod error;
 pub mod ledger;
 
-use chrono::{DateTime, Utc};
+use chrono::NaiveDate;
 
 use audit::AuditSvc;
 use authz::PermissionCheck;
@@ -105,8 +105,8 @@ where
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         name: String,
-        from: DateTime<Utc>,
-        until: DateTime<Utc>,
+        from: NaiveDate,
+        until: NaiveDate,
     ) -> Result<TrialBalanceRoot, TrialBalanceError> {
         self.authz
             .enforce_permission(

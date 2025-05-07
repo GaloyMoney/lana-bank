@@ -1,6 +1,6 @@
 pub mod error;
 
-use chrono::{DateTime, Utc};
+use chrono::NaiveDate;
 
 use cala_ledger::{
     AccountSetId, BalanceId, CalaLedger, Currency, DebitOrCredit, JournalId, LedgerOperation,
@@ -18,8 +18,8 @@ pub struct TrialBalanceRoot {
     pub description: Option<String>,
     pub usd_balance_range: Option<BalanceRange>,
     pub btc_balance_range: Option<BalanceRange>,
-    pub from: DateTime<Utc>,
-    pub until: Option<DateTime<Utc>>,
+    pub from: NaiveDate,
+    pub until: Option<NaiveDate>,
 }
 
 #[derive(Clone)]
@@ -92,8 +92,8 @@ impl TrialBalanceLedger {
     async fn get_balances_by_id(
         &self,
         all_account_set_ids: Vec<AccountSetId>,
-        from: DateTime<Utc>,
-        until: Option<DateTime<Utc>>,
+        from: NaiveDate,
+        until: Option<NaiveDate>,
     ) -> Result<std::collections::HashMap<BalanceId, CalaBalanceRange>, TrialBalanceLedgerError>
     {
         let balance_ids = all_account_set_ids
@@ -108,6 +108,7 @@ impl TrialBalanceLedger {
         let res = self
             .cala
             .balances()
+            .effective()
             .find_all_in_range(&balance_ids, from, until)
             .await?;
 
@@ -195,8 +196,8 @@ impl TrialBalanceLedger {
     pub async fn get_trial_balance(
         &self,
         name: String,
-        from: DateTime<Utc>,
-        until: Option<DateTime<Utc>>,
+        from: NaiveDate,
+        until: Option<NaiveDate>,
     ) -> Result<TrialBalanceRoot, TrialBalanceLedgerError> {
         let statement_id = self.get_id_from_reference(name).await?;
 
@@ -216,28 +217,28 @@ impl
     From<(
         AccountSet,
         (Option<CalaBalanceRange>, Option<CalaBalanceRange>),
-        DateTime<Utc>,
-        Option<DateTime<Utc>>,
+        NaiveDate,
+        Option<NaiveDate>,
     )> for TrialBalanceRoot
 {
     fn from(
         (account_set, (btc_balance, usd_balance), from, until): (
             AccountSet,
             (Option<CalaBalanceRange>, Option<CalaBalanceRange>),
-            DateTime<Utc>,
-            Option<DateTime<Utc>>,
+            NaiveDate,
+            Option<NaiveDate>,
         ),
     ) -> Self {
         let values = account_set.into_values();
         let usd_balance_range = usd_balance.map(|range| BalanceRange {
-            start: Some(range.start),
-            end: Some(range.end),
-            diff: Some(range.diff),
+            start: Some(range.open),
+            end: Some(range.close),
+            diff: Some(range.period),
         });
         let btc_balance_range = btc_balance.map(|range| BalanceRange {
-            start: Some(range.start),
-            end: Some(range.end),
-            diff: Some(range.diff),
+            start: Some(range.open),
+            end: Some(range.close),
+            diff: Some(range.period),
         });
         TrialBalanceRoot {
             id: values.id,

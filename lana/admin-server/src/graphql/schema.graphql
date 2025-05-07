@@ -1438,10 +1438,10 @@ type Query {
 	ledgerTransactionsForTemplateCode(templateCode: String!, first: Int!, after: String): LedgerTransactionConnection!
 	journalEntries(first: Int!, after: String): JournalEntryConnection!
 	generalLedgerEntries(first: Int!, after: String): GeneralLedgerEntryConnection!
-	trialBalance(from: Timestamp!, until: Timestamp!): TrialBalance!
+	trialBalance(from: Date!, until: Date!): TrialBalance!
 	chartOfAccounts: ChartOfAccounts!
-	balanceSheet(from: Timestamp!, until: Timestamp): BalanceSheet!
-	profitAndLossStatement(from: Timestamp!, until: Timestamp): ProfitAndLossStatement!
+	balanceSheet(from: Date!, until: Date): BalanceSheet!
+	profitAndLossStatement(from: Date!, until: Date): ProfitAndLossStatement!
 	realtimePrice: RealtimePrice!
 	report(id: UUID!): Report
 	reports: [Report!]!

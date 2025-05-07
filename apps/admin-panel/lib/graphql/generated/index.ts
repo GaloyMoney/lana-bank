@@ -1635,8 +1635,8 @@ export type QueryAuditArgs = {
 
 
 export type QueryBalanceSheetArgs = {
-  from: Scalars['Timestamp']['input'];
-  until?: InputMaybe<Scalars['Timestamp']['input']>;
+  from: Scalars['Date']['input'];
+  until?: InputMaybe<Scalars['Date']['input']>;
 };
 
 
@@ -1760,8 +1760,8 @@ export type QueryPolicyArgs = {
 
 
 export type QueryProfitAndLossStatementArgs = {
-  from: Scalars['Timestamp']['input'];
-  until?: InputMaybe<Scalars['Timestamp']['input']>;
+  from: Scalars['Date']['input'];
+  until?: InputMaybe<Scalars['Date']['input']>;
 };
 
 
@@ -1782,8 +1782,8 @@ export type QueryTransactionTemplatesArgs = {
 
 
 export type QueryTrialBalanceArgs = {
-  from: Scalars['Timestamp']['input'];
-  until: Scalars['Timestamp']['input'];
+  from: Scalars['Date']['input'];
+  until: Scalars['Date']['input'];
 };
 
 
@@ -2199,8 +2199,8 @@ export type AuditLogsQueryVariables = Exact<{
 export type AuditLogsQuery = { __typename?: 'Query', audit: { __typename?: 'AuditEntryConnection', edges: Array<{ __typename?: 'AuditEntryEdge', cursor: string, node: { __typename?: 'AuditEntry', id: string, auditEntryId: any, object: string, action: string, authorized: boolean, recordedAt: any, subject: { __typename?: 'System', name: string } | { __typename?: 'User', userId: string, email: string, roles: Array<Role> } } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, startCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean } } };
 
 export type BalanceSheetQueryVariables = Exact<{
-  from: Scalars['Timestamp']['input'];
-  until?: InputMaybe<Scalars['Timestamp']['input']>;
+  from: Scalars['Date']['input'];
+  until?: InputMaybe<Scalars['Date']['input']>;
 }>;
 
 
@@ -2608,8 +2608,8 @@ export type PoliciesQueryVariables = Exact<{
 export type PoliciesQuery = { __typename?: 'Query', policies: { __typename?: 'PolicyConnection', edges: Array<{ __typename?: 'PolicyEdge', cursor: string, node: { __typename?: 'Policy', id: string, policyId: string, approvalProcessType: ApprovalProcessType, rules: { __typename?: 'CommitteeThreshold', threshold: number, committee: { __typename?: 'Committee', id: string, committeeId: string, createdAt: any, name: string } } | { __typename?: 'SystemApproval', autoApprove: boolean } } }>, pageInfo: { __typename?: 'PageInfo', hasPreviousPage: boolean, hasNextPage: boolean, startCursor?: string | null, endCursor?: string | null } } };
 
 export type ProfitAndLossStatementQueryVariables = Exact<{
-  from: Scalars['Timestamp']['input'];
-  until?: InputMaybe<Scalars['Timestamp']['input']>;
+  from: Scalars['Date']['input'];
+  until?: InputMaybe<Scalars['Date']['input']>;
 }>;
 
 
@@ -2678,8 +2678,8 @@ export type TransactionTemplatesQueryVariables = Exact<{
 export type TransactionTemplatesQuery = { __typename?: 'Query', transactionTemplates: { __typename?: 'TransactionTemplateConnection', edges: Array<{ __typename?: 'TransactionTemplateEdge', cursor: string, node: { __typename?: 'TransactionTemplate', id: string, code: string } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, startCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean } } };
 
 export type GetTrialBalanceQueryVariables = Exact<{
-  from: Scalars['Timestamp']['input'];
-  until: Scalars['Timestamp']['input'];
+  from: Scalars['Date']['input'];
+  until: Scalars['Date']['input'];
   first: Scalars['Int']['input'];
   after?: InputMaybe<Scalars['String']['input']>;
 }>;
@@ -3395,7 +3395,7 @@ export type AuditLogsLazyQueryHookResult = ReturnType<typeof useAuditLogsLazyQue
 export type AuditLogsSuspenseQueryHookResult = ReturnType<typeof useAuditLogsSuspenseQuery>;
 export type AuditLogsQueryResult = Apollo.QueryResult<AuditLogsQuery, AuditLogsQueryVariables>;
 export const BalanceSheetDocument = gql`
-    query BalanceSheet($from: Timestamp!, $until: Timestamp) {
+    query BalanceSheet($from: Date!, $until: Date) {
   balanceSheet(from: $from, until: $until) {
     name
     balance {
@@ -6013,7 +6013,7 @@ export type PoliciesLazyQueryHookResult = ReturnType<typeof usePoliciesLazyQuery
 export type PoliciesSuspenseQueryHookResult = ReturnType<typeof usePoliciesSuspenseQuery>;
 export type PoliciesQueryResult = Apollo.QueryResult<PoliciesQuery, PoliciesQueryVariables>;
 export const ProfitAndLossStatementDocument = gql`
-    query ProfitAndLossStatement($from: Timestamp!, $until: Timestamp) {
+    query ProfitAndLossStatement($from: Date!, $until: Date) {
   profitAndLossStatement(from: $from, until: $until) {
     name
     total {
@@ -6461,7 +6461,7 @@ export type TransactionTemplatesLazyQueryHookResult = ReturnType<typeof useTrans
 export type TransactionTemplatesSuspenseQueryHookResult = ReturnType<typeof useTransactionTemplatesSuspenseQuery>;
 export type TransactionTemplatesQueryResult = Apollo.QueryResult<TransactionTemplatesQuery, TransactionTemplatesQueryVariables>;
 export const GetTrialBalanceDocument = gql`
-    query GetTrialBalance($from: Timestamp!, $until: Timestamp!, $first: Int!, $after: String) {
+    query GetTrialBalance($from: Date!, $until: Date!, $first: Int!, $after: String) {
   trialBalance(from: $from, until: $until) {
     name
     total {

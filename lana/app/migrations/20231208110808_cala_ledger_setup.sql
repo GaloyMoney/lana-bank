@@ -101,6 +101,7 @@ CREATE TABLE cala_transactions (
   tx_template_id UUID NOT NULL REFERENCES cala_tx_templates(id),
   external_id VARCHAR DEFAULT NULL UNIQUE,
   correlation_id VARCHAR NOT NULL,
+  effective DATE NOT NULL,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 CREATE INDEX idx_cala_transactions_correlation_id ON cala_transactions (correlation_id);
@@ -150,10 +151,24 @@ CREATE TABLE cala_balance_history (
   version INT NOT NULL,
   values JSONB NOT NULL,
   recorded_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  UNIQUE(journal_id, account_id, currency, version),
+  UNIQUE (journal_id, account_id, currency, version),
   FOREIGN KEY (journal_id, account_id, currency) REFERENCES cala_current_balances(journal_id, account_id, currency)
 );
 CREATE INDEX idx_cala_balance_history_recorded_at ON cala_balance_history (recorded_at);
+
+CREATE TABLE cala_cumulative_effective_balances (
+  journal_id UUID NOT NULL REFERENCES cala_journals(id),
+  account_id UUID NOT NULL REFERENCES cala_accounts(id),
+  currency VARCHAR NOT NULL,
+  effective DATE NOT NULL,
+  version INT NOT NULL,
+  all_time_version INT NOT NULL,
+  latest_entry_id UUID NOT NULL REFERENCES cala_entries(id),
+  values JSONB NOT NULL,
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  UNIQUE(journal_id, account_id, currency, effective, version)
+);
 
 CREATE TABLE cala_velocity_limits (
   id UUID PRIMARY KEY,
@@ -241,16 +256,21 @@ CREATE TABLE cala_outbox_events (
   seen_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
-CREATE FUNCTION notify_cala_outbox_events() RETURNS TRIGGER AS $$
+CREATE OR REPLACE FUNCTION notify_cala_outbox_events() RETURNS TRIGGER AS $$
 DECLARE
   payload TEXT;
   payload_size INTEGER;
 BEGIN
   payload := row_to_json(NEW);
+
+  -- Get the byte length of the payload
   payload_size := octet_length(payload);
+
+  -- Only send notification if payload fits within 8000 bytes
   IF payload_size <= 8000 THEN
     PERFORM pg_notify('cala_outbox_events', payload);
   ELSE
+    -- Optionally log that the payload was too large
     RAISE NOTICE 'Payload too large for notification: % bytes', payload_size;
   END IF;
 

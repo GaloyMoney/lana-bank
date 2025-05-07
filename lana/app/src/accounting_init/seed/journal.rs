@@ -8,6 +8,7 @@ pub(crate) async fn init(cala: &CalaLedger) -> Result<JournalInit, AccountingIni
         .name("General Ledger")
         .description("General ledger for Lana")
         .code(LANA_JOURNAL_CODE)
+        .enable_effective_balance(true)
         .build()
         .expect("new journal");
 

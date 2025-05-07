@@ -35,9 +35,9 @@ members = [
 # es-entity = { git = "https://github.com/galoymoney/cala.git", branch = "main" }
 # sim-time = { git = "https://github.com/galoymoney/cala.git", branch = "main" }
 # cala-ledger = { git = "https://github.com/galoymoney/cala.git", branch = "main" }
-es-entity = "0.4.5"
-sim-time = "0.4.5"
-cala-ledger = "0.4.5"
+es-entity = "0.4.6"
+sim-time = "0.4.6"
+cala-ledger = "0.4.6"
 
 anyhow = "1.0.98"
 async-graphql = { version = "7.0.11", default-features = false, features = [
@@ -83,7 +83,7 @@ opentelemetry-otlp = { version = "0.17.0", default-features = false, features = 
 ] }
 opentelemetry-http = "0.13"
 opentelemetry-semantic-conventions = "0.16.0"
-tokio = { version = "1.44.2", features = [
+tokio = { version = "1.45.0", features = [
   "rt-multi-thread",
   "macros",
   "time",

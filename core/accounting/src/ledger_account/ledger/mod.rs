@@ -266,8 +266,8 @@ impl LedgerAccountLedger {
         &self,
         id: AccountSetId,
         args: es_entity::PaginatedQueryArgs<LedgerAccountChildrenCursor>,
-        from: chrono::DateTime<chrono::Utc>,
-        until: Option<chrono::DateTime<chrono::Utc>>,
+        from: chrono::NaiveDate,
+        until: Option<chrono::NaiveDate>,
     ) -> Result<
         es_entity::PaginatedQueryRet<LedgerAccount, LedgerAccountChildrenCursor>,
         LedgerAccountLedgerError,
@@ -318,6 +318,7 @@ impl LedgerAccountLedger {
             self.cala.accounts().find_all::<Account>(&account_ids),
             self.cala
                 .balances()
+                .effective()
                 .find_all_in_range(&balance_ids, from, until)
         );
 

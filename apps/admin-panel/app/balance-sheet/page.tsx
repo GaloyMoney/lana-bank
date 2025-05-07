@@ -32,7 +32,7 @@ import {
 } from "@/components/date-range-picker"
 
 gql`
-  query BalanceSheet($from: Timestamp!, $until: Timestamp) {
+  query BalanceSheet($from: Date!, $until: Date) {
     balanceSheet(from: $from, until: $until) {
       name
       balance {

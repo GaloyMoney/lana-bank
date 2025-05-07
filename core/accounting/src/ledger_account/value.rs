@@ -101,14 +101,14 @@ impl
         let code = values.external_id.and_then(|id| id.parse().ok());
 
         let usd_balance_range = usd_balance_range.map(|range| BalanceRange {
-            start: Some(range.start),
-            end: Some(range.end),
-            diff: Some(range.diff),
+            start: Some(range.open),
+            end: Some(range.close),
+            diff: Some(range.period),
         });
         let btc_balance_range = btc_balance_range.map(|range| BalanceRange {
-            start: Some(range.start),
-            end: Some(range.end),
-            diff: Some(range.diff),
+            start: Some(range.open),
+            end: Some(range.close),
+            diff: Some(range.period),
         });
 
         LedgerAccount {
@@ -182,14 +182,14 @@ impl
         ),
     ) -> Self {
         let usd_balance_range = usd_balance_range.map(|range| BalanceRange {
-            start: Some(range.start),
-            end: Some(range.end),
-            diff: Some(range.diff),
+            start: Some(range.open),
+            end: Some(range.close),
+            diff: Some(range.period),
         });
         let btc_balance_range = btc_balance_range.map(|range| BalanceRange {
-            start: Some(range.start),
-            end: Some(range.end),
-            diff: Some(range.diff),
+            start: Some(range.open),
+            end: Some(range.close),
+            diff: Some(range.period),
         });
 
         let external_id = account.values().external_id.clone();

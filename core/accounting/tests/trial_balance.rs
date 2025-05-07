@@ -59,8 +59,8 @@ async fn add_chart_to_trial_balance() -> anyhow::Result<()> {
         .trial_balance(
             &DummySubject,
             trial_balance_name.to_string(),
-            Utc::now(),
-            Utc::now(),
+            Utc::now().date_naive(),
+            Utc::now().date_naive(),
         )
         .await?;
 
@@ -70,8 +70,8 @@ async fn add_chart_to_trial_balance() -> anyhow::Result<()> {
             &chart_ref,
             trial_balance.id,
             Default::default(),
-            Utc::now(),
-            Some(Utc::now()),
+            Utc::now().date_naive(),
+            Some(Utc::now().date_naive()),
         )
         .await?;
     assert_eq!(accounts.entities.len(), 0);
@@ -88,8 +88,8 @@ async fn add_chart_to_trial_balance() -> anyhow::Result<()> {
             &chart,
             trial_balance.id,
             Default::default(),
-            Utc::now(),
-            Some(Utc::now()),
+            Utc::now().date_naive(),
+            Some(Utc::now().date_naive()),
             false,
         )
         .await?;
