@@ -148,16 +148,12 @@ where
 
         while let Some(message) = stream.next().await {
             let should_handle = match message.as_ref().as_event() {
-                Some(CoreCustomerEvent::CustomerCreated { .. })
-                    if self.config.create_deposit_account_on_customer_create =>
-                {
-                    true
+                Some(CoreCustomerEvent::CustomerCreated { .. }) => {
+                    self.config.create_deposit_account_on_customer_create
                 }
 
-                Some(CoreCustomerEvent::CustomerAccountStatusUpdated { status, .. })
-                    if !status.is_inactive() =>
-                {
-                    true
+                Some(CoreCustomerEvent::CustomerAccountStatusUpdated { status, .. }) => {
+                    !status.is_inactive()
                 }
 
                 _ => false,
@@ -194,36 +190,35 @@ where
     where
         E: OutboxEventMarker<CoreCustomerEvent>,
     {
-        let (id, customer_type) = match message.as_event() {
+        let (id, customer_type, is_account_status_update_event) = match message.as_event() {
             Some(CoreCustomerEvent::CustomerCreated {
                 id, customer_type, ..
-            }) => (id, customer_type),
+            }) => (id, customer_type, false),
             Some(CoreCustomerEvent::CustomerAccountStatusUpdated {
-                id,
-                customer_type,
-                status,
-            }) if !status.is_inactive() => (id, customer_type),
+                id, customer_type, ..
+            }) => (id, customer_type, true),
             _ => return Ok(()),
         };
 
         message.inject_trace_parent();
+
+        let active = is_account_status_update_event || !self.config.customer_status_sync_active;
 
         if self.config.auto_create_deposit_account {
             match self.deposit
                 .create_account(
                     &<<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject as SystemSubject>::system(),
                     *id,
-                    !self.config.customer_status_sync_active,
+                    active,
                     *customer_type,
                 )
                 .await
             {
                 Ok(_) => {}
-                Err(e) if e.is_account_already_exists() => {}
+                Err(e) if e.is_account_already_exists() => {},
                 Err(e) => return Err(e.into()),
             }
         }
-
         Ok(())
     }
 }
