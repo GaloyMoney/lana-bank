@@ -73,7 +73,7 @@ impl From<InitiateWithdrawParams> for Params {
         params.insert("amount", amount);
         params.insert("deposit_omnibus_account_id", deposit_omnibus_account_id);
         params.insert("credit_account_id", credit_account_id);
-        params.insert("effective", chrono::Utc::now().date_naive());
+        params.insert("effective", crate::time::now().date_naive());
 
         params
     }

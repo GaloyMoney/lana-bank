@@ -89,7 +89,7 @@ impl From<ConfirmWithdrawParams> for Params {
         params.insert("credit_account_id", credit_account_id);
         params.insert("correlation_id", correlation_id);
         params.insert("external_id", external_id);
-        params.insert("effective", chrono::Utc::now().date_naive());
+        params.insert("effective", crate::time::now().date_naive());
 
         params
     }
