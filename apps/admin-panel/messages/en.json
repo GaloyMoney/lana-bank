@@ -523,15 +523,13 @@
         },
         "form": {
           "labels": {
-            "amount": "Amount",
-            "effectiveDate": "Effective Date"
+            "amount": "Amount"
           },
           "placeholders": {
             "amount": "Enter the desired principal amount"
           },
           "errors": {
             "invalidAmount": "Please enter a valid amount",
-            "emptyEffectiveDate": "Please select an effective date",
             "unknownError": "An unknown error occurred"
           },
           "buttons": {
@@ -554,15 +552,13 @@
           "labels": {
             "currentCollateral": "Current Collateral",
             "expectedCollateral": "Expected Collateral",
-            "newCollateral": "New Collateral",
-            "effectiveDate": "Effective Date"
+            "newCollateral": "New Collateral"
           },
           "placeholders": {
             "newCollateral": "Enter new collateral amount"
           },
           "errors": {
             "emptyCollateral": "Please enter a valid collateral amount.",
-            "emptyEffectiveDate": "Please select an effective date",
             "noData": "No data returned from mutation",
             "unknownError": "An unknown error occurred"
           },

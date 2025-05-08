@@ -49,9 +49,6 @@ export const CreditFacilityPartialPaymentDialog: React.FC<
     useCreditFacilityPartialPaymentMutation()
   const [error, setError] = useState<string | null>(null)
   const [amount, setAmount] = useState<string>("")
-  const [effectiveDate, setEffectiveDate] = useState<string>(
-    new Date().toISOString().split("T")[0],
-  )
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -64,18 +61,12 @@ export const CreditFacilityPartialPaymentDialog: React.FC<
       return
     }
 
-    if (!effectiveDate) {
-      setError(t("form.errors.emptyEffectiveDate"))
-      return
-    }
-
     try {
       await partialPaymentCreditFacility({
         variables: {
           input: {
             creditFacilityId,
             amount: amountInCents as UsdCents,
-            effective: effectiveDate,
           },
         },
         onCompleted: (data) => {
@@ -99,7 +90,6 @@ export const CreditFacilityPartialPaymentDialog: React.FC<
     setOpenDialog(false)
     setError(null)
     setAmount("")
-    setEffectiveDate(new Date().toISOString().split("T")[0])
     reset()
   }
 
@@ -124,16 +114,6 @@ export const CreditFacilityPartialPaymentDialog: React.FC<
               />
               <div className="p-1.5 bg-input-text rounded-md px-4">USD</div>
             </div>
-          </div>
-          <div>
-            <Label>{t("form.labels.effectiveDate")}</Label>
-            <Input
-              type="date"
-              value={effectiveDate}
-              onChange={(e) => setEffectiveDate(e.target.value)}
-              data-testid="effective-date-input"
-              required
-            />
           </div>
           {error && <p className="text-destructive">{error}</p>}
           <DialogFooter>

@@ -426,7 +426,6 @@ export type CreditFacilityBalance = {
 export type CreditFacilityCollateralUpdateInput = {
   collateral: Scalars['Satoshis']['input'];
   creditFacilityId: Scalars['UUID']['input'];
-  effective: Scalars['Date']['input'];
 };
 
 export type CreditFacilityCollateralUpdatePayload = {
@@ -566,7 +565,6 @@ export type CreditFacilityOrigination = {
 export type CreditFacilityPartialPaymentInput = {
   amount: Scalars['UsdCents']['input'];
   creditFacilityId: Scalars['UUID']['input'];
-  effective: Scalars['Date']['input'];
 };
 
 export type CreditFacilityPartialPaymentPayload = {

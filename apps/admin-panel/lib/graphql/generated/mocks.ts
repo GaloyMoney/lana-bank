@@ -561,7 +561,6 @@ export const mockCreditFacilityCollateralUpdateInput = (overrides?: Partial<Cred
     return {
         collateral: overrides && overrides.hasOwnProperty('collateral') ? overrides.collateral! : generateMockValue.satoshis(),
         creditFacilityId: overrides && overrides.hasOwnProperty('creditFacilityId') ? overrides.creditFacilityId! : generateMockValue.uuid(),
-        effective: overrides && overrides.hasOwnProperty('effective') ? overrides.effective! : faker.date.past({ years: 1, refDate: new Date(2022, 0) }).toISOString(),
     };
 };
 
@@ -763,7 +762,6 @@ export const mockCreditFacilityPartialPaymentInput = (overrides?: Partial<Credit
     return {
         amount: overrides && overrides.hasOwnProperty('amount') ? overrides.amount! : generateMockValue.usdCents(),
         creditFacilityId: overrides && overrides.hasOwnProperty('creditFacilityId') ? overrides.creditFacilityId! : generateMockValue.uuid(),
-        effective: overrides && overrides.hasOwnProperty('effective') ? overrides.effective! : faker.date.past({ years: 1, refDate: new Date(2022, 0) }).toISOString(),
     };
 };
 
