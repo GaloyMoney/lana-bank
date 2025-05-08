@@ -11,11 +11,9 @@ with ordered as (
             )
             as order_recorded_at_desc
 
-
     from {{ source("lana", "sumsub_applicants_view") }}
 
 )
-
 
 select
     * except (order_recorded_at_desc),

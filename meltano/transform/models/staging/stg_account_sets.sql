@@ -1,8 +1,3 @@
-{{ config(
-    materialized='incremental',
-    unique_key= 'id',
-) }}
-
 with ordered as (
 
     select
@@ -20,10 +15,11 @@ with ordered as (
 
     from {{ source("lana", "public_cala_account_sets_view") }}
 
-    {% if is_incremental() %}
-        where
-            _sdc_batched_at >= (select coalesce(max(_sdc_batched_at), '1900-01-01') from {{ this }})
-    {% endif %}
+    where _sdc_batched_at >= (
+        select coalesce(max(_sdc_batched_at), '1900-01-01')
+        from {{ ref('stg_core_chart_events') }}
+        where event_type = 'initialized'
+    )
 
 )
 
