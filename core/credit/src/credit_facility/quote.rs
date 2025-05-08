@@ -7,8 +7,11 @@ use super::CreditFacilityEvent;
 pub(super) fn project<'a>(
     events: impl DoubleEndedIterator<Item = &'a CreditFacilityEvent>,
 ) -> Vec<CreditFacilityQuoteEntry> {
+    let mut entries = vec![];
+
     let mut terms = None;
     let mut amount = None;
+    let mut is_activated = None;
 
     for event in events {
         match event {
@@ -20,8 +23,17 @@ pub(super) fn project<'a>(
                 terms = Some(*t);
                 amount = Some(*a);
             }
+
+            CreditFacilityEvent::Activated { .. } => {
+                is_activated = Some(true);
+            }
+
             _ => {}
         }
+    }
+
+    if is_activated.unwrap_or(false) {
+        return entries;
     }
 
     let terms = terms.expect("Facility was not Initialized");
@@ -30,8 +42,6 @@ pub(super) fn project<'a>(
 
     let activated_at = crate::time::now();
     let maturity_date = terms.duration.maturity_date(activated_at);
-
-    let mut entries = vec![];
 
     entries.extend([
         CreditFacilityQuoteEntry::Disbursal(ObligationDataForQuoteEntry {
