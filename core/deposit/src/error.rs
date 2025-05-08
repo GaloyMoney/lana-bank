@@ -46,11 +46,7 @@ impl CoreDepositError {
     pub fn is_account_already_exists(&self) -> bool {
         matches!(
             self,
-            Self::CoreChartOfAccountsError(
-                core_accounting::chart_of_accounts::error::ChartOfAccountsError::CalaAccount(
-                    cala_ledger::account::error::AccountError::ExternalIdAlreadyExists
-                )
-            ) | Self::DepositLedgerError(crate::ledger::error::DepositLedgerError::CalaAccount(
+            Self::DepositLedgerError(crate::ledger::error::DepositLedgerError::CalaAccount(
                 cala_ledger::account::error::AccountError::ExternalIdAlreadyExists
             ))
         )
