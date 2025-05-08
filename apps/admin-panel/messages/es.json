@@ -523,13 +523,15 @@
         },
         "form": {
           "labels": {
-            "amount": "Monto"
+            "amount": "Monto",
+            "effectiveDate": "Fecha Efectiva"
           },
           "placeholders": {
             "amount": "Ingrese el monto principal deseado"
           },
           "errors": {
             "invalidAmount": "Por favor ingrese un monto válido",
+            "emptyEffectiveDate": "Por favor seleccione una fecha efectiva",
             "unknownError": "Ocurrió un error desconocido"
           },
           "buttons": {
@@ -552,13 +554,15 @@
           "labels": {
             "currentCollateral": "Garantía Actual",
             "expectedCollateral": "Garantía Esperada",
-            "newCollateral": "Nueva Garantía"
+            "newCollateral": "Nueva Garantía",
+            "effectiveDate": "Fecha Efectiva"
           },
           "placeholders": {
             "newCollateral": "Ingrese nuevo monto de garantía"
           },
           "errors": {
             "emptyCollateral": "Por favor ingrese un monto de garantía válido.",
+            "emptyEffectiveDate": "Por favor seleccione una fecha efectiva",
             "noData": "No se devolvieron datos de la mutación",
             "unknownError": "Ocurrió un error desconocido"
           },

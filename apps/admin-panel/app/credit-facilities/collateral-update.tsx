@@ -62,6 +62,9 @@ export const CreditFacilityCollateralUpdateDialog: React.FC<
   const [error, setError] = useState<string | null>(null)
   const [isConfirmed, setIsConfirmed] = useState<boolean>(false)
   const [newCollateral, setNewCollateral] = useState<string>("")
+  const [effectiveDate, setEffectiveDate] = useState<string>(
+    new Date().toISOString().split("T")[0],
+  )
 
   const { data: creditFacilityDetails } = useGetCreditFacilityLayoutDetailsQuery({
     variables: { id: creditFacilityId },
@@ -73,6 +76,10 @@ export const CreditFacilityCollateralUpdateDialog: React.FC<
       setError(t("form.errors.emptyCollateral"))
       return
     }
+    if (!effectiveDate) {
+      setError(t("form.errors.emptyEffectiveDate"))
+      return
+    }
     setError(null)
     try {
       const result = await updateCollateral({
@@ -80,6 +87,7 @@ export const CreditFacilityCollateralUpdateDialog: React.FC<
           input: {
             creditFacilityId,
             collateral: currencyConverter.btcToSatoshi(Number(newCollateral)),
+            effective: effectiveDate,
           },
         },
       })
@@ -109,6 +117,7 @@ export const CreditFacilityCollateralUpdateDialog: React.FC<
     reset()
     setOpenDialog(false)
     setNewCollateral("")
+    setEffectiveDate(new Date().toISOString().split("T")[0])
   }
 
   const currentCollateral =
@@ -150,6 +159,10 @@ export const CreditFacilityCollateralUpdateDialog: React.FC<
                       currency="btc"
                     />
                   }
+                />
+                <DetailItem
+                  label={t("form.labels.effectiveDate")}
+                  value={effectiveDate}
                 />
               </DetailsGroup>
               {error && <p className="text-destructive">{error}</p>}
@@ -224,6 +237,16 @@ export const CreditFacilityCollateralUpdateDialog: React.FC<
                     {t("units.btc")}
                   </div>
                 </div>
+              </div>
+              <div>
+                <Label>{t("form.labels.effectiveDate")}</Label>
+                <Input
+                  type="date"
+                  value={effectiveDate}
+                  onChange={(e) => setEffectiveDate(e.target.value)}
+                  data-testid="effective-date-input"
+                  required
+                />
               </div>
               {error && <p className="text-destructive">{error}</p>}
               <DialogFooter>
