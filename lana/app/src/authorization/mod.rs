@@ -4,6 +4,7 @@ use crate::audit::Audit;
 
 pub use authz::error;
 use authz::error::AuthorizationError;
+use core_accounting::{CoreAccountingAction, CoreAccountingObject};
 use core_credit::{CoreCreditAction, CoreCreditObject};
 use core_customer::{CoreCustomerAction, CustomerObject};
 pub use core_user::{CoreUserAction, UserObject};
@@ -82,7 +83,11 @@ pub async fn get_visible_navigation_items(
             .check_all_permissions(sub, Object::Audit, &[Action::Audit(AuditAction::List)])
             .await?,
         financials: authz
-            .check_all_permissions(sub, Object::Ledger, &[Action::Ledger(LedgerAction::Read)])
+            .check_all_permissions(
+                sub,
+                CoreAccountingObject::all_journals(),
+                &[CoreAccountingAction::JOURNAL_READ_ENTRIES],
+            )
             .await?,
         governance: GovernanceNavigationItems {
             committee: authz

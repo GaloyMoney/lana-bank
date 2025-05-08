@@ -240,17 +240,6 @@ export type BtcBalanceDetails = {
   net: Scalars['Satoshis']['output'];
 };
 
-export type BtcGeneralLedgerEntry = {
-  __typename?: 'BtcGeneralLedgerEntry';
-  btcAmount: Scalars['Satoshis']['output'];
-  createdAt: Scalars['Timestamp']['output'];
-  description?: Maybe<Scalars['String']['output']>;
-  direction: DebitOrCredit;
-  entryId: Scalars['UUID']['output'];
-  entryType: Scalars['String']['output'];
-  id: Scalars['ID']['output'];
-};
-
 export type BtcLedgerAccountBalance = {
   __typename?: 'BtcLedgerAccountBalance';
   encumbrance: BtcBalanceDetails;
@@ -1045,27 +1034,6 @@ export type FacilityRemaining = {
   usdBalance: Scalars['UsdCents']['output'];
 };
 
-export type GeneralLedgerEntry = BtcGeneralLedgerEntry | UsdGeneralLedgerEntry;
-
-export type GeneralLedgerEntryConnection = {
-  __typename?: 'GeneralLedgerEntryConnection';
-  /** A list of edges. */
-  edges: Array<GeneralLedgerEntryEdge>;
-  /** A list of nodes. */
-  nodes: Array<GeneralLedgerEntry>;
-  /** Information to aid in pagination. */
-  pageInfo: PageInfo;
-};
-
-/** An edge in a connection. */
-export type GeneralLedgerEntryEdge = {
-  __typename?: 'GeneralLedgerEntryEdge';
-  /** A cursor for use in pagination */
-  cursor: Scalars['String']['output'];
-  /** The item at the end of the edge */
-  node: GeneralLedgerEntry;
-};
-
 export type GovernanceNavigationItems = {
   __typename?: 'GovernanceNavigationItems';
   approvalProcess: Scalars['Boolean']['output'];
@@ -1584,7 +1552,6 @@ export type Query = {
   disbursal?: Maybe<CreditFacilityDisbursal>;
   disbursals: CreditFacilityDisbursalConnection;
   document?: Maybe<Document>;
-  generalLedgerEntries: GeneralLedgerEntryConnection;
   journalEntries: JournalEntryConnection;
   ledgerAccount?: Maybe<LedgerAccount>;
   ledgerAccountByCode?: Maybe<LedgerAccount>;
@@ -1706,12 +1673,6 @@ export type QueryDisbursalsArgs = {
 
 export type QueryDocumentArgs = {
   id: Scalars['UUID']['input'];
-};
-
-
-export type QueryGeneralLedgerEntriesArgs = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  first: Scalars['Int']['input'];
 };
 
 
@@ -2012,17 +1973,6 @@ export type UsdBalanceDetails = {
   credit: Scalars['UsdCents']['output'];
   debit: Scalars['UsdCents']['output'];
   net: Scalars['UsdCents']['output'];
-};
-
-export type UsdGeneralLedgerEntry = {
-  __typename?: 'UsdGeneralLedgerEntry';
-  createdAt: Scalars['Timestamp']['output'];
-  description?: Maybe<Scalars['String']['output']>;
-  direction: DebitOrCredit;
-  entryId: Scalars['UUID']['output'];
-  entryType: Scalars['String']['output'];
-  id: Scalars['ID']['output'];
-  usdAmount: Scalars['UsdCents']['output'];
 };
 
 export type UsdLedgerAccountBalance = {

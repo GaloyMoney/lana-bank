@@ -56,7 +56,7 @@ const mockEnums = {
 };
 
 import { fakerEN as faker } from '@faker-js/faker';
-import { AccountingCsv, AccountingCsvConnection, AccountingCsvDownloadLink, AccountingCsvDownloadLinkGenerateInput, AccountingCsvDownloadLinkGeneratePayload, AccountingCsvEdge, ApprovalProcess, ApprovalProcessApproveInput, ApprovalProcessApprovePayload, ApprovalProcessConnection, ApprovalProcessDenyInput, ApprovalProcessDenyPayload, ApprovalProcessEdge, ApprovalProcessVoter, AuditEntry, AuditEntryConnection, AuditEntryEdge, BalanceSheet, BalanceSheetModuleConfig, BalanceSheetModuleConfigureInput, BalanceSheetModuleConfigurePayload, BtcAmount, BtcBalanceDetails, BtcGeneralLedgerEntry, BtcLedgerAccountBalance, BtcLedgerAccountBalanceRange, CancelledWithdrawalEntry, ChartNode, ChartOfAccounts, ChartOfAccountsCsvImportInput, ChartOfAccountsCsvImportPayload, Collateral, Committee, CommitteeAddUserInput, CommitteeAddUserPayload, CommitteeConnection, CommitteeCreateInput, CommitteeCreatePayload, CommitteeEdge, CommitteeRemoveUserInput, CommitteeRemoveUserPayload, CommitteeThreshold, CreditFacilitiesFilter, CreditFacilitiesSort, CreditFacility, CreditFacilityBalance, CreditFacilityCollateralUpdateInput, CreditFacilityCollateralUpdatePayload, CreditFacilityCollateralUpdated, CreditFacilityCollateralizationUpdated, CreditFacilityCompleteInput, CreditFacilityCompletePayload, CreditFacilityConnection, CreditFacilityCreateInput, CreditFacilityCreatePayload, CreditFacilityDisbursal, CreditFacilityDisbursalConnection, CreditFacilityDisbursalEdge, CreditFacilityDisbursalExecuted, CreditFacilityDisbursalInitiateInput, CreditFacilityDisbursalInitiatePayload, CreditFacilityEdge, CreditFacilityIncrementalPayment, CreditFacilityInterestAccrued, CreditFacilityOrigination, CreditFacilityPartialPaymentInput, CreditFacilityPartialPaymentPayload, CreditFacilityPayment, CreditFacilityRepaymentPlanEntry, CreditModuleConfig, CreditModuleConfigureInput, CreditModuleConfigurePayload, Customer, CustomerConnection, CustomerCreateInput, CustomerCreatePayload, CustomerEdge, CustomerEmailUpdateInput, CustomerEmailUpdatePayload, CustomerTelegramIdUpdateInput, CustomerTelegramIdUpdatePayload, CustomersFilter, CustomersSort, Dashboard, Deposit, DepositAccount, DepositAccountBalance, DepositAccountHistoryEntryConnection, DepositAccountHistoryEntryEdge, DepositConnection, DepositEdge, DepositEntry, DepositModuleConfig, DepositModuleConfigureInput, DepositModuleConfigurePayload, DepositRecordInput, DepositRecordPayload, DisbursalEntry, Disbursed, Document, DocumentArchiveInput, DocumentArchivePayload, DocumentCreateInput, DocumentCreatePayload, DocumentDeleteInput, DocumentDeletePayload, DocumentDownloadLinksGenerateInput, DocumentDownloadLinksGeneratePayload, Duration, DurationInput, FacilityCvl, FacilityRemaining, GeneralLedgerEntryConnection, GeneralLedgerEntryEdge, GovernanceNavigationItems, Interest, JournalEntry, JournalEntryConnection, JournalEntryEdge, LedgerAccount, LedgerAccountBalanceRangeByCurrency, LedgerAccountConnection, LedgerAccountCsvCreateInput, LedgerAccountCsvCreatePayload, LedgerAccountEdge, LedgerTransaction, LedgerTransactionConnection, LedgerTransactionEdge, Loan, ManualTransactionEntryInput, ManualTransactionExecuteInput, ManualTransactionExecutePayload, Mutation, Outstanding, PageInfo, PaymentEntry, Policy, PolicyAssignCommitteeInput, PolicyAssignCommitteePayload, PolicyConnection, PolicyEdge, ProfitAndLossModuleConfigureInput, ProfitAndLossStatement, ProfitAndLossStatementModuleConfig, ProfitAndLossStatementModuleConfigurePayload, Query, RealtimePrice, Report, ReportCreatePayload, ReportDownloadLink, ReportDownloadLinksGenerateInput, ReportDownloadLinksGeneratePayload, Subject, SumsubPermalinkCreateInput, SumsubPermalinkCreatePayload, System, SystemApproval, TermValues, TermsInput, TermsTemplate, TermsTemplateCreateInput, TermsTemplateCreatePayload, TermsTemplateUpdateInput, TermsTemplateUpdatePayload, Total, TransactionTemplate, TransactionTemplateConnection, TransactionTemplateEdge, TrialBalance, UnknownEntry, UsdAmount, UsdBalanceDetails, UsdGeneralLedgerEntry, UsdLedgerAccountBalance, UsdLedgerAccountBalanceRange, User, UserAssignRoleInput, UserAssignRolePayload, UserCreateInput, UserCreatePayload, UserRevokeRoleInput, UserRevokeRolePayload, VisibleNavigationItems, Withdrawal, WithdrawalCancelInput, WithdrawalCancelPayload, WithdrawalConfirmInput, WithdrawalConfirmPayload, WithdrawalConnection, WithdrawalEdge, WithdrawalEntry, WithdrawalInitiateInput, WithdrawalInitiatePayload, AccountStatus, AccountingCsvStatus, ApprovalProcessStatus, ApprovalProcessType, CollateralAction, CollateralizationState, CreditFacilitiesFilterBy, CreditFacilitiesSortBy, CreditFacilityRepaymentStatus, CreditFacilityRepaymentType, CreditFacilityStatus, CustomerType, CustomersFilterBy, CustomersSortBy, DebitOrCredit, DisbursalStatus, DocumentStatus, InterestInterval, KycLevel, Layer, Period, ReportProgress, Role, SortDirection, WithdrawalStatus } from './index';
+import { AccountingCsv, AccountingCsvConnection, AccountingCsvDownloadLink, AccountingCsvDownloadLinkGenerateInput, AccountingCsvDownloadLinkGeneratePayload, AccountingCsvEdge, ApprovalProcess, ApprovalProcessApproveInput, ApprovalProcessApprovePayload, ApprovalProcessConnection, ApprovalProcessDenyInput, ApprovalProcessDenyPayload, ApprovalProcessEdge, ApprovalProcessVoter, AuditEntry, AuditEntryConnection, AuditEntryEdge, BalanceSheet, BalanceSheetModuleConfig, BalanceSheetModuleConfigureInput, BalanceSheetModuleConfigurePayload, BtcAmount, BtcBalanceDetails, BtcLedgerAccountBalance, BtcLedgerAccountBalanceRange, CancelledWithdrawalEntry, ChartNode, ChartOfAccounts, ChartOfAccountsCsvImportInput, ChartOfAccountsCsvImportPayload, Collateral, Committee, CommitteeAddUserInput, CommitteeAddUserPayload, CommitteeConnection, CommitteeCreateInput, CommitteeCreatePayload, CommitteeEdge, CommitteeRemoveUserInput, CommitteeRemoveUserPayload, CommitteeThreshold, CreditFacilitiesFilter, CreditFacilitiesSort, CreditFacility, CreditFacilityBalance, CreditFacilityCollateralUpdateInput, CreditFacilityCollateralUpdatePayload, CreditFacilityCollateralUpdated, CreditFacilityCollateralizationUpdated, CreditFacilityCompleteInput, CreditFacilityCompletePayload, CreditFacilityConnection, CreditFacilityCreateInput, CreditFacilityCreatePayload, CreditFacilityDisbursal, CreditFacilityDisbursalConnection, CreditFacilityDisbursalEdge, CreditFacilityDisbursalExecuted, CreditFacilityDisbursalInitiateInput, CreditFacilityDisbursalInitiatePayload, CreditFacilityEdge, CreditFacilityIncrementalPayment, CreditFacilityInterestAccrued, CreditFacilityOrigination, CreditFacilityPartialPaymentInput, CreditFacilityPartialPaymentPayload, CreditFacilityPayment, CreditFacilityRepaymentPlanEntry, CreditModuleConfig, CreditModuleConfigureInput, CreditModuleConfigurePayload, Customer, CustomerConnection, CustomerCreateInput, CustomerCreatePayload, CustomerEdge, CustomerEmailUpdateInput, CustomerEmailUpdatePayload, CustomerTelegramIdUpdateInput, CustomerTelegramIdUpdatePayload, CustomersFilter, CustomersSort, Dashboard, Deposit, DepositAccount, DepositAccountBalance, DepositAccountHistoryEntryConnection, DepositAccountHistoryEntryEdge, DepositConnection, DepositEdge, DepositEntry, DepositModuleConfig, DepositModuleConfigureInput, DepositModuleConfigurePayload, DepositRecordInput, DepositRecordPayload, DisbursalEntry, Disbursed, Document, DocumentArchiveInput, DocumentArchivePayload, DocumentCreateInput, DocumentCreatePayload, DocumentDeleteInput, DocumentDeletePayload, DocumentDownloadLinksGenerateInput, DocumentDownloadLinksGeneratePayload, Duration, DurationInput, FacilityCvl, FacilityRemaining, GovernanceNavigationItems, Interest, JournalEntry, JournalEntryConnection, JournalEntryEdge, LedgerAccount, LedgerAccountBalanceRangeByCurrency, LedgerAccountConnection, LedgerAccountCsvCreateInput, LedgerAccountCsvCreatePayload, LedgerAccountEdge, LedgerTransaction, LedgerTransactionConnection, LedgerTransactionEdge, Loan, ManualTransactionEntryInput, ManualTransactionExecuteInput, ManualTransactionExecutePayload, Mutation, Outstanding, PageInfo, PaymentEntry, Policy, PolicyAssignCommitteeInput, PolicyAssignCommitteePayload, PolicyConnection, PolicyEdge, ProfitAndLossModuleConfigureInput, ProfitAndLossStatement, ProfitAndLossStatementModuleConfig, ProfitAndLossStatementModuleConfigurePayload, Query, RealtimePrice, Report, ReportCreatePayload, ReportDownloadLink, ReportDownloadLinksGenerateInput, ReportDownloadLinksGeneratePayload, Subject, SumsubPermalinkCreateInput, SumsubPermalinkCreatePayload, System, SystemApproval, TermValues, TermsInput, TermsTemplate, TermsTemplateCreateInput, TermsTemplateCreatePayload, TermsTemplateUpdateInput, TermsTemplateUpdatePayload, Total, TransactionTemplate, TransactionTemplateConnection, TransactionTemplateEdge, TrialBalance, UnknownEntry, UsdAmount, UsdBalanceDetails, UsdLedgerAccountBalance, UsdLedgerAccountBalanceRange, User, UserAssignRoleInput, UserAssignRolePayload, UserCreateInput, UserCreatePayload, UserRevokeRoleInput, UserRevokeRolePayload, VisibleNavigationItems, Withdrawal, WithdrawalCancelInput, WithdrawalCancelPayload, WithdrawalConfirmInput, WithdrawalConfirmPayload, WithdrawalConnection, WithdrawalEdge, WithdrawalEntry, WithdrawalInitiateInput, WithdrawalInitiatePayload, AccountStatus, AccountingCsvStatus, ApprovalProcessStatus, ApprovalProcessType, CollateralAction, CollateralizationState, CreditFacilitiesFilterBy, CreditFacilitiesSortBy, CreditFacilityRepaymentStatus, CreditFacilityRepaymentType, CreditFacilityStatus, CustomerType, CustomersFilterBy, CustomersSortBy, DebitOrCredit, DisbursalStatus, DocumentStatus, InterestInterval, KycLevel, Layer, Period, ReportProgress, Role, SortDirection, WithdrawalStatus } from './index';
 
 faker.seed(0);
 
@@ -309,21 +309,6 @@ export const mockBtcBalanceDetails = (overrides?: Partial<BtcBalanceDetails>, _r
         credit: overrides && overrides.hasOwnProperty('credit') ? overrides.credit! : generateMockValue.satoshis(),
         debit: overrides && overrides.hasOwnProperty('debit') ? overrides.debit! : generateMockValue.satoshis(),
         net: overrides && overrides.hasOwnProperty('net') ? overrides.net! : generateMockValue.satoshis(),
-    };
-};
-
-export const mockBtcGeneralLedgerEntry = (overrides?: Partial<BtcGeneralLedgerEntry>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'BtcGeneralLedgerEntry' } & BtcGeneralLedgerEntry => {
-    const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
-    relationshipsToOmit.add('BtcGeneralLedgerEntry');
-    return {
-        __typename: 'BtcGeneralLedgerEntry',
-        btcAmount: overrides && overrides.hasOwnProperty('btcAmount') ? overrides.btcAmount! : generateMockValue.satoshis(),
-        createdAt: overrides && overrides.hasOwnProperty('createdAt') ? overrides.createdAt! : generateMockValue.timestamp(),
-        description: overrides && overrides.hasOwnProperty('description') ? overrides.description! : generateMockValue.description(),
-        direction: overrides && overrides.hasOwnProperty('direction') ? overrides.direction! : DebitOrCredit.Credit,
-        entryId: overrides && overrides.hasOwnProperty('entryId') ? overrides.entryId! : generateMockValue.uuid(),
-        entryType: overrides && overrides.hasOwnProperty('entryType') ? overrides.entryType! : faker.lorem.word(),
-        id: overrides && overrides.hasOwnProperty('id') ? overrides.id! : faker.string.uuid(),
     };
 };
 
@@ -1346,27 +1331,6 @@ export const mockFacilityRemaining = (overrides?: Partial<FacilityRemaining>, _r
     };
 };
 
-export const mockGeneralLedgerEntryConnection = (overrides?: Partial<GeneralLedgerEntryConnection>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'GeneralLedgerEntryConnection' } & GeneralLedgerEntryConnection => {
-    const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
-    relationshipsToOmit.add('GeneralLedgerEntryConnection');
-    return {
-        __typename: 'GeneralLedgerEntryConnection',
-        edges: overrides && overrides.hasOwnProperty('edges') ? overrides.edges! : [relationshipsToOmit.has('GeneralLedgerEntryEdge') ? {} as GeneralLedgerEntryEdge : mockGeneralLedgerEntryEdge({}, relationshipsToOmit)],
-        nodes: overrides && overrides.hasOwnProperty('nodes') ? overrides.nodes! : [relationshipsToOmit.has('BtcGeneralLedgerEntry') ? {} as BtcGeneralLedgerEntry : mockBtcGeneralLedgerEntry({}, relationshipsToOmit)],
-        pageInfo: overrides && overrides.hasOwnProperty('pageInfo') ? overrides.pageInfo! : relationshipsToOmit.has('PageInfo') ? {} as PageInfo : mockPageInfo({}, relationshipsToOmit),
-    };
-};
-
-export const mockGeneralLedgerEntryEdge = (overrides?: Partial<GeneralLedgerEntryEdge>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'GeneralLedgerEntryEdge' } & GeneralLedgerEntryEdge => {
-    const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
-    relationshipsToOmit.add('GeneralLedgerEntryEdge');
-    return {
-        __typename: 'GeneralLedgerEntryEdge',
-        cursor: overrides && overrides.hasOwnProperty('cursor') ? overrides.cursor! : generateMockValue.cursor(),
-        node: overrides && overrides.hasOwnProperty('node') ? overrides.node! : relationshipsToOmit.has('BtcGeneralLedgerEntry') ? {} as BtcGeneralLedgerEntry : mockBtcGeneralLedgerEntry({}, relationshipsToOmit),
-    };
-};
-
 export const mockGovernanceNavigationItems = (overrides?: Partial<GovernanceNavigationItems>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'GovernanceNavigationItems' } & GovernanceNavigationItems => {
     const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
     relationshipsToOmit.add('GovernanceNavigationItems');
@@ -1765,7 +1729,6 @@ export const mockQuery = (overrides?: Partial<Query>, _relationshipsToOmit: Set<
         disbursal: overrides && overrides.hasOwnProperty('disbursal') ? overrides.disbursal! : relationshipsToOmit.has('CreditFacilityDisbursal') ? {} as CreditFacilityDisbursal : mockCreditFacilityDisbursal({}, relationshipsToOmit),
         disbursals: overrides && overrides.hasOwnProperty('disbursals') ? overrides.disbursals! : relationshipsToOmit.has('CreditFacilityDisbursalConnection') ? {} as CreditFacilityDisbursalConnection : mockCreditFacilityDisbursalConnection({}, relationshipsToOmit),
         document: overrides && overrides.hasOwnProperty('document') ? overrides.document! : relationshipsToOmit.has('Document') ? {} as Document : mockDocument({}, relationshipsToOmit),
-        generalLedgerEntries: overrides && overrides.hasOwnProperty('generalLedgerEntries') ? overrides.generalLedgerEntries! : relationshipsToOmit.has('GeneralLedgerEntryConnection') ? {} as GeneralLedgerEntryConnection : mockGeneralLedgerEntryConnection({}, relationshipsToOmit),
         journalEntries: overrides && overrides.hasOwnProperty('journalEntries') ? overrides.journalEntries! : relationshipsToOmit.has('JournalEntryConnection') ? {} as JournalEntryConnection : mockJournalEntryConnection({}, relationshipsToOmit),
         ledgerAccount: overrides && overrides.hasOwnProperty('ledgerAccount') ? overrides.ledgerAccount! : relationshipsToOmit.has('LedgerAccount') ? {} as LedgerAccount : mockLedgerAccount({}, relationshipsToOmit),
         ledgerAccountByCode: overrides && overrides.hasOwnProperty('ledgerAccountByCode') ? overrides.ledgerAccountByCode! : relationshipsToOmit.has('LedgerAccount') ? {} as LedgerAccount : mockLedgerAccount({}, relationshipsToOmit),
@@ -2073,21 +2036,6 @@ export const mockUsdBalanceDetails = (overrides?: Partial<UsdBalanceDetails>, _r
         credit: overrides && overrides.hasOwnProperty('credit') ? overrides.credit! : generateMockValue.usdCents(),
         debit: overrides && overrides.hasOwnProperty('debit') ? overrides.debit! : generateMockValue.usdCents(),
         net: overrides && overrides.hasOwnProperty('net') ? overrides.net! : generateMockValue.usdCents(),
-    };
-};
-
-export const mockUsdGeneralLedgerEntry = (overrides?: Partial<UsdGeneralLedgerEntry>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'UsdGeneralLedgerEntry' } & UsdGeneralLedgerEntry => {
-    const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
-    relationshipsToOmit.add('UsdGeneralLedgerEntry');
-    return {
-        __typename: 'UsdGeneralLedgerEntry',
-        createdAt: overrides && overrides.hasOwnProperty('createdAt') ? overrides.createdAt! : generateMockValue.timestamp(),
-        description: overrides && overrides.hasOwnProperty('description') ? overrides.description! : generateMockValue.description(),
-        direction: overrides && overrides.hasOwnProperty('direction') ? overrides.direction! : DebitOrCredit.Credit,
-        entryId: overrides && overrides.hasOwnProperty('entryId') ? overrides.entryId! : generateMockValue.uuid(),
-        entryType: overrides && overrides.hasOwnProperty('entryType') ? overrides.entryType! : faker.lorem.word(),
-        id: overrides && overrides.hasOwnProperty('id') ? overrides.id! : faker.string.uuid(),
-        usdAmount: overrides && overrides.hasOwnProperty('usdAmount') ? overrides.usdAmount! : generateMockValue.usdCents(),
     };
 };
 

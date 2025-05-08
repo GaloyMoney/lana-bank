@@ -229,16 +229,6 @@ type BtcBalanceDetails {
 	net: Satoshis!
 }
 
-type BtcGeneralLedgerEntry {
-	id: ID!
-	entryId: UUID!
-	entryType: String!
-	btcAmount: Satoshis!
-	description: String
-	direction: DebitOrCredit!
-	createdAt: Timestamp!
-}
-
 type BtcLedgerAccountBalance {
 	settled: BtcBalanceDetails!
 	pending: BtcBalanceDetails!
@@ -1040,37 +1030,6 @@ type FacilityRemaining {
 }
 
 
-union GeneralLedgerEntry = UsdGeneralLedgerEntry | BtcGeneralLedgerEntry
-
-type GeneralLedgerEntryConnection {
-	"""
-	Information to aid in pagination.
-	"""
-	pageInfo: PageInfo!
-	"""
-	A list of edges.
-	"""
-	edges: [GeneralLedgerEntryEdge!]!
-	"""
-	A list of nodes.
-	"""
-	nodes: [GeneralLedgerEntry!]!
-}
-
-"""
-An edge in a connection.
-"""
-type GeneralLedgerEntryEdge {
-	"""
-	The item at the end of the edge
-	"""
-	node: GeneralLedgerEntry!
-	"""
-	A cursor for use in pagination
-	"""
-	cursor: String!
-}
-
 type GovernanceNavigationItems {
 	committee: Boolean!
 	policy: Boolean!
@@ -1437,7 +1396,6 @@ type Query {
 	ledgerTransaction(id: UUID!): LedgerTransaction
 	ledgerTransactionsForTemplateCode(templateCode: String!, first: Int!, after: String): LedgerTransactionConnection!
 	journalEntries(first: Int!, after: String): JournalEntryConnection!
-	generalLedgerEntries(first: Int!, after: String): GeneralLedgerEntryConnection!
 	trialBalance(from: Date!, until: Date!): TrialBalance!
 	chartOfAccounts: ChartOfAccounts!
 	balanceSheet(from: Date!, until: Date): BalanceSheet!
@@ -1658,16 +1616,6 @@ type UsdBalanceDetails {
 }
 
 scalar UsdCents
-
-type UsdGeneralLedgerEntry {
-	id: ID!
-	entryId: UUID!
-	entryType: String!
-	usdAmount: UsdCents!
-	description: String
-	direction: DebitOrCredit!
-	createdAt: Timestamp!
-}
 
 type UsdLedgerAccountBalance {
 	settled: UsdBalanceDetails!

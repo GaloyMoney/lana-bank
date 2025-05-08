@@ -112,13 +112,8 @@ pub enum AppObject {
     Applicant,
     TermsTemplate,
     Document,
-    Deposit,
-    Withdrawal,
     Report,
     Audit,
-    Ledger,
-    LedgerAccount,
-    GeneralLedger,
 }
 
 impl Display for AppObject {
@@ -137,13 +132,8 @@ impl FromStr for AppObject {
         let res = match entity.parse().expect("invalid entity") {
             Applicant => AppObject::Applicant,
             TermsTemplate => AppObject::TermsTemplate,
-            Deposit => AppObject::Deposit,
-            Withdrawal => AppObject::Withdrawal,
             Report => AppObject::Report,
             Audit => AppObject::Audit,
-            Ledger => AppObject::Ledger,
-            LedgerAccount => AppObject::LedgerAccount,
-            GeneralLedger => AppObject::GeneralLedger,
             Document => AppObject::Document,
         };
         Ok(res)

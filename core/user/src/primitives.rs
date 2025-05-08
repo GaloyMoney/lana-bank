@@ -21,8 +21,8 @@ pub struct Role(Cow<'static, str>);
 impl Role {
     pub const SUPERUSER: Role = Role::new("superuser");
 
-    pub const fn new(job_type: &'static str) -> Self {
-        Role(Cow::Borrowed(job_type))
+    pub const fn new(role_name: &'static str) -> Self {
+        Role(Cow::Borrowed(role_name))
     }
 }
 

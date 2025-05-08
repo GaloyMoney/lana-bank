@@ -109,9 +109,6 @@ async fn add_permissions_for_admin(authz: &Authorization) -> Result<(), Authoriz
         .await?;
 
     authz
-        .add_permission_to_role(&role, Object::Ledger, LedgerAction::Read)
-        .await?;
-    authz
         .add_permission_to_role(&role, Object::Audit, AuditAction::List)
         .await?;
     authz
@@ -368,30 +365,6 @@ async fn add_permissions_for_bank_manager(authz: &Authorization) -> Result<(), A
             &role,
             CoreCreditObject::chart_of_accounts_integration(),
             CoreCreditAction::CHART_OF_ACCOUNTS_INTEGRATION_CONFIG_UPDATE,
-        )
-        .await?;
-
-    authz
-        .add_permission_to_role(
-            &role,
-            Object::LedgerAccount,
-            LedgerAccountAction::ReadHistory,
-        )
-        .await?;
-
-    authz
-        .add_permission_to_role(
-            &role,
-            Object::LedgerAccount,
-            LedgerAccountAction::ReadBalance,
-        )
-        .await?;
-
-    authz
-        .add_permission_to_role(
-            &role,
-            Object::GeneralLedger,
-            GeneralLedgerAction::ReadEntries,
         )
         .await?;
 

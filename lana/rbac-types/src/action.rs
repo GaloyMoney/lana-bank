@@ -123,9 +123,6 @@ pub enum AppAction {
     TermsTemplate(TermsTemplateAction),
     Report(ReportAction),
     Audit(AuditAction),
-    Ledger(LedgerAction),
-    LedgerAccount(LedgerAccountAction),
-    GeneralLedger(GeneralLedgerAction),
     Document(DocumentAction),
 }
 
@@ -137,9 +134,6 @@ impl Display for AppAction {
             TermsTemplate(action) => action.fmt(f),
             Report(action) => action.fmt(f),
             Audit(action) => action.fmt(f),
-            Ledger(action) => action.fmt(f),
-            LedgerAccount(action) => action.fmt(f),
-            GeneralLedger(action) => action.fmt(f),
             Document(action) => action.fmt(f),
         }
     }
@@ -157,9 +151,6 @@ impl FromStr for AppAction {
             TermsTemplate => AppAction::from(action.parse::<TermsTemplateAction>()?),
             Report => AppAction::from(action.parse::<ReportAction>()?),
             Audit => AppAction::from(action.parse::<AuditAction>()?),
-            Ledger => AppAction::from(action.parse::<LedgerAction>()?),
-            LedgerAccount => AppAction::from(action.parse::<LedgerAccountAction>()?),
-            GeneralLedger => AppAction::from(action.parse::<GeneralLedgerAction>()?),
             Document => AppAction::from(action.parse::<DocumentAction>()?),
         };
         Ok(res)
@@ -209,31 +200,6 @@ pub enum ReportAction {
 }
 
 impl_trivial_action!(ReportAction, Report);
-
-#[derive(PartialEq, Clone, Copy, Debug, strum::Display, strum::EnumString)]
-#[strum(serialize_all = "kebab-case")]
-pub enum LedgerAction {
-    Read,
-}
-
-impl_trivial_action!(LedgerAction, Ledger);
-
-#[derive(PartialEq, Clone, Copy, Debug, strum::Display, strum::EnumString)]
-#[strum(serialize_all = "kebab-case")]
-pub enum LedgerAccountAction {
-    ReadBalance,
-    ReadHistory,
-}
-
-impl_trivial_action!(LedgerAccountAction, LedgerAccount);
-
-#[derive(PartialEq, Clone, Copy, Debug, strum::Display, strum::EnumString)]
-#[strum(serialize_all = "kebab-case")]
-pub enum GeneralLedgerAction {
-    ReadEntries,
-}
-
-impl_trivial_action!(GeneralLedgerAction, GeneralLedger);
 
 #[cfg(test)]
 mod test {
