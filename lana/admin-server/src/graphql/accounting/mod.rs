@@ -1,4 +1,5 @@
 mod balance_sheet;
+mod chart_of_accounts;
 mod csv;
 mod journal_entry;
 mod ledger_account;
@@ -9,6 +10,7 @@ mod transaction_templates;
 mod trial_balance;
 
 pub use balance_sheet::*;
+pub use chart_of_accounts::*;
 pub use csv::*;
 pub use journal_entry::*;
 pub use ledger_account::*;
