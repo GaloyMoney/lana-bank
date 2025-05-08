@@ -147,27 +147,39 @@ where
         let mut stream = self.outbox.listen_persisted(Some(state.sequence)).await?;
 
         while let Some(message) = stream.next().await {
-            let should_handle = match message.as_ref().as_event() {
-                Some(CoreCustomerEvent::CustomerCreated { .. }) => {
-                    self.config.create_deposit_account_on_customer_create
+            let did_handle = match message.as_ref().as_event() {
+                Some(CoreCustomerEvent::CustomerCreated {
+                    id, customer_type, ..
+                }) if self.config.create_deposit_account_on_customer_create => {
+                    self.handle_create_deposit_account(message.as_ref(), *id, *customer_type, true)
+                        .await?;
+                    true
                 }
-
-                Some(CoreCustomerEvent::CustomerAccountStatusUpdated { status, .. }) => {
-                    !status.is_inactive()
+                Some(CoreCustomerEvent::CustomerAccountStatusUpdated {
+                    id,
+                    customer_type,
+                    status: core_customer::AccountStatus::Active,
+                    ..
+                }) if !self.config.create_deposit_account_on_customer_create => {
+                    self.handle_create_deposit_account(
+                        message.as_ref(),
+                        *id,
+                        *customer_type,
+                        false,
+                    )
+                    .await?;
+                    true
                 }
-
                 _ => false,
             };
 
-            if should_handle {
-                self.handle_create_deposit_account(message.as_ref()).await?;
+            if did_handle {
                 state.sequence = message.sequence;
                 current_job.update_execution_state(&state).await?;
             }
         }
 
-        let now = crate::time::now();
-        Ok(JobCompletion::RescheduleAt(now))
+        Ok(JobCompletion::RescheduleNow)
     }
 }
 
@@ -186,31 +198,25 @@ where
     async fn handle_create_deposit_account(
         &self,
         message: &PersistentOutboxEvent<E>,
+        id: core_customer::CustomerId,
+        customer_type: core_customer::CustomerType,
+        is_customer_create_event: bool,
     ) -> Result<(), Box<dyn std::error::Error>>
     where
         E: OutboxEventMarker<CoreCustomerEvent>,
     {
-        let (id, customer_type, is_account_status_update_event) = match message.as_event() {
-            Some(CoreCustomerEvent::CustomerCreated {
-                id, customer_type, ..
-            }) => (id, customer_type, false),
-            Some(CoreCustomerEvent::CustomerAccountStatusUpdated {
-                id, customer_type, ..
-            }) => (id, customer_type, true),
-            _ => return Ok(()),
-        };
-
         message.inject_trace_parent();
 
-        let active = is_account_status_update_event || !self.config.customer_status_sync_active;
+        // don't activate if we are syncing the customer status
+        let active = !(is_customer_create_event && self.config.customer_status_sync_active);
 
         if self.config.auto_create_deposit_account {
             match self.deposit
                 .create_account(
                     &<<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject as SystemSubject>::system(),
-                    *id,
+                    id,
                     active,
-                    *customer_type,
+                    customer_type,
                 )
                 .await
             {
