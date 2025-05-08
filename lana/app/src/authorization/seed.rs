@@ -24,10 +24,10 @@ pub(super) async fn execute(authz: &Authorization) -> Result<(), AuthorizationEr
 
 async fn seed_role_hierarchy(authz: &Authorization) -> Result<(), AuthorizationError> {
     authz
-        .add_role_hierarchy(LanaRole::ADMIN, LanaRole::SUPERUSER)
+        .add_role_hierarchy(LanaRole::SUPERUSER, LanaRole::ADMIN)
         .await?;
     authz
-        .add_role_hierarchy(LanaRole::BANK_MANAGER, LanaRole::ADMIN)
+        .add_role_hierarchy(LanaRole::ADMIN, LanaRole::BANK_MANAGER)
         .await?;
 
     Ok(())

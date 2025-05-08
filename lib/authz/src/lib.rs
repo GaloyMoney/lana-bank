@@ -63,7 +63,7 @@ where
         let mut enforcer = self.enforcer.write().await;
 
         match enforcer
-            .add_grouping_policy(vec![child_role.to_string(), parent_role.to_string()])
+            .add_grouping_policy(vec![parent_role.to_string(), child_role.to_string()])
             .await
         {
             Ok(_) => Ok(()),
