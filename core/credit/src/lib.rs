@@ -55,6 +55,7 @@ use processes::activate_credit_facility::*;
 pub use processes::approve_credit_facility::*;
 pub use processes::approve_disbursal::*;
 use publisher::CreditFacilityPublisher;
+pub use quote::CreditFacilityQuoteEntry;
 pub use repayment_plan::*;
 pub use terms::*;
 
@@ -474,6 +475,25 @@ where
             .await?;
         let repayment_plan = self.repayment_plan_repo.load(id).await?;
         Ok(repayment_plan.entries.into_iter().map(T::from).collect())
+    }
+
+    #[instrument(name = "credit_facility.quote", skip(self), err)]
+    pub async fn quote<T: From<CreditFacilityQuoteEntry>>(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        id: impl Into<CreditFacilityId> + std::fmt::Debug,
+    ) -> Result<Vec<T>, CoreCreditError> {
+        let id = id.into();
+        self.authz
+            .enforce_permission(
+                sub,
+                CoreCreditObject::credit_facility(id),
+                CoreCreditAction::CREDIT_FACILITY_READ,
+            )
+            .await?;
+
+        let credit_facility = self.credit_facility_repo.find_by_id(id).await?;
+        Ok(credit_facility.quote().into_iter().map(T::from).collect())
     }
 
     #[instrument(name = "credit_facility.balance", skip(self), err)]

@@ -1,6 +1,6 @@
 mod entity;
 pub mod error;
-mod quote;
+pub mod quote;
 mod repo;
 
 pub use entity::CreditFacility;

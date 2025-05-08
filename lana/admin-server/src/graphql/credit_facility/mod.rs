@@ -3,9 +3,11 @@ pub(super) mod disbursal;
 mod error;
 mod history;
 pub(super) mod payment;
+mod quote;
 mod repayment;
 
 use async_graphql::*;
+use quote::CreditFacilityQuoteEntry;
 
 use crate::primitives::*;
 
@@ -103,6 +105,14 @@ impl CreditFacility {
     ) -> async_graphql::Result<Vec<CreditFacilityRepaymentPlanEntry>> {
         let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
         Ok(app.credit().repayment_plan(sub, self.entity.id).await?)
+    }
+
+    async fn quote(
+        &self,
+        ctx: &Context<'_>,
+    ) -> async_graphql::Result<Vec<CreditFacilityQuoteEntry>> {
+        let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
+        Ok(app.credit().quote(sub, self.entity.id).await?)
     }
 
     async fn disbursals(
