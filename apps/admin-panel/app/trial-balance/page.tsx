@@ -125,25 +125,25 @@ gql`
   }
 
   fragment UsdLedgerBalanceRangeFragment on UsdLedgerAccountBalanceRange {
-    usdStart: start {
+    usdStart: open {
       ...UsdBalanceFragment
     }
-    usdDiff: diff {
+    usdDiff: periodActivity {
       ...UsdBalanceFragment
     }
-    usdEnd: end {
+    usdEnd: close {
       ...UsdBalanceFragment
     }
   }
 
   fragment BtcLedgerBalanceRangeFragment on BtcLedgerAccountBalanceRange {
-    btcStart: start {
+    btcStart: open {
       ...BtcBalanceFragment
     }
-    btcDiff: diff {
+    btcDiff: periodActivity {
       ...BtcBalanceFragment
     }
-    btcEnd: end {
+    btcEnd: close {
       ...BtcBalanceFragment
     }
   }

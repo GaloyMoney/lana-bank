@@ -343,9 +343,9 @@ export const mockBtcLedgerAccountBalanceRange = (overrides?: Partial<BtcLedgerAc
     relationshipsToOmit.add('BtcLedgerAccountBalanceRange');
     return {
         __typename: 'BtcLedgerAccountBalanceRange',
-        diff: overrides && overrides.hasOwnProperty('diff') ? overrides.diff! : relationshipsToOmit.has('BtcLedgerAccountBalance') ? {} as BtcLedgerAccountBalance : mockBtcLedgerAccountBalance({}, relationshipsToOmit),
-        end: overrides && overrides.hasOwnProperty('end') ? overrides.end! : relationshipsToOmit.has('BtcLedgerAccountBalance') ? {} as BtcLedgerAccountBalance : mockBtcLedgerAccountBalance({}, relationshipsToOmit),
-        start: overrides && overrides.hasOwnProperty('start') ? overrides.start! : relationshipsToOmit.has('BtcLedgerAccountBalance') ? {} as BtcLedgerAccountBalance : mockBtcLedgerAccountBalance({}, relationshipsToOmit),
+        close: overrides && overrides.hasOwnProperty('close') ? overrides.close! : relationshipsToOmit.has('BtcLedgerAccountBalance') ? {} as BtcLedgerAccountBalance : mockBtcLedgerAccountBalance({}, relationshipsToOmit),
+        open: overrides && overrides.hasOwnProperty('open') ? overrides.open! : relationshipsToOmit.has('BtcLedgerAccountBalance') ? {} as BtcLedgerAccountBalance : mockBtcLedgerAccountBalance({}, relationshipsToOmit),
+        periodActivity: overrides && overrides.hasOwnProperty('periodActivity') ? overrides.periodActivity! : relationshipsToOmit.has('BtcLedgerAccountBalance') ? {} as BtcLedgerAccountBalance : mockBtcLedgerAccountBalance({}, relationshipsToOmit),
     };
 };
 
@@ -2107,9 +2107,9 @@ export const mockUsdLedgerAccountBalanceRange = (overrides?: Partial<UsdLedgerAc
     relationshipsToOmit.add('UsdLedgerAccountBalanceRange');
     return {
         __typename: 'UsdLedgerAccountBalanceRange',
-        diff: overrides && overrides.hasOwnProperty('diff') ? overrides.diff! : relationshipsToOmit.has('UsdLedgerAccountBalance') ? {} as UsdLedgerAccountBalance : mockUsdLedgerAccountBalance({}, relationshipsToOmit),
-        end: overrides && overrides.hasOwnProperty('end') ? overrides.end! : relationshipsToOmit.has('UsdLedgerAccountBalance') ? {} as UsdLedgerAccountBalance : mockUsdLedgerAccountBalance({}, relationshipsToOmit),
-        start: overrides && overrides.hasOwnProperty('start') ? overrides.start! : relationshipsToOmit.has('UsdLedgerAccountBalance') ? {} as UsdLedgerAccountBalance : mockUsdLedgerAccountBalance({}, relationshipsToOmit),
+        close: overrides && overrides.hasOwnProperty('close') ? overrides.close! : relationshipsToOmit.has('UsdLedgerAccountBalance') ? {} as UsdLedgerAccountBalance : mockUsdLedgerAccountBalance({}, relationshipsToOmit),
+        open: overrides && overrides.hasOwnProperty('open') ? overrides.open! : relationshipsToOmit.has('UsdLedgerAccountBalance') ? {} as UsdLedgerAccountBalance : mockUsdLedgerAccountBalance({}, relationshipsToOmit),
+        periodActivity: overrides && overrides.hasOwnProperty('periodActivity') ? overrides.periodActivity! : relationshipsToOmit.has('UsdLedgerAccountBalance') ? {} as UsdLedgerAccountBalance : mockUsdLedgerAccountBalance({}, relationshipsToOmit),
     };
 };
 

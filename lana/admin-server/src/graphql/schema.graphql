@@ -246,9 +246,9 @@ type BtcLedgerAccountBalance {
 }
 
 type BtcLedgerAccountBalanceRange {
-	start: BtcLedgerAccountBalance!
-	diff: BtcLedgerAccountBalance!
-	end: BtcLedgerAccountBalance!
+	open: BtcLedgerAccountBalance!
+	periodActivity: BtcLedgerAccountBalance!
+	close: BtcLedgerAccountBalance!
 }
 
 scalar CVLPct
@@ -1676,9 +1676,9 @@ type UsdLedgerAccountBalance {
 }
 
 type UsdLedgerAccountBalanceRange {
-	start: UsdLedgerAccountBalance!
-	diff: UsdLedgerAccountBalance!
-	end: UsdLedgerAccountBalance!
+	open: UsdLedgerAccountBalance!
+	periodActivity: UsdLedgerAccountBalance!
+	close: UsdLedgerAccountBalance!
 }
 
 type User {
