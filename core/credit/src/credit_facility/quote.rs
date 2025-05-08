@@ -44,12 +44,12 @@ pub(super) fn project<'a>(
     let maturity_date = terms.duration.maturity_date(activated_at);
 
     entries.extend([
-        CreditFacilityQuoteEntry::Disbursal(ObligationDataForQuoteEntry {
-            outstanding: facility_amount,
+        CreditFacilityQuoteEntry::Fee(ObligationDataForQuoteEntry {
+            outstanding: structuring_fee,
             due_at: activated_at,
         }),
         CreditFacilityQuoteEntry::Disbursal(ObligationDataForQuoteEntry {
-            outstanding: structuring_fee,
+            outstanding: facility_amount,
             due_at: activated_at,
         }),
     ]);
@@ -98,6 +98,7 @@ pub struct ObligationDataForQuoteEntry {
 pub enum CreditFacilityQuoteEntry {
     Disbursal(ObligationDataForQuoteEntry),
     Interest(ObligationDataForQuoteEntry),
+    Fee(ObligationDataForQuoteEntry),
 }
 
 impl PartialOrd for CreditFacilityQuoteEntry {
@@ -110,11 +111,13 @@ impl Ord for CreditFacilityQuoteEntry {
     fn cmp(&self, other: &Self) -> std::cmp::Ordering {
         let self_due_at = match self {
             CreditFacilityQuoteEntry::Disbursal(o) => o.due_at,
+            CreditFacilityQuoteEntry::Fee(o) => o.due_at,
             CreditFacilityQuoteEntry::Interest(o) => o.due_at,
         };
 
         let other_due_at = match other {
             CreditFacilityQuoteEntry::Disbursal(o) => o.due_at,
+            CreditFacilityQuoteEntry::Fee(o) => o.due_at,
             CreditFacilityQuoteEntry::Interest(o) => o.due_at,
         };
 
@@ -172,6 +175,16 @@ mod tests {
         }];
         let mut quote = project(events.iter());
 
+        let structuring_fee_position = quote
+            .iter()
+            .position(|e| match e {
+                CreditFacilityQuoteEntry::Fee(ObligationDataForQuoteEntry { .. }) => true,
+                _ => false,
+            })
+            .unwrap();
+        assert_eq!(structuring_fee_position, 0);
+        quote.remove(structuring_fee_position);
+
         let facility_disbursal_position = quote
             .iter()
             .position(|e| match e {
@@ -184,16 +197,6 @@ mod tests {
             .unwrap();
         assert_eq!(facility_disbursal_position, 0);
         quote.remove(facility_disbursal_position);
-
-        let structuring_fee_position = quote
-            .iter()
-            .position(|e| match e {
-                CreditFacilityQuoteEntry::Disbursal(ObligationDataForQuoteEntry { .. }) => true,
-                _ => false,
-            })
-            .unwrap();
-        assert_eq!(structuring_fee_position, 0);
-        quote.remove(structuring_fee_position);
 
         assert!(quote.iter().all(|e| match e {
             CreditFacilityQuoteEntry::Interest(_) => true,
