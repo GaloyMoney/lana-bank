@@ -5,6 +5,7 @@ use crate::primitives::*;
 #[derive(async_graphql::Enum, Clone, Copy, PartialEq, Eq)]
 pub enum CreditFacilityQuoteType {
     Disbursal,
+    Fee,
     Interest,
 }
 
@@ -20,6 +21,11 @@ impl From<lana_app::credit::CreditFacilityQuoteEntry> for CreditFacilityQuoteEnt
         match entry {
             lana_app::credit::CreditFacilityQuoteEntry::Disbursal(entry) => Self {
                 entry_type: CreditFacilityQuoteType::Disbursal,
+                outstanding: entry.outstanding,
+                due_at: entry.due_at.into(),
+            },
+            lana_app::credit::CreditFacilityQuoteEntry::Fee(entry) => Self {
+                entry_type: CreditFacilityQuoteType::Fee,
                 outstanding: entry.outstanding,
                 due_at: entry.due_at.into(),
             },
