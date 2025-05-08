@@ -448,15 +448,15 @@ impl
         let values = account_set.into_values();
 
         let usd_balance_range = usd_balance.map(|range| BalanceRange {
-            start: Some(range.open),
-            end: Some(range.close),
-            diff: Some(range.period),
+            open: Some(range.open),
+            close: Some(range.close),
+            period_activity: Some(range.period),
         });
 
         let btc_balance_range = btc_balance.map(|range| BalanceRange {
-            start: Some(range.open),
-            end: Some(range.close),
-            diff: Some(range.period),
+            open: Some(range.open),
+            close: Some(range.close),
+            period_activity: Some(range.period),
         });
 
         ProfitAndLossStatement {

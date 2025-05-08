@@ -24,7 +24,7 @@ async fn manual_transaction() -> anyhow::Result<()> {
     accounting.execute_manual_transaction(&DummySubject, &chart_ref, None, "Test transaction 1".to_string(), None, entries).await?;
 
     let account = accounting.find_ledger_account_by_code(&DummySubject, &chart_ref, "2".to_string()).await?.unwrap();
-    assert_eq!(account.usd_balance_range.expect("should have balance").end.expect("balance missing").settled(), dec!(100));
+    assert_eq!(account.usd_balance_range.expect("should have balance").close.expect("balance missing").settled(), dec!(100));
 
     Ok(())
 }

@@ -131,7 +131,7 @@ impl From<Option<&lana_app::primitives::BalanceRange>> for LedgerAccountBalanceR
         match balance_range_opt {
             None => LedgerAccountBalanceRange::Usd(UsdLedgerAccountBalanceRange::default()),
             Some(balance_range) => {
-                let currency = match &balance_range.end {
+                let currency = match &balance_range.close {
                     None => Currency::USD,
                     Some(balance) if balance.details.currency == Currency::USD => Currency::USD,
                     Some(balance) if balance.details.currency == Currency::BTC => Currency::BTC,
@@ -154,34 +154,34 @@ impl From<Option<&lana_app::primitives::BalanceRange>> for LedgerAccountBalanceR
 
 #[derive(SimpleObject, Default)]
 pub(super) struct UsdLedgerAccountBalanceRange {
-    start: UsdLedgerAccountBalance,
-    diff: UsdLedgerAccountBalance,
-    end: UsdLedgerAccountBalance,
+    open: UsdLedgerAccountBalance,
+    period_activity: UsdLedgerAccountBalance,
+    close: UsdLedgerAccountBalance,
 }
 
 impl From<&lana_app::primitives::BalanceRange> for UsdLedgerAccountBalanceRange {
     fn from(balance_range: &lana_app::primitives::BalanceRange) -> Self {
         Self {
-            start: UsdLedgerAccountBalance::from(balance_range.start.as_ref()),
-            diff: UsdLedgerAccountBalance::from(balance_range.diff.as_ref()),
-            end: UsdLedgerAccountBalance::from(balance_range.end.as_ref()),
+            open: UsdLedgerAccountBalance::from(balance_range.open.as_ref()),
+            period_activity: UsdLedgerAccountBalance::from(balance_range.period_activity.as_ref()),
+            close: UsdLedgerAccountBalance::from(balance_range.close.as_ref()),
         }
     }
 }
 
 #[derive(SimpleObject, Default)]
 pub(super) struct BtcLedgerAccountBalanceRange {
-    start: BtcLedgerAccountBalance,
-    diff: BtcLedgerAccountBalance,
-    end: BtcLedgerAccountBalance,
+    open: BtcLedgerAccountBalance,
+    period_activity: BtcLedgerAccountBalance,
+    close: BtcLedgerAccountBalance,
 }
 
 impl From<&lana_app::primitives::BalanceRange> for BtcLedgerAccountBalanceRange {
     fn from(balance_range: &lana_app::primitives::BalanceRange) -> Self {
         Self {
-            start: BtcLedgerAccountBalance::from(balance_range.start.as_ref()),
-            diff: BtcLedgerAccountBalance::from(balance_range.diff.as_ref()),
-            end: BtcLedgerAccountBalance::from(balance_range.end.as_ref()),
+            open: BtcLedgerAccountBalance::from(balance_range.open.as_ref()),
+            period_activity: BtcLedgerAccountBalance::from(balance_range.period_activity.as_ref()),
+            close: BtcLedgerAccountBalance::from(balance_range.close.as_ref()),
         }
     }
 }

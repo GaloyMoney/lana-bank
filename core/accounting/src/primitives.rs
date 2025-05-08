@@ -798,20 +798,20 @@ impl From<TrialBalanceAction> for CoreAccountingAction {
 
 #[derive(Debug, Clone)]
 pub struct BalanceRange {
-    pub start: Option<CalaAccountBalance>,
-    pub end: Option<CalaAccountBalance>,
-    pub diff: Option<CalaAccountBalance>,
+    pub open: Option<CalaAccountBalance>,
+    pub close: Option<CalaAccountBalance>,
+    pub period_activity: Option<CalaAccountBalance>,
 }
 
 impl BalanceRange {
     pub(crate) fn has_non_zero_activity(&self) -> bool {
-        if let Some(end) = self.end.as_ref() {
-            end.details.settled.dr_balance != Decimal::ZERO
-                || end.details.settled.cr_balance != Decimal::ZERO
-                || end.details.pending.dr_balance != Decimal::ZERO
-                || end.details.pending.cr_balance != Decimal::ZERO
-                || end.details.encumbrance.dr_balance != Decimal::ZERO
-                || end.details.encumbrance.cr_balance != Decimal::ZERO
+        if let Some(close) = self.close.as_ref() {
+            close.details.settled.dr_balance != Decimal::ZERO
+                || close.details.settled.cr_balance != Decimal::ZERO
+                || close.details.pending.dr_balance != Decimal::ZERO
+                || close.details.pending.cr_balance != Decimal::ZERO
+                || close.details.encumbrance.dr_balance != Decimal::ZERO
+                || close.details.encumbrance.cr_balance != Decimal::ZERO
         } else {
             false
         }

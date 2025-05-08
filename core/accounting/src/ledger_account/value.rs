@@ -81,15 +81,15 @@ impl From<(CalaAccountSet, AccountBalances)> for LedgerAccount {
         let code = values.external_id.and_then(|id| id.parse().ok());
 
         let usd_balance_range = usd_balance.map(|balance| BalanceRange {
-            start: None,
-            end: Some(balance.clone()),
-            diff: Some(balance),
+            open: None,
+            close: Some(balance.clone()),
+            period_activity: Some(balance),
         });
 
         let btc_balance_range = btc_balance.map(|balance| BalanceRange {
-            start: None,
-            end: Some(balance.clone()),
-            diff: Some(balance),
+            open: None,
+            close: Some(balance.clone()),
+            period_activity: Some(balance),
         });
 
         LedgerAccount {
@@ -121,14 +121,14 @@ impl From<(CalaAccountSet, BalanceRanges)> for LedgerAccount {
         let code = values.external_id.and_then(|id| id.parse().ok());
 
         let usd_balance_range = usd_balance_range.map(|range| BalanceRange {
-            start: Some(range.open),
-            end: Some(range.close),
-            diff: Some(range.period),
+            open: Some(range.open),
+            close: Some(range.close),
+            period_activity: Some(range.period),
         });
         let btc_balance_range = btc_balance_range.map(|range| BalanceRange {
-            start: Some(range.open),
-            end: Some(range.close),
-            diff: Some(range.period),
+            open: Some(range.open),
+            close: Some(range.close),
+            period_activity: Some(range.period),
         });
 
         LedgerAccount {
@@ -156,15 +156,15 @@ impl From<(CalaAccount, AccountBalances)> for LedgerAccount {
         ): (CalaAccount, AccountBalances),
     ) -> Self {
         let usd_balance_range = usd_balance.map(|balance| BalanceRange {
-            start: None,
-            end: Some(balance.clone()),
-            diff: Some(balance),
+            open: None,
+            close: Some(balance.clone()),
+            period_activity: Some(balance),
         });
 
         let btc_balance_range = btc_balance.map(|balance| BalanceRange {
-            start: None,
-            end: Some(balance.clone()),
-            diff: Some(balance),
+            open: None,
+            close: Some(balance.clone()),
+            period_activity: Some(balance),
         });
 
         let external_id = account.values().external_id.clone();
@@ -194,14 +194,14 @@ impl From<(CalaAccount, BalanceRanges)> for LedgerAccount {
         ): (CalaAccount, BalanceRanges),
     ) -> Self {
         let usd_balance_range = usd_balance_range.map(|range| BalanceRange {
-            start: Some(range.open),
-            end: Some(range.close),
-            diff: Some(range.period),
+            open: Some(range.open),
+            close: Some(range.close),
+            period_activity: Some(range.period),
         });
         let btc_balance_range = btc_balance_range.map(|range| BalanceRange {
-            start: Some(range.open),
-            end: Some(range.close),
-            diff: Some(range.period),
+            open: Some(range.open),
+            close: Some(range.close),
+            period_activity: Some(range.period),
         });
 
         let external_id = account.values().external_id.clone();
