@@ -185,3 +185,9 @@ export const removeUnderscore = (str: string | undefined) => {
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
     .join(" ")
 }
+
+export const getCurrentLocalDate = (): string => {
+  const now = new Date()
+  const offset = now.getTimezoneOffset() * 60000
+  return new Date(now.getTime() - offset).toISOString().split("T")[0]
+}

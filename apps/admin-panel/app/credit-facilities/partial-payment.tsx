@@ -17,6 +17,7 @@ import { Label } from "@lana/web/ui/label"
 
 import { useCreditFacilityPartialPaymentMutation } from "@/lib/graphql/generated"
 import { UsdCents } from "@/types"
+import { getCurrentLocalDate } from "@/lib/utils"
 
 gql`
   mutation CreditFacilityPartialPayment($input: CreditFacilityPartialPaymentInput!) {
@@ -67,6 +68,7 @@ export const CreditFacilityPartialPaymentDialog: React.FC<
           input: {
             creditFacilityId,
             amount: amountInCents as UsdCents,
+            effective: getCurrentLocalDate(),
           },
         },
         onCompleted: (data) => {

@@ -21,7 +21,7 @@ import {
   useGetCreditFacilityLayoutDetailsQuery,
 } from "@/lib/graphql/generated"
 import { DetailItem, DetailsGroup } from "@/components/details"
-import { currencyConverter } from "@/lib/utils"
+import { currencyConverter, getCurrentLocalDate } from "@/lib/utils"
 import Balance from "@/components/balance/balance"
 import { Satoshis } from "@/types"
 
@@ -80,6 +80,7 @@ export const CreditFacilityCollateralUpdateDialog: React.FC<
           input: {
             creditFacilityId,
             collateral: currencyConverter.btcToSatoshi(Number(newCollateral)),
+            effective: getCurrentLocalDate(),
           },
         },
       })
