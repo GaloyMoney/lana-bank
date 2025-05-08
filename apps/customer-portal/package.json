@@ -22,7 +22,7 @@
     "@apollo/client": "^3.13.8",
     "@apollo/client-integration-nextjs": "^0.12.2",
     "@lana/web": "workspace:*",
-    "@ory/client": "^1.20.10",
+    "@ory/client": "^1.20.11",
     "@sumsub/websdk-react": "^2.3.13",
     "@t3-oss/env-nextjs": "^0.13.4",
     "axios": "^1.9.0",
