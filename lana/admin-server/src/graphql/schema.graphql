@@ -390,6 +390,7 @@ type CreditFacility {
 	currentCvl: FacilityCVL!
 	history: [CreditFacilityHistoryEntry!]!
 	repaymentPlan: [CreditFacilityRepaymentPlanEntry!]!
+	quote: [CreditFacilityQuoteEntry!]!
 	disbursals: [CreditFacilityDisbursal!]!
 	approvalProcess: ApprovalProcess!
 	subjectCanUpdateCollateral: Boolean!
@@ -575,6 +576,17 @@ type CreditFacilityPayment {
 	disbursalAmount: UsdCents!
 	createdAt: Timestamp!
 	creditFacility: CreditFacility!
+}
+
+type CreditFacilityQuoteEntry {
+	entryType: CreditFacilityQuoteType!
+	outstanding: UsdCents!
+	dueAt: Timestamp!
+}
+
+enum CreditFacilityQuoteType {
+	DISBURSAL
+	INTEREST
 }
 
 type CreditFacilityRepaymentPlanEntry {
