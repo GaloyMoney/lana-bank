@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 use crate::primitives::*;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize, Serialize)]
-pub struct ObligationDataForEntry {
+pub struct ObligationDataForRepaymentPlanEntry {
     pub id: Option<ObligationId>,
     pub status: RepaymentStatus,
 
@@ -20,8 +20,8 @@ pub struct ObligationDataForEntry {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize, Serialize)]
 #[serde(tag = "type")]
 pub enum CreditFacilityRepaymentPlanEntry {
-    Disbursal(ObligationDataForEntry),
-    Interest(ObligationDataForEntry),
+    Disbursal(ObligationDataForRepaymentPlanEntry),
+    Interest(ObligationDataForRepaymentPlanEntry),
 }
 
 impl PartialOrd for CreditFacilityRepaymentPlanEntry {

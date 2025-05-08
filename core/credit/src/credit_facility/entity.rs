@@ -14,7 +14,7 @@ use crate::{
     terms::{InterestPeriod, TermValues},
 };
 
-use super::error::CreditFacilityError;
+use super::{error::CreditFacilityError, quote};
 
 #[allow(clippy::large_enum_variant)]
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
@@ -185,6 +185,10 @@ impl CreditFacility {
 
     pub fn structuring_fee(&self) -> UsdCents {
         self.terms.one_time_fee_rate.apply(self.amount)
+    }
+
+    pub fn quote(&self) -> Vec<quote::CreditFacilityQuoteEntry> {
+        quote::project(self.events.iter_all())
     }
 
     pub(crate) fn is_approval_process_concluded(&self) -> bool {
