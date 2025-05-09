@@ -50,7 +50,7 @@ pub(super) fn project<'a>(
         }),
         CreditFacilityQuoteEntry::Disbursal(ObligationDataForQuoteEntry {
             outstanding: facility_amount,
-            due_at: activated_at,
+            due_at: maturity_date,
         }),
     ]);
 
