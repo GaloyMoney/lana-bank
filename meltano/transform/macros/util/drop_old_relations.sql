@@ -32,7 +32,7 @@
                   {% endif %}
               {%- endfor -%}))
       SELECT
-        'DROP ' || RELATION_TYPE || ' ' || RELATION_NAME || ';' as DROP_COMMANDS
+        'DROP ' || RELATION_TYPE || ' `' || RELATION_NAME || '`;' as DROP_COMMANDS
       FROM
         MODELS_TO_DROP
   {% endset %}
