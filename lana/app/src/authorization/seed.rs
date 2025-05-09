@@ -16,7 +16,7 @@ pub(super) async fn execute(authz: &Authorization) -> Result<(), AuthorizationEr
     seed_role_hierarchy(authz).await?;
 
     authz
-        .assign_role_to_subject(Subject::system(), &Role::SUPERUSER)
+        .assign_role_to_subject(Subject::system(), &RoleName::SUPERUSER)
         .await?;
 
     Ok(())

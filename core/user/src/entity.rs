@@ -20,11 +20,11 @@ pub enum UserEvent {
         authentication_id: AuthenticationId,
     },
     RoleAssigned {
-        role: Role,
+        role: RoleName,
         audit_info: AuditInfo,
     },
     RoleRevoked {
-        role: Role,
+        role: RoleName,
         audit_info: AuditInfo,
     },
 }
@@ -46,7 +46,7 @@ impl User {
             .expect("entity_first_persisted_at not found")
     }
 
-    pub(crate) fn assign_role(&mut self, role: Role, audit_info: AuditInfo) -> Idempotent<()> {
+    pub(crate) fn assign_role(&mut self, role: RoleName, audit_info: AuditInfo) -> Idempotent<()> {
         idempotency_guard!(
             self.events.iter_all().rev(),
             UserEvent::RoleAssigned { role: assigned, .. } if assigned == &role,
@@ -58,7 +58,7 @@ impl User {
         Idempotent::Executed(())
     }
 
-    pub(crate) fn revoke_role(&mut self, role: Role, audit_info: AuditInfo) -> Idempotent<()> {
+    pub(crate) fn revoke_role(&mut self, role: RoleName, audit_info: AuditInfo) -> Idempotent<()> {
         idempotency_guard!(
             self.events.iter_all().rev(),
             UserEvent::RoleRevoked { role: revoked, .. } if revoked == &role,
@@ -71,7 +71,7 @@ impl User {
         Idempotent::Executed(())
     }
 
-    pub fn current_roles(&self) -> HashSet<Role> {
+    pub fn current_roles(&self) -> HashSet<RoleName> {
         let mut res = HashSet::new();
         for event in self.events.iter_all() {
             match event {

@@ -13,7 +13,7 @@ use core_user::UserId;
 pub use action::*;
 pub use object::*;
 
-pub use core_user::Role;
+pub use core_user::RoleName;
 
 #[derive(
     async_graphql::Enum,
@@ -40,13 +40,13 @@ pub enum LanaRole {
 }
 
 impl LanaRole {
-    pub const SUPERUSER: Role = Role::SUPERUSER;
-    pub const ACCOUNTANT: Role = Role::new("accountant");
-    pub const ADMIN: Role = Role::new("admin");
-    pub const BANK_MANAGER: Role = Role::new("bank_manager");
+    pub const SUPERUSER: RoleName = RoleName::SUPERUSER;
+    pub const ACCOUNTANT: RoleName = RoleName::new("accountant");
+    pub const ADMIN: RoleName = RoleName::new("admin");
+    pub const BANK_MANAGER: RoleName = RoleName::new("bank_manager");
 }
 
-impl From<LanaRole> for Role {
+impl From<LanaRole> for RoleName {
     fn from(r: LanaRole) -> Self {
         match r {
             LanaRole::Superuser => LanaRole::SUPERUSER,
@@ -57,8 +57,8 @@ impl From<LanaRole> for Role {
     }
 }
 
-impl From<Role> for LanaRole {
-    fn from(r: Role) -> Self {
+impl From<RoleName> for LanaRole {
+    fn from(r: RoleName) -> Self {
         if r == LanaRole::SUPERUSER {
             LanaRole::Superuser
         } else if r == LanaRole::ADMIN {

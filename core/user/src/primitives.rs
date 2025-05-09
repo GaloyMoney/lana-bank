@@ -17,16 +17,16 @@ es_entity::entity_id! { AuthenticationId }
 #[derive(Clone, Eq, Hash, PartialEq, Debug, Serialize, Deserialize, sqlx::Type)]
 #[sqlx(transparent)]
 #[serde(transparent)]
-pub struct Role(Cow<'static, str>);
-impl Role {
-    pub const SUPERUSER: Role = Role::new("superuser");
+pub struct RoleName(Cow<'static, str>);
+impl RoleName {
+    pub const SUPERUSER: RoleName = RoleName::new("superuser");
 
     pub const fn new(role_name: &'static str) -> Self {
-        Role(Cow::Borrowed(role_name))
+        RoleName(Cow::Borrowed(role_name))
     }
 }
 
-impl Display for Role {
+impl Display for RoleName {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         self.0.fmt(f)
     }

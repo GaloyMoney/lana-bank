@@ -21,6 +21,11 @@ pub enum LanaAction {
     Deposit(CoreDepositAction),
     Credit(CoreCreditAction),
 }
+impl LanaAction {
+    // fn list_all() -> &'static [ &'static str] {
+    // //
+    // }
+}
 
 impl From<AppAction> for LanaAction {
     fn from(action: AppAction) -> Self {

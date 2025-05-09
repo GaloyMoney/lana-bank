@@ -26,7 +26,7 @@ where
     Audit: AuditSvc,
     E: OutboxEventMarker<CoreUserEvent>,
 {
-    authz: Authorization<Audit, Role>,
+    authz: Authorization<Audit, RoleName>,
     outbox: Outbox<E>,
     repo: UserRepo,
 }
@@ -55,7 +55,7 @@ where
 {
     pub async fn init(
         pool: &sqlx::PgPool,
-        authz: &Authorization<Audit, Role>,
+        authz: &Authorization<Audit, RoleName>,
         outbox: &Outbox<E>,
         superuser_email: Option<String>,
     ) -> Result<Self, UserError> {
@@ -250,12 +250,12 @@ where
         &self,
         sub: &<Audit as AuditSvc>::Subject,
         user_id: impl Into<UserId> + std::fmt::Debug,
-        role: impl Into<Role> + std::fmt::Debug,
+        role: impl Into<RoleName> + std::fmt::Debug,
     ) -> Result<User, UserError> {
         let id = user_id.into();
         let role = role.into();
 
-        if role == Role::SUPERUSER {
+        if role == RoleName::SUPERUSER {
             return Err(UserError::AuthorizationError(
                 authz::error::AuthorizationError::NotAuthorized,
             ));
@@ -296,12 +296,12 @@ where
         &self,
         sub: &<Audit as AuditSvc>::Subject,
         user_id: impl Into<UserId> + std::fmt::Debug,
-        role: impl Into<Role> + std::fmt::Debug,
+        role: impl Into<RoleName> + std::fmt::Debug,
     ) -> Result<User, UserError> {
         let id = user_id.into();
         let role = role.into();
 
-        if role == Role::SUPERUSER {
+        if role == RoleName::SUPERUSER {
             return Err(UserError::AuthorizationError(
                 authz::error::AuthorizationError::NotAuthorized,
             ));
@@ -342,17 +342,20 @@ where
                     .expect("Could not build user");
                 let mut user = self.repo.create_in_op(&mut db, new_user).await?;
                 self.authz
-                    .assign_role_to_subject(user.id, &Role::SUPERUSER)
+                    .assign_role_to_subject(user.id, &RoleName::SUPERUSER)
                     .await?;
-                let _ = user.assign_role(Role::SUPERUSER, audit_info);
+                let _ = user.assign_role(RoleName::SUPERUSER, audit_info);
                 self.repo.update_in_op(&mut db, &mut user).await?;
                 Some(user)
             }
             Err(e) => return Err(e),
             Ok(mut user) => {
-                if user.assign_role(Role::SUPERUSER, audit_info).did_execute() {
+                if user
+                    .assign_role(RoleName::SUPERUSER, audit_info)
+                    .did_execute()
+                {
                     self.authz
-                        .assign_role_to_subject(user.id, Role::SUPERUSER)
+                        .assign_role_to_subject(user.id, RoleName::SUPERUSER)
                         .await?;
                     self.repo.update_in_op(&mut db, &mut user).await?;
                     None
