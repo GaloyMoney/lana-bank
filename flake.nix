@@ -10,6 +10,7 @@
         nixpkgs.follows = "nixpkgs";
       };
     };
+    crane.url = "github:ipetkov/crane";
   };
 
   outputs = {
@@ -17,6 +18,7 @@
     nixpkgs,
     flake-utils,
     rust-overlay,
+    crane,
   }:
     flake-utils.lib.eachDefaultSystem
     (system: let
@@ -34,6 +36,57 @@
         extensions = ["rust-analyzer" "rust-src"];
       };
       mkAlias = alias: command: pkgs.writeShellScriptBin alias command;
+
+      craneLib = crane.mkLib pkgs;
+      # craneLib = craneLib.crateNameFromCargoToml {cargoToml = "./path/to/Cargo.toml";};
+
+      rustSource = pkgs.lib.cleanSourceWith {
+        src = ./.;
+        filter = path: type:
+          craneLib.filterCargoSources path type
+          || pkgs.lib.hasInfix "/lib/authz/src/rbac.conf" path
+          || pkgs.lib.hasInfix "/.sqlx/" path;
+      };
+
+      commonArgs = {
+        src = rustSource;
+        strictDeps = true;
+
+        buildInputs =
+          [
+            # pkgs.openssl
+            # pkgs.pkg-config
+            # pkgs.postgresql
+            # Add additional build inputs here
+          ]
+          ++ pkgs.lib.optionals pkgs.stdenv.isDarwin [
+            # Additional darwin specific inputs can be set here
+            pkgs.libiconv
+          ];
+
+        SQLX_OFFLINE = true;
+        # No specific package name for commonArgs, it's for general settings
+        # version = lanaCliVersion; # Version will be set per-package
+      };
+
+      cargoArtifacts = craneLib.buildDepsOnly (commonArgs
+        // {
+          cargoToml = ./Cargo.toml; # Explicitly point to the root Cargo.toml for workspace deps
+          pname = "lana-workspace-deps"; # A distinct name for the deps build
+          version = "0.0.0"; # A placeholder version for the deps build
+        });
+
+      # Build the Lana CLI crate using the cached deps
+      lana-cli = craneLib.buildPackage (commonArgs
+        // {
+          cargoToml = ./lana/cli/Cargo.toml; # Explicitly point to the CLI's Cargo.toml
+          cargoArtifacts = cargoArtifacts;
+          # pname and version will now be taken from ./lana/cli/Cargo.toml by crane
+          # pname = lanaCliPname; # Or keep explicitly if preferred
+          # version = lanaCliVersion; # Or keep explicitly if preferred
+          # cargoExtraArgs = "-p ${lanaCliPname}"; # Build only the specific package
+        });
+
       aliases = [
         (mkAlias "meltano" ''docker compose run --rm meltano -- "$@"'')
       ];
@@ -94,10 +147,13 @@
       };
     in
       with pkgs; {
-        devShells.default = mkShell (devEnvVars
-          // {
-            inherit nativeBuildInputs;
-          });
+        packages.default = lana-cli;
+        packages.deps = cargoArtifacts;
+
+        apps.default = flake-utils.lib.mkApp {drv = lana-cli;};
+
+        devShells.default =
+          mkShell (devEnvVars // {inherit nativeBuildInputs;});
 
         formatter = alejandra;
       });
