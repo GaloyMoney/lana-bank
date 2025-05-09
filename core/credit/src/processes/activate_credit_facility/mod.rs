@@ -121,7 +121,7 @@ where
             .disbursal_credit_account_id(credit_facility.disbursal_credit_account_id)
             .disbursal_due_date(
                 credit_facility
-                    .activated_at()
+                    .activated_at
                     .expect("Facility is not active"),
             )
             .audit_info(audit_info.clone())

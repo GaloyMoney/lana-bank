@@ -544,7 +544,7 @@ where
             return Err(CoreCreditError::CustomerNotActive);
         }
 
-        if facility.activated_at().is_none() {
+        if facility.activated_at.is_none() {
             return Err(CreditFacilityError::NotActivatedYet.into());
         }
         let now = crate::time::now();
@@ -570,7 +570,7 @@ where
             .amount(amount)
             .account_ids(facility.account_ids)
             .disbursal_credit_account_id(facility.disbursal_credit_account_id)
-            .disbursal_due_date(facility.activated_at().expect("Facility is not active"))
+            .disbursal_due_date(facility.activated_at.expect("Facility is not active"))
             .audit_info(audit_info)
             .build()
             .expect("could not build new disbursal");
