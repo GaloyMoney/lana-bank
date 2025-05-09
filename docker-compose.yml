@@ -46,16 +46,31 @@ services:
     image: postgres:16.4
     ports: [ 5433:5432 ]
     environment: [ POSTGRES_USER=user, POSTGRES_PASSWORD=password, POSTGRES_DB=pg ]
-
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U user -d pg" ]
+      interval: 1s
+      retries: 10
+      start_period: 10s
+    
   kratos-admin-pg:
     image: postgres:16.4
     ports: [ 5434:5432 ]
     environment: [ POSTGRES_USER=dbuser, POSTGRES_PASSWORD=secret, POSTGRES_DB=default ]
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U dbuser -d default" ]
+      interval: 1s
+      retries: 10
+      start_period: 2s
 
   kratos-customer-pg:
     image: postgres:16.4
     ports: [ 5435:5432 ]
     environment: [ POSTGRES_USER=dbuser, POSTGRES_PASSWORD=secret, POSTGRES_DB=default ]
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U dbuser -d default" ]
+      interval: 1s
+      retries: 10
+      start_period: 2s
 
   #! Reporting
   meltano:
