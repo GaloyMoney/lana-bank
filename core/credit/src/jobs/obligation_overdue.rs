@@ -6,7 +6,14 @@ use authz::PermissionCheck;
 use job::*;
 use outbox::OutboxEventMarker;
 
-use crate::{event::CoreCreditEvent, ledger::CreditLedger, obligation::Obligations, primitives::*};
+use crate::{
+    error::CoreCreditError,
+    event::CoreCreditEvent,
+    ledger::CreditLedger,
+    obligation::{Obligation, ObligationOverdueReallocationData, Obligations},
+    primitives::*,
+    AuditInfo,
+};
 
 use super::obligation_defaulted;
 
@@ -84,6 +91,11 @@ where
     }
 }
 
+struct RecordedOverdue {
+    overdue: ObligationOverdueReallocationData,
+    obligation: Obligation,
+}
+
 pub struct CreditFacilityProcessingJobRunner<Perms, E>
 where
     Perms: PermissionCheck,
@@ -94,6 +106,39 @@ where
     ledger: CreditLedger,
     jobs: Jobs,
     audit: Perms::Audit,
+}
+
+impl<Perms, E> CreditFacilityProcessingJobRunner<Perms, E>
+where
+    Perms: PermissionCheck,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>,
+    E: OutboxEventMarker<CoreCreditEvent>,
+{
+    #[es_entity::retry_on_concurrent_modification]
+    async fn record_overdue(
+        &self,
+        db: &mut es_entity::DbOp<'_>,
+        audit_info: &AuditInfo,
+    ) -> Result<Option<RecordedOverdue>, CoreCreditError> {
+        let mut obligation = self
+            .obligations
+            .find_by_id(self.config.obligation_id)
+            .await?;
+
+        if let es_entity::Idempotent::Executed(overdue) =
+            obligation.record_overdue(audit_info.clone())?
+        {
+            self.obligations.update_in_op(db, &mut obligation).await?;
+
+            Ok(Some(RecordedOverdue {
+                overdue,
+                obligation,
+            }))
+        } else {
+            Ok(None)
+        }
+    }
 }
 
 #[async_trait]
@@ -108,11 +153,6 @@ where
         &self,
         _current_job: CurrentJob,
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
-        let mut obligation = self
-            .obligations
-            .find_by_id(self.config.obligation_id)
-            .await?;
-
         let mut db = self.obligations.begin_op().await?;
         let audit_info = self
             .audit
@@ -123,33 +163,25 @@ where
             )
             .await?;
 
-        let overdue = if let es_entity::Idempotent::Executed(overdue) =
-            obligation.record_overdue(audit_info)?
-        {
-            overdue
-        } else {
-            return Ok(JobCompletion::Complete);
-        };
+        if let Some(recorded) = self.record_overdue(&mut db, &audit_info).await? {
+            if let Some(defaulted_at) = recorded.obligation.defaulted_at() {
+                self.jobs
+                    .create_and_spawn_at_in_op(
+                        &mut db,
+                        JobId::new(),
+                        obligation_defaulted::CreditFacilityJobConfig::<Perms, E> {
+                            obligation_id: recorded.obligation.id,
+                            _phantom: std::marker::PhantomData,
+                        },
+                        defaulted_at,
+                    )
+                    .await?;
+            }
 
-        self.obligations
-            .update_in_op(&mut db, &mut obligation)
-            .await?;
-
-        if let Some(defaulted_at) = obligation.defaulted_at() {
-            self.jobs
-                .create_and_spawn_at_in_op(
-                    &mut db,
-                    JobId::new(),
-                    obligation_defaulted::CreditFacilityJobConfig::<Perms, E> {
-                        obligation_id: obligation.id,
-                        _phantom: std::marker::PhantomData,
-                    },
-                    defaulted_at,
-                )
+            self.ledger
+                .record_obligation_overdue(db, recorded.overdue)
                 .await?;
         }
-
-        self.ledger.record_obligation_overdue(db, overdue).await?;
 
         Ok(JobCompletion::Complete)
     }
