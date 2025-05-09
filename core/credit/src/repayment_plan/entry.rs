@@ -42,16 +42,12 @@ impl Ord for CreditFacilityRepaymentPlanEntry {
             self_due_at.cmp(&other_due_at)
         };
 
-        ord.then_with(|| match (self, other) {
-            (
-                CreditFacilityRepaymentPlanEntry::Interest(_),
-                CreditFacilityRepaymentPlanEntry::Disbursal(_),
-            ) => std::cmp::Ordering::Less,
-            (
-                CreditFacilityRepaymentPlanEntry::Disbursal(_),
-                CreditFacilityRepaymentPlanEntry::Interest(_),
-            ) => std::cmp::Ordering::Greater,
-            _ => std::cmp::Ordering::Equal,
+        ord.then_with(|| {
+            let rank = |e: &CreditFacilityRepaymentPlanEntry| match e {
+                CreditFacilityRepaymentPlanEntry::Interest(_) => 0,
+                CreditFacilityRepaymentPlanEntry::Disbursal(_) => 1,
+            };
+            rank(self).cmp(&rank(other))
         })
     }
 }

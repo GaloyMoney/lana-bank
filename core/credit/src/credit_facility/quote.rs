@@ -109,19 +109,24 @@ impl PartialOrd for CreditFacilityQuoteEntry {
 
 impl Ord for CreditFacilityQuoteEntry {
     fn cmp(&self, other: &Self) -> std::cmp::Ordering {
-        let self_due_at = match self {
-            CreditFacilityQuoteEntry::Disbursal(o) => o.due_at,
-            CreditFacilityQuoteEntry::Fee(o) => o.due_at,
-            CreditFacilityQuoteEntry::Interest(o) => o.due_at,
+        let ord = {
+            let self_due_at = match self {
+                Self::Disbursal(o) | Self::Interest(o) | Self::Fee(o) => o.due_at,
+            };
+            let other_due_at = match other {
+                Self::Disbursal(o) | Self::Interest(o) | Self::Fee(o) => o.due_at,
+            };
+            self_due_at.cmp(&other_due_at)
         };
 
-        let other_due_at = match other {
-            CreditFacilityQuoteEntry::Disbursal(o) => o.due_at,
-            CreditFacilityQuoteEntry::Fee(o) => o.due_at,
-            CreditFacilityQuoteEntry::Interest(o) => o.due_at,
-        };
-
-        self_due_at.cmp(&other_due_at)
+        ord.then_with(|| {
+            let rank = |e: &CreditFacilityQuoteEntry| match e {
+                CreditFacilityQuoteEntry::Fee(_) => 0,
+                CreditFacilityQuoteEntry::Interest(_) => 1,
+                CreditFacilityQuoteEntry::Disbursal(_) => 2,
+            };
+            rank(self).cmp(&rank(other))
+        })
     }
 }
 
@@ -195,7 +200,7 @@ mod tests {
                 _ => false,
             })
             .unwrap();
-        assert_eq!(facility_disbursal_position, 0);
+        assert_eq!(facility_disbursal_position, quote.len() - 1);
         quote.remove(facility_disbursal_position);
 
         assert!(quote.iter().all(|e| match e {
