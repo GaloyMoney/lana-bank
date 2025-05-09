@@ -1,3 +1,4 @@
+mod first_payment_45d_late;
 mod timely_payments;
 
 use lana_app::{app::LanaApp, primitives::*};
@@ -14,6 +15,12 @@ pub async fn run(
         let app = app.clone();
         handles.push(tokio::spawn(async move {
             timely_payments::timely_payments_scenario(sub, &app).await
+        }));
+    }
+    {
+        let app = app.clone();
+        handles.push(tokio::spawn(async move {
+            first_payment_45d_late::first_payment_45d_late_scenario(sub, &app).await
         }));
     }
 
