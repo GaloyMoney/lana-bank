@@ -119,11 +119,7 @@ where
             .amount(credit_facility.structuring_fee())
             .account_ids(credit_facility.account_ids)
             .disbursal_credit_account_id(credit_facility.disbursal_credit_account_id)
-            .disbursal_due_date(
-                credit_facility
-                    .activated_at
-                    .expect("Facility is not active"),
-            )
+            .disbursal_due_date(credit_facility.matures_at.expect("Facility is not active"))
             .audit_info(audit_info.clone())
             .build()
             .expect("could not build new disbursal");

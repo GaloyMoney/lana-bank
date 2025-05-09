@@ -570,7 +570,7 @@ where
             .amount(amount)
             .account_ids(facility.account_ids)
             .disbursal_credit_account_id(facility.disbursal_credit_account_id)
-            .disbursal_due_date(facility.activated_at.expect("Facility is not active"))
+            .disbursal_due_date(facility.matures_at.expect("Facility is not active"))
             .audit_info(audit_info)
             .build()
             .expect("could not build new disbursal");
