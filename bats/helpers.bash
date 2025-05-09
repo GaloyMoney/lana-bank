@@ -363,6 +363,7 @@ wait_for_checking_account() {
   )
   exec_admin_graphql 'customer' "$variables"
 
+  echo "checking | $i. $(graphql_output)" >> $RUN_LOG_FILE
   deposit_account_id=$(graphql_output '.data.customer.depositAccount.depositAccountId')
   [[ "$deposit_account_id" != "null" ]] || exit 1
 

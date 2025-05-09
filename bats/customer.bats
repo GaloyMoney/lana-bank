@@ -2,6 +2,9 @@
 
 load "helpers"
 
+PERSISTED_LOG_FILE="customer.e2e-logs"
+RUN_LOG_FILE="customer.run.e2e-logs"
+
 setup_file() {
   start_server
   login_superadmin
@@ -18,6 +21,7 @@ wait_for_approval() {
     '{ id: $withdrawId }'
   )
   exec_admin_graphql 'find-withdraw' "$variables"
+  echo "withdrawal | $i. $(graphql_output)" >> $RUN_LOG_FILE
   status=$(graphql_output '.data.withdrawal.status')
   [[ "$status" == "PENDING_CONFIRMATION" ]] || return 1
 }
@@ -96,7 +100,7 @@ wait_for_approval() {
   customer_id=$(create_customer)
   cache_value "customer_id" $customer_id
 
-  retry 10 1 wait_for_checking_account "$customer_id"
+  retry 10 2 wait_for_checking_account "$customer_id"
 
   variables=$(
     jq -n \
@@ -105,7 +109,7 @@ wait_for_approval() {
   )
 
   exec_admin_graphql 'customer' "$variables"
-  echo $(graphql_output) | jq .
+  echo "deposit | $i. $(graphql_output)" >> $RUN_LOG_FILE
   deposit_account_id=$(graphql_output .data.customer.depositAccount.depositAccountId)
   cache_value "deposit_account_id" $deposit_account_id
 
