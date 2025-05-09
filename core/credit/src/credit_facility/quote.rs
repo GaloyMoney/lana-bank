@@ -11,7 +11,6 @@ pub(super) fn project<'a>(
 
     let mut terms = None;
     let mut amount = None;
-    let mut is_activated = None;
 
     for event in events {
         match event {
@@ -25,15 +24,11 @@ pub(super) fn project<'a>(
             }
 
             CreditFacilityEvent::Activated { .. } => {
-                is_activated = Some(true);
+                return entries;
             }
 
             _ => {}
         }
-    }
-
-    if is_activated.unwrap_or(false) {
-        return entries;
     }
 
     let terms = terms.expect("Facility was not Initialized");
