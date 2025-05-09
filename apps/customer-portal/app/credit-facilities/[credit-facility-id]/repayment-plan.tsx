@@ -76,6 +76,8 @@ const getStatusVariant = (status: RepaymentPlan["status"]): BadgeProps["variant"
   switch (status) {
     case "UPCOMING":
       return "default"
+    case "NOT_YET_DUE":
+      return "outline"
     case "DUE":
       return "warning"
     case "OVERDUE":
