@@ -253,6 +253,7 @@ jobs:
               - rust-check-code
               - integration-tests
               - build-static-binary
+              - bats-tests
             trigger: true
           - get: pipeline-tasks
           - get: version
@@ -300,7 +301,6 @@ jobs:
             path: pipeline-tasks/ci/tasks/prep-release-apps.sh
       - get: static-binary-image
         passed: [build-static-binary]
-        trigger: true
       - task: unwrap-binary
         config:
           platform: linux
