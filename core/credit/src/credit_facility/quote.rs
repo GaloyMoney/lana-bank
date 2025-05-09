@@ -54,19 +54,10 @@ pub(super) fn project<'a>(
         }),
     ]);
 
-    let last_interest_accrual_at = None;
-    let mut next_interest_period = if let Some(last_interest_payment) = last_interest_accrual_at {
-        terms
-            .accrual_cycle_interval
-            .period_from(last_interest_payment)
-            .next()
-            .truncate(maturity_date)
-    } else {
-        terms
-            .accrual_cycle_interval
-            .period_from(activated_at)
-            .truncate(maturity_date)
-    };
+    let mut next_interest_period = terms
+        .accrual_cycle_interval
+        .period_from(activated_at)
+        .truncate(maturity_date);
 
     while let Some(period) = next_interest_period {
         let interest = terms
