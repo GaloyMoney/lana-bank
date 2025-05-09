@@ -60,9 +60,6 @@ wait_for_approval() {
 }
 
 @test "customer: can login" {
-  skip  # not working on concourse for some reasons
-        # need to figure out why
-
   customer_email=$(generate_email)
   telegramId=$(generate_email)
   customer_type="INDIVIDUAL"
@@ -85,7 +82,7 @@ wait_for_approval() {
   customer_id=$(graphql_output .data.customerCreate.customer.customerId)
   [[ "$customer_id" != "null" ]] || exit 1
 
-  sleep 3 # wait for customer-sync steps
+  retry 20 1 wait_for_checking_account "$customer_id"
 
   login_customer $customer_email
   exec_customer_graphql $customer_email 'me'
@@ -100,7 +97,7 @@ wait_for_approval() {
   customer_id=$(create_customer)
   cache_value "customer_id" $customer_id
 
-  retry 10 2 wait_for_checking_account "$customer_id"
+  retry 20 1 wait_for_checking_account "$customer_id"
 
   variables=$(
     jq -n \

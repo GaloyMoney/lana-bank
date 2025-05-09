@@ -43,13 +43,10 @@ trigger_withdraw_approval_process() {
 }
 
 @test "governance: auto-approve" {
-  skip # not working on concourse for some reasons
-        # need to figure out why
-
   customer_id=$(create_customer)
   cache_value "customer_id" $customer_id
 
-  retry 10 1 wait_for_checking_account "$customer_id"
+  retry 20 1 wait_for_checking_account "$customer_id"
 
   variables=$(
     jq -n \
