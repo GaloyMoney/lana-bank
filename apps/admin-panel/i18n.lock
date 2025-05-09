@@ -232,6 +232,7 @@ checksums:
     CreditFacilities/CreditFacilityDetails/RepaymentPlan/repaymentTypes/principal: e20184128f2c57ee03dfe700de56afeb
     CreditFacilities/CreditFacilityDetails/RepaymentPlan/repaymentTypes/interest: 74aee9268e3b6f89d89a4252b29864cc
     CreditFacilities/CreditFacilityDetails/RepaymentPlan/status/upcoming: 960febe0c0af09408917d55a0dc032ee
+    CreditFacilities/CreditFacilityDetails/RepaymentPlan/status/not_yet_due: 5610cbe51dcb79a9eba7b5ea20945fe3
     CreditFacilities/CreditFacilityDetails/RepaymentPlan/status/due: f68d8596e02773955b31c98a23ecbd95
     CreditFacilities/CreditFacilityDetails/RepaymentPlan/status/overdue: a63e7496e60dfa38beffe0b1d40d7b51
     CreditFacilities/CreditFacilityDetails/RepaymentPlan/status/paid: 57d83a58e2cfe732ed864f5155156033

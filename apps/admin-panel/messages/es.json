@@ -362,6 +362,7 @@
         },
         "status": {
           "upcoming": "PRÓXIMO",
+          "not_yet_due": "AÚN NO VENCIDO",
           "due": "POR PAGAR",
           "overdue": "ATRASADO",
           "paid": "PAGADO"
