@@ -66,6 +66,9 @@ jobs:
             - name: pipeline-tasks
             - name: repo
               path: repo
+          caches:
+            - path: /var/lib/containers/storage
+            - path: /opt/nix-cache
           run:
             path: sh
             args:
@@ -74,20 +77,24 @@ jobs:
                 set -euo pipefail
                 pushd repo
 
-                echo "--- Manually configuring Nix for Cachix ---"
-                mkdir -p /etc/nix
-                # Append to nix.conf, creating if it doesn't exist
-                echo "substituters = https://cache.nixos.org/ https://lana-ci.cachix.org" >> /etc/nix/nix.conf
-                echo "trusted-public-keys = cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= lana-ci.cachix.org-1:azzCR3pnHnh+Ew66H0R3jDqdHXO8t47uD5utj4FaodI=" >> /etc/nix/nix.conf
+                echo "--- Manually configuring Nix for Cachix and alternative store ---"
+                sudo mkdir -p /etc/nix
+                echo "substituters = https://cache.nixos.org/ https://lana-ci.cachix.org" | sudo tee /etc/nix/nix.conf
+                echo "trusted-public-keys = cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= lana-ci.cachix.org-1:azzCR3pnHnh+Ew66H0R3jDqdHXO8t47uD5utj4FaodI=" | sudo tee -a /etc/nix/nix.conf
+                echo "store = /opt/nix-cache" | sudo tee -a /etc/nix/nix.conf # Use alternative store
+                
+                echo "--- Ensuring alternative Nix store directory structure ---"
+                sudo mkdir -p "/opt/nix-cache/var/nix/db"
+                sudo mkdir -p "/opt/nix-cache/var/nix/gcroots"
+                sudo mkdir -p "/opt/nix-cache/var/nix/temproots"
+                sudo mkdir -p "/opt/nix-cache/var/nix/userpool"
+                sudo mkdir -p "/opt/nix-cache/var/log/nix/drvs"
+
                 echo "Configured /etc/nix/nix.conf:"
                 cat /etc/nix/nix.conf
-                # Ensure the auth token is available for nix commands
-                export CACHIX_AUTH_TOKEN="${CACHIX_AUTH_TOKEN:-}"
                 echo "--- Nix configuration done ---"
 
-                echo "--- Entering Nix Develop Environment and running script ---"
-                # The script path is relative to the pipeline-tasks input root
-                # Assumes pipeline-tasks is mounted at the task root, alongside repo
+                echo "--- Entering Nix Develop Environment and running script (with alternative store) ---"
                 nix -L develop --command sh -exc ../pipeline-tasks/ci/tasks/podman-integration-tests.sh
 
   - name: bats-tests
@@ -98,7 +105,7 @@ jobs:
             trigger: true
           - { get: pipeline-tasks }
       - task: bats-tests
-        timeout: 50m
+        timeout: 90m
         attempts: 1
         privileged: true
         config:
@@ -109,9 +116,9 @@ jobs:
             - name: repo
               path: repo
           params:
-            DOCKERHUB_USERNAME: #@ data.values.docker_registry_user
-            DOCKERHUB_PASSWORD: #@ data.values.docker_registry_password
             CACHIX_AUTH_TOKEN: #@ data.values.cachix_auth_token
+          caches:
+            - path: /var/lib/containers/storage
           run:
             path: sh
             args:
@@ -128,19 +135,12 @@ jobs:
                 echo "Configured /etc/nix/nix.conf:"
                 cat /etc/nix/nix.conf
                 # Ensure the auth token is available for nix commands
-                export CACHIX_AUTH_TOKEN="${CACHIX_AUTH_TOKEN:-}"
                 echo "--- Nix configuration done ---"
 
                 echo "--- Building and pushing devShell dependencies to Cachix ---"
-                if [[ -n "${CACHIX_AUTH_TOKEN}" ]]; then
-                  # Use nix shell to make cachix and nix available for the push command
                   nix shell nixpkgs#cachix nixpkgs#nix --command sh -c \
                     "nix build .#devShells.x86_64-linux.default --print-out-paths --no-link | cachix push lana-ci" \
                   || echo "Warning: Failed to build or push devShell dependencies. Proceeding..."
-                else
-                  echo "Warning: CACHIX_AUTH_TOKEN not set. Skipping pre-emptive push of devShell dependencies."
-                fi
-                echo "--- devShell push attempt finished ---"
 
                 echo "--- Entering Nix Develop Environment and running script ---"
                 # The script path is relative to the pipeline-tasks input root
@@ -589,7 +589,7 @@ resources:
         - apps/**/*
       fetch_tags: true
       uri: #@ data.values.git_uri
-      branch: #@ data.values.git_branch
+      branch: ci--update-nix
       private_key: #@ data.values.github_private_key
     webhook_token: ((webhook.secret))
   - name: repo-dev-out

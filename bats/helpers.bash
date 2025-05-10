@@ -69,6 +69,43 @@ start_server() {
   done
 }
 
+start_server_nix() {
+  # Check for running server
+  if [ -n "$BASH_VERSION" ]; then
+    server_process_and_status=$(
+      ps a | grep 'lana-cli' | grep -v grep
+      echo ${PIPESTATUS[2]}
+    )
+  elif [ -n "$ZSH_VERSION" ]; then
+    server_process_and_status=$(
+      ps a | grep 'lana-cli' | grep -v grep
+      echo ${pipestatus[3]}
+    )
+  else
+    echo "Unsupported shell."
+    exit 1
+  fi
+  exit_status=$(echo "$server_process_and_status" | tail -n 1)
+  if [ "$exit_status" -eq 0 ]; then
+    rm -f "$SERVER_PID_FILE"
+    return 0
+  fi
+
+  # Start server if not already running
+  background nix run . > "$LOG_FILE" 2>&1
+  for i in {1..20}; do
+    if head "$LOG_FILE" | grep -q 'Starting graphql server on port'; then
+      break
+    elif head "$LOG_FILE" | grep -q 'Connection reset by peer'; then
+      stop_server
+      sleep 1
+      background nix run . > "$LOG_FILE" 2>&1
+    else
+      sleep 1
+    fi
+  done
+}
+
 stop_server() {
   if [[ -f "$SERVER_PID_FILE" ]]; then
     kill -9 $(cat "$SERVER_PID_FILE") || true
