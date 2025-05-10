@@ -39,7 +39,8 @@ make setup-db
 
 # --- Build Test Artifacts ---
 echo "--- Building test artifacts---"
-make build-for-tests
+# make build-for-tests
+nix build . | cachix push lana-ci
 BUILD_EXIT_CODE=$?
 
 echo "--- Build/Push finished with code: $BUILD_EXIT_CODE ---"
