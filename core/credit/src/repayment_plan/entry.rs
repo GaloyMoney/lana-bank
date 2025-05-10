@@ -32,17 +32,27 @@ impl PartialOrd for CreditFacilityRepaymentPlanEntry {
 
 impl Ord for CreditFacilityRepaymentPlanEntry {
     fn cmp(&self, other: &Self) -> std::cmp::Ordering {
-        let self_due_at = match self {
-            CreditFacilityRepaymentPlanEntry::Disbursal(o) => o.due_at,
-            CreditFacilityRepaymentPlanEntry::Interest(o) => o.due_at,
+        let ord = {
+            let self_due_at = match self {
+                Self::Disbursal(o) | Self::Interest(o) => o.due_at,
+            };
+            let other_due_at = match other {
+                Self::Disbursal(o) | Self::Interest(o) => o.due_at,
+            };
+            self_due_at.cmp(&other_due_at)
         };
 
-        let other_due_at = match other {
-            CreditFacilityRepaymentPlanEntry::Disbursal(o) => o.due_at,
-            CreditFacilityRepaymentPlanEntry::Interest(o) => o.due_at,
-        };
-
-        self_due_at.cmp(&other_due_at)
+        ord.then_with(|| match (self, other) {
+            (
+                CreditFacilityRepaymentPlanEntry::Interest(_),
+                CreditFacilityRepaymentPlanEntry::Disbursal(_),
+            ) => std::cmp::Ordering::Less,
+            (
+                CreditFacilityRepaymentPlanEntry::Disbursal(_),
+                CreditFacilityRepaymentPlanEntry::Interest(_),
+            ) => std::cmp::Ordering::Greater,
+            _ => std::cmp::Ordering::Equal,
+        })
     }
 }
 
