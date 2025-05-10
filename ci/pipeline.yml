@@ -68,6 +68,7 @@ jobs:
               path: repo
           caches:
             - path: /var/lib/containers/storage
+            - path: /opt/nix-cache
           run:
             path: sh
             args:
@@ -76,18 +77,24 @@ jobs:
                 set -euo pipefail
                 pushd repo
 
-                echo "--- Manually configuring Nix for Cachix ---"
-                mkdir -p /etc/nix
-                # Append to nix.conf, creating if it doesn't exist
-                echo "substituters = https://cache.nixos.org/ https://lana-ci.cachix.org" >> /etc/nix/nix.conf
-                echo "trusted-public-keys = cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= lana-ci.cachix.org-1:azzCR3pnHnh+Ew66H0R3jDqdHXO8t47uD5utj4FaodI=" >> /etc/nix/nix.conf
+                echo "--- Manually configuring Nix for Cachix and alternative store ---"
+                sudo mkdir -p /etc/nix
+                echo "substituters = https://cache.nixos.org/ https://lana-ci.cachix.org" | sudo tee /etc/nix/nix.conf
+                echo "trusted-public-keys = cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= lana-ci.cachix.org-1:azzCR3pnHnh+Ew66H0R3jDqdHXO8t47uD5utj4FaodI=" | sudo tee -a /etc/nix/nix.conf
+                echo "store = /opt/nix-cache" | sudo tee -a /etc/nix/nix.conf # Use alternative store
+                
+                echo "--- Ensuring alternative Nix store directory structure ---"
+                sudo mkdir -p "/opt/nix-cache/var/nix/db"
+                sudo mkdir -p "/opt/nix-cache/var/nix/gcroots"
+                sudo mkdir -p "/opt/nix-cache/var/nix/temproots"
+                sudo mkdir -p "/opt/nix-cache/var/nix/userpool"
+                sudo mkdir -p "/opt/nix-cache/var/log/nix/drvs"
+
                 echo "Configured /etc/nix/nix.conf:"
                 cat /etc/nix/nix.conf
                 echo "--- Nix configuration done ---"
 
-                echo "--- Entering Nix Develop Environment and running script ---"
-                # The script path is relative to the pipeline-tasks input root
-                # Assumes pipeline-tasks is mounted at the task root, alongside repo
+                echo "--- Entering Nix Develop Environment and running script (with alternative store) ---"
                 nix -L develop --command sh -exc ../pipeline-tasks/ci/tasks/podman-integration-tests.sh
 
   - name: bats-tests
@@ -98,7 +105,7 @@ jobs:
             trigger: true
           - { get: pipeline-tasks }
       - task: bats-tests
-        timeout: 50m
+        timeout: 90m
         attempts: 1
         privileged: true
         config:

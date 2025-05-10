@@ -40,7 +40,20 @@ make setup-db
 # --- Build Test Artifacts ---
 echo "--- Building test artifacts---"
 # make build-for-tests
-nix build . | cachix push lana-ci
+
+export NIX_STORE_DIR="/opt/nix-cache"
+echo "--- [DEBUG] Using NIX_STORE_DIR: $NIX_STORE_DIR ---"
+# Ensure basic store structure if it's the first time (Nix might do this, but doesn't hurt)
+sudo mkdir -p "$NIX_STORE_DIR/var/nix/db"
+sudo mkdir -p "$NIX_STORE_DIR/var/nix/gcroots"
+sudo mkdir -p "$NIX_STORE_DIR/var/nix/temproots"
+sudo mkdir -p "$NIX_STORE_DIR/var/nix/userpool"
+sudo mkdir -p "$NIX_STORE_DIR/var/log/nix/drvs"
+
+echo "--- [DEBUG] Showing flake outputs (using NIX_STORE_DIR) ---"
+nix flake show . --all-systems --json --store "$NIX_STORE_DIR" || echo "nix flake show failed"
+echo "--- [DEBUG] Attempting to build default package explicitly (using NIX_STORE_DIR) ---"
+nix build .#packages.x86_64-linux.default -L --print-build-logs --store "$NIX_STORE_DIR" | cachix push lana-ci
 BUILD_EXIT_CODE=$?
 
 echo "--- Build/Push finished with code: $BUILD_EXIT_CODE ---"
