@@ -81,7 +81,7 @@ impl CreditFacilityRepaymentPlan {
 
             self.entries
                 .push(CreditFacilityRepaymentPlanEntry::Interest(
-                    ObligationDataForEntry {
+                    ObligationDataForRepaymentPlanEntry {
                         id: None,
                         status: RepaymentStatus::Upcoming,
                         initial: interest,
@@ -128,7 +128,7 @@ impl CreditFacilityRepaymentPlan {
                 created_at,
                 ..
             } => {
-                let data = ObligationDataForEntry {
+                let data = ObligationDataForRepaymentPlanEntry {
                     id: Some(*id),
                     status: RepaymentStatus::NotYetDue,
 
