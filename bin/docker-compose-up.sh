@@ -22,4 +22,10 @@ FILES=(-f "$BASE")
 [[ "$ENGINE" == docker ]] && FILES+=(-f "$OVERRIDE")   # extra_hosts only on Docker
 
 # ── Up ──────────────────────────────────────────────────────────────────────────
-exec "$ENGINE" compose "${FILES[@]}" up --wait -d "$@"
+"$ENGINE" compose "${FILES[@]}" up -d "$@"
+
+while ! pg_isready -d pg -p 5433 -U user; do
+  echo "PostgreSQL not yet ready..."
+  sleep 1
+done
+echo "PostgreSQL ready"
