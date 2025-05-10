@@ -41,13 +41,6 @@ echo "--- Starting Dependencies with Podman Compose ---"
 ENGINE_DEFAULT=podman bin/docker-compose-up.sh integration-deps
 echo "--- Podman-compose up done ---"
 
-echo "--- Waiting for dependencies (sleep 10s) ---"
-sleep 10
-# TODO: do this programmatically
-echo "--- Wait done ---"
-
-# TODO: Implement a more robust wait (e.g., check pg_isready)
-
 make setup-db
 
 echo "--- Running Integration Tests ---"

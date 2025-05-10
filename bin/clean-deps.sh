@@ -14,4 +14,4 @@ if ! command -v "$ENGINE" >/dev/null 2>&1; then
 fi
 
 # ── Down ────────────────────────────────────────────────────────────────────────
-exec "$ENGINE" compose -f docker-compose.yml down -t 1
+exec "$ENGINE" compose -f docker-compose.yml down -v -t 2

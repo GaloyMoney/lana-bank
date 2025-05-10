@@ -12,20 +12,9 @@ else
   exit 1
 fi
 
-
 echo "--- Testing Podman basic functionality ---"
 podman info || echo "Warning: 'podman info' failed."
 echo "--- Podman info done ---"
-
-# Login to Docker Hub using podman before entering Nix shell
-echo "--- Logging into Docker Hub ---"
-if [[ -n "$DOCKERHUB_USERNAME" && -n "$DOCKERHUB_PASSWORD" ]]; then
-  echo "$DOCKERHUB_PASSWORD" | podman login docker.io -u "$DOCKERHUB_USERNAME" --password-stdin
-  echo "--- Docker Hub login attempt finished ---"
-else
-  echo "--- WARNING: Docker Hub credentials not provided, proceeding unauthenticated ---"
-  echo "may get rate limited"
-fi
 
 mkdir -p /etc/containers
 echo '{ "default": [{"type": "insecureAcceptAnything"}]}' > /etc/containers/policy.json
@@ -44,11 +33,6 @@ echo "--- Podman service started (attempted) ---"
 echo "--- Starting Dependencies with Podman Compose ---"
 ENGINE_DEFAULT=podman bin/docker-compose-up.sh integration-deps
 echo "--- Podman-compose up done ---"
-
-echo "--- Waiting for dependencies (sleep 10s) ---"
-sleep 10
-# TODO: do this programmatically
-echo "--- Wait done ---"
 
 # --- DB Setup ---
 make setup-db
