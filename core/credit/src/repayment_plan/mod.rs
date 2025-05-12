@@ -215,22 +215,11 @@ impl CreditFacilityRepaymentPlan {
             }
             CoreCreditEvent::ObligationDue {
                 id: obligation_id, ..
-            } => {
-                if let Some(data) = existing_obligations.iter_mut().find_map(|entry| {
-                    let data = match entry {
-                        CreditFacilityRepaymentPlanEntry::Disbursal(data)
-                        | CreditFacilityRepaymentPlanEntry::Interest(data) => data,
-                    };
-
-                    (data.id == Some(*obligation_id)).then_some(data)
-                }) {
-                    data.status = RepaymentStatus::Due;
-                    true
-                } else {
-                    false
-                }
             }
-            CoreCreditEvent::ObligationOverdue {
+            | CoreCreditEvent::ObligationOverdue {
+                id: obligation_id, ..
+            }
+            | CoreCreditEvent::ObligationDefaulted {
                 id: obligation_id, ..
             } => {
                 if let Some(data) = existing_obligations.iter_mut().find_map(|entry| {
@@ -241,24 +230,12 @@ impl CreditFacilityRepaymentPlan {
 
                     (data.id == Some(*obligation_id)).then_some(data)
                 }) {
-                    data.status = RepaymentStatus::Overdue;
-                    true
-                } else {
-                    false
-                }
-            }
-            CoreCreditEvent::ObligationDefaulted {
-                id: obligation_id, ..
-            } => {
-                if let Some(data) = existing_obligations.iter_mut().find_map(|entry| {
-                    let data = match entry {
-                        CreditFacilityRepaymentPlanEntry::Disbursal(data)
-                        | CreditFacilityRepaymentPlanEntry::Interest(data) => data,
+                    data.status = match event {
+                        CoreCreditEvent::ObligationDue { .. } => RepaymentStatus::Due,
+                        CoreCreditEvent::ObligationOverdue { .. } => RepaymentStatus::Overdue,
+                        CoreCreditEvent::ObligationDefaulted { .. } => RepaymentStatus::Defaulted,
+                        _ => unreachable!(),
                     };
-
-                    (data.id == Some(*obligation_id)).then_some(data)
-                }) {
-                    data.status = RepaymentStatus::Defaulted;
                     true
                 } else {
                     false
