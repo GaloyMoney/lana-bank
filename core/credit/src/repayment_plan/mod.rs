@@ -15,7 +15,7 @@ pub use repo::RepaymentPlanRepo;
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct CreditFacilityRepaymentPlan {
     terms: Option<TermValues>,
-    activated_at: DateTime<Utc>,
+    activated_at: Option<DateTime<Utc>>,
     last_updated_on_sequence: EventSequence,
 
     pub entries: Vec<CreditFacilityRepaymentPlanEntry>,
@@ -47,7 +47,7 @@ impl CreditFacilityRepaymentPlan {
             .fold(UsdCents::ZERO, |acc, outstanding| acc + outstanding)
     }
 
-    fn update_upcoming(&mut self, existing: Vec<CreditFacilityRepaymentPlanEntry>) {
+    fn update_upcoming_interest(&mut self, existing: Vec<CreditFacilityRepaymentPlanEntry>) {
         self.entries = existing;
         let outstanding = self.disbursed_outstanding();
         if outstanding.is_zero() {
@@ -55,7 +55,8 @@ impl CreditFacilityRepaymentPlan {
         }
 
         let terms = self.terms.expect("Missing FacilityCreated event");
-        let maturity_date = terms.duration.maturity_date(self.activated_at);
+        let activated_at = self.activated_at.expect("Missing FacilityCreated event");
+        let maturity_date = terms.duration.maturity_date(activated_at);
         let last_interest_accrual_at = self.entries.iter().rev().find_map(|entry| match entry {
             CreditFacilityRepaymentPlanEntry::Interest(data) => Some(data.recorded_at),
             _ => None,
@@ -70,7 +71,7 @@ impl CreditFacilityRepaymentPlan {
         } else {
             terms
                 .accrual_cycle_interval
-                .period_from(self.activated_at)
+                .period_from(activated_at)
                 .truncate(maturity_date)
         };
 
@@ -114,7 +115,7 @@ impl CreditFacilityRepaymentPlan {
                 true
             }
             CoreCreditEvent::FacilityActivated { activated_at, .. } => {
-                self.activated_at = *activated_at;
+                self.activated_at = Some(*activated_at);
 
                 true
             }
@@ -227,7 +228,7 @@ impl CreditFacilityRepaymentPlan {
         } else if existing_obligations.is_empty() {
             true
         } else {
-            self.update_upcoming(existing_obligations);
+            self.update_upcoming_interest(existing_obligations);
             true
         }
     }
