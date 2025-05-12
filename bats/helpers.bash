@@ -31,6 +31,8 @@ server_cmd() {
 }
 
 start_server() {
+    echo "--- Starting server make ---"
+
   # Check for running server
   if [ -n "$BASH_VERSION" ]; then
     server_process_and_status=$(
