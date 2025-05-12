@@ -17,12 +17,17 @@ pub struct CreditFacilityRepaymentPlan {
     facility_amount: UsdCents,
     terms: Option<TermValues>,
     activated_at: Option<DateTime<Utc>>,
+    last_interest_accrual_at: Option<DateTime<Utc>>,
     last_updated_on_sequence: EventSequence,
 
     pub entries: Vec<CreditFacilityRepaymentPlanEntry>,
 }
 
 impl CreditFacilityRepaymentPlan {
+    fn activated_at(&self) -> DateTime<Utc> {
+        self.activated_at.unwrap_or(crate::time::now())
+    }
+
     fn existing_obligations(&self) -> Vec<CreditFacilityRepaymentPlanEntry> {
         self.entries
             .iter()
@@ -48,15 +53,15 @@ impl CreditFacilityRepaymentPlan {
             .fold(UsdCents::ZERO, |acc, outstanding| acc + outstanding)
     }
 
-    fn planned_disbursals(&self) -> (Vec<CreditFacilityRepaymentPlanEntry>, DateTime<Utc>) {
+    fn planned_disbursals(&self) -> Vec<CreditFacilityRepaymentPlanEntry> {
         let terms = self.terms.expect("Missing FacilityCreated event");
         let facility_amount = self.facility_amount;
         let structuring_fee = terms.one_time_fee_rate.apply(facility_amount);
 
-        let planned_at = crate::time::now();
-        let maturity_date = terms.duration.maturity_date(planned_at);
+        let activated_at = self.activated_at();
+        let maturity_date = terms.duration.maturity_date(activated_at);
 
-        let entries = vec![
+        vec![
             CreditFacilityRepaymentPlanEntry::Disbursal(ObligationDataForEntry {
                 id: None,
                 status: RepaymentStatus::Upcoming,
@@ -67,7 +72,7 @@ impl CreditFacilityRepaymentPlan {
                 due_at: maturity_date,
                 overdue_at: None,
                 defaulted_at: None,
-                recorded_at: planned_at,
+                recorded_at: activated_at,
             }),
             CreditFacilityRepaymentPlanEntry::Disbursal(ObligationDataForEntry {
                 id: None,
@@ -79,70 +84,54 @@ impl CreditFacilityRepaymentPlan {
                 due_at: maturity_date,
                 overdue_at: None,
                 defaulted_at: None,
-                recorded_at: planned_at,
+                recorded_at: activated_at,
             }),
-        ];
-
-        (entries, planned_at)
+        ]
     }
 
-    fn populate_entries(&mut self, existing_obligations: Vec<CreditFacilityRepaymentPlanEntry>) {
-        let (entries, activated_at) = if existing_obligations.is_empty() {
-            self.planned_disbursals()
-        } else {
-            (
-                existing_obligations,
-                self.activated_at.expect("Missing FacilityCreated event"),
-            )
-        };
-        self.entries = entries;
-
-        let outstanding = self.disbursed_outstanding();
-
+    fn planned_interest_accruals(&self) -> Vec<CreditFacilityRepaymentPlanEntry> {
         let terms = self.terms.expect("Missing FacilityCreated event");
-        let maturity_date = terms.duration.maturity_date(activated_at);
-        let last_interest_accrual_at = self.entries.iter().rev().find_map(|entry| match entry {
-            CreditFacilityRepaymentPlanEntry::Interest(data) => Some(data.recorded_at),
-            _ => None,
-        });
-        let mut next_interest_period = if let Some(last_interest_payment) = last_interest_accrual_at
-        {
-            terms
-                .accrual_cycle_interval
-                .period_from(last_interest_payment)
-                .next()
-                .truncate(maturity_date)
-        } else {
-            terms
-                .accrual_cycle_interval
-                .period_from(activated_at)
-                .truncate(maturity_date)
-        };
+        let activated_at = self.activated_at();
 
+        let maturity_date = terms.duration.maturity_date(activated_at);
+        let mut next_interest_period =
+            if let Some(last_interest_payment) = self.last_interest_accrual_at {
+                terms
+                    .accrual_cycle_interval
+                    .period_from(last_interest_payment)
+                    .next()
+                    .truncate(maturity_date)
+            } else {
+                terms
+                    .accrual_cycle_interval
+                    .period_from(activated_at)
+                    .truncate(maturity_date)
+            };
+
+        let mut entries = vec![];
         while let Some(period) = next_interest_period {
             let interest = terms
                 .annual_rate
-                .interest_for_time_period(outstanding, period.days());
+                .interest_for_time_period(self.disbursed_outstanding(), period.days());
 
-            self.entries
-                .push(CreditFacilityRepaymentPlanEntry::Interest(
-                    ObligationDataForEntry {
-                        id: None,
-                        status: RepaymentStatus::Upcoming,
-                        initial: interest,
-                        outstanding: interest,
+            entries.push(CreditFacilityRepaymentPlanEntry::Interest(
+                ObligationDataForEntry {
+                    id: None,
+                    status: RepaymentStatus::Upcoming,
+                    initial: interest,
+                    outstanding: interest,
 
-                        due_at: period.end,
-                        overdue_at: None,
-                        defaulted_at: None,
-                        recorded_at: period.end,
-                    },
-                ));
+                    due_at: period.end,
+                    overdue_at: None,
+                    defaulted_at: None,
+                    recorded_at: period.end,
+                },
+            ));
 
             next_interest_period = period.next().truncate(maturity_date);
         }
 
-        self.entries.sort();
+        entries
     }
 
     pub(super) fn process_event(
@@ -151,18 +140,16 @@ impl CreditFacilityRepaymentPlan {
         event: &CoreCreditEvent,
     ) -> bool {
         self.last_updated_on_sequence = sequence;
+
         let mut existing_obligations = self.existing_obligations();
-        let plan_updated = match event {
+
+        match event {
             CoreCreditEvent::FacilityCreated { terms, amount, .. } => {
                 self.terms = Some(*terms);
                 self.facility_amount = *amount;
-
-                true
             }
             CoreCreditEvent::FacilityActivated { activated_at, .. } => {
                 self.activated_at = Some(*activated_at);
-
-                true
             }
             CoreCreditEvent::ObligationCreated {
                 id,
@@ -188,11 +175,13 @@ impl CreditFacilityRepaymentPlan {
                 };
                 let entry = match obligation_type {
                     ObligationType::Disbursal => CreditFacilityRepaymentPlanEntry::Disbursal(data),
-                    ObligationType::Interest => CreditFacilityRepaymentPlanEntry::Interest(data),
+                    ObligationType::Interest => {
+                        self.last_interest_accrual_at = Some(data.recorded_at);
+                        CreditFacilityRepaymentPlanEntry::Interest(data)
+                    }
                 };
 
                 existing_obligations.push(entry);
-                true
             }
             CoreCreditEvent::FacilityRepaymentRecorded {
                 obligation_id,
@@ -208,9 +197,8 @@ impl CreditFacilityRepaymentPlan {
                     (data.id == Some(*obligation_id)).then_some(data)
                 }) {
                     data.outstanding -= *amount;
-                    true
                 } else {
-                    false
+                    return false;
                 }
             }
             CoreCreditEvent::ObligationDue {
@@ -236,19 +224,24 @@ impl CreditFacilityRepaymentPlan {
                         CoreCreditEvent::ObligationDefaulted { .. } => RepaymentStatus::Defaulted,
                         _ => unreachable!(),
                     };
-                    true
                 } else {
-                    false
+                    return false;
                 }
             }
 
-            _ => false,
+            _ => return false,
         };
 
-        if plan_updated {
-            self.populate_entries(existing_obligations);
-        }
+        self.entries = if !existing_obligations.is_empty() {
+            existing_obligations
+        } else {
+            self.planned_disbursals()
+        };
 
-        plan_updated
+        self.entries.extend(self.planned_interest_accruals());
+
+        self.entries.sort();
+
+        true
     }
 }
