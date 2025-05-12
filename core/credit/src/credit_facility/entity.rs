@@ -209,7 +209,7 @@ impl CreditFacility {
         Err(CreditFacilityError::ApprovalInProgress)
     }
 
-    fn is_activated(&self) -> bool {
+    pub fn is_activated(&self) -> bool {
         for event in self.events.iter_all() {
             match event {
                 CreditFacilityEvent::Activated { .. } => return true,

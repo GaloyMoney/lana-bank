@@ -544,7 +544,7 @@ where
             return Err(CoreCreditError::CustomerNotActive);
         }
 
-        if facility.activated_at.is_none() {
+        if !facility.is_activated() {
             return Err(CreditFacilityError::NotActivatedYet.into());
         }
         let now = crate::time::now();
