@@ -14,6 +14,7 @@ pub use repo::RepaymentPlanRepo;
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct CreditFacilityRepaymentPlan {
+    facility_amount: UsdCents,
     terms: Option<TermValues>,
     activated_at: Option<DateTime<Utc>>,
     last_updated_on_sequence: EventSequence,
@@ -47,15 +48,58 @@ impl CreditFacilityRepaymentPlan {
             .fold(UsdCents::ZERO, |acc, outstanding| acc + outstanding)
     }
 
-    fn update_upcoming_interest(&mut self, existing: Vec<CreditFacilityRepaymentPlanEntry>) {
-        self.entries = existing;
+    fn planned_disbursals(&self) -> (Vec<CreditFacilityRepaymentPlanEntry>, DateTime<Utc>) {
+        let terms = self.terms.expect("Missing FacilityCreated event");
+        let facility_amount = self.facility_amount;
+        let structuring_fee = terms.one_time_fee_rate.apply(facility_amount);
+
+        let planned_at = crate::time::now();
+        let maturity_date = terms.duration.maturity_date(planned_at);
+
+        let entries = vec![
+            CreditFacilityRepaymentPlanEntry::Disbursal(ObligationDataForEntry {
+                id: None,
+                status: RepaymentStatus::Upcoming,
+
+                initial: structuring_fee,
+                outstanding: structuring_fee,
+
+                due_at: maturity_date,
+                overdue_at: None,
+                defaulted_at: None,
+                recorded_at: planned_at,
+            }),
+            CreditFacilityRepaymentPlanEntry::Disbursal(ObligationDataForEntry {
+                id: None,
+                status: RepaymentStatus::Upcoming,
+
+                initial: facility_amount,
+                outstanding: facility_amount,
+
+                due_at: maturity_date,
+                overdue_at: None,
+                defaulted_at: None,
+                recorded_at: planned_at,
+            }),
+        ];
+
+        (entries, planned_at)
+    }
+
+    fn populate_entries(&mut self, existing_obligations: Vec<CreditFacilityRepaymentPlanEntry>) {
+        let (entries, activated_at) = if existing_obligations.is_empty() {
+            self.planned_disbursals()
+        } else {
+            (
+                existing_obligations,
+                self.activated_at.expect("Missing FacilityCreated event"),
+            )
+        };
+        self.entries = entries;
+
         let outstanding = self.disbursed_outstanding();
-        if outstanding.is_zero() {
-            return;
-        }
 
         let terms = self.terms.expect("Missing FacilityCreated event");
-        let activated_at = self.activated_at.expect("Missing FacilityCreated event");
         let maturity_date = terms.duration.maturity_date(activated_at);
         let last_interest_accrual_at = self.entries.iter().rev().find_map(|entry| match entry {
             CreditFacilityRepaymentPlanEntry::Interest(data) => Some(data.recorded_at),
@@ -109,8 +153,9 @@ impl CreditFacilityRepaymentPlan {
         self.last_updated_on_sequence = sequence;
         let mut existing_obligations = self.existing_obligations();
         let plan_updated = match event {
-            CoreCreditEvent::FacilityCreated { terms, .. } => {
+            CoreCreditEvent::FacilityCreated { terms, amount, .. } => {
                 self.terms = Some(*terms);
+                self.facility_amount = *amount;
 
                 true
             }
@@ -223,13 +268,10 @@ impl CreditFacilityRepaymentPlan {
             _ => false,
         };
 
-        if !plan_updated {
-            false
-        } else if existing_obligations.is_empty() {
-            true
-        } else {
-            self.update_upcoming_interest(existing_obligations);
-            true
+        if plan_updated {
+            self.populate_entries(existing_obligations);
         }
+
+        plan_updated
     }
 }
