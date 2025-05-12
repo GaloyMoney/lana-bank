@@ -11,7 +11,7 @@ use error::*;
 use job::*;
 
 use audit::AuditSvc;
-use core_user::{CoreUserAction, CoreUserEvent, UserId, UserObject, Users};
+use core_user::{CoreUserAction, CoreUserEvent, CoreUserObject, UserId, Users};
 use outbox::{Outbox, OutboxEventMarker};
 
 pub struct UserOnboarding<Audit, E>
@@ -41,7 +41,7 @@ where
     Audit: AuditSvc,
     <Audit as AuditSvc>::Subject: From<UserId>,
     <Audit as AuditSvc>::Action: From<CoreUserAction>,
-    <Audit as AuditSvc>::Object: From<UserObject>,
+    <Audit as AuditSvc>::Object: From<CoreUserObject>,
     E: OutboxEventMarker<CoreUserEvent>,
 {
     pub async fn init(

@@ -51,7 +51,7 @@ where
     Audit: AuditSvc,
     <Audit as AuditSvc>::Subject: From<UserId>,
     <Audit as AuditSvc>::Action: From<CoreUserAction>,
-    <Audit as AuditSvc>::Object: From<UserObject>,
+    <Audit as AuditSvc>::Object: From<CoreUserObject>,
     E: OutboxEventMarker<CoreUserEvent>,
 {
     pub async fn init(
@@ -83,7 +83,7 @@ where
             .authz
             .evaluate_permission(
                 sub,
-                UserObject::all_users(),
+                CoreUserObject::all_users(),
                 CoreUserAction::USER_CREATE,
                 enforce,
             )
@@ -127,7 +127,7 @@ where
     {
         let id = UserId::try_from(sub).map_err(|_| UserError::SubjectIsNotUser)?;
         self.authz
-            .enforce_permission(sub, UserObject::user(id), CoreUserAction::USER_READ)
+            .enforce_permission(sub, CoreUserObject::user(id), CoreUserAction::USER_READ)
             .await?;
         self.repo.find_by_id(id).await
     }
@@ -140,7 +140,7 @@ where
     ) -> Result<Option<User>, UserError> {
         let id = id.into();
         self.authz
-            .enforce_permission(sub, UserObject::user(id), CoreUserAction::USER_READ)
+            .enforce_permission(sub, CoreUserObject::user(id), CoreUserAction::USER_READ)
             .await?;
         match self.repo.find_by_id(id).await {
             Ok(user) => Ok(Some(user)),
@@ -157,7 +157,7 @@ where
     ) -> Result<Option<User>, UserError> {
         if let Some(sub) = sub {
             self.authz
-                .enforce_permission(sub, UserObject::all_users(), CoreUserAction::USER_READ)
+                .enforce_permission(sub, CoreUserObject::all_users(), CoreUserAction::USER_READ)
                 .await?;
         }
 
@@ -177,7 +177,7 @@ where
         self.authz
             .audit()
             .record_system_entry(
-                UserObject::user(user_id),
+                CoreUserObject::user(user_id),
                 CoreUserAction::USER_UPDATE_AUTHENTICATION_ID,
             )
             .await?;
@@ -219,7 +219,7 @@ where
         sub: &<Audit as AuditSvc>::Subject,
     ) -> Result<Vec<User>, UserError> {
         self.authz
-            .enforce_permission(sub, UserObject::all_users(), CoreUserAction::USER_LIST)
+            .enforce_permission(sub, CoreUserObject::all_users(), CoreUserAction::USER_LIST)
             .await?;
 
         Ok(self
@@ -239,7 +239,7 @@ where
             .authz
             .evaluate_permission(
                 sub,
-                UserObject::user(user_id),
+                CoreUserObject::user(user_id),
                 CoreUserAction::USER_ASSIGN_ROLE,
                 enforce,
             )
@@ -285,7 +285,7 @@ where
             .authz
             .evaluate_permission(
                 sub,
-                UserObject::user(user_id),
+                CoreUserObject::user(user_id),
                 CoreUserAction::USER_REVOKE_ROLE,
                 enforce,
             )
@@ -329,7 +329,7 @@ where
             .audit()
             .record_system_entry_in_tx(
                 db.tx(),
-                UserObject::all_users(),
+                CoreUserObject::all_users(),
                 CoreUserAction::USER_CREATE,
             )
             .await?;

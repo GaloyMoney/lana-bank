@@ -95,42 +95,42 @@ pub type UserAllOrOne = AllOrOne<UserId>;
 #[derive(Clone, Copy, Debug, PartialEq, strum::EnumDiscriminants)]
 #[strum_discriminants(derive(strum::Display, strum::EnumString))]
 #[strum_discriminants(strum(serialize_all = "kebab-case"))]
-pub enum UserObject {
+pub enum CoreUserObject {
     User(UserAllOrOne),
 }
 
-impl UserObject {
-    pub fn all_users() -> UserObject {
-        UserObject::User(AllOrOne::All)
+impl CoreUserObject {
+    pub fn all_users() -> CoreUserObject {
+        CoreUserObject::User(AllOrOne::All)
     }
-    pub fn user(id: impl Into<Option<UserId>>) -> UserObject {
+    pub fn user(id: impl Into<Option<UserId>>) -> CoreUserObject {
         match id.into() {
-            Some(id) => UserObject::User(AllOrOne::ById(id)),
-            None => UserObject::all_users(),
+            Some(id) => CoreUserObject::User(AllOrOne::ById(id)),
+            None => CoreUserObject::all_users(),
         }
     }
 }
 
-impl Display for UserObject {
+impl Display for CoreUserObject {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let discriminant = UserObjectDiscriminants::from(self);
-        use UserObject::*;
+        let discriminant = CoreUserObjectDiscriminants::from(self);
+        use CoreUserObject::*;
         match self {
             User(obj_ref) => write!(f, "{}/{}", discriminant, obj_ref),
         }
     }
 }
 
-impl FromStr for UserObject {
+impl FromStr for CoreUserObject {
     type Err = &'static str;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let (entity, id) = s.split_once('/').expect("missing slash");
-        use UserObjectDiscriminants::*;
+        use CoreUserObjectDiscriminants::*;
         let res = match entity.parse().expect("invalid entity") {
             User => {
                 let obj_ref = id.parse().map_err(|_| "could not parse UserObject")?;
-                UserObject::User(obj_ref)
+                CoreUserObject::User(obj_ref)
             }
         };
         Ok(res)

@@ -5,7 +5,7 @@ use futures::StreamExt;
 use job::*;
 
 use audit::AuditSvc;
-use core_user::{CoreUserAction, UserId, UserObject, Users};
+use core_user::{CoreUserAction, CoreUserObject, UserId, Users};
 use outbox::{Outbox, OutboxEventMarker};
 
 use kratos_admin::KratosAdmin;
@@ -26,7 +26,7 @@ where
     Audit: AuditSvc,
     <Audit as AuditSvc>::Subject: From<UserId>,
     <Audit as AuditSvc>::Action: From<CoreUserAction>,
-    <Audit as AuditSvc>::Object: From<UserObject>,
+    <Audit as AuditSvc>::Object: From<CoreUserObject>,
     E: OutboxEventMarker<CoreUserEvent>,
 {
     type Initializer = UserOnboardingJobInitializer<Audit, E>;
@@ -47,7 +47,7 @@ where
     Audit: AuditSvc,
     <Audit as AuditSvc>::Subject: From<UserId>,
     <Audit as AuditSvc>::Action: From<CoreUserAction>,
-    <Audit as AuditSvc>::Object: From<UserObject>,
+    <Audit as AuditSvc>::Object: From<CoreUserObject>,
     E: OutboxEventMarker<CoreUserEvent>,
 {
     pub fn new(outbox: &Outbox<E>, users: &Users<Audit, E>, kratos_admin: KratosAdmin) -> Self {
@@ -65,7 +65,7 @@ where
     Audit: AuditSvc,
     <Audit as AuditSvc>::Subject: From<UserId>,
     <Audit as AuditSvc>::Action: From<CoreUserAction>,
-    <Audit as AuditSvc>::Object: From<UserObject>,
+    <Audit as AuditSvc>::Object: From<CoreUserObject>,
     E: OutboxEventMarker<CoreUserEvent>,
 {
     fn job_type() -> JobType
@@ -111,7 +111,7 @@ where
     Audit: AuditSvc,
     <Audit as AuditSvc>::Subject: From<UserId>,
     <Audit as AuditSvc>::Action: From<CoreUserAction>,
-    <Audit as AuditSvc>::Object: From<UserObject>,
+    <Audit as AuditSvc>::Object: From<CoreUserObject>,
     E: OutboxEventMarker<CoreUserEvent>,
 {
     async fn run(
