@@ -79,5 +79,5 @@ jobs:
         with:
           cachix_auth_token: ${{ secrets.CACHIX_AUTH_TOKEN_LANA_CI }}
           google_credentials: ${{ secrets.GOOGLE_CREDENTIALS }}
-      - name: Run e2e tests
+      - name: build
         run: nix build .

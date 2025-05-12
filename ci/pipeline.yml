@@ -106,13 +106,22 @@ jobs:
             repository: ghcr.io/nix-community/docker-nixpkgs/cachix-flakes
         inputs:
           - name: repo
+        params:
+          CACHIX_AUTH_TOKEN: #@ data.values.cachix_auth_token
         run:
           path: sh
           args:
-          - -ec
+          - -exc
           - |
+            set -euo pipefail
             cd repo
-            nix build . -L
+            cachix use lana-ci
+
+            # Build and cache the main derivation
+            nix build --print-out-paths --no-link | cachix push lana-ci
+            
+            # Build and cache the development shell
+            nix develop --command true | cachix push lana-ci
 
   - name: bats-integrations-test
     #! serial: true
@@ -670,7 +679,7 @@ resources:
         - apps/**/*
       fetch_tags: true
       uri: #@ data.values.git_uri
-      branch: #@ data.values.git_branch
+      branch: ci--nix-update-2
       private_key: #@ data.values.github_private_key
     webhook_token: ((webhook.secret))
   - name: repo-dev-out
