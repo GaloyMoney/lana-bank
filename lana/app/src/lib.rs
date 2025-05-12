@@ -30,8 +30,8 @@ pub mod user_onboarding {
 }
 
 pub mod user {
-    pub use core_user::{error, User};
-    pub type Users = core_user::Users<crate::audit::Audit, lana_events::LanaEvent>;
+    pub use core_user::{user::error, user::User};
+    pub type Users = core_user::user::Users<crate::audit::Audit, lana_events::LanaEvent>;
 }
 
 pub mod customer {

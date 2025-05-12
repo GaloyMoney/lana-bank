@@ -11,7 +11,7 @@ use error::*;
 use job::*;
 
 use audit::AuditSvc;
-use core_user::{CoreUserAction, CoreUserEvent, CoreUserObject, UserId, Users};
+use core_user::{user::Users, CoreUserAction, CoreUserEvent, CoreUserObject, UserId};
 use outbox::{Outbox, OutboxEventMarker};
 
 pub struct UserOnboarding<Audit, E>

@@ -1,16 +1,18 @@
 use audit::AuditSvc;
 use authz::PermissionCheck;
-use outbox::{Outbox, OutboxEventMarker};
+use outbox::OutboxEventMarker;
 
 use crate::{
-    primitives::{CoreUserAction, CoreUserObject},
-    CoreUserEvent,
+    event::CoreUserEvent,
+    primitives::{CoreUserAction, CoreUserObject, RoleId},
 };
 
 mod entity;
 mod error;
 mod repo;
 
+use entity::{NewRole, Role};
+use error::RoleError;
 use repo::RoleRepo;
 
 #[derive(Clone)]
@@ -35,5 +37,29 @@ where
             repo: RoleRepo::new(pool),
             authz: authz.clone(),
         }
+    }
+
+    pub async fn create_role(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        name: String,
+    ) -> Result<Role, RoleError> {
+        self.authz
+            .enforce_permission(
+                sub,
+                CoreUserObject::all_roles(),
+                CoreUserAction::ROLE_CREATE,
+            )
+            .await?;
+
+        let new_role = NewRole::builder()
+            .id(RoleId::new())
+            .name(name)
+            .build()
+            .expect("all fields for new role provided");
+
+        let role = self.repo.create(new_role).await?;
+
+        Ok(role)
     }
 }

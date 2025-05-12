@@ -44,6 +44,12 @@ pub struct NewRole {
     pub(super) name: String,
 }
 
+impl NewRole {
+    pub fn builder() -> NewRoleBuilder {
+        Default::default()
+    }
+}
+
 impl IntoEvents<RoleEvent> for NewRole {
     fn into_events(self) -> EntityEvents<RoleEvent> {
         EntityEvents::init(

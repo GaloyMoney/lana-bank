@@ -37,9 +37,12 @@ impl Display for RoleName {
 #[strum_discriminants(strum(serialize_all = "kebab-case"))]
 pub enum CoreUserAction {
     User(UserEntityAction),
+    Role(RoleEntityAction),
 }
 
 impl CoreUserAction {
+    pub const ROLE_CREATE: Self = CoreUserAction::Role(RoleEntityAction::Create);
+
     pub const USER_CREATE: Self = CoreUserAction::User(UserEntityAction::Create);
     pub const USER_READ: Self = CoreUserAction::User(UserEntityAction::Read);
     pub const USER_LIST: Self = CoreUserAction::User(UserEntityAction::List);
@@ -47,6 +50,12 @@ impl CoreUserAction {
     pub const USER_REVOKE_ROLE: Self = CoreUserAction::User(UserEntityAction::RevokeRole);
     pub const USER_UPDATE_AUTHENTICATION_ID: Self =
         CoreUserAction::User(UserEntityAction::UpdateAuthenticationId);
+}
+
+#[derive(PartialEq, Clone, Copy, Debug, strum::Display, strum::EnumString)]
+#[strum(serialize_all = "kebab-case")]
+pub enum RoleEntityAction {
+    Create,
 }
 
 #[derive(PartialEq, Clone, Copy, Debug, strum::Display, strum::EnumString)]
@@ -67,6 +76,7 @@ impl Display for CoreUserAction {
         use CoreUserAction::*;
         match self {
             User(action) => action.fmt(f),
+            Role(action) => action.fmt(f),
         }
     }
 }
@@ -79,6 +89,7 @@ impl FromStr for CoreUserAction {
         use CoreUserActionDiscriminants::*;
         let res = match entity.parse()? {
             User => CoreUserAction::from(action.parse::<UserEntityAction>()?),
+            Role => CoreUserAction::from(action.parse::<RoleEntityAction>()?),
         };
         Ok(res)
     }
@@ -90,17 +101,29 @@ impl From<UserEntityAction> for CoreUserAction {
     }
 }
 
+impl From<RoleEntityAction> for CoreUserAction {
+    fn from(action: RoleEntityAction) -> Self {
+        CoreUserAction::Role(action)
+    }
+}
+
 pub type UserAllOrOne = AllOrOne<UserId>;
+pub type RoleAllOrOne = AllOrOne<RoleId>;
 
 #[derive(Clone, Copy, Debug, PartialEq, strum::EnumDiscriminants)]
 #[strum_discriminants(derive(strum::Display, strum::EnumString))]
 #[strum_discriminants(strum(serialize_all = "kebab-case"))]
 pub enum CoreUserObject {
     User(UserAllOrOne),
+    Role(RoleAllOrOne),
 }
 
 impl CoreUserObject {
-    pub fn all_users() -> CoreUserObject {
+    pub const fn all_roles() -> CoreUserObject {
+        CoreUserObject::Role(AllOrOne::All)
+    }
+
+    pub const fn all_users() -> CoreUserObject {
         CoreUserObject::User(AllOrOne::All)
     }
     pub fn user(id: impl Into<Option<UserId>>) -> CoreUserObject {
@@ -117,6 +140,7 @@ impl Display for CoreUserObject {
         use CoreUserObject::*;
         match self {
             User(obj_ref) => write!(f, "{}/{}", discriminant, obj_ref),
+            Role(obj_ref) => write!(f, "{}/{}", discriminant, obj_ref),
         }
     }
 }
@@ -131,6 +155,10 @@ impl FromStr for CoreUserObject {
             User => {
                 let obj_ref = id.parse().map_err(|_| "could not parse UserObject")?;
                 CoreUserObject::User(obj_ref)
+            }
+            Role => {
+                let obj_ref = id.parse().map_err(|_| "could not parse RoleObject")?;
+                CoreUserObject::Role(obj_ref)
             }
         };
         Ok(res)
