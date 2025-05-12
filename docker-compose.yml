@@ -1,7 +1,7 @@
 services:
   #! Telemetry
   otel-agent:
-    image: otel/opentelemetry-collector-contrib:0.122.1
+    image: ghcr.io/open-telemetry/opentelemetry-collector-contrib/telemetrygen:v0.125.0
     ports: [ 4317:4317 ]
     environment:
       - HONEYCOMB_DATASET=${HONEYCOMB_DATASET}
@@ -43,17 +43,17 @@ services:
 
   #! Databases
   core-pg:
-    image: postgres:17.5
+    image: ghcr.io/cloudnative-pg/postgresql:17.5
     ports: [ 5433:5432 ]
     environment: [ POSTGRES_USER=user, POSTGRES_PASSWORD=password, POSTGRES_DB=pg ]
 
   kratos-admin-pg:
-    image: postgres:17.5
+    image: ghcr.io/cloudnative-pg/postgresql:17.5
     ports: [ 5434:5432 ]
     environment: [ POSTGRES_USER=dbuser, POSTGRES_PASSWORD=secret, POSTGRES_DB=default ]
 
   kratos-customer-pg:
-    image: postgres:17.5
+    image: ghcr.io/cloudnative-pg/postgresql:17.5
     ports: [ 5435:5432 ]
     environment: [ POSTGRES_USER=dbuser, POSTGRES_PASSWORD=secret, POSTGRES_DB=default ]
 
