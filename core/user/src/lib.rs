@@ -6,6 +6,7 @@ pub mod error;
 mod event;
 mod primitives;
 mod repo;
+mod role;
 
 use std::collections::HashMap;
 use tracing::instrument;
