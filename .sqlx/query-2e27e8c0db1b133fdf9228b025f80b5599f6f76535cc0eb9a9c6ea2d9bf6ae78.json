@@ -1,0 +1,41 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "WITH entities AS (SELECT id FROM core_roles WHERE (COALESCE(id < $2, true)) ORDER BY id DESC LIMIT $1) SELECT i.id AS \"entity_id: RoleId\", e.sequence, e.event, e.recorded_at FROM entities i JOIN core_role_events e ON i.id = e.id ORDER BY i.id desc, i.id, e.sequence",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "entity_id: RoleId",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "sequence",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 2,
+        "name": "event",
+        "type_info": "Jsonb"
+      },
+      {
+        "ordinal": 3,
+        "name": "recorded_at",
+        "type_info": "Timestamptz"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Int8",
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "2e27e8c0db1b133fdf9228b025f80b5599f6f76535cc0eb9a9c6ea2d9bf6ae78"
+}

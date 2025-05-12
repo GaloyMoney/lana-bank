@@ -1,0 +1,16 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "UPDATE core_users SET email = $2, authentication_id = $3 WHERE id = $1",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Varchar",
+        "Uuid"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "23a610fce5f6cb8ed31e74b7ee59cbdb50f0691b072db21723b4e90067f390f2"
+}

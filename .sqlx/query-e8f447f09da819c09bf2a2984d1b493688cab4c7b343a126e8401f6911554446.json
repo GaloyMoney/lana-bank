@@ -1,0 +1,18 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO core_user_events (id, recorded_at, sequence, event_type, event) SELECT unnested.id, $1, unnested.sequence, unnested.event_type, unnested.event FROM UNNEST($2::UUID[], $3::INT[], $4::TEXT[], $5::JSONB[]) AS unnested(id, sequence, event_type, event)",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Timestamptz",
+        "UuidArray",
+        "Int4Array",
+        "TextArray",
+        "JsonbArray"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "e8f447f09da819c09bf2a2984d1b493688cab4c7b343a126e8401f6911554446"
+}
