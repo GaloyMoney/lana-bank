@@ -117,6 +117,9 @@ stop_server() {
   if [[ -f "$SERVER_PID_FILE" ]]; then
     kill -9 $(cat "$SERVER_PID_FILE") || true
   fi
+
+  lsof -i :5253 | tail -n 1 | awk '{print $2}' | xargs -r kill -9 || true
+  lsof -i :5254 | tail -n 1 | awk '{print $2}' | xargs -r kill -9 || true
 }
 
 gql_query() {
