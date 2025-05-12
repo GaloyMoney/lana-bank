@@ -107,12 +107,13 @@ impl CreditFacility {
         Ok(app.credit().repayment_plan(sub, self.entity.id).await?)
     }
 
-    async fn quote(
-        &self,
-        ctx: &Context<'_>,
-    ) -> async_graphql::Result<Vec<CreditFacilityQuoteEntry>> {
-        let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
-        Ok(app.credit().quote(sub, self.entity.id).await?)
+    async fn quote(&self) -> async_graphql::Result<Vec<CreditFacilityQuoteEntry>> {
+        Ok(self
+            .entity
+            .quote()
+            .into_iter()
+            .map(CreditFacilityQuoteEntry::from)
+            .collect())
     }
 
     async fn disbursals(
