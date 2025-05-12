@@ -7,14 +7,14 @@ on:
       - "feature/**"
 
 jobs:
-  integration:
+  bats-tests:
     name: End to End Bats Tests
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/setup-nix
         with:
-          cachix_auth_token: ${{ secrets.CACHIX_AUTH_TOKEN }}
+          cachix_auth_token: ${{ secrets.CACHIX_AUTH_TOKEN_LANA_CI }}
           google_credentials: ${{ secrets.GOOGLE_CREDENTIALS }}
       - uses: ./.github/actions/cache-rust 
       - name: Run e2e tests

@@ -22,7 +22,7 @@ jobs:
       - name: Setup Nix Environment
         uses: ./.github/actions/setup-nix
         with:
-          cachix_auth_token: ${{ secrets.CACHIX_AUTH_TOKEN }}
+          cachix_auth_token: ${{ secrets.CACHIX_AUTH_TOKEN_LANA_CI }}
           # google_credentials not needed for caching/building
 
       - name: Get pnpm store directory
@@ -52,7 +52,7 @@ jobs:
       - name: Setup Nix Environment
         uses: ./.github/actions/setup-nix
         with:
-          cachix_auth_token: ${{ secrets.CACHIX_AUTH_TOKEN }}
+          cachix_auth_token: ${{ secrets.CACHIX_AUTH_TOKEN_LANA_CI }}
 
       - name: Cache Cargo dependencies
         id: cargo-cache
@@ -69,3 +69,15 @@ jobs:
       - name: Build Rust dependencies (Populate Cache)
         if: steps.cargo-cache.outputs.cache-hit != 'true'
         run: nix develop -c make build
+
+  nix-build-cache:
+    name: Update Nix Build Cache
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-nix
+        with:
+          cachix_auth_token: ${{ secrets.CACHIX_AUTH_TOKEN_LANA_CI }}
+          google_credentials: ${{ secrets.GOOGLE_CREDENTIALS }}
+      - name: Run e2e tests
+        run: nix build .

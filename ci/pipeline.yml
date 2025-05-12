@@ -180,7 +180,7 @@ jobs:
           - { get: pipeline-tasks }
       - task: bats-tests
         timeout: 50m
-        attempts: 1
+        attempts: 2
         privileged: true
         config:
           platform: linux
@@ -670,7 +670,7 @@ resources:
         - apps/**/*
       fetch_tags: true
       uri: #@ data.values.git_uri
-      branch: ci--nix-update-2
+      branch: #@ data.values.git_branch
       private_key: #@ data.values.github_private_key
     webhook_token: ((webhook.secret))
   - name: repo-dev-out

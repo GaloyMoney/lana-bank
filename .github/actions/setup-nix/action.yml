@@ -31,7 +31,7 @@ runs:
 
     - uses: cachix/cachix-action@v15
       with:
-        name: lana
+        name: lana-ci
         authToken: ${{ inputs.cachix_auth_token }}
 
     - run: nix flake check
