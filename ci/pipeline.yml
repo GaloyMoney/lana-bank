@@ -167,9 +167,7 @@ jobs:
                 # The script path is relative to the pipeline-tasks input root
                 # Assumes pipeline-tasks is mounted at the task root, alongside repo
                 
-                #! nix -L develop --command sh -exc ../pipeline-tasks/ci/tasks/podman-integration-tests.sh
-
-                nix -L develop --command sh -exc ../pipeline-tasks/ci/tasks/podman-e2e-tests.sh                
+                nix -L develop --command sh -exc ../pipeline-tasks/ci/tasks/podman-bats-integration.sh                
 
   - name: bats-tests
     serial: true
