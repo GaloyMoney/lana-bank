@@ -12,7 +12,7 @@ es_entity::entity_id! {
 #[cfg(not(feature = "governance"))]
 es_entity::entity_id! { UserId }
 
-es_entity::entity_id! { AuthenticationId }
+es_entity::entity_id! { AuthenticationId, RoleId }
 
 #[derive(Clone, Eq, Hash, PartialEq, Debug, Serialize, Deserialize, sqlx::Type)]
 #[sqlx(transparent)]

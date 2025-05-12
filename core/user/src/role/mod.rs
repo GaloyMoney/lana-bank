@@ -1,1 +1,3 @@
-pub struct Dummy;
+mod entity;
+mod repo;
+mod error;

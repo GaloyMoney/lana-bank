@@ -13,7 +13,8 @@ use super::{entity::*, error::*};
     columns(
         email(ty = "String", list_by),
         authentication_id(ty = "Option<AuthenticationId>", list_by, create(persist = false)),
-    )
+    ),
+    tbl_prefix = "core",
 )]
 pub(crate) struct UserRepo {
     #[allow(dead_code)]
