@@ -5,13 +5,14 @@ use outbox::OutboxEventMarker;
 use crate::{
     event::CoreUserEvent,
     primitives::{CoreUserAction, CoreUserObject, RoleId},
+    publisher::UserPublisher,
 };
 
 mod entity;
-mod error;
+pub mod error;
 mod repo;
 
-use entity::{NewRole, Role};
+pub use entity::{NewRole, Role, RoleEvent};
 use error::RoleError;
 use repo::RoleRepo;
 
@@ -32,9 +33,9 @@ where
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreUserObject>,
     E: OutboxEventMarker<CoreUserEvent>,
 {
-    pub fn new(pool: &sqlx::PgPool, authz: &Perms) -> Self {
+    pub fn new(pool: &sqlx::PgPool, authz: &Perms, publisher: &UserPublisher<E>) -> Self {
         Self {
-            repo: RoleRepo::new(pool),
+            repo: RoleRepo::new(pool, publisher),
             authz: authz.clone(),
         }
     }
