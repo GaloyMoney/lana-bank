@@ -208,6 +208,7 @@ where
         Ok(self.ledger_accounts.find_all(&chart, ids).await?)
     }
 
+    #[instrument(name = "core_accounting.list_account_children", skip(self))]
     pub async fn list_account_children(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
@@ -234,6 +235,10 @@ where
             .await?)
     }
 
+    #[instrument(
+        name = "core_accounting.execute_manual_transaction",
+        skip(self, entries)
+    )]
     pub async fn execute_manual_transaction(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
@@ -270,6 +275,7 @@ where
             .expect("Could not find LedgerTransaction"))
     }
 
+    #[instrument(name = "core_accounting.import_csv", skip(self))]
     pub async fn import_csv(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
