@@ -253,16 +253,6 @@ impl Obligation {
             .unwrap_or(ObligationStatus::NotYetDue)
     }
 
-    pub fn facility_balance_update_data(&self) -> BalanceUpdateData {
-        BalanceUpdateData {
-            source_id: self.id.into(),
-            ledger_tx_id: self.tx_id,
-            balance_type: self.obligation_type,
-            amount: self.initial_amount,
-            updated_at: self.recorded_at,
-        }
-    }
-
     pub fn outstanding(&self) -> UsdCents {
         self.events
             .iter_all()

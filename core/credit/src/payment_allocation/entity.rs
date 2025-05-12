@@ -84,16 +84,6 @@ impl PaymentAllocation {
             .entity_first_persisted_at()
             .expect("entity_first_persisted_at not found")
     }
-
-    pub fn facility_balance_update_data(&self) -> BalanceUpdateData {
-        BalanceUpdateData {
-            source_id: self.id.into(),
-            ledger_tx_id: self.ledger_tx_id,
-            balance_type: self.obligation_type,
-            amount: self.amount,
-            updated_at: self.created_at(),
-        }
-    }
 }
 
 #[derive(Debug, Builder, Clone)]
