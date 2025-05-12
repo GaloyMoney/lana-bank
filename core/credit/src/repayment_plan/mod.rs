@@ -38,7 +38,7 @@ impl CreditFacilityRepaymentPlan {
     }
 
     fn disbursed_outstanding(&self) -> UsdCents {
-        self.existing_obligations()
+        self.entries
             .iter()
             .filter_map(|entry| match entry {
                 CreditFacilityRepaymentPlanEntry::Disbursal(data) => Some(data.outstanding),
