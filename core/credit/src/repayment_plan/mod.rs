@@ -245,3 +245,98 @@ impl CreditFacilityRepaymentPlan {
         true
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use rust_decimal_macros::dec;
+
+    use crate::terms::{Duration, InterestDuration, InterestInterval, OneTimeFeeRatePct};
+
+    use super::*;
+
+    fn default_terms() -> TermValues {
+        TermValues::builder()
+            .annual_rate(dec!(12))
+            .duration(Duration::Months(3))
+            .interest_due_duration(InterestDuration::Days(0))
+            .accrual_cycle_interval(InterestInterval::EndOfMonth)
+            .accrual_interval(InterestInterval::EndOfDay)
+            .one_time_fee_rate(OneTimeFeeRatePct::new(5))
+            .liquidation_cvl(dec!(105))
+            .margin_call_cvl(dec!(125))
+            .initial_cvl(dec!(140))
+            .build()
+            .expect("should build a valid term")
+    }
+
+    fn default_start_date() -> DateTime<Utc> {
+        "2021-01-01T12:00:00Z".parse::<DateTime<Utc>>().unwrap()
+    }
+
+    fn default_facility_amount() -> UsdCents {
+        UsdCents::from(1_000_000_00)
+    }
+
+    fn initial_plan() -> CreditFacilityRepaymentPlan {
+        let mut plan = CreditFacilityRepaymentPlan::default();
+        plan.process_event(
+            Default::default(),
+            &CoreCreditEvent::FacilityCreated {
+                id: CreditFacilityId::new(),
+                terms: default_terms(),
+                amount: default_facility_amount(),
+                created_at: default_start_date(),
+            },
+        );
+
+        plan
+    }
+
+    #[test]
+    fn planned_disbursals_returns_expected_number_of_entries() {
+        assert_eq!(initial_plan().planned_disbursals().len(), 2);
+    }
+
+    #[test]
+    fn planned_interest_accruals_returns_expected_number_of_entries() {
+        let mut plan = initial_plan();
+        assert_eq!(plan.planned_interest_accruals().len(), 4);
+
+        plan.process_event(
+            Default::default(),
+            &CoreCreditEvent::FacilityActivated {
+                id: CreditFacilityId::new(),
+                activation_tx_id: LedgerTxId::new(),
+                activated_at: default_start_date(),
+                amount: default_facility_amount(),
+            },
+        );
+        plan.process_event(
+            Default::default(),
+            &&CoreCreditEvent::ObligationCreated {
+                id: ObligationId::new(),
+                obligation_type: ObligationType::Disbursal,
+                credit_facility_id: CreditFacilityId::new(),
+                amount: UsdCents::from(100_000_00),
+                due_at: default_start_date(),
+                overdue_at: None,
+                defaulted_at: None,
+                created_at: default_start_date(),
+            },
+        );
+        plan.process_event(
+            Default::default(),
+            &&CoreCreditEvent::ObligationCreated {
+                id: ObligationId::new(),
+                obligation_type: ObligationType::Interest,
+                credit_facility_id: CreditFacilityId::new(),
+                amount: UsdCents::from(1_000_00),
+                due_at: default_start_date() + chrono::Duration::days(30),
+                overdue_at: None,
+                defaulted_at: None,
+                created_at: default_start_date() + chrono::Duration::days(30),
+            },
+        );
+        assert_eq!(plan.planned_interest_accruals().len(), 3);
+    }
+}
