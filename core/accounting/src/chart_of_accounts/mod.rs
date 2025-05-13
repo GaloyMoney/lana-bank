@@ -137,6 +137,10 @@ where
                 }
             }
         }
+        if new_account_sets.is_empty() {
+            return Ok(chart);
+        }
+
         let mut op = self.repo.begin_op().await?;
         self.repo.update_in_op(&mut op, &mut chart).await?;
 
