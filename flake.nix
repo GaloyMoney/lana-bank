@@ -49,21 +49,10 @@
         strictDeps = true;
 
         buildInputs =
-          [
-            # pkgs.openssl
-            # pkgs.pkg-config
-            # pkgs.postgresql
-            # Add additional build inputs here
-          ]
-          ++ pkgs.lib.optionals pkgs.stdenv.isDarwin [
-            # Additional darwin specific inputs can be set here
-            # pkgs.libiconv
-          ];
+          []
+          ++ pkgs.lib.optionals pkgs.stdenv.isDarwin [];
 
-        CARGO_PROFILE = "dev";
         SQLX_OFFLINE = true;
-        # No specific package name for commonArgs, it's for general settings
-        # version = lanaCliVersion; # Version will be set per-package
       };
 
       cargoArtifacts = craneLib.buildDepsOnly (commonArgs
@@ -71,6 +60,16 @@
           cargoToml = ./Cargo.toml; # Explicitly point to the root Cargo.toml for workspace deps
           pname = "lana-workspace-deps"; # A distinct name for the deps build
           version = "0.0.0"; # A placeholder version for the deps build
+          CARGO_PROFILE = "dev";
+        });
+
+      # Build dependencies in release mode
+      cargoArtifacts-release = craneLib.buildDepsOnly (commonArgs-release
+        // {
+          cargoToml = ./Cargo.toml; # Explicitly point to the root Cargo.toml
+          pname = "lana-workspace-deps-release"; # Distinct name for release deps
+          version = "0.0.0"; # Placeholder version
+          CARGO_PROFILE = "release";
         });
 
       lanaCliPname = "lana-cli";
@@ -78,6 +77,8 @@
       # Build the Lana CLI crate using the cached deps
       lana-cli = craneLib.buildPackage (commonArgs
         // {
+          pname = "${lanaCliPname}-debug"; # Set pname for debug build
+          CARGO_PROFILE = "dev"; # Explicitly set dev profile
           cargoToml = ./lana/cli/Cargo.toml; # Explicitly point to the CLI's Cargo.toml
           cargoArtifacts = cargoArtifacts;
           doCheck = false; # Disable tests for lana-cli
@@ -86,6 +87,18 @@
           # version = lanaCliVersion; # Or keep explicitly if preferred
 
           # FIXME: aiming at parity with older script for now
+          cargoExtraArgs = "-p ${lanaCliPname} --features sim-time"; # Build only the specific package
+        });
+
+      # Build the Lana CLI crate in release mode
+      lana-cli-release = craneLib.buildPackage (commonArgs
+        // {
+          pname = "${lanaCliPname}-release"; # Set pname for release build
+          CARGO_PROFILE = "release"; # Explicitly set release profile
+          cargoToml = ./lana/cli/Cargo.toml; # Explicitly point to the CLI's Cargo.toml
+          cargoArtifacts = cargoArtifacts-release; # Use release deps
+          doCheck = false; # Disable tests
+          # pname and version will be taken from ./lana/cli/Cargo.toml
           cargoExtraArgs = "-p ${lanaCliPname} --features sim-time"; # Build only the specific package
         });
 
@@ -157,7 +170,9 @@
     in
       with pkgs; {
         packages.default = lana-cli;
+        packages.lana-cli-release = lana-cli-release;
         packages.deps = cargoArtifacts;
+        packages.deps-release = cargoArtifacts-release; # Expose release deps
 
         apps.default = flake-utils.lib.mkApp {drv = lana-cli;};
 

@@ -37,10 +37,6 @@ services:
     volumes: [ "./dev/ory:/home/ory" ]
     depends_on: [ kratos-admin, kratos-customer, otel-agent ]
 
-  mailhog:
-    image: mailhog/mailhog:latest
-    ports: [ 1025:1025, 8025:8025 ]
-
   #! Databases
   core-pg:
     image: postgres:16.4
@@ -56,31 +52,3 @@ services:
     image: postgres:16.4
     ports: [ 5435:5432 ]
     environment: [ POSTGRES_USER=dbuser, POSTGRES_PASSWORD=secret, POSTGRES_DB=default ]
-
-  #! Reporting
-  meltano:
-    image: us.gcr.io/galoyorg/meltano
-    volumes: [ ./meltano:/lana ]
-    working_dir: /lana
-    environment:
-      - TARGET_BIGQUERY_CREDENTIALS_JSON=${TARGET_BIGQUERY_CREDENTIALS_JSON}
-      - TARGET_BIGQUERY_DATASET=${TARGET_BIGQUERY_DATASET}
-      - TARGET_BIGQUERY_LOCATION=${TARGET_BIGQUERY_LOCATION}
-      - DBT_BIGQUERY_DATASET=${DBT_BIGQUERY_DATASET}
-      - DBT_BIGQUERY_KEYFILE=${DBT_BIGQUERY_KEYFILE}
-      - TAP_SUMSUBAPI_KEY=${SUMSUB_KEY}
-      - TAP_SUMSUBAPI_SECRET=${SUMSUB_SECRET}
-
-  #! All
-  integration-deps:
-    image: busybox
-    command: sh -c "while :; do sleep 10; done"
-    depends_on:
-      - core-pg
-      - otel-agent
-      - kratos-admin
-      - kratos-admin-pg
-      - kratos-customer
-      - kratos-customer-pg
-      - oathkeeper
-      - mailhog

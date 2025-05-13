@@ -2,16 +2,19 @@
 
 load "helpers"
 
-setup_file() {
-  login_superadmin
-}
+# setup_file() {
+#   login_superadmin
+# }
 
 @test "audit: check audit logs" {
+  login_superadmin
+
   exec_admin_graphql 'audit-logs' '{"first": 1}'
   exec_admin_graphql 'audit-logs' '{"first": 1}'
   exec_admin_graphql 'audit-logs' '{"first": 1}'
 
   edges_length=$(graphql_output '.data.audit.edges | length')
+  echo graphql_output: $(graphql_output) >&3
   [[ "$edges_length" -eq 1 ]] || exit 1
 
   action=$(graphql_output '.data.audit.edges[-1].node.action')
