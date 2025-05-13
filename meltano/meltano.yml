@@ -35,7 +35,7 @@ jobs:
   - tap-sumsubapi target-bigquery
 - name: drop-old-relations
   tasks:
-    - dbt-bigquery:drop-old-relations
+  - dbt-bigquery:drop-old-relations
 schedules:
 - name: postgres-to-bigquery-dbt
   interval: '*/10 * * * *'
@@ -88,13 +88,12 @@ plugins:
   transformers:
   - name: dbt-bigquery
     variant: dbt-labs
-    pip_url: dbt-core~=1.3.0 dbt-bigquery~=1.3.0
+    pip_url: dbt-core~=1.9 dbt-bigquery~=1.9
+    commands:
+      drop-old-relations: run-operation drop_old_relations
     config:
       auth_method: service-account
       project: lana-dev-440721
-    commands:
-      drop-old-relations:
-        args: run-operation drop_old_relations
   utilities:
   - name: sqlfluff
     variant: sqlfluff
@@ -113,5 +112,8 @@ plugins:
   - name: airflow
     variant: apache
     pip_url: git+https://github.com/meltano/airflow-ext.git@main apache-airflow==2.8.1
-      --constraint
+      --constraint 
       https://raw.githubusercontent.com/apache/airflow/constraints-2.8.1/constraints-no-providers-${MELTANO__PYTHON_VERSION}.txt
+  - name: dbt-bigquery
+    variant: dbt-labs
+    pip_url: dbt-core dbt-bigquery meltano-dbt-ext~=0.3.0

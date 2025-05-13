@@ -57,20 +57,6 @@ services:
     ports: [ 5435:5432 ]
     environment: [ POSTGRES_USER=dbuser, POSTGRES_PASSWORD=secret, POSTGRES_DB=default ]
 
-  #! Reporting
-  meltano:
-    image: us.gcr.io/galoyorg/meltano
-    volumes: [ ./meltano:/lana ]
-    working_dir: /lana
-    environment:
-      - TARGET_BIGQUERY_CREDENTIALS_JSON=${TARGET_BIGQUERY_CREDENTIALS_JSON}
-      - TARGET_BIGQUERY_DATASET=${TARGET_BIGQUERY_DATASET}
-      - TARGET_BIGQUERY_LOCATION=${TARGET_BIGQUERY_LOCATION}
-      - DBT_BIGQUERY_DATASET=${DBT_BIGQUERY_DATASET}
-      - DBT_BIGQUERY_KEYFILE=${DBT_BIGQUERY_KEYFILE}
-      - TAP_SUMSUBAPI_KEY=${SUMSUB_KEY}
-      - TAP_SUMSUBAPI_SECRET=${SUMSUB_SECRET}
-
   #! All
   integration-deps:
     image: busybox

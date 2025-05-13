@@ -38,3 +38,5 @@ docs/output/
 
 dev/dag/output/*
 result
+meltano/.venv/
+meltano/.plugins_installed

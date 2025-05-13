@@ -89,16 +89,11 @@
           cargoExtraArgs = "-p ${lanaCliPname} --features sim-time"; # Build only the specific package
         });
 
-      mkAlias = alias: command: pkgs.writeShellScriptBin alias command;
-
       rustVersion = pkgs.pkgsBuildHost.rust-bin.fromRustupToolchainFile ./rust-toolchain.toml;
       rustToolchain = rustVersion.override {
         extensions = ["rust-analyzer" "rust-src"];
       };
 
-      aliases = [
-        (mkAlias "meltano" ''docker compose run --rm meltano -- "$@"'')
-      ];
       nativeBuildInputs = with pkgs;
         [
           rustToolchain
@@ -143,8 +138,7 @@
         ]
         ++ lib.optionals pkgs.stdenv.isDarwin [
           darwin.apple_sdk.frameworks.SystemConfiguration
-        ]
-        ++ aliases;
+        ];
       devEnvVars = rec {
         OTEL_EXPORTER_OTLP_ENDPOINT = http://localhost:4317;
         PGDATABASE = "pg";
@@ -164,6 +158,9 @@
         devShells.default =
           mkShell (devEnvVars // {inherit nativeBuildInputs;});
 
+        devShells.meltano = pkgs.callPackage ./meltano.nix {
+          inherit mkShell devEnvVars;
+        };
         formatter = alejandra;
       });
 }
