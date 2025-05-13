@@ -10,10 +10,10 @@ use tokio::sync::mpsc;
 
 use crate::helpers;
 
-// Scenario 1: A credit facility that made timely payments and was paid off all according to the initial payment plan
-pub async fn timely_payments_scenario(sub: Subject, app: &LanaApp) -> anyhow::Result<()> {
+// Scenario 2: Credit facility with interest payment <=90 late
+pub async fn first_payment_45d_late(sub: Subject, app: &LanaApp) -> anyhow::Result<()> {
     let (customer_id, deposit_account_id) =
-        helpers::create_customer(&sub, app, "1-timely-paid").await?;
+        helpers::create_customer(&sub, app, "2-interest-payments-45d-late").await?;
 
     let deposit_amount = UsdCents::try_from_usd(dec!(10_000_000))?;
     helpers::make_deposit(&sub, app, &customer_id, deposit_amount).await?;
@@ -107,9 +107,10 @@ async fn do_payments(
     id: CreditFacilityId,
     mut obligation_amount_rx: mpsc::Receiver<UsdCents>,
 ) -> anyhow::Result<()> {
+    let fourty_five_days = std::time::Duration::from_secs(45 * 24 * 60 * 60);
     let one_month = std::time::Duration::from_secs(30 * 24 * 60 * 60);
 
-    for _ in 0..3 {
+    for month in 0..3 {
         sim_time::sleep(one_month).await;
 
         let amount = obligation_amount_rx
@@ -117,9 +118,22 @@ async fn do_payments(
             .await
             .expect("obligation not received");
 
-        app.credit()
-            .record_payment(&sub, id, amount, sim_time::now().date_naive())
-            .await?;
+        match month {
+            0 => {
+                tokio::spawn(async move {
+                    sim_time::sleep(fourty_five_days).await;
+                    app.credit()
+                        .record_payment(&sub, id, amount, sim_time::now().date_naive())
+                        .await
+                        .expect("repayment failed");
+                });
+            }
+            _ => {
+                app.credit()
+                    .record_payment(&sub, id, amount, sim_time::now().date_naive())
+                    .await?;
+            }
+        }
     }
 
     let facility = app.credit().find_by_id(&sub, id).await?.unwrap();
