@@ -124,13 +124,15 @@ where
         let mut stream = self.outbox.listen_persisted(Some(state.sequence)).await?;
 
         while let Some(message) = stream.next().await {
-            if let Some(CoreUserEvent::UserCreated { id, email }) = &message.as_ref().as_event() {
+            if let Some(CoreUserEvent::UserCreated { user_id, email }) =
+                &message.as_ref().as_event()
+            {
                 let authentication_id = self
                     .kratos_admin
                     .create_user::<AuthenticationId>(email.clone())
                     .await?;
                 self.users
-                    .update_authentication_id_for_user(*id, authentication_id)
+                    .update_authentication_id_for_user(*user_id, authentication_id)
                     .await?;
             }
         }

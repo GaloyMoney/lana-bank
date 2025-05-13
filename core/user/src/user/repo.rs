@@ -1,12 +1,13 @@
 use sqlx::PgPool;
 
 use es_entity::*;
+use outbox::OutboxEventMarker;
 
-use crate::primitives::*;
+use crate::{event::CoreUserEvent, primitives::*, publisher::UserPublisher};
 
 use super::{entity::*, error::*};
 
-#[derive(EsRepo, Clone)]
+#[derive(EsRepo)]
 #[es_repo(
     entity = "User",
     err = "UserError",
@@ -14,15 +15,47 @@ use super::{entity::*, error::*};
         email(ty = "String", list_by),
         authentication_id(ty = "Option<AuthenticationId>", list_by, create(persist = false)),
     ),
-    tbl_prefix = "core"
+    tbl_prefix = "core",
+    post_persist_hook = "publish"
 )]
-pub(crate) struct UserRepo {
+pub(crate) struct UserRepo<E>
+where
+    E: OutboxEventMarker<CoreUserEvent>,
+{
     #[allow(dead_code)]
     pool: PgPool,
+    publisher: UserPublisher<E>,
 }
 
-impl UserRepo {
-    pub fn new(pool: &PgPool) -> Self {
-        Self { pool: pool.clone() }
+impl<E> UserRepo<E>
+where
+    E: OutboxEventMarker<CoreUserEvent>,
+{
+    pub fn new(pool: &PgPool, publisher: &UserPublisher<E>) -> Self {
+        Self {
+            pool: pool.clone(),
+            publisher: publisher.clone(),
+        }
+    }
+
+    async fn publish(
+        &self,
+        db: &mut es_entity::DbOp<'_>,
+        entity: &User,
+        new_events: es_entity::LastPersisted<'_, UserEvent>,
+    ) -> Result<(), UserError> {
+        self.publisher.publish_user(db, entity, new_events).await
+    }
+}
+
+impl<E> Clone for UserRepo<E>
+where
+    E: OutboxEventMarker<CoreUserEvent>,
+{
+    fn clone(&self) -> Self {
+        Self {
+            publisher: self.publisher.clone(),
+            pool: self.pool.clone(),
+        }
     }
 }

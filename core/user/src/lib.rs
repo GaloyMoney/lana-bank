@@ -14,7 +14,7 @@ use outbox::{Outbox, OutboxEventMarker};
 pub use event::*;
 pub use primitives::*;
 
-use publisher::UserPublisher;
+pub use publisher::UserPublisher;
 pub use role::*;
 
 pub struct CoreUser<Perms, E>

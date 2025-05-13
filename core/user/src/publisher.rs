@@ -1,7 +1,10 @@
 use outbox::{Outbox, OutboxEventMarker};
 
-use crate::role::{error::RoleError, Role, RoleEvent};
-use crate::CoreUserEvent;
+use crate::{
+    role::{error::RoleError, Role, RoleEvent},
+    user::{error::UserError, User, UserEvent},
+    CoreUserEvent,
+};
 
 pub struct UserPublisher<E>
 where
@@ -31,23 +34,53 @@ where
         }
     }
 
+    pub async fn publish_user(
+        &self,
+        db: &mut es_entity::DbOp<'_>,
+        entity: &User,
+        new_events: es_entity::LastPersisted<'_, UserEvent>,
+    ) -> Result<(), UserError> {
+        use UserEvent::*;
+        let events = new_events
+            .filter_map(|event| match &event.event {
+                Initialized { id, email, .. } => Some(CoreUserEvent::UserCreated {
+                    user_id: *id,
+                    email: email.clone(),
+                }),
+                RoleAssigned { role, .. } => Some(CoreUserEvent::RoleAssigned {
+                    user_id: entity.id,
+                    role: role.clone(),
+                }),
+                RoleRevoked { role, .. } => Some(CoreUserEvent::RoleRevoked {
+                    user_id: entity.id,
+                    role: role.clone(),
+                }),
+                _ => None,
+            })
+            .collect::<Vec<_>>();
+
+        self.outbox.publish_all_persisted(db.tx(), events).await?;
+
+        Ok(())
+    }
+
     pub async fn publish_role(
         &self,
-        _db: &mut es_entity::DbOp<'_>,
+        db: &mut es_entity::DbOp<'_>,
         _entity: &Role,
-        _new_events: es_entity::LastPersisted<'_, RoleEvent>,
+        new_events: es_entity::LastPersisted<'_, RoleEvent>,
     ) -> Result<(), RoleError> {
-        // use RoleEvent::*;
-        // let events = new_events
-        //     .filter_map(|event| match &event.event {
-        //         Initialized { id, name } => Some(CoreUserEvent::RoleCreated {
-        //             id: *id,
-        //             name: name.clone(),
-        //         }),
-        //     })
-        //     .collect::<Vec<_>>();
+        use RoleEvent::*;
+        let events = new_events
+            .map(|event| match &event.event {
+                Initialized { id, name } => CoreUserEvent::RoleCreated {
+                    role_id: *id,
+                    name: name.clone(),
+                },
+            })
+            .collect::<Vec<_>>();
 
-        // self.outbox.publish_all_persisted(db.tx(), events).await?;
+        self.outbox.publish_all_persisted(db.tx(), events).await?;
 
         Ok(())
     }
