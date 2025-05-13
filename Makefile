@@ -99,6 +99,12 @@ bitfinex-run:
 sumsub-run:
 	meltano run tap-sumsubapi target-bigquery
 
+compile-dbt:
+	cd meltano && meltano run dbt-bigquery:compile
+
+sqlglot:
+	find meltano/.meltano/transformers/dbt/target/compiled -type f -name '*.sql' -print0 | xargs -0 -n1 python meltano/scripts/transpile_sql.py --skip-errors
+
 # misc 
 sumsub-webhook-test: # add https://xxx.ngrok-free.app/sumsub/callback to test integration with sumsub
 	ngrok http 5253

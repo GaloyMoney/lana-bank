@@ -1,4 +1,3 @@
-# meltano.nix
 {
   lib,
   pkgs,
@@ -16,7 +15,6 @@
     with ps; [
       pip
       virtualenv
-      # Add other Python packages you need here
     ]);
 
   # Define the shell that will be used for Meltano development
@@ -24,6 +22,7 @@
     # Include the Python environment and other necessary packages
     packages = [
       pythonEnv
+      pkgs.duckdb
     ];
 
     # Environment variables inherited from flake.nix instead of hardcoded
@@ -34,7 +33,7 @@
       echo "🚀 Entering Meltano development environment (Python 3.11)"
       MELTANO_PROJECT_DIR="./meltano"
       VENV_DIR="$MELTANO_PROJECT_DIR/.venv"
-      INSTALL_MARKER="$MELTANO_PROJECT_DIR/.plugins_installed"
+      INSTALL_MARKER="$VENV_DIR/.plugins_installed"
 
       # Check if virtual env exists and check Python version
       if [ -d "$VENV_DIR" ]; then
@@ -48,8 +47,6 @@
           echo "Found $CURRENT_PYTHON_VERSION venv, but Python 3.11 is required for Airflow"
           echo "Removing existing virtual environment to create a new one with Python 3.11..."
           rm -rf "$VENV_DIR"
-          # Also remove the marker since we're recreating the environment
-          rm -f "$INSTALL_MARKER"
         fi
       fi
 
@@ -74,6 +71,9 @@
           echo "Installing Meltano in virtual environment..."
           pip install meltano
         fi
+
+        # Install sqlglot
+        pip install sqlglot[rs]
 
         echo "Virtual environment activated with Meltano $(meltano --version 2>/dev/null || echo 'not available')"
 
