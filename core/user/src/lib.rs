@@ -8,7 +8,7 @@ pub mod role;
 pub mod user;
 
 use audit::AuditSvc;
-use authz::PermissionCheck;
+use authz::Authorization;
 use outbox::{Outbox, OutboxEventMarker};
 
 pub use event::*;
@@ -17,22 +17,26 @@ pub use primitives::*;
 pub use publisher::UserPublisher;
 pub use role::*;
 
-pub struct CoreUser<Perms, E>
+pub struct CoreUser<Audit, E>
 where
-    Perms: PermissionCheck,
+    Audit: AuditSvc,
     E: OutboxEventMarker<CoreUserEvent>,
 {
-    roles: Roles<Perms, E>,
+    roles: Roles<Audit, E>,
 }
 
-impl<Perms, E> CoreUser<Perms, E>
+impl<Audit, E> CoreUser<Audit, E>
 where
-    Perms: PermissionCheck,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreUserAction>,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreUserObject>,
+    Audit: AuditSvc,
+    <Audit as AuditSvc>::Action: From<CoreUserAction>,
+    <Audit as AuditSvc>::Object: From<CoreUserObject>,
     E: OutboxEventMarker<CoreUserEvent>,
 {
-    pub async fn init(pool: &sqlx::PgPool, authz: &Perms, outbox: &Outbox<E>) -> Self {
+    pub async fn init(
+        pool: &sqlx::PgPool,
+        authz: &Authorization<Audit, RoleName>,
+        outbox: &Outbox<E>,
+    ) -> Self {
         let publisher = UserPublisher::new(outbox);
 
         Self {
@@ -40,7 +44,7 @@ where
         }
     }
 
-    pub fn roles(&self) -> &Roles<Perms, E> {
+    pub fn roles(&self) -> &Roles<Audit, E> {
         &self.roles
     }
 }

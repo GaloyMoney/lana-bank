@@ -1,11 +1,12 @@
 use audit::AuditSvc;
-use authz::PermissionCheck;
+use authz::{Authorization, PermissionCheck as _};
 use outbox::OutboxEventMarker;
 
 use crate::{
     event::CoreUserEvent,
     primitives::{CoreUserAction, CoreUserObject, RoleId},
     publisher::UserPublisher,
+    RoleName,
 };
 
 mod entity;
@@ -17,23 +18,27 @@ use error::RoleError;
 use repo::RoleRepo;
 
 #[derive(Clone)]
-pub struct Roles<Perms, E>
+pub struct Roles<Audit, E>
 where
-    Perms: PermissionCheck,
+    Audit: AuditSvc,
     E: OutboxEventMarker<CoreUserEvent>,
 {
-    authz: Perms,
+    authz: Authorization<Audit, RoleName>,
     repo: RoleRepo<E>,
 }
 
-impl<Perms, E> Roles<Perms, E>
+impl<Audit, E> Roles<Audit, E>
 where
-    Perms: PermissionCheck,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreUserAction>,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreUserObject>,
+    Audit: AuditSvc,
+    <Audit as AuditSvc>::Action: From<CoreUserAction>,
+    <Audit as AuditSvc>::Object: From<CoreUserObject>,
     E: OutboxEventMarker<CoreUserEvent>,
 {
-    pub fn new(pool: &sqlx::PgPool, authz: &Perms, publisher: &UserPublisher<E>) -> Self {
+    pub fn new(
+        pool: &sqlx::PgPool,
+        authz: &Authorization<Audit, RoleName>,
+        publisher: &UserPublisher<E>,
+    ) -> Self {
         Self {
             repo: RoleRepo::new(pool, publisher),
             authz: authz.clone(),
@@ -42,7 +47,7 @@ where
 
     pub async fn create_role(
         &self,
-        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        sub: &<Audit as AuditSvc>::Subject,
         name: String,
     ) -> Result<Role, RoleError> {
         self.authz
