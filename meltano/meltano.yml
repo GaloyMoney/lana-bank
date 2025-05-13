@@ -8,13 +8,15 @@ environments:
       extractors:
       - name: tap-postgres
         config:
-          host: core-pg
+          host: localhost
+          port: 5433
           user: user
           database: pg
           password: password
       - name: tap-sumsubapi
         config:
-          host: core-pg
+          host: localhost
+          port: 5433
           user: user
           database: pg
           password: password
@@ -85,6 +87,9 @@ plugins:
     config:
       project: lana-dev-440721
       generate_view: true
+  - name: target-jsonl
+    variant: andyh1203
+    pip_url: target-jsonl
   transformers:
   - name: dbt-bigquery
     variant: dbt-labs
