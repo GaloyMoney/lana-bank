@@ -2,7 +2,7 @@ with initialized as (
     select
         id as disbursal_id,
         recorded_at as initialized_recorded_at,
-        json_value(event, '$.facility_id') as facility_id,
+        json_value(event, '$.facility_id') as credit_facility_id,
         cast(json_value(event, '$.amount') as numeric) as initialized_amount,
         cast(json_value(event, '$.audit_info.audit_entry_id') as integer) as audit_entry_id,
 
