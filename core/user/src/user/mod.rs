@@ -243,7 +243,7 @@ where
         let id = user_id.into();
         let role = role.into();
 
-        if role == RoleName::SUPERUSER {
+        if role == RoleName::Superuser {
             return Err(UserError::AuthorizationError(
                 authz::error::AuthorizationError::NotAuthorized,
             ));
@@ -289,7 +289,7 @@ where
         let id = user_id.into();
         let role = role.into();
 
-        if role == RoleName::SUPERUSER {
+        if role == RoleName::Superuser {
             return Err(UserError::AuthorizationError(
                 authz::error::AuthorizationError::NotAuthorized,
             ));
@@ -330,20 +330,20 @@ where
                     .expect("Could not build user");
                 let mut user = self.repo.create_in_op(&mut db, new_user).await?;
                 self.authz
-                    .assign_role_to_subject(user.id, &RoleName::SUPERUSER)
+                    .assign_role_to_subject(user.id, &RoleName::Superuser)
                     .await?;
-                let _ = user.assign_role(RoleName::SUPERUSER, audit_info);
+                let _ = user.assign_role(RoleName::Superuser, audit_info);
                 self.repo.update_in_op(&mut db, &mut user).await?;
                 Some(user)
             }
             Err(e) => return Err(e),
             Ok(mut user) => {
                 if user
-                    .assign_role(RoleName::SUPERUSER, audit_info)
+                    .assign_role(RoleName::Superuser, audit_info)
                     .did_execute()
                 {
                     self.authz
-                        .assign_role_to_subject(user.id, RoleName::SUPERUSER)
+                        .assign_role_to_subject(user.id, RoleName::Superuser)
                         .await?;
                     self.repo.update_in_op(&mut db, &mut user).await?;
                     None

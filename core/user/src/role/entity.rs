@@ -3,13 +3,13 @@ use serde::{Deserialize, Serialize};
 
 use es_entity::*;
 
-use crate::primitives::RoleId;
+use crate::primitives::{RoleId, RoleName};
 
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
 #[es_event(id = "RoleId")]
 pub enum RoleEvent {
-    Initialized { id: RoleId, name: String },
+    Initialized { id: RoleId, name: RoleName },
     GainedInheritanceFrom { junior_id: RoleId },
     LostInheritanceFrom { junior_id: RoleId },
 }
@@ -18,7 +18,7 @@ pub enum RoleEvent {
 #[builder(pattern = "owned", build_fn(error = "EsEntityError"))]
 pub struct Role {
     pub id: RoleId,
-    pub name: String,
+    pub name: RoleName,
     events: EntityEvents<RoleEvent>,
 }
 
@@ -48,7 +48,8 @@ impl TryFromEvents<RoleEvent> for Role {
                 RoleEvent::Initialized { id, name } => {
                     builder = builder.id(*id).name(name.clone());
                 }
-                _ => {}
+                RoleEvent::GainedInheritanceFrom { .. } => {}
+                RoleEvent::LostInheritanceFrom { .. } => {}
             }
         }
 
@@ -60,8 +61,7 @@ impl TryFromEvents<RoleEvent> for Role {
 pub struct NewRole {
     #[builder(setter(into))]
     pub(super) id: RoleId,
-    #[builder(setter(into))]
-    pub(super) name: String,
+    pub(super) name: RoleName,
 }
 
 impl NewRole {

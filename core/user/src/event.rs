@@ -10,5 +10,5 @@ pub enum CoreUserEvent {
     UserGainedRole { user_id: UserId, role: RoleName },
     UserLostRole { user_id: UserId, role: RoleName },
 
-    RoleCreated { id: RoleId, name: String },
+    RoleCreated { id: RoleId, name: RoleName },
 }

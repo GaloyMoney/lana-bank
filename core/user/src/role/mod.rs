@@ -23,7 +23,7 @@ where
     Audit: AuditSvc,
     E: OutboxEventMarker<CoreUserEvent>,
 {
-    authz: Authorization<Audit, String>,
+    authz: Authorization<Audit, RoleName>,
     repo: RoleRepo<E>,
 }
 
@@ -36,7 +36,7 @@ where
 {
     pub fn new(
         pool: &sqlx::PgPool,
-        authz: &Authorization<Audit, String>,
+        authz: &Authorization<Audit, RoleName>,
         publisher: &UserPublisher<E>,
     ) -> Self {
         Self {
@@ -48,7 +48,7 @@ where
     pub async fn create_role(
         &self,
         sub: &<Audit as AuditSvc>::Subject,
-        name: String,
+        name: RoleName,
     ) -> Result<Role, RoleError> {
         self.authz
             .enforce_permission(

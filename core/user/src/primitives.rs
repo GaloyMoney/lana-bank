@@ -1,5 +1,5 @@
 use serde::{Deserialize, Serialize};
-use std::{borrow::Cow, fmt::Display, str::FromStr};
+use std::{fmt::Display, str::FromStr};
 
 pub use audit::AuditInfo;
 pub use authz::AllOrOne;
@@ -14,21 +14,35 @@ es_entity::entity_id! { UserId }
 
 es_entity::entity_id! { AuthenticationId, RoleId }
 
-#[derive(Clone, Eq, Hash, PartialEq, Debug, Serialize, Deserialize, sqlx::Type)]
-#[sqlx(transparent)]
-#[serde(transparent)]
-pub struct RoleName(Cow<'static, str>);
+#[derive(Clone, Eq, Hash, PartialEq, Debug, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum RoleName {
+    Superuser,
+    Admin,
+    Accountant,
+    BankManager,
+    #[serde(untagged)]
+    Other(String),
+}
 impl RoleName {
-    pub const SUPERUSER: RoleName = RoleName::new("superuser");
+    pub fn new(role_name: impl Into<String>) -> Self {
+        RoleName::Other(role_name.into())
+    }
 
-    pub const fn new(role_name: &'static str) -> Self {
-        RoleName(Cow::Borrowed(role_name))
+    pub fn name(&self) -> &str {
+        match self {
+            RoleName::Superuser => "superuser",
+            RoleName::Admin => "admin",
+            RoleName::Accountant => "accountant",
+            RoleName::BankManager => "bank_manager",
+            RoleName::Other(name) => name,
+        }
     }
 }
 
 impl Display for RoleName {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        self.0.fmt(f)
+        self.name().fmt(f)
     }
 }
 

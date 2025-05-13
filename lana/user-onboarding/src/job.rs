@@ -130,7 +130,7 @@ where
                     .create_user::<AuthenticationId>(email.clone())
                     .await?;
                 self.users
-                    .update_authentication_id_for_user(*user_id, authentication_id)
+                    .update_authentication_id_for_user(*id, authentication_id)
                     .await?;
             }
         }
