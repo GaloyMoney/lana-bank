@@ -81,7 +81,7 @@ impl CreditFacilityRepaymentPlan {
 
     fn planned_interest_accruals(
         &self,
-        updated_entries: &Vec<CreditFacilityRepaymentPlanEntry>,
+        updated_entries: &[CreditFacilityRepaymentPlanEntry],
     ) -> Vec<CreditFacilityRepaymentPlanEntry> {
         let terms = self.terms.expect("Missing FacilityCreated event");
         let activated_at = self.activated_at();
@@ -318,7 +318,7 @@ mod tests {
         );
         plan.process_event(
             Default::default(),
-            &&CoreCreditEvent::ObligationCreated {
+            &CoreCreditEvent::ObligationCreated {
                 id: ObligationId::new(),
                 obligation_type: ObligationType::Disbursal,
                 credit_facility_id: CreditFacilityId::new(),
@@ -331,7 +331,7 @@ mod tests {
         );
         plan.process_event(
             Default::default(),
-            &&CoreCreditEvent::ObligationCreated {
+            &CoreCreditEvent::ObligationCreated {
                 id: ObligationId::new(),
                 obligation_type: ObligationType::Interest,
                 credit_facility_id: CreditFacilityId::new(),
