@@ -69,6 +69,68 @@ where
         Ok(role)
     }
 
+    pub async fn add_permission(
+        &self,
+        sub: &<Audit as AuditSvc>::Subject,
+        role_id: RoleId,
+        object: impl Into<Audit::Object>,
+        action: impl Into<Audit::Action>,
+    ) -> Result<Role, RoleError> {
+        self.authz
+            .enforce_permission(
+                sub,
+                CoreUserObject::all_roles(),
+                CoreUserAction::ROLE_UPDATE,
+            )
+            .await?;
+
+        let object = object.into();
+        let action = action.into();
+
+        let mut role = self.repo.find_by_id(&role_id).await?;
+        if role
+            .add_permission(object.to_string(), action.to_string())
+            .did_execute()
+        {
+            self.authz
+                .add_permission_to_role(&role.name, object, action)
+                .await?;
+            self.repo.update(&mut role).await?;
+        }
+
+        Ok(role)
+    }
+
+    pub async fn remove_permission(
+        &self,
+        sub: &<Audit as AuditSvc>::Subject,
+        role_id: RoleId,
+        object: impl Into<Audit::Object>,
+        action: impl Into<Audit::Action>,
+    ) -> Result<Role, RoleError> {
+        self.authz
+            .enforce_permission(
+                sub,
+                CoreUserObject::all_roles(),
+                CoreUserAction::ROLE_UPDATE,
+            )
+            .await?;
+
+        let object = object.into();
+        let action = action.into();
+
+        let mut role = self.repo.find_by_id(&role_id).await?;
+        if role
+            .remove_permission(object.to_string(), action.to_string())
+            .did_execute()
+        {
+            // TODO: self.authz.remove_permission_from_role(&role.name, object, action).await?;
+            self.repo.update(&mut role).await?;
+        }
+
+        Ok(role)
+    }
+
     /// Make role with `role_id` inherit from role with `junior_id`.
     /// Consequently, `role_id` will gain all permissions of `junior_id`.
     pub async fn inherit_from_junior(

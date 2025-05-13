@@ -47,12 +47,12 @@ where
                     id: *id,
                     email: email.clone(),
                 }),
-                RoleAssigned { role, .. } => Some(CoreUserEvent::UserGainedRole {
-                    user_id: entity.id,
+                RoleAssigned { role, .. } => Some(CoreUserEvent::UserGrantedRole {
+                    id: entity.id,
                     role: role.clone(),
                 }),
-                RoleRevoked { role, .. } => Some(CoreUserEvent::UserLostRole {
-                    user_id: entity.id,
+                RoleRevoked { role, .. } => Some(CoreUserEvent::UserRevokedRole {
+                    id: entity.id,
                     role: role.clone(),
                 }),
                 AuthenticationIdUpdated { .. } => None,
@@ -67,7 +67,7 @@ where
     pub async fn publish_role(
         &self,
         db: &mut es_entity::DbOp<'_>,
-        _entity: &Role,
+        entity: &Role,
         new_events: es_entity::LastPersisted<'_, RoleEvent>,
     ) -> Result<(), RoleError> {
         use RoleEvent::*;
@@ -76,6 +76,16 @@ where
                 Initialized { id, name } => Some(CoreUserEvent::RoleCreated {
                     id: *id,
                     name: name.clone(),
+                }),
+                PermissionAdded { object, action } => Some(CoreUserEvent::RoleGainedPermission {
+                    id: entity.id,
+                    object: object.clone(),
+                    action: action.clone(),
+                }),
+                PermissionRemoved { object, action } => Some(CoreUserEvent::RoleLostPermission {
+                    id: entity.id,
+                    object: object.clone(),
+                    action: action.clone(),
                 }),
                 GainedInheritanceFrom { .. } => None,
                 LostInheritanceFrom { .. } => None,
