@@ -49,6 +49,17 @@ sources:
             count: 7
             period: day
 
+      - name: public_core_chart_events_view
+
+      - name: public_core_collateral_events_view
+        freshness:
+          warn_after:
+            count: 2
+            period: day
+          error_after:
+            count: 7
+            period: day
+
       - name: public_core_credit_facility_events_view
         freshness:
           warn_after:
@@ -58,7 +69,7 @@ sources:
             count: 7
             period: day
 
-      - name: public_customer_events_view
+      - name: public_core_credit_facility_repayment_plans_view
         freshness:
           warn_after:
             count: 2
@@ -85,6 +96,51 @@ sources:
             count: 7
             period: day
 
+      - name: public_core_disbursal_events_view
+        freshness:
+          warn_after:
+            count: 2
+            period: day
+          error_after:
+            count: 7
+            period: day
+
+      - name: public_core_interest_accrual_cycle_events_view
+        freshness:
+          warn_after:
+            count: 2
+            period: day
+          error_after:
+            count: 7
+            period: day
+
+      - name: public_core_obligation_events_view
+        freshness:
+          warn_after:
+            count: 2
+            period: day
+          error_after:
+            count: 7
+            period: day
+
+      - name: public_core_payment_allocation_events_view
+        freshness:
+          warn_after:
+            count: 2
+            period: day
+          error_after:
+            count: 7
+            period: day
+
+      - name: public_core_payment_events_view
+        freshness:
+          warn_after:
+            count: 2
+            period: day
+          error_after:
+            count: 7
+            period: day
+
       - name: public_core_withdrawal_events_view
         freshness:
           warn_after:
@@ -95,6 +151,15 @@ sources:
             period: day
 
       - name: public_core_withdrawals_view
+        freshness:
+          warn_after:
+            count: 2
+            period: day
+          error_after:
+            count: 7
+            period: day
+
+      - name: public_customer_events_view
         freshness:
           warn_after:
             count: 2
@@ -138,5 +203,3 @@ sources:
           error_after:
             count: 7
             period: day
-
-      - name: public_core_chart_events_view
