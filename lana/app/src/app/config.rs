@@ -1,5 +1,7 @@
 use serde::{Deserialize, Serialize};
 
+use std::path::PathBuf;
+
 use crate::{
     applicant::SumsubConfig, credit::CreditConfig, customer_sync::CustomerSyncConfig,
     job::JobExecutorConfig, report::ReportConfig, service_account::ServiceAccountConfig,
@@ -26,6 +28,8 @@ pub struct AppConfig {
     pub user_onboarding: UserOnboardingConfig,
     #[serde(default)]
     pub customer_sync: CustomerSyncConfig,
+    #[serde(default)]
+    pub chart_of_accounts_seed_path: Option<PathBuf>,
 }
 
 #[derive(Clone, Default, Debug, Deserialize, Serialize)]

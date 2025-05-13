@@ -3,6 +3,8 @@ mod seed;
 
 pub mod error;
 
+use std::path::PathBuf;
+
 use crate::{
     accounting::ChartOfAccounts, balance_sheet::BalanceSheets, primitives::CalaJournalId,
     profit_and_loss::ProfitAndLossStatements, trial_balance::TrialBalances,
@@ -42,7 +44,8 @@ pub struct ChartsInit;
 impl ChartsInit {
     pub async fn charts_of_accounts(
         chart_of_accounts: &ChartOfAccounts,
+        seed_path: Option<PathBuf>,
     ) -> Result<(), AccountingInitError> {
-        seed::charts_of_accounts::init(chart_of_accounts).await
+        seed::charts_of_accounts::init(chart_of_accounts, seed_path).await
     }
 }

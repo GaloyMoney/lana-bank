@@ -97,7 +97,11 @@ impl LanaApp {
         )
         .await?;
 
-        ChartsInit::charts_of_accounts(accounting.chart_of_accounts()).await?;
+        ChartsInit::charts_of_accounts(
+            accounting.chart_of_accounts(),
+            config.chart_of_accounts_seed_path,
+        )
+        .await?;
         let customers = Customers::new(&pool, &authz, &outbox);
         let deposits = Deposits::init(
             &pool,
