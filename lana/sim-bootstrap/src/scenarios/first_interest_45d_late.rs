@@ -107,11 +107,12 @@ async fn do_payments(
     id: CreditFacilityId,
     mut obligation_amount_rx: mpsc::Receiver<UsdCents>,
 ) -> anyhow::Result<()> {
-    let fourty_five_days = std::time::Duration::from_secs(45 * 24 * 60 * 60);
+    let fifteen_days = std::time::Duration::from_secs(15 * 24 * 60 * 60);
     let one_month = std::time::Duration::from_secs(30 * 24 * 60 * 60);
 
     for month in 0..3 {
         sim_time::sleep(one_month).await;
+        dbg!(month);
 
         let amount = obligation_amount_rx
             .recv()
@@ -120,15 +121,32 @@ async fn do_payments(
 
         match month {
             0 => {
+                let sim_app = app.clone();
                 tokio::spawn(async move {
-                    sim_time::sleep(fourty_five_days).await;
-                    app.credit()
+                    sim_time::sleep(fifteen_days).await;
+                    let history = sim_app
+                        .credit()
+                        .history::<credit::CreditFacilityHistoryEntry>(&sub, id)
+                        .await
+                        .expect("err");
+                    dbg!("==> executing", month);
+                    dbg!(history);
+                    sim_app
+                        .credit()
                         .record_payment(&sub, id, amount, sim_time::now().date_naive())
                         .await
                         .expect("repayment failed");
                 });
             }
             _ => {
+                dbg!("==> executing", month);
+                let history = app
+                    .credit()
+                    .history::<credit::CreditFacilityHistoryEntry>(&sub, id)
+                    .await
+                    .expect("err");
+                dbg!("==> executing", month);
+                dbg!(history);
                 app.credit()
                     .record_payment(&sub, id, amount, sim_time::now().date_naive())
                     .await?;
@@ -136,9 +154,13 @@ async fn do_payments(
         }
     }
 
+    dbg!("m2");
+
     let facility = app.credit().find_by_id(&sub, id).await?.unwrap();
     let total_outstanding = app.credit().outstanding(&facility).await?;
     if !total_outstanding.is_zero() {
+        dbg!("m3");
+        dbg!(total_outstanding);
         app.credit()
             .record_payment(
                 &sub,
@@ -148,6 +170,8 @@ async fn do_payments(
             )
             .await?;
     }
+
+    dbg!("m4");
 
     const MAX_RETRIES: usize = 15;
     for attempt in 0..MAX_RETRIES {

@@ -1,5 +1,5 @@
 mod first_interest_45d_late;
-mod timely_payments;
+//mod timely_payments;
 
 use lana_app::{app::LanaApp, primitives::*};
 use tokio::task::JoinHandle;
@@ -11,12 +11,12 @@ pub async fn run(
     let mut handles = Vec::new();
     let sub = *sub;
 
-    {
-        let app = app.clone();
-        handles.push(tokio::spawn(async move {
-            timely_payments::timely_payments_scenario(sub, &app).await
-        }));
-    }
+    //{
+    //    let app = app.clone();
+    //    handles.push(tokio::spawn(async move {
+    //        timely_payments::timely_payments_scenario(sub, &app).await
+    //    }));
+    //}
     {
         let app = app.clone();
         handles.push(tokio::spawn(async move {
