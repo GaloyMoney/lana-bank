@@ -17,12 +17,18 @@ credit_facilities as (
 
     select distinct
         credit_facility_key,
-        collateral_account_id,
-        disbursed_receivable_account_id,
         facility_account_id,
+        collateral_account_id,
         fee_income_account_id,
-        interest_account_id,
-        interest_receivable_account_id
+        interest_income_account_id,
+        interest_defaulted_account_id,
+        disbursed_defaulted_account_id,
+        interest_receivable_due_account_id,
+        disbursed_receivable_due_account_id,
+        interest_receivable_overdue_account_id,
+        disbursed_receivable_overdue_account_id,
+        interest_receivable_not_yet_due_account_id,
+        disbursed_receivable_not_yet_due_account_id,
 
     from {{ ref('int_approved_credit_facilities') }}
 
@@ -32,24 +38,16 @@ credit_facility_accounts as (
 
     select distinct
         credit_facility_key,
-        collateral_account_id as account_id,
-        "collateral_account" as account_type
-    from credit_facilities
-
-    union distinct
-
-    select distinct
-        credit_facility_key,
-        disbursed_receivable_account_id as account_id,
-        "disbursed_receivable_account" as account_type
-    from credit_facilities
-
-    union distinct
-
-    select distinct
-        credit_facility_key,
         facility_account_id as account_id,
         "facility_account" as account_type
+    from credit_facilities
+
+    union distinct
+
+    select distinct
+        credit_facility_key,
+        collateral_account_id as account_id,
+        "collateral_account" as account_type
     from credit_facilities
 
     union distinct
@@ -64,16 +62,72 @@ credit_facility_accounts as (
 
     select distinct
         credit_facility_key,
-        interest_account_id as account_id,
-        "interest_account" as account_type
+        interest_income_account_id as account_id,
+        "interest_income_account" as account_type
     from credit_facilities
 
     union distinct
 
     select distinct
         credit_facility_key,
-        interest_receivable_account_id as account_id,
-        "interest_receivable_account" as account_type
+        interest_defaulted_account_id as account_id,
+        "interest_defaulted_account" as account_type
+    from credit_facilities
+
+    union distinct
+
+    select distinct
+        credit_facility_key,
+        disbursed_defaulted_account_id as account_id,
+        "disbursed_defaulted_account" as account_type
+    from credit_facilities
+
+    union distinct
+
+    select distinct
+        credit_facility_key,
+        interest_receivable_due_account_id as account_id,
+        "interest_receivable_due_account" as account_type
+    from credit_facilities
+
+    union distinct
+
+    select distinct
+        credit_facility_key,
+        disbursed_receivable_due_account_id as account_id,
+        "disbursed_receivable_due_account" as account_type
+    from credit_facilities
+
+    union distinct
+
+    select distinct
+        credit_facility_key,
+        interest_receivable_overdue_account_id as account_id,
+        "interest_receivable_overdue_account" as account_type
+    from credit_facilities
+
+    union distinct
+
+    select distinct
+        credit_facility_key,
+        disbursed_receivable_overdue_account_id as account_id,
+        "disbursed_receivable_overdue_account" as account_type
+    from credit_facilities
+
+    union distinct
+
+    select distinct
+        credit_facility_key,
+        interest_receivable_not_yet_due_account_id as account_id,
+        "interest_receivable_not_yet_due_account" as account_type
+    from credit_facilities
+
+    union distinct
+
+    select distinct
+        credit_facility_key,
+        disbursed_receivable_not_yet_due_account_id as account_id,
+        "disbursed_receivable_not_yet_due_account" as account_type
     from credit_facilities
 
 )

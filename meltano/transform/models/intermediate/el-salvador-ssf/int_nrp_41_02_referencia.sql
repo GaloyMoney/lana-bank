@@ -20,7 +20,7 @@ with loans_and_credit_facilities as (
 
     FROM { ref('int_approved_loans') }
 
-    WHERE NOT completed
+    WHERE NOT matured
 
     UNION ALL
     */
@@ -36,6 +36,7 @@ with loans_and_credit_facilities as (
         most_recent_interest_payment_timestamp,
         most_recent_disbursement_payment_timestamp
             as most_recent_capital_payment_timestamp,
+        total_collateral,
         facility as loan_amount,
         total_disbursed
         + total_interest_incurred
@@ -43,12 +44,40 @@ with loans_and_credit_facilities as (
         - total_disbursement_paid as remaining_balance,
         total_disbursed - total_disbursement_paid as remaining_capital_balance,
         total_interest_incurred
-        - total_interest_paid as remaining_interest_balance
+        - total_interest_paid as remaining_interest_balance,
+        cast(null as int64) as capital_overdue_days,
+        cast(null as int64) as interest_overdue_days,
+        cast(null as numeric) as credit_asset_balance,
+        cast(null as numeric) as guarantee_value,
 
     from {{ ref('int_approved_credit_facilities') }}
 
-    where not completed
+    where not matured
 
+),
+
+overdue_days as (
+    select
+        *,
+        greatest(capital_overdue_days, interest_overdue_days) as payment_overdue_days
+    from loans_and_credit_facilities
+),
+
+category as (
+    select
+        od.*,
+        greatest(0, credit_asset_balance - guarantee_value) as net_risk,
+        r.category,
+        r.reserve_percentage,
+    from overdue_days as od
+    left join {{ ref('static_ncb_022_porcentaje_reservas_saneamiento') }} as r on od.payment_overdue_days between r.consumer_calendar_ge_days and r.consumer_calendar_le_days
+),
+
+final as (
+    select
+        *,
+        reserve_percentage * net_risk as reserve,
+    from category
 )
 
 select
@@ -71,8 +100,8 @@ select
     '{{ npb4_17_07_estados_de_la_referencia('Vigente') }}' as `estado_credito`,
     cast(null as numeric) as `saldo_mora_k`,
     cast(null as numeric) as `saldo_mora_i`,
-    cast(null as int64) as `dias_mora_k`,
-    cast(null as int64) as `dias_mora_i`,
+    capital_overdue_days as `dias_mora_k`,
+    interest_overdue_days as `dias_mora_i`,
     cast(null as date) as `fecha_inicio_mora_k`,
     cast(null as date) as `fecha_inicio_mora_i`,
     case
@@ -147,7 +176,7 @@ select
     -- Corresponds to the reference balance[2.6]
     -- less the proportional value of the guarantees[3.6 / 2.59]
     -- (saldo_referencia - valor_garantia_proporcional)
-    cast(null as numeric) as `riesgo_neto`,
+    net_risk as `riesgo_neto`,
 
     cast(null as numeric) as `saldo_seguro`,
     cast(null as numeric) as `saldo_costas_procesales`,
@@ -159,7 +188,7 @@ select
     cast(null as numeric) as `valor_garantia_cons`,
 
     cast(null as string) as `municipio_otorgamiento`,
-    cast(null as numeric) as `reserva_referencia`,
+    reserve as `reserva_referencia`,
     cast(null as string) as `etapa_judicial`,
     cast(null as date) as `fecha_demanda`,
     cast(null as numeric) as `plazo_credito`,
@@ -167,7 +196,7 @@ select
     '{{ npb4_17_03_tipos_de_categorias_de_riesgo('Deudores normales') }}'
         as `categoria_riesgo_ref`,
     cast(null as numeric) as `reserva_constituir`,
-    cast(null as numeric) as `porcentaje_reserva`,
+    reserve_percentage as `porcentaje_reserva`,
     cast(null as numeric) as `pago_cuota`,
     cast(null as date) as `fecha_pago`,
     cast(null as numeric) as `porcenta_reserva_descon`,
@@ -179,4 +208,4 @@ select
     cast(null as string) as `programa_asist_cafe`,
     cast(null as date) as `fecha_cump_cafe`
 
-from loans_and_credit_facilities
+from final
