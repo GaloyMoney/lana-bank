@@ -1,4 +1,4 @@
-name: my_meltano_project
+name: lana
 version: '1.0'
 profile: meltano
 config-version: 2
@@ -23,7 +23,7 @@ clean-targets:
 - dbt_packages
 - logs
 models:
-  my_meltano_project: null
+  lana: null
 tests:
   schema: null
   store_failures: true
