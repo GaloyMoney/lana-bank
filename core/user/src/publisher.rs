@@ -44,14 +44,14 @@ where
         let events = new_events
             .filter_map(|event| match &event.event {
                 Initialized { id, email, .. } => Some(CoreUserEvent::UserCreated {
-                    user_id: *id,
+                    id: *id,
                     email: email.clone(),
                 }),
-                RoleAssigned { role, .. } => Some(CoreUserEvent::RoleAssigned {
+                RoleAssigned { role, .. } => Some(CoreUserEvent::UserGainedRole {
                     user_id: entity.id,
                     role: role.clone(),
                 }),
-                RoleRevoked { role, .. } => Some(CoreUserEvent::RoleRevoked {
+                RoleRevoked { role, .. } => Some(CoreUserEvent::UserLostRole {
                     user_id: entity.id,
                     role: role.clone(),
                 }),
@@ -74,11 +74,11 @@ where
         let events = new_events
             .filter_map(|event| match &event.event {
                 Initialized { id, name } => Some(CoreUserEvent::RoleCreated {
-                    role_id: *id,
+                    id: *id,
                     name: name.clone(),
                 }),
-                AssignedToParent { .. } => None,
-                RemovedFromParent { .. } => None,
+                GainedInheritanceFrom { .. } => None,
+                LostInheritanceFrom { .. } => None,
             })
             .collect::<Vec<_>>();
 

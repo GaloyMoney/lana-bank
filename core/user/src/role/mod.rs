@@ -69,11 +69,13 @@ where
         Ok(role)
     }
 
-    pub async fn assign_to_parent(
+    /// Make role with `role_id` inherit from role with `junior_id`.
+    /// Consequently, `role_id` will gain all permissions of `junior_id`.
+    pub async fn inherit_from_junior(
         &self,
         sub: &<Audit as AuditSvc>::Subject,
         role_id: RoleId,
-        parent_id: RoleId,
+        junior_id: RoleId,
     ) -> Result<(), RoleError> {
         self.authz
             .enforce_permission(
@@ -83,17 +85,17 @@ where
             )
             .await?;
 
-        let mut roles = self.repo.find_all::<Role>(&[role_id, parent_id]).await?;
+        let mut roles = self.repo.find_all::<Role>(&[junior_id, role_id]).await?;
 
-        let mut child = roles.remove(&role_id).expect("role was found");
-        let parent = roles.remove(&parent_id).expect("parent was found");
+        let junior = roles.remove(&junior_id).expect("role was found");
+        let mut senior = roles.remove(&role_id).expect("parent was found");
 
-        if child.assign_to_parent(&parent).did_execute() {
+        if senior.inherit_from(&junior).did_execute() {
             self.authz
-                .add_role_hierarchy(parent.name, child.name.clone())
+                .add_role_hierarchy(senior.name.clone(), junior.name)
                 .await?;
 
-            self.repo.update(&mut child).await?;
+            self.repo.update(&mut senior).await?;
         }
 
         Ok(())

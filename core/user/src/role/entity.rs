@@ -10,8 +10,8 @@ use crate::primitives::RoleId;
 #[es_event(id = "RoleId")]
 pub enum RoleEvent {
     Initialized { id: RoleId, name: String },
-    AssignedToParent { id: RoleId, parent: RoleId },
-    RemovedFromParent { id: RoleId, parent: RoleId },
+    GainedInheritanceFrom { junior_id: RoleId },
+    LostInheritanceFrom { junior_id: RoleId },
 }
 
 #[derive(EsEntity, Builder)]
@@ -23,16 +23,17 @@ pub struct Role {
 }
 
 impl Role {
-    pub(super) fn assign_to_parent(&mut self, parent: &Role) -> Idempotent<()> {
+    /// Make this role inherit from another role. Consequently, this role will
+    /// gain all permissions of `junior`.
+    pub(super) fn inherit_from(&mut self, junior: &Role) -> Idempotent<()> {
         idempotency_guard!(
             self.events.iter_all().rev(),
-            RoleEvent::AssignedToParent { parent: parent_id, .. } if parent.id == *parent_id,
-            => RoleEvent::RemovedFromParent { parent: parent_id, .. } if parent.id == *parent_id
+            RoleEvent::GainedInheritanceFrom { junior_id } if junior.id == *junior_id,
+            => RoleEvent::LostInheritanceFrom { junior_id } if junior.id == *junior_id
         );
 
-        self.events.push(RoleEvent::AssignedToParent {
-            id: self.id,
-            parent: parent.id,
+        self.events.push(RoleEvent::GainedInheritanceFrom {
+            junior_id: junior.id,
         });
         Idempotent::Executed(())
     }
