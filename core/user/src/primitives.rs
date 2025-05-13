@@ -42,6 +42,7 @@ pub enum CoreUserAction {
 
 impl CoreUserAction {
     pub const ROLE_CREATE: Self = CoreUserAction::Role(RoleEntityAction::Create);
+    pub const ROLE_UPDATE: Self = CoreUserAction::Role(RoleEntityAction::Update);
 
     pub const USER_CREATE: Self = CoreUserAction::User(UserEntityAction::Create);
     pub const USER_READ: Self = CoreUserAction::User(UserEntityAction::Read);
@@ -56,6 +57,7 @@ impl CoreUserAction {
 #[strum(serialize_all = "kebab-case")]
 pub enum RoleEntityAction {
     Create,
+    Update,
 }
 
 #[derive(PartialEq, Clone, Copy, Debug, strum::Display, strum::EnumString)]

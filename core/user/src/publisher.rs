@@ -55,7 +55,7 @@ where
                     user_id: entity.id,
                     role: role.clone(),
                 }),
-                _ => None,
+                AuthenticationIdUpdated { .. } => None,
             })
             .collect::<Vec<_>>();
 
@@ -72,11 +72,13 @@ where
     ) -> Result<(), RoleError> {
         use RoleEvent::*;
         let events = new_events
-            .map(|event| match &event.event {
-                Initialized { id, name } => CoreUserEvent::RoleCreated {
+            .filter_map(|event| match &event.event {
+                Initialized { id, name } => Some(CoreUserEvent::RoleCreated {
                     role_id: *id,
                     name: name.clone(),
-                },
+                }),
+                AssignedToParent { .. } => None,
+                RemovedFromParent { .. } => None,
             })
             .collect::<Vec<_>>();
 

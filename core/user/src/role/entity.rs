@@ -10,6 +10,8 @@ use crate::primitives::RoleId;
 #[es_event(id = "RoleId")]
 pub enum RoleEvent {
     Initialized { id: RoleId, name: String },
+    AssignedToParent { id: RoleId, parent: RoleId },
+    RemovedFromParent { id: RoleId, parent: RoleId },
 }
 
 #[derive(EsEntity, Builder)]
@@ -18,6 +20,22 @@ pub struct Role {
     pub id: RoleId,
     pub name: String,
     events: EntityEvents<RoleEvent>,
+}
+
+impl Role {
+    pub(super) fn assign_to_parent(&mut self, parent: &Role) -> Idempotent<()> {
+        idempotency_guard!(
+            self.events.iter_all().rev(),
+            RoleEvent::AssignedToParent { parent: parent_id, .. } if parent.id == *parent_id,
+            => RoleEvent::RemovedFromParent { parent: parent_id, .. } if parent.id == *parent_id
+        );
+
+        self.events.push(RoleEvent::AssignedToParent {
+            id: self.id,
+            parent: parent.id,
+        });
+        Idempotent::Executed(())
+    }
 }
 
 impl TryFromEvents<RoleEvent> for Role {
@@ -29,6 +47,7 @@ impl TryFromEvents<RoleEvent> for Role {
                 RoleEvent::Initialized { id, name } => {
                     builder = builder.id(*id).name(name.clone());
                 }
+                _ => {}
             }
         }
 

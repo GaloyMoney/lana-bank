@@ -23,7 +23,7 @@ where
     Audit: AuditSvc,
     E: OutboxEventMarker<CoreUserEvent>,
 {
-    authz: Authorization<Audit, RoleName>,
+    authz: Authorization<Audit, String>,
     repo: RoleRepo<E>,
 }
 
@@ -36,7 +36,7 @@ where
 {
     pub fn new(
         pool: &sqlx::PgPool,
-        authz: &Authorization<Audit, RoleName>,
+        authz: &Authorization<Audit, String>,
         publisher: &UserPublisher<E>,
     ) -> Self {
         Self {
@@ -67,5 +67,35 @@ where
         let role = self.repo.create(new_role).await?;
 
         Ok(role)
+    }
+
+    pub async fn assign_to_parent(
+        &self,
+        sub: &<Audit as AuditSvc>::Subject,
+        role_id: RoleId,
+        parent_id: RoleId,
+    ) -> Result<(), RoleError> {
+        self.authz
+            .enforce_permission(
+                sub,
+                CoreUserObject::all_roles(),
+                CoreUserAction::ROLE_UPDATE,
+            )
+            .await?;
+
+        let mut roles = self.repo.find_all::<Role>(&[role_id, parent_id]).await?;
+
+        let mut child = roles.remove(&role_id).expect("role was found");
+        let parent = roles.remove(&parent_id).expect("parent was found");
+
+        if child.assign_to_parent(&parent).did_execute() {
+            self.authz
+                .add_role_hierarchy(parent.name, child.name.clone())
+                .await?;
+
+            self.repo.update(&mut child).await?;
+        }
+
+        Ok(())
     }
 }
