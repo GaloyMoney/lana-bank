@@ -6,13 +6,10 @@ PERSISTED_LOG_FILE="customer.e2e-logs"
 RUN_LOG_FILE="customer.run.e2e-logs"
 
 setup_file() {
-  start_server
   login_superadmin
 }
 
-teardown_file() {
-  stop_server
-}
+
 
 wait_for_approval() {
   variables=$(

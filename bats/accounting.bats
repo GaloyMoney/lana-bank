@@ -6,12 +6,10 @@ PERSISTED_LOG_FILE="accounting.e2e-logs"
 RUN_LOG_FILE="accounting.run.e2e-logs"
 
 setup_file() {
-  start_server
   login_superadmin
 }
 
 teardown_file() {
-  stop_server
   cp "$LOG_FILE" "$PERSISTED_LOG_FILE"
 }
 

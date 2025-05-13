@@ -3,12 +3,7 @@
 load "helpers"
 
 setup_file() {
-  start_server
   login_superadmin
-}
-
-teardown_file() {
-  stop_server
 }
 
 @test "audit: check audit logs" {

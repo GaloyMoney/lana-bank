@@ -3,13 +3,10 @@
 load "helpers"
 
 setup_file() {
-  start_server
   login_superadmin
 }
 
-teardown_file() {
-  stop_server
-}
+
 
 @test "sumsub: integrate with gql" {
   if [[ -z "${SUMSUB_KEY}" || -z "${SUMSUB_SECRET}" ]]; then

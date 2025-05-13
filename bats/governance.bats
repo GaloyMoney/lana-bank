@@ -3,13 +3,10 @@
 load "helpers"
 
 setup_file() {
-  start_server
   login_superadmin
 }
 
-teardown_file() {
-  stop_server
-}
+
 
 trigger_withdraw_approval_process() {
   variables=$(

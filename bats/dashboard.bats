@@ -3,13 +3,10 @@
 load "helpers"
 
 setup_file() {
-  start_server
   login_superadmin
 }
 
-teardown_file() {
-  stop_server
-}
+
 
 wait_for_pending_facilities(){
   exec_admin_graphql 'dashboard'

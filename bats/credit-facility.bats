@@ -6,13 +6,11 @@ PERSISTED_LOG_FILE="credit-facility.e2e-logs"
 RUN_LOG_FILE="credit-facility.run.e2e-logs"
 
 setup_file() {
-  start_server
   login_superadmin
   reset_log_files "$PERSISTED_LOG_FILE" "$RUN_LOG_FILE"
 }
 
 teardown_file() {
-  stop_server
   cp "$LOG_FILE" "$PERSISTED_LOG_FILE"
 }
 
