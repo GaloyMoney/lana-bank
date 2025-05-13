@@ -43,16 +43,6 @@ impl CreditFacilityRepaymentPlan {
             .collect()
     }
 
-    fn disbursed_outstanding(&self) -> UsdCents {
-        self.entries
-            .iter()
-            .filter_map(|entry| match entry {
-                CreditFacilityRepaymentPlanEntry::Disbursal(data) => Some(data.outstanding),
-                _ => None,
-            })
-            .fold(UsdCents::ZERO, |acc, outstanding| acc + outstanding)
-    }
-
     fn planned_disbursals(&self) -> Vec<CreditFacilityRepaymentPlanEntry> {
         let terms = self.terms.expect("Missing FacilityCreated event");
         let facility_amount = self.facility_amount;
@@ -89,7 +79,10 @@ impl CreditFacilityRepaymentPlan {
         ]
     }
 
-    fn planned_interest_accruals(&self) -> Vec<CreditFacilityRepaymentPlanEntry> {
+    fn planned_interest_accruals(
+        &self,
+        updated_entries: &Vec<CreditFacilityRepaymentPlanEntry>,
+    ) -> Vec<CreditFacilityRepaymentPlanEntry> {
         let terms = self.terms.expect("Missing FacilityCreated event");
         let activated_at = self.activated_at();
 
@@ -108,13 +101,21 @@ impl CreditFacilityRepaymentPlan {
                     .truncate(maturity_date)
             };
 
-        let mut entries = vec![];
+        let disbursed_outstanding = updated_entries
+            .iter()
+            .filter_map(|entry| match entry {
+                CreditFacilityRepaymentPlanEntry::Disbursal(data) => Some(data.outstanding),
+                _ => None,
+            })
+            .fold(UsdCents::ZERO, |acc, outstanding| acc + outstanding);
+
+        let mut planned_interest_entries = vec![];
         while let Some(period) = next_interest_period {
             let interest = terms
                 .annual_rate
-                .interest_for_time_period(self.disbursed_outstanding(), period.days());
+                .interest_for_time_period(disbursed_outstanding, period.days());
 
-            entries.push(CreditFacilityRepaymentPlanEntry::Interest(
+            planned_interest_entries.push(CreditFacilityRepaymentPlanEntry::Interest(
                 ObligationDataForEntry {
                     id: None,
                     status: RepaymentStatus::Upcoming,
@@ -131,7 +132,7 @@ impl CreditFacilityRepaymentPlan {
             next_interest_period = period.next().truncate(maturity_date);
         }
 
-        entries
+        planned_interest_entries
     }
 
     pub(super) fn process_event(
@@ -232,14 +233,18 @@ impl CreditFacilityRepaymentPlan {
             _ => return false,
         };
 
-        self.entries = if !existing_obligations.is_empty() {
+        let updated_entries = if !existing_obligations.is_empty() {
             existing_obligations
         } else {
             self.planned_disbursals()
         };
 
-        self.entries.extend(self.planned_interest_accruals());
+        let planned_interest_entries = self.planned_interest_accruals(&updated_entries);
 
+        self.entries = updated_entries
+            .into_iter()
+            .chain(planned_interest_entries)
+            .collect();
         self.entries.sort();
 
         true
@@ -300,7 +305,7 @@ mod tests {
     #[test]
     fn planned_interest_accruals_returns_expected_number_of_entries() {
         let mut plan = initial_plan();
-        assert_eq!(plan.planned_interest_accruals().len(), 4);
+        assert_eq!(plan.planned_interest_accruals(&plan.entries).len(), 4);
 
         plan.process_event(
             Default::default(),
@@ -337,6 +342,6 @@ mod tests {
                 created_at: default_start_date() + chrono::Duration::days(30),
             },
         );
-        assert_eq!(plan.planned_interest_accruals().len(), 3);
+        assert_eq!(plan.planned_interest_accruals(&plan.entries).len(), 3);
     }
 }
