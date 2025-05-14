@@ -563,6 +563,11 @@ where
 
         let mut db = self.credit_facility_repo.begin_op().await?;
         let disbursal_id = DisbursalId::new();
+        let due_date = facility.matures_at.expect("Facility is not active");
+        let overdue_date = facility
+            .terms
+            .obligation_overdue_duration
+            .map(|d| d.end_date(due_date));
         let new_disbursal = NewDisbursal::builder()
             .id(disbursal_id)
             .approval_process_id(disbursal_id)
@@ -570,7 +575,8 @@ where
             .amount(amount)
             .account_ids(facility.account_ids)
             .disbursal_credit_account_id(facility.disbursal_credit_account_id)
-            .disbursal_due_date(facility.matures_at.expect("Facility is not active"))
+            .disbursal_due_date(due_date)
+            .disbursal_overdue_date(overdue_date)
             .audit_info(audit_info)
             .build()
             .expect("could not build new disbursal");
