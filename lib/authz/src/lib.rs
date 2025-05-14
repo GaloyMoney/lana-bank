@@ -100,6 +100,27 @@ where
         }
     }
 
+    pub async fn remove_permission_from_role(
+        &self,
+        role: &R,
+        object: impl Into<Audit::Object>,
+        action: impl Into<Audit::Action>,
+    ) -> Result<(), AuthorizationError> {
+        let object = object.into();
+        let action = action.into();
+
+        let mut enforcer = self.enforcer.write().await;
+        enforcer
+            .remove_policy(vec![
+                role.to_string(),
+                object.to_string(),
+                action.to_string(),
+            ])
+            .await?;
+
+        Ok(())
+    }
+
     pub async fn assign_role_to_subject(
         &self,
         sub: impl Into<Audit::Subject>,

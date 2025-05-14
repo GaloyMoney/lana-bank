@@ -124,7 +124,9 @@ where
             .remove_permission(object.to_string(), action.to_string())
             .did_execute()
         {
-            // TODO: self.authz.remove_permission_from_role(&role.name, object, action).await?;
+            self.authz
+                .remove_permission_from_role(&role.name, object, action)
+                .await?;
             self.repo.update(&mut role).await?;
         }
 
