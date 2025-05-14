@@ -147,8 +147,6 @@ pub struct CreditFacility {
     pub activated_at: Option<DateTime<Utc>>,
     #[builder(setter(strip_option), default)]
     pub matures_at: Option<DateTime<Utc>>,
-    #[builder(default)]
-    pub defaults_at: Option<DateTime<Utc>>,
 
     #[es_entity(nested)]
     #[builder(default)]
@@ -281,10 +279,6 @@ impl CreditFacility {
 
         self.activated_at = Some(activated_at);
         self.matures_at = Some(self.terms.duration.maturity_date(activated_at));
-        self.defaults_at = self
-            .terms
-            .interest_overdue_duration
-            .map(|d| d.end_date(self.matures_at.expect("No 'matures_at' date set")));
         let tx_id = LedgerTxId::new();
         self.events.push(CreditFacilityEvent::Activated {
             ledger_tx_id: tx_id,
@@ -630,14 +624,7 @@ impl TryFromEvents<CreditFacilityEvent> for CreditFacility {
                         .expect("terms should be set")
                         .duration
                         .maturity_date(*activated_at);
-                    let defaults_at = terms
-                        .expect("terms should be set")
-                        .interest_overdue_duration
-                        .map(|d| d.end_date(matures_at));
-                    builder = builder
-                        .activated_at(*activated_at)
-                        .matures_at(matures_at)
-                        .defaults_at(defaults_at)
+                    builder = builder.activated_at(*activated_at).matures_at(matures_at)
                 }
                 CreditFacilityEvent::ApprovalProcessConcluded { .. } => (),
                 CreditFacilityEvent::InterestAccrualCycleStarted { .. } => (),
