@@ -283,13 +283,13 @@ where
         data: String,
         trial_balance_ref: &str,
     ) -> Result<bool, CoreAccountingError> {
-        if let Some(chart) = self
+        if let Some(new_account_set_ids) = self
             .chart_of_accounts()
             .import_from_csv(sub, chart_id, data)
             .await?
         {
             self.trial_balances()
-                .add_chart_to_trial_balance(trial_balance_ref, &chart)
+                .add_new_chart_accounts_to_trial_balance(trial_balance_ref, new_account_set_ids)
                 .await?;
         }
 

@@ -64,12 +64,16 @@ impl Chart {
         Idempotent::Executed((parent, ledger_account_set_id))
     }
 
-    pub fn all_trial_balance_accounts(
+    pub fn trial_balance_account_ids_from_new_accounts(
         &self,
-    ) -> impl Iterator<Item = &(AccountSpec, CalaAccountSetId)> {
+        new_account_set_ids: &[CalaAccountSetId],
+    ) -> impl Iterator<Item = CalaAccountSetId> {
         self.all_accounts
             .values()
-            .filter(|(spec, _)| spec.code.len_sections() == 2)
+            .filter(move |(spec, id)| {
+                spec.code.len_sections() == 2 && new_account_set_ids.contains(id)
+            })
+            .map(|(_, id)| *id)
     }
 
     pub fn account_spec(&self, code: &AccountCode) -> Option<&(AccountSpec, CalaAccountSetId)> {

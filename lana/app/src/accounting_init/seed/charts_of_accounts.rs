@@ -45,12 +45,15 @@ async fn seed_chart_of_accounts(
     seed_path: PathBuf,
 ) -> Result<(), AccountingInitError> {
     let data = std::fs::read_to_string(seed_path)?;
-    if let Some(chart) = chart_of_accounts
+    if let Some(new_account_set_ids) = chart_of_accounts
         .import_from_csv(&Subject::System, chart_id, data)
         .await?
     {
         trial_balances
-            .add_chart_to_trial_balance(TRIAL_BALANCE_STATEMENT_NAME, &chart)
+            .add_new_chart_accounts_to_trial_balance(
+                TRIAL_BALANCE_STATEMENT_NAME,
+                new_account_set_ids,
+            )
             .await?;
     }
 
