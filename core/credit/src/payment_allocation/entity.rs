@@ -16,6 +16,7 @@ pub enum PaymentAllocationEvent {
         ledger_tx_id: LedgerTxId,
         payment_id: PaymentId,
         obligation_id: ObligationId,
+        obligation_allocation_idx: usize,
         obligation_type: ObligationType,
         credit_facility_id: CreditFacilityId,
         amount: UsdCents,
@@ -31,6 +32,7 @@ pub enum PaymentAllocationEvent {
 pub struct PaymentAllocation {
     pub id: PaymentAllocationId,
     pub obligation_id: ObligationId,
+    pub obligation_allocation_idx: usize,
     pub obligation_type: ObligationType,
     pub credit_facility_id: CreditFacilityId,
     pub ledger_tx_id: LedgerTxId,
@@ -40,6 +42,15 @@ pub struct PaymentAllocation {
     pub effective: chrono::NaiveDate,
 
     events: EntityEvents<PaymentAllocationEvent>,
+}
+
+impl PaymentAllocation {
+    pub(crate) fn tx_ref(&self) -> String {
+        format!(
+            "obligation-{}-idx-{}",
+            self.obligation_id, self.obligation_allocation_idx,
+        )
+    }
 }
 
 impl TryFromEvents<PaymentAllocationEvent> for PaymentAllocation {
@@ -52,6 +63,7 @@ impl TryFromEvents<PaymentAllocationEvent> for PaymentAllocation {
                 PaymentAllocationEvent::Initialized {
                     id,
                     obligation_id,
+                    obligation_allocation_idx,
                     obligation_type,
                     credit_facility_id,
                     ledger_tx_id,
@@ -64,6 +76,7 @@ impl TryFromEvents<PaymentAllocationEvent> for PaymentAllocation {
                     builder = builder
                         .id(*id)
                         .obligation_id(*obligation_id)
+                        .obligation_allocation_idx(*obligation_allocation_idx)
                         .obligation_type(*obligation_type)
                         .credit_facility_id(*credit_facility_id)
                         .ledger_tx_id(*ledger_tx_id)
@@ -93,6 +106,7 @@ pub struct NewPaymentAllocation {
     pub(crate) payment_id: PaymentId,
     pub(crate) obligation_id: ObligationId,
     pub(crate) obligation_type: ObligationType,
+    pub(crate) obligation_allocation_idx: usize,
     pub(crate) credit_facility_id: CreditFacilityId,
     pub(crate) receivable_account_id: CalaAccountId,
     pub(crate) account_to_be_debited_id: CalaAccountId,
@@ -117,6 +131,7 @@ impl IntoEvents<PaymentAllocationEvent> for NewPaymentAllocation {
                 ledger_tx_id: self.id.into(),
                 payment_id: self.payment_id,
                 obligation_id: self.obligation_id,
+                obligation_allocation_idx: self.obligation_allocation_idx,
                 obligation_type: self.obligation_type,
                 credit_facility_id: self.credit_facility_id,
                 amount: self.amount,

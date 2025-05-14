@@ -1127,9 +1127,8 @@ impl CreditLedger {
     async fn record_obligation_repayment_in_op(
         &self,
         op: &mut LedgerOperation<'_>,
-        PaymentAllocation {
+        allocation @ PaymentAllocation {
             id,
-            obligation_id: tx_ref,
             amount,
             account_to_be_debited_id,
             receivable_account_id,
@@ -1143,7 +1142,7 @@ impl CreditLedger {
             amount: amount.to_usd(),
             receivable_account_id,
             account_to_be_debited_id,
-            tx_ref: tx_ref.to_string(),
+            tx_ref: allocation.tx_ref(),
             effective,
         };
         self.cala

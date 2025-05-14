@@ -395,11 +395,17 @@ impl Obligation {
             payment_allocation_id: allocation_id,
             amount: payment_amount,
         });
+        let payment_allocation_idx = self
+            .events()
+            .iter_all()
+            .filter(|e| matches!(e, ObligationEvent::PaymentAllocated { .. }))
+            .count();
         let allocation = NewPaymentAllocation::builder()
             .id(allocation_id)
             .payment_id(payment_id)
             .credit_facility_id(self.credit_facility_id)
             .obligation_id(self.id)
+            .obligation_allocation_idx(payment_allocation_idx)
             .obligation_type(self.obligation_type)
             .receivable_account_id(
                 self.receivable_account_id()
