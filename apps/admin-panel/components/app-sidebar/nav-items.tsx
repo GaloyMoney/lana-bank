@@ -20,6 +20,7 @@ import {
   Grid2x2,
   Cog,
   ScrollIcon,
+  ScrollText,
   SquareAsterisk,
 } from "lucide-react"
 import { useTranslations } from "next-intl"
@@ -79,6 +80,7 @@ export function useNavItems() {
       url: "/transaction-templates",
       icon: SquareAsterisk,
     },
+    { title: t("ledgerAccount"), url: "/ledger-account", icon: ScrollText },
   ]
 
   const allNavItems: NavItem[] = [
