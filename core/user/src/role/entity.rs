@@ -43,6 +43,7 @@ pub struct Role {
     pub id: RoleId,
     pub name: RoleName,
     #[builder(default, setter(custom))]
+    #[allow(dead_code)]
     direct_permissions: HashSet<(String, String)>,
     events: EntityEvents<RoleEvent>,
 }
@@ -102,10 +103,6 @@ impl Role {
             audit_info,
         });
         Idempotent::Executed(())
-    }
-
-    pub fn direct_permissions(&self) -> &HashSet<(String, String)> {
-        &self.direct_permissions
     }
 }
 
