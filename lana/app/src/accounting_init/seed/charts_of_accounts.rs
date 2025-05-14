@@ -3,18 +3,20 @@ use std::path::PathBuf;
 use crate::{
     accounting::{ChartId, ChartOfAccounts},
     accounting_init::{constants::*, *},
+    trial_balance::TrialBalances,
 };
 
 use rbac_types::Subject;
 
 pub(crate) async fn init(
     chart_of_accounts: &ChartOfAccounts,
+    trial_balances: &TrialBalances,
     seed_path: Option<PathBuf>,
 ) -> Result<(), AccountingInitError> {
     let chart_id = create_chart_of_accounts(chart_of_accounts).await?;
 
     if let Some(path) = seed_path {
-        seed_chart_of_accounts(chart_of_accounts, chart_id, path).await?;
+        seed_chart_of_accounts(chart_of_accounts, trial_balances, chart_id, path).await?;
     }
     Ok(())
 }
@@ -38,13 +40,19 @@ async fn create_chart_of_accounts(
 
 async fn seed_chart_of_accounts(
     chart_of_accounts: &ChartOfAccounts,
+    trial_balances: &TrialBalances,
     chart_id: ChartId,
     seed_path: PathBuf,
 ) -> Result<(), AccountingInitError> {
     let data = std::fs::read_to_string(seed_path)?;
-    chart_of_accounts
+    if let Some(chart) = chart_of_accounts
         .import_from_csv(&Subject::System, chart_id, data)
-        .await?;
+        .await?
+    {
+        trial_balances
+            .add_chart_to_trial_balance(TRIAL_BALANCE_STATEMENT_NAME, &chart)
+            .await?;
+    }
 
     Ok(())
 }

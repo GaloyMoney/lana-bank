@@ -99,6 +99,7 @@ impl LanaApp {
 
         ChartsInit::charts_of_accounts(
             accounting.chart_of_accounts(),
+            accounting.trial_balances(),
             config.chart_of_accounts_seed_path,
         )
         .await?;

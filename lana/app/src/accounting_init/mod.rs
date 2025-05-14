@@ -44,8 +44,9 @@ pub struct ChartsInit;
 impl ChartsInit {
     pub async fn charts_of_accounts(
         chart_of_accounts: &ChartOfAccounts,
+        trial_balances: &TrialBalances,
         seed_path: Option<PathBuf>,
     ) -> Result<(), AccountingInitError> {
-        seed::charts_of_accounts::init(chart_of_accounts, seed_path).await
+        seed::charts_of_accounts::init(chart_of_accounts, trial_balances, seed_path).await
     }
 }
