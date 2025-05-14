@@ -30,11 +30,11 @@ teardown_file() {
   chart_id=$(graphql_output '.data.chartOfAccounts.chartId')
 
   temp_file=$(mktemp)
-  liabilities_code=$((((RANDOM % 100)) + 2))
+  liabilities_code=$((((RANDOM % 1000)) + 1000))
   echo "
     201,,,Manuals 1,,
     202,,,Manuals 2,,
-    $liabilities_code,,,Liabilities,,
+    $liabilities_code,,,Alt Liabilities,,
     ,,,,,
     ,$((RANDOM % 100)),,Checking Accounts,,
     ,,$((RANDOM % 1000)),Northern Office,
@@ -56,10 +56,12 @@ teardown_file() {
   [[ "$success" == "true" ]] || exit 1
 
   exec_admin_graphql 'chart-of-accounts'
-  res=$(graphql_output '
-    .data.chartOfAccounts.children[]
-    | select(.name == "Liabilities")
-    | .accountCode' | head -n 1)
+  graphql_output > output.json
+  res=$(graphql_output \
+      --arg liabilitiesCode "$liabilities_code" \
+      '.data.chartOfAccounts.children[]
+      | select(.accountCode == $liabilitiesCode )
+      | .accountCode' | head -n 1)
   [[ $res -eq "$liabilities_code" ]] || exit 1
 }
 
