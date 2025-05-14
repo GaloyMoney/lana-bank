@@ -255,7 +255,7 @@ impl CreditFacilityRepaymentPlan {
 mod tests {
     use rust_decimal_macros::dec;
 
-    use crate::terms::{Duration, InterestDuration, InterestInterval, OneTimeFeeRatePct};
+    use crate::terms::{Duration, InterestInterval, ObligationDuration, OneTimeFeeRatePct};
 
     use super::*;
 
@@ -263,7 +263,7 @@ mod tests {
         TermValues::builder()
             .annual_rate(dec!(12))
             .duration(Duration::Months(3))
-            .interest_due_duration(InterestDuration::Days(0))
+            .interest_due_duration(ObligationDuration::Days(0))
             .accrual_cycle_interval(InterestInterval::EndOfMonth)
             .accrual_interval(InterestInterval::EndOfDay)
             .one_time_fee_rate(OneTimeFeeRatePct::new(5))

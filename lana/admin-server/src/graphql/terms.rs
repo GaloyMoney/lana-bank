@@ -1,8 +1,9 @@
 use async_graphql::*;
 
 pub use lana_app::terms::{
-    AnnualRatePct, CVLPct, Duration as DomainDuration, InterestDuration as DomainInterestDuration,
-    InterestInterval, OneTimeFeeRatePct, TermValues as DomainTermValues,
+    AnnualRatePct, CVLPct, Duration as DomainDuration, InterestInterval,
+    ObligationDuration as DomainObligationDuration, OneTimeFeeRatePct,
+    TermValues as DomainTermValues,
 };
 
 #[derive(SimpleObject, Clone)]
@@ -83,10 +84,10 @@ impl From<DurationInput> for DomainDuration {
     }
 }
 
-impl From<DomainInterestDuration> for Duration {
-    fn from(duration: DomainInterestDuration) -> Self {
+impl From<DomainObligationDuration> for Duration {
+    fn from(duration: DomainObligationDuration) -> Self {
         match duration {
-            DomainInterestDuration::Days(days) => Self {
+            DomainObligationDuration::Days(days) => Self {
                 period: Period::Days,
                 units: days.try_into().expect("Days number too large"),
             },
@@ -94,7 +95,7 @@ impl From<DomainInterestDuration> for Duration {
     }
 }
 
-impl From<DurationInput> for DomainInterestDuration {
+impl From<DurationInput> for DomainObligationDuration {
     fn from(duration: DurationInput) -> Self {
         match duration.period {
             Period::Months => todo!(),
