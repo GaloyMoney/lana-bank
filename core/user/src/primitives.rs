@@ -50,33 +50,33 @@ impl Display for RoleName {
 #[strum_discriminants(derive(strum::Display, strum::EnumString))]
 #[strum_discriminants(strum(serialize_all = "kebab-case"))]
 pub enum CoreUserAction {
-    User(UserEntityAction),
-    Role(RoleEntityAction),
+    User(UserAction),
+    Role(RoleAction),
 }
 
 impl CoreUserAction {
-    pub const ROLE_CREATE: Self = CoreUserAction::Role(RoleEntityAction::Create);
-    pub const ROLE_UPDATE: Self = CoreUserAction::Role(RoleEntityAction::Update);
+    pub const ROLE_CREATE: Self = CoreUserAction::Role(RoleAction::Create);
+    pub const ROLE_UPDATE: Self = CoreUserAction::Role(RoleAction::Update);
 
-    pub const USER_CREATE: Self = CoreUserAction::User(UserEntityAction::Create);
-    pub const USER_READ: Self = CoreUserAction::User(UserEntityAction::Read);
-    pub const USER_LIST: Self = CoreUserAction::User(UserEntityAction::List);
-    pub const USER_ASSIGN_ROLE: Self = CoreUserAction::User(UserEntityAction::AssignRole);
-    pub const USER_REVOKE_ROLE: Self = CoreUserAction::User(UserEntityAction::RevokeRole);
+    pub const USER_CREATE: Self = CoreUserAction::User(UserAction::Create);
+    pub const USER_READ: Self = CoreUserAction::User(UserAction::Read);
+    pub const USER_LIST: Self = CoreUserAction::User(UserAction::List);
+    pub const USER_ASSIGN_ROLE: Self = CoreUserAction::User(UserAction::AssignRole);
+    pub const USER_REVOKE_ROLE: Self = CoreUserAction::User(UserAction::RevokeRole);
     pub const USER_UPDATE_AUTHENTICATION_ID: Self =
-        CoreUserAction::User(UserEntityAction::UpdateAuthenticationId);
+        CoreUserAction::User(UserAction::UpdateAuthenticationId);
 }
 
 #[derive(PartialEq, Clone, Copy, Debug, strum::Display, strum::EnumString)]
 #[strum(serialize_all = "kebab-case")]
-pub enum RoleEntityAction {
+pub enum RoleAction {
     Create,
     Update,
 }
 
 #[derive(PartialEq, Clone, Copy, Debug, strum::Display, strum::EnumString)]
 #[strum(serialize_all = "kebab-case")]
-pub enum UserEntityAction {
+pub enum UserAction {
     Read,
     Create,
     List,
@@ -104,21 +104,21 @@ impl FromStr for CoreUserAction {
         let (entity, action) = s.split_once(':').expect("missing colon");
         use CoreUserActionDiscriminants::*;
         let res = match entity.parse()? {
-            User => CoreUserAction::from(action.parse::<UserEntityAction>()?),
-            Role => CoreUserAction::from(action.parse::<RoleEntityAction>()?),
+            User => CoreUserAction::from(action.parse::<UserAction>()?),
+            Role => CoreUserAction::from(action.parse::<RoleAction>()?),
         };
         Ok(res)
     }
 }
 
-impl From<UserEntityAction> for CoreUserAction {
-    fn from(action: UserEntityAction) -> Self {
+impl From<UserAction> for CoreUserAction {
+    fn from(action: UserAction) -> Self {
         CoreUserAction::User(action)
     }
 }
 
-impl From<RoleEntityAction> for CoreUserAction {
-    fn from(action: RoleEntityAction) -> Self {
+impl From<RoleAction> for CoreUserAction {
+    fn from(action: RoleAction) -> Self {
         CoreUserAction::Role(action)
     }
 }

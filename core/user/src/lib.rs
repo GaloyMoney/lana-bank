@@ -32,7 +32,7 @@ where
     <Audit as AuditSvc>::Object: From<CoreUserObject>,
     E: OutboxEventMarker<CoreUserEvent>,
 {
-    pub async fn init(
+    pub fn new(
         pool: &sqlx::PgPool,
         authz: &Authorization<Audit, RoleName>,
         outbox: &Outbox<E>,

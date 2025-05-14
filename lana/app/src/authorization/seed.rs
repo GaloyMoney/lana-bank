@@ -3,7 +3,7 @@ use authz::error::AuthorizationError;
 use core_accounting::{CoreAccountingAction, CoreAccountingObject};
 use core_credit::{CoreCreditAction, CoreCreditObject};
 use core_customer::{CoreCustomerAction, CustomerObject};
-use core_user::{CoreUserAction, CoreUserObject, UserEntityAction};
+use core_user::{CoreUserAction, CoreUserObject, UserAction};
 use dashboard::{DashboardModuleAction, DashboardModuleObject};
 use deposit::{CoreDepositAction, CoreDepositObject};
 use governance::{GovernanceAction, GovernanceObject};
@@ -69,42 +69,42 @@ async fn add_permissions_for_admin(authz: &Authorization) -> Result<(), Authoriz
         .add_permission_to_role(
             &role,
             CoreUserObject::all_users(),
-            CoreUserAction::User(UserEntityAction::Create),
+            CoreUserAction::User(UserAction::Create),
         )
         .await?;
     authz
         .add_permission_to_role(
             &role,
             CoreUserObject::all_users(),
-            CoreUserAction::User(UserEntityAction::List),
+            CoreUserAction::User(UserAction::List),
         )
         .await?;
     authz
         .add_permission_to_role(
             &role,
             CoreUserObject::all_users(),
-            CoreUserAction::User(UserEntityAction::Read),
+            CoreUserAction::User(UserAction::Read),
         )
         .await?;
     authz
         .add_permission_to_role(
             &role,
             CoreUserObject::all_users(),
-            CoreUserAction::User(UserEntityAction::Update),
+            CoreUserAction::User(UserAction::Update),
         )
         .await?;
     authz
         .add_permission_to_role(
             &role,
             CoreUserObject::all_users(),
-            CoreUserAction::User(UserEntityAction::AssignRole),
+            CoreUserAction::User(UserAction::AssignRole),
         )
         .await?;
     authz
         .add_permission_to_role(
             &role,
             CoreUserObject::all_users(),
-            CoreUserAction::User(UserEntityAction::RevokeRole),
+            CoreUserAction::User(UserAction::RevokeRole),
         )
         .await?;
 
