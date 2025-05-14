@@ -6,12 +6,10 @@
   mkShell,
   devEnvVars,
 }: let
-  # Use Python 3.11 specifically for Airflow compatibility
-  python311 = pkgs.python311;
-  python311Packages = pkgs.python311Packages;
+  python312 = pkgs.python312;
+  python312Packages = pkgs.python312Packages;
 
-  # Define Python environment with necessary packages using Python 3.11
-  pythonEnv = python311.withPackages (ps:
+  pythonEnv = python312.withPackages (ps:
     with ps; [
       pip
       virtualenv
@@ -30,7 +28,7 @@
 
     # Shell hook to set up the virtual environment and install Meltano
     shellHook = ''
-      echo "🚀 Entering Meltano development environment (Python 3.11)"
+      echo "🚀 Entering Meltano development environment (Python 3.12)"
       MELTANO_PROJECT_DIR="./meltano"
       VENV_DIR="$MELTANO_PROJECT_DIR/.venv"
       INSTALL_MARKER="$VENV_DIR/.plugins_installed"
@@ -42,19 +40,19 @@
         CURRENT_PYTHON_VERSION=$(python --version 2>&1 | grep -oE 'Python 3\.([0-9]+)')
         deactivate 2>/dev/null || true
 
-        # If not Python 3.11.x, remove the venv to recreate it
-        if [[ "$CURRENT_PYTHON_VERSION" != "Python 3.11" ]]; then
-          echo "Found $CURRENT_PYTHON_VERSION venv, but Python 3.11 is required for Airflow"
-          echo "Removing existing virtual environment to create a new one with Python 3.11..."
+        # If not Python 3.12.x, remove the venv to recreate it
+        if [[ "$CURRENT_PYTHON_VERSION" != "Python 3.12" ]]; then
+          echo "Found $CURRENT_PYTHON_VERSION venv, but Python 3.12 is required for Airflow"
+          echo "Removing existing virtual environment to create a new one with Python 3.12..."
           rm -rf "$VENV_DIR"
         fi
       fi
 
       # Create and activate venv if needed
       if [ ! -d "$VENV_DIR" ]; then
-        echo "Creating Python virtual environment in $VENV_DIR using ${python311}/bin/python3..."
-        ${python311}/bin/python3 -m venv "$VENV_DIR"
-        echo "Virtual environment created with Python 3.11."
+        echo "Creating Python virtual environment in $VENV_DIR using ${python312}/bin/python3..."
+        ${python312}/bin/python3 -m venv "$VENV_DIR"
+        echo "Virtual environment created with Python 3.12."
       fi
 
       # Activate the venv
