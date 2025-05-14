@@ -42,7 +42,6 @@ pub enum RoleEvent {
 pub struct Role {
     pub id: RoleId,
     pub name: RoleName,
-    #[builder(default, setter(custom))]
     #[allow(dead_code)]
     direct_permissions: HashSet<(String, String)>,
     events: EntityEvents<RoleEvent>,
@@ -109,6 +108,7 @@ impl Role {
 impl TryFromEvents<RoleEvent> for Role {
     fn try_from_events(events: EntityEvents<RoleEvent>) -> Result<Self, EsEntityError> {
         let mut builder = RoleBuilder::default();
+        let mut direct_permissions = HashSet::new();
 
         for event in events.iter_all() {
             match event {
@@ -118,31 +118,18 @@ impl TryFromEvents<RoleEvent> for Role {
                 RoleEvent::GainedInheritanceFrom { .. } => {}
                 RoleEvent::LostInheritanceFrom { .. } => {}
                 RoleEvent::PermissionAdded { object, action, .. } => {
-                    builder = builder.insert_permission(object.to_string(), action.to_string());
+                    direct_permissions.insert((object.to_string(), action.to_string()));
                 }
                 RoleEvent::PermissionRemoved { object, action, .. } => {
-                    builder = builder.remove_permission(object.to_string(), action.to_string());
+                    direct_permissions.remove(&(object.to_string(), action.to_string()));
                 }
             }
         }
 
-        builder.events(events).build()
-    }
-}
-
-impl RoleBuilder {
-    fn insert_permission(mut self, object: String, action: String) -> Self {
-        self.direct_permissions
-            .get_or_insert_default()
-            .insert((object, action));
-        self
-    }
-
-    fn remove_permission(mut self, object: String, action: String) -> Self {
-        self.direct_permissions
-            .get_or_insert_default()
-            .remove(&(object, action));
-        self
+        builder
+            .direct_permissions(direct_permissions)
+            .events(events)
+            .build()
     }
 }
 
