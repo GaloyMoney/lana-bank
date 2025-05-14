@@ -15,20 +15,29 @@ teardown_file() {
   cp "$LOG_FILE" "$PERSISTED_LOG_FILE"
 }
 
+@test "accounting: imported CSV file from seed into chart of accounts" {
+  exec_admin_graphql 'chart-of-accounts'
+  chart_id=$(graphql_output '.data.chartOfAccounts.chartId')
+  assets_code=$(graphql_output '
+    .data.chartOfAccounts.children[]
+    | select(.name == "Assets")
+    | .accountCode' | head -n 1)
+  [[ "$assets_code" -eq "1" ]] || exit 1
+}
+
 @test "accounting: can import CSV file into chart of accounts" {
   exec_admin_graphql 'chart-of-accounts'
   chart_id=$(graphql_output '.data.chartOfAccounts.chartId')
 
   temp_file=$(mktemp)
+  liabilities_code=$((((RANDOM % 100)) + 2))
   echo "
     201,,,Manuals 1,,
     202,,,Manuals 2,,
-    $((RANDOM % 100)),,,Assets ,,
+    $liabilities_code,,,Liabilities,,
     ,,,,,
-    $((RANDOM % 100)),,,Assets,,
-    ,,,,,
-    ,$((RANDOM % 100)),,Effective,,
-    ,,$((RANDOM % 1000)),Central Office,
+    ,$((RANDOM % 100)),,Checking Accounts,,
+    ,,$((RANDOM % 1000)),Northern Office,
   " > "$temp_file"
 
   variables=$(
@@ -45,6 +54,13 @@ teardown_file() {
   response=$(exec_admin_graphql_upload 'chart-of-accounts-csv-import' "$variables" "$temp_file" "input.file")
   success=$(echo "$response" | jq -r '.data.chartOfAccountsCsvImport.success')
   [[ "$success" == "true" ]] || exit 1
+
+  exec_admin_graphql 'chart-of-accounts'
+  res=$(graphql_output '
+    .data.chartOfAccounts.children[]
+    | select(.name == "Liabilities")
+    | .accountCode' | head -n 1)
+  [[ $res -eq "$liabilities_code" ]] || exit 1
 }
 
 @test "accounting: can traverse chart of accounts" {
