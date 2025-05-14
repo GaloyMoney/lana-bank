@@ -278,6 +278,11 @@ impl InterestAccrualCycle {
                 audit_info: audit_info.clone(),
             });
 
+        let due_date = self.accrual_cycle_ends_at();
+        let overdue_date = self
+            .terms
+            .obligation_overdue_duration
+            .map(|d| d.end_date(due_date));
         Idempotent::Executed(
             NewObligation::builder()
                 .id(obligation_id)
@@ -301,7 +306,8 @@ impl InterestAccrualCycle {
                     account_to_be_credited_id: self.account_ids.interest_income_account_id,
                 })
                 .defaulted_account_id(self.account_ids.interest_defaulted_account_id)
-                .due_date(self.accrual_cycle_ends_at())
+                .due_date(due_date)
+                .overdue_date(overdue_date)
                 .recorded_at(posted_at)
                 .audit_info(audit_info)
                 .build()

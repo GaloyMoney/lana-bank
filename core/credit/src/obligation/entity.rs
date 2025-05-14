@@ -479,7 +479,6 @@ pub struct NewObligation {
     #[builder(setter(into))]
     defaulted_account_id: CalaAccountId,
     due_date: DateTime<Utc>,
-    #[builder(setter(strip_option), default)]
     overdue_date: Option<DateTime<Utc>>,
     #[builder(setter(strip_option), default)]
     defaulted_date: Option<DateTime<Utc>>,

@@ -217,6 +217,7 @@ impl Disbursal {
                 })
                 .defaulted_account_id(self.account_ids.disbursed_defaulted_account_id)
                 .due_date(self.disbursal_due_date)
+                .overdue_date(self.disbursal_overdue_date)
                 .recorded_at(now)
                 .audit_info(audit_info)
                 .build()
