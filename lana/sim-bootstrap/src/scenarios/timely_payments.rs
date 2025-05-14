@@ -135,21 +135,7 @@ async fn do_timely_payments(
             .await?;
     }
 
-    const MAX_RETRIES: usize = 15;
-    for attempt in 0..MAX_RETRIES {
-        match app.credit().complete_facility(&sub, facility.id).await {
-            Ok(_) => {
-                break;
-            }
-            Err(_) if attempt + 1 < MAX_RETRIES => {
-                tokio::time::sleep(std::time::Duration::from_secs(2)).await;
-                continue;
-            }
-            Err(e) => {
-                panic!("Failed to complete facility: {:?}", e);
-            }
-        }
-    }
+    app.credit().complete_facility(&sub, facility.id).await?;
 
     Ok(())
 }

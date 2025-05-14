@@ -1002,10 +1002,11 @@ where
     }
 
     #[instrument(name = "credit_facility.complete", skip(self), err)]
+    #[es_entity::retry_on_concurrent_modification(any_error = true)]
     pub async fn complete_facility(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        credit_facility_id: impl Into<CreditFacilityId> + std::fmt::Debug,
+        credit_facility_id: impl Into<CreditFacilityId> + std::fmt::Debug + Copy,
     ) -> Result<CreditFacility, CoreCreditError> {
         let credit_facility_id = credit_facility_id.into();
 
