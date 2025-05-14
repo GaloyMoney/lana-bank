@@ -79,7 +79,7 @@ where
         self.authz
             .enforce_permission(
                 sub,
-                CoreUserObject::all_roles(),
+                CoreUserObject::role(role_id),
                 CoreUserAction::ROLE_UPDATE,
             )
             .await?;
@@ -111,7 +111,7 @@ where
         self.authz
             .enforce_permission(
                 sub,
-                CoreUserObject::all_roles(),
+                CoreUserObject::role(role_id),
                 CoreUserAction::ROLE_UPDATE,
             )
             .await?;
@@ -142,7 +142,7 @@ where
         self.authz
             .enforce_permission(
                 sub,
-                CoreUserObject::all_roles(),
+                CoreUserObject::role(role_id),
                 CoreUserAction::ROLE_UPDATE,
             )
             .await?;

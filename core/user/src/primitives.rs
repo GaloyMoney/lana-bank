@@ -138,6 +138,9 @@ impl CoreUserObject {
     pub const fn all_roles() -> CoreUserObject {
         CoreUserObject::Role(AllOrOne::All)
     }
+    pub const fn role(id: RoleId) -> CoreUserObject {
+        CoreUserObject::Role(AllOrOne::ById(id))
+    }
 
     pub const fn all_users() -> CoreUserObject {
         CoreUserObject::User(AllOrOne::All)
