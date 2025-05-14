@@ -76,7 +76,8 @@ where
         object: impl Into<Audit::Object>,
         action: impl Into<Audit::Action>,
     ) -> Result<Role, RoleError> {
-        self.authz
+        let audit_info = self
+            .authz
             .enforce_permission(
                 sub,
                 CoreUserObject::role(role_id),
@@ -89,7 +90,7 @@ where
 
         let mut role = self.repo.find_by_id(&role_id).await?;
         if role
-            .add_permission(object.to_string(), action.to_string())
+            .add_permission(object.to_string(), action.to_string(), audit_info)
             .did_execute()
         {
             self.authz
@@ -108,7 +109,8 @@ where
         object: impl Into<Audit::Object>,
         action: impl Into<Audit::Action>,
     ) -> Result<Role, RoleError> {
-        self.authz
+        let audit_info = self
+            .authz
             .enforce_permission(
                 sub,
                 CoreUserObject::role(role_id),
@@ -121,7 +123,7 @@ where
 
         let mut role = self.repo.find_by_id(&role_id).await?;
         if role
-            .remove_permission(object.to_string(), action.to_string())
+            .remove_permission(object.to_string(), action.to_string(), audit_info)
             .did_execute()
         {
             self.authz
@@ -141,7 +143,8 @@ where
         role_id: RoleId,
         junior_id: RoleId,
     ) -> Result<(), RoleError> {
-        self.authz
+        let audit_info = self
+            .authz
             .enforce_permission(
                 sub,
                 CoreUserObject::role(role_id),
@@ -152,7 +155,7 @@ where
         let junior = self.repo.find_by_id(&junior_id).await?;
         let mut senior = self.repo.find_by_id(&role_id).await?;
 
-        if senior.inherit_from(&junior).did_execute() {
+        if senior.inherit_from(&junior, audit_info).did_execute() {
             self.authz
                 .add_role_hierarchy(senior.name.clone(), junior.name)
                 .await?;

@@ -73,20 +73,24 @@ where
         use RoleEvent::*;
         let events = new_events
             .filter_map(|event| match &event.event {
-                Initialized { id, name } => Some(CoreUserEvent::RoleCreated {
+                Initialized { id, name, .. } => Some(CoreUserEvent::RoleCreated {
                     id: *id,
                     name: name.clone(),
                 }),
-                PermissionAdded { object, action } => Some(CoreUserEvent::RoleGainedPermission {
-                    id: entity.id,
-                    object: object.clone(),
-                    action: action.clone(),
-                }),
-                PermissionRemoved { object, action } => Some(CoreUserEvent::RoleLostPermission {
-                    id: entity.id,
-                    object: object.clone(),
-                    action: action.clone(),
-                }),
+                PermissionAdded { object, action, .. } => {
+                    Some(CoreUserEvent::RoleGainedPermission {
+                        id: entity.id,
+                        object: object.clone(),
+                        action: action.clone(),
+                    })
+                }
+                PermissionRemoved { object, action, .. } => {
+                    Some(CoreUserEvent::RoleLostPermission {
+                        id: entity.id,
+                        object: object.clone(),
+                        action: action.clone(),
+                    })
+                }
                 GainedInheritanceFrom { .. } => None,
                 LostInheritanceFrom { .. } => None,
             })

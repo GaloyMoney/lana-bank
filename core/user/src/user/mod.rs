@@ -321,7 +321,7 @@ where
             )
             .await?;
 
-        let _user = match self.repo.find_by_email_in_tx(db.tx(), &email).await {
+        match self.repo.find_by_email_in_tx(db.tx(), &email).await {
             Err(e) if e.was_not_found() => {
                 let new_user = NewUser::builder()
                     .email(&email)
