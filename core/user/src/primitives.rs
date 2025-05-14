@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 use std::{borrow::Cow, fmt::Display, str::FromStr};
 
 pub use audit::AuditInfo;
-pub use authz::AllOrOne;
+pub use authz::{permission::*, AllOrOne};
 
 #[cfg(feature = "governance")]
 es_entity::entity_id! {
@@ -52,13 +52,52 @@ impl CoreUserAction {
         CoreUserAction::User(UserEntityAction::UpdateAuthenticationId);
 }
 
-#[derive(PartialEq, Clone, Copy, Debug, strum::Display, strum::EnumString)]
+#[derive(
+    PartialEq,
+    Clone,
+    Copy,
+    Debug,
+    strum::Display,
+    strum::EnumString,
+    strum::EnumCount,
+    strum::VariantNames,
+)]
 #[strum(serialize_all = "kebab-case")]
 pub enum RoleEntityAction {
     Create,
 }
 
-#[derive(PartialEq, Clone, Copy, Debug, strum::Display, strum::EnumString)]
+impl RoleEntityAction {
+    pub const ACTION_COUNT: usize = <RoleEntityAction as strum::VariantNames>::VARIANTS.len();
+
+    pub const ACTIONS: [Action; Self::ACTION_COUNT] = {
+        const NAMES: &[&str] = <RoleEntityAction as strum::VariantNames>::VARIANTS;
+
+        let mut result: [std::mem::MaybeUninit<Action>; Self::ACTION_COUNT] =
+            [const { std::mem::MaybeUninit::uninit() }; Self::ACTION_COUNT];
+
+        let mut i = 0;
+        while i < Self::ACTION_COUNT {
+            result[i].write(Action(NAMES[i]));
+            i += 1;
+        }
+
+        // SAFETY: we made sure that original and resulting arrays are of the same lengths and every
+        // element in `actions` is initialized.
+        unsafe { core::mem::transmute_copy(&result) }
+    };
+}
+
+#[derive(
+    PartialEq,
+    Clone,
+    Copy,
+    Debug,
+    strum::Display,
+    strum::EnumString,
+    strum::EnumCount,
+    strum::VariantNames,
+)]
 #[strum(serialize_all = "kebab-case")]
 pub enum UserEntityAction {
     Read,
@@ -68,6 +107,27 @@ pub enum UserEntityAction {
     AssignRole,
     RevokeRole,
     UpdateAuthenticationId,
+}
+
+impl UserEntityAction {
+    pub const ACTION_COUNT: usize = <UserEntityAction as strum::VariantNames>::VARIANTS.len();
+
+    pub const ACTIONS: [Action; Self::ACTION_COUNT] = {
+        const NAMES: &[&str] = <UserEntityAction as strum::VariantNames>::VARIANTS;
+
+        let mut result: [std::mem::MaybeUninit<Action>; Self::ACTION_COUNT] =
+            [const { std::mem::MaybeUninit::uninit() }; Self::ACTION_COUNT];
+
+        let mut i = 0;
+        while i < Self::ACTION_COUNT {
+            result[i].write(Action(NAMES[i]));
+            i += 1;
+        }
+
+        // SAFETY: we made sure that original and resulting arrays are of the same lengths and every
+        // element in `actions` is initialized.
+        unsafe { core::mem::transmute_copy(&result) }
+    };
 }
 
 impl Display for CoreUserAction {
@@ -110,7 +170,7 @@ impl From<RoleEntityAction> for CoreUserAction {
 pub type UserAllOrOne = AllOrOne<UserId>;
 pub type RoleAllOrOne = AllOrOne<RoleId>;
 
-#[derive(Clone, Copy, Debug, PartialEq, strum::EnumDiscriminants)]
+#[derive(Clone, Copy, Debug, PartialEq, strum::EnumDiscriminants, strum::EnumCount)]
 #[strum_discriminants(derive(strum::Display, strum::EnumString))]
 #[strum_discriminants(strum(serialize_all = "kebab-case"))]
 pub enum CoreUserObject {
@@ -119,6 +179,21 @@ pub enum CoreUserObject {
 }
 
 impl CoreUserObject {
+    pub const OBJECTS: [Object; <CoreUserObject as strum::EnumCount>::COUNT] = {
+        [
+            Object {
+                name: "user",
+                references: &[Reference("*"), Reference("{id}")],
+                actions: &UserEntityAction::ACTIONS,
+            },
+            Object {
+                name: "role",
+                references: &[Reference("*"), Reference("{id}")],
+                actions: &RoleEntityAction::ACTIONS,
+            },
+        ]
+    };
+
     pub const fn all_roles() -> CoreUserObject {
         CoreUserObject::Role(AllOrOne::All)
     }

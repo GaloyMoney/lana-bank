@@ -1,6 +1,6 @@
 use std::{fmt::Display, str::FromStr};
 
-use authz::AllOrOne;
+use authz::{permission::*, AllOrOne};
 use core_accounting::CoreAccountingObject;
 use core_credit::CoreCreditObject;
 use core_customer::{CustomerId, CustomerObject};
@@ -9,7 +9,7 @@ use dashboard::DashboardModuleObject;
 use deposit::CoreDepositObject;
 use governance::GovernanceObject;
 
-#[derive(Clone, Copy, Debug, PartialEq, strum::EnumDiscriminants)]
+#[derive(Clone, Copy, Debug, PartialEq, strum::EnumDiscriminants, strum::EnumCount)]
 #[strum_discriminants(derive(strum::Display, strum::EnumString))]
 #[strum_discriminants(strum(serialize_all = "kebab-case"))]
 pub enum LanaObject {
@@ -21,6 +21,22 @@ pub enum LanaObject {
     Deposit(CoreDepositObject),
     Credit(CoreCreditObject),
     Dashboard(DashboardModuleObject),
+}
+
+impl LanaObject {
+    pub const MODULES: [Module; <LanaObject as strum::EnumCount>::COUNT] = [
+        // Module { name: "app", objects: &AppObject::OBJECTS,},
+        // Module { name: "governance", objects: &GovernanceObject::OBJECTS },
+        Module {
+            name: "user",
+            objects: &CoreUserObject::OBJECTS,
+        },
+        // Module { name: "customer", objects: &CoreCustomerObject::OBJECTS },
+        // Module { name: "accounting", objects: &CoreAccountingObject::OBJECTS },
+        // Module { name: "dashboard", objects: &DashboardModuleObject::OBJECTS },
+        // Module { name: "deposit", objects: &CoreDepositObject::OBJECTS },
+        // Module { name: "credit", objects: &CoreCreditObject::OBJECTS },
+    ];
 }
 
 impl From<AppObject> for LanaObject {
@@ -105,7 +121,7 @@ impl FromStr for LanaObject {
     }
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, strum::EnumDiscriminants)]
+#[derive(Clone, Copy, Debug, PartialEq, strum::EnumDiscriminants, strum::EnumCount)]
 #[strum_discriminants(derive(strum::Display, strum::EnumString))]
 #[strum_discriminants(strum(serialize_all = "kebab-case"))]
 pub enum AppObject {
@@ -145,6 +161,35 @@ pub type CustomerAllOrOne = AllOrOne<CustomerId>;
 #[cfg(test)]
 mod test {
     use super::*;
+
+    #[test]
+    fn test_module_list() {
+        println!("{:#?}", crate::LanaObject::MODULES);
+
+        /*
+        [
+            Module {
+                name: "user",
+                objects: [
+                    Object {
+                        name: "user",
+                        references: [Reference("*"), Reference("{id}")],
+                        actions: [
+                            Action("read"), Action("create"), Action("list"),
+                            Action("update"), Action("assign-role"), Action("revoke-role"),
+                            Action("update-authentication-id")
+                        ]
+                    },
+                    Object {
+                        name: "role",
+                        references: [Reference("*"), Reference("{id}")],
+                        actions: [Action("create")]
+                    }
+                ]
+            }
+        ]
+               */
+    }
 
     fn test_to_and_from_string(action: LanaObject, result: &str) -> anyhow::Result<()> {
         let action_str = action.to_string();
