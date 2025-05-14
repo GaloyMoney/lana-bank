@@ -153,15 +153,10 @@ impl TrialBalanceLedger {
     ) -> Result<(), TrialBalanceLedgerError> {
         let node_account_set_id = node_account_set_id.into();
 
-        match self
-            .cala
+        self.cala
             .account_sets()
             .add_member_in_op(op, node_account_set_id, member)
-            .await
-        {
-            Ok(_) | Err(cala_ledger::account_set::error::AccountSetError::MemberAlreadyAdded) => {}
-            Err(e) => return Err(e.into()),
-        }
+            .await?;
 
         Ok(())
     }
