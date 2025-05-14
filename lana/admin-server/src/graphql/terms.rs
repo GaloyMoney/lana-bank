@@ -42,6 +42,7 @@ pub struct TermsInput {
     pub one_time_fee_rate: OneTimeFeeRatePct,
     pub duration: DurationInput,
     pub interest_due_duration: DurationInput,
+    pub obligation_overdue_duration: DurationInput,
     pub margin_call_cvl: CVLPct,
     pub initial_cvl: CVLPct,
 }
@@ -100,6 +101,15 @@ impl From<DurationInput> for DomainObligationDuration {
         match duration.period {
             Period::Months => todo!(),
             Period::Days => Self::Days(duration.units.into()),
+        }
+    }
+}
+
+impl From<DurationInput> for Option<DomainObligationDuration> {
+    fn from(duration: DurationInput) -> Self {
+        match duration.period {
+            Period::Months => todo!(),
+            Period::Days => Some(DomainObligationDuration::Days(duration.units.into())),
         }
     }
 }
