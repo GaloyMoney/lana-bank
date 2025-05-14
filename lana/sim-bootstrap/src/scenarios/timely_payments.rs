@@ -122,17 +122,19 @@ async fn do_timely_payments(
             .await?;
     }
 
+    while let Some(amount) = obligation_amount_rx.recv().await {
+        app.credit()
+            .record_payment(&sub, id, amount, sim_time::now().date_naive())
+            .await?;
+    }
+
     let facility = app.credit().find_by_id(&sub, id).await?.unwrap();
     let total_outstanding = app.credit().outstanding(&facility).await?;
     if !total_outstanding.is_zero() {
-        app.credit()
-            .record_payment(
-                &sub,
-                facility.id,
-                total_outstanding,
-                sim_time::now().date_naive(),
-            )
-            .await?;
+        panic!(
+            "Expected facility to be paid off, but total outstanding is {}",
+            total_outstanding,
+        );
     }
 
     const MAX_RETRIES: usize = 15;
