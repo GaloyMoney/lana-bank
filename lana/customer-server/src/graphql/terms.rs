@@ -1,7 +1,7 @@
 use async_graphql::*;
 
 pub use lana_app::terms::{
-    AnnualRatePct, CVLPct, Duration as DomainDuration, InterestInterval, OneTimeFeeRatePct,
+    AnnualRatePct, CVLPct, FacilityDuration as DomainDuration, InterestInterval, OneTimeFeeRatePct,
     TermValues as DomainTermValues,
 };
 

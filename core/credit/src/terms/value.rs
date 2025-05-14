@@ -71,41 +71,41 @@ impl From<Decimal> for OneTimeFeeRatePct {
 }
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
 #[serde(tag = "type", content = "value", rename_all = "snake_case")]
-pub enum Duration {
+pub enum FacilityDuration {
     Months(u32),
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum DurationType {
+pub enum FacilityDurationType {
     LongTerm,
     ShortTerm,
 }
 
-impl From<DurationType> for DisbursedReceivableAccountCategory {
-    fn from(duration_type: DurationType) -> Self {
+impl From<FacilityDurationType> for DisbursedReceivableAccountCategory {
+    fn from(duration_type: FacilityDurationType) -> Self {
         match duration_type {
-            DurationType::LongTerm => DisbursedReceivableAccountCategory::LongTerm,
-            DurationType::ShortTerm => DisbursedReceivableAccountCategory::ShortTerm,
+            FacilityDurationType::LongTerm => DisbursedReceivableAccountCategory::LongTerm,
+            FacilityDurationType::ShortTerm => DisbursedReceivableAccountCategory::ShortTerm,
         }
     }
 }
 
-impl Duration {
+impl FacilityDuration {
     pub fn maturity_date(&self, start_date: DateTime<Utc>) -> DateTime<Utc> {
         match self {
-            Duration::Months(months) => start_date
+            FacilityDuration::Months(months) => start_date
                 .checked_add_months(chrono::Months::new(*months))
                 .expect("should return a maturity date"),
         }
     }
 
-    pub fn duration_type(&self) -> DurationType {
+    pub fn duration_type(&self) -> FacilityDurationType {
         match self {
-            Duration::Months(months) => {
+            FacilityDuration::Months(months) => {
                 if *months > SHORT_TERM_DURATION_MONTHS_THRESHOLD {
-                    DurationType::LongTerm
+                    FacilityDurationType::LongTerm
                 } else {
-                    DurationType::ShortTerm
+                    FacilityDurationType::ShortTerm
                 }
             }
         }
@@ -221,7 +221,7 @@ pub struct TermValues {
     #[builder(setter(into))]
     pub annual_rate: AnnualRatePct,
     #[builder(setter(into))]
-    pub duration: Duration,
+    pub duration: FacilityDuration,
     #[builder(setter(into))]
     pub interest_due_duration: ObligationDuration,
     #[builder(default, setter(into))]
@@ -392,7 +392,7 @@ mod test {
     fn terms() -> TermValues {
         TermValues::builder()
             .annual_rate(AnnualRatePct(dec!(12)))
-            .duration(Duration::Months(3))
+            .duration(FacilityDuration::Months(3))
             .interest_due_duration(ObligationDuration::Days(0))
             .accrual_cycle_interval(InterestInterval::EndOfMonth)
             .accrual_interval(InterestInterval::EndOfDay)
@@ -408,7 +408,7 @@ mod test {
     fn invalid_term_values_margin_call_greater_than_initial() {
         let result = TermValues::builder()
             .annual_rate(AnnualRatePct(dec!(12)))
-            .duration(Duration::Months(3))
+            .duration(FacilityDuration::Months(3))
             .accrual_cycle_interval(InterestInterval::EndOfMonth)
             .one_time_fee_rate(OneTimeFeeRatePct(dec!(1)))
             .liquidation_cvl(dec!(105))
@@ -429,7 +429,7 @@ mod test {
     fn invalid_term_values_liquidation_greater_than_margin_call() {
         let result = TermValues::builder()
             .annual_rate(AnnualRatePct(dec!(12)))
-            .duration(Duration::Months(3))
+            .duration(FacilityDuration::Months(3))
             .accrual_cycle_interval(InterestInterval::EndOfMonth)
             .one_time_fee_rate(OneTimeFeeRatePct(dec!(1)))
             .liquidation_cvl(dec!(130))
@@ -450,7 +450,7 @@ mod test {
     fn invalid_term_values_margin_call_equal_to_liquidation() {
         let result = TermValues::builder()
             .annual_rate(AnnualRatePct(dec!(12)))
-            .duration(Duration::Months(3))
+            .duration(FacilityDuration::Months(3))
             .accrual_cycle_interval(InterestInterval::EndOfMonth)
             .one_time_fee_rate(OneTimeFeeRatePct(dec!(1)))
             .liquidation_cvl(dec!(125))
@@ -535,7 +535,7 @@ mod test {
     #[test]
     fn maturity_date() {
         let start_date = "2024-12-03T14:00:00Z".parse::<DateTime<Utc>>().unwrap();
-        let duration = Duration::Months(3);
+        let duration = FacilityDuration::Months(3);
         let maturity_date = "2025-03-03T14:00:00Z".parse::<DateTime<Utc>>().unwrap();
         assert_eq!(duration.maturity_date(start_date), maturity_date);
     }
@@ -614,7 +614,7 @@ mod test {
     fn default_terms() -> TermValues {
         TermValues::builder()
             .annual_rate(dec!(12))
-            .duration(Duration::Months(3))
+            .duration(FacilityDuration::Months(3))
             .interest_due_duration(ObligationDuration::Days(0))
             .accrual_cycle_interval(InterestInterval::EndOfMonth)
             .accrual_interval(InterestInterval::EndOfDay)

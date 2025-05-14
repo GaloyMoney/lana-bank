@@ -707,7 +707,7 @@ mod test {
     use rust_decimal_macros::dec;
 
     use crate::{
-        terms::{Duration, InterestInterval, OneTimeFeeRatePct},
+        terms::{FacilityDuration, InterestInterval, OneTimeFeeRatePct},
         *,
     };
 
@@ -716,7 +716,7 @@ mod test {
     fn default_terms() -> TermValues {
         TermValues::builder()
             .annual_rate(dec!(12))
-            .duration(Duration::Months(3))
+            .duration(FacilityDuration::Months(3))
             .interest_due_duration(ObligationDuration::Days(0))
             .accrual_cycle_interval(InterestInterval::EndOfMonth)
             .accrual_interval(InterestInterval::EndOfDay)
