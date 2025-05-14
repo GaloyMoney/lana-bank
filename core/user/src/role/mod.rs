@@ -149,14 +149,8 @@ where
             )
             .await?;
 
-        let mut roles = self.repo.find_all::<Role>(&[junior_id, role_id]).await?;
-
-        let junior = roles
-            .remove(&junior_id)
-            .ok_or(RoleError::EsEntityError(es_entity::EsEntityError::NotFound))?;
-        let mut senior = roles
-            .remove(&role_id)
-            .ok_or(RoleError::EsEntityError(es_entity::EsEntityError::NotFound))?;
+        let junior = self.repo.find_by_id(&junior_id).await?;
+        let mut senior = self.repo.find_by_id(&role_id).await?;
 
         if senior.inherit_from(&junior).did_execute() {
             self.authz
