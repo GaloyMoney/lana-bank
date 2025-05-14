@@ -224,15 +224,14 @@ pub struct TermValues {
     pub duration: FacilityDuration,
     #[builder(setter(into))]
     pub interest_due_duration: ObligationDuration,
-    #[builder(default, setter(into))]
-    pub interest_overdue_duration: Option<ObligationDuration>,
+    #[builder(setter(into))]
+    pub obligation_overdue_duration: Option<ObligationDuration>,
     #[builder(setter(into))]
     pub accrual_cycle_interval: InterestInterval,
     #[builder(setter(into))]
     pub accrual_interval: InterestInterval,
     #[builder(setter(into))]
     pub one_time_fee_rate: OneTimeFeeRatePct,
-    // overdue_penalty_rate: LoanAnnualRate,
     #[builder(setter(into))]
     pub liquidation_cvl: CVLPct,
     #[builder(setter(into))]
@@ -394,6 +393,7 @@ mod test {
             .annual_rate(AnnualRatePct(dec!(12)))
             .duration(FacilityDuration::Months(3))
             .interest_due_duration(ObligationDuration::Days(0))
+            .obligation_overdue_duration(None)
             .accrual_cycle_interval(InterestInterval::EndOfMonth)
             .accrual_interval(InterestInterval::EndOfDay)
             .one_time_fee_rate(OneTimeFeeRatePct(dec!(1)))
@@ -616,6 +616,7 @@ mod test {
             .annual_rate(dec!(12))
             .duration(FacilityDuration::Months(3))
             .interest_due_duration(ObligationDuration::Days(0))
+            .obligation_overdue_duration(None)
             .accrual_cycle_interval(InterestInterval::EndOfMonth)
             .accrual_interval(InterestInterval::EndOfDay)
             .one_time_fee_rate(OneTimeFeeRatePct(dec!(1)))

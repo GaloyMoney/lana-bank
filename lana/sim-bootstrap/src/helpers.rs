@@ -100,6 +100,7 @@ pub fn std_terms() -> TermValues {
         .liquidation_cvl(dec!(105))
         .duration(FacilityDuration::Months(3))
         .interest_due_duration(ObligationDuration::Days(0))
+        .obligation_overdue_duration(None)
         .accrual_interval(InterestInterval::EndOfDay)
         .accrual_cycle_interval(InterestInterval::EndOfMonth)
         .one_time_fee_rate(dec!(0.01))
