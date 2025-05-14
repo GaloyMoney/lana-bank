@@ -169,12 +169,13 @@ where
         }
     }
 
+    #[instrument(name = "customer.list", skip(self), err)]
     pub async fn list(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         query: es_entity::PaginatedQueryArgs<CustomersCursor>,
         filter: FindManyCustomers,
-        sort: impl Into<Sort<CustomersSortBy>>,
+        sort: impl Into<Sort<CustomersSortBy>> + std::fmt::Debug,
     ) -> Result<es_entity::PaginatedQueryRet<Customer, CustomersCursor>, CustomerError> {
         self.authz
             .enforce_permission(
@@ -283,6 +284,7 @@ where
         Ok(customer)
     }
 
+    #[instrument(name = "customer.decline_kyc", skip(self, db), err)]
     pub async fn decline_kyc(
         &self,
         db: &mut es_entity::DbOp<'_>,
@@ -308,6 +310,7 @@ where
         Ok(customer)
     }
 
+    #[instrument(name = "customer.find_all", skip(self), err)]
     pub async fn find_all<T: From<Customer>>(
         &self,
         ids: &[CustomerId],

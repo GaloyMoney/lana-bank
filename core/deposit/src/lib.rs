@@ -507,6 +507,7 @@ where
         }
     }
 
+    #[instrument(name = "deposit.find_withdrawal_by_cancelled_tx_id", skip(self), err)]
     pub async fn find_withdrawal_by_cancelled_tx_id(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,

@@ -621,6 +621,11 @@ where
         }
     }
 
+    #[instrument(
+        name = "credit_facility.find_disbursal_by_concluded_tx_id",
+        skip(self),
+        err
+    )]
     pub async fn find_disbursal_by_concluded_tx_id(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
@@ -1061,6 +1066,7 @@ where
         Ok(credit_facility)
     }
 
+    #[instrument(name = "credit_facility.find_payment_by_id", skip(self), err)]
     pub async fn find_payment_by_id(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
@@ -1079,12 +1085,13 @@ where
         Ok(payment)
     }
 
+    #[instrument(name = "credit_facility.list_disbursals", skip(self), err)]
     pub async fn list_disbursals(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         query: es_entity::PaginatedQueryArgs<DisbursalsCursor>,
         filter: FindManyDisbursals,
-        sort: impl Into<Sort<DisbursalsSortBy>>,
+        sort: impl Into<Sort<DisbursalsSortBy>> + std::fmt::Debug,
     ) -> Result<es_entity::PaginatedQueryRet<Disbursal, DisbursalsCursor>, CoreCreditError> {
         self.authz
             .enforce_permission(
@@ -1101,6 +1108,7 @@ where
         Ok(disbursals)
     }
 
+    #[instrument(name = "credit_facility.find_all", skip(self), err)]
     pub async fn find_all<T: From<CreditFacility>>(
         &self,
         ids: &[CreditFacilityId],
@@ -1108,6 +1116,7 @@ where
         Ok(self.credit_facility_repo.find_all(ids).await?)
     }
 
+    #[instrument(name = "credit_facility.find_all_disbursals", skip(self), err)]
     pub async fn find_all_disbursals<T: From<Disbursal>>(
         &self,
         ids: &[DisbursalId],

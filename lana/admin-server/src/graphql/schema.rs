@@ -100,11 +100,14 @@ impl Query {
         };
 
         let (app, sub) = app_and_sub_from_ctx!(ctx);
-        let sort = sort.unwrap_or_default();
+        let sort = Sort {
+            by: DomainCustomersSortBy::from(sort.unwrap_or_default()),
+            direction: ListDirection::Descending,
+        };
         list_with_combo_cursor!(
             CustomersCursor,
             Customer,
-            DomainCustomersSortBy::from(sort),
+            sort.by,
             ctx,
             after,
             first,
