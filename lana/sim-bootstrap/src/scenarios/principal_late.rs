@@ -129,8 +129,6 @@ async fn do_principal_late(
 
         let facility = app.credit().find_by_id(&sub, id).await?.unwrap();
         let total_outstanding = app.credit().outstanding(&facility).await?;
-        dbg!(total_outstanding);
-        dbg!(principal_remaining);
         if total_outstanding == principal_remaining {
             break;
         }
@@ -142,7 +140,8 @@ async fn do_principal_late(
         .record_payment(&sub, id, principal_remaining, sim_time::now().date_naive())
         .await?;
 
-    // Pay off some accrued interest
+    // Pay off some accrued interest (if any - not deterministic as sim_time can progress and
+    // thereby interest can accrue)
     let facility = app.credit().find_by_id(&sub, id).await?.unwrap();
     let total_outstanding = app.credit().outstanding(&facility).await?;
     if !total_outstanding.is_zero() {
