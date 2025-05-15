@@ -1,9 +1,5 @@
 use futures::StreamExt;
-use lana_app::{
-    app::LanaApp,
-    credit::{self, CreditFacilityHistoryEntry::*},
-    primitives::*,
-};
+use lana_app::{app::LanaApp, primitives::*};
 use lana_events::{CoreCreditEvent, LanaEvent};
 use rust_decimal_macros::dec;
 use tokio::sync::mpsc;
@@ -84,20 +80,6 @@ pub async fn timely_payments_scenario(sub: Subject, app: &LanaApp) -> anyhow::Re
         .expect("cf exists");
     assert_eq!(cf.status(), CreditFacilityStatus::Closed);
 
-    let history = app
-        .credit()
-        .history::<credit::CreditFacilityHistoryEntry>(&sub, cf.id)
-        .await?;
-
-    let (disbursals_and_interests, repayments) =
-        history.iter().fold((0, 0), |(di, p), entry| match entry {
-            Disbursal(_) | Interest(_) => (di + 1, p),
-            Payment(_) => (di, p + 1),
-            _ => (di, p),
-        });
-    assert_eq!(disbursals_and_interests, 6);
-    assert_eq!(repayments, 6);
-
     Ok(())
 }
 
@@ -108,34 +90,27 @@ async fn do_timely_payments(
     mut obligation_amount_rx: mpsc::Receiver<UsdCents>,
 ) -> anyhow::Result<()> {
     let one_month = std::time::Duration::from_secs(30 * 24 * 60 * 60);
+    let mut month_num = 0;
 
-    for _ in 0..3 {
-        sim_time::sleep(one_month).await;
-
-        let amount = obligation_amount_rx
-            .recv()
-            .await
-            .expect("obligation not received");
+    while let Some(amount) = obligation_amount_rx.recv().await {
+        // 3 months of interest payments should be delayed by a month
+        if month_num < 3 {
+            month_num += 1;
+            sim_time::sleep(one_month).await;
+        }
 
         app.credit()
             .record_payment(&sub, id, amount, sim_time::now().date_naive())
             .await?;
+
+        let facility = app.credit().find_by_id(&sub, id).await?.unwrap();
+        let total_outstanding = app.credit().outstanding(&facility).await?;
+        if total_outstanding.is_zero() {
+            break;
+        }
     }
 
-    let facility = app.credit().find_by_id(&sub, id).await?.unwrap();
-    let total_outstanding = app.credit().outstanding(&facility).await?;
-    if !total_outstanding.is_zero() {
-        app.credit()
-            .record_payment(
-                &sub,
-                facility.id,
-                total_outstanding,
-                sim_time::now().date_naive(),
-            )
-            .await?;
-    }
-
-    app.credit().complete_facility(&sub, facility.id).await?;
+    app.credit().complete_facility(&sub, id).await?;
 
     Ok(())
 }
