@@ -68,6 +68,14 @@ async fn seed_chart_of_accounts(
                 new_account_set_ids,
             )
             .await?;
+    } else {
+        return Ok(());
+    }
+
+    let chart = chart_of_accounts.find_by_id(chart_id).await?;
+
+    if let Some(config_path) = credit_config_path {
+        credit_module_configure(credit, &chart, config_path).await?;
     }
 
     Ok(())

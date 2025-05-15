@@ -4,8 +4,18 @@ use thiserror::Error;
 pub enum AccountingInitError {
     #[error("AccountingInitError - Sqlx: {0}")]
     Sqlx(#[from] sqlx::Error),
+    #[error("AccountingInitError - JsonSerde: {0}")]
+    JsonSerde(#[from] serde_json::Error),
+    #[error("AccountingInitError - AccountCodeParseError: {0}")]
+    AccountCodeParseError(#[from] core_accounting::AccountCodeParseError),
     #[error("AccountingInitError - ChartOfAccountsError: {0}")]
     ChartOfAccountsError(#[from] core_accounting::chart_of_accounts::error::ChartOfAccountsError),
+    #[error("AccountingInitError - CoreCreditError: {0}")]
+    CoreCreditError(#[from] core_credit::error::CoreCreditError),
+    #[error("AccountingInitError - ChartOfAccountsIntegrationConfigBuilderError: {0}")]
+    ChartOfAccountsIntegrationConfigBuilderError(
+        #[from] core_credit::ChartOfAccountsIntegrationConfigBuilderError,
+    ),
     #[error("AccountingInitError - LedgerError: {0}")]
     LedgerError(#[from] cala_ledger::error::LedgerError),
     #[error("AccountingInitError - JournalError: {0}")]
