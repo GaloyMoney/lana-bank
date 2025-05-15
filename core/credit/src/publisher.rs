@@ -254,6 +254,10 @@ where
                     credit_facility_id: entity.credit_facility_id,
                     amount: *amount,
                 }),
+                Completed { .. } => Some(CoreCreditEvent::ObligationCompleted {
+                    id: entity.id,
+                    credit_facility_id: entity.credit_facility_id,
+                }),
                 _ => None,
             })
             .collect::<Vec<_>>();

@@ -113,6 +113,7 @@ impl CreditFacilityHistory {
             ObligationDue { .. } => {}
             ObligationOverdue { .. } => {}
             ObligationDefaulted { .. } => {}
+            ObligationCompleted { .. } => {}
         }
     }
 }

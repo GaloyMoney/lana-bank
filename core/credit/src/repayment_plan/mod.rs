@@ -210,6 +210,9 @@ impl CreditFacilityRepaymentPlan {
             }
             | CoreCreditEvent::ObligationDefaulted {
                 id: obligation_id, ..
+            }
+            | CoreCreditEvent::ObligationCompleted {
+                id: obligation_id, ..
             } => {
                 if let Some(data) = existing_obligations.iter_mut().find_map(|entry| {
                     let data = match entry {
@@ -223,6 +226,7 @@ impl CreditFacilityRepaymentPlan {
                         CoreCreditEvent::ObligationDue { .. } => RepaymentStatus::Due,
                         CoreCreditEvent::ObligationOverdue { .. } => RepaymentStatus::Overdue,
                         CoreCreditEvent::ObligationDefaulted { .. } => RepaymentStatus::Defaulted,
+                        CoreCreditEvent::ObligationCompleted { .. } => RepaymentStatus::Paid,
                         _ => unreachable!(),
                     };
                 } else {

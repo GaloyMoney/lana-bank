@@ -631,7 +631,7 @@ mod test {
 
         let mut events = initial_events();
         events.push(ObligationEvent::Completed {
-            effective: Utc::now(),
+            effective: Utc::now().date_naive(),
             audit_info: dummy_audit_info(),
         });
         let mut obligation = obligation_from(events);
@@ -663,7 +663,7 @@ mod test {
 
         let mut events = initial_events();
         events.push(ObligationEvent::Completed {
-            effective: Utc::now(),
+            effective: Utc::now().date_naive(),
             audit_info: dummy_audit_info(),
         });
         let mut obligation = obligation_from(events);
@@ -707,7 +707,7 @@ mod test {
     fn ignores_defaulted_recorded_if_paid() {
         let mut events = initial_events();
         events.push(ObligationEvent::Completed {
-            effective: Utc::now(),
+            effective: Utc::now().date_naive(),
             audit_info: dummy_audit_info(),
         });
         let mut obligation = obligation_from(events);

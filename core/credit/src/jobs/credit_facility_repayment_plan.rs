@@ -78,6 +78,10 @@ where
                     | ObligationDefaulted {
                         credit_facility_id: id,
                         ..
+                    }
+                    | ObligationCompleted {
+                        credit_facility_id: id,
+                        ..
                     } => *id,
                 };
 

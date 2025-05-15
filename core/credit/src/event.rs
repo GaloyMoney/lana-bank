@@ -93,4 +93,8 @@ pub enum CoreCreditEvent {
         credit_facility_id: CreditFacilityId,
         amount: UsdCents,
     },
+    ObligationCompleted {
+        id: ObligationId,
+        credit_facility_id: CreditFacilityId,
+    },
 }
