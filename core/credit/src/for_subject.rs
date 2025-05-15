@@ -15,7 +15,7 @@ where
     authz: &'a Perms,
     credit_facilities: &'a CreditFacilityRepo<E>,
     disbursals: &'a DisbursalRepo<E>,
-    payments: &'a PaymentRepo,
+    payment_allocations: &'a PaymentAllocationRepo<E>,
     histories: &'a HistoryRepo,
     repayment_plans: &'a RepaymentPlanRepo,
     ledger: &'a CreditLedger,
@@ -35,7 +35,7 @@ where
         authz: &'a Perms,
         credit_facilities: &'a CreditFacilityRepo<E>,
         disbursals: &'a DisbursalRepo<E>,
-        payments: &'a PaymentRepo,
+        payment_allocations: &'a PaymentAllocationRepo<E>,
         history: &'a HistoryRepo,
         repayment_plans: &'a RepaymentPlanRepo,
         ledger: &'a CreditLedger,
@@ -46,7 +46,7 @@ where
             authz,
             credit_facilities,
             disbursals,
-            payments,
+            payment_allocations,
             histories: history,
             repayment_plans,
             ledger,
@@ -218,15 +218,18 @@ where
         Ok(disbursal)
     }
 
-    pub async fn find_payment_by_id(
+    pub async fn find_payment_allocation_by_id(
         &self,
-        payment_id: impl Into<PaymentId> + std::fmt::Debug,
-    ) -> Result<Payment, CoreCreditError> {
-        let payment = self.payments.find_by_id(payment_id.into()).await?;
+        payment_id: impl Into<PaymentAllocationId> + std::fmt::Debug,
+    ) -> Result<PaymentAllocation, CoreCreditError> {
+        let payment_allocation = self
+            .payment_allocations
+            .find_by_id(payment_id.into())
+            .await?;
 
         let credit_facility = self
             .credit_facilities
-            .find_by_id(payment.credit_facility_id)
+            .find_by_id(payment_allocation.credit_facility_id)
             .await?;
         self.ensure_credit_facility_access(
             &credit_facility,
@@ -235,6 +238,6 @@ where
         )
         .await?;
 
-        Ok(payment)
+        Ok(payment_allocation)
     }
 }

@@ -324,7 +324,7 @@ where
             &self.authz,
             &self.credit_facility_repo,
             &self.disbursal_repo,
-            &self.payment_repo,
+            &self.payment_allocation_repo,
             &self.history_repo,
             &self.repayment_plan_repo,
             &self.ledger,
