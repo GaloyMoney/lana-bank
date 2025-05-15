@@ -119,6 +119,10 @@ export const UpdateTermsTemplateDialog: React.FC<UpdateTermsTemplateDialogProps>
               period: Period.Days,
               units: parseInt("0"),
             },
+            obligationOverdueDuration: {
+              period: Period.Days,
+              units: parseInt("85"),
+            },
             liquidationCvl: formValues.liquidationCvl,
             marginCallCvl: formValues.marginCallCvl,
             initialCvl: formValues.initialCvl,

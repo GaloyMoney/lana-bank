@@ -232,8 +232,12 @@ export const CreateCreditFacilityDialog: React.FC<CreateCreditFacilityDialogProp
                 period: durationPeriod as Period,
               },
               interestDueDuration: {
-                units: parseInt("0"),
                 period: Period.Days,
+                units: parseInt("0"),
+              },
+              obligationOverdueDuration: {
+                period: Period.Days,
+                units: parseInt("85"),
               },
             },
           },
