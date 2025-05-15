@@ -1002,7 +1002,7 @@ where
     }
 
     #[instrument(name = "credit_facility.complete", skip(self), err)]
-    #[es_entity::retry_on_concurrent_modification(any_error = true)]
+    #[es_entity::retry_on_concurrent_modification(any_error = true, max_retries = 15)]
     pub async fn complete_facility(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
