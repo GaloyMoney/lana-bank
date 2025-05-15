@@ -3,6 +3,7 @@ import {
   Period,
   CreateCommitteeMutationResult,
 } from "../../lib/graphql/generated/index"
+import { DEFAULT_TERMS } from "../../lib/constants/terms"
 
 import { t } from "../support/translation"
 
@@ -30,8 +31,12 @@ describe("credit facility", () => {
         period: Period.Months,
       },
       interestDueDuration: {
-        units: 0,
-        period: Period.Days,
+        units: DEFAULT_TERMS.INTEREST_DUE_DURATION.UNITS,
+        period: DEFAULT_TERMS.INTEREST_DUE_DURATION.PERIOD,
+      },
+      obligationOverdueDuration: {
+        units: DEFAULT_TERMS.OBLIGATION_OVERDUE_DURATION.UNITS,
+        period: DEFAULT_TERMS.OBLIGATION_OVERDUE_DURATION.PERIOD,
       },
     }).then((id) => {
       cy.log(`Created terms template with ID: ${id}`)

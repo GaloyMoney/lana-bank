@@ -40,6 +40,7 @@ import { DetailItem, DetailsGroup } from "@/components/details"
 import Balance from "@/components/balance/balance"
 import { useModalNavigation } from "@/hooks/use-modal-navigation"
 import { Satoshis } from "@/types"
+import { DEFAULT_TERMS } from "@/lib/constants/terms"
 
 gql`
   mutation CreditFacilityCreate($input: CreditFacilityCreateInput!) {
@@ -232,12 +233,12 @@ export const CreateCreditFacilityDialog: React.FC<CreateCreditFacilityDialogProp
                 period: durationPeriod as Period,
               },
               interestDueDuration: {
-                period: Period.Days,
-                units: parseInt("0"),
+                period: DEFAULT_TERMS.INTEREST_DUE_DURATION.PERIOD,
+                units: DEFAULT_TERMS.INTEREST_DUE_DURATION.UNITS,
               },
               obligationOverdueDuration: {
-                period: Period.Days,
-                units: parseInt("85"),
+                period: DEFAULT_TERMS.OBLIGATION_OVERDUE_DURATION.PERIOD,
+                units: DEFAULT_TERMS.OBLIGATION_OVERDUE_DURATION.UNITS,
               },
             },
           },

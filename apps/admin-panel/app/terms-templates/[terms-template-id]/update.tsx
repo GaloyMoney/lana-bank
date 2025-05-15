@@ -32,6 +32,7 @@ import {
   TermsTemplate,
 } from "@/lib/graphql/generated"
 import { PeriodLabel, InterestIntervalLabel } from "@/app/credit-facilities/label"
+import { DEFAULT_TERMS } from "@/lib/constants/terms"
 
 gql`
   mutation UpdateTermsTemplate($input: TermsTemplateUpdateInput!) {
@@ -116,12 +117,12 @@ export const UpdateTermsTemplateDialog: React.FC<UpdateTermsTemplateDialogProps>
               units: parseInt(formValues.durationUnits),
             },
             interestDueDuration: {
-              period: Period.Days,
-              units: parseInt("0"),
+              period: DEFAULT_TERMS.INTEREST_DUE_DURATION.PERIOD,
+              units: DEFAULT_TERMS.INTEREST_DUE_DURATION.UNITS,
             },
             obligationOverdueDuration: {
-              period: Period.Days,
-              units: parseInt("85"),
+              period: DEFAULT_TERMS.OBLIGATION_OVERDUE_DURATION.PERIOD,
+              units: DEFAULT_TERMS.OBLIGATION_OVERDUE_DURATION.UNITS,
             },
             liquidationCvl: formValues.liquidationCvl,
             marginCallCvl: formValues.marginCallCvl,
