@@ -5,7 +5,7 @@ use std::fmt;
 pub use core_accounting::{BalanceRange, Chart, ChartId, LedgerTransactionId, ManualTransactionId};
 pub use core_credit::{
     CollateralAction, CreditFacilityId, CreditFacilityStatus, DisbursalId, DisbursalStatus,
-    PaymentId,
+    PaymentAllocationId, PaymentId,
 };
 pub use core_customer::CustomerId;
 pub use core_money::*;

@@ -3,8 +3,11 @@ use async_graphql::*;
 use crate::primitives::*;
 
 use super::{
-    credit_facility::disbursal::CreditFacilityDisbursal,
-    credit_facility::payment::CreditFacilityPayment, deposit::Deposit, withdrawal::Withdrawal,
+    credit_facility::{
+        disbursal::CreditFacilityDisbursal, payment_allocation::CreditFacilityPaymentAllocation,
+    },
+    deposit::Deposit,
+    withdrawal::Withdrawal,
 };
 
 #[derive(Union)]
@@ -105,7 +108,6 @@ impl CancelledWithdrawalEntry {
         Ok(Withdrawal::from(withdrawal))
     }
 }
-
 #[ComplexObject]
 impl DisbursalEntry {
     async fn disbursal(&self, ctx: &Context<'_>) -> async_graphql::Result<CreditFacilityDisbursal> {
@@ -122,12 +124,18 @@ impl DisbursalEntry {
 
 #[ComplexObject]
 impl PaymentEntry {
-    async fn payment(&self, ctx: &Context<'_>) -> async_graphql::Result<CreditFacilityPayment> {
+    async fn payment(
+        &self,
+        ctx: &Context<'_>,
+    ) -> async_graphql::Result<CreditFacilityPaymentAllocation> {
         let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
 
-        let payment = app.credit().find_payment_by_id(sub, self.tx_id).await?;
+        let payment = app
+            .credit()
+            .find_payment_allocation_by_id(sub, self.tx_id)
+            .await?;
 
-        Ok(CreditFacilityPayment::from(payment))
+        Ok(CreditFacilityPaymentAllocation::from(payment))
     }
 }
 

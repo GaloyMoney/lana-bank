@@ -1085,6 +1085,32 @@ where
         Ok(payment)
     }
 
+    #[instrument(
+        name = "credit_facility.find_payment_allocation_by_id",
+        skip(self),
+        err
+    )]
+    pub async fn find_payment_allocation_by_id(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        payment_allocation_id: impl Into<PaymentAllocationId> + std::fmt::Debug,
+    ) -> Result<PaymentAllocation, CoreCreditError> {
+        let payment_allocation = self
+            .payment_allocation_repo
+            .find_by_id(payment_allocation_id.into())
+            .await?;
+
+        self.authz
+            .enforce_permission(
+                sub,
+                CoreCreditObject::all_credit_facilities(),
+                CoreCreditAction::CREDIT_FACILITY_READ,
+            )
+            .await?;
+
+        Ok(payment_allocation)
+    }
+
     #[instrument(name = "credit_facility.list_disbursals", skip(self), err)]
     pub async fn list_disbursals(
         &self,
