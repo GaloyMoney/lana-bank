@@ -3,7 +3,6 @@ import "cypress-file-upload"
 
 import { t } from "../support/translation"
 import { CustomerType, TermsTemplateCreateInput } from "../../lib/graphql/generated"
-import { DEFAULT_TERMS } from "../../lib/constants/terms"
 
 type Customer = {
   customerId: string
@@ -158,20 +157,12 @@ Cypress.Commands.add(
             units: input.duration.units,
           },
           interestDueDuration: {
-            period:
-              input.interestDueDuration?.period ||
-              DEFAULT_TERMS.INTEREST_DUE_DURATION.PERIOD,
-            units:
-              input.interestDueDuration?.units ||
-              DEFAULT_TERMS.INTEREST_DUE_DURATION.UNITS,
+            period: input.interestDueDuration.period,
+            units: input.interestDueDuration.units,
           },
           obligationOverdueDuration: {
-            period:
-              input.obligationOverdueDuration?.period ||
-              DEFAULT_TERMS.OBLIGATION_OVERDUE_DURATION.PERIOD,
-            units:
-              input.obligationOverdueDuration?.units ||
-              DEFAULT_TERMS.OBLIGATION_OVERDUE_DURATION.UNITS,
+            period: input.obligationOverdueDuration.period,
+            units: input.obligationOverdueDuration.units,
           },
           liquidationCvl: input.liquidationCvl,
           marginCallCvl: input.marginCallCvl,

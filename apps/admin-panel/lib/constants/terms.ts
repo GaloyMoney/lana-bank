@@ -1,4 +1,4 @@
-import { Period } from "@/lib/graphql/generated"
+import { Period } from "../graphql/generated"
 
 export const DEFAULT_TERMS = {
   OBLIGATION_OVERDUE_DURATION: {
