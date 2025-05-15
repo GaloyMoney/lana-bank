@@ -75,7 +75,11 @@ async fn seed_chart_of_accounts(
     let chart = chart_of_accounts.find_by_id(chart_id).await?;
 
     if let Some(config_path) = credit_config_path {
-        credit_module_configure(credit, &chart, config_path).await?;
+        credit_module_configure(credit, &chart, config_path)
+            .await
+            .unwrap_or_else(|e| {
+                dbg!(&e); // TODO: handle the un-return error differently
+            });
     }
 
     Ok(())
