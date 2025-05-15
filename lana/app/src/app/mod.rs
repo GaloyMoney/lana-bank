@@ -97,12 +97,6 @@ impl LanaApp {
         )
         .await?;
 
-        ChartsInit::charts_of_accounts(
-            accounting.chart_of_accounts(),
-            accounting.trial_balances(),
-            config.chart_of_accounts_seed_path,
-        )
-        .await?;
         let customers = Customers::new(&pool, &authz, &outbox);
         let deposits = Deposits::init(
             &pool,
@@ -132,6 +126,15 @@ impl LanaApp {
             journal_init.journal_id,
         )
         .await?;
+        ChartsInit::charts_of_accounts(
+            accounting.chart_of_accounts(),
+            accounting.trial_balances(),
+            &credit,
+            config.chart_of_accounts_seed_path,
+            config.credit.chart_of_accounts_config_path,
+        )
+        .await?;
+
         let terms_templates = TermsTemplates::new(&pool, &authz);
         jobs.start_poll().await?;
 

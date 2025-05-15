@@ -6,8 +6,9 @@ pub mod error;
 use std::path::PathBuf;
 
 use crate::{
-    accounting::ChartOfAccounts, balance_sheet::BalanceSheets, primitives::CalaJournalId,
-    profit_and_loss::ProfitAndLossStatements, trial_balance::TrialBalances,
+    accounting::ChartOfAccounts, balance_sheet::BalanceSheets, credit::Credit,
+    primitives::CalaJournalId, profit_and_loss::ProfitAndLossStatements,
+    trial_balance::TrialBalances,
 };
 
 use cala_ledger::CalaLedger;
@@ -45,8 +46,17 @@ impl ChartsInit {
     pub async fn charts_of_accounts(
         chart_of_accounts: &ChartOfAccounts,
         trial_balances: &TrialBalances,
+        credit: &Credit,
         seed_path: Option<PathBuf>,
+        credit_config_path: Option<PathBuf>,
     ) -> Result<(), AccountingInitError> {
-        seed::charts_of_accounts::init(chart_of_accounts, trial_balances, seed_path).await
+        seed::charts_of_accounts::init(
+            chart_of_accounts,
+            trial_balances,
+            credit,
+            seed_path,
+            credit_config_path,
+        )
+        .await
     }
 }

@@ -1,22 +1,33 @@
 use std::path::PathBuf;
 
 use crate::{
-    accounting::{ChartId, ChartOfAccounts},
+    accounting::ChartId,
     accounting_init::{constants::*, *},
-    trial_balance::TrialBalances,
 };
 
 use rbac_types::Subject;
 
+use super::module_configs::*;
+
 pub(crate) async fn init(
     chart_of_accounts: &ChartOfAccounts,
     trial_balances: &TrialBalances,
+    credit: &Credit,
     seed_path: Option<PathBuf>,
+    credit_config_path: Option<PathBuf>,
 ) -> Result<(), AccountingInitError> {
     let chart_id = create_chart_of_accounts(chart_of_accounts).await?;
 
     if let Some(path) = seed_path {
-        seed_chart_of_accounts(chart_of_accounts, trial_balances, chart_id, path).await?;
+        seed_chart_of_accounts(
+            chart_of_accounts,
+            trial_balances,
+            credit,
+            chart_id,
+            path,
+            credit_config_path,
+        )
+        .await?;
     }
     Ok(())
 }
@@ -41,8 +52,10 @@ async fn create_chart_of_accounts(
 async fn seed_chart_of_accounts(
     chart_of_accounts: &ChartOfAccounts,
     trial_balances: &TrialBalances,
+    credit: &Credit,
     chart_id: ChartId,
     seed_path: PathBuf,
+    credit_config_path: Option<PathBuf>,
 ) -> Result<(), AccountingInitError> {
     let data = std::fs::read_to_string(seed_path)?;
     if let Some(new_account_set_ids) = chart_of_accounts
