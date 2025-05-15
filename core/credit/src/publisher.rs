@@ -241,6 +241,7 @@ where
                 DueRecorded { amount, .. } => Some(CoreCreditEvent::ObligationDue {
                     id: entity.id,
                     credit_facility_id: entity.credit_facility_id,
+                    obligation_type: entity.obligation_type,
                     amount: *amount,
                 }),
                 OverdueRecorded { amount, .. } => Some(CoreCreditEvent::ObligationOverdue {
