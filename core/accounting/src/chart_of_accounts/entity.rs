@@ -207,3 +207,114 @@ impl IntoEvents<ChartEvent> for NewChart {
         )
     }
 }
+
+#[cfg(test)]
+mod test {
+    use audit::{AuditEntryId, AuditInfo};
+
+    use super::*;
+
+    fn dummy_audit_info() -> AuditInfo {
+        AuditInfo {
+            audit_entry_id: AuditEntryId::from(1),
+            sub: "sub".to_string(),
+        }
+    }
+
+    fn chart_from(events: Vec<ChartEvent>) -> Chart {
+        Chart::try_from_events(EntityEvents::init(ChartId::new(), events)).unwrap()
+    }
+
+    fn initial_events() -> Vec<ChartEvent> {
+        vec![ChartEvent::Initialized {
+            id: ChartId::new(),
+            name: "Test Chart".to_string(),
+            reference: "test-chart".to_string(),
+            audit_info: dummy_audit_info(),
+        }]
+    }
+
+    fn default_chart() -> (
+        Chart,
+        (CalaAccountSetId, CalaAccountSetId, CalaAccountSetId),
+    ) {
+        let mut chart = chart_from(initial_events());
+        let (_, level_1_id) = chart
+            .create_node(
+                &AccountSpec::new(
+                    None,
+                    vec![section("1")],
+                    "Assets".parse::<AccountName>().unwrap(),
+                    DebitOrCredit::Debit,
+                ),
+                dummy_audit_info(),
+            )
+            .expect("Already executed");
+        let (_, level_2_id) = chart
+            .create_node(
+                &AccountSpec::new(
+                    Some(code("1")),
+                    vec![section("1"), section("1")],
+                    "Current Assets".parse::<AccountName>().unwrap(),
+                    DebitOrCredit::Debit,
+                ),
+                dummy_audit_info(),
+            )
+            .expect("Already executed");
+        let (_, level_3_id) = chart
+            .create_node(
+                &AccountSpec::new(
+                    Some(code("1.1")),
+                    vec![section("1"), section("1"), section("1")],
+                    "Cash".parse::<AccountName>().unwrap(),
+                    DebitOrCredit::Debit,
+                ),
+                dummy_audit_info(),
+            )
+            .expect("Already executed");
+
+        (chart, (level_1_id, level_2_id, level_3_id))
+    }
+
+    fn section(s: &str) -> AccountCodeSection {
+        s.parse::<AccountCodeSection>().unwrap()
+    }
+
+    fn code(s: &str) -> AccountCode {
+        s.parse::<AccountCode>().unwrap()
+    }
+
+    #[test]
+    fn adds_from_all_new_trial_balance_accounts() {
+        let (chart, (level_1_id, level_2_id, level_3_id)) = default_chart();
+
+        let new_ids = chart
+            .trial_balance_account_ids_from_new_accounts(&vec![level_1_id, level_2_id, level_3_id])
+            .collect::<Vec<_>>();
+        assert_eq!(new_ids.len(), 1);
+        assert!(new_ids.contains(&level_2_id));
+    }
+
+    #[test]
+    fn adds_from_some_new_trial_balance_accounts() {
+        let (mut chart, _) = default_chart();
+
+        let (_, new_account_set_id) = chart
+            .create_node(
+                &AccountSpec::new(
+                    Some(code("1")),
+                    vec![section("1"), section("2")],
+                    "Long-term Assets".parse::<AccountName>().unwrap(),
+                    DebitOrCredit::Debit,
+                ),
+                dummy_audit_info(),
+            )
+            .expect("Already executed");
+
+        let new_ids = chart
+            .trial_balance_account_ids_from_new_accounts(&vec![new_account_set_id])
+            .collect::<Vec<_>>();
+        assert!(new_ids.contains(&new_account_set_id));
+        assert_eq!(new_ids.len(), 1);
+    }
+}
