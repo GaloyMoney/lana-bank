@@ -56,7 +56,6 @@ teardown_file() {
   [[ "$success" == "true" ]] || exit 1
 
   exec_admin_graphql 'chart-of-accounts'
-  graphql_output > output.json
   res=$(graphql_output \
       --arg liabilitiesCode "$liabilities_code" \
       '.data.chartOfAccounts.children[]
