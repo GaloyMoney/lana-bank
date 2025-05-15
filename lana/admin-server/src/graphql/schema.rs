@@ -25,7 +25,7 @@ pub struct Query;
 impl Query {
     async fn me(&self, ctx: &Context<'_>) -> async_graphql::Result<AuthenticatedSubject> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
-        let user = Arc::new(app.users().find_for_subject(sub).await?);
+        let user = Arc::new(app.users().users().find_for_subject(sub).await?);
         let loader = ctx.data_unchecked::<LanaDataLoader>();
         loader.feed_one(user.id, User::from(user.clone())).await;
         Ok(AuthenticatedSubject::from(user))
@@ -39,13 +39,14 @@ impl Query {
 
     async fn user(&self, ctx: &Context<'_>, id: UUID) -> async_graphql::Result<Option<User>> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
-        maybe_fetch_one!(User, ctx, app.users().find_by_id(sub, id))
+        maybe_fetch_one!(User, ctx, app.users().users().find_by_id(sub, id))
     }
 
     async fn users(&self, ctx: &Context<'_>) -> async_graphql::Result<Vec<User>> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         let loader = ctx.data_unchecked::<LanaDataLoader>();
         let users: Vec<_> = app
+            .users()
             .users()
             .list_users(sub)
             .await?
@@ -774,7 +775,7 @@ impl Mutation {
             UserCreatePayload,
             User,
             ctx,
-            app.users().create_user(sub, input.email)
+            app.users().users().create_user(sub, input.email)
         )
     }
 
@@ -789,7 +790,7 @@ impl Mutation {
             UserAssignRolePayload,
             User,
             ctx,
-            app.users().assign_role_to_user(sub, id, role)
+            app.users().users().assign_role_to_user(sub, id, role)
         )
     }
 
@@ -804,7 +805,7 @@ impl Mutation {
             UserRevokeRolePayload,
             User,
             ctx,
-            app.users().revoke_role_from_user(sub, id, role)
+            app.users().users().revoke_role_from_user(sub, id, role)
         )
     }
 

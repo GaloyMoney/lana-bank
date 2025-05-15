@@ -22,6 +22,7 @@ pub async fn init_users(
     let outbox = Outbox::init(pool).await?;
     let users = Users::init(pool, authz, &outbox, Some(superuser_email.clone())).await?;
     let superuser = users
+        .users()
         .find_by_email(None, &superuser_email)
         .await?
         .expect("Superuser not found");

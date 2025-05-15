@@ -21,8 +21,12 @@ async fn create_user_with_role(
     superuser_subject: &Subject,
     role: RoleName,
 ) -> anyhow::Result<Subject> {
-    let user = users.create_user(superuser_subject, random_email()).await?;
     let user = users
+        .users()
+        .create_user(superuser_subject, random_email())
+        .await?;
+    let user = users
+        .users()
         .assign_role_to_user(superuser_subject, user.id, role)
         .await?;
     Ok(Subject::from(user.id))

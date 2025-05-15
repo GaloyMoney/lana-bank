@@ -17,7 +17,6 @@ pub use entity::{NewRole, Role, RoleEvent};
 use error::RoleError;
 use repo::RoleRepo;
 
-#[derive(Clone)]
 pub struct Roles<Audit, E>
 where
     Audit: AuditSvc,
@@ -164,5 +163,18 @@ where
         }
 
         Ok(())
+    }
+}
+
+impl<Audit, E> Clone for Roles<Audit, E>
+where
+    Audit: AuditSvc,
+    E: OutboxEventMarker<CoreUserEvent>,
+{
+    fn clone(&self) -> Self {
+        Self {
+            authz: self.authz.clone(),
+            repo: self.repo.clone(),
+        }
     }
 }

@@ -19,12 +19,14 @@ async fn bank_manager_lifecycle() -> anyhow::Result<()> {
 
     let user_email = generate_random_email();
     let user = users
+        .users()
         .create_user(&superuser_subject, user_email.clone())
         .await?;
     assert_eq!(user.email, user_email);
     assert_eq!(user.current_roles().len(), 0);
 
     let bank_manager = users
+        .users()
         .assign_role_to_user(&superuser_subject, user.id, LanaRole::BANK_MANAGER)
         .await
         .expect("Could not assign role to user");
@@ -34,6 +36,7 @@ async fn bank_manager_lifecycle() -> anyhow::Result<()> {
     assert_eq!(roles, vec![LanaRole::BANK_MANAGER]);
 
     let user = users
+        .users()
         .revoke_role_from_user(&superuser_subject, bank_manager.id, LanaRole::BANK_MANAGER)
         .await?;
 
