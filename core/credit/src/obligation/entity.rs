@@ -569,7 +569,7 @@ mod test {
             id: ObligationId::new(),
             credit_facility_id: CreditFacilityId::new(),
             obligation_type: ObligationType::Disbursal,
-            amount: UsdCents::ONE,
+            amount: UsdCents::from(10),
             reference: "ref-01".to_string(),
             tx_id: LedgerTxId::new(),
             not_yet_due_accounts: ObligationAccounts {
@@ -717,5 +717,29 @@ mod test {
             res,
             Err(ObligationError::InvalidStatusTransitionToDefaulted)
         ));
+    }
+
+    #[test]
+    fn completes_on_final_payment_allocation() {
+        let mut obligation = obligation_from(initial_events());
+        obligation
+            .allocate_payment(
+                UsdCents::ONE,
+                PaymentId::new(),
+                Utc::now().date_naive(),
+                &dummy_audit_info(),
+            )
+            .unwrap();
+        assert_eq!(obligation.status(), ObligationStatus::NotYetDue);
+
+        obligation
+            .allocate_payment(
+                obligation.outstanding(),
+                PaymentId::new(),
+                Utc::now().date_naive(),
+                &dummy_audit_info(),
+            )
+            .unwrap();
+        assert_eq!(obligation.status(), ObligationStatus::Paid);
     }
 }
