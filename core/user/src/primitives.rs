@@ -12,7 +12,7 @@ es_entity::entity_id! {
 #[cfg(not(feature = "governance"))]
 es_entity::entity_id! { UserId }
 
-es_entity::entity_id! { AuthenticationId, RoleId }
+es_entity::entity_id! { AuthenticationId, AccessGroupId, RoleId }
 
 #[derive(Clone, Eq, Hash, PartialEq, Debug, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
