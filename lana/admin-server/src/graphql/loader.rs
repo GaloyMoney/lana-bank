@@ -11,7 +11,7 @@ use lana_app::{
     },
     app::LanaApp,
     deposit::error::CoreDepositError,
-    user::error::UserError,
+    user::user::error::UserError,
 };
 
 use crate::primitives::*;
@@ -42,7 +42,12 @@ impl Loader<UserId> for LanaLoader {
     type Error = Arc<UserError>;
 
     async fn load(&self, keys: &[UserId]) -> Result<HashMap<UserId, User>, Self::Error> {
-        self.app.users().find_all(keys).await.map_err(Arc::new)
+        self.app
+            .users()
+            .users()
+            .find_all(keys)
+            .await
+            .map_err(Arc::new)
     }
 }
 

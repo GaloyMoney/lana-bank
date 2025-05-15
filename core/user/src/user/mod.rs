@@ -13,7 +13,7 @@ use crate::{event::*, primitives::*, publisher::UserPublisher};
 
 use entity::*;
 pub use entity::{User, UserEvent};
-use error::*;
+pub use error::*;
 use repo::*;
 
 pub struct Users<Audit, E>
