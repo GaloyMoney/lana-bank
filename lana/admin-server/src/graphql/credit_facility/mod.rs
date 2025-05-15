@@ -2,7 +2,6 @@ mod balance;
 pub(super) mod disbursal;
 mod error;
 mod history;
-pub(super) mod payment;
 pub(super) mod payment_allocation;
 mod repayment;
 
