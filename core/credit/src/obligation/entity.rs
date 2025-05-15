@@ -54,7 +54,7 @@ pub enum ObligationEvent {
         amount: UsdCents,
     },
     Completed {
-        completed_at: DateTime<Utc>,
+        effective: chrono::NaiveDate,
         audit_info: AuditInfo,
     },
 }
@@ -382,12 +382,12 @@ impl Obligation {
             self.events.iter_all().rev(),
             ObligationEvent::PaymentAllocated {payment_id: id, .. }  if *id == payment_id
         );
-        let outstanding = self.outstanding();
-        if outstanding.is_zero() {
+        let pre_payment_outstanding = self.outstanding();
+        if pre_payment_outstanding.is_zero() {
             return Idempotent::Executed(None);
         }
 
-        let payment_amount = std::cmp::min(outstanding, amount);
+        let payment_amount = std::cmp::min(pre_payment_outstanding, amount);
         let allocation_id = PaymentAllocationId::new();
         self.events.push(ObligationEvent::PaymentAllocated {
             tx_id: allocation_id.into(),
@@ -395,6 +395,7 @@ impl Obligation {
             payment_allocation_id: allocation_id,
             amount: payment_amount,
         });
+
         let payment_allocation_idx = self
             .events()
             .iter_all()
@@ -420,6 +421,13 @@ impl Obligation {
             .audit_info(audit_info.clone())
             .build()
             .expect("could not build new payment allocation");
+
+        if self.outstanding().is_zero() {
+            self.events.push(ObligationEvent::Completed {
+                effective,
+                audit_info: audit_info.clone(),
+            });
+        }
 
         Idempotent::Executed(Some(allocation))
     }
@@ -623,7 +631,7 @@ mod test {
 
         let mut events = initial_events();
         events.push(ObligationEvent::Completed {
-            completed_at: Utc::now(),
+            effective: Utc::now(),
             audit_info: dummy_audit_info(),
         });
         let mut obligation = obligation_from(events);
@@ -655,7 +663,7 @@ mod test {
 
         let mut events = initial_events();
         events.push(ObligationEvent::Completed {
-            completed_at: Utc::now(),
+            effective: Utc::now(),
             audit_info: dummy_audit_info(),
         });
         let mut obligation = obligation_from(events);
@@ -699,7 +707,7 @@ mod test {
     fn ignores_defaulted_recorded_if_paid() {
         let mut events = initial_events();
         events.push(ObligationEvent::Completed {
-            completed_at: Utc::now(),
+            effective: Utc::now(),
             audit_info: dummy_audit_info(),
         });
         let mut obligation = obligation_from(events);
