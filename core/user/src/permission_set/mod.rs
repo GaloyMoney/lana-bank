@@ -8,10 +8,10 @@
 //! to be created and defined during application bootstrap and remain unchanged for their entire life.
 
 use audit::AuditSvc;
-use authz::{Authorization, PermissionCheck as _};
+use authz::Authorization;
 
 use crate::{
-    primitives::{CoreUserAction, CoreUserObject, RoleId},
+    primitives::{CoreUserAction, CoreUserObject},
     PermissionSetId, RoleName,
 };
 
@@ -19,8 +19,8 @@ mod entity;
 mod error;
 mod repo;
 
-use entity::PermissionSet;
-use error::PermissionSetError;
+pub use entity::PermissionSet;
+pub use error::PermissionSetError;
 use repo::PermissionSetRepo;
 
 pub struct PermissionSets<Audit>
@@ -42,6 +42,13 @@ where
             authz: authz.clone(),
             repo: PermissionSetRepo::new(pool),
         }
+    }
+
+    pub async fn find_by_id(
+        &self,
+        id: PermissionSetId,
+    ) -> Result<PermissionSet, PermissionSetError> {
+        self.repo.find_by_id(id).await
     }
 
     pub async fn list(
