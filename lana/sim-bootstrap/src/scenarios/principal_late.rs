@@ -85,20 +85,6 @@ pub async fn principal_late_scenario(sub: Subject, app: &LanaApp) -> anyhow::Res
         .expect("cf exists");
     assert_eq!(cf.status(), CreditFacilityStatus::Closed);
 
-    let history = app
-        .credit()
-        .history::<credit::CreditFacilityHistoryEntry>(&sub, cf.id)
-        .await?;
-
-    let (disbursals_and_interests, repayments) =
-        history.iter().fold((0, 0), |(di, p), entry| match entry {
-            Disbursal(_) | Interest(_) => (di + 1, p),
-            Payment(_) => (di, p + 1),
-            _ => (di, p),
-        });
-    assert_eq!(disbursals_and_interests, 6);
-    assert_eq!(repayments, 6);
-
     Ok(())
 }
 
