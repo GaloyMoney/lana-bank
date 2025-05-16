@@ -3,7 +3,6 @@
 
 mod account;
 mod chart_of_accounts_integration;
-mod config;
 mod deposit;
 mod deposit_account_balance;
 pub mod error;
@@ -33,7 +32,6 @@ use account::*;
 pub use chart_of_accounts_integration::{
     ChartOfAccountsIntegrationConfig, ChartOfAccountsIntegrationConfigBuilderError,
 };
-pub use config::*;
 use deposit::*;
 pub use deposit::{Deposit, DepositsByCreatedAtCursor};
 pub use deposit_account_balance::DepositAccountBalance;

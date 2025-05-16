@@ -4,7 +4,7 @@ mod seed;
 pub mod error;
 
 use crate::{
-    accounting::ChartOfAccounts, app::ChartOfAccountsSeedPathsConfig, balance_sheet::BalanceSheets,
+    accounting::ChartOfAccounts, app::AccountingInitConfig, balance_sheet::BalanceSheets,
     credit::Credit, deposit::Deposits, primitives::CalaJournalId,
     profit_and_loss::ProfitAndLossStatements, trial_balance::TrialBalances,
 };
@@ -46,14 +46,14 @@ impl ChartsInit {
         trial_balances: &TrialBalances,
         credit: &Credit,
         deposit: &Deposits,
-        seed_paths_config: ChartOfAccountsSeedPathsConfig,
+        accounting_init_config: AccountingInitConfig,
     ) -> Result<(), AccountingInitError> {
         seed::charts_of_accounts::init(
             chart_of_accounts,
             trial_balances,
             credit,
             deposit,
-            seed_paths_config,
+            accounting_init_config,
         )
         .await
     }

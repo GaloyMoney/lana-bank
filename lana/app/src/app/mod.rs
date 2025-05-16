@@ -60,8 +60,6 @@ impl LanaApp {
     pub async fn run(pool: PgPool, config: AppConfig) -> Result<Self, ApplicationError> {
         sqlx::migrate!().run(&pool).await?;
 
-        let seed_config = ChartOfAccountsSeedPathsConfig::from(config.clone());
-
         let mut jobs = Jobs::new(&pool, config.job_execution);
         let audit = Audit::new(&pool);
         let authz = init_authz(&pool, &audit).await?;
@@ -133,7 +131,7 @@ impl LanaApp {
             accounting.trial_balances(),
             &credit,
             &deposits,
-            seed_config,
+            config.accounting_init,
         )
         .await?;
 
