@@ -11,7 +11,7 @@ use crate::{
 use rbac_types::Subject;
 
 #[derive(Deserialize)]
-struct ConfigData {
+struct DepositConfigData {
     omnibus_parent_code: String,
     individual_deposit_accounts_parent_code: String,
     government_entity_deposit_accounts_parent_code: String,
@@ -27,7 +27,7 @@ pub(in crate::accounting_init::seed) async fn deposit_module_configure(
     config_path: PathBuf,
 ) -> Result<(), AccountingInitError> {
     let data = fs::read_to_string(config_path)?;
-    let ConfigData {
+    let DepositConfigData {
         omnibus_parent_code,
         individual_deposit_accounts_parent_code,
         government_entity_deposit_accounts_parent_code,
@@ -60,9 +60,14 @@ pub(in crate::accounting_init::seed) async fn deposit_module_configure(
         )
         .build()?;
 
-    deposit
+    match deposit
         .set_chart_of_accounts_integration_config(&Subject::System, chart, config_values)
-        .await?;
+        .await
+    {
+        Ok(_) => (),
+        Err(deposit::error::CoreDepositError::DepositConfigAlreadyExists) => (),
+        Err(e) => return Err(e.into()),
+    };
 
     Ok(())
 }

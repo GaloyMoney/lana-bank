@@ -11,7 +11,7 @@ use crate::{
 use rbac_types::Subject;
 
 #[derive(Deserialize)]
-struct ConfigData {
+struct CreditConfigData {
     facility_omnibus_parent_code: String,
     collateral_omnibus_parent_code: String,
     facility_parent_code: String,
@@ -61,7 +61,7 @@ pub(in crate::accounting_init::seed) async fn credit_module_configure(
     config_path: PathBuf,
 ) -> Result<(), AccountingInitError> {
     let data = fs::read_to_string(config_path)?;
-    let ConfigData {
+    let CreditConfigData {
         facility_omnibus_parent_code,
         collateral_omnibus_parent_code,
         facility_parent_code,
@@ -220,9 +220,14 @@ pub(in crate::accounting_init::seed) async fn credit_module_configure(
         )
         .build()?;
 
-    credit
+    match credit
         .set_chart_of_accounts_integration_config(&Subject::System, chart, config_values)
-        .await?;
+        .await
+    {
+        Ok(_) => (),
+        Err(core_credit::error::CoreCreditError::CreditConfigAlreadyExists) => (),
+        Err(e) => return Err(e.into()),
+    };
 
     Ok(())
 }
