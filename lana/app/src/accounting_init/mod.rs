@@ -6,7 +6,7 @@ pub mod error;
 use std::path::PathBuf;
 
 use crate::{
-    accounting::ChartOfAccounts, balance_sheet::BalanceSheets, credit::Credit,
+    accounting::ChartOfAccounts, balance_sheet::BalanceSheets, credit::Credit, deposit::Deposits,
     primitives::CalaJournalId, profit_and_loss::ProfitAndLossStatements,
     trial_balance::TrialBalances,
 };
@@ -47,6 +47,7 @@ impl ChartsInit {
         chart_of_accounts: &ChartOfAccounts,
         trial_balances: &TrialBalances,
         credit: &Credit,
+        deposit: &Deposits,
         seed_path: Option<PathBuf>,
         credit_config_path: Option<PathBuf>,
         deposit_config_path: Option<PathBuf>,
@@ -55,6 +56,7 @@ impl ChartsInit {
             chart_of_accounts,
             trial_balances,
             credit,
+            deposit,
             seed_path,
             credit_config_path,
             deposit_config_path,

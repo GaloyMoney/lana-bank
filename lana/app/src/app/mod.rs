@@ -130,6 +130,7 @@ impl LanaApp {
             accounting.chart_of_accounts(),
             accounting.trial_balances(),
             &credit,
+            &deposits,
             config.chart_of_accounts_seed_path,
             config.credit.chart_of_accounts_config_path,
             config.deposit.chart_of_accounts_config_path,
