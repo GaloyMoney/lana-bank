@@ -12,9 +12,15 @@ pub enum AccountingInitError {
     ChartOfAccountsError(#[from] core_accounting::chart_of_accounts::error::ChartOfAccountsError),
     #[error("AccountingInitError - CoreCreditError: {0}")]
     CoreCreditError(#[from] core_credit::error::CoreCreditError),
-    #[error("AccountingInitError - ChartOfAccountsIntegrationConfigBuilderError: {0}")]
-    ChartOfAccountsIntegrationConfigBuilderError(
+    #[error("AccountingInitError - CoreDepositError: {0}")]
+    CoreDepositError(#[from] deposit::error::CoreDepositError),
+    #[error("AccountingInitError - CreditChartIntegrationConfigBuilderError: {0}")]
+    CreditChartIntegrationConfigBuilderError(
         #[from] core_credit::ChartOfAccountsIntegrationConfigBuilderError,
+    ),
+    #[error("AccountingInitError - DepositChartIntegrationConfigBuilderError: {0}")]
+    DepositChartIntegrationConfigBuilderError(
+        #[from] deposit::ChartOfAccountsIntegrationConfigBuilderError,
     ),
     #[error("AccountingInitError - LedgerError: {0}")]
     LedgerError(#[from] cala_ledger::error::LedgerError),
