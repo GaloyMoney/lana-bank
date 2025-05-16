@@ -7,7 +7,7 @@ use crate::{
 
 use rbac_types::Subject;
 
-use super::module_configs::*;
+use super::module_config::credit::*;
 
 pub(crate) async fn init(
     chart_of_accounts: &ChartOfAccounts,
