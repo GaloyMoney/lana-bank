@@ -1107,6 +1107,7 @@ export type LedgerAccount = {
   ancestors: Array<LedgerAccount>;
   balanceRange: LedgerAccountBalanceRange;
   children: Array<LedgerAccount>;
+  closestAccountWithCode?: Maybe<LedgerAccount>;
   code?: Maybe<Scalars['AccountCode']['output']>;
   history: JournalEntryConnection;
   id: Scalars['UUID']['output'];

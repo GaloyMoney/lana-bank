@@ -1113,6 +1113,7 @@ type LedgerAccount {
 	name: String!
 	balanceRange: LedgerAccountBalanceRange!
 	ancestors: [LedgerAccount!]!
+	closestAccountWithCode: LedgerAccount
 	children: [LedgerAccount!]!
 	history(first: Int!, after: String): JournalEntryConnection!
 }

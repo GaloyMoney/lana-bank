@@ -62,6 +62,20 @@ impl LedgerAccount {
         Ok(result)
     }
 
+    async fn closest_account_with_code(
+        &self,
+        ctx: &Context<'_>,
+    ) -> async_graphql::Result<Option<LedgerAccount>> {
+        if self.code.is_some() {
+            return Ok(Some(self.clone()));
+        }
+
+        let ancestors = self.ancestors(ctx).await?;
+        let closest = ancestors.into_iter().find(|a| a.code.is_some());
+
+        Ok(closest)
+    }
+
     async fn children(&self, ctx: &Context<'_>) -> async_graphql::Result<Vec<LedgerAccount>> {
         let loader = ctx.data_unchecked::<LanaDataLoader>();
         let mut children = loader.load_many(self.entity.children_ids.clone()).await?;
