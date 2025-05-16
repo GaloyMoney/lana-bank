@@ -58,91 +58,71 @@ Especifica las unidades de duración, p. ej., `12`, para un término de un año.
 
 <!-- new-page -->
 
-### Paso 6: Seleccionar Período de Duración
-
-Elige el período para la duración del menú desplegable. Por ejemplo, selecciona `Meses` para duración mensual.
-
-![Paso 6: Seleccionar Período de Duración](./screenshots/terms-templates.cy.ts/6_select_duration_period.png)
-
----
-
-<!-- new-page -->
-
-### Paso 7: Seleccionar Intervalo de Acumulación
-
-Selecciona el intervalo de acumulación, eligiendo una opción como `Fin de Mes` del menú desplegable.
-
-![Paso 7: Seleccionar Intervalo de Acumulación](./screenshots/terms-templates.cy.ts/7_select_accrual_interval.png)
-
----
-
-<!-- new-page -->
-
-### Paso 8: Seleccionar Intervalo de Incurrencia
-
-Establece el intervalo de incurrencia seleccionando una opción como `Fin de Mes`.
-
-![Paso 8: Seleccionar Intervalo de Incurrencia](./screenshots/terms-templates.cy.ts/8_select_incurrence_interval.png)
-
----
-
-<!-- new-page -->
-
-### Paso 9: Ingresar CVL Inicial (Límite de Valor de Garantía)
+### Paso 6: Ingresar CVL Inicial (Límite de Valor de Garantía)
 
 Introduce el CVL inicial, para especificar el límite de valor de garantía inicial.
 
-![Paso 9: Ingresar CVL Inicial](./screenshots/terms-templates.cy.ts/9_enter_initial_cvl.png)
+![Paso 6: Ingresar CVL Inicial](./screenshots/terms-templates.cy.ts/6_enter_initial_cvl.png)
 
 ---
 
 <!-- new-page -->
 
-### Paso 10: Ingresar CVL de Llamada de Margen
+### Paso 7: Ingresar CVL de Llamada de Margen
 
 Introduce el CVL de llamada de margen, para definir el límite para activar una llamada de margen.
 
-![Paso 10: Ingresar CVL de Llamada de Margen](./screenshots/terms-templates.cy.ts/10_enter_margin_call_cvl.png)
+![Paso 7: Ingresar CVL de Llamada de Margen](./screenshots/terms-templates.cy.ts/7_enter_margin_call_cvl.png)
 
 ---
 
 <!-- new-page -->
 
-### Paso 11: Ingresar CVL de Liquidación
+### Paso 8: Ingresar CVL de Liquidación
 
 Introduce el CVL de liquidación, para el valor en el que ocurre la liquidación.
 
-![Paso 11: Ingresar CVL de Liquidación](./screenshots/terms-templates.cy.ts/11_enter_liquidation_cvl.png)
+![Paso 8: Ingresar CVL de Liquidación](./screenshots/terms-templates.cy.ts/8_enter_liquidation_cvl.png)
 
 ---
 
 <!-- new-page -->
 
-### Paso 12: Enviar la Plantilla de Términos
+### Paso 9: Ingresar Tasa de Comisión Única
+
+Introduce la tasa de comisión única para la plantilla.
+
+![Paso 9: Ingresar Tasa de Comisión](./screenshots/terms-templates.cy.ts/9_enter_fee_rate.png)
+
+---
+
+<!-- new-page -->
+
+### Paso 10: Enviar la Plantilla de Términos
 
 Haz clic en el botón "Enviar" para crear la nueva plantilla de términos.
 
-![Paso 12: Enviar la Plantilla de Términos](./screenshots/terms-templates.cy.ts/12_submit_terms_template.png)
+![Paso 10: Enviar la Plantilla de Términos](./screenshots/terms-templates.cy.ts/10_submit_terms_template.png)
 
 ---
 
 <!-- new-page -->
 
-### Paso 13: Verificar la Creación de la Plantilla de Términos
+### Paso 11: Verificar la Creación de la Plantilla de Términos
 
 Confirma que la URL coincide con el formato de la página de detalle de la plantilla de términos y que el nombre de la plantilla es visible.
 
-![Paso 13: Verificar la Creación de la Plantilla de Términos](./screenshots/terms-templates.cy.ts/13_verify_terms_template_creation.png)
+![Paso 11: Verificar la Creación de la Plantilla de Términos](./screenshots/terms-templates.cy.ts/11_verify_terms_template_creation.png)
 
 ---
 
 <!-- new-page -->
 
-### Paso 14: Ver en la Lista de Plantillas
+### Paso 12: Ver en la Lista de Plantillas
 
 Navega a la página de lista de plantillas de términos para ver tu plantilla recién creada.
 
-![Paso 14: Lista de Plantillas](./screenshots/terms-templates.cy.ts/14_terms_template_in_list.png)
+![Paso 12: Lista de Plantillas](./screenshots/terms-templates.cy.ts/12_terms_template_in_list.png)
 
 ---
 
@@ -150,51 +130,51 @@ Navega a la página de lista de plantillas de términos para ver tu plantilla re
 
 ## Actualizar una Plantilla de Términos
 
-### Paso 15: Acceder a los Detalles de la Plantilla
+### Paso 13: Acceder a los Detalles de la Plantilla
 
 Navega a la plantilla de términos específica que deseas actualizar.
 
-![Paso 15: Detalles de la Plantilla](./screenshots/terms-templates.cy.ts/15_terms_template_details.png)
+![Paso 13: Detalles de la Plantilla](./screenshots/terms-templates.cy.ts/13_terms_template_details.png)
 
 ---
 
 <!-- new-page -->
 
-### Paso 16: Hacer Clic en el Botón Actualizar
+### Paso 14: Hacer Clic en el Botón Actualizar
 
 Haz clic en el botón "Actualizar" para modificar la plantilla de términos.
 
-![Paso 16: Hacer Clic en Actualizar](./screenshots/terms-templates.cy.ts/16_click_update_button.png)
+![Paso 14: Hacer Clic en Actualizar](./screenshots/terms-templates.cy.ts/14_click_update_button.png)
 
 ---
 
 <!-- new-page -->
 
-### Paso 17: Modificar Detalles de la Plantilla
+### Paso 15: Modificar Detalles de la Plantilla
 
-Actualiza los campos necesarios. En este ejemplo, estamos cambiando la tasa anual a `6`.
+Actualiza los campos necesarios. En este ejemplo, estamos cambiando la tasa anual.
 
-![Paso 17: Actualizar Detalles](./screenshots/terms-templates.cy.ts/17_update_annual_rate.png)
+![Paso 15: Actualizar Tasa Anual](./screenshots/terms-templates.cy.ts/15_update_annual_rate.png)
 
 ---
 
 <!-- new-page -->
 
-### Paso 18: Enviar Cambios
+### Paso 16: Enviar Cambios
 
 Haz clic en el botón "Enviar" para guardar tus cambios.
 
-![Paso 18: Enviar Actualización](./screenshots/terms-templates.cy.ts/18_submit_update.png)
+![Paso 16: Enviar Actualización](./screenshots/terms-templates.cy.ts/16_submit_update.png)
 
 ---
 
 <!-- new-page -->
 
-### Paso 19: Confirmar Actualización
+### Paso 17: Confirmar Actualización
 
 Verás un mensaje de éxito confirmando que la plantilla ha sido actualizada.
 
-![Paso 19: Éxito de Actualización](./screenshots/terms-templates.cy.ts/19_update_success.png)
+![Paso 17: Éxito de Actualización](./screenshots/terms-templates.cy.ts/17_update_success.png)
 
 ---
 

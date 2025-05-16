@@ -1,4 +1,4 @@
-import { Period } from "../graphql/generated"
+import { InterestInterval, Period } from "../graphql/generated"
 
 export const DEFAULT_TERMS = {
   OBLIGATION_OVERDUE_DURATION: {
@@ -9,4 +9,7 @@ export const DEFAULT_TERMS = {
     UNITS: 0,
     PERIOD: Period.Days,
   },
+  ACCRUAL_CYCLE_INTERVAL: InterestInterval.EndOfMonth,
+  ACCRUAL_INTERVAL: InterestInterval.EndOfDay,
+  DURATION_PERIOD: Period.Months,
 }

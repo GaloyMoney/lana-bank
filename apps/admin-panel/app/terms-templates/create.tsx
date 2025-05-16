@@ -17,22 +17,10 @@ import {
 import { Input } from "@lana/web/ui/input"
 import { Button } from "@lana/web/ui/button"
 import { Label } from "@lana/web/ui/label"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@lana/web/ui/select"
 
-import {
-  useCreateTermsTemplateMutation,
-  InterestInterval,
-  Period,
-} from "@/lib/graphql/generated"
-import { PeriodLabel, InterestIntervalLabel } from "@/app/credit-facilities/label"
-import { useModalNavigation } from "@/hooks/use-modal-navigation"
+import { useCreateTermsTemplateMutation } from "@/lib/graphql/generated"
 import { DEFAULT_TERMS } from "@/lib/constants/terms"
+import { useModalNavigation } from "@/hooks/use-modal-navigation"
 
 gql`
   mutation CreateTermsTemplate($input: TermsTemplateCreateInput!) {
@@ -78,13 +66,10 @@ export const CreateTermsTemplateDialog: React.FC<CreateTermsTemplateDialogProps>
   const [formValues, setFormValues] = useState({
     name: "",
     annualRate: "",
-    accrualCycleInterval: "",
-    accrualInterval: "",
     liquidationCvl: "",
     marginCallCvl: "",
     initialCvl: "",
     durationUnits: "",
-    durationPeriod: "",
     oneTimeFeeRate: "",
   })
 
@@ -108,10 +93,10 @@ export const CreateTermsTemplateDialog: React.FC<CreateTermsTemplateDialogProps>
           input: {
             name: formValues.name,
             annualRate: formValues.annualRate,
-            accrualCycleInterval: formValues.accrualCycleInterval as InterestInterval,
-            accrualInterval: formValues.accrualInterval as InterestInterval,
+            accrualCycleInterval: DEFAULT_TERMS.ACCRUAL_CYCLE_INTERVAL,
+            accrualInterval: DEFAULT_TERMS.ACCRUAL_INTERVAL,
             duration: {
-              period: formValues.durationPeriod as Period,
+              period: DEFAULT_TERMS.DURATION_PERIOD,
               units: parseInt(formValues.durationUnits),
             },
             interestDueDuration: {
@@ -150,13 +135,10 @@ export const CreateTermsTemplateDialog: React.FC<CreateTermsTemplateDialogProps>
     setFormValues({
       name: "",
       annualRate: "",
-      accrualCycleInterval: "",
-      accrualInterval: "",
       liquidationCvl: "",
       marginCallCvl: "",
       initialCvl: "",
       durationUnits: "",
-      durationPeriod: "",
       oneTimeFeeRate: "",
     })
     setError(null)
@@ -210,7 +192,7 @@ export const CreateTermsTemplateDialog: React.FC<CreateTermsTemplateDialogProps>
               </div>
               <div>
                 <Label>{t("fields.duration")}</Label>
-                <div className="flex gap-2">
+                <div className="flex gap-2 items-center">
                   <Input
                     type="number"
                     name="durationUnits"
@@ -220,77 +202,26 @@ export const CreateTermsTemplateDialog: React.FC<CreateTermsTemplateDialogProps>
                     min={0}
                     required
                     disabled={isLoading}
-                    className="w-1/2"
                     data-testid="terms-template-duration-units-input"
                   />
-                  <Select
-                    value={formValues.durationPeriod}
-                    onValueChange={(value) =>
-                      handleChange({
-                        target: { name: "durationPeriod", value },
-                      } as React.ChangeEvent<HTMLSelectElement>)
-                    }
-                  >
-                    <SelectTrigger data-testid="terms-template-duration-period-select">
-                      <SelectValue placeholder={t("placeholders.durationPeriod")} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {Object.values(Period)
-                        .filter((period) => period !== Period.Days)
-                        .map((period) => (
-                          <SelectItem key={period} value={period}>
-                            <PeriodLabel period={period} />
-                          </SelectItem>
-                        ))}
-                    </SelectContent>
-                  </Select>
+                  <div className="p-1.5 bg-input-text rounded-md px-4">
+                    {t("fields.months")}
+                  </div>
                 </div>
               </div>
               <div>
-                <Label htmlFor="accrualCycleInterval">
-                  {t("fields.accrualCycleInterval")}
-                </Label>
-                <Select
-                  value={formValues.accrualCycleInterval}
-                  onValueChange={(value) =>
-                    handleChange({
-                      target: { name: "accrualCycleInterval", value },
-                    } as React.ChangeEvent<HTMLSelectElement>)
-                  }
-                >
-                  <SelectTrigger data-testid="terms-template-accrual-cycle-interval-select">
-                    <SelectValue placeholder={t("placeholders.accrualCycleInterval")} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {Object.values(InterestInterval).map((int) => (
-                      <SelectItem key={int} value={int}>
-                        <InterestIntervalLabel interval={int} />
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Label htmlFor="accrualInterval">{t("fields.accrualInterval")}</Label>
-                <Select
-                  value={formValues.accrualInterval}
-                  onValueChange={(value) =>
-                    handleChange({
-                      target: { name: "accrualInterval", value },
-                    } as React.ChangeEvent<HTMLSelectElement>)
-                  }
-                >
-                  <SelectTrigger data-testid="terms-template-accrual-interval-select">
-                    <SelectValue placeholder={t("placeholders.accrualInterval")} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {Object.values(InterestInterval).map((int) => (
-                      <SelectItem key={int} value={int}>
-                        <InterestIntervalLabel interval={int} />
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Label htmlFor="liquidationCvl">{t("fields.liquidationCvl")}</Label>
+                <Input
+                  id="liquidationCvl"
+                  name="liquidationCvl"
+                  type="number"
+                  required
+                  placeholder={t("placeholders.liquidationCvl")}
+                  value={formValues.liquidationCvl}
+                  onChange={handleChange}
+                  disabled={isLoading}
+                  data-testid="terms-template-liquidation-cvl-input"
+                />
               </div>
             </div>
             <div className="space-y-4">
@@ -320,20 +251,6 @@ export const CreateTermsTemplateDialog: React.FC<CreateTermsTemplateDialogProps>
                   onChange={handleChange}
                   disabled={isLoading}
                   data-testid="terms-template-margin-call-cvl-input"
-                />
-              </div>
-              <div>
-                <Label htmlFor="liquidationCvl">{t("fields.liquidationCvl")}</Label>
-                <Input
-                  id="liquidationCvl"
-                  name="liquidationCvl"
-                  type="number"
-                  required
-                  placeholder={t("placeholders.liquidationCvl")}
-                  value={formValues.liquidationCvl}
-                  onChange={handleChange}
-                  disabled={isLoading}
-                  data-testid="terms-template-liquidation-cvl-input"
                 />
               </div>
               <div>
