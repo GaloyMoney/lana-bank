@@ -289,7 +289,7 @@ mod test {
         let (chart, (level_1_id, level_2_id, level_3_id)) = default_chart();
 
         let new_ids = chart
-            .trial_balance_account_ids_from_new_accounts(&vec![level_1_id, level_2_id, level_3_id])
+            .trial_balance_account_ids_from_new_accounts(&[level_1_id, level_2_id, level_3_id])
             .collect::<Vec<_>>();
         assert_eq!(new_ids.len(), 1);
         assert!(new_ids.contains(&level_2_id));
@@ -312,7 +312,7 @@ mod test {
             .expect("Already executed");
 
         let new_ids = chart
-            .trial_balance_account_ids_from_new_accounts(&vec![new_account_set_id])
+            .trial_balance_account_ids_from_new_accounts(&[new_account_set_id])
             .collect::<Vec<_>>();
         assert!(new_ids.contains(&new_account_set_id));
         assert_eq!(new_ids.len(), 1);
