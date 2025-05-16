@@ -19,7 +19,9 @@ app:
     customer_status_sync_active: false
     create_deposit_account_on_customer_create: true
   accounting_init:
-    chart_of_accounts_seed_path: "./bats/coa.csv"
+    chart_of_accounts_seed_path: "./bats/accounting-init/coa.csv"
+    credit_config_path: "./bats/accounting-init/credit-module-config.json"
+    deposit_config_path: "./bats/accounting-init/deposit-module-config.json"
 time:
   realtime: false
   sim_time:
