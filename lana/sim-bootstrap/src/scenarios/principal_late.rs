@@ -1,9 +1,5 @@
 use futures::StreamExt;
-use lana_app::{
-    app::LanaApp,
-    credit::{self, CreditFacilityHistoryEntry::*},
-    primitives::*,
-};
+use lana_app::{app::LanaApp, primitives::*};
 use lana_events::{CoreCreditEvent, LanaEvent, ObligationType};
 use rust_decimal_macros::dec;
 use tokio::sync::mpsc;
