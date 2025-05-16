@@ -14,7 +14,7 @@ pub mod error;
 mod repo;
 
 pub use entity::{NewRole, Role, RoleEvent};
-use error::RoleError;
+pub use error::RoleError;
 use repo::RoleRepo;
 
 pub struct Roles<Audit, E>
@@ -44,12 +44,23 @@ where
         }
     }
 
-    /// Creates a new role with given name. The names must be unique,
-    /// an error will be raised in case of conflict.
+    pub async fn find_by_id(&self, role_id: RoleId) -> Result<Role, RoleError> {
+        self.repo.find_by_id(&role_id).await
+    }
+
+    pub async fn update(&self, role: &mut Role) -> Result<(), RoleError> {
+        self.repo.update(role).await?;
+        Ok(())
+    }
+
+    /// Creates a new role with a given name. The names must be unique,
+    /// an error will be raised in case of conflict. If `base_role` is provided,
+    /// the new role will have all its permission sets.
     pub async fn create_role(
         &self,
         sub: &<Audit as AuditSvc>::Subject,
         name: RoleName,
+        base_role: Option<RoleId>,
     ) -> Result<Role, RoleError> {
         self.authz
             .enforce_permission(
@@ -68,37 +79,6 @@ where
         let role = self.repo.create(new_role).await?;
 
         Ok(role)
-    }
-
-    /// Make role with `role_id` inherit from role with `junior_id`.
-    /// Consequently, `role_id` will gain all permissions of `junior_id`.
-    pub async fn inherit_from_junior(
-        &self,
-        sub: &<Audit as AuditSvc>::Subject,
-        role_id: RoleId,
-        junior_id: RoleId,
-    ) -> Result<(), RoleError> {
-        let audit_info = self
-            .authz
-            .enforce_permission(
-                sub,
-                CoreUserObject::role(role_id),
-                CoreUserAction::ROLE_UPDATE,
-            )
-            .await?;
-
-        let junior = self.repo.find_by_id(&junior_id).await?;
-        let mut senior = self.repo.find_by_id(&role_id).await?;
-
-        if senior.inherit_from(&junior, audit_info).did_execute() {
-            self.authz
-                .add_role_hierarchy(senior.name.clone(), junior.name)
-                .await?;
-
-            self.repo.update(&mut senior).await?;
-        }
-
-        Ok(())
     }
 }
 
