@@ -140,14 +140,13 @@ export type CreditFacilityOrigination = {
   txId: Scalars['UUID']['output'];
 };
 
-export type CreditFacilityPayment = {
-  __typename?: 'CreditFacilityPayment';
+export type CreditFacilityPaymentAllocation = {
+  __typename?: 'CreditFacilityPaymentAllocation';
+  amount: Scalars['UsdCents']['output'];
   createdAt: Scalars['Timestamp']['output'];
   creditFacility: CreditFacility;
-  disbursalAmount: Scalars['UsdCents']['output'];
   id: Scalars['ID']['output'];
-  interestAmount: Scalars['UsdCents']['output'];
-  paymentId: Scalars['UUID']['output'];
+  paymentAllocationId: Scalars['UUID']['output'];
 };
 
 export type CreditFacilityRepaymentPlanEntry = {
@@ -342,7 +341,7 @@ export type PageInfo = {
 
 export type PaymentEntry = {
   __typename?: 'PaymentEntry';
-  payment: CreditFacilityPayment;
+  payment: CreditFacilityPaymentAllocation;
   recordedAt: Scalars['Timestamp']['output'];
 };
 
@@ -443,7 +442,7 @@ export type GetTransactionHistoryQueryVariables = Exact<{
 }>;
 
 
-export type GetTransactionHistoryQuery = { __typename?: 'Query', me: { __typename?: 'Subject', customer: { __typename?: 'Customer', depositAccount: { __typename?: 'DepositAccount', history: { __typename?: 'DepositAccountHistoryEntryConnection', pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, endCursor?: string | null, hasPreviousPage: boolean, startCursor?: string | null }, edges: Array<{ __typename?: 'DepositAccountHistoryEntryEdge', cursor: string, node: { __typename?: 'CancelledWithdrawalEntry', recordedAt: any, withdrawal: { __typename?: 'Withdrawal', id: string, withdrawalId: any, accountId: any, amount: any, createdAt: any, reference: string, status: WithdrawalStatus } } | { __typename?: 'DepositEntry', recordedAt: any, deposit: { __typename?: 'Deposit', id: string, depositId: any, accountId: any, amount: any, createdAt: any, reference: string } } | { __typename?: 'DisbursalEntry', recordedAt: any, disbursal: { __typename?: 'CreditFacilityDisbursal', id: string, disbursalId: any, amount: any, createdAt: any, status: DisbursalStatus } } | { __typename?: 'PaymentEntry', recordedAt: any, payment: { __typename?: 'CreditFacilityPayment', id: string, paymentId: any, interestAmount: any, disbursalAmount: any, createdAt: any } } | { __typename?: 'UnknownEntry' } | { __typename?: 'WithdrawalEntry', recordedAt: any, withdrawal: { __typename?: 'Withdrawal', id: string, withdrawalId: any, accountId: any, amount: any, createdAt: any, reference: string, status: WithdrawalStatus } } }> } } } } };
+export type GetTransactionHistoryQuery = { __typename?: 'Query', me: { __typename?: 'Subject', customer: { __typename?: 'Customer', depositAccount: { __typename?: 'DepositAccount', history: { __typename?: 'DepositAccountHistoryEntryConnection', pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, endCursor?: string | null, hasPreviousPage: boolean, startCursor?: string | null }, edges: Array<{ __typename?: 'DepositAccountHistoryEntryEdge', cursor: string, node: { __typename?: 'CancelledWithdrawalEntry', recordedAt: any, withdrawal: { __typename?: 'Withdrawal', id: string, withdrawalId: any, accountId: any, amount: any, createdAt: any, reference: string, status: WithdrawalStatus } } | { __typename?: 'DepositEntry', recordedAt: any, deposit: { __typename?: 'Deposit', id: string, depositId: any, accountId: any, amount: any, createdAt: any, reference: string } } | { __typename?: 'DisbursalEntry', recordedAt: any, disbursal: { __typename?: 'CreditFacilityDisbursal', id: string, disbursalId: any, amount: any, createdAt: any, status: DisbursalStatus } } | { __typename?: 'PaymentEntry', recordedAt: any, payment: { __typename?: 'CreditFacilityPaymentAllocation', id: string, paymentAllocationId: any, amount: any, createdAt: any } } | { __typename?: 'UnknownEntry' } | { __typename?: 'WithdrawalEntry', recordedAt: any, withdrawal: { __typename?: 'Withdrawal', id: string, withdrawalId: any, accountId: any, amount: any, createdAt: any, reference: string, status: WithdrawalStatus } } }> } } } } };
 
 
 export const GetCreditFacilityDocument = gql`
@@ -790,9 +789,8 @@ export const GetTransactionHistoryDocument = gql`
                 recordedAt
                 payment {
                   id
-                  paymentId
-                  interestAmount
-                  disbursalAmount
+                  paymentAllocationId
+                  amount
                   createdAt
                 }
               }

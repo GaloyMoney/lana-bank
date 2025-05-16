@@ -78,12 +78,7 @@ export const CustomerTransactionsTable: React.FC<CustomerTransactionsTableProps>
           case "DisbursalEntry":
             return <Balance amount={entry.disbursal.amount} currency="usd" />
           case "PaymentEntry":
-            return (
-              <Balance
-                amount={entry.payment.disbursalAmount + entry.payment.interestAmount}
-                currency="usd"
-              />
-            )
+            return <Balance amount={entry.payment.amount} currency="usd" />
           default:
             return "-"
         }

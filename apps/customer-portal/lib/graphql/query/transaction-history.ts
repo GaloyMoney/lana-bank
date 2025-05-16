@@ -72,9 +72,8 @@ gql`
                   recordedAt
                   payment {
                     id
-                    paymentId
-                    interestAmount
-                    disbursalAmount
+                    paymentAllocationId
+                    amount
                     createdAt
                   }
                 }
