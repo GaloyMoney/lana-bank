@@ -3,7 +3,6 @@ use serde::{Deserialize, Serialize};
 
 use std::collections::HashSet;
 
-use audit::AuditInfo;
 use es_entity::*;
 
 use crate::primitives::PermissionSetId;
@@ -19,7 +18,6 @@ pub enum PermissionSetEvent {
         id: PermissionSetId,
         name: String,
         permissions: Permissions,
-        audit_info: AuditInfo,
     },
 }
 
@@ -65,7 +63,6 @@ pub struct NewPermissionSet {
     pub(super) id: PermissionSetId,
     pub(super) name: String,
     pub(super) permissions: Permissions,
-    pub(super) audit_info: AuditInfo,
 }
 
 impl NewPermissionSet {
@@ -82,7 +79,6 @@ impl IntoEvents<PermissionSetEvent> for NewPermissionSet {
                 id: self.id,
                 name: self.name,
                 permissions: self.permissions,
-                audit_info: self.audit_info,
             }],
         )
     }

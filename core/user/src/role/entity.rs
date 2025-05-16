@@ -18,6 +18,7 @@ pub enum RoleEvent {
     Initialized {
         id: RoleId,
         name: RoleName,
+        permission_sets: HashSet<PermissionSetId>,
         audit_info: AuditInfo,
     },
     PermissionSetAdded {
@@ -80,28 +81,34 @@ impl Role {
 impl TryFromEvents<RoleEvent> for Role {
     fn try_from_events(events: EntityEvents<RoleEvent>) -> Result<Self, EsEntityError> {
         let mut builder = RoleBuilder::default();
-        let mut permission_sets = HashSet::new();
+        let mut new_permission_sets = HashSet::new();
 
         for event in events.iter_all() {
             match event {
-                RoleEvent::Initialized { id, name, .. } => {
+                RoleEvent::Initialized {
+                    id,
+                    name,
+                    permission_sets,
+                    ..
+                } => {
+                    new_permission_sets.extend(permission_sets);
                     builder = builder.id(*id).name(name.clone());
                 }
                 RoleEvent::PermissionSetAdded {
                     permission_set_id, ..
                 } => {
-                    permission_sets.insert(*permission_set_id);
+                    new_permission_sets.insert(*permission_set_id);
                 }
                 RoleEvent::PermissionSetRemoved {
                     permission_set_id, ..
                 } => {
-                    permission_sets.remove(permission_set_id);
+                    new_permission_sets.remove(permission_set_id);
                 }
             }
         }
 
         builder
-            .permission_sets(permission_sets)
+            .permission_sets(new_permission_sets)
             .events(events)
             .build()
     }
@@ -112,6 +119,8 @@ pub struct NewRole {
     #[builder(setter(into))]
     pub(super) id: RoleId,
     pub(super) name: RoleName,
+    #[builder(default)]
+    pub(super) permission_sets: HashSet<PermissionSetId>,
     pub(super) audit_info: AuditInfo,
 }
 
@@ -128,6 +137,7 @@ impl IntoEvents<RoleEvent> for NewRole {
             [RoleEvent::Initialized {
                 id: self.id,
                 name: self.name,
+                permission_sets: self.permission_sets,
                 audit_info: self.audit_info,
             }],
         )

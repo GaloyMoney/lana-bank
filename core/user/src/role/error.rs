@@ -10,6 +10,8 @@ pub enum RoleError {
     CursorDestructureError(#[from] es_entity::CursorDestructureError),
     #[error("RoleError - AuthorizationError: {0}")]
     AuthorizationError(#[from] authz::error::AuthorizationError),
+    #[error("RoleError - AuditError: {0}")]
+    AuditError(#[from] audit::error::AuditError),
 }
 
 es_entity::from_es_entity_error!(RoleError);

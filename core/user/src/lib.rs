@@ -11,6 +11,7 @@ pub mod user;
 
 use audit::AuditSvc;
 use authz::{Authorization, PermissionCheck as _};
+use es_entity::DbOp;
 use outbox::{Outbox, OutboxEventMarker};
 use permission_set::PermissionSets;
 
@@ -48,17 +49,23 @@ where
         outbox: &Outbox<E>,
         superuser_email: Option<String>,
     ) -> Result<Self, CoreUserError> {
-        let users = Users::init(pool, authz, outbox, superuser_email).await?;
+        let users = Users::init(pool, authz, outbox).await?;
         let publisher = UserPublisher::new(outbox);
         let roles = Roles::new(pool, authz, &publisher);
         let permission_sets = PermissionSets::new(authz, pool);
 
-        Ok(Self {
+        let core_users = Self {
             authz: authz.clone(),
             roles,
             users,
             permission_sets,
-        })
+        };
+
+        if let Some(email) = superuser_email {
+            core_users.bootstrap_access_control(email, pool).await?;
+        }
+
+        Ok(core_users)
     }
 
     pub fn roles(&self) -> &Roles<Audit, E> {
@@ -73,21 +80,11 @@ where
         &self.permission_sets
     }
 
-    // BOOTSTRAP ONLY
-    pub fn create_permission_set(
-        &self,
-        name: String,
-        permissions: std::collections::HashSet<(String, String)>,
-        initial_roles: &[RoleId],
-    ) {
-        todo!()
-    }
-
-    pub async fn add_permission_set_to_role(
+    pub async fn add_permission_sets_to_role(
         &self,
         sub: &<Audit as AuditSvc>::Subject,
         role_id: RoleId,
-        permission_set_id: PermissionSetId,
+        permission_set_ids: &[PermissionSetId],
     ) -> Result<(), CoreUserError> {
         let audit_info = self
             .authz
@@ -98,15 +95,14 @@ where
             )
             .await?;
 
-        let permission_set = self.permission_sets().find_by_id(permission_set_id).await?;
         let mut role = self.roles().find_by_id(role_id).await?;
+        let permission_sets = self.permission_sets().find_all(permission_set_ids).await?;
 
-        if role
-            .add_permission_set(permission_set.id, audit_info)
-            .did_execute()
-        {
-            self.roles().update(&mut role).await?;
+        for (permission_set_id, _) in permission_sets {
+            let _ = role.add_permission_set(permission_set_id, audit_info.clone());
         }
+
+        self.roles().update(&mut role).await?;
 
         Ok(())
     }
@@ -135,6 +131,36 @@ where
         {
             self.roles().update(&mut role).await?;
         }
+
+        Ok(())
+    }
+
+    /// Creates essential users, roles and permission sets for a running application.
+    /// Without these, seeding of other roles cannot be initiated. User with `email`
+    /// will have a role “superuser” that has all available permission sets.
+    async fn bootstrap_access_control(
+        &self,
+        email: String,
+        pool: &sqlx::PgPool,
+    ) -> Result<(), CoreUserError> {
+        let mut db = DbOp::init(pool).await?;
+
+        let permission_sets = self
+            .permission_sets()
+            .bootstrap_permission_sets(&mut db)
+            .await?;
+
+        let permission_set_ids = permission_sets.iter().map(|s| s.id).collect::<Vec<_>>();
+        let superuser_role = self
+            .roles()
+            .bootstrap_superuser(&permission_set_ids, &mut db)
+            .await?;
+
+        self.users()
+            .bootstrap_superuser(email, superuser_role.name, &mut db)
+            .await?;
+
+        db.commit().await?;
 
         Ok(())
     }
