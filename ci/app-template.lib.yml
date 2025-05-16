@@ -28,18 +28,24 @@ plan:
       - get: #@ app_src_resource_name(app)
         trigger: true
       - { get: pipeline-tasks }
-  - task: prepare-docker-build
+  - task: extract-commit-hash
     config:
       platform: linux
-      image_resource: #@ task_image_config()
+      image_resource:
+        type: registry-image
+        source: {repository: alpine, tag: latest}
       inputs:
-        - name: pipeline-tasks
         - name: #@ app_src_resource_name(app)
           path: repo
       outputs:
-        - name: repo
+        - name: build-args-output
       run:
-        path: pipeline-tasks/ci/tasks/app-prepare-docker-build.sh
+        path: sh
+        args:
+          - -exc
+          - |
+            mkdir -p build-args-output
+            echo "COMMITHASH=$(cat repo/.git/ref)" > build-args-output/build.args
   - task: build
     attempts: 2
     privileged: true
@@ -48,15 +54,16 @@ plan:
       image_resource:
         type: registry-image
         source:
-          repository: vito/oci-build-task
+          repository: concourse/oci-build-task
       inputs:
         - name: repo
+        - name: build-args-output
       outputs:
         - name: image
       params:
         CONTEXT: repo
         DOCKERFILE: #@ "repo/apps/" + app + "/Dockerfile"
-        BUILD_ARGS_FILE: repo/.build-args
+        BUILD_ARGS_FILE: build-args-output/build.args
       run:
         path: build
   - put: #@ app_edge_image_resource_name(app)

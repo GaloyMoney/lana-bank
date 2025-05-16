@@ -4,7 +4,9 @@ export REPO_ROOT=$(git rev-parse --show-toplevel)
 source "${REPO_ROOT}/bats/helpers.bash"
 
 setup_suite() {
+  echo "Starting server" >> ./test.log
   start_server
+  echo "Server started" >> ./test.log
 }
 
 teardown_suite() {

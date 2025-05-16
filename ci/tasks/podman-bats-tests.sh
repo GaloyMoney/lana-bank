@@ -39,8 +39,7 @@ make setup-db
 
 # --- Build Test Artifacts ---
 echo "--- Building test artifacts---"
-make build-for-tests
-BUILD_EXIT_CODE=$?
+nix build . -L
 
 # echo "--- Build/Push finished with code: $BUILD_EXIT_CODE ---"
 # if [ $BUILD_EXIT_CODE -ne 0 ]; then
@@ -50,7 +49,7 @@ BUILD_EXIT_CODE=$?
 
 # --- Start Lana Server (Moved outside Bats) ---
 echo "--- Starting Lana server for tests ---"
-start_server # Function from helpers.bash
+start_server_nix # Function from helpers.bash
 # Optional: Add a more robust check here to ensure the server is fully ready
 # Check the return status of start_server
 if [[ $? -ne 0 ]]; then

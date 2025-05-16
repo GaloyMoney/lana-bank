@@ -1,0 +1,17 @@
+services:
+  mailhog:
+    image: mailhog/mailhog:latest
+    ports: [ 1025:1025, 8025:8025 ]
+
+  meltano:
+    image: us.gcr.io/galoyorg/meltano
+    volumes: [ ./meltano:/lana ]
+    working_dir: /lana
+    environment:
+      - TARGET_BIGQUERY_CREDENTIALS_JSON=${TARGET_BIGQUERY_CREDENTIALS_JSON}
+      - TARGET_BIGQUERY_DATASET=${TARGET_BIGQUERY_DATASET}
+      - TARGET_BIGQUERY_LOCATION=${TARGET_BIGQUERY_LOCATION}
+      - DBT_BIGQUERY_DATASET=${DBT_BIGQUERY_DATASET}
+      - DBT_BIGQUERY_KEYFILE=${DBT_BIGQUERY_KEYFILE}
+      - TAP_SUMSUBAPI_KEY=${SUMSUB_KEY}
+      - TAP_SUMSUBAPI_SECRET=${SUMSUB_SECRET}

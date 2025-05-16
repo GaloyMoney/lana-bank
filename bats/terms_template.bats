@@ -1,13 +1,10 @@
 load "helpers"
 
 setup_file() {
-  start_server
   login_superadmin
 }
 
-teardown_file() {
-  stop_server
-}
+
 
 @test "terms-template: can create" {
   template_name="Test Template $(date +%s)"

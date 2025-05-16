@@ -31,7 +31,7 @@ server_cmd() {
 }
 
 start_server() {
-    echo "--- Starting server make ---"
+    echo "--- Starting server make ---" >&3
 
   # Check for running server
   if [ -n "$BASH_VERSION" ]; then
@@ -45,7 +45,7 @@ start_server() {
       echo ${pipestatus[3]}
     )
   else
-    echo "Unsupported shell."
+    echo "Unsupported shell." >&3
     exit 1
   fi
   exit_status=$(echo "$server_process_and_status" | tail -n 1)
@@ -57,7 +57,7 @@ start_server() {
   # Start server if not already running
   background server_cmd > "$LOG_FILE" 2>&1
   for i in {1..20}; do
-    echo "--- Checking if server is running ${i} ---"
+    echo "--- Checking if server is running ${i} ---" >&3
     if grep -q 'Starting' "$LOG_FILE"; then
       break
     elif grep -q 'Connection reset by peer' "$LOG_FILE"; then
@@ -66,8 +66,8 @@ start_server() {
       background server_cmd > "$LOG_FILE" 2>&1
     else
       sleep 1
-      echo "--- Server not running ---"
-      cat "$LOG_FILE"
+      echo "--- Server not running ---" >&3
+      cat "$LOG_FILE" >&3
     fi
   done
 }
@@ -180,15 +180,56 @@ exec_customer_graphql() {
     "${GQL_APP_ENDPOINT}"
 }
 
+CACHE_DIR=/tmp/lana-cache
+rm -rf $CACHE_DIR || true
+mkdir -p $CACHE_DIR
+
+cookie_jar() {
+  echo "$CACHE_DIR/$1.jar"
+}
+
 login_superadmin() {
+  ADMIN_URL="http://localhost:4455/admin"
   local email="admin@galoy.io"
 
-  flowId=$(curl -s -X GET -H "Accept: application/json" "${OATHKEEPER_PROXY}/admin/self-service/login/api" | jq -r '.id')
-  variables=$(jq -n --arg email "$email" '{ identifier: $email, method: "code" }' )
-  curl -s -X POST -H "Accept: application/json" -H "Content-Type: application/json" -d "$variables" "${OATHKEEPER_PROXY}/admin/self-service/login?flow=$flowId"
-  sleep 1
+  common_headers=(
+    -b "$(cookie_jar 'admin')"
+    -c "$(cookie_jar 'admin')"
+    -H 'accept: application/json, text/plain, */*'
+    -H 'accept-language: en-GB,en-US;q=0.9,en;q=0.8'
+    -H 'cache-control: no-cache'
+    -H 'pragma: no-cache'
+    -H 'sec-ch-ua: "Not)A;Brand";v="99", "Google Chrome";v="127", "Chromium";v="127"'
+    -H 'sec-ch-ua-mobile: ?0'
+    -H 'sec-ch-ua-platform: "macOS"'
+    -H 'user-agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Safari/537.36'
+  )
 
-  code=$(getEmailCode $email)
+  local loginFlow=$(curl -s -X GET "$ADMIN_URL/self-service/login/browser" "${common_headers[@]}")
+  local flowId=$(echo $loginFlow | jq -r '.id')
+  local csrfToken=$(echo $loginFlow | jq -r '.ui.nodes[] | select(.attributes.name == "csrf_token") | .attributes.value')
+
+  variables=$(jq -n \
+    --arg email "$email" \
+    --arg csrfToken "$csrfToken" \
+    '{ identifier: $email, method: "code", csrf_token: $csrfToken }' \
+  )
+  curl -s -X POST -H "content-type: application/json" -d "$variables" "$ADMIN_URL/self-service/login?flow=$flowId" "${common_headers[@]}" >> /dev/null
+
+  sleep 2
+
+  KRATOS_PG_CON="postgres://dbuser:secret@localhost:5434/default?sslmode=disable"
+
+  local query="SELECT body FROM courier_messages WHERE recipient='${email}' ORDER BY created_at DESC LIMIT 1;"
+  local result=$(psql $KRATOS_PG_CON -t -c "${query}")
+
+  if [[ -z "$result" ]]; then
+    echo "No message for email ${email}" >&2
+    exit 1
+  fi
+
+  local code=$(echo "$result" | grep -Eo '[0-9]{6}' | head -n1)
+
   variables=$(jq -n --arg email "$email" --arg code "$code" '{ identifier: $email, method: "code", code: $code }' )
   session=$(curl -s -X POST -H "Accept: application/json" -H "Content-Type: application/json" -d "$variables" "${OATHKEEPER_PROXY}/admin/self-service/login?flow=$flowId")
   token=$(echo $session | jq -r '.session_token')

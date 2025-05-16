@@ -3,13 +3,10 @@
 load "helpers"
 
 setup_file() {
-  start_server
   login_superadmin
 }
 
-teardown_file() {
-  stop_server
-}
+
 
 @test "documents: can upload a file, retrieve, archive, delete, and verify deletion" {
   if [[ -z "${SA_CREDS_BASE64}" ]]; then
