@@ -193,14 +193,14 @@ export const UpdateTermsTemplateDialog: React.FC<UpdateTermsTemplateDialogProps>
                 </div>
               </div>
               <div>
-                <Label htmlFor="liquidationCvl">{t("fields.liquidationCvl")}</Label>
+                <Label htmlFor="oneTimeFeeRate">{t("fields.oneTimeFeeRate")}</Label>
                 <Input
-                  id="liquidationCvl"
-                  name="liquidationCvl"
+                  id="oneTimeFeeRate"
+                  name="oneTimeFeeRate"
                   type="number"
                   required
-                  placeholder={t("placeholders.liquidationCvl")}
-                  value={formValues.liquidationCvl}
+                  placeholder={t("placeholders.oneTimeFeeRate")}
+                  value={formValues.oneTimeFeeRate}
                   onChange={handleChange}
                 />
               </div>
@@ -231,14 +231,14 @@ export const UpdateTermsTemplateDialog: React.FC<UpdateTermsTemplateDialogProps>
                 />
               </div>
               <div>
-                <Label htmlFor="oneTimeFeeRate">{t("fields.oneTimeFeeRate")}</Label>
+                <Label htmlFor="liquidationCvl">{t("fields.liquidationCvl")}</Label>
                 <Input
-                  id="oneTimeFeeRate"
-                  name="oneTimeFeeRate"
+                  id="liquidationCvl"
+                  name="liquidationCvl"
                   type="number"
                   required
-                  placeholder={t("placeholders.oneTimeFeeRate")}
-                  value={formValues.oneTimeFeeRate}
+                  placeholder={t("placeholders.liquidationCvl")}
+                  value={formValues.liquidationCvl}
                   onChange={handleChange}
                 />
               </div>

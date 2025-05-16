@@ -27,7 +27,6 @@ import {
 import { useCreateContext } from "../create"
 
 import {
-  Period,
   useCreditFacilityCreateMutation,
   useGetRealtimePriceUpdatesQuery,
   useTermsTemplatesQuery,
@@ -212,7 +211,7 @@ export const CreateCreditFacilityDialog: React.FC<CreateCreditFacilityDialogProp
               oneTimeFeeRate: parseFloat(oneTimeFeeRate),
               duration: {
                 units: parseInt(durationUnits),
-                period: Period.Days,
+                period: DEFAULT_TERMS.DURATION_PERIOD,
               },
               interestDueDuration: {
                 period: DEFAULT_TERMS.INTEREST_DUE_DURATION.PERIOD,
@@ -381,12 +380,12 @@ export const CreateCreditFacilityDialog: React.FC<CreateCreditFacilityDialogProp
                   value={formValues.marginCallCvl}
                 />
                 <DetailItem
-                  label={t("form.labels.liquidationCvl")}
-                  value={formValues.liquidationCvl}
-                />
-                <DetailItem
                   label={t("form.labels.structuringFeeRate")}
                   value={formValues.oneTimeFeeRate}
+                />
+                <DetailItem
+                  label={t("form.labels.liquidationCvl")}
+                  value={formValues.liquidationCvl}
                 />
               </DetailsGroup>
             </>
@@ -444,18 +443,6 @@ export const CreateCreditFacilityDialog: React.FC<CreateCreditFacilityDialogProp
                   />
                 </div>
                 <div>
-                  <Label>{t("form.labels.liquidationCvl")}</Label>
-                  <Input
-                    type="number"
-                    name="liquidationCvl"
-                    value={formValues.liquidationCvl}
-                    onChange={handleChange}
-                    placeholder={t("form.placeholders.liquidationCvl")}
-                    min={0}
-                    required
-                  />
-                </div>
-                <div>
                   <Label>{t("form.labels.structuringFeeRate")}</Label>
                   <Input
                     type="number"
@@ -463,6 +450,18 @@ export const CreateCreditFacilityDialog: React.FC<CreateCreditFacilityDialogProp
                     value={formValues.oneTimeFeeRate}
                     onChange={handleChange}
                     placeholder={t("form.placeholders.structuringFeeRate")}
+                    min={0}
+                    required
+                  />
+                </div>
+                <div>
+                  <Label>{t("form.labels.liquidationCvl")}</Label>
+                  <Input
+                    type="number"
+                    name="liquidationCvl"
+                    value={formValues.liquidationCvl}
+                    onChange={handleChange}
+                    placeholder={t("form.placeholders.liquidationCvl")}
                     min={0}
                     required
                   />

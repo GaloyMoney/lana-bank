@@ -210,17 +210,17 @@ export const CreateTermsTemplateDialog: React.FC<CreateTermsTemplateDialogProps>
                 </div>
               </div>
               <div>
-                <Label htmlFor="liquidationCvl">{t("fields.liquidationCvl")}</Label>
+                <Label htmlFor="oneTimeFeeRate">{t("fields.oneTimeFeeRate")}</Label>
                 <Input
-                  id="liquidationCvl"
-                  name="liquidationCvl"
+                  id="oneTimeFeeRate"
+                  name="oneTimeFeeRate"
                   type="number"
                   required
-                  placeholder={t("placeholders.liquidationCvl")}
-                  value={formValues.liquidationCvl}
+                  placeholder={t("placeholders.oneTimeFeeRate")}
+                  value={formValues.oneTimeFeeRate}
                   onChange={handleChange}
                   disabled={isLoading}
-                  data-testid="terms-template-liquidation-cvl-input"
+                  data-testid="terms-template-one-time-fee-rate-input"
                 />
               </div>
             </div>
@@ -254,17 +254,17 @@ export const CreateTermsTemplateDialog: React.FC<CreateTermsTemplateDialogProps>
                 />
               </div>
               <div>
-                <Label htmlFor="oneTimeFeeRate">{t("fields.oneTimeFeeRate")}</Label>
+                <Label htmlFor="liquidationCvl">{t("fields.liquidationCvl")}</Label>
                 <Input
-                  id="oneTimeFeeRate"
-                  name="oneTimeFeeRate"
+                  id="liquidationCvl"
+                  name="liquidationCvl"
                   type="number"
                   required
-                  placeholder={t("placeholders.oneTimeFeeRate")}
-                  value={formValues.oneTimeFeeRate}
+                  placeholder={t("placeholders.liquidationCvl")}
+                  value={formValues.liquidationCvl}
                   onChange={handleChange}
                   disabled={isLoading}
-                  data-testid="terms-template-one-time-fee-rate-input"
+                  data-testid="terms-template-liquidation-cvl-input"
                 />
               </div>
             </div>
