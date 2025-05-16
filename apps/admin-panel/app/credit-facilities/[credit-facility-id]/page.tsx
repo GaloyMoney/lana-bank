@@ -5,7 +5,12 @@ import { use } from "react"
 
 import { CreditFacilityHistory } from "./history"
 
-import { useGetCreditFacilityHistoryQuery } from "@/lib/graphql/generated"
+import {
+  useGetCreditFacilityHistoryQuery,
+  useGetCreditFacilityLayoutDetailsQuery,
+  useGetCustomerBasicDetailsQuery,
+} from "@/lib/graphql/generated"
+import { removeUnderscore } from "@/lib/utils"
 
 gql`
   fragment CreditFacilityHistoryFragment on CreditFacility {
@@ -55,6 +60,17 @@ gql`
       ...CreditFacilityHistoryFragment
     }
   }
+
+  query GetCreditFacilityLayoutDetails($id: UUID!) {
+    creditFacility(id: $id) {
+      id
+      createdAt
+      maturesAt
+      customer {
+        customerId
+      }
+    }
+  }
 `
 
 interface CreditFacilityHistoryPageProps {
@@ -67,12 +83,48 @@ export default function CreditFacilityHistoryPage({
   params,
 }: CreditFacilityHistoryPageProps) {
   const { "credit-facility-id": creditFacilityId } = use(params)
-  const { data } = useGetCreditFacilityHistoryQuery({
+  const { data: cfData } = useGetCreditFacilityHistoryQuery({
     variables: { id: creditFacilityId },
     fetchPolicy: "cache-and-network",
   })
 
-  if (!data?.creditFacility) return null
+  const { data: layoutData } = useGetCreditFacilityLayoutDetailsQuery({
+    variables: { id: creditFacilityId },
+  })
 
-  return <CreditFacilityHistory creditFacility={data.creditFacility} />
+  const customerId = layoutData?.creditFacility?.customer?.customerId
+  const { data: customerData } = useGetCustomerBasicDetailsQuery({
+    variables: { id: customerId! },
+    skip: !customerId,
+  })
+
+  if (!cfData?.creditFacility || !layoutData?.creditFacility) return null
+
+  const customerType = customerData?.customer?.customerType
+  const customerTypeDisplay = customerType ? removeUnderscore(customerType) : "Unknown"
+
+  const issuanceDate = new Date(layoutData.creditFacility.createdAt).toLocaleDateString()
+  const maturityDate = layoutData.creditFacility.maturesAt
+    ? new Date(layoutData.creditFacility.maturesAt).toLocaleDateString()
+    : "Not set"
+
+  return (
+    <div>
+      <div className="space-y-2 mb-4">
+        <div>
+          <span className="font-medium">Customer Type: </span>
+          <span>{customerTypeDisplay}</span>
+        </div>
+        <div>
+          <span className="font-medium">Date of Issuance: </span>
+          <span>{issuanceDate}</span>
+        </div>
+        <div>
+          <span className="font-medium">Maturity Date: </span>
+          <span>{maturityDate}</span>
+        </div>
+      </div>
+      <CreditFacilityHistory creditFacility={cfData.creditFacility} />
+    </div>
+  )
 }
