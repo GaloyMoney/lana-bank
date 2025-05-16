@@ -1,5 +1,5 @@
 use serde::{Deserialize, Serialize};
-use std::{fmt::Display, str::FromStr};
+use std::{borrow::Cow, fmt::Display, str::FromStr};
 
 pub use audit::AuditInfo;
 pub use authz::AllOrOne;
@@ -14,29 +14,25 @@ es_entity::entity_id! { UserId }
 
 es_entity::entity_id! { AuthenticationId, PermissionSetId, RoleId }
 
-#[derive(Clone, Eq, Hash, PartialEq, Debug, Serialize, Deserialize)]
-#[serde(rename_all = "snake_case")]
-pub enum RoleName {
-    Superuser,
-    Admin,
-    Accountant,
-    BankManager,
-    #[serde(untagged)]
-    Other(String),
-}
+#[derive(Clone, Eq, Hash, PartialEq, Debug, Serialize, Deserialize, sqlx::Type)]
+#[serde(transparent)]
+#[sqlx(transparent)]
+pub struct RoleName(Cow<'static, str>);
 impl RoleName {
+    /// Name of the role that will have all permission sets.
+    pub const SUPERUSER: RoleName = RoleName(Cow::Borrowed("superuser"));
+
+    // Transitional roles before they are replaced by seeded roles
+    pub const ACCOUNTANT: RoleName = RoleName(Cow::Borrowed("accountant"));
+    pub const BANK_MANAGER: RoleName = RoleName(Cow::Borrowed("bank-manager"));
+    pub const ADMIN: RoleName = RoleName(Cow::Borrowed("admin"));
+
     pub fn new(role_name: impl Into<String>) -> Self {
-        RoleName::Other(role_name.into())
+        RoleName(Cow::Owned(role_name.into()))
     }
 
     pub fn name(&self) -> &str {
-        match self {
-            RoleName::Superuser => "superuser",
-            RoleName::Admin => "admin",
-            RoleName::Accountant => "accountant",
-            RoleName::BankManager => "bank_manager",
-            RoleName::Other(name) => name,
-        }
+        &self.0
     }
 }
 

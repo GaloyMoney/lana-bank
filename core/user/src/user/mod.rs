@@ -2,6 +2,7 @@ mod entity;
 pub mod error;
 mod repo;
 
+use es_entity::DbOp;
 use std::collections::HashMap;
 use tracing::instrument;
 
@@ -50,20 +51,14 @@ where
         pool: &sqlx::PgPool,
         authz: &Authorization<Audit, RoleName>,
         outbox: &Outbox<E>,
-        superuser_email: Option<String>,
     ) -> Result<Self, UserError> {
         let publisher = UserPublisher::new(outbox);
         let repo = UserRepo::new(pool, &publisher);
-        let users = Self {
+
+        Ok(Self {
             repo,
             authz: authz.clone(),
-        };
-
-        if let Some(email) = superuser_email {
-            users.create_and_assign_role_to_superuser(email).await?;
-        }
-
-        Ok(users)
+        })
     }
 
     pub async fn subject_can_create_user(
@@ -243,7 +238,7 @@ where
         let id = user_id.into();
         let role = role.into();
 
-        if role == RoleName::Superuser {
+        if role == RoleName::SUPERUSER {
             return Err(UserError::AuthorizationError(
                 authz::error::AuthorizationError::NotAuthorized,
             ));
@@ -289,7 +284,7 @@ where
         let id = user_id.into();
         let role = role.into();
 
-        if role == RoleName::Superuser {
+        if role == RoleName::SUPERUSER {
             return Err(UserError::AuthorizationError(
                 authz::error::AuthorizationError::NotAuthorized,
             ));
@@ -308,9 +303,16 @@ where
         Ok(user)
     }
 
-    async fn create_and_assign_role_to_superuser(&self, email: String) -> Result<(), UserError> {
-        let mut db = self.repo.begin_op().await?;
-
+    /// Creates a user with `email` and belonging to `role` (superuser).
+    /// Used for bootstrapping the application.
+    //
+    // Warning: think three times if you need to make the method more visible.
+    pub(super) async fn bootstrap_superuser(
+        &self,
+        email: String,
+        role: RoleName,
+        db: &mut DbOp<'_>,
+    ) -> Result<User, UserError> {
         let audit_info = self
             .authz
             .audit()
@@ -321,39 +323,21 @@ where
             )
             .await?;
 
-        match self.repo.find_by_email_in_tx(db.tx(), &email).await {
-            Err(e) if e.was_not_found() => {
-                let new_user = NewUser::builder()
-                    .email(&email)
-                    .audit_info(audit_info.clone())
-                    .build()
-                    .expect("Could not build user");
-                let mut user = self.repo.create_in_op(&mut db, new_user).await?;
-                self.authz
-                    .assign_role_to_subject(user.id, &RoleName::Superuser)
-                    .await?;
-                let _ = user.assign_role(RoleName::Superuser, audit_info);
-                self.repo.update_in_op(&mut db, &mut user).await?;
-                Some(user)
-            }
-            Err(e) => return Err(e),
-            Ok(mut user) => {
-                if user
-                    .assign_role(RoleName::Superuser, audit_info)
-                    .did_execute()
-                {
-                    self.authz
-                        .assign_role_to_subject(user.id, RoleName::Superuser)
-                        .await?;
-                    self.repo.update_in_op(&mut db, &mut user).await?;
-                    None
-                } else {
-                    return Ok(());
-                }
-            }
-        };
+        todo!("check that user does not exist in DB yet");
 
-        db.commit().await?;
-        Ok(())
+        let new_user = NewUser::builder()
+            .id(UserId::new())
+            .email(email)
+            .audit_info(audit_info.clone())
+            .build()
+            .expect("all fields for new user provided");
+
+        let mut user = self.repo.create_in_op(db, new_user).await?;
+
+        if user.assign_role(role, audit_info).did_execute() {
+            self.repo.update_in_op(db, &mut user).await?;
+        }
+
+        Ok(user)
     }
 }

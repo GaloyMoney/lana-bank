@@ -7,8 +7,12 @@
 //! Permission Sets are not intended to be created or deleted in a running application; they are expected
 //! to be created and defined during application bootstrap and remain unchanged for their entire life.
 
+use std::collections::{HashMap, HashSet};
+
 use audit::AuditSvc;
 use authz::Authorization;
+use entity::NewPermissionSet;
+use es_entity::DbOp;
 
 use crate::{
     primitives::{CoreUserAction, CoreUserObject},
@@ -51,11 +55,35 @@ where
         self.repo.find_by_id(id).await
     }
 
+    pub async fn find_all(
+        &self,
+        ids: &[PermissionSetId],
+    ) -> Result<HashMap<PermissionSetId, PermissionSet>, PermissionSetError> {
+        self.repo.find_all(ids).await
+    }
+
     pub async fn list(
         &self,
         sub: &<Audit as AuditSvc>::Subject,
     ) -> Result<Vec<PermissionSet>, PermissionSetError> {
-        todo!()
+        Ok(vec![])
+    }
+
+    pub(super) async fn bootstrap_permission_sets(
+        &self,
+        db: &mut DbOp<'_>,
+    ) -> Result<Vec<PermissionSet>, PermissionSetError> {
+        let permissions = HashSet::from([("abc/def/*".to_string(), "abd:def:update".to_string())]);
+
+        let new_permission_set = NewPermissionSet {
+            id: PermissionSetId::new(),
+            name: "User Manager".to_string(),
+            permissions,
+        };
+
+        let permission_set = self.repo.create_in_op(db, new_permission_set).await?;
+
+        Ok(vec![permission_set])
     }
 }
 
