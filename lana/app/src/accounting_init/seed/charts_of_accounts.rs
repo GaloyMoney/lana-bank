@@ -14,13 +14,11 @@ pub(crate) async fn init(
     trial_balances: &TrialBalances,
     credit: &Credit,
     deposit: &Deposits,
-    seed_path: Option<PathBuf>,
-    credit_config_path: Option<PathBuf>,
-    deposit_config_path: Option<PathBuf>,
+    seed_paths_config: ChartOfAccountsSeedPathsConfig,
 ) -> Result<(), AccountingInitError> {
     let chart_id = create_chart_of_accounts(chart_of_accounts).await?;
 
-    if let Some(path) = seed_path {
+    if let Some(path) = seed_paths_config.clone().chart_of_accounts_seed_path {
         seed_chart_of_accounts(
             chart_of_accounts,
             trial_balances,
@@ -28,8 +26,7 @@ pub(crate) async fn init(
             deposit,
             chart_id,
             path,
-            credit_config_path,
-            deposit_config_path,
+            seed_paths_config,
         )
         .await?;
     }
@@ -59,11 +56,17 @@ async fn seed_chart_of_accounts(
     credit: &Credit,
     deposit: &Deposits,
     chart_id: ChartId,
-    seed_path: PathBuf,
-    credit_config_path: Option<PathBuf>,
-    deposit_config_path: Option<PathBuf>,
+    chart_of_accounts_seed_path: PathBuf,
+    seed_paths_config: ChartOfAccountsSeedPathsConfig,
 ) -> Result<(), AccountingInitError> {
-    let data = std::fs::read_to_string(seed_path)?;
+    let ChartOfAccountsSeedPathsConfig {
+        credit_config_path,
+        deposit_config_path,
+
+        chart_of_accounts_seed_path: _,
+    } = seed_paths_config;
+
+    let data = std::fs::read_to_string(chart_of_accounts_seed_path)?;
     if let Some(new_account_set_ids) = chart_of_accounts
         .import_from_csv(&Subject::System, chart_id, data)
         .await?

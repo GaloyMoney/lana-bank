@@ -3,12 +3,10 @@ mod seed;
 
 pub mod error;
 
-use std::path::PathBuf;
-
 use crate::{
-    accounting::ChartOfAccounts, balance_sheet::BalanceSheets, credit::Credit, deposit::Deposits,
-    primitives::CalaJournalId, profit_and_loss::ProfitAndLossStatements,
-    trial_balance::TrialBalances,
+    accounting::ChartOfAccounts, app::ChartOfAccountsSeedPathsConfig, balance_sheet::BalanceSheets,
+    credit::Credit, deposit::Deposits, primitives::CalaJournalId,
+    profit_and_loss::ProfitAndLossStatements, trial_balance::TrialBalances,
 };
 
 use cala_ledger::CalaLedger;
@@ -48,18 +46,14 @@ impl ChartsInit {
         trial_balances: &TrialBalances,
         credit: &Credit,
         deposit: &Deposits,
-        seed_path: Option<PathBuf>,
-        credit_config_path: Option<PathBuf>,
-        deposit_config_path: Option<PathBuf>,
+        seed_paths_config: ChartOfAccountsSeedPathsConfig,
     ) -> Result<(), AccountingInitError> {
         seed::charts_of_accounts::init(
             chart_of_accounts,
             trial_balances,
             credit,
             deposit,
-            seed_path,
-            credit_config_path,
-            deposit_config_path,
+            seed_paths_config,
         )
         .await
     }

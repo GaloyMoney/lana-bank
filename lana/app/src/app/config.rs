@@ -40,3 +40,23 @@ pub struct UserConfig {
     #[serde(default)]
     pub superuser_email: Option<String>,
 }
+
+#[derive(Clone, Default, Debug, Deserialize, Serialize)]
+pub struct ChartOfAccountsSeedPathsConfig {
+    #[serde(default)]
+    pub chart_of_accounts_seed_path: Option<PathBuf>,
+    #[serde(default)]
+    pub deposit_config_path: Option<PathBuf>,
+    #[serde(default)]
+    pub credit_config_path: Option<PathBuf>,
+}
+
+impl From<AppConfig> for ChartOfAccountsSeedPathsConfig {
+    fn from(config: AppConfig) -> Self {
+        Self {
+            chart_of_accounts_seed_path: config.chart_of_accounts_seed_path,
+            credit_config_path: config.credit.chart_of_accounts_config_path,
+            deposit_config_path: config.deposit.chart_of_accounts_config_path,
+        }
+    }
+}
