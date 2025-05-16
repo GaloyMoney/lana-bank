@@ -406,12 +406,10 @@
         "details": {
           "duration": "Duración",
           "interestRate": "Interés (APR)",
-          "accrualCycleInterval": "Intervalo del ciclo de devengo",
           "targetCvl": "CVL objetivo/inicial %",
           "marginCallCvl": "CVL de llamada de margen %",
           "liquidationCvl": "CVL de liquidación %",
           "dateCreated": "Fecha de creación",
-          "accrualInterval": "Intervalo de devengo",
           "structuringFeeRate": "Tasa de Comisión de Estructuración"
         }
       },
@@ -487,9 +485,7 @@
             "duration": "Duración",
             "months": "meses",
             "marginCallCvl": "CVL de Llamada de Margen (%)",
-            "accrualCycleInterval": "Intervalo del ciclo de devengo",
             "liquidationCvl": "CVL de Liquidación (%)",
-            "accrualInterval": "Intervalo de devengo",
             "structuringFeeRate": "Tasa de Comisión de Estructuración (%)"
           },
           "placeholders": {
@@ -667,8 +663,6 @@
           "name": "Nombre",
           "createdAt": "Creado El",
           "duration": "Duración",
-          "accrualCycleInterval": "Intervalo del ciclo de devengo",
-          "accrualInterval": "Intervalo de devengo",
           "annualRate": "Tasa Anual",
           "initialCvl": "CVL Inicial (%)",
           "marginCallCvl": "CVL de Llamada de Margen (%)",
@@ -686,8 +680,6 @@
           "annualRate": "Tasa de Interés (APR)",
           "duration": "Duración",
           "months": "meses",
-          "accrualCycleInterval": "Intervalo del ciclo de devengo",
-          "accrualInterval": "Intervalo de devengo",
           "initialCvl": "CVL Inicial (%)",
           "marginCallCvl": "CVL de Llamada de Margen (%)",
           "liquidationCvl": "CVL de Liquidación (%)",
@@ -720,8 +712,6 @@
           "annualRate": "Tasa de Interés (APR)",
           "duration": "Duración",
           "months": "meses",
-          "accrualCycleInterval": "Intervalo del ciclo de devengo",
-          "accrualInterval": "Intervalo de devengo",
           "initialCvl": "CVL Inicial (%)",
           "marginCallCvl": "CVL de Llamada de Margen (%)",
           "liquidationCvl": "CVL de Liquidación (%)",

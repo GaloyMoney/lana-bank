@@ -6,7 +6,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@lana/web/ui/d
 
 import { GetCreditFacilityLayoutDetailsQuery } from "@/lib/graphql/generated"
 import { formatDate } from "@/lib/utils"
-import { PeriodLabel, InterestIntervalLabel } from "@/app/credit-facilities/label"
+import { PeriodLabel } from "@/app/credit-facilities/label"
 import { DetailsCard, DetailItemProps } from "@/components/details"
 
 type CreditFacilityTermsDialogProps = {
@@ -37,14 +37,6 @@ export const CreditFacilityTermsDialog: React.FC<CreditFacilityTermsDialogProps>
       value: `${creditFacility.creditFacilityTerms.annualRate}%`,
     },
     {
-      label: t("details.accrualCycleInterval"),
-      value: (
-        <InterestIntervalLabel
-          interval={creditFacility.creditFacilityTerms.accrualCycleInterval}
-        />
-      ),
-    },
-    {
       label: t("details.targetCvl"),
       value: `${creditFacility.creditFacilityTerms.initialCvl}%`,
     },
@@ -59,14 +51,6 @@ export const CreditFacilityTermsDialog: React.FC<CreditFacilityTermsDialogProps>
     {
       label: t("details.dateCreated"),
       value: formatDate(creditFacility.createdAt),
-    },
-    {
-      label: t("details.accrualInterval"),
-      value: (
-        <InterestIntervalLabel
-          interval={creditFacility.creditFacilityTerms.accrualInterval}
-        />
-      ),
     },
     {
       label: t("details.structuringFeeRate"),

@@ -7,7 +7,7 @@ import { Button } from "@lana/web/ui/button"
 import { TermsTemplateQuery } from "@/lib/graphql/generated"
 import { DetailsCard, DetailItemProps } from "@/components/details"
 import { formatDate } from "@/lib/utils"
-import { PeriodLabel, InterestIntervalLabel } from "@/app/credit-facilities/label"
+import { PeriodLabel } from "@/app/credit-facilities/label"
 import { UpdateTermsTemplateDialog } from "@/app/terms-templates/[terms-template-id]/update"
 
 type TermsTemplateDetailsProps = {
@@ -33,16 +33,6 @@ const TermsTemplateDetailsCard: React.FC<TermsTemplateDetailsProps> = ({
           <PeriodLabel period={termsTemplate.values.duration.period} />
         </>
       ),
-    },
-    {
-      label: t("fields.accrualCycleInterval"),
-      value: (
-        <InterestIntervalLabel interval={termsTemplate.values.accrualCycleInterval} />
-      ),
-    },
-    {
-      label: t("fields.accrualInterval"),
-      value: <InterestIntervalLabel interval={termsTemplate.values.accrualInterval} />,
     },
     {
       label: t("fields.annualRate"),

@@ -14,7 +14,11 @@ import {
 
 import DataTable, { Column } from "../../components/data-table"
 
-import { TermsTemplate, useTermsTemplatesQuery } from "@/lib/graphql/generated"
+import {
+  TermsTemplate,
+  TermsTemplatesQuery,
+  useTermsTemplatesQuery,
+} from "@/lib/graphql/generated"
 import { PeriodLabel } from "@/app/credit-facilities/label"
 import { UpdateTermsTemplateDialog } from "@/app/terms-templates/[terms-template-id]/update"
 
@@ -27,8 +31,6 @@ gql`
     subjectCanUpdateTermsTemplate
     values {
       annualRate
-      accrualCycleInterval
-      accrualInterval
       liquidationCvl
       marginCallCvl
       initialCvl
@@ -47,7 +49,9 @@ gql`
   }
 `
 
-const columns = (t: ReturnType<typeof useTranslations>): Column<TermsTemplate>[] => [
+const columns = (
+  t: ReturnType<typeof useTranslations>,
+): Column<NonNullable<TermsTemplatesQuery["termsTemplates"]>[number]>[] => [
   {
     key: "name",
     header: t("table.headers.name"),

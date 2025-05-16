@@ -406,12 +406,10 @@
         "details": {
           "duration": "Duration",
           "interestRate": "Interest (APR)",
-          "accrualCycleInterval": "Accrual Cycle Interval",
           "targetCvl": "Target/initial CVL %",
           "marginCallCvl": "Margin call CVL %",
           "liquidationCvl": "Liquidation CVL %",
           "dateCreated": "Date created",
-          "accrualInterval": "Accrual Interval",
           "structuringFeeRate": "Structuring Fee Rate"
         }
       },
@@ -487,9 +485,7 @@
             "duration": "Duration",
             "months": "months",
             "marginCallCvl": "Margin Call CVL (%)",
-            "accrualCycleInterval": "Accrual Cycle Interval",
             "liquidationCvl": "Liquidation CVL (%)",
-            "accrualInterval": "Accrual Interval",
             "structuringFeeRate": "Structuring Fee Rate (%)"
           },
           "placeholders": {
@@ -667,8 +663,6 @@
           "name": "Name",
           "createdAt": "Created At",
           "duration": "Duration",
-          "accrualCycleInterval": "Accrual Cycle Interval",
-          "accrualInterval": "Accrual Interval",
           "annualRate": "Annual Rate",
           "initialCvl": "Initial CVL (%)",
           "marginCallCvl": "Margin Call CVL (%)",
@@ -686,8 +680,6 @@
           "annualRate": "Interest Rate (APR)",
           "duration": "Duration",
           "months": "months",
-          "accrualCycleInterval": "Accrual Cycle Interval",
-          "accrualInterval": "Accrual Interval",
           "initialCvl": "Initial CVL (%)",
           "marginCallCvl": "Margin Call CVL (%)",
           "liquidationCvl": "Liquidation CVL (%)",
@@ -720,8 +712,6 @@
           "annualRate": "Interest Rate (APR)",
           "duration": "Duration",
           "months": "months",
-          "accrualCycleInterval": "Accrual Cycle Interval",
-          "accrualInterval": "Accrual Interval",
           "initialCvl": "Initial CVL (%)",
           "marginCallCvl": "Margin Call CVL (%)",
           "liquidationCvl": "Liquidation CVL (%)",
