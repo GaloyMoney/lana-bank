@@ -1485,7 +1485,8 @@
       "transaction": "Transacción",
       "direction": "Dirección",
       "amount": "Monto",
-      "description": "Descripción"
+      "description": "Descripción",
+      "effective": "Fecha efectiva"
     },
     "debitOrCredit": {
       "debit": "Debe",

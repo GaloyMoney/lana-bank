@@ -1159,6 +1159,7 @@ export type LedgerTransaction = {
   __typename?: 'LedgerTransaction';
   createdAt: Scalars['Timestamp']['output'];
   description?: Maybe<Scalars['String']['output']>;
+  effective: Scalars['Date']['output'];
   entries: Array<JournalEntry>;
   id: Scalars['ID']['output'];
   ledgerTransactionId: Scalars['UUID']['output'];
@@ -2439,7 +2440,7 @@ export type JournalEntriesQueryVariables = Exact<{
 }>;
 
 
-export type JournalEntriesQuery = { __typename?: 'Query', journalEntries: { __typename?: 'JournalEntryConnection', edges: Array<{ __typename?: 'JournalEntryEdge', cursor: string, node: { __typename?: 'JournalEntry', id: string, entryId: string, entryType: string, description?: string | null, direction: DebitOrCredit, createdAt: any, amount: { __typename?: 'BtcAmount', btc: Satoshis } | { __typename?: 'UsdAmount', usd: UsdCents }, ledgerAccount: { __typename?: 'LedgerAccount', id: string, code?: any | null, name: string }, ledgerTransaction: { __typename?: 'LedgerTransaction', id: string, ledgerTransactionId: string, description?: string | null } } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, startCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean } } };
+export type JournalEntriesQuery = { __typename?: 'Query', journalEntries: { __typename?: 'JournalEntryConnection', edges: Array<{ __typename?: 'JournalEntryEdge', cursor: string, node: { __typename?: 'JournalEntry', id: string, entryId: string, entryType: string, description?: string | null, direction: DebitOrCredit, createdAt: any, amount: { __typename?: 'BtcAmount', btc: Satoshis } | { __typename?: 'UsdAmount', usd: UsdCents }, ledgerAccount: { __typename?: 'LedgerAccount', id: string, code?: any | null, name: string }, ledgerTransaction: { __typename?: 'LedgerTransaction', id: string, ledgerTransactionId: string, description?: string | null, effective: any } } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, startCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean } } };
 
 export type AccountingCsvsForLedgerAccountIdQueryVariables = Exact<{
   ledgerAccountId: Scalars['UUID']['input'];
@@ -5105,6 +5106,7 @@ export const JournalEntriesDocument = gql`
           id
           ledgerTransactionId
           description
+          effective
         }
       }
     }

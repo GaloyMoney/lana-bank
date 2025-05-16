@@ -1164,8 +1164,8 @@ type LedgerAccountEdge {
 type LedgerTransaction {
 	id: ID!
 	ledgerTransactionId: UUID!
-	effective: Date!
 	createdAt: Timestamp!
+	effective: Date!
 	description: String
 	entries: [JournalEntry!]!
 }

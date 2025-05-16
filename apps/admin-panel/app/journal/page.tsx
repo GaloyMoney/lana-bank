@@ -15,6 +15,7 @@ import {
 import {
   DebitOrCredit,
   JournalEntry,
+  LedgerTransaction,
   useJournalEntriesQuery,
 } from "@/lib/graphql/generated"
 
@@ -56,6 +57,7 @@ gql`
             id
             ledgerTransactionId
             description
+            effective
           }
         }
       }
@@ -83,6 +85,13 @@ const JournalPage: React.FC = () => {
       key: "createdAt",
       label: t("table.createdAt"),
       render: (date: string) => formatDate(date),
+    },
+    {
+      key: "ledgerTransaction",
+      label: t("table.effective"),
+      render: (transaction: LedgerTransaction) => {
+        return transaction.effective
+      },
     },
     {
       key: "ledgerTransaction",

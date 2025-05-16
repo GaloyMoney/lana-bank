@@ -884,6 +884,7 @@ checksums:
     Journal/table/direction: 2920314e7f25957f16577b544b4e860b
     Journal/table/amount: a0ae9c6ff98b57475cdce56f66066aa4
     Journal/table/description: e17686a22ffad04cc7bb70524ed4478b
+    Journal/table/effective: aab6741517742a24eb46f529ebb94bf6
     Journal/debitOrCredit/debit: 1b35db901aa1aeed8ee79aec6d807731
     Journal/debitOrCredit/credit: 2d447a71ec815a039f175e94fbb12a56
     LedgerTransaction/title: 5bf9168689feff46e9847d43032a002d
