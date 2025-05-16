@@ -6,7 +6,7 @@ with loans_and_credit_facilities as (
 
     FROM { ref('int_approved_loans') }
 
-    WHERE NOT completed
+    WHERE NOT matured
 
     UNION ALL
     */
@@ -17,7 +17,7 @@ with loans_and_credit_facilities as (
 
     from {{ ref('int_approved_credit_facilities') }}
 
-    where not completed
+    where not matured
 
 )
 

@@ -23,4 +23,4 @@ select
 
 from {{ ref('int_approved_credit_facilities') }}
 
-where not completed
+where not matured
