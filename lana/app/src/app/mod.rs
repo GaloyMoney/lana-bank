@@ -132,6 +132,7 @@ impl LanaApp {
             &credit,
             config.chart_of_accounts_seed_path,
             config.credit.chart_of_accounts_config_path,
+            config.deposit.chart_of_accounts_config_path,
         )
         .await?;
 

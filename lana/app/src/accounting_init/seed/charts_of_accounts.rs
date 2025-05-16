@@ -15,6 +15,7 @@ pub(crate) async fn init(
     credit: &Credit,
     seed_path: Option<PathBuf>,
     credit_config_path: Option<PathBuf>,
+    deposit_config_path: Option<PathBuf>,
 ) -> Result<(), AccountingInitError> {
     let chart_id = create_chart_of_accounts(chart_of_accounts).await?;
 
@@ -26,6 +27,7 @@ pub(crate) async fn init(
             chart_id,
             path,
             credit_config_path,
+            deposit_config_path,
         )
         .await?;
     }
@@ -56,6 +58,7 @@ async fn seed_chart_of_accounts(
     chart_id: ChartId,
     seed_path: PathBuf,
     credit_config_path: Option<PathBuf>,
+    _deposit_config_path: Option<PathBuf>,
 ) -> Result<(), AccountingInitError> {
     let data = std::fs::read_to_string(seed_path)?;
     if let Some(new_account_set_ids) = chart_of_accounts

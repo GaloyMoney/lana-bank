@@ -49,6 +49,7 @@ impl ChartsInit {
         credit: &Credit,
         seed_path: Option<PathBuf>,
         credit_config_path: Option<PathBuf>,
+        deposit_config_path: Option<PathBuf>,
     ) -> Result<(), AccountingInitError> {
         seed::charts_of_accounts::init(
             chart_of_accounts,
@@ -56,6 +57,7 @@ impl ChartsInit {
             credit,
             seed_path,
             credit_config_path,
+            deposit_config_path,
         )
         .await
     }
