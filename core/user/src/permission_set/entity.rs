@@ -6,17 +6,17 @@ use std::collections::HashSet;
 use audit::AuditInfo;
 use es_entity::*;
 
-use crate::primitives::AccessGroupId;
+use crate::primitives::PermissionSetId;
 
 type Permission = (String, String);
 type Permissions = HashSet<Permission>;
 
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
-#[es_event(id = "AccessGroupId")]
-pub enum AccessGroupEvent {
+#[es_event(id = "PermissionSetId")]
+pub enum PermissionSetEvent {
     Initialized {
-        id: AccessGroupId,
+        id: PermissionSetId,
         name: String,
         permissions: Permissions,
         audit_info: AuditInfo,
@@ -25,31 +25,31 @@ pub enum AccessGroupEvent {
 
 #[derive(EsEntity, Builder)]
 #[builder(pattern = "owned", build_fn(error = "EsEntityError"))]
-pub struct AccessGroup {
-    pub id: AccessGroupId,
+pub struct PermissionSet {
+    pub id: PermissionSetId,
     pub name: String,
-    events: EntityEvents<AccessGroupEvent>,
+    events: EntityEvents<PermissionSetEvent>,
 }
 
-impl AccessGroup {
-    /// Returns all permissions assigned to this Access Group.
+impl PermissionSet {
+    /// Returns all permissions assigned to this Permission Set.
     pub fn permissions(&self) -> &Permissions {
         self.events
             .iter_all()
             .find_map(|event| match event {
-                AccessGroupEvent::Initialized { permissions, .. } => Some(permissions),
+                PermissionSetEvent::Initialized { permissions, .. } => Some(permissions),
             })
             .expect("Initialized event")
     }
 }
 
-impl TryFromEvents<AccessGroupEvent> for AccessGroup {
-    fn try_from_events(events: EntityEvents<AccessGroupEvent>) -> Result<Self, EsEntityError> {
-        let mut builder = AccessGroupBuilder::default();
+impl TryFromEvents<PermissionSetEvent> for PermissionSet {
+    fn try_from_events(events: EntityEvents<PermissionSetEvent>) -> Result<Self, EsEntityError> {
+        let mut builder = PermissionSetBuilder::default();
 
         for event in events.iter_all() {
             match event {
-                AccessGroupEvent::Initialized { id, name, .. } => {
+                PermissionSetEvent::Initialized { id, name, .. } => {
                     builder = builder.id(*id).name(name.clone());
                 }
             }
@@ -60,25 +60,25 @@ impl TryFromEvents<AccessGroupEvent> for AccessGroup {
 }
 
 #[derive(Debug, Builder)]
-pub struct NewAccessGroup {
+pub struct NewPermissionSet {
     #[builder(setter(into))]
-    pub(super) id: AccessGroupId,
+    pub(super) id: PermissionSetId,
     pub(super) name: String,
     pub(super) permissions: Permissions,
     pub(super) audit_info: AuditInfo,
 }
 
-impl NewAccessGroup {
-    pub fn builder() -> NewAccessGroupBuilder {
+impl NewPermissionSet {
+    pub fn builder() -> NewPermissionSetBuilder {
         Default::default()
     }
 }
 
-impl IntoEvents<AccessGroupEvent> for NewAccessGroup {
-    fn into_events(self) -> EntityEvents<AccessGroupEvent> {
+impl IntoEvents<PermissionSetEvent> for NewPermissionSet {
+    fn into_events(self) -> EntityEvents<PermissionSetEvent> {
         EntityEvents::init(
             self.id,
-            [AccessGroupEvent::Initialized {
+            [PermissionSetEvent::Initialized {
                 id: self.id,
                 name: self.name,
                 permissions: self.permissions,

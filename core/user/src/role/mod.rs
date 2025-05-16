@@ -44,6 +44,8 @@ where
         }
     }
 
+    /// Creates a new role with given name. The names must be unique,
+    /// an error will be raised in case of conflict.
     pub async fn create_role(
         &self,
         sub: &<Audit as AuditSvc>::Subject,
@@ -64,72 +66,6 @@ where
             .expect("all fields for new role provided");
 
         let role = self.repo.create(new_role).await?;
-
-        Ok(role)
-    }
-
-    pub async fn add_permission(
-        &self,
-        sub: &<Audit as AuditSvc>::Subject,
-        role_id: RoleId,
-        object: impl Into<Audit::Object>,
-        action: impl Into<Audit::Action>,
-    ) -> Result<Role, RoleError> {
-        let audit_info = self
-            .authz
-            .enforce_permission(
-                sub,
-                CoreUserObject::role(role_id),
-                CoreUserAction::ROLE_UPDATE,
-            )
-            .await?;
-
-        let object = object.into();
-        let action = action.into();
-
-        let mut role = self.repo.find_by_id(&role_id).await?;
-        if role
-            .add_permission(object.to_string(), action.to_string(), audit_info)
-            .did_execute()
-        {
-            self.authz
-                .add_permission_to_role(&role.name, object, action)
-                .await?;
-            self.repo.update(&mut role).await?;
-        }
-
-        Ok(role)
-    }
-
-    pub async fn remove_permission(
-        &self,
-        sub: &<Audit as AuditSvc>::Subject,
-        role_id: RoleId,
-        object: impl Into<Audit::Object>,
-        action: impl Into<Audit::Action>,
-    ) -> Result<Role, RoleError> {
-        let audit_info = self
-            .authz
-            .enforce_permission(
-                sub,
-                CoreUserObject::role(role_id),
-                CoreUserAction::ROLE_UPDATE,
-            )
-            .await?;
-
-        let object = object.into();
-        let action = action.into();
-
-        let mut role = self.repo.find_by_id(&role_id).await?;
-        if role
-            .remove_permission(object.to_string(), action.to_string(), audit_info)
-            .did_execute()
-        {
-            self.authz
-                .remove_permission_from_role(&role.name, object, action)
-                .await?;
-            self.repo.update(&mut role).await?;
-        }
 
         Ok(role)
     }
