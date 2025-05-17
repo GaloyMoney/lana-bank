@@ -1,15 +1,18 @@
 use futures::StreamExt;
 use lana_app::{app::LanaApp, primitives::*};
-use lana_events::{CoreCreditEvent, LanaEvent, ObligationType};
+use lana_events::{CoreCreditEvent, LanaEvent};
 use rust_decimal_macros::dec;
 use tokio::sync::mpsc;
 
 use crate::helpers;
 
-// Scenario 3: A credit facility with an principal payment >90 days late
-pub async fn principal_late_scenario(sub: Subject, app: &LanaApp) -> anyhow::Result<()> {
+// Scenario 4: A credit facility that has multiple disbursals making timely payments
+pub async fn disbursal_different_months_scenario(
+    sub: Subject,
+    app: &LanaApp,
+) -> anyhow::Result<()> {
     let (customer_id, deposit_account_id) =
-        helpers::create_customer(&sub, app, "3-principal-late").await?;
+        helpers::create_customer(&sub, app, "4-disbursal-different-months").await?;
 
     let deposit_amount = UsdCents::try_from_usd(dec!(10_000_000))?;
     helpers::make_deposit(&sub, app, &customer_id, deposit_amount).await?;
@@ -47,12 +50,19 @@ pub async fn principal_late_scenario(sub: Subject, app: &LanaApp) -> anyhow::Res
         }
     }
 
-    let (tx, rx) = mpsc::channel::<(ObligationType, UsdCents)>(32);
     let sim_app = app.clone();
     tokio::spawn(async move {
-        do_principal_late(sub, sim_app, cf.id, rx)
+        do_disbursal_in_different_months(sub, sim_app, cf.id)
             .await
-            .expect("principal late failed");
+            .expect("disbursal different months failed");
+    });
+
+    let (tx, rx) = mpsc::channel::<UsdCents>(32);
+    let sim_app = app.clone();
+    tokio::spawn(async move {
+        do_timely_payments(sub, sim_app, cf.id, rx)
+            .await
+            .expect("disbursal different months timely payments failed");
     });
 
     while let Some(msg) = stream.next().await {
@@ -60,10 +70,9 @@ pub async fn principal_late_scenario(sub: Subject, app: &LanaApp) -> anyhow::Res
             Some(LanaEvent::Credit(CoreCreditEvent::ObligationDue {
                 credit_facility_id: id,
                 amount,
-                obligation_type,
                 ..
             })) if { cf.id == *id && amount > &UsdCents::ZERO } => {
-                tx.send((*obligation_type, *amount)).await?;
+                tx.send(*amount).await?;
             }
             Some(LanaEvent::Credit(CoreCreditEvent::FacilityCompleted { id, .. })) => {
                 if cf.id == *id {
@@ -84,52 +93,47 @@ pub async fn principal_late_scenario(sub: Subject, app: &LanaApp) -> anyhow::Res
     Ok(())
 }
 
-async fn do_principal_late(
+async fn do_disbursal_in_different_months(
     sub: Subject,
     app: LanaApp,
     id: CreditFacilityId,
-    mut obligation_amount_rx: mpsc::Receiver<(ObligationType, UsdCents)>,
 ) -> anyhow::Result<()> {
     let one_month = std::time::Duration::from_secs(30 * 24 * 60 * 60);
-    let mut month_num = 0;
-    let mut principal_remaining = UsdCents::ZERO;
 
-    while let Some((obligation_type, amount)) = obligation_amount_rx.recv().await {
-        // 3 months of interest payments should be delayed by a month
-        if month_num < 3 {
-            month_num += 1;
-            sim_time::sleep(one_month).await;
-        }
+    // there is already one disbursal in month 1
+    sim_time::sleep(one_month).await;
 
-        if obligation_type == ObligationType::Interest {
-            app.credit()
-                .record_payment(&sub, id, amount, sim_time::now().date_naive())
-                .await?;
-        } else {
-            principal_remaining += amount;
-        }
+    // disbursal in month 2
+    app.credit()
+        .initiate_disbursal(&sub, id, UsdCents::try_from_usd(dec!(2_000_000))?)
+        .await?;
+
+    sim_time::sleep(one_month * 3).await;
+
+    // disbursal in month 5
+    app.credit()
+        .initiate_disbursal(&sub, id, UsdCents::try_from_usd(dec!(5_000_000))?)
+        .await?;
+
+    Ok(())
+}
+
+async fn do_timely_payments(
+    sub: Subject,
+    app: LanaApp,
+    id: CreditFacilityId,
+    mut obligation_amount_rx: mpsc::Receiver<UsdCents>,
+) -> anyhow::Result<()> {
+    while let Some(amount) = obligation_amount_rx.recv().await {
+        app.credit()
+            .record_payment(&sub, id, amount, sim_time::now().date_naive())
+            .await?;
 
         let facility = app.credit().find_by_id(&sub, id).await?.unwrap();
         let total_outstanding = app.credit().outstanding(&facility).await?;
-        if total_outstanding == principal_remaining {
+        if total_outstanding.is_zero() {
             break;
         }
-    }
-
-    // Delaying payment of principal by one more month
-    sim_time::sleep(one_month).await;
-    app.credit()
-        .record_payment(&sub, id, principal_remaining, sim_time::now().date_naive())
-        .await?;
-
-    // Pay off some accrued interest (if any - not deterministic as sim_time can progress and
-    // thereby interest can accrue)
-    let facility = app.credit().find_by_id(&sub, id).await?.unwrap();
-    let total_outstanding = app.credit().outstanding(&facility).await?;
-    if !total_outstanding.is_zero() {
-        app.credit()
-            .record_payment(&sub, id, total_outstanding, sim_time::now().date_naive())
-            .await?;
     }
 
     app.credit().complete_facility(&sub, id).await?;
