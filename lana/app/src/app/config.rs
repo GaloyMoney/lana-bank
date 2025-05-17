@@ -29,11 +29,21 @@ pub struct AppConfig {
     #[serde(default)]
     pub customer_sync: CustomerSyncConfig,
     #[serde(default)]
-    pub chart_of_accounts_seed_path: Option<PathBuf>,
+    pub accounting_init: AccountingInitConfig,
 }
 
 #[derive(Clone, Default, Debug, Deserialize, Serialize)]
 pub struct UserConfig {
     #[serde(default)]
     pub superuser_email: Option<String>,
+}
+
+#[derive(Clone, Default, Debug, Deserialize, Serialize)]
+pub struct AccountingInitConfig {
+    #[serde(default)]
+    pub chart_of_accounts_seed_path: Option<PathBuf>,
+    #[serde(default)]
+    pub deposit_config_path: Option<PathBuf>,
+    #[serde(default)]
+    pub credit_config_path: Option<PathBuf>,
 }

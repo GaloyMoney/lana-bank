@@ -1,0 +1,11 @@
+query depositConfig {
+  depositConfig {
+    chartOfAccountsOmnibusParentCode
+    chartOfAccountsIndividualDepositAccountsParentCode
+    chartOfAccountsGovernmentEntityDepositAccountsParentCode
+    chartOfAccountPrivateCompanyDepositAccountsParentCode
+    chartOfAccountBankDepositAccountsParentCode
+    chartOfAccountFinancialInstitutionDepositAccountsParentCode
+    chartOfAccountNonDomiciledCompanyDepositAccountsParentCode
+  }
+}

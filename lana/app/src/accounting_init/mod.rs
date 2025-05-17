@@ -3,10 +3,9 @@ mod seed;
 
 pub mod error;
 
-use std::path::PathBuf;
-
 use crate::{
-    accounting::ChartOfAccounts, balance_sheet::BalanceSheets, primitives::CalaJournalId,
+    accounting::ChartOfAccounts, app::AccountingInitConfig, balance_sheet::BalanceSheets,
+    credit::Credit, deposit::Deposits, primitives::CalaJournalId,
     profit_and_loss::ProfitAndLossStatements, trial_balance::TrialBalances,
 };
 
@@ -45,8 +44,17 @@ impl ChartsInit {
     pub async fn charts_of_accounts(
         chart_of_accounts: &ChartOfAccounts,
         trial_balances: &TrialBalances,
-        seed_path: Option<PathBuf>,
+        credit: &Credit,
+        deposit: &Deposits,
+        accounting_init_config: AccountingInitConfig,
     ) -> Result<(), AccountingInitError> {
-        seed::charts_of_accounts::init(chart_of_accounts, trial_balances, seed_path).await
+        seed::charts_of_accounts::init(
+            chart_of_accounts,
+            trial_balances,
+            credit,
+            deposit,
+            accounting_init_config,
+        )
+        .await
     }
 }

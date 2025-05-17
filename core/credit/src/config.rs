@@ -14,7 +14,7 @@ impl Default for CreditConfig {
     fn default() -> Self {
         CreditConfig {
             upgrade_buffer_cvl_pct: default_upgrade_buffer_cvl_pct(),
-            customer_active_check_enabled: true,
+            customer_active_check_enabled: default_customer_active_check_enabled(),
         }
     }
 }

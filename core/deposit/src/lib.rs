@@ -29,7 +29,9 @@ use outbox::{Outbox, OutboxEventMarker};
 
 pub use account::DepositAccount;
 use account::*;
-pub use chart_of_accounts_integration::ChartOfAccountsIntegrationConfig;
+pub use chart_of_accounts_integration::{
+    ChartOfAccountsIntegrationConfig, ChartOfAccountsIntegrationConfigBuilderError,
+};
 use deposit::*;
 pub use deposit::{Deposit, DepositsByCreatedAtCursor};
 pub use deposit_account_balance::DepositAccountBalance;

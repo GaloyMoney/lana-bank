@@ -1,0 +1,9 @@
+{
+    "omnibus_parent_code": "11.01.0101",
+    "individual_deposit_accounts_parent_code": "21.01.0101",
+    "government_entity_deposit_accounts_parent_code": "21.01.0101",
+    "private_company_deposit_accounts_parent_code": "21.01.0101",
+    "bank_deposit_accounts_parent_code": "21.01.0101",
+    "financial_institution_deposit_accounts_parent_code": "21.01.0101",
+    "non_domiciled_individual_deposit_accounts_parent_code": "21.01.0101"
+}

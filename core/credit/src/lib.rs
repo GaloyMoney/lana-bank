@@ -34,7 +34,9 @@ use job::Jobs;
 use outbox::{Outbox, OutboxEventMarker};
 use tracing::instrument;
 
-pub use chart_of_accounts_integration::ChartOfAccountsIntegrationConfig;
+pub use chart_of_accounts_integration::{
+    ChartOfAccountsIntegrationConfig, ChartOfAccountsIntegrationConfigBuilderError,
+};
 pub use collateral::*;
 pub use config::*;
 use credit_facility::error::CreditFacilityError;
