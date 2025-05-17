@@ -4,6 +4,7 @@
 mod config;
 mod helpers;
 mod scenarios;
+mod seed;
 
 use std::collections::HashSet;
 
@@ -22,6 +23,9 @@ pub async fn run(
 ) -> anyhow::Result<()> {
     let sub = superuser_subject(&superuser_email, app).await?;
 
+    seed::seed(&sub, app).await?;
+
+    // keep the scenarios tokio handles
     let _ = scenarios::run(&sub, app).await?;
 
     // Bootstrapped test users
