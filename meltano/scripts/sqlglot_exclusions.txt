@@ -1,0 +1,11 @@
+# Files to exclude from sqlglot transpilation
+# Format: one glob pattern per line, matching against the full path
+# Lines starting with # are comments
+
+# Exclude procedural SQL hooks
+**/hooks/*.sql
+
+# Exclude files containing JavaScript UDFs
+**/udf_*.sql
+
+# Add more patterns as needed for specific files 
