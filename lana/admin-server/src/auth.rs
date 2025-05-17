@@ -26,6 +26,7 @@ pub async fn user_id_from_authentication_id(
 
     match app
         .users()
+        .users()
         .find_by_authentication_id(authentication_id)
         .await
     {

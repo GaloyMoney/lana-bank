@@ -1,12 +1,13 @@
 use audit::AuditSvc;
 use authz::{Authorization, PermissionCheck as _};
+use es_entity::DbOp;
 use outbox::OutboxEventMarker;
 
 use crate::{
     event::CoreUserEvent,
     primitives::{CoreUserAction, CoreUserObject, RoleId},
     publisher::UserPublisher,
-    RoleName,
+    PermissionSetId, RoleName,
 };
 
 mod entity;
@@ -14,17 +15,16 @@ pub mod error;
 mod repo;
 
 pub use entity::{NewRole, Role, RoleEvent};
-use error::RoleError;
+pub use error::RoleError;
 use repo::RoleRepo;
 
-#[derive(Clone)]
 pub struct Roles<Audit, E>
 where
     Audit: AuditSvc,
     E: OutboxEventMarker<CoreUserEvent>,
 {
     authz: Authorization<Audit, RoleName>,
-    repo: RoleRepo<E>,
+    pub(super) repo: RoleRepo<E>,
 }
 
 impl<Audit, E> Roles<Audit, E>
@@ -45,10 +45,46 @@ where
         }
     }
 
+    pub async fn find_by_id(&self, role_id: RoleId) -> Result<Role, RoleError> {
+        self.repo.find_by_id(&role_id).await
+    }
+
+    pub async fn list(&self, sub: &<Audit as AuditSvc>::Subject) -> Result<Vec<Role>, RoleError> {
+        Ok(self
+            .repo
+            .list_by_created_at(Default::default(), Default::default())
+            .await?
+            .entities)
+    }
+
+    pub async fn update(&self, role: &mut Role) -> Result<(), RoleError> {
+        self.repo.update(role).await?;
+        Ok(())
+    }
+
+    /// Creates a new role with a given name. The names must be unique,
+    /// an error will be raised in case of conflict. If `base_role` is provided,
+    /// the new role will have all its permission sets.
     pub async fn create_role(
         &self,
         sub: &<Audit as AuditSvc>::Subject,
         name: RoleName,
+        base_role: Option<RoleId>,
+    ) -> Result<Role, RoleError> {
+        let permission_sets = match base_role {
+            None => vec![],
+            _ => vec![],
+        };
+
+        self.create_role_with_permissions_sets(sub, name, &permission_sets)
+            .await
+    }
+
+    pub async fn create_role_with_permissions_sets(
+        &self,
+        sub: &<Audit as AuditSvc>::Subject,
+        name: RoleName,
+        permission_sets: &[PermissionSetId],
     ) -> Result<Role, RoleError> {
         self.authz
             .enforce_permission(
@@ -61,6 +97,7 @@ where
         let new_role = NewRole::builder()
             .id(RoleId::new())
             .name(name)
+            .permission_sets(permission_sets.iter().copied().collect())
             .build()
             .expect("all fields for new role provided");
 
@@ -69,100 +106,48 @@ where
         Ok(role)
     }
 
-    pub async fn add_permission(
+    /// Creates a role with name “superuser” that will have all given permission sets.
+    /// Used for bootstrapping the application.
+    //
+    // Warning: think thrice if you need to make the method more visible.
+    pub(super) async fn bootstrap_superuser(
         &self,
-        sub: &<Audit as AuditSvc>::Subject,
-        role_id: RoleId,
-        object: impl Into<Audit::Object>,
-        action: impl Into<Audit::Action>,
+        permission_sets: &[PermissionSetId],
+        db: &mut DbOp<'_>,
     ) -> Result<Role, RoleError> {
         let audit_info = self
             .authz
-            .enforce_permission(
-                sub,
-                CoreUserObject::role(role_id),
-                CoreUserAction::ROLE_UPDATE,
+            .audit()
+            .record_system_entry_in_tx(
+                db.tx(),
+                CoreUserObject::all_users(),
+                CoreUserAction::ROLE_CREATE,
             )
             .await?;
 
-        let object = object.into();
-        let action = action.into();
+        // TODO check that role does not exist in DB yet
 
-        let mut role = self.repo.find_by_id(&role_id).await?;
-        if role
-            .add_permission(object.to_string(), action.to_string(), audit_info)
-            .did_execute()
-        {
-            self.authz
-                .add_permission_to_role(&role.name, object, action)
-                .await?;
-            self.repo.update(&mut role).await?;
-        }
+        let new_role = NewRole::builder()
+            .id(RoleId::new())
+            .name(RoleName::SUPERUSER)
+            .audit_info(audit_info)
+            .permission_sets(permission_sets.iter().copied().collect())
+            .build()
+            .expect("all fields for new role provided");
 
-        Ok(role)
+        self.repo.create_in_op(db, new_role).await
     }
+}
 
-    pub async fn remove_permission(
-        &self,
-        sub: &<Audit as AuditSvc>::Subject,
-        role_id: RoleId,
-        object: impl Into<Audit::Object>,
-        action: impl Into<Audit::Action>,
-    ) -> Result<Role, RoleError> {
-        let audit_info = self
-            .authz
-            .enforce_permission(
-                sub,
-                CoreUserObject::role(role_id),
-                CoreUserAction::ROLE_UPDATE,
-            )
-            .await?;
-
-        let object = object.into();
-        let action = action.into();
-
-        let mut role = self.repo.find_by_id(&role_id).await?;
-        if role
-            .remove_permission(object.to_string(), action.to_string(), audit_info)
-            .did_execute()
-        {
-            self.authz
-                .remove_permission_from_role(&role.name, object, action)
-                .await?;
-            self.repo.update(&mut role).await?;
+impl<Audit, E> Clone for Roles<Audit, E>
+where
+    Audit: AuditSvc,
+    E: OutboxEventMarker<CoreUserEvent>,
+{
+    fn clone(&self) -> Self {
+        Self {
+            authz: self.authz.clone(),
+            repo: self.repo.clone(),
         }
-
-        Ok(role)
-    }
-
-    /// Make role with `role_id` inherit from role with `junior_id`.
-    /// Consequently, `role_id` will gain all permissions of `junior_id`.
-    pub async fn inherit_from_junior(
-        &self,
-        sub: &<Audit as AuditSvc>::Subject,
-        role_id: RoleId,
-        junior_id: RoleId,
-    ) -> Result<(), RoleError> {
-        let audit_info = self
-            .authz
-            .enforce_permission(
-                sub,
-                CoreUserObject::role(role_id),
-                CoreUserAction::ROLE_UPDATE,
-            )
-            .await?;
-
-        let junior = self.repo.find_by_id(&junior_id).await?;
-        let mut senior = self.repo.find_by_id(&role_id).await?;
-
-        if senior.inherit_from(&junior, audit_info).did_execute() {
-            self.authz
-                .add_role_hierarchy(senior.name.clone(), junior.name)
-                .await?;
-
-            self.repo.update(&mut senior).await?;
-        }
-
-        Ok(())
     }
 }

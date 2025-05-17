@@ -40,10 +40,10 @@ pub enum LanaRole {
 }
 
 impl LanaRole {
-    pub const SUPERUSER: RoleName = RoleName::Superuser;
-    pub const ACCOUNTANT: RoleName = RoleName::Accountant;
-    pub const ADMIN: RoleName = RoleName::Admin;
-    pub const BANK_MANAGER: RoleName = RoleName::BankManager;
+    pub const SUPERUSER: RoleName = RoleName::SUPERUSER;
+    pub const ACCOUNTANT: RoleName = RoleName::ACCOUNTANT;
+    pub const ADMIN: RoleName = RoleName::ADMIN;
+    pub const BANK_MANAGER: RoleName = RoleName::BANK_MANAGER;
 }
 
 impl From<LanaRole> for RoleName {

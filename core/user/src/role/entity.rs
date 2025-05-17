@@ -6,7 +6,10 @@ use std::collections::HashSet;
 use audit::AuditInfo;
 use es_entity::*;
 
-use crate::primitives::{RoleId, RoleName};
+use crate::{
+    primitives::{RoleId, RoleName},
+    PermissionSetId,
+};
 
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
@@ -15,24 +18,15 @@ pub enum RoleEvent {
     Initialized {
         id: RoleId,
         name: RoleName,
+        permission_sets: HashSet<PermissionSetId>,
         audit_info: AuditInfo,
     },
-    GainedInheritanceFrom {
-        junior_id: RoleId,
+    PermissionSetAdded {
+        permission_set_id: PermissionSetId,
         audit_info: AuditInfo,
     },
-    LostInheritanceFrom {
-        junior_id: RoleId,
-        audit_info: AuditInfo,
-    },
-    PermissionAdded {
-        object: String,
-        action: String,
-        audit_info: AuditInfo,
-    },
-    PermissionRemoved {
-        object: String,
-        action: String,
+    PermissionSetRemoved {
+        permission_set_id: PermissionSetId,
         audit_info: AuditInfo,
     },
 }
@@ -42,63 +36,42 @@ pub enum RoleEvent {
 pub struct Role {
     pub id: RoleId,
     pub name: RoleName,
-    #[allow(dead_code)]
-    direct_permissions: HashSet<(String, String)>,
+    permission_sets: HashSet<PermissionSetId>,
     events: EntityEvents<RoleEvent>,
 }
 
 impl Role {
-    /// Make this role inherit from another, `junior` role. Consequently, this role will
-    /// gain all permissions of the junior.
-    pub(super) fn inherit_from(&mut self, junior: &Role, audit_info: AuditInfo) -> Idempotent<()> {
+    pub(crate) fn add_permission_set(
+        &mut self,
+        permission_set_id: PermissionSetId,
+        audit_info: AuditInfo,
+    ) -> Idempotent<()> {
         idempotency_guard!(
             self.events.iter_all().rev(),
-            RoleEvent::GainedInheritanceFrom { junior_id, ..} if junior.id == *junior_id,
-            => RoleEvent::LostInheritanceFrom { junior_id, .. } if junior.id == *junior_id
+            RoleEvent::PermissionSetAdded { permission_set_id: id, ..} if permission_set_id == *id,
+            => RoleEvent::PermissionSetRemoved { permission_set_id: id, .. } if permission_set_id == *id
         );
 
-        self.events.push(RoleEvent::GainedInheritanceFrom {
-            junior_id: junior.id,
+        self.events.push(RoleEvent::PermissionSetAdded {
+            permission_set_id,
             audit_info,
         });
         Idempotent::Executed(())
     }
 
-    pub(super) fn add_permission(
+    pub(crate) fn remove_permission_set(
         &mut self,
-        object: String,
-        action: String,
+        permission_set_id: PermissionSetId,
         audit_info: AuditInfo,
     ) -> Idempotent<()> {
         idempotency_guard!(
             self.events.iter_all().rev(),
-            RoleEvent::PermissionAdded { object: o, action: a, ..} if o == &object && a == &action,
-            => RoleEvent::PermissionRemoved { object: o, action: a, ..} if o == &object && a == &action
+            RoleEvent::PermissionSetRemoved { permission_set_id: id, .. } if permission_set_id == *id,
+            => RoleEvent::PermissionSetAdded { permission_set_id: id, ..} if permission_set_id == *id
         );
 
-        self.events.push(RoleEvent::PermissionAdded {
-            object,
-            action,
-            audit_info,
-        });
-        Idempotent::Executed(())
-    }
-
-    pub(super) fn remove_permission(
-        &mut self,
-        object: String,
-        action: String,
-        audit_info: AuditInfo,
-    ) -> Idempotent<()> {
-        idempotency_guard!(
-            self.events.iter_all().rev(),
-            RoleEvent::PermissionRemoved { object: o, action: a, ..} if o == &object && a == &action,
-            => RoleEvent::PermissionAdded { object: o, action: a, .. } if o == &object && a == &action
-        );
-
-        self.events.push(RoleEvent::PermissionRemoved {
-            object,
-            action,
+        self.events.push(RoleEvent::PermissionSetRemoved {
+            permission_set_id,
             audit_info,
         });
         Idempotent::Executed(())
@@ -108,26 +81,34 @@ impl Role {
 impl TryFromEvents<RoleEvent> for Role {
     fn try_from_events(events: EntityEvents<RoleEvent>) -> Result<Self, EsEntityError> {
         let mut builder = RoleBuilder::default();
-        let mut direct_permissions = HashSet::new();
+        let mut new_permission_sets = HashSet::new();
 
         for event in events.iter_all() {
             match event {
-                RoleEvent::Initialized { id, name, .. } => {
+                RoleEvent::Initialized {
+                    id,
+                    name,
+                    permission_sets,
+                    ..
+                } => {
+                    new_permission_sets.extend(permission_sets);
                     builder = builder.id(*id).name(name.clone());
                 }
-                RoleEvent::GainedInheritanceFrom { .. } => {}
-                RoleEvent::LostInheritanceFrom { .. } => {}
-                RoleEvent::PermissionAdded { object, action, .. } => {
-                    direct_permissions.insert((object.to_string(), action.to_string()));
+                RoleEvent::PermissionSetAdded {
+                    permission_set_id, ..
+                } => {
+                    new_permission_sets.insert(*permission_set_id);
                 }
-                RoleEvent::PermissionRemoved { object, action, .. } => {
-                    direct_permissions.remove(&(object.to_string(), action.to_string()));
+                RoleEvent::PermissionSetRemoved {
+                    permission_set_id, ..
+                } => {
+                    new_permission_sets.remove(permission_set_id);
                 }
             }
         }
 
         builder
-            .direct_permissions(direct_permissions)
+            .permission_sets(new_permission_sets)
             .events(events)
             .build()
     }
@@ -138,6 +119,8 @@ pub struct NewRole {
     #[builder(setter(into))]
     pub(super) id: RoleId,
     pub(super) name: RoleName,
+    #[builder(default)]
+    pub(super) permission_sets: HashSet<PermissionSetId>,
     pub(super) audit_info: AuditInfo,
 }
 
@@ -154,6 +137,7 @@ impl IntoEvents<RoleEvent> for NewRole {
             [RoleEvent::Initialized {
                 id: self.id,
                 name: self.name,
+                permission_sets: self.permission_sets,
                 audit_info: self.audit_info,
             }],
         )
