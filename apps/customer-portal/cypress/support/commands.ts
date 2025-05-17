@@ -8,6 +8,8 @@ declare global {
       registerUser(email: string): Chainable<string>
       loginUser(email: string): Chainable<string>
       setupTotp(sessionToken: string): Chainable<string>
+      startAuth(email: string): Chainable<void>
+      submitOtp(email: string): Chainable<void>
     }
   }
 }
@@ -159,6 +161,18 @@ Cypress.Commands.add("setupTotp", (sessionToken) => {
       cy.log("TOTP setup complete")
       return cy.wrap(totpSecretKey)
     })
+  })
+})
+
+Cypress.Commands.add("startAuth", (email) => {
+  cy.visit("/auth")
+  cy.get('[data-test-id="auth-email-input"]').type(email)
+  return cy.get('[data-test-id="auth-email-submit-btn"]').click()
+})
+
+Cypress.Commands.add("submitOtp", (email) => {
+  return cy.getOTP(email).then((otp) => {
+    cy.get('[data-test-id="auth-otp-input"]').type(otp)
   })
 })
 export {}
