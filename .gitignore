@@ -38,3 +38,6 @@ docs/output/
 
 dev/dag/output/*
 result
+meltano/.venv/
+meltano/transform_duckdb
+meltano/.build

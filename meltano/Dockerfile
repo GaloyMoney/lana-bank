@@ -4,10 +4,6 @@ FROM $MELTANO_IMAGE
 
 WORKDIR /project
 
-# Install any additional requirements
-COPY ./requirements.txt .
-RUN pip install -r requirements.txt
-
 # Copy over Meltano project directory
 COPY . .
 RUN meltano install
