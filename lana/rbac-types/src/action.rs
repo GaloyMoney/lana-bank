@@ -1,5 +1,7 @@
 use std::{fmt::Display, str::FromStr};
 
+use authz::permission_set::*;
+
 use core_accounting::CoreAccountingAction;
 use core_credit::CoreCreditAction;
 use core_customer::CoreCustomerAction;
@@ -9,7 +11,7 @@ use deposit::CoreDepositAction;
 use governance::GovernanceAction;
 
 #[derive(Clone, Copy, Debug, PartialEq, strum::EnumDiscriminants)]
-#[strum_discriminants(derive(strum::Display, strum::EnumString))]
+#[strum_discriminants(derive(strum::Display, strum::EnumString, strum::VariantArray))]
 #[strum_discriminants(strum(serialize_all = "kebab-case"))]
 pub enum LanaAction {
     App(AppAction),
@@ -21,10 +23,45 @@ pub enum LanaAction {
     Deposit(CoreDepositAction),
     Credit(CoreCreditAction),
 }
+
 impl LanaAction {
-    // fn list_all() -> &'static [ &'static str] {
-    // //
-    // }
+    /// Returns description of all actions defined in `LanaAction`.
+    pub fn action_descriptions() -> Vec<ActionDescription<FullPath>> {
+        use LanaActionDiscriminants::*;
+
+        fn flatten<Entity: Display + Copy>(
+            module: &LanaActionDiscriminants,
+            entity_actions: Vec<(Entity, Vec<ActionDescription<NoPath>>)>,
+        ) -> Vec<ActionDescription<FullPath>> {
+            entity_actions
+                .into_iter()
+                .flat_map(|(entity, actions)| {
+                    actions
+                        .into_iter()
+                        .map(move |action| action.inject_path(module, entity))
+                })
+                .collect()
+        }
+
+        let mut result = vec![];
+
+        for module in <LanaActionDiscriminants as strum::VariantArray>::VARIANTS {
+            let actions = match module {
+                App => flatten(module, AppAction::entities()),
+                Governance => flatten(module, GovernanceAction::entities()),
+                User => flatten(module, CoreUserAction::entities()),
+                Customer => flatten(module, CoreCustomerAction::entities()),
+                Accounting => flatten(module, CoreAccountingAction::entities()),
+                Dashboard => flatten(module, DashboardModuleAction::entities()),
+                Deposit => flatten(module, CoreDepositAction::entities()),
+                Credit => flatten(module, CoreCreditAction::entities()),
+            };
+
+            result.extend(actions);
+        }
+
+        result
+    }
 }
 
 impl From<AppAction> for LanaAction {
@@ -122,13 +159,34 @@ macro_rules! impl_trivial_action {
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, strum::EnumDiscriminants)]
-#[strum_discriminants(derive(strum::Display, strum::EnumString))]
+#[strum_discriminants(derive(strum::Display, strum::EnumString, strum::VariantArray))]
 #[strum_discriminants(strum(serialize_all = "kebab-case"))]
 pub enum AppAction {
     TermsTemplate(TermsTemplateAction),
     Report(ReportAction),
     Audit(AuditAction),
     Document(DocumentAction),
+}
+
+impl AppAction {
+    pub fn entities() -> Vec<(AppActionDiscriminants, Vec<ActionDescription<NoPath>>)> {
+        use AppActionDiscriminants::*;
+
+        let mut result = vec![];
+
+        for entity in <AppActionDiscriminants as strum::VariantArray>::VARIANTS {
+            let actions = match entity {
+                TermsTemplate => TermsTemplateAction::describe(),
+                Report => ReportAction::describe(),
+                Audit => AuditAction::describe(),
+                Document => DocumentAction::describe(),
+            };
+
+            result.push((*entity, actions));
+        }
+
+        result
+    }
 }
 
 impl Display for AppAction {
@@ -162,7 +220,7 @@ impl FromStr for AppAction {
     }
 }
 
-#[derive(PartialEq, Clone, Copy, Debug, strum::Display, strum::EnumString)]
+#[derive(PartialEq, Clone, Copy, Debug, strum::Display, strum::EnumString, strum::VariantArray)]
 #[strum(serialize_all = "kebab-case")]
 pub enum TermsTemplateAction {
     Read,
@@ -171,17 +229,52 @@ pub enum TermsTemplateAction {
     List,
 }
 
+impl TermsTemplateAction {
+    pub fn describe() -> Vec<ActionDescription<NoPath>> {
+        use TermsTemplateAction::*;
+
+        let mut res = vec![];
+
+        for variant in <Self as strum::VariantArray>::VARIANTS {
+            let set = match variant {
+                Read => vec!["set1"],
+                Update => vec!["set1", "set2"],
+                Create => vec!["set1"],
+                List => vec!["set1"],
+            };
+            res.push(ActionDescription::new(variant, set));
+        }
+
+        res
+    }
+}
+
 impl_trivial_action!(TermsTemplateAction, TermsTemplate);
 
-#[derive(Clone, PartialEq, Copy, Debug, strum::Display, strum::EnumString)]
+#[derive(Clone, PartialEq, Copy, Debug, strum::Display, strum::EnumString, strum::VariantArray)]
 #[strum(serialize_all = "kebab-case")]
 pub enum AuditAction {
     List,
 }
 
+impl AuditAction {
+    pub fn describe() -> Vec<ActionDescription<NoPath>> {
+        let mut res = vec![];
+
+        for variant in <Self as strum::VariantArray>::VARIANTS {
+            let set = match variant {
+                AuditAction::List => vec!["set1"],
+            };
+            res.push(ActionDescription::new(variant, set));
+        }
+
+        res
+    }
+}
+
 impl_trivial_action!(AuditAction, Audit);
 
-#[derive(PartialEq, Clone, Copy, Debug, strum::Display, strum::EnumString)]
+#[derive(PartialEq, Clone, Copy, Debug, strum::Display, strum::EnumString, strum::VariantArray)]
 #[strum(serialize_all = "kebab-case")]
 pub enum DocumentAction {
     Create,
@@ -192,9 +285,29 @@ pub enum DocumentAction {
     Archive,
 }
 
+impl DocumentAction {
+    pub fn describe() -> Vec<ActionDescription<NoPath>> {
+        let mut res = vec![];
+
+        for variant in <Self as strum::VariantArray>::VARIANTS {
+            let set = match variant {
+                Self::Create => vec!["setA"],
+                Self::Read => vec!["setA"],
+                Self::List => vec!["setA"],
+                Self::GenerateDownloadLink => vec!["setA"],
+                Self::Delete => vec!["setA"],
+                Self::Archive => vec!["setA"],
+            };
+            res.push(ActionDescription::new(variant, set));
+        }
+
+        res
+    }
+}
+
 impl_trivial_action!(DocumentAction, Document);
 
-#[derive(PartialEq, Clone, Copy, Debug, strum::Display, strum::EnumString)]
+#[derive(PartialEq, Clone, Copy, Debug, strum::Display, strum::EnumString, strum::VariantArray)]
 #[strum(serialize_all = "kebab-case")]
 pub enum ReportAction {
     Read,
@@ -202,6 +315,25 @@ pub enum ReportAction {
     Create,
     Upload,
     GenerateDownloadLink,
+}
+
+impl ReportAction {
+    pub fn describe() -> Vec<ActionDescription<NoPath>> {
+        let mut res = vec![];
+
+        for variant in <Self as strum::VariantArray>::VARIANTS {
+            let set = match variant {
+                ReportAction::Read => vec!["set1"],
+                ReportAction::List => vec!["set1"],
+                ReportAction::Create => vec!["set1", "set2"],
+                ReportAction::Upload => vec!["set1"],
+                ReportAction::GenerateDownloadLink => vec!["set1", "set2"],
+            };
+            res.push(ActionDescription::new(variant, set));
+        }
+
+        res
+    }
 }
 
 impl_trivial_action!(ReportAction, Report);

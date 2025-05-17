@@ -1,7 +1,10 @@
 use serde::{Deserialize, Serialize};
 use std::{borrow::Cow, fmt::Display, str::FromStr};
 
-use authz::AllOrOne;
+use authz::{
+    permission_set::{ActionDescription, NoPath},
+    AllOrOne,
+};
 es_entity::entity_id! { ApprovalProcessId, CommitteeId, PolicyId, CommitteeMemberId }
 
 #[cfg_attr(feature = "graphql", derive(async_graphql::Enum))]
@@ -43,7 +46,7 @@ impl Display for ApprovalProcessType {
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, strum::EnumDiscriminants)]
-#[strum_discriminants(derive(strum::Display, strum::EnumString))]
+#[strum_discriminants(derive(strum::Display, strum::EnumString, strum::VariantArray))]
 #[strum_discriminants(strum(serialize_all = "kebab-case"))]
 pub enum GovernanceAction {
     Committee(CommitteeAction),
@@ -76,6 +79,26 @@ impl GovernanceAction {
         GovernanceAction::ApprovalProcess(ApprovalProcessAction::Deny);
     pub const APPROVAL_PROCESS_CONCLUDE: Self =
         GovernanceAction::ApprovalProcess(ApprovalProcessAction::Conclude);
+
+    pub fn entities() -> Vec<(
+        GovernanceActionDiscriminants,
+        Vec<ActionDescription<NoPath>>,
+    )> {
+        use GovernanceActionDiscriminants::*;
+
+        let mut result = vec![];
+
+        for entity in <GovernanceActionDiscriminants as strum::VariantArray>::VARIANTS {
+            let actions = match entity {
+                Committee => CommitteeAction::describe(),
+                Policy => PolicyAction::describe(),
+                ApprovalProcess => ApprovalProcessAction::describe(),
+            };
+
+            result.push((*entity, actions));
+        }
+        result
+    }
 }
 
 impl Display for GovernanceAction {
@@ -105,7 +128,7 @@ impl FromStr for GovernanceAction {
     }
 }
 
-#[derive(PartialEq, Clone, Copy, Debug, strum::Display, strum::EnumString)]
+#[derive(PartialEq, Clone, Copy, Debug, strum::Display, strum::EnumString, strum::VariantArray)]
 #[strum(serialize_all = "kebab-case")]
 pub enum CommitteeAction {
     Create,
@@ -115,7 +138,26 @@ pub enum CommitteeAction {
     List,
 }
 
-#[derive(PartialEq, Clone, Copy, Debug, strum::Display, strum::EnumString)]
+impl CommitteeAction {
+    pub fn describe() -> Vec<ActionDescription<NoPath>> {
+        let mut res = vec![];
+
+        for variant in <Self as strum::VariantArray>::VARIANTS {
+            let set = match variant {
+                Self::Create => vec!["set1"],
+                Self::AddMember => vec!["set1", "set2"],
+                Self::RemoveMember => vec!["set1"],
+                Self::Read => vec!["set1"],
+                Self::List => vec!["set1"],
+            };
+            res.push(ActionDescription::new(variant, set));
+        }
+
+        res
+    }
+}
+
+#[derive(PartialEq, Clone, Copy, Debug, strum::Display, strum::EnumString, strum::VariantArray)]
 #[strum(serialize_all = "kebab-case")]
 pub enum PolicyAction {
     Create,
@@ -124,7 +166,25 @@ pub enum PolicyAction {
     UpdatePolicyRules,
 }
 
-#[derive(PartialEq, Clone, Copy, Debug, strum::Display, strum::EnumString)]
+impl PolicyAction {
+    pub fn describe() -> Vec<ActionDescription<NoPath>> {
+        let mut res = vec![];
+
+        for variant in <Self as strum::VariantArray>::VARIANTS {
+            let set = match variant {
+                Self::Create => vec!["set1"],
+                Self::Read => vec!["set1"],
+                Self::List => vec!["set1"],
+                Self::UpdatePolicyRules => vec!["set1"],
+            };
+            res.push(ActionDescription::new(variant, set));
+        }
+
+        res
+    }
+}
+
+#[derive(PartialEq, Clone, Copy, Debug, strum::Display, strum::EnumString, strum::VariantArray)]
 #[strum(serialize_all = "kebab-case")]
 pub enum ApprovalProcessAction {
     Create,
@@ -133,6 +193,26 @@ pub enum ApprovalProcessAction {
     Approve,
     Deny,
     Conclude,
+}
+
+impl ApprovalProcessAction {
+    pub fn describe() -> Vec<ActionDescription<NoPath>> {
+        let mut res = vec![];
+
+        for variant in <Self as strum::VariantArray>::VARIANTS {
+            let set = match variant {
+                Self::Create => vec!["set1"],
+                Self::Read => vec!["set1"],
+                Self::List => vec!["set1"],
+                Self::Approve => vec!["set1"],
+                Self::Deny => vec!["set1"],
+                Self::Conclude => vec!["set1"],
+            };
+            res.push(ActionDescription::new(variant, set));
+        }
+
+        res
+    }
 }
 
 pub type CommitteeAllOrOne = AllOrOne<CommitteeId>;

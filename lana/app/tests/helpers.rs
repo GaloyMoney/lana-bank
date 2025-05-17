@@ -20,7 +20,14 @@ pub async fn init_users(
         rand::rng().random_range(0..100000)
     );
     let outbox = Outbox::init(pool).await?;
-    let users = Users::init(pool, authz, &outbox, Some(superuser_email.clone())).await?;
+    let users = Users::init(
+        pool,
+        authz,
+        &outbox,
+        Some(superuser_email.clone()),
+        &rbac_types::LanaAction::action_descriptions(),
+    )
+    .await?;
     let superuser = users
         .users()
         .find_by_email(None, &superuser_email)

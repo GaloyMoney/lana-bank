@@ -3,7 +3,10 @@ use serde::{Deserialize, Serialize};
 use std::{fmt::Display, str::FromStr};
 use thiserror::Error;
 
-use authz::AllOrOne;
+use authz::{
+    AllOrOne,
+    permission_set::{ActionDescription, NoPath},
+};
 
 pub use cala_ledger::{
     Currency as CalaCurrency, DebitOrCredit,
@@ -281,7 +284,7 @@ pub type TrialBalanceAllOrOne = AllOrOne<LedgerAccountId>; // what to do if ther
 // option
 
 #[derive(Clone, Copy, Debug, PartialEq, strum::EnumDiscriminants)]
-#[strum_discriminants(derive(strum::Display, strum::EnumString))]
+#[strum_discriminants(derive(strum::Display, strum::EnumString, strum::VariantArray))]
 #[strum_discriminants(strum(serialize_all = "kebab-case"))]
 pub enum CoreAccountingAction {
     ChartAction(ChartAction),
@@ -296,6 +299,37 @@ pub enum CoreAccountingAction {
     BalanceSheetConfigurationAction(BalanceSheetConfigurationAction),
     AccountingCsv(AccountingCsvAction),
     TrialBalanceAction(TrialBalanceAction),
+}
+
+impl CoreAccountingAction {
+    pub fn entities() -> Vec<(
+        CoreAccountingActionDiscriminants,
+        Vec<ActionDescription<NoPath>>,
+    )> {
+        use CoreAccountingActionDiscriminants as D;
+
+        let mut result = vec![];
+
+        for entity in <CoreAccountingActionDiscriminants as strum::VariantArray>::VARIANTS {
+            let actions = match entity {
+                D::ChartAction => ChartAction::describe(),
+                D::JournalAction => JournalAction::describe(),
+                D::LedgerAccountAction => LedgerAccountAction::describe(),
+                D::LedgerTransactionAction => LedgerTransactionAction::describe(),
+                D::TransactionTemplateAction => TransactionTemplateAction::describe(),
+                D::ManualTransactionAction => ManualTransactionAction::describe(),
+                D::ProfitAndLossAction => ProfitAndLossAction::describe(),
+                D::ProfitAndLossConfigurationAction => ProfitAndLossConfigurationAction::describe(),
+                D::BalanceSheetAction => BalanceSheetAction::describe(),
+                D::BalanceSheetConfigurationAction => BalanceSheetConfigurationAction::describe(),
+                D::AccountingCsv => AccountingCsvAction::describe(),
+                D::TrialBalanceAction => TrialBalanceAction::describe(),
+            };
+
+            result.push((*entity, actions));
+        }
+        result
+    }
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, strum::EnumDiscriminants)]
@@ -633,12 +667,29 @@ impl FromStr for CoreAccountingAction {
     }
 }
 
-#[derive(PartialEq, Clone, Copy, Debug, strum::Display, strum::EnumString)]
+#[derive(PartialEq, Clone, Copy, Debug, strum::Display, strum::EnumString, strum::VariantArray)]
 #[strum(serialize_all = "kebab-case")]
 pub enum ChartAction {
     Create,
     List,
     ImportAccounts,
+}
+
+impl ChartAction {
+    pub fn describe() -> Vec<ActionDescription<NoPath>> {
+        let mut res = vec![];
+
+        for variant in <Self as strum::VariantArray>::VARIANTS {
+            let set = match variant {
+                Self::Create => vec!["set1"],
+                Self::List => vec!["set1"],
+                Self::ImportAccounts => vec!["set1"],
+            };
+            res.push(ActionDescription::new(variant, set));
+        }
+
+        res
+    }
 }
 
 impl From<ChartAction> for CoreAccountingAction {
@@ -647,12 +698,29 @@ impl From<ChartAction> for CoreAccountingAction {
     }
 }
 
-#[derive(PartialEq, Clone, Copy, Debug, strum::Display, strum::EnumString)]
+#[derive(PartialEq, Clone, Copy, Debug, strum::Display, strum::EnumString, strum::VariantArray)]
 #[strum(serialize_all = "kebab-case")]
 pub enum LedgerTransactionAction {
     Read,
     List,
     ReadHistory,
+}
+
+impl LedgerTransactionAction {
+    pub fn describe() -> Vec<ActionDescription<NoPath>> {
+        let mut res = vec![];
+
+        for variant in <Self as strum::VariantArray>::VARIANTS {
+            let set = match variant {
+                Self::Read => vec!["set1"],
+                Self::List => vec!["set1"],
+                Self::ReadHistory => vec!["set1"],
+            };
+            res.push(ActionDescription::new(variant, set));
+        }
+
+        res
+    }
 }
 
 impl From<LedgerTransactionAction> for CoreAccountingAction {
@@ -661,12 +729,29 @@ impl From<LedgerTransactionAction> for CoreAccountingAction {
     }
 }
 
-#[derive(PartialEq, Clone, Copy, Debug, strum::Display, strum::EnumString)]
+#[derive(PartialEq, Clone, Copy, Debug, strum::Display, strum::EnumString, strum::VariantArray)]
 #[strum(serialize_all = "kebab-case")]
 pub enum LedgerAccountAction {
     Read,
     List,
     ReadHistory,
+}
+
+impl LedgerAccountAction {
+    pub fn describe() -> Vec<ActionDescription<NoPath>> {
+        let mut res = vec![];
+
+        for variant in <Self as strum::VariantArray>::VARIANTS {
+            let set = match variant {
+                Self::Read => vec!["set1"],
+                Self::List => vec!["set1"],
+                Self::ReadHistory => vec!["set1"],
+            };
+            res.push(ActionDescription::new(variant, set));
+        }
+
+        res
+    }
 }
 
 impl From<LedgerAccountAction> for CoreAccountingAction {
@@ -675,10 +760,25 @@ impl From<LedgerAccountAction> for CoreAccountingAction {
     }
 }
 
-#[derive(PartialEq, Clone, Copy, Debug, strum::Display, strum::EnumString)]
+#[derive(PartialEq, Clone, Copy, Debug, strum::Display, strum::EnumString, strum::VariantArray)]
 #[strum(serialize_all = "kebab-case")]
 pub enum JournalAction {
     ReadEntries,
+}
+
+impl JournalAction {
+    pub fn describe() -> Vec<ActionDescription<NoPath>> {
+        let mut res = vec![];
+
+        for variant in <Self as strum::VariantArray>::VARIANTS {
+            let set = match variant {
+                Self::ReadEntries => vec!["set1"],
+            };
+            res.push(ActionDescription::new(variant, set));
+        }
+
+        res
+    }
 }
 
 impl From<JournalAction> for CoreAccountingAction {
@@ -687,10 +787,25 @@ impl From<JournalAction> for CoreAccountingAction {
     }
 }
 
-#[derive(PartialEq, Clone, Copy, Debug, strum::Display, strum::EnumString)]
+#[derive(PartialEq, Clone, Copy, Debug, strum::Display, strum::EnumString, strum::VariantArray)]
 #[strum(serialize_all = "kebab-case")]
 pub enum TransactionTemplateAction {
     List,
+}
+
+impl TransactionTemplateAction {
+    pub fn describe() -> Vec<ActionDescription<NoPath>> {
+        let mut res = vec![];
+
+        for variant in <Self as strum::VariantArray>::VARIANTS {
+            let set = match variant {
+                Self::List => vec!["set1"],
+            };
+            res.push(ActionDescription::new(variant, set));
+        }
+
+        res
+    }
 }
 
 impl From<TransactionTemplateAction> for CoreAccountingAction {
@@ -699,12 +814,29 @@ impl From<TransactionTemplateAction> for CoreAccountingAction {
     }
 }
 
-#[derive(PartialEq, Clone, Copy, Debug, strum::Display, strum::EnumString)]
+#[derive(PartialEq, Clone, Copy, Debug, strum::Display, strum::EnumString, strum::VariantArray)]
 #[strum(serialize_all = "kebab-case")]
 pub enum ManualTransactionAction {
     Read,
     Create,
     List,
+}
+
+impl ManualTransactionAction {
+    pub fn describe() -> Vec<ActionDescription<NoPath>> {
+        let mut res = vec![];
+
+        for variant in <Self as strum::VariantArray>::VARIANTS {
+            let set = match variant {
+                Self::List => vec!["set1"],
+                Self::Create => vec!["set1"],
+                Self::Read => vec!["set1"],
+            };
+            res.push(ActionDescription::new(variant, set));
+        }
+
+        res
+    }
 }
 
 impl From<ManualTransactionAction> for CoreAccountingAction {
@@ -713,12 +845,29 @@ impl From<ManualTransactionAction> for CoreAccountingAction {
     }
 }
 
-#[derive(PartialEq, Clone, Copy, Debug, strum::Display, strum::EnumString)]
+#[derive(PartialEq, Clone, Copy, Debug, strum::Display, strum::EnumString, strum::VariantArray)]
 #[strum(serialize_all = "kebab-case")]
 pub enum ProfitAndLossAction {
     Read,
     Create,
     Update,
+}
+
+impl ProfitAndLossAction {
+    pub fn describe() -> Vec<ActionDescription<NoPath>> {
+        let mut res = vec![];
+
+        for variant in <Self as strum::VariantArray>::VARIANTS {
+            let set = match variant {
+                Self::Update => vec!["set1"],
+                Self::Create => vec!["set1"],
+                Self::Read => vec!["set1"],
+            };
+            res.push(ActionDescription::new(variant, set));
+        }
+
+        res
+    }
 }
 
 impl From<ProfitAndLossAction> for CoreAccountingAction {
@@ -727,11 +876,27 @@ impl From<ProfitAndLossAction> for CoreAccountingAction {
     }
 }
 
-#[derive(PartialEq, Clone, Copy, Debug, strum::Display, strum::EnumString)]
+#[derive(PartialEq, Clone, Copy, Debug, strum::Display, strum::EnumString, strum::VariantArray)]
 #[strum(serialize_all = "kebab-case")]
 pub enum ProfitAndLossConfigurationAction {
     Read,
     Update,
+}
+
+impl ProfitAndLossConfigurationAction {
+    pub fn describe() -> Vec<ActionDescription<NoPath>> {
+        let mut res = vec![];
+
+        for variant in <Self as strum::VariantArray>::VARIANTS {
+            let set = match variant {
+                Self::Update => vec!["set1"],
+                Self::Read => vec!["set1"],
+            };
+            res.push(ActionDescription::new(variant, set));
+        }
+
+        res
+    }
 }
 
 impl From<ProfitAndLossConfigurationAction> for CoreAccountingAction {
@@ -740,11 +905,27 @@ impl From<ProfitAndLossConfigurationAction> for CoreAccountingAction {
     }
 }
 
-#[derive(PartialEq, Clone, Copy, Debug, strum::Display, strum::EnumString)]
+#[derive(PartialEq, Clone, Copy, Debug, strum::Display, strum::EnumString, strum::VariantArray)]
 #[strum(serialize_all = "kebab-case")]
 pub enum BalanceSheetAction {
     Read,
     Create,
+}
+
+impl BalanceSheetAction {
+    pub fn describe() -> Vec<ActionDescription<NoPath>> {
+        let mut res = vec![];
+
+        for variant in <Self as strum::VariantArray>::VARIANTS {
+            let set = match variant {
+                Self::Create => vec!["set1"],
+                Self::Read => vec!["set1"],
+            };
+            res.push(ActionDescription::new(variant, set));
+        }
+
+        res
+    }
 }
 
 impl From<BalanceSheetAction> for CoreAccountingAction {
@@ -753,11 +934,27 @@ impl From<BalanceSheetAction> for CoreAccountingAction {
     }
 }
 
-#[derive(PartialEq, Clone, Copy, Debug, strum::Display, strum::EnumString)]
+#[derive(PartialEq, Clone, Copy, Debug, strum::Display, strum::EnumString, strum::VariantArray)]
 #[strum(serialize_all = "kebab-case")]
 pub enum BalanceSheetConfigurationAction {
     Read,
     Update,
+}
+
+impl BalanceSheetConfigurationAction {
+    pub fn describe() -> Vec<ActionDescription<NoPath>> {
+        let mut res = vec![];
+
+        for variant in <Self as strum::VariantArray>::VARIANTS {
+            let set = match variant {
+                Self::Update => vec!["set1"],
+                Self::Read => vec!["set1"],
+            };
+            res.push(ActionDescription::new(variant, set));
+        }
+
+        res
+    }
 }
 
 impl From<BalanceSheetConfigurationAction> for CoreAccountingAction {
@@ -766,7 +963,7 @@ impl From<BalanceSheetConfigurationAction> for CoreAccountingAction {
     }
 }
 
-#[derive(PartialEq, Clone, Copy, Debug, strum::Display, strum::EnumString)]
+#[derive(PartialEq, Clone, Copy, Debug, strum::Display, strum::EnumString, strum::VariantArray)]
 #[strum(serialize_all = "kebab-case")]
 pub enum AccountingCsvAction {
     Create,
@@ -776,18 +973,54 @@ pub enum AccountingCsvAction {
     Download,
 }
 
+impl AccountingCsvAction {
+    pub fn describe() -> Vec<ActionDescription<NoPath>> {
+        let mut res = vec![];
+
+        for variant in <Self as strum::VariantArray>::VARIANTS {
+            let set = match variant {
+                Self::Read => vec!["set1"],
+                Self::Create => vec!["set1"],
+                Self::Generate => vec!["set1"],
+                Self::List => vec!["set1"],
+                Self::Download => vec!["set1"],
+            };
+            res.push(ActionDescription::new(variant, set));
+        }
+
+        res
+    }
+}
+
 impl From<AccountingCsvAction> for CoreAccountingAction {
     fn from(action: AccountingCsvAction) -> Self {
         CoreAccountingAction::AccountingCsv(action)
     }
 }
 
-#[derive(PartialEq, Clone, Copy, Debug, strum::Display, strum::EnumString)]
+#[derive(PartialEq, Clone, Copy, Debug, strum::Display, strum::EnumString, strum::VariantArray)]
 #[strum(serialize_all = "kebab-case")]
 pub enum TrialBalanceAction {
     Create,
     Read,
     Update,
+}
+
+impl TrialBalanceAction {
+    pub fn describe() -> Vec<ActionDescription<NoPath>> {
+        let mut res = vec![];
+
+        for variant in <Self as strum::VariantArray>::VARIANTS {
+            let set = match variant {
+                Self::Read => vec!["set1"],
+                Self::Create => vec!["set1"],
+                Self::Update => vec!["set1"],
+            };
+            res.push(ActionDescription::new(variant, set));
+        }
+
+        res
+    }
 }
 
 impl From<TrialBalanceAction> for CoreAccountingAction {

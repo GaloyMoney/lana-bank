@@ -10,7 +10,10 @@ pub mod role;
 pub mod user;
 
 use audit::AuditSvc;
-use authz::{Authorization, PermissionCheck as _};
+use authz::{
+    permission_set::{ActionDescription, FullPath},
+    Authorization, PermissionCheck as _,
+};
 use es_entity::DbOp;
 use outbox::{Outbox, OutboxEventMarker};
 use permission_set::PermissionSets;
@@ -48,6 +51,7 @@ where
         authz: &Authorization<Audit, RoleName>,
         outbox: &Outbox<E>,
         superuser_email: Option<String>,
+        actions: &[ActionDescription<FullPath>],
     ) -> Result<Self, CoreUserError> {
         let users = Users::init(pool, authz, outbox).await?;
         let publisher = UserPublisher::new(outbox);
@@ -62,7 +66,9 @@ where
         };
 
         if let Some(email) = superuser_email {
-            core_users.bootstrap_access_control(email, pool).await?;
+            core_users
+                .bootstrap_access_control(email, actions, pool)
+                .await?;
         }
 
         Ok(core_users)
@@ -141,13 +147,14 @@ where
     async fn bootstrap_access_control(
         &self,
         email: String,
+        actions: &[ActionDescription<FullPath>],
         pool: &sqlx::PgPool,
     ) -> Result<(), CoreUserError> {
         let mut db = DbOp::init(pool).await?;
 
         let permission_sets = self
             .permission_sets()
-            .bootstrap_permission_sets(&mut db)
+            .bootstrap_permission_sets(actions, &mut db)
             .await?;
 
         let permission_set_ids = permission_sets.iter().map(|s| s.id).collect::<Vec<_>>();

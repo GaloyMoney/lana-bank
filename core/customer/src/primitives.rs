@@ -1,3 +1,4 @@
+use authz::permission_set::{ActionDescription, NoPath};
 use serde::{Deserialize, Serialize};
 use std::{fmt::Display, str::FromStr};
 
@@ -132,7 +133,7 @@ impl FromStr for CustomerObject {
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, strum::EnumDiscriminants)]
-#[strum_discriminants(derive(strum::Display, strum::EnumString))]
+#[strum_discriminants(derive(strum::Display, strum::EnumString, strum::VariantArray))]
 #[strum_discriminants(strum(serialize_all = "kebab-case"))]
 pub enum CoreCustomerAction {
     Customer(CustomerEntityAction),
@@ -151,9 +152,28 @@ impl CoreCustomerAction {
         CoreCustomerAction::Customer(CustomerEntityAction::ApproveKyc);
     pub const CUSTOMER_DECLINE_KYC: Self =
         CoreCustomerAction::Customer(CustomerEntityAction::DeclineKyc);
+
+    pub fn entities() -> Vec<(
+        CoreCustomerActionDiscriminants,
+        Vec<ActionDescription<NoPath>>,
+    )> {
+        use CoreCustomerActionDiscriminants::*;
+
+        let mut result = vec![];
+
+        for entity in <CoreCustomerActionDiscriminants as strum::VariantArray>::VARIANTS {
+            let actions = match entity {
+                Customer => CustomerEntityAction::describe(),
+            };
+
+            result.push((*entity, actions));
+        }
+
+        result
+    }
 }
 
-#[derive(PartialEq, Clone, Copy, Debug, strum::Display, strum::EnumString)]
+#[derive(PartialEq, Clone, Copy, Debug, strum::Display, strum::EnumString, strum::VariantArray)]
 #[strum(serialize_all = "kebab-case")]
 pub enum CustomerEntityAction {
     Read,
@@ -164,6 +184,28 @@ pub enum CustomerEntityAction {
     StartKyc,
     ApproveKyc,
     DeclineKyc,
+}
+
+impl CustomerEntityAction {
+    pub fn describe() -> Vec<ActionDescription<NoPath>> {
+        let mut res = vec![];
+
+        for variant in <Self as strum::VariantArray>::VARIANTS {
+            let set = match variant {
+                Self::Create => vec!["set1"],
+                Self::Read => vec!["set1"],
+                Self::List => vec!["set1"],
+                Self::Update => vec!["set1"],
+                Self::UpdateAuthenticationId => vec!["set1"],
+                Self::StartKyc => vec!["set1"],
+                Self::ApproveKyc => vec!["set1"],
+                Self::DeclineKyc => vec!["set1"],
+            };
+            res.push(ActionDescription::new(variant, set));
+        }
+
+        res
+    }
 }
 
 impl Display for CoreCustomerAction {

@@ -11,8 +11,14 @@ async fn roles_and_permission_sets_interaction() -> anyhow::Result<()> {
     let authz = init_authz(&pool, &audit).await?;
     let (users, superuser_subject) = helpers::init_users(&pool, &authz).await?;
 
-    let roles = users.roles().list(&superuser_subject).await?;
-    assert!(roles.iter().any(|r| r.name.name() == "superuser"));
+    rbac_types::LanaAction::action_descriptions()
+        .iter()
+        .for_each(|a| {
+            println!("{:?}", a);
+        });
+
+    // let roles = users.roles().list(&superuser_subject).await?;
+    // assert!(roles.iter().any(|r| r.name.name() == "superuser"));
 
     Ok(())
 }

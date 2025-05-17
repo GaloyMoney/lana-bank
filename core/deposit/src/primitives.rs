@@ -1,6 +1,9 @@
 use std::{fmt::Display, str::FromStr};
 
-use authz::AllOrOne;
+use authz::{
+    permission_set::{ActionDescription, NoPath},
+    AllOrOne,
+};
 
 pub use core_accounting::ChartId;
 pub use core_customer::CustomerType;
@@ -130,7 +133,7 @@ impl FromStr for CoreDepositObject {
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, strum::EnumDiscriminants)]
-#[strum_discriminants(derive(strum::Display, strum::EnumString))]
+#[strum_discriminants(derive(strum::Display, strum::EnumString, strum::VariantArray))]
 #[strum_discriminants(strum(serialize_all = "kebab-case"))]
 pub enum CoreDepositAction {
     DepositAccount(DepositAccountAction),
@@ -171,6 +174,29 @@ impl CoreDepositAction {
     pub const WITHDRAWAL_CONFIRM: Self = CoreDepositAction::Withdrawal(WithdrawalAction::Confirm);
     pub const WITHDRAWAL_READ: Self = CoreDepositAction::Withdrawal(WithdrawalAction::Read);
     pub const WITHDRAWAL_LIST: Self = CoreDepositAction::Withdrawal(WithdrawalAction::List);
+
+    pub fn entities() -> Vec<(
+        CoreDepositActionDiscriminants,
+        Vec<ActionDescription<NoPath>>,
+    )> {
+        use CoreDepositActionDiscriminants::*;
+
+        let mut result = vec![];
+
+        for entity in <CoreDepositActionDiscriminants as strum::VariantArray>::VARIANTS {
+            let actions = match entity {
+                DepositAccount => DepositAccountAction::describe(),
+                Deposit => DepositAction::describe(),
+                ChartOfAccountsIntegrationConfig => {
+                    ChartOfAccountsIntegrationConfigAction::describe()
+                }
+                Withdrawal => WithdrawalAction::describe(),
+            };
+
+            result.push((*entity, actions));
+        }
+        result
+    }
 }
 
 impl Display for CoreDepositAction {
@@ -205,7 +231,7 @@ impl FromStr for CoreDepositAction {
     }
 }
 
-#[derive(PartialEq, Clone, Copy, Debug, strum::Display, strum::EnumString)]
+#[derive(PartialEq, Clone, Copy, Debug, strum::Display, strum::EnumString, strum::VariantArray)]
 #[strum(serialize_all = "kebab-case")]
 pub enum DepositAccountAction {
     Create,
@@ -216,18 +242,55 @@ pub enum DepositAccountAction {
     List,
 }
 
+impl DepositAccountAction {
+    pub fn describe() -> Vec<ActionDescription<NoPath>> {
+        let mut res = vec![];
+
+        for variant in <Self as strum::VariantArray>::VARIANTS {
+            let set = match variant {
+                Self::Create => vec!["set1"],
+                Self::Read => vec!["set1"],
+                Self::List => vec!["set1"],
+                Self::UpdateStatus => vec!["set1"],
+                Self::ReadBalance => vec!["set1"],
+                Self::ReadTxHistory => vec!["set1"],
+            };
+            res.push(ActionDescription::new(variant, set));
+        }
+
+        res
+    }
+}
+
 impl From<DepositAccountAction> for CoreDepositAction {
     fn from(action: DepositAccountAction) -> Self {
         CoreDepositAction::DepositAccount(action)
     }
 }
 
-#[derive(PartialEq, Clone, Copy, Debug, strum::Display, strum::EnumString)]
+#[derive(PartialEq, Clone, Copy, Debug, strum::Display, strum::EnumString, strum::VariantArray)]
 #[strum(serialize_all = "kebab-case")]
 pub enum DepositAction {
     Create,
     Read,
     List,
+}
+
+impl DepositAction {
+    pub fn describe() -> Vec<ActionDescription<NoPath>> {
+        let mut res = vec![];
+
+        for variant in <Self as strum::VariantArray>::VARIANTS {
+            let set = match variant {
+                Self::Create => vec!["set1"],
+                Self::Read => vec!["set1"],
+                Self::List => vec!["set1"],
+            };
+            res.push(ActionDescription::new(variant, set));
+        }
+
+        res
+    }
 }
 
 impl From<DepositAction> for CoreDepositAction {
@@ -236,7 +299,7 @@ impl From<DepositAction> for CoreDepositAction {
     }
 }
 
-#[derive(PartialEq, Clone, Copy, Debug, strum::Display, strum::EnumString)]
+#[derive(PartialEq, Clone, Copy, Debug, strum::Display, strum::EnumString, strum::VariantArray)]
 #[strum(serialize_all = "kebab-case")]
 pub enum WithdrawalAction {
     Initiate,
@@ -247,17 +310,53 @@ pub enum WithdrawalAction {
     List,
 }
 
+impl WithdrawalAction {
+    pub fn describe() -> Vec<ActionDescription<NoPath>> {
+        let mut res = vec![];
+
+        for variant in <Self as strum::VariantArray>::VARIANTS {
+            let set = match variant {
+                Self::Cancel => vec!["set1"],
+                Self::Read => vec!["set1"],
+                Self::List => vec!["set1"],
+                Self::Initiate => vec!["set1"],
+                Self::ConcludeApprovalProcess => vec!["set1"],
+                Self::Confirm => vec!["set1"],
+            };
+            res.push(ActionDescription::new(variant, set));
+        }
+
+        res
+    }
+}
+
 impl From<WithdrawalAction> for CoreDepositAction {
     fn from(action: WithdrawalAction) -> Self {
         CoreDepositAction::Withdrawal(action)
     }
 }
 
-#[derive(PartialEq, Clone, Copy, Debug, strum::Display, strum::EnumString)]
+#[derive(PartialEq, Clone, Copy, Debug, strum::Display, strum::EnumString, strum::VariantArray)]
 #[strum(serialize_all = "kebab-case")]
 pub enum ChartOfAccountsIntegrationConfigAction {
     Read,
     Update,
+}
+
+impl ChartOfAccountsIntegrationConfigAction {
+    pub fn describe() -> Vec<ActionDescription<NoPath>> {
+        let mut res = vec![];
+
+        for variant in <Self as strum::VariantArray>::VARIANTS {
+            let set = match variant {
+                Self::Read => vec!["set1"],
+                Self::Update => vec!["set1"],
+            };
+            res.push(ActionDescription::new(variant, set));
+        }
+
+        res
+    }
 }
 
 impl From<ChartOfAccountsIntegrationConfigAction> for CoreDepositAction {

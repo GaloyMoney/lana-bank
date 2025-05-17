@@ -109,7 +109,7 @@ where
     /// Creates a role with name “superuser” that will have all given permission sets.
     /// Used for bootstrapping the application.
     //
-    // Warning: think three times if you need to make the method more visible.
+    // Warning: think thrice if you need to make the method more visible.
     pub(super) async fn bootstrap_superuser(
         &self,
         permission_sets: &[PermissionSetId],
@@ -125,7 +125,7 @@ where
             )
             .await?;
 
-        todo!("check that role does not exist in DB yet");
+        // TODO check that role does not exist in DB yet
 
         let new_role = NewRole::builder()
             .id(RoleId::new())
