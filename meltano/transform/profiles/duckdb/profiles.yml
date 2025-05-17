@@ -1,0 +1,7 @@
+meltano:                      # ← must match `profile:` in dbt_project.yml
+  outputs:
+    dev:
+      type: duckdb
+      path: /Users/n/Code/lana-bank/meltano/.build/target_duckdb.db   # NEW (use $(pwd)/.build/…)
+      threads: 4
+  target: dev

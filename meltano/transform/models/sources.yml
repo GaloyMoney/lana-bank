@@ -2,9 +2,9 @@ version: 2
 
 sources:
   - name: lana
-    dataset: "{{ env_var('TARGET_BIGQUERY_DATASET', '') }}"
     tables:
       - name: public_cala_balance_history_view
+        loaded_at_field: _etl_loaded_at
         freshness:
           warn_after:
             count: 2
@@ -14,6 +14,7 @@ sources:
             period: day
 
       - name: public_cala_accounts_view
+        loaded_at_field: _etl_loaded_at
         freshness:
           warn_after:
             count: 2
@@ -23,6 +24,7 @@ sources:
             period: day
 
       - name: public_cala_account_sets_view
+        loaded_at_field: _etl_loaded_at
         freshness:
           warn_after:
             count: 2
@@ -32,6 +34,7 @@ sources:
             period: day
 
       - name: public_cala_account_set_member_accounts_view
+        loaded_at_field: _etl_loaded_at
         freshness:
           warn_after:
             count: 2
@@ -41,6 +44,7 @@ sources:
             period: day
 
       - name: public_cala_account_set_member_account_sets_view
+        loaded_at_field: _etl_loaded_at
         freshness:
           warn_after:
             count: 2
@@ -61,6 +65,7 @@ sources:
             period: day
 
       - name: public_core_credit_facility_events_view
+        loaded_at_field: _etl_loaded_at
         freshness:
           warn_after:
             count: 2
@@ -79,6 +84,7 @@ sources:
             period: day
 
       - name: public_core_deposit_accounts_view
+        loaded_at_field: _etl_loaded_at
         freshness:
           warn_after:
             count: 2
@@ -88,6 +94,7 @@ sources:
             period: day
 
       - name: public_core_deposit_events_view
+        loaded_at_field: _etl_loaded_at
         freshness:
           warn_after:
             count: 2
@@ -142,6 +149,7 @@ sources:
             period: day
 
       - name: public_core_withdrawal_events_view
+        loaded_at_field: _etl_loaded_at
         freshness:
           warn_after:
             count: 2
@@ -151,6 +159,7 @@ sources:
             period: day
 
       - name: public_core_withdrawals_view
+        loaded_at_field: _etl_loaded_at
         freshness:
           warn_after:
             count: 2
@@ -169,6 +178,7 @@ sources:
             period: day
 
       - name: bitfinex_ticker_view
+        loaded_at_field: _etl_loaded_at
         freshness:
           warn_after:
             count: 1
@@ -178,6 +188,7 @@ sources:
             period: day
 
       - name: bitfinex_trades_view
+        loaded_at_field: _etl_loaded_at
         freshness:
           warn_after:
             count: 1
@@ -187,6 +198,7 @@ sources:
             period: day
 
       - name: bitfinex_order_book_view
+        loaded_at_field: _etl_loaded_at
         freshness:
           warn_after:
             count: 1
@@ -196,6 +208,7 @@ sources:
             period: day
 
       - name: sumsub_applicants_view
+        loaded_at_field: _etl_loaded_at
         freshness:
           warn_after:
             count: 2
