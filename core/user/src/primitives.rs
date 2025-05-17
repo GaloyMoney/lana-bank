@@ -1,6 +1,8 @@
 use serde::{Deserialize, Serialize};
 use std::{borrow::Cow, fmt::Display, str::FromStr};
 
+use crate::{Action, Object};
+
 pub use audit::AuditInfo;
 pub use authz::AllOrOne;
 
@@ -63,14 +65,23 @@ impl CoreUserAction {
         CoreUserAction::User(UserAction::UpdateAuthenticationId);
 }
 
-#[derive(PartialEq, Clone, Copy, Debug, strum::Display, strum::EnumString)]
+#[derive(PartialEq, Clone, Copy, Debug, strum::Display, strum::EnumString, strum::EnumCount)]
 #[strum(serialize_all = "kebab-case")]
 pub enum RoleAction {
     Create,
     Update,
 }
 
-#[derive(PartialEq, Clone, Copy, Debug, strum::Display, strum::EnumString)]
+impl RoleAction {
+    pub const ACTIONS: [Action; <RoleAction as strum::EnumCount>::COUNT] = {
+        [
+            Action::new("create", &["role-manager"]),
+            Action::new("update", &["role-manager"]),
+        ]
+    };
+}
+
+#[derive(PartialEq, Clone, Copy, Debug, strum::Display, strum::EnumString, strum::EnumCount)]
 #[strum(serialize_all = "kebab-case")]
 pub enum UserAction {
     Read,
@@ -80,6 +91,20 @@ pub enum UserAction {
     AssignRole,
     RevokeRole,
     UpdateAuthenticationId,
+}
+
+impl UserAction {
+    pub const ACTIONS: [Action; <UserAction as strum::EnumCount>::COUNT] = {
+        [
+            Action::new("read", &["user-manager"]),
+            Action::new("create", &["user-manager"]),
+            Action::new("list", &["user-manager"]),
+            Action::new("update", &["user-manager"]),
+            Action::new("assign-role", &["user-manager"]),
+            Action::new("revoke-role", &["user-manager"]),
+            Action::new("update-authentication-id", &["user-manager"]),
+        ]
+    };
 }
 
 impl Display for CoreUserAction {
@@ -122,7 +147,7 @@ impl From<RoleAction> for CoreUserAction {
 pub type UserAllOrOne = AllOrOne<UserId>;
 pub type RoleAllOrOne = AllOrOne<RoleId>;
 
-#[derive(Clone, Copy, Debug, PartialEq, strum::EnumDiscriminants)]
+#[derive(Clone, Copy, Debug, PartialEq, strum::EnumDiscriminants, strum::EnumCount)]
 #[strum_discriminants(derive(strum::Display, strum::EnumString))]
 #[strum_discriminants(strum(serialize_all = "kebab-case"))]
 pub enum CoreUserObject {
@@ -131,6 +156,19 @@ pub enum CoreUserObject {
 }
 
 impl CoreUserObject {
+    pub const OBJECTS: [Object; <CoreUserObject as strum::EnumCount>::COUNT] = {
+        [
+            Object {
+                name: "user",
+                actions: &UserAction::ACTIONS,
+            },
+            Object {
+                name: "role",
+                actions: &RoleAction::ACTIONS,
+            },
+        ]
+    };
+
     pub const fn all_roles() -> CoreUserObject {
         CoreUserObject::Role(AllOrOne::All)
     }

@@ -48,6 +48,7 @@ where
         authz: &Authorization<Audit, RoleName>,
         outbox: &Outbox<E>,
         superuser_email: Option<String>,
+        modules: &[Module],
     ) -> Result<Self, CoreUserError> {
         let users = Users::init(pool, authz, outbox).await?;
         let publisher = UserPublisher::new(outbox);
@@ -62,7 +63,9 @@ where
         };
 
         if let Some(email) = superuser_email {
-            core_users.bootstrap_access_control(email, pool).await?;
+            core_users
+                .bootstrap_access_control(email, modules, pool)
+                .await?;
         }
 
         Ok(core_users)
@@ -141,13 +144,14 @@ where
     async fn bootstrap_access_control(
         &self,
         email: String,
+        modules: &[Module],
         pool: &sqlx::PgPool,
     ) -> Result<(), CoreUserError> {
         let mut db = DbOp::init(pool).await?;
 
         let permission_sets = self
             .permission_sets()
-            .bootstrap_permission_sets(&mut db)
+            .bootstrap_permission_sets(modules, &mut db)
             .await?;
 
         let permission_set_ids = permission_sets.iter().map(|s| s.id).collect::<Vec<_>>();
@@ -178,5 +182,33 @@ where
             users: self.users.clone(),
             permission_sets: self.permission_sets.clone(),
         }
+    }
+}
+
+#[derive(Debug)]
+pub struct Module {
+    pub name: &'static str,
+    pub objects: &'static [Object],
+}
+
+#[derive(Debug)]
+pub struct Object {
+    name: &'static str,
+    actions: &'static [Action],
+}
+
+#[derive(Debug)]
+pub struct Action {
+    name: &'static str,
+    sets: &'static [&'static str],
+}
+
+impl Action {
+    pub const fn new<const N: usize>(name: &'static str, sets: &'static [&'static str; N]) -> Self {
+        if N == 0 {
+            panic!("Every action must belong to at least one permission set.");
+        }
+
+        Self { name, sets }
     }
 }

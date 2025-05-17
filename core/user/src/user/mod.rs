@@ -306,7 +306,7 @@ where
     /// Creates a user with `email` and belonging to `role` (superuser).
     /// Used for bootstrapping the application.
     //
-    // Warning: think three times if you need to make the method more visible.
+    // Warning: think thrice if you need to make the method more visible.
     pub(super) async fn bootstrap_superuser(
         &self,
         email: String,
@@ -323,7 +323,7 @@ where
             )
             .await?;
 
-        todo!("check that user does not exist in DB yet");
+        // TODO check that user does not exist in DB yet
 
         let new_user = NewUser::builder()
             .id(UserId::new())

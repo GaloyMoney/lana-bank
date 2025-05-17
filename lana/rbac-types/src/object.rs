@@ -23,6 +23,24 @@ pub enum LanaObject {
     Dashboard(DashboardModuleObject),
 }
 
+use core_user::Module;
+
+impl LanaObject {
+    pub const MODULES: [Module; 1 /* <LanaObject as strum::EnumCount>::COUNT */] = [
+        // Module { name: "app", objects: &AppObject::OBJECTS,},
+        // Module { name: "governance", objects: &GovernanceObject::OBJECTS },
+        Module {
+            name: "user",
+            objects: &CoreUserObject::OBJECTS,
+        },
+        // Module { name: "customer", objects: &CoreCustomerObject::OBJECTS },
+        // Module { name: "accounting", objects: &CoreAccountingObject::OBJECTS },
+        // Module { name: "dashboard", objects: &DashboardModuleObject::OBJECTS },
+        // Module { name: "deposit", objects: &CoreDepositObject::OBJECTS },
+        // Module { name: "credit", objects: &CoreCreditObject::OBJECTS },
+    ];
+}
+
 impl From<AppObject> for LanaObject {
     fn from(object: AppObject) -> Self {
         LanaObject::App(object)

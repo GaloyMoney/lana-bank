@@ -16,7 +16,7 @@ use es_entity::DbOp;
 
 use crate::{
     primitives::{CoreUserAction, CoreUserObject},
-    PermissionSetId, RoleName,
+    Module, PermissionSetId, RoleName,
 };
 
 mod entity;
@@ -69,21 +69,41 @@ where
         Ok(vec![])
     }
 
+    /// Generates Permission Sets based on provided hierarchy of modules and
+    /// returns all existing Permission Sets. For use during application bootstrap.
+    //
+    // Warning: think thrice if you need to make the method more visible.
     pub(super) async fn bootstrap_permission_sets(
         &self,
+        modules: &[Module],
         db: &mut DbOp<'_>,
     ) -> Result<Vec<PermissionSet>, PermissionSetError> {
-        let permissions = HashSet::from([("abc/def/*".to_string(), "abd:def:update".to_string())]);
+        // TODO: Handle those already existing but always return all.
 
-        let new_permission_set = NewPermissionSet {
-            id: PermissionSetId::new(),
-            name: "User Manager".to_string(),
-            permissions,
-        };
+        let mut permission_sets: HashMap<_, HashSet<_>> = Default::default();
 
-        let permission_set = self.repo.create_in_op(db, new_permission_set).await?;
+        for module in modules {
+            for object in module.objects {
+                for action in object.actions {
+                    for set in action.sets {
+                        let obj = format!("{}/{}/*", module.name, object.name);
+                        let act = format!("{}:{}:{}", module.name, object.name, action.name);
+                        permission_sets.entry(set).or_default().insert((obj, act));
+                    }
+                }
+            }
+        }
 
-        Ok(vec![permission_set])
+        let new_permission_sets = permission_sets
+            .into_iter()
+            .map(|(set, permissions)| NewPermissionSet {
+                id: PermissionSetId::new(),
+                name: set.to_string(),
+                permissions,
+            })
+            .collect();
+
+        self.repo.create_all_in_op(db, new_permission_sets).await
     }
 }
 
