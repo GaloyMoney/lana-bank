@@ -29,5 +29,5 @@ fn default_jwks_url() -> String {
 }
 
 fn aud() -> String {
-    "https://admin-api/graphql".to_string()
+    "https://customer-api/graphql".to_string()
 }
