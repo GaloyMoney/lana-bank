@@ -7,13 +7,9 @@ describe("Login with two factor", () => {
     const email = generateRandomEmail()
     cy.registerUser(email).then((sessionToken) => {
       cy.setupTotp(sessionToken).then((totpSecretKey) => {
-        cy.visit("/auth")
-        cy.get('[data-test-id="auth-email-input"]').type(email)
-        cy.get('[data-test-id="auth-email-submit-btn"]').click()
-
-        cy.getOTP(email).then((otp) => {
+        cy.startAuth(email)
+        cy.submitOtp(email).then(() => {
           const totpCode = authenticator.generate(totpSecretKey)
-          cy.get('[data-test-id="auth-otp-input"]').type(otp)
           cy.get('[data-test-id="auth-totp-input"]').type(totpCode)
           cy.get('[data-test-id="auth-totp-submit-btn"]').click()
           cy.url().should("eq", Cypress.config().baseUrl + "/")
@@ -26,12 +22,8 @@ describe("Login with two factor", () => {
     const email = generateRandomEmail()
     cy.registerUser(email).then((sessionToken) => {
       cy.setupTotp(sessionToken).then(() => {
-        cy.visit("/auth")
-        cy.get('[data-test-id="auth-email-input"]').type(email)
-        cy.get('[data-test-id="auth-email-submit-btn"]').click()
-
-        cy.getOTP(email).then((otp) => {
-          cy.get('[data-test-id="auth-otp-input"]').type(otp)
+        cy.startAuth(email)
+        cy.submitOtp(email).then(() => {
           cy.get('[data-test-id="auth-totp-input"]').type("000000")
           cy.get('[data-test-id="auth-totp-submit-btn"]').click()
           cy.get('[data-test-id="auth-totp-error"]').should(
@@ -51,28 +43,23 @@ describe("Login with two factor", () => {
     cy.registerUser(email).then(() => {
       addVirtualAuthenticator()
 
-      cy.visit("/auth")
-      cy.get('[data-test-id="auth-email-input"]').type(email)
-      cy.get('[data-test-id="auth-email-submit-btn"]').click()
-
-      cy.getOTP(email).then((otp) => {
-        cy.get('[data-test-id="auth-otp-input"]').type(otp)
+      cy.startAuth(email)
+      cy.submitOtp(email).then(() => {
         cy.get('[data-test-id="enable-2fa-button"]').click()
         cy.get('[data-test-id="setup-passkey-button"]').click()
 
         // Complete passkey setup
-        cy.get('[data-test-id="passkey-name-input"]').type(passkeyName)
+        cy.get('[data-test-id="passkey-name-input"]').should("be.visible").type(passkeyName)
         cy.get('[data-test-id="submit-passkey-name"]').click()
 
-        cy.get("table").contains("td", passkeyName).should("exist")
+        cy.get("table").contains("td", passkeyName).should("be.visible")
 
         cy.clearAllCookies()
-        cy.visit("/auth")
-        cy.get('[data-test-id="auth-email-input"]').type(email)
-        cy.get('[data-test-id="auth-email-submit-btn"]').click()
+        cy.getCookies().should("be.empty")
 
-        cy.getOTP(email).then((otp) => {
-          cy.get('[data-test-id="auth-otp-input"]').type(otp)
+        cy.startAuth(email)
+        cy.submitOtp(email).then(() => {
+          cy.url().should("eq", Cypress.config().baseUrl + "/")
         })
       })
     })
