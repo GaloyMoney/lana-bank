@@ -1422,7 +1422,8 @@
         "recordedAt": "Registrado el",
         "currency": "Moneda",
         "debit": "Debe",
-        "credit": "Haber"
+        "credit": "Haber",
+        "parentAccountCode": "Código de cuenta principal"
       }
     },
     "exportCsv": {
@@ -1470,7 +1471,8 @@
       "direction": "Dirección",
       "amount": "Monto",
       "description": "Descripción",
-      "effective": "Fecha efectiva"
+      "effective": "Fecha efectiva",
+      "parentAccountCode": "Código principal"
     },
     "debitOrCredit": {
       "debit": "Debe",
@@ -1492,7 +1494,8 @@
       "debit": "Débito",
       "credit": "Crédito",
       "amount": "Monto",
-      "ledgerAccount": "Cuenta del libro mayor"
+      "ledgerAccount": "Cuenta del libro mayor",
+      "parentAccountCode": "Código de cuenta principal"
     }
   },
   "ManualTransactions": {

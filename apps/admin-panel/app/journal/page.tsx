@@ -52,6 +52,9 @@ gql`
             id
             code
             name
+            closestAccountWithCode {
+              code
+            }
           }
           ledgerTransaction {
             id
@@ -152,6 +155,18 @@ const JournalPage: React.FC = () => {
       render: (description?: string | null) => {
         if (description) return description
         return "-"
+      },
+    },
+    {
+      key: "ledgerAccount",
+      label: t("table.parentAccountCode"),
+      render: (account) => {
+        const parentCode = account.code || account.closestAccountWithCode?.code
+        return (
+          <Link href={`/ledger-account/${parentCode}`} className="hover:underline">
+            {parentCode}
+          </Link>
+        )
       },
     },
   ]

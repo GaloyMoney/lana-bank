@@ -1422,7 +1422,8 @@
         "recordedAt": "Recorded At",
         "currency": "Currency",
         "debit": "Debit",
-        "credit": "Credit"
+        "credit": "Credit",
+        "parentAccountCode": "Parent Account Code"
       }
     },
     "exportCsv": {
@@ -1470,7 +1471,8 @@
       "direction": "Direction",
       "amount": "Amount",
       "description": "Description",
-      "effective": "Effective Date"
+      "effective": "Effective Date",
+      "parentAccountCode": "Parent Code"
     },
     "debitOrCredit": {
       "debit": "Debit",
@@ -1492,7 +1494,8 @@
       "debit": "Debit",
       "credit": "Credit",
       "amount": "Amount",
-      "ledgerAccount": "Ledger Account"
+      "ledgerAccount": "Ledger Account",
+      "parentAccountCode": "Parent Account Code"
     }
   },
   "ManualTransactions": {
