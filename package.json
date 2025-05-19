@@ -2,7 +2,7 @@
   "name": "lana-bank",
   "packageManager": "pnpm@10.6.5",
   "devDependencies": {
-    "@anthropic-ai/claude-code": "^0.2.115",
+    "@anthropic-ai/claude-code": "^0.2.122",
     "@mermaid-js/mermaid-cli": "^11.4.2",
     "md-to-pdf": "^5.2.4"
   }
