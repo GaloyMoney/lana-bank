@@ -1,6 +1,7 @@
 mod disbursal_different_months;
 mod interest_under_payment;
 mod principal_late;
+mod principal_under_payment;
 mod timely_payments;
 
 use lana_app::{app::LanaApp, primitives::*};
@@ -35,6 +36,12 @@ pub async fn run(
         let app = app.clone();
         handles.push(tokio::spawn(async move {
             interest_under_payment::interest_under_payment_scenario(sub, &app).await
+        }));
+    }
+    {
+        let app = app.clone();
+        handles.push(tokio::spawn(async move {
+            principal_under_payment::principal_under_payment_scenario(sub, &app).await
         }));
     }
 
