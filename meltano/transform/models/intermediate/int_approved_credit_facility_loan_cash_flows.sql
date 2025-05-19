@@ -142,7 +142,7 @@ final as(
         accrual_cycle_interval,
         facility,
         total_disbursed,
-        completed,
+        matured,
         day_count_convention,
         annual_interest_rate,
         daily_interest_rate,

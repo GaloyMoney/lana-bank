@@ -6,77 +6,33 @@ with approved as (
 ),
 
 payments as (
-
     select
         id as credit_facility_id,
-        sum(cast(json_value(event, "$.interest_amount") as numeric))
-            as total_interest_paid,
-        sum(cast(json_value(event, "$.disbursal_amount") as numeric))
-            as total_disbursement_paid,
-        max(
-            if(
-                coalesce(
-                    cast(json_value(event, "$.interest_amount") as numeric), 0
-                )
-                > 0,
-                recorded_at,
-                null
-            )
-        ) as most_recent_interest_payment_timestamp,
-        max(
-            if(
-                coalesce(
-                    cast(json_value(event, "$.disbursal_amount") as numeric),
-                    0
-                )
-                > 0,
-                recorded_at,
-                null
-            )
-        ) as most_recent_disbursement_payment_timestamp
-
-    from {{ ref('stg_credit_facility_events') }}
-
-    where event_type = "payment_recorded"
-
+        sum(interest_amount) as total_interest_paid,
+        sum(disbursal_amount) as total_disbursement_paid,
+        max(if(interest_amount > 0, payment_allocated_at, null)) as most_recent_interest_payment_timestamp,
+        max(if(disbursal_amount > 0, payment_allocated_at, null)) as most_recent_disbursement_payment_timestamp
+    from {{ ref('int_payment_events') }}
     group by credit_facility_id
-
 ),
 
 interest as (
-
     select
         id as credit_facility_id,
-        sum(cast(json_value(event, "$.amount") as numeric))
-            as total_interest_incurred
-
+        sum(posted_total) as total_interest_incurred
     from {{ ref('stg_credit_facility_events') }}
-
-    where event_type = "interest_accrual_concluded"
-
     group by credit_facility_id
-
 ),
 
 collateral_deposits as (
 
     select
-        id as credit_facility_id,
-        parse_timestamp(
-            "%Y-%m-%dT%H:%M:%E6SZ",
-            json_value(
-                any_value(event having max recorded_at),
-                "$.recorded_at"
-            ),
-            "UTC"
-        ) as most_recent_collateral_deposit
+        credit_facility_id,
+        max(updated_recorded_at) as most_recent_collateral_deposit_at,
+        any_value(new_value having max updated_recorded_at) as most_recent_collateral_deposit_amount,
 
-    from {{ ref('stg_credit_facility_events') }}
-
-    where
-        event_type = "collateral_updated"
-        and json_value(event, "$.action") = "Add"
-
+    from {{ ref('int_collateral_events') }}
+    where action = "Add"
     group by credit_facility_id
 
 ),
@@ -84,26 +40,35 @@ collateral_deposits as (
 disbursements as (
 
     select
-        id as credit_facility_id,
-        sum(cast(json_value(event, "$.amount") as numeric)) as total_disbursed
-
-    from {{ ref('stg_credit_facility_events') }}
-
-    where event_type = "disbursal_initiated"
-
+        credit_facility_id,
+        sum(initialized_amount) as total_disbursed
+    from {{ ref('int_disbursal_events') }}
+    where approved
     group by credit_facility_id
 
 )
 
+
 select
     credit_facility_id,
     initialized_recorded_at as initialized_at,
+    initialized_recorded_at,
+    approved_recorded_at,
+    activated_recorded_at,
+    maturity_at,
     maturity_at as end_date,
+    coalesce(facility_amount, 0) as facility,
+    annual_rate,
+    one_time_fee_rate,
+    initial_cvl,
+    liquidation_cvl,
+    margin_call_cvl,
+    duration_value,
+    duration_type,
     accrual_interval,
     accrual_cycle_interval,
-    cast(null as timestamp) as most_recent_interest_payment_timestamp,
-    cast(null as timestamp) as most_recent_disbursement_payment_timestamp,
-    annual_rate,
+    most_recent_interest_payment_timestamp,
+    most_recent_disbursement_payment_timestamp,
     customer_id,
     facility_account_id,
     collateral_account_id,
@@ -117,12 +82,11 @@ select
     disbursed_receivable_overdue_account_id,
     interest_receivable_not_yet_due_account_id,
     disbursed_receivable_not_yet_due_account_id,
-    cast(null as date) most_recent_collateral_deposit,
+    most_recent_collateral_deposit_at,
     row_number() over () as credit_facility_key,
-    coalesce(facility_amount, 0) as facility,
-    coalesce(null, 0) as total_interest_paid,
-    coalesce(null, 0) as total_disbursement_paid,
-    coalesce(null, 0) as total_interest_incurred,
+    total_interest_paid,
+    total_disbursement_paid,
+    total_interest_incurred,
     coalesce(collateral, 0) as total_collateral,
     coalesce(null, 0) as total_disbursed,
     maturity_at < current_date() as matured
