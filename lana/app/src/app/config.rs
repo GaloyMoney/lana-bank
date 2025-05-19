@@ -46,4 +46,8 @@ pub struct AccountingInitConfig {
     pub deposit_config_path: Option<PathBuf>,
     #[serde(default)]
     pub credit_config_path: Option<PathBuf>,
+    #[serde(default)]
+    pub balance_sheet_config_path: Option<PathBuf>,
+    #[serde(default)]
+    pub profit_and_loss_config_path: Option<PathBuf>,
 }
