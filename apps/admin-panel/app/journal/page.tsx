@@ -159,12 +159,15 @@ const JournalPage: React.FC = () => {
     },
     {
       key: "ledgerAccount",
-      label: t("table.parentAccountCode"),
+      label: t("table.closestAccountWithCode"),
       render: (account) => {
-        const parentCode = account.code || account.closestAccountWithCode?.code
+        const closestAccountWithCode = account.closestAccountWithCode?.code
         return (
-          <Link href={`/ledger-account/${parentCode}`} className="hover:underline">
-            {parentCode}
+          <Link
+            href={`/ledger-account/${closestAccountWithCode}`}
+            className="hover:underline"
+          >
+            {closestAccountWithCode}
           </Link>
         )
       },

@@ -149,17 +149,16 @@ const LedgerTransactionPage: React.FC<LedgerTransactionPageProps> = ({ params })
               },
               {
                 key: "ledgerAccount",
-                header: t("table.parentAccountCode"),
+                header: t("table.closestAccountWithCode"),
                 render: (_, record) => {
-                  const parentCode =
-                    record.ledgerAccount?.code ||
+                  const closestAccountWithCode =
                     record.ledgerAccount?.closestAccountWithCode?.code
                   return (
                     <Link
-                      href={`/ledger-account/${parentCode}`}
+                      href={`/ledger-account/${closestAccountWithCode}`}
                       className="hover:underline"
                     >
-                      {parentCode}
+                      {closestAccountWithCode}
                     </Link>
                   )
                 },

@@ -1423,7 +1423,7 @@
         "currency": "Currency",
         "debit": "Debit",
         "credit": "Credit",
-        "parentAccountCode": "Parent Account Code"
+        "closestAccountWithCode": "Closest Account With Code"
       }
     },
     "exportCsv": {
@@ -1472,7 +1472,7 @@
       "amount": "Amount",
       "description": "Description",
       "effective": "Effective Date",
-      "parentAccountCode": "Parent Code"
+      "closestAccountWithCode": "Closest Account With Code"
     },
     "debitOrCredit": {
       "debit": "Debit",
@@ -1495,7 +1495,7 @@
       "credit": "Credit",
       "amount": "Amount",
       "ledgerAccount": "Ledger Account",
-      "parentAccountCode": "Parent Account Code"
+      "closestAccountWithCode": "Closest Account With Code"
     }
   },
   "ManualTransactions": {

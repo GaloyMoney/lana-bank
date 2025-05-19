@@ -834,7 +834,7 @@ checksums:
     ChartOfAccountsLedgerAccount/table/columns/currency: d2ba9a9cea418ea653e3ca6785617a3f
     ChartOfAccountsLedgerAccount/table/columns/debit: 1b35db901aa1aeed8ee79aec6d807731
     ChartOfAccountsLedgerAccount/table/columns/credit: 2d447a71ec815a039f175e94fbb12a56
-    ChartOfAccountsLedgerAccount/table/columns/parentAccountCode: 955587051f628785f1fafe0ca8b68ee9
+    ChartOfAccountsLedgerAccount/table/columns/closestAccountWithCode: c9e7b8a5c877605f6efd3fffbeba9e60
     ChartOfAccountsLedgerAccount/exportCsv/title: 302dcd95348b7a596a13fbfb878dd1bb
     ChartOfAccountsLedgerAccount/exportCsv/description: 6c9787ebb0e864513d708c2f03d927ed
     ChartOfAccountsLedgerAccount/exportCsv/existingExports: 70205aa948404255f6f6008638f9f4a9
@@ -870,7 +870,7 @@ checksums:
     Journal/table/amount: a0ae9c6ff98b57475cdce56f66066aa4
     Journal/table/description: e17686a22ffad04cc7bb70524ed4478b
     Journal/table/effective: aab6741517742a24eb46f529ebb94bf6
-    Journal/table/parentAccountCode: fa1edddcd986a3e1e1182c153874ad95
+    Journal/table/closestAccountWithCode: c9e7b8a5c877605f6efd3fffbeba9e60
     Journal/debitOrCredit/debit: 1b35db901aa1aeed8ee79aec6d807731
     Journal/debitOrCredit/credit: 2d447a71ec815a039f175e94fbb12a56
     LedgerTransaction/title: 5bf9168689feff46e9847d43032a002d
@@ -885,7 +885,7 @@ checksums:
     LedgerTransaction/table/credit: 2d447a71ec815a039f175e94fbb12a56
     LedgerTransaction/table/amount: a0ae9c6ff98b57475cdce56f66066aa4
     LedgerTransaction/table/ledgerAccount: d6afe57367f5001206a03de7a93d20e7
-    LedgerTransaction/table/parentAccountCode: 955587051f628785f1fafe0ca8b68ee9
+    LedgerTransaction/table/closestAccountWithCode: c9e7b8a5c877605f6efd3fffbeba9e60
     ManualTransactions/title: 53bf9bf8b9aba6e1ec1b0dcb70ca0ad8
     ManualTransactions/description: d61b154d1f4d49c1df3d2fa866c90a44
     ManualTransactions/fields/description: bbe6ebc0b363d71b3a82e8440822a618

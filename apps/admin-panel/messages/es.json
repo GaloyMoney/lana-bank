@@ -1423,7 +1423,7 @@
         "currency": "Moneda",
         "debit": "Debe",
         "credit": "Haber",
-        "parentAccountCode": "Código de cuenta principal"
+        "closestAccountWithCode": "Código de cuenta principal"
       }
     },
     "exportCsv": {
@@ -1472,7 +1472,7 @@
       "amount": "Monto",
       "description": "Descripción",
       "effective": "Fecha efectiva",
-      "parentAccountCode": "Código principal"
+      "closestAccountWithCode": "Código de cuenta principal"
     },
     "debitOrCredit": {
       "debit": "Debe",
@@ -1495,7 +1495,7 @@
       "credit": "Crédito",
       "amount": "Monto",
       "ledgerAccount": "Cuenta del libro mayor",
-      "parentAccountCode": "Código de cuenta principal"
+      "closestAccountWithCode": "Código de cuenta principal"
     }
   },
   "ManualTransactions": {
