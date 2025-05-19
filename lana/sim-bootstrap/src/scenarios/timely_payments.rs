@@ -110,6 +110,16 @@ async fn do_timely_payments(
         }
     }
 
+    // Pay off some accrued interest (if any - not deterministic as sim_time can progress and
+    // thereby interest can accrue)
+    let facility = app.credit().find_by_id(&sub, id).await?.unwrap();
+    let total_outstanding = app.credit().outstanding(&facility).await?;
+    if !total_outstanding.is_zero() {
+        app.credit()
+            .record_payment(&sub, id, total_outstanding, sim_time::now().date_naive())
+            .await?;
+    }
+
     app.credit().complete_facility(&sub, id).await?;
 
     Ok(())
