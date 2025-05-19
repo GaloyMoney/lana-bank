@@ -1,15 +1,17 @@
 mod entry;
 pub mod error;
 
-pub use entry::*;
-use error::*;
+use tracing::instrument;
+
+use cala_ledger::CalaLedger;
 
 use audit::AuditSvc;
 use authz::PermissionCheck;
 
-use cala_ledger::CalaLedger;
-
 use crate::primitives::{CalaJournalId, CoreAccountingAction, CoreAccountingObject};
+
+pub use entry::*;
+use error::*;
 
 #[derive(Clone)]
 pub struct Journal<Perms>
@@ -35,6 +37,7 @@ where
         }
     }
 
+    #[instrument(name = "accounting.journal.entries", skip(self))]
     pub async fn entries(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
