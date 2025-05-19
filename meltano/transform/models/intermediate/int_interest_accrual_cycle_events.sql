@@ -1,11 +1,12 @@
 with initialized as (
     select
-        id as credit_facility_id,
+        id as interest_accrual_cycle_id,
         recorded_at as initialized_recorded_at,
 
-        json_value(event, "$.customer_id") as customer_id,
+        json_value(event, "$.facility_id") as credit_facility_id,
+        cast(json_value(event, "$.facility_matures_at") as timestamp) as facility_matures_at,
 
-        cast(json_value(event, '$.amount') as numeric) as facility_amount,
+        cast(json_value(event, "$.idx") as integer) as idx,
 
         cast(json_value(event, "$.terms.annual_rate") as numeric) as annual_rate,
 
@@ -27,50 +28,66 @@ with initialized as (
         json_value(event, "$.terms.interest_overdue_duration.type") as interest_overdue_duration_type,
         cast(json_value(event, "$.terms.interest_overdue_duration.value") as integer) as interest_overdue_duration_value,
 
-        json_value(event, "$.account_ids.facility_account_id") as facility_account_id,
-        json_value(event, "$.account_ids.collateral_account_id") as collateral_account_id,
-        json_value(event, "$.account_ids.fee_income_account_id") as fee_income_account_id,
+        cast(json_value(event, "$.period.start") as timestamp) as period_start_at,
+        cast(json_value(event, "$.period.end") as timestamp) as period_end_at,
+        json_value(event, "$.period.interval.type") as period_interval_type,
+
         json_value(event, "$.account_ids.interest_income_account_id") as interest_income_account_id,
         json_value(event, "$.account_ids.interest_defaulted_account_id") as interest_defaulted_account_id,
-        json_value(event, "$.account_ids.disbursed_defaulted_account_id") as disbursed_defaulted_account_id,
         json_value(event, "$.account_ids.interest_receivable_due_account_id") as interest_receivable_due_account_id,
-        json_value(event, "$.account_ids.disbursed_receivable_due_account_id") as disbursed_receivable_due_account_id,
         json_value(event, "$.account_ids.interest_receivable_overdue_account_id") as interest_receivable_overdue_account_id,
-        json_value(event, "$.account_ids.disbursed_receivable_overdue_account_id") as disbursed_receivable_overdue_account_id,
         json_value(event, "$.account_ids.interest_receivable_not_yet_due_account_id") as interest_receivable_not_yet_due_account_id,
-        json_value(event, "$.account_ids.disbursed_receivable_not_yet_due_account_id") as disbursed_receivable_not_yet_due_account_id,
 
-    from {{ ref('stg_credit_facility_events') }}
+    from {{ ref('stg_interest_accrual_cycle_events') }}
     where event_type = 'initialized'
 )
 
-, approved as (
+, interest_accrued as (
     select
-        id as credit_facility_id,
-        recorded_at as approved_recorded_at,
-        cast(json_value(event, '$.approved') as boolean) as approved,
+        id as interest_accrual_cycle_id,
+        recorded_at as recorded_at,
+        cast(json_value(event, '$.amount') as numeric) as amount,
+        cast(json_value(event, '$.accrued_at') as timestamp) as accrued_at,
+        json_value(event, '$.tx_id') as tx_id,
 
-    from {{ ref('stg_credit_facility_events') }}
-    where event_type = "approval_process_concluded"
+    from {{ ref('stg_interest_accrual_cycle_events') }}
+    where event_type = "interest_accrued"
+    order by interest_accrual_cycle_id, accrued_at
 )
 
-, activated as (
+, interest_accrued_agg as (
     select
-        id as credit_facility_id,
-        recorded_at as activated_recorded_at,
-        cast(json_value(event, "$.activated_at") as timestamp) as activated_at,
+        interest_accrual_cycle_id,
+        array_agg(struct(
+            accrued_at as accrued_at,
+            amount as amount,
+            recorded_at as recorded_at,
+            tx_id as tx_id
+        )) as interest_accrued,
 
-    from {{ ref('stg_credit_facility_events') }}
-    where event_type = "activated"
+    from interest_accrued
+    group by interest_accrual_cycle_id
+)
+
+, interest_accruals_posted as (
+    select
+        id as interest_accrual_cycle_id,
+        recorded_at as interest_accruals_posted_recorded_at,
+        cast(json_value(event, '$.total') as numeric) as posted_total,
+        json_value(event, '$.tx_id') as posted_tx_id,
+        json_value(event, '$.obligation_id') as posted_obligation_id,
+
+    from {{ ref('stg_interest_accrual_cycle_events') }}
+    where event_type = "interest_accruals_posted"
+
 )
 
 , final as (
     select
-        *,
-        case when duration_type = 'months' then timestamp_add(date(activated_at), interval duration_value month) end as maturity_at,
+        *
     from initialized
-    left join approved using (credit_facility_id)
-    left join activated using (credit_facility_id)
+    left join interest_accruals_posted using (interest_accrual_cycle_id)
+    left join interest_accrued_agg using (interest_accrual_cycle_id)
 )
 
 
