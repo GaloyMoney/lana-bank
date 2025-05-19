@@ -20,7 +20,7 @@ setup-db:
 
 sqlx-prepare:
 	cargo sqlx prepare --workspace
-	
+
 reset-deps: clean-deps start-deps setup-db
 
 run-server:
@@ -81,6 +81,12 @@ test-cypress-in-ci-locally:
 	cd apps/admin-panel && pnpm cypress:run headless
 
 # Meltano
+bitfinex-run:
+	meltano run tap-bitfinexapi target-bigquery
+
+sumsub-run:
+	meltano run tap-sumsubapi target-bigquery
+
 pg2bq-run:
 	meltano run tap-postgres target-bigquery
 
@@ -93,13 +99,13 @@ check-code-pipeline:
 lint-code-pipeline:
 	meltano invoke sqlfluff:fix
 
-bitfinex-run:
-	meltano run tap-bitfinexapi target-bigquery
+bq-drop-old-run:
+	meltano run drop-old-relations
 
-sumsub-run:
-	meltano run tap-sumsubapi target-bigquery
+bq-drop-all-run:
+	meltano run drop-all-relations
 
-# misc 
+# misc
 sumsub-webhook-test: # add https://xxx.ngrok-free.app/sumsub/callback to test integration with sumsub
 	ngrok http 5253
 
