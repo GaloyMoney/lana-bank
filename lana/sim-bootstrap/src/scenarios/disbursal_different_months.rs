@@ -17,7 +17,7 @@ pub async fn disbursal_different_months_scenario(
     let deposit_amount = UsdCents::try_from_usd(dec!(10_000_000))?;
     helpers::make_deposit(&sub, app, &customer_id, deposit_amount).await?;
 
-    let cf_terms = helpers::std_terms();
+    let cf_terms = helpers::std_terms_12m();
     let cf_amount = UsdCents::try_from_usd(dec!(10_000_000))?;
     let cf = app
         .credit()
