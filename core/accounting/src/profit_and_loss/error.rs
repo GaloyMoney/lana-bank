@@ -14,8 +14,8 @@ pub enum ProfitAndLossStatementError {
     ),
     #[error("ProfitAndLossStatementError - ChartOfAccountsError: {0}")]
     ChartOfAccountsError(#[from] crate::chart_of_accounts::error::ChartOfAccountsError),
-    #[error("ProfitAndLossStatementError - ChartConfigAlreadyExists")]
-    ChartConfigAlreadyExists,
+    #[error("ProfitAndLossStatementError - ProfitAndLossStatementConfigAlreadyExists")]
+    ProfitAndLossStatementConfigAlreadyExists,
     #[error("ProfitAndLossStatementError - ChartIdMismatch")]
     ChartIdMismatch,
 }

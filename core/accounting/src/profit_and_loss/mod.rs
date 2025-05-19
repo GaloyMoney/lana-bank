@@ -15,7 +15,9 @@ use crate::{
     primitives::{BalanceRange, CalaAccountSetId, CoreAccountingAction, CoreAccountingObject},
 };
 
-pub use chart_of_accounts_integration::ChartOfAccountsIntegrationConfig;
+pub use chart_of_accounts_integration::{
+    ChartOfAccountsIntegrationConfig, ChartOfAccountsIntegrationConfigBuilderError,
+};
 use error::*;
 use ledger::*;
 
@@ -155,7 +157,7 @@ where
             .await?
             .is_some()
         {
-            return Err(ProfitAndLossStatementError::ChartConfigAlreadyExists);
+            return Err(ProfitAndLossStatementError::ProfitAndLossStatementConfigAlreadyExists);
         }
 
         let revenue_child_account_set_id_from_chart =

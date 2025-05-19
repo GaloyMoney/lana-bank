@@ -15,7 +15,9 @@ use crate::{
     primitives::{BalanceRange, CalaAccountSetId, CoreAccountingAction, CoreAccountingObject},
 };
 
-pub use chart_of_accounts_integration::ChartOfAccountsIntegrationConfig;
+pub use chart_of_accounts_integration::{
+    ChartOfAccountsIntegrationConfig, ChartOfAccountsIntegrationConfigBuilderError,
+};
 use error::*;
 use ledger::*;
 
@@ -162,7 +164,7 @@ where
             .await?
             .is_some()
         {
-            return Err(BalanceSheetError::CreditConfigAlreadyExists);
+            return Err(BalanceSheetError::BalanceSheetConfigAlreadyExists);
         }
 
         let assets_child_account_set_id_from_chart =
