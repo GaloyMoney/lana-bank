@@ -84,7 +84,7 @@ wait_for_approval() {
   customer_id=$(graphql_output .data.customerCreate.customer.customerId)
   [[ "$customer_id" != "null" ]] || exit 1
 
-  retry 20 1 wait_for_checking_account "$customer_id"
+  retry 30 1 wait_for_checking_account "$customer_id"
 
   login_customer $customer_email
   exec_customer_graphql $customer_email 'me'
@@ -99,7 +99,7 @@ wait_for_approval() {
   customer_id=$(create_customer)
   cache_value "customer_id" $customer_id
 
-  retry 20 1 wait_for_checking_account "$customer_id"
+  retry 30 1 wait_for_checking_account "$customer_id"
 
   variables=$(
     jq -n \

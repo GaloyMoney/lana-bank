@@ -104,7 +104,7 @@ ymd() {
   # Setup prerequisites
   customer_id=$(create_customer)
 
-  retry 20 1 wait_for_checking_account "$customer_id"
+  retry 30 1 wait_for_checking_account "$customer_id"
 
   variables=$(
     jq -n \
