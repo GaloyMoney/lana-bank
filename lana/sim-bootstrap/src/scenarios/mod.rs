@@ -1,4 +1,5 @@
 mod disbursal_different_months;
+mod interest_late;
 mod interest_under_payment;
 mod principal_late;
 mod principal_under_payment;
@@ -18,6 +19,12 @@ pub async fn run(
         let app = app.clone();
         handles.push(tokio::spawn(async move {
             timely_payments::timely_payments_scenario(sub, &app).await
+        }));
+    }
+    {
+        let app = app.clone();
+        handles.push(tokio::spawn(async move {
+            interest_late::interest_late_scenario(sub, &app).await
         }));
     }
     {
