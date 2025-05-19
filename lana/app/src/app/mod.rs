@@ -90,12 +90,7 @@ impl LanaApp {
             &jobs,
         );
 
-        StatementsInit::statements(
-            accounting.trial_balances(),
-            accounting.profit_and_loss(),
-            accounting.balance_sheets(),
-        )
-        .await?;
+        StatementsInit::statements(&accounting).await?;
 
         let customers = Customers::new(&pool, &authz, &outbox);
         let deposits = Deposits::init(

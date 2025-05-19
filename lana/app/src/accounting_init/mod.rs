@@ -32,12 +32,13 @@ impl JournalInit {
 pub struct StatementsInit;
 
 impl StatementsInit {
-    pub async fn statements(
-        trial_balances: &TrialBalances,
-        pl_statements: &ProfitAndLossStatements,
-        balance_sheets: &BalanceSheets,
-    ) -> Result<(), AccountingInitError> {
-        seed::statements::init(trial_balances, pl_statements, balance_sheets).await?;
+    pub async fn statements(accounting: &Accounting) -> Result<(), AccountingInitError> {
+        seed::statements::init(
+            accounting.trial_balances(),
+            accounting.profit_and_loss(),
+            accounting.balance_sheets(),
+        )
+        .await?;
         Ok(())
     }
 }
