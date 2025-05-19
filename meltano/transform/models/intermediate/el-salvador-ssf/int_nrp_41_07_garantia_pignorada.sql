@@ -6,7 +6,7 @@ select
     left(replace(customer_id, '-', ''), 14) as `nit_depositante`,
 
     -- Deposit date.
-    date(most_recent_collateral_deposit) as `fecha_deposito`,
+    date(most_recent_collateral_deposit_at) as `fecha_deposito`,
 
     -- Due date of the deposit.
     end_date as `fecha_vencimiento`,

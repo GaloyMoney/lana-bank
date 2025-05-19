@@ -7,7 +7,7 @@ with approved as (
 
 payments as (
     select
-        id as credit_facility_id,
+        credit_facility_id,
         sum(interest_amount) as total_interest_paid,
         sum(disbursal_amount) as total_disbursement_paid,
         max(if(interest_amount > 0, payment_allocated_at, null)) as most_recent_interest_payment_timestamp,
@@ -18,9 +18,9 @@ payments as (
 
 interest as (
     select
-        id as credit_facility_id,
+        credit_facility_id,
         sum(posted_total) as total_interest_incurred
-    from {{ ref('stg_credit_facility_events') }}
+    from {{ ref('int_interest_accrual_cycle_events') }}
     group by credit_facility_id
 ),
 
@@ -88,7 +88,7 @@ select
     total_disbursement_paid,
     total_interest_incurred,
     coalesce(collateral, 0) as total_collateral,
-    coalesce(null, 0) as total_disbursed,
+    total_disbursed,
     maturity_at < current_date() as matured
 
 from approved
