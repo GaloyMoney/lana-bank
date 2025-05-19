@@ -79,6 +79,7 @@ where
         )
         .fetch_all(&mut **db)
         .await?;
+        dbg!(&rows);
         let events = rows
             .into_iter()
             .zip(payloads.into_iter())

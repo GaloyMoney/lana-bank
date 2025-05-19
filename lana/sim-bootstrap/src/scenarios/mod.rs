@@ -18,18 +18,18 @@ pub async fn run(
             timely_payments::timely_payments_scenario(sub, &app).await
         }));
     }
-    {
-        let app = app.clone();
-        handles.push(tokio::spawn(async move {
-            principal_late::principal_late_scenario(sub, &app).await
-        }));
-    }
-    {
-        let app = app.clone();
-        handles.push(tokio::spawn(async move {
-            disbursal_different_months::disbursal_different_months_scenario(sub, &app).await
-        }));
-    }
+    // {
+    //     let app = app.clone();
+    //     handles.push(tokio::spawn(async move {
+    //         principal_late::principal_late_scenario(sub, &app).await
+    //     }));
+    // }
+    // {
+    //     let app = app.clone();
+    //     handles.push(tokio::spawn(async move {
+    //         disbursal_different_months::disbursal_different_months_scenario(sub, &app).await
+    //     }));
+    // }
 
     Ok(handles)
 }

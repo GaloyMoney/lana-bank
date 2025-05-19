@@ -124,6 +124,7 @@ where
             })
             .collect::<Vec<_>>();
 
+        dbg!(&events);
         self.outbox.publish_all_persisted(db.tx(), events).await?;
 
         Ok(())
