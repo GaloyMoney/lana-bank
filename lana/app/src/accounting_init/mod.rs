@@ -4,9 +4,14 @@ mod seed;
 pub mod error;
 
 use crate::{
-    accounting::ChartOfAccounts, app::AccountingInitConfig, balance_sheet::BalanceSheets,
-    credit::Credit, deposit::Deposits, primitives::CalaJournalId,
-    profit_and_loss::ProfitAndLossStatements, trial_balance::TrialBalances,
+    accounting::{Accounting, ChartOfAccounts},
+    app::AccountingInitConfig,
+    balance_sheet::BalanceSheets,
+    credit::Credit,
+    deposit::Deposits,
+    primitives::CalaJournalId,
+    profit_and_loss::ProfitAndLossStatements,
+    trial_balance::TrialBalances,
 };
 
 use cala_ledger::CalaLedger;
@@ -42,17 +47,18 @@ pub struct ChartsInit;
 
 impl ChartsInit {
     pub async fn charts_of_accounts(
-        chart_of_accounts: &ChartOfAccounts,
-        trial_balances: &TrialBalances,
+        accounting: &Accounting,
         credit: &Credit,
         deposit: &Deposits,
         accounting_init_config: AccountingInitConfig,
     ) -> Result<(), AccountingInitError> {
         seed::charts_of_accounts::init(
-            chart_of_accounts,
-            trial_balances,
+            accounting.chart_of_accounts(),
+            accounting.trial_balances(),
             credit,
             deposit,
+            accounting.balance_sheets(),
+            accounting.profit_and_loss(),
             accounting_init_config,
         )
         .await

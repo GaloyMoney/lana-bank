@@ -7,13 +7,15 @@ use crate::{
 
 use rbac_types::Subject;
 
-use super::module_config::{credit::*, deposit::*};
+use super::module_config::{balance_sheet::*, credit::*, deposit::*, profit_and_loss::*};
 
 pub(crate) async fn init(
     chart_of_accounts: &ChartOfAccounts,
     trial_balances: &TrialBalances,
     credit: &Credit,
     deposit: &Deposits,
+    balance_sheet: &BalanceSheets,
+    profit_and_loss: &ProfitAndLossStatements,
     accounting_init_config: AccountingInitConfig,
 ) -> Result<(), AccountingInitError> {
     let chart_id = create_chart_of_accounts(chart_of_accounts).await?;
@@ -24,6 +26,8 @@ pub(crate) async fn init(
             trial_balances,
             credit,
             deposit,
+            balance_sheet,
+            profit_and_loss,
             chart_id,
             path,
             accounting_init_config,
@@ -50,11 +54,14 @@ async fn create_chart_of_accounts(
     }
 }
 
+#[allow(clippy::too_many_arguments)]
 async fn seed_chart_of_accounts(
     chart_of_accounts: &ChartOfAccounts,
     trial_balances: &TrialBalances,
     credit: &Credit,
     deposit: &Deposits,
+    balance_sheet: &BalanceSheets,
+    profit_and_loss: &ProfitAndLossStatements,
     chart_id: ChartId,
     chart_of_accounts_seed_path: PathBuf,
     accounting_init_config: AccountingInitConfig,
@@ -89,7 +96,7 @@ async fn seed_chart_of_accounts(
         credit_module_configure(credit, &chart, config_path)
             .await
             .unwrap_or_else(|e| {
-                dbg!(&e); // TODO: handle the un-return error differently
+                dbg!(&e); // TODO: handle the un-returned error differently
             });
     }
 
@@ -97,7 +104,23 @@ async fn seed_chart_of_accounts(
         deposit_module_configure(deposit, &chart, config_path)
             .await
             .unwrap_or_else(|e| {
-                dbg!(&e); // TODO: handle the un-return error differently
+                dbg!(&e); // TODO: handle the un-returned error differently
+            });
+    }
+
+    if let Some(config_path) = balance_sheet_config_path {
+        balance_sheet_module_configure(balance_sheet, &chart, config_path)
+            .await
+            .unwrap_or_else(|e| {
+                dbg!(&e); // TODO: handle the un-returned error differently
+            });
+    }
+
+    if let Some(config_path) = profit_and_loss_config_path {
+        profit_and_loss_module_configure(profit_and_loss, &chart, config_path)
+            .await
+            .unwrap_or_else(|e| {
+                dbg!(&e); // TODO: handle the un-returned error differently
             });
     }
 

@@ -126,14 +126,8 @@ impl LanaApp {
             journal_init.journal_id,
         )
         .await?;
-        ChartsInit::charts_of_accounts(
-            accounting.chart_of_accounts(),
-            accounting.trial_balances(),
-            &credit,
-            &deposits,
-            config.accounting_init,
-        )
-        .await?;
+        ChartsInit::charts_of_accounts(&accounting, &credit, &deposits, config.accounting_init)
+            .await?;
 
         let terms_templates = TermsTemplates::new(&pool, &authz);
         jobs.start_poll().await?;
