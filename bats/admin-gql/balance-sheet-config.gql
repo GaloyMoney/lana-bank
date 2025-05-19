@@ -1,0 +1,10 @@
+query BalanceSheetConfig {
+  balanceSheetConfig {
+    chartOfAccountsAssetsCode
+    chartOfAccountsLiabilitiesCode
+    chartOfAccountsEquityCode
+    chartOfAccountsRevenueCode
+    chartOfAccountsCostOfRevenueCode
+    chartOfAccountsExpensesCode
+  }
+}

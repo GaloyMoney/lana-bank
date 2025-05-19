@@ -1,0 +1,7 @@
+query ProfitAndLossStatementConfig {
+  profitAndLossStatementConfig {
+    chartOfAccountsRevenueCode
+    chartOfAccountsCostOfRevenueCode
+    chartOfAccountsExpensesCode
+  }
+}

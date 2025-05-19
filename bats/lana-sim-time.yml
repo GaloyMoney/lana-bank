@@ -22,6 +22,8 @@ app:
     chart_of_accounts_seed_path: "./bats/accounting-init/coa.csv"
     credit_config_path: "./bats/accounting-init/credit-module-config.json"
     deposit_config_path: "./bats/accounting-init/deposit-module-config.json"
+    balance_sheet_config_path: "./bats/accounting-init/balance-sheet-module-config.json"
+    profit_and_loss_config_path: "./bats/accounting-init/profit-and-loss-module-config.json"
 time:
   realtime: false
   sim_time:
