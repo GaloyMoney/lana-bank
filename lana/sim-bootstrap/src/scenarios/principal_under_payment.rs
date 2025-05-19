@@ -90,8 +90,6 @@ async fn do_principal_under_payment(
     id: CreditFacilityId,
     mut obligation_amount_rx: mpsc::Receiver<(ObligationType, UsdCents)>,
 ) -> anyhow::Result<()> {
-    let one_month = std::time::Duration::from_secs(30 * 24 * 60 * 60);
-    let mut month_num = 0;
     let mut principal_remaining = UsdCents::ZERO;
 
     while let Some((obligation_type, amount)) = obligation_amount_rx.recv().await {
