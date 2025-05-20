@@ -60,6 +60,7 @@
           pname = "lana-workspace-deps"; # A distinct name for the deps build
           version = "0.0.0"; # A placeholder version for the deps build
           CARGO_PROFILE = "dev"; # Explicitly set dev profile
+          cargoExtraArgs = "--features sim-time"; # Build only the specific package
         });
 
       lanaCliPname = "lana-cli";
