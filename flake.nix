@@ -48,7 +48,7 @@
         src = rustSource;
         strictDeps = true;
 
-        buildInputs = pkgs.lib.optionals pkgs.stdenv.isDarwin;
+        buildInputs = pkgs.lib.optionals;
 
         CARGO_PROFILE = "dev";
         SQLX_OFFLINE = true;
