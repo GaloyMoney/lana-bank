@@ -2,12 +2,13 @@ mod cursor;
 pub mod error;
 mod value;
 
+use tracing::instrument;
+
 use std::collections::HashMap;
 
 use audit::AuditSvc;
 use authz::PermissionCheck;
 use cala_ledger::{CalaLedger, transaction::TransactionsByCreatedAtCursor};
-use tracing::instrument;
 
 use crate::primitives::{CoreAccountingAction, CoreAccountingObject, LedgerTransactionId};
 
@@ -37,7 +38,11 @@ where
         }
     }
 
-    #[instrument(name = "accounting.ledger_transaction.find_by_id", skip(self), err)]
+    #[instrument(
+        name = "core_accounting.ledger_transaction.find_by_id",
+        skip(self),
+        err
+    )]
     pub async fn find_by_id(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
@@ -64,6 +69,7 @@ where
         Ok(res)
     }
 
+    #[instrument(name = "core_accounting.ledger_transaction.find_all", skip(self), err)]
     pub async fn find_all<T: From<LedgerTransaction>>(
         &self,
         ids: &[LedgerTransactionId],
@@ -108,7 +114,7 @@ where
     }
 
     #[instrument(
-        name = "accounting.ledger_transaction.list_for_template_code",
+        name = "core_accounting.ledger_transaction.list_for_template_code",
         skip(self),
         err
     )]

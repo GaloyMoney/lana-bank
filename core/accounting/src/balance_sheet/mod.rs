@@ -2,6 +2,8 @@ mod chart_of_accounts_integration;
 pub mod error;
 pub mod ledger;
 
+use tracing::instrument;
+
 use audit::AuditSvc;
 use authz::PermissionCheck;
 use cala_ledger::CalaLedger;
@@ -95,6 +97,7 @@ where
         }
     }
 
+    #[instrument(name = "core_accounting.balance_sheet.create", skip(self), err)]
     pub async fn create_balance_sheet(&self, name: String) -> Result<(), BalanceSheetError> {
         let mut op = es_entity::DbOp::init(&self.pool).await?;
 
@@ -114,6 +117,11 @@ where
         }
     }
 
+    #[instrument(
+        name = "core_accounting.balance_sheet.get_integration_config",
+        skip(self),
+        err
+    )]
     pub async fn get_chart_of_accounts_integration_config(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
@@ -132,6 +140,11 @@ where
             .await?)
     }
 
+    #[instrument(
+        name = "core_accounting.balance_sheet.set_integration_config",
+        skip(self, chart),
+        err
+    )]
     pub async fn set_chart_of_accounts_integration_config(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
@@ -193,6 +206,7 @@ where
         Ok(config)
     }
 
+    #[instrument(name = "core_accounting.balance_sheet.balance_sheet", skip(self), err)]
     pub async fn balance_sheet(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,

@@ -4,6 +4,8 @@ mod ledger;
 mod primitives;
 mod repo;
 
+use tracing::instrument;
+
 use std::collections::HashMap;
 
 use audit::AuditSvc;
@@ -55,6 +57,11 @@ where
         }
     }
 
+    #[instrument(
+        name = "core_accounting.manual_transaction.find_by_id",
+        skip(self),
+        err
+    )]
     pub async fn find_manual_transaction_by_id(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
@@ -76,6 +83,7 @@ where
         }
     }
 
+    #[instrument(name = "core_accounting.manual_transaction.list", skip(self), err)]
     pub async fn list_manual_transactions(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
@@ -97,6 +105,7 @@ where
             .await
     }
 
+    #[instrument(name = "core_accounting.manual_transaction.find_all", skip(self), err)]
     pub async fn find_all<T: From<ManualTransaction>>(
         &self,
         ids: &[ManualTransactionId],

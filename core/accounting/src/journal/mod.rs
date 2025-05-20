@@ -37,7 +37,7 @@ where
         }
     }
 
-    #[instrument(name = "accounting.journal.entries", skip(self))]
+    #[instrument(name = "core_accounting.journal.entries", skip(self), err)]
     pub async fn entries(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,

@@ -1,6 +1,7 @@
 pub mod error;
 
 use std::collections::HashMap;
+use tracing::instrument;
 
 use audit::AuditSvc;
 use authz::PermissionCheck;
@@ -38,6 +39,7 @@ where
         }
     }
 
+    #[instrument(name = "core_accounting.transaction_template.list", skip(self), err)]
     pub async fn list(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
@@ -67,6 +69,11 @@ where
         })
     }
 
+    #[instrument(
+        name = "core_accounting.transaction_template.find_all",
+        skip(self),
+        err
+    )]
     pub async fn find_all<T: From<TransactionTemplate>>(
         &self,
         ids: &[TransactionTemplateId],

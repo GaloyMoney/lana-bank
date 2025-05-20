@@ -3,6 +3,7 @@ pub mod error;
 pub mod ledger;
 
 use chrono::NaiveDate;
+use tracing::instrument;
 
 use audit::AuditSvc;
 use authz::PermissionCheck;
@@ -77,6 +78,7 @@ where
         }
     }
 
+    #[instrument(name = "core_accounting.profit_and_loss.create", skip(self), err)]
     pub async fn create_pl_statement(
         &self,
         name: String,
@@ -99,6 +101,11 @@ where
         }
     }
 
+    #[instrument(
+        name = "core_accounting.profit_and_loss.get_integration_config",
+        skip(self),
+        err
+    )]
     pub async fn get_chart_of_accounts_integration_config(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
@@ -117,6 +124,11 @@ where
             .await?)
     }
 
+    #[instrument(
+        name = "core_accounting.profit_and_loss.set_integration_config",
+        skip(self, chart),
+        err
+    )]
     pub async fn set_chart_of_accounts_integration_config(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
@@ -169,6 +181,7 @@ where
         Ok(config)
     }
 
+    #[instrument(name = "core_accounting.profit_and_loss.pl_statement", skip(self), err)]
     pub async fn pl_statement(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,

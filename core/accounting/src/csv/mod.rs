@@ -5,13 +5,15 @@ mod job;
 mod primitives;
 mod repo;
 
-use crate::Jobs;
-use crate::Storage;
+use tracing::instrument;
+
 use audit::AuditSvc;
 use authz::PermissionCheck;
 
+use crate::Jobs;
+use crate::Storage;
+
 use es_entity::ListDirection;
-pub use repo::accounting_csv_cursor::AccountingCsvsByCreatedAtCursor;
 
 use super::{
     CoreAccountingAction, CoreAccountingObject,
@@ -23,6 +25,7 @@ pub use entity::*;
 use error::*;
 use job::*;
 pub use primitives::*;
+pub use repo::accounting_csv_cursor::AccountingCsvsByCreatedAtCursor;
 use repo::*;
 
 #[derive(Clone)]
@@ -66,6 +69,7 @@ where
         }
     }
 
+    #[instrument(name = "core_accounting.csv.create", skip(self), err)]
     pub async fn create_ledger_account_csv(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
@@ -108,6 +112,7 @@ where
         Ok(csv)
     }
 
+    #[instrument(name = "core_accounting.csv.generate_download_link", skip(self), err)]
     pub async fn generate_download_link(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
@@ -137,6 +142,11 @@ where
         })
     }
 
+    #[instrument(
+        name = "core_accounting.csv.list_for_ledger_account_id",
+        skip(self),
+        err
+    )]
     pub async fn list_for_ledger_account_id(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
@@ -169,6 +179,7 @@ where
         Ok(csvs)
     }
 
+    #[instrument(name = "core_accounting.csv.find_all", skip(self), err)]
     pub async fn find_all<T: From<AccountingCsv>>(
         &self,
         ids: &[AccountingCsvId],

@@ -4,21 +4,22 @@ pub mod error;
 mod repo;
 pub mod tree;
 
-pub(super) use csv::{CsvParseError, CsvParser};
-pub use entity::Chart;
-pub(super) use entity::*;
-pub(super) use repo::*;
+use tracing::instrument;
 
 use audit::AuditSvc;
 use authz::PermissionCheck;
 
 use cala_ledger::{CalaLedger, account_set::NewAccountSet};
-use tracing::instrument;
 
 use crate::primitives::{
     CalaAccountSetId, CalaJournalId, ChartId, CoreAccountingAction, CoreAccountingObject,
 };
+
+pub(super) use csv::{CsvParseError, CsvParser};
+pub use entity::Chart;
+pub(super) use entity::*;
 use error::*;
+pub(super) use repo::*;
 
 pub struct ChartOfAccounts<Perms>
 where
@@ -65,7 +66,11 @@ where
         }
     }
 
-    #[instrument(name = "chart_of_accounts.create_chart", skip(self))]
+    #[instrument(
+        name = "core_accounting.chart_of_accounts.create_chart",
+        skip(self),
+        err
+    )]
     pub async fn create_chart(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
@@ -98,7 +103,11 @@ where
         Ok(chart)
     }
 
-    #[instrument(name = "chart_of_account.import_from_csv", skip(self, data))]
+    #[instrument(
+        name = "core_accounting.chart_of_accounts.import_from_csv",
+        skip(self, data),
+        err
+    )]
     pub async fn import_from_csv(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
@@ -168,7 +177,7 @@ where
         ))
     }
 
-    #[instrument(name = "chart_of_accounts.find_by_id", skip(self), err)]
+    #[instrument(name = "core_accounting.chart_of_accounts.find_by_id", skip(self), err)]
     pub async fn find_by_id(
         &self,
         id: impl Into<ChartId> + std::fmt::Debug,
@@ -176,7 +185,11 @@ where
         self.repo.find_by_id(id.into()).await
     }
 
-    #[instrument(name = "chart_of_accounts.find_by_reference_with_sub", skip(self))]
+    #[instrument(
+        name = "core_accounting.chart_of_accounts.find_by_reference_with_sub",
+        skip(self),
+        err
+    )]
     pub async fn find_by_reference_with_sub(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
@@ -193,7 +206,11 @@ where
         self.find_by_reference(reference).await
     }
 
-    #[instrument(name = "chart_of_accounts.find_by_reference", skip(self))]
+    #[instrument(
+        name = "core_accounting.chart_of_accounts.find_by_reference",
+        skip(self),
+        err
+    )]
     pub async fn find_by_reference(
         &self,
         reference: &str,
@@ -208,7 +225,7 @@ where
         Ok(chart)
     }
 
-    #[instrument(name = "chart_of_accounts.find_all", skip(self), err)]
+    #[instrument(name = "core_accounting.chart_of_accounts.find_all", skip(self), err)]
     pub async fn find_all<T: From<Chart>>(
         &self,
         ids: &[ChartId],

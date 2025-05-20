@@ -45,10 +45,11 @@ where
         }
     }
 
+    #[instrument(name = "core_accounting.ledger_account.history", skip(self), err)]
     pub async fn history(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        id: impl Into<LedgerAccountId>,
+        id: impl Into<LedgerAccountId> + std::fmt::Debug,
         args: es_entity::PaginatedQueryArgs<JournalEntryCursor>,
     ) -> Result<es_entity::PaginatedQueryRet<JournalEntry, JournalEntryCursor>, LedgerAccountError>
     {
@@ -64,9 +65,14 @@ where
         Ok(self.ledger.ledger_account_history(id, args).await?)
     }
 
+    #[instrument(
+        name = "core_accounting.ledger_account.complete_history",
+        skip(self),
+        err
+    )]
     pub(crate) async fn complete_history(
         &self,
-        id: impl Into<LedgerAccountId> + Copy,
+        id: impl Into<LedgerAccountId> + Copy + std::fmt::Debug,
     ) -> Result<Vec<JournalEntry>, LedgerAccountError> {
         let id = id.into();
 
@@ -93,7 +99,11 @@ where
         Ok(all_entries)
     }
 
-    #[instrument(name = "accounting.ledger_account.find_by_id", skip(self, chart), err)]
+    #[instrument(
+        name = "core_accounting.ledger_account.find_by_id",
+        skip(self, chart),
+        err
+    )]
     pub async fn find_by_id(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
@@ -112,7 +122,11 @@ where
         Ok(accounts.remove(&id))
     }
 
-    #[instrument(name = "accounting.ledger_account.find_by_id", skip(self, chart), err)]
+    #[instrument(
+        name = "core_accounting.ledger_account.find_by_id",
+        skip(self, chart),
+        err
+    )]
     pub async fn find_by_code(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
@@ -139,6 +153,11 @@ where
         }
     }
 
+    #[instrument(
+        name = "core_accounting.ledger_account.find_all",
+        skip(self, chart),
+        err
+    )]
     pub async fn find_all<T: From<LedgerAccount>>(
         &self,
         chart: &Chart,
@@ -155,6 +174,11 @@ where
     }
 
     #[allow(clippy::too_many_arguments)]
+    #[instrument(
+        name = "core_accounting.ledger_account.list_account_children",
+        skip(self, chart),
+        err
+    )]
     pub async fn list_account_children(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
@@ -217,6 +241,11 @@ where
     /// Pushes into `account`'s `ancestor_ids` ancestors from the chart of account. The ancestors
     /// are pushed in ascending order, the root of the chart of accounts is pushed last. `account`
     /// itself is not pushed.
+    #[instrument(
+        name = "core_accounting.ledger_account.populate_ancestors",
+        skip(self, chart, account),
+        err
+    )]
     async fn populate_ancestors(
         &self,
         chart: &Chart,
@@ -236,6 +265,11 @@ where
         Ok(())
     }
 
+    #[instrument(
+        name = "core_accounting.ledger_account.populate_children",
+        skip(self, chart, account),
+        err
+    )]
     async fn populate_children(
         &self,
         chart: &Chart,
