@@ -88,6 +88,11 @@ pg_event() {
     event=$(psql $DATABASE_URL -P format=unaligned -P tuples_only -c "select event from ${table} where event_type = '${event_type}' order by id, sequence limit 1")
     [[ "$event" != "" ]] || (echo "Missing ${table} -> ${event_type}" && exit 1)
     declare -a fields=(
+      ".collateral"
+      ".price"
+      ".state"
+      ".outstanding.interest"
+      ".outstanding.disbursed"
     )
     for field in "${fields[@]}"
     do
@@ -120,6 +125,11 @@ pg_event() {
     event=$(psql $DATABASE_URL -P format=unaligned -P tuples_only -c "select event from ${table} where event_type = '${event_type}' order by id, sequence limit 1")
     [[ "$event" != "" ]] || (echo "Missing ${table} -> ${event_type}" && exit 1)
     declare -a fields=(
+      ".idx"
+      ".interest_accrual_id"
+      ".period.start"
+      ".period.end"
+      ".period.interval.type"
     )
     for field in "${fields[@]}"
     do
@@ -136,6 +146,7 @@ pg_event() {
     event=$(psql $DATABASE_URL -P format=unaligned -P tuples_only -c "select event from ${table} where event_type = '${event_type}' order by id, sequence limit 1")
     [[ "$event" != "" ]] || (echo "Missing ${table} -> ${event_type}" && exit 1)
     declare -a fields=(
+      ".idx"
     )
     for field in "${fields[@]}"
     do
@@ -200,7 +211,6 @@ pg_event() {
     declare -a fields=(
       ".facility_id"
       ".amount"
-      ".audit_info.audit_entry_id"
       ".account_ids.facility_account_id"
       ".account_ids.collateral_account_id"
       ".account_ids.fee_income_account_id"
@@ -228,7 +238,6 @@ pg_event() {
     [[ "$event" != "" ]] || (echo "Missing ${table} -> ${event_type}" && exit 1)
     declare -a fields=(
       ".approved"
-      ".audit_info.audit_entry_id"
     )
     for field in "${fields[@]}"
     do
@@ -246,7 +255,6 @@ pg_event() {
     declare -a fields=(
       ".recorded_at"
       ".amount"
-      ".audit_info.audit_entry_id"
       ".ledger_tx_id"
       ".obligation_id"
     )
