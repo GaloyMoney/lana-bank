@@ -8,24 +8,24 @@ with initialized as (
         cast(json_value(event, '$.amount') as numeric) as facility_amount,
 
         cast(json_value(event, "$.terms.annual_rate") as numeric) as annual_rate,
+        cast(json_value(event, "$.terms.one_time_fee_rate") as numeric) as one_time_fee_rate,
 
         cast(json_value(event, "$.terms.initial_cvl") as numeric) as initial_cvl,
         cast(json_value(event, "$.terms.liquidation_cvl") as numeric) as liquidation_cvl,
         cast(json_value(event, "$.terms.margin_call_cvl") as numeric) as margin_call_cvl,
 
-        cast(json_value(event, "$.terms.one_time_fee_rate") as numeric) as one_time_fee_rate,
 
-        json_value(event, "$.terms.duration.type") as duration_type,
         cast(json_value(event, "$.terms.duration.value") as integer) as duration_value,
+        json_value(event, "$.terms.duration.type") as duration_type,
 
         json_value(event, "$.terms.accrual_interval.type") as accrual_interval,
         json_value(event, "$.terms.accrual_cycle_interval.type") as accrual_cycle_interval,
 
-        json_value(event, "$.terms.interest_due_duration.type") as interest_due_duration_type,
         cast(json_value(event, "$.terms.interest_due_duration.value") as integer) as interest_due_duration_value,
+        json_value(event, "$.terms.interest_due_duration.type") as interest_due_duration_type,
 
-        json_value(event, "$.terms.interest_overdue_duration.type") as interest_overdue_duration_type,
         cast(json_value(event, "$.terms.interest_overdue_duration.value") as integer) as interest_overdue_duration_value,
+        json_value(event, "$.terms.interest_overdue_duration.type") as interest_overdue_duration_type,
 
         json_value(event, "$.account_ids.facility_account_id") as facility_account_id,
         json_value(event, "$.account_ids.collateral_account_id") as collateral_account_id,

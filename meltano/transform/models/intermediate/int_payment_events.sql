@@ -19,8 +19,8 @@ with initialized as (
         coalesce(cast(json_value(event, '$.interest') as numeric), 0) as interest_amount,
         coalesce(cast(json_value(event, '$.disbursal') as numeric), 0) as disbursal_amount,
 
-    from {{ ref('stg_credit_facility_events') }}
-    where event_type = "approval_process_concluded"
+    from {{ ref('stg_payment_events') }}
+    where event_type = "payment_allocated"
 )
 
 , final as (
