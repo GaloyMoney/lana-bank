@@ -48,8 +48,6 @@
         src = rustSource;
         strictDeps = true;
 
-        buildInputs = pkgs.lib.optionals;
-
         CARGO_PROFILE = "dev";
         SQLX_OFFLINE = true;
         # No specific package name for commonArgs, it's for general settings
