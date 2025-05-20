@@ -237,10 +237,10 @@ impl TermsTemplateAction {
 
         for variant in <Self as strum::VariantArray>::VARIANTS {
             let set = match variant {
-                Read => vec!["set1"],
-                Update => vec!["set1", "set2"],
-                Create => vec!["set1"],
-                List => vec!["set1"],
+                Read => &[PERMISSION_SET_ACCOUNTANT],
+                Update => &[PERMISSION_SET_BANK_MANAGER],
+                Create => &[PERMISSION_SET_BANK_MANAGER],
+                List => &[PERMISSION_SET_BANK_MANAGER],
             };
             res.push(ActionDescription::new(variant, set));
         }
@@ -263,7 +263,7 @@ impl AuditAction {
 
         for variant in <Self as strum::VariantArray>::VARIANTS {
             let set = match variant {
-                AuditAction::List => vec!["set1"],
+                AuditAction::List => &[PERMISSION_SET_ADMIN],
             };
             res.push(ActionDescription::new(variant, set));
         }
@@ -291,12 +291,12 @@ impl DocumentAction {
 
         for variant in <Self as strum::VariantArray>::VARIANTS {
             let set = match variant {
-                Self::Create => vec!["setA"],
-                Self::Read => vec!["setA"],
-                Self::List => vec!["setA"],
-                Self::GenerateDownloadLink => vec!["setA"],
-                Self::Delete => vec!["setA"],
-                Self::Archive => vec!["setA"],
+                Self::Create => &[PERMISSION_SET_BANK_MANAGER],
+                Self::Read => &[PERMISSION_SET_ACCOUNTANT],
+                Self::List => &[PERMISSION_SET_ACCOUNTANT],
+                Self::GenerateDownloadLink => &[PERMISSION_SET_ACCOUNTANT],
+                Self::Delete => &[PERMISSION_SET_BANK_MANAGER],
+                Self::Archive => &[PERMISSION_SET_BANK_MANAGER],
             };
             res.push(ActionDescription::new(variant, set));
         }
@@ -323,11 +323,11 @@ impl ReportAction {
 
         for variant in <Self as strum::VariantArray>::VARIANTS {
             let set = match variant {
-                ReportAction::Read => vec!["set1"],
-                ReportAction::List => vec!["set1"],
-                ReportAction::Create => vec!["set1", "set2"],
-                ReportAction::Upload => vec!["set1"],
-                ReportAction::GenerateDownloadLink => vec!["set1", "set2"],
+                ReportAction::Read => &[PERMISSION_SET_ADMIN],
+                ReportAction::List => &[PERMISSION_SET_ADMIN],
+                ReportAction::Create => &[PERMISSION_SET_ADMIN],
+                ReportAction::Upload => &[PERMISSION_SET_ADMIN],
+                ReportAction::GenerateDownloadLink => &[PERMISSION_SET_ADMIN],
             };
             res.push(ActionDescription::new(variant, set));
         }

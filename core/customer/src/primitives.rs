@@ -1,9 +1,8 @@
-use authz::permission_set::{ActionDescription, NoPath};
 use serde::{Deserialize, Serialize};
 use std::{fmt::Display, str::FromStr};
 
 pub use audit::AuditInfo;
-pub use authz::AllOrOne;
+pub use authz::{permission_set::*, AllOrOne};
 
 es_entity::entity_id! {
     CustomerId;
@@ -192,14 +191,14 @@ impl CustomerEntityAction {
 
         for variant in <Self as strum::VariantArray>::VARIANTS {
             let set = match variant {
-                Self::Create => vec!["set1"],
-                Self::Read => vec!["set1"],
-                Self::List => vec!["set1"],
-                Self::Update => vec!["set1"],
-                Self::UpdateAuthenticationId => vec!["set1"],
-                Self::StartKyc => vec!["set1"],
-                Self::ApproveKyc => vec!["set1"],
-                Self::DeclineKyc => vec!["set1"],
+                Self::Create => &[PERMISSION_SET_BANK_MANAGER],
+                Self::Read => &[PERMISSION_SET_ACCOUNTANT],
+                Self::List => &[PERMISSION_SET_ACCOUNTANT],
+                Self::Update => &[PERMISSION_SET_BANK_MANAGER],
+                Self::UpdateAuthenticationId => &[PERMISSION_SET_ADMIN],
+                Self::StartKyc => &[PERMISSION_SET_ADMIN],
+                Self::ApproveKyc => &[PERMISSION_SET_ADMIN],
+                Self::DeclineKyc => &[PERMISSION_SET_ADMIN],
             };
             res.push(ActionDescription::new(variant, set));
         }

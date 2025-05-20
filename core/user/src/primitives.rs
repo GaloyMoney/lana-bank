@@ -1,9 +1,8 @@
-use authz::permission_set::{ActionDescription, NoPath};
 use serde::{Deserialize, Serialize};
 use std::{borrow::Cow, fmt::Display, str::FromStr};
 
 pub use audit::AuditInfo;
-pub use authz::AllOrOne;
+pub use authz::{permission_set::*, AllOrOne};
 
 #[cfg(feature = "governance")]
 es_entity::entity_id! {
@@ -94,8 +93,8 @@ impl RoleAction {
 
         for variant in <Self as strum::VariantArray>::VARIANTS {
             let set = match variant {
-                Self::Create => vec!["set1"],
-                Self::Update => vec!["set1"],
+                Self::Create => &[PERMISSION_SET_ADMIN],
+                Self::Update => &[PERMISSION_SET_ADMIN],
             };
             res.push(ActionDescription::new(variant, set));
         }
@@ -122,13 +121,13 @@ impl UserAction {
 
         for variant in <Self as strum::VariantArray>::VARIANTS {
             let set = match variant {
-                Self::Create => vec!["set1"],
-                Self::Read => vec!["set1"],
-                Self::List => vec!["set1"],
-                Self::Update => vec!["set1"],
-                Self::AssignRole => vec!["set1"],
-                Self::RevokeRole => vec!["set1"],
-                Self::UpdateAuthenticationId => vec!["set1"],
+                Self::Create => &[PERMISSION_SET_ADMIN],
+                Self::Read => &[PERMISSION_SET_ADMIN],
+                Self::List => &[PERMISSION_SET_ADMIN],
+                Self::Update => &[PERMISSION_SET_ADMIN],
+                Self::AssignRole => &[PERMISSION_SET_SUPERUSER],
+                Self::RevokeRole => &[PERMISSION_SET_SUPERUSER],
+                Self::UpdateAuthenticationId => &[PERMISSION_SET_ADMIN],
             };
             res.push(ActionDescription::new(variant, set));
         }

@@ -5,10 +5,7 @@ use serde::{Deserialize, Serialize};
 
 use std::str::FromStr;
 
-use authz::{
-    permission_set::{ActionDescription, NoPath},
-    AllOrOne,
-};
+use authz::{permission_set::*, AllOrOne};
 
 pub use cala_ledger::primitives::{
     AccountId as CalaAccountId, AccountSetId as CalaAccountSetId, Currency,
@@ -319,15 +316,15 @@ impl CreditFacilityAction {
 
         for variant in <Self as strum::VariantArray>::VARIANTS {
             let set = match variant {
-                Self::Create => vec!["set1"],
-                Self::Read => vec!["set1"],
-                Self::List => vec!["set1"],
-                Self::ConcludeApprovalProcess => vec!["set1"],
-                Self::Activate => vec!["set1"],
-                Self::UpdateCollateral => vec!["set1"],
-                Self::RecordInterest => vec!["set1"],
-                Self::Complete => vec!["set1"],
-                Self::UpdateCollateralizationState => vec!["set1"],
+                Self::Create => &[PERMISSION_SET_BANK_MANAGER],
+                Self::Read => &[PERMISSION_SET_BANK_MANAGER],
+                Self::List => &[PERMISSION_SET_BANK_MANAGER],
+                Self::ConcludeApprovalProcess => &[PERMISSION_SET_BANK_MANAGER],
+                Self::Activate => &[PERMISSION_SET_BANK_MANAGER],
+                Self::UpdateCollateral => &[PERMISSION_SET_BANK_MANAGER],
+                Self::RecordInterest => &[PERMISSION_SET_BANK_MANAGER],
+                Self::Complete => &[PERMISSION_SET_BANK_MANAGER],
+                Self::UpdateCollateralizationState => &[PERMISSION_SET_BANK_MANAGER],
             };
             res.push(ActionDescription::new(variant, set));
         }
@@ -356,9 +353,9 @@ impl DisbursalAction {
 
         for variant in <Self as strum::VariantArray>::VARIANTS {
             let set = match variant {
-                Self::Initiate => vec!["set1"],
-                Self::Settle => vec!["set1"],
-                Self::List => vec!["set1"],
+                Self::Initiate => &[PERMISSION_SET_BANK_MANAGER],
+                Self::Settle => &[PERMISSION_SET_BANK_MANAGER],
+                Self::List => &[PERMISSION_SET_BANK_MANAGER],
             };
             res.push(ActionDescription::new(variant, set));
         }
@@ -386,8 +383,8 @@ impl ChartOfAccountsIntegrationConfigAction {
 
         for variant in <Self as strum::VariantArray>::VARIANTS {
             let set = match variant {
-                Self::Read => vec!["set1"],
-                Self::Update => vec!["set1"],
+                Self::Read => &[PERMISSION_SET_BANK_MANAGER],
+                Self::Update => &[PERMISSION_SET_BANK_MANAGER],
             };
             res.push(ActionDescription::new(variant, set));
         }
@@ -416,9 +413,9 @@ impl ObligationAction {
 
         for variant in <Self as strum::VariantArray>::VARIANTS {
             let set = match variant {
-                Self::Read => vec!["set1"],
-                Self::UpdateStatus => vec!["set1"],
-                Self::RecordPaymentAllocation => vec!["set1"],
+                Self::Read => &[PERMISSION_SET_BANK_MANAGER],
+                Self::UpdateStatus => &[PERMISSION_SET_BANK_MANAGER],
+                Self::RecordPaymentAllocation => &[PERMISSION_SET_BANK_MANAGER],
             };
             res.push(ActionDescription::new(variant, set));
         }

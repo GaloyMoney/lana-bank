@@ -10,10 +10,7 @@ pub mod role;
 pub mod user;
 
 use audit::AuditSvc;
-use authz::{
-    permission_set::{ActionDescription, FullPath},
-    Authorization, PermissionCheck as _,
-};
+use authz::{Authorization, PermissionCheck as _};
 use es_entity::DbOp;
 use outbox::{Outbox, OutboxEventMarker};
 use permission_set::PermissionSets;

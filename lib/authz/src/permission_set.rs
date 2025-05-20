@@ -1,5 +1,10 @@
 use std::fmt::{Debug, Display};
 
+pub const PERMISSION_SET_SUPERUSER: &str = "superuser";
+pub const PERMISSION_SET_ADMIN: &str = "admin";
+pub const PERMISSION_SET_BANK_MANAGER: &str = "bank-manager";
+pub const PERMISSION_SET_ACCOUNTANT: &str = "accountant";
+
 /// Marker for actions with no path segment provided.
 pub struct NoPath;
 
@@ -15,17 +20,20 @@ pub struct FullPath(String, String);
 pub struct ActionDescription<P> {
     path: P,
     name: String,
-    permission_sets: Vec<&'static str>,
+    permission_sets: &'static [&'static str],
 }
 
 impl<P> ActionDescription<P> {
     pub fn permission_sets(&self) -> &[&'static str] {
-        &self.permission_sets
+        self.permission_sets
     }
 }
 
 impl ActionDescription<NoPath> {
-    pub fn new<D: core::fmt::Display>(name: D, permission_sets: Vec<&'static str>) -> Self {
+    pub fn new<D: core::fmt::Display, const N: usize>(
+        name: D,
+        permission_sets: &'static [&'static str; N],
+    ) -> Self {
         Self {
             path: NoPath,
             name: name.to_string(),

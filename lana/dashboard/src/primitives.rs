@@ -1,6 +1,6 @@
 use std::{fmt::Display, str::FromStr};
 
-use authz::permission_set::{ActionDescription, NoPath};
+use authz::permission_set::*;
 
 #[derive(Clone, Copy, Debug, PartialEq, strum::EnumDiscriminants)]
 #[strum_discriminants(derive(strum::Display, strum::EnumString, strum::VariantArray))]
@@ -66,7 +66,7 @@ impl DashboardAction {
 
         for variant in <Self as strum::VariantArray>::VARIANTS {
             let set = match variant {
-                Self::Read => vec!["set1"],
+                Self::Read => &[PERMISSION_SET_BANK_MANAGER],
             };
             res.push(ActionDescription::new(variant, set));
         }

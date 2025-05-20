@@ -1,10 +1,7 @@
 use serde::{Deserialize, Serialize};
 use std::{borrow::Cow, fmt::Display, str::FromStr};
 
-use authz::{
-    permission_set::{ActionDescription, NoPath},
-    AllOrOne,
-};
+use authz::{permission_set::*, AllOrOne};
 es_entity::entity_id! { ApprovalProcessId, CommitteeId, PolicyId, CommitteeMemberId }
 
 #[cfg_attr(feature = "graphql", derive(async_graphql::Enum))]
@@ -144,11 +141,11 @@ impl CommitteeAction {
 
         for variant in <Self as strum::VariantArray>::VARIANTS {
             let set = match variant {
-                Self::Create => vec!["set1"],
-                Self::AddMember => vec!["set1", "set2"],
-                Self::RemoveMember => vec!["set1"],
-                Self::Read => vec!["set1"],
-                Self::List => vec!["set1"],
+                Self::Create => &[PERMISSION_SET_ADMIN],
+                Self::AddMember => &[PERMISSION_SET_ADMIN],
+                Self::RemoveMember => &[PERMISSION_SET_ADMIN],
+                Self::Read => &[PERMISSION_SET_ADMIN],
+                Self::List => &[PERMISSION_SET_ADMIN],
             };
             res.push(ActionDescription::new(variant, set));
         }
@@ -172,10 +169,10 @@ impl PolicyAction {
 
         for variant in <Self as strum::VariantArray>::VARIANTS {
             let set = match variant {
-                Self::Create => vec!["set1"],
-                Self::Read => vec!["set1"],
-                Self::List => vec!["set1"],
-                Self::UpdatePolicyRules => vec!["set1"],
+                Self::Create => &[PERMISSION_SET_ADMIN],
+                Self::Read => &[PERMISSION_SET_ADMIN],
+                Self::List => &[PERMISSION_SET_ADMIN],
+                Self::UpdatePolicyRules => &[PERMISSION_SET_ADMIN],
             };
             res.push(ActionDescription::new(variant, set));
         }
@@ -201,12 +198,12 @@ impl ApprovalProcessAction {
 
         for variant in <Self as strum::VariantArray>::VARIANTS {
             let set = match variant {
-                Self::Create => vec!["set1"],
-                Self::Read => vec!["set1"],
-                Self::List => vec!["set1"],
-                Self::Approve => vec!["set1"],
-                Self::Deny => vec!["set1"],
-                Self::Conclude => vec!["set1"],
+                Self::Create => &[PERMISSION_SET_ADMIN],
+                Self::Read => &[PERMISSION_SET_ADMIN],
+                Self::List => &[PERMISSION_SET_ADMIN],
+                Self::Approve => &[PERMISSION_SET_ADMIN],
+                Self::Deny => &[PERMISSION_SET_ADMIN],
+                Self::Conclude => &[PERMISSION_SET_ADMIN],
             };
             res.push(ActionDescription::new(variant, set));
         }
