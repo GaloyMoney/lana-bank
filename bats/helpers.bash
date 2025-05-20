@@ -34,22 +34,7 @@ start_server() {
     echo "--- Starting server make ---"
 
   # Check for running server
-  if [ -n "$BASH_VERSION" ]; then
-    server_process_and_status=$(
-      ps a | grep 'target/debug/lana-cli' | grep -v grep
-      echo ${PIPESTATUS[2]}
-    )
-  elif [ -n "$ZSH_VERSION" ]; then
-    server_process_and_status=$(
-      ps a | grep 'target/debug/lana-cli' | grep -v grep
-      echo ${pipestatus[3]}
-    )
-  else
-    echo "Unsupported shell."
-    exit 1
-  fi
-  exit_status=$(echo "$server_process_and_status" | tail -n 1)
-  if [ "$exit_status" -eq 0 ]; then
+  if pgrep -f '[l]ana-cli' >/dev/null; then
     rm -f "$SERVER_PID_FILE"
     return 0
   fi
@@ -76,22 +61,7 @@ start_server_nix() {
   echo "--- Starting server nix ---"
 
   # Check for running server
-  if [ -n "$BASH_VERSION" ]; then
-    server_process_and_status=$(
-      ps a | grep 'lana-cli' | grep -v grep
-      echo ${PIPESTATUS[2]}
-    )
-  elif [ -n "$ZSH_VERSION" ]; then
-    server_process_and_status=$(
-      ps a | grep 'lana-cli' | grep -v grep
-      echo ${pipestatus[3]}
-    )
-  else
-    echo "Unsupported shell."
-    exit 1
-  fi
-  exit_status=$(echo "$server_process_and_status" | tail -n 1)
-  if [ "$exit_status" -eq 0 ]; then
+  if pgrep -f '[l]ana-cli' >/dev/null; then
     rm -f "$SERVER_PID_FILE"
     return 0
   fi
