@@ -70,17 +70,22 @@
           cargoToml = ./lana/cli/Cargo.toml; # Explicitly point to the CLI's Cargo.toml
           cargoArtifacts = cargoArtifacts;
           doCheck = false; # Disable tests for lana-cli
-          # pname and version will now be taken from ./lana/cli/Cargo.toml by crane
-          # pname = lanaCliPname; # Or keep explicitly if preferred
-          # version = lanaCliVersion; # Or keep explicitly if preferred
-
-          # FIXME: should be release by default by nix convention
-          pname = "${lanaCliPname}-debug"; # Set pname for debug build
+          pname = lanaCliPname; # Use the original package name
           CARGO_PROFILE = "dev"; # Explicitly set dev profile
 
           # FIXME: aiming at parity with older script for now
           cargoExtraArgs = "-p ${lanaCliPname} --features sim-time"; # Build only the specific package
         });
+
+      # Create a debug variant that's clearly marked as such
+      lana-cli-debug = lana-cli.overrideAttrs (old: {
+        name = "${old.pname}-debug-${old.version}";
+        meta =
+          old.meta
+          // {
+            description = "${old.meta.description} (debug build)";
+          };
+      });
 
       mkAlias = alias: command: pkgs.writeShellScriptBin alias command;
 
