@@ -154,7 +154,7 @@
       };
     in
       with pkgs; {
-        packages.default = lana-cli;
+        packages.default = lana-cli-debug;
         packages.deps = cargoArtifacts;
 
         apps.default = flake-utils.lib.mkApp {drv = lana-cli;};
