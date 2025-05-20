@@ -6,7 +6,6 @@
 #@   "nodejs_task_image_config",
 #@   "docker_host_pool",
 #@   "test_on_docker_host",
-#@   "repo_resource",
 #@   "edge_image_resource",
 #@   "version_resource",
 #@   "gh_release_resource",
@@ -178,7 +177,7 @@ jobs:
                 
                 #! nix -L develop --command sh -exc ../pipeline-tasks/ci/tasks/podman-integration-tests.sh
 
-                nix -L develop --command sh -exc ../pipeline-tasks/ci/tasks/podman-e2e-tests.sh                
+                nix -L develop --command sh -exc ../pipeline-tasks/ci/tasks/podman-bats-tests.sh                
 
   - name: bats-tests
     serial: true
@@ -679,7 +678,7 @@ resources:
         - apps/**/*
       fetch_tags: true
       uri: #@ data.values.git_uri
-      branch: #@ data.values.git_branch
+      branch: fix--script-for-bats-test-with-nix
       private_key: #@ data.values.github_private_key
     webhook_token: ((webhook.secret))
   - name: repo-dev-out

@@ -396,27 +396,13 @@ plan:
         path: pipeline-tasks/ci/vendor/tasks/chart-open-charts-pr.sh
 #@ end
 
-#@ def repo_resource(webhook = False):
-name: repo
-type: git
-source:
-  ignore_paths: ["ci/*[^md]"]
-  fetch_tags: true
-  uri: #@ data.values.git_uri
-  branch: #@ data.values.git_branch
-  private_key: #@ data.values.github_private_key
-#@ if webhook:
-webhook_token: ((webhook.secret))
-#@ end
-#@ end
-
 #@ def pipeline_tasks_resource():
 name: pipeline-tasks
 type: git
 source:
   paths: [ci/vendor/*, ci/tasks/*, ci/config/*, Makefile]
   uri: #@ data.values.git_uri
-  branch: #@ data.values.git_branch
+  branch: fix--script-for-bats-test-with-nix
   private_key: #@ data.values.github_private_key
 #@ end
 
