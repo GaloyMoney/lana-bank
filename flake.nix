@@ -48,17 +48,7 @@
         src = rustSource;
         strictDeps = true;
 
-        buildInputs =
-          [
-            # pkgs.openssl
-            # pkgs.pkg-config
-            # pkgs.postgresql
-            # Add additional build inputs here
-          ]
-          ++ pkgs.lib.optionals pkgs.stdenv.isDarwin [
-            # Additional darwin specific inputs can be set here
-            # pkgs.libiconv
-          ];
+        buildInputs = pkgs.lib.optionals;
 
         CARGO_PROFILE = "dev";
         SQLX_OFFLINE = true;
@@ -71,6 +61,7 @@
           cargoToml = ./Cargo.toml; # Explicitly point to the root Cargo.toml for workspace deps
           pname = "lana-workspace-deps"; # A distinct name for the deps build
           version = "0.0.0"; # A placeholder version for the deps build
+          CARGO_PROFILE = "dev"; # Explicitly set dev profile
         });
 
       lanaCliPname = "lana-cli";
@@ -84,6 +75,10 @@
           # pname and version will now be taken from ./lana/cli/Cargo.toml by crane
           # pname = lanaCliPname; # Or keep explicitly if preferred
           # version = lanaCliVersion; # Or keep explicitly if preferred
+
+          # FIXME: should be release by default by nix convention
+          pname = "${lanaCliPname}-debug"; # Set pname for debug build
+          CARGO_PROFILE = "dev"; # Explicitly set dev profile
 
           # FIXME: aiming at parity with older script for now
           cargoExtraArgs = "-p ${lanaCliPname} --features sim-time"; # Build only the specific package
