@@ -11,14 +11,11 @@ async fn roles_and_permission_sets_interaction() -> anyhow::Result<()> {
     let authz = init_authz(&pool, &audit).await?;
     let (users, superuser_subject) = helpers::init_users(&pool, &authz).await?;
 
-    rbac_types::LanaAction::action_descriptions()
-        .iter()
-        .for_each(|a| {
-            println!("{:?}", a);
-        });
+    let all_users = users.users().list_users(&superuser_subject).await?;
+    assert!(all_users.iter().any(|r| r.email.starts_with("superuser")));
 
-    // let roles = users.roles().list(&superuser_subject).await?;
-    // assert!(roles.iter().any(|r| r.name.name() == "superuser"));
+    let all_roles = users.roles().list(&superuser_subject).await?;
+    assert!(all_roles.iter().any(|r| r.name.name() == "superuser"));
 
     Ok(())
 }

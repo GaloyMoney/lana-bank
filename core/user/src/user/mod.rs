@@ -323,20 +323,32 @@ where
             )
             .await?;
 
-        // TODO check that user does not exist in DB yet
+        let user = match self.repo.find_by_email_in_tx(db.tx(), &email).await {
+            Err(e) if e.was_not_found() => {
+                let new_user = NewUser::builder()
+                    .id(UserId::new())
+                    .email(email)
+                    .audit_info(audit_info.clone())
+                    .build()
+                    .expect("all fields for new user provided");
 
-        let new_user = NewUser::builder()
-            .id(UserId::new())
-            .email(email)
-            .audit_info(audit_info.clone())
-            .build()
-            .expect("all fields for new user provided");
+                let mut user = self.repo.create_in_op(db, new_user).await?;
 
-        let mut user = self.repo.create_in_op(db, new_user).await?;
+                if user.assign_role(role, audit_info).did_execute() {
+                    self.repo.update_in_op(db, &mut user).await?;
+                }
 
-        if user.assign_role(role, audit_info).did_execute() {
-            self.repo.update_in_op(db, &mut user).await?;
-        }
+                user
+            }
+            Err(e) => return Err(e),
+            Ok(mut user) => {
+                if user.assign_role(role, audit_info).did_execute() {
+                    self.repo.update_in_op(db, &mut user).await?;
+                };
+
+                user
+            }
+        };
 
         Ok(user)
     }

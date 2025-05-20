@@ -33,6 +33,7 @@ pub enum RoleEvent {
 
 #[derive(EsEntity, Builder)]
 #[builder(pattern = "owned", build_fn(error = "EsEntityError"))]
+#[allow(dead_code)]
 pub struct Role {
     pub id: RoleId,
     pub name: RoleName,

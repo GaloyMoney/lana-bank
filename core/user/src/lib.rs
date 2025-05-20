@@ -160,8 +160,13 @@ where
             .bootstrap_superuser(&permission_set_ids, &mut db)
             .await?;
 
-        self.users()
+        let superuser = self
+            .users()
             .bootstrap_superuser(email, superuser_role.name, &mut db)
+            .await?;
+
+        self.authz
+            .assign_role_to_subject(superuser.id, RoleName::SUPERUSER)
             .await?;
 
         db.commit().await?;

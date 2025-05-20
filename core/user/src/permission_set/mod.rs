@@ -65,11 +65,13 @@ where
         self.repo.find_all(ids).await
     }
 
-    pub async fn list(
-        &self,
-        sub: &<Audit as AuditSvc>::Subject,
-    ) -> Result<Vec<PermissionSet>, PermissionSetError> {
-        Ok(vec![])
+    pub async fn list(&self) -> Result<Vec<PermissionSet>, PermissionSetError> {
+        // TODO: Use cursor
+        Ok(self
+            .repo
+            .list_by_created_at(Default::default(), Default::default())
+            .await?
+            .entities)
     }
 
     /// Generates Permission Sets based on provided hierarchy of modules and
@@ -81,7 +83,14 @@ where
         actions: &[ActionDescription<FullPath>],
         db: &mut DbOp<'_>,
     ) -> Result<Vec<PermissionSet>, PermissionSetError> {
-        // TODO: Handle those already existing but always return all.
+        let existing = self
+            .repo
+            .list_by_id(Default::default(), Default::default())
+            .await?
+            .entities
+            .into_iter()
+            .map(|ps| (ps.name.to_string(), ps))
+            .collect::<HashMap<_, _>>();
 
         let mut permission_sets: HashMap<&'static str, HashSet<(String, String)>> =
             Default::default();
@@ -95,7 +104,10 @@ where
             }
         }
 
-        let new_permission_sets = permission_sets
+        // Create only those permission sets that do not exist yet. Don't remove anything.
+        permission_sets.retain(|k, _| !existing.contains_key(*k));
+
+        let new_permission_sets: Vec<NewPermissionSet> = permission_sets
             .into_iter()
             .map(|(set, permissions)| NewPermissionSet {
                 id: PermissionSetId::new(),
@@ -104,7 +116,13 @@ where
             })
             .collect();
 
-        self.repo.create_all_in_op(db, new_permission_sets).await
+        let new = if new_permission_sets.is_empty() {
+            vec![]
+        } else {
+            self.repo.create_all_in_op(db, new_permission_sets).await?
+        };
+
+        Ok(existing.into_values().chain(new.into_iter()).collect())
     }
 }
 

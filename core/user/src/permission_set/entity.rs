@@ -34,9 +34,10 @@ impl PermissionSet {
     pub fn permissions(&self) -> &Permissions {
         self.events
             .iter_all()
-            .find_map(|event| match event {
-                PermissionSetEvent::Initialized { permissions, .. } => Some(permissions),
+            .map(|event| match event {
+                PermissionSetEvent::Initialized { permissions, .. } => permissions,
             })
+            .next()
             .expect("Initialized event")
     }
 }

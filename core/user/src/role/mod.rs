@@ -49,7 +49,7 @@ where
         self.repo.find_by_id(&role_id).await
     }
 
-    pub async fn list(&self, sub: &<Audit as AuditSvc>::Subject) -> Result<Vec<Role>, RoleError> {
+    pub async fn list(&self, _sub: &<Audit as AuditSvc>::Subject) -> Result<Vec<Role>, RoleError> {
         Ok(self
             .repo
             .list_by_created_at(Default::default(), Default::default())
