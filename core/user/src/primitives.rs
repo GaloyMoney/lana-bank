@@ -14,6 +14,9 @@ es_entity::entity_id! { UserId }
 
 es_entity::entity_id! { AuthenticationId, PermissionSetId, RoleId }
 
+pub const PERMISSION_SET_USER_WRITER: &str = "user_writer";
+pub const PERMISSION_SET_USER_READER: &str = "user_reader";
+
 #[derive(Clone, Eq, Hash, PartialEq, Debug, Serialize, Deserialize, sqlx::Type)]
 #[serde(transparent)]
 #[sqlx(transparent)]
@@ -92,11 +95,11 @@ impl RoleAction {
         let mut res = vec![];
 
         for variant in <Self as strum::VariantArray>::VARIANTS {
-            let set = match variant {
-                Self::Create => &[PERMISSION_SET_ADMIN],
-                Self::Update => &[PERMISSION_SET_ADMIN],
+            let action_description = match variant {
+                Self::Create => ActionDescription::new(variant, &[PERMISSION_SET_USER_WRITER]),
+                Self::Update => ActionDescription::new(variant, &[PERMISSION_SET_USER_WRITER]),
             };
-            res.push(ActionDescription::new(variant, set));
+            res.push(action_description);
         }
 
         res
@@ -120,16 +123,24 @@ impl UserAction {
         let mut res = vec![];
 
         for variant in <Self as strum::VariantArray>::VARIANTS {
-            let set = match variant {
-                Self::Create => &[PERMISSION_SET_ADMIN],
-                Self::Read => &[PERMISSION_SET_ADMIN],
-                Self::List => &[PERMISSION_SET_ADMIN],
-                Self::Update => &[PERMISSION_SET_ADMIN],
-                Self::AssignRole => &[PERMISSION_SET_SUPERUSER],
-                Self::RevokeRole => &[PERMISSION_SET_SUPERUSER],
-                Self::UpdateAuthenticationId => &[PERMISSION_SET_ADMIN],
+            let action_description = match variant {
+                Self::Create => ActionDescription::new(variant, &[PERMISSION_SET_USER_WRITER]),
+                Self::Read => ActionDescription::new(
+                    variant,
+                    &[PERMISSION_SET_USER_READER, PERMISSION_SET_USER_WRITER],
+                ),
+                Self::List => ActionDescription::new(
+                    variant,
+                    &[PERMISSION_SET_USER_READER, PERMISSION_SET_USER_WRITER],
+                ),
+                Self::Update => ActionDescription::new(variant, &[PERMISSION_SET_USER_WRITER]),
+                Self::AssignRole => ActionDescription::new(variant, &[PERMISSION_SET_USER_WRITER]),
+                Self::RevokeRole => ActionDescription::new(variant, &[PERMISSION_SET_USER_WRITER]),
+                Self::UpdateAuthenticationId => {
+                    ActionDescription::new(variant, &[PERMISSION_SET_USER_WRITER])
+                }
             };
-            res.push(ActionDescription::new(variant, set));
+            res.push(action_description);
         }
 
         res

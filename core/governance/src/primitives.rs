@@ -140,14 +140,32 @@ impl CommitteeAction {
         let mut res = vec![];
 
         for variant in <Self as strum::VariantArray>::VARIANTS {
-            let set = match variant {
-                Self::Create => &[PERMISSION_SET_ADMIN],
-                Self::AddMember => &[PERMISSION_SET_ADMIN],
-                Self::RemoveMember => &[PERMISSION_SET_ADMIN],
-                Self::Read => &[PERMISSION_SET_ADMIN],
-                Self::List => &[PERMISSION_SET_ADMIN],
+            let action_description = match variant {
+                Self::Create => {
+                    ActionDescription::new(variant, &[PERMISSION_SET_GOVERNANCE_WRITER])
+                }
+                Self::AddMember => {
+                    ActionDescription::new(variant, &[PERMISSION_SET_GOVERNANCE_WRITER])
+                }
+                Self::RemoveMember => {
+                    ActionDescription::new(variant, &[PERMISSION_SET_GOVERNANCE_WRITER])
+                }
+                Self::Read => ActionDescription::new(
+                    variant,
+                    &[
+                        PERMISSION_SET_GOVERNANCE_READER,
+                        PERMISSION_SET_GOVERNANCE_WRITER,
+                    ],
+                ),
+                Self::List => ActionDescription::new(
+                    variant,
+                    &[
+                        PERMISSION_SET_GOVERNANCE_READER,
+                        PERMISSION_SET_GOVERNANCE_WRITER,
+                    ],
+                ),
             };
-            res.push(ActionDescription::new(variant, set));
+            res.push(action_description);
         }
 
         res
@@ -168,13 +186,29 @@ impl PolicyAction {
         let mut res = vec![];
 
         for variant in <Self as strum::VariantArray>::VARIANTS {
-            let set = match variant {
-                Self::Create => &[PERMISSION_SET_ADMIN],
-                Self::Read => &[PERMISSION_SET_ADMIN],
-                Self::List => &[PERMISSION_SET_ADMIN],
-                Self::UpdatePolicyRules => &[PERMISSION_SET_ADMIN],
+            let action_description = match variant {
+                Self::Create => {
+                    ActionDescription::new(variant, &[PERMISSION_SET_GOVERNANCE_WRITER])
+                }
+                Self::Read => ActionDescription::new(
+                    variant,
+                    &[
+                        PERMISSION_SET_GOVERNANCE_READER,
+                        PERMISSION_SET_GOVERNANCE_WRITER,
+                    ],
+                ),
+                Self::List => ActionDescription::new(
+                    variant,
+                    &[
+                        PERMISSION_SET_GOVERNANCE_READER,
+                        PERMISSION_SET_GOVERNANCE_WRITER,
+                    ],
+                ),
+                Self::UpdatePolicyRules => {
+                    ActionDescription::new(variant, &[PERMISSION_SET_GOVERNANCE_WRITER])
+                }
             };
-            res.push(ActionDescription::new(variant, set));
+            res.push(action_description);
         }
 
         res
@@ -197,15 +231,33 @@ impl ApprovalProcessAction {
         let mut res = vec![];
 
         for variant in <Self as strum::VariantArray>::VARIANTS {
-            let set = match variant {
-                Self::Create => &[PERMISSION_SET_ADMIN],
-                Self::Read => &[PERMISSION_SET_ADMIN],
-                Self::List => &[PERMISSION_SET_ADMIN],
-                Self::Approve => &[PERMISSION_SET_ADMIN],
-                Self::Deny => &[PERMISSION_SET_ADMIN],
-                Self::Conclude => &[PERMISSION_SET_ADMIN],
+            let action_description = match variant {
+                Self::Create => {
+                    ActionDescription::new(variant, &[PERMISSION_SET_GOVERNANCE_WRITER])
+                }
+                Self::Read => ActionDescription::new(
+                    variant,
+                    &[
+                        PERMISSION_SET_GOVERNANCE_READER,
+                        PERMISSION_SET_GOVERNANCE_WRITER,
+                    ],
+                ),
+                Self::List => ActionDescription::new(
+                    variant,
+                    &[
+                        PERMISSION_SET_GOVERNANCE_READER,
+                        PERMISSION_SET_GOVERNANCE_WRITER,
+                    ],
+                ),
+                Self::Approve => {
+                    ActionDescription::new(variant, &[PERMISSION_SET_GOVERNANCE_WRITER])
+                }
+                Self::Deny => ActionDescription::new(variant, &[PERMISSION_SET_GOVERNANCE_WRITER]),
+                Self::Conclude => {
+                    ActionDescription::new(variant, &[PERMISSION_SET_GOVERNANCE_WRITER])
+                }
             };
-            res.push(ActionDescription::new(variant, set));
+            res.push(action_description);
         }
 
         res
@@ -215,6 +267,9 @@ impl ApprovalProcessAction {
 pub type CommitteeAllOrOne = AllOrOne<CommitteeId>;
 pub type PolicyAllOrOne = AllOrOne<PolicyId>;
 pub type ApprovalProcessAllOrOne = AllOrOne<ApprovalProcessId>;
+
+pub const PERMISSION_SET_GOVERNANCE_WRITER: &str = "governance_writer";
+pub const PERMISSION_SET_GOVERNANCE_READER: &str = "governance_reader";
 
 #[derive(Clone, Copy, Debug, PartialEq, strum::EnumDiscriminants)]
 #[strum_discriminants(derive(strum::Display, strum::EnumString))]

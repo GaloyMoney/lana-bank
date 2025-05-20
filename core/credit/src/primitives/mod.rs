@@ -108,6 +108,9 @@ pub type ChartOfAccountsIntegrationConfigAllOrOne = AllOrOne<ChartOfAccountsInte
 pub type DisbursalAllOrOne = AllOrOne<DisbursalId>;
 pub type ObligationAllOrOne = AllOrOne<ObligationId>;
 
+pub const PERMISSION_SET_CREDIT_WRITER: &str = "credit_writer";
+pub const PERMISSION_SET_CREDIT_VIEWER: &str = "credit_viewer";
+
 #[derive(Clone, Copy, Debug, PartialEq, strum::EnumDiscriminants)]
 #[strum_discriminants(derive(strum::Display, strum::EnumString))]
 #[strum_discriminants(strum(serialize_all = "kebab-case"))]
@@ -315,18 +318,32 @@ impl CreditFacilityAction {
         let mut res = vec![];
 
         for variant in <Self as strum::VariantArray>::VARIANTS {
-            let set = match variant {
-                Self::Create => &[PERMISSION_SET_BANK_MANAGER],
-                Self::Read => &[PERMISSION_SET_BANK_MANAGER],
-                Self::List => &[PERMISSION_SET_BANK_MANAGER],
-                Self::ConcludeApprovalProcess => &[PERMISSION_SET_BANK_MANAGER],
-                Self::Activate => &[PERMISSION_SET_BANK_MANAGER],
-                Self::UpdateCollateral => &[PERMISSION_SET_BANK_MANAGER],
-                Self::RecordInterest => &[PERMISSION_SET_BANK_MANAGER],
-                Self::Complete => &[PERMISSION_SET_BANK_MANAGER],
-                Self::UpdateCollateralizationState => &[PERMISSION_SET_BANK_MANAGER],
+            let action_description = match variant {
+                Self::Create => ActionDescription::new(variant, &[PERMISSION_SET_CREDIT_WRITER]),
+                Self::Read => ActionDescription::new(
+                    variant,
+                    &[PERMISSION_SET_CREDIT_VIEWER, PERMISSION_SET_CREDIT_WRITER],
+                ),
+                Self::List => ActionDescription::new(
+                    variant,
+                    &[PERMISSION_SET_CREDIT_VIEWER, PERMISSION_SET_CREDIT_WRITER],
+                ),
+                Self::ConcludeApprovalProcess => {
+                    ActionDescription::new(variant, &[PERMISSION_SET_CREDIT_WRITER])
+                }
+                Self::Activate => ActionDescription::new(variant, &[PERMISSION_SET_CREDIT_WRITER]),
+                Self::UpdateCollateral => {
+                    ActionDescription::new(variant, &[PERMISSION_SET_CREDIT_WRITER])
+                }
+                Self::RecordInterest => {
+                    ActionDescription::new(variant, &[PERMISSION_SET_CREDIT_WRITER])
+                }
+                Self::Complete => ActionDescription::new(variant, &[PERMISSION_SET_CREDIT_WRITER]),
+                Self::UpdateCollateralizationState => {
+                    ActionDescription::new(variant, &[PERMISSION_SET_CREDIT_WRITER])
+                }
             };
-            res.push(ActionDescription::new(variant, set));
+            res.push(action_description);
         }
 
         res
@@ -352,12 +369,15 @@ impl DisbursalAction {
         let mut res = vec![];
 
         for variant in <Self as strum::VariantArray>::VARIANTS {
-            let set = match variant {
-                Self::Initiate => &[PERMISSION_SET_BANK_MANAGER],
-                Self::Settle => &[PERMISSION_SET_BANK_MANAGER],
-                Self::List => &[PERMISSION_SET_BANK_MANAGER],
+            let action_description = match variant {
+                Self::Initiate => ActionDescription::new(variant, &[PERMISSION_SET_CREDIT_WRITER]),
+                Self::Settle => ActionDescription::new(variant, &[PERMISSION_SET_CREDIT_WRITER]),
+                Self::List => ActionDescription::new(
+                    variant,
+                    &[PERMISSION_SET_CREDIT_VIEWER, PERMISSION_SET_CREDIT_WRITER],
+                ),
             };
-            res.push(ActionDescription::new(variant, set));
+            res.push(action_description);
         }
 
         res
@@ -382,11 +402,14 @@ impl ChartOfAccountsIntegrationConfigAction {
         let mut res = vec![];
 
         for variant in <Self as strum::VariantArray>::VARIANTS {
-            let set = match variant {
-                Self::Read => &[PERMISSION_SET_BANK_MANAGER],
-                Self::Update => &[PERMISSION_SET_BANK_MANAGER],
+            let action_description = match variant {
+                Self::Read => ActionDescription::new(
+                    variant,
+                    &[PERMISSION_SET_CREDIT_WRITER, PERMISSION_SET_CREDIT_VIEWER],
+                ),
+                Self::Update => ActionDescription::new(variant, &[PERMISSION_SET_CREDIT_WRITER]),
             };
-            res.push(ActionDescription::new(variant, set));
+            res.push(action_description);
         }
 
         res
@@ -412,12 +435,19 @@ impl ObligationAction {
         let mut res = vec![];
 
         for variant in <Self as strum::VariantArray>::VARIANTS {
-            let set = match variant {
-                Self::Read => &[PERMISSION_SET_BANK_MANAGER],
-                Self::UpdateStatus => &[PERMISSION_SET_BANK_MANAGER],
-                Self::RecordPaymentAllocation => &[PERMISSION_SET_BANK_MANAGER],
+            let action_description = match variant {
+                Self::Read => ActionDescription::new(
+                    variant,
+                    &[PERMISSION_SET_CREDIT_VIEWER, PERMISSION_SET_CREDIT_WRITER],
+                ),
+                Self::UpdateStatus => {
+                    ActionDescription::new(variant, &[PERMISSION_SET_CREDIT_WRITER])
+                }
+                Self::RecordPaymentAllocation => {
+                    ActionDescription::new(variant, &[PERMISSION_SET_CREDIT_WRITER])
+                }
             };
-            res.push(ActionDescription::new(variant, set));
+            res.push(action_description);
         }
 
         res

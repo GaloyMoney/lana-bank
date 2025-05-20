@@ -2,6 +2,8 @@ use std::{fmt::Display, str::FromStr};
 
 use authz::permission_set::*;
 
+pub const PERMISSION_SET_DASHBOARD_READER: &str = "dashboard_reader";
+
 #[derive(Clone, Copy, Debug, PartialEq, strum::EnumDiscriminants)]
 #[strum_discriminants(derive(strum::Display, strum::EnumString, strum::VariantArray))]
 #[strum_discriminants(strum(serialize_all = "kebab-case"))]
@@ -65,10 +67,10 @@ impl DashboardAction {
         let mut res = vec![];
 
         for variant in <Self as strum::VariantArray>::VARIANTS {
-            let set = match variant {
-                Self::Read => &[PERMISSION_SET_BANK_MANAGER],
+            let action_description = match variant {
+                Self::Read => ActionDescription::new(variant, &[PERMISSION_SET_DASHBOARD_READER]),
             };
-            res.push(ActionDescription::new(variant, set));
+            res.push(action_description);
         }
 
         res

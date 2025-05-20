@@ -1,10 +1,5 @@
 use std::fmt::{Debug, Display};
 
-pub const PERMISSION_SET_SUPERUSER: &str = "superuser";
-pub const PERMISSION_SET_ADMIN: &str = "admin";
-pub const PERMISSION_SET_BANK_MANAGER: &str = "bank-manager";
-pub const PERMISSION_SET_ACCOUNTANT: &str = "accountant";
-
 /// Marker for actions with no path segment provided.
 pub struct NoPath;
 

@@ -10,6 +10,9 @@ use dashboard::DashboardModuleAction;
 use deposit::CoreDepositAction;
 use governance::GovernanceAction;
 
+pub const PERMISSION_SET_APP_READER: &str = "app_reader";
+pub const PERMISSION_SET_APP_WRITER: &str = "app_writer";
+
 #[derive(Clone, Copy, Debug, PartialEq, strum::EnumDiscriminants)]
 #[strum_discriminants(derive(strum::Display, strum::EnumString, strum::VariantArray))]
 #[strum_discriminants(strum(serialize_all = "kebab-case"))]
@@ -236,13 +239,16 @@ impl TermsTemplateAction {
         let mut res = vec![];
 
         for variant in <Self as strum::VariantArray>::VARIANTS {
-            let set = match variant {
-                Read => &[PERMISSION_SET_ACCOUNTANT],
-                Update => &[PERMISSION_SET_BANK_MANAGER],
-                Create => &[PERMISSION_SET_BANK_MANAGER],
-                List => &[PERMISSION_SET_BANK_MANAGER],
+            let action_description = match variant {
+                Read => ActionDescription::new(variant, &[PERMISSION_SET_APP_READER]),
+                Update => ActionDescription::new(variant, &[PERMISSION_SET_APP_WRITER]),
+                Create => ActionDescription::new(variant, &[PERMISSION_SET_APP_WRITER]),
+                List => ActionDescription::new(
+                    variant,
+                    &[PERMISSION_SET_APP_WRITER, PERMISSION_SET_APP_READER],
+                ),
             };
-            res.push(ActionDescription::new(variant, set));
+            res.push(action_description);
         }
 
         res
@@ -262,10 +268,13 @@ impl AuditAction {
         let mut res = vec![];
 
         for variant in <Self as strum::VariantArray>::VARIANTS {
-            let set = match variant {
-                AuditAction::List => &[PERMISSION_SET_ADMIN],
+            let action_description = match variant {
+                Self::List => ActionDescription::new(
+                    variant,
+                    &[PERMISSION_SET_APP_READER, PERMISSION_SET_APP_WRITER],
+                ),
             };
-            res.push(ActionDescription::new(variant, set));
+            res.push(action_description);
         }
 
         res
@@ -290,15 +299,24 @@ impl DocumentAction {
         let mut res = vec![];
 
         for variant in <Self as strum::VariantArray>::VARIANTS {
-            let set = match variant {
-                Self::Create => &[PERMISSION_SET_BANK_MANAGER],
-                Self::Read => &[PERMISSION_SET_ACCOUNTANT],
-                Self::List => &[PERMISSION_SET_ACCOUNTANT],
-                Self::GenerateDownloadLink => &[PERMISSION_SET_ACCOUNTANT],
-                Self::Delete => &[PERMISSION_SET_BANK_MANAGER],
-                Self::Archive => &[PERMISSION_SET_BANK_MANAGER],
+            let action_description = match variant {
+                Self::Create => ActionDescription::new(variant, &[PERMISSION_SET_APP_WRITER]),
+                Self::Read => ActionDescription::new(
+                    variant,
+                    &[PERMISSION_SET_APP_READER, PERMISSION_SET_APP_WRITER],
+                ),
+                Self::List => ActionDescription::new(
+                    variant,
+                    &[PERMISSION_SET_APP_READER, PERMISSION_SET_APP_WRITER],
+                ),
+                Self::GenerateDownloadLink => ActionDescription::new(
+                    variant,
+                    &[PERMISSION_SET_APP_READER, PERMISSION_SET_APP_WRITER],
+                ),
+                Self::Delete => ActionDescription::new(variant, &[PERMISSION_SET_APP_WRITER]),
+                Self::Archive => ActionDescription::new(variant, &[PERMISSION_SET_APP_WRITER]),
             };
-            res.push(ActionDescription::new(variant, set));
+            res.push(action_description);
         }
 
         res
@@ -322,14 +340,22 @@ impl ReportAction {
         let mut res = vec![];
 
         for variant in <Self as strum::VariantArray>::VARIANTS {
-            let set = match variant {
-                ReportAction::Read => &[PERMISSION_SET_ADMIN],
-                ReportAction::List => &[PERMISSION_SET_ADMIN],
-                ReportAction::Create => &[PERMISSION_SET_ADMIN],
-                ReportAction::Upload => &[PERMISSION_SET_ADMIN],
-                ReportAction::GenerateDownloadLink => &[PERMISSION_SET_ADMIN],
+            let action_description = match variant {
+                Self::Read => ActionDescription::new(
+                    variant,
+                    &[PERMISSION_SET_APP_READER, PERMISSION_SET_APP_WRITER],
+                ),
+                Self::List => ActionDescription::new(
+                    variant,
+                    &[PERMISSION_SET_APP_READER, PERMISSION_SET_APP_WRITER],
+                ),
+                Self::Create => ActionDescription::new(variant, &[PERMISSION_SET_APP_WRITER]),
+                Self::Upload => ActionDescription::new(variant, &[PERMISSION_SET_APP_WRITER]),
+                Self::GenerateDownloadLink => {
+                    ActionDescription::new(variant, &[PERMISSION_SET_APP_WRITER])
+                }
             };
-            res.push(ActionDescription::new(variant, set));
+            res.push(action_description);
         }
 
         res

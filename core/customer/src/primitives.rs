@@ -86,6 +86,9 @@ impl From<CustomerType> for String {
 
 pub type CustomerAllOrOne = AllOrOne<CustomerId>;
 
+pub const PERMISSION_SET_CUSTOMER_VIEWER: &str = "customer_viewer";
+pub const PERMISSION_SET_CUSTOMER_WRITER: &str = "customer_writer";
+
 #[derive(Clone, Copy, Debug, PartialEq, strum::EnumDiscriminants)]
 #[strum_discriminants(derive(strum::Display, strum::EnumString))]
 #[strum_discriminants(strum(serialize_all = "kebab-case"))]
@@ -190,17 +193,44 @@ impl CustomerEntityAction {
         let mut res = vec![];
 
         for variant in <Self as strum::VariantArray>::VARIANTS {
-            let set = match variant {
-                Self::Create => &[PERMISSION_SET_BANK_MANAGER],
-                Self::Read => &[PERMISSION_SET_ACCOUNTANT],
-                Self::List => &[PERMISSION_SET_ACCOUNTANT],
-                Self::Update => &[PERMISSION_SET_BANK_MANAGER],
-                Self::UpdateAuthenticationId => &[PERMISSION_SET_ADMIN],
-                Self::StartKyc => &[PERMISSION_SET_ADMIN],
-                Self::ApproveKyc => &[PERMISSION_SET_ADMIN],
-                Self::DeclineKyc => &[PERMISSION_SET_ADMIN],
+            let action_description = match variant {
+                Self::Create => ActionDescription::new(variant, &[PERMISSION_SET_CUSTOMER_WRITER]),
+
+                Self::Read => ActionDescription::new(
+                    variant,
+                    &[
+                        PERMISSION_SET_CUSTOMER_VIEWER,
+                        PERMISSION_SET_CUSTOMER_WRITER,
+                    ],
+                ),
+
+                Self::List => ActionDescription::new(
+                    variant,
+                    &[
+                        PERMISSION_SET_CUSTOMER_WRITER,
+                        PERMISSION_SET_CUSTOMER_VIEWER,
+                    ],
+                ),
+
+                Self::Update => ActionDescription::new(variant, &[PERMISSION_SET_CUSTOMER_WRITER]),
+
+                Self::UpdateAuthenticationId => {
+                    ActionDescription::new(variant, &[PERMISSION_SET_CUSTOMER_WRITER])
+                }
+
+                Self::StartKyc => {
+                    ActionDescription::new(variant, &[PERMISSION_SET_CUSTOMER_WRITER])
+                }
+
+                Self::ApproveKyc => {
+                    ActionDescription::new(variant, &[PERMISSION_SET_CUSTOMER_WRITER])
+                }
+
+                Self::DeclineKyc => {
+                    ActionDescription::new(variant, &[PERMISSION_SET_CUSTOMER_WRITER])
+                }
             };
-            res.push(ActionDescription::new(variant, set));
+            res.push(action_description);
         }
 
         res

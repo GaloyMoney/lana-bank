@@ -280,6 +280,9 @@ pub type AccountingCsvAllOrOne = AllOrOne<AccountingCsvId>;
 pub type TrialBalanceAllOrOne = AllOrOne<LedgerAccountId>; // what to do if there is only All
 // option
 
+pub const PERMISSION_SET_ACCOUNTING_VIEWER: &str = "accounting_viewer";
+pub const PERMISSION_SET_ACCOUNTING_WRITER: &str = "accounting_writer";
+
 #[derive(Clone, Copy, Debug, PartialEq, strum::EnumDiscriminants)]
 #[strum_discriminants(derive(strum::Display, strum::EnumString, strum::VariantArray))]
 #[strum_discriminants(strum(serialize_all = "kebab-case"))]
@@ -677,12 +680,22 @@ impl ChartAction {
         let mut res = vec![];
 
         for variant in <Self as strum::VariantArray>::VARIANTS {
-            let set = match variant {
-                Self::Create => &[PERMISSION_SET_BANK_MANAGER],
-                Self::List => &[PERMISSION_SET_BANK_MANAGER],
-                Self::ImportAccounts => &[PERMISSION_SET_BANK_MANAGER],
+            let action_description = match variant {
+                Self::Create => {
+                    ActionDescription::new(variant, &[PERMISSION_SET_ACCOUNTING_WRITER])
+                }
+                Self::List => ActionDescription::new(
+                    variant,
+                    &[
+                        PERMISSION_SET_ACCOUNTING_VIEWER,
+                        PERMISSION_SET_ACCOUNTING_WRITER,
+                    ],
+                ),
+                Self::ImportAccounts => {
+                    ActionDescription::new(variant, &[PERMISSION_SET_ACCOUNTING_WRITER])
+                }
             };
-            res.push(ActionDescription::new(variant, set));
+            res.push(action_description);
         }
 
         res
@@ -709,9 +722,18 @@ impl LedgerTransactionAction {
 
         for variant in <Self as strum::VariantArray>::VARIANTS {
             let set = match variant {
-                Self::Read => &[PERMISSION_SET_BANK_MANAGER],
-                Self::List => &[PERMISSION_SET_BANK_MANAGER],
-                Self::ReadHistory => &[PERMISSION_SET_BANK_MANAGER],
+                Self::Read => &[
+                    PERMISSION_SET_ACCOUNTING_VIEWER,
+                    PERMISSION_SET_ACCOUNTING_WRITER,
+                ],
+                Self::List => &[
+                    PERMISSION_SET_ACCOUNTING_VIEWER,
+                    PERMISSION_SET_ACCOUNTING_WRITER,
+                ],
+                Self::ReadHistory => &[
+                    PERMISSION_SET_ACCOUNTING_VIEWER,
+                    PERMISSION_SET_ACCOUNTING_WRITER,
+                ],
             };
             res.push(ActionDescription::new(variant, set));
         }
@@ -739,12 +761,26 @@ impl LedgerAccountAction {
         let mut res = vec![];
 
         for variant in <Self as strum::VariantArray>::VARIANTS {
-            let set = match variant {
-                Self::Read => &[PERMISSION_SET_BANK_MANAGER],
-                Self::List => &[PERMISSION_SET_BANK_MANAGER],
-                Self::ReadHistory => &[PERMISSION_SET_BANK_MANAGER],
+            let action_description = match variant {
+                Self::Read => ActionDescription::new(
+                    variant,
+                    &[
+                        PERMISSION_SET_ACCOUNTING_VIEWER,
+                        PERMISSION_SET_ACCOUNTING_WRITER,
+                    ],
+                ),
+                Self::List => ActionDescription::new(
+                    variant,
+                    &[
+                        PERMISSION_SET_ACCOUNTING_VIEWER,
+                        PERMISSION_SET_ACCOUNTING_WRITER,
+                    ],
+                ),
+                Self::ReadHistory => {
+                    ActionDescription::new(variant, &[PERMISSION_SET_ACCOUNTING_VIEWER])
+                }
             };
-            res.push(ActionDescription::new(variant, set));
+            res.push(action_description);
         }
 
         res
@@ -769,7 +805,10 @@ impl JournalAction {
 
         for variant in <Self as strum::VariantArray>::VARIANTS {
             let set = match variant {
-                Self::ReadEntries => &[PERMISSION_SET_BANK_MANAGER],
+                Self::ReadEntries => &[
+                    PERMISSION_SET_ACCOUNTING_VIEWER,
+                    PERMISSION_SET_ACCOUNTING_WRITER,
+                ],
             };
             res.push(ActionDescription::new(variant, set));
         }
@@ -796,7 +835,10 @@ impl TransactionTemplateAction {
 
         for variant in <Self as strum::VariantArray>::VARIANTS {
             let set = match variant {
-                Self::List => &[PERMISSION_SET_BANK_MANAGER],
+                Self::List => &[
+                    PERMISSION_SET_ACCOUNTING_VIEWER,
+                    PERMISSION_SET_ACCOUNTING_WRITER,
+                ],
             };
             res.push(ActionDescription::new(variant, set));
         }
@@ -824,12 +866,26 @@ impl ManualTransactionAction {
         let mut res = vec![];
 
         for variant in <Self as strum::VariantArray>::VARIANTS {
-            let set = match variant {
-                Self::List => &[PERMISSION_SET_BANK_MANAGER],
-                Self::Create => &[PERMISSION_SET_BANK_MANAGER],
-                Self::Read => &[PERMISSION_SET_BANK_MANAGER],
+            let action_description = match variant {
+                Self::List => ActionDescription::new(
+                    variant,
+                    &[
+                        PERMISSION_SET_ACCOUNTING_VIEWER,
+                        PERMISSION_SET_ACCOUNTING_WRITER,
+                    ],
+                ),
+                Self::Create => {
+                    ActionDescription::new(variant, &[PERMISSION_SET_ACCOUNTING_WRITER])
+                }
+                Self::Read => ActionDescription::new(
+                    variant,
+                    &[
+                        PERMISSION_SET_ACCOUNTING_VIEWER,
+                        PERMISSION_SET_ACCOUNTING_WRITER,
+                    ],
+                ),
             };
-            res.push(ActionDescription::new(variant, set));
+            res.push(action_description);
         }
 
         res
@@ -855,12 +911,22 @@ impl ProfitAndLossAction {
         let mut res = vec![];
 
         for variant in <Self as strum::VariantArray>::VARIANTS {
-            let set = match variant {
-                Self::Update => &[PERMISSION_SET_BANK_MANAGER],
-                Self::Create => &[PERMISSION_SET_BANK_MANAGER],
-                Self::Read => &[PERMISSION_SET_BANK_MANAGER],
+            let action_description = match variant {
+                Self::Update => {
+                    ActionDescription::new(variant, &[PERMISSION_SET_ACCOUNTING_WRITER])
+                }
+                Self::Create => {
+                    ActionDescription::new(variant, &[PERMISSION_SET_ACCOUNTING_WRITER])
+                }
+                Self::Read => ActionDescription::new(
+                    variant,
+                    &[
+                        PERMISSION_SET_ACCOUNTING_VIEWER,
+                        PERMISSION_SET_ACCOUNTING_WRITER,
+                    ],
+                ),
             };
-            res.push(ActionDescription::new(variant, set));
+            res.push(action_description);
         }
 
         res
@@ -885,11 +951,19 @@ impl ProfitAndLossConfigurationAction {
         let mut res = vec![];
 
         for variant in <Self as strum::VariantArray>::VARIANTS {
-            let set = match variant {
-                Self::Update => &[PERMISSION_SET_BANK_MANAGER],
-                Self::Read => &[PERMISSION_SET_BANK_MANAGER],
+            let action_description = match variant {
+                Self::Update => {
+                    ActionDescription::new(variant, &[PERMISSION_SET_ACCOUNTING_WRITER])
+                }
+                Self::Read => ActionDescription::new(
+                    variant,
+                    &[
+                        PERMISSION_SET_ACCOUNTING_VIEWER,
+                        PERMISSION_SET_ACCOUNTING_WRITER,
+                    ],
+                ),
             };
-            res.push(ActionDescription::new(variant, set));
+            res.push(action_description);
         }
 
         res
@@ -914,11 +988,19 @@ impl BalanceSheetAction {
         let mut res = vec![];
 
         for variant in <Self as strum::VariantArray>::VARIANTS {
-            let set = match variant {
-                Self::Create => &[PERMISSION_SET_BANK_MANAGER],
-                Self::Read => &[PERMISSION_SET_BANK_MANAGER],
+            let action_description = match variant {
+                Self::Create => {
+                    ActionDescription::new(variant, &[PERMISSION_SET_ACCOUNTING_WRITER])
+                }
+                Self::Read => ActionDescription::new(
+                    variant,
+                    &[
+                        PERMISSION_SET_ACCOUNTING_VIEWER,
+                        PERMISSION_SET_ACCOUNTING_WRITER,
+                    ],
+                ),
             };
-            res.push(ActionDescription::new(variant, set));
+            res.push(action_description);
         }
 
         res
@@ -944,10 +1026,18 @@ impl BalanceSheetConfigurationAction {
 
         for variant in <Self as strum::VariantArray>::VARIANTS {
             let set = match variant {
-                Self::Update => &[PERMISSION_SET_BANK_MANAGER],
-                Self::Read => &[PERMISSION_SET_BANK_MANAGER],
+                Self::Update => {
+                    ActionDescription::new(variant, &[PERMISSION_SET_ACCOUNTING_WRITER])
+                }
+                Self::Read => ActionDescription::new(
+                    variant,
+                    &[
+                        PERMISSION_SET_ACCOUNTING_VIEWER,
+                        PERMISSION_SET_ACCOUNTING_WRITER,
+                    ],
+                ),
             };
-            res.push(ActionDescription::new(variant, set));
+            res.push(set);
         }
 
         res
@@ -975,14 +1065,32 @@ impl AccountingCsvAction {
         let mut res = vec![];
 
         for variant in <Self as strum::VariantArray>::VARIANTS {
-            let set = match variant {
-                Self::Read => &[PERMISSION_SET_BANK_MANAGER],
-                Self::Create => &[PERMISSION_SET_BANK_MANAGER],
-                Self::Generate => &[PERMISSION_SET_BANK_MANAGER],
-                Self::List => &[PERMISSION_SET_BANK_MANAGER],
-                Self::Download => &[PERMISSION_SET_BANK_MANAGER],
+            let action_description = match variant {
+                Self::Read => ActionDescription::new(
+                    variant,
+                    &[
+                        PERMISSION_SET_ACCOUNTING_VIEWER,
+                        PERMISSION_SET_ACCOUNTING_WRITER,
+                    ],
+                ),
+                Self::Create => {
+                    ActionDescription::new(variant, &[PERMISSION_SET_ACCOUNTING_WRITER])
+                }
+                Self::Generate => {
+                    ActionDescription::new(variant, &[PERMISSION_SET_ACCOUNTING_WRITER])
+                }
+                Self::List => ActionDescription::new(
+                    variant,
+                    &[
+                        PERMISSION_SET_ACCOUNTING_VIEWER,
+                        PERMISSION_SET_ACCOUNTING_WRITER,
+                    ],
+                ),
+                Self::Download => {
+                    ActionDescription::new(variant, &[PERMISSION_SET_ACCOUNTING_VIEWER])
+                }
             };
-            res.push(ActionDescription::new(variant, set));
+            res.push(action_description);
         }
 
         res
@@ -1008,12 +1116,22 @@ impl TrialBalanceAction {
         let mut res = vec![];
 
         for variant in <Self as strum::VariantArray>::VARIANTS {
-            let set = match variant {
-                Self::Read => &[PERMISSION_SET_BANK_MANAGER],
-                Self::Create => &[PERMISSION_SET_BANK_MANAGER],
-                Self::Update => &[PERMISSION_SET_BANK_MANAGER],
+            let action_description = match variant {
+                Self::Read => ActionDescription::new(
+                    variant,
+                    &[
+                        PERMISSION_SET_ACCOUNTING_VIEWER,
+                        PERMISSION_SET_ACCOUNTING_WRITER,
+                    ],
+                ),
+                Self::Create => {
+                    ActionDescription::new(variant, &[PERMISSION_SET_ACCOUNTING_WRITER])
+                }
+                Self::Update => {
+                    ActionDescription::new(variant, &[PERMISSION_SET_ACCOUNTING_VIEWER])
+                }
             };
-            res.push(ActionDescription::new(variant, set));
+            res.push(action_description);
         }
 
         res

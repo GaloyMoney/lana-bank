@@ -34,6 +34,9 @@ pub type DepositAllOrOne = AllOrOne<DepositId>;
 pub type ChartOfAccountsIntegrationConfigAllOrOne = AllOrOne<ChartOfAccountsIntegrationConfigId>;
 pub type WithdrawalAllOrOne = AllOrOne<WithdrawalId>;
 
+pub const PERMISSION_SET_DEPOSIT_VIEWER: &str = "deposit_viewer";
+pub const PERMISSION_SET_DEPOSIT_WRITER: &str = "deposit_writer";
+
 #[derive(Debug, Clone)]
 pub struct LedgerOmnibusAccountIds {
     pub account_set_id: CalaAccountSetId,
@@ -244,15 +247,29 @@ impl DepositAccountAction {
         let mut res = vec![];
 
         for variant in <Self as strum::VariantArray>::VARIANTS {
-            let set = match variant {
-                Self::Create => &[PERMISSION_SET_BANK_MANAGER],
-                Self::Read => &[PERMISSION_SET_BANK_MANAGER],
-                Self::List => &[PERMISSION_SET_BANK_MANAGER],
-                Self::UpdateStatus => &[PERMISSION_SET_BANK_MANAGER],
-                Self::ReadBalance => &[PERMISSION_SET_BANK_MANAGER],
-                Self::ReadTxHistory => &[PERMISSION_SET_BANK_MANAGER],
+            let action_description = match variant {
+                Self::Create => ActionDescription::new(variant, &[PERMISSION_SET_DEPOSIT_WRITER]),
+                Self::Read => ActionDescription::new(
+                    variant,
+                    &[PERMISSION_SET_DEPOSIT_VIEWER, PERMISSION_SET_DEPOSIT_WRITER],
+                ),
+                Self::List => ActionDescription::new(
+                    variant,
+                    &[PERMISSION_SET_DEPOSIT_WRITER, PERMISSION_SET_DEPOSIT_VIEWER],
+                ),
+                Self::UpdateStatus => {
+                    ActionDescription::new(variant, &[PERMISSION_SET_DEPOSIT_WRITER])
+                }
+                Self::ReadBalance => ActionDescription::new(
+                    variant,
+                    &[PERMISSION_SET_DEPOSIT_WRITER, PERMISSION_SET_DEPOSIT_VIEWER],
+                ),
+                Self::ReadTxHistory => ActionDescription::new(
+                    variant,
+                    &[PERMISSION_SET_DEPOSIT_WRITER, PERMISSION_SET_DEPOSIT_VIEWER],
+                ),
             };
-            res.push(ActionDescription::new(variant, set));
+            res.push(action_description);
         }
 
         res
@@ -278,12 +295,18 @@ impl DepositAction {
         let mut res = vec![];
 
         for variant in <Self as strum::VariantArray>::VARIANTS {
-            let set = match variant {
-                Self::Create => &[PERMISSION_SET_BANK_MANAGER],
-                Self::Read => &[PERMISSION_SET_ACCOUNTANT],
-                Self::List => &[PERMISSION_SET_ACCOUNTANT],
+            let action_description = match variant {
+                Self::Create => ActionDescription::new(variant, &[PERMISSION_SET_DEPOSIT_WRITER]),
+                Self::Read => ActionDescription::new(
+                    variant,
+                    &[PERMISSION_SET_DEPOSIT_VIEWER, PERMISSION_SET_DEPOSIT_WRITER],
+                ),
+                Self::List => ActionDescription::new(
+                    variant,
+                    &[PERMISSION_SET_DEPOSIT_WRITER, PERMISSION_SET_DEPOSIT_VIEWER],
+                ),
             };
-            res.push(ActionDescription::new(variant, set));
+            res.push(action_description);
         }
 
         res
@@ -312,15 +335,23 @@ impl WithdrawalAction {
         let mut res = vec![];
 
         for variant in <Self as strum::VariantArray>::VARIANTS {
-            let set = match variant {
-                Self::Cancel => &[PERMISSION_SET_BANK_MANAGER],
-                Self::Read => &[PERMISSION_SET_ACCOUNTANT],
-                Self::List => &[PERMISSION_SET_ACCOUNTANT],
-                Self::Initiate => &[PERMISSION_SET_BANK_MANAGER],
-                Self::ConcludeApprovalProcess => &[PERMISSION_SET_BANK_MANAGER],
-                Self::Confirm => &[PERMISSION_SET_BANK_MANAGER],
+            let action_description = match variant {
+                Self::Cancel => ActionDescription::new(variant, &[PERMISSION_SET_DEPOSIT_WRITER]),
+                Self::Read => ActionDescription::new(
+                    variant,
+                    &[PERMISSION_SET_DEPOSIT_VIEWER, PERMISSION_SET_DEPOSIT_WRITER],
+                ),
+                Self::List => ActionDescription::new(
+                    variant,
+                    &[PERMISSION_SET_DEPOSIT_WRITER, PERMISSION_SET_DEPOSIT_VIEWER],
+                ),
+                Self::Initiate => ActionDescription::new(variant, &[PERMISSION_SET_DEPOSIT_WRITER]),
+                Self::ConcludeApprovalProcess => {
+                    ActionDescription::new(variant, &[PERMISSION_SET_DEPOSIT_WRITER])
+                }
+                Self::Confirm => ActionDescription::new(variant, &[PERMISSION_SET_DEPOSIT_WRITER]),
             };
-            res.push(ActionDescription::new(variant, set));
+            res.push(action_description);
         }
 
         res
@@ -345,11 +376,14 @@ impl ChartOfAccountsIntegrationConfigAction {
         let mut res = vec![];
 
         for variant in <Self as strum::VariantArray>::VARIANTS {
-            let set = match variant {
-                Self::Read => &[PERMISSION_SET_BANK_MANAGER],
-                Self::Update => &[PERMISSION_SET_BANK_MANAGER],
+            let action_description = match variant {
+                Self::Read => ActionDescription::new(
+                    variant,
+                    &[PERMISSION_SET_DEPOSIT_VIEWER, PERMISSION_SET_DEPOSIT_WRITER],
+                ),
+                Self::Update => ActionDescription::new(variant, &[PERMISSION_SET_DEPOSIT_WRITER]),
             };
-            res.push(ActionDescription::new(variant, set));
+            res.push(action_description);
         }
 
         res
