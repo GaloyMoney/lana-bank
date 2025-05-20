@@ -178,7 +178,7 @@ jobs:
                 
                 #! nix -L develop --command sh -exc ../pipeline-tasks/ci/tasks/podman-integration-tests.sh
 
-                nix -L develop --command sh -exc ../pipeline-tasks/ci/tasks/podman-e2e-tests.sh                
+                nix -L develop --command sh -exc ../pipeline-tasks/ci/tasks/podman-bats-tests.sh                
 
   - name: bats-tests
     serial: true
