@@ -78,16 +78,6 @@
           cargoExtraArgs = "-p ${lanaCliPname} --features sim-time"; # Build only the specific package
         });
 
-      # Create a debug variant that's clearly marked as such
-      lana-cli-debug = lana-cli.overrideAttrs (old: {
-        name = "${old.pname}-debug-${old.version}";
-        meta =
-          old.meta
-          // {
-            description = "${old.meta.description} (debug build)";
-          };
-      });
-
       mkAlias = alias: command: pkgs.writeShellScriptBin alias command;
 
       rustVersion = pkgs.pkgsBuildHost.rust-bin.fromRustupToolchainFile ./rust-toolchain.toml;

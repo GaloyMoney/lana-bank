@@ -46,7 +46,10 @@ build:
 build-for-tests:
 	SQLX_OFFLINE=true cargo build --locked --features sim-time
 
-e2e: clean-deps start-deps build-for-tests
+build-for-tests-nix:
+	nix build .
+
+e2e: clean-deps start-deps build-for-tests-nix
 	bats -t bats
 
 sdl-rust:
