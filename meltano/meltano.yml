@@ -40,9 +40,17 @@ jobs:
   - dbt-bigquery:drop-old-relations
 - name: transpile_and_run_duckdb
   tasks:
+  - wiper:all
+  - tap-postgres target-duckdb
   - dbt-bigquery:compile
   - sqlglot-transpile:transpile
-  - duckdb-wiper:wipe_it
+  - dbt-duckdb:run
+- name: transpile_and_run_duckdb_debug
+  tasks:
+  - wiper:all
+  - tap-postgres target-duckdb
+  - dbt-bigquery:compile-sub-model
+  - sqlglot-transpile:transpile
   - dbt-duckdb:run
 schedules:
 - name: postgres-to-bigquery-dbt
@@ -100,14 +108,18 @@ plugins:
     variant: jwills
     pip_url: target-duckdb~=0.8
     config:
-      path: .build/target_duckdb.db
+      default_target_schema: lana
+      path: ${MELTANO_PROJECT_ROOT}/.build/target_duckdb.db
       primary_key_required: false
+      add_metadata_columns: true
   transformers:
   - name: dbt-bigquery
     variant: dbt-labs
     pip_url: dbt-core==1.9.0 dbt-bigquery==1.9.0 python-dateutil==2.8.2 six==1.16.0
     commands:
       drop-old-relations: run-operation drop_old_relations
+      compile-sub-model:
+        args: compile --models stg_credit_facility_events stg_core_chart_events
     config:
       auth_method: service-account
       project: lana-dev-440721
@@ -141,17 +153,19 @@ plugins:
     commands:
       transpile:
         args: >
-          scripts/transpile_sql.py
+          "${MELTANO_PROJECT_ROOT}/scripts/transpile_sql.py"
           "${MELTANO_PROJECT_ROOT}/transform/target/compiled/lana/models"
           -o "${MELTANO_PROJECT_ROOT}/transform_duckdb/models"
           --exclusions-file scripts/sqlglot_exclusions.txt
-          --skip-errors
+          --debug
         description: Transpile compiled dbt SQL from BigQuery → DuckDB/Snowflake
-  - name: duckdb-wiper
+  - name: wiper
     namespace: custom_ops
     executable: rm
     commands:
-      wipe_it: [-f, /Users/n/Code/lana-bank/meltano/.build/target_duckdb.db]
+      all:
+        args: -rf ${MELTANO_PROJECT_ROOT}/.build/target_duckdb.db ${MELTANO_PROJECT_ROOT}/transform_duckdb/models ${MELTANO_PROJECT_ROOT}/transform_duckdb/target/ ${MELTANO_PROJECT_ROOT}/transform/target/
+        description: "Delete the local DuckDB file before re-loading"
   - name: dbt-duckdb
     namespace: dbt_duckdb
     pip_url: dbt-core==1.9.0 dbt-duckdb==1.9.1
