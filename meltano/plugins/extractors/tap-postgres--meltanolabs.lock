@@ -6,7 +6,7 @@
   "label": "Postgres",
   "docs": "https://hub.meltano.com/extractors/tap-postgres--meltanolabs",
   "repo": "https://github.com/MeltanoLabs/tap-postgres",
-  "pip_url": "git+https://github.com/MeltanoLabs/tap-postgres.git",
+  "pip_url": "meltanolabs-tap-postgres",
   "description": "PostgreSQL database extractor",
   "logo_url": "https://hub.meltano.com/assets/logos/extractors/postgres.png",
   "capabilities": [
@@ -279,6 +279,12 @@
       "kind": "object",
       "label": "Stream Maps",
       "description": "Config object for stream maps capability. For more information check out [Stream Maps](https://sdk.meltano.com/en/latest/stream_maps.html)."
+    },
+    {
+      "name": "use_singer_decimal",
+      "kind": "boolean",
+      "label": "Use Singer Decimal",
+      "description": "Whether to use use strings with `x-singer.decimal` format for decimals in the discovered schema. This is useful to avoid precision loss when working with large numbers."
     },
     {
       "name": "user",

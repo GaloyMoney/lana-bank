@@ -22,13 +22,16 @@ clean-targets:
 - logs
 models:
   lana: null
+  quoting:
+    schema: true
+    identifier: true  
 tests:
   schema: null
   store_failures: true
-on-run-start:
-- '{{create_udfs()}}'
-on-run-end:
-- '{{create_data_test_results()}}'
+# on-run-start:
+# - '{{create_udfs()}}'
+# on-run-end:
+# - '{{create_data_test_results()}}'
 vars:
   sats_per_bitcoin: '100000000'
   deposits_coverage_limit: '10289.00'
