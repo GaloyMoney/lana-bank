@@ -15,8 +15,8 @@ use crate::{
     jobs::obligation_due,
     payment_allocation::NewPaymentAllocation,
     primitives::{
-        CoreCreditAction, CoreCreditObject, CreditFacilityId, ObligationId, ObligationType,
-        PaymentId, UsdCents,
+        CoreCreditAction, CoreCreditObject, CreditFacilityId, ObligationId, ObligationStatus,
+        ObligationType, PaymentId, UsdCents,
     },
     publisher::CreditFacilityPublisher,
 };
@@ -152,7 +152,9 @@ where
         for obligation in obligations.iter() {
             let expected_status = obligation.expected_status();
             let actual_status = obligation.status();
-            if expected_status != actual_status {
+            if actual_status == ObligationStatus::Paid {
+                continue;
+            } else if expected_status != actual_status {
                 return Ok(false);
             }
         }
