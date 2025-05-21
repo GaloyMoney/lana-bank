@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 use std::{fmt::Display, str::FromStr};
 use thiserror::Error;
 
-use authz::{AllOrOne, permission_set::*};
+use authz::{AllOrOne, action_description::*};
 
 pub use cala_ledger::{
     Currency as CalaCurrency, DebitOrCredit,

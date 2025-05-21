@@ -11,7 +11,7 @@ use std::collections::{HashMap, HashSet};
 
 use audit::AuditSvc;
 use authz::{
-    permission_set::{ActionDescription, FullPath},
+    action_description::{ActionDescription, FullPath},
     Authorization,
 };
 use entity::NewPermissionSet;

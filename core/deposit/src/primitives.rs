@@ -1,6 +1,6 @@
 use std::{fmt::Display, str::FromStr};
 
-use authz::{permission_set::*, AllOrOne};
+use authz::{action_description::*, AllOrOne};
 
 pub use core_accounting::ChartId;
 pub use core_customer::CustomerType;

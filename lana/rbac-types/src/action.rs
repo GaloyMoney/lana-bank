@@ -1,6 +1,6 @@
 use std::{fmt::Display, str::FromStr};
 
-use authz::permission_set::*;
+use authz::action_description::*;
 
 use core_accounting::CoreAccountingAction;
 use core_credit::CoreCreditAction;

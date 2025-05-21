@@ -1,9 +1,9 @@
+pub mod action_description;
 mod all_or_one;
 mod check_trait;
 #[cfg(feature = "test-dummy")]
 pub mod dummy;
 pub mod error;
-pub mod permission_set;
 
 use async_trait::async_trait;
 use sqlx_adapter::{

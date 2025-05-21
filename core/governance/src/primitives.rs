@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 use std::{borrow::Cow, fmt::Display, str::FromStr};
 
-use authz::{permission_set::*, AllOrOne};
+use authz::{action_description::*, AllOrOne};
 es_entity::entity_id! { ApprovalProcessId, CommitteeId, PolicyId, CommitteeMemberId }
 
 #[cfg_attr(feature = "graphql", derive(async_graphql::Enum))]

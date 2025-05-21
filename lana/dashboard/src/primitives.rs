@@ -1,6 +1,6 @@
 use std::{fmt::Display, str::FromStr};
 
-use authz::permission_set::*;
+use authz::action_description::*;
 
 pub const PERMISSION_SET_DASHBOARD_READER: &str = "dashboard_reader";
 

@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 use std::{fmt::Display, str::FromStr};
 
 pub use audit::AuditInfo;
-pub use authz::{permission_set::*, AllOrOne};
+pub use authz::{action_description::*, AllOrOne};
 
 es_entity::entity_id! {
     CustomerId;

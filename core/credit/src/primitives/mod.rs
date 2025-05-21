@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 
 use std::str::FromStr;
 
-use authz::{permission_set::*, AllOrOne};
+use authz::{action_description::*, AllOrOne};
 
 pub use cala_ledger::primitives::{
     AccountId as CalaAccountId, AccountSetId as CalaAccountSetId, Currency,
