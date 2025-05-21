@@ -4,6 +4,10 @@ version = "0.3.531-dev"
 edition = "2021"
 
 [features]
+sim-time = [
+  "dep:sim-time",
+  "es-entity/sim-time"
+]
 
 fail-on-warnings = []
 
