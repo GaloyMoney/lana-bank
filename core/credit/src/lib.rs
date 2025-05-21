@@ -1166,6 +1166,14 @@ where
         Ok(balances.total_outstanding_payable())
     }
 
+    pub async fn has_outstanding(&self, entity: &CreditFacility) -> Result<bool, CoreCreditError> {
+        let balances = self
+            .ledger
+            .get_credit_facility_balance(entity.account_ids)
+            .await?;
+        Ok(balances.any_outstanding_or_defaulted())
+    }
+
     pub async fn get_chart_of_accounts_integration_config(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,

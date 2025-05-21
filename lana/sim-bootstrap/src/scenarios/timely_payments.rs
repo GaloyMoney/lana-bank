@@ -104,8 +104,7 @@ async fn do_timely_payments(
             .await?;
 
         let facility = app.credit().find_by_id(&sub, id).await?.unwrap();
-        let total_outstanding = app.credit().outstanding(&facility).await?;
-        if total_outstanding.is_zero() {
+        if !app.credit().has_outstanding(&facility).await? {
             break;
         }
     }
