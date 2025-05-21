@@ -103,8 +103,7 @@ async fn do_timely_payments(
             .record_payment(&sub, id, amount, sim_time::now().date_naive())
             .await?;
 
-        let facility = app.credit().find_by_id(&sub, id).await?.unwrap();
-        if !app.credit().has_outstanding(&facility).await? {
+        if !app.credit().has_outstanding_obligations(&sub, id).await? {
             break;
         }
     }
