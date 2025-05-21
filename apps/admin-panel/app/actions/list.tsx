@@ -20,8 +20,9 @@ import {
   ApprovalProcessType,
   useAllActionsQuery,
 } from "@/lib/graphql/generated"
-import { formatDate, formatProcessType } from "@/lib/utils"
+import { formatProcessType } from "@/lib/utils"
 import DataTable, { Column } from "@/components/data-table"
+import DateWithTooltip from "@/components/date-with-tooltip"
 
 gql`
   query AllActions {
@@ -145,7 +146,7 @@ const List: React.FC<ListProps> = ({ dashboard = false }) => {
     {
       key: "createdAt",
       header: t("headers.date"),
-      render: (date) => formatDate(date, { includeTime: false }),
+      render: (date) => <DateWithTooltip value={date} />,
     },
   ]
 

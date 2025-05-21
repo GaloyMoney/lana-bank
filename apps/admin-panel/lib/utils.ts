@@ -36,51 +36,27 @@ export const currencyConverter = {
 }
 
 export const formatDate = (
-  isoDateString: string | null | undefined,
+  dateInput: string | number | Date,
   options: {
     includeTime: boolean
   } = { includeTime: true },
 ): string => {
-  if (isoDateString === "-") return "-"
-  if (!isoDateString) return "N/A"
-  let dateString = isoDateString
-  if (dateString.startsWith("+1")) {
-    dateString = dateString.substring(2)
+  const date = dateInput instanceof Date ? dateInput : new Date(dateInput)
+
+  if (Number.isNaN(date.getTime())) return "Invalid date"
+  const locale =
+    typeof document !== "undefined"
+      ? document.documentElement.lang || navigator.language || "en-US"
+      : "en-US"
+
+  const base: Intl.DateTimeFormatOptions = {
+    dateStyle: "medium",
   }
+  const opts: Intl.DateTimeFormatOptions = options.includeTime
+    ? { ...base, timeStyle: "short" }
+    : base
 
-  try {
-    let locale = "en-US"
-    if (typeof document !== "undefined") {
-      locale = document.documentElement.lang || navigator.language || "en-US"
-    }
-
-    const date = new Date(dateString)
-    if (isNaN(date.getTime())) {
-      return "Invalid date format"
-    }
-    const dateOptions: Intl.DateTimeFormatOptions = {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    }
-
-    const formattedDate = date.toLocaleDateString(locale, dateOptions)
-    if (!options.includeTime) {
-      return formattedDate
-    }
-
-    const formattedTime = date
-      .toLocaleTimeString(locale, {
-        hour: "2-digit",
-        minute: "2-digit",
-        hour12: false,
-      })
-      .toUpperCase()
-
-    return `${formattedDate}, ${formattedTime}`
-  } catch (error) {
-    return isoDateString
-  }
+  return new Intl.DateTimeFormat(locale, opts).format(date)
 }
 
 export const formatRole = (role: string) => {

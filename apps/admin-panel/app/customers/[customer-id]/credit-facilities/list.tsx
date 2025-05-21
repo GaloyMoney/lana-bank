@@ -5,11 +5,11 @@ import { useTranslations } from "next-intl"
 import CardWrapper from "@/components/card-wrapper"
 import Balance from "@/components/balance/balance"
 import { GetCustomerCreditFacilitiesQuery } from "@/lib/graphql/generated"
-import { formatDate } from "@/lib/utils"
 
 import { LoanAndCreditFacilityStatusBadge } from "@/app/credit-facilities/status-badge"
 import DataTable, { Column } from "@/components/data-table"
 import { CollateralizationStateLabel } from "@/app/credit-facilities/label"
+import DateWithTooltip from "@/components/date-with-tooltip"
 
 type CreditFacility = NonNullable<
   GetCustomerCreditFacilitiesQuery["customer"]
@@ -54,7 +54,7 @@ export const CustomerCreditFacilitiesTable: React.FC<
     {
       key: "createdAt",
       header: t("table.headers.createdAt"),
-      render: (date) => formatDate(date, { includeTime: false }),
+      render: (date) => <DateWithTooltip value={date} />,
     },
   ]
 

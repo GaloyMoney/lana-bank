@@ -14,7 +14,7 @@ import {
 import Balance from "@/components/balance/balance"
 import DataTable, { Column } from "@/components/data-table"
 import { GetCustomerTransactionHistoryQuery } from "@/lib/graphql/generated"
-import { formatDate } from "@/lib/utils"
+import DateWithTooltip from "@/components/date-with-tooltip"
 import { WithdrawalStatusBadge } from "@/app/withdrawals/status-badge"
 import { DisbursalStatusBadge } from "@/app/disbursals/status-badge"
 
@@ -50,7 +50,7 @@ export const CustomerTransactionsTable: React.FC<CustomerTransactionsTableProps>
       header: t("table.headers.date"),
       render: (_: HistoryNode["__typename"], entry: { recordedAt: string }) => {
         if (!entry.recordedAt) return "-"
-        return formatDate(entry.recordedAt, { includeTime: true })
+        return <DateWithTooltip value={entry.recordedAt} />
       },
     },
     {

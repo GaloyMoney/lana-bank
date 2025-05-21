@@ -29,7 +29,7 @@ import Link from "next/link"
 
 import { ExportCsvDialog } from "./export"
 
-import { formatDate, isUUID } from "@/lib/utils"
+import { isUUID } from "@/lib/utils"
 import {
   useLedgerAccountByCodeQuery,
   useLedgerAccountQuery,
@@ -44,6 +44,7 @@ import PaginatedTable, {
 import { DetailsGroup } from "@/components/details"
 import Balance from "@/components/balance/balance"
 import DataTable from "@/components/data-table"
+import DateWithTooltip from "@/components/date-with-tooltip"
 
 gql`
   fragment LedgerAccountDetails on LedgerAccount {
@@ -175,7 +176,7 @@ const LedgerAccountPage: React.FC<LedgerAccountPageProps> = ({ params }) => {
     {
       key: "createdAt",
       label: t("table.columns.recordedAt"),
-      render: (recordedAt: string) => formatDate(recordedAt),
+      render: (recordedAt: string) => <DateWithTooltip value={recordedAt} />,
     },
     {
       key: "amount",

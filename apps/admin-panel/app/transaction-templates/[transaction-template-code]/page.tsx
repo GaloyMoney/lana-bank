@@ -23,7 +23,7 @@ import PaginatedTable, {
   DEFAULT_PAGESIZE,
   PaginatedData,
 } from "@/components/paginated-table"
-import { formatDate } from "@/lib/utils"
+import DateWithTooltip from "@/components/date-with-tooltip"
 
 gql`
   query LedgerTransactionsForTemplateCode(
@@ -78,7 +78,7 @@ const LedgerTransactionsForTemplateCode: React.FC<
     {
       key: "createdAt",
       label: t("table.headers.createdAt"),
-      render: (date) => formatDate(date),
+      render: (date) => <DateWithTooltip value={date} />,
     },
     {
       key: "description",

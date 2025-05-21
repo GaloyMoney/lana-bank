@@ -24,7 +24,8 @@ import PaginatedTable, {
   PaginatedData,
 } from "@/components/paginated-table"
 import Balance from "@/components/balance/balance"
-import { camelToScreamingSnake, formatDate } from "@/lib/utils"
+import { camelToScreamingSnake } from "@/lib/utils"
+import DateWithTooltip from "@/components/date-with-tooltip"
 
 gql`
   query CreditFacilities(
@@ -154,7 +155,7 @@ const columns = (t: (key: string) => string): Column<CreditFacility>[] => [
   {
     key: "createdAt",
     label: t("table.headers.createdAt"),
-    render: (date) => formatDate(date, { includeTime: false }),
+    render: (date) => <DateWithTooltip value={date} />,
     sortable: true,
   },
 ]

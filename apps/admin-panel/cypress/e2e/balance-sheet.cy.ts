@@ -22,8 +22,8 @@ describe("Balance Sheet", () => {
 
   it("should display balance sheet sections and categories", () => {
     cy.graphqlRequest<{ data: BalanceSheetQuery }>(print(BalanceSheetDocument), {
-      from: lastMonthDate.toISOString().split('T')[0],
-      until: currentDate.toISOString().split('T')[0],
+      from: lastMonthDate.toISOString().split("T")[0],
+      until: currentDate.toISOString().split("T")[0],
     }).then((response) => {
       cy.contains(t(BalanceSheet + ".columns.assets")).should("be.visible")
       cy.contains(t(BalanceSheet + ".columns.liabilitiesAndEquity")).should("be.visible")

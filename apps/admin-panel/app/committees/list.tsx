@@ -13,7 +13,7 @@ import PaginatedTable, {
   DEFAULT_PAGESIZE,
   PaginatedData,
 } from "@/components/paginated-table"
-import { formatDate } from "@/lib/utils"
+import DateWithTooltip from "@/components/date-with-tooltip"
 
 gql`
   fragment CommitteeFields on Committee {
@@ -96,7 +96,7 @@ const columns = (t: ReturnType<typeof useTranslations>): Column<Committee>[] => 
   {
     key: "createdAt",
     label: t("headers.created"),
-    render: (createdAt) => formatDate(createdAt, { includeTime: false }),
+    render: (createdAt) => <DateWithTooltip value={createdAt} />,
   },
   {
     key: "currentMembers",

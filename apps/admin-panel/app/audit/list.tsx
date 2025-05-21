@@ -8,7 +8,7 @@ import PaginatedTable, {
   DEFAULT_PAGESIZE,
   PaginatedData,
 } from "@/components/paginated-table"
-import { formatDate } from "@/lib/utils"
+import DateWithTooltip from "@/components/date-with-tooltip"
 
 gql`
   query AuditLogs($first: Int!, $after: String) {
@@ -68,7 +68,7 @@ const AuditLogsList = () => {
     {
       key: "recordedAt",
       label: t("headers.recordedAt"),
-      render: (date) => formatDate(date),
+      render: (date) => <DateWithTooltip value={date} />,
     },
   ]
 

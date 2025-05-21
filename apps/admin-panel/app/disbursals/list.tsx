@@ -13,7 +13,7 @@ import PaginatedTable, {
   PaginatedData,
 } from "@/components/paginated-table"
 import Balance from "@/components/balance/balance"
-import { formatDate } from "@/lib/utils"
+import DateWithTooltip from "@/components/date-with-tooltip"
 
 gql`
   query Disbursals($first: Int!, $after: String) {
@@ -55,7 +55,7 @@ const Disbursals = () => {
     {
       key: "createdAt",
       label: t("table.headers.createdAt"),
-      render: (date) => formatDate(date, { includeTime: false }),
+      render: (date) => <DateWithTooltip value={date} />,
     },
     {
       key: "status",

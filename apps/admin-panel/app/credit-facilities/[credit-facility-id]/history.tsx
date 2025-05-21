@@ -11,8 +11,9 @@ import {
   CreditFacilityHistoryEntry,
   CollateralAction,
 } from "@/lib/graphql/generated"
-import { formatCollateralAction, formatDate, cn } from "@/lib/utils"
+import { formatCollateralAction, cn } from "@/lib/utils"
 import DataTable, { Column } from "@/components/data-table"
+import DateWithTooltip from "@/components/date-with-tooltip"
 
 type CreditFacilityHistoryProps = {
   creditFacility: NonNullable<GetCreditFacilityHistoryQuery["creditFacility"]>
@@ -69,7 +70,7 @@ export const CreditFacilityHistory: React.FC<CreditFacilityHistoryProps> = ({
       key: "recordedAt",
       header: t("columns.recordedAt"),
       render: (recordedAt: string | null | undefined) =>
-        recordedAt ? formatDate(recordedAt, { includeTime: false }) : "-",
+        recordedAt ? <DateWithTooltip value={recordedAt} /> : "-",
     },
     {
       key: "__typename",

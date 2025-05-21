@@ -9,9 +9,9 @@ import DataTable, { Column } from "@/components/data-table"
 
 import { GetCreditFacilityRepaymentPlanQuery } from "@/lib/graphql/generated"
 
-import { formatDate } from "@/lib/utils"
 import Balance from "@/components/balance/balance"
 import CardWrapper from "@/components/card-wrapper"
+import DateWithTooltip from "@/components/date-with-tooltip"
 
 type RepaymentPlan = NonNullable<
   NonNullable<
@@ -58,7 +58,7 @@ export const CreditFacilityRepaymentPlan: React.FC<CreditFacilityRepaymentPlanPr
     {
       key: "dueAt",
       header: t("columns.dueDate"),
-      render: (date) => formatDate(date),
+      render: (date) => <DateWithTooltip value={date} />,
     },
     {
       key: "status",

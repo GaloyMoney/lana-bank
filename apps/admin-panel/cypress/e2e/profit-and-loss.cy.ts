@@ -23,8 +23,8 @@ describe("Profit and Loss Statement", () => {
     cy.graphqlRequest<{ data: ProfitAndLossStatementQuery }>(
       print(ProfitAndLossStatementDocument),
       {
-        from: lastMonthDate.toISOString().split('T')[0],
-        until: currentDate.toISOString().split('T')[0],
+        from: lastMonthDate.toISOString().split("T")[0],
+        until: currentDate.toISOString().split("T")[0],
       },
     ).then((response) => {
       response.data.profitAndLossStatement?.categories.forEach((category) => {

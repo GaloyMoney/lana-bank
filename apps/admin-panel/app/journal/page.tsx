@@ -19,14 +19,14 @@ import {
   useJournalEntriesQuery,
 } from "@/lib/graphql/generated"
 
-import { formatDate } from "@/lib/utils"
-
 import PaginatedTable, {
   Column,
   DEFAULT_PAGESIZE,
   PaginatedData,
 } from "@/components/paginated-table"
 import Balance from "@/components/balance/balance"
+import DateWithTooltip from "@/components/date-with-tooltip"
+import { formatDate } from "@/lib/utils"
 
 gql`
   query JournalEntries($first: Int!, $after: String) {
@@ -87,14 +87,15 @@ const JournalPage: React.FC = () => {
     {
       key: "createdAt",
       label: t("table.createdAt"),
-      render: (date: string) => formatDate(date),
+      render: (date: string) => <DateWithTooltip value={date} />,
     },
     {
       key: "ledgerTransaction",
       label: t("table.effective"),
-      render: (transaction: LedgerTransaction) => {
-        return transaction.effective
-      },
+      render: (transaction: LedgerTransaction) =>
+        formatDate(transaction.effective, {
+          includeTime: false,
+        }),
     },
     {
       key: "ledgerTransaction",

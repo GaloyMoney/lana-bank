@@ -6,9 +6,9 @@ import { useTranslations } from "next-intl"
 import CardWrapper from "@/components/card-wrapper"
 import { GetCreditFacilityDisbursalsQuery } from "@/lib/graphql/generated"
 import Balance from "@/components/balance/balance"
-import { formatDate } from "@/lib/utils"
 import DataTable, { Column } from "@/components/data-table"
 import { DisbursalStatusBadge } from "@/app/disbursals/status-badge"
+import DateWithTooltip from "@/components/date-with-tooltip"
 
 type Disbursal = NonNullable<
   GetCreditFacilityDisbursalsQuery["creditFacility"]
@@ -32,7 +32,7 @@ export const CreditFacilityDisbursals: React.FC<CreditFacilityDisbursalsProps> =
     {
       key: "createdAt",
       header: t("columns.createdAt"),
-      render: (date) => formatDate(date, { includeTime: false }),
+      render: (date) => <DateWithTooltip value={date} />,
     },
     {
       key: "status",
