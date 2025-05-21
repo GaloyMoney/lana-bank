@@ -30,6 +30,12 @@ server_cmd() {
   bash -c ${server_location} $@
 }
 
+server_cmd_nix() {
+  server_location="$(nix build . --print-out-paths)/bin/lana-cli"
+
+  bash -c ${server_location} $@
+}
+
 start_server() {
     echo "--- Starting server make ---"
 
@@ -69,7 +75,7 @@ start_server_nix() {
   echo "LANA_CONFIG: $LANA_CONFIG"
 
   # Start server if not already running
-  $(nix build . --print-out-paths)/bin/lana-cli > "$LOG_FILE" 2>&1 &
+  background server_cmd_nix > "$LOG_FILE" 2>&1
   echo "--- Server started ---"
   for i in {1..20}; do
     echo "--- Checking if server is running ${i} ---"
@@ -78,7 +84,7 @@ start_server_nix() {
     elif grep -q 'Connection reset by peer' "$LOG_FILE"; then
       stop_server
       sleep 1
-      $(nix build . --print-out-paths)/bin/lana-cli > "$LOG_FILE" 2>&1 &
+      background server_cmd_nix > "$LOG_FILE" 2>&1
     else
       sleep 1
       echo "--- Server not running ---"
