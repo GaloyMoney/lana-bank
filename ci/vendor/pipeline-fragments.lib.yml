@@ -402,7 +402,7 @@ type: git
 source:
   paths: [ci/vendor/*, ci/tasks/*, ci/config/*, Makefile]
   uri: #@ data.values.git_uri
-  branch: fix--script-for-bats-test-with-nix
+  branch: #@ data.values.git_branch
   private_key: #@ data.values.github_private_key
 #@ end
 
