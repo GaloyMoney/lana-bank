@@ -33,35 +33,25 @@ impl CsvParser {
                 Ok(record) => {
                     let mut initial_empty = true;
                     let mut sections = vec![];
+                    let mut category = None;
+                    let mut normal_balance_type = None;
                     if record.iter().all(|field| field.is_empty()) {
                         continue;
                     }
 
-                    let normal_balance_type = record
-                        .get(4)
-                        .and_then(|b| b.parse::<DebitOrCredit>().ok())
-                        .unwrap_or_default();
-
                     for (idx, field) in record.iter().enumerate() {
-                        if let Ok(category) = field.parse::<AccountName>() {
-                            if let Some(s) = specs.iter().rposition(|s| s.code.is_parent(&sections))
-                            {
-                                specs.push(AccountSpec::new(
-                                    Some(specs[s].code.clone()),
-                                    sections,
-                                    category,
-                                    specs[s].normal_balance_type,
-                                ));
-                                break;
-                            }
-                            specs.push(AccountSpec::new(
-                                None,
-                                sections,
-                                category,
-                                normal_balance_type,
-                            ));
+                        if let Ok(balance_type) = field.parse::<DebitOrCredit>() {
+                            normal_balance_type = Some(balance_type);
                             break;
                         }
+
+                        if category.is_some() {
+                            continue;
+                        } else if let Ok(account_category) = field.parse::<AccountName>() {
+                            category = Some(account_category);
+                            continue;
+                        }
+
                         match field.parse::<AccountCodeSection>() {
                             Ok(section) => {
                                 initial_empty = false;
@@ -82,6 +72,25 @@ impl CsvParser {
                                 continue;
                             }
                         }
+                    }
+
+                    if let Some(category) = category {
+                        if let Some(s) = specs.iter().rposition(|s| s.code.is_parent(&sections)) {
+                            let parent = specs[s].clone();
+                            specs.push(AccountSpec::new(
+                                Some(parent.code),
+                                sections,
+                                category,
+                                parent.normal_balance_type,
+                            ));
+                            continue;
+                        }
+                        specs.push(AccountSpec::new(
+                            None,
+                            sections,
+                            category,
+                            normal_balance_type.unwrap_or_default(),
+                        ));
                     }
                 }
                 Err(e) => eprintln!("Error reading record: {}", e),
@@ -105,20 +114,47 @@ mod tests {
     }
 
     #[test]
-    fn parse_two_lines() {
+    fn parse_multiple_lines_and_switch_balance_type() {
         let data = r#"
         1,,,Assets ,Debit,
         ,,,,,
         11,,,Assets,,
         ,,,,,
+        2,,,Liabilities ,,
+        ,,,,,
+        21,,,Liabilities,,
+        ,,,,,
+        3,,,Expenses,,,,,Debit,
+        ,,,,,
+        4,,,Revenues,,,,,Credit,
+        ,,,,,
         "#;
         let parser = CsvParser::new(data.to_string());
         let specs = parser.account_specs().unwrap();
-        assert_eq!(specs.len(), 2);
-        assert_eq!(specs[0].code.len_sections(), 1);
-        assert_eq!(Some(&specs[0].code), specs[1].parent.as_ref());
-        assert_eq!(specs[0].normal_balance_type, DebitOrCredit::Debit);
-        assert_eq!(specs[1].normal_balance_type, DebitOrCredit::Debit);
+        assert_eq!(specs.len(), 6);
+
+        let assets_spec = &specs[0];
+        assert_eq!(assets_spec.code.len_sections(), 1);
+        assert_eq!(Some(&assets_spec.code), specs[1].parent.as_ref());
+        assert_eq!(assets_spec.normal_balance_type, DebitOrCredit::Debit);
+
+        let sub_assets_spec = &specs[1];
+        assert_eq!(sub_assets_spec.normal_balance_type, DebitOrCredit::Debit);
+
+        let liabilities_spec = &specs[2];
+        assert_eq!(liabilities_spec.normal_balance_type, DebitOrCredit::Credit);
+
+        let sub_liabilities_spec = &specs[3];
+        assert_eq!(
+            sub_liabilities_spec.normal_balance_type,
+            DebitOrCredit::Credit
+        );
+
+        let expenses_spec = &specs[4];
+        assert_eq!(expenses_spec.normal_balance_type, DebitOrCredit::Debit);
+
+        let revenues_spec = &specs[5];
+        assert_eq!(revenues_spec.normal_balance_type, DebitOrCredit::Credit);
     }
 
     #[test]
