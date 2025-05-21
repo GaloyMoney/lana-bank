@@ -22,12 +22,12 @@ pub use publisher::UserPublisher;
 pub use role::*;
 pub use user::*;
 
-use error::CoreUserError;
+use error::CoreAccessError;
 
-pub struct CoreUser<Audit, E>
+pub struct CoreAccess<Audit, E>
 where
     Audit: AuditSvc,
-    E: OutboxEventMarker<CoreUserEvent>,
+    E: OutboxEventMarker<CoreAccessEvent>,
 {
     authz: Authorization<Audit, RoleName>,
     roles: Roles<Audit, E>,
@@ -35,13 +35,13 @@ where
     permission_sets: PermissionSets<Audit>,
 }
 
-impl<Audit, E> CoreUser<Audit, E>
+impl<Audit, E> CoreAccess<Audit, E>
 where
     Audit: AuditSvc,
     <Audit as AuditSvc>::Subject: From<UserId>,
-    <Audit as AuditSvc>::Action: From<CoreUserAction>,
-    <Audit as AuditSvc>::Object: From<CoreUserObject>,
-    E: OutboxEventMarker<CoreUserEvent>,
+    <Audit as AuditSvc>::Action: From<CoreAccessAction>,
+    <Audit as AuditSvc>::Object: From<CoreAccessObject>,
+    E: OutboxEventMarker<CoreAccessEvent>,
 {
     pub async fn init(
         pool: &sqlx::PgPool,
@@ -49,13 +49,13 @@ where
         outbox: &Outbox<E>,
         superuser_email: Option<String>,
         actions: &[ActionDescription<FullPath>],
-    ) -> Result<Self, CoreUserError> {
+    ) -> Result<Self, CoreAccessError> {
         let users = Users::init(pool, authz, outbox).await?;
         let publisher = UserPublisher::new(outbox);
         let roles = Roles::new(pool, authz, &publisher);
         let permission_sets = PermissionSets::new(authz, pool);
 
-        let core_users = Self {
+        let core_access = Self {
             authz: authz.clone(),
             roles,
             users,
@@ -63,12 +63,12 @@ where
         };
 
         if let Some(email) = superuser_email {
-            core_users
+            core_access
                 .bootstrap_access_control(email, actions, pool)
                 .await?;
         }
 
-        Ok(core_users)
+        Ok(core_access)
     }
 
     pub fn roles(&self) -> &Roles<Audit, E> {
@@ -88,13 +88,13 @@ where
         sub: &<Audit as AuditSvc>::Subject,
         role_id: RoleId,
         permission_set_ids: &[PermissionSetId],
-    ) -> Result<(), CoreUserError> {
+    ) -> Result<(), CoreAccessError> {
         let audit_info = self
             .authz
             .enforce_permission(
                 sub,
-                CoreUserObject::role(role_id),
-                CoreUserAction::ROLE_UPDATE,
+                CoreAccessObject::role(role_id),
+                CoreAccessAction::ROLE_UPDATE,
             )
             .await?;
 
@@ -115,13 +115,13 @@ where
         sub: &<Audit as AuditSvc>::Subject,
         role_id: RoleId,
         permission_set_id: PermissionSetId,
-    ) -> Result<(), CoreUserError> {
+    ) -> Result<(), CoreAccessError> {
         let audit_info = self
             .authz
             .enforce_permission(
                 sub,
-                CoreUserObject::role(role_id),
-                CoreUserAction::ROLE_UPDATE,
+                CoreAccessObject::role(role_id),
+                CoreAccessAction::ROLE_UPDATE,
             )
             .await?;
 
@@ -146,7 +146,7 @@ where
         email: String,
         actions: &[ActionDescription<FullPath>],
         pool: &sqlx::PgPool,
-    ) -> Result<(), CoreUserError> {
+    ) -> Result<(), CoreAccessError> {
         let mut db = DbOp::init(pool).await?;
 
         let permission_sets = self
@@ -175,10 +175,10 @@ where
     }
 }
 
-impl<Audit, E> Clone for CoreUser<Audit, E>
+impl<Audit, E> Clone for CoreAccess<Audit, E>
 where
     Audit: AuditSvc,
-    E: OutboxEventMarker<CoreUserEvent>,
+    E: OutboxEventMarker<CoreAccessEvent>,
 {
     fn clone(&self) -> Self {
         Self {

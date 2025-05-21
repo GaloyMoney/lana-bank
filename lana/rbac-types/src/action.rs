@@ -2,10 +2,10 @@ use std::{fmt::Display, str::FromStr};
 
 use authz::action_description::*;
 
+use core_access::CoreAccessAction;
 use core_accounting::CoreAccountingAction;
 use core_credit::CoreCreditAction;
 use core_customer::CoreCustomerAction;
-use core_user::CoreUserAction;
 use dashboard::DashboardModuleAction;
 use deposit::CoreDepositAction;
 use governance::GovernanceAction;
@@ -19,7 +19,7 @@ pub const PERMISSION_SET_APP_WRITER: &str = "app_writer";
 pub enum LanaAction {
     App(AppAction),
     Governance(GovernanceAction),
-    User(CoreUserAction),
+    Access(CoreAccessAction),
     Customer(CoreCustomerAction),
     Accounting(CoreAccountingAction),
     Dashboard(DashboardModuleAction),
@@ -52,7 +52,7 @@ impl LanaAction {
             let actions = match module {
                 App => flatten(module, AppAction::entities()),
                 Governance => flatten(module, GovernanceAction::entities()),
-                User => flatten(module, CoreUserAction::entities()),
+                Access => flatten(module, CoreAccessAction::entities()),
                 Customer => flatten(module, CoreCustomerAction::entities()),
                 Accounting => flatten(module, CoreAccountingAction::entities()),
                 Dashboard => flatten(module, DashboardModuleAction::entities()),
@@ -82,9 +82,9 @@ impl From<GovernanceAction> for LanaAction {
         LanaAction::Governance(action)
     }
 }
-impl From<CoreUserAction> for LanaAction {
-    fn from(action: CoreUserAction) -> Self {
-        LanaAction::User(action)
+impl From<CoreAccessAction> for LanaAction {
+    fn from(action: CoreAccessAction) -> Self {
+        LanaAction::Access(action)
     }
 }
 impl From<CoreCustomerAction> for LanaAction {
@@ -115,7 +115,7 @@ impl Display for LanaAction {
         match self {
             App(action) => action.fmt(f),
             Governance(action) => action.fmt(f),
-            User(action) => action.fmt(f),
+            Access(action) => action.fmt(f),
             Customer(action) => action.fmt(f),
             Dashboard(action) => action.fmt(f),
             Accounting(action) => action.fmt(f),
@@ -134,7 +134,7 @@ impl FromStr for LanaAction {
         let res = match module.parse()? {
             App => LanaAction::from(action.parse::<AppAction>()?),
             Governance => LanaAction::from(action.parse::<GovernanceAction>()?),
-            User => LanaAction::from(action.parse::<CoreUserAction>()?),
+            Access => LanaAction::from(action.parse::<CoreAccessAction>()?),
             Customer => LanaAction::from(action.parse::<CoreCustomerAction>()?),
             Dashboard => LanaAction::from(action.parse::<DashboardModuleAction>()?),
             Accounting => LanaAction::from(action.parse::<CoreAccountingAction>()?),

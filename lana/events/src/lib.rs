@@ -3,9 +3,9 @@
 
 use serde::{Deserialize, Serialize};
 
+pub use core_access::CoreAccessEvent;
 pub use core_credit::{CollateralAction, CoreCreditEvent, ObligationStatus, ObligationType};
 pub use core_customer::CoreCustomerEvent;
-pub use core_user::CoreUserEvent;
 pub use deposit::CoreDepositEvent;
 pub use governance::GovernanceEvent;
 pub use outbox::OutboxEventMarker;
@@ -14,7 +14,7 @@ pub use outbox::OutboxEventMarker;
 #[serde(tag = "module")]
 pub enum LanaEvent {
     Governance(GovernanceEvent),
-    User(CoreUserEvent),
+    Access(CoreAccessEvent),
     Customer(CoreCustomerEvent),
     Credit(CoreCreditEvent),
     Deposit(CoreDepositEvent),
@@ -39,7 +39,7 @@ macro_rules! impl_event_marker {
 }
 
 impl_event_marker!(GovernanceEvent, Governance);
-impl_event_marker!(CoreUserEvent, User);
+impl_event_marker!(CoreAccessEvent, Access);
 impl_event_marker!(CoreCreditEvent, Credit);
 impl_event_marker!(CoreDepositEvent, Deposit);
 impl_event_marker!(CoreCustomerEvent, Customer);

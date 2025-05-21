@@ -11,13 +11,13 @@ use error::*;
 use job::*;
 
 use audit::AuditSvc;
-use core_user::{user::Users, CoreUserAction, CoreUserEvent, CoreUserObject, UserId};
+use core_access::{user::Users, CoreAccessAction, CoreAccessEvent, CoreAccessObject, UserId};
 use outbox::{Outbox, OutboxEventMarker};
 
 pub struct UserOnboarding<Audit, E>
 where
     Audit: AuditSvc,
-    E: OutboxEventMarker<CoreUserEvent>,
+    E: OutboxEventMarker<CoreAccessEvent>,
 {
     _phantom: std::marker::PhantomData<(Audit, E)>,
     _outbox: Outbox<E>,
@@ -26,7 +26,7 @@ where
 impl<Audit, E> Clone for UserOnboarding<Audit, E>
 where
     Audit: AuditSvc,
-    E: OutboxEventMarker<CoreUserEvent>,
+    E: OutboxEventMarker<CoreAccessEvent>,
 {
     fn clone(&self) -> Self {
         Self {
@@ -40,9 +40,9 @@ impl<Audit, E> UserOnboarding<Audit, E>
 where
     Audit: AuditSvc,
     <Audit as AuditSvc>::Subject: From<UserId>,
-    <Audit as AuditSvc>::Action: From<CoreUserAction>,
-    <Audit as AuditSvc>::Object: From<CoreUserObject>,
-    E: OutboxEventMarker<CoreUserEvent>,
+    <Audit as AuditSvc>::Action: From<CoreAccessAction>,
+    <Audit as AuditSvc>::Object: From<CoreAccessObject>,
+    E: OutboxEventMarker<CoreAccessEvent>,
 {
     pub async fn init(
         jobs: &::job::Jobs,

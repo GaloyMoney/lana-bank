@@ -16,7 +16,7 @@ pub async fn user_id_from_authentication_id(
     Extension(app): Extension<LanaApp>,
     Json(mut payload): Json<AuthenticationPayload>,
 ) -> impl IntoResponse {
-    let authentication_id = match payload.subject.parse::<core_user::AuthenticationId>() {
+    let authentication_id = match payload.subject.parse::<core_access::AuthenticationId>() {
         Ok(id) => id,
         Err(e) => {
             println!("Error parsing authentication id: {:?}", e);
@@ -25,7 +25,7 @@ pub async fn user_id_from_authentication_id(
     };
 
     match app
-        .users()
+        .access()
         .users()
         .find_by_authentication_id(authentication_id)
         .await

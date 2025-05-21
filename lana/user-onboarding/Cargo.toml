@@ -9,7 +9,7 @@ fail-on-warnings = []
 
 [dependencies]
 lana-events = { path = "../events" }
-core-user = { path = "../../core/user" }
+core-access = { path = "../../core/access" }
 
 outbox = { path = "../../lib/outbox" }
 job = { path = "../../lib/job" }

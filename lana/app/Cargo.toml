@@ -19,7 +19,7 @@ customer-sync = { path = "../customer-sync" }
 
 governance = { path = "../../core/governance", features = ["graphql"] }
 core-money = { path = "../../core/money" }
-core-user = { path = "../../core/user", features = ["graphql"] }
+core-access = { path = "../../core/access", features = ["graphql"] }
 core-credit = { path = "../../core/credit", features = ["graphql"] }
 core-customer = { path = "../../core/customer", features = ["graphql"] }
 core-price = { path = "../../core/price" }

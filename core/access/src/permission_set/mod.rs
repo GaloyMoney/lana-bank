@@ -18,7 +18,7 @@ use entity::NewPermissionSet;
 use es_entity::DbOp;
 
 use crate::{
-    primitives::{CoreUserAction, CoreUserObject},
+    primitives::{CoreAccessAction, CoreAccessObject},
     PermissionSetId, RoleName,
 };
 
@@ -41,8 +41,8 @@ where
 impl<Audit> PermissionSets<Audit>
 where
     Audit: AuditSvc,
-    <Audit as AuditSvc>::Action: From<CoreUserAction>,
-    <Audit as AuditSvc>::Object: From<CoreUserObject>,
+    <Audit as AuditSvc>::Action: From<CoreAccessAction>,
+    <Audit as AuditSvc>::Object: From<CoreAccessObject>,
 {
     pub fn new(authz: &Authorization<Audit, RoleName>, pool: &sqlx::PgPool) -> Self {
         Self {

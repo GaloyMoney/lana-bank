@@ -7,13 +7,13 @@ mod object;
 use serde::{Deserialize, Serialize};
 use uuid::{uuid, Uuid};
 
+use core_access::UserId;
 use core_customer::CustomerId;
-use core_user::UserId;
 
 pub use action::*;
 pub use object::*;
 
-pub use core_user::RoleName;
+pub use core_access::RoleName;
 
 #[derive(
     async_graphql::Enum,

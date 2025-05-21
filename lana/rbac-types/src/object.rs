@@ -1,10 +1,10 @@
 use std::{fmt::Display, str::FromStr};
 
 use authz::AllOrOne;
+use core_access::CoreAccessObject;
 use core_accounting::CoreAccountingObject;
 use core_credit::CoreCreditObject;
 use core_customer::{CustomerId, CustomerObject};
-use core_user::CoreUserObject;
 use dashboard::DashboardModuleObject;
 use deposit::CoreDepositObject;
 use governance::GovernanceObject;
@@ -15,7 +15,7 @@ use governance::GovernanceObject;
 pub enum LanaObject {
     App(AppObject),
     Governance(GovernanceObject),
-    User(CoreUserObject),
+    Access(CoreAccessObject),
     Customer(CustomerObject),
     Accounting(CoreAccountingObject),
     Deposit(CoreDepositObject),
@@ -38,9 +38,9 @@ impl From<GovernanceObject> for LanaObject {
         LanaObject::Governance(action)
     }
 }
-impl From<CoreUserObject> for LanaObject {
-    fn from(action: CoreUserObject) -> Self {
-        LanaObject::User(action)
+impl From<CoreAccessObject> for LanaObject {
+    fn from(action: CoreAccessObject) -> Self {
+        LanaObject::Access(action)
     }
 }
 impl From<CustomerObject> for LanaObject {
@@ -71,7 +71,7 @@ impl Display for LanaObject {
         match self {
             App(action) => action.fmt(f),
             Governance(action) => action.fmt(f),
-            User(action) => action.fmt(f),
+            Access(action) => action.fmt(f),
             Customer(action) => action.fmt(f),
             Accounting(action) => action.fmt(f),
             Deposit(action) => action.fmt(f),
@@ -90,7 +90,7 @@ impl FromStr for LanaObject {
         let res = match module.parse().expect("invalid module") {
             App => LanaObject::from(object.parse::<AppObject>()?),
             Governance => LanaObject::from(object.parse::<GovernanceObject>()?),
-            User => LanaObject::from(object.parse::<CoreUserObject>()?),
+            Access => LanaObject::from(object.parse::<CoreAccessObject>()?),
             Customer => LanaObject::from(object.parse::<CustomerObject>()?),
             Accounting => LanaObject::from(object.parse::<CoreAccountingObject>()?),
             Deposit => LanaObject::from(object.parse::<CoreDepositObject>()?),

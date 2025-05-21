@@ -20,7 +20,7 @@ use repo::*;
 pub struct Users<Audit, E>
 where
     Audit: AuditSvc,
-    E: OutboxEventMarker<CoreUserEvent>,
+    E: OutboxEventMarker<CoreAccessEvent>,
 {
     authz: Authorization<Audit, RoleName>,
     repo: UserRepo<E>,
@@ -29,7 +29,7 @@ where
 impl<Audit, E> Clone for Users<Audit, E>
 where
     Audit: AuditSvc,
-    E: OutboxEventMarker<CoreUserEvent>,
+    E: OutboxEventMarker<CoreAccessEvent>,
 {
     fn clone(&self) -> Self {
         Self {
@@ -43,9 +43,9 @@ impl<Audit, E> Users<Audit, E>
 where
     Audit: AuditSvc,
     <Audit as AuditSvc>::Subject: From<UserId>,
-    <Audit as AuditSvc>::Action: From<CoreUserAction>,
-    <Audit as AuditSvc>::Object: From<CoreUserObject>,
-    E: OutboxEventMarker<CoreUserEvent>,
+    <Audit as AuditSvc>::Action: From<CoreAccessAction>,
+    <Audit as AuditSvc>::Object: From<CoreAccessObject>,
+    E: OutboxEventMarker<CoreAccessEvent>,
 {
     pub async fn init(
         pool: &sqlx::PgPool,
@@ -70,14 +70,14 @@ where
             .authz
             .evaluate_permission(
                 sub,
-                CoreUserObject::all_users(),
-                CoreUserAction::USER_CREATE,
+                CoreAccessObject::all_users(),
+                CoreAccessAction::USER_CREATE,
                 enforce,
             )
             .await?)
     }
 
-    #[instrument(name = "core_user.create_user", skip(self))]
+    #[instrument(name = "core_access.create_user", skip(self))]
     pub async fn create_user(
         &self,
         sub: &<Audit as AuditSvc>::Subject,
@@ -99,7 +99,7 @@ where
         Ok(user)
     }
 
-    #[instrument(name = "core_user.find_for_subject", skip(self))]
+    #[instrument(name = "core_access.find_for_subject", skip(self))]
     pub async fn find_for_subject(
         &self,
         sub: &<Audit as AuditSvc>::Subject,
@@ -109,12 +109,12 @@ where
     {
         let id = UserId::try_from(sub).map_err(|_| UserError::SubjectIsNotUser)?;
         self.authz
-            .enforce_permission(sub, CoreUserObject::user(id), CoreUserAction::USER_READ)
+            .enforce_permission(sub, CoreAccessObject::user(id), CoreAccessAction::USER_READ)
             .await?;
         self.repo.find_by_id(id).await
     }
 
-    #[instrument(name = "core_user.find_by_id", skip(self))]
+    #[instrument(name = "core_access.find_by_id", skip(self))]
     pub async fn find_by_id(
         &self,
         sub: &<Audit as AuditSvc>::Subject,
@@ -122,7 +122,7 @@ where
     ) -> Result<Option<User>, UserError> {
         let id = id.into();
         self.authz
-            .enforce_permission(sub, CoreUserObject::user(id), CoreUserAction::USER_READ)
+            .enforce_permission(sub, CoreAccessObject::user(id), CoreAccessAction::USER_READ)
             .await?;
         match self.repo.find_by_id(id).await {
             Ok(user) => Ok(Some(user)),
@@ -131,7 +131,7 @@ where
         }
     }
 
-    #[instrument(name = "core_user.find_by_email", skip(self))]
+    #[instrument(name = "core_access.find_by_email", skip(self))]
     pub async fn find_by_email(
         &self,
         sub: Option<&<Audit as AuditSvc>::Subject>,
@@ -139,7 +139,11 @@ where
     ) -> Result<Option<User>, UserError> {
         if let Some(sub) = sub {
             self.authz
-                .enforce_permission(sub, CoreUserObject::all_users(), CoreUserAction::USER_READ)
+                .enforce_permission(
+                    sub,
+                    CoreAccessObject::all_users(),
+                    CoreAccessAction::USER_READ,
+                )
                 .await?;
         }
 
@@ -150,7 +154,7 @@ where
         }
     }
 
-    #[instrument(name = "core_user.update_authentication_id_for_user", skip(self))]
+    #[instrument(name = "core_access.update_authentication_id_for_user", skip(self))]
     pub async fn update_authentication_id_for_user(
         &self,
         user_id: UserId,
@@ -159,8 +163,8 @@ where
         self.authz
             .audit()
             .record_system_entry(
-                CoreUserObject::user(user_id),
-                CoreUserAction::USER_UPDATE_AUTHENTICATION_ID,
+                CoreAccessObject::user(user_id),
+                CoreAccessAction::USER_UPDATE_AUTHENTICATION_ID,
             )
             .await?;
 
@@ -175,7 +179,7 @@ where
     }
 
     #[instrument(
-        name = "core_user.find_by_authentication_id",
+        name = "core_access.find_by_authentication_id",
         skip(self, authentication_id)
     )]
     pub async fn find_by_authentication_id(
@@ -187,7 +191,7 @@ where
             .await
     }
 
-    #[instrument(name = "core_user.find_all", skip(self))]
+    #[instrument(name = "core_access.find_all", skip(self))]
     pub async fn find_all<T: From<User>>(
         &self,
         ids: &[UserId],
@@ -195,13 +199,17 @@ where
         self.repo.find_all(ids).await
     }
 
-    #[instrument(name = "core_user.list_users", skip(self))]
+    #[instrument(name = "core_access.list_users", skip(self))]
     pub async fn list_users(
         &self,
         sub: &<Audit as AuditSvc>::Subject,
     ) -> Result<Vec<User>, UserError> {
         self.authz
-            .enforce_permission(sub, CoreUserObject::all_users(), CoreUserAction::USER_LIST)
+            .enforce_permission(
+                sub,
+                CoreAccessObject::all_users(),
+                CoreAccessAction::USER_LIST,
+            )
             .await?;
 
         Ok(self
@@ -221,14 +229,14 @@ where
             .authz
             .evaluate_permission(
                 sub,
-                CoreUserObject::user(user_id),
-                CoreUserAction::USER_ASSIGN_ROLE,
+                CoreAccessObject::user(user_id),
+                CoreAccessAction::USER_ASSIGN_ROLE,
                 enforce,
             )
             .await?)
     }
 
-    #[instrument(name = "core_user.assign_role_to_user", skip(self))]
+    #[instrument(name = "core_access.assign_role_to_user", skip(self))]
     pub async fn assign_role_to_user(
         &self,
         sub: &<Audit as AuditSvc>::Subject,
@@ -267,14 +275,14 @@ where
             .authz
             .evaluate_permission(
                 sub,
-                CoreUserObject::user(user_id),
-                CoreUserAction::USER_REVOKE_ROLE,
+                CoreAccessObject::user(user_id),
+                CoreAccessAction::USER_REVOKE_ROLE,
                 enforce,
             )
             .await?)
     }
 
-    #[instrument(name = "core_user.revoke_role_from_user", skip(self))]
+    #[instrument(name = "core_access.revoke_role_from_user", skip(self))]
     pub async fn revoke_role_from_user(
         &self,
         sub: &<Audit as AuditSvc>::Subject,
@@ -318,8 +326,8 @@ where
             .audit()
             .record_system_entry_in_tx(
                 db.tx(),
-                CoreUserObject::all_users(),
-                CoreUserAction::USER_CREATE,
+                CoreAccessObject::all_users(),
+                CoreAccessAction::USER_CREATE,
             )
             .await?;
 

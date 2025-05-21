@@ -1,7 +1,7 @@
 use async_graphql::*;
 
 use crate::primitives::*;
-use lana_app::user::user::User as DomainUser;
+use lana_app::access::user::User as DomainUser;
 
 #[derive(SimpleObject, Clone)]
 #[graphql(complex)]
@@ -59,7 +59,7 @@ impl User {
     ) -> async_graphql::Result<bool> {
         let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
         Ok(app
-            .users()
+            .access()
             .users()
             .subject_can_assign_role_to_user(sub, None, false)
             .await
@@ -72,7 +72,7 @@ impl User {
     ) -> async_graphql::Result<bool> {
         let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
         Ok(app
-            .users()
+            .access()
             .users()
             .subject_can_revoke_role_from_user(sub, None, false)
             .await

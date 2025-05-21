@@ -4,8 +4,8 @@ use es_entity::DbOp;
 use outbox::OutboxEventMarker;
 
 use crate::{
-    event::CoreUserEvent,
-    primitives::{CoreUserAction, CoreUserObject, RoleId},
+    event::CoreAccessEvent,
+    primitives::{CoreAccessAction, CoreAccessObject, RoleId},
     publisher::UserPublisher,
     PermissionSetId, RoleName,
 };
@@ -21,7 +21,7 @@ use repo::RoleRepo;
 pub struct Roles<Audit, E>
 where
     Audit: AuditSvc,
-    E: OutboxEventMarker<CoreUserEvent>,
+    E: OutboxEventMarker<CoreAccessEvent>,
 {
     authz: Authorization<Audit, RoleName>,
     pub(super) repo: RoleRepo<E>,
@@ -30,9 +30,9 @@ where
 impl<Audit, E> Roles<Audit, E>
 where
     Audit: AuditSvc,
-    <Audit as AuditSvc>::Action: From<CoreUserAction>,
-    <Audit as AuditSvc>::Object: From<CoreUserObject>,
-    E: OutboxEventMarker<CoreUserEvent>,
+    <Audit as AuditSvc>::Action: From<CoreAccessAction>,
+    <Audit as AuditSvc>::Object: From<CoreAccessObject>,
+    E: OutboxEventMarker<CoreAccessEvent>,
 {
     pub fn new(
         pool: &sqlx::PgPool,
@@ -89,8 +89,8 @@ where
         self.authz
             .enforce_permission(
                 sub,
-                CoreUserObject::all_roles(),
-                CoreUserAction::ROLE_CREATE,
+                CoreAccessObject::all_roles(),
+                CoreAccessAction::ROLE_CREATE,
             )
             .await?;
 
@@ -120,8 +120,8 @@ where
             .audit()
             .record_system_entry_in_tx(
                 db.tx(),
-                CoreUserObject::all_users(),
-                CoreUserAction::ROLE_CREATE,
+                CoreAccessObject::all_users(),
+                CoreAccessAction::ROLE_CREATE,
             )
             .await?;
 
@@ -142,7 +142,7 @@ where
 impl<Audit, E> Clone for Roles<Audit, E>
 where
     Audit: AuditSvc,
-    E: OutboxEventMarker<CoreUserEvent>,
+    E: OutboxEventMarker<CoreAccessEvent>,
 {
     fn clone(&self) -> Self {
         Self {

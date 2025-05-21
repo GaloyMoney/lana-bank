@@ -4,7 +4,7 @@ use crate::primitives::{PermissionSetId, RoleId, RoleName, UserId};
 
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(tag = "type")]
-pub enum CoreUserEvent {
+pub enum CoreAccessEvent {
     UserCreated {
         id: UserId,
         email: String,

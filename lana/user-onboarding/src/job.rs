@@ -1,11 +1,11 @@
 use async_trait::async_trait;
-use core_user::{AuthenticationId, CoreUserEvent};
+use core_access::{AuthenticationId, CoreAccessEvent};
 use futures::StreamExt;
 
 use job::*;
 
 use audit::AuditSvc;
-use core_user::{user::Users, CoreUserAction, CoreUserObject, UserId};
+use core_access::{user::Users, CoreAccessAction, CoreAccessObject, UserId};
 use outbox::{Outbox, OutboxEventMarker};
 
 use kratos_admin::KratosAdmin;
@@ -25,9 +25,9 @@ impl<Audit, E> JobConfig for UserOnboardingJobConfig<Audit, E>
 where
     Audit: AuditSvc,
     <Audit as AuditSvc>::Subject: From<UserId>,
-    <Audit as AuditSvc>::Action: From<CoreUserAction>,
-    <Audit as AuditSvc>::Object: From<CoreUserObject>,
-    E: OutboxEventMarker<CoreUserEvent>,
+    <Audit as AuditSvc>::Action: From<CoreAccessAction>,
+    <Audit as AuditSvc>::Object: From<CoreAccessObject>,
+    E: OutboxEventMarker<CoreAccessEvent>,
 {
     type Initializer = UserOnboardingJobInitializer<Audit, E>;
 }
@@ -35,7 +35,7 @@ where
 pub struct UserOnboardingJobInitializer<Audit, E>
 where
     Audit: AuditSvc,
-    E: OutboxEventMarker<CoreUserEvent>,
+    E: OutboxEventMarker<CoreAccessEvent>,
 {
     outbox: Outbox<E>,
     kratos_admin: KratosAdmin,
@@ -46,9 +46,9 @@ impl<Audit, E> UserOnboardingJobInitializer<Audit, E>
 where
     Audit: AuditSvc,
     <Audit as AuditSvc>::Subject: From<UserId>,
-    <Audit as AuditSvc>::Action: From<CoreUserAction>,
-    <Audit as AuditSvc>::Object: From<CoreUserObject>,
-    E: OutboxEventMarker<CoreUserEvent>,
+    <Audit as AuditSvc>::Action: From<CoreAccessAction>,
+    <Audit as AuditSvc>::Object: From<CoreAccessObject>,
+    E: OutboxEventMarker<CoreAccessEvent>,
 {
     pub fn new(outbox: &Outbox<E>, users: &Users<Audit, E>, kratos_admin: KratosAdmin) -> Self {
         Self {
@@ -64,9 +64,9 @@ impl<Audit, E> JobInitializer for UserOnboardingJobInitializer<Audit, E>
 where
     Audit: AuditSvc,
     <Audit as AuditSvc>::Subject: From<UserId>,
-    <Audit as AuditSvc>::Action: From<CoreUserAction>,
-    <Audit as AuditSvc>::Object: From<CoreUserObject>,
-    E: OutboxEventMarker<CoreUserEvent>,
+    <Audit as AuditSvc>::Action: From<CoreAccessAction>,
+    <Audit as AuditSvc>::Object: From<CoreAccessObject>,
+    E: OutboxEventMarker<CoreAccessEvent>,
 {
     fn job_type() -> JobType
     where
@@ -99,7 +99,7 @@ struct UserOnboardingJobData {
 pub struct UserOnboardingJobRunner<Audit, E>
 where
     Audit: AuditSvc,
-    E: OutboxEventMarker<CoreUserEvent>,
+    E: OutboxEventMarker<CoreAccessEvent>,
 {
     outbox: Outbox<E>,
     users: Users<Audit, E>,
@@ -110,9 +110,9 @@ impl<Audit, E> JobRunner for UserOnboardingJobRunner<Audit, E>
 where
     Audit: AuditSvc,
     <Audit as AuditSvc>::Subject: From<UserId>,
-    <Audit as AuditSvc>::Action: From<CoreUserAction>,
-    <Audit as AuditSvc>::Object: From<CoreUserObject>,
-    E: OutboxEventMarker<CoreUserEvent>,
+    <Audit as AuditSvc>::Action: From<CoreAccessAction>,
+    <Audit as AuditSvc>::Object: From<CoreAccessObject>,
+    E: OutboxEventMarker<CoreAccessEvent>,
 {
     async fn run(
         &self,
@@ -124,7 +124,7 @@ where
         let mut stream = self.outbox.listen_persisted(Some(state.sequence)).await?;
 
         while let Some(message) = stream.next().await {
-            if let Some(CoreUserEvent::UserCreated { id, email }) = &message.as_ref().as_event() {
+            if let Some(CoreAccessEvent::UserCreated { id, email }) = &message.as_ref().as_event() {
                 let authentication_id = self
                     .kratos_admin
                     .create_user::<AuthenticationId>(email.clone())

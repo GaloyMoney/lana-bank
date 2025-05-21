@@ -174,7 +174,7 @@ async fn make_deposits(
 
 async fn superuser_subject(superuser_email: &String, app: &LanaApp) -> anyhow::Result<Subject> {
     let superuser = app
-        .users()
+        .access()
         .users()
         .find_by_email(None, superuser_email)
         .await?

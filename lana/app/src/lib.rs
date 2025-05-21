@@ -29,9 +29,9 @@ pub mod user_onboarding {
         user_onboarding::UserOnboarding<crate::audit::Audit, lana_events::LanaEvent>;
 }
 
-pub mod user {
-    pub use core_user::{error, role, user, RoleId, UserId};
-    pub type Users = core_user::CoreUser<crate::audit::Audit, lana_events::LanaEvent>;
+pub mod access {
+    pub use core_access::{error, role, user, RoleId, UserId};
+    pub type Access = core_access::CoreAccess<crate::audit::Audit, lana_events::LanaEvent>;
 }
 
 pub mod customer {

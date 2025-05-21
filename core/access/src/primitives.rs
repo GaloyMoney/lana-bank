@@ -48,29 +48,32 @@ impl Display for RoleName {
 #[derive(Clone, Copy, Debug, PartialEq, strum::EnumDiscriminants)]
 #[strum_discriminants(derive(strum::Display, strum::EnumString, strum::VariantArray))]
 #[strum_discriminants(strum(serialize_all = "kebab-case"))]
-pub enum CoreUserAction {
+pub enum CoreAccessAction {
     User(UserAction),
     Role(RoleAction),
 }
 
-impl CoreUserAction {
-    pub const ROLE_CREATE: Self = CoreUserAction::Role(RoleAction::Create);
-    pub const ROLE_UPDATE: Self = CoreUserAction::Role(RoleAction::Update);
+impl CoreAccessAction {
+    pub const ROLE_CREATE: Self = CoreAccessAction::Role(RoleAction::Create);
+    pub const ROLE_UPDATE: Self = CoreAccessAction::Role(RoleAction::Update);
 
-    pub const USER_CREATE: Self = CoreUserAction::User(UserAction::Create);
-    pub const USER_READ: Self = CoreUserAction::User(UserAction::Read);
-    pub const USER_LIST: Self = CoreUserAction::User(UserAction::List);
-    pub const USER_ASSIGN_ROLE: Self = CoreUserAction::User(UserAction::AssignRole);
-    pub const USER_REVOKE_ROLE: Self = CoreUserAction::User(UserAction::RevokeRole);
+    pub const USER_CREATE: Self = CoreAccessAction::User(UserAction::Create);
+    pub const USER_READ: Self = CoreAccessAction::User(UserAction::Read);
+    pub const USER_LIST: Self = CoreAccessAction::User(UserAction::List);
+    pub const USER_ASSIGN_ROLE: Self = CoreAccessAction::User(UserAction::AssignRole);
+    pub const USER_REVOKE_ROLE: Self = CoreAccessAction::User(UserAction::RevokeRole);
     pub const USER_UPDATE_AUTHENTICATION_ID: Self =
-        CoreUserAction::User(UserAction::UpdateAuthenticationId);
+        CoreAccessAction::User(UserAction::UpdateAuthenticationId);
 
-    pub fn entities() -> Vec<(CoreUserActionDiscriminants, Vec<ActionDescription<NoPath>>)> {
-        use CoreUserActionDiscriminants::*;
+    pub fn entities() -> Vec<(
+        CoreAccessActionDiscriminants,
+        Vec<ActionDescription<NoPath>>,
+    )> {
+        use CoreAccessActionDiscriminants::*;
 
         let mut result = vec![];
 
-        for entity in <CoreUserActionDiscriminants as strum::VariantArray>::VARIANTS {
+        for entity in <CoreAccessActionDiscriminants as strum::VariantArray>::VARIANTS {
             let actions = match entity {
                 User => UserAction::describe(),
                 Role => RoleAction::describe(),
@@ -147,10 +150,10 @@ impl UserAction {
     }
 }
 
-impl Display for CoreUserAction {
+impl Display for CoreAccessAction {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}:", CoreUserActionDiscriminants::from(self))?;
-        use CoreUserAction::*;
+        write!(f, "{}:", CoreAccessActionDiscriminants::from(self))?;
+        use CoreAccessAction::*;
         match self {
             User(action) => action.fmt(f),
             Role(action) => action.fmt(f),
@@ -158,29 +161,29 @@ impl Display for CoreUserAction {
     }
 }
 
-impl FromStr for CoreUserAction {
+impl FromStr for CoreAccessAction {
     type Err = strum::ParseError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let (entity, action) = s.split_once(':').expect("missing colon");
-        use CoreUserActionDiscriminants::*;
+        use CoreAccessActionDiscriminants::*;
         let res = match entity.parse()? {
-            User => CoreUserAction::from(action.parse::<UserAction>()?),
-            Role => CoreUserAction::from(action.parse::<RoleAction>()?),
+            User => CoreAccessAction::from(action.parse::<UserAction>()?),
+            Role => CoreAccessAction::from(action.parse::<RoleAction>()?),
         };
         Ok(res)
     }
 }
 
-impl From<UserAction> for CoreUserAction {
+impl From<UserAction> for CoreAccessAction {
     fn from(action: UserAction) -> Self {
-        CoreUserAction::User(action)
+        CoreAccessAction::User(action)
     }
 }
 
-impl From<RoleAction> for CoreUserAction {
+impl From<RoleAction> for CoreAccessAction {
     fn from(action: RoleAction) -> Self {
-        CoreUserAction::Role(action)
+        CoreAccessAction::Role(action)
     }
 }
 
@@ -190,34 +193,34 @@ pub type RoleAllOrOne = AllOrOne<RoleId>;
 #[derive(Clone, Copy, Debug, PartialEq, strum::EnumDiscriminants, strum::EnumCount)]
 #[strum_discriminants(derive(strum::Display, strum::EnumString))]
 #[strum_discriminants(strum(serialize_all = "kebab-case"))]
-pub enum CoreUserObject {
+pub enum CoreAccessObject {
     User(UserAllOrOne),
     Role(RoleAllOrOne),
 }
 
-impl CoreUserObject {
-    pub const fn all_roles() -> CoreUserObject {
-        CoreUserObject::Role(AllOrOne::All)
+impl CoreAccessObject {
+    pub const fn all_roles() -> CoreAccessObject {
+        CoreAccessObject::Role(AllOrOne::All)
     }
-    pub const fn role(id: RoleId) -> CoreUserObject {
-        CoreUserObject::Role(AllOrOne::ById(id))
+    pub const fn role(id: RoleId) -> CoreAccessObject {
+        CoreAccessObject::Role(AllOrOne::ById(id))
     }
 
-    pub const fn all_users() -> CoreUserObject {
-        CoreUserObject::User(AllOrOne::All)
+    pub const fn all_users() -> CoreAccessObject {
+        CoreAccessObject::User(AllOrOne::All)
     }
-    pub fn user(id: impl Into<Option<UserId>>) -> CoreUserObject {
+    pub fn user(id: impl Into<Option<UserId>>) -> CoreAccessObject {
         match id.into() {
-            Some(id) => CoreUserObject::User(AllOrOne::ById(id)),
-            None => CoreUserObject::all_users(),
+            Some(id) => CoreAccessObject::User(AllOrOne::ById(id)),
+            None => CoreAccessObject::all_users(),
         }
     }
 }
 
-impl Display for CoreUserObject {
+impl Display for CoreAccessObject {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let discriminant = CoreUserObjectDiscriminants::from(self);
-        use CoreUserObject::*;
+        let discriminant = CoreAccessObjectDiscriminants::from(self);
+        use CoreAccessObject::*;
         match self {
             User(obj_ref) => write!(f, "{}/{}", discriminant, obj_ref),
             Role(obj_ref) => write!(f, "{}/{}", discriminant, obj_ref),
@@ -225,20 +228,20 @@ impl Display for CoreUserObject {
     }
 }
 
-impl FromStr for CoreUserObject {
+impl FromStr for CoreAccessObject {
     type Err = &'static str;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let (entity, id) = s.split_once('/').expect("missing slash");
-        use CoreUserObjectDiscriminants::*;
+        use CoreAccessObjectDiscriminants::*;
         let res = match entity.parse().expect("invalid entity") {
             User => {
                 let obj_ref = id.parse().map_err(|_| "could not parse UserObject")?;
-                CoreUserObject::User(obj_ref)
+                CoreAccessObject::User(obj_ref)
             }
             Role => {
                 let obj_ref = id.parse().map_err(|_| "could not parse RoleObject")?;
-                CoreUserObject::Role(obj_ref)
+                CoreAccessObject::Role(obj_ref)
             }
         };
         Ok(res)

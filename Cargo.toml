@@ -13,7 +13,7 @@ members = [
   "lana/customer-sync",
 
   "core/accounting",
-  "core/user",
+  "core/access",
   "core/customer",
   "core/governance",
   "core/money",

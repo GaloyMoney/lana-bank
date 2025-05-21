@@ -1,7 +1,7 @@
 use async_graphql::*;
 
 use super::user::User;
-use lana_app::{authorization::VisibleNavigationItems, user::user::User as DomainUser};
+use lana_app::{access::user::User as DomainUser, authorization::VisibleNavigationItems};
 
 use crate::primitives::*;
 
@@ -34,7 +34,7 @@ impl AuthenticatedSubject {
     async fn subject_can_create_user(&self, ctx: &Context<'_>) -> async_graphql::Result<bool> {
         let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
         Ok(app
-            .users()
+            .access()
             .users()
             .subject_can_create_user(sub, false)
             .await

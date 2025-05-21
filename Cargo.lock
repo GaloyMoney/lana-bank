@@ -40,7 +40,7 @@ dependencies = [
  "base64 0.22.1",
  "cala-ledger",
  "chrono",
- "core-user",
+ "core-access",
  "deposit",
  "es-entity",
  "governance",
@@ -952,6 +952,25 @@ dependencies = [
 ]
 
 [[package]]
+name = "core-access"
+version = "0.3.532-dev"
+dependencies = [
+ "anyhow",
+ "audit",
+ "authz",
+ "chrono",
+ "derive_builder",
+ "es-entity",
+ "governance",
+ "outbox",
+ "serde",
+ "sqlx",
+ "strum",
+ "thiserror 2.0.12",
+ "tracing",
+]
+
+[[package]]
 name = "core-accounting"
 version = "0.3.532-dev"
 dependencies = [
@@ -1082,25 +1101,6 @@ dependencies = [
  "serde_json",
  "thiserror 2.0.12",
  "tokio",
-]
-
-[[package]]
-name = "core-user"
-version = "0.3.532-dev"
-dependencies = [
- "anyhow",
- "audit",
- "authz",
- "chrono",
- "derive_builder",
- "es-entity",
- "governance",
- "outbox",
- "serde",
- "sqlx",
- "strum",
- "thiserror 2.0.12",
- "tracing",
 ]
 
 [[package]]
@@ -2679,12 +2679,12 @@ dependencies = [
  "chrono",
  "clap",
  "cloud-storage",
+ "core-access",
  "core-accounting",
  "core-credit",
  "core-customer",
  "core-money",
  "core-price",
- "core-user",
  "customer-sync",
  "dashboard",
  "deposit",
@@ -2748,9 +2748,9 @@ dependencies = [
 name = "lana-events"
 version = "0.3.532-dev"
 dependencies = [
+ "core-access",
  "core-credit",
  "core-customer",
- "core-user",
  "deposit",
  "governance",
  "outbox",
@@ -3679,10 +3679,10 @@ dependencies = [
  "async-graphql",
  "audit",
  "authz",
+ "core-access",
  "core-accounting",
  "core-credit",
  "core-customer",
- "core-user",
  "dashboard",
  "deposit",
  "governance",
@@ -5460,7 +5460,7 @@ dependencies = [
  "async-trait",
  "audit",
  "chrono",
- "core-user",
+ "core-access",
  "es-entity",
  "futures",
  "job",

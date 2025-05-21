@@ -3,7 +3,7 @@ use sqlx::PgPool;
 use es_entity::*;
 use outbox::OutboxEventMarker;
 
-use crate::{event::CoreUserEvent, primitives::*, publisher::UserPublisher};
+use crate::{event::CoreAccessEvent, primitives::*, publisher::UserPublisher};
 
 use super::{entity::*, error::*};
 
@@ -20,7 +20,7 @@ use super::{entity::*, error::*};
 )]
 pub(crate) struct UserRepo<E>
 where
-    E: OutboxEventMarker<CoreUserEvent>,
+    E: OutboxEventMarker<CoreAccessEvent>,
 {
     #[allow(dead_code)]
     pool: PgPool,
@@ -29,7 +29,7 @@ where
 
 impl<E> UserRepo<E>
 where
-    E: OutboxEventMarker<CoreUserEvent>,
+    E: OutboxEventMarker<CoreAccessEvent>,
 {
     pub fn new(pool: &PgPool, publisher: &UserPublisher<E>) -> Self {
         Self {
@@ -50,7 +50,7 @@ where
 
 impl<E> Clone for UserRepo<E>
 where
-    E: OutboxEventMarker<CoreUserEvent>,
+    E: OutboxEventMarker<CoreAccessEvent>,
 {
     fn clone(&self) -> Self {
         Self {

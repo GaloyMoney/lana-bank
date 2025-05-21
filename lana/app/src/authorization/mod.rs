@@ -4,10 +4,10 @@ use crate::audit::Audit;
 
 pub use authz::error;
 use authz::error::AuthorizationError;
+pub use core_access::{CoreAccessAction, CoreAccessObject};
 use core_accounting::{CoreAccountingAction, CoreAccountingObject};
 use core_credit::{CoreCreditAction, CoreCreditObject};
 use core_customer::{CoreCustomerAction, CustomerObject};
-pub use core_user::{CoreUserAction, CoreUserObject};
 use deposit::{CoreDepositAction, CoreDepositObject};
 use governance::{GovernanceAction, GovernanceObject};
 pub use rbac_types::{AppAction as Action, AppObject as Object, *};
@@ -40,8 +40,8 @@ pub async fn get_visible_navigation_items(
         user: authz
             .check_all_permissions(
                 sub,
-                CoreUserObject::all_users(),
-                &[CoreUserAction::USER_READ, CoreUserAction::USER_LIST],
+                CoreAccessObject::all_users(),
+                &[CoreAccessAction::USER_READ, CoreAccessAction::USER_LIST],
             )
             .await?,
         customer: authz

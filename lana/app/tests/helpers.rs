@@ -2,7 +2,7 @@
 
 use rand::Rng;
 
-use lana_app::{authorization::Authorization, outbox::Outbox, primitives::Subject, user::Users};
+use lana_app::{access::Access, authorization::Authorization, outbox::Outbox, primitives::Subject};
 
 pub async fn init_pool() -> anyhow::Result<sqlx::PgPool> {
     let pg_host = std::env::var("PG_HOST").unwrap_or("localhost".to_string());
@@ -11,16 +11,16 @@ pub async fn init_pool() -> anyhow::Result<sqlx::PgPool> {
     Ok(pool)
 }
 
-pub async fn init_users(
+pub async fn init_access(
     pool: &sqlx::PgPool,
     authz: &Authorization,
-) -> anyhow::Result<(Users, Subject)> {
+) -> anyhow::Result<(Access, Subject)> {
     let superuser_email = format!(
         "superuser_{:05}@test.io",
         rand::rng().random_range(0..100000)
     );
     let outbox = Outbox::init(pool).await?;
-    let users = Users::init(
+    let access = Access::init(
         pool,
         authz,
         &outbox,
@@ -28,10 +28,10 @@ pub async fn init_users(
         &rbac_types::LanaAction::action_descriptions(),
     )
     .await?;
-    let superuser = users
+    let superuser = access
         .users()
         .find_by_email(None, &superuser_email)
         .await?
         .expect("Superuser not found");
-    Ok((users, Subject::from(superuser.id)))
+    Ok((access, Subject::from(superuser.id)))
 }

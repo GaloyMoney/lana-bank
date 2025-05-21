@@ -1,9 +1,9 @@
 use audit::SystemSubject;
 use authz::error::AuthorizationError;
+use core_access::{CoreAccessAction, CoreAccessObject, UserAction};
 use core_accounting::{CoreAccountingAction, CoreAccountingObject};
 use core_credit::{CoreCreditAction, CoreCreditObject};
 use core_customer::{CoreCustomerAction, CustomerObject};
-use core_user::{CoreUserAction, CoreUserObject, UserAction};
 use dashboard::{DashboardModuleAction, DashboardModuleObject};
 use deposit::{CoreDepositAction, CoreDepositObject};
 use governance::{GovernanceAction, GovernanceObject};
@@ -48,15 +48,15 @@ async fn add_permissions_for_superuser(authz: &Authorization) -> Result<(), Auth
     authz
         .add_permission_to_role(
             &role,
-            CoreUserObject::all_users(),
-            CoreUserAction::USER_ASSIGN_ROLE,
+            CoreAccessObject::all_users(),
+            CoreAccessAction::USER_ASSIGN_ROLE,
         )
         .await?;
     authz
         .add_permission_to_role(
             &role,
-            CoreUserObject::all_users(),
-            CoreUserAction::USER_REVOKE_ROLE,
+            CoreAccessObject::all_users(),
+            CoreAccessAction::USER_REVOKE_ROLE,
         )
         .await?;
     Ok(())
@@ -68,43 +68,43 @@ async fn add_permissions_for_admin(authz: &Authorization) -> Result<(), Authoriz
     authz
         .add_permission_to_role(
             &role,
-            CoreUserObject::all_users(),
-            CoreUserAction::User(UserAction::Create),
+            CoreAccessObject::all_users(),
+            CoreAccessAction::User(UserAction::Create),
         )
         .await?;
     authz
         .add_permission_to_role(
             &role,
-            CoreUserObject::all_users(),
-            CoreUserAction::User(UserAction::List),
+            CoreAccessObject::all_users(),
+            CoreAccessAction::User(UserAction::List),
         )
         .await?;
     authz
         .add_permission_to_role(
             &role,
-            CoreUserObject::all_users(),
-            CoreUserAction::User(UserAction::Read),
+            CoreAccessObject::all_users(),
+            CoreAccessAction::User(UserAction::Read),
         )
         .await?;
     authz
         .add_permission_to_role(
             &role,
-            CoreUserObject::all_users(),
-            CoreUserAction::User(UserAction::Update),
+            CoreAccessObject::all_users(),
+            CoreAccessAction::User(UserAction::Update),
         )
         .await?;
     authz
         .add_permission_to_role(
             &role,
-            CoreUserObject::all_users(),
-            CoreUserAction::User(UserAction::AssignRole),
+            CoreAccessObject::all_users(),
+            CoreAccessAction::User(UserAction::AssignRole),
         )
         .await?;
     authz
         .add_permission_to_role(
             &role,
-            CoreUserObject::all_users(),
-            CoreUserAction::User(UserAction::RevokeRole),
+            CoreAccessObject::all_users(),
+            CoreAccessAction::User(UserAction::RevokeRole),
         )
         .await?;
 

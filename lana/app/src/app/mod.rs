@@ -7,6 +7,7 @@ use tracing::instrument;
 use authz::PermissionCheck;
 
 use crate::{
+    access::Access,
     accounting::Accounting,
     accounting_init::{ChartsInit, JournalInit, StatementsInit},
     applicant::Applicants,
@@ -26,7 +27,6 @@ use crate::{
     report::Reports,
     storage::Storage,
     terms_template::TermsTemplates,
-    user::Users,
     user_onboarding::UserOnboarding,
 };
 
@@ -43,7 +43,7 @@ pub struct LanaApp {
     customers: Customers,
     deposits: Deposits,
     applicants: Applicants,
-    users: Users,
+    access: Access,
     credit: Credit,
     price: Price,
     report: Reports,
@@ -70,7 +70,7 @@ impl LanaApp {
         let storage = Storage::new(&config.storage);
         let documents = Documents::new(&pool, &storage, &authz);
         let report = Reports::init(&pool, &config.report, &authz, &jobs, &storage).await?;
-        let users = Users::init(
+        let access = Access::init(
             &pool,
             &authz,
             &outbox,
@@ -79,7 +79,7 @@ impl LanaApp {
         )
         .await?;
         let user_onboarding =
-            UserOnboarding::init(&jobs, &outbox, users.users(), config.user_onboarding).await?;
+            UserOnboarding::init(&jobs, &outbox, access.users(), config.user_onboarding).await?;
 
         let cala_config = cala_ledger::CalaLedgerConfig::builder()
             .pool(pool.clone())
@@ -154,7 +154,7 @@ impl LanaApp {
             customers,
             deposits,
             applicants,
-            users,
+            access,
             price,
             report,
             credit,
@@ -227,8 +227,8 @@ impl LanaApp {
         &self.credit
     }
 
-    pub fn users(&self) -> &Users {
-        &self.users
+    pub fn access(&self) -> &Access {
+        &self.access
     }
 
     pub fn terms_templates(&self) -> &TermsTemplates {
