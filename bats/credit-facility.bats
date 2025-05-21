@@ -204,7 +204,7 @@ ymd() {
 @test "credit-facility: records accrual" {
 
   credit_facility_id=$(read_value 'credit_facility_id')
-  retry 90 1 wait_for_accruals 4 "$credit_facility_id"
+  retry 30 2 wait_for_accruals 4 "$credit_facility_id"
 
   cat_logs | grep "interest accrual cycles completed for.*$credit_facility_id" || exit 1
 
