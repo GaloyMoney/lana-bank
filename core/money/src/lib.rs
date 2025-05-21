@@ -199,6 +199,12 @@ impl fmt::Display for SignedUsdCents {
     }
 }
 
+impl Default for SignedUsdCents {
+    fn default() -> Self {
+        Self::ZERO
+    }
+}
+
 impl std::ops::Sub<SignedUsdCents> for SignedUsdCents {
     type Output = SignedUsdCents;
 

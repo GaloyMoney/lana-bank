@@ -221,21 +221,21 @@ impl From<Option<&cala_ledger::balance::AccountBalance>> for UsdLedgerAccountBal
                         .expect("positive"),
                     credit: UsdCents::try_from_usd(balance.details.settled.cr_balance)
                         .expect("positive"),
-                    net: UsdCents::try_from_usd(balance.settled()).expect("positive"),
+                    net: SignedUsdCents::from_usd(balance.settled()),
                 },
                 pending: UsdBalanceDetails {
                     debit: UsdCents::try_from_usd(balance.details.pending.dr_balance)
                         .expect("positive"),
                     credit: UsdCents::try_from_usd(balance.details.pending.cr_balance)
                         .expect("positive"),
-                    net: UsdCents::try_from_usd(balance.pending()).expect("positive"),
+                    net: SignedUsdCents::from_usd(balance.pending()),
                 },
                 encumbrance: UsdBalanceDetails {
                     debit: UsdCents::try_from_usd(balance.details.encumbrance.dr_balance)
                         .expect("positive"),
                     credit: UsdCents::try_from_usd(balance.details.encumbrance.cr_balance)
                         .expect("positive"),
-                    net: UsdCents::try_from_usd(balance.encumbrance()).expect("positive"),
+                    net: SignedUsdCents::from_usd(balance.encumbrance()),
                 },
             },
         }
@@ -246,7 +246,7 @@ impl From<Option<&cala_ledger::balance::AccountBalance>> for UsdLedgerAccountBal
 struct UsdBalanceDetails {
     debit: UsdCents,
     credit: UsdCents,
-    net: UsdCents,
+    net: SignedUsdCents,
 }
 
 #[derive(SimpleObject, Default)]
@@ -270,21 +270,21 @@ impl From<Option<&cala_ledger::balance::AccountBalance>> for BtcLedgerAccountBal
                         .expect("positive"),
                     credit: Satoshis::try_from_btc(balance.details.settled.cr_balance)
                         .expect("positive"),
-                    net: Satoshis::try_from_btc(balance.settled()).expect("positive"),
+                    net: SignedSatoshis::from_btc(balance.settled()),
                 },
                 pending: BtcBalanceDetails {
                     debit: Satoshis::try_from_btc(balance.details.pending.dr_balance)
                         .expect("positive"),
                     credit: Satoshis::try_from_btc(balance.details.pending.cr_balance)
                         .expect("positive"),
-                    net: Satoshis::try_from_btc(balance.pending()).expect("positive"),
+                    net: SignedSatoshis::from_btc(balance.pending()),
                 },
                 encumbrance: BtcBalanceDetails {
                     debit: Satoshis::try_from_btc(balance.details.encumbrance.dr_balance)
                         .expect("positive"),
                     credit: Satoshis::try_from_btc(balance.details.encumbrance.cr_balance)
                         .expect("positive"),
-                    net: Satoshis::try_from_btc(balance.encumbrance()).expect("positive"),
+                    net: SignedSatoshis::from_btc(balance.encumbrance()),
                 },
             },
         }
@@ -295,7 +295,7 @@ impl From<Option<&cala_ledger::balance::AccountBalance>> for BtcLedgerAccountBal
 struct BtcBalanceDetails {
     debit: Satoshis,
     credit: Satoshis,
-    net: Satoshis,
+    net: SignedSatoshis,
 }
 
 scalar!(AccountCode);

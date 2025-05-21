@@ -226,7 +226,7 @@ type BtcAmount {
 type BtcBalanceDetails {
 	debit: Satoshis!
 	credit: Satoshis!
-	net: Satoshis!
+	net: SignedSatoshis!
 }
 
 type BtcLedgerAccountBalance {
@@ -1457,6 +1457,10 @@ enum Role {
 
 scalar Satoshis
 
+scalar SignedSatoshis
+
+scalar SignedUsdCents
+
 enum SortDirection {
 	ASC
 	DESC
@@ -1618,7 +1622,7 @@ type UsdAmount {
 type UsdBalanceDetails {
 	debit: UsdCents!
 	credit: UsdCents!
-	net: UsdCents!
+	net: SignedUsdCents!
 }
 
 scalar UsdCents

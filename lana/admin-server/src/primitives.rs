@@ -8,7 +8,8 @@ pub use lana_app::{
         ApprovalProcessId, ChartId, CommitteeId, CreditFacilityId, CustomerId, DepositAccountId,
         DepositId, DisbursalId, DisbursalStatus, DocumentId, LanaRole, LedgerTransactionId,
         ManualTransactionId, PaymentAllocationId, PaymentId, PolicyId, ReportId, ReportProgress,
-        Satoshis, Subject, TermsTemplateId, UsdCents, UserId, WithdrawalId,
+        Satoshis, SignedSatoshis, SignedUsdCents, Subject, TermsTemplateId, UsdCents, UserId,
+        WithdrawalId,
     },
     terms::CollateralizationState,
 };
