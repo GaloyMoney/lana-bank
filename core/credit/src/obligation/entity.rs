@@ -203,10 +203,12 @@ impl Obligation {
         }
     }
 
-    pub fn expected_status(&self) -> ObligationStatus {
+    fn expected_status(&self, now: DateTime<Utc>) -> ObligationStatus {
+        let mut paid = false;
         let (due_date, overdue_date, defaulted_date) = self
             .events
             .iter_all()
+            .rev()
             .find_map(|e| match e {
                 ObligationEvent::Initialized {
                     due_date,
@@ -214,11 +216,16 @@ impl Obligation {
                     defaulted_date,
                     ..
                 } => Some((*due_date, *overdue_date, *defaulted_date)),
+                ObligationEvent::Completed { .. } => {
+                    paid = true;
+                    None
+                }
                 _ => None,
             })
             .expect("Entity was not Initialized");
-
-        let now = crate::time::now();
+        if paid {
+            return ObligationStatus::Paid;
+        }
 
         if let Some(defaulted_date) = defaulted_date {
             if now >= defaulted_date {
@@ -251,6 +258,10 @@ impl Obligation {
                 _ => None,
             })
             .unwrap_or(ObligationStatus::NotYetDue)
+    }
+
+    pub fn check_status_transitioned(&self, now: DateTime<Utc>) -> bool {
+        self.status() == self.expected_status(now)
     }
 
     pub fn outstanding(&self) -> UsdCents {
@@ -749,5 +760,211 @@ mod test {
             )
             .unwrap();
         assert_eq!(obligation.status(), ObligationStatus::Paid);
+    }
+
+    mod status_transitioned {
+
+        use super::*;
+
+        fn due_timestamp(now: DateTime<Utc>) -> DateTime<Utc> {
+            now + chrono::Duration::days(1)
+        }
+
+        fn overdue_timestamp(now: DateTime<Utc>) -> DateTime<Utc> {
+            now + chrono::Duration::days(2)
+        }
+
+        fn defaulted_timestamp(now: DateTime<Utc>) -> DateTime<Utc> {
+            now + chrono::Duration::days(3)
+        }
+
+        fn initial_events(now: DateTime<Utc>) -> Vec<ObligationEvent> {
+            vec![ObligationEvent::Initialized {
+                id: ObligationId::new(),
+                credit_facility_id: CreditFacilityId::new(),
+                obligation_type: ObligationType::Disbursal,
+                amount: UsdCents::from(10),
+                reference: "ref-01".to_string(),
+                tx_id: LedgerTxId::new(),
+                not_yet_due_accounts: ObligationAccounts {
+                    receivable_account_id: CalaAccountId::new(),
+                    account_to_be_credited_id: CalaAccountId::new(),
+                },
+                due_accounts: ObligationAccounts {
+                    receivable_account_id: CalaAccountId::new(),
+                    account_to_be_credited_id: CalaAccountId::new(),
+                },
+                overdue_accounts: ObligationAccounts {
+                    receivable_account_id: CalaAccountId::new(),
+                    account_to_be_credited_id: CalaAccountId::new(),
+                },
+                defaulted_account_id: CalaAccountId::new(),
+                due_date: due_timestamp(now),
+                overdue_date: Some(overdue_timestamp(now)),
+                defaulted_date: Some(defaulted_timestamp(now)),
+                recorded_at: now,
+                audit_info: dummy_audit_info(),
+            }]
+        }
+
+        #[test]
+        fn expected_not_yet_due_status_not_yet_due() {
+            let now = Utc::now();
+            let obligation = obligation_from(initial_events(now));
+            assert_eq!(obligation.expected_status(now), ObligationStatus::NotYetDue);
+            assert_eq!(obligation.status(), ObligationStatus::NotYetDue);
+            assert!(obligation.check_status_transitioned(now));
+        }
+
+        #[test]
+        fn expected_due_status_not_yet_due() {
+            let now = Utc::now();
+            let obligation = obligation_from(initial_events(now));
+
+            let now = due_timestamp(Utc::now());
+            assert_eq!(obligation.expected_status(now), ObligationStatus::Due);
+            assert_eq!(obligation.status(), ObligationStatus::NotYetDue);
+            assert!(!obligation.check_status_transitioned(now));
+        }
+
+        #[test]
+        fn expected_due_status_due() {
+            let now = Utc::now();
+            let mut events = initial_events(now);
+            events.push(ObligationEvent::DueRecorded {
+                tx_id: LedgerTxId::new(),
+                amount: UsdCents::from(10),
+                audit_info: dummy_audit_info(),
+            });
+            let obligation = obligation_from(events);
+
+            let now = due_timestamp(Utc::now());
+            assert_eq!(obligation.expected_status(now), ObligationStatus::Due);
+            assert_eq!(obligation.status(), ObligationStatus::Due);
+            assert!(obligation.check_status_transitioned(now));
+        }
+
+        #[test]
+        fn expected_overdue_status_due() {
+            let now = Utc::now();
+            let mut events = initial_events(now);
+            events.push(ObligationEvent::DueRecorded {
+                tx_id: LedgerTxId::new(),
+                amount: UsdCents::from(10),
+                audit_info: dummy_audit_info(),
+            });
+            let obligation = obligation_from(events);
+
+            let now = overdue_timestamp(Utc::now());
+            assert_eq!(obligation.expected_status(now), ObligationStatus::Overdue);
+            assert_eq!(obligation.status(), ObligationStatus::Due);
+            assert!(!obligation.check_status_transitioned(now));
+        }
+
+        #[test]
+        fn expected_overdue_status_overdue() {
+            let now = Utc::now();
+            let mut events = initial_events(now);
+            events.extend([
+                ObligationEvent::DueRecorded {
+                    tx_id: LedgerTxId::new(),
+                    amount: UsdCents::from(10),
+                    audit_info: dummy_audit_info(),
+                },
+                ObligationEvent::OverdueRecorded {
+                    tx_id: LedgerTxId::new(),
+                    amount: UsdCents::from(10),
+                    audit_info: dummy_audit_info(),
+                },
+            ]);
+            let obligation = obligation_from(events);
+
+            let now = overdue_timestamp(Utc::now());
+            assert_eq!(obligation.expected_status(now), ObligationStatus::Overdue);
+            assert_eq!(obligation.status(), ObligationStatus::Overdue);
+            assert!(obligation.check_status_transitioned(now));
+        }
+
+        #[test]
+        fn expected_paid_status_paid() {
+            let now = Utc::now();
+            let mut events = initial_events(now);
+            events.extend([
+                ObligationEvent::DueRecorded {
+                    tx_id: LedgerTxId::new(),
+                    amount: UsdCents::from(10),
+                    audit_info: dummy_audit_info(),
+                },
+                ObligationEvent::OverdueRecorded {
+                    tx_id: LedgerTxId::new(),
+                    amount: UsdCents::from(10),
+                    audit_info: dummy_audit_info(),
+                },
+            ]);
+
+            let now = overdue_timestamp(Utc::now());
+            events.push(ObligationEvent::Completed {
+                effective: now.date_naive(),
+                audit_info: dummy_audit_info(),
+            });
+            let obligation = obligation_from(events);
+
+            assert_eq!(obligation.expected_status(now), ObligationStatus::Paid);
+            assert_eq!(obligation.status(), ObligationStatus::Paid);
+            assert!(obligation.check_status_transitioned(now));
+        }
+
+        #[test]
+        fn expected_defaulted_status_overdue() {
+            let now = Utc::now();
+            let mut events = initial_events(now);
+            events.extend([
+                ObligationEvent::DueRecorded {
+                    tx_id: LedgerTxId::new(),
+                    amount: UsdCents::from(10),
+                    audit_info: dummy_audit_info(),
+                },
+                ObligationEvent::OverdueRecorded {
+                    tx_id: LedgerTxId::new(),
+                    amount: UsdCents::from(10),
+                    audit_info: dummy_audit_info(),
+                },
+            ]);
+            let obligation = obligation_from(events);
+
+            let now = defaulted_timestamp(Utc::now());
+            assert_eq!(obligation.expected_status(now), ObligationStatus::Defaulted);
+            assert_eq!(obligation.status(), ObligationStatus::Overdue);
+            assert!(!obligation.check_status_transitioned(now));
+        }
+
+        #[test]
+        fn expected_defaulted_status_defaulted() {
+            let now = Utc::now();
+            let mut events = initial_events(now);
+            events.extend([
+                ObligationEvent::DueRecorded {
+                    tx_id: LedgerTxId::new(),
+                    amount: UsdCents::from(10),
+                    audit_info: dummy_audit_info(),
+                },
+                ObligationEvent::OverdueRecorded {
+                    tx_id: LedgerTxId::new(),
+                    amount: UsdCents::from(10),
+                    audit_info: dummy_audit_info(),
+                },
+                ObligationEvent::DefaultedRecorded {
+                    tx_id: LedgerTxId::new(),
+                    amount: UsdCents::from(10),
+                    audit_info: dummy_audit_info(),
+                },
+            ]);
+            let obligation = obligation_from(events);
+
+            let now = defaulted_timestamp(Utc::now());
+            assert_eq!(obligation.expected_status(now), ObligationStatus::Defaulted);
+            assert_eq!(obligation.status(), ObligationStatus::Defaulted);
+            assert!(obligation.check_status_transitioned(now));
+        }
     }
 }
