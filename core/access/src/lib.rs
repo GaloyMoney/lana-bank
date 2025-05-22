@@ -33,8 +33,8 @@ where
 {
     authz: Authorization<Audit, RoleName>,
     users: Users<Audit, E>,
-    role_repo: RoleRepo<E>,
-    permission_set_repo: PermissionSetRepo,
+    roles: RoleRepo<E>,
+    permission_sets: PermissionSetRepo,
 }
 
 impl<Audit, E> CoreAccess<Audit, E>
@@ -68,8 +68,8 @@ where
         let core_access = Self {
             authz: authz.clone(),
             users,
-            role_repo,
-            permission_set_repo,
+            roles: role_repo,
+            permission_sets: permission_set_repo,
         };
 
         Ok(core_access)
@@ -104,7 +104,7 @@ where
             .build()
             .expect("all fields for new role provided");
 
-        self.role_repo.create(new_role).await
+        self.roles.create(new_role).await
     }
 
     pub async fn add_permission_sets_to_role(
@@ -122,9 +122,9 @@ where
             )
             .await?;
 
-        let mut role = self.role_repo.find_by_id(role_id).await?;
+        let mut role = self.roles.find_by_id(role_id).await?;
         let permission_sets = self
-            .permission_set_repo
+            .permission_sets
             .find_all::<PermissionSet>(permission_set_ids)
             .await?;
 
@@ -140,7 +140,7 @@ where
         }
 
         if changed {
-            self.role_repo.update(&mut role).await?;
+            self.roles.update(&mut role).await?;
         }
 
         Ok(())
@@ -161,17 +161,14 @@ where
             )
             .await?;
 
-        let permission_set = self
-            .permission_set_repo
-            .find_by_id(permission_set_id)
-            .await?;
-        let mut role = self.role_repo.find_by_id(role_id).await?;
+        let permission_set = self.permission_sets.find_by_id(permission_set_id).await?;
+        let mut role = self.roles.find_by_id(role_id).await?;
 
         if role
             .remove_permission_set(permission_set.id, audit_info)
             .did_execute()
         {
-            self.role_repo.update(&mut role).await?;
+            self.roles.update(&mut role).await?;
         }
 
         Ok(())
@@ -187,8 +184,8 @@ where
         Self {
             authz: self.authz.clone(),
             users: self.users.clone(),
-            role_repo: self.role_repo.clone(),
-            permission_set_repo: self.permission_set_repo.clone(),
+            roles: self.roles.clone(),
+            permission_sets: self.permission_sets.clone(),
         }
     }
 }
