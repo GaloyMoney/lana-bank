@@ -122,14 +122,16 @@ async fn do_principal_late(
         .record_payment(&sub, id, principal_remaining, sim_time::now().date_naive())
         .await?;
 
-    // Pay off some accrued interest (if any - not deterministic as sim_time can progress and
-    // thereby interest can accrue)
-    let facility = app.credit().find_by_id(&sub, id).await?.unwrap();
-    let total_outstanding = app.credit().outstanding(&facility).await?;
-    if !total_outstanding.is_zero() {
-        app.credit()
-            .record_payment(&sub, id, total_outstanding, sim_time::now().date_naive())
-            .await?;
+    if app.credit().has_outstanding_obligations(&sub, id).await? {
+        while let Some((_, amount)) = obligation_amount_rx.recv().await {
+            app.credit()
+                .record_payment(&sub, id, amount, sim_time::now().date_naive())
+                .await?;
+
+            if !app.credit().has_outstanding_obligations(&sub, id).await? {
+                break;
+            }
+        }
     }
 
     app.credit().complete_facility(&sub, id).await?;

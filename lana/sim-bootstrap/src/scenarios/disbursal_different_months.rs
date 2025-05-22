@@ -108,9 +108,9 @@ async fn do_disbursal_in_different_months(
         .initiate_disbursal(&sub, id, UsdCents::try_from_usd(dec!(2_000_000))?)
         .await?;
 
-    sim_time::sleep(one_month * 3).await;
+    sim_time::sleep(one_month * 2).await;
 
-    // disbursal in month 5
+    // disbursal in month 3
     app.credit()
         .initiate_disbursal(&sub, id, UsdCents::try_from_usd(dec!(5_000_000))?)
         .await?;
@@ -129,21 +129,9 @@ async fn do_timely_payments(
             .record_payment(&sub, id, amount, sim_time::now().date_naive())
             .await?;
 
-        let facility = app.credit().find_by_id(&sub, id).await?.unwrap();
-        let total_outstanding = app.credit().outstanding(&facility).await?;
-        if total_outstanding.is_zero() {
+        if !app.credit().has_outstanding_obligations(&sub, id).await? {
             break;
         }
-    }
-
-    // Pay off some accrued interest (if any - not deterministic as sim_time can progress and
-    // thereby interest can accrue)
-    let facility = app.credit().find_by_id(&sub, id).await?.unwrap();
-    let total_outstanding = app.credit().outstanding(&facility).await?;
-    if !total_outstanding.is_zero() {
-        app.credit()
-            .record_payment(&sub, id, total_outstanding, sim_time::now().date_naive())
-            .await?;
     }
 
     app.credit().complete_facility(&sub, id).await?;
