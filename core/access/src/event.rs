@@ -14,11 +14,13 @@ pub enum CoreAccessEvent {
     },
     UserGrantedRole {
         id: UserId,
-        role: RoleName,
+        role_id: RoleId,
+        role_name: RoleName,
     },
     UserRevokedRole {
         id: UserId,
-        role: RoleName,
+        role_id: RoleId,
+        role_name: RoleName,
     },
 
     RoleCreated {

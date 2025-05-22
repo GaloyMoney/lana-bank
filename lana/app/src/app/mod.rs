@@ -7,12 +7,12 @@ use tracing::instrument;
 use authz::PermissionCheck;
 
 use crate::{
-    access::Access,
+    access::{Access, BootstrapOptions},
     accounting::Accounting,
     accounting_init::{ChartsInit, JournalInit, StatementsInit},
     applicant::Applicants,
     audit::{Audit, AuditCursor, AuditEntry},
-    authorization::{init as init_authz, AppAction, AppObject, AuditAction, Authorization},
+    authorization::{seed, AppAction, AppObject, AuditAction, Authorization},
     credit::Credit,
     customer::Customers,
     customer_sync::CustomerSync,
@@ -60,24 +60,27 @@ impl LanaApp {
     pub async fn run(pool: PgPool, config: AppConfig) -> Result<Self, ApplicationError> {
         sqlx::migrate!().run(&pool).await?;
 
-        let mut jobs = Jobs::new(&pool, config.job_execution);
         let audit = Audit::new(&pool);
-        let authz = init_authz(&pool, &audit).await?;
         let outbox = Outbox::init(&pool).await?;
+        let authz = Authorization::init(&pool, &audit).await?;
+
+        let bootstrap = BootstrapOptions {
+            superuser_email: config.user.superuser_email,
+            action_descriptions: rbac_types::LanaAction::action_descriptions(),
+            predefined_roles: seed::PREDEFINED_ROLES,
+        };
+
+        let access = Access::init(&pool, &authz, &outbox, bootstrap).await?;
+
+        let mut jobs = Jobs::new(&pool, config.job_execution);
+
         let dashboard = Dashboard::init(&pool, &authz, &jobs, &outbox).await?;
         let governance = Governance::new(&pool, &authz, &outbox);
         let price = Price::new();
         let storage = Storage::new(&config.storage);
         let documents = Documents::new(&pool, &storage, &authz);
         let report = Reports::init(&pool, &config.report, &authz, &jobs, &storage).await?;
-        let access = Access::init(
-            &pool,
-            &authz,
-            &outbox,
-            config.user.superuser_email,
-            &rbac_types::LanaAction::action_descriptions(),
-        )
-        .await?;
+
         let user_onboarding =
             UserOnboarding::init(&jobs, &outbox, access.users(), config.user_onboarding).await?;
 

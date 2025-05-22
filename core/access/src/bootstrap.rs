@@ -9,6 +9,12 @@ use crate::{
     *,
 };
 
+pub struct BootstrapOptions {
+    pub superuser_email: Option<String>,
+    pub action_descriptions: Vec<ActionDescription<FullPath>>,
+    pub predefined_roles: &'static [(RoleName, &'static [&'static str])],
+}
+
 pub(super) struct Bootstrap<Audit, E>
 where
     E: OutboxEventMarker<CoreAccessEvent>,
@@ -42,29 +48,40 @@ where
         }
     }
 
+    pub(super) async fn execute(&self, options: BootstrapOptions) -> Result<(), CoreAccessError> {
+        if let Some(email) = options.superuser_email {
+            self.bootstrap_access_control(
+                email,
+                options.action_descriptions,
+                options.predefined_roles,
+            )
+            .await
+        } else {
+            Ok(())
+        }
+    }
+
     /// Creates essential users, roles and permission sets for a running application.
-    /// Without these, seeding of other roles cannot be initiated. User with `email`
-    /// will have a role “superuser” that has all available permission sets.
+    /// User with `email` will have a role “superuser” that has all available permission sets.
     pub(super) async fn bootstrap_access_control(
         &self,
         email: String,
-        actions: &[ActionDescription<FullPath>],
+        actions: Vec<ActionDescription<FullPath>>,
+        predefined_roles: &[(RoleName, &[&'static str])],
     ) -> Result<(), CoreAccessError> {
         let mut db = self.role_repo.begin_op().await?;
 
-        let permission_sets = self.bootstrap_permission_sets(&mut db, actions).await?;
-
-        let permission_set_ids = permission_sets.iter().map(|s| s.id).collect::<Vec<_>>();
+        let permission_sets = self.bootstrap_permission_sets(&mut db, &actions).await?;
         let superuser_role = self
-            .bootstrap_superuser_role(&mut db, &permission_set_ids)
+            .bootstrap_roles(&mut db, &permission_sets, predefined_roles)
             .await?;
         let superuser = self
             .users
-            .bootstrap_superuser_user(&mut db, email, superuser_role.name)
+            .bootstrap_superuser_user(&mut db, email, &superuser_role)
             .await?;
 
         self.authz
-            .assign_role_to_subject(superuser.id, RoleName::SUPERUSER)
+            .assign_role_to_subject(superuser.id, superuser_role.id)
             .await?;
 
         db.commit().await?;
@@ -72,12 +89,44 @@ where
         Ok(())
     }
 
-    /// Creates a role with name “superuser” that will have all given permission sets.
-    /// Used for bootstrapping the application.
-    async fn bootstrap_superuser_role(
+    async fn create_role(
         &self,
         db: &mut DbOp<'_>,
-        permission_sets: &[PermissionSetId],
+        name: RoleName,
+        permission_sets: HashSet<PermissionSetId>,
+        audit_info: &AuditInfo,
+    ) -> Result<Role, RoleError> {
+        let existing = self.role_repo.find_by_name(&name).await;
+        let role = if matches!(existing, Err(ref e) if e.was_not_found()) {
+            let new_role = NewRole::builder()
+                .id(RoleId::new())
+                .name(name)
+                .audit_info(audit_info.clone())
+                .initial_permission_sets(permission_sets.clone())
+                .build()
+                .expect("all fields for new role provided");
+
+            self.role_repo.create_in_op(db, new_role).await?
+        } else {
+            existing?
+        };
+
+        for permission_set_id in permission_sets {
+            self.authz
+                .add_role_hierarchy(role.id, permission_set_id)
+                .await?;
+        }
+
+        Ok(role)
+    }
+
+    /// Creates a role with name “superuser” that will have all given permission sets.
+    /// Used for bootstrapping the application.
+    async fn bootstrap_roles(
+        &self,
+        db: &mut DbOp<'_>,
+        permission_sets: &[PermissionSet],
+        predefined_roles: &[(RoleName, &[&'static str])],
     ) -> Result<Role, RoleError> {
         let audit_info = self
             .authz
@@ -89,24 +138,31 @@ where
             )
             .await?;
 
-        let existing_role = self
-            .role_repo
-            .find_by_name_in_tx(db.tx(), &RoleName::SUPERUSER)
-            .await;
+        let all_permission_sets = permission_sets
+            .iter()
+            .map(|ps| (ps.name.clone(), ps.id))
+            .collect::<HashMap<_, _>>();
 
-        if matches!(existing_role, Err(ref e) if e.was_not_found()) {
-            let new_role = NewRole::builder()
-                .id(RoleId::new())
-                .name(RoleName::SUPERUSER)
-                .audit_info(audit_info)
-                .initial_permission_sets(permission_sets.iter().copied().collect())
-                .build()
-                .expect("all fields for new role provided");
+        let superuser_role = self
+            .create_role(
+                db,
+                RoleName::SUPERUSER,
+                all_permission_sets.values().copied().collect(),
+                &audit_info,
+            )
+            .await?;
 
-            self.role_repo.create_in_op(db, new_role).await
-        } else {
-            existing_role
+        for (name, sets) in predefined_roles {
+            let sets = sets
+                .iter()
+                .map(|set| all_permission_sets.get(*set).unwrap())
+                .copied()
+                .collect::<HashSet<_>>();
+
+            let _ = self.create_role(db, name.clone(), sets, &audit_info).await;
         }
+
+        Ok(superuser_role)
     }
 
     /// Generates Permission Sets based on provided hierarchy of modules and
@@ -125,15 +181,14 @@ where
             .map(|ps| (ps.name.to_string(), ps))
             .collect::<HashMap<_, _>>();
 
-        let mut permission_sets: HashMap<&'static str, HashSet<(String, String)>> =
-            Default::default();
+        let mut permission_sets: HashMap<&'static str, HashSet<Permission>> = Default::default();
 
         for action in actions {
             for set in action.permission_sets() {
                 permission_sets
                     .entry(*set)
                     .or_default()
-                    .insert((action.all_objects_name(), action.action_name()));
+                    .insert(action.into());
             }
         }
 
@@ -159,6 +214,18 @@ where
                 .create_all_in_op(db, new_permission_sets)
                 .await?
         };
+
+        for permission_set in &new {
+            for permission in permission_set.permissions() {
+                self.authz
+                    .add_permission_to_role(
+                        &permission_set.id,
+                        permission.object(),
+                        permission.action(),
+                    )
+                    .await?;
+            }
+        }
 
         Ok(existing.into_values().chain(new.into_iter()).collect())
     }
