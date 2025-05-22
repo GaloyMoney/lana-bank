@@ -3,7 +3,7 @@ with
 credit_facilities as (
     select
         customer_id,
-        sum(total_collateral) as sum_total_collateral
+        sum(total_collateral_amount_usd) as sum_total_collateral_amount_usd
     from {{ ref('int_approved_credit_facilities') }}
     group by customer_id
 ),
@@ -43,6 +43,6 @@ select
         as `Clasificación de Riesgo`,
     relationship_to_bank as `Tipo de relación`,
     cast(null as string) as `Agencia`,
-    least(sum_total_collateral, {{ var('deposits_coverage_limit') }}) as `Saldo garantizado`
+    least(sum_total_collateral_amount_usd, {{ var('deposits_coverage_limit') }}) as `Saldo garantizado`
 from
     customers

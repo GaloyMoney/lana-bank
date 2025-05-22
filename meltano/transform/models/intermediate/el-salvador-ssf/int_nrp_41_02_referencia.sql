@@ -1,7 +1,7 @@
 with loans_and_credit_facilities as (
 
 /* TODO:
-    SELECT customer_id, initialized_at, end_date,
+    SELECT customer_id, approved_recorded_at, end_date,
         accrual_interval, accrual_cycle_interval, annual_rate,
     loan_id AS reference_id,
     most_recent_interest_payment_timestamp,
@@ -9,14 +9,14 @@ with loans_and_credit_facilities as (
         AS most_recent_capital_payment_timestamp,
     principal AS loan_amount,
     principal
-        + total_interest_incurred
-        - total_interest_paid
+        + total_interest_incurred_usd
+        - total_interest_paid_usd
         - total_principal_paid
         AS remaining_balance,
     principal
         - total_principal_paid AS remaining_capital_balance,
-    total_interest_incurred
-        - total_interest_paid AS remaining_interest_balance,
+    total_interest_incurred_usd
+        - total_interest_paid_usd AS remaining_interest_balance,
 
     FROM { ref('int_approved_loans') }
 
@@ -27,24 +27,24 @@ with loans_and_credit_facilities as (
 
     select
         customer_id,
-        initialized_at,
+        approved_recorded_at,
         end_date,
         accrual_interval,
         accrual_cycle_interval,
         annual_rate,
         credit_facility_id as reference_id,
         most_recent_interest_payment_timestamp,
-        most_recent_disbursement_payment_timestamp
+        most_recent_disbursal_payment_timestamp
             as most_recent_capital_payment_timestamp,
-        total_collateral,
-        facility as loan_amount,
-        total_disbursed
-        + total_interest_incurred
-        - total_interest_paid
-        - total_disbursement_paid as remaining_balance,
-        total_disbursed - total_disbursement_paid as remaining_capital_balance,
-        total_interest_incurred
-        - total_interest_paid as remaining_interest_balance,
+        total_collateral_amount_usd,
+        facility_amount_usd as loan_amount_usd,
+        total_disbursed_usd
+        + total_interest_incurred_usd
+        - total_interest_paid_usd
+        - total_disbursal_paid_usd as remaining_balance,
+        total_disbursed_usd - total_disbursal_paid_usd as remaining_capital_balance,
+        total_interest_incurred_usd
+        - total_interest_paid_usd as remaining_interest_balance,
         cast(null as int64) as capital_overdue_days,
         cast(null as int64) as interest_overdue_days,
         cast(null as numeric) as credit_asset_balance,
@@ -87,14 +87,14 @@ select
 	) }}' as `cod_cartera`,
     '{{ npb4_17_02_tipos_de_activos_de_riesgo('Préstamos') }}' as `cod_activo`,
     left(replace(upper(reference_id), '-', ''), 20) as `num_referencia`,
-    loan_amount as `monto_referencia`,
+    loan_amount_usd as `monto_referencia`,
     remaining_balance as `saldo_referencia`,
     remaining_capital_balance as `saldo_vigente_k`,
     cast(null as numeric) as `saldo_vencido_k`,
     remaining_interest_balance as `saldo_vigente_i`,
     cast(null as numeric) as `saldo_vencido_i`,
     cast(null as numeric) as `abono_deposito`,
-    date(initialized_at) as `fecha_otorgamiento`,
+    date(approved_recorded_at) as `fecha_otorgamiento`,
     date(end_date) as `fecha_vencimiento`,
     cast(null as date) as `fecha_castigo`,
     '{{ npb4_17_07_estados_de_la_referencia('Vigente') }}' as `estado_credito`,
