@@ -5,10 +5,7 @@ use std::collections::HashSet;
 
 use es_entity::*;
 
-use crate::primitives::PermissionSetId;
-
-type Permission = (String, String);
-type Permissions = HashSet<Permission>;
+use crate::primitives::{Permission, PermissionSetId};
 
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
@@ -17,7 +14,7 @@ pub enum PermissionSetEvent {
     Initialized {
         id: PermissionSetId,
         name: String,
-        permissions: Permissions,
+        permissions: HashSet<Permission>,
     },
 }
 
@@ -31,7 +28,7 @@ pub struct PermissionSet {
 
 impl PermissionSet {
     /// Returns all permissions assigned to this Permission Set.
-    pub fn permissions(&self) -> &Permissions {
+    pub fn permissions(&self) -> &HashSet<Permission> {
         self.events
             .iter_all()
             .map(|event| match event {
@@ -64,7 +61,7 @@ pub struct NewPermissionSet {
     pub(super) id: PermissionSetId,
     #[builder(setter(into))]
     pub(super) name: String,
-    pub(super) permissions: Permissions,
+    pub(super) permissions: HashSet<Permission>,
 }
 
 impl NewPermissionSet {

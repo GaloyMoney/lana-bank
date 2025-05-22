@@ -10,7 +10,7 @@ use audit::AuditSvc;
 use authz::{Authorization, PermissionCheck};
 use outbox::{Outbox, OutboxEventMarker};
 
-use crate::{event::*, primitives::*, publisher::UserPublisher};
+use crate::{event::*, primitives::*, publisher::UserPublisher, Role};
 
 use entity::*;
 pub use entity::{User, UserEvent};
@@ -236,29 +236,29 @@ where
             .await?)
     }
 
-    #[instrument(name = "core_access.assign_role_to_user", skip(self))]
+    #[instrument(name = "core_access.assign_role_to_user", skip(self, role), fields(role_id = %role.id))]
     pub async fn assign_role_to_user(
         &self,
         sub: &<Audit as AuditSvc>::Subject,
         user_id: impl Into<UserId> + std::fmt::Debug,
-        role: impl Into<RoleName> + std::fmt::Debug,
+        role: &Role,
     ) -> Result<User, UserError> {
         let id = user_id.into();
-        let role = role.into();
 
-        if role == RoleName::SUPERUSER {
+        if role.name == RoleName::SUPERUSER {
             return Err(UserError::AuthorizationError(
                 authz::error::AuthorizationError::NotAuthorized,
             ));
         }
+
         let audit_info = self
             .subject_can_assign_role_to_user(sub, id, true)
             .await?
             .expect("audit info missing");
 
         let mut user = self.repo.find_by_id(id).await?;
-        if user.assign_role(role.clone(), audit_info).did_execute() {
-            self.authz.assign_role_to_subject(user.id, role).await?;
+        if user.assign_role(role, audit_info).did_execute() {
+            self.authz.assign_role_to_subject(user.id, role.id).await?;
             self.repo.update(&mut user).await?;
         }
 
@@ -282,17 +282,16 @@ where
             .await?)
     }
 
-    #[instrument(name = "core_access.revoke_role_from_user", skip(self))]
+    #[instrument(name = "core_access.revoke_role_from_user", skip(self, role), fields(role_id = %role.id))]
     pub async fn revoke_role_from_user(
         &self,
         sub: &<Audit as AuditSvc>::Subject,
         user_id: impl Into<UserId> + std::fmt::Debug,
-        role: impl Into<RoleName> + std::fmt::Debug,
+        role: &Role,
     ) -> Result<User, UserError> {
         let id = user_id.into();
-        let role = role.into();
 
-        if role == RoleName::SUPERUSER {
+        if role.name == RoleName::SUPERUSER {
             return Err(UserError::AuthorizationError(
                 authz::error::AuthorizationError::NotAuthorized,
             ));
@@ -303,8 +302,10 @@ where
             .expect("audit info missing");
 
         let mut user = self.repo.find_by_id(id).await?;
-        if user.revoke_role(role.clone(), audit_role).did_execute() {
-            self.authz.revoke_role_from_subject(user.id, role).await?;
+        if user.revoke_role(role, audit_role).did_execute() {
+            self.authz
+                .revoke_role_from_subject(user.id, role.id)
+                .await?;
             self.repo.update(&mut user).await?;
         }
 
@@ -317,7 +318,7 @@ where
         &self,
         db: &mut DbOp<'_>,
         email: String,
-        role: RoleName,
+        role: &Role,
     ) -> Result<User, UserError> {
         let audit_info = self
             .authz

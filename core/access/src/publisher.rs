@@ -47,13 +47,15 @@ where
                     id: *id,
                     email: email.clone(),
                 }),
-                RoleAssigned { role, .. } => Some(CoreAccessEvent::UserGrantedRole {
+                RoleAssigned { id, name, .. } => Some(CoreAccessEvent::UserGrantedRole {
                     id: entity.id,
-                    role: role.clone(),
+                    role_name: name.clone(),
+                    role_id: *id,
                 }),
-                RoleRevoked { role, .. } => Some(CoreAccessEvent::UserRevokedRole {
+                RoleRevoked { id, name, .. } => Some(CoreAccessEvent::UserRevokedRole {
                     id: entity.id,
-                    role: role.clone(),
+                    role_name: name.clone(),
+                    role_id: *id,
                 }),
                 AuthenticationIdUpdated { .. } => None,
             })

@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 
 use es_entity::*;
 
-use crate::primitives::*;
+use crate::{primitives::*, Role};
 
 use std::collections::HashSet;
 
@@ -20,11 +20,13 @@ pub enum UserEvent {
         authentication_id: AuthenticationId,
     },
     RoleAssigned {
-        role: RoleName,
+        id: RoleId,
+        name: RoleName,
         audit_info: AuditInfo,
     },
     RoleRevoked {
-        role: RoleName,
+        id: RoleId,
+        name: RoleName,
         audit_info: AuditInfo,
     },
 }
@@ -46,40 +48,46 @@ impl User {
             .expect("entity_first_persisted_at not found")
     }
 
-    pub(crate) fn assign_role(&mut self, role: RoleName, audit_info: AuditInfo) -> Idempotent<()> {
+    pub(crate) fn assign_role(&mut self, role: &Role, audit_info: AuditInfo) -> Idempotent<()> {
         idempotency_guard!(
             self.events.iter_all().rev(),
-            UserEvent::RoleAssigned { role: assigned, .. } if assigned == &role,
-            => UserEvent::RoleRevoked { role: revoked,.. } if revoked == &role
+            UserEvent::RoleAssigned { id: assigned, .. } if *assigned == role.id,
+            => UserEvent::RoleRevoked { id: revoked,.. } if *revoked == role.id
         );
 
-        self.events
-            .push(UserEvent::RoleAssigned { role, audit_info });
+        self.events.push(UserEvent::RoleAssigned {
+            id: role.id,
+            name: role.name.clone(),
+            audit_info,
+        });
         Idempotent::Executed(())
     }
 
-    pub(crate) fn revoke_role(&mut self, role: RoleName, audit_info: AuditInfo) -> Idempotent<()> {
+    pub(crate) fn revoke_role(&mut self, role: &Role, audit_info: AuditInfo) -> Idempotent<()> {
         idempotency_guard!(
             self.events.iter_all().rev(),
-            UserEvent::RoleRevoked { role: revoked, .. } if revoked == &role,
-            => UserEvent::RoleAssigned { role: assigned,.. } if assigned == &role
+            UserEvent::RoleRevoked { id: revoked, .. } if *revoked == role.id,
+            => UserEvent::RoleAssigned { id: assigned,.. } if *assigned == role.id
         );
 
-        self.events
-            .push(UserEvent::RoleRevoked { role, audit_info });
+        self.events.push(UserEvent::RoleRevoked {
+            id: role.id,
+            name: role.name.clone(),
+            audit_info,
+        });
 
         Idempotent::Executed(())
     }
 
-    pub fn current_roles(&self) -> HashSet<RoleName> {
+    pub fn current_roles(&self) -> HashSet<RoleId> {
         let mut res = HashSet::new();
         for event in self.events.iter_all() {
             match event {
-                UserEvent::RoleAssigned { role, .. } => {
-                    res.insert(role.clone());
+                UserEvent::RoleAssigned { id: role_id, .. } => {
+                    res.insert(*role_id);
                 }
-                UserEvent::RoleRevoked { role, .. } => {
-                    res.remove(role);
+                UserEvent::RoleRevoked { id: role_id, .. } => {
+                    res.remove(role_id);
                 }
                 _ => {}
             }

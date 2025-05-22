@@ -821,12 +821,12 @@ impl Mutation {
         input: UserAssignRoleInput,
     ) -> async_graphql::Result<UserAssignRolePayload> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
-        let UserAssignRoleInput { id, role } = input;
+        let UserAssignRoleInput { id, role_id } = input;
         exec_mutation!(
             UserAssignRolePayload,
             User,
             ctx,
-            app.access().users().assign_role_to_user(sub, id, role)
+            app.access().assign_role_to_user(sub, id, role_id.into())
         )
     }
 
@@ -836,12 +836,12 @@ impl Mutation {
         input: UserRevokeRoleInput,
     ) -> async_graphql::Result<UserRevokeRolePayload> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
-        let UserRevokeRoleInput { id, role } = input;
+        let UserRevokeRoleInput { id, role_id } = input;
         exec_mutation!(
             UserRevokeRolePayload,
             User,
             ctx,
-            app.access().users().revoke_role_from_user(sub, id, role)
+            app.access().revoke_role_from_user(sub, id, role_id.into())
         )
     }
 

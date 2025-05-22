@@ -17,6 +17,30 @@ es_entity::entity_id! { AuthenticationId, PermissionSetId, RoleId }
 pub const ACCESS_WRITER: &str = "access_writer";
 pub const ACCESS_READER: &str = "access_reader";
 
+impl From<RoleId> for RoleName {
+    fn from(id: RoleId) -> Self {
+        RoleName::new(format!("role:{id}"))
+    }
+}
+
+impl From<PermissionSetId> for RoleName {
+    fn from(id: PermissionSetId) -> Self {
+        RoleName::new(format!("permission_set:{id}"))
+    }
+}
+
+impl From<&RoleId> for RoleName {
+    fn from(id: &RoleId) -> Self {
+        RoleName::new(format!("role:{id}"))
+    }
+}
+
+impl From<&PermissionSetId> for RoleName {
+    fn from(id: &PermissionSetId) -> Self {
+        RoleName::new(format!("permission_set:{id}"))
+    }
+}
+
 #[derive(Clone, Eq, Hash, PartialEq, Debug, Serialize, Deserialize, sqlx::Type)]
 #[serde(transparent)]
 #[sqlx(transparent)]
@@ -42,6 +66,44 @@ impl RoleName {
 impl Display for RoleName {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         self.name().fmt(f)
+    }
+}
+
+impl From<&RoleName> for RoleName {
+    fn from(value: &RoleName) -> Self {
+        value.clone()
+    }
+}
+
+#[derive(Clone, Debug, Hash, Eq, PartialEq, Serialize, Deserialize)]
+pub struct Permission {
+    object: String,
+    action: String,
+}
+
+impl Permission {
+    pub const fn new(object: String, action: String) -> Self {
+        Self { object, action }
+    }
+
+    pub fn object(&self) -> &str {
+        &self.object
+    }
+
+    pub fn action(&self) -> &str {
+        &self.action
+    }
+}
+
+impl From<ActionDescription<FullPath>> for Permission {
+    fn from(action: ActionDescription<FullPath>) -> Self {
+        Permission::new(action.all_objects_name(), action.action_name())
+    }
+}
+
+impl From<&ActionDescription<FullPath>> for Permission {
+    fn from(action: &ActionDescription<FullPath>) -> Self {
+        Permission::new(action.all_objects_name(), action.action_name())
     }
 }
 
@@ -98,6 +160,7 @@ impl CoreAccessAction {
 pub enum RoleAction {
     Create,
     Update,
+    Read,
     List,
     Read,
 }
@@ -110,6 +173,7 @@ impl RoleAction {
             let action_description = match variant {
                 Self::Create => ActionDescription::new(variant, &[ACCESS_WRITER]),
                 Self::Update => ActionDescription::new(variant, &[ACCESS_WRITER]),
+                Self::Read => ActionDescription::new(variant, &[ACCESS_READER, ACCESS_WRITER]),
                 Self::List => ActionDescription::new(variant, &[ACCESS_READER, ACCESS_WRITER]),
                 Self::Read => ActionDescription::new(variant, &[ACCESS_READER]),
             };

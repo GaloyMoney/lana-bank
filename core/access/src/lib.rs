@@ -20,6 +20,7 @@ use permission_set::{PermissionSet, PermissionSetRepo, PermissionSetsByIdCursor}
 pub use event::*;
 pub use primitives::*;
 
+pub use bootstrap::BootstrapOptions;
 pub use publisher::UserPublisher;
 pub use role::*;
 pub use user::*;
@@ -49,21 +50,15 @@ where
         pool: &sqlx::PgPool,
         authz: &Authorization<Audit, RoleName>,
         outbox: &Outbox<E>,
-        superuser_email: Option<String>,
-        action_descriptions: &[ActionDescription<FullPath>],
+        bootstrap_options: BootstrapOptions,
     ) -> Result<Self, CoreAccessError> {
         let users = Users::init(pool, authz, outbox).await?;
         let publisher = UserPublisher::new(outbox);
         let role_repo = RoleRepo::new(pool, &publisher);
         let permission_set_repo = PermissionSetRepo::new(pool);
 
-        if let Some(email) = superuser_email {
-            let bootstrap =
-                bootstrap::Bootstrap::new(authz, &role_repo, &users, &permission_set_repo);
-            bootstrap
-                .bootstrap_access_control(email, action_descriptions)
-                .await?;
-        }
+        let bootstrap = bootstrap::Bootstrap::new(authz, &role_repo, &users, &permission_set_repo);
+        bootstrap.execute(bootstrap_options).await?;
 
         let core_access = Self {
             authz: authz.clone(),
@@ -85,7 +80,7 @@ where
         &self,
         sub: &<Audit as AuditSvc>::Subject,
         name: RoleName,
-        permission_sets: impl IntoIterator<Item = impl Into<PermissionSetId>>,
+        permission_sets: impl IntoIterator<Item = impl Into<PermissionSetId>> + Clone,
     ) -> Result<Role, RoleError> {
         let audit_info = self
             .authz
@@ -99,12 +94,54 @@ where
         let new_role = NewRole::builder()
             .id(RoleId::new())
             .name(name)
-            .initial_permission_sets(permission_sets.into_iter().map(|id| id.into()).collect())
+            .initial_permission_sets(
+                permission_sets
+                    .clone()
+                    .into_iter()
+                    .map(|id| id.into())
+                    .collect(),
+            )
             .audit_info(audit_info)
             .build()
             .expect("all fields for new role provided");
 
-        self.roles.create(new_role).await
+        let role = self.roles.create(new_role).await?;
+
+        for permission_set in permission_sets {
+            self.authz
+                .add_role_hierarchy(role.id, permission_set.into())
+                .await?;
+        }
+
+        Ok(role)
+    }
+
+    pub async fn assign_role_to_user(
+        &self,
+        sub: &<Audit as AuditSvc>::Subject,
+        user_id: impl Into<UserId> + std::fmt::Debug,
+        role_id: RoleId,
+    ) -> Result<User, CoreAccessError> {
+        let role = self.roles.find_by_id(&role_id).await?;
+
+        Ok(self
+            .users()
+            .assign_role_to_user(sub, user_id, &role)
+            .await?)
+    }
+
+    pub async fn revoke_role_from_user(
+        &self,
+        sub: &<Audit as AuditSvc>::Subject,
+        user_id: impl Into<UserId> + std::fmt::Debug,
+        role_id: RoleId,
+    ) -> Result<User, CoreAccessError> {
+        let role = self.roles.find_by_id(&role_id).await?;
+
+        Ok(self
+            .users()
+            .revoke_role_from_user(sub, user_id, &role)
+            .await?)
     }
 
     pub async fn add_permission_sets_to_role(
@@ -268,6 +305,23 @@ where
         ids: &[RoleId],
     ) -> Result<std::collections::HashMap<RoleId, T>, CoreAccessError> {
         Ok(self.roles.find_all(ids).await?)
+    }
+
+    #[instrument(name = "core_access.find_role_by_name", skip(self), err)]
+    pub async fn find_role_by_name(
+        &self,
+        sub: &<Audit as AuditSvc>::Subject,
+        name: RoleName,
+    ) -> Result<Role, RoleError> {
+        self.authz
+            .enforce_permission(
+                sub,
+                CoreAccessObject::all_roles(),
+                CoreAccessAction::ROLE_READ,
+            )
+            .await?;
+
+        self.roles.find_by_name(name).await
     }
 }
 

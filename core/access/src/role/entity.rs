@@ -63,6 +63,8 @@ impl Role {
             permission_set_id,
             audit_info,
         });
+        self.permission_sets.insert(permission_set_id);
+
         Idempotent::Executed(())
     }
 
@@ -81,7 +83,13 @@ impl Role {
             permission_set_id,
             audit_info,
         });
+        self.permission_sets.remove(&permission_set_id);
+
         Idempotent::Executed(())
+    }
+
+    pub fn permission_sets(&self) -> &HashSet<PermissionSetId> {
+        &self.permission_sets
     }
 }
 

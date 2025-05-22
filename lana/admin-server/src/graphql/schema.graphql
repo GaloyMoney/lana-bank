@@ -1743,7 +1743,7 @@ type User {
 	id: ID!
 	userId: UUID!
 	createdAt: Timestamp!
-	roles: [Role!]!
+	roles: [UUID!]!
 	email: String!
 	subjectCanAssignRoleToUser: Boolean!
 	subjectCanRevokeRoleFromUser: Boolean!
@@ -1751,7 +1751,7 @@ type User {
 
 input UserAssignRoleInput {
 	id: UUID!
-	role: Role!
+	roleId: UUID!
 }
 
 type UserAssignRolePayload {
@@ -1768,7 +1768,7 @@ type UserCreatePayload {
 
 input UserRevokeRoleInput {
 	id: UUID!
-	role: Role!
+	roleId: UUID!
 }
 
 type UserRevokeRolePayload {

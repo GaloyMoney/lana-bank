@@ -38,15 +38,12 @@ impl From<Arc<DomainUser>> for User {
 
 #[ComplexObject]
 impl User {
-    async fn roles(&self) -> Vec<LanaRole> {
-        let mut roles: Vec<_> = self
-            .entity
+    async fn roles(&self) -> Vec<UUID> {
+        self.entity
             .current_roles()
             .into_iter()
-            .map(LanaRole::from)
-            .collect();
-        roles.sort();
-        roles
+            .map(UUID::from)
+            .collect()
     }
 
     async fn email(&self) -> &str {
@@ -90,14 +87,14 @@ mutation_payload! { UserCreatePayload, user: User }
 #[derive(InputObject)]
 pub struct UserAssignRoleInput {
     pub id: UUID,
-    pub role: LanaRole,
+    pub role_id: UUID,
 }
 mutation_payload! { UserAssignRolePayload, user: User }
 
 #[derive(InputObject)]
 pub struct UserRevokeRoleInput {
     pub id: UUID,
-    pub role: LanaRole,
+    pub role_id: UUID,
 }
 
 mutation_payload! { UserRevokeRolePayload, user: User }
