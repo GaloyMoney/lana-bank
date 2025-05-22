@@ -1,6 +1,8 @@
 with loans as (
     select
         *,
+        disbursal_start_date as start_date,
+        disbursal_end_date as end_date,
         'actual/360' as day_count_convention,
         annual_rate / 100.0 as annual_interest_rate,
 
@@ -114,11 +116,11 @@ projected_cash_flows as (
         *,
         case
             when cash_flow_type = 'projected_interest_cash_flow'
-                then total_disbursed
+                then total_disbursed_usd
                      * daily_interest_rate
                      * days_in_period
             when cash_flow_type = 'projected_principal_cash_flow'
-                then total_disbursed
+                then total_disbursed_usd
             else 0
         end as cash_flow_amount
     from projected_time_data
@@ -130,9 +132,9 @@ final as(
         credit_facility_id,
         disbursal_id,
         customer_id,
-        credit_facility_initialized_at,
-        disbursal_initialized_at,
-        disbursal_concluded_at,
+        facility_initialized_recorded_at,
+        disbursal_initialized_recorded_at,
+        disbursal_concluded_recorded_at,
         start_date,
         end_date,
         duration_value,
@@ -140,8 +142,8 @@ final as(
         annual_rate,
         accrual_interval,
         accrual_cycle_interval,
-        facility,
-        total_disbursed,
+        facility_amount_usd,
+        total_disbursed_usd,
         matured,
         day_count_convention,
         annual_interest_rate,
