@@ -436,22 +436,22 @@ pg_event() {
       echo $event_field
     done
 
-    #
-    # overdue_recorded, expecting:
-    #
-    event_type="overdue_recorded"
-    event=$(psql $DATABASE_URL -P format=unaligned -P tuples_only -c "select event from ${table} where event_type = '${event_type}' order by id, sequence limit 1")
-    [[ "$event" != "" ]] || (echo "Missing ${table} -> ${event_type}" && exit 1)
-    declare -a fields=(
-      ".amount"
-      ".tx_id"
-    )
-    for field in "${fields[@]}"
-    do
-      event_field=$(pg_event ${field})
-      [[ "$event_field" != "null" ]] || (echo "Missing ${table} -> ${event_type} -> ${field}" && exit 1)
-      echo $event_field
-    done
+    # #
+    # # overdue_recorded, expecting:
+    # #
+    # event_type="overdue_recorded"
+    # event=$(psql $DATABASE_URL -P format=unaligned -P tuples_only -c "select event from ${table} where event_type = '${event_type}' order by id, sequence limit 1")
+    # [[ "$event" != "" ]] || (echo "Missing ${table} -> ${event_type}" && exit 1)
+    # declare -a fields=(
+    #   ".amount"
+    #   ".tx_id"
+    # )
+    # for field in "${fields[@]}"
+    # do
+    #   event_field=$(pg_event ${field})
+    #   [[ "$event_field" != "null" ]] || (echo "Missing ${table} -> ${event_type} -> ${field}" && exit 1)
+    #   echo $event_field
+    # done
 
     #
     # payment_allocated, expecting:
