@@ -180,7 +180,6 @@ where
             }
         }
 
-        let now = crate::time::now();
-        Ok(JobCompletion::RescheduleAt(now + self.config.job_interval))
+        Ok(JobCompletion::RescheduleIn(self.config.job_interval))
     }
 }

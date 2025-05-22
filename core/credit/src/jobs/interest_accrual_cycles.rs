@@ -1,5 +1,5 @@
 use async_trait::async_trait;
-use chrono::{DateTime, Duration, Utc};
+use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use tracing::instrument;
 
@@ -184,8 +184,9 @@ where
             .check_facility_obligations_status_updated(self.config.credit_facility_id)
             .await?
         {
-            let now = crate::time::now();
-            return Ok(JobCompletion::RescheduleAt(now + Duration::minutes(5)));
+            return Ok(JobCompletion::RescheduleIn(
+                chrono::Duration::minutes(5).to_std()?,
+            ));
         }
 
         let mut db = self.credit_facility_repo.begin_op().await?;
