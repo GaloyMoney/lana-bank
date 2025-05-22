@@ -2,7 +2,7 @@ use async_graphql::*;
 
 use crate::primitives::*;
 
-use super::{loader::LanaDataLoader, user::User};
+use super::{access::User, loader::LanaDataLoader};
 
 pub use governance::{committee_cursor::CommitteesByCreatedAtCursor, Committee as DomainCommittee};
 

@@ -3,7 +3,7 @@ use async_graphql::*;
 use crate::primitives::*;
 
 use super::{
-    approval_rules::*, credit_facility::*, loader::LanaDataLoader, policy::*, user::User,
+    access::User, approval_rules::*, credit_facility::*, loader::LanaDataLoader, policy::*,
     withdrawal::*,
 };
 

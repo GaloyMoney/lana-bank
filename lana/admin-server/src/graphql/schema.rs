@@ -13,10 +13,10 @@ use lana_app::{
 use crate::primitives::*;
 
 use super::{
-    accounting::*, approval_process::*, audit::*, authenticated_subject::*,
+    access::*, accounting::*, approval_process::*, audit::*, authenticated_subject::*,
     balance_sheet_config::*, committee::*, credit_config::*, credit_facility::*, customer::*,
     dashboard::*, deposit::*, deposit_config::*, document::*, loader::*, policy::*, price::*,
-    profit_and_loss_config::*, report::*, sumsub::*, terms_template::*, user::*, withdrawal::*,
+    profit_and_loss_config::*, report::*, sumsub::*, terms_template::*, withdrawal::*,
 };
 
 pub struct Query;

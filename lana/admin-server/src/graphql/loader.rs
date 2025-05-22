@@ -17,8 +17,8 @@ use lana_app::{
 use crate::primitives::*;
 
 use super::{
-    accounting::*, approval_process::*, committee::*, credit_facility::*, customer::*, deposit::*,
-    deposit_account::*, document::*, policy::*, terms_template::*, user::*, withdrawal::*,
+    access::*, accounting::*, approval_process::*, committee::*, credit_facility::*, customer::*,
+    deposit::*, deposit_account::*, document::*, policy::*, terms_template::*, withdrawal::*,
 };
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]

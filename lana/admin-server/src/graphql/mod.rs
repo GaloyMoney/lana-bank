@@ -25,9 +25,9 @@ mod terms_template;
 mod withdrawal;
 #[macro_use]
 pub mod macros;
+mod access;
 mod policy;
 mod schema;
-mod user;
 
 use async_graphql::*;
 

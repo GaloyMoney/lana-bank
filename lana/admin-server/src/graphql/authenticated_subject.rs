@@ -1,6 +1,6 @@
 use async_graphql::*;
 
-use super::user::User;
+use super::access::User;
 use lana_app::{access::user::User as DomainUser, authorization::VisibleNavigationItems};
 
 use crate::primitives::*;

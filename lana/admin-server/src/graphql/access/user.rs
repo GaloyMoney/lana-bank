@@ -11,7 +11,7 @@ pub struct User {
     created_at: Timestamp,
 
     #[graphql(skip)]
-    pub(super) entity: Arc<DomainUser>,
+    pub(crate) entity: Arc<DomainUser>,
 }
 
 impl From<DomainUser> for User {

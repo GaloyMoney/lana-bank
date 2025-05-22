@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 use crate::primitives::*;
 use lana_app::primitives::Subject as DomainSubject;
 
-use super::{loader::*, user::User};
+use super::{access::User, loader::*};
 
 #[derive(SimpleObject)]
 pub struct System {
