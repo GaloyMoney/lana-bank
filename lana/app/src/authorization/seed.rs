@@ -48,6 +48,21 @@ async fn add_permissions_for_superuser(authz: &Authorization) -> Result<(), Auth
     authz
         .add_permission_to_role(
             &role,
+            CoreAccessObject::all_roles(),
+            CoreAccessAction::ROLE_CREATE,
+        )
+        .await?;
+    authz
+        .add_permission_to_role(
+            &role,
+            CoreAccessObject::all_roles(),
+            CoreAccessAction::ROLE_UPDATE,
+        )
+        .await?;
+
+    authz
+        .add_permission_to_role(
+            &role,
             CoreAccessObject::all_users(),
             CoreAccessAction::USER_ASSIGN_ROLE,
         )

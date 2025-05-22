@@ -145,6 +145,7 @@ CREATE TABLE terms_template_events (
 
 CREATE TABLE core_permission_sets (
   id UUID PRIMARY KEY,
+  name VARCHAR NOT NULL UNIQUE,
   created_at TIMESTAMPTZ NOT NULL
 );
 
@@ -159,6 +160,7 @@ CREATE TABLE core_permission_set_events (
 
 CREATE TABLE core_roles (
   id UUID PRIMARY KEY,
+  name VARCHAR NOT NULL UNIQUE,
   created_at TIMESTAMPTZ NOT NULL
 );
 

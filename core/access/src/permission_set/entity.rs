@@ -62,6 +62,7 @@ impl TryFromEvents<PermissionSetEvent> for PermissionSet {
 pub struct NewPermissionSet {
     #[builder(setter(into))]
     pub(super) id: PermissionSetId,
+    #[builder(setter(into))]
     pub(super) name: String,
     pub(super) permissions: Permissions,
 }

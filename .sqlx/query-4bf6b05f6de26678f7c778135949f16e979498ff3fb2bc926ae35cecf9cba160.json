@@ -1,15 +1,16 @@
 {
   "db_name": "PostgreSQL",
-  "query": "INSERT INTO core_permission_sets (id, created_at) VALUES ($1, $2)",
+  "query": "INSERT INTO core_roles (id, name, created_at) VALUES ($1, $2, $3)",
   "describe": {
     "columns": [],
     "parameters": {
       "Left": [
         "Uuid",
+        "Varchar",
         "Timestamptz"
       ]
     },
     "nullable": []
   },
-  "hash": "448270712d1a8ddde5b7c9f68cabeddaafead37bdfed0706b70eb0933b761b9e"
+  "hash": "4bf6b05f6de26678f7c778135949f16e979498ff3fb2bc926ae35cecf9cba160"
 }

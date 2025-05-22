@@ -10,6 +10,7 @@ use super::{entity::*, error::*};
 #[es_repo(
     entity = "PermissionSet",
     err = "PermissionSetError",
+    columns(name(ty = "String", list_by)),
     tbl_prefix = "core"
 )]
 pub(crate) struct PermissionSetRepo {

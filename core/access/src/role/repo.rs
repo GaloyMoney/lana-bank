@@ -11,6 +11,7 @@ use super::{entity::*, error::*};
 #[es_repo(
     entity = "Role",
     err = "RoleError",
+    columns(name(ty = "RoleName", list_by)),
     tbl_prefix = "core",
     post_persist_hook = "publish"
 )]

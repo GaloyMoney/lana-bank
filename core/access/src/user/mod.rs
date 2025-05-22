@@ -313,13 +313,11 @@ where
 
     /// Creates a user with `email` and belonging to `role` (superuser).
     /// Used for bootstrapping the application.
-    //
-    // Warning: think thrice if you need to make the method more visible.
-    pub(super) async fn bootstrap_superuser(
+    pub(super) async fn bootstrap_superuser_user(
         &self,
+        db: &mut DbOp<'_>,
         email: String,
         role: RoleName,
-        db: &mut DbOp<'_>,
     ) -> Result<User, UserError> {
         let audit_info = self
             .authz
