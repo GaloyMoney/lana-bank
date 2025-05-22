@@ -5,7 +5,7 @@ with initialized as (
 
         json_value(event, "$.customer_id") as customer_id,
 
-        cast(json_value(event, '$.amount') as numeric) as facility_amount,
+        cast(json_value(event, '$.amount') as numeric) / {{ var('cents_per_usd') }} as facility_amount_usd,
 
         cast(json_value(event, "$.terms.annual_rate") as numeric) as annual_rate,
         cast(json_value(event, "$.terms.one_time_fee_rate") as numeric) as one_time_fee_rate,
@@ -13,7 +13,6 @@ with initialized as (
         cast(json_value(event, "$.terms.initial_cvl") as numeric) as initial_cvl,
         cast(json_value(event, "$.terms.liquidation_cvl") as numeric) as liquidation_cvl,
         cast(json_value(event, "$.terms.margin_call_cvl") as numeric) as margin_call_cvl,
-
 
         cast(json_value(event, "$.terms.duration.value") as integer) as duration_value,
         json_value(event, "$.terms.duration.type") as duration_type,

@@ -22,13 +22,28 @@ with accrual_cycle_started as (
     where event_type = "interest_accrual_cycle_concluded"
 )
 
-, accrual_cycles as (
+, ordered_accrual_cycle_started as (
     select
         credit_facility_id,
-        array_agg(struct(period_start as period_start, period_end as period_end, period_interval_type as period_interval_type, accrual_cycle_concluded_recorded_at is null as concluded)) as accrual_cycles
+        array_agg(struct(
+            idx,
+            interest_accrual_id,
+            accrual_cycle_started_recorded_at,
+            period_start,
+            period_end,
+            period_interval_type,
+            accrual_cycle_concluded_recorded_at is not null as concluded
+        ) order by period_start ) as accrual_cycles
     from accrual_cycle_started
     left join accrual_cycle_concluded using (credit_facility_id, idx)
     group by credit_facility_id
+)
+
+, accrual_cycles as (
+    select
+        credit_facility_id,
+        accrual_cycles,
+    from ordered_accrual_cycle_started
 )
 
 select * from accrual_cycles
