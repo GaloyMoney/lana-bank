@@ -3,7 +3,7 @@ with initialized as (
         id as disbursal_id,
         recorded_at as initialized_recorded_at,
         json_value(event, '$.facility_id') as credit_facility_id,
-        cast(json_value(event, '$.amount') as numeric) as initialized_amount,
+        cast(json_value(event, '$.amount') as numeric) / {{ var('cents_per_usd') }} as disbursal_amount_usd,
 
         json_value(event, "$.account_ids.facility_account_id") as facility_account_id,
         json_value(event, "$.account_ids.collateral_account_id") as collateral_account_id,
@@ -37,7 +37,7 @@ with initialized as (
         id as disbursal_id,
         recorded_at as event_recorded_at,
         cast(json_value(event, '$.recorded_at') as timestamp) as settled_recorded_at,
-        cast(json_value(event, '$.amount') as numeric) as settled_amount,
+        cast(json_value(event, '$.amount') as numeric) / {{ var('cents_per_usd') }} as settled_amount_usd,
         json_value(event, '$.ledger_tx_id') as ledger_tx_id,
         json_value(event, '$.obligation_id') as obligation_id,
 
