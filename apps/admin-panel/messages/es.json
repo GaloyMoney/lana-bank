@@ -1584,7 +1584,6 @@
       "error": "Error al crear el rol: {error}"
     },
     "update": {
-      "viewTitle": "Ver rol",
       "viewDescription": "Ver todos los permisos para este rol",
       "editTitle": "Actualizar rol",
       "editDescription": "Actualizar los permisos para este rol",
