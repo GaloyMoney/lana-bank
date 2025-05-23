@@ -236,7 +236,7 @@ where
                     due_at: entity.due_at(),
                     overdue_at: entity.overdue_at(),
                     defaulted_at: entity.defaulted_at(),
-                    created_at: entity.recorded_at,
+                    recorded_at: entity.recorded_at,
                 }),
                 DueRecorded { amount, .. } => Some(CoreCreditEvent::ObligationDue {
                     id: entity.id,

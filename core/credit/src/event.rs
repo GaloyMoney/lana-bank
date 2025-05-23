@@ -75,7 +75,7 @@ pub enum CoreCreditEvent {
         due_at: DateTime<Utc>,
         overdue_at: Option<DateTime<Utc>>,
         defaulted_at: Option<DateTime<Utc>>,
-        created_at: DateTime<Utc>,
+        recorded_at: DateTime<Utc>,
     },
     ObligationDue {
         id: ObligationId,
