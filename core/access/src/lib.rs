@@ -91,7 +91,7 @@ where
         sub: &<Audit as AuditSvc>::Subject,
         name: RoleName,
         permission_sets: impl IntoIterator<Item = impl Into<PermissionSetId>>,
-    ) -> Result<Role, RoleError> {
+    ) -> Result<Role, CoreAccessError> {
         let audit_info = self
             .authz
             .enforce_permission(
@@ -101,15 +101,21 @@ where
             )
             .await?;
 
+        let permission_set_ids = permission_sets
+            .into_iter()
+            .map(|id| id.into())
+            .collect::<Vec<_>>();
+        self.ensure_permission_sets_exist(&permission_set_ids)
+            .await?;
         let new_role = NewRole::builder()
             .id(RoleId::new())
             .name(name)
-            .initial_permission_sets(permission_sets.into_iter().map(|id| id.into()).collect())
+            .initial_permission_sets(permission_set_ids.into_iter().collect())
             .audit_info(audit_info)
             .build()
             .expect("all fields for new role provided");
 
-        self.roles.create(new_role).await
+        Ok(self.roles.create(new_role).await?)
     }
 
     pub async fn add_permission_sets_to_role(
@@ -119,11 +125,6 @@ where
         permission_set_ids: impl IntoIterator<Item = impl Into<PermissionSetId>>,
     ) -> Result<Role, CoreAccessError> {
         let role_id = role_id.into();
-        let permission_set_ids = permission_set_ids
-            .into_iter()
-            .map(|id| id.into())
-            .collect::<Vec<_>>();
-
         let audit_info = self
             .authz
             .enforce_permission(
@@ -133,15 +134,16 @@ where
             )
             .await?;
 
+        let permission_set_ids = permission_set_ids
+            .into_iter()
+            .map(|id| id.into())
+            .collect::<Vec<_>>();
+
         let mut role = self.roles.find_by_id(role_id).await?;
-        let permission_sets = self
-            .permission_sets
-            .find_all::<PermissionSet>(&permission_set_ids)
-            .await?;
-
         let mut changed = false;
-
-        for (permission_set_id, _) in permission_sets {
+        self.ensure_permission_sets_exist(&permission_set_ids)
+            .await?;
+        for permission_set_id in permission_set_ids {
             if role
                 .add_permission_set(permission_set_id, audit_info.clone())
                 .did_execute()
@@ -359,6 +361,27 @@ where
         ids: &[PermissionSetId],
     ) -> Result<std::collections::HashMap<PermissionSetId, T>, CoreAccessError> {
         Ok(self.permission_sets.find_all(ids).await?)
+    }
+
+    async fn ensure_permission_sets_exist(
+        &self,
+        permission_set_ids: &[PermissionSetId],
+    ) -> Result<(), CoreAccessError> {
+        let permission_sets = self
+            .permission_sets
+            .find_all::<PermissionSet>(permission_set_ids)
+            .await?;
+        for id in permission_set_ids {
+            if !permission_sets.contains_key(id) {
+                return Err(CoreAccessError::PermissionSetError(
+                    permission_set::PermissionSetError::EsEntityError(
+                        es_entity::EsEntityError::NotFound,
+                    ),
+                ));
+            }
+        }
+
+        Ok(())
     }
 }
 
