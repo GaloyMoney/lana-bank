@@ -260,7 +260,7 @@ impl Obligation {
             .unwrap_or(ObligationStatus::NotYetDue)
     }
 
-    pub fn check_status_transitioned(&self, now: DateTime<Utc>) -> bool {
+    pub fn is_status_up_to_date(&self, now: DateTime<Utc>) -> bool {
         self.status() == self.expected_status(now)
     }
 
@@ -762,7 +762,7 @@ mod test {
         assert_eq!(obligation.status(), ObligationStatus::Paid);
     }
 
-    mod status_transitioned {
+    mod is_status_up_to_date {
 
         use super::*;
 
@@ -813,7 +813,7 @@ mod test {
             let obligation = obligation_from(initial_events(now));
             assert_eq!(obligation.expected_status(now), ObligationStatus::NotYetDue);
             assert_eq!(obligation.status(), ObligationStatus::NotYetDue);
-            assert!(obligation.check_status_transitioned(now));
+            assert!(obligation.is_status_up_to_date(now));
         }
 
         #[test]
@@ -824,7 +824,7 @@ mod test {
             let now = due_timestamp(Utc::now());
             assert_eq!(obligation.expected_status(now), ObligationStatus::Due);
             assert_eq!(obligation.status(), ObligationStatus::NotYetDue);
-            assert!(!obligation.check_status_transitioned(now));
+            assert!(!obligation.is_status_up_to_date(now));
         }
 
         #[test]
@@ -841,7 +841,7 @@ mod test {
             let now = due_timestamp(Utc::now());
             assert_eq!(obligation.expected_status(now), ObligationStatus::Due);
             assert_eq!(obligation.status(), ObligationStatus::Due);
-            assert!(obligation.check_status_transitioned(now));
+            assert!(obligation.is_status_up_to_date(now));
         }
 
         #[test]
@@ -858,7 +858,7 @@ mod test {
             let now = overdue_timestamp(Utc::now());
             assert_eq!(obligation.expected_status(now), ObligationStatus::Overdue);
             assert_eq!(obligation.status(), ObligationStatus::Due);
-            assert!(!obligation.check_status_transitioned(now));
+            assert!(!obligation.is_status_up_to_date(now));
         }
 
         #[test]
@@ -882,7 +882,7 @@ mod test {
             let now = overdue_timestamp(Utc::now());
             assert_eq!(obligation.expected_status(now), ObligationStatus::Overdue);
             assert_eq!(obligation.status(), ObligationStatus::Overdue);
-            assert!(obligation.check_status_transitioned(now));
+            assert!(obligation.is_status_up_to_date(now));
         }
 
         #[test]
@@ -911,7 +911,7 @@ mod test {
 
             assert_eq!(obligation.expected_status(now), ObligationStatus::Paid);
             assert_eq!(obligation.status(), ObligationStatus::Paid);
-            assert!(obligation.check_status_transitioned(now));
+            assert!(obligation.is_status_up_to_date(now));
         }
 
         #[test]
@@ -935,7 +935,7 @@ mod test {
             let now = defaulted_timestamp(Utc::now());
             assert_eq!(obligation.expected_status(now), ObligationStatus::Defaulted);
             assert_eq!(obligation.status(), ObligationStatus::Overdue);
-            assert!(!obligation.check_status_transitioned(now));
+            assert!(!obligation.is_status_up_to_date(now));
         }
 
         #[test]
@@ -964,7 +964,7 @@ mod test {
             let now = defaulted_timestamp(Utc::now());
             assert_eq!(obligation.expected_status(now), ObligationStatus::Defaulted);
             assert_eq!(obligation.status(), ObligationStatus::Defaulted);
-            assert!(obligation.check_status_transitioned(now));
+            assert!(obligation.is_status_up_to_date(now));
         }
     }
 }

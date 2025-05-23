@@ -150,7 +150,7 @@ where
     ) -> Result<bool, ObligationError> {
         let obligations = self.facility_obligations(credit_facility_id).await?;
         for obligation in obligations.iter() {
-            if !obligation.check_status_transitioned(crate::time::now()) {
+            if !obligation.is_status_up_to_date(crate::time::now()) {
                 return Ok(false);
             }
         }
