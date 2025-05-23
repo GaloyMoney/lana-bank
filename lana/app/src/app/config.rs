@@ -3,9 +3,10 @@ use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
 
 use crate::{
-    applicant::SumsubConfig, credit::CreditConfig, customer_sync::CustomerSyncConfig,
-    job::JobExecutorConfig, report::ReportConfig, service_account::ServiceAccountConfig,
-    storage::config::StorageConfig, user_onboarding::UserOnboardingConfig,
+    access::config::AccessConfig, applicant::SumsubConfig, credit::CreditConfig,
+    customer_sync::CustomerSyncConfig, job::JobExecutorConfig, report::ReportConfig,
+    service_account::ServiceAccountConfig, storage::config::StorageConfig,
+    user_onboarding::UserOnboardingConfig,
 };
 
 #[derive(Clone, Default, Debug, Deserialize, Serialize)]
@@ -15,7 +16,7 @@ pub struct AppConfig {
     #[serde(default)]
     pub sumsub: SumsubConfig,
     #[serde(default)]
-    pub user: UserConfig,
+    pub access: AccessConfig,
     #[serde(default)]
     pub credit: CreditConfig,
     #[serde(default)]
@@ -30,12 +31,6 @@ pub struct AppConfig {
     pub customer_sync: CustomerSyncConfig,
     #[serde(default)]
     pub accounting_init: AccountingInitConfig,
-}
-
-#[derive(Clone, Default, Debug, Deserialize, Serialize)]
-pub struct UserConfig {
-    #[serde(default)]
-    pub superuser_email: Option<String>,
 }
 
 #[derive(Clone, Default, Debug, Deserialize, Serialize)]

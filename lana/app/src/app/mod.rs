@@ -7,7 +7,7 @@ use tracing::instrument;
 use authz::PermissionCheck;
 
 use crate::{
-    access::{Access, BootstrapOptions},
+    access::Access,
     accounting::Accounting,
     accounting_init::{ChartsInit, JournalInit, StatementsInit},
     applicant::Applicants,
@@ -64,13 +64,11 @@ impl LanaApp {
         let outbox = Outbox::init(&pool).await?;
         let authz = Authorization::init(&pool, &audit).await?;
 
-        let bootstrap = BootstrapOptions {
-            superuser_email: config.user.superuser_email,
-            action_descriptions: rbac_types::LanaAction::action_descriptions(),
-            predefined_roles: seed::PREDEFINED_ROLES,
-        };
+        let mut access_config = config.access;
+        access_config.action_descriptions = rbac_types::LanaAction::action_descriptions();
+        access_config.predefined_roles = seed::PREDEFINED_ROLES;
 
-        let access = Access::init(&pool, &authz, &outbox, bootstrap).await?;
+        let access = Access::init(&pool, access_config, &authz, &outbox).await?;
 
         let mut jobs = Jobs::new(&pool, config.job_execution);
 

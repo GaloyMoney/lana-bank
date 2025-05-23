@@ -3,7 +3,7 @@ db:
 app:
   job_execution:
     poll_interval: 1
-  user:
+  access:
     superuser_email: "admin@galoy.io"
   service_account:
     gcp_location: europe-west6
