@@ -202,6 +202,100 @@ where
         Ok(role)
     }
 
+    #[instrument(name = "access.find_role_by_name", skip(self), err)]
+    pub async fn find_role_by_name(
+        &self,
+        sub: &<Audit as AuditSvc>::Subject,
+        name: RoleName,
+    ) -> Result<Role, RoleError> {
+        self.authz
+            .enforce_permission(
+                sub,
+                CoreAccessObject::all_roles(),
+                CoreAccessAction::ROLE_LIST,
+            )
+            .await?;
+        self.roles.find_by_name(name).await
+    }
+
+    #[instrument(name = "core_access.assign_role_to_user", skip(self))]
+    pub async fn assign_role_to_user(
+        &self,
+        sub: &<Audit as AuditSvc>::Subject,
+        user_id: impl Into<UserId> + std::fmt::Debug,
+        role_id: impl Into<RoleId> + std::fmt::Debug,
+    ) -> Result<User, CoreAccessError> {
+        let user_id = user_id.into();
+        let role_id = role_id.into();
+
+        self.authz
+            .enforce_permission(
+                sub,
+                CoreAccessObject::user(user_id),
+                CoreAccessAction::USER_ASSIGN_ROLE,
+            )
+            .await?;
+
+        let role = self.roles.find_by_id(role_id).await?;
+        let user = self.users.assign_role_to_user(sub, user_id, &role).await?;
+
+        Ok(user)
+    }
+
+    #[instrument(name = "core_access.revoke_role_from_user", skip(self))]
+    pub async fn revoke_role_from_user(
+        &self,
+        sub: &<Audit as AuditSvc>::Subject,
+        user_id: impl Into<UserId> + std::fmt::Debug,
+        role_id: impl Into<RoleId> + std::fmt::Debug,
+    ) -> Result<User, CoreAccessError> {
+        let user_id = user_id.into();
+        let role_id = role_id.into();
+
+        self.authz
+            .enforce_permission(
+                sub,
+                CoreAccessObject::user(user_id),
+                CoreAccessAction::USER_REVOKE_ROLE,
+            )
+            .await?;
+
+        let role = self.roles.find_by_id(role_id).await?;
+        let user = self
+            .users
+            .revoke_role_from_user(sub, user_id, &role)
+            .await?;
+
+        Ok(user)
+    }
+
+    #[instrument(name = "access.list_roles", skip(self), err)]
+    pub async fn list_roles(
+        &self,
+        sub: &<Audit as AuditSvc>::Subject,
+        query: es_entity::PaginatedQueryArgs<RolesByNameCursor>,
+    ) -> Result<es_entity::PaginatedQueryRet<Role, RolesByNameCursor>, CoreAccessError> {
+        self.authz
+            .enforce_permission(
+                sub,
+                CoreAccessObject::all_roles(),
+                CoreAccessAction::ROLE_LIST,
+            )
+            .await?;
+        Ok(self
+            .roles
+            .list_by_name(query, es_entity::ListDirection::Descending)
+            .await?)
+    }
+
+    #[instrument(name = "access.find_all_roles", skip(self), err)]
+    pub async fn find_all_roles<T: From<Role>>(
+        &self,
+        ids: &[RoleId],
+    ) -> Result<std::collections::HashMap<RoleId, T>, CoreAccessError> {
+        Ok(self.roles.find_all(ids).await?)
+    }
+
     #[instrument(name = "access.list_permission_sets", skip(self), err)]
     pub async fn list_permission_sets(
         &self,
@@ -224,6 +318,22 @@ where
             .await?)
     }
 
+    pub async fn find_role_by_id(
+        &self,
+        sub: &<Audit as AuditSvc>::Subject,
+        id: impl Into<RoleId>,
+    ) -> Result<Option<Role>, CoreAccessError> {
+        let id = id.into();
+        self.authz
+            .enforce_permission(sub, CoreAccessObject::role(id), CoreAccessAction::ROLE_READ)
+            .await?;
+        match self.roles.find_by_id(id).await {
+            Ok(role) => Ok(Some(role)),
+            Err(e) if e.was_not_found() => Ok(None),
+            Err(e) => Err(e.into()),
+        }
+    }
+
     #[instrument(name = "access.list_roles", skip(self), err)]
     pub async fn list_roles(
         &self,
@@ -243,36 +353,12 @@ where
             .await?)
     }
 
-    pub async fn find_role_by_id(
-        &self,
-        sub: &<Audit as AuditSvc>::Subject,
-        id: impl Into<RoleId>,
-    ) -> Result<Option<Role>, CoreAccessError> {
-        let id = id.into();
-        self.authz
-            .enforce_permission(sub, CoreAccessObject::role(id), CoreAccessAction::ROLE_READ)
-            .await?;
-        match self.roles.find_by_id(id).await {
-            Ok(role) => Ok(Some(role)),
-            Err(e) if e.was_not_found() => Ok(None),
-            Err(e) => Err(e.into()),
-        }
-    }
-
     #[instrument(name = "access.find_all_permission_sets", skip(self), err)]
     pub async fn find_all_permission_sets<T: From<PermissionSet>>(
         &self,
         ids: &[PermissionSetId],
     ) -> Result<std::collections::HashMap<PermissionSetId, T>, CoreAccessError> {
         Ok(self.permission_sets.find_all(ids).await?)
-    }
-
-    #[instrument(name = "access.find_all_roles", skip(self), err)]
-    pub async fn find_all_roles<T: From<Role>>(
-        &self,
-        ids: &[RoleId],
-    ) -> Result<std::collections::HashMap<RoleId, T>, CoreAccessError> {
-        Ok(self.roles.find_all(ids).await?)
     }
 }
 

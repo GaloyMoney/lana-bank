@@ -236,8 +236,7 @@ where
             .await?)
     }
 
-    #[instrument(name = "core_access.assign_role_to_user", skip(self, role), fields(role_id = %role.id))]
-    pub async fn assign_role_to_user(
+    pub(crate) async fn assign_role_to_user(
         &self,
         sub: &<Audit as AuditSvc>::Subject,
         user_id: impl Into<UserId> + std::fmt::Debug,
@@ -282,7 +281,6 @@ where
             .await?)
     }
 
-    #[instrument(name = "core_access.revoke_role_from_user", skip(self, role), fields(role_id = %role.id))]
     pub async fn revoke_role_from_user(
         &self,
         sub: &<Audit as AuditSvc>::Subject,

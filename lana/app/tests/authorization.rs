@@ -5,7 +5,7 @@ use serial_test::file_serial;
 use authz::PermissionCheck;
 
 use lana_app::{
-    access::{Access, Role},
+    access::Access,
     audit::*,
     authorization::{error::AuthorizationError, init as init_authz, *},
     primitives::*,
@@ -19,15 +19,14 @@ fn random_email() -> String {
 async fn create_user_with_role(
     access: &Access,
     superuser_subject: &Subject,
-    role: &Role,
+    role_id: RoleId,
 ) -> anyhow::Result<Subject> {
     let user = access
         .users()
         .create_user(superuser_subject, random_email())
         .await?;
     let user = access
-        .users()
-        .assign_role_to_user(superuser_subject, user.id, role)
+        .assign_role_to_user(superuser_subject, user.id, role_id)
         .await?;
     Ok(Subject::from(user.id))
 }
@@ -85,7 +84,7 @@ async fn admin_permissions() -> anyhow::Result<()> {
         .find_role_by_name(&superuser_subject, LanaRole::ADMIN)
         .await?;
 
-    let admin_subject = create_user_with_role(&access, &superuser_subject, &admin_role).await?;
+    let admin_subject = create_user_with_role(&access, &superuser_subject, admin_role.id).await?;
 
     // Admin can create users
     assert!(authz
@@ -131,7 +130,7 @@ async fn bank_manager_permissions() -> anyhow::Result<()> {
         .await?;
 
     let bank_manager_subject =
-        create_user_with_role(&access, &superuser_subject, &bank_manager_role).await?;
+        create_user_with_role(&access, &superuser_subject, bank_manager_role.id).await?;
 
     // Bank Manager cannot create users
     assert!(matches!(
