@@ -63,6 +63,7 @@ impl CreditFacilityRepaymentPlan {
                 overdue_at: None,
                 defaulted_at: None,
                 recorded_at: activated_at,
+                effective: activated_at.date_naive(),
             }),
             CreditFacilityRepaymentPlanEntry::Disbursal(ObligationDataForEntry {
                 id: None,
@@ -75,6 +76,7 @@ impl CreditFacilityRepaymentPlan {
                 overdue_at: None,
                 defaulted_at: None,
                 recorded_at: activated_at,
+                effective: activated_at.date_naive(),
             }),
         ]
     }
@@ -126,6 +128,7 @@ impl CreditFacilityRepaymentPlan {
                     overdue_at: None,
                     defaulted_at: None,
                     recorded_at: period.end,
+                    effective: period.end.date_naive(),
                 },
             ));
 
@@ -159,7 +162,8 @@ impl CreditFacilityRepaymentPlan {
                 due_at,
                 overdue_at,
                 defaulted_at,
-                created_at,
+                recorded_at,
+                effective,
                 ..
             } => {
                 let data = ObligationDataForEntry {
@@ -172,7 +176,8 @@ impl CreditFacilityRepaymentPlan {
                     due_at: *due_at,
                     overdue_at: *overdue_at,
                     defaulted_at: *defaulted_at,
-                    recorded_at: *created_at,
+                    recorded_at: *recorded_at,
+                    effective: *effective,
                 };
                 let entry = match obligation_type {
                     ObligationType::Disbursal => CreditFacilityRepaymentPlanEntry::Disbursal(data),
@@ -321,6 +326,8 @@ mod tests {
                 amount: default_facility_amount(),
             },
         );
+
+        let recorded_at = default_start_date();
         plan.process_event(
             Default::default(),
             &CoreCreditEvent::ObligationCreated {
@@ -331,9 +338,12 @@ mod tests {
                 due_at: default_start_date(),
                 overdue_at: None,
                 defaulted_at: None,
-                created_at: default_start_date(),
+                recorded_at,
+                effective: recorded_at.date_naive(),
             },
         );
+
+        let recorded_at = default_start_date() + chrono::Duration::days(30);
         plan.process_event(
             Default::default(),
             &CoreCreditEvent::ObligationCreated {
@@ -344,7 +354,8 @@ mod tests {
                 due_at: default_start_date() + chrono::Duration::days(30),
                 overdue_at: None,
                 defaulted_at: None,
-                created_at: default_start_date() + chrono::Duration::days(30),
+                recorded_at,
+                effective: recorded_at.date_naive(),
             },
         );
         assert_eq!(plan.planned_interest_accruals(&plan.entries).len(), 3);
