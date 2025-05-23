@@ -1,9 +1,11 @@
 use std::fmt::{Debug, Display};
 
 /// Marker for actions with no path segment provided.
+#[derive(Clone)]
 pub struct NoPath;
 
 /// Marker for actions with both module and entity name provided.
+#[derive(Clone)]
 pub struct FullPath(String, String);
 
 /// Description of a defined action. Each description consists
@@ -12,13 +14,14 @@ pub struct FullPath(String, String);
 ///
 /// To obtain full name of the action and its related object, both
 /// segments of the path – module and entity – need to be present (i. e. `P = FullPath`).
-pub struct ActionDescription<P> {
+#[derive(Clone)]
+pub struct ActionDescription<P: Clone> {
     path: P,
     name: String,
     permission_sets: &'static [&'static str],
 }
 
-impl<P> ActionDescription<P> {
+impl<P: Clone> ActionDescription<P> {
     pub fn permission_sets(&self) -> &[&'static str] {
         self.permission_sets
     }

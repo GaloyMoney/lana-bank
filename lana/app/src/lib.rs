@@ -30,9 +30,7 @@ pub mod user_onboarding {
 }
 
 pub mod access {
-    pub use core_access::{
-        error, permission_set, role, user, BootstrapOptions, Role, RoleId, UserId,
-    };
+    pub use core_access::{config, error, permission_set, role, user, Role, RoleId, UserId};
     pub type Access = core_access::CoreAccess<crate::audit::Audit, lana_events::LanaEvent>;
 }
 

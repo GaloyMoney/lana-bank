@@ -1,10 +1,9 @@
 #![allow(dead_code)]
 
-use core_access::BootstrapOptions;
 use rand::Rng;
 
 use lana_app::{
-    access::Access,
+    access::{config::AccessConfig, Access},
     authorization::{seed, Authorization},
     outbox::Outbox,
     primitives::Subject,
@@ -27,13 +26,13 @@ pub async fn init_access(
     );
     let outbox = Outbox::init(pool).await?;
 
-    let bootstrap = BootstrapOptions {
+    let config = AccessConfig {
         superuser_email: Some(superuser_email.clone()),
         action_descriptions: rbac_types::LanaAction::action_descriptions(),
         predefined_roles: seed::PREDEFINED_ROLES,
     };
 
-    let access = Access::init(pool, authz, &outbox, bootstrap).await?;
+    let access = Access::init(pool, config, authz, &outbox).await?;
 
     let superuser = access
         .users()
