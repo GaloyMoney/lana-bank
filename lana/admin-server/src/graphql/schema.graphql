@@ -1879,8 +1879,3 @@ directive @skip(if: Boolean!) on FIELD | FRAGMENT_SPREAD | INLINE_FRAGMENT
 """
 Provides a scalar specification URL for specifying the behavior of custom scalar types.
 """
-directive @specifiedBy(url: String!) on SCALAR
-schema {
-	query: Query
-	mutation: Mutation
-}

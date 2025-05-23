@@ -2213,7 +2213,7 @@ export const mockUserAssignRoleInput = (overrides?: Partial<UserAssignRoleInput>
     relationshipsToOmit.add('UserAssignRoleInput');
     return {
         id: overrides && overrides.hasOwnProperty('id') ? overrides.id! : generateMockValue.uuid(),
-        role: overrides && overrides.hasOwnProperty('role') ? overrides.role! : Role.Accountant,
+        roleId: overrides && overrides.hasOwnProperty('roleId') ? overrides.roleId! : generateMockValue.uuid(),
     };
 };
 
@@ -2248,7 +2248,7 @@ export const mockUserRevokeRoleInput = (overrides?: Partial<UserRevokeRoleInput>
     relationshipsToOmit.add('UserRevokeRoleInput');
     return {
         id: overrides && overrides.hasOwnProperty('id') ? overrides.id! : generateMockValue.uuid(),
-        role: overrides && overrides.hasOwnProperty('role') ? overrides.role! : Role.Accountant,
+        roleId: overrides && overrides.hasOwnProperty('roleId') ? overrides.roleId! : generateMockValue.uuid(),
     };
 };
 
