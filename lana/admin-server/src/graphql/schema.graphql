@@ -1225,6 +1225,9 @@ type Mutation {
 	userCreate(input: UserCreateInput!): UserCreatePayload!
 	userAssignRole(input: UserAssignRoleInput!): UserAssignRolePayload!
 	userRevokeRole(input: UserRevokeRoleInput!): UserRevokeRolePayload!
+	roleCreate(input: RoleCreateInput!): RoleCreatePayload!
+	roleAddPermissionSets(input: RoleAddPermissionSetsInput!): RoleAddPermissionSetsPayload!
+	roleRemovePermissionSet(input: RoleRemovePermissionSetInput!): RoleRemovePermissionSetPayload!
 	customerCreate(input: CustomerCreateInput!): CustomerCreatePayload!
 	customerTelegramIdUpdate(input: CustomerTelegramIdUpdateInput!): CustomerTelegramIdUpdatePayload!
 	customerEmailUpdate(input: CustomerEmailUpdateInput!): CustomerEmailUpdatePayload!
@@ -1407,6 +1410,7 @@ type Query {
 	dashboard: Dashboard!
 	user(id: UUID!): User
 	users: [User!]!
+	roles(first: Int!, after: String): RoleEntityConnection!
 	permissionSets(first: Int!, after: String): PermissionSetConnection!
 	customer(id: UUID!): Customer
 	customerByEmail(email: String!): Customer
@@ -1489,6 +1493,69 @@ enum Role {
 	ADMIN
 	BANK_MANAGER
 	ACCOUNTANT
+}
+
+input RoleAddPermissionSetsInput {
+	roleId: UUID!
+	permissionSetIds: [UUID!]!
+}
+
+type RoleAddPermissionSetsPayload {
+	role: RoleEntity!
+}
+
+input RoleCreateInput {
+	name: String!
+	permissionSetIds: [UUID!]!
+}
+
+type RoleCreatePayload {
+	role: RoleEntity!
+}
+
+type RoleEntity {
+	id: ID!
+	roleId: UUID!
+	name: String!
+	permissionSets: [PermissionSet!]!
+}
+
+type RoleEntityConnection {
+	"""
+	Information to aid in pagination.
+	"""
+	pageInfo: PageInfo!
+	"""
+	A list of edges.
+	"""
+	edges: [RoleEntityEdge!]!
+	"""
+	A list of nodes.
+	"""
+	nodes: [RoleEntity!]!
+}
+
+"""
+An edge in a connection.
+"""
+type RoleEntityEdge {
+	"""
+	The item at the end of the edge
+	"""
+	node: RoleEntity!
+	"""
+	A cursor for use in pagination
+	"""
+	cursor: String!
+}
+
+input RoleRemovePermissionSetInput {
+	roleId: UUID!
+	permissionSetId: UUID!
+}
+
+type RoleRemovePermissionSetPayload {
+	role: RoleEntity!
 }
 
 scalar Satoshis

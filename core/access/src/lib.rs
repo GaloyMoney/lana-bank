@@ -113,7 +113,7 @@ where
         sub: &<Audit as AuditSvc>::Subject,
         role_id: RoleId,
         permission_set_ids: &[PermissionSetId],
-    ) -> Result<(), CoreAccessError> {
+    ) -> Result<Role, CoreAccessError> {
         let audit_info = self
             .authz
             .enforce_permission(
@@ -144,7 +144,7 @@ where
             self.roles.update(&mut role).await?;
         }
 
-        Ok(())
+        Ok(role)
     }
 
     pub async fn remove_permission_set_from_role(
@@ -152,7 +152,7 @@ where
         sub: &<Audit as AuditSvc>::Subject,
         role_id: RoleId,
         permission_set_id: PermissionSetId,
-    ) -> Result<(), CoreAccessError> {
+    ) -> Result<Role, CoreAccessError> {
         let audit_info = self
             .authz
             .enforce_permission(
@@ -172,7 +172,7 @@ where
             self.roles.update(&mut role).await?;
         }
 
-        Ok(())
+        Ok(role)
     }
 
     #[instrument(name = "access.list_permission_sets", skip(self), err)]
@@ -197,12 +197,39 @@ where
             .await?)
     }
 
+    #[instrument(name = "access.list_roles", skip(self), err)]
+    pub async fn list_roles(
+        &self,
+        sub: &<Audit as AuditSvc>::Subject,
+        query: es_entity::PaginatedQueryArgs<RolesByNameCursor>,
+    ) -> Result<es_entity::PaginatedQueryRet<Role, RolesByNameCursor>, CoreAccessError> {
+        self.authz
+            .enforce_permission(
+                sub,
+                CoreAccessObject::all_roles(),
+                CoreAccessAction::ROLE_LIST,
+            )
+            .await?;
+        Ok(self
+            .roles
+            .list_by_name(query, es_entity::ListDirection::Descending)
+            .await?)
+    }
+
     #[instrument(name = "access.find_all_permission_sets", skip(self), err)]
     pub async fn find_all_permission_sets<T: From<PermissionSet>>(
         &self,
         ids: &[PermissionSetId],
     ) -> Result<std::collections::HashMap<PermissionSetId, T>, CoreAccessError> {
         Ok(self.permission_sets.find_all(ids).await?)
+    }
+
+    #[instrument(name = "access.find_all_roles", skip(self), err)]
+    pub async fn find_all_roles<T: From<Role>>(
+        &self,
+        ids: &[RoleId],
+    ) -> Result<std::collections::HashMap<RoleId, T>, CoreAccessError> {
+        Ok(self.roles.find_all(ids).await?)
     }
 }
 

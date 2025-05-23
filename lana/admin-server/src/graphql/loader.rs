@@ -66,6 +66,19 @@ impl Loader<PermissionSetId> for LanaLoader {
     }
 }
 
+impl Loader<RoleId> for LanaLoader {
+    type Value = Role;
+    type Error = Arc<CoreAccessError>;
+
+    async fn load(&self, keys: &[RoleId]) -> Result<HashMap<RoleId, Role>, Self::Error> {
+        self.app
+            .access()
+            .find_all_roles(keys)
+            .await
+            .map_err(Arc::new)
+    }
+}
+
 impl Loader<governance::CommitteeId> for LanaLoader {
     type Value = Committee;
     type Error = Arc<governance::error::GovernanceError>;

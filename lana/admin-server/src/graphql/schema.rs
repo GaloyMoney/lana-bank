@@ -1,5 +1,6 @@
 use async_graphql::{types::connection::*, Context, Object};
 
+use std::collections::HashSet;
 use std::io::Read;
 
 use lana_app::{
@@ -57,6 +58,18 @@ impl Query {
             .feed_many(users.iter().map(|u| (u.entity.id, u.clone())))
             .await;
         Ok(users)
+    }
+
+    async fn roles(
+        &self,
+        ctx: &Context<'_>,
+        first: i32,
+        after: Option<String>,
+    ) -> async_graphql::Result<Connection<RolesByNameCursor, Role, EmptyFields, EmptyFields>> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        list_with_cursor!(RolesByNameCursor, Role, ctx, after, first, |query| app
+            .access()
+            .list_roles(sub, query))
     }
 
     async fn permission_sets(
@@ -825,6 +838,73 @@ impl Mutation {
             User,
             ctx,
             app.access().users().revoke_role_from_user(sub, id, role)
+        )
+    }
+
+    async fn role_create(
+        &self,
+        ctx: &Context<'_>,
+        input: RoleCreateInput,
+    ) -> async_graphql::Result<RoleCreatePayload> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        let RoleCreateInput {
+            name,
+            permission_set_ids,
+        } = input;
+        let role_name = core_access::RoleName::new(name);
+        let ps_ids: HashSet<PermissionSetId> = permission_set_ids
+            .into_iter()
+            .map(PermissionSetId::from)
+            .collect();
+        exec_mutation!(
+            RoleCreatePayload,
+            Role,
+            ctx,
+            app.access().create_role(sub, role_name, ps_ids)
+        )
+    }
+
+    async fn role_add_permission_sets(
+        &self,
+        ctx: &Context<'_>,
+        input: RoleAddPermissionSetsInput,
+    ) -> async_graphql::Result<RoleAddPermissionSetsPayload> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+
+        let RoleAddPermissionSetsInput {
+            role_id,
+            permission_set_ids,
+        } = input;
+        let ps_ids: Vec<PermissionSetId> = permission_set_ids
+            .into_iter()
+            .map(PermissionSetId::from)
+            .collect();
+
+        exec_mutation!(
+            RoleAddPermissionSetsPayload,
+            Role,
+            ctx,
+            app.access()
+                .add_permission_sets_to_role(sub, role_id.into(), &ps_ids)
+        )
+    }
+
+    async fn role_remove_permission_set(
+        &self,
+        ctx: &Context<'_>,
+        input: RoleRemovePermissionSetInput,
+    ) -> async_graphql::Result<RoleRemovePermissionSetPayload> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+
+        exec_mutation!(
+            RoleRemovePermissionSetPayload,
+            Role,
+            ctx,
+            app.access().remove_permission_set_from_role(
+                sub,
+                input.role_id.into(),
+                input.permission_set_id.into()
+            )
         )
     }
 

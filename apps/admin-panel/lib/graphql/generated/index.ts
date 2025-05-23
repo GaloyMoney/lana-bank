@@ -1245,6 +1245,9 @@ export type Mutation = {
   profitAndLossStatementConfigure: ProfitAndLossStatementModuleConfigurePayload;
   reportCreate: ReportCreatePayload;
   reportDownloadLinksGenerate: ReportDownloadLinksGeneratePayload;
+  roleAddPermissionSets: RoleAddPermissionSetsPayload;
+  roleCreate: RoleCreatePayload;
+  roleRemovePermissionSet: RoleRemovePermissionSetPayload;
   sumsubPermalinkCreate: SumsubPermalinkCreatePayload;
   termsTemplateCreate: TermsTemplateCreatePayload;
   termsTemplateUpdate: TermsTemplateUpdatePayload;
@@ -1395,6 +1398,21 @@ export type MutationProfitAndLossStatementConfigureArgs = {
 
 export type MutationReportDownloadLinksGenerateArgs = {
   input: ReportDownloadLinksGenerateInput;
+};
+
+
+export type MutationRoleAddPermissionSetsArgs = {
+  input: RoleAddPermissionSetsInput;
+};
+
+
+export type MutationRoleCreateArgs = {
+  input: RoleCreateInput;
+};
+
+
+export type MutationRoleRemovePermissionSetArgs = {
+  input: RoleRemovePermissionSetInput;
 };
 
 
@@ -1600,6 +1618,7 @@ export type Query = {
   realtimePrice: RealtimePrice;
   report?: Maybe<Report>;
   reports: Array<Report>;
+  roles: RoleEntityConnection;
   termsTemplate?: Maybe<TermsTemplate>;
   termsTemplates: Array<TermsTemplate>;
   transactionTemplates: TransactionTemplateConnection;
@@ -1771,6 +1790,12 @@ export type QueryReportArgs = {
 };
 
 
+export type QueryRolesArgs = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  first: Scalars['Int']['input'];
+};
+
+
 export type QueryTermsTemplateArgs = {
   id: Scalars['UUID']['input'];
 };
@@ -1848,6 +1873,63 @@ export enum Role {
   BankManager = 'BANK_MANAGER',
   Superuser = 'SUPERUSER'
 }
+
+export type RoleAddPermissionSetsInput = {
+  permissionSetIds: Array<Scalars['UUID']['input']>;
+  roleId: Scalars['UUID']['input'];
+};
+
+export type RoleAddPermissionSetsPayload = {
+  __typename?: 'RoleAddPermissionSetsPayload';
+  role: RoleEntity;
+};
+
+export type RoleCreateInput = {
+  name: Scalars['String']['input'];
+  permissionSetIds: Array<Scalars['UUID']['input']>;
+};
+
+export type RoleCreatePayload = {
+  __typename?: 'RoleCreatePayload';
+  role: RoleEntity;
+};
+
+export type RoleEntity = {
+  __typename?: 'RoleEntity';
+  id: Scalars['ID']['output'];
+  name: Scalars['String']['output'];
+  permissionSets: Array<PermissionSet>;
+  roleId: Scalars['UUID']['output'];
+};
+
+export type RoleEntityConnection = {
+  __typename?: 'RoleEntityConnection';
+  /** A list of edges. */
+  edges: Array<RoleEntityEdge>;
+  /** A list of nodes. */
+  nodes: Array<RoleEntity>;
+  /** Information to aid in pagination. */
+  pageInfo: PageInfo;
+};
+
+/** An edge in a connection. */
+export type RoleEntityEdge = {
+  __typename?: 'RoleEntityEdge';
+  /** A cursor for use in pagination */
+  cursor: Scalars['String']['output'];
+  /** The item at the end of the edge */
+  node: RoleEntity;
+};
+
+export type RoleRemovePermissionSetInput = {
+  permissionSetId: Scalars['UUID']['input'];
+  roleId: Scalars['UUID']['input'];
+};
+
+export type RoleRemovePermissionSetPayload = {
+  __typename?: 'RoleRemovePermissionSetPayload';
+  role: RoleEntity;
+};
 
 export enum SortDirection {
   Asc = 'ASC',

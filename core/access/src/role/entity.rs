@@ -37,7 +37,7 @@ pub enum RoleEvent {
 pub struct Role {
     pub id: RoleId,
     pub name: RoleName,
-    permission_sets: HashSet<PermissionSetId>,
+    pub permission_sets: HashSet<PermissionSetId>,
     events: EntityEvents<RoleEvent>,
 }
 
