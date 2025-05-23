@@ -9,12 +9,6 @@ use crate::{
     *,
 };
 
-pub struct BootstrapOptions {
-    pub superuser_email: Option<String>,
-    pub action_descriptions: Vec<ActionDescription<FullPath>>,
-    pub predefined_roles: &'static [(RoleName, &'static [&'static str])],
-}
-
 pub(super) struct Bootstrap<Audit, E>
 where
     E: OutboxEventMarker<CoreAccessEvent>,
@@ -45,19 +39,6 @@ where
             role_repo: role_repo.clone(),
             permission_set_repo: permission_set_repo.clone(),
             users: users.clone(),
-        }
-    }
-
-    pub(super) async fn execute(&self, options: BootstrapOptions) -> Result<(), CoreAccessError> {
-        if let Some(email) = options.superuser_email {
-            self.bootstrap_access_control(
-                email,
-                options.action_descriptions,
-                options.predefined_roles,
-            )
-            .await
-        } else {
-            Ok(())
         }
     }
 
