@@ -159,7 +159,7 @@ impl CreditFacilityRepaymentPlan {
                 due_at,
                 overdue_at,
                 defaulted_at,
-                created_at,
+                recorded_at,
                 ..
             } => {
                 let data = ObligationDataForEntry {
@@ -172,7 +172,7 @@ impl CreditFacilityRepaymentPlan {
                     due_at: *due_at,
                     overdue_at: *overdue_at,
                     defaulted_at: *defaulted_at,
-                    recorded_at: *created_at,
+                    recorded_at: *recorded_at,
                 };
                 let entry = match obligation_type {
                     ObligationType::Disbursal => CreditFacilityRepaymentPlanEntry::Disbursal(data),
@@ -331,7 +331,7 @@ mod tests {
                 due_at: default_start_date(),
                 overdue_at: None,
                 defaulted_at: None,
-                created_at: default_start_date(),
+                recorded_at: default_start_date(),
             },
         );
         plan.process_event(
@@ -344,7 +344,7 @@ mod tests {
                 due_at: default_start_date() + chrono::Duration::days(30),
                 overdue_at: None,
                 defaulted_at: None,
-                created_at: default_start_date() + chrono::Duration::days(30),
+                recorded_at: default_start_date() + chrono::Duration::days(30),
             },
         );
         assert_eq!(plan.planned_interest_accruals(&plan.entries).len(), 3);
