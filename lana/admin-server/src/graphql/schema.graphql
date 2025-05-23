@@ -1298,6 +1298,41 @@ enum Period {
 	DAYS
 }
 
+type PermissionSet {
+	id: ID!
+	permissionSetId: UUID!
+	name: String!
+}
+
+type PermissionSetConnection {
+	"""
+	Information to aid in pagination.
+	"""
+	pageInfo: PageInfo!
+	"""
+	A list of edges.
+	"""
+	edges: [PermissionSetEdge!]!
+	"""
+	A list of nodes.
+	"""
+	nodes: [PermissionSet!]!
+}
+
+"""
+An edge in a connection.
+"""
+type PermissionSetEdge {
+	"""
+	The item at the end of the edge
+	"""
+	node: PermissionSet!
+	"""
+	A cursor for use in pagination
+	"""
+	cursor: String!
+}
+
 type Policy {
 	id: ID!
 	policyId: UUID!
@@ -1372,6 +1407,7 @@ type Query {
 	dashboard: Dashboard!
 	user(id: UUID!): User
 	users: [User!]!
+	permissionSets(first: Int!, after: String): PermissionSetConnection!
 	customer(id: UUID!): Customer
 	customerByEmail(email: String!): Customer
 	customers(first: Int!, after: String, sort: CustomersSort = {by: EMAIL, direction: ASC}, filter: CustomersFilter): CustomerConnection!

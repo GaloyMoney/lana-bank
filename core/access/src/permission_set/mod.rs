@@ -8,10 +8,12 @@
 //! operations are exposed to the outside world.
 
 mod entity;
-mod error;
+pub mod error;
 mod repo;
 
 pub(crate) use entity::NewPermissionSet;
-pub use entity::PermissionSet;
-pub use error::PermissionSetError;
+pub(super) use error::PermissionSetError;
 pub(super) use repo::PermissionSetRepo;
+
+pub use entity::PermissionSet;
+pub use repo::permission_set_cursor::*;

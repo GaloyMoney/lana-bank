@@ -14,8 +14,8 @@ es_entity::entity_id! { UserId }
 
 es_entity::entity_id! { AuthenticationId, PermissionSetId, RoleId }
 
-pub const PERMISSION_SET_USER_WRITER: &str = "user_writer";
-pub const PERMISSION_SET_USER_READER: &str = "user_reader";
+pub const ACCESS_WRITER: &str = "access_writer";
+pub const ACCESS_READER: &str = "access_reader";
 
 #[derive(Clone, Eq, Hash, PartialEq, Debug, Serialize, Deserialize, sqlx::Type)]
 #[serde(transparent)]
@@ -51,6 +51,7 @@ impl Display for RoleName {
 pub enum CoreAccessAction {
     User(UserAction),
     Role(RoleAction),
+    PermissionSet(PermissionSetAction),
 }
 
 impl CoreAccessAction {
@@ -65,6 +66,9 @@ impl CoreAccessAction {
     pub const USER_UPDATE_AUTHENTICATION_ID: Self =
         CoreAccessAction::User(UserAction::UpdateAuthenticationId);
 
+    pub const PERMISSION_SET_LIST: Self =
+        CoreAccessAction::PermissionSet(PermissionSetAction::List);
+
     pub fn entities() -> Vec<(
         CoreAccessActionDiscriminants,
         Vec<ActionDescription<NoPath>>,
@@ -77,6 +81,7 @@ impl CoreAccessAction {
             let actions = match entity {
                 User => UserAction::describe(),
                 Role => RoleAction::describe(),
+                PermissionSet => PermissionSetAction::describe(),
             };
 
             result.push((*entity, actions));
@@ -99,8 +104,29 @@ impl RoleAction {
 
         for variant in <Self as strum::VariantArray>::VARIANTS {
             let action_description = match variant {
-                Self::Create => ActionDescription::new(variant, &[PERMISSION_SET_USER_WRITER]),
-                Self::Update => ActionDescription::new(variant, &[PERMISSION_SET_USER_WRITER]),
+                Self::Create => ActionDescription::new(variant, &[ACCESS_WRITER]),
+                Self::Update => ActionDescription::new(variant, &[ACCESS_WRITER]),
+            };
+            res.push(action_description);
+        }
+
+        res
+    }
+}
+
+#[derive(PartialEq, Clone, Copy, Debug, strum::Display, strum::EnumString, strum::VariantArray)]
+#[strum(serialize_all = "kebab-case")]
+pub enum PermissionSetAction {
+    List,
+}
+
+impl PermissionSetAction {
+    pub fn describe() -> Vec<ActionDescription<NoPath>> {
+        let mut res = vec![];
+
+        for variant in <Self as strum::VariantArray>::VARIANTS {
+            let action_description = match variant {
+                Self::List => ActionDescription::new(variant, &[ACCESS_READER, ACCESS_WRITER]),
             };
             res.push(action_description);
         }
@@ -127,21 +153,13 @@ impl UserAction {
 
         for variant in <Self as strum::VariantArray>::VARIANTS {
             let action_description = match variant {
-                Self::Create => ActionDescription::new(variant, &[PERMISSION_SET_USER_WRITER]),
-                Self::Read => ActionDescription::new(
-                    variant,
-                    &[PERMISSION_SET_USER_READER, PERMISSION_SET_USER_WRITER],
-                ),
-                Self::List => ActionDescription::new(
-                    variant,
-                    &[PERMISSION_SET_USER_READER, PERMISSION_SET_USER_WRITER],
-                ),
-                Self::Update => ActionDescription::new(variant, &[PERMISSION_SET_USER_WRITER]),
-                Self::AssignRole => ActionDescription::new(variant, &[PERMISSION_SET_USER_WRITER]),
-                Self::RevokeRole => ActionDescription::new(variant, &[PERMISSION_SET_USER_WRITER]),
-                Self::UpdateAuthenticationId => {
-                    ActionDescription::new(variant, &[PERMISSION_SET_USER_WRITER])
-                }
+                Self::Create => ActionDescription::new(variant, &[ACCESS_WRITER]),
+                Self::Read => ActionDescription::new(variant, &[ACCESS_READER, ACCESS_WRITER]),
+                Self::List => ActionDescription::new(variant, &[ACCESS_READER, ACCESS_WRITER]),
+                Self::Update => ActionDescription::new(variant, &[ACCESS_WRITER]),
+                Self::AssignRole => ActionDescription::new(variant, &[ACCESS_WRITER]),
+                Self::RevokeRole => ActionDescription::new(variant, &[ACCESS_WRITER]),
+                Self::UpdateAuthenticationId => ActionDescription::new(variant, &[ACCESS_WRITER]),
             };
             res.push(action_description);
         }
@@ -157,6 +175,7 @@ impl Display for CoreAccessAction {
         match self {
             User(action) => action.fmt(f),
             Role(action) => action.fmt(f),
+            PermissionSet(action) => action.fmt(f),
         }
     }
 }
@@ -170,6 +189,7 @@ impl FromStr for CoreAccessAction {
         let res = match entity.parse()? {
             User => CoreAccessAction::from(action.parse::<UserAction>()?),
             Role => CoreAccessAction::from(action.parse::<RoleAction>()?),
+            PermissionSet => CoreAccessAction::from(action.parse::<PermissionSetAction>()?),
         };
         Ok(res)
     }
@@ -187,8 +207,15 @@ impl From<RoleAction> for CoreAccessAction {
     }
 }
 
+impl From<PermissionSetAction> for CoreAccessAction {
+    fn from(action: PermissionSetAction) -> Self {
+        CoreAccessAction::PermissionSet(action)
+    }
+}
+
 pub type UserAllOrOne = AllOrOne<UserId>;
 pub type RoleAllOrOne = AllOrOne<RoleId>;
+pub type PermissionSetAllOrOne = AllOrOne<PermissionSetId>;
 
 #[derive(Clone, Copy, Debug, PartialEq, strum::EnumDiscriminants, strum::EnumCount)]
 #[strum_discriminants(derive(strum::Display, strum::EnumString))]
@@ -196,6 +223,7 @@ pub type RoleAllOrOne = AllOrOne<RoleId>;
 pub enum CoreAccessObject {
     User(UserAllOrOne),
     Role(RoleAllOrOne),
+    PermissionSet(PermissionSetAllOrOne),
 }
 
 impl CoreAccessObject {
@@ -204,6 +232,10 @@ impl CoreAccessObject {
     }
     pub const fn role(id: RoleId) -> CoreAccessObject {
         CoreAccessObject::Role(AllOrOne::ById(id))
+    }
+
+    pub const fn all_permission_sets() -> CoreAccessObject {
+        CoreAccessObject::PermissionSet(AllOrOne::All)
     }
 
     pub const fn all_users() -> CoreAccessObject {
@@ -224,6 +256,7 @@ impl Display for CoreAccessObject {
         match self {
             User(obj_ref) => write!(f, "{}/{}", discriminant, obj_ref),
             Role(obj_ref) => write!(f, "{}/{}", discriminant, obj_ref),
+            PermissionSet(obj_ref) => write!(f, "{}/{}", discriminant, obj_ref),
         }
     }
 }
@@ -242,6 +275,12 @@ impl FromStr for CoreAccessObject {
             Role => {
                 let obj_ref = id.parse().map_err(|_| "could not parse RoleObject")?;
                 CoreAccessObject::Role(obj_ref)
+            }
+            PermissionSet => {
+                let obj_ref = id
+                    .parse()
+                    .map_err(|_| "could not parse PermissionSetObject")?;
+                CoreAccessObject::PermissionSet(obj_ref)
             }
         };
         Ok(res)

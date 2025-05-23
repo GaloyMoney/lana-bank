@@ -59,6 +59,25 @@ impl Query {
         Ok(users)
     }
 
+    async fn permission_sets(
+        &self,
+        ctx: &Context<'_>,
+        first: i32,
+        after: Option<String>,
+    ) -> async_graphql::Result<
+        Connection<PermissionSetsByIdCursor, PermissionSet, EmptyFields, EmptyFields>,
+    > {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        list_with_cursor!(
+            PermissionSetsByIdCursor,
+            PermissionSet,
+            ctx,
+            after,
+            first,
+            |query| app.access().list_permission_sets(sub, query)
+        )
+    }
+
     async fn customer(
         &self,
         ctx: &Context<'_>,

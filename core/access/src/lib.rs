@@ -11,11 +11,12 @@ pub mod role;
 pub mod user;
 
 use std::collections::HashSet;
+use tracing::instrument;
 
 use audit::AuditSvc;
 use authz::{Authorization, PermissionCheck as _};
 use outbox::{Outbox, OutboxEventMarker};
-use permission_set::{PermissionSet, PermissionSetRepo};
+use permission_set::{PermissionSet, PermissionSetRepo, PermissionSetsByIdCursor};
 
 pub use event::*;
 pub use primitives::*;
@@ -172,6 +173,36 @@ where
         }
 
         Ok(())
+    }
+
+    #[instrument(name = "access.list_permission_sets", skip(self), err)]
+    pub async fn list_permission_sets(
+        &self,
+        sub: &<Audit as AuditSvc>::Subject,
+        query: es_entity::PaginatedQueryArgs<PermissionSetsByIdCursor>,
+    ) -> Result<
+        es_entity::PaginatedQueryRet<PermissionSet, PermissionSetsByIdCursor>,
+        CoreAccessError,
+    > {
+        self.authz
+            .enforce_permission(
+                sub,
+                CoreAccessObject::all_permission_sets(),
+                CoreAccessAction::PERMISSION_SET_LIST,
+            )
+            .await?;
+        Ok(self
+            .permission_sets
+            .list_by_id(query, es_entity::ListDirection::Descending)
+            .await?)
+    }
+
+    #[instrument(name = "access.find_all_permission_sets", skip(self), err)]
+    pub async fn find_all_permission_sets<T: From<PermissionSet>>(
+        &self,
+        ids: &[PermissionSetId],
+    ) -> Result<std::collections::HashMap<PermissionSetId, T>, CoreAccessError> {
+        Ok(self.permission_sets.find_all(ids).await?)
     }
 }
 

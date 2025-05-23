@@ -3,7 +3,7 @@ use async_graphql::dataloader::{DataLoader, Loader};
 use std::collections::HashMap;
 
 use lana_app::{
-    access::user::error::UserError,
+    access::{error::CoreAccessError, user::error::UserError},
     accounting::{
         chart_of_accounts::error::ChartOfAccountsError, csv::error::AccountingCsvError,
         ledger_transaction::error::LedgerTransactionError,
@@ -46,6 +46,21 @@ impl Loader<UserId> for LanaLoader {
             .access()
             .users()
             .find_all(keys)
+            .await
+            .map_err(Arc::new)
+    }
+}
+impl Loader<PermissionSetId> for LanaLoader {
+    type Value = PermissionSet;
+    type Error = Arc<CoreAccessError>;
+
+    async fn load(
+        &self,
+        keys: &[PermissionSetId],
+    ) -> Result<HashMap<PermissionSetId, PermissionSet>, Self::Error> {
+        self.app
+            .access()
+            .find_all_permission_sets(keys)
             .await
             .map_err(Arc::new)
     }
