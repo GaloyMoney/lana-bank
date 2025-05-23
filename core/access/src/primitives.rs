@@ -162,7 +162,6 @@ pub enum RoleAction {
     Update,
     Read,
     List,
-    Read,
 }
 
 impl RoleAction {
@@ -175,7 +174,6 @@ impl RoleAction {
                 Self::Update => ActionDescription::new(variant, &[ACCESS_WRITER]),
                 Self::Read => ActionDescription::new(variant, &[ACCESS_READER, ACCESS_WRITER]),
                 Self::List => ActionDescription::new(variant, &[ACCESS_READER, ACCESS_WRITER]),
-                Self::Read => ActionDescription::new(variant, &[ACCESS_READER]),
             };
             res.push(action_description);
         }
