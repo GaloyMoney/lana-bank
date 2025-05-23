@@ -58,7 +58,8 @@
       "regulatoryReporting": "Informes Regulatorios",
       "trialBalance": "Balance de Comprobación",
       "modules": "Módulos",
-      "transactionTemplates": "Plantillas de transacciones"
+      "transactionTemplates": "Plantillas de transacciones",
+      "rolesAndPermissions": "Roles y permisos"
     },
     "footer": {
       "appName": "Lana Bank",
@@ -98,7 +99,8 @@
       "assignCommittee": "Asignar Comité",
       "addCommitteeMember": "Añadir Miembro al Comité",
       "approve": "Aprobar",
-      "deny": "Rechazar"
+      "deny": "Rechazar",
+      "createRole": "Crear rol"
     },
     "keyboardInstructions": {
       "commandPalette": "Paleta de Comandos"
@@ -1304,7 +1306,8 @@
       "user": "Usuario",
       "termsTemplate": "Plantilla de Términos",
       "committee": "Comité",
-      "executeManualTransaction": "Ejecutar transacción manual"
+      "executeManualTransaction": "Ejecutar transacción manual",
+      "role": "Rol"
     }
   },
   "DataTable": {
@@ -1549,6 +1552,52 @@
         "createdAt": "Creado el",
         "description": "Descripción"
       }
+    }
+  },
+  "RolesAndPermissions": {
+    "title": "Roles y permisos",
+    "description": "Gestiona roles y sus permisos asociados",
+    "table": {
+      "headers": {
+        "name": "Nombre del rol",
+        "permissionSets": "Conjuntos de permisos"
+      },
+      "emptyMessage": "No se encontraron roles. Haz clic en el botón crear para añadir un nuevo rol.",
+      "noPermissionSetsAssigned": "Sin permisos asignados",
+      "permissionsCount": "permisos",
+      "morePermissions": "más"
+    },
+    "permissionSetsSection": {
+      "title": "Conjuntos de permisos disponibles",
+      "description": "Estos son todos los conjuntos de permisos disponibles en el sistema"
+    },
+    "create": {
+      "title": "Crear rol",
+      "description": "Crea un nuevo rol con los permisos seleccionados",
+      "nameLabel": "Role Name",
+      "namePlaceholder": "Introduce el nombre del rol",
+      "permissionsLabel": "Permisos",
+      "noPermissionsSelected": "No hay permisos seleccionados",
+      "submitButton": "Create Role",
+      "cancelButton": "Cancelar",
+      "success": "Rol creado correctamente",
+      "error": "Error al crear el rol: {error}"
+    },
+    "update": {
+      "viewTitle": "Ver rol",
+      "viewDescription": "Ver todos los permisos para este rol",
+      "editTitle": "Actualizar rol",
+      "editDescription": "Actualizar los permisos para este rol",
+      "nameLabel": "Role Name",
+      "permissionsLabel": "Permissions",
+      "noPermissionsSelected": "No permissions selected",
+      "noPermissionsAssigned": "No permissions assigned",
+      "noPermissionsAvailable": "No hay permisos disponibles",
+      "editButton": "Editar rol",
+      "total": "total",
+      "selected": "seleccionados",
+      "success": "Rol actualizado con éxito",
+      "error": "Error al actualizar el rol: {error}"
     }
   }
 }
