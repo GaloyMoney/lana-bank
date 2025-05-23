@@ -56,15 +56,18 @@ where
         Ok(auth)
     }
 
-    pub async fn add_role_hierarchy(
+    pub async fn add_role_hierarchy<R1: Into<R>, R2: Into<R>>(
         &self,
-        parent_role: R,
-        child_role: R,
+        parent_role: R1,
+        child_role: R2,
     ) -> Result<(), AuthorizationError> {
         let mut enforcer = self.enforcer.write().await;
 
         match enforcer
-            .add_grouping_policy(vec![parent_role.to_string(), child_role.to_string()])
+            .add_grouping_policy(vec![
+                parent_role.into().to_string(),
+                child_role.into().to_string(),
+            ])
             .await
         {
             Ok(_) => Ok(()),
@@ -75,19 +78,22 @@ where
         }
     }
 
-    pub async fn add_permission_to_role(
+    pub async fn add_permission_to_role<R1>(
         &self,
-        role: &R,
-        object: impl Into<Audit::Object>,
-        action: impl Into<Audit::Action>,
-    ) -> Result<(), AuthorizationError> {
-        let object = object.into();
-        let action = action.into();
+        role: &R1,
+        object: impl core::fmt::Display,
+        action: impl core::fmt::Display,
+    ) -> Result<(), AuthorizationError>
+    where
+        for<'a> &'a R1: Into<R>,
+    {
+        // let object = object.into();
+        // let action = action.into();
 
         let mut enforcer = self.enforcer.write().await;
         match enforcer
             .add_policy(vec![
-                role.to_string(),
+                role.into().to_string(),
                 object.to_string(),
                 action.to_string(),
             ])
@@ -101,19 +107,22 @@ where
         }
     }
 
-    pub async fn remove_permission_from_role(
+    pub async fn remove_permission_from_role<R1>(
         &self,
-        role: &R,
+        role: &R1,
         object: impl Into<Audit::Object>,
         action: impl Into<Audit::Action>,
-    ) -> Result<(), AuthorizationError> {
+    ) -> Result<(), AuthorizationError>
+    where
+        for<'a> &'a R1: Into<R>,
+    {
         let object = object.into();
         let action = action.into();
 
         let mut enforcer = self.enforcer.write().await;
         enforcer
             .remove_policy(vec![
-                role.to_string(),
+                role.into().to_string(),
                 object.to_string(),
                 action.to_string(),
             ])
@@ -122,16 +131,19 @@ where
         Ok(())
     }
 
-    pub async fn assign_role_to_subject(
+    pub async fn assign_role_to_subject<R1>(
         &self,
         sub: impl Into<Audit::Subject>,
-        role: impl std::borrow::Borrow<R>,
-    ) -> Result<(), AuthorizationError> {
+        role: R1,
+    ) -> Result<(), AuthorizationError>
+    where
+        R1: Into<R>,
+    {
         let sub = sub.into();
         let mut enforcer = self.enforcer.write().await;
 
         match enforcer
-            .add_grouping_policy(vec![sub.to_string(), role.borrow().to_string()])
+            .add_grouping_policy(vec![sub.to_string(), role.into().to_string()])
             .await
         {
             Ok(_) => Ok(()),
@@ -142,16 +154,19 @@ where
         }
     }
 
-    pub async fn revoke_role_from_subject(
+    pub async fn revoke_role_from_subject<R1>(
         &self,
         sub: impl Into<Audit::Subject>,
-        role: impl std::borrow::Borrow<R>,
-    ) -> Result<(), AuthorizationError> {
+        role: R1,
+    ) -> Result<(), AuthorizationError>
+    where
+        R1: Into<R>,
+    {
         let sub = sub.into();
         let mut enforcer = self.enforcer.write().await;
 
         match enforcer
-            .remove_grouping_policy(vec![sub.to_string(), role.borrow().to_string()])
+            .remove_grouping_policy(vec![sub.to_string(), role.into().to_string()])
             .await
         {
             Ok(_) => Ok(()),

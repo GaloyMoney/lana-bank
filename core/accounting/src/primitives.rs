@@ -287,18 +287,18 @@ pub const PERMISSION_SET_ACCOUNTING_WRITER: &str = "accounting_writer";
 #[strum_discriminants(derive(strum::Display, strum::EnumString, strum::VariantArray))]
 #[strum_discriminants(strum(serialize_all = "kebab-case"))]
 pub enum CoreAccountingAction {
-    ChartAction(ChartAction),
-    JournalAction(JournalAction),
-    LedgerAccountAction(LedgerAccountAction),
-    LedgerTransactionAction(LedgerTransactionAction),
-    TransactionTemplateAction(TransactionTemplateAction),
-    ManualTransactionAction(ManualTransactionAction),
-    ProfitAndLossAction(ProfitAndLossAction),
-    ProfitAndLossConfigurationAction(ProfitAndLossConfigurationAction),
-    BalanceSheetAction(BalanceSheetAction),
-    BalanceSheetConfigurationAction(BalanceSheetConfigurationAction),
+    Chart(ChartAction),
+    Journal(JournalAction),
+    LedgerAccount(LedgerAccountAction),
+    LedgerTransaction(LedgerTransactionAction),
+    TransactionTemplate(TransactionTemplateAction),
+    ManualTransaction(ManualTransactionAction),
+    ProfitAndLoss(ProfitAndLossAction),
+    ProfitAndLossConfiguration(ProfitAndLossConfigurationAction),
+    BalanceSheet(BalanceSheetAction),
+    BalanceSheetConfiguration(BalanceSheetConfigurationAction),
     AccountingCsv(AccountingCsvAction),
-    TrialBalanceAction(TrialBalanceAction),
+    TrialBalance(TrialBalanceAction),
 }
 
 impl CoreAccountingAction {
@@ -312,18 +312,18 @@ impl CoreAccountingAction {
 
         for entity in <CoreAccountingActionDiscriminants as strum::VariantArray>::VARIANTS {
             let actions = match entity {
-                D::ChartAction => ChartAction::describe(),
-                D::JournalAction => JournalAction::describe(),
-                D::LedgerAccountAction => LedgerAccountAction::describe(),
-                D::LedgerTransactionAction => LedgerTransactionAction::describe(),
-                D::TransactionTemplateAction => TransactionTemplateAction::describe(),
-                D::ManualTransactionAction => ManualTransactionAction::describe(),
-                D::ProfitAndLossAction => ProfitAndLossAction::describe(),
-                D::ProfitAndLossConfigurationAction => ProfitAndLossConfigurationAction::describe(),
-                D::BalanceSheetAction => BalanceSheetAction::describe(),
-                D::BalanceSheetConfigurationAction => BalanceSheetConfigurationAction::describe(),
+                D::Chart => ChartAction::describe(),
+                D::Journal => JournalAction::describe(),
+                D::LedgerAccount => LedgerAccountAction::describe(),
+                D::LedgerTransaction => LedgerTransactionAction::describe(),
+                D::TransactionTemplate => TransactionTemplateAction::describe(),
+                D::ManualTransaction => ManualTransactionAction::describe(),
+                D::ProfitAndLoss => ProfitAndLossAction::describe(),
+                D::ProfitAndLossConfiguration => ProfitAndLossConfigurationAction::describe(),
+                D::BalanceSheet => BalanceSheetAction::describe(),
+                D::BalanceSheetConfiguration => BalanceSheetConfigurationAction::describe(),
                 D::AccountingCsv => AccountingCsvAction::describe(),
-                D::TrialBalanceAction => TrialBalanceAction::describe(),
+                D::TrialBalance => TrialBalanceAction::describe(),
             };
 
             result.push((*entity, actions));
@@ -523,62 +523,54 @@ impl FromStr for CoreAccountingObject {
 }
 
 impl CoreAccountingAction {
-    pub const CHART_CREATE: Self = CoreAccountingAction::ChartAction(ChartAction::Create);
-    pub const CHART_LIST: Self = CoreAccountingAction::ChartAction(ChartAction::List);
+    pub const CHART_CREATE: Self = CoreAccountingAction::Chart(ChartAction::Create);
+    pub const CHART_LIST: Self = CoreAccountingAction::Chart(ChartAction::List);
     pub const CHART_IMPORT_ACCOUNTS: Self =
-        CoreAccountingAction::ChartAction(ChartAction::ImportAccounts);
+        CoreAccountingAction::Chart(ChartAction::ImportAccounts);
 
     pub const JOURNAL_READ_ENTRIES: Self =
-        CoreAccountingAction::JournalAction(JournalAction::ReadEntries);
+        CoreAccountingAction::Journal(JournalAction::ReadEntries);
 
     pub const LEDGER_ACCOUNT_READ: Self =
-        CoreAccountingAction::LedgerAccountAction(LedgerAccountAction::Read);
+        CoreAccountingAction::LedgerAccount(LedgerAccountAction::Read);
     pub const LEDGER_ACCOUNT_LIST: Self =
-        CoreAccountingAction::LedgerAccountAction(LedgerAccountAction::List);
+        CoreAccountingAction::LedgerAccount(LedgerAccountAction::List);
     pub const LEDGER_ACCOUNT_READ_HISTORY: Self =
-        CoreAccountingAction::LedgerAccountAction(LedgerAccountAction::ReadHistory);
+        CoreAccountingAction::LedgerAccount(LedgerAccountAction::ReadHistory);
 
     pub const LEDGER_TRANSACTION_LIST: Self =
-        CoreAccountingAction::LedgerTransactionAction(LedgerTransactionAction::List);
+        CoreAccountingAction::LedgerTransaction(LedgerTransactionAction::List);
     pub const LEDGER_TRANSACTION_READ: Self =
-        CoreAccountingAction::LedgerTransactionAction(LedgerTransactionAction::Read);
+        CoreAccountingAction::LedgerTransaction(LedgerTransactionAction::Read);
 
     pub const TRANSACTION_TEMPLATE_LIST: Self =
-        CoreAccountingAction::TransactionTemplateAction(TransactionTemplateAction::List);
+        CoreAccountingAction::TransactionTemplate(TransactionTemplateAction::List);
 
     pub const MANUAL_TRANSACTION_READ: Self =
-        CoreAccountingAction::ManualTransactionAction(ManualTransactionAction::Read);
+        CoreAccountingAction::ManualTransaction(ManualTransactionAction::Read);
     pub const MANUAL_TRANSACTION_CREATE: Self =
-        CoreAccountingAction::ManualTransactionAction(ManualTransactionAction::Create);
+        CoreAccountingAction::ManualTransaction(ManualTransactionAction::Create);
     pub const MANUAL_TRANSACTION_LIST: Self =
-        CoreAccountingAction::ManualTransactionAction(ManualTransactionAction::List);
+        CoreAccountingAction::ManualTransaction(ManualTransactionAction::List);
     pub const PROFIT_AND_LOSS_READ: Self =
-        CoreAccountingAction::ProfitAndLossAction(ProfitAndLossAction::Read);
+        CoreAccountingAction::ProfitAndLoss(ProfitAndLossAction::Read);
     pub const PROFIT_AND_LOSS_CREATE: Self =
-        CoreAccountingAction::ProfitAndLossAction(ProfitAndLossAction::Create);
+        CoreAccountingAction::ProfitAndLoss(ProfitAndLossAction::Create);
     pub const PROFIT_AND_LOSS_UPDATE: Self =
-        CoreAccountingAction::ProfitAndLossAction(ProfitAndLossAction::Update);
+        CoreAccountingAction::ProfitAndLoss(ProfitAndLossAction::Update);
     pub const PROFIT_AND_LOSS_CONFIGURATION_READ: Self =
-        CoreAccountingAction::ProfitAndLossConfigurationAction(
-            ProfitAndLossConfigurationAction::Read,
-        );
+        CoreAccountingAction::ProfitAndLossConfiguration(ProfitAndLossConfigurationAction::Read);
     pub const PROFIT_AND_LOSS_CONFIGURATION_UPDATE: Self =
-        CoreAccountingAction::ProfitAndLossConfigurationAction(
-            ProfitAndLossConfigurationAction::Update,
-        );
+        CoreAccountingAction::ProfitAndLossConfiguration(ProfitAndLossConfigurationAction::Update);
 
     pub const BALANCE_SHEET_READ: Self =
-        CoreAccountingAction::BalanceSheetAction(BalanceSheetAction::Read);
+        CoreAccountingAction::BalanceSheet(BalanceSheetAction::Read);
     pub const BALANCE_SHEET_CREATE: Self =
-        CoreAccountingAction::BalanceSheetAction(BalanceSheetAction::Create);
+        CoreAccountingAction::BalanceSheet(BalanceSheetAction::Create);
     pub const BALANCE_SHEET_CONFIGURATION_READ: Self =
-        CoreAccountingAction::BalanceSheetConfigurationAction(
-            BalanceSheetConfigurationAction::Read,
-        );
+        CoreAccountingAction::BalanceSheetConfiguration(BalanceSheetConfigurationAction::Read);
     pub const BALANCE_SHEET_CONFIGURATION_UPDATE: Self =
-        CoreAccountingAction::BalanceSheetConfigurationAction(
-            BalanceSheetConfigurationAction::Update,
-        );
+        CoreAccountingAction::BalanceSheetConfiguration(BalanceSheetConfigurationAction::Update);
 
     pub const ACCOUNTING_CSV_CREATE: Self =
         CoreAccountingAction::AccountingCsv(AccountingCsvAction::Create);
@@ -592,11 +584,11 @@ impl CoreAccountingAction {
         CoreAccountingAction::AccountingCsv(AccountingCsvAction::Download);
 
     pub const TRIAL_BALANCE_READ: Self =
-        CoreAccountingAction::TrialBalanceAction(TrialBalanceAction::Read);
+        CoreAccountingAction::TrialBalance(TrialBalanceAction::Read);
     pub const TRIAL_BALANCE_CREATE: Self =
-        CoreAccountingAction::TrialBalanceAction(TrialBalanceAction::Create);
+        CoreAccountingAction::TrialBalance(TrialBalanceAction::Create);
     pub const TRIAL_BALANCE_UPDATE: Self =
-        CoreAccountingAction::TrialBalanceAction(TrialBalanceAction::Update);
+        CoreAccountingAction::TrialBalance(TrialBalanceAction::Update);
 }
 
 impl Display for CoreAccountingAction {
@@ -604,18 +596,18 @@ impl Display for CoreAccountingAction {
         write!(f, "{}:", CoreAccountingActionDiscriminants::from(self))?;
         use CoreAccountingAction::*;
         match self {
-            ChartAction(action) => action.fmt(f),
-            JournalAction(action) => action.fmt(f),
-            LedgerAccountAction(action) => action.fmt(f),
-            LedgerTransactionAction(action) => action.fmt(f),
-            TransactionTemplateAction(action) => action.fmt(f),
-            ManualTransactionAction(action) => action.fmt(f),
-            ProfitAndLossAction(action) => action.fmt(f),
-            ProfitAndLossConfigurationAction(action) => action.fmt(f),
-            BalanceSheetAction(action) => action.fmt(f),
-            BalanceSheetConfigurationAction(action) => action.fmt(f),
+            Chart(action) => action.fmt(f),
+            Journal(action) => action.fmt(f),
+            LedgerAccount(action) => action.fmt(f),
+            LedgerTransaction(action) => action.fmt(f),
+            TransactionTemplate(action) => action.fmt(f),
+            ManualTransaction(action) => action.fmt(f),
+            ProfitAndLoss(action) => action.fmt(f),
+            ProfitAndLossConfiguration(action) => action.fmt(f),
+            BalanceSheet(action) => action.fmt(f),
+            BalanceSheetConfiguration(action) => action.fmt(f),
             AccountingCsv(action) => action.fmt(f),
-            TrialBalanceAction(action) => action.fmt(f),
+            TrialBalance(action) => action.fmt(f),
         }
     }
 }
@@ -626,40 +618,40 @@ impl FromStr for CoreAccountingAction {
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let (entity, action) = s.split_once(':').expect("missing colon");
         let res = match entity.parse()? {
-            CoreAccountingActionDiscriminants::ChartAction => {
+            CoreAccountingActionDiscriminants::Chart => {
                 CoreAccountingAction::from(action.parse::<ChartAction>()?)
             }
-            CoreAccountingActionDiscriminants::JournalAction => {
+            CoreAccountingActionDiscriminants::Journal => {
                 CoreAccountingAction::from(action.parse::<JournalAction>()?)
             }
-            CoreAccountingActionDiscriminants::LedgerAccountAction => {
+            CoreAccountingActionDiscriminants::LedgerAccount => {
                 CoreAccountingAction::from(action.parse::<LedgerAccountAction>()?)
             }
-            CoreAccountingActionDiscriminants::LedgerTransactionAction => {
+            CoreAccountingActionDiscriminants::LedgerTransaction => {
                 CoreAccountingAction::from(action.parse::<LedgerTransactionAction>()?)
             }
-            CoreAccountingActionDiscriminants::TransactionTemplateAction => {
+            CoreAccountingActionDiscriminants::TransactionTemplate => {
                 CoreAccountingAction::from(action.parse::<TransactionTemplateAction>()?)
             }
-            CoreAccountingActionDiscriminants::ManualTransactionAction => {
+            CoreAccountingActionDiscriminants::ManualTransaction => {
                 CoreAccountingAction::from(action.parse::<ManualTransactionAction>()?)
             }
-            CoreAccountingActionDiscriminants::ProfitAndLossAction => {
+            CoreAccountingActionDiscriminants::ProfitAndLoss => {
                 CoreAccountingAction::from(action.parse::<ProfitAndLossAction>()?)
             }
-            CoreAccountingActionDiscriminants::ProfitAndLossConfigurationAction => {
+            CoreAccountingActionDiscriminants::ProfitAndLossConfiguration => {
                 CoreAccountingAction::from(action.parse::<ProfitAndLossConfigurationAction>()?)
             }
-            CoreAccountingActionDiscriminants::BalanceSheetAction => {
+            CoreAccountingActionDiscriminants::BalanceSheet => {
                 CoreAccountingAction::from(action.parse::<BalanceSheetAction>()?)
             }
-            CoreAccountingActionDiscriminants::BalanceSheetConfigurationAction => {
+            CoreAccountingActionDiscriminants::BalanceSheetConfiguration => {
                 CoreAccountingAction::from(action.parse::<BalanceSheetConfigurationAction>()?)
             }
             CoreAccountingActionDiscriminants::AccountingCsv => {
                 CoreAccountingAction::from(action.parse::<AccountingCsvAction>()?)
             }
-            CoreAccountingActionDiscriminants::TrialBalanceAction => {
+            CoreAccountingActionDiscriminants::TrialBalance => {
                 CoreAccountingAction::from(action.parse::<TrialBalanceAction>()?)
             }
         };
@@ -704,7 +696,7 @@ impl ChartAction {
 
 impl From<ChartAction> for CoreAccountingAction {
     fn from(action: ChartAction) -> Self {
-        CoreAccountingAction::ChartAction(action)
+        CoreAccountingAction::Chart(action)
     }
 }
 
@@ -744,7 +736,7 @@ impl LedgerTransactionAction {
 
 impl From<LedgerTransactionAction> for CoreAccountingAction {
     fn from(action: LedgerTransactionAction) -> Self {
-        CoreAccountingAction::LedgerTransactionAction(action)
+        CoreAccountingAction::LedgerTransaction(action)
     }
 }
 
@@ -789,7 +781,7 @@ impl LedgerAccountAction {
 
 impl From<LedgerAccountAction> for CoreAccountingAction {
     fn from(action: LedgerAccountAction) -> Self {
-        CoreAccountingAction::LedgerAccountAction(action)
+        CoreAccountingAction::LedgerAccount(action)
     }
 }
 
@@ -819,7 +811,7 @@ impl JournalAction {
 
 impl From<JournalAction> for CoreAccountingAction {
     fn from(action: JournalAction) -> Self {
-        CoreAccountingAction::JournalAction(action)
+        CoreAccountingAction::Journal(action)
     }
 }
 
@@ -849,7 +841,7 @@ impl TransactionTemplateAction {
 
 impl From<TransactionTemplateAction> for CoreAccountingAction {
     fn from(action: TransactionTemplateAction) -> Self {
-        CoreAccountingAction::TransactionTemplateAction(action)
+        CoreAccountingAction::TransactionTemplate(action)
     }
 }
 
@@ -894,7 +886,7 @@ impl ManualTransactionAction {
 
 impl From<ManualTransactionAction> for CoreAccountingAction {
     fn from(action: ManualTransactionAction) -> Self {
-        CoreAccountingAction::ManualTransactionAction(action)
+        CoreAccountingAction::ManualTransaction(action)
     }
 }
 
@@ -935,7 +927,7 @@ impl ProfitAndLossAction {
 
 impl From<ProfitAndLossAction> for CoreAccountingAction {
     fn from(action: ProfitAndLossAction) -> Self {
-        CoreAccountingAction::ProfitAndLossAction(action)
+        CoreAccountingAction::ProfitAndLoss(action)
     }
 }
 
@@ -972,7 +964,7 @@ impl ProfitAndLossConfigurationAction {
 
 impl From<ProfitAndLossConfigurationAction> for CoreAccountingAction {
     fn from(action: ProfitAndLossConfigurationAction) -> Self {
-        CoreAccountingAction::ProfitAndLossConfigurationAction(action)
+        CoreAccountingAction::ProfitAndLossConfiguration(action)
     }
 }
 
@@ -1009,7 +1001,7 @@ impl BalanceSheetAction {
 
 impl From<BalanceSheetAction> for CoreAccountingAction {
     fn from(action: BalanceSheetAction) -> Self {
-        CoreAccountingAction::BalanceSheetAction(action)
+        CoreAccountingAction::BalanceSheet(action)
     }
 }
 
@@ -1046,7 +1038,7 @@ impl BalanceSheetConfigurationAction {
 
 impl From<BalanceSheetConfigurationAction> for CoreAccountingAction {
     fn from(action: BalanceSheetConfigurationAction) -> Self {
-        CoreAccountingAction::BalanceSheetConfigurationAction(action)
+        CoreAccountingAction::BalanceSheetConfiguration(action)
     }
 }
 
@@ -1140,7 +1132,7 @@ impl TrialBalanceAction {
 
 impl From<TrialBalanceAction> for CoreAccountingAction {
     fn from(action: TrialBalanceAction) -> Self {
-        CoreAccountingAction::TrialBalanceAction(action)
+        CoreAccountingAction::TrialBalance(action)
     }
 }
 

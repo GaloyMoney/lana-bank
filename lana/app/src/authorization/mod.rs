@@ -1,4 +1,4 @@
-mod seed;
+pub mod seed;
 
 use crate::audit::Audit;
 
@@ -17,7 +17,7 @@ pub type Authorization = authz::Authorization<Audit, RoleName>;
 pub async fn init(pool: &sqlx::PgPool, audit: &Audit) -> Result<Authorization, AuthorizationError> {
     let authz = Authorization::init(pool, audit).await?;
 
-    seed::execute(&authz).await?;
+    // seed::execute(&authz).await?;
 
     Ok(authz)
 }

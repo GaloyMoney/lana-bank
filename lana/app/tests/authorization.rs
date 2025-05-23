@@ -19,15 +19,14 @@ fn random_email() -> String {
 async fn create_user_with_role(
     access: &Access,
     superuser_subject: &Subject,
-    role: RoleName,
+    role_id: RoleId,
 ) -> anyhow::Result<Subject> {
     let user = access
         .users()
         .create_user(superuser_subject, random_email())
         .await?;
     let user = access
-        .users()
-        .assign_role_to_user(superuser_subject, user.id, role)
+        .assign_role_to_user(superuser_subject, user.id, role_id)
         .await?;
     Ok(Subject::from(user.id))
 }
@@ -81,7 +80,11 @@ async fn admin_permissions() -> anyhow::Result<()> {
     let authz = init_authz(&pool, &audit).await?;
     let (access, superuser_subject) = helpers::init_access(&pool, &authz).await?;
 
-    let admin_subject = create_user_with_role(&access, &superuser_subject, LanaRole::ADMIN).await?;
+    let admin_role = access
+        .find_role_by_name(&superuser_subject, LanaRole::ADMIN)
+        .await?;
+
+    let admin_subject = create_user_with_role(&access, &superuser_subject, admin_role.id).await?;
 
     // Admin can create users
     assert!(authz
@@ -122,8 +125,12 @@ async fn bank_manager_permissions() -> anyhow::Result<()> {
     let authz = init_authz(&pool, &audit).await?;
     let (access, superuser_subject) = helpers::init_access(&pool, &authz).await?;
 
+    let bank_manager_role = access
+        .find_role_by_name(&superuser_subject, LanaRole::BANK_MANAGER)
+        .await?;
+
     let bank_manager_subject =
-        create_user_with_role(&access, &superuser_subject, LanaRole::BANK_MANAGER).await?;
+        create_user_with_role(&access, &superuser_subject, bank_manager_role.id).await?;
 
     // Bank Manager cannot create users
     assert!(matches!(
