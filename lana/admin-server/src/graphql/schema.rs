@@ -821,7 +821,7 @@ impl Mutation {
             UserAssignRolePayload,
             User,
             ctx,
-            app.access().assign_role_to_user(sub, id, role_id.into())
+            app.access().assign_role_to_user(sub, id, role_id)
         )
     }
 
@@ -836,7 +836,7 @@ impl Mutation {
             UserRevokeRolePayload,
             User,
             ctx,
-            app.access().revoke_role_from_user(sub, id, role_id.into())
+            app.access().revoke_role_from_user(sub, id, role_id)
         )
     }
 

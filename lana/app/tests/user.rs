@@ -30,8 +30,7 @@ async fn bank_manager_lifecycle() -> anyhow::Result<()> {
         .await?;
 
     let bank_manager = access
-        .users()
-        .assign_role_to_user(&superuser_subject, user.id, &bank_manager_role)
+        .assign_role_to_user(&superuser_subject, user.id, bank_manager_role.id)
         .await
         .expect("Could not assign role to user");
 
