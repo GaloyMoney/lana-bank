@@ -1584,7 +1584,6 @@
       "error": "Failed to create role: {error}"
     },
     "update": {
-      "viewTitle": "View Role",
       "viewDescription": "View all permissions for this role",
       "editTitle": "Update Role",
       "editDescription": "Update the permissions for this role",

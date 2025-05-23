@@ -182,7 +182,7 @@ export function UpdateRoleDialog({ open, onOpenChange, role }: UpdateRoleDialogP
   }
 
   const getDialogTitle = () => {
-    return mode === "view" ? t("viewTitle") : t("editTitle")
+    return mode === "view" ? role?.name || t("viewTitle") : t("editTitle")
   }
 
   const getDialogDescription = () => {
@@ -206,32 +206,25 @@ export function UpdateRoleDialog({ open, onOpenChange, role }: UpdateRoleDialogP
         </DialogHeader>
 
         {mode === "view" ? (
-          <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <Label>{t("nameLabel")}</Label>
-              <div className="p-3 bg-muted rounded-md">{role?.name}</div>
-            </div>
-
-            <div className="space-y-2">
-              <Label>
-                {t("permissionsLabel")} ({role?.permissionSets.length || 0} {t("total")})
-              </Label>
-              <ScrollArea className="h-[250px] p-3">
-                {role?.permissionSets.length === 0 ? (
-                  <div className="text-center text-muted-foreground py-8">
-                    {t("noPermissionsAssigned")}
-                  </div>
-                ) : (
-                  <div className="flex flex-wrap gap-2">
-                    {role?.permissionSets.map((permissionSet) => (
-                      <Badge key={permissionSet.permissionSetId} variant="secondary">
-                        {permissionSet.name}
-                      </Badge>
-                    ))}
-                  </div>
-                )}
-              </ScrollArea>
-            </div>
+          <div>
+            <Label>
+              {t("permissionsLabel")} ({role?.permissionSets.length || 0} {t("total")})
+            </Label>
+            <ScrollArea className="h-[250px] py-2">
+              {role?.permissionSets.length === 0 ? (
+                <div className="text-center text-muted-foreground py-8">
+                  {t("noPermissionsAssigned")}
+                </div>
+              ) : (
+                <div className="flex flex-wrap gap-2">
+                  {role?.permissionSets.map((permissionSet) => (
+                    <Badge key={permissionSet.permissionSetId} variant="secondary">
+                      {permissionSet.name}
+                    </Badge>
+                  ))}
+                </div>
+              )}
+            </ScrollArea>
           </div>
         ) : (
           <form onSubmit={handleSubmit}>
