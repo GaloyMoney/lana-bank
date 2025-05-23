@@ -63,6 +63,7 @@ impl CreditFacilityRepaymentPlan {
                 overdue_at: None,
                 defaulted_at: None,
                 recorded_at: activated_at,
+                effective: activated_at.date_naive(),
             }),
             CreditFacilityRepaymentPlanEntry::Disbursal(ObligationDataForEntry {
                 id: None,
@@ -75,6 +76,7 @@ impl CreditFacilityRepaymentPlan {
                 overdue_at: None,
                 defaulted_at: None,
                 recorded_at: activated_at,
+                effective: activated_at.date_naive(),
             }),
         ]
     }
@@ -126,6 +128,7 @@ impl CreditFacilityRepaymentPlan {
                     overdue_at: None,
                     defaulted_at: None,
                     recorded_at: period.end,
+                    effective: period.end.date_naive(),
                 },
             ));
 
@@ -159,7 +162,8 @@ impl CreditFacilityRepaymentPlan {
                 due_at,
                 overdue_at,
                 defaulted_at,
-                created_at,
+                recorded_at,
+                effective,
                 ..
             } => {
                 let data = ObligationDataForEntry {
@@ -172,7 +176,8 @@ impl CreditFacilityRepaymentPlan {
                     due_at: *due_at,
                     overdue_at: *overdue_at,
                     defaulted_at: *defaulted_at,
-                    recorded_at: *created_at,
+                    recorded_at: *recorded_at,
+                    effective: *effective,
                 };
                 let entry = match obligation_type {
                     ObligationType::Disbursal => CreditFacilityRepaymentPlanEntry::Disbursal(data),
@@ -293,6 +298,10 @@ mod tests {
         "2021-01-01T12:00:00Z".parse::<DateTime<Utc>>().unwrap()
     }
 
+    fn default_start_date_with_days(days: i64) -> DateTime<Utc> {
+        "2021-01-01T12:00:00Z".parse::<DateTime<Utc>>().unwrap() + chrono::Duration::days(days)
+    }
+
     fn default_facility_amount() -> UsdCents {
         UsdCents::from(1_000_000_00)
     }
@@ -371,6 +380,8 @@ mod tests {
     #[test]
     fn with_first_disbursal_obligation_created() {
         let mut plan = initial_plan();
+
+        let recorded_at = default_start_date();
         let events = vec![
             CoreCreditEvent::FacilityActivated {
                 id: CreditFacilityId::new(),
@@ -386,7 +397,8 @@ mod tests {
                 due_at: default_start_date(),
                 overdue_at: None,
                 defaulted_at: None,
-                created_at: default_start_date(),
+                recorded_at,
+                effective: recorded_at.date_naive(),
             },
         ];
         process_events(&mut plan, events);
@@ -408,6 +420,9 @@ mod tests {
     #[test]
     fn with_first_interest_obligation_created() {
         let mut plan = initial_plan();
+
+        let disbursal_recorded_at = default_start_date();
+        let interest_recorded_at = default_start_date_with_days(30);
         let events = vec![
             CoreCreditEvent::FacilityActivated {
                 id: CreditFacilityId::new(),
@@ -420,20 +435,22 @@ mod tests {
                 obligation_type: ObligationType::Disbursal,
                 credit_facility_id: CreditFacilityId::new(),
                 amount: UsdCents::from(100_000_00),
-                due_at: default_start_date(),
+                due_at: disbursal_recorded_at,
                 overdue_at: None,
                 defaulted_at: None,
-                created_at: default_start_date(),
+                recorded_at: disbursal_recorded_at,
+                effective: disbursal_recorded_at.date_naive(),
             },
             CoreCreditEvent::ObligationCreated {
                 id: ObligationId::new(),
                 obligation_type: ObligationType::Interest,
                 credit_facility_id: CreditFacilityId::new(),
                 amount: UsdCents::from(1_000_00),
-                due_at: default_start_date() + chrono::Duration::days(30),
+                due_at: interest_recorded_at,
                 overdue_at: None,
                 defaulted_at: None,
-                created_at: default_start_date() + chrono::Duration::days(30),
+                recorded_at: interest_recorded_at,
+                effective: interest_recorded_at.date_naive(),
             },
         ];
         process_events(&mut plan, events);
@@ -457,6 +474,9 @@ mod tests {
         let interest_obligation_id = ObligationId::new();
 
         let mut plan = initial_plan();
+
+        let disbursal_recorded_at = default_start_date();
+        let interest_recorded_at = default_start_date_with_days(30);
         let events = vec![
             CoreCreditEvent::FacilityActivated {
                 id: CreditFacilityId::new(),
@@ -469,20 +489,22 @@ mod tests {
                 obligation_type: ObligationType::Disbursal,
                 credit_facility_id: CreditFacilityId::new(),
                 amount: UsdCents::from(100_000_00),
-                due_at: default_start_date(),
+                due_at: disbursal_recorded_at,
                 overdue_at: None,
                 defaulted_at: None,
-                created_at: default_start_date(),
+                recorded_at: disbursal_recorded_at,
+                effective: disbursal_recorded_at.date_naive(),
             },
             CoreCreditEvent::ObligationCreated {
                 id: interest_obligation_id,
                 obligation_type: ObligationType::Interest,
                 credit_facility_id: CreditFacilityId::new(),
                 amount: UsdCents::from(1_000_00),
-                due_at: default_start_date() + chrono::Duration::days(30),
+                due_at: interest_recorded_at,
                 overdue_at: None,
                 defaulted_at: None,
-                created_at: default_start_date() + chrono::Duration::days(30),
+                recorded_at: interest_recorded_at,
+                effective: interest_recorded_at.date_naive(),
             },
             CoreCreditEvent::FacilityRepaymentRecorded {
                 credit_facility_id: CreditFacilityId::new(),
@@ -490,7 +512,7 @@ mod tests {
                 obligation_type: ObligationType::Interest,
                 payment_id: PaymentAllocationId::new(),
                 amount: UsdCents::from(400_00),
-                recorded_at: default_start_date() + chrono::Duration::days(30),
+                recorded_at: interest_recorded_at,
             },
         ];
         process_events(&mut plan, events);
@@ -528,6 +550,9 @@ mod tests {
         let interest_obligation_id = ObligationId::new();
 
         let mut plan = initial_plan();
+
+        let disbursal_recorded_at = default_start_date();
+        let interest_recorded_at = default_start_date_with_days(30);
         let events = vec![
             CoreCreditEvent::FacilityActivated {
                 id: CreditFacilityId::new(),
@@ -540,20 +565,22 @@ mod tests {
                 obligation_type: ObligationType::Disbursal,
                 credit_facility_id: CreditFacilityId::new(),
                 amount: UsdCents::from(100_000_00),
-                due_at: default_start_date(),
+                due_at: disbursal_recorded_at,
                 overdue_at: None,
                 defaulted_at: None,
-                created_at: default_start_date(),
+                recorded_at: disbursal_recorded_at,
+                effective: disbursal_recorded_at.date_naive(),
             },
             CoreCreditEvent::ObligationCreated {
                 id: interest_obligation_id,
                 obligation_type: ObligationType::Interest,
                 credit_facility_id: CreditFacilityId::new(),
                 amount: UsdCents::from(1_000_00),
-                due_at: default_start_date() + chrono::Duration::days(30),
+                due_at: interest_recorded_at,
                 overdue_at: None,
                 defaulted_at: None,
-                created_at: default_start_date() + chrono::Duration::days(30),
+                recorded_at: interest_recorded_at,
+                effective: interest_recorded_at.date_naive(),
             },
             CoreCreditEvent::FacilityRepaymentRecorded {
                 credit_facility_id: CreditFacilityId::new(),
@@ -620,6 +647,12 @@ mod tests {
     #[test]
     fn with_all_interest_obligations_created() {
         let mut plan = initial_plan();
+
+        let disbursal_recorded_at = default_start_date();
+        let interest_1_recorded_at = default_start_date_with_days(30);
+        let interest_2_recorded_at = default_start_date_with_days(30 + 28);
+        let interest_3_recorded_at = default_start_date_with_days(30 + 28 + 31);
+        let interest_4_recorded_at = default_start_date_with_days(30 + 28 + 31 + 1);
         let events = vec![
             CoreCreditEvent::FacilityActivated {
                 id: CreditFacilityId::new(),
@@ -632,50 +665,55 @@ mod tests {
                 obligation_type: ObligationType::Disbursal,
                 credit_facility_id: CreditFacilityId::new(),
                 amount: UsdCents::from(100_000_00),
-                due_at: default_start_date(),
+                due_at: disbursal_recorded_at,
                 overdue_at: None,
                 defaulted_at: None,
-                created_at: default_start_date(),
+                recorded_at: disbursal_recorded_at,
+                effective: disbursal_recorded_at.date_naive(),
             },
             CoreCreditEvent::ObligationCreated {
                 id: ObligationId::new(),
                 obligation_type: ObligationType::Interest,
                 credit_facility_id: CreditFacilityId::new(),
                 amount: UsdCents::from(1_000_00),
-                due_at: default_start_date() + chrono::Duration::days(31),
+                due_at: interest_1_recorded_at,
                 overdue_at: None,
                 defaulted_at: None,
-                created_at: default_start_date() + chrono::Duration::days(31),
+                recorded_at: interest_1_recorded_at,
+                effective: interest_1_recorded_at.date_naive(),
             },
             CoreCreditEvent::ObligationCreated {
                 id: ObligationId::new(),
                 obligation_type: ObligationType::Interest,
                 credit_facility_id: CreditFacilityId::new(),
                 amount: UsdCents::from(1_000_00),
-                due_at: default_start_date() + chrono::Duration::days(31),
+                due_at: interest_2_recorded_at,
                 overdue_at: None,
                 defaulted_at: None,
-                created_at: default_start_date() + chrono::Duration::days(31),
+                recorded_at: interest_2_recorded_at,
+                effective: interest_2_recorded_at.date_naive(),
             },
             CoreCreditEvent::ObligationCreated {
                 id: ObligationId::new(),
                 obligation_type: ObligationType::Interest,
                 credit_facility_id: CreditFacilityId::new(),
                 amount: UsdCents::from(1_000_00),
-                due_at: default_start_date() + chrono::Duration::days(62),
+                due_at: interest_3_recorded_at,
                 overdue_at: None,
                 defaulted_at: None,
-                created_at: default_start_date() + chrono::Duration::days(62),
+                recorded_at: interest_3_recorded_at,
+                effective: interest_3_recorded_at.date_naive(),
             },
             CoreCreditEvent::ObligationCreated {
                 id: ObligationId::new(),
                 obligation_type: ObligationType::Interest,
                 credit_facility_id: CreditFacilityId::new(),
-                amount: UsdCents::from(1_000_00),
-                due_at: default_start_date() + chrono::Duration::days(93),
+                amount: UsdCents::from(33_00),
+                due_at: interest_4_recorded_at,
                 overdue_at: None,
                 defaulted_at: None,
-                created_at: default_start_date() + chrono::Duration::days(93),
+                recorded_at: interest_4_recorded_at,
+                effective: interest_4_recorded_at.date_naive(),
             },
         ];
         process_events(&mut plan, events);

@@ -308,7 +308,7 @@ impl InterestAccrualCycle {
                 .defaulted_account_id(self.account_ids.interest_defaulted_account_id)
                 .due_date(due_date)
                 .overdue_date(overdue_date)
-                .recorded_at(posted_at)
+                .effective(posted_at.date_naive())
                 .audit_info(audit_info)
                 .build()
                 .expect("could not build new interest accrual cycle obligation"),

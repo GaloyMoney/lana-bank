@@ -14,7 +14,9 @@ pub struct ObligationDataForEntry {
     pub due_at: DateTime<Utc>,
     pub overdue_at: Option<DateTime<Utc>>,
     pub defaulted_at: Option<DateTime<Utc>>,
+
     pub recorded_at: DateTime<Utc>,
+    pub effective: chrono::NaiveDate,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize, Serialize)]
