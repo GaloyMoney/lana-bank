@@ -29,7 +29,7 @@ impl Role {
     ) -> async_graphql::Result<Vec<PermissionSet>> {
         let loader = ctx.data_unchecked::<LanaDataLoader>();
         let loaded = loader
-            .load_many(self.entity.permission_sets.clone())
+            .load_many(self.entity.permission_sets.iter().copied())
             .await?;
         Ok(loaded.into_values().collect())
     }
