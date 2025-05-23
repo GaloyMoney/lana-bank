@@ -21,6 +21,7 @@ import {
   Cog,
   ScrollIcon,
   SquareAsterisk,
+  ShieldAlert,
 } from "lucide-react"
 import { useTranslations } from "next-intl"
 
@@ -52,6 +53,7 @@ export function useNavItems() {
   const navAdminItems: NavItem[] = [
     { title: t("auditLogs"), url: "/audit", icon: BookText },
     { title: t("users"), url: "/users", icon: UserCircle },
+    { title: t("rolesAndPermissions"), url: "/roles-and-permissions", icon: ShieldAlert },
   ]
 
   const navFinanceItems: NavItem[] = [
