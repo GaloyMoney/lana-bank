@@ -1,6 +1,7 @@
 [package]
 name = "core-accounting"
 version = "0.3.554-dev"
+license = "FSL-1.1-ALv2"
 edition = "2024"
 
 [features]
