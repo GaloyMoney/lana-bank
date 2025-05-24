@@ -684,31 +684,13 @@ dependencies = [
 
 [[package]]
 name = "cached"
-version = "0.53.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b4d73155ae6b28cf5de4cfc29aeb02b8a1c6dab883cb015d15cd514e42766846"
-dependencies = [
- "ahash 0.8.11",
- "async-trait",
- "cached_proc_macro 0.23.0",
- "cached_proc_macro_types",
- "futures",
- "hashbrown 0.14.5",
- "once_cell",
- "thiserror 1.0.69",
- "tokio",
- "web-time",
-]
-
-[[package]]
-name = "cached"
 version = "0.55.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b0839c297f8783316fcca9d90344424e968395413f0662a5481f79c6648bbc14"
 dependencies = [
  "ahash 0.8.11",
  "async-trait",
- "cached_proc_macro 0.24.0",
+ "cached_proc_macro",
  "cached_proc_macro_types",
  "futures",
  "hashbrown 0.14.5",
@@ -716,18 +698,6 @@ dependencies = [
  "thiserror 2.0.12",
  "tokio",
  "web-time",
-]
-
-[[package]]
-name = "cached_proc_macro"
-version = "0.23.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2f42a145ed2d10dce2191e1dcf30cfccfea9026660e143662ba5eec4017d5daa"
-dependencies = [
- "darling",
- "proc-macro2",
- "quote",
- "syn 2.0.101",
 ]
 
 [[package]]
@@ -782,7 +752,7 @@ checksum = "3c968e4cd46108da4cb2169bb0fed9e67bdd0383447df8fd8e7e62f89710005c"
 dependencies = [
  "async-graphql",
  "base64 0.22.1",
- "cached 0.55.1",
+ "cached",
  "cala-cel-interpreter",
  "cala-ledger-core-types",
  "cala-tracing",
@@ -1162,7 +1132,7 @@ name = "core-price"
 version = "0.3.554-dev"
 dependencies = [
  "anyhow",
- "cached 0.53.1",
+ "cached",
  "core-money",
  "reqwest 0.12.15",
  "rust_decimal",
@@ -2744,7 +2714,7 @@ dependencies = [
  "axum 0.8.4",
  "axum-extra 0.10.1",
  "base64 0.22.1",
- "cached 0.53.1",
+ "cached",
  "cala-ledger",
  "chrono",
  "clap",
@@ -5038,9 +5008,9 @@ checksum = "1f3ccbac311fea05f86f61904b462b55fb3df8837a366dfc601a0161d0532f20"
 
 [[package]]
 name = "tokio"
-version = "1.45.0"
+version = "1.45.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2513ca694ef9ede0fb23fe71a4ee4107cb102b9dc1930f6d0fd77aae068ae165"
+checksum = "75ef51a33ef1da925cea3e4eb122833cb377c61439ca401b770f54902b806779"
 dependencies = [
  "backtrace",
  "bytes",

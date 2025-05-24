@@ -114,7 +114,7 @@ sqlx-adapter = { version = "1.7", default-features = false, features = [
   "runtime-tokio-rustls",
 ] }
 ory-kratos-client = "1.1.0"
-cached = { version = "0.53.1", features = ["async"] }
+cached = { version = "0.55.1", features = ["async"] }
 gcp_auth = { version = "0.12.2", default-features = false, features = ["webpki-roots"] }
 gcp-bigquery-client = { git = "https://github.com/bodymindarts/gcp-bigquery-client.git", branch = "feat--webpki", features = [
   "rust-tls",
