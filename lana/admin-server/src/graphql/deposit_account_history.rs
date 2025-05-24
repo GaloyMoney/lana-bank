@@ -87,7 +87,8 @@ impl WithdrawalEntry {
 
         let withdrawal = app
             .deposits()
-            .find_withdrawal_by_id(sub, self.tx_id)
+            .withdrawals()
+            .find_by_id(sub, self.tx_id)
             .await?
             .expect("withdrawal should exist");
 
@@ -102,6 +103,7 @@ impl CancelledWithdrawalEntry {
 
         let withdrawal = app
             .deposits()
+            .withdrawals()
             .find_withdrawal_by_cancelled_tx_id(sub, self.tx_id)
             .await?;
 

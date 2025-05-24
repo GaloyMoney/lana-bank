@@ -197,9 +197,10 @@ impl Loader<WithdrawalId> for LanaLoader {
     ) -> Result<HashMap<WithdrawalId, Withdrawal>, Self::Error> {
         self.app
             .deposits()
-            .find_all_withdrawals(keys)
+            .withdrawals()
+            .find_all(keys)
             .await
-            .map_err(Arc::new)
+            .map_err(|e| Arc::new(CoreDepositError::from(e)))
     }
 }
 

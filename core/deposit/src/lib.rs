@@ -56,7 +56,7 @@ where
 {
     accounts: DepositAccountRepo<E>,
     deposits: DepositRepo<E>,
-    withdrawals: WithdrawalRepo<E>,
+    withdrawals: Withdrawals<Perms, E>,
     approve_withdrawal: ApproveWithdrawal<Perms, E>,
     ledger: DepositLedger,
     cala: CalaLedger,
@@ -106,11 +106,12 @@ where
     ) -> Result<Self, CoreDepositError> {
         let publisher = DepositPublisher::new(outbox);
         let accounts = DepositAccountRepo::new(pool, &publisher);
-        let deposits = DepositRepo::new(pool, &publisher);
-        let withdrawals = WithdrawalRepo::new(pool, &publisher);
+        let deposits = DepositRepo::new(&pool, &publisher);
+        let withdrawals = Withdrawals::new(pool, authz, &publisher);
         let ledger = DepositLedger::init(cala, journal_id).await?;
 
-        let approve_withdrawal = ApproveWithdrawal::new(&withdrawals, authz.audit(), governance);
+        let approve_withdrawal =
+            ApproveWithdrawal::new(withdrawals.repo(), authz.audit(), governance);
 
         jobs.add_initializer_and_spawn_unique(
             WithdrawApprovalJobInitializer::new(outbox, &approve_withdrawal),
@@ -140,6 +141,10 @@ where
         Ok(res)
     }
 
+    pub fn withdrawals(&self) -> &Withdrawals<Perms, E> {
+        &self.withdrawals
+    }
+
     pub fn for_subject<'s>(
         &'s self,
         sub: &'s <<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
@@ -155,7 +160,7 @@ where
             holder_id,
             &self.accounts,
             &self.deposits,
-            &self.withdrawals,
+            self.withdrawals.repo(), // CHANGE THIS IMPL
             &self.ledger,
             &self.authz,
         ))
@@ -348,32 +353,25 @@ where
             )
             .await?;
         self.check_account_active(deposit_account_id).await?;
-        let withdrawal_id = WithdrawalId::new();
-        let new_withdrawal = NewWithdrawal::builder()
-            .id(withdrawal_id)
-            .deposit_account_id(deposit_account_id)
-            .amount(amount)
-            .approval_process_id(withdrawal_id)
-            .reference(reference)
-            .audit_info(audit_info)
-            .build()?;
 
         let mut op = self.withdrawals.begin_op().await?;
+
+        let withdrawal = self
+            .withdrawals
+            .create(&mut op, deposit_account_id, amount, reference, audit_info)
+            .await?;
+
         self.governance
             .start_process(
                 &mut op,
-                withdrawal_id,
-                withdrawal_id.to_string(),
+                withdrawal.id,
+                withdrawal.id.to_string(),
                 APPROVE_WITHDRAWAL_PROCESS,
             )
             .await?;
-        let withdrawal = self
-            .withdrawals
-            .create_in_op(&mut op, new_withdrawal)
-            .await?;
 
         self.ledger
-            .initiate_withdrawal(op, withdrawal_id, amount, deposit_account_id)
+            .initiate_withdrawal(op, withdrawal.id, amount, deposit_account_id)
             .await?;
         Ok(withdrawal)
     }
@@ -393,13 +391,20 @@ where
                 CoreDepositAction::WITHDRAWAL_CONFIRM,
             )
             .await?;
-        let mut withdrawal = self.withdrawals.find_by_id(id).await?;
+
+        let mut withdrawal = self
+            .withdrawals
+            .find_by_id(sub, id)
+            .await?
+            .expect("should find withdrawal for the given id");
+
         self.check_account_active(withdrawal.deposit_account_id)
             .await?;
+
         let mut op = self.withdrawals.begin_op().await?;
-        let tx_id = withdrawal.confirm(audit_info)?;
-        self.withdrawals
-            .update_in_op(&mut op, &mut withdrawal)
+        let tx_id = self
+            .withdrawals
+            .confirm(&mut op, &mut withdrawal, audit_info)
             .await?;
 
         self.ledger
@@ -431,13 +436,17 @@ where
                 CoreDepositAction::WITHDRAWAL_CANCEL,
             )
             .await?;
-        let mut withdrawal = self.withdrawals.find_by_id(id).await?;
+        let mut withdrawal = self
+            .withdrawals
+            .find_by_id(sub, id)
+            .await?
+            .expect("should find withdrawal for the given id");
         self.check_account_active(withdrawal.deposit_account_id)
             .await?;
         let mut op = self.withdrawals.begin_op().await?;
-        let tx_id = withdrawal.cancel(audit_info)?;
-        self.withdrawals
-            .update_in_op(&mut op, &mut withdrawal)
+        let tx_id = self
+            .withdrawals
+            .cancel(&mut op, &mut withdrawal, audit_info)
             .await?;
         self.ledger
             .cancel_withdrawal(op, tx_id, withdrawal.amount, withdrawal.deposit_account_id)
@@ -487,58 +496,6 @@ where
         }
     }
 
-    #[instrument(name = "deposit.find_withdrawal_by_id", skip(self), err)]
-    pub async fn find_withdrawal_by_id(
-        &self,
-        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        id: impl Into<WithdrawalId> + std::fmt::Debug,
-    ) -> Result<Option<Withdrawal>, CoreDepositError> {
-        let id = id.into();
-        self.authz
-            .enforce_permission(
-                sub,
-                CoreDepositObject::withdrawal(id),
-                CoreDepositAction::WITHDRAWAL_READ,
-            )
-            .await?;
-
-        match self.withdrawals.find_by_id(id).await {
-            Ok(withdrawal) => Ok(Some(withdrawal)),
-            Err(e) if e.was_not_found() => Ok(None),
-            Err(e) => Err(e.into()),
-        }
-    }
-
-    #[instrument(name = "deposit.find_withdrawal_by_cancelled_tx_id", skip(self), err)]
-    pub async fn find_withdrawal_by_cancelled_tx_id(
-        &self,
-        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        cancelled_tx_id: impl Into<CalaTransactionId> + std::fmt::Debug,
-    ) -> Result<Withdrawal, CoreDepositError> {
-        let cancelled_tx_id = cancelled_tx_id.into();
-        let withdrawal = self
-            .withdrawals
-            .find_by_cancelled_tx_id(Some(cancelled_tx_id))
-            .await?;
-        self.authz
-            .enforce_permission(
-                sub,
-                CoreDepositObject::withdrawal(withdrawal.id),
-                CoreDepositAction::WITHDRAWAL_READ,
-            )
-            .await?;
-
-        Ok(withdrawal)
-    }
-
-    #[instrument(name = "deposit.find_all_withdrawals", skip(self), err)]
-    pub async fn find_all_withdrawals<T: From<Withdrawal>>(
-        &self,
-        ids: &[WithdrawalId],
-    ) -> Result<std::collections::HashMap<WithdrawalId, T>, CoreDepositError> {
-        Ok(self.withdrawals.find_all(ids).await?)
-    }
-
     #[instrument(name = "deposit.find_all_deposits", skip(self), err)]
     pub async fn find_all_deposits<T: From<Deposit>>(
         &self,
@@ -553,28 +510,6 @@ where
         ids: &[DepositAccountId],
     ) -> Result<std::collections::HashMap<DepositAccountId, T>, CoreDepositError> {
         Ok(self.accounts.find_all(ids).await?)
-    }
-
-    #[instrument(name = "deposit.list_withdrawals", skip(self), err)]
-    pub async fn list_withdrawals(
-        &self,
-        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        query: es_entity::PaginatedQueryArgs<WithdrawalsByCreatedAtCursor>,
-    ) -> Result<
-        es_entity::PaginatedQueryRet<Withdrawal, WithdrawalsByCreatedAtCursor>,
-        CoreDepositError,
-    > {
-        self.authz
-            .enforce_permission(
-                sub,
-                CoreDepositObject::all_withdrawals(),
-                CoreDepositAction::WITHDRAWAL_LIST,
-            )
-            .await?;
-        Ok(self
-            .withdrawals
-            .list_by_created_at(query, es_entity::ListDirection::Descending)
-            .await?)
     }
 
     #[instrument(name = "deposit.list_deposits", skip(self), err)]
@@ -621,31 +556,6 @@ where
             .await?;
         Ok(self
             .deposits
-            .list_for_deposit_account_id_by_created_at(
-                account_id,
-                Default::default(),
-                es_entity::ListDirection::Descending,
-            )
-            .await?
-            .entities)
-    }
-
-    #[instrument(name = "deposit.list_withdrawals_for_account", skip(self), err)]
-    pub async fn list_withdrawals_for_account(
-        &self,
-        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        account_id: impl Into<DepositAccountId> + std::fmt::Debug,
-    ) -> Result<Vec<Withdrawal>, CoreDepositError> {
-        let account_id = account_id.into();
-        self.authz
-            .enforce_permission(
-                sub,
-                CoreDepositObject::all_withdrawals(),
-                CoreDepositAction::WITHDRAWAL_LIST,
-            )
-            .await?;
-        Ok(self
-            .withdrawals
             .list_for_deposit_account_id_by_created_at(
                 account_id,
                 Default::default(),

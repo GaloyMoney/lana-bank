@@ -156,7 +156,7 @@ impl Query {
         maybe_fetch_one!(
             Withdrawal,
             ctx,
-            app.deposits().find_withdrawal_by_id(sub, id)
+            app.deposits().withdrawals().find_by_id(sub, id)
         )
     }
 
@@ -175,7 +175,7 @@ impl Query {
             ctx,
             after,
             first,
-            |query| app.deposits().list_withdrawals(sub, query)
+            |query| app.deposits().withdrawals().list(sub, query)
         )
     }
 
