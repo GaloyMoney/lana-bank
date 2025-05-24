@@ -6,7 +6,7 @@
 
 mod error;
 
-use axum::{async_trait, extract::FromRef, http::request::Parts, RequestPartsExt};
+use axum::{extract::FromRef, http::request::Parts, RequestPartsExt};
 use axum_extra::{
     headers::authorization::{Authorization, Bearer},
     TypedHeader,
@@ -26,7 +26,6 @@ pub struct JwtDecoderState {
     pub decoder: Arc<RemoteJwksDecoder>,
 }
 
-#[async_trait]
 impl<S, T> axum::extract::FromRequestParts<S> for Claims<T>
 where
     JwtDecoderState: FromRef<S>,
@@ -38,7 +37,7 @@ where
     async fn from_request_parts(parts: &mut Parts, state: &S) -> Result<Self, Self::Rejection> {
         // `TypedHeader<Authorization<Bearer>>` extracts the auth token
         let auth: TypedHeader<Authorization<Bearer>> = parts
-            .extract()
+            .extract_with_state(state)
             .await
             .map_err(|_| Self::Rejection::MissingToken)?;
 
@@ -58,7 +57,7 @@ where
             _ => Self::Rejection::InternalError,
         })?;
 
-        Ok(token_data.claims)
+        Ok(Claims(token_data.claims))
     }
 }
 
