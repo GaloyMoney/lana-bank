@@ -38,9 +38,10 @@ impl KratosAdmin {
             recovery_addresses: None,
             state: None,
             verifiable_addresses: None,
+            organization_id: None,
         };
 
-        let identity = identity_api::create_identity(&self.config, Some(&identity)).await?;
+        let identity = identity_api::create_identity(&self.config, Some(identity)).await?;
         Ok(identity.id.parse::<Uuid>()?.into())
     }
 
@@ -53,7 +54,7 @@ impl KratosAdmin {
         let json_patch = vec![ory_kratos_client::models::JsonPatch {
             op: "replace".to_string(),
             path: "/traits/email".to_string(),
-            value: Some(serde_json::Value::String(email)),
+            value: Some(Some(serde_json::Value::String(email))),
             from: None,
         }];
 
