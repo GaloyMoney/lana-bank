@@ -9,7 +9,6 @@ edition = "2021"
 fail-on-warnings = []
 
 [dependencies]
-lana-ids = { path = "../ids" }
 dashboard = { path = "../dashboard" }
 
 governance = { path = "../../core/governance" }

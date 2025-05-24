@@ -11,11 +11,8 @@ graphql = []
 
 [dependencies]
 governance = { path = "../../core/governance", features = ["graphql"] }
-deposit = { path = "../../core/deposit", features = ["graphql"] }
 
 job = { path = "../../lib/job" }
 
 es-entity = { workspace = true, features = ["graphql"] }
-sqlx = { workspace = true }
-serde = { workspace = true }
 cala-ledger = { workspace = true }

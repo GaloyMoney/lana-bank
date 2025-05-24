@@ -35,7 +35,5 @@ chrono = { workspace = true }
 tracing = { workspace = true }
 tokio = { workspace = true }
 rust_decimal = { workspace = true }
-reqwest = { workspace = true }
 anyhow = { workspace = true }
 thiserror = { workspace = true }
-jsonwebtoken = { workspace = true }

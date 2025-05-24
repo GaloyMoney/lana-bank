@@ -18,7 +18,6 @@ es-entity = { workspace = true }
 uuid = { workspace = true }
 sqlx = { workspace = true }
 serde = { workspace = true }
-serde_json = { workspace = true }
 derive_builder = { workspace = true }
 tracing = { workspace = true }
 thiserror = { workspace = true }

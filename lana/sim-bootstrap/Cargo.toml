@@ -20,4 +20,3 @@ rust_decimal_macros = { workspace = true }
 serde = { workspace = true }
 tokio = { workspace = true }
 futures = { workspace = true }
-async-trait = { workspace = true }

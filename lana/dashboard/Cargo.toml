@@ -19,7 +19,6 @@ outbox = { path = "../../lib/outbox" }
 job = { path = "../../lib/job" }
 
 sim-time = { workspace = true, optional = true }
-es-entity = { workspace = true, features = ["graphql"] }
 
 uuid = { workspace = true }
 strum = { workspace = true }
@@ -30,7 +29,6 @@ chrono = { workspace = true }
 async-trait = { workspace = true }
 futures = { workspace = true }
 thiserror = { workspace = true }
-async-graphql = { workspace = true }
 
 [dev-dependencies]
 tokio = { workspace = true }

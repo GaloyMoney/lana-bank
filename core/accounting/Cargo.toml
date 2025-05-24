@@ -12,7 +12,6 @@ graphql = [ "dep:async-graphql" ]
 audit = { path = "../../lib/audit" }
 authz = { path = "../../lib/authz" }
 core-money = { path = "../money" }
-outbox = { path = "../../lib/outbox" }
 job = { path = "../../lib/job" }
 cloud-storage = { path = "../../lib/cloud-storage" }
 

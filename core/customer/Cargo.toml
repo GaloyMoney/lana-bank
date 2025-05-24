@@ -12,7 +12,6 @@ graphql = ["es-entity/graphql", "governance/graphql"]
 governance = ["dep:governance"]
 
 [dependencies]
-governance = { path = "../governance", optional = true }
 
 audit = { path = "../../lib/audit" }
 authz = { path = "../../lib/authz" }

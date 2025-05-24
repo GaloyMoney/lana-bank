@@ -99,6 +99,7 @@
           cargo-audit
           cargo-watch
           cargo-deny
+          cargo-machete
           bacon
           typos
           postgresql

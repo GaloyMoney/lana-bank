@@ -14,7 +14,6 @@ tracing-utils = { path = "../tracing-utils", features = ["persistence"] }
 
 serde = { workspace = true }
 serde_json = { workspace = true }
-uuid = { workspace = true }
 sqlx = { workspace = true }
 chrono = { workspace = true }
 tokio = { workspace = true }

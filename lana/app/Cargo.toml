@@ -35,8 +35,6 @@ core-customer = { path = "../../core/customer", features = ["graphql"] }
 core-price = { path = "../../core/price" }
 deposit = { path = "../../core/deposit", features = ["graphql"] }
 core-accounting = { path = "../../core/accounting", features = ["graphql"] }
-
-tracing-utils = { path = "../../lib/tracing-utils", features = ["http"] }
 job = { path = "../../lib/job" }
 outbox = { path = "../../lib/outbox" }
 audit = { path = "../../lib/audit" }
@@ -45,38 +43,27 @@ cloud-storage = { path = "../../lib/cloud-storage" }
 
 cala-ledger = { workspace = true }
 es-entity = { workspace = true, features = ["graphql"] }
-sim-time = { workspace = true, optional = true }
 
 anyhow = { workspace = true }
 async-graphql = { workspace = true }
-async-graphql-axum = { workspace = true }
 async-trait = { workspace = true }
-axum = { workspace = true }
-axum-extra = { workspace = true }
 chrono = { workspace = true }
 reqwest = { workspace = true }
 derive_builder = { workspace = true }
-graphql_client = { workspace = true }
 futures = { workspace = true }
 thiserror = { workspace = true }
-clap = { workspace = true }
 sqlx = { workspace = true }
 strum = { workspace = true }
 serde = { workspace = true }
-serde_yaml = { workspace = true }
 serde_json = { workspace = true }
-serde_with = { workspace = true }
 uuid = { workspace = true }
 tokio = { workspace = true }
 tracing = { workspace = true }
-rust_decimal = { workspace = true }
 rust_decimal_macros = { workspace = true }
-rusty-money = { workspace = true }
 base64 = { workspace = true }
 hex = { workspace = true }
 hmac = { workspace = true }
 sha2 = { workspace = true }
-cached = { workspace = true }
 gcp_auth = { workspace = true }
 gcp-bigquery-client = { workspace = true }
 
