@@ -110,15 +110,13 @@ where
         let withdrawals = Withdrawals::new(pool, authz, &publisher);
         let ledger = DepositLedger::init(cala, journal_id).await?;
 
-        let approve_withdrawal =
-            ApproveWithdrawal::new(withdrawals.repo(), authz.audit(), governance);
+        let approve_withdrawal = ApproveWithdrawal::new(&withdrawals, authz.audit(), governance);
 
         jobs.add_initializer_and_spawn_unique(
             WithdrawApprovalJobInitializer::new(outbox, &approve_withdrawal),
             WithdrawApprovalJobConfig::<Perms, E>::new(),
         )
         .await?;
-
         match governance.init_policy(APPROVE_WITHDRAWAL_PROCESS).await {
             Err(governance::error::GovernanceError::PolicyError(
                 governance::policy_error::PolicyError::DuplicateApprovalProcessType,
