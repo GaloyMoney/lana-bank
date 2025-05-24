@@ -2,8 +2,7 @@ docker_compose(["../docker-compose.yml", "../docker-compose.docker.yml"], projec
 docker_groups = {
     "auth": ["kratos-admin", "kratos-admin-pg", "kratos-customer", "kratos-customer-pg", "oathkeeper", "mailhog"],
     "otel": ["otel-agent"],
-    "core": ["core-pg"],
-    "reporting": ["meltano"],
+    "core": ["core-pg"]
 }
 
 for service, deps in docker_groups.items():
