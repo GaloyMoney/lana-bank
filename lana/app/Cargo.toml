@@ -76,7 +76,6 @@ base64 = { workspace = true }
 hex = { workspace = true }
 hmac = { workspace = true }
 sha2 = { workspace = true }
-ory-kratos-client = { workspace = true }
 cached = { workspace = true }
 gcp_auth = { workspace = true }
 gcp-bigquery-client = { workspace = true }

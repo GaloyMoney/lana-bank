@@ -30,7 +30,6 @@ async-trait = { workspace = true }
 futures = { workspace = true }
 thiserror = { workspace = true }
 async-graphql = { workspace = true }
-ory-kratos-client = { workspace = true }
 
 [dev-dependencies]
 tokio = { workspace = true }
