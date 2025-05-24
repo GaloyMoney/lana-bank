@@ -16,6 +16,12 @@ source:
   repository: #@ galoy_dev_image()
 #@ end
 
+#@ def nix_flake_cachix_image_config():
+type: registry-image
+source:
+  repository: ghcr.io/nix-community/docker-nixpkgs/cachix-flakes
+#@ end
+
 #@ def build_app_edge_image_name(app):
 #@   return "build-" + app + "-edge-image"
 #@ end

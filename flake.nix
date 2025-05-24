@@ -120,6 +120,7 @@
           ps
           curl
           tilt
+          procps
         ]
         ++ lib.optionals pkgs.stdenv.isLinux [
           xvfb-run
