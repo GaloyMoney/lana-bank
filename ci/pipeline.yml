@@ -165,7 +165,7 @@ jobs:
               cd repo
               cachix use lana-ci
               
-              nix develop --command sh -exc ../pipeline-tasks/ci/vendor/tasks/rust-check-code.sh
+              nix develop --command sh -exc "make check-code"
 
   - name: nodejs-check-code
     serial: true
