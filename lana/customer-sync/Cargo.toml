@@ -4,6 +4,9 @@ version = "0.3.558-dev"
 license = "FSL-1.1-ALv2"
 edition = "2021"
 
+[package.metadata.cargo-machete]
+ignored = ["es-entity"]
+
 [features]
 sim-time = [
   "dep:sim-time",
