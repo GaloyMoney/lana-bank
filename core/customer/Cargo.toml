@@ -16,6 +16,7 @@ governance = ["dep:governance"]
 audit = { path = "../../lib/audit" }
 authz = { path = "../../lib/authz" }
 outbox = { path = "../../lib/outbox" }
+governance = { path = "../governance", optional = true }
 
 es-entity = { workspace = true }
 strum = { workspace = true }

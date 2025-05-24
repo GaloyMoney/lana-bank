@@ -43,6 +43,7 @@ cloud-storage = { path = "../../lib/cloud-storage" }
 
 cala-ledger = { workspace = true }
 es-entity = { workspace = true, features = ["graphql"] }
+sim-time = { workspace = true, optional = true }
 
 anyhow = { workspace = true }
 async-graphql = { workspace = true }

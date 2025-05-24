@@ -17,6 +17,7 @@ job = { path = "../../lib/job" }
 audit = { path = "../../lib/audit" }
 kratos-admin = { path = "../../lib/kratos-admin" }
 
+es-entity = { workspace = true }
 sim-time = { workspace = true, optional = true }
 serde = { workspace = true }
 chrono = { workspace = true }

@@ -24,6 +24,7 @@ audit = { path = "../../lib/audit" }
 authz = { path = "../../lib/authz" }
 kratos-admin = { path = "../../lib/kratos-admin" }
 
+es-entity = { workspace = true }
 sim-time = { workspace = true, optional = true }
 
 tracing = { workspace = true }
