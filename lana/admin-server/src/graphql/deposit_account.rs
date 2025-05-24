@@ -64,7 +64,8 @@ impl DepositAccount {
         let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
         let withdrawals = app
             .deposits()
-            .list_withdrawals_for_account(sub, self.entity.id)
+            .withdrawals()
+            .list_for_account(sub, self.entity.id)
             .await?;
         Ok(withdrawals.into_iter().map(Withdrawal::from).collect())
     }
