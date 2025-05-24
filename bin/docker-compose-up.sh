@@ -21,7 +21,12 @@ fi
 FILES=(-f "$BASE")
 [[ "$ENGINE" == docker ]] && FILES+=(-f "$OVERRIDE")   # extra_hosts only on Docker
 
+# ── Pull images first (prevents concurrent map writes) ─────────────────────────
+echo "Pulling Docker images..."
+"$ENGINE" compose "${FILES[@]}" pull --no-parallel
+
 # ── Up ──────────────────────────────────────────────────────────────────────────
+echo "Starting services..."
 "$ENGINE" compose "${FILES[@]}" up -d "$@"
 
 while ! pg_isready -d pg -p 5433 -U user; do
