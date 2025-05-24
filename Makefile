@@ -36,6 +36,7 @@ check-code: sdl-rust
 	SQLX_OFFLINE=true cargo check
 	SQLX_OFFLINE=true cargo clippy --all-features
 	SQLX_OFFLINE=true cargo audit
+	cargo deny check
 
 clippy:
 	SQLX_OFFLINE=true cargo clippy --all-features
