@@ -1,14 +1,13 @@
 use futures::StreamExt;
 
+use lana_app::{app::LanaApp, primitives::*};
 use lana_events::*;
+use rust_decimal::prelude::*;
 
 use lana_app::{
-    app::LanaApp,
     customer::{CustomerId, CustomerType},
-    primitives::{DepositAccountId, Subject, UsdCents},
     terms::{FacilityDuration, InterestInterval, ObligationDuration, TermValues},
 };
-use rust_decimal_macros::dec;
 
 pub async fn create_customer(
     sub: &Subject,

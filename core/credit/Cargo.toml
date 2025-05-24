@@ -37,7 +37,6 @@ tracing = { workspace = true }
 uuid = { workspace = true }
 derive_builder = { workspace = true }
 rust_decimal = { workspace = true }
-rust_decimal_macros = { workspace = true }
 async-trait = { workspace = true }
 futures = { workspace = true }
 async-graphql = { workspace = true, optional = true }

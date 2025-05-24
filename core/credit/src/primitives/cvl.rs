@@ -1,5 +1,4 @@
-use rust_decimal::{prelude::*, Decimal};
-use rust_decimal_macros::dec;
+use rust_decimal::prelude::*;
 use serde::{Deserialize, Serialize};
 
 use core_money::UsdCents;
@@ -100,7 +99,7 @@ impl From<Decimal> for CVLPct {
 
 #[cfg(test)]
 mod test {
-    use rust_decimal_macros::dec;
+    use rust_decimal::prelude::*;
 
     use super::*;
 

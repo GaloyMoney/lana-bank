@@ -691,7 +691,7 @@ impl IntoEvents<CreditFacilityEvent> for NewCreditFacility {
 #[cfg(test)]
 mod test {
     use audit::{AuditEntryId, AuditInfo};
-    use rust_decimal_macros::dec;
+    use rust_decimal::prelude::*;
 
     use crate::{
         terms::{FacilityDuration, InterestInterval, OneTimeFeeRatePct},

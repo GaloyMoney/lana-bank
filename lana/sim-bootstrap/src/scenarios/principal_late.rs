@@ -1,7 +1,7 @@
 use futures::StreamExt;
 use lana_app::{app::LanaApp, primitives::*};
 use lana_events::{CoreCreditEvent, LanaEvent, ObligationType};
-use rust_decimal_macros::dec;
+use rust_decimal::prelude::*;
 use tokio::sync::mpsc;
 
 use crate::helpers;

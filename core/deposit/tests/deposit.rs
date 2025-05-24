@@ -1,6 +1,7 @@
 mod helpers;
 
-use rust_decimal_macros::dec;
+use anyhow::Result;
+use rust_decimal::prelude::*;
 
 use authz::dummy::DummySubject;
 use cala_ledger::{CalaLedger, CalaLedgerConfig};

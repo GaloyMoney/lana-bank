@@ -1,7 +1,6 @@
 use chrono::{DateTime, Datelike, TimeZone, Utc};
 use derive_builder::{Builder, UninitializedFieldError};
-use rust_decimal::{prelude::*, Decimal};
-use rust_decimal_macros::dec;
+use rust_decimal::prelude::*;
 use serde::{Deserialize, Serialize};
 
 use crate::{
@@ -384,7 +383,7 @@ impl TermValuesBuilder {
 
 #[cfg(test)]
 mod test {
-    use rust_decimal_macros::dec;
+    use rust_decimal::prelude::*;
 
     use super::*;
 
@@ -469,8 +468,7 @@ mod test {
 
     #[test]
     fn required_collateral() {
-        let price =
-            PriceOfOneBTC::new(UsdCents::try_from_usd(rust_decimal_macros::dec!(1000)).unwrap());
+        let price = PriceOfOneBTC::new(UsdCents::try_from_usd(dec!(1000)).unwrap());
         let terms = terms();
         let principal = UsdCents::from(100000);
         let required_collateral = terms.required_collateral(principal, price);
@@ -611,22 +609,6 @@ mod test {
         assert_eq!(fee, UsdCents::from(51));
     }
 
-    fn default_terms() -> TermValues {
-        TermValues::builder()
-            .annual_rate(dec!(12))
-            .duration(FacilityDuration::Months(3))
-            .interest_due_duration(ObligationDuration::Days(0))
-            .obligation_overdue_duration(None)
-            .accrual_cycle_interval(InterestInterval::EndOfMonth)
-            .accrual_interval(InterestInterval::EndOfDay)
-            .one_time_fee_rate(OneTimeFeeRatePct(dec!(1)))
-            .liquidation_cvl(dec!(105))
-            .margin_call_cvl(dec!(125))
-            .initial_cvl(dec!(140))
-            .build()
-            .expect("should build a valid term")
-    }
-
     mod collateralization_update {
         use super::*;
 
@@ -641,7 +623,7 @@ mod test {
             below_liquidation: CVLPct,
         }
         fn cvl_test_values() -> TestCVL {
-            let terms = default_terms();
+            let terms = terms();
             let upgrade_buffer_cvl = default_upgrade_buffer_cvl_pct();
 
             TestCVL {
@@ -809,6 +791,22 @@ mod test {
                 None,
             );
         }
+    }
+
+    fn default_terms() -> TermValues {
+        TermValues::builder()
+            .annual_rate(dec!(12))
+            .duration(FacilityDuration::Months(3))
+            .interest_due_duration(ObligationDuration::Days(0))
+            .obligation_overdue_duration(None)
+            .accrual_cycle_interval(InterestInterval::EndOfMonth)
+            .accrual_interval(InterestInterval::EndOfDay)
+            .one_time_fee_rate(OneTimeFeeRatePct(dec!(1)))
+            .liquidation_cvl(dec!(105))
+            .margin_call_cvl(dec!(125))
+            .initial_cvl(dec!(140))
+            .build()
+            .expect("should build a valid term")
     }
 
     fn default_balances(facility: UsdCents) -> CreditFacilityBalanceSummary {

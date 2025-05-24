@@ -9,7 +9,7 @@ mod seed;
 use std::collections::HashSet;
 
 use futures::StreamExt;
-use rust_decimal_macros::dec;
+use rust_decimal::prelude::*;
 
 use lana_app::{app::LanaApp, primitives::*};
 use lana_events::*;

@@ -256,12 +256,11 @@ impl CreditFacilityRepaymentPlan {
 }
 
 #[cfg(test)]
-mod tests {
-    use rust_decimal_macros::dec;
+mod test {
+    use super::*;
+    use rust_decimal::prelude::*;
 
     use crate::terms::{FacilityDuration, InterestInterval, ObligationDuration, OneTimeFeeRatePct};
-
-    use super::*;
 
     fn default_terms() -> TermValues {
         TermValues::builder()

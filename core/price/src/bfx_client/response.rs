@@ -24,9 +24,9 @@ pub struct BfxErrorResponse {
 }
 
 #[cfg(test)]
-mod tests {
+mod test {
     use super::*;
-    use rust_decimal_macros::dec;
+    use rust_decimal::prelude::*;
 
     #[test]
     fn last_price_data() {

@@ -363,7 +363,7 @@ impl IntoEvents<InterestAccrualCycleEvent> for NewInterestAccrualCycle {
 mod test {
     use audit::AuditEntryId;
     use chrono::{Datelike, TimeZone, Utc};
-    use rust_decimal_macros::dec;
+    use rust_decimal::prelude::*;
 
     use crate::terms::{FacilityDuration, InterestInterval, ObligationDuration, OneTimeFeeRatePct};
 

@@ -1031,7 +1031,6 @@ dependencies = [
  "outbox",
  "rand 0.9.1",
  "rust_decimal",
- "rust_decimal_macros",
  "serde",
  "serde_json",
  "sqlx",
@@ -1067,7 +1066,6 @@ dependencies = [
  "outbox",
  "rand 0.9.1",
  "rust_decimal",
- "rust_decimal_macros",
  "serde",
  "serde_json",
  "serde_with",
@@ -1122,8 +1120,8 @@ version = "0.3.558-dev"
 dependencies = [
  "async-graphql",
  "rust_decimal",
- "rust_decimal_macros",
  "serde",
+ "strum",
  "thiserror 2.0.12",
 ]
 
@@ -1133,14 +1131,15 @@ version = "0.3.558-dev"
 dependencies = [
  "anyhow",
  "cached",
+ "chrono",
  "core-money",
  "reqwest 0.12.15",
  "rust_decimal",
- "rust_decimal_macros",
  "serde",
  "serde_json",
  "thiserror 2.0.12",
  "tokio",
+ "uuid",
 ]
 
 [[package]]
@@ -1372,7 +1371,6 @@ dependencies = [
  "outbox",
  "rand 0.9.1",
  "rust_decimal",
- "rust_decimal_macros",
  "serde",
  "serde_json",
  "sim-time",
@@ -2745,7 +2743,6 @@ dependencies = [
  "rbac-types",
  "reqwest 0.12.15",
  "rust_decimal",
- "rust_decimal_macros",
  "rusty-money",
  "serde",
  "serde_json",
@@ -4008,6 +4005,7 @@ dependencies = [
  "num-traits",
  "rand 0.8.5",
  "rkyv",
+ "rust_decimal_macros",
  "serde",
  "serde_json",
 ]
@@ -4371,10 +4369,10 @@ dependencies = [
  "lana-app",
  "lana-events",
  "rust_decimal",
- "rust_decimal_macros",
  "serde",
  "sim-time",
  "tokio",
+ "tracing",
 ]
 
 [[package]]
