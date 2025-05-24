@@ -340,7 +340,6 @@ dependencies = [
 name = "authz"
 version = "0.3.558-dev"
 dependencies = [
- "anyhow",
  "async-trait",
  "audit",
  "es-entity",
@@ -975,7 +974,6 @@ dependencies = [
 name = "core-access"
 version = "0.3.558-dev"
 dependencies = [
- "anyhow",
  "audit",
  "authz",
  "chrono",
@@ -1062,7 +1060,6 @@ dependencies = [
 name = "core-customer"
 version = "0.3.558-dev"
 dependencies = [
- "anyhow",
  "async-graphql",
  "audit",
  "authz",
@@ -1234,7 +1231,6 @@ dependencies = [
 name = "customer-sync"
 version = "0.3.558-dev"
 dependencies = [
- "anyhow",
  "async-trait",
  "audit",
  "authz",
@@ -1250,7 +1246,6 @@ dependencies = [
  "serde",
  "sim-time",
  "thiserror 2.0.12",
- "tokio",
  "tracing",
 ]
 
@@ -1293,7 +1288,6 @@ dependencies = [
 name = "dashboard"
 version = "0.3.558-dev"
 dependencies = [
- "anyhow",
  "async-trait",
  "audit",
  "authz",
@@ -1310,7 +1304,6 @@ dependencies = [
  "sqlx",
  "strum",
  "thiserror 2.0.12",
- "tokio",
  "uuid",
 ]
 
@@ -2565,6 +2558,7 @@ dependencies = [
  "rand 0.9.1",
  "rbac-types",
  "reqwest",
+ "rust_decimal",
  "rust_decimal_macros",
  "serde",
  "serde_json",
@@ -5197,7 +5191,6 @@ checksum = "daf8dba3b7eb870caf1ddeed7bc9d2a049f3cfdfae7cb521b087cc33ae4c49da"
 name = "user-onboarding"
 version = "0.3.558-dev"
 dependencies = [
- "anyhow",
  "async-trait",
  "audit",
  "chrono",
@@ -5210,7 +5203,6 @@ dependencies = [
  "serde",
  "sim-time",
  "thiserror 2.0.12",
- "tokio",
 ]
 
 [[package]]

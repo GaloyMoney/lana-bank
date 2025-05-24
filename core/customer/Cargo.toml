@@ -27,6 +27,3 @@ thiserror = { workspace = true }
 chrono = { workspace = true }
 tracing = { workspace = true }
 async-graphql = { workspace = true }
-
-[dev-dependencies]
-anyhow = { workspace = true }

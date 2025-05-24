@@ -26,6 +26,3 @@ sqlx = { workspace = true }
 thiserror = { workspace = true }
 chrono = { workspace = true }
 tracing = { workspace = true }
-
-[dev-dependencies]
-anyhow = { workspace = true }

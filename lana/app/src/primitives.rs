@@ -66,9 +66,8 @@ mod test {
 
     #[test]
     fn cents_to_sats_trivial() {
-        let price =
-            PriceOfOneBTC::new(UsdCents::try_from_usd(rust_decimal_macros::dec!(1000)).unwrap());
-        let cents = UsdCents::try_from_usd(rust_decimal_macros::dec!(1000)).unwrap();
+        let price = PriceOfOneBTC::new(UsdCents::try_from_usd(dec!(1000)).unwrap());
+        let cents = UsdCents::try_from_usd(dec!(1000)).unwrap();
         assert_eq!(
             Satoshis::try_from_btc(dec!(1)).unwrap(),
             price.cents_to_sats_round_up(cents)
@@ -77,9 +76,8 @@ mod test {
 
     #[test]
     fn cents_to_sats_complex() {
-        let price =
-            PriceOfOneBTC::new(UsdCents::try_from_usd(rust_decimal_macros::dec!(60000)).unwrap());
-        let cents = UsdCents::try_from_usd(rust_decimal_macros::dec!(100)).unwrap();
+        let price = PriceOfOneBTC::new(UsdCents::try_from_usd(dec!(60000)).unwrap());
+        let cents = UsdCents::try_from_usd(dec!(100)).unwrap();
         assert_eq!(
             Satoshis::try_from_btc(dec!(0.00166667)).unwrap(),
             price.cents_to_sats_round_up(cents)

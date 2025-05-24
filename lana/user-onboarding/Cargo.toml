@@ -24,7 +24,3 @@ chrono = { workspace = true }
 async-trait = { workspace = true }
 futures = { workspace = true }
 thiserror = { workspace = true }
-
-[dev-dependencies]
-tokio = { workspace = true }
-anyhow = { workspace = true }
