@@ -11,9 +11,9 @@ with loans_and_credit_facilities as (
     UNION ALL
     */
     select
-        total_collateral,
+        total_collateral_amount_usd,
         credit_facility_id as reference_id,
-        facility as loan_amount
+        facility_amount_usd as loan_amount_usd
 
     from {{ ref('int_approved_credit_facilities') }}
 
@@ -31,9 +31,9 @@ select
         as `identificacion_garantia`,
     '{{ npb4_17_09_tipos_de_garantias("Pignorada - Depósito de dinero") }}'
         as `tipo_garantia`,
-    coalesce(safe_divide(total_collateral * (
+    coalesce(safe_divide(total_collateral_amount_usd * (
         select any_value(last_price_usd having max requested_at)
         from {{ ref('stg_bitfinex_ticker_price') }}
-    ), loan_amount * 100), 1) as `valor_garantia_proporcional`
+    ), loan_amount_usd * 100), 1) as `valor_garantia_proporcional`
 
 from loans_and_credit_facilities

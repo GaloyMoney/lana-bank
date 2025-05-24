@@ -9,24 +9,23 @@ with initialized as (
         cast(json_value(event, "$.idx") as integer) as idx,
 
         cast(json_value(event, "$.terms.annual_rate") as numeric) as annual_rate,
+        cast(json_value(event, "$.terms.one_time_fee_rate") as numeric) as one_time_fee_rate,
 
         cast(json_value(event, "$.terms.initial_cvl") as numeric) as initial_cvl,
         cast(json_value(event, "$.terms.liquidation_cvl") as numeric) as liquidation_cvl,
         cast(json_value(event, "$.terms.margin_call_cvl") as numeric) as margin_call_cvl,
 
-        cast(json_value(event, "$.terms.one_time_fee_rate") as numeric) as one_time_fee_rate,
-
-        json_value(event, "$.terms.duration.type") as duration_type,
         cast(json_value(event, "$.terms.duration.value") as integer) as duration_value,
+        json_value(event, "$.terms.duration.type") as duration_type,
 
         json_value(event, "$.terms.accrual_interval.type") as accrual_interval,
         json_value(event, "$.terms.accrual_cycle_interval.type") as accrual_cycle_interval,
 
-        json_value(event, "$.terms.interest_due_duration.type") as interest_due_duration_type,
         cast(json_value(event, "$.terms.interest_due_duration.value") as integer) as interest_due_duration_value,
+        json_value(event, "$.terms.interest_due_duration.type") as interest_due_duration_type,
 
-        json_value(event, "$.terms.interest_overdue_duration.type") as interest_overdue_duration_type,
         cast(json_value(event, "$.terms.interest_overdue_duration.value") as integer) as interest_overdue_duration_value,
+        json_value(event, "$.terms.interest_overdue_duration.type") as interest_overdue_duration_type,
 
         cast(json_value(event, "$.period.start") as timestamp) as period_start_at,
         cast(json_value(event, "$.period.end") as timestamp) as period_end_at,
@@ -46,24 +45,23 @@ with initialized as (
     select
         id as interest_accrual_cycle_id,
         recorded_at as recorded_at,
-        cast(json_value(event, '$.amount') as numeric) as amount,
+        cast(json_value(event, '$.amount') as numeric) / {{ var('cents_per_usd') }} as accrued_interest_amount_usd,
         cast(json_value(event, '$.accrued_at') as timestamp) as accrued_at,
         json_value(event, '$.tx_id') as tx_id,
 
     from {{ ref('stg_interest_accrual_cycle_events') }}
     where event_type = "interest_accrued"
-    order by interest_accrual_cycle_id, accrued_at
 )
 
 , interest_accrued_agg as (
     select
         interest_accrual_cycle_id,
         array_agg(struct(
-            accrued_at as accrued_at,
-            amount as amount,
-            recorded_at as recorded_at,
+            accrued_at,
+            accrued_interest_amount_usd,
+            recorded_at,
             tx_id as tx_id
-        )) as interest_accrued,
+        ) order by accrued_at ) as interest_accrued,
 
     from interest_accrued
     group by interest_accrual_cycle_id
@@ -73,7 +71,7 @@ with initialized as (
     select
         id as interest_accrual_cycle_id,
         recorded_at as interest_accruals_posted_recorded_at,
-        cast(json_value(event, '$.total') as numeric) as posted_total,
+        cast(json_value(event, '$.total') as numeric) / {{ var('cents_per_usd') }} as total_interest_posted_usd,
         json_value(event, '$.tx_id') as posted_tx_id,
         json_value(event, '$.obligation_id') as posted_obligation_id,
 

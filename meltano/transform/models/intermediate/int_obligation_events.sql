@@ -7,7 +7,7 @@ with initialized as (
         json_value(event, "$.credit_facility_id") as credit_facility_id,
 
         json_value(event, "$.obligation_type") as obligation_type,
-        cast(json_value(event, '$.amount') as numeric) as facility_amount,
+        cast(json_value(event, '$.amount') as numeric) / {{ var('cents_per_usd') }} as facility_amount_usd,
 
         cast(json_value(event, "$.due_date") as timestamp) as due_date,
         cast(json_value(event, "$.overdue_date") as timestamp) as overdue_date,

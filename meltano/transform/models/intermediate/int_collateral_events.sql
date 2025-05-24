@@ -17,8 +17,8 @@ with initialized as (
 
         json_value(event, "$.action") as action,
 
-        cast(json_value(event, "$.abs_diff") as numeric) as abs_diff,
-        cast(json_value(event, "$.new_value") as numeric) as new_value,
+        cast(json_value(event, "$.abs_diff") as numeric) as collateral_abs_diff_amount_sats,
+        cast(json_value(event, "$.new_value") as numeric) as collateral_new_amount_sats,
 
         json_value(event, "$.ledger_tx_id") as ledger_tx_id,
 
@@ -28,9 +28,14 @@ with initialized as (
 
 , final as (
     select
-        *
-    from initialized
-    left join updated using (collateral_id)
+        i.*,
+        u.updated_recorded_at,
+        u.action,
+        collateral_abs_diff_amount_sats / {{ var('sats_per_bitcoin') }} as collateral_abs_diff_amount_btc,
+        collateral_new_amount_sats / {{ var('sats_per_bitcoin') }} as collateral_new_amount_btc,
+        u.ledger_tx_id,
+    from initialized as i
+    left join updated as u using (collateral_id)
 )
 
 

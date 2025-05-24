@@ -18,10 +18,13 @@ with credit_facility as (
 
 , final as (
     select
-        *
-    from credit_facility
-    left join collateral using (credit_facility_id)
-    left join accrual_cycle using (credit_facility_id)
+        cf.*,
+        c.* except (credit_facility_id),
+        collateral_amount_usd / facility_amount_usd * 100 as current_facility_cvl,
+        ac.* except (credit_facility_id),
+    from credit_facility as cf
+    left join collateral as c using (credit_facility_id)
+    left join accrual_cycle as ac using (credit_facility_id)
 )
 
 

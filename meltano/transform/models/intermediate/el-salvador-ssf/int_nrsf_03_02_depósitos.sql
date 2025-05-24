@@ -66,7 +66,7 @@ select
     '' as `Explicación de condiciones especiales`,
     earliest_recorded_at as `Fecha de apertura`,
     end_date as `Fecha de vencimiento`,
-    total_collateral as `Monto mínimo`,
+    total_collateral_amount_usd as `Monto mínimo`,
     'TODO' as `Código de la cuenta contable`,
     0.0 as `Fondos en compensación`,
     deposit_account_balance as `Fondos restringidos`,
