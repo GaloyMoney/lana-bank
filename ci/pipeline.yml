@@ -150,15 +150,22 @@ jobs:
     - task: check-code
       config:
         platform: linux
-        image_resource: #@ rust_task_image_config()
+        image_resource: #@ nix_flake_cachix_image_config()
         inputs:
         - name: pipeline-tasks
         - name: repo
-        caches:
-        - path: cargo-home
-        - path: cargo-target-dir
+        params:
+          CACHIX_AUTH_TOKEN: #@ data.values.cachix_auth_token
         run:
-          path: pipeline-tasks/ci/vendor/tasks/rust-check-code.sh
+          path: sh
+          args:
+            - -exc
+            - |
+              set -euo pipefail
+              cd repo
+              cachix use lana-ci
+              
+              nix develop --command sh -exc ../pipeline-tasks/ci/vendor/tasks/rust-check-code.sh
 
   - name: nodejs-check-code
     serial: true
