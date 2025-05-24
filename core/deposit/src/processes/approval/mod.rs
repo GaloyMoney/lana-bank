@@ -13,8 +13,8 @@ use outbox::OutboxEventMarker;
 use crate::{
     event::CoreDepositEvent,
     primitives::WithdrawalId,
-    withdrawal::{error::WithdrawalError, repo::WithdrawalRepo, Withdrawal},
-    CoreDepositAction, CoreDepositObject, WithdrawalAction,
+    withdrawal::{error::WithdrawalError, Withdrawal},
+    CoreDepositAction, CoreDepositObject, Withdrawals,
 };
 
 use super::error::ProcessError;
@@ -28,7 +28,7 @@ where
     Perms: PermissionCheck,
     E: OutboxEventMarker<GovernanceEvent> + OutboxEventMarker<CoreDepositEvent>,
 {
-    repo: WithdrawalRepo<E>,
+    withdrawals: Withdrawals<Perms, E>,
     audit: Perms::Audit,
     governance: Governance<Perms, E>,
 }
@@ -39,7 +39,7 @@ where
 {
     fn clone(&self) -> Self {
         Self {
-            repo: self.repo.clone(),
+            withdrawals: self.withdrawals.clone(),
             audit: self.audit.clone(),
             governance: self.governance.clone(),
         }
@@ -56,12 +56,12 @@ where
     E: OutboxEventMarker<GovernanceEvent> + OutboxEventMarker<CoreDepositEvent>,
 {
     pub fn new(
-        repo: &WithdrawalRepo<E>,
+        withdrawals: &Withdrawals<Perms, E>,
         audit: &Perms::Audit,
         governance: &Governance<Perms, E>,
     ) -> Self {
         Self {
-            repo: repo.clone(),
+            withdrawals: withdrawals.clone(),
             audit: audit.clone(),
             governance: governance.clone(),
         }
@@ -96,27 +96,8 @@ where
         id: impl es_entity::RetryableInto<WithdrawalId>,
         approved: bool,
     ) -> Result<Withdrawal, WithdrawalError> {
-        let id = id.into();
-        let mut withdraw = self.repo.find_by_id(id).await?;
-        if withdraw.is_approved_or_denied().is_some() {
-            return Ok(withdraw);
-        }
-        let mut db = self.repo.begin_op().await?;
-        let audit_info = self
-            .audit
-            .record_system_entry_in_tx(
-                db.tx(),
-                CoreDepositObject::withdrawal(id),
-                CoreDepositAction::Withdrawal(WithdrawalAction::ConcludeApprovalProcess),
-            )
-            .await?;
-        if withdraw
-            .approval_process_concluded(approved, audit_info)
-            .did_execute()
-        {
-            self.repo.update_in_op(&mut db, &mut withdraw).await?;
-            db.commit().await?;
-        }
-        Ok(withdraw)
+        self.withdrawals
+            .conclude_approval_process(id, approved)
+            .await
     }
 }

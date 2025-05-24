@@ -121,6 +121,43 @@ where
         Ok(tx_id)
     }
 
+    #[instrument(
+        name = "core_deposit.withdrawal.conclude_approval_process",
+        skip(self),
+        err
+    )]
+    pub(super) async fn conclude_approval_process(
+        &self,
+        id: impl es_entity::RetryableInto<WithdrawalId> + std::fmt::Debug,
+        approved: bool,
+    ) -> Result<Withdrawal, WithdrawalError> {
+        let id = id.into();
+        let mut withdraw = self.repo.find_by_id(id).await?;
+        if withdraw.is_approved_or_denied().is_some() {
+            return Ok(withdraw);
+        }
+
+        let mut db = self.repo.begin_op().await?;
+        let audit_info = self
+            .authz
+            .audit()
+            .record_system_entry_in_tx(
+                db.tx(),
+                CoreDepositObject::withdrawal(id),
+                CoreDepositAction::Withdrawal(WithdrawalAction::ConcludeApprovalProcess),
+            )
+            .await?;
+        if withdraw
+            .approval_process_concluded(approved, audit_info)
+            .did_execute()
+        {
+            self.repo.update_in_op(&mut db, &mut withdraw).await?;
+            db.commit().await?;
+        }
+
+        Ok(withdraw)
+    }
+
     #[instrument(name = "core_deposit.withdrawal.find_by_id", skip(self), err)]
     pub async fn find_by_id(
         &self,
