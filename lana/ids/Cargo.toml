@@ -16,3 +16,7 @@ job = { path = "../../lib/job" }
 
 es-entity = { workspace = true, features = ["graphql"] }
 cala-ledger = { workspace = true }
+
+# Required by es_entity::entity_id macro
+sqlx = { workspace = true }
+serde = { workspace = true }

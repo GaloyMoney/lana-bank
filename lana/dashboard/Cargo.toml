@@ -18,7 +18,7 @@ audit = { path = "../../lib/audit" }
 outbox = { path = "../../lib/outbox" }
 job = { path = "../../lib/job" }
 
-es-entity = { workspace = true }
+es-entity = { workspace = true, features = ["graphql"] }
 sim-time = { workspace = true, optional = true }
 
 uuid = { workspace = true }
