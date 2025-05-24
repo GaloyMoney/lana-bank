@@ -33,6 +33,7 @@ import { CreateTermsTemplateDialog } from "./terms-templates/create"
 import { CreateCommitteeDialog } from "./committees/create"
 import { CreditFacilityDisbursalInitiateDialog } from "./disbursals/create"
 import { ExecuteManualTransactionDialog } from "./journal/execute-manual-transaction"
+import { CreateRoleDialog } from "./roles-and-permissions/create"
 
 import {
   CreditFacility,
@@ -66,6 +67,8 @@ export const PATH_CONFIGS = {
   DISBURSAL_DETAILS: /^\/disbursals\/[^/]+/,
 
   JOURNAL: "/journal",
+
+  ROLES_AND_PERMISSIONS: "/roles-and-permissions",
 }
 
 const showCreateButton = (currentPath: string) => {
@@ -115,6 +118,7 @@ const CreateButton = () => {
     useState(false)
   const [openCreateCommitteeDialog, setOpenCreateCommitteeDialog] = useState(false)
   const [openExecuteManualTransaction, setOpenExecuteManualTransaction] = useState(false)
+  const [openCreateRoleDialog, setOpenCreateRoleDialog] = useState(false)
   const [showMenu, setShowMenu] = useState(false)
 
   const { customer, facility, setCustomer } = useCreateContext()
@@ -221,6 +225,12 @@ const CreateButton = () => {
       dataTestId: "execute-manual-transaction-button",
       allowedPaths: [PATH_CONFIGS.JOURNAL],
     },
+    {
+      label: t("menuItems.role"),
+      onClick: () => setOpenCreateRoleDialog(true),
+      dataTestId: "create-role-button",
+      allowedPaths: [PATH_CONFIGS.ROLES_AND_PERMISSIONS],
+    },
   ]
 
   const getAvailableMenuItems = () => {
@@ -320,6 +330,11 @@ const CreateButton = () => {
       <ExecuteManualTransactionDialog
         openExecuteManualTransaction={openExecuteManualTransaction}
         setOpenExecuteManualTransaction={setOpenExecuteManualTransaction}
+      />
+
+      <CreateRoleDialog
+        open={openCreateRoleDialog}
+        onOpenChange={setOpenCreateRoleDialog}
       />
 
       {customer && customer.depositAccount && (
