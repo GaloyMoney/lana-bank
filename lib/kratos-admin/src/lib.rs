@@ -36,7 +36,7 @@ impl KratosAdmin {
 
         let response = self
             .client
-            .post(&format!("{}/admin/identities", self.base_url))
+            .post(format!("{}/admin/identities", self.base_url))
             .json(&identity_body)
             .send()
             .await?;
@@ -72,7 +72,7 @@ impl KratosAdmin {
 
         let response = self
             .client
-            .patch(&format!(
+            .patch(format!(
                 "{}/admin/identities/{}",
                 self.base_url, authentication_id
             ))
