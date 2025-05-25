@@ -1,0 +1,8 @@
+meltano:                          # ← must equal the `profile:` value in dbt_project.yml
+  outputs:
+    dev:
+      type: duckdb
+      path: "{{ env_var('MELTANO_PROJECT_ROOT') }}/.build/target_duckdb.db"
+      schema: lana # Ensure dbt builds models into the 'lana' schema
+      threads: 1
+  target: dev

@@ -85,9 +85,6 @@
         extensions = ["rust-analyzer" "rust-src"];
       };
 
-      aliases = [
-        (mkAlias "meltano" ''docker compose run --rm meltano -- "$@"'')
-      ];
       nativeBuildInputs = with pkgs;
         [
           rustToolchain
@@ -135,8 +132,7 @@
         ]
         ++ lib.optionals pkgs.stdenv.isDarwin [
           darwin.apple_sdk.frameworks.SystemConfiguration
-        ]
-        ++ aliases;
+        ];
       devEnvVars = rec {
         OTEL_EXPORTER_OTLP_ENDPOINT = http://localhost:4317;
         PGDATABASE = "pg";
@@ -148,7 +144,7 @@
       };
     in
       with pkgs; {
-        packages.default = lana-cli;
+        packages.default = lana-cli-debug;
         packages.deps = cargoArtifacts;
 
         apps.default = flake-utils.lib.mkApp {drv = lana-cli;};
@@ -156,6 +152,9 @@
         devShells.default =
           mkShell (devEnvVars // {inherit nativeBuildInputs;});
 
+        devShells.meltano = pkgs.callPackage ./meltano.nix {
+          inherit mkShell devEnvVars;
+        };
         formatter = alejandra;
       });
 }
