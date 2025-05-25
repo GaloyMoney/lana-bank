@@ -20,8 +20,6 @@ pub enum WithdrawalError {
     AuditError(#[from] audit::error::AuditError),
     #[error("WithdrawalError - AuthorizationError: {0}")]
     AuthorizationError(#[from] authz::error::AuthorizationError),
-    #[error("WithdrawalError - WithdrawalBuilderError: {0}")]
-    WithdrawalBuilderError(#[from] super::NewWithdrawalBuilderError),
 }
 
 es_entity::from_es_entity_error!(WithdrawalError);

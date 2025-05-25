@@ -64,22 +64,8 @@ where
     pub(super) async fn create(
         &self,
         op: &mut es_entity::DbOp<'_>,
-        deposit_account_id: impl Into<DepositAccountId> + std::fmt::Debug,
-        amount: UsdCents,
-        reference: Option<String>,
-        audit_info: AuditInfo,
+        new_withdrawal: NewWithdrawal,
     ) -> Result<Withdrawal, WithdrawalError> {
-        let withdrawal_id = WithdrawalId::new();
-
-        let new_withdrawal = NewWithdrawal::builder()
-            .id(withdrawal_id)
-            .deposit_account_id(deposit_account_id)
-            .amount(amount)
-            .approval_process_id(withdrawal_id)
-            .reference(reference)
-            .audit_info(audit_info)
-            .build()?;
-
         self.repo.create_in_op(op, new_withdrawal).await
     }
 

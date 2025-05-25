@@ -352,21 +352,28 @@ where
             .await?;
         self.check_account_active(deposit_account_id).await?;
 
-        let mut op = self.withdrawals.begin_op().await?;
+        let withdrawal_id = WithdrawalId::new();
+        let new_withdrawal = NewWithdrawal::builder()
+            .id(withdrawal_id)
+            .deposit_account_id(deposit_account_id)
+            .amount(amount)
+            .approval_process_id(withdrawal_id)
+            .reference(reference)
+            .audit_info(audit_info)
+            .build()?;
 
-        let withdrawal = self
-            .withdrawals
-            .create(&mut op, deposit_account_id, amount, reference, audit_info)
-            .await?;
+        let mut op = self.withdrawals.begin_op().await?;
 
         self.governance
             .start_process(
                 &mut op,
-                withdrawal.id,
-                withdrawal.id.to_string(),
+                withdrawal_id,
+                withdrawal_id.to_string(),
                 APPROVE_WITHDRAWAL_PROCESS,
             )
             .await?;
+
+        let withdrawal = self.withdrawals.create(&mut op, new_withdrawal).await?;
 
         self.ledger
             .initiate_withdrawal(op, withdrawal.id, amount, deposit_account_id)

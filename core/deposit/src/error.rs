@@ -36,6 +36,8 @@ pub enum CoreDepositError {
     DepositConfigAlreadyExists,
     #[error("CoreDepositError - DepositAccountNotActive")]
     DepositAccountNotActive,
+    #[error("CoreDepositError - WithdrawalBuilderError: {0}")]
+    WithdrawalBuilderError(#[from] super::NewWithdrawalBuilderError),
     #[error("CoreDepositError - DepositBuilderError: {0}")]
     DepositBuilderError(#[from] super::NewDepositBuilderError),
 }
