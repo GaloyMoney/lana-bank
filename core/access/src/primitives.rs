@@ -58,6 +58,7 @@ impl CoreAccessAction {
     pub const ROLE_CREATE: Self = CoreAccessAction::Role(RoleAction::Create);
     pub const ROLE_UPDATE: Self = CoreAccessAction::Role(RoleAction::Update);
     pub const ROLE_LIST: Self = CoreAccessAction::Role(RoleAction::List);
+    pub const ROLE_READ: Self = CoreAccessAction::Role(RoleAction::Read);
 
     pub const USER_CREATE: Self = CoreAccessAction::User(UserAction::Create);
     pub const USER_READ: Self = CoreAccessAction::User(UserAction::Read);
@@ -98,6 +99,7 @@ pub enum RoleAction {
     Create,
     Update,
     List,
+    Read,
 }
 
 impl RoleAction {
@@ -109,6 +111,7 @@ impl RoleAction {
                 Self::Create => ActionDescription::new(variant, &[ACCESS_WRITER]),
                 Self::Update => ActionDescription::new(variant, &[ACCESS_WRITER]),
                 Self::List => ActionDescription::new(variant, &[ACCESS_READER, ACCESS_WRITER]),
+                Self::Read => ActionDescription::new(variant, &[ACCESS_READER]),
             };
             res.push(action_description);
         }

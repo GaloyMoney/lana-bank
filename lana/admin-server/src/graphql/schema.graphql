@@ -1223,7 +1223,7 @@ type Mutation {
 	userRevokeRole(input: UserRevokeRoleInput!): UserRevokeRolePayload!
 	roleCreate(input: RoleCreateInput!): RoleCreatePayload!
 	roleAddPermissionSets(input: RoleAddPermissionSetsInput!): RoleAddPermissionSetsPayload!
-	roleRemovePermissionSet(input: RoleRemovePermissionSetInput!): RoleRemovePermissionSetPayload!
+	roleRemovePermissionSets(input: RoleRemovePermissionSetsInput!): RoleRemovePermissionSetsPayload!
 	customerCreate(input: CustomerCreateInput!): CustomerCreatePayload!
 	customerTelegramIdUpdate(input: CustomerTelegramIdUpdateInput!): CustomerTelegramIdUpdatePayload!
 	customerEmailUpdate(input: CustomerEmailUpdateInput!): CustomerEmailUpdatePayload!
@@ -1406,6 +1406,7 @@ type Query {
 	dashboard: Dashboard!
 	user(id: UUID!): User
 	users: [User!]!
+	role(id: UUID!): RoleEntity
 	roles(first: Int!, after: String): RoleEntityConnection!
 	permissionSets(first: Int!, after: String): PermissionSetConnection!
 	customer(id: UUID!): Customer
@@ -1512,6 +1513,7 @@ type RoleCreatePayload {
 type RoleEntity {
 	id: ID!
 	roleId: UUID!
+	createdAt: Timestamp!
 	name: String!
 	permissionSets: [PermissionSet!]!
 }
@@ -1545,12 +1547,12 @@ type RoleEntityEdge {
 	cursor: String!
 }
 
-input RoleRemovePermissionSetInput {
+input RoleRemovePermissionSetsInput {
 	roleId: UUID!
-	permissionSetId: UUID!
+	permissionSetIds: [UUID!]!
 }
 
-type RoleRemovePermissionSetPayload {
+type RoleRemovePermissionSetsPayload {
 	role: RoleEntity!
 }
 

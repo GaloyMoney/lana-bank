@@ -12,6 +12,7 @@ pub use lana_app::access::role::RolesByNameCursor;
 pub struct Role {
     id: ID,
     role_id: UUID,
+    created_at: Timestamp,
 
     #[graphql(skip)]
     pub(crate) entity: Arc<DomainRole>,
@@ -40,6 +41,8 @@ impl From<DomainRole> for Role {
         Self {
             id: role.id.to_global_id(),
             role_id: UUID::from(role.id),
+            created_at: role.created_at().into(),
+
             entity: Arc::new(role),
         }
     }
@@ -60,8 +63,8 @@ pub struct RoleAddPermissionSetsInput {
 crate::mutation_payload! { RoleAddPermissionSetsPayload, role: Role }
 
 #[derive(InputObject)]
-pub struct RoleRemovePermissionSetInput {
+pub struct RoleRemovePermissionSetsInput {
     pub role_id: UUID,
-    pub permission_set_id: UUID,
+    pub permission_set_ids: Vec<UUID>,
 }
-crate::mutation_payload! { RoleRemovePermissionSetPayload, role: Role }
+crate::mutation_payload! { RoleRemovePermissionSetsPayload, role: Role }

@@ -42,6 +42,12 @@ pub struct Role {
 }
 
 impl Role {
+    pub fn created_at(&self) -> chrono::DateTime<chrono::Utc> {
+        self.events
+            .entity_first_persisted_at()
+            .expect("entity_first_persisted_at not found")
+    }
+
     pub(crate) fn add_permission_set(
         &mut self,
         permission_set_id: PermissionSetId,
@@ -52,7 +58,7 @@ impl Role {
             RoleEvent::PermissionSetAdded { permission_set_id: id, ..} if permission_set_id == *id,
             => RoleEvent::PermissionSetRemoved { permission_set_id: id, .. } if permission_set_id == *id
         );
-
+        self.permission_sets.insert(permission_set_id);
         self.events.push(RoleEvent::PermissionSetAdded {
             permission_set_id,
             audit_info,
@@ -70,7 +76,7 @@ impl Role {
             RoleEvent::PermissionSetRemoved { permission_set_id: id, .. } if permission_set_id == *id,
             => RoleEvent::PermissionSetAdded { permission_set_id: id, ..} if permission_set_id == *id
         );
-
+        self.permission_sets.remove(&permission_set_id);
         self.events.push(RoleEvent::PermissionSetRemoved {
             permission_set_id,
             audit_info,

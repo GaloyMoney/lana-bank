@@ -152,14 +152,17 @@ where
         Ok(role)
     }
 
-    pub async fn remove_permission_set_from_role(
+    pub async fn remove_permission_sets_from_role(
         &self,
         sub: &<Audit as AuditSvc>::Subject,
         role_id: impl Into<RoleId>,
-        permission_set_id: impl Into<PermissionSetId>,
+        permission_set_ids: impl IntoIterator<Item = impl Into<PermissionSetId>>,
     ) -> Result<Role, CoreAccessError> {
         let role_id = role_id.into();
-        let permission_set_id = permission_set_id.into();
+        let permission_set_ids = permission_set_ids
+            .into_iter()
+            .map(|id| id.into())
+            .collect::<Vec<_>>();
 
         let audit_info = self
             .authz
@@ -170,13 +173,24 @@ where
             )
             .await?;
 
-        let permission_set = self.permission_sets.find_by_id(permission_set_id).await?;
         let mut role = self.roles.find_by_id(role_id).await?;
+        let permission_sets = self
+            .permission_sets
+            .find_all::<PermissionSet>(&permission_set_ids)
+            .await?;
 
-        if role
-            .remove_permission_set(permission_set.id, audit_info)
-            .did_execute()
-        {
+        let mut changed = false;
+
+        for (permission_set_id, _) in permission_sets {
+            if role
+                .remove_permission_set(permission_set_id, audit_info.clone())
+                .did_execute()
+            {
+                changed = true;
+            }
+        }
+
+        if changed {
             self.roles.update(&mut role).await?;
         }
 
@@ -222,6 +236,22 @@ where
             .roles
             .list_by_name(query, es_entity::ListDirection::Descending)
             .await?)
+    }
+
+    pub async fn find_role_by_id(
+        &self,
+        sub: &<Audit as AuditSvc>::Subject,
+        id: impl Into<RoleId>,
+    ) -> Result<Option<Role>, CoreAccessError> {
+        let id = id.into();
+        self.authz
+            .enforce_permission(sub, CoreAccessObject::role(id), CoreAccessAction::ROLE_READ)
+            .await?;
+        match self.roles.find_by_id(id).await {
+            Ok(role) => Ok(Some(role)),
+            Err(e) if e.was_not_found() => Ok(None),
+            Err(e) => Err(e.into()),
+        }
     }
 
     #[instrument(name = "access.find_all_permission_sets", skip(self), err)]

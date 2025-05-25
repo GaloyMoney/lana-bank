@@ -59,6 +59,11 @@ impl Query {
         Ok(users)
     }
 
+    async fn role(&self, ctx: &Context<'_>, id: UUID) -> async_graphql::Result<Option<Role>> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        maybe_fetch_one!(Role, ctx, app.access().find_role_by_id(sub, id))
+    }
+
     async fn roles(
         &self,
         ctx: &Context<'_>,
@@ -875,21 +880,21 @@ impl Mutation {
         )
     }
 
-    async fn role_remove_permission_set(
+    async fn role_remove_permission_sets(
         &self,
         ctx: &Context<'_>,
-        input: RoleRemovePermissionSetInput,
-    ) -> async_graphql::Result<RoleRemovePermissionSetPayload> {
+        input: RoleRemovePermissionSetsInput,
+    ) -> async_graphql::Result<RoleRemovePermissionSetsPayload> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
 
         exec_mutation!(
-            RoleRemovePermissionSetPayload,
+            RoleRemovePermissionSetsPayload,
             Role,
             ctx,
-            app.access().remove_permission_set_from_role(
+            app.access().remove_permission_sets_from_role(
                 sub,
                 input.role_id,
-                input.permission_set_id
+                input.permission_set_ids
             )
         )
     }
