@@ -106,7 +106,7 @@ where
     ) -> Result<Self, CoreDepositError> {
         let publisher = DepositPublisher::new(outbox);
         let accounts = DepositAccountRepo::new(pool, &publisher);
-        let deposits = DepositRepo::new(&pool, &publisher);
+        let deposits = DepositRepo::new(pool, &publisher);
         let withdrawals = Withdrawals::new(pool, authz, &publisher);
         let ledger = DepositLedger::init(cala, journal_id).await?;
 
@@ -158,7 +158,7 @@ where
             holder_id,
             &self.accounts,
             &self.deposits,
-            self.withdrawals.repo(), // CHANGE THIS IMPL
+            &self.withdrawals,
             &self.ledger,
             &self.authz,
         ))

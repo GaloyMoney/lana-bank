@@ -104,7 +104,7 @@ impl CancelledWithdrawalEntry {
         let withdrawal = app
             .deposits()
             .withdrawals()
-            .find_withdrawal_by_cancelled_tx_id(sub, self.tx_id)
+            .find_by_cancelled_tx_id(sub, self.tx_id)
             .await?;
 
         Ok(Withdrawal::from(withdrawal))

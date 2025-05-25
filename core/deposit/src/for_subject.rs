@@ -19,13 +19,13 @@ use crate::{
 pub struct DepositsForSubject<'a, Perms, E>
 where
     Perms: PermissionCheck,
-    E: OutboxEventMarker<CoreDepositEvent>,
+    E: OutboxEventMarker<CoreDepositEvent> + OutboxEventMarker<governance::GovernanceEvent>,
 {
     account_holder_id: DepositAccountHolderId,
     sub: &'a <<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
     accounts: &'a DepositAccountRepo<E>,
     deposits: &'a DepositRepo<E>,
-    withdrawals: &'a WithdrawalRepo<E>,
+    withdrawals: &'a Withdrawals<Perms, E>,
     ledger: &'a DepositLedger,
     authz: &'a Perms,
 }
@@ -37,14 +37,14 @@ where
         From<CoreDepositAction> + From<GovernanceAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object:
         From<CoreDepositObject> + From<GovernanceObject>,
-    E: OutboxEventMarker<CoreDepositEvent>,
+    E: OutboxEventMarker<CoreDepositEvent> + OutboxEventMarker<governance::GovernanceEvent>,
 {
     pub(super) fn new(
         subject: &'a <<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         account_holder_id: DepositAccountHolderId,
         accounts: &'a DepositAccountRepo<E>,
         deposits: &'a DepositRepo<E>,
-        withdrawals: &'a WithdrawalRepo<E>,
+        withdrawals: &'a Withdrawals<Perms, E>,
         ledger: &'a DepositLedger,
         authz: &'a Perms,
     ) -> Self {
@@ -188,13 +188,8 @@ where
 
         Ok(self
             .withdrawals
-            .list_for_deposit_account_id_by_created_at(
-                account_id,
-                Default::default(),
-                es_entity::ListDirection::Descending,
-            )
-            .await?
-            .entities)
+            .list_for_account_internal(account_id)
+            .await?)
     }
 
     pub async fn find_withdrawal_by_id(
@@ -202,7 +197,7 @@ where
         withdrawal_id: impl Into<WithdrawalId> + std::fmt::Debug,
     ) -> Result<Withdrawal, CoreDepositError> {
         let withdrawal_id = withdrawal_id.into();
-        let withdrawal = self.withdrawals.find_by_id(withdrawal_id).await?;
+        let withdrawal = self.withdrawals.find_by_id_internal(withdrawal_id).await?;
 
         self.ensure_account_access(
             withdrawal.deposit_account_id,
@@ -218,10 +213,9 @@ where
         &self,
         cancelled_tx_id: impl Into<CalaTransactionId> + std::fmt::Debug,
     ) -> Result<Withdrawal, CoreDepositError> {
-        let cancelled_tx_id = cancelled_tx_id.into();
         let withdrawal = self
             .withdrawals
-            .find_by_cancelled_tx_id(Some(cancelled_tx_id))
+            .find_by_cancelled_tx_id_internal(cancelled_tx_id)
             .await?;
 
         self.ensure_account_access(

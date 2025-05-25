@@ -55,10 +55,6 @@ where
         }
     }
 
-    pub(super) fn repo(&self) -> &WithdrawalRepo<E> {
-        &self.repo
-    }
-
     pub(super) async fn begin_op(&self) -> Result<es_entity::DbOp<'_>, WithdrawalError> {
         let res = self.repo.begin_op().await?;
         Ok(res)
@@ -128,7 +124,7 @@ where
     )]
     pub(super) async fn conclude_approval_process(
         &self,
-        id: impl es_entity::RetryableInto<WithdrawalId> + std::fmt::Debug,
+        id: impl es_entity::RetryableInto<WithdrawalId>,
         approved: bool,
     ) -> Result<Withdrawal, WithdrawalError> {
         let id = id.into();
@@ -158,6 +154,15 @@ where
         Ok(withdraw)
     }
 
+    #[instrument(name = "core_deposit.withdrawal.find_by_id_internal", skip(self), err)]
+    pub(super) async fn find_by_id_internal(
+        &self,
+        id: impl Into<WithdrawalId> + std::fmt::Debug,
+    ) -> Result<Withdrawal, WithdrawalError> {
+        let id = id.into();
+        self.repo.find_by_id(id).await
+    }
+
     #[instrument(name = "core_deposit.withdrawal.find_by_id", skip(self), err)]
     pub async fn find_by_id(
         &self,
@@ -176,8 +181,18 @@ where
         match self.repo.find_by_id(id).await {
             Ok(withdrawal) => Ok(Some(withdrawal)),
             Err(e) if e.was_not_found() => Ok(None),
-            Err(e) => Err(e.into()),
+            Err(e) => Err(e),
         }
+    }
+
+    pub(super) async fn find_by_cancelled_tx_id_internal(
+        &self,
+        cancelled_tx_id: impl Into<CalaTransactionId> + std::fmt::Debug,
+    ) -> Result<Withdrawal, WithdrawalError> {
+        let cancelled_tx_id = cancelled_tx_id.into();
+        self.repo
+            .find_by_cancelled_tx_id(Some(cancelled_tx_id))
+            .await
     }
 
     #[instrument(
@@ -185,7 +200,7 @@ where
         skip(self),
         err
     )]
-    pub async fn find_withdrawal_by_cancelled_tx_id(
+    pub async fn find_by_cancelled_tx_id(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         cancelled_tx_id: impl Into<CalaTransactionId> + std::fmt::Debug,
@@ -204,6 +219,27 @@ where
             .await?;
 
         Ok(withdrawal)
+    }
+
+    #[instrument(
+        name = "core_deposit.withdrawal.list_for_account_internal",
+        skip(self),
+        err
+    )]
+    pub(super) async fn list_for_account_internal(
+        &self,
+        account_id: impl Into<DepositAccountId> + std::fmt::Debug,
+    ) -> Result<Vec<Withdrawal>, WithdrawalError> {
+        let account_id = account_id.into();
+        Ok(self
+            .repo
+            .list_for_deposit_account_id_by_created_at(
+                account_id,
+                Default::default(),
+                es_entity::ListDirection::Descending,
+            )
+            .await?
+            .entities)
     }
 
     #[instrument(name = "core_deposit.withdrawal.list_for_account", skip(self), err)]
@@ -247,10 +283,10 @@ where
                 CoreDepositAction::WITHDRAWAL_LIST,
             )
             .await?;
-        Ok(self
-            .repo
+
+        self.repo
             .list_by_created_at(query, es_entity::ListDirection::Descending)
-            .await?)
+            .await
     }
 
     #[instrument(name = "core_deposit.withdrawal.find_all", skip(self), err)]
@@ -258,6 +294,6 @@ where
         &self,
         ids: &[WithdrawalId],
     ) -> Result<std::collections::HashMap<WithdrawalId, T>, WithdrawalError> {
-        Ok(self.repo.find_all(ids).await?)
+        self.repo.find_all(ids).await
     }
 }
