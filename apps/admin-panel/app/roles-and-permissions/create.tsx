@@ -3,6 +3,7 @@
 import { useState } from "react"
 import { useTranslations } from "next-intl"
 import { toast } from "sonner"
+import { useRouter } from "next/navigation"
 
 import {
   Dialog,
@@ -52,6 +53,7 @@ type CreateRoleDialogProps = {
 export function CreateRoleDialog({ open, onOpenChange }: CreateRoleDialogProps) {
   const t = useTranslations("RolesAndPermissions.create")
   const tCommon = useTranslations("Common")
+  const router = useRouter()
   const [name, setName] = useState("")
   const [selectedPermissionSets, setSelectedPermissionSets] = useState<string[]>([])
   const [error, setError] = useState<string | null>(null)
@@ -100,6 +102,8 @@ export function CreateRoleDialog({ open, onOpenChange }: CreateRoleDialogProps) 
         toast.success(t("success"))
         resetForm()
         onOpenChange(false)
+        const newRoleId = result.data.roleCreate.role.roleId
+        router.push(`/roles-and-permissions/${newRoleId}`)
       }
     } catch (error) {
       console.error("Failed to create role:", error)

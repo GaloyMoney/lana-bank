@@ -9,6 +9,7 @@
     "delete": "Delete",
     "edit": "Edit",
     "create": "Create",
+    "update": "Update",
     "search": "Search",
     "filter": "Filter",
     "sort": "Sort",
@@ -1560,16 +1561,13 @@
     "table": {
       "headers": {
         "name": "Role Name",
-        "permissionSets": "Permission Sets"
+        "permissionSets": "Permission Sets",
+        "createdAt": "Created At"
       },
       "emptyMessage": "No roles found. Click the create button to add a new role.",
       "noPermissionSetsAssigned": "No permissions assigned",
       "permissionsCount": "permissions",
       "morePermissions": "more"
-    },
-    "permissionSetsSection": {
-      "title": "Available Permission Sets",
-      "description": "These are all the available permission sets in the system"
     },
     "create": {
       "title": "Create Role",
@@ -1578,25 +1576,25 @@
       "namePlaceholder": "Enter role name",
       "permissionsLabel": "Permissions",
       "noPermissionsSelected": "No permissions selected",
-      "submitButton": "Create Role",
-      "cancelButton": "Cancel",
       "success": "Role created successfully",
       "error": "Failed to create role: {error}"
     },
     "update": {
-      "viewDescription": "View all permissions for this role",
-      "editTitle": "Update Role",
+      "title": "Edit Role",
       "editDescription": "Update the permissions for this role",
-      "nameLabel": "Role Name",
       "permissionsLabel": "Permissions",
-      "noPermissionsSelected": "No permissions selected",
-      "noPermissionsAssigned": "No permissions assigned",
       "noPermissionsAvailable": "No permissions available",
-      "editButton": "Edit Role",
-      "total": "total",
       "selected": "selected",
       "success": "Role updated successfully",
       "error": "Failed to update role: {error}"
+    },
+    "roleDetails": {
+      "roleDetails": "Role Details",
+      "roleDetailsDescription": "View and manage role information and permissions",
+      "name": "Name",
+      "createdAt": "Created At",
+      "permissionSets": "Permission Sets",
+      "editRole": "Edit Role"
     }
   }
 }

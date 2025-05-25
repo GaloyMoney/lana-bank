@@ -10,6 +10,7 @@ checksums:
     Common/delete: 8bcf303dd10a645b5baacb02b47d72c9
     Common/edit: eee7f39ff90b18852afc1671f21fbaa9
     Common/create: 757ccd28dd533ff3a933355273c1e32a
+    Common/update: 079fc039262fd31b10532929685c2d1b
     Common/search: 49dd6c21604b5e8d4153ff1aff2177e1
     Common/filter: 626325a05e4c8800f7ede7012b0cadaf
     Common/sort: 8b928fb3b68d93ccda40bed22261e796
@@ -928,32 +929,29 @@ checksums:
     RolesAndPermissions/description: 50adc668981bee3b282074f95b983a22
     RolesAndPermissions/table/headers/name: e8b92e9bbc2293dc77c4219f4652317a
     RolesAndPermissions/table/headers/permissionSets: 949dcbec01c367fb23a63eac4aba772b
+    RolesAndPermissions/table/headers/createdAt: 9ce495d7fc74e1a2ae86c07206a3e531
     RolesAndPermissions/table/emptyMessage: cf4cb3c1c0f68b5842c4800ab1c1b7a3
     RolesAndPermissions/table/noPermissionSetsAssigned: 97c4ddcf1e6a6b6dc29b00b9e86a4e07
     RolesAndPermissions/table/permissionsCount: 05ac98bffdd61dcaa19a506772bd6775
     RolesAndPermissions/table/morePermissions: 68c36decdf52e2671406383de8579c13
-    RolesAndPermissions/permissionSetsSection/title: 9b6ba7b015cb5d0fa125eea2795b35b9
-    RolesAndPermissions/permissionSetsSection/description: df53e5e22cb0ca8076c864ff2595ed9c
     RolesAndPermissions/create/title: f085b4f05432198e6eb1d87ca8caf6b7
     RolesAndPermissions/create/description: a4d6112e356b510676f7518dd99295dd
     RolesAndPermissions/create/nameLabel: e8b92e9bbc2293dc77c4219f4652317a
     RolesAndPermissions/create/namePlaceholder: 2ead202822510ba15935bf820a14860a
     RolesAndPermissions/create/permissionsLabel: 2160be68b1d6b6577e64634e9feba2ed
     RolesAndPermissions/create/noPermissionsSelected: 76ea56aa10044a18f97401a02d56bfe8
-    RolesAndPermissions/create/submitButton: f085b4f05432198e6eb1d87ca8caf6b7
-    RolesAndPermissions/create/cancelButton: 2e2a849c2223911717de8caa2c71bade
     RolesAndPermissions/create/success: 0c5e659653544f4e549c49deee5da514
     RolesAndPermissions/create/error: 475b4f4778f15bd72083049e57dcfdc3
-    RolesAndPermissions/update/viewDescription: 06ef3f6d009b39b96b5e22c3262a859f
-    RolesAndPermissions/update/editTitle: 365448e14f736c954e16abea616d4284
+    RolesAndPermissions/update/title: b5c3ab76d07ed0d4603b2025efffc025
     RolesAndPermissions/update/editDescription: fbc842bdb581a2e2228f1bbfb4dd388e
-    RolesAndPermissions/update/nameLabel: e8b92e9bbc2293dc77c4219f4652317a
     RolesAndPermissions/update/permissionsLabel: 2160be68b1d6b6577e64634e9feba2ed
-    RolesAndPermissions/update/noPermissionsSelected: 76ea56aa10044a18f97401a02d56bfe8
-    RolesAndPermissions/update/noPermissionsAssigned: 97c4ddcf1e6a6b6dc29b00b9e86a4e07
     RolesAndPermissions/update/noPermissionsAvailable: b95969ac9a76d914ca29a0cb9d635a3e
-    RolesAndPermissions/update/editButton: b5c3ab76d07ed0d4603b2025efffc025
-    RolesAndPermissions/update/total: 6d37e50017f531e7f9aadd8cc2fa7f76
     RolesAndPermissions/update/selected: 4dd498a55c80622eb1d22d540bd1498f
     RolesAndPermissions/update/success: 70f6225b70f4bcd15af464da4c838096
     RolesAndPermissions/update/error: 550ac44c038b29ea9f805612e96868fb
+    RolesAndPermissions/roleDetails/roleDetails: d6a7dd784df6ead4847a40c6927ab29d
+    RolesAndPermissions/roleDetails/roleDetailsDescription: d706bd3669b856e879413fd1f296f792
+    RolesAndPermissions/roleDetails/name: 9368b5a047572b6051f334af5aa76819
+    RolesAndPermissions/roleDetails/createdAt: 9ce495d7fc74e1a2ae86c07206a3e531
+    RolesAndPermissions/roleDetails/permissionSets: 949dcbec01c367fb23a63eac4aba772b
+    RolesAndPermissions/roleDetails/editRole: b5c3ab76d07ed0d4603b2025efffc025

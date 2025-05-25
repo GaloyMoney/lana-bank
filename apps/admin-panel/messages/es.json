@@ -9,6 +9,7 @@
     "delete": "Eliminar",
     "edit": "Editar",
     "create": "Crear",
+    "update": "Actualizar",
     "search": "Buscar",
     "filter": "Filtrar",
     "sort": "Ordenar",
@@ -1560,16 +1561,13 @@
     "table": {
       "headers": {
         "name": "Nombre del rol",
-        "permissionSets": "Conjuntos de permisos"
+        "permissionSets": "Conjuntos de permisos",
+        "createdAt": "Creado el"
       },
       "emptyMessage": "No se encontraron roles. Haz clic en el botón crear para añadir un nuevo rol.",
       "noPermissionSetsAssigned": "Sin permisos asignados",
       "permissionsCount": "permisos",
       "morePermissions": "más"
-    },
-    "permissionSetsSection": {
-      "title": "Conjuntos de permisos disponibles",
-      "description": "Estos son todos los conjuntos de permisos disponibles en el sistema"
     },
     "create": {
       "title": "Crear rol",
@@ -1578,25 +1576,25 @@
       "namePlaceholder": "Introduce el nombre del rol",
       "permissionsLabel": "Permisos",
       "noPermissionsSelected": "No hay permisos seleccionados",
-      "submitButton": "Create Role",
-      "cancelButton": "Cancelar",
       "success": "Rol creado correctamente",
       "error": "Error al crear el rol: {error}"
     },
     "update": {
-      "viewDescription": "Ver todos los permisos para este rol",
-      "editTitle": "Actualizar rol",
+      "title": "Editar rol",
       "editDescription": "Actualizar los permisos para este rol",
-      "nameLabel": "Role Name",
       "permissionsLabel": "Permissions",
-      "noPermissionsSelected": "No permissions selected",
-      "noPermissionsAssigned": "No permissions assigned",
       "noPermissionsAvailable": "No hay permisos disponibles",
-      "editButton": "Editar rol",
-      "total": "total",
       "selected": "seleccionados",
       "success": "Rol actualizado con éxito",
       "error": "Error al actualizar el rol: {error}"
+    },
+    "roleDetails": {
+      "roleDetails": "Detalles del rol",
+      "roleDetailsDescription": "Ver y gestionar información y permisos del rol",
+      "name": "Nombre",
+      "createdAt": "Creado el",
+      "permissionSets": "Conjuntos de permisos",
+      "editRole": "Editar rol"
     }
   }
 }

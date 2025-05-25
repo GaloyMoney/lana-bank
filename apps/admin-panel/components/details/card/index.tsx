@@ -51,10 +51,12 @@ export interface DetailsCardProps
   description?: string
   details: DetailItemProps[]
   footerContent?: React.JSX.Element
+  headerAction?: React.JSX.Element
   errorMessage?: string | undefined | null
   className?: string
   columns?: number
   layout?: "horizontal" | "vertical"
+  footerClassName?: string
 }
 
 export const DetailsCard: React.FC<DetailsCardProps> = ({
@@ -62,33 +64,50 @@ export const DetailsCard: React.FC<DetailsCardProps> = ({
   description,
   details,
   footerContent,
+  headerAction,
   errorMessage,
   alignment,
   className,
   columns,
   layout = "vertical",
   variant = "card",
+  footerClassName,
 }) => {
   const isBelowMedium = useBreakpointDown("md")
   const effectiveLayout = isBelowMedium ? "horizontal" : layout
 
   const content = (
     <>
-      <div className={variant === "container" ? "flex flex-col space-y-1.5" : undefined}>
-        <div className={cn("font-semibold leading-none tracking-tight")}>{title}</div>
-        {description && (
-          <div className={cn("text-sm text-muted-foreground")}>{description}</div>
-        )}
-      </div>
+      {variant === "container" ? (
+        <div className="flex items-center justify-between">
+          <div className="flex flex-col space-y-2">
+            <div className={cn("font-semibold leading-none tracking-tight")}>{title}</div>
+            {description && (
+              <div className={cn("text-sm text-muted-foreground")}>{description}</div>
+            )}
+          </div>
+          {headerAction && <div>{headerAction}</div>}
+        </div>
+      ) : (
+        <div>
+          <div className={cn("font-semibold leading-none tracking-tight")}>{title}</div>
+          {description && (
+            <div className={cn("text-sm text-muted-foreground")}>{description}</div>
+          )}
+        </div>
+      )}
       <div>
         <DetailsGroup columns={columns} layout={effectiveLayout}>
-          {details.map((detail) => (
-            <DetailItem
-              key={detail.label?.toString()}
-              {...detail}
-              className={isBelowMedium ? "flex-1" : ""}
-            />
-          ))}
+          {details.map((detail) => {
+            const { className: detailClassName, ...detailProps } = detail
+            return (
+              <DetailItem
+                key={detailProps.label?.toString()}
+                {...detailProps}
+                className={cn(detailClassName, isBelowMedium ? "flex-1" : "")}
+              />
+            )
+          })}
         </DetailsGroup>
       </div>
       {errorMessage && <div className="text-destructive">{errorMessage}</div>}
@@ -108,18 +127,26 @@ export const DetailsCard: React.FC<DetailsCardProps> = ({
   return (
     <Card className={cn(containerVariants({ variant }), className)}>
       <CardHeader>
-        <CardTitle>{title}</CardTitle>
-        {description && <CardDescription>{description}</CardDescription>}
+        <div className="flex items-center justify-between w-full">
+          <div className="space-y-1.5">
+            <CardTitle>{title}</CardTitle>
+            {description && <CardDescription>{description}</CardDescription>}
+          </div>
+          {headerAction && <div>{headerAction}</div>}
+        </div>
       </CardHeader>
       <CardContent>
         <DetailsGroup columns={columns} layout={effectiveLayout}>
-          {details.map((detail) => (
-            <DetailItem
-              key={detail.label?.toString()}
-              {...detail}
-              className={isBelowMedium ? "flex-1" : ""}
-            />
-          ))}
+          {details.map((detail) => {
+            const { className: detailClassName, ...detailProps } = detail
+            return (
+              <DetailItem
+                key={detailProps.label?.toString()}
+                {...detailProps}
+                className={cn(detailClassName, isBelowMedium ? "flex-1" : "")}
+              />
+            )
+          })}
         </DetailsGroup>
       </CardContent>
       {errorMessage && (
@@ -128,7 +155,7 @@ export const DetailsCard: React.FC<DetailsCardProps> = ({
       {footerContent && (
         <>
           <Separator />
-          <CardFooter className={footerVariants({ alignment })}>
+          <CardFooter className={cn(footerVariants({ alignment }), footerClassName)}>
             {footerContent}
           </CardFooter>
         </>
