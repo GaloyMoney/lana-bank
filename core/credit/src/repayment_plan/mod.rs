@@ -63,7 +63,6 @@ impl CreditFacilityRepaymentPlan {
                 overdue_at: None,
                 defaulted_at: None,
                 recorded_at: activated_at,
-                effective: activated_at.date_naive(),
             }),
             CreditFacilityRepaymentPlanEntry::Disbursal(ObligationDataForEntry {
                 id: None,
@@ -76,7 +75,6 @@ impl CreditFacilityRepaymentPlan {
                 overdue_at: None,
                 defaulted_at: None,
                 recorded_at: activated_at,
-                effective: activated_at.date_naive(),
             }),
         ]
     }
@@ -128,7 +126,6 @@ impl CreditFacilityRepaymentPlan {
                     overdue_at: None,
                     defaulted_at: None,
                     recorded_at: period.end,
-                    effective: period.end.date_naive(),
                 },
             ));
 
