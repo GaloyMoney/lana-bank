@@ -140,13 +140,14 @@ where
             .filter_map(|event| match &event.event {
                 Settled {
                     amount,
-                    recorded_at,
+                    effective_at,
                     ledger_tx_id,
                     ..
                 } => Some(CoreCreditEvent::DisbursalSettled {
                     credit_facility_id: entity.facility_id,
                     amount: *amount,
-                    recorded_at: *recorded_at,
+                    effective_at: *effective_at,
+                    recorded_at: event.recorded_at,
                     ledger_tx_id: *ledger_tx_id,
                 }),
 
