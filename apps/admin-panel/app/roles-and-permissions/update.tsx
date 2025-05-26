@@ -47,15 +47,9 @@ type UpdateRoleDialogProps = {
   open: boolean
   onOpenChange: (isOpen: boolean) => void
   role: NonNullable<RoleQuery["role"]>
-  onRoleUpdated?: () => void
 }
 
-export function UpdateRoleDialog({
-  open,
-  onOpenChange,
-  role,
-  onRoleUpdated,
-}: UpdateRoleDialogProps) {
+export function UpdateRoleDialog({ open, onOpenChange, role }: UpdateRoleDialogProps) {
   const t = useTranslations("RolesAndPermissions.update")
   const tCommon = useTranslations("Common")
   const [selectedPermissionSets, setSelectedPermissionSets] = useState<string[]>([])
@@ -123,12 +117,8 @@ export function UpdateRoleDialog({
 
       if (mutationsPerformed) {
         toast.success(t("success"))
-        if (onRoleUpdated) {
-          onRoleUpdated()
-        }
+        onOpenChange(false)
       }
-
-      onOpenChange(false)
     } catch (error) {
       console.error("Failed to update role:", error)
       const errorMessage = error instanceof Error ? error.message : "Unknown error"

@@ -67,16 +67,7 @@ export function CreateRoleDialog({ open, onOpenChange }: CreateRoleDialogProps) 
       variables: { first: 100 },
     })
 
-  const [createRole, { loading: creatingRole }] = useRoleCreateMutation({
-    update: (cache) => {
-      cache.modify({
-        fields: {
-          roles: (_, { DELETE }) => DELETE,
-        },
-      })
-      cache.gc()
-    },
-  })
+  const [createRole, { loading: creatingRole }] = useRoleCreateMutation()
 
   const permissionSets =
     permissionSetsData?.permissionSets.edges.map((edge) => edge.node) || []

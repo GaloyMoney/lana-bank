@@ -1,8 +1,7 @@
 "use client"
 
-import React, { useState, useCallback } from "react"
+import React, { useState } from "react"
 import { useTranslations } from "next-intl"
-import { useRouter } from "next/navigation"
 
 import { Badge } from "@lana/web/ui/badge"
 import { Label } from "@lana/web/ui/label"
@@ -23,12 +22,6 @@ type RoleDetailsProps = {
 export const RoleDetailsCard: React.FC<RoleDetailsProps> = ({ role }) => {
   const t = useTranslations("RolesAndPermissions.roleDetails")
   const [isUpdateDialogOpen, setIsUpdateDialogOpen] = useState(false)
-  const router = useRouter()
-
-  const handleRoleUpdated = useCallback(() => {
-    // Refresh the current route data without a full page reload
-    router.refresh()
-  }, [router])
 
   const details: DetailItemProps[] = [
     {
@@ -88,7 +81,6 @@ export const RoleDetailsCard: React.FC<RoleDetailsProps> = ({ role }) => {
           open={isUpdateDialogOpen}
           onOpenChange={setIsUpdateDialogOpen}
           role={role}
-          onRoleUpdated={handleRoleUpdated}
         />
       )}
     </>
