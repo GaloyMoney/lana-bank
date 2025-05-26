@@ -2,8 +2,6 @@
 import { gql } from "@apollo/client"
 import { useTranslations } from "next-intl"
 
-import { Badge } from "@lana/web/ui/badge"
-
 import {
   Card,
   CardContent,
@@ -15,14 +13,15 @@ import {
 import DataTable, { Column } from "../../components/data-table"
 
 import { useUsersQuery } from "@/lib/graphql/generated"
-import { formatRole } from "@/lib/utils"
 
 gql`
   fragment UserFields on User {
     id
     userId
     email
-    roles
+    role {
+      ...RoleEntityFields
+    }
     createdAt
   }
 
@@ -64,18 +63,10 @@ function UsersPage() {
       header: t("table.headers.email"),
     },
     {
-      key: "roles",
+      key: "role",
       header: t("table.headers.roles"),
-      render: (roles) => (
-        <div className="flex flex-wrap gap-2 text-muted-foreground items-center">
-          {roles.length > 0
-            ? roles.map((role) => (
-                <Badge variant="secondary" key={role}>
-                  {formatRole(role)}
-                </Badge>
-              ))
-            : t("table.noRolesAssigned")}
-        </div>
+      render: (role) => (
+        <div>{role?.name ? <>{role.name}</> : t("table.noRolesAssigned")}</div>
       ),
     },
   ]

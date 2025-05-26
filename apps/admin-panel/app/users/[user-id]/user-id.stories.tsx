@@ -4,18 +4,18 @@ import { MockedProvider } from "@apollo/client/testing"
 import UserPage from "./page"
 
 import faker from "@/.storybook/faker"
-import { GetUserDetailsDocument, Role } from "@/lib/graphql/generated"
+import { GetUserDetailsDocument } from "@/lib/graphql/generated"
 
 import { mockUser } from "@/lib/graphql/generated/mocks"
 
 interface UserStoryArgs {
   email: string
-  roles: Role[]
+  role: string
 }
 
 const DEFAULT_ARGS: UserStoryArgs = {
   email: faker.internet.email(),
-  roles: [Role.Admin],
+  role: "Admin",
 }
 
 const createMocks = (args: UserStoryArgs, userId: string) => [
@@ -28,7 +28,6 @@ const createMocks = (args: UserStoryArgs, userId: string) => [
       data: {
         user: mockUser({
           email: args.email,
-          roles: args.roles,
           userId: userId,
           createdAt: faker.date.past().toISOString(),
         }),
@@ -78,9 +77,8 @@ const meta: Meta<typeof UserStory> = {
       control: "text",
       description: "User email",
     },
-    roles: {
-      control: "multi-select",
-      options: Object.values(Role),
+    role: {
+      control: "text",
       description: "User roles",
     },
   },
@@ -96,7 +94,7 @@ export const Default: Story = {
 export const MultiRole: Story = {
   args: {
     ...DEFAULT_ARGS,
-    roles: [Role.Admin, Role.BankManager],
+    role: "Admin",
   },
 }
 

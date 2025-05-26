@@ -16,11 +16,16 @@ import { Input } from "@lana/web/ui/input"
 import { Button } from "@lana/web/ui/button"
 import { Label } from "@lana/web/ui/label"
 
-import { Checkbox } from "@lana/web/ui/check-box"
-
-import { formatRole } from "@/lib/utils"
 import {
-  Role,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@lana/web/ui/select"
+
+import {
+  useRolesQuery,
   useUserAssignRoleMutation,
   useUserCreateMutation,
 } from "@/lib/graphql/generated"
@@ -46,10 +51,19 @@ export const CreateUserDialog: React.FC<CreateUserDialogProps> = ({
   openCreateUserDialog,
 }) => {
   const t = useTranslations("Users.createDialog")
+  const tCommon = useTranslations("Common")
 
   const { navigate, isNavigating } = useModalNavigation({
     closeModal: () => setOpenCreateUserDialog(false),
   })
+
+  const { data: rolesData, loading: rolesLoading } = useRolesQuery({
+    variables: { first: 100, after: null },
+    skip: !openCreateUserDialog,
+  })
+
+  const roles = rolesData?.roles.edges.map((edge) => edge.node) || []
+
   const [createUser, { loading: creatingUser }] = useUserCreateMutation({
     update: (cache) => {
       cache.modify({
@@ -64,19 +78,17 @@ export const CreateUserDialog: React.FC<CreateUserDialogProps> = ({
   const [assignRole, { loading: assigningRole }] = useUserAssignRoleMutation()
 
   const [email, setEmail] = useState("")
-  const [selectedRoles, setSelectedRoles] = useState<Role[]>([])
+  const [selectedRoleId, setSelectedRoleId] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
-  const [assignRoleError, setAssignRoleError] = useState<string | null>(null)
 
-  const isLoading = creatingUser || assigningRole || isNavigating
-  const isSubmitDisabled = isLoading || selectedRoles.length === 0
+  const isLoading = creatingUser || assigningRole || isNavigating || rolesLoading
+  const isSubmitDisabled = isLoading || !selectedRoleId
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError(null)
-    setAssignRoleError(null)
 
-    if (selectedRoles.length === 0) {
+    if (!selectedRoleId) {
       setError(t("errors.selectRole"))
       return
     }
@@ -88,7 +100,7 @@ export const CreateUserDialog: React.FC<CreateUserDialogProps> = ({
 
       if (result.data) {
         const userId = result.data.userCreate.user.userId
-        await assignUserRoles(userId)
+        await assignUserRole(userId)
         finalize(userId)
       }
     } catch (error) {
@@ -96,18 +108,23 @@ export const CreateUserDialog: React.FC<CreateUserDialogProps> = ({
     }
   }
 
-  const assignUserRoles = async (userId: string) => {
-    for (const role of selectedRoles) {
-      try {
-        await assignRole({
-          variables: { input: { id: userId, role } },
-        })
-      } catch (error) {
-        handleError(error, t("errors.assignRolePrefix"))
-        return false
-      }
+  const assignUserRole = async (userId: string) => {
+    if (!selectedRoleId) return false
+
+    try {
+      await assignRole({
+        variables: {
+          input: {
+            id: userId,
+            roleId: selectedRoleId,
+          },
+        },
+      })
+      return true
+    } catch (error) {
+      handleError(error, t("errors.assignRolePrefix"))
+      return false
     }
-    return true
   }
 
   const finalize = (userId: string) => {
@@ -123,17 +140,8 @@ export const CreateUserDialog: React.FC<CreateUserDialogProps> = ({
 
   const resetStates = () => {
     setEmail("")
-    setSelectedRoles([])
+    setSelectedRoleId(null)
     setError(null)
-    setAssignRoleError(null)
-  }
-
-  const handleRoleToggle = (role: Role) => {
-    setSelectedRoles((prevRoles) =>
-      prevRoles.includes(role)
-        ? prevRoles.filter((r) => r !== role)
-        : [...prevRoles, role],
-    )
   }
 
   return (
@@ -151,8 +159,9 @@ export const CreateUserDialog: React.FC<CreateUserDialogProps> = ({
         </DialogHeader>
         <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
           <div>
-            <Label>{t("fields.email")}</Label>
+            <Label htmlFor="email">{t("fields.email")}</Label>
             <Input
+              id="email"
               type="email"
               required
               placeholder={t("placeholders.email")}
@@ -161,34 +170,44 @@ export const CreateUserDialog: React.FC<CreateUserDialogProps> = ({
               disabled={isLoading}
               data-testid="create-user-email-input"
             />
-            <p className="text-textColor-secondary text-xs ml-1 mt-1.5">
-              {t("emailHelperText")}
-            </p>
           </div>
 
           <div>
-            <Label>{t("fields.roles")}</Label>
-            <div className="ml-1 flex flex-col gap-1 align-middle">
-              {Object.values(Role)
-                .filter((role) => role !== Role.Superuser)
-                .map((role) => (
-                  <div className="flex items-center" key={role}>
-                    <Checkbox
-                      data-testid={`create-user-role-${role.toLowerCase()}-checkbox`}
-                      id={role}
-                      checked={selectedRoles.includes(role)}
-                      onCheckedChange={() => handleRoleToggle(role)}
-                      disabled={isLoading}
-                    />
-                    <label htmlFor={role} className="ml-2">
-                      {formatRole(role)}
-                    </label>
-                  </div>
-                ))}
-            </div>
+            <Label htmlFor="role">{t("fields.role")}</Label>
+            <Select
+              value={selectedRoleId || ""}
+              onValueChange={(value) => setSelectedRoleId(value || null)}
+              disabled={isLoading}
+            >
+              <SelectTrigger className="w-full" id="role">
+                <SelectValue placeholder={t("placeholders.selectRole")} />
+              </SelectTrigger>
+              <SelectContent>
+                {rolesLoading ? (
+                  <SelectItem value="loading" disabled>
+                    {tCommon("loading")}
+                  </SelectItem>
+                ) : roles.length === 0 ? (
+                  <SelectItem value="none" disabled>
+                    {t("noRolesAvailable")}
+                  </SelectItem>
+                ) : (
+                  roles.map((role) => (
+                    <SelectItem
+                      key={role.roleId}
+                      value={role.roleId}
+                      data-testid={`create-user-role-${role.name.toLowerCase()}-option`}
+                    >
+                      {role.name}
+                    </SelectItem>
+                  ))
+                )}
+              </SelectContent>
+            </Select>
           </div>
+
           {error && <p className="text-destructive">{error}</p>}
-          {assignRoleError && <p className="text-destructive">{assignRoleError}</p>}
+
           <DialogFooter>
             <Button
               type="submit"

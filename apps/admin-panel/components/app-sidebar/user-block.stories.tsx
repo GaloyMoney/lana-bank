@@ -5,7 +5,7 @@ import { SidebarProvider } from "@lana/web/ui/sidebar"
 
 import { UserBlock } from "./user-block"
 
-import { Role, AvatarDocument } from "@/lib/graphql/generated"
+import { AvatarDocument } from "@/lib/graphql/generated"
 
 const meta = {
   title: "Components/AppSidebar/UserBlock",
@@ -25,7 +25,9 @@ const meta = {
                   user: {
                     userId: "usr_123",
                     email: "demo@example.com",
-                    roles: [Role.Admin],
+                    role: {
+                      name: "Admin",
+                    },
                   },
                 },
               },

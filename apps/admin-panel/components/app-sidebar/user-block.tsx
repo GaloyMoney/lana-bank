@@ -27,7 +27,10 @@ gql`
       user {
         userId
         email
-        roles
+        role {
+          roleId
+          name
+        }
       }
     }
   }
@@ -60,7 +63,7 @@ export function UserBlock() {
   }
 
   if (!data?.me.user) return null
-  const { email, roles, userId } = data.me.user
+  const { email, role, userId } = data.me.user
   const userName = email.split("@")[0]
   const initials = userName[0].toUpperCase()
 
@@ -84,11 +87,11 @@ export function UserBlock() {
             <DropdownMenuLabel className="font-normal">
               <div className="flex flex-col gap-2 p-1">
                 <div className="flex flex-wrap gap-1">
-                  {roles.map((role) => (
-                    <Badge key={role} variant="secondary" className="capitalize">
-                      {role.toLowerCase()}
+                  {role && (
+                    <Badge variant="secondary" className="capitalize">
+                      {role.name}
                     </Badge>
-                  ))}
+                  )}
                 </div>
                 <div className="text-sm">{email}</div>
                 <ID type="Your" id={userId} />

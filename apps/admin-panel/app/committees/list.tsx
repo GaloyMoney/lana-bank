@@ -25,7 +25,9 @@ gql`
       id
       userId
       email
-      roles
+      role {
+        ...RoleEntityFields
+      }
     }
   }
 

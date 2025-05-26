@@ -22,7 +22,10 @@ gql`
             ... on User {
               userId
               email
-              roles
+              role {
+                roleId
+                name
+              }
             }
             ... on System {
               name

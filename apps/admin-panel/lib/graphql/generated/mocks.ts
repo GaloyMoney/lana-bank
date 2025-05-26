@@ -2201,7 +2201,7 @@ export const mockUser = (overrides?: Partial<User>, _relationshipsToOmit: Set<st
         createdAt: overrides && overrides.hasOwnProperty('createdAt') ? overrides.createdAt! : generateMockValue.timestamp(),
         email: overrides && overrides.hasOwnProperty('email') ? overrides.email! : generateMockValue.email(),
         id: overrides && overrides.hasOwnProperty('id') ? overrides.id! : faker.string.uuid(),
-        roles: overrides && overrides.hasOwnProperty('roles') ? overrides.roles! : [...faker.helpers.arrayElements(Object.values(Role).filter(v => typeof v === 'string'))],
+        role: overrides && overrides.hasOwnProperty('role') ? overrides.role! : relationshipsToOmit.has('RoleEntity') ? {} as RoleEntity : mockRoleEntity({}, relationshipsToOmit),
         subjectCanAssignRoleToUser: overrides && overrides.hasOwnProperty('subjectCanAssignRoleToUser') ? overrides.subjectCanAssignRoleToUser! : faker.datatype.boolean(),
         subjectCanRevokeRoleFromUser: overrides && overrides.hasOwnProperty('subjectCanRevokeRoleFromUser') ? overrides.subjectCanRevokeRoleFromUser! : faker.datatype.boolean(),
         userId: overrides && overrides.hasOwnProperty('userId') ? overrides.userId! : generateMockValue.uuid(),

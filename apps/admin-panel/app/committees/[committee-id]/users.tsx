@@ -6,12 +6,9 @@ import { IoTrashOutline } from "react-icons/io5"
 
 import { Button } from "@lana/web/ui/button"
 
-import { Badge } from "@lana/web/ui/badge"
-
 import { RemoveUserCommitteeDialog } from "../remove-user"
 
 import { GetCommitteeDetailsQuery } from "@/lib/graphql/generated"
-import { formatRole } from "@/lib/utils"
 
 import DataTable, { Column } from "@/components/data-table"
 import CardWrapper from "@/components/card-wrapper"
@@ -43,19 +40,9 @@ export const CommitteeUsers: React.FC<CommitteeUsersProps> = ({
       header: t("table.headers.email"),
     },
     {
-      key: "roles",
+      key: "role",
       header: "",
-      render: (roles) => (
-        <div className="flex flex-wrap gap-2 text-textColor-secondary items-center">
-          {roles.length > 0
-            ? roles.map((role) => (
-                <Badge variant="secondary" key={role}>
-                  {formatRole(role)}
-                </Badge>
-              ))
-            : t("table.noRoles")}
-        </div>
-      ),
+      render: (role) => (role?.name ? <>{role.name}</> : t("table.noRoles")),
     },
   ]
 

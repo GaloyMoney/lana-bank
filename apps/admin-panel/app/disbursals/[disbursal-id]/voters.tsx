@@ -15,7 +15,6 @@ import {
   GetDisbursalDetailsQuery,
   GetWithdrawalDetailsQuery,
 } from "@/lib/graphql/generated"
-import { formatRole } from "@/lib/utils"
 
 export const VotersCard = ({
   approvalProcess,
@@ -71,7 +70,7 @@ export const VotersCard = ({
               <div>
                 <p className="text-sm font-medium">{voter.user.email}</p>
                 <p className="text-sm text-textColor-secondary">
-                  {voter.user.roles.map(formatRole).join(", ")}
+                  {voter.user.role?.name}
                 </p>
                 {
                   <p className="text-xs text-textColor-secondary">

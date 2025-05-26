@@ -1,4 +1,5 @@
 "use client"
+
 import { gql } from "@apollo/client"
 import { useTranslations } from "next-intl"
 

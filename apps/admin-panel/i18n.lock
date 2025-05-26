@@ -626,9 +626,10 @@ checksums:
     Users/createDialog/title: 5578a68c9a99cea45581e7ddfea812bd
     Users/createDialog/description: cb93be965abcccc18783934840b7866d
     Users/createDialog/fields/email: e7f34943a0c2fb849db1839ff6ef5cb5
-    Users/createDialog/fields/roles: 21834ee85d5936bc0b262d5d5ddd58e3
+    Users/createDialog/fields/role: 21834ee85d5936bc0b262d5d5ddd58e3
     Users/createDialog/placeholders/email: 5eed7fb7e109b4ab618bce37c6bed35d
-    Users/createDialog/emailHelperText: 0d18e1b6ea02b7586b00611288a5d8b5
+    Users/createDialog/placeholders/selectRole: 511782cfbf0e2709be707ef2d748a985
+    Users/createDialog/noRolesAvailable: a3b43f934759701ff0c06cb646ba0e71
     Users/createDialog/buttons/submit: 7c91ef5f747eea9f77a9c4f23e19fb2e
     Users/createDialog/buttons/processing: 4d21e725093ba79328dcedc0f092ab3f
     Users/createDialog/errors/selectRole: d586268dce277c410b3d257e1917eab1
@@ -639,14 +640,16 @@ checksums:
     Users/userDetails/title: 61073457a5c3901084b557d065f876be
     Users/userDetails/fields/createdAt: 9ce495d7fc74e1a2ae86c07206a3e531
     Users/userDetails/fields/email: e7f34943a0c2fb849db1839ff6ef5cb5
-    Users/userDetails/fields/roles: 21834ee85d5936bc0b262d5d5ddd58e3
+    Users/userDetails/fields/role: 53743bbb6ca938f5b893552e839d067f
     Users/userDetails/noRolesAssigned: ad1111553e91d0fbd238772ba57e56ab
-    Users/userDetails/roleDropdown/manageRoles: 05646955e9a1469d2767d2e87e3db844
-    Users/userDetails/roleDropdown/rolesLabel: 21834ee85d5936bc0b262d5d5ddd58e3
-    Users/userDetails/roleDropdown/success/roleAssigned: 65afd24936504de96206743e5177b684
-    Users/userDetails/roleDropdown/success/roleRevoked: 18d6b418eb4cd9537bb6481618173718
-    Users/userDetails/roleDropdown/errors/assignFailed: b9d2097695ea327981c1c82b0caabdad
-    Users/userDetails/roleDropdown/errors/revokeFailed: edc9458bc0b80d26a85607ba3798555d
+    Users/userDetails/updateRole: 365448e14f736c954e16abea616d4284
+    Users/updateRole/title: 365448e14f736c954e16abea616d4284
+    Users/updateRole/description: c506d28cd2a9aa4d3fe3e17f9df0e2ca
+    Users/updateRole/roleLabel: 53743bbb6ca938f5b893552e839d067f
+    Users/updateRole/selectRole: 511782cfbf0e2709be707ef2d748a985
+    Users/updateRole/noRole: e1adeebef7707a6201c60e7f891e4114
+    Users/updateRole/success: 70f6225b70f4bcd15af464da4c838096
+    Users/updateRole/error: 0cabcf9231289570ece1db5ca8bcd689
     AuditLogs/title: c7efb33d09676938d07651774b067bf6
     AuditLogs/description: 51ce50499d9db9f15470aa796032a1a3
     AuditLogs/table/headers/auditEntryId: 3524fa683ae15adbc0e8e076d9cd0230

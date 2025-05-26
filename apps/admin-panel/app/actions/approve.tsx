@@ -39,7 +39,9 @@ gql`
           currentMembers {
             id
             email
-            roles
+            role {
+              ...RoleEntityFields
+            }
           }
         }
       }
@@ -56,7 +58,9 @@ gql`
         id
         userId
         email
-        roles
+        role {
+          ...RoleEntityFields
+        }
       }
     }
   }

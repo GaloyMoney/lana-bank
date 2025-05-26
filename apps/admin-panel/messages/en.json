@@ -1119,12 +1119,13 @@
       "description": "Add a new user to the admin-panel by providing their email address and selecting roles",
       "fields": {
         "email": "Email",
-        "roles": "Roles"
+        "role": "Roles"
       },
       "placeholders": {
-        "email": "Please enter the email address"
+        "email": "Please enter the email address",
+        "selectRole": "Select a role"
       },
-      "emailHelperText": "A magic link will be sent to the email address provided.",
+      "noRolesAvailable": "No roles available",
       "buttons": {
         "submit": "Submit",
         "processing": "Processing..."
@@ -1144,21 +1145,19 @@
       "fields": {
         "createdAt": "Created At",
         "email": "Email",
-        "roles": "Roles"
+        "role": "Role"
       },
       "noRolesAssigned": "No roles assigned",
-      "roleDropdown": {
-        "manageRoles": "Manage Roles",
-        "rolesLabel": "Roles",
-        "success": {
-          "roleAssigned": "Role assigned",
-          "roleRevoked": "Role revoked"
-        },
-        "errors": {
-          "assignFailed": "Failed to assign role",
-          "revokeFailed": "Failed to revoke role"
-        }
-      }
+      "updateRole": "Update Role"
+    },
+    "updateRole": {
+      "title": "Update Role",
+      "description": "Update the role assigned to this user.",
+      "roleLabel": "Role",
+      "selectRole": "Select a role",
+      "noRole": "No Role",
+      "success": "Role updated successfully",
+      "error": "Failed to update role"
     }
   },
   "AuditLogs": {

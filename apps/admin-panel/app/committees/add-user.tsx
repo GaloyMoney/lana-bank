@@ -23,7 +23,6 @@ import {
 } from "@lana/web/ui/select"
 
 import { useCommitteeAddUserMutation, useUsersQuery } from "@/lib/graphql/generated"
-import { formatRole } from "@/lib/utils"
 
 gql`
   mutation CommitteeAddUser($input: CommitteeAddUserInput!) {
@@ -114,7 +113,7 @@ export const AddUserCommitteeDialog: React.FC<AddUserCommitteeDialogProps> = ({
             <SelectContent>
               {userData?.users.map((user) => (
                 <SelectItem key={user.userId} value={user.userId}>
-                  {user.email} ({formatRole(user.roles.map(formatRole).join(", "))})
+                  {user.email} {user.role?.name}
                 </SelectItem>
               ))}
             </SelectContent>

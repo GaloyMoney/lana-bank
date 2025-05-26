@@ -1119,12 +1119,13 @@
       "description": "Añadir un nuevo usuario al panel de administración proporcionando su dirección de correo electrónico y seleccionando roles",
       "fields": {
         "email": "Correo Electrónico",
-        "roles": "Roles"
+        "role": "Roles"
       },
       "placeholders": {
-        "email": "Por favor ingrese la dirección de correo electrónico"
+        "email": "Por favor ingrese la dirección de correo electrónico",
+        "selectRole": "Selecciona un rol"
       },
-      "emailHelperText": "Se enviará un enlace mágico a la dirección de correo electrónico proporcionada.",
+      "noRolesAvailable": "No hay roles disponibles",
       "buttons": {
         "submit": "Enviar",
         "processing": "Procesando..."
@@ -1144,21 +1145,19 @@
       "fields": {
         "createdAt": "Creado El",
         "email": "Correo Electrónico",
-        "roles": "Roles"
+        "role": "Rol"
       },
       "noRolesAssigned": "Sin roles asignados",
-      "roleDropdown": {
-        "manageRoles": "Gestionar Roles",
-        "rolesLabel": "Roles",
-        "success": {
-          "roleAssigned": "Rol asignado",
-          "roleRevoked": "Rol revocado"
-        },
-        "errors": {
-          "assignFailed": "Error al asignar rol",
-          "revokeFailed": "Error al revocar rol"
-        }
-      }
+      "updateRole": "Actualizar rol"
+    },
+    "updateRole": {
+      "title": "Actualizar rol",
+      "description": "Actualiza el rol asignado a este usuario.",
+      "roleLabel": "Rol",
+      "selectRole": "Selecciona un rol",
+      "noRole": "Sin rol",
+      "success": "Rol actualizado con éxito",
+      "error": "Error al actualizar el rol"
     }
   },
   "AuditLogs": {
