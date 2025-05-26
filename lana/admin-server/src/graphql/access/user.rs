@@ -1,7 +1,9 @@
 use async_graphql::*;
 
-use crate::primitives::*;
+use crate::{graphql::loader::LanaDataLoader, primitives::*};
 use lana_app::access::user::User as DomainUser;
+
+use super::Role;
 
 #[derive(SimpleObject, Clone)]
 #[graphql(complex)]
@@ -38,8 +40,16 @@ impl From<Arc<DomainUser>> for User {
 
 #[ComplexObject]
 impl User {
-    async fn role(&self) -> Option<UUID> {
-        self.entity.current_role().map(UUID::from)
+    async fn role(&self, ctx: &Context<'_>) -> async_graphql::Result<Option<Role>> {
+        match self.entity.current_role() {
+            None => Ok(None),
+            Some(role_id) => {
+                let loader = ctx.data_unchecked::<LanaDataLoader>();
+                let role = loader.load_one(role_id).await?;
+
+                Ok(role)
+            }
+        }
     }
 
     async fn email(&self) -> &str {

@@ -3,7 +3,9 @@ mutation UserAssignRole($input: UserAssignRoleInput!) {
     user {
       userId
       email
-      roles
+      role {
+        name
+      }
     }
   }
 }
