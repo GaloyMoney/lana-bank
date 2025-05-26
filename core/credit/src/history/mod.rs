@@ -97,12 +97,13 @@ impl CreditFacilityHistory {
                 amount,
                 period,
                 ledger_tx_id,
+                recorded_at,
                 ..
             } => {
                 self.entries.push(CreditFacilityHistoryEntry::Interest(
                     InterestAccrualsPosted {
                         cents: *amount,
-                        recorded_at: period.end, // change when we have effective
+                        recorded_at: *recorded_at,
                         tx_id: *ledger_tx_id,
                         days: period.days(),
                     },
