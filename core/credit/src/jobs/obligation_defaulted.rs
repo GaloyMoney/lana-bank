@@ -98,7 +98,7 @@ where
 
         let data = self
             .obligations
-            .record_defaulted(&mut db, self.config.obligation_id, self.config.effective)
+            .record_defaulted_in_op(&mut db, self.config.obligation_id, self.config.effective)
             .await?;
 
         let defaulted = if let Some(defaulted) = data {

@@ -102,7 +102,7 @@ where
         let mut db = self.obligations.begin_op().await?;
         let (obligation, due_data) = self
             .obligations
-            .record_due(&mut db, self.config.obligation_id, self.config.effective)
+            .record_due_in_op(&mut db, self.config.obligation_id, self.config.effective)
             .await?;
 
         let due = if let Some(due) = due_data {

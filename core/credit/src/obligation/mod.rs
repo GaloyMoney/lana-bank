@@ -100,7 +100,7 @@ where
         Ok(obligation)
     }
 
-    pub async fn record_overdue(
+    pub async fn record_overdue_in_op(
         &self,
         db: &mut es_entity::DbOp<'_>,
         id: ObligationId,
@@ -131,7 +131,7 @@ where
         Ok((obligation, data))
     }
 
-    pub async fn record_due(
+    pub async fn record_due_in_op(
         &self,
         db: &mut es_entity::DbOp<'_>,
         id: ObligationId,
@@ -162,7 +162,7 @@ where
         Ok((obligation, data))
     }
 
-    pub async fn record_defaulted(
+    pub async fn record_defaulted_in_op(
         &self,
         db: &mut es_entity::DbOp<'_>,
         id: ObligationId,

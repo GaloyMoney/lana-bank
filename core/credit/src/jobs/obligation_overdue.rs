@@ -103,7 +103,7 @@ where
         let mut db = self.obligations.begin_op().await?;
         let (obligation, overdue_data) = self
             .obligations
-            .record_overdue(&mut db, self.config.obligation_id, self.config.effective)
+            .record_overdue_in_op(&mut db, self.config.obligation_id, self.config.effective)
             .await?;
 
         let overdue = if let Some(overdue) = overdue_data {
