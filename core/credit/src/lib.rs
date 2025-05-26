@@ -512,7 +512,7 @@ where
             .authz
             .evaluate_permission(
                 sub,
-                CoreCreditObject::all_credit_facilities(),
+                CoreCreditObject::all_disbursals(),
                 CoreCreditAction::DISBURSAL_INITIATE,
                 enforce,
             )
@@ -1111,7 +1111,7 @@ where
         self.authz
             .enforce_permission(
                 sub,
-                CoreCreditObject::all_credit_facilities(),
+                CoreCreditObject::all_disbursals(),
                 CoreCreditAction::DISBURSAL_LIST,
             )
             .await?;

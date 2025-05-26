@@ -79,7 +79,12 @@ async fn run_cmd(lana_home: &str, config: Config) -> anyhow::Result<()> {
     let pool = db::init_pool(&config.db).await?;
 
     #[cfg(feature = "sim-bootstrap")]
-    let superuser_email = config.app.user.superuser_email.clone().expect("super user");
+    let superuser_email = config
+        .app
+        .access
+        .superuser_email
+        .clone()
+        .expect("super user");
 
     let admin_app = lana_app::app::LanaApp::run(pool.clone(), config.app).await?;
     let customer_app = admin_app.clone();

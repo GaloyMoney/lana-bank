@@ -116,7 +116,7 @@ pub const PERMISSION_SET_CREDIT_VIEWER: &str = "credit_viewer";
 #[strum_discriminants(strum(serialize_all = "kebab-case"))]
 pub enum CoreCreditObject {
     CreditFacility(CreditFacilityAllOrOne),
-    ChartOfAccountsIntegration(ChartOfAccountsIntegrationConfigAllOrOne),
+    ChartOfAccountsIntegrationConfig(ChartOfAccountsIntegrationConfigAllOrOne),
     Disbursal(DisbursalAllOrOne),
     Obligation(ObligationAllOrOne),
 }
@@ -131,7 +131,7 @@ impl CoreCreditObject {
     }
 
     pub fn chart_of_accounts_integration() -> Self {
-        CoreCreditObject::ChartOfAccountsIntegration(AllOrOne::All)
+        CoreCreditObject::ChartOfAccountsIntegrationConfig(AllOrOne::All)
     }
 
     pub fn disbursal(id: DisbursalId) -> Self {
@@ -157,7 +157,7 @@ impl std::fmt::Display for CoreCreditObject {
         use CoreCreditObject::*;
         match self {
             CreditFacility(obj_ref) => write!(f, "{}/{}", discriminant, obj_ref),
-            ChartOfAccountsIntegration(obj_ref) => write!(f, "{}/{}", discriminant, obj_ref),
+            ChartOfAccountsIntegrationConfig(obj_ref) => write!(f, "{}/{}", discriminant, obj_ref),
             Disbursal(obj_ref) => write!(f, "{}/{}", discriminant, obj_ref),
             Obligation(obj_ref) => write!(f, "{}/{}", discriminant, obj_ref),
         }
@@ -175,9 +175,9 @@ impl FromStr for CoreCreditObject {
                 let obj_ref = id.parse().map_err(|_| "could not parse CoreCreditObject")?;
                 CoreCreditObject::CreditFacility(obj_ref)
             }
-            ChartOfAccountsIntegration => {
+            ChartOfAccountsIntegrationConfig => {
                 let obj_ref = id.parse().map_err(|_| "could not parse CoreCreditObject")?;
-                CoreCreditObject::ChartOfAccountsIntegration(obj_ref)
+                CoreCreditObject::ChartOfAccountsIntegrationConfig(obj_ref)
             }
             Obligation => {
                 let obj_ref = id.parse().map_err(|_| "could not parse CoreCreditObject")?;

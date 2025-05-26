@@ -49,7 +49,7 @@ pub struct LedgerOmnibusAccountIds {
 pub enum CoreDepositObject {
     DepositAccount(DepositAccountAllOrOne),
     Deposit(DepositAllOrOne),
-    ChartOfAccountsIntegration(ChartOfAccountsIntegrationConfigAllOrOne),
+    ChartOfAccountsIntegrationConfig(ChartOfAccountsIntegrationConfigAllOrOne),
     Withdrawal(WithdrawalAllOrOne),
 }
 
@@ -79,7 +79,7 @@ impl CoreDepositObject {
     }
 
     pub fn chart_of_accounts_integration() -> Self {
-        CoreDepositObject::ChartOfAccountsIntegration(AllOrOne::All)
+        CoreDepositObject::ChartOfAccountsIntegrationConfig(AllOrOne::All)
     }
 }
 
@@ -91,7 +91,7 @@ impl Display for CoreDepositObject {
             DepositAccount(obj_ref) => write!(f, "{}/{}", discriminant, obj_ref),
             Deposit(obj_ref) => write!(f, "{}/{}", discriminant, obj_ref),
             Withdrawal(obj_ref) => write!(f, "{}/{}", discriminant, obj_ref),
-            ChartOfAccountsIntegration(obj_ref) => write!(f, "{}/{}", discriminant, obj_ref),
+            ChartOfAccountsIntegrationConfig(obj_ref) => write!(f, "{}/{}", discriminant, obj_ref),
         }
     }
 }
@@ -121,11 +121,11 @@ impl FromStr for CoreDepositObject {
                     .map_err(|_| "could not parse CoreDepositObject")?;
                 CoreDepositObject::Withdrawal(obj_ref)
             }
-            ChartOfAccountsIntegration => {
+            ChartOfAccountsIntegrationConfig => {
                 let obj_ref = id
                     .parse()
                     .map_err(|_| "could not parse CoreDepositObject")?;
-                CoreDepositObject::ChartOfAccountsIntegration(obj_ref)
+                CoreDepositObject::ChartOfAccountsIntegrationConfig(obj_ref)
             }
         };
         Ok(res)

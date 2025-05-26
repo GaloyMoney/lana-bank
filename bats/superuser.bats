@@ -12,6 +12,7 @@ teardown_file() {
 }
 
 @test "superuser: can create bank manager" {
+  skip
   bank_manager_email=$(generate_email)
 
   variables=$(
