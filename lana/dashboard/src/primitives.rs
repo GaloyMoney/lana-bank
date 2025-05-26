@@ -1,6 +1,6 @@
 use std::{fmt::Display, str::FromStr};
 
-use authz::action_description::*;
+use authz::{action_description::*, AllOrOne};
 
 pub const PERMISSION_SET_DASHBOARD_READER: &str = "dashboard_reader";
 
@@ -77,14 +77,50 @@ impl DashboardAction {
     }
 }
 
-#[derive(PartialEq, Clone, Copy, Debug, strum::Display, strum::EnumString)]
-#[strum(serialize_all = "kebab-case")]
+es_entity::entity_id!(DashboardId);
+
+pub type DashboardAllOrOne = AllOrOne<DashboardId>;
+
+#[derive(Clone, Copy, Debug, PartialEq, strum::EnumDiscriminants)]
+#[strum_discriminants(derive(strum::Display, strum::EnumString))]
+#[strum_discriminants(strum(serialize_all = "kebab-case"))]
 pub enum DashboardModuleObject {
-    Dashboard,
+    Dashboard(DashboardAllOrOne),
+}
+
+impl DashboardModuleObject {
+    pub const fn all_dashboards() -> Self {
+        Self::Dashboard(AllOrOne::All)
+    }
 }
 
 impl From<DashboardAction> for DashboardModuleAction {
     fn from(action: DashboardAction) -> Self {
         DashboardModuleAction::Dashboard(action)
+    }
+}
+
+impl std::fmt::Display for DashboardModuleObject {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let discriminant = DashboardModuleObjectDiscriminants::from(self);
+        match self {
+            Self::Dashboard(obj_ref) => write!(f, "{}/{}", discriminant, obj_ref),
+        }
+    }
+}
+
+impl FromStr for DashboardModuleObject {
+    type Err = &'static str;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let (entity, id) = s.split_once('/').expect("missing slash");
+        use DashboardModuleObjectDiscriminants::*;
+        let res = match entity.parse().expect("invalid entity") {
+            Dashboard => {
+                let obj_ref = id.parse().map_err(|_| "could not parse DashboardObject")?;
+                DashboardModuleObject::Dashboard(obj_ref)
+            }
+        };
+        Ok(res)
     }
 }

@@ -92,7 +92,7 @@ impl JobRunner for CreateReportJobRunner {
 
         let audit_info = self
             .audit
-            .record_system_entry_in_tx(db.tx(), Object::Report, ReportAction::Create)
+            .record_system_entry_in_tx(db.tx(), Object::all_reports(), ReportAction::Create)
             .await?;
 
         let new_report = NewReport::builder()

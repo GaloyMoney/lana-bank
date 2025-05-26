@@ -1,5 +1,7 @@
 use std::{fmt::Display, str::FromStr};
 
+use lana_ids::{DocumentId, ReportId, TermsTemplateId};
+
 use authz::AllOrOne;
 use core_access::CoreAccessObject;
 use core_accounting::CoreAccountingObject;
@@ -105,20 +107,59 @@ impl FromStr for LanaObject {
     }
 }
 
+es_entity::entity_id!(ApplicantId, AuditId);
+
+pub type ApplicantAllOrOne = AllOrOne<ApplicantId>;
+pub type TermsTemplateAllOrOne = AllOrOne<TermsTemplateId>;
+pub type DocumentAllOrOne = AllOrOne<DocumentId>;
+pub type ReportAllOrOne = AllOrOne<ReportId>;
+pub type AuditAllOrOne = AllOrOne<AuditId>;
+
 #[derive(Clone, Copy, Debug, PartialEq, strum::EnumDiscriminants)]
 #[strum_discriminants(derive(strum::Display, strum::EnumString))]
 #[strum_discriminants(strum(serialize_all = "kebab-case"))]
 pub enum AppObject {
-    Applicant,
-    TermsTemplate,
-    Document,
-    Report,
-    Audit,
+    Applicant(ApplicantAllOrOne),
+    TermsTemplate(TermsTemplateAllOrOne),
+    Document(DocumentAllOrOne),
+    Report(ReportAllOrOne),
+    Audit(AuditAllOrOne),
+}
+
+impl AppObject {
+    pub const fn all_terms_templates() -> Self {
+        Self::TermsTemplate(AllOrOne::All)
+    }
+    pub const fn terms_template(id: TermsTemplateId) -> Self {
+        Self::TermsTemplate(AllOrOne::ById(id))
+    }
+    pub const fn all_documents() -> Self {
+        Self::Document(AllOrOne::All)
+    }
+    pub const fn document(id: DocumentId) -> Self {
+        Self::Document(AllOrOne::ById(id))
+    }
+    pub const fn all_reports() -> Self {
+        Self::Report(AllOrOne::All)
+    }
+    pub const fn report(id: ReportId) -> Self {
+        Self::Report(AllOrOne::ById(id))
+    }
+    pub const fn all_audits() -> Self {
+        Self::Audit(AllOrOne::All)
+    }
 }
 
 impl Display for AppObject {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", AppObjectDiscriminants::from(self))
+        let discriminant = AppObjectDiscriminants::from(self);
+        match self {
+            Self::Applicant(obj_ref) => write!(f, "{}/{}", discriminant, obj_ref),
+            Self::TermsTemplate(obj_ref) => write!(f, "{}/{}", discriminant, obj_ref),
+            Self::Document(obj_ref) => write!(f, "{}/{}", discriminant, obj_ref),
+            Self::Report(obj_ref) => write!(f, "{}/{}", discriminant, obj_ref),
+            Self::Audit(obj_ref) => write!(f, "{}/{}", discriminant, obj_ref),
+        }
     }
 }
 
@@ -126,16 +167,31 @@ impl FromStr for AppObject {
     type Err = &'static str;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let mut elems = s.split('/');
-        let entity = elems.next().expect("missing first element");
+        let (entity, id) = s.split_once('/').expect("missing slash");
         use AppObjectDiscriminants::*;
         let res = match entity.parse().expect("invalid entity") {
-            Applicant => AppObject::Applicant,
-            TermsTemplate => AppObject::TermsTemplate,
-            Report => AppObject::Report,
-            Audit => AppObject::Audit,
-            Document => AppObject::Document,
+            Applicant => {
+                let obj_ref = id.parse().map_err(|_| "could not parse AppObject")?;
+                Self::Applicant(obj_ref)
+            }
+            TermsTemplate => {
+                let obj_ref = id.parse().map_err(|_| "could not parse AppObject")?;
+                Self::TermsTemplate(obj_ref)
+            }
+            Document => {
+                let obj_ref = id.parse().map_err(|_| "could not parse AppObject")?;
+                Self::Document(obj_ref)
+            }
+            Report => {
+                let obj_ref = id.parse().map_err(|_| "could not parse AppObject")?;
+                Self::Report(obj_ref)
+            }
+            Audit => {
+                let obj_ref = id.parse().map_err(|_| "could not parse AppObject")?;
+                Self::Audit(obj_ref)
+            }
         };
+
         Ok(res)
     }
 }

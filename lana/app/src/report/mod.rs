@@ -66,7 +66,7 @@ impl Reports {
     pub async fn create(&self, sub: &Subject) -> Result<Report, ReportError> {
         let audit_info = self
             .authz
-            .enforce_permission(sub, Object::Report, ReportAction::Create)
+            .enforce_permission(sub, Object::all_reports(), ReportAction::Create)
             .await?;
 
         let new_report = NewReport::builder()
@@ -94,10 +94,10 @@ impl Reports {
     pub async fn find_by_id(
         &self,
         sub: &Subject,
-        id: impl Into<ReportId> + std::fmt::Debug,
+        id: impl Into<ReportId> + std::fmt::Debug + Copy,
     ) -> Result<Option<Report>, ReportError> {
         self.authz
-            .enforce_permission(sub, Object::Report, ReportAction::Read)
+            .enforce_permission(sub, Object::report(id.into()), ReportAction::Read)
             .await?;
 
         match self.repo.find_by_id(id.into()).await {
@@ -109,7 +109,7 @@ impl Reports {
 
     pub async fn list_reports(&self, sub: &Subject) -> Result<Vec<Report>, ReportError> {
         self.authz
-            .enforce_permission(sub, Object::Report, ReportAction::List)
+            .enforce_permission(sub, Object::all_reports(), ReportAction::List)
             .await?;
 
         Ok(self
@@ -126,7 +126,11 @@ impl Reports {
     ) -> Result<GeneratedReportDownloadLinks, ReportError> {
         let audit_info = self
             .authz
-            .enforce_permission(sub, Object::Report, ReportAction::GenerateDownloadLink)
+            .enforce_permission(
+                sub,
+                Object::report(report_id),
+                ReportAction::GenerateDownloadLink,
+            )
             .await?;
 
         let mut report = self.repo.find_by_id(report_id).await?;

@@ -45,7 +45,7 @@ impl Documents {
     ) -> Result<Document, DocumentError> {
         let audit_info = self
             .authz
-            .enforce_permission(sub, Object::Document, DocumentAction::Create)
+            .enforce_permission(sub, Object::all_documents(), DocumentAction::Create)
             .await?;
 
         let new_document = NewDocument::builder()
@@ -71,10 +71,10 @@ impl Documents {
     pub async fn find_by_id(
         &self,
         sub: &Subject,
-        id: impl Into<DocumentId> + std::fmt::Debug,
+        id: impl Into<DocumentId> + std::fmt::Debug + Copy,
     ) -> Result<Option<Document>, DocumentError> {
         self.authz
-            .enforce_permission(sub, Object::Document, DocumentAction::Read)
+            .enforce_permission(sub, Object::document(id.into()), DocumentAction::Read)
             .await?;
 
         match self.repo.find_by_id(id.into()).await {
@@ -91,7 +91,7 @@ impl Documents {
         customer_id: CustomerId,
     ) -> Result<Vec<Document>, DocumentError> {
         self.authz
-            .enforce_permission(sub, Object::Document, DocumentAction::List)
+            .enforce_permission(sub, Object::all_documents(), DocumentAction::List)
             .await?;
 
         Ok(self
@@ -113,7 +113,11 @@ impl Documents {
     ) -> Result<GeneratedDocumentDownloadLink, DocumentError> {
         let audit_info = self
             .authz
-            .enforce_permission(sub, Object::Document, DocumentAction::GenerateDownloadLink)
+            .enforce_permission(
+                sub,
+                Object::document(document_id),
+                DocumentAction::GenerateDownloadLink,
+            )
             .await?;
 
         let mut document = self.repo.find_by_id(document_id).await?;
@@ -134,11 +138,15 @@ impl Documents {
     pub async fn delete(
         &self,
         sub: &Subject,
-        document_id: impl Into<DocumentId> + std::fmt::Debug,
+        document_id: impl Into<DocumentId> + std::fmt::Debug + Copy,
     ) -> Result<(), DocumentError> {
         let audit_info = self
             .authz
-            .enforce_permission(sub, Object::Document, DocumentAction::Delete)
+            .enforce_permission(
+                sub,
+                Object::document(document_id.into()),
+                DocumentAction::Delete,
+            )
             .await?;
 
         let mut db = self.repo.begin_op().await?;
@@ -158,11 +166,15 @@ impl Documents {
     pub async fn archive(
         &self,
         sub: &Subject,
-        document_id: impl Into<DocumentId> + std::fmt::Debug,
+        document_id: impl Into<DocumentId> + std::fmt::Debug + Copy,
     ) -> Result<Document, DocumentError> {
         let audit_info = self
             .authz
-            .enforce_permission(sub, Object::Document, DocumentAction::Archive)
+            .enforce_permission(
+                sub,
+                Object::document(document_id.into()),
+                DocumentAction::Archive,
+            )
             .await?;
 
         let mut document = self.repo.find_by_id(document_id.into()).await?;

@@ -89,7 +89,7 @@ impl JobRunner for GenerateReportJobRunner {
 
         let audit_info = self
             .audit
-            .record_system_entry_in_tx(db.tx(), Object::Report, ReportAction::Upload)
+            .record_system_entry_in_tx(db.tx(), Object::all_reports(), ReportAction::Upload)
             .await?;
 
         match upload::execute(&self.report_config, &self.storage).await {

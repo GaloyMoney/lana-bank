@@ -195,7 +195,11 @@ impl LanaApp {
         use crate::audit::AuditSvc;
 
         self.authz
-            .enforce_permission(sub, AppObject::Audit, AppAction::Audit(AuditAction::List))
+            .enforce_permission(
+                sub,
+                AppObject::all_audits(),
+                AppAction::Audit(AuditAction::List),
+            )
             .await?;
 
         self.audit.list(query).await.map_err(ApplicationError::from)

@@ -42,7 +42,7 @@ impl TermsTemplates {
             .authz
             .evaluate_permission(
                 sub,
-                Object::TermsTemplate,
+                Object::all_terms_templates(),
                 TermsTemplateAction::Create,
                 enforce,
             )
@@ -80,7 +80,7 @@ impl TermsTemplates {
             .authz
             .evaluate_permission(
                 sub,
-                Object::TermsTemplate,
+                Object::all_terms_templates(),
                 TermsTemplateAction::Update,
                 enforce,
             )
@@ -110,10 +110,14 @@ impl TermsTemplates {
     pub async fn find_by_id(
         &self,
         sub: &Subject,
-        id: impl Into<TermsTemplateId> + std::fmt::Debug,
+        id: impl Into<TermsTemplateId> + std::fmt::Debug + Copy,
     ) -> Result<Option<TermsTemplate>, TermsTemplateError> {
         self.authz
-            .enforce_permission(sub, Object::TermsTemplate, TermsTemplateAction::Read)
+            .enforce_permission(
+                sub,
+                Object::terms_template(id.into()),
+                TermsTemplateAction::Read,
+            )
             .await?;
         match self.repo.find_by_id(id.into()).await {
             Ok(template) => Ok(Some(template)),
@@ -124,7 +128,11 @@ impl TermsTemplates {
 
     pub async fn list(&self, sub: &Subject) -> Result<Vec<TermsTemplate>, TermsTemplateError> {
         self.authz
-            .enforce_permission(sub, Object::TermsTemplate, TermsTemplateAction::List)
+            .enforce_permission(
+                sub,
+                Object::all_terms_templates(),
+                TermsTemplateAction::List,
+            )
             .await?;
         Ok(self
             .repo

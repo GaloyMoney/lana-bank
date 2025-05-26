@@ -30,7 +30,7 @@ pub async fn get_visible_navigation_items(
         term: authz
             .check_all_permissions(
                 sub,
-                Object::TermsTemplate,
+                Object::all_terms_templates(),
                 &[
                     Action::TermsTemplate(TermsTemplateAction::Read),
                     Action::TermsTemplate(TermsTemplateAction::List),
@@ -80,7 +80,11 @@ pub async fn get_visible_navigation_items(
             )
             .await?,
         audit: authz
-            .check_all_permissions(sub, Object::Audit, &[Action::Audit(AuditAction::List)])
+            .check_all_permissions(
+                sub,
+                Object::all_audits(),
+                &[Action::Audit(AuditAction::List)],
+            )
             .await?,
         financials: authz
             .check_all_permissions(

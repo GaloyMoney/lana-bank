@@ -73,7 +73,7 @@ where
         self.authz
             .enforce_permission(
                 sub,
-                DashboardModuleObject::Dashboard,
+                DashboardModuleObject::all_dashboards(),
                 DashboardModuleAction::DASHBOARD_READ,
             )
             .await?;
