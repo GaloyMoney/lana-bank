@@ -217,7 +217,7 @@ impl Disbursal {
                 .defaulted_account_id(self.account_ids.disbursed_defaulted_account_id)
                 .due_date(self.disbursal_due_date)
                 .overdue_date(self.disbursal_overdue_date)
-                .effective(effective_at.date_naive())
+                .effective_at(effective_at)
                 .audit_info(audit_info)
                 .build()
                 .expect("could not build new disbursal obligation"),
