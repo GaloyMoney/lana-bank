@@ -33,7 +33,6 @@ where
     obligations: Obligations<Perms, E>,
     ledger: CreditLedger,
     jobs: Jobs,
-    audit: Perms::Audit,
 }
 
 impl<Perms, E> CreditFacilityProcessingJobInitializer<Perms, E>
@@ -43,17 +42,11 @@ where
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>,
     E: OutboxEventMarker<CoreCreditEvent>,
 {
-    pub fn new(
-        ledger: &CreditLedger,
-        obligations: &Obligations<Perms, E>,
-        jobs: &Jobs,
-        audit: &Perms::Audit,
-    ) -> Self {
+    pub fn new(ledger: &CreditLedger, obligations: &Obligations<Perms, E>, jobs: &Jobs) -> Self {
         Self {
             ledger: ledger.clone(),
             obligations: obligations.clone(),
             jobs: jobs.clone(),
-            audit: audit.clone(),
         }
     }
 }
@@ -79,7 +72,6 @@ where
             obligations: self.obligations.clone(),
             ledger: self.ledger.clone(),
             jobs: self.jobs.clone(),
-            audit: self.audit.clone(),
         }))
     }
 }
@@ -93,7 +85,6 @@ where
     obligations: Obligations<Perms, E>,
     ledger: CreditLedger,
     jobs: Jobs,
-    audit: Perms::Audit,
 }
 
 #[async_trait]
@@ -108,32 +99,17 @@ where
         &self,
         _current_job: CurrentJob,
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
-        let mut obligation = self
-            .obligations
-            .find_by_id(self.config.obligation_id)
-            .await?;
-
         let mut db = self.obligations.begin_op().await?;
-        let audit_info = self
-            .audit
-            .record_system_entry_in_tx(
-                db.tx(),
-                CoreCreditObject::all_obligations(),
-                CoreCreditAction::OBLIGATION_UPDATE_STATUS,
-            )
+        let (obligation, due_data) = self
+            .obligations
+            .record_due(&mut db, self.config.obligation_id, self.config.effective)
             .await?;
 
-        let due = if let es_entity::Idempotent::Executed(due) =
-            obligation.record_due(self.config.effective, audit_info)
-        {
+        let due = if let Some(due) = due_data {
             due
         } else {
             return Ok(JobCompletion::Complete);
         };
-
-        self.obligations
-            .update_in_op(&mut db, &mut obligation)
-            .await?;
 
         if let Some(overdue_at) = obligation.overdue_at() {
             self.jobs

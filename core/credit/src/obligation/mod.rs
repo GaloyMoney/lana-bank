@@ -100,13 +100,97 @@ where
         Ok(obligation)
     }
 
-    pub async fn update_in_op(
+    pub async fn record_overdue(
         &self,
         db: &mut es_entity::DbOp<'_>,
-        obligation: &mut Obligation,
-    ) -> Result<(), ObligationError> {
-        self.repo.update_in_op(db, obligation).await?;
-        Ok(())
+        id: ObligationId,
+        effective: chrono::NaiveDate,
+    ) -> Result<(Obligation, Option<ObligationOverdueReallocationData>), ObligationError> {
+        let mut obligation = self.repo.find_by_id(id).await?;
+
+        let audit_info = self
+            .authz
+            .audit()
+            .record_system_entry_in_tx(
+                db.tx(),
+                CoreCreditObject::obligation(id),
+                CoreCreditAction::OBLIGATION_UPDATE_STATUS,
+            )
+            .await
+            .map_err(authz::error::AuthorizationError::from)?;
+
+        let data = if let es_entity::Idempotent::Executed(overdue) =
+            obligation.record_overdue(effective, audit_info)?
+        {
+            self.repo.update_in_op(db, &mut obligation).await?;
+            Some(overdue)
+        } else {
+            None
+        };
+
+        Ok((obligation, data))
+    }
+
+    pub async fn record_due(
+        &self,
+        db: &mut es_entity::DbOp<'_>,
+        id: ObligationId,
+        effective: chrono::NaiveDate,
+    ) -> Result<(Obligation, Option<ObligationDueReallocationData>), ObligationError> {
+        let mut obligation = self.repo.find_by_id(id).await?;
+
+        let audit_info = self
+            .authz
+            .audit()
+            .record_system_entry_in_tx(
+                db.tx(),
+                CoreCreditObject::obligation(id),
+                CoreCreditAction::OBLIGATION_UPDATE_STATUS,
+            )
+            .await
+            .map_err(authz::error::AuthorizationError::from)?;
+
+        let data = if let es_entity::Idempotent::Executed(due) =
+            obligation.record_due(effective, audit_info)
+        {
+            self.repo.update_in_op(db, &mut obligation).await?;
+            Some(due)
+        } else {
+            None
+        };
+
+        Ok((obligation, data))
+    }
+
+    pub async fn record_defaulted(
+        &self,
+        db: &mut es_entity::DbOp<'_>,
+        id: ObligationId,
+        effective: chrono::NaiveDate,
+    ) -> Result<Option<ObligationDefaultedReallocationData>, ObligationError> {
+        let mut obligation = self.repo.find_by_id(id).await?;
+
+        let audit_info = self
+            .authz
+            .audit()
+            .record_system_entry_in_tx(
+                db.tx(),
+                CoreCreditObject::obligation(id),
+                CoreCreditAction::OBLIGATION_UPDATE_STATUS,
+            )
+            .await
+            .map_err(authz::error::AuthorizationError::from)?;
+
+        let data = if let es_entity::Idempotent::Executed(defaulted) =
+            obligation.record_defaulted(effective, audit_info)?
+        {
+            self.repo.update_in_op(db, &mut obligation).await?;
+            Some(defaulted)
+        } else {
+            None
+        };
+
+        Ok(data)
     }
 
     pub async fn find_by_id(&self, id: ObligationId) -> Result<Obligation, ObligationError> {
