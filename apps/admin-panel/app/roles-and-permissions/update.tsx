@@ -29,7 +29,7 @@ gql`
   mutation RoleAddPermissionSets($input: RoleAddPermissionSetsInput!) {
     roleAddPermissionSets(input: $input) {
       role {
-        ...RoleEntityFields
+        ...RoleFields
       }
     }
   }
@@ -37,7 +37,7 @@ gql`
   mutation RoleRemovePermissionSets($input: RoleRemovePermissionSetsInput!) {
     roleRemovePermissionSets(input: $input) {
       role {
-        ...RoleEntityFields
+        ...RoleFields
       }
     }
   }

@@ -40,7 +40,7 @@ gql`
             id
             email
             role {
-              ...RoleEntityFields
+              ...RoleFields
             }
           }
         }
@@ -59,7 +59,7 @@ gql`
         userId
         email
         role {
-          ...RoleEntityFields
+          ...RoleFields
         }
       }
     }

@@ -1406,8 +1406,8 @@ type Query {
 	dashboard: Dashboard!
 	user(id: UUID!): User
 	users: [User!]!
-	role(id: UUID!): RoleEntity
-	roles(first: Int!, after: String): RoleEntityConnection!
+	role(id: UUID!): Role
+	roles(first: Int!, after: String): RoleConnection!
 	permissionSets(first: Int!, after: String): PermissionSetConnection!
 	customer(id: UUID!): Customer
 	customerByEmail(email: String!): Customer
@@ -1485,13 +1485,36 @@ enum ReportProgress {
 	COMPLETE
 }
 
+type Role {
+	id: ID!
+	roleId: UUID!
+	createdAt: Timestamp!
+	name: String!
+	permissionSets: [PermissionSet!]!
+}
+
 input RoleAddPermissionSetsInput {
 	roleId: UUID!
 	permissionSetIds: [UUID!]!
 }
 
 type RoleAddPermissionSetsPayload {
-	role: RoleEntity!
+	role: Role!
+}
+
+type RoleConnection {
+	"""
+	Information to aid in pagination.
+	"""
+	pageInfo: PageInfo!
+	"""
+	A list of edges.
+	"""
+	edges: [RoleEdge!]!
+	"""
+	A list of nodes.
+	"""
+	nodes: [Role!]!
 }
 
 input RoleCreateInput {
@@ -1500,40 +1523,17 @@ input RoleCreateInput {
 }
 
 type RoleCreatePayload {
-	role: RoleEntity!
-}
-
-type RoleEntity {
-	id: ID!
-	roleId: UUID!
-	createdAt: Timestamp!
-	name: String!
-	permissionSets: [PermissionSet!]!
-}
-
-type RoleEntityConnection {
-	"""
-	Information to aid in pagination.
-	"""
-	pageInfo: PageInfo!
-	"""
-	A list of edges.
-	"""
-	edges: [RoleEntityEdge!]!
-	"""
-	A list of nodes.
-	"""
-	nodes: [RoleEntity!]!
+	role: Role!
 }
 
 """
 An edge in a connection.
 """
-type RoleEntityEdge {
+type RoleEdge {
 	"""
 	The item at the end of the edge
 	"""
-	node: RoleEntity!
+	node: Role!
 	"""
 	A cursor for use in pagination
 	"""
@@ -1546,7 +1546,7 @@ input RoleRemovePermissionSetsInput {
 }
 
 type RoleRemovePermissionSetsPayload {
-	role: RoleEntity!
+	role: Role!
 }
 
 scalar Satoshis
@@ -1736,7 +1736,7 @@ type User {
 	id: ID!
 	userId: UUID!
 	createdAt: Timestamp!
-	role: RoleEntity
+	role: Role
 	email: String!
 	subjectCanAssignRoleToUser: Boolean!
 	subjectCanRevokeRoleFromUser: Boolean!

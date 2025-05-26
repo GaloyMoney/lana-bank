@@ -29,7 +29,7 @@ gql`
   mutation RoleCreate($input: RoleCreateInput!) {
     roleCreate(input: $input) {
       role {
-        ...RoleEntityFields
+        ...RoleFields
       }
     }
   }

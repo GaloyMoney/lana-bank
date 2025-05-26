@@ -24,7 +24,7 @@ gql`
     name
   }
 
-  fragment RoleEntityFields on RoleEntity {
+  fragment RoleFields on Role {
     id
     roleId
     name
@@ -38,7 +38,7 @@ gql`
     roles(first: $first, after: $after) {
       edges {
         node {
-          ...RoleEntityFields
+          ...RoleFields
         }
       }
     }

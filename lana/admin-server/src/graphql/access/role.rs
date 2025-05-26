@@ -8,7 +8,6 @@ pub use lana_app::access::role::RolesByNameCursor;
 
 #[derive(SimpleObject, Clone)]
 #[graphql(complex)]
-#[graphql(name = "RoleEntity")]
 pub struct Role {
     id: ID,
     role_id: UUID,
