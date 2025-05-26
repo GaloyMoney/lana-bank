@@ -377,15 +377,13 @@ where
             .start_process(&mut db, id, id.to_string(), APPROVE_CREDIT_FACILITY_PROCESS)
             .await?;
 
-        let new_collateral = NewCollateral::builder()
-            .id(collateral_id)
-            .credit_facility_id(id)
-            .account_id(account_ids.collateral_account_id)
-            .build()
-            .expect("all fields for new collateral provided");
-
-        self.collaterals()
-            .create_in_op(&mut db, new_collateral)
+        self.collaterals
+            .create_in_op(
+                &mut db,
+                collateral_id,
+                id,
+                account_ids.collateral_account_id,
+            )
             .await?;
 
         let credit_facility = self
@@ -707,24 +705,23 @@ where
             .find_by_id(credit_facility_id)
             .await?;
 
-        let mut collateral = self
-            .collaterals()
-            .find_by_id(credit_facility.collateral_id)
-            .await?;
-
-        let collateral_update =
-            match collateral.record_collateral_update(updated_collateral, effective, &audit_info) {
-                Idempotent::Executed(update) => update,
-                Idempotent::Ignored => {
-                    return Ok(credit_facility);
-                }
-            };
-
         let mut db = self.credit_facility_repo.begin_op().await?;
 
-        self.collaterals()
-            .update_in_op(&mut db, &mut collateral)
-            .await?;
+        let collateral_update = if let Some(collateral_update) = self
+            .collaterals
+            .record_collateral_update_in_op(
+                &mut db,
+                credit_facility.collateral_id,
+                updated_collateral,
+                effective,
+                &audit_info,
+            )
+            .await?
+        {
+            collateral_update
+        } else {
+            return Ok(credit_facility);
+        };
 
         self.ledger
             .update_credit_facility_collateral(db, collateral_update, credit_facility.account_ids)
@@ -1038,18 +1035,17 @@ where
             .get_credit_facility_balance(credit_facility.account_ids)
             .await?;
 
-        let mut collateral = self
-            .collaterals()
-            .find_by_id(credit_facility.collateral_id)
-            .await?;
-        let _ = collateral.record_collateral_update(
-            Satoshis::ZERO,
-            crate::time::now().date_naive(),
-            &audit_info,
-        );
         let mut db = self.credit_facility_repo.begin_op().await?;
-        self.collaterals()
-            .update_in_op(&mut db, &mut collateral)
+
+        let _ = self
+            .collaterals
+            .record_collateral_update_in_op(
+                &mut db,
+                credit_facility.collateral_id,
+                Satoshis::ZERO,
+                crate::time::now().date_naive(),
+                &audit_info,
+            )
             .await?;
 
         let completion = if let Idempotent::Executed(completion) = credit_facility.complete(

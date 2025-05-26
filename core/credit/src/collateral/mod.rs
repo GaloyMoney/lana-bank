@@ -5,11 +5,7 @@ mod repo;
 use authz::PermissionCheck;
 use outbox::OutboxEventMarker;
 
-use crate::{
-    event::CoreCreditEvent,
-    primitives::{CollateralId, CollateralUpdate},
-    CreditFacilityPublisher,
-};
+use crate::{event::CoreCreditEvent, primitives::*, CreditFacilityPublisher};
 
 pub use entity::Collateral;
 pub(super) use entity::*;
@@ -25,6 +21,19 @@ where
     repo: CollateralRepo<E>,
 }
 
+impl<Perms, E> Clone for Collaterals<Perms, E>
+where
+    Perms: PermissionCheck,
+    E: OutboxEventMarker<CoreCreditEvent>,
+{
+    fn clone(&self) -> Self {
+        Self {
+            authz: self.authz.clone(),
+            repo: self.repo.clone(),
+        }
+    }
+}
+
 impl<Perms, E> Collaterals<Perms, E>
 where
     Perms: PermissionCheck,
@@ -37,37 +46,42 @@ where
         }
     }
 
-    pub async fn find_by_id(&self, id: CollateralId) -> Result<Collateral, CollateralError> {
-        self.repo.find_by_id(id).await
-    }
-
     pub async fn create_in_op(
         &self,
         db: &mut es_entity::DbOp<'_>,
-        collateral: NewCollateral,
+        collateral_id: CollateralId,
+        credit_facility_id: CreditFacilityId,
+        account_id: CalaAccountId,
     ) -> Result<Collateral, CollateralError> {
-        self.repo.create_in_op(db, collateral).await
+        let new_collateral = NewCollateral::builder()
+            .id(collateral_id)
+            .credit_facility_id(credit_facility_id)
+            .account_id(account_id)
+            .build()
+            .expect("all fields for new collateral provided");
+
+        self.repo.create_in_op(db, new_collateral).await
     }
 
-    pub async fn update_in_op(
+    pub(super) async fn record_collateral_update_in_op(
         &self,
         db: &mut es_entity::DbOp<'_>,
-        collateral: &mut Collateral,
-    ) -> Result<(), CollateralError> {
-        self.repo.update_in_op(db, collateral).await?;
-        Ok(())
-    }
-}
+        collateral_id: CollateralId,
+        updated_collateral: core_money::Satoshis,
+        effective: chrono::NaiveDate,
+        audit_info: &audit::AuditInfo,
+    ) -> Result<Option<CollateralUpdate>, CollateralError> {
+        let mut collateral = self.repo.find_by_id(collateral_id).await?;
 
-impl<Perms, E> Clone for Collaterals<Perms, E>
-where
-    Perms: PermissionCheck,
-    E: OutboxEventMarker<CoreCreditEvent>,
-{
-    fn clone(&self) -> Self {
-        Self {
-            authz: self.authz.clone(),
-            repo: self.repo.clone(),
-        }
+        let res = if let es_entity::Idempotent::Executed(data) =
+            collateral.record_collateral_update(updated_collateral, effective, audit_info)
+        {
+            self.repo.update_in_op(db, &mut collateral).await?;
+            Some(data)
+        } else {
+            None
+        };
+
+        Ok(res)
     }
 }
