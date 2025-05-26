@@ -20,7 +20,7 @@ pub struct Role {
 #[ComplexObject]
 impl Role {
     async fn name(&self) -> &str {
-        self.entity.name.name()
+        &self.entity.name
     }
 
     async fn permission_sets(

@@ -6,10 +6,7 @@ use std::collections::HashSet;
 use audit::AuditInfo;
 use es_entity::*;
 
-use crate::{
-    primitives::{RoleId, RoleName},
-    PermissionSetId,
-};
+use crate::{primitives::RoleId, PermissionSetId};
 
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
@@ -17,7 +14,7 @@ use crate::{
 pub enum RoleEvent {
     Initialized {
         id: RoleId,
-        name: RoleName,
+        name: String,
         permission_sets: HashSet<PermissionSetId>,
         audit_info: AuditInfo,
     },
@@ -36,7 +33,7 @@ pub enum RoleEvent {
 #[allow(dead_code)]
 pub struct Role {
     pub id: RoleId,
-    pub name: RoleName,
+    pub name: String,
     pub permission_sets: HashSet<PermissionSetId>,
     events: EntityEvents<RoleEvent>,
 }
@@ -133,7 +130,7 @@ impl TryFromEvents<RoleEvent> for Role {
 pub struct NewRole {
     #[builder(setter(into))]
     pub(super) id: RoleId,
-    pub(super) name: RoleName,
+    pub(super) name: String,
     #[builder(default)]
     pub(super) initial_permission_sets: HashSet<PermissionSetId>,
     pub(super) audit_info: AuditInfo,

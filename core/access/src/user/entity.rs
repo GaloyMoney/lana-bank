@@ -19,12 +19,12 @@ pub enum UserEvent {
     },
     RoleAssigned {
         id: RoleId,
-        name: RoleName,
+        name: String,
         audit_info: AuditInfo,
     },
     RoleRevoked {
         id: RoleId,
-        name: RoleName,
+        name: String,
         audit_info: AuditInfo,
     },
 }

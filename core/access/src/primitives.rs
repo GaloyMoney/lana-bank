@@ -14,6 +14,8 @@ es_entity::entity_id! { UserId }
 
 es_entity::entity_id! { AuthenticationId, PermissionSetId, RoleId }
 
+pub const ROLE_NAME_SUPERUSER: &str = "superuser";
+
 pub const ACCESS_WRITER: &str = "access_writer";
 pub const ACCESS_READER: &str = "access_reader";
 
@@ -41,19 +43,9 @@ impl From<&PermissionSetId> for RoleName {
     }
 }
 
-#[derive(Clone, Eq, Hash, PartialEq, Debug, Serialize, Deserialize, sqlx::Type)]
-#[serde(transparent)]
-#[sqlx(transparent)]
+#[derive(Clone, Eq, Hash, PartialEq, Debug)]
 pub struct RoleName(Cow<'static, str>);
 impl RoleName {
-    /// Name of the role that will have all permission sets.
-    pub const SUPERUSER: RoleName = RoleName(Cow::Borrowed("superuser"));
-
-    // Transitional roles before they are replaced by seeded roles
-    pub const ACCOUNTANT: RoleName = RoleName(Cow::Borrowed("accountant"));
-    pub const BANK_MANAGER: RoleName = RoleName(Cow::Borrowed("bank-manager"));
-    pub const ADMIN: RoleName = RoleName(Cow::Borrowed("admin"));
-
     pub fn new(role_name: impl Into<String>) -> Self {
         RoleName(Cow::Owned(role_name.into()))
     }
@@ -66,12 +58,6 @@ impl RoleName {
 impl Display for RoleName {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         self.name().fmt(f)
-    }
-}
-
-impl From<&RoleName> for RoleName {
-    fn from(value: &RoleName) -> Self {
-        value.clone()
     }
 }
 

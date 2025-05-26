@@ -855,12 +855,11 @@ impl Mutation {
             name,
             permission_set_ids,
         } = input;
-        let role_name = core_access::RoleName::new(name);
         exec_mutation!(
             RoleCreatePayload,
             Role,
             ctx,
-            app.access().create_role(sub, role_name, permission_set_ids)
+            app.access().create_role(sub, name, permission_set_ids)
         )
     }
 

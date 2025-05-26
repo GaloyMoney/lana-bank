@@ -13,67 +13,10 @@ use core_customer::CustomerId;
 pub use action::*;
 pub use object::*;
 
-pub use core_access::RoleName;
-
-#[derive(
-    async_graphql::Enum,
-    Serialize,
-    Deserialize,
-    Debug,
-    Clone,
-    Copy,
-    PartialEq,
-    Eq,
-    Hash,
-    PartialOrd,
-    Ord,
-    strum::EnumString,
-    strum::Display,
-)]
-#[strum(serialize_all = "kebab-case")]
-#[graphql(name = "Role")]
-pub enum LanaRole {
-    Superuser,
-    Admin,
-    BankManager,
-    Accountant,
-}
-
-impl LanaRole {
-    pub const SUPERUSER: RoleName = RoleName::SUPERUSER;
-    pub const ACCOUNTANT: RoleName = RoleName::ACCOUNTANT;
-    pub const ADMIN: RoleName = RoleName::ADMIN;
-    pub const BANK_MANAGER: RoleName = RoleName::BANK_MANAGER;
-}
-
-impl From<LanaRole> for RoleName {
-    fn from(r: LanaRole) -> Self {
-        match r {
-            LanaRole::Superuser => LanaRole::SUPERUSER,
-            LanaRole::Admin => LanaRole::ADMIN,
-            LanaRole::BankManager => LanaRole::BANK_MANAGER,
-            LanaRole::Accountant => LanaRole::ACCOUNTANT,
-        }
-    }
-}
-
-impl From<RoleName> for LanaRole {
-    fn from(r: RoleName) -> Self {
-        if r == LanaRole::SUPERUSER {
-            LanaRole::Superuser
-        } else if r == LanaRole::ADMIN {
-            LanaRole::Admin
-        } else if r == LanaRole::BANK_MANAGER {
-            LanaRole::BankManager
-        } else if r == LanaRole::ACCOUNTANT {
-            LanaRole::Accountant
-        } else {
-            panic!("Unknown Role")
-        }
-    }
-}
-
 const SYSTEM_SUBJECT_ID: Uuid = uuid!("00000000-0000-0000-0000-000000000000");
+pub const ROLE_NAME_ACCOUNTANT: &str = "accountant";
+pub const ROLE_NAME_ADMIN: &str = "admin";
+pub const ROLE_NAME_BANK_MANAGER: &str = "bank-manager";
 
 #[derive(Clone, Copy, Debug, strum::EnumDiscriminants, Serialize, Deserialize)]
 #[strum_discriminants(derive(strum::AsRefStr, strum::EnumString))]

@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::primitives::{PermissionSetId, RoleId, RoleName, UserId};
+use crate::primitives::{PermissionSetId, RoleId, UserId};
 
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(tag = "type")]
@@ -15,17 +15,17 @@ pub enum CoreAccessEvent {
     UserGrantedRole {
         id: UserId,
         role_id: RoleId,
-        role_name: RoleName,
+        role_name: String,
     },
     UserRevokedRole {
         id: UserId,
         role_id: RoleId,
-        role_name: RoleName,
+        role_name: String,
     },
 
     RoleCreated {
         id: RoleId,
-        name: RoleName,
+        name: String,
     },
     RoleGainedPermissionSet {
         id: RoleId,

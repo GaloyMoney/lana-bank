@@ -1,8 +1,9 @@
 mod helpers;
 use rand::distr::{Alphanumeric, SampleString};
+use rbac_types::ROLE_NAME_BANK_MANAGER;
 use serial_test::file_serial;
 
-use lana_app::{audit::*, authorization::init as init_authz, primitives::*};
+use lana_app::{audit::*, authorization::init as init_authz};
 
 fn generate_random_email() -> String {
     let random_string: String = Alphanumeric.sample_string(&mut rand::rng(), 32);
@@ -26,7 +27,7 @@ async fn bank_manager_lifecycle() -> anyhow::Result<()> {
     assert_eq!(user.current_role(), None);
 
     let bank_manager_role = access
-        .find_role_by_name(&superuser_subject, LanaRole::BANK_MANAGER)
+        .find_role_by_name(&superuser_subject, ROLE_NAME_BANK_MANAGER)
         .await?;
 
     let bank_manager = access

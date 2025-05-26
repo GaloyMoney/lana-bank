@@ -15,7 +15,7 @@ pub use deposit::{DepositAccountHolderId, DepositAccountId, DepositId, Withdrawa
 pub use governance::{ApprovalProcessId, CommitteeId, CommitteeMemberId, PolicyId};
 pub use job::JobId;
 pub use lana_ids::*;
-pub use rbac_types::{LanaRole, RoleName, Subject};
+pub use rbac_types::Subject;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, sqlx::Type)]
 #[serde(transparent)]
