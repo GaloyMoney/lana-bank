@@ -814,7 +814,7 @@
           "headers": {
             "email": "Correo Electrónico"
           },
-          "noRoles": "Sin roles asignados",
+          "noRole": "Sin rol asignado",
           "emptyMessage": "No se encontraron miembros en este comité"
         },
         "buttons": {
@@ -1109,17 +1109,17 @@
     "table": {
       "headers": {
         "email": "Correo Electrónico",
-        "roles": "Roles"
+        "role": "Rol"
       },
       "noRolesAssigned": "Sin roles asignados",
       "emptyMessage": "No se encontraron usuarios"
     },
     "createDialog": {
       "title": "Añadir nuevo Usuario",
-      "description": "Añadir un nuevo usuario al panel de administración proporcionando su dirección de correo electrónico y seleccionando roles",
+      "description": "Añade un nuevo usuario al panel de administración proporcionando su dirección de correo electrónico y seleccionando un rol",
       "fields": {
         "email": "Correo Electrónico",
-        "role": "Roles"
+        "role": "Rol"
       },
       "placeholders": {
         "email": "Por favor ingrese la dirección de correo electrónico",
@@ -1560,7 +1560,7 @@
     "table": {
       "headers": {
         "name": "Nombre del rol",
-        "permissionSets": "Conjuntos de permisos",
+        "permissionSets": "Permisos",
         "createdAt": "Creado el"
       },
       "emptyMessage": "No se encontraron roles. Haz clic en el botón crear para añadir un nuevo rol.",
@@ -1592,7 +1592,7 @@
       "roleDetailsDescription": "Ver y gestionar información y permisos del rol",
       "name": "Nombre",
       "createdAt": "Creado el",
-      "permissionSets": "Conjuntos de permisos",
+      "permissionSets": "Permisos",
       "editRole": "Editar rol"
     }
   }

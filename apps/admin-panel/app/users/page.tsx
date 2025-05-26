@@ -64,7 +64,7 @@ function UsersPage() {
     },
     {
       key: "role",
-      header: t("table.headers.roles"),
+      header: t("table.headers.role"),
       render: (role) => (
         <div>{role?.name ? <>{role.name}</> : t("table.noRolesAssigned")}</div>
       ),

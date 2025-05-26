@@ -79,7 +79,7 @@ const meta: Meta<typeof UserStory> = {
     },
     role: {
       control: "text",
-      description: "User roles",
+      description: "User role",
     },
   },
 }

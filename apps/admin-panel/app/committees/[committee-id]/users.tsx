@@ -42,7 +42,7 @@ export const CommitteeUsers: React.FC<CommitteeUsersProps> = ({
     {
       key: "role",
       header: "",
-      render: (role) => (role?.name ? <>{role.name}</> : t("table.noRoles")),
+      render: (role) => (role?.name ? <>{role.name}</> : t("table.noRole")),
     },
   ]
 

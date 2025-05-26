@@ -814,7 +814,7 @@
           "headers": {
             "email": "Email"
           },
-          "noRoles": "No roles assigned",
+          "noRole": "No role assigned",
           "emptyMessage": "No members found in this committee"
         },
         "buttons": {
@@ -1109,17 +1109,17 @@
     "table": {
       "headers": {
         "email": "Email",
-        "roles": "Roles"
+        "role": "Role"
       },
       "noRolesAssigned": "No roles Assigned",
       "emptyMessage": "No users found"
     },
     "createDialog": {
       "title": "Add new User",
-      "description": "Add a new user to the admin-panel by providing their email address and selecting roles",
+      "description": "Add a new user to the admin-panel by providing their email address and selecting a role",
       "fields": {
         "email": "Email",
-        "role": "Roles"
+        "role": "Role"
       },
       "placeholders": {
         "email": "Please enter the email address",
@@ -1560,7 +1560,7 @@
     "table": {
       "headers": {
         "name": "Role Name",
-        "permissionSets": "Permission Sets",
+        "permissionSets": "Permissions",
         "createdAt": "Created At"
       },
       "emptyMessage": "No roles found. Click the create button to add a new role.",
@@ -1592,7 +1592,7 @@
       "roleDetailsDescription": "View and manage role information and permissions",
       "name": "Name",
       "createdAt": "Created At",
-      "permissionSets": "Permission Sets",
+      "permissionSets": "Permissions",
       "editRole": "Edit Role"
     }
   }

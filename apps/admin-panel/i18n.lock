@@ -476,7 +476,7 @@ checksums:
     Committees/CommitteeDetails/CommitteeUsers/title: 0932e80cba1e3e0a7f52bb67ff31da32
     Committees/CommitteeDetails/CommitteeUsers/description: f87dbed6776b95098e46c29032b5abeb
     Committees/CommitteeDetails/CommitteeUsers/table/headers/email: e7f34943a0c2fb849db1839ff6ef5cb5
-    Committees/CommitteeDetails/CommitteeUsers/table/noRoles: ad1111553e91d0fbd238772ba57e56ab
+    Committees/CommitteeDetails/CommitteeUsers/table/noRole: fb7a278d127bd228c667c02041d80669
     Committees/CommitteeDetails/CommitteeUsers/table/emptyMessage: f723728efd0a4f9aef5ad333005d6d19
     Committees/CommitteeDetails/CommitteeUsers/buttons/removeMember: 1d77c2ca3768e486fd1fb5df30cb60d9
     Committees/CommitteeDetails/detailsCard/title: d856e06fc77be0f7b3611d671e3dd0ec
@@ -620,13 +620,13 @@ checksums:
     Users/title: fe42f97809c24d700d3912c8d02ed452
     Users/description: ebdb9ebec441ed758aa7e81e9d3e8b77
     Users/table/headers/email: e7f34943a0c2fb849db1839ff6ef5cb5
-    Users/table/headers/roles: 21834ee85d5936bc0b262d5d5ddd58e3
+    Users/table/headers/role: 53743bbb6ca938f5b893552e839d067f
     Users/table/noRolesAssigned: 9df8e3e6f10acf951fd737d6597e326b
     Users/table/emptyMessage: de77574a8013306768e759f5897a59e5
     Users/createDialog/title: 5578a68c9a99cea45581e7ddfea812bd
-    Users/createDialog/description: cb93be965abcccc18783934840b7866d
+    Users/createDialog/description: b5b7ad38bc620f89c2b1351cea151bef
     Users/createDialog/fields/email: e7f34943a0c2fb849db1839ff6ef5cb5
-    Users/createDialog/fields/role: 21834ee85d5936bc0b262d5d5ddd58e3
+    Users/createDialog/fields/role: 53743bbb6ca938f5b893552e839d067f
     Users/createDialog/placeholders/email: 5eed7fb7e109b4ab618bce37c6bed35d
     Users/createDialog/placeholders/selectRole: 511782cfbf0e2709be707ef2d748a985
     Users/createDialog/noRolesAvailable: a3b43f934759701ff0c06cb646ba0e71
@@ -931,7 +931,7 @@ checksums:
     RolesAndPermissions/title: 766190959c36bdfa5506b087f190707d
     RolesAndPermissions/description: 50adc668981bee3b282074f95b983a22
     RolesAndPermissions/table/headers/name: e8b92e9bbc2293dc77c4219f4652317a
-    RolesAndPermissions/table/headers/permissionSets: 949dcbec01c367fb23a63eac4aba772b
+    RolesAndPermissions/table/headers/permissionSets: 2160be68b1d6b6577e64634e9feba2ed
     RolesAndPermissions/table/headers/createdAt: 9ce495d7fc74e1a2ae86c07206a3e531
     RolesAndPermissions/table/emptyMessage: cf4cb3c1c0f68b5842c4800ab1c1b7a3
     RolesAndPermissions/table/noPermissionSetsAssigned: 97c4ddcf1e6a6b6dc29b00b9e86a4e07
@@ -956,5 +956,5 @@ checksums:
     RolesAndPermissions/roleDetails/roleDetailsDescription: d706bd3669b856e879413fd1f296f792
     RolesAndPermissions/roleDetails/name: 9368b5a047572b6051f334af5aa76819
     RolesAndPermissions/roleDetails/createdAt: 9ce495d7fc74e1a2ae86c07206a3e531
-    RolesAndPermissions/roleDetails/permissionSets: 949dcbec01c367fb23a63eac4aba772b
+    RolesAndPermissions/roleDetails/permissionSets: 2160be68b1d6b6577e64634e9feba2ed
     RolesAndPermissions/roleDetails/editRole: b5c3ab76d07ed0d4603b2025efffc025
