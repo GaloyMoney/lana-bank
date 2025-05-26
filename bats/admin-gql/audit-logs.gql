@@ -8,7 +8,6 @@ query AuditLogs($first: Int!, $after: String) {
           ... on User {
             userId
             email
-            roles
           }
           ... on System {
             name

@@ -23,7 +23,7 @@ async fn bank_manager_lifecycle() -> anyhow::Result<()> {
         .create_user(&superuser_subject, user_email.clone())
         .await?;
     assert_eq!(user.email, user_email);
-    assert_eq!(user.current_roles().len(), 0);
+    assert_eq!(user.current_role(), None);
 
     let bank_manager_role = access
         .find_role_by_name(&superuser_subject, LanaRole::BANK_MANAGER)
@@ -35,15 +35,14 @@ async fn bank_manager_lifecycle() -> anyhow::Result<()> {
         .expect("Could not assign role to user");
 
     assert_eq!(bank_manager.id, user.id);
-    let roles: Vec<_> = bank_manager.current_roles().into_iter().collect();
-    assert_eq!(roles, vec![bank_manager_role.id]);
+    assert_eq!(bank_manager.current_role(), Some(bank_manager_role.id));
 
     let user = access
         .users()
         .revoke_role_from_user(&superuser_subject, bank_manager.id, &bank_manager_role)
         .await?;
 
-    assert_eq!(user.current_roles().len(), 0);
+    assert_eq!(user.current_role(), None);
 
     Ok(())
 }

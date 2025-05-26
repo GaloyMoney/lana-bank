@@ -256,7 +256,13 @@ where
             .expect("audit info missing");
 
         let mut user = self.repo.find_by_id(id).await?;
+        let old_role = user.current_role();
         if user.assign_role(role, audit_info).did_execute() {
+            if let Some(old_role_id) = old_role {
+                self.authz
+                    .revoke_role_from_subject(user.id, old_role_id)
+                    .await?;
+            }
             self.authz.assign_role_to_subject(user.id, role.id).await?;
             self.repo.update(&mut user).await?;
         }

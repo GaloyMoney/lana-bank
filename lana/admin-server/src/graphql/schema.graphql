@@ -1736,7 +1736,7 @@ type User {
 	id: ID!
 	userId: UUID!
 	createdAt: Timestamp!
-	roles: [UUID!]!
+	role: UUID
 	email: String!
 	subjectCanAssignRoleToUser: Boolean!
 	subjectCanRevokeRoleFromUser: Boolean!

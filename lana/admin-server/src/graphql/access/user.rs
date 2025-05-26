@@ -38,12 +38,8 @@ impl From<Arc<DomainUser>> for User {
 
 #[ComplexObject]
 impl User {
-    async fn roles(&self) -> Vec<UUID> {
-        self.entity
-            .current_roles()
-            .into_iter()
-            .map(UUID::from)
-            .collect()
+    async fn role(&self) -> Option<UUID> {
+        self.entity.current_role().map(UUID::from)
     }
 
     async fn email(&self) -> &str {

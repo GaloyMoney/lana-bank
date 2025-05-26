@@ -5,8 +5,6 @@ use es_entity::*;
 
 use crate::{primitives::*, Role};
 
-use std::collections::HashSet;
-
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
 #[es_event(id = "UserId")]
@@ -79,15 +77,15 @@ impl User {
         Idempotent::Executed(())
     }
 
-    pub fn current_roles(&self) -> HashSet<RoleId> {
-        let mut res = HashSet::new();
+    pub fn current_role(&self) -> Option<RoleId> {
+        let mut res = None;
         for event in self.events.iter_all() {
             match event {
                 UserEvent::RoleAssigned { id: role_id, .. } => {
-                    res.insert(*role_id);
+                    let _ = res.insert(*role_id);
                 }
-                UserEvent::RoleRevoked { id: role_id, .. } => {
-                    res.remove(role_id);
+                UserEvent::RoleRevoked { .. } => {
+                    res.take();
                 }
                 _ => {}
             }
