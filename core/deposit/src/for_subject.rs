@@ -188,7 +188,7 @@ where
 
         Ok(self
             .withdrawals
-            .list_for_account_internal(account_id)
+            .list_for_account_without_audit(account_id)
             .await?)
     }
 
@@ -197,7 +197,10 @@ where
         withdrawal_id: impl Into<WithdrawalId> + std::fmt::Debug,
     ) -> Result<Withdrawal, CoreDepositError> {
         let withdrawal_id = withdrawal_id.into();
-        let withdrawal = self.withdrawals.find_by_id_internal(withdrawal_id).await?;
+        let withdrawal = self
+            .withdrawals
+            .find_by_id_without_audit(withdrawal_id)
+            .await?;
 
         self.ensure_account_access(
             withdrawal.deposit_account_id,
@@ -215,7 +218,7 @@ where
     ) -> Result<Withdrawal, CoreDepositError> {
         let withdrawal = self
             .withdrawals
-            .find_by_cancelled_tx_id_internal(cancelled_tx_id)
+            .find_by_cancelled_tx_id_without_audit(cancelled_tx_id)
             .await?;
 
         self.ensure_account_access(

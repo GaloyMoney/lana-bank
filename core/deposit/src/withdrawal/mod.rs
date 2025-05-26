@@ -140,8 +140,7 @@ where
         Ok(withdraw)
     }
 
-    #[instrument(name = "core_deposit.withdrawal.find_by_id_internal", skip(self), err)]
-    pub(super) async fn find_by_id_internal(
+    pub(super) async fn find_by_id_without_audit(
         &self,
         id: impl Into<WithdrawalId> + std::fmt::Debug,
     ) -> Result<Withdrawal, WithdrawalError> {
@@ -171,7 +170,7 @@ where
         }
     }
 
-    pub(super) async fn find_by_cancelled_tx_id_internal(
+    pub(super) async fn find_by_cancelled_tx_id_without_audit(
         &self,
         cancelled_tx_id: impl Into<CalaTransactionId> + std::fmt::Debug,
     ) -> Result<Withdrawal, WithdrawalError> {
@@ -212,7 +211,7 @@ where
         skip(self),
         err
     )]
-    pub(super) async fn list_for_account_internal(
+    pub(super) async fn list_for_account_without_audit(
         &self,
         account_id: impl Into<DepositAccountId> + std::fmt::Debug,
     ) -> Result<Vec<Withdrawal>, WithdrawalError> {
@@ -242,15 +241,7 @@ where
                 CoreDepositAction::WITHDRAWAL_LIST,
             )
             .await?;
-        Ok(self
-            .repo
-            .list_for_deposit_account_id_by_created_at(
-                account_id,
-                Default::default(),
-                es_entity::ListDirection::Descending,
-            )
-            .await?
-            .entities)
+        self.list_for_account_without_audit(account_id).await
     }
 
     #[instrument(name = "core_deposit.withdrawal.list", skip(self), err)]
