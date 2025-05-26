@@ -14,7 +14,7 @@ use governance::{
 use outbox::OutboxEventMarker;
 
 use crate::{
-    credit_facility::CreditFacilityRepo, ledger::CreditLedger, obligation::Obligations,
+    credit_facility::CreditFacilities, ledger::CreditLedger, obligation::Obligations,
     primitives::DisbursalId, CoreCreditAction, CoreCreditError, CoreCreditEvent, CoreCreditObject,
     Disbursal, DisbursalRepo, LedgerTxId,
 };
@@ -29,7 +29,7 @@ where
 {
     disbursal_repo: DisbursalRepo<E>,
     obligations: Obligations<Perms, E>,
-    credit_facility_repo: CreditFacilityRepo<E>,
+    credit_facilities: CreditFacilities<Perms, E>,
     jobs: Jobs,
     audit: Perms::Audit,
     governance: Governance<Perms, E>,
@@ -45,7 +45,7 @@ where
         Self {
             disbursal_repo: self.disbursal_repo.clone(),
             obligations: self.obligations.clone(),
-            credit_facility_repo: self.credit_facility_repo.clone(),
+            credit_facilities: self.credit_facilities.clone(),
             jobs: self.jobs.clone(),
             audit: self.audit.clone(),
             governance: self.governance.clone(),
@@ -66,7 +66,7 @@ where
     pub fn new(
         disbursal_repo: &DisbursalRepo<E>,
         obligations: &Obligations<Perms, E>,
-        credit_facility_repo: &CreditFacilityRepo<E>,
+        credit_facilities: &CreditFacilities<Perms, E>,
         jobs: &Jobs,
         audit: &Perms::Audit,
         governance: &Governance<Perms, E>,
@@ -75,7 +75,7 @@ where
         Self {
             disbursal_repo: disbursal_repo.clone(),
             obligations: obligations.clone(),
-            credit_facility_repo: credit_facility_repo.clone(),
+            credit_facilities: credit_facilities.clone(),
             jobs: jobs.clone(),
             audit: audit.clone(),
             governance: governance.clone(),
@@ -119,8 +119,8 @@ where
     ) -> Result<Disbursal, CoreCreditError> {
         let mut disbursal = self.disbursal_repo.find_by_id(id.into()).await?;
         let mut credit_facility = self
-            .credit_facility_repo
-            .find_by_id(disbursal.facility_id)
+            .credit_facilities
+            .find_by_id_without_audit(disbursal.facility_id)
             .await?;
 
         let mut db = self.disbursal_repo.begin_op().await?;
@@ -157,7 +157,7 @@ where
         self.disbursal_repo
             .update_in_op(&mut db, &mut disbursal)
             .await?;
-        self.credit_facility_repo
+        self.credit_facilities
             .update_in_op(&mut db, &mut credit_facility)
             .await?;
 

@@ -76,6 +76,7 @@ pub async fn interest_late_scenario(sub: Subject, app: &LanaApp) -> anyhow::Resu
 
     let cf = app
         .credit()
+        .credit_facilities()
         .find_by_id(&sub, cf.id)
         .await?
         .expect("cf exists");
@@ -109,7 +110,12 @@ async fn do_interest_late(
             .record_payment(&sub, id, amount, sim_time::now().date_naive())
             .await?;
 
-        let facility = app.credit().find_by_id(&sub, id).await?.unwrap();
+        let facility = app
+            .credit()
+            .credit_facilities()
+            .find_by_id(&sub, id)
+            .await?
+            .unwrap();
         let total_outstanding = app.credit().outstanding(&facility).await?;
         if total_outstanding == first_interest {
             break;

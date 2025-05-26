@@ -101,7 +101,12 @@ async fn do_principal_under_payment(
             principal_remaining += amount;
         }
 
-        let facility = app.credit().find_by_id(&sub, id).await?.unwrap();
+        let facility = app
+            .credit()
+            .credit_facilities()
+            .find_by_id(&sub, id)
+            .await?
+            .unwrap();
         let total_outstanding = app.credit().outstanding(&facility).await?;
         if total_outstanding == principal_remaining {
             break;

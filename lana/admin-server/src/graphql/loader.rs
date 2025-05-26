@@ -290,7 +290,12 @@ impl Loader<CreditFacilityId> for LanaLoader {
         &self,
         keys: &[CreditFacilityId],
     ) -> Result<HashMap<CreditFacilityId, CreditFacility>, Self::Error> {
-        self.app.credit().find_all(keys).await.map_err(Arc::new)
+        self.app
+            .credit()
+            .credit_facilities()
+            .find_all(keys)
+            .await
+            .map_err(|e| Arc::new(e.into()))
     }
 }
 

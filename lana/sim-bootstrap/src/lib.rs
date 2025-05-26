@@ -111,6 +111,7 @@ async fn create_and_process_facility(
                     .await;
                 let facility = app
                     .credit()
+                    .credit_facilities()
                     .find_by_id(&sub, *id)
                     .await?
                     .expect("cf exists");

@@ -8,7 +8,7 @@ use job::*;
 use outbox::OutboxEventMarker;
 
 use crate::{
-    credit_facility::CreditFacilityRepo, error::CoreCreditError, event::CoreCreditEvent, ledger::*,
+    credit_facility::CreditFacilities, error::CoreCreditError, event::CoreCreditEvent, ledger::*,
     primitives::*, terms::InterestPeriod,
 };
 
@@ -34,7 +34,7 @@ where
     E: OutboxEventMarker<CoreCreditEvent>,
 {
     ledger: CreditLedger,
-    credit_facility_repo: CreditFacilityRepo<E>,
+    credit_facilities: CreditFacilities<Perms, E>,
     audit: Perms::Audit,
     jobs: Jobs,
 }
@@ -48,13 +48,13 @@ where
 {
     pub fn new(
         ledger: &CreditLedger,
-        credit_facility_repo: CreditFacilityRepo<E>,
+        credit_facilities: &CreditFacilities<Perms, E>,
         audit: &Perms::Audit,
         jobs: &Jobs,
     ) -> Self {
         Self {
             ledger: ledger.clone(),
-            credit_facility_repo,
+            credit_facilities: credit_facilities.clone(),
             audit: audit.clone(),
             jobs: jobs.clone(),
         }
@@ -80,7 +80,7 @@ where
     fn init(&self, job: &Job) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
         Ok(Box::new(CreditFacilityProcessingJobRunner::<Perms, E> {
             config: job.config()?,
-            credit_facility_repo: self.credit_facility_repo.clone(),
+            credit_facility_repo: self.credit_facilities.clone(),
             ledger: self.ledger.clone(),
             audit: self.audit.clone(),
             jobs: self.jobs.clone(),
@@ -102,7 +102,7 @@ where
     E: OutboxEventMarker<CoreCreditEvent>,
 {
     config: CreditFacilityJobConfig<Perms, E>,
-    credit_facility_repo: CreditFacilityRepo<E>,
+    credit_facility_repo: CreditFacilities<Perms, E>,
     ledger: CreditLedger,
     audit: Perms::Audit,
     jobs: Jobs,
@@ -122,7 +122,7 @@ where
     ) -> Result<ConfirmedAccrual, CoreCreditError> {
         let mut credit_facility = self
             .credit_facility_repo
-            .find_by_id(self.config.credit_facility_id)
+            .find_by_id_without_audit(self.config.credit_facility_id)
             .await?;
 
         let confirmed_accrual = {
@@ -193,18 +193,11 @@ where
             accrued_count,
         } = self.confirm_interest_accrual(&mut db, &audit_info).await?;
 
-        let (now, mut tx) = (db.now(), db.into_tx());
-        let sub_op = {
-            use sqlx::Acquire;
-            es_entity::DbOp::new(tx.begin().await?, now)
-        };
-        self.ledger
-            .record_interest_accrual(sub_op, interest_accrual)
-            .await?;
-
-        let mut db = es_entity::DbOp::new(tx, now);
         if let Some(period) = next_accrual_period {
-            Ok(JobCompletion::RescheduleAtWithOp(db, period.end))
+            self.ledger
+                .record_interest_accrual(db, interest_accrual)
+                .await?;
+            Ok(JobCompletion::RescheduleAt(period.end))
         } else {
             self.jobs
                 .create_and_spawn_in_op(
@@ -216,11 +209,15 @@ where
                     },
                 )
                 .await?;
+            self.ledger
+                .record_interest_accrual(db, interest_accrual)
+                .await?;
+
             println!(
                 "All ({:?}) accruals completed for {:?} of {:?}",
                 accrued_count, accrual_idx, self.config.credit_facility_id
             );
-            Ok(JobCompletion::CompleteWithOp(db))
+            Ok(JobCompletion::Complete)
         }
     }
 }

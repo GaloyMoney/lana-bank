@@ -6,7 +6,6 @@ mod repo;
 
 use audit::{AuditInfo, AuditSvc};
 use authz::PermissionCheck;
-use cala_ledger::CalaLedger;
 use job::{JobId, Jobs};
 use outbox::OutboxEventMarker;
 
@@ -62,7 +61,6 @@ where
     pub(crate) fn new(
         pool: &sqlx::PgPool,
         authz: &Perms,
-        _cala: &CalaLedger,
         jobs: &Jobs,
         publisher: &CreditFacilityPublisher<E>,
     ) -> Self {

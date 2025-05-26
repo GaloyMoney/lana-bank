@@ -9,7 +9,7 @@ use job::*;
 use outbox::{EventSequence, Outbox, OutboxEventMarker};
 
 use crate::{
-    credit_facility::CreditFacilityRepo, error::CoreCreditError, event::CoreCreditEvent,
+    credit_facility::CreditFacilities, error::CoreCreditError, event::CoreCreditEvent,
     ledger::CreditLedger, primitives::*,
 };
 
@@ -36,7 +36,7 @@ where
     E: OutboxEventMarker<CoreCreditEvent>,
 {
     outbox: Outbox<E>,
-    repo: CreditFacilityRepo<E>,
+    credit_facilities: CreditFacilities<Perms, E>,
     ledger: CreditLedger,
     price: Price,
     audit: Perms::Audit,
@@ -51,14 +51,14 @@ where
 {
     pub fn new(
         outbox: &Outbox<E>,
-        repo: &CreditFacilityRepo<E>,
+        credit_facilities: &CreditFacilities<Perms, E>,
         ledger: &CreditLedger,
         price: &Price,
         audit: &Perms::Audit,
     ) -> Self {
         Self {
             outbox: outbox.clone(),
-            repo: repo.clone(),
+            credit_facilities: credit_facilities.clone(),
             ledger: ledger.clone(),
             price: price.clone(),
             audit: audit.clone(),
@@ -89,7 +89,7 @@ where
         > {
             config: job.config()?,
             outbox: self.outbox.clone(),
-            repo: self.repo.clone(),
+            credit_facilities: self.credit_facilities.clone(),
             ledger: self.ledger.clone(),
             price: self.price.clone(),
             audit: self.audit.clone(),
@@ -111,7 +111,7 @@ where
 {
     config: CreditFacilityCollateralizationFromEventsJobConfig<Perms, E>,
     outbox: Outbox<E>,
-    repo: CreditFacilityRepo<E>,
+    credit_facilities: CreditFacilities<Perms, E>,
     ledger: CreditLedger,
     price: Price,
     audit: Perms::Audit,
@@ -126,9 +126,9 @@ where
 {
     #[es_entity::retry_on_concurrent_modification(any_error = true)]
     async fn execute(&self, id: CreditFacilityId) -> Result<(), CoreCreditError> {
-        let mut credit_facility = self.repo.find_by_id(id).await?;
+        let mut credit_facility = self.credit_facilities.find_by_id_without_audit(id).await?;
 
-        let mut db = self.repo.begin_op().await?;
+        let mut db = self.credit_facilities.begin_op().await?;
 
         let audit_info = self
             .audit
@@ -154,7 +154,7 @@ where
             )
             .did_execute()
         {
-            self.repo
+            self.credit_facilities
                 .update_in_op(&mut db, &mut credit_facility)
                 .await?;
 

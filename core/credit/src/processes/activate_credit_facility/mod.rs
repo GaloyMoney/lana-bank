@@ -8,7 +8,7 @@ use core_price::Price;
 use outbox::OutboxEventMarker;
 
 use crate::{
-    credit_facility::{CreditFacility, CreditFacilityRepo},
+    credit_facility::{CreditFacilities, CreditFacility},
     disbursal::{DisbursalRepo, NewDisbursal},
     error::CoreCreditError,
     event::CoreCreditEvent,
@@ -27,7 +27,7 @@ where
     E: OutboxEventMarker<CoreCreditEvent>,
 {
     obligations: Obligations<Perms, E>,
-    credit_facility_repo: CreditFacilityRepo<E>,
+    credit_facilities: CreditFacilities<Perms, E>,
     disbursal_repo: DisbursalRepo<E>,
     ledger: CreditLedger,
     price: Price,
@@ -43,7 +43,7 @@ where
     fn clone(&self) -> Self {
         Self {
             obligations: self.obligations.clone(),
-            credit_facility_repo: self.credit_facility_repo.clone(),
+            credit_facilities: self.credit_facilities.clone(),
             disbursal_repo: self.disbursal_repo.clone(),
             ledger: self.ledger.clone(),
             price: self.price.clone(),
@@ -61,7 +61,7 @@ where
 {
     pub fn new(
         obligations: &Obligations<Perms, E>,
-        credit_facility_repo: &CreditFacilityRepo<E>,
+        credit_facilities: &CreditFacilities<Perms, E>,
         disbursal_repo: &DisbursalRepo<E>,
         ledger: &CreditLedger,
         price: &Price,
@@ -70,7 +70,7 @@ where
     ) -> Self {
         Self {
             obligations: obligations.clone(),
-            credit_facility_repo: credit_facility_repo.clone(),
+            credit_facilities: credit_facilities.clone(),
             disbursal_repo: disbursal_repo.clone(),
             ledger: ledger.clone(),
             price: price.clone(),
@@ -86,9 +86,9 @@ where
         id: impl es_entity::RetryableInto<CreditFacilityId>,
     ) -> Result<CreditFacility, CoreCreditError> {
         let id = id.into();
-        let mut credit_facility = self.credit_facility_repo.find_by_id(id).await?;
+        let mut credit_facility = self.credit_facilities.find_by_id_without_audit(id).await?;
 
-        let mut db = self.credit_facility_repo.begin_op().await?;
+        let mut db = self.credit_facilities.begin_op().await?;
 
         let audit_info = self
             .audit
@@ -140,7 +140,7 @@ where
             .expect("First instance of idempotent action ignored")
             .expect("First disbursal obligation was already created");
 
-        self.credit_facility_repo
+        self.credit_facilities
             .update_in_op(&mut db, &mut credit_facility)
             .await?;
 
