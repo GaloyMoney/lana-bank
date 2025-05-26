@@ -12,7 +12,6 @@ teardown_file() {
 }
 
 @test "superuser: can create bank manager" {
-  skip
   bank_manager_email=$(generate_email)
 
   variables=$(
@@ -29,20 +28,24 @@ teardown_file() {
   user_id=$(graphql_output .data.userCreate.user.userId)
   [[ "$user_id" != "null" ]] || exit 1
 
+  exec_admin_graphql 'list-roles'
+  role_id=$(graphql_output ".data.roles.nodes[] | select(.name == \"bank-manager\").roleId")
+  [[ "$role_id" != "null" ]] || exit 1
+
   variables=$(
     jq -n \
-    --arg userId "$user_id" \
+    --arg userId "$user_id" --arg roleId "$role_id" \
     '{
       input: {
         id: $userId,
-        role: "BANK_MANAGER"
+        roleId: $roleId
         }
       }'
   )
 
-  exec_admin_graphql 'user-assign-role' "$variables" 
+  exec_admin_graphql 'user-assign-role' "$variables"
   role=$(graphql_output .data.userAssignRole.user.roles[0])
-  [[ "$role" = "BANK_MANAGER" ]] || exit 1
+  [[ "$role" = "$role_id" ]] || exit 1
 }
 
 
@@ -64,7 +67,7 @@ teardown_file() {
       }
     }'
   )
-  
+
   exec_admin_graphql 'customer-create' "$variables"
   customer_id=$(graphql_output .data.customerCreate.customer.customerId)
   [[ "$customer_id" != "null" ]] || exit 1
