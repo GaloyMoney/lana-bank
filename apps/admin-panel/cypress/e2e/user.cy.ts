@@ -29,7 +29,8 @@ describe(t(U + ".title"), () => {
       .should("have.value", userEmail)
     cy.takeScreenshot("3_enter_email")
 
-    cy.get('[data-testid="create-user-role-admin-checkbox"]').click()
+    cy.get("#role").click()
+    cy.get('[data-testid="create-user-role-admin-option"]').click()
     cy.takeScreenshot("4_assign_admin_role")
 
     cy.get('[data-testid="create-user-submit-button"]').click()
@@ -62,11 +63,12 @@ describe(t(U + ".title"), () => {
 
     cy.get('[data-testid="user-details-manage-role"]').click()
     cy.takeScreenshot("9_update_roles")
-    cy.get('[data-testid="user-details-manage-role-accountant-checkbox"]').click()
 
-    cy.contains(t(U + ".userDetails.roleDropdown.success.roleAssigned")).should(
-      "be.visible",
-    )
+    cy.get('[role="combobox"]').click()
+    cy.get('[role="option"]').eq(2).click()
+    cy.get('button[type="submit"]').click()
+
+    cy.contains(t(U + ".updateRole.success")).should("be.visible")
     cy.takeScreenshot("10_verify_update")
   })
 })
