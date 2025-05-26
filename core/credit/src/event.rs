@@ -58,7 +58,6 @@ pub enum CoreCreditEvent {
         ledger_tx_id: LedgerTxId,
         amount: UsdCents,
         recorded_at: DateTime<Utc>,
-        effective_at: DateTime<Utc>,
     },
     AccrualPosted {
         credit_facility_id: CreditFacilityId,

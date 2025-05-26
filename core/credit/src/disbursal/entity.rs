@@ -36,7 +36,6 @@ pub enum DisbursalEvent {
         ledger_tx_id: LedgerTxId,
         obligation_id: ObligationId,
         amount: UsdCents,
-        effective_at: DateTime<Utc>,
         audit_info: AuditInfo,
     },
     Cancelled {
@@ -190,7 +189,6 @@ impl Disbursal {
             ledger_tx_id: tx_id,
             obligation_id,
             amount: self.amount,
-            effective_at,
             audit_info: audit_info.clone(),
         });
 
