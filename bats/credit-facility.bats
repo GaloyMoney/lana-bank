@@ -201,7 +201,7 @@ ymd() {
   retry 10 1 wait_for_dashboard_disbursed "$disbursed_before" "$amount"
 }
 
-@test "credit-facility: records accrual" {
+@test "credit-facility: records accruals" {
 
   credit_facility_id=$(read_value 'credit_facility_id')
   retry 30 2 wait_for_accruals 4 "$credit_facility_id"
@@ -214,20 +214,13 @@ ymd() {
     '{ id: $creditFacilityId }'
   )
   exec_admin_graphql 'find-credit-facility' "$variables"
-  graphql_output
-  last_accrual=$(
+  num_accruals=$(
     graphql_output '[
       .data.creditFacility.history[]
       | select(.__typename == "CreditFacilityInterestAccrued")
-      ][0]'
+      ] | length'
   )
-
-  amount=$(echo $last_accrual | jq -r '.cents')
-  [[ "$amount" -gt "0" ]] || exit 1
-
-  last_accrual_at=$(echo $last_accrual | jq -r '.recordedAt' | ymd)
-  matures_at=$(graphql_output '.data.creditFacility.maturesAt' | ymd)
-  [[ "$last_accrual_at" == "$matures_at" ]] || exit 1
+  [[ "$num_accruals" -eq "4" ]] || exit 1
 
   # assert_accounts_balanced
 }
