@@ -1,4 +1,4 @@
-{% macro drop_all_relations(schema="sv_dataset", dryrun=False) %}
+{% macro drop_all_relations(schema=target.schema, dryrun=False) %}
 
 {# Get the models that currently exist in dbt #}
 {% if execute %}
