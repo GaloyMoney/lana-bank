@@ -45,6 +45,7 @@ pub enum ObligationStatus {
     NotYetDue,
     Due,
     Overdue,
+    InRecovery,
     Defaulted,
     Paid,
 }

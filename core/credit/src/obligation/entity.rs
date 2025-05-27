@@ -29,6 +29,7 @@ pub enum ObligationEvent {
         defaulted_account_id: CalaAccountId,
         due_date: DateTime<Utc>,
         overdue_date: Option<DateTime<Utc>>,
+        in_recovery_date: Option<DateTime<Utc>>,
         defaulted_date: Option<DateTime<Utc>>,
         recorded_at: DateTime<Utc>,
         audit_info: AuditInfo,
@@ -39,6 +40,11 @@ pub enum ObligationEvent {
         audit_info: AuditInfo,
     },
     OverdueRecorded {
+        tx_id: LedgerTxId,
+        amount: UsdCents,
+        audit_info: AuditInfo,
+    },
+    InRecoveryRecorded {
         tx_id: LedgerTxId,
         amount: UsdCents,
         audit_info: AuditInfo,
@@ -93,6 +99,15 @@ impl Obligation {
     pub fn overdue_at(&self) -> Option<DateTime<Utc>> {
         self.events.iter_all().find_map(|e| match e {
             ObligationEvent::Initialized { overdue_date, .. } => *overdue_date,
+            _ => None,
+        })
+    }
+
+    pub fn in_recovery_at(&self) -> Option<DateTime<Utc>> {
+        self.events.iter_all().find_map(|e| match e {
+            ObligationEvent::Initialized {
+                in_recovery_date, ..
+            } => *in_recovery_date,
             _ => None,
         })
     }
@@ -153,7 +168,7 @@ impl Obligation {
     }
 
     pub fn receivable_account_id(&self) -> Option<CalaAccountId> {
-        let (not_yet_due_accounts, due_accounts, overdue_accounts) = self
+        let (not_yet_due_accounts, due_accounts, overdue_accounts, in_recovery_accounts) = self
             .events
             .iter_all()
             .find_map(|e| match e {
@@ -161,8 +176,14 @@ impl Obligation {
                     not_yet_due_accounts,
                     due_accounts,
                     overdue_accounts,
+                    in_recovery_accounts,
                     ..
-                } => Some((*not_yet_due_accounts, *due_accounts, *overdue_accounts)),
+                } => Some((
+                    *not_yet_due_accounts,
+                    *due_accounts,
+                    *overdue_accounts,
+                    *in_recovery_accounts,
+                )),
                 _ => None,
             })
             .expect("Entity was not Initialized");
@@ -170,8 +191,9 @@ impl Obligation {
         match self.status() {
             ObligationStatus::NotYetDue => Some(not_yet_due_accounts.receivable_account_id),
             ObligationStatus::Due => Some(due_accounts.receivable_account_id),
-            ObligationStatus::Overdue | ObligationStatus::Defaulted => {
-                Some(overdue_accounts.receivable_account_id)
+            ObligationStatus::Overdue => Some(overdue_accounts.receivable_account_id),
+            ObligationStatus::InRecovery | ObligationStatus::Defaulted => {
+                Some(in_recovery_accounts.receivable_account_id)
             }
 
             ObligationStatus::Paid => None,
@@ -179,7 +201,7 @@ impl Obligation {
     }
 
     pub fn account_to_be_credited_id(&self) -> Option<CalaAccountId> {
-        let (not_yet_due_accounts, due_accounts, overdue_accounts) = self
+        let (not_yet_due_accounts, due_accounts, overdue_accounts, in_recovery_accounts) = self
             .events
             .iter_all()
             .find_map(|e| match e {
@@ -187,8 +209,14 @@ impl Obligation {
                     not_yet_due_accounts,
                     due_accounts,
                     overdue_accounts,
+                    in_recovery_accounts,
                     ..
-                } => Some((*not_yet_due_accounts, *due_accounts, *overdue_accounts)),
+                } => Some((
+                    *not_yet_due_accounts,
+                    *due_accounts,
+                    *overdue_accounts,
+                    *in_recovery_accounts,
+                )),
                 _ => None,
             })
             .expect("Entity was not Initialized");
@@ -196,8 +224,9 @@ impl Obligation {
         match self.status() {
             ObligationStatus::NotYetDue => Some(not_yet_due_accounts.account_to_be_credited_id),
             ObligationStatus::Due => Some(due_accounts.account_to_be_credited_id),
-            ObligationStatus::Overdue | ObligationStatus::Defaulted => {
-                Some(overdue_accounts.account_to_be_credited_id)
+            ObligationStatus::Overdue => Some(overdue_accounts.account_to_be_credited_id),
+            ObligationStatus::InRecovery | ObligationStatus::Defaulted => {
+                Some(in_recovery_accounts.account_to_be_credited_id)
             }
 
             ObligationStatus::Paid => None,
@@ -206,7 +235,7 @@ impl Obligation {
 
     fn expected_status(&self, now: DateTime<Utc>) -> ObligationStatus {
         let mut paid = false;
-        let (due_date, overdue_date, defaulted_date) = self
+        let (due_date, overdue_date, in_recovery_date, defaulted_date) = self
             .events
             .iter_all()
             .rev()
@@ -214,9 +243,10 @@ impl Obligation {
                 ObligationEvent::Initialized {
                     due_date,
                     overdue_date,
+                    in_recovery_date,
                     defaulted_date,
                     ..
-                } => Some((*due_date, *overdue_date, *defaulted_date)),
+                } => Some((*due_date, *overdue_date, *in_recovery_date, *defaulted_date)),
                 ObligationEvent::Completed { .. } => {
                     paid = true;
                     None
@@ -231,6 +261,12 @@ impl Obligation {
         if let Some(defaulted_date) = defaulted_date {
             if now >= defaulted_date {
                 return ObligationStatus::Defaulted;
+            }
+        }
+
+        if let Some(in_recovery_date) = in_recovery_date {
+            if now >= in_recovery_date {
+                return ObligationStatus::InRecovery;
             }
         }
 
@@ -254,6 +290,7 @@ impl Obligation {
             .find_map(|event| match event {
                 ObligationEvent::DueRecorded { .. } => Some(ObligationStatus::Due),
                 ObligationEvent::OverdueRecorded { .. } => Some(ObligationStatus::Overdue),
+                ObligationEvent::InRecoveryRecorded { .. } => Some(ObligationStatus::InRecovery),
                 ObligationEvent::DefaultedRecorded { .. } => Some(ObligationStatus::Defaulted),
                 ObligationEvent::Completed { .. } => Some(ObligationStatus::Paid),
                 _ => None,
@@ -471,6 +508,7 @@ impl TryFromEvents<ObligationEvent> for Obligation {
                 }
                 ObligationEvent::DueRecorded { .. } => (),
                 ObligationEvent::OverdueRecorded { .. } => (),
+                ObligationEvent::InRecoveryRecorded { .. } => (),
                 ObligationEvent::DefaultedRecorded { .. } => (),
                 ObligationEvent::PaymentAllocated { .. } => (),
                 ObligationEvent::Completed { .. } => (),
@@ -502,6 +540,8 @@ pub struct NewObligation {
     due_date: DateTime<Utc>,
     #[builder(setter(strip_option), default)]
     overdue_date: Option<DateTime<Utc>>,
+    #[builder(setter(strip_option), default)]
+    in_recovery_date: Option<DateTime<Utc>>,
     #[builder(setter(strip_option), default)]
     defaulted_date: Option<DateTime<Utc>>,
     recorded_at: DateTime<Utc>,
@@ -541,6 +581,7 @@ impl IntoEvents<ObligationEvent> for NewObligation {
                 defaulted_account_id: self.defaulted_account_id,
                 due_date: self.due_date,
                 overdue_date: self.overdue_date,
+                in_recovery_date: self.in_recovery_date,
                 defaulted_date: self.defaulted_date,
                 recorded_at: self.recorded_at,
                 audit_info: self.audit_info,
@@ -614,6 +655,7 @@ mod test {
             defaulted_account_id: CalaAccountId::new(),
             due_date: Utc::now(),
             overdue_date: Some(Utc::now()),
+            in_recovery_date: None,
             defaulted_date: None,
             recorded_at: Utc::now(),
             audit_info: dummy_audit_info(),
@@ -782,8 +824,12 @@ mod test {
             now + chrono::Duration::days(2)
         }
 
-        fn defaulted_timestamp(now: DateTime<Utc>) -> DateTime<Utc> {
+        fn in_recovery_timestamp(now: DateTime<Utc>) -> DateTime<Utc> {
             now + chrono::Duration::days(3)
+        }
+
+        fn defaulted_timestamp(now: DateTime<Utc>) -> DateTime<Utc> {
+            now + chrono::Duration::days(4)
         }
 
         fn initial_events(now: DateTime<Utc>) -> Vec<ObligationEvent> {
@@ -813,6 +859,7 @@ mod test {
                 defaulted_account_id: CalaAccountId::new(),
                 due_date: due_timestamp(now),
                 overdue_date: Some(overdue_timestamp(now)),
+                in_recovery_date: Some(in_recovery_timestamp(now)),
                 defaulted_date: Some(defaulted_timestamp(now)),
                 recorded_at: now,
                 audit_info: dummy_audit_info(),
@@ -927,7 +974,7 @@ mod test {
         }
 
         #[test]
-        fn expected_defaulted_status_overdue() {
+        fn expected_in_recovery_status_overdue() {
             let now = Utc::now();
             let mut events = initial_events(now);
             events.extend([
@@ -944,9 +991,72 @@ mod test {
             ]);
             let obligation = obligation_from(events);
 
+            let now = in_recovery_timestamp(Utc::now());
+            assert_eq!(
+                obligation.expected_status(now),
+                ObligationStatus::InRecovery
+            );
+            assert_eq!(obligation.status(), ObligationStatus::Overdue);
+            assert!(!obligation.is_status_up_to_date(now));
+        }
+
+        #[test]
+        fn expected_in_recovery_status_in_recovery() {
+            let now = Utc::now();
+            let mut events = initial_events(now);
+            events.extend([
+                ObligationEvent::DueRecorded {
+                    tx_id: LedgerTxId::new(),
+                    amount: UsdCents::from(10),
+                    audit_info: dummy_audit_info(),
+                },
+                ObligationEvent::OverdueRecorded {
+                    tx_id: LedgerTxId::new(),
+                    amount: UsdCents::from(10),
+                    audit_info: dummy_audit_info(),
+                },
+                ObligationEvent::InRecoveryRecorded {
+                    tx_id: LedgerTxId::new(),
+                    amount: UsdCents::from(10),
+                    audit_info: dummy_audit_info(),
+                },
+            ]);
+            let obligation = obligation_from(events);
+
+            let now = in_recovery_timestamp(Utc::now());
+            assert_eq!(
+                obligation.expected_status(now),
+                ObligationStatus::InRecovery
+            );
+            assert_eq!(obligation.status(), ObligationStatus::InRecovery);
+            assert!(obligation.is_status_up_to_date(now));
+        }
+        #[test]
+        fn expected_defaulted_status_in_recovery() {
+            let now = Utc::now();
+            let mut events = initial_events(now);
+            events.extend([
+                ObligationEvent::DueRecorded {
+                    tx_id: LedgerTxId::new(),
+                    amount: UsdCents::from(10),
+                    audit_info: dummy_audit_info(),
+                },
+                ObligationEvent::OverdueRecorded {
+                    tx_id: LedgerTxId::new(),
+                    amount: UsdCents::from(10),
+                    audit_info: dummy_audit_info(),
+                },
+                ObligationEvent::InRecoveryRecorded {
+                    tx_id: LedgerTxId::new(),
+                    amount: UsdCents::from(10),
+                    audit_info: dummy_audit_info(),
+                },
+            ]);
+            let obligation = obligation_from(events);
+
             let now = defaulted_timestamp(Utc::now());
             assert_eq!(obligation.expected_status(now), ObligationStatus::Defaulted);
-            assert_eq!(obligation.status(), ObligationStatus::Overdue);
+            assert_eq!(obligation.status(), ObligationStatus::InRecovery);
             assert!(!obligation.is_status_up_to_date(now));
         }
 
@@ -961,6 +1071,11 @@ mod test {
                     audit_info: dummy_audit_info(),
                 },
                 ObligationEvent::OverdueRecorded {
+                    tx_id: LedgerTxId::new(),
+                    amount: UsdCents::from(10),
+                    audit_info: dummy_audit_info(),
+                },
+                ObligationEvent::InRecoveryRecorded {
                     tx_id: LedgerTxId::new(),
                     amount: UsdCents::from(10),
                     audit_info: dummy_audit_info(),
