@@ -63,6 +63,7 @@ impl CreditFacilityRepaymentPlan {
                 overdue_at: None,
                 defaulted_at: None,
                 recorded_at: activated_at,
+                effective: activated_at.date_naive(),
             }),
             CreditFacilityRepaymentPlanEntry::Disbursal(ObligationDataForEntry {
                 id: None,
@@ -75,6 +76,7 @@ impl CreditFacilityRepaymentPlan {
                 overdue_at: None,
                 defaulted_at: None,
                 recorded_at: activated_at,
+                effective: activated_at.date_naive(),
             }),
         ]
     }
@@ -126,6 +128,7 @@ impl CreditFacilityRepaymentPlan {
                     overdue_at: None,
                     defaulted_at: None,
                     recorded_at: period.end,
+                    effective: period.end.date_naive(),
                 },
             ));
 
@@ -163,7 +166,6 @@ impl CreditFacilityRepaymentPlan {
                 effective,
                 ..
             } => {
-                let effective = EffectiveDate::from(*effective);
                 let data = ObligationDataForEntry {
                     id: Some(*id),
                     status: RepaymentStatus::NotYetDue,
@@ -175,7 +177,10 @@ impl CreditFacilityRepaymentPlan {
                     overdue_at: *overdue_at,
                     defaulted_at: *defaulted_at,
                     recorded_at: *recorded_at,
+                    effective: *effective,
                 };
+
+                let effective = EffectiveDate::from(*effective);
                 let entry = match obligation_type {
                     ObligationType::Disbursal => CreditFacilityRepaymentPlanEntry::Disbursal(data),
                     ObligationType::Interest => {
