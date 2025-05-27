@@ -1,6 +1,6 @@
 mod cvl;
 
-use chrono::{DateTime, Utc};
+use chrono::{DateTime, TimeZone, Utc};
 use serde::{Deserialize, Serialize};
 
 use std::str::FromStr;
@@ -601,4 +601,23 @@ pub enum DisbursedReceivableAccountCategory {
     LongTerm,
     ShortTerm,
     Overdue,
+}
+
+pub struct EffectiveDate(chrono::NaiveDate);
+
+impl From<chrono::NaiveDate> for EffectiveDate {
+    fn from(date: chrono::NaiveDate) -> Self {
+        Self(date)
+    }
+}
+
+impl EffectiveDate {
+    pub fn end_of_day(&self) -> DateTime<Utc> {
+        Utc.from_utc_datetime(
+            &self
+                .0
+                .and_hms_opt(23, 59, 59)
+                .expect("23:59:59 was invalid"),
+        )
+    }
 }

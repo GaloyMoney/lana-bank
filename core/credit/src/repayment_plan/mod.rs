@@ -163,6 +163,7 @@ impl CreditFacilityRepaymentPlan {
                 effective_at,
                 ..
             } => {
+                let effective = EffectiveDate::from(effective_at.date_naive());
                 let data = ObligationDataForEntry {
                     id: Some(*id),
                     status: RepaymentStatus::NotYetDue,
@@ -178,7 +179,7 @@ impl CreditFacilityRepaymentPlan {
                 let entry = match obligation_type {
                     ObligationType::Disbursal => CreditFacilityRepaymentPlanEntry::Disbursal(data),
                     ObligationType::Interest => {
-                        self.last_interest_accrual_at = Some(*effective_at);
+                        self.last_interest_accrual_at = Some(effective.end_of_day());
                         CreditFacilityRepaymentPlanEntry::Interest(data)
                     }
                 };
