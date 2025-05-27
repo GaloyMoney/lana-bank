@@ -48,6 +48,7 @@ type CreditFacility {
 type CreditFacilityApproved {
 	cents: UsdCents!
 	recordedAt: Timestamp!
+	effective: Date!
 	txId: UUID!
 }
 
@@ -63,6 +64,7 @@ type CreditFacilityBalance {
 type CreditFacilityCollateralUpdated {
 	satoshis: Satoshis!
 	recordedAt: Timestamp!
+	effective: Date!
 	action: CollateralAction!
 	txId: UUID!
 }
@@ -73,6 +75,7 @@ type CreditFacilityCollateralizationUpdated {
 	outstandingInterest: UsdCents!
 	outstandingDisbursal: UsdCents!
 	recordedAt: Timestamp!
+	effective: Date!
 	price: UsdCents!
 }
 
@@ -87,6 +90,7 @@ type CreditFacilityDisbursal {
 type CreditFacilityDisbursalExecuted {
 	cents: UsdCents!
 	recordedAt: Timestamp!
+	effective: Date!
 	txId: UUID!
 }
 
@@ -95,12 +99,14 @@ union CreditFacilityHistoryEntry = CreditFacilityIncrementalPayment | CreditFaci
 type CreditFacilityIncrementalPayment {
 	cents: UsdCents!
 	recordedAt: Timestamp!
+	effective: Date!
 	txId: UUID!
 }
 
 type CreditFacilityInterestAccrued {
 	cents: UsdCents!
 	recordedAt: Timestamp!
+	effective: Date!
 	txId: UUID!
 	days: Int!
 }
@@ -166,6 +172,8 @@ enum CustomerType {
 	FOREIGN_AGENCY_OR_SUBSIDIARY
 	NON_DOMICILED_COMPANY
 }
+
+scalar Date
 
 type Deposit {
 	id: ID!

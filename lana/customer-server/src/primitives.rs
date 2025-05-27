@@ -37,6 +37,27 @@ impl From<chrono::DateTime<chrono::Utc>> for Timestamp {
     }
 }
 
+#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
+#[serde(transparent)]
+pub struct Date(chrono::NaiveDate);
+scalar!(Date);
+impl From<chrono::NaiveDate> for Date {
+    fn from(value: chrono::NaiveDate) -> Self {
+        Self(value)
+    }
+}
+impl From<Date> for chrono::NaiveDate {
+    fn from(value: Date) -> Self {
+        value.0
+    }
+}
+impl Date {
+    #[allow(dead_code)]
+    pub fn into_inner(self) -> chrono::NaiveDate {
+        self.0
+    }
+}
+
 pub trait ToGlobalId {
     fn to_global_id(&self) -> async_graphql::types::ID;
 }
