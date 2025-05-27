@@ -1,7 +1,7 @@
 select
     'A1' as category,
     0.00 as reserve_percentage,
-    1 as consumer_calendar_ge_days,
+    0 as consumer_calendar_ge_days,
     7 as consumer_calendar_le_days,
 union all
 select

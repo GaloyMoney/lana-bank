@@ -20,7 +20,9 @@ disbursals as (
         credit_facility_id,
         initialized_recorded_at as disbursal_initialized_recorded_at,
         concluded_recorded_at as disbursal_concluded_recorded_at,
+        min(concluded_recorded_at) over(partition by credit_facility_id) as min_disbursal_concluded_recorded_at,
         disbursal_amount_usd as total_disbursed_usd,
+        disbursal_amount_usd / sum(disbursal_amount_usd) over (partition by credit_facility_id) as disbursal_ratio,
         disbursal_id,
         obligation_id,
     from {{ ref('int_disbursal_events') }}
@@ -29,7 +31,7 @@ disbursals as (
 interest as (
     select
         credit_facility_id,
-        sum(total_interest_posted_usd) as total_interest_incurred_usd
+        sum(total_interest_posted_usd) as cf_total_interest_incurred_usd
     from {{ ref('int_interest_accrual_cycle_events') }}
     group by credit_facility_id
 ),
@@ -37,17 +39,47 @@ interest as (
 payments as (
     select
         credit_facility_id,
-        sum(interest_amount_usd) as total_interest_paid_usd,
-        sum(disbursal_amount_usd) as total_disbursal_paid_usd,
+        sum(interest_amount_usd) as cf_total_interest_paid_usd,
+        sum(disbursal_amount_usd) as cf_total_disbursal_paid_usd,
         max(if(interest_amount_usd > 0, payment_allocated_at, null)) as most_recent_interest_payment_timestamp,
         max(if(disbursal_amount_usd > 0, payment_allocated_at, null)) as most_recent_disbursal_payment_timestamp
     from {{ ref('int_payment_events') }}
     group by credit_facility_id
 ),
 
+interest_paid_stats as (
+  select
+    credit_facility_id,
+    disbursal_id,
+    disbursal_ratio,
+    cf_total_interest_incurred_usd,
+    cf_total_interest_paid_usd,
+    cf_total_disbursal_paid_usd,
+    timestamp_diff(most_recent_interest_payment_timestamp, disbursal_concluded_recorded_at, day) as disbursal_interest_days,
+    timestamp_diff(most_recent_interest_payment_timestamp, min_disbursal_concluded_recorded_at, day) as credit_facility_interest_days,
+  from disbursals
+  left join payments using (credit_facility_id)
+  left join interest using (credit_facility_id)
+),
+
+interest_paid as (
+  select
+    credit_facility_id,
+    disbursal_id,
+    disbursal_interest_days,
+    credit_facility_interest_days,
+    disbursal_ratio * disbursal_interest_days as disbursal_weighted_interest_days,
+    safe_divide(disbursal_ratio * disbursal_interest_days, sum(disbursal_ratio * disbursal_interest_days) over (partition by credit_facility_id)) as interest_paid_ratio,
+    cf_total_interest_paid_usd * safe_divide(disbursal_ratio * disbursal_interest_days, sum(disbursal_ratio * disbursal_interest_days) over (partition by credit_facility_id)) as interest_paid_usd,
+    cf_total_interest_incurred_usd * safe_divide(disbursal_ratio * disbursal_interest_days, sum(disbursal_ratio * disbursal_interest_days) over (partition by credit_facility_id)) as interest_incurred_usd,
+    disbursal_ratio * cf_total_disbursal_paid_usd as disbursal_paid_usd,
+  from interest_paid_stats
+),
+
 final as(
     select
         credit_facility_id,
+        disbursal_id,
         initialized_recorded_at as facility_initialized_recorded_at,
         approved_recorded_at as facility_approved_recorded_at,
         activated_recorded_at as facility_activated_recorded_at,
@@ -74,11 +106,21 @@ final as(
         maturity_at as disbursal_end_date,
 
         most_recent_collateral_deposit_at,
-        total_interest_paid_usd,
-        total_disbursal_paid_usd,
-        total_interest_incurred_usd,
-        coalesce(collateral_amount_usd, 0) as total_collateral_amount_usd,
+        cf_total_interest_incurred_usd,
+        cf_total_interest_paid_usd,
+        cf_total_disbursal_paid_usd,
+        coalesce(collateral_amount_usd, 0) as cf_total_collateral_amount_usd,
+        disbursal_ratio * coalesce(collateral_amount_usd, 0) as collateral_amount_usd,
         coalesce(total_disbursed_usd, 0) as total_disbursed_usd,
+
+        disbursal_interest_days,
+        credit_facility_interest_days,
+        disbursal_weighted_interest_days,
+        interest_incurred_usd,
+        interest_paid_ratio,
+        interest_paid_usd,
+        disbursal_paid_usd,
+
         maturity_at < current_date() as matured,
 
         customer_id,
@@ -94,7 +136,6 @@ final as(
         disbursed_receivable_overdue_account_id,
         interest_receivable_not_yet_due_account_id,
         disbursed_receivable_not_yet_due_account_id,
-        disbursal_id,
         obligation_id,
 
     from approved_credit_facilities
@@ -102,6 +143,7 @@ final as(
     left join collateral_deposits using (credit_facility_id)
     left join interest using (credit_facility_id)
     left join payments using (credit_facility_id)
+    left join interest_paid using (credit_facility_id, disbursal_id)
 )
 
 
