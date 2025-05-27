@@ -234,6 +234,7 @@ impl CoreCreditAction {
     pub const DISBURSAL_INITIATE: Self = CoreCreditAction::Disbursal(DisbursalAction::Initiate);
     pub const DISBURSAL_SETTLE: Self = CoreCreditAction::Disbursal(DisbursalAction::Settle);
     pub const DISBURSAL_LIST: Self = CoreCreditAction::Disbursal(DisbursalAction::List);
+    pub const DISBURSAL_READ: Self = CoreCreditAction::Disbursal(DisbursalAction::Read);
 
     pub const OBLIGATION_READ: Self = CoreCreditAction::Obligation(ObligationAction::Read);
     pub const OBLIGATION_UPDATE_STATUS: Self =
@@ -362,6 +363,7 @@ pub enum DisbursalAction {
     Initiate,
     Settle,
     List,
+    Read,
 }
 
 impl DisbursalAction {
@@ -373,6 +375,10 @@ impl DisbursalAction {
                 Self::Initiate => ActionDescription::new(variant, &[PERMISSION_SET_CREDIT_WRITER]),
                 Self::Settle => ActionDescription::new(variant, &[PERMISSION_SET_CREDIT_WRITER]),
                 Self::List => ActionDescription::new(
+                    variant,
+                    &[PERMISSION_SET_CREDIT_VIEWER, PERMISSION_SET_CREDIT_WRITER],
+                ),
+                Self::Read => ActionDescription::new(
                     variant,
                     &[PERMISSION_SET_CREDIT_VIEWER, PERMISSION_SET_CREDIT_WRITER],
                 ),

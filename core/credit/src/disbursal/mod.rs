@@ -127,15 +127,16 @@ where
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         id: impl Into<DisbursalId> + std::fmt::Debug,
     ) -> Result<Option<Disbursal>, DisbursalError> {
+        let id = id.into();
         self.authz
             .enforce_permission(
                 sub,
-                CoreCreditObject::all_credit_facilities(),
-                CoreCreditAction::CREDIT_FACILITY_READ,
+                CoreCreditObject::disbursal(id),
+                CoreCreditAction::DISBURSAL_READ,
             )
             .await?;
 
-        match self.repo.find_by_id(id.into()).await {
+        match self.repo.find_by_id(id).await {
             Ok(loan) => Ok(Some(loan)),
             Err(e) if e.was_not_found() => Ok(None),
             Err(e) => Err(e),
@@ -165,8 +166,8 @@ where
         self.authz
             .enforce_permission(
                 sub,
-                CoreCreditObject::all_credit_facilities(),
-                CoreCreditAction::CREDIT_FACILITY_READ,
+                CoreCreditObject::disbursal(disbursal.id),
+                CoreCreditAction::DISBURSAL_READ,
             )
             .await?;
 
@@ -232,8 +233,8 @@ where
                 CoreCreditAction::DISBURSAL_LIST,
             )
             .await?;
-
         let disbursals = self.repo.find_many(filter, sort.into(), query).await?;
+
         Ok(disbursals)
     }
 
