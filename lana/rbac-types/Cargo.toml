@@ -30,7 +30,6 @@ sqlx = { workspace = true }
 strum = { workspace = true }
 uuid = { workspace = true }
 serde = { workspace = true }
-async-graphql = { workspace = true }
 thiserror = { workspace = true }
 
 [dev-dependencies]

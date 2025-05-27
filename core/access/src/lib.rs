@@ -33,7 +33,7 @@ where
     Audit: AuditSvc,
     E: OutboxEventMarker<CoreAccessEvent>,
 {
-    authz: Authorization<Audit, RoleName>,
+    authz: Authorization<Audit, AuthRoleToken>,
     users: Users<Audit, E>,
     roles: RoleRepo<E>,
     permission_sets: PermissionSetRepo,
@@ -50,7 +50,7 @@ where
     pub async fn init(
         pool: &sqlx::PgPool,
         config: AccessConfig,
-        authz: &Authorization<Audit, RoleName>,
+        authz: &Authorization<Audit, AuthRoleToken>,
         outbox: &Outbox<E>,
     ) -> Result<Self, CoreAccessError> {
         let users = Users::init(pool, authz, outbox).await?;

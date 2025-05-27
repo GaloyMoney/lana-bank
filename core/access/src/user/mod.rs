@@ -22,7 +22,7 @@ where
     Audit: AuditSvc,
     E: OutboxEventMarker<CoreAccessEvent>,
 {
-    authz: Authorization<Audit, RoleName>,
+    authz: Authorization<Audit, AuthRoleToken>,
     repo: UserRepo<E>,
 }
 
@@ -49,7 +49,7 @@ where
 {
     pub async fn init(
         pool: &sqlx::PgPool,
-        authz: &Authorization<Audit, RoleName>,
+        authz: &Authorization<Audit, AuthRoleToken>,
         outbox: &Outbox<E>,
     ) -> Result<Self, UserError> {
         let publisher = UserPublisher::new(outbox);

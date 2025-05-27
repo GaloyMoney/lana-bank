@@ -55,7 +55,7 @@ impl Role {
             RoleEvent::PermissionSetAdded { permission_set_id: id, ..} if permission_set_id == *id,
             => RoleEvent::PermissionSetRemoved { permission_set_id: id, .. } if permission_set_id == *id
         );
-        self.permission_sets.insert(permission_set_id);
+
         self.events.push(RoleEvent::PermissionSetAdded {
             permission_set_id,
             audit_info,
@@ -75,7 +75,7 @@ impl Role {
             RoleEvent::PermissionSetRemoved { permission_set_id: id, .. } if permission_set_id == *id,
             => RoleEvent::PermissionSetAdded { permission_set_id: id, ..} if permission_set_id == *id
         );
-        self.permission_sets.remove(&permission_set_id);
+
         self.events.push(RoleEvent::PermissionSetRemoved {
             permission_set_id,
             audit_info,

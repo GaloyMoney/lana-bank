@@ -1,5 +1,5 @@
 use serde::{Deserialize, Serialize};
-use std::{borrow::Cow, fmt::Display, str::FromStr};
+use std::{fmt::Display, str::FromStr};
 
 pub use audit::AuditInfo;
 pub use authz::{action_description::*, AllOrOne};
@@ -19,45 +19,50 @@ pub const ROLE_NAME_SUPERUSER: &str = "superuser";
 pub const ACCESS_WRITER: &str = "access_writer";
 pub const ACCESS_READER: &str = "access_reader";
 
-impl From<RoleId> for RoleName {
+/// Type representing a role identifier for an underlying authorization subsystem.
+/// Any type that is convertible to `AuthRoleToken` can be used as such role.
+#[derive(Clone, Debug)]
+pub struct AuthRoleToken {
+    prefix: &'static str,
+    id: String,
+}
+
+impl AuthRoleToken {
+    pub fn new<Id: Display>(prefix: &'static str, id: Id) -> Self {
+        Self {
+            prefix,
+            id: id.to_string(),
+        }
+    }
+}
+
+impl From<RoleId> for AuthRoleToken {
     fn from(id: RoleId) -> Self {
-        RoleName::new(format!("role:{id}"))
+        Self::new("role", id)
     }
 }
 
-impl From<PermissionSetId> for RoleName {
+impl From<PermissionSetId> for AuthRoleToken {
     fn from(id: PermissionSetId) -> Self {
-        RoleName::new(format!("permission_set:{id}"))
+        Self::new("permission_set", id)
     }
 }
 
-impl From<&RoleId> for RoleName {
+impl From<&RoleId> for AuthRoleToken {
     fn from(id: &RoleId) -> Self {
-        RoleName::new(format!("role:{id}"))
+        (*id).into()
     }
 }
 
-impl From<&PermissionSetId> for RoleName {
+impl From<&PermissionSetId> for AuthRoleToken {
     fn from(id: &PermissionSetId) -> Self {
-        RoleName::new(format!("permission_set:{id}"))
+        (*id).into()
     }
 }
 
-#[derive(Clone, Eq, Hash, PartialEq, Debug)]
-pub struct RoleName(Cow<'static, str>);
-impl RoleName {
-    pub fn new(role_name: impl Into<String>) -> Self {
-        RoleName(Cow::Owned(role_name.into()))
-    }
-
-    pub fn name(&self) -> &str {
-        &self.0
-    }
-}
-
-impl Display for RoleName {
+impl Display for AuthRoleToken {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        self.name().fmt(f)
+        write!(f, "{}:{}", self.prefix, self.id)
     }
 }
 

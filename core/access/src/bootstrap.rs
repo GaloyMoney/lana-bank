@@ -15,7 +15,7 @@ where
     E: OutboxEventMarker<CoreAccessEvent>,
     Audit: AuditSvc,
 {
-    authz: Authorization<Audit, RoleName>,
+    authz: Authorization<Audit, AuthRoleToken>,
     role_repo: RoleRepo<E>,
     permission_set_repo: PermissionSetRepo,
     users: Users<Audit, E>,
@@ -30,7 +30,7 @@ where
     <Audit as AuditSvc>::Object: From<CoreAccessObject>,
 {
     pub(super) fn new(
-        authz: &Authorization<Audit, RoleName>,
+        authz: &Authorization<Audit, AuthRoleToken>,
         role_repo: &RoleRepo<E>,
         users: &Users<Audit, E>,
         permission_set_repo: &PermissionSetRepo,

@@ -27,20 +27,20 @@ pub use check_trait::PermissionCheck;
 const MODEL: &str = include_str!("./rbac.conf");
 
 #[derive(Clone)]
-pub struct Authorization<Audit, R>
+pub struct Authorization<Audit, Role>
 where
     Audit: AuditSvc,
-    R: Send + Sync + 'static,
+    Role: Send + Sync + 'static,
 {
     enforcer: Arc<RwLock<Enforcer>>,
     audit: Audit,
-    _phantom: PhantomData<R>,
+    _phantom: PhantomData<Role>,
 }
 
-impl<Audit, R> Authorization<Audit, R>
+impl<Audit, Role> Authorization<Audit, Role>
 where
     Audit: AuditSvc,
-    R: fmt::Display + fmt::Debug + Clone + Send + Sync,
+    Role: fmt::Display + fmt::Debug + Clone + Send + Sync,
 {
     pub async fn init(pool: &sqlx::PgPool, audit: &Audit) -> Result<Self, AuthorizationError> {
         let model = DefaultModel::from_str(MODEL).await?;
@@ -56,7 +56,7 @@ where
         Ok(auth)
     }
 
-    pub async fn add_role_hierarchy<R1: Into<R>, R2: Into<R>>(
+    pub async fn add_role_hierarchy<R1: Into<Role>, R2: Into<Role>>(
         &self,
         parent_role: R1,
         child_role: R2,
@@ -78,14 +78,14 @@ where
         }
     }
 
-    pub async fn add_permission_to_role<R1>(
+    pub async fn add_permission_to_role<R>(
         &self,
-        role: &R1,
+        role: &R,
         object: impl core::fmt::Display,
         action: impl core::fmt::Display,
     ) -> Result<(), AuthorizationError>
     where
-        for<'a> &'a R1: Into<R>,
+        for<'a> &'a R: Into<Role>,
     {
         // let object = object.into();
         // let action = action.into();
@@ -107,14 +107,14 @@ where
         }
     }
 
-    pub async fn remove_permission_from_role<R1>(
+    pub async fn remove_permission_from_role<R>(
         &self,
-        role: &R1,
+        role: &R,
         object: impl Into<Audit::Object>,
         action: impl Into<Audit::Action>,
     ) -> Result<(), AuthorizationError>
     where
-        for<'a> &'a R1: Into<R>,
+        for<'a> &'a R: Into<Role>,
     {
         let object = object.into();
         let action = action.into();
@@ -131,13 +131,13 @@ where
         Ok(())
     }
 
-    pub async fn assign_role_to_subject<R1>(
+    pub async fn assign_role_to_subject<R>(
         &self,
         sub: impl Into<Audit::Subject>,
-        role: R1,
+        role: R,
     ) -> Result<(), AuthorizationError>
     where
-        R1: Into<R>,
+        R: Into<Role>,
     {
         let sub = sub.into();
         let mut enforcer = self.enforcer.write().await;
@@ -154,13 +154,13 @@ where
         }
     }
 
-    pub async fn revoke_role_from_subject<R1>(
+    pub async fn revoke_role_from_subject<R>(
         &self,
         sub: impl Into<Audit::Subject>,
-        role: R1,
+        role: R,
     ) -> Result<(), AuthorizationError>
     where
-        R1: Into<R>,
+        R: Into<Role>,
     {
         let sub = sub.into();
         let mut enforcer = self.enforcer.write().await;
@@ -177,9 +177,9 @@ where
     pub async fn roles_for_subject(
         &self,
         sub: impl Into<Audit::Subject>,
-    ) -> Result<Vec<R>, AuthorizationError>
+    ) -> Result<Vec<Role>, AuthorizationError>
     where
-        R: std::str::FromStr,
+        Role: std::str::FromStr,
     {
         let sub = sub.into();
         let sub_uuid = sub.to_string();
@@ -190,7 +190,7 @@ where
             .into_iter()
             .filter(|r| r[0] == sub_uuid)
             .map(|r| {
-                r[1].parse::<R>()
+                r[1].parse::<Role>()
                     .map_err(|_| AuthorizationError::RoleParseError(r[1].clone()))
             })
             .collect::<Result<Vec<_>, _>>()?;
@@ -237,10 +237,10 @@ where
 }
 
 #[async_trait]
-impl<Audit, R> PermissionCheck for Authorization<Audit, R>
+impl<Audit, Role> PermissionCheck for Authorization<Audit, Role>
 where
     Audit: AuditSvc,
-    R: fmt::Display + fmt::Debug + Clone + Send + Sync + 'static,
+    Role: fmt::Display + fmt::Debug + Clone + Send + Sync + 'static,
 {
     type Audit = Audit;
 
