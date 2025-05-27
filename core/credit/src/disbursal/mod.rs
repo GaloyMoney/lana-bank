@@ -2,7 +2,6 @@ mod entity;
 pub mod error;
 mod repo;
 
-use chrono::{DateTime, Utc};
 use tracing::instrument;
 
 use audit::AuditSvc;
@@ -110,7 +109,12 @@ where
         let mut disbursal = self.repo.create_in_op(db, new_disbursal).await?;
 
         let new_obligation = disbursal
-            .approval_process_concluded(LedgerTxId::new(), true, db.now(), audit_info.clone())
+            .approval_process_concluded(
+                LedgerTxId::new(),
+                true,
+                db.now().date_naive(),
+                audit_info.clone(),
+            )
             .expect("First instance of idempotent action ignored")
             .expect("First disbursal obligation was already created");
 
@@ -196,8 +200,12 @@ where
 
         let mut disbursal = self.repo.find_by_id(disbursal_id).await?;
 
-        let ret = match disbursal.approval_process_concluded(tx_id, approved, db.now(), audit_info)
-        {
+        let ret = match disbursal.approval_process_concluded(
+            tx_id,
+            approved,
+            db.now().date_naive(),
+            audit_info,
+        ) {
             es_entity::Idempotent::Ignored => ApprovalProcessOutcome::Ignored(disbursal),
             es_entity::Idempotent::Executed(Some(new_obligation)) => {
                 let obligation = self

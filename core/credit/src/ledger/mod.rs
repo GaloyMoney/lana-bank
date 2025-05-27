@@ -1408,7 +1408,7 @@ impl CreditLedger {
             tx_id,
             reference: tx_ref,
             initial_amount: interest,
-            effective_at,
+            effective,
             ..
         } = obligation;
 
@@ -1425,7 +1425,7 @@ impl CreditLedger {
                     credit_facility_interest_income_account: interest_income_account_id,
                     interest_amount: interest.to_usd(),
                     external_id: tx_ref,
-                    effective: effective_at.date_naive(),
+                    effective,
                 },
             )
             .await?;

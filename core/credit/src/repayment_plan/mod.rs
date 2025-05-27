@@ -160,10 +160,10 @@ impl CreditFacilityRepaymentPlan {
                 overdue_at,
                 defaulted_at,
                 recorded_at,
-                effective_at,
+                effective,
                 ..
             } => {
-                let effective = EffectiveDate::from(effective_at.date_naive());
+                let effective = EffectiveDate::from(*effective);
                 let data = ObligationDataForEntry {
                     id: Some(*id),
                     status: RepaymentStatus::NotYetDue,
@@ -395,7 +395,7 @@ mod tests {
                 overdue_at: None,
                 defaulted_at: None,
                 recorded_at,
-                effective_at: recorded_at,
+                effective: recorded_at.date_naive(),
             },
         ];
         process_events(&mut plan, events);
@@ -436,7 +436,7 @@ mod tests {
                 overdue_at: None,
                 defaulted_at: None,
                 recorded_at: disbursal_recorded_at,
-                effective_at: disbursal_recorded_at,
+                effective: disbursal_recorded_at.date_naive(),
             },
             CoreCreditEvent::ObligationCreated {
                 id: ObligationId::new(),
@@ -447,7 +447,7 @@ mod tests {
                 overdue_at: None,
                 defaulted_at: None,
                 recorded_at: interest_recorded_at,
-                effective_at: interest_recorded_at,
+                effective: interest_recorded_at.date_naive(),
             },
         ];
         process_events(&mut plan, events);
@@ -490,7 +490,7 @@ mod tests {
                 overdue_at: None,
                 defaulted_at: None,
                 recorded_at: disbursal_recorded_at,
-                effective_at: disbursal_recorded_at,
+                effective: disbursal_recorded_at.date_naive(),
             },
             CoreCreditEvent::ObligationCreated {
                 id: interest_obligation_id,
@@ -501,7 +501,7 @@ mod tests {
                 overdue_at: None,
                 defaulted_at: None,
                 recorded_at: interest_recorded_at,
-                effective_at: interest_recorded_at,
+                effective: interest_recorded_at.date_naive(),
             },
             CoreCreditEvent::FacilityRepaymentRecorded {
                 credit_facility_id: CreditFacilityId::new(),
@@ -566,7 +566,7 @@ mod tests {
                 overdue_at: None,
                 defaulted_at: None,
                 recorded_at: disbursal_recorded_at,
-                effective_at: disbursal_recorded_at,
+                effective: disbursal_recorded_at.date_naive(),
             },
             CoreCreditEvent::ObligationCreated {
                 id: interest_obligation_id,
@@ -577,7 +577,7 @@ mod tests {
                 overdue_at: None,
                 defaulted_at: None,
                 recorded_at: interest_recorded_at,
-                effective_at: interest_recorded_at,
+                effective: interest_recorded_at.date_naive(),
             },
             CoreCreditEvent::FacilityRepaymentRecorded {
                 credit_facility_id: CreditFacilityId::new(),
@@ -666,7 +666,7 @@ mod tests {
                 overdue_at: None,
                 defaulted_at: None,
                 recorded_at: disbursal_recorded_at,
-                effective_at: disbursal_recorded_at,
+                effective: disbursal_recorded_at.date_naive(),
             },
             CoreCreditEvent::ObligationCreated {
                 id: ObligationId::new(),
@@ -677,7 +677,7 @@ mod tests {
                 overdue_at: None,
                 defaulted_at: None,
                 recorded_at: interest_1_recorded_at,
-                effective_at: interest_1_recorded_at,
+                effective: interest_1_recorded_at.date_naive(),
             },
             CoreCreditEvent::ObligationCreated {
                 id: ObligationId::new(),
@@ -688,7 +688,7 @@ mod tests {
                 overdue_at: None,
                 defaulted_at: None,
                 recorded_at: interest_2_recorded_at,
-                effective_at: interest_2_recorded_at,
+                effective: interest_2_recorded_at.date_naive(),
             },
             CoreCreditEvent::ObligationCreated {
                 id: ObligationId::new(),
@@ -699,7 +699,7 @@ mod tests {
                 overdue_at: None,
                 defaulted_at: None,
                 recorded_at: interest_3_recorded_at,
-                effective_at: interest_3_recorded_at,
+                effective: interest_3_recorded_at.date_naive(),
             },
             CoreCreditEvent::ObligationCreated {
                 id: ObligationId::new(),
@@ -710,7 +710,7 @@ mod tests {
                 overdue_at: None,
                 defaulted_at: None,
                 recorded_at: interest_4_recorded_at,
-                effective_at: interest_4_recorded_at,
+                effective: interest_4_recorded_at.date_naive(),
             },
         ];
         process_events(&mut plan, events);

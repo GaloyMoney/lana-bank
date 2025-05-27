@@ -134,7 +134,7 @@ impl Disbursal {
         &mut self,
         tx_id: LedgerTxId,
         approved: bool,
-        effective_at: DateTime<Utc>,
+        effective: chrono::NaiveDate,
         audit_info: AuditInfo,
     ) -> Idempotent<Option<NewObligation>> {
         idempotency_guard!(
@@ -149,7 +149,7 @@ impl Disbursal {
         let tx_ref: &str = &format!("disbursal-{}", self.id);
         let new_obligation = if approved {
             if let Idempotent::Executed(new_obligation) =
-                self.settle_disbursal(tx_id, tx_ref, effective_at, audit_info.clone())
+                self.settle_disbursal(tx_id, tx_ref, effective, audit_info.clone())
             {
                 Some(new_obligation)
             } else {
@@ -180,7 +180,7 @@ impl Disbursal {
         &mut self,
         tx_id: LedgerTxId,
         tx_ref: &str,
-        effective_at: DateTime<Utc>,
+        effective: chrono::NaiveDate,
         audit_info: AuditInfo,
     ) -> Idempotent<NewObligation> {
         idempotency_guard!(self.events.iter_all(), DisbursalEvent::Settled { .. });
@@ -217,7 +217,7 @@ impl Disbursal {
                 .defaulted_account_id(self.account_ids.disbursed_defaulted_account_id)
                 .due_date(self.disbursal_due_date)
                 .overdue_date(self.disbursal_overdue_date)
-                .effective_at(effective_at)
+                .effective(effective)
                 .audit_info(audit_info)
                 .build()
                 .expect("could not build new disbursal obligation"),

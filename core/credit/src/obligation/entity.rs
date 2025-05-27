@@ -29,7 +29,7 @@ pub enum ObligationEvent {
         due_date: DateTime<Utc>,
         overdue_date: Option<DateTime<Utc>>,
         defaulted_date: Option<DateTime<Utc>>,
-        effective_at: DateTime<Utc>,
+        effective: chrono::NaiveDate,
         audit_info: AuditInfo,
     },
     DueRecorded {
@@ -68,7 +68,7 @@ pub struct Obligation {
     pub reference: String,
     pub initial_amount: UsdCents,
     pub obligation_type: ObligationType,
-    pub effective_at: DateTime<Utc>,
+    pub effective: chrono::NaiveDate,
     events: EntityEvents<ObligationEvent>,
 }
 
@@ -456,7 +456,7 @@ impl TryFromEvents<ObligationEvent> for Obligation {
                     reference,
                     amount,
                     obligation_type,
-                    effective_at,
+                    effective,
                     ..
                 } => {
                     builder = builder
@@ -466,7 +466,7 @@ impl TryFromEvents<ObligationEvent> for Obligation {
                         .reference(reference.clone())
                         .initial_amount(*amount)
                         .obligation_type(*obligation_type)
-                        .effective_at(*effective_at)
+                        .effective(*effective)
                 }
                 ObligationEvent::DueRecorded { .. } => (),
                 ObligationEvent::OverdueRecorded { .. } => (),
@@ -501,7 +501,7 @@ pub struct NewObligation {
     overdue_date: Option<DateTime<Utc>>,
     #[builder(setter(strip_option), default)]
     defaulted_date: Option<DateTime<Utc>>,
-    effective_at: DateTime<Utc>,
+    effective: chrono::NaiveDate,
     #[builder(setter(into))]
     pub audit_info: AuditInfo,
 }
@@ -538,7 +538,7 @@ impl IntoEvents<ObligationEvent> for NewObligation {
                 due_date: self.due_date,
                 overdue_date: self.overdue_date,
                 defaulted_date: self.defaulted_date,
-                effective_at: self.effective_at,
+                effective: self.effective,
                 audit_info: self.audit_info,
             }],
         )
@@ -551,8 +551,8 @@ impl Ord for Obligation {
             (ObligationType::Interest, ObligationType::Disbursal) => Ordering::Less,
             (ObligationType::Disbursal, ObligationType::Interest) => Ordering::Greater,
             _ => self
-                .effective_at
-                .cmp(&other.effective_at)
+                .effective
+                .cmp(&other.effective)
                 .then_with(|| self.created_at().cmp(&other.created_at())),
         }
     }
@@ -610,7 +610,7 @@ mod test {
             due_date: Utc::now(),
             overdue_date: Some(Utc::now()),
             defaulted_date: None,
-            effective_at: Utc::now(),
+            effective: Utc::now().date_naive(),
             audit_info: dummy_audit_info(),
         }]
     }
@@ -805,7 +805,7 @@ mod test {
                 due_date: due_timestamp(now),
                 overdue_date: Some(overdue_timestamp(now)),
                 defaulted_date: Some(defaulted_timestamp(now)),
-                effective_at: Utc::now(),
+                effective: Utc::now().date_naive(),
                 audit_info: dummy_audit_info(),
             }]
         }
