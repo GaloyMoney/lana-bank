@@ -28,6 +28,7 @@ impl CreditFacilityHistory {
                     CreditFacilityApproved {
                         cents: *amount,
                         recorded_at: *activated_at,
+                        effective: activated_at.date_naive(),
                         tx_id: *activation_tx_id,
                     },
                 ));
@@ -35,6 +36,7 @@ impl CreditFacilityHistory {
             FacilityCollateralUpdated {
                 abs_diff,
                 recorded_at,
+                effective,
                 action,
                 ledger_tx_id,
                 ..
@@ -43,6 +45,7 @@ impl CreditFacilityHistory {
                     .push(CreditFacilityHistoryEntry::Collateral(CollateralUpdated {
                         satoshis: *abs_diff,
                         recorded_at: *recorded_at,
+                        effective: *effective,
                         action: *action,
                         tx_id: *ledger_tx_id,
                     }));
@@ -50,6 +53,7 @@ impl CreditFacilityHistory {
             FacilityCollateralizationChanged {
                 state,
                 recorded_at,
+                effective,
                 outstanding,
                 price,
                 collateral,
@@ -63,6 +67,7 @@ impl CreditFacilityHistory {
                             outstanding_interest: outstanding.interest,
                             outstanding_disbursal: outstanding.disbursed,
                             recorded_at: *recorded_at,
+                            effective: *effective,
                             price: *price,
                         },
                     ));
@@ -71,11 +76,13 @@ impl CreditFacilityHistory {
                 payment_id,
                 amount,
                 recorded_at,
+                effective,
                 ..
             } => {
                 self.entries
                     .push(CreditFacilityHistoryEntry::Payment(IncrementalPayment {
                         recorded_at: *recorded_at,
+                        effective: *effective,
                         cents: *amount,
                         payment_id: *payment_id,
                     }));
@@ -83,6 +90,7 @@ impl CreditFacilityHistory {
             DisbursalSettled {
                 amount,
                 recorded_at,
+                effective,
                 ledger_tx_id,
                 ..
             } => {
@@ -90,6 +98,7 @@ impl CreditFacilityHistory {
                     .push(CreditFacilityHistoryEntry::Disbursal(DisbursalExecuted {
                         cents: *amount,
                         recorded_at: *recorded_at,
+                        effective: *effective,
                         tx_id: *ledger_tx_id,
                     }));
             }
@@ -98,12 +107,14 @@ impl CreditFacilityHistory {
                 period,
                 ledger_tx_id,
                 recorded_at,
+                effective,
                 ..
             } => {
                 self.entries.push(CreditFacilityHistoryEntry::Interest(
                     InterestAccrualsPosted {
                         cents: *amount,
                         recorded_at: *recorded_at,
+                        effective: *effective,
                         tx_id: *ledger_tx_id,
                         days: period.days(),
                     },

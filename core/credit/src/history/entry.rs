@@ -6,6 +6,7 @@ use crate::primitives::*;
 pub struct CreditFacilityApproved {
     pub cents: UsdCents,
     pub recorded_at: DateTime<Utc>,
+    pub effective: chrono::NaiveDate,
     pub tx_id: LedgerTxId,
 }
 
@@ -13,6 +14,7 @@ pub struct CreditFacilityApproved {
 pub struct IncrementalPayment {
     pub cents: UsdCents,
     pub recorded_at: DateTime<Utc>,
+    pub effective: chrono::NaiveDate,
     pub payment_id: PaymentAllocationId,
 }
 
@@ -20,6 +22,7 @@ pub struct IncrementalPayment {
 pub struct CollateralUpdated {
     pub satoshis: Satoshis,
     pub recorded_at: DateTime<Utc>,
+    pub effective: chrono::NaiveDate,
     pub action: CollateralAction,
     pub tx_id: LedgerTxId,
 }
@@ -31,6 +34,7 @@ pub struct CollateralizationUpdated {
     pub outstanding_interest: UsdCents,
     pub outstanding_disbursal: UsdCents,
     pub recorded_at: DateTime<Utc>,
+    pub effective: chrono::NaiveDate,
     pub price: PriceOfOneBTC,
 }
 
@@ -38,6 +42,7 @@ pub struct CollateralizationUpdated {
 pub struct DisbursalExecuted {
     pub cents: UsdCents,
     pub recorded_at: DateTime<Utc>,
+    pub effective: chrono::NaiveDate,
     pub tx_id: LedgerTxId,
 }
 
@@ -45,6 +50,7 @@ pub struct DisbursalExecuted {
 pub struct InterestAccrualsPosted {
     pub cents: UsdCents,
     pub recorded_at: DateTime<Utc>,
+    pub effective: chrono::NaiveDate,
     pub days: u32,
     pub tx_id: LedgerTxId,
 }
