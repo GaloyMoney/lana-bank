@@ -172,14 +172,15 @@ where
             .map(|ps| (ps.name.to_string(), ps))
             .collect::<HashMap<_, _>>();
 
-        let mut permission_sets: HashMap<&'static str, HashSet<Permission>> = Default::default();
+        #[allow(clippy::type_complexity)]
+        let mut permission_sets: HashMap<
+            &'static str,
+            Vec<Permission<Audit::Object, Audit::Action>>,
+        > = Default::default();
 
         for action in actions {
             for set in action.permission_sets() {
-                permission_sets
-                    .entry(*set)
-                    .or_default()
-                    .insert(action.into());
+                permission_sets.entry(*set).or_default().push(action.into());
             }
         }
 

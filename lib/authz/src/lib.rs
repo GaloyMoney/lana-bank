@@ -81,15 +81,12 @@ where
     pub async fn add_permission_to_role<R>(
         &self,
         role: &R,
-        object: impl core::fmt::Display,
-        action: impl core::fmt::Display,
+        object: &Audit::Object,
+        action: &Audit::Action,
     ) -> Result<(), AuthorizationError>
     where
         for<'a> &'a R: Into<Role>,
     {
-        // let object = object.into();
-        // let action = action.into();
-
         let mut enforcer = self.enforcer.write().await;
         match enforcer
             .add_policy(vec![

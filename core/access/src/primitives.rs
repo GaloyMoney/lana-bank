@@ -67,34 +67,43 @@ impl Display for AuthRoleToken {
 }
 
 #[derive(Clone, Debug, Hash, Eq, PartialEq, Serialize, Deserialize)]
-pub struct Permission {
-    object: String,
-    action: String,
+pub struct Permission<O, A> {
+    object: O,
+    action: A,
 }
 
-impl Permission {
-    pub const fn new(object: String, action: String) -> Self {
+impl<O, A> Permission<O, A> {
+    pub const fn new(object: O, action: A) -> Self {
         Self { object, action }
     }
 
-    pub fn object(&self) -> &str {
+    pub fn object(&self) -> &O {
         &self.object
     }
 
-    pub fn action(&self) -> &str {
+    pub fn action(&self) -> &A {
         &self.action
     }
 }
 
-impl From<ActionDescription<FullPath>> for Permission {
-    fn from(action: ActionDescription<FullPath>) -> Self {
-        Permission::new(action.all_objects_name(), action.action_name())
-    }
-}
-
-impl From<&ActionDescription<FullPath>> for Permission {
+impl<O, A> From<&ActionDescription<FullPath>> for Permission<O, A>
+where
+    O: FromStr,
+    A: FromStr,
+{
     fn from(action: &ActionDescription<FullPath>) -> Self {
-        Permission::new(action.all_objects_name(), action.action_name())
+        Permission::new(
+            action
+                .all_objects_name()
+                .parse()
+                .map_err(|_| ())
+                .expect("Could not parse object"),
+            action
+                .action_name()
+                .parse()
+                .map_err(|_| ())
+                .expect("Could not parse action"),
+        )
     }
 }
 
