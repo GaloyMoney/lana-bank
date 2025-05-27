@@ -18,4 +18,6 @@
 
 {{create_udf_avg_open_price()}};
 
+{{create_udf_json_array_to_code()}};
+
 {% endmacro %}
