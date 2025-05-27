@@ -127,6 +127,7 @@ enum CreditFacilityRepaymentStatus {
 	NOT_YET_DUE
 	DUE
 	OVERDUE
+	IN_RECOVERY
 	DEFAULTED
 	PAID
 }

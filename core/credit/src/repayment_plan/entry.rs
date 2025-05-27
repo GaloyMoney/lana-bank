@@ -62,6 +62,7 @@ pub enum RepaymentStatus {
     NotYetDue,
     Due,
     Overdue,
+    InRecovery,
     Defaulted,
     Paid,
 }
@@ -72,7 +73,7 @@ impl From<ObligationStatus> for RepaymentStatus {
             ObligationStatus::NotYetDue => RepaymentStatus::NotYetDue,
             ObligationStatus::Due => RepaymentStatus::Due,
             ObligationStatus::Overdue => RepaymentStatus::Overdue,
-            ObligationStatus::InRecovery => RepaymentStatus::Overdue,
+            ObligationStatus::InRecovery => RepaymentStatus::InRecovery,
             ObligationStatus::Defaulted => RepaymentStatus::Defaulted,
             ObligationStatus::Paid => RepaymentStatus::Paid,
         }

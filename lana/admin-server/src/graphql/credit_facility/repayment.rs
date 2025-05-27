@@ -14,6 +14,7 @@ pub enum CreditFacilityRepaymentStatus {
     NotYetDue,
     Due,
     Overdue,
+    InRecovery,
     Defaulted,
     Paid,
 }
@@ -27,6 +28,9 @@ impl From<lana_app::credit::RepaymentStatus> for CreditFacilityRepaymentStatus {
             }
             lana_app::credit::RepaymentStatus::Due => CreditFacilityRepaymentStatus::Due,
             lana_app::credit::RepaymentStatus::Overdue => CreditFacilityRepaymentStatus::Overdue,
+            lana_app::credit::RepaymentStatus::InRecovery => {
+                CreditFacilityRepaymentStatus::InRecovery
+            }
             lana_app::credit::RepaymentStatus::Defaulted => {
                 CreditFacilityRepaymentStatus::Defaulted
             }
