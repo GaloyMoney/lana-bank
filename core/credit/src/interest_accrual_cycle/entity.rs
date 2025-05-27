@@ -304,6 +304,10 @@ impl InterestAccrualCycle {
                 receivable_account_id: self.account_ids.interest_receivable_overdue_account_id,
                 account_to_be_credited_id: self.account_ids.interest_income_account_id,
             })
+            .in_recovery_accounts(ObligationAccounts {
+                receivable_account_id: self.account_ids.interest_receivable_overdue_account_id,
+                account_to_be_credited_id: self.account_ids.interest_income_account_id,
+            })
             .defaulted_account_id(self.account_ids.interest_defaulted_account_id)
             .due_date(due_date)
             .recorded_at(posted_at)

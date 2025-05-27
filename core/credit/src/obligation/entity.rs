@@ -25,6 +25,7 @@ pub enum ObligationEvent {
         not_yet_due_accounts: ObligationAccounts,
         due_accounts: ObligationAccounts,
         overdue_accounts: ObligationAccounts,
+        in_recovery_accounts: ObligationAccounts,
         defaulted_account_id: CalaAccountId,
         due_date: DateTime<Utc>,
         overdue_date: Option<DateTime<Utc>>,
@@ -495,6 +496,7 @@ pub struct NewObligation {
     not_yet_due_accounts: ObligationAccounts,
     due_accounts: ObligationAccounts,
     overdue_accounts: ObligationAccounts,
+    in_recovery_accounts: ObligationAccounts,
     #[builder(setter(into))]
     defaulted_account_id: CalaAccountId,
     due_date: DateTime<Utc>,
@@ -535,6 +537,7 @@ impl IntoEvents<ObligationEvent> for NewObligation {
                 not_yet_due_accounts: self.not_yet_due_accounts,
                 due_accounts: self.due_accounts,
                 overdue_accounts: self.overdue_accounts,
+                in_recovery_accounts: self.in_recovery_accounts,
                 defaulted_account_id: self.defaulted_account_id,
                 due_date: self.due_date,
                 overdue_date: self.overdue_date,
@@ -601,6 +604,10 @@ mod test {
                 account_to_be_credited_id: CalaAccountId::new(),
             },
             overdue_accounts: ObligationAccounts {
+                receivable_account_id: CalaAccountId::new(),
+                account_to_be_credited_id: CalaAccountId::new(),
+            },
+            in_recovery_accounts: ObligationAccounts {
                 receivable_account_id: CalaAccountId::new(),
                 account_to_be_credited_id: CalaAccountId::new(),
             },
@@ -796,6 +803,10 @@ mod test {
                     account_to_be_credited_id: CalaAccountId::new(),
                 },
                 overdue_accounts: ObligationAccounts {
+                    receivable_account_id: CalaAccountId::new(),
+                    account_to_be_credited_id: CalaAccountId::new(),
+                },
+                in_recovery_accounts: ObligationAccounts {
                     receivable_account_id: CalaAccountId::new(),
                     account_to_be_credited_id: CalaAccountId::new(),
                 },
