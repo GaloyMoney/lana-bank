@@ -52,6 +52,7 @@ type UpdateRoleDialogProps = {
 export function UpdateRoleDialog({ open, onOpenChange, role }: UpdateRoleDialogProps) {
   const t = useTranslations("RolesAndPermissions.update")
   const tCommon = useTranslations("Common")
+  const permissionT = useTranslations("Permissions")
   const [selectedPermissionSets, setSelectedPermissionSets] = useState<string[]>([])
   const [error, setError] = useState<string | null>(null)
 
@@ -146,7 +147,7 @@ export function UpdateRoleDialog({ open, onOpenChange, role }: UpdateRoleDialogP
           <Label>
             {t("permissionsLabel")} ({selectedPermissionSets.length} {t("selected")})
           </Label>
-          <ScrollArea className="h-[250px] border rounded-md p-2">
+          <ScrollArea className="h-[300px] border rounded-md p-2">
             {permissionSetsLoading ? (
               <div className="p-2">{tCommon("loading")}</div>
             ) : permissionSets.length === 0 ? (
@@ -156,7 +157,7 @@ export function UpdateRoleDialog({ open, onOpenChange, role }: UpdateRoleDialogP
                 {permissionSets.map((permissionSet) => (
                   <div
                     key={permissionSet.permissionSetId}
-                    className="flex items-center space-x-2 p-2 hover:bg-accent rounded"
+                    className="flex items-start space-x-2 p-2 hover:bg-accent rounded-md"
                   >
                     <Checkbox
                       id={`update-${permissionSet.permissionSetId}`}
@@ -167,13 +168,19 @@ export function UpdateRoleDialog({ open, onOpenChange, role }: UpdateRoleDialogP
                         togglePermissionSet(permissionSet.permissionSetId)
                       }
                       disabled={isLoading}
+                      className="mt-1"
                     />
-                    <Label
-                      htmlFor={`update-${permissionSet.permissionSetId}`}
-                      className="text-sm font-normal cursor-pointer"
-                    >
-                      {permissionSet.name}
-                    </Label>
+                    <div className="space-y-1">
+                      <Label
+                        htmlFor={`update-${permissionSet.permissionSetId}`}
+                        className="text-sm font-medium cursor-pointer"
+                      >
+                        {permissionT(`${permissionSet.name}.label`)}
+                      </Label>
+                      <p className="text-sm text-muted-foreground">
+                        {permissionT(`${permissionSet.name}.description`)}
+                      </p>
+                    </div>
                   </div>
                 ))}
               </div>

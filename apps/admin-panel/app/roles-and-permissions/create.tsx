@@ -53,6 +53,7 @@ type CreateRoleDialogProps = {
 export function CreateRoleDialog({ open, onOpenChange }: CreateRoleDialogProps) {
   const t = useTranslations("RolesAndPermissions.create")
   const tCommon = useTranslations("Common")
+  const permissionT = useTranslations("Permissions")
   const router = useRouter()
   const [name, setName] = useState("")
   const [selectedPermissionSets, setSelectedPermissionSets] = useState<string[]>([])
@@ -147,7 +148,7 @@ export function CreateRoleDialog({ open, onOpenChange }: CreateRoleDialogProps) 
             <div className="space-y-2">
               <Label>{t("permissionsLabel")}</Label>
               <div className="border rounded-md">
-                <ScrollArea className="h-[250px] p-2">
+                <ScrollArea className="h-[300px] p-2">
                   {permissionSetsLoading ? (
                     <div className="p-2">{tCommon("loading")}</div>
                   ) : permissionSets.length === 0 ? (
@@ -157,7 +158,7 @@ export function CreateRoleDialog({ open, onOpenChange }: CreateRoleDialogProps) 
                       {permissionSets.map((permissionSet) => (
                         <div
                           key={permissionSet.permissionSetId}
-                          className="flex items-center space-x-2 p-1 hover:bg-accent"
+                          className="flex items-start space-x-2 p-2 hover:bg-accent rounded-md"
                         >
                           <Checkbox
                             id={permissionSet.permissionSetId}
@@ -168,13 +169,19 @@ export function CreateRoleDialog({ open, onOpenChange }: CreateRoleDialogProps) 
                               togglePermissionSet(permissionSet.permissionSetId)
                             }
                             disabled={isLoading}
+                            className="mt-1"
                           />
-                          <Label
-                            htmlFor={permissionSet.permissionSetId}
-                            className="text-sm font-normal cursor-pointer"
-                          >
-                            {permissionSet.name}
-                          </Label>
+                          <div className="space-y-1">
+                            <Label
+                              htmlFor={permissionSet.permissionSetId}
+                              className="text-sm font-medium cursor-pointer"
+                            >
+                              {permissionT(`${permissionSet.name}.label`)}
+                            </Label>
+                            <p className="text-sm text-muted-foreground">
+                              {permissionT(`${permissionSet.name}.description`)}
+                            </p>
+                          </div>
                         </div>
                       ))}
                     </div>

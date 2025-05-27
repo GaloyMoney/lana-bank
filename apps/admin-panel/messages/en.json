@@ -21,6 +21,73 @@
     "submit": "Submit",
     "set": "Set"
   },
+  "PermissionsDisplay": {
+    "permissionsLabel": "Permissions this role has",
+    "noRoleSelected": "No role selected",
+    "noPermissions": "This role has no permissions"
+  },
+  "Permissions": {
+    "access_reader": {
+      "label": "Access Reader",
+      "description": "Can list and view users, roles, and permission sets"
+    },
+    "access_writer": {
+      "label": "Access Writer",
+      "description": "Can create, update, and manage users, roles, and permission sets, including assigning or revoking roles"
+    },
+    "accounting_viewer": {
+      "label": "Accounting Viewer",
+      "description": "Can view accounting reports, journal entries, ledger accounts, and transactions"
+    },
+    "accounting_writer": {
+      "label": "Accounting Writer",
+      "description": "Can create and manage charts of accounts, ledger and manual transactions, balance sheets, profit-and-loss reports, and related accounting data"
+    },
+    "app_reader": {
+      "label": "App Reader",
+      "description": "Can list and view application documents, reports, audits, and terms templates"
+    },
+    "app_writer": {
+      "label": "App Writer",
+      "description": "Can create, update, archive, and delete application documents, reports, and terms templates"
+    },
+    "credit_viewer": {
+      "label": "Credit Viewer",
+      "description": "Can view credit facilities, disbursals, obligations, and related loan information"
+    },
+    "credit_writer": {
+      "label": "Credit Writer",
+      "description": "Can create and manage credit facilities, update collateral, initiate and settle disbursals, record interest, and process obligations"
+    },
+    "customer_viewer": {
+      "label": "Customer Viewer",
+      "description": "Can view customer profiles and account details"
+    },
+    "customer_writer": {
+      "label": "Customer Writer",
+      "description": "Can create, update, and manage customers, including initiating and approving KYC processes"
+    },
+    "dashboard_reader": {
+      "label": "Dashboard Reader",
+      "description": "Can view system dashboards and analytics"
+    },
+    "deposit_viewer": {
+      "label": "Deposit Viewer",
+      "description": "Can view deposit accounts, balances, transaction history, and withdrawal details"
+    },
+    "deposit_writer": {
+      "label": "Deposit Writer",
+      "description": "Can create and manage deposits, deposit accounts, and withdrawals, including initiating, confirming, cancelling, and approving withdrawals"
+    },
+    "governance_reader": {
+      "label": "Governance Reader",
+      "description": "Can view governance committees, policies, and approval processes"
+    },
+    "governance_writer": {
+      "label": "Governance Writer",
+      "description": "Can create and manage committees and policies, and control approval processes (create, approve, deny, conclude)"
+    }
+  },
   "interestInterval": {
     "endOfDay": "End of Day",
     "endOfMonth": "End of Month"

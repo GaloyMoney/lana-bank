@@ -23,6 +23,8 @@ import {
 } from "@lana/web/ui/select"
 import { Label } from "@lana/web/ui/label"
 
+import { PermissionsDisplay } from "./permissions-display"
+
 import {
   useRolesQuery,
   useUserAssignRoleMutation,
@@ -121,38 +123,53 @@ export function UpdateUserRoleDialog({
     }
   }
 
+  const selectedRole =
+    selectedRoleId !== "placeholder"
+      ? roles.find((role) => role.roleId === selectedRoleId)
+      : null
+
+  const permissionSets = selectedRole?.permissionSets || []
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="max-w-xl">
         <DialogHeader>
           <DialogTitle>{t("title")}</DialogTitle>
           <DialogDescription>{t("description")}</DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit}>
-          <div>
-            <Label htmlFor="role">{t("roleLabel")}</Label>
-            <Select
-              value={selectedRoleId}
-              onValueChange={(value) => setSelectedRoleId(value)}
-              disabled={isLoading}
-            >
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder={t("selectRole")} />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="placeholder" disabled>
-                  {t("selectRole")}
-                </SelectItem>
-                {roles.map((role) => (
-                  <SelectItem key={role.roleId} value={role.roleId}>
-                    {role.name}
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="role">{t("roleLabel")}</Label>
+              <Select
+                value={selectedRoleId}
+                onValueChange={(value) => setSelectedRoleId(value)}
+                disabled={isLoading}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder={t("selectRole")} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="placeholder" disabled>
+                    {t("selectRole")}
                   </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+                  {roles.map((role) => (
+                    <SelectItem key={role.roleId} value={role.roleId}>
+                      {role.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <PermissionsDisplay
+              permissionSets={permissionSets}
+              hasSelectedRole={selectedRoleId !== "placeholder"}
+            />
+
+            {error && <p className="text-destructive mt-2">{error}</p>}
           </div>
-          {error && <p className="text-destructive mt-2">{error}</p>}
           <DialogFooter className="mt-4">
             <Button
               type="button"

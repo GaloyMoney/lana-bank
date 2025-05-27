@@ -24,6 +24,8 @@ import {
   SelectValue,
 } from "@lana/web/ui/select"
 
+import { PermissionsDisplay } from "./permissions-display"
+
 import {
   useRolesQuery,
   useUserAssignRoleMutation,
@@ -144,6 +146,12 @@ export const CreateUserDialog: React.FC<CreateUserDialogProps> = ({
     setError(null)
   }
 
+  const selectedRole = selectedRoleId
+    ? roles.find((role) => role.roleId === selectedRoleId)
+    : null
+
+  const permissionSets = selectedRole?.permissionSets || []
+
   return (
     <Dialog
       open={openCreateUserDialog}
@@ -152,7 +160,7 @@ export const CreateUserDialog: React.FC<CreateUserDialogProps> = ({
         if (!isOpen) resetStates()
       }}
     >
-      <DialogContent>
+      <DialogContent className="max-w-xl">
         <DialogHeader>
           <DialogTitle>{t("title")}</DialogTitle>
           <DialogDescription>{t("description")}</DialogDescription>
@@ -205,6 +213,11 @@ export const CreateUserDialog: React.FC<CreateUserDialogProps> = ({
               </SelectContent>
             </Select>
           </div>
+
+          <PermissionsDisplay
+            permissionSets={permissionSets}
+            hasSelectedRole={!!selectedRoleId}
+          />
 
           {error && <p className="text-destructive">{error}</p>}
 

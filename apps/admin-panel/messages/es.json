@@ -21,6 +21,73 @@
     "submit": "Enviar",
     "set": "Establecer"
   },
+  "PermissionsDisplay": {
+    "permissionsLabel": "Permisos que tiene este rol",
+    "noRoleSelected": "Ningún rol seleccionado",
+    "noPermissions": "Este rol no tiene permisos"
+  },
+  "Permissions": {
+    "access_reader": {
+      "label": "Lector de acceso",
+      "description": "Puede ver usuarios, roles y conjuntos de permisos"
+    },
+    "access_writer": {
+      "label": "Editor de acceso",
+      "description": "Puede crear y gestionar usuarios, roles y conjuntos de permisos"
+    },
+    "accounting_viewer": {
+      "label": "Visualizador de contabilidad",
+      "description": "Puede ver datos contables, asientos contables, cuentas del libro mayor y transacciones"
+    },
+    "accounting_writer": {
+      "label": "Editor de contabilidad",
+      "description": "Puede crear y gestionar datos contables, asientos contables y realizar operaciones financieras"
+    },
+    "app_reader": {
+      "label": "Lector de aplicación",
+      "description": "Puede acceder a funcionalidades básicas de la aplicación y ver información general del sistema"
+    },
+    "app_writer": {
+      "label": "Editor de aplicación",
+      "description": "Puede modificar la configuración y ajustes de la aplicación"
+    },
+    "credit_viewer": {
+      "label": "Visualizador de crédito",
+      "description": "Puede ver facilidades de crédito, desembolsos e información de préstamos"
+    },
+    "credit_writer": {
+      "label": "Editor de crédito",
+      "description": "Puede crear y gestionar facilidades de crédito, desembolsos y procesar acciones de préstamos"
+    },
+    "customer_viewer": {
+      "label": "Visualizador de clientes",
+      "description": "Puede ver información de clientes y detalles de cuentas"
+    },
+    "customer_writer": {
+      "label": "Editor de clientes",
+      "description": "Puede crear y actualizar información de clientes y gestionar cuentas de clientes"
+    },
+    "dashboard_reader": {
+      "label": "Lector de panel de control",
+      "description": "Puede acceder y ver paneles de control y reportes del sistema"
+    },
+    "deposit_viewer": {
+      "label": "Visualizador de depósitos",
+      "description": "Puede ver cuentas de depósito e historial de transacciones"
+    },
+    "deposit_writer": {
+      "label": "Editor de depósitos",
+      "description": "Puede crear y gestionar depósitos, solicitudes de retiro y operaciones de cuenta"
+    },
+    "governance_reader": {
+      "label": "Lector de gobernanza",
+      "description": "Puede ver comités, políticas y procesos de aprobación"
+    },
+    "governance_writer": {
+      "label": "Editor de gobernanza",
+      "description": "Puede crear y gestionar comités, políticas y manejar procesos de aprobación"
+    }
+  },
   "interestInterval": {
     "endOfDay": "Fin de día",
     "endOfMonth": "Fin de mes"

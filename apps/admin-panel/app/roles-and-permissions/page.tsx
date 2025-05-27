@@ -59,6 +59,7 @@ function CompactPermissionSets({
   maxShow?: number
 }) {
   const t = useTranslations("RolesAndPermissions.table")
+  const permissionT = useTranslations("Permissions")
 
   if (!permissionSets || permissionSets.length === 0) {
     return <span className="text-muted-foreground">{t("noPermissionSetsAssigned")}</span>
@@ -74,7 +75,7 @@ function CompactPermissionSets({
     <div className="flex flex-wrap gap-2 items-center">
       {visiblePermissions.map((permissionSet) => (
         <Badge variant="outline" key={permissionSet.permissionSetId}>
-          {permissionSet.name}
+          {permissionT(`${permissionSet.name}.label`, { fallback: permissionSet.name })}
         </Badge>
       ))}
       {remainingCount > 0 && (

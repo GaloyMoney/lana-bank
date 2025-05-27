@@ -3,16 +3,14 @@
 import React, { useState } from "react"
 import { useTranslations } from "next-intl"
 
-import { Badge } from "@lana/web/ui/badge"
-import { Label } from "@lana/web/ui/label"
 import { Button } from "@lana/web/ui/button"
 import { Edit2 } from "lucide-react"
+import { Label } from "@lana/web/ui/label"
 
 import { UpdateRoleDialog } from "../update"
 
 import { DetailsCard, DetailItemProps } from "@/components/details"
 import { RoleQuery } from "@/lib/graphql/generated"
-
 import { formatDate } from "@/lib/utils"
 
 type RoleDetailsProps = {
@@ -21,6 +19,7 @@ type RoleDetailsProps = {
 
 export const RoleDetailsCard: React.FC<RoleDetailsProps> = ({ role }) => {
   const t = useTranslations("RolesAndPermissions.roleDetails")
+  const permissionT = useTranslations("Permissions")
   const [isUpdateDialogOpen, setIsUpdateDialogOpen] = useState(false)
 
   const details: DetailItemProps[] = [
@@ -37,20 +36,24 @@ export const RoleDetailsCard: React.FC<RoleDetailsProps> = ({ role }) => {
 
   const footerContent = (
     <>
-      <div>
+      <div className="w-full flex-1">
         <Label>{t("permissionSets")}</Label>
-        <div className="flex flex-wrap gap-2 items-center py-2">
-          {role.permissionSets
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 gap-x-8 mt-2">
+          {[...role.permissionSets]
+            .sort((a, b) => a.name.localeCompare(b.name))
             .map((permissionSet) => (
-              <Badge
-                variant="outline"
-                className="text-sm"
+              <div
                 key={permissionSet.permissionSetId}
+                className="rounded-md py-2 space-y-1"
               >
-                {permissionSet.name}
-              </Badge>
-            ))
-            .sort((a, b) => a.props.children.localeCompare(b.props.children))}
+                <div className="font-medium">
+                  {permissionT(`${permissionSet.name}.label`)}
+                </div>
+                <p className="text-muted-foreground">
+                  {permissionT(`${permissionSet.name}.description`)}
+                </p>
+              </div>
+            ))}
         </div>
       </div>
     </>
