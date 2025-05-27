@@ -19,6 +19,7 @@ export type Scalars = {
   Float: { input: number; output: number; }
   AnnualRatePct: { input: any; output: any; }
   CVLPct: { input: any; output: any; }
+  Date: { input: any; output: any; }
   OneTimeFeeRatePct: { input: any; output: any; }
   Satoshis: { input: any; output: any; }
   Timestamp: { input: any; output: any; }
@@ -75,6 +76,7 @@ export type CreditFacility = {
 export type CreditFacilityApproved = {
   __typename?: 'CreditFacilityApproved';
   cents: Scalars['UsdCents']['output'];
+  effective: Scalars['Date']['output'];
   recordedAt: Scalars['Timestamp']['output'];
   txId: Scalars['UUID']['output'];
 };
@@ -92,6 +94,7 @@ export type CreditFacilityBalance = {
 export type CreditFacilityCollateralUpdated = {
   __typename?: 'CreditFacilityCollateralUpdated';
   action: CollateralAction;
+  effective: Scalars['Date']['output'];
   recordedAt: Scalars['Timestamp']['output'];
   satoshis: Scalars['Satoshis']['output'];
   txId: Scalars['UUID']['output'];
@@ -100,6 +103,7 @@ export type CreditFacilityCollateralUpdated = {
 export type CreditFacilityCollateralizationUpdated = {
   __typename?: 'CreditFacilityCollateralizationUpdated';
   collateral: Scalars['Satoshis']['output'];
+  effective: Scalars['Date']['output'];
   outstandingDisbursal: Scalars['UsdCents']['output'];
   outstandingInterest: Scalars['UsdCents']['output'];
   price: Scalars['UsdCents']['output'];
@@ -119,6 +123,7 @@ export type CreditFacilityDisbursal = {
 export type CreditFacilityDisbursalExecuted = {
   __typename?: 'CreditFacilityDisbursalExecuted';
   cents: Scalars['UsdCents']['output'];
+  effective: Scalars['Date']['output'];
   recordedAt: Scalars['Timestamp']['output'];
   txId: Scalars['UUID']['output'];
 };
@@ -128,6 +133,7 @@ export type CreditFacilityHistoryEntry = CreditFacilityApproved | CreditFacility
 export type CreditFacilityIncrementalPayment = {
   __typename?: 'CreditFacilityIncrementalPayment';
   cents: Scalars['UsdCents']['output'];
+  effective: Scalars['Date']['output'];
   recordedAt: Scalars['Timestamp']['output'];
   txId: Scalars['UUID']['output'];
 };
@@ -136,6 +142,7 @@ export type CreditFacilityInterestAccrued = {
   __typename?: 'CreditFacilityInterestAccrued';
   cents: Scalars['UsdCents']['output'];
   days: Scalars['Int']['output'];
+  effective: Scalars['Date']['output'];
   recordedAt: Scalars['Timestamp']['output'];
   txId: Scalars['UUID']['output'];
 };

@@ -73,6 +73,11 @@ export const CreditFacilityHistory: React.FC<CreditFacilityHistoryProps> = ({
         recordedAt ? <DateWithTooltip value={recordedAt} /> : "-",
     },
     {
+      key: "effective",
+      header: t("columns.effective"),
+      render: (effective: string) => <DateWithTooltip value={effective} />,
+    },
+    {
       key: "__typename",
       header: t("columns.amount"),
       align: "right",

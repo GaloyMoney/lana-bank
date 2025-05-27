@@ -16,17 +16,20 @@ gql`
         cents
         recordedAt
         txId
+        effective
       }
       ... on CreditFacilityCollateralUpdated {
         satoshis
         recordedAt
         action
         txId
+        effective
       }
       ... on CreditFacilityApproved {
         cents
         recordedAt
         txId
+        effective
       }
       ... on CreditFacilityCollateralizationUpdated {
         state
@@ -35,17 +38,20 @@ gql`
         outstandingDisbursal
         recordedAt
         price
+        effective
       }
       ... on CreditFacilityDisbursalExecuted {
         cents
         recordedAt
         txId
+        effective
       }
       ... on CreditFacilityInterestAccrued {
         cents
         recordedAt
         txId
         days
+        effective
       }
     }
   }
