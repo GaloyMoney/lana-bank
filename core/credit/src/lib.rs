@@ -69,7 +69,7 @@ where
 {
     authz: Perms,
     credit_facility_repo: CreditFacilityRepo<E>,
-    disbursal_repo: DisbursalRepo<E>,
+    disbursals: Disbursals<Perms, E>,
     payment_repo: PaymentRepo,
     history_repo: HistoryRepo,
     repayment_plan_repo: RepaymentPlanRepo,
@@ -99,7 +99,7 @@ where
             credit_facility_repo: self.credit_facility_repo.clone(),
             obligations: self.obligations.clone(),
             collaterals: self.collaterals.clone(),
-            disbursal_repo: self.disbursal_repo.clone(),
+            disbursals: self.disbursals.clone(),
             payment_repo: self.payment_repo.clone(),
             history_repo: self.history_repo.clone(),
             repayment_plan_repo: self.repayment_plan_repo.clone(),
@@ -142,7 +142,7 @@ where
     ) -> Result<Self, CoreCreditError> {
         let publisher = CreditFacilityPublisher::new(outbox);
         let credit_facility_repo = CreditFacilityRepo::new(pool, &publisher);
-        let disbursal_repo = DisbursalRepo::new(pool, &publisher);
+        let disbursals = Disbursals::init(pool, authz, &publisher, governance).await;
         let obligations = Obligations::new(pool, authz, cala, jobs, &publisher);
         let collaterals = Collaterals::new(pool, authz, &publisher);
         let payment_repo = PaymentRepo::new(pool);
@@ -151,11 +151,10 @@ where
         let payment_allocation_repo = PaymentAllocationRepo::new(pool, &publisher);
         let ledger = CreditLedger::init(cala, journal_id).await?;
         let approve_disbursal = ApproveDisbursal::new(
-            &disbursal_repo,
+            &disbursals,
             &obligations,
             &credit_facility_repo,
             jobs,
-            authz.audit(),
             governance,
             &ledger,
         );
@@ -165,7 +164,7 @@ where
         let activate_credit_facility = ActivateCreditFacility::new(
             &obligations,
             &credit_facility_repo,
-            &disbursal_repo,
+            &disbursals,
             &ledger,
             price,
             jobs,
@@ -262,7 +261,6 @@ where
         let _ = governance
             .init_policy(APPROVE_CREDIT_FACILITY_PROCESS)
             .await;
-        let _ = governance.init_policy(APPROVE_DISBURSAL_PROCESS).await;
 
         Ok(Self {
             authz: authz.clone(),
@@ -270,7 +268,7 @@ where
             credit_facility_repo,
             obligations,
             collaterals,
-            disbursal_repo,
+            disbursals,
             payment_repo,
             history_repo,
             repayment_plan_repo,
@@ -291,6 +289,10 @@ where
 
     pub fn collaterals(&self) -> &Collaterals<Perms, E> {
         &self.collaterals
+    }
+
+    pub fn disbursals(&self) -> &Disbursals<Perms, E> {
+        &self.disbursals
     }
 
     pub async fn subject_can_create(
@@ -323,7 +325,7 @@ where
             customer_id,
             &self.authz,
             &self.credit_facility_repo,
-            &self.disbursal_repo,
+            &self.disbursals,
             &self.payment_allocation_repo,
             &self.history_repo,
             &self.repayment_plan_repo,
@@ -566,6 +568,7 @@ where
             .terms
             .obligation_overdue_duration
             .map(|d| d.end_date(due_date));
+
         let new_disbursal = NewDisbursal::builder()
             .id(disbursal_id)
             .approval_process_id(disbursal_id)
@@ -579,18 +582,7 @@ where
             .build()
             .expect("could not build new disbursal");
 
-        self.governance
-            .start_process(
-                &mut db,
-                new_disbursal.approval_process_id,
-                new_disbursal.approval_process_id.to_string(),
-                APPROVE_DISBURSAL_PROCESS,
-            )
-            .await?;
-        let disbursal = self
-            .disbursal_repo
-            .create_in_op(&mut db, new_disbursal)
-            .await?;
+        let disbursal = self.disbursals.create_in_op(&mut db, new_disbursal).await?;
 
         self.ledger
             .initiate_disbursal(
@@ -598,54 +590,6 @@ where
                 disbursal.id,
                 disbursal.amount,
                 disbursal.account_ids.facility_account_id,
-            )
-            .await?;
-
-        Ok(disbursal)
-    }
-
-    #[instrument(name = "credit_facility.find_disbursal_by_id", skip(self), err)]
-    pub async fn find_disbursal_by_id(
-        &self,
-        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        id: impl Into<DisbursalId> + std::fmt::Debug,
-    ) -> Result<Option<Disbursal>, CoreCreditError> {
-        self.authz
-            .enforce_permission(
-                sub,
-                CoreCreditObject::all_credit_facilities(),
-                CoreCreditAction::CREDIT_FACILITY_READ,
-            )
-            .await?;
-
-        match self.disbursal_repo.find_by_id(id.into()).await {
-            Ok(loan) => Ok(Some(loan)),
-            Err(e) if e.was_not_found() => Ok(None),
-            Err(e) => Err(e.into()),
-        }
-    }
-
-    #[instrument(
-        name = "credit_facility.find_disbursal_by_concluded_tx_id",
-        skip(self),
-        err
-    )]
-    pub async fn find_disbursal_by_concluded_tx_id(
-        &self,
-        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        tx_id: impl Into<crate::primitives::LedgerTxId> + std::fmt::Debug,
-    ) -> Result<Disbursal, CoreCreditError> {
-        let tx_id = tx_id.into();
-        let disbursal = self
-            .disbursal_repo
-            .find_by_concluded_tx_id(Some(tx_id))
-            .await?;
-
-        self.authz
-            .enforce_permission(
-                sub,
-                CoreCreditObject::all_credit_facilities(),
-                CoreCreditAction::CREDIT_FACILITY_READ,
             )
             .await?;
 
@@ -1094,43 +1038,12 @@ where
         Ok(payment_allocation)
     }
 
-    #[instrument(name = "credit_facility.list_disbursals", skip(self), err)]
-    pub async fn list_disbursals(
-        &self,
-        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        query: es_entity::PaginatedQueryArgs<DisbursalsCursor>,
-        filter: FindManyDisbursals,
-        sort: impl Into<Sort<DisbursalsSortBy>> + std::fmt::Debug,
-    ) -> Result<es_entity::PaginatedQueryRet<Disbursal, DisbursalsCursor>, CoreCreditError> {
-        self.authz
-            .enforce_permission(
-                sub,
-                CoreCreditObject::all_disbursals(),
-                CoreCreditAction::DISBURSAL_LIST,
-            )
-            .await?;
-
-        let disbursals = self
-            .disbursal_repo
-            .find_many(filter, sort.into(), query)
-            .await?;
-        Ok(disbursals)
-    }
-
     #[instrument(name = "credit_facility.find_all", skip(self), err)]
     pub async fn find_all<T: From<CreditFacility>>(
         &self,
         ids: &[CreditFacilityId],
     ) -> Result<HashMap<CreditFacilityId, T>, CoreCreditError> {
         Ok(self.credit_facility_repo.find_all(ids).await?)
-    }
-
-    #[instrument(name = "credit_facility.find_all_disbursals", skip(self), err)]
-    pub async fn find_all_disbursals<T: From<Disbursal>>(
-        &self,
-        ids: &[DisbursalId],
-    ) -> Result<HashMap<DisbursalId, T>, CoreCreditError> {
-        Ok(self.disbursal_repo.find_all(ids).await?)
     }
 
     pub async fn can_be_completed(&self, entity: &CreditFacility) -> Result<bool, CoreCreditError> {

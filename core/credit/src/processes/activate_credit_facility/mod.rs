@@ -5,17 +5,18 @@ use tracing::instrument;
 use audit::AuditSvc;
 use authz::PermissionCheck;
 use core_price::Price;
+use governance::{GovernanceAction, GovernanceEvent, GovernanceObject};
 use outbox::OutboxEventMarker;
 
 use crate::{
     credit_facility::{CreditFacility, CreditFacilityRepo},
-    disbursal::{DisbursalRepo, NewDisbursal},
+    disbursal::{Disbursals, NewDisbursal},
     error::CoreCreditError,
     event::CoreCreditEvent,
     jobs::interest_accruals,
     ledger::CreditLedger,
     obligation::Obligations,
-    primitives::{CoreCreditAction, CoreCreditObject, CreditFacilityId, DisbursalId, LedgerTxId},
+    primitives::{CoreCreditAction, CoreCreditObject, CreditFacilityId, DisbursalId},
     Jobs,
 };
 
@@ -24,11 +25,11 @@ pub use job::*;
 pub struct ActivateCreditFacility<Perms, E>
 where
     Perms: PermissionCheck,
-    E: OutboxEventMarker<CoreCreditEvent>,
+    E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<GovernanceEvent>,
 {
     obligations: Obligations<Perms, E>,
     credit_facility_repo: CreditFacilityRepo<E>,
-    disbursal_repo: DisbursalRepo<E>,
+    disbursals: Disbursals<Perms, E>,
     ledger: CreditLedger,
     price: Price,
     jobs: Jobs,
@@ -38,13 +39,13 @@ where
 impl<Perms, E> Clone for ActivateCreditFacility<Perms, E>
 where
     Perms: PermissionCheck,
-    E: OutboxEventMarker<CoreCreditEvent>,
+    E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<GovernanceEvent>,
 {
     fn clone(&self) -> Self {
         Self {
             obligations: self.obligations.clone(),
             credit_facility_repo: self.credit_facility_repo.clone(),
-            disbursal_repo: self.disbursal_repo.clone(),
+            disbursals: self.disbursals.clone(),
             ledger: self.ledger.clone(),
             price: self.price.clone(),
             jobs: self.jobs.clone(),
@@ -55,14 +56,16 @@ where
 impl<Perms, E> ActivateCreditFacility<Perms, E>
 where
     Perms: PermissionCheck,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>,
-    E: OutboxEventMarker<CoreCreditEvent>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
+        From<CoreCreditAction> + From<GovernanceAction>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object:
+        From<CoreCreditObject> + From<GovernanceObject>,
+    E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<GovernanceEvent>,
 {
     pub fn new(
         obligations: &Obligations<Perms, E>,
         credit_facility_repo: &CreditFacilityRepo<E>,
-        disbursal_repo: &DisbursalRepo<E>,
+        disbursals: &Disbursals<Perms, E>,
         ledger: &CreditLedger,
         price: &Price,
         jobs: &Jobs,
@@ -71,7 +74,7 @@ where
         Self {
             obligations: obligations.clone(),
             credit_facility_repo: credit_facility_repo.clone(),
-            disbursal_repo: disbursal_repo.clone(),
+            disbursals: disbursals.clone(),
             ledger: ledger.clone(),
             price: price.clone(),
             jobs: jobs.clone(),
@@ -129,16 +132,10 @@ where
             .audit_info(audit_info.clone())
             .build()
             .expect("could not build new disbursal");
-        let mut disbursal = self
-            .disbursal_repo
-            .create_in_op(&mut db, new_disbursal)
+        let new_obligation = self
+            .disbursals
+            .create_first_disbursal_in_op(&mut db, new_disbursal, &audit_info)
             .await?;
-
-        let tx_id = LedgerTxId::new();
-        let new_obligation = disbursal
-            .approval_process_concluded(tx_id, true, audit_info.clone())
-            .expect("First instance of idempotent action ignored")
-            .expect("First disbursal obligation was already created");
 
         self.credit_facility_repo
             .update_in_op(&mut db, &mut credit_facility)
@@ -146,10 +143,6 @@ where
 
         self.obligations
             .create_with_jobs_in_op(&mut db, new_obligation)
-            .await?;
-
-        self.disbursal_repo
-            .update_in_op(&mut db, &mut disbursal)
             .await?;
 
         let accrual_id = credit_facility

@@ -1,6 +1,7 @@
 use audit::AuditSvc;
 use authz::PermissionCheck;
 use es_entity::{PaginatedQueryArgs, PaginatedQueryRet};
+use governance::{GovernanceAction, GovernanceEvent, GovernanceObject};
 
 use super::*;
 use crate::history::CreditFacilityHistoryEntry;
@@ -8,13 +9,13 @@ use crate::history::CreditFacilityHistoryEntry;
 pub struct CreditFacilitiesForSubject<'a, Perms, E>
 where
     Perms: PermissionCheck,
-    E: OutboxEventMarker<CoreCreditEvent>,
+    E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<GovernanceEvent>,
 {
     customer_id: CustomerId,
     subject: &'a <<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
     authz: &'a Perms,
     credit_facilities: &'a CreditFacilityRepo<E>,
-    disbursals: &'a DisbursalRepo<E>,
+    disbursals: &'a Disbursals<Perms, E>,
     payment_allocations: &'a PaymentAllocationRepo<E>,
     histories: &'a HistoryRepo,
     repayment_plans: &'a RepaymentPlanRepo,
@@ -24,9 +25,11 @@ where
 impl<'a, Perms, E> CreditFacilitiesForSubject<'a, Perms, E>
 where
     Perms: PermissionCheck,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>,
-    E: OutboxEventMarker<CoreCreditEvent>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
+        From<CoreCreditAction> + From<GovernanceAction>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object:
+        From<CoreCreditObject> + From<GovernanceObject>,
+    E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<GovernanceEvent>,
 {
     #[allow(clippy::too_many_arguments)]
     pub(super) fn new(
@@ -34,7 +37,7 @@ where
         customer_id: CustomerId,
         authz: &'a Perms,
         credit_facilities: &'a CreditFacilityRepo<E>,
-        disbursals: &'a DisbursalRepo<E>,
+        disbursals: &'a Disbursals<Perms, E>,
         payment_allocations: &'a PaymentAllocationRepo<E>,
         history: &'a HistoryRepo,
         repayment_plans: &'a RepaymentPlanRepo,
@@ -185,15 +188,11 @@ where
             CoreCreditAction::DISBURSAL_LIST,
         )
         .await?;
-
         let disbursals = self
             .disbursals
-            .find_many(
-                FindManyDisbursals::WithCreditFacilityId(id),
-                sort.into(),
-                query,
-            )
+            .list_for_facility_without_audit(id, query, sort)
             .await?;
+
         Ok(disbursals)
     }
 
@@ -202,7 +201,10 @@ where
         tx_id: impl Into<crate::primitives::LedgerTxId> + std::fmt::Debug,
     ) -> Result<Disbursal, CoreCreditError> {
         let tx_id = tx_id.into();
-        let disbursal = self.disbursals.find_by_concluded_tx_id(Some(tx_id)).await?;
+        let disbursal = self
+            .disbursals
+            .find_by_concluded_tx_id_without_audit(tx_id)
+            .await?;
 
         let credit_facility = self
             .credit_facilities

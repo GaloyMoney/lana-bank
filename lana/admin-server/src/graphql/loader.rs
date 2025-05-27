@@ -304,9 +304,10 @@ impl Loader<DisbursalId> for LanaLoader {
     ) -> Result<HashMap<DisbursalId, CreditFacilityDisbursal>, Self::Error> {
         self.app
             .credit()
-            .find_all_disbursals(keys)
+            .disbursals()
+            .find_all(keys)
             .await
-            .map_err(Arc::new)
+            .map_err(|e| Arc::new(e.into()))
     }
 }
 

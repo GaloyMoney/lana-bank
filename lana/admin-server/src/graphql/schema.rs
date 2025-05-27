@@ -301,7 +301,7 @@ impl Query {
         maybe_fetch_one!(
             CreditFacilityDisbursal,
             ctx,
-            app.credit().find_disbursal_by_id(sub, id)
+            app.credit().disbursals().find_by_id(sub, id)
         )
     }
 
@@ -327,7 +327,7 @@ impl Query {
             ctx,
             after,
             first,
-            |query| { app.credit().list_disbursals(sub, query, filter, sort) }
+            |query| { app.credit().disbursals().list(sub, query, filter, sort) }
         )
     }
 

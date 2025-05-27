@@ -113,7 +113,8 @@ impl CreditFacility {
 
         let disbursals = app
             .credit()
-            .list_disbursals(
+            .disbursals()
+            .list(
                 sub,
                 Default::default(),
                 FindManyDisbursals::WithCreditFacilityId(self.entity.id),
