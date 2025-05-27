@@ -64,6 +64,7 @@ pub enum InterestAccrualCycleEvent {
         tx_ref: String,
         obligation_id: ObligationId,
         total: UsdCents,
+        effective: chrono::NaiveDate,
         audit_info: AuditInfo,
     },
 }
@@ -275,6 +276,7 @@ impl InterestAccrualCycle {
                 tx_ref: tx_ref.to_string(),
                 obligation_id,
                 total: interest,
+                effective,
                 audit_info: audit_info.clone(),
             });
 
