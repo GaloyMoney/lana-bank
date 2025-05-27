@@ -283,33 +283,38 @@ impl InterestAccrualCycle {
             .terms
             .obligation_overdue_duration
             .map(|d| d.end_date(due_date));
+
+        let mut builder = NewObligation::builder();
+        builder
+            .id(obligation_id)
+            .credit_facility_id(self.credit_facility_id)
+            .obligation_type(ObligationType::Interest)
+            .reference(tx_ref.to_string())
+            .amount(interest)
+            .tx_id(tx_id)
+            .not_yet_due_accounts(ObligationAccounts {
+                receivable_account_id: self.account_ids.interest_receivable_not_yet_due_account_id,
+                account_to_be_credited_id: self.account_ids.interest_income_account_id,
+            })
+            .due_accounts(ObligationAccounts {
+                receivable_account_id: self.account_ids.interest_receivable_due_account_id,
+                account_to_be_credited_id: self.account_ids.interest_income_account_id,
+            })
+            .overdue_accounts(ObligationAccounts {
+                receivable_account_id: self.account_ids.interest_receivable_overdue_account_id,
+                account_to_be_credited_id: self.account_ids.interest_income_account_id,
+            })
+            .defaulted_account_id(self.account_ids.interest_defaulted_account_id)
+            .due_date(due_date)
+            .recorded_at(posted_at)
+            .audit_info(audit_info);
+
+        if let Some(overdue_date) = overdue_date {
+            builder.overdue_date(overdue_date);
+        }
+
         Idempotent::Executed(
-            NewObligation::builder()
-                .id(obligation_id)
-                .credit_facility_id(self.credit_facility_id)
-                .obligation_type(ObligationType::Interest)
-                .reference(tx_ref.to_string())
-                .amount(interest)
-                .tx_id(tx_id)
-                .not_yet_due_accounts(ObligationAccounts {
-                    receivable_account_id: self
-                        .account_ids
-                        .interest_receivable_not_yet_due_account_id,
-                    account_to_be_credited_id: self.account_ids.interest_income_account_id,
-                })
-                .due_accounts(ObligationAccounts {
-                    receivable_account_id: self.account_ids.interest_receivable_due_account_id,
-                    account_to_be_credited_id: self.account_ids.interest_income_account_id,
-                })
-                .overdue_accounts(ObligationAccounts {
-                    receivable_account_id: self.account_ids.interest_receivable_overdue_account_id,
-                    account_to_be_credited_id: self.account_ids.interest_income_account_id,
-                })
-                .defaulted_account_id(self.account_ids.interest_defaulted_account_id)
-                .due_date(due_date)
-                .overdue_date(overdue_date)
-                .recorded_at(posted_at)
-                .audit_info(audit_info)
+            builder
                 .build()
                 .expect("could not build new interest accrual cycle obligation"),
         )
