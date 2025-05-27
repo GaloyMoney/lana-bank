@@ -510,6 +510,7 @@ mod tests {
                 payment_id: PaymentAllocationId::new(),
                 amount: UsdCents::from(400_00),
                 recorded_at: interest_recorded_at,
+                effective: interest_recorded_at.date_naive(),
             },
         ];
         process_events(&mut plan, events);
@@ -585,7 +586,8 @@ mod tests {
                 obligation_type: ObligationType::Interest,
                 payment_id: PaymentAllocationId::new(),
                 amount: UsdCents::from(1_000_00),
-                recorded_at: default_start_date() + chrono::Duration::days(30),
+                recorded_at: interest_recorded_at,
+                effective: interest_recorded_at.date_naive(),
             },
         ];
         process_events(&mut plan, events);

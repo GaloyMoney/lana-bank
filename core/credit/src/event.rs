@@ -36,6 +36,7 @@ pub enum CoreCreditEvent {
         payment_id: PaymentAllocationId,
         amount: UsdCents,
         recorded_at: DateTime<Utc>,
+        effective: chrono::NaiveDate,
     },
     FacilityCollateralUpdated {
         credit_facility_id: CreditFacilityId,
@@ -44,11 +45,13 @@ pub enum CoreCreditEvent {
         abs_diff: Satoshis,
         action: CollateralAction,
         recorded_at: DateTime<Utc>,
+        effective: chrono::NaiveDate,
     },
     FacilityCollateralizationChanged {
         id: CreditFacilityId,
         state: CollateralizationState,
         recorded_at: DateTime<Utc>,
+        effective: chrono::NaiveDate,
         collateral: Satoshis,
         outstanding: CreditFacilityReceivable,
         price: PriceOfOneBTC,
@@ -58,6 +61,7 @@ pub enum CoreCreditEvent {
         ledger_tx_id: LedgerTxId,
         amount: UsdCents,
         recorded_at: DateTime<Utc>,
+        effective: chrono::NaiveDate,
     },
     AccrualPosted {
         credit_facility_id: CreditFacilityId,
@@ -65,6 +69,7 @@ pub enum CoreCreditEvent {
         amount: UsdCents,
         period: InterestPeriod,
         recorded_at: DateTime<Utc>,
+        effective: chrono::NaiveDate,
     },
     ObligationCreated {
         id: ObligationId,
