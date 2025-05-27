@@ -15,7 +15,6 @@ use crate::{
     event::CoreCreditEvent,
     jobs::interest_accruals,
     ledger::CreditLedger,
-    obligation::Obligations,
     primitives::{CoreCreditAction, CoreCreditObject, CreditFacilityId, DisbursalId},
     Jobs,
 };
@@ -27,7 +26,6 @@ where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<GovernanceEvent>,
 {
-    obligations: Obligations<Perms, E>,
     credit_facility_repo: CreditFacilityRepo<E>,
     disbursals: Disbursals<Perms, E>,
     ledger: CreditLedger,
@@ -43,7 +41,6 @@ where
 {
     fn clone(&self) -> Self {
         Self {
-            obligations: self.obligations.clone(),
             credit_facility_repo: self.credit_facility_repo.clone(),
             disbursals: self.disbursals.clone(),
             ledger: self.ledger.clone(),
@@ -63,7 +60,6 @@ where
     E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<GovernanceEvent>,
 {
     pub fn new(
-        obligations: &Obligations<Perms, E>,
         credit_facility_repo: &CreditFacilityRepo<E>,
         disbursals: &Disbursals<Perms, E>,
         ledger: &CreditLedger,
@@ -72,7 +68,6 @@ where
         audit: &Perms::Audit,
     ) -> Self {
         Self {
-            obligations: obligations.clone(),
             credit_facility_repo: credit_facility_repo.clone(),
             disbursals: disbursals.clone(),
             ledger: ledger.clone(),
@@ -132,17 +127,13 @@ where
             .audit_info(audit_info.clone())
             .build()
             .expect("could not build new disbursal");
-        let new_obligation = self
-            .disbursals
+
+        self.disbursals
             .create_first_disbursal_in_op(&mut db, new_disbursal, &audit_info)
             .await?;
 
         self.credit_facility_repo
             .update_in_op(&mut db, &mut credit_facility)
-            .await?;
-
-        self.obligations
-            .create_with_jobs_in_op(&mut db, new_obligation)
             .await?;
 
         let accrual_id = credit_facility

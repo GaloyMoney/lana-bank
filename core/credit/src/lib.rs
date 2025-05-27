@@ -142,8 +142,8 @@ where
     ) -> Result<Self, CoreCreditError> {
         let publisher = CreditFacilityPublisher::new(outbox);
         let credit_facility_repo = CreditFacilityRepo::new(pool, &publisher);
-        let disbursals = Disbursals::init(pool, authz, &publisher, governance).await;
         let obligations = Obligations::new(pool, authz, cala, jobs, &publisher);
+        let disbursals = Disbursals::new(pool, authz, &publisher, &obligations, governance).await;
         let collaterals = Collaterals::new(pool, authz, &publisher);
         let payment_repo = PaymentRepo::new(pool);
         let history_repo = HistoryRepo::new(pool);
@@ -152,7 +152,6 @@ where
         let ledger = CreditLedger::init(cala, journal_id).await?;
         let approve_disbursal = ApproveDisbursal::new(
             &disbursals,
-            &obligations,
             &credit_facility_repo,
             jobs,
             governance,
@@ -162,7 +161,6 @@ where
         let approve_credit_facility =
             ApproveCreditFacility::new(&credit_facility_repo, authz.audit(), governance);
         let activate_credit_facility = ActivateCreditFacility::new(
-            &obligations,
             &credit_facility_repo,
             &disbursals,
             &ledger,

@@ -13,9 +13,9 @@ use governance::{
 use outbox::OutboxEventMarker;
 
 use crate::{
-    credit_facility::CreditFacilityRepo, ledger::CreditLedger, obligation::Obligations,
-    primitives::DisbursalId, CoreCreditAction, CoreCreditError, CoreCreditEvent, CoreCreditObject,
-    Disbursal, Disbursals, LedgerTxId,
+    credit_facility::CreditFacilityRepo, ledger::CreditLedger, primitives::DisbursalId,
+    CoreCreditAction, CoreCreditError, CoreCreditEvent, CoreCreditObject, Disbursal, Disbursals,
+    LedgerTxId,
 };
 
 pub use job::*;
@@ -27,7 +27,6 @@ where
     E: OutboxEventMarker<GovernanceEvent> + OutboxEventMarker<CoreCreditEvent>,
 {
     disbursals: Disbursals<Perms, E>,
-    obligations: Obligations<Perms, E>,
     credit_facility_repo: CreditFacilityRepo<E>,
     jobs: Jobs,
     governance: Governance<Perms, E>,
@@ -42,7 +41,6 @@ where
     fn clone(&self) -> Self {
         Self {
             disbursals: self.disbursals.clone(),
-            obligations: self.obligations.clone(),
             credit_facility_repo: self.credit_facility_repo.clone(),
             jobs: self.jobs.clone(),
             governance: self.governance.clone(),
@@ -62,7 +60,6 @@ where
 {
     pub fn new(
         disbursals: &Disbursals<Perms, E>,
-        obligations: &Obligations<Perms, E>,
         credit_facility_repo: &CreditFacilityRepo<E>,
         jobs: &Jobs,
         governance: &Governance<Perms, E>,
@@ -70,7 +67,6 @@ where
     ) -> Self {
         Self {
             disbursals: disbursals.clone(),
-            obligations: obligations.clone(),
             credit_facility_repo: credit_facility_repo.clone(),
             jobs: jobs.clone(),
             governance: governance.clone(),
@@ -115,55 +111,43 @@ where
         let mut db = self.disbursals.begin_op().await?;
 
         let tx_id = LedgerTxId::new();
-        let (disbursal, data) = self
+        let (disbursal, outcome) = self
             .disbursals
             .conclude_approval_process_in_op(&mut db, id.into(), approved, tx_id)
             .await?;
 
-        let mut credit_facility = self
+        let credit_facility = self
             .credit_facility_repo
-            .find_by_id(disbursal.facility_id)
+            .find_by_id_in_tx(db.tx(), disbursal.facility_id)
             .await?;
 
-        let span = tracing::Span::current();
-        let new_obligation = if let Some(new_obligation) = data {
-            new_obligation
-        } else {
-            span.record("already_applied", true);
-            return Ok(disbursal);
-        };
-        span.record("already_applied", false);
+        match outcome {
+            crate::ApprovalProcessOutcome::Ignored => {
+                tracing::Span::current().record("already_applied", true);
+                return Ok(disbursal);
+            }
 
-        let obligation = if let Some(new_obligation) = new_obligation {
-            let obligation = self
-                .obligations
-                .create_with_jobs_in_op(&mut db, new_obligation)
-                .await?;
-            Some(obligation)
-        } else {
-            None
-        };
-        self.credit_facility_repo
-            .update_in_op(&mut db, &mut credit_facility)
-            .await?;
-
-        if let Some(obligation) = obligation {
-            self.ledger
-                .settle_disbursal(
-                    db,
-                    obligation,
-                    credit_facility.account_ids.facility_account_id,
-                )
-                .await?;
-        } else {
-            self.ledger
-                .cancel_disbursal(
-                    db,
-                    tx_id,
-                    disbursal.amount,
-                    credit_facility.account_ids.facility_account_id,
-                )
-                .await?;
+            crate::ApprovalProcessOutcome::Approved(obligation) => {
+                tracing::Span::current().record("already_applied", false);
+                if let Some(obligation) = obligation {
+                    self.ledger
+                        .settle_disbursal(
+                            db,
+                            obligation,
+                            credit_facility.account_ids.facility_account_id,
+                        )
+                        .await?;
+                } else {
+                    self.ledger
+                        .cancel_disbursal(
+                            db,
+                            tx_id,
+                            disbursal.amount,
+                            credit_facility.account_ids.facility_account_id,
+                        )
+                        .await?;
+                }
+            }
         }
 
         Ok(disbursal)

@@ -9,7 +9,7 @@ use authz::PermissionCheck;
 use governance::{Governance, GovernanceAction, GovernanceEvent, GovernanceObject};
 use outbox::OutboxEventMarker;
 
-use crate::{event::CoreCreditEvent, primitives::*};
+use crate::{event::CoreCreditEvent, primitives::*, Obligation, Obligations};
 
 pub(super) use entity::*;
 use error::DisbursalError;
@@ -25,6 +25,7 @@ where
 {
     repo: DisbursalRepo<E>,
     authz: Perms,
+    obligations: Obligations<Perms, E>,
     governance: Governance<Perms, E>,
 }
 
@@ -38,8 +39,14 @@ where
             repo: self.repo.clone(),
             authz: self.authz.clone(),
             governance: self.governance.clone(),
+            obligations: self.obligations.clone(),
         }
     }
+}
+
+pub(super) enum ApprovalProcessOutcome {
+    Ignored,
+    Approved(Option<Obligation>),
 }
 
 impl<Perms, E> Disbursals<Perms, E>
@@ -51,10 +58,11 @@ where
         From<CoreCreditObject> + From<GovernanceObject>,
     E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<GovernanceEvent>,
 {
-    pub async fn init(
+    pub async fn new(
         pool: &sqlx::PgPool,
         authz: &Perms,
         publisher: &crate::CreditFacilityPublisher<E>,
+        obligations: &Obligations<Perms, E>,
         governance: &Governance<Perms, E>,
     ) -> Self {
         let _ = governance
@@ -64,6 +72,7 @@ where
         Self {
             repo: DisbursalRepo::new(pool, publisher),
             authz: authz.clone(),
+            obligations: obligations.clone(),
             governance: governance.clone(),
         }
     }
@@ -95,7 +104,7 @@ where
         db: &mut es_entity::DbOp<'_>,
         new_disbursal: NewDisbursal,
         audit_info: &audit::AuditInfo,
-    ) -> Result<crate::NewObligation, DisbursalError> {
+    ) -> Result<Disbursal, DisbursalError> {
         let mut disbursal = self.repo.create_in_op(db, new_disbursal).await?;
 
         let new_obligation = disbursal
@@ -103,9 +112,13 @@ where
             .expect("First instance of idempotent action ignored")
             .expect("First disbursal obligation was already created");
 
+        self.obligations
+            .create_with_jobs_in_op(db, new_obligation)
+            .await?;
+
         self.repo.update_in_op(db, &mut disbursal).await?;
 
-        Ok(new_obligation)
+        Ok(disbursal)
     }
 
     #[instrument(name = "core_credit.disbursals.find_by_id", skip(self), err)]
@@ -125,7 +138,7 @@ where
         match self.repo.find_by_id(id.into()).await {
             Ok(loan) => Ok(Some(loan)),
             Err(e) if e.was_not_found() => Ok(None),
-            Err(e) => Err(e.into()),
+            Err(e) => Err(e),
         }
     }
 
@@ -160,13 +173,13 @@ where
         Ok(disbursal)
     }
 
-    pub async fn conclude_approval_process_in_op(
+    pub(super) async fn conclude_approval_process_in_op(
         &self,
         db: &mut es_entity::DbOp<'_>,
         disbursal_id: DisbursalId,
         approved: bool,
         tx_id: LedgerTxId,
-    ) -> Result<(Disbursal, Option<Option<crate::NewObligation>>), DisbursalError> {
+    ) -> Result<(Disbursal, ApprovalProcessOutcome), DisbursalError> {
         let audit_info = self
             .authz
             .audit()
@@ -180,16 +193,25 @@ where
 
         let mut disbursal = self.repo.find_by_id(disbursal_id).await?;
 
-        let data = if let es_entity::Idempotent::Executed(data) =
+        let outcome = if let es_entity::Idempotent::Executed(data) =
             disbursal.approval_process_concluded(tx_id, approved, audit_info)
         {
-            self.repo.update_in_op(db, &mut disbursal).await?;
-            Some(data)
+            if let Some(new_obligation) = data {
+                let obligation = self
+                    .obligations
+                    .create_with_jobs_in_op(db, new_obligation)
+                    .await?;
+                ApprovalProcessOutcome::Approved(Some(obligation))
+            } else {
+                ApprovalProcessOutcome::Approved(None)
+            }
         } else {
-            None
+            ApprovalProcessOutcome::Ignored
         };
 
-        Ok((disbursal, data))
+        self.repo.update_in_op(db, &mut disbursal).await?;
+
+        Ok((disbursal, outcome))
     }
 
     #[instrument(name = "core_credit.disbursals.list", skip(self), err)]
@@ -206,7 +228,7 @@ where
         self.authz
             .enforce_permission(
                 sub,
-                CoreCreditObject::all_credit_facilities(),
+                CoreCreditObject::all_disbursals(),
                 CoreCreditAction::DISBURSAL_LIST,
             )
             .await?;
