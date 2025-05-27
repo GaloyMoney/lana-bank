@@ -3,7 +3,7 @@ use rand::distr::{Alphanumeric, SampleString};
 use rbac_types::ROLE_NAME_BANK_MANAGER;
 use serial_test::file_serial;
 
-use lana_app::{audit::*, authorization::init as init_authz};
+use lana_app::{audit::*, authorization::Authorization};
 
 fn generate_random_email() -> String {
     let random_string: String = Alphanumeric.sample_string(&mut rand::rng(), 32);
@@ -15,7 +15,7 @@ fn generate_random_email() -> String {
 async fn bank_manager_lifecycle() -> anyhow::Result<()> {
     let pool = helpers::init_pool().await?;
     let audit = Audit::new(&pool);
-    let authz = init_authz(&pool, &audit).await?;
+    let authz = Authorization::init(&pool, &audit).await?;
     let (access, superuser_subject) = helpers::init_access(&pool, &authz).await?;
 
     let user_email = generate_random_email();
