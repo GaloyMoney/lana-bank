@@ -199,7 +199,7 @@ expression = "LicenseRef-FSL-1.1-ALv2"
 license-files = []
 
 [[licenses.clarify]]
-crate = "deposit"
+crate = "core-deposit"
 expression = "LicenseRef-FSL-1.1-ALv2"
 license-files = []
 

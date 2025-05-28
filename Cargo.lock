@@ -41,7 +41,6 @@ dependencies = [
  "cala-ledger",
  "chrono",
  "core-access",
- "core-deposit",
  "es-entity",
  "governance",
  "jwks-utils",
