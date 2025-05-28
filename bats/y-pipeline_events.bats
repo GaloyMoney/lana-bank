@@ -253,7 +253,6 @@ pg_event() {
     event=$(psql $DATABASE_URL -P format=unaligned -P tuples_only -c "select event from ${table} where event_type = '${event_type}' order by id, sequence limit 1")
     [[ "$event" != "" ]] || (echo "Missing ${table} -> ${event_type}" && exit 1)
     declare -a fields=(
-      ".recorded_at"
       ".amount"
       ".ledger_tx_id"
       ".obligation_id"
@@ -396,7 +395,6 @@ pg_event() {
     event=$(psql $DATABASE_URL -P format=unaligned -P tuples_only -c "select event from ${table} where event_type = '${event_type}' order by id, sequence limit 1")
     [[ "$event" != "" ]] || (echo "Missing ${table} -> ${event_type}" && exit 1)
     declare -a fields=(
-      ".recorded_at"
       ".credit_facility_id"
       ".obligation_type"
       ".amount"
