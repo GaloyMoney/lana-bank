@@ -8,10 +8,10 @@ use crate::primitives::*;
 
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
-#[es_event(id = "ObligationId")]
+#[es_event(id = "LiquidationObligationId")]
 pub enum LiquidationObligationEvent {
     Initialized {
-        id: ObligationId,
+        id: LiquidationObligationId,
         parent_obligation_id: ObligationId,
         credit_facility_id: CreditFacilityId,
         audit_info: AuditInfo,
@@ -21,7 +21,7 @@ pub enum LiquidationObligationEvent {
 #[derive(EsEntity, Builder)]
 #[builder(pattern = "owned", build_fn(error = "EsEntityError"))]
 pub struct LiquidationObligation {
-    pub id: ObligationId,
+    pub id: LiquidationObligationId,
     pub parent_obligation_id: ObligationId,
     pub credit_facility_id: CreditFacilityId,
     events: EntityEvents<LiquidationObligationEvent>,
@@ -54,7 +54,7 @@ impl TryFromEvents<LiquidationObligationEvent> for LiquidationObligation {
 #[derive(Debug, Builder)]
 pub struct NewLiquidationObligation {
     #[builder(setter(into))]
-    pub(crate) id: ObligationId,
+    pub(crate) id: LiquidationObligationId,
     #[builder(setter(into))]
     pub(crate) parent_obligation_id: ObligationId,
     #[builder(setter(into))]
