@@ -20,12 +20,21 @@ pub const ROLE_NAME_BANK_MANAGER: &str = "bank-manager";
 
 #[derive(Clone, PartialEq, Eq, Copy, async_graphql::Enum)]
 pub enum PermissionSetName {
+    AccessViewer,
+    AccessWriter,
     AccountingViewer,
     AccountingWriter,
+    AppViewer,
+    AppWriter,
+    CreditViewer,
+    CreditWriter,
     CustomerViewer,
     CustomerWriter,
+    DashboardViewer,
     DepositViewer,
     DepositWriter,
+    GovernanceViewer,
+    GovernanceWriter,
 }
 
 impl std::str::FromStr for PermissionSetName {
@@ -34,12 +43,28 @@ impl std::str::FromStr for PermissionSetName {
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         use PermissionSetName::*;
         match s {
+            core_access::PERMISSION_SET_ACCESS_VIEWER => Ok(AccessViewer),
+            core_access::PERMISSION_SET_ACCESS_WRITER => Ok(AccessWriter),
+
             core_accounting::PERMISSION_SET_ACCOUNTING_VIEWER => Ok(AccountingViewer),
             core_accounting::PERMISSION_SET_ACCOUNTING_WRITER => Ok(AccountingWriter),
+
+            crate::action::PERMISSION_SET_APP_VIEWER => Ok(AppViewer),
+            crate::action::PERMISSION_SET_APP_WRITER => Ok(AppWriter),
+
+            core_credit::PERMISSION_SET_CREDIT_VIEWER => Ok(CreditViewer),
+            core_credit::PERMISSION_SET_CREDIT_WRITER => Ok(CreditWriter),
+
             core_customer::PERMISSION_SET_CUSTOMER_VIEWER => Ok(CustomerViewer),
             core_customer::PERMISSION_SET_CUSTOMER_WRITER => Ok(CustomerWriter),
+
+            dashboard::PERMISSION_SET_DASHBOARD_VIEWER => Ok(DashboardViewer),
+
             core_deposit::PERMISSION_SET_DEPOSIT_VIEWER => Ok(DepositViewer),
             core_deposit::PERMISSION_SET_DEPOSIT_WRITER => Ok(DepositWriter),
+
+            governance::PERMISSION_SET_GOVERNANCE_VIEWER => Ok(GovernanceViewer),
+            governance::PERMISSION_SET_GOVERNANCE_WRITER => Ok(GovernanceWriter),
             _ => Err(strum::ParseError::VariantNotFound),
         }
     }

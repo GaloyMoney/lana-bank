@@ -10,7 +10,7 @@ use core_deposit::CoreDepositAction;
 use dashboard::DashboardModuleAction;
 use governance::GovernanceAction;
 
-pub const PERMISSION_SET_APP_READER: &str = "app_reader";
+pub const PERMISSION_SET_APP_VIEWER: &str = "app_viewer";
 pub const PERMISSION_SET_APP_WRITER: &str = "app_writer";
 
 #[derive(Clone, Copy, Debug, PartialEq, strum::EnumDiscriminants)]
@@ -240,12 +240,12 @@ impl TermsTemplateAction {
 
         for variant in <Self as strum::VariantArray>::VARIANTS {
             let action_description = match variant {
-                Read => ActionDescription::new(variant, &[PERMISSION_SET_APP_READER]),
+                Read => ActionDescription::new(variant, &[PERMISSION_SET_APP_VIEWER]),
                 Update => ActionDescription::new(variant, &[PERMISSION_SET_APP_WRITER]),
                 Create => ActionDescription::new(variant, &[PERMISSION_SET_APP_WRITER]),
                 List => ActionDescription::new(
                     variant,
-                    &[PERMISSION_SET_APP_WRITER, PERMISSION_SET_APP_READER],
+                    &[PERMISSION_SET_APP_WRITER, PERMISSION_SET_APP_VIEWER],
                 ),
             };
             res.push(action_description);
@@ -271,7 +271,7 @@ impl AuditAction {
             let action_description = match variant {
                 Self::List => ActionDescription::new(
                     variant,
-                    &[PERMISSION_SET_APP_READER, PERMISSION_SET_APP_WRITER],
+                    &[PERMISSION_SET_APP_VIEWER, PERMISSION_SET_APP_WRITER],
                 ),
             };
             res.push(action_description);
@@ -303,15 +303,15 @@ impl DocumentAction {
                 Self::Create => ActionDescription::new(variant, &[PERMISSION_SET_APP_WRITER]),
                 Self::Read => ActionDescription::new(
                     variant,
-                    &[PERMISSION_SET_APP_READER, PERMISSION_SET_APP_WRITER],
+                    &[PERMISSION_SET_APP_VIEWER, PERMISSION_SET_APP_WRITER],
                 ),
                 Self::List => ActionDescription::new(
                     variant,
-                    &[PERMISSION_SET_APP_READER, PERMISSION_SET_APP_WRITER],
+                    &[PERMISSION_SET_APP_VIEWER, PERMISSION_SET_APP_WRITER],
                 ),
                 Self::GenerateDownloadLink => ActionDescription::new(
                     variant,
-                    &[PERMISSION_SET_APP_READER, PERMISSION_SET_APP_WRITER],
+                    &[PERMISSION_SET_APP_VIEWER, PERMISSION_SET_APP_WRITER],
                 ),
                 Self::Delete => ActionDescription::new(variant, &[PERMISSION_SET_APP_WRITER]),
                 Self::Archive => ActionDescription::new(variant, &[PERMISSION_SET_APP_WRITER]),
@@ -343,11 +343,11 @@ impl ReportAction {
             let action_description = match variant {
                 Self::Read => ActionDescription::new(
                     variant,
-                    &[PERMISSION_SET_APP_READER, PERMISSION_SET_APP_WRITER],
+                    &[PERMISSION_SET_APP_VIEWER, PERMISSION_SET_APP_WRITER],
                 ),
                 Self::List => ActionDescription::new(
                     variant,
-                    &[PERMISSION_SET_APP_READER, PERMISSION_SET_APP_WRITER],
+                    &[PERMISSION_SET_APP_VIEWER, PERMISSION_SET_APP_WRITER],
                 ),
                 Self::Create => ActionDescription::new(variant, &[PERMISSION_SET_APP_WRITER]),
                 Self::Upload => ActionDescription::new(variant, &[PERMISSION_SET_APP_WRITER]),

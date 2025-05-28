@@ -16,8 +16,8 @@ es_entity::entity_id! { AuthenticationId, PermissionSetId, RoleId }
 
 pub const ROLE_NAME_SUPERUSER: &str = "superuser";
 
-pub const ACCESS_WRITER: &str = "access_writer";
-pub const ACCESS_READER: &str = "access_reader";
+pub const PERMISSION_SET_ACCESS_WRITER: &str = "access_writer";
+pub const PERMISSION_SET_ACCESS_VIEWER: &str = "access_viewer";
 
 /// Type representing a role identifier for an underlying authorization subsystem.
 /// Any type that is convertible to `AuthRoleToken` can be used as such role.
@@ -170,10 +170,16 @@ impl RoleAction {
 
         for variant in <Self as strum::VariantArray>::VARIANTS {
             let action_description = match variant {
-                Self::Create => ActionDescription::new(variant, &[ACCESS_WRITER]),
-                Self::Update => ActionDescription::new(variant, &[ACCESS_WRITER]),
-                Self::Read => ActionDescription::new(variant, &[ACCESS_READER, ACCESS_WRITER]),
-                Self::List => ActionDescription::new(variant, &[ACCESS_READER, ACCESS_WRITER]),
+                Self::Create => ActionDescription::new(variant, &[PERMISSION_SET_ACCESS_WRITER]),
+                Self::Update => ActionDescription::new(variant, &[PERMISSION_SET_ACCESS_WRITER]),
+                Self::Read => ActionDescription::new(
+                    variant,
+                    &[PERMISSION_SET_ACCESS_VIEWER, PERMISSION_SET_ACCESS_WRITER],
+                ),
+                Self::List => ActionDescription::new(
+                    variant,
+                    &[PERMISSION_SET_ACCESS_VIEWER, PERMISSION_SET_ACCESS_WRITER],
+                ),
             };
             res.push(action_description);
         }
@@ -194,7 +200,10 @@ impl PermissionSetAction {
 
         for variant in <Self as strum::VariantArray>::VARIANTS {
             let action_description = match variant {
-                Self::List => ActionDescription::new(variant, &[ACCESS_READER, ACCESS_WRITER]),
+                Self::List => ActionDescription::new(
+                    variant,
+                    &[PERMISSION_SET_ACCESS_VIEWER, PERMISSION_SET_ACCESS_WRITER],
+                ),
             };
             res.push(action_description);
         }
@@ -221,13 +230,25 @@ impl UserAction {
 
         for variant in <Self as strum::VariantArray>::VARIANTS {
             let action_description = match variant {
-                Self::Create => ActionDescription::new(variant, &[ACCESS_WRITER]),
-                Self::Read => ActionDescription::new(variant, &[ACCESS_READER, ACCESS_WRITER]),
-                Self::List => ActionDescription::new(variant, &[ACCESS_READER, ACCESS_WRITER]),
-                Self::Update => ActionDescription::new(variant, &[ACCESS_WRITER]),
-                Self::AssignRole => ActionDescription::new(variant, &[ACCESS_WRITER]),
-                Self::RevokeRole => ActionDescription::new(variant, &[ACCESS_WRITER]),
-                Self::UpdateAuthenticationId => ActionDescription::new(variant, &[ACCESS_WRITER]),
+                Self::Create => ActionDescription::new(variant, &[PERMISSION_SET_ACCESS_WRITER]),
+                Self::Read => ActionDescription::new(
+                    variant,
+                    &[PERMISSION_SET_ACCESS_VIEWER, PERMISSION_SET_ACCESS_WRITER],
+                ),
+                Self::List => ActionDescription::new(
+                    variant,
+                    &[PERMISSION_SET_ACCESS_VIEWER, PERMISSION_SET_ACCESS_WRITER],
+                ),
+                Self::Update => ActionDescription::new(variant, &[PERMISSION_SET_ACCESS_WRITER]),
+                Self::AssignRole => {
+                    ActionDescription::new(variant, &[PERMISSION_SET_ACCESS_WRITER])
+                }
+                Self::RevokeRole => {
+                    ActionDescription::new(variant, &[PERMISSION_SET_ACCESS_WRITER])
+                }
+                Self::UpdateAuthenticationId => {
+                    ActionDescription::new(variant, &[PERMISSION_SET_ACCESS_WRITER])
+                }
             };
             res.push(action_description);
         }

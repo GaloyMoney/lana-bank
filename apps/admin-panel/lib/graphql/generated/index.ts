@@ -1516,8 +1516,21 @@ export type PermissionSetEdge = {
 };
 
 export enum PermissionSetName {
+  AccessViewer = 'ACCESS_VIEWER',
+  AccessWriter = 'ACCESS_WRITER',
+  AccountingViewer = 'ACCOUNTING_VIEWER',
+  AccountingWriter = 'ACCOUNTING_WRITER',
+  AppViewer = 'APP_VIEWER',
+  AppWriter = 'APP_WRITER',
+  CreditViewer = 'CREDIT_VIEWER',
+  CreditWriter = 'CREDIT_WRITER',
   CustomerViewer = 'CUSTOMER_VIEWER',
-  CustomerWriter = 'CUSTOMER_WRITER'
+  CustomerWriter = 'CUSTOMER_WRITER',
+  DashboardViewer = 'DASHBOARD_VIEWER',
+  DepositViewer = 'DEPOSIT_VIEWER',
+  DepositWriter = 'DEPOSIT_WRITER',
+  GovernanceViewer = 'GOVERNANCE_VIEWER',
+  GovernanceWriter = 'GOVERNANCE_WRITER'
 }
 
 export type Policy = {

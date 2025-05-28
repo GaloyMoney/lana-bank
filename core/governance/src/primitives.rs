@@ -153,14 +153,14 @@ impl CommitteeAction {
                 Self::Read => ActionDescription::new(
                     variant,
                     &[
-                        PERMISSION_SET_GOVERNANCE_READER,
+                        PERMISSION_SET_GOVERNANCE_VIEWER,
                         PERMISSION_SET_GOVERNANCE_WRITER,
                     ],
                 ),
                 Self::List => ActionDescription::new(
                     variant,
                     &[
-                        PERMISSION_SET_GOVERNANCE_READER,
+                        PERMISSION_SET_GOVERNANCE_VIEWER,
                         PERMISSION_SET_GOVERNANCE_WRITER,
                     ],
                 ),
@@ -193,14 +193,14 @@ impl PolicyAction {
                 Self::Read => ActionDescription::new(
                     variant,
                     &[
-                        PERMISSION_SET_GOVERNANCE_READER,
+                        PERMISSION_SET_GOVERNANCE_VIEWER,
                         PERMISSION_SET_GOVERNANCE_WRITER,
                     ],
                 ),
                 Self::List => ActionDescription::new(
                     variant,
                     &[
-                        PERMISSION_SET_GOVERNANCE_READER,
+                        PERMISSION_SET_GOVERNANCE_VIEWER,
                         PERMISSION_SET_GOVERNANCE_WRITER,
                     ],
                 ),
@@ -238,14 +238,14 @@ impl ApprovalProcessAction {
                 Self::Read => ActionDescription::new(
                     variant,
                     &[
-                        PERMISSION_SET_GOVERNANCE_READER,
+                        PERMISSION_SET_GOVERNANCE_VIEWER,
                         PERMISSION_SET_GOVERNANCE_WRITER,
                     ],
                 ),
                 Self::List => ActionDescription::new(
                     variant,
                     &[
-                        PERMISSION_SET_GOVERNANCE_READER,
+                        PERMISSION_SET_GOVERNANCE_VIEWER,
                         PERMISSION_SET_GOVERNANCE_WRITER,
                     ],
                 ),
@@ -269,7 +269,7 @@ pub type PolicyAllOrOne = AllOrOne<PolicyId>;
 pub type ApprovalProcessAllOrOne = AllOrOne<ApprovalProcessId>;
 
 pub const PERMISSION_SET_GOVERNANCE_WRITER: &str = "governance_writer";
-pub const PERMISSION_SET_GOVERNANCE_READER: &str = "governance_reader";
+pub const PERMISSION_SET_GOVERNANCE_VIEWER: &str = "governance_viewer";
 
 #[derive(Clone, Copy, Debug, PartialEq, strum::EnumDiscriminants)]
 #[strum_discriminants(derive(strum::Display, strum::EnumString))]
