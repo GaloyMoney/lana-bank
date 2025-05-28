@@ -25,35 +25,35 @@ checksums:
     PermissionsDisplay/noRoleSelected: bb1bba152afe692413e833b64f2cb9d9
     PermissionsDisplay/noPermissions: 53beaa15a0f44fff1d0fb8285071dce0
     Permissions/access_reader/label: afadbba06b25708a8faf2481eafeb412
-    Permissions/access_reader/description: 68b8cd34dfcc5f504ccb308687e2075f
+    Permissions/access_reader/description: e47f0f1513dd3c253c5d1f0ed10c2e58
     Permissions/access_writer/label: 50002148f4abc6222b4576ec70343893
-    Permissions/access_writer/description: c30ce6571ce626d4f0abcd3c4e14ba34
+    Permissions/access_writer/description: 036dc46cf529e2f9e567ec3609c2a3d5
     Permissions/accounting_viewer/label: f37692937ca9cef086d57f9a8e14ad57
-    Permissions/accounting_viewer/description: b4b01694efda252ee1f6b172289581cd
+    Permissions/accounting_viewer/description: a460d09933292a19ceddb578ed0eea81
     Permissions/accounting_writer/label: 3d8def43666d10ff58c6de5e275d5f6f
-    Permissions/accounting_writer/description: 7053825bf301ba17f31f9ed6d719e613
+    Permissions/accounting_writer/description: c1c4979bc08582bfe879bfec7bd3c2f6
     Permissions/app_reader/label: 3355a7100396abebceceb4a999de2287
-    Permissions/app_reader/description: bdb487c85b7a3cd9d7b8d528c6149135
+    Permissions/app_reader/description: 0accfdb45981eaeebef0a6102c5a3fde
     Permissions/app_writer/label: 4642c9936756fc1dfd9651283238da90
-    Permissions/app_writer/description: c0760e5be393563dcf59bb43c41cd7f7
+    Permissions/app_writer/description: 519e8441e98639b7a386edf19b51ebed
     Permissions/credit_viewer/label: ddd981efff42fb3ae35dbc7512badf65
-    Permissions/credit_viewer/description: 8806289dad45bad079cc88fb09c5d9ec
+    Permissions/credit_viewer/description: 5691969095c092d6b600fcb3fbf84bde
     Permissions/credit_writer/label: 1c68d14fb5d28661dc717870fa30bee5
-    Permissions/credit_writer/description: 989ab7b2a7ec6cbf8d464db43ecfb4f7
+    Permissions/credit_writer/description: 647246b89757ec4c25a52d2134517e20
     Permissions/customer_viewer/label: a3986b9b6f7ada50c15a9adc3d4ce3cd
-    Permissions/customer_viewer/description: 01bce5d306c8777b6aca68a4814dfd9b
+    Permissions/customer_viewer/description: ac885a0f1d44587bd74fb5f88a7c6e58
     Permissions/customer_writer/label: d41b20500be7fe531db287fdbafe5901
-    Permissions/customer_writer/description: 561f939df48bd74114f874d1b118c36b
+    Permissions/customer_writer/description: 39684e1390514655769b4ee0e81a669d
     Permissions/dashboard_reader/label: ced5277f9c8bdb7ccd1e213bdafa976f
-    Permissions/dashboard_reader/description: 1384547cb454bf2fb419e2fb535dfc61
+    Permissions/dashboard_reader/description: 579765caf2ca1c6aabdfd542de50b97e
     Permissions/deposit_viewer/label: 7edc79faf15df925a7fbe13231e598e9
-    Permissions/deposit_viewer/description: d556743c1475e9ba9d6a68d6e27fdaf5
+    Permissions/deposit_viewer/description: af3cd7f77aeff3e0d88425517fad9118
     Permissions/deposit_writer/label: e89408ad1a70a43b45be53c514ebb4d0
-    Permissions/deposit_writer/description: ae58fa9a69d49897dba6a498a1a88e17
+    Permissions/deposit_writer/description: e9b4b5687d534893818d107ed990ead8
     Permissions/governance_reader/label: e068da0745677ab28605e386dd60944d
-    Permissions/governance_reader/description: bb505d1825d4b78bd8f2ba27fe49d043
+    Permissions/governance_reader/description: 84a7ff7991222611fe8a7d55bd61aacc
     Permissions/governance_writer/label: b9dd0624ee128d1ece7da289d0c28eb5
-    Permissions/governance_writer/description: 0fe3b7776c0faaea7bb91c7ede4ca32a
+    Permissions/governance_writer/description: 56c0335d078338288795e0cd66062197
     interestInterval/endOfDay: 24234805a9fd10dfe74eaeafec362699
     interestInterval/endOfMonth: df268ce61af23ae591e0a727f34ad13f
     period/days: 47648cd60fc313bc3f05b70357a1d675
