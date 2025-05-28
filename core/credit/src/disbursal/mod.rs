@@ -45,8 +45,9 @@ where
 }
 
 pub(super) enum ApprovalProcessOutcome {
-    Ignored,
-    Approved(Option<Obligation>),
+    Ignored(Disbursal),
+    Approved((Disbursal, Obligation)),
+    Denied(Disbursal),
 }
 
 impl<Perms, E> Disbursals<Perms, E>
@@ -180,7 +181,7 @@ where
         disbursal_id: DisbursalId,
         approved: bool,
         tx_id: LedgerTxId,
-    ) -> Result<(Disbursal, ApprovalProcessOutcome), DisbursalError> {
+    ) -> Result<ApprovalProcessOutcome, DisbursalError> {
         let audit_info = self
             .authz
             .audit()
@@ -194,25 +195,22 @@ where
 
         let mut disbursal = self.repo.find_by_id(disbursal_id).await?;
 
-        let outcome = if let es_entity::Idempotent::Executed(data) =
-            disbursal.approval_process_concluded(tx_id, approved, audit_info)
-        {
-            if let Some(new_obligation) = data {
+        let ret = match disbursal.approval_process_concluded(tx_id, approved, audit_info) {
+            es_entity::Idempotent::Ignored => ApprovalProcessOutcome::Ignored(disbursal),
+            es_entity::Idempotent::Executed(Some(new_obligation)) => {
                 let obligation = self
                     .obligations
                     .create_with_jobs_in_op(db, new_obligation)
                     .await?;
-                ApprovalProcessOutcome::Approved(Some(obligation))
-            } else {
-                ApprovalProcessOutcome::Approved(None)
+                self.repo.update_in_op(db, &mut disbursal).await?;
+                ApprovalProcessOutcome::Approved((disbursal, obligation))
             }
-        } else {
-            ApprovalProcessOutcome::Ignored
+            es_entity::Idempotent::Executed(None) => {
+                self.repo.update_in_op(db, &mut disbursal).await?;
+                ApprovalProcessOutcome::Denied(disbursal)
+            }
         };
-
-        self.repo.update_in_op(db, &mut disbursal).await?;
-
-        Ok((disbursal, outcome))
+        Ok(ret)
     }
 
     #[instrument(name = "core_credit.disbursals.list", skip(self), err)]

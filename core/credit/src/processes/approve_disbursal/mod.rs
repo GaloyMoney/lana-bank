@@ -111,44 +111,48 @@ where
         let mut db = self.disbursals.begin_op().await?;
 
         let tx_id = LedgerTxId::new();
-        let (disbursal, outcome) = self
+        let disbursal = match self
             .disbursals
             .conclude_approval_process_in_op(&mut db, id.into(), approved, tx_id)
-            .await?;
-
-        let credit_facility = self
-            .credit_facility_repo
-            .find_by_id_in_tx(db.tx(), disbursal.facility_id)
-            .await?;
-
-        match outcome {
-            crate::ApprovalProcessOutcome::Ignored => {
+            .await?
+        {
+            crate::ApprovalProcessOutcome::Ignored(disbursal) => {
                 tracing::Span::current().record("already_applied", true);
-                return Ok(disbursal);
+                disbursal
             }
-
-            crate::ApprovalProcessOutcome::Approved(obligation) => {
+            crate::ApprovalProcessOutcome::Approved((disbursal, obligation)) => {
                 tracing::Span::current().record("already_applied", false);
-                if let Some(obligation) = obligation {
-                    self.ledger
-                        .settle_disbursal(
-                            db,
-                            obligation,
-                            credit_facility.account_ids.facility_account_id,
-                        )
-                        .await?;
-                } else {
-                    self.ledger
-                        .cancel_disbursal(
-                            db,
-                            tx_id,
-                            disbursal.amount,
-                            credit_facility.account_ids.facility_account_id,
-                        )
-                        .await?;
-                }
+
+                let credit_facility = self
+                    .credit_facility_repo
+                    .find_by_id_in_tx(db.tx(), disbursal.facility_id)
+                    .await?;
+                self.ledger
+                    .settle_disbursal(
+                        db,
+                        obligation,
+                        credit_facility.account_ids.facility_account_id,
+                    )
+                    .await?;
+                disbursal
             }
-        }
+            crate::ApprovalProcessOutcome::Denied(disbursal) => {
+                tracing::Span::current().record("already_applied", false);
+                let credit_facility = self
+                    .credit_facility_repo
+                    .find_by_id_in_tx(db.tx(), disbursal.facility_id)
+                    .await?;
+                self.ledger
+                    .cancel_disbursal(
+                        db,
+                        tx_id,
+                        disbursal.amount,
+                        credit_facility.account_ids.facility_account_id,
+                    )
+                    .await?;
+                disbursal
+            }
+        };
 
         Ok(disbursal)
     }
