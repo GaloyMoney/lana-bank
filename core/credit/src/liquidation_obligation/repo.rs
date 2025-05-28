@@ -3,18 +3,13 @@ use sqlx::PgPool;
 use es_entity::*;
 use outbox::OutboxEventMarker;
 
-use crate::{
-    event::CoreCreditEvent,
-    primitives::{CreditFacilityId, ObligationId},
-    publisher::CreditFacilityPublisher,
-};
+use crate::{event::CoreCreditEvent, primitives::*, publisher::CreditFacilityPublisher};
 
 use super::{entity::*, error::*};
 
 #[derive(EsRepo)]
 #[es_repo(
     entity = "LiquidationObligation",
-    id = "ObligationId",
     err = "LiquidationObligationError",
     columns(
         parent_obligation_id(ty = "ObligationId", list_for, update(persist = false)),
