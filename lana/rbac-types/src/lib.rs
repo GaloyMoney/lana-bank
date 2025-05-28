@@ -18,6 +18,25 @@ pub const ROLE_NAME_ACCOUNTANT: &str = "accountant";
 pub const ROLE_NAME_ADMIN: &str = "admin";
 pub const ROLE_NAME_BANK_MANAGER: &str = "bank-manager";
 
+#[derive(Clone, PartialEq, Eq, Copy, async_graphql::Enum)]
+pub enum PermissionSetName {
+    CustomerWriter,
+    CustomerViewer,
+}
+
+impl std::str::FromStr for PermissionSetName {
+    type Err = strum::ParseError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        use PermissionSetName::*;
+        match s {
+            core_customer::PERMISSION_SET_CUSTOMER_WRITER => Ok(CustomerWriter),
+            core_customer::PERMISSION_SET_CUSTOMER_VIEWER => Ok(CustomerViewer),
+            _ => Err(strum::ParseError::VariantNotFound),
+        }
+    }
+}
+
 #[derive(Clone, Copy, Debug, strum::EnumDiscriminants, Serialize, Deserialize)]
 #[strum_discriminants(derive(strum::AsRefStr, strum::EnumString))]
 #[strum_discriminants(strum(serialize_all = "kebab-case"))]

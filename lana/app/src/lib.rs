@@ -29,6 +29,9 @@ pub mod user_onboarding {
         user_onboarding::UserOnboarding<crate::audit::Audit, lana_events::LanaEvent>;
 }
 
+pub mod rbac {
+    pub use rbac_types::PermissionSetName;
+}
 pub mod access {
     pub use core_access::{config, error, permission_set, role, user, Role, RoleId, UserId};
     pub type Access = core_access::CoreAccess<crate::audit::Audit, lana_events::LanaEvent>;

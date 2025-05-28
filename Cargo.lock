@@ -3514,6 +3514,7 @@ name = "rbac-types"
 version = "0.3.568-dev"
 dependencies = [
  "anyhow",
+ "async-graphql",
  "audit",
  "authz",
  "core-access",

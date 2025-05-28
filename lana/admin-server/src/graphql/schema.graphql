@@ -1300,7 +1300,7 @@ enum Period {
 type PermissionSet {
 	id: ID!
 	permissionSetId: UUID!
-	name: String!
+	name: PermissionSetName!
 }
 
 type PermissionSetConnection {
@@ -1330,6 +1330,11 @@ type PermissionSetEdge {
 	A cursor for use in pagination
 	"""
 	cursor: String!
+}
+
+enum PermissionSetName {
+	CUSTOMER_WRITER
+	CUSTOMER_VIEWER
 }
 
 type Policy {
