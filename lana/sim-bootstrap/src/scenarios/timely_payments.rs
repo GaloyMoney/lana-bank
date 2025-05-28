@@ -75,6 +75,7 @@ pub async fn timely_payments_scenario(sub: Subject, app: &LanaApp) -> anyhow::Re
 
     let cf = app
         .credit()
+        .credit_facilities()
         .find_by_id(&sub, cf.id)
         .await?
         .expect("cf exists");

@@ -9,8 +9,7 @@ use job::*;
 use outbox::{EventSequence, Outbox, OutboxEventMarker};
 
 use crate::{
-    credit_facility::CreditFacilityRepo, error::CoreCreditError, event::CoreCreditEvent,
-    ledger::CreditLedger, primitives::*,
+    credit_facility::CreditFacilities, event::CoreCreditEvent, ledger::CreditLedger, primitives::*,
 };
 
 #[derive(Serialize, Deserialize)]
@@ -36,7 +35,7 @@ where
     E: OutboxEventMarker<CoreCreditEvent>,
 {
     outbox: Outbox<E>,
-    repo: CreditFacilityRepo<E>,
+    credit_facilities: CreditFacilities<Perms, E>,
     ledger: CreditLedger,
     price: Price,
     audit: Perms::Audit,
@@ -51,14 +50,14 @@ where
 {
     pub fn new(
         outbox: &Outbox<E>,
-        repo: &CreditFacilityRepo<E>,
+        credit_facilities: &CreditFacilities<Perms, E>,
         ledger: &CreditLedger,
         price: &Price,
         audit: &Perms::Audit,
     ) -> Self {
         Self {
             outbox: outbox.clone(),
-            repo: repo.clone(),
+            credit_facilities: credit_facilities.clone(),
             ledger: ledger.clone(),
             price: price.clone(),
             audit: audit.clone(),
@@ -89,7 +88,7 @@ where
         > {
             config: job.config()?,
             outbox: self.outbox.clone(),
-            repo: self.repo.clone(),
+            credit_facilities: self.credit_facilities.clone(),
             ledger: self.ledger.clone(),
             price: self.price.clone(),
             audit: self.audit.clone(),
@@ -111,58 +110,10 @@ where
 {
     config: CreditFacilityCollateralizationFromEventsJobConfig<Perms, E>,
     outbox: Outbox<E>,
-    repo: CreditFacilityRepo<E>,
+    credit_facilities: CreditFacilities<Perms, E>,
     ledger: CreditLedger,
     price: Price,
     audit: Perms::Audit,
-}
-
-impl<Perms, E> CreditFacilityCollateralizationFromEventsRunner<Perms, E>
-where
-    Perms: PermissionCheck,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>,
-    E: OutboxEventMarker<CoreCreditEvent>,
-{
-    #[es_entity::retry_on_concurrent_modification(any_error = true)]
-    async fn execute(&self, id: CreditFacilityId) -> Result<(), CoreCreditError> {
-        let mut credit_facility = self.repo.find_by_id(id).await?;
-
-        let mut db = self.repo.begin_op().await?;
-
-        let audit_info = self
-            .audit
-            .record_system_entry_in_tx(
-                db.tx(),
-                CoreCreditObject::all_credit_facilities(),
-                CoreCreditAction::CREDIT_FACILITY_UPDATE_COLLATERALIZATION_STATE,
-            )
-            .await?;
-
-        let balances = self
-            .ledger
-            .get_credit_facility_balance(credit_facility.account_ids)
-            .await?;
-
-        let price = self.price.usd_cents_per_btc().await?;
-        if credit_facility
-            .update_collateralization(
-                price,
-                self.config.upgrade_buffer_cvl_pct,
-                balances,
-                &audit_info,
-            )
-            .did_execute()
-        {
-            self.repo
-                .update_in_op(&mut db, &mut credit_facility)
-                .await?;
-
-            db.commit().await?;
-        }
-
-        Ok(())
-    }
 }
 
 #[async_trait::async_trait]
@@ -196,7 +147,12 @@ where
                     credit_facility_id: id,
                     ..
                 }) => {
-                    self.execute(*id).await?;
+                    self.credit_facilities
+                        .update_collateralization_from_events(
+                            *id,
+                            self.config.upgrade_buffer_cvl_pct,
+                        )
+                        .await?;
                     state.sequence = message.sequence;
                     current_job.update_execution_state(state).await?;
                 }

@@ -13,7 +13,7 @@ use governance::{
 use outbox::OutboxEventMarker;
 
 use crate::{
-    credit_facility::CreditFacilityRepo, ledger::CreditLedger, primitives::DisbursalId,
+    credit_facility::CreditFacilities, ledger::CreditLedger, primitives::DisbursalId,
     CoreCreditAction, CoreCreditError, CoreCreditEvent, CoreCreditObject, Disbursal, Disbursals,
     LedgerTxId,
 };
@@ -27,7 +27,7 @@ where
     E: OutboxEventMarker<GovernanceEvent> + OutboxEventMarker<CoreCreditEvent>,
 {
     disbursals: Disbursals<Perms, E>,
-    credit_facility_repo: CreditFacilityRepo<E>,
+    credit_facilities: CreditFacilities<Perms, E>,
     jobs: Jobs,
     governance: Governance<Perms, E>,
     ledger: CreditLedger,
@@ -41,7 +41,7 @@ where
     fn clone(&self) -> Self {
         Self {
             disbursals: self.disbursals.clone(),
-            credit_facility_repo: self.credit_facility_repo.clone(),
+            credit_facilities: self.credit_facilities.clone(),
             jobs: self.jobs.clone(),
             governance: self.governance.clone(),
             ledger: self.ledger.clone(),
@@ -60,14 +60,14 @@ where
 {
     pub fn new(
         disbursals: &Disbursals<Perms, E>,
-        credit_facility_repo: &CreditFacilityRepo<E>,
+        credit_facilities: &CreditFacilities<Perms, E>,
         jobs: &Jobs,
         governance: &Governance<Perms, E>,
         ledger: &CreditLedger,
     ) -> Self {
         Self {
             disbursals: disbursals.clone(),
-            credit_facility_repo: credit_facility_repo.clone(),
+            credit_facilities: credit_facilities.clone(),
             jobs: jobs.clone(),
             governance: governance.clone(),
             ledger: ledger.clone(),
@@ -124,8 +124,8 @@ where
                 tracing::Span::current().record("already_applied", false);
 
                 let credit_facility = self
-                    .credit_facility_repo
-                    .find_by_id_in_tx(db.tx(), disbursal.facility_id)
+                    .credit_facilities
+                    .find_by_id_without_audit(disbursal.facility_id) // changed for now
                     .await?;
                 self.ledger
                     .settle_disbursal(
@@ -139,8 +139,8 @@ where
             crate::ApprovalProcessOutcome::Denied(disbursal) => {
                 tracing::Span::current().record("already_applied", false);
                 let credit_facility = self
-                    .credit_facility_repo
-                    .find_by_id_in_tx(db.tx(), disbursal.facility_id)
+                    .credit_facilities
+                    .find_by_id_without_audit(disbursal.facility_id) // changed for now
                     .await?;
                 self.ledger
                     .cancel_disbursal(

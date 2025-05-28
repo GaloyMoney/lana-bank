@@ -46,6 +46,14 @@ pub enum CreditFacilityError {
         "CreditFacilityError - DisbursalAmountTooLarge: amount '{0}' is larger than facility balance '{1}'"
     )]
     DisbursalAmountTooLarge(UsdCents, UsdCents),
+    #[error("CreditFacilityError - AuthorizationError: {0}")]
+    AuthorizationError(#[from] authz::error::AuthorizationError),
+    #[error("CreditFacilityError - AuditError: {0}")]
+    AuditError(#[from] audit::error::AuditError),
+    #[error("CreditFacilityError - LedgerError: {0}")]
+    LedgerError(#[from] crate::ledger::error::CreditLedgerError),
+    #[error("CreditFacilityError - PriceError: {0}")]
+    PriceError(#[from] core_price::error::PriceError),
 }
 
 es_entity::from_es_entity_error!(CreditFacilityError);

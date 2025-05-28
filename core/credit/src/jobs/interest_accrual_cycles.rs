@@ -9,7 +9,7 @@ use job::*;
 use outbox::OutboxEventMarker;
 
 use crate::{
-    credit_facility::CreditFacilityRepo,
+    credit_facility::CreditFacilities,
     interest_accruals,
     ledger::*,
     obligation::{Obligation, Obligations},
@@ -39,7 +39,7 @@ where
 {
     ledger: CreditLedger,
     obligations: Obligations<Perms, E>,
-    credit_facility_repo: CreditFacilityRepo<E>,
+    credit_facilities: CreditFacilities<Perms, E>,
     jobs: Jobs,
     audit: Perms::Audit,
 }
@@ -54,14 +54,14 @@ where
     pub fn new(
         ledger: &CreditLedger,
         obligations: &Obligations<Perms, E>,
-        credit_facility_repo: &CreditFacilityRepo<E>,
+        credit_facilities: &CreditFacilities<Perms, E>,
         jobs: &Jobs,
         audit: &Perms::Audit,
     ) -> Self {
         Self {
             ledger: ledger.clone(),
             obligations: obligations.clone(),
-            credit_facility_repo: credit_facility_repo.clone(),
+            credit_facilities: credit_facilities.clone(),
             jobs: jobs.clone(),
             audit: audit.clone(),
         }
@@ -88,7 +88,7 @@ where
         Ok(Box::new(CreditFacilityProcessingJobRunner::<Perms, E> {
             config: job.config()?,
             obligations: self.obligations.clone(),
-            credit_facility_repo: self.credit_facility_repo.clone(),
+            credit_facilities: self.credit_facilities.clone(),
             ledger: self.ledger.clone(),
             jobs: self.jobs.clone(),
             audit: self.audit.clone(),
@@ -103,7 +103,7 @@ where
 {
     config: CreditFacilityJobConfig<Perms, E>,
     obligations: Obligations<Perms, E>,
-    credit_facility_repo: CreditFacilityRepo<E>,
+    credit_facilities: CreditFacilities<Perms, E>,
     ledger: CreditLedger,
     jobs: Jobs,
     audit: Perms::Audit,
@@ -123,8 +123,8 @@ where
     ) -> Result<(Obligation, Option<(InterestAccrualCycleId, DateTime<Utc>)>), CoreCreditError>
     {
         let mut credit_facility = self
-            .credit_facility_repo
-            .find_by_id(self.config.credit_facility_id)
+            .credit_facilities
+            .find_by_id_without_audit(self.config.credit_facility_id)
             .await?;
 
         let new_obligation = if let es_entity::Idempotent::Executed(new_obligation) =
@@ -141,10 +141,9 @@ where
             .await?;
 
         let res = credit_facility.start_interest_accrual_cycle(audit_info.clone())?;
-        self.credit_facility_repo
+        self.credit_facilities
             .update_in_op(db, &mut credit_facility)
             .await?;
-        let credit_facility = credit_facility;
 
         let new_cycle_data = res.map(|periods| {
             let new_accrual_cycle_id = credit_facility
@@ -189,7 +188,7 @@ where
             ));
         }
 
-        let mut db = self.credit_facility_repo.begin_op().await?;
+        let mut db = self.credit_facilities.begin_op().await?;
         let audit_info = self
             .audit
             .record_system_entry_in_tx(

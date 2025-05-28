@@ -68,7 +68,7 @@ where
         + OutboxEventMarker<CoreCustomerEvent>,
 {
     authz: Perms,
-    credit_facility_repo: CreditFacilityRepo<E>,
+    credit_facilities: CreditFacilities<Perms, E>,
     disbursals: Disbursals<Perms, E>,
     payment_repo: PaymentRepo,
     history_repo: HistoryRepo,
@@ -96,7 +96,7 @@ where
     fn clone(&self) -> Self {
         Self {
             authz: self.authz.clone(),
-            credit_facility_repo: self.credit_facility_repo.clone(),
+            credit_facilities: self.credit_facilities.clone(),
             obligations: self.obligations.clone(),
             collaterals: self.collaterals.clone(),
             disbursals: self.disbursals.clone(),
@@ -141,7 +141,8 @@ where
         journal_id: cala_ledger::JournalId,
     ) -> Result<Self, CoreCreditError> {
         let publisher = CreditFacilityPublisher::new(outbox);
-        let credit_facility_repo = CreditFacilityRepo::new(pool, &publisher);
+        let ledger = CreditLedger::init(cala, journal_id).await?;
+        let credit_facilities = CreditFacilities::new(pool, authz, &publisher, &ledger, &price);
         let obligations = Obligations::new(pool, authz, cala, jobs, &publisher);
         let disbursals = Disbursals::new(pool, authz, &publisher, &obligations, governance).await;
         let collaterals = Collaterals::new(pool, authz, &publisher);
@@ -149,19 +150,13 @@ where
         let history_repo = HistoryRepo::new(pool);
         let repayment_plan_repo = RepaymentPlanRepo::new(pool);
         let payment_allocation_repo = PaymentAllocationRepo::new(pool, &publisher);
-        let ledger = CreditLedger::init(cala, journal_id).await?;
-        let approve_disbursal = ApproveDisbursal::new(
-            &disbursals,
-            &credit_facility_repo,
-            jobs,
-            governance,
-            &ledger,
-        );
+        let approve_disbursal =
+            ApproveDisbursal::new(&disbursals, &credit_facilities, jobs, governance, &ledger);
 
         let approve_credit_facility =
-            ApproveCreditFacility::new(&credit_facility_repo, authz.audit(), governance);
+            ApproveCreditFacility::new(&credit_facilities, authz.audit(), governance);
         let activate_credit_facility = ActivateCreditFacility::new(
-            &credit_facility_repo,
+            &credit_facilities,
             &disbursals,
             &ledger,
             price,
@@ -173,7 +168,7 @@ where
             collateralization_from_price::CreditFacilityCollateralizationFromPriceJobInitializer::<
                 Perms,
                 E,
-            >::new(credit_facility_repo.clone(), &ledger, price, authz.audit()),
+            >::new(credit_facilities.clone(), &ledger, price, authz.audit()),
             collateralization_from_price::CreditFacilityCollateralizationFromPriceJobConfig {
                 job_interval: std::time::Duration::from_secs(30),
                 upgrade_buffer_cvl_pct: config.upgrade_buffer_cvl_pct,
@@ -185,7 +180,7 @@ where
             collateralization_from_events::CreditFacilityCollateralizationFromEventsInitializer::<
                 Perms,
                 E,
-            >::new(outbox, &credit_facility_repo, &ledger, price, authz.audit()),
+            >::new(outbox, &credit_facilities, &ledger, price, authz.audit()),
             collateralization_from_events::CreditFacilityCollateralizationFromEventsJobConfig {
                 upgrade_buffer_cvl_pct: config.upgrade_buffer_cvl_pct,
                 _phantom: std::marker::PhantomData,
@@ -213,13 +208,13 @@ where
             Perms,
             E,
         >::new(
-            &ledger, credit_facility_repo.clone(), authz.audit(), jobs
+            &ledger, &credit_facilities, authz.audit(), jobs
         ));
         jobs.add_initializer(
             interest_accrual_cycles::CreditFacilityProcessingJobInitializer::<Perms, E>::new(
                 &ledger,
                 &obligations,
-                &credit_facility_repo,
+                &credit_facilities,
                 jobs,
                 authz.audit(),
             ),
@@ -263,7 +258,7 @@ where
         Ok(Self {
             authz: authz.clone(),
             customer: customer.clone(),
-            credit_facility_repo,
+            credit_facilities,
             obligations,
             collaterals,
             disbursals,
@@ -291,6 +286,10 @@ where
 
     pub fn disbursals(&self) -> &Disbursals<Perms, E> {
         &self.disbursals
+    }
+
+    pub fn credit_facilities(&self) -> &CreditFacilities<Perms, E> {
+        &self.credit_facilities
     }
 
     pub async fn subject_can_create(
@@ -322,7 +321,7 @@ where
             sub,
             customer_id,
             &self.authz,
-            &self.credit_facility_repo,
+            &self.credit_facilities,
             &self.disbursals,
             &self.payment_allocation_repo,
             &self.history_repo,
@@ -372,7 +371,7 @@ where
             .build()
             .expect("could not build new credit facility");
 
-        let mut db = self.credit_facility_repo.begin_op().await?;
+        let mut db = self.credit_facilities.begin_op().await?;
         self.governance
             .start_process(&mut db, id, id.to_string(), APPROVE_CREDIT_FACILITY_PROCESS)
             .await?;
@@ -387,7 +386,7 @@ where
             .await?;
 
         let credit_facility = self
-            .credit_facility_repo
+            .credit_facilities
             .create_in_op(&mut db, new_credit_facility)
             .await?;
 
@@ -414,28 +413,6 @@ where
             .await?;
 
         Ok(credit_facility)
-    }
-
-    #[instrument(name = "credit_facility.find", skip(self), err)]
-    pub async fn find_by_id(
-        &self,
-        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        id: impl Into<CreditFacilityId> + std::fmt::Debug,
-    ) -> Result<Option<CreditFacility>, CoreCreditError> {
-        let id = id.into();
-        self.authz
-            .enforce_permission(
-                sub,
-                CoreCreditObject::credit_facility(id),
-                CoreCreditAction::CREDIT_FACILITY_READ,
-            )
-            .await?;
-
-        match self.credit_facility_repo.find_by_id(id).await {
-            Ok(credit_facility) => Ok(Some(credit_facility)),
-            Err(e) if e.was_not_found() => Ok(None),
-            Err(e) => Err(e.into()),
-        }
     }
 
     #[instrument(name = "credit_facility.history", skip(self), err)]
@@ -489,7 +466,7 @@ where
             )
             .await?;
 
-        let credit_facility = self.credit_facility_repo.find_by_id(id).await?;
+        let credit_facility = self.credit_facilities.find_by_id_without_audit(id).await?;
 
         let balances = self
             .ledger
@@ -528,8 +505,8 @@ where
             .expect("audit info missing");
 
         let facility = self
-            .credit_facility_repo
-            .find_by_id(credit_facility_id)
+            .credit_facilities
+            .find_by_id_without_audit(credit_facility_id)
             .await?;
 
         let customer_id = facility.customer_id;
@@ -559,7 +536,7 @@ where
             return Err(CreditFacilityError::BelowMarginLimit.into());
         }
 
-        let mut db = self.credit_facility_repo.begin_op().await?;
+        let mut db = self.credit_facilities.begin_op().await?;
         let disbursal_id = DisbursalId::new();
         let due_date = facility.matures_at.expect("Facility is not active");
         let overdue_date = facility
@@ -643,11 +620,11 @@ where
             .expect("audit info missing");
 
         let credit_facility = self
-            .credit_facility_repo
-            .find_by_id(credit_facility_id)
+            .credit_facilities
+            .find_by_id_without_audit(credit_facility_id)
             .await?;
 
-        let mut db = self.credit_facility_repo.begin_op().await?;
+        let mut db = self.credit_facilities.begin_op().await?;
 
         let collateral_update = if let Some(collateral_update) = self
             .collaterals
@@ -701,11 +678,11 @@ where
         let effective = effective.into();
 
         let mut credit_facility = self
-            .credit_facility_repo
-            .find_by_id(credit_facility_id)
+            .credit_facilities
+            .find_by_id_without_audit(credit_facility_id)
             .await?;
 
-        let mut db = self.credit_facility_repo.begin_op().await?;
+        let mut db = self.credit_facilities.begin_op().await?;
         let audit_info = self
             .subject_can_record_payment(sub, true)
             .await?
@@ -746,7 +723,7 @@ where
             .create_all_in_op(&mut db, res.allocations)
             .await?;
 
-        self.credit_facility_repo
+        self.credit_facilities
             .update_in_op(&mut db, &mut credit_facility)
             .await?;
 
@@ -755,184 +732,6 @@ where
             .await?;
 
         Ok(credit_facility)
-    }
-
-    #[instrument(name = "credit_facility.list", skip(self), err)]
-    pub async fn list(
-        &self,
-        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        query: es_entity::PaginatedQueryArgs<CreditFacilitiesCursor>,
-        filter: FindManyCreditFacilities,
-        sort: impl Into<Sort<CreditFacilitiesSortBy>> + std::fmt::Debug,
-    ) -> Result<es_entity::PaginatedQueryRet<CreditFacility, CreditFacilitiesCursor>, CoreCreditError>
-    {
-        self.authz
-            .enforce_permission(
-                sub,
-                CoreCreditObject::all_credit_facilities(),
-                CoreCreditAction::CREDIT_FACILITY_LIST,
-            )
-            .await?;
-        Ok(self
-            .credit_facility_repo
-            .find_many(filter, sort.into(), query)
-            .await?)
-    }
-
-    #[instrument(
-        name = "credit_facility.list_by_created_at_for_status",
-        skip(self),
-        err
-    )]
-    pub async fn list_by_created_at_for_status(
-        &self,
-        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        status: CreditFacilityStatus,
-        query: es_entity::PaginatedQueryArgs<CreditFacilitiesByCreatedAtCursor>,
-        direction: impl Into<es_entity::ListDirection> + std::fmt::Debug,
-    ) -> Result<
-        es_entity::PaginatedQueryRet<CreditFacility, CreditFacilitiesByCreatedAtCursor>,
-        CoreCreditError,
-    > {
-        self.authz
-            .enforce_permission(
-                sub,
-                CoreCreditObject::all_credit_facilities(),
-                CoreCreditAction::CREDIT_FACILITY_LIST,
-            )
-            .await?;
-        Ok(self
-            .credit_facility_repo
-            .list_for_status_by_created_at(status, query, direction.into())
-            .await?)
-    }
-
-    #[instrument(
-        name = "credit_facility.list_by_created_at_for_collateralization_state",
-        skip(self),
-        err
-    )]
-    pub async fn list_by_created_at_for_collateralization_state(
-        &self,
-        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        collateralization_state: CollateralizationState,
-        query: es_entity::PaginatedQueryArgs<CreditFacilitiesByCreatedAtCursor>,
-        direction: impl Into<es_entity::ListDirection> + std::fmt::Debug,
-    ) -> Result<
-        es_entity::PaginatedQueryRet<CreditFacility, CreditFacilitiesByCreatedAtCursor>,
-        CoreCreditError,
-    > {
-        self.authz
-            .enforce_permission(
-                sub,
-                CoreCreditObject::all_credit_facilities(),
-                CoreCreditAction::CREDIT_FACILITY_LIST,
-            )
-            .await?;
-        Ok(self
-            .credit_facility_repo
-            .list_for_collateralization_state_by_created_at(
-                collateralization_state,
-                query,
-                direction.into(),
-            )
-            .await?)
-    }
-
-    #[instrument(
-        name = "credit_facility.list_by_collateralization_ratio",
-        skip(self),
-        err
-    )]
-    pub async fn list_by_collateralization_ratio(
-        &self,
-        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        query: es_entity::PaginatedQueryArgs<CreditFacilitiesByCollateralizationRatioCursor>,
-        direction: impl Into<es_entity::ListDirection> + std::fmt::Debug,
-    ) -> Result<
-        es_entity::PaginatedQueryRet<
-            CreditFacility,
-            CreditFacilitiesByCollateralizationRatioCursor,
-        >,
-        CoreCreditError,
-    > {
-        self.authz
-            .enforce_permission(
-                sub,
-                CoreCreditObject::all_credit_facilities(),
-                CoreCreditAction::CREDIT_FACILITY_LIST,
-            )
-            .await?;
-        Ok(self
-            .credit_facility_repo
-            .list_by_collateralization_ratio(query, direction.into())
-            .await?)
-    }
-
-    #[instrument(
-        name = "credit_facility.list_by_collateralization_ratio_for_status",
-        skip(self),
-        err
-    )]
-    pub async fn list_by_collateralization_ratio_for_status(
-        &self,
-        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        status: CreditFacilityStatus,
-        query: es_entity::PaginatedQueryArgs<CreditFacilitiesByCollateralizationRatioCursor>,
-        direction: impl Into<es_entity::ListDirection> + std::fmt::Debug,
-    ) -> Result<
-        es_entity::PaginatedQueryRet<
-            CreditFacility,
-            CreditFacilitiesByCollateralizationRatioCursor,
-        >,
-        CoreCreditError,
-    > {
-        self.authz
-            .enforce_permission(
-                sub,
-                CoreCreditObject::all_credit_facilities(),
-                CoreCreditAction::CREDIT_FACILITY_LIST,
-            )
-            .await?;
-        Ok(self
-            .credit_facility_repo
-            .list_for_status_by_collateralization_ratio(status, query, direction.into())
-            .await?)
-    }
-
-    #[instrument(
-        name = "credit_facility.list_by_collateralization_ratio_for_collateralization_state",
-        skip(self),
-        err
-    )]
-    pub async fn list_by_collateralization_ratio_for_collateralization_state(
-        &self,
-        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        collateralization_state: CollateralizationState,
-        query: es_entity::PaginatedQueryArgs<CreditFacilitiesByCollateralizationRatioCursor>,
-        direction: impl Into<es_entity::ListDirection> + std::fmt::Debug,
-    ) -> Result<
-        es_entity::PaginatedQueryRet<
-            CreditFacility,
-            CreditFacilitiesByCollateralizationRatioCursor,
-        >,
-        CoreCreditError,
-    > {
-        self.authz
-            .enforce_permission(
-                sub,
-                CoreCreditObject::all_credit_facilities(),
-                CoreCreditAction::CREDIT_FACILITY_LIST,
-            )
-            .await?;
-        Ok(self
-            .credit_facility_repo
-            .list_for_collateralization_state_by_collateralization_ratio(
-                collateralization_state,
-                query,
-                direction.into(),
-            )
-            .await?)
     }
 
     pub async fn subject_can_complete(
@@ -968,8 +767,8 @@ where
         let price = self.price.usd_cents_per_btc().await?;
 
         let mut credit_facility = self
-            .credit_facility_repo
-            .find_by_id(credit_facility_id)
+            .credit_facilities
+            .find_by_id_without_audit(credit_facility_id)
             .await?;
 
         let balances = self
@@ -977,7 +776,7 @@ where
             .get_credit_facility_balance(credit_facility.account_ids)
             .await?;
 
-        let mut db = self.credit_facility_repo.begin_op().await?;
+        let mut db = self.credit_facilities.begin_op().await?;
 
         let _ = self
             .collaterals
@@ -1001,7 +800,7 @@ where
             return Ok(credit_facility);
         };
 
-        self.credit_facility_repo
+        self.credit_facilities
             .update_in_op(&mut db, &mut credit_facility)
             .await?;
 
@@ -1041,7 +840,7 @@ where
         &self,
         ids: &[CreditFacilityId],
     ) -> Result<HashMap<CreditFacilityId, T>, CoreCreditError> {
-        Ok(self.credit_facility_repo.find_all(ids).await?)
+        Ok(self.credit_facilities.find_all(ids).await?)
     }
 
     pub async fn can_be_completed(&self, entity: &CreditFacility) -> Result<bool, CoreCreditError> {
@@ -1086,7 +885,7 @@ where
             )
             .await?;
 
-        let credit_facility = self.credit_facility_repo.find_by_id(id).await?;
+        let credit_facility = self.credit_facilities.find_by_id_without_audit(id).await?;
 
         if credit_facility
             .interest_accrual_cycle_in_progress()

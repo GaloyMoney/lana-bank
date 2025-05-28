@@ -14,7 +14,7 @@ where
     customer_id: CustomerId,
     subject: &'a <<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
     authz: &'a Perms,
-    credit_facilities: &'a CreditFacilityRepo<E>,
+    credit_facilities: &'a CreditFacilities<Perms, E>,
     disbursals: &'a Disbursals<Perms, E>,
     payment_allocations: &'a PaymentAllocationRepo<E>,
     histories: &'a HistoryRepo,
@@ -36,7 +36,7 @@ where
         subject: &'a <<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         customer_id: CustomerId,
         authz: &'a Perms,
-        credit_facilities: &'a CreditFacilityRepo<E>,
+        credit_facilities: &'a CreditFacilities<Perms, E>,
         disbursals: &'a Disbursals<Perms, E>,
         payment_allocations: &'a PaymentAllocationRepo<E>,
         history: &'a HistoryRepo,
@@ -62,19 +62,9 @@ where
         direction: ListDirection,
     ) -> Result<PaginatedQueryRet<CreditFacility, CreditFacilitiesByCreatedAtCursor>, CoreCreditError>
     {
-        self.authz
-            .audit()
-            .record_entry(
-                self.subject,
-                CoreCreditObject::all_credit_facilities(),
-                CoreCreditAction::CREDIT_FACILITY_LIST,
-                true,
-            )
-            .await?;
-
         Ok(self
             .credit_facilities
-            .list_for_customer_id_by_created_at(self.customer_id, query, direction)
+            .list_for_customer(&self.subject, self.customer_id, query, direction)
             .await?)
     }
 
@@ -83,7 +73,7 @@ where
         id: impl Into<CreditFacilityId> + std::fmt::Debug,
     ) -> Result<Vec<T>, CoreCreditError> {
         let id = id.into();
-        let credit_facility = self.credit_facilities.find_by_id(id).await?;
+        let credit_facility = self.credit_facilities.find_by_id_without_audit(id).await?;
 
         self.ensure_credit_facility_access(
             &credit_facility,
@@ -100,7 +90,7 @@ where
         id: impl Into<CreditFacilityId> + std::fmt::Debug,
     ) -> Result<Vec<T>, CoreCreditError> {
         let id = id.into();
-        let credit_facility = self.credit_facilities.find_by_id(id).await?;
+        let credit_facility = self.credit_facilities.find_by_id_without_audit(id).await?;
 
         self.ensure_credit_facility_access(
             &credit_facility,
@@ -117,7 +107,7 @@ where
         id: impl Into<CreditFacilityId> + std::fmt::Debug,
     ) -> Result<CreditFacilityBalanceSummary, CoreCreditError> {
         let id = id.into();
-        let credit_facility = self.credit_facilities.find_by_id(id).await?;
+        let credit_facility = self.credit_facilities.find_by_id_without_audit(id).await?;
 
         self.ensure_credit_facility_access(
             &credit_facility,
@@ -139,7 +129,7 @@ where
         id: impl Into<CreditFacilityId>,
     ) -> Result<Option<CreditFacility>, CoreCreditError> {
         let id = id.into();
-        match self.credit_facilities.find_by_id(id).await {
+        match self.credit_facilities.find_by_id_without_audit(id).await {
             Ok(cf) => {
                 self.ensure_credit_facility_access(
                     &cf,
@@ -181,7 +171,7 @@ where
         query: es_entity::PaginatedQueryArgs<DisbursalsCursor>,
         sort: impl Into<Sort<DisbursalsSortBy>>,
     ) -> Result<es_entity::PaginatedQueryRet<Disbursal, DisbursalsCursor>, CoreCreditError> {
-        let credit_facility = self.credit_facilities.find_by_id(id).await?;
+        let credit_facility = self.credit_facilities.find_by_id_without_audit(id).await?;
         self.ensure_credit_facility_access(
             &credit_facility,
             CoreCreditObject::all_credit_facilities(),
@@ -208,7 +198,7 @@ where
 
         let credit_facility = self
             .credit_facilities
-            .find_by_id(disbursal.facility_id)
+            .find_by_id_without_audit(disbursal.facility_id)
             .await?;
         self.ensure_credit_facility_access(
             &credit_facility,
@@ -231,7 +221,7 @@ where
 
         let credit_facility = self
             .credit_facilities
-            .find_by_id(payment_allocation.credit_facility_id)
+            .find_by_id_without_audit(payment_allocation.credit_facility_id)
             .await?;
         self.ensure_credit_facility_access(
             &credit_facility,

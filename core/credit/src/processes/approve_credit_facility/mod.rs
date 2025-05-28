@@ -11,8 +11,8 @@ use governance::{
 use outbox::OutboxEventMarker;
 
 use crate::{
-    error::CoreCreditError, CoreCreditAction, CoreCreditEvent, CoreCreditObject, CreditFacility,
-    CreditFacilityId, CreditFacilityRepo,
+    error::CoreCreditError, CoreCreditAction, CoreCreditEvent, CoreCreditObject, CreditFacilities,
+    CreditFacility, CreditFacilityId,
 };
 
 pub use job::*;
@@ -24,7 +24,7 @@ where
     Perms: PermissionCheck,
     E: OutboxEventMarker<GovernanceEvent> + OutboxEventMarker<CoreCreditEvent>,
 {
-    repo: CreditFacilityRepo<E>,
+    credit_facilities: CreditFacilities<Perms, E>,
     audit: Perms::Audit,
     governance: Governance<Perms, E>,
 }
@@ -36,7 +36,7 @@ where
 {
     fn clone(&self) -> Self {
         Self {
-            repo: self.repo.clone(),
+            credit_facilities: self.credit_facilities.clone(),
             audit: self.audit.clone(),
             governance: self.governance.clone(),
         }
@@ -53,12 +53,12 @@ where
     E: OutboxEventMarker<GovernanceEvent> + OutboxEventMarker<CoreCreditEvent>,
 {
     pub fn new(
-        repo: &CreditFacilityRepo<E>,
+        repo: &CreditFacilities<Perms, E>,
         audit: &Perms::Audit,
         governance: &Governance<Perms, E>,
     ) -> Self {
         Self {
-            repo: repo.clone(),
+            credit_facilities: repo.clone(),
             audit: audit.clone(),
             governance: governance.clone(),
         }
@@ -94,11 +94,14 @@ where
         id: impl es_entity::RetryableInto<CreditFacilityId>,
         approved: bool,
     ) -> Result<CreditFacility, CoreCreditError> {
-        let mut credit_facility = self.repo.find_by_id(id.into()).await?;
+        let mut credit_facility = self
+            .credit_facilities
+            .find_by_id_without_audit(id.into())
+            .await?;
         if credit_facility.is_approval_process_concluded() {
             return Ok(credit_facility);
         }
-        let mut db = self.repo.begin_op().await?;
+        let mut db = self.credit_facilities.begin_op().await?;
         let audit_info = self
             .audit
             .record_system_entry_in_tx(
@@ -114,7 +117,7 @@ where
             return Ok(credit_facility);
         }
 
-        self.repo
+        self.credit_facilities
             .update_in_op(&mut db, &mut credit_facility)
             .await?;
 

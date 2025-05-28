@@ -238,7 +238,11 @@ impl Query {
         id: UUID,
     ) -> async_graphql::Result<Option<CreditFacility>> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
-        maybe_fetch_one!(CreditFacility, ctx, app.credit().find_by_id(sub, id))
+        maybe_fetch_one!(
+            CreditFacility,
+            ctx,
+            app.credit().credit_facilities().find_by_id(sub, id)
+        )
     }
 
     async fn credit_facilities(
@@ -288,7 +292,10 @@ impl Query {
             ctx,
             after,
             first,
-            |query| app.credit().list(sub, query, filter, sort)
+            |query| app
+                .credit()
+                .credit_facilities()
+                .list(sub, query, filter, sort)
         )
     }
 
