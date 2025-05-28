@@ -27,8 +27,8 @@
     "noPermissions": "Este rol no tiene permisos"
   },
   "Permissions": {
-    "access_reader": {
-      "label": "Lector de acceso",
+    "access_viewer": {
+      "label": "Visualizador de acceso",
       "description": "Puede listar y ver usuarios, roles y conjuntos de permisos"
     },
     "access_writer": {
@@ -43,8 +43,8 @@
       "label": "Editor de contabilidad",
       "description": "Puede crear y gestionar planes de cuentas, transacciones manuales y del libro mayor, balances, informes de pérdidas y ganancias, y datos contables relacionados"
     },
-    "app_reader": {
-      "label": "Lector de aplicación",
+    "app_viewer": {
+      "label": "Visualizador de aplicación",
       "description": "Puede listar y ver documentos de aplicación, informes, auditorías y plantillas de términos"
     },
     "app_writer": {
@@ -67,8 +67,8 @@
       "label": "Editor de clientes",
       "description": "Puede crear, actualizar y gestionar clientes, incluyendo iniciar y aprobar procesos KYC"
     },
-    "dashboard_reader": {
-      "label": "Lector de panel de control",
+    "dashboard_viewer": {
+      "label": "Visualizador de panel de control",
       "description": "Puede ver paneles de control del sistema y análisis"
     },
     "deposit_viewer": {
@@ -79,8 +79,8 @@
       "label": "Editor de depósitos",
       "description": "Puede crear y gestionar depósitos, cuentas de depósito y retiros, incluyendo iniciar, confirmar, cancelar y aprobar retiros"
     },
-    "governance_reader": {
-      "label": "Lector de gobernanza",
+    "governance_viewer": {
+      "label": "Visualizador de gobernanza",
       "description": "Puede ver comités de gobernanza, políticas y procesos de aprobación"
     },
     "governance_writer": {

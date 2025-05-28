@@ -27,8 +27,8 @@
     "noPermissions": "This role has no permissions"
   },
   "Permissions": {
-    "access_reader": {
-      "label": "Access Reader",
+    "access_viewer": {
+      "label": "Access Viewer",
       "description": "Can list and view users, roles, and permission sets"
     },
     "access_writer": {
@@ -43,8 +43,8 @@
       "label": "Accounting Writer",
       "description": "Can create and manage charts of accounts, ledger and manual transactions, balance sheets, profit-and-loss reports, and related accounting data"
     },
-    "app_reader": {
-      "label": "App Reader",
+    "app_viewer": {
+      "label": "App Viewer",
       "description": "Can list and view application documents, reports, audits, and terms templates"
     },
     "app_writer": {
@@ -67,8 +67,8 @@
       "label": "Customer Writer",
       "description": "Can create, update, and manage customers, including initiating and approving KYC processes"
     },
-    "dashboard_reader": {
-      "label": "Dashboard Reader",
+    "dashboard_viewer": {
+      "label": "Dashboard Viewer",
       "description": "Can view system dashboards and analytics"
     },
     "deposit_viewer": {
@@ -79,8 +79,8 @@
       "label": "Deposit Writer",
       "description": "Can create and manage deposits, deposit accounts, and withdrawals, including initiating, confirming, cancelling, and approving withdrawals"
     },
-    "governance_reader": {
-      "label": "Governance Reader",
+    "governance_viewer": {
+      "label": "Governance Viewer",
       "description": "Can view governance committees, policies, and approval processes"
     },
     "governance_writer": {

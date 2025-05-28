@@ -34,8 +34,8 @@ export function usePermissionDisplay() {
         }
       case PermissionSetName.AppViewer:
         return {
-          label: t("app_reader.label"),
-          description: t("app_reader.description"),
+          label: t("app_viewer.label"),
+          description: t("app_viewer.description"),
         }
       case PermissionSetName.AppWriter:
         return {
@@ -64,8 +64,8 @@ export function usePermissionDisplay() {
         }
       case PermissionSetName.DashboardViewer:
         return {
-          label: t("dashboard_reader.label"),
-          description: t("dashboard_reader.description"),
+          label: t("dashboard_viewer.label"),
+          description: t("dashboard_viewer.description"),
         }
       case PermissionSetName.DepositViewer:
         return {
@@ -79,8 +79,8 @@ export function usePermissionDisplay() {
         }
       case PermissionSetName.GovernanceViewer:
         return {
-          label: t("governance_reader.label"),
-          description: t("governance_reader.description"),
+          label: t("governance_viewer.label"),
+          description: t("governance_viewer.description"),
         }
       case PermissionSetName.GovernanceWriter:
         return {
