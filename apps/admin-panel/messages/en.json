@@ -1640,13 +1640,13 @@
       "description": "Create a new role with selected permissions",
       "nameLabel": "Role Name",
       "namePlaceholder": "Enter role name",
-      "permissionsLabel": "Permissions",
-      "noPermissionsSelected": "No permissions selected",
+      "selectedPermissions": "Selected permissions: {count}",
+      "noPermissionsAvailable": "No permissions available",
       "success": "Role created successfully",
       "error": "Failed to create role: {error}"
     },
-    "update": {
-      "title": "Edit Role",
+    "edit": {
+      "title": "Editing",
       "editDescription": "Update the permissions for this role",
       "permissionsLabel": "Permissions",
       "noPermissionsAvailable": "No permissions available",

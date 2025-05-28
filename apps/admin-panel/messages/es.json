@@ -1640,15 +1640,15 @@
       "description": "Crea un nuevo rol con los permisos seleccionados",
       "nameLabel": "Role Name",
       "namePlaceholder": "Introduce el nombre del rol",
-      "permissionsLabel": "Permisos",
-      "noPermissionsSelected": "No hay permisos seleccionados",
+      "selectedPermissions": "Permisos seleccionados: {count}",
+      "noPermissionsAvailable": "No hay permisos disponibles",
       "success": "Rol creado correctamente",
       "error": "Error al crear el rol: {error}"
     },
-    "update": {
-      "title": "Editar rol",
+    "edit": {
+      "title": "Editando",
       "editDescription": "Actualizar los permisos para este rol",
-      "permissionsLabel": "Permissions",
+      "permissionsLabel": "Permisos",
       "noPermissionsAvailable": "No hay permisos disponibles",
       "selected": "seleccionados",
       "success": "Rol actualizado con éxito",

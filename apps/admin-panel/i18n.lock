@@ -974,17 +974,17 @@ checksums:
     RolesAndPermissions/create/description: a4d6112e356b510676f7518dd99295dd
     RolesAndPermissions/create/nameLabel: e8b92e9bbc2293dc77c4219f4652317a
     RolesAndPermissions/create/namePlaceholder: 2ead202822510ba15935bf820a14860a
-    RolesAndPermissions/create/permissionsLabel: 2160be68b1d6b6577e64634e9feba2ed
-    RolesAndPermissions/create/noPermissionsSelected: 76ea56aa10044a18f97401a02d56bfe8
+    RolesAndPermissions/create/selectedPermissions: d8787a607ca909b159300f7a3687cffb
+    RolesAndPermissions/create/noPermissionsAvailable: b95969ac9a76d914ca29a0cb9d635a3e
     RolesAndPermissions/create/success: 0c5e659653544f4e549c49deee5da514
     RolesAndPermissions/create/error: 475b4f4778f15bd72083049e57dcfdc3
-    RolesAndPermissions/update/title: b5c3ab76d07ed0d4603b2025efffc025
-    RolesAndPermissions/update/editDescription: fbc842bdb581a2e2228f1bbfb4dd388e
-    RolesAndPermissions/update/permissionsLabel: 2160be68b1d6b6577e64634e9feba2ed
-    RolesAndPermissions/update/noPermissionsAvailable: b95969ac9a76d914ca29a0cb9d635a3e
-    RolesAndPermissions/update/selected: 4dd498a55c80622eb1d22d540bd1498f
-    RolesAndPermissions/update/success: 70f6225b70f4bcd15af464da4c838096
-    RolesAndPermissions/update/error: 550ac44c038b29ea9f805612e96868fb
+    RolesAndPermissions/edit/title: 3449a7988cd69207b7c6929af1f4abf1
+    RolesAndPermissions/edit/editDescription: fbc842bdb581a2e2228f1bbfb4dd388e
+    RolesAndPermissions/edit/permissionsLabel: 2160be68b1d6b6577e64634e9feba2ed
+    RolesAndPermissions/edit/noPermissionsAvailable: b95969ac9a76d914ca29a0cb9d635a3e
+    RolesAndPermissions/edit/selected: 4dd498a55c80622eb1d22d540bd1498f
+    RolesAndPermissions/edit/success: 70f6225b70f4bcd15af464da4c838096
+    RolesAndPermissions/edit/error: 550ac44c038b29ea9f805612e96868fb
     RolesAndPermissions/roleDetails/roleDetails: d6a7dd784df6ead4847a40c6927ab29d
     RolesAndPermissions/roleDetails/roleDetailsDescription: d706bd3669b856e879413fd1f296f792
     RolesAndPermissions/roleDetails/name: 9368b5a047572b6051f334af5aa76819

@@ -3,7 +3,7 @@
 
 import { useState, useContext, createContext } from "react"
 import { HiPlus } from "react-icons/hi"
-import { usePathname } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation"
 import { useTranslations } from "next-intl"
 
 import {
@@ -33,7 +33,6 @@ import { CreateTermsTemplateDialog } from "./terms-templates/create"
 import { CreateCommitteeDialog } from "./committees/create"
 import { CreditFacilityDisbursalInitiateDialog } from "./disbursals/create"
 import { ExecuteManualTransactionDialog } from "./journal/execute-manual-transaction"
-import { CreateRoleDialog } from "./roles-and-permissions/create"
 
 import {
   CreditFacility,
@@ -106,6 +105,7 @@ type MenuItem = {
 
 const CreateButton = () => {
   const t = useTranslations("CreateButton")
+  const router = useRouter()
 
   const [createCustomer, setCreateCustomer] = useState(false)
   const [createDeposit, setCreateDeposit] = useState(false)
@@ -118,7 +118,6 @@ const CreateButton = () => {
     useState(false)
   const [openCreateCommitteeDialog, setOpenCreateCommitteeDialog] = useState(false)
   const [openExecuteManualTransaction, setOpenExecuteManualTransaction] = useState(false)
-  const [openCreateRoleDialog, setOpenCreateRoleDialog] = useState(false)
   const [showMenu, setShowMenu] = useState(false)
 
   const { customer, facility, setCustomer } = useCreateContext()
@@ -227,7 +226,7 @@ const CreateButton = () => {
     },
     {
       label: t("menuItems.role"),
-      onClick: () => setOpenCreateRoleDialog(true),
+      onClick: () => router.push("/roles-and-permissions/create"),
       dataTestId: "create-role-button",
       allowedPaths: [PATH_CONFIGS.ROLES_AND_PERMISSIONS],
     },
@@ -330,11 +329,6 @@ const CreateButton = () => {
       <ExecuteManualTransactionDialog
         openExecuteManualTransaction={openExecuteManualTransaction}
         setOpenExecuteManualTransaction={setOpenExecuteManualTransaction}
-      />
-
-      <CreateRoleDialog
-        open={openCreateRoleDialog}
-        onOpenChange={setOpenCreateRoleDialog}
       />
 
       {customer && customer.depositAccount && (

@@ -1,13 +1,12 @@
 "use client"
 
-import React, { useState } from "react"
+import React from "react"
 import { useTranslations } from "next-intl"
+import { useRouter } from "next/navigation"
 
 import { Button } from "@lana/web/ui/button"
 import { Edit2 } from "lucide-react"
 import { Label } from "@lana/web/ui/label"
-
-import { UpdateRoleDialog } from "../update"
 
 import { DetailsCard, DetailItemProps } from "@/components/details"
 import { RoleQuery } from "@/lib/graphql/generated"
@@ -21,7 +20,7 @@ type RoleDetailsProps = {
 export const RoleDetailsCard: React.FC<RoleDetailsProps> = ({ role }) => {
   const t = useTranslations("RolesAndPermissions.roleDetails")
   const { getTranslation } = usePermissionDisplay()
-  const [isUpdateDialogOpen, setIsUpdateDialogOpen] = useState(false)
+  const router = useRouter()
 
   const details: DetailItemProps[] = [
     {
@@ -47,10 +46,10 @@ export const RoleDetailsCard: React.FC<RoleDetailsProps> = ({ role }) => {
                 key={permissionSet.permissionSetId}
                 className="rounded-md py-2 space-y-1"
               >
-                <div className="font-medium text-sm">
+                <div className="font-medium">
                   {getTranslation(permissionSet.name).label}
                 </div>
-                <p className="text-muted-foreground">
+                <p className="text-muted-foreground text-sm">
                   {getTranslation(permissionSet.name).description}
                 </p>
               </div>
@@ -61,32 +60,23 @@ export const RoleDetailsCard: React.FC<RoleDetailsProps> = ({ role }) => {
   )
 
   return (
-    <>
-      <DetailsCard
-        title={t("roleDetails")}
-        description={t("roleDetailsDescription")}
-        details={details}
-        footerContent={footerContent}
-        alignment="left"
-        headerAction={
-          <Button
-            variant="outline"
-            onClick={() => setIsUpdateDialogOpen(true)}
-            className="flex items-center gap-2"
-          >
-            <Edit2 className="h-4 w-4" />
-            {t("editRole")}
-          </Button>
-        }
-        columns={2}
-      />
-      {isUpdateDialogOpen && (
-        <UpdateRoleDialog
-          open={isUpdateDialogOpen}
-          onOpenChange={setIsUpdateDialogOpen}
-          role={role}
-        />
-      )}
-    </>
+    <DetailsCard
+      title={t("roleDetails")}
+      description={t("roleDetailsDescription")}
+      details={details}
+      footerContent={footerContent}
+      alignment="left"
+      headerAction={
+        <Button
+          variant="outline"
+          onClick={() => router.push(`/roles-and-permissions/${role.roleId}/edit`)}
+          className="flex items-center gap-2"
+        >
+          <Edit2 className="h-4 w-4" />
+          {t("editRole")}
+        </Button>
+      }
+      columns={2}
+    />
   )
 }
