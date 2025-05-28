@@ -175,3 +175,68 @@ impl IntoEvents<UserEvent> for NewUser {
         )
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use audit::{AuditEntryId, AuditInfo};
+    use es_entity::{Idempotent, IntoEvents as _, TryFromEvents as _};
+
+    use crate::{NewRole, Role, RoleId, UserId};
+
+    use super::{NewUser, User};
+
+    fn audit_info() -> AuditInfo {
+        AuditInfo {
+            audit_entry_id: AuditEntryId::from(1),
+            sub: "sub".to_string(),
+        }
+    }
+
+    fn new_user() -> User {
+        let new_user = NewUser::builder()
+            .id(UserId::new())
+            .email("email")
+            .audit_info(audit_info())
+            .build()
+            .unwrap();
+
+        User::try_from_events(new_user.into_events()).unwrap()
+    }
+
+    fn new_role() -> Role {
+        Role::try_from_events(
+            NewRole::builder()
+                .id(RoleId::new())
+                .name("a role".to_string())
+                .audit_info(audit_info())
+                .build()
+                .unwrap()
+                .into_events(),
+        )
+        .unwrap()
+    }
+
+    #[test]
+    fn user_updating_role() {
+        let mut user = new_user();
+        assert_eq!(user.current_role(), None);
+
+        assert!(user.revoke_role(audit_info()).was_ignored());
+
+        let role_1 = new_role();
+        let previous = user.update_role(&role_1, audit_info());
+        assert!(matches!(previous, Idempotent::Executed(None)));
+
+        let previous = user.update_role(&role_1, audit_info());
+        assert!(matches!(previous, Idempotent::Ignored));
+
+        let role_2 = new_role();
+        let previous = user.update_role(&role_2, audit_info());
+        assert!(matches!(previous, Idempotent::Executed(Some(id)) if id == role_1.id));
+        assert_eq!(user.current_role(), Some(role_2.id));
+
+        let previous = user.revoke_role(audit_info());
+        assert!(matches!(previous, Idempotent::Executed(id) if id == role_2.id));
+        assert_eq!(user.current_role(), None);
+    }
+}
