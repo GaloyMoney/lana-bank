@@ -24,6 +24,7 @@ import {
   useRoleRemovePermissionSetsMutation,
   RoleQuery,
 } from "@/lib/graphql/generated"
+import { usePermissionDisplay } from "@/hooks/use-permission-display"
 
 gql`
   mutation RoleAddPermissionSets($input: RoleAddPermissionSetsInput!) {
@@ -52,7 +53,7 @@ type UpdateRoleDialogProps = {
 export function UpdateRoleDialog({ open, onOpenChange, role }: UpdateRoleDialogProps) {
   const t = useTranslations("RolesAndPermissions.update")
   const tCommon = useTranslations("Common")
-  const permissionT = useTranslations("Permissions")
+  const { getTranslation } = usePermissionDisplay()
   const [selectedPermissionSets, setSelectedPermissionSets] = useState<string[]>([])
   const [error, setError] = useState<string | null>(null)
 
@@ -175,10 +176,10 @@ export function UpdateRoleDialog({ open, onOpenChange, role }: UpdateRoleDialogP
                         htmlFor={`update-${permissionSet.permissionSetId}`}
                         className="text-sm font-medium cursor-pointer"
                       >
-                        {permissionT(`${permissionSet.name}.label`)}
+                        {getTranslation(permissionSet.name).label}
                       </Label>
                       <p className="text-sm text-muted-foreground">
-                        {permissionT(`${permissionSet.name}.description`)}
+                        {getTranslation(permissionSet.name).description}
                       </p>
                     </div>
                   </div>

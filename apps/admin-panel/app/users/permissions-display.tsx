@@ -3,8 +3,11 @@ import { useTranslations } from "next-intl"
 import { Label } from "@lana/web/ui/label"
 import { ScrollArea } from "@lana/web/ui/scroll-area"
 
+import { usePermissionDisplay } from "@/hooks/use-permission-display"
+import { PermissionSetName } from "@/lib/graphql/generated"
+
 type Permission = {
-  name: string
+  name: PermissionSetName
 }
 
 type PermissionsDisplayProps = {
@@ -19,7 +22,7 @@ export function PermissionsDisplay({
   className,
 }: PermissionsDisplayProps) {
   const t = useTranslations("PermissionsDisplay")
-  const tPermissions = useTranslations("Permissions")
+  const { getTranslation } = usePermissionDisplay()
 
   return (
     <div className={className}>
@@ -28,15 +31,11 @@ export function PermissionsDisplay({
         {permissionSets.length > 0 ? (
           <div className="space-y-4">
             {permissionSets.map((permission) => {
-              const permName = permission.name
+              const { label, description } = getTranslation(permission.name)
               return (
-                <div key={permName} className="space-y-1">
-                  <p className="text-sm font-medium">
-                    {tPermissions(`${permName}.label`)}
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    {tPermissions(`${permName}.description`)}
-                  </p>
+                <div key={permission.name} className="space-y-1">
+                  <p className="text-sm font-medium">{label}</p>
+                  <p className="text-sm text-muted-foreground">{description}</p>
                 </div>
               )
             })}

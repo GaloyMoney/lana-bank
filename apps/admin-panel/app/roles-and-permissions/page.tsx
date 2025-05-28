@@ -16,6 +16,7 @@ import DataTable, { Column } from "../../components/data-table"
 
 import { useRolesQuery } from "@/lib/graphql/generated"
 import DateWithTooltip from "@/components/date-with-tooltip"
+import { usePermissionDisplay } from "@/hooks/use-permission-display"
 
 gql`
   fragment PermissionSetFields on PermissionSet {
@@ -59,7 +60,7 @@ function CompactPermissionSets({
   maxShow?: number
 }) {
   const t = useTranslations("RolesAndPermissions.table")
-  const permissionT = useTranslations("Permissions")
+  const { getTranslation } = usePermissionDisplay()
 
   if (!permissionSets || permissionSets.length === 0) {
     return <span className="text-muted-foreground">{t("noPermissionSetsAssigned")}</span>
@@ -75,7 +76,7 @@ function CompactPermissionSets({
     <div className="flex flex-wrap gap-2 items-center">
       {visiblePermissions.map((permissionSet) => (
         <Badge variant="outline" key={permissionSet.permissionSetId}>
-          {permissionT(`${permissionSet.name}.label`, { fallback: permissionSet.name })}
+          {getTranslation(permissionSet.name).label}
         </Badge>
       ))}
       {remainingCount > 0 && (

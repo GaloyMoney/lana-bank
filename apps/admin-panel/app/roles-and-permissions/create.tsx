@@ -22,6 +22,7 @@ import { ScrollArea } from "@lana/web/ui/scroll-area"
 import { gql } from "@apollo/client"
 
 import { usePermissionSetsQuery, useRoleCreateMutation } from "@/lib/graphql/generated"
+import { usePermissionDisplay } from "@/hooks/use-permission-display"
 
 import { useModalNavigation } from "@/hooks/use-modal-navigation"
 
@@ -53,7 +54,7 @@ type CreateRoleDialogProps = {
 export function CreateRoleDialog({ open, onOpenChange }: CreateRoleDialogProps) {
   const t = useTranslations("RolesAndPermissions.create")
   const tCommon = useTranslations("Common")
-  const permissionT = useTranslations("Permissions")
+  const { getTranslation } = usePermissionDisplay()
   const router = useRouter()
   const [name, setName] = useState("")
   const [selectedPermissionSets, setSelectedPermissionSets] = useState<string[]>([])
@@ -176,10 +177,10 @@ export function CreateRoleDialog({ open, onOpenChange }: CreateRoleDialogProps) 
                               htmlFor={permissionSet.permissionSetId}
                               className="text-sm font-medium cursor-pointer"
                             >
-                              {permissionT(`${permissionSet.name}.label`)}
+                              {getTranslation(permissionSet.name).label}
                             </Label>
                             <p className="text-sm text-muted-foreground">
-                              {permissionT(`${permissionSet.name}.description`)}
+                              {getTranslation(permissionSet.name).description}
                             </p>
                           </div>
                         </div>

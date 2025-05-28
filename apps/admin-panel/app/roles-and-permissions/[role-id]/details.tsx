@@ -12,6 +12,7 @@ import { UpdateRoleDialog } from "../update"
 import { DetailsCard, DetailItemProps } from "@/components/details"
 import { RoleQuery } from "@/lib/graphql/generated"
 import { formatDate } from "@/lib/utils"
+import { usePermissionDisplay } from "@/hooks/use-permission-display"
 
 type RoleDetailsProps = {
   role: NonNullable<RoleQuery["role"]>
@@ -19,7 +20,7 @@ type RoleDetailsProps = {
 
 export const RoleDetailsCard: React.FC<RoleDetailsProps> = ({ role }) => {
   const t = useTranslations("RolesAndPermissions.roleDetails")
-  const permissionT = useTranslations("Permissions")
+  const { getTranslation } = usePermissionDisplay()
   const [isUpdateDialogOpen, setIsUpdateDialogOpen] = useState(false)
 
   const details: DetailItemProps[] = [
@@ -46,11 +47,11 @@ export const RoleDetailsCard: React.FC<RoleDetailsProps> = ({ role }) => {
                 key={permissionSet.permissionSetId}
                 className="rounded-md py-2 space-y-1"
               >
-                <div className="font-medium">
-                  {permissionT(`${permissionSet.name}.label`)}
+                <div className="font-medium text-sm">
+                  {getTranslation(permissionSet.name).label}
                 </div>
                 <p className="text-muted-foreground">
-                  {permissionT(`${permissionSet.name}.description`)}
+                  {getTranslation(permissionSet.name).description}
                 </p>
               </div>
             ))}
