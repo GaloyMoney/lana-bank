@@ -56,7 +56,7 @@ impl User {
         &self.entity.email
     }
 
-    async fn subject_can_assign_role_to_user(
+    async fn subject_can_update_role_of_user(
         &self,
         ctx: &Context<'_>,
     ) -> async_graphql::Result<bool> {
@@ -64,7 +64,7 @@ impl User {
         Ok(app
             .access()
             .users()
-            .subject_can_assign_role_to_user(sub, None, false)
+            .subject_can_update_role_of_user(sub, None, false)
             .await
             .is_ok())
     }
@@ -91,11 +91,11 @@ pub struct UserCreateInput {
 mutation_payload! { UserCreatePayload, user: User }
 
 #[derive(InputObject)]
-pub struct UserAssignRoleInput {
+pub struct UserUpdateRoleInput {
     pub id: UUID,
     pub role_id: UUID,
 }
-mutation_payload! { UserAssignRolePayload, user: User }
+mutation_payload! { UserUpdateRolePayload, user: User }
 
 #[derive(InputObject)]
 pub struct UserRevokeRoleInput {

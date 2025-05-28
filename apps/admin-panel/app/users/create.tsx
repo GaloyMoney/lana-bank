@@ -28,7 +28,7 @@ import { PermissionsDisplay } from "./permissions-display"
 
 import {
   useRolesQuery,
-  useUserAssignRoleMutation,
+  useUserUpdateRoleMutation,
   useUserCreateMutation,
 } from "@/lib/graphql/generated"
 import { useModalNavigation } from "@/hooks/use-modal-navigation"
@@ -77,7 +77,7 @@ export const CreateUserDialog: React.FC<CreateUserDialogProps> = ({
     },
   })
 
-  const [assignRole, { loading: assigningRole }] = useUserAssignRoleMutation()
+  const [assignRole, { loading: assigningRole }] = useUserUpdateRoleMutation()
 
   const [email, setEmail] = useState("")
   const [selectedRoleId, setSelectedRoleId] = useState<string | null>(null)

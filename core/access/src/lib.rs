@@ -220,8 +220,8 @@ where
         self.roles.find_by_name(name.as_ref().to_owned()).await
     }
 
-    #[instrument(name = "core_access.assign_role_to_user", skip(self))]
-    pub async fn assign_role_to_user(
+    #[instrument(name = "core_access.update_role_of_user", skip(self))]
+    pub async fn update_role_of_user(
         &self,
         sub: &<Audit as AuditSvc>::Subject,
         user_id: impl Into<UserId> + std::fmt::Debug,
@@ -234,7 +234,7 @@ where
             .enforce_permission(
                 sub,
                 CoreAccessObject::user(user_id),
-                CoreAccessAction::USER_ASSIGN_ROLE,
+                CoreAccessAction::USER_UPDATE_ROLE,
             )
             .await?;
 
@@ -246,7 +246,7 @@ where
             ));
         }
 
-        let user = self.users.assign_role_to_user(sub, user_id, &role).await?;
+        let user = self.users.update_role_of_user(sub, user_id, &role).await?;
 
         Ok(user)
     }

@@ -1,0 +1,11 @@
+mutation UserUpdateRole($input: UserUpdateRoleInput!) {
+  userUpdateRole(input: $input) {
+    user {
+      userId
+      email
+      role {
+        name
+      }
+    }
+  }
+}

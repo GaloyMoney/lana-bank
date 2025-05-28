@@ -815,18 +815,18 @@ impl Mutation {
         )
     }
 
-    async fn user_assign_role(
+    async fn user_update_role(
         &self,
         ctx: &Context<'_>,
-        input: UserAssignRoleInput,
-    ) -> async_graphql::Result<UserAssignRolePayload> {
+        input: UserUpdateRoleInput,
+    ) -> async_graphql::Result<UserUpdateRolePayload> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
-        let UserAssignRoleInput { id, role_id } = input;
+        let UserUpdateRoleInput { id, role_id } = input;
         exec_mutation!(
-            UserAssignRolePayload,
+            UserUpdateRolePayload,
             User,
             ctx,
-            app.access().assign_role_to_user(sub, id, role_id)
+            app.access().update_role_of_user(sub, id, role_id)
         )
     }
 

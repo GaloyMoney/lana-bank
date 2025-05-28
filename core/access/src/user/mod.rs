@@ -219,7 +219,7 @@ where
             .entities)
     }
 
-    pub async fn subject_can_assign_role_to_user(
+    pub async fn subject_can_update_role_of_user(
         &self,
         sub: &<Audit as AuditSvc>::Subject,
         user_id: impl Into<Option<UserId>>,
@@ -230,13 +230,13 @@ where
             .evaluate_permission(
                 sub,
                 CoreAccessObject::user(user_id),
-                CoreAccessAction::USER_ASSIGN_ROLE,
+                CoreAccessAction::USER_UPDATE_ROLE,
                 enforce,
             )
             .await?)
     }
 
-    pub(crate) async fn assign_role_to_user(
+    pub(crate) async fn update_role_of_user(
         &self,
         sub: &<Audit as AuditSvc>::Subject,
         user_id: impl Into<UserId> + std::fmt::Debug,
@@ -245,7 +245,7 @@ where
         let id = user_id.into();
 
         let audit_info = self
-            .subject_can_assign_role_to_user(sub, id, true)
+            .subject_can_update_role_of_user(sub, id, true)
             .await?
             .expect("audit info missing");
 

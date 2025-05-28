@@ -27,13 +27,13 @@ import { PermissionsDisplay } from "./permissions-display"
 
 import {
   useRolesQuery,
-  useUserAssignRoleMutation,
+  useUserUpdateRoleMutation,
   useUserRevokeRoleMutation,
 } from "@/lib/graphql/generated"
 
 gql`
-  mutation UserAssignRole($input: UserAssignRoleInput!) {
-    userAssignRole(input: $input) {
+  mutation UserUpdateRole($input: UserUpdateRoleInput!) {
+    userUpdateRole(input: $input) {
       user {
         ...UserFields
       }
@@ -75,7 +75,7 @@ export function UpdateUserRoleDialog({
 
   const roles = data?.roles.edges.map((edge) => edge.node) || []
 
-  const [assignRole, { loading: assignLoading }] = useUserAssignRoleMutation()
+  const [assignRole, { loading: assignLoading }] = useUserUpdateRoleMutation()
   const [revokeRole, { loading: revokeLoading }] = useUserRevokeRoleMutation()
   const isLoading = rolesLoading || assignLoading || revokeLoading
 

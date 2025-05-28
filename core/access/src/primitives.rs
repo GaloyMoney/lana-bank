@@ -125,7 +125,7 @@ impl CoreAccessAction {
     pub const USER_CREATE: Self = CoreAccessAction::User(UserAction::Create);
     pub const USER_READ: Self = CoreAccessAction::User(UserAction::Read);
     pub const USER_LIST: Self = CoreAccessAction::User(UserAction::List);
-    pub const USER_ASSIGN_ROLE: Self = CoreAccessAction::User(UserAction::AssignRole);
+    pub const USER_UPDATE_ROLE: Self = CoreAccessAction::User(UserAction::UpdateRole);
     pub const USER_REVOKE_ROLE: Self = CoreAccessAction::User(UserAction::RevokeRole);
     pub const USER_UPDATE_AUTHENTICATION_ID: Self =
         CoreAccessAction::User(UserAction::UpdateAuthenticationId);
@@ -219,7 +219,7 @@ pub enum UserAction {
     Create,
     List,
     Update,
-    AssignRole,
+    UpdateRole,
     RevokeRole,
     UpdateAuthenticationId,
 }
@@ -240,7 +240,7 @@ impl UserAction {
                     &[PERMISSION_SET_ACCESS_VIEWER, PERMISSION_SET_ACCESS_WRITER],
                 ),
                 Self::Update => ActionDescription::new(variant, &[PERMISSION_SET_ACCESS_WRITER]),
-                Self::AssignRole => {
+                Self::UpdateRole => {
                     ActionDescription::new(variant, &[PERMISSION_SET_ACCESS_WRITER])
                 }
                 Self::RevokeRole => {

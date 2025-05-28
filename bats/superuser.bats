@@ -43,8 +43,8 @@ teardown_file() {
       }'
   )
 
-  exec_admin_graphql 'user-assign-role' "$variables"
-  role=$(graphql_output .data.userAssignRole.user.role.name)
+  exec_admin_graphql 'user-update-role' "$variables"
+  role=$(graphql_output .data.userUpdateRole.user.role.name)
   [[ "$role" = "bank-manager" ]] || exit 1
 }
 

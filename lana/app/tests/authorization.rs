@@ -26,7 +26,7 @@ async fn create_user_with_role(
         .create_user(superuser_subject, random_email())
         .await?;
     let user = access
-        .assign_role_to_user(superuser_subject, user.id, role_id)
+        .update_role_of_user(superuser_subject, user.id, role_id)
         .await?;
     Ok(Subject::from(user.id))
 }
@@ -54,7 +54,7 @@ async fn superuser_permissions() -> anyhow::Result<()> {
         .enforce_permission(
             &superuser_subject,
             CoreAccessObject::all_users(),
-            CoreAccessAction::USER_ASSIGN_ROLE,
+            CoreAccessAction::USER_UPDATE_ROLE,
         )
         .await
         .is_ok());
@@ -64,7 +64,7 @@ async fn superuser_permissions() -> anyhow::Result<()> {
         .enforce_permission(
             &superuser_subject,
             CoreAccessObject::user(UserId::new()),
-            CoreAccessAction::USER_ASSIGN_ROLE,
+            CoreAccessAction::USER_UPDATE_ROLE,
         )
         .await
         .is_ok());
@@ -101,7 +101,7 @@ async fn admin_permissions() -> anyhow::Result<()> {
         .enforce_permission(
             &admin_subject,
             CoreAccessObject::all_users(),
-            CoreAccessAction::USER_ASSIGN_ROLE,
+            CoreAccessAction::USER_UPDATE_ROLE,
         )
         .await
         .is_ok());
@@ -109,7 +109,7 @@ async fn admin_permissions() -> anyhow::Result<()> {
         .enforce_permission(
             &admin_subject,
             CoreAccessObject::user(UserId::new()),
-            CoreAccessAction::USER_ASSIGN_ROLE,
+            CoreAccessAction::USER_UPDATE_ROLE,
         )
         .await
         .is_ok());
@@ -150,7 +150,7 @@ async fn bank_manager_permissions() -> anyhow::Result<()> {
             .enforce_permission(
                 &bank_manager_subject,
                 CoreAccessObject::all_users(),
-                CoreAccessAction::USER_ASSIGN_ROLE,
+                CoreAccessAction::USER_UPDATE_ROLE,
             )
             .await,
         Err(AuthorizationError::NotAuthorized)

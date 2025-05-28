@@ -1251,9 +1251,9 @@ export type Mutation = {
   sumsubPermalinkCreate: SumsubPermalinkCreatePayload;
   termsTemplateCreate: TermsTemplateCreatePayload;
   termsTemplateUpdate: TermsTemplateUpdatePayload;
-  userAssignRole: UserAssignRolePayload;
   userCreate: UserCreatePayload;
   userRevokeRole: UserRevokeRolePayload;
+  userUpdateRole: UserUpdateRolePayload;
   withdrawalCancel: WithdrawalCancelPayload;
   withdrawalConfirm: WithdrawalConfirmPayload;
   withdrawalInitiate: WithdrawalInitiatePayload;
@@ -1431,11 +1431,6 @@ export type MutationTermsTemplateUpdateArgs = {
 };
 
 
-export type MutationUserAssignRoleArgs = {
-  input: UserAssignRoleInput;
-};
-
-
 export type MutationUserCreateArgs = {
   input: UserCreateInput;
 };
@@ -1443,6 +1438,11 @@ export type MutationUserCreateArgs = {
 
 export type MutationUserRevokeRoleArgs = {
   input: UserRevokeRoleInput;
+};
+
+
+export type MutationUserUpdateRoleArgs = {
+  input: UserUpdateRoleInput;
 };
 
 
@@ -2138,19 +2138,9 @@ export type User = {
   email: Scalars['String']['output'];
   id: Scalars['ID']['output'];
   role?: Maybe<Role>;
-  subjectCanAssignRoleToUser: Scalars['Boolean']['output'];
   subjectCanRevokeRoleFromUser: Scalars['Boolean']['output'];
+  subjectCanUpdateRoleOfUser: Scalars['Boolean']['output'];
   userId: Scalars['UUID']['output'];
-};
-
-export type UserAssignRoleInput = {
-  id: Scalars['UUID']['input'];
-  roleId: Scalars['UUID']['input'];
-};
-
-export type UserAssignRolePayload = {
-  __typename?: 'UserAssignRolePayload';
-  user: User;
 };
 
 export type UserCreateInput = {
@@ -2168,6 +2158,16 @@ export type UserRevokeRoleInput = {
 
 export type UserRevokeRolePayload = {
   __typename?: 'UserRevokeRolePayload';
+  user: User;
+};
+
+export type UserUpdateRoleInput = {
+  id: Scalars['UUID']['input'];
+  roleId: Scalars['UUID']['input'];
+};
+
+export type UserUpdateRolePayload = {
+  __typename?: 'UserUpdateRolePayload';
   user: User;
 };
 
@@ -2848,12 +2848,12 @@ export type UsersQueryVariables = Exact<{ [key: string]: never; }>;
 
 export type UsersQuery = { __typename?: 'Query', users: Array<{ __typename?: 'User', id: string, userId: string, email: string, createdAt: any, role?: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: any, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: PermissionSetName }> } | null }> };
 
-export type UserAssignRoleMutationVariables = Exact<{
-  input: UserAssignRoleInput;
+export type UserUpdateRoleMutationVariables = Exact<{
+  input: UserUpdateRoleInput;
 }>;
 
 
-export type UserAssignRoleMutation = { __typename?: 'Mutation', userAssignRole: { __typename?: 'UserAssignRolePayload', user: { __typename?: 'User', id: string, userId: string, email: string, createdAt: any, role?: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: any, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: PermissionSetName }> } | null } } };
+export type UserUpdateRoleMutation = { __typename?: 'Mutation', userUpdateRole: { __typename?: 'UserUpdateRolePayload', user: { __typename?: 'User', id: string, userId: string, email: string, createdAt: any, role?: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: any, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: PermissionSetName }> } | null } } };
 
 export type UserRevokeRoleMutationVariables = Exact<{
   input: UserRevokeRoleInput;
@@ -7069,41 +7069,41 @@ export type UsersQueryHookResult = ReturnType<typeof useUsersQuery>;
 export type UsersLazyQueryHookResult = ReturnType<typeof useUsersLazyQuery>;
 export type UsersSuspenseQueryHookResult = ReturnType<typeof useUsersSuspenseQuery>;
 export type UsersQueryResult = Apollo.QueryResult<UsersQuery, UsersQueryVariables>;
-export const UserAssignRoleDocument = gql`
-    mutation UserAssignRole($input: UserAssignRoleInput!) {
-  userAssignRole(input: $input) {
+export const UserUpdateRoleDocument = gql`
+    mutation UserUpdateRole($input: UserUpdateRoleInput!) {
+  userUpdateRole(input: $input) {
     user {
       ...UserFields
     }
   }
 }
     ${UserFieldsFragmentDoc}`;
-export type UserAssignRoleMutationFn = Apollo.MutationFunction<UserAssignRoleMutation, UserAssignRoleMutationVariables>;
+export type UserUpdateRoleMutationFn = Apollo.MutationFunction<UserUpdateRoleMutation, UserUpdateRoleMutationVariables>;
 
 /**
- * __useUserAssignRoleMutation__
+ * __useUserUpdateRoleMutation__
  *
- * To run a mutation, you first call `useUserAssignRoleMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useUserAssignRoleMutation` returns a tuple that includes:
+ * To run a mutation, you first call `useUserUpdateRoleMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useUserUpdateRoleMutation` returns a tuple that includes:
  * - A mutate function that you can call at any time to execute the mutation
  * - An object with fields that represent the current status of the mutation's execution
  *
  * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
  *
  * @example
- * const [userAssignRoleMutation, { data, loading, error }] = useUserAssignRoleMutation({
+ * const [userUpdateRoleMutation, { data, loading, error }] = useUserUpdateRoleMutation({
  *   variables: {
  *      input: // value for 'input'
  *   },
  * });
  */
-export function useUserAssignRoleMutation(baseOptions?: Apollo.MutationHookOptions<UserAssignRoleMutation, UserAssignRoleMutationVariables>) {
+export function useUserUpdateRoleMutation(baseOptions?: Apollo.MutationHookOptions<UserUpdateRoleMutation, UserUpdateRoleMutationVariables>) {
         const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<UserAssignRoleMutation, UserAssignRoleMutationVariables>(UserAssignRoleDocument, options);
+        return Apollo.useMutation<UserUpdateRoleMutation, UserUpdateRoleMutationVariables>(UserUpdateRoleDocument, options);
       }
-export type UserAssignRoleMutationHookResult = ReturnType<typeof useUserAssignRoleMutation>;
-export type UserAssignRoleMutationResult = Apollo.MutationResult<UserAssignRoleMutation>;
-export type UserAssignRoleMutationOptions = Apollo.BaseMutationOptions<UserAssignRoleMutation, UserAssignRoleMutationVariables>;
+export type UserUpdateRoleMutationHookResult = ReturnType<typeof useUserUpdateRoleMutation>;
+export type UserUpdateRoleMutationResult = Apollo.MutationResult<UserUpdateRoleMutation>;
+export type UserUpdateRoleMutationOptions = Apollo.BaseMutationOptions<UserUpdateRoleMutation, UserUpdateRoleMutationVariables>;
 export const UserRevokeRoleDocument = gql`
     mutation UserRevokeRole($input: UserRevokeRoleInput!) {
   userRevokeRole(input: $input) {
