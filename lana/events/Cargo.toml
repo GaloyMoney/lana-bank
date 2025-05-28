@@ -13,7 +13,7 @@ governance = { path = "../../core/governance" }
 core-access = { path = "../../core/access" }
 core-customer = { path = "../../core/customer" }
 core-credit = { path = "../../core/credit" }
-deposit = { path = "../../core/deposit" }
+core-deposit = { path = "../../core/deposit" }
 outbox = { path = "../../lib/outbox" }
 
 serde = { workspace = true }

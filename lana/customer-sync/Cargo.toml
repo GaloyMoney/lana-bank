@@ -18,7 +18,7 @@ fail-on-warnings = []
 [dependencies]
 
 core-customer = { path = "../../core/customer" }
-deposit = { path = "../../core/deposit" }
+core-deposit = { path = "../../core/deposit" }
 governance = { path = "../../core/governance" }
 
 outbox = { path = "../../lib/outbox" }

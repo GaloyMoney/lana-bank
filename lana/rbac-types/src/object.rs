@@ -7,8 +7,8 @@ use core_access::CoreAccessObject;
 use core_accounting::CoreAccountingObject;
 use core_credit::CoreCreditObject;
 use core_customer::{CustomerId, CustomerObject};
+use core_deposit::CoreDepositObject;
 use dashboard::DashboardModuleObject;
-use deposit::CoreDepositObject;
 use governance::GovernanceObject;
 
 #[derive(Clone, Copy, Debug, PartialEq, strum::EnumDiscriminants)]

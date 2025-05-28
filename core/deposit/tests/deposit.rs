@@ -4,7 +4,7 @@ use rust_decimal_macros::dec;
 
 use authz::dummy::DummySubject;
 use cala_ledger::{CalaLedger, CalaLedgerConfig};
-use deposit::*;
+use core_deposit::*;
 use helpers::{action, event, object};
 
 #[tokio::test]

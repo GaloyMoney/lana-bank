@@ -8,7 +8,7 @@ use authz::PermissionCheck;
 use core_customer::{
     AuthenticationId, CoreCustomerAction, CoreCustomerEvent, CustomerObject, Customers,
 };
-use deposit::{
+use core_deposit::{
     CoreDepositAction, CoreDepositEvent, CoreDepositObject, GovernanceAction, GovernanceObject,
 };
 use outbox::{Outbox, OutboxEventMarker, PersistentOutboxEvent};

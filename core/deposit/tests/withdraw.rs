@@ -4,7 +4,7 @@ use rust_decimal_macros::dec;
 
 use authz::dummy::DummySubject;
 use cala_ledger::{CalaLedger, CalaLedgerConfig};
-use deposit::*;
+use core_deposit::*;
 
 use helpers::{action, event, object};
 
@@ -59,7 +59,7 @@ async fn overdraw_and_cancel_withdrawal() -> anyhow::Result<()> {
         .await;
     assert!(matches!(
         withdrawal,
-        Err(deposit::error::CoreDepositError::DepositLedgerError(_))
+        Err(core_deposit::error::CoreDepositError::DepositLedgerError(_))
     ));
 
     let withdrawal_amount = UsdCents::try_from_usd(dec!(500000)).unwrap();

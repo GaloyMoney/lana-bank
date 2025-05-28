@@ -6,8 +6,8 @@ use core_access::CoreAccessAction;
 use core_accounting::CoreAccountingAction;
 use core_credit::CoreCreditAction;
 use core_customer::CoreCustomerAction;
+use core_deposit::CoreDepositAction;
 use dashboard::DashboardModuleAction;
-use deposit::CoreDepositAction;
 use governance::GovernanceAction;
 
 pub const PERMISSION_SET_APP_READER: &str = "app_reader";

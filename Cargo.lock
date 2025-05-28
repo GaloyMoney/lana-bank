@@ -41,7 +41,7 @@ dependencies = [
  "cala-ledger",
  "chrono",
  "core-access",
- "deposit",
+ "core-deposit",
  "es-entity",
  "governance",
  "jwks-utils",
@@ -1076,6 +1076,42 @@ dependencies = [
 ]
 
 [[package]]
+name = "core-deposit"
+version = "0.3.568-dev"
+dependencies = [
+ "anyhow",
+ "async-graphql",
+ "async-trait",
+ "audit",
+ "authz",
+ "base64 0.22.1",
+ "cala-ledger",
+ "chrono",
+ "cloud-storage",
+ "core-accounting",
+ "core-customer",
+ "core-money",
+ "derive_builder",
+ "es-entity",
+ "futures",
+ "governance",
+ "job",
+ "outbox",
+ "rand 0.9.1",
+ "rust_decimal",
+ "rust_decimal_macros",
+ "serde",
+ "serde_json",
+ "sim-time",
+ "sqlx",
+ "strum",
+ "thiserror 2.0.12",
+ "tokio",
+ "tracing",
+ "uuid",
+]
+
+[[package]]
 name = "core-foundation"
 version = "0.9.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1236,7 +1272,7 @@ dependencies = [
  "authz",
  "chrono",
  "core-customer",
- "deposit",
+ "core-deposit",
  "es-entity",
  "futures",
  "governance",
@@ -1312,42 +1348,6 @@ name = "data-encoding"
 version = "2.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e8566979429cf69b49a5c740c60791108e86440e8be149bbea4fe54d2c32d6e2"
-
-[[package]]
-name = "deposit"
-version = "0.3.568-dev"
-dependencies = [
- "anyhow",
- "async-graphql",
- "async-trait",
- "audit",
- "authz",
- "base64 0.22.1",
- "cala-ledger",
- "chrono",
- "cloud-storage",
- "core-accounting",
- "core-customer",
- "core-money",
- "derive_builder",
- "es-entity",
- "futures",
- "governance",
- "job",
- "outbox",
- "rand 0.9.1",
- "rust_decimal",
- "rust_decimal_macros",
- "serde",
- "serde_json",
- "sim-time",
- "sqlx",
- "strum",
- "thiserror 2.0.12",
- "tokio",
- "tracing",
- "uuid",
-]
 
 [[package]]
 name = "der"
@@ -2538,11 +2538,11 @@ dependencies = [
  "core-accounting",
  "core-credit",
  "core-customer",
+ "core-deposit",
  "core-money",
  "core-price",
  "customer-sync",
  "dashboard",
- "deposit",
  "derive_builder",
  "es-entity",
  "futures",
@@ -2599,7 +2599,7 @@ dependencies = [
  "core-access",
  "core-credit",
  "core-customer",
- "deposit",
+ "core-deposit",
  "governance",
  "outbox",
  "serde",
@@ -3521,8 +3521,8 @@ dependencies = [
  "core-accounting",
  "core-credit",
  "core-customer",
+ "core-deposit",
  "dashboard",
- "deposit",
  "es-entity",
  "governance",
  "lana-ids",

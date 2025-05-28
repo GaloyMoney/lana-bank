@@ -8,7 +8,7 @@ pub use core_access::{CoreAccessAction, CoreAccessObject};
 use core_accounting::{CoreAccountingAction, CoreAccountingObject};
 use core_credit::{CoreCreditAction, CoreCreditObject};
 use core_customer::{CoreCustomerAction, CustomerObject};
-use deposit::{CoreDepositAction, CoreDepositObject};
+use core_deposit::{CoreDepositAction, CoreDepositObject};
 use governance::{GovernanceAction, GovernanceObject};
 pub use rbac_types::{AppAction as Action, AppObject as Object, *};
 

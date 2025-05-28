@@ -12,7 +12,7 @@ fail-on-warnings = []
 lana-app = { path = "../app" }
 
 governance = { path = "../../core/governance" }
-deposit = { path = "../../core/deposit", features = ["graphql"] }
+core-deposit = { path = "../../core/deposit", features = ["graphql"] }
 core-access = { path = "../../core/access" }
 
 audit = { path = "../../lib/audit" }

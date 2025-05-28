@@ -13,14 +13,14 @@ pub enum AccountingInitError {
     #[error("AccountingInitError - CoreCreditError: {0}")]
     CoreCreditError(#[from] core_credit::error::CoreCreditError),
     #[error("AccountingInitError - CoreDepositError: {0}")]
-    CoreDepositError(#[from] deposit::error::CoreDepositError),
+    CoreDepositError(#[from] core_deposit::error::CoreDepositError),
     #[error("AccountingInitError - CreditChartIntegrationConfigBuilderError: {0}")]
     CreditChartIntegrationConfigBuilderError(
         #[from] core_credit::ChartOfAccountsIntegrationConfigBuilderError,
     ),
     #[error("AccountingInitError - DepositChartIntegrationConfigBuilderError: {0}")]
     DepositChartIntegrationConfigBuilderError(
-        #[from] deposit::ChartOfAccountsIntegrationConfigBuilderError,
+        #[from] core_deposit::ChartOfAccountsIntegrationConfigBuilderError,
     ),
     #[error("AccountingInitError - BalanceSheetChartIntegrationConfigBuilderError: {0}")]
     BalanceSheetChartIntegrationConfigBuilderError(

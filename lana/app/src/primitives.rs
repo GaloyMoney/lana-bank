@@ -9,9 +9,9 @@ pub use core_credit::{
     PaymentAllocationId, PaymentId,
 };
 pub use core_customer::CustomerId;
+pub use core_deposit::{DepositAccountHolderId, DepositAccountId, DepositId, WithdrawalId};
 pub use core_money::*;
 pub use core_price::PriceOfOneBTC;
-pub use deposit::{DepositAccountHolderId, DepositAccountId, DepositId, WithdrawalId};
 pub use governance::{ApprovalProcessId, CommitteeId, CommitteeMemberId, PolicyId};
 pub use job::JobId;
 pub use lana_ids::*;

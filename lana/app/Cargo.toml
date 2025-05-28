@@ -15,7 +15,7 @@ sim-time = [
   "dashboard/sim-time",
   "user-onboarding/sim-time",
   "customer-sync/sim-time",
-  "deposit/sim-time",
+  "core-deposit/sim-time",
   "job/sim-time",
 ]
 
@@ -36,7 +36,7 @@ core-access = { path = "../../core/access", features = ["graphql"] }
 core-credit = { path = "../../core/credit", features = ["graphql"] }
 core-customer = { path = "../../core/customer", features = ["graphql"] }
 core-price = { path = "../../core/price" }
-deposit = { path = "../../core/deposit", features = ["graphql"] }
+core-deposit = { path = "../../core/deposit", features = ["graphql"] }
 core-accounting = { path = "../../core/accounting", features = ["graphql"] }
 job = { path = "../../lib/job" }
 outbox = { path = "../../lib/outbox" }

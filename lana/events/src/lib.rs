@@ -6,7 +6,7 @@ use serde::{Deserialize, Serialize};
 pub use core_access::CoreAccessEvent;
 pub use core_credit::{CollateralAction, CoreCreditEvent, ObligationStatus, ObligationType};
 pub use core_customer::CoreCustomerEvent;
-pub use deposit::CoreDepositEvent;
+pub use core_deposit::CoreDepositEvent;
 pub use governance::GovernanceEvent;
 pub use outbox::OutboxEventMarker;
 

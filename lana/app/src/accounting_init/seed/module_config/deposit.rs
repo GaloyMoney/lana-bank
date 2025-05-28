@@ -65,7 +65,7 @@ pub(in crate::accounting_init::seed) async fn deposit_module_configure(
         .await
     {
         Ok(_) => (),
-        Err(deposit::error::CoreDepositError::DepositConfigAlreadyExists) => (),
+        Err(core_deposit::error::CoreDepositError::DepositConfigAlreadyExists) => (),
         Err(e) => return Err(e.into()),
     };
 

@@ -1,5 +1,5 @@
 [package]
-name = "deposit"
+name = "core-deposit"
 version = "0.3.568-dev"
 license = "FSL-1.1-ALv2"
 edition = "2021"

@@ -23,7 +23,7 @@ pub async fn init_journal(cala: &CalaLedger) -> anyhow::Result<cala_ledger::Jour
 pub mod action {
     use core_accounting::CoreAccountingAction;
     use core_customer::CoreCustomerAction;
-    use deposit::{CoreDepositAction, GovernanceAction};
+    use core_deposit::{CoreDepositAction, GovernanceAction};
 
     #[derive(Clone, Copy, Debug, PartialEq)]
     pub struct DummyAction;
@@ -71,7 +71,7 @@ pub mod action {
 pub mod object {
     use core_accounting::CoreAccountingObject;
     use core_customer::CustomerObject;
-    use deposit::{CoreDepositObject, GovernanceObject};
+    use core_deposit::{CoreDepositObject, GovernanceObject};
 
     #[derive(Clone, Copy, Debug, PartialEq)]
     pub struct DummyObject;
@@ -119,7 +119,7 @@ pub mod event {
     use serde::{Deserialize, Serialize};
 
     use core_customer::CoreCustomerEvent;
-    use deposit::CoreDepositEvent;
+    use core_deposit::CoreDepositEvent;
     use governance::GovernanceEvent;
 
     #[derive(Debug, Serialize, Deserialize)]
