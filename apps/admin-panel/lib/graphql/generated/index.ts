@@ -2164,7 +2164,6 @@ export type UserCreatePayload = {
 
 export type UserRevokeRoleInput = {
   id: Scalars['UUID']['input'];
-  roleId: Scalars['UUID']['input'];
 };
 
 export type UserRevokeRolePayload = {

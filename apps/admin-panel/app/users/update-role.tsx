@@ -98,7 +98,6 @@ export function UpdateUserRoleDialog({
           variables: {
             input: {
               id: userId,
-              roleId: currentRoleId,
             },
           },
         })

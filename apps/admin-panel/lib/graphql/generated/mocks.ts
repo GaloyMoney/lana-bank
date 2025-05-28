@@ -2248,7 +2248,6 @@ export const mockUserRevokeRoleInput = (overrides?: Partial<UserRevokeRoleInput>
     relationshipsToOmit.add('UserRevokeRoleInput');
     return {
         id: overrides && overrides.hasOwnProperty('id') ? overrides.id! : generateMockValue.uuid(),
-        roleId: overrides && overrides.hasOwnProperty('roleId') ? overrides.roleId! : generateMockValue.uuid(),
     };
 };
 
