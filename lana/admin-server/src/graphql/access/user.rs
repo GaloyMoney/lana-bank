@@ -100,7 +100,6 @@ mutation_payload! { UserAssignRolePayload, user: User }
 #[derive(InputObject)]
 pub struct UserRevokeRoleInput {
     pub id: UUID,
-    pub role_id: UUID,
 }
 
 mutation_payload! { UserRevokeRolePayload, user: User }

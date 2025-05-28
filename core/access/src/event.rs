@@ -20,7 +20,6 @@ pub enum CoreAccessEvent {
     UserRevokedRole {
         id: UserId,
         role_id: RoleId,
-        role_name: String,
     },
 
     RoleCreated {

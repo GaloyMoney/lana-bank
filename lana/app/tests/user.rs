@@ -40,7 +40,7 @@ async fn bank_manager_lifecycle() -> anyhow::Result<()> {
 
     let user = access
         .users()
-        .revoke_role_from_user(&superuser_subject, bank_manager.id, &bank_manager_role)
+        .revoke_role_from_user(&superuser_subject, bank_manager.id)
         .await?;
 
     assert_eq!(user.current_role(), None);

@@ -17,14 +17,13 @@ pub enum UserEvent {
     AuthenticationIdUpdated {
         authentication_id: AuthenticationId,
     },
-    RoleAssigned {
+    RoleGranted {
         id: RoleId,
         name: String,
         audit_info: AuditInfo,
     },
     RoleRevoked {
         id: RoleId,
-        name: String,
         audit_info: AuditInfo,
     },
 }
@@ -46,51 +45,61 @@ impl User {
             .expect("entity_first_persisted_at not found")
     }
 
-    pub(crate) fn assign_role(&mut self, role: &Role, audit_info: AuditInfo) -> Idempotent<()> {
-        idempotency_guard!(
-            self.events.iter_all().rev(),
-            UserEvent::RoleAssigned { id: assigned, .. } if *assigned == role.id,
-            => UserEvent::RoleRevoked { id: revoked,.. } if *revoked == role.id
-        );
-
-        self.events.push(UserEvent::RoleAssigned {
-            id: role.id,
-            name: role.name.clone(),
-            audit_info,
-        });
-        Idempotent::Executed(())
-    }
-
-    pub(crate) fn revoke_role(&mut self, role: &Role, audit_info: AuditInfo) -> Idempotent<()> {
-        idempotency_guard!(
-            self.events.iter_all().rev(),
-            UserEvent::RoleRevoked { id: revoked, .. } if *revoked == role.id,
-            => UserEvent::RoleAssigned { id: assigned,.. } if *assigned == role.id
-        );
-
-        self.events.push(UserEvent::RoleRevoked {
-            id: role.id,
-            name: role.name.clone(),
-            audit_info,
-        });
-
-        Idempotent::Executed(())
-    }
-
-    pub fn current_role(&self) -> Option<RoleId> {
-        let mut res = None;
-        for event in self.events.iter_all() {
-            match event {
-                UserEvent::RoleAssigned { id: role_id, .. } => {
-                    let _ = res.insert(*role_id);
+    /// Sets user's role to `role`. Returns previous role or `None`
+    /// if no role was previously set.
+    pub(crate) fn update_role(
+        &mut self,
+        role: &Role,
+        audit_info: AuditInfo,
+    ) -> Idempotent<Option<RoleId>> {
+        match self.current_role() {
+            Some(current) if role.id == current => Idempotent::Ignored,
+            previous => {
+                if let Some(previous) = previous {
+                    self.events.push(UserEvent::RoleRevoked {
+                        id: previous,
+                        audit_info: audit_info.clone(),
+                    });
                 }
-                UserEvent::RoleRevoked { .. } => {
-                    res.take();
-                }
-                _ => {}
+
+                self.events.push(UserEvent::RoleGranted {
+                    id: role.id,
+                    name: role.name.clone(),
+                    audit_info,
+                });
+
+                Idempotent::Executed(previous)
             }
         }
-        res
+    }
+
+    /// Revokes role this user currently has. Returns previous role.
+    pub(crate) fn revoke_role(&mut self, audit_info: AuditInfo) -> Idempotent<RoleId> {
+        match self.current_role() {
+            None => Idempotent::Ignored,
+            Some(previous) => {
+                self.events.push(UserEvent::RoleRevoked {
+                    id: previous,
+                    audit_info,
+                });
+
+                Idempotent::Executed(previous)
+            }
+        }
+    }
+
+    /// Returns the role currently assigned to this user. Returns `None`
+    /// if no role has been assigned to the user or previous role has been revoked.
+    pub fn current_role(&self) -> Option<RoleId> {
+        self.events
+            .iter_all()
+            .rev()
+            .find_map(|event| match event {
+                UserEvent::RoleGranted { id: role_id, .. } => Some(Some(*role_id)),
+                UserEvent::RoleRevoked { .. } => Some(None),
+                _ => None,
+            })
+            .flatten()
     }
 
     pub fn update_authentication_id(
@@ -123,7 +132,7 @@ impl TryFromEvents<UserEvent> for User {
                 UserEvent::Initialized { id, email, .. } => {
                     builder = builder.id(*id).email(email.clone())
                 }
-                UserEvent::RoleAssigned { .. } => (),
+                UserEvent::RoleGranted { .. } => (),
                 UserEvent::RoleRevoked { .. } => (),
                 UserEvent::AuthenticationIdUpdated { authentication_id } => {
                     builder = builder.authentication_id(*authentication_id);

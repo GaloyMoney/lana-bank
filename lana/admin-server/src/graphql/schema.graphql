@@ -1779,7 +1779,6 @@ type UserCreatePayload {
 
 input UserRevokeRoleInput {
 	id: UUID!
-	roleId: UUID!
 }
 
 type UserRevokeRolePayload {

@@ -249,10 +249,8 @@ where
         &self,
         sub: &<Audit as AuditSvc>::Subject,
         user_id: impl Into<UserId> + std::fmt::Debug,
-        role_id: impl Into<RoleId> + std::fmt::Debug,
     ) -> Result<User, CoreAccessError> {
         let user_id = user_id.into();
-        let role_id = role_id.into();
 
         self.authz
             .enforce_permission(
@@ -262,11 +260,7 @@ where
             )
             .await?;
 
-        let role = self.roles.find_by_id(role_id).await?;
-        let user = self
-            .users
-            .revoke_role_from_user(sub, user_id, &role)
-            .await?;
+        let user = self.users.revoke_role_from_user(sub, user_id).await?;
 
         Ok(user)
     }
