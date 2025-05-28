@@ -244,12 +244,6 @@ where
     ) -> Result<User, UserError> {
         let id = user_id.into();
 
-        if role.name == ROLE_NAME_SUPERUSER {
-            return Err(UserError::AuthorizationError(
-                authz::error::AuthorizationError::NotAuthorized,
-            ));
-        }
-
         let audit_info = self
             .subject_can_assign_role_to_user(sub, id, true)
             .await?

@@ -239,6 +239,13 @@ where
             .await?;
 
         let role = self.roles.find_by_id(role_id).await?;
+
+        if role.name == ROLE_NAME_SUPERUSER {
+            return Err(CoreAccessError::AuthorizationError(
+                authz::error::AuthorizationError::NotAuthorized,
+            ));
+        }
+
         let user = self.users.assign_role_to_user(sub, user_id, &role).await?;
 
         Ok(user)
@@ -260,8 +267,23 @@ where
             )
             .await?;
 
-        let user = self.users.revoke_role_from_user(sub, user_id).await?;
+        let current_role = self
+            .users
+            .find_by_id(sub, user_id)
+            .await?
+            .and_then(|u| u.current_role());
 
+        if let Some(current_role_id) = current_role {
+            let role = self.roles.find_by_id(current_role_id).await?;
+
+            if role.name == ROLE_NAME_SUPERUSER {
+                return Err(CoreAccessError::AuthorizationError(
+                    authz::error::AuthorizationError::NotAuthorized,
+                ));
+            }
+        }
+
+        let user = self.users.revoke_role_from_user(sub, user_id).await?;
         Ok(user)
     }
 
