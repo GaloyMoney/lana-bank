@@ -257,7 +257,17 @@ where
                     credit_facility_id: entity.credit_facility_id,
                     amount: *amount,
                 }),
-                Completed { .. } => Some(CoreCreditEvent::ObligationCompleted {
+                MovedToLiquidation {
+                    liquidation_obligation_id,
+                    outstanding,
+                    ..
+                } => Some(CoreCreditEvent::ObligationMovedToLiquidation {
+                    id: entity.id,
+                    credit_facility_id: entity.credit_facility_id,
+                    liquidation_obligation_id: *liquidation_obligation_id,
+                    amount: *outstanding,
+                }),
+                CompletedAsPaid { .. } => Some(CoreCreditEvent::ObligationCompleted {
                     id: entity.id,
                     credit_facility_id: entity.credit_facility_id,
                 }),

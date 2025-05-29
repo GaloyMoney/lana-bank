@@ -53,7 +53,13 @@ pub enum ObligationEvent {
         payment_allocation_id: PaymentAllocationId,
         amount: UsdCents,
     },
-    Completed {
+    MovedToLiquidation {
+        effective: chrono::NaiveDate,
+        liquidation_obligation_id: LiquidationObligationId,
+        outstanding: UsdCents,
+        audit_info: AuditInfo,
+    },
+    CompletedAsPaid {
         effective: chrono::NaiveDate,
         audit_info: AuditInfo,
     },
@@ -216,7 +222,7 @@ impl Obligation {
                     defaulted_date,
                     ..
                 } => Some((*due_date, *overdue_date, *defaulted_date)),
-                ObligationEvent::Completed { .. } => {
+                ObligationEvent::CompletedAsPaid { .. } => {
                     paid = true;
                     None
                 }
@@ -254,7 +260,7 @@ impl Obligation {
                 ObligationEvent::DueRecorded { .. } => Some(ObligationStatus::Due),
                 ObligationEvent::OverdueRecorded { .. } => Some(ObligationStatus::Overdue),
                 ObligationEvent::DefaultedRecorded { .. } => Some(ObligationStatus::Defaulted),
-                ObligationEvent::Completed { .. } => Some(ObligationStatus::Paid),
+                ObligationEvent::CompletedAsPaid { .. } => Some(ObligationStatus::Paid),
                 _ => None,
             })
             .unwrap_or(ObligationStatus::NotYetDue)
@@ -434,7 +440,7 @@ impl Obligation {
             .expect("could not build new payment allocation");
 
         if self.outstanding().is_zero() {
-            self.events.push(ObligationEvent::Completed {
+            self.events.push(ObligationEvent::CompletedAsPaid {
                 effective,
                 audit_info: audit_info.clone(),
             });
@@ -472,7 +478,8 @@ impl TryFromEvents<ObligationEvent> for Obligation {
                 ObligationEvent::OverdueRecorded { .. } => (),
                 ObligationEvent::DefaultedRecorded { .. } => (),
                 ObligationEvent::PaymentAllocated { .. } => (),
-                ObligationEvent::Completed { .. } => (),
+                ObligationEvent::MovedToLiquidation { .. } => (),
+                ObligationEvent::CompletedAsPaid { .. } => (),
             }
         }
         builder.events(events).build()
@@ -641,7 +648,7 @@ mod test {
         assert!(matches!(res, Idempotent::Ignored));
 
         let mut events = initial_events();
-        events.push(ObligationEvent::Completed {
+        events.push(ObligationEvent::CompletedAsPaid {
             effective: Utc::now().date_naive(),
             audit_info: dummy_audit_info(),
         });
@@ -673,7 +680,7 @@ mod test {
         assert!(matches!(res, Idempotent::Ignored));
 
         let mut events = initial_events();
-        events.push(ObligationEvent::Completed {
+        events.push(ObligationEvent::CompletedAsPaid {
             effective: Utc::now().date_naive(),
             audit_info: dummy_audit_info(),
         });
@@ -717,7 +724,7 @@ mod test {
     #[test]
     fn ignores_defaulted_recorded_if_paid() {
         let mut events = initial_events();
-        events.push(ObligationEvent::Completed {
+        events.push(ObligationEvent::CompletedAsPaid {
             effective: Utc::now().date_naive(),
             audit_info: dummy_audit_info(),
         });
@@ -903,7 +910,7 @@ mod test {
             ]);
 
             let now = overdue_timestamp(Utc::now());
-            events.push(ObligationEvent::Completed {
+            events.push(ObligationEvent::CompletedAsPaid {
                 effective: now.date_naive(),
                 audit_info: dummy_audit_info(),
             });
