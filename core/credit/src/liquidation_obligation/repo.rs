@@ -16,7 +16,7 @@ use super::{entity::*, error::*};
         credit_facility_id(ty = "CreditFacilityId", list_for, update(persist = false)),
     ),
     tbl_prefix = "core",
-    // post_persist_hook = "publish"
+    post_persist_hook = "publish"
 )]
 pub struct LiquidationObligationRepo<E>
 where
@@ -49,14 +49,14 @@ where
         }
     }
 
-    // async fn publish(
-    //     &self,
-    //     db: &mut es_entity::DbOp<'_>,
-    //     entity: &LiquidationObligation,
-    //     new_events: es_entity::LastPersisted<'_, LiquidationObligationEvent>,
-    // ) -> Result<(), LiquidationObligationError> {
-    //     self.publisher
-    //         .publish_liquidation_obligation(db, entity, new_events)
-    //         .await
-    // }
+    async fn publish(
+        &self,
+        db: &mut es_entity::DbOp<'_>,
+        entity: &LiquidationObligation,
+        new_events: es_entity::LastPersisted<'_, LiquidationObligationEvent>,
+    ) -> Result<(), LiquidationObligationError> {
+        self.publisher
+            .publish_liquidation_obligation(db, entity, new_events)
+            .await
+    }
 }

@@ -8,6 +8,9 @@ use crate::{
     interest_accrual_cycle::{
         InterestAccrualCycle, InterestAccrualCycleEvent, error::InterestAccrualCycleError,
     },
+    liquidation_obligation::{
+        LiquidationObligation, LiquidationObligationEvent, error::LiquidationObligationError,
+    },
     obligation::{Obligation, ObligationEvent, error::ObligationError},
     payment_allocation::{
         PaymentAllocation, PaymentAllocationEvent, error::PaymentAllocationError,
@@ -268,6 +271,28 @@ where
                     credit_facility_id: entity.credit_facility_id,
                 }),
                 _ => None,
+            })
+            .collect::<Vec<_>>();
+        self.outbox
+            .publish_all_persisted(db.tx(), publish_events)
+            .await?;
+        Ok(())
+    }
+
+    pub async fn publish_liquidation_obligation(
+        &self,
+        db: &mut es_entity::DbOp<'_>,
+        entity: &LiquidationObligation,
+        new_events: es_entity::LastPersisted<'_, LiquidationObligationEvent>,
+    ) -> Result<(), LiquidationObligationError> {
+        use LiquidationObligationEvent::*;
+        let publish_events = new_events
+            .filter_map(|event| match &event.event {
+                Initialized { .. } => Some(CoreCreditEvent::LiquidationStarted {
+                    id: entity.id,
+                    parent_obligation_id: entity.parent_obligation_id,
+                    credit_facility_id: entity.credit_facility_id,
+                }),
             })
             .collect::<Vec<_>>();
         self.outbox

@@ -82,6 +82,10 @@ where
                     | ObligationCompleted {
                         credit_facility_id: id,
                         ..
+                    }
+                    | LiquidationStarted {
+                        credit_facility_id: id,
+                        ..
                     } => *id,
                 };
 
