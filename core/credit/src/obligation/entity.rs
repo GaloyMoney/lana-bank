@@ -53,6 +53,12 @@ pub enum ObligationEvent {
         payment_allocation_id: PaymentAllocationId,
         amount: UsdCents,
     },
+    MovedToLiquidation {
+        effective: chrono::NaiveDate,
+        liquidation_obligation_id: LiquidationObligationId,
+        outstanding: UsdCents,
+        audit_info: AuditInfo,
+    },
     Completed {
         effective: chrono::NaiveDate,
         audit_info: AuditInfo,
@@ -472,6 +478,7 @@ impl TryFromEvents<ObligationEvent> for Obligation {
                 ObligationEvent::OverdueRecorded { .. } => (),
                 ObligationEvent::DefaultedRecorded { .. } => (),
                 ObligationEvent::PaymentAllocated { .. } => (),
+                ObligationEvent::MovedToLiquidation { .. } => (),
                 ObligationEvent::Completed { .. } => (),
             }
         }
