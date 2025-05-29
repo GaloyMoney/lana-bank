@@ -94,35 +94,7 @@ where
         id: impl es_entity::RetryableInto<CreditFacilityId>,
         approved: bool,
     ) -> Result<CreditFacility, CoreCreditError> {
-        let mut credit_facility = self
-            .credit_facilities
-            .find_by_id_without_audit(id.into())
-            .await?;
-        if credit_facility.is_approval_process_concluded() {
-            return Ok(credit_facility);
-        }
-        let mut db = self.credit_facilities.begin_op().await?;
-        let audit_info = self
-            .audit
-            .record_system_entry_in_tx(
-                db.tx(),
-                CoreCreditObject::credit_facility(credit_facility.id),
-                CoreCreditAction::CREDIT_FACILITY_CONCLUDE_APPROVAL_PROCESS,
-            )
-            .await?;
-        if credit_facility
-            .approval_process_concluded(approved, audit_info)
-            .was_ignored()
-        {
-            return Ok(credit_facility);
-        }
-
-        self.credit_facilities
-            .update_in_op(&mut db, &mut credit_facility)
-            .await?;
-
-        db.commit().await?;
-
+        let credit_facility = self.credit_facilities.approve(id.into(), approved).await?;
         Ok(credit_facility)
     }
 }

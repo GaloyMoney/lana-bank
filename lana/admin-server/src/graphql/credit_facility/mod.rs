@@ -190,7 +190,11 @@ impl CreditFacility {
 
     async fn balance(&self, ctx: &Context<'_>) -> async_graphql::Result<CreditFacilityBalance> {
         let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
-        let balance = app.credit().balance(sub, self.entity.id).await?;
+        let balance = app
+            .credit()
+            .credit_facilities()
+            .balance(sub, self.entity.id)
+            .await?;
         Ok(CreditFacilityBalance::from(balance))
     }
 }

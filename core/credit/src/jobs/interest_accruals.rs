@@ -2,15 +2,12 @@ use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
 use tracing::instrument;
 
-use audit::{AuditInfo, AuditSvc};
+use audit::AuditSvc;
 use authz::PermissionCheck;
 use job::*;
 use outbox::OutboxEventMarker;
 
-use crate::{
-    credit_facility::CreditFacilities, error::CoreCreditError, event::CoreCreditEvent, ledger::*,
-    primitives::*, terms::InterestPeriod,
-};
+use crate::{credit_facility::CreditFacilities, event::CoreCreditEvent, ledger::*, primitives::*};
 
 #[derive(Clone, Serialize, Deserialize)]
 pub struct CreditFacilityJobConfig<Perms, E> {
@@ -35,7 +32,6 @@ where
 {
     ledger: CreditLedger,
     credit_facilities: CreditFacilities<Perms, E>,
-    audit: Perms::Audit,
     jobs: Jobs,
 }
 
@@ -49,13 +45,11 @@ where
     pub fn new(
         ledger: &CreditLedger,
         credit_facilities: &CreditFacilities<Perms, E>,
-        audit: &Perms::Audit,
         jobs: &Jobs,
     ) -> Self {
         Self {
             ledger: ledger.clone(),
             credit_facilities: credit_facilities.clone(),
-            audit: audit.clone(),
             jobs: jobs.clone(),
         }
     }
@@ -80,20 +74,11 @@ where
     fn init(&self, job: &Job) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
         Ok(Box::new(CreditFacilityProcessingJobRunner::<Perms, E> {
             config: job.config()?,
-            credit_facility_repo: self.credit_facilities.clone(),
+            credit_facilities: self.credit_facilities.clone(),
             ledger: self.ledger.clone(),
-            audit: self.audit.clone(),
             jobs: self.jobs.clone(),
         }))
     }
-}
-
-#[derive(Clone)]
-struct ConfirmedAccrual {
-    accrual: CreditFacilityInterestAccrual,
-    next_period: Option<InterestPeriod>,
-    accrual_idx: InterestAccrualCycleIdx,
-    accrued_count: usize,
 }
 
 pub struct CreditFacilityProcessingJobRunner<Perms, E>
@@ -102,58 +87,9 @@ where
     E: OutboxEventMarker<CoreCreditEvent>,
 {
     config: CreditFacilityJobConfig<Perms, E>,
-    credit_facility_repo: CreditFacilities<Perms, E>,
+    credit_facilities: CreditFacilities<Perms, E>,
     ledger: CreditLedger,
-    audit: Perms::Audit,
     jobs: Jobs,
-}
-
-impl<Perms, E> CreditFacilityProcessingJobRunner<Perms, E>
-where
-    Perms: PermissionCheck,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>,
-    E: OutboxEventMarker<CoreCreditEvent>,
-{
-    async fn confirm_interest_accrual(
-        &self,
-        db: &mut es_entity::DbOp<'_>,
-        audit_info: &AuditInfo,
-    ) -> Result<ConfirmedAccrual, CoreCreditError> {
-        let mut credit_facility = self
-            .credit_facility_repo
-            .find_by_id_without_audit(self.config.credit_facility_id)
-            .await?;
-
-        let confirmed_accrual = {
-            let balances = self
-                .ledger
-                .get_credit_facility_balance(credit_facility.account_ids)
-                .await?;
-
-            let account_ids = credit_facility.account_ids;
-
-            let accrual = credit_facility
-                .interest_accrual_cycle_in_progress_mut()
-                .expect("Accrual in progress should exist for scheduled job");
-
-            let interest_accrual =
-                accrual.record_accrual(balances.disbursed_outstanding(), audit_info.clone());
-
-            ConfirmedAccrual {
-                accrual: (interest_accrual, account_ids).into(),
-                next_period: accrual.next_accrual_period(),
-                accrual_idx: accrual.idx,
-                accrued_count: accrual.count_accrued(),
-            }
-        };
-
-        self.credit_facility_repo
-            .update_in_op(db, &mut credit_facility)
-            .await?;
-
-        Ok(confirmed_accrual)
-    }
 }
 
 #[async_trait]
@@ -176,22 +112,17 @@ where
         let span = tracing::Span::current();
         span.record("attempt", current_job.attempt());
 
-        let mut db = self.credit_facility_repo.begin_op().await?;
-        let audit_info = self
-            .audit
-            .record_system_entry_in_tx(
-                db.tx(),
-                CoreCreditObject::all_credit_facilities(),
-                CoreCreditAction::CREDIT_FACILITY_RECORD_INTEREST,
-            )
-            .await?;
+        let mut db = self.credit_facilities.begin_op().await?;
 
-        let ConfirmedAccrual {
+        let crate::ConfirmedAccrual {
             accrual: interest_accrual,
             next_period: next_accrual_period,
             accrual_idx,
             accrued_count,
-        } = self.confirm_interest_accrual(&mut db, &audit_info).await?;
+        } = self
+            .credit_facilities
+            .confirm_interest_accrual_in_op(&mut db, self.config.credit_facility_id)
+            .await?;
 
         if let Some(period) = next_accrual_period {
             self.ledger

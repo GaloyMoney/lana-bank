@@ -64,7 +64,7 @@ where
     {
         Ok(self
             .credit_facilities
-            .list_for_customer(&self.subject, self.customer_id, query, direction)
+            .list_for_customer(self.subject, self.customer_id, query, direction)
             .await?)
     }
 

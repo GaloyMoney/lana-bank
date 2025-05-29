@@ -5,13 +5,12 @@ use std::time::Duration;
 
 use audit::AuditSvc;
 use authz::PermissionCheck;
-use core_price::Price;
 use job::*;
 use outbox::OutboxEventMarker;
 
 use crate::{
-    credit_facility::CreditFacilities, ledger::CreditLedger, primitives::*, CoreCreditAction,
-    CoreCreditEvent, CoreCreditObject,
+    credit_facility::CreditFacilities, primitives::*, CoreCreditAction, CoreCreditEvent,
+    CoreCreditObject,
 };
 
 #[serde_with::serde_as]
@@ -37,9 +36,6 @@ where
     E: OutboxEventMarker<CoreCreditEvent>,
 {
     credit_facilities: CreditFacilities<Perms, E>,
-    ledger: CreditLedger,
-    audit: Perms::Audit,
-    price: Price,
 }
 
 impl<Perms, E> CreditFacilityCollateralizationFromPriceJobInitializer<Perms, E>
@@ -49,18 +45,8 @@ where
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>,
     E: OutboxEventMarker<CoreCreditEvent>,
 {
-    pub fn new(
-        credit_facilities: CreditFacilities<Perms, E>,
-        ledger: &CreditLedger,
-        price: &Price,
-        audit: &Perms::Audit,
-    ) -> Self {
-        Self {
-            credit_facilities,
-            ledger: ledger.clone(),
-            price: price.clone(),
-            audit: audit.clone(),
-        }
+    pub fn new(credit_facilities: CreditFacilities<Perms, E>) -> Self {
+        Self { credit_facilities }
     }
 }
 
@@ -85,9 +71,6 @@ where
             CreditFacilityCollateralizationFromPriceJobRunner::<Perms, E> {
                 config: job.config()?,
                 credit_facilities: self.credit_facilities.clone(),
-                ledger: self.ledger.clone(),
-                price: self.price.clone(),
-                audit: self.audit.clone(),
             },
         ))
     }
@@ -99,10 +82,7 @@ where
     E: OutboxEventMarker<CoreCreditEvent>,
 {
     config: CreditFacilityCollateralizationFromPriceJobConfig<Perms, E>,
-    ledger: CreditLedger,
     credit_facilities: CreditFacilities<Perms, E>,
-    price: Price,
-    audit: Perms::Audit,
 }
 
 #[async_trait]

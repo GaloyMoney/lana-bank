@@ -54,6 +54,8 @@ pub enum CreditFacilityError {
     LedgerError(#[from] crate::ledger::error::CreditLedgerError),
     #[error("CreditFacilityError - PriceError: {0}")]
     PriceError(#[from] core_price::error::PriceError),
+    #[error("CreditFacilityError - ObligationError: {0}")]
+    ObligationError(#[from] crate::obligation::error::ObligationError),
 }
 
 es_entity::from_es_entity_error!(CreditFacilityError);

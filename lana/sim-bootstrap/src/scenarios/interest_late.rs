@@ -129,13 +129,23 @@ async fn do_interest_late(
         .record_payment(&sub, id, first_interest, sim_time::now().date_naive())
         .await?;
 
-    if app.credit().has_outstanding_obligations(&sub, id).await? {
+    if app
+        .credit()
+        .credit_facilities()
+        .has_outstanding_obligations(&sub, id)
+        .await?
+    {
         while let Some((_, amount)) = obligation_amount_rx.recv().await {
             app.credit()
                 .record_payment(&sub, id, amount, sim_time::now().date_naive())
                 .await?;
 
-            if !app.credit().has_outstanding_obligations(&sub, id).await? {
+            if !app
+                .credit()
+                .credit_facilities()
+                .has_outstanding_obligations(&sub, id)
+                .await?
+            {
                 break;
             }
         }

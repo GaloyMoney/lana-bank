@@ -28,7 +28,6 @@ use cala_ledger::CalaLedger;
 use core_accounting::Chart;
 use core_customer::{CoreCustomerAction, CoreCustomerEvent, CustomerObject, Customers};
 use core_price::Price;
-use es_entity::Idempotent;
 use governance::{Governance, GovernanceAction, GovernanceEvent, GovernanceObject};
 use job::Jobs;
 use outbox::{Outbox, OutboxEventMarker};
@@ -142,10 +141,11 @@ where
     ) -> Result<Self, CoreCreditError> {
         let publisher = CreditFacilityPublisher::new(outbox);
         let ledger = CreditLedger::init(cala, journal_id).await?;
-        let credit_facilities = CreditFacilities::new(pool, authz, &publisher, &ledger, &price);
         let obligations = Obligations::new(pool, authz, cala, jobs, &publisher);
-        let disbursals = Disbursals::new(pool, authz, &publisher, &obligations, governance).await;
+        let credit_facilities =
+            CreditFacilities::new(pool, authz, &obligations, &ledger, price, &publisher);
         let collaterals = Collaterals::new(pool, authz, &publisher);
+        let disbursals = Disbursals::new(pool, authz, &publisher, &obligations, governance).await;
         let payment_repo = PaymentRepo::new(pool);
         let history_repo = HistoryRepo::new(pool);
         let repayment_plan_repo = RepaymentPlanRepo::new(pool);
@@ -168,7 +168,7 @@ where
             collateralization_from_price::CreditFacilityCollateralizationFromPriceJobInitializer::<
                 Perms,
                 E,
-            >::new(credit_facilities.clone(), &ledger, price, authz.audit()),
+            >::new(credit_facilities.clone()),
             collateralization_from_price::CreditFacilityCollateralizationFromPriceJobConfig {
                 job_interval: std::time::Duration::from_secs(30),
                 upgrade_buffer_cvl_pct: config.upgrade_buffer_cvl_pct,
@@ -180,7 +180,7 @@ where
             collateralization_from_events::CreditFacilityCollateralizationFromEventsInitializer::<
                 Perms,
                 E,
-            >::new(outbox, &credit_facilities, &ledger, price, authz.audit()),
+            >::new(outbox, &credit_facilities),
             collateralization_from_events::CreditFacilityCollateralizationFromEventsJobConfig {
                 upgrade_buffer_cvl_pct: config.upgrade_buffer_cvl_pct,
                 _phantom: std::marker::PhantomData,
@@ -207,9 +207,7 @@ where
         jobs.add_initializer(interest_accruals::CreditFacilityProcessingJobInitializer::<
             Perms,
             E,
-        >::new(
-            &ledger, &credit_facilities, authz.audit(), jobs
-        ));
+        >::new(&ledger, &credit_facilities, jobs));
         jobs.add_initializer(
             interest_accrual_cycles::CreditFacilityProcessingJobInitializer::<Perms, E>::new(
                 &ledger,
@@ -451,31 +449,6 @@ where
         Ok(repayment_plan.entries.into_iter().map(T::from).collect())
     }
 
-    #[instrument(name = "credit_facility.balance", skip(self), err)]
-    pub async fn balance(
-        &self,
-        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        id: impl Into<CreditFacilityId> + std::fmt::Debug,
-    ) -> Result<CreditFacilityBalanceSummary, CoreCreditError> {
-        let id = id.into();
-        self.authz
-            .enforce_permission(
-                sub,
-                CoreCreditObject::credit_facility(id),
-                CoreCreditAction::CREDIT_FACILITY_READ,
-            )
-            .await?;
-
-        let credit_facility = self.credit_facilities.find_by_id_without_audit(id).await?;
-
-        let balances = self
-            .ledger
-            .get_credit_facility_balance(credit_facility.account_ids)
-            .await?;
-
-        Ok(balances)
-    }
-
     pub async fn subject_can_initiate_disbursal(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
@@ -677,7 +650,7 @@ where
         let credit_facility_id = credit_facility_id.into();
         let effective = effective.into();
 
-        let mut credit_facility = self
+        let credit_facility = self
             .credit_facilities
             .find_by_id_without_audit(credit_facility_id)
             .await?;
@@ -723,10 +696,6 @@ where
             .create_all_in_op(&mut db, res.allocations)
             .await?;
 
-        self.credit_facilities
-            .update_in_op(&mut db, &mut credit_facility)
-            .await?;
-
         self.ledger
             .record_obligation_repayments(db, allocations)
             .await?;
@@ -757,29 +726,32 @@ where
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         credit_facility_id: impl Into<CreditFacilityId> + std::fmt::Debug + Copy,
     ) -> Result<CreditFacility, CoreCreditError> {
-        let credit_facility_id = credit_facility_id.into();
+        let id = credit_facility_id.into();
 
         let audit_info = self
             .subject_can_complete(sub, true)
             .await?
             .expect("audit info missing");
 
-        let price = self.price.usd_cents_per_btc().await?;
-
-        let mut credit_facility = self
-            .credit_facilities
-            .find_by_id_without_audit(credit_facility_id)
-            .await?;
-
-        let balances = self
-            .ledger
-            .get_credit_facility_balance(credit_facility.account_ids)
-            .await?;
-
         let mut db = self.credit_facilities.begin_op().await?;
 
-        let _ = self
-            .collaterals
+        let (credit_facility, completion) = match self
+            .credit_facilities
+            .complete_in_op(&mut db, id, self.config.upgrade_buffer_cvl_pct, &audit_info)
+            .await?
+        {
+            CompletionOutcome::Ignored(data) => {
+                let credit_facility = *data;
+                (credit_facility, None)
+            }
+
+            CompletionOutcome::Completed(data) => {
+                let (credit_facility, completion) = *data;
+                (credit_facility, Some(completion))
+            }
+        };
+
+        self.collaterals
             .record_collateral_update_in_op(
                 &mut db,
                 credit_facility.collateral_id,
@@ -789,22 +761,9 @@ where
             )
             .await?;
 
-        let completion = if let Idempotent::Executed(completion) = credit_facility.complete(
-            audit_info,
-            price,
-            self.config.upgrade_buffer_cvl_pct,
-            balances,
-        )? {
-            completion
-        } else {
-            return Ok(credit_facility);
-        };
-
-        self.credit_facilities
-            .update_in_op(&mut db, &mut credit_facility)
-            .await?;
-
-        self.ledger.complete_credit_facility(db, completion).await?;
+        if let Some(completion) = completion {
+            self.ledger.complete_credit_facility(db, completion).await?;
+        }
 
         Ok(credit_facility)
     }
@@ -868,37 +827,6 @@ where
             .get_credit_facility_balance(entity.account_ids)
             .await?;
         Ok(balances.total_outstanding_payable())
-    }
-
-    pub async fn has_outstanding_obligations(
-        &self,
-        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        credit_facility_id: impl Into<CreditFacilityId> + std::fmt::Debug,
-    ) -> Result<bool, CoreCreditError> {
-        let id = credit_facility_id.into();
-
-        self.authz
-            .enforce_permission(
-                sub,
-                CoreCreditObject::credit_facility(id),
-                CoreCreditAction::CREDIT_FACILITY_READ,
-            )
-            .await?;
-
-        let credit_facility = self.credit_facilities.find_by_id_without_audit(id).await?;
-
-        if credit_facility
-            .interest_accrual_cycle_in_progress()
-            .is_some()
-        {
-            return Ok(true);
-        }
-
-        let balances = self
-            .ledger
-            .get_credit_facility_balance(credit_facility.account_ids)
-            .await?;
-        Ok(balances.any_outstanding_or_defaulted())
     }
 
     pub async fn get_chart_of_accounts_integration_config(

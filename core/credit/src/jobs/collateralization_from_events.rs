@@ -4,13 +4,10 @@ use serde::{Deserialize, Serialize};
 use authz::PermissionCheck;
 
 use audit::AuditSvc;
-use core_price::Price;
 use job::*;
 use outbox::{EventSequence, Outbox, OutboxEventMarker};
 
-use crate::{
-    credit_facility::CreditFacilities, event::CoreCreditEvent, ledger::CreditLedger, primitives::*,
-};
+use crate::{credit_facility::CreditFacilities, event::CoreCreditEvent, primitives::*};
 
 #[derive(Serialize, Deserialize)]
 pub struct CreditFacilityCollateralizationFromEventsJobConfig<Perms, E> {
@@ -36,9 +33,6 @@ where
 {
     outbox: Outbox<E>,
     credit_facilities: CreditFacilities<Perms, E>,
-    ledger: CreditLedger,
-    price: Price,
-    audit: Perms::Audit,
 }
 
 impl<Perms, E> CreditFacilityCollateralizationFromEventsInitializer<Perms, E>
@@ -48,19 +42,10 @@ where
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>,
     E: OutboxEventMarker<CoreCreditEvent>,
 {
-    pub fn new(
-        outbox: &Outbox<E>,
-        credit_facilities: &CreditFacilities<Perms, E>,
-        ledger: &CreditLedger,
-        price: &Price,
-        audit: &Perms::Audit,
-    ) -> Self {
+    pub fn new(outbox: &Outbox<E>, credit_facilities: &CreditFacilities<Perms, E>) -> Self {
         Self {
             outbox: outbox.clone(),
             credit_facilities: credit_facilities.clone(),
-            ledger: ledger.clone(),
-            price: price.clone(),
-            audit: audit.clone(),
         }
     }
 }
@@ -89,9 +74,6 @@ where
             config: job.config()?,
             outbox: self.outbox.clone(),
             credit_facilities: self.credit_facilities.clone(),
-            ledger: self.ledger.clone(),
-            price: self.price.clone(),
-            audit: self.audit.clone(),
         }))
     }
 }
@@ -111,9 +93,6 @@ where
     config: CreditFacilityCollateralizationFromEventsJobConfig<Perms, E>,
     outbox: Outbox<E>,
     credit_facilities: CreditFacilities<Perms, E>,
-    ledger: CreditLedger,
-    price: Price,
-    audit: Perms::Audit,
 }
 
 #[async_trait::async_trait]

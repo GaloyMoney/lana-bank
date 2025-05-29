@@ -1,7 +1,5 @@
 mod job;
 
-use tracing::instrument;
-
 use ::job::Jobs;
 use audit::AuditSvc;
 use authz::PermissionCheck;
@@ -9,6 +7,7 @@ use governance::{
     ApprovalProcess, ApprovalProcessStatus, ApprovalProcessType, Governance, GovernanceAction,
     GovernanceEvent, GovernanceObject,
 };
+use tracing::instrument;
 
 use outbox::OutboxEventMarker;
 
