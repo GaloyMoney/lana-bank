@@ -6,7 +6,10 @@ use std::cmp::Ordering;
 use audit::AuditInfo;
 use es_entity::*;
 
-use crate::{CreditFacilityId, payment_allocation::NewPaymentAllocation, primitives::*};
+use crate::{
+    liquidation_obligation::NewLiquidationObligation, payment_allocation::NewPaymentAllocation,
+    primitives::*,
+};
 
 use super::{error::ObligationError, primitives::*};
 
@@ -54,8 +57,10 @@ pub enum ObligationEvent {
         amount: UsdCents,
     },
     MovedToLiquidation {
+        tx_id: LedgerTxId,
         effective: chrono::NaiveDate,
         liquidation_obligation_id: LiquidationObligationId,
+        receivable_account_id: CalaAccountId,
         outstanding: UsdCents,
         audit_info: AuditInfo,
     },
@@ -447,6 +452,50 @@ impl Obligation {
         }
 
         Idempotent::Executed(Some(allocation))
+    }
+
+    pub(crate) fn move_to_liquidation(
+        &mut self,
+        effective: chrono::NaiveDate,
+        audit_info: &AuditInfo,
+    ) -> Idempotent<Option<NewLiquidationObligation>> {
+        idempotency_guard!(
+            self.events.iter_all().rev(),
+            ObligationEvent::MovedToLiquidation { .. }
+        );
+        if self.status() == ObligationStatus::Paid {
+            return Idempotent::Executed(None);
+        }
+        let outstanding = self.outstanding();
+        if outstanding.is_zero() {
+            return Idempotent::Executed(None);
+        }
+
+        let liquidation_obligation_id = LiquidationObligationId::new();
+        let tx_id = LedgerTxId::new();
+        let receivable_account_id = self
+            .receivable_account_id()
+            .expect("Obligation already Paid");
+        let liquidation = NewLiquidationObligation::builder()
+            .id(liquidation_obligation_id)
+            .credit_facility_id(self.credit_facility_id)
+            .parent_obligation_id(self.id)
+            .tx_id(tx_id)
+            .receivable_account_id(receivable_account_id)
+            .audit_info(audit_info.clone())
+            .build()
+            .expect("could not build new payment allocation");
+
+        self.events.push(ObligationEvent::MovedToLiquidation {
+            effective,
+            liquidation_obligation_id,
+            outstanding,
+            tx_id,
+            receivable_account_id,
+            audit_info: audit_info.clone(),
+        });
+
+        Idempotent::Executed(Some(liquidation))
     }
 }
 
