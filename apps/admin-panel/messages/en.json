@@ -19,7 +19,9 @@
     "upload": "Upload",
     "close": "Close",
     "submit": "Submit",
-    "set": "Set"
+    "set": "Set",
+    "customerType": "Customer Type",
+    "dateOfIssuance": "Date of Issuance"
   },
   "PermissionsDisplay": {
     "permissionsLabel": "Permissions this role has",
@@ -388,6 +390,7 @@
     "table": {
       "headers": {
         "customer": "Customer",
+        "state": "State",
         "status": "Status",
         "outstanding": "Outstanding",
         "collateralizationState": "State",
@@ -413,6 +416,16 @@
       "general": "An error occurred"
     },
     "CreditFacilityDetails": {
+      "DetailsCard": {
+        "title": "Credit Facility Details",
+        "details": {
+          "customerEmail": "Customer Email",
+          "collateralizationState": "Collateralization State",
+          "status": "Status",
+          "expiresAt": "Expires At",
+          "monthlyPayment": "Monthly Payment"
+        }
+      },
       "RepaymentPlan": {
         "title": "Repayment Plan",
         "description": "Repayment plan associated with this credit facility",
@@ -519,7 +532,7 @@
           "customerEmail": "Customer Email",
           "collateralizationState": "Collateralization State",
           "status": "Status",
-          "expiresAt": "Expires At"
+          "expiresAt": "Maturity Date"
         },
         "buttons": {
           "loanTerms": "Loan Terms",
