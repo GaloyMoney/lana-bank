@@ -724,35 +724,28 @@ where
 
         let mut db = self.credit_facilities.begin_op().await?;
 
-        let (credit_facility, completion) = match self
+        let credit_facility = match self
             .credit_facilities
             .complete_in_op(&mut db, id, self.config.upgrade_buffer_cvl_pct, &audit_info)
             .await?
         {
-            CompletionOutcome::Ignored(data) => {
-                let credit_facility = *data;
-                (credit_facility, None)
-            }
+            CompletionOutcome::Ignored(facility) => facility,
 
-            CompletionOutcome::Completed(data) => {
-                let (credit_facility, completion) = *data;
-                (credit_facility, Some(completion))
+            CompletionOutcome::Completed((facility, completion)) => {
+                self.collaterals
+                    .record_collateral_update_in_op(
+                        &mut db,
+                        facility.collateral_id,
+                        Satoshis::ZERO,
+                        crate::time::now().date_naive(),
+                        &audit_info,
+                    )
+                    .await?;
+
+                self.ledger.complete_credit_facility(db, completion).await?;
+                facility
             }
         };
-
-        self.collaterals
-            .record_collateral_update_in_op(
-                &mut db,
-                credit_facility.collateral_id,
-                Satoshis::ZERO,
-                crate::time::now().date_naive(),
-                &audit_info,
-            )
-            .await?;
-
-        if let Some(completion) = completion {
-            self.ledger.complete_credit_facility(db, completion).await?;
-        }
 
         Ok(credit_facility)
     }

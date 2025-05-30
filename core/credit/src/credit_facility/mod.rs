@@ -64,9 +64,10 @@ pub(super) struct ActivationData {
     pub audit_info: audit::AuditInfo,
 }
 
+#[allow(clippy::large_enum_variant)]
 pub(super) enum CompletionOutcome {
-    Ignored(Box<CreditFacility>),
-    Completed(Box<(CreditFacility, crate::CreditFacilityCompletion)>),
+    Ignored(CreditFacility),
+    Completed((CreditFacility, crate::CreditFacilityCompletion)),
 }
 
 #[derive(Clone)]
@@ -271,15 +272,12 @@ where
         {
             completion
         } else {
-            return Ok(CompletionOutcome::Ignored(Box::new(credit_facility)));
+            return Ok(CompletionOutcome::Ignored(credit_facility));
         };
 
         self.repo.update_in_op(db, &mut credit_facility).await?;
 
-        Ok(CompletionOutcome::Completed(Box::new((
-            credit_facility,
-            completion,
-        ))))
+        Ok(CompletionOutcome::Completed((credit_facility, completion)))
     }
 
     pub(super) async fn complete_interest_cycle_and_maybe_start_new_cycle(
