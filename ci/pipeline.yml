@@ -33,9 +33,6 @@
 groups:
   - name: lana-bank
     jobs:
-      - nodejs-check-code
-      - rust-check-code
-      - build-debug
       - integration-tests
       - bats-integrations-test
       - release
@@ -79,33 +76,6 @@ jobs:
 
                 nix -L develop --command sh -exc ../pipeline-tasks/ci/tasks/podman-integration-tests.sh
 
-  - name: build-debug
-    plan:
-    - get: repo
-      trigger: true
-    - task: nix-debug
-      config:
-        platform: linux
-        image_resource: #@ nix_flake_cachix_image_config()
-        inputs:
-          - name: repo
-        params:
-          CACHIX_AUTH_TOKEN: #@ data.values.cachix_auth_token
-        run:
-          path: sh
-          args:
-          - -exc
-          - |
-            set -euo pipefail
-            cd repo
-            cachix use lana-ci
-
-            # Build and cache the main derivation
-            nix build --print-out-paths --no-link | cachix push lana-ci
-            
-            # Build and cache the development shell
-            nix develop --command true | cachix push lana-ci
-
   - name: bats-integrations-test
     #! serial: true
     plan:
@@ -141,7 +111,7 @@ jobs:
                 nix -L develop --command sh -exc ../pipeline-tasks/ci/tasks/podman-integration-tests.sh
                 nix -L develop --command sh -exc ../pipeline-tasks/ci/tasks/podman-bats-tests.sh                
 
-  - name: rust-check-code
+  - name: check-code
     serial: true
     plan:
     - in_parallel:
@@ -167,21 +137,7 @@ jobs:
               
               nix develop --command sh -exc "make check-code"
 
-  - name: nodejs-check-code
-    serial: true
-    plan:
-    - in_parallel:
-      - { get: repo, trigger: true }
-      - { get: pipeline-tasks }
-    - task: check-code
-      config:
-        platform: linux
-        image_resource: #@ nodejs_task_image_config()
-        inputs:
-        - name: pipeline-tasks
-        - name: repo
-        run:
-          path: pipeline-tasks/ci/tasks/check-code-apps.sh
+              cachix watch-store lana-ci
 
   - name: build-static-binary
     serial: true
