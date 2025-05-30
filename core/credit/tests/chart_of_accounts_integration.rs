@@ -82,7 +82,7 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
         .await?
         .id;
 
-    credit
+    credit.chart_of_accounts_integrations()
         .set_chart_of_accounts_integration_config(
             &DummySubject,
             &chart,
@@ -216,7 +216,7 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
         .await?
         .unwrap();
 
-    let res = credit
+    let res = credit.chart_of_accounts_integrations()
         .set_chart_of_accounts_integration_config(
             &DummySubject,
             &chart,
@@ -321,7 +321,7 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
 
     assert!(matches!(
         res,
-        Err(core_credit::error::CoreCreditError::CreditConfigAlreadyExists)
+        Err(core_credit::ChartOfAccountsIntegrationError::CreditConfigAlreadyExists)
     ));
 
     Ok(())
