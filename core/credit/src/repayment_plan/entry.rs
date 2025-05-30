@@ -74,6 +74,7 @@ impl From<ObligationStatus> for RepaymentStatus {
             ObligationStatus::NotYetDue => RepaymentStatus::NotYetDue,
             ObligationStatus::Due => RepaymentStatus::Due,
             ObligationStatus::Overdue => RepaymentStatus::Overdue,
+            ObligationStatus::MovedToLiquidation => RepaymentStatus::Overdue,
             ObligationStatus::Defaulted => RepaymentStatus::Defaulted,
             ObligationStatus::Paid => RepaymentStatus::Paid,
         }

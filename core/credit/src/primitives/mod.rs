@@ -47,6 +47,7 @@ pub enum ObligationStatus {
     Due,
     Overdue,
     Defaulted,
+    MovedToLiquidation,
     Paid,
 }
 
