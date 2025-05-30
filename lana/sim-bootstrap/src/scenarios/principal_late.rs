@@ -76,7 +76,7 @@ pub async fn principal_late_scenario(sub: Subject, app: &LanaApp) -> anyhow::Res
 
     let cf = app
         .credit()
-        .credit_facilities()
+        .facilities()
         .find_by_id(&sub, cf.id)
         .await?
         .expect("cf exists");
@@ -112,7 +112,7 @@ async fn do_principal_late(
 
         let facility = app
             .credit()
-            .credit_facilities()
+            .facilities()
             .find_by_id(&sub, id)
             .await?
             .unwrap();
@@ -130,7 +130,7 @@ async fn do_principal_late(
 
     if app
         .credit()
-        .credit_facilities()
+        .facilities()
         .has_outstanding_obligations(&sub, id)
         .await?
     {
@@ -141,7 +141,7 @@ async fn do_principal_late(
 
             if !app
                 .credit()
-                .credit_facilities()
+                .facilities()
                 .has_outstanding_obligations(&sub, id)
                 .await?
             {

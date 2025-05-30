@@ -103,7 +103,7 @@ async fn do_principal_under_payment(
 
         let facility = app
             .credit()
-            .credit_facilities()
+            .facilities()
             .find_by_id(&sub, id)
             .await?
             .unwrap();

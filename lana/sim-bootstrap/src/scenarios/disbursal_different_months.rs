@@ -85,7 +85,7 @@ pub async fn disbursal_different_months_scenario(
 
     let cf = app
         .credit()
-        .credit_facilities()
+        .facilities()
         .find_by_id(&sub, cf.id)
         .await?
         .expect("cf exists");
@@ -132,7 +132,7 @@ async fn do_timely_payments(
 
         if !app
             .credit()
-            .credit_facilities()
+            .facilities()
             .has_outstanding_obligations(&sub, id)
             .await?
         {

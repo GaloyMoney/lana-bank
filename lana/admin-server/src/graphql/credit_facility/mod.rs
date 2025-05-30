@@ -192,7 +192,7 @@ impl CreditFacility {
         let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
         let balance = app
             .credit()
-            .credit_facilities()
+            .facilities()
             .balance(sub, self.entity.id)
             .await?;
         Ok(CreditFacilityBalance::from(balance))

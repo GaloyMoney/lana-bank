@@ -241,7 +241,7 @@ impl Query {
         maybe_fetch_one!(
             CreditFacility,
             ctx,
-            app.credit().credit_facilities().find_by_id(sub, id)
+            app.credit().facilities().find_by_id(sub, id)
         )
     }
 
@@ -292,10 +292,7 @@ impl Query {
             ctx,
             after,
             first,
-            |query| app
-                .credit()
-                .credit_facilities()
-                .list(sub, query, filter, sort)
+            |query| app.credit().facilities().list(sub, query, filter, sort)
         )
     }
 

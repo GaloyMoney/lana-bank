@@ -86,7 +86,7 @@ impl Customer {
 
         let credit_facilities: Vec<CreditFacility> = app
             .credit()
-            .credit_facilities()
+            .facilities()
             .list(
                 sub,
                 Default::default(),

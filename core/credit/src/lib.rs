@@ -67,7 +67,7 @@ where
         + OutboxEventMarker<CoreCustomerEvent>,
 {
     authz: Perms,
-    credit_facilities: CreditFacilities<Perms, E>,
+    facilities: CreditFacilities<Perms, E>,
     disbursals: Disbursals<Perms, E>,
     payment_repo: PaymentRepo,
     history_repo: HistoryRepo,
@@ -95,7 +95,7 @@ where
     fn clone(&self) -> Self {
         Self {
             authz: self.authz.clone(),
-            credit_facilities: self.credit_facilities.clone(),
+            facilities: self.facilities.clone(),
             obligations: self.obligations.clone(),
             collaterals: self.collaterals.clone(),
             disbursals: self.disbursals.clone(),
@@ -261,7 +261,7 @@ where
         Ok(Self {
             authz: authz.clone(),
             customer: customer.clone(),
-            credit_facilities,
+            facilities: credit_facilities,
             obligations,
             collaterals,
             disbursals,
@@ -291,8 +291,8 @@ where
         &self.disbursals
     }
 
-    pub fn credit_facilities(&self) -> &CreditFacilities<Perms, E> {
-        &self.credit_facilities
+    pub fn facilities(&self) -> &CreditFacilities<Perms, E> {
+        &self.facilities
     }
 
     pub async fn subject_can_create(
@@ -324,7 +324,7 @@ where
             sub,
             customer_id,
             &self.authz,
-            &self.credit_facilities,
+            &self.facilities,
             &self.disbursals,
             &self.payment_allocation_repo,
             &self.history_repo,
@@ -374,7 +374,7 @@ where
             .build()
             .expect("could not build new credit facility");
 
-        let mut db = self.credit_facilities.begin_op().await?;
+        let mut db = self.facilities.begin_op().await?;
 
         self.collaterals
             .create_in_op(
@@ -386,7 +386,7 @@ where
             .await?;
 
         let credit_facility = self
-            .credit_facilities
+            .facilities
             .create_in_op(&mut db, new_credit_facility)
             .await?;
 
@@ -467,7 +467,7 @@ where
             .expect("audit info missing");
 
         let facility = self
-            .credit_facilities
+            .facilities
             .find_by_id_without_audit(credit_facility_id)
             .await?;
 
@@ -498,7 +498,7 @@ where
             return Err(CreditFacilityError::BelowMarginLimit.into());
         }
 
-        let mut db = self.credit_facilities.begin_op().await?;
+        let mut db = self.facilities.begin_op().await?;
         let disbursal_id = DisbursalId::new();
         let due_date = facility.matures_at.expect("Facility is not active");
         let overdue_date = facility
@@ -582,11 +582,11 @@ where
             .expect("audit info missing");
 
         let credit_facility = self
-            .credit_facilities
+            .facilities
             .find_by_id_without_audit(credit_facility_id)
             .await?;
 
-        let mut db = self.credit_facilities.begin_op().await?;
+        let mut db = self.facilities.begin_op().await?;
 
         let collateral_update = if let Some(collateral_update) = self
             .collaterals
@@ -640,11 +640,11 @@ where
         let effective = effective.into();
 
         let credit_facility = self
-            .credit_facilities
+            .facilities
             .find_by_id_without_audit(credit_facility_id)
             .await?;
 
-        let mut db = self.credit_facilities.begin_op().await?;
+        let mut db = self.facilities.begin_op().await?;
         let audit_info = self
             .subject_can_record_payment(sub, true)
             .await?
@@ -722,10 +722,10 @@ where
             .await?
             .expect("audit info missing");
 
-        let mut db = self.credit_facilities.begin_op().await?;
+        let mut db = self.facilities.begin_op().await?;
 
         let credit_facility = match self
-            .credit_facilities
+            .facilities
             .complete_in_op(&mut db, id, self.config.upgrade_buffer_cvl_pct, &audit_info)
             .await?
         {
@@ -781,7 +781,7 @@ where
         &self,
         ids: &[CreditFacilityId],
     ) -> Result<HashMap<CreditFacilityId, T>, CoreCreditError> {
-        Ok(self.credit_facilities.find_all(ids).await?)
+        Ok(self.facilities.find_all(ids).await?)
     }
 
     pub async fn can_be_completed(&self, entity: &CreditFacility) -> Result<bool, CoreCreditError> {
