@@ -19,3 +19,11 @@ pub struct GetTokenResponse {
     pub access_token: String,
     pub expires_in: u64,
 }
+
+#[derive(Debug, Deserialize)]
+pub struct Many<T> {
+    count: u64,
+    data: Vec<T>,
+    has_next: bool,
+    page: u64,
+}

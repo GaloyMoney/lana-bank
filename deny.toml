@@ -224,6 +224,11 @@ expression = "LicenseRef-FSL-1.1-ALv2"
 license-files = []
 
 [[licenses.clarify]]
+crate = "komainu"
+expression = "LicenseRef-FSL-1.1-ALv2"
+license-files = []
+
+[[licenses.clarify]]
 crate = "lana-app"
 expression = "LicenseRef-FSL-1.1-ALv2"
 license-files = []

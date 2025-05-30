@@ -5,7 +5,8 @@ use base64::{prelude::BASE64_STANDARD, Engine};
 use p256::ecdsa::{signature::Signer as _, Signature, SigningKey};
 use p256::pkcs8::DecodePrivateKey as _;
 use p256::SecretKey;
-use reqwest::{Client, Method, Proxy, RequestBuilder, Url};
+use reqwest::header::{HeaderValue, CONTENT_TYPE};
+use reqwest::{Body, Client, Method, Proxy, RequestBuilder, Url};
 use serde::{de::DeserializeOwned, Serialize};
 use serde_json::Value;
 use sha2::{Digest as _, Sha256};
@@ -55,12 +56,22 @@ impl KomainuClient {
         }
     }
 
-    pub async fn list_wallets(&self) -> Result<Value, KomainuError> {
+    pub async fn list_wallets(&self) -> Result<Many<Wallet>, KomainuError> {
         Ok(self.get("v1/custody/wallets").await?)
     }
 }
 
 impl KomainuClient {
+    fn url(&self, path: &str) -> Url {
+        let host = if self.config.komainu_test {
+            "https://api-uat.komainu.io"
+        } else {
+            "https://api.komainu.io"
+        };
+
+        format!("{host}/{path}").parse().expect("valid URL")
+    }
+
     async fn get<T: DeserializeOwned>(&self, endpoint: &str) -> Result<T, reqwest::Error> {
         self.request::<()>(Method::GET, endpoint, None)
             .await?
@@ -74,36 +85,38 @@ impl KomainuClient {
         &self,
         method: Method,
         endpoint: &str,
-        _body: Option<T>,
+        payload: Option<T>,
     ) -> Result<RequestBuilder, reqwest::Error> {
-        let url: Url = format!("https://api-uat.komainu.io/{endpoint}")
-            .parse()
-            .expect("valid URL");
-
+        let url = self.url(endpoint);
         let access_token = self.get_access_token().await?;
         let timestamp = chrono::Utc::now().timestamp_millis();
+
+        let payload = payload
+            .map(|payload| serde_json::to_vec(&payload).expect("encode to JSON"))
+            .unwrap_or_default();
 
         let canonical_string = format!(
             "{},{},{},sha256={},sha256={},{}",
             url.host_str().expect("URL with host"),
             method.as_str().to_lowercase(),
             url.path(),
-            BASE64_STANDARD.encode(Sha256::digest("")),
+            BASE64_STANDARD.encode(Sha256::digest(&payload)),
             BASE64_STANDARD.encode(Sha256::digest(&access_token)),
             timestamp
         );
 
         let signature: Signature = self.signing_key.sign(canonical_string.as_bytes());
 
+        let body: Body = payload.into();
+
         Ok(self
             .http_client
-            .get(url)
+            .request(method, url)
             .bearer_auth(access_token)
             .header("X-Timestamp", timestamp)
-            .header(
-                "X-Signature",
-                BASE64_STANDARD.encode(signature.to_der().to_bytes()),
-            ))
+            .header("X-Signature", BASE64_STANDARD.encode(signature.to_der()))
+            .body(body)
+            .header(CONTENT_TYPE, HeaderValue::from_static("application/json")))
     }
 
     async fn get_access_token(&self) -> Result<String, reqwest::Error> {
@@ -122,7 +135,7 @@ impl KomainuClient {
     async fn refresh_token(&self) -> Result<AccessToken, reqwest::Error> {
         let response: GetTokenResponse = self
             .http_client
-            .post("https://api-uat.komainu.io/v1/auth/token")
+            .post(self.url("v1/auth/token"))
             .json(&GetToken {
                 api_user: &self.config.api_user,
                 api_secret: &self.config.api_secret,
