@@ -20,8 +20,6 @@ mod repayment_plan;
 mod terms;
 mod time;
 
-use std::collections::HashMap;
-
 use audit::{AuditInfo, AuditSvc};
 use authz::PermissionCheck;
 use cala_ledger::CalaLedger;
@@ -69,10 +67,10 @@ where
     authz: Perms,
     facilities: CreditFacilities<Perms, E>,
     disbursals: Disbursals<Perms, E>,
-    payment_repo: PaymentRepo,
+    payments: Payments<Perms, E>,
     history_repo: HistoryRepo,
     repayment_plan_repo: RepaymentPlanRepo,
-    payment_allocation_repo: PaymentAllocationRepo<E>,
+    payment_allocations: PaymentAllocations<Perms, E>,
     governance: Governance<Perms, E>,
     customer: Customers<Perms, E>,
     ledger: CreditLedger,
@@ -99,10 +97,10 @@ where
             obligations: self.obligations.clone(),
             collaterals: self.collaterals.clone(),
             disbursals: self.disbursals.clone(),
-            payment_repo: self.payment_repo.clone(),
+            payments: self.payments.clone(),
             history_repo: self.history_repo.clone(),
             repayment_plan_repo: self.repayment_plan_repo.clone(),
-            payment_allocation_repo: self.payment_allocation_repo.clone(),
+            payment_allocations: self.payment_allocations.clone(),
             governance: self.governance.clone(),
             customer: self.customer.clone(),
             ledger: self.ledger.clone(),
@@ -154,10 +152,10 @@ where
         .await;
         let collaterals = Collaterals::new(pool, authz, &publisher);
         let disbursals = Disbursals::new(pool, authz, &publisher, &obligations, governance).await;
-        let payment_repo = PaymentRepo::new(pool);
+        let payments = Payments::new(pool, authz, &obligations, &publisher);
+        let payment_allocations = PaymentAllocations::new(pool, authz, &publisher);
         let history_repo = HistoryRepo::new(pool);
         let repayment_plan_repo = RepaymentPlanRepo::new(pool);
-        let payment_allocation_repo = PaymentAllocationRepo::new(pool, &publisher);
         let approve_disbursal =
             ApproveDisbursal::new(&disbursals, &credit_facilities, jobs, governance, &ledger);
 
@@ -265,10 +263,10 @@ where
             obligations,
             collaterals,
             disbursals,
-            payment_repo,
+            payments,
             history_repo,
             repayment_plan_repo,
-            payment_allocation_repo,
+            payment_allocations,
             governance: governance.clone(),
             ledger,
             price: price.clone(),
@@ -293,6 +291,10 @@ where
 
     pub fn facilities(&self) -> &CreditFacilities<Perms, E> {
         &self.facilities
+    }
+
+    pub fn payment_allocations(&self) -> &PaymentAllocations<Perms, E> {
+        &self.payment_allocations
     }
 
     pub async fn subject_can_create(
@@ -326,7 +328,7 @@ where
             &self.authz,
             &self.facilities,
             &self.disbursals,
-            &self.payment_allocation_repo,
+            &self.payment_allocations,
             &self.history_repo,
             &self.repayment_plan_repo,
             &self.ledger,
@@ -637,7 +639,6 @@ where
         effective: impl Into<chrono::NaiveDate> + std::fmt::Debug + Copy,
     ) -> Result<CreditFacility, CoreCreditError> {
         let credit_facility_id = credit_facility_id.into();
-        let effective = effective.into();
 
         let credit_facility = self
             .facilities
@@ -645,44 +646,10 @@ where
             .await?;
 
         let mut db = self.facilities.begin_op().await?;
-        let audit_info = self
-            .subject_can_record_payment(sub, true)
-            .await?
-            .expect("audit info missing");
-
-        let new_payment = NewPayment::builder()
-            .id(PaymentId::new())
-            .amount(amount)
-            .credit_facility_id(credit_facility_id)
-            .audit_info(audit_info.clone())
-            .build()
-            .expect("could not build new payment");
-        let mut payment = self.payment_repo.create_in_op(&mut db, new_payment).await?;
-
-        let res = self
-            .obligations
-            .allocate_payment_in_op(
-                &mut db,
-                credit_facility_id,
-                payment.id,
-                amount,
-                effective,
-                &audit_info,
-            )
-            .await?;
-
-        let _ = payment.record_allocated(
-            res.disbursed_amount(),
-            res.interest_amount(),
-            audit_info.clone(),
-        );
-        self.payment_repo
-            .update_in_op(&mut db, &mut payment)
-            .await?;
 
         let allocations = self
-            .payment_allocation_repo
-            .create_all_in_op(&mut db, res.allocations)
+            .payments
+            .record_in_op(sub, &mut db, credit_facility_id, amount, effective)
             .await?;
 
         self.ledger
@@ -748,40 +715,6 @@ where
         };
 
         Ok(credit_facility)
-    }
-
-    #[instrument(
-        name = "credit_facility.find_payment_allocation_by_id",
-        skip(self),
-        err
-    )]
-    pub async fn find_payment_allocation_by_id(
-        &self,
-        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        payment_allocation_id: impl Into<PaymentAllocationId> + std::fmt::Debug,
-    ) -> Result<PaymentAllocation, CoreCreditError> {
-        let payment_allocation = self
-            .payment_allocation_repo
-            .find_by_id(payment_allocation_id.into())
-            .await?;
-
-        self.authz
-            .enforce_permission(
-                sub,
-                CoreCreditObject::all_credit_facilities(),
-                CoreCreditAction::CREDIT_FACILITY_READ,
-            )
-            .await?;
-
-        Ok(payment_allocation)
-    }
-
-    #[instrument(name = "credit_facility.find_all", skip(self), err)]
-    pub async fn find_all<T: From<CreditFacility>>(
-        &self,
-        ids: &[CreditFacilityId],
-    ) -> Result<HashMap<CreditFacilityId, T>, CoreCreditError> {
-        Ok(self.facilities.find_all(ids).await?)
     }
 
     pub async fn can_be_completed(&self, entity: &CreditFacility) -> Result<bool, CoreCreditError> {

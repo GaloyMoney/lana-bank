@@ -16,7 +16,7 @@ where
     authz: &'a Perms,
     credit_facilities: &'a CreditFacilities<Perms, E>,
     disbursals: &'a Disbursals<Perms, E>,
-    payment_allocations: &'a PaymentAllocationRepo<E>,
+    payment_allocations: &'a PaymentAllocations<Perms, E>,
     histories: &'a HistoryRepo,
     repayment_plans: &'a RepaymentPlanRepo,
     ledger: &'a CreditLedger,
@@ -38,7 +38,7 @@ where
         authz: &'a Perms,
         credit_facilities: &'a CreditFacilities<Perms, E>,
         disbursals: &'a Disbursals<Perms, E>,
-        payment_allocations: &'a PaymentAllocationRepo<E>,
+        payment_allocations: &'a PaymentAllocations<Perms, E>,
         history: &'a HistoryRepo,
         repayment_plans: &'a RepaymentPlanRepo,
         ledger: &'a CreditLedger,
@@ -216,13 +216,14 @@ where
     ) -> Result<PaymentAllocation, CoreCreditError> {
         let payment_allocation = self
             .payment_allocations
-            .find_by_id(payment_id.into())
+            .find_by_id_without_audit(payment_id.into())
             .await?;
 
         let credit_facility = self
             .credit_facilities
             .find_by_id_without_audit(payment_allocation.credit_facility_id)
             .await?;
+
         self.ensure_credit_facility_access(
             &credit_facility,
             CoreCreditObject::all_credit_facilities(),
