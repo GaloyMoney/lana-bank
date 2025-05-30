@@ -12,6 +12,10 @@ pub enum CoreCreditError {
     AuthorizationError(#[from] authz::error::AuthorizationError),
     #[error("CoreCreditError - CreditError: {0}")]
     CreditLedgerError(#[from] super::ledger::error::CreditLedgerError),
+    #[error("CoreCreditError - ChartOfAccountsIntegrationError: {0}")]
+    ChartOfAccountsIntegrationError(
+        #[from] super::chart_of_accounts_integration::error::ChartOfAccountsIntegrationError,
+    ),
     #[error("CoreCreditError - CreditFacilityError: {0}")]
     CreditFacilityError(#[from] super::credit_facility::error::CreditFacilityError),
     #[error("CoreCreditError - HistoryError: {0}")]
@@ -36,8 +40,6 @@ pub enum CoreCreditError {
     PriceError(#[from] core_price::error::PriceError),
     #[error("CoreCreditError - GovernanceError: {0}")]
     GovernanceError(#[from] governance::error::GovernanceError),
-    #[error("CoreCreditError - ChartOfAccountsError: {0}")]
-    ChartOfAccountsError(#[from] core_accounting::chart_of_accounts::error::ChartOfAccountsError),
     #[error("CoreCreditError - JobError: {0}")]
     JobError(#[from] job::error::JobError),
     #[error("CoreCreditError - CustomerMismatchForCreditFacility")]
@@ -48,8 +50,4 @@ pub enum CoreCreditError {
     CustomerNotActive,
     #[error("CoreCreditError - CustomerNotFound")]
     CustomerNotFound,
-    #[error("CoreCreditError ChartIdMismatch")]
-    ChartIdMismatch,
-    #[error("CoreCreditError - CreditConfigAlreadyExists")]
-    CreditConfigAlreadyExists,
 }
