@@ -83,7 +83,7 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
         .id;
 
     credit.chart_of_accounts_integrations()
-        .set_chart_of_accounts_integration_config(
+        .set_config(
             &DummySubject,
             &chart,
             ChartOfAccountsIntegrationConfig::builder()
@@ -217,7 +217,7 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
         .unwrap();
 
     let res = credit.chart_of_accounts_integrations()
-        .set_chart_of_accounts_integration_config(
+        .set_config(
             &DummySubject,
             &chart,
             ChartOfAccountsIntegrationConfig::builder()

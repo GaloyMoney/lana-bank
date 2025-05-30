@@ -117,7 +117,7 @@ where
         }
     }
 
-    pub async fn set_chart_of_accounts_integration_config(
+    pub async fn set_config(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         chart: &Chart,
@@ -390,7 +390,7 @@ where
         Ok(config)
     }
 
-    pub async fn get_chart_of_accounts_integration_config(
+    pub async fn get_config(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
     ) -> Result<Option<ChartOfAccountsIntegrationConfig>, ChartOfAccountsIntegrationError> {
