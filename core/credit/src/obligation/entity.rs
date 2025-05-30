@@ -31,6 +31,7 @@ pub enum ObligationEvent {
         defaulted_account_id: CalaAccountId,
         due_date: DateTime<Utc>,
         overdue_date: Option<DateTime<Utc>>,
+        liquidation_date: Option<DateTime<Utc>>,
         defaulted_date: Option<DateTime<Utc>>,
         recorded_at: DateTime<Utc>,
         audit_info: AuditInfo,
@@ -553,6 +554,8 @@ pub struct NewObligation {
     due_date: DateTime<Utc>,
     overdue_date: Option<DateTime<Utc>>,
     #[builder(setter(strip_option), default)]
+    liquidation_date: Option<DateTime<Utc>>,
+    #[builder(setter(strip_option), default)]
     defaulted_date: Option<DateTime<Utc>>,
     recorded_at: DateTime<Utc>,
     #[builder(setter(into))]
@@ -590,6 +593,7 @@ impl IntoEvents<ObligationEvent> for NewObligation {
                 defaulted_account_id: self.defaulted_account_id,
                 due_date: self.due_date,
                 overdue_date: self.overdue_date,
+                liquidation_date: self.liquidation_date,
                 defaulted_date: self.defaulted_date,
                 recorded_at: self.recorded_at,
                 audit_info: self.audit_info,
@@ -659,6 +663,7 @@ mod test {
             defaulted_account_id: CalaAccountId::new(),
             due_date: Utc::now(),
             overdue_date: Some(Utc::now()),
+            liquidation_date: None,
             defaulted_date: None,
             recorded_at: Utc::now(),
             audit_info: dummy_audit_info(),
@@ -827,8 +832,12 @@ mod test {
             now + chrono::Duration::days(2)
         }
 
-        fn defaulted_timestamp(now: DateTime<Utc>) -> DateTime<Utc> {
+        fn liquidation_timestamp(now: DateTime<Utc>) -> DateTime<Utc> {
             now + chrono::Duration::days(3)
+        }
+
+        fn defaulted_timestamp(now: DateTime<Utc>) -> DateTime<Utc> {
+            now + chrono::Duration::days(4)
         }
 
         fn initial_events(now: DateTime<Utc>) -> Vec<ObligationEvent> {
@@ -854,6 +863,7 @@ mod test {
                 defaulted_account_id: CalaAccountId::new(),
                 due_date: due_timestamp(now),
                 overdue_date: Some(overdue_timestamp(now)),
+                liquidation_date: Some(defaulted_timestamp(now)),
                 defaulted_date: Some(defaulted_timestamp(now)),
                 recorded_at: now,
                 audit_info: dummy_audit_info(),
