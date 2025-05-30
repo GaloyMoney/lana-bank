@@ -123,6 +123,7 @@ google-cloud-storage = { version = "0.24.0", default-features = false, features 
 rand = "0.9"
 serial_test = { version = "3.2.0", features = ["file_locks"] }
 p256 = "0.13.2"
+pkcs8 = { version = "0.10.2", features = ["encryption"] }
 
 # Note: The workspace uses resolver = "2" which should unify features across all dependencies.
 # The reqwest dependency is configured with rustls-tls to prevent OpenSSL dependencies in CI builds.

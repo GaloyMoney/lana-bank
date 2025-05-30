@@ -4,6 +4,7 @@ use std::{sync::Arc, time::Instant};
 use base64::{prelude::BASE64_STANDARD, Engine};
 use p256::ecdsa::{signature::Signer as _, Signature, SigningKey};
 use p256::pkcs8::DecodePrivateKey as _;
+use p256::SecretKey;
 use reqwest::{Client, Method, Proxy, RequestBuilder, Url};
 use serde::{de::DeserializeOwned, Serialize};
 use serde_json::Value;
@@ -29,8 +30,12 @@ pub struct KomainuClient {
 impl KomainuClient {
     pub fn new(config: KomainuConfig) -> Self {
         let signing_key = match &config.secret_key {
-            KomainuSecretKey::Encrypted { .. } => todo!(),
-            KomainuSecretKey::Plain { dem } => p256::SecretKey::from_pkcs8_pem(dem).unwrap().into(),
+            KomainuSecretKey::Encrypted { dem, passphrase } => {
+                SecretKey::from_pkcs8_encrypted_pem(dem, passphrase)
+                    .expect("valid passphrase")
+                    .into()
+            }
+            KomainuSecretKey::Plain { dem } => SecretKey::from_pkcs8_pem(dem).unwrap().into(),
         };
 
         let http_client = if let Some(KomainuProxy::Socks5(proxy)) = &config.proxy {
