@@ -1295,7 +1295,7 @@ impl CreditLedger {
         Ok(())
     }
 
-    pub async fn create_credit_facility(
+    async fn create_credit_facility(
         &self,
         mut op: cala_ledger::LedgerOperation<'_>,
         CreditFacilityCreation {
@@ -1539,7 +1539,7 @@ impl CreditLedger {
         }
     }
 
-    pub async fn add_credit_facility_control_to_account(
+    async fn add_credit_facility_control_to_account(
         &self,
         op: &mut cala_ledger::LedgerOperation<'_>,
         account_id: impl Into<CalaAccountId>,
@@ -1649,7 +1649,37 @@ impl CreditLedger {
         }
     }
 
-    pub async fn create_accounts_for_credit_facility(
+    pub(super) async fn handle_facility_create(
+        &self,
+        db: es_entity::DbOp<'_>,
+        credit_facility: &crate::CreditFacility,
+        customer_type: CustomerType,
+        duration_type: FacilityDurationType,
+    ) -> Result<(), CreditLedgerError> {
+        let mut op = self.cala.ledger_operation_from_db_op(db);
+
+        self.create_accounts_for_credit_facility(
+            &mut op,
+            credit_facility.id,
+            credit_facility.account_ids,
+            customer_type,
+            duration_type,
+        )
+        .await?;
+
+        self.add_credit_facility_control_to_account(
+            &mut op,
+            credit_facility.account_ids.facility_account_id,
+        )
+        .await?;
+
+        self.create_credit_facility(op, credit_facility.creation_data())
+            .await?;
+
+        Ok(())
+    }
+
+    async fn create_accounts_for_credit_facility(
         &self,
         op: &mut cala_ledger::LedgerOperation<'_>,
         credit_facility_id: CreditFacilityId,

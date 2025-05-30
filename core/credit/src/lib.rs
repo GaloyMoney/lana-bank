@@ -142,8 +142,16 @@ where
         let publisher = CreditFacilityPublisher::new(outbox);
         let ledger = CreditLedger::init(cala, journal_id).await?;
         let obligations = Obligations::new(pool, authz, cala, jobs, &publisher);
-        let credit_facilities =
-            CreditFacilities::new(pool, authz, &obligations, &ledger, price, &publisher);
+        let credit_facilities = CreditFacilities::new(
+            pool,
+            authz,
+            &obligations,
+            &ledger,
+            price,
+            &publisher,
+            governance,
+        )
+        .await;
         let collaterals = Collaterals::new(pool, authz, &publisher);
         let disbursals = Disbursals::new(pool, authz, &publisher, &obligations, governance).await;
         let payment_repo = PaymentRepo::new(pool);
@@ -249,9 +257,6 @@ where
             CreditFacilityActivationJobConfig::<Perms, E>::new(),
         )
         .await?;
-        let _ = governance
-            .init_policy(APPROVE_CREDIT_FACILITY_PROCESS)
-            .await;
 
         Ok(Self {
             authz: authz.clone(),
@@ -370,9 +375,6 @@ where
             .expect("could not build new credit facility");
 
         let mut db = self.credit_facilities.begin_op().await?;
-        self.governance
-            .start_process(&mut db, id, id.to_string(), APPROVE_CREDIT_FACILITY_PROCESS)
-            .await?;
 
         self.collaterals
             .create_in_op(
@@ -388,26 +390,13 @@ where
             .create_in_op(&mut db, new_credit_facility)
             .await?;
 
-        let mut op = self.cala.ledger_operation_from_db_op(db);
         self.ledger
-            .create_accounts_for_credit_facility(
-                &mut op,
-                credit_facility.id,
-                credit_facility.account_ids,
+            .handle_facility_create(
+                db,
+                &credit_facility,
                 customer.customer_type,
                 terms.duration.duration_type(),
             )
-            .await?;
-
-        self.ledger
-            .add_credit_facility_control_to_account(
-                &mut op,
-                credit_facility.account_ids.facility_account_id,
-            )
-            .await?;
-
-        self.ledger
-            .create_credit_facility(op, credit_facility.creation_data())
             .await?;
 
         Ok(credit_facility)

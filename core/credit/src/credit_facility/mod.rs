@@ -6,6 +6,7 @@ use tracing::instrument;
 
 use audit::AuditSvc;
 use authz::PermissionCheck;
+use governance::{Governance, GovernanceAction, GovernanceEvent, GovernanceObject};
 use outbox::OutboxEventMarker;
 
 use crate::{
@@ -24,19 +25,20 @@ pub use repo::{
 pub struct CreditFacilities<Perms, E>
 where
     Perms: PermissionCheck,
-    E: OutboxEventMarker<CoreCreditEvent>,
+    E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<GovernanceEvent>,
 {
     repo: CreditFacilityRepo<E>,
     obligations: Obligations<Perms, E>,
     authz: Perms,
     ledger: CreditLedger,
     price: Price,
+    governance: Governance<Perms, E>,
 }
 
 impl<Perms, E> Clone for CreditFacilities<Perms, E>
 where
     Perms: PermissionCheck,
-    E: OutboxEventMarker<CoreCreditEvent>,
+    E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<GovernanceEvent>,
 {
     fn clone(&self) -> Self {
         Self {
@@ -45,6 +47,7 @@ where
             authz: self.authz.clone(),
             ledger: self.ledger.clone(),
             price: self.price.clone(),
+            governance: self.governance.clone(),
         }
     }
 }
@@ -77,19 +80,25 @@ pub(super) struct ConfirmedAccrual {
 impl<Perms, E> CreditFacilities<Perms, E>
 where
     Perms: PermissionCheck,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>,
-    E: OutboxEventMarker<CoreCreditEvent>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
+        From<CoreCreditAction> + From<GovernanceAction>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object:
+        From<CoreCreditObject> + From<GovernanceObject>,
+    E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<GovernanceEvent>,
 {
-    pub fn new(
+    pub async fn new(
         pool: &sqlx::PgPool,
         authz: &Perms,
         obligations: &Obligations<Perms, E>,
         ledger: &CreditLedger,
         price: &Price,
         publisher: &crate::CreditFacilityPublisher<E>,
+        governance: &Governance<Perms, E>,
     ) -> Self {
         let repo = CreditFacilityRepo::new(pool, publisher);
+        let _ = governance
+            .init_policy(crate::APPROVE_CREDIT_FACILITY_PROCESS)
+            .await;
 
         Self {
             repo,
@@ -97,6 +106,7 @@ where
             authz: authz.clone(),
             ledger: ledger.clone(),
             price: price.clone(),
+            governance: governance.clone(),
         }
     }
 
@@ -109,6 +119,14 @@ where
         db: &mut es_entity::DbOp<'_>,
         new_credit_facility: NewCreditFacility,
     ) -> Result<CreditFacility, CreditFacilityError> {
+        self.governance
+            .start_process(
+                db,
+                new_credit_facility.id,
+                new_credit_facility.id.to_string(),
+                crate::APPROVE_CREDIT_FACILITY_PROCESS,
+            )
+            .await?;
         self.repo.create_in_op(db, new_credit_facility).await
     }
 
@@ -313,7 +331,7 @@ where
         self.repo.find_by_id(id.into()).await
     }
 
-    #[instrument(name = "credit_facility.find", skip(self), err)]
+    #[instrument(name = "core_credit.credit_facility.find", skip(self), err)]
     pub async fn find_by_id(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
@@ -436,7 +454,7 @@ where
         Ok(credit_facility)
     }
 
-    #[instrument(name = "credit_facility.list", skip(self), err)]
+    #[instrument(name = "core_credit.credit_facility.list", skip(self), err)]
     pub async fn list(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
@@ -457,64 +475,6 @@ where
         self.repo.find_many(filter, sort.into(), query).await
     }
 
-    #[instrument(
-        name = "credit_facility.list_by_created_at_for_status",
-        skip(self),
-        err
-    )]
-    pub async fn list_by_created_at_for_status(
-        &self,
-        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        status: CreditFacilityStatus,
-        query: es_entity::PaginatedQueryArgs<CreditFacilitiesByCreatedAtCursor>,
-        direction: impl Into<es_entity::ListDirection> + std::fmt::Debug,
-    ) -> Result<
-        es_entity::PaginatedQueryRet<CreditFacility, CreditFacilitiesByCreatedAtCursor>,
-        CreditFacilityError,
-    > {
-        self.authz
-            .enforce_permission(
-                sub,
-                CoreCreditObject::all_credit_facilities(),
-                CoreCreditAction::CREDIT_FACILITY_LIST,
-            )
-            .await?;
-        self.repo
-            .list_for_status_by_created_at(status, query, direction.into())
-            .await
-    }
-
-    #[instrument(
-        name = "credit_facility.list_by_created_at_for_collateralization_state",
-        skip(self),
-        err
-    )]
-    pub async fn list_by_created_at_for_collateralization_state(
-        &self,
-        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        collateralization_state: CollateralizationState,
-        query: es_entity::PaginatedQueryArgs<CreditFacilitiesByCreatedAtCursor>,
-        direction: impl Into<es_entity::ListDirection> + std::fmt::Debug,
-    ) -> Result<
-        es_entity::PaginatedQueryRet<CreditFacility, CreditFacilitiesByCreatedAtCursor>,
-        CreditFacilityError,
-    > {
-        self.authz
-            .enforce_permission(
-                sub,
-                CoreCreditObject::all_credit_facilities(),
-                CoreCreditAction::CREDIT_FACILITY_LIST,
-            )
-            .await?;
-        self.repo
-            .list_for_collateralization_state_by_created_at(
-                collateralization_state,
-                query,
-                direction.into(),
-            )
-            .await
-    }
-
     pub(super) async fn list_by_collateralization_ratio_without_audit(
         &self,
         query: es_entity::PaginatedQueryArgs<CreditFacilitiesByCollateralizationRatioCursor>,
@@ -532,7 +492,7 @@ where
     }
 
     #[instrument(
-        name = "credit_facility.list_by_collateralization_ratio",
+        name = "core_credit.credit_facility.list_by_collateralization_ratio",
         skip(self),
         err
     )]
@@ -560,71 +520,7 @@ where
             .await
     }
 
-    #[instrument(
-        name = "credit_facility.list_by_collateralization_ratio_for_status",
-        skip(self),
-        err
-    )]
-    pub async fn list_by_collateralization_ratio_for_status(
-        &self,
-        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        status: CreditFacilityStatus,
-        query: es_entity::PaginatedQueryArgs<CreditFacilitiesByCollateralizationRatioCursor>,
-        direction: impl Into<es_entity::ListDirection> + std::fmt::Debug,
-    ) -> Result<
-        es_entity::PaginatedQueryRet<
-            CreditFacility,
-            CreditFacilitiesByCollateralizationRatioCursor,
-        >,
-        CreditFacilityError,
-    > {
-        self.authz
-            .enforce_permission(
-                sub,
-                CoreCreditObject::all_credit_facilities(),
-                CoreCreditAction::CREDIT_FACILITY_LIST,
-            )
-            .await?;
-        self.repo
-            .list_for_status_by_collateralization_ratio(status, query, direction.into())
-            .await
-    }
-
-    #[instrument(
-        name = "credit_facility.list_by_collateralization_ratio_for_collateralization_state",
-        skip(self),
-        err
-    )]
-    pub async fn list_by_collateralization_ratio_for_collateralization_state(
-        &self,
-        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        collateralization_state: CollateralizationState,
-        query: es_entity::PaginatedQueryArgs<CreditFacilitiesByCollateralizationRatioCursor>,
-        direction: impl Into<es_entity::ListDirection> + std::fmt::Debug,
-    ) -> Result<
-        es_entity::PaginatedQueryRet<
-            CreditFacility,
-            CreditFacilitiesByCollateralizationRatioCursor,
-        >,
-        CreditFacilityError,
-    > {
-        self.authz
-            .enforce_permission(
-                sub,
-                CoreCreditObject::all_credit_facilities(),
-                CoreCreditAction::CREDIT_FACILITY_LIST,
-            )
-            .await?;
-        self.repo
-            .list_for_collateralization_state_by_collateralization_ratio(
-                collateralization_state,
-                query,
-                direction.into(),
-            )
-            .await
-    }
-
-    #[instrument(name = "credit_facility.find_all", skip(self), err)]
+    #[instrument(name = "core_credit.credit_facility.find_all", skip(self), err)]
     pub async fn find_all<T: From<CreditFacility>>(
         &self,
         ids: &[CreditFacilityId],
@@ -632,6 +528,11 @@ where
         self.repo.find_all(ids).await
     }
 
+    #[instrument(
+        name = "core_credit.credit_facility.list_for_customer",
+        skip(self),
+        err
+    )]
     pub(super) async fn list_for_customer(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
@@ -657,7 +558,7 @@ where
             .await
     }
 
-    #[instrument(name = "credit_facility.balance", skip(self), err)]
+    #[instrument(name = "core_credit.credit_facility.balance", skip(self), err)]
     pub async fn balance(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
