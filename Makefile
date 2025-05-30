@@ -29,7 +29,7 @@ run-server:
 run-server-with-bootstrap:
 	cargo run --bin lana-cli --all-features -- --config ./bats/lana-sim-time.yml | tee .e2e-logs
 
-check-code: sdl-rust
+check-code: sdl-rust check-code-apps
 	git diff --exit-code lana/customer-server/src/graphql/schema.graphql
 	git diff --exit-code lana/admin-server/src/graphql/schema.graphql
 	SQLX_OFFLINE=true cargo fmt --check --all
