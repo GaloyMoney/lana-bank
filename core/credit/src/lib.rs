@@ -70,7 +70,6 @@ where
     payments: Payments<Perms, E>,
     history_repo: HistoryRepo,
     repayment_plan_repo: RepaymentPlanRepo,
-    payment_allocations: PaymentAllocations<Perms, E>,
     governance: Governance<Perms, E>,
     customer: Customers<Perms, E>,
     ledger: CreditLedger,
@@ -100,7 +99,6 @@ where
             payments: self.payments.clone(),
             history_repo: self.history_repo.clone(),
             repayment_plan_repo: self.repayment_plan_repo.clone(),
-            payment_allocations: self.payment_allocations.clone(),
             governance: self.governance.clone(),
             customer: self.customer.clone(),
             ledger: self.ledger.clone(),
@@ -153,7 +151,6 @@ where
         let collaterals = Collaterals::new(pool, authz, &publisher);
         let disbursals = Disbursals::new(pool, authz, &publisher, &obligations, governance).await;
         let payments = Payments::new(pool, authz, &obligations, &publisher);
-        let payment_allocations = PaymentAllocations::new(pool, authz, &publisher);
         let history_repo = HistoryRepo::new(pool);
         let repayment_plan_repo = RepaymentPlanRepo::new(pool);
         let approve_disbursal =
@@ -266,7 +263,6 @@ where
             payments,
             history_repo,
             repayment_plan_repo,
-            payment_allocations,
             governance: governance.clone(),
             ledger,
             price: price.clone(),
@@ -293,8 +289,8 @@ where
         &self.facilities
     }
 
-    pub fn payment_allocations(&self) -> &PaymentAllocations<Perms, E> {
-        &self.payment_allocations
+    pub fn payments(&self) -> &Payments<Perms, E> {
+        &self.payments
     }
 
     pub async fn subject_can_create(
@@ -328,7 +324,7 @@ where
             &self.authz,
             &self.facilities,
             &self.disbursals,
-            &self.payment_allocations,
+            &self.payments,
             &self.history_repo,
             &self.repayment_plan_repo,
             &self.ledger,

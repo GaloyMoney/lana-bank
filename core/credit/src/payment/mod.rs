@@ -2,6 +2,8 @@ mod entity;
 pub mod error;
 mod repo;
 
+use tracing::instrument;
+
 use audit::AuditSvc;
 use authz::PermissionCheck;
 use outbox::OutboxEventMarker;
@@ -118,5 +120,39 @@ where
             .await?;
 
         Ok(allocations)
+    }
+
+    pub(super) async fn find_allocation_by_id_without_audit(
+        &self,
+        payment_allocation_id: impl Into<PaymentAllocationId> + std::fmt::Debug,
+    ) -> Result<PaymentAllocation, PaymentError> {
+        let allocation = self
+            .payment_allocation_repo
+            .find_by_id(payment_allocation_id.into())
+            .await?;
+
+        Ok(allocation)
+    }
+
+    #[instrument(name = "core_credit.payment.find_allocation_by_id", skip(self), err)]
+    pub async fn find_allocation_by_id(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        payment_allocation_id: impl Into<PaymentAllocationId> + std::fmt::Debug,
+    ) -> Result<PaymentAllocation, PaymentError> {
+        let payment_allocation = self
+            .payment_allocation_repo
+            .find_by_id(payment_allocation_id.into())
+            .await?;
+
+        self.authz
+            .enforce_permission(
+                sub,
+                CoreCreditObject::credit_facility(payment_allocation.credit_facility_id),
+                CoreCreditAction::CREDIT_FACILITY_READ,
+            )
+            .await?;
+
+        Ok(payment_allocation)
     }
 }
