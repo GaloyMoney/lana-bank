@@ -27,6 +27,7 @@ es_entity::entity_id! {
     ChartOfAccountsIntegrationConfigId,
     CollateralId,
     ObligationId,
+    LiquidationObligationId,
     InterestAccrualCycleId;
 
     CreditFacilityId => governance::ApprovalProcessId,
@@ -46,6 +47,7 @@ pub enum ObligationStatus {
     Due,
     Overdue,
     Defaulted,
+    MovedToLiquidation,
     Paid,
 }
 

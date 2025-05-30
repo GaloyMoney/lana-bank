@@ -8,6 +8,9 @@ use crate::{
     interest_accrual_cycle::{
         error::InterestAccrualCycleError, InterestAccrualCycle, InterestAccrualCycleEvent,
     },
+    liquidation_obligation::{
+        error::LiquidationObligationError, LiquidationObligation, LiquidationObligationEvent,
+    },
     obligation::{error::ObligationError, Obligation, ObligationEvent},
     payment_allocation::{
         error::PaymentAllocationError, PaymentAllocation, PaymentAllocationEvent,
@@ -254,11 +257,43 @@ where
                     credit_facility_id: entity.credit_facility_id,
                     amount: *amount,
                 }),
-                Completed { .. } => Some(CoreCreditEvent::ObligationCompleted {
+                MovedToLiquidation {
+                    liquidation_obligation_id,
+                    outstanding,
+                    ..
+                } => Some(CoreCreditEvent::ObligationMovedToLiquidation {
+                    id: entity.id,
+                    credit_facility_id: entity.credit_facility_id,
+                    liquidation_obligation_id: *liquidation_obligation_id,
+                    amount: *outstanding,
+                }),
+                CompletedAsPaid { .. } => Some(CoreCreditEvent::ObligationCompleted {
                     id: entity.id,
                     credit_facility_id: entity.credit_facility_id,
                 }),
                 _ => None,
+            })
+            .collect::<Vec<_>>();
+        self.outbox
+            .publish_all_persisted(db.tx(), publish_events)
+            .await?;
+        Ok(())
+    }
+
+    pub async fn publish_liquidation_obligation(
+        &self,
+        db: &mut es_entity::DbOp<'_>,
+        entity: &LiquidationObligation,
+        new_events: es_entity::LastPersisted<'_, LiquidationObligationEvent>,
+    ) -> Result<(), LiquidationObligationError> {
+        use LiquidationObligationEvent::*;
+        let publish_events = new_events
+            .filter_map(|event| match &event.event {
+                Initialized { .. } => Some(CoreCreditEvent::LiquidationStarted {
+                    id: entity.id,
+                    parent_obligation_id: entity.parent_obligation_id,
+                    credit_facility_id: entity.credit_facility_id,
+                }),
             })
             .collect::<Vec<_>>();
         self.outbox
