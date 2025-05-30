@@ -213,7 +213,7 @@ where
         let mut remaining = amount;
         let mut new_allocations = Vec::new();
         for obligation in obligations.iter_mut() {
-            if let es_entity::Idempotent::Executed(Some(new_allocation)) =
+            if let es_entity::Idempotent::Executed(new_allocation) =
                 obligation.allocate_payment(remaining, payment_id, effective, audit_info)
             {
                 self.repo.update_in_op(db, obligation).await?;

@@ -410,14 +410,24 @@ impl Obligation {
         payment_id: PaymentId,
         effective: chrono::NaiveDate,
         audit_info: &AuditInfo,
-    ) -> Idempotent<Option<NewPaymentAllocation>> {
+    ) -> Idempotent<NewPaymentAllocation> {
         idempotency_guard!(
             self.events.iter_all().rev(),
             ObligationEvent::PaymentAllocated {payment_id: id, .. }  if *id == payment_id
         );
+
+        // TODO: refactor 'expected_status' to take NaiveDate and use this instead
+        // match self.expected_status(effective) {
+        match self.status() {
+            ObligationStatus::MovedToLiquidation | ObligationStatus::Paid => {
+                return Idempotent::Ignored;
+            }
+            _ => (),
+        }
+
         let pre_payment_outstanding = self.outstanding();
         if pre_payment_outstanding.is_zero() {
-            return Idempotent::Executed(None);
+            return Idempotent::Ignored;
         }
 
         let payment_amount = std::cmp::min(pre_payment_outstanding, amount);
@@ -462,7 +472,7 @@ impl Obligation {
             });
         }
 
-        Idempotent::Executed(Some(allocation))
+        Idempotent::Executed(allocation)
     }
 
     pub(crate) fn move_to_liquidation(
