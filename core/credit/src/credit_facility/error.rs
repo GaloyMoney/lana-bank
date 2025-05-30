@@ -56,7 +56,7 @@ pub enum CreditFacilityError {
     PriceError(#[from] core_price::error::PriceError),
     #[error("CreditFacilityError - ObligationError: {0}")]
     ObligationError(#[from] crate::obligation::error::ObligationError),
-    #[error("DisbursalError - GovernanceError: {0}")]
+    #[error("CreditFacilityError - GovernanceError: {0}")]
     GovernanceError(#[from] governance::error::GovernanceError),
 }
 

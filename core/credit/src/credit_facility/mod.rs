@@ -52,9 +52,10 @@ where
     }
 }
 
+#[allow(clippy::large_enum_variant)]
 pub(super) enum ActivationOutcome {
-    Ignored(Box<CreditFacility>),
-    Activated(Box<ActivationData>),
+    Ignored(CreditFacility),
+    Activated(ActivationData),
 }
 
 pub(super) struct ActivationData {
@@ -156,17 +157,17 @@ where
         let Ok(es_entity::Idempotent::Executed((credit_facility_activation, next_accrual_period))) =
             credit_facility.activate(now, price, balances, audit_info.clone())
         else {
-            return Ok(ActivationOutcome::Ignored(Box::new(credit_facility)));
+            return Ok(ActivationOutcome::Ignored(credit_facility));
         };
 
         self.repo.update_in_op(db, &mut credit_facility).await?;
 
-        Ok(ActivationOutcome::Activated(Box::new(ActivationData {
+        Ok(ActivationOutcome::Activated(ActivationData {
             credit_facility,
             credit_facility_activation,
             next_accrual_period,
             audit_info,
-        })))
+        }))
     }
 
     pub(super) async fn approve(

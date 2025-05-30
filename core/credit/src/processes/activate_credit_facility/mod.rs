@@ -87,14 +87,13 @@ where
         let mut db = self.credit_facilities.begin_op().await?;
 
         match self.credit_facilities.activate_in_op(&mut db, id).await? {
-            crate::ActivationOutcome::Ignored(credit_facility) => Ok(*credit_facility),
-            crate::ActivationOutcome::Activated(data) => {
-                let crate::ActivationData {
-                    credit_facility,
-                    credit_facility_activation,
-                    next_accrual_period,
-                    audit_info,
-                } = *data;
+            crate::ActivationOutcome::Ignored(credit_facility) => Ok(credit_facility),
+            crate::ActivationOutcome::Activated(crate::ActivationData {
+                credit_facility,
+                credit_facility_activation,
+                next_accrual_period,
+                audit_info,
+            }) => {
                 let due_date = credit_facility.matures_at.expect("Facility is not active");
                 let overdue_date = credit_facility
                     .terms
