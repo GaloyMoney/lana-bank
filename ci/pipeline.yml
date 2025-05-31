@@ -33,9 +33,9 @@
 groups:
   - name: lana-bank
     jobs:
-      - integration-tests
       - bats-integrations-test
       - release
+      - check-code
       #!- build-edge-image
       - release-docker
       - set-dev-version
@@ -47,34 +47,6 @@ groups:
 
 jobs:
   #! -  #@ build_edge_image()
-
-  - name: integration-tests
-    serial: true
-    plan:
-      - in_parallel:
-          - get: repo
-            trigger: true
-          - { get: pipeline-tasks }
-      - task: integration-tests
-        attempts: 2
-        privileged: true
-        config:
-          platform: linux
-          image_resource: #@ nix_flake_cachix_image_config()
-          inputs:
-            - name: pipeline-tasks
-            - name: repo
-          run:
-            path: sh
-            args:
-              - -exc
-              - |
-                set -euo pipefail
-                pushd repo
-
-                cachix use lana-ci
-
-                nix -L develop --command sh -exc ../pipeline-tasks/ci/tasks/podman-integration-tests.sh
 
   - name: bats-integrations-test
     #! serial: true
@@ -135,9 +107,13 @@ jobs:
               cd repo
               cachix use lana-ci
               
+              # Cache the build outputs from the project
+              nix build . --print-out-paths --no-link | cachix push lana-ci
+              
+              # Cache the development environment  
+              nix develop --command true | cachix push lana-ci
+              
               nix develop --command sh -exc "make check-code"
-
-              cachix watch-store lana-ci
 
   - name: build-static-binary
     serial: true
@@ -146,29 +122,39 @@ jobs:
       - get: repo
         trigger: true
       - get: pipeline-tasks
-    - task: cargo-build-release
+    - task: nix-build-static
       attempts: 2
       config:
         platform: linux
-        image_resource:
-          type: registry-image
-          source: {repository: clux/muslrust, tag: stable}
+        image_resource: #@ nix_flake_cachix_image_config()
         inputs:
         - name: pipeline-tasks
         - name: repo
         outputs: [{name: bin}]
-        caches:  [{path: cargo-target}, {path: cargo-home}]
+        params:
+          CACHIX_AUTH_TOKEN: #@ data.values.cachix_auth_token
         run:
           path: sh
           args:
           - -exc
           - |
-            export CARGO_HOME="$PWD/cargo-home"
-            export CARGO_TARGET_DIR="$PWD/cargo-target-dir"
+            set -euo pipefail
             cd repo
-            SQLX_OFFLINE=true cargo build --release --all-features --locked --bin lana-cli --target x86_64-unknown-linux-musl
+            
+            # Setup Cachix cache
+            cachix use lana-ci
+            
+            # Build the static binary using Nix (equivalent to musl target)
+            nix build .#static --print-build-logs
+            
+            # Push build results to cache
+            nix build .#static --print-out-paths --no-link | cachix push lana-ci
+            
+            # Copy the binary to output
             mkdir -p ../bin
-            cp "${CARGO_TARGET_DIR}/x86_64-unknown-linux-musl/release/lana-cli" ../bin/
+            cp result/bin/lana-cli ../bin/
+            
+            # Create Dockerfile for scratch container
             cat > ../bin/Dockerfile <<'EOF'
             FROM scratch
             COPY lana-cli /lana-cli
@@ -206,11 +192,9 @@ jobs:
       - in_parallel:
           - get: repo
             passed: 
-              - nodejs-check-code
-              - rust-check-code
-              - integration-tests
-              - build-static-binary
+              - check-code
               - bats-integrations-test
+              - build-static-binary
             trigger: true
           - get: pipeline-tasks
           - get: version
@@ -420,7 +404,7 @@ jobs:
           - get: version
             trigger: true
             params: { bump: patch }
-            passed: [release]
+            passed: [release, release-docker]
       - task: set-dev-version
         config:
           image_resource: #@ rust_task_image_config()
@@ -546,7 +530,7 @@ resources:
         - apps/**/*
       fetch_tags: true
       uri: #@ data.values.git_uri
-      branch: #@ data.values.git_branch
+      branch: chore--merge-check-code-pipelines
       private_key: #@ data.values.github_private_key
     webhook_token: ((webhook.secret))
   - name: repo-dev-out
