@@ -709,7 +709,8 @@ impl Query {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         let config = app
             .credit()
-            .get_chart_of_accounts_integration_config(sub)
+            .chart_of_accounts_integrations()
+            .get_config(sub)
             .await?;
         Ok(config.map(CreditModuleConfig::from))
     }
@@ -1283,7 +1284,8 @@ impl Mutation {
             .build()?;
         let config = app
             .credit()
-            .set_chart_of_accounts_integration_config(sub, chart.as_ref(), config_values)
+            .chart_of_accounts_integrations()
+            .set_config(sub, chart.as_ref(), config_values)
             .await?;
         Ok(CreditModuleConfigurePayload::from(
             CreditModuleConfig::from(config),
