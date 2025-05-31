@@ -75,14 +75,35 @@
 
       # Function to build static lana-cli (musl target for containers)
       mkLanaCliStatic = profile: let
-        cargoArtifacts = mkCargoArtifacts profile;
         rustTarget = "x86_64-unknown-linux-musl";
+        # Build dependencies specifically for the musl target
+        cargoArtifactsStatic = craneLib.buildDepsOnly {
+          src = rustSource;
+          strictDeps = true;
+          cargoToml = ./Cargo.toml;
+          pname = "lana-workspace-deps-${profile}-musl";
+          version = "0.0.0";
+          CARGO_PROFILE = profile;
+          SQLX_OFFLINE = true;
+          CARGO_BUILD_TARGET = rustTarget;
+          cargoExtraArgs = "--features sim-time --target ${rustTarget}";
+
+          # Add musl target dependencies
+          depsBuildBuild = with pkgs; [
+            pkgsCross.musl64.stdenv.cc
+          ];
+
+          # Environment variables for static linking
+          CARGO_TARGET_X86_64_UNKNOWN_LINUX_MUSL_LINKER = "${pkgs.pkgsCross.musl64.stdenv.cc}/bin/x86_64-unknown-linux-musl-gcc";
+          CC_x86_64_unknown_linux_musl = "${pkgs.pkgsCross.musl64.stdenv.cc}/bin/x86_64-unknown-linux-musl-gcc";
+          TARGET_CC = "${pkgs.pkgsCross.musl64.stdenv.cc}/bin/x86_64-unknown-linux-musl-gcc";
+        };
       in
         craneLib.buildPackage {
           src = rustSource;
           strictDeps = true;
           cargoToml = ./lana/cli/Cargo.toml;
-          inherit cargoArtifacts;
+          cargoArtifacts = cargoArtifactsStatic;
           doCheck = false;
           pname = "lana-cli-static";
           CARGO_PROFILE = profile;
