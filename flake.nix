@@ -77,7 +77,7 @@
       mkLanaCliStatic = profile: let
         rustTarget = "x86_64-unknown-linux-musl";
         # Build dependencies specifically for the musl target
-        cargoArtifactsStatic = craneLib.buildDepsOnly {
+        cargoArtifactsStatic = craneLibMusl.buildDepsOnly {
           src = rustSource;
           strictDeps = true;
           cargoToml = ./Cargo.toml;
@@ -99,7 +99,7 @@
           TARGET_CC = "${pkgs.pkgsCross.musl64.stdenv.cc}/bin/x86_64-unknown-linux-musl-gcc";
         };
       in
-        craneLib.buildPackage {
+        craneLibMusl.buildPackage {
           src = rustSource;
           strictDeps = true;
           cargoToml = ./lana/cli/Cargo.toml;
@@ -132,10 +132,20 @@
 
       mkAlias = alias: command: pkgs.writeShellScriptBin alias command;
 
-      rustVersion = pkgs.pkgsBuildHost.rust-bin.fromRustupToolchainFile ./rust-toolchain.toml;
+      rustVersion = pkgs.pkgsBuildHost.rust-bin.stable.latest.default;
       rustToolchain = rustVersion.override {
         extensions = ["rust-analyzer" "rust-src"];
+        targets = ["x86_64-unknown-linux-musl"];
       };
+
+      # Separate toolchain for musl cross-compilation
+      rustToolchainMusl = pkgs.pkgsBuildHost.rust-bin.stable.latest.default.override {
+        extensions = ["rust-src"];
+        targets = ["x86_64-unknown-linux-musl"];
+      };
+
+      # Create a separate Crane lib for musl builds
+      craneLibMusl = (crane.mkLib pkgs).overrideToolchain rustToolchainMusl;
 
       aliases = [
         (mkAlias "meltano" ''docker compose run --rm meltano -- "$@"'')
