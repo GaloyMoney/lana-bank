@@ -81,6 +81,8 @@ identity:
 
 courier:
   smtp:
+    # SMTP kept otherwise no row is been created in the courier_messages table
+    # and this is what we're using to fetch the code for the email verification
     connection_uri: smtp://mailhog:1025?skip_ssl_verify=true&disable_starttls=true
 
 session:

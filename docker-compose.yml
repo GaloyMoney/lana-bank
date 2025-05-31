@@ -37,10 +37,6 @@ services:
     volumes: [ "./dev/ory:/home/ory" ]
     depends_on: [ kratos-admin, kratos-customer, otel-agent ]
 
-  mailhog:
-    image: mailhog/mailhog:latest
-    ports: [ 1025:1025, 8025:8025 ]
-
   #! Databases
   core-pg:
     image: ghcr.io/cloudnative-pg/postgresql:17.5
@@ -83,4 +79,3 @@ services:
       - kratos-customer
       - kratos-customer-pg
       - oathkeeper
-      - mailhog

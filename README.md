@@ -4,7 +4,7 @@
 
 ## Key Features
 
-- **Rapid Deployment** – Reduce time to market from months to weeks with Lana’s modular architecture
+- **Rapid Deployment** – Reduce time to market from months to weeks with Lana's modular architecture
 - **Loan Origination & Management** – Automate loan creation, fee collection, and margin call management
 - **Seamless Banking Integration** – Works with existing core banking systems, custodians, and regulatory frameworks
 - **Security-First Design** – Adheres to industry security standards and best practices
@@ -68,13 +68,12 @@ After bringing the development stack up, you can access the following services:
 | --------------- | ---------------------------------------------------------- | ------------------------------------- |
 | Admin Panel     | [http://localhost:4455/admin](http://localhost:4455/admin) | Admin panel for managing the platform |
 | Customer Portal | [http://localhost:4455/app](http://localhost:4455/app)     | App for customers to see their data   |
-| Mailhog         | [http://localhost:8025/](http://localhost:8025/)           | SMTP local email                      |
 
 #### Steps to access Admin Panel
 
 1. Open [Admin Panel](http://localhost:4455/admin) in your browser
 1. Use email `admin@galoy.io` to log in
-1. Open [Mailhog](http://localhost:8025/) to see the OTP and enter the same in the login screen
+1. Get the login code by running `make get-superadmin-login-code` or `make get-admin-login-code EMAIL=admin@galoy.io`
 1. You're in!
 
 #### Steps to access Customer Portal
@@ -82,7 +81,7 @@ After bringing the development stack up, you can access the following services:
 1. Create customer from Admin Panel
 1. Open [Customer Portal](http://localhost:4455/app) in a separate browser (or incognito mode)
 1. Use the customer email to try and login
-1. Open [Mailhog](http://localhost:8025/) to see the OTP and enter the same in the login screen
+1. Get the login code by running `make get-customer-login-code EMAIL=your-customer-email@example.com`
 1. You're in!
 
 > If you see a cookie error, delete the cookie and reload the page (but this should not happen if you're using separate browsers)

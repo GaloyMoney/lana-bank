@@ -271,14 +271,17 @@ reset_log_files() {
 getEmailCode() {
   local email="$1"
 
-  local emails=$(curl -s -X GET "${MAILHOG_ENDPOINT}/api/v2/search?kind=to&query=${email}")
-  if [[ $(echo "$emails" | jq '.total') -eq 0 ]]; then
-    echo "No message for email ${email}"
+  KRATOS_PG_CON="postgres://dbuser:secret@localhost:5434/default?sslmode=disable"
+
+  local query="SELECT body FROM courier_messages WHERE recipient='${email}' ORDER BY created_at DESC LIMIT 1;"
+  local result=$(psql $KRATOS_PG_CON -t -c "${query}")
+
+  if [[ -z "$result" ]]; then
+    echo "No message for email ${email}" >&2
     exit 1
   fi
 
-  local email_content=$(echo "$emails" | jq '.items[0].MIME.Parts[0].Body' | tr -d '"')
-  local code=$(echo "$email_content" | grep -Eo '[0-9]{6}' | head -n1)
+  local code=$(echo "$result" | grep -Eo '[0-9]{6}' | head -n1)
 
   echo "$code"
 }
