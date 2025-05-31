@@ -6,14 +6,10 @@ on:
   push:
     branches: [main]
 
-concurrency:
-  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
-  cancel-in-progress: true
-
 jobs:
   run-cypress-tests:
     name: Run Tests
-    runs-on: Lana-Big-Runner
+    runs-on: ubuntu-latest
     env:
       NETLIFY_TOKEN_PRESENT: ${{ secrets.NETLIFY_AUTH_TOKEN != '' }}
     steps:
