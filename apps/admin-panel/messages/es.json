@@ -456,6 +456,7 @@
         "columns": {
           "entryType": "Tipo de entrada",
           "recordedAt": "Registrado El",
+          "effective": "Fecha efectiva",
           "amount": "Monto"
         },
         "entryTypes": {

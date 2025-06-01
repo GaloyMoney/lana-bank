@@ -456,6 +456,7 @@
         "columns": {
           "entryType": "Entry Type",
           "recordedAt": "Recorded At",
+          "effective": "Effective Date",
           "amount": "Amount"
         },
         "entryTypes": {
