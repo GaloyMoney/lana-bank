@@ -16,5 +16,5 @@ pnpm dev
 
 1. Go to `http://localhost:4455/admin` URL to open the admin panel login.
 2. Enter the email. For now, we have two allowed emails: `admin@galoy.io`.
-3. Open MailHog to get the email magic link: `http://localhost:8025/`.
-4. Click on the magic link to log in to the admin panel.
+3. Get the login code by running `make get-superadmin-login-code` or `make get-admin-login-code EMAIL=admin@galoy.io` in the project root.
+4. Enter the code to log in to the admin panel.
