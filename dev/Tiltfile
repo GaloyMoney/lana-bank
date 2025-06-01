@@ -1,6 +1,6 @@
 docker_compose(["../docker-compose.yml", "../docker-compose.docker.yml"], project_name = "lana-bank")
 docker_groups = {
-    "auth": ["kratos-admin", "kratos-admin-pg", "kratos-customer", "kratos-customer-pg", "oathkeeper", "mailhog"],
+    "auth": ["kratos-admin", "kratos-admin-pg", "kratos-customer", "kratos-customer-pg", "oathkeeper"],
     "otel": ["otel-agent"],
     "core": ["core-pg"]
 }
