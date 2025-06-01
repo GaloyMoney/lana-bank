@@ -23,7 +23,6 @@ jobs:
           large-packages: true
           docker-images: true
           swap-storage: true
-      - uses: ./.github/actions/cache-rust
       - uses: actions-rs/audit-check@v1
         with:
           token: ${{ secrets.GITHUB_TOKEN }}

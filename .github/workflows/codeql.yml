@@ -42,6 +42,5 @@ jobs:
     - uses: github/codeql-action/init@v3
       with:
         languages: rust
-    - uses: ./.github/actions/cache-rust
     - run: nix develop -c cargo build --locked
     - uses: github/codeql-action/analyze@v3
