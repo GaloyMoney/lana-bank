@@ -21,6 +21,8 @@ jobs:
           free_disk_space: false
       - uses: ./.github/actions/cache-pnpm 
       - run: nix develop -c make build-for-tests
+      - name: Build Admin Panel for Production
+        run: nix develop -c --cwd apps/admin-panel pnpm build
       - run: nix develop -c make tilt-in-ci
         env:
           GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}

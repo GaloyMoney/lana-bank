@@ -89,7 +89,7 @@ sqlx-prepare:
 reset-deps: clean-deps start-deps setup-db
 
 run-server:
-	cargo run --bin lana-cli --features sim-time -- --config ./bats/lana-sim-time.yml | tee .e2e-logs
+	./target/debug/lana-cli --features sim-time -- --config ./bats/lana-sim-time.yml | tee .e2e-logs
 
 run-server-with-bootstrap:
 	cargo run --bin lana-cli --all-features -- --config ./bats/lana-sim-time.yml | tee .e2e-logs
@@ -142,6 +142,9 @@ check-code-apps: sdl-js check-code-apps-admin-panel check-code-apps-customer-por
 
 start-admin:
 	cd apps/admin-panel && pnpm install --frozen-lockfile && pnpm dev
+
+start-admin-prod:
+	cd apps/admin-panel && pnpm start
 
 start-customer-portal:
 	cd apps/customer-portal && pnpm install --frozen-lockfile && pnpm dev
