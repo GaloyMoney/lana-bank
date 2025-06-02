@@ -27,7 +27,7 @@ echo "Pulling Docker images..."
 
 # ── Up ──────────────────────────────────────────────────────────────────────────
 echo "Starting services..."
-"$ENGINE" compose "${FILES[@]}" up -d "$@"
+"$ENGINE" compose "${FILES[@]}" up -d
 
 while ! pg_isready -d pg -p 5433 -U user; do
   echo "PostgreSQL not yet ready..."
