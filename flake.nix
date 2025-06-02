@@ -132,14 +132,14 @@
 
       mkAlias = alias: command: pkgs.writeShellScriptBin alias command;
 
-      rustVersion = pkgs.pkgsBuildHost.rust-bin.stable.latest.default;
+      rustVersion = pkgs.pkgsBuildHost.rust-bin.fromRustupToolchainFile ./rust-toolchain.toml;
       rustToolchain = rustVersion.override {
         extensions = ["rust-analyzer" "rust-src"];
         targets = ["x86_64-unknown-linux-musl"];
       };
 
       # Separate toolchain for musl cross-compilation
-      rustToolchainMusl = pkgs.pkgsBuildHost.rust-bin.stable.latest.default.override {
+      rustToolchainMusl = rustVersion.override {
         extensions = ["rust-src"];
         targets = ["x86_64-unknown-linux-musl"];
       };
