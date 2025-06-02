@@ -4,8 +4,12 @@ FROM $MELTANO_IMAGE
 
 WORKDIR /project
 
-# Copy over Meltano project directory
-COPY . .
+# Copy only the meltano directory to maintain the same structure as local dev
+COPY . ./meltano/
+
+# Set the Meltano project root to the meltano subdirectory
+ENV MELTANO_PROJECT_ROOT=./meltano
+
 RUN meltano install
 
 # Don't allow changes to containerized project files
