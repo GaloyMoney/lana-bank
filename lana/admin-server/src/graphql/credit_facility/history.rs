@@ -7,7 +7,7 @@ pub use lana_app::primitives::CollateralAction;
 pub enum CreditFacilityHistoryEntry {
     Payment(CreditFacilityIncrementalPayment),
     Collateral(CreditFacilityCollateralUpdated),
-    Origination(CreditFacilityOrigination),
+    Approved(CreditFacilityApproved),
     Collateralization(CreditFacilityCollateralizationUpdated),
     Disbursal(CreditFacilityDisbursalExecuted),
     Interest(CreditFacilityInterestAccrued),
@@ -29,7 +29,7 @@ pub struct CreditFacilityCollateralUpdated {
 }
 
 #[derive(SimpleObject)]
-pub struct CreditFacilityOrigination {
+pub struct CreditFacilityApproved {
     pub cents: UsdCents,
     pub recorded_at: Timestamp,
     pub tx_id: UUID,
@@ -69,8 +69,8 @@ impl From<lana_app::credit::CreditFacilityHistoryEntry> for CreditFacilityHistor
             lana_app::credit::CreditFacilityHistoryEntry::Collateral(collateral) => {
                 CreditFacilityHistoryEntry::Collateral(collateral.into())
             }
-            lana_app::credit::CreditFacilityHistoryEntry::Origination(origination) => {
-                CreditFacilityHistoryEntry::Origination(origination.into())
+            lana_app::credit::CreditFacilityHistoryEntry::Approved(approved) => {
+                CreditFacilityHistoryEntry::Approved(approved.into())
             }
             lana_app::credit::CreditFacilityHistoryEntry::Collateralization(collateralization) => {
                 CreditFacilityHistoryEntry::Collateralization(collateralization.into())
@@ -106,8 +106,8 @@ impl From<lana_app::credit::CollateralUpdated> for CreditFacilityCollateralUpdat
     }
 }
 
-impl From<lana_app::credit::CreditFacilityOrigination> for CreditFacilityOrigination {
-    fn from(origination: lana_app::credit::CreditFacilityOrigination) -> Self {
+impl From<lana_app::credit::CreditFacilityApproved> for CreditFacilityApproved {
+    fn from(origination: lana_app::credit::CreditFacilityApproved) -> Self {
         Self {
             cents: origination.cents,
             recorded_at: origination.recorded_at.into(),

@@ -399,6 +399,12 @@ type CreditFacility {
 	balance: CreditFacilityBalance!
 }
 
+type CreditFacilityApproved {
+	cents: UsdCents!
+	recordedAt: Timestamp!
+	txId: UUID!
+}
+
 type CreditFacilityBalance {
 	facilityRemaining: FacilityRemaining!
 	disbursed: Disbursed!
@@ -536,7 +542,7 @@ type CreditFacilityEdge {
 	cursor: String!
 }
 
-union CreditFacilityHistoryEntry = CreditFacilityIncrementalPayment | CreditFacilityCollateralUpdated | CreditFacilityOrigination | CreditFacilityCollateralizationUpdated | CreditFacilityDisbursalExecuted | CreditFacilityInterestAccrued
+union CreditFacilityHistoryEntry = CreditFacilityIncrementalPayment | CreditFacilityCollateralUpdated | CreditFacilityApproved | CreditFacilityCollateralizationUpdated | CreditFacilityDisbursalExecuted | CreditFacilityInterestAccrued
 
 type CreditFacilityIncrementalPayment {
 	cents: UsdCents!
@@ -549,12 +555,6 @@ type CreditFacilityInterestAccrued {
 	recordedAt: Timestamp!
 	txId: UUID!
 	days: Int!
-}
-
-type CreditFacilityOrigination {
-	cents: UsdCents!
-	recordedAt: Timestamp!
-	txId: UUID!
 }
 
 input CreditFacilityPartialPaymentInput {

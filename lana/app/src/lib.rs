@@ -124,8 +124,8 @@ pub mod credit {
     pub use core_credit::{
         error, ChartOfAccountsIntegrationConfig, CollateralUpdated, CollateralizationUpdated,
         CoreCreditEvent, CreditConfig, CreditFacilitiesCursor, CreditFacilitiesSortBy,
-        CreditFacility, CreditFacilityBalanceSummary, CreditFacilityHistoryEntry,
-        CreditFacilityOrigination, CreditFacilityRepaymentPlanEntry, CreditFacilityStatus,
+        CreditFacility, CreditFacilityApproved, CreditFacilityBalanceSummary,
+        CreditFacilityHistoryEntry, CreditFacilityRepaymentPlanEntry, CreditFacilityStatus,
         Disbursal, DisbursalExecuted, DisbursalStatus, DisbursalsCursor, DisbursalsSortBy,
         FacilityCVL, FindManyCreditFacilities, FindManyDisbursals, IncrementalPayment,
         InterestAccrualsPosted, ListDirection, Payment, PaymentAllocation, RepaymentStatus, Sort,

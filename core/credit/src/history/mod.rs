@@ -24,8 +24,8 @@ impl CreditFacilityHistory {
                 amount,
                 ..
             } => {
-                self.entries.push(CreditFacilityHistoryEntry::Origination(
-                    CreditFacilityOrigination {
+                self.entries.push(CreditFacilityHistoryEntry::Approved(
+                    CreditFacilityApproved {
                         cents: *amount,
                         recorded_at: *activated_at,
                         tx_id: *activation_tx_id,

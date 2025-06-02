@@ -3,7 +3,7 @@ use chrono::{DateTime, Utc};
 use crate::primitives::*;
 
 #[derive(Debug, serde::Deserialize, serde::Serialize)]
-pub struct CreditFacilityOrigination {
+pub struct CreditFacilityApproved {
     pub cents: UsdCents,
     pub recorded_at: DateTime<Utc>,
     pub tx_id: LedgerTxId,
@@ -55,7 +55,7 @@ pub struct InterestAccrualsPosted {
 #[derive(Debug, serde::Deserialize, serde::Serialize)]
 #[serde(tag = "type")]
 pub enum CreditFacilityHistoryEntry {
-    Origination(CreditFacilityOrigination),
+    Approved(CreditFacilityApproved),
     Collateral(CollateralUpdated),
     Collateralization(CollateralizationUpdated),
     Payment(IncrementalPayment),
