@@ -143,12 +143,13 @@ where
                 Settled {
                     amount,
                     ledger_tx_id,
+                    effective,
                     ..
                 } => Some(CoreCreditEvent::DisbursalSettled {
                     credit_facility_id: entity.facility_id,
                     amount: *amount,
                     recorded_at: event.recorded_at,
-                    effective: event.recorded_at.date_naive(),
+                    effective: *effective,
                     ledger_tx_id: *ledger_tx_id,
                 }),
 
