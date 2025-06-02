@@ -59,6 +59,7 @@ pub(super) struct TermsTemplateCreateInput {
     pub duration: DurationInput,
     pub interest_due_duration: DurationInput,
     pub obligation_overdue_duration: DurationInput,
+    pub obligation_liquidation_duration: DurationInput,
     pub liquidation_cvl: CVLPct,
     pub margin_call_cvl: CVLPct,
     pub initial_cvl: CVLPct,
@@ -76,6 +77,7 @@ pub(super) struct TermsTemplateUpdateInput {
     pub duration: DurationInput,
     pub interest_due_duration: DurationInput,
     pub obligation_overdue_duration: DurationInput,
+    pub obligation_liquidation_duration: DurationInput,
     pub margin_call_cvl: CVLPct,
     pub initial_cvl: CVLPct,
 }

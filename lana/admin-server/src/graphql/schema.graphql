@@ -1689,6 +1689,7 @@ input TermsInput {
 	duration: DurationInput!
 	interestDueDuration: DurationInput!
 	obligationOverdueDuration: DurationInput!
+	obligationLiquidationDuration: DurationInput!
 	marginCallCvl: CVLPct!
 	initialCvl: CVLPct!
 }
@@ -1711,6 +1712,7 @@ input TermsTemplateCreateInput {
 	duration: DurationInput!
 	interestDueDuration: DurationInput!
 	obligationOverdueDuration: DurationInput!
+	obligationLiquidationDuration: DurationInput!
 	liquidationCvl: CVLPct!
 	marginCallCvl: CVLPct!
 	initialCvl: CVLPct!
@@ -1730,6 +1732,7 @@ input TermsTemplateUpdateInput {
 	duration: DurationInput!
 	interestDueDuration: DurationInput!
 	obligationOverdueDuration: DurationInput!
+	obligationLiquidationDuration: DurationInput!
 	marginCallCvl: CVLPct!
 	initialCvl: CVLPct!
 }
