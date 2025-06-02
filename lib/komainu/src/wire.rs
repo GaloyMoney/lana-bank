@@ -8,10 +8,10 @@ pub struct Wallet {
     pub status: String,
 }
 
-#[derive(Serialize)]
-pub struct GetToken<'a> {
-    pub api_user: &'a str,
-    pub api_secret: &'a str,
+#[derive(Clone, Serialize)]
+pub struct GetToken {
+    pub api_user: String,
+    pub api_secret: String,
 }
 
 #[derive(Debug, Deserialize)]

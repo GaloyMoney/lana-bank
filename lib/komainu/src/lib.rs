@@ -1,7 +1,7 @@
 use std::sync::Arc;
 use std::time::{Duration, Instant};
 
-use base64::{prelude::BASE64_STANDARD, Engine};
+use base64::{prelude::BASE64_STANDARD, Engine as _};
 use p256::{
     ecdsa::{signature::Signer as _, Signature, SigningKey},
     pkcs8::DecodePrivateKey as _,
@@ -28,7 +28,8 @@ pub struct KomainuClient {
     http_client: Client,
     access_token: Arc<Mutex<Option<AccessToken>>>,
     signing_key: SigningKey,
-    config: KomainuConfig,
+    host: Url,
+    get_token_request: GetToken,
 }
 
 impl KomainuClient {
@@ -51,47 +52,42 @@ impl KomainuClient {
             Client::new()
         };
 
-        Self {
-            http_client,
-            access_token: Default::default(),
-            signing_key,
-            config,
-        }
-    }
-
-    pub async fn list_wallets(&self) -> Result<Vec<Wallet>, KomainuError> {
-        Ok(self.get_many("v1/custody/wallets").await?)
-    }
-}
-
-impl KomainuClient {
-    fn url(&self, path: &str) -> Url {
-        let host = if self.config.komainu_test {
+        let host = if config.komainu_test {
             "https://api-uat.komainu.io"
         } else {
             "https://api.komainu.io"
         };
 
-        format!("{host}/{path}").parse().expect("valid URL")
+        let get_token_request = GetToken {
+            api_user: config.api_user.clone(),
+            api_secret: config.api_secret.clone(),
+        };
+
+        Self {
+            http_client,
+            access_token: Default::default(),
+            signing_key,
+            get_token_request,
+            host: host.parse().expect("valid host"),
+        }
     }
 
-    async fn get<T: DeserializeOwned>(
-        &self,
-        endpoint: &str,
-        offset: Option<u64>,
-    ) -> Result<T, reqwest::Error> {
-        self.request::<()>(Method::GET, endpoint, offset, None)
-            .await?
-            .send()
-            .await?
-            .json()
+    pub async fn get_wallet(&self, wallet_id: String) -> Result<Wallet, KomainuError> {
+        self.get_one(&format!("v1/custody/wallets/{wallet_id}"))
             .await
     }
 
-    async fn get_many<T: DeserializeOwned>(
-        &self,
-        endpoint: &str,
-    ) -> Result<Vec<T>, reqwest::Error> {
+    pub async fn list_wallets(&self) -> Result<Vec<Wallet>, KomainuError> {
+        self.get_many("v1/custody/wallets").await
+    }
+}
+
+impl KomainuClient {
+    async fn get_one<T: DeserializeOwned>(&self, endpoint: &str) -> Result<T, KomainuError> {
+        Ok(self.get(endpoint, None).await?)
+    }
+
+    async fn get_many<T: DeserializeOwned>(&self, endpoint: &str) -> Result<Vec<T>, KomainuError> {
         let mut res = vec![];
         let mut offset = 0;
 
@@ -106,6 +102,19 @@ impl KomainuClient {
         }
 
         Ok(res)
+    }
+
+    async fn get<T: DeserializeOwned>(
+        &self,
+        endpoint: &str,
+        offset: Option<u64>,
+    ) -> Result<T, reqwest::Error> {
+        self.request::<()>(Method::GET, endpoint, offset, None)
+            .await?
+            .send()
+            .await?
+            .json()
+            .await
     }
 
     async fn request<T: Serialize>(
@@ -169,10 +178,7 @@ impl KomainuClient {
         let response: GetTokenResponse = self
             .http_client
             .post(self.url("v1/auth/token"))
-            .json(&GetToken {
-                api_user: &self.config.api_user,
-                api_secret: &self.config.api_secret,
-            })
+            .json(&self.get_token_request)
             .send()
             .await?
             .json()
@@ -182,6 +188,10 @@ impl KomainuClient {
             access_token: response.access_token,
             expires_at: Instant::now() + Duration::from_secs(response.expires_in),
         })
+    }
+
+    fn url(&self, path: &str) -> Url {
+        self.host.join(path).expect("valid path")
     }
 }
 
