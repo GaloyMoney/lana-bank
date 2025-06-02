@@ -461,7 +461,7 @@
         "entryTypes": {
           "collateralUpdated": "Garantía actualizada",
           "collateralizationUpdated": "Colateralización actualizada",
-          "origination": "Originación",
+          "approved": "Facilidad aprobada",
           "incrementalPayment": "Pago",
           "disbursalExecuted": "Desembolso",
           "interestAccrued": "Interés acumulado"

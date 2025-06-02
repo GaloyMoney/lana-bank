@@ -285,7 +285,7 @@ checksums:
     CreditFacilities/CreditFacilityDetails/History/columns/amount: a0ae9c6ff98b57475cdce56f66066aa4
     CreditFacilities/CreditFacilityDetails/History/entryTypes/collateralUpdated: 44dc6a58c0b697896e5e5f7546d8a657
     CreditFacilities/CreditFacilityDetails/History/entryTypes/collateralizationUpdated: 6390b9176524aeaa7c647cfd45a28baa
-    CreditFacilities/CreditFacilityDetails/History/entryTypes/origination: 10e18fd520c9bd3046f3ca26989e87f5
+    CreditFacilities/CreditFacilityDetails/History/entryTypes/approved: 74af9874785d8a31583e71758b70f3b8
     CreditFacilities/CreditFacilityDetails/History/entryTypes/incrementalPayment: 95142d3fd8b6a6f551aba771842e9c11
     CreditFacilities/CreditFacilityDetails/History/entryTypes/disbursalExecuted: 2aa8ff038a96888966ede2b19fc8b8bb
     CreditFacilities/CreditFacilityDetails/History/entryTypes/interestAccrued: 7a2a22eb72a60ee80626eef9988e35ff
