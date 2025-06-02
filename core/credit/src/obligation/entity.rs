@@ -503,6 +503,8 @@ impl Obligation {
             .parent_obligation_id(self.id)
             .tx_id(tx_id)
             .receivable_account_id(receivable_account_id)
+            .amount(outstanding)
+            .effective(effective)
             .audit_info(audit_info.clone())
             .build()
             .expect("could not build new payment allocation");

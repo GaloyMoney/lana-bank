@@ -16,6 +16,8 @@ pub enum LiquidationObligationEvent {
         credit_facility_id: CreditFacilityId,
         tx_id: LedgerTxId,
         receivable_account_id: CalaAccountId,
+        amount: UsdCents,
+        effective: chrono::NaiveDate,
         audit_info: AuditInfo,
     },
 }
@@ -28,6 +30,8 @@ pub struct LiquidationObligation {
     pub credit_facility_id: CreditFacilityId,
     pub tx_id: LedgerTxId,
     pub receivable_account_id: CalaAccountId,
+    pub amount: UsdCents,
+    pub effective: chrono::NaiveDate,
     events: EntityEvents<LiquidationObligationEvent>,
 }
 
@@ -44,6 +48,8 @@ impl TryFromEvents<LiquidationObligationEvent> for LiquidationObligation {
                     credit_facility_id,
                     tx_id,
                     receivable_account_id,
+                    amount,
+                    effective,
                     ..
                 } => {
                     builder = builder
@@ -52,6 +58,8 @@ impl TryFromEvents<LiquidationObligationEvent> for LiquidationObligation {
                         .credit_facility_id(*credit_facility_id)
                         .tx_id(*tx_id)
                         .receivable_account_id(*receivable_account_id)
+                        .amount(*amount)
+                        .effective(*effective)
                 }
             }
         }
@@ -66,11 +74,14 @@ pub struct NewLiquidationObligation {
     #[builder(setter(into))]
     pub(crate) parent_obligation_id: ObligationId,
     #[builder(setter(into))]
-    pub(super) credit_facility_id: CreditFacilityId,
+    pub(crate) credit_facility_id: CreditFacilityId,
     #[builder(setter(into))]
-    pub(super) tx_id: LedgerTxId,
+    pub(crate) tx_id: LedgerTxId,
     #[builder(setter(into))]
-    pub(super) receivable_account_id: CalaAccountId,
+    pub(crate) receivable_account_id: CalaAccountId,
+    #[builder(setter(into))]
+    pub(crate) amount: UsdCents,
+    pub(crate) effective: chrono::NaiveDate,
     #[builder(setter(into))]
     pub audit_info: AuditInfo,
 }
@@ -91,6 +102,8 @@ impl IntoEvents<LiquidationObligationEvent> for NewLiquidationObligation {
                 credit_facility_id: self.credit_facility_id,
                 tx_id: self.tx_id,
                 receivable_account_id: self.receivable_account_id,
+                amount: self.amount,
+                effective: self.effective,
                 audit_info: self.audit_info,
             }],
         )
