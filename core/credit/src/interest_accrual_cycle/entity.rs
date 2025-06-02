@@ -285,6 +285,10 @@ impl InterestAccrualCycle {
             .terms
             .obligation_overdue_duration
             .map(|d| d.end_date(due_date));
+        let liquidation_date = self
+            .terms
+            .obligation_liquidation_duration
+            .map(|d| d.end_date(due_date));
         Idempotent::Executed(
             NewObligation::builder()
                 .id(obligation_id)
@@ -310,6 +314,7 @@ impl InterestAccrualCycle {
                 .defaulted_account_id(self.account_ids.interest_defaulted_account_id)
                 .due_date(due_date)
                 .overdue_date(overdue_date)
+                .liquidation_date(liquidation_date)
                 .effective(effective)
                 .audit_info(audit_info)
                 .build()
