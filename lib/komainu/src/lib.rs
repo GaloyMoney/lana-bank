@@ -72,9 +72,24 @@ impl KomainuClient {
         }
     }
 
-    pub async fn get_wallet(&self, wallet_id: String) -> Result<Wallet, KomainuError> {
-        self.get_one(&format!("v1/custody/wallets/{wallet_id}"))
-            .await
+    pub async fn get_request(&self, id: &str) -> Result<Request, KomainuError> {
+        self.get_one(&format!("v1/custody/requests/{id}")).await
+    }
+
+    pub async fn list_requests(&self) -> Result<Vec<Request>, KomainuError> {
+        self.get_many("v1/custody/requests").await
+    }
+
+    pub async fn get_transaction(&self, id: &str) -> Result<Transaction, KomainuError> {
+        self.get_one(&format!("v1/custody/transactions/{id}")).await
+    }
+
+    pub async fn list_transactions(&self) -> Result<Vec<Transaction>, KomainuError> {
+        self.get_many("v1/custody/transactions").await
+    }
+
+    pub async fn get_wallet(&self, id: &str) -> Result<Wallet, KomainuError> {
+        self.get_one(&format!("v1/custody/wallets/{id}")).await
     }
 
     pub async fn list_wallets(&self) -> Result<Vec<Wallet>, KomainuError> {

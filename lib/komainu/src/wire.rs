@@ -1,3 +1,4 @@
+use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Deserialize)]
@@ -6,6 +7,87 @@ pub struct Wallet {
     pub address: String,
     pub asset: String,
     pub status: String,
+}
+
+#[derive(Clone, Debug, Deserialize)]
+#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
+pub enum RequestType {
+    CreateTransaction,
+    CollateralOperation,
+}
+
+#[derive(Clone, Debug, Deserialize)]
+#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
+pub enum RequestStatus {
+    Created,
+    Pending,
+    Approved,
+    Rejected,
+    Cancelled,
+    Expired,
+    Blocked,
+}
+
+#[derive(Clone, Debug, Deserialize)]
+#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
+pub enum RequestEntity {
+    Transaction,
+    Collateral,
+}
+
+#[derive(Clone, Debug, Deserialize)]
+pub struct Request {
+    pub id: String,
+    pub request_type: RequestType,
+    pub status: RequestStatus,
+    pub entity: RequestEntity,
+    pub entity_id: String,
+    pub requested_by: String,
+    pub requested_at: DateTime<Utc>,
+    pub expires_at: DateTime<Utc>,
+    pub updated_at: DateTime<Utc>,
+    pub workspace: String,
+    pub organization: String,
+    pub account: String,
+}
+
+#[derive(Clone, Debug, Deserialize)]
+#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
+pub enum TransactionDirection {
+    In,
+    Out,
+    Flat,
+}
+
+#[derive(Clone, Debug, Deserialize)]
+#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
+pub enum TransactionStatus {
+    Pending,
+    Broadcasted,
+    Confirmed,
+    Failed,
+}
+
+#[derive(Clone, Debug, Deserialize)]
+pub struct Transaction {
+    pub id: String,
+    pub wallet_id: String,
+    pub direction: TransactionDirection,
+    pub asset: String,
+    pub amount: String,
+    pub fees: String,
+    pub created_at: DateTime<Utc>,
+    pub transaction_type: String,
+    pub status: TransactionStatus,
+    pub tx_hash: String,
+    pub sender_address: String,
+    pub receiver_address: String,
+    pub note: String,
+    pub created_by: String,
+    pub workspace: String,
+    pub external_reference: String,
+    pub organization: String,
+    pub account: String,
 }
 
 #[derive(Clone, Serialize)]
