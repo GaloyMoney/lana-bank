@@ -72,26 +72,32 @@ impl KomainuClient {
         }
     }
 
+    #[tracing::instrument(name = "komainu.get_request", skip(self))]
     pub async fn get_request(&self, id: &str) -> Result<Request, KomainuError> {
         self.get_one(&format!("v1/custody/requests/{id}")).await
     }
 
+    #[tracing::instrument(name = "komainu.list_requests", skip(self))]
     pub async fn list_requests(&self) -> Result<Vec<Request>, KomainuError> {
         self.get_many("v1/custody/requests").await
     }
 
+    #[tracing::instrument(name = "komainu.get_transaction", skip(self))]
     pub async fn get_transaction(&self, id: &str) -> Result<Transaction, KomainuError> {
         self.get_one(&format!("v1/custody/transactions/{id}")).await
     }
 
+    #[tracing::instrument(name = "komainu.list_transactions", skip(self))]
     pub async fn list_transactions(&self) -> Result<Vec<Transaction>, KomainuError> {
         self.get_many("v1/custody/transactions").await
     }
 
+    #[tracing::instrument(name = "komainu.get_wallet", skip(self))]
     pub async fn get_wallet(&self, id: &str) -> Result<Wallet, KomainuError> {
         self.get_one(&format!("v1/custody/wallets/{id}")).await
     }
 
+    #[tracing::instrument(name = "komainu.list_wallets", skip(self))]
     pub async fn list_wallets(&self) -> Result<Vec<Wallet>, KomainuError> {
         self.get_many("v1/custody/wallets").await
     }
@@ -195,6 +201,7 @@ impl KomainuClient {
         }
     }
 
+    #[tracing::instrument(name = "komainu.refresh_token", skip(self))]
     async fn refresh_token(&self) -> Result<AccessToken, reqwest::Error> {
         let response: GetTokenResponse = self
             .http_client
