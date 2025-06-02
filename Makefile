@@ -24,7 +24,7 @@ sqlx-prepare:
 reset-deps: clean-deps start-deps setup-db
 
 run-server:
-	./target/debug/lana-cli --features sim-time -- --config ./bats/lana-sim-time.yml | tee .e2e-logs
+	cargo run --bin lana-cli --features sim-time -- --config ./bats/lana-sim-time.yml | tee .e2e-logs
 
 run-server-with-bootstrap:
 	cargo run --bin lana-cli --all-features -- --config ./bats/lana-sim-time.yml | tee .e2e-logs
