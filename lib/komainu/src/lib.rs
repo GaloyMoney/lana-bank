@@ -139,11 +139,17 @@ impl KomainuClient {
             .map(|payload| serde_json::to_vec(&payload).expect("encode to JSON"))
             .unwrap_or_default();
 
+        let mut path_query = url.path().to_string();
+        if let Some(query) = url.query() {
+            path_query.push('?');
+            path_query.push_str(query);
+        }
+
         let canonical_string = format!(
             "{},{},{},sha256={},sha256={},{}",
             url.host_str().expect("URL with host"),
             method.as_str().to_lowercase(),
-            url.path(),
+            path_query,
             BASE64_STANDARD.encode(Sha256::digest(&payload)),
             BASE64_STANDARD.encode(Sha256::digest(&access_token)),
             timestamp
