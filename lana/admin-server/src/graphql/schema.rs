@@ -1133,6 +1133,7 @@ impl Mutation {
             .duration(input.duration)
             .interest_due_duration(input.interest_due_duration)
             .obligation_overdue_duration(input.obligation_overdue_duration)
+            .obligation_liquidation_duration(None) // FIXME
             .liquidation_cvl(input.liquidation_cvl)
             .margin_call_cvl(input.margin_call_cvl)
             .initial_cvl(input.initial_cvl)
@@ -1162,6 +1163,7 @@ impl Mutation {
             .duration(input.duration)
             .interest_due_duration(input.interest_due_duration)
             .obligation_overdue_duration(input.obligation_overdue_duration)
+            .obligation_liquidation_duration(None) // FIXME
             .liquidation_cvl(input.liquidation_cvl)
             .margin_call_cvl(input.margin_call_cvl)
             .initial_cvl(input.initial_cvl)
@@ -1332,6 +1334,7 @@ impl Mutation {
             .duration(terms.duration)
             .interest_due_duration(terms.interest_due_duration)
             .obligation_overdue_duration(terms.obligation_overdue_duration)
+            .obligation_liquidation_duration(None) // FIXME
             .liquidation_cvl(terms.liquidation_cvl)
             .margin_call_cvl(terms.margin_call_cvl)
             .initial_cvl(terms.initial_cvl)
