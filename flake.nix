@@ -180,6 +180,8 @@
           curl
           tilt
           procps
+          python312
+          python312Packages.pip
         ]
         ++ lib.optionals pkgs.stdenv.isLinux [
           xvfb-run
@@ -203,6 +205,7 @@
         PGHOST = "127.0.0.1";
         DATABASE_URL = "postgres://${PGUSER}:${PGPASSWORD}@${PGHOST}:5433/pg";
         PG_CON = "${DATABASE_URL}";
+        MELTANO_PROJECT_ROOT = "./meltano";
       };
     in
       with pkgs; {
@@ -217,8 +220,53 @@
 
         apps.default = flake-utils.lib.mkApp {drv = lana-cli-debug;};
 
-        devShells.default =
-          mkShell (devEnvVars // {inherit nativeBuildInputs;});
+        devShells.default = mkShell (devEnvVars
+          // {
+            inherit nativeBuildInputs;
+            shellHook = ''
+              set -e # Exit immediately if a command exits with a non-zero status.
+
+              # Meltano setup
+              VENV_DIR=".venv" # Relative to the project root
+              INSTALL_MARKER="$VENV_DIR/.plugins_installed"
+
+              # Create a virtual environment if it doesn't exist
+              if [ ! -d "$VENV_DIR" ]; then
+                echo "Creating virtual environment at $VENV_DIR..."
+                ${pkgs.python311}/bin/python -m venv "$VENV_DIR"
+              else
+                echo "Virtual environment $VENV_DIR already exists."
+              fi
+
+              # Activate the virtual environment by setting environment variables
+              if [ -f "$VENV_DIR/bin/activate" ]; then
+                echo "Activating virtual environment..."
+                export VIRTUAL_ENV="$(pwd)/$VENV_DIR"
+                export PATH="$VIRTUAL_ENV/bin:$PATH"
+                export PYTHONPATH=""
+                echo "Python in activated venv: $(which python)"
+                echo "Python version in activated venv: $(python --version)"
+              else
+                echo "ERROR: Virtual environment activation script not found at $VENV_DIR/bin/activate."
+                echo "Hint: If '.venv' directory exists but is empty or corrupted, remove it and reload the shell:"
+                echo "rm -rf .venv && direnv reload"
+                exit 1 # Stop if venv can't be activated
+              fi
+
+              # Install meltano in the virtual environment if not already installed
+              if ! command -v meltano &> /dev/null; then
+                echo "Installing meltano into the virtual environment..."
+                pip install meltano
+              else
+                echo "Meltano already installed in the virtual environment."
+              fi
+
+              # Skip plugin installation to avoid the "not inside Meltano project" error
+              # Users can run 'meltano init' and 'meltano install' manually when needed
+
+              echo "Environment ready. You can use 'meltano' now."
+            '';
+          });
 
         formatter = alejandra;
       });

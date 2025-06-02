@@ -8,13 +8,15 @@ environments:
       extractors:
       - name: tap-postgres
         config:
-          host: core-pg
+          host: localhost
+          port: 5433
           user: user
           database: pg
           password: password
       - name: tap-sumsubapi
         config:
-          host: core-pg
+          host: localhost
+          port: 5433
           user: user
           database: pg
           password: password
@@ -91,7 +93,7 @@ plugins:
   transformers:
   - name: dbt-bigquery
     variant: dbt-labs
-    pip_url: dbt-core~=1.3.0 dbt-bigquery~=1.3.0
+    pip_url: dbt-core==1.9.0 dbt-bigquery==1.9.0 python-dateutil==2.8.2 six==1.16.0
     config:
       auth_method: service-account
       project: lana-dev-440721
@@ -117,6 +119,7 @@ plugins:
       value: lana-dev-440721
   - name: airflow
     variant: apache
-    pip_url: git+https://github.com/meltano/airflow-ext.git@main apache-airflow==2.8.1
-      --constraint
-      https://raw.githubusercontent.com/apache/airflow/constraints-2.8.1/constraints-no-providers-${MELTANO__PYTHON_VERSION}.txt
+    pip_url: >
+      git+https://github.com/meltano/airflow-ext.git@main
+      apache-airflow==2.9.1
+      --constraint https://raw.githubusercontent.com/apache/airflow/constraints-2.9.1/constraints-no-providers-${MELTANO__PYTHON_VERSION}.txt
