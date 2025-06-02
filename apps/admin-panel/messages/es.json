@@ -443,6 +443,7 @@
           "not_yet_due": "AÚN NO VENCIDO",
           "due": "POR PAGAR",
           "overdue": "ATRASADO",
+          "moved_to_liquidation": "TRASLADADO A LIQUIDACIÓN",
           "paid": "PAGADO"
         }
       },
