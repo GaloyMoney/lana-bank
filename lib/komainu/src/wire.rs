@@ -146,3 +146,14 @@ pub struct Many<T> {
     pub has_next: bool,
     pub page: u64,
 }
+
+#[derive(Debug, Deserialize)]
+#[serde(untagged)]
+pub enum Fallible<T> {
+    Error {
+        error_code: String,
+        errors: Vec<String>,
+        status: u16,
+    },
+    Ok(T),
+}

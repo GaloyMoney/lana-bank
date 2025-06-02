@@ -105,7 +105,7 @@ impl KomainuClient {
 
 impl KomainuClient {
     async fn get_one<T: DeserializeOwned>(&self, endpoint: &str) -> Result<T, KomainuError> {
-        Ok(self.get(endpoint, None).await?)
+        self.get(endpoint, None).await
     }
 
     async fn get_many<T: DeserializeOwned>(&self, endpoint: &str) -> Result<Vec<T>, KomainuError> {
@@ -129,13 +129,27 @@ impl KomainuClient {
         &self,
         endpoint: &str,
         offset: Option<u64>,
-    ) -> Result<T, reqwest::Error> {
-        self.request::<()>(Method::GET, endpoint, offset, None)
+    ) -> Result<T, KomainuError> {
+        let response = self
+            .request::<()>(Method::GET, endpoint, offset, None)
             .await?
             .send()
             .await?
             .json()
-            .await
+            .await?;
+
+        match response {
+            Fallible::Error {
+                error_code,
+                errors,
+                status,
+            } => Err(KomainuError::KomainuError {
+                error_code,
+                errors,
+                status,
+            }),
+            Fallible::Ok(res) => Ok(res),
+        }
     }
 
     async fn request<T: Serialize>(
