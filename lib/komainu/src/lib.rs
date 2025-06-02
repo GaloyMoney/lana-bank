@@ -1,3 +1,7 @@
+mod config;
+mod error;
+mod wire;
+
 use std::sync::Arc;
 use std::time::{Duration, Instant};
 
@@ -15,13 +19,10 @@ use serde::{de::DeserializeOwned, Serialize};
 use sha2::{Digest as _, Sha256};
 use tokio::sync::Mutex;
 
-mod config;
-mod error;
-mod wire;
-
 pub use config::{KomainuConfig, KomainuProxy, KomainuSecretKey};
 pub use error::KomainuError;
-pub use wire::*;
+use wire::{Fallible, GetToken, GetTokenResponse, Many};
+pub use wire::{Request, Transaction, Wallet};
 
 #[derive(Clone)]
 pub struct KomainuClient {
