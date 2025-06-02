@@ -107,6 +107,10 @@ export const CreateTermsTemplateDialog: React.FC<CreateTermsTemplateDialogProps>
               period: DEFAULT_TERMS.OBLIGATION_OVERDUE_DURATION.PERIOD,
               units: DEFAULT_TERMS.OBLIGATION_OVERDUE_DURATION.UNITS,
             },
+            obligationLiquidationDuration: {
+              period: DEFAULT_TERMS.OBLIGATION_LIQUIDATION_DURATION.PERIOD,
+              units: DEFAULT_TERMS.OBLIGATION_LIQUIDATION_DURATION.UNITS,
+            },
             liquidationCvl: formValues.liquidationCvl,
             marginCallCvl: formValues.marginCallCvl,
             initialCvl: formValues.initialCvl,

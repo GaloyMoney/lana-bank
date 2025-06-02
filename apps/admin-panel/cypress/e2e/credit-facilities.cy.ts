@@ -38,6 +38,10 @@ describe("credit facility", () => {
         units: DEFAULT_TERMS.OBLIGATION_OVERDUE_DURATION.UNITS,
         period: DEFAULT_TERMS.OBLIGATION_OVERDUE_DURATION.PERIOD,
       },
+      obligationLiquidationDuration: {
+        units: DEFAULT_TERMS.OBLIGATION_LIQUIDATION_DURATION.UNITS,
+        period: DEFAULT_TERMS.OBLIGATION_LIQUIDATION_DURATION.PERIOD,
+      },
     }).then((id) => {
       cy.log(`Created terms template with ID: ${id}`)
     })
