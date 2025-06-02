@@ -133,6 +133,7 @@ enum CreditFacilityRepaymentStatus {
 	NOT_YET_DUE
 	DUE
 	OVERDUE
+	MOVED_TO_LIQUIDATION
 	DEFAULTED
 	PAID
 }
