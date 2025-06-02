@@ -1,14 +1,17 @@
-use std::time::Duration;
-use std::{sync::Arc, time::Instant};
+use std::sync::Arc;
+use std::time::{Duration, Instant};
 
 use base64::{prelude::BASE64_STANDARD, Engine};
-use p256::ecdsa::{signature::Signer as _, Signature, SigningKey};
-use p256::pkcs8::DecodePrivateKey as _;
-use p256::SecretKey;
-use reqwest::header::{HeaderValue, CONTENT_TYPE};
-use reqwest::{Body, Client, Method, Proxy, RequestBuilder, Url};
+use p256::{
+    ecdsa::{signature::Signer as _, Signature, SigningKey},
+    pkcs8::DecodePrivateKey as _,
+    SecretKey,
+};
+use reqwest::{
+    header::{HeaderValue, CONTENT_TYPE},
+    Client, Method, Proxy, RequestBuilder, Url,
+};
 use serde::{de::DeserializeOwned, Serialize};
-use serde_json::Value;
 use sha2::{Digest as _, Sha256};
 use tokio::sync::Mutex;
 
@@ -56,8 +59,8 @@ impl KomainuClient {
         }
     }
 
-    pub async fn list_wallets(&self) -> Result<Many<Wallet>, KomainuError> {
-        Ok(self.get("v1/custody/wallets").await?)
+    pub async fn list_wallets(&self) -> Result<Vec<Wallet>, KomainuError> {
+        Ok(self.get_many("v1/custody/wallets").await?)
     }
 }
 
@@ -72,8 +75,12 @@ impl KomainuClient {
         format!("{host}/{path}").parse().expect("valid URL")
     }
 
-    async fn get<T: DeserializeOwned>(&self, endpoint: &str) -> Result<T, reqwest::Error> {
-        self.request::<()>(Method::GET, endpoint, None)
+    async fn get<T: DeserializeOwned>(
+        &self,
+        endpoint: &str,
+        offset: Option<u64>,
+    ) -> Result<T, reqwest::Error> {
+        self.request::<()>(Method::GET, endpoint, offset, None)
             .await?
             .send()
             .await?
@@ -81,15 +88,43 @@ impl KomainuClient {
             .await
     }
 
+    async fn get_many<T: DeserializeOwned>(
+        &self,
+        endpoint: &str,
+    ) -> Result<Vec<T>, reqwest::Error> {
+        let mut res = vec![];
+        let mut offset = 0;
+
+        loop {
+            let page = self.get::<Many<T>>(endpoint, Some(offset)).await?;
+            res.extend(page.data);
+            if page.has_next {
+                offset += 1;
+            } else {
+                break;
+            }
+        }
+
+        Ok(res)
+    }
+
     async fn request<T: Serialize>(
         &self,
         method: Method,
         endpoint: &str,
+        offset: Option<u64>,
         payload: Option<T>,
     ) -> Result<RequestBuilder, reqwest::Error> {
-        let url = self.url(endpoint);
         let access_token = self.get_access_token().await?;
         let timestamp = chrono::Utc::now().timestamp_millis();
+
+        let mut url = self.url(endpoint);
+
+        if let Some(offset) = offset {
+            url.query_pairs_mut()
+                .append_pair("limit", "200")
+                .append_pair("offset", &offset.to_string());
+        }
 
         let payload = payload
             .map(|payload| serde_json::to_vec(&payload).expect("encode to JSON"))
@@ -107,16 +142,14 @@ impl KomainuClient {
 
         let signature: Signature = self.signing_key.sign(canonical_string.as_bytes());
 
-        let body: Body = payload.into();
-
         Ok(self
             .http_client
             .request(method, url)
             .bearer_auth(access_token)
             .header("X-Timestamp", timestamp)
             .header("X-Signature", BASE64_STANDARD.encode(signature.to_der()))
-            .body(body)
-            .header(CONTENT_TYPE, HeaderValue::from_static("application/json")))
+            .header(CONTENT_TYPE, HeaderValue::from_static("application/json"))
+            .body(payload))
     }
 
     async fn get_access_token(&self) -> Result<String, reqwest::Error> {

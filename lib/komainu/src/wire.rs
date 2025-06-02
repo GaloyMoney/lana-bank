@@ -22,8 +22,8 @@ pub struct GetTokenResponse {
 
 #[derive(Debug, Deserialize)]
 pub struct Many<T> {
-    count: u64,
-    data: Vec<T>,
-    has_next: bool,
-    page: u64,
+    pub count: u64,
+    pub data: Vec<T>,
+    pub has_next: bool,
+    pub page: u64,
 }
