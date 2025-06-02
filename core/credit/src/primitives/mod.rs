@@ -243,6 +243,8 @@ impl CoreCreditAction {
         CoreCreditAction::Obligation(ObligationAction::UpdateStatus);
     pub const OBLIGATION_RECORD_PAYMENT: Self =
         CoreCreditAction::Obligation(ObligationAction::RecordPaymentAllocation);
+    pub const OBLIGATION_MOVE_TO_LIQUIDATION: Self =
+        CoreCreditAction::Obligation(ObligationAction::RecordPaymentAllocation);
 
     pub fn entities() -> Vec<(
         CoreCreditActionDiscriminants,
@@ -436,6 +438,7 @@ pub enum ObligationAction {
     Read,
     UpdateStatus,
     RecordPaymentAllocation,
+    MoveToLiquidation,
 }
 
 impl ObligationAction {
@@ -452,6 +455,9 @@ impl ObligationAction {
                     ActionDescription::new(variant, &[PERMISSION_SET_CREDIT_WRITER])
                 }
                 Self::RecordPaymentAllocation => {
+                    ActionDescription::new(variant, &[PERMISSION_SET_CREDIT_WRITER])
+                }
+                Self::MoveToLiquidation => {
                     ActionDescription::new(variant, &[PERMISSION_SET_CREDIT_WRITER])
                 }
             };

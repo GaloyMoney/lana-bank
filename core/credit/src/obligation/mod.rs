@@ -13,6 +13,7 @@ use outbox::OutboxEventMarker;
 use crate::{
     event::CoreCreditEvent,
     jobs::obligation_due,
+    liquidation_obligation::{LiquidationObligation, LiquidationObligationRepo},
     payment_allocation::NewPaymentAllocation,
     primitives::{
         CoreCreditAction, CoreCreditObject, CreditFacilityId, ObligationId, ObligationType,
@@ -34,7 +35,8 @@ where
     E: OutboxEventMarker<CoreCreditEvent>,
 {
     authz: Perms,
-    repo: ObligationRepo<E>,
+    obligation_repo: ObligationRepo<E>,
+    liquidation_obligation_repo: LiquidationObligationRepo<E>,
     jobs: Jobs,
 }
 
@@ -46,7 +48,8 @@ where
     fn clone(&self) -> Self {
         Self {
             authz: self.authz.clone(),
-            repo: self.repo.clone(),
+            obligation_repo: self.obligation_repo.clone(),
+            liquidation_obligation_repo: self.liquidation_obligation_repo.clone(),
             jobs: self.jobs.clone(),
         }
     }
@@ -67,15 +70,17 @@ where
         publisher: &CreditFacilityPublisher<E>,
     ) -> Self {
         let obligation_repo = ObligationRepo::new(pool, publisher);
+        let liquidation_obligation_repo = LiquidationObligationRepo::new(pool, publisher);
         Self {
             authz: authz.clone(),
-            repo: obligation_repo,
+            obligation_repo,
+            liquidation_obligation_repo,
             jobs: jobs.clone(),
         }
     }
 
     pub async fn begin_op(&self) -> Result<es_entity::DbOp<'_>, ObligationError> {
-        Ok(self.repo.begin_op().await?)
+        Ok(self.obligation_repo.begin_op().await?)
     }
 
     pub async fn create_with_jobs_in_op(
@@ -83,7 +88,10 @@ where
         db: &mut es_entity::DbOp<'_>,
         new_obligation: NewObligation,
     ) -> Result<Obligation, ObligationError> {
-        let obligation = self.repo.create_in_op(db, new_obligation).await?;
+        let obligation = self
+            .obligation_repo
+            .create_in_op(db, new_obligation)
+            .await?;
         self.jobs
             .create_and_spawn_at_in_op(
                 db,
@@ -106,7 +114,7 @@ where
         id: ObligationId,
         effective: chrono::NaiveDate,
     ) -> Result<(Obligation, Option<ObligationOverdueReallocationData>), ObligationError> {
-        let mut obligation = self.repo.find_by_id(id).await?;
+        let mut obligation = self.obligation_repo.find_by_id(id).await?;
 
         let audit_info = self
             .authz
@@ -122,7 +130,9 @@ where
         let data = if let es_entity::Idempotent::Executed(overdue) =
             obligation.record_overdue(effective, audit_info)?
         {
-            self.repo.update_in_op(db, &mut obligation).await?;
+            self.obligation_repo
+                .update_in_op(db, &mut obligation)
+                .await?;
             Some(overdue)
         } else {
             None
@@ -137,7 +147,7 @@ where
         id: ObligationId,
         effective: chrono::NaiveDate,
     ) -> Result<(Obligation, Option<ObligationDueReallocationData>), ObligationError> {
-        let mut obligation = self.repo.find_by_id(id).await?;
+        let mut obligation = self.obligation_repo.find_by_id(id).await?;
 
         let audit_info = self
             .authz
@@ -153,7 +163,9 @@ where
         let data = if let es_entity::Idempotent::Executed(due) =
             obligation.record_due(effective, audit_info)
         {
-            self.repo.update_in_op(db, &mut obligation).await?;
+            self.obligation_repo
+                .update_in_op(db, &mut obligation)
+                .await?;
             Some(due)
         } else {
             None
@@ -168,7 +180,7 @@ where
         id: ObligationId,
         effective: chrono::NaiveDate,
     ) -> Result<Option<ObligationDefaultedReallocationData>, ObligationError> {
-        let mut obligation = self.repo.find_by_id(id).await?;
+        let mut obligation = self.obligation_repo.find_by_id(id).await?;
 
         let audit_info = self
             .authz
@@ -184,7 +196,9 @@ where
         let data = if let es_entity::Idempotent::Executed(defaulted) =
             obligation.record_defaulted(effective, audit_info)?
         {
-            self.repo.update_in_op(db, &mut obligation).await?;
+            self.obligation_repo
+                .update_in_op(db, &mut obligation)
+                .await?;
             Some(defaulted)
         } else {
             None
@@ -194,7 +208,7 @@ where
     }
 
     pub async fn find_by_id(&self, id: ObligationId) -> Result<Obligation, ObligationError> {
-        self.repo.find_by_id(id).await
+        self.obligation_repo.find_by_id(id).await
     }
 
     pub async fn allocate_payment_in_op(
@@ -216,7 +230,7 @@ where
             if let es_entity::Idempotent::Executed(new_allocation) =
                 obligation.allocate_payment(remaining, payment_id, effective, audit_info)
             {
-                self.repo.update_in_op(db, obligation).await?;
+                self.obligation_repo.update_in_op(db, obligation).await?;
                 remaining -= new_allocation.amount;
                 new_allocations.push(new_allocation);
                 if remaining == UsdCents::ZERO {
@@ -226,6 +240,41 @@ where
         }
 
         Ok(PaymentAllocationResult::new(new_allocations))
+    }
+
+    pub async fn move_to_liquidation_in_op(
+        &self,
+        db: &mut es_entity::DbOp<'_>,
+        id: ObligationId,
+        effective: chrono::NaiveDate,
+    ) -> Result<Option<LiquidationObligation>, ObligationError> {
+        let mut obligation = self.obligation_repo.find_by_id(id).await?;
+
+        let audit_info = self
+            .authz
+            .audit()
+            .record_system_entry_in_tx(
+                db.tx(),
+                CoreCreditObject::obligation(id),
+                CoreCreditAction::OBLIGATION_MOVE_TO_LIQUIDATION,
+            )
+            .await
+            .map_err(authz::error::AuthorizationError::from)?;
+
+        if let es_entity::Idempotent::Executed(new_liquidation_obligation) =
+            obligation.move_to_liquidation(effective, &audit_info)
+        {
+            self.obligation_repo
+                .update_in_op(db, &mut obligation)
+                .await?;
+            let liquidation_obligation = self
+                .liquidation_obligation_repo
+                .create_in_op(db, new_liquidation_obligation)
+                .await?;
+            Ok(Some(liquidation_obligation))
+        } else {
+            Ok(None)
+        }
     }
 
     pub async fn check_facility_obligations_status_updated(
@@ -250,7 +299,7 @@ where
         let mut query = Default::default();
         loop {
             let mut res = self
-                .repo
+                .obligation_repo
                 .list_for_credit_facility_id_by_created_at(
                     credit_facility_id,
                     query,

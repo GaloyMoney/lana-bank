@@ -479,17 +479,17 @@ impl Obligation {
         &mut self,
         effective: chrono::NaiveDate,
         audit_info: &AuditInfo,
-    ) -> Idempotent<Option<NewLiquidationObligation>> {
+    ) -> Idempotent<NewLiquidationObligation> {
         idempotency_guard!(
             self.events.iter_all().rev(),
             ObligationEvent::MovedToLiquidation { .. }
         );
         if self.status() == ObligationStatus::Paid {
-            return Idempotent::Executed(None);
+            return Idempotent::Ignored;
         }
         let outstanding = self.outstanding();
         if outstanding.is_zero() {
-            return Idempotent::Executed(None);
+            return Idempotent::Ignored;
         }
 
         let liquidation_obligation_id = LiquidationObligationId::new();
@@ -516,7 +516,7 @@ impl Obligation {
             audit_info: audit_info.clone(),
         });
 
-        Idempotent::Executed(Some(liquidation))
+        Idempotent::Executed(liquidation)
     }
 }
 
