@@ -461,7 +461,7 @@
         "entryTypes": {
           "collateralUpdated": "Collateral Updated",
           "collateralizationUpdated": "Collateralization Updated",
-          "origination": "Origination",
+          "approved": "Facility Approved",
           "incrementalPayment": "Payment",
           "disbursalExecuted": "Disbursal",
           "interestAccrued": "Interest Accrued"

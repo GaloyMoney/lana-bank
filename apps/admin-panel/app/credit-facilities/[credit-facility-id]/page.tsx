@@ -23,7 +23,7 @@ gql`
         action
         txId
       }
-      ... on CreditFacilityOrigination {
+      ... on CreditFacilityApproved {
         cents
         recordedAt
         txId

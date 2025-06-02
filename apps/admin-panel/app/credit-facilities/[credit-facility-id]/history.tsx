@@ -53,8 +53,8 @@ export const CreditFacilityHistory: React.FC<CreditFacilityHistoryProps> = ({
                 </div>
               </div>
             )
-          case "CreditFacilityOrigination":
-            return t("entryTypes.origination")
+          case "CreditFacilityApproved":
+            return t("entryTypes.approved")
           case "CreditFacilityIncrementalPayment":
             return t("entryTypes.incrementalPayment")
           case "CreditFacilityDisbursalExecuted":
@@ -101,7 +101,7 @@ export const CreditFacilityHistory: React.FC<CreditFacilityHistoryProps> = ({
                 <Balance amount={entry.collateral} currency="btc" align="end" />
               </div>
             )
-          case "CreditFacilityOrigination":
+          case "CreditFacilityApproved":
           case "CreditFacilityIncrementalPayment":
           case "CreditFacilityDisbursalExecuted":
           case "CreditFacilityInterestAccrued":
