@@ -236,6 +236,12 @@ where
             ),
         );
         jobs.add_initializer(
+            obligation_moved_to_liquidation::CreditFacilityProcessingJobInitializer::<Perms, E>::new(
+                &ledger,
+                &obligations,
+            ),
+        );
+        jobs.add_initializer(
             obligation_defaulted::CreditFacilityProcessingJobInitializer::<Perms, E>::new(
                 &ledger,
                 &obligations,
