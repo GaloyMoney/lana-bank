@@ -124,7 +124,6 @@ impl CreditFacilityHistory {
             ObligationCreated { .. } => {}
             ObligationDue { .. } => {}
             ObligationOverdue { .. } => {}
-            ObligationDefaulted { .. } => {}
             ObligationCompleted { .. } => {}
             ObligationMovedToLiquidation { .. } => {}
             LiquidationStarted { .. } => {}

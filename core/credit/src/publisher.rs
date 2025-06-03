@@ -246,7 +246,7 @@ where
 
                     due_at: entity.due_at(),
                     overdue_at: entity.overdue_at(),
-                    defaulted_at: entity.liquidation_details().defaulted_date,
+                    liquidation_at: entity.liquidation_at(),
                     recorded_at: event.recorded_at,
                     effective: *effective,
                 }),
@@ -264,11 +264,13 @@ where
                 MovedToLiquidation {
                     liquidation_obligation_id,
                     outstanding,
+                    defaulted_date,
                     ..
                 } => Some(CoreCreditEvent::ObligationMovedToLiquidation {
                     id: entity.id,
                     credit_facility_id: entity.credit_facility_id,
                     liquidation_obligation_id: *liquidation_obligation_id,
+                    defaulted_at: *defaulted_date,
                     amount: *outstanding,
                 }),
                 Completed { .. } => Some(CoreCreditEvent::ObligationCompleted {

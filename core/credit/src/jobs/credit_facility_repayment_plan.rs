@@ -75,10 +75,6 @@ where
                         credit_facility_id: id,
                         ..
                     }
-                    | ObligationDefaulted {
-                        credit_facility_id: id,
-                        ..
-                    }
                     | ObligationCompleted {
                         credit_facility_id: id,
                         ..
