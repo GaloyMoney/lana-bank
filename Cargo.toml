@@ -20,6 +20,7 @@ members = [
   "core/deposit",
   "core/price",
   "core/credit",
+  "core/custody",
 
   "lib/authz",
   "lib/audit",
