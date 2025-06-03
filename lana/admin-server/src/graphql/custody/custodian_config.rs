@@ -6,6 +6,7 @@ pub use core_custody::{
     Custodian as DomainCustodian, CustodianConfig as DomainCustodianConfig,
     KomainuConfig as DomainKomainuConfig,
 };
+pub use lana_app::custody::custodian_config::CustodianConfigsByNameCursor;
 
 #[derive(SimpleObject, Clone)]
 #[graphql(complex)]

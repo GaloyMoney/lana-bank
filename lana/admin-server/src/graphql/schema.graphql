@@ -718,6 +718,21 @@ type CustodianConfig {
 	custodian: Custodian!
 }
 
+type CustodianConfigConnection {
+	"""
+	Information to aid in pagination.
+	"""
+	pageInfo: PageInfo!
+	"""
+	A list of edges.
+	"""
+	edges: [CustodianConfigEdge!]!
+	"""
+	A list of nodes.
+	"""
+	nodes: [CustodianConfig!]!
+}
+
 input CustodianConfigCreateInput @oneOf {
 	manual: ManualConfig
 	komainu: KomainuConfig
@@ -725,6 +740,20 @@ input CustodianConfigCreateInput @oneOf {
 
 type CustodianConfigCreatePayload {
 	custodianConfig: CustodianConfig!
+}
+
+"""
+An edge in a connection.
+"""
+type CustodianConfigEdge {
+	"""
+	The item at the end of the edge
+	"""
+	node: CustodianConfig!
+	"""
+	A cursor for use in pagination
+	"""
+	cursor: String!
 }
 
 type Customer {
@@ -1481,6 +1510,7 @@ type Query {
 	creditFacilities(first: Int!, after: String, sort: CreditFacilitiesSort = {by: CREATED_AT, direction: ASC}, filter: CreditFacilitiesFilter): CreditFacilityConnection!
 	disbursal(id: UUID!): CreditFacilityDisbursal
 	disbursals(first: Int!, after: String): CreditFacilityDisbursalConnection!
+	custodianConfigs(first: Int!, after: String): CustodianConfigConnection!
 	committee(id: UUID!): Committee
 	committees(first: Int!, after: String): CommitteeConnection!
 	policy(id: UUID!): Policy

@@ -17,6 +17,8 @@ pub enum CoreCustodyAction {
 impl CoreCustodyAction {
     pub const CUSTODIAN_CONFIG_CREATE: Self =
         CoreCustodyAction::CustodianConfig(CustodianConfigAction::Create);
+    pub const CUSTODIAN_CONFIG_LIST: Self =
+        CoreCustodyAction::CustodianConfig(CustodianConfigAction::List);
 
     pub fn entities() -> Vec<(
         CoreCustodyActionDiscriminants,

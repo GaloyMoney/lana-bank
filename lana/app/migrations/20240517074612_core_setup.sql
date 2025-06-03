@@ -224,6 +224,7 @@ CREATE TABLE core_credit_facility_events (
 
 CREATE TABLE core_custodian_configs (
   id UUID PRIMARY KEY,
+  name VARCHAR NOT NULL UNIQUE,
   created_at TIMESTAMPTZ NOT NULL
 );
 

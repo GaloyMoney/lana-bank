@@ -335,6 +335,25 @@ impl Query {
         )
     }
 
+    async fn custodian_configs(
+        &self,
+        ctx: &Context<'_>,
+        first: i32,
+        after: Option<String>,
+    ) -> async_graphql::Result<
+        Connection<CustodianConfigsByNameCursor, CustodianConfig, EmptyFields, EmptyFields>,
+    > {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        list_with_cursor!(
+            CustodianConfigsByNameCursor,
+            CustodianConfig,
+            ctx,
+            after,
+            first,
+            |query| app.custody().list_custodian_configs(sub, query)
+        )
+    }
+
     async fn committee(
         &self,
         ctx: &Context<'_>,

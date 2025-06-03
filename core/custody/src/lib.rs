@@ -1,7 +1,7 @@
 #![cfg_attr(feature = "fail-on-warnings", deny(warnings))]
 #![cfg_attr(feature = "fail-on-warnings", deny(clippy::all))]
 
-mod custodian_config;
+pub mod custodian_config;
 pub mod error;
 mod primitives;
 
@@ -10,8 +10,7 @@ use tracing::instrument;
 use audit::AuditSvc;
 use authz::PermissionCheck;
 
-pub use custodian_config::{Custodian, CustodianConfig, KomainuConfig};
-use custodian_config::{CustodianConfigRepo, NewCustodianConfig};
+pub use custodian_config::*;
 
 use error::CoreCustodyError;
 pub use primitives::*;
@@ -76,5 +75,25 @@ where
         Ok(self.custodian_configs.find_all(ids).await?)
     }
 
-    pub async fn list_custodian_configs(&self) {}
+    #[instrument(name = "core_custody.list_custodian_configs", skip(self), err)]
+    pub async fn list_custodian_configs(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        query: es_entity::PaginatedQueryArgs<CustodianConfigsByNameCursor>,
+    ) -> Result<
+        es_entity::PaginatedQueryRet<CustodianConfig, CustodianConfigsByNameCursor>,
+        CoreCustodyError,
+    > {
+        self.authz
+            .enforce_permission(
+                sub,
+                CoreCustodyObject::all_custodian_configs(),
+                CoreCustodyAction::CUSTODIAN_CONFIG_LIST,
+            )
+            .await?;
+        Ok(self
+            .custodian_configs
+            .list_by_name(query, es_entity::ListDirection::Ascending)
+            .await?)
+    }
 }

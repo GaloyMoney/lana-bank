@@ -56,7 +56,7 @@ const mockEnums = {
 };
 
 import { fakerEN as faker } from '@faker-js/faker';
-import { AccountingCsv, AccountingCsvConnection, AccountingCsvDownloadLink, AccountingCsvDownloadLinkGenerateInput, AccountingCsvDownloadLinkGeneratePayload, AccountingCsvEdge, ApprovalProcess, ApprovalProcessApproveInput, ApprovalProcessApprovePayload, ApprovalProcessConnection, ApprovalProcessDenyInput, ApprovalProcessDenyPayload, ApprovalProcessEdge, ApprovalProcessVoter, AuditEntry, AuditEntryConnection, AuditEntryEdge, BalanceSheet, BalanceSheetModuleConfig, BalanceSheetModuleConfigureInput, BalanceSheetModuleConfigurePayload, BtcAmount, BtcBalanceDetails, BtcLedgerAccountBalance, BtcLedgerAccountBalanceRange, CancelledWithdrawalEntry, ChartNode, ChartOfAccounts, ChartOfAccountsCsvImportInput, ChartOfAccountsCsvImportPayload, Collateral, Committee, CommitteeAddUserInput, CommitteeAddUserPayload, CommitteeConnection, CommitteeCreateInput, CommitteeCreatePayload, CommitteeEdge, CommitteeRemoveUserInput, CommitteeRemoveUserPayload, CommitteeThreshold, CreditFacilitiesFilter, CreditFacilitiesSort, CreditFacility, CreditFacilityApproved, CreditFacilityBalance, CreditFacilityCollateralUpdateInput, CreditFacilityCollateralUpdatePayload, CreditFacilityCollateralUpdated, CreditFacilityCollateralizationUpdated, CreditFacilityCompleteInput, CreditFacilityCompletePayload, CreditFacilityConnection, CreditFacilityCreateInput, CreditFacilityCreatePayload, CreditFacilityDisbursal, CreditFacilityDisbursalConnection, CreditFacilityDisbursalEdge, CreditFacilityDisbursalExecuted, CreditFacilityDisbursalInitiateInput, CreditFacilityDisbursalInitiatePayload, CreditFacilityEdge, CreditFacilityIncrementalPayment, CreditFacilityInterestAccrued, CreditFacilityPartialPaymentInput, CreditFacilityPartialPaymentPayload, CreditFacilityPaymentAllocation, CreditFacilityRepaymentPlanEntry, CreditModuleConfig, CreditModuleConfigureInput, CreditModuleConfigurePayload, Customer, CustomerConnection, CustomerCreateInput, CustomerCreatePayload, CustomerEdge, CustomerEmailUpdateInput, CustomerEmailUpdatePayload, CustomerTelegramIdUpdateInput, CustomerTelegramIdUpdatePayload, CustomersFilter, CustomersSort, Dashboard, Deposit, DepositAccount, DepositAccountBalance, DepositAccountHistoryEntryConnection, DepositAccountHistoryEntryEdge, DepositConnection, DepositEdge, DepositEntry, DepositModuleConfig, DepositModuleConfigureInput, DepositModuleConfigurePayload, DepositRecordInput, DepositRecordPayload, DisbursalEntry, Disbursed, Document, DocumentArchiveInput, DocumentArchivePayload, DocumentCreateInput, DocumentCreatePayload, DocumentDeleteInput, DocumentDeletePayload, DocumentDownloadLinksGenerateInput, DocumentDownloadLinksGeneratePayload, Duration, DurationInput, FacilityCvl, FacilityRemaining, GovernanceNavigationItems, Interest, JournalEntry, JournalEntryConnection, JournalEntryEdge, LedgerAccount, LedgerAccountBalanceRangeByCurrency, LedgerAccountConnection, LedgerAccountCsvCreateInput, LedgerAccountCsvCreatePayload, LedgerAccountEdge, LedgerTransaction, LedgerTransactionConnection, LedgerTransactionEdge, Loan, ManualTransactionEntryInput, ManualTransactionExecuteInput, ManualTransactionExecutePayload, Mutation, Outstanding, PageInfo, PaymentEntry, PermissionSet, PermissionSetConnection, PermissionSetEdge, Policy, PolicyAssignCommitteeInput, PolicyAssignCommitteePayload, PolicyConnection, PolicyEdge, ProfitAndLossModuleConfigureInput, ProfitAndLossStatement, ProfitAndLossStatementModuleConfig, ProfitAndLossStatementModuleConfigurePayload, Query, RealtimePrice, Report, ReportCreatePayload, ReportDownloadLink, ReportDownloadLinksGenerateInput, ReportDownloadLinksGeneratePayload, Role, RoleAddPermissionSetsInput, RoleAddPermissionSetsPayload, RoleConnection, RoleCreateInput, RoleCreatePayload, RoleEdge, RoleRemovePermissionSetsInput, RoleRemovePermissionSetsPayload, Subject, SumsubPermalinkCreateInput, SumsubPermalinkCreatePayload, System, SystemApproval, TermValues, TermsInput, TermsTemplate, TermsTemplateCreateInput, TermsTemplateCreatePayload, TermsTemplateUpdateInput, TermsTemplateUpdatePayload, Total, TransactionTemplate, TransactionTemplateConnection, TransactionTemplateEdge, TrialBalance, UnknownEntry, UsdAmount, UsdBalanceDetails, UsdLedgerAccountBalance, UsdLedgerAccountBalanceRange, User, UserCreateInput, UserCreatePayload, UserRevokeRoleInput, UserRevokeRolePayload, UserUpdateRoleInput, UserUpdateRolePayload, VisibleNavigationItems, Withdrawal, WithdrawalCancelInput, WithdrawalCancelPayload, WithdrawalConfirmInput, WithdrawalConfirmPayload, WithdrawalConnection, WithdrawalEdge, WithdrawalEntry, WithdrawalInitiateInput, WithdrawalInitiatePayload, AccountStatus, AccountingCsvStatus, ApprovalProcessStatus, ApprovalProcessType, CollateralAction, CollateralizationState, CreditFacilitiesFilterBy, CreditFacilitiesSortBy, CreditFacilityRepaymentStatus, CreditFacilityRepaymentType, CreditFacilityStatus, CustomerType, CustomersFilterBy, CustomersSortBy, DebitOrCredit, DisbursalStatus, DocumentStatus, InterestInterval, KycLevel, Layer, Period, PermissionSetName, ReportProgress, SortDirection, WithdrawalStatus } from './index';
+import { AccountingCsv, AccountingCsvConnection, AccountingCsvDownloadLink, AccountingCsvDownloadLinkGenerateInput, AccountingCsvDownloadLinkGeneratePayload, AccountingCsvEdge, ApprovalProcess, ApprovalProcessApproveInput, ApprovalProcessApprovePayload, ApprovalProcessConnection, ApprovalProcessDenyInput, ApprovalProcessDenyPayload, ApprovalProcessEdge, ApprovalProcessVoter, AuditEntry, AuditEntryConnection, AuditEntryEdge, BalanceSheet, BalanceSheetModuleConfig, BalanceSheetModuleConfigureInput, BalanceSheetModuleConfigurePayload, BtcAmount, BtcBalanceDetails, BtcLedgerAccountBalance, BtcLedgerAccountBalanceRange, CancelledWithdrawalEntry, ChartNode, ChartOfAccounts, ChartOfAccountsCsvImportInput, ChartOfAccountsCsvImportPayload, Collateral, Committee, CommitteeAddUserInput, CommitteeAddUserPayload, CommitteeConnection, CommitteeCreateInput, CommitteeCreatePayload, CommitteeEdge, CommitteeRemoveUserInput, CommitteeRemoveUserPayload, CommitteeThreshold, CreditFacilitiesFilter, CreditFacilitiesSort, CreditFacility, CreditFacilityApproved, CreditFacilityBalance, CreditFacilityCollateralUpdateInput, CreditFacilityCollateralUpdatePayload, CreditFacilityCollateralUpdated, CreditFacilityCollateralizationUpdated, CreditFacilityCompleteInput, CreditFacilityCompletePayload, CreditFacilityConnection, CreditFacilityCreateInput, CreditFacilityCreatePayload, CreditFacilityDisbursal, CreditFacilityDisbursalConnection, CreditFacilityDisbursalEdge, CreditFacilityDisbursalExecuted, CreditFacilityDisbursalInitiateInput, CreditFacilityDisbursalInitiatePayload, CreditFacilityEdge, CreditFacilityIncrementalPayment, CreditFacilityInterestAccrued, CreditFacilityPartialPaymentInput, CreditFacilityPartialPaymentPayload, CreditFacilityPaymentAllocation, CreditFacilityRepaymentPlanEntry, CreditModuleConfig, CreditModuleConfigureInput, CreditModuleConfigurePayload, CustodianConfig, CustodianConfigConnection, CustodianConfigCreateInput, CustodianConfigCreatePayload, CustodianConfigEdge, Customer, CustomerConnection, CustomerCreateInput, CustomerCreatePayload, CustomerEdge, CustomerEmailUpdateInput, CustomerEmailUpdatePayload, CustomerTelegramIdUpdateInput, CustomerTelegramIdUpdatePayload, CustomersFilter, CustomersSort, Dashboard, Deposit, DepositAccount, DepositAccountBalance, DepositAccountHistoryEntryConnection, DepositAccountHistoryEntryEdge, DepositConnection, DepositEdge, DepositEntry, DepositModuleConfig, DepositModuleConfigureInput, DepositModuleConfigurePayload, DepositRecordInput, DepositRecordPayload, DisbursalEntry, Disbursed, Document, DocumentArchiveInput, DocumentArchivePayload, DocumentCreateInput, DocumentCreatePayload, DocumentDeleteInput, DocumentDeletePayload, DocumentDownloadLinksGenerateInput, DocumentDownloadLinksGeneratePayload, Duration, DurationInput, FacilityCvl, FacilityRemaining, GovernanceNavigationItems, Interest, JournalEntry, JournalEntryConnection, JournalEntryEdge, KomainuConfig, LedgerAccount, LedgerAccountBalanceRangeByCurrency, LedgerAccountConnection, LedgerAccountCsvCreateInput, LedgerAccountCsvCreatePayload, LedgerAccountEdge, LedgerTransaction, LedgerTransactionConnection, LedgerTransactionEdge, Loan, ManualConfig, ManualTransactionEntryInput, ManualTransactionExecuteInput, ManualTransactionExecutePayload, Mutation, Outstanding, PageInfo, PaymentEntry, PermissionSet, PermissionSetConnection, PermissionSetEdge, Policy, PolicyAssignCommitteeInput, PolicyAssignCommitteePayload, PolicyConnection, PolicyEdge, ProfitAndLossModuleConfigureInput, ProfitAndLossStatement, ProfitAndLossStatementModuleConfig, ProfitAndLossStatementModuleConfigurePayload, Query, RealtimePrice, Report, ReportCreatePayload, ReportDownloadLink, ReportDownloadLinksGenerateInput, ReportDownloadLinksGeneratePayload, Role, RoleAddPermissionSetsInput, RoleAddPermissionSetsPayload, RoleConnection, RoleCreateInput, RoleCreatePayload, RoleEdge, RoleRemovePermissionSetsInput, RoleRemovePermissionSetsPayload, Subject, SumsubPermalinkCreateInput, SumsubPermalinkCreatePayload, System, SystemApproval, TermValues, TermsInput, TermsTemplate, TermsTemplateCreateInput, TermsTemplateCreatePayload, TermsTemplateUpdateInput, TermsTemplateUpdatePayload, Total, TransactionTemplate, TransactionTemplateConnection, TransactionTemplateEdge, TrialBalance, UnknownEntry, UsdAmount, UsdBalanceDetails, UsdLedgerAccountBalance, UsdLedgerAccountBalanceRange, User, UserCreateInput, UserCreatePayload, UserRevokeRoleInput, UserRevokeRolePayload, UserUpdateRoleInput, UserUpdateRolePayload, VisibleNavigationItems, Withdrawal, WithdrawalCancelInput, WithdrawalCancelPayload, WithdrawalConfirmInput, WithdrawalConfirmPayload, WithdrawalConnection, WithdrawalEdge, WithdrawalEntry, WithdrawalInitiateInput, WithdrawalInitiatePayload, AccountStatus, AccountingCsvStatus, ApprovalProcessStatus, ApprovalProcessType, CollateralAction, CollateralizationState, CreditFacilitiesFilterBy, CreditFacilitiesSortBy, CreditFacilityRepaymentStatus, CreditFacilityRepaymentType, CreditFacilityStatus, Custodian, CustomerType, CustomersFilterBy, CustomersSortBy, DebitOrCredit, DisbursalStatus, DocumentStatus, InterestInterval, KycLevel, Layer, Period, PermissionSetName, ReportProgress, SortDirection, WithdrawalStatus } from './index';
 
 faker.seed(0);
 
@@ -916,6 +916,57 @@ export const mockCreditModuleConfigurePayload = (overrides?: Partial<CreditModul
     };
 };
 
+export const mockCustodianConfig = (overrides?: Partial<CustodianConfig>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'CustodianConfig' } & CustodianConfig => {
+    const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
+    relationshipsToOmit.add('CustodianConfig');
+    return {
+        __typename: 'CustodianConfig',
+        createdAt: overrides && overrides.hasOwnProperty('createdAt') ? overrides.createdAt! : generateMockValue.timestamp(),
+        custodian: overrides && overrides.hasOwnProperty('custodian') ? overrides.custodian! : Custodian.Komainu,
+        custodianConfigId: overrides && overrides.hasOwnProperty('custodianConfigId') ? overrides.custodianConfigId! : generateMockValue.uuid(),
+        id: overrides && overrides.hasOwnProperty('id') ? overrides.id! : faker.string.uuid(),
+        name: overrides && overrides.hasOwnProperty('name') ? overrides.name! : generateMockValue.name(),
+    };
+};
+
+export const mockCustodianConfigConnection = (overrides?: Partial<CustodianConfigConnection>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'CustodianConfigConnection' } & CustodianConfigConnection => {
+    const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
+    relationshipsToOmit.add('CustodianConfigConnection');
+    return {
+        __typename: 'CustodianConfigConnection',
+        edges: overrides && overrides.hasOwnProperty('edges') ? overrides.edges! : [relationshipsToOmit.has('CustodianConfigEdge') ? {} as CustodianConfigEdge : mockCustodianConfigEdge({}, relationshipsToOmit)],
+        nodes: overrides && overrides.hasOwnProperty('nodes') ? overrides.nodes! : [relationshipsToOmit.has('CustodianConfig') ? {} as CustodianConfig : mockCustodianConfig({}, relationshipsToOmit)],
+        pageInfo: overrides && overrides.hasOwnProperty('pageInfo') ? overrides.pageInfo! : relationshipsToOmit.has('PageInfo') ? {} as PageInfo : mockPageInfo({}, relationshipsToOmit),
+    };
+};
+
+export const mockCustodianConfigCreateInput = (override?: CustodianConfigCreateInput, _relationshipsToOmit: Set<string> = new Set()): CustodianConfigCreateInput => {
+    const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
+    relationshipsToOmit.add('CustodianConfigCreateInput');
+    return {
+        ...(override ? override : {komainu : relationshipsToOmit.has('KomainuConfig') ? {} as KomainuConfig : mockKomainuConfig({}, relationshipsToOmit)}),
+    };
+};
+
+export const mockCustodianConfigCreatePayload = (overrides?: Partial<CustodianConfigCreatePayload>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'CustodianConfigCreatePayload' } & CustodianConfigCreatePayload => {
+    const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
+    relationshipsToOmit.add('CustodianConfigCreatePayload');
+    return {
+        __typename: 'CustodianConfigCreatePayload',
+        custodianConfig: overrides && overrides.hasOwnProperty('custodianConfig') ? overrides.custodianConfig! : relationshipsToOmit.has('CustodianConfig') ? {} as CustodianConfig : mockCustodianConfig({}, relationshipsToOmit),
+    };
+};
+
+export const mockCustodianConfigEdge = (overrides?: Partial<CustodianConfigEdge>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'CustodianConfigEdge' } & CustodianConfigEdge => {
+    const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
+    relationshipsToOmit.add('CustodianConfigEdge');
+    return {
+        __typename: 'CustodianConfigEdge',
+        cursor: overrides && overrides.hasOwnProperty('cursor') ? overrides.cursor! : generateMockValue.cursor(),
+        node: overrides && overrides.hasOwnProperty('node') ? overrides.node! : relationshipsToOmit.has('CustodianConfig') ? {} as CustodianConfig : mockCustodianConfig({}, relationshipsToOmit),
+    };
+};
+
 export const mockCustomer = (overrides?: Partial<Customer>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'Customer' } & Customer => {
     const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
     relationshipsToOmit.add('Customer');
@@ -1400,6 +1451,18 @@ export const mockJournalEntryEdge = (overrides?: Partial<JournalEntryEdge>, _rel
     };
 };
 
+export const mockKomainuConfig = (overrides?: Partial<KomainuConfig>, _relationshipsToOmit: Set<string> = new Set()): KomainuConfig => {
+    const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
+    relationshipsToOmit.add('KomainuConfig');
+    return {
+        apiKey: overrides && overrides.hasOwnProperty('apiKey') ? overrides.apiKey! : faker.lorem.word(),
+        apiSecret: overrides && overrides.hasOwnProperty('apiSecret') ? overrides.apiSecret! : faker.lorem.word(),
+        name: overrides && overrides.hasOwnProperty('name') ? overrides.name! : generateMockValue.name(),
+        secretKey: overrides && overrides.hasOwnProperty('secretKey') ? overrides.secretKey! : faker.lorem.word(),
+        testingInstance: overrides && overrides.hasOwnProperty('testingInstance') ? overrides.testingInstance! : faker.datatype.boolean(),
+    };
+};
+
 export const mockLedgerAccount = (overrides?: Partial<LedgerAccount>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'LedgerAccount' } & LedgerAccount => {
     const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
     relationshipsToOmit.add('LedgerAccount');
@@ -1508,6 +1571,14 @@ export const mockLoan = (overrides?: Partial<Loan>, _relationshipsToOmit: Set<st
     };
 };
 
+export const mockManualConfig = (overrides?: Partial<ManualConfig>, _relationshipsToOmit: Set<string> = new Set()): ManualConfig => {
+    const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
+    relationshipsToOmit.add('ManualConfig');
+    return {
+        name: overrides && overrides.hasOwnProperty('name') ? overrides.name! : generateMockValue.name(),
+    };
+};
+
 export const mockManualTransactionEntryInput = (overrides?: Partial<ManualTransactionEntryInput>, _relationshipsToOmit: Set<string> = new Set()): ManualTransactionEntryInput => {
     const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
     relationshipsToOmit.add('ManualTransactionEntryInput');
@@ -1559,6 +1630,7 @@ export const mockMutation = (overrides?: Partial<Mutation>, _relationshipsToOmit
         creditFacilityDisbursalInitiate: overrides && overrides.hasOwnProperty('creditFacilityDisbursalInitiate') ? overrides.creditFacilityDisbursalInitiate! : relationshipsToOmit.has('CreditFacilityDisbursalInitiatePayload') ? {} as CreditFacilityDisbursalInitiatePayload : mockCreditFacilityDisbursalInitiatePayload({}, relationshipsToOmit),
         creditFacilityPartialPayment: overrides && overrides.hasOwnProperty('creditFacilityPartialPayment') ? overrides.creditFacilityPartialPayment! : relationshipsToOmit.has('CreditFacilityPartialPaymentPayload') ? {} as CreditFacilityPartialPaymentPayload : mockCreditFacilityPartialPaymentPayload({}, relationshipsToOmit),
         creditModuleConfigure: overrides && overrides.hasOwnProperty('creditModuleConfigure') ? overrides.creditModuleConfigure! : relationshipsToOmit.has('CreditModuleConfigurePayload') ? {} as CreditModuleConfigurePayload : mockCreditModuleConfigurePayload({}, relationshipsToOmit),
+        custodianConfigCreate: overrides && overrides.hasOwnProperty('custodianConfigCreate') ? overrides.custodianConfigCreate! : relationshipsToOmit.has('CustodianConfigCreatePayload') ? {} as CustodianConfigCreatePayload : mockCustodianConfigCreatePayload({}, relationshipsToOmit),
         customerCreate: overrides && overrides.hasOwnProperty('customerCreate') ? overrides.customerCreate! : relationshipsToOmit.has('CustomerCreatePayload') ? {} as CustomerCreatePayload : mockCustomerCreatePayload({}, relationshipsToOmit),
         customerDocumentAttach: overrides && overrides.hasOwnProperty('customerDocumentAttach') ? overrides.customerDocumentAttach! : relationshipsToOmit.has('DocumentCreatePayload') ? {} as DocumentCreatePayload : mockDocumentCreatePayload({}, relationshipsToOmit),
         customerEmailUpdate: overrides && overrides.hasOwnProperty('customerEmailUpdate') ? overrides.customerEmailUpdate! : relationshipsToOmit.has('CustomerEmailUpdatePayload') ? {} as CustomerEmailUpdatePayload : mockCustomerEmailUpdatePayload({}, relationshipsToOmit),
@@ -1763,6 +1835,7 @@ export const mockQuery = (overrides?: Partial<Query>, _relationshipsToOmit: Set<
         creditConfig: overrides && overrides.hasOwnProperty('creditConfig') ? overrides.creditConfig! : relationshipsToOmit.has('CreditModuleConfig') ? {} as CreditModuleConfig : mockCreditModuleConfig({}, relationshipsToOmit),
         creditFacilities: overrides && overrides.hasOwnProperty('creditFacilities') ? overrides.creditFacilities! : relationshipsToOmit.has('CreditFacilityConnection') ? {} as CreditFacilityConnection : mockCreditFacilityConnection({}, relationshipsToOmit),
         creditFacility: overrides && overrides.hasOwnProperty('creditFacility') ? overrides.creditFacility! : relationshipsToOmit.has('CreditFacility') ? {} as CreditFacility : mockCreditFacility({}, relationshipsToOmit),
+        custodianConfigs: overrides && overrides.hasOwnProperty('custodianConfigs') ? overrides.custodianConfigs! : relationshipsToOmit.has('CustodianConfigConnection') ? {} as CustodianConfigConnection : mockCustodianConfigConnection({}, relationshipsToOmit),
         customer: overrides && overrides.hasOwnProperty('customer') ? overrides.customer! : relationshipsToOmit.has('Customer') ? {} as Customer : mockCustomer({}, relationshipsToOmit),
         customerByEmail: overrides && overrides.hasOwnProperty('customerByEmail') ? overrides.customerByEmail! : relationshipsToOmit.has('Customer') ? {} as Customer : mockCustomer({}, relationshipsToOmit),
         customers: overrides && overrides.hasOwnProperty('customers') ? overrides.customers! : relationshipsToOmit.has('CustomerConnection') ? {} as CustomerConnection : mockCustomerConnection({}, relationshipsToOmit),

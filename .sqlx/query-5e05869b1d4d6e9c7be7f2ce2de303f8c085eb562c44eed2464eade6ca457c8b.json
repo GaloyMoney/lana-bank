@@ -1,0 +1,40 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "WITH entities AS (SELECT id FROM core_custodian_configs WHERE name = $1) SELECT i.id AS \"entity_id: CustodianConfigId\", e.sequence, e.event, e.recorded_at FROM entities i JOIN core_custodian_config_events e ON i.id = e.id ORDER BY i.id, e.sequence",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "entity_id: CustodianConfigId",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "sequence",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 2,
+        "name": "event",
+        "type_info": "Jsonb"
+      },
+      {
+        "ordinal": 3,
+        "name": "recorded_at",
+        "type_info": "Timestamptz"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Text"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "5e05869b1d4d6e9c7be7f2ce2de303f8c085eb562c44eed2464eade6ca457c8b"
+}
