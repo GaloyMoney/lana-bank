@@ -226,45 +226,43 @@
             shellHook = ''
               set -e # Exit immediately if a command exits with a non-zero status.
 
-              # Exit early if running in CI environment
               if [ -n "$CI" ]; then
                 echo "CI environment detected, skipping meltano setup."
-                exit 0
-              fi
-
-              # Meltano setup
-              VENV_DIR=".venv" # Relative to the project root
-              INSTALL_MARKER="$VENV_DIR/.plugins_installed"
-
-              # Create a virtual environment if it doesn't exist
-              if [ ! -d "$VENV_DIR" ]; then
-                echo "Creating virtual environment at $VENV_DIR..."
-                ${pkgs.python312}/bin/python -m venv "$VENV_DIR"
               else
-                echo "Virtual environment $VENV_DIR already exists."
+                # Meltano setup
+                VENV_DIR=".venv" # Relative to the project root
+                INSTALL_MARKER="$VENV_DIR/.plugins_installed"
+
+                # Create a virtual environment if it doesn't exist
+                if [ ! -d "$VENV_DIR" ]; then
+                  echo "Creating virtual environment at $VENV_DIR..."
+                  ${pkgs.python312}/bin/python -m venv "$VENV_DIR"
+                else
+                  echo "Virtual environment $VENV_DIR already exists."
+                fi
+
+                # Activate the virtual environment
+                source "$VENV_DIR/bin/activate"
+                echo "Activating virtual environment..."
+
+                # Install meltano if not already installed
+                if [ ! -f "$INSTALL_MARKER" ]; then
+                  echo "Installing meltano..."
+                  pip install --upgrade pip
+                  pip install meltano
+                  touch "$INSTALL_MARKER"
+                  echo "Meltano installed."
+                else
+                  echo "Meltano already installed."
+                fi
+
+                # Set environment variables to persist the virtual environment
+                export VIRTUAL_ENV="$(pwd)/$VENV_DIR"
+                export PATH="$VIRTUAL_ENV/bin:$PATH"
+                export PYTHONPATH="$VIRTUAL_ENV/lib/python3.12/site-packages:$PYTHONPATH"
+
+                echo "Environment ready. You can use 'meltano' now."
               fi
-
-              # Activate the virtual environment
-              source "$VENV_DIR/bin/activate"
-              echo "Activating virtual environment..."
-
-              # Install meltano if not already installed
-              if [ ! -f "$INSTALL_MARKER" ]; then
-                echo "Installing meltano..."
-                pip install --upgrade pip
-                pip install meltano
-                touch "$INSTALL_MARKER"
-                echo "Meltano installed."
-              else
-                echo "Meltano already installed."
-              fi
-
-              # Set environment variables to persist the virtual environment
-              export VIRTUAL_ENV="$(pwd)/$VENV_DIR"
-              export PATH="$VIRTUAL_ENV/bin:$PATH"
-              export PYTHONPATH="$VIRTUAL_ENV/lib/python3.12/site-packages:$PYTHONPATH"
-
-              echo "Environment ready. You can use 'meltano' now."
             '';
           });
 
