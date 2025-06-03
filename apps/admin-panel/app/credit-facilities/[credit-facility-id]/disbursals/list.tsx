@@ -8,7 +8,7 @@ import { GetCreditFacilityDisbursalsQuery } from "@/lib/graphql/generated"
 import Balance from "@/components/balance/balance"
 import DataTable, { Column } from "@/components/data-table"
 import { DisbursalStatusBadge } from "@/app/disbursals/status-badge"
-import DateWithTooltip from "@/components/date-with-tooltip"
+import DateWithTooltip from "@lana/web/components/date-with-tooltip"
 
 type Disbursal = NonNullable<
   GetCreditFacilityDisbursalsQuery["creditFacility"]

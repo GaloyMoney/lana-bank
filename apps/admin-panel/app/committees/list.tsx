@@ -13,7 +13,7 @@ import PaginatedTable, {
   DEFAULT_PAGESIZE,
   PaginatedData,
 } from "@/components/paginated-table"
-import DateWithTooltip from "@/components/date-with-tooltip"
+import DateWithTooltip from "@lana/web/components/date-with-tooltip"
 
 gql`
   fragment CommitteeFields on Committee {

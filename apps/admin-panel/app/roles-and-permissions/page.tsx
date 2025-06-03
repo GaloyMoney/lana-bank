@@ -15,7 +15,7 @@ import {
 import DataTable, { Column } from "../../components/data-table"
 
 import { useRolesQuery } from "@/lib/graphql/generated"
-import DateWithTooltip from "@/components/date-with-tooltip"
+import DateWithTooltip from "@lana/web/components/date-with-tooltip"
 import { usePermissionDisplay } from "@/hooks/use-permission-display"
 
 gql`

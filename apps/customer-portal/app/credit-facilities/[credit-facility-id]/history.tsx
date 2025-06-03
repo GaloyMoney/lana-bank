@@ -11,7 +11,8 @@ import {
   GetCreditFacilityQuery,
 } from "@/lib/graphql/generated"
 
-import { formatDate, cn } from "@/lib/utils"
+import { cn } from "@/lib/utils"
+import DateWithTooltip from "@lana/web/components/date-with-tooltip"
 
 import Balance from "@/components/balance"
 
@@ -85,7 +86,7 @@ export const CreditFacilityHistory: React.FC<CreditFacilityHistoryProps> = ({
       key: "recordedAt",
       header: "Recorded At",
       render: (recordedAt: string | null | undefined) =>
-        recordedAt ? formatDate(recordedAt) : "-",
+        recordedAt ? <DateWithTooltip value={recordedAt} /> : "-",
     },
     {
       key: "__typename",

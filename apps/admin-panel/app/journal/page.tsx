@@ -25,7 +25,7 @@ import PaginatedTable, {
   PaginatedData,
 } from "@/components/paginated-table"
 import Balance from "@/components/balance/balance"
-import DateWithTooltip from "@/components/date-with-tooltip"
+import DateWithTooltip from "@lana/web/components/date-with-tooltip"
 import { formatDate } from "@/lib/utils"
 
 gql`

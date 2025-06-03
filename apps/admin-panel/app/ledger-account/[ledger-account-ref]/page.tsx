@@ -44,7 +44,7 @@ import PaginatedTable, {
 import { DetailsGroup } from "@/components/details"
 import Balance from "@/components/balance/balance"
 import DataTable from "@/components/data-table"
-import DateWithTooltip from "@/components/date-with-tooltip"
+import DateWithTooltip from "@lana/web/components/date-with-tooltip"
 
 gql`
   fragment LedgerAccountDetails on LedgerAccount {

@@ -13,7 +13,7 @@ import {
 } from "@/lib/graphql/generated"
 import { formatCollateralAction, cn } from "@/lib/utils"
 import DataTable, { Column } from "@/components/data-table"
-import DateWithTooltip from "@/components/date-with-tooltip"
+import DateWithTooltip from "@lana/web/components/date-with-tooltip"
 
 type CreditFacilityHistoryProps = {
   creditFacility: NonNullable<GetCreditFacilityHistoryQuery["creditFacility"]>

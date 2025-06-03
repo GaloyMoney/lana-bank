@@ -14,7 +14,7 @@ import {
 import Balance from "@/components/balance/balance"
 import DataTable, { Column } from "@/components/data-table"
 import { GetCustomerTransactionHistoryQuery } from "@/lib/graphql/generated"
-import DateWithTooltip from "@/components/date-with-tooltip"
+import DateWithTooltip from "@lana/web/components/date-with-tooltip"
 import { WithdrawalStatusBadge } from "@/app/withdrawals/status-badge"
 import { DisbursalStatusBadge } from "@/app/disbursals/status-badge"
 

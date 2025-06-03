@@ -9,7 +9,7 @@ import { Badge, BadgeProps } from "@lana/web/ui/badge"
 import { DisbursalStatusBadge } from "./disbursal-badge"
 
 import { GetTransactionHistoryQuery, WithdrawalStatus } from "@/lib/graphql/generated"
-import { formatDate } from "@/lib/utils"
+import DateWithTooltip from "@lana/web/components/date-with-tooltip"
 
 import Balance from "@/components/balance"
 
@@ -43,7 +43,7 @@ export const CustomerTransactionsTable: React.FC<CustomerTransactionsTableProps>
       header: "Date",
       render: (_: HistoryNode["__typename"], entry: { recordedAt: string }) => {
         if (!entry.recordedAt) return "-"
-        return formatDate(entry.recordedAt)
+        return <DateWithTooltip value={entry.recordedAt} />
       },
     },
     {

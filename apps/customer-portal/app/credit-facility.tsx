@@ -6,7 +6,8 @@ import { Badge, BadgeProps } from "@lana/web/ui/badge"
 
 import { MeQuery, CreditFacilityStatus } from "@/lib/graphql/generated"
 
-import { formatDate, cn } from "@/lib/utils"
+import { cn } from "@/lib/utils"
+import DateWithTooltip from "@lana/web/components/date-with-tooltip"
 import Balance from "@/components/balance"
 
 type CreditFacility = NonNullable<MeQuery["me"]["customer"]>["creditFacilities"][number]
@@ -22,7 +23,7 @@ export const CustomerCreditFacilitiesTable: React.FC<
     {
       key: "createdAt",
       header: "Created At",
-      render: (date) => formatDate(date),
+      render: (date) => <DateWithTooltip value={date} />, 
     },
     {
       key: "balance",

@@ -8,7 +8,7 @@ import { useBreakpointDown } from "@lana/web/hooks"
 
 import { AccountStatus, MeQuery } from "@/lib/graphql/generated"
 import Balance from "@/components/balance"
-import { formatDate } from "@/lib/utils"
+import { formatDate } from "@lana/web/utils"
 
 function UserDetailsCard({
   customer,

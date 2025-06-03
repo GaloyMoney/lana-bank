@@ -1,3 +1,5 @@
+"use client"
+
 import { ReactNode } from "react"
 
 import {
@@ -6,8 +8,7 @@ import {
   TooltipTrigger,
   TooltipContent,
 } from "@lana/web/ui/tooltip"
-
-import { formatDate } from "@/lib/utils"
+import { formatDate } from "@lana/web/utils"
 
 interface DateWithTooltipProps {
   value: string | number | Date

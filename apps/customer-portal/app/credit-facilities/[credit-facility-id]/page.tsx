@@ -24,7 +24,7 @@ import { LoanAndCreditFacilityStatusBadge } from "@/app/credit-facility"
 
 import { getCreditFacility } from "@/lib/graphql/query/get-cf"
 import { removeUnderscore } from "@/lib/kratos/utils"
-import { formatDate } from "@/lib/utils"
+import { formatDate } from "@lana/web/utils"
 
 gql`
   query GetCreditFacility($id: UUID!) {
@@ -173,7 +173,9 @@ async function page({ params }: { params: Promise<{ "credit-facility-id": string
     },
     {
       label: "Matures At",
-      value: formatDate(data.creditFacility.maturesAt) || "N/A",
+      value: data.creditFacility.maturesAt
+        ? formatDate(data.creditFacility.maturesAt)
+        : "N/A",
     },
     {
       label: "Status",

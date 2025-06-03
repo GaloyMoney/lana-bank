@@ -25,7 +25,7 @@ import PaginatedTable, {
 } from "@/components/paginated-table"
 import Balance from "@/components/balance/balance"
 import { camelToScreamingSnake } from "@/lib/utils"
-import DateWithTooltip from "@/components/date-with-tooltip"
+import DateWithTooltip from "@lana/web/components/date-with-tooltip"
 
 gql`
   query CreditFacilities(
