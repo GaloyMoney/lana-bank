@@ -6,6 +6,7 @@ use authz::AllOrOne;
 use core_access::CoreAccessObject;
 use core_accounting::CoreAccountingObject;
 use core_credit::CoreCreditObject;
+use core_custody::CoreCustodyObject;
 use core_customer::{CustomerId, CustomerObject};
 use core_deposit::CoreDepositObject;
 use dashboard::DashboardModuleObject;
@@ -22,6 +23,7 @@ pub enum LanaObject {
     Accounting(CoreAccountingObject),
     Deposit(CoreDepositObject),
     Credit(CoreCreditObject),
+    Custody(CoreCustodyObject),
     Dashboard(DashboardModuleObject),
 }
 
@@ -60,6 +62,11 @@ impl From<CoreDepositObject> for LanaObject {
         LanaObject::Deposit(object)
     }
 }
+impl From<CoreCustodyObject> for LanaObject {
+    fn from(object: CoreCustodyObject) -> Self {
+        LanaObject::Custody(object)
+    }
+}
 impl From<CoreCreditObject> for LanaObject {
     fn from(object: CoreCreditObject) -> Self {
         LanaObject::Credit(object)
@@ -78,6 +85,7 @@ impl Display for LanaObject {
             Accounting(action) => action.fmt(f),
             Deposit(action) => action.fmt(f),
             Credit(action) => action.fmt(f),
+            Custody(action) => action.fmt(f),
             Dashboard(action) => action.fmt(f),
         }
     }
@@ -97,6 +105,7 @@ impl FromStr for LanaObject {
             Accounting => LanaObject::from(object.parse::<CoreAccountingObject>()?),
             Deposit => LanaObject::from(object.parse::<CoreDepositObject>()?),
             Credit => LanaObject::from(object.parse::<CoreCreditObject>()?),
+            Custody => LanaObject::from(object.parse::<CoreCustodyObject>()?),
             Dashboard => LanaObject::from(
                 object
                     .parse::<DashboardModuleObject>()

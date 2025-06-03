@@ -15,6 +15,7 @@ use custodian_config::{Custodian, CustodianConfig, CustodianConfigRepo, NewCusto
 use error::CoreCustodyError;
 pub use primitives::*;
 
+#[derive(Clone)]
 pub struct CoreCustody<Perms>
 where
     Perms: PermissionCheck,
@@ -36,7 +37,11 @@ where
         }
     }
 
-    #[instrument(name = "core_custody.create_custodian_config", skip(self, custodian), err)]
+    #[instrument(
+        name = "core_custody.create_custodian_config",
+        skip(self, custodian),
+        err
+    )]
     pub async fn create_custodian_config(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,

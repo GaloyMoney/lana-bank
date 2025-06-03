@@ -6,7 +6,7 @@ use crate::primitives::*;
 
 use super::{entity::*, error::*};
 
-#[derive(EsRepo)]
+#[derive(EsRepo, Clone)]
 #[es_repo(
     entity = "CustodianConfig",
     err = "CustodianConfigError",

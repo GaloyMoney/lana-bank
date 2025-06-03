@@ -120,6 +120,10 @@ pub mod trial_balance {
     pub type TrialBalances = core_accounting::TrialBalances<crate::authorization::Authorization>;
 }
 
+pub mod custody {
+    pub type Custody = core_custody::CoreCustody<crate::authorization::Authorization>;
+}
+
 pub mod credit {
     pub use core_credit::{
         error, ChartOfAccountsIntegrationConfig, CollateralUpdated, CollateralizationUpdated,

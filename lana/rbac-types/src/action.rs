@@ -5,6 +5,7 @@ use authz::action_description::*;
 use core_access::CoreAccessAction;
 use core_accounting::CoreAccountingAction;
 use core_credit::CoreCreditAction;
+use core_custody::CoreCustodyAction;
 use core_customer::CoreCustomerAction;
 use core_deposit::CoreDepositAction;
 use dashboard::DashboardModuleAction;
@@ -25,6 +26,7 @@ pub enum LanaAction {
     Dashboard(DashboardModuleAction),
     Deposit(CoreDepositAction),
     Credit(CoreCreditAction),
+    Custody(CoreCustodyAction),
 }
 
 impl LanaAction {
@@ -58,6 +60,7 @@ impl LanaAction {
                 Dashboard => flatten(module, DashboardModuleAction::entities()),
                 Deposit => flatten(module, CoreDepositAction::entities()),
                 Credit => flatten(module, CoreCreditAction::entities()),
+                Custody => flatten(module, CoreCustodyAction::entities()),
             };
 
             result.extend(actions);
@@ -107,6 +110,11 @@ impl From<CoreCreditAction> for LanaAction {
         LanaAction::Credit(action)
     }
 }
+impl From<CoreCustodyAction> for LanaAction {
+    fn from(action: CoreCustodyAction) -> Self {
+        LanaAction::Custody(action)
+    }
+}
 
 impl Display for LanaAction {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -121,6 +129,7 @@ impl Display for LanaAction {
             Accounting(action) => action.fmt(f),
             Deposit(action) => action.fmt(f),
             Credit(action) => action.fmt(f),
+            Custody(action) => action.fmt(f),
         }
     }
 }
@@ -140,6 +149,7 @@ impl FromStr for LanaAction {
             Accounting => LanaAction::from(action.parse::<CoreAccountingAction>()?),
             Deposit => LanaAction::from(action.parse::<CoreDepositAction>()?),
             Credit => LanaAction::from(action.parse::<CoreCreditAction>()?),
+            Custody => LanaAction::from(action.parse::<CoreCustodyAction>()?),
         };
         Ok(res)
     }

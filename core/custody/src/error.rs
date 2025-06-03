@@ -6,5 +6,5 @@ pub enum CoreCustodyError {
     AuthorizationError(#[from] authz::error::AuthorizationError),
 
     #[error("CoreCustodyError - CustodianConfigError: {0}")]
-    CustodianConfig(#[from] crate::custodian_config::error::CustodianConfigError)
+    CustodianConfig(#[from] crate::custodian_config::error::CustodianConfigError),
 }

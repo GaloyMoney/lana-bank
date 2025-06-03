@@ -14,6 +14,7 @@ use crate::{
     audit::{Audit, AuditCursor, AuditEntry},
     authorization::{seed, AppAction, AppObject, AuditAction, Authorization},
     credit::Credit,
+    custody::Custody,
     customer::Customers,
     customer_sync::CustomerSync,
     dashboard::Dashboard,
@@ -45,6 +46,7 @@ pub struct LanaApp {
     applicants: Applicants,
     access: Access,
     credit: Credit,
+    custody: Custody,
     price: Price,
     report: Reports,
     terms_templates: TermsTemplates,
@@ -116,6 +118,8 @@ impl LanaApp {
         let applicants =
             Applicants::init(&pool, &config.sumsub, &customers, &deposits, &jobs, &outbox).await?;
 
+        let custody = Custody::new(&pool, &authz);
+
         let credit = Credit::init(
             &pool,
             config.credit,
@@ -148,6 +152,7 @@ impl LanaApp {
             price,
             report,
             credit,
+            custody,
             terms_templates,
             documents,
             outbox,
@@ -215,6 +220,10 @@ impl LanaApp {
 
     pub fn applicants(&self) -> &Applicants {
         &self.applicants
+    }
+
+    pub fn custody(&self) -> &Custody {
+        &self.custody
     }
 
     pub fn credit(&self) -> &Credit {
