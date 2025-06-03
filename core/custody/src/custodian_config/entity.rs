@@ -74,7 +74,7 @@ pub struct NewCustodianConfig {
 }
 
 impl NewCustodianConfig {
-    pub fn builder() -> CustodianConfigBuilder {
+    pub fn builder() -> NewCustodianConfigBuilder {
         Default::default()
     }
 }

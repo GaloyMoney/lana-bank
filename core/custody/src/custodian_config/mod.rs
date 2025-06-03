@@ -1,6 +1,6 @@
 mod entity;
-mod error;
+pub mod error;
 mod repo;
 
-pub use entity::{CustodianConfig, CustodianConfigEvent, NewCustodianConfig};
+pub use entity::{Custodian, CustodianConfig, NewCustodianConfig};
 pub(super) use repo::CustodianConfigRepo;
