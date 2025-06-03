@@ -4,6 +4,8 @@ import { gql } from "@apollo/client"
 import { useState } from "react"
 import { useTranslations } from "next-intl"
 
+import DateWithTooltip from "@lana/web/components/date-with-tooltip"
+
 import { CreateCommitteeDialog } from "./create"
 import { AddUserCommitteeDialog } from "./add-user"
 
@@ -13,7 +15,6 @@ import PaginatedTable, {
   DEFAULT_PAGESIZE,
   PaginatedData,
 } from "@/components/paginated-table"
-import DateWithTooltip from "@lana/web/components/date-with-tooltip"
 
 gql`
   fragment CommitteeFields on Committee {

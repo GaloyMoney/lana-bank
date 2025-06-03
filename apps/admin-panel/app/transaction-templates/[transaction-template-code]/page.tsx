@@ -13,6 +13,8 @@ import {
   CardContent,
 } from "@lana/web/ui/card"
 
+import DateWithTooltip from "@lana/web/components/date-with-tooltip"
+
 import {
   LedgerTransaction,
   useLedgerTransactionsForTemplateCodeQuery,
@@ -23,7 +25,6 @@ import PaginatedTable, {
   DEFAULT_PAGESIZE,
   PaginatedData,
 } from "@/components/paginated-table"
-import DateWithTooltip from "@lana/web/components/date-with-tooltip"
 
 gql`
   query LedgerTransactionsForTemplateCode(

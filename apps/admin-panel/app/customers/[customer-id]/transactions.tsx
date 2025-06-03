@@ -11,10 +11,11 @@ import {
   CardTitle,
 } from "@lana/web/ui/card"
 
+import DateWithTooltip from "@lana/web/components/date-with-tooltip"
+
 import Balance from "@/components/balance/balance"
 import DataTable, { Column } from "@/components/data-table"
 import { GetCustomerTransactionHistoryQuery } from "@/lib/graphql/generated"
-import DateWithTooltip from "@lana/web/components/date-with-tooltip"
 import { WithdrawalStatusBadge } from "@/app/withdrawals/status-badge"
 import { DisbursalStatusBadge } from "@/app/disbursals/status-badge"
 

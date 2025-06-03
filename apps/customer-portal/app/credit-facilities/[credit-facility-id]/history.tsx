@@ -4,6 +4,8 @@ import React from "react"
 
 import DataTable, { Column } from "@lana/web/components/data-table"
 
+import DateWithTooltip from "@lana/web/components/date-with-tooltip"
+
 import {
   CreditFacilityHistoryEntry,
   CollateralAction,
@@ -12,7 +14,6 @@ import {
 } from "@/lib/graphql/generated"
 
 import { cn } from "@/lib/utils"
-import DateWithTooltip from "@lana/web/components/date-with-tooltip"
 
 import Balance from "@/components/balance"
 

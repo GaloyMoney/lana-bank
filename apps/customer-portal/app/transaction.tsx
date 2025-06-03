@@ -6,10 +6,11 @@ import DataTable, { Column } from "@lana/web/components/data-table"
 
 import { Badge, BadgeProps } from "@lana/web/ui/badge"
 
+import DateWithTooltip from "@lana/web/components/date-with-tooltip"
+
 import { DisbursalStatusBadge } from "./disbursal-badge"
 
 import { GetTransactionHistoryQuery, WithdrawalStatus } from "@/lib/graphql/generated"
-import DateWithTooltip from "@lana/web/components/date-with-tooltip"
 
 import Balance from "@/components/balance"
 

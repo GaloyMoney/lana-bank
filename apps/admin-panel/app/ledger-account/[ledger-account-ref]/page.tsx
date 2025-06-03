@@ -27,6 +27,8 @@ import { IoCaretDownSharp, IoCaretForwardSharp } from "react-icons/io5"
 
 import Link from "next/link"
 
+import DateWithTooltip from "@lana/web/components/date-with-tooltip"
+
 import { ExportCsvDialog } from "./export"
 
 import { isUUID } from "@/lib/utils"
@@ -44,7 +46,6 @@ import PaginatedTable, {
 import { DetailsGroup } from "@/components/details"
 import Balance from "@/components/balance/balance"
 import DataTable from "@/components/data-table"
-import DateWithTooltip from "@lana/web/components/date-with-tooltip"
 
 gql`
   fragment LedgerAccountDetails on LedgerAccount {

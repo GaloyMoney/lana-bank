@@ -6,8 +6,9 @@ import DataTable, { Column } from "@lana/web/components/data-table"
 
 import { Badge, BadgeProps } from "@lana/web/ui/badge"
 
-import { GetCreditFacilityQuery, DisbursalStatus } from "@/lib/graphql/generated"
 import DateWithTooltip from "@lana/web/components/date-with-tooltip"
+
+import { GetCreditFacilityQuery, DisbursalStatus } from "@/lib/graphql/generated"
 
 import Balance from "@/components/balance"
 

@@ -5,13 +5,14 @@ import { useTranslations } from "next-intl"
 
 import { Badge, BadgeProps } from "@lana/web/ui/badge"
 
+import DateWithTooltip from "@lana/web/components/date-with-tooltip"
+
 import DataTable, { Column } from "@/components/data-table"
 
 import { GetCreditFacilityRepaymentPlanQuery } from "@/lib/graphql/generated"
 
 import Balance from "@/components/balance/balance"
 import CardWrapper from "@/components/card-wrapper"
-import DateWithTooltip from "@lana/web/components/date-with-tooltip"
 
 type RepaymentPlan = NonNullable<
   NonNullable<

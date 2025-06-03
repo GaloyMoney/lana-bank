@@ -3,12 +3,13 @@
 import React from "react"
 import { useTranslations } from "next-intl"
 
+import DateWithTooltip from "@lana/web/components/date-with-tooltip"
+
 import CardWrapper from "@/components/card-wrapper"
 import { GetCreditFacilityDisbursalsQuery } from "@/lib/graphql/generated"
 import Balance from "@/components/balance/balance"
 import DataTable, { Column } from "@/components/data-table"
 import { DisbursalStatusBadge } from "@/app/disbursals/status-badge"
-import DateWithTooltip from "@lana/web/components/date-with-tooltip"
 
 type Disbursal = NonNullable<
   GetCreditFacilityDisbursalsQuery["creditFacility"]

@@ -4,10 +4,11 @@ import DataTable, { Column } from "@lana/web/components/data-table"
 
 import { Badge, BadgeProps } from "@lana/web/ui/badge"
 
+import DateWithTooltip from "@lana/web/components/date-with-tooltip"
+
 import { MeQuery, CreditFacilityStatus } from "@/lib/graphql/generated"
 
 import { cn } from "@/lib/utils"
-import DateWithTooltip from "@lana/web/components/date-with-tooltip"
 import Balance from "@/components/balance"
 
 type CreditFacility = NonNullable<MeQuery["me"]["customer"]>["creditFacilities"][number]
@@ -23,7 +24,7 @@ export const CustomerCreditFacilitiesTable: React.FC<
     {
       key: "createdAt",
       header: "Created At",
-      render: (date) => <DateWithTooltip value={date} />, 
+      render: (date) => <DateWithTooltip value={date} />,
     },
     {
       key: "balance",

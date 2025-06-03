@@ -12,10 +12,11 @@ import {
   CardTitle,
 } from "@lana/web/ui/card"
 
+import DateWithTooltip from "@lana/web/components/date-with-tooltip"
+
 import DataTable, { Column } from "../../components/data-table"
 
 import { useRolesQuery } from "@/lib/graphql/generated"
-import DateWithTooltip from "@lana/web/components/date-with-tooltip"
 import { usePermissionDisplay } from "@/hooks/use-permission-display"
 
 gql`

@@ -2,13 +2,14 @@
 import { gql } from "@apollo/client"
 import { useTranslations } from "next-intl"
 
+import DateWithTooltip from "@lana/web/components/date-with-tooltip"
+
 import { AuditEntry, useAuditLogsQuery } from "@/lib/graphql/generated"
 import PaginatedTable, {
   Column,
   DEFAULT_PAGESIZE,
   PaginatedData,
 } from "@/components/paginated-table"
-import DateWithTooltip from "@lana/web/components/date-with-tooltip"
 
 gql`
   query AuditLogs($first: Int!, $after: String) {

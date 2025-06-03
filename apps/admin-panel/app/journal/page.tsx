@@ -12,6 +12,8 @@ import {
   CardTitle,
 } from "@lana/web/ui/card"
 
+import DateWithTooltip from "@lana/web/components/date-with-tooltip"
+
 import {
   DebitOrCredit,
   JournalEntry,
@@ -25,7 +27,6 @@ import PaginatedTable, {
   PaginatedData,
 } from "@/components/paginated-table"
 import Balance from "@/components/balance/balance"
-import DateWithTooltip from "@lana/web/components/date-with-tooltip"
 import { formatDate } from "@/lib/utils"
 
 gql`

@@ -6,9 +6,10 @@ import React from "react"
 
 import { useBreakpointDown } from "@lana/web/hooks"
 
+import { formatDate } from "@lana/web/utils"
+
 import { AccountStatus, MeQuery } from "@/lib/graphql/generated"
 import Balance from "@/components/balance"
-import { formatDate } from "@lana/web/utils"
 
 function UserDetailsCard({
   customer,

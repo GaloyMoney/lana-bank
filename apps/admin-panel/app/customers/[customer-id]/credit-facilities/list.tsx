@@ -2,6 +2,8 @@
 
 import { useTranslations } from "next-intl"
 
+import DateWithTooltip from "@lana/web/components/date-with-tooltip"
+
 import CardWrapper from "@/components/card-wrapper"
 import Balance from "@/components/balance/balance"
 import { GetCustomerCreditFacilitiesQuery } from "@/lib/graphql/generated"
@@ -9,7 +11,6 @@ import { GetCustomerCreditFacilitiesQuery } from "@/lib/graphql/generated"
 import { LoanAndCreditFacilityStatusBadge } from "@/app/credit-facilities/status-badge"
 import DataTable, { Column } from "@/components/data-table"
 import { CollateralizationStateLabel } from "@/app/credit-facilities/label"
-import DateWithTooltip from "@lana/web/components/date-with-tooltip"
 
 type CreditFacility = NonNullable<
   GetCustomerCreditFacilitiesQuery["customer"]

@@ -3,6 +3,8 @@
 import React from "react"
 import { useTranslations } from "next-intl"
 
+import DateWithTooltip from "@lana/web/components/date-with-tooltip"
+
 import { CollateralizationStateLabel } from "@/app/credit-facilities/label"
 import CardWrapper from "@/components/card-wrapper"
 import Balance from "@/components/balance/balance"
@@ -13,7 +15,6 @@ import {
 } from "@/lib/graphql/generated"
 import { formatCollateralAction, cn } from "@/lib/utils"
 import DataTable, { Column } from "@/components/data-table"
-import DateWithTooltip from "@lana/web/components/date-with-tooltip"
 
 type CreditFacilityHistoryProps = {
   creditFacility: NonNullable<GetCreditFacilityHistoryQuery["creditFacility"]>

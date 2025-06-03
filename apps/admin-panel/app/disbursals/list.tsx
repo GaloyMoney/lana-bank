@@ -3,6 +3,8 @@
 import { gql } from "@apollo/client"
 import { useTranslations } from "next-intl"
 
+import DateWithTooltip from "@lana/web/components/date-with-tooltip"
+
 import { DisbursalStatusBadge } from "./status-badge"
 
 import { CreditFacilityDisbursal, useDisbursalsQuery } from "@/lib/graphql/generated"
@@ -13,7 +15,6 @@ import PaginatedTable, {
   PaginatedData,
 } from "@/components/paginated-table"
 import Balance from "@/components/balance/balance"
-import DateWithTooltip from "@lana/web/components/date-with-tooltip"
 
 gql`
   query Disbursals($first: Int!, $after: String) {

@@ -4,6 +4,8 @@ import { gql } from "@apollo/client"
 import { useState } from "react"
 import { useTranslations } from "next-intl"
 
+import DateWithTooltip from "@lana/web/components/date-with-tooltip"
+
 import { LoanAndCreditFacilityStatusBadge } from "./status-badge"
 
 import { CollateralizationStateLabel } from "./label"
@@ -25,7 +27,6 @@ import PaginatedTable, {
 } from "@/components/paginated-table"
 import Balance from "@/components/balance/balance"
 import { camelToScreamingSnake } from "@/lib/utils"
-import DateWithTooltip from "@lana/web/components/date-with-tooltip"
 
 gql`
   query CreditFacilities(

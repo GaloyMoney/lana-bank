@@ -6,8 +6,9 @@ import DataTable, { Column } from "@lana/web/components/data-table"
 
 import { Badge, BadgeProps } from "@lana/web/ui/badge"
 
-import { GetCreditFacilityQuery } from "@/lib/graphql/generated"
 import DateWithTooltip from "@lana/web/components/date-with-tooltip"
+
+import { GetCreditFacilityQuery } from "@/lib/graphql/generated"
 
 import Balance from "@/components/balance"
 
@@ -41,7 +42,7 @@ export const CreditFacilityRepaymentPlan: React.FC<CreditFacilityRepaymentPlanPr
     {
       key: "dueAt",
       header: "Due Date",
-      render: (date) => <DateWithTooltip value={date} />, 
+      render: (date) => <DateWithTooltip value={date} />,
     },
     {
       key: "status",
