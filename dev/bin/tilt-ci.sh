@@ -6,7 +6,7 @@ sleep 5
 
 echo "sending requests to tilt-apiserver now..."
 
-for i in {1..30}; do
+for i in {1..120}; do
     if tilt get uiresource core -o json | jq -e '.status.runtimeStatus == "error"' > /dev/null; then
         echo "uiresource/core is in error state. retrying..."
         tilt trigger core
