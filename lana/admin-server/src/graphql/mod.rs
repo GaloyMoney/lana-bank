@@ -7,6 +7,7 @@ mod balance_sheet_config;
 mod committee;
 mod credit_config;
 mod credit_facility;
+mod custody;
 mod customer;
 mod dashboard;
 mod deposit;

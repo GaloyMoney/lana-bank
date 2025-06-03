@@ -10,7 +10,8 @@ use tracing::instrument;
 use audit::AuditSvc;
 use authz::PermissionCheck;
 
-use custodian_config::{Custodian, CustodianConfig, CustodianConfigRepo, NewCustodianConfig};
+pub use custodian_config::{Custodian, CustodianConfig, KomainuConfig};
+use custodian_config::{CustodianConfigRepo, NewCustodianConfig};
 
 use error::CoreCustodyError;
 pub use primitives::*;
@@ -65,6 +66,14 @@ where
             .expect("all fields provided");
 
         Ok(self.custodian_configs.create(new_custodian_config).await?)
+    }
+
+    #[instrument(name = "core_custody.find_all_custodian_configs", skip(self), err)]
+    pub async fn find_all_custodian_configs<T: From<CustodianConfig>>(
+        &self,
+        ids: &[CustodianConfigId],
+    ) -> Result<std::collections::HashMap<CustodianConfigId, T>, CoreCustodyError> {
+        Ok(self.custodian_configs.find_all(ids).await?)
     }
 
     pub async fn list_custodian_configs(&self) {}

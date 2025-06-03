@@ -31,7 +31,7 @@ pub enum Custodian {
     Komainu(KomainuConfig),
 }
 
-#[derive(EsEvent, Debug, Serialize, Deserialize)]
+#[derive(EsEvent, Clone, Debug, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
 #[es_event(id = "CustodianConfigId")]
 pub enum CustodianConfigEvent {
@@ -43,13 +43,21 @@ pub enum CustodianConfigEvent {
     },
 }
 
-#[derive(EsEntity, Builder)]
+#[derive(EsEntity, Builder, Clone)]
 #[builder(pattern = "owned", build_fn(error = "EsEntityError"))]
 pub struct CustodianConfig {
     pub id: CustodianConfigId,
     pub name: String,
     pub custodian: Custodian,
     events: EntityEvents<CustodianConfigEvent>,
+}
+
+impl CustodianConfig {
+    pub fn created_at(&self) -> chrono::DateTime<chrono::Utc> {
+        self.events
+            .entity_first_persisted_at()
+            .expect("No events for CustodianConfig")
+    }
 }
 
 impl TryFromEvents<CustodianConfigEvent> for CustodianConfig {

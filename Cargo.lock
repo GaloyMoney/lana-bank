@@ -41,6 +41,7 @@ dependencies = [
  "cala-ledger",
  "chrono",
  "core-access",
+ "core-custody",
  "es-entity",
  "governance",
  "jwks-utils",
@@ -1063,6 +1064,7 @@ version = "0.3.570-dev"
 dependencies = [
  "audit",
  "authz",
+ "chrono",
  "derive_builder",
  "es-entity",
  "outbox",

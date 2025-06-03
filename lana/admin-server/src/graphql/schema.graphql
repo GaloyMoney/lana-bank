@@ -705,6 +705,28 @@ type CreditModuleConfigurePayload {
 	creditConfig: CreditModuleConfig!
 }
 
+enum Custodian {
+	MANUAL
+	KOMAINU
+}
+
+type CustodianConfig {
+	id: ID!
+	custodianConfigId: UUID!
+	createdAt: Timestamp!
+	name: String!
+	custodian: Custodian!
+}
+
+input CustodianConfigCreateInput @oneOf {
+	manual: ManualConfig
+	komainu: KomainuConfig
+}
+
+type CustodianConfigCreatePayload {
+	custodianConfig: CustodianConfig!
+}
+
 type Customer {
 	id: ID!
 	customerId: UUID!
@@ -1097,6 +1119,14 @@ type JournalEntryEdge {
 	cursor: String!
 }
 
+input KomainuConfig {
+	name: String!
+	apiKey: String!
+	apiSecret: String!
+	testingInstance: Boolean!
+	secretKey: String!
+}
+
 enum KycLevel {
 	NOT_KYCED
 	BASIC
@@ -1202,6 +1232,10 @@ type LedgerTransactionEdge {
 	cursor: String!
 }
 
+input ManualConfig {
+	name: String!
+}
+
 input ManualTransactionEntryInput {
 	accountRef: String!
 	amount: Decimal!
@@ -1247,6 +1281,7 @@ type Mutation {
 	creditFacilityPartialPayment(input: CreditFacilityPartialPaymentInput!): CreditFacilityPartialPaymentPayload!
 	creditFacilityDisbursalInitiate(input: CreditFacilityDisbursalInitiateInput!): CreditFacilityDisbursalInitiatePayload!
 	creditFacilityComplete(input: CreditFacilityCompleteInput!): CreditFacilityCompletePayload!
+	custodianConfigCreate(input: CustodianConfigCreateInput!): CustodianConfigCreatePayload!
 	committeeCreate(input: CommitteeCreateInput!): CommitteeCreatePayload!
 	committeeAddUser(input: CommitteeAddUserInput!): CommitteeAddUserPayload!
 	committeeRemoveUser(input: CommitteeRemoveUserInput!): CommitteeRemoveUserPayload!
@@ -1888,6 +1923,10 @@ enum WithdrawalStatus {
 Directs the executor to include this field or fragment only when the `if` argument is true.
 """
 directive @include(if: Boolean!) on FIELD | FRAGMENT_SPREAD | INLINE_FRAGMENT
+"""
+Indicates that an Input Object is a OneOf Input Object (and thus requires exactly one of its field be provided)
+"""
+directive @oneOf on INPUT_OBJECT
 """
 Directs the executor to skip this field or fragment when the `if` argument is true.
 """

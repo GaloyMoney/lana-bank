@@ -13,6 +13,7 @@ lana-app = { path = "../app" }
 
 governance = { path = "../../core/governance" }
 core-access = { path = "../../core/access" }
+core-custody = { path = "../../core/custody" }
 
 audit = { path = "../../lib/audit" }
 tracing-utils = { path = "../../lib/tracing-utils" }

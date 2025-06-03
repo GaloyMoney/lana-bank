@@ -14,6 +14,7 @@ audit = { path = "../../lib/audit" }
 authz = { path = "../../lib/authz" }
 outbox = { path = "../../lib/outbox" }
 
+chrono = { workspace = true }
 derive_builder = { workspace = true }
 es-entity = { workspace = true }
 serde = { workspace = true }

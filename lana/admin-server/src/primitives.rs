@@ -5,8 +5,8 @@ use serde::{Deserialize, Serialize};
 
 pub use lana_app::{
     primitives::{
-        ApprovalProcessId, ChartId, CommitteeId, CreditFacilityId, CustomerId, DepositAccountId,
-        DepositId, DisbursalId, DisbursalStatus, DocumentId, LedgerTransactionId,
+        ApprovalProcessId, ChartId, CommitteeId, CreditFacilityId, CustodianConfigId, CustomerId,
+        DepositAccountId, DepositId, DisbursalId, DisbursalStatus, DocumentId, LedgerTransactionId,
         ManualTransactionId, PaymentAllocationId, PaymentId, PermissionSetId, PolicyId, ReportId,
         ReportProgress, RoleId, Satoshis, SignedSatoshis, SignedUsdCents, Subject, TermsTemplateId,
         UsdCents, UserId, WithdrawalId,
@@ -113,6 +113,7 @@ impl_to_global_id! {
     ChartId,
     TermsTemplateId,
     CreditFacilityId,
+    CustodianConfigId,
     DisbursalId,
     PaymentId,
     audit::AuditEntryId,

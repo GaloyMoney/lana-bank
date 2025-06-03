@@ -11,14 +11,16 @@ use lana_app::{
         LedgerAccountId, TransactionTemplateId,
     },
     app::LanaApp,
+    custody::error::CoreCustodyError,
     deposit::error::CoreDepositError,
 };
 
 use crate::primitives::*;
 
 use super::{
-    access::*, accounting::*, approval_process::*, committee::*, credit_facility::*, customer::*,
-    deposit::*, deposit_account::*, document::*, policy::*, terms_template::*, withdrawal::*,
+    access::*, accounting::*, approval_process::*, committee::*, credit_facility::*, custody::*,
+    customer::*, deposit::*, deposit_account::*, document::*, policy::*, terms_template::*,
+    withdrawal::*,
 };
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
@@ -74,6 +76,22 @@ impl Loader<RoleId> for LanaLoader {
         self.app
             .access()
             .find_all_roles(keys)
+            .await
+            .map_err(Arc::new)
+    }
+}
+
+impl Loader<CustodianConfigId> for LanaLoader {
+    type Value = CustodianConfig;
+    type Error = Arc<CoreCustodyError>;
+
+    async fn load(
+        &self,
+        keys: &[CustodianConfigId],
+    ) -> Result<HashMap<CustodianConfigId, CustodianConfig>, Self::Error> {
+        self.app
+            .custody()
+            .find_all_custodian_configs(keys)
             .await
             .map_err(Arc::new)
     }

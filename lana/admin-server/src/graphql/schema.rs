@@ -14,9 +14,9 @@ use crate::primitives::*;
 
 use super::{
     access::*, accounting::*, approval_process::*, audit::*, authenticated_subject::*,
-    balance_sheet_config::*, committee::*, credit_config::*, credit_facility::*, customer::*,
-    dashboard::*, deposit::*, deposit_config::*, document::*, loader::*, policy::*, price::*,
-    profit_and_loss_config::*, report::*, sumsub::*, terms_template::*, withdrawal::*,
+    balance_sheet_config::*, committee::*, credit_config::*, credit_facility::*, custody::*,
+    customer::*, dashboard::*, deposit::*, deposit_config::*, document::*, loader::*, policy::*,
+    price::*, profit_and_loss_config::*, report::*, sumsub::*, terms_template::*, withdrawal::*,
 };
 
 pub struct Query;
@@ -1398,6 +1398,21 @@ impl Mutation {
             ctx,
             app.credit()
                 .complete_facility(sub, input.credit_facility_id)
+        )
+    }
+
+    async fn custodian_config_create(
+        &self,
+        ctx: &Context<'_>,
+        input: CustodianConfigCreateInput,
+    ) -> async_graphql::Result<CustodianConfigCreatePayload> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        exec_mutation!(
+            CustodianConfigCreatePayload,
+            CustodianConfig,
+            ctx,
+            app.custody()
+                .create_custodian_config(sub, input.name().to_owned(), input.into())
         )
     }
 
