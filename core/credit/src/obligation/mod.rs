@@ -13,7 +13,7 @@ use outbox::OutboxEventMarker;
 use crate::{
     event::CoreCreditEvent,
     jobs::obligation_due,
-    liquidation_obligation::{LiquidationObligation, LiquidationObligationRepo},
+    liquidation_obligation::{LiquidationObligation, LiquidationObligations},
     payment_allocation::NewPaymentAllocation,
     primitives::{
         CoreCreditAction, CoreCreditObject, CreditFacilityId, ObligationId, ObligationType,
@@ -36,7 +36,7 @@ where
 {
     authz: Perms,
     obligation_repo: ObligationRepo<E>,
-    liquidation_obligation_repo: LiquidationObligationRepo<E>,
+    liquidation_obligations: LiquidationObligations<Perms, E>,
     jobs: Jobs,
 }
 
@@ -49,7 +49,7 @@ where
         Self {
             authz: self.authz.clone(),
             obligation_repo: self.obligation_repo.clone(),
-            liquidation_obligation_repo: self.liquidation_obligation_repo.clone(),
+            liquidation_obligations: self.liquidation_obligations.clone(),
             jobs: self.jobs.clone(),
         }
     }
@@ -66,15 +66,15 @@ where
         pool: &sqlx::PgPool,
         authz: &Perms,
         _cala: &CalaLedger,
+        liquidation_obligations: &LiquidationObligations<Perms, E>,
         jobs: &Jobs,
         publisher: &CreditFacilityPublisher<E>,
     ) -> Self {
         let obligation_repo = ObligationRepo::new(pool, publisher);
-        let liquidation_obligation_repo = LiquidationObligationRepo::new(pool, publisher);
         Self {
             authz: authz.clone(),
             obligation_repo,
-            liquidation_obligation_repo,
+            liquidation_obligations: liquidation_obligations.clone(),
             jobs: jobs.clone(),
         }
     }
@@ -268,8 +268,8 @@ where
                 .update_in_op(db, &mut obligation)
                 .await?;
             let liquidation_obligation = self
-                .liquidation_obligation_repo
-                .create_in_op(db, new_liquidation_obligation)
+                .liquidation_obligations
+                .create_with_jobs_in_op(db, new_liquidation_obligation)
                 .await?;
             Ok(Some(liquidation_obligation))
         } else {

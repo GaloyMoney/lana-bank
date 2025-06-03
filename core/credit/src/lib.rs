@@ -143,7 +143,14 @@ where
         let ledger = CreditLedger::init(cala, journal_id).await?;
         let liquidation_obligations =
             LiquidationObligations::new(pool, authz, cala, jobs, &publisher);
-        let obligations = Obligations::new(pool, authz, cala, jobs, &publisher);
+        let obligations = Obligations::new(
+            pool,
+            authz,
+            cala,
+            &liquidation_obligations,
+            jobs,
+            &publisher,
+        );
         let credit_facilities = CreditFacilities::new(
             pool,
             authz,
