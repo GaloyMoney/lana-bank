@@ -261,11 +261,6 @@ where
                     credit_facility_id: entity.credit_facility_id,
                     amount: *amount,
                 }),
-                DefaultedRecorded { amount, .. } => Some(CoreCreditEvent::ObligationDefaulted {
-                    id: entity.id,
-                    credit_facility_id: entity.credit_facility_id,
-                    amount: *amount,
-                }),
                 MovedToLiquidation {
                     liquidation_obligation_id,
                     outstanding,
