@@ -24,7 +24,6 @@ const defaultMocks = [
           user: {
             userId: "usr_123",
             email: "test@example.com",
-            roles: [Role.Admin],
           },
         },
       },
