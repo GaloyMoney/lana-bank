@@ -19,7 +19,9 @@
     "upload": "Upload",
     "close": "Close",
     "submit": "Submit",
-    "set": "Set"
+    "set": "Set",
+    "customerType": "Customer Type",
+    "dateOfIssuance": "Date of Issuance"
   },
   "PermissionsDisplay": {
     "permissionsLabel": "Permissions this role has",
@@ -396,6 +398,7 @@
     "table": {
       "headers": {
         "customer": "Customer",
+        "state": "State",
         "status": "Status",
         "outstanding": "Outstanding",
         "collateralizationState": "State",
@@ -528,7 +531,8 @@
           "customerEmail": "Customer Email",
           "collateralizationState": "Collateralization State",
           "status": "Status",
-          "expiresAt": "Expires At"
+          "expiresAt": "Maturity Date",
+          "monthlyPayment": "Monthly Payment"
         },
         "buttons": {
           "loanTerms": "Loan Terms",

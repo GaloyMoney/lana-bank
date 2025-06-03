@@ -46,6 +46,11 @@ gql`
           status
           facilityAmount
           currentCvl
+          creditFacilityTerms {
+            annualRate
+            accrualInterval
+            oneTimeFeeRate
+          }
           balance {
             collateral {
               btcBalance
@@ -53,6 +58,13 @@ gql`
             outstanding {
               usdBalance
             }
+          }
+          repaymentPlan {
+            repaymentType
+            status
+            initial
+            outstanding
+            dueAt
           }
           customer {
             customerId
@@ -145,6 +157,23 @@ const columns = (t: (key: string) => string): Column<CreditFacility>[] => [
     filterValues: Object.values(CollateralizationState),
   },
   {
+    key: "creditFacilityTerms",
+    label: t("table.headers.nominalRate"),
+    render: (terms) => {
+      if (!terms) return "-"
+      return `${terms.annualRate}% ${terms.accrualInterval.toLowerCase()}`
+    },
+  },
+  {
+    key: "creditFacilityTerms",
+    label: t("table.headers.effectiveRate"),
+    render: (terms) => {
+      if (!terms) return "-"
+      const effectiveRate = terms.annualRate + (terms.oneTimeFeeRate || 0)
+      return `${effectiveRate.toFixed(2)}%`
+    },
+  },
+  {
     key: "currentCvl",
     label: t("table.headers.cvl"),
     render: (cvl) => `${cvl}%`,
@@ -155,5 +184,13 @@ const columns = (t: (key: string) => string): Column<CreditFacility>[] => [
     label: t("table.headers.createdAt"),
     render: (date) => <DateWithTooltip value={date} />,
     sortable: true,
+  },
+  {
+    key: "createdAt",
+    label: t("table.headers.interestDays"),
+    render: () => {
+      const year = new Date().getFullYear()
+      return year % 4 === 0 && (year % 100 !== 0 || year % 400 === 0) ? "366" : "365"
+    },
   },
 ]
