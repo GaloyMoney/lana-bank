@@ -6,11 +6,23 @@ use es_entity::*;
 
 use crate::primitives::CustodianConfigId;
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct KomainuConfig {
     pub api_key: String,
     pub api_secret: String,
-    pub base_url: String,
+    pub testing_instance: bool,
+    pub secret_key: String,
+}
+
+impl core::fmt::Debug for KomainuConfig {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("KomainuConfig")
+            .field("api_key", &self.api_key)
+            .field("api_secret", &"<redacted>")
+            .field("testing_instance", &self.testing_instance)
+            .field("secret_key", &"<redacted>")
+            .finish()
+    }
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
