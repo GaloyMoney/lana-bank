@@ -60,8 +60,6 @@ impl CreditFacilityRepaymentPlan {
                 outstanding: structuring_fee,
 
                 due_at: maturity_date,
-                overdue_at: None,
-                defaulted_at: None,
                 recorded_at: activated_at,
                 effective: activated_at.date_naive(),
             }),
@@ -73,8 +71,6 @@ impl CreditFacilityRepaymentPlan {
                 outstanding: facility_amount,
 
                 due_at: maturity_date,
-                overdue_at: None,
-                defaulted_at: None,
                 recorded_at: activated_at,
                 effective: activated_at.date_naive(),
             }),
@@ -125,8 +121,6 @@ impl CreditFacilityRepaymentPlan {
                     outstanding: interest,
 
                     due_at: period.end,
-                    overdue_at: None,
-                    defaulted_at: None,
                     recorded_at: period.end,
                     effective: period.end.date_naive(),
                 },
@@ -160,7 +154,6 @@ impl CreditFacilityRepaymentPlan {
                 obligation_type,
                 amount,
                 due_at,
-                overdue_at,
                 recorded_at,
                 effective,
                 ..
@@ -173,8 +166,6 @@ impl CreditFacilityRepaymentPlan {
                     outstanding: *amount,
 
                     due_at: *due_at,
-                    overdue_at: *overdue_at,
-                    defaulted_at: None,
                     recorded_at: *recorded_at,
                     effective: *effective,
                 };

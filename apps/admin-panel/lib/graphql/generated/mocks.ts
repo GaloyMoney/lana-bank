@@ -805,7 +805,7 @@ export const mockCreditFacilityRepaymentPlanEntry = (overrides?: Partial<CreditF
         initial: overrides && overrides.hasOwnProperty('initial') ? overrides.initial! : generateMockValue.usdCents(),
         outstanding: overrides && overrides.hasOwnProperty('outstanding') ? overrides.outstanding! : generateMockValue.usdCents(),
         repaymentType: overrides && overrides.hasOwnProperty('repaymentType') ? overrides.repaymentType! : CreditFacilityRepaymentType.Disbursal,
-        status: overrides && overrides.hasOwnProperty('status') ? overrides.status! : CreditFacilityRepaymentStatus.Defaulted,
+        status: overrides && overrides.hasOwnProperty('status') ? overrides.status! : CreditFacilityRepaymentStatus.Due,
     };
 };
 

@@ -167,7 +167,6 @@ export type CreditFacilityRepaymentPlanEntry = {
 };
 
 export enum CreditFacilityRepaymentStatus {
-  Defaulted = 'DEFAULTED',
   Due = 'DUE',
   MovedToLiquidation = 'MOVED_TO_LIQUIDATION',
   NotYetDue = 'NOT_YET_DUE',
