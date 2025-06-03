@@ -128,6 +128,7 @@ impl CreditFacilityHistory {
             ObligationCompleted { .. } => {}
             ObligationMovedToLiquidation { .. } => {}
             LiquidationStarted { .. } => {}
+            LiquidationObligationDefaulted { .. } => {}
         }
     }
 }

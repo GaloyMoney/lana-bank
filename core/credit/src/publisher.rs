@@ -303,6 +303,13 @@ where
                     parent_obligation_id: entity.parent_obligation_id,
                     credit_facility_id: entity.credit_facility_id,
                 }),
+                DefaultedRecorded { amount, .. } => {
+                    Some(CoreCreditEvent::LiquidationObligationDefaulted {
+                        id: entity.id,
+                        credit_facility_id: entity.credit_facility_id,
+                        amount: *amount,
+                    })
+                }
                 _ => None,
             })
             .collect::<Vec<_>>();

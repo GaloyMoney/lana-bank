@@ -90,6 +90,10 @@ where
                     | LiquidationStarted {
                         credit_facility_id: id,
                         ..
+                    }
+                    | LiquidationObligationDefaulted {
+                        credit_facility_id: id,
+                        ..
                     } => *id,
                 };
 

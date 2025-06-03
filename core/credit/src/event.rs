@@ -114,4 +114,9 @@ pub enum CoreCreditEvent {
         parent_obligation_id: ObligationId,
         credit_facility_id: CreditFacilityId,
     },
+    LiquidationObligationDefaulted {
+        id: LiquidationObligationId,
+        credit_facility_id: CreditFacilityId,
+        amount: UsdCents,
+    },
 }
