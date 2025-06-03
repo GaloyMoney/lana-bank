@@ -4,6 +4,7 @@ pub mod credit_facility_history;
 pub mod credit_facility_repayment_plan;
 pub mod interest_accrual_cycles;
 pub mod interest_accruals;
+pub mod liquidation_obligation_defaulted;
 pub mod obligation_defaulted;
 pub mod obligation_due;
 pub mod obligation_moved_to_liquidation;

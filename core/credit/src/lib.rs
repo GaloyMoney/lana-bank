@@ -252,9 +252,9 @@ where
             ),
         );
         jobs.add_initializer(
-            obligation_defaulted::CreditFacilityProcessingJobInitializer::<Perms, E>::new(
+            liquidation_obligation_defaulted::CreditFacilityProcessingJobInitializer::<Perms, E>::new(
                 &ledger,
-                &obligations,
+                &liquidation_obligations,
             ),
         );
         jobs.add_initializer_and_spawn_unique(

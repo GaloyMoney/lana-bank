@@ -6,13 +6,14 @@ use authz::PermissionCheck;
 use job::*;
 use outbox::OutboxEventMarker;
 
-use crate::{event::CoreCreditEvent, ledger::CreditLedger, obligation::Obligations, primitives::*};
-
-use super::{obligation_moved_to_liquidation, obligation_overdue};
+use crate::{
+    event::CoreCreditEvent, ledger::CreditLedger, liquidation_obligation::LiquidationObligations,
+    primitives::*,
+};
 
 #[derive(Clone, Serialize, Deserialize)]
 pub struct CreditFacilityJobConfig<Perms, E> {
-    pub obligation_id: ObligationId,
+    pub liquidation_obligation_id: LiquidationObligationId,
     pub effective: chrono::NaiveDate,
     pub _phantom: std::marker::PhantomData<(Perms, E)>,
 }
@@ -30,9 +31,8 @@ where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCreditEvent>,
 {
-    obligations: Obligations<Perms, E>,
+    liquidation_obligations: LiquidationObligations<Perms, E>,
     ledger: CreditLedger,
-    jobs: Jobs,
 }
 
 impl<Perms, E> CreditFacilityProcessingJobInitializer<Perms, E>
@@ -42,16 +42,19 @@ where
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>,
     E: OutboxEventMarker<CoreCreditEvent>,
 {
-    pub fn new(ledger: &CreditLedger, obligations: &Obligations<Perms, E>, jobs: &Jobs) -> Self {
+    pub fn new(
+        ledger: &CreditLedger,
+        liquidation_obligations: &LiquidationObligations<Perms, E>,
+    ) -> Self {
         Self {
             ledger: ledger.clone(),
-            obligations: obligations.clone(),
-            jobs: jobs.clone(),
+            liquidation_obligations: liquidation_obligations.clone(),
         }
     }
 }
 
-const CREDIT_FACILITY_DUE_PROCESSING_JOB: JobType = JobType::new("credit-facility-due-processing");
+const CREDIT_FACILITY_DEFAULTED_PROCESSING_JOB: JobType =
+    JobType::new("credit-facility-defaulted-processing");
 impl<Perms, E> JobInitializer for CreditFacilityProcessingJobInitializer<Perms, E>
 where
     Perms: PermissionCheck,
@@ -63,15 +66,14 @@ where
     where
         Self: Sized,
     {
-        CREDIT_FACILITY_DUE_PROCESSING_JOB
+        CREDIT_FACILITY_DEFAULTED_PROCESSING_JOB
     }
 
     fn init(&self, job: &Job) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
         Ok(Box::new(CreditFacilityProcessingJobRunner::<Perms, E> {
             config: job.config()?,
-            obligations: self.obligations.clone(),
+            liquidation_obligations: self.liquidation_obligations.clone(),
             ledger: self.ledger.clone(),
-            jobs: self.jobs.clone(),
         }))
     }
 }
@@ -82,9 +84,8 @@ where
     E: OutboxEventMarker<CoreCreditEvent>,
 {
     config: CreditFacilityJobConfig<Perms, E>,
-    obligations: Obligations<Perms, E>,
+    liquidation_obligations: LiquidationObligations<Perms, E>,
     ledger: CreditLedger,
-    jobs: Jobs,
 }
 
 #[async_trait]
@@ -99,47 +100,26 @@ where
         &self,
         _current_job: CurrentJob,
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
-        let mut db = self.obligations.begin_op().await?;
-        let (obligation, due_data) = self
-            .obligations
-            .record_due_in_op(&mut db, self.config.obligation_id, self.config.effective)
+        let mut db = self.liquidation_obligations.begin_op().await?;
+
+        let data = self
+            .liquidation_obligations
+            .record_defaulted_in_op(
+                &mut db,
+                self.config.liquidation_obligation_id,
+                self.config.effective,
+            )
             .await?;
 
-        let due = if let Some(due) = due_data {
-            due
+        let defaulted = if let Some(defaulted) = data {
+            defaulted
         } else {
             return Ok(JobCompletion::Complete);
         };
 
-        if let Some(overdue_at) = obligation.overdue_at() {
-            self.jobs
-                .create_and_spawn_at_in_op(
-                    &mut db,
-                    JobId::new(),
-                    obligation_overdue::CreditFacilityJobConfig::<Perms, E> {
-                        obligation_id: obligation.id,
-                        effective: overdue_at.date_naive(),
-                        _phantom: std::marker::PhantomData,
-                    },
-                    overdue_at,
-                )
-                .await?;
-        } else if let Some(liquidation_at) = obligation.liquidation_at() {
-            self.jobs
-                .create_and_spawn_at_in_op(
-                    &mut db,
-                    JobId::new(),
-                    obligation_moved_to_liquidation::CreditFacilityJobConfig::<Perms, E> {
-                        obligation_id: obligation.id,
-                        effective: liquidation_at.date_naive(),
-                        _phantom: std::marker::PhantomData,
-                    },
-                    liquidation_at,
-                )
-                .await?;
-        }
-
-        self.ledger.record_obligation_due(db, due).await?;
+        self.ledger
+            .record_liquidation_obligation_defaulted(db, defaulted)
+            .await?;
 
         Ok(JobCompletion::Complete)
     }
