@@ -1280,7 +1280,7 @@ impl CreditLedger {
         op: es_entity::DbOp<'_>,
         LiquidationObligation {
             tx_id,
-            amount: outstanding_amount,
+            initial_amount: outstanding_amount,
             receivable_account_id,
             effective,
             ..

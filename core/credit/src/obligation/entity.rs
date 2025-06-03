@@ -512,6 +512,7 @@ impl Obligation {
             .parent_obligation_id(self.id)
             .tx_id(tx_id)
             .receivable_account_id(receivable_account_id)
+            .defaulted_account_id(self.defaulted_account())
             .amount(outstanding)
             .effective(effective)
             .audit_info(audit_info.clone())

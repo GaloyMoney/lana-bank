@@ -51,6 +51,13 @@ pub enum ObligationStatus {
     Paid,
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+pub enum LiquidationObligationStatus {
+    Unpaid,
+    Defaulted,
+    // Paid,
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
 pub enum ObligationType {
     Disbursal,

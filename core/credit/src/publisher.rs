@@ -303,6 +303,7 @@ where
                     parent_obligation_id: entity.parent_obligation_id,
                     credit_facility_id: entity.credit_facility_id,
                 }),
+                _ => None,
             })
             .collect::<Vec<_>>();
         self.outbox
