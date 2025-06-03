@@ -522,8 +522,7 @@ where
             .disbursal_due_date(due_date)
             .disbursal_overdue_date(overdue_date)
             .audit_info(audit_info)
-            .build()
-            .expect("could not build new disbursal");
+            .build()?;
 
         let disbursal = self.disbursals.create_in_op(&mut db, new_disbursal).await?;
 

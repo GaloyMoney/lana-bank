@@ -236,6 +236,7 @@ impl Disbursal {
 }
 
 #[derive(Debug, Builder)]
+#[builder(build_fn(validate = "Self::validate"))]
 pub struct NewDisbursal {
     #[builder(setter(into))]
     pub(super) id: DisbursalId,
@@ -250,6 +251,15 @@ pub struct NewDisbursal {
     pub(super) disbursal_overdue_date: Option<DateTime<Utc>>,
     #[builder(setter(into))]
     pub(super) audit_info: AuditInfo,
+}
+
+impl NewDisbursalBuilder {
+    fn validate(&self) -> Result<(), String> {
+        match self.amount {
+            Some(amount) if amount.is_zero() => Err("Disbursal amount cannot be zero".to_string()),
+            _ => Ok(()),
+        }
+    }
 }
 
 impl NewDisbursal {
