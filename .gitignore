@@ -42,3 +42,4 @@ meltano/.venv/
 meltano/transform_duckdb/models
 meltano/.build
 meltano/**/dbt.log
+.venv
