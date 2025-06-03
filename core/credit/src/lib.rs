@@ -47,6 +47,7 @@ pub use history::*;
 pub use interest_accrual_cycle::*;
 use jobs::*;
 pub use ledger::*;
+pub use liquidation_obligation::*;
 pub use obligation::{obligation_cursor::*, *};
 pub use payment::*;
 pub use payment_allocation::*;
@@ -140,6 +141,8 @@ where
     ) -> Result<Self, CoreCreditError> {
         let publisher = CreditFacilityPublisher::new(outbox);
         let ledger = CreditLedger::init(cala, journal_id).await?;
+        let liquidation_obligations =
+            LiquidationObligations::new(pool, authz, cala, jobs, &publisher);
         let obligations = Obligations::new(pool, authz, cala, jobs, &publisher);
         let credit_facilities = CreditFacilities::new(
             pool,
