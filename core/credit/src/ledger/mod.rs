@@ -188,6 +188,7 @@ impl CreditLedger {
         templates::RecordObligationOverdueBalance::init(cala).await?;
         templates::MoveToLiquidationObligation::init(cala).await?;
         templates::RecordObligationDefaultedBalance::init(cala).await?;
+        templates::RecordLiquidationObligationDefaultedBalance::init(cala).await?;
         templates::CreditFacilityAccrueInterest::init(cala).await?;
         templates::CreditFacilityPostAccruedInterest::init(cala).await?;
         templates::InitiateDisbursal::init(cala).await?;
@@ -1263,6 +1264,37 @@ impl CreditLedger {
                 tx_id,
                 templates::RECORD_OBLIGATION_DEFAULTED_BALANCE_CODE,
                 templates::RecordObligationDefaultedBalanceParams {
+                    journal_id: self.journal_id,
+                    amount: outstanding_amount.to_usd(),
+                    receivable_account_id,
+                    defaulted_account_id,
+                    effective,
+                },
+            )
+            .await?;
+        op.commit().await?;
+        Ok(())
+    }
+
+    pub async fn record_liquidation_obligation_defaulted(
+        &self,
+        op: es_entity::DbOp<'_>,
+        ObligationDefaultedReallocationData {
+            tx_id,
+            amount: outstanding_amount,
+            receivable_account_id,
+            defaulted_account_id,
+            effective,
+            ..
+        }: ObligationDefaultedReallocationData,
+    ) -> Result<(), CreditLedgerError> {
+        let mut op = self.cala.ledger_operation_from_db_op(op);
+        self.cala
+            .post_transaction_in_op(
+                &mut op,
+                tx_id,
+                templates::RECORD_LIQUIDATION_OBLIGATION_DEFAULTED_BALANCE_CODE,
+                templates::RecordLiquidationObligationDefaultedBalanceParams {
                     journal_id: self.journal_id,
                     amount: outstanding_amount.to_usd(),
                     receivable_account_id,
