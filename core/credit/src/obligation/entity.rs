@@ -6,7 +6,7 @@ use std::cmp::Ordering;
 use audit::AuditInfo;
 use es_entity::*;
 
-use crate::{payment_allocation::NewPaymentAllocation, primitives::*, CreditFacilityId};
+use crate::{CreditFacilityId, payment_allocation::NewPaymentAllocation, primitives::*};
 
 use super::{error::ObligationError, primitives::*};
 
@@ -325,7 +325,7 @@ impl Obligation {
 
         match self.status() {
             ObligationStatus::NotYetDue => {
-                return Err(ObligationError::InvalidStatusTransitionToOverdue)
+                return Err(ObligationError::InvalidStatusTransitionToOverdue);
             }
             ObligationStatus::Due => (),
             _ => return Ok(Idempotent::Ignored),
@@ -360,7 +360,7 @@ impl Obligation {
 
         match self.status() {
             ObligationStatus::NotYetDue => {
-                return Err(ObligationError::InvalidStatusTransitionToDefaulted)
+                return Err(ObligationError::InvalidStatusTransitionToDefaulted);
             }
             ObligationStatus::Due | ObligationStatus::Overdue => (),
             _ => return Ok(Idempotent::Ignored),
@@ -629,17 +629,21 @@ mod test {
         let mut obligation = obligation_from(initial_events());
         let _ = obligation.record_due(Utc::now().date_naive(), dummy_audit_info());
 
-        assert!(obligation
-            .record_overdue(Utc::now().date_naive(), dummy_audit_info())
-            .unwrap()
-            .did_execute());
+        assert!(
+            obligation
+                .record_overdue(Utc::now().date_naive(), dummy_audit_info())
+                .unwrap()
+                .did_execute()
+        );
         let res = obligation.record_due(Utc::now().date_naive(), dummy_audit_info());
         assert!(matches!(res, Idempotent::Ignored));
 
-        assert!(obligation
-            .record_defaulted(Utc::now().date_naive(), dummy_audit_info())
-            .unwrap()
-            .did_execute());
+        assert!(
+            obligation
+                .record_defaulted(Utc::now().date_naive(), dummy_audit_info())
+                .unwrap()
+                .did_execute()
+        );
         let res = obligation.record_due(Utc::now().date_naive(), dummy_audit_info());
         assert!(matches!(res, Idempotent::Ignored));
 

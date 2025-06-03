@@ -28,7 +28,9 @@ pub enum DepositLedgerError {
     MissingTxMetadata,
     #[error("DepositLedgerError - MismatchedTxMetadata: {0}")]
     MismatchedTxMetadata(serde_json::Error),
-    #[error("DepositLedgerError - NonAccountMemberFoundInAccountSet: Found non-Account typed member in account set {0}")]
+    #[error(
+        "DepositLedgerError - NonAccountMemberFoundInAccountSet: Found non-Account typed member in account set {0}"
+    )]
     NonAccountMemberFoundInAccountSet(String),
     #[error("DepositLedgerError - JournalIdMismatch: Account sets have wrong JournalId")]
     JournalIdMismatch,

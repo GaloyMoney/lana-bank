@@ -11,8 +11,8 @@ use governance::{
 use outbox::OutboxEventMarker;
 
 use crate::{
-    error::CoreCreditError, CoreCreditAction, CoreCreditEvent, CoreCreditObject, CreditFacilities,
-    CreditFacility, CreditFacilityId,
+    CoreCreditAction, CoreCreditEvent, CoreCreditObject, CreditFacilities, CreditFacility,
+    CreditFacilityId, error::CoreCreditError,
 };
 
 pub use job::*;

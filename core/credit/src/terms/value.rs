@@ -1,6 +1,6 @@
 use chrono::{DateTime, Datelike, TimeZone, Utc};
 use derive_builder::{Builder, UninitializedFieldError};
-use rust_decimal::{prelude::*, Decimal};
+use rust_decimal::{Decimal, prelude::*};
 use rust_decimal_macros::dec;
 use serde::{Deserialize, Serialize};
 
@@ -682,8 +682,8 @@ mod test {
             default_terms().collateralization_update(cvl, last_state, None, true)
         }
 
-        fn all_collaterization_update_fns(
-        ) -> Vec<fn(CollateralizationState, CVLPct) -> Option<CollateralizationState>> {
+        fn all_collaterization_update_fns()
+        -> Vec<fn(CollateralizationState, CVLPct) -> Option<CollateralizationState>> {
             vec![
                 collateralization_update,
                 collateralization_update_with_buffer,

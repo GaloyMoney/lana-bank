@@ -10,8 +10,8 @@ use job::*;
 use outbox::OutboxEventMarker;
 
 use crate::{
-    credit_facility::CreditFacilities, primitives::*, CoreCreditAction, CoreCreditEvent,
-    CoreCreditObject,
+    CoreCreditAction, CoreCreditEvent, CoreCreditObject, credit_facility::CreditFacilities,
+    primitives::*,
 };
 
 #[serde_with::serde_as]

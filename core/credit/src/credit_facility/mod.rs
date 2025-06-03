@@ -10,16 +10,16 @@ use governance::{Governance, GovernanceAction, GovernanceEvent, GovernanceObject
 use outbox::OutboxEventMarker;
 
 use crate::{
-    event::CoreCreditEvent, primitives::*, CoreCreditAction, CoreCreditObject,
-    CreditFacilityActivation, CreditLedger, InterestPeriod, Obligation, Obligations, Price,
+    CoreCreditAction, CoreCreditObject, CreditFacilityActivation, CreditLedger, InterestPeriod,
+    Obligation, Obligations, Price, event::CoreCreditEvent, primitives::*,
 };
 
 pub use entity::CreditFacility;
 pub(crate) use entity::*;
 use error::CreditFacilityError;
 pub use repo::{
-    credit_facility_cursor::*, CreditFacilitiesSortBy, CreditFacilityRepo,
-    FindManyCreditFacilities, ListDirection, Sort,
+    CreditFacilitiesSortBy, CreditFacilityRepo, FindManyCreditFacilities, ListDirection, Sort,
+    credit_facility_cursor::*,
 };
 
 pub struct CreditFacilities<Perms, E>

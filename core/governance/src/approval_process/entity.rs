@@ -80,12 +80,12 @@ impl ApprovalProcess {
             .next()
     }
     pub fn target_ref(&self) -> &str {
-        match self.events.iter_all().next().expect("No events")
-        { ApprovalProcessEvent::Initialized { target_ref, .. } => {
-            target_ref
-        } _ => {
-            panic!("No events")
-        }}
+        match self.events.iter_all().next().expect("No events") {
+            ApprovalProcessEvent::Initialized { target_ref, .. } => target_ref,
+            _ => {
+                panic!("No events")
+            }
+        }
     }
 
     pub fn committee_id(&self) -> Option<CommitteeId> {

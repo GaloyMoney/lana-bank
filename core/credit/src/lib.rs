@@ -31,8 +31,8 @@ use outbox::{Outbox, OutboxEventMarker};
 use tracing::instrument;
 
 pub use chart_of_accounts_integration::{
-    error::ChartOfAccountsIntegrationError, ChartOfAccountsIntegrationConfig,
-    ChartOfAccountsIntegrationConfigBuilderError, ChartOfAccountsIntegrations,
+    ChartOfAccountsIntegrationConfig, ChartOfAccountsIntegrationConfigBuilderError,
+    ChartOfAccountsIntegrations, error::ChartOfAccountsIntegrationError,
 };
 pub use collateral::*;
 pub use config::*;

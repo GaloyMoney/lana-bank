@@ -199,7 +199,7 @@ impl CreditFacility {
         for event in self.events.iter_all() {
             match event {
                 CreditFacilityEvent::ApprovalProcessConcluded { approved, .. } => {
-                    return Ok(*approved)
+                    return Ok(*approved);
                 }
                 _ => continue,
             }
@@ -910,10 +910,12 @@ mod test {
         let mut balances = default_balances(credit_facility.amount);
         balances.collateral = default_full_collateral();
 
-        assert!(credit_facility
-            .activate(approval_time, default_price(), balances, dummy_audit_info())
-            .unwrap()
-            .did_execute());
+        assert!(
+            credit_facility
+                .activate(approval_time, default_price(), balances, dummy_audit_info())
+                .unwrap()
+                .did_execute()
+        );
         assert_eq!(credit_facility.activated_at, Some(approval_time));
         assert!(credit_facility.matures_at.is_some())
     }
@@ -944,10 +946,12 @@ mod test {
             .unwrap();
         let mut balances = default_balances(credit_facility.amount);
         balances.collateral = default_full_collateral();
-        assert!(credit_facility
-            .activate(Utc::now(), default_price(), balances, dummy_audit_info())
-            .unwrap()
-            .did_execute());
+        assert!(
+            credit_facility
+                .activate(Utc::now(), default_price(), balances, dummy_audit_info())
+                .unwrap()
+                .did_execute()
+        );
         assert_eq!(credit_facility.status(), CreditFacilityStatus::Active);
     }
 
@@ -1079,9 +1083,11 @@ mod test {
             let mut balances = default_balances(credit_facility.amount);
             balances.collateral = collateral_amount;
 
-            assert!(credit_facility
-                .activate(Utc::now(), default_price(), balances, dummy_audit_info())
-                .is_ok());
+            assert!(
+                credit_facility
+                    .activate(Utc::now(), default_price(), balances, dummy_audit_info())
+                    .is_ok()
+            );
         }
     }
 

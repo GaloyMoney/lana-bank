@@ -4,7 +4,7 @@ use rand::Rng;
 
 use authz::dummy::DummySubject;
 use cala_ledger::{CalaLedger, CalaLedgerConfig};
-use cloud_storage::{config::StorageConfig, Storage};
+use cloud_storage::{Storage, config::StorageConfig};
 
 use core_accounting::CoreAccounting;
 use core_credit::*;

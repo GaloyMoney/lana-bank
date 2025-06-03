@@ -3,7 +3,7 @@ use uuid::Uuid;
 
 use crate::primitives::CreditFacilityId;
 
-use super::{error::*, CreditFacilityRepaymentPlan};
+use super::{CreditFacilityRepaymentPlan, error::*};
 
 #[derive(Clone)]
 pub struct RepaymentPlanRepo {

@@ -12,22 +12,22 @@ mod templates;
 mod velocity;
 
 use cala_ledger::{
+    CalaLedger, Currency, DebitOrCredit, JournalId, LedgerOperation, TransactionId,
     account::NewAccount,
     account_set::{AccountSet, AccountSetMemberId, AccountSetUpdate, NewAccountSet},
     velocity::{NewVelocityControl, VelocityControlId},
-    CalaLedger, Currency, DebitOrCredit, JournalId, LedgerOperation, TransactionId,
 };
 
 use crate::{
+    ChartOfAccountsIntegrationConfig, FacilityDurationType, Obligation,
+    ObligationDefaultedReallocationData, ObligationDueReallocationData,
+    ObligationOverdueReallocationData,
     payment_allocation::PaymentAllocation,
     primitives::{
         CalaAccountId, CalaAccountSetId, CollateralAction, CollateralUpdate, CreditFacilityId,
         CustomerType, DisbursedReceivableAccountCategory, DisbursedReceivableAccountType,
         InterestReceivableAccountType, LedgerOmnibusAccountIds, LedgerTxId, Satoshis, UsdCents,
     },
-    ChartOfAccountsIntegrationConfig, FacilityDurationType, Obligation,
-    ObligationDefaultedReallocationData, ObligationDueReallocationData,
-    ObligationOverdueReallocationData,
 };
 
 pub use balance::*;
@@ -493,13 +493,17 @@ impl CreditLedger {
             interest_receivable_normal_balance_type,
         ).await?;
 
-        let long_term_individual_interest_receivable_account_set_id = Self::find_or_create_account_set(
-            cala,
-            journal_id,
-            format!("{journal_id}:{LONG_TERM_CREDIT_INDIVIDUAL_INTEREST_RECEIVABLE_ACCOUNT_SET_REF}"),
-            LONG_TERM_CREDIT_INDIVIDUAL_INTEREST_RECEIVABLE_ACCOUNT_SET_NAME.to_string(),
-            interest_receivable_normal_balance_type,
-        ).await?;
+        let long_term_individual_interest_receivable_account_set_id =
+            Self::find_or_create_account_set(
+                cala,
+                journal_id,
+                format!(
+                    "{journal_id}:{LONG_TERM_CREDIT_INDIVIDUAL_INTEREST_RECEIVABLE_ACCOUNT_SET_REF}"
+                ),
+                LONG_TERM_CREDIT_INDIVIDUAL_INTEREST_RECEIVABLE_ACCOUNT_SET_NAME.to_string(),
+                interest_receivable_normal_balance_type,
+            )
+            .await?;
 
         let long_term_government_entity_interest_receivable_account_set_id = Self::find_or_create_account_set(
             cala,
@@ -803,7 +807,7 @@ impl CreditLedger {
             .await
         {
             Ok(account_set) if account_set.values().journal_id != journal_id => {
-                return Err(CreditLedgerError::JournalIdMismatch)
+                return Err(CreditLedgerError::JournalIdMismatch);
             }
             Ok(account_set) => return Ok(account_set.id),
             Err(e) if e.was_not_found() => (),
@@ -858,12 +862,12 @@ impl CreditLedger {
                     return Ok(LedgerOmnibusAccountIds {
                         account_set_id,
                         account_id: id,
-                    })
+                    });
                 }
                 AccountSetMemberId::AccountSet(_) => {
                     return Err(CreditLedgerError::NonAccountMemberFoundInAccountSet(
                         account_set_id.to_string(),
-                    ))
+                    ));
                 }
             }
         }

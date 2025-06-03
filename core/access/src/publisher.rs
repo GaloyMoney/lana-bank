@@ -1,9 +1,9 @@
 use outbox::{Outbox, OutboxEventMarker};
 
 use crate::{
-    role::{error::RoleError, Role, RoleEvent},
-    user::{error::UserError, User, UserEvent},
     CoreAccessEvent,
+    role::{Role, RoleEvent, error::RoleError},
+    user::{User, UserEvent, error::UserError},
 };
 
 pub struct UserPublisher<E>

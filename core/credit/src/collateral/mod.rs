@@ -5,7 +5,7 @@ mod repo;
 use authz::PermissionCheck;
 use outbox::OutboxEventMarker;
 
-use crate::{event::CoreCreditEvent, primitives::*, CreditFacilityPublisher};
+use crate::{CreditFacilityPublisher, event::CoreCreditEvent, primitives::*};
 
 pub use entity::Collateral;
 pub(super) use entity::*;

@@ -9,7 +9,7 @@ use authz::PermissionCheck;
 use governance::{Governance, GovernanceAction, GovernanceEvent, GovernanceObject};
 use outbox::OutboxEventMarker;
 
-use crate::{event::CoreCreditEvent, primitives::*, Obligation, Obligations};
+use crate::{Obligation, Obligations, event::CoreCreditEvent, primitives::*};
 
 pub(super) use entity::*;
 use error::DisbursalError;

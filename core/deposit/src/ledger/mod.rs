@@ -8,17 +8,17 @@ mod templates;
 mod velocity;
 
 use cala_ledger::{
+    CalaLedger, Currency, DebitOrCredit, JournalId, LedgerOperation, TransactionId,
     account::*,
     account_set::{AccountSet, AccountSetMemberId, AccountSetUpdate, NewAccountSet},
     tx_template::Params,
     velocity::{NewVelocityControl, VelocityControlId},
-    CalaLedger, Currency, DebitOrCredit, JournalId, LedgerOperation, TransactionId,
 };
 
 use crate::{
+    DepositAccountBalance, LedgerOmnibusAccountIds,
     chart_of_accounts_integration::ChartOfAccountsIntegrationConfig,
     primitives::{CalaAccountId, CalaAccountSetId, DepositAccountType, UsdCents},
-    DepositAccountBalance, LedgerOmnibusAccountIds,
 };
 
 use error::*;
@@ -229,7 +229,7 @@ impl DepositLedger {
             .await
         {
             Ok(account_set) if account_set.values().journal_id != journal_id => {
-                return Err(DepositLedgerError::JournalIdMismatch)
+                return Err(DepositLedgerError::JournalIdMismatch);
             }
             Ok(account_set) => return Ok(account_set.id),
             Err(e) if e.was_not_found() => (),
@@ -284,12 +284,12 @@ impl DepositLedger {
                     return Ok(LedgerOmnibusAccountIds {
                         account_set_id,
                         account_id: id,
-                    })
+                    });
                 }
                 AccountSetMemberId::AccountSet(_) => {
                     return Err(DepositLedgerError::NonAccountMemberFoundInAccountSet(
                         account_set_id.to_string(),
-                    ))
+                    ));
                 }
             }
         }

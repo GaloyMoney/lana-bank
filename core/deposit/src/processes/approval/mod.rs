@@ -11,10 +11,10 @@ use governance::Governance;
 use outbox::OutboxEventMarker;
 
 use crate::{
+    CoreDepositAction, CoreDepositObject, WithdrawalAction,
     event::CoreDepositEvent,
     primitives::WithdrawalId,
-    withdrawal::{error::WithdrawalError, repo::WithdrawalRepo, Withdrawal},
-    CoreDepositAction, CoreDepositObject, WithdrawalAction,
+    withdrawal::{Withdrawal, error::WithdrawalError, repo::WithdrawalRepo},
 };
 
 use super::error::ProcessError;

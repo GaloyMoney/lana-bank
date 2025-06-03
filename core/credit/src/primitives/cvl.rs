@@ -1,4 +1,4 @@
-use rust_decimal::{prelude::*, Decimal};
+use rust_decimal::{Decimal, prelude::*};
 use rust_decimal_macros::dec;
 use serde::{Deserialize, Serialize};
 

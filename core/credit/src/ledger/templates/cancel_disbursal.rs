@@ -1,5 +1,5 @@
 use cala_ledger::{
-    tx_template::{error::TxTemplateError, Params, *},
+    tx_template::{Params, error::TxTemplateError, *},
     *,
 };
 use rust_decimal::Decimal;

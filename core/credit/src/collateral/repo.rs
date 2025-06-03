@@ -3,7 +3,7 @@ use sqlx::PgPool;
 use es_entity::*;
 use outbox::OutboxEventMarker;
 
-use crate::{event::CoreCreditEvent, primitives::CollateralId, CreditFacilityPublisher};
+use crate::{CreditFacilityPublisher, event::CoreCreditEvent, primitives::CollateralId};
 
 use super::{entity::*, error::*};
 

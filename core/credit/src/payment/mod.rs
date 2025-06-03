@@ -9,8 +9,8 @@ use authz::PermissionCheck;
 use outbox::OutboxEventMarker;
 
 use crate::{
-    primitives::*, publisher::CreditFacilityPublisher, CoreCreditAction, CoreCreditEvent,
-    CoreCreditObject, Obligations, PaymentAllocation, PaymentAllocationRepo,
+    CoreCreditAction, CoreCreditEvent, CoreCreditObject, Obligations, PaymentAllocation,
+    PaymentAllocationRepo, primitives::*, publisher::CreditFacilityPublisher,
 };
 
 pub use entity::Payment;

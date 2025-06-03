@@ -9,6 +9,7 @@ use governance::{GovernanceAction, GovernanceEvent, GovernanceObject};
 use outbox::OutboxEventMarker;
 
 use crate::{
+    Jobs,
     credit_facility::{CreditFacilities, CreditFacility},
     disbursal::{Disbursals, NewDisbursal},
     error::CoreCreditError,
@@ -16,7 +17,6 @@ use crate::{
     jobs::interest_accruals,
     ledger::CreditLedger,
     primitives::{CoreCreditAction, CoreCreditObject, CreditFacilityId, DisbursalId},
-    Jobs,
 };
 
 pub use job::*;

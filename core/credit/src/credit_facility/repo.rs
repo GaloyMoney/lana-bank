@@ -6,10 +6,10 @@ pub use es_entity::{ListDirection, Sort};
 use outbox::OutboxEventMarker;
 
 use crate::{
+    CoreCreditEvent,
     interest_accrual_cycle::{error::InterestAccrualCycleError, *},
     primitives::*,
     publisher::*,
-    CoreCreditEvent,
 };
 
 use super::{entity::*, error::CreditFacilityError};
@@ -141,7 +141,7 @@ where
 }
 
 mod facility_status_sqlx {
-    use sqlx::{postgres::*, Type};
+    use sqlx::{Type, postgres::*};
 
     use crate::primitives::CreditFacilityStatus;
 
@@ -179,7 +179,7 @@ mod facility_status_sqlx {
 }
 
 mod facility_collateralization_state_sqlx {
-    use sqlx::{postgres::*, Type};
+    use sqlx::{Type, postgres::*};
 
     use crate::primitives::CollateralizationState;
 

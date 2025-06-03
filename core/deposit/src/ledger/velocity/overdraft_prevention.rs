@@ -18,12 +18,14 @@ impl OverdraftPrevention {
             .window(vec![])
             .limit(
                 NewLimit::builder()
-                    .balance(vec![NewBalanceLimit::builder()
-                        .layer("SETTLED")
-                        .amount("decimal('0.0')")
-                        .enforcement_direction("DEBIT")
-                        .build()
-                        .expect("balance limit")])
+                    .balance(vec![
+                        NewBalanceLimit::builder()
+                            .layer("SETTLED")
+                            .amount("decimal('0.0')")
+                            .enforcement_direction("DEBIT")
+                            .build()
+                            .expect("balance limit"),
+                    ])
                     .build()
                     .expect("limit"),
             )

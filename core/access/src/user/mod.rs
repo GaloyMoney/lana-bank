@@ -10,7 +10,7 @@ use audit::AuditSvc;
 use authz::{Authorization, PermissionCheck};
 use outbox::{Outbox, OutboxEventMarker};
 
-use crate::{event::*, primitives::*, publisher::UserPublisher, Role};
+use crate::{Role, event::*, primitives::*, publisher::UserPublisher};
 
 use entity::*;
 pub use entity::{User, UserEvent};

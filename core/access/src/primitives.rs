@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 use std::{fmt::Display, str::FromStr};
 
 pub use audit::AuditInfo;
-pub use authz::{action_description::*, AllOrOne};
+pub use authz::{AllOrOne, action_description::*};
 
 #[cfg(feature = "governance")]
 es_entity::entity_id! {

@@ -6,7 +6,7 @@ use std::collections::HashSet;
 use audit::AuditInfo;
 use es_entity::*;
 
-use crate::{primitives::RoleId, PermissionSetId};
+use crate::{PermissionSetId, primitives::RoleId};
 
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]

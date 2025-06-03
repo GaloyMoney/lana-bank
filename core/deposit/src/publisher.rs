@@ -2,9 +2,9 @@ use outbox::{Outbox, OutboxEventMarker};
 
 use super::event::CoreDepositEvent;
 use crate::{
-    account::{error::DepositAccountError, DepositAccount, DepositAccountEvent},
-    deposit::{error::DepositError, Deposit, DepositEvent},
-    withdrawal::{error::WithdrawalError, Withdrawal, WithdrawalEvent},
+    account::{DepositAccount, DepositAccountEvent, error::DepositAccountError},
+    deposit::{Deposit, DepositEvent, error::DepositError},
+    withdrawal::{Withdrawal, WithdrawalEvent, error::WithdrawalError},
 };
 
 pub struct DepositPublisher<E>

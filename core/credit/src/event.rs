@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 
 use core_money::{Satoshis, UsdCents};
 
-use crate::{terms::InterestPeriod, CollateralizationState, CreditFacilityReceivable, TermValues};
+use crate::{CollateralizationState, CreditFacilityReceivable, TermValues, terms::InterestPeriod};
 
 use super::primitives::*;
 
