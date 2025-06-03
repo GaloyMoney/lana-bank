@@ -139,7 +139,7 @@ where
                 Some(GovernanceEvent::ApprovalProcessConcluded {
                     id,
                     approved,
-                    ref process_type,
+                    process_type,
                     ..
                 }) if process_type == &super::APPROVE_DISBURSAL_PROCESS => {
                     self.process.execute(*id, *approved).await?;

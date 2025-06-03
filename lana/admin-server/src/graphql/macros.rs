@@ -12,7 +12,7 @@
 //
 #[macro_export]
 macro_rules! app_and_sub_from_ctx {
-    ($ctx:expr) => {{
+    ($ctx:expr_2021) => {{
         let app = $ctx.data_unchecked::<lana_app::app::LanaApp>();
         let $crate::primitives::AdminAuthContext { sub } = $ctx.data()?;
         (app, sub)
@@ -37,7 +37,7 @@ macro_rules! app_and_sub_from_ctx {
 //
 #[macro_export]
 macro_rules! maybe_fetch_one {
-    ($ty:ty, $ctx:expr, $load_entity:expr) => {
+    ($ty:ty, $ctx:expr_2021, $load_entity:expr_2021) => {
         if let Some(entity) = $load_entity.await? {
             let entity = <$ty>::from(entity);
             let loader = $ctx.data_unchecked::<LanaDataLoader>();
@@ -51,7 +51,7 @@ macro_rules! maybe_fetch_one {
 
 #[macro_export]
 macro_rules! exec_mutation {
-    ($payload:ty, $ty:ty, $ctx:expr, $load:expr) => {{
+    ($payload:ty, $ty:ty, $ctx:expr_2021, $load:expr_2021) => {{
         let entity = <$ty>::from($load.await?);
         let loader = $ctx.data_unchecked::<LanaDataLoader>();
         loader.feed_one(entity.entity.id, entity.clone()).await;
@@ -94,7 +94,7 @@ macro_rules! exec_mutation {
 // .await
 #[macro_export]
 macro_rules! list_with_cursor {
-    ($cursor:ty, $entity:ty, $ctx:expr, $after:expr, $first:expr, $load:expr) => {{
+    ($cursor:ty, $entity:ty, $ctx:expr_2021, $after:expr_2021, $first:expr_2021, $load:expr_2021) => {{
         let loader = $ctx.data_unchecked::<LanaDataLoader>();
         async_graphql::types::connection::query(
             $after,
@@ -170,7 +170,7 @@ macro_rules! list_with_cursor {
 // .await
 #[macro_export]
 macro_rules! list_with_combo_cursor {
-    ($combo_cursor:ty, $entity:ty, $sort_by:expr, $ctx:expr, $after:expr, $first:expr, $load:expr) => {{
+    ($combo_cursor:ty, $entity:ty, $sort_by:expr_2021, $ctx:expr_2021, $after:expr_2021, $first:expr_2021, $load:expr_2021) => {{
         let loader = $ctx.data_unchecked::<LanaDataLoader>();
         async_graphql::types::connection::query(
             $after,

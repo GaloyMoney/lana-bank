@@ -41,7 +41,8 @@ impl ServiceAccountConfig {
 
         let creds = self.get_json_creds()?;
         let service_account_key = serde_json::from_str::<ServiceAccountKey>(&creds)?;
-        std::env::set_var("GOOGLE_APPLICATION_CREDENTIALS_JSON", creds);
+        // TODO: Audit that the environment access only happens in single-threaded code.
+        unsafe { std::env::set_var("GOOGLE_APPLICATION_CREDENTIALS_JSON", creds) };
 
         self.gcp_project = service_account_key
             .project_id

@@ -141,7 +141,7 @@ where
                 Some(GovernanceEvent::ApprovalProcessConcluded {
                     id,
                     approved,
-                    ref process_type,
+                    process_type,
                     ..
                 }) if process_type == &super::APPROVE_CREDIT_FACILITY_PROCESS => {
                     self.process.execute(*id, *approved).await?;

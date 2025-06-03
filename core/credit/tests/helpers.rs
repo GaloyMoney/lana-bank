@@ -137,7 +137,7 @@ pub mod event {
             impl outbox::OutboxEventMarker<$from_type> for DummyEvent {
                 fn as_event(&self) -> Option<&$from_type> {
                     match self {
-                        Self::$variant(ref event) => Some(event),
+                        &Self::$variant(ref event) => Some(event),
                         _ => None,
                     }
                 }

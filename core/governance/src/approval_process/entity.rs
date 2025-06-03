@@ -80,13 +80,12 @@ impl ApprovalProcess {
             .next()
     }
     pub fn target_ref(&self) -> &str {
-        if let ApprovalProcessEvent::Initialized { target_ref, .. } =
-            self.events.iter_all().next().expect("No events")
-        {
+        match self.events.iter_all().next().expect("No events")
+        { ApprovalProcessEvent::Initialized { target_ref, .. } => {
             target_ref
-        } else {
+        } _ => {
             panic!("No events")
-        }
+        }}
     }
 
     pub fn committee_id(&self) -> Option<CommitteeId> {

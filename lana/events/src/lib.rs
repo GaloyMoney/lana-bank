@@ -25,7 +25,7 @@ macro_rules! impl_event_marker {
         impl OutboxEventMarker<$from_type> for LanaEvent {
             fn as_event(&self) -> Option<&$from_type> {
                 match self {
-                    Self::$variant(ref event) => Some(event),
+                    &Self::$variant(ref event) => Some(event),
                     _ => None,
                 }
             }

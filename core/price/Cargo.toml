@@ -2,7 +2,7 @@
 name = "core-price"
 version = "0.3.582-dev"
 license = "FSL-1.1-ALv2"
-edition = "2021"
+edition = "2024"
 
 [features]
 
