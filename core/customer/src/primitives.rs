@@ -10,8 +10,35 @@ es_entity::entity_id! {
 
 es_entity::entity_id! { AuthenticationId }
 
+#[cfg(feature = "schemars")]
+mod entity_id_schemas {
+    use super::*;
+    use schemars::{gen::SchemaGenerator, schema::Schema, JsonSchema};
+
+    impl JsonSchema for CustomerId {
+        fn schema_name() -> String {
+            "CustomerId".to_string()
+        }
+
+        fn json_schema(gen: &mut SchemaGenerator) -> Schema {
+            String::json_schema(gen)
+        }
+    }
+
+    impl JsonSchema for AuthenticationId {
+        fn schema_name() -> String {
+            "AuthenticationId".to_string()
+        }
+
+        fn json_schema(gen: &mut SchemaGenerator) -> Schema {
+            String::json_schema(gen)
+        }
+    }
+}
+
 #[derive(Debug, Deserialize, Clone, Copy, Serialize, Eq, PartialEq)]
 #[cfg_attr(feature = "graphql", derive(async_graphql::Enum))]
+#[cfg_attr(feature = "schemars", derive(schemars::JsonSchema))]
 pub enum KycLevel {
     NotKyced,
     Basic,
@@ -31,6 +58,7 @@ pub enum KycLevel {
     Deserialize,
 )]
 #[cfg_attr(feature = "graphql", derive(async_graphql::Enum))]
+#[cfg_attr(feature = "schemars", derive(schemars::JsonSchema))]
 #[serde(rename_all = "kebab-case")]
 pub enum AccountStatus {
     #[default]
@@ -40,6 +68,7 @@ pub enum AccountStatus {
 
 #[derive(Debug, Deserialize, Clone, Copy, Serialize, Eq, PartialEq)]
 #[cfg_attr(feature = "graphql", derive(async_graphql::Enum))]
+#[cfg_attr(feature = "schemars", derive(schemars::JsonSchema))]
 pub enum CustomerType {
     Individual,
     GovernmentEntity,

@@ -9,6 +9,7 @@ edition = "2021"
 fail-on-warnings = []
 graphql = [ "dep:async-graphql", "cala-ledger/graphql" ]
 sim-time = ["dep:sim-time", "es-entity/sim-time"]
+schemars = ["dep:schemars"]
 
 [dependencies]
 core-money = { path = "../money" }
@@ -42,6 +43,7 @@ async-trait = { workspace = true }
 futures = { workspace = true }
 async-graphql = { workspace = true, optional = true }
 sim-time = { workspace = true, optional = true }
+schemars = { version = "0.8.22", optional = true }
 
 [dev-dependencies]
 authz = { path = "../../lib/authz", features = ["test-dummy"] }

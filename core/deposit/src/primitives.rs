@@ -418,3 +418,59 @@ impl From<CustomerType> for DepositAccountType {
         }
     }
 }
+
+#[cfg(feature = "schemars")]
+mod entity_id_schemas {
+    use super::*;
+    use schemars::{gen::SchemaGenerator, schema::Schema, JsonSchema};
+
+    impl JsonSchema for DepositAccountHolderId {
+        fn schema_name() -> String {
+            "DepositAccountHolderId".to_string()
+        }
+
+        fn json_schema(gen: &mut SchemaGenerator) -> Schema {
+            String::json_schema(gen)
+        }
+    }
+
+    impl JsonSchema for DepositAccountId {
+        fn schema_name() -> String {
+            "DepositAccountId".to_string()
+        }
+
+        fn json_schema(gen: &mut SchemaGenerator) -> Schema {
+            String::json_schema(gen)
+        }
+    }
+
+    impl JsonSchema for WithdrawalId {
+        fn schema_name() -> String {
+            "WithdrawalId".to_string()
+        }
+
+        fn json_schema(gen: &mut SchemaGenerator) -> Schema {
+            String::json_schema(gen)
+        }
+    }
+
+    impl JsonSchema for ChartOfAccountsIntegrationConfigId {
+        fn schema_name() -> String {
+            "ChartOfAccountsIntegrationConfigId".to_string()
+        }
+
+        fn json_schema(gen: &mut SchemaGenerator) -> Schema {
+            String::json_schema(gen)
+        }
+    }
+
+    impl JsonSchema for DepositId {
+        fn schema_name() -> String {
+            "DepositId".to_string()
+        }
+
+        fn json_schema(gen: &mut SchemaGenerator) -> Schema {
+            String::json_schema(gen)
+        }
+    }
+}

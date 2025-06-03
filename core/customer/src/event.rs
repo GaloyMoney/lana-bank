@@ -3,6 +3,7 @@ use serde::{Deserialize, Serialize};
 use crate::primitives::{AccountStatus, CustomerId, CustomerType};
 
 #[derive(Debug, Serialize, Deserialize)]
+#[cfg_attr(feature = "schemars", derive(schemars::JsonSchema))]
 #[serde(tag = "type")]
 pub enum CoreCustomerEvent {
     CustomerCreated {

@@ -4,6 +4,7 @@ use super::primitives::{DepositAccountHolderId, DepositAccountId, DepositId, Wit
 use core_money::UsdCents;
 
 #[derive(Debug, Serialize, Deserialize)]
+#[cfg_attr(feature = "schemars", derive(schemars::JsonSchema))]
 #[serde(tag = "type")]
 pub enum CoreDepositEvent {
     DepositAccountCreated {

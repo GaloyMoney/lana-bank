@@ -4,6 +4,52 @@ use std::{borrow::Cow, fmt::Display, str::FromStr};
 use authz::{action_description::*, AllOrOne};
 es_entity::entity_id! { ApprovalProcessId, CommitteeId, PolicyId, CommitteeMemberId }
 
+#[cfg(feature = "schemars")]
+mod entity_id_schemas {
+    use super::*;
+    use schemars::{gen::SchemaGenerator, schema::Schema, JsonSchema};
+
+    impl JsonSchema for ApprovalProcessId {
+        fn schema_name() -> String {
+            "ApprovalProcessId".to_string()
+        }
+
+        fn json_schema(gen: &mut SchemaGenerator) -> Schema {
+            String::json_schema(gen)
+        }
+    }
+
+    impl JsonSchema for CommitteeId {
+        fn schema_name() -> String {
+            "CommitteeId".to_string()
+        }
+
+        fn json_schema(gen: &mut SchemaGenerator) -> Schema {
+            String::json_schema(gen)
+        }
+    }
+
+    impl JsonSchema for PolicyId {
+        fn schema_name() -> String {
+            "PolicyId".to_string()
+        }
+
+        fn json_schema(gen: &mut SchemaGenerator) -> Schema {
+            String::json_schema(gen)
+        }
+    }
+
+    impl JsonSchema for CommitteeMemberId {
+        fn schema_name() -> String {
+            "CommitteeMemberId".to_string()
+        }
+
+        fn json_schema(gen: &mut SchemaGenerator) -> Schema {
+            String::json_schema(gen)
+        }
+    }
+}
+
 #[cfg_attr(feature = "graphql", derive(async_graphql::Enum))]
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum ApprovalProcessStatus {
@@ -22,6 +68,7 @@ impl ApprovalProcessStatus {
 }
 
 #[derive(Clone, Eq, Hash, PartialEq, Debug, Serialize, Deserialize, sqlx::Type)]
+#[cfg_attr(feature = "schemars", derive(schemars::JsonSchema))]
 #[sqlx(transparent)]
 #[serde(transparent)]
 pub struct ApprovalProcessType(Cow<'static, str>);

@@ -8,6 +8,7 @@ edition = "2021"
 
 fail-on-warnings = []
 graphql = ["es-entity/graphql", "dep:async-graphql"]
+schemars = ["dep:schemars"]
 
 [dependencies]
 audit = { path = "../../lib/audit" }
@@ -24,6 +25,7 @@ thiserror = { workspace = true }
 chrono = { workspace = true }
 strum = { workspace = true }
 async-graphql = { workspace = true, optional = true }
+schemars = { version = "0.8.22", optional = true }
 
 [dev-dependencies]
 anyhow = { workspace = true }

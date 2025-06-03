@@ -3,6 +3,7 @@ use serde::{Deserialize, Serialize};
 use crate::primitives::*;
 
 #[derive(Debug, Serialize, Deserialize)]
+#[cfg_attr(feature = "schemars", derive(schemars::JsonSchema))]
 #[serde(tag = "type")]
 pub enum GovernanceEvent {
     ApprovalProcessConcluded {
