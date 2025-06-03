@@ -227,7 +227,7 @@
               set -e # Exit immediately if a command exits with a non-zero status.
 
               if [ -n "$CI" ]; then
-                echo "CI environment detected, skipping meltano setup."
+                echo "CI environment detected, skipping meltano setup." >&2
               else
                 # Meltano setup
                 VENV_DIR=".venv" # Relative to the project root
