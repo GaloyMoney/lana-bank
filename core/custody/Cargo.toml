@@ -12,7 +12,6 @@ graphql = ["es-entity/graphql"]
 [dependencies]
 audit = { path = "../../lib/audit" }
 authz = { path = "../../lib/authz" }
-outbox = { path = "../../lib/outbox" }
 
 chrono = { workspace = true }
 derive_builder = { workspace = true }
