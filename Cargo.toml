@@ -36,8 +36,8 @@ members = [
 # sim-time = { git = "https://github.com/galoymoney/cala.git", branch = "main" }
 # cala-ledger = { git = "https://github.com/galoymoney/cala.git", branch = "main" }
 es-entity = "0.5.2"
-sim-time = "0.5.2"
-cala-ledger = "0.5.2"
+sim-time = "0.5.3"
+cala-ledger = "0.5.3"
 
 anyhow = "1.0.98"
 async-graphql = { version = "7.0.17", default-features = false, features = [
@@ -96,7 +96,7 @@ serde_yaml = "0.9.32"
 serde_json = "1.0.133"
 serde_with = "3.12.0"
 futures = "0.3.29"
-reqwest = { version = "0.12.15", default-features = false, features = ["json", "rustls-tls", "charset", "http2", "macos-system-configuration", "multipart"] }
+reqwest = { version = "0.12.19", default-features = false, features = ["json", "rustls-tls", "charset", "http2", "macos-system-configuration", "multipart"] }
 rust_decimal_macros = "1.37.1"
 rust_decimal = "1.37.1"
 rusty-money = { version = "0.4", features = ["iso", "crypto"] }
@@ -105,7 +105,7 @@ jsonwebtoken = "9.3.1"
 hex = "0.4.3"
 hmac = "0.12.1"
 sha2 = "0.10.8"
-tower-http = { version = "0.6.5", features = ["cors"] }
+tower-http = { version = "0.6.6", features = ["cors"] }
 sqlx-adapter = { version = "1.7", default-features = false, features = [
   "postgres",
   "runtime-tokio-rustls",
