@@ -86,7 +86,7 @@
           CARGO_PROFILE = profile;
           SQLX_OFFLINE = true;
           CARGO_BUILD_TARGET = rustTarget;
-          cargoExtraArgs = "--features sim-time --target ${rustTarget}";
+          cargoExtraArgs = "--all-features --target ${rustTarget}";
 
           # Add musl target dependencies
           depsBuildBuild = with pkgs; [
