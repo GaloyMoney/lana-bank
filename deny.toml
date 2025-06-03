@@ -160,6 +160,11 @@ expression = "LicenseRef-FSL-1.1-ALv2"
 license-files = []
 
 [[licenses.clarify]]
+crate = "core-custody"
+expression = "LicenseRef-FSL-1.1-ALv2"
+license-files = []
+
+[[licenses.clarify]]
 crate = "core-accounting"
 expression = "LicenseRef-FSL-1.1-ALv2"
 license-files = []
