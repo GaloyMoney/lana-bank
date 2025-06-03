@@ -1060,6 +1060,15 @@ dependencies = [
 [[package]]
 name = "core-custody"
 version = "0.3.570-dev"
+dependencies = [
+ "audit",
+ "authz",
+ "derive_builder",
+ "es-entity",
+ "outbox",
+ "serde",
+ "sqlx",
+]
 
 [[package]]
 name = "core-customer"

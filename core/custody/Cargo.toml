@@ -4,4 +4,17 @@ version = "0.3.570-dev"
 license = "FSL-1.1-ALv2"
 edition = "2024"
 
+[features]
+
+fail-on-warnings = []
+graphql = ["es-entity/graphql"]
+
 [dependencies]
+audit = { path = "../../lib/audit" }
+authz = { path = "../../lib/authz" }
+outbox = { path = "../../lib/outbox" }
+
+es-entity = { workspace = true }
+serde = { workspace = true }
+sqlx = { workspace = true }
+derive_builder = { workspace = true }
