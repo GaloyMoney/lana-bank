@@ -8,6 +8,7 @@ use es_entity::*;
 
 use crate::primitives::CustodianId;
 
+use super::client::{CustodianClient, error::CustodianClientError};
 use super::{custodian_config::*, error::*};
 
 #[derive(Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -102,6 +103,17 @@ impl Custodian {
         });
 
         Ok(())
+    }
+
+    pub async fn custodian_client(
+        self,
+        key: EncryptionKey,
+    ) -> Result<Box<dyn CustodianClient>, CustodianClientError> {
+        match self.custodian_config(key) {
+            CustodianConfig::Komainu(config) => {
+                Ok(Box::new(komainu::KomainuClient::new(config.into())))
+            }
+        }
     }
 }
 
