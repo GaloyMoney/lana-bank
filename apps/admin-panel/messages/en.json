@@ -86,6 +86,14 @@
     "governance_writer": {
       "label": "Governance Writer",
       "description": "Can create and manage committees and policies, and control approval processes (create, approve, deny, conclude)"
+    },
+    "custody_viewer": {
+      "label": "Custody Viewer",
+      "description": "Can view custody accounts"
+    },
+    "custody_writer": {
+      "label": "Custody Writer",
+      "description": "Can create and manage custody accounts,"
     }
   },
   "interestInterval": {

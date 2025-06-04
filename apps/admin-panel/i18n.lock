@@ -54,6 +54,10 @@ checksums:
     Permissions/governance_viewer/description: 84a7ff7991222611fe8a7d55bd61aacc
     Permissions/governance_writer/label: b9dd0624ee128d1ece7da289d0c28eb5
     Permissions/governance_writer/description: 56c0335d078338288795e0cd66062197
+    Permissions/custody_viewer/label: 0367a13b223d99c79edcac6d4bc69d38
+    Permissions/custody_viewer/description: 45fa8a2e0b7b1ac69692dc5afd9c0452
+    Permissions/custody_writer/label: d7d4513c6a80a74f28e925ad18a81fc1
+    Permissions/custody_writer/description: 90d02042d88ee59cff0bd3a368e59fcf
     interestInterval/endOfDay: 24234805a9fd10dfe74eaeafec362699
     interestInterval/endOfMonth: df268ce61af23ae591e0a727f34ad13f
     period/days: 47648cd60fc313bc3f05b70357a1d675

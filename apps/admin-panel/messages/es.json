@@ -86,6 +86,14 @@
     "governance_writer": {
       "label": "Editor de gobernanza",
       "description": "Puede crear y gestionar comités y políticas, y controlar procesos de aprobación (crear, aprobar, denegar, concluir)"
+    },
+    "custody_viewer": {
+      "label": "Visualizador de custodia",
+      "description": "Puede ver cuentas de custodia"
+    },
+    "custody_writer": {
+      "label": "Editor de custodia",
+      "description": "Puede crear y gestionar cuentas de custodia,"
     }
   },
   "interestInterval": {
