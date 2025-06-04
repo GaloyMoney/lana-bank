@@ -1,18 +1,23 @@
 #![cfg_attr(feature = "fail-on-warnings", deny(warnings))]
 #![cfg_attr(feature = "fail-on-warnings", deny(clippy::all))]
 
+pub mod build_info;
 pub mod config;
 mod db;
 
 use anyhow::Context;
-use clap::Parser;
+use clap::{Parser, Subcommand};
 use std::path::PathBuf;
 
+pub use self::build_info::BuildInfo;
 use self::config::{Config, EnvSecrets};
 
 #[derive(Parser)]
 #[clap(long_about = None)]
 struct Cli {
+    #[clap(subcommand)]
+    command: Option<Commands>,
+
     #[clap(
         short,
         long,
@@ -33,8 +38,27 @@ struct Cli {
     dev_env_name_prefix: Option<String>,
 }
 
+#[derive(Subcommand)]
+enum Commands {
+    /// Show build information including compilation flags
+    BuildInfo,
+    /// Run the main server (default when no subcommand is specified)
+    Run,
+}
+
 pub async fn run() -> anyhow::Result<()> {
     let cli = Cli::parse();
+
+    match cli.command.unwrap_or(Commands::Run) {
+        Commands::BuildInfo => {
+            let build_info = BuildInfo::get();
+            println!("{}", build_info.display());
+            return Ok(());
+        }
+        Commands::Run => {
+            // Continue with existing server logic
+        }
+    }
 
     let sa_creds_base64 = if cli.sa_creds_base64_raw.is_empty() {
         None

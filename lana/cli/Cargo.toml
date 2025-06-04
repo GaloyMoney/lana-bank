@@ -3,6 +3,7 @@ name = "lana-cli"
 version = "0.3.603-dev"
 license = "FSL-1.1-ALv2"
 edition = "2021"
+build = "build.rs"
 
 [features]
 sim-time = [
@@ -12,6 +13,9 @@ sim-time = [
 sim-bootstrap = ["dep:sim-bootstrap"]
 
 fail-on-warnings = []
+
+[build-dependencies]
+chrono = { workspace = true }
 
 [dependencies]
 lana-app = { path = "../app" }
