@@ -1584,6 +1584,8 @@ export enum PermissionSetName {
   AppWriter = 'APP_WRITER',
   CreditViewer = 'CREDIT_VIEWER',
   CreditWriter = 'CREDIT_WRITER',
+  CustodyViewer = 'CUSTODY_VIEWER',
+  CustodyWriter = 'CUSTODY_WRITER',
   CustomerViewer = 'CUSTOMER_VIEWER',
   CustomerWriter = 'CUSTOMER_WRITER',
   DashboardViewer = 'DASHBOARD_VIEWER',
