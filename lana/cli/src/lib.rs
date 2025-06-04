@@ -6,7 +6,7 @@ mod db;
 
 use anyhow::Context;
 use clap::Parser;
-use std::{fs, path::PathBuf};
+use std::path::PathBuf;
 
 use self::config::{Config, EnvSecrets};
 
@@ -21,13 +21,6 @@ struct Cli {
         value_name = "FILE"
     )]
     config: PathBuf,
-    #[clap(
-        long,
-        env = "LANA_HOME",
-        default_value = ".lana",
-        value_name = "DIRECTORY"
-    )]
-    lana_home: String,
     #[clap(env = "PG_CON")]
     pg_con: String,
     #[clap(env = "SUMSUB_KEY", default_value = "")]
@@ -60,14 +53,13 @@ pub async fn run() -> anyhow::Result<()> {
         cli.dev_env_name_prefix,
     )?;
 
-    run_cmd(&cli.lana_home, config).await?;
+    run_cmd(config).await?;
 
     Ok(())
 }
 
-async fn run_cmd(lana_home: &str, config: Config) -> anyhow::Result<()> {
+async fn run_cmd(config: Config) -> anyhow::Result<()> {
     tracing_utils::init_tracer(config.tracing)?;
-    store_server_pid(lana_home, std::process::id())?;
 
     #[cfg(feature = "sim-time")]
     {
@@ -118,16 +110,4 @@ async fn run_cmd(lana_home: &str, config: Config) -> anyhow::Result<()> {
     }
 
     reason
-}
-
-pub fn store_server_pid(lana_home: &str, pid: u32) -> anyhow::Result<()> {
-    create_lana_dir(lana_home)?;
-    let _ = fs::remove_file(format!("{lana_home}/server-pid"));
-    fs::write(format!("{lana_home}/server-pid"), pid.to_string()).context("Writing PID file")?;
-    Ok(())
-}
-
-fn create_lana_dir(lana_home: &str) -> anyhow::Result<()> {
-    let _ = fs::create_dir(lana_home);
-    Ok(())
 }
