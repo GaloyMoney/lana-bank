@@ -203,7 +203,6 @@ pub struct NewLiquidationObligation {
     pub(crate) defaulted_account_id: CalaAccountId,
     #[builder(setter(into))]
     pub(crate) amount: UsdCents,
-    #[builder(setter(strip_option), default)]
     pub(crate) defaulted_date: Option<DateTime<Utc>>,
     pub(crate) effective: chrono::NaiveDate,
     #[builder(setter(into))]

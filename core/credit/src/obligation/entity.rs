@@ -28,11 +28,10 @@ pub enum ObligationEvent {
         not_yet_due_accounts: ObligationAccounts,
         due_accounts: ObligationAccounts,
         overdue_accounts: ObligationAccounts,
-        defaulted_account_id: CalaAccountId,
+        liquidation_details: LiquidationData,
         due_date: DateTime<Utc>,
         overdue_date: Option<DateTime<Utc>>,
         liquidation_date: Option<DateTime<Utc>>,
-        defaulted_date: Option<DateTime<Utc>>,
         effective: chrono::NaiveDate,
         audit_info: AuditInfo,
     },
@@ -113,13 +112,6 @@ impl Obligation {
         })
     }
 
-    pub fn defaulted_at(&self) -> Option<DateTime<Utc>> {
-        self.events.iter_all().find_map(|e| match e {
-            ObligationEvent::Initialized { defaulted_date, .. } => *defaulted_date,
-            _ => None,
-        })
-    }
-
     pub fn not_yet_due_accounts(&self) -> ObligationAccounts {
         self.events
             .iter_all()
@@ -155,14 +147,14 @@ impl Obligation {
             .expect("Entity was not Initialized")
     }
 
-    pub fn defaulted_account(&self) -> CalaAccountId {
+    pub fn liquidation_details(&self) -> LiquidationData {
         self.events
             .iter_all()
             .find_map(|e| match e {
                 ObligationEvent::Initialized {
-                    defaulted_account_id,
+                    liquidation_details,
                     ..
-                } => Some(*defaulted_account_id),
+                } => Some(*liquidation_details),
                 _ => None,
             })
             .expect("Entity was not Initialized")
@@ -457,13 +449,18 @@ impl Obligation {
         let receivable_account_id = self
             .receivable_account_id()
             .expect("Obligation already Paid");
+        let LiquidationData {
+            defaulted_account_id,
+            defaulted_date,
+        } = self.liquidation_details();
         let liquidation = NewLiquidationObligation::builder()
             .id(liquidation_obligation_id)
             .credit_facility_id(self.credit_facility_id)
             .parent_obligation_id(self.id)
             .tx_id(tx_id)
             .receivable_account_id(receivable_account_id)
-            .defaulted_account_id(self.defaulted_account())
+            .defaulted_account_id(defaulted_account_id)
+            .defaulted_date(defaulted_date)
             .amount(outstanding)
             .effective(effective)
             .audit_info(audit_info.clone())
@@ -476,7 +473,7 @@ impl Obligation {
             outstanding,
             tx_id,
             receivable_account_id,
-            defaulted_date: self.defaulted_at(),
+            defaulted_date,
             audit_info: audit_info.clone(),
         });
 
@@ -535,13 +532,10 @@ pub struct NewObligation {
     not_yet_due_accounts: ObligationAccounts,
     due_accounts: ObligationAccounts,
     overdue_accounts: ObligationAccounts,
-    #[builder(setter(into))]
-    defaulted_account_id: CalaAccountId,
+    liquidation_details: LiquidationData,
     due_date: DateTime<Utc>,
     overdue_date: Option<DateTime<Utc>>,
     liquidation_date: Option<DateTime<Utc>>,
-    #[builder(setter(strip_option), default)]
-    defaulted_date: Option<DateTime<Utc>>,
     effective: chrono::NaiveDate,
     #[builder(setter(into))]
     pub audit_info: AuditInfo,
@@ -575,11 +569,10 @@ impl IntoEvents<ObligationEvent> for NewObligation {
                 not_yet_due_accounts: self.not_yet_due_accounts,
                 due_accounts: self.due_accounts,
                 overdue_accounts: self.overdue_accounts,
-                defaulted_account_id: self.defaulted_account_id,
+                liquidation_details: self.liquidation_details,
                 due_date: self.due_date,
                 overdue_date: self.overdue_date,
                 liquidation_date: self.liquidation_date,
-                defaulted_date: self.defaulted_date,
                 effective: self.effective,
                 audit_info: self.audit_info,
             }],
@@ -648,11 +641,13 @@ mod test {
                 receivable_account_id: CalaAccountId::new(),
                 account_to_be_credited_id: CalaAccountId::new(),
             },
-            defaulted_account_id: CalaAccountId::new(),
+            liquidation_details: LiquidationData {
+                defaulted_account_id: CalaAccountId::new(),
+                defaulted_date: None,
+            },
             due_date: Utc::now(),
             overdue_date: Some(Utc::now()),
             liquidation_date: None,
-            defaulted_date: None,
             effective: Utc::now().date_naive(),
             audit_info: dummy_audit_info(),
         }]
@@ -843,11 +838,13 @@ mod test {
                     receivable_account_id: CalaAccountId::new(),
                     account_to_be_credited_id: CalaAccountId::new(),
                 },
-                defaulted_account_id: CalaAccountId::new(),
+                liquidation_details: LiquidationData {
+                    defaulted_account_id: CalaAccountId::new(),
+                    defaulted_date: Some(defaulted_timestamp(now)),
+                },
                 due_date: due_timestamp(now),
                 overdue_date: Some(overdue_timestamp(now)),
                 liquidation_date: Some(liquidation_timestamp(now)),
-                defaulted_date: Some(defaulted_timestamp(now)),
                 effective: Utc::now().date_naive(),
                 audit_info: dummy_audit_info(),
             }]

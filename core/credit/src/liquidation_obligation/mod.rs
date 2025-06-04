@@ -18,7 +18,7 @@ use crate::{
 
 pub(crate) use entity::*;
 pub(crate) use error::LiquidationObligationError;
-pub(crate) use primitives::LiquidationObligationDefaultedReallocationData;
+pub(crate) use primitives::*;
 pub(crate) use repo::LiquidationObligationRepo;
 
 pub struct LiquidationObligations<Perms, E>

@@ -246,7 +246,7 @@ where
 
                     due_at: entity.due_at(),
                     overdue_at: entity.overdue_at(),
-                    defaulted_at: entity.defaulted_at(),
+                    defaulted_at: entity.liquidation_details().defaulted_date,
                     recorded_at: event.recorded_at,
                     effective: *effective,
                 }),

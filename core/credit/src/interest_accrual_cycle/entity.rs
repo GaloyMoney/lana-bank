@@ -6,6 +6,7 @@ use audit::AuditInfo;
 use es_entity::*;
 
 use crate::{
+    LiquidationData,
     ledger::CreditFacilityAccountIds,
     obligation::{NewObligation, ObligationAccounts},
     primitives::*,
@@ -311,7 +312,10 @@ impl InterestAccrualCycle {
                     receivable_account_id: self.account_ids.interest_receivable_overdue_account_id,
                     account_to_be_credited_id: self.account_ids.interest_income_account_id,
                 })
-                .defaulted_account_id(self.account_ids.interest_defaulted_account_id)
+                .liquidation_details(LiquidationData {
+                    defaulted_account_id: self.account_ids.interest_defaulted_account_id,
+                    defaulted_date: None,
+                })
                 .due_date(due_date)
                 .overdue_date(overdue_date)
                 .liquidation_date(liquidation_date)

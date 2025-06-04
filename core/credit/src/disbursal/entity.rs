@@ -7,7 +7,7 @@ use es_entity::*;
 
 use crate::{
     ledger::CreditFacilityAccountIds,
-    obligation::{NewObligation, ObligationAccounts},
+    obligation::{LiquidationData, NewObligation, ObligationAccounts},
     primitives::*,
 };
 
@@ -218,7 +218,10 @@ impl Disbursal {
                     receivable_account_id: self.account_ids.disbursed_receivable_overdue_account_id,
                     account_to_be_credited_id: self.disbursal_credit_account_id,
                 })
-                .defaulted_account_id(self.account_ids.disbursed_defaulted_account_id)
+                .liquidation_details(LiquidationData {
+                    defaulted_account_id: self.account_ids.disbursed_defaulted_account_id,
+                    defaulted_date: None,
+                })
                 .due_date(self.disbursal_due_date)
                 .overdue_date(self.disbursal_overdue_date)
                 .liquidation_date(self.disbursal_liquidation_date)
