@@ -54,7 +54,7 @@
           version = "0.0.0";
           CARGO_PROFILE = profile;
           SQLX_OFFLINE = true;
-          cargoExtraArgs = "--features sim-time";
+          cargoExtraArgs = "--features sim-time,sim-bootstrap";
         };
 
       # Function to build lana-cli for a specific profile
@@ -70,7 +70,7 @@
           pname = "lana-cli";
           CARGO_PROFILE = profile;
           SQLX_OFFLINE = true;
-          cargoExtraArgs = "-p lana-cli --features sim-time";
+          cargoExtraArgs = "-p lana-cli --features sim-time,sim-bootstrap";
         };
 
       # Function to build static lana-cli (musl target for containers)
