@@ -402,7 +402,7 @@ pg_event() {
       ".overdue_date"
       # ".defaulted_date"
       ".tx_id"
-      ".defaulted_account_id"
+      # ".defaulted_account_id"
       ".due_accounts.receivable_account_id"
       ".due_accounts.account_to_be_credited_id"
       ".overdue_accounts.receivable_account_id"
