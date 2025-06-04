@@ -5,11 +5,12 @@ import { useTranslations } from "next-intl"
 
 import { Button } from "@lana/web/ui/button"
 
+import { formatDate } from "@lana/web/utils"
+
 import { AddUserCommitteeDialog } from "../add-user"
 
 import { DetailsCard, DetailItemProps } from "@/components/details"
 import { GetCommitteeDetailsQuery } from "@/lib/graphql/generated"
-import { formatDate } from "@/lib/utils"
 
 type CommitteeDetailsProps = {
   committee: NonNullable<GetCommitteeDetailsQuery["committee"]>

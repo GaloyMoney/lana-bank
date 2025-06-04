@@ -6,6 +6,8 @@ import { useTranslations } from "next-intl"
 
 import { Badge } from "@lana/web/ui/badge"
 
+import { formatDate } from "@lana/web/utils"
+
 import UpdateTelegramIdDialog from "./update-telegram-id"
 import UpdateEmailDialog from "./update-email"
 
@@ -15,7 +17,6 @@ import {
   CustomerType,
   GetCustomerBasicDetailsQuery,
 } from "@/lib/graphql/generated"
-import { formatDate } from "@/lib/utils"
 
 type CustomerDetailsCardProps = {
   customer: NonNullable<GetCustomerBasicDetailsQuery["customer"]>

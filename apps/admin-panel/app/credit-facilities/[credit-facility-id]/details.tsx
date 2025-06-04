@@ -5,6 +5,8 @@ import { useTranslations } from "next-intl"
 
 import { Button } from "@lana/web/ui/button"
 
+import { formatDate } from "@lana/web/utils"
+
 import { CreditFacilityCollateralUpdateDialog } from "../collateral-update"
 
 import { CollateralizationStateLabel } from "../label"
@@ -15,7 +17,6 @@ import {
   ApprovalProcessStatus,
   GetCreditFacilityLayoutDetailsQuery,
 } from "@/lib/graphql/generated"
-import { formatDate } from "@/lib/utils"
 import { LoanAndCreditFacilityStatusBadge } from "@/app/credit-facilities/status-badge"
 import ApprovalDialog from "@/app/actions/approve"
 import DenialDialog from "@/app/actions/deny"

@@ -15,7 +15,7 @@
     "codegen": "graphql-codegen --config codegen.yml",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build",
-    "lint:fix": "ESLINT_USE_FLAT_CONFIG=false eslint --max-warnings 0 --fix --ext .ts,.tsx .",
+    "lint:fix": "eslint --max-warnings 0 --fix --ext .ts,.tsx .",
     "cypress:run": "./cypress/run.sh",
     "cypress:run-local": "COOKIES=$COOKIES cypress open --env COOKIES=$COOKIES",
     "cypress:run-headless": "COOKIES=$COOKIES cypress run  --env COOKIES=$COOKIES",

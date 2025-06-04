@@ -4,9 +4,10 @@ import React, { useState } from "react"
 
 import { Button } from "@lana/web/ui/button"
 
+import { formatDate } from "@lana/web/utils"
+
 import { TermsTemplateQuery } from "@/lib/graphql/generated"
 import { DetailsCard, DetailItemProps } from "@/components/details"
-import { formatDate } from "@/lib/utils"
 import { PeriodLabel } from "@/app/credit-facilities/label"
 import { UpdateTermsTemplateDialog } from "@/app/terms-templates/[terms-template-id]/update"
 

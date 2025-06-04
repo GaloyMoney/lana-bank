@@ -8,9 +8,10 @@ import { Button } from "@lana/web/ui/button"
 import { Edit2 } from "lucide-react"
 import { Label } from "@lana/web/ui/label"
 
+import { formatDate } from "@lana/web/utils"
+
 import { DetailsCard, DetailItemProps } from "@/components/details"
 import { RoleQuery } from "@/lib/graphql/generated"
-import { formatDate } from "@/lib/utils"
 import { usePermissionDisplay } from "@/hooks/use-permission-display"
 
 type RoleDetailsProps = {

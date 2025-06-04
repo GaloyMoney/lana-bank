@@ -4,8 +4,9 @@ import React from "react"
 import { useTranslations } from "next-intl"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@lana/web/ui/dialog"
 
+import { formatDate } from "@lana/web/utils"
+
 import { GetCreditFacilityLayoutDetailsQuery } from "@/lib/graphql/generated"
-import { formatDate } from "@/lib/utils"
 import { PeriodLabel } from "@/app/credit-facilities/label"
 import { DetailsCard, DetailItemProps } from "@/components/details"
 

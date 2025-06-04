@@ -7,12 +7,12 @@ import { Button } from "@lana/web/ui/button"
 
 import Link from "next/link"
 
+import { formatDate } from "@lana/web/utils"
+
 import { UpdateUserRoleDialog } from "../update-role"
 
 import { DetailsCard, DetailItemProps } from "@/components/details"
 import { GetUserDetailsQuery } from "@/lib/graphql/generated"
-
-import { formatDate } from "@/lib/utils"
 
 type UserDetailsProps = {
   user: NonNullable<GetUserDetailsQuery["user"]>

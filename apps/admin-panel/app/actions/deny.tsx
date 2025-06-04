@@ -14,6 +14,8 @@ import { Button } from "@lana/web/ui/button"
 
 import { Textarea } from "@lana/web/ui/textarea"
 
+import { formatDate } from "@lana/web/utils"
+
 import {
   ApprovalProcessType,
   GetCreditFacilityLayoutDetailsDocument,
@@ -23,7 +25,7 @@ import {
   useApprovalProcessDenyMutation,
 } from "@/lib/graphql/generated"
 import { DetailItem, DetailsGroup } from "@/components/details"
-import { formatDate, formatProcessType } from "@/lib/utils"
+import { formatProcessType } from "@/lib/utils"
 
 gql`
   mutation ApprovalProcessDeny($input: ApprovalProcessDenyInput!, $reason: String!) {

@@ -25,9 +25,10 @@ import { Skeleton } from "@lana/web/ui/skeleton"
 
 import { useTranslations } from "next-intl"
 
+import { formatDate } from "@lana/web/utils"
+
 import { ReportCreateDialog } from "./create-dialog"
 
-import { formatDate } from "@/lib/utils"
 import {
   ReportProgress,
   useReportDownloadLinksMutation,

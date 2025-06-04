@@ -11,6 +11,8 @@ import {
 } from "@lana/web/ui/dialog"
 import { Button } from "@lana/web/ui/button"
 
+import { formatDate } from "@lana/web/utils"
+
 import {
   ApprovalProcessType,
   GetCreditFacilityLayoutDetailsDocument,
@@ -20,7 +22,7 @@ import {
   useApprovalProcessApproveMutation,
 } from "@/lib/graphql/generated"
 import { DetailItem, DetailsGroup } from "@/components/details"
-import { formatDate, formatProcessType } from "@/lib/utils"
+import { formatProcessType } from "@/lib/utils"
 
 gql`
   fragment ApprovalProcessFields on ApprovalProcess {

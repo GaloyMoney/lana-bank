@@ -16,7 +16,8 @@ import {
 
 import Link from "next/link"
 
-import { formatDate } from "@/lib/utils"
+import { formatDate } from "@lana/web/utils"
+
 import { useLedgerTransactionQuery, DebitOrCredit } from "@/lib/graphql/generated"
 import { DetailsGroup } from "@/components/details"
 import Balance from "@/components/balance/balance"

@@ -14,6 +14,8 @@ import {
 
 import DateWithTooltip from "@lana/web/components/date-with-tooltip"
 
+import { formatDate } from "@lana/web/utils"
+
 import {
   DebitOrCredit,
   JournalEntry,
@@ -27,7 +29,6 @@ import PaginatedTable, {
   PaginatedData,
 } from "@/components/paginated-table"
 import Balance from "@/components/balance/balance"
-import { formatDate } from "@/lib/utils"
 
 gql`
   query JournalEntries($first: Int!, $after: String) {
