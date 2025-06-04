@@ -92,8 +92,14 @@ export const CreateCreditFacilityDialog: React.FC<CreateCreditFacilityDialogProp
 }) => {
   const t = useTranslations("CreditFacilities.CreditFacilityDetails.CreateCreditFacility")
 
+  const handleCloseDialog = () => {
+    setOpenCreateCreditFacilityDialog(false)
+    resetForm()
+    reset()
+  }
+
   const { navigate, isNavigating } = useModalNavigation({
-    closeModal: () => setOpenCreateCreditFacilityDialog(false),
+    closeModal: handleCloseDialog,
   })
   const { customer } = useCreateContext()
 
@@ -258,12 +264,6 @@ export const CreateCreditFacilityDialog: React.FC<CreateCreditFacilityDialogProp
     } else {
       setFormValues(initialFormValues)
     }
-  }
-
-  const handleCloseDialog = () => {
-    setOpenCreateCreditFacilityDialog(false)
-    resetForm()
-    reset()
   }
 
   useEffect(() => {

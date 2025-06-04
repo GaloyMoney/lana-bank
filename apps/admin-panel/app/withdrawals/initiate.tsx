@@ -59,8 +59,17 @@ export const WithdrawalInitiateDialog: React.FC<WithdrawalInitiateDialogProps> =
   depositAccountId,
 }) => {
   const t = useTranslations("Withdrawals.WithdrawalInitiateDialog")
+
+  const handleCloseDialog = () => {
+    setOpenWithdrawalInitiateDialog(false)
+    setAmount("")
+    setReference("")
+    setError(null)
+    reset()
+  }
+
   const { navigate, isNavigating } = useModalNavigation({
-    closeModal: () => setOpenWithdrawalInitiateDialog(false),
+    closeModal: handleCloseDialog,
   })
 
   const { customer } = useCreateContext()
@@ -96,21 +105,13 @@ export const WithdrawalInitiateDialog: React.FC<WithdrawalInitiateDialogProps> =
         onCompleted: (data) => {
           toast.success(t("success"))
           navigate(`/withdrawals/${data.withdrawalInitiate.withdrawal.withdrawalId}`)
-          setOpenWithdrawalInitiateDialog(false)
+          handleCloseDialog()
         },
       })
     } catch (error) {
       console.error("Error initiating withdrawal:", error)
       setError(error instanceof Error ? error.message : t("errors.unknown"))
     }
-  }
-
-  const handleCloseDialog = () => {
-    setOpenWithdrawalInitiateDialog(false)
-    setAmount("")
-    setReference("")
-    setError(null)
-    reset()
   }
 
   return (

@@ -55,8 +55,13 @@ export const CreateUserDialog: React.FC<CreateUserDialogProps> = ({
   const t = useTranslations("Users.createDialog")
   const tCommon = useTranslations("Common")
 
+  const closeDialog = () => {
+    setOpenCreateUserDialog(false)
+    resetStates()
+  }
+
   const { navigate, isNavigating } = useModalNavigation({
-    closeModal: () => setOpenCreateUserDialog(false),
+    closeModal: closeDialog,
   })
 
   const { data: rolesData, loading: rolesLoading } = useRolesQuery({

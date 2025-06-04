@@ -301,10 +301,13 @@ export const CreateCustomerDialog: React.FC<CreateCustomerDialogProps> = ({
 }) => {
   const t = useTranslations("Customers.create")
 
+  const closeDialog = () => {
+    setOpenCreateCustomerDialog(false)
+    resetForm()
+  }
+
   const { navigate, isNavigating } = useModalNavigation({
-    closeModal: () => {
-      setOpenCreateCustomerDialog(false)
-    },
+    closeModal: closeDialog,
   })
 
   const [createCustomer, { loading, error: createCustomerError }] =
