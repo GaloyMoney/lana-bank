@@ -31,6 +31,19 @@ pub struct DeprecatedEncryptionKey {
     pub key: String,
 }
 
+impl From<KomainuConfig> for komainu::KomainuConfig {
+    fn from(config: KomainuConfig) -> Self {
+        komainu::KomainuConfig {
+            api_user: config.api_key,
+            api_secret: config.api_secret,
+            secret_key: komainu::KomainuSecretKey::Plain {
+                dem: config.secret_key,
+            },
+            komainu_test: config.testing_instance,
+        }
+    }
+}
+
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
 pub enum CustodianConfig {

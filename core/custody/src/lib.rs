@@ -4,14 +4,23 @@
 mod config;
 pub mod custodian;
 pub mod error;
+mod event;
 mod primitives;
+mod publisher;
+pub mod wallet;
 
+use es_entity::DbOp;
+pub use event::CoreCustodyEvent;
+use outbox::{Outbox, OutboxEventMarker};
+pub use publisher::CustodyPublisher;
 use tracing::instrument;
 
 use audit::AuditSvc;
 use authz::PermissionCheck;
 
+use custodian::state::repo::CustodianStateRepo;
 pub use custodian::*;
+pub use wallet::*;
 
 pub use config::*;
 use error::CoreCustodyError;
@@ -22,31 +31,37 @@ pub mod event_schema {
     pub use crate::custodian::CustodianEvent;
 }
 
-#[derive(Clone)]
-pub struct CoreCustody<Perms>
+pub struct CoreCustody<Perms, E>
 where
     Perms: PermissionCheck,
+    E: OutboxEventMarker<CoreCustodyEvent>,
 {
     authz: Perms,
     custodians: CustodianRepo,
     config: CustodyConfig,
+    wallets: WalletRepo<E>,
+    custodian_state: CustodianStateRepo,
 }
 
-impl<Perms> CoreCustody<Perms>
+impl<Perms, E> CoreCustody<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCustodyAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCustodyObject>,
+    E: OutboxEventMarker<CoreCustodyEvent>,
 {
     pub async fn init(
         pool: &sqlx::PgPool,
         authz: &Perms,
         config: CustodyConfig,
+        outbox: &Outbox<E>,
     ) -> Result<Self, CoreCustodyError> {
         let custody = Self {
             authz: authz.clone(),
             custodians: CustodianRepo::new(pool),
             config,
+            wallets: WalletRepo::new(pool, &CustodyPublisher::new(outbox)),
+            custodian_state: CustodianStateRepo::new(pool),
         };
 
         if let Some(deprecated_encryption_key) = custody.config.deprecated_encryption_key.as_ref() {
@@ -170,6 +185,23 @@ where
     }
 
     #[instrument(name = "core_custody.list_custodians", skip(self), err)]
+    pub async fn find_custodian_by_id(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        id: CustodianId,
+    ) -> Result<Custodian, CoreCustodyError> {
+        self.authz
+            .enforce_permission(
+                sub,
+                CoreCustodyObject::all_custodians(),
+                CoreCustodyAction::CUSTODIAN_LIST,
+            )
+            .await?;
+
+        Ok(self.custodians.find_by_id(id).await?)
+    }
+
+    #[instrument(name = "core_custody.list_custodians", skip(self), err)]
     pub async fn list_custodians(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
@@ -187,5 +219,98 @@ where
             .custodians
             .list_by_name(query, es_entity::ListDirection::Ascending)
             .await?)
+    }
+
+    pub async fn create_new_wallet_in_op(
+        &self,
+        db: &mut DbOp<'_>,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        custodian_id: CustodianId,
+    ) -> Result<Wallet, CoreCustodyError> {
+        let audit_info = self
+            .authz
+            .enforce_permission(
+                sub,
+                CoreCustodyObject::custodian(custodian_id),
+                CoreCustodyAction::CUSTODIAN_CREATE_WALLET,
+            )
+            .await?;
+
+        let new_wallet = NewWallet::builder()
+            .id(WalletId::new())
+            .custodian_id(custodian_id)
+            .audit_info(audit_info)
+            .build()
+            .expect("all fields for new wallet provided");
+
+        let mut wallet = self.wallets.create_in_op(db, new_wallet).await?;
+
+        self.generate_wallet_address_in_op(db, sub, &mut wallet)
+            .await?;
+
+        Ok(wallet)
+    }
+
+    async fn generate_wallet_address_in_op(
+        &self,
+        db: &mut DbOp<'_>,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        wallet: &mut Wallet,
+    ) -> Result<(), CoreCustodyError> {
+        let audit_info = self
+            .authz
+            .enforce_permission(
+                sub,
+                CoreCustodyObject::wallet(wallet.id),
+                CoreCustodyAction::WALLET_GENERATE_ADDRESS,
+            )
+            .await?;
+
+        let custodian = self
+            .custodians
+            .find_by_id_in_tx(db.tx(), &wallet.custodian_id)
+            .await?;
+
+        let custodian_id = custodian.id;
+
+        let client = custodian
+            .custodian_client(self.config.custodian_encryption.key)
+            .await?;
+        let address = client
+            .create_address(
+                &format!("Wallet {}", wallet.id),
+                self.custodian_state.persisted_state_for(custodian_id),
+            )
+            .await?;
+
+        if wallet
+            .allocate_address(
+                address.address,
+                address.label,
+                address.full_response,
+                &audit_info,
+            )
+            .did_execute()
+        {
+            self.wallets.update_in_op(db, wallet).await?;
+        }
+
+        Ok(())
+    }
+}
+
+impl<Perms, E> Clone for CoreCustody<Perms, E>
+where
+    Perms: PermissionCheck,
+    E: OutboxEventMarker<CoreCustodyEvent>,
+{
+    fn clone(&self) -> Self {
+        Self {
+            authz: self.authz.clone(),
+            custodians: self.custodians.clone(),
+            wallets: self.wallets.clone(),
+            custodian_state: self.custodian_state.clone(),
+            config: self.config.clone(),
+        }
     }
 }

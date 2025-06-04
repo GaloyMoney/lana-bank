@@ -25,7 +25,14 @@ pub async fn principal_under_payment_scenario(sub: Subject, app: &LanaApp) -> an
     let cf_amount = UsdCents::try_from_usd(dec!(10_000_000))?;
     let cf = app
         .credit()
-        .initiate(&sub, customer_id, deposit_account_id, cf_amount, cf_terms)
+        .initiate(
+            &sub,
+            customer_id,
+            deposit_account_id,
+            cf_amount,
+            cf_terms,
+            None::<CustodianId>,
+        )
         .await?;
 
     let mut stream = app.outbox().listen_persisted(None).await?;
