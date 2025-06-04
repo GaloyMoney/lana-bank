@@ -1,5 +1,6 @@
 mod entity;
 pub mod error;
+mod primitives;
 mod repo;
 
 use audit::AuditSvc;
@@ -11,13 +12,13 @@ use outbox::OutboxEventMarker;
 use crate::{
     event::CoreCreditEvent,
     liquidation_obligation_defaulted,
-    obligation::ObligationDefaultedReallocationData,
     primitives::{CoreCreditAction, CoreCreditObject, LiquidationObligationId},
     publisher::CreditFacilityPublisher,
 };
 
 pub(crate) use entity::*;
 pub(crate) use error::LiquidationObligationError;
+pub(crate) use primitives::LiquidationObligationDefaultedReallocationData;
 pub(crate) use repo::LiquidationObligationRepo;
 
 pub struct LiquidationObligations<Perms, E>
@@ -102,7 +103,8 @@ where
         db: &mut es_entity::DbOp<'_>,
         id: LiquidationObligationId,
         effective: chrono::NaiveDate,
-    ) -> Result<Option<ObligationDefaultedReallocationData>, LiquidationObligationError> {
+    ) -> Result<Option<LiquidationObligationDefaultedReallocationData>, LiquidationObligationError>
+    {
         let mut liquidation_obligation = self.liquidation_obligation_repo.find_by_id(id).await?;
 
         let audit_info = self

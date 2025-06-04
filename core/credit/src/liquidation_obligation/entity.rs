@@ -5,9 +5,9 @@ use serde::{Deserialize, Serialize};
 use audit::AuditInfo;
 use es_entity::*;
 
-use crate::{obligation::ObligationDefaultedReallocationData, primitives::*};
+use crate::primitives::*;
 
-use super::error::LiquidationObligationError;
+use super::{error::LiquidationObligationError, primitives::*};
 
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
@@ -118,7 +118,10 @@ impl LiquidationObligation {
         &mut self,
         effective: chrono::NaiveDate,
         audit_info: AuditInfo,
-    ) -> Result<Idempotent<ObligationDefaultedReallocationData>, LiquidationObligationError> {
+    ) -> Result<
+        Idempotent<LiquidationObligationDefaultedReallocationData>,
+        LiquidationObligationError,
+    > {
         idempotency_guard!(
             self.events.iter_all().rev(),
             LiquidationObligationEvent::DefaultedRecorded { .. }
@@ -129,7 +132,7 @@ impl LiquidationObligation {
             return Ok(Idempotent::Ignored);
         }
 
-        let res = ObligationDefaultedReallocationData {
+        let res = LiquidationObligationDefaultedReallocationData {
             tx_id: LedgerTxId::new(),
             amount,
             receivable_account_id: self.receivable_account_id,

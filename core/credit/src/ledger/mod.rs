@@ -20,11 +20,10 @@ use cala_ledger::{
 
 use crate::{
     chart_of_accounts_integration::ChartOfAccountsIntegrationConfig,
-    liquidation_obligation::LiquidationObligation,
-    obligation::{
-        Obligation, ObligationDefaultedReallocationData, ObligationDueReallocationData,
-        ObligationOverdueReallocationData,
+    liquidation_obligation::{
+        LiquidationObligation, LiquidationObligationDefaultedReallocationData,
     },
+    obligation::{Obligation, ObligationDueReallocationData, ObligationOverdueReallocationData},
     payment_allocation::PaymentAllocation,
     primitives::{
         CalaAccountId, CalaAccountSetId, CollateralAction, CollateralUpdate, CreditFacilityId,
@@ -1247,14 +1246,14 @@ impl CreditLedger {
     pub async fn record_liquidation_obligation_defaulted(
         &self,
         op: es_entity::DbOp<'_>,
-        ObligationDefaultedReallocationData {
+        LiquidationObligationDefaultedReallocationData {
             tx_id,
             amount: outstanding_amount,
             receivable_account_id,
             defaulted_account_id,
             effective,
             ..
-        }: ObligationDefaultedReallocationData,
+        }: LiquidationObligationDefaultedReallocationData,
     ) -> Result<(), CreditLedgerError> {
         let mut op = self.cala.ledger_operation_from_db_op(op);
         self.cala
