@@ -4,7 +4,7 @@ use rand::Rng;
 
 use authz::dummy::DummySubject;
 use cala_ledger::{CalaLedger, CalaLedgerConfig};
-use cloud_storage::{Storage, config::StorageConfig};
+use cloud_storage::{config::StorageConfig, Storage};
 
 use core_accounting::CoreAccounting;
 use core_credit::*;
@@ -19,6 +19,7 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
 
     let governance = governance::Governance::new(&pool, &authz, &outbox);
     let customers = core_customer::Customers::new(&pool, &authz, &outbox);
+    let custody = core_custody::CoreCustody::new(&pool, &authz);
     let price = core_price::Price::new();
 
     let cala_config = CalaLedgerConfig::builder()
@@ -37,6 +38,7 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
         &jobs,
         &authz,
         &customers,
+        &custody,
         &price,
         &outbox,
         &cala,

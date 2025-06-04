@@ -24,6 +24,7 @@ mod time;
 use audit::{AuditInfo, AuditSvc};
 use authz::PermissionCheck;
 use cala_ledger::CalaLedger;
+use core_custody::CoreCustody;
 use core_customer::{CoreCustomerAction, CoreCustomerEvent, CustomerObject, Customers};
 use core_price::Price;
 use governance::{Governance, GovernanceAction, GovernanceEvent, GovernanceObject};
@@ -32,8 +33,8 @@ use outbox::{Outbox, OutboxEventMarker};
 use tracing::instrument;
 
 pub use chart_of_accounts_integration::{
-    ChartOfAccountsIntegrationConfig, ChartOfAccountsIntegrationConfigBuilderError,
-    ChartOfAccountsIntegrations, error::ChartOfAccountsIntegrationError,
+    error::ChartOfAccountsIntegrationError, ChartOfAccountsIntegrationConfig,
+    ChartOfAccountsIntegrationConfigBuilderError, ChartOfAccountsIntegrations,
 };
 pub use collateral::*;
 pub use config::*;
@@ -136,6 +137,7 @@ where
         jobs: &Jobs,
         authz: &Perms,
         customer: &Customers<Perms, E>,
+        _custody: &CoreCustody<Perms>,
         price: &Price,
         outbox: &Outbox<E>,
         cala: &CalaLedger,
