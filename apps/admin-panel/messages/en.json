@@ -89,11 +89,11 @@
     },
     "custody_viewer": {
       "label": "Custody Viewer",
-      "description": "Can view custody accounts"
+      "description": "Can view custodian configurations"
     },
     "custody_writer": {
       "label": "Custody Writer",
-      "description": "Can create and manage custody accounts,"
+      "description": "Can create and manage custodian configurations"
     }
   },
   "interestInterval": {
