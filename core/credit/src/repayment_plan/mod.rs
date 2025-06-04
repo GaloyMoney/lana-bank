@@ -205,6 +205,9 @@ impl CreditFacilityRepaymentPlan {
             | CoreCreditEvent::ObligationOverdue {
                 id: obligation_id, ..
             }
+            | CoreCreditEvent::ObligationMovedToLiquidation {
+                id: obligation_id, ..
+            }
             | CoreCreditEvent::ObligationCompleted {
                 id: obligation_id, ..
             } => {
@@ -219,6 +222,9 @@ impl CreditFacilityRepaymentPlan {
                     data.status = match event {
                         CoreCreditEvent::ObligationDue { .. } => RepaymentStatus::Due,
                         CoreCreditEvent::ObligationOverdue { .. } => RepaymentStatus::Overdue,
+                        CoreCreditEvent::ObligationMovedToLiquidation { .. } => {
+                            RepaymentStatus::MovedToLiquidation
+                        }
                         CoreCreditEvent::ObligationCompleted { .. } => RepaymentStatus::Paid,
                         _ => unreachable!(),
                     };
