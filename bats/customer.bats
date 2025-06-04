@@ -6,7 +6,7 @@ PERSISTED_LOG_FILE="customer.e2e-logs"
 RUN_LOG_FILE="customer.run.e2e-logs"
 
 setup_file() {
-  start_server_nix
+  start_server
   login_superadmin
 }
 
