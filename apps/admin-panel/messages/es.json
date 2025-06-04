@@ -89,11 +89,11 @@
     },
     "custody_viewer": {
       "label": "Visualizador de custodia",
-      "description": "Puede ver cuentas de custodia"
+      "description": "Puede ver configuraciones de custodios"
     },
     "custody_writer": {
       "label": "Editor de custodia",
-      "description": "Puede crear y gestionar cuentas de custodia,"
+      "description": "Puede crear y gestionar configuraciones de custodios"
     }
   },
   "interestInterval": {
