@@ -137,8 +137,8 @@ ymd() {
           oneTimeFeeRate: "5",
           duration: { period: "MONTHS", units: 3 },
           interestDueDuration: { period: "DAYS", units: 0 },
-          obligationOverdueDuration: { period: "DAYS", units: 50 },
-          obligationLiquidationDuration: { period: "DAYS", units: 60 },
+          obligationOverdueDuration: { period: "DAYS", units: 250 },
+          obligationLiquidationDuration: { period: "DAYS", units: 500 },
           liquidationCvl: "105",
           marginCallCvl: "125",
           initialCvl: "140"
