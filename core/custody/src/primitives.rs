@@ -1,4 +1,4 @@
-use authz::{action_description::*, AllOrOne};
+use authz::{AllOrOne, action_description::*};
 
 es_entity::entity_id! {
     CustodianConfigId;
