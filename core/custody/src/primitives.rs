@@ -1,11 +1,11 @@
-use authz::{AllOrOne, action_description::*};
+use authz::{action_description::*, AllOrOne};
 
 es_entity::entity_id! {
     CustodianConfigId;
 }
 
-pub const PERMISSION_SET_CUSTODIAN_CONFIG_VIEWER: &str = "custody_viewer";
-pub const PERMISSION_SET_CUSTODIAN_CONFIG_WRITER: &str = "custody_writer";
+pub const PERMISSION_SET_CUSTODY_VIEWER: &str = "custody_viewer";
+pub const PERMISSION_SET_CUSTODY_WRITER: &str = "custody_writer";
 
 #[derive(Clone, Copy, Debug, PartialEq, strum::EnumDiscriminants)]
 #[strum_discriminants(derive(strum::Display, strum::EnumString, strum::VariantArray))]
@@ -78,15 +78,10 @@ impl CustodianConfigAction {
 
         for variant in <Self as strum::VariantArray>::VARIANTS {
             let action_description = match variant {
-                Self::Create => {
-                    ActionDescription::new(variant, &[PERMISSION_SET_CUSTODIAN_CONFIG_WRITER])
-                }
+                Self::Create => ActionDescription::new(variant, &[PERMISSION_SET_CUSTODY_WRITER]),
                 Self::List => ActionDescription::new(
                     variant,
-                    &[
-                        PERMISSION_SET_CUSTODIAN_CONFIG_VIEWER,
-                        PERMISSION_SET_CUSTODIAN_CONFIG_WRITER,
-                    ],
+                    &[PERMISSION_SET_CUSTODY_VIEWER, PERMISSION_SET_CUSTODY_WRITER],
                 ),
             };
             res.push(action_description);
